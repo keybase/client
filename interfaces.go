@@ -20,7 +20,6 @@ type Server interface {
 
 type LocalCache interface {
 
-
 }
 
 type Config interface {
@@ -28,7 +27,6 @@ type Config interface {
 }
 
 type HttpRequest interface {
-
 
 }
 
@@ -41,6 +39,5 @@ type ProofCheckers interface {
 }
 
 type Logger interface {
-
 
 }
