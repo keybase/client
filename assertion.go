@@ -120,7 +120,6 @@ func (a AssertionUrlBase) Check() (err error) {
 	return err
 }
 
-
 func (a AssertionUrlBase) ToString() string {
 	return fmt.Sprintf("%s://%s", a.Key, a.Value)	
 }

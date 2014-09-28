@@ -53,11 +53,12 @@ func TestLexer2 (t *testing.T) {
 }
 
 func TestParser(t *testing.T) {
-	s := "  a ||   b   && c ||\n d ||\n e && f || g && (h ||\ni)"
-	expr, err := AssertionParse(s)
+	inp := "  a ||   b   && c ||\n d ||\n e && f || g && (h ||\ni)"
+	outp := "(keybase://a || ((keybase://b && keybase://c) || (keybase://d || ((keybase://e && keybase://f) || (keybase://g && (keybase://h || keybase://i))))))"
+	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Errorf(err.Error());
-	} else if expr.ToString() != "(a || ((b && c) || (d || ((e && f) || (g && (h || i))))))" {
-		t.Errorf("Wrong parse result: %s", s)
+	} else if expr.ToString() != outp {
+		t.Errorf("Wrong parse result: %s v %s", expr.ToString(), outp)
 	}
 }
