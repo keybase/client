@@ -51,3 +51,13 @@ func TestLexer2 (t *testing.T) {
 	}
 	testLexer(t, "test2", s, expected)
 }
+
+func TestParser(t *testing.T) {
+	s := "  a ||   b   && c ||\n d ||\n e && f || g && (h ||\ni)"
+	expr, err := AssertionParse(s)
+	if err != nil {
+		t.Errorf(err.Error());
+	} else if expr.ToString() != "(a || ((b && c) || (d || ((e && f) || (g && (h || i))))))" {
+		t.Errorf("Wrong parse result: %s", s)
+	}
+}

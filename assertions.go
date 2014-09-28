@@ -213,7 +213,7 @@ func (p *Parser) parseExpr() (ret AssertionExpression) {
 	return ret;
 }
 
-func Parse(s string) (AssertionExpression, error) {
+func AssertionParse(s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
 	parser := Parser { lexer, nil }
 	ret := parser.Parse()
