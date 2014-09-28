@@ -3,6 +3,7 @@ package libkbgo
 
 import (
 	"regexp"
+	"fmt"
 )
 
 var empty_string []byte = []byte{}
@@ -101,5 +102,76 @@ func (lx *Lexer) Get() (* Token) {
 		ret = NewToken(ERROR)
 	}
 	lx.last = ret
+	return ret
+}
+
+type AssertionExpression interface {
+
+}
+
+type AssertionOr struct {
+	terms []AssertionExpression
+}
+
+type AssertionAnd struct {
+	factors []AssertionExpression
+}
+
+type AssertionUrl struct {
+	Value string
+}
+
+type Parser struct {
+	lexer *Lexer
+	err error
+}
+
+func NewAssertionAnd(left,right AssertionExpression) AssertionAnd {
+	factors := []AssertionExpression{ left, right }
+	return AssertionAnd { factors }	
+}
+
+func NewAssertionOr(left,right AssertionExpression) AssertionOr {
+	terms := []AssertionExpression{ left, right }
+	return AssertionOr { terms }	
+}
+
+func (p *Parser) Parse() AssertionExpression {
+	return p.parseExpression()
+}
+
+func (p *Parser) parseTerm() AssertionExpression {
+	return nil	
+}
+func (p *Parser) parseFactor() AssertionExpression {
+	return nil	
+}
+
+func (p *Parser) parseExpression() AssertionExpression {
+	tok := p.lexer.Get()
+	var ret AssertionExpression
+	switch tok.Typ {
+		case LPAREN:
+			ret = p.parseExpression()
+			if tok = p.lexer.Get(); tok.Typ != RPAREN {
+				p.err = fmt.Errorf("Unbalanced parentheses")
+				ret = nil;
+			}
+		case URL:
+			url := AssertionUrl { tok.getString() }
+			nxt := p.lexer.Get()
+			switch nxt.Typ {
+				case EOF:
+					ret = url;
+				case AND:	
+					right := p.parseFactor()
+					ret = NewAssertionAnd(url,right)
+				case OR:
+					right := p.parseTerm()
+					ret = NewAssertionOr(url,right)
+				default:
+					p.err = fmt.Errorf("Unexpected token: %s", nxt.getString())
+			}
+	}
 	return ret
 }
