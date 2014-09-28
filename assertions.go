@@ -27,13 +27,30 @@ func (t Token) getString() string {
 	return string(t.value)
 }
 
+func byteArrayEq(a1, a2 []byte) bool {
+	if len(a1) != len(a2) {
+		return false;
+	}
+	for i,c := range(a1) {
+		if c != a2[i] {
+			return false;
+		}	
+	}
+	return true;
+}
+
+func (t Token) Eq(t2 Token) bool {
+	return (t.Typ == t2.Typ) && byteArrayEq(t.value, t2.value)	
+}
+
 func NewToken(typ int) (* Token) {
 	return &Token { typ, empty_string }	
 }
 
 type Lexer struct {
 	buffer []byte
-	putback *Token
+	last *Token
+	putback bool
 	re *regexp.Regexp
 	wss *regexp.Regexp
 }
@@ -41,7 +58,7 @@ type Lexer struct {
 func NewLexer(s string) (* Lexer) {
 	re := regexp.MustCompile(`^(\|\|)|(\&\&)|(\()|(\))|([^ \n\t&|()]+)`)
 	wss := regexp.MustCompile(`^([\n\t ]+)`)
-	l := &Lexer {[]byte(s), nil, re, wss};
+	l := &Lexer {[]byte(s), nil, false, re, wss};
 	l.stripBuffer()
 	return l;
 }
@@ -59,11 +76,15 @@ func (lx *Lexer) advanceBuffer(i int) {
 	lx.stripBuffer()
 }
 
+func (lx *Lexer) Putback() {
+	lx.putback = true
+}
+
 func (lx *Lexer) Get() (* Token) {
 	var ret *Token
-	if lx.putback != nil {
-		ret = lx.putback
-		lx.putback = nil
+	if lx.putback {
+		ret = lx.last
+		lx.putback = false
 	} else if len(lx.buffer) == 0 {
 		ret = NewToken(EOF)
 	} else if match := lx.re.FindSubmatchIndex(lx.buffer); match != nil {
@@ -79,6 +100,6 @@ func (lx *Lexer) Get() (* Token) {
 		lx.buffer = empty_string
 		ret = NewToken(ERROR)
 	}
+	lx.last = ret
 	return ret
 }
-
