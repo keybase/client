@@ -4,6 +4,7 @@ package libkbgo
 import (
 	"regexp"
 	"fmt"
+	"strings"
 )
 
 var empty_string []byte = []byte{}
@@ -106,24 +107,49 @@ func (lx *Lexer) Get() (* Token) {
 }
 
 type AssertionExpression interface {
-
+	ToString() string
 }
 
 type AssertionOr struct {
 	terms []AssertionExpression
 }
 
+func (a AssertionOr) ToString() string {
+	v := make([]string, len(a.terms))
+	for i,t := range a.terms {
+		v[i] = t.ToString()
+	}
+	return fmt.Sprintf("(%s)", strings.Join(v, " || " ))
+}
+
 type AssertionAnd struct {
 	factors []AssertionExpression
+}
+
+func (a AssertionAnd) ToString() string {
+	v := make([]string, len(a.factors))
+	for i,f := range a.factors {
+		v[i] = f.ToString()
+	}
+	return fmt.Sprintf("(%s)", strings.Join(v, " && " ))
 }
 
 type AssertionUrl struct {
 	Value string
 }
 
+func (a AssertionUrl) ToString() string {
+	return a.Value	
+}
+
 type Parser struct {
 	lexer *Lexer
 	err error
+}
+
+func NewParser(lexer *Lexer) *Parser {
+	ret := &Parser { lexer, nil }
+	return ret
 }
 
 func NewAssertionAnd(left,right AssertionExpression) AssertionAnd {
@@ -137,41 +163,59 @@ func NewAssertionOr(left,right AssertionExpression) AssertionOr {
 }
 
 func (p *Parser) Parse() AssertionExpression {
-	return p.parseExpression()
+	return p.parseExpr()
 }
 
-func (p *Parser) parseTerm() AssertionExpression {
-	return nil	
-}
-func (p *Parser) parseFactor() AssertionExpression {
-	return nil	
-}
-
-func (p *Parser) parseExpression() AssertionExpression {
+func (p *Parser) parseTerm() (ret AssertionExpression) {
+	factor := p.parseFactor()
 	tok := p.lexer.Get()
-	var ret AssertionExpression
+	if tok.Typ == AND {
+		term := p.parseTerm()
+		ret = NewAssertionAnd(factor, term)		
+	} else {
+		ret = factor
+		p.lexer.Putback()
+	}
+	return ret;
+}
+
+
+func (p *Parser) parseFactor() (ret AssertionExpression) {
+	tok := p.lexer.Get()
 	switch tok.Typ {
-		case LPAREN:
-			ret = p.parseExpression()
-			if tok = p.lexer.Get(); tok.Typ != RPAREN {
-				p.err = fmt.Errorf("Unbalanced parentheses")
-				ret = nil;
-			}
-		case URL:
-			url := AssertionUrl { tok.getString() }
-			nxt := p.lexer.Get()
-			switch nxt.Typ {
-				case EOF:
-					ret = url;
-				case AND:	
-					right := p.parseFactor()
-					ret = NewAssertionAnd(url,right)
-				case OR:
-					right := p.parseTerm()
-					ret = NewAssertionOr(url,right)
-				default:
-					p.err = fmt.Errorf("Unexpected token: %s", nxt.getString())
-			}
+	case URL:
+		ret = AssertionUrl { tok.getString() }
+	case LPAREN:
+		ex := p.parseExpr()
+		tok = p.lexer.Get()
+		if tok.Typ == RPAREN {
+			ret = ex
+		} else {
+			ret = nil
+			p.err = fmt.Errorf("Unbalanced parentheses")
+		}
+	default:
+		p.err = fmt.Errorf("Unexpected token: %s", tok.getString())
 	}
 	return ret
+}
+
+func (p *Parser) parseExpr() (ret AssertionExpression) {
+	term := p.parseTerm()
+	tok := p.lexer.Get()
+	if tok.Typ == OR {
+		ex := p.parseExpr()
+		ret = NewAssertionOr(term, ex)
+	} else {
+		ret = term
+		p.lexer.Putback()
+	}
+	return ret;
+}
+
+func Parse(s string) (AssertionExpression, error) {
+	lexer := NewLexer(s)
+	parser := Parser { lexer, nil }
+	ret := parser.Parse()
+	return ret, parser.err
 }
