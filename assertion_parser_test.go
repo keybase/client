@@ -73,3 +73,29 @@ func TestParser2(t *testing.T) {
 		t.Errorf("Wrong parse result: %s v %s", expr.ToString(), outp)
 	}
 }
+
+type Pair struct {
+	k,v string
+}
+
+func TestParserFail1(t *testing.T) {
+	bads := []Pair{
+		{"a ||",       "Unexpected EOF" },
+		{"a &&",       "Unexpected EOF" },
+		{"(a",         "Unbalanced parentheses" },
+		{"a && dns:",  "Bad assertion, no value given (key=dns)" },
+		{"b && foo:a", "Unknown social network: foo" },
+		{"&& a",       "Unexpected token: &&" },
+		{"|| a",       "Unexpected token: ||" },
+		{"a)",         "Found junk at end of input: )" },
+	}
+	
+	for _, bad := range(bads) {
+		expr, err := AssertionParse(bad.k)
+		if err == nil {
+			t.Errorf("Expected a parse error in %s (got %v)", bad, expr)
+		} else if err.Error() != bad.v {
+			t.Errorf("Got wrong error; wanted '%s', but got '%s'", err.Error(), bad.v)
+		}
+	}
+}

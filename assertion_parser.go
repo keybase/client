@@ -28,6 +28,15 @@ func (t Token) getString() string {
 	return string(t.value)
 }
 
+func (t Token) unexpectedError() error {
+	switch t.Typ {
+	case EOF:
+		return fmt.Errorf("Unexpected EOF")
+	default:
+		return fmt.Errorf("Unexpected token: %s", t.getString())
+	}
+}
+
 func byteArrayEq(a1, a2 []byte) bool {
 	if len(a1) != len(a2) {
 		return false;
@@ -126,7 +135,15 @@ func NewAssertionOr(left,right AssertionExpression) AssertionOr {
 }
 
 func (p *Parser) Parse() AssertionExpression {
-	return p.parseExpr()
+	ret := p.parseExpr()
+	if ret != nil {
+		tok := p.lexer.Get()
+		if tok.Typ != EOF {
+			p.err = fmt.Errorf("Found junk at end of input: %s", tok.value)
+			ret = nil
+		}
+	}
+	return ret
 }
 
 func (p *Parser) parseTerm() (ret AssertionExpression) {
@@ -162,7 +179,7 @@ func (p *Parser) parseFactor() (ret AssertionExpression) {
 			p.err = fmt.Errorf("Unbalanced parentheses")
 		}
 	default:
-		p.err = fmt.Errorf("Unexpected token: %s", tok.getString())
+		p.err = tok.unexpectedError()
 	}
 	return ret
 }
