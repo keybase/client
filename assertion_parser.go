@@ -4,7 +4,6 @@ package libkbgo
 import (
 	"regexp"
 	"fmt"
-	"strings"
 )
 
 var empty_string []byte = []byte{}
@@ -106,42 +105,6 @@ func (lx *Lexer) Get() (* Token) {
 	return ret
 }
 
-type AssertionExpression interface {
-	ToString() string
-}
-
-type AssertionOr struct {
-	terms []AssertionExpression
-}
-
-func (a AssertionOr) ToString() string {
-	v := make([]string, len(a.terms))
-	for i,t := range a.terms {
-		v[i] = t.ToString()
-	}
-	return fmt.Sprintf("(%s)", strings.Join(v, " || " ))
-}
-
-type AssertionAnd struct {
-	factors []AssertionExpression
-}
-
-func (a AssertionAnd) ToString() string {
-	v := make([]string, len(a.factors))
-	for i,f := range a.factors {
-		v[i] = f.ToString()
-	}
-	return fmt.Sprintf("(%s)", strings.Join(v, " && " ))
-}
-
-type AssertionUrl struct {
-	Value string
-}
-
-func (a AssertionUrl) ToString() string {
-	return a.Value	
-}
-
 type Parser struct {
 	lexer *Lexer
 	err error
@@ -178,7 +141,6 @@ func (p *Parser) parseTerm() (ret AssertionExpression) {
 	}
 	return ret;
 }
-
 
 func (p *Parser) parseFactor() (ret AssertionExpression) {
 	tok := p.lexer.Get()
