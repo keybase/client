@@ -52,9 +52,20 @@ func TestLexer2 (t *testing.T) {
 	testLexer(t, "test2", s, expected)
 }
 
-func TestParser(t *testing.T) {
+func TestParser1(t *testing.T) {
 	inp := "  a ||   b   && c ||\n d ||\n e && f || g && (h ||\ni)"
 	outp := "(keybase://a || ((keybase://b && keybase://c) || (keybase://d || ((keybase://e && keybase://f) || (keybase://g && (keybase://h || keybase://i))))))"
+	expr, err := AssertionParse(inp)
+	if err != nil {
+		t.Errorf(err.Error());
+	} else if expr.ToString() != outp {
+		t.Errorf("Wrong parse result: %s v %s", expr.ToString(), outp)
+	}
+}
+
+func TestParser2(t *testing.T) {
+	inp := "  web://a ||   http://b   && dns://c ||\n d ||\n fingerprint:e && reddit:f || twitter:g && (https:h ||\ndns:i)"
+	outp := "(web://a || ((http://b && dns://c) || (keybase://d || ((fingerprint://e && reddit://f) || (twitter://g && (https://h || dns://i))))))"
 	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Errorf(err.Error());

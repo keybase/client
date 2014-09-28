@@ -115,7 +115,7 @@ type AssertionFingerprint struct {AssertionUrlBase }
 
 func (a AssertionUrlBase) Check() (err error) {
 	if len(a.Value) == 0 {
-		err = fmt.Errorf("Bad assertion, no value given")
+		err = fmt.Errorf("Bad assertion, no value given (key=%s)", a.Key)
 	}
 	return err
 }
@@ -130,7 +130,7 @@ func parseToKVPair(s string) (key string, value string) {
 		value = s
 	} else {
 		key = s[0:colon]
-		value := s[(colon+1):]
+		value = s[(colon+1):]
 		if len(value) >= 2 && value[0:2] == "//" {
 			value = value[2:]
 		}
@@ -152,15 +152,15 @@ func (s AssertionSocial) Check() (err error) {
 		"twitter" : true,
 		"hackernews" : true,
 	}
-	b, ok := networks[s.Value]
+	b, ok := networks[s.Key]
 	if !b || !ok {
-		err = fmt.Errorf("Unknown social network: %s", s.Value)
+		err = fmt.Errorf("Unknown social network: %s", s.Key)
 	}
 	return
 }
 
 func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
-	key,value := parseToKVPair(s)
+	key,val := parseToKVPair(s)
 
 	if len(key) == 0 {
 		if strict {
@@ -169,8 +169,7 @@ func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
 			key = "keybase"
 		}
 	}
-
-	base := AssertionUrlBase { key, value }
+	base := AssertionUrlBase { key, val}
 	switch key {
 		case "keybase": 
 			ret = AssertionKeybase { base }
