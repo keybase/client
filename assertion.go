@@ -59,6 +59,7 @@ type AssertionUrl interface {
 	IsKeybase() bool
 	ToString() string
 	MatchSet(ps ProofSet) bool
+	MatchProof(p Proof) bool
 }
 
 type AssertionUrlBase struct {
@@ -68,7 +69,7 @@ type AssertionUrlBase struct {
 func (a AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
 	proofs := ps.Get(v.Keys())
 	for _, proof := range(proofs) {
-		if strings.ToLower(proof.Value) == a.Value {
+		if v.MatchProof(proof) {
 			return true
 		}
 	}
@@ -81,11 +82,28 @@ func (a AssertionSocial) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
 func (a AssertionHttp) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
 func (a AssertionHttps) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
 func (a AssertionDns) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
+func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
 
 func (a AssertionWeb) Keys() []string {return []string { "dns", "http", "https", } }
 func (a AssertionHttp) Keys() []string {return []string { "http", "https", } }
 func (a AssertionUrlBase) Keys() []string {return []string { a.Key } }
 func (a AssertionUrlBase) IsKeybase() bool {return false; }
+func (a AssertionUrlBase) MatchProof(proof Proof) bool {
+	return (strings.ToLower(proof.Value) == a.Value )
+}
+
+// Fingerprint matching is on the suffixes.  If the assertion matches
+// any suffix of the proof, then we're OK
+func (a AssertionFingerprint) MatchProof(proof Proof) bool {
+	v1, v2 := strings.ToLower(proof.Value), a.Value
+	l1, l2 := len(v1), len(v2)
+	if l2 > l1 {
+		return false
+	} else {
+		// Match the suffixes of the fingerprint
+		return (v1[(l1-l2):] == v2)
+	}
+}
 
 type AssertionSocial struct {AssertionUrlBase }
 type AssertionWeb struct {AssertionUrlBase }
@@ -93,7 +111,7 @@ type AssertionKeybase struct {AssertionUrlBase }
 type AssertionHttp struct {AssertionUrlBase }
 type AssertionHttps struct {AssertionUrlBase }
 type AssertionDns struct {AssertionUrlBase }
-
+type AssertionFingerprint struct {AssertionUrlBase }
 
 func (a AssertionUrlBase) Check() (err error) {
 	if len(a.Value) == 0 {
@@ -165,6 +183,8 @@ func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
 			ret = AssertionHttps { base }
 		case "dns":
 			ret = AssertionDns { base }
+		case "fingerprint":
+			ret = AssertionFingerprint { base }
 		default : 
 			ret = AssertionSocial { base }
 	}
