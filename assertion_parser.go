@@ -66,7 +66,9 @@ type Lexer struct {
 }
 
 func NewLexer(s string) (* Lexer) {
-	re := regexp.MustCompile(`^(\|\|)|(\&\&)|(\()|(\))|([^ \n\t&|()]+)`)
+	// We're allowing '||' or ',' for disjunction
+	// We're allowing '&&' or '+' for conjunction
+	re := regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|()]+)`)
 	wss := regexp.MustCompile(`^([\n\t ]+)`)
 	l := &Lexer {[]byte(s), nil, false, re, wss};
 	l.stripBuffer()
@@ -98,10 +100,10 @@ func (lx *Lexer) Get() (* Token) {
 	} else if len(lx.buffer) == 0 {
 		ret = NewToken(EOF)
 	} else if match := lx.re.FindSubmatchIndex(lx.buffer); match != nil {
-		i := OR
-		for ; i <= URL; i++ {
+		seq := []int { NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL }
+		for i := 1 ; i <= len(seq); i++ {
 			if match[i*2] >= 0 {
-				ret = &Token { i, lx.buffer[match[2*i]:match[2*i+1]] }
+				ret = &Token { seq[i], lx.buffer[match[2*i]:match[2*i+1]] }
 				lx.advanceBuffer(match[2*i+1])
 				break
 			}
@@ -170,13 +172,17 @@ func (p *Parser) parseFactor() (ret AssertionExpression) {
 			ret = url
 		}
 	case LPAREN:
-		ex := p.parseExpr()
-		tok = p.lexer.Get()
-		if tok.Typ == RPAREN {
-			ret = ex
-		} else {
+		if ex := p.parseExpr(); ex == nil {
 			ret = nil
-			p.err = fmt.Errorf("Unbalanced parentheses")
+			p.err = fmt.Errorf("Illegal parenthetical expression")
+		} else {
+			tok = p.lexer.Get()
+			if tok.Typ == RPAREN {
+				ret = ex
+			} else {
+				ret = nil
+				p.err = fmt.Errorf("Unbalanced parentheses")
+			}
 		}
 	default:
 		p.err = tok.unexpectedError()

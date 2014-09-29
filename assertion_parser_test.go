@@ -88,6 +88,7 @@ func TestParserFail1(t *testing.T) {
 		{"&& a",       "Unexpected token: &&" },
 		{"|| a",       "Unexpected token: ||" },
 		{"a)",         "Found junk at end of input: )" },
+		{"()",         "Illegal parenthetical expression" },
 	}
 	
 	for _, bad := range(bads) {
@@ -95,7 +96,7 @@ func TestParserFail1(t *testing.T) {
 		if err == nil {
 			t.Errorf("Expected a parse error in %s (got %v)", bad, expr)
 		} else if err.Error() != bad.v {
-			t.Errorf("Got wrong error; wanted '%s', but got '%s'", err.Error(), bad.v)
+			t.Errorf("Got wrong error; wanted '%s', but got '%s'", bad.v, err.Error())
 		}
 	}
 }

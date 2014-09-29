@@ -19,7 +19,7 @@ func TestSuccess1(t *testing.T) {
 	}
 }
 
-func TestSucess2(t *testing.T) {
+func TestAssertions1(t *testing.T) {
 	a := "web://maxk.org && (https://foo.com || http://bar.com) && (twitter://bb || max || fingerprint://aabbcc)"	
 	good_proofsets := []ProofSet {
 		*NewProofSet([]Proof{
