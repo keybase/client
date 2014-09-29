@@ -85,7 +85,7 @@ func (a AssertionDns) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
 func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
 
 func (a AssertionWeb) Keys() []string {return []string { "dns", "http", "https", } }
-func (a AssertionHttps) Keys() []string {return []string { "http", "https", } }
+func (a AssertionHttp) Keys() []string {return []string { "http", "https", } }
 func (a AssertionUrlBase) Keys() []string {return []string { a.Key } }
 func (a AssertionUrlBase) IsKeybase() bool {return false; }
 func (a AssertionUrlBase) MatchProof(proof Proof) bool {
