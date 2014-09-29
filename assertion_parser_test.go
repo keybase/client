@@ -64,8 +64,8 @@ func TestParser1(t *testing.T) {
 }
 
 func TestParser2(t *testing.T) {
-	inp := "  web://a ||   http://b   && dns://c ||\n d ||\n fingerprint:e && reddit:f || twitter:g && (https:h ||\ndns:i)"
-	outp := "(web://a || ((http://b && dns://c) || (keybase://d || ((fingerprint://e && reddit://f) || (twitter://g && (https://h || dns://i))))))"
+	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n d ||\n fingerprint:e && reddit:f || twitter:g && (https:h.in ||\ndns:i.co)"
+	outp := "(web://a.aa || ((http://b.bb && dns://c.cc) || (keybase://d || ((fingerprint://e && reddit://f) || (twitter://g && (https://h.in || dns://i.co))))))"
 	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Errorf(err.Error());
@@ -89,6 +89,7 @@ func TestParserFail1(t *testing.T) {
 		{"|| a",       "Unexpected token: ||" },
 		{"a)",         "Found junk at end of input: )" },
 		{"()",         "Illegal parenthetical expression" },
+		{"dns://a",    "Invalid hostname: a" },
 	}
 	
 	for _, bad := range(bads) {

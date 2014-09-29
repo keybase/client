@@ -68,7 +68,7 @@ type Lexer struct {
 func NewLexer(s string) (* Lexer) {
 	// We're allowing '||' or ',' for disjunction
 	// We're allowing '&&' or '+' for conjunction
-	re := regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|()]+)`)
+	re := regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+)`)
 	wss := regexp.MustCompile(`^([\n\t ]+)`)
 	l := &Lexer {[]byte(s), nil, false, re, wss};
 	l.stripBuffer()

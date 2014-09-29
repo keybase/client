@@ -4,6 +4,7 @@ package libkbgo
 import (
 	"fmt"
 	"strings"
+	"regexp"
 )
 
 type AssertionExpression interface {
@@ -118,6 +119,23 @@ func (a AssertionUrlBase) Check() (err error) {
 		err = fmt.Errorf("Bad assertion, no value given (key=%s)", a.Key)
 	}
 	return err
+}
+
+func (a AssertionHttp) Check() (err error) { return a.CheckHost() }
+func (a AssertionHttps) Check() (err error) { return a.CheckHost() }
+func (a AssertionDns) Check() (err error) { return a.CheckHost() }
+func (a AssertionWeb) Check() (err error) { return a.CheckHost() }
+
+func (a AssertionUrlBase) CheckHost() (err error) {
+	s := a.Value
+	if err = a.Check(); err == nil {
+		// Found this here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
+		re := regexp.MustCompile(`^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$`)
+		if !re.MatchString(s) {
+			err = fmt.Errorf("Invalid hostname: %s", s)
+		}
+	}	
+	return
 }
 
 func (a AssertionUrlBase) ToString() string {

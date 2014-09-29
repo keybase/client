@@ -90,3 +90,33 @@ func TestAssertions1(t *testing.T) {
 		}
 	}
 }
+
+func TestAssertions2(t *testing.T) {
+	// Coyne-style grammar
+	a := "web:maxk.org+max,malgorithms+https:nutflex.com+fingerprint:aabbcc,samwise+dns:match.com"
+	good_proofsets := []ProofSet {
+		*NewProofSet([]Proof{
+			{"https", "maxk.org" },
+			{"keybase", "max"},
+		}),
+		*NewProofSet([]Proof{
+			{"https", "nutflex.com" },
+			{"fingerprint", "2233aabbcc" },
+			{"keybase", "malgorithms" },
+		}),
+		*NewProofSet([]Proof{
+			{"keybase", "samwise"},
+			{"dns", "match.com" },
+		}),
+	}
+	expr, err := AssertionParse(a)
+	if err != nil {
+		t.Errorf("Error parsing %s: %s", a, err.Error())
+	} else {
+		for i, proofset := range(good_proofsets) {
+			if !expr.MatchSet(proofset) {
+				t.Errorf("proofset %d failed to match", i)
+			}
+		}
+	}
+}
