@@ -3,7 +3,6 @@ package libkbgo
 
 import (
 	"testing"
-	"fmt"
 	"strings"
 )
 
@@ -27,5 +26,4 @@ func TestPosix(t *testing.T) {
 	} else if ! strings.Contains(d, ".config/tester") {
 		t.Errorf("Bad Config dir: %s", d)
 	}
-	fmt.Println(d)
 }
