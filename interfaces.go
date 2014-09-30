@@ -11,7 +11,8 @@ package libkbgo
  */
 
 type CommandLine interface {
-
+	GetHome() string
+	GetPort() int64
 }
 
 type Server interface {
@@ -23,6 +24,8 @@ type LocalCache interface {
 }
 
 type Config interface {
+	GetHome() string
+	GetPort() int64
 
 }
 
