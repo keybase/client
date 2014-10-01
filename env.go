@@ -8,21 +8,15 @@ import (
 	"strings"
 )
 
-type LoginState struct {
-	Configured bool
-	LoggedIn bool
-	SessionVerified bool
-}
 
 type Env struct {
 	cmd CommandLine
 	config Config
-	loginState LoginState
 	homeFinder HomeFinder
 }
 
 func NewEnv(cmd CommandLine, config Config) Env {
-	e := Env { cmd, config, LoginState { false, false, false}, nil }
+	e := Env { cmd, config, nil }
 	e.homeFinder = NewHomeFinder("keybase", func() string { return e.getHome() })
 	return e
 }
