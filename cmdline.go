@@ -33,6 +33,16 @@ func (p PosixCommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	return v, v
 }
 
+type CmdHelp struct {
+	ctx *cli.Context
+}
+
+func (c CmdHelp) UseConfig() bool { return false }
+func (c CmdHelp) Run() error {
+	cli.ShowAppHelp(c.ctx)
+	return nil
+}
+
 func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 	var cmd Command
 	app := cli.NewApp()
@@ -88,12 +98,13 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Usage : "print out version information",
 			Action : func (c *cli.Context) {
 				p.ctx = c
-				cmd = VersionCommand {}
+				cmd = CmdVersion {}
 			},
 		},
 	}
 	app.Action = func (c *cli.Context) {
 		p.ctx = c
+		cmd = CmdHelp { c }
 	}
 	p.app = app
 	err := app.Run(args)

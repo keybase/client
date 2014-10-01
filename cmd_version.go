@@ -6,14 +6,13 @@ import (
 	"runtime"
 )
 
-type VersionCommand struct {}
+type CmdVersion struct {}
 
-
-func (v VersionCommand) Run() error {
+func (v CmdVersion) Run() error {
 	fmt.Printf("Keybase Command-Line App v%s\n", CLIENT_VERSION)
 	fmt.Printf("- Built with %s\n", runtime.Version())
 	fmt.Printf("- Visit https://keybase.io for more details\n")
 	return nil
 }
 
-func (v VersionCommand) UseConfig() bool { return false }
+func (v CmdVersion) UseConfig() bool { return false }
