@@ -6,8 +6,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"fmt"
 	"runtime"
+	"log"
 )
 
 type HomeGetter func() string
@@ -18,10 +18,10 @@ type Base struct {
 }
 
 type HomeFinder interface {
-	CacheDir() (string, error)
-	ConfigDir() (string, error)
-	Home(emptyOk bool) (string, error)
-	DataDir() (string, error)
+	CacheDir() string
+	ConfigDir() string
+	Home(emptyOk bool) string
+	DataDir() string
 	Normalize(s string) string
 }
 
@@ -42,7 +42,7 @@ type XdgPosix struct {
 
 func (x XdgPosix) Normalize(s string) string { return s }
 
-func (x XdgPosix) Home(emptyOk bool) (string, error) {
+func (x XdgPosix) Home(emptyOk bool) string {
 	var ret string
 	if x.getHome != nil {
 		ret = x.getHome()
@@ -50,26 +50,23 @@ func (x XdgPosix) Home(emptyOk bool) (string, error) {
 	if len(ret) == 0 && !emptyOk {
 		ret = os.Getenv("HOME")
 	}
-	return ret, nil
+	return ret
 }
 
-func (x XdgPosix) dirHelper(env string, prefix_dirs ...string) (string, error) {
+func (x XdgPosix) dirHelper(env string, prefix_dirs ...string) string {
 	var prfx string
 	prfx = os.Getenv(env)
 	if len(prfx) == 0 {
-		h, err := x.Home(false)
-		if err != nil {
-			return "", err;
-		}
+		h := x.Home(false)
 		v := append([]string { h }, prefix_dirs...)
 		prfx = x.Join(v...)
 	}
-	return x.Join(prfx, x.appName), nil
+	return x.Join(prfx, x.appName)
 }
 
-func (x XdgPosix) ConfigDir() (string, error) { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
-func (x XdgPosix) CacheDir() (string, error)  { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
-func (x XdgPosix) DataDir() (string, error)   { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
+func (x XdgPosix) ConfigDir() string { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
+func (x XdgPosix) CacheDir()  string { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
+func (x XdgPosix) DataDir()   string { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
 
 type Win32 struct {
 	Base
@@ -84,11 +81,11 @@ func (w Win32) Normalize(s string) string {
 	return w.Unsplit(w.Split(s))
 }
 
-func (w Win32) CacheDir() (string, error)  { return w.Home(false); }
-func (w Win32) ConfigDir() (string, error) { return w.Home(false); }
-func (w Win32) DataDir() (string, error)   { return w.Home(false); }
+func (w Win32) CacheDir()  string { return w.Home(false); }
+func (w Win32) ConfigDir() string { return w.Home(false); }
+func (w Win32) DataDir()   string { return w.Home(false); }
 
-func (w Win32) Home(emptyOk bool) (string, error) {
+func (w Win32) Home(emptyOk bool) string {
 	var ret string
 
 	if w.getHome != nil {
@@ -97,27 +94,23 @@ func (w Win32) Home(emptyOk bool) (string, error) {
 	if len(ret) == 0 && !emptyOk {
 		tmp := os.Getenv("TEMP")
 		if len(tmp) == 0 {
-			err := fmt.Errorf("No 'TEMP' environment variable found")
-			return "", err
+			log.Fatalf("No 'TEMP' environment variable found")
 		}
 		v := w.Split(tmp)
 		if len(v) < 2 {
-			err := fmt.Errorf("Bad 'TEMP' variable found, no directory separators!")
-			return "", err
+			log.Fatalf("Bad 'TEMP' variable found, no directory separators!")
 		}
 		last := strings.ToLower(v[len(v)-1])
 		rest := v[0:len(v)-1]
 		if last != "temp" && last != "tmp" {
-			err := fmt.Errorf("TEMP directory didn't end in \\Temp")
-			return "", err
+			log.Fatalf("TEMP directory didn't end in \\Temp")
 		}
 		if strings.ToLower(rest[len(rest)-1]) == "local" {
 			rest[len(rest)-1] = "Roaming"
 		}
 		ret = w.Unsplit(rest)
 	}
-
-	return ret, nil
+	return ret
 }
 
 func NewHomeFinder(appName string, getHome HomeGetter) HomeFinder {

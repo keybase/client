@@ -4,6 +4,7 @@ package libkbgo
 import (
 	"os"
 	"strconv"
+	"path/filepath"
 )
 
 type Env struct {
@@ -25,9 +26,9 @@ func (e Env) getHome() string {
 	return ret
 }
 
-func (e Env) GetConfigDir() (ret string, err error) {return e.homeFinder.ConfigDir() }
-func (e Env) GetCacheDir() (ret string, err error) {return e.homeFinder.CacheDir() }
-func (e Env) GetDataDir() (ret string, err error) {return e.homeFinder.DataDir() }
+func (e Env) GetConfigDir() string {return e.homeFinder.ConfigDir() }
+func (e Env) GetCacheDir() string {return e.homeFinder.CacheDir() }
+func (e Env) GetDataDir() string {return e.homeFinder.DataDir() }
 
 func (e Env) getEnvInt(s string) (ret int64) {
 	ret = -1
@@ -41,10 +42,29 @@ func (e Env) getEnvInt(s string) (ret int64) {
 	return ret
 }
 
-func (e Env) GetPort() int64 {
-	i := e.cmd.GetPort()
-	if i < 0 { i = e.config.GetPort() }
-	if i < 0 { i = e.getEnvInt("KEYBASE_PORT") }
-	if i < 0 { i = int64(PORT) }
-	return i
+func (e Env) GetString(flist ...(func() string)) string {
+	var ret string
+	for _, f := range(flist) {
+		ret = f()
+		if len(ret) > 0 { break; }
+	}
+	return ret
+}
+
+func (e Env) GetServerUrl() string {
+	return e.GetString(
+		func() string { return e.cmd.GetServerUrl() },
+		func() string { return e.config.GetServerUrl() },
+		func() string { return os.Getenv("KEYBASE_SERVER_URL") },
+		func() string { return KEYBASE_SERVER_URL },
+	)
+}
+
+func (e Env) GetConfigFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetConfigFilename() },
+		func() string { return e.config.GetConfigFilename() },
+		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },
+		func() string { return filepath.Join(e.GetConfigDir(), KEYBASE_CONFIG_FILE) },
+	)
 }
