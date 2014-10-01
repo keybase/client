@@ -36,3 +36,5 @@ func (l *Logger) Configure(e *Env) {
 	if e.GetDebug() { logging.SetLevel(logging.DEBUG, "keybase") }
 }
 
+
+
