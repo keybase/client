@@ -11,8 +11,22 @@ type PosixCmdLine struct {
 }
 
 func (p PosixCmdLine) GetHome() string { return p.ctx.String("home"); }
+func (p PosixCmdLine) GetServerUri() string { return p.ctx.String("server"); }
+func (p PosixCmdLine) GetConfigFilename() string { return p.ctx.String("config"); }
+func (p PosixCmdLine) GetSessionFilename() string { return p.ctx.String("session"); }
+func (p PosixCmdLine) GetDbFilename() string { return p.ctx.String("db"); }
+func (p PosixCmdLine) GetDebug() (bool, bool) { return p.GetBool("debug") }
+func (p PosixCmdLine) GetApiUriPathPrefix() string { return p.ctx.String("api-uri-path-prefix"); }
+func (p PosixCmdLine) GetUsername() string { return p.ctx.String("username") }
+func (p PosixCmdLine) GetProxy() string { return p.ctx.String("proxy") }
 
-func (p *PosixCmdLine) Parse(args []string) error {
+
+func (p PosixCmdLine) GetBool(s string) (bool, bool) {
+	v := p.ctx.Bool(s);
+	return v, v
+}
+
+func (p *PosixCmdLine) Parse(args []string) (bool, error) {
 	app := cli.NewApp()
 	app.Name = "keybase"
 	app.Usage = "control keybase either with one-off commands, or enable a background daemon"
@@ -21,10 +35,44 @@ func (p *PosixCmdLine) Parse(args []string) error {
 			Name : "home, H",
 			Usage : "specify an (alternate) home directory",
 		},
+		cli.StringFlag {
+			Name : "server, s",
+			Usage : "specify server API URI (default: https://api.keybase.io:443/)",
+		},
+		cli.StringFlag {
+			Name : "config, c",
+			Usage: "specify an (alternate) master config file",
+		},
+		cli.StringFlag {
+			Name : "session",
+			Usage : "specify an alternate session data file",
+		},
+		cli.StringFlag {
+			Name : "db",
+			Usage : "specify an alternate local DB location",
+		},
+		cli.StringFlag {
+			Name : "api-uri-path-prefix",
+			Usage : "specify an alternate API URI path prefix",
+		},
+		cli.StringFlag {
+			Name : "username, u",
+			Usage : "specify Keybase username of the current user",
+		},
+		cli.StringFlag {
+			Name : "proxy",
+			Usage : "specify an HTTP(s) proxy to ship all Web requests over",
+		},
+		cli.BoolFlag {
+			Name : "debug, d",
+			Usage : "enable debugging mode",
+		},
+
 	}
 	app.Action = func (c *cli.Context) {
 		p.ctx = c
 	}
 	p.app = app
-	return app.Run(args)
+	err := app.Run(args)
+	return (p.ctx != nil), err
 }

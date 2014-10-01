@@ -112,8 +112,8 @@ func (e Env) GetDbFilename() string {
 
 func (e Env) GetDebug() bool {
 	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.GetDebugFlag() },
-		func() (bool, bool) { return e.config.GetDebugFlag() },
+		func() (bool, bool) { return e.cmd.GetDebug() },
+		func() (bool, bool) { return e.config.GetDebug() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
 	)
 }

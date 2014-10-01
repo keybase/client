@@ -16,7 +16,7 @@ type CommandLine interface {
 	GetConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
-	GetDebugFlag() (bool, bool)
+	GetDebug() (bool, bool)
 	GetApiUriPathPrefix() string
 	GetUsername() string
 	GetProxy() string
@@ -36,7 +36,7 @@ type Config interface {
 	GetConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
-	GetDebugFlag() (bool, bool)
+	GetDebug() (bool, bool)
 	GetApiUriPathPrefix() string
 	GetUsername() string
 	GetProxy() string
