@@ -1,5 +1,5 @@
 
-package libkbgo
+package libkb
 
 var SERVER_URL = "https://api.keybase.io:443"
 var CONFIG_FILE = "config.json"

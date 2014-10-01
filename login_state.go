@@ -1,6 +1,6 @@
 
 
-package libkbgo
+package libkb
 
 type LoginState struct {
 	Configured bool

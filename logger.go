@@ -1,6 +1,6 @@
 
 
-package libkbgo
+package libkb
 
 import (
 	"os"

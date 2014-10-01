@@ -1,4 +1,4 @@
-package libkbgo
+package libkb
 
 import (
 	"testing"

@@ -1,5 +1,5 @@
 
-package libkbgo
+package libkb
 
 import (
 	"github.com/codegangsta/cli"
