@@ -22,6 +22,10 @@ func parseArgs() {
 }
 
 func main() {
-	kb.InitGlobals()
+	G.Init()
 	parseArgs()
+	G.ConfigureLogging()
+	G.Log.Debug("hello debug")
+	G.Log.Info("hello info")
+	G.Log.Warning("hello warning")
 }
