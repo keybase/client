@@ -2,22 +2,26 @@
 package main
 
 import (
-	"github.com/keybase/libkbgo"
+	kb "github.com/keybase/libkbgo"
 	"os"
-	"fmt"
 )
 
-func main() {
-	p := libkbgo.PosixCmdLine{}
+// Keep this around to simplify things
+var G = &kb.G
+
+func parseArgs() {
+	p := kb.PosixCommandLine{}
 	docmd, err := p.Parse(os.Args)
-	fmt.Printf("error back: %v\n", err)
-	var s string
-	var d bool
-	if docmd && err == nil {
-		s = p.GetHome()
-		d,_ = p.GetDebug()
+	if err != nil {
+		G.Log.Fatalf("Error parsing command line arguments: %s\n", err.Error())
 	}
-	fmt.Printf("Res: %s %v\n", s, d);
+	if !docmd {
+		os.Exit(0)
+	}
+	G.SetCommandLine(p)
 }
 
-
+func main() {
+	kb.InitGlobals()
+	parseArgs()
+}
