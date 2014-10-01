@@ -3,7 +3,7 @@ package libkbgo
 
 type Global struct {
 	Env *Env
-	LoginState *LoginState
+	LoginState LoginState
 }
 
-var G Global = Global { nil, nil }
+var G Global = Global { nil, LoginState { false, false, false } }
