@@ -5,28 +5,28 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-type PosixCmdLine struct {
+type PosixCommandLine struct {
 	app *cli.App
 	ctx *cli.Context
 }
 
-func (p PosixCmdLine) GetHome() string { return p.ctx.String("home"); }
-func (p PosixCmdLine) GetServerUri() string { return p.ctx.String("server"); }
-func (p PosixCmdLine) GetConfigFilename() string { return p.ctx.String("config"); }
-func (p PosixCmdLine) GetSessionFilename() string { return p.ctx.String("session"); }
-func (p PosixCmdLine) GetDbFilename() string { return p.ctx.String("db"); }
-func (p PosixCmdLine) GetDebug() (bool, bool) { return p.GetBool("debug") }
-func (p PosixCmdLine) GetApiUriPathPrefix() string { return p.ctx.String("api-uri-path-prefix"); }
-func (p PosixCmdLine) GetUsername() string { return p.ctx.String("username") }
-func (p PosixCmdLine) GetProxy() string { return p.ctx.String("proxy") }
+func (p PosixCommandLine) GetHome() string { return p.ctx.String("home"); }
+func (p PosixCommandLine) GetServerUri() string { return p.ctx.String("server"); }
+func (p PosixCommandLine) GetConfigFilename() string { return p.ctx.String("config"); }
+func (p PosixCommandLine) GetSessionFilename() string { return p.ctx.String("session"); }
+func (p PosixCommandLine) GetDbFilename() string { return p.ctx.String("db"); }
+func (p PosixCommandLine) GetDebug() (bool, bool) { return p.GetBool("debug") }
+func (p PosixCommandLine) GetApiUriPathPrefix() string { return p.ctx.String("api-uri-path-prefix"); }
+func (p PosixCommandLine) GetUsername() string { return p.ctx.String("username") }
+func (p PosixCommandLine) GetProxy() string { return p.ctx.String("proxy") }
 
 
-func (p PosixCmdLine) GetBool(s string) (bool, bool) {
+func (p PosixCommandLine) GetBool(s string) (bool, bool) {
 	v := p.ctx.Bool(s);
 	return v, v
 }
 
-func (p *PosixCmdLine) Parse(args []string) (bool, error) {
+func (p *PosixCommandLine) Parse(args []string) (bool, error) {
 	app := cli.NewApp()
 	app.Name = "keybase"
 	app.Usage = "control keybase either with one-off commands, or enable a background daemon"

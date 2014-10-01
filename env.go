@@ -8,6 +8,16 @@ import (
 	"strings"
 )
 
+type NullConfiguration struct {}
+func (n NullConfiguration) GetHome() string  { return "" }
+func (n NullConfiguration) GetServerUri() string { return "" }
+func (n NullConfiguration) GetConfigFilename() string { return "" }
+func (n NullConfiguration) GetSessionFilename() string { return "" }
+func (n NullConfiguration) GetDbFilename() string { return "" }
+func (n NullConfiguration) GetApiUriPathPrefix() string { return "" }
+func (n NullConfiguration) GetUsername() string { return "" }
+func (n NullConfiguration) GetProxy() string { return "" }
+func (n NullConfiguration) GetDebug() (bool, bool) { return false, false }
 
 type Env struct {
 	cmd CommandLine
@@ -15,10 +25,14 @@ type Env struct {
 	homeFinder HomeFinder
 }
 
-func NewEnv(cmd CommandLine, config Config) Env {
+func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
+
+func NewEnv(cmd CommandLine, config Config) *Env {
+	if cmd == nil { cmd = NullConfiguration{} }
+	if config == nil { config = NullConfiguration{} }
 	e := Env { cmd, config, nil }
 	e.homeFinder = NewHomeFinder("keybase", func() string { return e.getHome() })
-	return e
+	return &e
 }
 
 func (e Env) getHome() string {
