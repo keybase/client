@@ -12,8 +12,14 @@ package libkbgo
 
 type CommandLine interface {
 	GetHome() string
-	GetServerUrl() string
+	GetServerUri() string
 	GetConfigFilename() string
+	GetSessionFilename() string
+	GetDbFilename() string
+	GetDebugFlag() (bool, bool)
+	GetApiUriPathPrefix() string
+	GetUsername() string
+	GetProxy() string
 }
 
 type Server interface {
@@ -26,8 +32,14 @@ type LocalCache interface {
 
 type Config interface {
 	GetHome() string
-	GetServerUrl() string
+	GetServerUri() string
 	GetConfigFilename() string
+	GetSessionFilename() string
+	GetDbFilename() string
+	GetDebugFlag() (bool, bool)
+	GetApiUriPathPrefix() string
+	GetUsername() string
+	GetProxy() string
 }
 
 type HttpRequest interface {
