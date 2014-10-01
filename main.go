@@ -2,30 +2,54 @@
 package main
 
 import (
-	kb "github.com/keybase/libkbgo"
+	"github.com/keybase/go-libkb"
 	"os"
 )
 
 // Keep this around to simplify things
-var G = &kb.G
+var G = &libkb.G
 
-func parseArgs() {
-	p := kb.PosixCommandLine{}
-	docmd, err := p.Parse(os.Args)
+func parseArgs() libkb.Command {
+	p := libkb.PosixCommandLine{}
+	cmd, err := p.Parse(os.Args)
 	if err != nil {
 		G.Log.Fatalf("Error parsing command line arguments: %s\n", err.Error())
 	}
-	if !docmd {
-		os.Exit(0)
-	}
 	G.SetCommandLine(p)
+	if cmd == nil {
+		G.Log.Fatalf("Cannot continue; no command to run")
+	}
+	return cmd
+}
+
+func testLogging() {
+	G.Log.Debug("hello debug")
+	G.Log.Info("hello info")
+	G.Log.Notice("hello notice")
+	G.Log.Warning("hello warning")
+	G.Log.Error("hello error")
+}
+
+func openConfigFile() {
+	c := libkb.NewJsonConfigFile(G.Env.GetConfigFilename())
+	err := c.Load()
+	if err != nil {
+		G.Log.Fatal("Failed to open config file: %s", err.Error())
+	}
+	G.Env.SetConfig(*c)
 }
 
 func main() {
 	G.Init()
-	parseArgs()
+	cmd := parseArgs()
 	G.ConfigureLogging()
-	G.Log.Debug("hello debug")
-	G.Log.Info("hello info")
-	G.Log.Warning("hello warning")
+	if cmd.UseConfig() {
+		openConfigFile()
+	}
+
+	testLogging()
+
+	if err := cmd.Run(); err != nil {
+		G.Log.Fatal(err.Error())
+	}
 }
