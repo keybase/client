@@ -3,6 +3,7 @@ package libkb
 
 import (
 	"github.com/codegangsta/cli"
+	"fmt"
 )
 
 type PosixCommandLine struct {
@@ -15,21 +16,28 @@ func (p PosixCommandLine) GetServerUri() string { return p.ctx.String("server");
 func (p PosixCommandLine) GetConfigFilename() string { return p.ctx.String("config"); }
 func (p PosixCommandLine) GetSessionFilename() string { return p.ctx.String("session"); }
 func (p PosixCommandLine) GetDbFilename() string { return p.ctx.String("db"); }
-func (p PosixCommandLine) GetDebug() (bool, bool) { return p.GetBool("debug") }
+func (p PosixCommandLine) GetDebug() (bool, bool) { return p.GetBool("debug", true) }
 func (p PosixCommandLine) GetApiUriPathPrefix() string { return p.ctx.String("api-uri-path-prefix"); }
 func (p PosixCommandLine) GetUsername() string { return p.ctx.String("username") }
 func (p PosixCommandLine) GetProxy() string { return p.ctx.String("proxy") }
-func (p PosixCommandLine) GetPlainLogging() (bool, bool) { return p.GetBool("plain-logging"); }
+func (p PosixCommandLine) GetPlainLogging() (bool, bool) { return p.GetBool("plain-logging", true); }
 
 
-func (p PosixCommandLine) GetBool(s string) (bool, bool) {
-	v := p.ctx.Bool(s);
+func (p PosixCommandLine) GetBool(s string, glbl bool) (bool, bool) {
+	var v bool
+	if glbl {
+		v = p.ctx.GlobalBool(s);
+	} else {
+		v = p.ctx.Bool(s)
+	}
 	return v, v
 }
 
-func (p *PosixCommandLine) Parse(args []string) (bool, error) {
+func (p *PosixCommandLine) Parse(args []string) (Command, error) {
+	var cmd Command
 	app := cli.NewApp()
 	app.Name = "keybase"
+	app.Version = CLIENT_VERSION
 	app.Usage = "control keybase either with one-off commands, or enable a background daemon"
 	app.Flags = []cli.Flag {
 		cli.StringFlag {
@@ -74,10 +82,23 @@ func (p *PosixCommandLine) Parse(args []string) (bool, error) {
 		},
 
 	}
+	app.Commands = []cli.Command {
+		{
+			Name : "version",
+			Usage : "print out version information",
+			Action : func (c *cli.Context) {
+				p.ctx = c
+				cmd = VersionCommand {}
+			},
+		},
+	}
 	app.Action = func (c *cli.Context) {
 		p.ctx = c
 	}
 	p.app = app
 	err := app.Run(args)
-	return (p.ctx != nil), err
+	if err != nil && p.ctx == nil {
+		err = fmt.Errorf("Problem: no context found")
+	}
+	return cmd, err
 }

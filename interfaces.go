@@ -59,3 +59,8 @@ type ProofCheckers interface {
 type Pinentry interface {
 
 }
+
+type Command interface {
+	Run() error
+	UseConfig() bool
+}

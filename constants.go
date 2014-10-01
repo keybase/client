@@ -7,3 +7,4 @@ var SESSION_FILE = "session.json"
 var DB_FILE = "keybase.leveldb"
 var API_VERSION = "1.0"
 var API_URI_PATH_PREFIX = "/_/api/" + API_VERSION
+var CLIENT_VERSION = "1.0.0"
