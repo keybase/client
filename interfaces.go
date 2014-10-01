@@ -20,6 +20,7 @@ type CommandLine interface {
 	GetApiUriPathPrefix() string
 	GetUsername() string
 	GetProxy() string
+	GetPlainLogging() (bool, bool)
 }
 
 type Server interface {
@@ -40,6 +41,7 @@ type Config interface {
 	GetApiUriPathPrefix() string
 	GetUsername() string
 	GetProxy() string
+	GetPlainLogging() (bool, bool)
 }
 
 type HttpRequest interface {
@@ -51,10 +53,6 @@ type Keychain interface {
 }
 
 type ProofCheckers interface {
-
-}
-
-type Logger interface {
 
 }
 

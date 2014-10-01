@@ -19,6 +19,7 @@ func (p PosixCommandLine) GetDebug() (bool, bool) { return p.GetBool("debug") }
 func (p PosixCommandLine) GetApiUriPathPrefix() string { return p.ctx.String("api-uri-path-prefix"); }
 func (p PosixCommandLine) GetUsername() string { return p.ctx.String("username") }
 func (p PosixCommandLine) GetProxy() string { return p.ctx.String("proxy") }
+func (p PosixCommandLine) GetPlainLogging() (bool, bool) { return p.GetBool("plain-logging"); }
 
 
 func (p PosixCommandLine) GetBool(s string) (bool, bool) {
@@ -66,6 +67,10 @@ func (p *PosixCommandLine) Parse(args []string) (bool, error) {
 		cli.BoolFlag {
 			Name : "debug, d",
 			Usage : "enable debugging mode",
+		},
+		cli.BoolFlag {
+			Name :"plain-logging, L",
+			Usage : "plain logging mode (no colors)",
 		},
 
 	}

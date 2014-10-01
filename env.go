@@ -18,6 +18,7 @@ func (n NullConfiguration) GetApiUriPathPrefix() string { return "" }
 func (n NullConfiguration) GetUsername() string { return "" }
 func (n NullConfiguration) GetProxy() string { return "" }
 func (n NullConfiguration) GetDebug() (bool, bool) { return false, false }
+func (n NullConfiguration) GetPlainLogging() (bool, bool) { return false, false }
 
 type Env struct {
 	cmd CommandLine
@@ -131,6 +132,15 @@ func (e Env) GetDebug() bool {
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
 	)
 }
+
+func (e Env) GetPlainLogging() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetPlainLogging() },
+		func() (bool, bool) { return e.config.GetPlainLogging() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_PLAIN_LOGGING") },
+	)
+}
+
 
 func (e Env) GetApiUriPathPrefix() string {
 	return e.GetString(
