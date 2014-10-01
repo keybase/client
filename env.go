@@ -27,6 +27,7 @@ type Env struct {
 }
 
 func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
+func (e *Env) SetConfig(config Config) { e.config = config }
 
 func NewEnv(cmd CommandLine, config Config) *Env {
 	if cmd == nil { cmd = NullConfiguration{} }
