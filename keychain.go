@@ -10,6 +10,7 @@ import (
 type KeychainFile struct {
 	filename string
 	Entities openpgp.EntityList
+	isPublic bool
 }
 
 type Keychains struct {
@@ -17,17 +18,17 @@ type Keychains struct {
 	Secret []KeychainFile
 }
 
-func (k Keychains) MakeKeychains(out *[]KeychainFile, filenames []string) {
+func (k Keychains) MakeKeychains(out *[]KeychainFile, filenames []string, isPublic bool) {
 	*out = make([]KeychainFile, len(filenames))
 	for i,filename := range(filenames) {
-		(*out)[i] = KeychainFile { filename, openpgp.EntityList{} }
+		(*out)[i] = KeychainFile { filename, openpgp.EntityList{}, isPublic }
 	}
 }
 
 func NewKeychains(e Env) *Keychains {
 	ret := &Keychains{}
-	ret.MakeKeychains(&ret.Public, e.GetPublicKeychains())
-	ret.MakeKeychains(&ret.Secret, e.GetSecretKeychains())
+	ret.MakeKeychains(&ret.Public, e.GetPublicKeychains(), true)
+	ret.MakeKeychains(&ret.Secret, e.GetSecretKeychains(), false)
 	return ret
 }
 
