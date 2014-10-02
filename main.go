@@ -30,11 +30,11 @@ func testLogging() {
 	G.Log.Error("hello error")
 }
 
-func openConfigFile() {
+func loadConfigFile() {
 	c := libkb.NewJsonConfigFile(G.Env.GetConfigFilename())
 	err := c.Load()
 	if err != nil {
-		G.Log.Fatal("Failed to open config file: %s", err.Error())
+		G.Log.Fatalf("Failed to open config file: %s\n", err.Error())
 	}
 	G.Env.SetConfig(*c)
 }
@@ -44,7 +44,7 @@ func main() {
 	cmd := parseArgs()
 	G.ConfigureLogging()
 	if cmd.UseConfig() {
-		openConfigFile()
+		loadConfigFile()
 	}
 
 	testLogging()
