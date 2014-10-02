@@ -11,16 +11,19 @@ type PosixCommandLine struct {
 	ctx *cli.Context
 }
 
-func (p PosixCommandLine) GetHome() string { return p.ctx.String("home"); }
-func (p PosixCommandLine) GetServerUri() string { return p.ctx.String("server"); }
-func (p PosixCommandLine) GetConfigFilename() string { return p.ctx.String("config"); }
-func (p PosixCommandLine) GetSessionFilename() string { return p.ctx.String("session"); }
-func (p PosixCommandLine) GetDbFilename() string { return p.ctx.String("db"); }
+func (p PosixCommandLine) GetHome() string { return p.GetGString("home"); }
+func (p PosixCommandLine) GetServerUri() string { return p.GetGString("server"); }
+func (p PosixCommandLine) GetConfigFilename() string { return p.GetGString("config"); }
+func (p PosixCommandLine) GetSessionFilename() string { return p.GetGString("session"); }
+func (p PosixCommandLine) GetDbFilename() string { return p.GetGString("db"); }
 func (p PosixCommandLine) GetDebug() (bool, bool) { return p.GetBool("debug", true) }
-func (p PosixCommandLine) GetApiUriPathPrefix() string { return p.ctx.String("api-uri-path-prefix"); }
-func (p PosixCommandLine) GetUsername() string { return p.ctx.String("username") }
-func (p PosixCommandLine) GetProxy() string { return p.ctx.String("proxy") }
+func (p PosixCommandLine) GetApiUriPathPrefix() string { return p.GetGString("api-uri-path-prefix"); }
+func (p PosixCommandLine) GetUsername() string { return p.GetGString("username") }
+func (p PosixCommandLine) GetProxy() string { return p.GetGString("proxy") }
 func (p PosixCommandLine) GetPlainLogging() (bool, bool) { return p.GetBool("plain-logging", true); }
+
+
+func (p PosixCommandLine) GetGString(s string) string { return p.ctx.GlobalString(s) }
 
 
 func (p PosixCommandLine) GetBool(s string, glbl bool) (bool, bool) {

@@ -15,4 +15,4 @@ func (v CmdVersion) Run() error {
 	return nil
 }
 
-func (v CmdVersion) UseConfig() bool { return false }
+func (v CmdVersion) UseConfig() bool { return true }

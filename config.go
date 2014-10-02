@@ -3,6 +3,7 @@ package libkb
 
 import (
 	"os"
+	"fmt"
 	"github.com/okcupid/jsonw"
 	"encoding/json"
 )
@@ -17,13 +18,28 @@ func NewJsonConfigFile(s string) *JsonConfigFile {
 }
 
 func (f *JsonConfigFile) Load() error {
+	G.Log.Debug(fmt.Sprintf("+ opening config file: %s", f.filename))
 	file, err := os.Open(f.filename)
-	if err != nil { return err }
+	if err != nil {
+		if os.IsNotExist(err) {
+			G.Log.Warning(fmt.Sprintf("No config file found; tried %s", f.filename))
+			return nil
+		} else if os.IsPermission(err) {
+			G.Log.Warning(fmt.Sprintf("Permission denied opening config file '%s'", f.filename))
+			return nil
+		} else {
+			return err
+		}
+	}
 	decoder := json.NewDecoder(file)
-	var obj interface{}
-	err = decoder.Decode(obj)
-	if err != nil { return err }
+	obj := make(map[string]interface{})
+	err = decoder.Decode(&obj)
+	if err != nil {
+		G.Log.Error("Decoding failed!")
+		return err
+	}
 	f.jw = jsonw.NewWrapper(obj)
+	G.Log.Debug("- successfully loaded config file")
 	return nil
 }
 
