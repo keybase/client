@@ -2,46 +2,16 @@
 package libkb
 
 import (
-	"os"
-	"fmt"
-	"github.com/okcupid/jsonw"
-	"encoding/json"
 )
 
 type JsonConfigFile struct {
-	filename string
-	jw *jsonw.Wrapper
+	JsonFile
 }
 
 func NewJsonConfigFile(s string) *JsonConfigFile {
-	return &JsonConfigFile { s, nil }
+	return &JsonConfigFile { JsonFile { s, "config", nil } }
 }
 
-func (f *JsonConfigFile) Load() error {
-	G.Log.Debug(fmt.Sprintf("+ opening config file: %s", f.filename))
-	file, err := os.Open(f.filename)
-	if err != nil {
-		if os.IsNotExist(err) {
-			G.Log.Warning(fmt.Sprintf("No config file found; tried %s", f.filename))
-			return nil
-		} else if os.IsPermission(err) {
-			G.Log.Warning(fmt.Sprintf("Permission denied opening config file '%s'", f.filename))
-			return nil
-		} else {
-			return err
-		}
-	}
-	decoder := json.NewDecoder(file)
-	obj := make(map[string]interface{})
-	err = decoder.Decode(&obj)
-	if err != nil {
-		G.Log.Error("Decoding failed!")
-		return err
-	}
-	f.jw = jsonw.NewWrapper(obj)
-	G.Log.Debug("- successfully loaded config file")
-	return nil
-}
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
