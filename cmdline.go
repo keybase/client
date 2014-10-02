@@ -21,6 +21,7 @@ func (p PosixCommandLine) GetApiUriPathPrefix() string { return p.GetGString("ap
 func (p PosixCommandLine) GetUsername() string { return p.GetGString("username") }
 func (p PosixCommandLine) GetProxy() string { return p.GetGString("proxy") }
 func (p PosixCommandLine) GetPlainLogging() (bool, bool) { return p.GetBool("plain-logging", true); }
+func (p PosixCommandLine) GetPgpDir() string { return p.GetGString("pgpdir") }
 
 
 func (p PosixCommandLine) GetGString(s string) string { return p.ctx.GlobalString(s) }
@@ -41,6 +42,7 @@ type CmdHelp struct {
 }
 
 func (c CmdHelp) UseConfig() bool { return false }
+func (c CmdHelp) UseKeychain() bool { return false }
 func (c CmdHelp) Run() error {
 	cli.ShowAppHelp(c.ctx)
 	return nil
@@ -93,7 +95,10 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Name :"plain-logging, L",
 			Usage : "plain logging mode (no colors)",
 		},
-
+		cli.StringFlag {
+			Name : "pgpdir, gpgdir",
+			Usage : "specify a PGP directory (default is ~/.gnupg)",
+		},
 	}
 	app.Commands = []cli.Command {
 		{

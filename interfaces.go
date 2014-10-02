@@ -21,6 +21,7 @@ type CommandLine interface {
 	GetUsername() string
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
+	GetPgpDir() string
 }
 
 type Server interface {
@@ -42,6 +43,7 @@ type Config interface {
 	GetUsername() string
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
+	GetPgpDir() string
 }
 
 type HttpRequest interface {
@@ -63,4 +65,5 @@ type Pinentry interface {
 type Command interface {
 	Run() error
 	UseConfig() bool
+	UseKeychain() bool
 }

@@ -19,6 +19,7 @@ func (n NullConfiguration) GetUsername() string { return "" }
 func (n NullConfiguration) GetProxy() string { return "" }
 func (n NullConfiguration) GetDebug() (bool, bool) { return false, false }
 func (n NullConfiguration) GetPlainLogging() (bool, bool) { return false, false }
+func (n NullConfiguration) GetPgpDir() string { return "" }
 
 type Env struct {
 	cmd CommandLine
@@ -33,17 +34,18 @@ func NewEnv(cmd CommandLine, config Config) *Env {
 	if cmd == nil { cmd = NullConfiguration{} }
 	if config == nil { config = NullConfiguration{} }
 	e := Env { cmd, config, nil }
-	e.homeFinder = NewHomeFinder("keybase", func() string { return e.getHome() })
+	e.homeFinder = NewHomeFinder("keybase", func() string { return e.getHomeFromCmdOrConfig() })
 	return &e
 }
 
-func (e Env) getHome() string {
+func (e Env) getHomeFromCmdOrConfig() string {
 	var ret string
 	ret = e.cmd.GetHome()
 	if len(ret) == 0 {ret = e.config.GetHome() }
 	return ret
 }
 
+func (e Env) GetHome() string { return e.homeFinder.Home(false) }
 func (e Env) GetConfigDir() string {return e.homeFinder.ConfigDir() }
 func (e Env) GetCacheDir() string {return e.homeFinder.CacheDir() }
 func (e Env) GetDataDir() string {return e.homeFinder.DataDir() }
@@ -167,4 +169,21 @@ func (e Env) GetProxy() string {
 		func() string { return os.Getenv("https_proxy") },
 		func() string { return os.Getenv("http_proxy") },
 	)
+}
+
+func (e Env) GetPgpDir() string {
+	return e.GetString(
+		func() string { return e.cmd.GetPgpDir() },
+		func() string { return e.config.GetPgpDir() },
+		func() string { return os.Getenv("GNUPGHOME") },
+		func() string { return filepath.Join(e.GetHome(), ".gnupg") },
+	)
+}
+
+func (e Env) GetPublicKeychains() []string {
+	return []string{ filepath.Join(e.GetPgpDir(), "pubring.gpg") }
+}
+
+func (e Env) GetSecretKeychains() []string {
+	return []string{ filepath.Join(e.GetPgpDir(), "secring.gpg") }
 }

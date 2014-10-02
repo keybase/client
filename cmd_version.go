@@ -16,3 +16,4 @@ func (v CmdVersion) Run() error {
 }
 
 func (v CmdVersion) UseConfig() bool { return true }
+func (v CmdVersion) UseKeychain() bool { return true }

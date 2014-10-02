@@ -28,6 +28,7 @@ func (f *JsonConfigFile) Load() error {
 			return err
 		}
 	}
+	defer file.Close()
 	decoder := json.NewDecoder(file)
 	obj := make(map[string]interface{})
 	err = decoder.Decode(&obj)
@@ -35,7 +36,6 @@ func (f *JsonConfigFile) Load() error {
 		G.Log.Error(fmt.Sprintf("Error decoding %s file %s", f.which, f.filename))
 		return err
 	}
-	file.Close()
 	f.jw = jsonw.NewWrapper(obj)
 	G.Log.Debug(fmt.Sprintf("- successfully loaded %s file", f.which))
 	return nil
@@ -67,6 +67,7 @@ func (f *JsonConfigFile) Save(mode os.FileMode) (err error) {
 		G.Log.Error("Failed to open %s file %s for writing: %s", f.which, f.filename, err.Error())
 		return err
 	}
+	defer writer.Close()
 
 	encoder := json.NewEncoder(writer)
 	err = encoder.Encode(dat)

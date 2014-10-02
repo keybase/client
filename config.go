@@ -42,3 +42,10 @@ func (f JsonConfigFile) GetUsername() (ret string) { return f.GetTopLevelString(
 func (f JsonConfigFile) GetProxy() (ret string) { return f.GetTopLevelString("proxy") }
 func (f JsonConfigFile) GetDebug() (bool, bool) { return f.GetTopLevelBool("debug") }
 func (f JsonConfigFile) GetPlainLogging() (bool, bool) { return f.GetTopLevelBool("plain_logging") }
+func (f JsonConfigFile) GetPgpDir() (ret string) {
+	ret = f.GetTopLevelString("pgpdir")
+	if len(ret) == 0 {ret = f.GetTopLevelString("gpgdir") }
+	if len(ret) == 0 {ret = f.GetTopLevelString("gnupgdir") }
+	return ret
+}
+
