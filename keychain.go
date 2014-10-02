@@ -51,14 +51,19 @@ func (k Keychains) LoadKeychains(v []KeychainFile) (err error) {
 func (k *KeychainFile) Load() error {
 	G.Log.Debug(fmt.Sprintf("+ Loading PGP Keychain %s", k.filename))
 	file, err := os.Open(k.filename)
-	if err != nil {
+	if os.IsNotExist(err) {
+		G.Log.Warning(fmt.Sprintf("No PGP Keychain found at %s", k.filename))
+		err = nil
+	} else if err != nil {
 		G.Log.Error(fmt.Sprintf("Cannot open keyring %s: %s\n", err.Error()))
 		return err
 	}
-	k.Entities, err = openpgp.ReadKeyRing(file)
-	if err != nil {
-		G.Log.Error(fmt.Sprintf("Cannot parse keyring %s: %s\n", err.Error()))
-		return err
+	if file != nil {
+		k.Entities, err = openpgp.ReadKeyRing(file)
+		if err != nil {
+			G.Log.Error(fmt.Sprintf("Cannot parse keyring %s: %s\n", err.Error()))
+			return err
+		}
 	}
 	G.Log.Debug(fmt.Sprintf("- Successfully loaded PGP Keychain"))
 	return nil
@@ -76,6 +81,7 @@ func (k KeychainFile) writeTo(file *os.File) error {
 func (k KeychainFile) Save() error {
 	G.Log.Debug(fmt.Sprintf("+ Writing to PGP keychain %s", k.filename))
 	tmpfn, tmp, err := TempFile(k.filename, 0600)
+	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil { return err }
 
 	err = k.writeTo(tmp)
