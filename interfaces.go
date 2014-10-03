@@ -44,6 +44,7 @@ type Config interface {
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string
+	GetBundledCA(host string) string
 }
 
 type HttpRequest interface {

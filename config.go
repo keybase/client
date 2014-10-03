@@ -52,3 +52,15 @@ func (f JsonConfigFile) GetPgpDir() (ret string) {
 	return ret
 }
 
+func (f JsonConfigFile) GetBundledCA(host string) (ret string) {
+
+	if f.jw != nil {
+		var err error
+		f.jw.AtKey("bundled_CAs").AtKey(host).GetStringVoid(&ret, &err)
+		if err == nil {
+			G.Log.Debug("Read bundled CA for %s", host)
+		}
+	}
+	return ret
+}
+

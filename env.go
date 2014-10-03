@@ -20,6 +20,7 @@ func (n NullConfiguration) GetProxy() string { return "" }
 func (n NullConfiguration) GetDebug() (bool, bool) { return false, false }
 func (n NullConfiguration) GetPlainLogging() (bool, bool) { return false, false }
 func (n NullConfiguration) GetPgpDir() string { return "" }
+func (n NullConfiguration) GetBundledCA(h string) string { return "" }
 
 type Env struct {
 	cmd CommandLine
@@ -186,4 +187,15 @@ func (e Env) GetPublicKeyrings() []string {
 
 func (e Env) GetSecretKeyrings() []string {
 	return []string{ filepath.Join(e.GetPgpDir(), "secring.gpg") }
+}
+
+func (e Env) GetBundledCA(host string) string {
+	return e.GetString(
+		func() string { return e.config.GetBundledCA(host) },
+		func() string { 
+			ret, ok := BundledCAs[host]
+			if !ok { ret = "" }
+			return ret
+		},
+	)	
 }
