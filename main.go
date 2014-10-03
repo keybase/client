@@ -36,7 +36,7 @@ func main() {
 	cmd := parseArgs()
 	G.ConfigureLogging()
 	if cmd.UseConfig() { G.ConfigureConfig() }
-	if cmd.UseKeychain() { G.ConfigureKeychains() }
+	if cmd.UseKeyring() { G.ConfigureKeyring() }
 
 	testLogging()
 	if err := cmd.Run(); err != nil { G.Log.Fatal(err.Error()) }
