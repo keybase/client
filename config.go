@@ -15,20 +15,22 @@ func NewJsonConfigFile(s string) *JsonConfigFile {
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
-	f.jw.AtKey(s).GetStringVoid(&ret, &e)
-	G.Log.Debug("Config: mapping %s -> %s", s, ret)
+	if f.jw != nil {
+		f.jw.AtKey(s).GetStringVoid(&ret, &e)
+		G.Log.Debug("Config: mapping %s -> %s", s, ret)
+	}
 	return
 }
 
 func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
-	w := f.jw.AtKey("debug")
-	if w.IsNil() {
-		is_set = false
-		res = false
-	} else {
-		is_set = true
-		var e error
-		w.GetBoolVoid(&res, &e)
+	is_set = false
+	res = false
+	if f.jw != nil { 
+		if w := f.jw.AtKey(s); !w.IsNil() {
+			is_set = true
+			var e error
+			w.GetBoolVoid(&res, &e)
+		}
 	}
 	return
 }
