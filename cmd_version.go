@@ -8,10 +8,14 @@ import (
 
 type CmdVersion struct {}
 
+func VersionMessage(linefn func(string)) {
+	linefn(fmt.Sprintf("Keybase Command-Line App v%s", CLIENT_VERSION))
+	linefn(fmt.Sprintf("- Built with %s", runtime.Version()))
+	linefn("- Visit https://keybase.io for more details")
+}
+
 func (v CmdVersion) Run() error {
-	fmt.Printf("Keybase Command-Line App v%s\n", CLIENT_VERSION)
-	fmt.Printf("- Built with %s\n", runtime.Version())
-	fmt.Printf("- Visit https://keybase.io for more details\n")
+	VersionMessage(func(s string) { fmt.Println(s); } )
 	return nil
 }
 

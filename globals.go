@@ -28,11 +28,15 @@ func (g *Global) ConfigureConfig() {
 	g.Env.SetConfig(*c)
 }
 
-func (g *Global) ConfigureKeyrings() {
+func (g *Global) ConfigureKeyring() {
 	c := NewKeyrings(*g.Env)
 	err := c.Load()
 	if err != nil {
 		g.Log.Fatalf("Failed to configure keyrings: %s", err.Error())
 	}
 	g.Keyrings = c
+}
+
+func (g Global) StartupMessage() {
+	VersionMessage(func(s string) { g.Log.Debug(s); })
 }
