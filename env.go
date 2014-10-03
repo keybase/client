@@ -180,10 +180,10 @@ func (e Env) GetPgpDir() string {
 	)
 }
 
-func (e Env) GetPublicKeychains() []string {
+func (e Env) GetPublicKeyrings() []string {
 	return []string{ filepath.Join(e.GetPgpDir(), "pubring.gpg") }
 }
 
-func (e Env) GetSecretKeychains() []string {
+func (e Env) GetSecretKeyrings() []string {
 	return []string{ filepath.Join(e.GetPgpDir(), "secring.gpg") }
 }

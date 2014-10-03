@@ -7,40 +7,40 @@ import (
 	"code.google.com/p/go.crypto/openpgp"
 )
 
-type KeychainFile struct {
+type KeyringFile struct {
 	filename string
 	Entities openpgp.EntityList
 	isPublic bool
 }
 
-type Keychains struct {
-	Public []KeychainFile
-	Secret []KeychainFile
+type Keyrings struct {
+	Public []KeyringFile
+	Secret []KeyringFile
 }
 
-func (k Keychains) MakeKeychains(out *[]KeychainFile, filenames []string, isPublic bool) {
-	*out = make([]KeychainFile, len(filenames))
+func (k Keyrings) MakeKeyrings(out *[]KeyringFile, filenames []string, isPublic bool) {
+	*out = make([]KeyringFile, len(filenames))
 	for i,filename := range(filenames) {
-		(*out)[i] = KeychainFile { filename, openpgp.EntityList{}, isPublic }
+		(*out)[i] = KeyringFile { filename, openpgp.EntityList{}, isPublic }
 	}
 }
 
-func NewKeychains(e Env) *Keychains {
-	ret := &Keychains{}
-	ret.MakeKeychains(&ret.Public, e.GetPublicKeychains(), true)
-	ret.MakeKeychains(&ret.Secret, e.GetSecretKeychains(), false)
+func NewKeyrings(e Env) *Keyrings {
+	ret := &Keyrings{}
+	ret.MakeKeyrings(&ret.Public, e.GetPublicKeyrings(), true)
+	ret.MakeKeyrings(&ret.Secret, e.GetSecretKeyrings(), false)
 	return ret
 }
 
-func (k *Keychains) Load() (err error) {
-	G.Log.Debug("+ Loading keychains")
-	err = k.LoadKeychains(k.Public)
-	if err == nil { k.LoadKeychains(k.Secret) }
-	G.Log.Debug("- Loaded keychains")
+func (k *Keyrings) Load() (err error) {
+	G.Log.Debug("+ Loading keyrings")
+	err = k.LoadKeyrings(k.Public)
+	if err == nil { k.LoadKeyrings(k.Secret) }
+	G.Log.Debug("- Loaded keyrings")
 	return err
 }
 
-func (k Keychains) LoadKeychains(v []KeychainFile) (err error) {
+func (k Keyrings) LoadKeyrings(v []KeyringFile) (err error) {
 	for _,k := range(v) {
 		if err = k.Load(); err != nil {
 			return err
@@ -49,11 +49,11 @@ func (k Keychains) LoadKeychains(v []KeychainFile) (err error) {
 	return nil
 }
 
-func (k *KeychainFile) Load() error {
-	G.Log.Debug(fmt.Sprintf("+ Loading PGP Keychain %s", k.filename))
+func (k *KeyringFile) Load() error {
+	G.Log.Debug(fmt.Sprintf("+ Loading PGP Keyring %s", k.filename))
 	file, err := os.Open(k.filename)
 	if os.IsNotExist(err) {
-		G.Log.Warning(fmt.Sprintf("No PGP Keychain found at %s", k.filename))
+		G.Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
 		err = nil
 	} else if err != nil {
 		G.Log.Error(fmt.Sprintf("Cannot open keyring %s: %s\n", err.Error()))
@@ -66,11 +66,11 @@ func (k *KeychainFile) Load() error {
 			return err
 		}
 	}
-	G.Log.Debug(fmt.Sprintf("- Successfully loaded PGP Keychain"))
+	G.Log.Debug(fmt.Sprintf("- Successfully loaded PGP Keyring"))
 	return nil
 }
 
-func (k KeychainFile) writeTo(file *os.File) error {
+func (k KeyringFile) writeTo(file *os.File) error {
 	for _, e := range(k.Entities) {
 		if err := e.Serialize(file); err != nil {
 			return err
@@ -79,8 +79,8 @@ func (k KeychainFile) writeTo(file *os.File) error {
 	return nil
 }
 
-func (k KeychainFile) Save() error {
-	G.Log.Debug(fmt.Sprintf("+ Writing to PGP keychain %s", k.filename))
+func (k KeyringFile) Save() error {
+	G.Log.Debug(fmt.Sprintf("+ Writing to PGP keyring %s", k.filename))
 	tmpfn, tmp, err := TempFile(k.filename, 0600)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil { return err }
@@ -99,7 +99,7 @@ func (k KeychainFile) Save() error {
 		tmp.Close()
 		os.Remove(tmpfn)
 	}
-	G.Log.Debug(fmt.Sprintf("- Wrote to PGP keychain %s -> %s", k.filename, ErrToOk(err)))
+	G.Log.Debug(fmt.Sprintf("- Wrote to PGP keyring %s -> %s", k.filename, ErrToOk(err)))
 	return err
 }
 

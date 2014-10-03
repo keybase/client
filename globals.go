@@ -8,7 +8,7 @@ type Global struct {
 	Env *Env
 	LoginState LoginState
 	Log *Logger
-	Keychains *Keychains
+	Keyrings *Keyrings
 }
 
 var G Global = Global { nil, LoginState { false, false, false }, NewDefaultLogger(), nil }
@@ -28,11 +28,11 @@ func (g *Global) ConfigureConfig() {
 	g.Env.SetConfig(*c)
 }
 
-func (g *Global) ConfigureKeychains() {
-	c := NewKeychains(*g.Env)
+func (g *Global) ConfigureKeyrings() {
+	c := NewKeyrings(*g.Env)
 	err := c.Load()
 	if err != nil {
-		g.Log.Fatalf("Failed to configure keychains: %s", err.Error())
+		g.Log.Fatalf("Failed to configure keyrings: %s", err.Error())
 	}
-	g.Keychains = c
+	g.Keyrings = c
 }

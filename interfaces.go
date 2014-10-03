@@ -65,5 +65,5 @@ type Pinentry interface {
 type Command interface {
 	Run() error
 	UseConfig() bool
-	UseKeychain() bool
+	UseKeyring() bool
 }

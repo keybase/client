@@ -42,7 +42,7 @@ type CmdHelp struct {
 }
 
 func (c CmdHelp) UseConfig() bool { return false }
-func (c CmdHelp) UseKeychain() bool { return false }
+func (c CmdHelp) UseKeyring() bool { return false }
 func (c CmdHelp) Run() error {
 	cli.ShowAppHelp(c.ctx)
 	return nil
