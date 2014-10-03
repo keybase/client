@@ -15,7 +15,8 @@ func NewJsonConfigFile(s string) *JsonConfigFile {
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
-	f.jw.AtKey("home").GetStringVoid(&ret, &e)
+	f.jw.AtKey(s).GetStringVoid(&ret, &e)
+	G.Log.Debug("Config: mapping %s -> %s", s, ret)
 	return
 }
 
