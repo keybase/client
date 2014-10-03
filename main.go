@@ -37,6 +37,7 @@ func main() {
 	G.ConfigureLogging()
 	if cmd.UseConfig() { G.ConfigureConfig() }
 	if cmd.UseKeyring() { G.ConfigureKeyring() }
+	G.StartupMessage()
 
 	testLogging()
 	if err := cmd.Run(); err != nil { G.Log.Fatal(err.Error()) }
