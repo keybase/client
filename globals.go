@@ -21,7 +21,7 @@ func (g *Global) ConfigureLogging() {g.Log.Configure(g.Env) }
 
 func (g *Global) ConfigureConfig() {
 	c := NewJsonConfigFile(g.Env.GetConfigFilename())
-	err := c.Load()
+	err := c.Load(true)
 	if err != nil {
 		g.Log.Fatalf("Failed to open config file: %s\n", err.Error())
 	}

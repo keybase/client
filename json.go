@@ -14,12 +14,14 @@ type JsonFile struct {
 	jw *jsonw.Wrapper
 }
 
-func (f *JsonConfigFile) Load() error {
+func (f *JsonFile) Load(warnOnNotFound bool) error {
 	G.Log.Debug(fmt.Sprintf("+ loading %s file: %s", f.which, f.filename))
 	file, err := os.Open(f.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			G.Log.Warning(fmt.Sprintf("No %s file found; tried %s", f.which, f.filename))
+			if warnOnNotFound {
+				G.Log.Warning(fmt.Sprintf("No %s file found; tried %s", f.which, f.filename))
+			}
 			return nil
 		} else if os.IsPermission(err) {
 			G.Log.Warning(fmt.Sprintf("Permission denied opening %s file %s", f.which, f.filename))
@@ -41,7 +43,7 @@ func (f *JsonConfigFile) Load() error {
 	return nil
 }
 
-func (f *JsonConfigFile) Save(mode os.FileMode) (err error) {
+func (f *JsonFile) Save(mode os.FileMode) (err error) {
 	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, f.filename))
 
 	var dat interface{}
