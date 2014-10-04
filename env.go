@@ -14,7 +14,6 @@ func (n NullConfiguration) GetServerUri() string { return "" }
 func (n NullConfiguration) GetConfigFilename() string { return "" }
 func (n NullConfiguration) GetSessionFilename() string { return "" }
 func (n NullConfiguration) GetDbFilename() string { return "" }
-func (n NullConfiguration) GetApiUriPathPrefix() string { return "" }
 func (n NullConfiguration) GetUsername() string { return "" }
 func (n NullConfiguration) GetProxy() string { return "" }
 func (n NullConfiguration) GetDebug() (bool, bool) { return false, false }
@@ -142,16 +141,6 @@ func (e Env) GetPlainLogging() bool {
 		func() (bool, bool) { return e.cmd.GetPlainLogging() },
 		func() (bool, bool) { return e.config.GetPlainLogging() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_PLAIN_LOGGING") },
-	)
-}
-
-
-func (e Env) GetApiUriPathPrefix() string {
-	return e.GetString(
-		func() string { return e.cmd.GetApiUriPathPrefix() },
-		func() string { return e.config.GetApiUriPathPrefix() },
-		func() string { return os.Getenv("KEYBASE_API_URI_PATH_PREFIX") },
-		func() string { return API_URI_PATH_PREFIX },
 	)
 }
 

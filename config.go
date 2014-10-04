@@ -40,7 +40,6 @@ func (f JsonConfigFile) GetServerUri() (ret string) { return f.GetTopLevelString
 func (f JsonConfigFile) GetConfigFilename() (ret string) { return f.GetTopLevelString("config") }
 func (f JsonConfigFile) GetSessionFilename() (ret string) { return f.GetTopLevelString("session") }
 func (f JsonConfigFile) GetDbFilename() (ret string) { return f.GetTopLevelString("db") }
-func (f JsonConfigFile) GetApiUriPathPrefix() (ret string) { return f.GetTopLevelString("api_uri_path_prefix") }
 func (f JsonConfigFile) GetUsername() (ret string) { return f.GetTopLevelString("username") }
 func (f JsonConfigFile) GetProxy() (ret string) { return f.GetTopLevelString("proxy") }
 func (f JsonConfigFile) GetDebug() (bool, bool) { return f.GetTopLevelBool("debug") }
