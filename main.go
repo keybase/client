@@ -30,15 +30,14 @@ func testLogging() {
 	G.Log.Error("hello error")
 }
 
-
 func main() {
 	G.Init()
 	cmd := parseArgs()
 	G.ConfigureLogging()
 	if cmd.UseConfig() { G.ConfigureConfig() }
 	if cmd.UseKeyring() { G.ConfigureKeyring() }
+	if cmd.UseAPI() { G.ConfigureAPI() }
 	G.StartupMessage()
-
 	testLogging()
 	if err := cmd.Run(); err != nil { G.Log.Fatal(err.Error()) }
 }
