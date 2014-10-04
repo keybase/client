@@ -153,9 +153,12 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 
 	api.fixHeaders(req, arg)
 	cli := api.getCli(arg.NeedSession)
+
+	// Actually send the request via Go's libraries
 	resp, err := cli.cli.Do(req)
 	if err != nil { return nil, err }
 	G.Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
+
 	err = checkHttpStatus(arg, resp)
 	if err != nil { return nil, err }
 
@@ -167,6 +170,7 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 		err = fmt.Errorf("Error in parsing JSON reply from server: %s", err.Error())
 		return nil, err
 	}	
+
 	jw := jsonw.NewWrapper(obj)
 	G.Log.Debug(fmt.Sprintf("| full reply: %v", obj))
 	status, err := jw.AtKey("status").ToDictionary()
@@ -174,6 +178,7 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 		err = fmt.Errorf("Cannot parse server's 'status' field: %s", err.Error())
 		return nil, err
 	}
+
 	appStatus, err := checkAppStatus(arg, status)
 	if err != nil {
 		err = fmt.Errorf("Got failure from Keybase server: %s", err.Error())
@@ -181,8 +186,6 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 	}
 
 	body := jw
-
 	G.Log.Debug(fmt.Sprintf("- succesful API call"))
-
 	return &ApiRes {status, body, resp.StatusCode, appStatus } , err
 }
