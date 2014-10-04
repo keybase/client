@@ -10,10 +10,10 @@ type CmdPing struct {}
 func (v CmdPing) Run() error {
 	_, err := G.API.Post(ApiArg{ 
 		Endpoint : "ping", 
-		Args : (HttpArgs{
+		Args : HttpArgs{
 			"alice" : U { S : "hi alice" },
 			"bob"   : U { I : 1000 },
-		}).ToValues(),
+		},
 	})
 	if err != nil { return err }
 	_, err = G.API.Get(ApiArg{ Endpoint : "ping" })

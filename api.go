@@ -13,7 +13,8 @@ import (
 
 type ApiArg struct {
 	Endpoint string
-	Args url.Values
+	uArgs url.Values
+	Args HttpArgs
 	NeedSession bool
 	HttpStatus []int
 	AppStatus []string
@@ -118,9 +119,17 @@ func checkHttpStatus(arg ApiArg, resp *http.Response) error {
 	return fmt.Errorf("Bad HTTP response code: %s", resp.Status)
 }
 
+func (arg ApiArg) getHttpArgs() url.Values {
+	if arg.Args != nil { 
+		return arg.Args.ToValues()
+	} else {
+		return arg.uArgs
+	}
+}
+
 func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 	url := api.getUrl(arg)
-	url.RawQuery = arg.Args.Encode()
+	url.RawQuery = arg.getHttpArgs().Encode()
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
 	req, err := http.NewRequest("GET", ruri, nil)
@@ -132,7 +141,7 @@ func (api *ApiAccess) Post(arg ApiArg) (*ApiRes, error) {
 	url := api.getUrl(arg)
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
-	body := ioutil.NopCloser(strings.NewReader(arg.Args.Encode()))
+	body := ioutil.NopCloser(strings.NewReader(arg.getHttpArgs().Encode()))
 	req, err := http.NewRequest("POST", ruri, body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
 	if err != nil { return nil, err }
