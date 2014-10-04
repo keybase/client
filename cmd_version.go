@@ -21,3 +21,4 @@ func (v CmdVersion) Run() error {
 
 func (v CmdVersion) UseConfig() bool { return true }
 func (v CmdVersion) UseKeyring() bool { return true }
+func (v CmdVersion) UseAPI() bool { return false }

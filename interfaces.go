@@ -65,4 +65,5 @@ type Command interface {
 	Run() error
 	UseConfig() bool
 	UseKeyring() bool
+	UseAPI() bool
 }

@@ -33,15 +33,15 @@ type ClientSet struct {
 }
 
 func SplitHost(joined string) (host string, port int, err error) {
-	re := regexp.MustCompile("^([^]+)(:([0-9]+))?$")
+	re := regexp.MustCompile("^([^:]+)(:([0-9]+))?$")
 	match := re.FindStringSubmatch(joined)
 	if match == nil {
 		err = fmt.Errorf("Invalid host/port found: %s", joined)
 	} else {
 		host = match[1]
 		port = 0
-		if len(match[2]) > 0 {
-			port, err = strconv.Atoi(match[2])
+		if len(match[3]) > 0 {
+			port, err = strconv.Atoi(match[3])
 			if err != nil {
 				err = fmt.Errorf("Could not convert port in host %s", joined)
 			}
@@ -51,13 +51,14 @@ func SplitHost(joined string) (host string, port int, err error) {
 }
 
 func ParseCA(raw string) (*x509.CertPool, error) {
-	cert, err := x509.ParseCertificate([]byte(raw))
-	if err != nil {
-		return nil, err
-	}
 	ret := x509.NewCertPool()
-	ret.AddCert(cert)
-	return ret, nil
+	ok := ret.AppendCertsFromPEM([]byte(raw))
+	var err error
+	if !ok {
+		err = fmt.Errorf("Could not read CA for keybase.io")
+		ret = nil
+	}
+	return ret, err
 }
 
 // Pull the information out of the environment configuration,

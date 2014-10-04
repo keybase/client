@@ -43,6 +43,7 @@ type CmdHelp struct {
 
 func (c CmdHelp) UseConfig() bool { return false }
 func (c CmdHelp) UseKeyring() bool { return false }
+func (c CmdHelp) UseAPI() bool { return false }
 func (c CmdHelp) Run() error {
 	cli.ShowAppHelp(c.ctx)
 	return nil
@@ -107,6 +108,14 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Action : func (c *cli.Context) {
 				p.ctx = c
 				cmd = CmdVersion {}
+			},
+		},
+		{
+			Name : "ping",
+			Usage : "ping the keybase API server",
+			Action : func (c *cli.Context) {
+				p.ctx = c
+				cmd = CmdPing {}
 			},
 		},
 	}

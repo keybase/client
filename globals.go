@@ -9,7 +9,7 @@ type Global struct {
 	LoginState LoginState
 	Log *Logger
 	Keyrings *Keyrings
-	ApiAccess *ApiAccess
+	API *ApiAccess
 	Session *Session
 }
 
@@ -43,10 +43,10 @@ func (g Global) StartupMessage() {
 	VersionMessage(func(s string) { g.Log.Debug(s); })
 }
 
-func (g *Global) ConfigureApiAccess() error {
+func (g *Global) ConfigureAPI() {
 	api, err := NewApiAccess(*g.Env)
-	if err == nil {
-		g.ApiAccess = api
+	if err != nil {
+		g.Log.Fatalf("Failed to configure API access: %s", err.Error())
 	}
-	return err
+	g.API = api
 }
