@@ -116,11 +116,14 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 	}
 
 	ret := &Client {
-		cli : &http.Client { Transport : xprt },
+		cli : &http.Client {}, 
 		config : config,
 	}
 	if jar != nil {
 		ret.cli.Jar = jar
+	}
+	if xprt != nil {
+		ret.cli.Transport = xprt
 	}
 	return ret
 }

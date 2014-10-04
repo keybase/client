@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"fmt"
 	"encoding/json"
+	"io/ioutil"
+	"strings"
 )
-
-type ApiArgs map[string]string
 
 type ApiArg struct {
 	Endpoint string
@@ -122,16 +122,34 @@ func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 	url := api.getUrl(arg)
 	url.RawQuery = arg.Args.Encode()
 	ruri := url.String()
-	G.Log.Debug(fmt.Sprintf("+ API request to %s", ruri))
+	G.Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
 	req, err := http.NewRequest("GET", ruri, nil)
-	api.fixHeaders(req, arg)
 	if err != nil { return nil, err }
+	return api.DoRequest(arg, req)
+}
+
+func (api *ApiAccess) Post(arg ApiArg) (*ApiRes, error) {
+	url := api.getUrl(arg)
+	ruri := url.String()
+	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
+	body := ioutil.NopCloser(strings.NewReader(arg.Args.Encode()))
+	req, err := http.NewRequest("POST", ruri, body)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
+	if err != nil { return nil, err }
+	return api.DoRequest(arg, req)
+}
+
+
+func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) {
+
+	api.fixHeaders(req, arg)
 	cli := api.getCli(arg.NeedSession)
 	resp, err := cli.cli.Do(req)
 	if err != nil { return nil, err }
 	G.Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
 	err = checkHttpStatus(arg, resp)
 	if err != nil { return nil, err }
+
 	decoder := json.NewDecoder(resp.Body)
 	obj := make(map[string]interface{})
 	err = decoder.Decode(&obj)
@@ -141,6 +159,7 @@ func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 		return nil, err
 	}	
 	jw := jsonw.NewWrapper(obj)
+	G.Log.Debug(fmt.Sprintf("| full reply: %v", obj))
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
 		err = fmt.Errorf("Cannot parse server's 'status' field: %s", err.Error())
@@ -152,8 +171,7 @@ func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 		return nil, err
 	}
 
-	// It's OK to not have a body. Some RPCs just return a status
-	body, _ := jw.AtKey("body").ToDictionary()
+	body := jw
 
 	G.Log.Debug(fmt.Sprintf("- succesful API call"))
 
