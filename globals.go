@@ -9,9 +9,11 @@ type Global struct {
 	LoginState LoginState
 	Log *Logger
 	Keyrings *Keyrings
+	ApiAccess *ApiAccess
+	Session *Session
 }
 
-var G Global = Global { nil, LoginState { false, false, false }, NewDefaultLogger(), nil }
+var G Global = Global { nil, LoginState { false, false, false }, NewDefaultLogger(), nil, nil, nil }
 
 func (g *Global) SetCommandLine (cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
@@ -39,4 +41,12 @@ func (g *Global) ConfigureKeyring() {
 
 func (g Global) StartupMessage() {
 	VersionMessage(func(s string) { g.Log.Debug(s); })
+}
+
+func (g *Global) ConfigureApiAccess() error {
+	api, err := NewApiAccess(*g.Env)
+	if err == nil {
+		g.ApiAccess = api
+	}
+	return err
 }
