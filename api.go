@@ -62,7 +62,7 @@ func (a ApiAccess) getUrl(arg ApiArg) url.URL {
 	} else {
 		path = API_URI_PATH_PREFIX
 	}
-	u.Path = path + arg.Endpoint + ".json"
+	u.Path = path + "/" + arg.Endpoint + ".json"
 	return u
 }
 
@@ -119,14 +119,17 @@ func checkHttpStatus(arg ApiArg, resp *http.Response) error {
 }
 
 func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
-	cli := api.getCli(arg.NeedSession)
 	url := api.getUrl(arg)
 	url.RawQuery = arg.Args.Encode()
-	req, err := http.NewRequest("GET", url.RequestURI(), nil)
+	ruri := url.String()
+	G.Log.Debug(fmt.Sprintf("+ API request to %s", ruri))
+	req, err := http.NewRequest("GET", ruri, nil)
 	api.fixHeaders(req, arg)
 	if err != nil { return nil, err }
+	cli := api.getCli(arg.NeedSession)
 	resp, err := cli.cli.Do(req)
 	if err != nil { return nil, err }
+	G.Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
 	err = checkHttpStatus(arg, resp)
 	if err != nil { return nil, err }
 	decoder := json.NewDecoder(resp.Body)
@@ -151,6 +154,8 @@ func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 
 	// It's OK to not have a body. Some RPCs just return a status
 	body, _ := jw.AtKey("body").ToDictionary()
+
+	G.Log.Debug(fmt.Sprintf("- succesful API call"))
 
 	return &ApiRes {status, body, resp.StatusCode, appStatus } , err
 }

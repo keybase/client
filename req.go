@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type ClientConfig struct {
@@ -61,6 +62,14 @@ func ParseCA(raw string) (*x509.CertPool, error) {
 	return ret, err
 }
 
+func ShortCA(raw string) string {
+	parts := strings.Split(raw, "\n")
+	if len(parts) >= 3 {
+		parts = parts[0:3]
+	}
+	return strings.Join(parts, " ") + "..."
+}
+
 // Pull the information out of the environment configuration,
 // and build a Client config that will be used in all API server
 // requests
@@ -86,6 +95,7 @@ func (e Env) GenClientConfig() (*ClientConfig, error) {
 			err = fmt.Errorf("In parsing CAs for %s: %s", host, err.Error())
 			return nil, err
 		}
+		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s", host, ShortCA(raw_ca)))
 	}
 	ret := &ClientConfig { host, port, useTls, url, rootCAs, url.Path, true }
 	return ret, nil
@@ -105,9 +115,13 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 		}
 	}
 
-	return &Client {
-		cli : &http.Client { Jar : jar, Transport : xprt },
+	ret := &Client {
+		cli : &http.Client { Transport : xprt },
 		config : config,
 	}
+	if jar != nil {
+		ret.cli.Jar = jar
+	}
+	return ret
 }
 
