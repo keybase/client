@@ -132,6 +132,7 @@ func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 	decoder := json.NewDecoder(resp.Body)
 	obj := make(map[string]interface{})
 	err = decoder.Decode(&obj)
+	resp.Body.Close()
 	if err != nil {
 		err = fmt.Errorf("Error in parsing JSON reply from server: %s", err.Error())
 		return nil, err
