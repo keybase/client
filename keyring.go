@@ -81,7 +81,7 @@ func (k KeyringFile) writeTo(file *os.File) error {
 
 func (k KeyringFile) Save() error {
 	G.Log.Debug(fmt.Sprintf("+ Writing to PGP keyring %s", k.filename))
-	tmpfn, tmp, err := TempFile(k.filename, 0600)
+	tmpfn, tmp, err := TempFile(k.filename, PERM_FILE)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil { return err }
 

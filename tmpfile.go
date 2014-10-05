@@ -16,7 +16,7 @@ func TempFile(prefix string, mode os.FileMode) (string, *os.File, error) {
 	suffix := base32.StdEncoding.EncodeToString(buf)
 	flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
 	filename := strings.Join([]string { prefix, suffix }, ".")
-	if mode == 0 { mode = 0600 }
+	if mode == 0 { mode = PERM_FILE }
 	file, err := os.OpenFile(filename, flags, mode)
 	return filename , file, err
 }

@@ -3,6 +3,7 @@ package libkb
 
 import (
 	"runtime"
+	"os"
 )
 
 var SERVER_URL = "https://api.keybase.io:443"
@@ -15,3 +16,6 @@ var CLIENT_VERSION = "1.0.0"
 
 var IDENTIFY_AS = "keybase.io go client v" + CLIENT_VERSION + " " + runtime.GOOS
 var USER_AGENT = "Keybase-CLI/" + CLIENT_VERSION + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
+
+var PERM_FILE os.FileMode = 0600
+var PERM_DIR os.FileMode = 0700

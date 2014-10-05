@@ -46,6 +46,12 @@ func (f *JsonFile) Load(warnOnNotFound bool) error {
 func (f *JsonFile) Save(mode os.FileMode) (err error) {
 	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, f.filename))
 
+	err = MakeParentDirs(f.filename)
+	if err != nil {
+		G.Log.Error("Failed to make parent dirs for %s", f.filename)
+		return err
+	}
+
 	var dat interface{}
 
 	if f.jw == nil {
@@ -62,7 +68,7 @@ func (f *JsonFile) Save(mode os.FileMode) (err error) {
 	var writer *os.File
 	flags := (os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
 	if mode == 0 {
-		mode = 0600 // By default, secrecy
+		mode = PERM_FILE // By default, secrecy
 	}
 	writer, err = os.OpenFile(f.filename, flags, mode)
 	if err != nil {
