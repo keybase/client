@@ -1,26 +1,25 @@
-
 package libkb
 
 import (
-	"regexp"
 	"fmt"
+	"regexp"
 )
 
 var empty_string []byte = []byte{}
 
 const (
-	NONE = iota
-	OR = iota
-	AND = iota
+	NONE   = iota
+	OR     = iota
+	AND    = iota
 	LPAREN = iota
 	RPAREN = iota
-	URL = iota
-	EOF = iota
-	ERROR = iota
+	URL    = iota
+	EOF    = iota
+	ERROR  = iota
 )
 
 type Token struct {
-	Typ int
+	Typ   int
 	value []byte
 }
 
@@ -39,40 +38,40 @@ func (t Token) unexpectedError() error {
 
 func byteArrayEq(a1, a2 []byte) bool {
 	if len(a1) != len(a2) {
-		return false;
+		return false
 	}
-	for i,c := range(a1) {
+	for i, c := range a1 {
 		if c != a2[i] {
-			return false;
-		}	
+			return false
+		}
 	}
-	return true;
+	return true
 }
 
 func (t Token) Eq(t2 Token) bool {
-	return (t.Typ == t2.Typ) && byteArrayEq(t.value, t2.value)	
+	return (t.Typ == t2.Typ) && byteArrayEq(t.value, t2.value)
 }
 
-func NewToken(typ int) (* Token) {
-	return &Token { typ, empty_string }	
+func NewToken(typ int) *Token {
+	return &Token{typ, empty_string}
 }
 
 type Lexer struct {
-	buffer []byte
-	last *Token
+	buffer  []byte
+	last    *Token
 	putback bool
-	re *regexp.Regexp
-	wss *regexp.Regexp
+	re      *regexp.Regexp
+	wss     *regexp.Regexp
 }
 
-func NewLexer(s string) (* Lexer) {
+func NewLexer(s string) *Lexer {
 	// We're allowing '||' or ',' for disjunction
 	// We're allowing '&&' or '+' for conjunction
 	re := regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+)`)
 	wss := regexp.MustCompile(`^([\n\t ]+)`)
-	l := &Lexer {[]byte(s), nil, false, re, wss};
+	l := &Lexer{[]byte(s), nil, false, re, wss}
 	l.stripBuffer()
-	return l;
+	return l
 }
 
 func (lx *Lexer) stripBuffer() {
@@ -92,7 +91,7 @@ func (lx *Lexer) Putback() {
 	lx.putback = true
 }
 
-func (lx *Lexer) Get() (* Token) {
+func (lx *Lexer) Get() *Token {
 	var ret *Token
 	if lx.putback {
 		ret = lx.last
@@ -100,14 +99,14 @@ func (lx *Lexer) Get() (* Token) {
 	} else if len(lx.buffer) == 0 {
 		ret = NewToken(EOF)
 	} else if match := lx.re.FindSubmatchIndex(lx.buffer); match != nil {
-		seq := []int { NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL }
-		for i := 1 ; i <= len(seq); i++ {
+		seq := []int{NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
+		for i := 1; i <= len(seq); i++ {
 			if match[i*2] >= 0 {
-				ret = &Token { seq[i], lx.buffer[match[2*i]:match[2*i+1]] }
+				ret = &Token{seq[i], lx.buffer[match[2*i]:match[2*i+1]]}
 				lx.advanceBuffer(match[2*i+1])
 				break
 			}
-		}	
+		}
 	} else {
 		lx.buffer = empty_string
 		ret = NewToken(ERROR)
@@ -118,22 +117,22 @@ func (lx *Lexer) Get() (* Token) {
 
 type Parser struct {
 	lexer *Lexer
-	err error
+	err   error
 }
 
 func NewParser(lexer *Lexer) *Parser {
-	ret := &Parser { lexer, nil }
+	ret := &Parser{lexer, nil}
 	return ret
 }
 
-func NewAssertionAnd(left,right AssertionExpression) AssertionAnd {
-	factors := []AssertionExpression{ left, right }
-	return AssertionAnd { factors }	
+func NewAssertionAnd(left, right AssertionExpression) AssertionAnd {
+	factors := []AssertionExpression{left, right}
+	return AssertionAnd{factors}
 }
 
-func NewAssertionOr(left,right AssertionExpression) AssertionOr {
-	terms := []AssertionExpression{ left, right }
-	return AssertionOr { terms }	
+func NewAssertionOr(left, right AssertionExpression) AssertionOr {
+	terms := []AssertionExpression{left, right}
+	return AssertionOr{terms}
 }
 
 func (p *Parser) Parse() AssertionExpression {
@@ -153,12 +152,12 @@ func (p *Parser) parseTerm() (ret AssertionExpression) {
 	tok := p.lexer.Get()
 	if tok.Typ == AND {
 		term := p.parseTerm()
-		ret = NewAssertionAnd(factor, term)		
+		ret = NewAssertionAnd(factor, term)
 	} else {
 		ret = factor
 		p.lexer.Putback()
 	}
-	return ret;
+	return ret
 }
 
 func (p *Parser) parseFactor() (ret AssertionExpression) {
@@ -200,12 +199,12 @@ func (p *Parser) parseExpr() (ret AssertionExpression) {
 		ret = term
 		p.lexer.Putback()
 	}
-	return ret;
+	return ret
 }
 
 func AssertionParse(s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
-	parser := Parser { lexer, nil }
+	parser := Parser{lexer, nil}
 	ret := parser.Parse()
 	return ret, parser.err
 }

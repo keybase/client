@@ -1,4 +1,3 @@
-
 package libkb
 
 import (
@@ -16,10 +15,14 @@ func ErrToOk(err error) string {
 
 // exists returns whether the given file or directory exists or not
 func FileExists(path string) (bool, error) {
-    _, err := os.Stat(path)
-    if err == nil { return true, nil }
-    if os.IsNotExist(err) { return false, nil }
-    return false, err
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
 
 func MakeParentDirs(filename string) error {
@@ -28,7 +31,7 @@ func MakeParentDirs(filename string) error {
 	exists, err := FileExists(dir)
 	if err != nil {
 		G.Log.Error("Can't see if parent dir %s exists", dir)
-		return err		
+		return err
 	}
 
 	if !exists {

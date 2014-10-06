@@ -1,10 +1,9 @@
-
 package libkb
 
 import (
-	"os"
-	"fmt"
 	"code.google.com/p/go.crypto/openpgp"
+	"fmt"
+	"os"
 )
 
 type KeyringFile struct {
@@ -20,8 +19,8 @@ type Keyrings struct {
 
 func (k Keyrings) MakeKeyrings(out *[]KeyringFile, filenames []string, isPublic bool) {
 	*out = make([]KeyringFile, len(filenames))
-	for i,filename := range(filenames) {
-		(*out)[i] = KeyringFile { filename, openpgp.EntityList{}, isPublic }
+	for i, filename := range filenames {
+		(*out)[i] = KeyringFile{filename, openpgp.EntityList{}, isPublic}
 	}
 }
 
@@ -35,13 +34,15 @@ func NewKeyrings(e Env) *Keyrings {
 func (k *Keyrings) Load() (err error) {
 	G.Log.Debug("+ Loading keyrings")
 	err = k.LoadKeyrings(k.Public)
-	if err == nil { k.LoadKeyrings(k.Secret) }
+	if err == nil {
+		k.LoadKeyrings(k.Secret)
+	}
 	G.Log.Debug("- Loaded keyrings")
 	return err
 }
 
 func (k Keyrings) LoadKeyrings(v []KeyringFile) (err error) {
-	for _,k := range(v) {
+	for _, k := range v {
 		if err = k.Load(); err != nil {
 			return err
 		}
@@ -71,7 +72,7 @@ func (k *KeyringFile) Load() error {
 }
 
 func (k KeyringFile) writeTo(file *os.File) error {
-	for _, e := range(k.Entities) {
+	for _, e := range k.Entities {
 		if err := e.Serialize(file); err != nil {
 			return err
 		}
@@ -83,7 +84,9 @@ func (k KeyringFile) Save() error {
 	G.Log.Debug(fmt.Sprintf("+ Writing to PGP keyring %s", k.filename))
 	tmpfn, tmp, err := TempFile(k.filename, PERM_FILE)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	err = k.writeTo(tmp)
 	if err == nil {
@@ -102,4 +105,3 @@ func (k KeyringFile) Save() error {
 	G.Log.Debug(fmt.Sprintf("- Wrote to PGP keyring %s -> %s", k.filename, ErrToOk(err)))
 	return err
 }
-

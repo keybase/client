@@ -1,9 +1,7 @@
-
-
 package libkb
 
 type LoginState struct {
-	Configured bool
-	LoggedIn bool
+	Configured      bool
+	LoggedIn        bool
 	SessionVerified bool
 }

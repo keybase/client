@@ -1,9 +1,8 @@
-
 package libkb
 
 import (
-	"runtime"
 	"os"
+	"runtime"
 )
 
 var SERVER_URL = "https://api.keybase.io:443"

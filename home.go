@@ -1,13 +1,12 @@
-
 package libkb
 
 import (
-	"path/filepath"
-	"os"
-	"regexp"
-	"strings"
-	"runtime"
 	"log"
+	"os"
+	"path/filepath"
+	"regexp"
+	"runtime"
+	"strings"
 )
 
 type HomeGetter func() string
@@ -58,15 +57,15 @@ func (x XdgPosix) dirHelper(env string, prefix_dirs ...string) string {
 	prfx = os.Getenv(env)
 	if len(prfx) == 0 {
 		h := x.Home(false)
-		v := append([]string { h }, prefix_dirs...)
+		v := append([]string{h}, prefix_dirs...)
 		prfx = x.Join(v...)
 	}
 	return x.Join(prfx, x.appName)
 }
 
 func (x XdgPosix) ConfigDir() string { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
-func (x XdgPosix) CacheDir()  string { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
-func (x XdgPosix) DataDir()   string { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
+func (x XdgPosix) CacheDir() string  { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
+func (x XdgPosix) DataDir() string   { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
 
 type Win32 struct {
 	Base
@@ -74,16 +73,16 @@ type Win32 struct {
 
 func (w Win32) Split(s string) []string {
 	rxx := regexp.MustCompile(`[/\\]`)
-	return rxx.Split(s,-1)
+	return rxx.Split(s, -1)
 }
 
 func (w Win32) Normalize(s string) string {
 	return w.Unsplit(w.Split(s))
 }
 
-func (w Win32) CacheDir()  string { return w.Home(false); }
-func (w Win32) ConfigDir() string { return w.Home(false); }
-func (w Win32) DataDir()   string { return w.Home(false); }
+func (w Win32) CacheDir() string  { return w.Home(false) }
+func (w Win32) ConfigDir() string { return w.Home(false) }
+func (w Win32) DataDir() string   { return w.Home(false) }
 
 func (w Win32) Home(emptyOk bool) string {
 	var ret string
@@ -101,7 +100,7 @@ func (w Win32) Home(emptyOk bool) string {
 			log.Fatalf("Bad 'TEMP' variable found, no directory separators!")
 		}
 		last := strings.ToLower(v[len(v)-1])
-		rest := v[0:len(v)-1]
+		rest := v[0 : len(v)-1]
 		if last != "temp" && last != "tmp" {
 			log.Fatalf("TEMP directory didn't end in \\Temp")
 		}
@@ -115,9 +114,8 @@ func (w Win32) Home(emptyOk bool) string {
 
 func NewHomeFinder(appName string, getHome HomeGetter) HomeFinder {
 	if runtime.GOOS == "windows" {
-		return Win32 { Base { appName, getHome }}
+		return Win32{Base{appName, getHome}}
 	} else {
-		return XdgPosix { Base { appName, getHome }}
+		return XdgPosix{Base{appName, getHome}}
 	}
 }
-

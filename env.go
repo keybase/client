@@ -1,39 +1,43 @@
-
 package libkb
 
 import (
 	"os"
-	"strconv"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
-type NullConfiguration struct {}
-func (n NullConfiguration) GetHome() string  { return "" }
-func (n NullConfiguration) GetServerUri() string { return "" }
-func (n NullConfiguration) GetConfigFilename() string { return "" }
-func (n NullConfiguration) GetSessionFilename() string { return "" }
-func (n NullConfiguration) GetDbFilename() string { return "" }
-func (n NullConfiguration) GetUsername() string { return "" }
-func (n NullConfiguration) GetProxy() string { return "" }
-func (n NullConfiguration) GetDebug() (bool, bool) { return false, false }
+type NullConfiguration struct{}
+
+func (n NullConfiguration) GetHome() string               { return "" }
+func (n NullConfiguration) GetServerUri() string          { return "" }
+func (n NullConfiguration) GetConfigFilename() string     { return "" }
+func (n NullConfiguration) GetSessionFilename() string    { return "" }
+func (n NullConfiguration) GetDbFilename() string         { return "" }
+func (n NullConfiguration) GetUsername() string           { return "" }
+func (n NullConfiguration) GetProxy() string              { return "" }
+func (n NullConfiguration) GetDebug() (bool, bool)        { return false, false }
 func (n NullConfiguration) GetPlainLogging() (bool, bool) { return false, false }
-func (n NullConfiguration) GetPgpDir() string { return "" }
-func (n NullConfiguration) GetBundledCA(h string) string { return "" }
+func (n NullConfiguration) GetPgpDir() string             { return "" }
+func (n NullConfiguration) GetBundledCA(h string) string  { return "" }
 
 type Env struct {
-	cmd CommandLine
-	config Config
+	cmd        CommandLine
+	config     Config
 	homeFinder HomeFinder
 }
 
 func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
-func (e *Env) SetConfig(config Config) { e.config = config }
+func (e *Env) SetConfig(config Config)        { e.config = config }
 
 func NewEnv(cmd CommandLine, config Config) *Env {
-	if cmd == nil { cmd = NullConfiguration{} }
-	if config == nil { config = NullConfiguration{} }
-	e := Env { cmd, config, nil }
+	if cmd == nil {
+		cmd = NullConfiguration{}
+	}
+	if config == nil {
+		config = NullConfiguration{}
+	}
+	e := Env{cmd, config, nil}
 	e.homeFinder = NewHomeFinder("keybase", func() string { return e.getHomeFromCmdOrConfig() })
 	return &e
 }
@@ -41,14 +45,16 @@ func NewEnv(cmd CommandLine, config Config) *Env {
 func (e Env) getHomeFromCmdOrConfig() string {
 	var ret string
 	ret = e.cmd.GetHome()
-	if len(ret) == 0 {ret = e.config.GetHome() }
+	if len(ret) == 0 {
+		ret = e.config.GetHome()
+	}
 	return ret
 }
 
-func (e Env) GetHome() string { return e.homeFinder.Home(false) }
-func (e Env) GetConfigDir() string {return e.homeFinder.ConfigDir() }
-func (e Env) GetCacheDir() string {return e.homeFinder.CacheDir() }
-func (e Env) GetDataDir() string {return e.homeFinder.DataDir() }
+func (e Env) GetHome() string      { return e.homeFinder.Home(false) }
+func (e Env) GetConfigDir() string { return e.homeFinder.ConfigDir() }
+func (e Env) GetCacheDir() string  { return e.homeFinder.CacheDir() }
+func (e Env) GetDataDir() string   { return e.homeFinder.DataDir() }
 
 func (e Env) getEnvInt(s string) (ret int64) {
 	ret = -1
@@ -78,16 +84,20 @@ func (e Env) getEnvBool(s string) (bool, bool) {
 
 func (e Env) GetString(flist ...(func() string)) string {
 	var ret string
-	for _, f := range(flist) {
+	for _, f := range flist {
 		ret = f()
-		if len(ret) > 0 { break; }
+		if len(ret) > 0 {
+			break
+		}
 	}
 	return ret
 }
 
 func (e Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
-	for _, f := range(flist) {
-		if val, is_set := f(); is_set { return val }
+	for _, f := range flist {
+		if val, is_set := f(); is_set {
+			return val
+		}
 	}
 	return def
 }
@@ -171,20 +181,22 @@ func (e Env) GetPgpDir() string {
 }
 
 func (e Env) GetPublicKeyrings() []string {
-	return []string{ filepath.Join(e.GetPgpDir(), "pubring.gpg") }
+	return []string{filepath.Join(e.GetPgpDir(), "pubring.gpg")}
 }
 
 func (e Env) GetSecretKeyrings() []string {
-	return []string{ filepath.Join(e.GetPgpDir(), "secring.gpg") }
+	return []string{filepath.Join(e.GetPgpDir(), "secring.gpg")}
 }
 
 func (e Env) GetBundledCA(host string) string {
 	return e.GetString(
 		func() string { return e.config.GetBundledCA(host) },
-		func() string { 
+		func() string {
 			ret, ok := BundledCAs[host]
-			if !ok { ret = "" }
+			if !ok {
+				ret = ""
+			}
 			return ret
 		},
-	)	
+	)
 }

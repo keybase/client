@@ -1,4 +1,3 @@
-
 package libkb
 
 import (
@@ -6,7 +5,7 @@ import (
 	"runtime"
 )
 
-type CmdVersion struct {}
+type CmdVersion struct{}
 
 func VersionMessage(linefn func(string)) {
 	linefn(fmt.Sprintf("Keybase Command-Line App v%s", CLIENT_VERSION))
@@ -15,10 +14,10 @@ func VersionMessage(linefn func(string)) {
 }
 
 func (v CmdVersion) Run() error {
-	VersionMessage(func(s string) { fmt.Println(s); } )
+	VersionMessage(func(s string) { fmt.Println(s) })
 	return nil
 }
 
-func (v CmdVersion) UseConfig() bool { return true }
+func (v CmdVersion) UseConfig() bool  { return true }
 func (v CmdVersion) UseKeyring() bool { return true }
-func (v CmdVersion) UseAPI() bool { return false }
+func (v CmdVersion) UseAPI() bool     { return false }

@@ -1,25 +1,23 @@
-
 package libkb
 
-import (
-)
+import ()
 
 type Global struct {
-	Env *Env
+	Env        *Env
 	LoginState LoginState
-	Log *Logger
-	Keyrings *Keyrings
-	API *ApiAccess
-	Session *Session
+	Log        *Logger
+	Keyrings   *Keyrings
+	API        *ApiAccess
+	Session    *Session
 }
 
-var G Global = Global { nil, LoginState { false, false, false }, NewDefaultLogger(), nil, nil, nil }
+var G Global = Global{nil, LoginState{false, false, false}, NewDefaultLogger(), nil, nil, nil}
 
-func (g *Global) SetCommandLine (cmd CommandLine) { g.Env.SetCommandLine(cmd) }
+func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
-func (g *Global) Init() { g.Env = NewEnv(nil,nil) }
+func (g *Global) Init() { g.Env = NewEnv(nil, nil) }
 
-func (g *Global) ConfigureLogging() {g.Log.Configure(g.Env) }
+func (g *Global) ConfigureLogging() { g.Log.Configure(g.Env) }
 
 func (g *Global) ConfigureConfig() {
 	c := NewJsonConfigFile(g.Env.GetConfigFilename())
@@ -40,7 +38,7 @@ func (g *Global) ConfigureKeyring() {
 }
 
 func (g Global) StartupMessage() {
-	VersionMessage(func(s string) { g.Log.Debug(s); })
+	VersionMessage(func(s string) { g.Log.Debug(s) })
 }
 
 func (g *Global) ConfigureAPI() {

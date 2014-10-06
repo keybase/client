@@ -1,9 +1,8 @@
-
 package libkb
 
-var BundledCAs = map[string]string {
+var BundledCAs = map[string]string{
 
-	"api.keybase.io" : `-----BEGIN CERTIFICATE-----
+	"api.keybase.io": `-----BEGIN CERTIFICATE-----
 MIIGmzCCBIOgAwIBAgIJAPzhpcIBaOeNMA0GCSqGSIb3DQEBBQUAMIGPMQswCQYD
 VQQGEwJVUzELMAkGA1UECBMCTlkxETAPBgNVBAcTCE5ldyBZb3JrMRQwEgYDVQQK
 EwtLZXliYXNlIExMQzEXMBUGA1UECxMOQ2VydCBBdXRob3JpdHkxEzARBgNVBAMT
@@ -41,5 +40,4 @@ Ri6LvdEkhhFVl5rHMQBwNOPngySrq8cs/ikTLTfQVTYXXA4Ba1YyiMOlfaR1LhKw
 If1AkUV0tfCTNRZ01EotKSK77+o+k214n+BAu+7mO+9B5Kb7lMFQcuWCHXKYB2Md
 cT7Yh09F0QpFUd0ymEfv
 -----END CERTIFICATE-----`,
-
 }

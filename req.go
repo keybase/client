@@ -1,13 +1,12 @@
-
 package libkb
 
 import (
-	"net/http"
-	"net/http/cookiejar"
-	"net/url"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,8 +28,8 @@ type Client struct {
 }
 
 type ClientSet struct {
-	cookied    *Client
-	uncookied  *Client
+	cookied   *Client
+	uncookied *Client
 }
 
 func SplitHost(joined string) (host string, port int, err error) {
@@ -76,14 +75,14 @@ func ShortCA(raw string) string {
 func (e Env) GenClientConfig() (*ClientConfig, error) {
 	u := e.GetServerUri()
 	if len(u) == 0 {
-		err := fmt.Errorf("Cannot find a server URL")	
+		err := fmt.Errorf("Cannot find a server URL")
 		return nil, err
 	}
 	url, err := url.Parse(u)
 	if err != nil {
 		return nil, err
 	}
-	useTls := (url.Scheme == "https")	
+	useTls := (url.Scheme == "https")
 	host, port, e2 := SplitHost(url.Host)
 	if e2 != nil {
 		return nil, e2
@@ -97,7 +96,7 @@ func (e Env) GenClientConfig() (*ClientConfig, error) {
 		}
 		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s", host, ShortCA(raw_ca)))
 	}
-	ret := &ClientConfig { host, port, useTls, url, rootCAs, url.Path, true }
+	ret := &ClientConfig{host, port, useTls, url, rootCAs, url.Path, true}
 	return ret, nil
 }
 
@@ -110,14 +109,14 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 	var xprt *http.Transport
 
 	if config.RootCAs != nil {
-		xprt = &http.Transport {
-			TLSClientConfig : &tls.Config { RootCAs : config.RootCAs }, 
+		xprt = &http.Transport{
+			TLSClientConfig: &tls.Config{RootCAs: config.RootCAs},
 		}
 	}
 
-	ret := &Client {
-		cli : &http.Client {}, 
-		config : config,
+	ret := &Client{
+		cli:    &http.Client{},
+		config: config,
 	}
 	if jar != nil {
 		ret.cli.Jar = jar
@@ -127,4 +126,3 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 	}
 	return ret
 }
-

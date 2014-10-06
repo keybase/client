@@ -1,4 +1,3 @@
-
 package libkb
 
 /*
@@ -24,11 +23,9 @@ type CommandLine interface {
 }
 
 type Server interface {
-
 }
 
 type LocalCache interface {
-
 }
 
 type Config interface {
@@ -50,15 +47,12 @@ type HttpRequest interface {
 }
 
 type Keychain interface {
-
 }
 
 type ProofCheckers interface {
-
 }
 
 type Pinentry interface {
-
 }
 
 type Command interface {

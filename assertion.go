@@ -1,10 +1,9 @@
-
 package libkb
 
 import (
 	"fmt"
-	"strings"
 	"regexp"
+	"strings"
 )
 
 type AssertionExpression interface {
@@ -17,7 +16,7 @@ type AssertionOr struct {
 }
 
 func (a AssertionOr) MatchSet(ps ProofSet) bool {
-	for _, t := range(a.terms) {
+	for _, t := range a.terms {
 		if t.MatchSet(ps) {
 			return true
 		}
@@ -27,10 +26,10 @@ func (a AssertionOr) MatchSet(ps ProofSet) bool {
 
 func (a AssertionOr) ToString() string {
 	v := make([]string, len(a.terms))
-	for i,t := range a.terms {
+	for i, t := range a.terms {
 		v[i] = t.ToString()
 	}
-	return fmt.Sprintf("(%s)", strings.Join(v, " || " ))
+	return fmt.Sprintf("(%s)", strings.Join(v, " || "))
 }
 
 type AssertionAnd struct {
@@ -38,7 +37,7 @@ type AssertionAnd struct {
 }
 
 func (a AssertionAnd) MatchSet(ps ProofSet) bool {
-	for _, f := range(a.factors) {
+	for _, f := range a.factors {
 		if !f.MatchSet(ps) {
 			return false
 		}
@@ -48,10 +47,10 @@ func (a AssertionAnd) MatchSet(ps ProofSet) bool {
 
 func (a AssertionAnd) ToString() string {
 	v := make([]string, len(a.factors))
-	for i,f := range a.factors {
+	for i, f := range a.factors {
 		v[i] = f.ToString()
 	}
-	return fmt.Sprintf("(%s)", strings.Join(v, " && " ))
+	return fmt.Sprintf("(%s)", strings.Join(v, " && "))
 }
 
 type AssertionUrl interface {
@@ -64,12 +63,12 @@ type AssertionUrl interface {
 }
 
 type AssertionUrlBase struct {
-	Key,Value string
+	Key, Value string
 }
 
 func (a AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
 	proofs := ps.Get(v.Keys())
-	for _, proof := range(proofs) {
+	for _, proof := range proofs {
 		if v.MatchProof(proof) {
 			return true
 		}
@@ -77,20 +76,20 @@ func (a AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
 	return false
 }
 
-func (a AssertionKeybase) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
-func (a AssertionWeb) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
-func (a AssertionSocial) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
-func (a AssertionHttp) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
-func (a AssertionHttps) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
-func (a AssertionDns) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
-func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {return a.matchSet(a, ps) }
+func (a AssertionKeybase) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionWeb) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionSocial) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
+func (a AssertionHttp) MatchSet(ps ProofSet) bool        { return a.matchSet(a, ps) }
+func (a AssertionHttps) MatchSet(ps ProofSet) bool       { return a.matchSet(a, ps) }
+func (a AssertionDns) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionFingerprint) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
 
-func (a AssertionWeb) Keys() []string {return []string { "dns", "http", "https", } }
-func (a AssertionHttp) Keys() []string {return []string { "http", "https", } }
-func (a AssertionUrlBase) Keys() []string {return []string { a.Key } }
-func (a AssertionUrlBase) IsKeybase() bool {return false; }
+func (a AssertionWeb) Keys() []string      { return []string{"dns", "http", "https"} }
+func (a AssertionHttp) Keys() []string     { return []string{"http", "https"} }
+func (a AssertionUrlBase) Keys() []string  { return []string{a.Key} }
+func (a AssertionUrlBase) IsKeybase() bool { return false }
 func (a AssertionUrlBase) MatchProof(proof Proof) bool {
-	return (strings.ToLower(proof.Value) == a.Value )
+	return (strings.ToLower(proof.Value) == a.Value)
 }
 
 // Fingerprint matching is on the suffixes.  If the assertion matches
@@ -106,13 +105,13 @@ func (a AssertionFingerprint) MatchProof(proof Proof) bool {
 	}
 }
 
-type AssertionSocial struct {AssertionUrlBase }
-type AssertionWeb struct {AssertionUrlBase }
-type AssertionKeybase struct {AssertionUrlBase }
-type AssertionHttp struct {AssertionUrlBase }
-type AssertionHttps struct {AssertionUrlBase }
-type AssertionDns struct {AssertionUrlBase }
-type AssertionFingerprint struct {AssertionUrlBase }
+type AssertionSocial struct{ AssertionUrlBase }
+type AssertionWeb struct{ AssertionUrlBase }
+type AssertionKeybase struct{ AssertionUrlBase }
+type AssertionHttp struct{ AssertionUrlBase }
+type AssertionHttps struct{ AssertionUrlBase }
+type AssertionDns struct{ AssertionUrlBase }
+type AssertionFingerprint struct{ AssertionUrlBase }
 
 func (a AssertionUrlBase) Check() (err error) {
 	if len(a.Value) == 0 {
@@ -121,10 +120,10 @@ func (a AssertionUrlBase) Check() (err error) {
 	return err
 }
 
-func (a AssertionHttp) Check() (err error) { return a.CheckHost() }
+func (a AssertionHttp) Check() (err error)  { return a.CheckHost() }
 func (a AssertionHttps) Check() (err error) { return a.CheckHost() }
-func (a AssertionDns) Check() (err error) { return a.CheckHost() }
-func (a AssertionWeb) Check() (err error) { return a.CheckHost() }
+func (a AssertionDns) Check() (err error)   { return a.CheckHost() }
+func (a AssertionWeb) Check() (err error)   { return a.CheckHost() }
 
 func (a AssertionUrlBase) CheckHost() (err error) {
 	s := a.Value
@@ -134,21 +133,21 @@ func (a AssertionUrlBase) CheckHost() (err error) {
 		if !re.MatchString(s) {
 			err = fmt.Errorf("Invalid hostname: %s", s)
 		}
-	}	
+	}
 	return
 }
 
 func (a AssertionUrlBase) ToString() string {
-	return fmt.Sprintf("%s://%s", a.Key, a.Value)	
+	return fmt.Sprintf("%s://%s", a.Key, a.Value)
 }
 
 func parseToKVPair(s string) (key string, value string) {
-	colon := strings.IndexByte(s,byte(':'))
+	colon := strings.IndexByte(s, byte(':'))
 	if colon < 0 {
 		value = s
 	} else {
 		key = s[0:colon]
-		value = s[(colon+1):]
+		value = s[(colon + 1):]
 		if len(value) >= 2 && value[0:2] == "//" {
 			value = value[2:]
 		}
@@ -163,12 +162,12 @@ func (k AssertionKeybase) IsKeybase() bool {
 }
 
 func (s AssertionSocial) Check() (err error) {
-	networks := map[string]bool {
-		"github" : true,
-		"coinbase" : true,
-		"reddit" : true,
-		"twitter" : true,
-		"hackernews" : true,
+	networks := map[string]bool{
+		"github":     true,
+		"coinbase":   true,
+		"reddit":     true,
+		"twitter":    true,
+		"hackernews": true,
 	}
 	b, ok := networks[s.Key]
 	if !b || !ok {
@@ -178,7 +177,7 @@ func (s AssertionSocial) Check() (err error) {
 }
 
 func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
-	key,val := parseToKVPair(s)
+	key, val := parseToKVPair(s)
 
 	if len(key) == 0 {
 		if strict {
@@ -187,22 +186,22 @@ func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
 			key = "keybase"
 		}
 	}
-	base := AssertionUrlBase { key, val}
+	base := AssertionUrlBase{key, val}
 	switch key {
-		case "keybase": 
-			ret = AssertionKeybase { base }
-		case "web" :
-			ret = AssertionWeb { base } 
-		case "http":
-			ret = AssertionHttp { base }
-		case "https":
-			ret = AssertionHttps { base }
-		case "dns":
-			ret = AssertionDns { base }
-		case "fingerprint":
-			ret = AssertionFingerprint { base }
-		default : 
-			ret = AssertionSocial { base }
+	case "keybase":
+		ret = AssertionKeybase{base}
+	case "web":
+		ret = AssertionWeb{base}
+	case "http":
+		ret = AssertionHttp{base}
+	case "https":
+		ret = AssertionHttps{base}
+	case "dns":
+		ret = AssertionDns{base}
+	case "fingerprint":
+		ret = AssertionFingerprint{base}
+	default:
+		ret = AssertionSocial{base}
 	}
 
 	if err == nil && ret != nil {
@@ -215,20 +214,20 @@ func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
 }
 
 type Proof struct {
-	Key,Value string	
+	Key, Value string
 }
 
 type ProofSet struct {
-	proofs map[string]([]Proof)	
+	proofs map[string]([]Proof)
 }
 
 func NewProofSet(proofs []Proof) *ProofSet {
-	ret := &ProofSet {}
+	ret := &ProofSet{}
 	d := make(map[string]([]Proof))
-	for _, proof := range(proofs) {
+	for _, proof := range proofs {
 		v, ok := d[proof.Key]
 		if !ok {
-			v = []Proof { proof }
+			v = []Proof{proof}
 		} else {
 			v = append(v, proof)
 		}
@@ -240,10 +239,10 @@ func NewProofSet(proofs []Proof) *ProofSet {
 
 func (ps ProofSet) Get(keys []string) (ret []Proof) {
 	ret = []Proof{}
-	for _, key := range(keys) {
+	for _, key := range keys {
 		if v, ok := ps.proofs[key]; ok {
-			ret = append(ret, v...)	
-		}	
+			ret = append(ret, v...)
+		}
 	}
 	return ret
 }

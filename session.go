@@ -1,17 +1,16 @@
-
 package libkb
 
 type Session struct {
-	file *JsonFile
-	token string
-	csrf string
-	inFile bool
-	loaded bool
+	file    *JsonFile
+	token   string
+	csrf    string
+	inFile  bool
+	loaded  bool
 	checked bool
-	valid bool
+	valid   bool
 }
 
-func NewSession() Session { return Session { nil, "", "", false, false, false, false } }
+func NewSession() Session { return Session{nil, "", "", false, false, false, false} }
 
 func (s *Session) Load() error {
 	G.Log.Debug("+ Loading session")
@@ -19,7 +18,7 @@ func (s *Session) Load() error {
 		G.Log.Debug("- Skipped; already loaded")
 		return nil
 	}
-	s.file = &JsonFile { G.Env.GetSessionFilename(), "session", nil }
+	s.file = &JsonFile{G.Env.GetSessionFilename(), "session", nil}
 	err := s.file.Load(false)
 	s.loaded = true
 
@@ -58,4 +57,3 @@ func (s *Session) Check() error {
 	G.Log.Debug("- Checked session")
 	return nil
 }
-

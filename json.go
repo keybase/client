@@ -1,17 +1,16 @@
-
 package libkb
 
 import (
-	"os"
+	"encoding/json"
 	"fmt"
 	"github.com/okcupid/jsonw"
-	"encoding/json"
+	"os"
 )
 
 type JsonFile struct {
 	filename string
-	which string
-	jw *jsonw.Wrapper
+	which    string
+	jw       *jsonw.Wrapper
 }
 
 func (f *JsonFile) Load(warnOnNotFound bool) error {

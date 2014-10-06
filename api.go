@@ -1,34 +1,33 @@
-
 package libkb
 
 import (
-	"github.com/okcupid/jsonw"
-	"net/url"
-	"net/http"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"github.com/okcupid/jsonw"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"strings"
 )
 
 type ApiArg struct {
-	Endpoint string
-	uArgs url.Values
-	Args HttpArgs
+	Endpoint    string
+	uArgs       url.Values
+	Args        HttpArgs
 	NeedSession bool
-	HttpStatus []int
-	AppStatus []string
+	HttpStatus  []int
+	AppStatus   []string
 }
 
 type ApiRes struct {
-	Status *jsonw.Wrapper
-	Body *jsonw.Wrapper
+	Status     *jsonw.Wrapper
+	Body       *jsonw.Wrapper
 	HttpStatus int
-	AppStatus string
+	AppStatus  string
 }
 
 type ApiAccess struct {
-	config *ClientConfig
+	config              *ClientConfig
 	cookied, notCookied *Client
 }
 
@@ -37,7 +36,7 @@ func NewApiAccess(e Env) (*ApiAccess, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ApiAccess{ config, nil, nil }, nil
+	return &ApiAccess{config, nil, nil}, nil
 }
 
 func (api *ApiAccess) getCli(cookied bool) (ret *Client) {
@@ -58,7 +57,7 @@ func (api *ApiAccess) getCli(cookied bool) (ret *Client) {
 func (a ApiAccess) getUrl(arg ApiArg) url.URL {
 	u := *a.config.Url
 	var path string
-	if len(a.config.Prefix) > 0 { 
+	if len(a.config.Prefix) > 0 {
 		path = a.config.Prefix
 	} else {
 		path = API_URI_PATH_PREFIX
@@ -90,11 +89,11 @@ func checkAppStatus(arg ApiArg, jw *jsonw.Wrapper) (string, error) {
 	}
 
 	if arg.AppStatus == nil || len(arg.AppStatus) == 0 {
-		set = []string { "OK" }
+		set = []string{"OK"}
 	} else {
 		set = arg.AppStatus
 	}
-	for _, status := range(set) {
+	for _, status := range set {
 		if res_name == status {
 			return res_name, nil
 		}
@@ -107,20 +106,20 @@ func checkAppStatus(arg ApiArg, jw *jsonw.Wrapper) (string, error) {
 func checkHttpStatus(arg ApiArg, resp *http.Response) error {
 	var set []int
 	if arg.HttpStatus == nil || len(arg.HttpStatus) == 0 {
-		set = []int { 200 }
+		set = []int{200}
 	} else {
 		set = arg.HttpStatus
 	}
-	for _, status := range(set) {
+	for _, status := range set {
 		if resp.StatusCode == status {
 			return nil
-		}	
+		}
 	}
 	return fmt.Errorf("Bad HTTP response code: %s", resp.Status)
 }
 
 func (arg ApiArg) getHttpArgs() url.Values {
-	if arg.Args != nil { 
+	if arg.Args != nil {
 		return arg.Args.ToValues()
 	} else {
 		return arg.uArgs
@@ -133,7 +132,9 @@ func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
 	req, err := http.NewRequest("GET", ruri, nil)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	return api.DoRequest(arg, req)
 }
 
@@ -144,10 +145,11 @@ func (api *ApiAccess) Post(arg ApiArg) (*ApiRes, error) {
 	body := ioutil.NopCloser(strings.NewReader(arg.getHttpArgs().Encode()))
 	req, err := http.NewRequest("POST", ruri, body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	return api.DoRequest(arg, req)
 }
-
 
 func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) {
 
@@ -156,11 +158,15 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 
 	// Actually send the request via Go's libraries
 	resp, err := cli.cli.Do(req)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	G.Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
 
 	err = checkHttpStatus(arg, resp)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	decoder := json.NewDecoder(resp.Body)
 	obj := make(map[string]interface{})
@@ -169,7 +175,7 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 	if err != nil {
 		err = fmt.Errorf("Error in parsing JSON reply from server: %s", err.Error())
 		return nil, err
-	}	
+	}
 
 	jw := jsonw.NewWrapper(obj)
 	G.Log.Debug(fmt.Sprintf("| full reply: %v", obj))
@@ -187,5 +193,5 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 
 	body := jw
 	G.Log.Debug(fmt.Sprintf("- succesful API call"))
-	return &ApiRes {status, body, resp.StatusCode, appStatus } , err
+	return &ApiRes{status, body, resp.StatusCode, appStatus}, err
 }
