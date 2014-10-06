@@ -12,7 +12,7 @@ func parseArgs() libkb.Command {
 	p := libkb.PosixCommandLine{}
 	cmd, err := p.Parse(os.Args)
 	if err != nil {
-		G.Log.Fatalf("x blah blhab alhba blahbalbal blah Error parsing command line arguments: %s\n", err.Error())
+		G.Log.Fatalf("Error parsing command line arguments: %s\n", err.Error())
 	}
 	G.SetCommandLine(p)
 	if cmd == nil {
