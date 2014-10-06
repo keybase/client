@@ -152,8 +152,8 @@ func (api *ApiAccess) Post(arg ApiArg) (*ApiRes, error) {
 	return api.DoRequest(arg, req)
 }
 
-func (api *ApiAccess) DoRequest(arg ApiArg,
-	req *http.Request) (*ApiRes, error) {
+func (api *ApiAccess) DoRequest(
+	arg ApiArg, req *http.Request) (*ApiRes, error) {
 
 	api.fixHeaders(req, arg)
 	cli := api.getCli(arg.NeedSession)
