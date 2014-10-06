@@ -1,0 +1,121 @@
+#!/bin/sh
+# Copyright 2012 The Go Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+# git gofmt pre-commit hook
+#
+# To use, store as .git/hooks/pre-commit inside your repository and make sure
+# it has execute permissions.
+#
+# This script does not handle file names that contain spaces.
+
+check_go_fmt() {
+	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$')
+	[ -z "$gofiles" ] && return 0
+
+	unformatted=$(gofmt -l $gofiles)
+	[ -z "$unformatted" ] && return 0
+
+	# Some files are not gofmt'd. Print message and fail.
+
+	echo >&2 "Go files must be formatted with gofmt. Please run:"
+	for fn in $unformatted; do
+		echo >&2 "  gofmt -w $PWD/$fn"
+	done
+
+	exit 1
+}
+
+#
+# report bad files and die if there are any
+#
+dieOnBadFiles()
+{
+    if [ -n "$badFiles" ]
+    then
+        echo "$hookName hook failure" 1>&2
+        echo '-----------------------------------' 1>&2
+        echo "$@" 1>&2
+        echo '' 1>&2
+        echo "File(s):" 1>&2
+        echo "$badFiles" 1>&2
+        echo ''  1>&2
+        exit 1
+    fi
+}
+
+#
+# qualify 'git grep' to check cached value or from a specific commit
+#
+gitScope()
+{
+    if [ "$#" -gt 0 ]
+    then
+        echo "$1:"
+    else
+        echo "--cached -- "
+    fi
+}
+
+#
+# limit line length to 80-columns
+#
+checkLineLength()
+{
+    echo "$hookName: check line lengths ..." 1>&2
+
+    scope=$(gitScope $@)
+
+    badFiles=$(
+    for f in $fileList
+    do
+        # limit to *.go files
+        case "$f" in
+        (*.go)
+            # parse line numbers from grep output:
+            #        <lineNr>:   contents
+            lines=$(git grep -hn -e '^.\{81,\}' $scope"$f" |
+                sed -e 's@:.*@@' |
+                tr '\n' ' '
+            )
+            [ -n "$lines" ] && echo "$Indent$f -- lines: $lines"
+        ;;
+        esac
+    done
+    )
+
+    dieOnBadFiles "Limit code to 80 columns before pushing"
+}
+
+#-----------------------------------------------------------------------------
+# Check content that will be added by this commit.
+
+if git rev-parse --verify HEAD > /dev/null 2>&1
+then
+    against=HEAD
+else
+    # Initial commit: diff against an empty tree object
+    against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+# called manually with arguments for the files/directories to be tested?
+if [ "$#" -gt 0 ]
+then
+    case "$1" in
+    -h | -help)
+        die "interactive usage: supply list of files/directories to check"
+        ;;
+    esac
+
+    # obtain list of all specified files/directories
+    fileList=$(git ls-files -- $@ 2>/dev/null)
+else
+    # list of all files to be committed
+    fileList=$(git diff-index --cached --name-only $against --)
+fi
+
+#-----------------------------------------------------------------------------
+
+checkLineLength
+check_go_fmt
