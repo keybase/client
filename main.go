@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -34,10 +33,18 @@ func main() {
 	G.Init()
 	cmd := parseArgs()
 	G.ConfigureLogging()
-	if cmd.UseConfig() { G.ConfigureConfig() }
-	if cmd.UseKeyring() { G.ConfigureKeyring() }
-	if cmd.UseAPI() { G.ConfigureAPI() }
+	if cmd.UseConfig() {
+		G.ConfigureConfig()
+	}
+	if cmd.UseKeyring() {
+		G.ConfigureKeyring()
+	}
+	if cmd.UseAPI() {
+		G.ConfigureAPI()
+	}
 	G.StartupMessage()
 	testLogging()
-	if err := cmd.Run(); err != nil { G.Log.Fatal(err.Error()) }
+	if err := cmd.Run(); err != nil {
+		G.Log.Fatal(err.Error())
+	}
 }
