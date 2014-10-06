@@ -144,14 +144,16 @@ func (api *ApiAccess) Post(arg ApiArg) (*ApiRes, error) {
 	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
 	body := ioutil.NopCloser(strings.NewReader(arg.getHttpArgs().Encode()))
 	req, err := http.NewRequest("POST", ruri, body)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
+	typ := "application/x-www-form-urlencoded; charset=utf-8"
+	req.Header.Add("Content-Type", typ)
 	if err != nil {
 		return nil, err
 	}
 	return api.DoRequest(arg, req)
 }
 
-func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) {
+func (api *ApiAccess) DoRequest(arg ApiArg,
+	req *http.Request) (*ApiRes, error) {
 
 	api.fixHeaders(req, arg)
 	cli := api.getCli(arg.NeedSession)
@@ -163,6 +165,7 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 	}
 	G.Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
 
+	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
 	err = checkHttpStatus(arg, resp)
 	if err != nil {
 		return nil, err
@@ -185,6 +188,8 @@ func (api *ApiAccess) DoRequest(arg ApiArg, req *http.Request) (*ApiRes, error) 
 		return nil, err
 	}
 
+	// Check for an "OK" or whichever app-level replies were allowed by
+	// http.AppStatus
 	appStatus, err := checkAppStatus(arg, status)
 	if err != nil {
 		err = fmt.Errorf("Got failure from Keybase server: %s", err.Error())

@@ -5,22 +5,32 @@ import (
 	"net/url"
 )
 
-type HttpArgs map[string]U
-
-type U struct {
-	S string
-	B bool
-	I int
+type HttpValue interface {
+	ToString() string
 }
 
-func (u U) ToString() string {
-	if len(u.S) > 0 {
-		return u.S
-	} else if u.B {
-		return "1"
-	} else {
-		return fmt.Sprintf("%d", u.I)
+type HttpArgs map[string]HttpValue
+
+type S struct {
+	val string
+}
+
+type I struct {
+	val int
+}
+
+type B struct {
+	val bool
+}
+
+func (s S) ToString() string { return s.val }
+func (i I) ToString() string { return fmt.Sprintf("%d", i.val) }
+func (b B) ToString() string {
+	i := 0
+	if b.val {
+		i = 1
 	}
+	return fmt.Sprintf("%d", i)
 }
 
 func (a HttpArgs) ToValues() url.Values {

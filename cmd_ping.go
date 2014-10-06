@@ -10,8 +10,9 @@ func (v CmdPing) Run() error {
 	_, err := G.API.Post(ApiArg{
 		Endpoint: "ping",
 		Args: HttpArgs{
-			"alice": U{S: "hi alice"},
-			"bob":   U{I: 1000},
+			"alice":   S{"hi alice"},
+			"bob":     I{1000},
+			"charlie": B{true},
 		},
 	})
 	if err != nil {
