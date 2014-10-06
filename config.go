@@ -7,7 +7,7 @@ type JsonConfigFile struct {
 }
 
 func NewJsonConfigFile(s string) *JsonConfigFile {
-	return &JsonConfigFile{JsonFile{s, "config", nil}}
+	return &JsonConfigFile{*NewJsonFile(s, "config")}
 }
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
@@ -32,15 +32,34 @@ func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
 	return
 }
 
-func (f JsonConfigFile) GetHome() (ret string)            { return f.GetTopLevelString("home") }
-func (f JsonConfigFile) GetServerUri() (ret string)       { return f.GetTopLevelString("server") }
-func (f JsonConfigFile) GetConfigFilename() (ret string)  { return f.GetTopLevelString("config") }
-func (f JsonConfigFile) GetSessionFilename() (ret string) { return f.GetTopLevelString("session") }
-func (f JsonConfigFile) GetDbFilename() (ret string)      { return f.GetTopLevelString("db") }
-func (f JsonConfigFile) GetUsername() (ret string)        { return f.GetTopLevelString("username") }
-func (f JsonConfigFile) GetProxy() (ret string)           { return f.GetTopLevelString("proxy") }
-func (f JsonConfigFile) GetDebug() (bool, bool)           { return f.GetTopLevelBool("debug") }
-func (f JsonConfigFile) GetPlainLogging() (bool, bool)    { return f.GetTopLevelBool("plain_logging") }
+func (f JsonConfigFile) GetHome() (ret string) {
+	return f.GetTopLevelString("home")
+}
+func (f JsonConfigFile) GetServerUri() (ret string) {
+	return f.GetTopLevelString("server")
+}
+func (f JsonConfigFile) GetConfigFilename() (ret string) {
+	return f.GetTopLevelString("config")
+}
+func (f JsonConfigFile) GetSessionFilename() (ret string) {
+	return f.GetTopLevelString("session")
+}
+func (f JsonConfigFile) GetDbFilename() (ret string) {
+	return f.GetTopLevelString("db")
+}
+func (f JsonConfigFile) GetUsername() (ret string) {
+	return f.GetTopLevelString("username")
+}
+func (f JsonConfigFile) GetProxy() (ret string) {
+	return f.GetTopLevelString("proxy")
+}
+func (f JsonConfigFile) GetDebug() (bool, bool) {
+	return f.GetTopLevelBool("debug")
+}
+func (f JsonConfigFile) GetPlainLogging() (bool, bool) {
+	return f.GetTopLevelBool("plain_logging")
+}
+
 func (f JsonConfigFile) GetPgpDir() (ret string) {
 	ret = f.GetTopLevelString("pgpdir")
 	if len(ret) == 0 {

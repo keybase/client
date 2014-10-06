@@ -7,7 +7,18 @@ import (
 type CmdLogin struct{}
 
 func (v CmdLogin) Run() error {
-	err := G.Terminal.Startup()
+
+	err := G.LoginState.Login()
+	if err != nil {
+		return err
+	}
+
+	err = G.LoginState.Login()
+	if err != nil {
+		return err
+	}
+
+	err = G.Terminal.Startup()
 	if err != nil {
 		return err
 	}

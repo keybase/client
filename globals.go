@@ -5,19 +5,21 @@ import (
 )
 
 type Global struct {
-	Env        *Env
-	LoginState LoginState
 	Log        *Logger
+	Session    *Session
+	LoginState *LoginState
+	Env        *Env
 	Keyrings   *Keyrings
 	API        *ApiAccess
-	Session    *Session
 	Terminal   *Terminal
+	RunMode    *RunMode
 }
 
 var G Global = Global{
-	nil,
-	LoginState{false, false, false},
 	NewDefaultLogger(),
+	nil,
+	nil,
+	nil,
 	nil,
 	nil,
 	nil,
@@ -26,7 +28,11 @@ var G Global = Global{
 
 func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
-func (g *Global) Init() { g.Env = NewEnv(nil, nil) }
+func (g *Global) Init() {
+	g.Env = NewEnv(nil, nil)
+	g.LoginState = NewLoginState()
+	g.Session = NewSession()
+}
 
 func (g *Global) ConfigureLogging() error {
 	g.Log.Configure(g.Env)
@@ -68,6 +74,15 @@ func (g *Global) ConfigureAPI() error {
 
 func (g *Global) ConfigureTerminal() error {
 	g.Terminal = NewTerminal()
+	return nil
+}
+
+func (g *Global) ConfigureRunMode() error {
+	g.RunMode = NewRunMode()
+
+	// Disable this for background daemons.
+	g.RunMode.HasTerminal = true
+
 	return nil
 }
 

@@ -13,6 +13,7 @@ type Terminal struct {
 	fd           int
 	old_terminal *terminal.State
 	terminal     *terminal.Terminal
+	started      bool
 }
 
 func (t *Terminal) Init() error {
@@ -20,10 +21,17 @@ func (t *Terminal) Init() error {
 }
 
 func NewTerminal() *Terminal {
-	return &Terminal{nil, -1, nil, nil}
+	return &Terminal{nil, -1, nil, nil, false}
 }
 
 func (t *Terminal) Startup() error {
+
+	if t.started {
+		G.Log.Debug("Terminal.Startup called, but we already started")
+		return nil
+	}
+	t.started = true
+
 	G.Log.Debug("Opening up /dev/tty terminal on Linux and OSX")
 	file, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
