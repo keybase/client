@@ -9,22 +9,33 @@ import (
 
 type NullConfiguration struct{}
 
-func (n NullConfiguration) GetHome() string               { return "" }
-func (n NullConfiguration) GetServerUri() string          { return "" }
-func (n NullConfiguration) GetConfigFilename() string     { return "" }
-func (n NullConfiguration) GetSessionFilename() string    { return "" }
-func (n NullConfiguration) GetDbFilename() string         { return "" }
-func (n NullConfiguration) GetUsername() string           { return "" }
-func (n NullConfiguration) GetProxy() string              { return "" }
-func (n NullConfiguration) GetDebug() (bool, bool)        { return false, false }
-func (n NullConfiguration) GetPlainLogging() (bool, bool) { return false, false }
-func (n NullConfiguration) GetPgpDir() string             { return "" }
-func (n NullConfiguration) GetBundledCA(h string) string  { return "" }
+func (n NullConfiguration) GetHome() string              { return "" }
+func (n NullConfiguration) GetServerUri() string         { return "" }
+func (n NullConfiguration) GetConfigFilename() string    { return "" }
+func (n NullConfiguration) GetSessionFilename() string   { return "" }
+func (n NullConfiguration) GetDbFilename() string        { return "" }
+func (n NullConfiguration) GetUsername() string          { return "" }
+func (n NullConfiguration) GetProxy() string             { return "" }
+func (n NullConfiguration) GetPgpDir() string            { return "" }
+func (n NullConfiguration) GetBundledCA(h string) string { return "" }
+
+func (n NullConfiguration) GetDebug() (bool, bool) {
+	return false, false
+}
+func (n NullConfiguration) GetPlainLogging() (bool, bool) {
+	return false, false
+}
+
+type Modifications struct {
+	Username *string
+	UID      *string
+}
 
 type Env struct {
-	cmd        CommandLine
-	config     Config
-	homeFinder HomeFinder
+	cmd           CommandLine
+	config        Config
+	homeFinder    HomeFinder
+	modifications Modifications
 }
 
 func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
@@ -37,8 +48,9 @@ func NewEnv(cmd CommandLine, config Config) *Env {
 	if config == nil {
 		config = NullConfiguration{}
 	}
-	e := Env{cmd, config, nil}
-	e.homeFinder = NewHomeFinder("keybase", func() string { return e.getHomeFromCmdOrConfig() })
+	e := Env{cmd, config, nil, Modifications{}}
+	e.homeFinder = NewHomeFinder("keybase",
+		func() string { return e.getHomeFromCmdOrConfig() })
 	return &e
 }
 
@@ -199,4 +211,20 @@ func (e Env) GetBundledCA(host string) string {
 			return ret
 		},
 	)
+}
+
+func (e Env) GetOrPromptForUsername() (string, error) {
+	un := e.GetUsername()
+	if len(un) > 0 {
+		return un, nil
+	}
+
+	un, err := Prompt("Your keybase username or email", false,
+		CheckEmailOrUsername)
+
+	if err != nil {
+		e.modifications.Username = &un
+	}
+
+	return un, err
 }

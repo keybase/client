@@ -1,5 +1,9 @@
 package libkb
 
+import (
+	"fmt"
+)
+
 type LoginState struct {
 	Configured      bool
 	LoggedIn        bool
@@ -28,6 +32,13 @@ func (s *LoginState) Login() error {
 		G.Log.Debug("Our session token is still valid; we're logged in")
 		return nil
 	}
+
+	username, err := G.Env.GetOrPromptForUsername()
+	if err != nil {
+		return err
+	}
+
+	G.Log.Debug(fmt.Sprintf("| got username: %s\n", username))
 
 	G.Log.Debug("- Login completed")
 	return nil

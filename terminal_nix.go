@@ -24,6 +24,8 @@ func NewTerminal() *Terminal {
 	return &Terminal{nil, -1, nil, nil, false}
 }
 
+var global_is_started = false
+
 func (t *Terminal) Startup() error {
 
 	if t.started {
@@ -32,7 +34,17 @@ func (t *Terminal) Startup() error {
 	}
 	t.started = true
 
-	G.Log.Debug("Opening up /dev/tty terminal on Linux and OSX")
+	if !G.RunMode.HasTerminal {
+		return fmt.Errorf("No access to terminal in background mode")
+	}
+
+	if global_is_started {
+		return fmt.Errorf("Can only instantiate one terminal wrapper per proc")
+	}
+
+	global_is_started = true
+
+	G.Log.Debug("+ Opening up /dev/tty terminal on Linux and OSX")
 	file, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
 		return err
@@ -46,30 +58,40 @@ func (t *Terminal) Startup() error {
 	if t.terminal = terminal.NewTerminal(file, ""); t.terminal == nil {
 		return fmt.Errorf("failed to open terminal")
 	}
+	G.Log.Debug("- Done opening /dev/tty")
 	return nil
 }
 
-func (t Terminal) Shutdown() error {
+func (t *Terminal) Shutdown() error {
 	if t.old_terminal != nil {
 		G.Log.Debug("Restoring terminal settings")
 
-		// XXX bug in ssh/terminal. On success, we were getting an error "errno 0";
-		// so let's ignore it for now.
+		// XXX bug in ssh/terminal. On success, we were getting an error
+		// "errno 0"; so let's ignore it for now.
 		terminal.Restore(t.fd, t.old_terminal)
 	}
 	return nil
 }
 
-func (t Terminal) PromptPassword(prompt string) (string, error) {
+func (t *Terminal) PromptPassword(prompt string) (string, error) {
+	if err := t.Startup(); err != nil {
+		return "", err
+	}
 	return t.terminal.ReadPassword(prompt)
 }
 
-func (t Terminal) Write(s string) error {
+func (t *Terminal) Write(s string) error {
+	if err := t.Startup(); err != nil {
+		return err
+	}
 	_, err := t.terminal.Write([]byte(s))
 	return err
 }
 
-func (t Terminal) Prompt(prompt string) (string, error) {
+func (t *Terminal) Prompt(prompt string) (string, error) {
+	if err := t.Startup(); err != nil {
+		return "", err
+	}
 	if len(prompt) >= 0 {
 		t.Write(prompt)
 	}
