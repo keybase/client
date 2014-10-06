@@ -26,6 +26,7 @@ func (v CmdPing) Run() error {
 	return nil
 }
 
-func (v CmdPing) UseConfig() bool  { return true }
-func (v CmdPing) UseKeyring() bool { return false }
-func (v CmdPing) UseAPI() bool     { return true }
+func (v CmdPing) UseConfig() bool   { return true }
+func (v CmdPing) UseKeyring() bool  { return false }
+func (v CmdPing) UseAPI() bool      { return true }
+func (v CmdPing) UseTerminal() bool { return false }

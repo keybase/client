@@ -10,19 +10,39 @@ type PosixCommandLine struct {
 	ctx *cli.Context
 }
 
-func (p PosixCommandLine) GetHome() string               { return p.GetGString("home") }
-func (p PosixCommandLine) GetServerUri() string          { return p.GetGString("server") }
-func (p PosixCommandLine) GetConfigFilename() string     { return p.GetGString("config") }
-func (p PosixCommandLine) GetSessionFilename() string    { return p.GetGString("session") }
-func (p PosixCommandLine) GetDbFilename() string         { return p.GetGString("db") }
-func (p PosixCommandLine) GetDebug() (bool, bool)        { return p.GetBool("debug", true) }
-func (p PosixCommandLine) GetApiUriPathPrefix() string   { return p.GetGString("api-uri-path-prefix") }
-func (p PosixCommandLine) GetUsername() string           { return p.GetGString("username") }
-func (p PosixCommandLine) GetProxy() string              { return p.GetGString("proxy") }
-func (p PosixCommandLine) GetPlainLogging() (bool, bool) { return p.GetBool("plain-logging", true) }
-func (p PosixCommandLine) GetPgpDir() string             { return p.GetGString("pgpdir") }
-
-func (p PosixCommandLine) GetGString(s string) string { return p.ctx.GlobalString(s) }
+func (p PosixCommandLine) GetHome() string {
+	return p.GetGString("home")
+}
+func (p PosixCommandLine) GetServerUri() string {
+	return p.GetGString("server")
+}
+func (p PosixCommandLine) GetConfigFilename() string {
+	return p.GetGString("config")
+}
+func (p PosixCommandLine) GetSessionFilename() string {
+	return p.GetGString("session")
+}
+func (p PosixCommandLine) GetDbFilename() string {
+	return p.GetGString("db")
+}
+func (p PosixCommandLine) GetDebug() (bool, bool) {
+	return p.GetBool("debug", true)
+}
+func (p PosixCommandLine) GetUsername() string {
+	return p.GetGString("username")
+}
+func (p PosixCommandLine) GetProxy() string {
+	return p.GetGString("proxy")
+}
+func (p PosixCommandLine) GetPlainLogging() (bool, bool) {
+	return p.GetBool("plain-logging", true)
+}
+func (p PosixCommandLine) GetPgpDir() string {
+	return p.GetGString("pgpdir")
+}
+func (p PosixCommandLine) GetGString(s string) string {
+	return p.ctx.GlobalString(s)
+}
 
 func (p PosixCommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
@@ -38,9 +58,10 @@ type CmdHelp struct {
 	ctx *cli.Context
 }
 
-func (c CmdHelp) UseConfig() bool  { return false }
-func (c CmdHelp) UseKeyring() bool { return false }
-func (c CmdHelp) UseAPI() bool     { return false }
+func (c CmdHelp) UseConfig() bool   { return false }
+func (c CmdHelp) UseKeyring() bool  { return false }
+func (c CmdHelp) UseAPI() bool      { return false }
+func (c CmdHelp) UseTerminal() bool { return false }
 func (c CmdHelp) Run() error {
 	cli.ShowAppHelp(c.ctx)
 	return nil
@@ -51,7 +72,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 	app := cli.NewApp()
 	app.Name = "keybase"
 	app.Version = CLIENT_VERSION
-	app.Usage = "control keybase either with one-off commands, or enable a background daemon"
+	app.Usage = "control keybase either with 1-off commands, or start a daemon"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "home, H",
@@ -59,7 +80,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		},
 		cli.StringFlag{
 			Name:  "server, s",
-			Usage: "specify server API URI (default: https://api.keybase.io:443/)",
+			Usage: "specify server API (default: https://api.keybase.io:443/)",
 		},
 		cli.StringFlag{
 			Name:  "config, c",
@@ -113,6 +134,14 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Action: func(c *cli.Context) {
 				p.ctx = c
 				cmd = CmdPing{}
+			},
+		},
+		{
+			Name:  "login",
+			Usage: "Establish a session with the keybase server (if necessary)",
+			Action: func(c *cli.Context) {
+				p.ctx = c
+				cmd = CmdLogin{}
 			},
 		},
 	}

@@ -60,4 +60,5 @@ type Command interface {
 	UseConfig() bool
 	UseKeyring() bool
 	UseAPI() bool
+	UseTerminal() bool
 }
