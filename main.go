@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/keybase/go-libkb"
 	"os"
 )
@@ -8,17 +9,19 @@ import (
 // Keep this around to simplify things
 var G = &libkb.G
 
-func parseArgs() libkb.Command {
+func parseArgs() (libkb.Command, error) {
 	p := libkb.PosixCommandLine{}
 	cmd, err := p.Parse(os.Args)
 	if err != nil {
-		G.Log.Fatalf("Error parsing command line arguments: %s\n", err.Error())
+		err = fmt.Errorf("Error parsing command line arguments: %s\n", err.Error())
+		return nil, err
 	}
 	G.SetCommandLine(p)
 	if cmd == nil {
-		G.Log.Fatalf("Cannot continue; no command to run")
+		err = fmt.Errorf("Cannot continue; no command to run")
+		return nil, err
 	}
-	return cmd
+	return cmd, nil
 }
 
 func testLogging() {
@@ -31,20 +34,50 @@ func testLogging() {
 
 func main() {
 	G.Init()
-	cmd := parseArgs()
+	err := main2()
+	e2 := G.Shutdown()
+	if err == nil {
+		err = e2
+	}
+	if err != nil {
+		G.Log.Error(err.Error())
+		os.Exit(2)
+	}
+}
+
+func main2() error {
+
+	cmd, err := parseArgs()
+	if err != nil {
+		return err
+	}
+
 	G.ConfigureLogging()
+
 	if cmd.UseConfig() {
-		G.ConfigureConfig()
+		if err = G.ConfigureConfig(); err != nil {
+			return err
+		}
 	}
 	if cmd.UseKeyring() {
-		G.ConfigureKeyring()
+		if err = G.ConfigureKeyring(); err != nil {
+			return err
+		}
 	}
 	if cmd.UseAPI() {
-		G.ConfigureAPI()
+		if err = G.ConfigureAPI(); err != nil {
+			return err
+		}
 	}
+
+	if cmd.UseTerminal() {
+		if err = G.ConfigureTerminal(); err != nil {
+			return err
+		}
+	}
+
 	G.StartupMessage()
 	testLogging()
-	if err := cmd.Run(); err != nil {
-		G.Log.Fatal(err.Error())
-	}
+
+	return cmd.Run()
 }
