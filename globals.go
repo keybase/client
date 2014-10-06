@@ -11,7 +11,7 @@ type Global struct {
 	Env        *Env
 	Keyrings   *Keyrings
 	API        *ApiAccess
-	Terminal   *Terminal
+	Terminal   Terminal
 	RunMode    *RunMode
 }
 
@@ -73,7 +73,7 @@ func (g *Global) ConfigureAPI() error {
 }
 
 func (g *Global) ConfigureTerminal() error {
-	g.Terminal = NewTerminal()
+	g.Terminal = NewTerminalImplementation()
 	return nil
 }
 

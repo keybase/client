@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-type Terminal struct {
+type TerminalEngine struct {
 	tty          *os.File
 	fd           int
 	old_terminal *terminal.State
@@ -16,22 +16,22 @@ type Terminal struct {
 	started      bool
 }
 
-func (t *Terminal) Init() error {
+func (t *TerminalEngine) Init() error {
 	return nil
 }
 
-func NewTerminal() *Terminal {
-	return &Terminal{nil, -1, nil, nil, false}
+func NewTerminalEngine() *TerminalEngine {
+	return &TerminalEngine{nil, -1, nil, nil, false}
 }
 
 var global_is_started = false
 
-func (t *Terminal) Startup() error {
+func (t *TerminalEngine) Startup() error {
 
 	if t.started {
-		G.Log.Debug("Terminal.Startup called, but we already started")
 		return nil
 	}
+
 	t.started = true
 
 	if !G.RunMode.HasTerminal {
@@ -55,6 +55,7 @@ func (t *Terminal) Startup() error {
 	if err != nil {
 		return err
 	}
+	G.Log.Debug("| switched to raw console for tty")
 	if t.terminal = terminal.NewTerminal(file, ""); t.terminal == nil {
 		return fmt.Errorf("failed to open terminal")
 	}
@@ -62,7 +63,7 @@ func (t *Terminal) Startup() error {
 	return nil
 }
 
-func (t *Terminal) Shutdown() error {
+func (t *TerminalEngine) Shutdown() error {
 	if t.old_terminal != nil {
 		G.Log.Debug("Restoring terminal settings")
 
@@ -73,14 +74,14 @@ func (t *Terminal) Shutdown() error {
 	return nil
 }
 
-func (t *Terminal) PromptPassword(prompt string) (string, error) {
+func (t *TerminalEngine) PromptPassword(prompt string) (string, error) {
 	if err := t.Startup(); err != nil {
 		return "", err
 	}
 	return t.terminal.ReadPassword(prompt)
 }
 
-func (t *Terminal) Write(s string) error {
+func (t *TerminalEngine) Write(s string) error {
 	if err := t.Startup(); err != nil {
 		return err
 	}
@@ -88,7 +89,7 @@ func (t *Terminal) Write(s string) error {
 	return err
 }
 
-func (t *Terminal) Prompt(prompt string) (string, error) {
+func (t *TerminalEngine) Prompt(prompt string) (string, error) {
 	if err := t.Startup(); err != nil {
 		return "", err
 	}
@@ -96,4 +97,31 @@ func (t *Terminal) Prompt(prompt string) (string, error) {
 		t.Write(prompt)
 	}
 	return t.terminal.ReadLine()
+}
+
+type TerminalImplementation struct {
+	engine *TerminalEngine
+}
+
+func NewTerminalImplementation() TerminalImplementation {
+	return TerminalImplementation{NewTerminalEngine()}
+}
+
+func (t TerminalImplementation) Startup() error {
+	return t.engine.Startup()
+}
+func (t TerminalImplementation) Init() error {
+	return t.engine.Init()
+}
+func (t TerminalImplementation) Shutdown() error {
+	return t.engine.Shutdown()
+}
+func (t TerminalImplementation) PromptPassword(s string) (string, error) {
+	return t.engine.PromptPassword(s)
+}
+func (t TerminalImplementation) Write(s string) error {
+	return t.engine.Write(s)
+}
+func (t TerminalImplementation) Prompt(s string) (string, error) {
+	return t.engine.Prompt(s)
 }

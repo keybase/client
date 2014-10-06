@@ -62,3 +62,12 @@ type Command interface {
 	UseAPI() bool
 	UseTerminal() bool
 }
+
+type Terminal interface {
+	Startup() error
+	Init() error
+	Shutdown() error
+	PromptPassword(string) (string, error)
+	Write(string) error
+	Prompt(string) (string, error)
+}
