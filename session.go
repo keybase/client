@@ -1,5 +1,9 @@
 package libkb
 
+import (
+	"github.com/okcupid/jsonw"
+)
+
 type Session struct {
 	file    *JsonFile
 	token   string
@@ -8,11 +12,10 @@ type Session struct {
 	loaded  bool
 	checked bool
 	valid   bool
-	dirty   bool
 }
 
 func NewSession() *Session {
-	return &Session{nil, "", "", false, false, false, false, false}
+	return &Session{nil, "", "", false, false, false, false}
 }
 
 func (s Session) IsLoaded() bool {
@@ -58,6 +61,27 @@ func (s *Session) Load() error {
 	}
 	G.Log.Debug("- Loaded session")
 	return nil
+}
+
+func (s *Session) GetDictionary() *jsonw.Wrapper {
+	if s.file.jw == nil {
+		s.file.jw = jsonw.NewDictionary()
+	}
+	return s.file.jw
+}
+
+func (s *Session) SetSession(id string) {
+	s.GetDictionary().SetKey("session", jsonw.NewString(id))
+	s.file.dirty = true
+}
+
+func (s *Session) SetCsrf(csrf string) {
+	s.GetDictionary().SetKey("csrf", jsonw.NewString(csrf))
+	s.file.dirty = true
+}
+
+func (s *Session) Write() error {
+	return s.file.MaybeSave(true, 0)
 }
 
 func (s *Session) Check() error {

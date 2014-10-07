@@ -5,18 +5,20 @@ import (
 )
 
 type Global struct {
-	Log        *Logger
-	Session    *Session
-	LoginState *LoginState
-	Env        *Env
-	Keyrings   *Keyrings
-	API        *ApiAccess
-	Terminal   Terminal
-	RunMode    *RunMode
+	Log           *Logger
+	Session       *Session
+	LoginState    *LoginState
+	Env           *Env
+	Keyrings      *Keyrings
+	API           *ApiAccess
+	Terminal      Terminal
+	RunMode       *RunMode
+	SessionWriter SessionWriter
 }
 
 var G Global = Global{
 	NewDefaultLogger(),
+	nil,
 	nil,
 	nil,
 	nil,
@@ -32,6 +34,7 @@ func (g *Global) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.LoginState = NewLoginState()
 	g.Session = NewSession()
+	g.SessionWriter = g.Session
 }
 
 func (g *Global) ConfigureLogging() error {

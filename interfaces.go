@@ -51,6 +51,12 @@ type ConfigWriter interface {
 	Write() error
 }
 
+type SessionWriter interface {
+	SetSession(string)
+	SetCsrf(string)
+	Write() error
+}
+
 type HttpRequest interface {
 	SetEnvironment(env Env)
 }

@@ -10,10 +10,10 @@ import (
 )
 
 type LoggedInResult struct {
-	sessionId string
-	csrfToken string
-	uid       string
-	username  string
+	session_id string
+	csrf_token string
+	uid        string
+	username   string
 }
 
 type LoginState struct {
@@ -105,11 +105,11 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 	}
 
 	b := res.Body
-	sessionId, err := b.AtKey("session").GetString()
+	session_id, err := b.AtKey("session").GetString()
 	if err != nil {
 		return err
 	}
-	csrfToken, err := b.AtKey("csrf_token").GetString()
+	csrf_token, err := b.AtKey("csrf_token").GetString()
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 		return nil
 	}
 
-	s.logged_in_res = &LoggedInResult{sessionId, csrfToken, uid, uname}
+	s.logged_in_res = &LoggedInResult{session_id, csrf_token, uid, uname}
 	return nil
 }
 
@@ -138,6 +138,14 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 		cfg.SetSalt(hex.EncodeToString(s.salt))
 
 		if err := cfg.Write(); err != nil {
+			return err
+		}
+	}
+
+	if sw := G.SessionWriter; sw != nil {
+		sw.SetSession(s.logged_in_res.session_id)
+		sw.SetCsrf(s.logged_in_res.csrf_token)
+		if err := sw.Write(); err != nil {
 			return err
 		}
 	}
