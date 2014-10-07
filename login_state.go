@@ -136,6 +136,10 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 		}
 		cfg.SetUid(s.logged_in_res.uid)
 		cfg.SetSalt(hex.EncodeToString(s.salt))
+
+		if err := cfg.Write(); err != nil {
+			return err
+		}
 	}
 
 	return nil

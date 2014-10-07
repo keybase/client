@@ -48,6 +48,7 @@ type ConfigWriter interface {
 	SetUsername(string)
 	SetUid(string)
 	SetSalt(string)
+	Write() error
 }
 
 type HttpRequest interface {

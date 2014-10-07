@@ -55,7 +55,17 @@ func (f *JsonFile) Load(warnOnNotFound bool) error {
 	return nil
 }
 
-func (f *JsonFile) Save(mode os.FileMode) (err error) {
+func (f *JsonFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
+	if f.dirty {
+		err = f.Save(pretty, mode)
+		if err != nil {
+			f.dirty = false
+		}
+	}
+	return
+}
+
+func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, f.filename))
 
 	err = MakeParentDirs(f.filename)
@@ -91,19 +101,30 @@ func (f *JsonFile) Save(mode os.FileMode) (err error) {
 	}
 	defer writer.Close()
 
-	encoder := json.NewEncoder(writer)
-	err = encoder.Encode(dat)
+	if pretty {
+		encoded, err := json.MarshalIndent(dat, "", "    ")
+		if err == nil {
+			_, err = writer.Write(encoded)
+		}
+	} else {
+		encoder := json.NewEncoder(writer)
+		err = encoder.Encode(dat)
+	}
+
 	if err != nil {
 		G.Log.Error("Error encoding data to %s file %s: %s",
 			f.which, f.filename, err.Error())
 		return err
 	}
+
 	err = writer.Close()
 	if err != nil {
 		G.Log.Error("Error flushing %s file %s: %s",
 			f.which, f.filename, err.Error())
 		return err
 	}
+
+	G.Log.Notice(fmt.Sprintf("Wrote %s file to %s", f.which, f.filename))
 
 	G.Log.Debug(fmt.Sprintf("- saved %s file %s", f.which, f.filename))
 	return

@@ -43,6 +43,9 @@ func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
 }
 
 func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
+	if f.jw == nil {
+		f.jw = jsonw.NewDictionary()
+	}
 	if f.jw.AtKey("user").IsNil() {
 		f.jw.SetKey("user", jsonw.NewDictionary())
 	}
@@ -69,14 +72,21 @@ func (f *JsonConfigFile) SetUserField(k, v string) {
 	}
 }
 
+func (f *JsonConfigFile) Write() error {
+	return f.MaybeSave(true, 0)
+}
+
 func (f JsonConfigFile) GetUserField(s string) string {
-	u, err := f.jw.AtKey("user").AtKey(s).GetString()
-	if err == nil {
-		G.Log.Debug("Config: mapping user.%s-> %s", s, u)
-	} else {
-		u = ""
+	var ret string
+	var err error
+	if f.jw != nil {
+		ret, err = f.jw.AtKey("user").AtKey(s).GetString()
+		if err != nil {
+			ret = ""
+		}
 	}
-	return u
+	G.Log.Debug("Config: mapping user.%s-> %s", s, ret)
+	return ret
 }
 
 func (f JsonConfigFile) GetHome() (ret string) {
