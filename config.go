@@ -49,16 +49,16 @@ func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
 	return f.jw.AtKey("user")
 }
 
-func (a JsonConfigAdjuster) SetUsername(s string) {
-	a.file.SetUserField("name", s)
+func (f *JsonConfigFile) SetUsername(s string) {
+	f.SetUserField("name", s)
 }
 
-func (a JsonConfigAdjuster) SetUid(s string) {
-	a.file.SetUserField("id", s)
+func (f *JsonConfigFile) SetUid(s string) {
+	f.SetUserField("id", s)
 }
 
-func (a JsonConfigAdjuster) SetSalt(s string) {
-	a.file.SetUserField("salt", s)
+func (f *JsonConfigFile) SetSalt(s string) {
+	f.SetUserField("salt", s)
 }
 
 func (f *JsonConfigFile) SetUserField(k, v string) {
@@ -69,7 +69,7 @@ func (f *JsonConfigFile) SetUserField(k, v string) {
 	}
 }
 
-func (f *JsonConfigFile) GetUserField(s string) string {
+func (f JsonConfigFile) GetUserField(s string) string {
 	u, err := f.jw.AtKey("user").AtKey(s).GetString()
 	if err == nil {
 		G.Log.Debug("Config: mapping user.%s-> %s", s, u)

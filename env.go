@@ -29,21 +29,21 @@ func (n NullConfiguration) GetPlainLogging() (bool, bool) {
 
 type Env struct {
 	cmd        CommandLine
-	config     Config
+	config     ConfigReader
 	homeFinder HomeFinder
-	adjuster   ConfigAdjuster
+	writer     ConfigWriter
 }
 
-func (e *Env) GetConfig() *Config                { return &e.config }
-func (e *Env) GetConfigAdjuster() ConfigAdjuster { return e.adjuster }
+func (e *Env) GetConfig() *ConfigReader      { return &e.config }
+func (e *Env) GetConfigWriter() ConfigWriter { return e.writer }
 
 func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
-func (e *Env) SetConfig(config Config)        { e.config = config }
-func (e *Env) SetConfigAdjuster(adjuster ConfigAdjuster) {
-	e.adjuster = adjuster
+func (e *Env) SetConfig(config ConfigReader)  { e.config = config }
+func (e *Env) SetConfigWriter(writer ConfigWriter) {
+	e.writer = writer
 }
 
-func NewEnv(cmd CommandLine, config Config) *Env {
+func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}

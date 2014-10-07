@@ -46,7 +46,7 @@ func (g *Global) ConfigureConfig() error {
 		return fmt.Errorf("Failed to open config file: %s\n", err.Error())
 	}
 	g.Env.SetConfig(*c)
-	g.Env.SetConfigAdjuster(*NewJsonConfigAdjuster(c))
+	g.Env.SetConfigWriter(c)
 	return nil
 }
 

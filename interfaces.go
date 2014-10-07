@@ -29,7 +29,7 @@ type Server interface {
 type LocalCache interface {
 }
 
-type Config interface {
+type ConfigReader interface {
 	GetHome() string
 	GetServerUri() string
 	GetConfigFilename() string
@@ -44,7 +44,7 @@ type Config interface {
 	GetEmail() string
 }
 
-type ConfigAdjuster interface {
+type ConfigWriter interface {
 	SetUsername(string)
 	SetUid(string)
 	SetSalt(string)

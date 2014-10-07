@@ -130,7 +130,7 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 	s.LoggedIn = true
 	s.SessionVerified = true
 
-	if cfg := G.Env.GetConfigAdjuster(); cfg != nil {
+	if cfg := G.Env.GetConfigWriter(); cfg != nil {
 		if prompted {
 			cfg.SetUsername(s.logged_in_res.username)
 		}
