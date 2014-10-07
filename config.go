@@ -50,6 +50,9 @@ func (f JsonConfigFile) GetDbFilename() (ret string) {
 func (f JsonConfigFile) GetUsername() (ret string) {
 	return f.GetTopLevelString("username")
 }
+func (f JsonConfigFile) GetEmail() (ret string) {
+	return f.GetTopLevelString("email")
+}
 func (f JsonConfigFile) GetProxy() (ret string) {
 	return f.GetTopLevelString("proxy")
 }

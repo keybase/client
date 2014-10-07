@@ -20,6 +20,7 @@ type CommandLine interface {
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string
+	GetEmail() string
 }
 
 type Server interface {
@@ -40,6 +41,7 @@ type Config interface {
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string
 	GetBundledCA(host string) string
+	GetEmail() string
 }
 
 type HttpRequest interface {

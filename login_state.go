@@ -33,7 +33,7 @@ func (s *LoginState) Login() error {
 		return nil
 	}
 
-	username, err := G.Env.GetOrPromptForUsername()
+	username, err := G.Env.GetOrPromptForEmailOrUsername()
 	if err != nil {
 		return err
 	}

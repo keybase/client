@@ -31,6 +31,9 @@ func (p PosixCommandLine) GetDebug() (bool, bool) {
 func (p PosixCommandLine) GetUsername() string {
 	return p.GetGString("username")
 }
+func (p PosixCommandLine) GetEmail() string {
+	return p.GetGString("email")
+}
 func (p PosixCommandLine) GetProxy() string {
 	return p.GetGString("proxy")
 }

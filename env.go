@@ -15,6 +15,7 @@ func (n NullConfiguration) GetConfigFilename() string    { return "" }
 func (n NullConfiguration) GetSessionFilename() string   { return "" }
 func (n NullConfiguration) GetDbFilename() string        { return "" }
 func (n NullConfiguration) GetUsername() string          { return "" }
+func (n NullConfiguration) GetEmail() string             { return "" }
 func (n NullConfiguration) GetProxy() string             { return "" }
 func (n NullConfiguration) GetPgpDir() string            { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string { return "" }
@@ -174,6 +175,14 @@ func (e Env) GetUsername() string {
 	)
 }
 
+func (e Env) GetEmail() string {
+	return e.GetString(
+		func() string { return e.cmd.GetEmail() },
+		func() string { return e.config.GetEmail() },
+		func() string { return os.Getenv("KEYBASE_EMAIL") },
+	)
+}
+
 func (e Env) GetProxy() string {
 	return e.GetString(
 		func() string { return e.cmd.GetProxy() },
@@ -213,10 +222,14 @@ func (e Env) GetBundledCA(host string) string {
 	)
 }
 
-func (e Env) GetOrPromptForUsername() (string, error) {
+func (e Env) GetOrPromptForEmailOrUsername() (string, error) {
 	un := e.GetUsername()
 	if len(un) > 0 {
 		return un, nil
+	}
+	em := e.GetEmail()
+	if len(em) > 0 {
+		return em, nil
 	}
 
 	un, err := Prompt("Your keybase username or email", false,
