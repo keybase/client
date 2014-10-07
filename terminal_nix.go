@@ -34,10 +34,6 @@ func (t *TerminalEngine) Startup() error {
 
 	t.started = true
 
-	if !G.RunMode.HasTerminal {
-		return fmt.Errorf("No access to terminal in background mode")
-	}
-
 	if global_is_started {
 		return fmt.Errorf("Can only instantiate one terminal wrapper per proc")
 	}

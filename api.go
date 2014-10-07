@@ -181,7 +181,9 @@ func (api *ApiAccess) DoRequest(
 	}
 
 	jw := jsonw.NewWrapper(obj)
-	G.Log.Debug(fmt.Sprintf("| full reply: %v", obj))
+	if G.Env.GetApiDump() {
+		G.Log.Debug(fmt.Sprintf("| full reply: %v", obj))
+	}
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
 		err = fmt.Errorf("Cannot parse server's 'status' field: %s", err.Error())

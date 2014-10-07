@@ -12,13 +12,11 @@ type Global struct {
 	Keyrings      *Keyrings
 	API           *ApiAccess
 	Terminal      Terminal
-	RunMode       *RunMode
 	SessionWriter SessionWriter
 }
 
 var G Global = Global{
 	NewDefaultLogger(),
-	nil,
 	nil,
 	nil,
 	nil,
@@ -78,15 +76,6 @@ func (g *Global) ConfigureAPI() error {
 
 func (g *Global) ConfigureTerminal() error {
 	g.Terminal = NewTerminalImplementation()
-	return nil
-}
-
-func (g *Global) ConfigureRunMode() error {
-	g.RunMode = NewRunMode()
-
-	// Disable this for background daemons.
-	g.RunMode.HasTerminal = true
-
 	return nil
 }
 

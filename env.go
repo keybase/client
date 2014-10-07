@@ -26,6 +26,9 @@ func (n NullConfiguration) GetDebug() (bool, bool) {
 func (n NullConfiguration) GetPlainLogging() (bool, bool) {
 	return false, false
 }
+func (n NullConfiguration) GetApiDump() (bool, bool) {
+	return false, false
+}
 
 type Env struct {
 	cmd        CommandLine
@@ -165,6 +168,13 @@ func (e Env) GetPlainLogging() bool {
 		func() (bool, bool) { return e.cmd.GetPlainLogging() },
 		func() (bool, bool) { return e.config.GetPlainLogging() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_PLAIN_LOGGING") },
+	)
+}
+
+func (e Env) GetApiDump() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetApiDump() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_API_DUMP") },
 	)
 }
 

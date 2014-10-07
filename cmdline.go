@@ -43,6 +43,9 @@ func (p PosixCommandLine) GetPlainLogging() (bool, bool) {
 func (p PosixCommandLine) GetPgpDir() string {
 	return p.GetGString("pgpdir")
 }
+func (p PosixCommandLine) GetApiDump() (bool, bool) {
+	return p.GetBool("api-dump", true)
+}
 func (p PosixCommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
 }
@@ -120,6 +123,10 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		cli.StringFlag{
 			Name:  "pgpdir, gpgdir",
 			Usage: "specify a PGP directory (default is ~/.gnupg)",
+		},
+		cli.BoolFlag{
+			Name:  "api-dump",
+			Usage: "dump API call internals",
 		},
 	}
 	app.Commands = []cli.Command{

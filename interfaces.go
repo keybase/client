@@ -21,6 +21,7 @@ type CommandLine interface {
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string
 	GetEmail() string
+	GetApiDump() (bool, bool)
 }
 
 type Server interface {
