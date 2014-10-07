@@ -71,11 +71,13 @@ func (s *Session) GetDictionary() *jsonw.Wrapper {
 }
 
 func (s *Session) SetSession(id string) {
+	s.token = id
 	s.GetDictionary().SetKey("session", jsonw.NewString(id))
 	s.file.dirty = true
 }
 
 func (s *Session) SetCsrf(csrf string) {
+	s.csrf = csrf
 	s.GetDictionary().SetKey("csrf", jsonw.NewString(csrf))
 	s.file.dirty = true
 }

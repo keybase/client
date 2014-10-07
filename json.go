@@ -58,9 +58,6 @@ func (f *JsonFile) Load(warnOnNotFound bool) error {
 func (f *JsonFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
 	if f.dirty {
 		err = f.Save(pretty, mode)
-		if err != nil {
-			f.dirty = false
-		}
 	}
 	return
 }
@@ -125,6 +122,7 @@ func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 	}
 
 	G.Log.Notice(fmt.Sprintf("Wrote %s file to %s", f.which, f.filename))
+	f.dirty = false
 
 	G.Log.Debug(fmt.Sprintf("- saved %s file %s", f.which, f.filename))
 	return

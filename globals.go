@@ -1,3 +1,16 @@
+//
+// globals
+//
+//   All of the global objects in the libkb namespace that are shared
+//   and mutated across various source files are here.  They are
+//   accessed like `G.Session` or `G.LoginState`.  They're kept
+//   under the `G` namespace to better keep track of them all.
+//
+//   The globals are built up gradually as the process comes up.
+//   At first, we only have a logger, but eventually we add
+//   command-line flags, configuration and environment, and accordingly,
+//   might actually go back and change the Logger.
+
 package libkb
 
 import (
@@ -5,14 +18,14 @@ import (
 )
 
 type Global struct {
-	Log           *Logger
-	Session       *Session
-	LoginState    *LoginState
-	Env           *Env
-	Keyrings      *Keyrings
-	API           *ApiAccess
-	Terminal      Terminal
-	SessionWriter SessionWriter
+	Log           *Logger       // Handles all logging
+	Session       *Session      // The user's session cookie, &c
+	SessionWriter SessionWriter // To write the session back out
+	LoginState    *LoginState   // What phase of login the user's in
+	Env           *Env          // Env variables, cmdline args & config
+	Keyrings      *Keyrings     // Gpg Keychains holding keys
+	API           *ApiAccess    // How to make a REST call to the server
+	Terminal      Terminal      // For prompting for passwords and input
 }
 
 var G Global = Global{
