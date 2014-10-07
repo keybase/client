@@ -126,6 +126,21 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 	return nil
 }
 
+func (s *LoginState) SaveLoginState(prompted bool) error {
+	s.LoggedIn = true
+	s.SessionVerified = true
+
+	if cfg := G.Env.GetConfigAdjuster(); cfg != nil {
+		if prompted {
+			cfg.SetUsername(s.logged_in_res.username)
+		}
+		cfg.SetUid(s.logged_in_res.uid)
+		cfg.SetSalt(hex.EncodeToString(s.salt))
+	}
+
+	return nil
+}
+
 func (s *LoginState) Login() error {
 	G.Log.Debug("+ Login called")
 
@@ -141,11 +156,17 @@ func (s *LoginState) Login() error {
 
 	if is_valid {
 		s.LoggedIn = true
+		s.SessionVerified = true
 		G.Log.Debug("Our session token is still valid; we're logged in")
 		return nil
 	}
 
-	email_or_username, err := G.Env.GetOrPromptForEmailOrUsername()
+	email_or_username, prompted, err := G.Env.GetOrPromptForEmailOrUsername()
+	if err != nil {
+		return err
+	}
+
+	err = s.GetSalt(email_or_username)
 	if err != nil {
 		return err
 	}
@@ -154,11 +175,6 @@ func (s *LoginState) Login() error {
 
 	pw, err := Prompt("keybase password", true, CheckPasswordSimple)
 
-	if err != nil {
-		return err
-	}
-
-	err = s.GetSalt(email_or_username)
 	if err != nil {
 		return err
 	}
@@ -179,7 +195,10 @@ func (s *LoginState) Login() error {
 		return err
 	}
 
-	fmt.Printf("go pw: %s %v %v %v\n", pw, s.salt, s.login_session, shared_secret)
+	err = s.SaveLoginState(prompted)
+	if err != nil {
+		return err
+	}
 
 	G.Log.Debug("- Login completed")
 	return nil

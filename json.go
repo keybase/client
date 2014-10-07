@@ -12,10 +12,11 @@ type JsonFile struct {
 	which    string
 	jw       *jsonw.Wrapper
 	exists   bool
+	dirty    bool
 }
 
 func NewJsonFile(filename, which string) *JsonFile {
-	return &JsonFile{filename, which, nil, false}
+	return &JsonFile{filename, which, nil, false, false}
 }
 
 func (f *JsonFile) Load(warnOnNotFound bool) error {

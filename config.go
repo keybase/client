@@ -1,13 +1,23 @@
 package libkb
 
-import ()
+import (
+	"github.com/okcupid/jsonw"
+)
 
 type JsonConfigFile struct {
 	JsonFile
 }
 
+type JsonConfigAdjuster struct {
+	file *JsonConfigFile
+}
+
 func NewJsonConfigFile(s string) *JsonConfigFile {
 	return &JsonConfigFile{*NewJsonFile(s, "config")}
+}
+
+func NewJsonConfigAdjuster(f *JsonConfigFile) *JsonConfigAdjuster {
+	return &JsonConfigAdjuster{f}
 }
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
@@ -32,6 +42,43 @@ func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
 	return
 }
 
+func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
+	if f.jw.AtKey("user").IsNil() {
+		f.jw.SetKey("user", jsonw.NewDictionary())
+	}
+	return f.jw.AtKey("user")
+}
+
+func (a JsonConfigAdjuster) SetUsername(s string) {
+	a.file.SetUserField("name", s)
+}
+
+func (a JsonConfigAdjuster) SetUid(s string) {
+	a.file.SetUserField("id", s)
+}
+
+func (a JsonConfigAdjuster) SetSalt(s string) {
+	a.file.SetUserField("salt", s)
+}
+
+func (f *JsonConfigFile) SetUserField(k, v string) {
+	existing := f.GetUserField(k)
+	if existing != v {
+		f.UserDict().SetKey(k, jsonw.NewString(v))
+		f.dirty = true
+	}
+}
+
+func (f *JsonConfigFile) GetUserField(s string) string {
+	u, err := f.jw.AtKey("user").AtKey(s).GetString()
+	if err == nil {
+		G.Log.Debug("Config: mapping user.%s-> %s", s, u)
+	} else {
+		u = ""
+	}
+	return u
+}
+
 func (f JsonConfigFile) GetHome() (ret string) {
 	return f.GetTopLevelString("home")
 }
@@ -47,8 +94,14 @@ func (f JsonConfigFile) GetSessionFilename() (ret string) {
 func (f JsonConfigFile) GetDbFilename() (ret string) {
 	return f.GetTopLevelString("db")
 }
-func (f JsonConfigFile) GetUsername() (ret string) {
-	return f.GetTopLevelString("username")
+func (f JsonConfigFile) GetUsername() string {
+	return f.GetUserField("name")
+}
+func (f JsonConfigFile) GetSalt() string {
+	return f.GetUserField("salt")
+}
+func (f JsonConfigFile) GetUid() string {
+	return f.GetUserField("id")
 }
 func (f JsonConfigFile) GetEmail() (ret string) {
 	return f.GetTopLevelString("email")

@@ -44,6 +44,12 @@ type Config interface {
 	GetEmail() string
 }
 
+type ConfigAdjuster interface {
+	SetUsername(string)
+	SetUid(string)
+	SetSalt(string)
+}
+
 type HttpRequest interface {
 	SetEnvironment(env Env)
 }

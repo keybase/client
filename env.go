@@ -27,20 +27,21 @@ func (n NullConfiguration) GetPlainLogging() (bool, bool) {
 	return false, false
 }
 
-type Modifications struct {
-	Username *string
-	UID      *string
+type Env struct {
+	cmd        CommandLine
+	config     Config
+	homeFinder HomeFinder
+	adjuster   ConfigAdjuster
 }
 
-type Env struct {
-	cmd           CommandLine
-	config        Config
-	homeFinder    HomeFinder
-	modifications Modifications
-}
+func (e *Env) GetConfig() *Config                { return &e.config }
+func (e *Env) GetConfigAdjuster() ConfigAdjuster { return e.adjuster }
 
 func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
 func (e *Env) SetConfig(config Config)        { e.config = config }
+func (e *Env) SetConfigAdjuster(adjuster ConfigAdjuster) {
+	e.adjuster = adjuster
+}
 
 func NewEnv(cmd CommandLine, config Config) *Env {
 	if cmd == nil {
@@ -49,7 +50,7 @@ func NewEnv(cmd CommandLine, config Config) *Env {
 	if config == nil {
 		config = NullConfiguration{}
 	}
-	e := Env{cmd, config, nil, Modifications{}}
+	e := Env{cmd, config, nil, nil}
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() })
 	return &e
@@ -222,22 +223,18 @@ func (e Env) GetBundledCA(host string) string {
 	)
 }
 
-func (e Env) GetOrPromptForEmailOrUsername() (string, error) {
+func (e Env) GetOrPromptForEmailOrUsername() (string, bool, error) {
 	un := e.GetUsername()
 	if len(un) > 0 {
-		return un, nil
+		return un, false, nil
 	}
 	em := e.GetEmail()
 	if len(em) > 0 {
-		return em, nil
+		return em, false, nil
 	}
 
 	un, err := Prompt("Your keybase username or email", false,
 		CheckEmailOrUsername)
 
-	if err != nil {
-		e.modifications.Username = &un
-	}
-
-	return un, err
+	return un, true, err
 }
