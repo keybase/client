@@ -76,10 +76,6 @@ func main2() error {
 		}
 	}
 
-	if err = G.ConfigureRunMode(); err != nil {
-		return err
-	}
-
 	G.StartupMessage()
 	testLogging()
 
