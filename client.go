@@ -94,7 +94,8 @@ func (e Env) GenClientConfig() (*ClientConfig, error) {
 			err = fmt.Errorf("In parsing CAs for %s: %s", host, err.Error())
 			return nil, err
 		}
-		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s", host, ShortCA(raw_ca)))
+		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
+			host, ShortCA(raw_ca)))
 	}
 	ret := &ClientConfig{host, port, useTls, url, rootCAs, url.Path, true}
 	return ret, nil
