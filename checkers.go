@@ -31,3 +31,10 @@ var CheckEmailOrUsername = Checker{
 	},
 	Hint: "valid usernames are 2-12 letters long",
 }
+
+var CheckPasswordSimple = Checker{
+	F: func(s string) bool {
+		return len(s) > 0
+	},
+	Hint: "password cannot be empty",
+}

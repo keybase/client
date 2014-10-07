@@ -28,7 +28,7 @@ func Prompt(prompt string, password bool, checker Checker) (string, error) {
 	for {
 		p := prompt
 		if !first && len(checker.Hint) > 0 {
-			p = p + " (hint " + checker.Hint + ")"
+			p = p + " (" + checker.Hint + ")"
 		}
 		p = p + ": "
 		res, err = prompter(p)
