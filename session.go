@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	"github.com/okcupid/jsonw"
+	"github.com/keybase/go-jsonw"
 )
 
 type Session struct {

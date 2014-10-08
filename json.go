@@ -3,7 +3,7 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/okcupid/jsonw"
+	"github.com/keybase/go-jsonw"
 	"os"
 )
 
