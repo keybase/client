@@ -73,6 +73,16 @@ func (c CmdHelp) Run() error {
 	return nil
 }
 
+type CmdCommandHelp struct {
+	CmdHelp
+	name string
+}
+
+func (c CmdCommandHelp) Run() error {
+	cli.ShowCommandHelp(c.ctx, c.name)
+	return nil
+}
+
 func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 	var cmd Command
 	app := cli.NewApp()
@@ -86,7 +96,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Usage: "specify an (alternate) home directory",
 		},
 		cli.StringFlag{
-			Name:  "server, s",
+			Name: "server, s",
 			Usage: "specify server API " +
 				"(default: https://api.keybase.io:443/)",
 		},
@@ -111,7 +121,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Usage: "specify Keybase username of the current user",
 		},
 		cli.StringFlag{
-			Name:  "proxy",
+			Name: "proxy",
 			Usage: "specify an HTTP(s) proxy to ship all Web " +
 				"requests over",
 		},
@@ -150,7 +160,46 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 		},
 		{
-			Name:  "login",
+			Name:  "config",
+			Usage: "manage key/value pairs in the config file",
+			Description: "A single argument reads a key; " +
+				"two arguments set a key/value pair",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "location, l",
+					Usage: "print config file location",
+				},
+				cli.BoolFlag{
+					Name:  "reset, r",
+					Usage: "clear existing config",
+				},
+			},
+			Action: func(c *cli.Context) {
+				p.ctx = c
+				location := c.Bool("location")
+				reset := c.Bool("reset")
+				nargs := len(c.Args())
+				var key string = ""
+				var value string = ""
+				if !location && !reset &&
+					nargs != 1 && nargs != 2 {
+					cmd = CmdCommandHelp{
+						CmdHelp{c},
+						"config"}
+				} else {
+					if nargs > 0 {
+						key = c.Args()[0]
+					}
+					if nargs > 1 {
+						value = c.Args()[1]
+					}
+					cmd = CmdConfig{
+						location, reset, key, value}
+				}
+			},
+		},
+		{
+			Name: "login",
 			Usage: "Establish a session with the keybase server " +
 				"(if necessary)",
 			Action: func(c *cli.Context) {

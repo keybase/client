@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"github.com/okcupid/jsonw"
+	"strings"
 )
 
 type JsonConfigFile struct {
@@ -18,6 +19,19 @@ func NewJsonConfigFile(s string) *JsonConfigFile {
 
 func NewJsonConfigAdjuster(f *JsonConfigFile) *JsonConfigAdjuster {
 	return &JsonConfigAdjuster{f}
+}
+
+func (f JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
+	is_set = false
+	ret = ""
+	if f.jw != nil {
+		var err error
+		ret, err = f.jw.AtPath(p).GetString()
+		if err == nil {
+			is_set = true
+		}
+	}
+	return
 }
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
@@ -52,6 +66,31 @@ func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
 	return f.jw.AtKey("user")
 }
 
+func (f *JsonConfigFile) SetStringAtPath(p string, v string) {
+	bits := strings.Split(p, ".")
+	w := f.jw
+	for _, bit := range bits[:len(bits)-1] {
+		G.Log.Debug("Inspecting key %s", bit)
+		// at each key, create an empty dictionary if one doesn't exist yet
+		d := w.AtKey(bit)
+		if d.IsNil() {
+			G.Log.Debug("created new dictionary at key %s", bit)
+			d = jsonw.NewDictionary()
+			w.SetKey(bit, d)
+			f.dirty = true
+		}
+		w = d
+	}
+
+	leafKey := bits[len(bits)-1]
+	existing, err := w.AtKey(leafKey).GetString()
+	// finally, create the key if its an update
+	if err != nil || existing != v {
+		w.SetKey(leafKey, jsonw.NewString(v))
+		f.dirty = true
+	}
+}
+
 func (f *JsonConfigFile) SetUsername(s string) {
 	f.SetUserField("name", s)
 }
@@ -70,6 +109,11 @@ func (f *JsonConfigFile) SetUserField(k, v string) {
 		f.UserDict().SetKey(k, jsonw.NewString(v))
 		f.dirty = true
 	}
+}
+
+func (f *JsonConfigFile) Reset() {
+	f.jw = jsonw.NewDictionary()
+	f.dirty = true
 }
 
 func (f *JsonConfigFile) Write() error {

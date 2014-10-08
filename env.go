@@ -30,6 +30,10 @@ func (n NullConfiguration) GetApiDump() (bool, bool) {
 	return false, false
 }
 
+func (n NullConfiguration) GetStringAtPath(string) (string, bool) {
+	return "", false
+}
+
 type Env struct {
 	cmd        CommandLine
 	config     ConfigReader

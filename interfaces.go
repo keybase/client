@@ -43,12 +43,15 @@ type ConfigReader interface {
 	GetPgpDir() string
 	GetBundledCA(host string) string
 	GetEmail() string
+	GetStringAtPath(string) (string, bool)
 }
 
 type ConfigWriter interface {
 	SetUsername(string)
 	SetUid(string)
 	SetSalt(string)
+	SetStringAtPath(string, string)
+	Reset()
 	Write() error
 }
 
