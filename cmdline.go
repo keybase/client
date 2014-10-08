@@ -78,7 +78,8 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 	app := cli.NewApp()
 	app.Name = "keybase"
 	app.Version = CLIENT_VERSION
-	app.Usage = "control keybase either with 1-off commands, or start a daemon"
+	app.Usage = "control keybase either with 1-off commands, " +
+		"or start a daemon"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "home, H",
@@ -86,7 +87,8 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		},
 		cli.StringFlag{
 			Name:  "server, s",
-			Usage: "specify server API (default: https://api.keybase.io:443/)",
+			Usage: "specify server API " +
+				"(default: https://api.keybase.io:443/)",
 		},
 		cli.StringFlag{
 			Name:  "config, c",
@@ -110,7 +112,8 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		},
 		cli.StringFlag{
 			Name:  "proxy",
-			Usage: "specify an HTTP(s) proxy to ship all Web requests over",
+			Usage: "specify an HTTP(s) proxy to ship all Web " +
+				"requests over",
 		},
 		cli.BoolFlag{
 			Name:  "debug, d",
@@ -148,7 +151,8 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		},
 		{
 			Name:  "login",
-			Usage: "Establish a session with the keybase server (if necessary)",
+			Usage: "Establish a session with the keybase server " +
+				"(if necessary)",
 			Action: func(c *cli.Context) {
 				p.ctx = c
 				cmd = CmdLogin{}
