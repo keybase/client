@@ -9,6 +9,10 @@ package libkb
  *   instantiations of these interfaces.
  */
 
+import (
+	"github.com/codegangsta/cli"
+)
+
 type CommandLine interface {
 	GetHome() string
 	GetServerUri() string
@@ -86,6 +90,7 @@ type Command interface {
 	UseKeyring() bool
 	UseAPI() bool
 	UseTerminal() bool
+	Initialize(ctx *cli.Context) error
 }
 
 type Terminal interface {

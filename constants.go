@@ -21,3 +21,4 @@ var PERM_FILE os.FileMode = 0600
 var PERM_DIR os.FileMode = 0700
 
 var USER_CACHE_SIZE = 0x1000
+var PGP_FINGERPRINT_HEX_LEN = 40

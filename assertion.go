@@ -60,10 +60,26 @@ type AssertionUrl interface {
 	ToString() string
 	MatchSet(ps ProofSet) bool
 	MatchProof(p Proof) bool
+	ToKeyValuePair() (string, string)
+	CacheKey() string
+	GetValue() string
+	ToLookup() (string, string, error)
 }
 
 type AssertionUrlBase struct {
 	Key, Value string
+}
+
+func (b AssertionUrlBase) ToKeyValuePair() (string, string) {
+	return b.Key, b.Value
+}
+
+func (b AssertionUrlBase) CacheKey() string {
+	return b.Key + ":" + b.Value
+}
+
+func (b AssertionUrlBase) GetValue() string {
+	return b.Value
 }
 
 func (a AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
@@ -76,15 +92,18 @@ func (a AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
 	return false
 }
 
-func (a AssertionKeybase) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
-func (a AssertionWeb) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
-func (a AssertionSocial) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
-func (a AssertionHttp) MatchSet(ps ProofSet) bool        { return a.matchSet(a, ps) }
-func (a AssertionHttps) MatchSet(ps ProofSet) bool       { return a.matchSet(a, ps) }
-func (a AssertionDns) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
-func (a AssertionFingerprint) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
-
-func (a AssertionWeb) Keys() []string      { return []string{"dns", "http", "https"} }
+func (a AssertionKeybase) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
+func (a AssertionWeb) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionSocial) MatchSet(ps ProofSet) bool  { return a.matchSet(a, ps) }
+func (a AssertionHttp) MatchSet(ps ProofSet) bool    { return a.matchSet(a, ps) }
+func (a AssertionHttps) MatchSet(ps ProofSet) bool   { return a.matchSet(a, ps) }
+func (a AssertionDns) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
+	return a.matchSet(a, ps)
+}
+func (a AssertionWeb) Keys() []string {
+	return []string{"dns", "http", "https"}
+}
 func (a AssertionHttp) Keys() []string     { return []string{"http", "https"} }
 func (a AssertionUrlBase) Keys() []string  { return []string{a.Key} }
 func (a AssertionUrlBase) IsKeybase() bool { return false }
@@ -141,16 +160,54 @@ func (a AssertionUrlBase) ToString() string {
 	return fmt.Sprintf("%s://%s", a.Key, a.Value)
 }
 
-func parseToKVPair(s string) (key string, value string) {
-	colon := strings.IndexByte(s, byte(':'))
-	if colon < 0 {
-		value = s
+func (k AssertionWeb) ToLookup() (key, value string, err error) {
+	return "web", k.Value, nil
+}
+func (k AssertionHttp) ToLookup() (key, value string, err error) {
+	return "http", k.Value, nil
+}
+func (k AssertionHttps) ToLookup() (key, value string, err error) {
+	return "https", k.Value, nil
+}
+func (k AssertionDns) ToLookup() (key, value string, err error) {
+	return "dns", k.Value, nil
+}
+func (k AssertionFingerprint) ToLookup() (key, value string, err error) {
+	cmp := len(k.Value) - PGP_FINGERPRINT_HEX_LEN
+	value = k.Value
+	if len(k.Value) < 4 {
+		err = fmt.Errorf("fingerprint queries must be at least 2 bytes long")
+	} else if cmp == 0 {
+		key = "key_fingerprint"
+	} else if cmp < 0 {
+		key = "key_suffix"
 	} else {
+		err = fmt.Errorf("bad fingerprint; too long: %s", k.Value)
+	}
+	return
+}
+
+func parseToKVPair(s string) (key string, value string, err error) {
+
+	re := regexp.MustCompile(`^[0-9a-zA-Z@:/_-]`)
+	if !re.MatchString(s) {
+		err = fmt.Errorf("Invalid key-value identity: %s", s)
+		return
+	}
+
+	colon := strings.IndexByte(s, byte(':'))
+	atsign := strings.IndexByte(s, byte('@'))
+	if colon >= 0 {
 		key = s[0:colon]
 		value = s[(colon + 1):]
 		if len(value) >= 2 && value[0:2] == "//" {
 			value = value[2:]
 		}
+	} else if atsign >= 0 {
+		value = s[0:atsign]
+		key = s[(atsign + 1):]
+	} else {
+		value = s
 	}
 	key = strings.ToLower(key)
 	value = strings.ToLower(value)
@@ -159,6 +216,10 @@ func parseToKVPair(s string) (key string, value string) {
 
 func (k AssertionKeybase) IsKeybase() bool {
 	return true
+}
+
+func (k AssertionKeybase) ToLookup() (key, value string, err error) {
+	return "username", k.Value, nil
 }
 
 func (s AssertionSocial) Check() (err error) {
@@ -176,12 +237,26 @@ func (s AssertionSocial) Check() (err error) {
 	return
 }
 
+func (k AssertionSocial) ToLookup() (key, value string, err error) {
+	return k.Key, k.Value, nil
+}
+
 func ParseAssertionUrl(s string, strict bool) (ret AssertionUrl, err error) {
-	key, val := parseToKVPair(s)
+	key, val, err := parseToKVPair(s)
+
+	if err != nil {
+		return
+	}
+	return ParseAssertionUrlKeyValue(key, val, strict)
+}
+
+func ParseAssertionUrlKeyValue(key, val string,
+	strict bool) (ret AssertionUrl, err error) {
 
 	if len(key) == 0 {
 		if strict {
-			err = fmt.Errorf("Bad assertion, no 'type' given: %s", s)
+			err = fmt.Errorf("Bad assertion, no 'type' given: %s", val)
+			return
 		} else {
 			key = "keybase"
 		}

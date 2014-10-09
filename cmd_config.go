@@ -32,7 +32,7 @@ func (v *CmdConfig) Initialize(ctx *cli.Context) error {
 	return nil
 }
 
-func (v CmdConfig) Run() error {
+func (v *CmdConfig) Run() error {
 	configFile := G.Env.GetConfigFilename()
 
 	if v.location {
@@ -87,7 +87,7 @@ func (v CmdConfig) Run() error {
 	return nil
 }
 
-func (v CmdConfig) UseConfig() bool   { return true }
-func (v CmdConfig) UseKeyring() bool  { return false }
-func (v CmdConfig) UseAPI() bool      { return false }
-func (v CmdConfig) UseTerminal() bool { return false }
+func (v *CmdConfig) UseConfig() bool   { return true }
+func (v *CmdConfig) UseKeyring() bool  { return false }
+func (v *CmdConfig) UseAPI() bool      { return false }
+func (v *CmdConfig) UseTerminal() bool { return false }

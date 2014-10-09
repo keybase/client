@@ -2,11 +2,12 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/codegangsta/cli"
 )
 
 type CmdPing struct{}
 
-func (v CmdPing) Run() error {
+func (v *CmdPing) Run() error {
 	_, err := G.API.Post(ApiArg{
 		Endpoint: "ping",
 		Args: HttpArgs{
@@ -26,7 +27,8 @@ func (v CmdPing) Run() error {
 	return nil
 }
 
-func (v CmdPing) UseConfig() bool   { return true }
-func (v CmdPing) UseKeyring() bool  { return false }
-func (v CmdPing) UseAPI() bool      { return true }
-func (v CmdPing) UseTerminal() bool { return false }
+func (v *CmdPing) UseConfig() bool               { return true }
+func (v *CmdPing) UseKeyring() bool              { return false }
+func (v *CmdPing) UseAPI() bool                  { return true }
+func (v *CmdPing) UseTerminal() bool             { return false }
+func (c *CmdPing) Initialize(*cli.Context) error { return nil }

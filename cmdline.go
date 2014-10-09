@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"github.com/codegangsta/cli"
 )
 
@@ -75,14 +74,15 @@ type CmdHelp struct {
 	ctx *cli.Context
 }
 
-func (c CmdHelp) UseConfig() bool   { return false }
-func (c CmdHelp) UseKeyring() bool  { return false }
-func (c CmdHelp) UseAPI() bool      { return false }
-func (c CmdHelp) UseTerminal() bool { return false }
-func (c CmdHelp) Run() error {
+func (c *CmdHelp) UseConfig() bool   { return false }
+func (c *CmdHelp) UseKeyring() bool  { return false }
+func (c *CmdHelp) UseAPI() bool      { return false }
+func (c *CmdHelp) UseTerminal() bool { return false }
+func (c *CmdHelp) Run() error {
 	cli.ShowAppHelp(c.ctx)
 	return nil
 }
+func (c *CmdHelp) Initialize(*cli.Context) error { return nil }
 
 type CmdCommandHelp struct {
 	CmdHelp
@@ -92,6 +92,16 @@ type CmdCommandHelp struct {
 func (c CmdCommandHelp) Run() error {
 	cli.ShowCommandHelp(c.ctx, c.name)
 	return nil
+}
+
+func (p *PosixCommandLine) InitSubcommand(c *cli.Context,
+	cmd Command, name string) Command {
+	p.ctx = c
+	if err := cmd.Initialize(c); err != nil {
+		G.Log.Error("In '%s': %s", name, err.Error())
+		cmd = &CmdCommandHelp{CmdHelp{c}, name}
+	}
+	return cmd
 }
 
 func (p *PosixCommandLine) Parse(args []string) (Command, error) {
@@ -159,7 +169,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Usage: "print out version information",
 			Action: func(c *cli.Context) {
 				p.ctx = c
-				cmd = CmdVersion{}
+				cmd = &CmdVersion{}
 			},
 		},
 		{
@@ -167,7 +177,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			Usage: "ping the keybase API server",
 			Action: func(c *cli.Context) {
 				p.ctx = c
-				cmd = CmdPing{}
+				cmd = &CmdPing{}
 			},
 		},
 		{
@@ -186,13 +196,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 				},
 			},
 			Action: func(c *cli.Context) {
-				p.ctx = c
-				cmdPtr := &CmdConfig{}
-				if err := cmdPtr.Initialize(c); err != nil {
-					cmd = CmdCommandHelp{CmdHelp{c}, "config"}
-				} else {
-					cmd = *cmdPtr
-				}
+				cmd = p.InitSubcommand(c, &CmdConfig{}, "config")
 			},
 		},
 		{
@@ -201,18 +205,22 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 				"(if necessary)",
 			Action: func(c *cli.Context) {
 				p.ctx = c
-				cmd = CmdLogin{}
+				cmd = &CmdLogin{}
+			},
+		},
+		{
+			Name:  "resolve",
+			Usage: "Resolve a foo@bar-style username to a keybase username",
+			Action: func(c *cli.Context) {
+				cmd = p.InitSubcommand(c, &CmdResolve{}, "resolve")
 			},
 		},
 	}
 	app.Action = func(c *cli.Context) {
 		p.ctx = c
-		cmd = CmdHelp{c}
+		cmd = &CmdHelp{c}
 	}
 	p.app = app
 	err := app.Run(args)
-	if err != nil && p.ctx == nil {
-		err = fmt.Errorf("Problem: no context found")
-	}
 	return cmd, err
 }

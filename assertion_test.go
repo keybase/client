@@ -20,7 +20,7 @@ func TestSuccess1(t *testing.T) {
 }
 
 func TestAssertions1(t *testing.T) {
-	a := "web://maxk.org && (https://foo.com || http://bar.com) && (twitter://bb || max || fingerprint://aabbcc)"
+	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || fingerprint://aabbcc)"
 	good_proofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"dns", "maxk.org"},

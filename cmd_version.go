@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/codegangsta/cli"
 	"runtime"
 )
 
@@ -13,12 +14,13 @@ func VersionMessage(linefn func(string)) {
 	linefn("- Visit https://keybase.io for more details")
 }
 
-func (v CmdVersion) Run() error {
+func (v *CmdVersion) Run() error {
 	VersionMessage(func(s string) { fmt.Println(s) })
 	return nil
 }
 
-func (v CmdVersion) UseConfig() bool   { return true }
-func (v CmdVersion) UseKeyring() bool  { return false }
-func (v CmdVersion) UseAPI() bool      { return false }
-func (v CmdVersion) UseTerminal() bool { return false }
+func (v *CmdVersion) UseConfig() bool               { return true }
+func (v *CmdVersion) UseKeyring() bool              { return false }
+func (v *CmdVersion) UseAPI() bool                  { return false }
+func (v *CmdVersion) UseTerminal() bool             { return false }
+func (c *CmdVersion) Initialize(*cli.Context) error { return nil }
