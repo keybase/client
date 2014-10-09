@@ -34,6 +34,14 @@ func (n NullConfiguration) GetStringAtPath(string) (string, bool) {
 	return "", false
 }
 
+func (n NullConfiguration) GetBoolAtPath(string) (bool, bool) {
+	return false, false
+}
+
+func (n NullConfiguration) GetIntAtPath(string) (int, bool) {
+	return 0, false
+}
+
 type Env struct {
 	cmd        CommandLine
 	config     ConfigReader
