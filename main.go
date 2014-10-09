@@ -76,6 +76,10 @@ func main2() error {
 		}
 	}
 
+	if err = G.ConfigureCaches(); err != nil {
+		return err
+	}
+
 	G.StartupMessage()
 	testLogging()
 
