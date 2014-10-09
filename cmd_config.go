@@ -1,7 +1,9 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
+	"github.com/codegangsta/cli"
 	"strconv"
 )
 
@@ -10,6 +12,24 @@ type CmdConfig struct {
 	reset    bool
 	key      string
 	value    string
+}
+
+func (v *CmdConfig) Initialize(ctx *cli.Context) error {
+	v.location = ctx.Bool("location")
+	v.reset = ctx.Bool("reset")
+	nargs := len(ctx.Args())
+	if !v.location && !v.reset &&
+		nargs != 1 && nargs != 2 {
+		return errors.New("incorrect config usage")
+	} else {
+		if nargs > 0 {
+			v.key = ctx.Args()[0]
+		}
+		if nargs > 1 {
+			v.value = ctx.Args()[1]
+		}
+	}
+	return nil
 }
 
 func (v CmdConfig) Run() error {

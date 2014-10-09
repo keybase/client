@@ -176,25 +176,11 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 			Action: func(c *cli.Context) {
 				p.ctx = c
-				location := c.Bool("location")
-				reset := c.Bool("reset")
-				nargs := len(c.Args())
-				var key string = ""
-				var value string = ""
-				if !location && !reset &&
-					nargs != 1 && nargs != 2 {
-					cmd = CmdCommandHelp{
-						CmdHelp{c},
-						"config"}
+				cmdPtr := &CmdConfig{}
+				if err := cmdPtr.Initialize(c); err != nil {
+					cmd = CmdCommandHelp{CmdHelp{c}, "config"}
 				} else {
-					if nargs > 0 {
-						key = c.Args()[0]
-					}
-					if nargs > 1 {
-						value = c.Args()[1]
-					}
-					cmd = CmdConfig{
-						location, reset, key, value}
+					cmd = *cmdPtr
 				}
 			},
 		},
