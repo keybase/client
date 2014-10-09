@@ -9,16 +9,17 @@ import (
 
 type NullConfiguration struct{}
 
-func (n NullConfiguration) GetHome() string              { return "" }
-func (n NullConfiguration) GetServerUri() string         { return "" }
-func (n NullConfiguration) GetConfigFilename() string    { return "" }
-func (n NullConfiguration) GetSessionFilename() string   { return "" }
-func (n NullConfiguration) GetDbFilename() string        { return "" }
-func (n NullConfiguration) GetUsername() string          { return "" }
-func (n NullConfiguration) GetEmail() string             { return "" }
-func (n NullConfiguration) GetProxy() string             { return "" }
-func (n NullConfiguration) GetPgpDir() string            { return "" }
-func (n NullConfiguration) GetBundledCA(h string) string { return "" }
+func (n NullConfiguration) GetHome() string               { return "" }
+func (n NullConfiguration) GetServerUri() string          { return "" }
+func (n NullConfiguration) GetConfigFilename() string     { return "" }
+func (n NullConfiguration) GetSessionFilename() string    { return "" }
+func (n NullConfiguration) GetDbFilename() string         { return "" }
+func (n NullConfiguration) GetUsername() string           { return "" }
+func (n NullConfiguration) GetEmail() string              { return "" }
+func (n NullConfiguration) GetProxy() string              { return "" }
+func (n NullConfiguration) GetPgpDir() string             { return "" }
+func (n NullConfiguration) GetBundledCA(h string) string  { return "" }
+func (n NullConfiguration) GetUserCacheSize() (int, bool) { return 0, false }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -85,16 +86,15 @@ func (e Env) GetConfigDir() string { return e.homeFinder.ConfigDir() }
 func (e Env) GetCacheDir() string  { return e.homeFinder.CacheDir() }
 func (e Env) GetDataDir() string   { return e.homeFinder.DataDir() }
 
-func (e Env) getEnvInt(s string) (ret int64) {
-	ret = -1
+func (e Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
 	if len(v) > 0 {
 		tmp, err := strconv.ParseInt(v, 0, 64)
 		if err != nil {
-			ret = tmp
+			return int(tmp), true
 		}
 	}
-	return ret
+	return 0, false
 }
 
 func (e Env) getEnvBool(s string) (bool, bool) {
@@ -123,6 +123,15 @@ func (e Env) GetString(flist ...(func() string)) string {
 }
 
 func (e Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
+	for _, f := range flist {
+		if val, is_set := f(); is_set {
+			return val
+		}
+	}
+	return def
+}
+
+func (e Env) GetInt(def int, flist ...func() (int, bool)) int {
 	for _, f := range flist {
 		if val, is_set := f(); is_set {
 			return val
@@ -242,6 +251,14 @@ func (e Env) GetBundledCA(host string) string {
 			}
 			return ret
 		},
+	)
+}
+
+func (e Env) GetUserCacheSize() int {
+	return e.GetInt(USER_CACHE_SIZE,
+		func() (int, bool) { return e.cmd.GetUserCacheSize() },
+		func() (int, bool) { return e.config.GetUserCacheSize() },
+		func() (int, bool) { return e.getEnvInt("KEYBASE_USER_CACHE_SIZE") },
 	)
 }
 

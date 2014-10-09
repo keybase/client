@@ -26,10 +26,12 @@ type Global struct {
 	Keyrings      *Keyrings     // Gpg Keychains holding keys
 	API           *ApiAccess    // How to make a REST call to the server
 	Terminal      Terminal      // For prompting for passwords and input
+	UserCache     *UserCache    // LRU cache of users in memory
 }
 
 var G Global = Global{
 	NewDefaultLogger(),
+	nil,
 	nil,
 	nil,
 	nil,
@@ -90,6 +92,11 @@ func (g *Global) ConfigureAPI() error {
 func (g *Global) ConfigureTerminal() error {
 	g.Terminal = NewTerminalImplementation()
 	return nil
+}
+
+func (g *Global) ConfigureCaches() (err error) {
+	g.UserCache, err = NewUserCache(g.Env.GetUserCacheSize())
+	return
 }
 
 func (g *Global) Shutdown() error {

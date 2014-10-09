@@ -22,6 +22,7 @@ type CommandLine interface {
 	GetPgpDir() string
 	GetEmail() string
 	GetApiDump() (bool, bool)
+	GetUserCacheSize() (int, bool)
 }
 
 type Server interface {
@@ -46,6 +47,7 @@ type ConfigReader interface {
 	GetStringAtPath(string) (string, bool)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
+	GetUserCacheSize() (int, bool)
 }
 
 type ConfigWriter interface {

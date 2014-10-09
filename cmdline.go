@@ -49,6 +49,17 @@ func (p PosixCommandLine) GetApiDump() (bool, bool) {
 func (p PosixCommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
 }
+func (p PosixCommandLine) GetGInt(s string) int {
+	return p.ctx.GlobalInt(s)
+}
+func (p PosixCommandLine) GetUserCacheSize() (int, bool) {
+	ret := p.GetGInt("user-cache-size")
+	if ret != 0 {
+		return ret, true
+	} else {
+		return 0, false
+	}
+}
 
 func (p PosixCommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool

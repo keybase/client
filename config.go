@@ -200,6 +200,14 @@ func (f JsonConfigFile) GetDebug() (bool, bool) {
 func (f JsonConfigFile) GetPlainLogging() (bool, bool) {
 	return f.GetTopLevelBool("plain_logging")
 }
+func (f JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
+	if f.jw != nil {
+		ret, ok = f.jw.AtPathGetInt("cache.limits.users")
+	} else {
+		ok = false
+	}
+	return
+}
 
 func (f JsonConfigFile) GetPgpDir() (ret string) {
 	ret = f.GetTopLevelString("pgpdir")
