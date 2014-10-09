@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"github.com/keybase/go-jsonw"
-	"strings"
 )
 
 type JsonConfigFile struct {
@@ -21,16 +20,48 @@ func NewJsonConfigAdjuster(f *JsonConfigFile) *JsonConfigAdjuster {
 	return &JsonConfigAdjuster{f}
 }
 
-func (f JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
+type valueGetter func(*jsonw.Wrapper) (interface{}, error)
+
+func (f JsonConfigFile) getValueAtPath(
+	p string, getter valueGetter) (ret interface{}, is_set bool) {
 	is_set = false
-	ret = ""
 	if f.jw != nil {
 		var err error
-		ret, err = f.jw.AtPath(p).GetString()
+		ret, err = getter(f.jw.AtPath(p))
 		if err == nil {
 			is_set = true
 		}
 	}
+	return
+}
+
+func getString(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetString()
+}
+
+func getBool(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetBool()
+}
+
+func getInt(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetInt()
+}
+
+func (f JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
+	i, is_set := f.getValueAtPath(p, getString)
+	ret = i.(string)
+	return
+}
+
+func (f JsonConfigFile) GetBoolAtPath(p string) (ret bool, is_set bool) {
+	i, is_set := f.getValueAtPath(p, getBool)
+	ret = i.(bool)
+	return
+}
+
+func (f JsonConfigFile) GetIntAtPath(p string) (ret int, is_set bool) {
+	i, is_set := f.getValueAtPath(p, getInt)
+	ret = i.(int)
 	return
 }
 
@@ -66,29 +97,29 @@ func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
 	return f.jw.AtKey("user")
 }
 
-func (f *JsonConfigFile) SetStringAtPath(p string, v string) {
-	bits := strings.Split(p, ".")
-	w := f.jw
-	for _, bit := range bits[:len(bits)-1] {
-		G.Log.Debug("Inspecting key %s", bit)
-		// at each key, create an empty dictionary if one doesn't exist yet
-		d := w.AtKey(bit)
-		if d.IsNil() {
-			G.Log.Debug("created new dictionary at key %s", bit)
-			d = jsonw.NewDictionary()
-			w.SetKey(bit, d)
+func (f *JsonConfigFile) setValueAtPath(
+	p string, getter valueGetter, v interface{}) (err error) {
+	existing, err := getter(f.jw.AtPath(p))
+
+	if err != nil || existing != v {
+		err = f.jw.SetValueAtPath(p, jsonw.NewWrapper(v))
+		if err == nil {
 			f.dirty = true
 		}
-		w = d
 	}
+	return
+}
 
-	leafKey := bits[len(bits)-1]
-	existing, err := w.AtKey(leafKey).GetString()
-	// finally, create the key if its an update
-	if err != nil || existing != v {
-		w.SetKey(leafKey, jsonw.NewString(v))
-		f.dirty = true
-	}
+func (f *JsonConfigFile) SetStringAtPath(p string, v string) (err error) {
+	return f.setValueAtPath(p, getString, v)
+}
+
+func (f *JsonConfigFile) SetBoolAtPath(p string, v bool) (err error) {
+	return f.setValueAtPath(p, getBool, v)
+}
+
+func (f *JsonConfigFile) SetIntAtPath(p string, v int) (err error) {
+	return f.setValueAtPath(p, getInt, v)
 }
 
 func (f *JsonConfigFile) SetUsername(s string) {

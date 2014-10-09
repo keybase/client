@@ -44,13 +44,17 @@ type ConfigReader interface {
 	GetBundledCA(host string) string
 	GetEmail() string
 	GetStringAtPath(string) (string, bool)
+	GetBoolAtPath(string) (bool, bool)
+	GetIntAtPath(string) (int, bool)
 }
 
 type ConfigWriter interface {
 	SetUsername(string)
 	SetUid(string)
 	SetSalt(string)
-	SetStringAtPath(string, string)
+	SetStringAtPath(string, string) error
+	SetBoolAtPath(string, bool) error
+	SetIntAtPath(string, int) error
 	Reset()
 	Write() error
 }
