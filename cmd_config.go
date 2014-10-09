@@ -34,8 +34,13 @@ func (v *CmdConfig) Initialize(ctx *cli.Context) error {
 
 func (v CmdConfig) Run() error {
 	configFile := G.Env.GetConfigFilename()
+
 	if v.location {
-		G.Log.Info(fmt.Sprintf("Using config file %s", configFile))
+		if v.reset || v.key != "" {
+			G.Log.Info(fmt.Sprintf("Using config file %s", configFile))
+		} else {
+			fmt.Printf("%s\n", configFile)
+		}
 	}
 
 	if v.reset {
