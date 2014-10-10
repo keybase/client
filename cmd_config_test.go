@@ -228,3 +228,35 @@ func TestSetEmptyString(t *testing.T) {
 func TestOverwriteNull(t *testing.T) {
 	// TODO: https://github.com/keybase/go-libkb/issues/20
 }
+
+func TestClear(t *testing.T) {
+	config := &TestConfig{}
+	config.InitTest(t, "{ \"a\": \"b\", \"c\": \"d\" }")
+	defer config.CleanTest()
+
+	// clear it
+	var called bool
+	c := CmdConfig{}
+	c.clear = true
+	c.key = "c"
+	// should be no output
+	c.writer = TestOutput{"", t, &called}
+	c.Run()
+	if called {
+		t.Errorf("Read output for cleared key %s", c.key)
+	}
+
+	// make sure it's really done
+	cf := NewJsonConfigFile(config.configFileName)
+	if err := cf.Load(false); err != nil {
+		t.Fatal("Couldn't load config file %s", config.configFileName)
+	}
+	if ret, is_set := cf.GetStringAtPath("c"); is_set {
+		t.Errorf("Read string after clearing; ret=%s, is_set=%t", ret, is_set)
+	}
+	// a should still be there
+	if ret, is_set := cf.GetStringAtPath("a"); !is_set {
+		t.Errorf("Couldn't read string after clearing other string; "+
+			"ret=%s, is_set=%t", ret, is_set)
+	}
+}

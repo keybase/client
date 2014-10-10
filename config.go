@@ -142,6 +142,11 @@ func (f *JsonConfigFile) SetUserField(k, v string) {
 	}
 }
 
+func (f *JsonConfigFile) DeleteAtPath(p string) {
+	f.jw.DeleteValueAtPath(p)
+	f.dirty = true
+}
+
 func (f *JsonConfigFile) Reset() {
 	f.jw = jsonw.NewDictionary()
 	f.dirty = true

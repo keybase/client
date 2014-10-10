@@ -75,6 +75,7 @@ type ConfigWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	DeleteAtPath(string)
 	Reset()
 	Write() error
 }

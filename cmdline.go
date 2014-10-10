@@ -192,7 +192,11 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 				},
 				cli.BoolFlag{
 					Name:  "reset, r",
-					Usage: "clear existing config",
+					Usage: "clear entire existing config",
+				},
+				cli.BoolFlag{
+					Name:  "clear, c",
+					Usage: "delete a key",
 				},
 			},
 			Action: func(c *cli.Context) {

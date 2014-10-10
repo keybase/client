@@ -12,6 +12,7 @@ import (
 type CmdConfig struct {
 	location bool
 	reset    bool
+	clear    bool
 	key      string
 	value    string
 	writer   io.Writer
@@ -20,6 +21,7 @@ type CmdConfig struct {
 func (v *CmdConfig) Initialize(ctx *cli.Context) error {
 	v.location = ctx.Bool("location")
 	v.reset = ctx.Bool("reset")
+	v.clear = ctx.Bool("clear")
 	nargs := len(ctx.Args())
 	if !v.location && !v.reset &&
 		nargs != 1 && nargs != 2 {
@@ -33,6 +35,10 @@ func (v *CmdConfig) Initialize(ctx *cli.Context) error {
 		}
 	}
 
+	if v.clear && (v.key == "" || v.value != "") {
+		return errors.New("--clear takes exactly one key and no value")
+	}
+
 	if v.writer == nil {
 		v.writer = os.Stdout
 	}
@@ -43,7 +49,7 @@ func (v *CmdConfig) Initialize(ctx *cli.Context) error {
 func (v *CmdConfig) Run() error {
 	if v.location {
 		configFile := G.Env.GetConfigFilename()
-		if v.reset || v.key != "" {
+		if v.reset || v.clear || v.key != "" {
 			G.Log.Info(fmt.Sprintf("Using config file %s", configFile))
 		} else {
 			fmt.Fprintf(v.writer, "%s\n", configFile)
@@ -75,6 +81,10 @@ func (v *CmdConfig) Run() error {
 			} else {
 				cw.SetStringAtPath(v.key, v.value)
 			}
+			cw.Write()
+		} else if v.clear {
+			cw := G.Env.GetConfigWriter()
+			cw.DeleteAtPath(v.key)
 			cw.Write()
 		} else {
 			cr := *G.Env.GetConfig()
