@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"code.google.com/p/go.crypto/openpgp"
+	"fmt"
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/go-jsonw"
 )
@@ -81,8 +82,9 @@ func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
 	for i := 0; i < l; i++ {
 		obj := vec.AtIndex(i)
 		if !obj.IsNil() {
-			u := NewUser(obj)
-			c.Put(u)
+			if u, err := NewUser(obj); err != nil {
+				c.Put(u)
+			}
 		}
 	}
 	return nil
@@ -90,11 +92,47 @@ func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
 
 //==================================================================
 
-func NewUser(o *jsonw.Wrapper) *User {
-	return &User{}
+func NewUser(o *jsonw.Wrapper) (*User, error) {
+
+	id, err := o.AtKey("id").GetString()
+	if err != nil {
+		return nil, fmt.Errorf("user object lacks an ID")
+	}
+	name, err := o.AtKey("basics").AtKey("username").GetString()
+	if err != nil {
+		return nil, fmt.Errorf("user object for %s lacks a name", id)
+	}
+
+	return &User{
+		basics:      o.AtKey("basics"),
+		publicKeys:  o.AtKey("public_keys"),
+		sigs:        o.AtKey("sigs"),
+		privateKeys: o.AtKey("private_keys"),
+		id:          UID(id),
+		name:        name,
+		verified:    false,
+	}, nil
+}
+
+func LoadUserFromLocalStorage(name string) (u *User, err error) {
+	return nil, nil
 }
 
 func LoadUser(arg LoadUserArg) (u *User, err error) {
 
-	return nil, nil
+	var name string
+
+	name, err = ResolveUsername(arg.name)
+	if err != nil {
+		return
+	}
+
+	u, err = LoadUserFromLocalStorage(name)
+	if err != nil {
+		return
+	}
+
+	return
 }
+
+//==================================================================
