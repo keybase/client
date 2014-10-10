@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go.crypto/openpgp"
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/go-jsonw"
 )
 
 type PgpKeyBundle openpgp.Entity
@@ -29,4 +30,22 @@ func PgpFingerprintFromHex(s string) (PgpFingerprint, error) {
 
 func (p PgpFingerprint) ToString() string {
 	return hex.EncodeToString(p)
+}
+
+func GetPgpFingerprint(w *jsonw.Wrapper) (PgpFingerprint, error) {
+	s, err := w.GetString()
+	if err != nil {
+		return nil, err
+	}
+	ret, err := PgpFingerprintFromHex(s)
+	return ret, err
+}
+
+func GetPgpFingerprintVoid(w *jsonw.Wrapper, p *PgpFingerprint, e *error) {
+	ret, err := GetPgpFingerprint(w)
+	if err != nil {
+		*e = err
+	} else {
+		*p = ret
+	}
 }

@@ -70,6 +70,7 @@ func (j *JsonLocalDb) Delete(id DbKey) error { return j.engine.Delete(id) }
 const (
 	DB_USER = 0x0
 	DB_SIG  = 0x0f
+	DB_LINK = 0xe0
 )
 
 const (
