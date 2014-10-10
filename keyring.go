@@ -31,6 +31,33 @@ func NewKeyrings(e Env) *Keyrings {
 	return ret
 }
 
+//===================================================================
+//
+// Make our Keryings struct meet the openpgp.KeyRing
+// interface
+//
+
+func (k Keyrings) KeysById(id uint64) []openpgp.Key {
+	out := make([]openpgp.Key, 10)
+	for _, ring := range k.Public {
+		out = append(out, ring.Entities.KeysById(id)...)
+	}
+	for _, ring := range k.Secret {
+		out = append(out, ring.Entities.KeysById(id)...)
+	}
+	return out
+}
+
+func (k Keyrings) DecryptionKeys() []openpgp.Key {
+	out := make([]openpgp.Key, 10)
+	for _, ring := range k.Secret {
+		out = append(out, ring.Entities.DecryptionKeys()...)
+	}
+	return out
+}
+
+//===================================================================
+
 func (k *Keyrings) Load() (err error) {
 	G.Log.Debug("+ Loading keyrings")
 	err = k.LoadKeyrings(k.Public)
