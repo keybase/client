@@ -1,13 +1,19 @@
 package libkb
 
 import (
-	"code.google.com/p/go.crypto/openpgp"
 	"fmt"
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/go-jsonw"
 )
 
 type UID string
+
+type CachedVerification struct {
+	flag      bool
+	publicKey PgpFingerprint
+	lastLink  LinkId
+	seqno     int
+}
 
 type User struct {
 	// Raw JSON element read from the server or our local DB.
@@ -22,8 +28,8 @@ type User struct {
 	sigChain *SigChain
 	idTable  *IdentityTable
 
-	verified  bool
-	activeKey *openpgp.Entity
+	verified  CachedVerification
+	activeKey *PgpKeyBundle
 }
 
 //==================================================================
@@ -110,11 +116,72 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		privateKeys: o.AtKey("private_keys"),
 		id:          UID(id),
 		name:        name,
-		verified:    false,
+		verified:    CachedVerification{false, nil, nil, 0},
 	}, nil
 }
 
+func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
+	u, err := NewUser(o)
+	if err == nil {
+		verified := o.AtKey("verified")
+		vsn, e1 := verified.AtKey("seqno").GetInt()
+		vpk, e2 := verified.AtKey("public_key").GetString()
+		vcl, e3 := verified.AtKey("last_link").GetString()
+		if e1 == nil && e2 == nil && e3 == nil {
+			if fp, e4 := PgpFingerprintFromHex(vpk); e4 == nil {
+				if cl, e5 := LinkIdFromHex(vcl); e5 == nil {
+					u.verified.flag = true
+					u.verified.publicKey = fp
+					u.verified.lastLink = cl
+					u.verified.seqno = vsn
+				}
+			}
+		}
+	}
+	return u, err
+}
+
+func (u *User) LoadSigChainFromStorage() error {
+	if u.sigs != nil {
+		last := u.sigs.AtKey("last")
+		seqno, e1 := last.AtKey("seqno").GetInt()
+		lh, e2 := last.AtKey("payload_host").GetString()
+		if e1 == nil && e2 == nil {
+			if lid, e3 := LinkIdFromHex(lh); e3 != nil {
+				return fmt.Errorf("Bad sigchain tail for user %s: %s",
+					u.name, lh)
+			} else {
+				u.sigChain = NewSigChain(u.id, seqno, lid)
+			}
+		}
+	}
+	if u.sigChain == nil {
+		G.Log.Debug("Empty sigchain for %s", u.name)
+		u.sigChain = NewEmptySigChain(u.id)
+	}
+
+	return u.sigChain.LoadFromStorage()
+}
+
 func LoadUserFromLocalStorage(name string) (u *User, err error) {
+
+	jw, err := G.LocalDb.Lookup(DbKey{Typ: DB_LOOKUP_USERNAME, Key: name})
+	if err != nil {
+		return nil, err
+	}
+
+	if u == nil {
+		return nil, nil
+	}
+
+	if u, err = NewUserFromLocalStorage(jw); err != nil {
+		return nil, err
+	}
+
+	if err = u.LoadSigChainFromStorage(); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 

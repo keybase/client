@@ -66,3 +66,12 @@ func (j *JsonLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
 }
 
 func (j *JsonLocalDb) Delete(id DbKey) error { return j.engine.Delete(id) }
+
+const (
+	DB_USER = 0x0
+	DB_SIG  = 0x0f
+)
+
+const (
+	DB_LOOKUP_USERNAME = 0x00
+)
