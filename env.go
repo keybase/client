@@ -43,11 +43,16 @@ func (n NullConfiguration) GetIntAtPath(string) (int, bool) {
 	return 0, false
 }
 
+type TestParameters struct {
+	ConfigFilename string
+}
+
 type Env struct {
 	cmd        CommandLine
 	config     ConfigReader
 	homeFinder HomeFinder
 	writer     ConfigWriter
+	Test       TestParameters
 }
 
 func (e *Env) GetConfig() *ConfigReader      { return &e.config }
@@ -66,7 +71,7 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 	if config == nil {
 		config = NullConfiguration{}
 	}
-	e := Env{cmd, config, nil, nil}
+	e := Env{cmd, config, nil, nil, TestParameters{}}
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() })
 	return &e
@@ -151,6 +156,7 @@ func (e Env) GetServerUri() string {
 
 func (e Env) GetConfigFilename() string {
 	return e.GetString(
+		func() string { return e.Test.ConfigFilename },
 		func() string { return e.cmd.GetConfigFilename() },
 		func() string { return e.config.GetConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },

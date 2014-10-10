@@ -23,12 +23,9 @@ func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 		t.Fatal("couldn't write config file: %s", err)
 	}
 	f.Close()
-	// XXX: Using the environment variable is not a great idea if we'll be
-	// running tests in parallel, but the global G prevents us from doing that
-	// already, so...
-	if err = os.Setenv("KEYBASE_CONFIG_FILE", c.configFileName); err != nil {
-		t.Fatal("couldn't set env filename: %s", err)
-	}
+
+	// XXX: The global G prevents us from running tests in parallel
+	G.Env.Test.ConfigFilename = c.configFileName
 
 	if err = G.ConfigureConfig(); err != nil {
 		t.Fatal("couldn't configure the config: %s", err)
