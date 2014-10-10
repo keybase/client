@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,3 +29,40 @@ func DbKeyParse(s string) (string, *DbKey, error) {
 		return v[0], &DbKey{ObjType(b), v[2]}, nil
 	}
 }
+
+type JsonLocalDb struct {
+	engine LocalDb
+}
+
+func NewJsonLocalDb(e LocalDb) *JsonLocalDb { return &JsonLocalDb{e} }
+func (j *JsonLocalDb) Open() error          { return j.engine.Open() }
+func (j *JsonLocalDb) Close() error         { return j.engine.Close() }
+func (j *JsonLocalDb) Unlink() error        { return j.engine.Unlink() }
+
+func (j *JsonLocalDb) Put(id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {
+	bytes, err := val.Marshal()
+	if err == nil {
+		err = j.engine.Put(id, aliases, bytes)
+	}
+	return err
+}
+
+func (j *JsonLocalDb) Get(id DbKey) (*jsonw.Wrapper, error) {
+	bytes, found, err := j.engine.Get(id)
+	var ret *jsonw.Wrapper
+	if found {
+		ret, err = jsonw.Unmarshal(bytes)
+	}
+	return ret, err
+}
+
+func (j *JsonLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
+	bytes, found, err := j.engine.Lookup(id)
+	var ret *jsonw.Wrapper
+	if found {
+		ret, err = jsonw.Unmarshal(bytes)
+	}
+	return ret, err
+}
+
+func (j *JsonLocalDb) Delete(id DbKey) error { return j.engine.Delete(id) }
