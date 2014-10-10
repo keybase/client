@@ -27,10 +27,12 @@ type Global struct {
 	API           *ApiAccess    // How to make a REST call to the server
 	Terminal      Terminal      // For prompting for passwords and input
 	UserCache     *UserCache    // LRU cache of users in memory
+	LocalDb       LocalDb       // Local DB for cache
 }
 
 var G Global = Global{
 	NewDefaultLogger(),
+	nil,
 	nil,
 	nil,
 	nil,
@@ -96,6 +98,15 @@ func (g *Global) ConfigureTerminal() error {
 
 func (g *Global) ConfigureCaches() (err error) {
 	g.UserCache, err = NewUserCache(g.Env.GetUserCacheSize())
+
+	// We consider the local DB as a cache; it's caching our
+	// fetches from the server after all (and also our cryptographic
+	// checking).
+	if err != nil {
+		g.LocalDb = NewLevelDb()
+		err = g.LocalDb.Open()
+	}
+
 	return
 }
 
@@ -103,6 +114,12 @@ func (g *Global) Shutdown() error {
 	var err error
 	if g.Terminal != nil {
 		tmp := g.Terminal.Shutdown()
+		if tmp != nil && err == nil {
+			err = tmp
+		}
+	}
+	if g.LocalDb != nil {
+		tmp := g.LocalDb.Close()
 		if tmp != nil && err == nil {
 			err = tmp
 		}

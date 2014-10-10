@@ -32,7 +32,21 @@ type CommandLine interface {
 type Server interface {
 }
 
-type LocalCache interface {
+type ObjType byte
+
+type DbKey struct {
+	Typ ObjType
+	Key string
+}
+
+type LocalDb interface {
+	Open() error
+	Close() error
+	Unlink() error
+	Put(id DbKey, aliases []DbKey, value []byte) error
+	Delete(id DbKey) error
+	Get(id DbKey) ([]byte, bool, error)
+	Lookup(alias DbKey) ([]byte, bool, error)
 }
 
 type ConfigReader interface {
