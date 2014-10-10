@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
+	"io"
+	"os"
 	"strconv"
 )
 
@@ -12,6 +14,7 @@ type CmdConfig struct {
 	reset    bool
 	key      string
 	value    string
+	writer   io.Writer
 }
 
 func (v *CmdConfig) Initialize(ctx *cli.Context) error {
@@ -29,17 +32,21 @@ func (v *CmdConfig) Initialize(ctx *cli.Context) error {
 			v.value = ctx.Args()[1]
 		}
 	}
+
+	if v.writer == nil {
+		v.writer = os.Stdout
+	}
+
 	return nil
 }
 
 func (v *CmdConfig) Run() error {
-	configFile := G.Env.GetConfigFilename()
-
 	if v.location {
+		configFile := G.Env.GetConfigFilename()
 		if v.reset || v.key != "" {
 			G.Log.Info(fmt.Sprintf("Using config file %s", configFile))
 		} else {
-			fmt.Printf("%s\n", configFile)
+			fmt.Fprintf(v.writer, "%s\n", configFile)
 		}
 	}
 
@@ -73,11 +80,11 @@ func (v *CmdConfig) Run() error {
 			cr := *G.Env.GetConfig()
 			// TODO: print dictionaries?
 			if s, is_set := cr.GetStringAtPath(v.key); is_set {
-				fmt.Printf("%s: %s\n", v.key, s)
+				fmt.Fprintf(v.writer, "%s: %s\n", v.key, s)
 			} else if b, is_set := cr.GetBoolAtPath(v.key); is_set {
-				fmt.Printf("%s: %t\n", v.key, b)
+				fmt.Fprintf(v.writer, "%s: %t\n", v.key, b)
 			} else if i, is_set := cr.GetIntAtPath(v.key); is_set {
-				fmt.Printf("%s: %d\n", v.key, i)
+				fmt.Fprintf(v.writer, "%s: %d\n", v.key, i)
 			} else {
 				G.Log.Info(fmt.Sprintf("%s does not map to a value", v.key))
 			}
