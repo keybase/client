@@ -48,6 +48,17 @@ func (k Keyrings) KeysById(id uint64) []openpgp.Key {
 	return out
 }
 
+func (k Keyrings) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
+	out := make([]openpgp.Key, 10)
+	for _, ring := range k.Public {
+		out = append(out, ring.Entities.KeysByIdUsage(id, usage)...)
+	}
+	for _, ring := range k.Secret {
+		out = append(out, ring.Entities.KeysByIdUsage(id, usage)...)
+	}
+	return out
+}
+
 func (k Keyrings) DecryptionKeys() []openpgp.Key {
 	out := make([]openpgp.Key, 10)
 	for _, ring := range k.Secret {
