@@ -8,29 +8,6 @@ import (
 	"strings"
 )
 
-func (k PgpKeyBundle) toList() openpgp.EntityList {
-	list := make(openpgp.EntityList, 1, 1)
-	list[0] = (*openpgp.Entity)(&k)
-	return list
-}
-
-func (k PgpKeyBundle) KeysById(id uint64) []openpgp.Key {
-	return k.toList().KeysById(id)
-}
-
-func (k PgpKeyBundle) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
-	return k.toList().KeysByIdUsage(id, usage)
-}
-
-func (k PgpKeyBundle) DecryptionKeys() []openpgp.Key {
-	return k.toList().DecryptionKeys()
-}
-
-func (k PgpKeyBundle) MatchesKey(key *openpgp.Key) bool {
-	return FastByteArrayEq(k.PrimaryKey.Fingerprint[:],
-		key.PublicKey.Fingerprint[:])
-}
-
 func (k PgpKeyBundle) ReadAndVerify(armored string) ([]byte, error) {
 	block, err := armor.Decode(strings.NewReader(armored))
 	if err != nil {
