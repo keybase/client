@@ -78,6 +78,8 @@ func (v *CmdConfig) Run() error {
 				// a bool, which could potentially cause strange errors for
 				// e.g. a user named "f"
 				cw.SetBoolAtPath(v.key, val)
+			} else if v.value == "null" {
+				cw.SetNullAtPath(v.key)
 			} else {
 				cw.SetStringAtPath(v.key, v.value)
 			}
@@ -95,6 +97,8 @@ func (v *CmdConfig) Run() error {
 				fmt.Fprintf(v.writer, "%s: %t\n", v.key, b)
 			} else if i, is_set := cr.GetIntAtPath(v.key); is_set {
 				fmt.Fprintf(v.writer, "%s: %d\n", v.key, i)
+			} else if is_set := cr.GetNullAtPath(v.key); is_set {
+				fmt.Fprintf(v.writer, "%s: null\n", v.key)
 			} else {
 				G.Log.Info(fmt.Sprintf("%s does not map to a value", v.key))
 			}

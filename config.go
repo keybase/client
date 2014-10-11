@@ -65,6 +65,15 @@ func (f JsonConfigFile) GetIntAtPath(p string) (ret int, is_set bool) {
 	return
 }
 
+func (f JsonConfigFile) GetNullAtPath(p string) (is_set bool) {
+	is_set = false
+	if f.jw != nil {
+		w := f.jw.AtPath(p)
+		is_set = w.IsNil() && w.Error() == nil
+	}
+	return
+}
+
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	if f.jw != nil {
@@ -120,6 +129,18 @@ func (f *JsonConfigFile) SetBoolAtPath(p string, v bool) (err error) {
 
 func (f *JsonConfigFile) SetIntAtPath(p string, v int) (err error) {
 	return f.setValueAtPath(p, getInt, v)
+}
+
+func (f *JsonConfigFile) SetNullAtPath(p string) (err error) {
+	existing := f.jw.AtPath(p)
+
+	if !existing.IsNil() || existing.Error() != nil {
+		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
+		if err == nil {
+			f.dirty = true
+		}
+	}
+	return
 }
 
 func (f *JsonConfigFile) SetUsername(s string) {

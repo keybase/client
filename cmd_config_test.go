@@ -92,7 +92,11 @@ func TestReadLongPath(t *testing.T) {
 }
 
 func TestReadNull(t *testing.T) {
-	// TODO: https://github.com/keybase/go-libkb/issues/17
+	config := &TestConfig{}
+	config.InitTest(t, "{ \"a\": null }")
+	defer config.CleanTest()
+
+	checkRead(t, "a", "a: null\n")
 }
 
 func setAndCheck(t *testing.T, config *TestConfig, key string, value string,
@@ -218,7 +222,17 @@ func TestSetStringOverwrite(t *testing.T) {
 }
 
 func TestSetNull(t *testing.T) {
-	// TODO: https://github.com/keybase/go-libkb/issues/17
+	config := &TestConfig{}
+	config.InitTest(t, "{}")
+	defer config.CleanTest()
+
+	checker := func(cf JsonConfigFile, key string) {
+		if is_set := cf.GetNullAtPath(key); !is_set {
+			t.Errorf("Couldn't read null after setting")
+		}
+	}
+
+	setAndCheck(t, config, "a", "null", checker)
 }
 
 func TestSetEmptyString(t *testing.T) {
@@ -226,7 +240,18 @@ func TestSetEmptyString(t *testing.T) {
 }
 
 func TestOverwriteNull(t *testing.T) {
-	// TODO: https://github.com/keybase/go-libkb/issues/20
+	config := &TestConfig{}
+	config.InitTest(t, "{ \"a\": null }")
+	defer config.CleanTest()
+
+	checker := func(cf JsonConfigFile, key string) {
+		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
+				ret, is_set)
+		}
+	}
+
+	setAndCheck(t, config, "a", "blah", checker)
 }
 
 func TestClear(t *testing.T) {

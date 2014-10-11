@@ -65,6 +65,7 @@ type ConfigReader interface {
 	GetStringAtPath(string) (string, bool)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
+	GetNullAtPath(string) bool
 	GetUserCacheSize() (int, bool)
 }
 
@@ -75,6 +76,7 @@ type ConfigWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	SetNullAtPath(string) error
 	DeleteAtPath(string)
 	Reset()
 	Write() error

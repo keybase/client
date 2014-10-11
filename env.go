@@ -43,6 +43,10 @@ func (n NullConfiguration) GetIntAtPath(string) (int, bool) {
 	return 0, false
 }
 
+func (n NullConfiguration) GetNullAtPath(string) bool {
+	return false
+}
+
 type TestParameters struct {
 	ConfigFilename string
 }
