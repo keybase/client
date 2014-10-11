@@ -7,10 +7,11 @@ import (
 )
 
 type KeyringFile struct {
-	filename string
-	Entities openpgp.EntityList
-	isPublic bool
-	index    map[string](*openpgp.Entity) // Map of 64-bit KeyIds to
+	filename         string
+	Entities         openpgp.EntityList
+	isPublic         bool
+	indexId          map[string](*openpgp.Entity) // Map of 64-bit uppercase-hex KeyIds
+	indexFingerprint map[PgpFingerprint](*openpgp.Entity)
 }
 
 type Keyrings struct {
@@ -21,7 +22,7 @@ type Keyrings struct {
 func (k Keyrings) MakeKeyrings(out *[]KeyringFile, filenames []string, isPublic bool) {
 	*out = make([]KeyringFile, len(filenames))
 	for i, filename := range filenames {
-		(*out)[i] = KeyringFile{filename, openpgp.EntityList{}, isPublic, nil}
+		(*out)[i] = KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil}
 	}
 }
 
@@ -100,15 +101,21 @@ func (k Keyrings) LoadKeyrings(v []KeyringFile) (err error) {
 }
 
 func (k *KeyringFile) Index() error {
+	k.indexId = make(map[string](*openpgp.Entity))
+	k.indexFingerprint = make(map[PgpFingerprint](*openpgp.Entity))
 	for _, entity := range k.Entities {
 		if entity.PrimaryKey != nil {
 			id := entity.PrimaryKey.KeyIdString()
-			k.index[id] = entity
+			k.indexId[id] = entity
+			fp := PgpFingerprint(entity.PrimaryKey.Fingerprint)
+			k.indexFingerprint[fp] = entity
 		}
 		for _, subkey := range entity.Subkeys {
 			if subkey.PublicKey != nil {
 				id := subkey.PublicKey.KeyIdString()
-				k.index[id] = entity
+				k.indexId[id] = entity
+				fp := PgpFingerprint(subkey.PublicKey.Fingerprint)
+				k.indexFingerprint[fp] = entity
 			}
 		}
 	}

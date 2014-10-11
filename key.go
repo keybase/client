@@ -13,26 +13,28 @@ const (
 	PGP_FINGERPRINT_LEN = 20
 )
 
-type PgpFingerprint []byte
+type PgpFingerprint [PGP_FINGERPRINT_LEN]byte
 
-func PgpFingerprintFromHex(s string) (PgpFingerprint, error) {
+func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
 	bv, err := hex.DecodeString(s)
 	if err == nil && len(bv) != PGP_FINGERPRINT_LEN {
 		err = fmt.Errorf("Bad fingerprint; wrong length: %d", len(bv))
 		bv = nil
 	}
-	var ret PgpFingerprint
+	var ret *PgpFingerprint
 	if bv != nil {
-		ret = PgpFingerprint(bv)
+		tmp := PgpFingerprint{}
+		copy(tmp[:], bv[0:PGP_FINGERPRINT_LEN])
+		ret = &tmp
 	}
 	return ret, err
 }
 
 func (p PgpFingerprint) ToString() string {
-	return hex.EncodeToString(p)
+	return hex.EncodeToString(p[:])
 }
 
-func GetPgpFingerprint(w *jsonw.Wrapper) (PgpFingerprint, error) {
+func GetPgpFingerprint(w *jsonw.Wrapper) (*PgpFingerprint, error) {
 	s, err := w.GetString()
 	if err != nil {
 		return nil, err
@@ -46,7 +48,7 @@ func GetPgpFingerprintVoid(w *jsonw.Wrapper, p *PgpFingerprint, e *error) {
 	if err != nil {
 		*e = err
 	} else {
-		*p = ret
+		*p = *ret
 	}
 }
 

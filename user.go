@@ -10,7 +10,7 @@ type UID string
 
 type CachedVerification struct {
 	flag      bool
-	publicKey PgpFingerprint
+	publicKey *PgpFingerprint
 	lastLink  LinkId
 	seqno     int
 }
