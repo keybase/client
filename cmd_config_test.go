@@ -39,7 +39,7 @@ func TestReset(t *testing.T) {
 			t.Errorf("After resetting the file, got contents: %s", s)
 		}
 	} else {
-		t.Fatal("Couldn't read file %s", config.configFileName)
+		t.Fatalf("Couldn't read file %s", config.configFileName)
 	}
 
 	// should be no output
@@ -107,6 +107,21 @@ func TestReadEmptyString(t *testing.T) {
 	checkRead(t, "a", "a: \n")
 }
 
+func TestReadMissingVar(t *testing.T) {
+	config := &TestConfig{}
+	config.InitTest(t, "")
+	defer config.CleanTest()
+
+	var called bool
+	c := CmdConfig{}
+	c.key = "a"
+	c.writer = TestOutput{"", t, &called}
+	c.Run()
+	if called {
+		t.Errorf("Expected nothing, but read %s", c.key)
+	}
+}
+
 func setAndCheck(t *testing.T, config *TestConfig, key string, value string,
 	checker func(JsonConfigFile, string)) {
 	var called bool
@@ -121,7 +136,7 @@ func setAndCheck(t *testing.T, config *TestConfig, key string, value string,
 	// check the file by reading it in
 	cf := NewJsonConfigFile(config.configFileName)
 	if err := cf.Load(false); err != nil {
-		t.Fatal("Couldn't load config file %s", config.configFileName)
+		t.Fatalf("Couldn't load config file %s", config.configFileName)
 	}
 	checker(*cf, key)
 
@@ -207,7 +222,7 @@ func TestSetStringInExisting(t *testing.T) {
 	// and make sure the existing key is still there
 	cf := NewJsonConfigFile(config.configFileName)
 	if err := cf.Load(false); err != nil {
-		t.Fatal("Couldn't load config file %s", config.configFileName)
+		t.Fatalf("Couldn't load config file %s", config.configFileName)
 	}
 	if ret, is_set := cf.GetStringAtPath("aaa.xxx"); !is_set || ret != "yyy" {
 		t.Errorf("Couldn't read old string after setting; ret=%s, is_set=%t",
@@ -324,7 +339,7 @@ func TestClear(t *testing.T) {
 	// make sure it's really done
 	cf := NewJsonConfigFile(config.configFileName)
 	if err := cf.Load(false); err != nil {
-		t.Fatal("Couldn't load config file %s", config.configFileName)
+		t.Fatalf("Couldn't load config file %s", config.configFileName)
 	}
 	if ret, is_set := cf.GetStringAtPath("c"); is_set {
 		t.Errorf("Read string after clearing; ret=%s, is_set=%t", ret, is_set)

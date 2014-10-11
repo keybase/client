@@ -16,11 +16,11 @@ func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	var f *os.File
 	var err error
 	if f, err = ioutil.TempFile("/tmp/", "testconfig"); err != nil {
-		t.Fatal("couldn't create temp file: %s", err)
+		t.Fatalf("couldn't create temp file: %s", err)
 	}
 	c.configFileName = f.Name()
 	if _, err = f.WriteString(initConfig); err != nil {
-		t.Fatal("couldn't write config file: %s", err)
+		t.Fatalf("couldn't write config file: %s", err)
 	}
 	f.Close()
 
@@ -28,7 +28,7 @@ func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	G.Env.Test.ConfigFilename = c.configFileName
 
 	if err = G.ConfigureConfig(); err != nil {
-		t.Fatal("couldn't configure the config: %s", err)
+		t.Fatalf("couldn't configure the config: %s", err)
 	}
 }
 
