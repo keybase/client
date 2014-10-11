@@ -99,12 +99,21 @@ func TestReadNull(t *testing.T) {
 	checkRead(t, "a", "a: null\n")
 }
 
+func TestReadEmptyString(t *testing.T) {
+	config := &TestConfig{}
+	config.InitTest(t, "{ \"a\": \"\" }")
+	defer config.CleanTest()
+
+	checkRead(t, "a", "a: \n")
+}
+
 func setAndCheck(t *testing.T, config *TestConfig, key string, value string,
 	checker func(JsonConfigFile, string)) {
 	var called bool
 	c := CmdConfig{}
 	c.key = key
 	c.value = value
+	c.valueSet = true
 	// should be no output
 	c.writer = TestOutput{"", t, &called}
 	c.Run()
@@ -236,7 +245,18 @@ func TestSetNull(t *testing.T) {
 }
 
 func TestSetEmptyString(t *testing.T) {
-	// TODO: https://github.com/keybase/go-libkb/issues/19
+	config := &TestConfig{}
+	config.InitTest(t, "{}")
+	defer config.CleanTest()
+
+	checker := func(cf JsonConfigFile, key string) {
+		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "" {
+			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
+				ret, is_set)
+		}
+	}
+
+	setAndCheck(t, config, "a", "", checker)
 }
 
 func TestOverwriteNull(t *testing.T) {

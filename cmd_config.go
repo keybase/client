@@ -15,6 +15,7 @@ type CmdConfig struct {
 	clear    bool
 	key      string
 	value    string
+	valueSet bool
 	writer   io.Writer
 }
 
@@ -32,10 +33,12 @@ func (v *CmdConfig) Initialize(ctx *cli.Context) error {
 		}
 		if nargs > 1 {
 			v.value = ctx.Args()[1]
+			// distinguish between no value and an empty string
+			v.valueSet = true
 		}
 	}
 
-	if v.clear && (v.key == "" || v.value != "") {
+	if v.clear && (v.key == "" || v.valueSet) {
 		return errors.New("--clear takes exactly one key and no value")
 	}
 
@@ -67,7 +70,7 @@ func (v *CmdConfig) Run() error {
 	// TODO: validate user input?
 
 	if v.key != "" {
-		if v.value != "" {
+		if v.valueSet {
 			cw := G.Env.GetConfigWriter()
 			// try to convert the value to an int, and then to a bool
 			// if those don't work, use a string
