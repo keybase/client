@@ -230,6 +230,36 @@ func TestSetStringOverwrite(t *testing.T) {
 	setAndCheck(t, config, "a", "blah", checker)
 }
 
+func TestSetStringLongOverwrite(t *testing.T) {
+	config := &TestConfig{}
+	config.InitTest(t, "{ \"a\": \"b\" }")
+	defer config.CleanTest()
+
+	checker := func(cf JsonConfigFile, key string) {
+		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
+				ret, is_set)
+		}
+	}
+
+	setAndCheck(t, config, "a.c.d", "blah", checker)
+}
+
+func TestSetStringShortOverwrite(t *testing.T) {
+	config := &TestConfig{}
+	config.InitTest(t, "{ \"aaa\": { \"xxx\": \"yyy\"} }")
+	defer config.CleanTest()
+
+	checker := func(cf JsonConfigFile, key string) {
+		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
+				ret, is_set)
+		}
+	}
+
+	setAndCheck(t, config, "aaa", "blah", checker)
+}
+
 func TestSetNull(t *testing.T) {
 	config := &TestConfig{}
 	config.InitTest(t, "{}")
