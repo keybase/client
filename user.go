@@ -1,9 +1,11 @@
 package libkb
 
 import (
+	"code.google.com/p/go.crypto/openpgp"
 	"fmt"
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/go-jsonw"
+	"strings"
 )
 
 type UID string
@@ -183,6 +185,27 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 	}
 
 	return nil, nil
+}
+
+func (u *User) ActiveKey() (pgp *PgpKeyBundle, err error) {
+	if u.activeKey != nil {
+		return u.activeKey, nil
+	}
+	k, err := u.publicKeys.AtKey("primary").AtKey("bundle").GetString()
+	if err != nil {
+		return nil, err
+	}
+	reader := strings.NewReader(k)
+	el, err := openpgp.ReadKeyRing(reader)
+	if err != nil {
+		return nil, err
+	}
+	if len(el) == 0 {
+		return nil, fmt.Errorf("No keys found in primary bundle")
+	}
+	u.activeKey = (*PgpKeyBundle)(el[0])
+
+	return u.activeKey, nil
 }
 
 func LoadUser(arg LoadUserArg) (u *User, err error) {

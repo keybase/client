@@ -16,22 +16,25 @@ const (
 type PgpFingerprint [PGP_FINGERPRINT_LEN]byte
 
 func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
-	bv, err := hex.DecodeString(s)
-	if err == nil && len(bv) != PGP_FINGERPRINT_LEN {
-		err = fmt.Errorf("Bad fingerprint; wrong length: %d", len(bv))
-		bv = nil
-	}
+	var fp PgpFingerprint
+	n, err := hex.Decode([]byte(fp[:]), []byte(s))
 	var ret *PgpFingerprint
-	if bv != nil {
-		tmp := PgpFingerprint{}
-		copy(tmp[:], bv[0:PGP_FINGERPRINT_LEN])
-		ret = &tmp
+	if err != nil {
+		// Noop
+	} else if n != PGP_FINGERPRINT_LEN {
+		err = fmt.Errorf("Bad fingerprint; wrong length: %d", n)
+	} else {
+		ret = &fp
 	}
 	return ret, err
 }
 
 func (p PgpFingerprint) ToString() string {
 	return hex.EncodeToString(p[:])
+}
+
+func (p1 PgpFingerprint) Eq(p2 PgpFingerprint) bool {
+	return SecureByteArrayEq(p1[:], p2[:])
 }
 
 func GetPgpFingerprint(w *jsonw.Wrapper) (*PgpFingerprint, error) {
@@ -56,6 +59,10 @@ func (k PgpKeyBundle) toList() openpgp.EntityList {
 	list := make(openpgp.EntityList, 1, 1)
 	list[0] = (*openpgp.Entity)(&k)
 	return list
+}
+
+func (k PgpKeyBundle) GetFingerprint() PgpFingerprint {
+	return PgpFingerprint(k.PrimaryKey.Fingerprint)
 }
 
 func (k PgpKeyBundle) KeysById(id uint64) []openpgp.Key {

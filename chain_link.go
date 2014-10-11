@@ -58,9 +58,7 @@ type ChainLinkUnpacked struct {
 	ctime, etime   int64
 	pgpFingerprint PgpFingerprint
 	sig            string
-	sigType        int
-	sigId          string
-	sigIdShort     string
+	sigId          SigId
 }
 
 type ChainLink struct {
@@ -83,8 +81,7 @@ func (c *ChainLink) Unpack() (err error) {
 	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
 	GetPgpFingerprintVoid(c.packed.AtKey("fingerprint"), &tmp.pgpFingerprint, &err)
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
-	c.packed.AtKey("sig_id").GetStringVoid(&tmp.sigId, &err)
-	c.packed.AtKey("sig_id_short").GetStringVoid(&tmp.sigIdShort, &err)
+	GetSigIdVoid(c.packed.AtKey("sig_id"), true, &tmp.sigId, &err)
 
 	if err != nil {
 		return err
@@ -119,7 +116,21 @@ func (c *ChainLink) VerifyHash() error {
 	return nil
 }
 
-func (c *ChainLink) VerifySig() error {
+func (c *ChainLink) VerifySig(k PgpKeyBundle) error {
+	if c.sigVerified {
+		return nil
+	}
+
+	if !k.GetFingerprint().Eq(c.unpacked.pgpFingerprint) {
+		return fmt.Errorf("Key fingerprint mismatch")
+	}
+	if sig_id, err := k.Verify(c.unpacked.sig,
+		[]byte(c.unpacked.payloadJsonStr)); err != nil {
+		return err
+	} else {
+		c.unpacked.sigId = *sig_id
+	}
+	c.sigVerified = true
 	return nil
 }
 
