@@ -30,8 +30,9 @@ type User struct {
 	sigChain *SigChain
 	idTable  *IdentityTable
 
-	verified  CachedVerification
-	activeKey *PgpKeyBundle
+	verified             CachedVerification
+	activeKey            *PgpKeyBundle
+	activePgpFingerprint *PgpFingerprint
 }
 
 //==================================================================
@@ -144,7 +145,9 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 }
 
 func (u *User) LoadSigChainFromStorage() error {
-	if u.sigs != nil {
+	if f, err := u.GetActivePgpFingerprint(); err != nil {
+		return err
+	} else if u.sigs != nil && f != nil {
 		last := u.sigs.AtKey("last")
 		seqno, e1 := last.AtKey("seqno").GetInt()
 		lh, e2 := last.AtKey("payload_host").GetString()
@@ -153,7 +156,7 @@ func (u *User) LoadSigChainFromStorage() error {
 				return fmt.Errorf("Bad sigchain tail for user %s: %s",
 					u.name, lh)
 			} else {
-				u.sigChain = NewSigChain(u.id, seqno, lid)
+				u.sigChain = NewSigChain(u.id, seqno, lid, f)
 			}
 		}
 	}
@@ -187,14 +190,38 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 	return nil, nil
 }
 
-func (u *User) ActiveKey() (pgp *PgpKeyBundle, err error) {
-	if u.activeKey != nil {
-		return u.activeKey, nil
+func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
+	if u.activePgpFingerprint != nil {
+		return u.activePgpFingerprint, nil
 	}
-	k, err := u.publicKeys.AtKey("primary").AtKey("bundle").GetString()
+
+	w := u.publicKeys.AtKey("primary").AtKey("fingerprint")
+	if w.IsNil() {
+		return nil, nil
+	}
+	fp, err := GetPgpFingerprint(w)
 	if err != nil {
 		return nil, err
 	}
+	u.activePgpFingerprint = fp
+	return fp, err
+}
+
+func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
+	if u.activeKey != nil {
+		return u.activeKey, nil
+	}
+
+	w := u.publicKeys.AtKey("primary").AtKey("bundle")
+	if w.IsNil() {
+		return nil, nil
+	}
+
+	k, err := w.GetString()
+	if err != nil {
+		return nil, err
+	}
+
 	reader := strings.NewReader(k)
 	el, err := openpgp.ReadKeyRing(reader)
 	if err != nil {

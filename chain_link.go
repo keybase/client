@@ -146,3 +146,7 @@ func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
 	}
 	return ret, err
 }
+
+func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
+	return c.unpacked.pgpFingerprint
+}
