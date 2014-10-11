@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"os"
 	"path"
@@ -48,17 +49,7 @@ func MakeParentDirs(filename string) error {
 }
 
 func FastByteArrayEq(a, b []byte) bool {
-	la := len(a)
-	if la != len(b) {
-		return false
-	} else {
-		for i := 0; i < la; i++ {
-			if a[i] != b[i] {
-				return false
-			}
-		}
-	}
-	return true
+	return bytes.Equal(a, b)
 }
 
 func SecureByteArrayEq(a, b []byte) bool {

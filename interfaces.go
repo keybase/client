@@ -92,9 +92,6 @@ type HttpRequest interface {
 	SetEnvironment(env Env)
 }
 
-type Keychain interface {
-}
-
 type ProofCheckers interface {
 }
 

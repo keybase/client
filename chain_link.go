@@ -119,6 +119,10 @@ func (c *ChainLink) VerifyHash() error {
 	return nil
 }
 
+func (c *ChainLink) VerifySig() error {
+	return nil
+}
+
 func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.ToString()})
 	var ret *ChainLink
