@@ -22,7 +22,7 @@ func TestLocation(t *testing.T) {
 
 func TestReset(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": true }")
+	config.InitTest(t, `{ "a": true }`)
 	defer config.CleanTest()
 
 	var called bool
@@ -61,7 +61,7 @@ func checkRead(t *testing.T, key string, expected string) {
 
 func TestReadBool(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": true }")
+	config.InitTest(t, `{ "a": true }`)
 	defer config.CleanTest()
 
 	checkRead(t, "a", "a: true\n")
@@ -69,7 +69,7 @@ func TestReadBool(t *testing.T) {
 
 func TestReadInt(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": 1 }")
+	config.InitTest(t, `{ "a": 1 }`)
 	defer config.CleanTest()
 
 	checkRead(t, "a", "a: 1\n")
@@ -77,7 +77,7 @@ func TestReadInt(t *testing.T) {
 
 func TestReadString(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": \"blah\" }")
+	config.InitTest(t, `{ "a": "blah" }`)
 	defer config.CleanTest()
 
 	checkRead(t, "a", "a: blah\n")
@@ -85,7 +85,7 @@ func TestReadString(t *testing.T) {
 
 func TestReadLongPath(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"aaa\": { \"bbb\": { \"ccc\": \"blah\" } } }")
+	config.InitTest(t, `{ "aaa": { "bbb": { "ccc": "blah" } } }`)
 	defer config.CleanTest()
 
 	checkRead(t, "aaa.bbb.ccc", "aaa.bbb.ccc: blah\n")
@@ -93,7 +93,7 @@ func TestReadLongPath(t *testing.T) {
 
 func TestReadNull(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": null }")
+	config.InitTest(t, `{ "a": null }`)
 	defer config.CleanTest()
 
 	checkRead(t, "a", "a: null\n")
@@ -101,7 +101,7 @@ func TestReadNull(t *testing.T) {
 
 func TestReadEmptyString(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": \"\" }")
+	config.InitTest(t, `{ "a": "" }`)
 	defer config.CleanTest()
 
 	checkRead(t, "a", "a: \n")
@@ -193,7 +193,7 @@ func TestSetStringAtLongPath(t *testing.T) {
 
 func TestSetStringInExisting(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"aaa\": { \"xxx\": \"yyy\"} }")
+	config.InitTest(t, `{ "aaa": { "xxx": "yyy"} }`)
 	defer config.CleanTest()
 
 	checker := func(cf JsonConfigFile, key string) {
@@ -217,7 +217,7 @@ func TestSetStringInExisting(t *testing.T) {
 
 func TestSetStringOverwrite(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": \"b\" }")
+	config.InitTest(t, `{ "a": "b" }`)
 	defer config.CleanTest()
 
 	checker := func(cf JsonConfigFile, key string) {
@@ -232,7 +232,7 @@ func TestSetStringOverwrite(t *testing.T) {
 
 func TestSetStringLongOverwrite(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": \"b\" }")
+	config.InitTest(t, `{ "a": "b" }`)
 	defer config.CleanTest()
 
 	checker := func(cf JsonConfigFile, key string) {
@@ -247,7 +247,7 @@ func TestSetStringLongOverwrite(t *testing.T) {
 
 func TestSetStringShortOverwrite(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"aaa\": { \"xxx\": \"yyy\"} }")
+	config.InitTest(t, `{ "aaa": { "xxx": "yyy"} }`)
 	defer config.CleanTest()
 
 	checker := func(cf JsonConfigFile, key string) {
@@ -291,7 +291,7 @@ func TestSetEmptyString(t *testing.T) {
 
 func TestOverwriteNull(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": null }")
+	config.InitTest(t, `{ "a": null }`)
 	defer config.CleanTest()
 
 	checker := func(cf JsonConfigFile, key string) {
@@ -306,7 +306,7 @@ func TestOverwriteNull(t *testing.T) {
 
 func TestClear(t *testing.T) {
 	config := &TestConfig{}
-	config.InitTest(t, "{ \"a\": \"b\", \"c\": \"d\" }")
+	config.InitTest(t, `{ "a": "b", "c": "d" }`)
 	defer config.CleanTest()
 
 	// clear it
