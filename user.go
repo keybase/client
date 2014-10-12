@@ -30,6 +30,8 @@ type User struct {
 	sigChain *SigChain
 	idTable  *IdentityTable
 
+	loggedIn bool // if we were logged in when we loaded it
+
 	verified             CachedVerification
 	activeKey            *PgpKeyBundle
 	activePgpFingerprint *PgpFingerprint
@@ -41,10 +43,11 @@ type User struct {
 type LoadUserArg struct {
 	name             string
 	requirePublicKey bool
-	cacheResult      bool
+	noCacheResult    bool
 	self             bool
 	loadSecrets      bool
 	forceReload      bool
+	skipVerify       bool
 }
 
 type ResolveResult struct {
@@ -55,19 +58,25 @@ type ResolveResult struct {
 type UserCache struct {
 	lru          *lru.Cache
 	resolveCache map[string]ResolveResult
+	uidMap       map[string]UID
 }
 
 func NewUserCache(c int) (ret *UserCache, err error) {
 	G.Log.Debug("Making new UserCache; size=%d", c)
 	tmp, err := lru.New(c)
 	if err == nil {
-		ret = &UserCache{tmp, make(map[string]ResolveResult)}
+		ret = &UserCache{
+			tmp,
+			make(map[string]ResolveResult),
+			make(map[string]UID),
+		}
 	}
 	return ret, err
 }
 
 func (c *UserCache) Put(u *User) {
 	c.lru.Add(u.id, u)
+	c.uidMap[u.GetName()] = u.GetUID()
 }
 
 func (c *UserCache) Get(id UID) *User {
@@ -81,6 +90,14 @@ func (c *UserCache) Get(id UID) *User {
 		}
 	}
 	return ret
+}
+
+func (c *UserCache) GetByName(s string) *User {
+	if uid, ok := c.uidMap[s]; !ok {
+		return nil
+	} else {
+		return c.Get(uid)
+	}
 }
 
 func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
@@ -119,8 +136,27 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		privateKeys: o.AtKey("private_keys"),
 		id:          UID(id),
 		name:        name,
+		loggedIn:    false,
 		verified:    CachedVerification{false, nil, nil, 0},
 	}, nil
+}
+
+func (u User) GetName() string { return u.name }
+func (u User) GetUID() UID     { return u.id }
+
+func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
+	u, e := NewUser(o)
+	if e != nil {
+		u.loggedIn = G.LoginState.LoggedIn
+	}
+	return u, e
+}
+
+func (u User) GetSeqno() int {
+	ret := -1
+	var err error
+	u.sigs.AtKey("last").AtKey("seqno").GetIntVoid(&ret, &err)
+	return ret
 }
 
 func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
@@ -144,27 +180,42 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	return u, err
 }
 
-func (u *User) LoadSigChainFromStorage() error {
+func (u *User) LoadSigChainFromServer(base *SigChain) error {
+	if err := u.MakeSigChain(base); err != nil {
+		return nil
+	}
+	return u.sigChain.LoadFromServer()
+}
+
+func (u *User) MakeSigChain(base *SigChain) error {
 	if f, err := u.GetActivePgpFingerprint(); err != nil {
 		return err
 	} else if u.sigs != nil && f != nil {
 		last := u.sigs.AtKey("last")
-		seqno, e1 := last.AtKey("seqno").GetInt()
-		lh, e2 := last.AtKey("payload_host").GetString()
-		if e1 == nil && e2 == nil {
-			if lid, e3 := LinkIdFromHex(lh); e3 != nil {
-				return fmt.Errorf("Bad sigchain tail for user %s: %s",
-					u.name, lh)
-			} else {
-				u.sigChain = NewSigChain(u.id, seqno, lid, f)
-			}
+		var seqno int
+		var lid LinkId
+		last.AtKey("seqno").GetIntVoid(&seqno, &err)
+		GetLinkIdVoid(last.AtKey("payload_hash"), &lid, &err)
+		if err != nil {
+			return fmt.Errorf("Badly formatted sigchain tail for user %s: %s",
+				u.name, err.Error())
+		} else {
+			u.sigChain = NewSigChain(u.id, seqno, lid, f, base)
 		}
-	}
-	if u.sigChain == nil {
+	} else if base != nil {
+		return fmt.Errorf("Signature chain corruption for %s; unexpected base",
+			u.name)
+	} else {
 		G.Log.Debug("Empty sigchain for %s", u.name)
 		u.sigChain = NewEmptySigChain(u.id)
 	}
+	return nil
+}
 
+func (u *User) LoadSigChainFromStorage() error {
+	if err := u.MakeSigChain(nil); err != nil {
+		return err
+	}
 	return u.sigChain.LoadFromStorage()
 }
 
@@ -235,7 +286,68 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 	return u.activeKey, nil
 }
 
-func LoadUser(arg LoadUserArg) (u *User, err error) {
+func LoadUserFromServer(arg LoadUserArg) (u *User, err error) {
+	G.Log.Debug("+ Load User from server: %s", arg.name)
+
+	res, err := G.API.Get(ApiArg{
+		Endpoint:    "user/lookup",
+		NeedSession: (arg.loadSecrets && arg.self),
+		Args: HttpArgs{
+			"username": S{arg.name},
+		},
+	})
+
+	if err != nil {
+		return
+	}
+
+	u, err = NewUserFromServer(res.Body.AtKey("them"))
+
+	G.Log.Debug("- Load user from server: %s -> %b", arg.name, (err == nil))
+
+	return
+}
+
+func (remote *User) Update(local *User) (ret *User, err error) {
+	a := -1
+	var base *SigChain
+	if local != nil {
+		a = local.GetSeqno()
+		base = local.sigChain
+	}
+	b := remote.GetSeqno()
+	if b < 0 || a > b {
+		err = fmt.Errorf("Server version-rollback sustpected: Local %d > %d",
+			a, b)
+	} else if b == a {
+		ret = local
+	} else {
+		if err = remote.LoadSigChainFromServer(base); err == nil {
+			ret = remote
+		}
+	}
+	return
+}
+
+func (u *User) VerifySigChain() error {
+	var err error
+	G.Log.Debug("+ VerifySigChain for %s", u.name)
+	key, err := u.GetActiveKey()
+	if err != nil {
+		return err
+	}
+	ch := u.sigChain
+	if ch == nil {
+		return fmt.Errorf("Internal error: sigchain shouldn't be null")
+	}
+
+	err = ch.VerifyWithKey(key)
+
+	G.Log.Debug("- VerifySigChain for %s -> %b", u.name, (err == nil))
+	return err
+}
+
+func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
 
@@ -244,9 +356,35 @@ func LoadUser(arg LoadUserArg) (u *User, err error) {
 		return
 	}
 
-	u, err = LoadUserFromLocalStorage(name)
+	if !arg.forceReload {
+		if u := G.UserCache.GetByName(name); u != nil {
+			return u, nil
+		}
+	}
+
+	local, err := LoadUserFromLocalStorage(name)
 	if err != nil {
 		return
+	}
+
+	remote, err := LoadUserFromServer(arg)
+	if err != nil {
+		return
+	}
+
+	ret, err = remote.Update(local)
+	if err != nil {
+		return
+	}
+
+	if !arg.skipVerify {
+		if err = ret.VerifySigChain(); err != nil {
+			return
+		}
+	}
+
+	if !arg.noCacheResult && ret != nil {
+		G.UserCache.Put(ret)
 	}
 
 	return

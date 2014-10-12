@@ -134,12 +134,29 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) error {
 	return nil
 }
 
+func LoadLinkFromServer(jw *jsonw.Wrapper) (ret *ChainLink, err error) {
+	var id LinkId
+	GetLinkIdVoid(jw.AtKey("payload_hash"), &id, &err)
+	if err != nil {
+		return
+	}
+	ret = NewChainLink(id, jw)
+	if err = ret.Unpack(); err != nil {
+		ret = nil
+	}
+	return
+}
+
+func NewChainLink(id LinkId, jw *jsonw.Wrapper) *ChainLink {
+	return &ChainLink{id, false, false, jw, nil, nil}
+}
+
 func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.ToString()})
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
-		ret = &ChainLink{id, false, false, jw, nil, nil}
+		ret = NewChainLink(id, jw)
 		if err = ret.Unpack(); err != nil {
 			ret = nil
 		}

@@ -10,15 +10,19 @@ type SigChain struct {
 
 	loaded   bool
 	verified bool
+
+	// If we're loading a remote User but have some parts pre-loaded,
+	// they will be available here as `base`
+	base *SigChain
 }
 
 func NewEmptySigChain(uid UID) *SigChain {
-	return &SigChain{uid, 0, nil, nil, nil, true, true}
+	return &SigChain{uid, 0, nil, nil, nil, true, true, nil}
 }
 
 func NewSigChain(uid UID, seqno int, lastLink LinkId,
-	f *PgpFingerprint) *SigChain {
-	return &SigChain{uid, seqno, lastLink, nil, f, false, false}
+	f *PgpFingerprint, base *SigChain) *SigChain {
+	return &SigChain{uid, seqno, lastLink, nil, f, false, false, base}
 }
 
 func reverse(list []*ChainLink) []*ChainLink {
@@ -28,6 +32,50 @@ func reverse(list []*ChainLink) []*ChainLink {
 		ret[l-i-1] = list[i]
 	}
 	return ret
+}
+
+func (sc *SigChain) LoadFromServer() error {
+	low := 0
+	if sc.base != nil {
+		low = sc.base.lastSeqno + 1
+	}
+
+	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d",
+		string(sc.uid), low)
+
+	res, err := G.API.Get(ApiArg{
+		Endpoint:    "sig/get",
+		NeedSession: false,
+		Args: HttpArgs{
+			"uid": S{string(sc.uid)},
+			"low": I{low},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	v := res.Body.AtKey("sigs")
+	lim, err := v.Len()
+	if err != nil {
+		return err
+	}
+
+	G.Log.Debug("| Got back %d new entries", lim)
+
+	links := make([]*ChainLink, lim, lim)
+	for i := 0; i < lim; i++ {
+		if link, err := LoadLinkFromServer(v.AtIndex(i)); err != nil {
+			return err
+		} else {
+			links[i] = link
+		}
+	}
+	sc.chainLinks = links
+
+	G.Log.Debug("- Loaded SigChain")
+	return nil
 }
 
 func (sc *SigChain) LoadFromStorage() error {
@@ -71,5 +119,9 @@ func (sc *SigChain) LoadFromStorage() error {
 
 	G.Log.Debug("- %s: loaded signature chain", sc.uid)
 
+	return nil
+}
+
+func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) error {
 	return nil
 }
