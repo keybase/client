@@ -448,7 +448,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			return
 		}
 
-		// Proactive cache fetches from remote server to local
+		// Proactively cache fetches from remote server to local storage
 		if e2 := ret.Store(); e2 != nil {
 			G.Log.Warning("Problem storing user %s: %s",
 				name, e2.Error())
