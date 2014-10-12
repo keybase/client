@@ -1,5 +1,9 @@
 package libkb
 
+import (
+	"fmt"
+)
+
 type SigChain struct {
 	uid UID
 
@@ -8,8 +12,10 @@ type SigChain struct {
 	chainLinks     []*ChainLink
 	pgpFingerprint *PgpFingerprint
 
-	loaded   bool
-	verified bool
+	loaded        bool
+	chainVerified bool
+	sigVerified   bool
+	fromServer    bool
 
 	// If we're loading a remote User but have some parts pre-loaded,
 	// they will be available here as `base`
@@ -17,12 +23,12 @@ type SigChain struct {
 }
 
 func NewEmptySigChain(uid UID) *SigChain {
-	return &SigChain{uid, 0, nil, nil, nil, true, true, nil}
+	return &SigChain{uid, 0, nil, nil, nil, true, true, true, false, nil}
 }
 
 func NewSigChain(uid UID, seqno int, lastLink LinkId,
 	f *PgpFingerprint, base *SigChain) *SigChain {
-	return &SigChain{uid, seqno, lastLink, nil, f, false, false, base}
+	return &SigChain{uid, seqno, lastLink, nil, f, false, false, false, false, base}
 }
 
 func reverse(list []*ChainLink) []*ChainLink {
@@ -73,6 +79,7 @@ func (sc *SigChain) LoadFromServer() error {
 		}
 	}
 	sc.chainLinks = links
+	sc.fromServer = true
 
 	G.Log.Debug("- Loaded SigChain")
 	return nil
@@ -106,7 +113,7 @@ func (sc *SigChain) LoadFromStorage() error {
 			links[i] = link
 			i--
 			found = true
-			curr = link.Prev()
+			curr = link.GetPrev()
 		}
 	}
 	if found {
@@ -118,10 +125,144 @@ func (sc *SigChain) LoadFromStorage() error {
 	sc.chainLinks = links
 
 	G.Log.Debug("- %s: loaded signature chain", sc.uid)
+	sc.loaded = true
 
 	return nil
 }
 
-func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) error {
+func (sc *SigChain) MarkVerifiedFromCache(cv *CachedVerification) {
+	if cv.flag {
+		lim := len(sc.chainLinks) - 1
+		for i := lim - 1; i >= 0; i-- {
+			link := sc.chainLinks[i]
+			q := link.GetSeqno()
+			if q <= cv.seqno {
+				if q == cv.seqno {
+					link.MarkVerifiedFromCache(cv)
+				}
+				break
+			}
+		}
+	}
+}
+
+func (sc *SigChain) VerifyChainLinks() error {
+	if sc.chainVerified {
+		return nil
+	}
+
+	var prev *LinkId
+
+	for _, link := range sc.chainLinks {
+		if err := link.VerifyHash(); err != nil {
+			return err
+		}
+		if prev != nil && !prev.Eq(link.GetPrev()) {
+			return fmt.Errorf("Chain mismatch at seqno=%d", link.GetSeqno())
+		}
+		id := link.id
+		prev = &id
+	}
+
+	sc.chainVerified = true
+	return nil
+}
+
+func (sc SigChain) GetPrevId() LinkId {
+	if len(sc.chainLinks) == 0 {
+		return nil
+	} else {
+		return sc.chainLinks[0].GetPrev()
+	}
+}
+
+func (sc SigChain) GetLastId() LinkId {
+	l := len(sc.chainLinks)
+	if l == 0 {
+		return nil
+	} else {
+		return sc.chainLinks[l-1].id
+	}
+}
+
+func (sc SigChain) GetLastLinkRecursive() *ChainLink {
+	l := len(sc.chainLinks)
+	if l > 0 {
+		return sc.chainLinks[l-1]
+	} else if sc.base != nil {
+		return sc.base.GetLastLinkRecursive()
+	} else {
+		return nil
+	}
+}
+
+// Flatten the potentially recursive structure into single
+// chain.  It's ok to be recursive here, since likely the depth
+// is only 1.  But we can revisit this.
+func (sc *SigChain) Flatten() {
+	if sc.base != nil {
+		sc.base.Flatten()
+		sc.fromServer = sc.base.fromServer
+		sc.chainLinks = append(sc.base.chainLinks, sc.chainLinks...)
+		sc.base = nil
+	}
+}
+
+func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
+	cv *CachedVerification) error {
+
+	G.Log.Debug("+ VerifyWithKey for user %s", sc.uid)
+
+	if sc.sigVerified {
+		return nil
+	}
+
+	var err error
+
+	if err = sc.VerifyChain(); err != nil {
+		return err
+	}
+
+	sc.MarkVerifiedFromCache(cv)
+	if sc.base != nil {
+		sc.base.MarkVerifiedFromCache(cv)
+	}
+
+	if last := sc.GetLastLinkRecursive(); last != nil {
+		err = last.VerifySig(*key)
+	}
+
+	if err != nil {
+		sc.sigVerified = true
+	}
+
+	G.Log.Debug("- VerifyWithKey for user %s -> %b", sc.uid, (err == nil))
+
+	return nil
+}
+
+func (sc *SigChain) VerifyChain() error {
+
+	if sc.chainVerified {
+		return nil
+	}
+
+	var err error
+
+	if err = sc.VerifyChainLinks(); err != nil {
+		return err
+	}
+
+	if sc.base != nil {
+		if err = sc.base.VerifyChainLinks(); err != nil {
+			return err
+		}
+		if !sc.GetPrevId().Eq(sc.base.GetLastId()) {
+			return fmt.Errorf("Stored chain doesn't match fetched chain for %s",
+				sc.uid)
+		}
+	}
+
+	sc.chainVerified = true
 	return nil
 }

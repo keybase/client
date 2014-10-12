@@ -341,7 +341,7 @@ func (u *User) VerifySigChain() error {
 		return fmt.Errorf("Internal error: sigchain shouldn't be null")
 	}
 
-	err = ch.VerifyWithKey(key)
+	err = ch.VerifyWithKey(key, &u.verified)
 
 	G.Log.Debug("- VerifySigChain for %s -> %b", u.name, (err == nil))
 	return err

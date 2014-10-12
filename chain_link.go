@@ -51,6 +51,16 @@ func (p LinkId) ToString() string {
 	return hex.EncodeToString(p)
 }
 
+func (i1 LinkId) Eq(i2 LinkId) bool {
+	if i1 == nil && i2 == nil {
+		return true
+	} else if i1 == nil || i2 == nil {
+		return false
+	} else {
+		return FastByteArrayEq(i1[:], i2[:])
+	}
+}
+
 type ChainLinkUnpacked struct {
 	prev           LinkId
 	seqno          int
@@ -71,8 +81,8 @@ type ChainLink struct {
 	unpacked    *ChainLinkUnpacked
 }
 
-func (c ChainLink) Prev() LinkId {
-	return nil
+func (c ChainLink) GetPrev() LinkId {
+	return c.unpacked.prev
 }
 
 func (c *ChainLink) Unpack() (err error) {
@@ -114,6 +124,14 @@ func (c *ChainLink) VerifyHash() error {
 	}
 	c.hashVerified = true
 	return nil
+}
+
+func (c ChainLink) GetSeqno() int {
+	if c.unpacked != nil {
+		return c.unpacked.seqno
+	} else {
+		return -1
+	}
 }
 
 func (c *ChainLink) VerifySig(k PgpKeyBundle) error {
@@ -166,4 +184,12 @@ func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
 
 func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
 	return c.unpacked.pgpFingerprint
+}
+
+func (c *ChainLink) MarkVerifiedFromCache(cv *CachedVerification) {
+	if c.unpacked.pgpFingerprint.Eq(*cv.publicKey) &&
+		c.id.Eq(cv.lastLink) && c.unpacked.seqno == cv.seqno {
+		c.sigVerified = true
+		G.Log.Debug("Chain link %s marked verified from cache", c.id.ToString())
+	}
 }

@@ -34,7 +34,7 @@ func (p PgpFingerprint) ToString() string {
 }
 
 func (p1 PgpFingerprint) Eq(p2 PgpFingerprint) bool {
-	return SecureByteArrayEq(p1[:], p2[:])
+	return FastByteArrayEq(p1[:], p2[:])
 }
 
 func GetPgpFingerprint(w *jsonw.Wrapper) (*PgpFingerprint, error) {
