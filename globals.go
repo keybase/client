@@ -102,7 +102,7 @@ func (g *Global) ConfigureCaches() (err error) {
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
-	if err != nil {
+	if err == nil {
 		g.LocalDb = NewJsonLocalDb(NewLevelDb())
 		err = g.LocalDb.Open()
 	}

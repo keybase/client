@@ -417,10 +417,14 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
 
+	G.Log.Debug("+ Load user from server: %s", arg.name)
+
 	name, err = ResolveUsername(arg.name)
 	if err != nil {
 		return
 	}
+
+	G.Log.Debug("| resolved to %s", name)
 
 	if !arg.forceReload {
 		if u := G.UserCache.GetByName(name); u != nil {

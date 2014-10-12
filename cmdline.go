@@ -204,6 +204,15 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 		},
 		{
+
+			Name:        "getuser",
+			Usage:       "keybase getuser <username>",
+			Description: "Get a user from the server and cache locally",
+			Action: func(c *cli.Context) {
+				cmd = p.InitSubcommand(c, &CmdGetUser{}, "getuser")
+			},
+		},
+		{
 			Name: "login",
 			Usage: "Establish a session with the keybase server " +
 				"(if necessary)",
