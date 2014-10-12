@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"io"
 	"os"
 )
 
@@ -44,8 +45,8 @@ func (f *JsonFile) Load(warnOnNotFound bool) error {
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	obj := make(map[string]interface{})
-	err = decoder.Decode(&obj)
-	if err != nil {
+	// Treat empty files like an empty dictionary
+	if err = decoder.Decode(&obj); err != nil && err != io.EOF {
 		G.Log.Error(fmt.Sprintf("Error decoding %s file %s",
 			f.which, f.filename))
 		return err
