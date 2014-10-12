@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/go-jsonw"
 )
 
 type SigChain struct {
@@ -210,6 +211,17 @@ func (sc *SigChain) Flatten() {
 		sc.chainLinks = append(sc.base.chainLinks, sc.chainLinks...)
 		sc.base = nil
 	}
+}
+
+func (sc *SigChain) PackVerification() (jw *jsonw.Wrapper) {
+	if sc.sigVerified {
+		if ll := sc.GetLastLinkRecursive(); ll != nil {
+			jw = jsonw.NewDictionary()
+			ll.PackVerification(jw)
+			jw.SetKey("flag", jsonw.NewBool(true))
+		}
+	}
+	return jw
 }
 
 func (sc *SigChain) Store() error {

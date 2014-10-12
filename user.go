@@ -394,7 +394,28 @@ func (u *User) Store() error {
 }
 
 func (u *User) StoreTopLevel() error {
-	return nil
+
+	jw := jsonw.NewDictionary()
+	jw.SetKey("basics", u.basics)
+	jw.SetKey("public_keys", u.publicKeys)
+	jw.SetKey("sigs", u.sigs)
+	jw.SetKey("privateKeys", u.privateKeys)
+	if v := u.sigChain.PackVerification(); v != nil {
+		jw.SetKey("verified", v)
+	}
+
+	err := G.LocalDb.Put(
+		DbKey{Typ: DB_USER, Key: string(u.id)},
+		[]DbKey{
+			{
+				Typ: DB_LOOKUP_USERNAME,
+				Key: u.name,
+			},
+		},
+		jw,
+	)
+
+	return err
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {

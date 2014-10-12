@@ -86,6 +86,26 @@ func (c ChainLink) GetPrev() LinkId {
 	return c.unpacked.prev
 }
 
+func (c *ChainLink) Pack() error {
+	p := jsonw.NewDictionary()
+
+	// Store the original JSON string so its order is preserved
+	p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJsonStr))
+	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
+	p.SetKey("sig_id", jsonw.NewString(c.unpacked.sigId.ToString(true)))
+	p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
+
+	c.packed = p
+
+	return nil
+}
+
+func (c ChainLink) PackVerification(jw *jsonw.Wrapper) {
+	jw.SetKey("publicKey", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
+	jw.SetKey("seqno", jsonw.NewInt(c.unpacked.seqno))
+	jw.SetKey("last_link", jsonw.NewString(c.id.ToString()))
+}
+
 func (c *ChainLink) Unpack() (err error) {
 	tmp := ChainLinkUnpacked{}
 
@@ -196,6 +216,17 @@ func (l *ChainLink) Store() error {
 	}
 
 	if err := l.VerifyHash(); err != nil {
+		return err
+	}
+
+	if err := l.Pack(); err != nil {
+		return err
+	}
+
+	key := DbKey{Typ: DB_LINK, Key: l.id.ToString()}
+
+	// Don't write with any aliases
+	if err := G.LocalDb.Put(key, []DbKey{}, l.packed); err != nil {
 		return err
 	}
 
