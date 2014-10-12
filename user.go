@@ -406,12 +406,7 @@ func (u *User) StoreTopLevel() error {
 
 	err := G.LocalDb.Put(
 		DbKey{Typ: DB_USER, Key: string(u.id)},
-		[]DbKey{
-			{
-				Typ: DB_LOOKUP_USERNAME,
-				Key: u.name,
-			},
-		},
+		[]DbKey{{Typ: DB_LOOKUP_USERNAME, Key: u.name}},
 		jw,
 	)
 
