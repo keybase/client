@@ -35,6 +35,8 @@ type User struct {
 	verified             CachedVerification
 	activeKey            *PgpKeyBundle
 	activePgpFingerprint *PgpFingerprint
+
+	dirty bool
 }
 
 //==================================================================
@@ -138,6 +140,7 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		name:        name,
 		loggedIn:    false,
 		verified:    CachedVerification{false, nil, nil, 0},
+		dirty:       false,
 	}, nil
 }
 
@@ -148,6 +151,7 @@ func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
 	if e != nil {
 		u.loggedIn = G.LoginState.LoggedIn
+		u.dirty = true
 	}
 	return u, e
 }
@@ -341,10 +345,17 @@ func (u *User) VerifySigChain() error {
 		return fmt.Errorf("Internal error: sigchain shouldn't be null")
 	}
 
-	err = ch.VerifyWithKey(key, &u.verified)
+	cached, err := ch.VerifyWithKey(key, &u.verified)
+	if !cached {
+		u.dirty = true
+	}
 
 	G.Log.Debug("- VerifySigChain for %s -> %b", u.name, (err == nil))
 	return err
+}
+
+func (u *User) Store() error {
+	return nil
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {

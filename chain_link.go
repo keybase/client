@@ -134,22 +134,28 @@ func (c ChainLink) GetSeqno() int {
 	}
 }
 
-func (c *ChainLink) VerifySig(k PgpKeyBundle) error {
+func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
+	cached = false
+
 	if c.sigVerified {
-		return nil
+		cached = true
+		return
 	}
 
 	if !k.GetFingerprint().Eq(c.unpacked.pgpFingerprint) {
-		return fmt.Errorf("Key fingerprint mismatch")
+		err = fmt.Errorf("Key fingerprint mismatch")
+		return
 	}
-	if sig_id, err := k.Verify(c.unpacked.sig,
-		[]byte(c.unpacked.payloadJsonStr)); err != nil {
-		return err
+	if sig_id, e2 := k.Verify(c.unpacked.sig,
+		[]byte(c.unpacked.payloadJsonStr)); e2 != nil {
+		err = e2
+		return
 	} else {
 		c.unpacked.sigId = *sig_id
 	}
+
 	c.sigVerified = true
-	return nil
+	return
 }
 
 func LoadLinkFromServer(jw *jsonw.Wrapper) (ret *ChainLink, err error) {

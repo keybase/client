@@ -209,18 +209,18 @@ func (sc *SigChain) Flatten() {
 }
 
 func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
-	cv *CachedVerification) error {
+	cv *CachedVerification) (cached bool, err error) {
 
+	cached = false
 	G.Log.Debug("+ VerifyWithKey for user %s", sc.uid)
 
 	if sc.sigVerified {
-		return nil
+		cached = true
+		return
 	}
 
-	var err error
-
 	if err = sc.VerifyChain(); err != nil {
-		return err
+		return
 	}
 
 	sc.MarkVerifiedFromCache(cv)
@@ -229,7 +229,7 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
 	}
 
 	if last := sc.GetLastLinkRecursive(); last != nil {
-		err = last.VerifySig(*key)
+		cached, err = last.VerifySig(*key)
 	}
 
 	if err != nil {
@@ -238,7 +238,7 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
 
 	G.Log.Debug("- VerifyWithKey for user %s -> %b", sc.uid, (err == nil))
 
-	return nil
+	return
 }
 
 func (sc *SigChain) VerifyChain() error {
