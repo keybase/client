@@ -17,10 +17,6 @@ func parseArgs() (libkb.Command, error) {
 		return nil, err
 	}
 	G.SetCommandLine(p)
-	if cmd == nil {
-		err = fmt.Errorf("Cannot continue; no command to run")
-		return nil, err
-	}
 	return cmd, nil
 }
 
@@ -48,7 +44,7 @@ func main() {
 func main2() error {
 
 	cmd, err := parseArgs()
-	if err != nil {
+	if cmd == nil || err != nil {
 		return err
 	}
 
