@@ -447,6 +447,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		if err = ret.VerifySigChain(); err != nil {
 			return
 		}
+
+		// Proactive cache fetches from remote server to local
+		if e2 := ret.Store(); e2 != nil {
+			G.Log.Warning("Problem storing user %s: %s",
+				name, e2.Error())
+		}
 	}
 
 	if !arg.noCacheResult && ret != nil {
