@@ -72,9 +72,10 @@ type ChainLinkUnpacked struct {
 }
 
 type ChainLink struct {
-	id           LinkId
-	hashVerified bool
-	sigVerified  bool
+	id            LinkId
+	hashVerified  bool
+	sigVerified   bool
+	storedLocally bool
 
 	packed      *jsonw.Wrapper
 	payloadJson *jsonw.Wrapper
@@ -172,7 +173,7 @@ func LoadLinkFromServer(jw *jsonw.Wrapper) (ret *ChainLink, err error) {
 }
 
 func NewChainLink(id LinkId, jw *jsonw.Wrapper) *ChainLink {
-	return &ChainLink{id, false, false, jw, nil, nil}
+	return &ChainLink{id, false, false, false, jw, nil, nil}
 }
 
 func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
@@ -184,8 +185,22 @@ func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
 		if err = ret.Unpack(); err != nil {
 			ret = nil
 		}
+		ret.storedLocally = true
 	}
 	return ret, err
+}
+
+func (l *ChainLink) Store() error {
+	if l.storedLocally {
+		return nil
+	}
+
+	if err := l.VerifyHash(); err != nil {
+		return err
+	}
+
+	l.storedLocally = true
+	return nil
 }
 
 func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {

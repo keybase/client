@@ -354,7 +354,46 @@ func (u *User) VerifySigChain() error {
 	return err
 }
 
+func (u *User) StoreSigChain() error {
+	var err error
+	if u.sigChain != nil {
+		err = u.sigChain.Store()
+	}
+	return err
+}
+
 func (u *User) Store() error {
+
+	G.Log.Debug("+ Store user %s", u.name)
+
+	// We'll refuse to store anything that doesn't verify (since we don't
+	// want the spoiled data in our cace).
+	//
+	// Potentially revisit this decision later.
+	if err := u.VerifySigChain(); err != nil {
+		return err
+	}
+
+	if !u.dirty {
+		G.Log.Debug("- Store for %u skipped; user wasn't dirty", u.name)
+		return nil
+	}
+
+	if err := u.StoreSigChain(); err != nil {
+		return err
+	}
+
+	if err := u.StoreTopLevel(); err != nil {
+		return err
+	}
+
+	u.dirty = false
+	G.Log.Debug("- Store user %s -> OK", u.name)
+
+	return nil
+}
+
+func (u *User) StoreTopLevel() error {
 	return nil
 }
 

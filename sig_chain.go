@@ -12,10 +12,11 @@ type SigChain struct {
 	chainLinks     []*ChainLink
 	pgpFingerprint *PgpFingerprint
 
-	loaded        bool
+	fromStorage   bool
 	chainVerified bool
 	sigVerified   bool
 	fromServer    bool
+	dirty         bool
 
 	// If we're loading a remote User but have some parts pre-loaded,
 	// they will be available here as `base`
@@ -23,12 +24,12 @@ type SigChain struct {
 }
 
 func NewEmptySigChain(uid UID) *SigChain {
-	return &SigChain{uid, 0, nil, nil, nil, true, true, true, false, nil}
+	return &SigChain{uid, 0, nil, nil, nil, true, true, true, false, false, nil}
 }
 
 func NewSigChain(uid UID, seqno int, lastLink LinkId,
 	f *PgpFingerprint, base *SigChain) *SigChain {
-	return &SigChain{uid, seqno, lastLink, nil, f, false, false, false, false, base}
+	return &SigChain{uid, seqno, lastLink, nil, f, false, false, false, false, true, base}
 }
 
 func reverse(list []*ChainLink) []*ChainLink {
@@ -80,13 +81,15 @@ func (sc *SigChain) LoadFromServer() error {
 	}
 	sc.chainLinks = links
 	sc.fromServer = true
+	sc.fromStorage = false
+	sc.dirty = true
 
 	G.Log.Debug("- Loaded SigChain")
 	return nil
 }
 
 func (sc *SigChain) LoadFromStorage() error {
-	if sc.loaded {
+	if sc.fromStorage {
 		return nil
 	}
 
@@ -125,7 +128,8 @@ func (sc *SigChain) LoadFromStorage() error {
 	sc.chainLinks = links
 
 	G.Log.Debug("- %s: loaded signature chain", sc.uid)
-	sc.loaded = true
+	sc.fromStorage = true
+	sc.dirty = false
 
 	return nil
 }
@@ -206,6 +210,30 @@ func (sc *SigChain) Flatten() {
 		sc.chainLinks = append(sc.base.chainLinks, sc.chainLinks...)
 		sc.base = nil
 	}
+}
+
+func (sc *SigChain) Store() error {
+	if sc.base != nil {
+		if err := sc.base.Store(); err != nil {
+			return err
+		}
+	}
+
+	// If we loaded this chain from storage, no need to store it again
+	if !sc.dirty {
+		return nil
+	}
+
+	if sc.chainLinks != nil {
+		for _, link := range sc.chainLinks {
+			if err := link.Store(); err != nil {
+				return err
+			}
+		}
+	}
+
+	sc.dirty = false
+	return nil
 }
 
 func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
