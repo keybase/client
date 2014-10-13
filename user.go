@@ -290,7 +290,7 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 	return u.activeKey, nil
 }
 
-func LoadUserFromServer(arg LoadUserArg) (u *User, err error) {
+func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
 	G.Log.Debug("+ Load User from server: %s", arg.name)
 
 	res, err := G.API.Get(ApiArg{
@@ -305,7 +305,13 @@ func LoadUserFromServer(arg LoadUserArg) (u *User, err error) {
 		return
 	}
 
-	u, err = NewUserFromServer(res.Body.AtKey("them"))
+	if u, err = NewUserFromServer(res.Body.AtKey("them")); err != nil {
+		return
+	}
+
+	if err = u.LoadSigChainFromServer(base); err != nil {
+		return
+	}
 
 	G.Log.Debug("- Load user from server: %s -> %v", arg.name, (err == nil))
 
@@ -335,8 +341,10 @@ func (u *User) GetServerSeqno() (i int, err error) {
 	return i, err
 }
 
-func (local *User) UpdateWithRemote(arg LoadUserArg) (ret *User, err error) {
-	G.Log.Debug("+ UpdateWithRemote(%s)", local.name)
+func (local *User) CheckServer() (current bool, err error) {
+	G.Log.Debug("+ CheckServer(%s)", local.name)
+
+	current = false
 
 	var a, b int
 
@@ -350,19 +358,12 @@ func (local *User) UpdateWithRemote(arg LoadUserArg) (ret *User, err error) {
 			a, b)
 	} else if b == a {
 		G.Log.Debug("| Local version is up-to-date @ version %d", b)
-		ret = local
+		current = true
 	} else {
 		G.Log.Debug("| Local version is out-of-date: %d < %d", a, b)
-		var remote *User
-		if remote, err = LoadUserFromServer(arg); err != nil {
-			return
-		}
-		if err = remote.LoadSigChainFromServer(local.sigChain); err != nil {
-			return
-		}
-		ret = remote
+		current = false
 	}
-	G.Log.Debug("- UpdateWithRemote(%s)", local.name)
+	G.Log.Debug("+ CheckServer(%s) -> %v", local.name, current)
 	return
 }
 
@@ -469,10 +470,23 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			name, err.Error())
 	}
 
-	if local == nil {
-		ret, err = LoadUserFromServer(arg)
-	} else {
-		ret, err = local.UpdateWithRemote(arg)
+	load_remote := true
+	var baseChain *SigChain
+
+	if local != nil {
+		var current bool
+		if current, err = local.CheckServer(); err == nil {
+			if current {
+				load_remote = false
+				ret = local
+			} else {
+				baseChain = local.sigChain
+			}
+		}
+	}
+
+	if load_remote {
+		ret, err = LoadUserFromServer(arg, baseChain)
 	}
 
 	if err != nil {
