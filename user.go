@@ -312,14 +312,39 @@ func LoadUserFromServer(arg LoadUserArg) (u *User, err error) {
 	return
 }
 
-func (remote *User) Update(local *User) (ret *User, err error) {
-	a := -1
-	var base *SigChain
-	if local != nil {
-		a = local.GetSeqno()
-		base = local.sigChain
+func (u *User) GetServerSeqno() (i int, err error) {
+	i = -1
+
+	G.Log.Debug("+ Get server seqno for user: %s", u.name)
+	res, err := G.API.Get(ApiArg{
+		Endpoint:    "user/lookup",
+		NeedSession: false,
+		Args: HttpArgs{
+			"username": S{u.name},
+			"fields":   S{"sigs"},
+		},
+	})
+	if err != nil {
+		return
 	}
-	b := remote.GetSeqno()
+	i, err = res.Body.AtKey("them").AtKey("sigs").AtKey("last").AtKey("seqno").GetInt()
+	if err != nil {
+		return
+	}
+	G.Log.Debug("- Server seqno: %s -> %d", u.name, i)
+	return i, err
+}
+
+func (local *User) UpdateWithRemote(arg LoadUserArg) (ret *User, err error) {
+	G.Log.Debug("+ UpdateWithRemote(%s)", local.name)
+
+	var a, b int
+
+	a = local.GetSeqno()
+	if b, err = local.GetServerSeqno(); err != nil {
+		return
+	}
+
 	if b < 0 || a > b {
 		err = fmt.Errorf("Server version-rollback sustpected: Local %d > %d",
 			a, b)
@@ -328,10 +353,16 @@ func (remote *User) Update(local *User) (ret *User, err error) {
 		ret = local
 	} else {
 		G.Log.Debug("| Local version is out-of-date: %d < %d", a, b)
-		if err = remote.LoadSigChainFromServer(base); err == nil {
-			ret = remote
+		var remote *User
+		if remote, err = LoadUserFromServer(arg); err != nil {
+			return
 		}
+		if err = remote.LoadSigChainFromServer(local.sigChain); err != nil {
+			return
+		}
+		ret = remote
 	}
+	G.Log.Debug("- UpdateWithRemote(%s)", local.name)
 	return
 }
 
@@ -438,12 +469,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			name, err.Error())
 	}
 
-	remote, err := LoadUserFromServer(arg)
-	if err != nil {
-		return
+	if local == nil {
+		ret, err = LoadUserFromServer(arg)
+	} else {
+		ret, err = local.UpdateWithRemote(arg)
 	}
 
-	ret, err = remote.Update(local)
 	if err != nil {
 		return
 	}
