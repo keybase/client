@@ -262,11 +262,14 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 }
 
 func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
+
+	fmt.Printf("fuck 1\n")
 	if u.activePgpFingerprint != nil {
 		return u.activePgpFingerprint, nil
 	}
 
-	w := u.publicKeys.AtKey("primary").AtKey("fingerprint")
+	w := u.publicKeys.AtKey("primary").AtKey("key_fingerprint")
+
 	if w.IsNil() {
 		return nil, nil
 	}

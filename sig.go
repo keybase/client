@@ -93,10 +93,11 @@ func (k PgpKeyBundle) ReadAndVerify(armored string) (msg []byte, sig_id *SigId,
 		return
 	}
 	if !k.MatchesKey(md.SignedBy) {
-		err = fmt.Errorf("Got wrong SignedBy key")
+		err = fmt.Errorf("Got wrong SignedBy key %v",
+			hex.EncodeToString(md.SignedBy.PublicKey.Fingerprint[:]))
 		return
 	}
-	if md.LiteralData.Body != nil {
+	if md.LiteralData.Body == nil {
 		err = fmt.Errorf("no signed material found")
 		return
 	}

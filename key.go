@@ -79,5 +79,5 @@ func (k PgpKeyBundle) DecryptionKeys() []openpgp.Key {
 
 func (k PgpKeyBundle) MatchesKey(key *openpgp.Key) bool {
 	return FastByteArrayEq(k.PrimaryKey.Fingerprint[:],
-		key.PublicKey.Fingerprint[:])
+		key.Entity.PrimaryKey.Fingerprint[:])
 }

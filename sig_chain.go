@@ -277,7 +277,7 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
 		sc.sigVerified = true
 	}
 
-	G.Log.Debug("- VerifyWithKey for user %s -> %b", sc.uid, (err == nil))
+	G.Log.Debug("- VerifyWithKey for user %s -> %v", sc.uid, (err == nil))
 
 	return
 }
