@@ -25,7 +25,7 @@ type SigChain struct {
 }
 
 func NewEmptySigChain(uid UID) *SigChain {
-	return &SigChain{uid, 0, nil, nil, nil, true, true, true, false, false, nil}
+	return &SigChain{uid, 0, nil, nil, nil, false, true, true, false, false, nil}
 }
 
 func NewSigChain(uid UID, seqno int, lastLink LinkId,

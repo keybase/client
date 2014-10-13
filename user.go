@@ -239,7 +239,8 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 		return nil, err
 	}
 
-	if u == nil {
+	if jw == nil {
+		G.Log.Debug("- Not found")
 		return nil, nil
 	}
 
@@ -256,7 +257,8 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 	}
 
 	G.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, u.id)
-	return nil, nil
+
+	return
 }
 
 func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
@@ -345,8 +347,10 @@ func (remote *User) Update(local *User) (ret *User, err error) {
 		err = fmt.Errorf("Server version-rollback sustpected: Local %d > %d",
 			a, b)
 	} else if b == a {
+		G.Log.Debug("| Local version is up-to-date @ version %d", b)
 		ret = local
 	} else {
+		G.Log.Debug("| Local version is out-of-date: %d < %d", a, b)
 		if err = remote.LoadSigChainFromServer(base); err == nil {
 			ret = remote
 		}
@@ -417,6 +421,7 @@ func (u *User) Store() error {
 func (u *User) StoreTopLevel() error {
 
 	jw := jsonw.NewDictionary()
+	jw.SetKey("id", jsonw.NewString(string(u.id)))
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
@@ -455,7 +460,8 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	local, err := LoadUserFromLocalStorage(name)
 	if err != nil {
-		return
+		G.Log.Warning("Failed to load %s from storage: %s",
+			name, err.Error())
 	}
 
 	remote, err := LoadUserFromServer(arg)
