@@ -94,6 +94,7 @@ func (c *ChainLink) Pack() error {
 	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 	p.SetKey("sig_id", jsonw.NewString(c.unpacked.sigId.ToString(true)))
 	p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
+	p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
 
 	c.packed = p
 
@@ -106,7 +107,7 @@ func (c ChainLink) PackVerification(jw *jsonw.Wrapper) {
 	jw.SetKey("last_link", jsonw.NewString(c.id.ToString()))
 }
 
-func (c *ChainLink) Unpack() (err error) {
+func (c *ChainLink) Unpack(trusted bool) (err error) {
 	tmp := ChainLinkUnpacked{}
 
 	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
@@ -129,6 +130,16 @@ func (c *ChainLink) Unpack() (err error) {
 	var ei int64
 	c.payloadJson.AtKey("expire_in").GetInt64Void(&ei, &err)
 	tmp.etime = tmp.ctime + ei
+
+	// IF we're loaded from *trusted* storage, like our local
+	// DB, then we can skip verification later
+	if trusted {
+		b, e2 := c.packed.AtKey("sig_verified").GetBool()
+		if e2 == nil && b {
+			c.sigVerified = true
+			G.Log.Debug("| Link is marked as 'sig_verified'")
+		}
+	}
 
 	if err == nil {
 		c.unpacked = &tmp
@@ -164,6 +175,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	cached = false
 
 	if c.sigVerified {
+		G.Log.Debug("Skipped verification (cached): %s", c.id.ToString())
 		cached = true
 		return
 	}
@@ -191,7 +203,7 @@ func LoadLinkFromServer(jw *jsonw.Wrapper) (ret *ChainLink, err error) {
 		return
 	}
 	ret = NewChainLink(id, jw)
-	if err = ret.Unpack(); err != nil {
+	if err = ret.Unpack(false); err != nil {
 		ret = nil
 	}
 	return
@@ -207,7 +219,7 @@ func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(id, jw)
-		if err = ret.Unpack(); err != nil {
+		if err = ret.Unpack(true); err != nil {
 			ret = nil
 		}
 		ret.storedLocally = true
@@ -241,12 +253,4 @@ func (l *ChainLink) Store() error {
 
 func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
 	return c.unpacked.pgpFingerprint
-}
-
-func (c *ChainLink) MarkVerifiedFromCache(cv *CachedVerification) {
-	if c.unpacked.pgpFingerprint.Eq(*cv.publicKey) &&
-		c.id.Eq(cv.lastLink) && c.unpacked.seqno == cv.seqno {
-		c.sigVerified = true
-		G.Log.Debug("Chain link %s marked verified from cache", c.id.ToString())
-	}
 }

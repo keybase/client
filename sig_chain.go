@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
 )
 
 type SigChain struct {
@@ -136,22 +135,6 @@ func (sc *SigChain) LoadFromStorage() error {
 	return nil
 }
 
-func (sc *SigChain) MarkVerifiedFromCache(cv *CachedVerification) {
-	if cv.flag {
-		lim := len(sc.chainLinks) - 1
-		for i := lim - 1; i >= 0; i-- {
-			link := sc.chainLinks[i]
-			q := link.GetSeqno()
-			if q <= cv.seqno {
-				if q == cv.seqno {
-					link.MarkVerifiedFromCache(cv)
-				}
-				break
-			}
-		}
-	}
-}
-
 func (sc *SigChain) VerifyChainLinks() error {
 	if sc.chainVerified {
 		return nil
@@ -214,17 +197,6 @@ func (sc *SigChain) Flatten() {
 	}
 }
 
-func (sc *SigChain) PackVerification() (jw *jsonw.Wrapper) {
-	if sc.sigVerified {
-		if ll := sc.GetLastLinkRecursive(); ll != nil {
-			jw = jsonw.NewDictionary()
-			ll.PackVerification(jw)
-			jw.SetKey("flag", jsonw.NewBool(true))
-		}
-	}
-	return jw
-}
-
 func (sc *SigChain) Store() error {
 	if sc.base != nil {
 		if err := sc.base.Store(); err != nil {
@@ -249,8 +221,7 @@ func (sc *SigChain) Store() error {
 	return nil
 }
 
-func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
-	cv *CachedVerification) (cached bool, err error) {
+func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 
 	cached = false
 	G.Log.Debug("+ VerifyWithKey for user %s", sc.uid)
@@ -262,11 +233,6 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
 
 	if err = sc.VerifyChain(); err != nil {
 		return
-	}
-
-	sc.MarkVerifiedFromCache(cv)
-	if sc.base != nil {
-		sc.base.MarkVerifiedFromCache(cv)
 	}
 
 	if last := sc.GetLastLinkRecursive(); last != nil {

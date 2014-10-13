@@ -10,13 +10,6 @@ import (
 
 type UID string
 
-type CachedVerification struct {
-	flag      bool
-	publicKey *PgpFingerprint
-	lastLink  LinkId
-	seqno     int
-}
-
 type User struct {
 	// Raw JSON element read from the server or our local DB.
 	basics      *jsonw.Wrapper
@@ -32,7 +25,6 @@ type User struct {
 
 	loggedIn bool // if we were logged in when we loaded it
 
-	verified             CachedVerification
 	activeKey            *PgpKeyBundle
 	activePgpFingerprint *PgpFingerprint
 
@@ -139,7 +131,6 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		id:          UID(id),
 		name:        name,
 		loggedIn:    false,
-		verified:    CachedVerification{false, nil, nil, 0},
 		dirty:       false,
 	}, nil
 }
@@ -165,23 +156,6 @@ func (u User) GetSeqno() int {
 
 func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	u, err := NewUser(o)
-	if err == nil {
-		verified := o.AtKey("verified")
-		fmt.Printf("a %v\n", verified)
-		vsn, e1 := verified.AtKey("seqno").GetInt()
-		vpk, e2 := verified.AtKey("public_key").GetString()
-		vcl, e3 := verified.AtKey("last_link").GetString()
-		if e1 == nil && e2 == nil && e3 == nil {
-			if fp, e4 := PgpFingerprintFromHex(vpk); e4 == nil {
-				if cl, e5 := LinkIdFromHex(vcl); e5 == nil {
-					u.verified.flag = true
-					u.verified.publicKey = fp
-					u.verified.lastLink = cl
-					u.verified.seqno = vsn
-				}
-			}
-		}
-	}
 	return u, err
 }
 
@@ -373,7 +347,7 @@ func (u *User) VerifySigChain() error {
 		return fmt.Errorf("Internal error: sigchain shouldn't be null")
 	}
 
-	cached, err := ch.VerifyWithKey(key, &u.verified)
+	cached, err := ch.VerifyWithKey(key)
 	if !cached {
 		u.dirty = true
 	}
@@ -429,9 +403,6 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
 	jw.SetKey("privateKeys", u.privateKeys)
-	if v := u.sigChain.PackVerification(); v != nil {
-		jw.SetKey("verified", v)
-	}
 
 	err := G.LocalDb.Put(
 		DbKey{Typ: DB_USER, Key: string(u.id)},
