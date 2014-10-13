@@ -5,11 +5,11 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-type CmdGetUser struct {
+type CmdCacheUser struct {
 	input string
 }
 
-func (v *CmdGetUser) Initialize(ctx *cli.Context) error {
+func (v *CmdCacheUser) Initialize(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 	if nargs == 1 {
@@ -20,7 +20,7 @@ func (v *CmdGetUser) Initialize(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdGetUser) Run() error {
+func (v *CmdCacheUser) Run() error {
 
 	// XXX maybe do some sort of debug dump with the user that
 	// we loaded from the server (or storage).
@@ -38,7 +38,7 @@ func (v *CmdGetUser) Run() error {
 	return nil
 }
 
-func (v *CmdGetUser) UseConfig() bool   { return true }
-func (v *CmdGetUser) UseKeyring() bool  { return false }
-func (v *CmdGetUser) UseAPI() bool      { return true }
-func (v *CmdGetUser) UseTerminal() bool { return false }
+func (v *CmdCacheUser) UseConfig() bool   { return true }
+func (v *CmdCacheUser) UseKeyring() bool  { return false }
+func (v *CmdCacheUser) UseAPI() bool      { return true }
+func (v *CmdCacheUser) UseTerminal() bool { return false }
