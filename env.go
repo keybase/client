@@ -182,7 +182,7 @@ func (e Env) GetDbFilename() string {
 		func() string { return e.cmd.GetDbFilename() },
 		func() string { return e.config.GetDbFilename() },
 		func() string { return os.Getenv("KEYBASE_DB_FILE") },
-		func() string { return filepath.Join(e.GetDataDir(), SESSION_FILE) },
+		func() string { return filepath.Join(e.GetDataDir(), DB_FILE) },
 	)
 }
 

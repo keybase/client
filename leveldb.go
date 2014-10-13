@@ -7,11 +7,12 @@ import (
 )
 
 type LevelDb struct {
-	db *leveldb.DB
+	db       *leveldb.DB
+	filename string
 }
 
 func NewLevelDb() *LevelDb {
-	return &LevelDb{nil}
+	return &LevelDb{nil, ""}
 }
 
 // Explicit open does nothing we'll wait for a lazy open
@@ -20,7 +21,9 @@ func (l *LevelDb) Open() error { return nil }
 func (l *LevelDb) open() error {
 	var err error
 	if l.db == nil {
-		l.db, err = leveldb.OpenFile(G.Env.GetDbFilename(), nil)
+		l.filename = G.Env.GetDbFilename()
+		G.Log.Debug("Opening LevelDB for local cache: %s", l.filename)
+		l.db, err = leveldb.OpenFile(l.filename, nil)
 	}
 	return err
 }
@@ -28,6 +31,7 @@ func (l *LevelDb) open() error {
 func (l *LevelDb) Close() error {
 	var err error
 	if l.db != nil {
+		G.Log.Debug("Closing LevelDB local cache: %s", l.filename)
 		err = l.db.Close()
 		l.db = nil
 	}
