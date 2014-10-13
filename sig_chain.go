@@ -283,6 +283,8 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
 
 func (sc *SigChain) VerifyChain() error {
 
+	G.Log.Debug("+ VerifyChain() for %s", sc.uid)
+
 	if sc.chainVerified {
 		return nil
 	}
@@ -304,5 +306,6 @@ func (sc *SigChain) VerifyChain() error {
 	}
 
 	sc.chainVerified = true
+	G.Log.Debug("- VerifyChain() for %s", sc.uid)
 	return nil
 }

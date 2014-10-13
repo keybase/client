@@ -149,7 +149,7 @@ func (u User) GetUID() UID     { return u.id }
 
 func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
-	if e != nil {
+	if e == nil {
 		u.loggedIn = G.LoginState.LoggedIn
 		u.dirty = true
 	}
@@ -185,10 +185,14 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 }
 
 func (u *User) LoadSigChainFromServer(base *SigChain) error {
+	G.Log.Debug("+ LoadSigChainFromServer(%s)", u.name)
 	if err := u.MakeSigChain(base); err != nil {
 		return nil
 	}
-	return u.sigChain.LoadFromServer()
+	err := u.sigChain.LoadFromServer()
+	G.Log.Debug("- LoadSigChainFromServer(%s) -> %v", u.name, (err == nil))
+
+	return err
 }
 
 func (u *User) MakeSigChain(base *SigChain) error {
@@ -210,20 +214,25 @@ func (u *User) MakeSigChain(base *SigChain) error {
 		return fmt.Errorf("Signature chain corruption for %s; unexpected base",
 			u.name)
 	} else {
-		G.Log.Debug("Empty sigchain for %s", u.name)
+		G.Log.Debug("| Empty sigchain for %s", u.name)
 		u.sigChain = NewEmptySigChain(u.id)
 	}
 	return nil
 }
 
 func (u *User) LoadSigChainFromStorage() error {
+	G.Log.Debug("+ LoadSigChainFromStorage(%s)", u.name)
 	if err := u.MakeSigChain(nil); err != nil {
 		return err
 	}
-	return u.sigChain.LoadFromStorage()
+	err := u.sigChain.LoadFromStorage()
+	G.Log.Debug("- LoadSigChainFromStorage(%s) -> %v", u.name, (err == nil))
+	return err
 }
 
 func LoadUserFromLocalStorage(name string) (u *User, err error) {
+
+	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", name)
 
 	jw, err := G.LocalDb.Lookup(DbKey{Typ: DB_LOOKUP_USERNAME, Key: name})
 	if err != nil {
@@ -234,14 +243,19 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 		return nil, nil
 	}
 
+	G.Log.Debug("| Loaded successfully")
+
 	if u, err = NewUserFromLocalStorage(jw); err != nil {
 		return nil, err
 	}
+
+	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, u.id)
 
 	if err = u.LoadSigChainFromStorage(); err != nil {
 		return nil, err
 	}
 
+	G.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, u.id)
 	return nil, nil
 }
 
@@ -263,6 +277,8 @@ func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
 }
 
 func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
+
+	G.Log.Debug("+ GetActiveKey() for %s", u.name)
 	if u.activeKey != nil {
 		return u.activeKey, nil
 	}
@@ -278,7 +294,7 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 	}
 
 	reader := strings.NewReader(k)
-	el, err := openpgp.ReadKeyRing(reader)
+	el, err := openpgp.ReadArmoredKeyRing(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -287,6 +303,9 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 	}
 	u.activeKey = (*PgpKeyBundle)(el[0])
 
+	G.Log.Debug("| Active key is -> %s", u.activeKey.GetFingerprint().ToString())
+
+	G.Log.Debug("- GetActiveKey() for %s", u.name)
 	return u.activeKey, nil
 }
 
@@ -307,7 +326,7 @@ func LoadUserFromServer(arg LoadUserArg) (u *User, err error) {
 
 	u, err = NewUserFromServer(res.Body.AtKey("them"))
 
-	G.Log.Debug("- Load user from server: %s -> %b", arg.name, (err == nil))
+	G.Log.Debug("- Load user from server: %s -> %v", arg.name, (err == nil))
 
 	return
 }
@@ -350,7 +369,7 @@ func (u *User) VerifySigChain() error {
 		u.dirty = true
 	}
 
-	G.Log.Debug("- VerifySigChain for %s -> %b", u.name, (err == nil))
+	G.Log.Debug("- VerifySigChain for %s -> %v", u.name, (err == nil))
 	return err
 }
 
@@ -375,7 +394,7 @@ func (u *User) Store() error {
 	}
 
 	if !u.dirty {
-		G.Log.Debug("- Store for %u skipped; user wasn't dirty", u.name)
+		G.Log.Debug("- Store for %s skipped; user wasn't dirty", u.name)
 		return nil
 	}
 
@@ -417,7 +436,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
 
-	G.Log.Debug("+ Load user from server: %s", arg.name)
+	G.Log.Debug("+ LoadUser(%s)", arg.name)
 
 	name, err = ResolveUsername(arg.name)
 	if err != nil {

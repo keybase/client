@@ -119,12 +119,15 @@ func (c *ChainLink) Unpack() (err error) {
 	}
 
 	c.payloadJson, err = jsonw.Unmarshal([]byte(tmp.payloadJsonStr))
+	if err != nil {
+		return err
+	}
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
 	c.payloadJson.AtKey("seqno").GetIntVoid(&tmp.seqno, &err)
 	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
 
 	var ei int64
-	c.packed.AtKey("expire_in").GetInt64Void(&ei, &err)
+	c.payloadJson.AtKey("expire_in").GetInt64Void(&ei, &err)
 	tmp.etime = tmp.ctime + ei
 
 	if err != nil {
@@ -138,6 +141,8 @@ func (c *ChainLink) VerifyHash() error {
 	if c.hashVerified {
 		return nil
 	}
+
+	fmt.Printf("Verify hash %v", c)
 
 	h := sha256.Sum256([]byte(c.unpacked.payloadJsonStr))
 	if !FastByteArrayEq(h[:], c.id) {
