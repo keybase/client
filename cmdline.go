@@ -204,12 +204,18 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 		},
 		{
-
-			Name:        "cacheuser",
-			Usage:       "keybase cacheuser <username>",
-			Description: "Get a user from the server and cache locally",
-			Action: func(c *cli.Context) {
-				cmd = p.InitSubcommand(c, &CmdCacheUser{}, "cacheuser")
+			Name:        "db",
+			Usage:       "keybase db [subcommands...]",
+			Description: "Manipulate the local Keybase DB",
+			Subcommands: []cli.Command{
+				{
+					Name:        "cache",
+					Usage:       "keybase db cache <username>",
+					Description: "Load, verify, and cache a user",
+					Action: func(c *cli.Context) {
+						cmd = p.InitSubcommand(c, &CmdDbCache{}, "cache")
+					},
+				},
 			},
 		},
 		{
