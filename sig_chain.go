@@ -43,12 +43,13 @@ func reverse(list []*ChainLink) []*ChainLink {
 }
 
 func (sc *SigChain) LoadFromServer() error {
+
 	low := 0
 	if sc.base != nil {
 		low = sc.base.lastSeqno + 1
 	}
 
-	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d",
+	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)",
 		string(sc.uid), low)
 
 	res, err := G.API.Get(ApiArg{

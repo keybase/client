@@ -280,6 +280,8 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 
 	G.Log.Debug("+ GetActiveKey() for %s", u.name)
 	if u.activeKey != nil {
+		G.Log.Debug("- GetActiveKey() -> %s",
+			u.activeKey.GetFingerprint().ToString())
 		return u.activeKey, nil
 	}
 

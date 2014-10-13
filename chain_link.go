@@ -130,9 +130,11 @@ func (c *ChainLink) Unpack() (err error) {
 	c.payloadJson.AtKey("expire_in").GetInt64Void(&ei, &err)
 	tmp.etime = tmp.ctime + ei
 
-	if err != nil {
+	if err == nil {
 		c.unpacked = &tmp
 	}
+
+	G.Log.Debug("| Unpacked Link %s", c.id.ToString())
 
 	return err
 }
@@ -141,8 +143,6 @@ func (c *ChainLink) VerifyHash() error {
 	if c.hashVerified {
 		return nil
 	}
-
-	fmt.Printf("Verify hash %v", c)
 
 	h := sha256.Sum256([]byte(c.unpacked.payloadJsonStr))
 	if !FastByteArrayEq(h[:], c.id) {
