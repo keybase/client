@@ -167,6 +167,7 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	u, err := NewUser(o)
 	if err == nil {
 		verified := o.AtKey("verified")
+		fmt.Printf("a %v\n", verified)
 		vsn, e1 := verified.AtKey("seqno").GetInt()
 		vpk, e2 := verified.AtKey("public_key").GetString()
 		vcl, e3 := verified.AtKey("last_link").GetString()
@@ -263,7 +264,6 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 
 func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
 
-	fmt.Printf("fuck 1\n")
 	if u.activePgpFingerprint != nil {
 		return u.activePgpFingerprint, nil
 	}

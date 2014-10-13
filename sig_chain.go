@@ -273,7 +273,7 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle,
 		cached, err = last.VerifySig(*key)
 	}
 
-	if err != nil {
+	if err == nil {
 		sc.sigVerified = true
 	}
 
