@@ -150,7 +150,7 @@ func (mc *MerkleClient) LoadRoot() error {
 		return err
 	}
 	mc.lastRoot = mr
-	G.Log.Debug("- MerkleClient.LoadRoot() -> nil", mc.lastRoot.seqno)
+	G.Log.Debug("- MerkleClient.LoadRoot() -> %d", mc.lastRoot.seqno)
 	return nil
 }
 
