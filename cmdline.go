@@ -229,6 +229,21 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 						cmd = p.InitSubcommand(c, &CmdDbCache{}, "cache")
 					},
 				},
+				{
+					Name: "nuke",
+					Usage : "keybase db nuke",
+					Description : "Delete the local DB cache",
+					Action : func(c *cli.Context) {
+						p.ctx = c
+						cmd = &CmdDbNuke{c}
+					},
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, f",
+							Usage: "Force nuking; don't prompt",
+						},
+					},
+				},
 			},
 		},
 		{

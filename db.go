@@ -37,7 +37,7 @@ type JsonLocalDb struct {
 func NewJsonLocalDb(e LocalDb) *JsonLocalDb { return &JsonLocalDb{e} }
 func (j *JsonLocalDb) Open() error          { return j.engine.Open() }
 func (j *JsonLocalDb) Close() error         { return j.engine.Close() }
-func (j *JsonLocalDb) Unlink() error        { return j.engine.Unlink() }
+func (j *JsonLocalDb) Nuke() error          { return j.engine.Nuke() }
 
 func (j *JsonLocalDb) Put(id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {
 	bytes, err := val.Marshal()

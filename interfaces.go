@@ -45,7 +45,7 @@ type DbKey struct {
 type LocalDb interface {
 	Open() error
 	Close() error
-	Unlink() error
+	Nuke() error
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error
 	Get(id DbKey) ([]byte, bool, error)

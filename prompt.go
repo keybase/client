@@ -40,5 +40,21 @@ func Prompt(prompt string, password bool, checker Checker) (string, error) {
 	}
 
 	return res, err
+}
+
+func PromptForConfirmation(prompt string) error {
+
+	if G.Terminal == nil {
+		return fmt.Errorf("Can't prompt; no terminal available")
+	}
+
+	res, err := G.Terminal.Prompt(prompt + " (type 'YES' to confirm): ")
+	if err != nil {
+		return err
+	}
+	if res != "YES" {
+		return fmt.Errorf("Not confirmed")
+	}
+	return nil
 
 }

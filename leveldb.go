@@ -38,10 +38,11 @@ func (l *LevelDb) Close() error {
 	return err
 }
 
-func (l *LevelDb) Unlink() error {
+func (l *LevelDb) Nuke() error {
 	err := l.Close()
 	if err == nil {
-		err = os.Remove(G.Env.GetDbFilename())
+		G.Log.Warning("Nuking database %s", l.filename)
+		err = os.RemoveAll(l.filename)
 	}
 	return err
 }
