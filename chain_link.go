@@ -101,6 +101,25 @@ func (c *ChainLink) Pack() error {
 	return nil
 }
 
+func (c ChainLink) GetRevocations() []*SigId {
+	ret := make([]*SigId, 0, 0)
+	jw := c.payloadJson.AtKey("body").AtKey("revoke")
+	s, err := GetSigId(jw.AtKey("sig_id"), true)
+	if err == nil {
+		ret = append(ret, s)
+	}
+	v := jw.AtKey("sig_ids")
+	var l int
+	l, err = v.Len()
+	if err == nil && l > 0 {
+		for i := 0; i < l; i++ {
+			s, err = GetSigId(v.AtIndex(i), true)
+			ret = append(ret, s)
+		}
+	}
+	return ret
+}
+
 func (c ChainLink) PackVerification(jw *jsonw.Wrapper) {
 	jw.SetKey("publicKey", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
 	jw.SetKey("seqno", jsonw.NewInt64(int64(c.unpacked.seqno)))
@@ -123,7 +142,6 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	tmp := ChainLinkUnpacked{}
 
 	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
-	GetPgpFingerprintVoid(c.packed.AtKey("fingerprint"), &tmp.pgpFingerprint, &err)
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
 	GetSigIdVoid(c.packed.AtKey("sig_id"), true, &tmp.sigId, &err)
 
@@ -135,6 +153,8 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	if err != nil {
 		return err
 	}
+	GetPgpFingerprintVoid(c.packed.AtKey("body").AtKey("key").AtKey("fingerprint"),
+		&tmp.pgpFingerprint, &err)
 	var sq int64
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
 	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
