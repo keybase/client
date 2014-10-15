@@ -1,10 +1,14 @@
 package libkb
 
 import (
+	"bytes"
 	"code.google.com/p/go.crypto/openpgp"
+	"code.google.com/p/go.crypto/openpgp/armor"
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"io"
+	"strings"
 )
 
 type PgpKeyBundle openpgp.Entity
@@ -31,6 +35,34 @@ func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
 
 func (p PgpFingerprint) ToString() string {
 	return hex.EncodeToString(p[:])
+}
+
+func (p PgpFingerprint) LoadFromLocalDb() (*PgpKeyBundle, error) {
+	dbobj, err := G.LocalDb.Get(DbKey{
+		Typ: DB_PGP_KEY,
+		Key: p.ToString(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if dbobj == nil {
+		return nil, nil
+	}
+	return GetOneKey(dbobj)
+}
+
+func (p *PgpKeyBundle) StoreToLocalDb() error {
+	if s, err := p.Encode(); err != nil {
+		return err
+	} else {
+		val := jsonw.NewString(s)
+		G.Log.Debug("| Storing Key (fp=%s) to Local DB", p.GetFingerprint().ToString())
+		err = G.LocalDb.Put(DbKey{
+			Typ: DB_PGP_KEY,
+			Key: p.GetFingerprint().ToString(),
+		}, []DbKey{}, val)
+		return err
+	}
 }
 
 func (p1 PgpFingerprint) Eq(p2 PgpFingerprint) bool {
@@ -80,4 +112,52 @@ func (k PgpKeyBundle) DecryptionKeys() []openpgp.Key {
 func (k PgpKeyBundle) MatchesKey(key *openpgp.Key) bool {
 	return FastByteArrayEq(k.PrimaryKey.Fingerprint[:],
 		key.Entity.PrimaryKey.Fingerprint[:])
+}
+
+func (k *PgpKeyBundle) Encode() (ret string, err error) {
+	buf := bytes.Buffer{}
+
+	// See Issue #32
+	empty_headers := make(map[string]string)
+	var writer io.WriteCloser
+	writer, err = armor.Encode(&buf, "PGP PUBLIC KEY BLOCK", empty_headers)
+
+	if err != nil {
+		return
+	}
+
+	if err = ((*openpgp.Entity)(k)).Serialize(writer); err != nil {
+		return
+	}
+
+	if err = writer.Close(); err != nil {
+		return
+	}
+
+	ret = string(buf.Bytes())
+
+	return
+}
+
+func ReadOneKeyFromString(s string) (*PgpKeyBundle, error) {
+	reader := strings.NewReader(s)
+	el, err := openpgp.ReadArmoredKeyRing(reader)
+	if err != nil {
+		return nil, err
+	}
+	if len(el) == 0 {
+		return nil, fmt.Errorf("No keys found in primary bundle")
+	} else if len(el) != 1 {
+		return nil, fmt.Errorf("Found multiple keys; wanted just one")
+	} else {
+		return (*PgpKeyBundle)(el[0]), nil
+	}
+}
+
+func GetOneKey(jw *jsonw.Wrapper) (*PgpKeyBundle, error) {
+	s, err := jw.GetString()
+	if err != nil {
+		return nil, err
+	}
+	return ReadOneKeyFromString(s)
 }

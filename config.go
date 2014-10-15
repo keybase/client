@@ -235,6 +235,26 @@ func (f JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
 	return
 }
 
+func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {
+	if v, err := f.jw.AtKey("keys").AtKey("merkle").ToArray(); err != nil || v == nil {
+		return nil
+	} else if l, err := v.Len(); err != nil {
+		return nil
+	} else if l == 0 {
+		return make([]string, 0, 0)
+	} else {
+		ret := make([]string, l, 0)
+		for i := 0; i < l; i++ {
+			if s, err := v.AtIndex(i).GetString(); err != nil {
+				return nil
+			} else {
+				ret = append(ret, s)
+			}
+		}
+		return ret
+	}
+}
+
 func (f JsonConfigFile) GetPgpDir() (ret string) {
 	ret = f.GetTopLevelString("pgpdir")
 	if len(ret) == 0 {

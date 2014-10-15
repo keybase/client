@@ -41,7 +41,7 @@ func reverse(list []*ChainLink) []*ChainLink {
 	return ret
 }
 
-func (sc *SigChain) LoadFromServer() error {
+func (sc *SigChain) LoadFromServer(t *MerkleTriple) error {
 
 	low := 0
 	if sc.base != nil {
@@ -70,16 +70,31 @@ func (sc *SigChain) LoadFromServer() error {
 		return err
 	}
 
+	found_tail := false
+
 	G.Log.Debug("| Got back %d new entries", lim)
 
 	links := make([]*ChainLink, lim, lim)
 	for i := 0; i < lim; i++ {
-		if link, err := LoadLinkFromServer(v.AtIndex(i)); err != nil {
+		var link *ChainLink
+		var err error
+		if link, err = LoadLinkFromServer(v.AtIndex(i)); err != nil {
 			return err
-		} else {
-			links[i] = link
+		}
+		links[i] = link
+		if found_tail || t == nil {
+			continue
+		}
+		if found_tail, err = link.checkAgainstMerkleTree(t); err != nil {
+			return err
 		}
 	}
+
+	if t != nil && !found_tail {
+		return fmt.Errorf("Failed to reach seqno=%d in server response",
+			int(t.seqno))
+	}
+
 	sc.chainLinks = links
 	sc.fromServer = true
 	sc.fromStorage = false

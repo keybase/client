@@ -1,11 +1,9 @@
 package libkb
 
 import (
-	"code.google.com/p/go.crypto/openpgp"
 	"fmt"
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/go-jsonw"
-	"strings"
 )
 
 type UID string
@@ -42,6 +40,7 @@ type LoadUserArg struct {
 	loadSecrets      bool
 	forceReload      bool
 	skipVerify       bool
+	leaf             *MerkleUserLeaf
 }
 
 type ResolveResult struct {
@@ -147,11 +146,11 @@ func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	return u, e
 }
 
-func (u User) GetSeqno() int {
-	ret := -1
+func (u User) GetSeqno() Seqno {
+	var ret int64 = -1
 	var err error
-	u.sigs.AtKey("last").AtKey("seqno").GetIntVoid(&ret, &err)
-	return ret
+	u.sigs.AtKey("last").AtKey("seqno").GetInt64Void(&ret, &err)
+	return Seqno(ret)
 }
 
 func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
@@ -159,12 +158,12 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	return u, err
 }
 
-func (u *User) LoadSigChainFromServer(base *SigChain) error {
+func (u *User) LoadSigChainFromServer(base *SigChain, t *MerkleTriple) error {
 	G.Log.Debug("+ LoadSigChainFromServer(%s)", u.name)
 	if err := u.MakeSigChain(base); err != nil {
 		return nil
 	}
-	err := u.sigChain.LoadFromServer()
+	err := u.sigChain.LoadFromServer(t)
 	G.Log.Debug("- LoadSigChainFromServer(%s) -> %v", u.name, (err == nil))
 
 	return err
@@ -215,7 +214,7 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 	}
 
 	if jw == nil {
-		G.Log.Debug("- Not found")
+		G.Log.Debug("- LoadUserFromLocalStorage(%s): Not found", name)
 		return nil, nil
 	}
 
@@ -269,28 +268,21 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 		return nil, nil
 	}
 
-	k, err := w.GetString()
+	key, err := GetOneKey(w)
+
 	if err != nil {
 		return nil, err
 	}
 
-	reader := strings.NewReader(k)
-	el, err := openpgp.ReadArmoredKeyRing(reader)
-	if err != nil {
-		return nil, err
-	}
-	if len(el) == 0 {
-		return nil, fmt.Errorf("No keys found in primary bundle")
-	}
-	u.activeKey = (*PgpKeyBundle)(el[0])
-
+	u.activeKey = key
 	G.Log.Debug("| Active key is -> %s", u.activeKey.GetFingerprint().ToString())
-
 	G.Log.Debug("- GetActiveKey() for %s", u.name)
+
 	return u.activeKey, nil
 }
 
 func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
+
 	G.Log.Debug("+ Load User from server: %s", arg.name)
 
 	res, err := G.API.Get(ApiArg{
@@ -309,7 +301,11 @@ func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
 		return
 	}
 
-	if err = u.LoadSigChainFromServer(base); err != nil {
+	var t *MerkleTriple
+	if arg.leaf != nil {
+		t = arg.leaf.public
+	}
+	if err = u.LoadSigChainFromServer(base, t); err != nil {
 		return
 	}
 
@@ -341,17 +337,13 @@ func (u *User) GetServerSeqno() (i int, err error) {
 	return i, err
 }
 
-func (local *User) CheckServer() (current bool, err error) {
+func (local *User) CheckFreshness(t *MerkleTriple) (current bool, err error) {
 	G.Log.Debug("+ CheckServer(%s)", local.name)
 
 	current = false
 
-	var a, b int
-
-	a = local.GetSeqno()
-	if b, err = local.GetServerSeqno(); err != nil {
-		return
-	}
+	a := local.GetSeqno()
+	b := t.seqno
 
 	if b < 0 || a > b {
 		err = fmt.Errorf("Server version-rollback sustpected: Local %d > %d",
@@ -359,11 +351,17 @@ func (local *User) CheckServer() (current bool, err error) {
 	} else if b == a {
 		G.Log.Debug("| Local version is up-to-date @ version %d", b)
 		current = true
+		last := local.sigChain.GetLastLinkRecursive()
+		if last == nil {
+			err = fmt.Errorf("Failed to read last link for user")
+		} else if !last.id.Eq(t.linkId) {
+			err = fmt.Errorf("The server returned the wrong sigchain tail")
+		}
 	} else {
 		G.Log.Debug("| Local version is out-of-date: %d < %d", a, b)
 		current = false
 	}
-	G.Log.Debug("+ CheckServer(%s) -> %v", local.name, current)
+	G.Log.Debug("+ CheckSeqno(%s) -> %v", local.name, current)
 	return
 }
 
@@ -445,6 +443,21 @@ func (u *User) StoreTopLevel() error {
 	return err
 }
 
+func LookupMerkleLeaf(name string, local *User) (f *MerkleUserLeaf, err error) {
+	q := NewHttpArgs()
+	if local == nil {
+		q.Add("username", S{name})
+	} else {
+		q.Add("uid", S{string(local.id)})
+	}
+
+	f, err = G.MerkleClient.LookupUser(q)
+	if err == nil && f == nil && local != nil {
+		err = fmt.Errorf("User not found in server Merkle tree")
+	}
+	return
+}
+
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
@@ -470,12 +483,17 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			name, err.Error())
 	}
 
+	leaf, err := LookupMerkleLeaf(name, local)
+	if err != nil {
+		return
+	}
+
 	load_remote := true
 	var baseChain *SigChain
 
 	if local != nil {
 		var current bool
-		if current, err = local.CheckServer(); err == nil {
+		if current, err = local.CheckFreshness(leaf.public); err == nil {
 			if current {
 				load_remote = false
 				ret = local
@@ -486,6 +504,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	if load_remote {
+		arg.leaf = leaf
 		ret, err = LoadUserFromServer(arg, baseChain)
 	}
 

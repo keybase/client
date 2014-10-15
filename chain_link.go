@@ -63,7 +63,7 @@ func (i1 LinkId) Eq(i2 LinkId) bool {
 
 type ChainLinkUnpacked struct {
 	prev           LinkId
-	seqno          int
+	seqno          Seqno
 	payloadJsonStr string
 	ctime, etime   int64
 	pgpFingerprint PgpFingerprint
@@ -103,8 +103,20 @@ func (c *ChainLink) Pack() error {
 
 func (c ChainLink) PackVerification(jw *jsonw.Wrapper) {
 	jw.SetKey("publicKey", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
-	jw.SetKey("seqno", jsonw.NewInt(c.unpacked.seqno))
+	jw.SetKey("seqno", jsonw.NewInt64(int64(c.unpacked.seqno)))
 	jw.SetKey("last_link", jsonw.NewString(c.id.ToString()))
+}
+
+func (c ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err error) {
+	found = false
+	if t != nil && c.GetSeqno() == t.seqno {
+		G.Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.seqno))
+		found = true
+		if !c.id.Eq(t.linkId) {
+			err = fmt.Errorf("Bad chain ID at seqno=%d", int(t.seqno))
+		}
+	}
+	return
 }
 
 func (c *ChainLink) Unpack(trusted bool) (err error) {
@@ -123,8 +135,10 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	if err != nil {
 		return err
 	}
+	var sq int64
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
-	c.payloadJson.AtKey("seqno").GetIntVoid(&tmp.seqno, &err)
+	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
+	tmp.seqno = Seqno(sq)
 	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
 
 	var ei int64
@@ -163,11 +177,11 @@ func (c *ChainLink) VerifyHash() error {
 	return nil
 }
 
-func (c ChainLink) GetSeqno() int {
+func (c ChainLink) GetSeqno() Seqno {
 	if c.unpacked != nil {
 		return c.unpacked.seqno
 	} else {
-		return -1
+		return Seqno(-1)
 	}
 }
 

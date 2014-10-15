@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"github.com/codegangsta/cli"
+	"strings"
 )
 
 type PosixCommandLine struct {
@@ -50,6 +51,14 @@ func (p PosixCommandLine) GetGString(s string) string {
 }
 func (p PosixCommandLine) GetGInt(s string) int {
 	return p.ctx.GlobalInt(s)
+}
+func (p PosixCommandLine) GetMerkleKeyFingerprints() []string {
+	s := p.GetGString("merkle-key-fingerprints")
+	if len(s) != 0 {
+		return strings.Split(s, ":")
+	} else {
+		return nil
+	}
 }
 func (p PosixCommandLine) GetUserCacheSize() (int, bool) {
 	ret := p.GetGInt("user-cache-size")
@@ -161,6 +170,10 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		cli.BoolFlag{
 			Name:  "api-dump",
 			Usage: "dump API call internals",
+		},
+		cli.StringFlag{
+			Name:  "merkle-key-fingerprints",
+			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated)",
 		},
 	}
 	app.Commands = []cli.Command{

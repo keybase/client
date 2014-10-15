@@ -9,17 +9,18 @@ import (
 
 type NullConfiguration struct{}
 
-func (n NullConfiguration) GetHome() string               { return "" }
-func (n NullConfiguration) GetServerUri() string          { return "" }
-func (n NullConfiguration) GetConfigFilename() string     { return "" }
-func (n NullConfiguration) GetSessionFilename() string    { return "" }
-func (n NullConfiguration) GetDbFilename() string         { return "" }
-func (n NullConfiguration) GetUsername() string           { return "" }
-func (n NullConfiguration) GetEmail() string              { return "" }
-func (n NullConfiguration) GetProxy() string              { return "" }
-func (n NullConfiguration) GetPgpDir() string             { return "" }
-func (n NullConfiguration) GetBundledCA(h string) string  { return "" }
-func (n NullConfiguration) GetUserCacheSize() (int, bool) { return 0, false }
+func (n NullConfiguration) GetHome() string                    { return "" }
+func (n NullConfiguration) GetServerUri() string               { return "" }
+func (n NullConfiguration) GetConfigFilename() string          { return "" }
+func (n NullConfiguration) GetSessionFilename() string         { return "" }
+func (n NullConfiguration) GetDbFilename() string              { return "" }
+func (n NullConfiguration) GetUsername() string                { return "" }
+func (n NullConfiguration) GetEmail() string                   { return "" }
+func (n NullConfiguration) GetProxy() string                   { return "" }
+func (n NullConfiguration) GetPgpDir() string                  { return "" }
+func (n NullConfiguration) GetBundledCA(h string) string       { return "" }
+func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false }
+func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -106,6 +107,14 @@ func (e Env) getEnvInt(s string) (int, bool) {
 	return 0, false
 }
 
+func (e Env) getEnvPath(s string) []string {
+	if tmp := os.Getenv(s); len(tmp) == 0 {
+		return nil
+	} else {
+		return strings.Split(tmp, ":")
+	}
+}
+
 func (e Env) getEnvBool(s string) (bool, bool) {
 	tmp := os.Getenv(s)
 	if len(tmp) == 0 {
@@ -152,8 +161,8 @@ func (e Env) GetInt(def int, flist ...func() (int, bool)) int {
 func (e Env) GetServerUri() string {
 	return e.GetString(
 		func() string { return e.cmd.GetServerUri() },
-		func() string { return e.config.GetServerUri() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
+		func() string { return e.config.GetServerUri() },
 		func() string { return SERVER_URL },
 	)
 }
@@ -162,8 +171,8 @@ func (e Env) GetConfigFilename() string {
 	return e.GetString(
 		func() string { return e.Test.ConfigFilename },
 		func() string { return e.cmd.GetConfigFilename() },
-		func() string { return e.config.GetConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },
+		func() string { return e.config.GetConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), CONFIG_FILE) },
 	)
 }
@@ -171,8 +180,8 @@ func (e Env) GetConfigFilename() string {
 func (e Env) GetSessionFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetSessionFilename() },
-		func() string { return e.config.GetSessionFilename() },
 		func() string { return os.Getenv("KEYBASE_SESSION_FILE") },
+		func() string { return e.config.GetSessionFilename() },
 		func() string { return filepath.Join(e.GetCacheDir(), SESSION_FILE) },
 	)
 }
@@ -180,8 +189,8 @@ func (e Env) GetSessionFilename() string {
 func (e Env) GetDbFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetDbFilename() },
-		func() string { return e.config.GetDbFilename() },
 		func() string { return os.Getenv("KEYBASE_DB_FILE") },
+		func() string { return e.config.GetDbFilename() },
 		func() string { return filepath.Join(e.GetDataDir(), DB_FILE) },
 	)
 }
@@ -189,16 +198,16 @@ func (e Env) GetDbFilename() string {
 func (e Env) GetDebug() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetDebug() },
-		func() (bool, bool) { return e.config.GetDebug() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
+		func() (bool, bool) { return e.config.GetDebug() },
 	)
 }
 
 func (e Env) GetPlainLogging() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetPlainLogging() },
-		func() (bool, bool) { return e.config.GetPlainLogging() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_PLAIN_LOGGING") },
+		func() (bool, bool) { return e.config.GetPlainLogging() },
 	)
 }
 
@@ -212,33 +221,33 @@ func (e Env) GetApiDump() bool {
 func (e Env) GetUsername() string {
 	return e.GetString(
 		func() string { return e.cmd.GetUsername() },
-		func() string { return e.config.GetUsername() },
 		func() string { return os.Getenv("KEYBASE_USERNAME") },
+		func() string { return e.config.GetUsername() },
 	)
 }
 
 func (e Env) GetEmail() string {
 	return e.GetString(
 		func() string { return e.cmd.GetEmail() },
-		func() string { return e.config.GetEmail() },
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
+		func() string { return e.config.GetEmail() },
 	)
 }
 
 func (e Env) GetProxy() string {
 	return e.GetString(
 		func() string { return e.cmd.GetProxy() },
-		func() string { return e.config.GetProxy() },
 		func() string { return os.Getenv("https_proxy") },
 		func() string { return os.Getenv("http_proxy") },
+		func() string { return e.config.GetProxy() },
 	)
 }
 
 func (e Env) GetPgpDir() string {
 	return e.GetString(
 		func() string { return e.cmd.GetPgpDir() },
-		func() string { return e.config.GetPgpDir() },
 		func() string { return os.Getenv("GNUPGHOME") },
+		func() string { return e.config.GetPgpDir() },
 		func() string { return filepath.Join(e.GetHome(), ".gnupg") },
 	)
 }
@@ -267,8 +276,8 @@ func (e Env) GetBundledCA(host string) string {
 func (e Env) GetUserCacheSize() int {
 	return e.GetInt(USER_CACHE_SIZE,
 		func() (int, bool) { return e.cmd.GetUserCacheSize() },
-		func() (int, bool) { return e.config.GetUserCacheSize() },
 		func() (int, bool) { return e.getEnvInt("KEYBASE_USER_CACHE_SIZE") },
+		func() (int, bool) { return e.config.GetUserCacheSize() },
 	)
 }
 
@@ -286,4 +295,48 @@ func (e Env) GetOrPromptForEmailOrUsername() (string, bool, error) {
 		CheckEmailOrUsername)
 
 	return un, true, err
+}
+
+// XXX implement me
+func (e Env) GetTestMode() bool {
+	return false
+}
+
+func (e Env) GetStringList(list ...(func() []string)) []string {
+	for _, f := range list {
+		if res := f(); res != nil {
+			return res
+		}
+	}
+	return []string{}
+}
+
+func (e Env) GetMerkleKeyFingerprints() []PgpFingerprint {
+	slist := e.GetStringList(
+		func() []string { return e.cmd.GetMerkleKeyFingerprints() },
+		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KEY_FINGERPRINTS") },
+		func() []string { return e.config.GetMerkleKeyFingerprints() },
+		func() []string {
+			if e.GetTestMode() {
+				return []string{MERKLE_TEST_KEY}
+			} else {
+				return []string{MERKLE_PROD_KEY}
+			}
+		},
+	)
+
+	if slist == nil {
+		return nil
+	}
+	ret := make([]PgpFingerprint, 0, len(slist))
+	for _, s := range slist {
+		fp, err := PgpFingerprintFromHex(s)
+		if err != nil {
+			G.Log.Warning("Skipping bad Merkle fingerprint: %s", s)
+		} else {
+			ret = append(ret, *fp)
+		}
+	}
+
+	return ret
 }

@@ -28,10 +28,12 @@ type Global struct {
 	Terminal      Terminal      // For prompting for passwords and input
 	UserCache     *UserCache    // LRU cache of users in memory
 	LocalDb       *JsonLocalDb  // Local DB for cache
+	MerkleClient  *MerkleClient // client for querying server's merkle sig tree
 }
 
 var G Global = Global{
 	NewDefaultLogger(),
+	nil,
 	nil,
 	nil,
 	nil,
@@ -106,8 +108,13 @@ func (g *Global) ConfigureCaches() (err error) {
 		g.LocalDb = NewJsonLocalDb(NewLevelDb())
 		err = g.LocalDb.Open()
 	}
-
 	return
+}
+
+func (g *Global) ConfigureMerkleClient() error {
+	var err error
+	g.MerkleClient, err = LoadMerkleClient()
+	return err
 }
 
 func (g *Global) Shutdown() error {
@@ -125,4 +132,47 @@ func (g *Global) Shutdown() error {
 		}
 	}
 	return err
+}
+
+func (g *Global) RunCmdline(cmd Command) error {
+	if err := g.InitCmdline(cmd); err != nil {
+		return err
+	}
+	return cmd.Run()
+}
+
+func (g *Global) InitCmdline(cmd Command) error {
+	var err error
+
+	g.ConfigureLogging()
+	if cmd.UseConfig() {
+		if err = g.ConfigureConfig(); err != nil {
+			return err
+		}
+	}
+	if cmd.UseKeyring() {
+		if err = g.ConfigureKeyring(); err != nil {
+			return err
+		}
+	}
+	if cmd.UseAPI() {
+		if err = g.ConfigureAPI(); err != nil {
+			return err
+		}
+	}
+	if cmd.UseTerminal() {
+		if err = g.ConfigureTerminal(); err != nil {
+			return err
+		}
+	}
+	if err = g.ConfigureCaches(); err != nil {
+		return err
+	}
+
+	if err = g.ConfigureMerkleClient(); err != nil {
+		return err
+	}
+
+	G.StartupMessage()
+	return nil
 }

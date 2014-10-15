@@ -27,6 +27,7 @@ type CommandLine interface {
 	GetEmail() string
 	GetApiDump() (bool, bool)
 	GetUserCacheSize() (int, bool)
+	GetMerkleKeyFingerprints() []string
 }
 
 type Server interface {
@@ -67,6 +68,7 @@ type ConfigReader interface {
 	GetIntAtPath(string) (int, bool)
 	GetNullAtPath(string) bool
 	GetUserCacheSize() (int, bool)
+	GetMerkleKeyFingerprints() []string
 }
 
 type ConfigWriter interface {

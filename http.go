@@ -23,6 +23,14 @@ type B struct {
 	val bool
 }
 
+func (a *HttpArgs) Add(s string, v HttpValue) {
+	(*a)[s] = v
+}
+
+func NewHttpArgs() HttpArgs {
+	return make(HttpArgs)
+}
+
 func (s S) ToString() string { return s.val }
 func (i I) ToString() string { return fmt.Sprintf("%d", i.val) }
 func (b B) ToString() string {
