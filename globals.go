@@ -24,7 +24,7 @@ type Global struct {
 	LoginState    *LoginState   // What phase of login the user's in
 	Env           *Env          // Env variables, cmdline args & config
 	Keyrings      *Keyrings     // Gpg Keychains holding keys
-	API           *ApiAccess    // How to make a REST call to the server
+	API           API           // How to make a REST call to the server
 	Terminal      Terminal      // For prompting for passwords and input
 	UserCache     *UserCache    // LRU cache of users in memory
 	LocalDb       *JsonLocalDb  // Local DB for cache
@@ -85,7 +85,7 @@ func (g Global) StartupMessage() {
 }
 
 func (g *Global) ConfigureAPI() error {
-	api, err := NewApiAccess(*g.Env)
+	api, err := NewApiEngine(*g.Env)
 	if err != nil {
 		return fmt.Errorf("Failed to configure API access: %s", err.Error())
 	}

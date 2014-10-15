@@ -10,36 +10,20 @@ import (
 	"strings"
 )
 
-type ApiArg struct {
-	Endpoint    string
-	uArgs       url.Values
-	Args        HttpArgs
-	NeedSession bool
-	HttpStatus  []int
-	AppStatus   []string
-}
-
-type ApiRes struct {
-	Status     *jsonw.Wrapper
-	Body       *jsonw.Wrapper
-	HttpStatus int
-	AppStatus  string
-}
-
-type ApiAccess struct {
+type ApiEngine struct {
 	config              *ClientConfig
 	cookied, notCookied *Client
 }
 
-func NewApiAccess(e Env) (*ApiAccess, error) {
+func NewApiEngine(e Env) (*ApiEngine, error) {
 	config, err := e.GenClientConfig()
 	if err != nil {
 		return nil, err
 	}
-	return &ApiAccess{config, nil, nil}, nil
+	return &ApiEngine{config, nil, nil}, nil
 }
 
-func (api *ApiAccess) getCli(cookied bool) (ret *Client) {
+func (api *ApiEngine) getCli(cookied bool) (ret *Client) {
 	if cookied {
 		if api.cookied == nil {
 			api.cookied = NewClient(api.config, true)
@@ -54,7 +38,7 @@ func (api *ApiAccess) getCli(cookied bool) (ret *Client) {
 	return ret
 }
 
-func (a ApiAccess) getUrl(arg ApiArg) url.URL {
+func (a ApiEngine) getUrl(arg ApiArg) url.URL {
 	u := *a.config.Url
 	var path string
 	if len(a.config.Prefix) > 0 {
@@ -66,7 +50,7 @@ func (a ApiAccess) getUrl(arg ApiArg) url.URL {
 	return u
 }
 
-func (a ApiAccess) fixHeaders(req *http.Request, arg ApiArg) {
+func (a ApiEngine) fixHeaders(req *http.Request, arg ApiArg) {
 	if arg.NeedSession && G.Session != nil {
 		if tok := G.Session.token; len(tok) > 0 {
 			req.Header.Add("X-Keybase-Session", tok)
@@ -126,7 +110,7 @@ func (arg ApiArg) getHttpArgs() url.Values {
 	}
 }
 
-func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
+func (api *ApiEngine) Get(arg ApiArg) (*ApiRes, error) {
 	url := api.getUrl(arg)
 	url.RawQuery = arg.getHttpArgs().Encode()
 	ruri := url.String()
@@ -138,7 +122,7 @@ func (api *ApiAccess) Get(arg ApiArg) (*ApiRes, error) {
 	return api.DoRequest(arg, req)
 }
 
-func (api *ApiAccess) Post(arg ApiArg) (*ApiRes, error) {
+func (api *ApiEngine) Post(arg ApiArg) (*ApiRes, error) {
 	url := api.getUrl(arg)
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
@@ -152,7 +136,7 @@ func (api *ApiAccess) Post(arg ApiArg) (*ApiRes, error) {
 	return api.DoRequest(arg, req)
 }
 
-func (api *ApiAccess) DoRequest(
+func (api *ApiEngine) DoRequest(
 	arg ApiArg, req *http.Request) (*ApiRes, error) {
 
 	api.fixHeaders(req, arg)

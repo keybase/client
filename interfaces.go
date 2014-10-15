@@ -11,6 +11,8 @@ package libkb
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-jsonw"
+	"net/url"
 )
 
 type CommandLine interface {
@@ -116,4 +118,25 @@ type Terminal interface {
 	PromptPassword(string) (string, error)
 	Write(string) error
 	Prompt(string) (string, error)
+}
+
+type ApiArg struct {
+	Endpoint    string
+	uArgs       url.Values
+	Args        HttpArgs
+	NeedSession bool
+	HttpStatus  []int
+	AppStatus   []string
+}
+
+type ApiRes struct {
+	Status     *jsonw.Wrapper
+	Body       *jsonw.Wrapper
+	HttpStatus int
+	AppStatus  string
+}
+
+type API interface {
+	Get(ApiArg) (*ApiRes, error)
+	Post(ApiArg) (*ApiRes, error)
 }
