@@ -47,37 +47,5 @@ func main2() error {
 	if cmd == nil || err != nil {
 		return err
 	}
-
-	G.ConfigureLogging()
-
-	if cmd.UseConfig() {
-		if err = G.ConfigureConfig(); err != nil {
-			return err
-		}
-	}
-	if cmd.UseKeyring() {
-		if err = G.ConfigureKeyring(); err != nil {
-			return err
-		}
-	}
-	if cmd.UseAPI() {
-		if err = G.ConfigureAPI(); err != nil {
-			return err
-		}
-	}
-
-	if cmd.UseTerminal() {
-		if err = G.ConfigureTerminal(); err != nil {
-			return err
-		}
-	}
-
-	if err = G.ConfigureCaches(); err != nil {
-		return err
-	}
-
-	G.StartupMessage()
-	testLogging()
-
-	return cmd.Run()
+	return G.RunCmdline(cmd)
 }
