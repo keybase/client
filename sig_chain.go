@@ -78,7 +78,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) error {
 	for i := 0; i < lim; i++ {
 		var link *ChainLink
 		var err error
-		if link, err = LoadLinkFromServer(v.AtIndex(i)); err != nil {
+		if link, err = LoadLinkFromServer(sc, v.AtIndex(i)); err != nil {
 			return err
 		}
 		links[i] = link
@@ -120,7 +120,7 @@ func (sc *SigChain) LoadFromStorage() error {
 
 	for curr := sc.lastLink; curr != nil && good_key; {
 		G.Log.Debug("| loading link; curr=%s", curr.ToString())
-		if link, err := LoadLinkFromStorage(curr); err != nil {
+		if link, err := LoadLinkFromStorage(sc, curr); err != nil {
 			return err
 		} else if fp1, fp2 := sc.pgpFingerprint, link.GetPgpFingerprint(); fp1 != nil && !fp1.Eq(fp2) {
 			// If we're loading a sigchain only for the given key, don't

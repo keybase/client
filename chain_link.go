@@ -72,6 +72,7 @@ type ChainLinkUnpacked struct {
 }
 
 type ChainLink struct {
+	parent        *SigChain
 	id            LinkId
 	hashVerified  bool
 	sigVerified   bool
@@ -230,29 +231,29 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	return
 }
 
-func LoadLinkFromServer(jw *jsonw.Wrapper) (ret *ChainLink, err error) {
+func LoadLinkFromServer(parent *SigChain, jw *jsonw.Wrapper) (ret *ChainLink, err error) {
 	var id LinkId
 	GetLinkIdVoid(jw.AtKey("payload_hash"), &id, &err)
 	if err != nil {
 		return
 	}
-	ret = NewChainLink(id, jw)
+	ret = NewChainLink(parent, id, jw)
 	if err = ret.Unpack(false); err != nil {
 		ret = nil
 	}
 	return
 }
 
-func NewChainLink(id LinkId, jw *jsonw.Wrapper) *ChainLink {
-	return &ChainLink{id, false, false, false, jw, nil, nil}
+func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
+	return &ChainLink{parent, id, false, false, false, jw, nil, nil}
 }
 
-func LoadLinkFromStorage(id LinkId) (*ChainLink, error) {
+func LoadLinkFromStorage(parent *SigChain, id LinkId) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.ToString()})
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
-		ret = NewChainLink(id, jw)
+		ret = NewChainLink(parent, id, jw)
 		if err = ret.Unpack(true); err != nil {
 			ret = nil
 		}
