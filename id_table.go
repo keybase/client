@@ -10,52 +10,123 @@ type TypedChainLink interface {
 	insertIntoTable(tab *IdentityTable)
 	GetSigId() SigId
 	markRevoked(l TypedChainLink)
-	ToString() string
+	ToDebugString() string
+	Type() string
+	ToDisplayString() string
 }
 
-type TypedChainLinkBase struct {
+//=========================================================================
+// GenericChainLink
+//
+
+type GenericChainLink struct {
 	*ChainLink
 	revoked bool
 }
-
-type RemoteProofChainLink struct {
-	TypedChainLinkBase
-}
-
-func (b TypedChainLinkBase) GetSigId() SigId {
+func (b GenericChainLink) GetSigId() SigId {
 	return b.unpacked.sigId
 }
-
-func (b TypedChainLinkBase) insertIntoTable(tab *IdentityTable) {
+func (b GenericChainLink) Type() string { return "generic" }
+func (b GenericChainLink) ToDisplayString() string { return "generic" }
+func (b GenericChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(b)
 }
-
-func (b TypedChainLinkBase) markRevoked(r TypedChainLink) {
+func (b GenericChainLink) markRevoked(r TypedChainLink) {
 	b.revoked = true
 }
-
-func (b TypedChainLinkBase) ToString() string {
+func (b GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s",
 		string(b.parent.uid), b.unpacked.seqno, b.id.ToString())
 }
 
-func (l RemoteProofChainLink) TableKey() string {
-	jw := l.payloadJson.AtKey("body").AtKey("service")
-	if p, e2 := jw.AtKey("protocol").GetString(); e2 != nil {
-		if p == "dns" || p == "http" || p == "https" {
-			return "web"
-		} else {
-			return ""
-		}
-	} else if n, e3 := jw.AtKey("name").GetString(); e3 != nil {
-		return n
-	} else {
-		G.Log.Warning("Unknown signature @%s", l.ToString())
-		return ""
-	}
+//
+//=========================================================================
+
+//=========================================================================
+// Remote, Web and Social
+//
+type RemoteProofChainLink interface {
+	TypedChainLink
+	TableKey() string
 }
 
-func (l RemoteProofChainLink) insertIntoTable(tab *IdentityTable) {
+type WebProofChainLink struct {
+	GenericChainLink
+	protocol string
+	hostname string
+}
+
+type SocialProofChainLink struct {
+	GenericChainLink
+	service string
+	username string
+}
+
+func (w WebProofChainLink) TableKey() string { return "web" }
+func (w WebProofChainLink) Type() string { return "proof" }
+func (w WebProofChainLink) insertIntoTable(tab *IdentityTable) {
+	remoteProofInsertIntoTable(w, tab)
+}
+func (w WebProofChainLink) ToDisplayString() string {
+	return w.protocol + "://" + w.hostname
+}
+func (s SocialProofChainLink) TableKey() string { return s.service }
+func (s SocialProofChainLink) Proof() string { return "proof" }
+func (s SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
+	remoteProofInsertIntoTable(s, tab)
+}
+func (w SocialProofChainLink) ToDisplayString() string {
+	return w.username + "@" + w.service
+}
+
+func NewWebProofChainLink(b GenericChainLink, p, h string) WebProofChainLink {
+	return WebProofChainLink{b, p, h }
+}
+func NewSocialProofChainLink(b GenericChainLink, s, u string) SocialProofChainLink {
+	return SocialProofChainLink{b, s, u }
+}
+
+func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink) {
+
+	jw := base.payloadJson.AtKey("body").AtKey("service")
+
+	if prot, e1 := jw.AtKey("protocol").GetString(); e1 == nil {
+
+		var hostname string
+
+		jw.AtKey("hostname").GetStringVoid(&hostname, &e1)
+		if e1 == nil {
+			switch prot {
+				case "http:":
+					ret = NewWebProofChainLink(base, "http", hostname)
+				case "https:" :
+					ret = NewWebProofChainLink(base, "https", hostname)
+			}
+		} else if domain, e2 := jw.AtKey("domain").GetString(); e2 == nil && prot == "dns" {
+			ret = NewWebProofChainLink(base, "dns", domain)
+		}
+
+	} else {
+
+		var service, username string
+		var e2 error
+
+		jw.AtKey("name").GetStringVoid(&service, &e2)
+		jw.AtKey("username").GetStringVoid(&username, &e2)
+		if e2 == nil {
+			ret = NewSocialProofChainLink(base, service, username)
+		}
+	}
+
+	if ret == nil {
+		G.Log.Warning("Unrecognized Web proof: %s @%s", jw.MarshalToDebug(),
+			base.ToDebugString())
+	}
+
+	return
+}
+
+func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 	tab.insertLink(l)
 	if k := l.TableKey(); len(k) > 0 {
 		v, found := tab.remoteProofs[k]
@@ -67,49 +138,98 @@ func (l RemoteProofChainLink) insertIntoTable(tab *IdentityTable) {
 	}
 }
 
+//
+//=========================================================================
+
+//=========================================================================
+// TrackChainLink
+//
+type TrackChainLink struct {
+	GenericChainLink
+	whom string
+	untrack *UntrackChainLink
+}
+
+func ParseTrackChainLink(b GenericChainLink) (ret TrackChainLink) {
+	whom, err := b.payloadJson.AtPath("body.track.basics.username").GetString()
+	if err != nil {
+		G.Log.Warning("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
+	} else {
+		ret = TrackChainLink{b, whom, nil }
+	}
+	return
+}
+
+func (t TrackChainLink) Type() string { return "track" }
+
+func (b TrackChainLink) ToDisplayString() string {
+	return b.whom
+}
+
 func (l TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
-	whom, err := l.payloadJson.AtPath("body.track.basics.username").GetString()
+	tab.tracks[l.whom] = l
+}
+//
+//=========================================================================
+
+//=========================================================================
+// UntrackChainLink
+//
+
+type UntrackChainLink struct {
+	GenericChainLink
+	whom string
+}
+
+func ParseUntrackChainLink(b GenericChainLink) (ret UntrackChainLink) {
+	whom, err := b.payloadJson.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
-		G.Log.Warning("Bad track statement @%s: %s", l.ToString(), err.Error())
+		G.Log.Warning("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
-		tab.tracks[whom] = l
+		ret = UntrackChainLink{b, whom}
 	}
+	return
 }
 
 func (u UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
-	whom, err := u.payloadJson.AtPath("body.untrack.basics.username").GetString()
-	if err != nil {
-		G.Log.Warning("Bad untrack statement @%s: %s", u.ToString(), err.Error())
-	} else if tobj, found := tab.tracks[whom]; !found {
+	if tobj, found := tab.tracks[u.whom]; !found {
 		G.Log.Notice("Bad untrack of %s; no previous tracking statement found",
-			whom)
+			u.whom)
 	} else {
 		tobj.untrack = &u
 	}
 }
 
-type TrackChainLink struct {
-	TypedChainLinkBase
-	untrack *UntrackChainLink
+func (b UntrackChainLink) ToDisplayString() string {
+	return b.whom
 }
+
+func (r UntrackChainLink) Type() string { return "untrack" }
+
+//
+//=========================================================================
+
 
 type CryptocurrencyChainLink struct {
-	TypedChainLinkBase
+	GenericChainLink
 }
+
+func (r CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
 
 type RevokeChainLink struct {
-	TypedChainLinkBase
+	GenericChainLink
 }
 
-type UntrackChainLink struct {
-	TypedChainLinkBase
-}
+func (r RevokeChainLink) Type() string { return "revoke" }
+
 
 type SelfSigChainLink struct {
-	TypedChainLinkBase
+	GenericChainLink
 }
+
+func (r SelfSigChainLink) Type() string { return "self" }
 
 type IdentityTable struct {
 	sigChain        *SigChain
@@ -127,37 +247,45 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 		tab.revocations[*rev] = true
 		if targ, found := tab.links[*rev]; !found {
 			G.Log.Warning("Can't revoke signature %s @%s",
-				rev.ToString(true), l.ToString())
+				rev.ToString(true), l.ToDebugString())
 		} else {
 			targ.markRevoked(l)
 		}
 	}
 }
 
-func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, err error) {
-	var s string
-	s, err = cl.payloadJson.AtKey("body").AtKey("type").GetString()
-	if err != nil {
-		return
+func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink) {
+
+	base := GenericChainLink { cl, false }
+
+	s, err := cl.payloadJson.AtKey("body").AtKey("type").GetString()
+	if len(s) == 0 || err != nil {
+		G.Log.Warning("No type in signature @%s", base.ToDebugString())
+	} else {
+		switch s {
+		case "web_service_binding":
+			ret = ParseWebServiceBinding(base)
+		case "track" :
+			ret = ParseTrackChainLink(base)
+		case "untrack" :
+			ret = ParseUntrackChainLink(base)
+		case "cryptocurrency":
+			ret = CryptocurrencyChainLink { base }
+		case "revoke":
+			ret = RevokeChainLink { base }
+		case "self_sig":
+			ret = SelfSigChainLink { base }
+		default:
+			G.Log.Warning("Unknown signature type %s @%s", s, base.ToDebugString())
+		}
 	}
 
-	base := TypedChainLinkBase { cl, false }
-	switch s {
-	case "web_service_binding":
-		ret = RemoteProofChainLink { base }
-	case "track" :
-		ret = TrackChainLink { base, nil }
-	case "untrack" :
-		ret = UntrackChainLink { base }
-	case "cryptocurrency":
-		ret = CryptocurrencyChainLink { base }
-	case "revoke":
-		ret = RevokeChainLink { base }
-	case "self_sig":
-		ret = SelfSigChainLink { base }
-	default:
-		err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToString())
+	if ret == nil {
+		ret = base
 	}
+
+	// Basically we never fail, since worse comes to worse, we treat
+	// unknown signatures as "generic" and can still display them
 	return
 }
 
@@ -177,12 +305,8 @@ func NewIdentityTable(sc *SigChain) *IdentityTable {
 func (idt *IdentityTable) Populate() {
 	G.Log.Debug("+ Populate ID Table")
 	for _,link := range(idt.sigChain.chainLinks) {
-		tl, err := NewTypedChainLink(link)
-		if err != nil {
-			G.Log.Warning(err.Error())
-		} else {
-			tl.insertIntoTable(idt)
-		}
+		tl := NewTypedChainLink(link)
+		tl.insertIntoTable(idt)
 	}
 	G.Log.Debug("- Populate ID Table")
 }
