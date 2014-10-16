@@ -467,6 +467,16 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
 
+	if len(arg.name) == 0 && !arg.self {
+		err = fmt.Errorf("no username given to LoadUser")
+		return
+	} else if len(arg.name) > 0 && arg.self {
+		err = fmt.Errorf("If loading self, can't provide a username")
+		return
+	} else if arg.self {
+	 	arg.name = G.Env.GetUsername()
+	}
+
 	G.Log.Debug("+ LoadUser(%s)", arg.name)
 
 	name, err = ResolveUsername(arg.name)

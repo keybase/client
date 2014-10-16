@@ -247,6 +247,41 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 		},
 		{
+			Name : "sigs",
+			Usage : "keybase sigs [subcommands...]",
+			Description : "List, revoke signatures",
+			Subcommands : []cli.Command{
+				{
+					Name : "list",
+					Usage: "keybase sigs list [filter]",
+					Action : func (c *cli.Context) {
+						cmd = p.InitSubcommand(c, &CmdSigsList{}, "list")
+					},
+					Flags : []cli.Flag {
+						cli.BoolFlag{
+							Name : "r, revoked",
+							Usage : "Show revoked signatures",
+						},
+						cli.BoolFlag{
+							Name : "j, json",
+							Usage : "output in json format; default is text",
+						},
+						cli.BoolFlag {
+							Name : "v, verbose",
+							Usage : "a full dump, with more gory detail",
+						},
+						cli.StringFlag {
+							Name : "t, type",
+							Usage : "type of sig to output; choose from {track" +
+								", proof, cryptocurrency, self}; all by default",
+						},
+					},
+				},
+			},
+
+
+		},
+		{
 			Name: "login",
 			Usage: "Establish a session with the keybase server " +
 				"(if necessary)",
