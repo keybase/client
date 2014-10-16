@@ -458,6 +458,11 @@ func LookupMerkleLeaf(name string, local *User) (f *MerkleUserLeaf, err error) {
 	return
 }
 
+func (u *User) MakeIdTable() error {
+	u.idTable = NewIdentityTable(u.sigChain)
+	return nil
+}
+
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
@@ -523,6 +528,14 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 				name, e2.Error())
 		}
 	}
+
+	if ret != nil {
+		if err = ret.MakeIdTable(); err != nil {
+			return
+		}
+	}
+
+
 
 	if !arg.noCacheResult && ret != nil {
 		G.UserCache.Put(ret)

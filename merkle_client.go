@@ -292,6 +292,8 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 			q, root.seqno)
 	}
 
+	G.Log.Debug("| Merkle root: got back %d, >= cached %d", int(root.seqno), int(q))
+
 	// Maybe we've already verified it before.
 	verified, found := mc.verified[root.seqno]
 	if verified && found {

@@ -27,6 +27,10 @@ func NewEmptySigChain(uid UID) *SigChain {
 	return &SigChain{uid, 0, nil, nil, nil, false, true, true, false, false, nil}
 }
 
+func (sc SigChain) Len() int {
+	return len(sc.chainLinks)
+}
+
 func NewSigChain(uid UID, seqno int, lastLink LinkId,
 	f *PgpFingerprint, base *SigChain) *SigChain {
 	return &SigChain{uid, seqno, lastLink, nil, f, false, false, false, false, true, base}

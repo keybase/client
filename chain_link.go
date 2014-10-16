@@ -154,7 +154,7 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	if err != nil {
 		return err
 	}
-	GetPgpFingerprintVoid(c.packed.AtKey("body").AtKey("key").AtKey("fingerprint"),
+	GetPgpFingerprintVoid(c.payloadJson.AtKey("body").AtKey("key").AtKey("fingerprint"),
 		&tmp.pgpFingerprint, &err)
 	var sq int64
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)

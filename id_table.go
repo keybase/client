@@ -69,7 +69,7 @@ func (l RemoteProofChainLink) insertIntoTable(tab *IdentityTable) {
 
 func (l TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
-	whom, err := l.payloadJson.AtPath("body.basics.username").GetString()
+	whom, err := l.payloadJson.AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		G.Log.Warning("Bad track statement @%s: %s", l.ToString(), err.Error())
 	} else {
@@ -79,7 +79,7 @@ func (l TrackChainLink) insertIntoTable(tab *IdentityTable) {
 
 func (u UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
-	whom, err := u.payloadJson.AtPath("body.basics.username").GetString()
+	whom, err := u.payloadJson.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		G.Log.Warning("Bad untrack statement @%s: %s", u.ToString(), err.Error())
 	} else if tobj, found := tab.tracks[whom]; !found {
@@ -117,10 +117,12 @@ type IdentityTable struct {
 	links           map[SigId]TypedChainLink
 	remoteProofs    map[string][]RemoteProofChainLink
 	tracks          map[string]TrackChainLink
+	order           []TypedChainLink
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
 	tab.links[l.GetSigId()] = l
+	tab.order = append(tab.order, l)
 	for _, rev := range(l.GetRevocations()) {
 		tab.revocations[*rev] = true
 		if targ, found := tab.links[*rev]; !found {
@@ -166,12 +168,14 @@ func NewIdentityTable(sc *SigChain) *IdentityTable {
 		links : make(map[SigId]TypedChainLink),
 		remoteProofs : make(map[string][]RemoteProofChainLink),
 		tracks : make(map[string]TrackChainLink),
+		order : make([]TypedChainLink, 0, sc.Len()),
 	}
 	ret.Populate()
 	return ret
 }
 
 func (idt *IdentityTable) Populate() {
+	G.Log.Debug("+ Populate ID Table")
 	for _,link := range(idt.sigChain.chainLinks) {
 		tl, err := NewTypedChainLink(link)
 		if err != nil {
@@ -180,5 +184,6 @@ func (idt *IdentityTable) Populate() {
 			tl.insertIntoTable(idt)
 		}
 	}
+	G.Log.Debug("- Populate ID Table")
 }
 
