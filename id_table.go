@@ -216,6 +216,10 @@ type CryptocurrencyChainLink struct {
 	GenericChainLink
 }
 
+func ParseCryptocurrencyChainLink(b *GenericChainLink) (cl *CryptocurrencyChainLink)
+
+}
+
 func (r CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
 
 type RevokeChainLink struct {
@@ -270,7 +274,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink) {
 		case "untrack" :
 			ret = ParseUntrackChainLink(base)
 		case "cryptocurrency":
-			ret = CryptocurrencyChainLink { base }
+			ret = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret = RevokeChainLink { base }
 		case "self_sig":
