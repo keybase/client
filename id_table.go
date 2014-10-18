@@ -216,8 +216,8 @@ type CryptocurrencyChainLink struct {
 	GenericChainLink
 }
 
-func ParseCryptocurrencyChainLink(b *GenericChainLink) (cl *CryptocurrencyChainLink)
-
+func ParseCryptocurrencyChainLink(b GenericChainLink) (cl *CryptocurrencyChainLink) {
+	return nil
 }
 
 func (r CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
