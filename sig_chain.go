@@ -246,6 +246,28 @@ func (sc *SigChain) Flatten() {
 	}
 }
 
+func (sc *SigChain) FlattenAndPrune() {
+	sc.Flatten()
+	sc.Prune()
+}
+
+func (sc *SigChain) Prune() {
+	if sc.pgpFingerprint != nil && sc.chainLinks != nil {
+		fp := *sc.pgpFingerprint
+
+		i := len(sc.chainLinks) - 1
+
+		for ; i >= 0; i-- {
+			link := sc.chainLinks[i]
+			if !link.MatchFingerprint(fp) {
+				i++
+				break
+			}
+		}
+		sc.chainLinks = sc.chainLinks[i:]
+	}
+}
+
 func (sc *SigChain) Store() error {
 	if sc.base != nil {
 		if err := sc.base.Store(); err != nil {

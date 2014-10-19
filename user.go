@@ -459,6 +459,7 @@ func LookupMerkleLeaf(name string, local *User) (f *MerkleUserLeaf, err error) {
 }
 
 func (u *User) MakeIdTable() error {
+	u.sigChain.FlattenAndPrune()
 	u.idTable = NewIdentityTable(u.sigChain)
 	return nil
 }
