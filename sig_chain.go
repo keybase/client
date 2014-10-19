@@ -259,10 +259,10 @@ func (sc *SigChain) Prune(allKeys bool) {
 		for ; i >= 0; i-- {
 			link := sc.chainLinks[i]
 			if !link.MatchFingerprintAndMark(fp) && !allKeys {
-				i++
 				break
 			}
 		}
+		i++
 		sc.chainLinks = sc.chainLinks[i:]
 	}
 }

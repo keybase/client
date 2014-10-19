@@ -17,6 +17,8 @@ type CmdSigsList struct {
 	headers bool
 	types   map[string]bool
 
+	username string
+
 	user *User
 	sigs []TypedChainLink
 }
@@ -57,15 +59,16 @@ func (s *CmdSigsList) Initialize(ctx *cli.Context) error {
 	s.verbose = ctx.Bool("verbose")
 	s.allKeys = ctx.Bool("all-keys")
 	s.headers = ctx.Bool("headers")
+	s.filter = ctx.String("filter")
 
 	if err = s.ParseTypes(ctx); err != nil {
 		return err
 	}
 
 	if nargs == 1 {
-		s.filter = ctx.Args()[0]
+		s.username = ctx.Args()[0]
 	} else if nargs > 1 {
-		err = fmt.Errorf("list takes at most 1 arg, a filter")
+		err = fmt.Errorf("list takes at most 1 arg, a username")
 	}
 
 	return err
@@ -199,7 +202,14 @@ func (s *CmdSigsList) Run() (err error) {
 	// XXX maybe do some sort of debug dump with the user that
 	// we loaded from the server (or storage).
 
-	s.user, err = LoadUser(LoadUserArg{self: true, allKeys: s.allKeys})
+	arg := LoadUserArg{allKeys: s.allKeys}
+	if len(s.username) != 0 {
+		arg.name = s.username
+	} else {
+		arg.self = true
+	}
+
+	s.user, err = LoadUser(arg)
 
 	if err != nil {
 		return

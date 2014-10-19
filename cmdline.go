@@ -283,6 +283,10 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 							Name:  "H, headers",
 							Usage: "show column headers",
 						},
+						cli.StringFlag{
+							Name:  "f, filter",
+							Usage: "provide a regex filter",
+						},
 					},
 				},
 			},
