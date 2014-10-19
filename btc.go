@@ -43,11 +43,13 @@ func BtcAddrCheck(s string, opts *BtcOpts) (version int, pkhash []byte, err erro
 		return
 	}
 
-	pkhash = buf[1:(l - 4)]
+	pkhash = buf[0:(l - 4)]
 	c1 := buf[(l - 4):]
 	tmp := sha256.Sum256(pkhash)
-	c2 := sha256.Sum256(tmp[:])
-	if !FastByteArrayEq(c1, c2[:]) {
+	tmp2 := sha256.Sum256(tmp[:])
+	c2 := tmp2[0:4]
+
+	if !FastByteArrayEq(c1, c2) {
 		err = fmt.Errorf("Bad checksum: %v != %v", c1, c2)
 	}
 	return

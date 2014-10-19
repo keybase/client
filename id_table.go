@@ -107,7 +107,7 @@ func NewSocialProofChainLink(b GenericChainLink, s, u string) SocialProofChainLi
 }
 
 func ParseWebServiceBinding(base GenericChainLink) (
-	ret RemoteProofChainLink, w Warning) {
+	ret RemoteProofChainLink, e error) {
 
 	jw := base.payloadJson.AtKey("body").AtKey("service")
 
@@ -140,7 +140,7 @@ func ParseWebServiceBinding(base GenericChainLink) (
 	}
 
 	if ret == nil {
-		w = Warningf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug(),
+		e = fmt.Errorf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug(),
 			base.ToDebugString())
 	}
 
@@ -171,10 +171,11 @@ type TrackChainLink struct {
 	untrack *UntrackChainLink
 }
 
-func ParseTrackChainLink(b GenericChainLink) (ret TrackChainLink, w Warning) {
-	whom, err := b.payloadJson.AtPath("body.track.basics.username").GetString()
+func ParseTrackChainLink(b GenericChainLink) (ret TrackChainLink, err error) {
+	var whom string
+	whom, err = b.payloadJson.AtPath("body.track.basics.username").GetString()
 	if err != nil {
-		w = Warningf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
+		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
 		ret = TrackChainLink{b, whom, nil}
 	}
@@ -204,10 +205,11 @@ type UntrackChainLink struct {
 	whom string
 }
 
-func ParseUntrackChainLink(b GenericChainLink) (ret UntrackChainLink, w Warning) {
-	whom, err := b.payloadJson.AtPath("body.untrack.basics.username").GetString()
+func ParseUntrackChainLink(b GenericChainLink) (ret UntrackChainLink, err error) {
+	var whom string
+	whom, err = b.payloadJson.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
-		w = Warningf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
+		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
 		ret = UntrackChainLink{b, whom}
 	}
@@ -243,18 +245,11 @@ type CryptocurrencyChainLink struct {
 }
 
 func ParseCryptocurrencyChainLink(b GenericChainLink) (
-	cl *CryptocurrencyChainLink, w Warning) {
+	cl *CryptocurrencyChainLink, err error) {
 
 	jw := b.payloadJson.AtPath("body.cryptocurrency")
-	var err error
 	var typ, addr string
 	var pkhash []byte
-
-	defer (func() {
-		if err != nil && w == nil {
-			w = ErrorToWarning(err)
-		}
-	})()
 
 	jw.AtKey("type").GetStringVoid(&typ, &err)
 	jw.AtKey("address").GetStringVoid(&addr, &err)
@@ -263,13 +258,14 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 		return
 	}
 
-	if typ != "btc" {
-		w = Warningf("Can only handle BTC addresses for now")
+	if typ != "bitcoin" {
+		err = fmt.Errorf("Can only handle 'bitcoin' addresses for now; got %s", typ)
 		return
 	}
 
 	_, pkhash, err = BtcAddrCheck(addr, nil)
 	if err != nil {
+		err = fmt.Errorf("At signature %s: %s", b.ToDebugString(), err.Error())
 		return
 	}
 	cl = &CryptocurrencyChainLink{b, pkhash, addr}
@@ -347,27 +343,28 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 	s, err := cl.payloadJson.AtKey("body").AtKey("type").GetString()
 	if len(s) == 0 || err != nil {
-		w = Warningf("No type in signature @%s", base.ToDebugString())
+		err = fmt.Errorf("No type in signature @%s", base.ToDebugString())
 	} else {
 		switch s {
 		case "web_service_binding":
-			ret, w = ParseWebServiceBinding(base)
+			ret, err = ParseWebServiceBinding(base)
 		case "track":
-			ret, w = ParseTrackChainLink(base)
+			ret, err = ParseTrackChainLink(base)
 		case "untrack":
-			ret, w = ParseUntrackChainLink(base)
+			ret, err = ParseUntrackChainLink(base)
 		case "cryptocurrency":
-			ret, w = ParseCryptocurrencyChainLink(base)
+			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret = RevokeChainLink{base}
 		case "self_sig":
 			ret = SelfSigChainLink{base}
 		default:
-			w = Warningf("Unknown signature type %s @%s", s, base.ToDebugString())
+			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}
 	}
 
-	if ret == nil {
+	if err != nil {
+		w = ErrorToWarning(err)
 		ret = base
 	}
 
