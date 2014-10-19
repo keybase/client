@@ -1,4 +1,3 @@
-
 package libkb
 
 import (
@@ -7,7 +6,7 @@ import (
 )
 
 type BtcOpts struct {
-	versions []int	
+	versions []int
 }
 
 func BtcAddrCheck(s string, opts *BtcOpts) (version int, pkhash []byte, err error) {
@@ -16,7 +15,7 @@ func BtcAddrCheck(s string, opts *BtcOpts) (version int, pkhash []byte, err erro
 		ok_versions = opts.versions
 	} else {
 		// BTC and BTC multisig, only allowed for now
-		ok_versions = []int { 0, 5 }
+		ok_versions = []int{0, 5}
 	}
 	buf, err := Decode58(s)
 	l := len(buf)
@@ -32,7 +31,7 @@ func BtcAddrCheck(s string, opts *BtcOpts) (version int, pkhash []byte, err erro
 
 	version = int(buf[0])
 	found := false
-	for _,v := range(ok_versions) {
+	for _, v := range ok_versions {
 		if version == v {
 			found = true
 			break
@@ -44,8 +43,8 @@ func BtcAddrCheck(s string, opts *BtcOpts) (version int, pkhash []byte, err erro
 		return
 	}
 
-	pkhash = buf[1:(l-4)]
-	c1 := buf[(l-4):]
+	pkhash = buf[1:(l - 4)]
+	c1 := buf[(l - 4):]
 	tmp := sha256.Sum256(pkhash)
 	c2 := sha256.Sum256(tmp[:])
 	if !FastByteArrayEq(c1, c2[:]) {

@@ -474,7 +474,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 		return
 	} else if arg.self {
-	 	arg.name = G.Env.GetUsername()
+		arg.name = G.Env.GetUsername()
 	}
 
 	G.Log.Debug("+ LoadUser(%s)", arg.name)
@@ -544,8 +544,6 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			return
 		}
 	}
-
-
 
 	if !arg.noCacheResult && ret != nil {
 		G.UserCache.Put(ret)

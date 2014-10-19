@@ -1,10 +1,9 @@
-
 package libkb
 
-import ( 
-	"math/big"
+import (
 	"bytes"
 	"fmt"
+	"math/big"
 )
 
 var alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
@@ -13,7 +12,7 @@ var alphabet_map map[byte]uint8
 func getAlphabetMap() map[byte]uint8 {
 	if alphabet_map == nil {
 		alphabet_map = make(map[byte]uint8)
-		for i,c := range([]byte(alphabet)) {
+		for i, c := range []byte(alphabet) {
 			alphabet_map[c] = uint8(i)
 		}
 	}
@@ -24,7 +23,7 @@ func reverseBuf(buf []byte) {
 	tot := len(buf)
 	mid := tot / 2
 	for i := 0; i < mid; i++ {
-		buf[i],buf[tot - i - 1] = buf[tot - i - 1], buf[i]
+		buf[i], buf[tot-i-1] = buf[tot-i-1], buf[i]
 	}
 }
 
@@ -35,14 +34,14 @@ func Encode58(inp []byte) string {
 	rem := new(big.Int)
 	quo := new(big.Int)
 
-	for ; num.Sign() != 0; {
+	for num.Sign() != 0 {
 		quo.QuoRem(num, base, rem)
 		c := alphabet[rem.Uint64()]
 		buf = append(buf, c)
-	}	
+	}
 
 	// Pad leading zeros...
-	for _ , c := range(inp) {
+	for _, c := range inp {
 		if c == 0x0 {
 			buf = append(buf, alphabet[0])
 		}
@@ -54,7 +53,7 @@ func Encode58(inp []byte) string {
 
 func Decode58(inp string) (outp []byte, err error) {
 	num := big.NewInt(0)
-	place := big.NewInt(1)	
+	place := big.NewInt(1)
 	base := big.NewInt(58)
 	buf := []byte(inp)
 	padlen := 0
@@ -73,7 +72,7 @@ func Decode58(inp string) (outp []byte, err error) {
 	tmp := new(big.Int)
 	res := new(big.Int)
 
-	for i, c := range(buf) {
+	for i, c := range buf {
 		char_index, found := amap[c]
 		if !found {
 			err = fmt.Errorf("Bad character '%c' found at pos %d", c, i)
@@ -83,7 +82,7 @@ func Decode58(inp string) (outp []byte, err error) {
 		tmp.Mul(place, big.NewInt(int64(char_index)))
 		res.Add(res, tmp)
 
-		if i != len(buf) - 1 {
+		if i != len(buf)-1 {
 			place.Mul(place, base)
 		}
 	}

@@ -1,4 +1,3 @@
-
 package libkb
 
 import (
@@ -20,8 +19,8 @@ func Warningf(format string, a ...interface{}) Warning {
 }
 
 func ErrorToWarning(e error) Warning {
-	if e == nil { 
-		return nil 
+	if e == nil {
+		return nil
 	} else {
 		return StringWarning(e.Error())
 	}
