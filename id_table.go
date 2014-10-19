@@ -195,6 +195,10 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.tracks[l.whom] = l
 }
 
+func (l *TrackChainLink) IsRevoked() bool {
+	return l.revoked || l.untrack != nil
+}
+
 //
 //=========================================================================
 
@@ -225,7 +229,6 @@ func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 			u.whom)
 	} else {
 		tobj.untrack = u
-		tobj.markRevoked(u)
 	}
 }
 
