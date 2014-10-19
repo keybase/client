@@ -97,6 +97,9 @@ func (s *CmdSigsList) FilterRxx() error {
 	if err != nil {
 		return err
 	}
+	s.filterSigs(func(l TypedChainLink) bool {
+		return rxx.MatchString(l.ToDisplayString())
+	})
 	return nil
 }
 
