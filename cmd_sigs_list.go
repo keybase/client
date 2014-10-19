@@ -96,6 +96,9 @@ func (s *CmdSigsList) SelectSigs() error {
 }
 
 func (s *CmdSigsList) FilterRxx() error {
+	if len(s.filter) == 0 {
+		return nil
+	}
 	rxx, err := regexp.Compile(s.filter)
 	if err != nil {
 		return err
@@ -137,12 +140,12 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 	}
 
 	i := 0
-	idtab := s.user.idTable
+	idtab := s.sigs
 
 	rowfunc := func() []string {
 		var row []string
-		for ; i < idtab.Len() && row == nil; i++ {
-			link := idtab.order[i]
+		for ; i < len(idtab) && row == nil; i++ {
+			link := idtab[i]
 			if !s.revoked && (link.IsRevoked() || link.IsRevocationIsh()) {
 				continue
 			}
@@ -214,6 +217,8 @@ func (s *CmdSigsList) Run() (err error) {
 	if err != nil {
 		return
 	}
+
+	s.sigs = s.user.idTable.order
 
 	if err = s.ProcessSigs(); err != nil {
 		return

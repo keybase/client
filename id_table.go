@@ -30,31 +30,31 @@ type GenericChainLink struct {
 	*ChainLink
 }
 
-func (b GenericChainLink) GetSigId() SigId {
+func (b *GenericChainLink) GetSigId() SigId {
 	return b.unpacked.sigId
 }
-func (b GenericChainLink) Type() string            { return "generic" }
-func (b GenericChainLink) ToDisplayString() string { return "unknown" }
-func (b GenericChainLink) insertIntoTable(tab *IdentityTable) {
+func (b *GenericChainLink) Type() string            { return "generic" }
+func (b *GenericChainLink) ToDisplayString() string { return "unknown" }
+func (b *GenericChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(b)
 }
-func (b GenericChainLink) markRevoked(r TypedChainLink) {
+func (b *GenericChainLink) markRevoked(r TypedChainLink) {
 	b.revoked = true
 }
-func (b GenericChainLink) ToDebugString() string {
+func (b *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s",
 		string(b.parent.uid), b.unpacked.seqno, b.id.ToString())
 }
 
-func (g GenericChainLink) IsRevocationIsh() bool { return false }
-func (g GenericChainLink) IsRevoked() bool       { return g.revoked }
-func (g GenericChainLink) IsActiveKey() bool     { return g.activeKey }
-func (g GenericChainLink) GetSeqno() Seqno       { return g.unpacked.seqno }
-func (g GenericChainLink) GetPgpFingerprint() PgpFingerprint {
+func (g *GenericChainLink) IsRevocationIsh() bool { return false }
+func (g *GenericChainLink) IsRevoked() bool       { return g.revoked }
+func (g *GenericChainLink) IsActiveKey() bool     { return g.activeKey }
+func (g *GenericChainLink) GetSeqno() Seqno       { return g.unpacked.seqno }
+func (g *GenericChainLink) GetPgpFingerprint() PgpFingerprint {
 	return g.unpacked.pgpFingerprint
 }
 
-func (g GenericChainLink) GetCTime() time.Time {
+func (g *GenericChainLink) GetCTime() time.Time {
 	return time.Unix(int64(g.unpacked.ctime), 0)
 }
 
@@ -81,28 +81,28 @@ type SocialProofChainLink struct {
 	username string
 }
 
-func (w WebProofChainLink) TableKey() string { return "web" }
-func (w WebProofChainLink) Type() string     { return "proof" }
-func (w WebProofChainLink) insertIntoTable(tab *IdentityTable) {
+func (w *WebProofChainLink) TableKey() string { return "web" }
+func (w *WebProofChainLink) Type() string     { return "proof" }
+func (w *WebProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(w, tab)
 }
-func (w WebProofChainLink) ToDisplayString() string {
+func (w *WebProofChainLink) ToDisplayString() string {
 	return w.protocol + "://" + w.hostname
 }
-func (s SocialProofChainLink) TableKey() string { return s.service }
-func (s SocialProofChainLink) Type() string     { return "proof" }
-func (s SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
+func (s *SocialProofChainLink) TableKey() string { return s.service }
+func (s *SocialProofChainLink) Type() string     { return "proof" }
+func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(s, tab)
 }
-func (w SocialProofChainLink) ToDisplayString() string {
+func (w *SocialProofChainLink) ToDisplayString() string {
 	return w.username + "@" + w.service
 }
 
-func NewWebProofChainLink(b GenericChainLink, p, h string) WebProofChainLink {
-	return WebProofChainLink{b, p, h}
+func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
+	return &WebProofChainLink{b, p, h}
 }
-func NewSocialProofChainLink(b GenericChainLink, s, u string) SocialProofChainLink {
-	return SocialProofChainLink{b, s, u}
+func NewSocialProofChainLink(b GenericChainLink, s, u string) *SocialProofChainLink {
+	return &SocialProofChainLink{b, s, u}
 }
 
 func ParseWebServiceBinding(base GenericChainLink) (
@@ -111,7 +111,7 @@ func ParseWebServiceBinding(base GenericChainLink) (
 	jw := base.payloadJson.AtKey("body").AtKey("service")
 
 	if jw.IsNil() {
-		ret = SelfSigChainLink{base}
+		ret = &SelfSigChainLink{base}
 
 	} else if prot, e1 := jw.AtKey("protocol").GetString(); e1 == nil {
 
@@ -173,24 +173,24 @@ type TrackChainLink struct {
 	untrack *UntrackChainLink
 }
 
-func ParseTrackChainLink(b GenericChainLink) (ret TrackChainLink, err error) {
+func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 	var whom string
 	whom, err = b.payloadJson.AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
-		ret = TrackChainLink{b, whom, nil}
+		ret = &TrackChainLink{b, whom, nil}
 	}
 	return
 }
 
-func (t TrackChainLink) Type() string { return "track" }
+func (t *TrackChainLink) Type() string { return "track" }
 
-func (b TrackChainLink) ToDisplayString() string {
+func (b *TrackChainLink) ToDisplayString() string {
 	return b.whom
 }
 
-func (l TrackChainLink) insertIntoTable(tab *IdentityTable) {
+func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 	tab.tracks[l.whom] = l
 }
@@ -207,35 +207,35 @@ type UntrackChainLink struct {
 	whom string
 }
 
-func ParseUntrackChainLink(b GenericChainLink) (ret UntrackChainLink, err error) {
+func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error) {
 	var whom string
 	whom, err = b.payloadJson.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
-		ret = UntrackChainLink{b, whom}
+		ret = &UntrackChainLink{b, whom}
 	}
 	return
 }
 
-func (u UntrackChainLink) insertIntoTable(tab *IdentityTable) {
+func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
 	if tobj, found := tab.tracks[u.whom]; !found {
 		G.Log.Notice("Bad untrack of %s; no previous tracking statement found",
 			u.whom)
 	} else {
-		tobj.untrack = &u
+		tobj.untrack = u
 		tobj.markRevoked(u)
 	}
 }
 
-func (b UntrackChainLink) ToDisplayString() string {
+func (b *UntrackChainLink) ToDisplayString() string {
 	return b.whom
 }
 
-func (r UntrackChainLink) Type() string { return "untrack" }
+func (r *UntrackChainLink) Type() string { return "untrack" }
 
-func (r UntrackChainLink) IsRevocationIsh() bool { return true }
+func (r *UntrackChainLink) IsRevocationIsh() bool { return true }
 
 //
 //=========================================================================
@@ -277,11 +277,11 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 	return
 }
 
-func (r CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
+func (r *CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
 
-func (r CryptocurrencyChainLink) ToDisplayString() string { return r.address }
+func (r *CryptocurrencyChainLink) ToDisplayString() string { return r.address }
 
-func (l CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
+func (l *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
 
@@ -295,9 +295,9 @@ type RevokeChainLink struct {
 	GenericChainLink
 }
 
-func (r RevokeChainLink) Type() string { return "revoke" }
+func (r *RevokeChainLink) Type() string { return "revoke" }
 
-func (r RevokeChainLink) ToDisplayString() string {
+func (r *RevokeChainLink) ToDisplayString() string {
 	v := r.GetRevocations()
 	list := make([]string, len(v), len(v))
 	for i, s := range v {
@@ -306,9 +306,9 @@ func (r RevokeChainLink) ToDisplayString() string {
 	return strings.Join(list, ",")
 }
 
-func (r RevokeChainLink) IsRevocationIsh() bool { return true }
+func (r *RevokeChainLink) IsRevocationIsh() bool { return true }
 
-func (l RevokeChainLink) insertIntoTable(tab *IdentityTable) {
+func (l *RevokeChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
 
@@ -322,14 +322,14 @@ type SelfSigChainLink struct {
 	GenericChainLink
 }
 
-func (r SelfSigChainLink) Type() string { return "self" }
+func (r *SelfSigChainLink) Type() string { return "self" }
 
-func (s SelfSigChainLink) ToDisplayString() string { return s.unpacked.username }
+func (s *SelfSigChainLink) ToDisplayString() string { return s.unpacked.username }
 
-func (l SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
+func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
-func (w SelfSigChainLink) TableKey() string { return "keybase" }
+func (w *SelfSigChainLink) TableKey() string { return "keybase" }
 
 //
 //=========================================================================
@@ -339,7 +339,7 @@ type IdentityTable struct {
 	revocations  map[SigId]bool
 	links        map[SigId]TypedChainLink
 	remoteProofs map[string][]RemoteProofChainLink
-	tracks       map[string]TrackChainLink
+	tracks       map[string]*TrackChainLink
 	order        []TypedChainLink
 }
 
@@ -383,7 +383,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 	if err != nil {
 		w = ErrorToWarning(err)
-		ret = base
+		ret = &base
 	}
 
 	// Basically we never fail, since worse comes to worse, we treat
@@ -397,7 +397,7 @@ func NewIdentityTable(sc *SigChain) *IdentityTable {
 		revocations:  make(map[SigId]bool),
 		links:        make(map[SigId]TypedChainLink),
 		remoteProofs: make(map[string][]RemoteProofChainLink),
-		tracks:       make(map[string]TrackChainLink),
+		tracks:       make(map[string]*TrackChainLink),
 		order:        make([]TypedChainLink, 0, sc.Len()),
 	}
 	ret.Populate()
