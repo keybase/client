@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -34,7 +35,7 @@ func (b GenericChainLink) GetSigId() SigId {
 	return b.unpacked.sigId
 }
 func (b GenericChainLink) Type() string            { return "generic" }
-func (b GenericChainLink) ToDisplayString() string { return "generic" }
+func (b GenericChainLink) ToDisplayString() string { return "unknown" }
 func (b GenericChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(b)
 }
@@ -105,7 +106,8 @@ func NewSocialProofChainLink(b GenericChainLink, s, u string) SocialProofChainLi
 	return SocialProofChainLink{b, s, u}
 }
 
-func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink) {
+func ParseWebServiceBinding(base GenericChainLink) (
+	ret RemoteProofChainLink, w Warning) {
 
 	jw := base.payloadJson.AtKey("body").AtKey("service")
 
@@ -138,7 +140,7 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink) {
 	}
 
 	if ret == nil {
-		G.Log.Warning("Unrecognized Web proof: %s @%s", jw.MarshalToDebug(),
+		w = Warningf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug(),
 			base.ToDebugString())
 	}
 
@@ -169,10 +171,10 @@ type TrackChainLink struct {
 	untrack *UntrackChainLink
 }
 
-func ParseTrackChainLink(b GenericChainLink) (ret TrackChainLink) {
+func ParseTrackChainLink(b GenericChainLink) (ret TrackChainLink, w Warning) {
 	whom, err := b.payloadJson.AtPath("body.track.basics.username").GetString()
 	if err != nil {
-		G.Log.Warning("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
+		w = Warningf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
 		ret = TrackChainLink{b, whom, nil}
 	}
@@ -202,10 +204,10 @@ type UntrackChainLink struct {
 	whom string
 }
 
-func ParseUntrackChainLink(b GenericChainLink) (ret UntrackChainLink) {
+func ParseUntrackChainLink(b GenericChainLink) (ret UntrackChainLink, w Warning) {
 	whom, err := b.payloadJson.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
-		G.Log.Warning("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
+		w = Warningf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
 		ret = UntrackChainLink{b, whom}
 	}
@@ -231,11 +233,58 @@ func (r UntrackChainLink) Type() string { return "untrack" }
 //
 //=========================================================================
 
+//=========================================================================
+// CryptocurrencyChainLink
+
 type CryptocurrencyChainLink struct {
 	GenericChainLink
+	pkhash  []byte
+	address string
+}
+
+func ParseCryptocurrencyChainLink(b GenericChainLink) (
+	cl *CryptocurrencyChainLink, w Warning) {
+
+	jw := b.payloadJson.AtPath("body.cryptocurrency")
+	var err error
+	var typ, addr string
+	var pkhash []byte
+
+	defer (func() {
+		if err != nil && w == nil {
+			w = ErrorToWarning(err)
+		}
+	})()
+
+	jw.AtKey("type").GetStringVoid(&typ, &err)
+	jw.AtKey("address").GetStringVoid(&addr, &err)
+
+	if err != nil {
+		return
+	}
+
+	if typ != "btc" {
+		w = Warningf("Can only handle BTC addresses for now")
+		return
+	}
+
+	_, pkhash, err = BtcAddrCheck(addr, nil)
+	if err != nil {
+		return
+	}
+	cl = &CryptocurrencyChainLink{b, pkhash, addr}
+	return
 }
 
 func (r CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
+
+func (r CryptocurrencyChainLink) ToDisplayString() string { return r.address }
+
+//
+//=========================================================================
+
+//=========================================================================
+// RevokeChainLink
 
 type RevokeChainLink struct {
 	GenericChainLink
@@ -243,11 +292,31 @@ type RevokeChainLink struct {
 
 func (r RevokeChainLink) Type() string { return "revoke" }
 
+func (r RevokeChainLink) ToDisplayString() string {
+	v := r.GetRevocations()
+	list := make([]string, len(v), len(v))
+	for i, s := range v {
+		list[i] = s.ToString(true)
+	}
+	return strings.Join(list, ",")
+}
+
+//
+//=========================================================================
+
+//=========================================================================
+// SelfSigChainLink
+
 type SelfSigChainLink struct {
 	GenericChainLink
 }
 
 func (r SelfSigChainLink) Type() string { return "self" }
+
+func (s SelfSigChainLink) ToDisplayString() string { return "self" }
+
+//
+//=========================================================================
 
 type IdentityTable struct {
 	sigChain     *SigChain
@@ -272,29 +341,29 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 	}
 }
 
-func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink) {
+func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 	base := GenericChainLink{cl, false}
 
 	s, err := cl.payloadJson.AtKey("body").AtKey("type").GetString()
 	if len(s) == 0 || err != nil {
-		G.Log.Warning("No type in signature @%s", base.ToDebugString())
+		w = Warningf("No type in signature @%s", base.ToDebugString())
 	} else {
 		switch s {
 		case "web_service_binding":
-			ret = ParseWebServiceBinding(base)
+			ret, w = ParseWebServiceBinding(base)
 		case "track":
-			ret = ParseTrackChainLink(base)
+			ret, w = ParseTrackChainLink(base)
 		case "untrack":
-			ret = ParseUntrackChainLink(base)
+			ret, w = ParseUntrackChainLink(base)
 		case "cryptocurrency":
-			ret = CryptocurrencyChainLink{base}
+			ret, w = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret = RevokeChainLink{base}
 		case "self_sig":
 			ret = SelfSigChainLink{base}
 		default:
-			G.Log.Warning("Unknown signature type %s @%s", s, base.ToDebugString())
+			w = Warningf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}
 	}
 
@@ -323,8 +392,11 @@ func NewIdentityTable(sc *SigChain) *IdentityTable {
 func (idt *IdentityTable) Populate() {
 	G.Log.Debug("+ Populate ID Table")
 	for _, link := range idt.sigChain.chainLinks {
-		tl := NewTypedChainLink(link)
+		tl, w := NewTypedChainLink(link)
 		tl.insertIntoTable(idt)
+		if w != nil {
+			G.Log.Warning(w.Warning())
+		}
 	}
 	G.Log.Debug("- Populate ID Table")
 }
