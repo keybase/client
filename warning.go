@@ -1,0 +1,28 @@
+
+package libkb
+
+import (
+	"fmt"
+)
+
+type Warning interface {
+	Warning() string
+}
+
+type StringWarning string
+
+func (s StringWarning) Warning() string {
+	return string(s)
+}
+
+func Warningf(format string, a ...interface{}) Warning {
+	return StringWarning(fmt.Sprintf(format, a...))
+}
+
+func ErrorToWarning(e error) Warning {
+	if e == nil { 
+		return nil 
+	} else {
+		return StringWarning(e.Error())
+	}
+}
