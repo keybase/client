@@ -3,9 +3,9 @@ package libkb
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"os"
 	"regexp"
 	"strings"
-	"text/tabwriter"
 )
 
 type CmdSigsList struct {
@@ -13,6 +13,8 @@ type CmdSigsList struct {
 	revoked bool
 	json    bool
 	verbose bool
+	allKeys bool
+	headers bool
 	types   map[string]bool
 
 	user *User
@@ -53,6 +55,8 @@ func (s *CmdSigsList) Initialize(ctx *cli.Context) error {
 	s.revoked = ctx.Bool("revoked")
 	s.json = ctx.Bool("json")
 	s.verbose = ctx.Bool("verbose")
+	s.allKeys = ctx.Bool("all-keys")
+	s.headers = ctx.Bool("headers")
 
 	if err = s.ParseTypes(ctx); err != nil {
 		return err
@@ -107,6 +111,70 @@ func (s *CmdSigsList) ProcessSigs() (err error) {
 }
 
 func (s *CmdSigsList) DisplayTable() (err error) {
+
+	var cols []string
+
+	if s.headers {
+		cols = []string{
+			"#",
+			"SigId",
+			"Type",
+			"Date",
+		}
+		if s.revoked {
+			cols = append(cols, "Revoked")
+		}
+		if s.allKeys {
+			cols = append(cols, "Active", "Key")
+		}
+		cols = append(cols, "Body")
+	}
+
+	i := 0
+	idtab := s.user.idTable
+
+	rowfunc := func() []string {
+		var row []string
+		for ; i < idtab.Len() && row == nil; i++ {
+			link := idtab.order[i]
+			if !s.revoked && link.IsRevoked() {
+				continue
+			}
+			if !s.allKeys && !link.IsActiveKey() {
+				continue
+			}
+			row := []string{
+				fmt.Sprintf("%d", int(link.GetSeqno())),
+				link.GetSigId().ToDisplayString(s.verbose),
+				FormatTime(link.GetCTime()),
+			}
+			if s.revoked {
+				var ch string
+				if link.IsRevoked() {
+					ch = "-"
+				} else {
+					ch = "+"
+				}
+				row = append(row, ch)
+			}
+			if s.allKeys {
+				var ch string
+				if link.IsActiveKey() {
+					ch = "+"
+				} else {
+					ch = "-"
+				}
+				key := link.GetPgpFingerprint().ToDisplayString(s.verbose)
+				row = append(row, ch, key)
+			}
+			row = append(row, link.ToDisplayString())
+		}
+		i++
+		return row
+	}
+
+	Tablify(os.Stdout, cols, rowfunc)
+
 	return
 }
 
@@ -128,7 +196,7 @@ func (s *CmdSigsList) Run() (err error) {
 	// XXX maybe do some sort of debug dump with the user that
 	// we loaded from the server (or storage).
 
-	s.user, err = LoadUser(LoadUserArg{self: true})
+	s.user, err = LoadUser(LoadUserArg{self: true, allKeys: s.allKeys})
 
 	if err != nil {
 		return

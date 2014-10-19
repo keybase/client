@@ -138,7 +138,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) error {
 	return nil
 }
 
-func (sc *SigChain) LoadFromStorage() error {
+func (sc *SigChain) LoadFromStorage(allKeys bool) error {
 	if sc.fromStorage {
 		return nil
 	}
@@ -156,7 +156,7 @@ func (sc *SigChain) LoadFromStorage() error {
 		G.Log.Debug("| loading link; curr=%s", curr.ToString())
 		if link, err := LoadLinkFromStorage(sc, curr); err != nil {
 			return err
-		} else if fp1, fp2 := sc.pgpFingerprint, link.GetPgpFingerprint(); fp1 != nil && !fp1.Eq(fp2) {
+		} else if fp1, fp2 := sc.pgpFingerprint, link.GetPgpFingerprint(); !allKeys && fp1 != nil && !fp1.Eq(fp2) {
 			// If we're loading a sigchain only for the given key, don't
 			// keep loading once we see a key that looks wrong.
 			good_key = false
@@ -246,20 +246,19 @@ func (sc *SigChain) Flatten() {
 	}
 }
 
-func (sc *SigChain) FlattenAndPrune() {
+func (sc *SigChain) FlattenAndPrune(allKeys bool) {
 	sc.Flatten()
-	sc.Prune()
+	sc.Prune(allKeys)
 }
 
-func (sc *SigChain) Prune() {
+func (sc *SigChain) Prune(allKeys bool) {
 	if sc.pgpFingerprint != nil && sc.chainLinks != nil {
 		fp := *sc.pgpFingerprint
-
 		i := len(sc.chainLinks) - 1
 
 		for ; i >= 0; i-- {
 			link := sc.chainLinks[i]
-			if !link.MatchFingerprint(fp) {
+			if !link.MatchFingerprintAndMark(fp) && !allKeys {
 				i++
 				break
 			}

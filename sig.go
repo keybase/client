@@ -23,6 +23,15 @@ func ComputeSigIdFromSigBody(body []byte) SigId {
 	return SigId(sha256.Sum256(body))
 }
 
+func (s SigId) ToDisplayString(verbose bool) string {
+	if verbose {
+		return s.ToString(true)
+	} else {
+		return fmt.Sprintf("%s...", hex.EncodeToString(s[0:3]))
+	}
+
+}
+
 func SigIdFromHex(s string, suffix bool) (*SigId, error) {
 	bv, err := hex.DecodeString(s)
 	totlen := SIG_ID_LEN

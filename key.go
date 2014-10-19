@@ -38,6 +38,18 @@ func (p PgpFingerprint) ToString() string {
 	return hex.EncodeToString(p[:])
 }
 
+func (p PgpFingerprint) ToKeyId() string {
+	return strings.ToUpper(hex.EncodeToString(p[12:20]))
+}
+
+func (p PgpFingerprint) ToDisplayString(verbose bool) string {
+	if verbose {
+		return p.ToString()
+	} else {
+		return p.ToKeyId()
+	}
+}
+
 func (p PgpFingerprint) LoadFromLocalDb() (*PgpKeyBundle, error) {
 	dbobj, err := G.LocalDb.Get(DbKey{
 		Typ: DB_PGP_KEY,

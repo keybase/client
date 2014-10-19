@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"time"
 )
 
 type TypedChainLink interface {
@@ -12,6 +13,12 @@ type TypedChainLink interface {
 	ToDebugString() string
 	Type() string
 	ToDisplayString() string
+	IsRevocationIsh() bool
+	IsRevoked() bool
+	IsActiveKey() bool
+	GetSeqno() Seqno
+	GetCTime() time.Time
+	GetPgpFingerprint() PgpFingerprint
 }
 
 //=========================================================================
@@ -37,6 +44,18 @@ func (b GenericChainLink) markRevoked(r TypedChainLink) {
 func (b GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s",
 		string(b.parent.uid), b.unpacked.seqno, b.id.ToString())
+}
+
+func (g GenericChainLink) IsRevocationIsh() bool { return false }
+func (g GenericChainLink) IsRevoked() bool       { return g.revoked }
+func (g GenericChainLink) IsActiveKey() bool     { return g.activeKey }
+func (g GenericChainLink) GetSeqno() Seqno       { return g.unpacked.seqno }
+func (g GenericChainLink) GetPgpFingerprint() PgpFingerprint {
+	return g.unpacked.pgpFingerprint
+}
+
+func (g GenericChainLink) GetCTime() time.Time {
+	return time.Unix(int64(g.unpacked.ctime), 0)
 }
 
 //
@@ -308,4 +327,8 @@ func (idt *IdentityTable) Populate() {
 		tl.insertIntoTable(idt)
 	}
 	G.Log.Debug("- Populate ID Table")
+}
+
+func (idt *IdentityTable) Len() int {
+	return len(idt.order)
 }

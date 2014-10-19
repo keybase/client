@@ -275,6 +275,14 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 							Usage: "type of sig to output; choose from {track" +
 								", proof, cryptocurrency, self}; all by default",
 						},
+						cli.BoolFlag{
+							Name:  "a, all-keys",
+							Usage: "show signatures from all (replaced) keys",
+						},
+						cli.BoolFlag{
+							Name:  "H, headers",
+							Usage: "show column headers",
+						},
 					},
 				},
 			},

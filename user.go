@@ -40,6 +40,7 @@ type LoadUserArg struct {
 	loadSecrets      bool
 	forceReload      bool
 	skipVerify       bool
+	allKeys          bool
 	leaf             *MerkleUserLeaf
 }
 
@@ -194,17 +195,17 @@ func (u *User) MakeSigChain(base *SigChain) error {
 	return nil
 }
 
-func (u *User) LoadSigChainFromStorage() error {
+func (u *User) LoadSigChainFromStorage(allKeys bool) error {
 	G.Log.Debug("+ LoadSigChainFromStorage(%s)", u.name)
 	if err := u.MakeSigChain(nil); err != nil {
 		return err
 	}
-	err := u.sigChain.LoadFromStorage()
+	err := u.sigChain.LoadFromStorage(allKeys)
 	G.Log.Debug("- LoadSigChainFromStorage(%s) -> %v", u.name, (err == nil))
 	return err
 }
 
-func LoadUserFromLocalStorage(name string) (u *User, err error) {
+func LoadUserFromLocalStorage(name string, allKeys bool) (u *User, err error) {
 
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", name)
 
@@ -226,7 +227,7 @@ func LoadUserFromLocalStorage(name string) (u *User, err error) {
 
 	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, u.id)
 
-	if err = u.LoadSigChainFromStorage(); err != nil {
+	if err = u.LoadSigChainFromStorage(allKeys); err != nil {
 		return nil, err
 	}
 
@@ -458,8 +459,8 @@ func LookupMerkleLeaf(name string, local *User) (f *MerkleUserLeaf, err error) {
 	return
 }
 
-func (u *User) MakeIdTable() error {
-	u.sigChain.FlattenAndPrune()
+func (u *User) MakeIdTable(allKeys bool) error {
+	u.sigChain.FlattenAndPrune(allKeys)
 	u.idTable = NewIdentityTable(u.sigChain)
 	return nil
 }
@@ -493,7 +494,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 	}
 
-	local, err := LoadUserFromLocalStorage(name)
+	local, err := LoadUserFromLocalStorage(name, arg.allKeys)
 	if err != nil {
 		G.Log.Warning("Failed to load %s from storage: %s",
 			name, err.Error())
@@ -540,7 +541,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			name, e2.Error())
 	}
 
-	if err = ret.MakeIdTable(); err != nil {
+	if err = ret.MakeIdTable(arg.allKeys); err != nil {
 		return
 	}
 

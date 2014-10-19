@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"os"
 	"path"
+	"time"
 )
 
 func ErrToOk(err error) string {
@@ -54,4 +55,9 @@ func FastByteArrayEq(a, b []byte) bool {
 
 func SecureByteArrayEq(a, b []byte) bool {
 	return hmac.Equal(a, b)
+}
+
+func FormatTime(tm time.Time) string {
+	layout := "2006-01-02 15:04:05 MST"
+	return tm.Format(layout)
 }
