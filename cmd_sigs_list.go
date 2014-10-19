@@ -3,17 +3,17 @@ package libkb
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"regexp"
 	"strings"
 	"text/tabwriter"
-	"regexp"
 )
 
 type CmdSigsList struct {
-	filter string
+	filter  string
 	revoked bool
-	json bool
+	json    bool
 	verbose bool
-	types map[string]bool
+	types   map[string]bool
 
 	user *User
 	sigs []TypedChainLink
@@ -25,16 +25,16 @@ func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
 		return nil
 	}
 
-	types := map[string]bool {
-		"track" : true,
-		"proof" : true,
-		"cryptocurrency" : true,
-		"self" : true,
+	types := map[string]bool{
+		"track":          true,
+		"proof":          true,
+		"cryptocurrency": true,
+		"self":           true,
 	}
 
 	ret := make(map[string]bool)
 	v := strings.Split(tmp, ",")
-	for _,i := range(v) {
+	for _, i := range v {
 		ok, found := types[i]
 		if !ok || !found {
 			return fmt.Errorf("unknown signature type: %s", i)
@@ -60,7 +60,7 @@ func (s *CmdSigsList) Initialize(ctx *cli.Context) error {
 
 	if nargs == 1 {
 		s.filter = ctx.Args()[0]
-	} else if nargs > 1{
+	} else if nargs > 1 {
 		err = fmt.Errorf("list takes at most 1 arg, a filter")
 	}
 
@@ -69,7 +69,7 @@ func (s *CmdSigsList) Initialize(ctx *cli.Context) error {
 
 func (s *CmdSigsList) filterSigs(f func(TypedChainLink) bool) {
 	sigs := make([]TypedChainLink, 0, 0)
-	for _, link := range(s.sigs) {
+	for _, link := range s.sigs {
 		if f(link) {
 			sigs = append(sigs, link)
 		}
@@ -134,7 +134,7 @@ func (s *CmdSigsList) Run() (err error) {
 		return
 	}
 
-	if err = s.ProcessSigs(); err != nil{
+	if err = s.ProcessSigs(); err != nil {
 		return
 	}
 

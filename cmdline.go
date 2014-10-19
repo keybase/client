@@ -230,10 +230,10 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 					},
 				},
 				{
-					Name: "nuke",
-					Usage : "keybase db nuke",
-					Description : "Delete the local DB cache",
-					Action : func(c *cli.Context) {
+					Name:        "nuke",
+					Usage:       "keybase db nuke",
+					Description: "Delete the local DB cache",
+					Action: func(c *cli.Context) {
 						p.ctx = c
 						cmd = &CmdDbNuke{c}
 					},
@@ -247,39 +247,37 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 		},
 		{
-			Name : "sigs",
-			Usage : "keybase sigs [subcommands...]",
-			Description : "List, revoke signatures",
-			Subcommands : []cli.Command{
+			Name:        "sigs",
+			Usage:       "keybase sigs [subcommands...]",
+			Description: "List, revoke signatures",
+			Subcommands: []cli.Command{
 				{
-					Name : "list",
+					Name:  "list",
 					Usage: "keybase sigs list [filter]",
-					Action : func (c *cli.Context) {
+					Action: func(c *cli.Context) {
 						cmd = p.InitSubcommand(c, &CmdSigsList{}, "list")
 					},
-					Flags : []cli.Flag {
+					Flags: []cli.Flag{
 						cli.BoolFlag{
-							Name : "r, revoked",
-							Usage : "Show revoked signatures",
+							Name:  "r, revoked",
+							Usage: "Show revoked signatures",
 						},
 						cli.BoolFlag{
-							Name : "j, json",
-							Usage : "output in json format; default is text",
+							Name:  "j, json",
+							Usage: "output in json format; default is text",
 						},
-						cli.BoolFlag {
-							Name : "v, verbose",
-							Usage : "a full dump, with more gory detail",
+						cli.BoolFlag{
+							Name:  "v, verbose",
+							Usage: "a full dump, with more gory detail",
 						},
-						cli.StringFlag {
-							Name : "t, type",
-							Usage : "type of sig to output; choose from {track" +
+						cli.StringFlag{
+							Name: "t, type",
+							Usage: "type of sig to output; choose from {track" +
 								", proof, cryptocurrency, self}; all by default",
 						},
 					},
 				},
 			},
-
-
 		},
 		{
 			Name: "login",

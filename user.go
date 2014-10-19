@@ -182,14 +182,14 @@ func (u *User) MakeSigChain(base *SigChain) error {
 			return fmt.Errorf("Badly formatted sigchain tail for user %s: %s",
 				u.name, err.Error())
 		} else {
-			u.sigChain = NewSigChain(u.id, seqno, lid, f, base)
+			u.sigChain = NewSigChain(u.id, u.name, seqno, lid, f, base)
 		}
 	} else if base != nil {
 		return fmt.Errorf("Signature chain corruption for %s; unexpected base",
 			u.name)
 	} else {
 		G.Log.Debug("| Empty sigchain for %s", u.name)
-		u.sigChain = NewEmptySigChain(u.id)
+		u.sigChain = NewEmptySigChain(u.id, u.name)
 	}
 	return nil
 }
@@ -474,7 +474,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 		return
 	} else if arg.self {
-	 	arg.name = G.Env.GetUsername()
+		arg.name = G.Env.GetUsername()
 	}
 
 	G.Log.Debug("+ LoadUser(%s)", arg.name)
@@ -523,7 +523,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		ret, err = LoadUserFromServer(arg, baseChain)
 	}
 
-	if err != nil {
+	if err != nil || ret == nil {
 		return
 	}
 
@@ -531,23 +531,19 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		if err = ret.VerifySigChain(); err != nil {
 			return
 		}
-
-		// Proactively cache fetches from remote server to local storage
-		if e2 := ret.Store(); e2 != nil {
-			G.Log.Warning("Problem storing user %s: %s",
-				name, e2.Error())
-		}
 	}
 
-	if ret != nil {
-		if err = ret.MakeIdTable(); err != nil {
-			return
-		}
+	// Proactively cache fetches from remote server to local storage
+	if e2 := ret.Store(); e2 != nil {
+		G.Log.Warning("Problem storing user %s: %s",
+			name, e2.Error())
 	}
 
+	if err = ret.MakeIdTable(); err != nil {
+		return
+	}
 
-
-	if !arg.noCacheResult && ret != nil {
+	if !arg.noCacheResult {
 		G.UserCache.Put(ret)
 	}
 

@@ -5,7 +5,8 @@ import (
 )
 
 type SigChain struct {
-	uid UID
+	uid      UID
+	username string
 
 	lastSeqno      int
 	lastLink       LinkId
@@ -15,6 +16,7 @@ type SigChain struct {
 	fromStorage   bool
 	chainVerified bool
 	sigVerified   bool
+	idVerified    bool
 	fromServer    bool
 	dirty         bool
 
@@ -23,17 +25,45 @@ type SigChain struct {
 	base *SigChain
 }
 
-func NewEmptySigChain(uid UID) *SigChain {
-	return &SigChain{uid, 0, nil, nil, nil, false, true, true, false, false, nil}
+func NewEmptySigChain(uid UID, username string) *SigChain {
+	return &SigChain{
+		uid:            uid,
+		username:       username,
+		lastSeqno:      0,
+		lastLink:       nil,
+		chainLinks:     nil,
+		pgpFingerprint: nil,
+		fromStorage:    false,
+		chainVerified:  true,
+		sigVerified:    true,
+		idVerified:     false,
+		fromServer:     false,
+		dirty:          false,
+		base:           nil,
+	}
 }
 
 func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
 }
 
-func NewSigChain(uid UID, seqno int, lastLink LinkId,
+func NewSigChain(uid UID, username string, seqno int, lastLink LinkId,
 	f *PgpFingerprint, base *SigChain) *SigChain {
-	return &SigChain{uid, seqno, lastLink, nil, f, false, false, false, false, true, base}
+	return &SigChain{
+		uid:            uid,
+		username:       username,
+		lastSeqno:      seqno,
+		lastLink:       lastLink,
+		chainLinks:     nil,
+		pgpFingerprint: f,
+		fromStorage:    false,
+		chainVerified:  false,
+		sigVerified:    false,
+		idVerified:     false,
+		fromServer:     false,
+		dirty:          true,
+		base:           base,
+	}
 }
 
 func reverse(list []*ChainLink) []*ChainLink {
@@ -240,6 +270,53 @@ func (sc *SigChain) Store() error {
 	return nil
 }
 
+func (sc *SigChain) verifyId(fp PgpFingerprint) (good bool, searched bool) {
+
+	var s1, s2, ok bool
+
+	if sc.chainLinks != nil {
+		for i := len(sc.chainLinks) - 1; i >= 0; i-- {
+			s1 = true
+			cl := sc.chainLinks[i]
+			if ok = cl.VerifyUidAndUsername(fp, sc.uid, sc.username); ok {
+				return true, true
+			}
+		}
+	}
+
+	if sc.base != nil {
+		ok, s2 = sc.base.verifyId(fp)
+		if ok {
+			return true, true
+		}
+	}
+
+	return false, (s1 || s2)
+}
+
+func (sc *SigChain) VerifyId(key *PgpKeyBundle) error {
+
+	if sc.idVerified {
+		return nil
+	}
+
+	fp := key.GetFingerprint()
+
+	good, searched := sc.verifyId(fp)
+	if good {
+		sc.idVerified = true
+		return nil
+	}
+
+	if !searched && key.FindKeybaseUsername(sc.username) {
+		sc.idVerified = true
+		return nil
+	}
+
+	return fmt.Errorf("No proof of UID %s for user %s w/ key %s",
+		string(sc.uid), sc.username, fp.ToString())
+}
+
 func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 
 	cached = false
@@ -251,6 +328,10 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 	}
 
 	if err = sc.VerifyChain(); err != nil {
+		return
+	}
+
+	if err = sc.VerifyId(key); err != nil {
 		return
 	}
 

@@ -69,6 +69,8 @@ type ChainLinkUnpacked struct {
 	pgpFingerprint PgpFingerprint
 	sig            string
 	sigId          SigId
+	uid            UID
+	username       string
 }
 
 type ChainLink struct {
@@ -154,17 +156,20 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	if err != nil {
 		return err
 	}
-	GetPgpFingerprintVoid(c.payloadJson.AtKey("body").AtKey("key").AtKey("fingerprint"),
-		&tmp.pgpFingerprint, &err)
+
+	var uid_tmp string
 	var sq int64
+
+	GetPgpFingerprintVoid(c.payloadJson.AtPath("body.key.fingerprint"),
+		&tmp.pgpFingerprint, &err)
+	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
+	c.payloadJson.AtPath("body.key.uid").GetStringVoid(&uid_tmp, &err)
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
 	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
-	tmp.seqno = Seqno(sq)
 	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
 
 	var ei int64
 	c.payloadJson.AtKey("expire_in").GetInt64Void(&ei, &err)
-	tmp.etime = tmp.ctime + ei
 
 	// IF we're loaded from *trusted* storage, like our local
 	// DB, then we can skip verification later
@@ -177,6 +182,9 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	}
 
 	if err == nil {
+		tmp.uid = UID(uid_tmp)
+		tmp.seqno = Seqno(sq)
+		tmp.etime = tmp.ctime + ei
 		c.unpacked = &tmp
 	}
 
@@ -288,4 +296,9 @@ func (l *ChainLink) Store() error {
 
 func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
 	return c.unpacked.pgpFingerprint
+}
+
+func (c ChainLink) VerifyUidAndUsername(fp PgpFingerprint, uid UID, username string) bool {
+	return (fp.Eq(c.unpacked.pgpFingerprint) && uid == c.unpacked.uid &&
+		username == c.unpacked.username)
 }

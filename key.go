@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"io"
+	"regexp"
 	"strings"
 )
 
@@ -160,4 +161,19 @@ func GetOneKey(jw *jsonw.Wrapper) (*PgpKeyBundle, error) {
 		return nil, err
 	}
 	return ReadOneKeyFromString(s)
+}
+
+// XXX for now this is OK but probably we need a PGP uid parser
+// as in pgp-utils
+func (k *PgpKeyBundle) FindKeybaseUsername(un string) bool {
+
+	rxx := regexp.MustCompile("(?i)< " + un + "@keybase.io>$")
+
+	for _, id := range k.Identities {
+		if rxx.MatchString(id.Name) {
+			return true
+		}
+	}
+
+	return false
 }
