@@ -158,9 +158,9 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 			if s.revoked {
 				var ch string
 				if link.IsRevoked() {
-					ch = "-"
+					ch = "R"
 				} else {
-					ch = "+"
+					ch = "."
 				}
 				row = append(row, ch)
 			}

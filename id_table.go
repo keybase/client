@@ -28,7 +28,6 @@ type TypedChainLink interface {
 
 type GenericChainLink struct {
 	*ChainLink
-	revoked bool
 }
 
 func (b GenericChainLink) GetSigId() SigId {
@@ -111,7 +110,10 @@ func ParseWebServiceBinding(base GenericChainLink) (
 
 	jw := base.payloadJson.AtKey("body").AtKey("service")
 
-	if prot, e1 := jw.AtKey("protocol").GetString(); e1 == nil {
+	if jw.IsNil() {
+		ret = SelfSigChainLink{base}
+
+	} else if prot, e1 := jw.AtKey("protocol").GetString(); e1 == nil {
 
 		var hostname string
 
@@ -223,6 +225,7 @@ func (u UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 			u.whom)
 	} else {
 		tobj.untrack = &u
+		tobj.markRevoked(u)
 	}
 }
 
@@ -278,6 +281,10 @@ func (r CryptocurrencyChainLink) Type() string { return "cryptocurrency" }
 
 func (r CryptocurrencyChainLink) ToDisplayString() string { return r.address }
 
+func (l CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(l)
+}
+
 //
 //=========================================================================
 
@@ -301,6 +308,10 @@ func (r RevokeChainLink) ToDisplayString() string {
 
 func (r RevokeChainLink) IsRevocationIsh() bool { return true }
 
+func (l RevokeChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(l)
+}
+
 //
 //=========================================================================
 
@@ -313,7 +324,12 @@ type SelfSigChainLink struct {
 
 func (r SelfSigChainLink) Type() string { return "self" }
 
-func (s SelfSigChainLink) ToDisplayString() string { return "self" }
+func (s SelfSigChainLink) ToDisplayString() string { return s.unpacked.username }
+
+func (l SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(l)
+}
+func (w SelfSigChainLink) TableKey() string { return "keybase" }
 
 //
 //=========================================================================
@@ -343,7 +359,7 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 
 func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
-	base := GenericChainLink{cl, false}
+	base := GenericChainLink{cl}
 
 	s, err := cl.payloadJson.AtKey("body").AtKey("type").GetString()
 	if len(s) == 0 || err != nil {
@@ -359,9 +375,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 		case "cryptocurrency":
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
-			ret = RevokeChainLink{base}
-		case "self_sig":
-			ret = SelfSigChainLink{base}
+			ret = &RevokeChainLink{base}
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}

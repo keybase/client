@@ -80,6 +80,7 @@ type ChainLink struct {
 	sigVerified   bool
 	storedLocally bool
 	activeKey     bool
+	revoked       bool
 
 	packed      *jsonw.Wrapper
 	payloadJson *jsonw.Wrapper
@@ -254,7 +255,7 @@ func LoadLinkFromServer(parent *SigChain, jw *jsonw.Wrapper) (ret *ChainLink, er
 }
 
 func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
-	return &ChainLink{parent, id, false, false, false, false, jw, nil, nil}
+	return &ChainLink{parent, id, false, false, false, false, false, jw, nil, nil}
 }
 
 func LoadLinkFromStorage(parent *SigChain, id LinkId) (*ChainLink, error) {
