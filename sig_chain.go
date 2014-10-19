@@ -272,26 +272,30 @@ func (sc *SigChain) Store() error {
 
 func (sc *SigChain) verifyId(fp PgpFingerprint) (good bool, searched bool) {
 
-	var s1, s2, ok bool
+	var fp_mismatch, search, ok bool
 
 	if sc.chainLinks != nil {
 		for i := len(sc.chainLinks) - 1; i >= 0; i-- {
-			s1 = true
 			cl := sc.chainLinks[i]
-			if ok = cl.VerifyUidAndUsername(fp, sc.uid, sc.username); ok {
+			if !cl.MatchFingerprint(fp) {
+				fp_mismatch = true
+				break
+			}
+			search = true
+			if ok = cl.MatchUidAndUsername(sc.uid, sc.username); ok {
 				return true, true
 			}
 		}
 	}
 
-	if sc.base != nil {
-		ok, s2 = sc.base.verifyId(fp)
+	if !fp_mismatch && sc.base != nil {
+		ok, search = sc.base.verifyId(fp)
 		if ok {
 			return true, true
 		}
 	}
 
-	return false, (s1 || s2)
+	return false, search
 }
 
 func (sc *SigChain) VerifyId(key *PgpKeyBundle) error {

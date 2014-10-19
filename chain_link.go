@@ -298,7 +298,10 @@ func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
 	return c.unpacked.pgpFingerprint
 }
 
-func (c ChainLink) VerifyUidAndUsername(fp PgpFingerprint, uid UID, username string) bool {
-	return (fp.Eq(c.unpacked.pgpFingerprint) && uid == c.unpacked.uid &&
-		username == c.unpacked.username)
+func (c ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
+	return fp.Eq(c.unpacked.pgpFingerprint)
+}
+
+func (c ChainLink) MatchUidAndUsername(uid UID, username string) bool {
+	return uid == c.unpacked.uid && username == c.unpacked.username
 }
