@@ -9,7 +9,7 @@ import (
 
 func Tablify(writer io.Writer, headings []string, rowfunc func() []string) {
 	w := new(tabwriter.Writer)
-	w.Init(writer, 5, 0, 1, ' ', 0)
+	w.Init(writer, 5, 0, 3, ' ', 0)
 
 	dorow := func(cells []string) {
 		fmt.Fprintln(w, strings.Join(cells, "\t"))

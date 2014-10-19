@@ -143,15 +143,16 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 		var row []string
 		for ; i < idtab.Len() && row == nil; i++ {
 			link := idtab.order[i]
-			if !s.revoked && link.IsRevoked() {
+			if !s.revoked && (link.IsRevoked() || link.IsRevocationIsh()) {
 				continue
 			}
 			if !s.allKeys && !link.IsActiveKey() {
 				continue
 			}
-			row := []string{
+			row = []string{
 				fmt.Sprintf("%d", int(link.GetSeqno())),
 				link.GetSigId().ToDisplayString(s.verbose),
+				link.Type(),
 				FormatTime(link.GetCTime()),
 			}
 			if s.revoked {
@@ -175,7 +176,6 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 			}
 			row = append(row, link.ToDisplayString())
 		}
-		i++
 		return row
 	}
 

@@ -91,7 +91,7 @@ func (w WebProofChainLink) ToDisplayString() string {
 	return w.protocol + "://" + w.hostname
 }
 func (s SocialProofChainLink) TableKey() string { return s.service }
-func (s SocialProofChainLink) Proof() string    { return "proof" }
+func (s SocialProofChainLink) Type() string     { return "proof" }
 func (s SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(s, tab)
 }
@@ -232,6 +232,8 @@ func (b UntrackChainLink) ToDisplayString() string {
 
 func (r UntrackChainLink) Type() string { return "untrack" }
 
+func (r UntrackChainLink) IsRevocationIsh() bool { return true }
+
 //
 //=========================================================================
 
@@ -296,6 +298,8 @@ func (r RevokeChainLink) ToDisplayString() string {
 	}
 	return strings.Join(list, ",")
 }
+
+func (r RevokeChainLink) IsRevocationIsh() bool { return true }
 
 //
 //=========================================================================
