@@ -206,12 +206,6 @@ func (u *User) LoadSigChainFromStorage(allKeys bool) error {
 	return err
 }
 
-func (u *User) LoadSigHints(jw *jsonw.Wrapper, dirty bool) error {
-	var err error
-	u.sigHints, err = NewSigHints(jw, u.id, dirty)
-	return err
-}
-
 func LoadUserFromLocalStorage(name string, allKeys bool) (u *User, err error) {
 
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", name)
@@ -235,10 +229,6 @@ func LoadUserFromLocalStorage(name string, allKeys bool) (u *User, err error) {
 	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, u.id)
 
 	if err = u.LoadSigChainFromStorage(allKeys); err != nil {
-		return nil, err
-	}
-
-	if err = u.LoadSigHints(jw.AtKey("sig_hints"), false); err != nil {
 		return nil, err
 	}
 
@@ -431,6 +421,12 @@ func (u *User) Store() error {
 		return err
 	}
 
+	// These might be dirty, in which case we can write it back
+	// to local storage.
+	if err := u.sigHints.Store(); err != nil {
+		return err
+	}
+
 	u.dirty = false
 	G.Log.Debug("- Store user %s -> OK", u.name)
 
@@ -472,7 +468,7 @@ func LookupMerkleLeaf(name string, local *User) (f *MerkleUserLeaf, err error) {
 
 func (u *User) MakeIdTable(allKeys bool) error {
 	u.sigChain.FlattenAndPrune(allKeys)
-	u.idTable = NewIdentityTable(u.sigChain)
+	u.idTable = NewIdentityTable(u.sigChain, u.sigHints)
 	return nil
 }
 
@@ -546,6 +542,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		if err = ret.VerifySigChain(); err != nil {
 			return
 		}
+	}
+
+	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id); err != nil {
+		return
 	}
 
 	// Proactively cache fetches from remote server to local storage

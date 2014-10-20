@@ -351,6 +351,7 @@ type IdentityTable struct {
 	remoteProofs map[string][]RemoteProofChainLink
 	tracks       map[string][]*TrackChainLink
 	order        []TypedChainLink
+	sigHints     *SigHints
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -401,7 +402,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 	return
 }
 
-func NewIdentityTable(sc *SigChain) *IdentityTable {
+func NewIdentityTable(sc *SigChain, h *SigHints) *IdentityTable {
 	ret := &IdentityTable{
 		sigChain:     sc,
 		revocations:  make(map[SigId]bool),
@@ -409,6 +410,7 @@ func NewIdentityTable(sc *SigChain) *IdentityTable {
 		remoteProofs: make(map[string][]RemoteProofChainLink),
 		tracks:       make(map[string][]*TrackChainLink),
 		order:        make([]TypedChainLink, 0, sc.Len()),
+		sigHints:     h,
 	}
 	ret.Populate()
 	return ret

@@ -98,13 +98,18 @@ func (sh *SigHints) Store() (err error) {
 	return err
 }
 
-func LoadSigHintsFromLocalStorage(uid UID) (sh *SigHints, err error) {
+func LoadSigHints(uid UID) (sh *SigHints, err error) {
+	G.Log.Debug("+ LoadSigHints(%s)", string(uid))
 	var jw *jsonw.Wrapper
 	jw, err = G.LocalDb.Get(DbKey{ Typ : DB_SIG_HINTS, Key : string(uid)})
 	if err != nil {
 		return
 	}
 	sh, err = NewSigHints(jw, uid, false)
+	if err == nil {
+		G.Log.Debug("| SigHints loaded @v%d", sh.version)
+	}
+	G.Log.Debug("- LoadSigHints(%s)", string(uid))
 	return
 }
 
@@ -136,3 +141,10 @@ func (sh *SigHints) Refresh() error {
 	return nil
 }
 
+func LoadAndRefreshSigHints(uid UID) (sh *SigHints, err error) {
+	sh, err = LoadSigHints(uid)
+	if err == nil {
+		err = sh.Refresh()
+	}
+	return
+}
