@@ -206,9 +206,9 @@ func (u *User) LoadSigChainFromStorage(allKeys bool) error {
 	return err
 }
 
-func (u *User) LoadSigHints(jw *jsonw.Wrapper) error {
+func (u *User) LoadSigHints(jw *jsonw.Wrapper, dirty bool) error {
 	var err error
-	u.sigHints, err = NewSigHints(jw)
+	u.sigHints, err = NewSigHints(jw, u.id, dirty)
 	return err
 }
 
@@ -238,7 +238,7 @@ func LoadUserFromLocalStorage(name string, allKeys bool) (u *User, err error) {
 		return nil, err
 	}
 
-	if err = u.LoadSigHints(jw.AtKey("sig_hints")); err != nil {
+	if err = u.LoadSigHints(jw.AtKey("sig_hints"), false); err != nil {
 		return nil, err
 	}
 
@@ -499,16 +499,18 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	G.Log.Debug("| resolved to %s", name)
 
+	var local *User
+
 	if !arg.forceReload {
 		if u := G.UserCache.GetByName(name); u != nil {
 			return u, nil
 		}
-	}
 
-	local, err := LoadUserFromLocalStorage(name, arg.allKeys)
-	if err != nil {
-		G.Log.Warning("Failed to load %s from storage: %s",
-			name, err.Error())
+		local, err = LoadUserFromLocalStorage(name, arg.allKeys)
+		if err != nil {
+			G.Log.Warning("Failed to load %s from storage: %s",
+				name, err.Error())
+		}
 	}
 
 	leaf, err := LookupMerkleLeaf(name, local)
