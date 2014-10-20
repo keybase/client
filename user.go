@@ -408,6 +408,12 @@ func (u *User) Store() error {
 		return err
 	}
 
+	// These might be dirty, in which case we can write it back
+	// to local storage. Note, this can be dirty even if the user is clean.
+	if err := u.sigHints.Store(); err != nil {
+		return err
+	}
+
 	if !u.dirty {
 		G.Log.Debug("- Store for %s skipped; user wasn't dirty", u.name)
 		return nil
@@ -421,11 +427,6 @@ func (u *User) Store() error {
 		return err
 	}
 
-	// These might be dirty, in which case we can write it back
-	// to local storage.
-	if err := u.sigHints.Store(); err != nil {
-		return err
-	}
 
 	u.dirty = false
 	G.Log.Debug("- Store user %s -> OK", u.name)

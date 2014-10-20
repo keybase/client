@@ -82,11 +82,13 @@ func (sh SigHints) MarshalToJson() *jsonw.Wrapper {
 	i := 0
 	for _,v := range(sh.hints) {
 		ret.AtKey("hints").SetIndex(i, v.MarshalToJson())
+		i++
 	}
 	return ret
 }
 
 func (sh *SigHints) Store() (err error) {
+	G.Log.Debug("+ SigHints.Store() for uid=%s", string(sh.uid))
 	if sh.dirty {
 		err = G.LocalDb.Put(
 			DbKey{ Typ : DB_SIG_HINTS, Key : string(sh.uid) },
@@ -94,7 +96,10 @@ func (sh *SigHints) Store() (err error) {
 			sh.MarshalToJson(),
 		)
 		sh.dirty = false
+	} else {
+		G.Log.Debug("| SigHints.Store() skipped; wasn't dirty")
 	}
+	G.Log.Debug("- SigHints.Store() for uid=%s -> %v", string(sh.uid), ErrToOk(err))
 	return err
 }
 
@@ -133,8 +138,9 @@ func (sh *SigHints) Refresh() error {
 	}
 	if n == 0 {
 		G.Log.Debug("| No changes; version %d was up-to-date", sh.version)
+	} else if err = sh.PopulateWith(res.Body); err != nil {
+		return err
 	} else {
-		sh.PopulateWith(res.Body)
 		sh.dirty = true
 	}
 	G.Log.Debug("- Refresh SigHints() for uid=%s", string(sh.uid))
