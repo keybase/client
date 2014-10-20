@@ -192,7 +192,12 @@ func (b *TrackChainLink) ToDisplayString() string {
 
 func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
-	tab.tracks[l.whom] = l
+	list, found := tab.tracks[l.whom]
+	if !found {
+		list = make([]*TrackChainLink, 0, 1)
+	}
+	list = append(list, l)
+	tab.tracks[l.whom] = list
 }
 
 func (l *TrackChainLink) IsRevoked() bool {
@@ -224,11 +229,13 @@ func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error
 
 func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
-	if tobj, found := tab.tracks[u.whom]; !found {
+	if list, found := tab.tracks[u.whom]; !found {
 		G.Log.Notice("Bad untrack of %s; no previous tracking statement found",
 			u.whom)
 	} else {
-		tobj.untrack = u
+		for _, obj := range(list) {
+			obj.untrack = u
+		}
 	}
 }
 
@@ -342,7 +349,7 @@ type IdentityTable struct {
 	revocations  map[SigId]bool
 	links        map[SigId]TypedChainLink
 	remoteProofs map[string][]RemoteProofChainLink
-	tracks       map[string]*TrackChainLink
+	tracks       map[string][]*TrackChainLink
 	order        []TypedChainLink
 }
 
@@ -400,7 +407,7 @@ func NewIdentityTable(sc *SigChain) *IdentityTable {
 		revocations:  make(map[SigId]bool),
 		links:        make(map[SigId]TypedChainLink),
 		remoteProofs: make(map[string][]RemoteProofChainLink),
-		tracks:       make(map[string]*TrackChainLink),
+		tracks:       make(map[string][]*TrackChainLink),
 		order:        make([]TypedChainLink, 0, sc.Len()),
 	}
 	ret.Populate()
