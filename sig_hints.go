@@ -29,21 +29,27 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 }
 
 func NewSigHints(jw *jsonw.Wrapper, uid UID, dirty bool) (sh *SigHints, err error) {
-	var n int
+	sh = &SigHints{ uid : uid, dirty : dirty, version : 0}
+	err = sh.PopulateWith(jw)
+	if err != nil {
+		sh = nil
+	}
+	return
+}
 
-	obj := SigHints{ uid : uid, dirty : dirty, version : 0}
+func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 
 	if jw == nil || jw.IsNil() {
-		sh = &obj
 		return
 	}
 
-	jw.AtKey("version").GetIntVoid(&obj.version, &err)
+	jw.AtKey("version").GetIntVoid(&sh.version, &err)
 	if err != nil {
 		return
 	}
 
-	obj.hints = make(map[SigId]*SigHint)
+	sh.hints = make(map[SigId]*SigHint)
+	var n int
 	n, err = jw.AtKey("hints").Len()
 	if err != nil {
 		return
@@ -54,11 +60,9 @@ func NewSigHints(jw *jsonw.Wrapper, uid UID, dirty bool) (sh *SigHints, err erro
 		if tmpe != nil {
 			G.Log.Warning("Bad SigHint Loaded: %s", tmpe.Error())
 		} else {
-			obj.hints[*hint.sigId] = hint
+			sh.hints[*hint.sigId] = hint
 		}
 	}
-
-	sh = &obj
 	return
 }
 
@@ -102,5 +106,33 @@ func LoadSigHintsFromLocalStorage(uid UID) (sh *SigHints, err error) {
 	}
 	sh, err = NewSigHints(jw, uid, false)
 	return
+}
+
+func (sh *SigHints) Refresh() error {
+	G.Log.Debug("+ Refresh SigHints() for uid=%s", string(sh.uid))
+	res, err := G.API.Get(ApiArg {
+		Endpoint : "sig/hints",
+		NeedSession : false,
+		Args : HttpArgs {
+			"uid" : S{string(sh.uid)},
+			"low" : I{sh.version},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	var n int
+	n, err = res.Body.AtKey("hints").Len()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		G.Log.Debug("| No changes; version %d was up-to-date", sh.version)
+	} else {
+		sh.PopulateWith(res.Body)
+		sh.dirty = true
+	}
+	G.Log.Debug("- Refresh SigHints() for uid=%s", string(sh.uid))
+	return nil
 }
 
