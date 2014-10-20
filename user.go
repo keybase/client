@@ -20,6 +20,7 @@ type User struct {
 	name     string
 	sigChain *SigChain
 	idTable  *IdentityTable
+	sigHints *SigHints
 
 	loggedIn bool // if we were logged in when we loaded it
 
@@ -205,6 +206,12 @@ func (u *User) LoadSigChainFromStorage(allKeys bool) error {
 	return err
 }
 
+func (u *User) LoadSigHints(jw *jsonw.Wrapper) error {
+	var err error
+	u.sigHints, err = NewSigHints(jw)
+	return err
+}
+
 func LoadUserFromLocalStorage(name string, allKeys bool) (u *User, err error) {
 
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", name)
@@ -228,6 +235,10 @@ func LoadUserFromLocalStorage(name string, allKeys bool) (u *User, err error) {
 	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, u.id)
 
 	if err = u.LoadSigChainFromStorage(allKeys); err != nil {
+		return nil, err
+	}
+
+	if err = u.LoadSigHints(jw.AtKey("sig_hints")); err != nil {
 		return nil, err
 	}
 
