@@ -3,9 +3,11 @@ package libkb
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-jsonw"
 	"os"
 	"regexp"
 	"strings"
+	"io"
 )
 
 type CmdSigsList struct {
@@ -119,6 +121,11 @@ func (s *CmdSigsList) ProcessSigs() (err error) {
 	return
 }
 
+func (s *CmdSigsList) skipLink(link TypedChainLink) bool {
+	return ((!s.revoked && (link.IsRevoked() || link.IsRevocationIsh())) ||
+			(!s.allKeys && !link.IsActiveKey()))
+}
+
 func (s *CmdSigsList) DisplayTable() (err error) {
 
 	var cols []string
@@ -146,12 +153,11 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 		var row []string
 		for ; i < len(idtab) && row == nil; i++ {
 			link := idtab[i]
-			if !s.revoked && (link.IsRevoked() || link.IsRevocationIsh()) {
+
+			if s.skipLink(link) {
 				continue
 			}
-			if !s.allKeys && !link.IsActiveKey() {
-				continue
-			}
+
 			row = []string{
 				fmt.Sprintf("%d", int(link.GetSeqno())),
 				link.GetSigId().ToDisplayString(s.verbose),
@@ -188,6 +194,30 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 }
 
 func (s *CmdSigsList) DisplayJson() (err error) {
+	tmp := make([]*jsonw.Wrapper, 0, len(s.sigs))
+	for _, link := range(s.sigs) {
+		if s.skipLink(link) {
+			continue
+		}
+		obj := jsonw.NewDictionary()
+		obj.SetKey("seqno", jsonw.NewInt(int(link.GetSeqno())))
+		obj.SetKey("sig_id", jsonw.NewString(link.GetSigId().ToDisplayString(true)))
+		obj.SetKey("type", jsonw.NewString(link.Type()))
+		obj.SetKey("ctime", jsonw.NewInt64(link.GetCTime().Unix()))
+		if s.revoked {
+			obj.SetKey("revoked", jsonw.NewBool(link.IsRevoked()))
+		}
+		if s.allKeys {
+			obj.SetKey("key_fingerprint", jsonw.NewString(link.GetPgpFingerprint().ToDisplayString(true)))
+		}
+		obj.SetKey("statement", jsonw.NewString(link.ToDisplayString()))
+		tmp = append(tmp, obj)
+	}
+	ret := jsonw.NewArray(len(tmp))
+	for i, obj := range(tmp) {
+		ret.SetIndex(i,obj)
+	}
+	_,err = io.WriteString(os.Stdout, ret.MarshalPretty() + "\n")
 	return
 }
 
