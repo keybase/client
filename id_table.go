@@ -67,6 +67,7 @@ func (g *GenericChainLink) GetCTime() time.Time {
 type RemoteProofChainLink interface {
 	TypedChainLink
 	TableKey() string
+	LastWriterWins() bool
 }
 
 type WebProofChainLink struct {
@@ -89,6 +90,7 @@ func (w *WebProofChainLink) insertIntoTable(tab *IdentityTable) {
 func (w *WebProofChainLink) ToDisplayString() string {
 	return w.protocol + "://" + w.hostname
 }
+func (w *WebProofChainLink) LastWriterWins() bool { return false }
 func (s *SocialProofChainLink) TableKey() string { return s.service }
 func (s *SocialProofChainLink) Type() string     { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
@@ -97,6 +99,7 @@ func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 func (w *SocialProofChainLink) ToDisplayString() string {
 	return w.username + "@" + w.service
 }
+func (s *SocialProofChainLink) LastWriterWins() bool { return true}
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h}
@@ -340,6 +343,7 @@ func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
 func (w *SelfSigChainLink) TableKey() string { return "keybase" }
+func (w *SelfSigChainLink) LastWriterWins() bool { return true }
 
 //
 //=========================================================================
@@ -352,6 +356,7 @@ type IdentityTable struct {
 	tracks       map[string][]*TrackChainLink
 	order        []TypedChainLink
 	sigHints     *SigHints
+	activeProofs []RemoteProofChainLink
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -411,8 +416,10 @@ func NewIdentityTable(sc *SigChain, h *SigHints) *IdentityTable {
 		tracks:       make(map[string][]*TrackChainLink),
 		order:        make([]TypedChainLink, 0, sc.Len()),
 		sigHints:     h,
+		activeProofs: make([]RemoteProofChainLink, 0, sc.Len()),
 	}
 	ret.Populate()
+	ret.CollectActiveProofs()
 	return ret
 }
 
@@ -427,6 +434,24 @@ func (idt *IdentityTable) Populate() {
 	}
 	G.Log.Debug("- Populate ID Table")
 }
+
+func (idt *IdentityTable) CollectActiveProofs() {
+	tab := idt.activeProofs
+	for _, list := range(idt.remoteProofs) {
+		for i := len(list) - 1; i >= 0; i-- {
+			if list[i].IsRevoked() {
+				continue
+			}
+			tab = append(tab, list[i])
+			if list[i].LastWriterWins() {
+				break
+			}
+		}
+	}
+	idt.activeProofs = tab
+}
+
+
 
 func (idt *IdentityTable) Len() int {
 	return len(idt.order)
