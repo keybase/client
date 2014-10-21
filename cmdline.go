@@ -178,22 +178,6 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 	}
 	app.Commands = []cli.Command{
 		{
-			Name:  "version",
-			Usage: "print out version information",
-			Action: func(c *cli.Context) {
-				p.ctx = c
-				cmd = &CmdVersion{}
-			},
-		},
-		{
-			Name:  "ping",
-			Usage: "ping the keybase API server",
-			Action: func(c *cli.Context) {
-				p.ctx = c
-				cmd = &CmdPing{}
-			},
-		},
-		{
 			Name:  "config",
 			Usage: "manage key/value pairs in the config file",
 			Description: "A single argument reads a key; " +
@@ -216,6 +200,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 				cmd = p.InitSubcommand(c, &CmdConfig{}, "config")
 			},
 		},
+
 		{
 			Name:        "db",
 			Usage:       "keybase db [subcommands...]",
@@ -246,6 +231,42 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 				},
 			},
 		},
+
+		{
+			Name : "id",
+			Usage : "keybase id <username>",
+			Description : "identify a user and check their proofs",
+			Flags : []cli.Flag{
+				cli.StringFlag{
+					Name : "assert, a",
+					Usage : "a boolean expression on this identity",
+
+				},
+			},
+			Action : func(c *cli.Context) {
+				cmd = p.InitSubcommand(c, &CmdId{}, "id")
+			},
+		},
+
+		{
+			Name: "login",
+			Usage: "Establish a session with the keybase server " +
+				"(if necessary)",
+			Action: func(c *cli.Context) {
+				p.ctx = c
+				cmd = &CmdLogin{}
+			},
+		},
+
+		{
+			Name:  "ping",
+			Usage: "ping the keybase API server",
+			Action: func(c *cli.Context) {
+				p.ctx = c
+				cmd = &CmdPing{}
+			},
+		},
+
 		{
 			Name:        "sigs",
 			Usage:       "keybase sigs [subcommands...]",
@@ -291,22 +312,27 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 				},
 			},
 		},
-		{
-			Name: "login",
-			Usage: "Establish a session with the keybase server " +
-				"(if necessary)",
-			Action: func(c *cli.Context) {
-				p.ctx = c
-				cmd = &CmdLogin{}
-			},
-		},
+
+
+
 		{
 			Name:  "resolve",
 			Usage: "Resolve a foo@bar-style username to a keybase username",
 			Action: func(c *cli.Context) {
 				cmd = p.InitSubcommand(c, &CmdResolve{}, "resolve")
 			},
+
 		},
+
+		{
+			Name:  "version",
+			Usage: "print out version information",
+			Action: func(c *cli.Context) {
+				p.ctx = c
+				cmd = &CmdVersion{}
+			},
+		},
+
 	}
 	app.Action = func(c *cli.Context) {
 		p.ctx = c
