@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/go-jsonw"
 	"io/ioutil"
 	"strings"
+	"encoding/base64"
 )
 
 const (
@@ -82,45 +83,25 @@ func (s SigId) ToString(suffix bool) string {
 	return ret
 }
 
+func (s SigId) ToMediumId() string {
+	return base64.URLEncoding.EncodeToString(s[:])
+}
+
+func (s SigId) ToShortId() string {
+	return base64.URLEncoding.EncodeToString(s[0:SIG_SHORT_ID_BYTES])
+}
+
 func (k PgpKeyBundle) ReadAndVerify(armored string) (msg []byte, sig_id *SigId,
 	err error) {
-	block, err := armor.Decode(strings.NewReader(armored))
-	if err != nil {
-		return
-	}
-	sig_body, err := ioutil.ReadAll(block.Body)
-	if err != nil {
-		return
-	}
 
-	md, err := openpgp.ReadMessage(bytes.NewReader(sig_body), k, nil, nil)
-	if err != nil {
+	var ps *ParsedSig
+	if ps, err = OpenSig(armored); err != nil  {
+		return
+	} else if err = ps.Verify(k); err != nil {
 		return
 	}
-	if !md.IsSigned || md.SignedBy == nil {
-		err = fmt.Errorf("Message wasn't signed")
-		return
-	}
-	if !k.MatchesKey(md.SignedBy) {
-		err = fmt.Errorf("Got wrong SignedBy key %v",
-			hex.EncodeToString(md.SignedBy.PublicKey.Fingerprint[:]))
-		return
-	}
-	if md.LiteralData.Body == nil {
-		err = fmt.Errorf("no signed material found")
-		return
-	}
-
-	var ret []byte
-	ret, err = ioutil.ReadAll(md.LiteralData.Body)
-	if err != nil {
-		return
-	}
-
-	tmp := ComputeSigIdFromSigBody(sig_body)
-	sig_id = &tmp
-
-	return ret, sig_id, err
+	tmp := ps.ID()
+	return ps.LiteralData, &tmp, nil
 }
 
 func (k PgpKeyBundle) Verify(armored string, expected []byte) (sigId *SigId,
@@ -134,4 +115,55 @@ func (k PgpKeyBundle) Verify(armored string, expected []byte) (sigId *SigId,
 		return
 	}
 	return sig_id, nil
+}
+
+type ParsedSig struct {
+	Block *armor.Block
+	SigBody []byte
+	MD *openpgp.MessageDetails
+	LiteralData []byte
+}
+
+func OpenSig(armored string) (ps *ParsedSig, err error) {
+	pso := ParsedSig{}
+	pso.Block, err = armor.Decode(strings.NewReader(armored))
+	if err != nil {
+		return
+	}
+	pso.SigBody, err = ioutil.ReadAll(pso.Block.Body)
+	if err != nil {
+		return
+	}
+	ps = &pso
+	return
+}
+
+func (ps *ParsedSig) Verify(k PgpKeyBundle) (err error) {
+	ps.MD, err = openpgp.ReadMessage(bytes.NewReader(ps.SigBody), k, nil, nil)
+	if err != nil {
+		return
+	}
+	if !ps.MD.IsSigned || ps.MD.SignedBy == nil {
+		err = fmt.Errorf("Message wasn't signed")
+		return
+	}
+	if !k.MatchesKey(ps.MD.SignedBy) {
+		err = fmt.Errorf("Got wrong SignedBy key %v",
+			hex.EncodeToString(ps.MD.SignedBy.PublicKey.Fingerprint[:]))
+		return
+	}
+	if ps.MD.LiteralData.Body == nil {
+		err = fmt.Errorf("no signed material found")
+		return
+	}
+
+	ps.LiteralData, err = ioutil.ReadAll(ps.MD.LiteralData.Body)
+	if err != nil {
+		return
+	}
+	return nil
+}
+
+func (ps *ParsedSig) ID() SigId {
+	return SigId(sha256.Sum256(ps.SigBody))
 }
