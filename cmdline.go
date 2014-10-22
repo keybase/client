@@ -233,17 +233,16 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		},
 
 		{
-			Name : "id",
-			Usage : "keybase id <username>",
-			Description : "identify a user and check their proofs",
-			Flags : []cli.Flag{
+			Name:        "id",
+			Usage:       "keybase id <username>",
+			Description: "identify a user and check their proofs",
+			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name : "assert, a",
-					Usage : "a boolean expression on this identity",
-
+					Name:  "assert, a",
+					Usage: "a boolean expression on this identity",
 				},
 			},
-			Action : func(c *cli.Context) {
+			Action: func(c *cli.Context) {
 				cmd = p.InitSubcommand(c, &CmdId{}, "id")
 			},
 		},
@@ -313,15 +312,12 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 		},
 
-
-
 		{
 			Name:  "resolve",
 			Usage: "Resolve a foo@bar-style username to a keybase username",
 			Action: func(c *cli.Context) {
 				cmd = p.InitSubcommand(c, &CmdResolve{}, "resolve")
 			},
-
 		},
 
 		{
@@ -332,7 +328,6 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 				cmd = &CmdVersion{}
 			},
 		},
-
 	}
 	app.Action = func(c *cli.Context) {
 		p.ctx = c

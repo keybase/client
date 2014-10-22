@@ -6,7 +6,7 @@ import (
 )
 
 type CmdId struct {
-	user string
+	user      string
 	assertion string
 }
 

@@ -91,15 +91,15 @@ func (w *WebProofChainLink) ToDisplayString() string {
 	return w.protocol + "://" + w.hostname
 }
 func (w *WebProofChainLink) LastWriterWins() bool { return false }
-func (s *SocialProofChainLink) TableKey() string { return s.service }
-func (s *SocialProofChainLink) Type() string     { return "proof" }
+func (s *SocialProofChainLink) TableKey() string  { return s.service }
+func (s *SocialProofChainLink) Type() string      { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(s, tab)
 }
 func (w *SocialProofChainLink) ToDisplayString() string {
 	return w.username + "@" + w.service
 }
-func (s *SocialProofChainLink) LastWriterWins() bool { return true}
+func (s *SocialProofChainLink) LastWriterWins() bool { return true }
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h}
@@ -236,7 +236,7 @@ func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 		G.Log.Notice("Bad untrack of %s; no previous tracking statement found",
 			u.whom)
 	} else {
-		for _, obj := range(list) {
+		for _, obj := range list {
 			obj.untrack = u
 		}
 	}
@@ -342,7 +342,7 @@ func (s *SelfSigChainLink) ToDisplayString() string { return s.unpacked.username
 func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
-func (w *SelfSigChainLink) TableKey() string { return "keybase" }
+func (w *SelfSigChainLink) TableKey() string     { return "keybase" }
 func (w *SelfSigChainLink) LastWriterWins() bool { return true }
 
 //
@@ -437,7 +437,7 @@ func (idt *IdentityTable) Populate() {
 
 func (idt *IdentityTable) CollectActiveProofs() {
 	tab := idt.activeProofs
-	for _, list := range(idt.remoteProofs) {
+	for _, list := range idt.remoteProofs {
 		for i := len(list) - 1; i >= 0; i-- {
 			if list[i].IsRevoked() {
 				continue
@@ -450,8 +450,6 @@ func (idt *IdentityTable) CollectActiveProofs() {
 	}
 	idt.activeProofs = tab
 }
-
-
 
 func (idt *IdentityTable) Len() int {
 	return len(idt.order)

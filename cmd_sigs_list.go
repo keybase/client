@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
+	"io"
 	"os"
 	"regexp"
 	"strings"
-	"io"
 )
 
 type CmdSigsList struct {
@@ -123,7 +123,7 @@ func (s *CmdSigsList) ProcessSigs() (err error) {
 
 func (s *CmdSigsList) skipLink(link TypedChainLink) bool {
 	return ((!s.revoked && (link.IsRevoked() || link.IsRevocationIsh())) ||
-			(!s.allKeys && !link.IsActiveKey()))
+		(!s.allKeys && !link.IsActiveKey()))
 }
 
 func (s *CmdSigsList) DisplayTable() (err error) {
@@ -195,7 +195,7 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 
 func (s *CmdSigsList) DisplayJson() (err error) {
 	tmp := make([]*jsonw.Wrapper, 0, len(s.sigs))
-	for _, link := range(s.sigs) {
+	for _, link := range s.sigs {
 		if s.skipLink(link) {
 			continue
 		}
@@ -214,10 +214,10 @@ func (s *CmdSigsList) DisplayJson() (err error) {
 		tmp = append(tmp, obj)
 	}
 	ret := jsonw.NewArray(len(tmp))
-	for i, obj := range(tmp) {
-		ret.SetIndex(i,obj)
+	for i, obj := range tmp {
+		ret.SetIndex(i, obj)
 	}
-	_,err = io.WriteString(os.Stdout, ret.MarshalPretty() + "\n")
+	_, err = io.WriteString(os.Stdout, ret.MarshalPretty()+"\n")
 	return
 }
 

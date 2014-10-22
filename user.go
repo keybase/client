@@ -427,7 +427,6 @@ func (u *User) Store() error {
 		return err
 	}
 
-
 	u.dirty = false
 	G.Log.Debug("- Store user %s -> OK", u.name)
 

@@ -1,4 +1,3 @@
-
 package libkb
 
 import (
@@ -6,17 +5,17 @@ import (
 )
 
 type SigHint struct {
-	sigId *SigId
+	sigId    *SigId
 	remoteId string
-	apiUrl string
+	apiUrl   string
 	humanUrl string
 }
 
 type SigHints struct {
 	uid     UID
 	version int
-	hints map[SigId]*SigHint
-	dirty bool
+	hints   map[SigId]*SigHint
+	dirty   bool
 }
 
 func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
@@ -29,7 +28,7 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 }
 
 func NewSigHints(jw *jsonw.Wrapper, uid UID, dirty bool) (sh *SigHints, err error) {
-	sh = &SigHints{ uid : uid, dirty : dirty, version : 0}
+	sh = &SigHints{uid: uid, dirty: dirty, version: 0}
 	err = sh.PopulateWith(jw)
 	if err != nil {
 		sh = nil
@@ -80,7 +79,7 @@ func (sh SigHints) MarshalToJson() *jsonw.Wrapper {
 	ret.SetKey("version", jsonw.NewInt(sh.version))
 	ret.SetKey("hints", jsonw.NewArray(len(sh.hints)))
 	i := 0
-	for _,v := range(sh.hints) {
+	for _, v := range sh.hints {
 		ret.AtKey("hints").SetIndex(i, v.MarshalToJson())
 		i++
 	}
@@ -91,7 +90,7 @@ func (sh *SigHints) Store() (err error) {
 	G.Log.Debug("+ SigHints.Store() for uid=%s", string(sh.uid))
 	if sh.dirty {
 		err = G.LocalDb.Put(
-			DbKey{ Typ : DB_SIG_HINTS, Key : string(sh.uid) },
+			DbKey{Typ: DB_SIG_HINTS, Key: string(sh.uid)},
 			[]DbKey{},
 			sh.MarshalToJson(),
 		)
@@ -106,7 +105,7 @@ func (sh *SigHints) Store() (err error) {
 func LoadSigHints(uid UID) (sh *SigHints, err error) {
 	G.Log.Debug("+ LoadSigHints(%s)", string(uid))
 	var jw *jsonw.Wrapper
-	jw, err = G.LocalDb.Get(DbKey{ Typ : DB_SIG_HINTS, Key : string(uid)})
+	jw, err = G.LocalDb.Get(DbKey{Typ: DB_SIG_HINTS, Key: string(uid)})
 	if err != nil {
 		return
 	}
@@ -120,12 +119,12 @@ func LoadSigHints(uid UID) (sh *SigHints, err error) {
 
 func (sh *SigHints) Refresh() error {
 	G.Log.Debug("+ Refresh SigHints() for uid=%s", string(sh.uid))
-	res, err := G.API.Get(ApiArg {
-		Endpoint : "sig/hints",
-		NeedSession : false,
-		Args : HttpArgs {
-			"uid" : S{string(sh.uid)},
-			"low" : I{sh.version},
+	res, err := G.API.Get(ApiArg{
+		Endpoint:    "sig/hints",
+		NeedSession: false,
+		Args: HttpArgs{
+			"uid": S{string(sh.uid)},
+			"low": I{sh.version},
 		},
 	})
 	if err != nil {
