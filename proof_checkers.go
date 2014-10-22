@@ -79,10 +79,16 @@ func ErrorToStatus(err error) ProofStatus {
 // Reddit
 //
 
-type RedditChecker struct{}
+type RedditChecker struct {
+	proof RemoteProofChainLink
+}
 
 var REDDIT_PREFIX = "https://www.reddit.com"
 var REDDIT_SUB = REDDIT_PREFIX + "/r/keybaseproofs"
+
+func NewRedditChecker(p RemoteProofChainLink) *RedditChecker {
+	return &RedditChecker{p}
+}
 
 func (rc *RedditChecker) CheckApiUrl(h SigHint) bool {
 	return strings.Index(strings.ToLower(h.apiUrl), REDDIT_SUB) == 0
@@ -111,7 +117,7 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) *jsonw.Wrapper {
 
 }
 
-func (rc *RedditChecker) CheckData(dat *jsonw.Wrapper) ProofStatus {
+func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofStatus {
 	return PROOF_NONE
 }
 
@@ -126,7 +132,7 @@ func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
 	if dat := rc.UnpackData(res.Body); err != nil {
 		return PROOF_CONTENT_FAILURE
 	} else {
-		return rc.CheckData(dat)
+		return rc.CheckData(h, dat)
 	}
 	return PROOF_OK
 }

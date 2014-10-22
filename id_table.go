@@ -10,6 +10,7 @@ type TypedChainLink interface {
 	GetRevocations() []*SigId
 	insertIntoTable(tab *IdentityTable)
 	GetSigId() SigId
+	GetArmoredSig() string
 	markRevoked(l TypedChainLink)
 	ToDebugString() string
 	Type() string
@@ -56,6 +57,9 @@ func (g *GenericChainLink) GetPgpFingerprint() PgpFingerprint {
 
 func (g *GenericChainLink) GetCTime() time.Time {
 	return time.Unix(int64(g.unpacked.ctime), 0)
+}
+func (g *GenericChainLink) GetArmoredSig() string {
+	return g.unpacked.sig
 }
 
 //
