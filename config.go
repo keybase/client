@@ -97,11 +97,10 @@ func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
 }
 
 func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
-	if f.jw == nil {
-		f.jw = jsonw.NewDictionary()
-	}
+	f.CheckOrCreateJsonObj()
 	if f.jw.AtKey("user").IsNil() {
 		f.jw.SetKey("user", jsonw.NewDictionary())
+		f.dirty = true
 	}
 	return f.jw.AtKey("user")
 }
@@ -131,9 +130,15 @@ func (f *JsonConfigFile) SetIntAtPath(p string, v int) (err error) {
 	return f.setValueAtPath(p, getInt, v)
 }
 
-func (f *JsonConfigFile) SetNullAtPath(p string) (err error) {
-	existing := f.jw.AtPath(p)
+func (f *JsonConfigFile) CheckOrCreateJsonObj() {
+	if f.jw == nil {
+		f.Reset()
+	}
+}
 
+func (f *JsonConfigFile) SetNullAtPath(p string) (err error) {
+	f.CheckOrCreateJsonObj()
+	existing := f.jw.AtPath(p)
 	if !existing.IsNil() || existing.Error() != nil {
 		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
 		if err == nil {
