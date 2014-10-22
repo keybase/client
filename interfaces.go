@@ -12,6 +12,7 @@ package libkb
 import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
+	"github.com/PuerkitoBio/goquery"
 	"net/url"
 )
 
@@ -138,7 +139,7 @@ type ApiRes struct {
 
 type ExternalHtmlRes struct {
 	HttpStatus int
-	Body        string
+	GoQuery *goquery.Document
 }
 
 type ExternalApiRes struct {
