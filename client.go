@@ -27,11 +27,6 @@ type Client struct {
 	config *ClientConfig
 }
 
-type ClientSet struct {
-	cookied   *Client
-	uncookied *Client
-}
-
 func SplitHost(joined string) (host string, port int, err error) {
 	re := regexp.MustCompile("^([^:]+)(:([0-9]+))?$")
 	match := re.FindStringSubmatch(joined)

@@ -29,10 +29,12 @@ type Global struct {
 	UserCache     *UserCache    // LRU cache of users in memory
 	LocalDb       *JsonLocalDb  // Local DB for cache
 	MerkleClient  *MerkleClient // client for querying server's merkle sig tree
+	XAPI          ExternalAPI   // for contacting Twitter, Github, etc.
 }
 
 var G Global = Global{
 	NewDefaultLogger(),
+	nil,
 	nil,
 	nil,
 	nil,
@@ -85,11 +87,12 @@ func (g Global) StartupMessage() {
 }
 
 func (g *Global) ConfigureAPI() error {
-	api, err := NewApiEngine(*g.Env)
+	iapi, xapi, err := NewApiEngine(*g.Env)
 	if err != nil {
 		return fmt.Errorf("Failed to configure API access: %s", err.Error())
 	}
-	g.API = api
+	g.API = iapi
+	g.XAPI = xapi
 	return nil
 }
 

@@ -136,7 +136,24 @@ type ApiRes struct {
 	AppStatus  string
 }
 
+type ExternalHtmlRes struct {
+	HttpStatus int
+	Body        string
+}
+
+type ExternalApiRes struct {
+	HttpStatus int
+	Body       *jsonw.Wrapper
+}
+
 type API interface {
 	Get(ApiArg) (*ApiRes, error)
 	Post(ApiArg) (*ApiRes, error)
+}
+
+type ExternalAPI interface {
+	Get(ApiArg) (*ExternalApiRes, error)
+	Post(ApiArg) (*ExternalApiRes, error)
+	GetHtml(ApiArg) (*ExternalHtmlRes, error)
+	PostHtml(ApiArg) (*ExternalHtmlRes, error)
 }

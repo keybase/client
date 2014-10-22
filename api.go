@@ -10,20 +10,30 @@ import (
 	"strings"
 )
 
-type ApiEngine struct {
+type BaseApiEngine struct {
 	config              *ClientConfig
 	cookied, notCookied *Client
 }
 
-func NewApiEngine(e Env) (*ApiEngine, error) {
-	config, err := e.GenClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	return &ApiEngine{config, nil, nil}, nil
+type InternalApiEngine struct {
+	BaseApiEngine
 }
 
-func (api *ApiEngine) getCli(cookied bool) (ret *Client) {
+type ExternalApiEngine struct {
+	BaseApiEngine
+}
+
+func NewApiEngine(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
+	config, err := e.GenClientConfig()
+	if err != nil {
+		return nil, nil, err
+	}
+	i := &InternalApiEngine{BaseApiEngine{config, nil, nil}}
+	x := &ExternalApiEngine{BaseApiEngine{config, nil, nil}}
+	return i, x, nil
+}
+
+func (api *BaseApiEngine) getCli(cookied bool) (ret *Client) {
 	if cookied {
 		if api.cookied == nil {
 			api.cookied = NewClient(api.config, true)
@@ -38,7 +48,7 @@ func (api *ApiEngine) getCli(cookied bool) (ret *Client) {
 	return ret
 }
 
-func (a ApiEngine) getUrl(arg ApiArg) url.URL {
+func (a InternalApiEngine) getUrl(arg ApiArg) url.URL {
 	u := *a.config.Url
 	var path string
 	if len(a.config.Prefix) > 0 {
@@ -50,7 +60,7 @@ func (a ApiEngine) getUrl(arg ApiArg) url.URL {
 	return u
 }
 
-func (a ApiEngine) fixHeaders(req *http.Request, arg ApiArg) {
+func (a InternalApiEngine) fixHeaders(req *http.Request, arg ApiArg) {
 	if arg.NeedSession && G.Session != nil {
 		if tok := G.Session.token; len(tok) > 0 {
 			req.Header.Add("X-Keybase-Session", tok)
@@ -110,33 +120,43 @@ func (arg ApiArg) getHttpArgs() url.Values {
 	}
 }
 
-func (api *ApiEngine) Get(arg ApiArg) (*ApiRes, error) {
-	url := api.getUrl(arg)
+func (base *BaseApiEngine) PrepareGet(url url.URL, arg ApiArg) (*http.Request, error) {
 	url.RawQuery = arg.getHttpArgs().Encode()
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
-	req, err := http.NewRequest("GET", ruri, nil)
+	return http.NewRequest("GET", ruri, nil)
+}
+
+func (api *InternalApiEngine) Get(arg ApiArg) (*ApiRes, error) {
+	url := api.getUrl(arg)
+	req, err := api.PrepareGet(url, arg)
 	if err != nil {
 		return nil, err
 	}
 	return api.DoRequest(arg, req)
 }
 
-func (api *ApiEngine) Post(arg ApiArg) (*ApiRes, error) {
-	url := api.getUrl(arg)
+func (base *InternalApiEngine) PreparePost(url url.URL, arg ApiArg) (*http.Request, error) {
 	ruri := url.String()
 	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
 	body := ioutil.NopCloser(strings.NewReader(arg.getHttpArgs().Encode()))
 	req, err := http.NewRequest("POST", ruri, body)
 	typ := "application/x-www-form-urlencoded; charset=utf-8"
 	req.Header.Add("Content-Type", typ)
+	return req, nil
+}
+
+
+func (api *InternalApiEngine) Post(arg ApiArg) (*ApiRes, error) {
+	url := api.getUrl(arg)
+	req, err := api.PreparePost(url, arg)
 	if err != nil {
 		return nil, err
 	}
 	return api.DoRequest(arg, req)
 }
 
-func (api *ApiEngine) DoRequest(
+func (api *InternalApiEngine) DoRequest(
 	arg ApiArg, req *http.Request) (*ApiRes, error) {
 
 	api.fixHeaders(req, arg)
@@ -186,3 +206,5 @@ func (api *ApiEngine) DoRequest(
 	G.Log.Debug(fmt.Sprintf("- succesful API call"))
 	return &ApiRes{status, body, resp.StatusCode, appStatus}, err
 }
+
+
