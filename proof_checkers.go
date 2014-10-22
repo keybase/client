@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"strings"
+	"github.com/keybase/go-jsonw"
 )
 
 const (
@@ -9,6 +10,7 @@ const (
 	PROOF_OK    = 1
 	PROOF_LOCAL = 2
 	PROOF_FOUND = 3 // It's been found in the hunt, but not proven yet
+
 	// Retryable =soft errors
 	PROOF_BASE_ERROR        = 100
 	PROOF_HOST_UNREACHABLE  = 101
@@ -18,6 +20,7 @@ const (
 	PROOF_AUTH_FAILED       = 108
 	PROOF_HTTP_500          = 150
 	PROOF_TIMEOUT           = 160
+	PROOF_INTERNAL_ERROR    = 170
 
 	// Likely will result in a hard error, if repeated enough
 	PROOF_BASE_HARD_ERROR  = 200
@@ -55,6 +58,23 @@ type ProofChecker interface {
 //
 //=============================================================================
 
+func ErrorToStatus(err error) ProofStatus {
+	if ae, ok := err.(*ApiError); ok {
+		switch (ae.Code / 100) {
+			case 3:
+				return PROOF_HTTP_300
+			case 4:
+				return PROOF_HTTP_400
+			case 5:
+				return PROOF_HTTP_500
+			default:
+				return PROOF_HTTP_OTHER
+		}
+	} else {
+		return PROOF_INTERNAL_ERROR
+	}
+}
+
 //=============================================================================
 // Reddit
 //
@@ -68,8 +88,46 @@ func (rc *RedditChecker) CheckApiUrl(h SigHint) bool {
 	return strings.Index(strings.ToLower(h.apiUrl), REDDIT_SUB) == 0
 }
 
-func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
+func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) *jsonw.Wrapper {
+	var k1, k2 string
+	var err error
 
+	inp.AtIndex(0).AtKey("kind").GetStringVoid(&k1, &err)
+	parent := inp.AtIndex(0).AtKey("data").AtKey("children").AtIndex(0)
+	parent.AtKey("kind").GetStringVoid(&k2, &err)
+	var ret *jsonw.Wrapper;
+
+	if err != nil {
+		G.Log.Warning("Reddit: Bad proof JSON: %s", err.Error())
+	} else if k1 != "Listing" {
+		G.Log.Warning("Reddit: Wanted a post of type 'Listing', but got %s", k1)
+	} else if k2 != "t3" {
+		G.Log.Warning("Reddit: Wanted a child of type 't3' but got %s", k2)
+	} else if ret = parent.AtKey("data"); ret.IsNil() {
+		G.Log.Warning("Reddit: Couldn't get child data for post")
+		ret = nil
+	}
+	return ret
+
+}
+
+func (rc *RedditChecker) CheckData(dat *jsonw.Wrapper) ProofStatus {
+	return PROOF_NONE
+}
+
+func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
+	res, err := G.XAPI.Get(ApiArg{
+		Endpoint : h.apiUrl,
+		NeedSession : false,
+	})
+	if err != nil {
+		return ErrorToStatus(err)
+	}
+	if dat := rc.UnpackData(res.Body); err != nil {
+		return PROOF_CONTENT_FAILURE
+	} else {
+		return rc.CheckData(dat)
+	}
 	return PROOF_OK
 }
 

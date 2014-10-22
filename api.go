@@ -46,6 +46,35 @@ func NewApiEngines(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 }
 
 //============================================================================
+// Errors
+
+type ApiError struct {
+	Msg string
+	Code int
+}
+
+func NewApiErrorFromError(err error) ApiError {
+	return ApiError{ err.Error(), 0 }
+}
+
+func NewApiErrorFromHttpResponse(r *http.Response) *ApiError {
+	return &ApiError{ r.Status, r.StatusCode }
+}
+
+func (a *ApiError) Error() string {
+	if len(a.Msg) > 0 {
+		return a.Msg
+	} else if (a.Code > 0) {
+		return fmt.Sprintf("Error HTTP status %d", a.Code)
+	} else {
+		return "Generic API error"
+	}
+}
+
+// Errors
+//============================================================================
+
+//============================================================================
 // BaseApiEngine
 
 func (api *BaseApiEngine) getCli(cookied bool) (ret *Client) {
@@ -138,7 +167,7 @@ func checkHttpStatus(arg ApiArg, resp *http.Response) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Bad HTTP response code: %s", resp.Status)
+	return NewApiErrorFromHttpResponse(resp)
 }
 
 func (arg ApiArg) getHttpArgs() url.Values {
