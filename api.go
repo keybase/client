@@ -14,7 +14,7 @@ import (
 // Shared code across Internal and External APIs
 type BaseApiEngine struct {
 	config              *ClientConfig
-	cookied, notCookied *Client
+	clients             map[int]*Client
 }
 
 type InternalApiEngine struct {
@@ -39,8 +39,9 @@ func NewApiEngines(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	i := &InternalApiEngine{BaseApiEngine{config, nil, nil}}
-	x := &ExternalApiEngine{BaseApiEngine{config, nil, nil}}
+
+	i := &InternalApiEngine{BaseApiEngine{config, make(map[int]*Client)}}
+	x := &ExternalApiEngine{BaseApiEngine{config, make(map[int]*Client)}}
 	return i, x, nil
 }
 
@@ -48,18 +49,16 @@ func NewApiEngines(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 // BaseApiEngine
 
 func (api *BaseApiEngine) getCli(cookied bool) (ret *Client) {
+	key := 0
 	if cookied {
-		if api.cookied == nil {
-			api.cookied = NewClient(api.config, true)
-		}
-		ret = api.cookied
-	} else {
-		if api.notCookied == nil {
-			api.notCookied = NewClient(api.config, false)
-		}
-		ret = api.notCookied
+		key |= 1
 	}
-	return ret
+	client, found := api.clients[key]
+	if !found {
+		client = NewClient(api.config, cookied)
+		api.clients[key] = client
+	}
+	return client
 }
 
 func (base *BaseApiEngine) PrepareGet(url url.URL, arg ApiArg) (*http.Request, error) {
