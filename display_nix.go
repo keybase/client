@@ -3,3 +3,4 @@
 package libkb
 
 var CHECK = "✔"
+var BADX = "✖"

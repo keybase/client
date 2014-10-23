@@ -46,6 +46,8 @@ const (
 	PROOF_SERVICE_DEAD  = 302
 	PROOF_BAD_SIGNATURE = 303
 	PROOF_BAD_API_URL   = 304
+	PROOF_UNKNOWN_TYPE  = 305
+	PROOF_NO_HINT       = 306
 )
 
 //=============================================================================
@@ -82,7 +84,7 @@ func (e *ProofApiError) Error() string {
 }
 
 func NewProofApiError(s ProofStatus, u string, d string, a ...interface{}) *ProofApiError {
-	base := NewProofError(s, d, a)
+	base := NewProofError(s, d, a...)
 	return &ProofApiError{*base, u}
 }
 
@@ -127,7 +129,7 @@ type RedditChecker struct {
 var REDDIT_PREFIX = "https://www.reddit.com"
 var REDDIT_SUB = REDDIT_PREFIX + "/r/keybaseproofs"
 
-func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, error) {
+func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
 	return &RedditChecker{p}, nil
 }
 
@@ -228,7 +230,7 @@ func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
 //=============================================================================
 //
 
-type proofCheckHook (func(l RemoteProofChainLink) (ProofChecker, error))
+type proofCheckHook (func(l RemoteProofChainLink) (ProofChecker, ProofError))
 type proofCheckDispatch map[string]proofCheckHook
 
 var _dispatch proofCheckDispatch
@@ -236,7 +238,7 @@ var _dispatch proofCheckDispatch
 func getProofCheckDispatch() proofCheckDispatch {
 	if _dispatch == nil {
 		_dispatch = proofCheckDispatch{
-			"reddit": func(l RemoteProofChainLink) (ProofChecker, error) {
+			"reddit": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 				return NewRedditChecker(l)
 			},
 		}
@@ -244,11 +246,12 @@ func getProofCheckDispatch() proofCheckDispatch {
 	return _dispatch
 }
 
-func NewProofChecker(l RemoteProofChainLink) (ProofChecker, error) {
+func NewProofChecker(l RemoteProofChainLink) (ProofChecker, ProofError) {
 	k := l.TableKey()
 	hook, found := getProofCheckDispatch()[l.TableKey()]
 	if !found {
-		return nil, fmt.Errorf("No proof checker for type: %s", k)
+		return nil, NewProofError(PROOF_UNKNOWN_TYPE,
+			"No proof checker for type: %s", k)
 	}
 	return hook(l)
 }

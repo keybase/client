@@ -77,6 +77,7 @@ type RemoteProofChainLink interface {
 	TableKey() string
 	LastWriterWins() bool
 	GetRemoteUsername() string
+	DisplayCheck(*SigHint, ProofError)
 }
 
 type WebProofChainLink struct {
@@ -101,8 +102,12 @@ func (w *WebProofChainLink) ToDisplayString() string {
 }
 func (w *WebProofChainLink) LastWriterWins() bool      { return false }
 func (w *WebProofChainLink) GetRemoteUsername() string { return "" }
-func (s *SocialProofChainLink) TableKey() string       { return s.service }
-func (s *SocialProofChainLink) Type() string           { return "proof" }
+
+func (s *WebProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
+}
+
+func (s *SocialProofChainLink) TableKey() string { return s.service }
+func (s *SocialProofChainLink) Type() string     { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(s, tab)
 }
@@ -117,6 +122,21 @@ func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 }
 func NewSocialProofChainLink(b GenericChainLink, s, u string) *SocialProofChainLink {
 	return &SocialProofChainLink{b, s, u}
+}
+
+func (s *SocialProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
+	var msg string
+	if err == nil {
+		msg = (CHECK + ` "` +
+			ColorString("green", s.username) + `" on ` + s.service +
+			": " + hint.humanUrl)
+	} else {
+		msg = (BADX +
+			ColorString("red", ` "`+s.username+`" on `+s.service+" "+
+				ColorString("bold", "failed")+": "+
+				err.Error()))
+	}
+	G.OutputString(msg + "\n")
 }
 
 func ParseWebServiceBinding(base GenericChainLink) (
@@ -353,9 +373,10 @@ func (s *SelfSigChainLink) ToDisplayString() string { return s.unpacked.username
 func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
-func (w *SelfSigChainLink) TableKey() string          { return "keybase" }
-func (w *SelfSigChainLink) LastWriterWins() bool      { return true }
-func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
+func (w *SelfSigChainLink) TableKey() string                           { return "keybase" }
+func (w *SelfSigChainLink) LastWriterWins() bool                       { return true }
+func (w *SelfSigChainLink) GetRemoteUsername() string                  { return w.GetUsername() }
+func (s *SelfSigChainLink) DisplayCheck(hint *SigHint, err ProofError) {}
 
 //
 //=========================================================================
@@ -475,38 +496,43 @@ func (idt *IdentityTable) Identify() error {
 			err = tmp
 		}
 	}
+	if err != nil {
+		err = fmt.Errorf("One or more proofs failed")
+	}
 	return err
 }
 
 //=========================================================================
 
 func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) error {
-	err := idt.CheckActiveProof(p)
+	hint, err := idt.CheckActiveProof(p)
+	p.DisplayCheck(hint, err)
 	return err
 }
 
-func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) error {
+func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (
+	hint *SigHint, err ProofError) {
 
-	pc, err := NewProofChecker(p)
+	var pc ProofChecker
+	pc, err = NewProofChecker(p)
+
 	if err != nil {
-		return err
+		return
 	}
 
 	id := p.GetSigId()
-	hint := idt.sigHints.Lookup(id)
+	hint = idt.sigHints.Lookup(id)
 	if hint == nil {
-		return fmt.Errorf("No server-given hint for sig=%s", id.ToString(true))
+		err = NewProofError(PROOF_NO_HINT,
+			"No server-given hint for sig=%s", id.ToString(true))
+		return
 	}
 
-	var pe ProofError
-
-	if pe = pc.CheckHint(*hint); pe != nil {
-		return pe
+	err = pc.CheckHint(*hint)
+	if err == nil {
+		err = pc.CheckStatus(*hint)
 	}
-	if pe = pc.CheckStatus(*hint); pe != nil {
-		return pe
-	}
-	return nil
+	return
 }
 
 //=========================================================================
