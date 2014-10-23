@@ -119,8 +119,6 @@ type Terminal interface {
 	PromptPassword(string) (string, error)
 	Write(string) error
 	Prompt(string) (string, error)
-	WriteColoredLine(ColoredLine) error
-	WriteColored(ColoredLine) error
 }
 
 type ApiArg struct {

@@ -15,6 +15,8 @@ package libkb
 
 import (
 	"fmt"
+	"io"
+	"os"
 )
 
 type Global struct {
@@ -30,10 +32,12 @@ type Global struct {
 	LocalDb       *JsonLocalDb  // Local DB for cache
 	MerkleClient  *MerkleClient // client for querying server's merkle sig tree
 	XAPI          ExternalAPI   // for contacting Twitter, Github, etc.
+	Output        io.Writer     // where 'Stdout'-style output goes
 }
 
 var G Global = Global{
 	NewDefaultLogger(),
+	nil,
 	nil,
 	nil,
 	nil,
@@ -58,6 +62,7 @@ func (g *Global) Init() {
 
 func (g *Global) ConfigureLogging() error {
 	g.Log.Configure(g.Env)
+	g.Output = os.Stdout
 	return nil
 }
 
@@ -178,4 +183,12 @@ func (g *Global) InitCmdline(cmd Command) error {
 
 	G.StartupMessage()
 	return nil
+}
+
+func (g *Global) OutputString(s string) {
+	g.Output.Write([]byte(s))
+}
+
+func (g *Global) OutputBytes(b []byte) {
+	g.Output.Write(b)
 }

@@ -566,12 +566,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 }
 
 func (u *User) Identify() error {
-	if G.Terminal != nil {
-		G.Terminal.WriteColoredLine(ColoredLine{
-			Colored{CHECK + " ", ""},
-			Colored{"public key fingerprint: " + u.activePgpFingerprint.ToQuads(), "green"},
-		})
-	}
+	G.OutputString(
+		CHECK + " " +
+			ColorString("green", "public key fingerprint: "+
+				u.activePgpFingerprint.ToQuads()) + "\n")
 	return u.idTable.Identify()
 }
 
