@@ -5,10 +5,11 @@ import (
 )
 
 type SigHint struct {
-	sigId    *SigId
-	remoteId string
-	apiUrl   string
-	humanUrl string
+	sigId     *SigId
+	remoteId  string
+	apiUrl    string
+	humanUrl  string
+	checkText string
 }
 
 type SigHints struct {
@@ -24,6 +25,7 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh.remoteId, _ = jw.AtKey("remote_id").GetString()
 	sh.apiUrl, _ = jw.AtKey("api_url").GetString()
 	sh.humanUrl, _ = jw.AtKey("human_url").GetString()
+	sh.checkText, _ = jw.AtKey("proof_text_check").GetString()
 	return
 }
 
@@ -76,6 +78,7 @@ func (sh SigHint) MarshalToJson() *jsonw.Wrapper {
 	ret.SetKey("remote_id", jsonw.NewString(sh.remoteId))
 	ret.SetKey("api_url", jsonw.NewString(sh.apiUrl))
 	ret.SetKey("human_url", jsonw.NewString(sh.humanUrl))
+	ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
 	return ret
 }
 
