@@ -66,3 +66,16 @@ func FormatTime(tm time.Time) string {
 func cicmp(s1, s2 string) bool {
 	return strings.ToLower(s1) == strings.ToLower(s2)
 }
+
+func depad(s string) string {
+	b := []byte(s)
+	i := len(b) - 1
+	for ; i >= 0; i-- {
+		if b[i] != '=' {
+			i++
+			break
+		}
+	}
+	ret := string(b[0:i])
+	return ret
+}

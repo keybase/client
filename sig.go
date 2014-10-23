@@ -84,11 +84,11 @@ func (s SigId) ToString(suffix bool) string {
 }
 
 func (s SigId) ToMediumId() string {
-	return base64.URLEncoding.EncodeToString(s[:])
+	return depad(base64.URLEncoding.EncodeToString(s[:]))
 }
 
 func (s SigId) ToShortId() string {
-	return base64.URLEncoding.EncodeToString(s[0:SIG_SHORT_ID_BYTES])
+	return depad(base64.URLEncoding.EncodeToString(s[0:SIG_SHORT_ID_BYTES]))
 }
 
 func (k PgpKeyBundle) ReadAndVerify(armored string) (msg []byte, sig_id *SigId,

@@ -98,13 +98,13 @@ func (e Env) GenClientConfig() (*ClientConfig, error) {
 
 func NewClient(config *ClientConfig, needCookie bool) *Client {
 	var jar *cookiejar.Jar
-	if needCookie && config.UseCookies {
+	if needCookie && (config == nil || config.UseCookies) {
 		jar, _ = cookiejar.New(nil)
 	}
 
 	var xprt *http.Transport
 
-	if config.RootCAs != nil {
+	if config != nil && config.RootCAs != nil {
 		xprt = &http.Transport{
 			TLSClientConfig: &tls.Config{RootCAs: config.RootCAs},
 		}

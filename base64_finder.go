@@ -69,7 +69,7 @@ func (s *Base64Finder) findOne(i int) (string, int) {
 		match := s.rxx.FindStringSubmatch(line)
 		if match != nil {
 			state = 1
-			parts = append(parts, match[2])
+			parts = append(parts, match[1])
 			if len(match[3]) > 0 {
 				// A terminal "=" character means jump on out
 				i++
@@ -81,7 +81,11 @@ func (s *Base64Finder) findOne(i int) (string, int) {
 			// wait until next time
 		}
 	}
-	return strings.Join(parts, " "), i
+	if i == l {
+		i = -1
+	}
+	ret := strings.Join(parts, "")
+	return ret, i
 }
 
 func (s *Base64Finder) Run() []string {
@@ -97,5 +101,6 @@ func FindBase64Blocks(s string) []string {
 
 func FindBase64Block(s string, pattern []byte, url bool) bool {
 	eng := NewBase64Finder(s)
+	eng.split()
 	return eng.search(pattern, url)
 }

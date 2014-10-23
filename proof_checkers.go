@@ -79,9 +79,10 @@ type ProofApiError struct {
 	url string
 }
 
-func (e *ProofApiError) Error() string {
-	return fmt.Sprintf("%s (url=%s; code=%d)", e.Desc, e.url, int(e.Status))
-}
+// Might be overkill, let's revisit...
+//func (e *ProofApiError) Error() string {
+//	return fmt.Sprintf("%s (url=%s; code=%d)", e.Desc, e.url, int(e.Status))
+//}
 
 func NewProofApiError(s ProofStatus, u string, d string, a ...interface{}) *ProofApiError {
 	base := NewProofError(s, d, a...)
@@ -114,7 +115,7 @@ func XapiError(err error, u string) *ProofApiError {
 		}
 		return NewProofApiError(code, u, ae.Msg)
 	} else {
-		return NewProofApiError(PROOF_INTERNAL_ERROR, u, "generic API error")
+		return NewProofApiError(PROOF_INTERNAL_ERROR, u, err.Error())
 	}
 }
 

@@ -41,7 +41,7 @@ func NewApiEngines(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 	}
 
 	i := &InternalApiEngine{BaseApiEngine{config, make(map[int]*Client)}}
-	x := &ExternalApiEngine{BaseApiEngine{config, make(map[int]*Client)}}
+	x := &ExternalApiEngine{BaseApiEngine{nil, make(map[int]*Client)}}
 	return i, x, nil
 }
 
@@ -138,7 +138,7 @@ func doRequestShared(api Requester, arg ApiArg, req *http.Request, wantJsonRes b
 	if wantJsonRes {
 
 		decoder := json.NewDecoder(resp.Body)
-		obj := make(map[string]interface{})
+		var obj interface{}
 		err = decoder.Decode(&obj)
 		resp.Body.Close()
 		if err != nil {
