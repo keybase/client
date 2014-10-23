@@ -45,6 +45,7 @@ const (
 	PROOF_DELETED       = 301
 	PROOF_SERVICE_DEAD  = 302
 	PROOF_BAD_SIGNATURE = 303
+	PROOF_BAD_API_URL   = 304
 )
 
 //=============================================================================
@@ -52,7 +53,7 @@ const (
 type ProofStatus int
 
 type ProofChecker interface {
-	CheckApiUrl(h SigHint) bool
+	CheckHint(h SigHint) ProofStatus
 	CheckStatus(h SigHint) ProofStatus
 }
 
@@ -91,8 +92,13 @@ func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, error) {
 	return &RedditChecker{p}, nil
 }
 
-func (rc *RedditChecker) CheckApiUrl(h SigHint) bool {
-	return strings.Index(strings.ToLower(h.apiUrl), REDDIT_SUB) == 0
+func (rc *RedditChecker) CheckHintStatus(h SigHint) ProofStatus {
+	ok := strings.Index(strings.ToLower(h.apiUrl), REDDIT_SUB)
+	if ok {
+		return PROOF_OK
+	} else {
+		return PROOF_BAD_API_URL
+	}
 }
 
 func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) *jsonw.Wrapper {

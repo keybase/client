@@ -470,15 +470,37 @@ func (idt *IdentityTable) Len() int {
 func (idt *IdentityTable) Identify() error {
 	var err error
 	for _, activeProof := range idt.activeProofs {
-		IdentifyActiveProof(activeProof, &err)
+		tmp := idt.IdentifyActiveProof(activeProof)
+		if tmp != nil && err == nil {
+			err = tmp
+		}
 	}
 	return err
 }
 
 //=========================================================================
 
-func IdentifyActiveProof(p RemoteProofChainLink, err *error) {
-	return
+func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) error {
+
+	err = idt.CheckActiveProof(p)
+	return err
+}
+
+func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) error {
+
+	pc, err := NewProofChecker(p)
+	if err != nil {
+		return err
+	}
+
+	hint, found := idt.sigHints[p.GetSigId()]
+	if !found {
+		return fmt.Errorf("No server-given hint for sig=%s", p.GetSigId().ToString(true))
+	}
+
+	status = pc.CheckApiUrl()
+
+	return nil
 }
 
 //=========================================================================
