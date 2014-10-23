@@ -3,18 +3,18 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/keybase/go-jsonw"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"github.com/PuerkitoBio/goquery"
 )
 
 // Shared code across Internal and External APIs
 type BaseApiEngine struct {
-	config              *ClientConfig
-	clients             map[int]*Client
+	config  *ClientConfig
+	clients map[int]*Client
 }
 
 type InternalApiEngine struct {
@@ -49,22 +49,22 @@ func NewApiEngines(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 // Errors
 
 type ApiError struct {
-	Msg string
+	Msg  string
 	Code int
 }
 
 func NewApiErrorFromError(err error) ApiError {
-	return ApiError{ err.Error(), 0 }
+	return ApiError{err.Error(), 0}
 }
 
 func NewApiErrorFromHttpResponse(r *http.Response) *ApiError {
-	return &ApiError{ r.Status, r.StatusCode }
+	return &ApiError{r.Status, r.StatusCode}
 }
 
 func (a *ApiError) Error() string {
 	if len(a.Msg) > 0 {
 		return a.Msg
-	} else if (a.Code > 0) {
+	} else if a.Code > 0 {
 		return fmt.Sprintf("Error HTTP status %d", a.Code)
 	} else {
 		return "Generic API error"
@@ -301,12 +301,12 @@ func (api *ExternalApiEngine) DoRequest(
 	}
 
 	if wantJsonRes {
-		ar = &ExternalApiRes { resp.StatusCode, jw }
+		ar = &ExternalApiRes{resp.StatusCode, jw}
 	} else {
 		var goq *goquery.Document
 		goq, err = goquery.NewDocumentFromResponse(resp)
 		if err == nil {
-			hr = &ExternalHtmlRes { resp.StatusCode, goq }
+			hr = &ExternalHtmlRes{resp.StatusCode, goq}
 		}
 	}
 	return

@@ -5,12 +5,12 @@ import (
 	"code.google.com/p/go.crypto/openpgp"
 	"code.google.com/p/go.crypto/openpgp/armor"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"io/ioutil"
 	"strings"
-	"encoding/base64"
 )
 
 const (
@@ -95,7 +95,7 @@ func (k PgpKeyBundle) ReadAndVerify(armored string) (msg []byte, sig_id *SigId,
 	err error) {
 
 	var ps *ParsedSig
-	if ps, err = OpenSig(armored); err != nil  {
+	if ps, err = OpenSig(armored); err != nil {
 		return
 	} else if err = ps.Verify(k); err != nil {
 		return
@@ -118,9 +118,9 @@ func (k PgpKeyBundle) Verify(armored string, expected []byte) (sigId *SigId,
 }
 
 type ParsedSig struct {
-	Block *armor.Block
-	SigBody []byte
-	MD *openpgp.MessageDetails
+	Block       *armor.Block
+	SigBody     []byte
+	MD          *openpgp.MessageDetails
 	LiteralData []byte
 }
 

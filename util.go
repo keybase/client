@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -60,4 +61,8 @@ func SecureByteArrayEq(a, b []byte) bool {
 func FormatTime(tm time.Time) string {
 	layout := "2006-01-02 15:04:05 MST"
 	return tm.Format(layout)
+}
+
+func cicmp(s1, s2 string) bool {
+	return strings.ToLower(s1) == strings.ToLower(s2)
 }

@@ -1,8 +1,8 @@
 package libkb
 
 import (
-	"strings"
 	"github.com/keybase/go-jsonw"
+	"strings"
 )
 
 const (
@@ -60,15 +60,15 @@ type ProofChecker interface {
 
 func ErrorToStatus(err error) ProofStatus {
 	if ae, ok := err.(*ApiError); ok {
-		switch (ae.Code / 100) {
-			case 3:
-				return PROOF_HTTP_300
-			case 4:
-				return PROOF_HTTP_400
-			case 5:
-				return PROOF_HTTP_500
-			default:
-				return PROOF_HTTP_OTHER
+		switch ae.Code / 100 {
+		case 3:
+			return PROOF_HTTP_300
+		case 4:
+			return PROOF_HTTP_400
+		case 5:
+			return PROOF_HTTP_500
+		default:
+			return PROOF_HTTP_OTHER
 		}
 	} else {
 		return PROOF_INTERNAL_ERROR
@@ -101,7 +101,7 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) *jsonw.Wrapper {
 	inp.AtIndex(0).AtKey("kind").GetStringVoid(&k1, &err)
 	parent := inp.AtIndex(0).AtKey("data").AtKey("children").AtIndex(0)
 	parent.AtKey("kind").GetStringVoid(&k2, &err)
-	var ret *jsonw.Wrapper;
+	var ret *jsonw.Wrapper
 
 	if err != nil {
 		G.Log.Warning("Reddit: Bad proof JSON: %s", err.Error())
@@ -117,14 +117,47 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) *jsonw.Wrapper {
 
 }
 
+func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
+	return cicmp(s1, s2)
+}
+
 func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofStatus {
+	ps, err := OpenSig(rc.proof.GetArmoredSig())
+	if err != nil {
+		G.Log.Warning("Reddit: bad signature: %s", err.Error())
+		return PROOF_BAD_SIGNATURE
+	}
+
+	var subreddit, author, selftext, title string
+
+	dat.AtKey("subreddit").GetStringVoid(&subreddit, &err)
+	dat.AtKey("author").GetStringVoid(&author, &err)
+	dat.AtKey("selftext").GetStringVoid(&selftext, &err)
+	dat.AtKey("title").GetStringVoid(&title, &err)
+
+	if err != nil {
+		G.Log.Warning("Reddit: content missing: %s", err.Error())
+		return PROOF_CONTENT_MISSING
+	}
+
+	if strings.ToLower(subreddit) != "keybaseproofs" {
+		return PROOF_SERVICE_ERROR
+	}
+
+	if !rc.ScreenNameCompare(author, rc.proof.GetRemoteUsername()) {
+		return PROOF_BAD_USERNAME
+	}
+	if !strings.Contains(title, ps.ID().ToMediumId()) {
+		return PROOF_TITLE_NOT_FOUND
+	}
+
 	return PROOF_NONE
 }
 
 func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
 	res, err := G.XAPI.Get(ApiArg{
-		Endpoint : h.apiUrl,
-		NeedSession : false,
+		Endpoint:    h.apiUrl,
+		NeedSession: false,
 	})
 	if err != nil {
 		return ErrorToStatus(err)

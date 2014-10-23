@@ -243,8 +243,7 @@ func (f JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
 func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {
 	if f.jw == nil {
 		return nil
-	} else if v, err := f.jw.AtKey("keys").AtKey("merkle").ToArray();
-		err != nil || v == nil {
+	} else if v, err := f.jw.AtKey("keys").AtKey("merkle").ToArray(); err != nil || v == nil {
 		return nil
 	} else if l, err := v.Len(); err != nil {
 		return nil

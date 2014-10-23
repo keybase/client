@@ -21,6 +21,7 @@ type TypedChainLink interface {
 	GetSeqno() Seqno
 	GetCTime() time.Time
 	GetPgpFingerprint() PgpFingerprint
+	GetUsername() string
 }
 
 //=========================================================================
@@ -61,6 +62,9 @@ func (g *GenericChainLink) GetCTime() time.Time {
 func (g *GenericChainLink) GetArmoredSig() string {
 	return g.unpacked.sig
 }
+func (g *GenericChainLink) GetUsername() string {
+	return g.unpacked.username
+}
 
 //
 //=========================================================================
@@ -72,6 +76,7 @@ type RemoteProofChainLink interface {
 	TypedChainLink
 	TableKey() string
 	LastWriterWins() bool
+	GetRemoteUsername() string
 }
 
 type WebProofChainLink struct {
@@ -94,16 +99,18 @@ func (w *WebProofChainLink) insertIntoTable(tab *IdentityTable) {
 func (w *WebProofChainLink) ToDisplayString() string {
 	return w.protocol + "://" + w.hostname
 }
-func (w *WebProofChainLink) LastWriterWins() bool { return false }
-func (s *SocialProofChainLink) TableKey() string  { return s.service }
-func (s *SocialProofChainLink) Type() string      { return "proof" }
+func (w *WebProofChainLink) LastWriterWins() bool      { return false }
+func (w *WebProofChainLink) GetRemoteUsername() string { return "" }
+func (s *SocialProofChainLink) TableKey() string       { return s.service }
+func (s *SocialProofChainLink) Type() string           { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(s, tab)
 }
 func (w *SocialProofChainLink) ToDisplayString() string {
 	return w.username + "@" + w.service
 }
-func (s *SocialProofChainLink) LastWriterWins() bool { return true }
+func (s *SocialProofChainLink) LastWriterWins() bool      { return true }
+func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h}
@@ -346,8 +353,9 @@ func (s *SelfSigChainLink) ToDisplayString() string { return s.unpacked.username
 func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
-func (w *SelfSigChainLink) TableKey() string     { return "keybase" }
-func (w *SelfSigChainLink) LastWriterWins() bool { return true }
+func (w *SelfSigChainLink) TableKey() string          { return "keybase" }
+func (w *SelfSigChainLink) LastWriterWins() bool      { return true }
+func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
 
 //
 //=========================================================================
