@@ -22,7 +22,19 @@ func (v *CmdId) Initialize(ctx *cli.Context) error {
 }
 
 func (v *CmdId) Run() error {
-	return nil
+	u, err := LoadUser(LoadUserArg{
+		Name:             v.user,
+		RequirePublicKey: true,
+		Self:             (len(v.user) == 0),
+		LoadSecrets:      false,
+		ForceReload:      false,
+		SkipVerify:       false,
+	})
+
+	if err == nil {
+		err = u.Identify()
+	}
+	return err
 }
 
 func (v *CmdId) UseConfig() bool   { return true }

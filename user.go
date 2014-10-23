@@ -34,14 +34,14 @@ type User struct {
 // Thin wrapper around hashicorp's LRU to store users locally
 
 type LoadUserArg struct {
-	name             string
-	requirePublicKey bool
-	noCacheResult    bool
-	self             bool
-	loadSecrets      bool
-	forceReload      bool
-	skipVerify       bool
-	allKeys          bool
+	Name             string
+	RequirePublicKey bool
+	NoCacheResult    bool
+	Self             bool
+	LoadSecrets      bool
+	ForceReload      bool
+	SkipVerify       bool
+	AllKeys          bool
 	leaf             *MerkleUserLeaf
 }
 
@@ -285,13 +285,13 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 
 func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
 
-	G.Log.Debug("+ Load User from server: %s", arg.name)
+	G.Log.Debug("+ Load User from server: %s", arg.Name)
 
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "user/lookup",
-		NeedSession: (arg.loadSecrets && arg.self),
+		NeedSession: (arg.LoadSecrets && arg.Self),
 		Args: HttpArgs{
-			"username": S{arg.name},
+			"username": S{arg.Name},
 		},
 	})
 
@@ -311,7 +311,7 @@ func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
 		return
 	}
 
-	G.Log.Debug("- Load user from server: %s -> %v", arg.name, (err == nil))
+	G.Log.Debug("- Load user from server: %s -> %v", arg.Name, (err == nil))
 
 	return
 }
@@ -476,19 +476,19 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
 
-	if len(arg.name) == 0 && !arg.self {
+	if len(arg.Name) == 0 && !arg.Self {
 		err = fmt.Errorf("no username given to LoadUser")
 		return
-	} else if len(arg.name) > 0 && arg.self {
+	} else if len(arg.Name) > 0 && arg.Self {
 		err = fmt.Errorf("If loading self, can't provide a username")
 		return
-	} else if arg.self {
-		arg.name = G.Env.GetUsername()
+	} else if arg.Self {
+		arg.Name = G.Env.GetUsername()
 	}
 
-	G.Log.Debug("+ LoadUser(%s)", arg.name)
+	G.Log.Debug("+ LoadUser(%s)", arg.Name)
 
-	name, err = ResolveUsername(arg.name)
+	name, err = ResolveUsername(arg.Name)
 	if err != nil {
 		return
 	}
@@ -497,12 +497,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var local *User
 
-	if !arg.forceReload {
+	if !arg.ForceReload {
 		if u := G.UserCache.GetByName(name); u != nil {
 			return u, nil
 		}
 
-		local, err = LoadUserFromLocalStorage(name, arg.allKeys)
+		local, err = LoadUserFromLocalStorage(name, arg.AllKeys)
 		if err != nil {
 			G.Log.Warning("Failed to load %s from storage: %s",
 				name, err.Error())
@@ -538,7 +538,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	if !arg.skipVerify {
+	if !arg.SkipVerify {
 		if err = ret.VerifySigChain(); err != nil {
 			return
 		}
@@ -554,15 +554,19 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			name, e2.Error())
 	}
 
-	if err = ret.MakeIdTable(arg.allKeys); err != nil {
+	if err = ret.MakeIdTable(arg.AllKeys); err != nil {
 		return
 	}
 
-	if !arg.noCacheResult {
+	if !arg.NoCacheResult {
 		G.UserCache.Put(ret)
 	}
 
 	return
+}
+
+func (u *User) Identify() error {
+	return nil
 }
 
 //==================================================================

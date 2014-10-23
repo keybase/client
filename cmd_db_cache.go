@@ -25,12 +25,12 @@ func (v *CmdDbCache) Run() error {
 	// XXX maybe do some sort of debug dump with the user that
 	// we loaded from the server (or storage).
 	_, err := LoadUser(LoadUserArg{
-		name:             v.input,
-		requirePublicKey: false,
-		self:             false,
-		loadSecrets:      false,
-		forceReload:      false,
-		skipVerify:       false,
+		Name:             v.input,
+		RequirePublicKey: false,
+		Self:             false,
+		LoadSecrets:      false,
+		ForceReload:      false,
+		SkipVerify:       false,
 	})
 	if err != nil {
 		return err

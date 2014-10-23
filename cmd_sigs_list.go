@@ -235,11 +235,11 @@ func (s *CmdSigsList) Run() (err error) {
 	// XXX maybe do some sort of debug dump with the user that
 	// we loaded from the server (or storage).
 
-	arg := LoadUserArg{allKeys: s.allKeys}
+	arg := LoadUserArg{AllKeys: s.allKeys}
 	if len(s.username) != 0 {
-		arg.name = s.username
+		arg.Name = s.username
 	} else {
-		arg.self = true
+		arg.Self = true
 	}
 
 	s.user, err = LoadUser(arg)

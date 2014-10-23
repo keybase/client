@@ -54,6 +54,7 @@ func (s *Base64Finder) search(searchFor []byte, url bool) bool {
 			}
 		}
 	}
+
 	return false
 }
 
@@ -94,7 +95,7 @@ func FindBase64Blocks(s string) []string {
 	return eng.Run()
 }
 
-func FindBase64edBlock(s string, pattern []byte, url bool) bool {
+func FindBase64Block(s string, pattern []byte, url bool) bool {
 	eng := NewBase64Finder(s)
 	return eng.search(pattern, url)
 }

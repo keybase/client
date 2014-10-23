@@ -135,23 +135,24 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofStatus {
 	dat.AtKey("selftext").GetStringVoid(&selftext, &err)
 	dat.AtKey("title").GetStringVoid(&title, &err)
 
+	var ret ProofStatus = PROOF_NONE
+
 	if err != nil {
 		G.Log.Warning("Reddit: content missing: %s", err.Error())
-		return PROOF_CONTENT_MISSING
+		ret = PROOF_CONTENT_MISSING
+	} else if strings.ToLower(subreddit) != "keybaseproofs" {
+		ret = PROOF_SERVICE_ERROR
+	} else if !rc.ScreenNameCompare(author, rc.proof.GetRemoteUsername()) {
+		ret = PROOF_BAD_USERNAME
+	} else if !strings.Contains(title, ps.ID().ToMediumId()) {
+		ret = PROOF_TITLE_NOT_FOUND
+	} else if !FindBase64Block(selftext, ps.SigBody, false) {
+		ret = PROOF_TEXT_NOT_FOUND
+	} else {
+		ret = PROOF_OK
 	}
 
-	if strings.ToLower(subreddit) != "keybaseproofs" {
-		return PROOF_SERVICE_ERROR
-	}
-
-	if !rc.ScreenNameCompare(author, rc.proof.GetRemoteUsername()) {
-		return PROOF_BAD_USERNAME
-	}
-	if !strings.Contains(title, ps.ID().ToMediumId()) {
-		return PROOF_TITLE_NOT_FOUND
-	}
-
-	return PROOF_NONE
+	return ret
 }
 
 func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
