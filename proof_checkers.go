@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"github.com/keybase/go-jsonw"
 	"strings"
 )
@@ -58,7 +59,7 @@ type ProofChecker interface {
 //
 //=============================================================================
 
-func ErrorToStatus(err error) ProofStatus {
+func ErrorToProofStatus(err error) ProofStatus {
 	if ae, ok := err.(*ApiError); ok {
 		switch ae.Code / 100 {
 		case 3:
@@ -86,8 +87,8 @@ type RedditChecker struct {
 var REDDIT_PREFIX = "https://www.reddit.com"
 var REDDIT_SUB = REDDIT_PREFIX + "/r/keybaseproofs"
 
-func NewRedditChecker(p RemoteProofChainLink) *RedditChecker {
-	return &RedditChecker{p}
+func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, error) {
+	return &RedditChecker{p}, nil
 }
 
 func (rc *RedditChecker) CheckApiUrl(h SigHint) bool {
@@ -161,7 +162,7 @@ func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
 		NeedSession: false,
 	})
 	if err != nil {
-		return ErrorToStatus(err)
+		return ErrorToProofStatus(err)
 	}
 	if dat := rc.UnpackData(res.Body); err != nil {
 		return PROOF_CONTENT_FAILURE
@@ -169,6 +170,37 @@ func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
 		return rc.CheckData(h, dat)
 	}
 	return PROOF_OK
+}
+
+//
+//=============================================================================
+
+//=============================================================================
+//
+
+type proofCheckHook (func(l RemoteProofChainLink) (ProofChecker, error))
+type proofCheckDispatch map[string]proofCheckHook
+
+var _dispatch proofCheckDispatch
+
+func getProofCheckDispatch() proofCheckDispatch {
+	if _dispatch == nil {
+		_dispatch = proofCheckDispatch{
+			"reddit": func(l RemoteProofChainLink) (ProofChecker, error) {
+				return NewRedditChecker(l)
+			},
+		}
+	}
+	return _dispatch
+}
+
+func NewProofChecker(l RemoteProofChainLink) (ProofChecker, error) {
+	k := l.TableKey()
+	hook, found := getProofCheckDispatch()[l.TableKey()]
+	if !found {
+		return nil, fmt.Errorf("No proof checker for type: %s", k)
+	}
+	return hook(l)
 }
 
 //

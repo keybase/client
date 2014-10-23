@@ -25,3 +25,9 @@ func (t TerminalImplementation) Write(s string) error {
 func (t TerminalImplementation) Prompt(s string) (string, error) {
 	return t.engine.Prompt(s)
 }
+func (t TerminalImplementation) WriteColored(cl ColoredLine) error {
+	return t.engine.WriteColored(cl)
+}
+func (t TerminalImplementation) WriteColoredLine(cl ColoredLine) error {
+	return t.engine.WriteColoredLine(cl)
+}

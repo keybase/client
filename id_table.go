@@ -466,3 +466,19 @@ func (idt *IdentityTable) CollectActiveProofs() {
 func (idt *IdentityTable) Len() int {
 	return len(idt.order)
 }
+
+func (idt *IdentityTable) Identify() error {
+	var err error
+	for _, activeProof := range idt.activeProofs {
+		IdentifyActiveProof(activeProof, &err)
+	}
+	return err
+}
+
+//=========================================================================
+
+func IdentifyActiveProof(p RemoteProofChainLink, err *error) {
+	return
+}
+
+//=========================================================================

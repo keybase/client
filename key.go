@@ -38,6 +38,21 @@ func (p PgpFingerprint) ToString() string {
 	return hex.EncodeToString(p[:])
 }
 
+func (p PgpFingerprint) ToQuads() string {
+	x := []byte(strings.ToUpper(p.ToString()))
+	ret := make([]byte, len(x)*5/4-1)
+	j := 0
+	for i, b := range x {
+		ret[j] = b
+		j++
+		if (i%4) == 0 && i > 0 {
+			ret[j] = ' '
+			j++
+		}
+	}
+	return string(ret)
+}
+
 func (p PgpFingerprint) ToKeyId() string {
 	return strings.ToUpper(hex.EncodeToString(p[12:20]))
 }
