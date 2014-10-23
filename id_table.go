@@ -481,8 +481,7 @@ func (idt *IdentityTable) Identify() error {
 //=========================================================================
 
 func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) error {
-
-	err = idt.CheckActiveProof(p)
+	err := idt.CheckActiveProof(p)
 	return err
 }
 
@@ -493,13 +492,20 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) error {
 		return err
 	}
 
-	hint, found := idt.sigHints[p.GetSigId()]
-	if !found {
-		return fmt.Errorf("No server-given hint for sig=%s", p.GetSigId().ToString(true))
+	id := p.GetSigId()
+	hint := idt.sigHints.Lookup(id)
+	if hint == nil {
+		return fmt.Errorf("No server-given hint for sig=%s", id.ToString(true))
 	}
 
-	status = pc.CheckApiUrl()
+	var pe ProofError
 
+	if pe = pc.CheckHint(*hint); pe != nil {
+		return pe
+	}
+	if pe = pc.CheckStatus(*hint); pe != nil {
+		return pe
+	}
 	return nil
 }
 

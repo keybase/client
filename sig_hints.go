@@ -27,6 +27,11 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	return
 }
 
+func (sh SigHints) Lookup(i SigId) *SigHint {
+	obj, _ := sh.hints[i]
+	return obj
+}
+
 func NewSigHints(jw *jsonw.Wrapper, uid UID, dirty bool) (sh *SigHints, err error) {
 	sh = &SigHints{uid: uid, dirty: dirty, version: 0}
 	err = sh.PopulateWith(jw)

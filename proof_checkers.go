@@ -52,28 +52,67 @@ const (
 //
 type ProofStatus int
 
-type ProofChecker interface {
-	CheckHint(h SigHint) ProofStatus
-	CheckStatus(h SigHint) ProofStatus
+type ProofError interface {
+	error
+	GetStatus() ProofStatus
+}
+
+type ProofErrorImpl struct {
+	Status ProofStatus
+	Desc   string
+}
+
+func NewProofError(s ProofStatus, d string, a ...interface{}) *ProofErrorImpl {
+	return &ProofErrorImpl{s, fmt.Sprintf(d, a...)}
+}
+
+func (e *ProofErrorImpl) Error() string {
+	return fmt.Sprintf("%s (code=%d)", e.Desc, int(e.Status))
+}
+
+func (e *ProofErrorImpl) GetStatus() ProofStatus { return e.Status }
+
+type ProofApiError struct {
+	ProofErrorImpl
+	url string
+}
+
+func (e *ProofApiError) Error() string {
+	return fmt.Sprintf("%s (url=%s; code=%d)", e.Desc, e.url, int(e.Status))
+}
+
+func NewProofApiError(s ProofStatus, u string, d string, a ...interface{}) *ProofApiError {
+	base := NewProofError(s, d, a)
+	return &ProofApiError{*base, u}
 }
 
 //
 //=============================================================================
 
-func ErrorToProofStatus(err error) ProofStatus {
+type ProofChecker interface {
+	CheckHint(h SigHint) ProofError
+	CheckStatus(h SigHint) ProofError
+}
+
+//
+//=============================================================================
+
+func XapiError(err error, u string) *ProofApiError {
 	if ae, ok := err.(*ApiError); ok {
+		var code ProofStatus = PROOF_NONE
 		switch ae.Code / 100 {
 		case 3:
-			return PROOF_HTTP_300
+			code = PROOF_HTTP_300
 		case 4:
-			return PROOF_HTTP_400
+			code = PROOF_HTTP_400
 		case 5:
-			return PROOF_HTTP_500
+			code = PROOF_HTTP_500
 		default:
-			return PROOF_HTTP_OTHER
+			code = PROOF_HTTP_OTHER
 		}
+		return NewProofApiError(code, u, ae.Msg)
 	} else {
-		return PROOF_INTERNAL_ERROR
+		return NewProofApiError(PROOF_INTERNAL_ERROR, u, "generic API error")
 	}
 }
 
@@ -92,16 +131,16 @@ func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, error) {
 	return &RedditChecker{p}, nil
 }
 
-func (rc *RedditChecker) CheckHintStatus(h SigHint) ProofStatus {
-	ok := strings.Index(strings.ToLower(h.apiUrl), REDDIT_SUB)
-	if ok {
-		return PROOF_OK
+func (rc *RedditChecker) CheckHint(h SigHint) ProofError {
+	if strings.HasPrefix(strings.ToLower(h.apiUrl), REDDIT_SUB) {
+		return nil
 	} else {
-		return PROOF_BAD_API_URL
+		return NewProofError(PROOF_BAD_API_URL,
+			"Bad hint from server; URL should start with '%s'", REDDIT_SUB)
 	}
 }
 
-func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) *jsonw.Wrapper {
+func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofError) {
 	var k1, k2 string
 	var err error
 
@@ -110,17 +149,22 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) *jsonw.Wrapper {
 	parent.AtKey("kind").GetStringVoid(&k2, &err)
 	var ret *jsonw.Wrapper
 
+	var pe ProofError
+	var cf ProofStatus = PROOF_CONTENT_FAILURE
+	var cm ProofStatus = PROOF_CONTENT_MISSING
+
 	if err != nil {
-		G.Log.Warning("Reddit: Bad proof JSON: %s", err.Error())
+		pe = NewProofError(cm, "Bad proof JSON: %s", err.Error())
 	} else if k1 != "Listing" {
-		G.Log.Warning("Reddit: Wanted a post of type 'Listing', but got %s", k1)
+		pe = NewProofError(cf,
+			"Reddit: Wanted a post of type 'Listing', but got %s", k1)
 	} else if k2 != "t3" {
-		G.Log.Warning("Reddit: Wanted a child of type 't3' but got %s", k2)
+		pe = NewProofError(cf, "Wanted a child of type 't3' but got %s", k2)
 	} else if ret = parent.AtKey("data"); ret.IsNil() {
-		G.Log.Warning("Reddit: Couldn't get child data for post")
-		ret = nil
+		pe = NewProofError(cm, "Couldn't get child data for post")
 	}
-	return ret
+
+	return ret, pe
 
 }
 
@@ -128,11 +172,11 @@ func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
 	return cicmp(s1, s2)
 }
 
-func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofStatus {
+func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	ps, err := OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
-		G.Log.Warning("Reddit: bad signature: %s", err.Error())
-		return PROOF_BAD_SIGNATURE
+		return NewProofError(PROOF_BAD_SIGNATURE,
+			"Bad signature: %s", err.Error())
 	}
 
 	var subreddit, author, selftext, title string
@@ -142,40 +186,40 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofStatus {
 	dat.AtKey("selftext").GetStringVoid(&selftext, &err)
 	dat.AtKey("title").GetStringVoid(&title, &err)
 
-	var ret ProofStatus = PROOF_NONE
+	var ret ProofError
 
 	if err != nil {
-		G.Log.Warning("Reddit: content missing: %s", err.Error())
-		ret = PROOF_CONTENT_MISSING
+		ret = NewProofError(PROOF_CONTENT_MISSING, "content missing: %s", err.Error())
 	} else if strings.ToLower(subreddit) != "keybaseproofs" {
-		ret = PROOF_SERVICE_ERROR
-	} else if !rc.ScreenNameCompare(author, rc.proof.GetRemoteUsername()) {
-		ret = PROOF_BAD_USERNAME
-	} else if !strings.Contains(title, ps.ID().ToMediumId()) {
-		ret = PROOF_TITLE_NOT_FOUND
+		ret = NewProofError(PROOF_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
+	} else if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
+		ret = NewProofError(PROOF_BAD_USERNAME,
+			"Bad post author; wanted '%s' but got '%s'", wanted, author)
+	} else if psid := ps.ID().ToMediumId(); !strings.Contains(title, psid) {
+		ret = NewProofError(PROOF_TITLE_NOT_FOUND,
+			"Missing signature ID (%s) in post title ('%s')",
+			psid, title)
 	} else if !FindBase64Block(selftext, ps.SigBody, false) {
-		ret = PROOF_TEXT_NOT_FOUND
-	} else {
-		ret = PROOF_OK
+		ret = NewProofError(PROOF_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return ret
 }
 
-func (rc *RedditChecker) CheckStatus(h SigHint) ProofStatus {
+func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
 	res, err := G.XAPI.Get(ApiArg{
 		Endpoint:    h.apiUrl,
 		NeedSession: false,
 	})
 	if err != nil {
-		return ErrorToProofStatus(err)
+		return XapiError(err, h.apiUrl)
 	}
-	if dat := rc.UnpackData(res.Body); err != nil {
-		return PROOF_CONTENT_FAILURE
+
+	if dat, perr := rc.UnpackData(res.Body); perr != nil {
+		return perr
 	} else {
 		return rc.CheckData(h, dat)
 	}
-	return PROOF_OK
 }
 
 //
