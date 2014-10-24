@@ -80,13 +80,14 @@ type CheckResult struct {
 }
 
 type ChainLink struct {
-	parent        *SigChain
-	id            LinkId
-	hashVerified  bool
-	sigVerified   bool
-	storedLocally bool
-	activeKey     bool
-	revoked       bool
+	parent          *SigChain
+	id              LinkId
+	hashVerified    bool
+	sigVerified     bool
+	payloadVerified bool
+	storedLocally   bool
+	activeKey       bool
+	revoked         bool
 
 	packed      *jsonw.Wrapper
 	payloadJson *jsonw.Wrapper
@@ -222,6 +223,22 @@ func (c *ChainLink) VerifyHash() error {
 	return nil
 }
 
+func (c *ChainLink) VerifyPayload() error {
+	if c.payloadVerified || c.sigVerified {
+		return nil
+	}
+
+	ps, err := SigAssertPayload(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr))
+	if err != nil {
+		return err
+	}
+
+	c.unpacked.sigId = ps.ID()
+
+	c.payloadVerified = true
+	return nil
+}
+
 func (c ChainLink) GetSeqno() Seqno {
 	if c.unpacked != nil {
 		return c.unpacked.seqno
@@ -290,13 +307,27 @@ func LoadLinkFromStorage(parent *SigChain, id LinkId) (*ChainLink, error) {
 	return ret, err
 }
 
+func (l *ChainLink) VerifyLink() error {
+	if err := l.VerifyHash(); err != nil {
+		return err
+	}
+	if err := l.VerifyPayload(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (l *ChainLink) Store() error {
 	if l.storedLocally {
 		return nil
 	}
 
-	if err := l.VerifyHash(); err != nil {
+	if err := l.VerifyLink(); err != nil {
 		return err
+	}
+
+	if !l.hashVerified || !l.payloadVerified {
+		return fmt.Errorf("Internal error; should have been verified in Store()")
 	}
 
 	if err := l.Pack(); err != nil {

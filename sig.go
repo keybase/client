@@ -138,6 +138,36 @@ func OpenSig(armored string) (ps *ParsedSig, err error) {
 	return
 }
 
+func SigAssertPayload(armored string, expected []byte) (ps *ParsedSig, err error) {
+	ps, err = OpenSig(armored)
+	if err != nil {
+		return
+	}
+	if err = ps.AssertPayload(expected); err != nil {
+		ps = nil
+		return
+	}
+	return
+}
+
+func (ps *ParsedSig) AssertPayload(expected []byte) error {
+
+	ring := EmptyKeyRing{}
+	md, err := openpgp.ReadMessage(bytes.NewReader(ps.SigBody), ring, nil, nil)
+	if err != nil {
+		return err
+	}
+	data, err := ioutil.ReadAll(md.UnverifiedBody)
+	if err != nil {
+		return err
+	}
+	if !FastByteArrayEq(data, expected) {
+		err = fmt.Errorf("Signature did not contain expected text")
+		return err
+	}
+	return nil
+}
+
 func (ps *ParsedSig) Verify(k PgpKeyBundle) (err error) {
 	ps.MD, err = openpgp.ReadMessage(bytes.NewReader(ps.SigBody), k, nil, nil)
 	if err != nil {
@@ -152,15 +182,28 @@ func (ps *ParsedSig) Verify(k PgpKeyBundle) (err error) {
 			hex.EncodeToString(ps.MD.SignedBy.PublicKey.Fingerprint[:]))
 		return
 	}
-	if ps.MD.LiteralData.Body == nil {
+	if ps.MD.UnverifiedBody == nil {
 		err = fmt.Errorf("no signed material found")
 		return
 	}
 
-	ps.LiteralData, err = ioutil.ReadAll(ps.MD.LiteralData.Body)
+	ps.LiteralData, err = ioutil.ReadAll(ps.MD.UnverifiedBody)
 	if err != nil {
 		return
 	}
+
+	// We'll see a sig error here after reading in the UnverifiedBody above,
+	// if there was one to see.
+	if err = ps.MD.SignatureError; err != nil {
+		return
+	}
+
+	if ps.MD.Signature == nil {
+		err = fmt.Errorf("No available signature after checking signature")
+		return
+	}
+
+	// Hopefully by here we've covered all of our bases.
 	return nil
 }
 

@@ -204,3 +204,15 @@ func (k *PgpKeyBundle) FindKeybaseUsername(un string) bool {
 
 	return false
 }
+
+type EmptyKeyRing struct{}
+
+func (k EmptyKeyRing) KeysById(id uint64) []openpgp.Key {
+	return []openpgp.Key{}
+}
+func (k EmptyKeyRing) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
+	return []openpgp.Key{}
+}
+func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
+	return []openpgp.Key{}
+}

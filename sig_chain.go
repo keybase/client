@@ -192,7 +192,7 @@ func (sc *SigChain) VerifyChainLinks() error {
 	var prev *LinkId
 
 	for _, link := range sc.chainLinks {
-		if err := link.VerifyHash(); err != nil {
+		if err := link.VerifyLink(); err != nil {
 			return err
 		}
 		if prev != nil && !prev.Eq(link.GetPrev()) {
