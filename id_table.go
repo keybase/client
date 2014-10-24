@@ -92,8 +92,37 @@ type SocialProofChainLink struct {
 	username string
 }
 
-func (w *WebProofChainLink) TableKey() string { return "web" }
-func (w *WebProofChainLink) Type() string     { return "proof" }
+func (w *WebProofChainLink) TableKey() string {
+	if w.protocol == "https" {
+		return "http"
+	} else {
+		return w.protocol
+	}
+}
+
+func (s *WebProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
+	var msg string
+	if err == nil {
+		if s.protocol == "dns" {
+			msg = (CHECK + " admin of DNS zone" +
+				ColorString("green", s.hostname) +
+				": found TXT entry " + hint.checkText)
+		} else {
+			msg = (CHECK + " admin of " +
+				ColorString("green", s.hostname) + " via " +
+				ColorString("green", strings.ToUpper(s.protocol)) +
+				": " + hint.humanUrl)
+		}
+	} else {
+		msg = (BADX + " " +
+			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
+				ColorString("bold", "failed")+": "+
+				err.Error()))
+	}
+	G.OutputString(msg + "\n")
+}
+
+func (w *WebProofChainLink) Type() string { return "proof" }
 func (w *WebProofChainLink) insertIntoTable(tab *IdentityTable) {
 	remoteProofInsertIntoTable(w, tab)
 }
@@ -102,9 +131,6 @@ func (w *WebProofChainLink) ToDisplayString() string {
 }
 func (w *WebProofChainLink) LastWriterWins() bool      { return false }
 func (w *WebProofChainLink) GetRemoteUsername() string { return "" }
-
-func (s *WebProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
-}
 
 func (s *SocialProofChainLink) TableKey() string { return s.service }
 func (s *SocialProofChainLink) Type() string     { return "proof" }
