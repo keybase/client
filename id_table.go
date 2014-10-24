@@ -22,6 +22,7 @@ type TypedChainLink interface {
 	GetCTime() time.Time
 	GetPgpFingerprint() PgpFingerprint
 	GetUsername() string
+	MarkChecked(ProofError)
 }
 
 //=========================================================================
@@ -585,6 +586,9 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (
 	if err == nil {
 		err = pc.CheckStatus(*hint)
 	}
+
+	p.MarkChecked(err)
+
 	return
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"time"
 )
 
 const (
@@ -73,6 +74,11 @@ type ChainLinkUnpacked struct {
 	username       string
 }
 
+type CheckResult struct {
+	Status ProofError // Or nil if it was a success
+	Time   time.Time  // When the last check was
+}
+
 type ChainLink struct {
 	parent        *SigChain
 	id            LinkId
@@ -85,10 +91,18 @@ type ChainLink struct {
 	packed      *jsonw.Wrapper
 	payloadJson *jsonw.Wrapper
 	unpacked    *ChainLinkUnpacked
+	lastChecked *CheckResult
 }
 
 func (c ChainLink) GetPrev() LinkId {
 	return c.unpacked.prev
+}
+
+func (c *ChainLink) MarkChecked(err ProofError) {
+	c.lastChecked = &CheckResult{
+		Status: err,
+		Time:   time.Now(),
+	}
 }
 
 func (c *ChainLink) Pack() error {
@@ -255,7 +269,11 @@ func LoadLinkFromServer(parent *SigChain, jw *jsonw.Wrapper) (ret *ChainLink, er
 }
 
 func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
-	return &ChainLink{parent, id, false, false, false, false, false, jw, nil, nil}
+	return &ChainLink{
+		parent: parent,
+		id:     id,
+		packed: jw,
+	}
 }
 
 func LoadLinkFromStorage(parent *SigChain, id LinkId) (*ChainLink, error) {
