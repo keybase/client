@@ -70,3 +70,12 @@ func (rc *HackerNewsChecker) CheckStatus(h SigHint) ProofError {
 
 //
 //=============================================================================
+
+func init() {
+	RegisterProofCheckHook("hackernews",
+		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+			return NewHackerNewsChecker(l)
+		})
+}
+
+//=============================================================================

@@ -77,3 +77,12 @@ func (rc *DnsChecker) CheckStatus(h SigHint) ProofError {
 
 //
 //=============================================================================
+
+func init() {
+	RegisterProofCheckHook("dns",
+		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+			return NewDnsChecker(l)
+		})
+}
+
+//=============================================================================

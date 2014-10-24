@@ -121,37 +121,17 @@ func XapiError(err error, u string) *ProofApiError {
 //=============================================================================
 //
 
-type proofCheckHook (func(l RemoteProofChainLink) (ProofChecker, ProofError))
-type proofCheckDispatch map[string]proofCheckHook
+type ProofCheckHook (func(l RemoteProofChainLink) (ProofChecker, ProofError))
 
-var _dispatch proofCheckDispatch
+type ProofCheckDispatch map[string]ProofCheckHook
 
-func getProofCheckDispatch() proofCheckDispatch {
-	if _dispatch == nil {
-		_dispatch = proofCheckDispatch{
-			"reddit": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-				return NewRedditChecker(l)
-			},
-			"twitter": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-				return NewTwitterChecker(l)
-			},
-			"coinbase": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-				return NewCoinbaseChecker(l)
-			},
-			"github": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-				return NewGithubChecker(l)
-			},
-			"hackernews": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-				return NewHackerNewsChecker(l)
-			},
-			"dns": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-				return NewDnsChecker(l)
-			},
-			"http": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-				return NewWebChecker(l)
-			},
-		}
-	}
+var _dispatch = make(ProofCheckDispatch)
+
+func RegisterProofCheckHook(s string, h ProofCheckHook) {
+	_dispatch[s] = h
+}
+
+func getProofCheckDispatch() ProofCheckDispatch {
 	return _dispatch
 }
 

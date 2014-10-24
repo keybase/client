@@ -63,3 +63,12 @@ func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
 
 //
 //=============================================================================
+
+func init() {
+	RegisterProofCheckHook("coinbase",
+		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+			return NewCoinbaseChecker(l)
+		})
+}
+
+//=============================================================================

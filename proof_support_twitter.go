@@ -102,3 +102,12 @@ func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
 
 //
 //=============================================================================
+
+func init() {
+	RegisterProofCheckHook("twitter",
+		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+			return NewTwitterChecker(l)
+		})
+}
+
+//=============================================================================

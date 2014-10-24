@@ -113,3 +113,12 @@ func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
 
 //
 //=============================================================================
+
+func init() {
+	RegisterProofCheckHook("reddit",
+		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+			return NewRedditChecker(l)
+		})
+}
+
+//=============================================================================

@@ -57,3 +57,12 @@ func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
 
 //
 //=============================================================================
+
+func init() {
+	RegisterProofCheckHook("github",
+		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+			return NewGithubChecker(l)
+		})
+}
+
+//=============================================================================

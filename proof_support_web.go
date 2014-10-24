@@ -63,3 +63,12 @@ func (rc *WebChecker) CheckStatus(h SigHint) ProofError {
 
 //
 //=============================================================================
+
+func init() {
+	RegisterProofCheckHook("http",
+		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+			return NewWebChecker(l)
+		})
+}
+
+//=============================================================================
