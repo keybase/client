@@ -134,6 +134,9 @@ func getProofCheckDispatch() proofCheckDispatch {
 			"twitter": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 				return NewTwitterChecker(l)
 			},
+			"coinbase": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+				return NewCoinbaseChecker(l)
+			},
 		}
 	}
 	return _dispatch
