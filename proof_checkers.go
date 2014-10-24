@@ -121,23 +121,17 @@ func XapiError(err error, u string) *ProofApiError {
 //=============================================================================
 //
 
-type ProofCheckHook (func(l RemoteProofChainLink) (ProofChecker, ProofError))
+type ProofCheckHook func(l RemoteProofChainLink) (ProofChecker, ProofError)
 
-type ProofCheckDispatch map[string]ProofCheckHook
-
-var _dispatch = make(ProofCheckDispatch)
+var _dispatch = make(map[string]ProofCheckHook)
 
 func RegisterProofCheckHook(s string, h ProofCheckHook) {
 	_dispatch[s] = h
 }
 
-func getProofCheckDispatch() ProofCheckDispatch {
-	return _dispatch
-}
-
 func NewProofChecker(l RemoteProofChainLink) (ProofChecker, ProofError) {
 	k := l.TableKey()
-	hook, found := getProofCheckDispatch()[l.TableKey()]
+	hook, found := _dispatch[l.TableKey()]
 	if !found {
 		return nil, NewProofError(PROOF_UNKNOWN_TYPE,
 			"No proof checker for type: %s", k)
