@@ -366,6 +366,12 @@ func (r *CryptocurrencyChainLink) ToDisplayString() string { return r.address }
 
 func (l *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
+	tab.cryptocurrency = append(tab.cryptocurrency, l)
+}
+
+func (l CryptocurrencyChainLink) Display() {
+	msg := (BTC + " bitcoin " + ColorString("green", l.address))
+	G.OutputString(msg + "\n")
 }
 
 //
@@ -423,14 +429,15 @@ func (s *SelfSigChainLink) DisplayCheck(hint *SigHint, err ProofError) {}
 //=========================================================================
 
 type IdentityTable struct {
-	sigChain     *SigChain
-	revocations  map[SigId]bool
-	links        map[SigId]TypedChainLink
-	remoteProofs map[string][]RemoteProofChainLink
-	tracks       map[string][]*TrackChainLink
-	order        []TypedChainLink
-	sigHints     *SigHints
-	activeProofs []RemoteProofChainLink
+	sigChain       *SigChain
+	revocations    map[SigId]bool
+	links          map[SigId]TypedChainLink
+	remoteProofs   map[string][]RemoteProofChainLink
+	tracks         map[string][]*TrackChainLink
+	order          []TypedChainLink
+	sigHints       *SigHints
+	activeProofs   []RemoteProofChainLink
+	cryptocurrency []*CryptocurrencyChainLink
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -483,14 +490,15 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 func NewIdentityTable(sc *SigChain, h *SigHints) *IdentityTable {
 	ret := &IdentityTable{
-		sigChain:     sc,
-		revocations:  make(map[SigId]bool),
-		links:        make(map[SigId]TypedChainLink),
-		remoteProofs: make(map[string][]RemoteProofChainLink),
-		tracks:       make(map[string][]*TrackChainLink),
-		order:        make([]TypedChainLink, 0, sc.Len()),
-		sigHints:     h,
-		activeProofs: make([]RemoteProofChainLink, 0, sc.Len()),
+		sigChain:       sc,
+		revocations:    make(map[SigId]bool),
+		links:          make(map[SigId]TypedChainLink),
+		remoteProofs:   make(map[string][]RemoteProofChainLink),
+		tracks:         make(map[string][]*TrackChainLink),
+		order:          make([]TypedChainLink, 0, sc.Len()),
+		sigHints:       h,
+		activeProofs:   make([]RemoteProofChainLink, 0, sc.Len()),
+		cryptocurrency: make([]*CryptocurrencyChainLink, 0, 0),
 	}
 	ret.Populate()
 	ret.CollectAndDedupeActiveProofs()
@@ -507,6 +515,18 @@ func (idt *IdentityTable) Populate() {
 		}
 	}
 	G.Log.Debug("- Populate ID Table")
+}
+
+func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {
+	var ret *CryptocurrencyChainLink
+	tab := idt.cryptocurrency
+	if len(tab) > 0 {
+		last := tab[len(tab)-1]
+		if !last.IsRevoked() {
+			ret = last
+		}
+	}
+	return ret
 }
 
 func (idt *IdentityTable) CollectAndDedupeActiveProofs() {
@@ -550,6 +570,11 @@ func (idt *IdentityTable) Identify() error {
 			err = tmp
 		}
 	}
+	acc := idt.ActiveCryptocurrency()
+	if acc != nil {
+		acc.Display()
+	}
+
 	if err != nil {
 		err = fmt.Errorf("One or more proofs failed")
 	}

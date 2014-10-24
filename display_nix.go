@@ -4,3 +4,4 @@ package libkb
 
 var CHECK = "✔"
 var BADX = "✖"
+var BTC = "฿"
