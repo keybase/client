@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
@@ -284,36 +285,52 @@ func (api *InternalApiEngine) DoRequest(
 //===========================================================================
 // ExternalApiEngine
 
+const (
+	XAPI_RES_JSON = iota
+	XAPI_RES_HTML = iota
+	XAPI_RES_TEXT = iota
+)
+
 func (a ExternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	// noop for now
 }
 
 func (api *ExternalApiEngine) DoRequest(
-	arg ApiArg, req *http.Request, wantJsonRes bool) (
-	ar *ExternalApiRes, hr *ExternalHtmlRes, err error) {
+	arg ApiArg, req *http.Request, restype int) (
+	ar *ExternalApiRes, hr *ExternalHtmlRes, tr *ExternalTextRes, err error) {
 
 	var resp *http.Response
 	var jw *jsonw.Wrapper
 
-	resp, jw, err = doRequestShared(api, arg, req, wantJsonRes)
+	resp, jw, err = doRequestShared(api, arg, req, (restype == XAPI_RES_JSON))
 	if err != nil {
 		return
 	}
 
-	if wantJsonRes {
+	switch restype {
+	case XAPI_RES_JSON:
 		ar = &ExternalApiRes{resp.StatusCode, jw}
-	} else {
+	case XAPI_RES_HTML:
 		var goq *goquery.Document
 		goq, err = goquery.NewDocumentFromResponse(resp)
 		if err == nil {
 			hr = &ExternalHtmlRes{resp.StatusCode, goq}
 		}
+	case XAPI_RES_TEXT:
+		var buf bytes.Buffer
+		_, err := buf.ReadFrom(resp.Body)
+		if err == nil {
+			resp.Body.Close()
+			tr = &ExternalTextRes{resp.StatusCode, string(buf.Bytes())}
+		}
+	default:
+		err = fmt.Errorf("unknown restype to DoRequest")
 	}
 	return
 }
 
-func (api *ExternalApiEngine) getCommon(arg ApiArg, wantJsonRes bool) (
-	ar *ExternalApiRes, hr *ExternalHtmlRes, err error) {
+func (api *ExternalApiEngine) getCommon(arg ApiArg, restype int) (
+	ar *ExternalApiRes, hr *ExternalHtmlRes, tr *ExternalTextRes, err error) {
 
 	var url *url.URL
 	var req *http.Request
@@ -327,21 +344,26 @@ func (api *ExternalApiEngine) getCommon(arg ApiArg, wantJsonRes bool) (
 		return
 	}
 
-	ar, hr, err = api.DoRequest(arg, req, wantJsonRes)
+	ar, hr, tr, err = api.DoRequest(arg, req, restype)
 	return
 }
 
 func (api *ExternalApiEngine) Get(arg ApiArg) (res *ExternalApiRes, err error) {
-	res, _, err = api.getCommon(arg, true)
+	res, _, _, err = api.getCommon(arg, XAPI_RES_JSON)
 	return
 }
 
 func (api *ExternalApiEngine) GetHtml(arg ApiArg) (res *ExternalHtmlRes, err error) {
-	_, res, err = api.getCommon(arg, false)
+	_, res, _, err = api.getCommon(arg, XAPI_RES_HTML)
 	return
 }
 
-func (api *ExternalApiEngine) postCommon(arg ApiArg, wantJsonRes bool) (
+func (api *ExternalApiEngine) GetText(arg ApiArg) (res *ExternalTextRes, err error) {
+	_, _, res, err = api.getCommon(arg, XAPI_RES_TEXT)
+	return
+}
+
+func (api *ExternalApiEngine) postCommon(arg ApiArg, restype int) (
 	ar *ExternalApiRes, hr *ExternalHtmlRes, err error) {
 
 	var url *url.URL
@@ -356,17 +378,17 @@ func (api *ExternalApiEngine) postCommon(arg ApiArg, wantJsonRes bool) (
 		return
 	}
 
-	ar, hr, err = api.DoRequest(arg, req, wantJsonRes)
+	ar, hr, _, err = api.DoRequest(arg, req, restype)
 	return
 }
 
 func (api *ExternalApiEngine) Post(arg ApiArg) (res *ExternalApiRes, err error) {
-	res, _, err = api.postCommon(arg, true)
+	res, _, err = api.postCommon(arg, XAPI_RES_JSON)
 	return
 }
 
 func (api *ExternalApiEngine) PostHtml(arg ApiArg) (res *ExternalHtmlRes, err error) {
-	_, res, err = api.postCommon(arg, false)
+	_, res, err = api.postCommon(arg, XAPI_RES_HTML)
 	return
 }
 

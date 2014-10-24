@@ -142,6 +142,11 @@ type ExternalHtmlRes struct {
 	GoQuery    *goquery.Document
 }
 
+type ExternalTextRes struct {
+	HttpStatus int
+	Body       string
+}
+
 type ExternalApiRes struct {
 	HttpStatus int
 	Body       *jsonw.Wrapper
@@ -156,5 +161,6 @@ type ExternalAPI interface {
 	Get(ApiArg) (*ExternalApiRes, error)
 	Post(ApiArg) (*ExternalApiRes, error)
 	GetHtml(ApiArg) (*ExternalHtmlRes, error)
+	GetText(ApiArg) (*ExternalTextRes, error)
 	PostHtml(ApiArg) (*ExternalHtmlRes, error)
 }
