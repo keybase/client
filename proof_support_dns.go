@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"net"
 	"strings"
 )
 
@@ -30,27 +31,7 @@ func NewDnsChecker(p RemoteProofChainLink) (*DnsChecker, ProofError) {
 }
 
 func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
-	wanted := rc.ApiUrl()
-	if wanted == strings.ToLower(h.apiUrl) {
-		return nil
-	} else {
-		return NewProofError(PROOF_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s'", wanted)
-	}
-}
-
-func (rc *DnsChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.GetText(ApiArg{
-		Endpoint:    h.apiUrl,
-		NeedSession: false,
-	})
-	if err != nil {
-		return XapiError(err, h.apiUrl)
-	}
-
-	var ps *ParsedSig
-	ps, err = OpenSig(rc.proof.GetArmoredSig())
-	var ret ProofError
+	ps, err := OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {
 		return NewProofError(PROOF_BAD_SIGNATURE,
@@ -58,14 +39,53 @@ func (rc *DnsChecker) CheckStatus(h SigHint) ProofError {
 	}
 
 	wanted := ps.ID().ToMediumId()
-	G.Log.Debug("| Dns profile: %s", res.Body)
-	G.Log.Debug("| Wanted signature hash: %s", wanted)
-	if !strings.Contains(res.Body, wanted) {
-		ret = NewProofError(PROOF_TEXT_NOT_FOUND,
-			"Posted text does not include signature '%s'", wanted)
+
+	if strings.HasSuffix(h.checkText, wanted) {
+		return nil
+	} else {
+		return NewProofError(PROOF_BAD_API_URL,
+			"Bad hint from server; wanted TXT value '%s' but got '%s'",
+			wanted, h.checkText)
 	}
 
-	return ret
+	return nil
+}
+
+func (rc *DnsChecker) CheckDomain(sig string, domain string) ProofError {
+	txt, err := net.LookupTXT(domain)
+	if err != nil {
+		return NewProofError(PROOF_DNS_ERROR,
+			"DNS failure for %s: %s", domain, err.Error())
+	}
+
+	for _, record := range txt {
+		G.Log.Debug("For %s, got TXT record: %s", domain, record)
+		if record == sig {
+			return nil
+		}
+	}
+	return NewProofError(PROOF_NOT_FOUND,
+		"Checked %d TXT entries of %s, but didn't find signature %s",
+		len(txt), domain, sig)
+}
+
+func (rc *DnsChecker) CheckStatus(h SigHint) ProofError {
+
+	wanted := h.checkText
+	G.Log.Debug("| DNS proof, want TXT value: %s", wanted)
+
+	domain := rc.proof.GetHostname()
+
+	// Try the apex first, and report its error if both
+	// attempts fail
+	pe := rc.CheckDomain(wanted, domain)
+	if pe != nil {
+		tmp := rc.CheckDomain(wanted, "_keybase."+domain)
+		if tmp == nil {
+			pe = nil
+		}
+	}
+	return pe
 }
 
 //

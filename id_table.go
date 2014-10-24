@@ -77,6 +77,8 @@ type RemoteProofChainLink interface {
 	TableKey() string
 	LastWriterWins() bool
 	GetRemoteUsername() string
+	GetHostname() string
+	GetProtocol() string
 	DisplayCheck(*SigHint, ProofError)
 }
 
@@ -104,7 +106,7 @@ func (s *WebProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
 	var msg string
 	if err == nil {
 		if s.protocol == "dns" {
-			msg = (CHECK + " admin of DNS zone" +
+			msg = (CHECK + " admin of DNS zone " +
 				ColorString("green", s.hostname) +
 				": found TXT entry " + hint.checkText)
 		} else {
@@ -131,6 +133,8 @@ func (w *WebProofChainLink) ToDisplayString() string {
 }
 func (w *WebProofChainLink) LastWriterWins() bool      { return false }
 func (w *WebProofChainLink) GetRemoteUsername() string { return "" }
+func (w *WebProofChainLink) GetHostname() string       { return w.hostname }
+func (w *WebProofChainLink) GetProtocol() string       { return w.protocol }
 
 func (s *SocialProofChainLink) TableKey() string { return s.service }
 func (s *SocialProofChainLink) Type() string     { return "proof" }
@@ -142,6 +146,8 @@ func (w *SocialProofChainLink) ToDisplayString() string {
 }
 func (s *SocialProofChainLink) LastWriterWins() bool      { return true }
 func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
+func (w *SocialProofChainLink) GetHostname() string       { return "" }
+func (w *SocialProofChainLink) GetProtocol() string       { return "" }
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h}
@@ -402,6 +408,8 @@ func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 func (w *SelfSigChainLink) TableKey() string                           { return "keybase" }
 func (w *SelfSigChainLink) LastWriterWins() bool                       { return true }
 func (w *SelfSigChainLink) GetRemoteUsername() string                  { return w.GetUsername() }
+func (w *SelfSigChainLink) GetHostname() string                        { return "" }
+func (w *SelfSigChainLink) GetProtocol() string                        { return "" }
 func (s *SelfSigChainLink) DisplayCheck(hint *SigHint, err ProofError) {}
 
 //
@@ -478,7 +486,7 @@ func NewIdentityTable(sc *SigChain, h *SigHints) *IdentityTable {
 		activeProofs: make([]RemoteProofChainLink, 0, sc.Len()),
 	}
 	ret.Populate()
-	ret.CollectActiveProofs()
+	ret.CollectAndDedupeActiveProofs()
 	return ret
 }
 
@@ -494,15 +502,28 @@ func (idt *IdentityTable) Populate() {
 	G.Log.Debug("- Populate ID Table")
 }
 
-func (idt *IdentityTable) CollectActiveProofs() {
+func (idt *IdentityTable) CollectAndDedupeActiveProofs() {
+	seen := make(map[string]bool)
 	tab := idt.activeProofs
 	for _, list := range idt.remoteProofs {
 		for i := len(list) - 1; i >= 0; i-- {
-			if list[i].IsRevoked() {
+			link := list[i]
+			if link.IsRevoked() {
 				continue
 			}
-			tab = append(tab, list[i])
-			if list[i].LastWriterWins() {
+
+			// We only want to use the last proof in the list
+			// if we have several (like for dns://chriscoyne.com)
+			id := link.ToDisplayString()
+			_, found := seen[id]
+			if !found {
+				tab = append(tab, link)
+				seen[id] = true
+			}
+
+			// Things like Twitter, Github, etc, are last-writer wins.
+			// Things like dns/https can have multiples
+			if link.LastWriterWins() {
 				break
 			}
 		}
