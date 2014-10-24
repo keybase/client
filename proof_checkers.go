@@ -46,6 +46,7 @@ const (
 	PROOF_BAD_API_URL   = 304
 	PROOF_UNKNOWN_TYPE  = 305
 	PROOF_NO_HINT       = 306
+	PROOF_BAD_HINT_TEXT = 307
 )
 
 //=============================================================================
@@ -145,6 +146,9 @@ func getProofCheckDispatch() proofCheckDispatch {
 			},
 			"dns": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 				return NewDnsChecker(l)
+			},
+			"http": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+				return NewWebChecker(l)
 			},
 		}
 	}

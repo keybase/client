@@ -110,9 +110,15 @@ func (s *WebProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
 				ColorString("green", s.hostname) +
 				": found TXT entry " + hint.checkText)
 		} else {
+			var color string
+			if s.protocol == "https" {
+				color = "green"
+			} else {
+				color = "yellow"
+			}
 			msg = (CHECK + " admin of " +
-				ColorString("green", s.hostname) + " via " +
-				ColorString("green", strings.ToUpper(s.protocol)) +
+				ColorString(color, s.hostname) + " via " +
+				ColorString(color, strings.ToUpper(s.protocol)) +
 				": " + hint.humanUrl)
 		}
 	} else {

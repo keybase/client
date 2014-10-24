@@ -13,19 +13,6 @@ type DnsChecker struct {
 	proof RemoteProofChainLink
 }
 
-func (h *DnsChecker) ApiBase() string {
-	return "https://hacker-news.firebaseio.com/v0/user/" + h.proof.GetRemoteUsername()
-}
-func (h *DnsChecker) ApiUrl() string {
-	return h.ApiBase() + "/about.json"
-}
-func (h *DnsChecker) KarmaUrl() string {
-	return h.ApiBase() + "/karma.json"
-}
-func (h *DnsChecker) HumanUrl() string {
-	return "https://news.ycombinator.com/user?id=" + h.proof.GetRemoteUsername()
-}
-
 func NewDnsChecker(p RemoteProofChainLink) (*DnsChecker, ProofError) {
 	return &DnsChecker{p}, nil
 }
@@ -43,7 +30,7 @@ func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
 	if strings.HasSuffix(h.checkText, wanted) {
 		return nil
 	} else {
-		return NewProofError(PROOF_BAD_API_URL,
+		return NewProofError(PROOF_BAD_HINT_TEXT,
 			"Bad hint from server; wanted TXT value '%s' but got '%s'",
 			wanted, h.checkText)
 	}
