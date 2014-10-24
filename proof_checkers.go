@@ -140,6 +140,9 @@ func getProofCheckDispatch() proofCheckDispatch {
 			"github": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 				return NewGithubChecker(l)
 			},
+			"hackernews": func(l RemoteProofChainLink) (ProofChecker, ProofError) {
+				return NewHackerNewsChecker(l)
+			},
 		}
 	}
 	return _dispatch
