@@ -20,6 +20,7 @@ func (n NullConfiguration) GetProxy() string                   { return "" }
 func (n NullConfiguration) GetPgpDir() string                  { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string       { return "" }
 func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false }
+func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false }
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
@@ -278,6 +279,14 @@ func (e Env) GetUserCacheSize() int {
 		func() (int, bool) { return e.cmd.GetUserCacheSize() },
 		func() (int, bool) { return e.getEnvInt("KEYBASE_USER_CACHE_SIZE") },
 		func() (int, bool) { return e.config.GetUserCacheSize() },
+	)
+}
+
+func (e Env) GetProofCacheSize() int {
+	return e.GetInt(PROOF_CACHE_SIZE,
+		func() (int, bool) { return e.cmd.GetProofCacheSize() },
+		func() (int, bool) { return e.getEnvInt("KEYBASE_PROOF_CACHE_SIZE") },
+		func() (int, bool) { return e.config.GetProofCacheSize() },
 	)
 }
 

@@ -33,22 +33,11 @@ type Global struct {
 	MerkleClient  *MerkleClient // client for querying server's merkle sig tree
 	XAPI          ExternalAPI   // for contacting Twitter, Github, etc.
 	Output        io.Writer     // where 'Stdout'-style output goes
+	ProofCache    *ProofCache   // where to cache proof results
 }
 
 var G Global = Global{
-	NewDefaultLogger(),
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
+	Log: NewDefaultLogger(),
 }
 
 func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
@@ -108,6 +97,10 @@ func (g *Global) ConfigureTerminal() error {
 
 func (g *Global) ConfigureCaches() (err error) {
 	g.UserCache, err = NewUserCache(g.Env.GetUserCacheSize())
+
+	if err == nil {
+		g.ProofCache, err = NewProofCache(g.Env.GetProofCacheSize())
+	}
 
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic

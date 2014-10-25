@@ -231,13 +231,21 @@ func (f JsonConfigFile) GetDebug() (bool, bool) {
 func (f JsonConfigFile) GetPlainLogging() (bool, bool) {
 	return f.GetTopLevelBool("plain_logging")
 }
-func (f JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
+
+func (f JsonConfigFile) GetCacheSize(w string) (ret int, ok bool) {
 	if f.jw != nil {
-		ret, ok = f.jw.AtPathGetInt("cache.limits.users")
+		ret, ok = f.jw.AtPathGetInt(w)
 	} else {
 		ok = false
 	}
 	return
+}
+
+func (f JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
+	return f.GetCacheSize("cache.limits.users")
+}
+func (f JsonConfigFile) GetProofCacheSize() (ret int, ok bool) {
+	return f.GetCacheSize("cache.limits.proofs")
 }
 
 func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {

@@ -80,7 +80,7 @@ type RemoteProofChainLink interface {
 	GetRemoteUsername() string
 	GetHostname() string
 	GetProtocol() string
-	DisplayCheck(*SigHint, ProofError)
+	DisplayCheck(*SigHint, *CheckResult, ProofError)
 }
 
 type WebProofChainLink struct {
@@ -103,7 +103,8 @@ func (w *WebProofChainLink) TableKey() string {
 	}
 }
 
-func (s *WebProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
+func (s *WebProofChainLink) DisplayCheck(
+	hint *SigHint, cached *CheckResult, err ProofError) {
 	var msg string
 	if err == nil {
 		if s.protocol == "dns" {
@@ -127,6 +128,9 @@ func (s *WebProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
 			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
 				ColorString("bold", "failed")+": "+
 				err.Error()))
+	}
+	if cached != nil {
+		msg += " " + ColorString("magenta", cached.ToDisplayString())
 	}
 	G.OutputString(msg + "\n")
 }
@@ -163,7 +167,9 @@ func NewSocialProofChainLink(b GenericChainLink, s, u string) *SocialProofChainL
 	return &SocialProofChainLink{b, s, u}
 }
 
-func (s *SocialProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
+func (s *SocialProofChainLink) DisplayCheck(
+	hint *SigHint, cached *CheckResult, err ProofError) {
+
 	var msg string
 	if err == nil {
 		msg = (CHECK + ` "` +
@@ -174,6 +180,9 @@ func (s *SocialProofChainLink) DisplayCheck(hint *SigHint, err ProofError) {
 			ColorString("red", ` "`+s.username+`" on `+s.service+" "+
 				ColorString("bold", "failed")+": "+
 				err.Error()))
+	}
+	if cached != nil {
+		msg += " " + ColorString("magenta", cached.ToDisplayString())
 	}
 	G.OutputString(msg + "\n")
 }
@@ -418,12 +427,16 @@ func (s *SelfSigChainLink) ToDisplayString() string { return s.unpacked.username
 func (l *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
 }
-func (w *SelfSigChainLink) TableKey() string                           { return "keybase" }
-func (w *SelfSigChainLink) LastWriterWins() bool                       { return true }
-func (w *SelfSigChainLink) GetRemoteUsername() string                  { return w.GetUsername() }
-func (w *SelfSigChainLink) GetHostname() string                        { return "" }
-func (w *SelfSigChainLink) GetProtocol() string                        { return "" }
-func (s *SelfSigChainLink) DisplayCheck(hint *SigHint, err ProofError) {}
+func (w *SelfSigChainLink) TableKey() string          { return "keybase" }
+func (w *SelfSigChainLink) LastWriterWins() bool      { return true }
+func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
+func (w *SelfSigChainLink) GetHostname() string       { return "" }
+func (w *SelfSigChainLink) GetProtocol() string       { return "" }
+
+func (s *SelfSigChainLink) DisplayCheck(
+	hint *SigHint, cached *CheckResult, err ProofError) {
+	return
+}
 
 //
 //=========================================================================
@@ -584,20 +597,15 @@ func (idt *IdentityTable) Identify() error {
 //=========================================================================
 
 func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) error {
-	hint, err := idt.CheckActiveProof(p)
-	p.DisplayCheck(hint, err)
+	hint, cached, err := idt.CheckActiveProof(p)
+	p.DisplayCheck(hint, cached, err)
 	return err
 }
 
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (
-	hint *SigHint, err ProofError) {
+	hint *SigHint, cached *CheckResult, err ProofError) {
 
-	var pc ProofChecker
-	pc, err = NewProofChecker(p)
-
-	if err != nil {
-		return
-	}
+	sid := p.GetSigId()
 
 	id := p.GetSigId()
 	hint = idt.sigHints.Lookup(id)
@@ -607,12 +615,29 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (
 		return
 	}
 
+	if G.ProofCache != nil {
+		if cached = G.ProofCache.Get(sid); cached != nil {
+			err = cached.Status
+			return
+		}
+	}
+
+	var pc ProofChecker
+	pc, err = NewProofChecker(p)
+
+	if err != nil {
+		return
+	}
+
 	err = pc.CheckHint(*hint)
 	if err == nil {
 		err = pc.CheckStatus(*hint)
 	}
 
 	p.MarkChecked(err)
+	if G.ProofCache != nil {
+		G.ProofCache.Put(sid, err)
+	}
 
 	return
 }

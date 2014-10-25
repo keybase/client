@@ -74,11 +74,6 @@ type ChainLinkUnpacked struct {
 	username       string
 }
 
-type CheckResult struct {
-	Status ProofError // Or nil if it was a success
-	Time   time.Time  // When the last check was
-}
-
 type ChainLink struct {
 	parent          *SigChain
 	id              LinkId

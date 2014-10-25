@@ -58,6 +58,11 @@ type ProofError interface {
 	GetStatus() ProofStatus
 }
 
+func ProofErrorIsSoft(pe ProofError) bool {
+	s := int(pe.GetStatus())
+	return s >= PROOF_BASE_ERROR && s < PROOF_BASE_HARD_ERROR
+}
+
 type ProofErrorImpl struct {
 	Status ProofStatus
 	Desc   string

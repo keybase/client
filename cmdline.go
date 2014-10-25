@@ -68,6 +68,14 @@ func (p PosixCommandLine) GetUserCacheSize() (int, bool) {
 		return 0, false
 	}
 }
+func (p PosixCommandLine) GetProofCacheSize() (int, bool) {
+	ret := p.GetGInt("proof-cache-size")
+	if ret != 0 {
+		return ret, true
+	} else {
+		return 0, false
+	}
+}
 
 func (p PosixCommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
@@ -174,6 +182,14 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		cli.StringFlag{
 			Name:  "merkle-key-fingerprints",
 			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated)",
+		},
+		cli.IntFlag{
+			Name:  "user-cache-size",
+			Usage: "number of User entries to cache",
+		},
+		cli.IntFlag{
+			Name:  "proof-cache-size",
+			Usage: "number of proof entries to cache",
 		},
 	}
 	app.Commands = []cli.Command{
