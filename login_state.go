@@ -185,7 +185,7 @@ func (s *LoginState) Login() error {
 
 	G.Log.Debug(fmt.Sprintf("| got username: %s\n", email_or_username))
 
-	pw, err := Prompt("keybase password", true, CheckPasswordSimple)
+	pw, err := PromptForKeybasePassphrase()
 
 	if err != nil {
 		return err

@@ -108,6 +108,9 @@ type SecretEntryArg struct {
 	Error  string
 	Cancel string
 	OK     string
+
+	TerminalDesc   *string
+	TerminalPrompt *string
 }
 
 // Eventually we'll learn how to set checkboxes like GPG2 does on
@@ -118,7 +121,7 @@ type SecretEntryRes struct {
 }
 
 type SecretEntryInterface interface {
-	Get(*SecretEntryArg) (*SecretEntryRes, error)
+	Get(SecretEntryArg) (*SecretEntryRes, error)
 }
 
 type Command interface {

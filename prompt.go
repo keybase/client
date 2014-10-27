@@ -58,3 +58,45 @@ func PromptForConfirmation(prompt string) error {
 	return nil
 
 }
+
+func PromptForKeybasePassphrase() (text string, err error) {
+
+	first := true
+	checker := CheckPasswordSimple
+	var res *SecretEntryRes
+	empty := ""
+
+	for {
+
+		tp := "keybase passphrase"
+		var Error string
+		if !first {
+			tp = tp + " (" + checker.Hint + ")"
+			Error = checker.Hint
+		}
+
+		tp = tp + ": "
+
+		res, err = G.SecretEntry.Get(SecretEntryArg{
+			Error:          Error,
+			Desc:           "Please enter your keybase passphrase (12+ characters)",
+			Prompt:         "Your passphrase",
+			TerminalPrompt: &tp,
+			TerminalDesc:   &empty,
+		})
+
+		if err == nil && res.Canceled {
+			err = fmt.Errorf("input canceled")
+		}
+		if err != nil {
+			break
+		}
+		if checker.F(res.Text) {
+			text = res.Text
+			break
+		}
+		first = false
+	}
+
+	return
+}

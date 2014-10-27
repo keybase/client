@@ -63,7 +63,7 @@ func (pe *Pinentry) GetTerminalName() error {
 	return nil
 }
 
-func (pe *Pinentry) Get(arg *SecretEntryArg) (res *SecretEntryRes, err error) {
+func (pe *Pinentry) Get(arg SecretEntryArg) (res *SecretEntryRes, err error) {
 
 	// Do a lazy initialization
 	if err = pe.Init(); err != nil {
@@ -151,7 +151,7 @@ func descEncode(s string) string {
 	return s
 }
 
-func (pi *pinentryInstance) Run(arg *SecretEntryArg) (res *SecretEntryRes, err error) {
+func (pi *pinentryInstance) Run(arg SecretEntryArg) (res *SecretEntryRes, err error) {
 
 	pi.Set("SETPROMPT", arg.Prompt, &err)
 	pi.Set("SETDESC", descEncode(arg.Desc), &err)

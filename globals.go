@@ -33,22 +33,11 @@ type Global struct {
 	MerkleClient  *MerkleClient // client for querying server's merkle sig tree
 	XAPI          ExternalAPI   // for contacting Twitter, Github, etc.
 	Output        io.Writer     // where 'Stdout'-style output goes
+	SecretEntry   *SecretEntry  // a terminal-or-pinentry system
 }
 
 var G Global = Global{
-	NewDefaultLogger(),
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
-	nil,
+	Log: NewDefaultLogger(),
 }
 
 func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
@@ -149,6 +138,11 @@ func (g *Global) RunCmdline(cmd Command) error {
 	return cmd.Run()
 }
 
+func (g *Global) ConfigureSecretEntry() (err error) {
+	g.SecretEntry = NewSecretEntry()
+	return nil
+}
+
 func (g *Global) InitCmdline(cmd Command) error {
 	var err error
 
@@ -170,6 +164,10 @@ func (g *Global) InitCmdline(cmd Command) error {
 	}
 	if cmd.UseTerminal() {
 		if err = g.ConfigureTerminal(); err != nil {
+			return err
+		}
+		// Assume for now that terminal -> secretentry
+		if err = g.ConfigureSecretEntry(); err != nil {
 			return err
 		}
 	}
