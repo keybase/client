@@ -22,6 +22,7 @@ func (n NullConfiguration) GetBundledCA(h string) string       { return "" }
 func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false }
 func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false }
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
+func (n NullConfiguration) GetPinentry() string                { return "" }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -30,6 +31,9 @@ func (n NullConfiguration) GetPlainLogging() (bool, bool) {
 	return false, false
 }
 func (n NullConfiguration) GetApiDump() (bool, bool) {
+	return false, false
+}
+func (n NullConfiguration) GetNoPinentry() (bool, bool) {
 	return false, false
 }
 
@@ -250,6 +254,32 @@ func (e Env) GetPgpDir() string {
 		func() string { return os.Getenv("GNUPGHOME") },
 		func() string { return e.config.GetPgpDir() },
 		func() string { return filepath.Join(e.GetHome(), ".gnupg") },
+	)
+}
+
+func (e Env) GetPinentry() string {
+	return e.GetString(
+		func() string { return e.cmd.GetPinentry() },
+		func() string { return os.Getenv("KEYBASE_PINENTRY") },
+		func() string { return e.config.GetPinentry() },
+	)
+}
+
+func (e Env) GetNoPinentry() bool {
+
+	isno := func(s string) (bool, bool) {
+		s = strings.ToLower(s)
+		if s == "0" || s == "no" || s == "n" || s == "none" {
+			return true, true
+		} else {
+			return false, false
+		}
+	}
+
+	return e.GetBool(false,
+		func() (bool, bool) { return isno(e.cmd.GetPinentry()) },
+		func() (bool, bool) { return isno(os.Getenv("KEYBASE_PINENTRY")) },
+		func() (bool, bool) { return e.config.GetNoPinentry() },
 	)
 }
 

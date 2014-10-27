@@ -2,7 +2,12 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 )
+
+func sentencePunctuate(s string) string {
+	return strings.ToUpper(s[0:1]) + s[1:] + "."
+}
 
 func Prompt(prompt string, password bool, checker Checker) (string, error) {
 	var prompter func(string) (string, error)
@@ -57,4 +62,48 @@ func PromptForConfirmation(prompt string) error {
 	}
 	return nil
 
+}
+
+func PromptForKeybasePassphrase() (text string, err error) {
+
+	first := true
+	checker := CheckPasswordSimple
+	var res *SecretEntryRes
+
+	for {
+
+		tp := "keybase passphrase"
+		var Error string
+		if !first {
+			tp = tp + " (" + checker.Hint + ")"
+			Error = sentencePunctuate(checker.Hint)
+		}
+
+		tp = tp + ": "
+
+		res, err = G.SecretEntry.Get(
+			SecretEntryArg{
+				Error:  Error,
+				Desc:   "Please enter your keybase passphrase (12+ characters)",
+				Prompt: "Your passphrase",
+			},
+			&SecretEntryArg{
+				Prompt: tp,
+			},
+		)
+
+		if err == nil && res.Canceled {
+			err = fmt.Errorf("input canceled")
+		}
+		if err != nil {
+			break
+		}
+		if checker.F(res.Text) {
+			text = res.Text
+			break
+		}
+		first = false
+	}
+
+	return
 }

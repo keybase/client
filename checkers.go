@@ -36,5 +36,5 @@ var CheckPasswordSimple = Checker{
 	F: func(s string) bool {
 		return len(s) > 0
 	},
-	Hint: "password cannot be empty",
+	Hint: "passphrase cannot be empty",
 }

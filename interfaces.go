@@ -32,6 +32,7 @@ type CommandLine interface {
 	GetUserCacheSize() (int, bool)
 	GetProofCacheSize() (int, bool)
 	GetMerkleKeyFingerprints() []string
+	GetPinentry() string
 }
 
 type Server interface {
@@ -74,6 +75,8 @@ type ConfigReader interface {
 	GetUserCacheSize() (int, bool)
 	GetProofCacheSize() (int, bool)
 	GetMerkleKeyFingerprints() []string
+	GetPinentry() string
+	GetNoPinentry() (bool, bool)
 }
 
 type ConfigWriter interface {
@@ -102,7 +105,23 @@ type HttpRequest interface {
 type ProofCheckers interface {
 }
 
-type Pinentry interface {
+type SecretEntryArg struct {
+	Desc   string
+	Prompt string
+	Error  string
+	Cancel string
+	OK     string
+}
+
+// Eventually we'll learn how to set checkboxes like GPG2 does on
+// OSX. But for now, just the string...
+type SecretEntryRes struct {
+	Text     string
+	Canceled bool
+}
+
+type SecretEntryInterface interface {
+	Get(SecretEntryArg, *SecretEntryArg) (*SecretEntryRes, error)
 }
 
 type Command interface {

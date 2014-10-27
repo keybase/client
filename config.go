@@ -210,6 +210,13 @@ func (f JsonConfigFile) GetSessionFilename() (ret string) {
 func (f JsonConfigFile) GetDbFilename() (ret string) {
 	return f.GetTopLevelString("db")
 }
+func (f JsonConfigFile) GetPinentry() string {
+	res, _ := f.GetStringAtPath("pinentry.path")
+	return res
+}
+func (f JsonConfigFile) GetNoPinentry() (bool, bool) {
+	return f.GetBoolAtPath("pinentry.disabled")
+}
 func (f JsonConfigFile) GetUsername() string {
 	return f.GetUserField("name")
 }
