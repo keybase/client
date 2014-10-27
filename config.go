@@ -211,7 +211,11 @@ func (f JsonConfigFile) GetDbFilename() (ret string) {
 	return f.GetTopLevelString("db")
 }
 func (f JsonConfigFile) GetPinentry() string {
-	return f.GetTopLevelString("pinentry")
+	res, _ := f.GetStringAtPath("pinentry.path")
+	return res
+}
+func (f JsonConfigFile) GetNoPinentry() (bool, bool) {
+	return f.GetBoolAtPath("pinentry.disabled")
 }
 func (f JsonConfigFile) GetUsername() string {
 	return f.GetUserField("name")

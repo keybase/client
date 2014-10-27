@@ -74,6 +74,7 @@ type ConfigReader interface {
 	GetUserCacheSize() (int, bool)
 	GetMerkleKeyFingerprints() []string
 	GetPinentry() string
+	GetNoPinentry() (bool, bool)
 }
 
 type ConfigWriter interface {

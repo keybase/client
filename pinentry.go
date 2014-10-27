@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -19,54 +20,57 @@ func NewPinentry() *Pinentry {
 	return &Pinentry{path: ""}
 }
 
-func (pe *Pinentry) Init() error {
+func (pe *Pinentry) Init() (error, error) {
 	if pe.initRes != nil {
-		return *pe.initRes
+		return *pe.initRes, nil
 	}
-	err := pe.FindProgram()
+	err, fatalerr := pe.FindProgram()
 	if err == nil {
 		err = pe.GetTerminalName()
 	}
+	pe.term = os.Getenv("TERM")
 	pe.initRes = &err
-	return err
+	return err, fatalerr
 }
 
 func (pe *Pinentry) SetInitError(e error) {
 	pe.initRes = &e
 }
 
-func (pe *Pinentry) FindProgram() error {
+func (pe *Pinentry) FindProgram() (error, error) {
 	prog := G.Env.GetPinentry()
-	var err error
+	var err, fatalerr error
 	if len(prog) > 0 {
-		if err := canExec(prog); err == nil {
+		if err = canExec(prog); err == nil {
 			pe.path = prog
 		} else {
 			err = fmt.Errorf("Can't execute given pinentry program '%s': %s",
 				prog, err.Error())
+			fatalerr = err
 		}
 	} else if prog, err = FindPinentry(); err == nil {
 		pe.path = prog
 	}
-	return err
+	return err, fatalerr
 }
 
 func (pe *Pinentry) GetTerminalName() error {
-	out, err := exec.Command("tty").Output()
+	tty, err := os.Readlink("/proc/self/fd/0")
 	if err != nil {
-		return err
-	} else if s := string(out); len(s) == 0 {
-		return fmt.Errorf("No feasible TTY returned by tty")
+		G.Log.Debug("Can't find terminal name via /proc lookup: %s", err.Error())
 	} else {
-		pe.tty = s
+		pe.tty = tty
 	}
+	// Tis not a fatal error.  In particular, it won't work on OSX
 	return nil
 }
 
 func (pe *Pinentry) Get(arg SecretEntryArg) (res *SecretEntryRes, err error) {
 
+	G.Log.Debug("+ Pinentry::Get()")
+
 	// Do a lazy initialization
-	if err = pe.Init(); err != nil {
+	if err, _ = pe.Init(); err != nil {
 		return
 	}
 
@@ -80,12 +84,13 @@ func (pe *Pinentry) Get(arg SecretEntryArg) (res *SecretEntryRes, err error) {
 		return
 	}
 	res, err = inst.Run(arg)
+	G.Log.Debug("- Pinentry::Get() -> %s", ErrToOk(err))
 	return
 }
 
 func (pi *pinentryInstance) Close() {
-	pi.cmd.Wait()
 	pi.stdin.Close()
+	pi.cmd.Wait()
 }
 
 type pinentryInstance struct {
@@ -116,12 +121,15 @@ func (pi *pinentryInstance) Init() (err error) {
 
 	parent := pi.parent
 
+	G.Log.Debug("+ pinentryInstance::Init()")
+
 	pi.cmd = exec.Command(parent.path)
 	pi.stdin, _ = pi.cmd.StdinPipe()
 	pi.stdout, _ = pi.cmd.StdoutPipe()
 
 	if err = pi.cmd.Start(); err != nil {
-		G.Log.Error("unexpected error running pinentry: %s", err.Error())
+		G.Log.Error("unexpected error running pinentry (%s): %s",
+			parent.path, err.Error())
 		return
 	}
 
@@ -139,9 +147,14 @@ func (pi *pinentryInstance) Init() (err error) {
 		return
 	}
 
-	pi.Set("OPTION", "ttyname="+parent.tty, &err)
-	pi.Set("OPTION", "ttytype="+parent.term, &err)
+	if len(parent.tty) > 0 {
+		pi.Set("OPTION", "ttyname="+parent.tty, &err)
+	}
+	if len(parent.term) > 0 {
+		pi.Set("OPTION", "ttytype="+parent.term, &err)
+	}
 
+	G.Log.Debug("- pinentryInstance::Init() -> %s", ErrToOk(err))
 	return
 }
 
@@ -175,6 +188,8 @@ func (pi *pinentryInstance) Run(arg SecretEntryArg) (res *SecretEntryRes, err er
 		res = &SecretEntryRes{Text: line[2:]}
 	} else if strings.HasPrefix(line, "ERR 83886179 canceled") {
 		res = &SecretEntryRes{Canceled: true}
+	} else if line == "OK" {
+		res = &SecretEntryRes{}
 	} else {
 		err = fmt.Errorf("GETPIN response didn't start with D; got %q", line)
 	}

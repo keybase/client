@@ -26,16 +26,27 @@ func (se *SecretEntry) Init() (err error) {
 
 	se.terminal = G.Terminal
 
-	pe := NewPinentry()
-
-	if e2 := pe.Init(); e2 == nil {
-		se.pinentry = pe
-		G.Log.Debug("| Pinentry initialized")
-	} else if se.terminal == nil {
-		err = fmt.Errorf("No terminal and pinentry init failed w/ %s", e2.Error())
+	if G.Env.GetNoPinentry() {
+		G.Log.Debug("| Pinentry skipped due to config")
+	} else {
+		pe := NewPinentry()
+		if e2, fatalerr := pe.Init(); fatalerr != nil {
+			err = fatalerr
+		} else if e2 != nil {
+			G.Log.Debug("| Pinentry initialization failed: %s", e2.Error())
+		} else {
+			se.pinentry = pe
+			G.Log.Debug("| Pinentry initialized")
+		}
 	}
 
-	pe.initRes = &err
+	if err != nil {
+		// We can't proceed if we hit a fatal error above
+	} else if se.pinentry == nil && se.terminal == nil {
+		err = fmt.Errorf("No terminal and pinentry init; cannot input secrets")
+	}
+
+	se.initRes = &err
 
 	G.Log.Debug("- SecretEntry.Init() -> %s", ErrToOk(err))
 	return err
@@ -80,11 +91,6 @@ func TerminalGetSecret(t Terminal, arg SecretEntryArg) (
 
 	var txt string
 	txt, err = t.PromptPassword(prompt)
-	fmt.Println("fooo")
-	fmt.Println(txt)
-	if err != nil {
-		fmt.Printf(err.Error())
-	}
 
 	if err != nil {
 		if err == io.EOF {
