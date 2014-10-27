@@ -25,8 +25,3 @@ func (t TerminalImplementation) Write(s string) error {
 func (t TerminalImplementation) Prompt(s string) (string, error) {
 	return t.engine.Prompt(s)
 }
-
-func TerminalGetSecret(t Terminal, arg *SecretEntryArg) (
-	res *SecretEntryRes, err error) {
-	return
-}

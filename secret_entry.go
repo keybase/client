@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"io"
 )
 
 type SecretEntry struct {
@@ -45,6 +46,27 @@ func (se *SecretEntry) Get(arg *SecretEntryArg) (res *SecretEntryRes, err error)
 		res, err = pe.Get(arg)
 	} else {
 		res, err = TerminalGetSecret(se.terminal, arg)
+	}
+
+	return
+}
+
+func TerminalGetSecret(t Terminal, arg *SecretEntryArg) (
+	res *SecretEntryRes, err error) {
+
+	if err = t.Write(arg.Desc + "\n"); err != nil {
+		return
+	}
+
+	var txt string
+	txt, err = t.PromptPassword(arg.Prompt)
+	if err != nil {
+		if err == io.EOF {
+			err = nil
+			res = &SecretEntryRes{Canceled: true}
+		}
+	} else {
+		res = &SecretEntryRes{Text: txt}
 	}
 
 	return
