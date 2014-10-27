@@ -1,3 +1,5 @@
+// +build +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+
 package libkb
 
 import (
@@ -115,26 +117,5 @@ func (pe *Pinentry) Init() error {
 	} else if prog, err = FindPinentry(); err == nil {
 		pe.path = prog
 	}
-	return err
-}
-
-type FallbackPasswordEntry struct {
-	pinentry *Pinentry
-	terminal Terminal
-	initRes  *error
-}
-
-func NewFallbackPasswordEntry() *FallbackPasswordEntry {
-	return &FallbackPasswordEntry{}
-}
-
-func (pe *FallbackPasswordEntry) Init() error {
-	if pe.initRes != nil {
-		return *pe.initRes
-	}
-	pe.pinentry = NewPinentry()
-	pe.terminal = G.Terminal
-	err := pe.pinentry.Init()
-	pe.initRes = &err
 	return err
 }

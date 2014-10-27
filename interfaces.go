@@ -102,7 +102,7 @@ type HttpRequest interface {
 type ProofCheckers interface {
 }
 
-type PasswordEntry interface {
+type SecretEntryInterface interface {
 }
 
 type Command interface {
