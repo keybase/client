@@ -210,6 +210,9 @@ func (f JsonConfigFile) GetSessionFilename() (ret string) {
 func (f JsonConfigFile) GetDbFilename() (ret string) {
 	return f.GetTopLevelString("db")
 }
+func (f JsonConfigFile) GetPinentry() string {
+	return f.GetTopLevelString("pinentry")
+}
 func (f JsonConfigFile) GetUsername() string {
 	return f.GetUserField("name")
 }

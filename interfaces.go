@@ -31,6 +31,7 @@ type CommandLine interface {
 	GetApiDump() (bool, bool)
 	GetUserCacheSize() (int, bool)
 	GetMerkleKeyFingerprints() []string
+	GetPinentry() string
 }
 
 type Server interface {
@@ -72,6 +73,7 @@ type ConfigReader interface {
 	GetNullAtPath(string) bool
 	GetUserCacheSize() (int, bool)
 	GetMerkleKeyFingerprints() []string
+	GetPinentry() string
 }
 
 type ConfigWriter interface {
@@ -100,7 +102,7 @@ type HttpRequest interface {
 type ProofCheckers interface {
 }
 
-type Pinentry interface {
+type PasswordEntry interface {
 }
 
 type Command interface {

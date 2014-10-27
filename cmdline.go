@@ -46,6 +46,9 @@ func (p PosixCommandLine) GetPgpDir() string {
 func (p PosixCommandLine) GetApiDump() (bool, bool) {
 	return p.GetBool("api-dump", true)
 }
+func (p PosixCommandLine) GetPinentry() string {
+	return p.GetGString("pinentry")
+}
 func (p PosixCommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
 }
@@ -149,6 +152,10 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		cli.StringFlag{
 			Name:  "username, u",
 			Usage: "specify Keybase username of the current user",
+		},
+		cli.StringFlag{
+			Name:  "pinentry",
+			Usage: "specify a path to find a pinentry program",
 		},
 		cli.StringFlag{
 			Name: "proxy",

@@ -21,6 +21,7 @@ func (n NullConfiguration) GetPgpDir() string                  { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string       { return "" }
 func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false }
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
+func (n NullConfiguration) GetPinentry() string                { return "" }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -249,6 +250,14 @@ func (e Env) GetPgpDir() string {
 		func() string { return os.Getenv("GNUPGHOME") },
 		func() string { return e.config.GetPgpDir() },
 		func() string { return filepath.Join(e.GetHome(), ".gnupg") },
+	)
+}
+
+func (e Env) GetPinentry() string {
+	return e.GetString(
+		func() string { return e.cmd.GetPinentry() },
+		func() string { return os.Getenv("KEYBASE_PINENTRY") },
+		func() string { return e.config.GetPinentry() },
 	)
 }
 

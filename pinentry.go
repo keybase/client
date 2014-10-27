@@ -14,10 +14,10 @@ import (
 // Under the Apache 2.0 license
 //
 
-func canExec(s string) bool {
+func canExec(s string) error {
 	fi, err := os.Stat(s)
 	if err != nil {
-		return false
+		return err
 	}
 	mode := fi.Mode()
 
@@ -31,7 +31,13 @@ func canExec(s string) bool {
 	// Similar to check from exec.LookPath below
 	//   See here: http://golang.org/src/pkg/os/exec/lp_unix.go
 	//
-	return !mode.IsDir() && (int(mode)&(0111) != 0)
+	if mode.IsDir() {
+		return fmt.Errorf("Program '%s' is a directory", s)
+	} else if int(mode)&0111 == 0 {
+		return fmt.Errorf("Program '%s' isn't executable", s)
+	} else {
+		return nil
+	}
 }
 
 func FindPinentry() (string, error) {
@@ -52,7 +58,7 @@ func FindPinentry() (string, error) {
 
 	checkFull := func(s string) bool {
 		G.Log.Debug("| Check fullpath %s", s)
-		found := canExec(s)
+		found := (canExec(s) == nil)
 		if found {
 			G.Log.Debug("- Found: %s", s)
 		}
@@ -86,4 +92,49 @@ func FindPinentry() (string, error) {
 
 	G.Log.Debug("- FindPinentry: none found")
 	return "", fmt.Errorf("No pinentry found, checked a bunch of different places")
+}
+
+type Pinentry struct {
+	path string
+}
+
+func NewPinentry() *Pinentry {
+	return &Pinentry{path: ""}
+}
+
+func (pe *Pinentry) Init() error {
+	prog := G.Env.GetPinentry()
+	var err error
+	if len(prog) > 0 {
+		if err := canExec(prog); err == nil {
+			pe.path = prog
+		} else {
+			err = fmt.Errorf("Can't execute given pinentry program '%s': %s",
+				prog, err.Error())
+		}
+	} else if prog, err = FindPinentry(); err == nil {
+		pe.path = prog
+	}
+	return err
+}
+
+type FallbackPasswordEntry struct {
+	pinentry *Pinentry
+	terminal Terminal
+	initRes  *error
+}
+
+func NewFallbackPasswordEntry() *FallbackPasswordEntry {
+	return &FallbackPasswordEntry{}
+}
+
+func (pe *FallbackPasswordEntry) Init() error {
+	if pe.initRes != nil {
+		return *pe.initRes
+	}
+	pe.pinentry = NewPinentry()
+	pe.terminal = G.Terminal
+	err := pe.pinentry.Init()
+	pe.initRes = &err
+	return err
 }
