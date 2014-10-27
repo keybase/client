@@ -63,22 +63,7 @@ func (pe *Pinentry) GetTerminalName() error {
 	return nil
 }
 
-type PinentryArg struct {
-	Desc   string
-	Prompt string
-	Error  string
-	Cancel string
-	OK     string
-}
-
-// Eventually we'll learn how to set checkboxes like GPG2 does on
-// OSX. But for now, just the string...
-type PinentryRes struct {
-	Text     string
-	Canceled bool
-}
-
-func (pe *Pinentry) Get(arg *PinentryArg) (res *PinentryRes, err error) {
+func (pe *Pinentry) Get(arg *SecretEntryArg) (res *SecretEntryRes, err error) {
 
 	// Do a lazy initialization
 	if err = pe.Init(); err != nil {
@@ -166,7 +151,7 @@ func descEncode(s string) string {
 	return s
 }
 
-func (pi *pinentryInstance) Run(arg *PinentryArg) (res *PinentryRes, err error) {
+func (pi *pinentryInstance) Run(arg *SecretEntryArg) (res *SecretEntryRes, err error) {
 
 	pi.Set("SETPROMPT", arg.Prompt, &err)
 	pi.Set("SETDESC", descEncode(arg.Desc), &err)
@@ -187,9 +172,9 @@ func (pi *pinentryInstance) Run(arg *PinentryArg) (res *PinentryRes, err error) 
 	}
 	line := string(lineb)
 	if strings.HasPrefix(line, "D ") {
-		res = &PinentryRes{Text: line[2:]}
+		res = &SecretEntryRes{Text: line[2:]}
 	} else if strings.HasPrefix(line, "ERR 83886179 canceled") {
-		res = &PinentryRes{Canceled: true}
+		res = &SecretEntryRes{Canceled: true}
 	} else {
 		err = fmt.Errorf("GETPIN response didn't start with D; got %q", line)
 	}
