@@ -1,8 +1,9 @@
-
 package libkb
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
 )
 
 //
@@ -16,12 +17,17 @@ import (
 func canExec(s string) bool {
 	fi, err := os.Stat(s)
 	if err != nil {
-		return false	
-	}
-	if !fi.Mode().IsRegular() {
 		return false
 	}
-	return true
+	mode := fi.Mode()
+
+	//
+	// Only consider non-directories that have at least one +x
+	//  bit set.
+	//
+	// TODO: Recheck this on windows!
+	//
+	return !mode.IsDir() && (int(mode)&(0111) != 0)
 }
 
 func FindPinentry() (string, error) {
@@ -38,5 +44,27 @@ func FindPinentry() (string, error) {
 		"pinentry",
 	}
 
-	return "", nil
+	for _, b := range bins {
+		if canExec(b) {
+			return b, nil
+		}
+	}
+
+	for _, c := range cmds {
+		path, err := exec.LookPath(c)
+		if err == nil {
+			return path, nil
+		}
+	}
+
+	for _, ep := range extra_paths {
+		for _, c := range cmds {
+			full := ep + "/" + c
+			if canExec(full) {
+				return full, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("No pinentry found, checked a bunch of different places")
 }
