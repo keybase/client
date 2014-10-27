@@ -26,6 +26,10 @@ func canExec(s string) bool {
 	//  bit set.
 	//
 	// TODO: Recheck this on windows!
+	//   See here for lookpath: http://golang.org/src/pkg/os/exec/lp_windows.go
+	//
+	// Similar to check from exec.LookPath below
+	//   See here: http://golang.org/src/pkg/os/exec/lp_unix.go
 	//
 	return !mode.IsDir() && (int(mode)&(0111) != 0)
 }
@@ -38,33 +42,48 @@ func FindPinentry() (string, error) {
 
 	extra_paths := []string{}
 
+	G.Log.Debug("+ FindPinentry()")
+
 	cmds := []string{
 		"pinentry-gtk-2",
 		"pinentry-qt4",
 		"pinentry",
 	}
 
+	checkFull := func(s string) bool {
+		G.Log.Debug("| Check fullpath %s", s)
+		found := canExec(s)
+		if found {
+			G.Log.Debug("- Found: %s", s)
+		}
+		return found
+	}
+
 	for _, b := range bins {
-		if canExec(b) {
+		if checkFull(b) {
 			return b, nil
 		}
 	}
 
+	path := os.Getenv("PATH")
 	for _, c := range cmds {
-		path, err := exec.LookPath(c)
+		G.Log.Debug("| Looking for %s in standard PATH %s", c, path)
+		fullc, err := exec.LookPath(c)
 		if err == nil {
-			return path, nil
+			G.Log.Debug("- Found %s", fullc)
+			return fullc, nil
 		}
 	}
 
 	for _, ep := range extra_paths {
 		for _, c := range cmds {
 			full := ep + "/" + c
-			if canExec(full) {
+			if checkFull(full) {
 				return full, nil
 			}
 		}
 	}
 
+	G.Log.Debug("- FindPinentry: none found")
 	return "", fmt.Errorf("No pinentry found, checked a bunch of different places")
 }
