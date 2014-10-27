@@ -40,4 +40,4 @@ func (v *CmdId) Run() error {
 func (v *CmdId) UseConfig() bool   { return true }
 func (v *CmdId) UseKeyring() bool  { return true }
 func (v *CmdId) UseAPI() bool      { return true }
-func (v *CmdId) UseTerminal() bool { return true }
+func (v *CmdId) UseTerminal() bool { return false }
