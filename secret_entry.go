@@ -52,7 +52,8 @@ func (se *SecretEntry) Init() (err error) {
 	return err
 }
 
-func (se *SecretEntry) Get(arg SecretEntryArg) (res *SecretEntryRes, err error) {
+func (se *SecretEntry) Get(arg SecretEntryArg, term_arg *SecretEntryArg) (
+	res *SecretEntryRes, err error) {
 
 	if err = se.Init(); err != nil {
 		return
@@ -61,27 +62,20 @@ func (se *SecretEntry) Get(arg SecretEntryArg) (res *SecretEntryRes, err error) 
 	if pe := se.pinentry; pe != nil {
 		res, err = pe.Get(arg)
 	} else {
-		res, err = TerminalGetSecret(se.terminal, arg)
+		if term_arg == nil {
+			term_arg = &arg
+		}
+		res, err = TerminalGetSecret(se.terminal, term_arg)
 	}
 
 	return
 }
 
-func TerminalGetSecret(t Terminal, arg SecretEntryArg) (
+func TerminalGetSecret(t Terminal, arg *SecretEntryArg) (
 	res *SecretEntryRes, err error) {
 
-	var desc string
-	if arg.TerminalDesc != nil {
-		desc = *arg.TerminalDesc
-	} else {
-		desc = arg.Desc
-	}
-	var prompt string
-	if arg.TerminalPrompt != nil {
-		prompt = *arg.TerminalPrompt
-	} else {
-		prompt = arg.Prompt
-	}
+	desc := arg.Desc
+	prompt := arg.Prompt
 
 	if len(desc) > 0 {
 		if err = t.Write(desc + "\n"); err != nil {
