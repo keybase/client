@@ -14,7 +14,7 @@ var API_URI_PATH_PREFIX = "/_/api/" + API_VERSION
 var CLIENT_VERSION = "1.0.0"
 
 var IDENTIFY_AS = "keybase.io go client v" + CLIENT_VERSION + " " + runtime.GOOS
-var USER_AGENT = ("Keybase-CLI/" + CLIENT_VERSION +
+var USER_AGENT = ("Keybase-Go-CLI/" + CLIENT_VERSION +
 	" (" + runtime.Version() + " on " + runtime.GOOS + ")")
 
 var PERM_FILE os.FileMode = 0600
@@ -33,3 +33,12 @@ const (
 	MERKLE_TREE_NODE = 1
 	MERKLE_TREE_LEAF = 2
 )
+
+var PGP_VERSION = "Keybase Go CLI " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
+
+func PgpArmorHeaders() map[string]string {
+	return map[string]string{
+		"Version": PGP_VERSION,
+	}
+
+}

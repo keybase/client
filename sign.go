@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"code.google.com/p/go.crypto/openpgp"
+	"code.google.com/p/go.crypto/openpgp/armor"
 	"code.google.com/p/go.crypto/openpgp/errors"
 	"code.google.com/p/go.crypto/openpgp/packet"
 	"crypto"
@@ -71,7 +72,7 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 // don't encrypt at all, just sign the literal unencrypted data.
 // Unfortunately we need to duplicate some code here that's already
 // in write.go
-func AttachSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
+func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
 	config *packet.Config) (in io.WriteCloser, err error) {
 
 	var signer *packet.PrivateKey
@@ -116,6 +117,17 @@ func AttachSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHi
 	in = signatureWriter{out, in, hasher, hasher.New(), signer, config}
 
 	return
+}
+
+func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
+	config *packet.Config) (in io.WriteCloser, err error) {
+
+	var aout io.WriteCloser
+	aout, err = armor.Encode(out, "PGP MESSAGE", PgpArmorHeaders())
+	if err != nil {
+		return
+	}
+	return AttachedSign(aout, signed, hints, config)
 }
 
 // From here:

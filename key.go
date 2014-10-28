@@ -258,7 +258,7 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 	desc := "You need a passphrase to unlock the secret key for:\n" +
 		p.VerboseDescription() + "\n"
 	if len(reason) > 0 {
-		desc = desc + "\n" + reason
+		desc = desc + "\nReason: " + reason
 	}
 
 	for retry && err == nil {
