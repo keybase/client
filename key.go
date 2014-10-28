@@ -201,18 +201,45 @@ func (k *PgpKeyBundle) FindKeybaseUsername(un string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
-type EmptyKeyRing struct{}
+func (k PgpKeyBundle) VerboseDescription() string {
+	return "some key...."
+}
 
-func (k EmptyKeyRing) KeysById(id uint64) []openpgp.Key {
-	return []openpgp.Key{}
-}
-func (k EmptyKeyRing) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
-	return []openpgp.Key{}
-}
-func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
-	return []openpgp.Key{}
+func (p *PgpKeyBundle) Unlock(reason string) error {
+	if !p.PrivateKey.Encrypted {
+		return nil
+	}
+	var err error
+	var emsg string
+
+	retry := true
+
+	desc := "You need a passphrase to unlock the secret key for:\n" +
+		p.VerboseDescription()
+
+	for retry && err == nil {
+		var res *SecretEntryRes
+		res, err = G.SecretEntry.Get(SecretEntryArg{
+			Error:  emsg,
+			Desc:   desc,
+			Prompt: "Your key passphrase",
+		}, nil)
+
+		if err == nil && res.Canceled {
+			err = fmt.Errorf("Attempt to unlock secret key entry canceled")
+		} else if err != nil {
+			// noop
+		} else if perr := p.PrivateKey.Decrypt([]byte(res.Text)); perr == nil {
+			retry = false
+		} else if strings.HasSuffix(perr.Error(), "private key checksum failure") {
+			emsg = "Failed to unlock key; bad passphrase."
+		} else {
+			err = perr
+		}
+	}
+
+	return err
 }

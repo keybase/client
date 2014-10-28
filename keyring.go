@@ -71,9 +71,22 @@ func (k Keyrings) DecryptionKeys() []openpgp.Key {
 
 //===================================================================
 
-func (k Keyrings) FindKey(f PgpFingerprint) (*PgpKeyBundle, error) {
+func (k Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
+	var l []KeyringFile
+	if secret {
+		l = k.Secret
+	} else {
+		l = k.Public
+	}
+	for _, file := range l {
+		key, found := file.indexFingerprint[fp]
+		if found && key != nil && key.PrivateKey != nil {
+			return key
+		}
 
-	return nil, nil
+	}
+
+	return nil
 }
 
 //===================================================================
@@ -176,4 +189,36 @@ func (k KeyringFile) Save() error {
 	}
 	G.Log.Debug(fmt.Sprintf("- Wrote to PGP keyring %s -> %s", k.filename, ErrToOk(err)))
 	return err
+}
+
+func (k Keyrings) GetSecretKey() (key *PgpKeyBundle, reason string, err error) {
+	var me *User
+	var fp *PgpFingerprint
+	if me, err = LoadMe(); err != nil {
+		return
+	}
+	if fp, err = me.GetActivePgpFingerprint(); err != nil {
+		return
+	}
+
+	if key = (*PgpKeyBundle)(k.FindKey(*fp, true)); key == nil {
+		err = fmt.Errorf("No private key found for your fingerprint %s", fp.ToString())
+	}
+
+	if key.PrivateKey.Encrypted {
+		err = key.Unlock(reason)
+	}
+	return
+}
+
+type EmptyKeyRing struct{}
+
+func (k EmptyKeyRing) KeysById(id uint64) []openpgp.Key {
+	return []openpgp.Key{}
+}
+func (k EmptyKeyRing) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
+	return []openpgp.Key{}
+}
+func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
+	return []openpgp.Key{}
 }

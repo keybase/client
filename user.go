@@ -472,6 +472,13 @@ func (u *User) MakeIdTable(allKeys bool) error {
 	return nil
 }
 
+func LoadMe() (ret *User, err error) {
+	return LoadUser(LoadUserArg{
+		Self:        true,
+		LoadSecrets: true,
+	})
+}
+
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string

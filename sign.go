@@ -2,14 +2,11 @@ package libkb
 
 import (
 	"code.google.com/p/go.crypto/openpgp"
-	"code.google.com/p/go.crypto/openpgp/armor"
 	"code.google.com/p/go.crypto/openpgp/errors"
 	"code.google.com/p/go.crypto/openpgp/packet"
-	"code.google.com/p/go.crypto/openpgp/s2k"
 	"crypto"
 	"hash"
 	"io"
-	"strconv"
 	"time"
 )
 
@@ -70,24 +67,12 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 	return openpgp.Key{}, false
 }
 
-// Copy-paste imported from here:
-//
-//  https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1
-//
-func hashToHashId(h crypto.Hash) uint8 {
-	v, ok := s2k.HashToHashId(h)
-	if !ok {
-		panic("tried to convert unknown hash")
-	}
-	return v
-}
-
 // Like openpgp.Encrypt (as in p.crypto/openpgp/write.go), but
 // don't encrypt at all, just sign the literal unencrypted data.
 // Unfortunately we need to duplicate some code here that's already
 // in write.go
-func Encrypt(signedtext io.Writer, signed openpgp.Entity, hints *openpgp.FileHints,
-	config *packet.Config) (plaintext io.WriteCloser, err error) {
+func AttachSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
+	config *packet.Config) (in io.WriteCloser, err error) {
 
 	var signer *packet.PrivateKey
 
@@ -99,5 +84,90 @@ func Encrypt(signedtext io.Writer, signed openpgp.Entity, hints *openpgp.FileHin
 		return
 	}
 
+	hasher := crypto.SHA512
+
+	ops := &packet.OnePassSignature{
+		SigType:    packet.SigTypeBinary,
+		Hash:       hasher,
+		PubKeyAlgo: signer.PubKeyAlgo,
+		KeyId:      signer.KeyId,
+		IsLast:     true,
+	}
+
+	if err = ops.Serialize(out); err != nil {
+		return
+	}
+
+	if hints == nil {
+		hints = &openpgp.FileHints{}
+	}
+
+	var epochSeconds uint32
+	if !hints.ModTime.IsZero() {
+		epochSeconds = uint32(hints.ModTime.Unix())
+	}
+
+	in, err = packet.SerializeLiteral(out, hints.IsBinary, hints.FileName, epochSeconds)
+
+	if err != nil {
+		return
+	}
+
+	in = signatureWriter{out, in, hasher, hasher.New(), signer, config}
+
 	return
+}
+
+// From here:
+//   https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1#326
+//
+// signatureWriter hashes the contents of a message while passing it along to
+// literalData. When closed, it closes literalData, writes a signature packet
+// to encryptedData and then also closes encryptedData.
+type signatureWriter struct {
+	signedData  io.WriteCloser
+	literalData io.WriteCloser
+	hashType    crypto.Hash
+	h           hash.Hash
+	signer      *packet.PrivateKey
+	config      *packet.Config
+}
+
+func (s signatureWriter) Write(data []byte) (int, error) {
+	s.h.Write(data)
+	return s.literalData.Write(data)
+}
+
+func (s signatureWriter) Close() error {
+	sig := &packet.Signature{
+		SigType:      packet.SigTypeBinary,
+		PubKeyAlgo:   s.signer.PubKeyAlgo,
+		Hash:         s.hashType,
+		CreationTime: s.config.Now(),
+		IssuerKeyId:  &s.signer.KeyId,
+	}
+
+	if err := sig.Sign(s.h, s.signer, s.config); err != nil {
+		return err
+	}
+	if err := s.literalData.Close(); err != nil {
+		return err
+	}
+	if err := sig.Serialize(s.signedData); err != nil {
+		return err
+	}
+	return s.signedData.Close()
+}
+
+// From here:
+type noOpCloser struct {
+	w io.Writer
+}
+
+func (c noOpCloser) Write(data []byte) (n int, err error) {
+	return c.w.Write(data)
+}
+
+func (c noOpCloser) Close() error {
+	return nil
 }
