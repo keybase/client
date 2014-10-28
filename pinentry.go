@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+//
+// some borrowed from here:
+//
+//  https://github.com/bradfitz/camlistore/blob/master/pkg/misc/pinentry/pinentry.go
+//
+// Under the Apache 2.0 license
+//
+
 type Pinentry struct {
 	initRes *error
 	path    string
@@ -57,8 +65,9 @@ func (pe *Pinentry) FindProgram() (error, error) {
 func (pe *Pinentry) GetTerminalName() error {
 	tty, err := os.Readlink("/proc/self/fd/0")
 	if err != nil {
-		G.Log.Debug("Can't find terminal name via /proc lookup: %s", err.Error())
+		G.Log.Debug("| Can't find terminal name via /proc lookup: %s", err.Error())
 	} else {
+		G.Log.Debug("| found tty=%s", tty)
 		pe.tty = tty
 	}
 	// Tis not a fatal error.  In particular, it won't work on OSX

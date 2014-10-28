@@ -63,6 +63,15 @@ func (f *JsonFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
 	return
 }
 
+func (f *JsonFile) Nuke() error {
+	G.Log.Debug("+ nuke file %s", f.filename)
+
+	err := os.Remove(f.filename)
+	G.Log.Debug("- nuke file %s -> %s", f.filename, ErrToOk(err))
+
+	return err
+}
+
 func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, f.filename))
 

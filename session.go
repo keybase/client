@@ -123,6 +123,11 @@ func (s Session) IsValid() bool {
 	return s.valid
 }
 
+func (s *Session) Logout() error {
+	err := s.Load()
+
+}
+
 func (s *Session) LoadAndCheck() (bool, error) {
 	err := s.Load()
 	if err != nil {
