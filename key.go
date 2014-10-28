@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"code.google.com/p/go.crypto/openpgp"
 	"code.google.com/p/go.crypto/openpgp/armor"
+	"code.google.com/p/go.crypto/openpgp/packet"
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
@@ -205,7 +206,44 @@ func (k *PgpKeyBundle) FindKeybaseUsername(un string) bool {
 }
 
 func (k PgpKeyBundle) VerboseDescription() string {
-	return "some key...."
+	lines := k.UsersDescription()
+	lines = append(lines, k.KeyDescription())
+	return strings.Join(lines, "\n")
+}
+
+func (k PgpKeyBundle) UsersDescription() []string {
+	lines := []string{}
+	for _, id := range k.Identities {
+		lines = append(lines, "user: "+id.Name)
+	}
+	return lines
+}
+
+func (k PgpKeyBundle) KeyDescription() string {
+	pubkey := k.PrimaryKey
+
+	var typ string
+	switch pubkey.PubKeyAlgo {
+	case packet.PubKeyAlgoRSA, packet.PubKeyAlgoRSAEncryptOnly, packet.PubKeyAlgoRSASignOnly:
+		typ = "RSA"
+	case packet.PubKeyAlgoDSA:
+		typ = "DSA"
+	case packet.PubKeyAlgoECDSA:
+		typ = "ECDSA"
+	default:
+		typ = "<UNKONWN TYPE>"
+	}
+
+	layout := "2006-01-02"
+
+	bl, err := pubkey.BitLength()
+	if err != nil {
+		bl = 0
+	}
+
+	desc := fmt.Sprintf("%d-bit %s key, ID %s, created %s",
+		bl, typ, pubkey.KeyIdString(), pubkey.CreationTime.Format(layout))
+	return desc
 }
 
 func (p *PgpKeyBundle) Unlock(reason string) error {
@@ -218,7 +256,10 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 	retry := true
 
 	desc := "You need a passphrase to unlock the secret key for:\n" +
-		p.VerboseDescription()
+		p.VerboseDescription() + "\n"
+	if len(reason) > 0 {
+		desc = desc + "\n" + reason
+	}
 
 	for retry && err == nil {
 		var res *SecretEntryRes
@@ -233,7 +274,19 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 		} else if err != nil {
 			// noop
 		} else if perr := p.PrivateKey.Decrypt([]byte(res.Text)); perr == nil {
+
+			// Also decrypt all subkeys (with the same password)
+			for _, subkey := range p.Subkeys {
+				if priv := subkey.PrivateKey; priv != nil {
+					if err = priv.Decrypt([]byte(res.Text)); err != nil {
+						break
+					}
+				}
+			}
 			retry = false
+
+			// XXX this is gross, the openpgp library should return a better
+			// error if the PW was incorrectly specified
 		} else if strings.HasSuffix(perr.Error(), "private key checksum failure") {
 			emsg = "Failed to unlock key; bad passphrase."
 		} else {
