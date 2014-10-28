@@ -281,6 +281,15 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		},
 
 		{
+			Name: "logout",
+			Usage: "Logout and remove session information",
+			Action: func(c *cli.Context) {
+				p.ctx = c
+				cmd = &CmdLogout{}
+			},
+		},
+
+		{
 			Name:  "ping",
 			Usage: "ping the keybase API server",
 			Action: func(c *cli.Context) {

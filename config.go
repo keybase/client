@@ -49,19 +49,25 @@ func getInt(w *jsonw.Wrapper) (interface{}, error) {
 
 func (f JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
 	i, is_set := f.getValueAtPath(p, getString)
-	ret = i.(string)
+	if is_set {
+		ret = i.(string)
+	}
 	return
 }
 
 func (f JsonConfigFile) GetBoolAtPath(p string) (ret bool, is_set bool) {
 	i, is_set := f.getValueAtPath(p, getBool)
-	ret = i.(bool)
+	if is_set {
+		ret = i.(bool)
+	}
 	return
 }
 
 func (f JsonConfigFile) GetIntAtPath(p string) (ret int, is_set bool) {
 	i, is_set := f.getValueAtPath(p, getInt)
-	ret = i.(int)
+	if is_set {
+		ret = i.(int)
+	}
 	return
 }
 

@@ -123,9 +123,34 @@ func (s Session) IsValid() bool {
 	return s.valid
 }
 
+func (s *Session) postLogout() error {
+	_, err := G.API.Post(ApiArg{
+		Endpoint : "logout",
+		NeedSession : true,
+	})
+	if err == nil {
+		s.valid = false
+		s.checked = false
+		s.token = ""
+		s.csrf = ""
+	}
+	return err
+}
+
 func (s *Session) Logout() error {
 	err := s.Load()
-
+	var e2 error
+	if err == nil && s.HasSessionToken() {
+		e2 = s.postLogout()
+		if e3 := s.file.Nuke(); e3 != nil {
+			s.inFile = false
+			G.Log.Warning("Failed to remove session file: %s", e3.Error())
+		}
+	}
+	if err == nil && e2 != nil {
+		err = e2
+	}
+	return err
 }
 
 func (s *Session) LoadAndCheck() (bool, error) {

@@ -153,6 +153,17 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 	return nil
 }
 
+func (s *LoginState) Logout() error {
+	G.Log.Debug("+ Logout called")
+	err := G.Session.Logout()
+	if err == nil {
+		s.LoggedIn = false
+		s.SessionVerified = false
+	}
+	G.Log.Debug("- Logout called")
+	return err
+}
+
 func (s *LoginState) Login() error {
 	G.Log.Debug("+ Login called")
 
