@@ -125,8 +125,8 @@ func (s Session) IsValid() bool {
 
 func (s *Session) postLogout() error {
 	_, err := G.API.Post(ApiArg{
-		Endpoint : "logout",
-		NeedSession : true,
+		Endpoint:    "logout",
+		NeedSession: true,
 	})
 	if err == nil {
 		s.valid = false

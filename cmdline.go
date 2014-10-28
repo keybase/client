@@ -281,7 +281,7 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 		},
 
 		{
-			Name: "logout",
+			Name:  "logout",
 			Usage: "Logout and remove session information",
 			Action: func(c *cli.Context) {
 				p.ctx = c
