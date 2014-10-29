@@ -282,8 +282,6 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 			Prompt: "Your key passphrase",
 		}, nil)
 
-		fmt.Printf("%v\n", res)
-
 		if err == nil && res.Canceled {
 			err = fmt.Errorf("Attempt to unlock secret key entry canceled")
 		} else if err != nil {
@@ -294,7 +292,6 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 			for _, subkey := range p.Subkeys {
 				if priv := subkey.PrivateKey; priv != nil {
 					if err = priv.Decrypt([]byte(res.Text)); err != nil {
-						fmt.Printf("subkey decryption failed...\n")
 						break
 					}
 				}

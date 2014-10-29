@@ -6,7 +6,6 @@ import (
 	"code.google.com/p/go.crypto/openpgp/errors"
 	"code.google.com/p/go.crypto/openpgp/packet"
 	"crypto"
-	"fmt"
 	"hash"
 	"io"
 	"time"

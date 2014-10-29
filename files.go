@@ -206,7 +206,6 @@ func (u *UnixFilter) FilterOpen() error {
 }
 
 func (u *UnixFilter) Close(inerr error) error {
-	fmt.Printf("explicit close")
 	e1 := u.source.Close()
 	e2 := u.sink.Close()
 	e3 := u.sink.HitError(inerr)
