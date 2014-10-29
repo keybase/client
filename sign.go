@@ -113,7 +113,7 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 		epochSeconds = uint32(hints.ModTime.Unix())
 	}
 
-	in, err = packet.SerializeLiteral(out, hints.IsBinary, hints.FileName, epochSeconds)
+	in, err = packet.SerializeLiteral(noOpCloser{out}, hints.IsBinary, hints.FileName, epochSeconds)
 
 	if err != nil {
 		return
@@ -122,7 +122,7 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 	// If we need to write a signature packet after the literal
 	// data then we need to stop literalData from closing
 	// encryptedData.
-	in = signatureWriter{out, noOpCloser{in}, hasher, hasher.New(), signer, config}
+	in = signatureWriter{out, in, hasher, hasher.New(), signer, config}
 
 	return
 }

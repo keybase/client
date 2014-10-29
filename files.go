@@ -150,9 +150,9 @@ func (s *FileSink) Write(b []byte) (n int, err error) {
 }
 
 func (s *FileSink) Close() error {
-	if s.bufw == nil || s.file == nil {
-		G.Log.Warning("Attempt to close file twice: %s", s.name)
-		return io.EOF
+	if s.file == nil {
+		// Already closed, the second close is just a noop
+		return nil
 	} else {
 		s.bufw.Flush()
 		e := s.file.Close()
@@ -206,6 +206,7 @@ func (u *UnixFilter) FilterOpen() error {
 }
 
 func (u *UnixFilter) Close(inerr error) error {
+	fmt.Printf("explicit close")
 	e1 := u.source.Close()
 	e2 := u.sink.Close()
 	e3 := u.sink.HitError(inerr)
