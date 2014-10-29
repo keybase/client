@@ -215,6 +215,7 @@ func (k PgpKeyBundle) UsersDescription() []string {
 	lines := []string{}
 	for _, id := range k.Identities {
 		lines = append(lines, "user: "+id.Name)
+		break
 	}
 	return lines
 }

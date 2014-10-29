@@ -15,21 +15,22 @@ type KeyringFile struct {
 }
 
 type Keyrings struct {
-	Public []KeyringFile
-	Secret []KeyringFile
+	Public []*KeyringFile
+	Secret []*KeyringFile
 }
 
-func (k Keyrings) MakeKeyrings(out *[]KeyringFile, filenames []string, isPublic bool) {
-	*out = make([]KeyringFile, len(filenames))
+func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
+	v := make([]*KeyringFile, len(filenames), len(filenames))
 	for i, filename := range filenames {
-		(*out)[i] = KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil}
+		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil}
 	}
+	return v
 }
 
 func NewKeyrings(e Env) *Keyrings {
 	ret := &Keyrings{}
-	ret.MakeKeyrings(&ret.Public, e.GetPublicKeyrings(), true)
-	ret.MakeKeyrings(&ret.Secret, e.GetSecretKeyrings(), false)
+	ret.Public = ret.MakeKeyrings(e.GetPublicKeyrings(), true)
+	ret.Secret = ret.MakeKeyrings(e.GetSecretKeyrings(), false)
 	return ret
 }
 
@@ -72,7 +73,7 @@ func (k Keyrings) DecryptionKeys() []openpgp.Key {
 //===================================================================
 
 func (k Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
-	var l []KeyringFile
+	var l []*KeyringFile
 	if secret {
 		l = k.Secret
 	} else {
@@ -80,7 +81,7 @@ func (k Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
 	}
 	for _, file := range l {
 		key, found := file.indexFingerprint[fp]
-		if found && key != nil && key.PrivateKey != nil {
+		if found && key != nil && (!secret || key.PrivateKey != nil) {
 			return key
 		}
 
@@ -101,27 +102,38 @@ func (k *Keyrings) Load() (err error) {
 	return err
 }
 
-func (k Keyrings) LoadKeyrings(v []KeyringFile) (err error) {
+func (k *Keyrings) LoadKeyrings(v []*KeyringFile) (err error) {
 	for _, k := range v {
-		if err = k.Load(); err != nil {
-			return err
-		}
-		if err = k.Index(); err != nil {
+		if err = k.LoadAndIndex(); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+func (k *KeyringFile) LoadAndIndex() error {
+	var err error
+	G.Log.Debug("+ LoadAndIndex on %s", k.filename)
+	if err = k.Load(); err == nil {
+		err = k.Index()
+	}
+	G.Log.Debug("- LoadAndIndex on %s -> %s", k.filename, ErrToOk(err))
+	return err
+}
+
 func (k *KeyringFile) Index() error {
+	G.Log.Debug("+ Index on %s", k.filename)
 	k.indexId = make(map[string](*openpgp.Entity))
 	k.indexFingerprint = make(map[PgpFingerprint](*openpgp.Entity))
+	p := 0
+	s := 0
 	for _, entity := range k.Entities {
 		if entity.PrimaryKey != nil {
 			id := entity.PrimaryKey.KeyIdString()
 			k.indexId[id] = entity
 			fp := PgpFingerprint(entity.PrimaryKey.Fingerprint)
 			k.indexFingerprint[fp] = entity
+			p++
 		}
 		for _, subkey := range entity.Subkeys {
 			if subkey.PublicKey != nil {
@@ -129,9 +141,12 @@ func (k *KeyringFile) Index() error {
 				k.indexId[id] = entity
 				fp := PgpFingerprint(subkey.PublicKey.Fingerprint)
 				k.indexFingerprint[fp] = entity
+				s++
 			}
 		}
 	}
+	G.Log.Debug("| Indexed %d primary and %d subkeys", p, s)
+	G.Log.Debug("- Index on %s -> %s", k.filename, "OK")
 	return nil
 }
 
@@ -203,9 +218,7 @@ func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 
 	if key = (*PgpKeyBundle)(k.FindKey(*fp, true)); key == nil {
 		err = fmt.Errorf("No private key found for your fingerprint %s", fp.ToString())
-	}
-
-	if key.PrivateKey.Encrypted {
+	} else if key.PrivateKey.Encrypted {
 		err = key.Unlock(reason)
 	}
 	return
