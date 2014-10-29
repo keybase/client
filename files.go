@@ -143,7 +143,7 @@ func (s *FileSink) lazyOpen() error {
 	if s.closed {
 		err = fmt.Errorf("file was already closed")
 	} else if s.failed {
-		err = fmt.Errorf("open previous failed")
+		err = fmt.Errorf("open previously failed")
 	} else if !s.opened {
 		f, err := os.OpenFile(s.name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, UMASKABLE_PERM_FILE)
 		if err != nil {
