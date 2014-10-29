@@ -13,6 +13,47 @@ import (
 )
 
 //
+// Portions of this file are copied from here:
+//
+//   https://code.google.com/p/go/source/browse/openpgp/keys.go
+//
+//  Included under the Go software License, URI is here:
+//     https://code.google.com/p/go/source/browse/LICENSE?repo=crypto
+//
+//  And exact text is here:
+//
+//--------------------------------------------------------------------
+//  Copyright (c) 2009 The Go Authors. All rights reserved.
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are
+//  met:
+//
+//     * Redistributions of source code must retain the above copyright
+//  notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above
+//  copyright notice, this list of conditions and the following disclaimer
+//  in the documentation and/or other materials provided with the
+//  distribution.
+//     * Neither the name of Google Inc. nor the names of its
+//  contributors may be used to endorse or promote products derived from
+//  this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+//  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+//  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+//  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+//  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+//  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+//  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+//  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+//  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//--------------------------------------------------------------------
+//
+//
 // primaryIdentity returns the Identity marked as primary or the first identity
 // if none are so marked.
 //
@@ -113,6 +154,9 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 		epochSeconds = uint32(hints.ModTime.Unix())
 	}
 
+	// We don't want the literal serializer to closer the output stream
+	// since we're going to need to write to it when we finish up the
+	// signature stuff.
 	in, err = packet.SerializeLiteral(noOpCloser{out}, hints.IsBinary, hints.FileName, epochSeconds)
 
 	if err != nil {
@@ -149,7 +193,6 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	if err != nil {
 		return
 	}
-	fmt.Printf("encoding WTF\n")
 	return AttachedSign(DebugWriteCloser{aout}, signed, hints, config)
 }
 
@@ -201,13 +244,16 @@ func (s signatureWriter) Close() error {
 	if err := sig.Serialize(s.signedData); err != nil {
 		return err
 	}
-	fmt.Printf("signed data close\n")
 	return s.signedData.Close()
 }
 
 // noOpCloser is like an ioutil.NopCloser, but for an io.Writer.
 // TODO: we have two of these in OpenPGP packages alone. This probably needs
 // to be promoted somewhere more common.
+//
+// From here:
+//     https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1#364
+//
 type noOpCloser struct {
 	w io.Writer
 }
@@ -217,6 +263,5 @@ func (c noOpCloser) Write(data []byte) (n int, err error) {
 }
 
 func (c noOpCloser) Close() error {
-	fmt.Printf("close was nooped\n")
 	return nil
 }
