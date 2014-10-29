@@ -6,6 +6,7 @@ import (
 	"code.google.com/p/go.crypto/openpgp/errors"
 	"code.google.com/p/go.crypto/openpgp/packet"
 	"crypto"
+	"fmt"
 	"hash"
 	"io"
 	"time"
@@ -118,6 +119,9 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 		return
 	}
 
+	// If we need to write a signature packet after the literal
+	// data then we need to stop literalData from closing
+	// encryptedData.
 	in = signatureWriter{out, noOpCloser{in}, hasher, hasher.New(), signer, config}
 
 	return
@@ -145,6 +149,7 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	if err != nil {
 		return
 	}
+	fmt.Printf("encoding WTF\n")
 	return AttachedSign(DebugWriteCloser{aout}, signed, hints, config)
 }
 
@@ -196,6 +201,7 @@ func (s signatureWriter) Close() error {
 	if err := sig.Serialize(s.signedData); err != nil {
 		return err
 	}
+	fmt.Printf("signed data close\n")
 	return s.signedData.Close()
 }
 
@@ -211,5 +217,6 @@ func (c noOpCloser) Write(data []byte) (n int, err error) {
 }
 
 func (c noOpCloser) Close() error {
+	fmt.Printf("close was nooped\n")
 	return nil
 }

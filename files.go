@@ -150,11 +150,16 @@ func (s *FileSink) Write(b []byte) (n int, err error) {
 }
 
 func (s *FileSink) Close() error {
-	s.bufw.Flush()
-	e := s.file.Close()
-	s.file = nil
-	s.bufw = nil
-	return e
+	if s.bufw == nil || s.file == nil {
+		G.Log.Warning("Attempt to close file twice: %s", s.name)
+		return io.EOF
+	} else {
+		s.bufw.Flush()
+		e := s.file.Close()
+		s.file = nil
+		s.bufw = nil
+		return e
+	}
 }
 
 func (s *FileSink) HitError(e error) error {

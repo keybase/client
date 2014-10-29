@@ -212,12 +212,24 @@ func (k PgpKeyBundle) VerboseDescription() string {
 }
 
 func (k PgpKeyBundle) UsersDescription() []string {
-	lines := []string{}
-	for _, id := range k.Identities {
-		lines = append(lines, "user: "+id.Name)
-		break
+	var pri string
+	if len(k.Identities) == 0 {
+		return []string{}
 	}
-	return lines
+	var first *openpgp.Identity
+	for _, id := range k.Identities {
+		if first == nil {
+			first = id
+		}
+		if id.SelfSignature != nil && id.SelfSignature.IsPrimaryId != nil && *id.SelfSignature.IsPrimaryId {
+			pri = id.Name
+			break
+		}
+	}
+	if len(pri) == 0 {
+		pri = first.Name
+	}
+	return []string{"user: " + pri}
 }
 
 func (k PgpKeyBundle) KeyDescription() string {
@@ -270,6 +282,8 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 			Prompt: "Your key passphrase",
 		}, nil)
 
+		fmt.Printf("%v\n", res)
+
 		if err == nil && res.Canceled {
 			err = fmt.Errorf("Attempt to unlock secret key entry canceled")
 		} else if err != nil {
@@ -280,6 +294,7 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 			for _, subkey := range p.Subkeys {
 				if priv := subkey.PrivateKey; priv != nil {
 					if err = priv.Decrypt([]byte(res.Text)); err != nil {
+						fmt.Printf("subkey decryption failed...\n")
 						break
 					}
 				}
