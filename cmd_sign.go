@@ -73,7 +73,7 @@ func (s *CmdSign) Run() (err error) {
 		s.Close(err)
 	}()
 
-	key, err = G.Keyrings.GetSecretKey("signing the supplied statement")
+	key, err = G.Keyrings.GetSecretKey("command-line signature")
 	if err != nil {
 		return
 	} else if key == nil {

@@ -121,9 +121,12 @@ func (s *StdoutSink) Write(b []byte) (n int, err error) {
 func (s *StdoutSink) HitError(e error) error { return nil }
 
 type FileSink struct {
-	name string
-	file *os.File
-	bufw *bufio.Writer
+	name   string
+	file   *os.File
+	bufw   *bufio.Writer
+	opened bool
+	closed bool
+	failed bool
 }
 
 func NewFileSink(s string) *FileSink {
@@ -131,40 +134,52 @@ func NewFileSink(s string) *FileSink {
 }
 
 func (s *FileSink) Open() error {
-	f, err := os.OpenFile(s.name, os.O_WRONLY|os.O_CREATE, UMASKABLE_PERM_FILE)
-	if err != nil {
-		return fmt.Errorf("Failed to open %s for writing: %s",
-			s.name, err.Error())
-	}
-	s.file = f
-	s.bufw = bufio.NewWriter(f)
+	// Lazy-open on first write
 	return nil
 }
 
-func (s *FileSink) Write(b []byte) (n int, err error) {
-	if s.bufw == nil {
-		return 0, io.EOF
-	} else {
-		return s.bufw.Write(b)
+func (s *FileSink) lazyOpen() error {
+	var err error
+	if s.closed {
+		err = fmt.Errorf("file was already closed")
+	} else if s.failed {
+		err = fmt.Errorf("open previous failed")
+	} else if !s.opened {
+		f, err := os.OpenFile(s.name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, UMASKABLE_PERM_FILE)
+		if err != nil {
+			s.failed = true
+			return fmt.Errorf("Failed to open %s for writing: %s",
+				s.name, err.Error())
+		}
+		s.file = f
+		s.bufw = bufio.NewWriter(f)
+		s.opened = true
 	}
+	return err
+}
+
+func (s *FileSink) Write(b []byte) (n int, err error) {
+	if err = s.lazyOpen(); err != nil {
+		return
+	}
+	return s.bufw.Write(b)
 }
 
 func (s *FileSink) Close() error {
-	if s.file == nil {
-		// Already closed, the second close is just a noop
-		return nil
-	} else {
+	var err error
+	if s.opened && !s.closed {
 		s.bufw.Flush()
-		e := s.file.Close()
+		err = s.file.Close()
 		s.file = nil
 		s.bufw = nil
-		return e
+		s.closed = true
 	}
+	return err
 }
 
 func (s *FileSink) HitError(e error) error {
 	var err error
-	if e != nil {
+	if e != nil && s.opened {
 		G.Log.Debug("Deleting file %s after error %s", s.name, e.Error())
 		err = os.Remove(s.name)
 	}
