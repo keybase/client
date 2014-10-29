@@ -9,23 +9,14 @@ import (
 // Keep this around to simplify things
 var G = &libkb.G
 
-func parseArgs() (libkb.Command, error) {
-	p := libkb.PosixCommandLine{}
+func parseArgs() (libkb.CommandLine, Command, error) {
+	p := NewCommandLine()
 	cmd, err := p.Parse(os.Args)
 	if err != nil {
 		err = fmt.Errorf("Error parsing command line arguments: %s\n", err.Error())
-		return nil, err
+		return nil, nil, err
 	}
-	G.SetCommandLine(p)
-	return cmd, nil
-}
-
-func testLogging() {
-	G.Log.Debug("hello debug")
-	G.Log.Info("hello info")
-	G.Log.Notice("hello notice")
-	G.Log.Warning("hello warning")
-	G.Log.Error("hello error")
+	return p, cmd, nil
 }
 
 func main() {
@@ -43,9 +34,14 @@ func main() {
 
 func main2() error {
 
-	cmd, err := parseArgs()
+	cmdline, cmd, err := parseArgs()
 	if cmd == nil || err != nil {
 		return err
 	}
-	return G.RunCmdline(cmd)
+
+	if err = G.ConfigureAll(cmdline, cmd); err != nil {
+		return err
+	}
+
+	return cmd.Run()
 }
