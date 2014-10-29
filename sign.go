@@ -118,9 +118,23 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 		return
 	}
 
-	in = signatureWriter{out, in, hasher, hasher.New(), signer, config}
+	in = signatureWriter{out, noOpCloser{in}, hasher, hasher.New(), signer, config}
 
 	return
+}
+
+type DebugWriteCloser struct {
+	targ io.WriteCloser
+}
+
+func (dbc DebugWriteCloser) Write(buf []byte) (int, error) {
+	G.Log.Debug("dbc write: %v", buf)
+	return dbc.targ.Write(buf)
+}
+
+func (dbc DebugWriteCloser) Close() error {
+	G.Log.Debug("dbc Close!")
+	return dbc.targ.Close()
 }
 
 func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
@@ -131,7 +145,7 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	if err != nil {
 		return
 	}
-	return AttachedSign(aout, signed, hints, config)
+	return AttachedSign(DebugWriteCloser{aout}, signed, hints, config)
 }
 
 func AttachedSignWrapper(out io.WriteCloser, key PgpKeyBundle, armored bool) (
@@ -185,7 +199,9 @@ func (s signatureWriter) Close() error {
 	return s.signedData.Close()
 }
 
-// From here:
+// noOpCloser is like an ioutil.NopCloser, but for an io.Writer.
+// TODO: we have two of these in OpenPGP packages alone. This probably needs
+// to be promoted somewhere more common.
 type noOpCloser struct {
 	w io.Writer
 }
