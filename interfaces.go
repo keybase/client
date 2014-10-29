@@ -11,7 +11,6 @@ package libkb
 
 import (
 	"github.com/PuerkitoBio/goquery"
-	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
 	"net/url"
 )
@@ -125,12 +124,10 @@ type SecretEntryInterface interface {
 }
 
 type Command interface {
-	Run() error
 	UseConfig() bool
 	UseKeyring() bool
 	UseAPI() bool
 	UseTerminal() bool
-	Initialize(ctx *cli.Context) error
 }
 
 type Terminal interface {

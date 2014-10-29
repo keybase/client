@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 )
 
 type Global struct {
@@ -75,6 +76,12 @@ func (g *Global) ConfigureKeyring() error {
 	}
 	g.Keyrings = c
 	return nil
+}
+
+func VersionMessage(linefn func(string)) {
+	linefn(fmt.Sprintf("Keybase Command-Line App v%s", CLIENT_VERSION))
+	linefn(fmt.Sprintf("- Built with %s", runtime.Version()))
+	linefn("- Visit https://keybase.io for more details")
 }
 
 func (g Global) StartupMessage() {
@@ -136,20 +143,15 @@ func (g *Global) Shutdown() error {
 	return err
 }
 
-func (g *Global) RunCmdline(cmd Command) error {
-	if err := g.InitCmdline(cmd); err != nil {
-		return err
-	}
-	return cmd.Run()
-}
-
 func (g *Global) ConfigureSecretEntry() (err error) {
 	g.SecretEntry = NewSecretEntry()
 	return nil
 }
 
-func (g *Global) InitCmdline(cmd Command) error {
+func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
 	var err error
+
+	g.SetCommandLine(line)
 
 	g.ConfigureLogging()
 	if cmd.UseConfig() {

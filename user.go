@@ -19,7 +19,7 @@ type User struct {
 	id       UID
 	name     string
 	sigChain *SigChain
-	idTable  *IdentityTable
+	IdTable  *IdentityTable
 	sigHints *SigHints
 
 	loggedIn bool // if we were logged in when we loaded it
@@ -468,7 +468,7 @@ func LookupMerkleLeaf(name string, local *User) (f *MerkleUserLeaf, err error) {
 
 func (u *User) MakeIdTable(allKeys bool) error {
 	u.sigChain.FlattenAndPrune(allKeys)
-	u.idTable = NewIdentityTable(u.sigChain, u.sigHints)
+	u.IdTable = NewIdentityTable(u.sigChain, u.sigHints)
 	return nil
 }
 
@@ -577,7 +577,7 @@ func (u *User) Identify() error {
 		CHECK + " " +
 			ColorString("green", "public key fingerprint: "+
 				u.activePgpFingerprint.ToQuads()) + "\n")
-	return u.idTable.Identify()
+	return u.IdTable.Identify()
 }
 
 //==================================================================

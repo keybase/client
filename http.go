@@ -12,15 +12,15 @@ type HttpValue interface {
 type HttpArgs map[string]HttpValue
 
 type S struct {
-	val string
+	Val string
 }
 
 type I struct {
-	val int
+	Val int
 }
 
 type B struct {
-	val bool
+	Val bool
 }
 
 func (a *HttpArgs) Add(s string, v HttpValue) {
@@ -31,11 +31,11 @@ func NewHttpArgs() HttpArgs {
 	return make(HttpArgs)
 }
 
-func (s S) ToString() string { return s.val }
-func (i I) ToString() string { return fmt.Sprintf("%d", i.val) }
+func (s S) ToString() string { return s.Val }
+func (i I) ToString() string { return fmt.Sprintf("%d", i.Val) }
 func (b B) ToString() string {
 	i := 0
-	if b.val {
+	if b.Val {
 		i = 1
 	}
 	return fmt.Sprintf("%d", i)

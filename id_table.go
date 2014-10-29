@@ -447,7 +447,7 @@ type IdentityTable struct {
 	links          map[SigId]TypedChainLink
 	remoteProofs   map[string][]RemoteProofChainLink
 	tracks         map[string][]*TrackChainLink
-	order          []TypedChainLink
+	Order          []TypedChainLink
 	sigHints       *SigHints
 	activeProofs   []RemoteProofChainLink
 	cryptocurrency []*CryptocurrencyChainLink
@@ -455,7 +455,7 @@ type IdentityTable struct {
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
 	tab.links[l.GetSigId()] = l
-	tab.order = append(tab.order, l)
+	tab.Order = append(tab.Order, l)
 	for _, rev := range l.GetRevocations() {
 		tab.revocations[*rev] = true
 		if targ, found := tab.links[*rev]; !found {
@@ -508,7 +508,7 @@ func NewIdentityTable(sc *SigChain, h *SigHints) *IdentityTable {
 		links:          make(map[SigId]TypedChainLink),
 		remoteProofs:   make(map[string][]RemoteProofChainLink),
 		tracks:         make(map[string][]*TrackChainLink),
-		order:          make([]TypedChainLink, 0, sc.Len()),
+		Order:          make([]TypedChainLink, 0, sc.Len()),
 		sigHints:       h,
 		activeProofs:   make([]RemoteProofChainLink, 0, sc.Len()),
 		cryptocurrency: make([]*CryptocurrencyChainLink, 0, 0),
@@ -572,7 +572,7 @@ func (idt *IdentityTable) CollectAndDedupeActiveProofs() {
 }
 
 func (idt *IdentityTable) Len() int {
-	return len(idt.order)
+	return len(idt.Order)
 }
 
 func (idt *IdentityTable) Identify() error {
