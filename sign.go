@@ -75,6 +75,14 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
 	config *packet.Config) (in io.WriteCloser, err error) {
 
+	if hints == nil {
+		hints = &openpgp.FileHints{}
+	}
+
+	if config == nil {
+		config = &packet.Config{}
+	}
+
 	var signer *packet.PrivateKey
 
 	if signKey, ok := getSigningKey(&signed, config.Now()); !ok {
@@ -97,10 +105,6 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 
 	if err = ops.Serialize(out); err != nil {
 		return
-	}
-
-	if hints == nil {
-		hints = &openpgp.FileHints{}
 	}
 
 	var epochSeconds uint32
@@ -128,6 +132,16 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 		return
 	}
 	return AttachedSign(aout, signed, hints, config)
+}
+
+func AttachedSignWrapper(out io.WriteCloser, key PgpKeyBundle, armored bool) (
+	in io.WriteCloser, err error) {
+
+	if armored {
+		return ArmoredAttachedSign(out, openpgp.Entity(key), nil, nil)
+	} else {
+		return AttachedSign(out, openpgp.Entity(key), nil, nil)
+	}
 }
 
 // From here:

@@ -79,3 +79,12 @@ func depad(s string) string {
 	ret := string(b[0:i])
 	return ret
 }
+
+func PickFirstError(errors ...error) error {
+	for _, e := range errors {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}

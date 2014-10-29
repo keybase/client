@@ -191,7 +191,7 @@ func (k KeyringFile) Save() error {
 	return err
 }
 
-func (k Keyrings) GetSecretKey() (key *PgpKeyBundle, reason string, err error) {
+func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 	var me *User
 	var fp *PgpFingerprint
 	if me, err = LoadMe(); err != nil {

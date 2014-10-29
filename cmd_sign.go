@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"io"
 )
 
 func AddCmdSign(cmd *Command, p *PosixCommandLine, app *cli.App) {
@@ -57,11 +58,39 @@ func (s *CmdSign) Initialize(ctx *cli.Context) error {
 }
 
 func (s *CmdSign) Run() (err error) {
-	if err := s.FilterOpen(); err != nil {
-		return err
+	var key *PgpKeyBundle
+	var dumpTo io.WriteCloser
+	var written int64
+
+	if err = s.FilterOpen(); err != nil {
+		return
 	}
 
-	fmt.Printf("signing %v\n", s)
+	defer func() {
+		if dumpTo != nil {
+			dumpTo.Close()
+		}
+		s.Close(err)
+	}()
+
+	key, err = G.Keyrings.GetSecretKey("signing the supplied statement")
+	if err != nil {
+		return
+	} else if key == nil {
+		err = fmt.Errorf("No secret key available")
+		return
+	}
+
+	dumpTo, err = AttachedSignWrapper(s.sink, *key, !s.binary)
+	if err != nil {
+		return
+	}
+
+	written, err = io.Copy(dumpTo, s.source)
+	if err == nil && written == 0 {
+		err = fmt.Errorf("Empty source file, nothing to sign")
+	}
+
 	return
 }
 

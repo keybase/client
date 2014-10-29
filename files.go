@@ -16,6 +16,7 @@ type Source interface {
 type Sink interface {
 	io.WriteCloser
 	Open() error
+	HitError(err error) error
 }
 
 type BufferSource struct {
@@ -117,6 +118,8 @@ func (s *StdoutSink) Write(b []byte) (n int, err error) {
 	return os.Stdout.Write(b)
 }
 
+func (s *StdoutSink) HitError(e error) error { return nil }
+
 type FileSink struct {
 	name string
 	file *os.File
@@ -154,6 +157,16 @@ func (s *FileSink) Close() error {
 	return e
 }
 
+func (s *FileSink) HitError(e error) error {
+	var err error
+	if e != nil {
+		G.Log.Debug("Deleting file %s after error %s", s.name, e.Error())
+		err = os.Remove(s.name)
+	}
+	return err
+
+}
+
 type UnixFilter struct {
 	sink   Sink
 	source Source
@@ -185,4 +198,11 @@ func (u *UnixFilter) FilterOpen() error {
 		err = u.source.Open()
 	}
 	return err
+}
+
+func (u *UnixFilter) Close(inerr error) error {
+	e1 := u.source.Close()
+	e2 := u.sink.Close()
+	e3 := u.sink.HitError(inerr)
+	return PickFirstError(e1, e2, e3)
 }
