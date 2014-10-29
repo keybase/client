@@ -131,7 +131,7 @@ func NewFileSink(s string) *FileSink {
 }
 
 func (s *FileSink) Open() error {
-	f, err := os.OpenFile(s.name, os.O_WRONLY, UMASKABLE_PERM_FILE)
+	f, err := os.OpenFile(s.name, os.O_WRONLY|os.O_CREATE, UMASKABLE_PERM_FILE)
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for writing: %s",
 			s.name, err.Error())
