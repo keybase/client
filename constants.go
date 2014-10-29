@@ -19,6 +19,7 @@ var USER_AGENT = ("Keybase-Go-CLI/" + CLIENT_VERSION +
 
 var PERM_FILE os.FileMode = 0600
 var PERM_DIR os.FileMode = 0700
+var UMASKABLE_PERM_FILE os.FileMode = 0666
 
 var USER_CACHE_SIZE = 0x1000
 var PROOF_CACHE_SIZE = 0x10000

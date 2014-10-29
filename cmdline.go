@@ -361,6 +361,9 @@ func (p *PosixCommandLine) Parse(args []string) (Command, error) {
 			},
 		},
 	}
+
+	AddCmdSign(&cmd, p, app)
+
 	app.Action = func(c *cli.Context) {
 		p.ctx = c
 		cmd = &CmdHelp{c}
