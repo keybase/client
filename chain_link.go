@@ -101,6 +101,16 @@ func (c *ChainLink) MarkChecked(err ProofError) {
 	}
 }
 
+func (c *ChainLink) GetProofState() int {
+	if c.lastChecked == nil {
+		return PROOF_STATE_NONE
+	} else if c.lastChecked.Status == nil {
+		return PROOF_STATE_OK
+	} else {
+		return PROOF_STATE_TEMP_FAILURE
+	}
+}
+
 func (c *ChainLink) Pack() error {
 	p := jsonw.NewDictionary()
 

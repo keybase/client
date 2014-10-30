@@ -35,11 +35,45 @@ const (
 	MERKLE_TREE_LEAF = 2
 )
 
+// Taken from node-client/src/constants.iced
+const (
+	PROOF_STATE_NONE         = 0
+	PROOF_STATE_OK           = 1
+	PROOF_STATE_TEMP_FAILURE = 2
+	PROOF_STATE_PERM_FAILURE = 3
+	PROOF_STATE_LOOKING      = 4
+	PROOF_STATE_SUPERSEDED   = 5
+	PROOF_STATE_POSTED       = 6
+	PROOF_STATE_REVOKED      = 7
+)
+
+const (
+	SIG_TYPE_NONE           = 0
+	SIG_TYPE_SELF_SIG       = 1
+	SIG_TYPE_REMOTE_PROOF   = 2
+	SIG_TYPE_TRACK          = 3
+	SIG_TYPE_UNTRACK        = 4
+	SIG_TYPE_REVOKE         = 5
+	SIG_TYPE_CRYPTOCURRENCY = 6
+	SIG_TYPE_ANNOUNCEMENT   = 7
+)
+
 var PGP_VERSION = "Keybase Go CLI " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
 
 func PgpArmorHeaders() map[string]string {
 	return map[string]string{
 		"Version": PGP_VERSION,
 	}
+}
 
+var REMOTE_SERVICE_TYPES = map[string]int{
+	"keybase":    1,
+	"twitter":    2,
+	"github":     3,
+	"reddit":     4,
+	"coinbase":   5,
+	"hackernews": 6,
+	"https":      1000,
+	"http":       1000,
+	"dns":        1001,
 }
