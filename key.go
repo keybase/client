@@ -5,6 +5,7 @@ import (
 	"code.google.com/p/go.crypto/openpgp"
 	"code.google.com/p/go.crypto/openpgp/armor"
 	"code.google.com/p/go.crypto/openpgp/packet"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
@@ -230,6 +231,23 @@ func (k PgpKeyBundle) UsersDescription() []string {
 		pri = first.Name
 	}
 	return []string{"user: " + pri}
+}
+
+func (k PgpKeyBundle) Kid() []byte {
+
+	prefix := []byte{
+		byte(KEYBASE_KID_V1),
+		byte(k.PrimaryKey.PubKeyAlgo),
+	}
+
+	buf := bytes.Buffer{}
+	k.PrimaryKey.Serialize(&buf)
+	sum := sha256.Sum256(buf.Bytes()[9:])
+
+	out := append(prefix, sum[:]...)
+	out = append(out, byte(ID_SUFFIX_KID))
+
+	return out
 }
 
 func (k PgpKeyBundle) KeyDescription() string {
