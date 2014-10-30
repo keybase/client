@@ -9,11 +9,13 @@ import (
 type CmdId struct {
 	user      string
 	assertion string
+	track     bool
 }
 
 func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
+	v.track = ctx.Bool("track-statement")
 	if nargs == 1 {
 		v.user = ctx.Args()[0]
 	} else {
@@ -35,6 +37,11 @@ func (v *CmdId) Run() error {
 	if err == nil {
 		err = u.Identify()
 	}
+
+	if v.track {
+		fmt.Println(u.IdTable.ToTrackingStatement().MarshalPretty())
+	}
+
 	return err
 }
 
@@ -47,6 +54,10 @@ func NewCmdId(cl *CommandLine) cli.Command {
 			cli.StringFlag{
 				Name:  "assert, a",
 				Usage: "a boolean expression on this identity",
+			},
+			cli.BoolFlag{
+				Name:  "t, track-statement",
+				Usage: "output a JSON a track statement for this user",
 			},
 		},
 		Action: func(c *cli.Context) {
