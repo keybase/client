@@ -68,29 +68,6 @@ func (g *GenericChainLink) GetUsername() string {
 	return g.unpacked.username
 }
 
-func (g *GenericChainLink) BaseToTrackingStatement() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("curr", jsonw.NewString(g.id.ToString()))
-	ret.SetKey("sig_id", jsonw.NewString(g.GetSigId().ToString(true)))
-
-	rkp := jsonw.NewDictionary()
-	ret.SetKey("remote_key_proof", rkp)
-	rkp.SetKey("state", jsonw.NewInt(g.GetProofState()))
-
-	prev := g.GetPrev()
-	var prev_val *jsonw.Wrapper
-	if prev == nil {
-		prev_val = jsonw.NewNil()
-	} else {
-		prev_val = jsonw.NewString(prev.ToString())
-	}
-
-	ret.SetKey("prev", prev_val)
-	ret.SetKey("ctime", jsonw.NewInt64(g.unpacked.ctime))
-	ret.SetKey("etime", jsonw.NewInt64(g.unpacked.etime))
-	return ret
-}
-
 //
 //=========================================================================
 
@@ -107,19 +84,6 @@ type RemoteProofChainLink interface {
 	DisplayCheck(*SigHint, *CheckResult, ProofError)
 	ToTrackingStatement() (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
-}
-
-func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) error {
-	typ_s := s.TableKey()
-	if i, found := REMOTE_SERVICE_TYPES[typ_s]; !found {
-		return fmt.Errorf("No service type found for '%s' in proof %d",
-			typ_s, s.GetSeqno())
-	} else {
-		base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(i))
-	}
-	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJson())
-	base.SetKey("sig_type", jsonw.NewInt(SIG_TYPE_REMOTE_PROOF))
-	return nil
 }
 
 type WebProofChainLink struct {
@@ -253,15 +217,6 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	ret.SetKey("username", jsonw.NewString(s.username))
 	ret.SetKey("name", jsonw.NewString(s.service))
 	return ret
-}
-
-func (s *SocialProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
-	ret := s.BaseToTrackingStatement()
-	err := remoteProofToTrackingStatement(s, ret)
-	if err != nil {
-		ret = nil
-	}
-	return ret, err
 }
 
 //=========================================================================
@@ -685,23 +640,6 @@ func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) error {
 	hint, cached, err := idt.CheckActiveProof(p)
 	p.DisplayCheck(hint, cached, err)
 	return err
-}
-
-func (idt *IdentityTable) ToTrackingStatement() *jsonw.Wrapper {
-	v := idt.activeProofs
-	tmp := make([]*jsonw.Wrapper, 0, len(v))
-	for _, proof := range v {
-		if d, err := proof.ToTrackingStatement(); err != nil {
-			G.Log.Warning("Problem with a proof: %s", err.Error())
-		} else if d != nil {
-			tmp = append(tmp, d)
-		}
-	}
-	ret := jsonw.NewArray(len(tmp))
-	for i, d := range tmp {
-		ret.SetIndex(i, d)
-	}
-	return ret
 }
 
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (
