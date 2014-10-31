@@ -17,7 +17,7 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 	if cr.Status != nil {
 		s := jsonw.NewDictionary()
 		s.SetKey("code", jsonw.NewInt(int(cr.Status.GetStatus())))
-		s.SetKey("desc", jsonw.NewString(cr.Status.Error()))
+		s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
 		p.SetKey("status", s)
 	}
 	p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))

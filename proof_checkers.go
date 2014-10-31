@@ -56,6 +56,7 @@ type ProofStatus int
 type ProofError interface {
 	error
 	GetStatus() ProofStatus
+	GetDesc() string
 }
 
 func ProofErrorIsSoft(pe ProofError) bool {
@@ -77,6 +78,7 @@ func (e *ProofErrorImpl) Error() string {
 }
 
 func (e *ProofErrorImpl) GetStatus() ProofStatus { return e.Status }
+func (e *ProofErrorImpl) GetDesc() string        { return e.Desc }
 
 type ProofApiError struct {
 	ProofErrorImpl

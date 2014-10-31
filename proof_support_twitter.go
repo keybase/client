@@ -19,12 +19,14 @@ func NewTwitterChecker(p RemoteProofChainLink) (*TwitterChecker, ProofError) {
 }
 
 func (rc *TwitterChecker) CheckHint(h SigHint) ProofError {
-	if wanted := ("https://twitter.com/" + rc.proof.GetRemoteUsername() + "/"); !strings.HasPrefix(strings.ToLower(h.apiUrl), wanted) {
+	wanted_url := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
+	wanted_short_id := (" " + rc.proof.GetSigId().ToShortId() + " /")
+	if !strings.HasPrefix(strings.ToLower(h.apiUrl), wanted_url) {
 		return NewProofError(PROOF_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s'", wanted)
-	} else if wanted := (" " + rc.proof.GetSigId().ToShortId() + " /"); !strings.Contains(h.checkText, wanted) {
+			"Bad hint from server; URL should start with '%s'", wanted_url)
+	} else if !strings.Contains(h.checkText, wanted_short_id) {
 		return NewProofError(PROOF_BAD_SIGNATURE,
-			"Bad proof-check text from server; need '%s' as a substring", wanted)
+			"Bad proof-check text from server; need '%s' as a substring", wanted_short_id)
 	} else {
 		return nil
 	}
