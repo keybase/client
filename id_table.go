@@ -171,6 +171,7 @@ func (s *WebProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	}
 	return ret
 }
+func (s *WebProofChainLink) GetIdString() string { return s.ToDisplayString() }
 
 func (s *SocialProofChainLink) TableKey() string { return s.service }
 func (s *SocialProofChainLink) Type() string     { return "proof" }
@@ -184,6 +185,7 @@ func (s *SocialProofChainLink) LastWriterWins() bool      { return true }
 func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
 func (w *SocialProofChainLink) GetHostname() string       { return "" }
 func (w *SocialProofChainLink) GetProtocol() string       { return "" }
+func (s *SocialProofChainLink) GetIdString() string       { return s.ToDisplayString() }
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h}
@@ -221,15 +223,11 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 
 //=========================================================================
 
-func ParseWebServiceBinding(base GenericChainLink) (
-	ret RemoteProofChainLink, e error) {
+// Can be used to either parse a proof `service` JSON block, or a
+// `remote_key_proof` JSON block in a tracking statement.
+func ParseServiceBlock(jw *jsonw.Wrapper) (social bool, typ string, id string, err error) {
 
-	jw := base.payloadJson.AtKey("body").AtKey("service")
-
-	if jw.IsNil() {
-		ret = &SelfSigChainLink{base}
-
-	} else if prot, e1 := jw.AtKey("protocol").GetString(); e1 == nil {
+	if prot, e1 := jw.AtKey("protocol").GetString(); e1 == nil {
 
 		var hostname string
 
@@ -237,31 +235,47 @@ func ParseWebServiceBinding(base GenericChainLink) (
 		if e1 == nil {
 			switch prot {
 			case "http:":
-				ret = NewWebProofChainLink(base, "http", hostname)
+				typ, id = "http", hostname
 			case "https:":
-				ret = NewWebProofChainLink(base, "https", hostname)
+				typ, id = "https", hostname
 			}
 		} else if domain, e2 := jw.AtKey("domain").GetString(); e2 == nil && prot == "dns" {
-			ret = NewWebProofChainLink(base, "dns", domain)
+			typ, id = "dns", domain
 		}
-
 	} else {
 
-		var service, username string
 		var e2 error
 
-		jw.AtKey("name").GetStringVoid(&service, &e2)
-		jw.AtKey("username").GetStringVoid(&username, &e2)
-		if e2 == nil {
-			ret = NewSocialProofChainLink(base, service, username)
+		jw.AtKey("name").GetStringVoid(&typ, &e2)
+		jw.AtKey("username").GetStringVoid(&id, &e2)
+		if e2 != nil {
+			id, typ = "", ""
+		} else {
+			social = true
 		}
 	}
 
-	if ret == nil {
-		e = fmt.Errorf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug(),
-			base.ToDebugString())
+	if len(typ) == 0 {
+		err = fmt.Errorf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug())
 	}
 
+	return
+}
+
+// To be used for signatures in a user's signature chain.
+func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e error) {
+
+	jw := base.payloadJson.AtKey("body").AtKey("service")
+
+	if jw.IsNil() {
+		ret = &SelfSigChainLink{base}
+	} else if social, typ, id, err := ParseServiceBlock(jw); err != nil {
+		e = fmt.Errorf("%s @%s", err.Error(), base.ToDebugString())
+	} else if social {
+		ret = NewSocialProofChainLink(base, typ, id)
+	} else {
+		ret = NewWebProofChainLink(base, typ, id)
+	}
 	return
 }
 
@@ -491,6 +505,7 @@ type IdentityTable struct {
 	sigHints       *SigHints
 	activeProofs   []RemoteProofChainLink
 	cryptocurrency []*CryptocurrencyChainLink
+	checkResult    *CheckResult
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -505,6 +520,10 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 			targ.markRevoked(l)
 		}
 	}
+}
+
+func (tab *IdentityTable) MarkCheckResult(err ProofError) {
+	tab.checkResult = NewNowCheckResult(err)
 }
 
 func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
@@ -616,7 +635,7 @@ func (idt *IdentityTable) Len() int {
 }
 
 func (idt *IdentityTable) Identify() error {
-	var err error
+	var err ProofError
 	for _, activeProof := range idt.activeProofs {
 		tmp := idt.IdentifyActiveProof(activeProof)
 		if tmp != nil && err == nil {
@@ -628,15 +647,18 @@ func (idt *IdentityTable) Identify() error {
 		acc.Display()
 	}
 
+	idt.MarkCheckResult(err)
+
+	var ret error
 	if err != nil {
-		err = fmt.Errorf("One or more proofs failed")
+		ret = fmt.Errorf("One or more proofs failed")
 	}
-	return err
+	return ret
 }
 
 //=========================================================================
 
-func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) error {
+func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) ProofError {
 	hint, cached, err := idt.CheckActiveProof(p)
 	p.DisplayCheck(hint, cached, err)
 	return err

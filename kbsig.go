@@ -48,20 +48,23 @@ func (u *User) ToTrackingStatementSeqTail() *jsonw.Wrapper {
 	return u.sigs.AtKey("last")
 }
 
-func (u *User) ToTrackingStatement() (*jsonw.Wrapper, error) {
-	var err error
-	ret := jsonw.NewDictionary()
-	ret.SetKey("key", u.ToTrackingStatementKey(&err))
-	ret.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
-	ret.SetKey("basics", u.ToTrackingStatementBasics(&err))
-	ret.SetKey("id", jsonw.NewString(string(u.id)))
-	ret.SetKey("remote_key_proofs", u.IdTable.ToTrackingStatement())
-	ret.SetKey("type", jsonw.NewString("track"))
-	ret.SetKey("version", jsonw.NewInt(TRACK_STATEMENT_V1))
+func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
+
+	track := jsonw.NewDictionary()
+	track.SetKey("key", u.ToTrackingStatementKey(&err))
+	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
+	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
+	track.SetKey("id", jsonw.NewString(string(u.id)))
+	track.SetKey("remote_key_proofs", u.IdTable.ToTrackingStatement())
+
 	if err != nil {
-		ret = nil
+		return
 	}
-	return ret, err
+
+	w.SetKey("type", jsonw.NewString("track"))
+	w.SetKey("version", jsonw.NewInt(TRACK_STATEMENT_V1))
+	w.SetKey("track", track)
+	return
 }
 
 func (u *User) ToKeyStanza() (*jsonw.Wrapper, error) {
@@ -140,12 +143,11 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	return nil
 }
 
-func (u *User) ProofMetadata() (ret *jsonw.Wrapper) {
+func (u *User) ProofMetadata() (ret *jsonw.Wrapper, err error) {
 
 	var seqno int
 	var prev_s string
-	var err error
-	var prev *jsonw.Wrapper
+	var key, prev *jsonw.Wrapper
 
 	last := u.sigs.AtKey("last")
 	last.AtKey("seqno").GetIntVoid(&seqno, &err)
@@ -153,6 +155,7 @@ func (u *User) ProofMetadata() (ret *jsonw.Wrapper) {
 	if err != nil {
 		seqno = 1
 		prev = jsonw.NewNil()
+		err = nil
 	} else {
 		seqno++
 		prev = jsonw.NewString(prev_s)
@@ -165,18 +168,22 @@ func (u *User) ProofMetadata() (ret *jsonw.Wrapper) {
 	ret.SetKey("seqno", jsonw.NewInt(seqno))
 	ret.SetKey("prev", prev)
 
-	return ret
+	body := jsonw.NewDictionary()
+	key, err = u.ToKeyStanza()
+	if err != nil {
+		ret = nil
+		return
+	}
+	body.SetKey("key", key)
+	ret.SetKey("body", body)
+
+	return
 }
 
 func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
-	var body *jsonw.Wrapper
-
-	if body, err = u1.ToTrackingStatement(); err != nil {
-		return
+	ret, err = u1.ProofMetadata()
+	if err == nil {
+		err = u1.ToTrackingStatement(ret.AtKey("body"))
 	}
-
-	ret = u1.ProofMetadata()
-	ret.SetKey("body", body)
-
 	return
 }

@@ -50,6 +50,10 @@ func (cr CheckResult) IsFresh() bool {
 	return (diff < interval)
 }
 
+func NewNowCheckResult(pe ProofError) *CheckResult {
+	return &CheckResult{pe, time.Now()}
+}
+
 func NewCheckResult(jw *jsonw.Wrapper) (res *CheckResult, err error) {
 	var t int64
 	var code int
