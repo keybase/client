@@ -580,4 +580,8 @@ func (u *User) Identify() error {
 	return u.IdTable.Identify()
 }
 
+func (u1 User) Equal(u2 User) bool {
+	return (u1.id == u2.id)
+}
+
 //==================================================================

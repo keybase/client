@@ -7,6 +7,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"time"
 )
 
 func ClientId() *jsonw.Wrapper {
@@ -55,6 +56,8 @@ func (u *User) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	ret.SetKey("basics", u.ToTrackingStatementBasics(&err))
 	ret.SetKey("id", jsonw.NewString(string(u.id)))
 	ret.SetKey("remote_key_proofs", u.IdTable.ToTrackingStatement())
+	ret.SetKey("type", jsonw.NewString("track"))
+	ret.SetKey("version", jsonw.NewInt(TRACK_STATEMENT_V1))
 	if err != nil {
 		ret = nil
 	}
@@ -135,4 +138,45 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJson())
 	base.SetKey("sig_type", jsonw.NewInt(SIG_TYPE_REMOTE_PROOF))
 	return nil
+}
+
+func (u *User) ProofMetadata() (ret *jsonw.Wrapper) {
+
+	var seqno int
+	var prev_s string
+	var err error
+	var prev *jsonw.Wrapper
+
+	last := u.sigs.AtKey("last")
+	last.AtKey("seqno").GetIntVoid(&seqno, &err)
+	last.AtKey("payload_hash").GetStringVoid(&prev_s, &err)
+	if err != nil {
+		seqno = 1
+		prev = jsonw.NewNil()
+	} else {
+		seqno++
+		prev = jsonw.NewString(prev_s)
+	}
+
+	ret = jsonw.NewDictionary()
+	ret.SetKey("tag", jsonw.NewString("signature"))
+	ret.SetKey("ctime", jsonw.NewInt64(time.Now().Unix()))
+	ret.SetKey("expire_in", jsonw.NewInt(SIG_EXPIRE_IN))
+	ret.SetKey("seqno", jsonw.NewInt(seqno))
+	ret.SetKey("prev", prev)
+
+	return ret
+}
+
+func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
+	var body *jsonw.Wrapper
+
+	if body, err = u1.ToTrackingStatement(); err != nil {
+		return
+	}
+
+	ret = u1.ProofMetadata()
+	ret.SetKey("body", body)
+
+	return
 }
