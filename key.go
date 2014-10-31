@@ -233,7 +233,13 @@ func (k PgpKeyBundle) UsersDescription() []string {
 	return []string{"user: " + pri}
 }
 
-func (k PgpKeyBundle) Kid() []byte {
+type KID []byte
+
+func (k KID) ToString() string {
+	return hex.EncodeToString(k)
+}
+
+func (k PgpKeyBundle) GetKid() KID {
 
 	prefix := []byte{
 		byte(KEYBASE_KID_V1),
@@ -247,7 +253,7 @@ func (k PgpKeyBundle) Kid() []byte {
 	out := append(prefix, sum[:]...)
 	out = append(out, byte(ID_SUFFIX_KID))
 
-	return out
+	return KID(out)
 }
 
 func (k PgpKeyBundle) KeyDescription() string {

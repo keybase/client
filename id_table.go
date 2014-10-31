@@ -719,6 +719,7 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (
 
 	if G.ProofCache != nil {
 		if cached = G.ProofCache.Get(sid); cached != nil {
+			p.MarkChecked(err)
 			err = cached.Status
 			return
 		}
