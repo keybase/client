@@ -49,6 +49,11 @@ func (v *CmdTrack) Run() error {
 		return fmt.Errorf("Cannot track yourself")
 	}
 
+	err = u2.Identify()
+	if err != nil {
+		G.Log.Warning("Some proofs failed")
+	}
+
 	return nil
 }
 
