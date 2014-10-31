@@ -210,3 +210,10 @@ func (ps *ParsedSig) Verify(k PgpKeyBundle) (err error) {
 func (ps *ParsedSig) ID() SigId {
 	return SigId(sha256.Sum256(ps.SigBody))
 }
+
+func ClientId() *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("version", jsonw.NewString(CLIENT_VERSION))
+	ret.SetKey("name", jsonw.NewString(GO_CLIENT_ID))
+	return ret
+}

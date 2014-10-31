@@ -361,6 +361,20 @@ func (u *User) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
+func (u *User) ToKeyStanza() (*jsonw.Wrapper, error) {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("uid", jsonw.NewString(string(u.id)))
+	ret.SetKey("username", jsonw.NewString(u.name))
+	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
+	if fp, err := u.GetActivePgpFingerprint(); err != nil {
+		return nil, err
+	} else {
+		ret.SetKey("fingerprint", jsonw.NewString(fp.ToString()))
+		ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))
+	}
+	return ret, nil
+}
+
 func (u *User) GetServerSeqno() (i int, err error) {
 	i = -1
 

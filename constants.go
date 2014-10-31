@@ -13,7 +13,9 @@ var API_VERSION = "1.0"
 var API_URI_PATH_PREFIX = "/_/api/" + API_VERSION
 var CLIENT_VERSION = "1.0.0"
 
-var IDENTIFY_AS = "keybase.io go client v" + CLIENT_VERSION + " " + runtime.GOOS
+var GO_CLIENT_ID = "keybase.io go client"
+
+var IDENTIFY_AS = GO_CLIENT_ID + " v" + CLIENT_VERSION + " " + runtime.GOOS
 var USER_AGENT = ("Keybase-Go-CLI/" + CLIENT_VERSION +
 	" (" + runtime.Version() + " on " + runtime.GOOS + ")")
 
@@ -83,3 +85,5 @@ var REMOTE_SERVICE_TYPES = map[string]int{
 	"http":       1000,
 	"dns":        1001,
 }
+
+var CANONICAL_HOST = "keybase.io"
