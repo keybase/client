@@ -215,6 +215,7 @@ func (cl *CommandLine) PopulateApp() {
 		NewCmdResolve(cl),
 		NewCmdSigs(cl),
 		NewCmdSign(cl),
+		NewCmdTrack(cl),
 		NewCmdVersion(cl),
 	}
 

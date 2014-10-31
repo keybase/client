@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
@@ -37,12 +36,6 @@ func (v *CmdId) Run() error {
 
 	if err == nil {
 		err = u.Identify()
-		if v.track {
-			fmt.Println(u.IdTable.ToTrackingStatement().MarshalPretty())
-			if k, e2 := u.GetActiveKey(); e2 == nil {
-				fmt.Printf("%s\n", hex.EncodeToString(k.Kid()))
-			}
-		}
 	}
 
 	return err
