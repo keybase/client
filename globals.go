@@ -121,9 +121,8 @@ func (g *Global) ConfigureCaches() (err error) {
 }
 
 func (g *Global) ConfigureMerkleClient() error {
-	var err error
-	g.MerkleClient, err = LoadMerkleClient()
-	return err
+	g.MerkleClient = NewMerkleClient()
+	return nil
 }
 
 func (g *Global) Shutdown() error {

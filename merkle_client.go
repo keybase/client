@@ -129,13 +129,8 @@ func NewMerkleClient() *MerkleClient {
 	}
 }
 
-func LoadMerkleClient() (*MerkleClient, error) {
-	mc := NewMerkleClient()
-	err := mc.LoadRoot()
-	if err != nil {
-		mc = nil
-	}
-	return mc, err
+func (mc *MerkleClient) Init() error {
+	return mc.LoadRoot()
 }
 
 func merkleHeadKey() DbKey {
@@ -193,7 +188,6 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 
 	jw.AtKey("sig").GetStringVoid(&sig, &err)
 	jw.AtKey("payload_json").GetStringVoid(&payload_json_str, &err)
-	jw.AtKey("ctime").GetInt64Void(&ctime, &err)
 
 	if err != nil {
 		return
@@ -207,6 +201,7 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	GetPgpFingerprintVoid(pj.AtKey("body").AtKey("key").AtKey("fingerprint"), &fp, &err)
 	pj.AtKey("body").AtKey("seqno").GetInt64Void(&seqno, &err)
 	GetNodeHashVoid(pj.AtKey("body").AtKey("root"), &rh, &err)
+	pj.AtKey("ctime").GetInt64Void(&ctime, &err)
 
 	if err != nil {
 		return
@@ -517,6 +512,10 @@ func (mc *MerkleClient) LookupUser(q HttpArgs) (u *MerkleUserLeaf, err error) {
 
 	var path *VerificationPath
 
+	if err = mc.Init(); err != nil {
+		return
+	}
+
 	if path, err = mc.LookupPath(q); err != nil {
 		return
 	}
@@ -533,14 +532,20 @@ func (mc *MerkleClient) LookupUser(q HttpArgs) (u *MerkleUserLeaf, err error) {
 	return
 }
 
-func (mr *MerkleRoot) ToSigJson() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
+func (mr *MerkleRoot) ToSigJson() (ret *jsonw.Wrapper) {
+
+	ret = jsonw.NewDictionary()
 	ret.SetKey("seqno", jsonw.NewInt(int(mr.seqno)))
 	ret.SetKey("ctime", jsonw.NewInt64(mr.ctime))
 	ret.SetKey("hash", jsonw.NewString(mr.rootHash.ToString()))
-	return ret
+
+	return
 }
 
-func (mc *MerkleClient) LastRootToSigJson() *jsonw.Wrapper {
-	return mc.lastRoot.ToSigJson()
+func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
+	// Lazy-init, only when needed.
+	if err = mc.Init(); err == nil {
+		ret = mc.lastRoot.ToSigJson()
+	}
+	return
 }

@@ -21,17 +21,24 @@ func (l *LevelDb) Open() error { return nil }
 func (l *LevelDb) open() error {
 	var err error
 	if l.db == nil {
-		l.filename = G.Env.GetDbFilename()
-		G.Log.Debug("Opening LevelDB for local cache: %s", l.filename)
-		l.db, err = leveldb.OpenFile(l.filename, nil)
+		fn := l.GetFilename()
+		G.Log.Debug("Opening LevelDB for local cache: %s", fn)
+		l.db, err = leveldb.OpenFile(fn, nil)
 	}
 	return err
+}
+
+func (l *LevelDb) GetFilename() string {
+	if len(l.filename) == 0 {
+		l.filename = G.Env.GetDbFilename()
+	}
+	return l.filename
 }
 
 func (l *LevelDb) Close() error {
 	var err error
 	if l.db != nil {
-		G.Log.Debug("Closing LevelDB local cache: %s", l.filename)
+		G.Log.Debug("Closing LevelDB local cache: %s", l.GetFilename())
 		err = l.db.Close()
 		l.db = nil
 	}
@@ -41,8 +48,9 @@ func (l *LevelDb) Close() error {
 func (l *LevelDb) Nuke() error {
 	err := l.Close()
 	if err == nil {
-		G.Log.Warning("Nuking database %s", l.filename)
-		err = os.RemoveAll(l.filename)
+		fn := l.GetFilename()
+		G.Log.Warning("Nuking database %s", fn)
+		err = os.RemoveAll(fn)
 	}
 	return err
 }
