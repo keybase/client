@@ -17,6 +17,7 @@ const (
 
 type NodeHash interface {
 	Check(s string) bool // Check if the node hashes to this string
+	ToString() string
 }
 
 type NodeHashShort [NODE_HASH_LEN_SHORT]byte
@@ -25,6 +26,14 @@ type NodeHashLong [NODE_HASH_LEN_LONG]byte
 func (h1 NodeHashShort) Check(s string) bool {
 	h2 := sha256.Sum256([]byte(s))
 	return FastByteArrayEq(h1[:], h2[:])
+}
+
+func (h1 NodeHashShort) ToString() string {
+	return hex.EncodeToString(h1[:])
+}
+
+func (h1 NodeHashLong) ToString() string {
+	return hex.EncodeToString(h1[:])
 }
 
 func (h1 NodeHashLong) Check(s string) bool {
@@ -49,6 +58,7 @@ type MerkleRoot struct {
 	payloadJsonString string
 	payloadJson       *jsonw.Wrapper
 	rootHash          NodeHash
+	ctime             int64
 }
 
 type MerkleTriple struct {
@@ -179,9 +189,11 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	var pj *jsonw.Wrapper
 	var fp PgpFingerprint
 	var rh NodeHash
+	var ctime int64
 
 	jw.AtKey("sig").GetStringVoid(&sig, &err)
 	jw.AtKey("payload_json").GetStringVoid(&payload_json_str, &err)
+	jw.AtKey("ctime").GetInt64Void(&ctime, &err)
 
 	if err != nil {
 		return
@@ -195,6 +207,7 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	GetPgpFingerprintVoid(pj.AtKey("body").AtKey("key").AtKey("fingerprint"), &fp, &err)
 	pj.AtKey("body").AtKey("seqno").GetInt64Void(&seqno, &err)
 	GetNodeHashVoid(pj.AtKey("body").AtKey("root"), &rh, &err)
+
 	if err != nil {
 		return
 	}
@@ -206,6 +219,7 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 		payloadJsonString: payload_json_str,
 		payloadJson:       pj,
 		rootHash:          rh,
+		ctime:             ctime,
 	}
 	return
 }
@@ -517,4 +531,16 @@ func (mc *MerkleClient) LookupUser(q HttpArgs) (u *MerkleUserLeaf, err error) {
 
 	G.Log.Debug("- MerkleClient.LookupUser(%v) -> OK", q)
 	return
+}
+
+func (mr *MerkleRoot) ToSigJson() *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("seqno", jsonw.NewInt(int(mr.seqno)))
+	ret.SetKey("ctime", jsonw.NewInt64(mr.ctime))
+	ret.SetKey("hash", jsonw.NewString(mr.rootHash.ToString()))
+	return ret
+}
+
+func (mc *MerkleClient) LastRootToSigJson() *jsonw.Wrapper {
+	return mc.lastRoot.ToSigJson()
 }
