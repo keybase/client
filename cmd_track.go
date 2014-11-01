@@ -32,6 +32,7 @@ func (v *CmdTrack) Run() error {
 		Interactive : true,
 		Me : nil,
 		StrictProofs : false,
+		MeRequired : true,
 	}
 	return eng.Run()
 }

@@ -35,7 +35,7 @@ func (v *CmdId) Run() error {
 	})
 
 	if err == nil {
-		err = u.Identify()
+		err = u.Identify(nil)
 	}
 
 	return err
