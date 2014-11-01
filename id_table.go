@@ -83,7 +83,7 @@ type RemoteProofChainLink interface {
 	GetRemoteUsername() string
 	GetHostname() string
 	GetProtocol() string
-	DisplayCheck(*SigHint, *CheckResult, ProofError)
+	DisplayCheck(lcr LinkCheckResult)
 	ToTrackingStatement() (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
 	GetIdString() string
@@ -118,14 +118,13 @@ func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
-func (s *WebProofChainLink) DisplayCheck(
-	hint *SigHint, cached *CheckResult, err ProofError) {
+func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 	var msg string
-	if err == nil {
+	if lcr.err == nil {
 		if s.protocol == "dns" {
 			msg = (CHECK + " admin of DNS zone " +
 				ColorString("green", s.hostname) +
-				": found TXT entry " + hint.checkText)
+				": found TXT entry " + lcr.hint.checkText)
 		} else {
 			var color string
 			if s.protocol == "https" {
@@ -136,16 +135,16 @@ func (s *WebProofChainLink) DisplayCheck(
 			msg = (CHECK + " admin of " +
 				ColorString(color, s.hostname) + " via " +
 				ColorString(color, strings.ToUpper(s.protocol)) +
-				": " + hint.humanUrl)
+				": " + lcr.hint.humanUrl)
 		}
 	} else {
 		msg = (BADX + " " +
 			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
 				ColorString("bold", "failed")+": "+
-				err.Error()))
+				lcr.err.Error()))
 	}
-	if cached != nil {
-		msg += " " + ColorString("magenta", cached.ToDisplayString())
+	if lcr.cached != nil {
+		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
 	}
 	G.OutputString(msg + "\n")
 }
@@ -197,22 +196,21 @@ func NewSocialProofChainLink(b GenericChainLink, s, u string) *SocialProofChainL
 	return &SocialProofChainLink{b, s, u}
 }
 
-func (s *SocialProofChainLink) DisplayCheck(
-	hint *SigHint, cached *CheckResult, err ProofError) {
+func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 
 	var msg string
-	if err == nil {
+	if lcr.err == nil {
 		msg = (CHECK + ` "` +
 			ColorString("green", s.username) + `" on ` + s.service +
-			": " + hint.humanUrl)
+			": " + lcr.hint.humanUrl)
 	} else {
 		msg = (BADX +
 			ColorString("red", ` "`+s.username+`" on `+s.service+" "+
 				ColorString("bold", "failed")+": "+
-				err.Error()))
+				lcr.err.Error()))
 	}
-	if cached != nil {
-		msg += " " + ColorString("magenta", cached.ToDisplayString())
+	if lcr.cached != nil {
+		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
 	}
 	G.OutputString(msg + "\n")
 }
@@ -527,8 +525,7 @@ func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
 func (w *SelfSigChainLink) GetHostname() string       { return "" }
 func (w *SelfSigChainLink) GetProtocol() string       { return "" }
 
-func (s *SelfSigChainLink) DisplayCheck(
-	hint *SigHint, cached *CheckResult, err ProofError) {
+func (s *SelfSigChainLink) DisplayCheck(lcr LinkCheckResult) {
 	return
 }
 
@@ -736,44 +733,50 @@ func (idt *IdentityTable) Identify() error {
 //=========================================================================
 
 func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) ProofError {
-	hint, cached, err := idt.CheckActiveProof(p)
-	p.DisplayCheck(hint, cached, err)
-	return err
+	lcr := idt.CheckActiveProof(p)
+	p.DisplayCheck(lcr)
+	return lcr.err
 }
 
-func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (hint *SigHint, cached *CheckResult, err ProofError) {
+type LinkCheckResult struct {
+	hint   *SigHint
+	cached *CheckResult
+	err    ProofError
+}
+
+func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (res LinkCheckResult) {
 
 	sid := p.GetSigId()
-	hint = idt.sigHints.Lookup(sid)
-	if hint == nil {
-		err = NewProofError(PROOF_NO_HINT,
+	res.hint = idt.sigHints.Lookup(sid)
+	if res.hint == nil {
+		res.err = NewProofError(PROOF_NO_HINT,
 			"No server-given hint for sig=%s", sid.ToString(true))
 		return
 	}
 
 	if G.ProofCache != nil {
-		if cached = G.ProofCache.Get(sid); cached != nil {
-			p.MarkChecked(err)
-			err = cached.Status
+		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
+			p.MarkChecked(res.err)
+			res.err = res.cached.Status
 			return
 		}
 	}
 
 	var pc ProofChecker
-	pc, err = NewProofChecker(p)
+	pc, res.err = NewProofChecker(p)
 
-	if err != nil {
+	if res.err != nil {
 		return
 	}
 
-	err = pc.CheckHint(*hint)
-	if err == nil {
-		err = pc.CheckStatus(*hint)
+	res.err = pc.CheckHint(*res.hint)
+	if res.err == nil {
+		res.err = pc.CheckStatus(*res.hint)
 	}
 
-	p.MarkChecked(err)
+	p.MarkChecked(res.err)
 	if G.ProofCache != nil {
-		G.ProofCache.Put(sid, err)
+		G.ProofCache.Put(sid, res.err)
 	}
 
 	return
