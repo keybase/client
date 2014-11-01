@@ -183,7 +183,7 @@ func (u *User) ProofMetadata() (ret *jsonw.Wrapper, err error) {
 func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
 	ret, err = u1.ProofMetadata()
 	if err == nil {
-		err = u1.ToTrackingStatement(ret.AtKey("body"))
+		err = u2.ToTrackingStatement(ret.AtKey("body"))
 	}
 	return
 }
