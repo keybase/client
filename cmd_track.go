@@ -61,6 +61,7 @@ func (v *CmdTrack) Run() error {
 		return err
 	}
 	fmt.Printf("%v\n", jw.MarshalPretty())
+	fmt.Printf("%v\n", u2.IdTable.MakeTrackSet())
 
 
 	return nil
