@@ -24,6 +24,7 @@ type TypedChainLink interface {
 	GetPgpFingerprint() PgpFingerprint
 	GetUsername() string
 	MarkChecked(ProofError)
+	GetProofState2() int
 }
 
 //=========================================================================
@@ -67,6 +68,7 @@ func (g *GenericChainLink) GetArmoredSig() string {
 func (g *GenericChainLink) GetUsername() string {
 	return g.unpacked.username
 }
+func (g *GenericChainLink) GetProofState2() int { return g.GetProofState() }
 
 //
 //=========================================================================
@@ -84,6 +86,7 @@ type RemoteProofChainLink interface {
 	DisplayCheck(*SigHint, *CheckResult, ProofError)
 	ToTrackingStatement() (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
+	GetIdString() string
 }
 
 type WebProofChainLink struct {
@@ -225,7 +228,23 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 
 // Can be used to either parse a proof `service` JSON block, or a
 // `remote_key_proof` JSON block in a tracking statement.
-func ParseServiceBlock(jw *jsonw.Wrapper) (social bool, typ string, id string, err error) {
+type ServiceBlock struct {
+	social bool
+	typ string
+	id string
+}
+
+func (sb ServiceBlock) GetIdString() string {
+	if sb.social {
+		return sb.id + "@" + sb.typ
+	} else {
+		return sb.typ + "://" + sb.id
+	}
+}
+
+func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
+	var social bool
+	var typ, id string
 
 	if prot, e1 := jw.AtKey("protocol").GetString(); e1 == nil {
 
@@ -258,7 +277,7 @@ func ParseServiceBlock(jw *jsonw.Wrapper) (social bool, typ string, id string, e
 	if len(typ) == 0 {
 		err = fmt.Errorf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug())
 	}
-
+	sb = &ServiceBlock { social, typ, id }
 	return
 }
 
@@ -269,12 +288,12 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 
 	if jw.IsNil() {
 		ret = &SelfSigChainLink{base}
-	} else if social, typ, id, err := ParseServiceBlock(jw); err != nil {
+	} else if sb, err := ParseServiceBlock(jw); err != nil {
 		e = fmt.Errorf("%s @%s", err.Error(), base.ToDebugString())
-	} else if social {
-		ret = NewSocialProofChainLink(base, typ, id)
+	} else if sb.social {
+		ret = NewSocialProofChainLink(base, sb.typ, sb.id)
 	} else {
-		ret = NewWebProofChainLink(base, typ, id)
+		ret = NewWebProofChainLink(base, sb.typ, sb.id)
 	}
 	return
 }
@@ -332,6 +351,27 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 
 func (l *TrackChainLink) IsRevoked() bool {
 	return l.revoked || l.untrack != nil
+}
+
+func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
+	return l.payloadJson.AtPath("body.trak.remote_key_proofs")	
+}
+
+func (l *TrackChainLink) ToTrackSet() (ret TrackSet, err error) {
+	var ln int
+	w := l.RemoteKeyProofs()
+	ln, err = w.Len()
+	if err != nil {
+		return
+	}
+	ret = make(TrackSet)
+	for i := 0; i < ln; i++ {
+		proof := w.AtIndex(i).AtKey("remote_key_proof")
+		if sb, e2 := ParseServiceBlock(proof); e2 != nil {
+			ret.Add(sb)
+		}
+	}	
+	return
 }
 
 //
@@ -491,6 +531,8 @@ func (s *SelfSigChainLink) CheckDataJson() *jsonw.Wrapper { return nil }
 func (s *SelfSigChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	return nil, nil
 }
+
+func (s *SelfSigChainLink) GetIdString() string { return s.GetUsername() }
 
 //
 //=========================================================================
@@ -703,6 +745,18 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (
 	}
 
 	return
+}
+
+//=========================================================================
+
+func (idt *IdentityTable) MakeTrackSet() TrackSet {
+	ret := make(TrackSet)
+	for _, ap := range (idt.activeProofs) {
+		if ap.GetProofState2() == PROOF_STATE_OK {
+			ret.Add(ap)
+		}
+	}
+	return ret	
 }
 
 //=========================================================================
