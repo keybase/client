@@ -548,6 +548,7 @@ type IdentityTable struct {
 	activeProofs   []RemoteProofChainLink
 	cryptocurrency []*CryptocurrencyChainLink
 	checkResult    *CheckResult
+	myTrack        *TrackChainLink // My track of this user
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -562,6 +563,10 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 			targ.markRevoked(l)
 		}
 	}
+}
+
+func (idt *IdentityTable) SetMyTrack(tl *TrackChainLink) {
+	idt.myTrack = tl
 }
 
 func (tab *IdentityTable) MarkCheckResult(err ProofError) {
@@ -689,10 +694,10 @@ func (idt *IdentityTable) Len() int {
 	return len(idt.Order)
 }
 
-func (idt *IdentityTable) Identify(tl *TrackChainLink) error {
+func (idt *IdentityTable) Identify() error {
 	var err ProofError
 	for _, activeProof := range idt.activeProofs {
-		tmp := idt.IdentifyActiveProof(activeProof, tl)
+		tmp := idt.IdentifyActiveProof(activeProof)
 		if tmp != nil && err == nil {
 			err = tmp
 		}
@@ -713,15 +718,13 @@ func (idt *IdentityTable) Identify(tl *TrackChainLink) error {
 
 //=========================================================================
 
-func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink,
-	tl *TrackChainLink) ProofError {
-	hint, cached, err := idt.CheckActiveProof(p, tl)
+func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) ProofError {
+	hint, cached, err := idt.CheckActiveProof(p)
 	p.DisplayCheck(hint, cached, err)
 	return err
 }
 
-func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink,
-	tl *TrackChainLink) (hint *SigHint, cached *CheckResult, err ProofError) {
+func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (hint *SigHint, cached *CheckResult, err ProofError) {
 
 	sid := p.GetSigId()
 

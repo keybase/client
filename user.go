@@ -572,12 +572,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return
 }
 
-func (u *User) Identify(tl *TrackChainLink) error {
+func (u *User) Identify() error {
 	G.OutputString(
 		CHECK + " " +
 			ColorString("green", "public key fingerprint: "+
 				u.activePgpFingerprint.ToQuads()) + "\n")
-	return u.IdTable.Identify(tl)
+	return u.IdTable.Identify()
 }
 
 func (u1 User) Equal(u2 User) bool {

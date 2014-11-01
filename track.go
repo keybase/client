@@ -88,12 +88,15 @@ func (e *TrackEngine) Run() error {
 		return fmt.Errorf("Cannot track yourself")
 	}
 
-	var track *TrackChainLink
 	if e.Me != nil {
-		track = e.Me.GetTrackingStatementFor(e.Them.name)
+		track := e.Me.GetTrackingStatementFor(e.Them.name)
+		if track != nil {
+			e.Them.IdTable.SetMyTrack(track)
+		}
+
 	}
 
-	err = e.Them.Identify(track)
+	err = e.Them.Identify()
 	if err != nil {
 		if e.StrictProofs {
 			return err
