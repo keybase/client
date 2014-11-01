@@ -26,13 +26,13 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdTrack) Run() error {
 
-	eng := &libkb.TrackEngine {
-		TheirName : v.user,
-		NoSelf : true,
-		Interactive : true,
-		Me : nil,
-		StrictProofs : false,
-		MeRequired : true,
+	eng := &libkb.TrackEngine{
+		TheirName:    v.user,
+		NoSelf:       true,
+		Interactive:  true,
+		Me:           nil,
+		StrictProofs: false,
+		MeRequired:   true,
 	}
 	return eng.Run()
 }
