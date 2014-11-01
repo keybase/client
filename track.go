@@ -5,7 +5,6 @@ import (
 	"github.com/keybase/go-jsonw"
 )
 
-
 // Can either be a RemoteProofChainLink or one of the identities
 // listed in a tracking statement
 type TrackIdComponent interface {
@@ -19,12 +18,17 @@ func (ts TrackSet) Add(t TrackIdComponent) {
 }
 
 func (a TrackSet) SubsetOf(b TrackSet) bool {
-	for k,_ := range(a) {
+	for k, _ := range a {
 		if inset, found := b[k]; !inset || !found {
 			return false
 		}
-	}	
+	}
 	return true
+}
+
+func (a TrackSet) MemberOf(t TrackIdComponent) bool {
+	ok, found := a[t.GetIdString()]
+	return (ok && found)
 }
 
 func (a TrackSet) Equal(b TrackSet) bool {
@@ -34,13 +38,13 @@ func (a TrackSet) Equal(b TrackSet) bool {
 //=====================================================================
 
 type TrackEngine struct {
-	TheirName string
-	Them *User
-	Me *User
-	Interactive bool
-	NoSelf bool
+	TheirName    string
+	Them         *User
+	Me           *User
+	Interactive  bool
+	NoSelf       bool
 	StrictProofs bool
-	MeRequired bool
+	MeRequired   bool
 }
 
 func (e *TrackEngine) LoadThem() error {
@@ -48,7 +52,7 @@ func (e *TrackEngine) LoadThem() error {
 	if e.Them == nil && len(e.TheirName) == 0 {
 		return fmt.Errorf("No 'them' passed to TrackEngine")
 	}
-	if e.Them == nil { 
+	if e.Them == nil {
 		if u, err := LoadUser(LoadUserArg{
 			Name:             e.TheirName,
 			RequirePublicKey: true,
@@ -59,9 +63,9 @@ func (e *TrackEngine) LoadThem() error {
 		}); err != nil {
 			return err
 		} else {
-			e.Them = u				
+			e.Them = u
 		}
-	}	
+	}
 	return nil
 }
 
@@ -105,7 +109,7 @@ func (e *TrackEngine) Run() error {
 		}
 	}
 
-	var jw *jsonw.Wrapper 
+	var jw *jsonw.Wrapper
 	jw, err = e.Me.TrackingProofFor(e.Them)
 	if err != nil {
 		return err
@@ -116,6 +120,4 @@ func (e *TrackEngine) Run() error {
 	return nil
 }
 
-
 //=====================================================================
-

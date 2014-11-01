@@ -230,8 +230,8 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 // `remote_key_proof` JSON block in a tracking statement.
 type ServiceBlock struct {
 	social bool
-	typ string
-	id string
+	typ    string
+	id     string
 }
 
 func (sb ServiceBlock) GetIdString() string {
@@ -277,7 +277,7 @@ func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
 	if len(typ) == 0 {
 		err = fmt.Errorf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug())
 	}
-	sb = &ServiceBlock { social, typ, id }
+	sb = &ServiceBlock{social, typ, id}
 	return
 }
 
@@ -354,7 +354,7 @@ func (l *TrackChainLink) IsRevoked() bool {
 }
 
 func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
-	return l.payloadJson.AtPath("body.trak.remote_key_proofs")	
+	return l.payloadJson.AtPath("body.track.remote_proofs")
 }
 
 func (l *TrackChainLink) ToTrackSet() (ret TrackSet, err error) {
@@ -367,10 +367,16 @@ func (l *TrackChainLink) ToTrackSet() (ret TrackSet, err error) {
 	ret = make(TrackSet)
 	for i := 0; i < ln; i++ {
 		proof := w.AtIndex(i).AtKey("remote_key_proof")
-		if sb, e2 := ParseServiceBlock(proof); e2 != nil {
+		if i, e := proof.AtKey("state").GetInt(); e != nil {
+			G.Log.Warning("Bad 'state' in track statement: %s", e.Error())
+		} else if i != PROOF_STATE_OK {
+			G.Log.Debug("Skipping proof state = %d\n", i)
+		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
+			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e.Error())
+		} else {
 			ret.Add(sb)
 		}
-	}	
+	}
 	return
 }
 
@@ -549,6 +555,7 @@ type IdentityTable struct {
 	cryptocurrency []*CryptocurrencyChainLink
 	checkResult    *CheckResult
 	myTrack        *TrackChainLink // My track of this user
+	myTrackSet     *TrackSet
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -639,7 +646,7 @@ func (idt *IdentityTable) Populate() {
 func (idt *IdentityTable) GetTrackingStatementFor(s string) *TrackChainLink {
 	if list, found := idt.tracks[s]; found {
 		l := len(list)
-		for i := l -1 ; i>= 0; i-- {
+		for i := l - 1; i >= 0; i-- {
 			link := list[i]
 			if !link.IsRevoked() && link.untrack == nil {
 				return link
@@ -695,6 +702,16 @@ func (idt *IdentityTable) Len() int {
 }
 
 func (idt *IdentityTable) Identify() error {
+	if idt.myTrack != nil {
+		ts, err := idt.myTrack.ToTrackSet()
+		if err != nil {
+			G.Log.Warning("Can't construct a TrackSet: %s", err.Error())
+		} else {
+			idt.myTrackSet = &ts
+			G.Log.Debug("| with tracking %v", ts)
+		}
+	}
+
 	var err ProofError
 	for _, activeProof := range idt.activeProofs {
 		tmp := idt.IdentifyActiveProof(activeProof)
@@ -727,12 +744,10 @@ func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) ProofError
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (hint *SigHint, cached *CheckResult, err ProofError) {
 
 	sid := p.GetSigId()
-
-	id := p.GetSigId()
-	hint = idt.sigHints.Lookup(id)
+	hint = idt.sigHints.Lookup(sid)
 	if hint == nil {
 		err = NewProofError(PROOF_NO_HINT,
-			"No server-given hint for sig=%s", id.ToString(true))
+			"No server-given hint for sig=%s", sid.ToString(true))
 		return
 	}
 
@@ -768,12 +783,12 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (hint *SigHin
 
 func (idt *IdentityTable) MakeTrackSet() TrackSet {
 	ret := make(TrackSet)
-	for _, ap := range (idt.activeProofs) {
+	for _, ap := range idt.activeProofs {
 		if ap.GetProofState2() == PROOF_STATE_OK {
 			ret.Add(ap)
 		}
 	}
-	return ret	
+	return ret
 }
 
 //=========================================================================

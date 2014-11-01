@@ -573,11 +573,14 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 }
 
 func (u *User) Identify() error {
+	G.Log.Debug("+ Identify(%s)", u.name)
 	G.OutputString(
 		CHECK + " " +
 			ColorString("green", "public key fingerprint: "+
 				u.activePgpFingerprint.ToQuads()) + "\n")
-	return u.IdTable.Identify()
+	ret := u.IdTable.Identify()
+	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(ret))
+	return ret
 }
 
 func (u1 User) Equal(u2 User) bool {
