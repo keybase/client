@@ -7,11 +7,9 @@ import (
 	_ "fmt"
 	"log"
 
-	_ "github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	libkb "github.com/keybase/go-libkb"
 	libkbfs "github.com/keybase/go-libkbfs-priv"
-	_ "github.com/ugorji/go/codec"
 )
 
 func main() {
@@ -20,8 +18,8 @@ func main() {
 		log.Fatal("Usage:\n  kbfs MOUNTPOINT")
 	}
 
-	// set up fake FS
-	root := &libkbfs.FSNode{Node: nodefs.NewDefaultNode()}
+	config := libkbfs.NewConfigLocal()
+	root := libkbfs.NewFuseRoot(config)
 
 	server, _, err := nodefs.MountRoot(flag.Arg(0), root, nil)
 	if err != nil {
