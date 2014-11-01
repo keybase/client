@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/go-jsonw"
 )
 
 type CmdTrack struct {
@@ -53,6 +54,14 @@ func (v *CmdTrack) Run() error {
 	if err != nil {
 		G.Log.Warning("Some proofs failed")
 	}
+
+	var jw *jsonw.Wrapper 
+	jw, err = me.TrackingProofFor(u2)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%v\n", jw.MarshalPretty())
+
 
 	return nil
 }
