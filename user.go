@@ -584,4 +584,12 @@ func (u1 User) Equal(u2 User) bool {
 	return (u1.id == u2.id)
 }
 
+func (u *User) GetTrackingStatementFor(s string) *TrackChainLink {
+	if u.IdTable == nil {
+		return nil
+	} else {
+		return u.IdTable.GetTrackingStatementFor(s)
+	}
+}
+
 //==================================================================

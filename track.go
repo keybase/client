@@ -40,6 +40,7 @@ type TrackEngine struct {
 	Interactive bool
 	NoSelf bool
 	StrictProofs bool
+	MeRequired bool
 }
 
 func (e *TrackEngine) LoadThem() error {
@@ -66,7 +67,7 @@ func (e *TrackEngine) LoadThem() error {
 
 func (e *TrackEngine) LoadMe() error {
 	if e.Me == nil {
-		if me, err := LoadMe(); err != nil {
+		if me, err := LoadMe(); err != nil && e.MeRequired {
 			return err
 		} else {
 			e.Me = me
@@ -85,6 +86,11 @@ func (e *TrackEngine) Run() error {
 		return err
 	} else if e.NoSelf && e.Me.Equal(*e.Them) {
 		return fmt.Errorf("Cannot track yourself")
+	}
+
+	var track *TrackChainLink
+	if e.Me != nil {
+		track = e.Me.GetTrackingStatementFor(e.Them.name)
 	}
 
 	err = e.Them.Identify()

@@ -631,6 +631,19 @@ func (idt *IdentityTable) Populate() {
 	G.Log.Debug("- Populate ID Table")
 }
 
+func (idt *IdentityTable) GetTrackingStatementFor(s string) *TrackChainLink {
+	if list, found := idt.tracks[s]; found {
+		l := len(list)
+		for i := l -1 ; i>= 0; i-- {
+			link := list[i]
+			if !link.IsRevoked() && link.untrack == nil {
+				return link
+			}
+		}
+	}
+	return nil
+}
+
 func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {
 	var ret *CryptocurrencyChainLink
 	tab := idt.cryptocurrency
