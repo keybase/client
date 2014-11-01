@@ -93,7 +93,7 @@ func (e *TrackEngine) Run() error {
 		track = e.Me.GetTrackingStatementFor(e.Them.name)
 	}
 
-	err = e.Them.Identify()
+	err = e.Them.Identify(track)
 	if err != nil {
 		if e.StrictProofs {
 			return err
