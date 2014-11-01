@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
-	"github.com/keybase/go-jsonw"
 )
 
 type CmdTrack struct {
@@ -27,44 +26,14 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdTrack) Run() error {
 
-	u2, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name:             v.user,
-		RequirePublicKey: true,
-		Self:             false,
-		LoadSecrets:      false,
-		ForceReload:      false,
-		SkipVerify:       false,
-	})
-
-	if err != nil {
-		return err
+	eng := &libkb.TrackEngine {
+		TheirName : v.user,
+		NoSelf : true,
+		Interactive : true,
+		Me : nil,
+		StrictProofs : false,
 	}
-
-	me, err := libkb.LoadMe()
-
-	if err != nil {
-		return err
-	}
-
-	if me.Equal(*u2) {
-		return fmt.Errorf("Cannot track yourself")
-	}
-
-	err = u2.Identify()
-	if err != nil {
-		G.Log.Warning("Some proofs failed")
-	}
-
-	var jw *jsonw.Wrapper 
-	jw, err = me.TrackingProofFor(u2)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%v\n", jw.MarshalPretty())
-	fmt.Printf("%v\n", u2.IdTable.MakeTrackSet())
-
-
-	return nil
+	return eng.Run()
 }
 
 func NewCmdTrack(cl *CommandLine) cli.Command {
