@@ -190,7 +190,7 @@ func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 		return false
 	}
 	if find(tl.ids[s.protocol]) {
-		return nil
+		return TrackDiffNone{}
 	} else if s.protocol == "https" && find(tl.ids["http"]) {
 		return TrackDiffUpgraded{"http", "https"}
 	} else {
@@ -229,7 +229,7 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	} else if expected := list[len(list)-1]; !cicmp(expected, v) {
 		return TrackDiffClash{expected, v}
 	} else {
-		return nil
+		return TrackDiffNone{}
 	}
 }
 
@@ -245,6 +245,10 @@ func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 			ColorString("red", ` "`+s.username+`" on `+s.service+" "+
 				ColorString("bold", "failed")+": "+
 				lcr.err.Error()))
+	}
+	if lcr.diff != nil {
+		msg += " " + lcr.diff.ToDisplayString()
+
 	}
 	if lcr.cached != nil {
 		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())

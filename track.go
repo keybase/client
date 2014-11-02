@@ -46,6 +46,7 @@ type TrackLookup struct {
 
 type TrackDiff interface {
 	BreaksTracking() bool
+	ToDisplayString() string
 }
 
 type TrackDiffUpgraded struct {
@@ -54,6 +55,19 @@ type TrackDiffUpgraded struct {
 
 func (t TrackDiffUpgraded) BreaksTracking() bool {
 	return false
+}
+func (t TrackDiffUpgraded) ToDisplayString() string {
+	return ColorString("orange", "<Upgraded from "+t.prev+" to "+t.curr+">")
+}
+
+type TrackDiffNone struct{}
+
+func (t TrackDiffNone) BreaksTracking() bool {
+	return false
+}
+
+func (t TrackDiffNone) ToDisplayString() string {
+	return ColorString("green", "<tracked>")
 }
 
 type TrackDiffMissing struct{}
@@ -66,8 +80,16 @@ type TrackDiffClash struct {
 	observed, expected string
 }
 
+func (t TrackDiffMissing) ToDisplayString() string {
+	return ColorString("blue", "<new proof/untracked>")
+}
+
 func (t TrackDiffClash) BreaksTracking() bool {
 	return true
+}
+
+func (t TrackDiffClash) ToDisplayString() string {
+	return ColorString("red", "<tracked "+t.expected+", got "+t.observed+">")
 }
 
 func NewTrackLookup(link *TrackChainLink) *TrackLookup {
