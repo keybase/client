@@ -44,9 +44,31 @@ type TrackLookup struct {
 	ids  map[string][]string // A http -> [foo.com, boo.com] lookup
 }
 
-type TrackDiff interface{}
-type TrackDiffOmission struct{}
-type TrackDiffClash struct{}
+type TrackDiff interface {
+	BreaksTracking() bool
+}
+
+type TrackDiffUpgraded struct {
+	prev, curr string
+}
+
+func (t TrackDiffUpgraded) BreaksTracking() bool {
+	return false
+}
+
+type TrackDiffMissing struct{}
+
+func (t TrackDiffMissing) BreaksTracking() bool {
+	return false
+}
+
+type TrackDiffClash struct {
+	observed, expected string
+}
+
+func (t TrackDiffClash) BreaksTracking() bool {
+	return true
+}
 
 func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 	sbs := link.ToServiceBlocks()

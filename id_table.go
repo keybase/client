@@ -88,6 +88,7 @@ type RemoteProofChainLink interface {
 	CheckDataJson() *jsonw.Wrapper
 	ToIdString() string
 	ToKeyValuePair() (string, string)
+	ComputeTrackDiff(tl *TrackLookup) TrackDiff
 }
 
 type WebProofChainLink struct {
@@ -179,6 +180,24 @@ func (s *WebProofChainLink) ToKeyValuePair() (string, string) {
 	return s.GetProtocol(), s.GetHostname()
 }
 
+func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
+	find := func(list []string) bool {
+		for _, e := range list {
+			if cicmp(e, s.hostname) {
+				return true
+			}
+		}
+		return false
+	}
+	if find(tl.ids[s.protocol]) {
+		return nil
+	} else if s.protocol == "https" && find(tl.ids["http"]) {
+		return TrackDiffUpgraded{"http", "https"}
+	} else {
+		return TrackDiffMissing{}
+	}
+}
+
 func (s *SocialProofChainLink) TableKey() string { return s.service }
 func (s *SocialProofChainLink) Type() string     { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
@@ -201,6 +220,17 @@ func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 }
 func NewSocialProofChainLink(b GenericChainLink, s, u string) *SocialProofChainLink {
 	return &SocialProofChainLink{b, s, u}
+}
+
+func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
+	k, v := s.ToKeyValuePair()
+	if list, found := tl.ids[k]; !found || len(list) == 0 {
+		return TrackDiffMissing{}
+	} else if expected := list[len(list)-1]; !cicmp(expected, v) {
+		return TrackDiffClash{expected, v}
+	} else {
+		return nil
+	}
 }
 
 func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult) {
@@ -550,6 +580,8 @@ func (s *SelfSigChainLink) ToKeyValuePair() (string, string) {
 	return s.TableKey(), s.GetUsername()
 }
 
+func (s *SelfSigChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff { return nil }
+
 //
 //=========================================================================
 
@@ -759,6 +791,10 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (res LinkChec
 		res.err = NewProofError(PROOF_NO_HINT,
 			"No server-given hint for sig=%s", sid.ToString(true))
 		return
+	}
+
+	if idt.myTrack != nil {
+		res.diff = p.ComputeTrackDiff(idt.myTrack)
 	}
 
 	if G.ProofCache != nil {
