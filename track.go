@@ -37,6 +37,27 @@ func (a TrackSet) Equal(b TrackSet) bool {
 
 //=====================================================================
 
+type TrackLookup struct {
+	link *TrackChainLink     // The original chain link that I signed
+	set  TrackSet            // The total set of tracked identities
+	ids  map[string][]string // A http -> [foo.com, boo.com] lookup
+}
+
+type TrackDiff interface{}
+type TrackDiffOmission struct{}
+type TrackDiffClash struct{}
+
+func NewTrackLookup(tl *TrackChainLink) *TrackLookup {
+	sbs := tl.ToServiceBlocks()
+	for _, sb := range sbs {
+
+	}
+	ret := &TrackLookup{link: tl}
+	return ret, nil
+}
+
+//=====================================================================
+
 type TrackEngine struct {
 	TheirName    string
 	Them         *User

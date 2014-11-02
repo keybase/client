@@ -355,14 +355,14 @@ func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
 	return l.payloadJson.AtPath("body.track.remote_proofs")
 }
 
-func (l *TrackChainLink) ToTrackSet() (ret TrackSet, err error) {
+func (l *TrackChainLink) ToServiceBlocks() (ret []ServiceBlock) {
 	var ln int
 	w := l.RemoteKeyProofs()
 	ln, err = w.Len()
 	if err != nil {
 		return
 	}
-	ret = make(TrackSet)
+	ret := make([]ServiceBlocks, 0, ln)
 	for i := 0; i < ln; i++ {
 		proof := w.AtIndex(i).AtKey("remote_key_proof")
 		if i, e := proof.AtKey("state").GetInt(); e != nil {
@@ -372,7 +372,7 @@ func (l *TrackChainLink) ToTrackSet() (ret TrackSet, err error) {
 		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
 			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e.Error())
 		} else {
-			ret.Add(sb)
+			ret = append(Ret, sb)
 		}
 	}
 	return
@@ -742,6 +742,7 @@ type LinkCheckResult struct {
 	hint   *SigHint
 	cached *CheckResult
 	err    ProofError
+	diff   TrackDiff
 }
 
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (res LinkCheckResult) {
