@@ -8,13 +8,14 @@ import (
 // Can either be a RemoteProofChainLink or one of the identities
 // listed in a tracking statement
 type TrackIdComponent interface {
-	GetIdString() string
+	ToIdString() string
+	ToKeyValuePair() (string, string)
 }
 
 type TrackSet map[string]bool
 
 func (ts TrackSet) Add(t TrackIdComponent) {
-	ts[t.GetIdString()] = true
+	ts[t.ToIdString()] = true
 }
 
 func (a TrackSet) SubsetOf(b TrackSet) bool {
@@ -27,7 +28,7 @@ func (a TrackSet) SubsetOf(b TrackSet) bool {
 }
 
 func (a TrackSet) MemberOf(t TrackIdComponent) bool {
-	ok, found := a[t.GetIdString()]
+	ok, found := a[t.ToIdString()]
 	return (ok && found)
 }
 
@@ -47,13 +48,21 @@ type TrackDiff interface{}
 type TrackDiffOmission struct{}
 type TrackDiffClash struct{}
 
-func NewTrackLookup(tl *TrackChainLink) *TrackLookup {
-	sbs := tl.ToServiceBlocks()
+func NewTrackLookup(link *TrackChainLink) *TrackLookup {
+	sbs := link.ToServiceBlocks()
+	set := make(TrackSet)
+	ids := make(map[string][]string)
 	for _, sb := range sbs {
-
+		set.Add(sb)
+		k, v := sb.ToKeyValuePair()
+		list, found := ids[k]
+		if !found {
+			list = make([]string, 0, 1)
+		}
+		ids[k] = append(list, v)
 	}
-	ret := &TrackLookup{link: tl}
-	return ret, nil
+	ret := &TrackLookup{link: link, set: set, ids: ids}
+	return ret
 }
 
 //=====================================================================

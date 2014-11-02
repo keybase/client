@@ -86,7 +86,8 @@ type RemoteProofChainLink interface {
 	DisplayCheck(lcr LinkCheckResult)
 	ToTrackingStatement() (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
-	GetIdString() string
+	ToIdString() string
+	ToKeyValuePair() (string, string)
 }
 
 type WebProofChainLink struct {
@@ -173,7 +174,10 @@ func (s *WebProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	}
 	return ret
 }
-func (s *WebProofChainLink) GetIdString() string { return s.ToDisplayString() }
+func (s *WebProofChainLink) ToIdString() string { return s.ToDisplayString() }
+func (s *WebProofChainLink) ToKeyValuePair() (string, string) {
+	return s.GetProtocol(), s.GetHostname()
+}
 
 func (s *SocialProofChainLink) TableKey() string { return s.service }
 func (s *SocialProofChainLink) Type() string     { return "proof" }
@@ -187,7 +191,10 @@ func (s *SocialProofChainLink) LastWriterWins() bool      { return true }
 func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
 func (w *SocialProofChainLink) GetHostname() string       { return "" }
 func (w *SocialProofChainLink) GetProtocol() string       { return "" }
-func (s *SocialProofChainLink) GetIdString() string       { return s.ToDisplayString() }
+func (s *SocialProofChainLink) ToIdString() string        { return s.ToDisplayString() }
+func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
+	return s.GetProtocol(), s.GetHostname()
+}
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h}
@@ -232,12 +239,16 @@ type ServiceBlock struct {
 	id     string
 }
 
-func (sb ServiceBlock) GetIdString() string {
+func (sb ServiceBlock) ToIdString() string {
 	if sb.social {
 		return sb.id + "@" + sb.typ
 	} else {
 		return sb.typ + "://" + sb.id
 	}
+}
+
+func (sb ServiceBlock) ToKeyValuePair() (string, string) {
+	return sb.typ, sb.id
 }
 
 func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
@@ -355,14 +366,13 @@ func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
 	return l.payloadJson.AtPath("body.track.remote_proofs")
 }
 
-func (l *TrackChainLink) ToServiceBlocks() (ret []ServiceBlock) {
-	var ln int
+func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	w := l.RemoteKeyProofs()
-	ln, err = w.Len()
+	ln, err := w.Len()
 	if err != nil {
 		return
 	}
-	ret := make([]ServiceBlocks, 0, ln)
+	ret = make([]*ServiceBlock, 0, ln)
 	for i := 0; i < ln; i++ {
 		proof := w.AtIndex(i).AtKey("remote_key_proof")
 		if i, e := proof.AtKey("state").GetInt(); e != nil {
@@ -372,7 +382,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []ServiceBlock) {
 		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
 			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e.Error())
 		} else {
-			ret = append(Ret, sb)
+			ret = append(ret, sb)
 		}
 	}
 	return
@@ -535,7 +545,10 @@ func (s *SelfSigChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	return nil, nil
 }
 
-func (s *SelfSigChainLink) GetIdString() string { return s.GetUsername() }
+func (s *SelfSigChainLink) ToIdString() string { return s.GetUsername() }
+func (s *SelfSigChainLink) ToKeyValuePair() (string, string) {
+	return s.TableKey(), s.GetUsername()
+}
 
 //
 //=========================================================================
@@ -551,8 +564,7 @@ type IdentityTable struct {
 	activeProofs   []RemoteProofChainLink
 	cryptocurrency []*CryptocurrencyChainLink
 	checkResult    *CheckResult
-	myTrack        *TrackChainLink // My track of this user
-	myTrackSet     *TrackSet
+	myTrack        *TrackLookup // My track of this user, in lookup/set form
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -570,7 +582,7 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 }
 
 func (idt *IdentityTable) SetMyTrack(tl *TrackChainLink) {
-	idt.myTrack = tl
+	idt.myTrack = NewTrackLookup(tl)
 }
 
 func (tab *IdentityTable) MarkCheckResult(err ProofError) {
@@ -700,13 +712,7 @@ func (idt *IdentityTable) Len() int {
 
 func (idt *IdentityTable) Identify() error {
 	if idt.myTrack != nil {
-		ts, err := idt.myTrack.ToTrackSet()
-		if err != nil {
-			G.Log.Warning("Can't construct a TrackSet: %s", err.Error())
-		} else {
-			idt.myTrackSet = &ts
-			G.Log.Debug("| with tracking %v", ts)
-		}
+		G.Log.Debug("| with tracking %v", idt.myTrack.set)
 	}
 
 	var err ProofError
