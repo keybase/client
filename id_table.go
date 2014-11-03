@@ -145,6 +145,9 @@ func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 				ColorString("bold", "failed")+": "+
 				lcr.err.Error()))
 	}
+	if lcr.diff != nil {
+		msg += " " + lcr.diff.ToDisplayString()
+	}
 	if lcr.cached != nil {
 		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
 	}
@@ -212,7 +215,7 @@ func (w *SocialProofChainLink) GetHostname() string       { return "" }
 func (w *SocialProofChainLink) GetProtocol() string       { return "" }
 func (s *SocialProofChainLink) ToIdString() string        { return s.ToDisplayString() }
 func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
-	return s.GetProtocol(), s.GetHostname()
+	return s.service, s.username
 }
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
