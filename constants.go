@@ -3,6 +3,7 @@ package libkb
 import (
 	"os"
 	"runtime"
+	"time"
 )
 
 var SERVER_URL = "https://api.keybase.io:443"
@@ -89,3 +90,7 @@ var REMOTE_SERVICE_TYPES = map[string]int{
 }
 
 var CANONICAL_HOST = "keybase.io"
+
+const (
+	HTTP_DEFAULT_TIMEOUT = 10 * time.Second
+)

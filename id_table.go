@@ -121,10 +121,15 @@ func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 }
 
 func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult) {
-	var msg string
+	var msg, lcrs string
+
+	if lcr.diff != nil {
+		lcrs = lcr.diff.ToDisplayString() + " "
+	}
+
 	if lcr.err == nil {
 		if s.protocol == "dns" {
-			msg = (CHECK + " admin of DNS zone " +
+			msg += (CHECK + " " + lcrs + "admin of DNS zone " +
 				ColorString("green", s.hostname) +
 				": found TXT entry " + lcr.hint.checkText)
 		} else {
@@ -134,20 +139,18 @@ func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 			} else {
 				color = "yellow"
 			}
-			msg = (CHECK + " admin of " +
+			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(color, s.hostname) + " via " +
 				ColorString(color, strings.ToUpper(s.protocol)) +
 				": " + lcr.hint.humanUrl)
 		}
 	} else {
-		msg = (BADX + " " +
+		msg = (BADX + " " + lcrs +
 			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
 				ColorString("bold", "failed")+": "+
 				lcr.err.Error()))
 	}
-	if lcr.diff != nil {
-		msg += " " + lcr.diff.ToDisplayString()
-	}
+
 	if lcr.cached != nil {
 		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
 	}
@@ -238,20 +241,21 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 
 func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 
-	var msg string
+	var msg, lcrs string
+
+	if lcr.diff != nil {
+		lcrs = lcr.diff.ToDisplayString() + " "
+	}
+
 	if lcr.err == nil {
-		msg = (CHECK + ` "` +
+		msg += (CHECK + " " + lcrs + `"` +
 			ColorString("green", s.username) + `" on ` + s.service +
 			": " + lcr.hint.humanUrl)
 	} else {
-		msg = (BADX +
-			ColorString("red", ` "`+s.username+`" on `+s.service+" "+
+		msg += (BADX + " " + lcrs +
+			ColorString("red", `"`+s.username+`" on `+s.service+" "+
 				ColorString("bold", "failed")+": "+
 				lcr.err.Error()))
-	}
-	if lcr.diff != nil {
-		msg += " " + lcr.diff.ToDisplayString()
-
 	}
 	if lcr.cached != nil {
 		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())

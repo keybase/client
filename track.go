@@ -2,7 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
+	"time"
+	// "github.com/keybase/go-jsonw"
 )
 
 // Can either be a RemoteProofChainLink or one of the identities
@@ -44,6 +45,15 @@ type TrackLookup struct {
 	ids  map[string][]string // A http -> [foo.com, boo.com] lookup
 }
 
+func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
+	prev := tl.link.GetPgpFingerprint()
+	if prev.Eq(curr) {
+		return TrackDiffNone{}
+	} else {
+		return TrackDiffClash{curr.ToQuads(), prev.ToQuads()}
+	}
+}
+
 type TrackDiff interface {
 	BreaksTracking() bool
 	ToDisplayString() string
@@ -67,7 +77,7 @@ func (t TrackDiffNone) BreaksTracking() bool {
 }
 
 func (t TrackDiffNone) ToDisplayString() string {
-	return ColorString("green", "<tracked>")
+	return ColorString("green", "<OK>")
 }
 
 type TrackDiffMissing struct{}
@@ -81,7 +91,7 @@ type TrackDiffClash struct {
 }
 
 func (t TrackDiffMissing) ToDisplayString() string {
-	return ColorString("blue", "<new proof/untracked>")
+	return ColorString("blue", "<new>")
 }
 
 func (t TrackDiffClash) BreaksTracking() bool {
@@ -89,7 +99,7 @@ func (t TrackDiffClash) BreaksTracking() bool {
 }
 
 func (t TrackDiffClash) ToDisplayString() string {
-	return ColorString("red", "<tracked "+t.expected+", got "+t.observed+">")
+	return ColorString("red", "<CHANGED from "+t.expected+">")
 }
 
 func NewTrackLookup(link *TrackChainLink) *TrackLookup {
@@ -107,6 +117,10 @@ func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 	}
 	ret := &TrackLookup{link: link, set: set, ids: ids}
 	return ret
+}
+
+func (e *TrackLookup) GetCTime() time.Time {
+	return e.link.GetCTime()
 }
 
 //=====================================================================
@@ -183,13 +197,13 @@ func (e *TrackEngine) Run() error {
 		}
 	}
 
-	var jw *jsonw.Wrapper
-	jw, err = e.Me.TrackingProofFor(e.Them)
+	// var jw *jsonw.Wrapper
+	_, err = e.Me.TrackingProofFor(e.Them)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%v\n", jw.MarshalPretty())
-	fmt.Printf("%v\n", e.Them.IdTable.MakeTrackSet())
+	// fmt.Printf("%v\n", jw.MarshalPretty())
+	// fmt.Printf("%v\n", e.Them.IdTable.MakeTrackSet())
 
 	return nil
 }

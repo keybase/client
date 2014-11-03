@@ -572,12 +572,28 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return
 }
 
-func (u *User) Identify() error {
-	G.Log.Debug("+ Identify(%s)", u.name)
+func (u *User) IdentifyKey() {
+	var ds string
+	if mt := u.IdTable.myTrack; mt != nil {
+		diff := mt.ComputeKeyDiff(*u.activePgpFingerprint)
+		ds = diff.ToDisplayString() + " "
+	}
 	G.OutputString(
-		CHECK + " " +
+		CHECK + " " + ds +
 			ColorString("green", "public key fingerprint: "+
 				u.activePgpFingerprint.ToQuads()) + "\n")
+}
+
+func (u *User) Identify() error {
+	G.Log.Debug("+ Identify(%s)", u.name)
+	if mt := u.IdTable.myTrack; mt != nil {
+		G.OutputString(ColorString("bold",
+			fmt.Sprintf("You last tracked %s on %s\n",
+				u.name, FormatTime(mt.GetCTime()))))
+	}
+
+	u.IdentifyKey()
+
 	ret := u.IdTable.Identify()
 	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(ret))
 	return ret

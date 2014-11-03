@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ClientConfig struct {
@@ -20,6 +21,7 @@ type ClientConfig struct {
 	RootCAs    *x509.CertPool
 	Prefix     string
 	UseCookies bool
+	Timeout    time.Duration
 }
 
 type Client struct {
@@ -92,7 +94,7 @@ func (e Env) GenClientConfig() (*ClientConfig, error) {
 		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
 			host, ShortCA(raw_ca)))
 	}
-	ret := &ClientConfig{host, port, useTls, url, rootCAs, url.Path, true}
+	ret := &ClientConfig{host, port, useTls, url, rootCAs, url.Path, true, HTTP_DEFAULT_TIMEOUT}
 	return ret, nil
 }
 
@@ -103,15 +105,19 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 	}
 
 	var xprt *http.Transport
+	var timeout time.Duration
 
 	if config != nil && config.RootCAs != nil {
 		xprt = &http.Transport{
 			TLSClientConfig: &tls.Config{RootCAs: config.RootCAs},
 		}
+		timeout = config.Timeout
+	} else {
+		timeout = HTTP_DEFAULT_TIMEOUT
 	}
 
 	ret := &Client{
-		cli:    &http.Client{},
+		cli:    &http.Client{Timeout: timeout},
 		config: config,
 	}
 	if jar != nil {
