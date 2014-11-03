@@ -31,7 +31,7 @@ func NewHackerNewsChecker(p RemoteProofChainLink) (*HackerNewsChecker, ProofErro
 
 func (rc *HackerNewsChecker) CheckHint(h SigHint) ProofError {
 	wanted := rc.ApiUrl()
-	if wanted == strings.ToLower(h.apiUrl) {
+	if cicmp(wanted, h.apiUrl) {
 		return nil
 	} else {
 		return NewProofError(PROOF_BAD_API_URL,
