@@ -143,7 +143,7 @@ func (u User) GetUID() UID     { return u.id }
 func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
 	if e == nil {
-		u.loggedIn = G.LoginState.LoggedIn
+		u.loggedIn = G.Session.IsLoggedIn()
 		u.dirty = true
 	}
 	return u, e

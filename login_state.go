@@ -12,7 +12,7 @@ import (
 type LoggedInResult struct {
 	session_id string
 	csrf_token string
-	uid        string
+	uid        UID
 	username   string
 }
 
@@ -26,13 +26,34 @@ type LoginState struct {
 	login_session_b64 string
 	tsec              *triplesec.Cipher
 
-	logged_in_res *LoggedInResult
+	loggedInRes *LoggedInResult
 }
 
 const SharedSecretLen = 32
 
 func NewLoginState() *LoginState {
 	return &LoginState{false, false, false, nil, nil, "", nil, nil}
+}
+
+func (s LoginState) IsLoggedIn() bool {
+	return s.LoggedIn
+}
+
+func (s LoginState) GetUsername() *string {
+	var ret *string
+	if s.IsLoggedIn() && s.loggedInRes != nil {
+		ret = &s.loggedInRes.username
+	}
+	return ret
+}
+
+func (s LoginState) GetUID() *UID {
+	var ret *UID
+	if s.IsLoggedIn() && s.loggedInRes != nil {
+		ret = &s.loggedInRes.uid
+	}
+	return ret
+
 }
 
 func (s *LoginState) GetSalt(email_or_username string) error {
@@ -122,7 +143,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 		return nil
 	}
 
-	s.logged_in_res = &LoggedInResult{session_id, csrf_token, uid, uname}
+	s.loggedInRes = &LoggedInResult{session_id, csrf_token, UID(uid), uname}
 	return nil
 }
 
@@ -132,9 +153,9 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 
 	if cfg := G.Env.GetConfigWriter(); cfg != nil {
 		if prompted {
-			cfg.SetUsername(s.logged_in_res.username)
+			cfg.SetUsername(s.loggedInRes.username)
 		}
-		cfg.SetUid(s.logged_in_res.uid)
+		cfg.SetUid(s.loggedInRes.uid)
 		cfg.SetSalt(hex.EncodeToString(s.salt))
 
 		if err := cfg.Write(); err != nil {
@@ -143,8 +164,8 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 	}
 
 	if sw := G.SessionWriter; sw != nil {
-		sw.SetSession(s.logged_in_res.session_id)
-		sw.SetCsrf(s.logged_in_res.csrf_token)
+		sw.SetSession(s.loggedInRes.session_id)
+		sw.SetCsrf(s.loggedInRes.csrf_token)
 		if err := sw.Write(); err != nil {
 			return err
 		}

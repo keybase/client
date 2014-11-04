@@ -158,8 +158,8 @@ func (f *JsonConfigFile) SetUsername(s string) {
 	f.SetUserField("name", s)
 }
 
-func (f *JsonConfigFile) SetUid(s string) {
-	f.SetUserField("id", s)
+func (f *JsonConfigFile) SetUid(u UID) {
+	f.SetUserField("id", string(u))
 }
 
 func (f *JsonConfigFile) SetSalt(s string) {

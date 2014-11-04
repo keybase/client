@@ -18,8 +18,16 @@ func NewSession() *Session {
 	return &Session{nil, "", "", false, false, false, false}
 }
 
-func (s Session) IsLoaded() bool {
-	return s.loaded
+func (s Session) IsLoggedIn() bool {
+	return G.LoginState.IsLoggedIn()
+}
+
+func (s Session) GetUsername() *string {
+	return G.LoginState.GetUsername()
+}
+
+func (s Session) GetUID() *UID {
+	return G.LoginState.GetUID()
 }
 
 func (s *Session) Load() error {

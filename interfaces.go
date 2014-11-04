@@ -80,7 +80,7 @@ type ConfigReader interface {
 
 type ConfigWriter interface {
 	SetUsername(string)
-	SetUid(string)
+	SetUid(UID)
 	SetSalt(string)
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
