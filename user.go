@@ -35,6 +35,7 @@ type User struct {
 
 type LoadUserArg struct {
 	Name             string
+	RName            string // Resolved Name
 	RequirePublicKey bool
 	NoCacheResult    bool
 	Self             bool
@@ -285,13 +286,13 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 
 func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
 
-	G.Log.Debug("+ Load User from server: %s", arg.Name)
+	G.Log.Debug("+ Load User from server: %s", arg.RName)
 
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "user/lookup",
 		NeedSession: (arg.LoadSecrets && arg.Self),
 		Args: HttpArgs{
-			"username": S{arg.Name},
+			"username": S{arg.RName},
 		},
 	})
 
@@ -311,7 +312,7 @@ func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
 		return
 	}
 
-	G.Log.Debug("- Load user from server: %s -> %v", arg.Name, (err == nil))
+	G.Log.Debug("- Load user from server: %s -> %v", arg.RName, (err == nil))
 
 	return
 }
@@ -499,6 +500,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	if err != nil {
 		return
 	}
+	arg.RName = name
 
 	G.Log.Debug("| resolved to %s", name)
 

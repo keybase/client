@@ -399,6 +399,10 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.tracks[l.whom] = list
 }
 
+func (l *TrackChainLink) GetTrackedPgpFingerprint() (*PgpFingerprint, error) {
+	return GetPgpFingerprint(l.payloadJson.AtPath("body.track.key.key_fingerprint"))
+}
+
 func (l *TrackChainLink) IsRevoked() bool {
 	return l.revoked || l.untrack != nil
 }

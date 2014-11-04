@@ -46,8 +46,10 @@ type TrackLookup struct {
 }
 
 func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
-	prev := tl.link.GetPgpFingerprint()
-	if prev.Eq(curr) {
+	prev, err := tl.link.GetTrackedPgpFingerprint()
+	if err != nil {
+		return TrackDiffError{err}
+	} else if prev.Eq(curr) {
 		return TrackDiffNone{}
 	} else {
 		return TrackDiffClash{curr.ToQuads(), prev.ToQuads()}
@@ -57,6 +59,17 @@ func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
 type TrackDiff interface {
 	BreaksTracking() bool
 	ToDisplayString() string
+}
+
+type TrackDiffError struct {
+	err error
+}
+
+func (t TrackDiffError) BreaksTracking() bool {
+	return true
+}
+func (t TrackDiffError) ToDisplayString() string {
+	return ColorString("red", "<error>")
 }
 
 type TrackDiffUpgraded struct {
