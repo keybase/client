@@ -83,7 +83,7 @@ type RemoteProofChainLink interface {
 	GetRemoteUsername() string
 	GetHostname() string
 	GetProtocol() string
-	DisplayCheck(lcr LinkCheckResult)
+	DisplayCheck(lcr LinkCheckResult, is IdentifyState)
 	ToTrackingStatement() (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
 	ToIdString() string
@@ -120,7 +120,7 @@ func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
-func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult) {
+func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult, is IdentifyState) {
 	var msg, lcrs string
 
 	if lcr.diff != nil {
@@ -154,7 +154,7 @@ func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 	if lcr.cached != nil {
 		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
 	}
-	G.OutputString(msg + "\n")
+	is.Report(msg)
 }
 
 func (w *WebProofChainLink) Type() string { return "proof" }
@@ -239,7 +239,7 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	}
 }
 
-func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult) {
+func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult, is IdentifyState) {
 
 	var msg, lcrs string
 
@@ -260,7 +260,7 @@ func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult) {
 	if lcr.cached != nil {
 		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
 	}
-	G.OutputString(msg + "\n")
+	is.Report(msg)
 }
 
 func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
@@ -525,9 +525,9 @@ func (l *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.cryptocurrency = append(tab.cryptocurrency, l)
 }
 
-func (l CryptocurrencyChainLink) Display() {
+func (l CryptocurrencyChainLink) Display(is IdentifyState) {
 	msg := (BTC + " bitcoin " + ColorString("green", l.address))
-	G.OutputString(msg + "\n")
+	is.Report(msg)
 }
 
 //
@@ -580,7 +580,7 @@ func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
 func (w *SelfSigChainLink) GetHostname() string       { return "" }
 func (w *SelfSigChainLink) GetProtocol() string       { return "" }
 
-func (s *SelfSigChainLink) DisplayCheck(lcr LinkCheckResult) {
+func (s *SelfSigChainLink) DisplayCheck(lcr LinkCheckResult, is IdentifyState) {
 	return
 }
 
@@ -611,7 +611,6 @@ type IdentityTable struct {
 	activeProofs   []RemoteProofChainLink
 	cryptocurrency []*CryptocurrencyChainLink
 	checkResult    *CheckResult
-	myTrack        *TrackLookup // My track of this user, in lookup/set form
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -626,10 +625,6 @@ func (tab *IdentityTable) insertLink(l TypedChainLink) {
 			targ.markRevoked(l)
 		}
 	}
-}
-
-func (idt *IdentityTable) SetMyTrack(tl *TrackChainLink) {
-	idt.myTrack = NewTrackLookup(tl)
 }
 
 func (tab *IdentityTable) MarkCheckResult(err ProofError) {
@@ -758,39 +753,23 @@ func (idt *IdentityTable) Len() int {
 }
 
 func (idt *IdentityTable) Identify(is IdentifyState) {
-	if idt.myTrack != nil {
-		G.Log.Debug("| with tracking %v", idt.myTrack.set)
+	if is.track != nil {
+		G.Log.Debug("| with tracking %v", is.track.set)
 	}
 	for _, activeProof := range idt.activeProofs {
 		idt.IdentifyActiveProof(activeProof, is)
 	}
-
-}
-
-func (idt *IdentityTable) IdentifyOld() error {
-
-	var err ProofError
-	acc := idt.ActiveCryptocurrency()
-	if acc != nil {
-		acc.Display()
+	if acc := idt.ActiveCryptocurrency(); acc != nil {
+		acc.Display(is)
 	}
-
-	idt.MarkCheckResult(err)
-
-	var ret error
-	if err != nil {
-		ret = fmt.Errorf("One or more proofs failed")
-	}
-	return ret
 }
 
 //=========================================================================
 
-func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink,
-	is IdentifyState) ProofError {
-	lcr := idt.CheckActiveProof(p)
-	p.DisplayCheck(lcr)
-	return lcr.err
+func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink, is IdentifyState) {
+	lcr := idt.CheckActiveProof(p, is.track)
+	p.DisplayCheck(lcr, is)
+	is.res.AddLinkCheckResult(lcr)
 }
 
 type LinkCheckResult struct {
@@ -800,7 +779,8 @@ type LinkCheckResult struct {
 	diff   TrackDiff
 }
 
-func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (res LinkCheckResult) {
+func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackLookup) (
+	res LinkCheckResult) {
 
 	sid := p.GetSigId()
 	res.hint = idt.sigHints.Lookup(sid)
@@ -810,8 +790,8 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (res LinkChec
 		return
 	}
 
-	if idt.myTrack != nil {
-		res.diff = p.ComputeTrackDiff(idt.myTrack)
+	if track != nil {
+		res.diff = p.ComputeTrackDiff(track)
 	}
 
 	if G.ProofCache != nil {

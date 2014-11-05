@@ -7,7 +7,7 @@ import (
 
 func (u *User) IdentifyKey(is IdentifyState) {
 	var ds string
-	if mt := u.IdTable.myTrack; mt != nil {
+	if mt := is.track; mt != nil {
 		diff := mt.ComputeKeyDiff(*u.activePgpFingerprint)
 		is.res.KeyDiff = diff
 		ds = diff.ToDisplayString() + " "
@@ -95,7 +95,11 @@ type IdentifyState struct {
 	arg   *IdentifyArg
 	res   *IdentifyRes
 	u     *User
-	track *TrackChainLink
+	track *TrackLookup
+}
+
+func (res *IdentifyRes) AddLinkCheckResult(lcr LinkCheckResult) {
+	res.ProofChecks = append(res.ProofChecks, lcr)
 }
 
 func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
@@ -108,15 +112,15 @@ func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
 	is := IdentifyState{&arg, res, u, nil}
 
 	if arg.Me != nil {
-		is.track = arg.Me.GetTrackingStatementFor(u.name)
+		if tlink := arg.Me.GetTrackingStatementFor(u.name); tlink != nil {
+			is.track = NewTrackLookup(tlink)
+			msg := ColorString("bold", fmt.Sprintf("You last tracked %s on %s",
+				u.name, FormatTime(is.track.GetCTime())))
+			is.Report(msg)
+		}
 	}
 
 	G.Log.Debug("+ Identify(%s)", u.name)
-	if mt := u.IdTable.myTrack; mt != nil {
-		msg := ColorString("bold", fmt.Sprintf("You last tracked %s on %s",
-			u.name, FormatTime(mt.GetCTime())))
-		is.Report(msg)
-	}
 
 	u.IdentifyKey(is)
 	u.IdTable.Identify(is)
