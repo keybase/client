@@ -14,7 +14,7 @@ func (u *User) IdentifyKey(is IdentifyState) {
 	}
 	msg := CHECK + " " + ds +
 		ColorString("green", "public key fingerprint: "+
-			u.activePgpFingerprint.ToQuads()) + "\n"
+			u.activePgpFingerprint.ToQuads())
 	is.Report(msg)
 }
 
@@ -63,7 +63,7 @@ func (i IdentifyRes) GetError() error {
 			fmt.Sprintf("%d proof%s failed remote checks",
 				nfails, GiveMeAnS(nfails)))
 	}
-	if ntf := i.NumTrackFailures(); ntf >= 0 {
+	if ntf := i.NumTrackFailures(); ntf > 0 {
 		probs = append(probs,
 			fmt.Sprintf("%d track copmonent%s failed",
 				ntf, GiveMeAnS(ntf)))
@@ -127,4 +127,12 @@ func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
 
 	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(res.GetError()))
 	return res
+}
+
+func (u *User) IdentifySimple(me *User) error {
+	res := u.Identify(IdentifyArg{
+		ReportHook: func(s string) { G.OutputString(s) },
+		Me:         me,
+	})
+	return res.GetError()
 }
