@@ -613,4 +613,18 @@ func (u *User) GetTrackingStatementFor(s string) *TrackChainLink {
 	}
 }
 
+func (u User) ToProofSet() *ProofSet {
+	proofs := []Proof{
+		{Key: "keybase", Value: u.name},
+	}
+	if fp, err := u.GetActivePgpFingerprint(); err != nil {
+		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.ToString()})
+	}
+	if u.IdTable != nil {
+		proofs = u.IdTable.ToProofs(proofs)
+	}
+
+	return NewProofSet(proofs)
+}
+
 //==================================================================

@@ -24,7 +24,7 @@ type TypedChainLink interface {
 	GetPgpFingerprint() PgpFingerprint
 	GetUsername() string
 	MarkChecked(ProofError)
-	GetProofState2() int
+	GetProofStateTCL() int
 }
 
 //=========================================================================
@@ -68,7 +68,7 @@ func (g *GenericChainLink) GetArmoredSig() string {
 func (g *GenericChainLink) GetUsername() string {
 	return g.unpacked.username
 }
-func (g *GenericChainLink) GetProofState2() int { return g.GetProofState() }
+func (g *GenericChainLink) GetProofStateTCL() int { return g.GetProofState() }
 
 //
 //=========================================================================
@@ -842,10 +842,22 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink) (res LinkChec
 
 //=========================================================================
 
+func (idt *IdentityTable) ToProofs(proofs []Proof) []Proof {
+	for _, ap := range idt.activeProofs {
+		if ap.GetProofStateTCL() == PROOF_STATE_OK {
+			k, v := ap.ToKeyValuePair()
+			proofs = append(proofs, Proof{Key: k, Value: v})
+		}
+	}
+	return proofs
+}
+
+//=========================================================================
+
 func (idt *IdentityTable) MakeTrackSet() TrackSet {
 	ret := make(TrackSet)
 	for _, ap := range idt.activeProofs {
-		if ap.GetProofState2() == PROOF_STATE_OK {
+		if ap.GetProofStateTCL() == PROOF_STATE_OK {
 			ret.Add(ap)
 		}
 	}
