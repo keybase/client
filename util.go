@@ -88,3 +88,11 @@ func PickFirstError(errors ...error) error {
 	}
 	return nil
 }
+
+func GiveMeAnS(i int) string {
+	if i != 1 {
+		return "s"
+	} else {
+		return ""
+	}
+}

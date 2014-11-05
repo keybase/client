@@ -757,18 +757,19 @@ func (idt *IdentityTable) Len() int {
 	return len(idt.Order)
 }
 
-func (idt *IdentityTable) Identify() error {
+func (idt *IdentityTable) Identify(is IdentifyState) {
 	if idt.myTrack != nil {
 		G.Log.Debug("| with tracking %v", idt.myTrack.set)
 	}
+	for _, activeProof := range idt.activeProofs {
+		idt.IdentifyActiveProof(activeProof, is)
+	}
+
+}
+
+func (idt *IdentityTable) IdentifyOld() error {
 
 	var err ProofError
-	for _, activeProof := range idt.activeProofs {
-		tmp := idt.IdentifyActiveProof(activeProof)
-		if tmp != nil && err == nil {
-			err = tmp
-		}
-	}
 	acc := idt.ActiveCryptocurrency()
 	if acc != nil {
 		acc.Display()
@@ -785,7 +786,8 @@ func (idt *IdentityTable) Identify() error {
 
 //=========================================================================
 
-func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink) ProofError {
+func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink,
+	is IdentifyState) ProofError {
 	lcr := idt.CheckActiveProof(p)
 	p.DisplayCheck(lcr)
 	return lcr.err

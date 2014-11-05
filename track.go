@@ -136,11 +136,6 @@ func (e *TrackLookup) GetCTime() time.Time {
 	return e.link.GetCTime()
 }
 
-type TrackDiffSet struct {
-	Key    TrackDiff
-	Proofs []TrackDiff
-}
-
 //=====================================================================
 
 type TrackEngine struct {
@@ -198,16 +193,12 @@ func (e *TrackEngine) Run() error {
 		return fmt.Errorf("Cannot track yourself")
 	}
 
-	if e.Me != nil {
-		track := e.Me.GetTrackingStatementFor(e.Them.name)
-		if track != nil {
-			e.Them.IdTable.SetMyTrack(track)
-		}
+	res := e.Them.Identify(IdentifyArg{
+		ReportHook: func(s string) { G.OutputString(s) },
+		Me:         e.Me,
+	})
 
-	}
-
-	err = e.Them.Identify()
-	if err != nil {
+	if err := res.GetError(); err != nil {
 		if e.StrictProofs {
 			return err
 		} else {
