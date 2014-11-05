@@ -9,11 +9,14 @@ import (
 type AssertionExpression interface {
 	ToString() string
 	MatchSet(ps ProofSet) bool
+	HasOr() bool
 }
 
 type AssertionOr struct {
 	terms []AssertionExpression
 }
+
+func (a AssertionOr) HasOr() bool { return true }
 
 func (a AssertionOr) MatchSet(ps ProofSet) bool {
 	for _, t := range a.terms {
@@ -36,6 +39,15 @@ type AssertionAnd struct {
 	factors []AssertionExpression
 }
 
+func (a AssertionAnd) HasOr() bool {
+	for _, f := range a.factors {
+		if f.HasOr() {
+			return true
+		}
+	}
+	return false
+}
+
 func (a AssertionAnd) MatchSet(ps ProofSet) bool {
 	for _, f := range a.factors {
 		if !f.MatchSet(ps) {
@@ -54,11 +66,10 @@ func (a AssertionAnd) ToString() string {
 }
 
 type AssertionUrl interface {
+	AssertionExpression
 	Keys() []string
 	Check() error
 	IsKeybase() bool
-	ToString() string
-	MatchSet(ps ProofSet) bool
 	MatchProof(p Proof) bool
 	ToKeyValuePair() (string, string)
 	CacheKey() string
@@ -91,6 +102,8 @@ func (a AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
 	}
 	return false
 }
+
+func (a AssertionUrlBase) HasOr() bool { return false }
 
 func (a AssertionKeybase) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
 func (a AssertionWeb) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }

@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"regexp"
 )
 
@@ -30,9 +29,9 @@ func (t Token) getString() string {
 func (t Token) unexpectedError() error {
 	switch t.Typ {
 	case EOF:
-		return fmt.Errorf("Unexpected EOF")
+		return NewAssertionParseError("Unexpected EOF")
 	default:
-		return fmt.Errorf("Unexpected token: %s", t.getString())
+		return NewAssertionParseError("Unexpected token: %s", t.getString())
 	}
 }
 
@@ -140,7 +139,8 @@ func (p *Parser) Parse() AssertionExpression {
 	if ret != nil {
 		tok := p.lexer.Get()
 		if tok.Typ != EOF {
-			p.err = fmt.Errorf("Found junk at end of input: %s", tok.value)
+			p.err = NewAssertionParseError("Found junk at end of input: %s",
+				tok.value)
 			ret = nil
 		}
 	}
@@ -173,14 +173,14 @@ func (p *Parser) parseFactor() (ret AssertionExpression) {
 	case LPAREN:
 		if ex := p.parseExpr(); ex == nil {
 			ret = nil
-			p.err = fmt.Errorf("Illegal parenthetical expression")
+			p.err = NewAssertionParseError("Illegal parenthetical expression")
 		} else {
 			tok = p.lexer.Get()
 			if tok.Typ == RPAREN {
 				ret = ex
 			} else {
 				ret = nil
-				p.err = fmt.Errorf("Unbalanced parentheses")
+				p.err = NewAssertionParseError("Unbalanced parentheses")
 			}
 		}
 	default:

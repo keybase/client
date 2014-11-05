@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 )
 
 //=============================================================================
@@ -68,6 +69,46 @@ func XapiError(err error, u string) *ProofApiError {
 		return NewProofApiError(code, u, ae.Msg)
 	} else {
 		return NewProofApiError(PROOF_INTERNAL_ERROR, u, err.Error())
+	}
+}
+
+//=============================================================================
+
+type UserNotFoundError struct {
+	user string
+}
+
+func (u UserNotFoundError) Error() string {
+	return fmt.Sprintf("%s: user not found", u.user)
+}
+
+type FailedAssertionError struct {
+	user string
+	bad  []AssertionUrl
+}
+
+func (u FailedAssertionError) Error() string {
+	v := make([]string, len(u.bad), len(u.bad))
+	for i, u := range u.bad {
+		v[i] = u.ToString()
+	}
+	return ("for " + u.user + ", the follow assertions failed: " +
+		strings.Join(v, ", "))
+}
+
+//=============================================================================
+
+type AssertionParseError struct {
+	err string
+}
+
+func (e AssertionParseError) Error() string {
+	return e.err
+}
+
+func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
+	return AssertionParseError{
+		err: fmt.Sprintf(s, a...),
 	}
 }
 
