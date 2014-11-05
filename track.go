@@ -136,6 +136,11 @@ func (e *TrackLookup) GetCTime() time.Time {
 	return e.link.GetCTime()
 }
 
+type TrackDiffSet struct {
+	Key    TrackDiff
+	Proofs []TrackDiff
+}
+
 //=====================================================================
 
 type TrackEngine struct {

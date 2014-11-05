@@ -27,6 +27,10 @@ type User struct {
 	activeKey            *PgpKeyBundle
 	activePgpFingerprint *PgpFingerprint
 
+	// If we've previously identified this user, the result
+	// can be cached here.
+	cachedIdentifyRes *IdentifyRes
+
 	dirty bool
 }
 
@@ -572,33 +576,6 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	return
-}
-
-func (u *User) IdentifyKey() {
-	var ds string
-	if mt := u.IdTable.myTrack; mt != nil {
-		diff := mt.ComputeKeyDiff(*u.activePgpFingerprint)
-		ds = diff.ToDisplayString() + " "
-	}
-	G.OutputString(
-		CHECK + " " + ds +
-			ColorString("green", "public key fingerprint: "+
-				u.activePgpFingerprint.ToQuads()) + "\n")
-}
-
-func (u *User) Identify() error {
-	G.Log.Debug("+ Identify(%s)", u.name)
-	if mt := u.IdTable.myTrack; mt != nil {
-		G.OutputString(ColorString("bold",
-			fmt.Sprintf("You last tracked %s on %s\n",
-				u.name, FormatTime(mt.GetCTime()))))
-	}
-
-	u.IdentifyKey()
-
-	ret := u.IdTable.Identify()
-	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(ret))
-	return ret
 }
 
 func (u1 User) Equal(u2 User) bool {
