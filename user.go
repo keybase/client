@@ -484,6 +484,41 @@ func LoadMe() (ret *User, err error) {
 	})
 }
 
+func (u *User) VerifySelfSig() error {
+
+	G.Log.Debug("+ VerifySelfSig for user %s", u.name)
+
+	if u.IdTable.VerifySelfSig(u.name, u.id) {
+		G.Log.Debug("- VerifySelfSig via SigChain")
+		return nil
+	}
+
+	if u.VerifySelfSigByKey() {
+		G.Log.Debug("- VerifySelfSig via Key")
+		return nil
+	}
+
+	G.Log.Debug("- VerifySelfSig failed")
+	return fmt.Errorf("Failed to find a self-signature for %s", u.name)
+}
+
+func (u *User) VerifySelfSigByKey() bool {
+
+	name := u.GetName()
+	if key, err := u.GetActiveKey(); err == nil && key != nil {
+		for _, ident := range key.Identities {
+			if i, e2 := ParseIdentity(ident.Name); e2 == nil {
+				if i.Email == KeybaseEmailAddress(name) {
+					G.Log.Debug("| Found self-sig for %s in key ID: %s",
+						name, ident.Name)
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
@@ -568,6 +603,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	if err = ret.MakeIdTable(arg.AllKeys); err != nil {
+		return
+	}
+
+	if err = ret.VerifySelfSig(); err != nil {
 		return
 	}
 

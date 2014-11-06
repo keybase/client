@@ -25,6 +25,7 @@ type TypedChainLink interface {
 	GetUsername() string
 	MarkChecked(ProofError)
 	GetProofStateTCL() int
+	GetUID() UID
 }
 
 //=========================================================================
@@ -67,6 +68,9 @@ func (g *GenericChainLink) GetArmoredSig() string {
 }
 func (g *GenericChainLink) GetUsername() string {
 	return g.unpacked.username
+}
+func (g *GenericChainLink) GetUID() UID {
+	return g.unpacked.uid
 }
 func (g *GenericChainLink) GetProofStateTCL() int { return g.GetProofState() }
 
@@ -692,6 +696,26 @@ func (idt *IdentityTable) Populate() {
 		}
 	}
 	G.Log.Debug("- Populate ID Table")
+}
+
+func (idt *IdentityTable) VerifySelfSig(s string, uid UID) bool {
+	list := idt.Order
+	ln := len(list)
+	for i := ln - 1; i >= 0; i-- {
+		link := list[i]
+		if !link.IsActiveKey() {
+			break
+		}
+		if link.IsRevoked() {
+			continue
+		}
+		if link.GetUsername() == s && link.GetUID() == uid {
+			G.Log.Debug("| Found self-signature for %s @%s", s,
+				link.ToDebugString())
+			return true
+		}
+	}
+	return false
 }
 
 func (idt *IdentityTable) GetTrackingStatementFor(s string) *TrackChainLink {

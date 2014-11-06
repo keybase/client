@@ -96,3 +96,7 @@ func GiveMeAnS(i int) string {
 		return ""
 	}
 }
+
+func KeybaseEmailAddress(s string) string {
+	return s + "@keybase.io"
+}
