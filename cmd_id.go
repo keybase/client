@@ -10,21 +10,44 @@ type CmdId struct {
 	user      string
 	assertion string
 	track     bool
+	luba      bool
+	loadSelf  bool
 }
 
 func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 	v.track = ctx.Bool("track-statement")
+	v.luba = ctx.Bool("luba")
+	v.loadSelf = ctx.Bool("load-self")
 	if nargs == 1 {
 		v.user = ctx.Args()[0]
-	} else {
+	} else if nargs != 0 || v.luba {
 		err = fmt.Errorf("id takes one arg -- the user to lookup")
 	}
 	return err
 }
 
 func (v *CmdId) Run() error {
+	if v.luba {
+		return v.RunLuba()
+	} else {
+		return v.RunStandard()
+	}
+}
+
+func (v *CmdId) RunLuba() error {
+	r := libkb.LoadUserByAssertions(v.user, v.loadSelf)
+	if r.Error != nil {
+		return r.Error
+	} else {
+		G.Log.Info("Success; loaded %s", r.User.GetName())
+	}
+	return nil
+}
+
+func (v *CmdId) RunStandard() error {
+
 	u, err := libkb.LoadUser(libkb.LoadUserArg{
 		Name:             v.user,
 		RequirePublicKey: true,
@@ -54,6 +77,14 @@ func NewCmdId(cl *CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "t, track-statement",
 				Usage: "output a JSON a track statement for this user",
+			},
+			cli.BoolFlag {
+				Name : "l, luba",
+				Usage : "LookupUserByAssertion",
+			},
+			cli.BoolFlag {
+				Name : "s, load-self",
+				Usage : "Load self for tracking statement",
 			},
 		},
 		Action: func(c *cli.Context) {
