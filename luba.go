@@ -89,5 +89,19 @@ func (l *LubaRes) Load(a string, withTracking bool) {
 		return
 	}
 
+	l.IdentifyRes = l.User.Identify(IdentifyArg{
+		Me:         me,
+		ReportHook: func(s string) { G.Log.Debug(s) },
+	})
+	if l.Error = l.IdentifyRes.GetError(); l.Error != nil {
+		return
+	}
+
+	if !l.AE.MatchSet(*l.User.ToProofSet()) {
+		// TODO - Better debugging?
+		l.Error = fmt.Errorf("User %s didn't match given assertion",
+			l.User.GetName())
+	}
+
 	return
 }

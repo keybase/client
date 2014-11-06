@@ -82,9 +82,9 @@ func (i IdentifyState) Report(m string) {
 	}
 }
 
-func NewIdentifyRes() *IdentifyRes {
+func NewIdentifyRes(m bool) *IdentifyRes {
 	return &IdentifyRes{
-		MeSet:       false,
+		MeSet:       m,
 		Messages:    make([]string, 0, 1),
 		Warnings:    make([]Warning, 0, 0),
 		ProofChecks: make([]LinkCheckResult, 0, 1),
@@ -108,7 +108,7 @@ func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
 		return cir
 	}
 
-	res := NewIdentifyRes()
+	res := NewIdentifyRes(arg.MeSet())
 	is := IdentifyState{&arg, res, u, nil}
 
 	if arg.Me != nil {
@@ -126,6 +126,7 @@ func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
 	u.IdTable.Identify(is)
 
 	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(res.GetError()))
+	u.cachedIdentifyRes = res
 	return res
 }
 
