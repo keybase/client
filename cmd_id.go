@@ -58,12 +58,7 @@ func (v *CmdId) RunStandard() error {
 	})
 
 	if err == nil {
-		err = u.Identify()
-		if v.track {
-			if jw, err := u.ToTrackingStatement(); err == nil {
-				fmt.Println(jw.MarshalPretty())
-			}
-		}
+		err = u.IdentifySimple(nil)
 	}
 
 	return err

@@ -6,13 +6,17 @@ import (
 )
 
 type CmdDbNuke struct {
-	ctx *cli.Context
+	force bool
+}
+
+func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
+	c.force = ctx.Bool("force")
+	return nil
 }
 
 func (c *CmdDbNuke) Run() error {
 	var err error
-	force := c.ctx.Bool("force")
-	if !force {
+	if !c.force {
 		err = libkb.PromptForConfirmation("Really blast away your local DB cache?")
 	}
 	if err == nil {
@@ -38,11 +42,10 @@ func NewCmdDbNuke(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdDbNuke) UseConfig() bool              { return true }
-func (v *CmdDbNuke) UseKeyring() bool             { return false }
-func (v *CmdDbNuke) UseAPI() bool                 { return false }
-func (v *CmdDbNuke) UseTerminal() bool            { return true }
-func (c *CmdDbNuke) ParseArgv(*cli.Context) error { return nil }
+func (v *CmdDbNuke) UseConfig() bool   { return true }
+func (v *CmdDbNuke) UseKeyring() bool  { return false }
+func (v *CmdDbNuke) UseAPI() bool      { return false }
+func (v *CmdDbNuke) UseTerminal() bool { return true }
 
 func NewCmdDb(cl *CommandLine) cli.Command {
 	return cli.Command{
