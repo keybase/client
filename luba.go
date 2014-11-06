@@ -1,5 +1,9 @@
 package libkb
 
+import (
+	"fmt"
+)
+
 // LUBA = LoadUserByAssertions
 //
 //  Given an string of the form foo@github+max+boo@twitter,
@@ -21,16 +25,45 @@ func LoadUserByAssertions(a string, withTracking bool) (res LubaRes) {
 	return
 }
 
-func (l *LubaRes) Load(a string, withTracking bool) {
-
-	// Parse with the full grammar (including OR clauses)
-	if l.AE, l.Error = AssertionParse(a); l.Error != nil {
-		return
+func (l *LubaRes) FindBestComponent() string {
+	urls := make([]AssertionUrl, 0, 1)
+	urls = l.AE.CollectUrls(urls)
+	if len(urls) == 0 {
+		return ""
 	}
 
-	// But then vomit if we get an OR...
-	if l.AE.HasOr() {
-		l.Error = NewAssertionParseError("Bad assertion; had an OR construction")
+	var best, kb, soc, fp AssertionUrl
+
+	for _, u := range urls {
+		if u.IsKeybase() {
+			kb = u
+			break
+		} else if u.IsFingerprint() && fp == nil {
+			fp = u
+		} else if u.IsSocial() && soc == nil {
+			soc = u
+		}
+	}
+	if best == nil {
+		best = kb
+	}
+	if best == nil {
+		best = fp
+	}
+	if best == nil {
+		best = soc
+	}
+	if best == nil {
+		best = urls[0]
+	}
+	return best.ToString()
+}
+
+func (l *LubaRes) Load(a string, withTracking bool) {
+
+	// Parse assertion but don't allow OR operators, only
+	// AND operators
+	if l.AE, l.Error = AssertionParseAndOnly(a); l.Error != nil {
 		return
 	}
 
@@ -46,6 +79,20 @@ func (l *LubaRes) Load(a string, withTracking bool) {
 	// That is, it might be the keybase assertion (if there), or otherwise,
 	// something that's unique like Twitter or Github, and lastly,
 	// something like DNS that is more likely ambiguous...
+	b := l.FindBestComponent()
+	if len(b) == 0 {
+		l.Error = fmt.Errorf("Cannot lookup user with '%s'", a)
+		return
+	}
+
+	larg := LoadUserArg{
+		Name:             b,
+		RequirePublicKey: true,
+	}
+
+	if l.User, l.Error = LoadUser(larg); l.Error != nil {
+		return
+	}
 
 	return
 }

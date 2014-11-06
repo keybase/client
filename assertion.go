@@ -10,6 +10,7 @@ type AssertionExpression interface {
 	ToString() string
 	MatchSet(ps ProofSet) bool
 	HasOr() bool
+	CollectUrls([]AssertionUrl) []AssertionUrl
 }
 
 type AssertionOr struct {
@@ -25,6 +26,13 @@ func (a AssertionOr) MatchSet(ps ProofSet) bool {
 		}
 	}
 	return false
+}
+
+func (a AssertionOr) CollectUrls(v []AssertionUrl) []AssertionUrl {
+	for _, t := range a.terms {
+		v = t.CollectUrls(v)
+	}
+	return v
 }
 
 func (a AssertionOr) ToString() string {
@@ -46,6 +54,13 @@ func (a AssertionAnd) HasOr() bool {
 		}
 	}
 	return false
+}
+
+func (a AssertionAnd) CollectUrls(v []AssertionUrl) []AssertionUrl {
+	for _, t := range a.factors {
+		v = t.CollectUrls(v)
+	}
+	return v
 }
 
 func (a AssertionAnd) MatchSet(ps ProofSet) bool {
@@ -70,6 +85,8 @@ type AssertionUrl interface {
 	Keys() []string
 	Check() error
 	IsKeybase() bool
+	IsSocial() bool
+	IsFingerprint() bool
 	MatchProof(p Proof) bool
 	ToKeyValuePair() (string, string)
 	CacheKey() string
@@ -117,9 +134,11 @@ func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
 func (a AssertionWeb) Keys() []string {
 	return []string{"dns", "http", "https"}
 }
-func (a AssertionHttp) Keys() []string     { return []string{"http", "https"} }
-func (a AssertionUrlBase) Keys() []string  { return []string{a.Key} }
-func (a AssertionUrlBase) IsKeybase() bool { return false }
+func (a AssertionHttp) Keys() []string         { return []string{"http", "https"} }
+func (a AssertionUrlBase) Keys() []string      { return []string{a.Key} }
+func (a AssertionUrlBase) IsKeybase() bool     { return false }
+func (a AssertionUrlBase) IsSocial() bool      { return false }
+func (a AssertionUrlBase) IsFingerprint() bool { return false }
 func (a AssertionUrlBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == a.Value)
 }
@@ -136,6 +155,14 @@ func (a AssertionFingerprint) MatchProof(proof Proof) bool {
 		return (v1[(l1-l2):] == v2)
 	}
 }
+
+func (a AssertionKeybase) CollectUrls(v []AssertionUrl) []AssertionUrl     { return append(v, a) }
+func (a AssertionWeb) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
+func (a AssertionSocial) CollectUrls(v []AssertionUrl) []AssertionUrl      { return append(v, a) }
+func (a AssertionHttp) CollectUrls(v []AssertionUrl) []AssertionUrl        { return append(v, a) }
+func (a AssertionHttps) CollectUrls(v []AssertionUrl) []AssertionUrl       { return append(v, a) }
+func (a AssertionDns) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
+func (a AssertionFingerprint) CollectUrls(v []AssertionUrl) []AssertionUrl { return append(v, a) }
 
 type AssertionSocial struct{ AssertionUrlBase }
 type AssertionWeb struct{ AssertionUrlBase }
@@ -227,9 +254,9 @@ func parseToKVPair(s string) (key string, value string, err error) {
 	return
 }
 
-func (k AssertionKeybase) IsKeybase() bool {
-	return true
-}
+func (k AssertionKeybase) IsKeybase() bool         { return true }
+func (k AssertionSocial) IsSocial() bool           { return true }
+func (k AssertionFingerprint) IsFingerprint() bool { return true }
 
 func (k AssertionKeybase) ToLookup() (key, value string, err error) {
 	return "username", k.Value, nil
