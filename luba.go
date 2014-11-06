@@ -32,7 +32,7 @@ func (l *LubaRes) FindBestComponent() string {
 		return ""
 	}
 
-	var best, kb, soc, fp AssertionUrl
+	var kb, soc, fp AssertionUrl
 
 	for _, u := range urls {
 		if u.IsKeybase() {
@@ -44,19 +44,14 @@ func (l *LubaRes) FindBestComponent() string {
 			soc = u
 		}
 	}
-	if best == nil {
-		best = kb
+
+	order := []AssertionUrl{kb, fp, soc, urls[0]}
+	for _, p := range order {
+		if p != nil {
+			return p.ToString()
+		}
 	}
-	if best == nil {
-		best = fp
-	}
-	if best == nil {
-		best = soc
-	}
-	if best == nil {
-		best = urls[0]
-	}
-	return best.ToString()
+	return ""
 }
 
 func (l *LubaRes) Load(a string, withTracking bool) {
