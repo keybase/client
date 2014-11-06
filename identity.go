@@ -13,10 +13,10 @@ type Identity struct {
 }
 
 func ParseIdentity(s string) (*Identity, error) {
-	rxx := regexp.MustCompile(
+	rxx := regexp.MustCompile("" +
 		`^([^(<]*?)` + // The beginning name of the user (no comment or key)
-			`(?:\s*\((.*?)\))?` + // The optional comment
-			`(?:\s*<(.*?)>)?$`) // The optional email address
+		`(?:\s*\((.*?)\))?` + // The optional comment
+		`(?:\s*<(.*?)>)?$`) // The optional email address
 	v := rxx.FindStringSubmatch(s)
 	if v == nil {
 		return nil, fmt.Errorf("Bad PGP-style identity: %s", s)
