@@ -832,6 +832,11 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 	}
 
 	if track != nil {
+		//
+		// XXX maybe revisit this decision...
+		// We're using a shared TrackLookup() object, so let's
+		// serialize access to it here.
+		//
 		track.Lock()
 		res.diff = p.ComputeTrackDiff(track)
 		track.Unlock()
