@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"sync"
 	"time"
 	// "github.com/keybase/go-jsonw"
 )
@@ -40,9 +41,10 @@ func (a TrackSet) Equal(b TrackSet) bool {
 //=====================================================================
 
 type TrackLookup struct {
-	link *TrackChainLink     // The original chain link that I signed
-	set  TrackSet            // The total set of tracked identities
-	ids  map[string][]string // A http -> [foo.com, boo.com] lookup
+	link  *TrackChainLink     // The original chain link that I signed
+	set   TrackSet            // The total set of tracked identities
+	ids   map[string][]string // A http -> [foo.com, boo.com] lookup
+	mutex *sync.Mutex         // in case we're accessing in mutliple threads
 }
 
 func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
@@ -128,8 +130,16 @@ func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 		}
 		ids[k] = append(list, v)
 	}
-	ret := &TrackLookup{link: link, set: set, ids: ids}
+	ret := &TrackLookup{link: link, set: set, ids: ids, mutex: new(sync.Mutex)}
 	return ret
+}
+
+func (l *TrackLookup) Lock() {
+	l.mutex.Lock()
+}
+
+func (l *TrackLookup) Unlock() {
+	l.mutex.Unlock()
 }
 
 func (e *TrackLookup) GetCTime() time.Time {

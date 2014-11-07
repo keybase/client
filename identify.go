@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"strings"
+	"sync"
 )
 
 func (u *User) IdentifyKey(is IdentifyState) {
@@ -96,10 +97,23 @@ type IdentifyState struct {
 	res   *IdentifyRes
 	u     *User
 	track *TrackLookup
+	mutex *sync.Mutex
+}
+
+func (s *IdentifyState) Lock() {
+	s.mutex.Lock()
+}
+
+func (s *IdentifyState) Unlock() {
+	s.mutex.Unlock()
 }
 
 func (res *IdentifyRes) AddLinkCheckResult(lcr LinkCheckResult) {
 	res.ProofChecks = append(res.ProofChecks, lcr)
+}
+
+func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState {
+	return IdentifyState{arg, res, u, nil, new(sync.Mutex)}
 }
 
 func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
@@ -109,7 +123,7 @@ func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
 	}
 
 	res := NewIdentifyRes(arg.MeSet())
-	is := IdentifyState{&arg, res, u, nil}
+	is := NewIdentifyState(&arg, res, u)
 
 	if arg.Me != nil {
 		if tlink := arg.Me.GetTrackingStatementFor(u.name); tlink != nil {

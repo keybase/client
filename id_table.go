@@ -780,9 +780,20 @@ func (idt *IdentityTable) Identify(is IdentifyState) {
 	if is.track != nil {
 		G.Log.Debug("| with tracking %v", is.track.set)
 	}
+
+	done := make(chan bool)
 	for _, activeProof := range idt.activeProofs {
-		idt.IdentifyActiveProof(activeProof, is)
+		go func(p RemoteProofChainLink) {
+			idt.IdentifyActiveProof(p, is)
+			done <- true
+		}(activeProof)
 	}
+
+	// wait for all goroutines to complete before exiting
+	for _ = range idt.activeProofs {
+		<-done
+	}
+
 	if acc := idt.ActiveCryptocurrency(); acc != nil {
 		acc.Display(is)
 	}
@@ -792,8 +803,11 @@ func (idt *IdentityTable) Identify(is IdentifyState) {
 
 func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink, is IdentifyState) {
 	lcr := idt.CheckActiveProof(p, is.track)
+
+	is.Lock()
 	p.DisplayCheck(lcr, is)
 	is.res.AddLinkCheckResult(lcr)
+	is.Unlock()
 }
 
 type LinkCheckResult struct {
@@ -806,6 +820,9 @@ type LinkCheckResult struct {
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackLookup) (
 	res LinkCheckResult) {
 
+	G.Log.Debug("+ CheckActiveProof %s", p.ToDebugString())
+	defer G.Log.Debug("- CheckActiveProof %s", p.ToDebugString())
+
 	sid := p.GetSigId()
 	res.hint = idt.sigHints.Lookup(sid)
 	if res.hint == nil {
@@ -815,7 +832,9 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 	}
 
 	if track != nil {
+		track.Lock()
 		res.diff = p.ComputeTrackDiff(track)
+		track.Unlock()
 	}
 
 	if G.ProofCache != nil {
