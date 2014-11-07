@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/go-jsonw"
 )
 
 //==================================================================
@@ -21,15 +22,28 @@ func (c *UserCache) PutResolution(key string, val string, err error) {
 
 //==================================================================
 
-func ResolveUsername(input string) (string, error) {
+type ResolveRes struct {
+	name string
+	uid  UID
+	body *jsonw.Wrapper
+}
+
+func ResolveUsername(input string) (res *ResolveRes, err error) {
 	var output string
 	G.Log.Debug("+ Resolving username %s", input)
-	au, err := ParseAssertionUrl(input, false)
-	if err == nil {
-		output, err = _resolveUsername(au)
+	var au AssertionUrl
+	au, err = ParseAssertionUrl(input, false)
+	if err != nil {
+		return
 	}
+	output, err = _resolveUsername(au)
+	if err != nil {
+		return
+	}
+
+	res = &ResolveRes{name: output}
 	G.Log.Debug("- Resolved username %s -> %s", input, output)
-	return output, err
+	return
 }
 
 func ResolveUsernameKeyValuePair(key, value string) (string, error) {

@@ -342,23 +342,28 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 	return u.activeKey, nil
 }
 
-func LoadUserFromServer(arg LoadUserArg, base *SigChain) (u *User, err error) {
+func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper, base *SigChain) (u *User, err error) {
 
 	G.Log.Debug("+ Load User from server: %s", arg.RName)
 
-	res, err := G.API.Get(ApiArg{
-		Endpoint:    "user/lookup",
-		NeedSession: (arg.LoadSecrets && arg.Self),
-		Args: HttpArgs{
-			"username": S{arg.RName},
-		},
-	})
+	// Res.body might already have been preloaded a a result of a Resolve call earlier.
+	if body != nil {
+		res, err := G.API.Get(ApiArg{
+			Endpoint:    "user/lookup",
+			NeedSession: (arg.LoadSecrets && arg.Self),
+			Args: HttpArgs{
+				"username": S{arg.RName},
+			},
+		})
 
-	if err != nil {
-		return
+		if err != nil {
+			return nil, err
+		} else {
+			body = res.Body
+		}
 	}
 
-	if u, err = NewUserFromServer(res.Body.AtKey("them")); err != nil {
+	if u, err = NewUserFromServer(body.AtKey("them")); err != nil {
 		return
 	}
 
@@ -578,7 +583,9 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
 
-	if len(arg.Name) == 0 && !arg.Self {
+	if arg.Uid != nil {
+		// noop
+	} else if len(arg.Name) == 0 && !arg.Self {
 		err = fmt.Errorf("no username given to LoadUser")
 		return
 	} else if len(arg.Name) > 0 && arg.Self {
@@ -590,11 +597,13 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	G.Log.Debug("+ LoadUser(%s)", arg.Name)
 
-	name, err = ResolveUsername(arg.Name)
+	var rres *ResolveRes
+	rres, err = ResolveUsername(arg.Name)
 	if err != nil {
 		return
 	}
-	arg.RName = name
+	arg.RName = rres.name
+	name = rres.name
 
 	G.Log.Debug("| resolved to %s", name)
 
@@ -634,7 +643,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if load_remote {
 		arg.leaf = leaf
-		ret, err = LoadUserFromServer(arg, baseChain)
+		ret, err = LoadUserFromServer(arg, rres.body, baseChain)
 	}
 
 	if err != nil || ret == nil {
