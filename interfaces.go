@@ -189,6 +189,7 @@ type ExternalAPI interface {
 	PostHtml(ApiArg) (*ExternalHtmlRes, error)
 }
 
+// A minimal access to the GPG client.
 type GpgClient interface {
 	Configure() (bool, error)    // bool = Whether the error is fatal or not
 	Export(k PgpKeyBundle) error // Export a key to the GPG keyring

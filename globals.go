@@ -36,7 +36,7 @@ type Global struct {
 	Output        io.Writer     // where 'Stdout'-style output goes
 	ProofCache    *ProofCache   // where to cache proof results
 	SecretEntry   *SecretEntry  // a terminal-or-pinentry system
-	GpgClient     *GpgClient    // A standard GPG-client (optional)
+	GpgClient     GpgClient     // A standard GPG-client (optional)
 }
 
 var G Global = Global{
@@ -196,4 +196,11 @@ func (g *Global) OutputString(s string) {
 
 func (g *Global) OutputBytes(b []byte) {
 	g.Output.Write(b)
+}
+
+func (g *Global) GetGpgClient() GpgClient {
+	if g.GpgClient == nil {
+		g.GpgClient = NewGpgCLI()
+	}
+	return g.GpgClient
 }
