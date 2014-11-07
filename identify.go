@@ -29,6 +29,7 @@ func (i IdentifyArg) MeSet() bool {
 }
 
 type IdentifyRes struct {
+	Error       error
 	KeyDiff     TrackDiff
 	ProofChecks []LinkCheckResult
 	Warnings    []Warning
@@ -57,6 +58,11 @@ func (i IdentifyRes) NumTrackFailures() int {
 }
 
 func (i IdentifyRes) GetError() error {
+
+	if i.Error != nil {
+		return i.Error
+	}
+
 	probs := make([]string, 0, 0)
 
 	if nfails := i.NumProofFailures(); nfails > 0 {
@@ -116,22 +122,25 @@ func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState
 	return IdentifyState{arg, res, u, nil, new(sync.Mutex)}
 }
 
-func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
+func (u *User) Identify(arg IdentifyArg) (res *IdentifyRes) {
 
 	if cir := u.cachedIdentifyRes; cir != nil && (arg.MeSet() == cir.MeSet) {
 		return cir
 	}
 
-	res := NewIdentifyRes(arg.MeSet())
+	res = NewIdentifyRes(arg.MeSet())
 	is := NewIdentifyState(&arg, res, u)
 
-	if arg.Me != nil {
-		if tlink := arg.Me.GetTrackingStatementFor(u.name); tlink != nil {
-			is.track = NewTrackLookup(tlink)
-			msg := ColorString("bold", fmt.Sprintf("You last tracked %s on %s",
-				u.name, FormatTime(is.track.GetCTime())))
-			is.Report(msg)
-		}
+	if arg.Me == nil {
+		// noop
+	} else if tlink, err := arg.Me.GetTrackingStatementFor(u.name, u.id); err != nil {
+		res.Error = err
+		return
+	} else if tlink != nil {
+		is.track = NewTrackLookup(tlink)
+		msg := ColorString("bold", fmt.Sprintf("You last tracked %s on %s",
+			u.name, FormatTime(is.track.GetCTime())))
+		is.Report(msg)
 	}
 
 	G.Log.Debug("+ Identify(%s)", u.name)
@@ -141,7 +150,7 @@ func (u *User) Identify(arg IdentifyArg) *IdentifyRes {
 
 	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(res.GetError()))
 	u.cachedIdentifyRes = res
-	return res
+	return
 }
 
 func (u *User) IdentifySimple(me *User) error {

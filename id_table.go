@@ -407,6 +407,10 @@ func (l *TrackChainLink) GetTrackedPgpFingerprint() (*PgpFingerprint, error) {
 	return GetPgpFingerprint(l.payloadJson.AtPath("body.track.key.key_fingerprint"))
 }
 
+func (l *TrackChainLink) GetTrackedUid() (*UID, error) {
+	return GetUid(l.payloadJson.AtPath("body.track.id"))
+}
+
 func (l *TrackChainLink) IsRevoked() bool {
 	return l.revoked || l.untrack != nil
 }
@@ -718,17 +722,26 @@ func (idt *IdentityTable) VerifySelfSig(s string, uid UID) bool {
 	return false
 }
 
-func (idt *IdentityTable) GetTrackingStatementFor(s string) *TrackChainLink {
+func (idt *IdentityTable) GetTrackingStatementFor(s string, uid UID) (*TrackChainLink, error) {
 	if list, found := idt.tracks[s]; found {
 		l := len(list)
 		for i := l - 1; i >= 0; i-- {
 			link := list[i]
-			if !link.IsRevoked() && link.untrack == nil {
-				return link
+			if link.IsRevoked() {
+				// noop; continue on!
+			} else if uid2, err := link.GetTrackedUid(); err != nil {
+				return nil, fmt.Errorf("Bad tracking statement fot %s: %s",
+					s, err.Error())
+			} else if !uid.Eq(*uid2) {
+				err := fmt.Errorf("Bad UID in tracking statement for %s: %s != %s",
+					s, uid.ToString(), uid2.ToString())
+				return nil, err
+			} else {
+				return link, nil
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {

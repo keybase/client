@@ -675,11 +675,11 @@ func (u1 User) Equal(u2 User) bool {
 	return (u1.id == u2.id)
 }
 
-func (u *User) GetTrackingStatementFor(s string) *TrackChainLink {
+func (u *User) GetTrackingStatementFor(s string, i UID) (*TrackChainLink, error) {
 	if u.IdTable == nil {
-		return nil
+		return nil, nil
 	} else {
-		return u.IdTable.GetTrackingStatementFor(s)
+		return u.IdTable.GetTrackingStatementFor(s, i)
 	}
 }
 
