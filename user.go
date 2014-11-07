@@ -47,6 +47,10 @@ func GetUid(w *jsonw.Wrapper) (u *UID, err error) {
 	return ret, err
 }
 
+func (u UID) Eq(u2 UID) bool {
+	return FastByteArrayEq(u[:], u2[:])
+}
+
 func GetUidVoid(w *jsonw.Wrapper, u *UID, e *error) {
 	ret, err := GetUid(w)
 	if err != nil {

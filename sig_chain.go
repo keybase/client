@@ -199,6 +199,9 @@ func (sc *SigChain) VerifyChainLinks() error {
 		if prev != nil && !prev.Eq(link.GetPrev()) {
 			return fmt.Errorf("Chain mismatch at seqno=%d", link.GetSeqno())
 		}
+		if err := link.CheckNameAndId(sc.username, sc.uid); err != nil {
+			return err
+		}
 		id := link.id
 		prev = &id
 	}

@@ -213,6 +213,19 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	return err
 }
 
+func (c *ChainLink) CheckNameAndId(s string, i UID) error {
+	if !c.unpacked.uid.Eq(i) {
+		return fmt.Errorf("UID mismatch %s != %s in Link %s",
+			c.unpacked.uid.ToString(), i.ToString(), c.id.ToString())
+	}
+	if c.unpacked.username != s {
+		return fmt.Errorf("Username mismatch %s != %s in Link %s",
+			c.unpacked.username, s, c.id.ToString())
+	}
+	return nil
+
+}
+
 func (c *ChainLink) VerifyHash() error {
 	if c.hashVerified {
 		return nil
