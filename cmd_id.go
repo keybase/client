@@ -89,13 +89,13 @@ func NewCmdId(cl *CommandLine) cli.Command {
 				Name:  "t, track-statement",
 				Usage: "output a JSON a track statement for this user",
 			},
-			cli.BoolFlag {
-				Name : "l, luba",
-				Usage : "LookupUserByAssertion",
+			cli.BoolFlag{
+				Name:  "l, luba",
+				Usage: "LookupUserByAssertion",
 			},
-			cli.BoolFlag {
-				Name : "s, load-self",
-				Usage : "Load self for tracking statement",
+			cli.BoolFlag{
+				Name:  "s, load-self",
+				Usage: "Load self for tracking statement",
 			},
 			cli.BoolFlag {
 				Name : "i, uid",

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
+	"regexp"
 	"strings"
 )
 
@@ -66,6 +67,17 @@ func (p CommandLine) GetGString(s string) string {
 }
 func (p CommandLine) GetGInt(s string) int {
 	return p.ctx.GlobalInt(s)
+}
+func (p CommandLine) GetGpg() string {
+	return p.GetGString("gpg")
+}
+func (p CommandLine) GetGpgOptions() []string {
+	var ret []string
+	s := p.GetGString("gpg-options")
+	if len(s) > 0 {
+		ret = regexp.MustCompile(`\s+`).Split(s, -1)
+	}
+	return ret
 }
 func (p CommandLine) GetMerkleKeyFingerprints() []string {
 	s := p.GetGString("merkle-key-fingerprints")
@@ -215,6 +227,14 @@ func (cl *CommandLine) PopulateApp() {
 		cli.IntFlag{
 			Name:  "proof-cache-size",
 			Usage: "number of proof entries to cache",
+		},
+		cli.StringFlag{
+			Name:  "gpg",
+			Usage: "Path to GPG client (optional for exporting keys)",
+		},
+		cli.StringFlag{
+			Name:  "gpg-options",
+			Usage: "Options to use when calling GPG",
 		},
 	}
 
