@@ -220,6 +220,28 @@ func (f JsonConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
 	return res
 }
+func (f JsonConfigFile) GetGpg() string {
+	res, _ := f.GetStringAtPath("gpg.command")
+	return res
+}
+func (f JsonConfigFile) GetGpgOptions() []string {
+	var ret []string
+	if f.jw == nil {
+		// noop
+	} else if v := f.jw.AtPath("gpg.options"); v == nil {
+		// noop
+	} else if l, e := v.Len(); e != nil || l == 0 {
+		// noop
+	} else {
+		ret := make([]string, 0, l)
+		for i := 0; i < l; i++ {
+			if s, e := v.AtIndex(i).GetString(); e != nil {
+				ret = append(ret, s)
+			}
+		}
+	}
+	return ret
+}
 func (f JsonConfigFile) GetNoPinentry() (bool, bool) {
 	return f.GetBoolAtPath("pinentry.disabled")
 }

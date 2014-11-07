@@ -36,6 +36,7 @@ type Global struct {
 	Output        io.Writer     // where 'Stdout'-style output goes
 	ProofCache    *ProofCache   // where to cache proof results
 	SecretEntry   *SecretEntry  // a terminal-or-pinentry system
+	GpgClient     *GpgClient    // A standard GPG-client (optional)
 }
 
 var G Global = Global{

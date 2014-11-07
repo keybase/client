@@ -24,6 +24,8 @@ func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
 func (n NullConfiguration) GetPinentry() string                { return "" }
 func (n NullConfiguration) GetUid() *UID                       { return nil }
+func (n NullConfiguration) GetGpg() string                     { return "" }
+func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false

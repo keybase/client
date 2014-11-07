@@ -33,6 +33,8 @@ type CommandLine interface {
 	GetProofCacheSize() (int, bool)
 	GetMerkleKeyFingerprints() []string
 	GetPinentry() string
+	GetGpg() string
+	GetGpgOptions() []string
 }
 
 type Server interface {
@@ -78,6 +80,8 @@ type ConfigReader interface {
 	GetMerkleKeyFingerprints() []string
 	GetPinentry() string
 	GetNoPinentry() (bool, bool)
+	GetGpg() string
+	GetGpgOptions() []string
 }
 
 type ConfigWriter interface {
@@ -183,4 +187,9 @@ type ExternalAPI interface {
 	GetHtml(ApiArg) (*ExternalHtmlRes, error)
 	GetText(ApiArg) (*ExternalTextRes, error)
 	PostHtml(ApiArg) (*ExternalHtmlRes, error)
+}
+
+type GpgClient interface {
+	Configure() (bool, error)    // bool = Whether the error is fatal or not
+	Export(k PgpKeyBundle) error // Export a key to the GPG keyring
 }
