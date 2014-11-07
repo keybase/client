@@ -91,6 +91,7 @@ type User struct {
 // Thin wrapper around hashicorp's LRU to store users locally
 
 type LoadUserArg struct {
+	Uid              *UID
 	Name             string
 	RName            string // Resolved Name
 	RequirePublicKey bool

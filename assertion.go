@@ -85,6 +85,7 @@ type AssertionUrl interface {
 	Keys() []string
 	Check() error
 	IsKeybase() bool
+	IsUid() bool
 	IsSocial() bool
 	IsFingerprint() bool
 	MatchProof(p Proof) bool
@@ -122,6 +123,7 @@ func (a AssertionUrlBase) matchSet(v AssertionUrl, ps ProofSet) bool {
 
 func (a AssertionUrlBase) HasOr() bool { return false }
 
+func (a AssertionUid) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
 func (a AssertionKeybase) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
 func (a AssertionWeb) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
 func (a AssertionSocial) MatchSet(ps ProofSet) bool  { return a.matchSet(a, ps) }
@@ -139,6 +141,7 @@ func (a AssertionUrlBase) Keys() []string      { return []string{a.Key} }
 func (a AssertionUrlBase) IsKeybase() bool     { return false }
 func (a AssertionUrlBase) IsSocial() bool      { return false }
 func (a AssertionUrlBase) IsFingerprint() bool { return false }
+func (a AssertionUrlBase) IsUid() bool         { return false }
 func (a AssertionUrlBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == a.Value)
 }
@@ -156,6 +159,7 @@ func (a AssertionFingerprint) MatchProof(proof Proof) bool {
 	}
 }
 
+func (a AssertionUid) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
 func (a AssertionKeybase) CollectUrls(v []AssertionUrl) []AssertionUrl     { return append(v, a) }
 func (a AssertionWeb) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
 func (a AssertionSocial) CollectUrls(v []AssertionUrl) []AssertionUrl      { return append(v, a) }
@@ -167,6 +171,7 @@ func (a AssertionFingerprint) CollectUrls(v []AssertionUrl) []AssertionUrl { ret
 type AssertionSocial struct{ AssertionUrlBase }
 type AssertionWeb struct{ AssertionUrlBase }
 type AssertionKeybase struct{ AssertionUrlBase }
+type AssertionUid struct{ AssertionUrlBase }
 type AssertionHttp struct{ AssertionUrlBase }
 type AssertionHttps struct{ AssertionUrlBase }
 type AssertionDns struct{ AssertionUrlBase }
@@ -257,9 +262,19 @@ func parseToKVPair(s string) (key string, value string, err error) {
 func (k AssertionKeybase) IsKeybase() bool         { return true }
 func (k AssertionSocial) IsSocial() bool           { return true }
 func (k AssertionFingerprint) IsFingerprint() bool { return true }
+func (k AssertionUid) IsUid() bool                 { return true }
 
 func (k AssertionKeybase) ToLookup() (key, value string, err error) {
 	return "username", k.Value, nil
+}
+
+func (k AssertionUid) ToLookup() (key, value string, err error) {
+	return "uid", k.Value, nil
+}
+
+func (u AssertionUid) Check() (err error) {
+	_, err = UidFromHex(u.Value)
+	return
 }
 
 func (s AssertionSocial) Check() (err error) {
@@ -305,6 +320,8 @@ func ParseAssertionUrlKeyValue(key, val string,
 	switch key {
 	case "keybase":
 		ret = AssertionKeybase{base}
+	case "uid":
+		ret = AssertionUid{base}
 	case "web":
 		ret = AssertionWeb{base}
 	case "http":
