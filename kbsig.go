@@ -54,7 +54,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	track.SetKey("key", u.ToTrackingStatementKey(&err))
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
-	track.SetKey("id", jsonw.NewString(string(u.id)))
+	track.SetKey("id", jsonw.NewString(u.id.ToString()))
 	track.SetKey("remote_key_proofs", u.IdTable.ToTrackingStatement())
 
 	if err != nil {
@@ -69,7 +69,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 
 func (u *User) ToKeyStanza() (*jsonw.Wrapper, error) {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("uid", jsonw.NewString(string(u.id)))
+	ret.SetKey("uid", jsonw.NewString(u.id.ToString()))
 	ret.SetKey("username", jsonw.NewString(u.name))
 	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
 	if fp, err := u.GetActivePgpFingerprint(); err != nil {

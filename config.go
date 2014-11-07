@@ -159,7 +159,7 @@ func (f *JsonConfigFile) SetUsername(s string) {
 }
 
 func (f *JsonConfigFile) SetUid(u UID) {
-	f.SetUserField("id", string(u))
+	f.SetUserField("id", string(u.ToString()))
 }
 
 func (f *JsonConfigFile) SetSalt(s string) {

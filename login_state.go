@@ -134,7 +134,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 	if err != nil {
 		return err
 	}
-	uid, err := b.AtKey("uid").GetString()
+	uid, err := GetUid(b.AtKey("uid"))
 	if err != nil {
 		return nil
 	}
@@ -143,7 +143,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 		return nil
 	}
 
-	s.loggedInRes = &LoggedInResult{session_id, csrf_token, UID(uid), uname}
+	s.loggedInRes = &LoggedInResult{session_id, csrf_token, *uid, uname}
 	return nil
 }
 

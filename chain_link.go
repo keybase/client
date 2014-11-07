@@ -179,13 +179,12 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 		return err
 	}
 
-	var uid_tmp string
 	var sq int64
 
 	GetPgpFingerprintVoid(c.payloadJson.AtPath("body.key.fingerprint"),
 		&tmp.pgpFingerprint, &err)
 	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
-	c.payloadJson.AtPath("body.key.uid").GetStringVoid(&uid_tmp, &err)
+	GetUidVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
 	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
 	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
@@ -204,7 +203,6 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 	}
 
 	if err == nil {
-		tmp.uid = UID(uid_tmp)
 		tmp.seqno = Seqno(sq)
 		tmp.etime = tmp.ctime + ei
 		c.unpacked = &tmp

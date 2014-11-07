@@ -241,7 +241,7 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	uid, err := res.Body.AtKey("uid").GetString()
+	uid, err := GetUid(res.Body.AtKey("uid"))
 	if err != nil {
 		return
 	}
@@ -261,7 +261,7 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		}
 	}
 
-	vp = &VerificationPath{UID(uid), root, path_out}
+	vp = &VerificationPath{*uid, root, path_out}
 	return
 }
 
@@ -441,7 +441,8 @@ func ParseMerkleUserLeaf(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
 func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 
 	curr := vp.root.rootHash
-	bpath := string(vp.uid)
+	uid_s := vp.uid.ToString()
+	bpath := uid_s
 	pos := 0
 	last_typ := 0
 
@@ -488,7 +489,7 @@ func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 			}
 			juser = nil
 		} else {
-			juser, err = jw.AtKey("tab").AtKey(string(vp.uid)).ToArray()
+			juser, err = jw.AtKey("tab").AtKey(uid_s).ToArray()
 			if err != nil {
 				err = fmt.Errorf("Didn't find a leaf for user in tree: %s",
 					err.Error())

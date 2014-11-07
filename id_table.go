@@ -49,7 +49,7 @@ func (b *GenericChainLink) markRevoked(r TypedChainLink) {
 }
 func (b *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s",
-		string(b.parent.uid), b.unpacked.seqno, b.id.ToString())
+		string(b.parent.uid.ToString()), b.unpacked.seqno, b.id.ToString())
 }
 
 func (g *GenericChainLink) IsRevocationIsh() bool { return false }

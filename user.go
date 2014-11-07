@@ -1,12 +1,61 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/go-jsonw"
 )
 
-type UID string
+const (
+	UID_LEN    = 16
+	UID_SUFFIX = 0x00
+)
+
+type UID [UID_LEN]byte
+
+func (u UID) ToString() string {
+	return hex.EncodeToString(u[:])
+}
+
+func UidFromHex(s string) (u *UID, err error) {
+	var bv []byte
+	bv, err = hex.DecodeString(s)
+	if err != nil {
+		return
+	}
+	if len(bv) != UID_LEN {
+		err = fmt.Errorf("Bad UID '%s'; must be %d bytes long", UID_LEN)
+		return
+	}
+	if bv[len(bv)-1] != UID_SUFFIX {
+		err = fmt.Errorf("Bad UID '%s': must end in 0x'%x'", UID_SUFFIX)
+		return
+	}
+	out := UID{}
+	copy(out[:], bv[0:UID_LEN])
+	u = &out
+	return
+}
+
+func GetUid(w *jsonw.Wrapper) (u *UID, err error) {
+	s, err := w.GetString()
+	if err != nil {
+		return nil, err
+	}
+	ret, err := UidFromHex(s)
+	return ret, err
+}
+
+func GetUidVoid(w *jsonw.Wrapper, u *UID, e *error) {
+	ret, err := GetUid(w)
+	if err != nil {
+		*e = err
+	} else {
+		*u = *ret
+	}
+	return
+}
 
 type User struct {
 	// Raw JSON element read from the server or our local DB.
@@ -120,13 +169,13 @@ func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
 
 func NewUser(o *jsonw.Wrapper) (*User, error) {
 
-	id, err := o.AtKey("id").GetString()
+	uid, err := GetUid(o.AtKey("id"))
 	if err != nil {
 		return nil, fmt.Errorf("user object lacks an ID")
 	}
 	name, err := o.AtKey("basics").AtKey("username").GetString()
 	if err != nil {
-		return nil, fmt.Errorf("user object for %s lacks a name", id)
+		return nil, fmt.Errorf("user object for %s lacks a name", uid.ToString())
 	}
 
 	return &User{
@@ -134,7 +183,7 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		publicKeys:  o.AtKey("public_keys"),
 		sigs:        o.AtKey("sigs"),
 		privateKeys: o.AtKey("private_keys"),
-		id:          UID(id),
+		id:          *uid,
 		name:        name,
 		loggedIn:    false,
 		dirty:       false,
@@ -440,15 +489,16 @@ func (u *User) Store() error {
 
 func (u *User) StoreTopLevel() error {
 
+	uid_s := u.id.ToString()
 	jw := jsonw.NewDictionary()
-	jw.SetKey("id", jsonw.NewString(string(u.id)))
+	jw.SetKey("id", jsonw.NewString(uid_s))
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
 	jw.SetKey("privateKeys", u.privateKeys)
 
 	err := G.LocalDb.Put(
-		DbKey{Typ: DB_USER, Key: string(u.id)},
+		DbKey{Typ: DB_USER, Key: uid_s},
 		[]DbKey{{Typ: DB_LOOKUP_USERNAME, Key: u.name}},
 		jw,
 	)
@@ -461,7 +511,7 @@ func LookupMerkleLeaf(name string, local *User) (f *MerkleUserLeaf, err error) {
 	if local == nil {
 		q.Add("username", S{name})
 	} else {
-		q.Add("uid", S{string(local.id)})
+		q.Add("uid", S{local.id.ToString()})
 	}
 
 	f, err = G.MerkleClient.LookupUser(q)

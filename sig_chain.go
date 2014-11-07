@@ -78,18 +78,19 @@ func reverse(list []*ChainLink) []*ChainLink {
 func (sc *SigChain) LoadFromServer(t *MerkleTriple) error {
 
 	low := 0
+	uid_s := sc.uid.ToString()
 	if sc.base != nil {
 		low = sc.base.lastSeqno + 1
 	}
 
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)",
-		string(sc.uid), low)
+		uid_s, low)
 
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "sig/get",
 		NeedSession: false,
 		Args: HttpArgs{
-			"uid": S{string(sc.uid)},
+			"uid": S{uid_s},
 			"low": I{low},
 		},
 	})
@@ -339,7 +340,7 @@ func (sc *SigChain) VerifyId(key *PgpKeyBundle) error {
 	}
 
 	return fmt.Errorf("No proof of UID %s for user %s w/ key %s",
-		string(sc.uid), sc.username, fp.ToString())
+		sc.uid.ToString(), sc.username, fp.ToString())
 }
 
 func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
