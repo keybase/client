@@ -18,6 +18,13 @@ func main() {
 		log.Fatal("Usage:\n  kbfs MOUNTPOINT")
 	}
 
+	libkb.G.Init()
+	libkb.G.ConfigureConfig()
+	libkb.G.ConfigureLogging()
+	libkb.G.ConfigureCaches()
+	libkb.G.ConfigureAPI()
+	libkb.G.ConfigureMerkleClient()
+
 	config := libkbfs.NewConfigLocal()
 	root := libkbfs.NewFuseRoot(config)
 
@@ -27,9 +34,5 @@ func main() {
 	}
 
 	server.SetDebug(true)
-	libkb.G.Init()
-	libkb.G.ConfigureLogging()
-	libkb.G.ConfigureCaches()
-	libkb.G.ConfigureAPI()
 	server.Serve()
 }
