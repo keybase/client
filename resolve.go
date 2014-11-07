@@ -22,27 +22,22 @@ func (c *UserCache) PutResolution(key string, val string, err error) {
 
 //==================================================================
 
-type ResolveRes struct {
+type ResolveResult struct {
 	name string
 	uid  UID
 	body *jsonw.Wrapper
+	err  error
 }
 
-func ResolveUsername(input string) (res *ResolveRes, err error) {
-	var output string
+func ResolveUsername(input string) (res ResolveResult) {
 	G.Log.Debug("+ Resolving username %s", input)
 	var au AssertionUrl
-	au, err = ParseAssertionUrl(input, false)
-	if err != nil {
+	if au, res.err = ParseAssertionUrl(input, false); res.err != nil {
 		return
 	}
-	output, err = _resolveUsername(au)
-	if err != nil {
+	if res.output, res.err = _resolveUsername(au); res.err != nil {
 		return
 	}
-
-	res = &ResolveRes{name: output}
-	G.Log.Debug("- Resolved username %s -> %s", input, output)
 	return
 }
 
