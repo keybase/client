@@ -4,21 +4,26 @@ import (
 	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
 	"os"
+	"sync"
 )
 
 type LevelDb struct {
 	db       *leveldb.DB
 	filename string
+	mutex    *sync.Mutex
 }
 
 func NewLevelDb() *LevelDb {
-	return &LevelDb{nil, ""}
+	return &LevelDb{nil, "", new(sync.Mutex)}
 }
 
 // Explicit open does nothing we'll wait for a lazy open
 func (l *LevelDb) Open() error { return nil }
 
 func (l *LevelDb) open() error {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	var err error
 	if l.db == nil {
 		fn := l.GetFilename()
