@@ -41,6 +41,15 @@ func (l *LevelDb) GetFilename() string {
 }
 
 func (l *LevelDb) Close() error {
+	return l.close(true)
+}
+
+func (l *LevelDb) close(doLock bool) error {
+	if doLock {
+		l.mutex.Lock()
+		defer l.mutex.Unlock()
+	}
+
 	var err error
 	if l.db != nil {
 		G.Log.Debug("Closing LevelDB local cache: %s", l.GetFilename())
@@ -51,7 +60,10 @@ func (l *LevelDb) Close() error {
 }
 
 func (l *LevelDb) Nuke() error {
-	err := l.Close()
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	err := l.close(false)
 	if err == nil {
 		fn := l.GetFilename()
 		G.Log.Warning("Nuking database %s", fn)
