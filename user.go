@@ -585,15 +585,16 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		// noop
 	} else if len(arg.Name) == 0 && !arg.Self {
 		err = fmt.Errorf("no username given to LoadUser")
-		return
 	} else if len(arg.Name) > 0 && arg.Self {
 		err = fmt.Errorf("If loading self, can't provide a username")
+	} else if !arg.Self {
+		// noop
+	} else if arg.Uid = G.Env.GetUid(); arg.Uid != nil {
+		arg.Name = G.Env.GetUsername()
+	}
+
+	if err != nil {
 		return
-	} else if arg.Self {
-		arg.Uid = G.Env.GetUid()
-		if arg.Uid != nil {
-			arg.Name = G.Env.GetUsername()
-		}
 	}
 
 	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.Uid, arg.Name)
