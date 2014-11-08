@@ -86,6 +86,7 @@ type AssertionUrl interface {
 	Check() error
 	IsKeybase() bool
 	IsUid() bool
+	ToUid() *UID
 	IsSocial() bool
 	IsFingerprint() bool
 	MatchProof(p Proof) bool
@@ -142,6 +143,7 @@ func (a AssertionUrlBase) IsKeybase() bool     { return false }
 func (a AssertionUrlBase) IsSocial() bool      { return false }
 func (a AssertionUrlBase) IsFingerprint() bool { return false }
 func (a AssertionUrlBase) IsUid() bool         { return false }
+func (a AssertionUrlBase) ToUid() *UID         { return nil }
 func (a AssertionUrlBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == a.Value)
 }
@@ -171,7 +173,10 @@ func (a AssertionFingerprint) CollectUrls(v []AssertionUrl) []AssertionUrl { ret
 type AssertionSocial struct{ AssertionUrlBase }
 type AssertionWeb struct{ AssertionUrlBase }
 type AssertionKeybase struct{ AssertionUrlBase }
-type AssertionUid struct{ AssertionUrlBase }
+type AssertionUid struct {
+	AssertionUrlBase
+	uid *UID
+}
 type AssertionHttp struct{ AssertionUrlBase }
 type AssertionHttps struct{ AssertionUrlBase }
 type AssertionDns struct{ AssertionUrlBase }
@@ -264,6 +269,15 @@ func (k AssertionSocial) IsSocial() bool           { return true }
 func (k AssertionFingerprint) IsFingerprint() bool { return true }
 func (k AssertionUid) IsUid() bool                 { return true }
 
+func (u AssertionUid) ToUid() *UID {
+	if u.uid == nil {
+		if tmp, err := UidFromHex(u.Value); err != nil {
+			u.uid = tmp
+		}
+	}
+	return u.uid
+}
+
 func (k AssertionKeybase) ToLookup() (key, value string, err error) {
 	return "username", k.Value, nil
 }
@@ -273,7 +287,7 @@ func (k AssertionUid) ToLookup() (key, value string, err error) {
 }
 
 func (u AssertionUid) Check() (err error) {
-	_, err = UidFromHex(u.Value)
+	u.uid, err = UidFromHex(u.Value)
 	return
 }
 
@@ -321,7 +335,7 @@ func ParseAssertionUrlKeyValue(key, val string,
 	case "keybase":
 		ret = AssertionKeybase{base}
 	case "uid":
-		ret = AssertionUid{base}
+		ret = AssertionUid{base, nil}
 	case "web":
 		ret = AssertionWeb{base}
 	case "http":

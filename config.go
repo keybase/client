@@ -229,8 +229,12 @@ func (f JsonConfigFile) GetUsername() string {
 func (f JsonConfigFile) GetSalt() string {
 	return f.GetUserField("salt")
 }
-func (f JsonConfigFile) GetUid() string {
-	return f.GetUserField("id")
+func (f JsonConfigFile) GetUid() *UID {
+	i, err := UidFromHex(f.GetUserField("id"))
+	if err != nil {
+		i = nil
+	}
+	return i
 }
 func (f JsonConfigFile) GetEmail() (ret string) {
 	return f.GetTopLevelString("email")

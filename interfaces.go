@@ -23,6 +23,7 @@ type CommandLine interface {
 	GetDbFilename() string
 	GetDebug() (bool, bool)
 	GetUsername() string
+	GetUid() *UID
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string
@@ -62,6 +63,7 @@ type ConfigReader interface {
 	GetDbFilename() string
 	GetDebug() (bool, bool)
 	GetUsername() string
+	GetUid() *UID
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string

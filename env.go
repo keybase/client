@@ -23,6 +23,7 @@ func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false
 func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false }
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
 func (n NullConfiguration) GetPinentry() string                { return "" }
+func (n NullConfiguration) GetUid() *UID                       { return nil }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -339,6 +340,21 @@ func (e Env) GetOrPromptForEmailOrUsername() (string, bool, error) {
 // XXX implement me
 func (e Env) GetTestMode() bool {
 	return false
+}
+
+func (e Env) GetUid() *UID {
+	if i := e.cmd.GetUid(); i != nil {
+		return i
+	}
+	if s := os.Getenv("KEYBASE_USER_ID"); len(s) > 0 {
+		if i, err := UidFromHex(s); err != nil {
+			return i
+		}
+	}
+	if i := e.config.GetUid(); i != nil {
+		return i
+	}
+	return nil
 }
 
 func (e Env) GetStringList(list ...(func() []string)) []string {

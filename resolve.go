@@ -7,103 +7,109 @@ import (
 
 //==================================================================
 
-func (c *UserCache) GetResolution(key string) (string, bool, error) {
+func (c *UserCache) GetResolution(key string) *ResolveResult {
 	res, found := c.resolveCache[key]
 	if found {
-		return res.res, true, res.err
+		return &res
 	} else {
-		return "", false, nil
+		return nil
 	}
 }
 
-func (c *UserCache) PutResolution(key string, val string, err error) {
-	c.resolveCache[key] = ResolveResult{val, err}
+func (c *UserCache) PutResolution(key string, res ResolveResult) {
+	res.body = nil
+	c.resolveCache[key] = res
 }
 
 //==================================================================
 
 type ResolveResult struct {
-	name string
-	uid  UID
+	uid  *UID
 	body *jsonw.Wrapper
 	err  error
 }
 
-func ResolveUsername(input string) (res ResolveResult) {
+func ResolveUid(input string) (res ResolveResult) {
 	G.Log.Debug("+ Resolving username %s", input)
 	var au AssertionUrl
 	if au, res.err = ParseAssertionUrl(input, false); res.err != nil {
 		return
 	}
-	if res.output, res.err = _resolveUsername(au); res.err != nil {
-		return
-	}
+	res = _resolveUid(au)
 	return
 }
 
-func ResolveUsernameKeyValuePair(key, value string) (string, error) {
-	var output string
+func ResolveUidValuePair(key, value string) (res ResolveResult) {
 	G.Log.Debug("+ Resolve username (%s,%s)", key, value)
 
-	au, err := ParseAssertionUrlKeyValue(key, value, false)
-	if err == nil {
-		output, err = _resolveUsername(au)
+	var au AssertionUrl
+	if au, res.err = ParseAssertionUrlKeyValue(key, value, false); res.err != nil {
+		res = _resolveUid(au)
 	}
 
-	G.Log.Debug("- Resolve username (%s,%s) -> %s", key, value, output)
-	return output, nil
+	G.Log.Debug("- Resolve username (%s,%s) -> %v", key, value, res.uid)
+	return
 }
 
-func _resolveUsername(au AssertionUrl) (out string, err error) {
-	// A standard keybase name, so it's already resolved
-	if au.IsKeybase() {
-		return au.GetValue(), nil
+func _resolveUid(au AssertionUrl) ResolveResult {
+	// A standard keybase UID, so it's already resolved
+	if tmp := au.ToUid(); tmp != nil {
+		return ResolveResult{uid: tmp}
 	}
 
-	if out, found, err := G.UserCache.GetResolution(au.CacheKey()); found {
-		return out, err
+	ck := au.CacheKey()
+
+	if p := G.UserCache.GetResolution(ck); p != nil {
+		return *p
 	}
 
-	out, err = __resolveUsername(au)
-	G.UserCache.PutResolution(au.CacheKey(), out, err)
+	r := __resolveUsername(au)
+	G.UserCache.PutResolution(ck, r)
 
-	return out, err
+	return r
 }
 
-func __resolveUsername(au AssertionUrl) (out string, err error) {
+func __resolveUsername(au AssertionUrl) (res ResolveResult) {
 
-	key, val, err := au.ToLookup()
-	if err != nil {
+	var key, val string
+	var ares *ApiRes
+	var l int
+
+	if key, val, res.err = au.ToLookup(); res.err != nil {
 		return
 	}
 
-	res, err := G.API.Get(ApiArg{
+	ha := HttpArgsFromKeyValuePair(key, S{val})
+	ha.Add("multi", I{1})
+	ares, res.err = G.API.Get(ApiArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
-		Args:        HttpArgsFromKeyValuePair(key, S{val}),
+		Args:        ha,
 	})
 
-	if err != nil {
+	if res.err != nil {
 		return
 	}
 
-	them, err := res.Body.AtKey("them").ToArray()
-	if err != nil {
-		return
-	}
-	l, err := them.Len()
-	if err != nil {
+	var them *jsonw.Wrapper
+	if them, res.err = ares.Body.AtKey("them").ToArray(); res.err != nil {
 		return
 	}
 
+	if l, res.err = them.Len(); res.err != nil {
+		return
+	}
+
+	// Aggressive caching of incidental data...
 	G.UserCache.CacheServerGetVector(them)
 
 	if l == 0 {
-		err = fmt.Errorf("No resolution found for %s", au.ToString())
+		res.err = fmt.Errorf("No resolution found for %s", au.ToString())
 	} else if l > 1 {
-		err = fmt.Errorf("Identity '%s' is ambiguous", au.ToString())
+		res.err = fmt.Errorf("Identity '%s' is ambiguous", au.ToString())
 	} else {
-		out, err = them.AtIndex(0).AtKey("basics").AtKey("username").GetString()
+		res.body = them.AtIndex(0)
+		res.uid, res.err = GetUid(res.body.AtKey("id"))
 	}
 
 	return
