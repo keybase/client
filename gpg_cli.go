@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"io"
 	"os/exec"
 	"sync"
 )
@@ -55,6 +56,52 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 	return
 }
 
-func (g *GpgCLI) Export(k PgpKeyBundle) error {
+func (g *GpgCLI) Export(k PgpKeyBundle) (err error) {
+	opts := []string{"--import"}
+	if g.options != nil {
+		opts = append(opts, g.options...)
+	}
+	cmd := exec.Command(g.path, opts...)
+	waited := false
+
+	var stdin io.WriteCloser
+	var stdout, stderr io.ReadCloser
+
+	if stdin, err = cmd.StdinPipe(); err != nil {
+		return
+	}
+	if stdout, err = cmd.StdoutPipe(); err != nil {
+		return
+	}
+	if stderr, err = cmd.StderrPipe(); err != nil {
+		return
+	}
+	if err = cmd.Start(); err != nil {
+		return
+	}
+	defer func() {
+		if !waited {
+			cmd.Wait()
+		}
+	}()
+
+	if err = k.EncodeToStream(stdin); err != nil {
+		return
+	}
+
+	if err = stdin.Close(); err != nil {
+		return
+	}
+
+	DrainPipe(stdout, func(s string) { G.Log.Info(s) })
+	DrainPipe(stderr, func(s string) { G.Log.Warning(s) })
+
+	err = cmd.Wait()
+	waited = true
+
+	if err != nil {
+		return
+	}
+
 	return nil
 }

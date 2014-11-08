@@ -146,11 +146,19 @@ func (k PgpKeyBundle) MatchesKey(key *openpgp.Key) bool {
 
 func (k *PgpKeyBundle) Encode() (ret string, err error) {
 	buf := bytes.Buffer{}
+	err = k.EncodeToStream(noOpCloser{&buf})
+	if err == nil {
+		ret = string(buf.Bytes())
+	}
+	return
+}
+
+func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 
 	// See Issue #32
 	empty_headers := make(map[string]string)
 	var writer io.WriteCloser
-	writer, err = armor.Encode(&buf, "PGP PUBLIC KEY BLOCK", empty_headers)
+	writer, err = armor.Encode(wc, "PGP PUBLIC KEY BLOCK", empty_headers)
 
 	if err != nil {
 		return
@@ -163,9 +171,6 @@ func (k *PgpKeyBundle) Encode() (ret string, err error) {
 	if err = writer.Close(); err != nil {
 		return
 	}
-
-	ret = string(buf.Bytes())
-
 	return
 }
 

@@ -1,8 +1,10 @@
 package libkb
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/hmac"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -99,4 +101,12 @@ func GiveMeAnS(i int) string {
 
 func KeybaseEmailAddress(s string) string {
 	return s + "@keybase.io"
+}
+
+func DrainPipe(rc io.Reader, sink func(string)) error {
+	scanner := bufio.NewScanner(rc)
+	for scanner.Scan() {
+		sink(scanner.Text())
+	}
+	return scanner.Err()
 }
