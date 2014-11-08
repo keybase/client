@@ -397,3 +397,18 @@ func (e Env) GetMerkleKeyFingerprints() []PgpFingerprint {
 
 	return ret
 }
+
+func (e Env) GetGpg() string {
+	return e.GetString(
+		func() string { return e.cmd.GetGpg() },
+		func() string { return os.Getenv("GPG") },
+		func() string { return e.config.GetGpg() },
+	)
+}
+
+func (e Env) GetGpgOptions() []string {
+	return e.GetStringList(
+		func() []string { return e.cmd.GetGpgOptions() },
+		func() []string { return e.config.GetGpgOptions() },
+	)
+}
