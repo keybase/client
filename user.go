@@ -284,13 +284,13 @@ func LoadUserFromLocalStorage(uid UID, allKeys bool) (u *User, err error) {
 			uid_s, u.id.ToString())
 	}
 
-	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, u.id)
+	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, uid_s)
 
 	if err = u.LoadSigChainFromStorage(allKeys); err != nil {
 		return nil, err
 	}
 
-	G.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, u.id)
+	G.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid_s)
 
 	return
 }

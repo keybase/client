@@ -143,8 +143,9 @@ func (sc *SigChain) LoadFromStorage(allKeys bool) error {
 	if sc.fromStorage {
 		return nil
 	}
+	uid_s := sc.uid.ToString()
 
-	G.Log.Debug("+ %s: loading signature chain", sc.uid)
+	G.Log.Debug("+ SigChain.LoadFromStorage(%s)", uid_s)
 
 	lim := sc.lastSeqno + 1
 	links := make([]*ChainLink, lim, lim)
@@ -178,7 +179,7 @@ func (sc *SigChain) LoadFromStorage(allKeys bool) error {
 
 	sc.chainLinks = links
 
-	G.Log.Debug("- %s: loaded signature chain", sc.uid)
+	G.Log.Debug("- SigChain.LoadFromStorage(%s)", uid_s)
 	sc.fromStorage = true
 	sc.dirty = false
 
@@ -349,7 +350,8 @@ func (sc *SigChain) VerifyId(key *PgpKeyBundle) error {
 func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 
 	cached = false
-	G.Log.Debug("+ VerifyWithKey for user %s", sc.uid)
+	uid_s := sc.uid.ToString()
+	G.Log.Debug("+ VerifyWithKey for user %s", uid_s)
 
 	if sc.sigVerified {
 		cached = true
@@ -372,14 +374,15 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 		sc.sigVerified = true
 	}
 
-	G.Log.Debug("- VerifyWithKey for user %s -> %v", sc.uid, (err == nil))
+	G.Log.Debug("- VerifyWithKey for user %s -> %v", uid_s, (err == nil))
 
 	return
 }
 
 func (sc *SigChain) VerifyChain() error {
 
-	G.Log.Debug("+ VerifyChain() for %s", sc.uid)
+	uid_s := sc.uid.ToString()
+	G.Log.Debug("+ VerifyChain() for %s", uid_s)
 
 	if sc.chainVerified {
 		return nil
@@ -397,11 +400,11 @@ func (sc *SigChain) VerifyChain() error {
 		}
 		if !sc.GetPrevId().Eq(sc.base.GetLastId()) {
 			return fmt.Errorf("Stored chain doesn't match fetched chain for %s",
-				sc.uid)
+				uid_s)
 		}
 	}
 
 	sc.chainVerified = true
-	G.Log.Debug("- VerifyChain() for %s", sc.uid)
+	G.Log.Debug("- VerifyChain() for %s", uid_s)
 	return nil
 }

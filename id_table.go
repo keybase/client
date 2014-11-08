@@ -722,26 +722,25 @@ func (idt *IdentityTable) VerifySelfSig(s string, uid UID) bool {
 	return false
 }
 
-func (idt *IdentityTable) GetTrackingStatementFor(s string, uid UID) (*TrackChainLink, error) {
+func (idt *IdentityTable) GetTrackingStatementFor(s string, uid UID) (
+	ret *TrackChainLink, err error) {
 	if list, found := idt.tracks[s]; found {
 		l := len(list)
-		for i := l - 1; i >= 0; i-- {
+		for i := l - 1; i >= 0 && ret == nil && err == nil; i-- {
 			link := list[i]
 			if link.IsRevoked() {
 				// noop; continue on!
-			} else if uid2, err := link.GetTrackedUid(); err != nil {
-				return nil, fmt.Errorf("Bad tracking statement fot %s: %s",
-					s, err.Error())
+			} else if uid2, e2 := link.GetTrackedUid(); e2 != nil {
+				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2.Error())
 			} else if !uid.Eq(*uid2) {
-				err := fmt.Errorf("Bad UID in tracking statement for %s: %s != %s",
+				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s",
 					s, uid.ToString(), uid2.ToString())
-				return nil, err
 			} else {
-				return link, nil
+				ret = link
 			}
 		}
 	}
-	return nil, nil
+	return
 }
 
 func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {
