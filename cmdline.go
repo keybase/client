@@ -34,6 +34,15 @@ func (p CommandLine) GetDebug() (bool, bool) {
 func (p CommandLine) GetUsername() string {
 	return p.GetGString("username")
 }
+func (p CommandLine) GetUid() *libkb.UID {
+	if s := p.GetGString("uid"); len(s) == 0 {
+		return nil
+	} else if i, e := libkb.UidFromHex(s); e == nil {
+		return i
+	} else {
+		return nil
+	}
+}
 func (p CommandLine) GetEmail() string {
 	return p.GetGString("email")
 }
@@ -165,6 +174,10 @@ func (cl *CommandLine) PopulateApp() {
 		cli.StringFlag{
 			Name:  "username, u",
 			Usage: "specify Keybase username of the current user",
+		},
+		cli.StringFlag{
+			Name : "uid, i",
+			Usage : "specify Keybase UID for current user",
 		},
 		cli.StringFlag{
 			Name:  "pinentry",
