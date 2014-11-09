@@ -600,15 +600,20 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.Uid, arg.Name)
 
 	var rres ResolveResult
-	if rres = ResolveUid(arg.Name); rres.err != nil {
-		err = rres.err
-		return
-	} else if rres.uid == nil {
-		err = fmt.Errorf("No resolution for name=%s", arg.Name)
-		return
+	var uid UID
+	if arg.Uid == nil {
+		if rres = ResolveUid(arg.Name); rres.err != nil {
+			err = rres.err
+			return
+		} else if rres.uid == nil {
+			err = fmt.Errorf("No resolution for name=%s", arg.Name)
+			return
+		}
+		uid = *rres.uid
+		arg.Uid = &uid
+	} else {
+		uid = *arg.Uid
 	}
-	uid := *rres.uid
-	arg.Uid = &uid
 
 	G.Log.Debug("| resolved to %s", uid.ToString())
 
