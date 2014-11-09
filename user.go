@@ -601,18 +601,17 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var rres ResolveResult
 	var uid UID
-	if arg.Uid == nil {
-		if rres = ResolveUid(arg.Name); rres.err != nil {
-			err = rres.err
-			return
-		} else if rres.uid == nil {
-			err = fmt.Errorf("No resolution for name=%s", arg.Name)
-			return
-		}
+	if arg.Uid != nil {
+		uid = *arg.Uid
+	} else if rres = ResolveUid(arg.Name); rres.err != nil {
+		err = rres.err
+		return
+	} else if rres.uid == nil {
+		err = fmt.Errorf("No resolution for name=%s", arg.Name)
+		return
+	} else {
 		uid = *rres.uid
 		arg.Uid = &uid
-	} else {
-		uid = *arg.Uid
 	}
 
 	G.Log.Debug("| resolved to %s", uid.ToString())
