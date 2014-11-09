@@ -192,5 +192,5 @@ type ExternalAPI interface {
 // A minimal access to the GPG client.
 type GpgClient interface {
 	Configure() (bool, error)    // bool = Whether the error is fatal or not
-	Export(k PgpKeyBundle) error // Export a key to the GPG keyring
+	Import(k PgpKeyBundle) error // Import a key into the GPG keyring
 }

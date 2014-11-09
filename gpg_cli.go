@@ -56,52 +56,101 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 	return
 }
 
-func (g *GpgCLI) Export(k PgpKeyBundle) (err error) {
-	opts := []string{"--import"}
-	if g.options != nil {
-		opts = append(opts, g.options...)
+type RunGpgArg struct {
+	Arguments []string
+	Stdin     bool
+	Stderr    io.WriteCloser
+	Stdout    io.WriteCloser
+}
+
+type RunGpgRes struct {
+	Stdin io.WriteCloser
+	Err   error
+	Wait  func() error
+}
+
+func (g *GpgCLI) Import(k PgpKeyBundle) (err error) {
+	arg := RunGpgArg{
+		Arguments: []string{"--import"},
+		Stdin:     true,
 	}
-	cmd := exec.Command(g.path, opts...)
+	res := g.Run(arg)
+	if res.Err != nil {
+		return res.Err
+	}
+
+	e1 := k.EncodeToStream(res.Stdin)
+	e2 := res.Stdin.Close()
+	e3 := res.Wait()
+	return PickFirstError(e1, e2, e3)
+}
+
+func (g *GpgCLI) Run(arg RunGpgArg) (res RunGpgRes) {
+
+	var args []string
+	if g.options != nil {
+		args := make([]string, 0, len(g.options))
+		copy(args, g.options)
+		args = append(args, arg.Arguments...)
+	} else {
+		args = arg.Arguments
+	}
+
+	cmd := exec.Command(g.path, args...)
+
 	waited := false
 
-	var stdin io.WriteCloser
 	var stdout, stderr io.ReadCloser
 
-	if stdin, err = cmd.StdinPipe(); err != nil {
-		return
-	}
-	if stdout, err = cmd.StdoutPipe(); err != nil {
-		return
-	}
-	if stderr, err = cmd.StderrPipe(); err != nil {
-		return
-	}
-	if err = cmd.Start(); err != nil {
-		return
-	}
-	defer func() {
-		if !waited {
-			cmd.Wait()
+	if arg.Stdin {
+		if res.Stdin, res.Err = cmd.StdinPipe(); res.Err != nil {
+			return
 		}
-	}()
-
-	if err = k.EncodeToStream(stdin); err != nil {
+	}
+	if stdout, res.Err = cmd.StdoutPipe(); res.Err != nil {
+		return
+	}
+	if stderr, res.Err = cmd.StderrPipe(); res.Err != nil {
 		return
 	}
 
-	if err = stdin.Close(); err != nil {
+	if res.Err = cmd.Start(); res.Err != nil {
 		return
 	}
 
-	DrainPipe(stdout, func(s string) { G.Log.Info(s) })
-	DrainPipe(stderr, func(s string) { G.Log.Warning(s) })
-
-	err = cmd.Wait()
-	waited = true
-
-	if err != nil {
-		return
+	waitfn := func() error {
+		if !waited {
+			waited = true
+			return cmd.Wait()
+		} else {
+			return nil
+		}
 	}
 
-	return nil
+	if arg.Stdin {
+		res.Wait = waitfn
+	} else {
+		defer waitfn()
+	}
+
+	var e1, e2, e3 error
+
+	if arg.Stdout != nil {
+		_, e1 = io.Copy(arg.Stdout, stdout)
+	} else {
+		e1 = DrainPipe(stdout, func(s string) { G.Log.Info(s) })
+	}
+
+	if arg.Stderr != nil {
+		_, e2 = io.Copy(arg.Stderr, stderr)
+	} else {
+		e2 = DrainPipe(stderr, func(s string) { G.Log.Warning(s) })
+	}
+
+	if !arg.Stdin {
+		e3 = waitfn()
+	}
+
+	res.Err = PickFirstError(e1, e2, e3)
+	return
 }
