@@ -32,12 +32,14 @@ func (l *LubaRes) FindBestComponent() string {
 		return ""
 	}
 
-	var kb, soc, fp AssertionUrl
+	var uid, kb, soc, fp AssertionUrl
 
 	for _, u := range urls {
-		if u.IsKeybase() {
-			kb = u
+		if u.IsUid() {
+			uid = u
 			break
+		} else if u.IsKeybase() {
+			kb = u
 		} else if u.IsFingerprint() && fp == nil {
 			fp = u
 		} else if u.IsSocial() && soc == nil {
@@ -45,7 +47,7 @@ func (l *LubaRes) FindBestComponent() string {
 		}
 	}
 
-	order := []AssertionUrl{kb, fp, soc, urls[0]}
+	order := []AssertionUrl{uid, kb, fp, soc, urls[0]}
 	for _, p := range order {
 		if p != nil {
 			return p.ToString()

@@ -706,6 +706,7 @@ func (u *User) GetTrackingStatementFor(s string, i UID) (*TrackChainLink, error)
 func (u User) ToProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
+		{Key: "uid", Value: u.id.ToString()},
 	}
 	if fp, err := u.GetActivePgpFingerprint(); err != nil {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.ToString()})
