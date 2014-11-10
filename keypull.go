@@ -75,6 +75,9 @@ func (s *KeyPullState) verifyFingerprint() error {
 		return err
 	}
 
+	G.Log.Warning("Setting PGP fingerprint to: %s", targ.ToQuads())
+	G.Env.GetConfigWriter().SetPgpFingerprint(targ)
+
 	return nil
 }
 
