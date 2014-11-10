@@ -66,7 +66,7 @@ func (l *LubaRes) Load(a string, withTracking bool) {
 
 	var me *User
 	if withTracking {
-		me, l.Error = LoadMe()
+		me, l.Error = LoadMe(LoadUserArg{LoadSecrets: true})
 		if l.Error != nil || me == nil {
 			return
 		}

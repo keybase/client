@@ -26,6 +26,7 @@ func (n NullConfiguration) GetPinentry() string                { return "" }
 func (n NullConfiguration) GetUid() *UID                       { return nil }
 func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
+func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false

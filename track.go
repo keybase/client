@@ -182,7 +182,7 @@ func (e *TrackEngine) LoadThem() error {
 
 func (e *TrackEngine) LoadMe() error {
 	if e.Me == nil {
-		if me, err := LoadMe(); err != nil && e.MeRequired {
+		if me, err := LoadMe(LoadUserArg{LoadSecrets: true}); err != nil && e.MeRequired {
 			return err
 		} else {
 			e.Me = me

@@ -35,6 +35,7 @@ type CommandLine interface {
 	GetPinentry() string
 	GetGpg() string
 	GetGpgOptions() []string
+	GetPgpFingerprint() *PgpFingerprint
 }
 
 type Server interface {
@@ -82,6 +83,7 @@ type ConfigReader interface {
 	GetNoPinentry() (bool, bool)
 	GetGpg() string
 	GetGpgOptions() []string
+	GetPgpFingerprint() *PgpFingerprint
 }
 
 type ConfigWriter interface {

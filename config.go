@@ -258,6 +258,15 @@ func (f JsonConfigFile) GetUid() *UID {
 	}
 	return i
 }
+func (f JsonConfigFile) GetPgpFingerprint() *PgpFingerprint {
+	if tmp := f.GetUserField("fingerprint"); len(tmp) == 0 {
+		return nil
+	} else if i, e := PgpFingerprintFromHex(tmp); e == nil {
+		return i
+	} else {
+		return nil
+	}
+}
 func (f JsonConfigFile) GetEmail() (ret string) {
 	return f.GetTopLevelString("email")
 }
