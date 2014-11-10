@@ -82,8 +82,10 @@ func (l *LevelDb) Put(id DbKey, aliases []DbKey, value []byte) error {
 	batch := new(leveldb.Batch)
 	idb := id.ToBytes("kv")
 	batch.Put(idb, value)
-	for _, alias := range aliases {
-		batch.Put(alias.ToBytes("lo"), idb)
+	if aliases != nil {
+		for _, alias := range aliases {
+			batch.Put(alias.ToBytes("lo"), idb)
+		}
 	}
 
 	err := l.db.Write(batch, nil)

@@ -261,7 +261,7 @@ func (u *User) LoadSigChainFromStorage(allKeys bool) error {
 	return err
 }
 
-func LoadUserFromLocalStorage(uid UID, allKeys bool) (u *User, err error) {
+func LoadUserFromLocalStorage(uid UID, allKeys bool, loadSecrets bool) (u *User, err error) {
 
 	uid_s := uid.ToString()
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid_s)
@@ -277,6 +277,17 @@ func LoadUserFromLocalStorage(uid UID, allKeys bool) (u *User, err error) {
 	}
 
 	G.Log.Debug("| Loaded successfully")
+
+	if !loadSecrets {
+		// noop
+	} else if sk, err := G.LocalDb.Get(DbKey{Typ: DB_USER_SECRET_KEYS, Key: uid_s}); err != nil {
+		return nil, err
+	} else if sk != nil {
+		G.Log.Debug("| Found secret keys for user %s", uid_s)
+		jw.SetKey("private_keys", sk)
+	} else {
+		G.Log.Debug("| Didn't find secret keys for user %s", uid_s)
+	}
 
 	if u, err = NewUserFromLocalStorage(jw); err != nil {
 		return nil, err
@@ -503,6 +514,10 @@ func (u *User) Store() error {
 		return err
 	}
 
+	if err := u.StoreSecretKeys(); err != nil {
+		return err
+	}
+
 	u.dirty = false
 	G.Log.Debug("- Store user %s -> OK", u.name)
 
@@ -517,14 +532,28 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
-	jw.SetKey("private_keys", u.privateKeys)
 
 	err := G.LocalDb.Put(
 		DbKey{Typ: DB_USER, Key: uid_s},
 		[]DbKey{{Typ: DB_LOOKUP_USERNAME, Key: u.name}},
 		jw,
 	)
+	if err != nil {
+		return err
+	}
 
+	return err
+}
+
+func (u *User) StoreSecretKeys() error {
+	var err error
+	if u.privateKeys != nil && !u.privateKeys.IsNil() {
+		err = G.LocalDb.Put(
+			DbKey{Typ: DB_USER_SECRET_KEYS, Key: u.id.ToString()},
+			nil,
+			u.privateKeys,
+		)
+	}
 	return err
 }
 
@@ -636,7 +665,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			return u, nil
 		}
 
-		local, err = LoadUserFromLocalStorage(uid, arg.AllKeys)
+		local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets)
 		if err != nil {
 			G.Log.Warning("Failed to load %s from storage: %s",
 				name, err.Error())
