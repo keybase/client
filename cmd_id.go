@@ -97,9 +97,9 @@ func NewCmdId(cl *CommandLine) cli.Command {
 				Name:  "s, load-self",
 				Usage: "Load self for tracking statement",
 			},
-			cli.BoolFlag {
-				Name : "i, uid",
-				Usage : "Load user by UID",
+			cli.BoolFlag{
+				Name:  "i, uid",
+				Usage: "Load user by UID",
 			},
 		},
 		Action: func(c *cli.Context) {

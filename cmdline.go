@@ -44,6 +44,9 @@ func (p CommandLine) GetUid() *libkb.UID {
 		return nil
 	}
 }
+func (p CommandLine) GetPgpFingerprint() *libkb.PgpFingerprint {
+	return libkb.PgpFingerprintFromHexNoError(p.GetGString("fingerprint"))
+}
 func (p CommandLine) GetEmail() string {
 	return p.GetGString("email")
 }
@@ -188,8 +191,8 @@ func (cl *CommandLine) PopulateApp() {
 			Usage: "specify Keybase username of the current user",
 		},
 		cli.StringFlag{
-			Name : "uid, i",
-			Usage : "specify Keybase UID for current user",
+			Name:  "uid, i",
+			Usage: "specify Keybase UID for current user",
 		},
 		cli.StringFlag{
 			Name:  "pinentry",
