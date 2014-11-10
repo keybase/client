@@ -25,3 +25,11 @@ func ErrorToWarning(e error) Warning {
 		return StringWarning(e.Error())
 	}
 }
+
+type Warnings []Warning
+
+func (w Warnings) Warn() {
+	for _, e := range w {
+		G.Log.Warning(e.Warning())
+	}
+}

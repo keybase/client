@@ -61,29 +61,43 @@ func (i IdentifyRes) NumTrackFailures() int {
 	return ntf
 }
 
-func (i IdentifyRes) GetError() error {
+func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {
 
 	if i.Error != nil {
-		return i.Error
+		return i.Error, nil
 	}
 
 	probs := make([]string, 0, 0)
 
 	if nfails := i.NumProofFailures(); nfails > 0 {
-		probs = append(probs,
-			fmt.Sprintf("%d proof%s failed remote checks",
-				nfails, GiveMeAnS(nfails)))
+		p := fmt.Sprintf("PROBLEM: %d proof%s failed remote checks", nfails, GiveMeAnS(nfails))
+		if strict {
+			probs = append(probs, p)
+		} else {
+			warnings = []Warning{StringWarning(p)}
+		}
 	}
+
 	if ntf := i.NumTrackFailures(); ntf > 0 {
 		probs = append(probs,
 			fmt.Sprintf("%d track copmonent%s failed",
 				ntf, GiveMeAnS(ntf)))
 	}
+
 	if len(probs) > 0 {
-		return fmt.Errorf("%s", strings.Join(probs, ";"))
-	} else {
-		return nil
+		err = fmt.Errorf("%s", strings.Join(probs, ";"))
 	}
+
+	return
+}
+
+func (i IdentifyRes) GetError() error {
+	e, _ := i.GetErrorAndWarnings(true)
+	return e
+}
+
+func (i IdentifyRes) GetErrorLax() (error, Warnings) {
+	return i.GetErrorAndWarnings(true)
 }
 
 func (i IdentifyState) Report(m string) {
@@ -154,7 +168,7 @@ func (u *User) Identify(arg IdentifyArg) (res *IdentifyRes) {
 	}
 	u.IdTable.Identify(is)
 
-	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(res.GetError()))
+	G.Log.Debug("- Identify(%s)")
 	u.cachedIdentifyRes = res
 	return
 }

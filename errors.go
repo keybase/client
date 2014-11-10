@@ -129,3 +129,14 @@ func NewNeedInputError(s string, a ...interface{}) AssertionParseError {
 }
 
 //=============================================================================
+
+type WrongKeyError struct {
+	wanted, got *PgpFingerprint
+}
+
+func (e WrongKeyError) Error() string {
+	return fmt.Sprintf("Server gave wrong key; wanted %s; got %s",
+		e.wanted.ToString(), e.got.ToString())
+}
+
+//=============================================================================

@@ -208,12 +208,10 @@ func (e *TrackEngine) Run() error {
 		Me:         e.Me,
 	})
 
-	if err := res.GetError(); err != nil {
-		if e.StrictProofs {
-			return err
-		} else {
-			G.Log.Warning("Some proofs failed")
-		}
+	if err, warnings := res.GetErrorAndWarnings(e.StrictProofs); err != nil {
+		return err
+	} else if warnings != nil {
+		warnings.Warn()
 	}
 
 	// var jw *jsonw.Wrapper
