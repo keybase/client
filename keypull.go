@@ -50,6 +50,8 @@ func (s *KeyPullState) verifyFingerprint() error {
 		return NewNeedInputError("Can't verify your key fingerprint while backgrounded")
 	}
 
+	G.Log.Info("Verifying your key fingerprint....")
+
 	ires := s.user.Identify(IdentifyArg{
 		Me:         s.user,
 		ReportHook: func(s string) { G.OutputString(s) },

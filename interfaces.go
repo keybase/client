@@ -89,6 +89,7 @@ type ConfigReader interface {
 type ConfigWriter interface {
 	SetUsername(string)
 	SetUid(UID)
+	SetPgpFingerprint(*PgpFingerprint)
 	SetSalt(string)
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error

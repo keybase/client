@@ -165,6 +165,15 @@ func (f *JsonConfigFile) SetUid(u UID) {
 func (f *JsonConfigFile) SetSalt(s string) {
 	f.SetUserField("salt", s)
 }
+func (f *JsonConfigFile) SetPgpFingerprint(fp *PgpFingerprint) {
+	key := "fingerprint"
+	if fp == nil {
+		f.DeleteUserField(key)
+	} else {
+		s := fp.ToString()
+		f.SetUserField(key, s)
+	}
+}
 
 func (f *JsonConfigFile) SetUserField(k, v string) {
 	existing := f.GetUserField(k)
@@ -172,6 +181,11 @@ func (f *JsonConfigFile) SetUserField(k, v string) {
 		f.UserDict().SetKey(k, jsonw.NewString(v))
 		f.dirty = true
 	}
+}
+
+func (f *JsonConfigFile) DeleteUserField(k string) {
+	f.jw.AtKey("user").DeleteKey(k)
+	f.dirty = true
 }
 
 func (f *JsonConfigFile) DeleteAtPath(p string) {
