@@ -68,14 +68,16 @@ type MerkleTriple struct {
 }
 
 type MerkleUserLeaf struct {
-	public  *MerkleTriple
-	private *MerkleTriple
+	public    *MerkleTriple
+	private   *MerkleTriple
+	idVersion int64
 }
 
 type VerificationPath struct {
-	uid  UID
-	root *MerkleRoot
-	path [](*PathStep)
+	uid       UID
+	root      *MerkleRoot
+	path      [](*PathStep)
+	idVersion int64
 }
 
 type PathStep struct {
@@ -246,6 +248,14 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
+	// We don't trust this version, but it's useful to tell us if there
+	// are new versions unsigned data, like basics, and maybe uploaded
+	// keys
+	idv, err := res.Body.AtKey("id_version").GetInt64()
+	if err != nil {
+		return
+	}
+
 	l, err := path.Len()
 	if err != nil {
 		return
@@ -261,7 +271,7 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		}
 	}
 
-	vp = &VerificationPath{*uid, root, path_out}
+	vp = &VerificationPath{*uid, root, path_out, idv}
 	return
 }
 
@@ -528,6 +538,7 @@ func (mc *MerkleClient) LookupUser(q HttpArgs) (u *MerkleUserLeaf, err error) {
 	if u, err = path.Verify(); err != nil {
 		return
 	}
+	u.idVersion = path.idVersion
 
 	G.Log.Debug("- MerkleClient.LookupUser(%v) -> OK", q)
 	return

@@ -6,17 +6,21 @@ import (
 	"sync"
 )
 
-func (u *User) IdentifyKey(is IdentifyState) {
+func (u *User) IdentifyKey(is IdentifyState) error {
 	var ds string
 	if mt := is.track; mt != nil {
 		diff := mt.ComputeKeyDiff(*u.activePgpFingerprint)
 		is.res.KeyDiff = diff
 		ds = diff.ToDisplayString() + " "
 	}
+	fp, e := u.GetActivePgpFingerprint()
+	if e != nil {
+		return e
+	}
 	msg := CHECK + " " + ds +
-		ColorString("green", "public key fingerprint: "+
-			u.activePgpFingerprint.ToQuads())
+		ColorString("green", "public key fingerprint: "+fp.ToQuads())
 	is.Report(msg)
+	return nil
 }
 
 type IdentifyArg struct {
@@ -145,7 +149,9 @@ func (u *User) Identify(arg IdentifyArg) (res *IdentifyRes) {
 
 	G.Log.Debug("+ Identify(%s)", u.name)
 
-	u.IdentifyKey(is)
+	if res.Error = u.IdentifyKey(is); res.Error != nil {
+		return
+	}
 	u.IdTable.Identify(is)
 
 	G.Log.Debug("- Identify(%s) -> %s", u.name, ErrToOk(res.GetError()))

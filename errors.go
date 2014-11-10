@@ -113,3 +113,19 @@ func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
 }
 
 //=============================================================================
+
+type NeedInputError struct {
+	err string
+}
+
+func (e NeedInputError) Error() string {
+	return e.err
+}
+
+func NewNeedInputError(s string, a ...interface{}) AssertionParseError {
+	return AssertionParseError{
+		err: fmt.Sprintf(s, a...),
+	}
+}
+
+//=============================================================================

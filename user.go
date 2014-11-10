@@ -100,7 +100,6 @@ type LoadUserArg struct {
 	ForceReload      bool
 	SkipVerify       bool
 	AllKeys          bool
-	leaf             *MerkleUserLeaf
 }
 
 type UserCache struct {
@@ -190,6 +189,10 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 
 func (u User) GetName() string { return u.name }
 func (u User) GetUid() UID     { return u.id }
+
+func (u User) GetIdVersion() (int64, error) {
+	return u.basics.AtKey("id_version").GetInt64()
+}
 
 func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
@@ -341,7 +344,7 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 	return u.activeKey, nil
 }
 
-func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper, base *SigChain) (u *User, err error) {
+func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
 
 	uid_s := arg.Uid.ToString()
 	G.Log.Debug("+ Load User from server: %s", uid_s)
@@ -366,14 +369,6 @@ func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper, base *SigChain) (u
 	}
 
 	if u, err = NewUserFromServer(body); err != nil {
-		return
-	}
-
-	var t *MerkleTriple
-	if arg.leaf != nil {
-		t = arg.leaf.public
-	}
-	if err = u.LoadSigChainFromServer(base, t); err != nil {
 		return
 	}
 
@@ -405,9 +400,20 @@ func (u *User) GetServerSeqno() (i int, err error) {
 	return i, err
 }
 
-func (local *User) CheckFreshness(t *MerkleTriple) (current bool, err error) {
-	G.Log.Debug("+ CheckServer(%s)", local.name)
+func (local *User) CheckBasicsFreshness(server int64) (current bool, err error) {
+	var stored int64
+	if stored, err = local.GetIdVersion(); err == nil {
+		current = (stored >= server)
+		if current {
+			G.Log.Debug("| Local basics version is up-to-date @ version %d", stored)
+		} else {
+			G.Log.Debug("| Local basics version is out-of-date: %d < %d", stored, server)
+		}
+	}
+	return
+}
 
+func (local *User) CheckChainFreshness(t *MerkleTriple) (current bool, err error) {
 	current = false
 
 	a := local.GetSeqno()
@@ -417,7 +423,7 @@ func (local *User) CheckFreshness(t *MerkleTriple) (current bool, err error) {
 		err = fmt.Errorf("Server version-rollback sustpected: Local %d > %d",
 			a, b)
 	} else if b == a {
-		G.Log.Debug("| Local version is up-to-date @ version %d", b)
+		G.Log.Debug("| Local chain version is up-to-date @ version %d", b)
 		current = true
 		last := local.sigChain.GetLastLinkRecursive()
 		if last == nil {
@@ -426,11 +432,15 @@ func (local *User) CheckFreshness(t *MerkleTriple) (current bool, err error) {
 			err = fmt.Errorf("The server returned the wrong sigchain tail")
 		}
 	} else {
-		G.Log.Debug("| Local version is out-of-date: %d < %d", a, b)
+		G.Log.Debug("| Local chain version is out-of-date: %d < %d", a, b)
 		current = false
 	}
 	G.Log.Debug("+ CheckSeqno(%s) -> %v", local.name, current)
 	return
+}
+
+func (u *User) BorrowSigChainFrom(u2 *User) {
+	u.sigChain = u2.sigChain
 }
 
 func (u *User) VerifySigChain() error {
@@ -612,12 +622,17 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		arg.Uid = &uid
 	}
 
-	G.Log.Debug("| resolved to %s", uid.ToString())
+	uid_s := uid.ToString()
+	G.Log.Debug("| resolved to %s", uid_s)
 
-	var local *User
+	var local, remote *User
 
 	if !arg.ForceReload {
+
+		// XXX - this isn't exactly right. We should maybe still poll the
+		// server for updates...
 		if u := G.UserCache.Get(uid); u != nil {
+			G.Log.Debug("| Found user in user cache: %s")
 			return u, nil
 		}
 
@@ -633,24 +648,40 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	load_remote := true
 	var baseChain *SigChain
+	var fresh, load_remote, load_chain bool
 
-	if local != nil {
-		var current bool
-		if current, err = local.CheckFreshness(leaf.public); err == nil {
-			if current {
-				load_remote = false
-				ret = local
-			} else {
-				baseChain = local.sigChain
-			}
+	if local == nil {
+		G.Log.Debug("| No local user stored for %s", uid_s)
+		load_remote = true
+		load_chain = true
+	} else if fresh, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
+		return
+	} else {
+		load_remote = !fresh
+		if fresh, err = local.CheckChainFreshness(leaf.public); err != nil {
+			return
+		} else {
+			load_chain = !fresh
+			baseChain = local.sigChain
 		}
 	}
+	G.Log.Debug("| Freshness: chain=%v; basics=%v; for %s",
+		!load_chain, !load_remote, uid_s)
 
 	if load_remote {
-		arg.leaf = leaf
-		ret, err = LoadUserFromServer(arg, rres.body, baseChain)
+		if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
+			return
+		}
+		ret = remote
+	} else {
+		ret = local
+	}
+
+	if load_chain {
+		err = ret.LoadSigChainFromServer(baseChain, leaf.public)
+	} else if load_remote {
+		ret.BorrowSigChainFrom(local)
 	}
 
 	if err != nil || ret == nil {
