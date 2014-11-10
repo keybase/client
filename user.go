@@ -685,23 +685,27 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	var baseChain *SigChain
-	var fresh, load_remote, load_chain bool
+	var f1, f2, load_remote, load_chain bool
 
 	if local == nil {
 		G.Log.Debug("| No local user stored for %s", uid_s)
 		load_remote = true
 		load_chain = true
-	} else if fresh, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
-		return
+	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
+		// noop
+	} else if f2, err = local.CheckChainFreshness(leaf.public); err != nil {
+		// noop
 	} else {
-		load_remote = !fresh
-		if fresh, err = local.CheckChainFreshness(leaf.public); err != nil {
-			return
-		} else {
-			load_chain = !fresh
-			baseChain = local.sigChain
-		}
+		load_remote = !f1
+		load_chain = !f2
+		baseChain = local.sigChain
 	}
+
+	// If there was a problem in checking freshness, time to bail out
+	if err != nil {
+		return
+	}
+
 	G.Log.Debug("| Freshness: chain=%v; basics=%v; for %s",
 		!load_chain, !load_remote, uid_s)
 
