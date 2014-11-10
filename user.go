@@ -507,7 +507,7 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
-	jw.SetKey("privateKeys", u.privateKeys)
+	jw.SetKey("private_keys", u.privateKeys)
 
 	err := G.LocalDb.Put(
 		DbKey{Typ: DB_USER, Key: uid_s},
