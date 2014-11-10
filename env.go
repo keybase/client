@@ -149,6 +149,15 @@ func (e Env) GetString(flist ...(func() string)) string {
 	return ret
 }
 
+func (e Env) getPgpFingerprint(flist ...(func() *PgpFingerprint)) *PgpFingerprint {
+	for _, f := range flist {
+		if ret := f(); ret != nil {
+			return ret
+		}
+	}
+	return nil
+}
+
 func (e Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
 	for _, f := range flist {
 		if val, is_set := f(); is_set {
@@ -411,5 +420,17 @@ func (e Env) GetGpgOptions() []string {
 	return e.GetStringList(
 		func() []string { return e.cmd.GetGpgOptions() },
 		func() []string { return e.config.GetGpgOptions() },
+	)
+}
+
+func (e Env) GetPgpFingerprint() *PgpFingerprint {
+	return e.getPgpFingerprint(
+		func() *PgpFingerprint { return e.cmd.GetPgpFingerprint() },
+		func() *PgpFingerprint {
+			return PgpFingerprintFromHexNoError(os.Getenv("KEYBASE_PGP_FINGERPRINT"))
+		},
+		func() *PgpFingerprint {
+			return e.config.GetPgpFingerprint()
+		},
 	)
 }

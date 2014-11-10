@@ -36,6 +36,16 @@ func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
 	return ret, err
 }
 
+func PgpFingerprintFromHexNoError(s string) *PgpFingerprint {
+	if len(s) == 0 {
+		return nil
+	} else if f, e := PgpFingerprintFromHex(s); e == nil {
+		return f
+	} else {
+		return nil
+	}
+}
+
 func (p PgpFingerprint) ToString() string {
 	return hex.EncodeToString(p[:])
 }
