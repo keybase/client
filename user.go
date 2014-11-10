@@ -76,6 +76,7 @@ type User struct {
 	sigHints *SigHints
 
 	loggedIn bool // if we were logged in when we loaded it
+	secret   bool // if we asked for secret keys when we loaded
 
 	activeKey            *PgpKeyBundle
 	activePgpFingerprint *PgpFingerprint
@@ -184,6 +185,7 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		name:        name,
 		loggedIn:    false,
 		dirty:       false,
+		secret:      false,
 	}, nil
 }
 
@@ -658,9 +660,14 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if !arg.ForceReload {
 
+		//
 		// XXX - this isn't exactly right. We should maybe still poll the
-		// server for updates...
-		if u := G.UserCache.Get(uid); u != nil {
+		// server for updates....
+		//
+		// Also, let's only allow a cached version if it has secrets
+		// or if the load wasn't for a user with secrets.
+		//
+		if u := G.UserCache.Get(uid); u != nil && (u.secret || !arg.LoadSecrets) {
 			G.Log.Debug("| Found user in user cache: %s")
 			return u, nil
 		}
@@ -716,6 +723,9 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	if err != nil || ret == nil {
 		return
 	}
+
+	// Note whether we asked for loading secrets or not...
+	ret.secret = arg.LoadSecrets
 
 	if !arg.SkipVerify {
 		if err = ret.VerifySigChain(); err != nil {
