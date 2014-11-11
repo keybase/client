@@ -16,9 +16,11 @@ func (v *CmdLogin) Run() error {
 	arg := libkb.LoadUserArg{
 		RequirePublicKey: true,
 	}
-	_, err := libkb.LoadMe(arg)
+	u, err := libkb.LoadMe(arg)
 	if _, not_found := err.(libkb.NoKeyError); not_found {
 		err = nil
+	} else if _, not_selected := err.(libkb.NoSelectedKeyError); not_selected {
+		err = u.IdentifySelf()
 	}
 	return err
 }
