@@ -198,7 +198,7 @@ func (u *User) IdentifySelf(bg bool) error {
 	// Ok, we now need to basically "track" ourself to make sure the
 	// server wasn't lying
 	if bg || G.Terminal == nil {
-		return NewNeedInputError("Can't verify your key fingerprint; try `keybase me`")
+		return NewNeedInputError("Can't verify your key fingerprint; try logging in again")
 	}
 
 	G.Log.Info("Verifying your key fingerprint....")

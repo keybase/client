@@ -431,9 +431,12 @@ func (local *User) CheckChainFreshness(t *MerkleTriple) (current bool, err error
 	current = false
 
 	a := local.GetSeqno()
-	b := t.seqno
 
-	if b < 0 || a > b {
+	if t == nil {
+		if a > 0 {
+			err = fmt.Errorf("Server claimed not to have this user in its tree (we had v=%d)", a)
+		}
+	} else if b := t.seqno; b < 0 || a > b {
 		err = fmt.Errorf("Server version-rollback sustpected: Local %d > %d",
 			a, b)
 	} else if b == a {

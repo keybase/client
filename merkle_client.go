@@ -415,6 +415,13 @@ func parseV2(jw *jsonw.Wrapper) (userp *MerkleUserLeaf, err error) {
 
 func ParseMerkleUserLeaf(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
 	G.Log.Debug("+ ParsingMerkleUserLeaf")
+
+	if jw == nil {
+		G.Log.Debug("| empty leaf found; user wasn't in tree")
+		user = &MerkleUserLeaf{}
+		return
+	}
+
 	l, err := jw.Len()
 	if err != nil {
 		return
@@ -462,14 +469,14 @@ func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 		payload := step.node
 		if !curr.Check(payload) {
 			err = fmt.Errorf("Hash mismatch at level=%d", i)
-			return
+			break
 		}
 
 		var jw *jsonw.Wrapper
 		jw, err = jsonw.Unmarshal([]byte(payload))
 		if err != nil {
 			err = fmt.Errorf("Can't parse JSON at level=%d: %s", i, err.Error())
-			return
+			break
 		}
 
 		plen := len(step.prefix)
@@ -478,14 +485,14 @@ func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 		if bpath[pos:epos] != step.prefix {
 			err = fmt.Errorf("Path mismatch at level %d: %s != %s",
 				i, bpath[pos:epos], step.prefix)
-			return
+			break
 		}
 		pos = epos
 
 		last_typ, err = jw.AtKey("type").GetInt()
 		if err != nil {
 			err = fmt.Errorf("At level %d, failed to get a valid 'type'", i)
-			return
+			break
 		}
 
 		if last_typ == MERKLE_TREE_NODE {
@@ -495,24 +502,34 @@ func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 			}
 			curr, err = GetNodeHash(jw.AtKey("tab").AtKey(step.prefix))
 			if err != nil {
-				return
+				err = UserNotFoundError{vp.uid, err.Error()}
+				break
 			}
 			juser = nil
 		} else {
 			juser, err = jw.AtKey("tab").AtKey(uid_s).ToArray()
 			if err != nil {
-				err = fmt.Errorf("Didn't find a leaf for user in tree: %s",
+				msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s",
 					err.Error())
-				return
+				err = UserNotFoundError{vp.uid, msg}
+				break
 			}
 		}
 	}
 
-	if user != nil {
-		err = fmt.Errorf("Tree path didn't end in a leaf")
-	} else {
-		user, err = ParseMerkleUserLeaf(juser)
+	if err == nil && juser == nil {
+		err = UserNotFoundError{vp.uid, "tree path didn't end in a leaf"}
 	}
+
+	if err == nil {
+		// noop
+	} else if _, ok := err.(UserNotFoundError); ok {
+		G.Log.Warning(fmt.Sprintf("In checking Merkle tree: %s", err.Error()))
+	} else {
+		return
+	}
+
+	user, err = ParseMerkleUserLeaf(juser)
 
 	return
 }

@@ -314,7 +314,7 @@ func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {
 	} else if l == 0 {
 		return make([]string, 0, 0)
 	} else {
-		ret := make([]string, l, 0)
+		ret := make([]string, 0, l)
 		for i := 0; i < l; i++ {
 			if s, err := v.AtIndex(i).GetString(); err != nil {
 				return nil

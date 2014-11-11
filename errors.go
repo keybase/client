@@ -74,14 +74,6 @@ func XapiError(err error, u string) *ProofApiError {
 
 //=============================================================================
 
-type UserNotFoundError struct {
-	user string
-}
-
-func (u UserNotFoundError) Error() string {
-	return fmt.Sprintf("%s: user not found", u.user)
-}
-
 type FailedAssertionError struct {
 	user string
 	bad  []AssertionUrl
@@ -137,6 +129,17 @@ type WrongKeyError struct {
 func (e WrongKeyError) Error() string {
 	return fmt.Sprintf("Server gave wrong key; wanted %s; got %s",
 		e.wanted.ToString(), e.got.ToString())
+}
+
+//=============================================================================
+
+type UserNotFoundError struct {
+	uid UID
+	msg string
+}
+
+func (u UserNotFoundError) Error() string {
+	return fmt.Sprintf("User %s wasn't found: %s", u.uid.ToString(), u.msg)
 }
 
 //=============================================================================
