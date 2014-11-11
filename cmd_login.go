@@ -8,7 +8,16 @@ import (
 type CmdLogin struct{}
 
 func (v *CmdLogin) Run() error {
-	return libkb.G.LoginState.Login()
+	if err := libkb.G.LoginState.Login(); err != nil {
+		return err
+	}
+
+	// We might need to ID ourselves, to load us in here
+	arg := libkb.LoadUserArg{
+		RequirePublicKey: true,
+	}
+	_, err := libkb.LoadMe(arg)
+	return err
 }
 
 func NewCmdLogin(cl *CommandLine) cli.Command {
