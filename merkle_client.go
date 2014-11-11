@@ -524,7 +524,7 @@ func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 	if err == nil {
 		// noop
 	} else if _, ok := err.(UserNotFoundError); ok {
-		G.Log.Warning(fmt.Sprintf("In checking Merkle tree: %s", err.Error()))
+		G.Log.Debug(fmt.Sprintf("In checking Merkle tree: %s", err.Error()))
 	} else {
 		return
 	}

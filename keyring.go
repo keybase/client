@@ -210,7 +210,7 @@ func (k KeyringFile) Save() error {
 func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 	var me *User
 	var fp *PgpFingerprint
-	if me, err = LoadMe(LoadUserArg{LoadSecrets: true}); err != nil {
+	if me, err = LoadMe(LoadUserArg{LoadSecrets: true, RequirePublicKey: true}); err != nil {
 		return
 	}
 	if fp, err = me.GetActivePgpFingerprint(); err != nil {

@@ -329,7 +329,7 @@ func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
 	}
 
 	if len(typ) == 0 {
-		err = fmt.Errorf("Unrecognized Web proof: %s @%s", jw.MarshalToDebug())
+		err = fmt.Errorf("Unrecognized Web proof @%s", jw.MarshalToDebug())
 	}
 	sb = &ServiceBlock{social, typ, id}
 	return
