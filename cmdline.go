@@ -247,6 +247,7 @@ func (cl *CommandLine) PopulateApp() {
 		NewCmdId(cl),
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),
+		NewCmdMe(cl),
 		NewCmdPing(cl),
 		NewCmdResolve(cl),
 		NewCmdSigs(cl),
