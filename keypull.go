@@ -31,61 +31,8 @@ func (s *KeyPullState) loadUser() (err error) {
 	return err
 }
 
-func (s *KeyPullState) verifyFingerprint() error {
-	targ, err := s.user.GetActivePgpFingerprint()
-	if err != nil {
-		return err
-	}
-	if s.fp = G.Env.GetPgpFingerprint(); s.fp == nil {
-		// noop
-	} else if s.fp.Eq(*targ) {
-		return nil
-	} else {
-		return WrongKeyError{s.fp, targ}
-	}
-
-	// Ok, we now need to basically "track" ourself to make sure the
-	// server wasn't lying
-	if s.arg.Backgrounded {
-		return NewNeedInputError("Can't verify your key fingerprint while backgrounded")
-	}
-
-	G.Log.Info("Verifying your key fingerprint....")
-
-	ires := s.user.Identify(IdentifyArg{
-		Me:         s.user,
-		ReportHook: func(s string) { G.OutputString(s) },
-	})
-
-	err, warnings := ires.GetErrorLax()
-	var prompt string
-	if err != nil {
-		return err
-	} else if warnings != nil {
-		warnings.Warn()
-		prompt = "Do you still accept these credentials to be your own?"
-	} else if len(ires.ProofChecks) == 0 {
-		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
-	} else {
-		prompt = "Is this you?"
-	}
-
-	err = PromptForConfirmation(prompt)
-	if err != nil {
-		return err
-	}
-
-	G.Log.Warning("Setting PGP fingerprint to: %s", targ.ToQuads())
-	G.Env.GetConfigWriter().SetPgpFingerprint(targ)
-
-	return nil
-}
-
 func (s *KeyPullState) Run() error {
 	if err := s.loadUser(); err != nil {
-		return err
-	}
-	if err := s.verifyFingerprint(); err != nil {
 		return err
 	}
 	return nil

@@ -20,27 +20,31 @@ import (
 	"runtime"
 )
 
+type ShutdownHook func() error
+
 type Global struct {
-	Log           *Logger       // Handles all logging
-	Session       *Session      // The user's session cookie, &c
-	SessionWriter SessionWriter // To write the session back out
-	LoginState    *LoginState   // What phase of login the user's in
-	Env           *Env          // Env variables, cmdline args & config
-	Keyrings      *Keyrings     // Gpg Keychains holding keys
-	API           API           // How to make a REST call to the server
-	Terminal      Terminal      // For prompting for passwords and input
-	UserCache     *UserCache    // LRU cache of users in memory
-	LocalDb       *JsonLocalDb  // Local DB for cache
-	MerkleClient  *MerkleClient // client for querying server's merkle sig tree
-	XAPI          ExternalAPI   // for contacting Twitter, Github, etc.
-	Output        io.Writer     // where 'Stdout'-style output goes
-	ProofCache    *ProofCache   // where to cache proof results
-	SecretEntry   *SecretEntry  // a terminal-or-pinentry system
-	GpgClient     GpgClient     // A standard GPG-client (optional)
+	Log           *Logger        // Handles all logging
+	Session       *Session       // The user's session cookie, &c
+	SessionWriter SessionWriter  // To write the session back out
+	LoginState    *LoginState    // What phase of login the user's in
+	Env           *Env           // Env variables, cmdline args & config
+	Keyrings      *Keyrings      // Gpg Keychains holding keys
+	API           API            // How to make a REST call to the server
+	Terminal      Terminal       // For prompting for passwords and input
+	UserCache     *UserCache     // LRU cache of users in memory
+	LocalDb       *JsonLocalDb   // Local DB for cache
+	MerkleClient  *MerkleClient  // client for querying server's merkle sig tree
+	XAPI          ExternalAPI    // for contacting Twitter, Github, etc.
+	Output        io.Writer      // where 'Stdout'-style output goes
+	ProofCache    *ProofCache    // where to cache proof results
+	SecretEntry   *SecretEntry   // a terminal-or-pinentry system
+	GpgClient     GpgClient      // A standard GPG-client (optional)
+	ShutdownHooks []ShutdownHook // on shutdown, fire these...
 }
 
 var G Global = Global{
-	Log: NewDefaultLogger(),
+	Log:           NewDefaultLogger(),
+	ShutdownHooks: make([]ShutdownHook, 0, 0),
 }
 
 func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
@@ -58,6 +62,10 @@ func (g *Global) ConfigureLogging() error {
 	return nil
 }
 
+func (g *Global) PushShutdownHook(sh ShutdownHook) {
+	g.ShutdownHooks = append(g.ShutdownHooks, sh)
+}
+
 func (g *Global) ConfigureConfig() error {
 	c := NewJsonConfigFile(g.Env.GetConfigFilename())
 	err := c.Load(true)
@@ -66,6 +74,9 @@ func (g *Global) ConfigureConfig() error {
 	}
 	g.Env.SetConfig(*c)
 	g.Env.SetConfigWriter(c)
+	g.PushShutdownHook(func() error {
+		return c.Write()
+	})
 	return nil
 }
 
@@ -136,6 +147,12 @@ func (g *Global) Shutdown() error {
 	}
 	if g.LocalDb != nil {
 		tmp := g.LocalDb.Close()
+		if tmp != nil && err == nil {
+			err = tmp
+		}
+	}
+	for _, hook := range g.ShutdownHooks {
+		tmp := hook()
 		if tmp != nil && err == nil {
 			err = tmp
 		}

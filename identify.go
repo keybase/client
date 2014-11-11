@@ -168,7 +168,7 @@ func (u *User) Identify(arg IdentifyArg) (res *IdentifyRes) {
 	}
 	u.IdTable.Identify(is)
 
-	G.Log.Debug("- Identify(%s)")
+	G.Log.Debug("- Identify(%s)", u.name)
 	u.cachedIdentifyRes = res
 	return
 }
@@ -179,4 +179,55 @@ func (u *User) IdentifySimple(me *User) error {
 		Me:         me,
 	})
 	return res.GetError()
+}
+
+func (u *User) IdentifySelf(bg bool) error {
+	targ, err := u.GetActivePgpFingerprint()
+	if err != nil {
+		return err
+	}
+	var fp *PgpFingerprint
+	if fp = G.Env.GetPgpFingerprint(); fp == nil {
+		// noop
+	} else if fp.Eq(*targ) {
+		return nil
+	} else {
+		return WrongKeyError{fp, targ}
+	}
+
+	// Ok, we now need to basically "track" ourself to make sure the
+	// server wasn't lying
+	if bg || G.Terminal == nil {
+		return NewNeedInputError("Can't verify your key fingerprint; try `keybase me`")
+	}
+
+	G.Log.Info("Verifying your key fingerprint....")
+
+	ires := u.Identify(IdentifyArg{
+		Me:         u,
+		ReportHook: func(s string) { G.OutputString(s) },
+	})
+
+	err, warnings := ires.GetErrorLax()
+	var prompt string
+	if err != nil {
+		return err
+	} else if warnings != nil {
+		warnings.Warn()
+		prompt = "Do you still accept these credentials to be your own?"
+	} else if len(ires.ProofChecks) == 0 {
+		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
+	} else {
+		prompt = "Is this you?"
+	}
+
+	err = PromptForConfirmation(prompt)
+	if err != nil {
+		return err
+	}
+
+	G.Log.Warning("Setting PGP fingerprint to: %s", targ.ToQuads())
+	G.Env.GetConfigWriter().SetPgpFingerprint(targ)
+
+	return nil
 }

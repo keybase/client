@@ -101,6 +101,7 @@ type LoadUserArg struct {
 	ForceReload      bool
 	SkipVerify       bool
 	AllKeys          bool
+	Background       bool
 }
 
 type UserCache struct {
@@ -753,6 +754,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if err = ret.VerifySelfSig(); err != nil {
 		return
+	}
+
+	if arg.Self {
+		if err = ret.IdentifySelf(arg.Background); err != nil {
+			return
+		}
 	}
 
 	if !arg.NoCacheResult {

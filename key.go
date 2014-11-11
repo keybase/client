@@ -52,12 +52,13 @@ func (p PgpFingerprint) ToString() string {
 
 func (p PgpFingerprint) ToQuads() string {
 	x := []byte(strings.ToUpper(p.ToString()))
-	ret := make([]byte, len(x)*5/4-1)
+	totlen := len(x)*5/4 - 1
+	ret := make([]byte, totlen)
 	j := 0
 	for i, b := range x {
 		ret[j] = b
 		j++
-		if (i%4) == 0 && i > 0 {
+		if (i%4) == 3 && j < totlen {
 			ret[j] = ' '
 			j++
 		}
