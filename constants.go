@@ -94,3 +94,9 @@ var CANONICAL_HOST = "keybase.io"
 const (
 	HTTP_DEFAULT_TIMEOUT = 10 * time.Second
 )
+
+// Packet tags for OpenPGP and also Keybase packets
+var (
+	KEYBASE_PACKET_V1 = 1
+	TAG_P3SKB         = 512
+)
