@@ -1,33 +1,47 @@
 package libkb
 
 import (
+	"fmt"
 	"github.com/keybase/go-jsonw"
 )
 
 type Session struct {
-	file    *JsonFile
-	token   string
-	csrf    string
-	inFile  bool
-	loaded  bool
-	checked bool
-	valid   bool
+	file     *JsonFile
+	token    string
+	csrf     string
+	inFile   bool
+	loaded   bool
+	checked  bool
+	valid    bool
+	uid      *UID
+	username *string
 }
 
 func NewSession() *Session {
-	return &Session{nil, "", "", false, false, false, false}
+	return &Session{nil, "", "", false, false, false, false, nil, nil}
 }
 
 func (s Session) IsLoggedIn() bool {
-	return G.LoginState.IsLoggedIn()
+	return s.valid
 }
 
 func (s Session) GetUsername() *string {
-	return G.LoginState.GetUsername()
+	return s.username
 }
 
-func (s Session) GetUID() *UID {
-	return G.LoginState.GetUID()
+func (s Session) GetUid() *UID {
+	return s.uid
+}
+
+func (s *Session) SetLoggedIn(lir LoggedInResult) {
+	s.valid = true
+	s.uid = &lir.uid
+	s.username = &lir.username
+	s.token = lir.sessionId
+	s.GetDictionary().SetKey("session", jsonw.NewString(lir.sessionId))
+	s.csrf = lir.csrfToken
+	s.GetDictionary().SetKey("csrf", jsonw.NewString(lir.csrfToken))
+	s.file.dirty = true
 }
 
 func (s *Session) Load() error {
@@ -78,18 +92,6 @@ func (s *Session) GetDictionary() *jsonw.Wrapper {
 	return s.file.jw
 }
 
-func (s *Session) SetSession(id string) {
-	s.token = id
-	s.GetDictionary().SetKey("session", jsonw.NewString(id))
-	s.file.dirty = true
-}
-
-func (s *Session) SetCsrf(csrf string) {
-	s.csrf = csrf
-	s.GetDictionary().SetKey("csrf", jsonw.NewString(csrf))
-	s.file.dirty = true
-}
-
 func (s *Session) Write() error {
 	return s.file.MaybeSave(true, 0)
 }
@@ -113,7 +115,19 @@ func (s *Session) Check() error {
 	}
 	if res.AppStatus == "OK" {
 		G.Log.Debug("| Stored session checked out")
-		s.valid = true
+		var err error
+		var uid UID
+		var username string
+		GetUidVoid(res.Body.AtKey("logged_in_uid"), &uid, &err)
+		res.Body.AtKey("username").GetStringVoid(&username, &err)
+		if err != nil {
+			err = fmt.Errorf("Server replied with unrecognized response: %s", err.Error())
+			return err
+		} else {
+			s.valid = true
+			s.uid = &uid
+			s.username = &username
+		}
 	} else {
 		G.Log.Notice("Stored session expired")
 		s.valid = false

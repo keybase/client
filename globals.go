@@ -221,3 +221,11 @@ func (g *Global) GetGpgClient() GpgClient {
 	}
 	return g.GpgClient
 }
+
+func (g *Global) GetMyUid() (ret *UID) {
+	ret = g.Session.GetUid()
+	if ret == nil {
+		ret = g.Env.GetUid()
+	}
+	return ret
+}

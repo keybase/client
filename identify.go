@@ -181,24 +181,11 @@ func (u *User) IdentifySimple(me *User) error {
 	return res.GetError()
 }
 
-func (u *User) IdentifySelf(bg bool) error {
+func (u *User) IdentifySelf() error {
+
 	targ, err := u.GetActivePgpFingerprint()
 	if err != nil {
 		return err
-	}
-	var fp *PgpFingerprint
-	if fp = G.Env.GetPgpFingerprint(); fp == nil {
-		// noop
-	} else if fp.Eq(*targ) {
-		return nil
-	} else {
-		return WrongKeyError{fp, targ}
-	}
-
-	// Ok, we now need to basically "track" ourself to make sure the
-	// server wasn't lying
-	if bg || G.Terminal == nil {
-		return NewNeedInputError("Can't verify your key fingerprint; try logging in again")
 	}
 
 	G.Log.Info("Verifying your key fingerprint....")

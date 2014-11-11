@@ -10,10 +10,10 @@ import (
 )
 
 type LoggedInResult struct {
-	session_id string
-	csrf_token string
-	uid        UID
-	username   string
+	sessionId string
+	csrfToken string
+	uid       UID
+	username  string
 }
 
 type LoginState struct {
@@ -37,23 +37,6 @@ func NewLoginState() *LoginState {
 
 func (s LoginState) IsLoggedIn() bool {
 	return s.LoggedIn
-}
-
-func (s LoginState) GetUsername() *string {
-	var ret *string
-	if s.IsLoggedIn() && s.loggedInRes != nil {
-		ret = &s.loggedInRes.username
-	}
-	return ret
-}
-
-func (s LoginState) GetUID() *UID {
-	var ret *UID
-	if s.IsLoggedIn() && s.loggedInRes != nil {
-		ret = &s.loggedInRes.uid
-	}
-	return ret
-
 }
 
 func (s *LoginState) GetSalt(email_or_username string) error {
@@ -126,11 +109,11 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 	}
 
 	b := res.Body
-	session_id, err := b.AtKey("session").GetString()
+	sessionId, err := b.AtKey("session").GetString()
 	if err != nil {
 		return err
 	}
-	csrf_token, err := b.AtKey("csrf_token").GetString()
+	csrfToken, err := b.AtKey("csrf_token").GetString()
 	if err != nil {
 		return err
 	}
@@ -143,7 +126,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 		return nil
 	}
 
-	s.loggedInRes = &LoggedInResult{session_id, csrf_token, *uid, uname}
+	s.loggedInRes = &LoggedInResult{sessionId, csrfToken, *uid, uname}
 	return nil
 }
 
@@ -164,8 +147,7 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 	}
 
 	if sw := G.SessionWriter; sw != nil {
-		sw.SetSession(s.loggedInRes.session_id)
-		sw.SetCsrf(s.loggedInRes.csrf_token)
+		sw.SetLoggedIn(*s.loggedInRes)
 		if err := sw.Write(); err != nil {
 			return err
 		}

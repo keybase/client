@@ -157,3 +157,14 @@ func (u NoKeyError) Error() string {
 }
 
 //=============================================================================
+
+type NoSelectedKeyError struct {
+	wanted *PgpFingerprint
+}
+
+func (n NoSelectedKeyError) Error() string {
+	return fmt.Sprintf("No key selected for this user; server said %s",
+		n.wanted.ToQuads())
+}
+
+//=============================================================================

@@ -101,8 +101,7 @@ type ConfigWriter interface {
 }
 
 type SessionWriter interface {
-	SetSession(string)
-	SetCsrf(string)
+	SetLoggedIn(LoggedInResult)
 	Write() error
 }
 

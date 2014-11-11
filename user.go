@@ -101,7 +101,6 @@ type LoadUserArg struct {
 	ForceReload      bool
 	SkipVerify       bool
 	AllKeys          bool
-	Background       bool
 }
 
 type UserCache struct {
@@ -632,7 +631,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 	} else if !arg.Self {
 		// noop
-	} else if arg.Uid = G.Env.GetUid(); arg.Uid != nil {
+	} else if arg.Uid = G.GetMyUid(); arg.Uid != nil {
 		arg.Name = G.Env.GetUsername()
 	}
 
@@ -755,23 +754,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	if k, _ := ret.GetActiveKey(); arg.RequirePublicKey && k == nil {
-		var emsg string
-		if arg.Self {
-			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
-		}
-		err = NoKeyError{emsg}
+	if err = ret.checkKeyFingerprint(arg); err != nil {
 		return
 	}
 
 	if err = ret.VerifySelfSig(); err != nil {
 		return
-	}
-
-	if arg.Self {
-		if err = ret.IdentifySelf(arg.Background); err != nil {
-			return
-		}
 	}
 
 	if !arg.NoCacheResult {
@@ -806,6 +794,34 @@ func (u User) ToProofSet() *ProofSet {
 	}
 
 	return NewProofSet(proofs)
+}
+
+func (u *User) checkKeyFingerprint(arg LoadUserArg) error {
+	fp, err := u.GetActivePgpFingerprint()
+
+	if err != nil {
+		return err
+	}
+
+	if arg.RequirePublicKey && fp == nil {
+		var emsg string
+		if arg.Self {
+			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
+		}
+		err = NoKeyError{emsg}
+		return err
+	}
+
+	if arg.Self {
+		fp2 := G.Env.GetPgpFingerprint()
+		if fp2 == nil {
+			return NoSelectedKeyError{fp}
+		} else if !fp.Eq(*fp2) {
+			return WrongKeyError{fp, fp2}
+		}
+	}
+
+	return nil
 }
 
 //==================================================================
