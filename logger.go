@@ -5,21 +5,24 @@ import (
 	"os"
 )
 
+var (
+	fancy_format = "%{color}%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
+	plain_format = "%{level:.4s} %{id:03x} %{message}"
+	nice_format  = "%{color}▶ %{level:.4s} %{message} %{color:reset}"
+)
+
 type Logger struct {
 	logging.Logger
 }
 
 func (log *Logger) InitLogging() {
 	logBackend := logging.NewLogBackend(os.Stderr, "", 0)
-	var format = "%{color}%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
 	logging.SetBackend(logBackend)
-	logging.SetFormatter(logging.MustStringFormatter(format))
 	logging.SetLevel(logging.INFO, "keybase")
 }
 
 func (log *Logger) PlainLogging() {
-	var format = "%{level:.4s} %{id:03x} %{message}"
-	logging.SetFormatter(logging.MustStringFormatter(format))
+	logging.SetFormatter(logging.MustStringFormatter(plain_format))
 }
 
 func NewDefaultLogger() *Logger {
@@ -30,10 +33,15 @@ func NewDefaultLogger() *Logger {
 }
 
 func (l *Logger) Configure(e *Env) {
+	var fmt string
 	if e.GetPlainLogging() {
-		l.PlainLogging()
-	}
-	if e.GetDebug() {
+		fmt = plain_format
+	} else if e.GetDebug() {
+		fmt = fancy_format
 		logging.SetLevel(logging.DEBUG, "keybase")
+	} else {
+		fmt = nice_format
+
 	}
+	logging.SetFormatter(logging.MustStringFormatter(fmt))
 }

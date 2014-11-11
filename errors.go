@@ -139,7 +139,21 @@ type UserNotFoundError struct {
 }
 
 func (u UserNotFoundError) Error() string {
-	return fmt.Sprintf("User %s wasn't found: %s", u.uid.ToString(), u.msg)
+	return fmt.Sprintf("User %s wasn't found (%s)", u.uid.ToString(), u.msg)
+}
+
+//=============================================================================
+
+type NoKeyError struct {
+	msg string
+}
+
+func (u NoKeyError) Error() string {
+	if len(u.msg) > 0 {
+		return u.msg
+	} else {
+		return "No public key found"
+	}
 }
 
 //=============================================================================
