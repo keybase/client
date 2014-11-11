@@ -17,6 +17,9 @@ func (v *CmdLogin) Run() error {
 		RequirePublicKey: true,
 	}
 	_, err := libkb.LoadMe(arg)
+	if _, not_found := err.(libkb.NoKeyError); not_found {
+		err = nil
+	}
 	return err
 }
 
