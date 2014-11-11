@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-triplesec"
 	"github.com/ugorji/go/codec"
 )
@@ -108,41 +109,61 @@ func (p *KeybasePacket) Encode() ([]byte, error) {
 	return encoded, err
 }
 
-func (p *KeybasePacket) BinaryUnmarshaler(data []byte) error {
-	err := codec.NewDecoderBytes(data, &mh).Decode(p)
-	if err != nil {
-		return err
-	}
-	var body interface{}
+func DecodePacketFromMsgpack(data []byte) (ret *KeybasePacket, err error) {
 
-	switch p.tag {
-	case TAG_P3SKB:
-		body = &P3SKBBody{}
-	default:
-		return fmt.Errorf("Unknown packet tag: %d", p.tag)
-	}
-	var encoded []byte
-	err = codec.NewEncoderBytes(&encoded, &mh).Encode(p.body)
+	var gen interface{}
+	err = codec.NewDecoderBytes(data, &mh).Decode(&gen)
 	if err != nil {
-		return err
+		return
 	}
-	err = codec.NewDecoderBytes(encoded, &mh).Decode(body)
-	if err != nil {
-		return err
-	}
-	p.body = body
-	if err = p.CheckHash(); err != nil {
-		return err
-	}
-
-	return nil
+	jw := jsonw.NewWrapper(gen)
+	fmt.Printf("%s\n", jw.MarshalToDebug())
+	return DecodePacketFromJson(jw)
 }
 
-func DecodePacket(data []byte) (*KeybasePacket, error) {
-	p := &KeybasePacket{}
-	err := p.BinaryUnmarshaler(data)
+func DecodePacketHashFromJson(jw *jsonw.Wrapper) (ret KeybasePacketHash, err error) {
+	jw.AtKey("type").GetIntVoid(&ret.typ, &err)
+	jw.AtKey("value").GetBytesVoid(&ret.value, &err)
+	return
+}
+
+func DecodedP3SKBFromJson(jw *jsonw.Wrapper) (ret P3SKBBody, err error) {
+	jw.AtKey("pub").GetBytesVoid(&ret.pub, &err)
 	if err != nil {
-		p = nil
+		return
 	}
-	return p, err
+	ret.priv, err = DecodeP3SBKPrivFromJson(jw.AtKey("priv"))
+	return
+}
+
+func DecodeP3SBKPrivFromJson(jw *jsonw.Wrapper) (ret P3SKBPriv, err error) {
+	jw.AtKey("data").GetBytesVoid(&ret.data, &err)
+	jw.AtKey("encryption").GetIntVoid(&ret.encryption, &err)
+	return
+}
+
+func DecodePacketFromJson(jw *jsonw.Wrapper) (ret *KeybasePacket, err error) {
+
+	ret = &KeybasePacket{}
+	jw.AtKey("tag").GetIntVoid(&ret.tag, &err)
+	jw.AtKey("version").GetIntVoid(&ret.version, &err)
+	if err != nil {
+		return
+	}
+	ret.hash, err = DecodePacketHashFromJson(jw.AtKey("hash"))
+	if err != nil {
+		return
+	}
+	switch ret.tag {
+	case TAG_P3SKB:
+		ret.body, err = DecodedP3SKBFromJson(jw.AtKey("body"))
+	default:
+		err = fmt.Errorf("Unknown packet tag: %d", ret.tag)
+		return
+	}
+	if err = ret.CheckHash(); err != nil {
+		return
+	}
+
+	return
 }
