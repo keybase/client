@@ -98,5 +98,5 @@ const (
 // Packet tags for OpenPGP and also Keybase packets
 var (
 	KEYBASE_PACKET_V1 = 1
-	TAG_P3SKB         = 512
+	TAG_P3SKB         = 513
 )
