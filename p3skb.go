@@ -1,9 +1,13 @@
 package libkb
 
+//
+// Code for encoding and decoding P3SKB-formatted keys. Also works for decoding
+// general Keybase Packet types, but we only have P3SKB at present
+//
+
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"github.com/keybase/go-triplesec"
 	"github.com/ugorji/go/codec"
@@ -79,7 +83,6 @@ func (p *KeybasePacket) HashToBytes() (ret []byte, err error) {
 	if encoded, err = p.Encode(); err != nil {
 		return
 	}
-	fmt.Printf(base64.StdEncoding.EncodeToString(encoded))
 
 	sum := sha256.Sum256(encoded)
 	ret = sum[:]
@@ -119,8 +122,10 @@ func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 		}
 	}()
 
+	ch := CodecHandle()
+
 	ret = &KeybasePacket{}
-	err = codec.NewDecoderBytes(data, CodecHandle()).Decode(ret)
+	err = codec.NewDecoderBytes(data, ch).Decode(ret)
 	if err != nil {
 		return
 	}
@@ -135,11 +140,11 @@ func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 		return
 	}
 	var encoded []byte
-	err = codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(ret.Body)
+	err = codec.NewEncoderBytes(&encoded, ch).Encode(ret.Body)
 	if err != nil {
 		return
 	}
-	err = codec.NewDecoderBytes(encoded, CodecHandle()).Decode(body)
+	err = codec.NewDecoderBytes(encoded, ch).Decode(body)
 	if err != nil {
 		return
 	}
