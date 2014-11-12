@@ -44,21 +44,24 @@ func NewPgpKeyBundle(arg NewKeyArg) (*PgpKeyBundle, error) {
 	}
 
 	if arg.PrimaryBits == 0 {
-		arg.PrimaryBits = 4096
+		arg.PrimaryBits = 1024
 	}
 	if arg.SubkeyBits == 0 {
-		arg.SubkeyBits = 4096
+		arg.SubkeyBits = 1024
 	}
 
+	G.Log.Info("Generating primary key (%d bits)", arg.PrimaryBits)
 	masterPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.PrimaryBits)
 	if err != nil {
 		return nil, err
 	}
 
+	G.Log.Info("Generating encryption subkey (%d bits)", arg.SubkeyBits)
 	encryptingPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.SubkeyBits)
 	if err != nil {
 		return nil, err
 	}
+	G.Log.Info("Generating signing subkey (%d bits)", arg.SubkeyBits)
 	signingPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.SubkeyBits)
 	if err != nil {
 		return nil, err
@@ -152,7 +155,7 @@ func (s *keyGenState) GenerateKey() (err error) {
 func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
 	var p3skb *P3SKB
 	if p3skb, err = s.Bundle.ToP3SKB(tsec); err != nil {
-	} else if G.Keyrings != nil {
+	} else if G.Keyrings == nil {
 		err = fmt.Errorf("No keyrings available")
 	} else if err = G.Keyrings.P3SKB.Push(p3skb); err != nil {
 	} else if err = G.Keyrings.P3SKB.Save(); err != nil {
@@ -162,15 +165,25 @@ func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
 
 func KeyGen(tsec *triplesec.Cipher) (ret *PgpKeyBundle, err error) {
 	state := keyGenState{}
+
+	G.Log.Debug("+ KeyGen")
+	defer func() {
+		G.Log.Debug("- Keygen: %s", ErrToOk(err))
+	}()
+
+	G.Log.Debug("| Load me")
 	if err = state.LoadMe(); err != nil {
 		return
 	}
+	G.Log.Debug("| CheckNoKey")
 	if err = state.CheckNoKey(); err != nil {
 		return
 	}
+	G.Log.Debug("| GenerateKey")
 	if err = state.GenerateKey(); err != nil {
 		return
 	}
+	G.Log.Debug("| WriteKey")
 	if err = state.WriteKey(tsec); err != nil {
 		return
 	}

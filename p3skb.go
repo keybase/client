@@ -146,7 +146,7 @@ func (p KeybasePacket) ToP3SKB() (*P3SKB, error) {
 func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 	k, err := p3skb.GetPubKey()
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to get pubkey: %s", err.Error())
 	}
 	f.dirty = true
 	f.Blocks = append(f.Blocks, p3skb)
@@ -158,6 +158,7 @@ func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 func (f P3SKBKeyringFile) GetFilename() string { return f.filename }
 
 func (f P3SKBKeyringFile) WriteTo(w io.Writer) error {
+	G.Log.Debug("+ WriteTo")
 	packets := make(KeybasePackets, len(f.Blocks))
 	var err error
 	for i, b := range f.Blocks {
@@ -167,8 +168,10 @@ func (f P3SKBKeyringFile) WriteTo(w io.Writer) error {
 	}
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
 	if err = packets.EncodeTo(b64); err != nil {
+		G.Log.Warning("Encoding problem: %s", err.Error())
 		return err
 	}
+	G.Log.Debug("- WriteTo")
 	b64.Close()
 	return nil
 }
@@ -177,8 +180,9 @@ func (f *P3SKBKeyringFile) Save() error {
 	if !f.dirty {
 		return nil
 	}
+	G.Log.Debug("shiiit")
 	err := SafeWriteToFile(*f)
-	if err != nil {
+	if err == nil {
 		f.dirty = false
 	}
 	return err

@@ -199,20 +199,13 @@ func (s *LoginState) Login() error {
 		return err
 	}
 
-	err = s.GetSaltAndLoginSession(email_or_username)
-	if err != nil {
-		return err
-	}
-
 	G.Log.Debug(fmt.Sprintf("| got username: %s\n", email_or_username))
 
-	pw, err := PromptForKeybasePassphrase()
-
-	if err != nil {
+	if err = s.GetSaltAndLoginSession(email_or_username); err != nil {
 		return err
 	}
 
-	if err = s.StretchKey(pw); err != nil {
+	if _, err = s.GetTriplesec(); err != nil {
 		return err
 	}
 
@@ -247,6 +240,17 @@ func (s *LoginState) GetTriplesec() (ret *triplesec.Cipher, err error) {
 	} else if salt == nil {
 		err = fmt.Errorf("Cannot encrypt; no salt found")
 	}
+
+	var pw string
+	if pw, err = PromptForKeybasePassphrase(); err != nil {
+		return
+	}
+
+	if err = s.StretchKey(pw); err != nil {
+		return
+	}
+
+	ret = s.tsec
 
 	return
 }
