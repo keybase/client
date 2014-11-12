@@ -9,6 +9,8 @@ import (
 type CmdKeyGen struct {
 	push       bool
 	pushSecret bool
+	debug      bool
+	arg        libkb.KeyGenArg
 }
 
 func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
@@ -19,13 +21,20 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 	if nargs != 0 {
 		err = fmt.Errorf("keygen takes 0 args")
 	}
+	v.debug = ctx.Bool("debug")
+	if v.debug {
+		// Speed up keygen to speed up debugging
+		v.arg.PrimaryBits = 1024
+		v.arg.SubkeyBits = 1024
+	}
 	return err
 }
 
 func (v *CmdKeyGen) Run() error {
-	if tsec, err := G.LoginState.GetTriplesec(); err != nil {
+	var err error
+	if v.arg.Tsec, err = G.LoginState.GetTriplesec(); err != nil {
 		return err
-	} else if _, err := libkb.KeyGen(tsec); err != nil {
+	} else if _, err = libkb.KeyGen(v.arg); err != nil {
 		return err
 	}
 	return nil
@@ -44,6 +53,10 @@ func NewCmdKeyGen(cl *CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "push-secret",
 				Usage: "Also push secret key to server (protected by passphrase)",
+			},
+			cli.BoolFlag{
+				Name:  "d, debug",
+				Usage: "Generate small keys for debugging",
 			},
 		},
 		Action: func(c *cli.Context) {
