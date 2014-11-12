@@ -32,6 +32,8 @@ type KeybasePacket struct {
 	Version int               `codec:"version"`
 }
 
+type KeybasePackets []*KeybasePacket
+
 func (p *KeybasePacket) HashToBytes() (ret []byte, err error) {
 	zb := [0]byte{}
 	tmp := p.Hash.Value
@@ -78,6 +80,17 @@ func (p *KeybasePacket) Encode() ([]byte, error) {
 }
 
 func (p *KeybasePacket) EncodeTo(w io.Writer) error {
+	err := codec.NewEncoder(w, CodecHandle()).Encode(p)
+	return err
+}
+
+func (p KeybasePackets) Encode() ([]byte, error) {
+	var encoded []byte
+	err := codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(p)
+	return encoded, err
+}
+
+func (p KeybasePackets) EncodeTo(w io.Writer) error {
 	err := codec.NewEncoder(w, CodecHandle()).Encode(p)
 	return err
 }

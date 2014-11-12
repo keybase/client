@@ -102,19 +102,18 @@ func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 func (f P3SKBKeyringFile) GetFilename() string { return f.filename }
 
 func (f P3SKBKeyringFile) WriteTo(w io.Writer) error {
-	for _, b := range f.Blocks {
-		if p, err := b.ToPacket(); err != nil {
+	packets := make(KeybasePackets, len(f.Blocks))
+	var err error
+	for i, b := range f.Blocks {
+		if packets[i], err = b.ToPacket(); err != nil {
 			return err
-		} else {
-			line := base64.NewEncoder(base64.StdEncoding, w)
-			if err := p.EncodeTo(line); err != nil {
-				return err
-			} else {
-				line.Close()
-				w.Write([]byte{'\n'})
-			}
 		}
 	}
+	b64 := base64.NewEncoder(base64.StdEncoding, w)
+	if err = packets.EncodeTo(b64); err != nil {
+		return err
+	}
+	b64.Close()
 	return nil
 }
 
