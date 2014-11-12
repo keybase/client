@@ -301,7 +301,7 @@ func (e Env) GetPublicKeyrings() []string {
 	return []string{filepath.Join(e.GetPgpDir(), "pubring.gpg")}
 }
 
-func (e Env) GetSecretKeyrings() []string {
+func (e Env) GetPgpSecretKeyrings() []string {
 	return []string{filepath.Join(e.GetPgpDir(), "secring.gpg")}
 }
 
@@ -441,5 +441,6 @@ func (e Env) GetSecretKeyring() string {
 		func() string { return e.cmd.GetSecretKeyring() },
 		func() string { return os.Getenv("KEYBASE_SECRET_KEYRING") },
 		func() string { return e.config.GetSecretKeyring() },
+		func() string { return filepath.Join(e.GetConfigDir(), SECRET_KEYRING) },
 	)
 }

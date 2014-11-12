@@ -96,7 +96,14 @@ func (k *P3SKBKeyringFile) Load() (err error) {
 		}
 	}
 
-	if err == nil {
+	if err != nil {
+		if os.IsNotExist(err) {
+			G.Log.Debug("Keybase SecretKeyring doesn't exist: %s", k.filename)
+		} else {
+			G.Log.Warning("Error opening %s: %s", k.filename, err.Error())
+		}
+
+	} else if err == nil {
 		k.Blocks, err = packets.ToListOfP3SKBs()
 	}
 
