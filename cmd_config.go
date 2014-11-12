@@ -92,7 +92,7 @@ func (v *CmdConfig) Run() error {
 			cw.DeleteAtPath(v.key)
 			cw.Write()
 		} else {
-			cr := *G.Env.GetConfig()
+			cr := G.Env.GetConfig()
 			// TODO: print dictionaries?
 			if s, is_set := cr.GetStringAtPath(v.key); is_set {
 				fmt.Fprintf(v.writer, "%s: %s\n", v.key, s)
