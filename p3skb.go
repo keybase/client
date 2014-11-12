@@ -98,7 +98,8 @@ func (k *P3SKBKeyringFile) Load() (err error) {
 	var packets KeybasePackets
 	var file *os.File
 	if file, err = os.OpenFile(k.filename, os.O_RDONLY, 0); err == nil {
-		packets, err = DecodePackets(file)
+		stream := base64.NewDecoder(base64.StdEncoding, file)
+		packets, err = DecodePackets(stream)
 		tmp := file.Close()
 		if err == nil && tmp != nil {
 			err = tmp
@@ -188,10 +189,10 @@ func (f *P3SKBKeyringFile) Save() error {
 	if !f.dirty {
 		return nil
 	}
-	G.Log.Debug("shiiit")
 	err := SafeWriteToFile(*f)
 	if err == nil {
 		f.dirty = false
+		G.Log.Info("Updated keyring %s", f.filename)
 	}
 	return err
 }

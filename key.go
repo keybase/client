@@ -3,7 +3,6 @@ package libkb
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
@@ -207,7 +206,6 @@ func finishReadOne(el []*openpgp.Entity, err error) (*PgpKeyBundle, error) {
 
 func ReadOneKeyFromBytes(b []byte) (*PgpKeyBundle, error) {
 	reader := bytes.NewBuffer(b)
-	fmt.Printf(base64.StdEncoding.EncodeToString(reader.Bytes()) + "\n")
 	el, err := openpgp.ReadKeyRing(reader)
 	return finishReadOne(el, err)
 }

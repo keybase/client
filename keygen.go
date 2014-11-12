@@ -20,13 +20,6 @@ import (
 //   5. Change local DB and rewrite user to reflect what we just uploaded
 //
 
-type NewKeyArg struct {
-	Id          *Identity
-	Config      *packet.Config
-	PrimaryBits int
-	SubkeyBits  int
-}
-
 // NewEntity returns an Entity that contains a fresh RSA/RSA keypair with a
 // single identity composed of the given full name, comment and email, any of
 // which may be empty but must not contain any of "()<>\x00".
@@ -34,7 +27,7 @@ type NewKeyArg struct {
 //
 // Modification of: https://code.google.com/p/go/source/browse/openpgp/keys.go?repo=crypto&r=8fec09c61d5d66f460d227fd1df3473d7e015bc6#456
 //  From golang.com/x/crypto/openpgp/keys.go
-func NewPgpKeyBundle(arg NewKeyArg) (*PgpKeyBundle, error) {
+func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 	currentTime := arg.Config.Now()
 
 	uid := arg.Id.ToPgpUserId()
@@ -44,10 +37,10 @@ func NewPgpKeyBundle(arg NewKeyArg) (*PgpKeyBundle, error) {
 	}
 
 	if arg.PrimaryBits == 0 {
-		arg.PrimaryBits = 1024
+		arg.PrimaryBits = 4096
 	}
 	if arg.SubkeyBits == 0 {
-		arg.SubkeyBits = 1024
+		arg.SubkeyBits = 4096
 	}
 
 	G.Log.Info("Generating primary key (%d bits)", arg.PrimaryBits)
@@ -144,9 +137,9 @@ func (s *keyGenState) LoadMe() (err error) {
 	return err
 }
 
-func (s *keyGenState) GenerateKey() (err error) {
-	arg := NewKeyArg{
-		Id: KeybaseIdentity(""),
+func (s *keyGenState) GenerateKey(arg KeyGenArg) (err error) {
+	if arg.Id == nil {
+		arg.Id = KeybaseIdentity("")
 	}
 	s.Bundle, err = NewPgpKeyBundle(arg)
 	return
@@ -163,7 +156,15 @@ func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
 	return
 }
 
-func KeyGen(tsec *triplesec.Cipher) (ret *PgpKeyBundle, err error) {
+type KeyGenArg struct {
+	Tsec        *triplesec.Cipher
+	PrimaryBits int
+	SubkeyBits  int
+	Id          *Identity
+	Config      *packet.Config
+}
+
+func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	state := keyGenState{}
 
 	G.Log.Debug("+ KeyGen")
@@ -180,11 +181,11 @@ func KeyGen(tsec *triplesec.Cipher) (ret *PgpKeyBundle, err error) {
 		return
 	}
 	G.Log.Debug("| GenerateKey")
-	if err = state.GenerateKey(); err != nil {
+	if err = state.GenerateKey(arg); err != nil {
 		return
 	}
 	G.Log.Debug("| WriteKey")
-	if err = state.WriteKey(tsec); err != nil {
+	if err = state.WriteKey(arg.Tsec); err != nil {
 		return
 	}
 	return
