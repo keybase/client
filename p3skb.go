@@ -121,6 +121,7 @@ func (k *P3SKBKeyringFile) Index() (err error) {
 		fp := key.GetFingerprint()
 		k.index[fp] = b
 	}
+	G.Log.Debug("| Indexed %d secret keys", len(k.Blocks))
 	return
 }
 
