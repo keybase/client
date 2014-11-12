@@ -129,7 +129,7 @@ func SafeWriteToFile(t SafeWriter) error {
 	err = t.WriteTo(tmp)
 	if err == nil {
 		err = tmp.Close()
-		if err != nil {
+		if err == nil {
 			err = os.Rename(tmpfn, fn)
 		} else {
 			G.Log.Error(fmt.Sprintf("Error closing temporary file %s: %s", tmp, err.Error()))

@@ -32,22 +32,30 @@ func (key *PgpKeyBundle) ToP3SKB(tsec *triplesec.Cipher) (ret *P3SKB, err error)
 
 	ret = &P3SKB{}
 
-	var buf bytes.Buffer
-	(*openpgp.Entity)(key).Serialize(&buf)
-	ret.Pub = buf.Bytes()
+	var pk, sk bytes.Buffer
 
-	buf.Reset()
-	(*openpgp.Entity)(key).SerializePrivate(&buf, nil)
+	// Need to serialize Private first, because
+	err = (*openpgp.Entity)(key).SerializePrivate(&sk, nil)
+	if err != nil {
+		return
+	}
 	if tsec != nil {
-		ret.Priv.Data, err = tsec.Encrypt(buf.Bytes())
+		ret.Priv.Data, err = tsec.Encrypt(sk.Bytes())
 		ret.Priv.Encryption = int(triplesec.Version) // Version 3 is the current TripleSec version
 		if err != nil {
 			return
 		}
 	} else {
-		ret.Priv.Data = buf.Bytes()
+		ret.Priv.Data = sk.Bytes()
 		ret.Priv.Encryption = 0
 	}
+
+	err = (*openpgp.Entity)(key).Serialize(&pk)
+	if err != nil {
+		return
+	}
+	ret.Pub = pk.Bytes()
+
 	return
 }
 
