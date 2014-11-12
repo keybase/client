@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/keybase/go-triplesec"
+	"golang.org/x/crypto/openpgp"
 )
 
 type P3SKB struct {
@@ -24,33 +25,36 @@ type P3SKBPriv struct {
 	Encryption int    `codec:"encryption"`
 }
 
-func (key *PgpKeyBundle) ToPacket(tsec *triplesec.Cipher) (ret *KeybasePacket, err error) {
-	ret = &KeybasePacket{
-		Version: KEYBASE_PACKET_V1,
-		Tag:     TAG_P3SKB, // Keybase tags starts at 513 (OpenPGP are 0-30)
-	}
-	body := &P3SKB{}
+func (key *PgpKeyBundle) ToP3SKB(tsec *triplesec.Cipher) (ret *P3SKB, err error) {
+
+	ret = &P3SKB{}
 
 	var buf bytes.Buffer
-	key.PrimaryKey.Serialize(&buf)
-	body.Pub = buf.Bytes()
+	(*openpgp.Entity)(key).Serialize(&buf)
+	ret.Pub = buf.Bytes()
 
 	buf.Reset()
-	key.PrivateKey.Serialize(&buf)
+	(*openpgp.Entity)(key).SerializePrivate(&buf, nil)
 	if tsec != nil {
-		body.Priv.Data, err = tsec.Encrypt(buf.Bytes())
-		body.Priv.Encryption = int(triplesec.Version) // Version 3 is the current TripleSec version
+		ret.Priv.Data, err = tsec.Encrypt(buf.Bytes())
+		ret.Priv.Encryption = int(triplesec.Version) // Version 3 is the current TripleSec version
 		if err != nil {
 			return
 		}
 	} else {
-		body.Priv.Data = buf.Bytes()
-		body.Priv.Encryption = 0
+		ret.Priv.Data = buf.Bytes()
+		ret.Priv.Encryption = 0
 	}
+	return
+}
 
-	ret.Body = body
+func (p *P3SKB) ToPacket() (ret *KeybasePacket, err error) {
+	ret = &KeybasePacket{
+		Version: KEYBASE_PACKET_V1,
+		Tag:     TAG_P3SKB, // Keybase tags starts at 513 (OpenPGP are 0-30)
+	}
+	ret.Body = p
 	err = ret.HashMe()
-
 	return
 }
 
@@ -64,7 +68,7 @@ func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
 
 type P3SKBKeyringFile struct {
 	filename         string
-	Blocks           []*KeybasePacket
+	Blocks           []*P3SKB
 	indexId          map[string]*P3SKB // Map of 64-bit uppercase-hex KeyIds
 	indexFingerprint map[PgpFingerprint]*P3SKB
 }
@@ -78,19 +82,19 @@ func (p KeybasePacket) ToP3SKB() (*P3SKB, error) {
 	}
 }
 
-func (f *P3SKBKeyringFile) Push(p *KeybasePacket) error {
-	p3skb, err := p.ToP3SKB()
-	if err != nil {
-		return err
-	}
+func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 	k, err := p3skb.GetPubKey()
 	if err != nil {
 		return err
 	}
-	f.Blocks = append(f.Blocks, p)
+	f.Blocks = append(f.Blocks, p3skb)
 	id := k.PrimaryKey.KeyIdString()
 	fp := PgpFingerprint(k.PrimaryKey.Fingerprint)
 	f.indexId[id] = p3skb
 	f.indexFingerprint[fp] = p3skb
+	return nil
+}
+
+func (f *P3SKBKeyringFile) Save() error {
 	return nil
 }

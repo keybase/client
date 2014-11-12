@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/ugorji/go/codec"
+	"io"
 )
 
 func CodecHandle() *codec.MsgpackHandle {
@@ -74,6 +75,11 @@ func (p *KeybasePacket) Encode() ([]byte, error) {
 	var encoded []byte
 	err := codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(p)
 	return encoded, err
+}
+
+func (p *KeybasePacket) EncodeTo(w io.Writer) error {
+	err := codec.NewEncoder(w, CodecHandle()).Encode(p)
+	return err
 }
 
 func DecodePacket(data []byte) (ret *KeybasePacket, err error) {

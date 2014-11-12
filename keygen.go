@@ -150,15 +150,12 @@ func (s *keyGenState) GenerateKey() (err error) {
 }
 
 func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
-	if packet, err := s.Bundle.ToPacket(tsec); err != nil {
-		return err
-	} else if out, err := packet.Encode(); err != nil {
-		return err
+	var p3skb *P3SKB
+	if p3skb, err = s.Bundle.ToP3SKB(tsec); err != nil {
 	} else if G.Keyrings != nil {
-		return fmt.Errorf("No keyrings available")
-	} else {
-		ring := G.Keyrings.P3SKB
-		return ring.Push(packet)
+		err = fmt.Errorf("No keyrings available")
+	} else if err = G.Keyrings.P3SKB.Push(p3skb); err != nil {
+	} else if err = G.Keyrings.P3SKB.Save(); err != nil {
 	}
 	return
 }
