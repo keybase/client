@@ -28,6 +28,7 @@ func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
 func (n NullConfiguration) GetSecretKeyring() string           { return "" }
+func (n NullConfiguration) GetSalt() []byte                    { return nil }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false

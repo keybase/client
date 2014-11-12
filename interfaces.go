@@ -86,13 +86,14 @@ type ConfigReader interface {
 	GetGpgOptions() []string
 	GetPgpFingerprint() *PgpFingerprint
 	GetSecretKeyring() string
+	GetSalt() []byte
 }
 
 type ConfigWriter interface {
 	SetUsername(string)
 	SetUid(UID)
 	SetPgpFingerprint(*PgpFingerprint)
-	SetSalt(string)
+	SetSalt([]byte)
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error

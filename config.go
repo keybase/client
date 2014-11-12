@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"github.com/keybase/go-jsonw"
 )
 
@@ -162,8 +163,8 @@ func (f *JsonConfigFile) SetUid(u UID) {
 	f.SetUserField("id", string(u.ToString()))
 }
 
-func (f *JsonConfigFile) SetSalt(s string) {
-	f.SetUserField("salt", s)
+func (f *JsonConfigFile) SetSalt(b []byte) {
+	f.SetUserField("salt", hex.EncodeToString(b))
 }
 func (f *JsonConfigFile) SetPgpFingerprint(fp *PgpFingerprint) {
 	key := "fingerprint"
@@ -265,8 +266,16 @@ func (f JsonConfigFile) GetNoPinentry() (bool, bool) {
 func (f JsonConfigFile) GetUsername() string {
 	return f.GetUserField("name")
 }
-func (f JsonConfigFile) GetSalt() string {
-	return f.GetUserField("salt")
+func (f JsonConfigFile) GetSalt() []byte {
+	s := f.GetUserField("salt")
+	if len(s) == 0 {
+		return nil
+	}
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		G.Log.Warning("In getting salt from %s: %s", f.filename, err.Error())
+	}
+	return b
 }
 func (f JsonConfigFile) GetUid() *UID {
 	i, err := UidFromHex(f.GetUserField("id"))

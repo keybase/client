@@ -40,6 +40,17 @@ func (s LoginState) IsLoggedIn() bool {
 	return s.LoggedIn
 }
 
+func (s *LoginState) GetSalt() (salt []byte, err error) {
+	if s.salt == nil {
+		cfg := G.Env.GetConfig()
+		if cfg != nil {
+			s.salt = (*cfg).GetSalt()
+		}
+	}
+	salt = s.salt
+	return
+}
+
 func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "getsalt",
@@ -138,7 +149,7 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 			cfg.SetUsername(s.loggedInRes.username)
 		}
 		cfg.SetUid(s.loggedInRes.uid)
-		cfg.SetSalt(hex.EncodeToString(s.salt))
+		cfg.SetSalt(s.salt)
 
 		if err := cfg.Write(); err != nil {
 			return err
@@ -233,5 +244,12 @@ func (s *LoginState) GetTriplesec() (ret *triplesec.Cipher, err error) {
 		ret = s.tsec
 		return
 	}
+	var salt []byte
+	if salt, err = s.GetSalt(); err != nil {
+		return
+	} else if salt == nil {
+		err = fmt.Errorf("Cannot encrypt; no salt found")
+	}
+
 	return
 }
