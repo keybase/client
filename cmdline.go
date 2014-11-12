@@ -252,6 +252,7 @@ func (cl *CommandLine) PopulateApp() {
 		NewCmdConfig(cl),
 		NewCmdDb(cl),
 		NewCmdId(cl),
+		NewCmdKeyGen(cl),
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),
 		NewCmdPing(cl),
