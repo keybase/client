@@ -74,6 +74,9 @@ func (p CommandLine) GetGInt(s string) int {
 func (p CommandLine) GetGpg() string {
 	return p.GetGString("gpg")
 }
+func (p CommandLine) GetSecretKeyring() string {
+	return p.GetGString("secret-keyring")
+}
 func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
@@ -197,6 +200,10 @@ func (cl *CommandLine) PopulateApp() {
 		cli.StringFlag{
 			Name:  "pinentry",
 			Usage: "specify a path to find a pinentry program",
+		},
+		cli.StringFlag{
+			Name:  "secret-keyring",
+			Usage: "location of the Keybase secret-keyring (P3SKB-encoded)",
 		},
 		cli.StringFlag{
 			Name: "proxy",
