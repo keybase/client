@@ -7,9 +7,11 @@ package libkb
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
+	"io"
 )
 
 type P3SKB struct {
@@ -71,6 +73,7 @@ type P3SKBKeyringFile struct {
 	Blocks           []*P3SKB
 	indexId          map[string]*P3SKB // Map of 64-bit uppercase-hex KeyIds
 	indexFingerprint map[PgpFingerprint]*P3SKB
+	dirty            bool
 }
 
 func (p KeybasePacket) ToP3SKB() (*P3SKB, error) {
@@ -87,6 +90,7 @@ func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 	if err != nil {
 		return err
 	}
+	f.dirty = true
 	f.Blocks = append(f.Blocks, p3skb)
 	id := k.PrimaryKey.KeyIdString()
 	fp := PgpFingerprint(k.PrimaryKey.Fingerprint)
@@ -95,6 +99,32 @@ func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 	return nil
 }
 
-func (f *P3SKBKeyringFile) Save() error {
+func (f P3SKBKeyringFile) GetFilename() string { return f.filename }
+
+func (f P3SKBKeyringFile) WriteTo(w io.Writer) error {
+	for _, b := range f.Blocks {
+		if p, err := b.ToPacket(); err != nil {
+			return err
+		} else {
+			line := base64.NewEncoder(base64.StdEncoding, w)
+			if err := p.EncodeTo(line); err != nil {
+				return err
+			} else {
+				line.Close()
+				w.Write([]byte{'\n'})
+			}
+		}
+	}
 	return nil
+}
+
+func (f *P3SKBKeyringFile) Save() error {
+	if !f.dirty {
+		return nil
+	}
+	err := SafeWriteToFile(*f)
+	if err != nil {
+		f.dirty = false
+	}
+	return err
 }
