@@ -101,6 +101,7 @@ type LoadUserArg struct {
 	ForceReload      bool
 	SkipVerify       bool
 	AllKeys          bool
+	SkipCheckKey     bool
 }
 
 type UserCache struct {
@@ -762,6 +763,8 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
+	// We can still return a user with an Error, but never will we
+	// put such a user into the Cache.
 	if !arg.NoCacheResult {
 		G.UserCache.Put(ret)
 	}
@@ -797,6 +800,11 @@ func (u User) ToProofSet() *ProofSet {
 }
 
 func (u *User) checkKeyFingerprint(arg LoadUserArg) error {
+
+	if arg.SkipCheckKey {
+		return nil
+	}
+
 	fp, err := u.GetActivePgpFingerprint()
 
 	if err != nil {

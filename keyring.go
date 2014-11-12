@@ -15,9 +15,9 @@ type KeyringFile struct {
 }
 
 type Keyrings struct {
-	Public        []*KeyringFile
-	Secret        []*KeyringFile
-	KeybaseSecret *KeyringFile
+	Public []*KeyringFile
+	Secret []*KeyringFile
+	P3SKB  *P3SKBKeyringFile
 }
 
 func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {

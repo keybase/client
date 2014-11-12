@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"golang.org/x/crypto/openpgp/packet"
 	"regexp"
 	"strings"
 )
@@ -42,4 +43,19 @@ func (i Identity) Format() string {
 		parts = append(parts, "<"+i.Email+">")
 	}
 	return strings.Join(parts, " ")
+}
+
+func (i Identity) ToPgpUserId() *packet.UserId {
+	return packet.NewUserId(i.Username, i.Comment, i.Email)
+
+}
+
+func KeybaseIdentity(un string) *Identity {
+	if len(un) == 0 {
+		un = G.Env.GetUsername()
+	}
+	return &Identity{
+		Username: CANONICAL_HOST + "/" + un,
+		Email:    un + "@" + CANONICAL_HOST,
+	}
 }

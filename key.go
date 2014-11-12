@@ -188,6 +188,10 @@ func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 func ReadOneKeyFromString(s string) (*PgpKeyBundle, error) {
 	reader := strings.NewReader(s)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
+	return finishReadOne(el, err)
+}
+
+func finishReadOne(el []*openpgp.Entity, err error) (*PgpKeyBundle, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -198,6 +202,12 @@ func ReadOneKeyFromString(s string) (*PgpKeyBundle, error) {
 	} else {
 		return (*PgpKeyBundle)(el[0]), nil
 	}
+}
+
+func ReadOneKeyFromBytes(b []byte) (*PgpKeyBundle, error) {
+	reader := bytes.NewBuffer(b)
+	el, err := openpgp.ReadKeyRing(reader)
+	return finishReadOne(el, err)
 }
 
 func GetOneKey(jw *jsonw.Wrapper) (*PgpKeyBundle, error) {

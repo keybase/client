@@ -7,35 +7,16 @@ package libkb
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"github.com/keybase/go-triplesec"
-	"github.com/ugorji/go/codec"
 )
 
-func CodecHandle() *codec.MsgpackHandle {
-	var mh codec.MsgpackHandle
-	mh.WriteExt = true
-	return &mh
-}
-
-var SHA256_CODE int = 8
-
-type KeybasePacketHash struct {
-	Type  int    `codec:"type"`
-	Value []byte `codec:"value"`
-}
-
-type KeybasePacket struct {
-	Body    interface{}       `codec:"body"`
-	Hash    KeybasePacketHash `codec:"hash"`
-	Tag     int               `codec:"tag"`
-	Version int               `codec:"version"`
-}
-
-type P3SKBBody struct {
+type P3SKB struct {
 	Priv P3SKBPriv `codec:"priv"`
 	Pub  []byte    `codec:"pub"`
+
+	decodedPub  *PgpKeyBundle
+	decodedPriv *PgpKeyBundle
 }
 
 type P3SKBPriv struct {
@@ -43,25 +24,28 @@ type P3SKBPriv struct {
 	Encryption int    `codec:"encryption"`
 }
 
-func KeyBundleToP3SKB(key *PgpKeyBundle, tsec *triplesec.Cipher) (ret *KeybasePacket, err error) {
+func (key *PgpKeyBundle) ToPacket(tsec *triplesec.Cipher) (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KEYBASE_PACKET_V1,
 		Tag:     TAG_P3SKB, // Keybase tags starts at 513 (OpenPGP are 0-30)
 	}
-	body := &P3SKBBody{
-		Priv: P3SKBPriv{
-			Encryption: int(triplesec.Version), // Version 3 is the current TripleSec version
-		},
-	}
+	body := &P3SKB{}
+
 	var buf bytes.Buffer
 	key.PrimaryKey.Serialize(&buf)
 	body.Pub = buf.Bytes()
 
 	buf.Reset()
 	key.PrivateKey.Serialize(&buf)
-	body.Priv.Data, err = tsec.Encrypt(buf.Bytes())
-	if err != nil {
-		return
+	if tsec != nil {
+		body.Priv.Data, err = tsec.Encrypt(buf.Bytes())
+		body.Priv.Encryption = int(triplesec.Version) // Version 3 is the current TripleSec version
+		if err != nil {
+			return
+		}
+	} else {
+		body.Priv.Data = buf.Bytes()
+		body.Priv.Encryption = 0
 	}
 
 	ret.Body = body
@@ -70,88 +54,43 @@ func KeyBundleToP3SKB(key *PgpKeyBundle, tsec *triplesec.Cipher) (ret *KeybasePa
 	return
 }
 
-func (p *KeybasePacket) HashToBytes() (ret []byte, err error) {
-	zb := [0]byte{}
-	tmp := p.Hash.Value
-	defer func() {
-		p.Hash.Value = tmp
-	}()
-	p.Hash.Value = zb[:]
-	p.Hash.Type = SHA256_CODE
-
-	var encoded []byte
-	if encoded, err = p.Encode(); err != nil {
-		return
+func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
+	if p.decodedPub == nil {
+		key, err = ReadOneKeyFromBytes(p.Pub)
+		p.decodedPub = key
 	}
-
-	sum := sha256.Sum256(encoded)
-	ret = sum[:]
 	return
 }
 
-func (p *KeybasePacket) HashMe() error {
-	var err error
-	p.Hash.Value, err = p.HashToBytes()
-	return err
+type P3SKBKeyringFile struct {
+	filename         string
+	Blocks           []*KeybasePacket
+	indexId          map[string]*P3SKB // Map of 64-bit uppercase-hex KeyIds
+	indexFingerprint map[PgpFingerprint]*P3SKB
 }
 
-func (p *KeybasePacket) CheckHash() error {
-	var gotten []byte
-	var err error
-	given := p.Hash.Value
-	if p.Hash.Type != SHA256_CODE {
-		err = fmt.Errorf("Bad hash code: %d", p.Hash.Type)
-	} else if gotten, err = p.HashToBytes(); err != nil {
-
-	} else if !FastByteArrayEq(gotten, given) {
-		err = fmt.Errorf("Bad packet hash")
+func (p KeybasePacket) ToP3SKB() (*P3SKB, error) {
+	ret, ok := p.Body.(*P3SKB)
+	if !ok {
+		return nil, fmt.Errorf("Bad P3SKB packet")
+	} else {
+		return ret, nil
 	}
-	return err
 }
 
-func (p *KeybasePacket) Encode() ([]byte, error) {
-	var encoded []byte
-	err := codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(p)
-	return encoded, err
-}
-
-func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
-	defer func() {
-		if err != nil {
-			ret = nil
-		}
-	}()
-
-	ch := CodecHandle()
-
-	ret = &KeybasePacket{}
-	err = codec.NewDecoderBytes(data, ch).Decode(ret)
+func (f *P3SKBKeyringFile) Push(p *KeybasePacket) error {
+	p3skb, err := p.ToP3SKB()
 	if err != nil {
-		return
+		return err
 	}
-
-	var body interface{}
-
-	switch ret.Tag {
-	case TAG_P3SKB:
-		body = &P3SKBBody{}
-	default:
-		err = fmt.Errorf("Unknown packet tag: %d", ret.Tag)
-		return
-	}
-	var encoded []byte
-	err = codec.NewEncoderBytes(&encoded, ch).Encode(ret.Body)
+	k, err := p3skb.GetPubKey()
 	if err != nil {
-		return
+		return err
 	}
-	err = codec.NewDecoderBytes(encoded, ch).Decode(body)
-	if err != nil {
-		return
-	}
-	ret.Body = body
-	if err = ret.CheckHash(); err != nil {
-		return
-	}
-
-	return
+	f.Blocks = append(f.Blocks, p)
+	id := k.PrimaryKey.KeyIdString()
+	fp := PgpFingerprint(k.PrimaryKey.Fingerprint)
+	f.indexId[id] = p3skb
+	f.indexFingerprint[fp] = p3skb
+	return nil
 }

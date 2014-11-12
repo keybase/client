@@ -2,6 +2,8 @@ package libkb
 
 import (
 	"crypto/rsa"
+	"fmt"
+	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/errors"
 	"golang.org/x/crypto/openpgp/packet"
@@ -11,7 +13,7 @@ import (
 // General Strategy:
 //
 //   1. Use AGL's NewEntity() with a keybase UID to generate a new
-//      key.  Or maybe go with a 2-subkey configuration.
+//      key.  Or maybe go with a 2-subkey configuration/
 //   2. Triplesec the result and write to ~/.config/keybase/keys.3s
 //   3. Sign a signature link.
 //   4. Upload public and signature to server (optionally upload private)
@@ -19,7 +21,7 @@ import (
 //
 
 type NewKeyArg struct {
-	UserId      *packet.UserId
+	Id          *Identity
 	Config      *packet.Config
 	PrimaryBits int
 	SubkeyBits  int
@@ -29,16 +31,30 @@ type NewKeyArg struct {
 // single identity composed of the given full name, comment and email, any of
 // which may be empty but must not contain any of "()<>\x00".
 // If config is nil, sensible defaults will be used.
+//
+// Modification of: https://code.google.com/p/go/source/browse/openpgp/keys.go?repo=crypto&r=8fec09c61d5d66f460d227fd1df3473d7e015bc6#456
+//  From golang.com/x/crypto/openpgp/keys.go
 func NewPgpKeyBundle(arg NewKeyArg) (*PgpKeyBundle, error) {
 	currentTime := arg.Config.Now()
 
-	if arg.UserId == nil {
+	uid := arg.Id.ToPgpUserId()
+
+	if uid == nil {
 		return nil, errors.InvalidArgumentError("UserId field was nil")
 	}
+
+	if arg.PrimaryBits == 0 {
+		arg.PrimaryBits = 4096
+	}
+	if arg.SubkeyBits == 0 {
+		arg.SubkeyBits = 4096
+	}
+
 	masterPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.PrimaryBits)
 	if err != nil {
 		return nil, err
 	}
+
 	encryptingPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.SubkeyBits)
 	if err != nil {
 		return nil, err
@@ -54,9 +70,9 @@ func NewPgpKeyBundle(arg NewKeyArg) (*PgpKeyBundle, error) {
 		Identities: make(map[string]*openpgp.Identity),
 	}
 	isPrimaryId := true
-	e.Identities[arg.UserId.Id] = &openpgp.Identity{
-		Name:   arg.UserId.Name,
-		UserId: arg.UserId,
+	e.Identities[uid.Id] = &openpgp.Identity{
+		Name:   uid.Name,
+		UserId: uid,
 		SelfSignature: &packet.Signature{
 			CreationTime: currentTime,
 			SigType:      packet.SigTypePositiveCert,
@@ -107,4 +123,59 @@ func NewPgpKeyBundle(arg NewKeyArg) (*PgpKeyBundle, error) {
 	return (*PgpKeyBundle)(e), nil
 }
 
-// SerializePrivate serializes an Entity, including private key material, to
+type keyGenState struct {
+	Me     *User
+	Bundle *PgpKeyBundle
+}
+
+func (s *keyGenState) CheckNoKey() error {
+	fp, err := s.Me.GetActivePgpFingerprint()
+	if err == nil && fp != nil {
+		err = KeyExistsError{fp}
+	}
+	return nil
+}
+
+func (s *keyGenState) LoadMe() (err error) {
+	s.Me, err = LoadMe(LoadUserArg{SkipCheckKey: true})
+	return err
+}
+
+func (s *keyGenState) GenerateKey() (err error) {
+	arg := NewKeyArg{
+		Id: KeybaseIdentity(""),
+	}
+	s.Bundle, err = NewPgpKeyBundle(arg)
+	return
+}
+
+func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
+	if packet, err := s.Bundle.ToPacket(tsec); err != nil {
+		return err
+	} else if out, err := packet.Encode(); err != nil {
+		return err
+	} else if G.Keyrings != nil {
+		return fmt.Errorf("No keyrings available")
+	} else {
+		ring := G.Keyrings.P3SKB
+		return ring.Push(packet)
+	}
+	return
+}
+
+func KeyGen(tsec *triplesec.Cipher) (ret *PgpKeyBundle, err error) {
+	state := keyGenState{}
+	if err = state.LoadMe(); err != nil {
+		return
+	}
+	if err = state.CheckNoKey(); err != nil {
+		return
+	}
+	if err = state.GenerateKey(); err != nil {
+		return
+	}
+	if err = state.WriteKey(tsec); err != nil {
+		return
+	}
+	return
+}

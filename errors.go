@@ -167,3 +167,13 @@ func (n NoSelectedKeyError) Error() string {
 }
 
 //=============================================================================
+
+type KeyExistsError struct {
+	key *PgpFingerprint
+}
+
+func (k KeyExistsError) Error() string {
+	return fmt.Sprintf("Key already exists for user (%s)", k.key.ToString())
+}
+
+//=============================================================================
