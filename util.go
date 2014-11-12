@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/hmac"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -109,4 +110,37 @@ func DrainPipe(rc io.Reader, sink func(string)) error {
 		sink(scanner.Text())
 	}
 	return scanner.Err()
+}
+
+type SafeWriter interface {
+	GetFilename() string
+	WriteTo(io.Writer) error
+}
+
+func SafeWriteToFile(t SafeWriter) error {
+	fn := t.GetFilename()
+	G.Log.Debug(fmt.Sprintf("+ Writing to %s", fn))
+	tmpfn, tmp, err := TempFile(fn, PERM_FILE)
+	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
+	if err != nil {
+		return err
+	}
+
+	err = t.WriteTo(tmp)
+	if err == nil {
+		err = tmp.Close()
+		if err != nil {
+			err = os.Rename(tmpfn, fn)
+		} else {
+			G.Log.Error(fmt.Sprintf("Error closing temporary file %s: %s", tmp, err.Error()))
+			os.Remove(tmpfn)
+		}
+	} else {
+		G.Log.Error(fmt.Sprintf("Error writing temporary keyring %s: %s", tmp, err.Error()))
+		tmp.Close()
+		os.Remove(tmpfn)
+	}
+	G.Log.Debug(fmt.Sprintf("- Wrote to %s -> %s", fn, ErrToOk(err)))
+	return err
+
 }

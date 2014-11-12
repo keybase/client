@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"golang.org/x/crypto/openpgp"
+	"io"
 	"os"
 )
 
@@ -172,39 +173,19 @@ func (k *KeyringFile) Load() error {
 	return nil
 }
 
-func (k KeyringFile) writeTo(file *os.File) error {
+func (k KeyringFile) WriteTo(w io.Writer) error {
 	for _, e := range k.Entities {
-		if err := e.Serialize(file); err != nil {
+		if err := e.Serialize(w); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (k KeyringFile) Save() error {
-	G.Log.Debug(fmt.Sprintf("+ Writing to PGP keyring %s", k.filename))
-	tmpfn, tmp, err := TempFile(k.filename, PERM_FILE)
-	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
-	if err != nil {
-		return err
-	}
+func (k KeyringFile) GetFilename() string { return k.filename }
 
-	err = k.writeTo(tmp)
-	if err == nil {
-		err = tmp.Close()
-		if err != nil {
-			err = os.Rename(tmpfn, k.filename)
-		} else {
-			G.Log.Error(fmt.Sprintf("Error closing temporary file %s: %s", tmp, err.Error()))
-			os.Remove(tmpfn)
-		}
-	} else {
-		G.Log.Error(fmt.Sprintf("Error writing temporary keyring %s: %s", tmp, err.Error()))
-		tmp.Close()
-		os.Remove(tmpfn)
-	}
-	G.Log.Debug(fmt.Sprintf("- Wrote to PGP keyring %s -> %s", k.filename, ErrToOk(err)))
-	return err
+func (k KeyringFile) Save() error {
+	return SafeWriteToFile(k)
 }
 
 func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
