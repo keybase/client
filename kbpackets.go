@@ -95,16 +95,27 @@ func (p KeybasePackets) EncodeTo(w io.Writer) error {
 	return err
 }
 
-func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
-	defer func() {
-		if err != nil {
-			ret = nil
-		}
-	}()
-
+func DecodePackets(reader io.Reader) (ret KeybasePackets, err error) {
 	ch := CodecHandle()
+	var generics []interface{}
+	if err = codec.NewDecoder(reader, ch).Decode(&generics); err != nil {
+		return
+	}
+	ret = make(KeybasePackets, len(generics))
+	for i, e := range generics {
+		var encoded []byte
+		if err = codec.NewEncoderBytes(&encoded, ch).Encode(e); err != nil {
+			return
+		}
+		if ret[i], err = DecodePacket(encoded); err != nil {
+			return
+		}
+	}
+	return
+}
 
-	ret = &KeybasePacket{}
+func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
+	ch := CodecHandle()
 	err = codec.NewDecoderBytes(data, ch).Decode(ret)
 	if err != nil {
 		return
@@ -132,6 +143,14 @@ func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 	if err = ret.CheckHash(); err != nil {
 		return
 	}
+	return
+}
 
+func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
+	ret = &KeybasePacket{}
+	err = ret.MyUnmarshalBinary(data)
+	if err != nil {
+		ret = nil
+	}
 	return
 }

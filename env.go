@@ -27,6 +27,7 @@ func (n NullConfiguration) GetUid() *UID                       { return nil }
 func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
+func (n NullConfiguration) GetSecretKeyring() string           { return "" }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -432,5 +433,13 @@ func (e Env) GetPgpFingerprint() *PgpFingerprint {
 		func() *PgpFingerprint {
 			return e.config.GetPgpFingerprint()
 		},
+	)
+}
+
+func (e Env) GetSecretKeyring() string {
+	return e.GetString(
+		func() string { return e.cmd.GetSecretKeyring() },
+		func() string { return os.Getenv("KEYBASE_SECRET_KEYRING") },
+		func() string { return e.config.GetSecretKeyring() },
 	)
 }

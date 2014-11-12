@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
 	"io"
+	"os"
 )
 
 type P3SKB struct {
@@ -69,11 +70,59 @@ func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
 }
 
 type P3SKBKeyringFile struct {
-	filename         string
-	Blocks           []*P3SKB
-	indexId          map[string]*P3SKB // Map of 64-bit uppercase-hex KeyIds
-	indexFingerprint map[PgpFingerprint]*P3SKB
-	dirty            bool
+	filename string
+	Blocks   []*P3SKB
+	index    map[PgpFingerprint]*P3SKB
+	dirty    bool
+}
+
+func NewP3SKBKeyringFile(n string) *P3SKBKeyringFile {
+	return &P3SKBKeyringFile{
+		filename: n,
+		Blocks:   make([]*P3SKB, 0, 1),
+		index:    make(map[PgpFingerprint]*P3SKB),
+		dirty:    false,
+	}
+}
+
+func (k *P3SKBKeyringFile) Load() (err error) {
+	G.Log.Debug("+ Loading P3SKB keyring: %s", k.filename)
+	var packets KeybasePackets
+	if file, err := os.Open(k.filename); err == nil {
+		packets, err = DecodePackets(file)
+		tmp := file.Close()
+		if err == nil && tmp != nil {
+			err = tmp
+		}
+	}
+
+	if err == nil {
+		k.Blocks, err = packets.ToListOfP3SKBs()
+	}
+
+	G.Log.Debug("- Loaded P3SKB keyring: %s -> %s", k.filename, ErrToOk(err))
+	return
+}
+
+func (k *P3SKBKeyringFile) Index() (err error) {
+	for _, b := range k.Blocks {
+		var key *PgpKeyBundle
+		key, err = b.GetPubKey()
+		if err != nil {
+			return
+		}
+		fp := key.GetFingerprint()
+		k.index[fp] = b
+	}
+	return
+}
+
+func (k *P3SKBKeyringFile) LoadAndIndex() error {
+	err := k.Load()
+	if err == nil {
+		err = k.Index()
+	}
+	return err
 }
 
 func (p KeybasePacket) ToP3SKB() (*P3SKB, error) {
@@ -92,10 +141,8 @@ func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 	}
 	f.dirty = true
 	f.Blocks = append(f.Blocks, p3skb)
-	id := k.PrimaryKey.KeyIdString()
 	fp := PgpFingerprint(k.PrimaryKey.Fingerprint)
-	f.indexId[id] = p3skb
-	f.indexFingerprint[fp] = p3skb
+	f.index[fp] = p3skb
 	return nil
 }
 
@@ -126,4 +173,18 @@ func (f *P3SKBKeyringFile) Save() error {
 		f.dirty = false
 	}
 	return err
+}
+
+func (p KeybasePackets) ToListOfP3SKBs() (ret []*P3SKB, err error) {
+	ret = make([]*P3SKB, len(p))
+	for i, e := range p {
+		if k, ok := e.Body.(*P3SKB); ok {
+			ret[i] = k
+		} else {
+			err = fmt.Errorf("Bad P3SKB sequence; got packet of wrong type")
+			ret = nil
+			break
+		}
+	}
+	return
 }
