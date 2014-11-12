@@ -25,6 +25,7 @@ type LoginState struct {
 	login_session     []byte
 	login_session_b64 string
 	tsec              *triplesec.Cipher
+	sharedSecret      []byte
 
 	loggedInRes *LoggedInResult
 }
@@ -32,14 +33,14 @@ type LoginState struct {
 const SharedSecretLen = 32
 
 func NewLoginState() *LoginState {
-	return &LoginState{false, false, false, nil, nil, "", nil, nil}
+	return &LoginState{}
 }
 
 func (s LoginState) IsLoggedIn() bool {
 	return s.LoggedIn
 }
 
-func (s *LoginState) GetSalt(email_or_username string) error {
+func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "getsalt",
 		NeedSession: false,
@@ -76,20 +77,18 @@ func (s *LoginState) GetSalt(email_or_username string) error {
 	return nil
 }
 
-func (s *LoginState) StretchKey(passphrase string) ([]byte, error) {
+func (s *LoginState) StretchKey(passphrase string) (err error) {
 	if s.tsec == nil {
-		var err error
-		s.tsec, err = triplesec.NewCipher([]byte(passphrase), s.salt)
-		if err != nil {
-			return nil, err
+		if s.tsec, err = triplesec.NewCipher([]byte(passphrase), s.salt); err != nil {
+			return
 		}
 	}
-	_, shared_secret, err := s.tsec.DeriveKey(SharedSecretLen)
-	return shared_secret, err
+	_, s.sharedSecret, err = s.tsec.DeriveKey(SharedSecretLen)
+	return
 }
 
-func (s *LoginState) ComputeLoginPw(shared_secret []byte) ([]byte, error) {
-	mac := hmac.New(sha512.New, shared_secret)
+func (s *LoginState) ComputeLoginPw() ([]byte, error) {
+	mac := hmac.New(sha512.New, s.sharedSecret)
 	mac.Write(s.login_session)
 	return mac.Sum(nil), nil
 }
@@ -192,7 +191,7 @@ func (s *LoginState) Login() error {
 		return err
 	}
 
-	err = s.GetSalt(email_or_username)
+	err = s.GetSaltAndLoginSession(email_or_username)
 	if err != nil {
 		return err
 	}
@@ -205,12 +204,11 @@ func (s *LoginState) Login() error {
 		return err
 	}
 
-	shared_secret, err := s.StretchKey(pw)
-	if err != nil {
+	if err = s.StretchKey(pw); err != nil {
 		return err
 	}
 
-	lgpw, err := s.ComputeLoginPw(shared_secret)
+	lgpw, err := s.ComputeLoginPw()
 
 	if err != nil {
 		return err
@@ -228,4 +226,12 @@ func (s *LoginState) Login() error {
 
 	G.Log.Debug("- Login completed")
 	return nil
+}
+
+func (s *LoginState) GetTriplesec() (ret *triplesec.Cipher, err error) {
+	if s.tsec != nil {
+		ret = s.tsec
+		return
+	}
+	return
 }
