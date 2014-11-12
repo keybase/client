@@ -42,10 +42,7 @@ func (s LoginState) IsLoggedIn() bool {
 
 func (s *LoginState) GetSalt() (salt []byte, err error) {
 	if s.salt == nil {
-		cfg := G.Env.GetConfig()
-		if cfg != nil {
-			s.salt = (*cfg).GetSalt()
-		}
+		s.salt = G.Env.GetSalt()
 	}
 	salt = s.salt
 	return

@@ -71,7 +71,7 @@ type Env struct {
 	Test       TestParameters
 }
 
-func (e *Env) GetConfig() *ConfigReader      { return &e.config }
+func (e *Env) GetConfig() ConfigReader       { return e.config }
 func (e *Env) GetConfigWriter() ConfigWriter { return e.writer }
 
 func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
@@ -444,4 +444,8 @@ func (e Env) GetSecretKeyring() string {
 		func() string { return e.config.GetSecretKeyring() },
 		func() string { return filepath.Join(e.GetConfigDir(), SECRET_KEYRING) },
 	)
+}
+
+func (e Env) GetSalt() []byte {
+	return e.config.GetSalt()
 }
