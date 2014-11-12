@@ -1,8 +1,8 @@
 package libkb
 
 import (
-	"code.google.com/p/go.crypto/openpgp"
 	"fmt"
+	"golang.org/x/crypto/openpgp"
 	"os"
 )
 

@@ -163,8 +163,7 @@ type NoSelectedKeyError struct {
 }
 
 func (n NoSelectedKeyError) Error() string {
-	return fmt.Sprintf("No key selected for this user; server said %s",
-		n.wanted.ToQuads())
+	return "Please login again to verify your public key"
 }
 
 //=============================================================================
