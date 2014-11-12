@@ -88,7 +88,8 @@ func NewP3SKBKeyringFile(n string) *P3SKBKeyringFile {
 func (k *P3SKBKeyringFile) Load() (err error) {
 	G.Log.Debug("+ Loading P3SKB keyring: %s", k.filename)
 	var packets KeybasePackets
-	if file, err := os.Open(k.filename); err == nil {
+	var file *os.File
+	if file, err = os.OpenFile(k.filename, os.O_RDONLY, 0); err == nil {
 		packets, err = DecodePackets(file)
 		tmp := file.Close()
 		if err == nil && tmp != nil {
@@ -98,7 +99,7 @@ func (k *P3SKBKeyringFile) Load() (err error) {
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			G.Log.Debug("Keybase SecretKeyring doesn't exist: %s", k.filename)
+			G.Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
 		} else {
 			G.Log.Warning("Error opening %s: %s", k.filename, err.Error())
 		}
