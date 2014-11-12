@@ -20,6 +20,18 @@ import (
 //   5. Change local DB and rewrite user to reflect what we just uploaded
 //
 
+//
+// Todos:
+//    A. Verify that the PW is correct (with server?) and/or allow other key
+//       passwords to be used on the key
+//    3. Signatures
+//    4. Upload
+//    5. Local DB changed to reflect the upload
+//    B. Custom usernames
+//    C. Custom Email Addresses
+//
+//
+
 // NewEntity returns an Entity that contains a fresh RSA/RSA keypair with a
 // single identity composed of the given full name, comment and email, any of
 // which may be empty but must not contain any of "()<>\x00".
