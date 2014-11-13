@@ -74,6 +74,9 @@ func (u *User) ToKeyStanza() (*jsonw.Wrapper, error) {
 	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
 	if fp, err := u.GetActivePgpFingerprint(); err != nil {
 		return nil, err
+	} else if fp == nil {
+		err = fmt.Errorf("Need a key; none found (in ToKeyStanza)")
+		return nil, err
 	} else {
 		ret.SetKey("fingerprint", jsonw.NewString(fp.ToString()))
 		ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))

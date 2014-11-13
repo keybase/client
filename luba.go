@@ -83,8 +83,7 @@ func (l *LubaRes) Load(a string, withTracking bool) {
 	}
 
 	larg := LoadUserArg{
-		Name:             b,
-		RequirePublicKey: true,
+		Name: b,
 	}
 
 	if l.User, l.Error = LoadUser(larg); l.Error != nil {

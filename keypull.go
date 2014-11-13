@@ -25,8 +25,8 @@ type KeyPullState struct {
 func (s *KeyPullState) loadUser() (err error) {
 	// Need user eventually
 	s.user, err = LoadUser(LoadUserArg{
-		RequirePublicKey: false,
-		LoadSecrets:      true,
+		PublicKeyOptional: true,
+		LoadSecrets:       true,
 	})
 	return err
 }

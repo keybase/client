@@ -155,7 +155,7 @@ func (s *keyGenState) CheckNoKey() error {
 }
 
 func (s *keyGenState) LoadMe() (err error) {
-	s.me, err = LoadMe(LoadUserArg{SkipCheckKey: true})
+	s.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
 	return err
 }
 
@@ -167,8 +167,8 @@ func (s *keyGenState) GenerateKey(arg KeyGenArg) (err error) {
 	return
 }
 
-func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
-	if s.p3skb, err = s.bundle.ToP3SKB(tsec); err != nil {
+func (s *keyGenState) WriteKey() (err error) {
+	if s.p3skb, err = s.bundle.ToP3SKB(s.tsec); err != nil {
 	} else if G.Keyrings == nil {
 		err = fmt.Errorf("No keyrings available")
 	} else if err = G.Keyrings.P3SKB.Push(s.p3skb); err != nil {
@@ -190,6 +190,7 @@ func (s *keyGenState) GeneratePost() (err error) {
 	if tmp, err = jw.Marshal(); err != nil {
 		return
 	}
+	fmt.Printf("XXX %s\n", string(tmp))
 	if sig, sigid, err = SimpleSign(tmp, *s.bundle); err != nil {
 		return
 	}
@@ -228,6 +229,10 @@ type KeyGenArg struct {
 	Config       *packet.Config
 	DoPush       bool
 	NoPassphrase bool
+}
+
+func (s *keyGenState) UpdateUser() error {
+	return s.me.SetActiveKey(s.bundle)
 }
 
 func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
@@ -277,7 +282,11 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 		return
 	}
 	G.Log.Debug("| WriteKey")
-	if err = state.WriteKey(state.tsec); err != nil {
+	if err = state.WriteKey(); err != nil {
+		return
+	}
+	G.Log.Debug("| UpdateUser")
+	if err = state.UpdateUser(); err != nil {
 		return
 	}
 	G.Log.Debug("| Generate HTTP Post")

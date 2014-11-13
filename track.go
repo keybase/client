@@ -165,12 +165,10 @@ func (e *TrackEngine) LoadThem() error {
 	}
 	if e.Them == nil {
 		if u, err := LoadUser(LoadUserArg{
-			Name:             e.TheirName,
-			RequirePublicKey: true,
-			Self:             false,
-			LoadSecrets:      false,
-			ForceReload:      false,
-			SkipVerify:       false,
+			Name:        e.TheirName,
+			Self:        false,
+			LoadSecrets: false,
+			ForceReload: false,
 		}); err != nil {
 			return err
 		} else {

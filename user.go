@@ -92,16 +92,14 @@ type User struct {
 // Thin wrapper around hashicorp's LRU to store users locally
 
 type LoadUserArg struct {
-	Uid              *UID
-	Name             string
-	RequirePublicKey bool
-	NoCacheResult    bool
-	Self             bool
-	LoadSecrets      bool
-	ForceReload      bool
-	SkipVerify       bool
-	AllKeys          bool
-	SkipCheckKey     bool
+	Uid               *UID
+	Name              string
+	PublicKeyOptional bool
+	NoCacheResult     bool
+	Self              bool
+	LoadSecrets       bool
+	ForceReload       bool
+	AllKeys           bool
 }
 
 type UserCache struct {
@@ -329,6 +327,33 @@ func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
 	}
 	u.activePgpFingerprint = fp
 	return fp, err
+}
+
+func (u *User) SetActiveKey(pgp *PgpKeyBundle) (err error) {
+	u.activeKey = nil
+	u.activePgpFingerprint = nil
+
+	if u.publicKeys == nil || u.publicKeys.IsNil() {
+		u.publicKeys = jsonw.NewDictionary()
+	}
+	var d *jsonw.Wrapper
+	if pgp != nil {
+		if s, err := pgp.Encode(); err != nil {
+			return err
+		} else {
+			d = jsonw.NewDictionary()
+			d.SetKey("bundle", jsonw.NewString(s))
+			d.SetKey("key_fingerprint", jsonw.NewString(pgp.GetFingerprint().ToString()))
+		}
+	} else {
+		d = jsonw.NewNil()
+	}
+	if err = u.publicKeys.SetKey("primary", d); err != nil {
+		return err
+	}
+
+	u.dirty = true
+	return nil
 }
 
 func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
@@ -735,10 +760,8 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// Note whether we asked for loading secrets or not...
 	ret.secret = arg.LoadSecrets
 
-	if !arg.SkipVerify {
-		if err = ret.VerifySigChain(); err != nil {
-			return
-		}
+	if err = ret.VerifySigChain(); err != nil {
+		return
 	}
 
 	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id); err != nil {
@@ -751,15 +774,27 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			name, e2.Error())
 	}
 
-	if err = ret.MakeIdTable(arg.AllKeys); err != nil {
-		return
-	}
+	if ret.HasActiveKey() {
 
-	if err = ret.checkKeyFingerprint(arg); err != nil {
-		return
-	}
+		if err = ret.MakeIdTable(arg.AllKeys); err != nil {
+			return
+		}
 
-	if err = ret.VerifySelfSig(); err != nil {
+		if err = ret.checkKeyFingerprint(arg); err != nil {
+			return
+		}
+
+		if err = ret.VerifySelfSig(); err != nil {
+			return
+		}
+
+	} else if !arg.PublicKeyOptional {
+
+		var emsg string
+		if arg.Self {
+			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
+		}
+		err = NoKeyError{emsg}
 		return
 	}
 
@@ -770,6 +805,11 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	return
+}
+
+func (u User) HasActiveKey() bool {
+	key, err := u.GetActiveKey()
+	return key != nil && err == nil
 }
 
 func (u1 User) Equal(u2 User) bool {
@@ -801,22 +841,9 @@ func (u User) ToProofSet() *ProofSet {
 
 func (u *User) checkKeyFingerprint(arg LoadUserArg) error {
 
-	if arg.SkipCheckKey {
-		return nil
-	}
-
 	fp, err := u.GetActivePgpFingerprint()
 
 	if err != nil {
-		return err
-	}
-
-	if arg.RequirePublicKey && fp == nil {
-		var emsg string
-		if arg.Self {
-			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
-		}
-		err = NoKeyError{emsg}
 		return err
 	}
 
