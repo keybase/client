@@ -64,21 +64,68 @@ func PromptForConfirmation(prompt string) error {
 
 }
 
+func PromptForNewPassphrase(arg PromptArg) (text string, err error) {
+
+	if arg.Checker == nil {
+		arg.Checker = &CheckNewPassword
+	}
+
+	for {
+		text = ""
+		var text2 string
+
+		if text, err = ppprompt(arg); err != nil {
+			return
+		}
+
+		arg.TerminalPrompt = "confirm " + arg.TerminalPrompt
+		arg.PinentryDesc = "Please reenter your passphase for confirmation"
+
+		if text2, err = ppprompt(arg); err != nil {
+			return
+		}
+		if text == text2 {
+			break
+		} else {
+			arg.RetryMessage = "Password mismatch"
+			G.Log.Error("Password mismatch")
+		}
+	}
+	return
+}
+
+type PromptArg struct {
+	TerminalPrompt string
+	PinentryDesc   string
+	PinentryPrompt string
+	Checker        *Checker
+	RetryMessage   string
+}
+
 func PromptForKeybasePassphrase(retry string) (text string, err error) {
+	return ppprompt(PromptArg{
+		TerminalPrompt: "keybase passphrase",
+		PinentryPrompt: "Your passphrase",
+		PinentryDesc:   "Please enter your keybase passphrase (12+ characters)",
+		Checker:        &CheckPasswordSimple,
+		RetryMessage:   retry,
+	})
+}
+
+func ppprompt(arg PromptArg) (text string, err error) {
 
 	first := true
-	checker := CheckPasswordSimple
 	var res *SecretEntryRes
 
 	for {
 
-		tp := "keybase passphrase"
+		tp := arg.TerminalPrompt
 		var Error string
 		if !first {
-			tp = tp + " (" + checker.Hint + ")"
-			Error = sentencePunctuate(checker.Hint)
-		} else if len(retry) > 0 {
-			Error = retry
+			tp = tp + " (" + arg.Checker.Hint + ")"
+			Error = sentencePunctuate(arg.Checker.Hint)
+		} else if len(arg.RetryMessage) > 0 {
+			Error = arg.RetryMessage
 		}
 
 		tp = tp + ": "
@@ -86,8 +133,8 @@ func PromptForKeybasePassphrase(retry string) (text string, err error) {
 		res, err = G.SecretEntry.Get(
 			SecretEntryArg{
 				Error:  Error,
-				Desc:   "Please enter your keybase passphrase (12+ characters)",
-				Prompt: "Your passphrase",
+				Desc:   arg.PinentryDesc,
+				Prompt: arg.PinentryPrompt,
 			},
 			&SecretEntryArg{
 				Prompt: tp,
@@ -100,7 +147,7 @@ func PromptForKeybasePassphrase(retry string) (text string, err error) {
 		if err != nil {
 			break
 		}
-		if checker.F(res.Text) {
+		if arg.Checker.F(res.Text) {
 			text = res.Text
 			break
 		}

@@ -38,3 +38,9 @@ var CheckPasswordSimple = Checker{
 	},
 	Hint: "passphrase cannot be empty",
 }
+var CheckNewPassword = Checker{
+	F: func(s string) bool {
+		return len(s) > 12
+	},
+	Hint: "passphrase must be 12 or more characters",
+}
