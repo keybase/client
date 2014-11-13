@@ -8,7 +8,7 @@ import (
 type CmdLogin struct{}
 
 func (v *CmdLogin) Run() error {
-	if err := libkb.G.LoginState.Login(); err != nil {
+	if err := G.LoginState.Login(libkb.LoginArg{Prompt: true}); err != nil {
 		return err
 	}
 
