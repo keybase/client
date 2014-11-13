@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/go-triplesec"
 	"strings"
 )
 
@@ -70,9 +71,17 @@ func PromptForNewPassphrase(arg PromptArg) (text string, err error) {
 		arg.Checker = &CheckNewPassword
 	}
 
+	orig := arg
+	var rm string
+
 	for {
 		text = ""
 		var text2 string
+		arg = orig
+		if len(rm) > 0 {
+			arg.RetryMessage = rm
+			rm = ""
+		}
 
 		if text, err = ppprompt(arg); err != nil {
 			return
@@ -80,6 +89,7 @@ func PromptForNewPassphrase(arg PromptArg) (text string, err error) {
 
 		arg.TerminalPrompt = "confirm " + arg.TerminalPrompt
 		arg.PinentryDesc = "Please reenter your passphase for confirmation"
+		arg.RetryMessage = ""
 
 		if text2, err = ppprompt(arg); err != nil {
 			return
@@ -87,9 +97,18 @@ func PromptForNewPassphrase(arg PromptArg) (text string, err error) {
 		if text == text2 {
 			break
 		} else {
-			arg.RetryMessage = "Password mismatch"
+			rm = "Password mismatch"
 		}
 	}
+	return
+}
+
+func PromptForNewTsec(arg PromptArg) (tsec *triplesec.Cipher, err error) {
+	var text string
+	if text, err = PromptForNewPassphrase(arg); err != nil {
+		return
+	}
+	tsec, err = triplesec.NewCipher([]byte(text), nil)
 	return
 }
 

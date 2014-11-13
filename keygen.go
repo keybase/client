@@ -138,12 +138,13 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 }
 
 type keyGenState struct {
-	Me     *User
-	Bundle *PgpKeyBundle
+	me     *User
+	bundle *PgpKeyBundle
+	tsec   *triplesec.Cipher
 }
 
 func (s *keyGenState) CheckNoKey() error {
-	fp, err := s.Me.GetActivePgpFingerprint()
+	fp, err := s.me.GetActivePgpFingerprint()
 	if err == nil && fp != nil {
 		err = KeyExistsError{fp}
 	}
@@ -151,7 +152,7 @@ func (s *keyGenState) CheckNoKey() error {
 }
 
 func (s *keyGenState) LoadMe() (err error) {
-	s.Me, err = LoadMe(LoadUserArg{SkipCheckKey: true})
+	s.me, err = LoadMe(LoadUserArg{SkipCheckKey: true})
 	return err
 }
 
@@ -159,13 +160,13 @@ func (s *keyGenState) GenerateKey(arg KeyGenArg) (err error) {
 	if arg.Id == nil {
 		arg.Id = KeybaseIdentity("")
 	}
-	s.Bundle, err = NewPgpKeyBundle(arg)
+	s.bundle, err = NewPgpKeyBundle(arg)
 	return
 }
 
 func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
 	var p3skb *P3SKB
-	if p3skb, err = s.Bundle.ToP3SKB(tsec); err != nil {
+	if p3skb, err = s.bundle.ToP3SKB(tsec); err != nil {
 	} else if G.Keyrings == nil {
 		err = fmt.Errorf("No keyrings available")
 	} else if err = G.Keyrings.P3SKB.Push(p3skb); err != nil {
@@ -175,11 +176,12 @@ func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
 }
 
 type KeyGenArg struct {
-	Tsec        *triplesec.Cipher
-	PrimaryBits int
-	SubkeyBits  int
-	Id          *Identity
-	Config      *packet.Config
+	PrimaryBits  int
+	SubkeyBits   int
+	Id           *Identity
+	Config       *packet.Config
+	DoPush       bool
+	NoPassphrase bool
 }
 
 func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
@@ -190,8 +192,30 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 		G.Log.Debug("- Keygen: %s", ErrToOk(err))
 	}()
 
-	if err = G.LoginState.Login(LoginArg{Force: true, Retry: 4}); err != nil {
+	larg := LoginArg{}
+
+	// If we're not using a PW, we have to check that we have the right
+	// password loaded into our triplesec, so need to force a relogin
+	if arg.DoPush {
+		larg.Force = true
+		larg.Retry = 4
+	}
+
+	if err = G.LoginState.Login(larg); err != nil {
 		return
+	}
+
+	if arg.DoPush {
+		state.tsec = G.LoginState.tsec
+	} else if !arg.NoPassphrase {
+		state.tsec, err = PromptForNewTsec(PromptArg{
+			TerminalPrompt: "A good passphrase to protect your key",
+			PinentryDesc:   "Please pick a good passphrase to protect your key (12+ characters)",
+			PinentryPrompt: "Key passphrase",
+		})
+		if err != nil {
+			return
+		}
 	}
 
 	G.Log.Debug("| Load me")
@@ -207,7 +231,7 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 		return
 	}
 	G.Log.Debug("| WriteKey")
-	if err = state.WriteKey(arg.Tsec); err != nil {
+	if err = state.WriteKey(state.tsec); err != nil {
 		return
 	}
 	return

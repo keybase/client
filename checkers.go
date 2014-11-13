@@ -40,7 +40,7 @@ var CheckPasswordSimple = Checker{
 }
 var CheckNewPassword = Checker{
 	F: func(s string) bool {
-		return len(s) > 12
+		return len(s) >= 12
 	},
 	Hint: "passphrase must be 12 or more characters",
 }
