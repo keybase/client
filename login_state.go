@@ -49,6 +49,11 @@ func (s *LoginState) GetSalt() (salt []byte, err error) {
 }
 
 func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
+
+	if s.salt != nil && s.login_session != nil {
+		return nil
+	}
+
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "getsalt",
 		NeedSession: false,
@@ -110,8 +115,13 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
 			"login_session":     S{s.login_session_b64},
 		},
+		AppStatus: []string{"OK", "BAD_LOGIN_PASSWORD"},
 	})
 	if err != nil {
+		return err
+	}
+	if res.AppStatus == "BAD_LOGIN_PASSWORD" {
+		err = PassphraseError{"server rejected login attempt"}
 		return err
 	}
 
@@ -175,12 +185,35 @@ func (s *LoginState) Logout() error {
 }
 
 type LoginArg struct {
-	Force  bool
-	Prompt bool
+	Force    bool
+	Prompt   bool
+	Retry    int
+	RetryMsg string
 }
 
 func (s *LoginState) Login(arg LoginArg) error {
 	G.Log.Debug("+ Login called")
+
+	n_tries := arg.Retry
+	if n_tries == 0 {
+		n_tries = 1
+	}
+	var err error
+
+	for i := 0; i < n_tries; i++ {
+		err = s.login(arg)
+		if err == nil {
+			break
+		} else if _, badpw := err.(PassphraseError); !badpw {
+			break
+		} else {
+			arg.RetryMsg = err.Error()
+		}
+	}
+	return err
+}
+
+func (s *LoginState) login(arg LoginArg) error {
 
 	if s.LoggedIn && !arg.Force {
 		G.Log.Debug("- Login short-circuited; already logged in")
@@ -216,7 +249,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 		return err
 	}
 
-	if _, err = s.GetTriplesec(); err != nil {
+	if _, err = s.GetTriplesec(arg.RetryMsg); err != nil {
 		return err
 	}
 
@@ -228,6 +261,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 
 	err = s.PostLoginToServer(email_or_username, lgpw)
 	if err != nil {
+		s.tsec = nil
 		return err
 	}
 
@@ -240,7 +274,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 	return nil
 }
 
-func (s *LoginState) GetTriplesec() (ret *triplesec.Cipher, err error) {
+func (s *LoginState) GetTriplesec(retry string) (ret *triplesec.Cipher, err error) {
 	if s.tsec != nil {
 		ret = s.tsec
 		return
@@ -253,7 +287,7 @@ func (s *LoginState) GetTriplesec() (ret *triplesec.Cipher, err error) {
 	}
 
 	var pw string
-	if pw, err = PromptForKeybasePassphrase(); err != nil {
+	if pw, err = PromptForKeybasePassphrase(retry); err != nil {
 		return
 	}
 

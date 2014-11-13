@@ -177,3 +177,17 @@ func (k KeyExistsError) Error() string {
 }
 
 //=============================================================================
+
+type PassphraseError struct {
+	msg string
+}
+
+func (p PassphraseError) Error() string {
+	msg := "Bad passphrase"
+	if len(p.msg) != 0 {
+		msg = msg + ": " + p.msg
+	}
+	return msg
+}
+
+//=============================================================================

@@ -64,7 +64,7 @@ func PromptForConfirmation(prompt string) error {
 
 }
 
-func PromptForKeybasePassphrase() (text string, err error) {
+func PromptForKeybasePassphrase(retry string) (text string, err error) {
 
 	first := true
 	checker := CheckPasswordSimple
@@ -77,6 +77,8 @@ func PromptForKeybasePassphrase() (text string, err error) {
 		if !first {
 			tp = tp + " (" + checker.Hint + ")"
 			Error = sentencePunctuate(checker.Hint)
+		} else if len(retry) > 0 {
+			Error = retry
 		}
 
 		tp = tp + ": "

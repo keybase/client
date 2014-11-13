@@ -190,6 +190,10 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 		G.Log.Debug("- Keygen: %s", ErrToOk(err))
 	}()
 
+	if err = G.LoginState.Login(LoginArg{Force: true}); err != nil {
+		return
+	}
+
 	G.Log.Debug("| Load me")
 	if err = state.LoadMe(); err != nil {
 		return
