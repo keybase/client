@@ -3,6 +3,7 @@ package libkb
 import (
 	"crypto/rsa"
 	"fmt"
+	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/errors"
@@ -138,9 +139,11 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 }
 
 type keyGenState struct {
-	me     *User
-	bundle *PgpKeyBundle
-	tsec   *triplesec.Cipher
+	me       *User
+	bundle   *PgpKeyBundle
+	p3skb    *P3SKB
+	tsec     *triplesec.Cipher
+	httpArgs *HttpArgs
 }
 
 func (s *keyGenState) CheckNoKey() error {
@@ -165,14 +168,57 @@ func (s *keyGenState) GenerateKey(arg KeyGenArg) (err error) {
 }
 
 func (s *keyGenState) WriteKey(tsec *triplesec.Cipher) (err error) {
-	var p3skb *P3SKB
-	if p3skb, err = s.bundle.ToP3SKB(tsec); err != nil {
+	if s.p3skb, err = s.bundle.ToP3SKB(tsec); err != nil {
 	} else if G.Keyrings == nil {
 		err = fmt.Errorf("No keyrings available")
-	} else if err = G.Keyrings.P3SKB.Push(p3skb); err != nil {
+	} else if err = G.Keyrings.P3SKB.Push(s.p3skb); err != nil {
 	} else if err = G.Keyrings.P3SKB.Save(); err != nil {
 	}
 	return
+}
+
+func (s *keyGenState) GeneratePost() (err error) {
+	var jw *jsonw.Wrapper
+	var tmp []byte
+	var seckey, pubkey string
+	var sig string
+	var sigid *SigId
+
+	if jw, err = s.me.SelfProof(); err != nil {
+		return
+	}
+	if tmp, err = jw.Marshal(); err != nil {
+		return
+	}
+	if sig, sigid, err = SimpleSign(tmp, *s.bundle); err != nil {
+		return
+	}
+	if pubkey, err = s.bundle.Encode(); err != nil {
+		return
+	}
+	if seckey, err = s.p3skb.ArmoredEncode(); err != nil {
+		return
+	}
+
+	s.httpArgs = &HttpArgs{
+		"sig_id_base":  S{sigid.ToString(false)},
+		"sig_id_short": S{sigid.ToShortId()},
+		"sig":          S{sig},
+		"public_key":   S{pubkey},
+		"secret_key":   S{seckey},
+		"is_primary":   I{1},
+	}
+
+	return
+}
+
+func (s *keyGenState) PostToServer() error {
+	_, err := G.API.Post(ApiArg{
+		Endpoint:    "key/add",
+		NeedSession: true,
+		Args:        *s.httpArgs,
+	})
+	return err
 }
 
 type KeyGenArg struct {
@@ -232,6 +278,14 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	}
 	G.Log.Debug("| WriteKey")
 	if err = state.WriteKey(state.tsec); err != nil {
+		return
+	}
+	G.Log.Debug("| Generate HTTP Post")
+	if err = state.GeneratePost(); err != nil {
+		return
+	}
+	G.Log.Debug("| Post to server")
+	if err = state.PostToServer(); err != nil {
 		return
 	}
 	return

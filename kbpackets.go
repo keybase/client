@@ -6,7 +6,9 @@ package libkb
 //
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"github.com/ugorji/go/codec"
 	"io"
@@ -77,6 +79,16 @@ func (p *KeybasePacket) Encode() ([]byte, error) {
 	var encoded []byte
 	err := codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(p)
 	return encoded, err
+}
+
+func (p *KeybasePacket) ArmoredEncode() (ret string, err error) {
+	var buf bytes.Buffer
+	b64 := base64.NewEncoder(base64.StdEncoding, &buf)
+	err = p.EncodeTo(b64)
+	if err == nil {
+		ret = buf.String()
+	}
+	return
 }
 
 func (p *KeybasePacket) EncodeTo(w io.Writer) error {

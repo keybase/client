@@ -187,3 +187,8 @@ func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
 	}
 	return
 }
+
+func (u1 *User) SelfProof() (ret *jsonw.Wrapper, err error) {
+	ret, err = u1.ProofMetadata()
+	return
+}

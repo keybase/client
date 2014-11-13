@@ -1,7 +1,9 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto"
+	"crypto/sha256"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/errors"
@@ -109,7 +111,29 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 	return openpgp.Key{}, false
 }
 
-// Like openpgp.Encrypt (as in p.crypto/openpgp/write.go), but
+// SimpleSign signs the given data stream, outputs an armored string which is
+// the attached signature of the input data
+func SimpleSign(payload []byte, key PgpKeyBundle) (out string, id *SigId, err error) {
+	var outb bytes.Buffer
+	var in io.WriteCloser
+	var h HashSummer
+	if in, err, h = ArmoredAttachedSign(noOpCloser{&outb}, openpgp.Entity(key), nil, nil); err != nil {
+		return
+	}
+	if _, err = in.Write(payload); err != nil {
+		return
+	}
+	if err = in.Close(); err != nil {
+		return
+	}
+	out = outb.String()
+	if id, err = SigIdFromSlice(h()); err != nil {
+		return
+	}
+	return
+}
+
+// AttachedSign is like openpgp.Encrypt (as in p.crypto/openpgp/write.go), but
 // don't encrypt at all, just sign the literal unencrypted data.
 // Unfortunately we need to duplicate some code here that's already
 // in write.go
@@ -170,39 +194,50 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 	return
 }
 
-type DebugWriteCloser struct {
-	targ io.WriteCloser
+type HashingWriteCloser struct {
+	targ   io.WriteCloser
+	hasher hash.Hash
 }
 
-func (dbc DebugWriteCloser) Write(buf []byte) (int, error) {
-	G.Log.Debug("dbc write: %v", buf)
-	return dbc.targ.Write(buf)
+func (h HashingWriteCloser) Write(buf []byte) (int, error) {
+	n, err := h.targ.Write(buf)
+	if err == nil {
+		_, err = h.hasher.Write(buf)
+	}
+	return n, err
 }
 
-func (dbc DebugWriteCloser) Close() error {
-	G.Log.Debug("dbc Close!")
-	return dbc.targ.Close()
+func (h HashingWriteCloser) Close() error {
+	err := h.targ.Close()
+	return err
 }
+
+type HashSummer func() []byte
 
 func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints,
-	config *packet.Config) (in io.WriteCloser, err error) {
+	config *packet.Config) (in io.WriteCloser, err error, h HashSummer) {
 
 	var aout io.WriteCloser
 	aout, err = armor.Encode(out, "PGP MESSAGE", PgpArmorHeaders())
 	if err != nil {
 		return
 	}
-	return AttachedSign(DebugWriteCloser{aout}, signed, hints, config)
+	hwc := HashingWriteCloser{aout, sha256.New()}
+	in, err = AttachedSign(hwc, signed, hints, config)
+	h = func() []byte { return hwc.hasher.Sum(nil) }
+
+	return
 }
 
 func AttachedSignWrapper(out io.WriteCloser, key PgpKeyBundle, armored bool) (
 	in io.WriteCloser, err error) {
 
 	if armored {
-		return ArmoredAttachedSign(out, openpgp.Entity(key), nil, nil)
+		in, err, _ = ArmoredAttachedSign(out, openpgp.Entity(key), nil, nil)
 	} else {
-		return AttachedSign(out, openpgp.Entity(key), nil, nil)
+		in, err = AttachedSign(out, openpgp.Entity(key), nil, nil)
 	}
+	return
 }
 
 // From here:

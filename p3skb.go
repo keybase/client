@@ -152,6 +152,14 @@ func (p KeybasePacket) ToP3SKB() (*P3SKB, error) {
 	}
 }
 
+func (s *P3SKB) ArmoredEncode() (ret string, err error) {
+	var p *KeybasePacket
+	if p, err = s.ToPacket(); err == nil {
+		ret, err = p.ArmoredEncode()
+	}
+	return
+}
+
 func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 	k, err := p3skb.GetPubKey()
 	if err != nil {

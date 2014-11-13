@@ -33,6 +33,18 @@ func (s SigId) ToDisplayString(verbose bool) string {
 
 }
 
+func SigIdFromSlice(s []byte) (*SigId, error) {
+	if len(s) != SIG_ID_LEN {
+		return nil, fmt.Errorf("Bad SidId; wanted %d byte; got %d",
+			SIG_ID_LEN, len(s))
+	} else {
+		ret := SigId{}
+		copy(ret[:], s)
+		return &ret, nil
+	}
+
+}
+
 func SigIdFromHex(s string, suffix bool) (*SigId, error) {
 	bv, err := hex.DecodeString(s)
 	totlen := SIG_ID_LEN

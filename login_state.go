@@ -232,6 +232,8 @@ func (s *LoginState) login(arg LoginArg) error {
 			G.Log.Debug("Our session token is still valid; we're logged in")
 			return nil
 		}
+	} else if err := G.Session.Load(); err != nil {
+		return err
 	}
 
 	email_or_username, prompted, err := G.Env.GetOrPromptForEmailOrUsername(arg.Prompt)

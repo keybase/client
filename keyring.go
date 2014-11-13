@@ -29,11 +29,15 @@ func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile
 	return v
 }
 
-func NewKeyrings(e Env) *Keyrings {
+func NewKeyrings(e Env, usage Usage) *Keyrings {
 	ret := &Keyrings{}
-	ret.Public = ret.MakeKeyrings(e.GetPublicKeyrings(), true)
-	ret.Secret = ret.MakeKeyrings(e.GetPgpSecretKeyrings(), false)
-	ret.P3SKB = NewP3SKBKeyringFile(e.GetSecretKeyring())
+	if usage.GpgKeyring {
+		ret.Public = ret.MakeKeyrings(e.GetPublicKeyrings(), true)
+		ret.Secret = ret.MakeKeyrings(e.GetPgpSecretKeyrings(), false)
+	}
+	if usage.KbKeyring {
+		ret.P3SKB = NewP3SKBKeyringFile(e.GetSecretKeyring())
+	}
 	return ret
 }
 
@@ -96,11 +100,13 @@ func (k Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
 
 func (k *Keyrings) Load() (err error) {
 	G.Log.Debug("+ Loading keyrings")
-	err = k.LoadKeyrings(k.Public)
-	if err == nil {
+	if k.Public != nil {
+		err = k.LoadKeyrings(k.Public)
+	}
+	if err == nil && k.Secret != nil {
 		k.LoadKeyrings(k.Secret)
 	}
-	if err == nil {
+	if k.P3SKB != nil && err == nil {
 		if e2 := k.P3SKB.LoadAndIndex(); e2 != nil && !os.IsNotExist(e2) {
 			err = e2
 		}

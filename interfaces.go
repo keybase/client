@@ -134,11 +134,16 @@ type SecretEntryInterface interface {
 	Get(SecretEntryArg, *SecretEntryArg) (*SecretEntryRes, error)
 }
 
+type Usage struct {
+	Config     bool
+	GpgKeyring bool
+	KbKeyring  bool
+	API        bool
+	Terminal   bool
+}
+
 type Command interface {
-	UseConfig() bool
-	UseKeyring() bool
-	UseAPI() bool
-	UseTerminal() bool
+	GetUsage() Usage
 }
 
 type Terminal interface {

@@ -40,6 +40,7 @@ type Global struct {
 	SecretEntry   *SecretEntry   // a terminal-or-pinentry system
 	GpgClient     GpgClient      // A standard GPG-client (optional)
 	ShutdownHooks []ShutdownHook // on shutdown, fire these...
+	shutdown      bool           // whether we've shut down or not
 }
 
 var G Global = Global{
@@ -80,8 +81,8 @@ func (g *Global) ConfigureConfig() error {
 	return nil
 }
 
-func (g *Global) ConfigureKeyring() error {
-	c := NewKeyrings(*g.Env)
+func (g *Global) ConfigureKeyring(usage Usage) error {
+	c := NewKeyrings(*g.Env, usage)
 	err := c.Load()
 	if err != nil {
 		return fmt.Errorf("Failed to configure keyrings: %s", err.Error())
@@ -138,6 +139,9 @@ func (g *Global) ConfigureMerkleClient() error {
 }
 
 func (g *Global) Shutdown() error {
+	if g.shutdown {
+		return nil
+	}
 	var err error
 	if g.Terminal != nil {
 		tmp := g.Terminal.Shutdown()
@@ -157,6 +161,7 @@ func (g *Global) Shutdown() error {
 			err = tmp
 		}
 	}
+	g.shutdown = true
 	return err
 }
 
@@ -165,28 +170,35 @@ func (g *Global) ConfigureSecretEntry() (err error) {
 	return nil
 }
 
+func (u Usage) UseKeyring() bool {
+	return u.KbKeyring || u.GpgKeyring
+}
+
 func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
 	var err error
 
 	g.SetCommandLine(line)
 
 	g.ConfigureLogging()
-	if cmd.UseConfig() {
+
+	usage := cmd.GetUsage()
+
+	if usage.Config {
 		if err = g.ConfigureConfig(); err != nil {
 			return err
 		}
 	}
-	if cmd.UseKeyring() {
-		if err = g.ConfigureKeyring(); err != nil {
+	if usage.UseKeyring() {
+		if err = g.ConfigureKeyring(usage); err != nil {
 			return err
 		}
 	}
-	if cmd.UseAPI() {
+	if usage.API {
 		if err = g.ConfigureAPI(); err != nil {
 			return err
 		}
 	}
-	if cmd.UseTerminal() {
+	if usage.Terminal {
 		if err = g.ConfigureTerminal(); err != nil {
 			return err
 		}
