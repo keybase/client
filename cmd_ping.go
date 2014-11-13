@@ -38,8 +38,11 @@ func NewCmdPing(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdPing) UseConfig() bool              { return true }
-func (v *CmdPing) UseKeyring() bool             { return false }
-func (v *CmdPing) UseAPI() bool                 { return true }
-func (v *CmdPing) UseTerminal() bool            { return false }
 func (c *CmdPing) ParseArgv(*cli.Context) error { return nil }
+
+func (v *CmdPing) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
+	}
+}

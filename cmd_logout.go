@@ -26,8 +26,11 @@ func NewCmdLogout(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdLogout) UseConfig() bool              { return true }
-func (v *CmdLogout) UseKeyring() bool             { return false }
-func (v *CmdLogout) UseAPI() bool                 { return true }
-func (v *CmdLogout) UseTerminal() bool            { return false }
+func (v *CmdLogout) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
+	}
+}
+
 func (c *CmdLogout) ParseArgv(*cli.Context) error { return nil }

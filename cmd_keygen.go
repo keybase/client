@@ -7,7 +7,6 @@ import (
 )
 
 type CmdKeyGen struct {
-	push       bool
 	pushSecret bool
 	debug      bool
 	arg        libkb.KeyGenArg
@@ -16,7 +15,7 @@ type CmdKeyGen struct {
 func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
-	v.push = ctx.Bool("push")
+	v.arg.DoPush = ctx.Bool("push")
 	v.pushSecret = ctx.Bool("push-secret")
 	v.arg.NoPassphrase = ctx.Bool("no-passphrase")
 	if nargs != 0 {
@@ -68,7 +67,12 @@ func NewCmdKeyGen(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdKeyGen) UseConfig() bool   { return true }
-func (v *CmdKeyGen) UseKeyring() bool  { return true }
-func (v *CmdKeyGen) UseAPI() bool      { return true }
-func (v *CmdKeyGen) UseTerminal() bool { return true }
+func (v *CmdKeyGen) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: false,
+		KbKeyring:  true,
+		API:        true,
+		Terminal:   true,
+	}
+}

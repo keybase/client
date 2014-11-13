@@ -95,7 +95,11 @@ func (s *CmdSign) Run() (err error) {
 	return
 }
 
-func (v *CmdSign) UseConfig() bool   { return true }
-func (v *CmdSign) UseKeyring() bool  { return true }
-func (v *CmdSign) UseAPI() bool      { return true }
-func (v *CmdSign) UseTerminal() bool { return true }
+func (v *CmdSign) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:    true,
+		API:       true,
+		Terminal:  true,
+		KbKeyring: true,
+	}
+}

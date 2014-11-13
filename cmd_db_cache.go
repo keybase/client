@@ -48,7 +48,12 @@ func NewCmdDbCache(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdDbCache) UseConfig() bool   { return true }
-func (v *CmdDbCache) UseKeyring() bool  { return false }
-func (v *CmdDbCache) UseAPI() bool      { return true }
-func (v *CmdDbCache) UseTerminal() bool { return false }
+func (v *CmdDbCache) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: false,
+		KbKeyring:  false,
+		API:        true,
+		Terminal:   false,
+	}
+}

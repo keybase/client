@@ -40,7 +40,9 @@ func NewCmdResolve(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdResolve) UseConfig() bool   { return true }
-func (v *CmdResolve) UseKeyring() bool  { return false }
-func (v *CmdResolve) UseAPI() bool      { return true }
-func (v *CmdResolve) UseTerminal() bool { return false }
+func (v *CmdResolve) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
+	}
+}

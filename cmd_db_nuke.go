@@ -42,11 +42,6 @@ func NewCmdDbNuke(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdDbNuke) UseConfig() bool   { return true }
-func (v *CmdDbNuke) UseKeyring() bool  { return false }
-func (v *CmdDbNuke) UseAPI() bool      { return false }
-func (v *CmdDbNuke) UseTerminal() bool { return true }
-
 func NewCmdDb(cl *CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "db",
@@ -56,5 +51,15 @@ func NewCmdDb(cl *CommandLine) cli.Command {
 			NewCmdDbNuke(cl),
 			NewCmdDbCache(cl),
 		},
+	}
+}
+
+func (v *CmdDbNuke) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: false,
+		KbKeyring:  false,
+		API:        true,
+		Terminal:   true,
 	}
 }

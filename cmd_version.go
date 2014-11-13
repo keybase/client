@@ -23,8 +23,10 @@ func NewCmdVersion(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdVersion) UseConfig() bool              { return true }
-func (v *CmdVersion) UseKeyring() bool             { return false }
-func (v *CmdVersion) UseAPI() bool                 { return false }
-func (v *CmdVersion) UseTerminal() bool            { return false }
 func (c *CmdVersion) ParseArgv(*cli.Context) error { return nil }
+
+func (v *CmdVersion) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+	}
+}

@@ -302,11 +302,6 @@ func NewCmdSigsList(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdSigsList) UseConfig() bool   { return true }
-func (v *CmdSigsList) UseKeyring() bool  { return false }
-func (v *CmdSigsList) UseAPI() bool      { return true }
-func (v *CmdSigsList) UseTerminal() bool { return false }
-
 func NewCmdSigs(cl *CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "sigs",
@@ -315,5 +310,12 @@ func NewCmdSigs(cl *CommandLine) cli.Command {
 		Subcommands: []cli.Command{
 			NewCmdSigsList(cl),
 		},
+	}
+}
+
+func (v *CmdSigsList) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
 	}
 }

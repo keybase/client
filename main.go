@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/keybase/go-libkb"
 	"os"
+	"os/signal"
 )
 
 // Keep this around to simplify things
@@ -19,8 +20,23 @@ func parseArgs() (libkb.CommandLine, Command, error) {
 	return p, cmd, nil
 }
 
+func handleSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	for {
+		s := <-c
+		if s != nil {
+			G.Shutdown()
+			G.Log.Error("interrupted")
+			os.Exit(3)
+		}
+	}
+
+}
+
 func main() {
 	G.Init()
+	go handleSignals()
 	err := main2()
 	e2 := G.Shutdown()
 	if err == nil {

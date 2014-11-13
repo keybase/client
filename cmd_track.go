@@ -54,7 +54,11 @@ func NewCmdTrack(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdTrack) UseConfig() bool   { return true }
-func (v *CmdTrack) UseKeyring() bool  { return true }
-func (v *CmdTrack) UseAPI() bool      { return true }
-func (v *CmdTrack) UseTerminal() bool { return true }
+func (v *CmdTrack) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:    true,
+		API:       true,
+		Terminal:  true,
+		KbKeyring: true,
+	}
+}

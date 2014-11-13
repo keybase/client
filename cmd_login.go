@@ -37,9 +37,14 @@ func NewCmdLogin(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdLogin) UseConfig() bool   { return true }
-func (v *CmdLogin) UseKeyring() bool  { return true }
-func (v *CmdLogin) UseAPI() bool      { return true }
-func (v *CmdLogin) UseTerminal() bool { return true }
-
 func (c *CmdLogin) ParseArgv(*cli.Context) error { return nil }
+
+func (v *CmdLogin) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: false,
+		KbKeyring:  true,
+		API:        true,
+		Terminal:   true,
+	}
+}

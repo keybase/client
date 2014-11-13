@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libkb"
 	"io"
 	"os"
 	"strconv"
@@ -137,7 +138,12 @@ func NewCmdConfig(cl *CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdConfig) UseConfig() bool   { return true }
-func (v *CmdConfig) UseKeyring() bool  { return false }
-func (v *CmdConfig) UseAPI() bool      { return false }
-func (v *CmdConfig) UseTerminal() bool { return false }
+func (v *CmdConfig) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:     true,
+		GpgKeyring: false,
+		KbKeyring:  false,
+		API:        false,
+		Terminal:   false,
+	}
+}

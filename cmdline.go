@@ -124,10 +124,9 @@ type CmdBaseHelp struct {
 	ctx *cli.Context
 }
 
-func (c *CmdBaseHelp) UseConfig() bool              { return false }
-func (c *CmdBaseHelp) UseKeyring() bool             { return false }
-func (c *CmdBaseHelp) UseAPI() bool                 { return false }
-func (c *CmdBaseHelp) UseTerminal() bool            { return false }
+func (c *CmdBaseHelp) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
 func (c *CmdBaseHelp) ParseArgv(*cli.Context) error { return nil }
 
 type CmdGeneralHelp struct {
