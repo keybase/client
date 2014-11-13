@@ -30,6 +30,12 @@ import (
 //    B. Custom usernames
 //    C. Custom Email Addresses
 //
+
+//
+// Password strategy:
+//   1. If server push, 3sec with login password.
+//   2. If local write, prompt for new password
+//
 //
 
 // NewEntity returns an Entity that contains a fresh RSA/RSA keypair with a

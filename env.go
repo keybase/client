@@ -335,20 +335,25 @@ func (e Env) GetProofCacheSize() int {
 	)
 }
 
-func (e Env) GetOrPromptForEmailOrUsername() (string, bool, error) {
+func (e Env) GetEmailOrUsername() string {
 	un := e.GetUsername()
 	if len(un) > 0 {
-		return un, false, nil
+		return un
 	}
 	em := e.GetEmail()
-	if len(em) > 0 {
-		return em, false, nil
+	return em
+}
+
+func (e Env) GetOrPromptForEmailOrUsername(do_prompt bool) (un string, prompted bool, err error) {
+
+	if un = e.GetEmailOrUsername(); len(un) > 0 {
+	} else if do_prompt {
+		un, err = Prompt("Your keybase username or email", false,
+			CheckEmailOrUsername)
+		prompted = true
 	}
 
-	un, err := Prompt("Your keybase username or email", false,
-		CheckEmailOrUsername)
-
-	return un, true, err
+	return
 }
 
 // XXX implement me

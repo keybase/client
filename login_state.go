@@ -174,28 +174,39 @@ func (s *LoginState) Logout() error {
 	return err
 }
 
-func (s *LoginState) Login() error {
+type LoginArg struct {
+	Force  bool
+	Prompt bool
+}
+
+func (s *LoginState) Login(arg LoginArg) error {
 	G.Log.Debug("+ Login called")
 
-	if s.LoggedIn {
+	if s.LoggedIn && !arg.Force {
 		G.Log.Debug("- Login short-circuited; already logged in")
 		return nil
 	}
 
-	is_valid, err := G.Session.LoadAndCheck()
+	if !arg.Force {
+		is_valid, err := G.Session.LoadAndCheck()
+		if err != nil {
+			return err
+		}
+
+		if is_valid {
+			s.LoggedIn = true
+			s.SessionVerified = true
+			G.Log.Debug("Our session token is still valid; we're logged in")
+			return nil
+		}
+	}
+
+	email_or_username, prompted, err := G.Env.GetOrPromptForEmailOrUsername(arg.Prompt)
 	if err != nil {
 		return err
 	}
-
-	if is_valid {
-		s.LoggedIn = true
-		s.SessionVerified = true
-		G.Log.Debug("Our session token is still valid; we're logged in")
-		return nil
-	}
-
-	email_or_username, prompted, err := G.Env.GetOrPromptForEmailOrUsername()
-	if err != nil {
+	if len(email_or_username) == 0 {
+		err = fmt.Errorf("Username or login not known")
 		return err
 	}
 
