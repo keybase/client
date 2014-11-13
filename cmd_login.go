@@ -8,15 +8,16 @@ import (
 type CmdLogin struct{}
 
 func (v *CmdLogin) Run() error {
-	if err := G.LoginState.Login(libkb.LoginArg{Prompt: true}); err != nil {
+	larg := libkb.LoginArg{Prompt: true, Retry: 3}
+	if err := G.LoginState.Login(larg); err != nil {
 		return err
 	}
 
 	// We might need to ID ourselves, to load us in here
-	arg := libkb.LoadUserArg{
+	luarg := libkb.LoadUserArg{
 		RequirePublicKey: true,
 	}
-	u, err := libkb.LoadMe(arg)
+	u, err := libkb.LoadMe(luarg)
 	if _, not_found := err.(libkb.NoKeyError); not_found {
 		err = nil
 	} else if _, not_selected := err.(libkb.NoSelectedKeyError); not_selected {

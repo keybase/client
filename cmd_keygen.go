@@ -32,7 +32,7 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdKeyGen) Run() error {
 	var err error
-	if v.arg.Tsec, err = G.LoginState.GetTriplesec(); err != nil {
+	if v.arg.Tsec, err = G.LoginState.GetTriplesec(""); err != nil {
 		return err
 	} else if _, err = libkb.KeyGen(v.arg); err != nil {
 		return err
