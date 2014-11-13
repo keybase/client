@@ -88,7 +88,6 @@ func PromptForNewPassphrase(arg PromptArg) (text string, err error) {
 			break
 		} else {
 			arg.RetryMessage = "Password mismatch"
-			G.Log.Error("Password mismatch")
 		}
 	}
 	return
@@ -120,23 +119,25 @@ func ppprompt(arg PromptArg) (text string, err error) {
 	for {
 
 		tp := arg.TerminalPrompt
-		var Error string
+		var emp, emt string
 		if !first {
 			tp = tp + " (" + arg.Checker.Hint + ")"
-			Error = sentencePunctuate(arg.Checker.Hint)
+			emp = sentencePunctuate(arg.Checker.Hint)
 		} else if len(arg.RetryMessage) > 0 {
-			Error = arg.RetryMessage
+			emp = arg.RetryMessage
+			emt = emp
 		}
 
 		tp = tp + ": "
 
 		res, err = G.SecretEntry.Get(
 			SecretEntryArg{
-				Error:  Error,
+				Error:  emp,
 				Desc:   arg.PinentryDesc,
 				Prompt: arg.PinentryPrompt,
 			},
 			&SecretEntryArg{
+				Error:  emt,
 				Prompt: tp,
 			},
 		)

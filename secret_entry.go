@@ -77,6 +77,10 @@ func TerminalGetSecret(t Terminal, arg *SecretEntryArg) (
 	desc := arg.Desc
 	prompt := arg.Prompt
 
+	if len(arg.Error) > 0 {
+		G.Log.Error(arg.Error)
+	}
+
 	if len(desc) > 0 {
 		if err = t.Write(desc + "\n"); err != nil {
 			return
