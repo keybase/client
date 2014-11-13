@@ -18,6 +18,7 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 	var err error
 	v.push = ctx.Bool("push")
 	v.pushSecret = ctx.Bool("push-secret")
+	v.arg.NoPassphrase = ctx.Bool("no-passphrase")
 	if nargs != 0 {
 		err = fmt.Errorf("keygen takes 0 args")
 	}
@@ -32,9 +33,7 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdKeyGen) Run() error {
 	var err error
-	if v.arg.Tsec, err = G.LoginState.GetTriplesec(""); err != nil {
-		return err
-	} else if _, err = libkb.KeyGen(v.arg); err != nil {
+	if _, err = libkb.KeyGen(v.arg); err != nil {
 		return err
 	}
 	return nil
@@ -57,6 +56,10 @@ func NewCmdKeyGen(cl *CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "d, debug",
 				Usage: "Generate small keys for debugging",
+			},
+			cli.BoolFlag{
+				Name:  "P, no-passphrase",
+				Usage: "Don't protect the key with a passphrase",
 			},
 		},
 		Action: func(c *cli.Context) {
