@@ -26,12 +26,8 @@ func (v *CmdDbCache) Run() error {
 	// XXX maybe do some sort of debug dump with the user that
 	// we loaded from the server (or storage).
 	_, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name:             v.input,
-		RequirePublicKey: false,
-		Self:             false,
-		LoadSecrets:      false,
-		ForceReload:      false,
-		SkipVerify:       false,
+		Name:              v.input,
+		PublicKeyOptional: true,
 	})
 
 	return err

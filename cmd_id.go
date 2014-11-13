@@ -55,11 +55,7 @@ func (v *CmdId) RunLuba() error {
 func (v *CmdId) RunStandard() error {
 
 	arg := libkb.LoadUserArg{
-		RequirePublicKey: true,
-		Self:             (len(v.user) == 0),
-		LoadSecrets:      false,
-		ForceReload:      false,
-		SkipVerify:       false,
+		Self: (len(v.user) == 0),
 	}
 	if v.uid != nil {
 		arg.Uid = v.uid

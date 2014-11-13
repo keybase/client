@@ -14,9 +14,7 @@ func (v *CmdLogin) Run() error {
 	}
 
 	// We might need to ID ourselves, to load us in here
-	luarg := libkb.LoadUserArg{
-		RequirePublicKey: true,
-	}
+	luarg := libkb.LoadUserArg{}
 	u, err := libkb.LoadMe(luarg)
 	if _, not_found := err.(libkb.NoKeyError); not_found {
 		err = nil
