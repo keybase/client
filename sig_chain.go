@@ -44,7 +44,11 @@ func NewEmptySigChain(uid UID, username string) *SigChain {
 }
 
 func (sc SigChain) Len() int {
-	return len(sc.chainLinks)
+	n := len(sc.chainLinks)
+	if sc.base != nil {
+		n += len(sc.base.chainLinks)
+	}
+	return n
 }
 
 func NewSigChain(uid UID, username string, seqno int, lastLink LinkId,
@@ -359,6 +363,11 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 	}
 
 	if err = sc.VerifyChain(); err != nil {
+		return
+	}
+
+	if key == nil {
+		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
 

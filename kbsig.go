@@ -62,7 +62,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	}
 
 	w.SetKey("type", jsonw.NewString("track"))
-	w.SetKey("version", jsonw.NewInt(TRACK_STATEMENT_V1))
+	w.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	w.SetKey("track", track)
 	return
 }
@@ -193,5 +193,8 @@ func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
 
 func (u1 *User) SelfProof() (ret *jsonw.Wrapper, err error) {
 	ret, err = u1.ProofMetadata()
+	body := ret.AtKey("body")
+	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("type", jsonw.NewString("web_service_binding"))
 	return
 }

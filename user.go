@@ -348,6 +348,7 @@ func (u *User) SetActiveKey(pgp *PgpKeyBundle) (err error) {
 	} else {
 		d = jsonw.NewNil()
 	}
+
 	if err = u.publicKeys.SetKey("primary", d); err != nil {
 		return err
 	}
@@ -482,6 +483,7 @@ func (local *User) CheckChainFreshness(t *MerkleTriple) (current bool, err error
 }
 
 func (u *User) BorrowSigChainFrom(u2 *User) {
+	G.Log.Debug("| Borrowing SigChain from locally stored user")
 	u.sigChain = u2.sigChain
 }
 
@@ -657,7 +659,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 	} else if !arg.Self {
 		// noop
-	} else if arg.Uid = G.GetMyUid(); arg.Uid != nil {
+	} else if arg.Uid = G.GetMyUid(); arg.Uid == nil {
 		arg.Name = G.Env.GetUsername()
 	}
 
@@ -680,6 +682,11 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	} else {
 		uid = *rres.uid
 		arg.Uid = &uid
+	}
+
+	if my_uid := G.GetMyUid(); my_uid != nil && arg.Uid != nil &&
+		my_uid.Eq(*arg.Uid) && !arg.Self {
+		arg.Self = true
 	}
 
 	uid_s := uid.ToString()
@@ -784,6 +791,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			return
 		}
 
+		// XXX this is actually the second time we're checking this;
+		// We're also checking it in VerifySigChain(); However, in this
+		// case, we're looking out for revoked signature chains.
+		// See https://github.com/keybase/go-libkb/issues/52
 		if err = ret.VerifySelfSig(); err != nil {
 			return
 		}

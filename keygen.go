@@ -151,7 +151,7 @@ func (s *keyGenState) CheckNoKey() error {
 	if err == nil && fp != nil {
 		err = KeyExistsError{fp}
 	}
-	return nil
+	return err
 }
 
 func (s *keyGenState) LoadMe() (err error) {
@@ -190,7 +190,6 @@ func (s *keyGenState) GeneratePost() (err error) {
 	if tmp, err = jw.Marshal(); err != nil {
 		return
 	}
-	fmt.Printf("XXX %s\n", string(tmp))
 	if sig, sigid, err = SimpleSign(tmp, *s.bundle); err != nil {
 		return
 	}
@@ -232,7 +231,15 @@ type KeyGenArg struct {
 }
 
 func (s *keyGenState) UpdateUser() error {
-	return s.me.SetActiveKey(s.bundle)
+	err := s.me.SetActiveKey(s.bundle)
+	fp := s.bundle.GetFingerprint()
+	G.Env.GetConfigWriter().SetPgpFingerprint(&fp)
+	return err
+}
+
+func (s *keyGenState) ReloadMe() (err error) {
+	s.me, err = LoadMe(LoadUserArg{ForceReload: true})
+	return
 }
 
 func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
@@ -296,6 +303,10 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	G.Log.Debug("| Post to server")
 	if err = state.PostToServer(); err != nil {
 		return
+	}
+	G.Log.Debug("| Reload user")
+	if err = state.ReloadMe(); err != nil {
+
 	}
 	return
 }
