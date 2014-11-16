@@ -177,7 +177,7 @@ func (s *keyGenState) WriteKey() (err error) {
 	return
 }
 
-func (s *keyGenState) GeneratePost() (err error) {
+func (s *keyGenState) GeneratePost(doSecret bool) (err error) {
 	var jw *jsonw.Wrapper
 	var tmp []byte
 	var seckey, pubkey string
@@ -205,10 +205,11 @@ func (s *keyGenState) GeneratePost() (err error) {
 		"sig_id_short": S{sigid.ToShortId()},
 		"sig":          S{sig},
 		"public_key":   S{pubkey},
-		"secret_key":   S{seckey},
 		"is_primary":   I{1},
 	}
-
+	if doSecret {
+		s.httpArgs.Add("secret_key", S{seckey})
+	}
 	return
 }
 
@@ -227,7 +228,9 @@ type KeyGenArg struct {
 	Id           *Identity
 	Config       *packet.Config
 	DoPush       bool
+	DoSecretPush bool
 	NoPassphrase bool
+	KbPassphrase bool
 }
 
 func (s *keyGenState) UpdateUser() error {
@@ -254,16 +257,18 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 
 	// If we're not using a PW, we have to check that we have the right
 	// password loaded into our triplesec, so need to force a relogin
-	if arg.DoPush {
+	if arg.KbPassphrase {
 		larg.Force = true
 		larg.Retry = 4
 	}
 
-	if err = G.LoginState.Login(larg); err != nil {
-		return
+	if arg.KbPassphrase || arg.DoPush {
+		if err = G.LoginState.Login(larg); err != nil {
+			return
+		}
 	}
 
-	if arg.DoPush {
+	if arg.KbPassphrase {
 		state.tsec = G.LoginState.tsec
 	} else if !arg.NoPassphrase {
 		state.tsec, err = PromptForNewTsec(PromptArg{
@@ -292,12 +297,26 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	if err = state.WriteKey(); err != nil {
 		return
 	}
+
+	if arg.DoPush {
+		err = state.doPush(arg.DoSecretPush)
+	}
+
+	return
+}
+
+func (state *keyGenState) doPush(doSecret bool) (err error) {
+	G.Log.Debug("+ doPush")
+	defer func() {
+		G.Log.Debug("- doPush -> %s", ErrToOk(err))
+	}()
+
 	G.Log.Debug("| UpdateUser")
 	if err = state.UpdateUser(); err != nil {
 		return
 	}
 	G.Log.Debug("| Generate HTTP Post")
-	if err = state.GeneratePost(); err != nil {
+	if err = state.GeneratePost(doSecret); err != nil {
 		return
 	}
 	G.Log.Debug("| Post to server")
