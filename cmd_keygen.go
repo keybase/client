@@ -15,9 +15,16 @@ type CmdKeyGen struct {
 func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
-	v.arg.DoPush = ctx.Bool("push")
-	v.pushSecret = ctx.Bool("push-secret")
+
+	ps := ctx.Bool("push-secret")
+	p := ctx.Bool("push")
+	v.arg.DoSecretPush = ps
+	v.arg.DoPush = ps || p
+
 	v.arg.NoPassphrase = ctx.Bool("no-passphrase")
+	if !v.arg.NoPassphrase || v.arg.DoSecretPush {
+		v.arg.KbPassphrase = true
+	}
 	if nargs != 0 {
 		err = fmt.Errorf("keygen takes 0 args")
 	}
