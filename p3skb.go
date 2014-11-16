@@ -279,6 +279,11 @@ func (p *P3SKB) PromptAndUnlock(reason string) (ret *PgpKeyBundle, err error) {
 	}
 
 	unlocker := func(pw string) (ret *PgpKeyBundle, err error) {
+		var tsec *triplesec.Cipher
+		tsec, err = triplesec.NewCipher([]byte(pw), nil)
+		if err == nil {
+			ret, err = p.UnlockSecretKey(tsec)
+		}
 		return
 	}
 
