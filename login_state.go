@@ -301,3 +301,7 @@ func (s *LoginState) GetTriplesec(retry string) (ret *triplesec.Cipher, err erro
 
 	return
 }
+
+func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
+	return s.tsec
+}

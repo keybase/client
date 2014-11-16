@@ -256,3 +256,36 @@ func (p KeybasePackets) ToListOfP3SKBs() (ret []*P3SKB, err error) {
 	}
 	return
 }
+
+func (p *P3SKB) PromptAndUnlock(reason string) (ret *PgpKeyBundle, err error) {
+	if ret = p.decryptedSecret; ret != nil {
+		return
+	}
+
+	// First try the triplsec that we have loaded in (if at all)
+	if tsec := G.LoginState.GetCachedTriplesec(); tsec != nil {
+		ret, err = p.UnlockSecretKey(tsec)
+		if err == nil {
+		} else if _, ok := err.(PassphraseError); ok {
+			err = nil
+		} else {
+			return
+		}
+	}
+
+	var desc string
+	if desc, err = p.VerboseDescription(); err != nil {
+		return
+	}
+
+	unlocker := func(pw string) (ret *PgpKeyBundle, err error) {
+		return
+	}
+
+	return KeyUnlocker{
+		Tries:    5,
+		Reason:   reason,
+		KeyDesc:  desc,
+		Unlocker: unlocker,
+	}.Run()
+}
