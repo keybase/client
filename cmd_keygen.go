@@ -25,14 +25,17 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 	if !v.arg.NoPassphrase || v.arg.DoSecretPush {
 		v.arg.KbPassphrase = true
 	}
-	if nargs != 0 {
+	if v.arg.NoPassphrase && v.arg.DoSecretPush {
+		err = fmt.Errorf("Passphrase required for pushing secret key")
+	} else if nargs != 0 {
 		err = fmt.Errorf("keygen takes 0 args")
-	}
-	v.debug = ctx.Bool("debug")
-	if v.debug {
-		// Speed up keygen to speed up debugging
-		v.arg.PrimaryBits = 1024
-		v.arg.SubkeyBits = 1024
+	} else {
+		v.debug = ctx.Bool("debug")
+		if v.debug {
+			// Speed up keygen to speed up debugging
+			v.arg.PrimaryBits = 1024
+			v.arg.SubkeyBits = 1024
+		}
 	}
 	return err
 }
