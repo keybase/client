@@ -191,3 +191,15 @@ func (p PassphraseError) Error() string {
 }
 
 //=============================================================================
+
+type BadKeyError struct {
+	msg string
+}
+
+func (p BadKeyError) Error() string {
+	msg := "Bad key found"
+	if len(p.msg) != 0 {
+		msg = msg + ": " + p.msg
+	}
+	return msg
+}

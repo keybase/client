@@ -313,40 +313,22 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 	if !p.PrivateKey.Encrypted {
 		return nil
 	}
-	var err error
-	var emsg string
 
-	retry := true
+	unlocker := func(pw string) (ret *PgpKeyBundle, emsg string, retry bool, err error) {
+		var perr error
+		retry = true
 
-	desc := "You need a passphrase to unlock the secret key for:\n" +
-		p.VerboseDescription() + "\n"
-	if len(reason) > 0 {
-		desc = desc + "\nReason: " + reason
-	}
-
-	for retry && err == nil {
-		var res *SecretEntryRes
-		res, err = G.SecretEntry.Get(SecretEntryArg{
-			Error:  emsg,
-			Desc:   desc,
-			Prompt: "Your key passphrase",
-		}, nil)
-
-		if err == nil && res.Canceled {
-			err = fmt.Errorf("Attempt to unlock secret key entry canceled")
-		} else if err != nil {
-			// noop
-		} else if perr := p.PrivateKey.Decrypt([]byte(res.Text)); perr == nil {
+		if perr = p.PrivateKey.Decrypt([]byte(pw)); perr == nil {
 
 			// Also decrypt all subkeys (with the same password)
 			for _, subkey := range p.Subkeys {
-				if priv := subkey.PrivateKey; priv != nil {
-					if err = priv.Decrypt([]byte(res.Text)); err != nil {
-						break
-					}
+				if priv := subkey.PrivateKey; priv == nil {
+				} else if err = priv.Decrypt([]byte(pw)); err != nil {
+					break
 				}
 			}
 			retry = false
+			ret = p
 
 			// XXX this is gross, the openpgp library should return a better
 			// error if the PW was incorrectly specified
@@ -355,7 +337,16 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 		} else {
 			err = perr
 		}
+		return
 	}
 
+	uka := UnlockKeyArg{
+		Tries:    5,
+		Reason:   reason,
+		KeyDesc:  p.VerboseDescription(),
+		Unlocker: unlocker,
+	}
+
+	_, err := UnlockKey(uka)
 	return err
 }

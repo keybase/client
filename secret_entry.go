@@ -101,3 +101,48 @@ func TerminalGetSecret(t Terminal, arg *SecretEntryArg) (
 
 	return
 }
+
+type UnlockKeyArg struct {
+	Tries    int
+	Reason   string
+	KeyDesc  string
+	Unlocker func(pw string) (ret *PgpKeyBundle, emsg string, retry bool, err error)
+}
+
+func UnlockKey(arg UnlockKeyArg) (ret *PgpKeyBundle, err error) {
+
+	var emsg string
+
+	retry := true
+
+	desc := "You need a passphrase to unlock the secret key for:\n" +
+		arg.KeyDesc + "\n"
+	if len(arg.Reason) > 0 {
+		desc = desc + "\nReason: " + arg.Reason
+	}
+
+	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && retry && err == nil; i++ {
+		var res *SecretEntryRes
+		res, err = G.SecretEntry.Get(SecretEntryArg{
+			Error:  emsg,
+			Desc:   desc,
+			Prompt: "Your key passphrase",
+		}, nil)
+
+		if err == nil && res.Canceled {
+			err = fmt.Errorf("Attempt to unlock secret key entry canceled")
+		} else if err != nil {
+			// noop
+		} else {
+			ret, emsg, retry, err = arg.Unlocker(res.Text)
+		}
+	}
+
+	if ret == nil && err == nil {
+		err = fmt.Errorf("Too many failures; giving up")
+	}
+	if err != nil {
+		ret = nil
+	}
+	return
+}

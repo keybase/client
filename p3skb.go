@@ -19,8 +19,8 @@ type P3SKB struct {
 	Priv P3SKBPriv `codec:"priv"`
 	Pub  []byte    `codec:"pub"`
 
-	decodedPub  *PgpKeyBundle
-	decodedPriv *PgpKeyBundle
+	decodedPub      *PgpKeyBundle
+	decryptedSecret *PgpKeyBundle
 }
 
 type P3SKBPriv struct {
@@ -77,7 +77,41 @@ func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
 	return
 }
 
+func (p *P3SKB) VerboseDescription() (ret string, err error) {
+	var key *PgpKeyBundle
+	key, err = p.GetPubKey()
+	if err == nil {
+		ret = key.VerboseDescription()
+	}
+	return
+}
+
 func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key *PgpKeyBundle, err error) {
+	if key = p.decryptedSecret; key != nil {
+		return
+	}
+	var unlocked []byte
+
+	if p.Priv.Encryption == 0 {
+		unlocked = p.Priv.Data
+	} else if unlocked, err = tsec.Decrypt(p.Priv.Data); err != nil {
+		if _, ok := err.(triplesec.BadPassphraseError); ok {
+			err = PassphraseError{}
+		}
+		return
+	}
+
+	if key, err = ReadOneKeyFromBytes(unlocked); err != nil {
+		return
+	}
+
+	if key.PrivateKey == nil {
+		err = NoKeyError{"no private key found"}
+	} else if !key.PrivateKey.Encrypted {
+		err = BadKeyError{"PGP key material should be unencrypted"}
+	} else {
+		p.decryptedSecret = key
+	}
 	return
 }
 
