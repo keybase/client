@@ -158,11 +158,13 @@ func (sc *SigChain) LoadFromStorage(allKeys bool) error {
 	found := false
 	good_key := true
 
+	G.Log.Debug("| SigChain: %d %v", lim, sc.lastLink)
+
 	for curr := sc.lastLink; curr != nil && good_key; {
 		G.Log.Debug("| loading link; curr=%s", curr.ToString())
 		if link, err := LoadLinkFromStorage(sc, curr); err != nil {
 			return err
-		} else if fp1, fp2 := sc.pgpFingerprint, link.GetPgpFingerprint(); !allKeys && fp1 != nil && !fp1.Eq(fp2) {
+		} else if fp1, fp2 := sc.pgpFingerprint, link.GetPgpFingerprint(); found && !allKeys && fp1 != nil && !fp1.Eq(fp2) {
 			// If we're loading a sigchain only for the given key, don't
 			// keep loading once we see a key that looks wrong.
 			good_key = false

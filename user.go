@@ -230,7 +230,7 @@ func (u *User) LoadSigChainFromServer(base *SigChain, t *MerkleTriple) error {
 func (u *User) MakeSigChain(base *SigChain) error {
 	if f, err := u.GetActivePgpFingerprint(); err != nil {
 		return err
-	} else if u.sigs != nil && f != nil {
+	} else if u.sigs != nil {
 		last := u.sigs.AtKey("last")
 		var seqno int
 		var lid LinkId

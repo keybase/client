@@ -208,7 +208,7 @@ func (s *keyGenState) GeneratePost(doSecret bool) (err error) {
 		"is_primary":   I{1},
 	}
 	if doSecret {
-		s.httpArgs.Add("secret_key", S{seckey})
+		s.httpArgs.Add("private_key", S{seckey})
 	}
 	return
 }

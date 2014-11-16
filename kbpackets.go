@@ -85,6 +85,7 @@ func (p *KeybasePacket) ArmoredEncode() (ret string, err error) {
 	var buf bytes.Buffer
 	b64 := base64.NewEncoder(base64.StdEncoding, &buf)
 	err = p.EncodeTo(b64)
+	b64.Close()
 	if err == nil {
 		ret = buf.String()
 	}
