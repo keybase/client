@@ -578,7 +578,24 @@ func (u *User) StoreTopLevel() error {
 	return err
 }
 
-func (u *User) GetSecretKey(fp PgpFingerprint) (key *PgpKeyBundle, err error) {
+func getSecretKey(jw *jsonw.Wrapper, fp PgpFingerprint) (ret *P3SKB, err error) {
+	var fp2 *PgpFingerprint
+	var packet *KeybasePacket
+
+	if fp2, err = GetPgpFingerprint(jw.AtKey("key_fingerprint")); err != nil {
+		return
+	}
+	if fp2 == nil || !fp2.Eq(fp) {
+		return
+	}
+	if packet, err = GetPacket(jw.AtKey("bundle")); err != nil {
+		return
+	}
+	ret, err = packet.ToP3SKB()
+	return
+}
+
+func (u *User) GetSecretKey(fp PgpFingerprint) (ret *P3SKB, err error) {
 	if u.privateKeys == nil || u.privateKeys.IsNil() {
 		return
 	}
@@ -588,22 +605,11 @@ func (u *User) GetSecretKey(fp PgpFingerprint) (key *PgpKeyBundle, err error) {
 		return
 	}
 	for i := 0; i < n; i++ {
-		k := v.AtIndex(i)
-		fp2, e2 := GetPgpFingerprint(k.AtKey("key_fingerprint"))
-		if fp2 == nil || e2 != nil || !fp2.Eq(fp) {
-			continue
+		ret, err = getSecretKey(v.AtIndex(i), fp)
+		if err != nil {
+			G.Log.Warning("Bad secret key in user object: %s", err.Error())
 		}
-		s, e2 := v.AtKey("bundle").GetString()
-		if e2 != nil {
-			continue
-		}
-		pack, e2 := DecodePacket([]byte(s))
-		if e2 != nil {
-			continue
-		}
-
 	}
-
 	return
 }
 

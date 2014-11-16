@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"github.com/keybase/go-jsonw"
 	"github.com/ugorji/go/codec"
 	"io"
 )
@@ -155,6 +156,15 @@ func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 	ret.Body = body
 	if err = ret.CheckHash(); err != nil {
 		return
+	}
+	return
+}
+
+func GetPacket(jsonw *jsonw.Wrapper) (ret *KeybasePacket, err error) {
+	var s string
+	s, err = jsonw.GetString()
+	if err == nil {
+		ret, err = DecodePacket([]byte(s))
 	}
 	return
 }

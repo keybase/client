@@ -202,6 +202,7 @@ func (k KeyringFile) Save() error {
 func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 	var me *User
 	var fp *PgpFingerprint
+	var p3skb *P3SKB
 	if me, err = LoadMe(LoadUserArg{LoadSecrets: true}); err != nil {
 		return
 	}
@@ -210,15 +211,12 @@ func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 		return
 	}
 
-	if key, err = me.GetSecretKey(*fp); err != nil {
+	if p3skb, err = me.GetSecretKey(*fp); err != nil {
 		return
+	} else if p3skb != nil {
+
 	}
 
-	if key = (*PgpKeyBundle)(k.FindKey(*fp, true)); key == nil {
-		err = fmt.Errorf("No private key found for your fingerprint %s", fp.ToString())
-	} else if key.PrivateKey.Encrypted {
-		err = key.Unlock(reason)
-	}
 	return
 }
 
