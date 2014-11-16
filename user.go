@@ -578,6 +578,35 @@ func (u *User) StoreTopLevel() error {
 	return err
 }
 
+func (u *User) GetSecretKey(fp PgpFingerprint) (key *PgpKeyBundle, err error) {
+	if u.privateKeys == nil || u.privateKeys.IsNil() {
+		return
+	}
+	v := u.privateKeys.AtKey("all")
+	var n int
+	if n, err = v.Len(); err != nil {
+		return
+	}
+	for i := 0; i < n; i++ {
+		k := v.AtIndex(i)
+		fp2, e2 := GetPgpFingerprint(k.AtKey("key_fingerprint"))
+		if fp2 == nil || e2 != nil || !fp2.Eq(fp) {
+			continue
+		}
+		s, e2 := v.AtKey("bundle").GetString()
+		if e2 != nil {
+			continue
+		}
+		pack, e2 := DecodePacket([]byte(s))
+		if e2 != nil {
+			continue
+		}
+
+	}
+
+	return
+}
+
 func (u *User) StoreSecretKeys() error {
 	var err error
 	if u.privateKeys != nil && !u.privateKeys.IsNil() {

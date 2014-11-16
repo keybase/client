@@ -205,7 +205,12 @@ func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 	if me, err = LoadMe(LoadUserArg{LoadSecrets: true}); err != nil {
 		return
 	}
-	if fp, err = me.GetActivePgpFingerprint(); err != nil {
+
+	if fp, err = me.GetActivePgpFingerprint(); err != nil || fp == nil {
+		return
+	}
+
+	if key, err = me.GetSecretKey(*fp); err != nil {
 		return
 	}
 

@@ -77,6 +77,10 @@ func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
 	return
 }
 
+func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key *PgpKeyBundle, err error) {
+	return
+}
+
 type P3SKBKeyringFile struct {
 	filename string
 	Blocks   []*P3SKB
