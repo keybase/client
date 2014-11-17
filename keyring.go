@@ -211,12 +211,24 @@ func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 		return
 	}
 
+	var prompt string
+
 	if p3skb, err = me.GetSecretKey(*fp); err != nil {
 		return
 	} else if p3skb != nil {
-
+		prompt = "Your Keybase.io passphrase"
+	} else if k.P3SKB == nil {
+		// noop
+	} else {
+		p3skb = k.P3SKB.Lookup(*fp)
 	}
 
+	if p3skb == nil {
+		err = NoKeyError{fmt.Sprintf("No secret key found for %s", fp.ToString())}
+		return
+	}
+
+	key, err = p3skb.PromptAndUnlock(reason, prompt)
 	return
 }
 

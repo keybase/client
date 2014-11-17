@@ -230,7 +230,7 @@ func (u *User) LoadSigChainFromServer(base *SigChain, t *MerkleTriple) error {
 func (u *User) MakeSigChain(base *SigChain) error {
 	if f, err := u.GetActivePgpFingerprint(); err != nil {
 		return err
-	} else if u.sigs != nil {
+	} else if u.sigs != nil && !u.sigs.IsNil() {
 		last := u.sigs.AtKey("last")
 		var seqno int
 		var lid LinkId
@@ -746,7 +746,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets)
 		if err != nil {
 			G.Log.Warning("Failed to load %s from storage: %s",
-				name, err.Error())
+				uid_s, err.Error())
 		}
 	}
 

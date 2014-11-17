@@ -167,10 +167,20 @@ func (k *P3SKBKeyringFile) Index() (err error) {
 			return
 		}
 		fp := key.GetFingerprint()
+
+		// Last-writer wins!
 		k.index[fp] = b
 	}
 	G.Log.Debug("| Indexed %d secret keys", len(k.Blocks))
 	return
+}
+
+func (k P3SKBKeyringFile) Lookup(fp PgpFingerprint) *P3SKB {
+	ret, ok := k.index[fp]
+	if !ok {
+		ret = nil
+	}
+	return ret
 }
 
 func (k *P3SKBKeyringFile) LoadAndIndex() error {
@@ -257,7 +267,7 @@ func (p KeybasePackets) ToListOfP3SKBs() (ret []*P3SKB, err error) {
 	return
 }
 
-func (p *P3SKB) PromptAndUnlock(reason string) (ret *PgpKeyBundle, err error) {
+func (p *P3SKB) PromptAndUnlock(reason string, prompt string) (ret *PgpKeyBundle, err error) {
 	if ret = p.decryptedSecret; ret != nil {
 		return
 	}
@@ -292,5 +302,6 @@ func (p *P3SKB) PromptAndUnlock(reason string) (ret *PgpKeyBundle, err error) {
 		Reason:   reason,
 		KeyDesc:  desc,
 		Unlocker: unlocker,
+		Prompt:   prompt,
 	}.Run()
 }
