@@ -107,7 +107,7 @@ func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key *PgpKeyBundle, err 
 
 	if key.PrivateKey == nil {
 		err = NoKeyError{"no private key found"}
-	} else if !key.PrivateKey.Encrypted {
+	} else if key.PrivateKey.Encrypted {
 		err = BadKeyError{"PGP key material should be unencrypted"}
 	} else {
 		p.decryptedSecret = key
