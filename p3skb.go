@@ -70,7 +70,7 @@ func (p *P3SKB) ToPacket() (ret *KeybasePacket, err error) {
 }
 
 func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
-	if p.decodedPub == nil {
+	if key = p.decodedPub; key == nil {
 		key, err = ReadOneKeyFromBytes(p.Pub)
 		p.decodedPub = key
 	}
@@ -80,7 +80,7 @@ func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
 func (p *P3SKB) VerboseDescription() (ret string, err error) {
 	var key *PgpKeyBundle
 	key, err = p.GetPubKey()
-	if err == nil {
+	if err == nil && key != nil {
 		ret = key.VerboseDescription()
 	}
 	return
@@ -267,7 +267,7 @@ func (p KeybasePackets) ToListOfP3SKBs() (ret []*P3SKB, err error) {
 	return
 }
 
-func (p *P3SKB) PromptAndUnlock(reason string, prompt string) (ret *PgpKeyBundle, err error) {
+func (p *P3SKB) PromptAndUnlock(reason string, which string) (ret *PgpKeyBundle, err error) {
 	if ret = p.decryptedSecret; ret != nil {
 		return
 	}
@@ -302,6 +302,6 @@ func (p *P3SKB) PromptAndUnlock(reason string, prompt string) (ret *PgpKeyBundle
 		Reason:   reason,
 		KeyDesc:  desc,
 		Unlocker: unlocker,
-		Prompt:   prompt,
+		Which:    which,
 	}.Run()
 }

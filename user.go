@@ -387,7 +387,7 @@ func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
 
 	uid_s := arg.Uid.ToString()
-	G.Log.Debug("+ Load User from server: %s", uid_s)
+	G.Log.Debug("+ Load User from server: %s (secrets=%v)", uid_s, arg.LoadSecrets)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
 	if body == nil {
@@ -579,49 +579,45 @@ func (u *User) StoreTopLevel() error {
 }
 
 func getSecretKey(jw *jsonw.Wrapper, fp PgpFingerprint) (ret *P3SKB, err error) {
-	var fp2 *PgpFingerprint
 	var packet *KeybasePacket
+	var pub *PgpKeyBundle
 
-	if fp2, err = GetPgpFingerprint(jw.AtKey("key_fingerprint")); err != nil {
-		return
-	}
-	if fp2 == nil || !fp2.Eq(fp) {
-		return
-	}
 	if packet, err = GetPacket(jw.AtKey("bundle")); err != nil {
-		return
+		fmt.Printf("GET PACKET Failure")
+	} else if ret, err = packet.ToP3SKB(); err != nil {
+	} else if pub, err = ret.GetPubKey(); err != nil {
+	} else if fp2 := pub.GetFingerprint(); !fp2.Eq(fp) {
+		ret = nil
+		err = WrongKeyError{&fp, &fp2}
 	}
-	ret, err = packet.ToP3SKB()
 	return
 }
 
 func (u *User) GetSecretKey(fp PgpFingerprint) (ret *P3SKB, err error) {
+	G.Log.Debug("+ User.GetSecretKey(%s)", fp.ToString())
+	defer func() {
+		G.Log.Debug("- User.GetSecretKey() -> %s", ErrToOk(err))
+	}()
 	if u.privateKeys == nil || u.privateKeys.IsNil() {
+		G.Log.Debug("| short-circuit; no privateKeys object found")
 		return
 	}
-	v := u.privateKeys.AtKey("all")
-	var n int
-	if n, err = v.Len(); err != nil {
-		return
-	}
-	for i := 0; i < n; i++ {
-		ret, err = getSecretKey(v.AtIndex(i), fp)
-		if err != nil {
-			G.Log.Warning("Bad secret key in user object: %s", err.Error())
-		}
-	}
+	ret, err = getSecretKey(u.privateKeys.AtKey("primary"), fp)
 	return
 }
 
 func (u *User) StoreSecretKeys() error {
 	var err error
+	G.Log.Debug("+ StoreSecretKey()")
 	if u.privateKeys != nil && !u.privateKeys.IsNil() {
+		G.Log.Debug("| doing put")
 		err = G.LocalDb.Put(
 			DbKey{Typ: DB_USER_SECRET_KEYS, Key: u.id.ToString()},
 			nil,
 			u.privateKeys,
 		)
 	}
+	G.Log.Debug("- StoreSecretKey() -> %s", ErrToOk(err))
 	return err
 }
 

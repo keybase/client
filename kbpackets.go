@@ -162,10 +162,15 @@ func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 
 func GetPacket(jsonw *jsonw.Wrapper) (ret *KeybasePacket, err error) {
 	var s string
+	var byt []byte
+
 	s, err = jsonw.GetString()
-	if err == nil {
-		ret, err = DecodePacket([]byte(s))
+	if err != nil {
+	} else if byt, err = base64.StdEncoding.DecodeString(s); err != nil {
+	} else {
+		ret, err = DecodePacket(byt)
 	}
+
 	return
 }
 

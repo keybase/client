@@ -85,6 +85,7 @@ func (api *BaseApiEngine) getCli(cookied bool) (ret *Client) {
 	}
 	client, found := api.clients[key]
 	if !found {
+		G.Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
 		client = NewClient(api.config, cookied)
 		api.clients[key] = client
 	}
@@ -205,6 +206,8 @@ func (a InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 		if csrf := G.Session.csrf; len(csrf) > 0 {
 			req.Header.Add("X-CSRF-Token", csrf)
 		}
+	} else if arg.NeedSession && G.Session == nil {
+		G.Log.Warning("In API headers: Need Session but our session is NIL")
 	}
 	req.Header.Set("User-Agent", USER_AGENT)
 	req.Header.Set("X-Keybase-Client", IDENTIFY_AS)

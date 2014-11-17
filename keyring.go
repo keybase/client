@@ -203,6 +203,20 @@ func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 	var me *User
 	var fp *PgpFingerprint
 	var p3skb *P3SKB
+
+	G.Log.Debug("+ GetSecretKey(%s)", reason)
+	defer func() {
+		G.Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
+	}()
+
+	G.Log.Debug("| LoadMe w/ Secrets on")
+
+	// Load our session in before we start to LoadMe; since loading me
+	// might need to sync our Private key from the server
+	if err = G.Session.Load(); err != nil {
+		return
+	}
+
 	if me, err = LoadMe(LoadUserArg{LoadSecrets: true}); err != nil {
 		return
 	}
@@ -211,24 +225,27 @@ func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 		return
 	}
 
-	var prompt string
+	G.Log.Debug("| Active fingerprint is %s", fp.ToString())
 
+	var which string
 	if p3skb, err = me.GetSecretKey(*fp); err != nil {
 		return
 	} else if p3skb != nil {
-		prompt = "Your Keybase.io passphrase"
+		G.Log.Debug("| Found secret key in user object")
+		which = "your Keybase.io login"
 	} else if k.P3SKB == nil {
 		// noop
 	} else {
+		G.Log.Debug("| Looking up secret key in local keychain")
 		p3skb = k.P3SKB.Lookup(*fp)
 	}
 
 	if p3skb == nil {
 		err = NoKeyError{fmt.Sprintf("No secret key found for %s", fp.ToString())}
-		return
+	} else {
+		G.Log.Debug("| Prompt/Unlock key")
+		key, err = p3skb.PromptAndUnlock(reason, which)
 	}
-
-	key, err = p3skb.PromptAndUnlock(reason, prompt)
 	return
 }
 

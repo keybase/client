@@ -8,7 +8,7 @@ type KeyUnlocker struct {
 	Tries    int
 	Reason   string
 	KeyDesc  string
-	Prompt   string
+	Which    string
 	Unlocker func(pw string) (ret *PgpKeyBundle, err error)
 }
 
@@ -16,16 +16,17 @@ func (arg KeyUnlocker) Run() (ret *PgpKeyBundle, err error) {
 
 	var emsg string
 
-	desc := "You need a passphrase to unlock the secret key for:\n" +
+	which := arg.Which
+	if len(which) == 0 {
+		which = "the"
+	}
+	desc := "Please enter " + which + " passphrase to unlock the secret key for:\n" +
 		arg.KeyDesc + "\n"
 	if len(arg.Reason) > 0 {
 		desc = desc + "\nReason: " + arg.Reason
 	}
 
-	prompt := arg.Prompt
-	if len(prompt) == 0 {
-		prompt = "Your key passphrase"
-	}
+	prompt := "Your key passphrase"
 
 	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
 		var res *SecretEntryRes
