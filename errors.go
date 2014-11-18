@@ -17,3 +17,17 @@ type NotConfirmedError struct{}
 func (e NotConfirmedError) Error() string {
 	return "Not confirmed"
 }
+
+type BadArgsError struct {
+	msg string
+}
+
+func (e BadArgsError) Error() string {
+	return "bad command-line arguments: " + e.msg
+}
+
+type CleanCancelError struct{}
+
+func (e CleanCancelError) Error() string {
+	return "clean cancel"
+}
