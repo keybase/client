@@ -1,4 +1,4 @@
-package libkb
+package main
 
 import (
 	"fmt"

@@ -1,6 +1,6 @@
 // +build +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
 
-package libkb
+package main
 
 import (
 	"code.google.com/p/go.crypto/ssh/terminal"

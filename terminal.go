@@ -1,4 +1,4 @@
-package libkb
+package main
 
 type TerminalImplementation struct {
 	engine *TerminalEngine

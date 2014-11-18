@@ -1,8 +1,7 @@
-package libkb
+package main
 
 import (
 	"fmt"
-	"github.com/keybase/go-triplesec"
 	"strings"
 )
 
@@ -101,23 +100,6 @@ func PromptForNewPassphrase(arg PromptArg) (text string, err error) {
 		}
 	}
 	return
-}
-
-func PromptForNewTsec(arg PromptArg) (tsec *triplesec.Cipher, err error) {
-	var text string
-	if text, err = PromptForNewPassphrase(arg); err != nil {
-		return
-	}
-	tsec, err = triplesec.NewCipher([]byte(text), nil)
-	return
-}
-
-type PromptArg struct {
-	TerminalPrompt string
-	PinentryDesc   string
-	PinentryPrompt string
-	Checker        *Checker
-	RetryMessage   string
 }
 
 func PromptForKeybasePassphrase(retry string) (text string, err error) {
