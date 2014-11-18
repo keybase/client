@@ -138,27 +138,20 @@ func (g *Global) Shutdown() error {
 	if g.shutdown {
 		return nil
 	}
-	var err error
+
+	epick := FirstErrorPicker{}
+
 	if g.UI != nil {
-		tmp := g.UI.Shutdown()
-		if tmp != nil && err == nil {
-			err = tmp
-		}
+		epick.Push(g.UI.Shutdown())
 	}
 	if g.LocalDb != nil {
-		tmp := g.LocalDb.Close()
-		if tmp != nil && err == nil {
-			err = tmp
-		}
+		epick.Push(g.LocalDb.Close())
 	}
 	for _, hook := range g.ShutdownHooks {
-		tmp := hook()
-		if tmp != nil && err == nil {
-			err = tmp
-		}
+		epick.Push(hook())
 	}
 	g.shutdown = true
-	return err
+	return epick.Error()
 }
 
 func (u Usage) UseKeyring() bool {

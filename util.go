@@ -92,6 +92,20 @@ func PickFirstError(errors ...error) error {
 	return nil
 }
 
+type FirstErrorPicker struct {
+	e error
+}
+
+func (p *FirstErrorPicker) Push(e error) {
+	if e != nil && p.e == nil {
+		p.e = e
+	}
+}
+
+func (p *FirstErrorPicker) Error() error {
+	return p.e
+}
+
 func GiveMeAnS(i int) string {
 	if i != 1 {
 		return "s"
