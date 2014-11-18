@@ -7,21 +7,13 @@ import (
 
 func NewCmdSignup(cl *CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "sign",
-		Usage:       "keybase signup [-u <username>] [-e <email>] [-c <code>]",
+		Name:        "signup",
+		Usage:       "keybase signup [-c <code>]",
 		Description: "signup for a new account",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSignup{}, "signup", c)
 		},
 		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "u, username",
-				Usage: "Specify a username to signup as",
-			},
-			cli.StringFlag{
-				Name:  "e, email",
-				Usage: "Specify an email address",
-			},
 			cli.StringFlag{
 				Name:  "c, invite-code",
 				Usage: "Specify an invite code",
@@ -31,17 +23,17 @@ func NewCmdSignup(cl *CommandLine) cli.Command {
 }
 
 type CmdSignup struct {
-	username string
-	email    string
-	code     string
+	code                       string
+	prompter                   *Prompter
+	passphrase, passphraseLast string
+	loginState                 *libkb.LoginState
+	passphraseRetry            Field
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	s.email = ctx.String("email")
-	s.username = ctx.String("username")
 	s.code = ctx.String("invite-code")
 
 	if nargs != 0 {
@@ -54,12 +46,79 @@ func (s *CmdSignup) CheckRegistered() error {
 	return nil
 }
 
-func (s *CmdSignup) Prompt() error {
-	return nil
+func (s *CmdSignup) Prompt() (err error) {
+
+	if s.prompter == nil {
+
+		code := Field{
+			Defval:  s.code,
+			Name:    "code",
+			Prompt:  "Your invite code",
+			Checker: &libkb.CheckInviteCode,
+		}
+
+		if len(s.code) == 0 {
+			code.Prompt += " (leave blank if you don't have one)"
+			code.Thrower = func(k, v string) error {
+				if len(v) == 0 {
+					return CleanCancelError{}
+				} else {
+					return nil
+				}
+			}
+		}
+
+		s.passphraseRetry = Field{
+			Defval:   "n",
+			Disabled: true,
+			Name:     "passphraseRetry",
+			Checker:  &libkb.CheckYesNo,
+			Prompt:   "Reenter passphrase",
+		}
+
+		fields := []Field{{
+			Defval:  G.Env.GetEmail(),
+			Name:    "email",
+			Prompt:  "Your email address",
+			Checker: &libkb.CheckEmail,
+		}, code, {
+			Defval:  G.Env.GetUsername(),
+			Name:    "username",
+			Prompt:  "Your desired username",
+			Checker: &libkb.CheckUsername,
+		}, s.passphraseRetry}
+
+		s.prompter = NewPrompter(fields)
+	}
+
+	if err = s.prompter.Run(); err != nil {
+		return
+	}
+	arg := libkb.PromptArg{
+		TerminalPrompt: "Pick a strong passphrase",
+		PinentryDesc:   "Pick a strong passphrase (12+ characters)",
+		PinentryPrompt: "Passphrase",
+	}
+	if libkb.IsYes(s.passphraseRetry.Value) {
+		s.passphrase, err = G_UI.PromptForNewPassphrase(arg)
+	}
+	return
 }
 
-func (s *CmdSignup) GenPwh() error {
-	return nil
+func (s *CmdSignup) GenPwh() (err error) {
+	if s.loginState != nil && s.passphrase == s.passphraseLast {
+		return
+	}
+
+	state := libkb.NewLoginState()
+	if err = state.GenerateNewSalt(); err != nil {
+	} else if err = state.StretchKey(s.passphrase); err != nil {
+	} else {
+		s.loginState = state
+		s.passphraseLast = s.passphrase
+		s.passphraseRetry.Disabled = false
+	}
+	return err
 }
 
 func (s *CmdSignup) Post() (retry bool, err error) {
