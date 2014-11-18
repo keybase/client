@@ -209,8 +209,38 @@ func (s *CmdSignup) Post() (retry bool, err error) {
 	return
 }
 
-func (s *CmdSignup) WriteOut() error {
-	return nil
+func (s *CmdSignup) WriteConfig() error {
+	cw := G.Env.GetConfigWriter()
+	if cw == nil {
+		return fmt.Errorf("No configuration writer available")
+	}
+	cw.SetUsername(s.fields.username.GetValue())
+	cw.SetUid(s.uid)
+	cw.SetSalt(s.salt)
+	return cw.Write()
+}
+
+func (s *CmdSignup) WriteSession() error {
+	lir := libkb.LoggedInResult{
+		SessionId: s.session,
+		CsrfToken: s.csrf,
+		Uid:       s.uid,
+		Username:  s.fields.username.GetValue(),
+	}
+	sw := G.SessionWriter
+	if sw == nil {
+		return fmt.Errorf("No session writer available")
+	}
+	sw.SetLoggedIn(lir)
+	return sw.Write()
+}
+
+func (s *CmdSignup) WriteOut() (err error) {
+	err = s.WriteConfig()
+	if err == nil {
+		err = s.WriteSession()
+	}
+	return err
 }
 
 func (s *CmdSignup) SuccessMessage() error {
