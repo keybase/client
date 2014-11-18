@@ -50,8 +50,50 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdSignup) RunSignup() error {
+func (s *CmdSignup) CheckRegistered() error {
 	return nil
+}
+
+func (s *CmdSignup) Prompt() error {
+	return nil
+}
+
+func (s *CmdSignup) GenPwh() error {
+	return nil
+}
+
+func (s *CmdSignup) Post() (retry bool, err error) {
+	return
+}
+
+func (s *CmdSignup) WriteOut() error {
+	return nil
+}
+
+func (s *CmdSignup) SuccessMessage() error {
+	return nil
+}
+
+func (s *CmdSignup) RunSignup() (err error) {
+
+	retry := true
+	err = s.CheckRegistered()
+
+	for retry && err == nil {
+		if err = s.Prompt(); err != nil {
+		} else if err = s.GenPwh(); err != nil {
+		} else {
+			retry, err = s.Post()
+		}
+	}
+	if err == nil {
+		err = s.WriteOut()
+	}
+	if err == nil {
+		s.SuccessMessage()
+	}
+
+	return err
 }
 
 func (s *CmdSignup) RequestInvite() error {
