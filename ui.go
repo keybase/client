@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/keybase/go-libkb"
 	"os"
+	"strings"
 )
 
 type UI struct {
@@ -198,4 +199,8 @@ func (ui *UI) PromptForConfirmation(prompt string) error {
 	}
 	return nil
 
+}
+
+func sentencePunctuate(s string) string {
+	return strings.ToUpper(s[0:1]) + s[1:] + "."
 }
