@@ -11,10 +11,10 @@ import (
 )
 
 type LoggedInResult struct {
-	sessionId string
-	csrfToken string
-	uid       UID
-	username  string
+	SessionId string
+	CsrfToken string
+	Uid       UID
+	Username  string
 }
 
 type LoginState struct {
@@ -167,9 +167,9 @@ func (s *LoginState) SaveLoginState(prompted bool) error {
 
 	if cfg := G.Env.GetConfigWriter(); cfg != nil {
 		if prompted {
-			cfg.SetUsername(s.loggedInRes.username)
+			cfg.SetUsername(s.loggedInRes.Username)
 		}
-		cfg.SetUid(s.loggedInRes.uid)
+		cfg.SetUid(s.loggedInRes.Uid)
 		cfg.SetSalt(s.salt)
 
 		if err := cfg.Write(); err != nil {

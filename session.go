@@ -35,12 +35,12 @@ func (s Session) GetUid() *UID {
 
 func (s *Session) SetLoggedIn(lir LoggedInResult) {
 	s.valid = true
-	s.uid = &lir.uid
-	s.username = &lir.username
-	s.token = lir.sessionId
-	s.GetDictionary().SetKey("session", jsonw.NewString(lir.sessionId))
-	s.csrf = lir.csrfToken
-	s.GetDictionary().SetKey("csrf", jsonw.NewString(lir.csrfToken))
+	s.uid = &lir.Uid
+	s.username = &lir.Username
+	s.token = lir.SessionId
+	s.GetDictionary().SetKey("session", jsonw.NewString(lir.SessionId))
+	s.csrf = lir.CsrfToken
+	s.GetDictionary().SetKey("csrf", jsonw.NewString(lir.CsrfToken))
 	s.file.dirty = true
 }
 
