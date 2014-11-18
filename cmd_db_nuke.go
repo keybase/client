@@ -17,7 +17,7 @@ func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
 func (c *CmdDbNuke) Run() error {
 	var err error
 	if !c.force {
-		err = libkb.PromptForConfirmation("Really blast away your local DB cache?")
+		err = G_UI.PromptForConfirmation("Really blast away your local DB cache?")
 	}
 	if err == nil {
 		err = G.LocalDb.Nuke()

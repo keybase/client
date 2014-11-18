@@ -2,17 +2,17 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"github.com/keybase/go-libkb"
 )
 
 type SecretEntry struct {
-	pinentry *Pinentry
-	terminal Terminal
+	pinentry *libkb.Pinentry
+	terminal *Terminal
 	initRes  *error
 }
 
-func NewSecretEntry() *SecretEntry {
-	return &SecretEntry{}
+func NewSecretEntry(t *Terminal) *SecretEntry {
+	return &SecretEntry{terminal: t}
 }
 
 func (se *SecretEntry) Init() (err error) {
@@ -20,16 +20,14 @@ func (se *SecretEntry) Init() (err error) {
 	G.Log.Debug("+ SecretEntry.Init()")
 
 	if se.initRes != nil {
-		G.Log.Debug("- SecretEntry.Init() -> cached %s", ErrToOk(*se.initRes))
+		G.Log.Debug("- SecretEntry.Init() -> cached %s", libkb.ErrToOk(*se.initRes))
 		return *se.initRes
 	}
-
-	se.terminal = G.Terminal
 
 	if G.Env.GetNoPinentry() {
 		G.Log.Debug("| Pinentry skipped due to config")
 	} else {
-		pe := NewPinentry()
+		pe := libkb.NewPinentry()
 		if e2, fatalerr := pe.Init(); fatalerr != nil {
 			err = fatalerr
 		} else if e2 != nil {
@@ -48,12 +46,12 @@ func (se *SecretEntry) Init() (err error) {
 
 	se.initRes = &err
 
-	G.Log.Debug("- SecretEntry.Init() -> %s", ErrToOk(err))
+	G.Log.Debug("- SecretEntry.Init() -> %s", libkb.ErrToOk(err))
 	return err
 }
 
-func (se *SecretEntry) Get(arg SecretEntryArg, term_arg *SecretEntryArg) (
-	res *SecretEntryRes, err error) {
+func (se *SecretEntry) Get(arg libkb.SecretEntryArg, term_arg *libkb.SecretEntryArg) (
+	res *libkb.SecretEntryRes, err error) {
 
 	if err = se.Init(); err != nil {
 		return
@@ -61,42 +59,13 @@ func (se *SecretEntry) Get(arg SecretEntryArg, term_arg *SecretEntryArg) (
 
 	if pe := se.pinentry; pe != nil {
 		res, err = pe.Get(arg)
+	} else if se.terminal == nil {
+		err = NoTerminalError{}
 	} else {
 		if term_arg == nil {
 			term_arg = &arg
 		}
-		res, err = TerminalGetSecret(se.terminal, term_arg)
-	}
-
-	return
-}
-
-func TerminalGetSecret(t Terminal, arg *SecretEntryArg) (
-	res *SecretEntryRes, err error) {
-
-	desc := arg.Desc
-	prompt := arg.Prompt
-
-	if len(arg.Error) > 0 {
-		G.Log.Error(arg.Error)
-	}
-
-	if len(desc) > 0 {
-		if err = t.Write(desc + "\n"); err != nil {
-			return
-		}
-	}
-
-	var txt string
-	txt, err = t.PromptPassword(prompt)
-
-	if err != nil {
-		if err == io.EOF {
-			err = nil
-			res = &SecretEntryRes{Canceled: true}
-		}
-	} else {
-		res = &SecretEntryRes{Text: txt}
+		res, err = se.terminal.GetSecret(term_arg)
 	}
 
 	return

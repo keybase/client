@@ -9,6 +9,7 @@ import (
 
 // Keep this around to simplify things
 var G = &libkb.G
+var G_UI *UI
 
 func parseArgs() (libkb.CommandLine, Command, error) {
 	p := NewCommandLine()
@@ -54,6 +55,11 @@ func main2() error {
 	if cmd == nil || err != nil {
 		return err
 	}
+
+	// Set a global UI for us to access.
+	// And also one for libkb
+	G_UI = &UI{}
+	G.SetUI(G_UI)
 
 	if err = G.ConfigureAll(cmdline, cmd); err != nil {
 		return err
