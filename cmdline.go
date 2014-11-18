@@ -213,6 +213,10 @@ func (cl *CommandLine) PopulateApp() {
 			Name:  "debug, d",
 			Usage: "enable debugging mode",
 		},
+		cli.StringFlag{
+			Name:  "email",
+			Usage: "specify your email address for login/signup purposes",
+		},
 		cli.BoolFlag{
 			Name:  "plain-logging, L",
 			Usage: "plain logging mode (no colors)",

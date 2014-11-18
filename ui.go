@@ -78,6 +78,7 @@ func (ui *UI) PromptForNewPassphrase(arg libkb.PromptArg) (text string, err erro
 		arg.TerminalPrompt = "confirm " + arg.TerminalPrompt
 		arg.PinentryDesc = "Please reenter your passphase for confirmation"
 		arg.RetryMessage = ""
+		arg.Checker = nil
 
 		if text2, err = ui.ppprompt(arg); err != nil {
 			return
@@ -136,7 +137,7 @@ func (ui *UI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 		if err != nil {
 			break
 		}
-		if arg.Checker.F(res.Text) {
+		if arg.Checker == nil || arg.Checker.F(res.Text) {
 			text = res.Text
 			break
 		}
