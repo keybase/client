@@ -289,7 +289,7 @@ func (s *LoginState) GetTriplesec(retry string) (ret *triplesec.Cipher, err erro
 	}
 
 	var pw string
-	if pw, err = PromptForKeybasePassphrase(retry); err != nil {
+	if pw, err = G.UI.PromptForKeybasePassphrase(retry); err != nil {
 		return
 	}
 

@@ -188,11 +188,13 @@ func (u *User) IdentifySelf() error {
 		return err
 	}
 
+	identifier := G.UI.GetIdentifyUI()
+
 	G.Log.Info("Verifying your key fingerprint....")
 
 	ires := u.Identify(IdentifyArg{
 		Me:         u,
-		ReportHook: func(s string) { G.OutputString(s) },
+		ReportHook: identifier.ReportHook,
 	})
 
 	err, warnings := ires.GetErrorLax()
@@ -200,7 +202,7 @@ func (u *User) IdentifySelf() error {
 	if err != nil {
 		return err
 	} else if warnings != nil {
-		warnings.Warn()
+		identifier.ShowWarnings(warnings)
 		prompt = "Do you still accept these credentials to be your own?"
 	} else if len(ires.ProofChecks) == 0 {
 		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
@@ -208,7 +210,7 @@ func (u *User) IdentifySelf() error {
 		prompt = "Is this you?"
 	}
 
-	err = PromptForConfirmation(prompt)
+	err = identifier.PromptForConfirmation(prompt)
 	if err != nil {
 		return err
 	}

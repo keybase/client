@@ -130,10 +130,6 @@ type SecretEntryRes struct {
 	Canceled bool
 }
 
-type SecretEntryInterface interface {
-	Get(SecretEntryArg, *SecretEntryArg) (*SecretEntryRes, error)
-}
-
 type Usage struct {
 	Config     bool
 	GpgKeyring bool
@@ -144,15 +140,6 @@ type Usage struct {
 
 type Command interface {
 	GetUsage() Usage
-}
-
-type Terminal interface {
-	Startup() error
-	Init() error
-	Shutdown() error
-	PromptPassword(string) (string, error)
-	Write(string) error
-	Prompt(string) (string, error)
 }
 
 type ApiArg struct {
@@ -203,4 +190,33 @@ type ExternalAPI interface {
 type GpgClient interface {
 	Configure() (bool, error)    // bool = Whether the error is fatal or not
 	Import(k PgpKeyBundle) error // Import a key into the GPG keyring
+}
+
+type IdentifyUI interface {
+	ReportHook(string)
+	ShowWarnings(Warnings)
+	PromptForConfirmation(string) error
+}
+
+type Checker struct {
+	F    func(string) bool
+	Hint string
+}
+
+type PromptArg struct {
+	TerminalPrompt string
+	PinentryDesc   string
+	PinentryPrompt string
+	Checker        *Checker
+	RetryMessage   string
+}
+
+type UI interface {
+	GetIdentifyUI() IdentifyUI
+	Prompt(string, bool, Checker) (string, error)
+	PromptForNewPassphrase(PromptArg) (string, error)
+	PromptForKeybasePassphrase(string) (string, error)
+	GetSecret([]SecretEntryArg) (*SecretEntryRes, error)
+	Configure() error
+	Shutdown() error
 }

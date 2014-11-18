@@ -30,16 +30,15 @@ type Global struct {
 	Env           *Env           // Env variables, cmdline args & config
 	Keyrings      *Keyrings      // Gpg Keychains holding keys
 	API           API            // How to make a REST call to the server
-	Terminal      Terminal       // For prompting for passwords and input
 	UserCache     *UserCache     // LRU cache of users in memory
 	LocalDb       *JsonLocalDb   // Local DB for cache
 	MerkleClient  *MerkleClient  // client for querying server's merkle sig tree
 	XAPI          ExternalAPI    // for contacting Twitter, Github, etc.
 	Output        io.Writer      // where 'Stdout'-style output goes
 	ProofCache    *ProofCache    // where to cache proof results
-	SecretEntry   *SecretEntry   // a terminal-or-pinentry system
 	GpgClient     GpgClient      // A standard GPG-client (optional)
 	ShutdownHooks []ShutdownHook // on shutdown, fire these...
+	UI            UI             // Interact with the UI
 	shutdown      bool           // whether we've shut down or not
 }
 
@@ -49,6 +48,8 @@ var G Global = Global{
 }
 
 func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
+
+func (g *Global) SetUI(u UI) { g.UI = u }
 
 func (g *Global) Init() {
 	g.Env = NewEnv(nil, nil)
@@ -111,11 +112,6 @@ func (g *Global) ConfigureAPI() error {
 	return nil
 }
 
-func (g *Global) ConfigureTerminal() error {
-	g.Terminal = NewTerminalImplementation()
-	return nil
-}
-
 func (g *Global) ConfigureCaches() (err error) {
 	g.UserCache, err = NewUserCache(g.Env.GetUserCacheSize())
 
@@ -143,8 +139,8 @@ func (g *Global) Shutdown() error {
 		return nil
 	}
 	var err error
-	if g.Terminal != nil {
-		tmp := g.Terminal.Shutdown()
+	if g.UI != nil {
+		tmp := g.UI.Shutdown()
 		if tmp != nil && err == nil {
 			err = tmp
 		}
@@ -163,11 +159,6 @@ func (g *Global) Shutdown() error {
 	}
 	g.shutdown = true
 	return err
-}
-
-func (g *Global) ConfigureSecretEntry() (err error) {
-	g.SecretEntry = NewSecretEntry()
-	return nil
 }
 
 func (u Usage) UseKeyring() bool {
@@ -198,21 +189,17 @@ func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
 			return err
 		}
 	}
-	if usage.Terminal {
-		if err = g.ConfigureTerminal(); err != nil {
-			return err
-		}
-		// Assume for now that terminal -> secretentry
-		if err = g.ConfigureSecretEntry(); err != nil {
-			return err
-		}
-	}
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
 
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err
+	}
+	if g.UI != nil {
+		if err = g.UI.Configure(); err != nil {
+			return err
+		}
 	}
 
 	G.StartupMessage()

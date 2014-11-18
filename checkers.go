@@ -4,11 +4,6 @@ import (
 	"regexp"
 )
 
-type Checker struct {
-	F    func(string) bool
-	Hint string
-}
-
 var CheckEmail = Checker{
 	F: func(s string) bool {
 		re := regexp.MustCompile(`^\S+@\S+\.\S+$`)

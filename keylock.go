@@ -30,11 +30,11 @@ func (arg KeyUnlocker) Run() (ret *PgpKeyBundle, err error) {
 
 	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
 		var res *SecretEntryRes
-		res, err = G.SecretEntry.Get(SecretEntryArg{
+		res, err = G.UI.GetSecret([]SecretEntryArg{{
 			Error:  emsg,
 			Desc:   desc,
 			Prompt: prompt,
-		}, nil)
+		}})
 
 		if err == nil && res.Canceled {
 			err = fmt.Errorf("Attempt to unlock secret key entry canceled")
