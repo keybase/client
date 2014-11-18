@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/go-jsonw"
 	"strings"
 )
 
@@ -203,3 +204,45 @@ func (p BadKeyError) Error() string {
 	}
 	return msg
 }
+
+//=============================================================================
+
+type AppStatusError struct {
+	Code   int
+	Name   string
+	Desc   string
+	Fields map[string]bool
+}
+
+func (a AppStatusError) IsBadField(s string) bool {
+	ok, found := a.Fields[s]
+	return ok && found
+}
+
+func NewAppStatusError(jw *jsonw.Wrapper) AppStatusError {
+	code, _ := jw.AtKey("code").GetInt64()
+	desc, _ := jw.AtKey("desc").GetString()
+	name, _ := jw.AtKey("name").GetString()
+	var tab map[string]bool
+	v := jw.AtKey("fields")
+	if l, err := v.Len(); err == nil {
+		tab = make(map[string]bool)
+		for i := 0; i < l; i++ {
+			if f, err := v.AtIndex(i).GetString(); err == nil {
+				tab[f] = true
+			}
+		}
+	}
+	return AppStatusError{
+		Code:   int(code),
+		Name:   name,
+		Desc:   desc,
+		Fields: tab,
+	}
+}
+
+func (a AppStatusError) Error() string {
+	return fmt.Sprintf("Failure from server: %s (error %d)", a.Desc, a.Code)
+}
+
+//=============================================================================

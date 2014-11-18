@@ -232,9 +232,7 @@ func checkAppStatus(arg ApiArg, jw *jsonw.Wrapper) (string, error) {
 			return res_name, nil
 		}
 	}
-	desc, _ := jw.AtKey("desc").GetString()
-	code, _ := jw.AtKey("code").GetInt64()
-	return "", fmt.Errorf("%s (error %d)", desc, int(code))
+	return "", NewAppStatusError(jw)
 }
 
 func (api *InternalApiEngine) Get(arg ApiArg) (*ApiRes, error) {
@@ -273,7 +271,6 @@ func (api *InternalApiEngine) DoRequest(
 	// http.AppStatus
 	appStatus, err := checkAppStatus(arg, status)
 	if err != nil {
-		err = fmt.Errorf("Got failure from Keybase server: %s", err.Error())
 		return nil, err
 	}
 

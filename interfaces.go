@@ -199,8 +199,9 @@ type IdentifyUI interface {
 }
 
 type Checker struct {
-	F    func(string) bool
-	Hint string
+	F             func(string) bool
+	Hint          string
+	PreserveSpace bool
 }
 
 type PromptArg struct {

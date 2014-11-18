@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
@@ -36,6 +37,10 @@ func NewLoginState() *LoginState {
 	return &LoginState{}
 }
 
+func (s LoginState) GetSharedSecret() []byte {
+	return s.sharedSecret
+}
+
 func (s LoginState) IsLoggedIn() bool {
 	return s.LoggedIn
 }
@@ -46,6 +51,15 @@ func (s *LoginState) GetSalt() (salt []byte, err error) {
 	}
 	salt = s.salt
 	return
+}
+
+func (s *LoginState) GenerateNewSalt() error {
+	buf := make([]byte, triplesec.SaltLen)
+	if _, err := rand.Read(buf); err != nil {
+		return err
+	}
+	s.salt = buf
+	return nil
 }
 
 func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
