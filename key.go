@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
+	"golang.org/x/crypto/sha3"
 	"io"
 	"regexp"
 	"strings"
@@ -260,6 +261,7 @@ func (k PgpKeyBundle) UsersDescription() []string {
 }
 
 type KID []byte
+type KID2 []byte
 
 func (k KID) ToString() string {
 	return hex.EncodeToString(k)
@@ -280,6 +282,24 @@ func (k PgpKeyBundle) GetKid() KID {
 	out = append(out, byte(ID_SUFFIX_KID))
 
 	return KID(out)
+}
+
+func (k PgpKeyBundle) GetKid2() KID2 {
+
+	prefix := []byte{
+		byte(KEYBASE_KID_V2),
+		byte(k.PrimaryKey.PubKeyAlgo),
+	}
+
+	buf := bytes.Buffer{}
+	k.PrimaryKey.Serialize(&buf)
+	sum := make([]byte, 64)
+	sha3.ShakeSum256(sum, buf.Bytes()[9:])
+
+	out := append(prefix, sum...)
+	out = append(out, byte(ID_SUFFIX_KID))
+
+	return KID2(out)
 }
 
 func (k PgpKeyBundle) KeyDescription() string {
