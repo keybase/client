@@ -61,6 +61,21 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdSignup) CheckRegistered() error {
+	cr := G.Env.GetConfig()
+	if cr == nil {
+		return fmt.Errorf("No configuration file available")
+	}
+	if cr.GetUid() == nil {
+		return nil
+	}
+	prompt := "Already registered; do you want to reregister?"
+	def := false
+	if rereg, err := G_UI.PromptYesNo(prompt, &def); err != nil {
+		return err
+	} else if !rereg {
+		return NotConfirmedError{}
+	}
+
 	return nil
 }
 

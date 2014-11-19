@@ -205,3 +205,31 @@ func (ui *UI) PromptForConfirmation(prompt string) error {
 func sentencePunctuate(s string) string {
 	return strings.ToUpper(s[0:1]) + s[1:] + "."
 }
+
+func (ui *UI) PromptYesNo(p string, def *bool) (ret bool, err error) {
+	var ch string
+	if def == nil {
+		ch = "[y/n]"
+	} else if *def {
+		ch = "[Y/n]"
+	} else {
+		ch = "[y/N]"
+	}
+	prompt := p + " " + ch + " "
+	done := false
+	for !done && err == nil {
+		var s string
+		if s, err = ui.Terminal.Prompt(prompt); err != nil {
+		} else if libkb.IsYes(s) {
+			ret = true
+			done = true
+		} else if libkb.IsNo(s) {
+			ret = false
+			done = true
+		} else if def != nil && libkb.IsEmpty(s) {
+			ret = *def
+			done = true
+		}
+	}
+	return
+}
