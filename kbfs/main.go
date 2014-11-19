@@ -24,6 +24,9 @@ func main() {
 	libkb.G.ConfigureCaches()
 	libkb.G.ConfigureAPI()
 	libkb.G.ConfigureMerkleClient()
+	if ok, err := libkb.G.Session.LoadAndCheck(); !ok || err != nil {
+		log.Fatalf("Couldn't load session: %v\n", err)
+	}
 
 	config := libkbfs.NewConfigLocal()
 	root := libkbfs.NewFuseRoot(config)
