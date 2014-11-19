@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
 	"github.com/keybase/go-triplesec"
+	"os"
 )
 
 func NewCmdSignup(cl *CommandLine) cli.Command {
@@ -259,6 +260,20 @@ func (s *CmdSignup) WriteOut() (err error) {
 }
 
 func (s *CmdSignup) SuccessMessage() error {
+	msg := `
+Welcome to keybase.io! You now need to associate a public key with your
+account.  If you have a key already then:
+
+    keybase key select <key-id>  # if you know the ID of the key --- OR ---
+    keybase key select           # to select from a menu
+
+If you need a public key, we'll happily generate one for you:
+
+    keybase key gen # Generate a new key and push public part to server
+
+Enjoy!
+`
+	os.Stdout.Write([]byte(msg))
 	return nil
 }
 
