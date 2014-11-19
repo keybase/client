@@ -7,25 +7,27 @@ import (
 )
 
 type CmdKeyGen struct {
-	pushSecret bool
-	debug      bool
-	arg        libkb.KeyGenArg
+	pushSecret   bool
+	debug        bool
+	batch        bool
+	noPassphrase bool
+	push         bool
+	interactive  bool
+
+	arg libkb.KeyGenArg
 }
 
 func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	ps := ctx.Bool("push-secret")
-	p := ctx.Bool("push")
-	v.arg.DoSecretPush = ps
-	v.arg.DoPush = ps || p
+	v.pushSecret = ctx.Bool("push-secret")
+	v.push = ctx.Bool("push")
+	v.noPassphrase = ctx.Bool("no-passphrase")
+	v.batch = ctx.Bool("batch")
+	v.interactive = (!v.pushSecret && !v.push && !v.batch && !v.noPassphrase)
 
-	v.arg.NoPassphrase = ctx.Bool("no-passphrase")
-	if !v.arg.NoPassphrase || v.arg.DoSecretPush {
-		v.arg.KbPassphrase = true
-	}
-	if v.arg.NoPassphrase && v.arg.DoSecretPush {
+	if v.noPassphrase && v.pushSecret {
 		err = fmt.Errorf("Passphrase required for pushing secret key")
 	} else if nargs != 0 {
 		err = fmt.Errorf("keygen takes 0 args")
@@ -40,10 +42,52 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdKeyGen) Run() error {
-	var err error
+func (v *CmdKeyGen) Configure() error {
+
+	v.arg.DoPush = v.push || v.pushSecret
+	v.arg.DoSecretPush = v.pushSecret
+	v.arg.NoPassphrase = v.noPassphrase
+	if !v.arg.NoPassphrase || v.arg.DoSecretPush {
+		v.arg.KbPassphrase = true
+	}
+
+	return nil
+}
+
+func (v *CmdKeyGen) Prompt() (err error) {
+
+	def := true
+	prompt := "Publish your new public key to Keybase.io (strongly recommended)?"
+	if v.push, err = G_UI.PromptYesNo(prompt, &def); err != nil || !v.push {
+		return
+	}
+
+	msg := `
+Keybase can host an encrypted copy of your private key on its servers.
+It can only be decrypted with your passphrase, which Keybase never knows.
+We suggest use of this feature to synchronize your key across your devices.
+
+`
+	G_UI.Output(msg)
+	prompt = "Push an encrypted copy of your private key to Keybase.io?"
+	v.pushSecret, err = G_UI.PromptYesNo(prompt, &def)
+
+	return
+}
+
+func (v *CmdKeyGen) Run() (err error) {
+
+	if v.interactive {
+		if err = v.Prompt(); err != nil {
+			return
+		}
+	}
+	if err = v.Configure(); err != nil {
+		return
+	}
+
 	if _, err = libkb.KeyGen(v.arg); err != nil {
-		return err
+		return
 	}
 	return nil
 }
@@ -69,6 +113,10 @@ func NewCmdKeyGen(cl *CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "P, no-passphrase",
 				Usage: "Don't protect the key with a passphrase",
+			},
+			cli.BoolFlag{
+				Name:  "b, batch",
+				Usage: "Don't go into interactive mode",
 			},
 		},
 		Action: func(c *cli.Context) {

@@ -233,3 +233,8 @@ func (ui *UI) PromptYesNo(p string, def *bool) (ret bool, err error) {
 	}
 	return
 }
+
+func (ui *UI) Output(s string) error {
+	_, err := os.Stdout.Write([]byte(s))
+	return err
+}

@@ -53,7 +53,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 		err = fmt.Errorf("sign takes at most 1 arg, an infile")
 	}
 
-	if err != nil {
+	if err == nil {
 		err = s.FilterInit(msg, infile, outfile)
 	}
 
