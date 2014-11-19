@@ -66,6 +66,10 @@ func IsYes(s string) bool {
 	return s == "y" || s == "yes"
 }
 
+func IsEmpty(s string) bool {
+	return len(strings.TrimSpace(s)) == 0
+}
+
 func IsNo(s string) bool {
 	s = strings.ToLower(strings.TrimSpace(s))
 	return s == "n" || s == "no"
