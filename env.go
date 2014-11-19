@@ -75,6 +75,7 @@ func (e *Env) GetConfig() ConfigReader       { return e.config }
 func (e *Env) GetConfigWriter() ConfigWriter { return e.writer }
 
 func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
+func (e *Env) GetCommandLine() CommandLine    { return e.cmd }
 func (e *Env) SetConfig(config ConfigReader)  { e.config = config }
 func (e *Env) SetConfigWriter(writer ConfigWriter) {
 	e.writer = writer
