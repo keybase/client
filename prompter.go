@@ -92,7 +92,6 @@ func (p *Prompter) ReadField(f *Field) (err error) {
 		if val, err = term.Prompt(prompt); err != nil {
 			break
 		}
-		f.Value = &val
 
 		if len(val) == 0 && len(def) > 0 {
 			val = def
@@ -111,6 +110,9 @@ func (p *Prompter) ReadField(f *Field) (err error) {
 			done = f.Checker.F(val)
 		} else {
 			done = true
+		}
+		if done {
+			f.Value = &val
 		}
 	}
 

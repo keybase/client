@@ -47,6 +47,9 @@ type CmdSignup struct {
 	uid     libkb.UID
 	session string
 	csrf    string
+
+	fullname string
+	notes    string
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
@@ -100,6 +103,8 @@ func (s *CmdSignup) MakePrompter() {
 		}
 	}
 
+	cl := G.Env.GetCommandLine()
+
 	passphraseRetry := &Field{
 		Defval:   "n",
 		Disabled: true,
@@ -109,14 +114,14 @@ func (s *CmdSignup) MakePrompter() {
 	}
 
 	email := &Field{
-		Defval:  G.Env.GetEmail(),
+		Defval:  cl.GetEmail(),
 		Name:    "email",
 		Prompt:  "Your email address",
 		Checker: &libkb.CheckEmail,
 	}
 
 	username := &Field{
-		Defval:  G.Env.GetUsername(),
+		Defval:  cl.GetUsername(),
 		Name:    "username",
 		Prompt:  "Your desired username",
 		Checker: &libkb.CheckUsername,
@@ -194,7 +199,6 @@ func (s *CmdSignup) Post() (retry bool, err error) {
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
 	} else if ase, ok := err.(libkb.AppStatusError); ok {
-		fmt.Printf("A!!!\n")
 		switch ase.Name {
 		case "BAD_SIGNUP_EMAIL_TAKEN":
 			v := s.fields.email.Clear()
@@ -219,8 +223,6 @@ func (s *CmdSignup) Post() (retry bool, err error) {
 			retry = true
 			err = nil
 		}
-	} else {
-		fmt.Printf("B booooo\n")
 	}
 	return
 }
@@ -237,6 +239,12 @@ func (s *CmdSignup) WriteConfig() error {
 }
 
 func (s *CmdSignup) WriteSession() error {
+
+	// First load up the Session file...
+	if err := G.Session.Load(); err != nil {
+		return err
+	}
+
 	lir := libkb.LoggedInResult{
 		SessionId: s.session,
 		CsrfToken: s.csrf,
@@ -299,8 +307,62 @@ func (s *CmdSignup) RunSignup() (err error) {
 	return err
 }
 
-func (s *CmdSignup) RequestInvite() error {
-	return nil
+func (s *CmdSignup) RequestInvitePromptForOk() (err error) {
+	prompt := "Would you like to be added to the invite request list?"
+	def := true
+	var invite bool
+	if invite, err = G_UI.PromptYesNo(prompt, &def); err != nil {
+	} else if !invite {
+		err = NotConfirmedError{}
+	}
+	return err
+}
+
+func (s *CmdSignup) RequestInvitePromptForData() (err error) {
+
+	fullname := &Field{
+		Name:   "fullname",
+		Prompt: "Your name",
+	}
+	notes := &Field{
+		Name:   "notes",
+		Prompt: "Any comments for the team",
+	}
+
+	fields := []*Field{fullname, notes}
+	prompter := NewPrompter(fields)
+	if err = prompter.Run(); err != nil {
+	} else {
+		s.fullname = fullname.GetValue()
+		s.notes = notes.GetValue()
+	}
+	return
+}
+
+func (s *CmdSignup) RequestInvitePost() (err error) {
+
+	_, err = G.API.Post(libkb.ApiArg{
+		Endpoint: "invitation_request",
+		Args: libkb.HttpArgs{
+			"email":     libkb.S{s.fields.email.GetValue()},
+			"full_name": libkb.S{s.fullname},
+			"notes":     libkb.S{s.notes},
+		},
+	})
+	if err == nil {
+		G.Log.Info("Success! You're on our list, thanks for your interest.")
+	}
+
+	return err
+}
+
+func (s *CmdSignup) RequestInvite() (err error) {
+	if err = s.RequestInvitePromptForOk(); err != nil {
+	} else if err = s.RequestInvitePromptForData(); err != nil {
+	} else {
+		err = s.RequestInvitePost()
+	}
+	return err
 }
 
 func (s *CmdSignup) Run() (err error) {
