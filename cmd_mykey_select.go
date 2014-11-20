@@ -7,13 +7,14 @@ import (
 )
 
 type CmdMykeySelect struct {
+	arg   keyGenArg
 	query string
 }
 
-func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) error {
+func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	var err error
-	if nargs == 1 {
+	if err = v.arg.ParseArgv(ctx); err != nil {
+	} else if nargs == 1 {
 		v.query = ctx.Args()[0]
 	} else if nargs != 0 {
 		err = fmt.Errorf("mkey select takes 0 or 1 arguments")
@@ -22,19 +23,17 @@ func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdMykeySelect) Run() error {
-
-	return nil
-}
-
-func NewCmdMykey(cl *CommandLine) cli.Command {
-	return cli.Command{
-		Name:        "mykey",
-		Usage:       "keybase mykey [subcommands...]",
-		Description: "Manipulate your primary Keybase key",
-		Subcommands: []cli.Command{
-			NewCmdMykeySelect(cl),
-		},
+	gpg := G.GetGpgClient()
+	if _, err := gpg.Configure(); err != nil {
+		return err
 	}
+	if index, err, warns := gpg.Index(v.query); err != nil {
+		return err
+	} else {
+		warns.Warn()
+		fmt.Printf("%v\n", index)
+	}
+	return nil
 }
 
 func NewCmdMykeySelect(cl *CommandLine) cli.Command {
@@ -50,10 +49,9 @@ func NewCmdMykeySelect(cl *CommandLine) cli.Command {
 
 func (v *CmdMykeySelect) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: true,
-		KbKeyring:  true,
-		API:        true,
-		Terminal:   true,
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
+		Terminal:  true,
 	}
 }
