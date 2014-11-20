@@ -246,3 +246,13 @@ func (a AppStatusError) Error() string {
 }
 
 //=============================================================================
+
+type GpgError struct {
+	m string
+}
+
+func (e GpgError) Error() string {
+	return fmt.Sprintf("GPG error: %s", e.m)
+}
+
+//=============================================================================

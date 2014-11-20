@@ -251,6 +251,13 @@ func (s *keyGenState) ReloadMe() (err error) {
 	return
 }
 
+func (arg *KeyGenArg) Configure() error {
+	if !arg.NoPassphrase || arg.DoSecretPush {
+		arg.KbPassphrase = true
+	}
+	return nil
+}
+
 func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	state := keyGenState{}
 
@@ -258,6 +265,10 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	defer func() {
 		G.Log.Debug("- Keygen: %s", ErrToOk(err))
 	}()
+
+	if err = arg.Configure(); err != nil {
+		return
+	}
 
 	larg := LoginArg{}
 
