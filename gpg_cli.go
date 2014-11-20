@@ -47,6 +47,8 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 		}
 	}
 
+	G.Log.Debug("| configured GPG w/ path: %s", prog)
+
 	g.path = prog
 	g.options = opts
 	g.configured = true
@@ -85,18 +87,103 @@ func (g *GpgCLI) Import(k PgpKeyBundle) (err error) {
 	return PickFirstError(e1, e2, e3)
 }
 
-func (g *GpgCLI) Run(arg RunGpgArg) (res RunGpgRes) {
+type RunGpg2Arg struct {
+	Arguments []string
+	Stdin     bool
+	Stderr    bool
+	Stdout    bool
+}
 
-	var args []string
-	if g.options != nil {
-		args := make([]string, 0, len(g.options))
-		copy(args, g.options)
-		args = append(args, arg.Arguments...)
-	} else {
-		args = arg.Arguments
+type RunGpg2Res struct {
+	Stdin  io.WriteCloser
+	Stdout io.ReadCloser
+	Stderr io.ReadCloser
+	Wait   func() error
+	Err    error
+}
+
+func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
+
+	cmd := g.MakeCmd(arg.Arguments)
+
+	if arg.Stdin {
+		if res.Stdin, res.Err = cmd.StdinPipe(); res.Err != nil {
+			return
+		}
 	}
 
-	cmd := exec.Command(g.path, args...)
+	var stdout, stderr io.ReadCloser
+
+	if stdout, res.Err = cmd.StdoutPipe(); res.Err != nil {
+		return
+	}
+	if stderr, res.Err = cmd.StderrPipe(); res.Err != nil {
+		return
+	}
+
+	if res.Err = cmd.Start(); res.Err != nil {
+		return
+	}
+
+	waited := false
+	out := 0
+	ch := make(chan error)
+	var fep FirstErrorPicker
+
+	res.Wait = func() error {
+		for out > 0 {
+			fep.Push(<-ch)
+			out--
+		}
+		if !waited {
+			waited = true
+			err := cmd.Wait()
+			if err != nil {
+				fep.Push(ErrorToGpgError(err))
+			}
+			return fep.Error()
+		} else {
+			return nil
+		}
+	}
+
+	if !arg.Stdout {
+		out++
+		go func() {
+			ch <- DrainPipe(stdout, func(s string) { G.Log.Info(s) })
+		}()
+	} else {
+		res.Stdout = stdout
+	}
+
+	if !arg.Stderr {
+		out++
+		go func() {
+			ch <- DrainPipe(stderr, func(s string) { G.Log.Warning(s) })
+		}()
+	} else {
+		res.Stderr = stderr
+	}
+
+	return
+}
+
+func (g *GpgCLI) MakeCmd(args []string) *exec.Cmd {
+	var nargs []string
+	if g.options != nil {
+		nargs = make([]string, len(g.options))
+		copy(nargs, g.options)
+		nargs = append(nargs, args...)
+	} else {
+		nargs = args
+	}
+	G.Log.Debug("| running Gpg: %s %v", g.path, nargs)
+	return exec.Command(g.path, nargs...)
+}
+
+func (g *GpgCLI) Run(arg RunGpgArg) (res RunGpgRes) {
+
+	cmd := g.MakeCmd(arg.Arguments)
 
 	waited := false
 

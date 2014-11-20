@@ -10,22 +10,6 @@ import (
 
 //=============================================================================
 
-func (g *GpgCLI) IndexToStream(query string, out io.WriteCloser) error {
-	args := []string{"--with-colons", "--fingerprints", "-k"}
-	if len(query) > 0 {
-		args = append(args, query)
-	}
-	garg := RunGpgArg{
-		Arguments: args,
-		Stdin:     false,
-		Stdout:    out,
-	}
-	res := g.Run(garg)
-	return res.Err
-}
-
-//=============================================================================
-
 type BucketDict struct {
 	d map[string][]*GpgPrimaryKey
 }
@@ -415,6 +399,26 @@ func ParseGpgIndexStream(stream io.Reader) (ki *GpgKeyIndex, err error, w Warnin
 	eng := NewGpgIndexParser()
 	ki, err = eng.Parse(stream)
 	w = eng.warnings
+	return
+}
+
+//=============================================================================
+
+func (g *GpgCLI) Index(query string) (ki *GpgKeyIndex, err error, w Warnings) {
+	args := []string{"--with-colons", "--fingerprint", "-k"}
+	if len(query) > 0 {
+		args = append(args, query)
+	}
+	garg := RunGpg2Arg{
+		Arguments: args,
+		Stdout:    true,
+	}
+	if res := g.Run2(garg); res.Err != nil {
+		err = res.Err
+	} else if ki, err, w = ParseGpgIndexStream(res.Stdout); err != nil {
+	} else {
+		err = res.Wait()
+	}
 	return
 }
 

@@ -188,8 +188,9 @@ type ExternalAPI interface {
 
 // A minimal access to the GPG client.
 type GpgClient interface {
-	Configure() (bool, error)    // bool = Whether the error is fatal or not
-	Import(k PgpKeyBundle) error // Import a key into the GPG keyring
+	Configure() (bool, error)                           // bool = Whether the error is fatal or not
+	Import(k PgpKeyBundle) error                        // Import a key into the GPG keyring
+	Index(query string) (*GpgKeyIndex, error, Warnings) // Index the keychain
 }
 
 type IdentifyUI interface {
