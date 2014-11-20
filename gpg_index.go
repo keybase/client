@@ -404,8 +404,14 @@ func ParseGpgIndexStream(stream io.Reader) (ki *GpgKeyIndex, err error, w Warnin
 
 //=============================================================================
 
-func (g *GpgCLI) Index(query string) (ki *GpgKeyIndex, err error, w Warnings) {
-	args := []string{"--with-colons", "--fingerprint", "-k"}
+func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, err error, w Warnings) {
+	var k string
+	if secret {
+		k = "-K"
+	} else {
+		k = "-k"
+	}
+	args := []string{"--with-colons", "--fingerprint", k}
 	if len(query) > 0 {
 		args = append(args, query)
 	}

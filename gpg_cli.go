@@ -71,6 +71,10 @@ type RunGpgRes struct {
 	Wait  func() error
 }
 
+func (g *GpgCLI) ExportSecretKey(fp PgpFingerprint) (key *PgpKeyBundle, err error) {
+	return
+}
+
 func (g *GpgCLI) Import(k PgpKeyBundle) (err error) {
 	arg := RunGpgArg{
 		Arguments: []string{"--import"},
