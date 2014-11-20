@@ -103,10 +103,18 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	k.Trust = line.At(1)
 	k.Id64 = line.At(4)
 
+	flexiAtoi := func(s string) (int, error) {
+		if len(s) == 0 {
+			return 0, nil
+		} else {
+			return strconv.Atoi(s)
+		}
+	}
+
 	if k.Bits, err = strconv.Atoi(line.At(2)); err != nil {
 	} else if k.Algo, err = strconv.Atoi(line.At(3)); err != nil {
 	} else if k.Created, err = strconv.Atoi(line.At(5)); err != nil {
-	} else if k.Expires, err = strconv.Atoi(line.At(6)); err != nil {
+	} else if k.Expires, err = flexiAtoi(line.At(6)); err != nil {
 	}
 
 	return
@@ -165,7 +173,7 @@ func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
 	var fp *PgpFingerprint
 	if f := l.At(9); len(f) == 0 {
 		err = fmt.Errorf("no fingerprint given")
-	} else if fp, err = PgpFingerprintFromHex(f); err != nil {
+	} else if fp, err = PgpFingerprintFromHex(f); err == nil {
 		k.top.SetFingerprint(fp)
 	}
 	if err != nil {
@@ -202,7 +210,7 @@ func (k *GpgPrimaryKey) GetAllId64s() []string {
 
 func (g *GpgPrimaryKey) AddSubkey(l *GpgIndexLine) (err error) {
 	var sk *GpgSubKey
-	if sk, err = ParseGpgSubKey(l); err != nil {
+	if sk, err = ParseGpgSubKey(l); err == nil {
 		g.subkeys = append(g.subkeys, sk)
 		g.top = sk
 	}
@@ -250,13 +258,13 @@ type GpgIndexElement interface {
 	ToKey() *GpgPrimaryKey
 }
 
-type KeyIndex struct {
+type GpgKeyIndex struct {
 	Keys                        []*GpgPrimaryKey
 	Emails, Fingerprints, Id64s *BucketDict
 }
 
-func NewKeyIndex() *KeyIndex {
-	return &KeyIndex{
+func NewGpgKeyIndex() *GpgKeyIndex {
+	return &GpgKeyIndex{
 		Keys:         make([]*GpgPrimaryKey, 0, 1),
 		Emails:       NewBuckDict(),
 		Fingerprints: NewBuckDict(),
@@ -264,7 +272,7 @@ func NewKeyIndex() *KeyIndex {
 	}
 }
 
-func (ki *KeyIndex) IndexKey(k *GpgPrimaryKey) {
+func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 	ki.Keys = append(ki.Keys, k)
 	if fp := k.GetFingerprint(); fp != nil {
 		ki.Fingerprints.Add(fp.ToString(), k)
@@ -277,13 +285,13 @@ func (ki *KeyIndex) IndexKey(k *GpgPrimaryKey) {
 	}
 }
 
-func (k *KeyIndex) PushElement(e GpgIndexElement) {
+func (k *GpgKeyIndex) PushElement(e GpgIndexElement) {
 	if key := e.ToKey(); key != nil {
 		k.IndexKey(key)
 	}
 }
 
-func (ki *KeyIndex) AllFingerprints() []PgpFingerprint {
+func (ki *GpgKeyIndex) AllFingerprints() []PgpFingerprint {
 	ret := make([]PgpFingerprint, 0, 1)
 	for _, k := range ki.Keys {
 		if fp := k.GetFingerprint(); fp != nil {
@@ -343,7 +351,7 @@ func (p *GpgIndexParser) Warn(w Warning) {
 func (p *GpgIndexParser) ParseElement() (ret GpgIndexElement, err error) {
 	var line *GpgIndexLine
 	line, err = p.GetLine()
-	if err != nil {
+	if err != nil || line == nil {
 	} else if line.IsNewKey() {
 		ret, err = p.ParseKey(line)
 	}
@@ -354,12 +362,13 @@ func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (ret *GpgPrimaryKey, err erro
 	var line *GpgIndexLine
 	ret, err = ParseGpgPrimaryKey(l)
 	done := false
-	for !done && err != nil && !p.isEof() {
+	for !done && err == nil && !p.isEof() {
 		if line, err = p.GetLine(); line == nil || err != nil {
 		} else if line.IsNewKey() {
 			p.PutbackLine(line)
 			done = true
-		} else if e2 := ret.AddLine(line); e2 != nil {
+		} else if e2 := ret.AddLine(line); e2 == nil {
+		} else {
 			p.warnings.Push(ErrorToWarning(e2))
 		}
 	}
@@ -370,7 +379,7 @@ func (p *GpgIndexParser) GetLine() (ret *GpgIndexLine, err error) {
 	if p.putback != nil {
 		ret = p.putback
 		p.putback = nil
-	} else if !p.isEof() {
+	} else if p.isEof() {
 	} else if s, e2 := p.src.ReadString(byte('\n')); e2 == nil {
 		p.lineno++
 		ret, err = ParseLine(s, p.lineno)
@@ -388,15 +397,24 @@ func (p *GpgIndexParser) PutbackLine(line *GpgIndexLine) {
 
 func (p GpgIndexParser) isEof() bool { return p.eof }
 
-func (p *GpgIndexParser) Parse(stream io.Reader) (ki *KeyIndex, err error) {
+func (p *GpgIndexParser) Parse(stream io.Reader) (ki *GpgKeyIndex, err error) {
 	p.src = bufio.NewReader(stream)
-	index := NewKeyIndex()
+	ki = NewGpgKeyIndex()
 	for err == nil && !p.isEof() {
 		var el GpgIndexElement
-		if el, err = p.ParseElement(); err == nil {
-			index.PushElement(el)
+		if el, err = p.ParseElement(); err == nil && el != nil {
+			ki.PushElement(el)
 		}
 	}
+	return
+}
+
+//=============================================================================
+
+func ParseGpgIndexStream(stream io.Reader) (ki *GpgKeyIndex, err error, w Warnings) {
+	eng := NewGpgIndexParser()
+	ki, err = eng.Parse(stream)
+	w = eng.warnings
 	return
 }
 
