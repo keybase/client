@@ -167,6 +167,11 @@ func (s *keyGenState) GenerateKey(arg KeyGenArg) (err error) {
 	return
 }
 
+func (s *keyGenState) SelectKey(arg KeyGenArg) (err error) {
+	// A stub for now...
+	return nil
+}
+
 func (s *keyGenState) WriteKey() (err error) {
 	if s.p3skb, err = s.bundle.ToP3SKB(s.tsec); err != nil {
 	} else if G.Keyrings == nil {
@@ -231,6 +236,7 @@ type KeyGenArg struct {
 	DoSecretPush bool
 	NoPassphrase bool
 	KbPassphrase bool
+	Pregen       *PgpKeyBundle
 }
 
 func (s *keyGenState) UpdateUser() error {
@@ -289,10 +295,18 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	if err = state.CheckNoKey(); err != nil {
 		return
 	}
+
 	G.Log.Debug("| GenerateKey")
-	if err = state.GenerateKey(arg); err != nil {
-		return
+	if arg.Pregen == nil {
+		if err = state.GenerateKey(arg); err != nil {
+			return
+		}
+	} else {
+		if err = state.SelectKey(arg); err != nil {
+			return
+		}
 	}
+
 	G.Log.Debug("| WriteKey")
 	if err = state.WriteKey(); err != nil {
 		return
