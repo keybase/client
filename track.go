@@ -208,7 +208,7 @@ func (e *TrackEngine) Run() error {
 
 	if err, warnings := res.GetErrorAndWarnings(e.StrictProofs); err != nil {
 		return err
-	} else if warnings != nil {
+	} else if !warnings.IsEmpty() {
 		warnings.Warn()
 	}
 

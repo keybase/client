@@ -264,4 +264,8 @@ func (e GpgIndexError) Error() string {
 	return fmt.Sprintf("GPG index error at line %d: %s", e.lineno, e.m)
 }
 
+func ErrorToGpgIndexError(l int, e error) GpgIndexError {
+	return GpgIndexError{l, e.Error()}
+}
+
 //=============================================================================

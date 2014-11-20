@@ -64,7 +64,8 @@ func (i IdentifyRes) NumTrackFailures() int {
 func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {
 
 	if i.Error != nil {
-		return i.Error, nil
+		err = i.Error
+		return
 	}
 
 	probs := make([]string, 0, 0)
@@ -74,7 +75,7 @@ func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warni
 		if strict {
 			probs = append(probs, p)
 		} else {
-			warnings = []Warning{StringWarning(p)}
+			warnings.Push(StringWarning(p))
 		}
 	}
 
@@ -201,7 +202,7 @@ func (u *User) IdentifySelf() error {
 	var prompt string
 	if err != nil {
 		return err
-	} else if warnings != nil {
+	} else if !warnings.IsEmpty() {
 		identifier.ShowWarnings(warnings)
 		prompt = "Do you still accept these credentials to be your own?"
 	} else if len(ires.ProofChecks) == 0 {

@@ -26,10 +26,24 @@ func ErrorToWarning(e error) Warning {
 	}
 }
 
-type Warnings []Warning
+type Warnings struct {
+	w []Warning
+}
+
+func (w Warnings) Warnings() []Warning {
+	return w.w
+}
+
+func (w Warnings) IsEmpty() bool {
+	return w.w == nil || len(w.w) == 0
+}
+
+func (w *Warnings) Push(e Warning) {
+	w.w = append(w.w, e)
+}
 
 func (w Warnings) Warn() {
-	for _, e := range w {
+	for _, e := range w.w {
 		G.Log.Warning(e.Warning())
 	}
 }

@@ -114,10 +114,19 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 
 //=============================================================================
 
+type GpgFingerprinter interface {
+	SetFingerprint(pgp *PgpFingerprint)
+}
+
 type GpgPrimaryKey struct {
 	GpgBaseKey
-	subkeys    []GpgSubKey
+	subkeys    []*GpgSubKey
 	identities []*Identity
+	top        GpgFingerprinter
+}
+
+func (k *GpgBaseKey) SetFingerprint(pgp *PgpFingerprint) {
+	k.fingerprint = pgp
 }
 
 func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) (err error) {
@@ -127,8 +136,14 @@ func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) (err error) {
 	return
 }
 
+func NewGpgPrimaryKey() *GpgPrimaryKey {
+	ret := &GpgPrimaryKey{}
+	ret.top = ret
+	return ret
+}
+
 func ParseGpgPrimaryKey(l *GpgIndexLine) (key *GpgPrimaryKey, err error) {
-	key = &GpgPrimaryKey{}
+	key = NewGpgPrimaryKey()
 	err = key.Parse(l)
 	return
 }
@@ -139,6 +154,22 @@ func (k *GpgPrimaryKey) AddUid(l *GpgIndexLine) (err error) {
 	} else if id, err = ParseIdentity(f); err != nil {
 	} else {
 		k.identities = append(k.identities, id)
+	}
+	if err != nil {
+		err = ErrorToGpgIndexError(l.lineno, err)
+	}
+	return
+}
+
+func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
+	var fp *PgpFingerprint
+	if f := l.At(9); len(f) == 0 {
+		err = fmt.Errorf("no fingerprint given")
+	} else if fp, err = PgpFingerprintFromHex(f); err != nil {
+		k.top.SetFingerprint(fp)
+	}
+	if err != nil {
+		err = ErrorToGpgIndexError(l.lineno, err)
 	}
 	return
 }
@@ -169,20 +200,54 @@ func (k *GpgPrimaryKey) GetAllId64s() []string {
 	return ret
 }
 
+func (g *GpgPrimaryKey) AddSubkey(l *GpgIndexLine) (err error) {
+	var sk *GpgSubKey
+	if sk, err = ParseGpgSubKey(l); err != nil {
+		g.subkeys = append(g.subkeys, sk)
+		g.top = sk
+	}
+	return
+}
+
 func (g *GpgPrimaryKey) ToKey() *GpgPrimaryKey { return g }
-func (g *GpgPrimaryKey) Error() error          { return nil }
-func (g *GpgPrimaryKey) IsOk() bool            { return false }
+
+func (p *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
+	if l.Len() < 2 {
+		err = GpgIndexError{l.lineno, "too few fields"}
+	} else {
+		f := l.At(0)
+		switch f {
+		case "fpr":
+			err = p.AddFingerprint(l)
+		case "uid":
+			err = p.AddUid(l)
+		case "uat":
+		case "sub", "ssb":
+			err = p.AddSubkey(l)
+		default:
+			err = GpgIndexError{l.lineno, fmt.Sprintf("Unknown subfield: %s", f)}
+		}
+
+	}
+	return err
+}
+
+//=============================================================================
 
 type GpgSubKey struct {
 	GpgBaseKey
+}
+
+func ParseGpgSubKey(l *GpgIndexLine) (sk *GpgSubKey, err error) {
+	sk = &GpgSubKey{}
+	err = sk.ParseBase(l)
+	return
 }
 
 //=============================================================================
 
 type GpgIndexElement interface {
 	ToKey() *GpgPrimaryKey
-	Error() error
-	IsOk() bool
 }
 
 type KeyIndex struct {
@@ -272,7 +337,7 @@ func NewGpgIndexParser() *GpgIndexParser {
 }
 
 func (p *GpgIndexParser) Warn(w Warning) {
-	p.warnings = append(p.warnings, w)
+	p.warnings.Push(w)
 }
 
 func (p *GpgIndexParser) ParseElement() (ret GpgIndexElement, err error) {
@@ -286,7 +351,18 @@ func (p *GpgIndexParser) ParseElement() (ret GpgIndexElement, err error) {
 }
 
 func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (ret *GpgPrimaryKey, err error) {
+	var line *GpgIndexLine
 	ret, err = ParseGpgPrimaryKey(l)
+	done := false
+	for !done && err != nil && !p.isEof() {
+		if line, err = p.GetLine(); line == nil || err != nil {
+		} else if line.IsNewKey() {
+			p.PutbackLine(line)
+			done = true
+		} else if e2 := ret.AddLine(line); e2 != nil {
+			p.warnings.Push(ErrorToWarning(e2))
+		}
+	}
 	return
 }
 
