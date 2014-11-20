@@ -255,4 +255,13 @@ func (e GpgError) Error() string {
 	return fmt.Sprintf("GPG error: %s", e.m)
 }
 
+type GpgIndexError struct {
+	lineno int
+	m      string
+}
+
+func (e GpgIndexError) Error() string {
+	return fmt.Sprintf("GPG index error at line %d: %s", e.lineno, e.m)
+}
+
 //=============================================================================

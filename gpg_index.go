@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -26,27 +27,27 @@ func (g *GpgCLI) IndexToStream(query string, out io.WriteCloser) error {
 //=============================================================================
 
 type BucketDict struct {
-	d map[string][]GpgKeyInfo
+	d map[string][]*GpgPrimaryKey
 }
 
 func NewBuckDict() *BucketDict {
 	return &BucketDict{
-		d: make(map[string][]GpgKeyInfo),
+		d: make(map[string][]*GpgPrimaryKey),
 	}
 }
 
-func (bd *BucketDict) Add(k string, v GpgKeyInfo) {
+func (bd *BucketDict) Add(k string, v *GpgPrimaryKey) {
 	k = strings.ToLower(k)
-	var bucket []GpgKeyInfo
+	var bucket []*GpgPrimaryKey
 	var found bool
 	if bucket, found = bd.d[k]; !found {
-		bucket = make([]GpgKeyInfo, 0, 1)
+		bucket = make([]*GpgPrimaryKey, 0, 1)
 	}
 	bucket = append(bucket, v)
 	bd.d[k] = bucket
 }
 
-func (bd BucketDict) Get(k string) []GpgKeyInfo {
+func (bd BucketDict) Get(k string) []*GpgPrimaryKey {
 	k = strings.ToLower(k)
 	ret, found := bd.d[k]
 	if !found {
@@ -55,7 +56,7 @@ func (bd BucketDict) Get(k string) []GpgKeyInfo {
 	return ret
 }
 
-func (bd BucketDict) Get0Or1(k string) (ret GpgKeyInfo, err error) {
+func (bd BucketDict) Get0Or1(k string) (ret *GpgPrimaryKey, err error) {
 	v := bd.Get(k)
 	if len(v) > 1 {
 		err = GpgError{fmt.Sprintf("Wanted a unique lookup but got %d objects for key %s", len(v), k)}
@@ -81,40 +82,132 @@ func Uniquify(inp []string) []string {
 
 //=============================================================================
 
-type GpgKeyInfo interface {
-	GpgIndexElement
-	Fingerprint() string
-	Emails() []string
-	AllId64s() []string
+type GpgBaseKey struct {
+	Type        string
+	Trust       string
+	Bits        int
+	Algo        int
+	Id64        string
+	Created     int
+	Expires     int
+	fingerprint *PgpFingerprint
 }
 
+func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
+	if line.Len() < 12 {
+		err = GpgIndexError{line.lineno, "Not enough fields (need 12)"}
+		return
+	}
+
+	k.Type = line.At(0)
+	k.Trust = line.At(1)
+	k.Id64 = line.At(4)
+
+	if k.Bits, err = strconv.Atoi(line.At(2)); err != nil {
+	} else if k.Algo, err = strconv.Atoi(line.At(3)); err != nil {
+	} else if k.Created, err = strconv.Atoi(line.At(5)); err != nil {
+	} else if k.Expires, err = strconv.Atoi(line.At(6)); err != nil {
+	}
+
+	return
+}
+
+//=============================================================================
+
+type GpgPrimaryKey struct {
+	GpgBaseKey
+	subkeys    []GpgSubKey
+	identities []*Identity
+}
+
+func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) (err error) {
+	if err = k.ParseBase(l); err != nil {
+	} else if err = k.AddUid(l); err != nil {
+	}
+	return
+}
+
+func ParseGpgPrimaryKey(l *GpgIndexLine) (key *GpgPrimaryKey, err error) {
+	key = &GpgPrimaryKey{}
+	err = key.Parse(l)
+	return
+}
+
+func (k *GpgPrimaryKey) AddUid(l *GpgIndexLine) (err error) {
+	var id *Identity
+	if f := l.At(9); len(f) == 0 {
+	} else if id, err = ParseIdentity(f); err != nil {
+	} else {
+		k.identities = append(k.identities, id)
+	}
+	return
+}
+
+func (k *GpgPrimaryKey) GetFingerprint() *PgpFingerprint {
+	return k.fingerprint
+}
+
+func (k *GpgPrimaryKey) GetEmails() []string {
+	ret := make([]string, 0, len(k.identities))
+	for _, i := range k.identities {
+		ret = append(ret, i.Email)
+	}
+	return ret
+}
+
+func (k *GpgPrimaryKey) GetAllId64s() []string {
+	var ret []string
+	add := func(fp *PgpFingerprint) {
+		if fp != nil {
+			ret = append(ret, fp.ToKeyId())
+		}
+	}
+	add(k.GetFingerprint())
+	for _, sk := range k.subkeys {
+		add(sk.fingerprint)
+	}
+	return ret
+}
+
+func (g *GpgPrimaryKey) ToKey() *GpgPrimaryKey { return g }
+func (g *GpgPrimaryKey) Error() error          { return nil }
+func (g *GpgPrimaryKey) IsOk() bool            { return false }
+
+type GpgSubKey struct {
+	GpgBaseKey
+}
+
+//=============================================================================
+
 type GpgIndexElement interface {
-	ToKey() GpgKeyInfo
+	ToKey() *GpgPrimaryKey
 	Error() error
 	IsOk() bool
 }
 
 type KeyIndex struct {
-	Keys                        []GpgKeyInfo
+	Keys                        []*GpgPrimaryKey
 	Emails, Fingerprints, Id64s *BucketDict
 }
 
 func NewKeyIndex() *KeyIndex {
 	return &KeyIndex{
-		Keys:         make([]GpgKeyInfo, 0, 1),
+		Keys:         make([]*GpgPrimaryKey, 0, 1),
 		Emails:       NewBuckDict(),
 		Fingerprints: NewBuckDict(),
 		Id64s:        NewBuckDict(),
 	}
 }
 
-func (ki *KeyIndex) IndexKey(k GpgKeyInfo) {
+func (ki *KeyIndex) IndexKey(k *GpgPrimaryKey) {
 	ki.Keys = append(ki.Keys, k)
-	ki.Fingerprints.Add(k.Fingerprint(), k)
-	for _, e := range Uniquify(k.Emails()) {
+	if fp := k.GetFingerprint(); fp != nil {
+		ki.Fingerprints.Add(fp.ToString(), k)
+	}
+	for _, e := range Uniquify(k.GetEmails()) {
 		ki.Emails.Add(e, k)
 	}
-	for _, i := range Uniquify(k.AllId64s()) {
+	for _, i := range Uniquify(k.GetAllId64s()) {
 		ki.Id64s.Add(i, k)
 	}
 }
@@ -128,7 +221,7 @@ func (k *KeyIndex) PushElement(e GpgIndexElement) {
 func (ki *KeyIndex) AllFingerprints() []PgpFingerprint {
 	ret := make([]PgpFingerprint, 0, 1)
 	for _, k := range ki.Keys {
-		if fp := PgpFingerprintFromHexNoError(k.Fingerprint()); fp != nil {
+		if fp := k.GetFingerprint(); fp != nil {
 			ret = append(ret, *fp)
 		}
 	}
@@ -141,6 +234,9 @@ type GpgIndexLine struct {
 	v      []string
 	lineno int
 }
+
+func (g GpgIndexLine) Len() int        { return len(g.v) }
+func (g GpgIndexLine) At(i int) string { return g.v[i] }
 
 func ParseLine(s string, i int) (ret *GpgIndexLine, err error) {
 	s = strings.TrimSpace(s)
@@ -189,7 +285,8 @@ func (p *GpgIndexParser) ParseElement() (ret GpgIndexElement, err error) {
 	return
 }
 
-func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (key GpgKeyInfo, err error) {
+func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (ret *GpgPrimaryKey, err error) {
+	ret, err = ParseGpgPrimaryKey(l)
 	return
 }
 
