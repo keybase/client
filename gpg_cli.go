@@ -1,6 +1,8 @@
 package libkb
 
 import (
+	"fmt"
+	"golang.org/x/crypto/openpgp"
 	"io"
 	"os/exec"
 	"sync"
@@ -71,11 +73,39 @@ type RunGpgRes struct {
 	Wait  func() error
 }
 
-func (g *GpgCLI) ExportSecretKey(fp PgpFingerprint) (key *PgpKeyBundle, err error) {
+func (g *GpgCLI) ImportKey(secret bool, fp PgpFingerprint) (ret *PgpKeyBundle, err error) {
+	var cmd string
+	var which string
+	if secret {
+		which = "secret"
+		cmd = "--export-secret-key"
+	} else {
+		which = "public"
+		cmd = "--export"
+	}
+
+	arg := RunGpg2Arg{
+		Arguments: []string{cmd, fp.ToString()},
+		Stdout:    true,
+	}
+
+	res := g.Run2(arg)
+	var el openpgp.EntityList
+	if err = res.Err; err != nil {
+	} else if el, err = openpgp.ReadKeyRing(res.Stdout); err != nil {
+	} else if err = res.Wait(); err != nil {
+	} else if len(el) == 0 {
+		err = NoKeyError{fmt.Sprintf("No %s key for %s found", which, fp.ToKeyId())}
+	} else if len(el) > 1 {
+		err = TooManyKeysError{len(el), fp}
+	} else {
+		ret = (*PgpKeyBundle)(el[0])
+	}
+
 	return
 }
 
-func (g *GpgCLI) Import(k PgpKeyBundle) (err error) {
+func (g *GpgCLI) ExportKey(k PgpKeyBundle) (err error) {
 	arg := RunGpgArg{
 		Arguments: []string{"--import"},
 		Stdin:     true,

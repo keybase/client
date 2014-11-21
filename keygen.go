@@ -251,13 +251,6 @@ func (s *keyGenState) ReloadMe() (err error) {
 	return
 }
 
-func (arg *KeyGenArg) Configure() error {
-	if !arg.NoPassphrase || arg.DoSecretPush {
-		arg.KbPassphrase = true
-	}
-	return nil
-}
-
 func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	state := keyGenState{}
 
@@ -266,26 +259,34 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 		G.Log.Debug("- Keygen: %s", ErrToOk(err))
 	}()
 
-	if err = arg.Configure(); err != nil {
+	if !G.Session.IsLoggedIn() {
+		err = LoginRequiredError{}
 		return
 	}
 
+	G.Log.Debug("| CheckNoKey")
+	if err = state.CheckNoKey(); err != nil {
+		return
+	}
+
+	useKbPp := arg.DoSecretPush || arg.KbPassphrase
+
 	larg := LoginArg{}
 
-	// If we're not using a PW, we have to check that we have the right
-	// password loaded into our triplesec, so need to force a relogin
-	if arg.KbPassphrase {
+	if useKbPp {
+		// If we're not using a PW, we have to check that we have the right
+		// password loaded into our triplesec, so need to force a relogin
 		larg.Force = true
 		larg.Retry = 4
 	}
 
-	if arg.KbPassphrase || arg.DoPush {
-		if err = G.LoginState.Login(larg); err != nil {
+	if useKbPp && G.LoginState.tsec == nil {
+		if err = G.LoginState.Login(LoginArg{Force: true, Retry: 4}); err != nil {
 			return
 		}
 	}
 
-	if arg.KbPassphrase {
+	if useKbPp {
 		state.tsec = G.LoginState.tsec
 	} else if !arg.NoPassphrase {
 		state.tsec, err = PromptForNewTsec(PromptArg{
@@ -300,10 +301,6 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 
 	G.Log.Debug("| Load me")
 	if err = state.LoadMe(); err != nil {
-		return
-	}
-	G.Log.Debug("| CheckNoKey")
-	if err = state.CheckNoKey(); err != nil {
 		return
 	}
 

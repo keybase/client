@@ -159,6 +159,17 @@ func (u NoKeyError) Error() string {
 
 //=============================================================================
 
+type TooManyKeysError struct {
+	n  int
+	fp PgpFingerprint
+}
+
+func (e TooManyKeysError) Error() string {
+	return fmt.Sprintf("Too many keys (%d) found for %s", e.n, e.fp.ToString())
+}
+
+//=============================================================================
+
 type NoSelectedKeyError struct {
 	wanted *PgpFingerprint
 }
@@ -270,6 +281,15 @@ func (e GpgIndexError) Error() string {
 
 func ErrorToGpgIndexError(l int, e error) GpgIndexError {
 	return GpgIndexError{l, e.Error()}
+}
+
+//=============================================================================
+
+type LoginRequiredError struct {
+}
+
+func (e LoginRequiredError) Error() string {
+	return "Login required"
 }
 
 //=============================================================================
