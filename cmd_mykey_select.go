@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
+	"os"
 )
 
 type CmdMykeySelect struct {
@@ -38,6 +39,7 @@ func (v *CmdMykeySelect) Run() error {
 		} else {
 			G_UI.Output("Multiple keys found:\n")
 		}
+		libkb.Tablify(os.Stdout, nil, index.GetRowFunc())
 	} else {
 		G.Log.Info("Key selection is unambiguous: %s", index.Keys[0].GetFingerprint().ToQuads())
 	}
