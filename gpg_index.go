@@ -3,9 +3,12 @@ package libkb
 import (
 	"bufio"
 	"fmt"
+	"golang.org/x/crypto/openpgp/packet"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //=============================================================================
@@ -77,6 +80,28 @@ type GpgBaseKey struct {
 	fingerprint *PgpFingerprint
 }
 
+func (k GpgBaseKey) AlgoString() string {
+	switch packet.PublicKeyAlgorithm(k.Algo) {
+	case packet.PubKeyAlgoDSA:
+		return "D"
+	case packet.PubKeyAlgoRSA:
+		return "R"
+	case packet.PubKeyAlgoECDSA:
+		return "E"
+	default:
+		return "?"
+	}
+}
+
+func (k GpgBaseKey) ExpirationString() string {
+	if k.Expires == 0 {
+		return "never"
+	} else {
+		layout := "2006-01-02"
+		return time.Unix(int64(k.Expires), 0).Format(layout)
+	}
+}
+
 func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	if line.Len() < 12 {
 		err = GpgIndexError{line.lineno, "Not enough fields (need 12)"}
@@ -115,6 +140,19 @@ type GpgPrimaryKey struct {
 	subkeys    []*GpgSubKey
 	identities []*Identity
 	top        GpgFingerprinter
+}
+
+func (k *GpgPrimaryKey) ToRow(i int) []string {
+	v := []string{
+		fmt.Sprintf("(%d)", i),
+		fmt.Sprintf("%d%s", k.Bits, k.AlgoString()),
+		k.fingerprint.ToKeyId(),
+		k.ExpirationString(),
+	}
+	for _, i := range k.identities {
+		v = append(v, i.Email)
+	}
+	return v
 }
 
 func (k *GpgBaseKey) SetFingerprint(pgp *PgpFingerprint) {
@@ -247,21 +285,44 @@ type GpgKeyIndex struct {
 	Emails, Fingerprints, Id64s *BucketDict
 }
 
-func (ki GpgKeyIndex) Len() int {
+func (ki *GpgKeyIndex) Len() int {
 	return len(ki.Keys)
 }
-func (ki GpgKeyIndex) Swap(i, j int) {
+func (ki *GpgKeyIndex) Swap(i, j int) {
 	ki.Keys[i], ki.Keys[j] = ki.Keys[j], ki.Keys[i]
 }
-func (ki GpgKeyIndex) Less(i, j int) bool {
+func (ki *GpgKeyIndex) Less(i, j int) bool {
 	a, b := ki.Keys[i], ki.Keys[j]
-
-	d := len(a.identities) - len(b.identities)
-	if d > 0 {
+	if len(a.identities) > len(b.identities) {
 		return true
-	} else if d < 0 {
+	} else if len(a.identities) < len(b.identities) {
+		return false
+	} else if a.Expires == 0 {
+		return true
+	} else if b.Expires == 0 {
+		return false
+	} else if a.Expires > b.Expires {
+		return true
+	} else {
 		return false
 	}
+}
+
+func (p *GpgKeyIndex) GetRowFunc() func() []string {
+	i := 0
+	return func() []string {
+		if i >= len(p.Keys) {
+			return nil
+		} else {
+			ret := p.Keys[i].ToRow(i + 1)
+			i++
+			return ret
+		}
+	}
+}
+
+func (ki *GpgKeyIndex) Sort() {
+	sort.Sort(ki)
 }
 
 func NewGpgKeyIndex() *GpgKeyIndex {
@@ -407,6 +468,7 @@ func (p *GpgIndexParser) Parse(stream io.Reader) (ki *GpgKeyIndex, err error) {
 			ki.PushElement(el)
 		}
 	}
+	ki.Sort()
 	return
 }
 
