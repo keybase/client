@@ -293,3 +293,13 @@ func (e LoginRequiredError) Error() string {
 }
 
 //=============================================================================
+
+type InternalError struct {
+	msg string
+}
+
+func (e InternalError) Error() string {
+	return fmt.Sprintf("Internal error: %s", e.msg)
+}
+
+//=============================================================================

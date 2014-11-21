@@ -138,15 +138,17 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 	return (*PgpKeyBundle)(e), nil
 }
 
-type keyGenState struct {
+type KeyGen struct {
 	me       *User
 	bundle   *PgpKeyBundle
 	p3skb    *P3SKB
 	tsec     *triplesec.Cipher
 	httpArgs *HttpArgs
+	arg      *KeyGenArg
+	phase    int
 }
 
-func (s *keyGenState) CheckNoKey() error {
+func (s *KeyGen) CheckNoKey() error {
 	fp, err := s.me.GetActivePgpFingerprint()
 	if err == nil && fp != nil {
 		err = KeyExistsError{fp}
@@ -154,25 +156,20 @@ func (s *keyGenState) CheckNoKey() error {
 	return err
 }
 
-func (s *keyGenState) LoadMe() (err error) {
+func (s *KeyGen) LoadMe() (err error) {
 	s.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
 	return err
 }
 
-func (s *keyGenState) GenerateKey(arg KeyGenArg) (err error) {
-	if arg.Id == nil {
-		arg.Id = KeybaseIdentity("")
+func (s *KeyGen) GenerateKey() (err error) {
+	if s.arg.Id == nil {
+		s.arg.Id = KeybaseIdentity("")
 	}
-	s.bundle, err = NewPgpKeyBundle(arg)
+	s.bundle, err = NewPgpKeyBundle(*s.arg)
 	return
 }
 
-func (s *keyGenState) SelectKey(arg KeyGenArg) (err error) {
-	// A stub for now...
-	return nil
-}
-
-func (s *keyGenState) WriteKey() (err error) {
+func (s *KeyGen) WriteKey() (err error) {
 	if s.p3skb, err = s.bundle.ToP3SKB(s.tsec); err != nil {
 	} else if G.Keyrings == nil {
 		err = fmt.Errorf("No keyrings available")
@@ -182,7 +179,7 @@ func (s *keyGenState) WriteKey() (err error) {
 	return
 }
 
-func (s *keyGenState) GeneratePost(doSecret bool) (err error) {
+func (s *KeyGen) GeneratePost() (err error) {
 	var jw *jsonw.Wrapper
 	var tmp []byte
 	var seckey, pubkey string
@@ -212,13 +209,13 @@ func (s *keyGenState) GeneratePost(doSecret bool) (err error) {
 		"public_key":   S{pubkey},
 		"is_primary":   I{1},
 	}
-	if doSecret {
+	if s.arg.DoSecretPush {
 		s.httpArgs.Add("private_key", S{seckey})
 	}
 	return
 }
 
-func (s *keyGenState) PostToServer() error {
+func (s *KeyGen) PostToServer() error {
 	_, err := G.API.Post(ApiArg{
 		Endpoint:    "key/add",
 		NeedSession: true,
@@ -239,37 +236,91 @@ type KeyGenArg struct {
 	Pregen       *PgpKeyBundle
 }
 
-func (s *keyGenState) UpdateUser() error {
+func (s *KeyGen) UpdateUser() error {
 	err := s.me.SetActiveKey(s.bundle)
 	fp := s.bundle.GetFingerprint()
 	G.Env.GetConfigWriter().SetPgpFingerprint(&fp)
 	return err
 }
 
-func (s *keyGenState) ReloadMe() (err error) {
+func (s *KeyGen) ReloadMe() (err error) {
 	s.me, err = LoadMe(LoadUserArg{ForceReload: true})
 	return
 }
 
-func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
-	state := keyGenState{}
+func NewKeyGen(arg *KeyGenArg) *KeyGen {
+	return &KeyGen{arg: arg, phase: KEYGEN_PHASE_NONE}
+}
 
-	G.Log.Debug("+ KeyGen")
+const (
+	KEYGEN_PHASE_NONE      = iota
+	KEYGEN_PHASE_CHECKED   = iota
+	KEYGEN_PHASE_GENERATED = iota
+	KEYGEN_PHASE_POSTED    = iota
+)
+
+func (s *KeyGen) LoginAndCheckKey() (err error) {
+
+	G.Log.Debug("+ KeyGen::LoginAndCheckKey")
 	defer func() {
-		G.Log.Debug("- Keygen: %s", ErrToOk(err))
+		G.Log.Debug("- Keygen::LoginAndCheckKey: %s", ErrToOk(err))
 	}()
 
-	if !G.Session.IsLoggedIn() {
-		err = LoginRequiredError{}
+	if s.phase == KEYGEN_PHASE_CHECKED {
+		G.Log.Debug("| LoginAndCheckKey skipped (already performed)")
+		return nil
+	} else if s.phase != KEYGEN_PHASE_NONE {
+		return InternalError{"bad use of Keygen; wrong phase"}
+	}
+
+	if err = G.LoginState.Login(LoginArg{}); err != nil {
+		return
+	}
+
+	G.Log.Debug("| Load me")
+	if err = s.LoadMe(); err != nil {
 		return
 	}
 
 	G.Log.Debug("| CheckNoKey")
-	if err = state.CheckNoKey(); err != nil {
+	if err = s.CheckNoKey(); err != nil {
 		return
 	}
 
-	useKbPp := arg.DoSecretPush || arg.KbPassphrase
+	s.phase = KEYGEN_PHASE_CHECKED
+
+	return
+}
+
+func (s *KeyGen) Run() (ret *PgpKeyBundle, err error) {
+
+	G.Log.Debug("+ KeyGen::Run")
+	defer func() {
+		G.Log.Debug("- KeyGen::Run -> %s", ErrToOk(err))
+	}()
+
+	if err = s.LoginAndCheckKey(); err != nil {
+	} else if ret, err = s.Generate(); err != nil {
+	} else {
+		err = s.Push()
+	}
+
+	return
+}
+
+func (s *KeyGen) Generate() (ret *PgpKeyBundle, err error) {
+
+	G.Log.Debug("+ KeyGen::Generate")
+	defer func() {
+		G.Log.Debug("- KeyGen::Generate -> %s", ErrToOk(err))
+	}()
+
+	if s.phase != KEYGEN_PHASE_CHECKED {
+		err = InternalError{"bad use of Keygen; wrong phase"}
+		return
+	}
+
+	useKbPp := s.arg.DoSecretPush || s.arg.KbPassphrase
 
 	larg := LoginArg{}
 
@@ -287,9 +338,9 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 	}
 
 	if useKbPp {
-		state.tsec = G.LoginState.tsec
-	} else if !arg.NoPassphrase {
-		state.tsec, err = PromptForNewTsec(PromptArg{
+		s.tsec = G.LoginState.tsec
+	} else if !s.arg.NoPassphrase {
+		s.tsec, err = PromptForNewTsec(PromptArg{
 			TerminalPrompt: "A good passphrase to protect your key",
 			PinentryDesc:   "Please pick a good passphrase to protect your key (12+ characters)",
 			PinentryPrompt: "Key passphrase",
@@ -299,55 +350,56 @@ func KeyGen(arg KeyGenArg) (ret *PgpKeyBundle, err error) {
 		}
 	}
 
-	G.Log.Debug("| Load me")
-	if err = state.LoadMe(); err != nil {
-		return
-	}
-
 	G.Log.Debug("| GenerateKey")
-	if arg.Pregen == nil {
-		if err = state.GenerateKey(arg); err != nil {
+	if s.arg.Pregen == nil {
+		if err = s.GenerateKey(); err != nil {
 			return
 		}
 	} else {
-		if err = state.SelectKey(arg); err != nil {
-			return
-		}
+		s.bundle = s.arg.Pregen
 	}
 
 	G.Log.Debug("| WriteKey")
-	if err = state.WriteKey(); err != nil {
+	if err = s.WriteKey(); err != nil {
 		return
 	}
 
-	if arg.DoPush {
-		err = state.doPush(arg.DoSecretPush)
-	}
-
+	s.phase = KEYGEN_PHASE_GENERATED
 	return
 }
 
-func (state *keyGenState) doPush(doSecret bool) (err error) {
-	G.Log.Debug("+ doPush")
+func (s *KeyGen) Push() (err error) {
+
+	G.Log.Debug("+ KeyGen::Push")
 	defer func() {
-		G.Log.Debug("- doPush -> %s", ErrToOk(err))
+		G.Log.Debug("- KeyGen::Push -> %s", ErrToOk(err))
 	}()
 
+	if s.phase != KEYGEN_PHASE_GENERATED {
+		return InternalError{"bad use of Keygen; wrong phase"}
+	}
+
+	if !s.arg.DoPush && !s.arg.DoSecretPush {
+		G.Log.Debug("| Push skipped")
+		return nil
+	}
+
 	G.Log.Debug("| UpdateUser")
-	if err = state.UpdateUser(); err != nil {
+	if err = s.UpdateUser(); err != nil {
 		return
 	}
 	G.Log.Debug("| Generate HTTP Post")
-	if err = state.GeneratePost(doSecret); err != nil {
+	if err = s.GeneratePost(); err != nil {
 		return
 	}
 	G.Log.Debug("| Post to server")
-	if err = state.PostToServer(); err != nil {
+	if err = s.PostToServer(); err != nil {
 		return
 	}
 	G.Log.Debug("| Reload user")
-	if err = state.ReloadMe(); err != nil {
+	err = s.ReloadMe()
 
-	}
+	s.phase = KEYGEN_PHASE_POSTED
+
 	return
 }
