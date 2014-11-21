@@ -9,13 +9,13 @@ import (
 )
 
 type CmdMykeySelect struct {
-	arg   keyGenArg
+	state MyKeyState
 	query string
 }
 
 func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	if err = v.arg.ParseArgv(ctx); err != nil {
+	if err = v.state.ParseArgv(ctx); err != nil {
 	} else if nargs == 1 {
 		v.query = ctx.Args()[0]
 	} else if nargs != 0 {
@@ -24,7 +24,26 @@ func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (v *CmdMykeySelect) Run() error {
+func (v *CmdMykeySelect) Run() (err error) {
+
+	gen := libkb.NewKeyGen(&v.state.arg)
+
+	if err = gen.LoginAndCheckKey(); err != nil {
+		return
+	}
+	if err = v.GetKey(); err != nil {
+		return
+	}
+	if err = v.state.PromptSecretPush(false); err != nil {
+		return
+	}
+	if _, err = gen.Run(); err != nil {
+		return
+	}
+	return
+}
+func (v *CmdMykeySelect) GetKey() error {
+
 	gpg := G.GetGpgClient()
 	if _, err := gpg.Configure(); err != nil {
 		return err
@@ -68,13 +87,9 @@ func (v *CmdMykeySelect) Run() error {
 		return err
 	}
 
-	v.arg.arg.Pregen = key
-
-	if err = v.arg.PromptSecretPush(false); err != nil {
-	} else {
-		_, err = libkb.KeyGen(v.arg.arg)
+	if err == nil {
+		v.state.arg.Pregen = key
 	}
-
 	return err
 }
 

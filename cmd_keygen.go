@@ -7,12 +7,12 @@ import (
 )
 
 type CmdKeyGen struct {
-	arg keyGenArg
+	state MyKeyState
 }
 
 func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	if err = v.arg.ParseArgv(ctx); err != nil {
+	if err = v.state.ParseArgv(ctx); err != nil {
 	} else if nargs != 0 {
 		err = fmt.Errorf("keygen takes 0 args")
 	}
@@ -21,13 +21,15 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) (err error) {
 
 func (v *CmdKeyGen) Run() (err error) {
 
-	if err = v.arg.Login(); err != nil {
+	gen := libkb.NewKeyGen(&v.state.arg)
+
+	if err = gen.LoginAndCheckKey(); err != nil {
 		return
 	}
-	if err = v.arg.Prompt(); err != nil {
+	if err = v.state.Prompt(); err != nil {
 		return
 	}
-	if _, err = libkb.KeyGen(v.arg.arg); err != nil {
+	if _, err = gen.Run(); err != nil {
 		return
 	}
 	return nil

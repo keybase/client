@@ -6,14 +6,14 @@ import (
 	"github.com/keybase/go-libkb"
 )
 
-type keyGenArg struct {
+type MyKeyState struct {
 	arg         libkb.KeyGenArg
 	interactive bool
 }
 
 var SMALL_KEY int = 1024
 
-func (a *keyGenArg) ParseArgv(ctx *cli.Context) (err error) {
+func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	a.arg.DoSecretPush = ctx.Bool("push-secret")
 	a.arg.DoPush = ctx.Bool("push") || a.arg.DoSecretPush
 	a.arg.NoPassphrase = ctx.Bool("no-passphrase")
@@ -31,12 +31,7 @@ func (a *keyGenArg) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (a *keyGenArg) Login() (err error) {
-	err = G.LoginState.Login(libkb.LoginArg{})
-	return
-}
-
-func (a *keyGenArg) Prompt() (err error) {
+func (a *MyKeyState) Prompt() (err error) {
 
 	if !a.interactive {
 		return
@@ -48,7 +43,7 @@ func (a *keyGenArg) Prompt() (err error) {
 	return
 }
 
-func (a *keyGenArg) PromptPush() (err error) {
+func (a *MyKeyState) PromptPush() (err error) {
 
 	def := true
 	prompt := "Publish your new public key to Keybase.io (strongly recommended)?"
@@ -56,7 +51,7 @@ func (a *keyGenArg) PromptPush() (err error) {
 	return
 }
 
-func (a *keyGenArg) PromptSecretPush(def bool) (err error) {
+func (a *MyKeyState) PromptSecretPush(def bool) (err error) {
 
 	msg := `
 Keybase can host an encrypted copy of your private key on its servers.
