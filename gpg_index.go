@@ -142,6 +142,16 @@ type GpgPrimaryKey struct {
 	top        GpgFingerprinter
 }
 
+func (k *GpgPrimaryKey) IsValid() bool {
+	if k.Trust == "r" {
+		return false
+	} else if k.Expires == 0 {
+		return true
+	} else {
+		return time.Now().Before(time.Unix(int64(k.Expires), 0))
+	}
+}
+
 func (k *GpgPrimaryKey) ToRow(i int) []string {
 	v := []string{
 		fmt.Sprintf("(%d)", i),
@@ -348,7 +358,8 @@ func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 }
 
 func (k *GpgKeyIndex) PushElement(e GpgIndexElement) {
-	if key := e.ToKey(); key != nil {
+	if key := e.ToKey(); key == nil {
+	} else if key.IsValid() {
 		k.IndexKey(key)
 	}
 }
