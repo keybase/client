@@ -247,6 +247,23 @@ type GpgKeyIndex struct {
 	Emails, Fingerprints, Id64s *BucketDict
 }
 
+func (ki GpgKeyIndex) Len() int {
+	return len(ki.Keys)
+}
+func (ki GpgKeyIndex) Swap(i, j int) {
+	ki.Keys[i], ki.Keys[j] = ki.Keys[j], ki.Keys[i]
+}
+func (ki GpgKeyIndex) Less(i, j int) bool {
+	a, b := ki.Keys[i], ki.Keys[j]
+
+	d := len(a.identities) - len(b.identities)
+	if d > 0 {
+		return true
+	} else if d < 0 {
+		return false
+	}
+}
+
 func NewGpgKeyIndex() *GpgKeyIndex {
 	return &GpgKeyIndex{
 		Keys:         make([]*GpgPrimaryKey, 0, 1),
