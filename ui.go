@@ -249,7 +249,11 @@ func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 		},
 	}
 	err = NewPrompter([]*Field{field}).Run()
-	ret, err = strconv.Atoi(*field.Value)
+	if p := field.Value; p == nil {
+		err = InputCanceledError{}
+	} else {
+		ret, err = strconv.Atoi(*p)
+	}
 	return
 }
 
