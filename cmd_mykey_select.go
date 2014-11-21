@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
 	"os"
+	"strings"
 )
 
 type CmdMykeySelect struct {
@@ -33,23 +34,48 @@ func (v *CmdMykeySelect) Run() error {
 		return err
 	}
 	warns.Warn()
+	var keyInfo *libkb.GpgPrimaryKey
 	if len(index.Keys) > 1 {
 		if len(v.query) > 0 {
 			G_UI.Output("Multiple keys matched '" + v.query + "':\n")
 		} else {
 			G_UI.Output("Multiple keys found:\n")
 		}
-		libkb.Tablify(os.Stdout, nil, index.GetRowFunc())
-		var ind int
+		headings := []string{
+			"#",
+			"Algo",
+			"Key Id",
+			"Expires",
+			"Email",
+		}
+		libkb.Tablify(os.Stdout, headings, index.GetRowFunc())
 		p := "Select a key"
-		if ind, err = G_UI.PromptSelection(p, 1, len(index.Keys)+1); err != nil {
+		var i int
+		if i, err = G_UI.PromptSelection(p, 1, len(index.Keys)+1); err != nil {
 			return err
 		}
-		fmt.Printf(">>> %d\n", ind)
+		keyInfo = index.Keys[i-1]
+		G.Log.Info("Selected: %s", strings.Join(keyInfo.ToRow(i), " "))
 	} else {
-		G.Log.Info("Key selection is unambiguous: %s", index.Keys[0].GetFingerprint().ToQuads())
+		keyInfo = index.Keys[0]
+		G.Log.Info("Key selection is unambiguous: %s", keyInfo.GetFingerprint().ToQuads())
 	}
-	return nil
+	var key *libkb.PgpKeyBundle
+	if key, err = gpg.ImportKey(true, *keyInfo.GetFingerprint()); err != nil {
+		return err
+	}
+	if err = key.Unlock("Import of key into keybase keyring"); err != nil {
+		return err
+	}
+
+	v.arg.arg.Pregen = key
+
+	if err = v.arg.PromptSecretPush(false); err != nil {
+	} else {
+		_, err = libkb.KeyGen(v.arg.arg)
+	}
+
+	return err
 }
 
 func NewCmdMykeySelect(cl *CommandLine) cli.Command {

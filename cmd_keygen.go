@@ -21,10 +21,10 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) (err error) {
 
 func (v *CmdKeyGen) Run() (err error) {
 
-	if err = v.arg.Prompt(); err != nil {
+	if err = v.arg.Login(); err != nil {
 		return
 	}
-	if err = v.arg.Configure(); err != nil {
+	if err = v.arg.Prompt(); err != nil {
 		return
 	}
 	if _, err = libkb.KeyGen(v.arg.arg); err != nil {
@@ -58,6 +58,10 @@ func NewCmdKeyGen(cl *CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "b, batch",
 				Usage: "Don't go into interactive mode",
+			},
+			cli.BoolFlag{
+				Name:  "k, keybase-passprhase",
+				Usage: "Lock your key with your present Keybase passphrase",
 			},
 		},
 		Action: func(c *cli.Context) {
