@@ -40,6 +40,12 @@ func (v *CmdMykeySelect) Run() error {
 			G_UI.Output("Multiple keys found:\n")
 		}
 		libkb.Tablify(os.Stdout, nil, index.GetRowFunc())
+		var ind int
+		p := "Select a key"
+		if ind, err = G_UI.PromptSelection(p, 1, len(index.Keys)+1); err != nil {
+			return err
+		}
+		fmt.Printf(">>> %d\n", ind)
 	} else {
 		G.Log.Info("Key selection is unambiguous: %s", index.Keys[0].GetFingerprint().ToQuads())
 	}

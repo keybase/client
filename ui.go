@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/keybase/go-libkb"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -231,6 +233,23 @@ func (ui *UI) PromptYesNo(p string, def *bool) (ret bool, err error) {
 			done = true
 		}
 	}
+	return
+}
+
+func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
+	field := &Field{
+		Name:   "selection",
+		Prompt: prompt,
+		Checker: &libkb.Checker{
+			F: func(s string) bool {
+				v, e := strconv.Atoi(s)
+				return (e == nil && v >= low && v <= hi)
+			},
+			Hint: fmt.Sprintf("%d-%d", low, hi),
+		},
+	}
+	err = NewPrompter([]*Field{field}).Run()
+	ret, err = strconv.Atoi(*field.Value)
 	return
 }
 
