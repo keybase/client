@@ -61,6 +61,7 @@ func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
 type TrackDiff interface {
 	BreaksTracking() bool
 	ToDisplayString() string
+	IsSameAsTracked() bool
 }
 
 type TrackDiffError struct {
@@ -73,9 +74,16 @@ func (t TrackDiffError) BreaksTracking() bool {
 func (t TrackDiffError) ToDisplayString() string {
 	return ColorString("red", "<error>")
 }
+func (t TrackDiffError) IsSameAsTracked() bool {
+	return false
+}
 
 type TrackDiffUpgraded struct {
 	prev, curr string
+}
+
+func (t TrackDiffUpgraded) IsSameAsTracked() bool {
+	return false
 }
 
 func (t TrackDiffUpgraded) BreaksTracking() bool {
@@ -90,6 +98,9 @@ type TrackDiffNone struct{}
 func (t TrackDiffNone) BreaksTracking() bool {
 	return false
 }
+func (t TrackDiffNone) IsSameAsTracked() bool {
+	return true
+}
 
 func (t TrackDiffNone) ToDisplayString() string {
 	return ColorString("green", "<OK>")
@@ -98,6 +109,9 @@ func (t TrackDiffNone) ToDisplayString() string {
 type TrackDiffMissing struct{}
 
 func (t TrackDiffMissing) BreaksTracking() bool {
+	return false
+}
+func (t TrackDiffMissing) IsSameAsTracked() bool {
 	return false
 }
 
@@ -115,6 +129,9 @@ func (t TrackDiffClash) BreaksTracking() bool {
 
 func (t TrackDiffClash) ToDisplayString() string {
 	return ColorString("red", "<CHANGED from "+t.expected+">")
+}
+func (t TrackDiffClash) IsSameAsTracked() bool {
+	return false
 }
 
 func NewTrackLookup(link *TrackChainLink) *TrackLookup {
@@ -197,6 +214,7 @@ func (e *TrackEngine) Run() (err error) {
 	var sig string
 	var sigid *SigId
 	var warnings Warnings
+	var un string
 
 	if err = e.LoadThem(); err != nil {
 		return
@@ -206,15 +224,30 @@ func (e *TrackEngine) Run() (err error) {
 		err = fmt.Errorf("Cannot track yourself")
 	}
 
+	un = e.Them.GetName()
+
+	tracker := G.UI.GetIdentifyUI()
+
 	res := e.Them.Identify(IdentifyArg{
-		ReportHook: func(s string) { G.OutputString(s) },
+		ReportHook: tracker.ReportHook,
 		Me:         e.Me,
 	})
 
+	var prompt string
 	if err, warnings = res.GetErrorAndWarnings(e.StrictProofs); err != nil {
 		return
 	} else if !warnings.IsEmpty() {
-		warnings.Warn()
+		tracker.ShowWarnings(warnings)
+		prompt = "Some proofs failed; still track " + un + "?"
+	} else if len(res.ProofChecks) == 0 {
+		prompt = "We found an account for " + un +
+			", but they haven't proven their identity. Still track them?"
+	} else {
+		prompt = "Is this the " + un + "you wanted?"
+	}
+
+	if err = tracker.PromptForConfirmation(prompt); err != nil {
+		return err
 	}
 
 	jw, err = e.Me.TrackingProofFor(e.Them)
@@ -237,15 +270,17 @@ func (e *TrackEngine) Run() (err error) {
 		return
 	}
 
-	httpsArgs := HttpArgs{
-		"sig_id_base":  S{sigid.ToString(false)},
-		"sig_id_short": S{sigid.ToShortId()},
-		"sig":          S{sig},
-		"uid":          S{e.Them.GetUid().ToString()},
-		"type":         S{"track"},
-	}
-
-	fmt.Printf("%v\n", httpsArgs)
+	_, err = G.API.Post(ApiArg{
+		Endpoint:    "follow",
+		NeedSession: true,
+		Args: HttpArgs{
+			"sig_id_base":  S{sigid.ToString(false)},
+			"sig_id_short": S{sigid.ToShortId()},
+			"sig":          S{sig},
+			"uid":          S{e.Them.GetUid().ToString()},
+			"type":         S{"track"},
+		},
+	})
 
 	return
 }
