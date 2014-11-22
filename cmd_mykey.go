@@ -72,6 +72,7 @@ func NewCmdMykey(cl *CommandLine) cli.Command {
 		Description: "Manipulate your primary Keybase key",
 		Subcommands: []cli.Command{
 			NewCmdMykeySelect(cl),
+			NewCmdMykeyGen(cl),
 		},
 	}
 }

@@ -6,11 +6,11 @@ import (
 	"github.com/keybase/go-libkb"
 )
 
-type CmdKeyGen struct {
+type CmdMykeyGen struct {
 	state MyKeyState
 }
 
-func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) (err error) {
+func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if err = v.state.ParseArgv(ctx); err != nil {
 	} else if nargs != 0 {
@@ -19,7 +19,7 @@ func (v *CmdKeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (v *CmdKeyGen) Run() (err error) {
+func (v *CmdMykeyGen) Run() (err error) {
 
 	gen := libkb.NewKeyGen(&v.state.arg)
 
@@ -35,10 +35,10 @@ func (v *CmdKeyGen) Run() (err error) {
 	return nil
 }
 
-func NewCmdKeyGen(cl *CommandLine) cli.Command {
+func NewCmdMykeyGen(cl *CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "keygen",
-		Usage:       "keybase keygen",
+		Name:        "gen",
+		Usage:       "keybase mykey gen",
 		Description: "Generate a new PGP key and write to local secret keychain",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -67,12 +67,12 @@ func NewCmdKeyGen(cl *CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdKeyGen{}, "keygen", c)
+			cl.ChooseCommand(&CmdMykeyGen{}, "gen", c)
 		},
 	}
 }
 
-func (v *CmdKeyGen) GetUsage() libkb.Usage {
+func (v *CmdMykeyGen) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: false,
