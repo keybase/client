@@ -2,9 +2,9 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/go-jsonw"
 	"sync"
 	"time"
-	// "github.com/keybase/go-jsonw"
 )
 
 // Can either be a RemoteProofChainLink or one of the identities
@@ -189,16 +189,21 @@ func (e *TrackEngine) LoadMe() error {
 	return nil
 }
 
-func (e *TrackEngine) Run() error {
+func (e *TrackEngine) Run() (err error) {
 
-	var err error
+	var tmp []byte
+	var jw *jsonw.Wrapper
+	var key *PgpKeyBundle
+	var sig string
+	var sigid *SigId
+	var warnings Warnings
 
 	if err = e.LoadThem(); err != nil {
-		return err
+		return
 	} else if err = e.LoadMe(); err != nil {
-		return err
+		return
 	} else if e.NoSelf && e.Me.Equal(*e.Them) {
-		return fmt.Errorf("Cannot track yourself")
+		err = fmt.Errorf("Cannot track yourself")
 	}
 
 	res := e.Them.Identify(IdentifyArg{
@@ -206,21 +211,43 @@ func (e *TrackEngine) Run() error {
 		Me:         e.Me,
 	})
 
-	if err, warnings := res.GetErrorAndWarnings(e.StrictProofs); err != nil {
-		return err
+	if err, warnings = res.GetErrorAndWarnings(e.StrictProofs); err != nil {
+		return
 	} else if !warnings.IsEmpty() {
 		warnings.Warn()
 	}
 
-	// var jw *jsonw.Wrapper
-	_, err = e.Me.TrackingProofFor(e.Them)
+	jw, err = e.Me.TrackingProofFor(e.Them)
 	if err != nil {
 		return err
 	}
-	// fmt.Printf("%v\n", jw.MarshalPretty())
-	// fmt.Printf("%v\n", e.Them.IdTable.MakeTrackSet())
 
-	return nil
+	if key, err = G.Keyrings.GetSecretKey("tracking signature"); err != nil {
+		return
+	} else if key == nil {
+		err = NoSecretKeyError{}
+		return
+	}
+
+	if tmp, err = jw.Marshal(); err != nil {
+		return
+	}
+
+	if sig, sigid, err = SimpleSign(tmp, *key); err != nil {
+		return
+	}
+
+	httpsArgs := HttpArgs{
+		"sig_id_base":  S{sigid.ToString(false)},
+		"sig_id_short": S{sigid.ToShortId()},
+		"sig":          S{sig},
+		"uid":          S{e.Them.GetUid().ToString()},
+		"type":         S{"track"},
+	}
+
+	fmt.Printf("%v\n", httpsArgs)
+
+	return
 }
 
 //=====================================================================

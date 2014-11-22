@@ -159,6 +159,15 @@ func (u NoKeyError) Error() string {
 
 //=============================================================================
 
+type NoSecretKeyError struct {
+}
+
+func (u NoSecretKeyError) Error() string {
+	return "No secret key available"
+}
+
+//=============================================================================
+
 type TooManyKeysError struct {
 	n  int
 	fp PgpFingerprint
