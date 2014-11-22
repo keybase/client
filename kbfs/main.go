@@ -18,17 +18,32 @@ func main() {
 		log.Fatal("Usage:\n  kbfs MOUNTPOINT")
 	}
 
+	// TODO: make this an option:
+	localUsers := true
+
+	config := libkbfs.NewConfigLocal()
+
 	libkb.G.Init()
 	libkb.G.ConfigureConfig()
 	libkb.G.ConfigureLogging()
 	libkb.G.ConfigureCaches()
-	libkb.G.ConfigureAPI()
 	libkb.G.ConfigureMerkleClient()
-	if ok, err := libkb.G.Session.LoadAndCheck(); !ok || err != nil {
-		log.Fatalf("Couldn't load session: %v\n", err)
+
+	if !localUsers {
+		libkb.G.ConfigureAPI()
+		if ok, err := libkb.G.Session.LoadAndCheck(); !ok || err != nil {
+			log.Fatalf("Couldn't load session: %v\n", err)
+		}
+	} else {
+		k := libkbfs.NewKBPKILocal(libkb.UID{1}, []*libkbfs.LocalUser{
+			&libkbfs.LocalUser{"strib", libkb.UID{1}, []string{"github:strib"}},
+			&libkbfs.LocalUser{"max", libkb.UID{2}, []string{"twitter:maxtaco"}},
+			&libkbfs.LocalUser{
+				"chris", libkb.UID{3}, []string{"twitter:malgorithms"}},
+		})
+		config.SetKBPKI(k)
 	}
 
-	config := libkbfs.NewConfigLocal()
 	root := libkbfs.NewFuseRoot(config)
 
 	server, _, err := nodefs.MountRoot(flag.Arg(0), root, nil)
