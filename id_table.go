@@ -204,7 +204,7 @@ func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	} else if s.protocol == "https" && find(tl.ids["http"]) {
 		return TrackDiffUpgraded{"http", "https"}
 	} else {
-		return TrackDiffMissing{}
+		return TrackDiffNew{}
 	}
 }
 
@@ -235,7 +235,7 @@ func NewSocialProofChainLink(b GenericChainLink, s, u string) *SocialProofChainL
 func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	k, v := s.ToKeyValuePair()
 	if list, found := tl.ids[k]; !found || len(list) == 0 {
-		return TrackDiffMissing{}
+		return TrackDiffNew{}
 	} else if expected := list[len(list)-1]; !cicmp(expected, v) {
 		return TrackDiffClash{expected, v}
 	} else {

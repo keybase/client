@@ -35,6 +35,7 @@ func (i IdentifyArg) MeSet() bool {
 type IdentifyRes struct {
 	Error       error
 	KeyDiff     TrackDiff
+	Lost        []TrackDiffLost
 	ProofChecks []LinkCheckResult
 	Warnings    []Warning
 	Messages    []string
@@ -70,13 +71,21 @@ func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warni
 
 	probs := make([]string, 0, 0)
 
+	soft_err := func(s string) {
+		if strict {
+			probs = append(probs, s)
+		} else {
+			warnings.Push(StringWarning(s))
+		}
+	}
+
+	for _, lost := range i.Lost {
+		soft_err(lost.ToDisplayString())
+	}
+
 	if nfails := i.NumProofFailures(); nfails > 0 {
 		p := fmt.Sprintf("PROBLEM: %d proof%s failed remote checks", nfails, GiveMeAnS(nfails))
-		if strict {
-			probs = append(probs, p)
-		} else {
-			warnings.Push(StringWarning(p))
-		}
+		soft_err(p)
 	}
 
 	if ntf := i.NumTrackFailures(); ntf > 0 {
@@ -168,6 +177,16 @@ func (u *User) Identify(arg IdentifyArg) (res *IdentifyRes) {
 		return
 	}
 	u.IdTable.Identify(is)
+
+	if is.track != nil {
+		found := u.IdTable.MakeTrackSet()
+		tracked := is.track.set
+		if missing, ok := tracked.SubsetOf(found); !ok {
+			for _, m := range missing {
+				res.Lost = append(res.Lost, TrackDiffLost{m})
+			}
+		}
+	}
 
 	G.Log.Debug("- Identify(%s)", u.name)
 	u.cachedIdentifyRes = res

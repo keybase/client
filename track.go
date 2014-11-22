@@ -14,28 +14,35 @@ type TrackIdComponent interface {
 	ToKeyValuePair() (string, string)
 }
 
-type TrackSet map[string]bool
+type TrackSet map[string]TrackIdComponent
 
 func (ts TrackSet) Add(t TrackIdComponent) {
-	ts[t.ToIdString()] = true
+	ts[t.ToIdString()] = t
 }
 
-func (a TrackSet) SubsetOf(b TrackSet) bool {
-	for k, _ := range a {
-		if inset, found := b[k]; !inset || !found {
-			return false
+func (a TrackSet) SubsetOf(b TrackSet) (missing []TrackIdComponent, ret bool) {
+	ret = true
+	for k, tc := range a {
+		if _, found := b[k]; !found {
+			ret = false
+			missing = append(missing, tc)
 		}
 	}
-	return true
+	return
 }
 
 func (a TrackSet) MemberOf(t TrackIdComponent) bool {
-	ok, found := a[t.ToIdString()]
-	return (ok && found)
+	_, found := a[t.ToIdString()]
+	return found
 }
 
 func (a TrackSet) Equal(b TrackSet) bool {
-	return ((len(a) == len(b)) && a.SubsetOf(b))
+	if len(a) != len(b) {
+		return false
+	} else {
+		_, ok := a.SubsetOf(b)
+		return ok
+	}
 }
 
 //=====================================================================
@@ -106,12 +113,12 @@ func (t TrackDiffNone) ToDisplayString() string {
 	return ColorString("green", "<OK>")
 }
 
-type TrackDiffMissing struct{}
+type TrackDiffNew struct{}
 
-func (t TrackDiffMissing) BreaksTracking() bool {
+func (t TrackDiffNew) BreaksTracking() bool {
 	return false
 }
-func (t TrackDiffMissing) IsSameAsTracked() bool {
+func (t TrackDiffNew) IsSameAsTracked() bool {
 	return false
 }
 
@@ -119,7 +126,7 @@ type TrackDiffClash struct {
 	observed, expected string
 }
 
-func (t TrackDiffMissing) ToDisplayString() string {
+func (t TrackDiffNew) ToDisplayString() string {
 	return ColorString("blue", "<new>")
 }
 
@@ -131,6 +138,20 @@ func (t TrackDiffClash) ToDisplayString() string {
 	return ColorString("red", "<CHANGED from "+t.expected+">")
 }
 func (t TrackDiffClash) IsSameAsTracked() bool {
+	return false
+}
+
+type TrackDiffLost struct {
+	idc TrackIdComponent
+}
+
+func (t TrackDiffLost) BreaksTracking() bool {
+	return true
+}
+func (t TrackDiffLost) ToDisplayString() string {
+	return ColorString("red", "Lost proof: "+t.idc.ToIdString())
+}
+func (t TrackDiffLost) IsSameAsTracked() bool {
 	return false
 }
 
