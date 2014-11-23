@@ -90,11 +90,11 @@ func (l *LubaRes) Load(a string, withTracking bool) {
 		return
 	}
 
-	l.IdentifyRes = l.User.Identify(IdentifyArg{
-		Me:         me,
-		ReportHook: func(s string) { G.Log.Debug(s) },
+	l.Error = l.User.Identify(IdentifyArg{
+		Me: me,
+		Ui: G.UI.GetIdentifyLubaUI(),
 	})
-	if l.Error = l.IdentifyRes.GetError(); l.Error != nil {
+	if l.Error != nil {
 		return
 	}
 

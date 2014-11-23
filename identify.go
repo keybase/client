@@ -23,7 +23,7 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 
 type IdentifyArg struct {
 	Me *User // The user who's doing the tracking
-	ui IdentifyUI
+	Ui IdentifyUI
 }
 
 func (i IdentifyArg) MeSet() bool {
@@ -124,7 +124,7 @@ type IdentifyState struct {
 }
 
 func (s IdentifyState) GetUI() IdentifyUI {
-	return s.arg.ui
+	return s.arg.Ui
 }
 
 func (s *IdentifyState) Lock() {
@@ -185,15 +185,15 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 }
 
 func (u *User) Identify(arg IdentifyArg) error {
-	arg.ui.Start()
+	arg.Ui.Start()
 	res := u._identify(arg)
-	return arg.ui.FinishAndPrompt(res)
+	return arg.Ui.FinishAndPrompt(res)
 }
 
 func (u *User) IdentifySimple(me *User) error {
 	return u.Identify(IdentifyArg{
 		Me: me,
-		ui: G.UI.GetIdentifyUI(),
+		Ui: G.UI.GetIdentifyUI(),
 	})
 }
 
@@ -206,7 +206,7 @@ func (u *User) IdentifySelf() error {
 
 	err = u.Identify(IdentifyArg{
 		Me: u,
-		ui: G.UI.GetSelfIdentifyUI(),
+		Ui: G.UI.GetIdentifySelfUI(),
 	})
 
 	if err == nil {

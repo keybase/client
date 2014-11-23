@@ -220,8 +220,9 @@ type PromptArg struct {
 
 type UI interface {
 	GetIdentifyUI() IdentifyUI
-	GetSelfIdentifyUI() IdentifyUI
-	GetTrackUI() IdentifyUI
+	GetIdentifySelfUI() IdentifyUI
+	GetIdentifyTrackUI(them *User, strict bool) IdentifyUI
+	GetIdentifyLubaUI() IdentifyUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
 	PromptForKeybasePassphrase(string) (string, error)

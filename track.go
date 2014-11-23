@@ -79,7 +79,7 @@ func (t TrackDiffError) BreaksTracking() bool {
 	return true
 }
 func (t TrackDiffError) ToDisplayString() string {
-	return ColorString("red", "<error>")
+	return "<error>"
 }
 func (t TrackDiffError) IsSameAsTracked() bool {
 	return false
@@ -97,7 +97,7 @@ func (t TrackDiffUpgraded) BreaksTracking() bool {
 	return false
 }
 func (t TrackDiffUpgraded) ToDisplayString() string {
-	return ColorString("orange", "<Upgraded from "+t.prev+" to "+t.curr+">")
+	return "<Upgraded from " + t.prev + " to " + t.curr + ">"
 }
 
 type TrackDiffNone struct{}
@@ -110,7 +110,7 @@ func (t TrackDiffNone) IsSameAsTracked() bool {
 }
 
 func (t TrackDiffNone) ToDisplayString() string {
-	return ColorString("green", "<OK>")
+	return "<OK>"
 }
 
 type TrackDiffNew struct{}
@@ -127,7 +127,7 @@ type TrackDiffClash struct {
 }
 
 func (t TrackDiffNew) ToDisplayString() string {
-	return ColorString("blue", "<new>")
+	return "<new>"
 }
 
 func (t TrackDiffClash) BreaksTracking() bool {
@@ -135,7 +135,7 @@ func (t TrackDiffClash) BreaksTracking() bool {
 }
 
 func (t TrackDiffClash) ToDisplayString() string {
-	return ColorString("red", "<CHANGED from "+t.expected+">")
+	return "<CHANGED from " + t.expected + ">"
 }
 func (t TrackDiffClash) IsSameAsTracked() bool {
 	return false
@@ -149,7 +149,7 @@ func (t TrackDiffLost) BreaksTracking() bool {
 	return true
 }
 func (t TrackDiffLost) ToDisplayString() string {
-	return ColorString("red", "Lost proof: "+t.idc.ToIdString())
+	return "<Lost proof: " + t.idc.ToIdString() + ">"
 }
 func (t TrackDiffLost) IsSameAsTracked() bool {
 	return false
@@ -234,8 +234,6 @@ func (e *TrackEngine) Run() (err error) {
 	var key *PgpKeyBundle
 	var sig string
 	var sigid *SigId
-	var warnings Warnings
-	var un string
 
 	if err = e.LoadThem(); err != nil {
 		return
@@ -245,30 +243,13 @@ func (e *TrackEngine) Run() (err error) {
 		err = fmt.Errorf("Cannot track yourself")
 	}
 
-	un = e.Them.GetName()
-
-	tracker := G.UI.GetIdentifyUI()
-
-	res := e.Them.Identify(IdentifyArg{
-		ReportHook: tracker.ReportHook,
-		Me:         e.Me,
+	err = e.Them.Identify(IdentifyArg{
+		Me: e.Me,
+		Ui: G.UI.GetIdentifyTrackUI(e.Them, e.StrictProofs),
 	})
 
-	var prompt string
-	if err, warnings = res.GetErrorAndWarnings(e.StrictProofs); err != nil {
+	if err != nil {
 		return
-	} else if !warnings.IsEmpty() {
-		tracker.ShowWarnings(warnings)
-		prompt = "Some proofs failed; still track " + un + "?"
-	} else if len(res.ProofChecks) == 0 {
-		prompt = "We found an account for " + un +
-			", but they haven't proven their identity. Still track them?"
-	} else {
-		prompt = "Is this the " + un + "you wanted?"
-	}
-
-	if err = tracker.PromptForConfirmation(prompt); err != nil {
-		return err
 	}
 
 	jw, err = e.Me.TrackingProofFor(e.Them)
