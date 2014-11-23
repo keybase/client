@@ -47,6 +47,13 @@ func (a TrackSet) Equal(b TrackSet) bool {
 
 //=====================================================================
 
+type TrackInstructions struct {
+	Local  bool
+	Remote bool
+}
+
+//=====================================================================
+
 type TrackLookup struct {
 	link  *TrackChainLink     // The original chain link that I signed
 	set   TrackSet            // The total set of tracked identities
@@ -243,7 +250,7 @@ func (e *TrackEngine) Run() (err error) {
 		err = fmt.Errorf("Cannot track yourself")
 	}
 
-	err = e.Them.Identify(IdentifyArg{
+	_, err = e.Them.Identify(IdentifyArg{
 		Me: e.Me,
 		Ui: G.UI.GetIdentifyTrackUI(e.Them, e.StrictProofs),
 	})

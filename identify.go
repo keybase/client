@@ -184,17 +184,18 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	return
 }
 
-func (u *User) Identify(arg IdentifyArg) error {
+func (u *User) Identify(arg IdentifyArg) (TrackInstructions, error) {
 	arg.Ui.Start()
 	res := u._identify(arg)
 	return arg.Ui.FinishAndPrompt(res)
 }
 
 func (u *User) IdentifySimple(me *User) error {
-	return u.Identify(IdentifyArg{
+	_, err := u.Identify(IdentifyArg{
 		Me: me,
 		Ui: G.UI.GetIdentifyUI(),
 	})
+	return err
 }
 
 func (u *User) IdentifySelf() error {
@@ -204,7 +205,7 @@ func (u *User) IdentifySelf() error {
 		return err
 	}
 
-	err = u.Identify(IdentifyArg{
+	_, err = u.Identify(IdentifyArg{
 		Me: u,
 		Ui: G.UI.GetIdentifySelfUI(),
 	})
