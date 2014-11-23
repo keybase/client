@@ -13,20 +13,113 @@ type UI struct {
 	SecretEntry *SecretEntry
 }
 
-type IdentifyUI struct {
+type BaseIdentifyUI struct {
 	parent *UI
 }
 
-func (u IdentifyUI) ReportHook(s string) {
+type SelfIdentifyUI struct {
+	BaseIdentifyUI
+}
+
+func (u SelfIdentifyUI) Start() {
+	G.Log.Info("Verifying your key fingerprint....")
+}
+
+func (ui SelfIdentifyUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
+	err, warnings := ires.GetErrorLax()
+	var prompt string
+	if err != nil {
+		return err
+	} else if !warnings.IsEmpty() {
+		ui.ShowWarnings(warnings)
+		prompt = "Do you still accept these credentials to be your own?"
+	} else if len(ires.ProofChecks) == 0 {
+		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
+	} else {
+		prompt = "Is this you?"
+	}
+
+	err = ui.PromptForConfirmation(prompt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u BaseIdentifyUI) ReportHook(s string) {
 	os.Stdout.Write([]byte(s))
 }
 
-func (u IdentifyUI) ShowWarnings(w libkb.Warnings) {
+func (u BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
 	w.Warn()
 }
 
-func (u IdentifyUI) PromptForConfirmation(s string) error {
+func (u BaseIdentifyUI) PromptForConfirmation(s string) error {
 	return u.parent.PromptForConfirmation(s)
+}
+
+func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lcr libkb.LinkCheckResult) {
+	var msg, lcrs string
+
+	if lcr.diff != nil {
+		lcrs = lcr.diff.ToDisplayString() + " "
+	}
+
+	if lcr.err == nil {
+		msg += (CHECK + " " + lcrs + `"` +
+			ColorString("green", s.username) + `" on ` + s.service +
+			": " + lcr.hint.humanUrl)
+	} else {
+		msg += (BADX + " " + lcrs +
+			ColorString("red", `"`+s.username+`" on `+s.service+" "+
+				ColorString("bold", "failed")+": "+
+				lcr.err.Error()))
+	}
+	if lcr.cached != nil {
+		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
+	}
+	u.ReportHook(msg)
+}
+
+func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
+	var msg, lcrs string
+
+	if lcr.diff != nil {
+		lcrs = lcr.diff.ToDisplayString() + " "
+	}
+
+	if lcr.err == nil {
+		if s.protocol == "dns" {
+			msg += (CHECK + " " + lcrs + "admin of DNS zone " +
+				ColorString("green", s.hostname) +
+				": found TXT entry " + lcr.hint.checkText)
+		} else {
+			var color string
+			if s.protocol == "https" {
+				color = "green"
+			} else {
+				color = "yellow"
+			}
+			msg += (CHECK + " " + lcrs + "admin of " +
+				ColorString(color, s.hostname) + " via " +
+				ColorString(color, strings.ToUpper(s.protocol)) +
+				": " + lcr.hint.humanUrl)
+		}
+	} else {
+		msg = (BADX + " " + lcrs +
+			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
+				ColorString("bold", "failed")+": "+
+				lcr.err.Error()))
+	}
+
+	if lcr.cached != nil {
+		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
+	}
+	u.ReportHook(msg)
+}
+
+func (u *UI) GetSelfIdentifyUI() libkb.IdentifyUI {
+	return SelfIdentifyUI{u}
 }
 
 func (u *UI) GetIdentifyUI() libkb.IdentifyUI {
