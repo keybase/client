@@ -24,8 +24,8 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 }
 
 type IdentifyArg struct {
-	ReportHook func(s string) // Can be nil
-	Me         *User          // The user who's doing the tracking
+	Me *User // The user who's doing the tracking
+	Ui IdentifyUi
 }
 
 func (i IdentifyArg) MeSet() bool {
@@ -150,7 +150,7 @@ func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState
 	return IdentifyState{arg, res, u, nil, new(sync.Mutex)}
 }
 
-func (u *User) Identify(arg IdentifyArg) (res *IdentifyRes) {
+func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 
 	if cir := u.cachedIdentifyRes; cir != nil && (arg.MeSet() == cir.MeSet) {
 		return cir
@@ -193,6 +193,12 @@ func (u *User) Identify(arg IdentifyArg) (res *IdentifyRes) {
 	return
 }
 
+func (u *User) Identify(arg IdentifyArg) error {
+	arg.ui.Start()
+	res := u._identify(arg)
+	return arg.ui.FinishAndPrompt(res)
+}
+
 func (u *User) IdentifySimple(me *User) error {
 	res := u.Identify(IdentifyArg{
 		ReportHook: func(s string) { G.OutputString(s) },
@@ -203,40 +209,22 @@ func (u *User) IdentifySimple(me *User) error {
 
 func (u *User) IdentifySelf() error {
 
+	ui := G.UI.GetSelfIdentifyUI()
+
 	targ, err := u.GetActivePgpFingerprint()
 	if err != nil {
 		return err
 	}
 
-	identifier := G.UI.GetIdentifyUI()
-
-	G.Log.Info("Verifying your key fingerprint....")
-
-	ires := u.Identify(IdentifyArg{
-		Me:         u,
-		ReportHook: identifier.ReportHook,
+	err = u.Identify(IdentifyArg{
+		Me: u,
+		Ui: identifier,
 	})
 
-	err, warnings := ires.GetErrorLax()
-	var prompt string
-	if err != nil {
-		return err
-	} else if !warnings.IsEmpty() {
-		identifier.ShowWarnings(warnings)
-		prompt = "Do you still accept these credentials to be your own?"
-	} else if len(ires.ProofChecks) == 0 {
-		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
-	} else {
-		prompt = "Is this you?"
+	if err == nil {
+		G.Log.Warning("Setting PGP fingerprint to: %s", targ.ToQuads())
+		G.Env.GetConfigWriter().SetPgpFingerprint(targ)
 	}
 
-	err = identifier.PromptForConfirmation(prompt)
-	if err != nil {
-		return err
-	}
-
-	G.Log.Warning("Setting PGP fingerprint to: %s", targ.ToQuads())
-	G.Env.GetConfigWriter().SetPgpFingerprint(targ)
-
-	return nil
+	return err
 }

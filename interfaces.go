@@ -195,9 +195,10 @@ type GpgClient interface {
 }
 
 type IdentifyUI interface {
-	ReportHook(string)
-	ShowWarnings(Warnings)
-	PromptForConfirmation(string) error
+	FinishWebProofCheck(*WebProofChainLink, LinkCheckResult)
+	FinishSocialProofCheck(*SocialProofChainLink, LinkCheckResult)
+	FinishAndPrompt(*IdentifyRes) error
+	Start()
 }
 
 type Checker struct {
@@ -216,6 +217,8 @@ type PromptArg struct {
 
 type UI interface {
 	GetIdentifyUI() IdentifyUI
+	GetSelfIdentifyUI() IdentifyUI
+	GetTrackUI() IdentifyUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
 	PromptForKeybasePassphrase(string) (string, error)

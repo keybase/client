@@ -87,7 +87,7 @@ type RemoteProofChainLink interface {
 	GetRemoteUsername() string
 	GetHostname() string
 	GetProtocol() string
-	DisplayCheck(lcr LinkCheckResult, is IdentifyState)
+	DisplayCheck(ui IdentifyUI, lcr LinkCheckResult)
 	ToTrackingStatement() (*jsonw.Wrapper, error)
 	CheckDataJson() *jsonw.Wrapper
 	ToIdString() string
@@ -124,41 +124,8 @@ func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
-func (s *WebProofChainLink) DisplayCheck(lcr LinkCheckResult, is IdentifyState) {
-	var msg, lcrs string
-
-	if lcr.diff != nil {
-		lcrs = lcr.diff.ToDisplayString() + " "
-	}
-
-	if lcr.err == nil {
-		if s.protocol == "dns" {
-			msg += (CHECK + " " + lcrs + "admin of DNS zone " +
-				ColorString("green", s.hostname) +
-				": found TXT entry " + lcr.hint.checkText)
-		} else {
-			var color string
-			if s.protocol == "https" {
-				color = "green"
-			} else {
-				color = "yellow"
-			}
-			msg += (CHECK + " " + lcrs + "admin of " +
-				ColorString(color, s.hostname) + " via " +
-				ColorString(color, strings.ToUpper(s.protocol)) +
-				": " + lcr.hint.humanUrl)
-		}
-	} else {
-		msg = (BADX + " " + lcrs +
-			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
-				ColorString("bold", "failed")+": "+
-				lcr.err.Error()))
-	}
-
-	if lcr.cached != nil {
-		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
-	}
-	is.Report(msg)
+func (s *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
+	ui.FinishWebProofCheck(s, lcr)
 }
 
 func (w *WebProofChainLink) Type() string { return "proof" }
@@ -243,28 +210,8 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	}
 }
 
-func (s *SocialProofChainLink) DisplayCheck(lcr LinkCheckResult, is IdentifyState) {
-
-	var msg, lcrs string
-
-	if lcr.diff != nil {
-		lcrs = lcr.diff.ToDisplayString() + " "
-	}
-
-	if lcr.err == nil {
-		msg += (CHECK + " " + lcrs + `"` +
-			ColorString("green", s.username) + `" on ` + s.service +
-			": " + lcr.hint.humanUrl)
-	} else {
-		msg += (BADX + " " + lcrs +
-			ColorString("red", `"`+s.username+`" on `+s.service+" "+
-				ColorString("bold", "failed")+": "+
-				lcr.err.Error()))
-	}
-	if lcr.cached != nil {
-		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
-	}
-	is.Report(msg)
+func (s *SocialProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
+	ui.FinishSocialProofCheck(s, lcr)
 }
 
 func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
