@@ -17,15 +17,15 @@ type BaseIdentifyUI struct {
 	parent *UI
 }
 
-type SelfIdentifyUI struct {
+type IdentifySelfUI struct {
 	BaseIdentifyUI
 }
 
-func (u SelfIdentifyUI) Start() {
+func (u IdentifySelfUI) Start() {
 	G.Log.Info("Verifying your key fingerprint....")
 }
 
-func (ui SelfIdentifyUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
+func (ui IdentifySelfUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
 	err, warnings := ires.GetErrorLax()
 	var prompt string
 	if err != nil {
@@ -41,6 +41,34 @@ func (ui SelfIdentifyUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
 
 	err = ui.PromptForConfirmation(prompt)
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type IdentifyTrackUI struct {
+	BaseIdentifyUI
+	them   *libkb.User
+	strict bool
+}
+
+func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
+	var prompt string
+	un := ui.them.GetName()
+
+	if err, warnings = res.GetErrorAndWarnings(ui.strict); err != nil {
+		return
+	} else if !warnings.IsEmpty() {
+		tracker.ShowWarnings(warnings)
+		prompt = "Some proofs failed; still track " + un + "?"
+	} else if len(res.ProofChecks) == 0 {
+		prompt = "We found an account for " + un +
+			", but they haven't proven their identity. Still track them?"
+	} else {
+		prompt = "Is this the " + un + "you wanted?"
+	}
+
+	if err = tracker.PromptForConfirmation(prompt); err != nil {
 		return err
 	}
 	return nil
@@ -62,7 +90,7 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lc
 	var msg, lcrs string
 
 	if lcr.diff != nil {
-		lcrs = lcr.diff.ToDisplayString() + " "
+		lcrs = TrackDiffToColoredString(lcr.diff) + " "
 	}
 
 	if lcr.err == nil {
@@ -81,11 +109,37 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lc
 	u.ReportHook(msg)
 }
 
+func TrackDiffToColoredString(t TrackDiff) string {
+	s := t.ToDisplayString()
+	var color string
+	switch t.(type) {
+	case TrackDiffError, TrackDiffClash, TrackDiffLost:
+		color = "red"
+	case TrackDiffUpgraded:
+		color = "orange"
+	case TrackDiffNew:
+		color = "blue"
+	case TrackDiffNone:
+		color = "green"
+	}
+	if len(color) == 0 {
+		s = ColorString(color, s)
+	}
+	return s
+}
+
+func (u BaseIdentifyUI) TrackDiffErrorToString(libkb.TrackDiffError) string {
+	return ColorString("red", "<error>")
+}
+func (u BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) string {
+	return ColorString("orange", "<Upgraded from "+t.prev+" to "+t.curr+">")
+}
+
 func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
 	var msg, lcrs string
 
 	if lcr.diff != nil {
-		lcrs = lcr.diff.ToDisplayString() + " "
+		lcrs = TrackDiffToColoredString(lcr.diff) + " "
 	}
 
 	if lcr.err == nil {
@@ -118,8 +172,31 @@ func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libk
 	u.ReportHook(msg)
 }
 
-func (u *UI) GetSelfIdentifyUI() libkb.IdentifyUI {
-	return SelfIdentifyUI{u}
+func (u *BaseIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainlink) {
+	msg := (BTC + " bitcoin " + ColorString("green", l.GetAddress()))
+	u.ReportHook(msg)
+}
+
+func (u *BaseIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint) {
+	msg := CHECK + " " + ds +
+		ColorString("green", "public key fingerprint: "+fp.ToQuads())
+	u.ReportHook(msg)
+}
+
+func (u *BaseIdentifyUI) DisplayLastTrack(t *libkb.TrackLookup) {
+	if t != nil {
+		msg := ColorString("bold", fmt.Sprintf("You last tracked %s on %s",
+			u.name, FormatTime(t.GetCTime())))
+		u.ReportHook(msg)
+	}
+}
+
+func (u *UI) GetIdentifySelfUI() libkb.IdentifyUI {
+	return IdentifySelfUI{BaseIdentifyUI{u}}
+}
+
+func (u *UI) GetIdentifyTrackUI(them *libkb.User, strict bool) libkb.IdentifyUI {
+	return IdentifyTrackUI{BaseIdentifyUI{u}, them, strict}
 }
 
 func (u *UI) GetIdentifyUI() libkb.IdentifyUI {
