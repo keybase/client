@@ -7,25 +7,23 @@ import (
 )
 
 func (u *User) IdentifyKey(is IdentifyState) error {
-	var ds string
+	var diff TrackDiff
 	if mt := is.track; mt != nil {
-		diff := mt.ComputeKeyDiff(*u.activePgpFingerprint)
+		diff = mt.ComputeKeyDiff(*u.activePgpFingerprint)
 		is.res.KeyDiff = diff
-		ds = diff.ToDisplayString() + " "
 	}
 	fp, e := u.GetActivePgpFingerprint()
 	if e != nil {
 		return e
 	}
-	msg := CHECK + " " + ds +
-		ColorString("green", "public key fingerprint: "+fp.ToQuads())
-	is.Report(msg)
+	is.GetUI().DisplayKey(fp, diff)
+
 	return nil
 }
 
 type IdentifyArg struct {
 	Me *User // The user who's doing the tracking
-	Ui IdentifyUi
+	ui IdentifyUI
 }
 
 func (i IdentifyArg) MeSet() bool {
@@ -38,7 +36,6 @@ type IdentifyRes struct {
 	Lost        []TrackDiffLost
 	ProofChecks []LinkCheckResult
 	Warnings    []Warning
-	Messages    []string
 	MeSet       bool // whether me was set at the time
 }
 
@@ -110,17 +107,9 @@ func (i IdentifyRes) GetErrorLax() (error, Warnings) {
 	return i.GetErrorAndWarnings(true)
 }
 
-func (i IdentifyState) Report(m string) {
-	i.res.Messages = append(i.res.Messages, m)
-	if i.arg.ReportHook != nil {
-		i.arg.ReportHook(m + "\n")
-	}
-}
-
 func NewIdentifyRes(m bool) *IdentifyRes {
 	return &IdentifyRes{
 		MeSet:       m,
-		Messages:    make([]string, 0, 1),
 		Warnings:    make([]Warning, 0, 0),
 		ProofChecks: make([]LinkCheckResult, 0, 1),
 	}
@@ -132,6 +121,10 @@ type IdentifyState struct {
 	u     *User
 	track *TrackLookup
 	mutex *sync.Mutex
+}
+
+func (s IdentifyState) GetUI() IdentifyUI {
+	return s.arg.ui
 }
 
 func (s *IdentifyState) Lock() {
@@ -166,10 +159,8 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 		return
 	} else if tlink != nil {
 		is.track = NewTrackLookup(tlink)
-		msg := ColorString("bold", fmt.Sprintf("You last tracked %s on %s",
-			u.name, FormatTime(is.track.GetCTime())))
-		is.Report(msg)
 	}
+	is.GetUI().ReportLastTrack(is.track)
 
 	G.Log.Debug("+ Identify(%s)", u.name)
 
@@ -200,16 +191,13 @@ func (u *User) Identify(arg IdentifyArg) error {
 }
 
 func (u *User) IdentifySimple(me *User) error {
-	res := u.Identify(IdentifyArg{
-		ReportHook: func(s string) { G.OutputString(s) },
-		Me:         me,
+	return u.Identify(IdentifyArg{
+		Me: me,
+		ui: G.UI.GetIdentifyUI(),
 	})
-	return res.GetError()
 }
 
 func (u *User) IdentifySelf() error {
-
-	ui := G.UI.GetSelfIdentifyUI()
 
 	targ, err := u.GetActivePgpFingerprint()
 	if err != nil {
@@ -218,7 +206,7 @@ func (u *User) IdentifySelf() error {
 
 	err = u.Identify(IdentifyArg{
 		Me: u,
-		Ui: identifier,
+		ui: G.UI.GetSelfIdentifyUI(),
 	})
 
 	if err == nil {

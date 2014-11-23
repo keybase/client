@@ -198,6 +198,9 @@ type IdentifyUI interface {
 	FinishWebProofCheck(*WebProofChainLink, LinkCheckResult)
 	FinishSocialProofCheck(*SocialProofChainLink, LinkCheckResult)
 	FinishAndPrompt(*IdentifyRes) error
+	DisplayCryptocurrency(*CryptocurrencyChainLink)
+	DisplayKey(*PgpFingerprint, TrackDiff)
+	ReportLastTrack(*TrackLookup)
 	Start()
 }
 

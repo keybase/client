@@ -443,6 +443,10 @@ type CryptocurrencyChainLink struct {
 	address string
 }
 
+func (c CryptocurrencyChainLink) GetAddress() string {
+	return c.address
+}
+
 func ParseCryptocurrencyChainLink(b GenericChainLink) (
 	cl *CryptocurrencyChainLink, err error) {
 
@@ -480,9 +484,8 @@ func (l *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.cryptocurrency = append(tab.cryptocurrency, l)
 }
 
-func (l CryptocurrencyChainLink) Display(is IdentifyState) {
-	msg := (BTC + " bitcoin " + ColorString("green", l.address))
-	is.Report(msg)
+func (l CryptocurrencyChainLink) Display(ui IdentifyUI) {
+	ui.DisplayCryptocurrency(&l)
 }
 
 //
@@ -535,7 +538,7 @@ func (w *SelfSigChainLink) GetRemoteUsername() string { return w.GetUsername() }
 func (w *SelfSigChainLink) GetHostname() string       { return "" }
 func (w *SelfSigChainLink) GetProtocol() string       { return "" }
 
-func (s *SelfSigChainLink) DisplayCheck(lcr LinkCheckResult, is IdentifyState) {
+func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
 	return
 }
 
@@ -754,7 +757,7 @@ func (idt *IdentityTable) Identify(is IdentifyState) {
 	}
 
 	if acc := idt.ActiveCryptocurrency(); acc != nil {
-		acc.Display(is)
+		acc.Display(is.GetUI())
 	}
 }
 
@@ -764,7 +767,7 @@ func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink, is Identif
 	lcr := idt.CheckActiveProof(p, is.track)
 
 	is.Lock()
-	p.DisplayCheck(lcr, is)
+	p.DisplayCheck(is.GetUI(), lcr)
 	is.res.AddLinkCheckResult(lcr)
 	is.Unlock()
 }
