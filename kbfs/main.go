@@ -35,7 +35,7 @@ func main() {
 			log.Fatalf("Couldn't load session: %v\n", err)
 		}
 	} else {
-		k := libkbfs.NewKBPKILocal(libkb.UID{1}, []*libkbfs.LocalUser{
+		k := libkbfs.NewKBPKILocal(libkb.UID{3}, []*libkbfs.LocalUser{
 			&libkbfs.LocalUser{"strib", libkb.UID{1}, []string{"github:strib"}},
 			&libkbfs.LocalUser{"max", libkb.UID{2}, []string{"twitter:maxtaco"}},
 			&libkbfs.LocalUser{
