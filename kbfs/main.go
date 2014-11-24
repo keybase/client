@@ -12,6 +12,12 @@ import (
 	libkbfs "github.com/keybase/go-libkbfs-priv"
 )
 
+func GetUI() UI {
+	ui := UI{}
+	ui.Configure()
+	return ui
+}
+
 func main() {
 	flag.Parse()
 	if len(flag.Args()) < 1 {
@@ -28,6 +34,7 @@ func main() {
 	libkb.G.ConfigureLogging()
 	libkb.G.ConfigureCaches()
 	libkb.G.ConfigureMerkleClient()
+	libkb.G.SetUI(GetUI())
 
 	if !localUsers {
 		libkb.G.ConfigureAPI()
