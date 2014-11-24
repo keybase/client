@@ -102,12 +102,21 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 		prompt = "We found an account for " + un +
 			", but they haven't proven their identity. Still track them?"
 	} else {
-		prompt = "Is this the " + un + "you wanted?"
+		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
 	}
 
 	if err = ui.PromptForConfirmation(prompt); err != nil {
 		return
 	}
+
+	i.Local = true
+
+	def := true
+	prompt = "Publicly write tracking statement to server?"
+	if i.Remote, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -159,7 +168,7 @@ func TrackDiffToColoredString(t libkb.TrackDiff) string {
 	case libkb.TrackDiffNone:
 		color = "green"
 	}
-	if len(color) == 0 {
+	if len(color) > 0 {
 		s = ColorString(color, s)
 	}
 	return s
