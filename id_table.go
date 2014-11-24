@@ -786,11 +786,11 @@ func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink, is Identif
 }
 
 type LinkCheckResult struct {
-	hint              *SigHint
-	cached            *CheckResult
-	err               ProofError
-	diff              TrackDiff
-	trackedProofState int // The tracked state isn't always OK, it could be otherwise
+	hint      *SigHint
+	cached    *CheckResult
+	err       ProofError
+	diff      TrackDiff
+	proofDiff TrackDiff
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
@@ -812,6 +812,8 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 		return
 	}
 
+	trackedProofState := PROOF_STATE_NONE
+
 	if track != nil {
 		//
 		// XXX maybe revisit this decision...
@@ -820,7 +822,7 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 		//
 		track.Lock()
 		res.diff = p.ComputeTrackDiff(track)
-		res.trackedProofState = track.GetProofState(p)
+		trackedProofState = track.GetProofState(p)
 		track.Unlock()
 	}
 
