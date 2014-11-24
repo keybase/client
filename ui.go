@@ -240,10 +240,10 @@ func (u BaseIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint, diff libkb.TrackDif
 	u.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) ReportLastTrack(t *libkb.TrackLookup, remote bool) {
+func (u BaseIdentifyUI) ReportLastTrack(t *libkb.TrackLookup) {
 	if t != nil {
 		locally := ""
-		if !remote {
+		if !t.IsRemote() {
 			locally = "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
