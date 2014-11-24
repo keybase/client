@@ -15,14 +15,50 @@ type UI struct {
 
 type BaseIdentifyUI struct {
 	parent *UI
+	them   *libkb.User
 }
 
 type IdentifySelfUI struct {
 	BaseIdentifyUI
 }
 
+type IdentifyLubaUI struct {
+	BaseIdentifyUI
+}
+
+type IdentifyUI struct {
+	BaseIdentifyUI
+}
+
 func (u IdentifySelfUI) Start() {
 	G.Log.Info("Verifying your key fingerprint....")
+}
+func (u IdentifyTrackUI) Start() {
+	G.Log.Info("Generating tracking statement for " + ColorString("bold", u.them.GetName()))
+}
+func (u IdentifyLubaUI) Start() {
+	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", u.them.GetName()))
+}
+func (u IdentifyUI) Start() {
+	G.Log.Info("Identifying " + ColorString("bold", u.them.GetName()))
+}
+
+func (ui BaseIdentifyUI) baseFinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
+	var warnings libkb.Warnings
+	err, warnings = ires.GetErrorLax()
+	if err != nil {
+		return
+	} else if !warnings.IsEmpty() {
+		ui.ShowWarnings(warnings)
+	}
+	return
+}
+
+func (ui IdentifyLubaUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
+	return ui.baseFinishAndPrompt(ires)
+}
+func (ui IdentifyUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
+	return ui.baseFinishAndPrompt(ires)
 }
 
 func (ui IdentifySelfUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
@@ -49,7 +85,6 @@ func (ui IdentifySelfUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.Track
 
 type IdentifyTrackUI struct {
 	BaseIdentifyUI
-	them   *libkb.User
 	strict bool
 }
 
@@ -61,7 +96,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 	if err, warnings = res.GetErrorAndWarnings(ui.strict); err != nil {
 		return
 	} else if !warnings.IsEmpty() {
-		tracker.ShowWarnings(warnings)
+		ui.ShowWarnings(warnings)
 		prompt = "Some proofs failed; still track " + un + "?"
 	} else if len(res.ProofChecks) == 0 {
 		prompt = "We found an account for " + un +
@@ -70,14 +105,14 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 		prompt = "Is this the " + un + "you wanted?"
 	}
 
-	if err = tracker.PromptForConfirmation(prompt); err != nil {
-		return err
+	if err = ui.PromptForConfirmation(prompt); err != nil {
+		return
 	}
-	return nil
+	return
 }
 
 func (u BaseIdentifyUI) ReportHook(s string) {
-	os.Stdout.Write([]byte(s))
+	os.Stdout.Write([]byte(s + "\n"))
 }
 
 func (u BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
@@ -91,37 +126,37 @@ func (u BaseIdentifyUI) PromptForConfirmation(s string) error {
 func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lcr libkb.LinkCheckResult) {
 	var msg, lcrs string
 
-	if lcr.diff != nil {
-		lcrs = TrackDiffToColoredString(lcr.diff) + " "
+	if diff := lcr.GetDiff(); diff != nil {
+		lcrs = TrackDiffToColoredString(diff) + " "
 	}
 
-	if lcr.err == nil {
+	if err := lcr.GetError(); err == nil {
 		msg += (CHECK + " " + lcrs + `"` +
-			ColorString("green", s.username) + `" on ` + s.service +
-			": " + lcr.hint.humanUrl)
+			ColorString("green", s.GetUsername()) + `" on ` + s.GetService() +
+			": " + lcr.GetHint().GetHumanUrl())
 	} else {
 		msg += (BADX + " " + lcrs +
-			ColorString("red", `"`+s.username+`" on `+s.service+" "+
+			ColorString("red", `"`+s.GetUsername()+`" on `+s.GetService()+" "+
 				ColorString("bold", "failed")+": "+
-				lcr.err.Error()))
+				lcr.GetError().Error()))
 	}
-	if lcr.cached != nil {
-		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
+	if cached := lcr.GetCached(); cached != nil {
+		msg += " " + ColorString("magenta", cached.ToDisplayString())
 	}
 	u.ReportHook(msg)
 }
 
-func TrackDiffToColoredString(t TrackDiff) string {
+func TrackDiffToColoredString(t libkb.TrackDiff) string {
 	s := t.ToDisplayString()
 	var color string
 	switch t.(type) {
-	case TrackDiffError, TrackDiffClash, TrackDiffLost:
+	case libkb.TrackDiffError, libkb.TrackDiffClash, libkb.TrackDiffLost:
 		color = "red"
-	case TrackDiffUpgraded:
+	case libkb.TrackDiffUpgraded:
 		color = "orange"
-	case TrackDiffNew:
+	case libkb.TrackDiffNew:
 		color = "blue"
-	case TrackDiffNone:
+	case libkb.TrackDiffNone:
 		color = "green"
 	}
 	if len(color) == 0 {
@@ -134,75 +169,87 @@ func (u BaseIdentifyUI) TrackDiffErrorToString(libkb.TrackDiffError) string {
 	return ColorString("red", "<error>")
 }
 func (u BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) string {
-	return ColorString("orange", "<Upgraded from "+t.prev+" to "+t.curr+">")
+	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
 func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
 	var msg, lcrs string
 
-	if lcr.diff != nil {
-		lcrs = TrackDiffToColoredString(lcr.diff) + " "
+	if diff := lcr.GetDiff(); diff != nil {
+		lcrs = TrackDiffToColoredString(diff) + " "
 	}
 
-	if lcr.err == nil {
-		if s.protocol == "dns" {
-			msg += (CHECK + " " + lcrs + "admin of DNS zone " +
-				ColorString("green", s.hostname) +
-				": found TXT entry " + lcr.hint.checkText)
+	great_color := "green"
+	ok_color := "yellow"
+
+	if err := lcr.GetError(); err == nil {
+		if s.GetProtocol() == "dns" {
+			msg += (CHECK + " " + lcrs + "admin of " +
+				ColorString(ok_color, "DNS") + " zone " +
+				ColorString(ok_color, s.GetHostname()) +
+				": found TXT entry " + lcr.GetHint().GetCheckText())
 		} else {
 			var color string
-			if s.protocol == "https" {
-				color = "green"
+			if s.GetProtocol() == "https" {
+				color = great_color
 			} else {
-				color = "yellow"
+				color = ok_color
 			}
 			msg += (CHECK + " " + lcrs + "admin of " +
-				ColorString(color, s.hostname) + " via " +
-				ColorString(color, strings.ToUpper(s.protocol)) +
-				": " + lcr.hint.humanUrl)
+				ColorString(color, s.GetHostname()) + " via " +
+				ColorString(color, strings.ToUpper(s.GetProtocol())) +
+				": " + lcr.GetHint().GetHumanUrl())
 		}
 	} else {
 		msg = (BADX + " " + lcrs +
 			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
 				ColorString("bold", "failed")+": "+
-				lcr.err.Error()))
+				lcr.GetError().Error()))
 	}
 
-	if lcr.cached != nil {
-		msg += " " + ColorString("magenta", lcr.cached.ToDisplayString())
+	if cached := lcr.GetCached(); cached != nil {
+		msg += " " + ColorString("magenta", cached.ToDisplayString())
 	}
 	u.ReportHook(msg)
 }
 
-func (u *BaseIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainlink) {
+func (u BaseIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainLink) {
 	msg := (BTC + " bitcoin " + ColorString("green", l.GetAddress()))
 	u.ReportHook(msg)
 }
 
-func (u *BaseIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint) {
+func (u BaseIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint, diff libkb.TrackDiff) {
+	var ds string
+	if diff != nil {
+		ds = TrackDiffToColoredString(diff) + " "
+	}
 	msg := CHECK + " " + ds +
 		ColorString("green", "public key fingerprint: "+fp.ToQuads())
 	u.ReportHook(msg)
 }
 
-func (u *BaseIdentifyUI) DisplayLastTrack(t *libkb.TrackLookup) {
+func (u BaseIdentifyUI) ReportLastTrack(t *libkb.TrackLookup) {
 	if t != nil {
 		msg := ColorString("bold", fmt.Sprintf("You last tracked %s on %s",
-			u.name, FormatTime(t.GetCTime())))
+			u.them.GetName(), libkb.FormatTime(t.GetCTime())))
 		u.ReportHook(msg)
 	}
 }
 
-func (u *UI) GetIdentifySelfUI() libkb.IdentifyUI {
-	return IdentifySelfUI{BaseIdentifyUI{u}}
+func (u *UI) GetIdentifySelfUI(them *libkb.User) libkb.IdentifyUI {
+	return IdentifySelfUI{BaseIdentifyUI{u, them}}
 }
 
 func (u *UI) GetIdentifyTrackUI(them *libkb.User, strict bool) libkb.IdentifyUI {
-	return IdentifyTrackUI{BaseIdentifyUI{u}, them, strict}
+	return IdentifyTrackUI{BaseIdentifyUI{u, them}, strict}
 }
 
-func (u *UI) GetIdentifyUI() libkb.IdentifyUI {
-	return IdentifyUI{u}
+func (u *UI) GetIdentifyUI(them *libkb.User) libkb.IdentifyUI {
+	return IdentifyUI{BaseIdentifyUI{u, them}}
+}
+
+func (u *UI) GetIdentifyLubaUI(them *libkb.User) libkb.IdentifyUI {
+	return IdentifyLubaUI{BaseIdentifyUI{u, them}}
 }
 
 func (u *UI) GetSecret(args []libkb.SecretEntryArg) (*libkb.SecretEntryRes, error) {
