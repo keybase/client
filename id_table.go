@@ -812,8 +812,8 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 
 	if G.ProofCache != nil {
 		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
-			p.MarkChecked(res.err)
 			res.err = res.cached.Status
+			p.MarkChecked(res.err)
 			return
 		}
 	}
