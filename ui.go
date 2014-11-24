@@ -25,11 +25,12 @@ func (u IdentifySelfUI) Start() {
 	G.Log.Info("Verifying your key fingerprint....")
 }
 
-func (ui IdentifySelfUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
-	err, warnings := ires.GetErrorLax()
+func (ui IdentifySelfUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
+	var warnings libkb.Warnings
+	err, warnings = ires.GetErrorLax()
 	var prompt string
 	if err != nil {
-		return err
+		return
 	} else if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 		prompt = "Do you still accept these credentials to be your own?"
@@ -41,9 +42,9 @@ func (ui IdentifySelfUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
 
 	err = ui.PromptForConfirmation(prompt)
 	if err != nil {
-		return err
+		return
 	}
-	return nil
+	return
 }
 
 type IdentifyTrackUI struct {
@@ -52,9 +53,10 @@ type IdentifyTrackUI struct {
 	strict bool
 }
 
-func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (err error) {
+func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
 	var prompt string
 	un := ui.them.GetName()
+	var warnings libkb.Warnings
 
 	if err, warnings = res.GetErrorAndWarnings(ui.strict); err != nil {
 		return
