@@ -75,6 +75,7 @@ const (
 	DB_SIG_HINTS        = 0xe4
 	DB_PROOF_CHECK      = 0xe5
 	DB_USER_SECRET_KEYS = 0xe6
+	DB_LOCAL_TRACK      = 0xe1
 )
 
 const (

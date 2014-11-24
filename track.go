@@ -203,6 +203,12 @@ type TrackEngine struct {
 	NoSelf       bool
 	StrictProofs bool
 	MeRequired   bool
+
+	trackStatementBytes []byte
+	trackStatement      *jsonw.Wrapper
+	signingKey          *PgpKeyBundle
+	sig                 string
+	sigid               *SigId
 }
 
 func (e *TrackEngine) LoadThem() error {
@@ -238,12 +244,6 @@ func (e *TrackEngine) LoadMe() error {
 
 func (e *TrackEngine) Run() (err error) {
 
-	var tmp []byte
-	var jw *jsonw.Wrapper
-	var key *PgpKeyBundle
-	var sig string
-	var sigid *SigId
-
 	if err = e.LoadThem(); err != nil {
 		return
 	} else if err = e.LoadMe(); err != nil {
@@ -252,7 +252,8 @@ func (e *TrackEngine) Run() (err error) {
 		err = fmt.Errorf("Cannot track yourself")
 	}
 
-	_, err = e.Them.Identify(IdentifyArg{
+	var ti TrackInstructions
+	ti, err = e.Them.Identify(IdentifyArg{
 		Me: e.Me,
 		Ui: G.UI.GetIdentifyTrackUI(e.Them, e.StrictProofs),
 	})
@@ -261,23 +262,46 @@ func (e *TrackEngine) Run() (err error) {
 		return
 	}
 
-	jw, err = e.Me.TrackingProofFor(e.Them)
+	e.trackStatement, err = e.Me.TrackingProofFor(e.Them)
 	if err != nil {
 		return err
 	}
 
-	if key, err = G.Keyrings.GetSecretKey("tracking signature"); err != nil {
+	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
 		return
-	} else if key == nil {
+	}
+
+	G.Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
+
+	if ti.Remote {
+		err = e.StoreRemoteTrack()
+	} else if ti.Local {
+		err = e.StoreLocalTrack()
+	}
+	return
+}
+
+func (e *TrackEngine) StoreLocalTrack() (err error) {
+	G.Log.Debug("| StoreLocalTrack")
+	return G.LocalDb.Put(
+		DbKey{Typ: DB_LOCAL_TRACK, Key: e.Me.GetUid().ToString()},
+		nil,
+		e.trackStatement,
+	)
+}
+
+func (e *TrackEngine) StoreRemoteTrack() (err error) {
+	G.Log.Debug("+ StoreRemoteTrack")
+	defer G.Log.Debug("- StoreRemoteTrack -> %s", ErrToOk(err))
+
+	if e.signingKey, err = G.Keyrings.GetSecretKey("tracking signature"); err != nil {
+		return
+	} else if e.signingKey == nil {
 		err = NoSecretKeyError{}
 		return
 	}
 
-	if tmp, err = jw.Marshal(); err != nil {
-		return
-	}
-
-	if sig, sigid, err = SimpleSign(tmp, *key); err != nil {
+	if e.sig, e.sigid, err = SimpleSign(e.trackStatementBytes, *e.signingKey); err != nil {
 		return
 	}
 
@@ -285,9 +309,9 @@ func (e *TrackEngine) Run() (err error) {
 		Endpoint:    "follow",
 		NeedSession: true,
 		Args: HttpArgs{
-			"sig_id_base":  S{sigid.ToString(false)},
-			"sig_id_short": S{sigid.ToShortId()},
-			"sig":          S{sig},
+			"sig_id_base":  S{e.sigid.ToString(false)},
+			"sig_id_short": S{e.sigid.ToShortId()},
+			"sig":          S{e.sig},
 			"uid":          S{e.Them.GetUid().ToString()},
 			"type":         S{"track"},
 		},
