@@ -20,6 +20,16 @@ func ProofErrorIsSoft(pe ProofError) bool {
 	return s >= PROOF_BASE_ERROR && s < PROOF_BASE_HARD_ERROR
 }
 
+func ProofErrorToState(pe ProofError) int {
+	if pe == nil {
+		return PROOF_STATE_OK
+	} else if s := pe.GetStatus(); s == PROOF_NO_HINT || s == PROOF_UNKNOWN_TYPE {
+		return PROOF_STATE_NONE
+	} else {
+		return PROOF_STATE_TEMP_FAILURE
+	}
+}
+
 type ProofErrorImpl struct {
 	Status ProofStatus
 	Desc   string

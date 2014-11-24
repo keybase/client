@@ -786,11 +786,11 @@ func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink, is Identif
 }
 
 type LinkCheckResult struct {
-	hint      *SigHint
-	cached    *CheckResult
-	err       ProofError
-	diff      TrackDiff
-	proofDiff TrackDiff
+	hint       *SigHint
+	cached     *CheckResult
+	err        ProofError
+	diff       TrackDiff
+	remoteDiff TrackDiff
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
@@ -801,8 +801,14 @@ func (l LinkCheckResult) GetCached() *CheckResult { return l.cached }
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackLookup) (
 	res LinkCheckResult) {
 
+	trackedProofState := PROOF_STATE_NONE
+
 	G.Log.Debug("+ CheckActiveProof %s", p.ToDebugString())
-	defer G.Log.Debug("- CheckActiveProof %s", p.ToDebugString())
+	defer func() {
+		G.Log.Debug("- CheckActiveProof %s", p.ToDebugString())
+		// Example trackedProofState vs res.erro
+		// and set remoteDiff accordingly
+	}()
 
 	sid := p.GetSigId()
 	res.hint = idt.sigHints.Lookup(sid)
@@ -811,8 +817,6 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 			"No server-given hint for sig=%s", sid.ToString(true))
 		return
 	}
-
-	trackedProofState := PROOF_STATE_NONE
 
 	if track != nil {
 		//
