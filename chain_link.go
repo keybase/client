@@ -102,7 +102,7 @@ func (c *ChainLink) MarkChecked(err ProofError) {
 	}
 }
 
-func (c *ChainLink) GetProofState() int {
+func (c *ChainLink) GetProofState0() int {
 	if c.lastChecked == nil {
 		return PROOF_STATE_NONE
 	} else if c.lastChecked.Status == nil {

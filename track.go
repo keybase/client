@@ -12,12 +12,21 @@ import (
 type TrackIdComponent interface {
 	ToIdString() string
 	ToKeyValuePair() (string, string)
+	GetProofState() int
 }
 
 type TrackSet map[string]TrackIdComponent
 
 func (ts TrackSet) Add(t TrackIdComponent) {
 	ts[t.ToIdString()] = t
+}
+
+func (a TrackSet) GetProofState(tic TrackIdComponent) int {
+	ret := PROOF_STATE_NONE
+	if obj := a[tic.ToIdString()]; obj != nil {
+		ret = obj.GetProofState()
+	}
+	return ret
 }
 
 func (a TrackSet) SubsetOf(b TrackSet) (missing []TrackIdComponent, ret bool) {
@@ -63,6 +72,10 @@ type TrackLookup struct {
 	set   TrackSet            // The total set of tracked identities
 	ids   map[string][]string // A http -> [foo.com, boo.com] lookup
 	mutex *sync.Mutex         // in case we're accessing in mutliple threads
+}
+
+func (l TrackLookup) GetProofState(tic TrackIdComponent) int {
+	return l.set.GetProofState(tic)
 }
 
 func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {

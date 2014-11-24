@@ -61,6 +61,16 @@ func (i IdentifyRes) NumTrackFailures() int {
 	return ntf
 }
 
+func (i IdentifyRes) NumTrackChanged() int {
+	ntc := 0
+	for _, c := range i.ProofChecks {
+		if c.diff != nil && !c.diff.IsSameAsTracked() {
+			ntc++
+		}
+	}
+	return ntc
+}
+
 func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {
 
 	if i.Error != nil {
@@ -145,6 +155,16 @@ func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState
 	return IdentifyState{arg, res, u, nil, new(sync.Mutex)}
 }
 
+func (s *IdentifyState) ComputeLostProofs() {
+	found := s.u.IdTable.MakeTrackSet()
+	tracked := s.track.set
+	if missing, ok := tracked.SubsetOf(found); !ok {
+		for _, m := range missing {
+			s.res.Lost = append(s.res.Lost, TrackDiffLost{m})
+		}
+	}
+}
+
 func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 
 	if cir := u.cachedIdentifyRes; cir != nil && (arg.MeSet() == cir.MeSet) {
@@ -173,18 +193,7 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	}
 	u.IdTable.Identify(is)
 
-	if is.track != nil {
-		found := u.IdTable.MakeTrackSet()
-		tracked := is.track.set
-		if missing, ok := tracked.SubsetOf(found); !ok {
-			for _, m := range missing {
-				res.Lost = append(res.Lost, TrackDiffLost{m})
-			}
-		} else if tracked.LenEq(found) {
-			fmt.Printf("the same %v %v\n", tracked, found)
-			res.TrackEqual = true
-		}
-	}
+	is.ComputeLostProofs()
 
 	G.Log.Debug("- Identify(%s)", u.name)
 	u.cachedIdentifyRes = res

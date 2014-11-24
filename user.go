@@ -892,7 +892,7 @@ func (u *User) GetRemoteTrackingStatementFor(s string, i UID) (link *TrackChainL
 	}
 }
 
-func (u User) ToProofSet() *ProofSet {
+func (u User) ToOkProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
 		{Key: "uid", Value: u.id.ToString()},
@@ -901,7 +901,7 @@ func (u User) ToProofSet() *ProofSet {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.ToString()})
 	}
 	if u.IdTable != nil {
-		proofs = u.IdTable.ToProofs(proofs)
+		proofs = u.IdTable.ToOkProofs(proofs)
 	}
 
 	return NewProofSet(proofs)

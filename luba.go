@@ -98,7 +98,7 @@ func (l *LubaRes) Load(a string, withTracking bool) {
 		return
 	}
 
-	if !l.AE.MatchSet(*l.User.ToProofSet()) {
+	if !l.AE.MatchSet(*l.User.ToOkProofSet()) {
 		// TODO - Better debugging?
 		l.Error = fmt.Errorf("User %s didn't match given assertion",
 			l.User.GetName())

@@ -24,7 +24,7 @@ type TypedChainLink interface {
 	GetPgpFingerprint() PgpFingerprint
 	GetUsername() string
 	MarkChecked(ProofError)
-	GetProofStateTCL() int
+	GetProofState() int
 	GetUID() UID
 }
 
@@ -72,7 +72,7 @@ func (g *GenericChainLink) GetUsername() string {
 func (g *GenericChainLink) GetUID() UID {
 	return g.unpacked.uid
 }
-func (g *GenericChainLink) GetProofStateTCL() int { return g.GetProofState() }
+func (g *GenericChainLink) GetProofState() int { return g.GetProofState0() }
 
 //
 //=========================================================================
@@ -157,7 +157,8 @@ func (s *WebProofChainLink) ToKeyValuePair() (string, string) {
 	return s.GetProtocol(), s.GetHostname()
 }
 
-func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
+func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
+
 	find := func(list []string) bool {
 		for _, e := range list {
 			if cicmp(e, s.hostname) {
@@ -167,12 +168,13 @@ func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 		return false
 	}
 	if find(tl.ids[s.protocol]) {
-		return TrackDiffNone{}
+		res = TrackDiffNone{}
 	} else if s.protocol == "https" && find(tl.ids["http"]) {
-		return TrackDiffUpgraded{"http", "https"}
+		res = TrackDiffUpgraded{"http", "https"}
 	} else {
-		return TrackDiffNew{}
+		res = TrackDiffNew{}
 	}
+	return
 }
 
 func (s *SocialProofChainLink) TableKey() string { return s.service }
@@ -227,10 +229,13 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 // Can be used to either parse a proof `service` JSON block, or a
 // `remote_key_proof` JSON block in a tracking statement.
 type ServiceBlock struct {
-	social bool
-	typ    string
-	id     string
+	social     bool
+	typ        string
+	id         string
+	proofState int
 }
+
+func (sb ServiceBlock) GetProofState() int { return sb.proofState }
 
 func (sb ServiceBlock) ToIdString() string {
 	if sb.social {
@@ -279,7 +284,7 @@ func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
 	if len(typ) == 0 {
 		err = fmt.Errorf("Unrecognized Web proof @%s", jw.MarshalToDebug())
 	}
-	sb = &ServiceBlock{social, typ, id}
+	sb = &ServiceBlock{social: social, typ: typ, id: id}
 	return
 }
 
@@ -383,11 +388,13 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 		proof := w.AtIndex(i).AtKey("remote_key_proof")
 		if i, e := proof.AtKey("state").GetInt(); e != nil {
 			G.Log.Warning("Bad 'state' in track statement: %s", e.Error())
-		} else if i != PROOF_STATE_OK {
-			G.Log.Debug("Skipping proof state = %d\n", i)
 		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
 			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e.Error())
 		} else {
+			sb.proofState = i
+			if i != PROOF_STATE_OK {
+				G.Log.Debug("Including broken proof at index = %d\n", i)
+			}
 			ret = append(ret, sb)
 		}
 	}
@@ -779,10 +786,11 @@ func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink, is Identif
 }
 
 type LinkCheckResult struct {
-	hint   *SigHint
-	cached *CheckResult
-	err    ProofError
-	diff   TrackDiff
+	hint              *SigHint
+	cached            *CheckResult
+	err               ProofError
+	diff              TrackDiff
+	trackedProofState int // The tracked state isn't always OK, it could be otherwise
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
@@ -812,6 +820,7 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 		//
 		track.Lock()
 		res.diff = p.ComputeTrackDiff(track)
+		res.trackedProofState = track.GetProofState(p)
 		track.Unlock()
 	}
 
@@ -845,9 +854,9 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 
 //=========================================================================
 
-func (idt *IdentityTable) ToProofs(proofs []Proof) []Proof {
+func (idt *IdentityTable) ToOkProofs(proofs []Proof) []Proof {
 	for _, ap := range idt.activeProofs {
-		if ap.GetProofStateTCL() == PROOF_STATE_OK {
+		if ap.GetProofState() == PROOF_STATE_OK {
 			k, v := ap.ToKeyValuePair()
 			proofs = append(proofs, Proof{Key: k, Value: v})
 		}
@@ -860,7 +869,7 @@ func (idt *IdentityTable) ToProofs(proofs []Proof) []Proof {
 func (idt *IdentityTable) MakeTrackSet() TrackSet {
 	ret := make(TrackSet)
 	for _, ap := range idt.activeProofs {
-		if ap.GetProofStateTCL() == PROOF_STATE_OK {
+		if ap.GetProofState() == PROOF_STATE_OK {
 			ret.Add(ap)
 		}
 	}
