@@ -93,6 +93,19 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 	un := ui.them.GetName()
 	var warnings libkb.Warnings
 
+	// A "Track Failure" is when we previously tracked this user, and
+	// some aspect of their proof changed.  Like their key changed, or
+	// they changed Twitter names
+	ntf := res.NumTrackFailures()
+
+	// A "Track Change" isn't necessary a failure, maybe they upgraded
+	// a proof from HTTP to HTTPS.  But we still should retrack if we can.
+	ntc := res.NumTrackChanges()
+
+	// A proof failure is when some of the active proofs the user has
+	// broke
+	npf := res.NumProofFailures()
+
 	if err, warnings = res.GetErrorAndWarnings(ui.strict); err != nil {
 		return
 	} else if !warnings.IsEmpty() {
