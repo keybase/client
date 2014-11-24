@@ -12,6 +12,10 @@ type SigHint struct {
 	checkText string
 }
 
+func (sh SigHint) GetHumanUrl() string  { return sh.humanUrl }
+func (sh SigHint) GetApiUrl() string    { return sh.apiUrl }
+func (sh SigHint) GetCheckText() string { return sh.checkText }
+
 type SigHints struct {
 	uid     UID
 	version int

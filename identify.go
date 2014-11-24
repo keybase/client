@@ -193,7 +193,7 @@ func (u *User) Identify(arg IdentifyArg) (TrackInstructions, error) {
 func (u *User) IdentifySimple(me *User) error {
 	_, err := u.Identify(IdentifyArg{
 		Me: me,
-		Ui: G.UI.GetIdentifyUI(),
+		Ui: G.UI.GetIdentifyUI(u),
 	})
 	return err
 }
@@ -207,7 +207,7 @@ func (u *User) IdentifySelf() error {
 
 	_, err = u.Identify(IdentifyArg{
 		Me: u,
-		Ui: G.UI.GetIdentifySelfUI(),
+		Ui: G.UI.GetIdentifySelfUI(u),
 	})
 
 	if err == nil {

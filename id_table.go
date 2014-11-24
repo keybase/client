@@ -191,6 +191,7 @@ func (s *SocialProofChainLink) ToIdString() string        { return s.ToDisplaySt
 func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
 	return s.service, s.username
 }
+func (s *SocialProofChainLink) GetService() string { return s.service }
 
 func NewWebProofChainLink(b GenericChainLink, p, h string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h}
@@ -778,6 +779,11 @@ type LinkCheckResult struct {
 	err    ProofError
 	diff   TrackDiff
 }
+
+func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
+func (l LinkCheckResult) GetError() error         { return l.err }
+func (l LinkCheckResult) GetHint() *SigHint       { return l.hint }
+func (l LinkCheckResult) GetCached() *CheckResult { return l.cached }
 
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackLookup) (
 	res LinkCheckResult) {

@@ -106,6 +106,8 @@ func (t TrackDiffUpgraded) BreaksTracking() bool {
 func (t TrackDiffUpgraded) ToDisplayString() string {
 	return "<Upgraded from " + t.prev + " to " + t.curr + ">"
 }
+func (t TrackDiffUpgraded) GetPrev() string { return t.prev }
+func (t TrackDiffUpgraded) GetCurr() string { return t.curr }
 
 type TrackDiffNone struct{}
 
