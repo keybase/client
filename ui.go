@@ -101,6 +101,9 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 	} else if len(res.ProofChecks) == 0 {
 		prompt = "We found an account for " + un +
 			", but they haven't proven their identity. Still track them?"
+	} else if res.TrackEqual {
+		G.Log.Info("Your tracking statement is up-to-date")
+		return
 	} else {
 		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
 	}
