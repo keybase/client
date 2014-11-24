@@ -858,7 +858,33 @@ func (u1 User) Equal(u2 User) bool {
 	return (u1.id == u2.id)
 }
 
-func (u *User) GetTrackingStatementFor(s string, i UID) (*TrackChainLink, error) {
+func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
+
+	uid_s := i.ToString()
+	G.Log.Debug("+ GetTrackingStatement for %s", uid_s)
+	defer G.Log.Debug("- GetTrackingStatement for %s -> %s", uid_s, ErrToOk(err))
+
+	remote, e1 := u.GetRemoteTrackingStatementFor(s, i)
+	local, e2 := GetLocalTrack(i)
+
+	G.Log.Debug("| Load remote -> %v", (remote != nil))
+	G.Log.Debug("| Load local -> %v", (local != nil))
+
+	if e1 != nil && e2 != nil {
+		err = e1
+	} else if local == nil && remote != nil {
+		link = remote
+	} else if remote == nil && local != nil {
+		link = local
+	} else if remote.GetCTime().After(local.GetCTime()) {
+		link = remote
+	} else {
+		link = local
+	}
+	return
+}
+
+func (u *User) GetRemoteTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
 	if u.IdTable == nil {
 		return nil, nil
 	} else {

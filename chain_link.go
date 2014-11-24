@@ -83,6 +83,7 @@ type ChainLink struct {
 	storedLocally   bool
 	activeKey       bool
 	revoked         bool
+	unsigned        bool
 
 	packed      *jsonw.Wrapper
 	payloadJson *jsonw.Wrapper
@@ -163,12 +164,46 @@ func (c ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err erro
 	return
 }
 
+func (c *ChainLink) UnpackPayloadJson(tmp *ChainLinkUnpacked) (err error) {
+	var sq int64
+
+	GetPgpFingerprintVoid(c.payloadJson.AtPath("body.key.fingerprint"),
+		&tmp.pgpFingerprint, &err)
+	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
+	GetUidVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
+	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
+	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
+
+	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
+
+	var ei int64
+	c.payloadJson.AtKey("expire_in").GetInt64Void(&ei, &err)
+
+	if err != nil {
+		return
+	}
+
+	tmp.seqno = Seqno(sq)
+	tmp.etime = tmp.ctime + ei
+
+	return
+}
+
+func (c *ChainLink) UnpackLocal() (err error) {
+	tmp := ChainLinkUnpacked{}
+	err = c.UnpackPayloadJson(&tmp)
+	if err == nil {
+		c.unpacked = &tmp
+	}
+	return
+}
+
 func (c *ChainLink) Unpack(trusted bool) (err error) {
 	tmp := ChainLinkUnpacked{}
 
-	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
 	c.packed.AtKey("sig").GetStringVoid(&tmp.sig, &err)
 	GetSigIdVoid(c.packed.AtKey("sig_id"), true, &tmp.sigId, &err)
+	c.packed.AtKey("payload_json").GetStringVoid(&tmp.payloadJsonStr, &err)
 
 	if err != nil {
 		return err
@@ -179,18 +214,12 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 		return err
 	}
 
-	var sq int64
+	err = c.UnpackPayloadJson(&tmp)
+	if err != nil {
+		return err
+	}
 
-	GetPgpFingerprintVoid(c.payloadJson.AtPath("body.key.fingerprint"),
-		&tmp.pgpFingerprint, &err)
-	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
-	GetUidVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
-	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
-	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
-	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
-
-	var ei int64
-	c.payloadJson.AtKey("expire_in").GetInt64Void(&ei, &err)
+	c.unpacked = &tmp
 
 	// IF we're loaded from *trusted* storage, like our local
 	// DB, then we can skip verification later
@@ -200,12 +229,6 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 			c.sigVerified = true
 			G.Log.Debug("| Link is marked as 'sig_verified'")
 		}
-	}
-
-	if err == nil {
-		tmp.seqno = Seqno(sq)
-		tmp.etime = tmp.ctime + ei
-		c.unpacked = &tmp
 	}
 
 	G.Log.Debug("| Unpacked Link %s", c.id.ToString())

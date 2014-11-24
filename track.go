@@ -36,6 +36,10 @@ func (a TrackSet) MemberOf(t TrackIdComponent) bool {
 	return found
 }
 
+func (a TrackSet) LenEq(b TrackSet) bool {
+	return len(a) == len(b)
+}
+
 func (a TrackSet) Equal(b TrackSet) bool {
 	if len(a) != len(b) {
 		return false
@@ -70,6 +74,10 @@ func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
 	} else {
 		return TrackDiffClash{curr.ToQuads(), prev.ToQuads()}
 	}
+}
+
+func (tl TrackLookup) IsRemote() bool {
+	return tl.link.IsRemote()
 }
 
 type TrackDiff interface {
@@ -281,12 +289,45 @@ func (e *TrackEngine) Run() (err error) {
 	return
 }
 
-func (e *TrackEngine) StoreLocalTrack() (err error) {
+func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
+	uid_s := i.ToString()
+	G.Log.Debug("+ GetLocalTrack(%s)", uid_s)
+	defer G.Log.Debug("- GetLocalTrack(%s) -> %s", uid_s, ErrToOk(err))
+
+	var obj *jsonw.Wrapper
+	obj, err = G.LocalDb.Get(
+		DbKey{Typ: DB_LOCAL_TRACK, Key: i.ToString()},
+	)
+	if err != nil {
+		G.Log.Debug("| DB lookup failed")
+		return
+	}
+
+	cl := &ChainLink{payloadJson: obj, unsigned: true}
+	fmt.Printf("obj: %v\n", obj)
+	if err = cl.UnpackLocal(); err != nil {
+		G.Log.Debug("| unpack failed -> %s", err.Error())
+		return
+	}
+	base := GenericChainLink{cl}
+	ret, err = ParseTrackChainLink(base)
+	if ret != nil && err == nil {
+		ret.local = true
+	}
+
+	return
+}
+
+func (e *TrackEngine) StoreLocalTrack() error {
+	return StoreLocalTrack(e.Them.GetUid(), e.trackStatement)
+}
+
+func StoreLocalTrack(id UID, statement *jsonw.Wrapper) error {
 	G.Log.Debug("| StoreLocalTrack")
 	return G.LocalDb.Put(
-		DbKey{Typ: DB_LOCAL_TRACK, Key: e.Me.GetUid().ToString()},
+		DbKey{Typ: DB_LOCAL_TRACK, Key: id.ToString()},
 		nil,
-		e.trackStatement,
+		statement,
 	)
 }
 

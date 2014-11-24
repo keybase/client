@@ -322,6 +322,11 @@ type TrackChainLink struct {
 	GenericChainLink
 	whom    string
 	untrack *UntrackChainLink
+	local   bool
+}
+
+func (tcl TrackChainLink) IsRemote() bool {
+	return !tcl.local
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
@@ -330,7 +335,7 @@ func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err.Error())
 	} else {
-		ret = &TrackChainLink{b, whom, nil}
+		ret = &TrackChainLink{b, whom, nil, false}
 	}
 	return
 }
@@ -364,7 +369,7 @@ func (l *TrackChainLink) IsRevoked() bool {
 }
 
 func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
-	return l.payloadJson.AtPath("body.track.remote_proofs")
+	return l.payloadJson.AtPath("body.track.remote_key_proofs")
 }
 
 func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {

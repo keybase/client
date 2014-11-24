@@ -36,6 +36,8 @@ type IdentifyRes struct {
 	Lost        []TrackDiffLost
 	ProofChecks []LinkCheckResult
 	Warnings    []Warning
+	TrackUsed   *TrackLookup
+	TrackEqual  bool // Whether the track statement was equal to what we saw
 	MeSet       bool // whether me was set at the time
 }
 
@@ -159,7 +161,9 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 		return
 	} else if tlink != nil {
 		is.track = NewTrackLookup(tlink)
+		res.TrackUsed = is.track
 	}
+
 	is.GetUI().ReportLastTrack(is.track)
 
 	G.Log.Debug("+ Identify(%s)", u.name)
@@ -176,6 +180,9 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 			for _, m := range missing {
 				res.Lost = append(res.Lost, TrackDiffLost{m})
 			}
+		} else if tracked.LenEq(found) {
+			fmt.Printf("the same %v %v\n", tracked, found)
+			res.TrackEqual = true
 		}
 	}
 
