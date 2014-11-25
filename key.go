@@ -363,3 +363,15 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 	}.Run()
 	return err
 }
+
+func (p *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) (err error) {
+	if (fp == nil) != (p == nil) {
+		err = UnexpectedKeyError{}
+	} else if p != nil {
+		fp2 := p.GetFingerprint()
+		if !fp2.Eq(*fp) {
+			err = BadFingerprintError{fp2, *fp}
+		}
+	}
+	return
+}

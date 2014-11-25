@@ -6,14 +6,10 @@ import (
 )
 
 type SigChain struct {
-	uid      UID
-	username string
-
-	chainLinks     []*ChainLink
-	pgpFingerprint *PgpFingerprint
-
-	sigVerified bool
-	idVerified  bool
+	uid        UID
+	username   string
+	chainLinks []*ChainLink
+	idVerified bool
 }
 
 func (sc SigChain) Len() int {
@@ -29,6 +25,21 @@ func reverse(links []*ChainLink) {
 func last(links []*ChainLink) (ret *ChainLink) {
 	if links != nil {
 		ret = links[len(links)-1]
+	}
+	return
+}
+
+func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {
+	last := sc.GetLastLink()
+	if last == nil || !last.sigVerified {
+		return
+	}
+	start := -1
+	for i := len(sc.chainLinks) - 1; i >= 0 && sc.chainLinks[i].MatchFingerprint(fp); i-- {
+		start = i
+	}
+	if start >= 0 {
+		ret = sc.chainLinks[start:]
 	}
 	return
 }
@@ -130,22 +141,6 @@ func (sc SigChain) GetLastSeqno() (ret Seqno) {
 	return
 }
 
-func (sc *SigChain) Prune(allKeys bool) {
-	if sc.pgpFingerprint != nil && sc.chainLinks != nil {
-		fp := *sc.pgpFingerprint
-		i := len(sc.chainLinks) - 1
-
-		for ; i >= 0; i-- {
-			link := sc.chainLinks[i]
-			if !link.MatchFingerprintAndMark(fp) && !allKeys {
-				break
-			}
-		}
-		i++
-		sc.chainLinks = sc.chainLinks[i:]
-	}
-}
-
 func (sc *SigChain) Store() (err error) {
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		link := sc.chainLinks[i]
@@ -159,13 +154,12 @@ func (sc *SigChain) Store() (err error) {
 
 func (sc *SigChain) verifyId(fp PgpFingerprint) (good bool, searched bool) {
 
-	var fp_mismatch, search, ok bool
+	var search, ok bool
 
 	if sc.chainLinks != nil {
 		for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 			cl := sc.chainLinks[i]
 			if !cl.MatchFingerprint(fp) {
-				fp_mismatch = true
 				break
 			}
 			search = true
@@ -207,11 +201,6 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 	uid_s := sc.uid.ToString()
 	G.Log.Debug("+ VerifyWithKey for user %s", uid_s)
 
-	if sc.sigVerified {
-		cached = true
-		return
-	}
-
 	if err = sc.VerifyChain(); err != nil {
 		return
 	}
@@ -227,10 +216,6 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 
 	if last := sc.GetLastLink(); last != nil {
 		cached, err = last.VerifySig(*key)
-	}
-
-	if err == nil {
-		sc.sigVerified = true
 	}
 
 	G.Log.Debug("- VerifyWithKey for user %s -> %v", uid_s, (err == nil))
@@ -324,12 +309,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 //========================================================================
 
 func (l *SigChainLoader) MakeSigChain() error {
-	q := 0
 	sc := &SigChain{
-		uid:            l.user.GetUid(),
-		username:       l.user.GetName(),
-		chainLinks:     l.links,
-		pgpFingerprint: l.fp,
+		uid:        l.user.GetUid(),
+		username:   l.user.GetName(),
+		chainLinks: l.links,
 	}
 	for _, l := range l.links {
 		l.parent = sc
@@ -392,6 +375,26 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 
 //========================================================================
 
+func (l *SigChainLoader) VerifySig() (err error) {
+	var key *PgpKeyBundle
+
+	if l.fp == nil {
+		return
+	}
+	if key, err = l.user.GetActiveKey(); err != nil {
+		return
+	}
+	if err = key.CheckFingerprint(l.fp); err != nil {
+		return
+	}
+
+	_, err = l.chain.VerifyWithKey(key)
+
+	return
+}
+
+//========================================================================
+
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	var current bool
 
@@ -414,6 +417,12 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		return
 	}
 	if err = l.chain.VerifyChain(); err != nil {
+		return
+	}
+	if err = l.chain.Store(); err != nil {
+		return
+	}
+	if err = l.VerifySig(); err != nil {
 		return
 	}
 	if err = l.chain.Store(); err != nil {

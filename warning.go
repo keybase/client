@@ -6,6 +6,7 @@ import (
 
 type Warning interface {
 	Warning() string
+	Warn()
 }
 
 type StringWarning string
@@ -16,6 +17,10 @@ func (s StringWarning) Warning() string {
 
 func Warningf(format string, a ...interface{}) Warning {
 	return StringWarning(fmt.Sprintf(format, a...))
+}
+
+func (s StringWarning) Warn() {
+	G.Log.Warning(string(s))
 }
 
 func ErrorToWarning(e error) Warning {
@@ -44,6 +49,6 @@ func (w *Warnings) Push(e Warning) {
 
 func (w Warnings) Warn() {
 	for _, e := range w.w {
-		G.Log.Warning(e.Warning())
+		e.Warn()
 	}
 }

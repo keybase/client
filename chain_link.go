@@ -82,7 +82,6 @@ type ChainLink struct {
 	payloadVerified bool
 	chainVerified   bool
 	storedLocally   bool
-	activeKey       bool
 	revoked         bool
 	unsigned        bool
 	dirty           bool
@@ -397,12 +396,6 @@ func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
 
 func (c ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
 	return fp.Eq(c.unpacked.pgpFingerprint)
-}
-
-func (c *ChainLink) MatchFingerprintAndMark(fp PgpFingerprint) bool {
-	ret := c.MatchFingerprint(fp)
-	c.activeKey = ret
-	return ret
 }
 
 func (c ChainLink) MatchUidAndUsername(uid UID, username string) bool {

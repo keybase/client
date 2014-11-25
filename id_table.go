@@ -18,7 +18,6 @@ type TypedChainLink interface {
 	ToDisplayString() string
 	IsRevocationIsh() bool
 	IsRevoked() bool
-	IsActiveKey() bool
 	GetSeqno() Seqno
 	GetCTime() time.Time
 	GetPgpFingerprint() PgpFingerprint
@@ -54,7 +53,6 @@ func (b *GenericChainLink) ToDebugString() string {
 
 func (g *GenericChainLink) IsRevocationIsh() bool { return false }
 func (g *GenericChainLink) IsRevoked() bool       { return g.revoked }
-func (g *GenericChainLink) IsActiveKey() bool     { return g.activeKey }
 func (g *GenericChainLink) GetSeqno() Seqno       { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPgpFingerprint() PgpFingerprint {
 	return g.unpacked.pgpFingerprint
@@ -572,16 +570,17 @@ func (s *SelfSigChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff { return 
 //=========================================================================
 
 type IdentityTable struct {
-	sigChain       *SigChain
-	revocations    map[SigId]bool
-	links          map[SigId]TypedChainLink
-	remoteProofs   map[string][]RemoteProofChainLink
-	tracks         map[string][]*TrackChainLink
-	Order          []TypedChainLink
-	sigHints       *SigHints
-	activeProofs   []RemoteProofChainLink
-	cryptocurrency []*CryptocurrencyChainLink
-	checkResult    *CheckResult
+	sigChain          *SigChain
+	revocations       map[SigId]bool
+	links             map[SigId]TypedChainLink
+	remoteProofs      map[string][]RemoteProofChainLink
+	tracks            map[string][]*TrackChainLink
+	Order             []TypedChainLink
+	sigHints          *SigHints
+	activeProofs      []RemoteProofChainLink
+	cryptocurrency    []*CryptocurrencyChainLink
+	checkResult       *CheckResult
+	activeFingerprint PgpFingerprint
 }
 
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
@@ -636,17 +635,18 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 	return
 }
 
-func NewIdentityTable(sc *SigChain, h *SigHints) *IdentityTable {
+func NewIdentityTable(active PgpFingerprint, sc *SigChain, h *SigHints) *IdentityTable {
 	ret := &IdentityTable{
-		sigChain:       sc,
-		revocations:    make(map[SigId]bool),
-		links:          make(map[SigId]TypedChainLink),
-		remoteProofs:   make(map[string][]RemoteProofChainLink),
-		tracks:         make(map[string][]*TrackChainLink),
-		Order:          make([]TypedChainLink, 0, sc.Len()),
-		sigHints:       h,
-		activeProofs:   make([]RemoteProofChainLink, 0, sc.Len()),
-		cryptocurrency: make([]*CryptocurrencyChainLink, 0, 0),
+		sigChain:          sc,
+		revocations:       make(map[SigId]bool),
+		links:             make(map[SigId]TypedChainLink),
+		remoteProofs:      make(map[string][]RemoteProofChainLink),
+		tracks:            make(map[string][]*TrackChainLink),
+		Order:             make([]TypedChainLink, 0, sc.Len()),
+		sigHints:          h,
+		activeProofs:      make([]RemoteProofChainLink, 0, sc.Len()),
+		cryptocurrency:    make([]*CryptocurrencyChainLink, 0, 0),
+		activeFingerprint: active,
 	}
 	ret.Populate()
 	ret.CollectAndDedupeActiveProofs()
@@ -655,11 +655,11 @@ func NewIdentityTable(sc *SigChain, h *SigHints) *IdentityTable {
 
 func (idt *IdentityTable) Populate() {
 	G.Log.Debug("+ Populate ID Table")
-	for _, link := range idt.sigChain.chainLinks {
+	for _, link := range idt.sigChain.VerifiedChainLinks(idt.activeFingerprint) {
 		tl, w := NewTypedChainLink(link)
 		tl.insertIntoTable(idt)
 		if w != nil {
-			G.Log.Warning(w.Warning())
+			w.Warn()
 		}
 	}
 	G.Log.Debug("- Populate ID Table")
@@ -670,9 +670,7 @@ func (idt *IdentityTable) VerifySelfSig(s string, uid UID) bool {
 	ln := len(list)
 	for i := ln - 1; i >= 0; i-- {
 		link := list[i]
-		if !link.IsActiveKey() {
-			break
-		}
+
 		if link.IsRevoked() {
 			continue
 		}

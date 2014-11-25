@@ -144,6 +144,15 @@ func (e WrongKeyError) Error() string {
 
 //=============================================================================
 
+type UnexpectedKeyError struct {
+}
+
+func (e UnexpectedKeyError) Error() string {
+	return "Found a key or fingerprint when one wasn't expected"
+}
+
+//=============================================================================
+
 type UserNotFoundError struct {
 	uid UID
 	msg string
@@ -233,6 +242,17 @@ func (p BadKeyError) Error() string {
 		msg = msg + ": " + p.msg
 	}
 	return msg
+}
+
+//=============================================================================
+
+type BadFingerprintError struct {
+	fp1, fp2 PgpFingerprint
+}
+
+func (b BadFingerprintError) Error() string {
+	return fmt.Sprintf("Got bad PGP key; fingerprint %s != %s",
+		b.fp1.ToString(), b.fp2.ToString())
 }
 
 //=============================================================================

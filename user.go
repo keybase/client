@@ -402,27 +402,6 @@ func (local *User) CheckBasicsFreshness(server int64) (current bool, err error) 
 	return
 }
 
-func (u *User) VerifySigChain() error {
-	var err error
-	G.Log.Debug("+ VerifySigChain for %s", u.name)
-	key, err := u.GetActiveKey()
-	if err != nil {
-		return err
-	}
-	ch := u.sigChain
-	if ch == nil {
-		return fmt.Errorf("Internal error: sigchain shouldn't be null")
-	}
-
-	cached, err := ch.VerifyWithKey(key)
-	if !cached {
-		u.dirty = true
-	}
-
-	G.Log.Debug("- VerifySigChain for %s -> %v", u.name, (err == nil))
-	return err
-}
-
 func (u *User) StoreSigChain() error {
 	var err error
 	if u.sigChain != nil {
@@ -441,14 +420,6 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
 func (u *User) Store() error {
 
 	G.Log.Debug("+ Store user %s", u.name)
-
-	// We'll refuse to store anything that doesn't verify (since we don't
-	// want the spoiled data in our cace).
-	//
-	// Potentially revisit this decision later.
-	if err := u.VerifySigChain(); err != nil {
-		return err
-	}
 
 	// These might be dirty, in which case we can write it back
 	// to local storage. Note, this can be dirty even if the user is clean.
@@ -553,9 +524,14 @@ func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
 	return
 }
 
-func (u *User) MakeIdTable(allKeys bool) error {
-	u.sigChain.Prune(allKeys)
-	u.IdTable = NewIdentityTable(u.sigChain, u.sigHints)
+func (u *User) MakeIdTable(allKeys bool) (err error) {
+	var fp *PgpFingerprint
+	if fp, err = u.GetActivePgpFingerprint(); err != nil {
+	} else if fp == nil {
+		err = NoKeyError{"Expected a key but didn't find one"}
+	} else {
+		u.IdTable = NewIdentityTable(*fp, u.sigChain, u.sigHints)
+	}
 	return nil
 }
 
@@ -812,6 +788,15 @@ func (u *User) checkKeyFingerprint(arg LoadUserArg) error {
 	fp, err := u.GetActivePgpFingerprint()
 
 	if err != nil {
+		return err
+	}
+
+	key, err := u.GetActiveKey()
+	if err != nil {
+		return err
+	}
+
+	if err = key.CheckFingerprint(fp); err != nil {
 		return err
 	}
 
