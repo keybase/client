@@ -152,15 +152,14 @@ func (u *User) ProofMetadata() (ret *jsonw.Wrapper, err error) {
 	var prev_s string
 	var key, prev *jsonw.Wrapper
 
-	last := u.sigs.AtKey("last")
-	last.AtKey("seqno").GetIntVoid(&seqno, &err)
-	last.AtKey("payload_hash").GetStringVoid(&prev_s, &err)
-	if err != nil {
+	last_seqno := u.sigChain.lastSeqno
+	last_link := u.sigChain.lastLink
+	if last_link == nil {
 		seqno = 1
 		prev = jsonw.NewNil()
-		err = nil
 	} else {
-		seqno++
+		seqno = last_seqno + 1
+		prev_s = last_link.ToString()
 		prev = jsonw.NewString(prev_s)
 	}
 

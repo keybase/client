@@ -583,7 +583,6 @@ func getSecretKey(jw *jsonw.Wrapper, fp PgpFingerprint) (ret *P3SKB, err error) 
 	var pub *PgpKeyBundle
 
 	if packet, err = GetPacket(jw.AtKey("bundle")); err != nil {
-		fmt.Printf("GET PACKET Failure")
 	} else if ret, err = packet.ToP3SKB(); err != nil {
 	} else if pub, err = ret.GetPubKey(); err != nil {
 	} else if fp2 := pub.GetFingerprint(); !fp2.Eq(fp) {

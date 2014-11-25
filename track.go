@@ -348,7 +348,6 @@ func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
 	}
 
 	cl := &ChainLink{payloadJson: obj, unsigned: true}
-	fmt.Printf("obj: %v\n", obj)
 	if err = cl.UnpackLocal(); err != nil {
 		G.Log.Debug("| unpack failed -> %s", err.Error())
 		return
