@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/go-jsonw"
 )
 
 type SigChain struct {
@@ -13,7 +14,6 @@ type SigChain struct {
 
 	sigVerified bool
 	idVerified  bool
-	dirty       bool
 }
 
 func (sc SigChain) Len() int {
@@ -46,7 +46,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (err error) {
 		NeedSession: false,
 		Args: HttpArgs{
 			"uid": S{uid_s},
-			"low": I{low},
+			"low": I{int(low)},
 		},
 	})
 
@@ -88,13 +88,11 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (err error) {
 	}
 
 	sc.chainLinks = append(sc.chainLinks, links...)
-	sc.dirty = true
-
 	return
 }
 
 func (sc *SigChain) VerifyChain() error {
-	for i := len(sc.chainLinks - 1); i >= 0; i-- {
+	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		if curr.chainVerified {
 			break
@@ -102,7 +100,7 @@ func (sc *SigChain) VerifyChain() error {
 		if err := curr.VerifyLink(); err != nil {
 			return err
 		}
-		if i > 0 && !sc.chainLinks[i-1].Eq(curr.GetPrev()) {
+		if i > 0 && !sc.chainLinks[i-1].id.Eq(curr.GetPrev()) {
 			return fmt.Errorf("Chain mismatch at seqno=%d", curr.GetSeqno())
 		}
 		if err := curr.CheckNameAndId(sc.username, sc.uid); err != nil {
@@ -121,7 +119,11 @@ func (sc SigChain) GetLastId() (ret LinkId) {
 	return
 }
 
-func (sc SigChain) GetLastSeqno() (ret int) {
+func (sc SigChain) GetLastLink() *ChainLink {
+	return last(sc.chainLinks)
+}
+
+func (sc SigChain) GetLastSeqno() (ret Seqno) {
 	if l := last(sc.chainLinks); l != nil {
 		ret = l.GetSeqno()
 	}
@@ -144,22 +146,14 @@ func (sc *SigChain) Prune(allKeys bool) {
 	}
 }
 
-func (sc *SigChain) Store() error {
-
-	// If we loaded this chain from storage, no need to store it again
-	if !sc.dirty {
-		return nil
-	}
-
-	if sc.chainLinks != nil {
-		for _, link := range sc.chainLinks {
-			if err := link.Store(); err != nil {
-				return err
-			}
+func (sc *SigChain) Store() (err error) {
+	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
+		link := sc.chainLinks[i]
+		var didStore bool
+		if didStore, err = link.Store(); err != nil || !didStore {
+			return
 		}
 	}
-
-	sc.dirty = false
 	return nil
 }
 
@@ -178,13 +172,6 @@ func (sc *SigChain) verifyId(fp PgpFingerprint) (good bool, searched bool) {
 			if ok = cl.MatchUidAndUsername(sc.uid, sc.username); ok {
 				return true, true
 			}
-		}
-	}
-
-	if !fp_mismatch && sc.base != nil {
-		ok, search = sc.base.verifyId(fp)
-		if ok {
-			return true, true
 		}
 	}
 
@@ -254,13 +241,13 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 //========================================================================
 
 type ChainType struct {
-	DbType          int
+	DbType          ObjType
 	Private         bool
 	Encrypted       bool
 	GetMerkleTriple func(u *MerkleUserLeaf) *MerkleTriple
 }
 
-var PublicChain ChainType = ChainType{
+var PublicChain *ChainType = &ChainType{
 	DbType:          DB_SIG_CHAIN_TAIL_PUBLIC,
 	Private:         false,
 	Encrypted:       false,
@@ -287,7 +274,7 @@ func (l *SigChainLoader) GetUidString() string {
 
 func (l *SigChainLoader) LoadLastLinkIdFromStorage() (id LinkId, err error) {
 	var w *jsonw.Wrapper
-	w, err = G.LocalDB.Get(DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
+	w, err = G.LocalDb.Get(DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
 	if err == nil {
 		id, err = GetLinkId(w)
 	}
@@ -296,7 +283,6 @@ func (l *SigChainLoader) LoadLastLinkIdFromStorage() (id LinkId, err error) {
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	var curr LinkId
-	var fp1, fp2 *PgpFingerprint
 	var links []*ChainLink
 	good_key := true
 
@@ -317,9 +303,9 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 	for curr != nil && good_key {
 		G.Log.Debug("| loading link; curr=%s", curr.ToString())
-		if link, err = LoadLinkFromStorage(curr); err != nil {
+		if link, err = ImportLinkFromStorage(curr); err != nil {
 			return
-		} else if fp2 = link.GetFingerprint(); !allKeys && l.fp != nil && !l.fp.Eq(fp2) {
+		} else if fp2 := link.GetPgpFingerprint(); !l.allKeys && l.fp != nil && !l.fp.Eq(fp2) {
 			good_key = false
 			G.Log.Debug("| Stop loading at fp=%s (!= fp=%s)", l.fp.ToString(), fp2.ToString())
 		} else {
@@ -337,7 +323,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 //========================================================================
 
-func (l *SigChainLoader) MakeSigChain(err error) {
+func (l *SigChainLoader) MakeSigChain() error {
 	q := 0
 	sc := &SigChain{
 		uid:            l.user.GetUid(),
@@ -346,7 +332,7 @@ func (l *SigChainLoader) MakeSigChain(err error) {
 		pgpFingerprint: l.fp,
 	}
 	for _, l := range l.links {
-		l.SetParent(sc)
+		l.parent = sc
 	}
 	l.chain = sc
 	return nil
@@ -370,10 +356,9 @@ func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 
 //========================================================================
 
-func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
+func (sc *SigChain) CheckFreshness(t *MerkleTriple) (current bool, err error) {
 	current = false
-	a := l.chain.GetLastSeqno()
-	t := l.GetMerkleTriple()
+	a := sc.GetLastSeqno()
 	Efn := NewServerChainError
 	if t == nil && a > 0 {
 		err = Efn("Server claimed not to have this user in its tree (we had v=%d)", a)
@@ -383,21 +368,24 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 	} else if b == a {
 		G.Log.Debug("| Local chain version is up-to-date @ version %d", b)
 		current = true
-		if last := l.chain.GetLastId(); last == nil {
+		if last := sc.GetLastId(); last == nil {
 			err = Efn("Failed to read last link for user")
-		} else if !last.id.Eq(t.linkId) {
+		} else if !last.Eq(t.linkId) {
 			err = Efn("The server returned the wrong sigchain tail")
 		}
 	} else {
 		G.Log.Debug("| Local chain version is out-of-date: %d < %d", a, b)
 		current = false
 	}
-	G.Log.Debug("| CheckFreshness (%s) -> (%v,%s)", l.GetUidString(), current, ErrToOk(err))
+	G.Log.Debug("| CheckFreshness (%s) -> (%v,%s)", sc.uid.ToString(), current, ErrToOk(err))
 	return
 }
 
 //========================================================================
 
+func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
+	return l.chain.CheckFreshness(l.GetMerkleTriple())
+}
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	return l.chain.LoadFromServer(l.GetMerkleTriple())
 }
@@ -405,7 +393,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 //========================================================================
 
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
-	var bool current
+	var current bool
 
 	if err = l.GetFingerprint(); err != nil {
 		return
@@ -428,7 +416,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	if err = l.chain.VerifyChain(); err != nil {
 		return
 	}
-	if err = l.Store(); err != nil {
+	if err = l.chain.Store(); err != nil {
 		return
 	}
 	return
@@ -438,7 +426,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType) (ret *SigChain, err error) {
 	loader := SigChainLoader{user: u, allKeys: allKeys, leaf: f, chainType: t}
-	return load.Load()
+	return loader.Load()
 }
 
 //========================================================================

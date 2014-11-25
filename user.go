@@ -216,52 +216,6 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	return u, err
 }
 
-func (u *User) LoadSigChainFromServer(base *SigChain, t *MerkleTriple) error {
-	G.Log.Debug("+ LoadSigChainFromServer(%s)", u.name)
-	if err := u.MakeSigChain(base); err != nil {
-		return nil
-	}
-	err := u.sigChain.LoadFromServer(t)
-	G.Log.Debug("- LoadSigChainFromServer(%s) -> %v", u.name, (err == nil))
-
-	return err
-}
-
-func (u *User) MakeSigChain(base *SigChain) error {
-	if f, err := u.GetActivePgpFingerprint(); err != nil {
-		return err
-	} else if u.sigs != nil && !u.sigs.IsNil() {
-		last := u.sigs.AtKey("last")
-		var seqno int
-		var lid LinkId
-		last.AtKey("seqno").GetIntVoid(&seqno, &err)
-		GetLinkIdVoid(last.AtKey("payload_hash"), &lid, &err)
-		if err != nil {
-			return fmt.Errorf("Badly formatted sigchain tail for user %s: %s",
-				u.name, err.Error())
-		} else {
-			u.sigChain = NewSigChain(u.id, u.name, seqno, lid, f, base)
-		}
-	} else if base != nil {
-		return fmt.Errorf("Signature chain corruption for %s; unexpected base",
-			u.name)
-	} else {
-		G.Log.Debug("| Empty sigchain for %s", u.name)
-		u.sigChain = NewEmptySigChain(u.id, u.name)
-	}
-	return nil
-}
-
-func (u *User) LoadSigChainFromStorage(allKeys bool) error {
-	G.Log.Debug("+ LoadSigChainFromStorage(%s)", u.name)
-	if err := u.MakeSigChain(nil); err != nil {
-		return err
-	}
-	err := u.sigChain.LoadFromStorage(allKeys)
-	G.Log.Debug("- LoadSigChainFromStorage(%s) -> %v", u.name, (err == nil))
-	return err
-}
-
 func LoadUserFromLocalStorage(uid UID, allKeys bool, loadSecrets bool) (u *User, err error) {
 
 	uid_s := uid.ToString()
@@ -600,7 +554,7 @@ func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
 }
 
 func (u *User) MakeIdTable(allKeys bool) error {
-	u.sigChain.FlattenAndPrune(allKeys)
+	u.sigChain.Prune(allKeys)
 	u.IdTable = NewIdentityTable(u.sigChain, u.sigHints)
 	return nil
 }
@@ -741,7 +695,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	if err := ret.LoadSigChains(arg.AllKeys, leaf); err != nil {
+	if err = ret.LoadSigChains(arg.AllKeys, leaf); err != nil {
 		return
 	}
 
@@ -769,7 +723,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 
 		// XXX this is actually the second time we're checking this;
-		// We're also checking it in VerifySigChain(); However, in this
+		// We're also checking it in 	VerifySigChain(); However, in this
 		// case, we're looking out for revoked signature chains.
 		// See https://github.com/keybase/go-libkb/issues/52
 		if err = ret.VerifySelfSig(); err != nil {

@@ -85,6 +85,7 @@ type ChainLink struct {
 	activeKey       bool
 	revoked         bool
 	unsigned        bool
+	dirty           bool
 
 	packed      *jsonw.Wrapper
 	payloadJson *jsonw.Wrapper
@@ -309,6 +310,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	}
 
 	c.sigVerified = true
+	c.dirty = true
 	return
 }
 
@@ -333,12 +335,12 @@ func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
 	}
 }
 
-func LoadLinkFromStorage(parent *SigChain, id LinkId) (*ChainLink, error) {
+func ImportLinkFromStorage(id LinkId) (*ChainLink, error) {
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.ToString()})
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
-		ret = NewChainLink(parent, id, jw)
+		ret = NewChainLink(nil, id, jw)
 		if err = ret.Unpack(true); err != nil {
 			ret = nil
 		}
@@ -357,32 +359,36 @@ func (l *ChainLink) VerifyLink() error {
 	return nil
 }
 
-func (l *ChainLink) Store() error {
-	if l.storedLocally {
-		return nil
+func (l *ChainLink) Store() (didStore bool, err error) {
+	if l.storedLocally && !l.dirty {
+		didStore = true
+		return
 	}
 
-	if err := l.VerifyLink(); err != nil {
-		return err
+	if err = l.VerifyLink(); err != nil {
+		return
 	}
 
 	if !l.hashVerified || !l.payloadVerified {
-		return fmt.Errorf("Internal error; should have been verified in Store()")
+		err = fmt.Errorf("Internal error; should have been verified in Store()")
+		return
 	}
 
-	if err := l.Pack(); err != nil {
-		return err
+	if err = l.Pack(); err != nil {
+		return
 	}
 
 	key := DbKey{Typ: DB_LINK, Key: l.id.ToString()}
 
 	// Don't write with any aliases
-	if err := G.LocalDb.Put(key, []DbKey{}, l.packed); err != nil {
-		return err
+	if err = G.LocalDb.Put(key, []DbKey{}, l.packed); err != nil {
+		return
 	}
 
 	l.storedLocally = true
-	return nil
+	l.dirty = true
+	didStore = true
+	return
 }
 
 func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
