@@ -134,23 +134,23 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 
 	def := true
 	is_equal := false
-	if npf > 0 {
-		prompt = "Some proofs failed; still track " + un + "?"
-		def = false
-	} else if nps == 0 {
-		prompt = "We found an account for " + un +
-			", but they haven't proven their identity. Still track them?"
-		def = false
-	} else if ntf > 0 || nd > 0 {
+	if ntf > 0 || nd > 0 {
 		prompt = "Your tracking statement of " + un + " is broken; fix it?"
 		def = false
 	} else if ntc > 0 {
 		prompt = "Your tracking statement of " + un +
 			"is still valid; update it to reflect new proofs?"
 		def = true
+	} else if nps == 0 {
+		prompt = "We found an account for " + un +
+			", but they haven't proven their identity. Still track them?"
+		def = false
 	} else if tracked && ntc == 0 {
 		G.Log.Info("Your tracking statement is up-to-date")
 		is_equal = true
+	} else if npf > 0 {
+		prompt = "Some proofs failed; still track " + un + "?"
+		def = false
 	} else {
 		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
 		def = true
