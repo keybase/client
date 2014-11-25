@@ -123,7 +123,16 @@ func (s *CmdSigsList) ProcessSigs() (err error) {
 
 func (s *CmdSigsList) skipLink(link libkb.TypedChainLink) bool {
 	return ((!s.revoked && (link.IsRevoked() || link.IsRevocationIsh())) ||
-		(!s.allKeys && !link.IsActiveKey()))
+		(!s.allKeys && !s.IsActiveKey(link)))
+}
+
+func (s *CmdSigsList) IsActiveKey(link libkb.TypedChainLink) bool {
+	fp1, _ := s.user.GetActivePgpFingerprint()
+	if fp1 == nil {
+		return false
+	}
+	fp2 := link.GetPgpFingerprint()
+	return fp1.Eq(fp2)
 }
 
 func (s *CmdSigsList) DisplayTable() (err error) {
@@ -175,7 +184,7 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 			}
 			if s.allKeys {
 				var ch string
-				if link.IsActiveKey() {
+				if s.IsActiveKey(link) {
 					ch = "+"
 				} else {
 					ch = "-"
