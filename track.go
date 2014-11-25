@@ -29,33 +29,22 @@ func (a TrackSet) GetProofState(tic TrackIdComponent) int {
 	return ret
 }
 
-func (a TrackSet) SubsetOf(b TrackSet) (missing []TrackIdComponent, ret bool) {
-	ret = true
-	for k, tc := range a {
-		if _, found := b[k]; !found {
-			ret = false
-			missing = append(missing, tc)
+func (A TrackSet) Subtract(B TrackSet) (out []TrackIdComponent) {
+	for _, c := range A {
+		if !B.HasMember(c) {
+			out = append(out, c)
 		}
 	}
 	return
 }
 
-func (a TrackSet) MemberOf(t TrackIdComponent) bool {
+func (a TrackSet) HasMember(t TrackIdComponent) bool {
 	_, found := a[t.ToIdString()]
 	return found
 }
 
 func (a TrackSet) LenEq(b TrackSet) bool {
 	return len(a) == len(b)
-}
-
-func (a TrackSet) Equal(b TrackSet) bool {
-	if len(a) != len(b) {
-		return false
-	} else {
-		_, ok := a.SubsetOf(b)
-		return ok
-	}
 }
 
 //=====================================================================
@@ -171,17 +160,17 @@ func (t TrackDiffClash) IsSameAsTracked() bool {
 	return false
 }
 
-type TrackDiffLost struct {
+type TrackDiffDeleted struct {
 	idc TrackIdComponent
 }
 
-func (t TrackDiffLost) BreaksTracking() bool {
+func (t TrackDiffDeleted) BreaksTracking() bool {
 	return true
 }
-func (t TrackDiffLost) ToDisplayString() string {
-	return "Lost proof: " + t.idc.ToIdString()
+func (t TrackDiffDeleted) ToDisplayString() string {
+	return "Deleted proof: " + t.idc.ToIdString()
 }
-func (t TrackDiffLost) IsSameAsTracked() bool {
+func (t TrackDiffDeleted) IsSameAsTracked() bool {
 	return false
 }
 

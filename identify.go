@@ -33,12 +33,16 @@ func (i IdentifyArg) MeSet() bool {
 type IdentifyRes struct {
 	Error       error
 	KeyDiff     TrackDiff
-	Lost        []TrackDiffLost
+	Deleted     []TrackDiffDeleted
 	ProofChecks []LinkCheckResult
 	Warnings    []Warning
 	TrackUsed   *TrackLookup
 	TrackEqual  bool // Whether the track statement was equal to what we saw
 	MeSet       bool // whether me was set at the time
+}
+
+func (i IdentifyRes) NumDeleted() int {
+	return len(i.Deleted)
 }
 
 func (i IdentifyRes) NumProofFailures() int {
@@ -51,20 +55,39 @@ func (i IdentifyRes) NumProofFailures() int {
 	return nfails
 }
 
+func (i IdentifyRes) NumProofSuccesses() int {
+	nsucc := 0
+	for _, c := range i.ProofChecks {
+		if c.err == nil {
+			nsucc++
+		}
+	}
+	return nsucc
+}
+
 func (i IdentifyRes) NumTrackFailures() int {
 	ntf := 0
+	check := func(d TrackDiff) bool {
+		return d != nil && d.BreaksTracking()
+	}
 	for _, c := range i.ProofChecks {
-		if c.diff != nil && c.diff.BreaksTracking() {
+		if check(c.diff) || check(c.remoteDiff) {
 			ntf++
 		}
+	}
+	if check(i.KeyDiff) {
+		ntf++
 	}
 	return ntf
 }
 
-func (i IdentifyRes) NumTrackChanged() int {
+func (i IdentifyRes) NumTrackChanges() int {
 	ntc := 0
+	check := func(d TrackDiff) bool {
+		return d != nil && !d.IsSameAsTracked()
+	}
 	for _, c := range i.ProofChecks {
-		if c.diff != nil && !c.diff.IsSameAsTracked() {
+		if check(c.diff) || check(c.remoteDiff) {
 			ntc++
 		}
 	}
@@ -88,8 +111,8 @@ func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warni
 		}
 	}
 
-	for _, lost := range i.Lost {
-		soft_err(lost.ToDisplayString())
+	for _, deleted := range i.Deleted {
+		soft_err(deleted.ToDisplayString())
 	}
 
 	if nfails := i.NumProofFailures(); nfails > 0 {
@@ -155,12 +178,19 @@ func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState
 	return IdentifyState{arg, res, u, nil, new(sync.Mutex)}
 }
 
-func (s *IdentifyState) ComputeLostProofs() {
+func (s *IdentifyState) ComputeDeletedProofs() {
 	found := s.u.IdTable.MakeTrackSet()
 	tracked := s.track.set
-	if missing, ok := tracked.SubsetOf(found); !ok {
-		for _, m := range missing {
-			s.res.Lost = append(s.res.Lost, TrackDiffLost{m})
+
+	// These are the proofs that we previously tracked that we
+	// didn't observe in the current profile
+	diff := tracked.Subtract(found)
+
+	for _, e := range diff {
+		// If the proofs in the difference are for GOOD proofs,
+		// the we have a problem.  Mark the proof as "DELETED"
+		if e.GetProofState() == PROOF_STATE_OK {
+			s.res.Deleted = append(s.res.Deleted, TrackDiffDeleted{e})
 		}
 	}
 }
@@ -193,7 +223,7 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	}
 	u.IdTable.Identify(is)
 
-	is.ComputeLostProofs()
+	is.ComputeDeletedProofs()
 
 	G.Log.Debug("- Identify(%s)", u.name)
 	u.cachedIdentifyRes = res

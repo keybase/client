@@ -887,9 +887,7 @@ func (idt *IdentityTable) ToOkProofs(proofs []Proof) []Proof {
 func (idt *IdentityTable) MakeTrackSet() TrackSet {
 	ret := make(TrackSet)
 	for _, ap := range idt.activeProofs {
-		if ap.GetProofState() == PROOF_STATE_OK {
-			ret.Add(ap)
-		}
+		ret.Add(ap)
 	}
 	return ret
 }
