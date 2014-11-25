@@ -12,8 +12,8 @@ import (
 	libkbfs "github.com/keybase/go-libkbfs-priv"
 )
 
-func GetUI() UI {
-	ui := UI{}
+func GetUI() libkb.UI {
+	ui := &libkbfs.UI{}
 	ui.Configure()
 	return ui
 }
