@@ -127,6 +127,9 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 		is_remote = res.TrackUsed.IsRemote()
 	}
 
+	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; nd=%d; nps=%d; tracked=%v; is_remote=%v",
+		un, ntf, ntc, npf, nd, nps, tracked, is_remote)
+
 	ui.ReportDeleted(res.Deleted)
 
 	def := true
