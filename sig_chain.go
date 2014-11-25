@@ -44,7 +44,7 @@ func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {
 	return
 }
 
-func (sc *SigChain) LoadFromServer(t *MerkleTriple) (err error) {
+func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err error) {
 
 	low := sc.GetLastSeqno()
 	uid_s := sc.uid.ToString()
@@ -62,13 +62,13 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (err error) {
 	})
 
 	if err != nil {
-		return err
+		return
 	}
 
 	v := res.Body.AtKey("sigs")
 	var lim int
 	if lim, err = v.Len(); err != nil {
-		return err
+		return
 	}
 
 	found_tail := false
@@ -76,6 +76,8 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (err error) {
 	G.Log.Debug("| Got back %d new entries", lim)
 
 	var links []*ChainLink
+	var tail *ChainLink
+
 	for i := 0; i < lim; i++ {
 		var link *ChainLink
 		if link, err = ImportLinkFromServer(sc, v.AtIndex(i)); err != nil {
@@ -90,6 +92,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (err error) {
 				return
 			}
 		}
+		tail = link
 	}
 
 	if t != nil && !found_tail {
@@ -98,6 +101,9 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (err error) {
 		return
 	}
 
+	if tail != nil {
+		dirtyTail = tail.ToLinkSummary()
+	}
 	sc.chainLinks = append(sc.chainLinks, links...)
 	return
 }
@@ -249,6 +255,7 @@ type SigChainLoader struct {
 	chainType *ChainType
 	links     []*ChainLink
 	fp        *PgpFingerprint
+	dirtyTail *LinkSummary
 }
 
 //========================================================================
@@ -257,11 +264,11 @@ func (l *SigChainLoader) GetUidString() string {
 	return l.user.GetUid().ToString()
 }
 
-func (l *SigChainLoader) LoadLastLinkIdFromStorage() (id LinkId, err error) {
+func (l *SigChainLoader) LoadLastLinkIdFromStorage() (ls *LinkSummary, err error) {
 	var w *jsonw.Wrapper
 	w, err = G.LocalDb.Get(DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
 	if err == nil {
-		id, err = GetLinkId(w)
+		ls, err = GetLinkSummary(w)
 	}
 	return
 }
@@ -269,6 +276,7 @@ func (l *SigChainLoader) LoadLastLinkIdFromStorage() (id LinkId, err error) {
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	var curr LinkId
 	var links []*ChainLink
+	var ls *LinkSummary
 	good_key := true
 
 	uid_s := l.GetUidString()
@@ -276,7 +284,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid_s)
 	defer G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid_s, ErrToOk(err))
 
-	if curr, err = l.LoadLastLinkIdFromStorage(); err != nil || curr == nil {
+	if ls, err = l.LoadLastLinkIdFromStorage(); err != nil || ls == nil {
 		return err
 	}
 
@@ -284,6 +292,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return
 	}
 
+	curr = ls.id
 	var link *ChainLink
 
 	for curr != nil && good_key {
@@ -369,8 +378,12 @@ func (sc *SigChain) CheckFreshness(t *MerkleTriple) (current bool, err error) {
 func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 	return l.chain.CheckFreshness(l.GetMerkleTriple())
 }
+
+//========================================================================
+
 func (l *SigChainLoader) LoadFromServer() (err error) {
-	return l.chain.LoadFromServer(l.GetMerkleTriple())
+	l.dirtyTail, err = l.chain.LoadFromServer(l.GetMerkleTriple())
+	return
 }
 
 //========================================================================
@@ -390,6 +403,33 @@ func (l *SigChainLoader) VerifySig() (err error) {
 
 	_, err = l.chain.VerifyWithKey(key)
 
+	return
+}
+
+//========================================================================
+
+func (l *SigChainLoader) StoreTail() (err error) {
+	if l.dirtyTail == nil {
+		return
+	}
+	err = G.LocalDb.Put(
+		DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()},
+		nil,
+		l.dirtyTail.ToJson(),
+	)
+	if err == nil {
+		l.dirtyTail = nil
+	}
+	return
+}
+
+//========================================================================
+
+func (l *SigChainLoader) Store() (err error) {
+	err = l.StoreTail()
+	if err == nil {
+		err = l.chain.Store()
+	}
 	return
 }
 
@@ -425,9 +465,10 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	if err = l.VerifySig(); err != nil {
 		return
 	}
-	if err = l.chain.Store(); err != nil {
+	if err = l.Store(); err != nil {
 		return
 	}
+
 	return
 }
 

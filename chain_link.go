@@ -401,3 +401,33 @@ func (c ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
 func (c ChainLink) MatchUidAndUsername(uid UID, username string) bool {
 	return uid == c.unpacked.uid && username == c.unpacked.username
 }
+
+type LinkSummary struct {
+	id    LinkId
+	seqno Seqno
+}
+
+func (l LinkSummary) ToJson() *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("id", jsonw.NewString(l.id.ToString()))
+	ret.SetKey("seqno", jsonw.NewInt(int(l.seqno)))
+	return ret
+}
+
+func GetLinkSummary(j *jsonw.Wrapper) (ret *LinkSummary, err error) {
+	var seqno int
+	var id LinkId
+	j.AtKey("seqno").GetIntVoid(&seqno, &err)
+	GetLinkIdVoid(j.AtKey("id"), &id, &err)
+	if err != nil {
+		ret = &LinkSummary{id, Seqno(seqno)}
+	}
+	return
+}
+
+func (l ChainLink) ToLinkSummary() *LinkSummary {
+	return &LinkSummary{
+		id:    l.id,
+		seqno: l.GetSeqno(),
+	}
+}
