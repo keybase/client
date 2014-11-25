@@ -419,7 +419,7 @@ func GetLinkSummary(j *jsonw.Wrapper) (ret *LinkSummary, err error) {
 	var id LinkId
 	j.AtKey("seqno").GetIntVoid(&seqno, &err)
 	GetLinkIdVoid(j.AtKey("id"), &id, &err)
-	if err != nil {
+	if err == nil {
 		ret = &LinkSummary{id, Seqno(seqno)}
 	}
 	return

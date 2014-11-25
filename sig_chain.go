@@ -87,7 +87,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 			continue
 		}
 		links = append(links, link)
-		if !found_tail && t == nil {
+		if !found_tail && t != nil {
 			if found_tail, err = link.checkAgainstMerkleTree(t); err != nil {
 				return
 			}
@@ -96,8 +96,8 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 	}
 
 	if t != nil && !found_tail {
-		err = NewServerChainError("Failed to reach seqno=%d in server response",
-			int(t.seqno))
+		err = NewServerChainError("Failed to reach (%s, %d) in server response",
+			t.linkId.ToString(), int(t.seqno))
 		return
 	}
 
@@ -267,7 +267,11 @@ func (l *SigChainLoader) GetUidString() string {
 func (l *SigChainLoader) LoadLastLinkIdFromStorage() (ls *LinkSummary, err error) {
 	var w *jsonw.Wrapper
 	w, err = G.LocalDb.Get(DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
-	if err == nil {
+	if err != nil {
+		G.Log.Debug("| Error loading last link: %s", err.Error())
+	} else if w == nil {
+		G.Log.Debug("| LastLinkId was null")
+	} else {
 		ls, err = GetLinkSummary(w)
 	}
 	return
@@ -285,10 +289,12 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	defer G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid_s, ErrToOk(err))
 
 	if ls, err = l.LoadLastLinkIdFromStorage(); err != nil || ls == nil {
+		G.Log.Debug("| Failed to load last link ID")
 		return err
 	}
 
 	if l.fp == nil && !l.allKeys {
+		G.Log.Debug("| Current fingerprint is nil; short-circuiting local load")
 		return
 	}
 
@@ -438,33 +444,55 @@ func (l *SigChainLoader) Store() (err error) {
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	var current bool
 
+	uid_s := l.GetUidString()
+
+	G.Log.Debug("+ SigChainLoader.Load(%s)", uid_s)
+	defer func() {
+		G.Log.Debug("- SigChainLoader.Load(%s) -> (%v, %s)", uid_s, (ret != nil), ErrToOk(err))
+	}()
+
+	stage := func(s string) {
+		G.Log.Debug("| SigChainLoader.Load(%s) %s", uid_s, s)
+	}
+
+	stage("GetFingerprint")
 	if err = l.GetFingerprint(); err != nil {
 		return
 	}
+	stage("LoadLinksFromStorage")
 	if err = l.LoadLinksFromStorage(); err != nil {
 		return
 	}
+	stage("MakeSigChain")
 	if err = l.MakeSigChain(); err != nil {
 		return
 	}
+	ret = l.chain
+	stage("VerifyChain")
 	if err = l.chain.VerifyChain(); err != nil {
 		return
 	}
+	stage("CheckFreshness")
 	if current, err = l.CheckFreshness(); err != nil || current {
 		return
 	}
+	stage("LoadFromServer")
 	if err = l.LoadFromServer(); err != nil {
 		return
 	}
+	stage("VerifyChain")
 	if err = l.chain.VerifyChain(); err != nil {
 		return
 	}
+	stage("Store")
 	if err = l.chain.Store(); err != nil {
 		return
 	}
+	stage("VerifySig")
 	if err = l.VerifySig(); err != nil {
 		return
 	}
+	stage("Store")
 	if err = l.Store(); err != nil {
 		return
 	}

@@ -360,7 +360,6 @@ func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err erro
 	if u, err = NewUserFromServer(body); err != nil {
 		return
 	}
-
 	G.Log.Debug("- Load user from server: %s -> %s", uid_s, ErrToOk(err))
 
 	return
@@ -452,6 +451,8 @@ func (u *User) Store() error {
 
 func (u *User) StoreTopLevel() error {
 
+	G.Log.Debug("+ StoreTopLevel")
+
 	uid_s := u.id.ToString()
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", jsonw.NewString(uid_s))
@@ -464,10 +465,7 @@ func (u *User) StoreTopLevel() error {
 		[]DbKey{{Typ: DB_LOOKUP_USERNAME, Key: u.name}},
 		jw,
 	)
-	if err != nil {
-		return err
-	}
-
+	G.Log.Debug("- StoreTopLevel -> %s", ErrToOk(err))
 	return err
 }
 
@@ -648,23 +646,25 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	var load_remote bool
+	var f1, load_remote bool
 
 	if local == nil {
 		G.Log.Debug("| No local user stored for %s", uid_s)
 		load_remote = true
-	} else if load_remote, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
+	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
 		return
+	} else {
+		load_remote = !f1
 	}
 
-	G.Log.Debug("| Freshness: basics=%v; for %s", !load_remote, uid_s)
+	G.Log.Debug("| Freshness: basics=%v; for %s", f1, uid_s)
 
 	if !load_remote {
 		ret = local
 	} else if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
-		ret = remote
-	} else {
 		return
+	} else {
+		ret = remote
 	}
 
 	if ret == nil {
