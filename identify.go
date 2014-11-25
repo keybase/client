@@ -122,7 +122,7 @@ func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warni
 
 	if ntf := i.NumTrackFailures(); ntf > 0 {
 		probs = append(probs,
-			fmt.Sprintf("%d track copmonent%s failed",
+			fmt.Sprintf("%d track component%s failed",
 				ntf, GiveMeAnS(ntf)))
 	}
 
@@ -179,6 +179,9 @@ func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState
 }
 
 func (s *IdentifyState) ComputeDeletedProofs() {
+	if s.track == nil {
+		return
+	}
 	found := s.u.IdTable.MakeTrackSet()
 	tracked := s.track.set
 

@@ -819,7 +819,9 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 	defer func() {
 		G.Log.Debug("- CheckActiveProof %s", p.ToDebugString())
 		observedProofState := ProofErrorToState(res.err)
-		res.remoteDiff = ComputeRemoteDiff(trackedProofState, observedProofState)
+		if track != nil {
+			res.remoteDiff = ComputeRemoteDiff(trackedProofState, observedProofState)
+		}
 	}()
 
 	sid := p.GetSigId()
