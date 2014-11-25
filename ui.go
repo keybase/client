@@ -216,7 +216,7 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lc
 }
 
 func TrackDiffToColoredString(t libkb.TrackDiff) string {
-	s := t.ToDisplayString()
+	s := "<" + t.ToDisplayString() + ">"
 	var color string
 	switch t.(type) {
 	case libkb.TrackDiffError, libkb.TrackDiffClash, libkb.TrackDiffDeleted:
