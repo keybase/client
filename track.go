@@ -129,7 +129,7 @@ func (t TrackDiffNone) IsSameAsTracked() bool {
 }
 
 func (t TrackDiffNone) ToDisplayString() string {
-	return "OK"
+	return "tracked"
 }
 
 type TrackDiffNew struct{}
