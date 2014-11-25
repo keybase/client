@@ -107,7 +107,7 @@ func (t TrackDiffError) BreaksTracking() bool {
 	return true
 }
 func (t TrackDiffError) ToDisplayString() string {
-	return "<error>"
+	return "error"
 }
 func (t TrackDiffError) IsSameAsTracked() bool {
 	return false
@@ -125,7 +125,7 @@ func (t TrackDiffUpgraded) BreaksTracking() bool {
 	return false
 }
 func (t TrackDiffUpgraded) ToDisplayString() string {
-	return "<Upgraded from " + t.prev + " to " + t.curr + ">"
+	return "Upgraded from " + t.prev + " to " + t.curr
 }
 func (t TrackDiffUpgraded) GetPrev() string { return t.prev }
 func (t TrackDiffUpgraded) GetCurr() string { return t.curr }
@@ -140,7 +140,7 @@ func (t TrackDiffNone) IsSameAsTracked() bool {
 }
 
 func (t TrackDiffNone) ToDisplayString() string {
-	return "<OK>"
+	return "OK"
 }
 
 type TrackDiffNew struct{}
@@ -157,7 +157,7 @@ type TrackDiffClash struct {
 }
 
 func (t TrackDiffNew) ToDisplayString() string {
-	return "<new>"
+	return "new"
 }
 
 func (t TrackDiffClash) BreaksTracking() bool {
@@ -165,7 +165,7 @@ func (t TrackDiffClash) BreaksTracking() bool {
 }
 
 func (t TrackDiffClash) ToDisplayString() string {
-	return "<CHANGED from " + t.expected + ">"
+	return "CHANGED from " + t.expected
 }
 func (t TrackDiffClash) IsSameAsTracked() bool {
 	return false
@@ -179,9 +179,51 @@ func (t TrackDiffLost) BreaksTracking() bool {
 	return true
 }
 func (t TrackDiffLost) ToDisplayString() string {
-	return "<Lost proof: " + t.idc.ToIdString() + ">"
+	return "Lost proof: " + t.idc.ToIdString()
 }
 func (t TrackDiffLost) IsSameAsTracked() bool {
+	return false
+}
+
+type TrackDiffRemoteFail struct {
+	observed int
+}
+
+func (t TrackDiffRemoteFail) BreaksTracking() bool {
+	return true
+}
+func (t TrackDiffRemoteFail) ToDisplayString() string {
+	return "remote failed"
+}
+func (t TrackDiffRemoteFail) IsSameAsTracked() bool {
+	return false
+}
+
+type TrackDiffRemoteWorking struct {
+	tracked int
+}
+
+func (t TrackDiffRemoteWorking) BreaksTracking() bool {
+	return false
+}
+func (t TrackDiffRemoteWorking) ToDisplayString() string {
+	return "working"
+}
+func (t TrackDiffRemoteWorking) IsSameAsTracked() bool {
+	return false
+}
+
+type TrackDiffRemoteChanged struct {
+	tracked, observed int
+}
+
+func (t TrackDiffRemoteChanged) BreaksTracking() bool {
+	return false
+}
+func (t TrackDiffRemoteChanged) ToDisplayString() string {
+	return "changed"
+}
+func (t TrackDiffRemoteChanged) IsSameAsTracked() bool {
 	return false
 }
 

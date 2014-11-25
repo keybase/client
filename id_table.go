@@ -798,6 +798,18 @@ func (l LinkCheckResult) GetError() error         { return l.err }
 func (l LinkCheckResult) GetHint() *SigHint       { return l.hint }
 func (l LinkCheckResult) GetCached() *CheckResult { return l.cached }
 
+func ComputeRemoteDiff(tracked, observed int) TrackDiff {
+	if observed == tracked {
+		return TrackDiffNone{}
+	} else if observed == PROOF_STATE_OK {
+		return TrackDiffRemoteFail{observed}
+	} else if tracked == PROOF_STATE_OK {
+		return TrackDiffRemoteWorking{tracked}
+	} else {
+		return TrackDiffRemoteChanged{tracked, observed}
+	}
+}
+
 func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackLookup) (
 	res LinkCheckResult) {
 
@@ -806,8 +818,8 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 	G.Log.Debug("+ CheckActiveProof %s", p.ToDebugString())
 	defer func() {
 		G.Log.Debug("- CheckActiveProof %s", p.ToDebugString())
-		// Example trackedProofState vs res.erro
-		// and set remoteDiff accordingly
+		observedProofState := ProofErrorToState(res.err)
+		res.remoteDiff = ComputeRemoteDiff(trackedProofState, observedProofState)
 	}()
 
 	sid := p.GetSigId()
