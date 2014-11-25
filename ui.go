@@ -198,14 +198,15 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lc
 	if diff := lcr.GetDiff(); diff != nil {
 		lcrs = TrackDiffToColoredString(diff) + " "
 	}
+	run := s.GetRemoteUsername()
 
 	if err := lcr.GetError(); err == nil {
 		msg += (CHECK + " " + lcrs + `"` +
-			ColorString("green", s.GetUsername()) + `" on ` + s.GetService() +
+			ColorString("green", run) + `" on ` + s.GetService() +
 			": " + lcr.GetHint().GetHumanUrl())
 	} else {
 		msg += (BADX + " " + lcrs +
-			ColorString("red", `"`+s.GetUsername()+`" on `+s.GetService()+" "+
+			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
 				ColorString("bold", "failed")+": "+
 				lcr.GetError().Error()))
 	}
