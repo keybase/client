@@ -88,10 +88,18 @@ type IdentifyTrackUI struct {
 	strict bool
 }
 
+func (ui IdentifyTrackUI) ReportDeleted(del []libkb.TrackDiffDeleted) {
+	if len(del) > 0 {
+		G.Log.Warning("Some proofs you previous tracked were deleted:")
+		for _, d := range del {
+			ui.ReportHook(BADX + " " + TrackDiffToColoredString(d))
+		}
+	}
+}
+
 func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
 	var prompt string
 	un := ui.them.GetName()
-	var warnings libkb.Warnings
 
 	// A "Track Failure" is when we previously tracked this user, and
 	// some aspect of their proof changed.  Like their key changed, or
@@ -102,35 +110,68 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 	// a proof from HTTP to HTTPS.  But we still should retrack if we can.
 	ntc := res.NumTrackChanges()
 
-	// A proof failure is when some of the active proofs the user has
-	// broke
+	// The number of proofs that failed.
 	npf := res.NumProofFailures()
 
-	if err, warnings = res.GetErrorAndWarnings(ui.strict); err != nil {
-		return
-	} else if !warnings.IsEmpty() {
-		ui.ShowWarnings(warnings)
-		prompt = "Some proofs failed; still track " + un + "?"
-	} else if len(res.ProofChecks) == 0 {
-		prompt = "We found an account for " + un +
-			", but they haven't proven their identity. Still track them?"
-	} else if res.TrackEqual {
-		G.Log.Info("Your tracking statement is up-to-date")
-		return
-	} else {
-		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
+	// Deleted proofs are those we used to look for but are gone!
+	nd := res.NumDeleted()
+
+	// The number of proofs that actually worked
+	nps := res.NumProofSuccesses()
+
+	// Whether we used a tracking statement when checking the identity
+	// this time...
+	tracked := res.TrackUsed != nil
+	is_remote := false
+	if tracked {
+		is_remote = res.TrackUsed.IsRemote()
 	}
 
-	if err = ui.PromptForConfirmation(prompt); err != nil {
-		return
-	}
-
-	i.Local = true
+	ui.ReportDeleted(res.Deleted)
 
 	def := true
-	prompt = "Publicly write tracking statement to server?"
-	if i.Remote, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
-		return
+	is_equal := false
+	if npf > 0 {
+		prompt = "Some proofs failed; still track " + un + "?"
+		def = false
+	} else if nps == 0 {
+		prompt = "We found an account for " + un +
+			", but they haven't proven their identity. Still track them?"
+		def = false
+	} else if ntf > 0 || nd > 0 {
+		prompt = "Your tracking statement of " + un + " is broken; fix it?"
+		def = false
+	} else if ntc > 0 {
+		prompt = "Your tracking statement of " + un +
+			"is still valid; update it to reflect new proofs?"
+		def = true
+	} else if tracked && ntc == 0 {
+		G.Log.Info("Your tracking statement is up-to-date")
+		is_equal = true
+	} else {
+		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
+		def = true
+	}
+
+	if !is_equal {
+		var ok bool
+		if ok, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
+			return
+		} else if !ok {
+			err = NotConfirmedError{}
+			return
+		}
+		i.Local = true
+	} else if is_remote {
+		i.Local = false
+	}
+
+	if !is_equal || !is_remote {
+		def = true
+		prompt = "Publicly write tracking statement to server?"
+		if i.Remote, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
+			return
+		}
 	}
 
 	return
@@ -175,7 +216,7 @@ func TrackDiffToColoredString(t libkb.TrackDiff) string {
 	s := t.ToDisplayString()
 	var color string
 	switch t.(type) {
-	case libkb.TrackDiffError, libkb.TrackDiffClash, libkb.TrackDiffLost:
+	case libkb.TrackDiffError, libkb.TrackDiffClash, libkb.TrackDiffDeleted:
 		color = "red"
 	case libkb.TrackDiffUpgraded:
 		color = "orange"
