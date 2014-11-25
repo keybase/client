@@ -68,14 +68,17 @@ func (j *JsonLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
 func (j *JsonLocalDb) Delete(id DbKey) error { return j.engine.Delete(id) }
 
 const (
-	DB_USER             = 0x00
-	DB_SIG              = 0x0f
-	DB_LINK             = 0xe0
-	DB_PGP_KEY          = 0xe3
-	DB_SIG_HINTS        = 0xe4
-	DB_PROOF_CHECK      = 0xe5
-	DB_USER_SECRET_KEYS = 0xe6
-	DB_LOCAL_TRACK      = 0xe1
+	DB_USER                       = 0x00
+	DB_SIG                        = 0x0f
+	DB_LINK                       = 0xe0
+	DB_LOCAL_TRACK                = 0xe1
+	DB_PGP_KEY                    = 0xe3
+	DB_SIG_HINTS                  = 0xe4
+	DB_PROOF_CHECK                = 0xe5
+	DB_USER_SECRET_KEYS           = 0xe6
+	DB_SIG_CHAIN_TAIL_PUBLIC      = 0xe7
+	DB_SIG_CHAIN_TAIL_SEMIPRIVATE = 0xe8
+	DB_SIG_CHAIN_TAIL_ENCRYPTED   = 0xe8
 )
 
 const (

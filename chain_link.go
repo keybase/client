@@ -80,6 +80,7 @@ type ChainLink struct {
 	hashVerified    bool
 	sigVerified     bool
 	payloadVerified bool
+	chainVerified   bool
 	storedLocally   bool
 	activeKey       bool
 	revoked         bool
@@ -311,7 +312,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	return
 }
 
-func LoadLinkFromServer(parent *SigChain, jw *jsonw.Wrapper) (ret *ChainLink, err error) {
+func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper) (ret *ChainLink, err error) {
 	var id LinkId
 	GetLinkIdVoid(jw.AtKey("payload_hash"), &id, &err)
 	if err != nil {

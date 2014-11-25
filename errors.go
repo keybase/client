@@ -322,3 +322,17 @@ func (e InternalError) Error() string {
 }
 
 //=============================================================================
+
+type ServerChainError struct {
+	msg string
+}
+
+func (e ServerChainError) Error() string {
+	return e.msg
+}
+
+func NewServerChainError(d string, a ...interface{}) ServerChainError {
+	return ServerChainError{fmt.Sprintf(d, a...)}
+}
+
+//=============================================================================

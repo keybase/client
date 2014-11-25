@@ -300,11 +300,6 @@ func LoadUserFromLocalStorage(uid UID, allKeys bool, loadSecrets bool) (u *User,
 	}
 
 	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, uid_s)
-
-	if err = u.LoadSigChainFromStorage(allKeys); err != nil {
-		return nil, err
-	}
-
 	G.Log.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid_s)
 
 	return
@@ -453,40 +448,6 @@ func (local *User) CheckBasicsFreshness(server int64) (current bool, err error) 
 	return
 }
 
-func (local *User) CheckChainFreshness(t *MerkleTriple) (current bool, err error) {
-	current = false
-
-	a := local.GetSeqno()
-
-	if t == nil {
-		if a > 0 {
-			err = fmt.Errorf("Server claimed not to have this user in its tree (we had v=%d)", a)
-		}
-	} else if b := t.seqno; b < 0 || a > b {
-		err = fmt.Errorf("Server version-rollback sustpected: Local %d > %d",
-			a, b)
-	} else if b == a {
-		G.Log.Debug("| Local chain version is up-to-date @ version %d", b)
-		current = true
-		last := local.sigChain.GetLastLinkRecursive()
-		if last == nil {
-			err = fmt.Errorf("Failed to read last link for user")
-		} else if !last.id.Eq(t.linkId) {
-			err = fmt.Errorf("The server returned the wrong sigchain tail")
-		}
-	} else {
-		G.Log.Debug("| Local chain version is out-of-date: %d < %d", a, b)
-		current = false
-	}
-	G.Log.Debug("+ CheckSeqno(%s) -> %v", local.name, current)
-	return
-}
-
-func (u *User) BorrowSigChainFrom(u2 *User) {
-	G.Log.Debug("| Borrowing SigChain from locally stored user")
-	u.sigChain = u2.sigChain
-}
-
 func (u *User) VerifySigChain() error {
 	var err error
 	G.Log.Debug("+ VerifySigChain for %s", u.name)
@@ -513,6 +474,13 @@ func (u *User) StoreSigChain() error {
 	if u.sigChain != nil {
 		err = u.sigChain.Store()
 	}
+	return err
+}
+
+func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
+	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain)
+
+	// Eventually load the others, but for now, this one is good enough
 	return err
 }
 
@@ -750,56 +718,35 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	var baseChain *SigChain
-	var f1, f2, load_remote, load_chain bool
+	var load_remote bool
 
 	if local == nil {
 		G.Log.Debug("| No local user stored for %s", uid_s)
 		load_remote = true
-		load_chain = true
-	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
-		// noop
-	} else if f2, err = local.CheckChainFreshness(leaf.public); err != nil {
-		// noop
-	} else {
-		load_remote = !f1
-		load_chain = !f2
-		baseChain = local.sigChain
-	}
-
-	// If there was a problem in checking freshness, time to bail out
-	if err != nil {
+	} else if load_remote, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
 		return
 	}
 
-	G.Log.Debug("| Freshness: chain=%v; basics=%v; for %s",
-		!load_chain, !load_remote, uid_s)
+	G.Log.Debug("| Freshness: basics=%v; for %s", !load_remote, uid_s)
 
-	if load_remote {
-		if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
-			return
-		}
+	if !load_remote {
+		ret = local
+	} else if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
 		ret = remote
 	} else {
-		ret = local
+		return
 	}
 
-	if load_chain {
-		err = ret.LoadSigChainFromServer(baseChain, leaf.public)
-	} else if load_remote {
-		ret.BorrowSigChainFrom(local)
+	if ret == nil {
+		return
 	}
 
-	if err != nil || ret == nil {
+	if err := ret.LoadSigChains(arg.AllKeys, leaf); err != nil {
 		return
 	}
 
 	// Note whether we asked for loading secrets or not...
 	ret.secret = arg.LoadSecrets
-
-	if err = ret.VerifySigChain(); err != nil {
-		return
-	}
 
 	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id); err != nil {
 		return
