@@ -372,7 +372,7 @@ func (l *TrackChainLink) IsRevoked() bool {
 }
 
 func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
-	return l.payloadJson.AtPath("body.track.remote_key_proofs")
+	return l.payloadJson.AtPath("body.track.remote_proofs")
 }
 
 func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
@@ -583,6 +583,10 @@ type IdentityTable struct {
 	activeFingerprint PgpFingerprint
 }
 
+func (tab *IdentityTable) GetTrackMap() map[string][]*TrackChainLink {
+	return tab.tracks
+}
+
 func (tab *IdentityTable) insertLink(l TypedChainLink) {
 	tab.links[l.GetSigId()] = l
 	tab.Order = append(tab.Order, l)
@@ -681,6 +685,19 @@ func (idt *IdentityTable) VerifySelfSig(s string, uid UID) bool {
 		}
 	}
 	return false
+}
+
+func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
+	for _, v := range idt.tracks {
+		for i := len(v) - 1; i >= 0; i-- {
+			link := v[i]
+			if !link.IsRevoked() {
+				ret = append(ret, link)
+				break
+			}
+		}
+	}
+	return
 }
 
 func (idt *IdentityTable) GetTrackingStatementFor(s string, uid UID) (

@@ -32,6 +32,5 @@ func Tablify(writer io.Writer, headings []string, rowfunc func() []string) {
 		dorow(row)
 	}
 
-	fmt.Fprintln(w)
 	w.Flush()
 }
