@@ -30,7 +30,75 @@ func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdProve) Run() error {
+func (v *CmdProve) Login() (err error) {
+	return
+}
+func (v *CmdProve) LoadMe() (err error) {
+	return
+}
+func (v *CmdProve) CheckExists1() (err error) {
+	return
+}
+func (v *CmdProve) PromptRemoteName() (err error) {
+	return
+}
+func (v *CmdProve) NormalizeRemoteName() (err error) {
+	return
+}
+func (v *CmdProve) CheckExists2() (err error) {
+	return
+}
+func (v *CmdProve) DoPrechecks() (err error) {
+	return
+}
+func (v *CmdProve) DoWarnings() (err error) {
+	return
+}
+func (v *CmdProve) GenerateProof() (err error) {
+	return
+}
+func (v *CmdProve) PostProofToServer() (err error) {
+	return
+}
+func (v *CmdProve) PromptPostedLoop() (err error) {
+	return
+}
+
+func (v *CmdProve) Run() (err error) {
+
+	if err = v.Login(); err != nil {
+		return
+	}
+	if err = v.LoadMe(); err != nil {
+		return
+	}
+	if err = v.CheckExists1(); err != nil {
+		return
+	}
+	if err = v.PromptRemoteName(); err != nil {
+		return
+	}
+	if err = v.NormalizeRemoteName(); err != nil {
+		return
+	}
+	if err = v.CheckExists2(); err != nil {
+		return
+	}
+	if err = v.DoPrechecks(); err != nil {
+		return
+	}
+	if err = v.DoWarnings(); err != nil {
+		return
+	}
+	if err = v.GenerateProof(); err != nil {
+		return
+	}
+	if err = v.PostProofToServer(); err != nil {
+		return
+	}
+	if err = v.PromptPostedLoop(); err != nil {
+		return
+	}
 	return nil
 }
 
