@@ -11,7 +11,7 @@ type CmdProve struct {
 	force             bool
 	service, username string
 	output            string
-	st                *libkb.ServiceType
+	st                libkb.ServiceType
 }
 
 func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
@@ -42,7 +42,7 @@ func (v *CmdProve) LoadMe() (err error) {
 	return
 }
 func (v *CmdProve) CheckExists1() (err error) {
-	proofs := v.me.IdTable.GetActiveProofsFor(*v.st)
+	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
 	if len(proofs) != 0 {
 		lst := proofs[len(proofs)-1]
 		prompt := "You already have a proof " +
@@ -56,7 +56,11 @@ func (v *CmdProve) CheckExists1() (err error) {
 	}
 	return
 }
+
 func (v *CmdProve) PromptRemoteName() (err error) {
+	if len(v.username) == 0 {
+
+	}
 	return
 }
 func (v *CmdProve) NormalizeRemoteName() (err error) {
