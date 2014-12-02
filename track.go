@@ -336,7 +336,7 @@ func (e *TrackEngine) Run() (err error) {
 func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
 	uid_s := i.ToString()
 	G.Log.Debug("+ GetLocalTrack(%s)", uid_s)
-	defer G.Log.Debug("- GetLocalTrack(%s) -> %s", uid_s, ErrToOk(err))
+	defer G.Log.Debug("- GetLocalTrack(%s) -> (%v, %s)", uid_s, ret, ErrToOk(err))
 
 	var obj *jsonw.Wrapper
 	obj, err = G.LocalDb.Get(
@@ -344,6 +344,10 @@ func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
 	)
 	if err != nil {
 		G.Log.Debug("| DB lookup failed")
+		return
+	}
+	if obj == nil {
+		G.Log.Debug("| No local track found")
 		return
 	}
 

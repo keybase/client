@@ -748,6 +748,8 @@ func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, e
 
 	if e1 != nil && e2 != nil {
 		err = e1
+	} else if local == nil && remote == nil {
+		// noop
 	} else if local == nil && remote != nil {
 		link = remote
 	} else if remote == nil && local != nil {
