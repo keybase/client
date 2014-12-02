@@ -70,7 +70,16 @@ func (s *CmdListTracking) FilterRxx() error {
 		return err
 	}
 	s.filterTracks(func(l libkb.TrackChainLink) bool {
-		return rxx.MatchString(l.ToDisplayString())
+		if rxx.MatchString(l.ToDisplayString()) {
+			return true
+		}
+		for _, sb := range l.ToServiceBlocks() {
+			_, v := sb.ToKeyValuePair()
+			if rxx.MatchString(v) {
+				return true
+			}
+		}
+		return false
 	})
 	return nil
 }
