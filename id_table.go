@@ -367,6 +367,10 @@ func (l *TrackChainLink) GetTrackedUid() (*UID, error) {
 	return GetUid(l.payloadJson.AtPath("body.track.id"))
 }
 
+func (l *TrackChainLink) GetTrackedUsername() (string, error) {
+	return l.payloadJson.AtPath("body.track.basics.username").GetString()
+}
+
 func (l *TrackChainLink) IsRevoked() bool {
 	return l.revoked || l.untrack != nil
 }

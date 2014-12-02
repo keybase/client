@@ -103,6 +103,10 @@ func (c *ChainLink) MarkChecked(err ProofError) {
 	}
 }
 
+func (c *ChainLink) GetPayloadJson() *jsonw.Wrapper {
+	return c.payloadJson
+}
+
 func (c *ChainLink) GetProofState0() int {
 	if c.lastChecked == nil {
 		return PROOF_STATE_NONE
