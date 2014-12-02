@@ -11,6 +11,7 @@ type CmdProve struct {
 	force             bool
 	service, username string
 	output            string
+	st                *libkb.ServiceType
 }
 
 func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
@@ -26,6 +27,9 @@ func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
 		if nargs == 2 {
 			v.username = ctx.Args()[1]
 		}
+		if v.st = libkb.GetServiceType(v.service); v.st == nil {
+			err = BadServiceError{v.service}
+		}
 	}
 	return err
 }
@@ -34,9 +38,22 @@ func (v *CmdProve) Login() (err error) {
 	return G.LoginState.Login(libkb.LoginArg{})
 }
 func (v *CmdProve) LoadMe() (err error) {
+	v.me, err = libkb.LoadMe(libkb.LoadUserArg{LoadSecrets: true, AllKeys: false})
 	return
 }
 func (v *CmdProve) CheckExists1() (err error) {
+	proofs := v.me.IdTable.GetActiveProofsFor(*v.st)
+	if len(proofs) != 0 {
+		lst := proofs[len(proofs)-1]
+		prompt := "You already have a proof " +
+			ColorString("bold", lst.ToDisplayString()) + "; overwrite?"
+		def := false
+		var redo bool
+		redo, err = G_UI.PromptYesNo(prompt, &def)
+		if !redo {
+			err = NotConfirmedError{}
+		}
+	}
 	return
 }
 func (v *CmdProve) PromptRemoteName() (err error) {
@@ -118,7 +135,7 @@ func NewCmdProve(cl *CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdProve{}, "track", c)
+			cl.ChooseCommand(&CmdProve{}, "prove", c)
 		},
 	}
 }

@@ -35,3 +35,11 @@ func (e CleanCancelError) Error() string {
 type CanceledError struct {
 	msg string
 }
+
+type BadServiceError struct {
+	n string
+}
+
+func (e BadServiceError) Error() string {
+	return e.n + ": unsupported service"
+}
