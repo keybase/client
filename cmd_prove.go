@@ -31,7 +31,7 @@ func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdProve) Login() (err error) {
-	return
+	return G.LoginState.Login(libkb.LoginArg{})
 }
 func (v *CmdProve) LoadMe() (err error) {
 	return
@@ -118,7 +118,7 @@ func NewCmdProve(cl *CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdTrack{}, "track", c)
+			cl.ChooseCommand(&CmdProve{}, "track", c)
 		},
 	}
 }
