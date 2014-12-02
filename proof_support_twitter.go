@@ -105,7 +105,24 @@ func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
 //
 //=============================================================================
 
+type TwitterServiceType struct{}
+
+func (t TwitterServiceType) AllStringKeys() []string     { return []string{"twitter"} }
+func (t TwitterServiceType) PrimaryStringKeys() []string { return []string{"twitter"} }
+func (t TwitterServiceType) CheckUsername(s string) bool {
+	return regexp.MustCompile(`^@?(?i:a-z0-9_]{1,20}$)`).MatchString(s)
+}
+func (t TwitterServiceType) NormalizeUsername(s string) string {
+	if len(s) > 0 && s[0] == '@' {
+		s = s[1:]
+	}
+	return strings.ToLower(s)
+}
+
+//=============================================================================
+
 func init() {
+	RegisterServiceType(TwitterServiceType{})
 	RegisterProofCheckHook("twitter",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewTwitterChecker(l)

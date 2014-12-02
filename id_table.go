@@ -588,7 +588,7 @@ type IdentityTable struct {
 }
 
 func (tab *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
-	for _, k := range st.Keys() {
+	for _, k := range st.AllStringKeys() {
 		for _, l := range tab.remoteProofs[k] {
 			if !l.IsRevoked() {
 				ret = append(ret, l)
