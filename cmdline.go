@@ -260,6 +260,7 @@ func (cl *CommandLine) PopulateApp() {
 		NewCmdLogout(cl),
 		NewCmdMykey(cl),
 		NewCmdPing(cl),
+		NewCmdProve(cl),
 		NewCmdResolve(cl),
 		NewCmdSigs(cl),
 		NewCmdSign(cl),
