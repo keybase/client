@@ -104,6 +104,34 @@ func (s *CmdListTracking) IsActiveKey(link libkb.TypedChainLink) bool {
 	return fp1.Eq(fp2)
 }
 
+func (s *CmdListTracking) CondenseRecord(l *libkb.TrackChainLink) (out *jsonw.Wrapper, err error) {
+	var uid *libkb.UID
+	var fp *libkb.PgpFingerprint
+	var un string
+	out = jsonw.NewDictionary()
+	rp := l.RemoteKeyProofs()
+
+	if uid, err = l.GetTrackedUid(); err != nil {
+		return
+	}
+
+	if fp, err = l.GetTrackedPgpFingerprint(); err != nil {
+		return
+	}
+
+	if un, err = l.GetTrackedUsername(); err != nil {
+		return
+	}
+
+	out.SetKey("uid", jsonw.NewString(uid.ToString()))
+	out.SetKey("key", jsonw.NewString(strings.ToUpper(fp.ToString())))
+	out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
+	out.SetKey("username", jsonw.NewString(un))
+	out.SetKey("proofs", rp)
+
+	return
+}
+
 func (s *CmdListTracking) DisplayTable() (err error) {
 
 	var cols []string
@@ -161,7 +189,25 @@ func (s *CmdListTracking) DisplayTable() (err error) {
 }
 
 func (s *CmdListTracking) DisplayJson() (err error) {
-	ret := jsonw.NewArray(0)
+	tmp := make([]*jsonw.Wrapper, 0, 1)
+	for _, e := range s.tracks {
+		var rec *jsonw.Wrapper
+		var e2 error
+		if s.verbose {
+			rec = e.GetPayloadJson()
+		} else if rec, e2 = s.CondenseRecord(e); e2 != nil {
+			G.Log.Warning("In conversion to JSON: %s", e2.Error())
+		}
+		if e2 == nil {
+			tmp = append(tmp, rec)
+		}
+	}
+
+	ret := jsonw.NewArray(len(tmp))
+	for i, r := range tmp {
+		ret.SetIndex(i, r)
+	}
+
 	_, err = io.WriteString(os.Stdout, ret.MarshalPretty()+"\n")
 	return
 }
