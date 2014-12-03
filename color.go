@@ -40,16 +40,17 @@ type CodePair struct {
 }
 
 var (
-	CpBold          = CodePair{2, 22}
+	CpBold          = CodePair{1, 22}
+	CpDim           = CodePair{2, 22}
 	CpItalic        = CodePair{3, 23}
-	CpStrikethrough = CodePair{9, 29}
 	CpUnderline     = CodePair{4, 24}
+	CpStrikethrough = CodePair{9, 29}
 )
 
 var codes = map[string]CodePair{
 	"reset":         CodePair{0, 0},
 	"bold":          CpBold,
-	"dim":           CodePair{2, 22},
+	"dim":           CpDim,
 	"italic":        CpItalic,
 	"underline":     CpUnderline,
 	"inverse":       CodePair{7, 27},

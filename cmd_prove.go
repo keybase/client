@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
+	"os"
 )
 
 type CmdProve struct {
@@ -111,6 +112,8 @@ func (v *CmdProve) DoPrechecks() (err error) {
 }
 
 func (v *CmdProve) DoWarnings() (err error) {
+	mu := v.st.PreProofWarning(v.usernameNormalized)
+	Render(os.Stdout, mu)
 	return
 }
 func (v *CmdProve) GenerateProof() (err error) {
