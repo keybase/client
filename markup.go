@@ -23,6 +23,7 @@ type Paragraph struct {
 	prefix string
 }
 
+// Buffer adds data to the internal paragraph buffer.
 func (p *Paragraph) Buffer(b []byte) {
 	p.data = append(p.data, b...)
 }
@@ -32,6 +33,7 @@ var (
 	sp = []byte{' '}
 )
 
+// makePad makes a whitespace pad that is l bytes long.
 func makePad(l int) []byte {
 	ret := make([]byte, l)
 	for i := 0; i < l; i++ {
@@ -40,6 +42,9 @@ func makePad(l int) []byte {
 	return ret
 }
 
+// spacify replaces arbitrary strings of whitespace with
+// a single ' ' character. Also strips off leading and trailing
+// whitespace.
 func spacify(s string) string {
 	v := regexp.MustCompile(`[[:space:]]+`).Split(s, -1)
 	if len(v) > 0 && v[0] == "" {
@@ -51,6 +56,9 @@ func spacify(s string) string {
 	}
 	return strings.Join(v, " ")
 }
+
+// Output a paragraph to the io.Writer, applying the proper
+// formatting.
 func (p Paragraph) Output(out io.Writer) {
 	s := []byte(spacify(string(p.data)))
 	if len(s) == 0 {
@@ -97,7 +105,7 @@ func (r *Renderer) Buffer(d []byte) {
 	if r.paragraph == nil {
 		d = bytes.TrimSpace(d)
 		if len(d) > 0 {
-			fmt.Printf("warning: floating data is ignored: %v", d)
+			G.Log.Warning("floating data in Markup is ignored: %v", d)
 		}
 	} else {
 		r.paragraph.Buffer(d)
