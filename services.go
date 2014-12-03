@@ -9,6 +9,11 @@ type ServiceType interface {
 	PrimaryStringKeys() []string
 	CheckUsername(string) bool
 	NormalizeUsername(string) string
+	ToChecker() Checker
+	GetPrompt() string
+	LastWriterWins() bool
+	PreProofCheck(username string) error
+	PreProofWarning(remotename string) *Markup
 }
 
 var _st_dispatch = make(map[string]ServiceType)

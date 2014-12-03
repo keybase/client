@@ -66,7 +66,7 @@ func FormatTime(tm time.Time) string {
 	return tm.Format(layout)
 }
 
-func cicmp(s1, s2 string) bool {
+func Cicmp(s1, s2 string) bool {
 	return strings.ToLower(s1) == strings.ToLower(s2)
 }
 

@@ -58,7 +58,7 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofEr
 }
 
 func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
-	return cicmp(s1, s2)
+	return Cicmp(s1, s2)
 }
 
 func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {

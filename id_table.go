@@ -159,7 +159,7 @@ func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
 
 	find := func(list []string) bool {
 		for _, e := range list {
-			if cicmp(e, s.hostname) {
+			if Cicmp(e, s.hostname) {
 				return true
 			}
 		}
@@ -204,7 +204,7 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	k, v := s.ToKeyValuePair()
 	if list, found := tl.ids[k]; !found || len(list) == 0 {
 		return TrackDiffNew{}
-	} else if expected := list[len(list)-1]; !cicmp(expected, v) {
+	} else if expected := list[len(list)-1]; !Cicmp(expected, v) {
 		return TrackDiffClash{expected, v}
 	} else {
 		return TrackDiffNone{}

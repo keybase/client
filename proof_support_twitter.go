@@ -33,8 +33,7 @@ func (rc *TwitterChecker) CheckHint(h SigHint) ProofError {
 }
 
 func (rc *TwitterChecker) ScreenNameCompare(s1, s2 string) bool {
-
-	return cicmp(s1, s2)
+	return Cicmp(s1, s2)
 }
 
 func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofError {
@@ -110,7 +109,7 @@ type TwitterServiceType struct{}
 func (t TwitterServiceType) AllStringKeys() []string     { return []string{"twitter"} }
 func (t TwitterServiceType) PrimaryStringKeys() []string { return []string{"twitter"} }
 func (t TwitterServiceType) CheckUsername(s string) bool {
-	return regexp.MustCompile(`^@?(?i:a-z0-9_]{1,20}$)`).MatchString(s)
+	return regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s)
 }
 func (t TwitterServiceType) NormalizeUsername(s string) string {
 	if len(s) > 0 && s[0] == '@' {
@@ -118,6 +117,17 @@ func (t TwitterServiceType) NormalizeUsername(s string) string {
 	}
 	return strings.ToLower(s)
 }
+func (t TwitterServiceType) ToChecker() Checker {
+	return Checker{
+		F:             func(s string) bool { return t.CheckUsername(s) },
+		Hint:          "alphanumeric, up to 20 characters",
+		PreserveSpace: false,
+	}
+}
+func (t TwitterServiceType) GetPrompt() string                         { return "Your username on Twitter" }
+func (t TwitterServiceType) LastWriterWins() bool                      { return true }
+func (t TwitterServiceType) PreProofCheck(string) error                { return nil }
+func (t TwitterServiceType) PreProofWarning(remotename string) *Markup { return nil }
 
 //=============================================================================
 
