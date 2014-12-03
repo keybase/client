@@ -7,11 +7,13 @@ import (
 )
 
 type CmdProve struct {
-	me                *libkb.User
-	force             bool
-	service, username string
-	output            string
-	st                libkb.ServiceType
+	me                 *libkb.User
+	force              bool
+	service, username  string
+	output             string
+	st                 libkb.ServiceType
+	usernameNormalized string
+	supersede          bool
 }
 
 func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
@@ -50,8 +52,11 @@ func (v *CmdProve) CheckExists1() (err error) {
 		def := false
 		var redo bool
 		redo, err = G_UI.PromptYesNo(prompt, &def)
-		if !redo {
+		if err != nil {
+		} else if !redo {
 			err = NotConfirmedError{}
+		} else {
+			v.supersede = true
 		}
 	}
 	return
@@ -59,19 +64,52 @@ func (v *CmdProve) CheckExists1() (err error) {
 
 func (v *CmdProve) PromptRemoteName() (err error) {
 	if len(v.username) == 0 {
-
+		v.username, err = G_UI.Prompt(v.st.GetPrompt(), false, v.st.ToChecker())
+	} else if !v.st.CheckUsername(v.username) {
+		err = BadUsername{v.username}
 	}
 	return
 }
+
 func (v *CmdProve) NormalizeRemoteName() (err error) {
+	v.usernameNormalized = v.st.NormalizeUsername(v.username)
 	return
 }
+
 func (v *CmdProve) CheckExists2() (err error) {
+	G.Log.Debug("+ CheckExists2")
+	defer func() { G.Log.Debug("- CheckExists2 -> %s", libkb.ErrToOk(err)) }()
+	if !v.st.LastWriterWins() {
+		var found libkb.RemoteProofChainLink
+		for _, p := range v.me.IdTable.GetActiveProofsFor(v.st) {
+			_, name := p.ToKeyValuePair()
+			if libkb.Cicmp(name, v.usernameNormalized) {
+				found = p
+				break
+			}
+		}
+		if found != nil {
+			var redo bool
+			prompt := "You already have claimed ownership of " +
+				ColorString("bold", found.ToDisplayString()) + "; overwrite? "
+			def := false
+			redo, err = G_UI.PromptYesNo(prompt, &def)
+			if err != nil {
+			} else if !redo {
+				err = NotConfirmedError{}
+			} else {
+				v.supersede = true
+			}
+		}
+	}
 	return
 }
+
 func (v *CmdProve) DoPrechecks() (err error) {
+	err = v.st.PreProofCheck(v.usernameNormalized)
 	return
 }
+
 func (v *CmdProve) DoWarnings() (err error) {
 	return
 }

@@ -43,3 +43,11 @@ type BadServiceError struct {
 func (e BadServiceError) Error() string {
 	return e.n + ": unsupported service"
 }
+
+type BadUsername struct {
+	n string
+}
+
+func (e BadUsername) Error() string {
+	return "bad username: '" + e.n + "'"
+}
