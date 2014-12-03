@@ -39,15 +39,22 @@ type CodePair struct {
 	Close int
 }
 
+var (
+	CpBold          = CodePair{2, 22}
+	CpItalic        = CodePair{3, 23}
+	CpStrikethrough = CodePair{9, 29}
+	CpUnderline     = CodePair{4, 24}
+)
+
 var codes = map[string]CodePair{
 	"reset":         CodePair{0, 0},
-	"bold":          CodePair{1, 22},
+	"bold":          CpBold,
 	"dim":           CodePair{2, 22},
-	"italic":        CodePair{3, 23},
-	"underline":     CodePair{4, 24},
+	"italic":        CpItalic,
+	"underline":     CpUnderline,
 	"inverse":       CodePair{7, 27},
 	"hidden":        CodePair{8, 28},
-	"strikethrough": CodePair{9, 29},
+	"strikethrough": CpStrikethrough,
 	"black":         CodePair{30, 39},
 	"red":           CodePair{31, 39},
 	"green":         CodePair{32, 39},
@@ -76,6 +83,24 @@ func colorByteSequence(code int) []byte {
 	ret = append(ret, b...)
 	ret = append(ret, 'm')
 	return ret
+}
+
+func (cp CodePair) OpenBytes() []byte  { return colorByteSequence(cp.Open) }
+func (cp CodePair) CloseBytes() []byte { return colorByteSequence(cp.Close) }
+
+func ColorOpen(which string) (ret []byte) {
+	if G.Env.GetPlainLogging() {
+	} else if cp, ok := codes[which]; ok {
+		ret = colorByteSequence(cp.Open)
+	}
+	return
+}
+func ColorClose(which string) (ret []byte) {
+	if G.Env.GetPlainLogging() {
+	} else if cp, ok := codes[which]; ok {
+		ret = colorByteSequence(cp.Close)
+	}
+	return
 }
 
 func ColorBytes(which string, text []byte) []byte {
