@@ -204,6 +204,10 @@ func (v *CmdProve) PromptPostedLoop() (err error) {
 	return
 }
 
+func (v *CmdProve) CheckProofText() error {
+	return v.st.CheckProofText(v.postRes.Text, *v.sigId, v.sig)
+}
+
 func (v *CmdProve) Run() (err error) {
 
 	if err = v.Login(); err != nil {
@@ -236,12 +240,16 @@ func (v *CmdProve) Run() (err error) {
 	if err = v.PostProofToServer(); err != nil {
 		return
 	}
+	if err = v.CheckProofText(); err != nil {
+		return
+	}
 	if err = v.InstructAction(); err != nil {
 		return
 	}
 	if err = v.PromptPostedLoop(); err != nil {
 		return
 	}
+	G.Log.Notice("Success!")
 	return nil
 }
 
