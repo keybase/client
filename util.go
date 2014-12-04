@@ -156,5 +156,13 @@ func SafeWriteToFile(t SafeWriter) error {
 	}
 	G.Log.Debug(fmt.Sprintf("- Wrote to %s -> %s", fn, ErrToOk(err)))
 	return err
+}
 
+func IsIn(needle string, haystack []string, ci bool) bool {
+	for _, h := range haystack {
+		if (ci && Cicmp(h, needle)) || (!ci && h == needle) {
+			return true
+		}
+	}
+	return false
 }

@@ -292,15 +292,7 @@ func (u AssertionUid) Check() (err error) {
 }
 
 func (s AssertionSocial) Check() (err error) {
-	networks := map[string]bool{
-		"github":     true,
-		"coinbase":   true,
-		"reddit":     true,
-		"twitter":    true,
-		"hackernews": true,
-	}
-	b, ok := networks[s.Key]
-	if !b || !ok {
+	if ok, found := _socialNetworks[strings.ToLower(s.Key)]; !ok || !found {
 		err = fmt.Errorf("Unknown social network: %s", s.Key)
 	}
 	return
@@ -391,4 +383,13 @@ func (ps ProofSet) Get(keys []string) (ret []Proof) {
 		}
 	}
 	return ret
+}
+
+var _socialNetworks map[string]bool
+
+func RegisterSocialNetwork(s string) {
+	if _socialNetworks == nil {
+		_socialNetworks = make(map[string]bool)
+	}
+	_socialNetworks[s] = true
 }

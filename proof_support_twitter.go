@@ -171,6 +171,7 @@ func (t TwitterServiceType) CheckProofText(text string, id SigId, sig string) (e
 
 func init() {
 	RegisterServiceType(TwitterServiceType{})
+	RegisterSocialNetwork("twitter")
 	RegisterProofCheckHook("twitter",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewTwitterChecker(l)
