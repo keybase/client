@@ -113,7 +113,9 @@ func (v *CmdProve) CheckExists2() (err error) {
 }
 
 func (v *CmdProve) DoPrechecks() (err error) {
-	err = v.st.PreProofCheck(v.usernameNormalized)
+	var w *libkb.Markup
+	w, err = v.st.PreProofCheck(v.usernameNormalized)
+	Render(os.Stdout, w)
 	return
 }
 
