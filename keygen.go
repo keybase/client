@@ -181,7 +181,6 @@ func (s *KeyGen) WriteKey() (err error) {
 
 func (s *KeyGen) GeneratePost() (err error) {
 	var jw *jsonw.Wrapper
-	var tmp []byte
 	var seckey, pubkey string
 	var sig string
 	var sigid *SigId
@@ -189,10 +188,7 @@ func (s *KeyGen) GeneratePost() (err error) {
 	if jw, err = s.me.SelfProof(); err != nil {
 		return
 	}
-	if tmp, err = jw.Marshal(); err != nil {
-		return
-	}
-	if sig, sigid, err = SimpleSign(tmp, *s.bundle); err != nil {
+	if sig, sigid, err = SimpleSignJson(jw, *s.bundle); err != nil {
 		return
 	}
 	if pubkey, err = s.bundle.Encode(); err != nil {

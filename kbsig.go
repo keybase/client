@@ -190,10 +190,29 @@ func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
 	return
 }
 
-func (u1 *User) SelfProof() (ret *jsonw.Wrapper, err error) {
-	ret, err = u1.ProofMetadata()
+func (u *User) SelfProof() (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata()
 	body := ret.AtKey("body")
 	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	body.SetKey("type", jsonw.NewString("web_service_binding"))
+	return
+}
+
+func (u *User) ServiceProof(typ ServiceType, remotename string) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.SelfProof()
+	if err != nil {
+		return
+	}
+	ret.AtKey("body").SetKey("service", typ.ToServiceJson(remotename))
+	return
+}
+
+// SimpleSignJson marshals the given Json structure and then signs it.
+func SimpleSignJson(jw *jsonw.Wrapper, key PgpKeyBundle) (out string, id *SigId, err error) {
+	var tmp []byte
+	if tmp, err = jw.Marshal(); err != nil {
+		return
+	}
+	out, id, err = SimpleSign(tmp, key)
 	return
 }

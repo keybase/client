@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"github.com/PuerkitoBio/goquery"
+	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
 )
@@ -128,6 +129,17 @@ func (t TwitterServiceType) GetPrompt() string                         { return 
 func (t TwitterServiceType) LastWriterWins() bool                      { return true }
 func (t TwitterServiceType) PreProofCheck(string) error                { return nil }
 func (t TwitterServiceType) PreProofWarning(remotename string) *Markup { return nil }
+func (t TwitterServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("name", jsonw.NewString("twitter"))
+	ret.SetKey("username", jsonw.NewString(un))
+	return ret
+}
+
+func (t TwitterServiceType) PostInstructions(un string) *Markup {
+	return FmtMarkup(`Please <strong>publicly</strong> the following, and don't delete it:`)
+}
+func (t TwitterServiceType) DisplayName(un string) string { return "Twitter" }
 
 //=============================================================================
 

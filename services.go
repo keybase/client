@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"github.com/keybase/go-jsonw"
 	"strings"
 )
 
@@ -14,6 +15,9 @@ type ServiceType interface {
 	LastWriterWins() bool
 	PreProofCheck(username string) error
 	PreProofWarning(remotename string) *Markup
+	ToServiceJson(remotename string) *jsonw.Wrapper
+	PostInstructions(remotename string) *Markup
+	DisplayName(username string) string
 }
 
 var _st_dispatch = make(map[string]ServiceType)
