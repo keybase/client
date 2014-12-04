@@ -120,4 +120,8 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id SigId, sig strin
 	return
 }
 
+func (t BaseServiceType) NormalizeUsername(s string) string {
+	return strings.ToLower(s)
+}
+
 //=============================================================================

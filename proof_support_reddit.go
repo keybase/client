@@ -145,9 +145,6 @@ func (t RedditServiceType) PrimaryStringKeys() []string { return t.BasePrimarySt
 func (r RedditServiceType) CheckUsername(s string) bool {
 	return regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`).MatchString(s)
 }
-func (r RedditServiceType) NormalizeUsername(s string) string {
-	return strings.ToLower(s)
-}
 
 func (t RedditServiceType) ToChecker() Checker {
 	return t.BaseToChecker(t, "alphanumeric, up to 20 characters")

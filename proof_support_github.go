@@ -1,6 +1,8 @@
 package libkb
 
 import (
+	"github.com/keybase/go-jsonw"
+	"regexp"
 	"strings"
 )
 
@@ -58,7 +60,54 @@ func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
 //
 //=============================================================================
 
+type GithubServiceType struct{ BaseServiceType }
+
+func (t GithubServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
+func (t GithubServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+
+func (t GithubServiceType) CheckUsername(s string) bool {
+	return regexp.MustCompile(`^@?(?i:[a-z0-9][a-z0-9-]{0,39})$`).MatchString(s)
+}
+
+func (t GithubServiceType) ToChecker() Checker {
+	return t.BaseToChecker(t, "alphanumeric, up to 38 characters")
+}
+
+func (t GithubServiceType) GetPrompt() string {
+	return "Your username on Github"
+}
+
+func (t GithubServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+	return t.BaseToServiceJson(t, un)
+}
+
+func (t GithubServiceType) PostInstructions(un string) *Markup {
+	return FmtMarkup(`Please <strong>publicly</strong> post the following Gist,
+and name it <strong><color name="red">keybase.md</color><strong>`)
+}
+
+func (t GithubServiceType) DisplayName(un string) string { return "Github" }
+func (t GithubServiceType) GetTypeName() string          { return "github" }
+
+func (t GithubServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+	if status == PROOF_PERMISSION_DENIED {
+		warning = FmtMarkup("Permission denied! Make sure your gist is <strong>public</strong>.")
+	} else {
+		warning, err = t.BaseRecheckProofPosting(tryNumber, status)
+	}
+	return
+}
+func (t GithubServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+
+func (t GithubServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+	return t.BaseCheckProofTextFull(text, id, sig)
+}
+
+//=============================================================================
+
 func init() {
+	RegisterServiceType(GithubServiceType{})
+	RegisterSocialNetwork("github")
 	RegisterProofCheckHook("github",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewGithubChecker(l)
