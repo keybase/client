@@ -1,6 +1,8 @@
 package libkb
 
 import (
+	"github.com/keybase/go-jsonw"
+	"regexp"
 	"strings"
 )
 
@@ -64,7 +66,51 @@ func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
 //
 //=============================================================================
 
+type CoinbaseServiceType struct{ BaseServiceType }
+
+func (t CoinbaseServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
+func (t CoinbaseServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+
+func (t CoinbaseServiceType) CheckUsername(s string) bool {
+	return regexp.MustCompile(`^@?(?i:[a-z0-9_]{2,16})$`).MatchString(s)
+}
+
+func (t CoinbaseServiceType) ToChecker() Checker {
+	return t.BaseToChecker(t, "alphanumeric, between 2 and 16 characters")
+}
+
+func (t CoinbaseServiceType) GetPrompt() string {
+	return "Your username on Coinbase"
+}
+
+func (t CoinbaseServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+	return t.BaseToServiceJson(t, un)
+}
+
+func (t CoinbaseServiceType) PostInstructions(un string) *Markup {
+	return FmtMarkup(`Please update your Coinbase profile to show this proof.
+Click here: https://coinbase.com/` + un + `/public-key`)
+
+}
+
+func (t CoinbaseServiceType) DisplayName(un string) string { return "Coinbase" }
+func (t CoinbaseServiceType) GetTypeName() string          { return "coinbase" }
+
+func (t CoinbaseServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
+	return
+}
+func (t CoinbaseServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+
+func (t CoinbaseServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+	return t.BaseCheckProofTextFull(text, id, sig)
+}
+
+//=============================================================================
+
 func init() {
+	RegisterServiceType(CoinbaseServiceType{})
+	RegisterSocialNetwork("coinbase")
 	RegisterProofCheckHook("coinbase",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewCoinbaseChecker(l)

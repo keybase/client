@@ -384,3 +384,21 @@ func NewServerChainError(d string, a ...interface{}) ServerChainError {
 }
 
 //=============================================================================
+
+type WaitForItError struct{}
+
+func (e WaitForItError) Error() string {
+	return "It is advised you 'wait for it'"
+}
+
+//=============================================================================
+
+type InsufficientKarmaError struct {
+	un string
+}
+
+func (e InsufficientKarmaError) Error() string {
+	return "Bad karma"
+}
+
+//=============================================================================

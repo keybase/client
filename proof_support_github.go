@@ -66,11 +66,11 @@ func (t GithubServiceType) AllStringKeys() []string     { return t.BaseAllString
 func (t GithubServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
 
 func (t GithubServiceType) CheckUsername(s string) bool {
-	return regexp.MustCompile(`^@?(?i:[a-z0-9][a-z0-9-]{0,39})$`).MatchString(s)
+	return regexp.MustCompile(`^@?(?i:[a-z0-9][a-z0-9-]{0,38})$`).MatchString(s)
 }
 
 func (t GithubServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "alphanumeric, up to 38 characters")
+	return t.BaseToChecker(t, "alphanumeric, up to 39 characters")
 }
 
 func (t GithubServiceType) GetPrompt() string {

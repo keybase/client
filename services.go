@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"github.com/keybase/go-jsonw"
+	"regexp"
 	"strings"
 )
 
@@ -13,7 +14,7 @@ type ServiceType interface {
 	ToChecker() Checker
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(username string) error
+	PreProofCheck(username string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJson(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
@@ -90,7 +91,7 @@ func (t BaseServiceType) BasePrimaryStringKeys(st ServiceType) []string {
 }
 
 func (t BaseServiceType) LastWriterWins() bool                      { return true }
-func (t BaseServiceType) PreProofCheck(string) error                { return nil }
+func (t BaseServiceType) PreProofCheck(string) (*Markup, error)     { return nil, nil }
 func (t BaseServiceType) PreProofWarning(remotename string) *Markup { return nil }
 
 func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
@@ -122,6 +123,23 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id SigId, sig strin
 
 func (t BaseServiceType) NormalizeUsername(s string) string {
 	return strings.ToLower(s)
+}
+
+func (t BaseServiceType) BaseCheckProofForUrl(text string, id SigId) (err error) {
+	url_rxx := regexp.MustCompile(`https://(\S+)`)
+	target := id.ToMediumId()
+	urls := url_rxx.FindAllString(text, -1)
+	G.Log.Debug("Found urls %v", urls)
+	found := false
+	for _, u := range urls {
+		if strings.HasSuffix(u, target) {
+			found = true
+		}
+	}
+	if !found {
+		err = NotFoundError{"Didn't find a URL with suffix '" + target + "'"}
+	}
+	return
 }
 
 //=============================================================================

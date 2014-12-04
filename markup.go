@@ -30,3 +30,7 @@ func FmtMarkup(f string, args ...interface{}) *Markup {
 func (m Markup) ToReader() io.Reader {
 	return bytes.NewBufferString(m.data)
 }
+
+func (m *Markup) Append(s string) {
+	m.data += s
+}

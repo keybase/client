@@ -57,7 +57,7 @@ func (f *JsonFile) Load(warnOnNotFound bool) error {
 }
 
 func (f *JsonFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
-	if f.dirty {
+	if f != nil && f.dirty {
 		err = f.Save(pretty, mode)
 	}
 	return
