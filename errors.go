@@ -164,6 +164,26 @@ func (u UserNotFoundError) Error() string {
 
 //=============================================================================
 
+type WrongSigError struct {
+	b string
+}
+
+func (e WrongSigError) Error() string {
+	return "Found wrong signature: " + e.b
+}
+
+//=============================================================================
+
+type NotFoundError struct {
+	msg string
+}
+
+func (e NotFoundError) Error() string {
+	return e.msg
+}
+
+//=============================================================================
+
 type NoKeyError struct {
 	msg string
 }

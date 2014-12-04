@@ -99,6 +99,10 @@ func FindBase64Blocks(s string) []string {
 	return eng.Run()
 }
 
+func FindBase64Snippets(s string) []string {
+	return regexp.MustCompile(`(([a-zA-Z0-9/+_-]+)(={0,3}))`).FindAllString(s, -1)
+}
+
 func FindBase64Block(s string, pattern []byte, url bool) bool {
 	eng := NewBase64Finder(s)
 	eng.split()

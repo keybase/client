@@ -151,6 +151,22 @@ func (t TwitterServiceType) RecheckProofPosting(tryNumber, status int) (warning 
 }
 func (t TwitterServiceType) GetProofType() string { return "web_service_binding.twitter" }
 
+func (t TwitterServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+	blocks := FindBase64Snippets(text)
+	target := id.ToShortId()
+	for _, b := range blocks {
+		if len(b) < len(target) {
+		} else if b != target {
+			err = WrongSigError{b}
+			return
+		} else {
+			return
+		}
+	}
+	err = NotFoundError{"Couldn't find signature ID " + target + " in text"}
+	return
+}
+
 //=============================================================================
 
 func init() {

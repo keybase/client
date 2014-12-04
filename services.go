@@ -20,6 +20,7 @@ type ServiceType interface {
 	DisplayName(username string) string
 	RecheckProofPosting(tryNumber int, status int) (warning *Markup, err error)
 	GetProofType() string
+	CheckProofText(text string, id SigId, sig string) error
 }
 
 var _st_dispatch = make(map[string]ServiceType)
