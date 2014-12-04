@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -165,4 +166,20 @@ func IsIn(needle string, haystack []string, ci bool) bool {
 		}
 	}
 	return false
+}
+
+func IsValidHostname(s string) bool {
+	parts := strings.Split(s, ".")
+	// Found regex here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
+	rxx := regexp.MustCompile("^(?i:[a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$")
+	if len(parts) < 2 {
+		return false
+	} else {
+		for _, p := range parts {
+			if !rxx.MatchString(p) {
+				return false
+			}
+		}
+		return true
+	}
 }

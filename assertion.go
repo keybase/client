@@ -198,8 +198,7 @@ func (a AssertionUrlBase) CheckHost() (err error) {
 	s := a.Value
 	if err = a.Check(); err == nil {
 		// Found this here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
-		re := regexp.MustCompile(`^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$`)
-		if !re.MatchString(s) {
+		if !IsValidHostname(s) {
 			err = fmt.Errorf("Invalid hostname: %s", s)
 		}
 	}

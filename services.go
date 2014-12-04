@@ -10,7 +10,7 @@ type ServiceType interface {
 	AllStringKeys() []string
 	PrimaryStringKeys() []string
 	CheckUsername(string) bool
-	NormalizeUsername(string) string
+	NormalizeUsername(string) (string, error)
 	ToChecker() Checker
 	GetPrompt() string
 	LastWriterWins() bool
@@ -24,6 +24,7 @@ type ServiceType interface {
 	GetTypeName() string
 	CheckProofText(text string, id SigId, sig string) error
 	FormatProofText(*PostProofRes) (string, error)
+	GetApiArgKey() string
 }
 
 var _st_dispatch = make(map[string]ServiceType)
@@ -42,9 +43,14 @@ func GetServiceType(s string) ServiceType {
 
 type BaseServiceType struct{}
 
-func (t BaseServiceType) BaseCheckProofTextShort(text string, id SigId, sig string) (err error) {
+func (t BaseServiceType) BaseCheckProofTextShort(text string, id SigId, med bool) (err error) {
 	blocks := FindBase64Snippets(text)
-	target := id.ToShortId()
+	var target string
+	if med {
+		target = id.ToMediumId()
+	} else {
+		target = id.ToShortId()
+	}
 	for _, b := range blocks {
 		if len(b) < len(target) {
 		} else if b != target {
@@ -121,8 +127,8 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id SigId, sig strin
 	return
 }
 
-func (t BaseServiceType) NormalizeUsername(s string) string {
-	return strings.ToLower(s)
+func (t BaseServiceType) NormalizeUsername(s string) (string, error) {
+	return strings.ToLower(s), nil
 }
 
 func (t BaseServiceType) BaseCheckProofForUrl(text string, id SigId) (err error) {
@@ -140,6 +146,10 @@ func (t BaseServiceType) BaseCheckProofForUrl(text string, id SigId) (err error)
 		err = NotFoundError{"Didn't find a URL with suffix '" + target + "'"}
 	}
 	return
+}
+
+func (t BaseServiceType) GetApiArgKey() string {
+	return "remote_username"
 }
 
 //=============================================================================

@@ -114,11 +114,11 @@ func (t TwitterServiceType) CheckUsername(s string) bool {
 	return regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s)
 }
 
-func (t TwitterServiceType) NormalizeUsername(s string) string {
+func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 	if len(s) > 0 && s[0] == '@' {
 		s = s[1:]
 	}
-	return strings.ToLower(s)
+	return strings.ToLower(s), nil
 }
 
 func (t TwitterServiceType) ToChecker() Checker {
@@ -151,7 +151,7 @@ func (t TwitterServiceType) RecheckProofPosting(tryNumber, status int) (warning 
 func (t TwitterServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t TwitterServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
-	return t.BaseCheckProofTextShort(text, id, sig)
+	return t.BaseCheckProofTextShort(text, id, false)
 }
 
 //=============================================================================

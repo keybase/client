@@ -98,8 +98,8 @@ func (t HackerNewsServiceType) CheckUsername(s string) bool {
 }
 
 // HackerNews names are case-sensitive
-func (t HackerNewsServiceType) NormalizeUsername(s string) string {
-	return s
+func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
+	return s, nil
 }
 
 func (t HackerNewsServiceType) ToChecker() Checker {

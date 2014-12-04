@@ -16,22 +16,26 @@ type PostProofArg struct {
 	RemoteUsername string
 	ProofType      string
 	Supersede      bool
+	RemoteKey      string
 }
 
 func PostProof(arg PostProofArg) (*PostProofRes, error) {
+	hargs := HttpArgs{
+		"sig_id_base":     S{arg.Id.ToString(false)},
+		"sig_id_short":    S{arg.Id.ToShortId()},
+		"sig":             S{arg.Sig},
+		"is_remote_proof": B{true},
+		"supersede":       B{arg.Supersede},
+		"type":            S{arg.ProofType},
+	}
+	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
+
 	res, err := G.API.Post(ApiArg{
 		Endpoint:    "sig/post",
 		NeedSession: true,
-		Args: HttpArgs{
-			"sig_id_base":     S{arg.Id.ToString(false)},
-			"sig_id_short":    S{arg.Id.ToShortId()},
-			"sig":             S{arg.Sig},
-			"is_remote_proof": B{true},
-			"supersede":       B{arg.Supersede},
-			"type":            S{arg.ProofType},
-			"remote_username": S{arg.RemoteUsername},
-		},
+		Args:        hargs,
 	})
+
 	if err != nil {
 		return nil, err
 	}

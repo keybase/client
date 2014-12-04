@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"github.com/keybase/go-jsonw"
 	"net"
 	"strings"
 )
@@ -78,7 +79,79 @@ func (rc *DnsChecker) CheckStatus(h SigHint) ProofError {
 //
 //=============================================================================
 
+type DnsServiceType struct{ BaseServiceType }
+
+func (t DnsServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
+func (t DnsServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+
+func ParseDns(s string) (ret string, err error) {
+	if strings.HasPrefix(s, "dns://") {
+		s = s[6:]
+	}
+	if !IsValidHostname(s) {
+		err = InvalidHostnameError{s}
+	} else {
+		ret = s
+	}
+	return
+}
+
+func (t DnsServiceType) CheckUsername(s string) bool {
+	_, e := ParseDns(s)
+	return (e == nil)
+}
+
+func (t DnsServiceType) NormalizeUsername(s string) (string, error) {
+	return ParseDns(s)
+}
+
+func (t DnsServiceType) ToChecker() Checker {
+	return t.BaseToChecker(t, "a valid domain name")
+}
+
+func (t DnsServiceType) GetPrompt() string {
+	return "Your DNS domain"
+}
+
+func (t DnsServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("protocol", jsonw.NewString("dns"))
+	ret.SetKey("domain", jsonw.NewString(un))
+	return ret
+}
+
+func (t DnsServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
+	return (ppr.Text + "\n"), nil
+}
+
+func (t DnsServiceType) PostInstructions(un string) *Markup {
+	return FmtMarkup(`Please save the following as a DNS TXT entry for
+<strong>` + un + `</strong> OR <strong>_keybase.` + un + `</strong>:`)
+}
+
+func (t DnsServiceType) DisplayName(un string) string { return "Dns" }
+func (t DnsServiceType) GetTypeName() string          { return "dns" }
+
+func (t DnsServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+	warning = FmtMarkup(`<p>We couldn't find a DNS proof for...<strong>yet</strong></p>
+<p>DNS propogation can be slow; we'll keep trying and email you the result</p>`)
+	err = WaitForItError{}
+	return
+}
+func (t DnsServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+
+func (t DnsServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+	return t.BaseCheckProofTextShort(text, id, true)
+}
+
+func (t DnsServiceType) GetApiArgKey() string { return "remote_host" }
+func (t DnsServiceType) LastWriterWins() bool { return false }
+
+//=============================================================================
+
 func init() {
+	RegisterServiceType(DnsServiceType{})
+	RegisterSocialNetwork("dns")
 	RegisterProofCheckHook("dns",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewDnsChecker(l)

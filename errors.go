@@ -402,3 +402,31 @@ func (e InsufficientKarmaError) Error() string {
 }
 
 //=============================================================================
+
+type InvalidHostnameError struct {
+	h string
+}
+
+func (e InvalidHostnameError) Error() string {
+	return "Invalid hostname: " + e.h
+}
+
+//=============================================================================
+
+type WebUnreachableError struct {
+	h string
+}
+
+func (h WebUnreachableError) Error() string {
+	return "Host " + h.h + " is down; tried both HTTPS and HTTP protocols"
+}
+
+//=============================================================================
+
+type ProtocolDowngradeError struct {
+	msg string
+}
+
+func (h ProtocolDowngradeError) Error() string {
+	return h.msg
+}
