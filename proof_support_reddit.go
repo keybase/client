@@ -2,6 +2,8 @@ package libkb
 
 import (
 	"github.com/keybase/go-jsonw"
+	"net/url"
+	"regexp"
 	"strings"
 )
 
@@ -114,7 +116,114 @@ func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
 //
 //=============================================================================
 
+func urlReencode(s string) string {
+	// Use '+'-encoding for a smaller URL
+	// Replace '(', ")" and "'" so that URL-detection works in Linux
+	// Padding is not needed now, but might be in the future depending on
+	// changes we make
+	s = strings.Replace(s, `%20`, "+", -1)
+	rxx := regexp.MustCompile(`[()']`)
+	s = rxx.ReplaceAllStringFunc(s, func(r string) string {
+		if r == "(" {
+			return `%28`
+		} else if r == ")" {
+			return `%29`
+		} else if r == "'" {
+			return `%27`
+		} else {
+			return ""
+		}
+	})
+	return s
+}
+
+type RedditServiceType struct{}
+
+func (r RedditServiceType) AllStringKeys() []string     { return []string{"reddit"} }
+func (r RedditServiceType) PrimaryStringKeys() []string { return []string{"reddit"} }
+func (r RedditServiceType) CheckUsername(s string) bool {
+	return regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`).MatchString(s)
+}
+func (r RedditServiceType) NormalizeUsername(s string) string {
+	return strings.ToLower(s)
+}
+func (t RedditServiceType) ToChecker() Checker {
+	return Checker{
+		F:             func(s string) bool { return t.CheckUsername(s) },
+		Hint:          "alphanumeric, up to 20 characters",
+		PreserveSpace: false,
+	}
+}
+func (t RedditServiceType) GetPrompt() string                         { return "Your username on Reddit" }
+func (t RedditServiceType) LastWriterWins() bool                      { return true }
+func (t RedditServiceType) PreProofCheck(string) error                { return nil }
+func (t RedditServiceType) PreProofWarning(remotename string) *Markup { return nil }
+func (t RedditServiceType) ToServiceJson(un string) *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("name", jsonw.NewString("reddit"))
+	ret.SetKey("username", jsonw.NewString(un))
+	return ret
+}
+func (t RedditServiceType) PostInstructions(un string) *Markup {
+	return FmtMarkup(`Please click on the following link to post to Reddit:`)
+}
+
+func (t RedditServiceType) FormatProofText(ppr *PostProofRes) (res string, err error) {
+
+	var title string
+	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
+		return
+	}
+
+	q := urlReencode(HttpArgs{"title": S{title}, "text": S{ppr.Text}}.EncodeToString())
+
+	u := url.URL{
+		Scheme:   "https",
+		Host:     "www.reddit.com",
+		Path:     "/r/KeybaseProofs/submit",
+		RawQuery: q,
+	}
+
+	res = u.String()
+	return
+}
+
+func (t RedditServiceType) DisplayName(un string) string { return "Reddit" }
+
+func (t RedditServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
+	warning = FmtMarkup("Couldn't find posted proof.")
+	return
+}
+func (t RedditServiceType) GetProofType() string { return "web_service_binding.reddit" }
+
+func (t RedditServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
+	blocks := FindBase64Blocks(text)
+	target := FindFirstBase64Block(sig)
+	if len(target) == 0 {
+		err = BadSigError{"Generated sig was invalid"}
+		return
+	}
+	found := false
+	for _, b := range blocks {
+		if len(b) < 80 {
+		} else if b != target {
+			err = WrongSigError{b}
+			return
+		} else {
+			found = true
+		}
+	}
+	if !found {
+		err = NotFoundError{"Couldn't find signature ID " + target + " in text"}
+	}
+	return
+}
+
+//=============================================================================
+
 func init() {
+	RegisterServiceType(RedditServiceType{})
+	RegisterSocialNetwork("reddit")
 	RegisterProofCheckHook("reddit",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewRedditChecker(l)

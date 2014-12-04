@@ -49,6 +49,10 @@ func (a HttpArgs) ToValues() url.Values {
 	return ret
 }
 
+func (a HttpArgs) EncodeToString() string {
+	return a.ToValues().Encode()
+}
+
 func HttpArgsFromKeyValuePair(key string, val HttpValue) HttpArgs {
 	ret := HttpArgs{}
 	ret[key] = val

@@ -172,6 +172,14 @@ func (e WrongSigError) Error() string {
 	return "Found wrong signature: " + e.b
 }
 
+type BadSigError struct {
+	e string
+}
+
+func (e BadSigError) Error() string {
+	return e.e
+}
+
 //=============================================================================
 
 type NotFoundError struct {

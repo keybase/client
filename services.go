@@ -21,6 +21,7 @@ type ServiceType interface {
 	RecheckProofPosting(tryNumber int, status int) (warning *Markup, err error)
 	GetProofType() string
 	CheckProofText(text string, id SigId, sig string) error
+	FormatProofText(*PostProofRes) (string, error)
 }
 
 var _st_dispatch = make(map[string]ServiceType)

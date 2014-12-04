@@ -99,6 +99,14 @@ func FindBase64Blocks(s string) []string {
 	return eng.Run()
 }
 
+func FindFirstBase64Block(s string) string {
+	v := FindBase64Blocks(s)
+	if v != nil && len(v) > 0 {
+		return v[0]
+	}
+	return ""
+}
+
 func FindBase64Snippets(s string) []string {
 	return regexp.MustCompile(`(([a-zA-Z0-9/+_-]+)(={0,3}))`).FindAllString(s, -1)
 }

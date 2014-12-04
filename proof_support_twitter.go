@@ -135,6 +135,9 @@ func (t TwitterServiceType) ToServiceJson(un string) *jsonw.Wrapper {
 	ret.SetKey("username", jsonw.NewString(un))
 	return ret
 }
+func (t TwitterServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
+	return ppr.Text, nil
+}
 
 func (t TwitterServiceType) PostInstructions(un string) *Markup {
 	return FmtMarkup(`Please <strong>publicly</strong> the following, and don't delete it:`)
