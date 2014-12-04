@@ -59,3 +59,9 @@ type InternalError struct {
 func (e InternalError) Error() string {
 	return "Internal error: " + e.m
 }
+
+type ProofNotYetAvailableError struct{}
+
+func (e ProofNotYetAvailableError) Error() string {
+	return "Proof wasn't available; we'll keep trying"
+}

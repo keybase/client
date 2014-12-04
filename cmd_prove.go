@@ -145,7 +145,14 @@ func (v *CmdProve) GenerateProof() (err error) {
 }
 
 func (v *CmdProve) PostProofToServer() (err error) {
-	v.postRes, err = libkb.PostProof(v.sig, *v.sigId, v.supersede)
+	arg := libkb.PostProofArg{
+		Sig:            v.sig,
+		ProofType:      v.st.GetProofType(),
+		Id:             *v.sigId,
+		Supersede:      v.supersede,
+		RemoteUsername: v.usernameNormalized,
+	}
+	v.postRes, err = libkb.PostProof(arg)
 	return
 }
 
@@ -165,10 +172,11 @@ func (v *CmdProve) InstructAction() (err error) {
 func (v *CmdProve) PromptPostedLoop() (err error) {
 	first := true
 	found := false
-	for {
+	for i := 0; ; i++ {
 		var agn string
 		var retry bool
 		var status int
+		var warn *libkb.Markup
 		if !first {
 			agn = "again "
 		}
@@ -179,10 +187,18 @@ func (v *CmdProve) PromptPostedLoop() (err error) {
 		if !retry || err != nil {
 			break
 		}
-		found, _, err = libkb.CheckPosted(v.postRes.Id)
+		found, status, err = libkb.CheckPosted(v.postRes.Id)
 		if found || err != nil {
 			break
 		}
+		warn, err = v.st.RecheckProofPosting(status, i)
+		Render(os.Stderr, warn)
+		if err != nil {
+			break
+		}
+	}
+	if !found && err == nil {
+		err = ProofNotYetAvailableError{}
 	}
 
 	return
