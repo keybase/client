@@ -153,6 +153,7 @@ func (v *CmdProve) PostProofToServer() (err error) {
 		Id:             *v.sigId,
 		Supersede:      v.supersede,
 		RemoteUsername: v.usernameNormalized,
+		RemoteKey:      v.st.GetApiArgKey(),
 	}
 	v.postRes, err = libkb.PostProof(arg)
 	return
