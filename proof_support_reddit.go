@@ -137,33 +137,30 @@ func urlReencode(s string) string {
 	return s
 }
 
-type RedditServiceType struct{}
+type RedditServiceType struct{ BaseServiceType }
 
-func (r RedditServiceType) AllStringKeys() []string     { return []string{"reddit"} }
-func (r RedditServiceType) PrimaryStringKeys() []string { return []string{"reddit"} }
+func (t RedditServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
+func (t RedditServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+
 func (r RedditServiceType) CheckUsername(s string) bool {
 	return regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`).MatchString(s)
 }
 func (r RedditServiceType) NormalizeUsername(s string) string {
 	return strings.ToLower(s)
 }
+
 func (t RedditServiceType) ToChecker() Checker {
-	return Checker{
-		F:             func(s string) bool { return t.CheckUsername(s) },
-		Hint:          "alphanumeric, up to 20 characters",
-		PreserveSpace: false,
-	}
+	return t.BaseToChecker(t, "alphanumeric, up to 20 characters")
 }
-func (t RedditServiceType) GetPrompt() string                         { return "Your username on Reddit" }
-func (t RedditServiceType) LastWriterWins() bool                      { return true }
-func (t RedditServiceType) PreProofCheck(string) error                { return nil }
-func (t RedditServiceType) PreProofWarning(remotename string) *Markup { return nil }
+
+func (t RedditServiceType) GetTypeName() string { return "reddit" }
+
+func (t RedditServiceType) GetPrompt() string { return "Your username on Reddit" }
+
 func (t RedditServiceType) ToServiceJson(un string) *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("name", jsonw.NewString("reddit"))
-	ret.SetKey("username", jsonw.NewString(un))
-	return ret
+	return t.BaseToServiceJson(t, un)
 }
+
 func (t RedditServiceType) PostInstructions(un string) *Markup {
 	return FmtMarkup(`Please click on the following link to post to Reddit:`)
 }
@@ -191,32 +188,14 @@ func (t RedditServiceType) FormatProofText(ppr *PostProofRes) (res string, err e
 func (t RedditServiceType) DisplayName(un string) string { return "Reddit" }
 
 func (t RedditServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
-	warning = FmtMarkup("Couldn't find posted proof.")
+	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	return
 }
-func (t RedditServiceType) GetProofType() string { return "web_service_binding.reddit" }
+
+func (t RedditServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t RedditServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
-	blocks := FindBase64Blocks(text)
-	target := FindFirstBase64Block(sig)
-	if len(target) == 0 {
-		err = BadSigError{"Generated sig was invalid"}
-		return
-	}
-	found := false
-	for _, b := range blocks {
-		if len(b) < 80 {
-		} else if b != target {
-			err = WrongSigError{b}
-			return
-		} else {
-			found = true
-		}
-	}
-	if !found {
-		err = NotFoundError{"Couldn't find signature ID " + target + " in text"}
-	}
-	return
+	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
 //=============================================================================

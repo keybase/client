@@ -105,69 +105,53 @@ func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
 //
 //=============================================================================
 
-type TwitterServiceType struct{}
+type TwitterServiceType struct{ BaseServiceType }
 
-func (t TwitterServiceType) AllStringKeys() []string     { return []string{"twitter"} }
-func (t TwitterServiceType) PrimaryStringKeys() []string { return []string{"twitter"} }
+func (t TwitterServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
+func (t TwitterServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+
 func (t TwitterServiceType) CheckUsername(s string) bool {
 	return regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s)
 }
+
 func (t TwitterServiceType) NormalizeUsername(s string) string {
 	if len(s) > 0 && s[0] == '@' {
 		s = s[1:]
 	}
 	return strings.ToLower(s)
 }
+
 func (t TwitterServiceType) ToChecker() Checker {
-	return Checker{
-		F:             func(s string) bool { return t.CheckUsername(s) },
-		Hint:          "alphanumeric, up to 20 characters",
-		PreserveSpace: false,
-	}
+	return t.BaseToChecker(t, "alphanumeric, up to 20 characters")
 }
-func (t TwitterServiceType) GetPrompt() string                         { return "Your username on Twitter" }
-func (t TwitterServiceType) LastWriterWins() bool                      { return true }
-func (t TwitterServiceType) PreProofCheck(string) error                { return nil }
-func (t TwitterServiceType) PreProofWarning(remotename string) *Markup { return nil }
+
+func (t TwitterServiceType) GetPrompt() string {
+	return "Your username on Twitter"
+}
+
 func (t TwitterServiceType) ToServiceJson(un string) *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("name", jsonw.NewString("twitter"))
-	ret.SetKey("username", jsonw.NewString(un))
-	return ret
-}
-func (t TwitterServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
-	return ppr.Text, nil
+	return t.BaseToServiceJson(t, un)
 }
 
 func (t TwitterServiceType) PostInstructions(un string) *Markup {
 	return FmtMarkup(`Please <strong>publicly</strong> the following, and don't delete it:`)
 }
+
 func (t TwitterServiceType) DisplayName(un string) string { return "Twitter" }
+func (t TwitterServiceType) GetTypeName() string          { return "twitter" }
 
 func (t TwitterServiceType) RecheckProofPosting(tryNumber, status int) (warning *Markup, err error) {
 	if status == PROOF_PERMISSION_DENIED {
 		warning = FmtMarkup("Permission denied! We can't suppport <strong>private</strong feeds.")
 	} else {
-		warning = FmtMarkup("Couldn't find posted proof.")
+		warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	}
 	return
 }
-func (t TwitterServiceType) GetProofType() string { return "web_service_binding.twitter" }
+func (t TwitterServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t TwitterServiceType) CheckProofText(text string, id SigId, sig string) (err error) {
-	blocks := FindBase64Snippets(text)
-	target := id.ToShortId()
-	for _, b := range blocks {
-		if len(b) < len(target) {
-		} else if b != target {
-			err = WrongSigError{b}
-			return
-		} else {
-			return
-		}
-	}
-	err = NotFoundError{"Couldn't find signature ID " + target + " in text"}
-	return
+	return t.BaseCheckProofTextShort(text, id, sig)
 }
 
 //=============================================================================
