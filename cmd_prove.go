@@ -159,12 +159,16 @@ func (v *CmdProve) PostProofToServer() (err error) {
 func (v *CmdProve) InstructAction() (err error) {
 	mkp := v.st.PostInstructions(v.usernameNormalized)
 	Render(os.Stdout, mkp)
+	var txt string
+	if txt, err = v.st.FormatProofText(v.postRes); err != nil {
+		return
+	}
 	if len(v.output) > 0 {
 		G.Log.Info("Writing proof to file '" + v.output + "'...")
-		err = ioutil.WriteFile(v.output, []byte(v.postRes.Text), os.FileMode(0644))
+		err = ioutil.WriteFile(v.output, []byte(txt), os.FileMode(0644))
 		G.Log.Info("Written.")
 	} else {
-		err = G_UI.Output("\n" + v.postRes.Text + "\n")
+		err = G_UI.Output("\n" + txt + "\n")
 	}
 	return
 }
