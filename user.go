@@ -630,7 +630,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		// or if the load wasn't for a user with secrets.
 		//
 		if u := G.UserCache.Get(uid); u != nil && (u.secret || !arg.LoadSecrets) {
-			G.Log.Debug("| Found user in user cache: %s")
+			G.Log.Debug("| Found user in user cache: %s", uid_s)
 			return u, nil
 		}
 

@@ -18,6 +18,8 @@ type ServiceType interface {
 	ToServiceJson(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
 	DisplayName(username string) string
+	RecheckProofPosting(tryNumber int, status int) (warning *Markup, err error)
+	GetProofType() string
 }
 
 var _st_dispatch = make(map[string]ServiceType)

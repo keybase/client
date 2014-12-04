@@ -61,6 +61,10 @@ const (
 )
 
 const (
+	PROOF_STATUS_PERMISSION_DENIED = 103
+)
+
+const (
 	SIG_TYPE_NONE           = 0
 	SIG_TYPE_SELF_SIG       = 1
 	SIG_TYPE_REMOTE_PROOF   = 2

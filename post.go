@@ -10,16 +10,26 @@ type PostProofRes struct {
 	Metadata *jsonw.Wrapper
 }
 
-func PostProof(sig string, id SigId, supersede bool) (*PostProofRes, error) {
+type PostProofArg struct {
+	Sig            string
+	Id             SigId
+	RemoteUsername string
+	ProofType      string
+	Supersede      bool
+}
+
+func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	res, err := G.API.Post(ApiArg{
 		Endpoint:    "sig/post",
 		NeedSession: true,
 		Args: HttpArgs{
-			"sig_id_base":     S{id.ToString(false)},
-			"sig_id":          S{id.ToShortId()},
-			"sig":             S{sig},
+			"sig_id_base":     S{arg.Id.ToString(false)},
+			"sig_id_short":    S{arg.Id.ToShortId()},
+			"sig":             S{arg.Sig},
 			"is_remote_proof": B{true},
-			"supersede":       B{supersede},
+			"supersede":       B{arg.Supersede},
+			"type":            S{arg.ProofType},
+			"remote_username": S{arg.RemoteUsername},
 		},
 	})
 	if err != nil {

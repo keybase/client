@@ -4,18 +4,27 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 )
 
 type Markup struct {
 	data string
 }
 
+func markupFrame(s string) string {
+	s = strings.TrimSpace(s)
+	if s[0] != '<' {
+		s = "<p>" + s + "</p>"
+	}
+	return s
+}
+
 func NewMarkup(s string) *Markup {
-	return &Markup{s}
+	return &Markup{markupFrame(s)}
 }
 
 func FmtMarkup(f string, args ...interface{}) *Markup {
-	return &Markup{data: fmt.Sprintf(f, args...)}
+	return &Markup{data: markupFrame(fmt.Sprintf(f, args...))}
 }
 
 func (m Markup) ToReader() io.Reader {

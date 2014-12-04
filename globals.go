@@ -147,6 +147,10 @@ func (g *Global) Shutdown() error {
 	if g.LocalDb != nil {
 		epick.Push(g.LocalDb.Close())
 	}
+	if g.SessionWriter != nil {
+		epick.Push(g.SessionWriter.Write())
+	}
+
 	for _, hook := range g.ShutdownHooks {
 		epick.Push(hook())
 	}

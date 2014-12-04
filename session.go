@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"time"
 )
 
 type Session struct {
@@ -15,10 +16,11 @@ type Session struct {
 	valid    bool
 	uid      *UID
 	username *string
+	mtime    int64
 }
 
 func NewSession() *Session {
-	return &Session{nil, "", "", false, false, false, false, nil, nil}
+	return &Session{}
 }
 
 func (s Session) IsLoggedIn() bool {
@@ -39,9 +41,21 @@ func (s *Session) SetLoggedIn(lir LoggedInResult) {
 	s.username = &lir.Username
 	s.token = lir.SessionId
 	s.GetDictionary().SetKey("session", jsonw.NewString(lir.SessionId))
-	s.csrf = lir.CsrfToken
-	s.GetDictionary().SetKey("csrf", jsonw.NewString(lir.CsrfToken))
+	s.SetCsrf(lir.CsrfToken)
+	s.SetDirty()
+}
+
+func (s *Session) SetDirty() {
 	s.file.dirty = true
+	s.GetDictionary().SetKey("mtime", jsonw.NewInt64(time.Now().Unix()))
+}
+
+func (s *Session) SetCsrf(t string) {
+	s.csrf = t
+	if s.file != nil {
+		s.GetDictionary().SetKey("csrf", jsonw.NewString(t))
+		s.SetDirty()
+	}
 }
 
 func (s *Session) Load() error {
@@ -75,10 +89,12 @@ func (s *Session) Load() error {
 				s.file.filename, err.Error())
 			ok = false
 		}
+		mtime, _ := s.file.jw.AtKey("mtime").GetInt64()
 		if ok {
 			s.token = token
 			s.csrf = csrf
 			s.inFile = true
+			s.mtime = mtime
 		}
 	}
 	G.Log.Debug("- Loaded session")
@@ -94,6 +110,16 @@ func (s *Session) GetDictionary() *jsonw.Wrapper {
 
 func (s *Session) Write() error {
 	return s.file.MaybeSave(true, 0)
+}
+
+func (s *Session) IsRecent() bool {
+	if s.mtime == 0 {
+		return false
+	}
+	t := time.Unix(s.mtime, 0)
+	now := time.Now()
+	expires := t.Add(time.Hour)
+	return now.Before(expires)
 }
 
 func (s *Session) Check() error {
@@ -117,9 +143,10 @@ func (s *Session) Check() error {
 		G.Log.Debug("| Stored session checked out")
 		var err error
 		var uid UID
-		var username string
+		var username, csrf string
 		GetUidVoid(res.Body.AtKey("logged_in_uid"), &uid, &err)
 		res.Body.AtKey("username").GetStringVoid(&username, &err)
+		res.Body.AtKey("csrf_token").GetStringVoid(&csrf, &err)
 		if err != nil {
 			err = fmt.Errorf("Server replied with unrecognized response: %s", err.Error())
 			return err
@@ -127,6 +154,9 @@ func (s *Session) Check() error {
 			s.valid = true
 			s.uid = &uid
 			s.username = &username
+			if !s.IsRecent() {
+				s.SetCsrf(csrf)
+			}
 		}
 	} else {
 		G.Log.Notice("Stored session expired")
