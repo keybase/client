@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-libkb"
+	"io/ioutil"
 	"os"
 )
 
@@ -15,6 +17,10 @@ type CmdProve struct {
 	st                 libkb.ServiceType
 	usernameNormalized string
 	supersede          bool
+	proof              *jsonw.Wrapper
+	sig                string
+	sigId              *libkb.SigId
+	postRes            *libkb.PostProofRes
 }
 
 func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
@@ -46,7 +52,7 @@ func (v *CmdProve) LoadMe() (err error) {
 }
 func (v *CmdProve) CheckExists1() (err error) {
 	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
-	if len(proofs) != 0 {
+	if len(proofs) != 0 && !v.force {
 		lst := proofs[len(proofs)-1]
 		prompt := "You already have a proof " +
 			ColorString("bold", lst.ToDisplayString()) + "; overwrite?"
@@ -112,17 +118,73 @@ func (v *CmdProve) DoPrechecks() (err error) {
 }
 
 func (v *CmdProve) DoWarnings() (err error) {
-	mu := v.st.PreProofWarning(v.usernameNormalized)
-	Render(os.Stdout, mu)
+	if mu := v.st.PreProofWarning(v.usernameNormalized); mu != nil {
+		Render(os.Stdout, mu)
+		prompt := "Proceed?"
+		def := false
+		var ok bool
+		ok, err = G_UI.PromptYesNo(prompt, &def)
+		if err == nil && !ok {
+			err = NotConfirmedError{}
+		}
+	}
 	return
 }
 func (v *CmdProve) GenerateProof() (err error) {
+	var key *libkb.PgpKeyBundle
+	if v.proof, err = v.me.ServiceProof(v.st, v.usernameNormalized); err != nil {
+		return
+	}
+	if key, err = G.Keyrings.GetSecretKey("proof signature"); err != nil {
+		return
+	}
+	if v.sig, v.sigId, err = libkb.SimpleSignJson(v.proof, *key); err != nil {
+		return
+	}
 	return
 }
+
 func (v *CmdProve) PostProofToServer() (err error) {
+	v.postRes, err = libkb.PostProof(v.sig, *v.sigId, v.supersede)
 	return
 }
+
+func (v *CmdProve) InstructAction() (err error) {
+	mkp := v.st.PostInstructions(v.usernameNormalized)
+	Render(os.Stdout, mkp)
+	if len(v.output) > 0 {
+		G.Log.Info("Writing proof to file '" + v.output + "'...")
+		err = ioutil.WriteFile(v.output, []byte(v.postRes.Text), os.FileMode(0644))
+		G.Log.Info("Written.")
+	} else {
+		err = G_UI.Output("\n" + v.postRes.Text + "\n")
+	}
+	return
+}
+
 func (v *CmdProve) PromptPostedLoop() (err error) {
+	first := true
+	found := false
+	for {
+		var agn string
+		var retry bool
+		var status int
+		if !first {
+			agn = "again "
+		}
+		first = false
+		prompt := "Check " + v.st.DisplayName(v.usernameNormalized) + " " + agn + "now?"
+		def := true
+		retry, err = G_UI.PromptYesNo(prompt, &def)
+		if !retry || err != nil {
+			break
+		}
+		found, _, err = libkb.CheckPosted(v.postRes.Id)
+		if found || err != nil {
+			break
+		}
+	}
+
 	return
 }
 
@@ -156,6 +218,9 @@ func (v *CmdProve) Run() (err error) {
 		return
 	}
 	if err = v.PostProofToServer(); err != nil {
+		return
+	}
+	if err = v.InstructAction(); err != nil {
 		return
 	}
 	if err = v.PromptPostedLoop(); err != nil {

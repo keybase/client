@@ -51,3 +51,11 @@ type BadUsername struct {
 func (e BadUsername) Error() string {
 	return "bad username: '" + e.n + "'"
 }
+
+type InternalError struct {
+	m string
+}
+
+func (e InternalError) Error() string {
+	return "Internal error: " + e.m
+}
