@@ -3,17 +3,18 @@
 package main
 
 import (
-	"code.google.com/p/go.crypto/ssh/terminal"
 	"fmt"
+	"golang.org/x/crypto/ssh/terminal"
 	"os"
 )
 
 type TerminalEngine struct {
-	tty          *os.File
-	fd           int
-	old_terminal *terminal.State
-	terminal     *terminal.Terminal
-	started      bool
+	tty           *os.File
+	fd            int
+	old_terminal  *terminal.State
+	terminal      *terminal.Terminal
+	started       bool
+	width, height int
 }
 
 func (t *TerminalEngine) Init() error {
@@ -21,10 +22,17 @@ func (t *TerminalEngine) Init() error {
 }
 
 func NewTerminalEngine() *TerminalEngine {
-	return &TerminalEngine{nil, -1, nil, nil, false}
+	return &TerminalEngine{fd: -1}
 }
 
 var global_is_started = false
+
+func (t *TerminalEngine) GetSize() (int, int) {
+	if err := t.Startup(); err != nil {
+		return 0, 0
+	}
+	return t.width, t.height
+}
 
 func (t *TerminalEngine) Startup() error {
 
@@ -47,6 +55,11 @@ func (t *TerminalEngine) Startup() error {
 	}
 	t.tty = file
 	t.fd = int(t.tty.Fd())
+	t.width, t.height, err = terminal.GetSize(t.fd)
+	if err != nil {
+		return err
+	}
+
 	t.old_terminal, err = terminal.MakeRaw(t.fd)
 	if err != nil {
 		return err
@@ -55,6 +68,11 @@ func (t *TerminalEngine) Startup() error {
 	if t.terminal = terminal.NewTerminal(file, ""); t.terminal == nil {
 		return fmt.Errorf("failed to open terminal")
 	}
+
+	if err = t.terminal.SetSize(t.width, t.height); err != nil {
+		return err
+	}
+
 	G.Log.Debug("- Done opening /dev/tty")
 	return nil
 }

@@ -30,6 +30,9 @@ func (t Terminal) Write(s string) error {
 func (t Terminal) Prompt(s string) (string, error) {
 	return t.engine.Prompt(s)
 }
+func (t Terminal) GetSize() (int, int) {
+	return t.engine.GetSize()
+}
 
 func (t Terminal) GetSecret(arg *libkb.SecretEntryArg) (res *libkb.SecretEntryRes, err error) {
 

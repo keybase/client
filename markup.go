@@ -92,7 +92,11 @@ type Renderer struct {
 }
 
 func NewRenderer(out io.Writer) *Renderer {
-	return &Renderer{indent: 0, out: out, cols: 80}
+	width, _ := G_UI.GetTerminalSize()
+	if width == 0 {
+		width = 80
+	}
+	return &Renderer{indent: 0, out: out, cols: width}
 }
 
 func (r *Renderer) RenderNodes(nodes []*html.Node) {
@@ -125,6 +129,15 @@ func (r *Renderer) FlushParagraph() {
 	}
 }
 
+func GetNodeAttrVal(node *html.Node, which string) string {
+	for _, attr := range node.Attr {
+		if attr.Key == which {
+			return attr.Val
+		}
+	}
+	return ""
+}
+
 func (r *Renderer) RenderNode(node *html.Node) {
 	if node.Type == html.TextNode {
 		r.Buffer([]byte(node.Data))
@@ -145,7 +158,10 @@ func (r *Renderer) RenderNode(node *html.Node) {
 		cp = &CpItalic
 	} else if node.Data == "url" {
 		cp = &CpUnderline
+	} else if node.Data == "color" {
+		cp = GetColorCode(GetNodeAttrVal(node, "name"))
 	}
+
 	if cp != nil {
 		r.Buffer(cp.OpenBytes())
 	}

@@ -96,6 +96,14 @@ func ColorOpen(which string) (ret []byte) {
 	}
 	return
 }
+
+func GetColorCode(which string) (ret *CodePair) {
+	if tmp, ok := codes[which]; ok {
+		ret = &tmp
+	}
+	return
+}
+
 func ColorClose(which string) (ret []byte) {
 	if G.Env.GetPlainLogging() {
 	} else if cp, ok := codes[which]; ok {

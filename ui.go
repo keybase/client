@@ -340,6 +340,10 @@ func (u *UI) Configure() error {
 	return nil
 }
 
+func (u *UI) GetTerminalSize() (int, int) {
+	return u.Terminal.GetSize()
+}
+
 func (u *UI) Shutdown() error {
 	var err error
 	if u.Terminal != nil {
