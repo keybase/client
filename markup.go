@@ -149,7 +149,7 @@ func (r *Renderer) RenderNode(node *html.Node) {
 	if node.DataAtom == atom.Ul {
 		r.indent++
 	} else if node.DataAtom == atom.Li {
-		r.NewParagraph("* ")
+		r.NewParagraph("• ")
 	} else if node.DataAtom == atom.P {
 		r.NewParagraph("")
 	} else if node.DataAtom == atom.Strong {

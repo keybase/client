@@ -52,7 +52,7 @@ func (v *CmdProve) LoadMe() (err error) {
 }
 func (v *CmdProve) CheckExists1() (err error) {
 	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
-	if len(proofs) != 0 && !v.force {
+	if len(proofs) != 0 && !v.force && v.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
 		prompt := "You already have a proof " +
 			ColorString("bold", lst.ToDisplayString()) + "; overwrite?"
@@ -79,7 +79,7 @@ func (v *CmdProve) PromptRemoteName() (err error) {
 }
 
 func (v *CmdProve) NormalizeRemoteName() (err error) {
-	v.usernameNormalized = v.st.NormalizeUsername(v.username)
+	v.usernameNormalized, err = v.st.NormalizeUsername(v.username)
 	return
 }
 
