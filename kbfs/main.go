@@ -6,6 +6,9 @@ import (
 	"flag"
 	_ "fmt"
 	"log"
+	"os"
+	"os/signal"
+	"runtime/pprof"
 
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	libkb "github.com/keybase/go-libkb"
@@ -18,11 +21,44 @@ func GetUI() libkb.UI {
 	return ui
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var memprofile = flag.String("memprofile", "", "write memory profile to file")
+
 func main() {
 	flag.Parse()
 	if len(flag.Args()) < 1 {
 		log.Fatal("Usage:\n  kbfs MOUNTPOINT")
 	}
+
+	var cpuProfFile *os.File
+	if *cpuprofile != "" {
+		var err error
+		cpuProfFile, err = os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(cpuProfFile)
+		defer cpuProfFile.Close()
+	}
+
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, os.Interrupt, os.Kill)
+	go func() {
+		_ = <-sigchan
+		if *cpuprofile != "" {
+			pprof.StopCPUProfile()
+		}
+
+		if *memprofile != "" {
+			f, err := os.Create(*memprofile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pprof.WriteHeapProfile(f)
+			f.Close()
+		}
+		os.Exit(1)
+	}()
 
 	// TODO: make this an option:
 	localUsers := true
@@ -58,6 +94,6 @@ func main() {
 		log.Fatalf("Mount fail: %v\n", err)
 	}
 
-	server.SetDebug(true)
+	//server.SetDebug(true)
 	server.Serve()
 }
