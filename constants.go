@@ -101,4 +101,10 @@ const (
 var (
 	KEYBASE_PACKET_V1 = 1
 	TAG_P3SKB         = 513
+	TAG_SIGNATURE     = 514
+)
+
+var (
+	KID_ED25519       = 0x20
+	KID_DH_CURVE25519 = 0x21
 )

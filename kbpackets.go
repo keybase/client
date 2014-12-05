@@ -29,16 +29,19 @@ type KeybasePacketHash struct {
 }
 
 type KeybasePacket struct {
-	Body    interface{}       `codec:"body"`
-	Hash    KeybasePacketHash `codec:"hash"`
-	Tag     int               `codec:"tag"`
-	Version int               `codec:"version"`
+	Body    interface{}        `codec:"body"`
+	Hash    *KeybasePacketHash `codec:"hash,omitempty"`
+	Tag     int                `codec:"tag"`
+	Version int                `codec:"version"`
 }
 
 type KeybasePackets []*KeybasePacket
 
 func (p *KeybasePacket) HashToBytes() (ret []byte, err error) {
 	zb := [0]byte{}
+	if p.Hash == nil {
+		p.Hash = &KeybasePacketHash{}
+	}
 	tmp := p.Hash.Value
 	defer func() {
 		p.Hash.Value = tmp
@@ -65,6 +68,9 @@ func (p *KeybasePacket) HashMe() error {
 func (p *KeybasePacket) CheckHash() error {
 	var gotten []byte
 	var err error
+	if p.Hash == nil {
+		return nil
+	}
 	given := p.Hash.Value
 	if p.Hash.Type != SHA256_CODE {
 		err = fmt.Errorf("Bad hash code: %d", p.Hash.Type)
