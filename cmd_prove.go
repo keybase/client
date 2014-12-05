@@ -72,8 +72,8 @@ func (v *CmdProve) CheckExists1() (err error) {
 func (v *CmdProve) PromptRemoteName() (err error) {
 	if len(v.username) == 0 {
 		v.username, err = G_UI.Prompt(v.st.GetPrompt(), false, v.st.ToChecker())
-	} else if !v.st.CheckUsername(v.username) {
-		err = BadUsername{v.username}
+	} else {
+		err = v.st.CheckUsername(v.username)
 	}
 	return
 }

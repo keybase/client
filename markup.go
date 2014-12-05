@@ -129,13 +129,13 @@ func (r *Renderer) FlushParagraph() {
 	}
 }
 
-func GetNodeAttrVal(node *html.Node, which string) string {
+func GetNodeAttrVal(node *html.Node, which string) *string {
 	for _, attr := range node.Attr {
 		if attr.Key == which {
-			return attr.Val
+			return &attr.Val
 		}
 	}
-	return ""
+	return nil
 }
 
 func (r *Renderer) RenderNode(node *html.Node) {
@@ -149,7 +149,13 @@ func (r *Renderer) RenderNode(node *html.Node) {
 	if node.DataAtom == atom.Ul {
 		r.indent++
 	} else if node.DataAtom == atom.Li {
-		r.NewParagraph("• ")
+		var bullet string
+		if bp := GetNodeAttrVal(node, "bullet"); bp != nil {
+			bullet = *bp
+		} else {
+			bullet = "• "
+		}
+		r.NewParagraph(bullet)
 	} else if node.DataAtom == atom.P {
 		r.NewParagraph("")
 	} else if node.DataAtom == atom.Strong {
@@ -159,7 +165,9 @@ func (r *Renderer) RenderNode(node *html.Node) {
 	} else if node.Data == "url" {
 		cp = &CpUnderline
 	} else if node.Data == "color" {
-		cp = GetColorCode(GetNodeAttrVal(node, "name"))
+		if c := GetNodeAttrVal(node, "name"); c != nil {
+			cp = GetColorCode(*c)
+		}
 	}
 
 	if cp != nil {

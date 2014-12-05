@@ -44,12 +44,12 @@ func (e BadServiceError) Error() string {
 	return e.n + ": unsupported service"
 }
 
-type BadUsername struct {
+type BadUsernameError struct {
 	n string
 }
 
-func (e BadUsername) Error() string {
-	return "bad username: '" + e.n + "'"
+func (e BadUsernameError) Error() string {
+	return "Bad username: '" + e.n + "'"
 }
 
 type InternalError struct {
