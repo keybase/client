@@ -440,3 +440,21 @@ type BadUsernameError struct {
 func (e BadUsernameError) Error() string {
 	return "Bad username: '" + e.n + "'"
 }
+
+//=============================================================================
+
+type UnmarshalError struct {
+	t string
+}
+
+func (u UnmarshalError) Error() string {
+	return "Bad " + u.t + " packet"
+}
+
+type VerificationError struct{}
+
+func (v VerificationError) Error() string {
+	return "Verification failed"
+}
+
+//=============================================================================

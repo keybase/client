@@ -194,18 +194,14 @@ func (k *P3SKBKeyringFile) LoadAndIndex() error {
 func (p KeybasePacket) ToP3SKB() (*P3SKB, error) {
 	ret, ok := p.Body.(*P3SKB)
 	if !ok {
-		return nil, fmt.Errorf("Bad P3SKB packet")
+		return nil, UnmarshalError{"P3SKB"}
 	} else {
 		return ret, nil
 	}
 }
 
 func (s *P3SKB) ArmoredEncode() (ret string, err error) {
-	var p *KeybasePacket
-	if p, err = s.ToPacket(); err == nil {
-		ret, err = p.ArmoredEncode()
-	}
-	return
+	return PacketArmoredEncode(s)
 }
 
 func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {

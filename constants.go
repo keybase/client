@@ -108,3 +108,7 @@ var (
 	KID_ED25519       = 0x20
 	KID_DH_CURVE25519 = 0x21
 )
+
+var (
+	SIG_TYPE_ED25519_SHA512 = 0x1
+)

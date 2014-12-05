@@ -146,6 +146,8 @@ func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 	switch ret.Tag {
 	case TAG_P3SKB:
 		body = &P3SKB{}
+	case TAG_SIGNATURE:
+		body = &NaclSig{}
 	default:
 		err = fmt.Errorf("Unknown packet tag: %d", ret.Tag)
 		return
@@ -185,6 +187,18 @@ func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 	err = ret.MyUnmarshalBinary(data)
 	if err != nil {
 		ret = nil
+	}
+	return
+}
+
+type Packetable interface {
+	ToPacket() (*KeybasePacket, error)
+}
+
+func PacketArmoredEncode(p Packetable) (ret string, err error) {
+	var tmp *KeybasePacket
+	if tmp, err = p.ToPacket(); err == nil {
+		ret, err = tmp.ArmoredEncode()
 	}
 	return
 }

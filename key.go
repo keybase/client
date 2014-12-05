@@ -263,6 +263,10 @@ func (k PgpKeyBundle) UsersDescription() []string {
 type KID []byte
 type KID2 []byte
 
+type GenericKey interface {
+	GetKid() KID
+}
+
 func (k KID) ToString() string {
 	return hex.EncodeToString(k)
 }
