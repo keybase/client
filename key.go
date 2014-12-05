@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
@@ -266,13 +267,14 @@ type KID2 []byte
 type GenericKey interface {
 	GetKid() KID
 	SignToString([]byte) (string, *SigId, error)
+	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
 }
 
 func (k KID) ToString() string {
 	return hex.EncodeToString(k)
 }
 
-func (k PgpKeyBundle) GetKid() KID {
+func (k *PgpKeyBundle) GetKid() KID {
 
 	prefix := []byte{
 		byte(KEYBASE_KID_V1),
@@ -381,6 +383,16 @@ func (p *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) (err error) {
 	return
 }
 
-func (key PgpKeyBundle) SignToString(payload []byte) (out string, id *SigId, err error) {
-	return SimpleSign(payload, key)
+func (key *PgpKeyBundle) SignToString(payload []byte) (out string, id *SigId, err error) {
+	return SimpleSign(payload, *key)
+}
+
+func WriteP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher) (err error) {
+	var p3skb *P3SKB
+	if G.Keyrings == nil {
+		err = NoKeyringsError{}
+	} else if p3skb, err = k.ToP3SKB(tsec); err != nil {
+		err = G.Keyrings.P3SKB.PushAndSave(p3skb)
+	}
+	return
 }

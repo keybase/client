@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"crypto/rsa"
-	"fmt"
 	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
@@ -170,13 +169,7 @@ func (s *KeyGen) GenerateKey() (err error) {
 }
 
 func (s *KeyGen) WriteKey() (err error) {
-	if s.p3skb, err = s.bundle.ToP3SKB(s.tsec); err != nil {
-	} else if G.Keyrings == nil {
-		err = fmt.Errorf("No keyrings available")
-	} else if err = G.Keyrings.P3SKB.Push(s.p3skb); err != nil {
-	} else if err = G.Keyrings.P3SKB.Save(); err != nil {
-	}
-	return
+	return WriteP3SKBToKeyring(s.bundle, s.tsec)
 }
 
 func (s *KeyGen) GeneratePost() (err error) {
@@ -188,7 +181,7 @@ func (s *KeyGen) GeneratePost() (err error) {
 	if jw, err = s.me.SelfProof(); err != nil {
 		return
 	}
-	if sig, sigid, err = SignJson(jw, *s.bundle); err != nil {
+	if sig, sigid, err = SignJson(jw, s.bundle); err != nil {
 		return
 	}
 	if pubkey, err = s.bundle.Encode(); err != nil {
@@ -293,14 +286,14 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 func (s *KeyGen) GenNacl() (err error) {
 	if s.arg.DoNaclEddsa {
 		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Sibling:   *s.bundle,
+			Sibling:   s.bundle,
 			Generator: GenerateNaclSigningKeyPair,
 		})
 		err = gen.Run()
 	}
 	if err == nil && s.arg.DoNaclDH {
 		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Sibling:   *s.bundle,
+			Sibling:   s.bundle,
 			Generator: GenerateNaclDHKeyPair,
 		})
 		err = gen.Run()

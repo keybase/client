@@ -27,7 +27,7 @@ func (g *NaclKeyGen) Generate() (err error) {
 }
 
 func (g *NaclKeyGen) Save() (err error) {
-	return
+	return WriteP3SKBToKeyring(g.pair, nil)
 }
 
 func (g *NaclKeyGen) Push() (err error) {

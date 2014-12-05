@@ -458,3 +458,19 @@ func (v VerificationError) Error() string {
 }
 
 //=============================================================================
+
+type NoKeyringsError struct{}
+
+func (k NoKeyringsError) Error() string {
+	return "No keyrings available"
+}
+
+//=============================================================================
+
+type KeyCannotSignError struct{}
+
+func (s KeyCannotSignError) Error() string {
+	return "Key cannot create signatures"
+}
+
+//=============================================================================

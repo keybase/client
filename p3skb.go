@@ -18,6 +18,7 @@ import (
 type P3SKB struct {
 	Priv P3SKBPriv `codec:"priv"`
 	Pub  []byte    `codec:"pub"`
+	Type int       `codec:"type,omitempty"`
 
 	decodedPub      *PgpKeyBundle
 	decryptedSecret *PgpKeyBundle
@@ -300,4 +301,11 @@ func (p *P3SKB) PromptAndUnlock(reason string, which string) (ret *PgpKeyBundle,
 		Unlocker: unlocker,
 		Which:    which,
 	}.Run()
+}
+
+func (p *P3SKBKeyringFile) PushAndSave(p3skb *P3SKB) (err error) {
+	if err = p.Push(p3skb); err == nil {
+		err = p.Save()
+	}
+	return
 }

@@ -2,10 +2,11 @@ package libkb
 
 import (
 	"github.com/agl/ed25519"
-	// "golang.org/x/crypto/nacl/box"
+	"golang.org/x/crypto/nacl/box"
 	// "golang.org/x/crypto/nacl/secretbox"
 	"crypto/rand"
 	"encoding/base64"
+	"github.com/keybase/go-triplesec"
 )
 
 type NaclSig struct {
@@ -51,7 +52,7 @@ type NaclDHKeyPublic [NACL_DH_KEYSIZE]byte
 type NaclDHKeyPrivate [NACL_DH_KEYSIZE]byte
 
 type NaclDHKeyPair struct {
-	Public  *NaclDHKeyPublic
+	Public  NaclDHKeyPublic
 	Private *NaclDHKeyPrivate
 }
 
@@ -81,10 +82,8 @@ func (p NaclSigningKeyPair) GetKid() (ret KID) {
 	return p.Public.GetKid()
 }
 
-func (p NaclDHKeyPair) GetId() (ret KID) {
-	if p.Public != nil {
-		ret = p.Public.GetKid()
-	}
+func (p NaclDHKeyPair) GetKid() (ret KID) {
+	ret = p.Public.GetKid()
 	return
 }
 
@@ -115,6 +114,11 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, idp *SigId, er
 		idp = &id
 		sig = base64.StdEncoding.EncodeToString(body)
 	}
+	return
+}
+
+func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, idp *SigId, err error) {
+	err = KeyCannotSignError{}
 	return
 }
 
@@ -150,7 +154,25 @@ func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 }
 
 type NaclKeyPair interface {
-	GetKid() KID
+	GenericKey
+}
+
+func (k NaclSigningKeyPair) ToP3SKB(t *triplesec.Cipher) (*P3SKB, error) {
+	ret := &P3SKB{}
+	ret.Pub = k.GetKid()
+	ret.Type = KID_NACL_EDDSA
+	ret.Priv.Encryption = 0
+	ret.Priv.Data = (*k.Private)[:]
+	return ret, nil
+}
+
+func (k NaclDHKeyPair) ToP3SKB(t *triplesec.Cipher) (*P3SKB, error) {
+	ret := &P3SKB{}
+	ret.Pub = k.GetKid()
+	ret.Type = KID_NACL_DH
+	ret.Priv.Encryption = 0
+	ret.Priv.Data = (*k.Private)[:]
+	return ret, nil
 }
 
 func GenerateNaclSigningKeyPair() (NaclKeyPair, error) {
@@ -168,5 +190,14 @@ func GenerateNaclSigningKeyPair() (NaclKeyPair, error) {
 }
 
 func GenerateNaclDHKeyPair() (NaclKeyPair, error) {
-	return nil, nil
+	pub, priv, err := box.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+	var ret NaclDHKeyPair
+	var npriv NaclDHKeyPrivate
+	copy(ret.Public[:], pub[:])
+	copy(npriv[:], priv[:])
+	ret.Private = &npriv
+	return ret, nil
 }
