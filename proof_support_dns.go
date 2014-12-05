@@ -96,9 +96,9 @@ func ParseDns(s string) (ret string, err error) {
 	return
 }
 
-func (t DnsServiceType) CheckUsername(s string) bool {
+func (t DnsServiceType) CheckUsername(s string) error {
 	_, e := ParseDns(s)
-	return (e == nil)
+	return e
 }
 
 func (t DnsServiceType) NormalizeUsername(s string) (string, error) {

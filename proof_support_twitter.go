@@ -110,8 +110,11 @@ type TwitterServiceType struct{ BaseServiceType }
 func (t TwitterServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
 func (t TwitterServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
 
-func (t TwitterServiceType) CheckUsername(s string) bool {
-	return regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s)
+func (t TwitterServiceType) CheckUsername(s string) (err error) {
+	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s) {
+		err = BadUsernameError{s}
+	}
+	return
 }
 
 func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {

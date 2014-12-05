@@ -430,3 +430,13 @@ type ProtocolDowngradeError struct {
 func (h ProtocolDowngradeError) Error() string {
 	return h.msg
 }
+
+//=============================================================================
+
+type BadUsernameError struct {
+	n string
+}
+
+func (e BadUsernameError) Error() string {
+	return "Bad username: '" + e.n + "'"
+}

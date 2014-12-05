@@ -9,7 +9,7 @@ import (
 type ServiceType interface {
 	AllStringKeys() []string
 	PrimaryStringKeys() []string
-	CheckUsername(string) bool
+	CheckUsername(string) error
 	NormalizeUsername(string) (string, error)
 	ToChecker() Checker
 	GetPrompt() string
@@ -82,7 +82,7 @@ func (t BaseServiceType) BaseGetProofType(st ServiceType) string {
 
 func (t BaseServiceType) BaseToChecker(st ServiceType, hint string) Checker {
 	return Checker{
-		F:             func(s string) bool { return st.CheckUsername(s) },
+		F:             func(s string) bool { return (st.CheckUsername(s) == nil) },
 		Hint:          hint,
 		PreserveSpace: false,
 	}

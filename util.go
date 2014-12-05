@@ -180,6 +180,10 @@ func IsValidHostname(s string) bool {
 				return false
 			}
 		}
+		// TLDs must be >=2 chars
+		if len(parts[len(parts)-1]) < 2 {
+			return false
+		}
 		return true
 	}
 }

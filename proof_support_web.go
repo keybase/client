@@ -75,7 +75,7 @@ func (t WebServiceType) AllStringKeys() []string     { return []string{"web", "h
 func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", "http"} }
 
 func ParseWeb(s string) (hostname string, prot string, err error) {
-	rxx := regexp.MustCompile("^(http(s))://(.*)$")
+	rxx := regexp.MustCompile("^(http(s?))://(.*)$")
 	if v := rxx.FindStringSubmatch(s); v != nil {
 		s = v[3]
 		prot = v[1]
@@ -88,9 +88,9 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) CheckUsername(s string) bool {
+func (t WebServiceType) CheckUsername(s string) error {
 	_, _, e := ParseWeb(s)
-	return (e == nil)
+	return e
 }
 
 func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
@@ -143,20 +143,28 @@ func (t WebServiceType) ToServiceJson(un string) *jsonw.Wrapper {
 
 func (t WebServiceType) MarkupFilenames(un string, mkp *Markup) {
 	mkp.Append(`<ul>`)
+	first := true
 	for _, f := range webKeybaseFiles {
-		mkp.Append(`<li><url>` + un + "/" + f + `</url></li>`)
+		var bullet string
+		if first {
+			bullet = "   "
+			first = false
+		} else {
+			bullet = "OR "
+		}
+		mkp.Append(`<li bullet="` + bullet + `"><url>` + un + "/" + f + `</url></li>`)
 	}
 	mkp.Append(`</ul>`)
 }
 
 func (t WebServiceType) PreProofWarning(un string) *Markup {
-	mkp := FmtMarkup(`<p>You will be asked to post a file available at one of the following locations:</p>`)
+	mkp := FmtMarkup(`<p>You will be asked to post a file to:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
 
 func (t WebServiceType) PostInstructions(un string) *Markup {
-	mkp := FmtMarkup(`<p>Make the following file available at one of:</p>`)
+	mkp := FmtMarkup(`<p>Make the following file available at:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
