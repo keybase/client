@@ -265,6 +265,7 @@ type KID2 []byte
 
 type GenericKey interface {
 	GetKid() KID
+	SignToString([]byte) (string, *SigId, error)
 }
 
 func (k KID) ToString() string {
@@ -378,4 +379,8 @@ func (p *PgpKeyBundle) CheckFingerprint(fp *PgpFingerprint) (err error) {
 		}
 	}
 	return
+}
+
+func (key PgpKeyBundle) SignToString(payload []byte) (out string, id *SigId, err error) {
+	return SimpleSign(payload, key)
 }

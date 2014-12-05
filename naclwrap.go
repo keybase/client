@@ -4,6 +4,8 @@ import (
 	"github.com/agl/ed25519"
 	// "golang.org/x/crypto/nacl/box"
 	// "golang.org/x/crypto/nacl/secretbox"
+	"crypto/rand"
+	"encoding/base64"
 )
 
 type NaclSig struct {
@@ -31,7 +33,7 @@ func (k KID) ToNaclSigningKeyPublic() *NaclSigningKeyPublic {
 	if len(k) != 3+ed25519.PublicKeySize {
 		return nil
 	}
-	if k[0] != byte(KEYBASE_KID_V1) || k[1] != byte(KID_ED25519) ||
+	if k[0] != byte(KEYBASE_KID_V1) || k[1] != byte(KID_NACL_EDDSA) ||
 		k[len(k)-1] != byte(ID_SUFFIX_KID) {
 		return nil
 	}
@@ -56,7 +58,7 @@ type NaclDHKeyPair struct {
 func (k NaclDHKeyPublic) GetKid() KID {
 	prefix := []byte{
 		byte(KEYBASE_KID_V1),
-		byte(KID_DH_CURVE25519),
+		byte(KID_NACL_DH),
 	}
 	suffix := byte(ID_SUFFIX_KID)
 	out := append(prefix, k[:]...)
@@ -67,7 +69,7 @@ func (k NaclDHKeyPublic) GetKid() KID {
 func (k NaclSigningKeyPublic) GetKid() KID {
 	prefix := []byte{
 		byte(KEYBASE_KID_V1),
-		byte(KID_ED25519),
+		byte(KID_NACL_EDDSA),
 	}
 	suffix := byte(ID_SUFFIX_KID)
 	out := append(prefix, k[:]...)
@@ -101,6 +103,21 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
 	return
 }
 
+func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, idp *SigId, err error) {
+	if tmp, e2 := k.Sign(msg); e2 != nil {
+		err = e2
+	} else if packet, e2 := tmp.ToPacket(); e2 != nil {
+		err = e2
+	} else if body, e2 := packet.Encode(); e2 != nil {
+		err = e2
+	} else {
+		id := ComputeSigIdFromSigBody(body)
+		idp = &id
+		sig = base64.StdEncoding.EncodeToString(body)
+	}
+	return
+}
+
 func (s *NaclSig) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KEYBASE_PACKET_V1,
@@ -130,4 +147,26 @@ func (s NaclSig) Verify() (err error) {
 
 func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
+}
+
+type NaclKeyPair interface {
+	GetKid() KID
+}
+
+func GenerateNaclSigningKeyPair() (NaclKeyPair, error) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+	var ret NaclSigningKeyPair
+	var npriv NaclSigningKeyPrivate
+	copy(ret.Public[:], pub[:])
+	copy(npriv[:], priv[:])
+	ret.Private = &npriv
+
+	return ret, nil
+}
+
+func GenerateNaclDHKeyPair() (NaclKeyPair, error) {
+	return nil, nil
 }

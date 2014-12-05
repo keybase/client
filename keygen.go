@@ -188,7 +188,7 @@ func (s *KeyGen) GeneratePost() (err error) {
 	if jw, err = s.me.SelfProof(); err != nil {
 		return
 	}
-	if sig, sigid, err = SimpleSignJson(jw, *s.bundle); err != nil {
+	if sig, sigid, err = SignJson(jw, *s.bundle); err != nil {
 		return
 	}
 	if pubkey, err = s.bundle.Encode(); err != nil {
@@ -229,6 +229,8 @@ type KeyGenArg struct {
 	DoSecretPush bool
 	NoPassphrase bool
 	KbPassphrase bool
+	DoNaclEddsa  bool
+	DoNaclDH     bool
 	Pregen       *PgpKeyBundle
 }
 
@@ -288,6 +290,24 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 	return
 }
 
+func (s *KeyGen) GenNacl() (err error) {
+	if s.arg.DoNaclEddsa {
+		gen := NewNaclKeyGen(NaclKeyGenArg{
+			Sibling:   *s.bundle,
+			Generator: GenerateNaclSigningKeyPair,
+		})
+		err = gen.Run()
+	}
+	if err == nil && s.arg.DoNaclDH {
+		gen := NewNaclKeyGen(NaclKeyGenArg{
+			Sibling:   *s.bundle,
+			Generator: GenerateNaclDHKeyPair,
+		})
+		err = gen.Run()
+	}
+	return err
+}
+
 func (s *KeyGen) Run() (ret *PgpKeyBundle, err error) {
 
 	G.Log.Debug("+ KeyGen::Run")
@@ -297,8 +317,9 @@ func (s *KeyGen) Run() (ret *PgpKeyBundle, err error) {
 
 	if err = s.LoginAndCheckKey(); err != nil {
 	} else if ret, err = s.Generate(); err != nil {
+	} else if err = s.Push(); err != nil {
 	} else {
-		err = s.Push()
+		err = s.GenNacl()
 	}
 
 	return

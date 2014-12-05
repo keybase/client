@@ -105,8 +105,14 @@ var (
 )
 
 var (
-	KID_ED25519       = 0x20
-	KID_DH_CURVE25519 = 0x21
+	KID_PGP_BASE    = 0x00
+	KID_PGP_RSA     = 0x1
+	KID_PGP_ELGAMAL = 0x10
+	KID_PGP_DSA     = 0x11
+	KID_PGP_ECDH    = 0x12
+	KID_PGP_ECDSA   = 0x13
+	KID_NACL_EDDSA  = 0x20
+	KID_NACL_DH     = 0x21
 )
 
 var (
