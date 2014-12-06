@@ -140,7 +140,7 @@ func (v *CmdProve) GenerateProof() (err error) {
 	if key, err = G.Keyrings.GetSecretKey("proof signature"); err != nil {
 		return
 	}
-	if v.sig, v.sigId, err = libkb.SimpleSignJson(v.proof, *key); err != nil {
+	if v.sig, v.sigId, err = libkb.SignJson(v.proof, key); err != nil {
 		return
 	}
 	return
