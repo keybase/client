@@ -2,12 +2,12 @@ package main
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/html"
-	"code.google.com/p/go.net/html/atom"
 	"fmt"
 	Q "github.com/PuerkitoBio/goquery"
 	"github.com/keybase/go-libkb"
 	"github.com/kr/text"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 	"io"
 	"os"
 	"regexp"
