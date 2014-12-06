@@ -146,7 +146,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	return nil
 }
 
-func (u *User) ProofMetadata() (ret *jsonw.Wrapper, err error) {
+func (u *User) ProofMetadata(ei int) (ret *jsonw.Wrapper, err error) {
 
 	var seqno int
 	var prev_s string
@@ -163,10 +163,14 @@ func (u *User) ProofMetadata() (ret *jsonw.Wrapper, err error) {
 		prev = jsonw.NewString(prev_s)
 	}
 
+	if ei == 0 {
+		ei = SIG_EXPIRE_IN
+	}
+
 	ret = jsonw.NewDictionary()
 	ret.SetKey("tag", jsonw.NewString("signature"))
 	ret.SetKey("ctime", jsonw.NewInt64(time.Now().Unix()))
-	ret.SetKey("expire_in", jsonw.NewInt(SIG_EXPIRE_IN))
+	ret.SetKey("expire_in", jsonw.NewInt(ei))
 	ret.SetKey("seqno", jsonw.NewInt(seqno))
 	ret.SetKey("prev", prev)
 
@@ -183,7 +187,7 @@ func (u *User) ProofMetadata() (ret *jsonw.Wrapper, err error) {
 }
 
 func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = u1.ProofMetadata()
+	ret, err = u1.ProofMetadata(0)
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"))
 	}
@@ -191,7 +195,7 @@ func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
 }
 
 func (u *User) SelfProof() (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata()
+	ret, err = u.ProofMetadata(0)
 	body := ret.AtKey("body")
 	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	body.SetKey("type", jsonw.NewString("web_service_binding"))
@@ -214,5 +218,25 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, err err
 		return
 	}
 	out, id, err = key.SignToString(tmp)
+	return
+}
+
+func KeyToProofJson(key GenericKey) *jsonw.Wrapper {
+	d := jsonw.NewDictionary()
+	d.SetKey("kid", jsonw.NewString(key.GetKid().ToString()))
+	return d
+}
+
+func (u *User) KeyProof(key GenericKey, typ string, ei int) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata(ei)
+	if err != nil {
+		return
+	}
+	body := ret.AtKey("body")
+	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("type", jsonw.NewString(typ))
+
+	// 'typ' can be 'subkey' or 'sibkey'
+	body.SetKey(typ, KeyToProofJson(key))
 	return
 }

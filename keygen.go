@@ -286,15 +286,21 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 func (s *KeyGen) GenNacl() (err error) {
 	if s.arg.DoNaclEddsa {
 		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Sibling:   s.bundle,
+			Signer:    s.bundle,
 			Generator: GenerateNaclSigningKeyPair,
+			Type:      "sibkey",
+			Me:        s.me,
+			ExpireIn:  NACL_EDDSA_EXPIRE_IN,
 		})
 		err = gen.Run()
 	}
 	if err == nil && s.arg.DoNaclDH {
 		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Sibling:   s.bundle,
+			Signer:    s.bundle,
 			Generator: GenerateNaclDHKeyPair,
+			Type:      "subkey",
+			Me:        s.me,
+			ExpireIn:  NACL_DH_EXPIRE_IN,
 		})
 		err = gen.Run()
 	}

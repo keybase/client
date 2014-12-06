@@ -37,7 +37,9 @@ var MERKLE_TEST_KEY = "A05161510EE696601BA0EC7B3FD53B4871528CEF"
 var KEYBASE_KID_V1 = 1 // Uses SHA-256
 var KEYBASE_KID_V2 = 2 // Uses Shake256
 var KEYBASE_SIGNATURE_V1 = 1
-var SIG_EXPIRE_IN = 24 * 60 * 60 * 365 * 10 // 10 years
+var SIG_EXPIRE_IN = 24 * 60 * 60 * 365 * 10       // 10 years
+var NACL_EDDSA_EXPIRE_IN = 24 * 60 * 60 * 365 * 3 // 3 years
+var NACL_DH_EXPIRE_IN = 24 * 60 * 60 * 365 * 3    // 3 years
 
 const (
 	ID_SUFFIX_KID = 0x0a
