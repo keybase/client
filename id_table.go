@@ -205,7 +205,7 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	if list, found := tl.ids[k]; !found || len(list) == 0 {
 		return TrackDiffNew{}
 	} else if expected := list[len(list)-1]; !Cicmp(expected, v) {
-		return TrackDiffClash{expected, v}
+		return TrackDiffClash{observed: v, expected: expected}
 	} else {
 		return TrackDiffNone{}
 	}
