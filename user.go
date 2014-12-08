@@ -264,18 +264,16 @@ func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
 	if u.activePgpFingerprint != nil {
 		return u.activePgpFingerprint, nil
 	}
-
-	w := u.publicKeys.AtKey("primary").AtKey("key_fingerprint")
-
-	if w.IsNil() {
-		return nil, nil
-	}
-	fp, err := GetPgpFingerprint(w)
+	var key *PgpKeyBundle
+	key, err = u.GetActiveKey()
 	if err != nil {
-		return nil, err
+		return
 	}
-	u.activePgpFingerprint = fp
-	return fp, err
+
+	fp := key.GetFingerprint()
+	f = &fp
+	u.activePgpFingerprint = f
+	return
 }
 
 func (u *User) SetActiveKey(pgp *PgpKeyBundle) (err error) {

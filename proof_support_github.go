@@ -20,7 +20,7 @@ func NewGithubChecker(p RemoteProofChainLink) (*GithubChecker, ProofError) {
 
 func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
 	given := strings.ToLower(h.apiUrl)
-	u := rc.proof.GetRemoteUsername()
+	u := strings.ToLower(rc.proof.GetRemoteUsername())
 	ok1 := "https://gist.github.com/" + u + "/"
 	ok2 := "https://gist.githubusercontent.com/" + u + "/"
 	if strings.HasPrefix(given, ok1) || strings.HasPrefix(given, ok2) {
