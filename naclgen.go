@@ -42,3 +42,7 @@ func (g *NaclKeyGen) Run() (err error) {
 	}
 	return
 }
+
+func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
+	return g.pair
+}
