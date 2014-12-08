@@ -288,8 +288,11 @@ func (s *KeyGen) GenNacl() (err error) {
 	sibkey = s.bundle
 	if s.arg.DoNaclEddsa {
 		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Sibling:   sibkey,
+			Signer:    sibkey,
 			Generator: GenerateNaclSigningKeyPair,
+			Type:      "sibkey",
+			Me:        s.me,
+			ExpireIn:  NACL_EDDSA_EXPIRE_IN,
 		})
 		if err = gen.Run(); err == nil {
 			sibkey = gen.GetKeyPair()
@@ -297,8 +300,11 @@ func (s *KeyGen) GenNacl() (err error) {
 	}
 	if err == nil && s.arg.DoNaclDH {
 		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Sibling:   sibkey,
+			Signer:    sibkey,
 			Generator: GenerateNaclDHKeyPair,
+			Type:      "subkey",
+			Me:        s.me,
+			ExpireIn:  NACL_DH_EXPIRE_IN,
 		})
 		err = gen.Run()
 	}

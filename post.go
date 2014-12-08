@@ -19,6 +19,28 @@ type PostProofArg struct {
 	RemoteKey      string
 }
 
+type PostNewKeyArg struct {
+	Sig  string
+	Id   SigId
+	Type string
+}
+
+func PostNewKey(arg PostNewKeyArg) error {
+
+	_, err := G.API.Post(ApiArg{
+		Endpoint:    "sig/post",
+		NeedSession: true,
+		Args: HttpArgs{
+			"sig_id_base":     S{arg.Id.ToString(false)},
+			"sig_id_short":    S{arg.Id.ToShortId()},
+			"sig":             S{arg.Sig},
+			"is_remote_proof": B{false},
+			"type":            S{arg.Type},
+		},
+	})
+	return err
+}
+
 func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	hargs := HttpArgs{
 		"sig_id_base":     S{arg.Id.ToString(false)},

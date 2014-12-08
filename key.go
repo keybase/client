@@ -274,6 +274,10 @@ func (k KID) ToString() string {
 	return hex.EncodeToString(k)
 }
 
+func (k KID) ToBytes() []byte {
+	return []byte(k)
+}
+
 func (k *PgpKeyBundle) GetKid() KID {
 
 	prefix := []byte{
