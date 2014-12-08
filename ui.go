@@ -90,7 +90,7 @@ type IdentifyTrackUI struct {
 
 func (ui IdentifyTrackUI) ReportDeleted(del []libkb.TrackDiffDeleted) {
 	if len(del) > 0 {
-		G.Log.Warning("Some proofs you previous tracked were deleted:")
+		G.Log.Warning("Some proofs you previously tracked were deleted:")
 		for _, d := range del {
 			ui.ReportHook(BADX + " " + TrackDiffToColoredString(d))
 		}
