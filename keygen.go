@@ -169,7 +169,8 @@ func (s *KeyGen) GenerateKey() (err error) {
 }
 
 func (s *KeyGen) WriteKey() (err error) {
-	return WriteP3SKBToKeyring(s.bundle, s.tsec)
+	s.p3skb, err = WriteP3SKBToKeyring(s.bundle, s.tsec)
+	return
 }
 
 func (s *KeyGen) GeneratePost() (err error) {
@@ -199,6 +200,7 @@ func (s *KeyGen) GeneratePost() (err error) {
 		"is_primary":   I{1},
 	}
 	if s.arg.DoSecretPush {
+		G.Log.Debug("XXX %s\n", seckey)
 		s.httpArgs.Add("private_key", S{seckey})
 	}
 	return
@@ -286,7 +288,9 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 func (s *KeyGen) GenNacl() (err error) {
 	var sibkey GenericKey
 	sibkey = s.bundle
+	G.Log.Debug("+ GenNacl()")
 	if s.arg.DoNaclEddsa {
+		G.Log.Info("Generating NaCl EdDSA key (255 bits on Curve25519)")
 		gen := NewNaclKeyGen(NaclKeyGenArg{
 			Signer:    sibkey,
 			Generator: GenerateNaclSigningKeyPair,
@@ -299,6 +303,7 @@ func (s *KeyGen) GenNacl() (err error) {
 		}
 	}
 	if err == nil && s.arg.DoNaclDH {
+		G.Log.Info("Generating NaCl DH-key (255 bits on Curve25519)")
 		gen := NewNaclKeyGen(NaclKeyGenArg{
 			Signer:    sibkey,
 			Generator: GenerateNaclDHKeyPair,
@@ -308,6 +313,7 @@ func (s *KeyGen) GenNacl() (err error) {
 		})
 		err = gen.Run()
 	}
+	G.Log.Debug("- GenNacl() -> %s", ErrToOk(err))
 	return err
 }
 

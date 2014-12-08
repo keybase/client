@@ -26,17 +26,18 @@ type PostNewKeyArg struct {
 }
 
 func PostNewKey(arg PostNewKeyArg) error {
-
+	hargs := HttpArgs{
+		"sig_id_base":     S{arg.Id.ToString(false)},
+		"sig_id_short":    S{arg.Id.ToShortId()},
+		"sig":             S{arg.Sig},
+		"is_remote_proof": B{false},
+		"type":            S{arg.Type},
+	}
+	G.Log.Debug("Post NewKey: %v", hargs)
 	_, err := G.API.Post(ApiArg{
 		Endpoint:    "sig/post",
 		NeedSession: true,
-		Args: HttpArgs{
-			"sig_id_base":     S{arg.Id.ToString(false)},
-			"sig_id_short":    S{arg.Id.ToShortId()},
-			"sig":             S{arg.Sig},
-			"is_remote_proof": B{false},
-			"type":            S{arg.Type},
-		},
+		Args:        hargs,
 	})
 	return err
 }

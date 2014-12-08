@@ -72,14 +72,16 @@ func (u *User) ToKeyStanza() (*jsonw.Wrapper, error) {
 	ret.SetKey("uid", jsonw.NewString(u.id.ToString()))
 	ret.SetKey("username", jsonw.NewString(u.name))
 	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
-	if fp, err := u.GetActivePgpFingerprint(); err != nil {
+	if key, err := u.GetActiveKey(); err != nil {
 		return nil, err
-	} else if fp == nil {
+	} else if key == nil {
 		err = fmt.Errorf("Need a key; none found (in ToKeyStanza)")
 		return nil, err
 	} else {
+		fp := key.GetFingerprint()
 		ret.SetKey("fingerprint", jsonw.NewString(fp.ToString()))
 		ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))
+		ret.SetKey("kid", jsonw.NewString(key.GetKid().ToString()))
 	}
 	return ret, nil
 }

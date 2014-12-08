@@ -391,8 +391,7 @@ func (key *PgpKeyBundle) SignToString(payload []byte) (out string, id *SigId, er
 	return SimpleSign(payload, *key)
 }
 
-func WriteP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher) (err error) {
-	var p3skb *P3SKB
+func WriteP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher) (p3skb *P3SKB, err error) {
 	if G.Keyrings == nil {
 		err = NoKeyringsError{}
 	} else if p3skb, err = k.ToP3SKB(tsec); err != nil {
