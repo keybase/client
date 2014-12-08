@@ -18,6 +18,10 @@ func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	a.arg.DoPush = ctx.Bool("push") || a.arg.DoSecretPush
 	a.arg.NoPassphrase = ctx.Bool("no-passphrase")
 	a.arg.KbPassphrase = ctx.Bool("keybase-passphrase")
+	if !ctx.Bool("skip-nacl") {
+		a.arg.DoNaclEddsa = true
+		a.arg.DoNaclDH = true
+	}
 	if ctx.Bool("debug") {
 		a.arg.PrimaryBits = SMALL_KEY
 		a.arg.SubkeyBits = SMALL_KEY
@@ -63,6 +67,15 @@ We suggest use of this feature to synchronize your key across your devices.
 	prompt := "Push an encrypted copy of your private key to Keybase.io?"
 	a.arg.DoSecretPush, err = G_UI.PromptYesNo(prompt, &def)
 	return
+}
+
+func mykeyFlags() []cli.Flag {
+	return []cli.Flag{
+		cli.BoolFlag{
+			Name:  "skip-nacl",
+			Usage: "skip generation of NaCl keys",
+		},
+	}
 }
 
 func NewCmdMykey(cl *CommandLine) cli.Command {

@@ -101,6 +101,7 @@ func NewCmdMykeySelect(cl *CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdMykeySelect{}, "select", c)
 		},
+		Flags: mykeyFlags(),
 	}
 }
 

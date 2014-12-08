@@ -40,7 +40,7 @@ func NewCmdMykeyGen(cl *CommandLine) cli.Command {
 		Name:        "gen",
 		Usage:       "keybase mykey gen",
 		Description: "Generate a new PGP key and write to local secret keychain",
-		Flags: []cli.Flag{
+		Flags: append([]cli.Flag{
 			cli.BoolFlag{
 				Name:  "p, push",
 				Usage: "Push to server",
@@ -65,7 +65,7 @@ func NewCmdMykeyGen(cl *CommandLine) cli.Command {
 				Name:  "k, keybase-passprhase",
 				Usage: "Lock your key with your present Keybase passphrase",
 			},
-		},
+		}, mykeyFlags()...),
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdMykeyGen{}, "gen", c)
 		},
