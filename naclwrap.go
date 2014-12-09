@@ -10,10 +10,12 @@ import (
 )
 
 type NaclSig struct {
-	Kid     KID                         `codec:"key"`
-	Payload []byte                      `codec:"payload"`
-	Sig     [ed25519.SignatureSize]byte `codec:"sig"`
-	Type    int                         `codec:"type"`
+	Kid      KID                         `codec:"key"`
+	Payload  []byte                      `codec:"payload,omitempty"`
+	Sig      [ed25519.SignatureSize]byte `codec:"sig"`
+	SigType  int                         `codec:"sig_type"`
+	HashType int                         `codec:"hash_type"`
+	Detached bool                        `codec:"detached"`
 }
 
 const NACL_DH_KEYSIZE = 32
@@ -94,9 +96,11 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
 	}
 	sig := ed25519.Sign(k.Private.ToNaclLibrary(), msg)
 	ret = &NaclSig{
-		Type:    SIG_TYPE_ED25519_SHA512,
-		Payload: msg,
-		Kid:     k.GetKid(),
+		SigType:  SIG_KB_ED25519,
+		HashType: HASH_PGP_SHA512,
+		Payload:  msg,
+		Kid:      k.GetKid(),
+		Detached: true,
 	}
 	copy(ret.Sig[:], (*sig)[:])
 	return

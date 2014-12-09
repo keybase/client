@@ -117,6 +117,17 @@ var (
 	KID_NACL_DH     = 0x21
 )
 
+// OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
 var (
-	SIG_TYPE_ED25519_SHA512 = 0x1
+	HASH_PGP_MD5       = 1
+	HASH_PGP_SHA1      = 2
+	HASH_PGP_RIPEMD160 = 3
+	HASH_PGP_SHA256    = 8
+	HASH_PGP_SHA384    = 9
+	HASH_PGP_SHA512    = 10
+	HASH_PGP_SHA224    = 11
+)
+
+var (
+	SIG_KB_ED25519 = 0x1
 )
