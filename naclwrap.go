@@ -96,7 +96,7 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
 	}
 	sig := ed25519.Sign(k.Private.ToNaclLibrary(), msg)
 	ret = &NaclSig{
-		SigType:  SIG_KB_ED25519,
+		SigType:  SIG_KB_EDDSA,
 		HashType: HASH_PGP_SHA512,
 		Payload:  msg,
 		Kid:      k.GetKid(),

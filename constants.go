@@ -129,5 +129,5 @@ var (
 )
 
 var (
-	SIG_KB_ED25519 = 0x1
+	SIG_KB_EDDSA = KID_NACL_EDDSA
 )
