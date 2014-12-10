@@ -162,11 +162,11 @@ func (mc *MerkleClient) LoadRoot() error {
 }
 
 func (mr *MerkleRoot) Store() error {
-	err := G.LocalDb.Put(merkleHeadKey(),
-		[]DbKey{{
-			Typ: DB_LOOKUP_MERKLE_ROOT,
-			Key: "HEAD",
-		}},
+	err := G.LocalDb.Put(DbKey{
+		Typ: DB_MERKLE_ROOT,
+		Key: fmt.Sprintf("%d", mr.seqno),
+	},
+		[]DbKey{merkleHeadKey()},
 		mr.ToJson(),
 	)
 	return err
