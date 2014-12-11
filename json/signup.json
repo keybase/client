@@ -74,6 +74,12 @@
     "fields" : [ {
       "name" : "email",
       "type" : "string"
+    }, {
+      "name" : "fullName",
+      "type" : "string"
+    }, {
+      "name" : "notes",
+      "type" : "string"
     } ]
   }, {
     "type" : "record",

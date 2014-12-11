@@ -66,7 +66,9 @@ type SignupArg struct {
 	InviteCode string `codec:"inviteCode"`
 }
 type InviteRequestArg struct {
-	Email string `codec:"email"`
+	Email    string `codec:"email"`
+	FullName string `codec:"fullName"`
+	Notes    string `codec:"notes"`
 }
 type InviteRequestResBody struct {
 	Code  string `codec:"code"`
