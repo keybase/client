@@ -164,6 +164,16 @@ func (u UserNotFoundError) Error() string {
 
 //=============================================================================
 
+type AlreadyRegisteredError struct {
+	uid UID
+}
+
+func (u AlreadyRegisteredError) Error() string {
+	return fmt.Sprintf("Already registered (with uid=%s)", u.uid.ToString())
+}
+
+//=============================================================================
+
 type WrongSigError struct {
 	b string
 }
