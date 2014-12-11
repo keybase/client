@@ -74,6 +74,24 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	return ret, err
 }
 
+type InviteRequestArg struct {
+	Email    string
+	Fullname string
+	Notes    string
+}
+
+func PostInviteRequest(arg InviteRequestArg) (err error) {
+	_, err = G.API.Post(ApiArg{
+		Endpoint: "invitation_request",
+		Args: HttpArgs{
+			"email":     S{arg.Email},
+			"full_name": S{arg.Fullname},
+			"notes":     S{arg.Notes},
+		},
+	})
+	return err
+}
+
 func CheckPosted(proofId string) (found bool, status int, err error) {
 	res, e2 := G.API.Post(ApiArg{
 		Endpoint:    "sig/posted",
