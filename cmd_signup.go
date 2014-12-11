@@ -340,14 +340,10 @@ func (s *CmdSignup) RequestInvitePromptForData() (err error) {
 }
 
 func (s *CmdSignup) RequestInvitePost() (err error) {
-
-	_, err = G.API.Post(libkb.ApiArg{
-		Endpoint: "invitation_request",
-		Args: libkb.HttpArgs{
-			"email":     libkb.S{s.fields.email.GetValue()},
-			"full_name": libkb.S{s.fullname},
-			"notes":     libkb.S{s.notes},
-		},
+	err = libkb.PostInviteRequest(libkb.InviteRequestArg{
+		Email:    s.fields.email.GetValue(),
+		Fullname: s.fullname,
+		Notes:    s.notes,
 	})
 	if err == nil {
 		G.Log.Info("Success! You're on our list, thanks for your interest.")
