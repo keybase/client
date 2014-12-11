@@ -57,10 +57,7 @@
     "name" : "SignupArg",
     "fields" : [ {
       "name" : "email",
-      "type" : {
-        "type" : "string",
-        "optional" : true
-      }
+      "type" : "string"
     }, {
       "name" : "password",
       "type" : "string"

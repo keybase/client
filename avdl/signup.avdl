@@ -21,7 +21,7 @@ protocol signup {
 	}
 
 	record SignupArg {
-		@optional(true) string email;
+		string email;
 		string password;
 		string username;
 		string inviteCode;
