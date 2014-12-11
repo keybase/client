@@ -1,0 +1,59 @@
+
+@namespace("keybase.1")
+protocol login {
+
+	import idl "common.avdl";
+
+	record LoginResBody {
+		UID uid;
+	}
+
+	record IsLoggedInRes {
+		Status status;
+		union { null, LoginResBody } body;
+	}
+
+	record IsLoggedInArg {
+
+	}
+
+	record PasswordLoginArg {
+
+	}
+
+	record PubkeyLoginArg {
+
+	}
+
+	record PasswordLoginRes {
+		Status status;
+		union { null, LoginResBody } body;
+	}
+
+	record PubkeyLoginRes {
+		Status status;
+		union { null, LoginResBody } body;
+	}
+
+	record LogoutRes {
+		Status status;
+	}
+
+	record LogoutArg {
+
+	}
+
+	record SwitchUserRes {
+		Status status;
+	}
+
+	record SwitchUserArg {
+		string username;
+	}
+
+	IsLoggedInRes isLoggedIn(IsLoggedInArg arg);
+	PasswordLoginRes passwordLogin(PasswordLoginArg arg);
+	PubkeyLoginRes pubkeyLogin(PubkeyLoginArg arg);
+	LogoutRes logout(LogoutArg arg);
+	SwitchUserRes switchUser(SwitchUserArg arg);
+}

@@ -8,8 +8,8 @@ json/%.json : avdl/%.avdl
 	$(AVRO) $< $@
 
 $(BUILD_STAMP): \
-	json/signup.json \
-	json/common.json
+	json/login.json \
+	json/signup.json
 	date > $@
 
 clean:

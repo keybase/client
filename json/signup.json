@@ -70,13 +70,20 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "SignupResSuccess",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "SignupRes",
     "fields" : [ {
       "name" : "status",
       "type" : "Status"
     }, {
-      "name" : "uid",
-      "type" : "UID"
+      "name" : "body",
+      "type" : [ "null", "SignupResSuccess" ]
     } ]
   } ],
   "messages" : {

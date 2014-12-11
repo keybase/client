@@ -1,0 +1,139 @@
+{
+  "protocol" : "login",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoginResBody",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IsLoggedInRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "LoginResBody" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IsLoggedInArg",
+    "fields" : [ ]
+  }, {
+    "type" : "record",
+    "name" : "PasswordLoginArg",
+    "fields" : [ ]
+  }, {
+    "type" : "record",
+    "name" : "PubkeyLoginArg",
+    "fields" : [ ]
+  }, {
+    "type" : "record",
+    "name" : "PasswordLoginRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "LoginResBody" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PubkeyLoginRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "LoginResBody" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "LogoutRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "LogoutArg",
+    "fields" : [ ]
+  }, {
+    "type" : "record",
+    "name" : "SwitchUserRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SwitchUserArg",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  } ],
+  "messages" : {
+    "isLoggedIn" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "IsLoggedInArg"
+      } ],
+      "response" : "IsLoggedInRes"
+    },
+    "passwordLogin" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "PasswordLoginArg"
+      } ],
+      "response" : "PasswordLoginRes"
+    },
+    "pubkeyLogin" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "PubkeyLoginArg"
+      } ],
+      "response" : "PubkeyLoginRes"
+    },
+    "logout" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "LogoutArg"
+      } ],
+      "response" : "LogoutRes"
+    },
+    "switchUser" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "SwitchUserArg"
+      } ],
+      "response" : "SwitchUserRes"
+    }
+  }
+}

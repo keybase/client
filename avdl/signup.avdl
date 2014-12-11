@@ -27,9 +27,13 @@ protocol signup {
 		string inviteCode;
 	}
 
+	record SignupResSuccess {
+		UID uid;
+	}
+
 	record SignupRes {
 		Status status;
-		UID uid;
+		union { null, SignupResSuccess } body;
 	}
 
 	CheckUsernameAvailableRes checkUsernameAvailable(CheckUsernameAvailableArg arg);
