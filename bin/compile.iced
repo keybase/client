@@ -10,10 +10,73 @@ log = require 'iced-logger'
 
 class GoEmitter
 
+  go_export_case : (n) -> n[0].toUpperCase() + n[1...]
+
   constructor : () ->
+    @_code = []
+    @_tabs = 0
+
+
+  tabs : () -> ("\t" for i in [0...@_tabs]).join("")
+  output : (l) -> @_code.push (@tabs() + l)
+
+  tab : () -> @_tabs++
+  untab : () -> @_tabs--
+
+  emit_field_type : (t) ->
+    optional = false
+    type = if typeof(t) is 'string' then t
+    else if typeof(t) is 'object'
+      if Array.isArray(t) and t[0] == "null"
+        optional = true
+        "*" + t[1]
+      else if t.type is "array" then "[]" + t.items
+      else "ERROR"
+    else "ERROR"
+    { type , optional }
+
+  emit_record : (json) ->
+    @output "type #{@go_export_case(json.name)} struct {"
+    @tab()
+    for f in json.fields
+      {type, optional } = @emit_field_type(f.type)
+      omitempty = if optional then ",omitempty" else ""
+      @output [
+        @go_export_case(f.name),
+        type,
+        "`codec:\"#{f.name}#{omitempty}\"`"
+      ].join "\t"
+    @untab()
+    @output "}"
+
+  emit_fixed : (t) ->
+    @output "type #{t.name  } [#{t.size}]byte"
+
+  emit_types : (json) ->
+    for t in json
+      switch t.type
+        when "record"
+          @emit_record t
+        when "fixed"
+          @emit_fixed t
+
+  emit_message : (name, details) ->
+    args = (a.name + " " + a.type for a in details.request).join ", "
+    res = details.response
+    @output "#{@go_export_case(name)}(#{args}) #{res}"
+
+  emit_interface : (protocol, messages) ->
+    @output "type #{@go_export_case(protocol)} interface {"
+    @tab()
+    for k,v of messages
+      @emit_message k,v
+    @untab()
+    @output "}"
 
   run : (json, cb) ->
-    console.log json
+    @emit_types json.types
+    @emit_interface json.protocol, json.messages
+    console.log @_code.join("\n")
     cb null
 
 #====================================================================
