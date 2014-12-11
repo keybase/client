@@ -85,8 +85,8 @@ class GoEmitter
     esc = make_esc cb, "run"
     for f in files
       await @run_file f, esc defer()
-    console.log @_code.join("\n")
-    cb null
+    src = @_code.join("\n")
+    cb null, src
 
   emit_package : (json, cb) ->
     pkg = @go_package json.namespace
@@ -113,6 +113,7 @@ class Runner
     @files = []
     @emitter = null
     @jsons = []
+    @output = null
 
   parse_args : (argv, cb) ->
     err = null
@@ -122,6 +123,7 @@ class Runner
     else if not (@targ = @argv.t)?
       err = new Error "no language target via -t"
     else
+      @output = @argv.o
       switch @targ
         when "go"
           @emitter = new GoEmitter
@@ -151,11 +153,20 @@ class Runner
     @jsons.push json
     cb null
 
+  output_src : (src, cb) ->
+    err = null
+    if @output?
+      await fs.writeFile @output, src, defer err
+    else
+      console.log src
+    cb err
+
   run : (argv, cb) ->
     esc = make_esc cb, "main"
     await @parse_args argv, esc defer()
     await @load_files esc defer()
-    await @emitter.run @jsons, esc defer()
+    await @emitter.run @jsons, esc defer src
+    await @output_src src, esc defer()
     cb null
 
 #====================================================================

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/keybase/protocol",
   "dependencies": {
+    "iced-coffee-script": "^1.8.0-c",
     "iced-error": "0.0.9",
     "iced-logger": "^0.0.6",
     "iced-runtime": "^1.0.2",
