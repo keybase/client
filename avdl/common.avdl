@@ -1,0 +1,13 @@
+
+@namespace("keybase.1")
+protocol Common {
+
+	record Status {
+		int code;
+		string name;
+		string desc;
+		array<string> fields;
+	}
+
+	fixed UID(16);
+}

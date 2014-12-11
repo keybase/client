@@ -1,0 +1,38 @@
+
+@namespace("keybase.1")
+protocol Signup {
+
+	import idl "common.avdl";
+
+	record CheckUsernameAvailableRes {
+		Status status;
+	}
+
+	record CheckUsernameAvailableArg {
+		string username;
+	}
+
+	record CheckEmailAvailableRes {
+		Status status;
+	}
+
+	record CheckEmailAvailableArg {
+		string email;
+	}
+
+	record SignupArg {
+		string email;
+		string password;
+		string username;
+		string inviteCode;
+	}
+
+	record SignupRes {
+		Status status;
+		UID uid;
+	}
+
+	CheckUsernameAvailableRes checkUsernameAvailable(CheckUsernameAvailableArg arg);
+	CheckEmailAvailableRes checkEmailAvailable(CheckEmailAvailableArg arg);
+	SignupRes signup(SignupArg arg);
+}
