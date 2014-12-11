@@ -1,6 +1,6 @@
 {
   "protocol" : "login",
-  "namespace" : "keybase.1",
+  "namespace" : "keybase-v1",
   "types" : [ {
     "type" : "record",
     "name" : "Status",

@@ -27,6 +27,20 @@ protocol signup {
 		string inviteCode;
 	}
 
+	record InviteRequestArg {
+		string email;
+	};
+
+	record InviteRequestResBody {
+		string code;
+		int place;
+	};
+
+	record InviteRequestRes {
+		Status status;
+		union { null, InviteRequestResBody } *body;
+	}
+
 	record SignupResSuccess {
 		UID uid;
 	}
@@ -39,4 +53,5 @@ protocol signup {
 	CheckUsernameAvailableRes checkUsernameAvailable(CheckUsernameAvailableArg arg);
 	CheckEmailAvailableRes checkEmailAvailable(CheckEmailAvailableArg arg);
 	SignupRes signup(SignupArg arg);
+	InviteRequestRes inviteResuest(InviteRequestArg arg);
 }

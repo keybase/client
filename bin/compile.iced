@@ -16,7 +16,6 @@ class GoEmitter
     @_code = []
     @_tabs = 0
 
-
   tabs : () -> ("\t" for i in [0...@_tabs]).join("")
   output : (l) -> @_code.push (@tabs() + l)
 
