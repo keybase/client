@@ -1,6 +1,6 @@
 
 @namespace("keybase.1")
-protocol Signup {
+protocol signup {
 
 	import idl "common.avdl";
 
