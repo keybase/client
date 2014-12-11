@@ -7,6 +7,10 @@ ICED=node_modules/.bin/iced
 json/%.json : avdl/%.avdl
 	$(AVRO) $< $@~ && mv $@~ $@
 
+config:
+	npm install -d
+
+
 build-stamp: \
 	json/login.json \
 	json/signup.json
@@ -21,5 +25,5 @@ clean:
 
 build: build-stamp go/keybase_v1.go
 
-.PHONY: test setup
+.PHONY: test setup config
 
