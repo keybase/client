@@ -29,16 +29,16 @@ protocol signup {
 
 	record InviteRequestArg {
 		string email;
-	};
+	}
 
 	record InviteRequestResBody {
 		string code;
 		int place;
-	};
+	}
 
 	record InviteRequestRes {
 		Status status;
-		union { null, InviteRequestResBody } *body;
+		union { null, InviteRequestResBody } body;
 	}
 
 	record SignupResSuccess {

@@ -1,0 +1,146 @@
+{
+  "protocol" : "signup",
+  "namespace" : "keybase-v1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "CheckUsernameAvailableRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "CheckUsernameAvailableArg",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "CheckEmailAvailableRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "CheckEmailAvailableArg",
+    "fields" : [ {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SignupArg",
+    "fields" : [ {
+      "name" : "email",
+      "type" : "string"
+    }, {
+      "name" : "password",
+      "type" : "string"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "inviteCode",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "InviteRequestArg",
+    "fields" : [ {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "InviteRequestResBody",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "string"
+    }, {
+      "name" : "place",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "InviteRequestRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "InviteRequestResBody" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SignupResSuccess",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SignupRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "SignupResSuccess" ]
+    } ]
+  } ],
+  "messages" : {
+    "checkUsernameAvailable" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "CheckUsernameAvailableArg"
+      } ],
+      "response" : "CheckUsernameAvailableRes"
+    },
+    "checkEmailAvailable" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "CheckEmailAvailableArg"
+      } ],
+      "response" : "CheckEmailAvailableRes"
+    },
+    "signup" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "SignupArg"
+      } ],
+      "response" : "SignupRes"
+    },
+    "inviteResuest" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "InviteRequestArg"
+      } ],
+      "response" : "InviteRequestRes"
+    }
+  }
+}

@@ -5,16 +5,20 @@ fs = require 'fs'
 {make_esc} = require 'iced-error'
 {a_json_parse} = require('iced-utils').util
 log = require 'iced-logger'
+path = require 'path'
 
 #====================================================================
 
 class GoEmitter
 
   go_export_case : (n) -> n[0].toUpperCase() + n[1...]
+  go_package : (n) -> n.replace(/-/g, "_")
 
   constructor : () ->
     @_code = []
     @_tabs = 0
+    @_cache = {}
+    @_package
 
   tabs : () -> ("\t" for i in [0...@_tabs]).join("")
   output : (l) -> @_code.push (@tabs() + l)
@@ -53,11 +57,16 @@ class GoEmitter
 
   emit_types : (json) ->
     for t in json
-      switch t.type
-        when "record"
-          @emit_record t
-        when "fixed"
-          @emit_fixed t
+      @emit_type t
+
+  emit_type : (t) ->
+    return if @_cache[t.name]
+    switch t.type
+      when "record"
+        @emit_record t
+      when "fixed"
+        @emit_fixed t
+    @_cache[t.name] = true
 
   emit_message : (name, details) ->
     args = (a.name + " " + a.type for a in details.request).join ", "
@@ -72,10 +81,28 @@ class GoEmitter
     @untab()
     @output "}"
 
-  run : (json, cb) ->
+  run : (files, cb) ->
+    esc = make_esc cb, "run"
+    for f in files
+      await @run_file f, esc defer()
+    console.log @_code.join("\n")
+    cb null
+
+  emit_package : (json, cb) ->
+    pkg = @go_package json.namespace
+    err = null
+    if @_pkg? and pkg isnt @_pkg
+      err = new Error "package mismatch: #{@_pkg} != #{pkg}"
+    else if not @_pkg?
+      @output "package #{pkg}"
+      @_pkg = pkg
+    cb err
+
+  run_file : (json, cb) ->
+    esc = make_esc cb, "run_file"
+    await @emit_package json, esc defer()
     @emit_types json.types
     @emit_interface json.protocol, json.messages
-    console.log @_code.join("\n")
     cb null
 
 #====================================================================
@@ -83,14 +110,15 @@ class GoEmitter
 class Runner
 
   constructor : () ->
-    @filename = null
+    @files = []
     @emitter = null
+    @jsons = []
 
   parse_args : (argv, cb) ->
     err = null
     @argv = minimist argv
-    if not (@filename = @argv.f)?
-      err = new Error "no input file given via -f"
+    if not (@dir = @argv.d)? and not (@files = @argv._).length
+      err = new Error "no dir given by -d or input files passed as arguments"
     else if not (@targ = @argv.t)?
       err = new Error "no language target via -t"
     else
@@ -101,17 +129,33 @@ class Runner
           err = new Error "Unknown language target; I support {go}"
     cb err
 
-  load_json : (cb) ->
+  list_dir : (cb) ->
+    esc = make_esc cb, "list_dir"
+    await fs.readdir @dir, esc defer files
+    for f in files when f.match /\.json$/
+      @files.push path.join @dir, f
+    cb null
+
+  load_files : (cb) ->
+    esc = make_esc cb, "load_files"
+    if @dir?
+      await @list_dir esc defer()
+    for f in @files
+      await @load_json f, esc defer()
+    cb null
+
+  load_json : (f, cb) ->
     esc = make_esc cb, "load_json"
-    await fs.readFile @filename, esc defer raw
-    await a_json_parse raw, esc defer @json
+    await fs.readFile f, esc defer raw
+    await a_json_parse raw, esc defer json
+    @jsons.push json
     cb null
 
   run : (argv, cb) ->
     esc = make_esc cb, "main"
     await @parse_args argv, esc defer()
-    await @load_json esc defer()
-    await @emitter.run @json, esc defer()
+    await @load_files esc defer()
+    await @emitter.run @jsons, esc defer()
     cb null
 
 #====================================================================

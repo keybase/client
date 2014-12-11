@@ -48,7 +48,10 @@
   }, {
     "type" : "record",
     "name" : "PasswordLoginArg",
-    "fields" : [ ]
+    "fields" : [ {
+      "name" : "password",
+      "type" : "string"
+    } ]
   }, {
     "type" : "record",
     "name" : "PubkeyLoginArg",
