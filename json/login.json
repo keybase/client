@@ -35,11 +35,11 @@
     "type" : "record",
     "name" : "IsLoggedInRes",
     "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
       "name" : "body",
       "type" : [ "null", "LoginResBody" ]
+    }, {
+      "name" : "status",
+      "type" : "Status"
     } ]
   }, {
     "type" : "record",
@@ -60,21 +60,21 @@
     "type" : "record",
     "name" : "PasswordLoginRes",
     "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
       "name" : "body",
       "type" : [ "null", "LoginResBody" ]
+    }, {
+      "name" : "status",
+      "type" : "Status"
     } ]
   }, {
     "type" : "record",
     "name" : "PubkeyLoginRes",
     "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
       "name" : "body",
       "type" : [ "null", "LoginResBody" ]
+    }, {
+      "name" : "status",
+      "type" : "Status"
     } ]
   }, {
     "type" : "record",

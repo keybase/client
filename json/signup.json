@@ -59,13 +59,13 @@
       "name" : "email",
       "type" : "string"
     }, {
+      "name" : "inviteCode",
+      "type" : "string"
+    }, {
       "name" : "password",
       "type" : "string"
     }, {
       "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "inviteCode",
       "type" : "string"
     } ]
   }, {
@@ -95,11 +95,11 @@
     "type" : "record",
     "name" : "InviteRequestRes",
     "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
       "name" : "body",
       "type" : [ "null", "InviteRequestResBody" ]
+    }, {
+      "name" : "status",
+      "type" : "Status"
     } ]
   }, {
     "type" : "record",
@@ -112,11 +112,11 @@
     "type" : "record",
     "name" : "SignupRes",
     "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
       "name" : "body",
       "type" : [ "null", "SignupResSuccess" ]
+    }, {
+      "name" : "status",
+      "type" : "Status"
     } ]
   } ],
   "messages" : {

@@ -9,8 +9,8 @@ protocol login {
 	}
 
 	record IsLoggedInRes {
-		Status status;
 		union { null, LoginResBody } body;
+		Status status;
 	}
 
 	record IsLoggedInArg {
@@ -26,13 +26,13 @@ protocol login {
 	}
 
 	record PasswordLoginRes {
-		Status status;
 		union { null, LoginResBody } body;
+		Status status;
 	}
 
 	record PubkeyLoginRes {
-		Status status;
 		union { null, LoginResBody } body;
+		Status status;
 	}
 
 	record LogoutRes {

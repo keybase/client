@@ -22,9 +22,9 @@ protocol signup {
 
 	record SignupArg {
 		string email;
+		string inviteCode;
 		string password;
 		string username;
-		string inviteCode;
 	}
 
 	record InviteRequestArg {
@@ -39,8 +39,8 @@ protocol signup {
 	}
 
 	record InviteRequestRes {
-		Status status;
 		union { null, InviteRequestResBody } body;
+		Status status;
 	}
 
 	record SignupResSuccess {
@@ -48,8 +48,8 @@ protocol signup {
 	}
 
 	record SignupRes {
-		Status status;
 		union { null, SignupResSuccess } body;
+		Status status;
 	}
 
 	CheckUsernameAvailableRes checkUsernameAvailable(CheckUsernameAvailableArg arg);
