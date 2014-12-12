@@ -29,6 +29,7 @@ func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
 func (n NullConfiguration) GetSecretKeyring() string           { return "" }
 func (n NullConfiguration) GetSalt() []byte                    { return nil }
+func (n NullConfiguration) GetSocketFile() string              { return "" }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -103,10 +104,11 @@ func (e Env) getHomeFromCmdOrConfig() string {
 	return ret
 }
 
-func (e Env) GetHome() string      { return e.homeFinder.Home(false) }
-func (e Env) GetConfigDir() string { return e.homeFinder.ConfigDir() }
-func (e Env) GetCacheDir() string  { return e.homeFinder.CacheDir() }
-func (e Env) GetDataDir() string   { return e.homeFinder.DataDir() }
+func (e Env) GetHome() string                { return e.homeFinder.Home(false) }
+func (e Env) GetConfigDir() string           { return e.homeFinder.ConfigDir() }
+func (e Env) GetCacheDir() string            { return e.homeFinder.CacheDir() }
+func (e Env) GetDataDir() string             { return e.homeFinder.DataDir() }
+func (e Env) GetRuntimeDir() (string, error) { return e.homeFinder.RuntimeDir() }
 
 func (e Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
@@ -245,6 +247,18 @@ func (e Env) GetUsername() string {
 		func() string { return os.Getenv("KEYBASE_USERNAME") },
 		func() string { return e.config.GetUsername() },
 	)
+}
+
+func (e Env) GetSocketFile() (ret string, err error) {
+	ret = e.GetString(
+		func() string { return e.cmd.GetSocketFile() },
+		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
+		func() string { return e.config.GetSocketFile() },
+	)
+	if len(ret) == 0 {
+		ret, err = e.GetRuntimeDir()
+	}
+	return
 }
 
 func (e Env) GetEmail() string {

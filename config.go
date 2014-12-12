@@ -360,3 +360,7 @@ func (f JsonConfigFile) GetBundledCA(host string) (ret string) {
 	}
 	return ret
 }
+
+func (f JsonConfigFile) GetSocketFile() string {
+	return f.GetTopLevelString("socket_file")
+}

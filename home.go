@@ -3,6 +3,7 @@ package libkb
 import (
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -21,6 +22,7 @@ type HomeFinder interface {
 	ConfigDir() string
 	Home(emptyOk bool) string
 	DataDir() string
+	RuntimeDir() (string, error)
 	Normalize(s string) string
 }
 
@@ -67,6 +69,17 @@ func (x XdgPosix) ConfigDir() string { return x.dirHelper("XDG_CONFIG_HOME", ".c
 func (x XdgPosix) CacheDir() string  { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
 func (x XdgPosix) DataDir() string   { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
 
+func (x XdgPosix) RuntimeDir() (ret string, err error) {
+	ret = os.Getenv("XDG_RUNTIME_DIR")
+	var u *user.User
+	if len(ret) != 0 {
+	} else if u, err = user.Current(); err != nil {
+	} else {
+		ret = x.Join(os.TempDir(), "keybase-"+u.Username)
+	}
+	return
+}
+
 type Win32 struct {
 	Base
 }
@@ -80,9 +93,10 @@ func (w Win32) Normalize(s string) string {
 	return w.Unsplit(w.Split(s))
 }
 
-func (w Win32) CacheDir() string  { return w.Home(false) }
-func (w Win32) ConfigDir() string { return w.Home(false) }
-func (w Win32) DataDir() string   { return w.Home(false) }
+func (w Win32) CacheDir() string            { return w.Home(false) }
+func (w Win32) ConfigDir() string           { return w.Home(false) }
+func (w Win32) DataDir() string             { return w.Home(false) }
+func (w Win32) RuntimeDir() (string, error) { return w.Home(false), nil }
 
 func (w Win32) Home(emptyOk bool) string {
 	var ret string

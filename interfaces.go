@@ -37,6 +37,7 @@ type CommandLine interface {
 	GetGpgOptions() []string
 	GetPgpFingerprint() *PgpFingerprint
 	GetSecretKeyring() string
+	GetSocketFile() string
 }
 
 type Server interface {
@@ -87,6 +88,7 @@ type ConfigReader interface {
 	GetPgpFingerprint() *PgpFingerprint
 	GetSecretKeyring() string
 	GetSalt() []byte
+	GetSocketFile() string
 }
 
 type ConfigWriter interface {
