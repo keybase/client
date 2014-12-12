@@ -269,6 +269,9 @@ func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
 	if err != nil {
 		return
 	}
+	if key == nil {
+		return
+	}
 
 	fp := key.GetFingerprint()
 	f = &fp
@@ -307,28 +310,33 @@ func (u *User) SetActiveKey(pgp *PgpKeyBundle) (err error) {
 func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
 
 	G.Log.Debug("+ GetActiveKey() for %s", u.name)
-	if u.activeKey != nil {
-		G.Log.Debug("- GetActiveKey() -> %s",
-			u.activeKey.GetFingerprint().ToString())
-		return u.activeKey, nil
+	defer func() {
+		var s string
+		if pgp != nil {
+			s = pgp.GetFingerprint().ToString()
+		} else {
+			s = "<none>"
+		}
+		G.Log.Debug("- GetActiveKey() -> %s,%s", s, ErrToOk(err))
+	}()
+
+	if pgp = u.activeKey; pgp != nil {
+		return
 	}
 
 	w := u.publicKeys.AtKey("primary").AtKey("bundle")
 	if w.IsNil() {
-		return nil, nil
+		return
 	}
 
-	key, err := GetOneKey(w)
+	pgp, err = GetOneKey(w)
 
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	u.activeKey = key
-	G.Log.Debug("| Active key is -> %s", u.activeKey.GetFingerprint().ToString())
-	G.Log.Debug("- GetActiveKey() for %s", u.name)
-
-	return u.activeKey, nil
+	u.activeKey = pgp
+	return
 }
 
 func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {

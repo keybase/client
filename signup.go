@@ -47,13 +47,14 @@ func (s *SignupEngine) GenPwh(p string) (err error) {
 	return err
 }
 
-type SignupEnginePostArg struct {
+type SignupEngineRunArg struct {
 	Username     string
 	Email        string
 	InvitationId string
+	Passphrase   string
 }
 
-func (s *SignupEngine) Post(arg SignupEnginePostArg) (err error) {
+func (s *SignupEngine) Post(arg SignupEngineRunArg) (err error) {
 	var res *ApiRes
 	res, err = G.API.Post(ApiArg{
 		Endpoint: "signup",
@@ -70,10 +71,31 @@ func (s *SignupEngine) Post(arg SignupEnginePostArg) (err error) {
 		GetUidVoid(res.Body.AtKey("uid"), &s.uid, &err)
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
-
 	}
 	return
+}
 
+type SignupEngineRunRes struct {
+	PassphraseOk bool
+	PostOk       bool
+	WriteOk      bool
+	Error        error
+}
+
+func (s *SignupEngine) Run(arg SignupEngineRunArg) (res SignupEngineRunRes) {
+	if res.Error = s.GenPwh(arg.Passphrase); res.Error != nil {
+		return
+	}
+	res.PassphraseOk = true
+	if res.Error = s.Post(arg); res.Error != nil {
+		return
+	}
+	res.PostOk = true
+	if res.Error = s.WriteOut(); res.Error != nil {
+		return
+	}
+	res.WriteOk = true
+	return
 }
 
 func (s *SignupEngine) WriteConfig() error {
