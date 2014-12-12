@@ -18,10 +18,12 @@ class GoEmitter
     @_code = []
     @_tabs = 0
     @_cache = {}
-    @_package
+    @_pkg = null
 
   tabs : () -> ("\t" for i in [0...@_tabs]).join("")
-  output : (l) -> @_code.push (@tabs() + l)
+  output : (l) ->
+    @_code.push (@tabs() + l)
+    @_code.push("") if l is "}"
 
   tab : () -> @_tabs++
   untab : () -> @_tabs--
@@ -69,15 +71,22 @@ class GoEmitter
     @_cache[t.name] = true
 
   emit_message : (name, details) ->
-    args = (a.name + " " + a.type for a in details.request).join ", "
+    arg = details.request[0]
     res = details.response
-    @output "#{@go_export_case(name)}(#{args}) #{res}"
+    args = "arg #{arg.type}, res *#{res}"
+    @output "#{@go_export_case(name)}(#{args}) error"
 
   emit_interface : (protocol, messages) ->
-    @output "type #{@go_export_case(protocol)} interface {"
+    p = @go_export_case protocol
+    @output "type #{p}Interface interface {"
     @tab()
     for k,v of messages
       @emit_message k,v
+    @untab()
+    @output "}"
+    @output "func Register#{p}(server *rpc.Server, i #{p}Interface) error {"
+    @tab()
+    @output """return server.RegisterName("#{@_pkg}.#{p}", i)"""
     @untab()
     @output "}"
 
@@ -95,6 +104,11 @@ class GoEmitter
       err = new Error "package mismatch: #{@_pkg} != #{pkg}"
     else if not @_pkg?
       @output "package #{pkg}"
+      @output "import ("
+      @tab()
+      @output '"net/rpc"'
+      @untab()
+      @output ")"
       @_pkg = pkg
     cb err
 
