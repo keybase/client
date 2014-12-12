@@ -12,7 +12,7 @@ path = require 'path'
 class GoEmitter
 
   go_export_case : (n) -> n[0].toUpperCase() + n[1...]
-  go_package : (n) -> n.replace(/-/g, "_")
+  go_package : (n) -> n.replace(/[.-]/g, "_")
 
   constructor : () ->
     @_code = []
@@ -73,7 +73,7 @@ class GoEmitter
   emit_message : (name, details) ->
     arg = details.request[0]
     res = details.response
-    args = "arg #{arg.type}, res *#{res}"
+    args = "arg *#{arg.type}, res *#{res}"
     @output "#{@go_export_case(name)}(#{args}) error"
 
   emit_interface : (protocol, messages) ->
@@ -86,7 +86,7 @@ class GoEmitter
     @output "}"
     @output "func Register#{p}(server *rpc.Server, i #{p}Interface) error {"
     @tab()
-    @output """return server.RegisterName("#{@_pkg}.#{p}", i)"""
+    @output """return server.RegisterName("#{@_pkg}.#{protocol}", i)"""
     @untab()
     @output "}"
 
@@ -98,12 +98,12 @@ class GoEmitter
     cb null, src
 
   emit_package : (json, cb) ->
-    pkg = @go_package json.namespace
+    pkg = json.namespace
     err = null
     if @_pkg? and pkg isnt @_pkg
       err = new Error "package mismatch: #{@_pkg} != #{pkg}"
     else if not @_pkg?
-      @output "package #{pkg}"
+      @output "package #{@go_package pkg}"
       @output "import ("
       @tab()
       @output '"net/rpc"'

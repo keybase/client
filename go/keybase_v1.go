@@ -1,4 +1,4 @@
-package keybase_v1
+package keybase_1
 
 import (
 	"net/rpc"
@@ -57,15 +57,15 @@ type SwitchUserArg struct {
 }
 
 type LoginInterface interface {
-	IsLoggedIn(arg IsLoggedInArg, res *IsLoggedInRes) error
-	PasswordLogin(arg PasswordLoginArg, res *PasswordLoginRes) error
-	PubkeyLogin(arg PubkeyLoginArg, res *PubkeyLoginRes) error
-	Logout(arg LogoutArg, res *LogoutRes) error
-	SwitchUser(arg SwitchUserArg, res *SwitchUserRes) error
+	IsLoggedIn(arg *IsLoggedInArg, res *IsLoggedInRes) error
+	PasswordLogin(arg *PasswordLoginArg, res *PasswordLoginRes) error
+	PubkeyLogin(arg *PubkeyLoginArg, res *PubkeyLoginRes) error
+	Logout(arg *LogoutArg, res *LogoutRes) error
+	SwitchUser(arg *SwitchUserArg, res *SwitchUserRes) error
 }
 
 func RegisterLogin(server *rpc.Server, i LoginInterface) error {
-	return server.RegisterName("keybase_v1.Login", i)
+	return server.RegisterName("keybase.1.login", i)
 }
 
 type CheckUsernameAvailableRes struct {
@@ -117,12 +117,12 @@ type SignupRes struct {
 }
 
 type SignupInterface interface {
-	CheckUsernameAvailable(arg CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error
-	CheckEmailAvailable(arg CheckEmailAvailableArg, res *CheckEmailAvailableRes) error
-	Signup(arg SignupArg, res *SignupRes) error
-	InviteResuest(arg InviteRequestArg, res *InviteRequestRes) error
+	CheckUsernameAvailable(arg *CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error
+	CheckEmailAvailable(arg *CheckEmailAvailableArg, res *CheckEmailAvailableRes) error
+	Signup(arg *SignupArg, res *SignupRes) error
+	InviteResuest(arg *InviteRequestArg, res *InviteRequestRes) error
 }
 
 func RegisterSignup(server *rpc.Server, i SignupInterface) error {
-	return server.RegisterName("keybase_v1.Signup", i)
+	return server.RegisterName("keybase.1.signup", i)
 }

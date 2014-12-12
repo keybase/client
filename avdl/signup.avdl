@@ -1,5 +1,5 @@
 
-@namespace("keybase-v1")
+@namespace("keybase.1")
 protocol signup {
 
 	import idl "common.avdl";
