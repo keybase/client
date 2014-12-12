@@ -2,11 +2,12 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"os"
 )
 
-func NewCmdSignup(cl *CommandLine) cli.Command {
+func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "signup",
 		Usage:       "keybase signup [-c <code>]",

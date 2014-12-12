@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 )
 
@@ -13,7 +14,7 @@ func (v *CmdVersion) Run() error {
 	return nil
 }
 
-func NewCmdVersion(cl *CommandLine) cli.Command {
+func NewCmdVersion(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "version",
 		Usage: "print out version information",

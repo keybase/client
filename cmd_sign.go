@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"io"
 )
 
-func NewCmdSign(cl *CommandLine) cli.Command {
+func NewCmdSign(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "sign",
 		Usage:       "keybase sign [-a] [-o <outfile>] [<infile>]",

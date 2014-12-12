@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"os"
 	"os/signal"
@@ -11,14 +13,34 @@ import (
 var G = &libkb.G
 var G_UI *UI
 
-func parseArgs() (libkb.CommandLine, Command, error) {
-	p := NewCommandLine()
-	cmd, err := p.Parse(os.Args)
+func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
+
+	cl := libcmdline.NewCommandLine()
+	cmds := []cli.Command{
+		NewCmdConfig(cl),
+		NewCmdDb(cl),
+		NewCmdId(cl),
+		NewCmdListTracking(cl),
+		NewCmdLogin(cl),
+		NewCmdLogout(cl),
+		NewCmdMykey(cl),
+		NewCmdPing(cl),
+		NewCmdProve(cl),
+		NewCmdResolve(cl),
+		NewCmdSigs(cl),
+		NewCmdSign(cl),
+		NewCmdSignup(cl),
+		NewCmdTrack(cl),
+		NewCmdVersion(cl),
+	}
+	cl.AddCommands(cmds)
+
+	cmd, err := cl.Parse(os.Args)
 	if err != nil {
 		err = fmt.Errorf("Error parsing command line arguments: %s\n", err.Error())
 		return nil, nil, err
 	}
-	return p, cmd, nil
+	return cl, cmd, nil
 }
 
 func handleSignals() {

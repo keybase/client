@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"os"
 	"strings"
@@ -93,7 +94,7 @@ func (v *CmdMykeySelect) GetKey() error {
 	return err
 }
 
-func NewCmdMykeySelect(cl *CommandLine) cli.Command {
+func NewCmdMykeySelect(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "select",
 		Usage:       "keybase mykey select [<key-query>]",

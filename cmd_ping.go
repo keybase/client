@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 )
 
@@ -28,7 +29,7 @@ func (v *CmdPing) Run() error {
 	return nil
 }
 
-func NewCmdPing(cl *CommandLine) cli.Command {
+func NewCmdPing(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "ping",
 		Usage: "ping the keybase API server",

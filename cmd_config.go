@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"io"
 	"os"
@@ -112,7 +113,7 @@ func (v *CmdConfig) Run() error {
 	return nil
 }
 
-func NewCmdConfig(cl *CommandLine) cli.Command {
+func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "config",
 		Usage: "manage key/value pairs in the config file",

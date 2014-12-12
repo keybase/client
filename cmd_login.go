@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 )
 
@@ -24,7 +25,7 @@ func (v *CmdLogin) Run() error {
 	return err
 }
 
-func NewCmdLogin(cl *CommandLine) cli.Command {
+func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name: "login",
 		Usage: "Establish a session with the keybase server " +

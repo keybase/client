@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 )
 
@@ -30,7 +31,7 @@ func (v *CmdResolve) Run() error {
 	return err
 }
 
-func NewCmdResolve(cl *CommandLine) cli.Command {
+func NewCmdResolve(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "resolve",
 		Usage: "Resolve a foo@bar-style username to a keybase username",

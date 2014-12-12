@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 )
 
@@ -35,7 +36,7 @@ func (v *CmdMykeyGen) Run() (err error) {
 	return nil
 }
 
-func NewCmdMykeyGen(cl *CommandLine) cli.Command {
+func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "gen",
 		Usage:       "keybase mykey gen",

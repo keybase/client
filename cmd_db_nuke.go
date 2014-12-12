@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 )
 
@@ -25,7 +26,7 @@ func (c *CmdDbNuke) Run() error {
 	return err
 }
 
-func NewCmdDbNuke(cl *CommandLine) cli.Command {
+func NewCmdDbNuke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "nuke",
 		Usage:       "keybase db nuke",
@@ -42,7 +43,7 @@ func NewCmdDbNuke(cl *CommandLine) cli.Command {
 	}
 }
 
-func NewCmdDb(cl *CommandLine) cli.Command {
+func NewCmdDb(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "db",
 		Usage:       "keybase db [subcommands...]",

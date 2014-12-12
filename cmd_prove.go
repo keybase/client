@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"io/ioutil"
 	"os"
@@ -260,7 +261,7 @@ func (v *CmdProve) Run() (err error) {
 	return nil
 }
 
-func NewCmdProve(cl *CommandLine) cli.Command {
+func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "prove",
 		Usage:       "keybase prove <service> [<username>]",

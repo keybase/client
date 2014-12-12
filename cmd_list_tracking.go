@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"io"
 	"os"
@@ -245,7 +246,7 @@ func (s *CmdListTracking) Run() (err error) {
 	return
 }
 
-func NewCmdListTracking(cl *CommandLine) cli.Command {
+func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "list-tracking",
 		Usage:       "keybase list-tracking",

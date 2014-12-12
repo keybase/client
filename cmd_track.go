@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 )
 
@@ -37,7 +38,7 @@ func (v *CmdTrack) Run() error {
 	return eng.Run()
 }
 
-func NewCmdTrack(cl *CommandLine) cli.Command {
+func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "track",
 		Usage:       "keybase track <username>",

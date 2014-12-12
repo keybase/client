@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"io"
 	"os"
@@ -270,7 +271,7 @@ func (s *CmdSigsList) Run() (err error) {
 	return
 }
 
-func NewCmdSigsList(cl *CommandLine) cli.Command {
+func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:  "list",
 		Usage: "keybase sigs list [filter]",
@@ -311,7 +312,7 @@ func NewCmdSigsList(cl *CommandLine) cli.Command {
 	}
 }
 
-func NewCmdSigs(cl *CommandLine) cli.Command {
+func NewCmdSigs(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "sigs",
 		Usage:       "keybase sigs [subcommands...]",
