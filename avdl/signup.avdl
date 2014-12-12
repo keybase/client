@@ -49,6 +49,9 @@ protocol signup {
 
 	record SignupRes {
 		union { null, SignupResSuccess } body;
+		boolean passphraseOk;
+		boolean postOk;
+		boolean writeOk;
 		Status status;
 	}
 

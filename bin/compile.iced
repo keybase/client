@@ -14,6 +14,12 @@ class GoEmitter
   go_export_case : (n) -> n[0].toUpperCase() + n[1...]
   go_package : (n) -> n.replace(/[.-]/g, "_")
 
+  go_primitive_type : (m) ->
+    map =
+      boolean : "bool"
+      bytes : "[]byte"
+    map[m] or m
+
   constructor : () ->
     @_code = []
     @_tabs = 0
@@ -30,12 +36,12 @@ class GoEmitter
 
   emit_field_type : (t) ->
     optional = false
-    type = if typeof(t) is 'string' then t
+    type = if typeof(t) is 'string' then @go_primitive_type(t)
     else if typeof(t) is 'object'
       if Array.isArray(t) and t[0] == "null"
         optional = true
-        "*" + t[1]
-      else if t.type is "array" then "[]" + t.items
+        "*" + @go_primitive_type(t[1])
+      else if t.type is "array" then "[]" + @go_primitive_type(t.items)
       else "ERROR"
     else "ERROR"
     { type , optional }

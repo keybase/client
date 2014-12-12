@@ -112,8 +112,11 @@ type SignupResSuccess struct {
 }
 
 type SignupRes struct {
-	Body   *SignupResSuccess `codec:"body,omitempty"`
-	Status Status            `codec:"status"`
+	Body         *SignupResSuccess `codec:"body,omitempty"`
+	PassphraseOk bool              `codec:"passphraseOk"`
+	PostOk       bool              `codec:"postOk"`
+	WriteOk      bool              `codec:"writeOk"`
+	Status       Status            `codec:"status"`
 }
 
 type SignupInterface interface {

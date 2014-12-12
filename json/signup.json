@@ -115,6 +115,15 @@
       "name" : "body",
       "type" : [ "null", "SignupResSuccess" ]
     }, {
+      "name" : "passphraseOk",
+      "type" : "boolean"
+    }, {
+      "name" : "postOk",
+      "type" : "boolean"
+    }, {
+      "name" : "writeOk",
+      "type" : "boolean"
+    }, {
       "name" : "status",
       "type" : "Status"
     } ]
