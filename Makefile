@@ -10,7 +10,6 @@ json/%.json : avdl/%.avdl
 config:
 	npm install -d
 
-
 build-stamp: \
 	json/login.json \
 	json/signup.json
