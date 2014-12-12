@@ -147,22 +147,29 @@ func (s *CmdSignup) Prompt() (err error) {
 	return
 }
 
-func (s *CmdSignup) GenPwh() (err error) {
-	if err = s.engine.GenPwh(s.passphrase); err == nil {
+func (s *CmdSignup) RunEngine() (retry bool, err error) {
+	arg := libkb.SignupEngineRunArg{
+		Username:     s.fields.username.GetValue(),
+		Email:        s.fields.email.GetValue(),
+		InvitationId: s.fields.code.GetValue(),
+		Passphrase:   s.passphrase,
+	}
+	res := s.engine.Run(arg)
+	if res.PassphraseOk {
 		s.fields.passphraseRetry.Disabled = false
+	}
+	if !res.PostOk {
+		retry, err = s.HandlePostError(res.Error)
+	} else {
+		err = res.Error
 	}
 	return
 }
 
-func (s *CmdSignup) Post() (retry bool, err error) {
-	err = s.engine.Post(libkb.SignupEnginePostArg{
-		Username:     s.fields.username.GetValue(),
-		Email:        s.fields.email.GetValue(),
-		InvitationId: s.fields.code.GetValue(),
-	})
+func (s *CmdSignup) HandlePostError(inerr error) (retry bool, err error) {
 	retry = false
-	if err == nil {
-	} else if ase, ok := err.(libkb.AppStatusError); ok {
+	err = inerr
+	if ase, ok := inerr.(libkb.AppStatusError); ok {
 		switch ase.Name {
 		case "BAD_SIGNUP_EMAIL_TAKEN":
 			v := s.fields.email.Clear()
@@ -191,10 +198,6 @@ func (s *CmdSignup) Post() (retry bool, err error) {
 	return
 }
 
-func (s *CmdSignup) WriteOut() error {
-	return s.engine.WriteOut()
-}
-
 func (s *CmdSignup) SuccessMessage() error {
 	msg := `
 Welcome to keybase.io! You now need to associate a public key with your
@@ -219,14 +222,9 @@ func (s *CmdSignup) RunSignup() (err error) {
 	err = s.CheckRegistered()
 
 	for retry && err == nil {
-		if err = s.Prompt(); err != nil {
-		} else if err = s.GenPwh(); err != nil {
-		} else {
-			retry, err = s.Post()
+		if err = s.Prompt(); err == nil {
+			retry, err = s.RunEngine()
 		}
-	}
-	if err == nil {
-		err = s.WriteOut()
 	}
 	if err == nil {
 		s.SuccessMessage()
