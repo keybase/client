@@ -21,10 +21,14 @@ go/keybase_v1.go: build-stamp
 	$(ICED) ./bin/compile.iced -d json -t go -o $@
 	gofmt -w $@
 
+objc/KBRPC: build-stamp
+	$(ICED) ./bin/compile.iced -d json -t objc -o $@
+
+
 clean:
 	rm -rf json/*.json go/*.go
 
-build: build-stamp go/keybase_v1.go
+build: build-stamp go/keybase_v1.go objc/KBRPC
 
 .PHONY: test setup config
 
