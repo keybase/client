@@ -77,6 +77,9 @@ func (p CommandLine) GetGpg() string {
 func (p CommandLine) GetSecretKeyring() string {
 	return p.GetGString("secret-keyring")
 }
+func (p CommandLine) GetSocketFile() string {
+	return p.GetGString("socket-file")
+}
 func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
@@ -203,6 +206,10 @@ func (cl *CommandLine) PopulateApp() {
 		cli.StringFlag{
 			Name:  "secret-keyring",
 			Usage: "location of the Keybase secret-keyring (P3SKB-encoded)",
+		},
+		cli.StringFlag{
+			Name:  "socket-file",
+			Usage: "location of the keybased socket-file",
 		},
 		cli.StringFlag{
 			Name: "proxy",
