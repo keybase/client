@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/hex"
-	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libkb"
-	"github.com/keybase/go-triplesec"
 	"os"
 )
 
@@ -38,18 +35,11 @@ type CmdSignup struct {
 	code     string
 	fields   *PromptFields
 	prompter *Prompter
+	engine   *libkb.SignupEngine
 
-	passphrase, passphraseLast string
-	loginState                 *libkb.LoginState
-	salt                       []byte
-	pwh                        []byte
-
-	uid     libkb.UID
-	session string
-	csrf    string
-
-	fullname string
-	notes    string
+	passphrase string
+	fullname   string
+	notes      string
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
@@ -64,13 +54,11 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdSignup) CheckRegistered() error {
-	cr := G.Env.GetConfig()
-	if cr == nil {
-		return fmt.Errorf("No configuration file available")
-	}
-	if cr.GetUid() == nil {
-		return nil
+func (s *CmdSignup) CheckRegistered() (err error) {
+	if err = s.engine.CheckRegistered(); err == nil {
+		return
+	} else if _, ok := err.(libkb.AlreadyRegisteredError); !ok {
+		return
 	}
 	prompt := "Already registered; do you want to reregister?"
 	def := false
@@ -79,7 +67,6 @@ func (s *CmdSignup) CheckRegistered() error {
 	} else if !rereg {
 		return NotConfirmedError{}
 	}
-
 	return nil
 }
 
@@ -161,43 +148,20 @@ func (s *CmdSignup) Prompt() (err error) {
 }
 
 func (s *CmdSignup) GenPwh() (err error) {
-	if s.loginState != nil && s.passphrase == s.passphraseLast {
-		return
-	}
-
-	G.Log.Debug("+ GenPwh")
-	state := libkb.NewLoginState()
-	if err = state.GenerateNewSalt(); err != nil {
-	} else if err = state.StretchKey(s.passphrase); err != nil {
-	} else {
-		s.loginState = state
-		s.passphraseLast = s.passphrase
+	if err = s.engine.GenPwh(s.passphrase); err == nil {
 		s.fields.passphraseRetry.Disabled = false
-		s.pwh = state.GetSharedSecret()
-		s.salt, err = state.GetSalt()
-		G.Log.Debug("Shared secret is %v", s.pwh)
 	}
-	G.Log.Debug("- GenPwh")
-	return err
+	return
 }
 
 func (s *CmdSignup) Post() (retry bool, err error) {
-	var res *libkb.ApiRes
-	res, err = G.API.Post(libkb.ApiArg{
-		Endpoint: "signup",
-		Args: libkb.HttpArgs{
-			"salt":          libkb.S{hex.EncodeToString(s.salt)},
-			"pwh":           libkb.S{hex.EncodeToString(s.pwh)},
-			"username":      libkb.S{s.fields.username.GetValue()},
-			"email":         libkb.S{s.fields.email.GetValue()},
-			"invitation_id": libkb.S{s.fields.code.GetValue()},
-			"pwh_version":   libkb.I{int(triplesec.Version)},
-		}})
-
+	err = s.engine.Post(libkb.SignupEnginePostArg{
+		Username:     s.fields.username.GetValue(),
+		Email:        s.fields.email.GetValue(),
+		InvitationId: s.fields.code.GetValue(),
+	})
+	retry = false
 	if err == nil {
-		libkb.GetUidVoid(res.Body.AtKey("uid"), &s.uid, &err)
-		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
-		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
 	} else if ase, ok := err.(libkb.AppStatusError); ok {
 		switch ase.Name {
 		case "BAD_SIGNUP_EMAIL_TAKEN":
@@ -227,44 +191,8 @@ func (s *CmdSignup) Post() (retry bool, err error) {
 	return
 }
 
-func (s *CmdSignup) WriteConfig() error {
-	cw := G.Env.GetConfigWriter()
-	if cw == nil {
-		return fmt.Errorf("No configuration writer available")
-	}
-	cw.SetUsername(s.fields.username.GetValue())
-	cw.SetUid(s.uid)
-	cw.SetSalt(s.salt)
-	return cw.Write()
-}
-
-func (s *CmdSignup) WriteSession() error {
-
-	// First load up the Session file...
-	if err := G.Session.Load(); err != nil {
-		return err
-	}
-
-	lir := libkb.LoggedInResult{
-		SessionId: s.session,
-		CsrfToken: s.csrf,
-		Uid:       s.uid,
-		Username:  s.fields.username.GetValue(),
-	}
-	sw := G.SessionWriter
-	if sw == nil {
-		return fmt.Errorf("No session writer available")
-	}
-	sw.SetLoggedIn(lir)
-	return sw.Write()
-}
-
-func (s *CmdSignup) WriteOut() (err error) {
-	err = s.WriteConfig()
-	if err == nil {
-		err = s.WriteSession()
-	}
-	return err
+func (s *CmdSignup) WriteOut() error {
+	return s.engine.WriteOut()
 }
 
 func (s *CmdSignup) SuccessMessage() error {
@@ -286,8 +214,8 @@ Enjoy!
 }
 
 func (s *CmdSignup) RunSignup() (err error) {
-
 	retry := true
+
 	err = s.CheckRegistered()
 
 	for retry && err == nil {
@@ -340,7 +268,7 @@ func (s *CmdSignup) RequestInvitePromptForData() (err error) {
 }
 
 func (s *CmdSignup) RequestInvitePost() (err error) {
-	err = libkb.PostInviteRequest(libkb.InviteRequestArg{
+	err = s.engine.PostInviteRequest(libkb.InviteRequestArg{
 		Email:    s.fields.email.GetValue(),
 		Fullname: s.fullname,
 		Notes:    s.notes,
@@ -348,7 +276,6 @@ func (s *CmdSignup) RequestInvitePost() (err error) {
 	if err == nil {
 		G.Log.Info("Success! You're on our list, thanks for your interest.")
 	}
-
 	return err
 }
 
@@ -362,6 +289,7 @@ func (s *CmdSignup) RequestInvite() (err error) {
 }
 
 func (s *CmdSignup) Run() (err error) {
+	s.engine = libkb.NewSignupEngine()
 	if err = s.RunSignup(); err == nil {
 	} else if _, cce := err.(CleanCancelError); cce {
 		err = s.RequestInvite()
