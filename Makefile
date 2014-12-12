@@ -14,9 +14,11 @@ config:
 build-stamp: \
 	json/login.json \
 	json/signup.json
+	@mkdir -p json
 	date > $@
 
 go/keybase_v1.go: build-stamp
+	@mkdir -p go/
 	$(ICED) ./bin/compile.iced -d json -t go -o $@
 	gofmt -w $@
 
