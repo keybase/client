@@ -10,6 +10,7 @@ import (
 	"os"
 	"net"
 	"net/rpc"
+	"github.com/keybase/protocol/go"
 )
 
 // Keep this around to simplify things
@@ -20,6 +21,7 @@ type Daemon struct {
 
 func (d *Daemon) Handle(c net.Conn) {
 	server := rpc.NewServer()
+	keybase_1.RegisterSignup(server, SignupHandler{c})
 	var mh codec.MsgpackHandle
 	rpcCodec := fmprpc.MsgpackSpecRpc.ServerCodec(c, &mh, true)
 	server.ServeCodec(rpcCodec)
