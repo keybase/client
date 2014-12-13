@@ -1,0 +1,27 @@
+PODS:
+  - GHKit (1.0.20)
+  - GRUnit (1.0.14)
+  - Mantle (1.5.1):
+    - Mantle/extobjc (= 1.5.1)
+  - Mantle/extobjc (1.5.1)
+  - MPMessagePack (0.1.9)
+
+DEPENDENCIES:
+  - GHKit
+  - GRUnit (from `../GRUnit`)
+  - Mantle
+  - MPMessagePack (from `../MPMessagePack`)
+
+EXTERNAL SOURCES:
+  GRUnit:
+    :path: ../GRUnit
+  MPMessagePack:
+    :path: ../MPMessagePack
+
+SPEC CHECKSUMS:
+  GHKit: 9466c08deeb753e144bbbfac7f76be1b38175cb0
+  GRUnit: eee1097d81b586263f9dab264f69ad30513dbfa0
+  Mantle: d7c5ac734579ec751c58fecbf56189853056c58c
+  MPMessagePack: 22e5cb0fa83192aef1f20c260a1d3139e22d7a39
+
+COCOAPODS: 0.35.0
