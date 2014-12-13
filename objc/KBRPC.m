@@ -42,3 +42,4 @@
 @end
 @implementation KBSignupRes
 @end
+import "KBRPC.h"

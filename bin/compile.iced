@@ -185,7 +185,7 @@ class ObjCEmitter
     @_header.push "import \"KBRObject.h\""
     h_src = @_header.join("\n")
 
-    @impl.push "import \"KBRPC.h\"" # Need to use the filename passed in
+    @_impl.push "import \"KBRPC.h\"" # Need to use the filename passed in
     m_src = @_impl.join("\n")
 
     cb null, {".h": h_src, ".m": m_src}

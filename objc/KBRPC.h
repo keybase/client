@@ -94,5 +94,10 @@
 
 @interface KBSignupRes : KBRObject
 @property KBSignupResSuccess *body;
+@property KBboolean *passphraseOk;
+@property KBboolean *postOk;
+@property KBboolean *writeOk;
 @property KBStatus *status;
 @end
+
+import "KBRObject.h"
