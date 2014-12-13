@@ -15,7 +15,7 @@ var G_UI *UI
 
 func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 
-	cl := libcmdline.NewCommandLine()
+	cl := libcmdline.NewCommandLine(true)
 	cmds := []cli.Command{
 		NewCmdConfig(cl),
 		NewCmdDb(cl),
