@@ -257,7 +257,11 @@ func (e Env) GetSocketFile() (ret string, err error) {
 		func() string { return e.config.GetSocketFile() },
 	)
 	if len(ret) == 0 {
-		ret, err = e.GetRuntimeDir()
+		var d string
+		d, err = e.GetRuntimeDir()
+		if err == nil {
+			ret = filepath.Join(d, SOCKET_FILE)
+		}
 	}
 	return
 }

@@ -41,7 +41,9 @@ func BindToSocket(info SocketInfo) (ret net.Listener, err error) {
 	if err = info.PrepSocket(); err != nil {
 		return
 	} else {
-		ret, err = net.Listen(info.ToStringPair())
+		l, a := info.ToStringPair()
+		G.Log.Info("Binding to %s:%s", l, a)
+		ret, err = net.Listen(l, a)
 	}
 	return
 }

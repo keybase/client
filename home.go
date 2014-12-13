@@ -75,7 +75,7 @@ func (x XdgPosix) RuntimeDir() (ret string, err error) {
 	if len(ret) != 0 {
 	} else if u, err = user.Current(); err != nil {
 	} else {
-		ret = x.Join(os.TempDir(), "keybase-"+u.Username)
+		ret = x.Join("/tmp", "keybase-"+u.Username)
 	}
 	return
 }

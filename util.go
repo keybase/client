@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path"
 	"regexp"
 	"strings"
@@ -186,4 +187,18 @@ func IsValidHostname(s string) bool {
 		}
 		return true
 	}
+}
+
+func HandleSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	for {
+		s := <-c
+		if s != nil {
+			G.Shutdown()
+			G.Log.Error("interrupted")
+			os.Exit(3)
+		}
+	}
+
 }
