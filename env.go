@@ -30,6 +30,7 @@ func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
 func (n NullConfiguration) GetSecretKeyring() string           { return "" }
 func (n NullConfiguration) GetSalt() []byte                    { return nil }
 func (n NullConfiguration) GetSocketFile() string              { return "" }
+func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -259,6 +260,14 @@ func (e Env) GetSocketFile() (ret string, err error) {
 		ret, err = e.GetRuntimeDir()
 	}
 	return
+}
+
+func (e Env) GetDaemonPort() int {
+	return e.GetInt(0,
+		func() (int, bool) { return e.cmd.GetDaemonPort() },
+		func() (int, bool) { return e.getEnvInt("KEYBASE_DAEMON_PORT") },
+		func() (int, bool) { return e.config.GetDaemonPort() },
+	)
 }
 
 func (e Env) GetEmail() string {

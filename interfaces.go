@@ -38,6 +38,7 @@ type CommandLine interface {
 	GetPgpFingerprint() *PgpFingerprint
 	GetSecretKeyring() string
 	GetSocketFile() string
+	GetDaemonPort() (int, bool)
 }
 
 type Server interface {
@@ -89,6 +90,7 @@ type ConfigReader interface {
 	GetSecretKeyring() string
 	GetSalt() []byte
 	GetSocketFile() string
+	GetDaemonPort() (int, bool)
 }
 
 type ConfigWriter interface {
@@ -138,6 +140,7 @@ type Usage struct {
 	KbKeyring  bool
 	API        bool
 	Terminal   bool
+	Socket     bool
 }
 
 type Command interface {

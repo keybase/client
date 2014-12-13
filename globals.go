@@ -16,6 +16,7 @@ package libkb
 import (
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"runtime"
 )
@@ -38,6 +39,7 @@ type Global struct {
 	ProofCache    *ProofCache    // where to cache proof results
 	GpgClient     GpgClient      // A standard GPG-client (optional)
 	ShutdownHooks []ShutdownHook // on shutdown, fire these...
+	SocketInfo    SocketInfo     // which socket to bind/connect to
 	UI            UI             // Interact with the UI
 	shutdown      bool           // whether we've shut down or not
 }
@@ -186,6 +188,12 @@ func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
 			return err
 		}
 	}
+	if usage.API {
+		if err = g.ConfigureSocketInfo(); err != nil {
+			return err
+		}
+	}
+
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
@@ -224,4 +232,15 @@ func (g *Global) GetMyUid() (ret *UID) {
 		ret = g.Env.GetUid()
 	}
 	return ret
+}
+
+func (g *Global) BindToSocket() (net.Listener, error) {
+	return BindToSocket(g.SocketInfo)
+}
+func (g *Global) DialSocket() (net.Conn, error) {
+	return DialSocket(g.SocketInfo)
+}
+func (g *Global) ConfigureSocketInfo() (err error) {
+	g.SocketInfo, err = ConfigureSocketInfo()
+	return err
 }
