@@ -36,7 +36,6 @@ func (d *Daemon) Run() (err error) {
 }
 
 func (v *Daemon) ParseArgv(ctx *cli.Context) error {
-	//G.Log.Info("nothing doing in parse")
 	return nil
 }
 
@@ -65,29 +64,5 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 
 
 func main() {
-	G.Init()
-	go libkb.HandleSignals()
-	err := main2()
-	e2 := G.Shutdown()
-	if err == nil {
-		err = e2
-	}
-	if err != nil {
-		G.Log.Error(err.Error())
-		os.Exit(2)
-	}
-}
-
-func main2() error {
-
-	cmdline, cmd, err := parseArgs()
-	if cmd == nil || err != nil {
-		return err
-	}
-
-	if err = G.ConfigureAll(cmdline, cmd); err != nil {
-		return err
-	}
-
-	return cmd.Run()
+	libcmdline.Main(parseArgs)
 }
