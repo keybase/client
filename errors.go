@@ -506,3 +506,18 @@ func (s KeyCannotSignError) Error() string {
 }
 
 //=============================================================================
+
+func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
+	if ee, ok := e.(ExportableError); ok {
+		ret = ee.ToStatus()
+	} else {
+		ret = &keybase_1.Status{
+			Name: "GENERIC",
+			Code: 218,
+			Desc: e.Error(),
+		}
+	}
+	return
+}
+
+//=============================================================================
