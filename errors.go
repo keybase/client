@@ -310,6 +310,20 @@ type AppStatusError struct {
 	Fields map[string]bool
 }
 
+func (a AppStatusError) ToStatus() *keybase_1.Status {
+	var fields []string
+	for k, _ := range a.Fields {
+		fields = append(fields, k)
+	}
+
+	return &keybase_1.Status{
+		Code:   a.Code,
+		Name:   a.Name,
+		Desc:   a.Desc,
+		Fields: fields,
+	}
+}
+
 func (a AppStatusError) IsBadField(s string) bool {
 	ok, found := a.Fields[s]
 	return ok && found
