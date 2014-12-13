@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/protocol/go"
 	"strings"
 )
 
@@ -291,6 +292,13 @@ type BadFingerprintError struct {
 func (b BadFingerprintError) Error() string {
 	return fmt.Sprintf("Got bad PGP key; fingerprint %s != %s",
 		b.fp1.ToString(), b.fp2.ToString())
+}
+
+//=============================================================================
+
+type ExportableError interface {
+	error
+	ToStatus() *keybase_1.Status
 }
 
 //=============================================================================
