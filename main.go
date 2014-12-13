@@ -43,34 +43,5 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 }
 
 func main() {
-	G.Init()
-	go libkb.HandleSignals()
-	err := main2()
-	e2 := G.Shutdown()
-	if err == nil {
-		err = e2
-	}
-	if err != nil {
-		G.Log.Error(err.Error())
-		os.Exit(2)
-	}
-}
-
-func main2() error {
-
-	cmdline, cmd, err := parseArgs()
-	if cmd == nil || err != nil {
-		return err
-	}
-
-	// Set a global UI for us to access.
-	// And also one for libkb
-	G_UI = &UI{}
-	G.SetUI(G_UI)
-
-	if err = G.ConfigureAll(cmdline, cmd); err != nil {
-		return err
-	}
-
-	return cmd.Run()
+	libcmdline.Main(parseArgs)
 }
