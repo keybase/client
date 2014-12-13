@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/go-libkb"
 	"os"
 	"os/signal"
+	"net"
 )
 
 // Keep this around to simplify things
@@ -16,8 +17,23 @@ type Daemon struct {
 
 }
 
-func (d *Daemon) Run() error {
-	return fmt.Errorf("run function unimplemented")
+func (d *Daemon) Run() (err error) {
+	var l net.Listener
+	if l, err = G.BindToSocket(); err != nil {
+		return
+	}
+	G.PushShutdownHook(func() error{
+		G.Log.Info("Closing socket")
+		return l.Close()
+	})
+	for {
+		// var c net.Conn
+		if _, err = l.Accept(); err != nil {
+			return
+		}
+
+	}
+	return nil
 }
 
 func (v *Daemon) ParseArgv(ctx *cli.Context) error {
