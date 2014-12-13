@@ -118,6 +118,12 @@ func (p CommandLine) GetProofCacheSize() (int, bool) {
 		return 0, false
 	}
 }
+func (p CommandLine) GetDaemonPort() (ret int, set bool) {
+	if ret = p.GetGInt("daemon-port"); ret != 0 {
+		set = true
+	}
+	return
+}
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
@@ -157,14 +163,14 @@ func (c CmdSpecificHelp) Run() error {
 	return nil
 }
 
-func NewCommandLine() *CommandLine {
+func NewCommandLine(addHelp bool) *CommandLine {
 	app := cli.NewApp()
 	ret := &CommandLine{app: app}
-	ret.PopulateApp()
+	ret.PopulateApp(addHelp)
 	return ret
 }
 
-func (cl *CommandLine) PopulateApp() {
+func (cl *CommandLine) PopulateApp(addHelp bool) {
 	app := cl.app
 	app.Name = "keybase"
 	app.Version = libkb.CLIENT_VERSION
@@ -262,19 +268,33 @@ func (cl *CommandLine) PopulateApp() {
 			Name:  "gpg-options",
 			Usage: "Options to use when calling GPG",
 		},
+		cli.IntFlag{
+			Name : "daemon-port",
+			Usage : "specify a daemon port on 127.0.0.1",
+		},
 	}
 
 
-	// Finally, add a default help action...
-	app.Action = func(c *cli.Context) {
-		cl.cmd = &CmdGeneralHelp{CmdBaseHelp{c}}
-		cl.ctx = c
-		cl.name = "help"
+	// Finally, add help if we asked for it
+	if addHelp {
+		app.Action = func(c *cli.Context) {
+			cl.cmd = &CmdGeneralHelp{CmdBaseHelp{c}}
+			cl.ctx = c
+			cl.name = "help"
+		}
 	}
 }
 
 func (cl *CommandLine) AddCommands(cmds []cli.Command) {
 	cl.app.Commands = cmds
+}
+
+func (cl *CommandLine) SetDefaultCommand(name string, cmd Command) {
+	cl.app.Action = func(c *cli.Context) {
+		cl.cmd = cmd
+		cl.ctx = c
+		cl.name = name
+	}
 }
 
 // Called back from inside our subcommands, when they're picked...
