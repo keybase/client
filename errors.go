@@ -513,7 +513,7 @@ func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
 	} else {
 		ret = &keybase_1.Status{
 			Name: "GENERIC",
-			Code: 218,
+			Code: SC_GENERIC,
 			Desc: e.Error(),
 		}
 	}
