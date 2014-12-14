@@ -26,10 +26,6 @@
 @end
 @implementation KBCheckUsernameAvailableArg
 @end
-@implementation KBCheckEmailAvailableRes
-@end
-@implementation KBCheckEmailAvailableArg
-@end
 @implementation KBSignupArg
 @end
 @implementation KBInviteRequestArg

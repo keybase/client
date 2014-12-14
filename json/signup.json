@@ -40,20 +40,6 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "CheckEmailAvailableRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "CheckEmailAvailableArg",
-    "fields" : [ {
-      "name" : "email",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "SignupArg",
     "fields" : [ {
       "name" : "email",
@@ -135,13 +121,6 @@
         "type" : "CheckUsernameAvailableArg"
       } ],
       "response" : "CheckUsernameAvailableRes"
-    },
-    "checkEmailAvailable" : {
-      "request" : [ {
-        "name" : "arg",
-        "type" : "CheckEmailAvailableArg"
-      } ],
-      "response" : "CheckEmailAvailableRes"
     },
     "signup" : {
       "request" : [ {

@@ -76,14 +76,6 @@ type CheckUsernameAvailableArg struct {
 	Username string `codec:"username"`
 }
 
-type CheckEmailAvailableRes struct {
-	Status Status `codec:"status"`
-}
-
-type CheckEmailAvailableArg struct {
-	Email string `codec:"email"`
-}
-
 type SignupArg struct {
 	Email      string `codec:"email"`
 	InviteCode string `codec:"inviteCode"`
@@ -121,7 +113,6 @@ type SignupRes struct {
 
 type SignupInterface interface {
 	CheckUsernameAvailable(arg *CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error
-	CheckEmailAvailable(arg *CheckEmailAvailableArg, res *CheckEmailAvailableRes) error
 	Signup(arg *SignupArg, res *SignupRes) error
 	InviteResuest(arg *InviteRequestArg, res *InviteRequestRes) error
 }

@@ -57,14 +57,6 @@
 @property NSString *username;
 @end
 
-@interface KBCheckEmailAvailableRes : KBRObject
-@property KBStatus *status;
-@end
-
-@interface KBCheckEmailAvailableArg : KBRObject
-@property NSString *email;
-@end
-
 @interface KBSignupArg : KBRObject
 @property NSString *email;
 @property NSString *inviteCode;
