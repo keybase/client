@@ -298,7 +298,7 @@ func (b BadFingerprintError) Error() string {
 
 type ExportableError interface {
 	error
-	ToStatus() *keybase_1.Status
+	ToStatus() keybase_1.Status
 }
 
 //=============================================================================
@@ -310,13 +310,13 @@ type AppStatusError struct {
 	Fields map[string]bool
 }
 
-func (a AppStatusError) ToStatus() *keybase_1.Status {
+func (a AppStatusError) ToStatus() keybase_1.Status {
 	var fields []string
 	for k, _ := range a.Fields {
 		fields = append(fields, k)
 	}
 
-	return &keybase_1.Status{
+	return keybase_1.Status{
 		Code:   a.Code,
 		Name:   a.Name,
 		Desc:   a.Desc,
@@ -507,11 +507,11 @@ func (s KeyCannotSignError) Error() string {
 
 //=============================================================================
 
-func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
+func ExportErrorAsStatus(e error) (ret keybase_1.Status) {
 	if ee, ok := e.(ExportableError); ok {
 		ret = ee.ToStatus()
 	} else {
-		ret = &keybase_1.Status{
+		ret = keybase_1.Status{
 			Name: "GENERIC",
 			Code: SC_GENERIC,
 			Desc: e.Error(),

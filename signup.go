@@ -20,7 +20,7 @@ type SignupEngine struct {
 
 func NewSignupEngine() *SignupEngine { return &SignupEngine{} }
 
-func CheckUsernameAvailable(s string) (avail bool, err error) {
+func CheckUsernameAvailable(s string) (err error) {
 	_, err = G.API.Get(ApiArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
@@ -30,9 +30,12 @@ func CheckUsernameAvailable(s string) (avail bool, err error) {
 		},
 	})
 	if err == nil {
-		avail = false
+		err = AppStatusError{
+			Code: SC_BAD_SIGNUP_USERNAME_TAKEN,
+			Name: "BAD_SIGNUP_USERNAME_TAKEN",
+			Desc: fmt.Sprintf("Username '%s' is taken", s),
+		}
 	} else if ase, ok := err.(AppStatusError); ok && ase.Name == "NOT_FOUND" {
-		avail = true
 		err = nil
 	}
 	return
