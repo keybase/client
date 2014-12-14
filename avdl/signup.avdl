@@ -12,14 +12,6 @@ protocol signup {
 		string username;
 	}
 
-	record CheckEmailAvailableRes {
-		Status status;
-	}
-
-	record CheckEmailAvailableArg {
-		string email;
-	}
-
 	record SignupArg {
 		string email;
 		string inviteCode;
@@ -56,7 +48,6 @@ protocol signup {
 	}
 
 	CheckUsernameAvailableRes checkUsernameAvailable(CheckUsernameAvailableArg arg);
-	CheckEmailAvailableRes checkEmailAvailable(CheckEmailAvailableArg arg);
 	SignupRes signup(SignupArg arg);
 	InviteRequestRes inviteResuest(InviteRequestArg arg);
 }
