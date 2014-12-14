@@ -20,6 +20,24 @@ type SignupEngine struct {
 
 func NewSignupEngine() *SignupEngine { return &SignupEngine{} }
 
+func CheckUsernameAvailable(s string) (avail bool, err error) {
+	_, err = G.API.Get(ApiArg{
+		Endpoint:    "user/lookup",
+		NeedSession: false,
+		Args: HttpArgs{
+			"username": S{s},
+			"fields":   S{"basics"},
+		},
+	})
+	if err == nil {
+		avail = false
+	} else if ase, ok := err.(AppStatusError); ok && ase.Name == "NOT_FOUND" {
+		avail = true
+		err = nil
+	}
+	return
+}
+
 func (s *SignupEngine) CheckRegistered() (err error) {
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
