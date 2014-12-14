@@ -23,6 +23,11 @@ func GetUI() libkb.UI {
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var memprofile = flag.String("memprofile", "", "write memory profile to file")
+var local = flag.Bool("local", false,
+	"use a fake local user DB instead of Keybase")
+var localUser = flag.String("localuser", "strib",
+	"fake local user (only valid when local=true")
+var debug = flag.Bool("debug", false, "Print FUSE debug messages")
 
 func main() {
 	flag.Parse()
@@ -60,9 +65,6 @@ func main() {
 		os.Exit(1)
 	}()
 
-	// TODO: make this an option:
-	localUsers := true
-
 	config := libkbfs.NewConfigLocal()
 
 	libkb.G.Init()
@@ -72,13 +74,22 @@ func main() {
 	libkb.G.ConfigureMerkleClient()
 	libkb.G.SetUI(GetUI())
 
-	if !localUsers {
+	if !*local {
 		libkb.G.ConfigureAPI()
 		if ok, err := libkb.G.Session.LoadAndCheck(); !ok || err != nil {
 			log.Fatalf("Couldn't load session: %v\n", err)
 		}
 	} else {
-		k := libkbfs.NewKBPKILocal(libkb.UID{1}, []*libkbfs.LocalUser{
+		var localUid libkb.UID
+		switch {
+		case *localUser == "strib":
+			localUid = libkb.UID{1}
+		case *localUser == "max":
+			localUid = libkb.UID{2}
+		case *localUser == "chris":
+			localUid = libkb.UID{3}
+		}
+		k := libkbfs.NewKBPKILocal(localUid, []*libkbfs.LocalUser{
 			&libkbfs.LocalUser{"strib", libkb.UID{1}, []string{"github:strib"}},
 			&libkbfs.LocalUser{"max", libkb.UID{2}, []string{"twitter:maxtaco"}},
 			&libkbfs.LocalUser{
@@ -94,6 +105,8 @@ func main() {
 		log.Fatalf("Mount fail: %v\n", err)
 	}
 
-	//server.SetDebug(true)
+	if *debug {
+		server.SetDebug(true)
+	}
 	server.Serve()
 }
