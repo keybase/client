@@ -48,7 +48,7 @@
       "name" : "inviteCode",
       "type" : "string"
     }, {
-      "name" : "password",
+      "name" : "passphrase",
       "type" : "string"
     }, {
       "name" : "username",

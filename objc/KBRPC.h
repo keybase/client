@@ -76,7 +76,7 @@
 @interface KBSignupArg : KBRObject
 @property NSString *email;
 @property NSString *inviteCode;
-@property NSString *password;
+@property NSString *passphrase;
 @property NSString *username;
 @end
 

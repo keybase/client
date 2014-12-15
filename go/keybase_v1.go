@@ -103,7 +103,7 @@ type CheckUsernameAvailableArg struct {
 type SignupArg struct {
 	Email      string `codec:"email"`
 	InviteCode string `codec:"inviteCode"`
-	Password   string `codec:"password"`
+	Passphrase string `codec:"passphrase"`
 	Username   string `codec:"username"`
 }
 

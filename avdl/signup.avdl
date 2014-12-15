@@ -15,7 +15,7 @@ protocol signup {
 	record SignupArg {
 		string email;
 		string inviteCode;
-		string password;
+		string passphrase;
 		string username;
 	}
 
