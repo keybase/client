@@ -90,7 +90,7 @@ class GoEmitter
     call = if async then "Go" else "Call"
     @output "func (c #{p}Client) #{ap}#{@go_export_case(name)}(arg #{arg.type}, res *#{res}) error {"
     @tab()
-    @output """return c.#{call}("#{@_pkg}.#{protocol}.#{name}", arg, res)"""
+    @output """return c.Cli.#{call}("#{@_pkg}.#{protocol}.#{name}", arg, res)"""
     @untab()
     @output "}"
 
@@ -102,7 +102,7 @@ class GoEmitter
     p = @go_export_case protocol
     @output "type #{p}Client struct {"
     @tab()
-    @output "cli GenericClient"
+    @output "Cli GenericClient"
     @untab()
     @output "}"
     for k,v of messages
