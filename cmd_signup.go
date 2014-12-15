@@ -13,7 +13,7 @@ func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase signup [-c <code>]",
 		Description: "signup for a new account",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSignup{}, "signup", c)
+			cl.ChooseCommand(NewCmdSignupState(), "signup", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -32,18 +32,30 @@ func (pf PromptFields) ToList() []*Field {
 	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry}
 }
 
-type CmdSignup struct {
+type SignupEngine interface {
+	CheckRegistered() error
+	Run(libkb.SignupEngineRunArg) libkb.SignupEngineRunRes
+	PostInviteRequest(libkb.InviteRequestArg) error
+}
+
+func NewCmdSignupState() *CmdSignupState {
+	return &CmdSignupState{
+		engine: libkb.NewSignupEngine(),
+	}
+}
+
+type CmdSignupState struct {
 	code     string
 	fields   *PromptFields
 	prompter *Prompter
-	engine   *libkb.SignupEngine
+	engine   SignupEngine
 
 	passphrase string
 	fullname   string
 	notes      string
 }
 
-func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
+func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
@@ -55,7 +67,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdSignup) CheckRegistered() (err error) {
+func (s *CmdSignupState) CheckRegistered() (err error) {
 	if err = s.engine.CheckRegistered(); err == nil {
 		return
 	} else if _, ok := err.(libkb.AlreadyRegisteredError); !ok {
@@ -71,7 +83,7 @@ func (s *CmdSignup) CheckRegistered() (err error) {
 	return nil
 }
 
-func (s *CmdSignup) MakePrompter() {
+func (s *CmdSignupState) MakePrompter() {
 
 	code := &Field{
 		Defval:  s.code,
@@ -125,7 +137,7 @@ func (s *CmdSignup) MakePrompter() {
 	s.prompter = NewPrompter(s.fields.ToList())
 }
 
-func (s *CmdSignup) Prompt() (err error) {
+func (s *CmdSignupState) Prompt() (err error) {
 
 	if s.prompter == nil {
 		s.MakePrompter()
@@ -148,12 +160,12 @@ func (s *CmdSignup) Prompt() (err error) {
 	return
 }
 
-func (s *CmdSignup) RunEngine() (retry bool, err error) {
+func (s *CmdSignupState) RunEngine() (retry bool, err error) {
 	arg := libkb.SignupEngineRunArg{
-		Username:     s.fields.username.GetValue(),
-		Email:        s.fields.email.GetValue(),
-		InvitationId: s.fields.code.GetValue(),
-		Passphrase:   s.passphrase,
+		Username:   s.fields.username.GetValue(),
+		Email:      s.fields.email.GetValue(),
+		InviteCode: s.fields.code.GetValue(),
+		Passphrase: s.passphrase,
 	}
 	res := s.engine.Run(arg)
 	if res.PassphraseOk {
@@ -167,7 +179,7 @@ func (s *CmdSignup) RunEngine() (retry bool, err error) {
 	return
 }
 
-func (s *CmdSignup) HandlePostError(inerr error) (retry bool, err error) {
+func (s *CmdSignupState) HandlePostError(inerr error) (retry bool, err error) {
 	retry = false
 	err = inerr
 	if ase, ok := inerr.(libkb.AppStatusError); ok {
@@ -199,7 +211,7 @@ func (s *CmdSignup) HandlePostError(inerr error) (retry bool, err error) {
 	return
 }
 
-func (s *CmdSignup) SuccessMessage() error {
+func (s *CmdSignupState) SuccessMessage() error {
 	msg := `
 Welcome to keybase.io! You now need to associate a public key with your
 account.  If you have a key already then:
@@ -217,7 +229,7 @@ Enjoy!
 	return nil
 }
 
-func (s *CmdSignup) RunSignup() (err error) {
+func (s *CmdSignupState) RunSignup() (err error) {
 	retry := true
 
 	err = s.CheckRegistered()
@@ -234,7 +246,7 @@ func (s *CmdSignup) RunSignup() (err error) {
 	return err
 }
 
-func (s *CmdSignup) RequestInvitePromptForOk() (err error) {
+func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
 	prompt := "Would you like to be added to the invite request list?"
 	def := true
 	var invite bool
@@ -245,7 +257,7 @@ func (s *CmdSignup) RequestInvitePromptForOk() (err error) {
 	return err
 }
 
-func (s *CmdSignup) RequestInvitePromptForData() (err error) {
+func (s *CmdSignupState) RequestInvitePromptForData() (err error) {
 
 	fullname := &Field{
 		Name:   "fullname",
@@ -266,7 +278,7 @@ func (s *CmdSignup) RequestInvitePromptForData() (err error) {
 	return
 }
 
-func (s *CmdSignup) RequestInvitePost() (err error) {
+func (s *CmdSignupState) RequestInvitePost() (err error) {
 	err = s.engine.PostInviteRequest(libkb.InviteRequestArg{
 		Email:    s.fields.email.GetValue(),
 		Fullname: s.fullname,
@@ -278,7 +290,7 @@ func (s *CmdSignup) RequestInvitePost() (err error) {
 	return err
 }
 
-func (s *CmdSignup) RequestInvite() (err error) {
+func (s *CmdSignupState) RequestInvite() (err error) {
 	if err = s.RequestInvitePromptForOk(); err != nil {
 	} else if err = s.RequestInvitePromptForData(); err != nil {
 	} else {
@@ -287,7 +299,7 @@ func (s *CmdSignup) RequestInvite() (err error) {
 	return err
 }
 
-func (s *CmdSignup) Run() (err error) {
+func (s *CmdSignupState) Run() (err error) {
 	s.engine = libkb.NewSignupEngine()
 	if err = s.RunSignup(); err == nil {
 	} else if _, cce := err.(CleanCancelError); cce {
@@ -296,7 +308,7 @@ func (s *CmdSignup) Run() (err error) {
 	return
 }
 
-func (v *CmdSignup) GetUsage() libkb.Usage {
+func (v *CmdSignupState) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:   true,
 		API:      true,
