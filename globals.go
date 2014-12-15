@@ -16,7 +16,6 @@ package libkb
 import (
 	"fmt"
 	"io"
-	"net"
 	"os"
 	"runtime"
 )
@@ -40,6 +39,7 @@ type Global struct {
 	GpgClient     GpgClient      // A standard GPG-client (optional)
 	ShutdownHooks []ShutdownHook // on shutdown, fire these...
 	SocketInfo    SocketInfo     // which socket to bind/connect to
+	SocketWrapper *SocketWrapper // only need one connection per
 	UI            UI             // Interact with the UI
 	shutdown      bool           // whether we've shut down or not
 }
@@ -234,12 +234,6 @@ func (g *Global) GetMyUid() (ret *UID) {
 	return ret
 }
 
-func (g *Global) BindToSocket() (net.Listener, error) {
-	return BindToSocket(g.SocketInfo)
-}
-func (g *Global) DialSocket() (net.Conn, error) {
-	return DialSocket(g.SocketInfo)
-}
 func (g *Global) ConfigureSocketInfo() (err error) {
 	g.SocketInfo, err = ConfigureSocketInfo()
 	return err

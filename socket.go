@@ -68,3 +68,20 @@ func ConfigureSocketInfo() (ret SocketInfo, err error) {
 	}
 	return
 }
+
+type SocketWrapper struct {
+	conn net.Conn
+	err  error
+}
+
+func (g *Global) BindToSocket() (net.Listener, error) {
+	return BindToSocket(g.SocketInfo)
+}
+
+func (g *Global) GetSocket() (net.Conn, error) {
+	if g.SocketWrapper != nil {
+		c, e := DialSocket(g.SocketInfo)
+		g.SocketWrapper = &SocketWrapper{c, e}
+	}
+	return g.SocketWrapper.conn, g.SocketWrapper.err
+}
