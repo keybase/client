@@ -96,5 +96,5 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 
 
 func main() {
-	libcmdline.Main(parseArgs)
+	libcmdline.Main(parseArgs, nil)
 }
