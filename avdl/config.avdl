@@ -4,20 +4,21 @@ protocol config {
 
 	import idl "common.avdl";
 
-	record GetCurrentConfigArg {
+	record GetCurrentStatusArg {
 	}
 
-	record GetCurrentConfigResBody {
+	record GetCurrentStatusResBody {
+		boolean configured;
 		boolean registered;
 		boolean loggedIn;
 		boolean publicKeySelected;
 		boolean hasPrivateKey;
 	}
 
-	record GetCurrentConfigRes {
-		union { null, GetCurrentConfigResBody } body;
+	record GetCurrentStatusRes {
+		union { null, GetCurrentStatusResBody } body;
 		Status status;
 	}
 
-	GetCurrentConfigRes GetCurrentConfig(GetCurrentConfigArg arg);
+	GetCurrentStatusRes GetCurrentStatus(GetCurrentStatusArg arg);
 }

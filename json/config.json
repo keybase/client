@@ -26,12 +26,15 @@
     "size" : 16
   }, {
     "type" : "record",
-    "name" : "GetCurrentConfigArg",
+    "name" : "GetCurrentStatusArg",
     "fields" : [ ]
   }, {
     "type" : "record",
-    "name" : "GetCurrentConfigResBody",
+    "name" : "GetCurrentStatusResBody",
     "fields" : [ {
+      "name" : "configured",
+      "type" : "boolean"
+    }, {
       "name" : "registered",
       "type" : "boolean"
     }, {
@@ -46,22 +49,22 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "GetCurrentConfigRes",
+    "name" : "GetCurrentStatusRes",
     "fields" : [ {
       "name" : "body",
-      "type" : [ "null", "GetCurrentConfigResBody" ]
+      "type" : [ "null", "GetCurrentStatusResBody" ]
     }, {
       "name" : "status",
       "type" : "Status"
     } ]
   } ],
   "messages" : {
-    "GetCurrentConfig" : {
+    "GetCurrentStatus" : {
       "request" : [ {
         "name" : "arg",
-        "type" : "GetCurrentConfigArg"
+        "type" : "GetCurrentStatusArg"
       } ],
-      "response" : "GetCurrentConfigRes"
+      "response" : "GetCurrentStatusRes"
     }
   }
 }

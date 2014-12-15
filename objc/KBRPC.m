@@ -1,10 +1,10 @@
 @implementation KBStatus
 @end
-@implementation KBGetCurrentConfigArg
+@implementation KBGetCurrentStatusArg
 @end
-@implementation KBGetCurrentConfigResBody
+@implementation KBGetCurrentStatusResBody
 @end
-@implementation KBGetCurrentConfigRes
+@implementation KBGetCurrentStatusRes
 @end
 @implementation KBLoginResBody
 @end

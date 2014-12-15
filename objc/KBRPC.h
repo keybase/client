@@ -5,18 +5,19 @@
 @property NSArray *fields;
 @end
 
-@interface KBGetCurrentConfigArg : KBRObject
+@interface KBGetCurrentStatusArg : KBRObject
 @end
 
-@interface KBGetCurrentConfigResBody : KBRObject
+@interface KBGetCurrentStatusResBody : KBRObject
+@property KBboolean *configured;
 @property KBboolean *registered;
 @property KBboolean *loggedIn;
 @property KBboolean *publicKeySelected;
 @property KBboolean *hasPrivateKey;
 @end
 
-@interface KBGetCurrentConfigRes : KBRObject
-@property KBGetCurrentConfigResBody *body;
+@interface KBGetCurrentStatusRes : KBRObject
+@property KBGetCurrentStatusResBody *body;
 @property KBStatus *status;
 @end
 

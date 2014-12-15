@@ -12,23 +12,24 @@ type Status struct {
 }
 
 type UID [16]byte
-type GetCurrentConfigArg struct {
+type GetCurrentStatusArg struct {
 }
 
-type GetCurrentConfigResBody struct {
+type GetCurrentStatusResBody struct {
+	Configured        bool `codec:"configured"`
 	Registered        bool `codec:"registered"`
 	LoggedIn          bool `codec:"loggedIn"`
 	PublicKeySelected bool `codec:"publicKeySelected"`
 	HasPrivateKey     bool `codec:"hasPrivateKey"`
 }
 
-type GetCurrentConfigRes struct {
-	Body   *GetCurrentConfigResBody `codec:"body,omitempty"`
+type GetCurrentStatusRes struct {
+	Body   *GetCurrentStatusResBody `codec:"body,omitempty"`
 	Status Status                   `codec:"status"`
 }
 
 type ConfigInterface interface {
-	GetCurrentConfig(arg *GetCurrentConfigArg, res *GetCurrentConfigRes) error
+	GetCurrentStatus(arg *GetCurrentStatusArg, res *GetCurrentStatusRes) error
 }
 
 func RegisterConfig(server *rpc.Server, i ConfigInterface) error {
