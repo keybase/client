@@ -69,10 +69,10 @@ func (s *SignupEngine) GenPwh(p string) (err error) {
 }
 
 type SignupEngineRunArg struct {
-	Username     string
-	Email        string
-	InvitationId string
-	Passphrase   string
+	Username   string
+	Email      string
+	InviteCode string
+	Passphrase string
 }
 
 func (s *SignupEngine) Post(arg SignupEngineRunArg) (err error) {
@@ -84,7 +84,7 @@ func (s *SignupEngine) Post(arg SignupEngineRunArg) (err error) {
 			"pwh":           S{hex.EncodeToString(s.pwh)},
 			"username":      S{arg.Username},
 			"email":         S{arg.Email},
-			"invitation_id": S{arg.InvitationId},
+			"invitation_id": S{arg.InviteCode},
 			"pwh_version":   I{int(triplesec.Version)},
 		}})
 	if err == nil {
@@ -100,6 +100,7 @@ type SignupEngineRunRes struct {
 	PassphraseOk bool
 	PostOk       bool
 	WriteOk      bool
+	Uid          *UID
 	Error        error
 }
 
@@ -116,6 +117,7 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) (res SignupEngineRunRes) {
 		return
 	}
 	res.WriteOk = true
+	res.Uid = &s.uid
 	return
 }
 
