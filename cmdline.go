@@ -125,6 +125,10 @@ func (p CommandLine) GetDaemonPort() (ret int, set bool) {
 	return
 }
 
+func (p CommandLine) GetStandalone() (bool, bool) {
+	return p.GetBool("standalone", true)
+}
+
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {

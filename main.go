@@ -12,8 +12,10 @@ var G = &libkb.G
 
 type parseArgHook func() (libkb.CommandLine, Command, error)
 
-func Main(parseArgs parseArgHook) {
+func Main(parseArgs parseArgHook, ui libkb.UI) {
 	G.Init()
+	G.SetUI(ui)
+
 	go HandleSignals()
 	err := main2(parseArgs)
 	e2 := G.Shutdown()
