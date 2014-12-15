@@ -4,7 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
-	"net"
+	"github.com/keybase/protocol/go"
 	"os"
 )
 
@@ -56,7 +56,7 @@ func NewCmdSignupState() *CmdSignupState {
 }
 
 type RemoteSignupEngine struct {
-	con net.Conn
+	cli keybase_1.SignupClient
 }
 
 func (e *RemoteSignupEngine) CheckRegistered() (err error) {
@@ -64,7 +64,7 @@ func (e *RemoteSignupEngine) CheckRegistered() (err error) {
 }
 
 func (e *RemoteSignupEngine) Init() (err error) {
-	e.con, err = G.DialSocket()
+	e.cli, err = GetSignupClient()
 	return
 }
 
