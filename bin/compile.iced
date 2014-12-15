@@ -76,18 +76,44 @@ class GoEmitter
         @emit_fixed t
     @_cache[t.name] = true
 
-  emit_message : (name, details) ->
+  emit_message_server : (name, details) ->
     arg = details.request[0]
     res = details.response
     args = "arg *#{arg.type}, res *#{res}"
     @output "#{@go_export_case(name)}(#{args}) error"
 
+  emit_message_client : (protocol, name, details, async) ->
+    p = @go_export_case protocol
+    arg = details.request[0]
+    res = details.response
+    ap = if async then "Async" else ""
+    call = if async then "Go" else "Call"
+    @output "func (c #{p}Client) #{ap}#{@go_export_case(name)}(arg #{arg.type}, res *#{res}) error {"
+    @tab()
+    @output """return c.#{call}("#{@_pkg}.#{protocol}.#{name}", arg, res)"""
+    @untab()
+    @output "}"
+
   emit_interface : (protocol, messages) ->
+    @emit_interface_server protocol, messages
+    @emit_interface_client protocol, messages
+
+  emit_interface_client : (protocol, messages) ->
+    p = @go_export_case protocol
+    @output "type #{p}Client struct {"
+    @tab()
+    @output "cli GenericClient"
+    @untab()
+    @output "}"
+    for k,v of messages
+      @emit_message_client protocol, k,v, false
+
+  emit_interface_server : (protocol, messages) ->
     p = @go_export_case protocol
     @output "type #{p}Interface interface {"
     @tab()
     for k,v of messages
-      @emit_message k,v
+      @emit_message_server k,v
     @untab()
     @output "}"
     @output "func Register#{p}(server *rpc.Server, i #{p}Interface) error {"
@@ -103,6 +129,13 @@ class GoEmitter
     src = @_code.join("\n")
     cb null, {"": src}
 
+  emit_generic_client : () ->
+    @output "type GenericClient interface {"
+    @tab()
+    @output "Call(s string, args interface{}, res interface{}) error"
+    @untab()
+    @output "}"
+
   emit_package : (json, cb) ->
     pkg = json.namespace
     err = null
@@ -115,6 +148,8 @@ class GoEmitter
       @output '"net/rpc"'
       @untab()
       @output ")"
+      @output ""
+      @emit_generic_client()
       @_pkg = pkg
     cb err
 

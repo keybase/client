@@ -4,6 +4,10 @@ import (
 	"net/rpc"
 )
 
+type GenericClient interface {
+	Call(s string, args interface{}, res interface{}) error
+}
+
 type Status struct {
 	Code   int      `codec:"code"`
 	Name   string   `codec:"name"`
@@ -34,6 +38,14 @@ type ConfigInterface interface {
 
 func RegisterConfig(server *rpc.Server, i ConfigInterface) error {
 	return server.RegisterName("keybase.1.config", i)
+}
+
+type ConfigClient struct {
+	cli GenericClient
+}
+
+func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentStatusRes) error {
+	return c.Call("keybase.1.config.GetCurrentStatus", arg, res)
 }
 
 type LoginResBody struct {
@@ -92,6 +104,30 @@ func RegisterLogin(server *rpc.Server, i LoginInterface) error {
 	return server.RegisterName("keybase.1.login", i)
 }
 
+type LoginClient struct {
+	cli GenericClient
+}
+
+func (c LoginClient) IsLoggedIn(arg IsLoggedInArg, res *IsLoggedInRes) error {
+	return c.Call("keybase.1.login.isLoggedIn", arg, res)
+}
+
+func (c LoginClient) PasswordLogin(arg PasswordLoginArg, res *PasswordLoginRes) error {
+	return c.Call("keybase.1.login.passwordLogin", arg, res)
+}
+
+func (c LoginClient) PubkeyLogin(arg PubkeyLoginArg, res *PubkeyLoginRes) error {
+	return c.Call("keybase.1.login.pubkeyLogin", arg, res)
+}
+
+func (c LoginClient) Logout(arg LogoutArg, res *LogoutRes) error {
+	return c.Call("keybase.1.login.logout", arg, res)
+}
+
+func (c LoginClient) SwitchUser(arg SwitchUserArg, res *SwitchUserRes) error {
+	return c.Call("keybase.1.login.switchUser", arg, res)
+}
+
 type CheckUsernameAvailableRes struct {
 	Status Status `codec:"status"`
 }
@@ -147,4 +183,20 @@ type SignupInterface interface {
 
 func RegisterSignup(server *rpc.Server, i SignupInterface) error {
 	return server.RegisterName("keybase.1.signup", i)
+}
+
+type SignupClient struct {
+	cli GenericClient
+}
+
+func (c SignupClient) CheckUsernameAvailable(arg CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error {
+	return c.Call("keybase.1.signup.checkUsernameAvailable", arg, res)
+}
+
+func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
+	return c.Call("keybase.1.signup.signup", arg, res)
+}
+
+func (c SignupClient) InviteResuest(arg InviteRequestArg, res *InviteRequestRes) error {
+	return c.Call("keybase.1.signup.inviteResuest", arg, res)
 }
