@@ -1,5 +1,11 @@
 @implementation KBStatus
 @end
+@implementation KBGetCurrentConfigArg
+@end
+@implementation KBGetCurrentConfigResBody
+@end
+@implementation KBGetCurrentConfigRes
+@end
 @implementation KBLoginResBody
 @end
 @implementation KBIsLoggedInRes
@@ -35,6 +41,8 @@
 @implementation KBInviteRequestRes
 @end
 @implementation KBSignupResSuccess
+@end
+@implementation KBSignupResBody
 @end
 @implementation KBSignupRes
 @end

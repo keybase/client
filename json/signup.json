@@ -96,9 +96,9 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "SignupRes",
+    "name" : "SignupResBody",
     "fields" : [ {
-      "name" : "body",
+      "name" : "success",
       "type" : [ "null", "SignupResSuccess" ]
     }, {
       "name" : "passphraseOk",
@@ -109,6 +109,13 @@
     }, {
       "name" : "writeOk",
       "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SignupRes",
+    "fields" : [ {
+      "name" : "Body",
+      "type" : "SignupResBody"
     }, {
       "name" : "status",
       "type" : "Status"

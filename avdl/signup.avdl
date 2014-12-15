@@ -39,11 +39,15 @@ protocol signup {
 		UID uid;
 	}
 
-	record SignupRes {
-		union { null, SignupResSuccess } body;
+	record SignupResBody {
+		union { null, SignupResSuccess } success;
 		boolean passphraseOk;
 		boolean postOk;
 		boolean writeOk;
+	}
+
+	record SignupRes {
+		SignupResBody Body;
 		Status status;
 	}
 

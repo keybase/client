@@ -5,6 +5,21 @@
 @property NSArray *fields;
 @end
 
+@interface KBGetCurrentConfigArg : KBRObject
+@end
+
+@interface KBGetCurrentConfigResBody : KBRObject
+@property KBboolean *registered;
+@property KBboolean *loggedIn;
+@property KBboolean *publicKeySelected;
+@property KBboolean *hasPrivateKey;
+@end
+
+@interface KBGetCurrentConfigRes : KBRObject
+@property KBGetCurrentConfigResBody *body;
+@property KBStatus *status;
+@end
+
 @interface KBLoginResBody : KBRObject
 @property NSData *uid;
 @end
@@ -84,11 +99,15 @@
 @property NSData *uid;
 @end
 
-@interface KBSignupRes : KBRObject
-@property KBSignupResSuccess *body;
+@interface KBSignupResBody : KBRObject
+@property KBSignupResSuccess *success;
 @property KBboolean *passphraseOk;
 @property KBboolean *postOk;
 @property KBboolean *writeOk;
+@end
+
+@interface KBSignupRes : KBRObject
+@property KBSignupResBody *Body;
 @property KBStatus *status;
 @end
 

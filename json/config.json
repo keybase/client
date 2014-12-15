@@ -1,0 +1,67 @@
+{
+  "protocol" : "config",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "GetCurrentConfigArg",
+    "fields" : [ ]
+  }, {
+    "type" : "record",
+    "name" : "GetCurrentConfigResBody",
+    "fields" : [ {
+      "name" : "registered",
+      "type" : "boolean"
+    }, {
+      "name" : "loggedIn",
+      "type" : "boolean"
+    }, {
+      "name" : "publicKeySelected",
+      "type" : "boolean"
+    }, {
+      "name" : "hasPrivateKey",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "GetCurrentConfigRes",
+    "fields" : [ {
+      "name" : "body",
+      "type" : [ "null", "GetCurrentConfigResBody" ]
+    }, {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  } ],
+  "messages" : {
+    "GetCurrentConfig" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "GetCurrentConfigArg"
+      } ],
+      "response" : "GetCurrentConfigRes"
+    }
+  }
+}

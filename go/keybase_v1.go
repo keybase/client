@@ -12,6 +12,29 @@ type Status struct {
 }
 
 type UID [16]byte
+type GetCurrentConfigArg struct {
+}
+
+type GetCurrentConfigResBody struct {
+	Registered        bool `codec:"registered"`
+	LoggedIn          bool `codec:"loggedIn"`
+	PublicKeySelected bool `codec:"publicKeySelected"`
+	HasPrivateKey     bool `codec:"hasPrivateKey"`
+}
+
+type GetCurrentConfigRes struct {
+	Body   *GetCurrentConfigResBody `codec:"body,omitempty"`
+	Status Status                   `codec:"status"`
+}
+
+type ConfigInterface interface {
+	GetCurrentConfig(arg *GetCurrentConfigArg, res *GetCurrentConfigRes) error
+}
+
+func RegisterConfig(server *rpc.Server, i ConfigInterface) error {
+	return server.RegisterName("keybase.1.config", i)
+}
+
 type LoginResBody struct {
 	Uid UID `codec:"uid"`
 }
@@ -103,12 +126,16 @@ type SignupResSuccess struct {
 	Uid UID `codec:"uid"`
 }
 
-type SignupRes struct {
-	Body         *SignupResSuccess `codec:"body,omitempty"`
+type SignupResBody struct {
+	Success      *SignupResSuccess `codec:"success,omitempty"`
 	PassphraseOk bool              `codec:"passphraseOk"`
 	PostOk       bool              `codec:"postOk"`
 	WriteOk      bool              `codec:"writeOk"`
-	Status       Status            `codec:"status"`
+}
+
+type SignupRes struct {
+	Body   SignupResBody `codec:"Body"`
+	Status Status        `codec:"status"`
 }
 
 type SignupInterface interface {

@@ -1,0 +1,23 @@
+
+@namespace("keybase.1")
+protocol config {
+
+	import idl "common.avdl";
+
+	record GetCurrentConfigArg {
+	}
+
+	record GetCurrentConfigResBody {
+		boolean registered;
+		boolean loggedIn;
+		boolean publicKeySelected;
+		boolean hasPrivateKey;
+	}
+
+	record GetCurrentConfigRes {
+		union { null, GetCurrentConfigResBody } body;
+		Status status;
+	}
+
+	GetCurrentConfigRes GetCurrentConfig(GetCurrentConfigArg arg);
+}
