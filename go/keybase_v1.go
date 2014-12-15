@@ -109,7 +109,7 @@ type SignupArg struct {
 
 type InviteRequestArg struct {
 	Email    string `codec:"email"`
-	FullName string `codec:"fullName"`
+	Fullname string `codec:"fullname"`
 	Notes    string `codec:"notes"`
 }
 
@@ -135,7 +135,7 @@ type SignupResBody struct {
 }
 
 type SignupRes struct {
-	Body   SignupResBody `codec:"Body"`
+	Body   SignupResBody `codec:"body"`
 	Status Status        `codec:"status"`
 }
 

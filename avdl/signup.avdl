@@ -21,7 +21,7 @@ protocol signup {
 
 	record InviteRequestArg {
 		string email;
-		string fullName;
+		string fullname;
 		string notes;
 	}
 
@@ -47,7 +47,7 @@ protocol signup {
 	}
 
 	record SignupRes {
-		SignupResBody Body;
+		SignupResBody body;
 		Status status;
 	}
 

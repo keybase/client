@@ -61,7 +61,7 @@
       "name" : "email",
       "type" : "string"
     }, {
-      "name" : "fullName",
+      "name" : "fullname",
       "type" : "string"
     }, {
       "name" : "notes",
@@ -114,7 +114,7 @@
     "type" : "record",
     "name" : "SignupRes",
     "fields" : [ {
-      "name" : "Body",
+      "name" : "body",
       "type" : "SignupResBody"
     }, {
       "name" : "status",

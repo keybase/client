@@ -82,7 +82,7 @@
 
 @interface KBInviteRequestArg : KBRObject
 @property NSString *email;
-@property NSString *fullName;
+@property NSString *fullname;
 @property NSString *notes;
 @end
 
@@ -108,7 +108,7 @@
 @end
 
 @interface KBSignupRes : KBRObject
-@property KBSignupResBody *Body;
+@property KBSignupResBody *body;
 @property KBStatus *status;
 @end
 
