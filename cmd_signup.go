@@ -4,6 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
+	"net"
 	"os"
 )
 
@@ -36,12 +37,43 @@ type SignupEngine interface {
 	CheckRegistered() error
 	Run(libkb.SignupEngineRunArg) libkb.SignupEngineRunRes
 	PostInviteRequest(libkb.InviteRequestArg) error
+	Init() error
 }
 
 func NewCmdSignupState() *CmdSignupState {
-	return &CmdSignupState{
-		engine: libkb.NewSignupEngine(),
+	var engine SignupEngine
+
+	// For now, comment this work out
+	if true || G.Env.GetStandalone() {
+		engine = libkb.NewSignupEngine()
+	} else {
+		engine = &RemoteSignupEngine{}
 	}
+
+	return &CmdSignupState{
+		engine: engine,
+	}
+}
+
+type RemoteSignupEngine struct {
+	con net.Conn
+}
+
+func (e *RemoteSignupEngine) CheckRegistered() (err error) {
+	return
+}
+
+func (e *RemoteSignupEngine) Init() (err error) {
+	e.con, err = G.DialSocket()
+	return
+}
+
+func (e *RemoteSignupEngine) Run(arg libkb.SignupEngineRunArg) (res libkb.SignupEngineRunRes) {
+	return
+}
+
+func (e *RemoteSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
+	return
 }
 
 type CmdSignupState struct {

@@ -43,5 +43,6 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 }
 
 func main() {
-	libcmdline.Main(parseArgs)
+	G_UI = &UI{}
+	libcmdline.Main(parseArgs, G_UI)
 }
