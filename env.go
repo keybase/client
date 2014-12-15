@@ -31,6 +31,7 @@ func (n NullConfiguration) GetSecretKeyring() string           { return "" }
 func (n NullConfiguration) GetSalt() []byte                    { return nil }
 func (n NullConfiguration) GetSocketFile() string              { return "" }
 func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
+func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, false }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -224,6 +225,14 @@ func (e Env) GetDebug() bool {
 		func() (bool, bool) { return e.cmd.GetDebug() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
 		func() (bool, bool) { return e.config.GetDebug() },
+	)
+}
+
+func (e Env) GetStandalone() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetStandalone() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_STANDALONE") },
+		func() (bool, bool) { return e.config.GetStandalone() },
 	)
 }
 

@@ -299,6 +299,9 @@ func (f JsonConfigFile) GetDebug() (bool, bool) {
 func (f JsonConfigFile) GetPlainLogging() (bool, bool) {
 	return f.GetTopLevelBool("plain_logging")
 }
+func (f JsonConfigFile) GetStandalone() (bool, bool) {
+	return f.GetTopLevelBool("standalone")
+}
 
 func (f JsonConfigFile) GetCacheSize(w string) (ret int, ok bool) {
 	if f.jw != nil {

@@ -39,6 +39,7 @@ type CommandLine interface {
 	GetSecretKeyring() string
 	GetSocketFile() string
 	GetDaemonPort() (int, bool)
+	GetStandalone() (bool, bool)
 }
 
 type Server interface {
@@ -91,6 +92,7 @@ type ConfigReader interface {
 	GetSalt() []byte
 	GetSocketFile() string
 	GetDaemonPort() (int, bool)
+	GetStandalone() (bool, bool)
 }
 
 type ConfigWriter interface {

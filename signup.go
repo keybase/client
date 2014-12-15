@@ -41,6 +41,10 @@ func CheckUsernameAvailable(s string) (err error) {
 	return
 }
 
+func (s *SignupEngine) Init() error {
+	return nil
+}
+
 func (s *SignupEngine) CheckRegistered() (err error) {
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
