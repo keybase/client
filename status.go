@@ -1,23 +1,23 @@
 package libkb
 
 type CurrentStatus struct {
-	configured        bool
-	registered        bool
-	loggedIn          bool
-	publicKeySelected bool
-	hasPrivateKey     bool
+	Configured        bool
+	Registered        bool
+	LoggedIn          bool
+	PublicKeySelected bool
+	HasPrivateKey     bool
 }
 
 func GetCurrentStatus() (res CurrentStatus, err error) {
 	if cr := G.Env.GetConfig(); cr == nil {
 	} else {
-		res.configured = true
+		res.Configured = true
 		if u := cr.GetUid(); u != nil {
-			res.registered = true
+			res.Registered = true
 		}
-		res.loggedIn, err = G.Session.LoadAndCheck()
+		res.LoggedIn, err = G.Session.LoadAndCheck()
 		if fp := G.Env.GetPgpFingerprint(); fp != nil {
-			res.publicKeySelected = true
+			res.PublicKeySelected = true
 		}
 	}
 	return
