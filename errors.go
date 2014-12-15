@@ -526,3 +526,11 @@ func ExportErrorAsStatus(e error) (ret keybase_1.Status) {
 }
 
 //=============================================================================
+
+type NoConfigFile struct{}
+
+func (n NoConfigFile) Error() string {
+	return "No configuration file available"
+}
+
+//=============================================================================
