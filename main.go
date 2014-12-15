@@ -19,9 +19,14 @@ var G = &libkb.G
 type Daemon struct {
 }
 
+func RegisterProtocols(server *rpc.Server, c net.Conn) {
+	keybase_1.RegisterSignup(server, SignupHandler{c})
+	keybase_1.RegisterConfig(server, ConfigHandler{c})
+}
+
 func (d *Daemon) Handle(c net.Conn) {
 	server := rpc.NewServer()
-	keybase_1.RegisterSignup(server, SignupHandler{c})
+	RegisterProtocols(server, c)
 	var mh codec.MsgpackHandle
 	rpcCodec := fmprpc.MsgpackSpecRpc.ServerCodec(c, &mh, true)
 	server.ServeCodec(rpcCodec)
@@ -72,7 +77,7 @@ func (d *Daemon) GetUsage() libkb.Usage {
 		KbKeyring : true,
 		GpgKeyring : true,
 		API : true,
-		Socket : true,	
+		Socket : true,
 	}
 }
 
