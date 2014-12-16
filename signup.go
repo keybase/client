@@ -17,6 +17,7 @@ func (h SignupHandler) CheckUsernameAvailable(arg *keybase_1.CheckUsernameAvaila
 	return nil
 }
 
+
 func (h SignupHandler) Signup(arg *keybase_1.SignupArg, res *keybase_1.SignupRes) error {
 	eng := libkb.NewSignupEngine()
 	seres := eng.Run(libkb.SignupEngineRunArg{
@@ -38,7 +39,7 @@ func (h SignupHandler) Signup(arg *keybase_1.SignupArg, res *keybase_1.SignupRes
 	return nil
 }
 
-func (h SignupHandler) InviteResuest(arg *keybase_1.InviteRequestArg, res *keybase_1.InviteRequestRes) error {
+func (h SignupHandler) InviteRequest(arg *keybase_1.InviteRequestArg, res *keybase_1.InviteRequestRes) error {
 	err := libkb.PostInviteRequest(libkb.InviteRequestArg{
 		Email : arg.Email,
 		Fullname : arg.Fullname,

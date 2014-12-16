@@ -14,7 +14,7 @@ type ConfigHandler struct {
 func (h ConfigHandler) GetCurrentStatus(arg *keybase_1.GetCurrentStatusArg, res *keybase_1.GetCurrentStatusRes) error {
 	cs, err := libkb.GetCurrentStatus()
 	res.Status = libkb.ExportErrorAsStatus(err)
-	if err != nil {
+	if err == nil {
 		body := keybase_1.GetCurrentStatusResBody{
 			Configured : cs.Configured,
 			Registered : cs.Registered,
