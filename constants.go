@@ -44,6 +44,7 @@ var NACL_EDDSA_EXPIRE_IN = 24 * 60 * 60 * 365 * 3 // 3 years
 var NACL_DH_EXPIRE_IN = 24 * 60 * 60 * 365 * 3    // 3 years
 
 const (
+	SC_OK                        = 0
 	SC_GENERIC                   = 218
 	SC_BAD_SIGNUP_USERNAME_TAKEN = 701
 )

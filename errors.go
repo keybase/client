@@ -527,6 +527,27 @@ func ExportErrorAsStatus(e error) (ret keybase_1.Status) {
 
 //=============================================================================
 
+func ImportStatusAsError(s keybase_1.Status) error {
+	if s.Code == SC_OK {
+		return nil
+	} else if s.Code == SC_GENERIC {
+		return fmt.Errorf(s.Desc)
+	} else {
+		ase := AppStatusError{
+			Code:   s.Code,
+			Name:   s.Name,
+			Desc:   s.Desc,
+			Fields: make(map[string]bool),
+		}
+		for _, f := range s.Fields {
+			ase.Fields[f] = true
+		}
+		return ase
+	}
+}
+
+//=============================================================================
+
 type NoConfigFile struct{}
 
 func (n NoConfigFile) Error() string {

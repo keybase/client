@@ -79,7 +79,7 @@ func (g *Global) BindToSocket() (net.Listener, error) {
 }
 
 func (g *Global) GetSocket() (net.Conn, error) {
-	if g.SocketWrapper != nil {
+	if g.SocketWrapper == nil {
 		c, e := DialSocket(g.SocketInfo)
 		g.SocketWrapper = &SocketWrapper{c, e}
 	}

@@ -46,11 +46,13 @@ func (s *SignupEngine) Init() error {
 }
 
 func (s *SignupEngine) CheckRegistered() (err error) {
+	G.Log.Debug("+ libkb.SignupEngine::CheckRegistered")
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUid(); u != nil {
 		err = AlreadyRegisteredError{*u}
 	}
+	G.Log.Debug("- libkb.SignupEngine::CheckRegistered -> %s", ErrToOk(err))
 	return err
 }
 
