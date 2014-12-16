@@ -53,5 +53,5 @@ protocol signup {
 
 	CheckUsernameAvailableRes checkUsernameAvailable(CheckUsernameAvailableArg arg);
 	SignupRes signup(SignupArg arg);
-	InviteRequestRes inviteResuest(InviteRequestArg arg);
+	InviteRequestRes inviteRequest(InviteRequestArg arg);
 }

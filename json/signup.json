@@ -136,7 +136,7 @@
       } ],
       "response" : "SignupRes"
     },
-    "inviteResuest" : {
+    "inviteRequest" : {
       "request" : [ {
         "name" : "arg",
         "type" : "InviteRequestArg"

@@ -178,7 +178,7 @@ type SignupRes struct {
 type SignupInterface interface {
 	CheckUsernameAvailable(arg *CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error
 	Signup(arg *SignupArg, res *SignupRes) error
-	InviteResuest(arg *InviteRequestArg, res *InviteRequestRes) error
+	InviteRequest(arg *InviteRequestArg, res *InviteRequestRes) error
 }
 
 func RegisterSignup(server *rpc.Server, i SignupInterface) error {
@@ -197,6 +197,6 @@ func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
 	return c.Cli.Call("keybase.1.signup.signup", arg, res)
 }
 
-func (c SignupClient) InviteResuest(arg InviteRequestArg, res *InviteRequestRes) error {
-	return c.Cli.Call("keybase.1.signup.inviteResuest", arg, res)
+func (c SignupClient) InviteRequest(arg InviteRequestArg, res *InviteRequestRes) error {
+	return c.Cli.Call("keybase.1.signup.inviteRequest", arg, res)
 }
