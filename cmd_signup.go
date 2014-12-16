@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
@@ -44,7 +45,7 @@ func NewCmdSignupState() *CmdSignupState {
 	var engine SignupEngine
 
 	// For now, comment this work out
-	if true || G.Env.GetStandalone() {
+	if G.Env.GetStandalone() {
 		engine = libkb.NewSignupEngine()
 	} else {
 		engine = &RemoteSignupEngine{}
@@ -56,23 +57,65 @@ func NewCmdSignupState() *CmdSignupState {
 }
 
 type RemoteSignupEngine struct {
-	cli keybase_1.SignupClient
+	scli keybase_1.SignupClient
+	ccli keybase_1.ConfigClient
 }
 
 func (e *RemoteSignupEngine) CheckRegistered() (err error) {
+	G.Log.Debug("+ RemoteSignupEngine::CheckRegistered")
+	var rres keybase_1.GetCurrentStatusRes
+	var rarg keybase_1.GetCurrentStatusArg
+	if err = e.ccli.GetCurrentStatus(rarg, &rres); err != nil {
+	} else if err = libkb.ImportStatusAsError(rres.Status); err != nil {
+	} else if rres.Body.Registered {
+		err = libkb.AlreadyRegisteredError{}
+	}
+	G.Log.Debug("- RemoteSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return
 }
 
 func (e *RemoteSignupEngine) Init() (err error) {
-	e.cli, err = GetSignupClient()
+	e.scli, err = GetSignupClient()
+	if err == nil {
+		e.ccli, err = GetConfigClient()
+	}
 	return
 }
 
 func (e *RemoteSignupEngine) Run(arg libkb.SignupEngineRunArg) (res libkb.SignupEngineRunRes) {
+	rarg := keybase_1.SignupArg{
+		Username:   arg.Username,
+		Email:      arg.Email,
+		InviteCode: arg.InviteCode,
+		Passphrase: arg.Passphrase,
+	}
+	var rres keybase_1.SignupRes
+	if err := e.scli.Signup(rarg, &rres); err != nil {
+		res.Error = err
+	} else {
+		res.Error = libkb.ImportStatusAsError(rres.Status)
+		res.PassphraseOk = rres.Body.PassphraseOk
+		res.PostOk = rres.Body.PostOk
+		res.WriteOk = rres.Body.WriteOk
+		if rres.Body.Success != nil {
+			var uid libkb.UID
+			copy(uid[:], rres.Body.Success.Uid[:])
+			res.Uid = &uid
+		}
+	}
 	return
 }
 
 func (e *RemoteSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
+	rarg := keybase_1.InviteRequestArg{
+		Email:    arg.Email,
+		Fullname: arg.Fullname,
+		Notes:    arg.Notes,
+	}
+	var rres keybase_1.InviteRequestRes
+	if err = e.scli.InviteRequest(rarg, &rres); err == nil {
+		err = libkb.ImportStatusAsError(rres.Status)
+	}
 	return
 }
 
@@ -264,7 +307,9 @@ Enjoy!
 func (s *CmdSignupState) RunSignup() (err error) {
 	retry := true
 
-	err = s.CheckRegistered()
+	if err = s.engine.Init(); err == nil {
+		err = s.CheckRegistered()
+	}
 
 	for retry && err == nil {
 		if err = s.Prompt(); err == nil {
@@ -332,11 +377,12 @@ func (s *CmdSignupState) RequestInvite() (err error) {
 }
 
 func (s *CmdSignupState) Run() (err error) {
-	s.engine = libkb.NewSignupEngine()
+	G.Log.Debug("+ CmdSignupState::Run")
 	if err = s.RunSignup(); err == nil {
 	} else if _, cce := err.(CleanCancelError); cce {
 		err = s.RequestInvite()
 	}
+	G.Log.Debug("- CmdSignupState::Run")
 	return
 }
 
