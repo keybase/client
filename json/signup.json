@@ -122,21 +122,21 @@
     } ]
   } ],
   "messages" : {
-    "checkUsernameAvailable" : {
+    "CheckUsernameAvailable" : {
       "request" : [ {
         "name" : "arg",
         "type" : "CheckUsernameAvailableArg"
       } ],
       "response" : "CheckUsernameAvailableRes"
     },
-    "signup" : {
+    "Signup" : {
       "request" : [ {
         "name" : "arg",
         "type" : "SignupArg"
       } ],
       "response" : "SignupRes"
     },
-    "inviteRequest" : {
+    "InviteRequest" : {
       "request" : [ {
         "name" : "arg",
         "type" : "InviteRequestArg"

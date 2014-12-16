@@ -190,13 +190,13 @@ type SignupClient struct {
 }
 
 func (c SignupClient) CheckUsernameAvailable(arg CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error {
-	return c.Cli.Call("keybase.1.signup.checkUsernameAvailable", arg, res)
+	return c.Cli.Call("keybase.1.signup.CheckUsernameAvailable", arg, res)
 }
 
 func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
-	return c.Cli.Call("keybase.1.signup.signup", arg, res)
+	return c.Cli.Call("keybase.1.signup.Signup", arg, res)
 }
 
 func (c SignupClient) InviteRequest(arg InviteRequestArg, res *InviteRequestRes) error {
-	return c.Cli.Call("keybase.1.signup.inviteRequest", arg, res)
+	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
 }
