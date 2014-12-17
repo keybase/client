@@ -22,6 +22,7 @@ type Daemon struct {
 func RegisterProtocols(server *rpc.Server, c net.Conn) {
 	keybase_1.RegisterSignup(server, SignupHandler{c})
 	keybase_1.RegisterConfig(server, ConfigHandler{c})
+	keybase_1.RegisterLogin(server, LoginHandler{c})
 }
 
 func (d *Daemon) Handle(c net.Conn) {
