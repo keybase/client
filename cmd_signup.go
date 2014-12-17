@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
@@ -97,11 +96,6 @@ func (e *RemoteSignupEngine) Run(arg libkb.SignupEngineRunArg) (res libkb.Signup
 		res.PassphraseOk = rres.Body.PassphraseOk
 		res.PostOk = rres.Body.PostOk
 		res.WriteOk = rres.Body.WriteOk
-		if rres.Body.Success != nil {
-			var uid libkb.UID
-			copy(uid[:], rres.Body.Success.Uid[:])
-			res.Uid = &uid
-		}
 	}
 	return
 }
@@ -112,9 +106,9 @@ func (e *RemoteSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err 
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,
 	}
-	var rres keybase_1.InviteRequestRes
+	var rres keybase_1.Status
 	if err = e.scli.InviteRequest(rarg, &rres); err == nil {
-		err = libkb.ImportStatusAsError(rres.Status)
+		err = libkb.ImportStatusAsError(rres)
 	}
 	return
 }
