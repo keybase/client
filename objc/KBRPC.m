@@ -1,7 +1,5 @@
 @implementation KBStatus
 @end
-@implementation KBGetCurrentStatusArg
-@end
 @implementation KBGetCurrentStatusResBody
 @end
 @implementation KBGetCurrentStatusRes

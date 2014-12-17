@@ -100,7 +100,7 @@ class GoEmitter
 
   emit_wrapper_object : (name, details) ->
     args = details.request
-    if args.length > 1
+    if args.length != 1
       klass_name = @go_export_case(name) + "Arg"
       obj =
         name : klass_name

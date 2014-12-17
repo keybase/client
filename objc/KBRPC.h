@@ -5,9 +5,6 @@
 @property NSArray *fields;
 @end
 
-@interface KBGetCurrentStatusArg : KBRObject
-@end
-
 @interface KBGetCurrentStatusResBody : KBRObject
 @property KBboolean *configured;
 @property KBboolean *registered;

@@ -16,9 +16,6 @@ type Status struct {
 }
 
 type UID [16]byte
-type GetCurrentStatusArg struct {
-}
-
 type GetCurrentStatusResBody struct {
 	Configured        bool `codec:"configured"`
 	Registered        bool `codec:"registered"`
@@ -30,6 +27,9 @@ type GetCurrentStatusResBody struct {
 type GetCurrentStatusRes struct {
 	Body   *GetCurrentStatusResBody `codec:"body,omitempty"`
 	Status Status                   `codec:"status"`
+}
+
+type GetCurrentStatusArg struct {
 }
 
 type ConfigInterface interface {

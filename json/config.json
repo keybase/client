@@ -26,10 +26,6 @@
     "size" : 16
   }, {
     "type" : "record",
-    "name" : "GetCurrentStatusArg",
-    "fields" : [ ]
-  }, {
-    "type" : "record",
     "name" : "GetCurrentStatusResBody",
     "fields" : [ {
       "name" : "configured",
@@ -60,10 +56,7 @@
   } ],
   "messages" : {
     "GetCurrentStatus" : {
-      "request" : [ {
-        "name" : "arg",
-        "type" : "GetCurrentStatusArg"
-      } ],
+      "request" : [ ],
       "response" : "GetCurrentStatusRes"
     }
   }

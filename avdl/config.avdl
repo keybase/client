@@ -4,9 +4,6 @@ protocol config {
 
 	import idl "common.avdl";
 
-	record GetCurrentStatusArg {
-	}
-
 	record GetCurrentStatusResBody {
 		boolean configured;
 		boolean registered;
@@ -20,5 +17,5 @@ protocol config {
 		Status status;
 	}
 
-	GetCurrentStatusRes GetCurrentStatus(GetCurrentStatusArg arg);
+	GetCurrentStatusRes GetCurrentStatus();
 }
