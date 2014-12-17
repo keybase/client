@@ -191,82 +191,6 @@ class GoEmitter
 
 #====================================================================
 
-class ObjCEmitter
-
-  constructor : () ->
-    @_header = []
-    @_impl = []
-    @_cache = {}
-    @_fixed = []
-
-  emit_field_type : (t) ->
-    type = if typeof(t) is "string"
-      if t == "string" then "@property NSString *"
-      else if t == "int" then "@property NSInteger "
-      else
-        if t in @_fixed then "@property NSData *"
-        else "@property KB#{t} *"
-    else if typeof(t) is 'object'
-      if Array.isArray(t) and t[0] == "null"
-        "@property KB#{t[1]} *"
-      else if t.type is "array" then "@property NSArray *"
-      else "ERROR"
-    else "ERROR"
-    type
-
-  emit_record : (json) ->
-    @_impl.push "@implementation KB#{json.name}"
-    @_impl.push "@end"
-    @_header.push "@interface KB#{json.name} : KBRObject"
-    for f in json.fields
-      @_header.push @emit_field_type(f.type) + f.name + ";"
-    @_header.push "@end\n"
-
-  emit_fixed : (t) ->
-    @_fixed.push t.name
-
-  emit_types : (json) ->
-    for t in json
-      @emit_type t
-
-  emit_type : (t) ->
-    return if @_cache[t.name]
-    switch t.type
-      when "record"
-        @emit_record t
-      when "fixed"
-        @emit_fixed t
-    @_cache[t.name] = true
-
-  emit_interface : (protocol, messages) ->
-    # Nothing yet
-
-  run : (files, cb) ->
-    esc = make_esc cb, "run"
-    for f in files
-      await @run_file f, esc defer()
-
-    @_header.push "import \"KBRObject.h\""
-    h_src = @_header.join("\n")
-
-    @_impl.push "import \"KBRPC.h\"" # Need to use the filename passed in
-    m_src = @_impl.join("\n")
-
-    cb null, {".h": h_src, ".m": m_src}
-
-  emit_package : (json, cb) ->
-    # No namespace support in Objective-C
-    cb null
-
-  run_file : (json, cb) ->
-    esc = make_esc cb, "run_file"
-    await @emit_package json, esc defer()
-    @emit_types json.types
-    @emit_interface json.protocol, json.messages
-    cb null
-
-#====================================================================
-
 class Runner
 
   constructor : () ->
@@ -287,8 +211,6 @@ class Runner
       switch @targ
         when "go"
           @emitter = new GoEmitter
-        when "objc"
-          @emitter = new ObjCEmitter
         else
           err = new Error "Unknown language target; I support {go}"
     cb err

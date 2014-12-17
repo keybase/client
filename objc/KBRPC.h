@@ -1,3 +1,6 @@
+#import "KBRObject.h"
+#import "KBRRequest.h"
+
 @interface KBStatus : KBRObject
 @property NSInteger code;
 @property NSString *name;
@@ -5,12 +8,16 @@
 @property NSArray *fields;
 @end
 
+@interface KBUID : KBRObject
+@property NSData *data;
+@end
+
 @interface KBGetCurrentStatusResBody : KBRObject
-@property KBboolean *configured;
-@property KBboolean *registered;
-@property KBboolean *loggedIn;
-@property KBboolean *publicKeySelected;
-@property KBboolean *hasPrivateKey;
+@property BOOL configured;
+@property BOOL registered;
+@property BOOL loggedIn;
+@property BOOL publicKeySelected;
+@property BOOL hasPrivateKey;
 @end
 
 @interface KBGetCurrentStatusRes : KBRObject
@@ -18,8 +25,13 @@
 @property KBStatus *status;
 @end
 
+@interface KBRConfig : KBRRequest
+- (void)getCurrentStatus:(void (^)(NSError *error, KBGetCurrentStatusRes * getCurrentStatusRes))completion;
+
+@end
+
 @interface KBLoginResBody : KBRObject
-@property NSData *uid;
+@property KBUID *uid;
 @end
 
 @interface KBLoginRes : KBRObject
@@ -27,15 +39,35 @@
 @property KBStatus *status;
 @end
 
+@interface KBRLogin : KBRRequest
+- (void)passphraseLoginWithPassphrase:(NSString *)passphrase completion:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
+
+- (void)pubkeyLogin:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
+
+- (void)logout:(void (^)(NSError *error, KBStatus * status))completion;
+
+- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion;
+
+@end
+
 @interface KBSignupResBody : KBRObject
-@property KBboolean *passphraseOk;
-@property KBboolean *postOk;
-@property KBboolean *writeOk;
+@property BOOL passphraseOk;
+@property BOOL postOk;
+@property BOOL writeOk;
 @end
 
 @interface KBSignupRes : KBRObject
 @property KBSignupResBody *body;
 @property KBStatus *status;
+@end
+
+@interface KBRSignup : KBRRequest
+- (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion;
+
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBSignupRes * signupRes))completion;
+
+- (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error, KBStatus * status))completion;
+
 @end
 
 @interface KBTrackDiff : KBRObject
@@ -89,4 +121,11 @@
 @property KBIdentifyFinishResBody *body;
 @end
 
-import "KBRObject.h"
+@interface KBRTrack : KBRRequest
+- (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
+
+- (void)indentifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
+
+- (void)identifyFinishWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyFinishRes * identifyFinishRes))completion;
+
+@end
