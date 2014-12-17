@@ -4,37 +4,6 @@ protocol signup {
 
 	import idl "common.avdl";
 
-	record CheckUsernameAvailableRes {
-		Status status;
-	}
-
-	record CheckUsernameAvailableArg {
-		string username;
-	}
-
-	record SignupArg {
-		string email;
-		string inviteCode;
-		string passphrase;
-		string username;
-	}
-
-	record InviteRequestArg {
-		string email;
-		string fullname;
-		string notes;
-	}
-
-	record InviteRequestResBody {
-		string code;
-		int place;
-	}
-
-	record InviteRequestRes {
-		union { null, InviteRequestResBody } body;
-		Status status;
-	}
-
 	record SignupResSuccess {
 		UID uid;
 	}
@@ -51,7 +20,7 @@ protocol signup {
 		Status status;
 	}
 
-	CheckUsernameAvailableRes CheckUsernameAvailable(CheckUsernameAvailableArg arg);
-	SignupRes Signup(SignupArg arg);
-	InviteRequestRes InviteRequest(InviteRequestArg arg);
+	Status CheckUsernameAvailable(string username);
+	SignupRes Signup(string email, string inviteCode, string passphrase, string username);
+	Status InviteRequest(string email, string fullname, string notes);
 }

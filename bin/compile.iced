@@ -79,7 +79,7 @@ class GoEmitter
   emit_message_server : (name, details) ->
     arg = details.request[0]
     res = details.response
-    args = "arg *#{arg.type}, res *#{res}"
+    args = "#{arg.name} *#{arg.type}, res *#{res}"
     @output "#{@go_export_case(name)}(#{args}) error"
 
   emit_message_client : (protocol, name, details, async) ->
@@ -88,13 +88,31 @@ class GoEmitter
     res = details.response
     ap = if async then "Async" else ""
     call = if async then "Go" else "Call"
-    @output "func (c #{p}Client) #{ap}#{@go_export_case(name)}(arg #{arg.type}, res *#{res}) error {"
+    @output "func (c #{p}Client) #{ap}#{@go_export_case(name)}(#{arg.name} #{arg.type}, res *#{res}) error {"
     @tab()
-    @output """return c.Cli.#{call}("#{@_pkg}.#{protocol}.#{name}", arg, res)"""
+    @output """return c.Cli.#{call}("#{@_pkg}.#{protocol}.#{name}", #{arg.name}, res)"""
     @untab()
     @output "}"
 
+  emit_wrapper_objects : (messages) ->
+    for k,v of messages
+      @emit_wrapper_object k, v
+
+  emit_wrapper_object : (name, details) ->
+    args = details.request
+    if args.length > 1
+      klass_name = @go_export_case(name) + "Arg"
+      obj =
+        name : klass_name
+        fields : args
+      @emit_record obj
+      details.request = [{
+        type : klass_name
+        name : "arg"
+      }]
+
   emit_interface : (protocol, messages) ->
+    @emit_wrapper_objects messages
     @emit_interface_server protocol, messages
     @emit_interface_client protocol, messages
 

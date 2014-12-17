@@ -65,37 +65,6 @@
 @property NSString *username;
 @end
 
-@interface KBCheckUsernameAvailableRes : KBRObject
-@property KBStatus *status;
-@end
-
-@interface KBCheckUsernameAvailableArg : KBRObject
-@property NSString *username;
-@end
-
-@interface KBSignupArg : KBRObject
-@property NSString *email;
-@property NSString *inviteCode;
-@property NSString *passphrase;
-@property NSString *username;
-@end
-
-@interface KBInviteRequestArg : KBRObject
-@property NSString *email;
-@property NSString *fullname;
-@property NSString *notes;
-@end
-
-@interface KBInviteRequestResBody : KBRObject
-@property NSString *code;
-@property NSInteger place;
-@end
-
-@interface KBInviteRequestRes : KBRObject
-@property KBInviteRequestResBody *body;
-@property KBStatus *status;
-@end
-
 @interface KBSignupResSuccess : KBRObject
 @property NSData *uid;
 @end

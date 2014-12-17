@@ -28,18 +28,6 @@
 @end
 @implementation KBSwitchUserArg
 @end
-@implementation KBCheckUsernameAvailableRes
-@end
-@implementation KBCheckUsernameAvailableArg
-@end
-@implementation KBSignupArg
-@end
-@implementation KBInviteRequestArg
-@end
-@implementation KBInviteRequestResBody
-@end
-@implementation KBInviteRequestRes
-@end
 @implementation KBSignupResSuccess
 @end
 @implementation KBSignupResBody

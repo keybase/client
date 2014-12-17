@@ -26,69 +26,6 @@
     "size" : 16
   }, {
     "type" : "record",
-    "name" : "CheckUsernameAvailableRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "CheckUsernameAvailableArg",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "SignupArg",
-    "fields" : [ {
-      "name" : "email",
-      "type" : "string"
-    }, {
-      "name" : "inviteCode",
-      "type" : "string"
-    }, {
-      "name" : "passphrase",
-      "type" : "string"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "InviteRequestArg",
-    "fields" : [ {
-      "name" : "email",
-      "type" : "string"
-    }, {
-      "name" : "fullname",
-      "type" : "string"
-    }, {
-      "name" : "notes",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "InviteRequestResBody",
-    "fields" : [ {
-      "name" : "code",
-      "type" : "string"
-    }, {
-      "name" : "place",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "InviteRequestRes",
-    "fields" : [ {
-      "name" : "body",
-      "type" : [ "null", "InviteRequestResBody" ]
-    }, {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "SignupResSuccess",
     "fields" : [ {
       "name" : "uid",
@@ -124,24 +61,39 @@
   "messages" : {
     "CheckUsernameAvailable" : {
       "request" : [ {
-        "name" : "arg",
-        "type" : "CheckUsernameAvailableArg"
+        "name" : "username",
+        "type" : "string"
       } ],
-      "response" : "CheckUsernameAvailableRes"
+      "response" : "Status"
     },
     "Signup" : {
       "request" : [ {
-        "name" : "arg",
-        "type" : "SignupArg"
+        "name" : "email",
+        "type" : "string"
+      }, {
+        "name" : "inviteCode",
+        "type" : "string"
+      }, {
+        "name" : "passphrase",
+        "type" : "string"
+      }, {
+        "name" : "username",
+        "type" : "string"
       } ],
       "response" : "SignupRes"
     },
     "InviteRequest" : {
       "request" : [ {
-        "name" : "arg",
-        "type" : "InviteRequestArg"
+        "name" : "email",
+        "type" : "string"
+      }, {
+        "name" : "fullname",
+        "type" : "string"
+      }, {
+        "name" : "notes",
+        "type" : "string"
       } ],
-      "response" : "InviteRequestRes"
+      "response" : "Status"
     }
   }
 }

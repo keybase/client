@@ -128,37 +128,6 @@ func (c LoginClient) SwitchUser(arg SwitchUserArg, res *SwitchUserRes) error {
 	return c.Cli.Call("keybase.1.login.switchUser", arg, res)
 }
 
-type CheckUsernameAvailableRes struct {
-	Status Status `codec:"status"`
-}
-
-type CheckUsernameAvailableArg struct {
-	Username string `codec:"username"`
-}
-
-type SignupArg struct {
-	Email      string `codec:"email"`
-	InviteCode string `codec:"inviteCode"`
-	Passphrase string `codec:"passphrase"`
-	Username   string `codec:"username"`
-}
-
-type InviteRequestArg struct {
-	Email    string `codec:"email"`
-	Fullname string `codec:"fullname"`
-	Notes    string `codec:"notes"`
-}
-
-type InviteRequestResBody struct {
-	Code  string `codec:"code"`
-	Place int    `codec:"place"`
-}
-
-type InviteRequestRes struct {
-	Body   *InviteRequestResBody `codec:"body,omitempty"`
-	Status Status                `codec:"status"`
-}
-
 type SignupResSuccess struct {
 	Uid UID `codec:"uid"`
 }
@@ -175,10 +144,23 @@ type SignupRes struct {
 	Status Status        `codec:"status"`
 }
 
+type SignupArg struct {
+	Email      string `codec:"email"`
+	InviteCode string `codec:"inviteCode"`
+	Passphrase string `codec:"passphrase"`
+	Username   string `codec:"username"`
+}
+
+type InviteRequestArg struct {
+	Email    string `codec:"email"`
+	Fullname string `codec:"fullname"`
+	Notes    string `codec:"notes"`
+}
+
 type SignupInterface interface {
-	CheckUsernameAvailable(arg *CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error
+	CheckUsernameAvailable(username *string, res *Status) error
 	Signup(arg *SignupArg, res *SignupRes) error
-	InviteRequest(arg *InviteRequestArg, res *InviteRequestRes) error
+	InviteRequest(arg *InviteRequestArg, res *Status) error
 }
 
 func RegisterSignup(server *rpc.Server, i SignupInterface) error {
@@ -189,14 +171,14 @@ type SignupClient struct {
 	Cli GenericClient
 }
 
-func (c SignupClient) CheckUsernameAvailable(arg CheckUsernameAvailableArg, res *CheckUsernameAvailableRes) error {
-	return c.Cli.Call("keybase.1.signup.CheckUsernameAvailable", arg, res)
+func (c SignupClient) CheckUsernameAvailable(username string, res *Status) error {
+	return c.Cli.Call("keybase.1.signup.CheckUsernameAvailable", username, res)
 }
 
 func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
 	return c.Cli.Call("keybase.1.signup.Signup", arg, res)
 }
 
-func (c SignupClient) InviteRequest(arg InviteRequestArg, res *InviteRequestRes) error {
+func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
 	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
 }
