@@ -13,7 +13,8 @@ config:
 build-stamp: \
 	json/config.json \
 	json/login.json \
-	json/signup.json
+	json/signup.json \
+        json/track.json
 	@mkdir -p json
 	date > $@
 

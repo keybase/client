@@ -143,3 +143,96 @@ func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
 func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
 	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
 }
+
+type TrackDiffType int
+
+const (
+	TrackDiffType_NONE     = 0
+	TrackDiffType_ERROR    = 1
+	TrackDiffType_CLASH    = 2
+	TrackDiffType_DELETED  = 3
+	TrackDiffType_UPGRADED = 4
+	TrackDiffType_NEW      = 5
+)
+
+type TrackDiff struct {
+	Type          TrackDiffType `codec:"type"`
+	DisplayMarkup string        `codec:"displayMarkup"`
+}
+
+type IdentifyRow struct {
+	RowId         int        `codec:"rowId"`
+	Key           string     `codec:"key"`
+	Value         string     `codec:"value"`
+	DisplayMarkup string     `codec:"displayMarkup"`
+	TrackDiff     *TrackDiff `codec:"trackDiff,omitempty"`
+}
+
+type IdentifyKey struct {
+	PgpFingerprint []byte `codec:"pgpFingerprint"`
+	KID            []byte `codec:"KID"`
+}
+
+type IdentifyStartResBody struct {
+	SessionId       int           `codec:"sessionId"`
+	WhenLastTracked int           `codec:"whenLastTracked"`
+	Key             IdentifyKey   `codec:"key"`
+	Web             []IdentifyRow `codec:"web"`
+	Social          []IdentifyRow `codec:"social"`
+	Cryptocurrency  []IdentifyRow `codec:"cryptocurrency"`
+	Deleted         []TrackDiff   `codec:"deleted"`
+}
+
+type IdentifyStartRes struct {
+	Status Status                `codec:"status"`
+	Body   *IdentifyStartResBody `codec:"body,omitempty"`
+}
+
+type IdentifyCheckRes struct {
+	Status          Status `codec:"status"`
+	CachedTimestamp int    `codec:"cachedTimestamp"`
+}
+
+type IdentifyFinishResBody struct {
+	NumTrackFailures  int `codec:"numTrackFailures"`
+	NumTrackChanges   int `codec:"numTrackChanges"`
+	NumProofFailures  int `codec:"numProofFailures"`
+	NumDeleted        int `codec:"numDeleted"`
+	NumProofSuccessed int `codec:"numProofSuccessed"`
+}
+
+type IdentifyFinishRes struct {
+	Status Status                 `codec:"status"`
+	Body   *IdentifyFinishResBody `codec:"body,omitempty"`
+}
+
+type IndentifyCheckArg struct {
+	SessionId int `codec:"sessionId"`
+	RowId     int `codec:"rowId"`
+}
+
+type TrackInterface interface {
+	IdentifyStart(username *string, res *IdentifyStartRes) error
+	IndentifyCheck(arg *IndentifyCheckArg, res *IdentifyCheckRes) error
+	IdentifyFinish(sessionId *int, res *IdentifyFinishRes) error
+}
+
+func RegisterTrack(server *rpc.Server, i TrackInterface) error {
+	return server.RegisterName("keybase.1.track", i)
+}
+
+type TrackClient struct {
+	Cli GenericClient
+}
+
+func (c TrackClient) IdentifyStart(username string, res *IdentifyStartRes) error {
+	return c.Cli.Call("keybase.1.track.IdentifyStart", username, res)
+}
+
+func (c TrackClient) IndentifyCheck(arg IndentifyCheckArg, res *IdentifyCheckRes) error {
+	return c.Cli.Call("keybase.1.track.IndentifyCheck", arg, res)
+}
+
+func (c TrackClient) IdentifyFinish(sessionId int, res *IdentifyFinishRes) error {
+	return c.Cli.Call("keybase.1.track.IdentifyFinish", sessionId, res)
+}

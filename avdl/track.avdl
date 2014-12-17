@@ -1,0 +1,75 @@
+
+@namespace("keybase.1")
+protocol track {
+
+	import idl "common.avdl";
+
+	enum TrackDiffType {
+		NONE,
+		ERROR,
+		CLASH,
+		DELETED,
+		UPGRADED,
+		NEW
+	}
+
+	record TrackDiff {
+		TrackDiffType type;
+		string displayMarkup;
+	}
+
+	record IdentifyRow {
+		int rowId;
+		string key;
+		string value;
+		string displayMarkup;
+		union { null, TrackDiff } trackDiff;
+	}
+
+	record IdentifyKey {
+		bytes pgpFingerprint;
+		bytes KID;
+	}
+
+	record IdentifyStartResBody {
+		int sessionId;
+		int whenLastTracked;
+		IdentifyKey key;
+		array<IdentifyRow> web;
+		array<IdentifyRow> social;
+		array<IdentifyRow> cryptocurrency;
+		array<TrackDiff> deleted;
+	}
+
+	record IdentifyStartRes {
+		Status status;
+		union { null, IdentifyStartResBody} body;
+	}
+
+	record IdentifyCheckRes {
+		Status status;
+		int cachedTimestamp;
+	}
+
+	record IdentifyCheckRes {
+		Status status;
+		int cachedTimestamp;
+	}
+
+	record IdentifyFinishResBody {
+		int numTrackFailures;
+		int numTrackChanges;
+		int numProofFailures;
+		int numDeleted;
+		int numProofSuccessed;
+	}
+
+	record IdentifyFinishRes {
+		Status status;
+		union { null, IdentifyFinishResBody } body;
+	}
+
+	IdentifyStartRes IdentifyStart(string username);
+	IdentifyCheckRes IndentifyCheck(int sessionId, int rowId);
+	IdentifyFinishRes IdentifyFinish(int sessionId);
+}

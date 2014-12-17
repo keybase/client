@@ -29,7 +29,7 @@ class GoEmitter
   tabs : () -> ("\t" for i in [0...@_tabs]).join("")
   output : (l) ->
     @_code.push (@tabs() + l)
-    @_code.push("") if l is "}"
+    @_code.push("") if (l is "}" or l is ")")
 
   tab : () -> @_tabs++
   untab : () -> @_tabs--
@@ -74,7 +74,18 @@ class GoEmitter
         @emit_record t
       when "fixed"
         @emit_fixed t
+      when "enum"
+        @emit_enum t
     @_cache[t.name] = true
+
+  emit_enum : (t) ->
+    @output "type #{t.name} int"
+    @output "const ("
+    @tab()
+    for s, i in t.symbols
+      @output "#{t.name}_#{s} = #{i}"
+    @untab()
+    @output ")"
 
   emit_message_server : (name, details) ->
     arg = details.request[0]

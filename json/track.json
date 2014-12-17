@@ -1,0 +1,183 @@
+{
+  "protocol" : "track",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "enum",
+    "name" : "TrackDiffType",
+    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackDiff",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "TrackDiffType"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRow",
+    "fields" : [ {
+      "name" : "rowId",
+      "type" : "int"
+    }, {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyKey",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : "bytes"
+    }, {
+      "name" : "KID",
+      "type" : "bytes"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyStartResBody",
+    "fields" : [ {
+      "name" : "sessionId",
+      "type" : "int"
+    }, {
+      "name" : "whenLastTracked",
+      "type" : "int"
+    }, {
+      "name" : "key",
+      "type" : "IdentifyKey"
+    }, {
+      "name" : "web",
+      "type" : {
+        "type" : "array",
+        "items" : "IdentifyRow"
+      }
+    }, {
+      "name" : "social",
+      "type" : {
+        "type" : "array",
+        "items" : "IdentifyRow"
+      }
+    }, {
+      "name" : "cryptocurrency",
+      "type" : {
+        "type" : "array",
+        "items" : "IdentifyRow"
+      }
+    }, {
+      "name" : "deleted",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackDiff"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyStartRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "IdentifyStartResBody" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyCheckRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "cachedTimestamp",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyFinishResBody",
+    "fields" : [ {
+      "name" : "numTrackFailures",
+      "type" : "int"
+    }, {
+      "name" : "numTrackChanges",
+      "type" : "int"
+    }, {
+      "name" : "numProofFailures",
+      "type" : "int"
+    }, {
+      "name" : "numDeleted",
+      "type" : "int"
+    }, {
+      "name" : "numProofSuccessed",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyFinishRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "IdentifyFinishResBody" ]
+    } ]
+  } ],
+  "messages" : {
+    "IdentifyStart" : {
+      "request" : [ {
+        "name" : "username",
+        "type" : "string"
+      } ],
+      "response" : "IdentifyStartRes"
+    },
+    "IndentifyCheck" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "rowId",
+        "type" : "int"
+      } ],
+      "response" : "IdentifyCheckRes"
+    },
+    "IdentifyFinish" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      } ],
+      "response" : "IdentifyFinishRes"
+    }
+  }
+}
