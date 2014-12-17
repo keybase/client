@@ -128,15 +128,10 @@ func (c LoginClient) SwitchUser(arg SwitchUserArg, res *SwitchUserRes) error {
 	return c.Cli.Call("keybase.1.login.switchUser", arg, res)
 }
 
-type SignupResSuccess struct {
-	Uid UID `codec:"uid"`
-}
-
 type SignupResBody struct {
-	Success      *SignupResSuccess `codec:"success,omitempty"`
-	PassphraseOk bool              `codec:"passphraseOk"`
-	PostOk       bool              `codec:"postOk"`
-	WriteOk      bool              `codec:"writeOk"`
+	PassphraseOk bool `codec:"passphraseOk"`
+	PostOk       bool `codec:"postOk"`
+	WriteOk      bool `codec:"writeOk"`
 }
 
 type SignupRes struct {

@@ -62,12 +62,7 @@
 @property NSString *username;
 @end
 
-@interface KBSignupResSuccess : KBRObject
-@property NSData *uid;
-@end
-
 @interface KBSignupResBody : KBRObject
-@property KBSignupResSuccess *success;
 @property KBboolean *passphraseOk;
 @property KBboolean *postOk;
 @property KBboolean *writeOk;

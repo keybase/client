@@ -4,12 +4,7 @@ protocol signup {
 
 	import idl "common.avdl";
 
-	record SignupResSuccess {
-		UID uid;
-	}
-
 	record SignupResBody {
-		union { null, SignupResSuccess } success;
 		boolean passphraseOk;
 		boolean postOk;
 		boolean writeOk;

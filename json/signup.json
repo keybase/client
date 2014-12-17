@@ -26,18 +26,8 @@
     "size" : 16
   }, {
     "type" : "record",
-    "name" : "SignupResSuccess",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "SignupResBody",
     "fields" : [ {
-      "name" : "success",
-      "type" : [ "null", "SignupResSuccess" ]
-    }, {
       "name" : "passphraseOk",
       "type" : "boolean"
     }, {

@@ -26,8 +26,6 @@
 @end
 @implementation KBSwitchUserArg
 @end
-@implementation KBSignupResSuccess
-@end
 @implementation KBSignupResBody
 @end
 @implementation KBSignupRes
