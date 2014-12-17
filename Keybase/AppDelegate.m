@@ -9,18 +9,37 @@
 #import "AppDelegate.h"
 
 @interface AppDelegate ()
-
 @property (weak) IBOutlet NSWindow *window;
+@property KBRPClient *client;
 @end
 
 @implementation AppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  _client = [[KBRPClient alloc] init];
+  [_client open:^(NSError *error) {
+    if (error) {
+      [self reset];
+    } else {
+      [self checkSession];
+    }
+  }];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
 
+}
+
++ (KBRPClient *)client {
+  return ((AppDelegate *)[NSApp delegate]).client;
+}
+
+- (void)checkSession {
+  
+}
+
+- (void)reset {
+  
 }
 
 @end

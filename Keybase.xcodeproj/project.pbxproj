@@ -7,17 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		004D14921A3BB6230083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14911A3BB6230083888D /* KBRPClient.m */; };
+		004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
+		004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
 		00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC434F1A3A9E6C006118A9 /* AppDelegate.m */; };
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43531A3A9E6C006118A9 /* Images.xcassets */; };
 		00CC43571A3A9E6C006118A9 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
 		00CC436E1A3A9EC7006118A9 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC436D1A3A9EC7006118A9 /* KBRPC.m */; };
 		00CC43711A3A9EDF006118A9 /* KBRObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43701A3A9EDF006118A9 /* KBRObject.m */; };
+		00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C61A41447800319401 /* KBRPClientTest.m */; };
+		00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
+		00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
 		2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC436D1A3A9EC7006118A9 /* KBRPC.m */; };
 		3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC434F1A3A9E6C006118A9 /* AppDelegate.m */; };
-		696CA316F4A3F4F2F68B7645 /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14911A3BB6230083888D /* KBRPClient.m */; };
-		A7FA1EA568BAC9F990F9A8E4 /* KBRPClientTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 32D380727711A04F8CED797A /* KBRPClientTest.m */; };
 		AB6462168F9FDCF3B14CF810 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D2E3EA46FD4983BE27801D1E /* main.m */; };
 		ECE971A16A1F3E8AC3D9571B /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 03789C52C3DF0B9CD33BF3ED /* libPods.a */; };
 		EDDC07383FDE0A2BDAA2BD1E /* KBRObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43701A3A9EDF006118A9 /* KBRObject.m */; };
@@ -36,10 +38,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		004D14901A3BB6230083888D /* KBRPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPClient.h; sourceTree = "<group>"; };
-		004D14911A3BB6230083888D /* KBRPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPClient.m; sourceTree = "<group>"; };
-		004D14931A3BC3120083888D /* OSByteOrder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSByteOrder.h; sourceTree = "<group>"; };
-		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; };
+		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		004D14DB1A3FA64C0083888D /* KBRPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPClient.h; sourceTree = "<group>"; };
+		004D14DC1A3FA64C0083888D /* KBRPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPClient.m; sourceTree = "<group>"; };
 		00CC43491A3A9E6C006118A9 /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00CC434D1A3A9E6C006118A9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00CC434E1A3A9E6C006118A9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -51,8 +52,11 @@
 		00CC436D1A3A9EC7006118A9 /* KBRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPC.m; sourceTree = "<group>"; };
 		00CC436F1A3A9EDF006118A9 /* KBRObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRObject.h; sourceTree = "<group>"; };
 		00CC43701A3A9EDF006118A9 /* KBRObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRObject.m; sourceTree = "<group>"; };
+		00D2E7C41A4106A200319401 /* KBDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDefines.h; sourceTree = "<group>"; };
+		00D2E7C61A41447800319401 /* KBRPClientTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KBRPClientTest.m; path = Tests/KBRPClientTest.m; sourceTree = "<group>"; };
+		00D2E7C81A41476E00319401 /* KBRRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRRequest.h; sourceTree = "<group>"; };
+		00D2E7C91A41476E00319401 /* KBRRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRRequest.m; sourceTree = "<group>"; };
 		03789C52C3DF0B9CD33BF3ED /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		32D380727711A04F8CED797A /* KBRPClientTest.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = KBRPClientTest.m; path = Tests/KBRPClientTest.m; sourceTree = "<group>"; };
 		611C5EDA1DAAF19EB60AD786 /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
 		6390DE2CB3F2D33C7BA77399 /* libPods-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		642DDDE533327326FD4C949D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -91,9 +95,10 @@
 				00CC436D1A3A9EC7006118A9 /* KBRPC.m */,
 				00CC436F1A3A9EDF006118A9 /* KBRObject.h */,
 				00CC43701A3A9EDF006118A9 /* KBRObject.m */,
-				004D14901A3BB6230083888D /* KBRPClient.h */,
-				004D14911A3BB6230083888D /* KBRPClient.m */,
-				004D14931A3BC3120083888D /* OSByteOrder.h */,
+				004D14DB1A3FA64C0083888D /* KBRPClient.h */,
+				004D14DC1A3FA64C0083888D /* KBRPClient.m */,
+				00D2E7C81A41476E00319401 /* KBRRequest.h */,
+				00D2E7C91A41476E00319401 /* KBRRequest.m */,
 			);
 			name = RPC;
 			sourceTree = "<group>";
@@ -122,6 +127,7 @@
 		00CC434B1A3A9E6C006118A9 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
+				00D2E7C41A4106A200319401 /* KBDefines.h */,
 				004D14971A3BD25A0083888D /* RPC */,
 				00CC434E1A3A9E6C006118A9 /* AppDelegate.h */,
 				00CC434F1A3A9E6C006118A9 /* AppDelegate.m */,
@@ -155,7 +161,7 @@
 			isa = PBXGroup;
 			children = (
 				D2E3EA46FD4983BE27801D1E /* main.m */,
-				32D380727711A04F8CED797A /* KBRPClientTest.m */,
+				00D2E7C61A41447800319401 /* KBRPClientTest.m */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -345,7 +351,8 @@
 				00CC436E1A3A9EC7006118A9 /* KBRPC.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
 				00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */,
-				004D14921A3BB6230083888D /* KBRPClient.m in Sources */,
+				004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */,
+				00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,11 +361,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB6462168F9FDCF3B14CF810 /* main.m in Sources */,
-				A7FA1EA568BAC9F990F9A8E4 /* KBRPClientTest.m in Sources */,
 				EDDC07383FDE0A2BDAA2BD1E /* KBRObject.m in Sources */,
 				2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */,
 				3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */,
-				696CA316F4A3F4F2F68B7645 /* KBRPClient.m in Sources */,
+				004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */,
+				00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */,
+				00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

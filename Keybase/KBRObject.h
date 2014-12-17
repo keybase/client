@@ -9,6 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <Mantle/Mantle.h>
 
-@interface KBRObject : MTLModel
+@interface KBRObject : MTLModel <MTLJSONSerializing>
 
 @end

@@ -8,8 +8,11 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "KBRPClient.h"
+
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
++ (KBRPClient *)client;
 
 @end
 

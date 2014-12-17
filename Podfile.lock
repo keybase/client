@@ -4,7 +4,7 @@ PODS:
   - Mantle (1.5.1):
     - Mantle/extobjc (= 1.5.1)
   - Mantle/extobjc (1.5.1)
-  - MPMessagePack (0.1.9)
+  - MPMessagePack (1.0.1)
 
 DEPENDENCIES:
   - GHKit
@@ -22,6 +22,6 @@ SPEC CHECKSUMS:
   GHKit: 9466c08deeb753e144bbbfac7f76be1b38175cb0
   GRUnit: eee1097d81b586263f9dab264f69ad30513dbfa0
   Mantle: d7c5ac734579ec751c58fecbf56189853056c58c
-  MPMessagePack: 22e5cb0fa83192aef1f20c260a1d3139e22d7a39
+  MPMessagePack: b160826e6426eb446a15bed7bc15610cca6645b9
 
 COCOAPODS: 0.35.0
