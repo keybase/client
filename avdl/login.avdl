@@ -8,52 +8,13 @@ protocol login {
 		UID uid;
 	}
 
-	record IsLoggedInRes {
+	record LoginRes {
 		union { null, LoginResBody } body;
 		Status status;
 	}
 
-	record IsLoggedInArg {
-
-	}
-
-	record PasswordLoginArg {
-		string password;
-	}
-
-	record PubkeyLoginArg {
-
-	}
-
-	record PasswordLoginRes {
-		union { null, LoginResBody } body;
-		Status status;
-	}
-
-	record PubkeyLoginRes {
-		union { null, LoginResBody } body;
-		Status status;
-	}
-
-	record LogoutRes {
-		Status status;
-	}
-
-	record LogoutArg {
-
-	}
-
-	record SwitchUserRes {
-		Status status;
-	}
-
-	record SwitchUserArg {
-		string username;
-	}
-
-	IsLoggedInRes isLoggedIn(IsLoggedInArg arg);
-	PasswordLoginRes passwordLogin(PasswordLoginArg arg);
-	PubkeyLoginRes pubkeyLogin(PubkeyLoginArg arg);
-	LogoutRes logout(LogoutArg arg);
-	SwitchUserRes switchUser(SwitchUserArg arg);
+	LoginRes PassphraseLogin(string passphrase);
+	LoginRes PubkeyLogin();
+	Status Logout();
+	Status SwitchUser(string username);
 }

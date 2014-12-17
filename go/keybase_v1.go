@@ -52,52 +52,22 @@ type LoginResBody struct {
 	Uid UID `codec:"uid"`
 }
 
-type IsLoggedInRes struct {
+type LoginRes struct {
 	Body   *LoginResBody `codec:"body,omitempty"`
 	Status Status        `codec:"status"`
-}
-
-type IsLoggedInArg struct {
-}
-
-type PasswordLoginArg struct {
-	Password string `codec:"password"`
 }
 
 type PubkeyLoginArg struct {
 }
 
-type PasswordLoginRes struct {
-	Body   *LoginResBody `codec:"body,omitempty"`
-	Status Status        `codec:"status"`
-}
-
-type PubkeyLoginRes struct {
-	Body   *LoginResBody `codec:"body,omitempty"`
-	Status Status        `codec:"status"`
-}
-
-type LogoutRes struct {
-	Status Status `codec:"status"`
-}
-
 type LogoutArg struct {
 }
 
-type SwitchUserRes struct {
-	Status Status `codec:"status"`
-}
-
-type SwitchUserArg struct {
-	Username string `codec:"username"`
-}
-
 type LoginInterface interface {
-	IsLoggedIn(arg *IsLoggedInArg, res *IsLoggedInRes) error
-	PasswordLogin(arg *PasswordLoginArg, res *PasswordLoginRes) error
-	PubkeyLogin(arg *PubkeyLoginArg, res *PubkeyLoginRes) error
-	Logout(arg *LogoutArg, res *LogoutRes) error
-	SwitchUser(arg *SwitchUserArg, res *SwitchUserRes) error
+	PassphraseLogin(passphrase *string, res *LoginRes) error
+	PubkeyLogin(arg *PubkeyLoginArg, res *LoginRes) error
+	Logout(arg *LogoutArg, res *Status) error
+	SwitchUser(username *string, res *Status) error
 }
 
 func RegisterLogin(server *rpc.Server, i LoginInterface) error {
@@ -108,24 +78,20 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) IsLoggedIn(arg IsLoggedInArg, res *IsLoggedInRes) error {
-	return c.Cli.Call("keybase.1.login.isLoggedIn", arg, res)
+func (c LoginClient) PassphraseLogin(passphrase string, res *LoginRes) error {
+	return c.Cli.Call("keybase.1.login.PassphraseLogin", passphrase, res)
 }
 
-func (c LoginClient) PasswordLogin(arg PasswordLoginArg, res *PasswordLoginRes) error {
-	return c.Cli.Call("keybase.1.login.passwordLogin", arg, res)
+func (c LoginClient) PubkeyLogin(arg PubkeyLoginArg, res *LoginRes) error {
+	return c.Cli.Call("keybase.1.login.PubkeyLogin", arg, res)
 }
 
-func (c LoginClient) PubkeyLogin(arg PubkeyLoginArg, res *PubkeyLoginRes) error {
-	return c.Cli.Call("keybase.1.login.pubkeyLogin", arg, res)
+func (c LoginClient) Logout(arg LogoutArg, res *Status) error {
+	return c.Cli.Call("keybase.1.login.Logout", arg, res)
 }
 
-func (c LoginClient) Logout(arg LogoutArg, res *LogoutRes) error {
-	return c.Cli.Call("keybase.1.login.logout", arg, res)
-}
-
-func (c LoginClient) SwitchUser(arg SwitchUserArg, res *SwitchUserRes) error {
-	return c.Cli.Call("keybase.1.login.switchUser", arg, res)
+func (c LoginClient) SwitchUser(username string, res *Status) error {
+	return c.Cli.Call("keybase.1.login.SwitchUser", username, res)
 }
 
 type SignupResBody struct {

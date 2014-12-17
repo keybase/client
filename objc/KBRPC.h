@@ -22,44 +22,9 @@
 @property NSData *uid;
 @end
 
-@interface KBIsLoggedInRes : KBRObject
+@interface KBLoginRes : KBRObject
 @property KBLoginResBody *body;
 @property KBStatus *status;
-@end
-
-@interface KBIsLoggedInArg : KBRObject
-@end
-
-@interface KBPasswordLoginArg : KBRObject
-@property NSString *password;
-@end
-
-@interface KBPubkeyLoginArg : KBRObject
-@end
-
-@interface KBPasswordLoginRes : KBRObject
-@property KBLoginResBody *body;
-@property KBStatus *status;
-@end
-
-@interface KBPubkeyLoginRes : KBRObject
-@property KBLoginResBody *body;
-@property KBStatus *status;
-@end
-
-@interface KBLogoutRes : KBRObject
-@property KBStatus *status;
-@end
-
-@interface KBLogoutArg : KBRObject
-@end
-
-@interface KBSwitchUserRes : KBRObject
-@property KBStatus *status;
-@end
-
-@interface KBSwitchUserArg : KBRObject
-@property NSString *username;
 @end
 
 @interface KBSignupResBody : KBRObject

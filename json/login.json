@@ -33,110 +33,37 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "IsLoggedInRes",
+    "name" : "LoginRes",
     "fields" : [ {
       "name" : "body",
       "type" : [ "null", "LoginResBody" ]
     }, {
       "name" : "status",
       "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IsLoggedInArg",
-    "fields" : [ ]
-  }, {
-    "type" : "record",
-    "name" : "PasswordLoginArg",
-    "fields" : [ {
-      "name" : "password",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PubkeyLoginArg",
-    "fields" : [ ]
-  }, {
-    "type" : "record",
-    "name" : "PasswordLoginRes",
-    "fields" : [ {
-      "name" : "body",
-      "type" : [ "null", "LoginResBody" ]
-    }, {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PubkeyLoginRes",
-    "fields" : [ {
-      "name" : "body",
-      "type" : [ "null", "LoginResBody" ]
-    }, {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "LogoutRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "LogoutArg",
-    "fields" : [ ]
-  }, {
-    "type" : "record",
-    "name" : "SwitchUserRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "SwitchUserArg",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
     } ]
   } ],
   "messages" : {
-    "isLoggedIn" : {
+    "PassphraseLogin" : {
       "request" : [ {
-        "name" : "arg",
-        "type" : "IsLoggedInArg"
+        "name" : "passphrase",
+        "type" : "string"
       } ],
-      "response" : "IsLoggedInRes"
+      "response" : "LoginRes"
     },
-    "passwordLogin" : {
-      "request" : [ {
-        "name" : "arg",
-        "type" : "PasswordLoginArg"
-      } ],
-      "response" : "PasswordLoginRes"
+    "PubkeyLogin" : {
+      "request" : [ ],
+      "response" : "LoginRes"
     },
-    "pubkeyLogin" : {
-      "request" : [ {
-        "name" : "arg",
-        "type" : "PubkeyLoginArg"
-      } ],
-      "response" : "PubkeyLoginRes"
+    "Logout" : {
+      "request" : [ ],
+      "response" : "Status"
     },
-    "logout" : {
+    "SwitchUser" : {
       "request" : [ {
-        "name" : "arg",
-        "type" : "LogoutArg"
+        "name" : "username",
+        "type" : "string"
       } ],
-      "response" : "LogoutRes"
-    },
-    "switchUser" : {
-      "request" : [ {
-        "name" : "arg",
-        "type" : "SwitchUserArg"
-      } ],
-      "response" : "SwitchUserRes"
+      "response" : "Status"
     }
   }
 }

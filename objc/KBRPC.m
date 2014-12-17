@@ -6,25 +6,7 @@
 @end
 @implementation KBLoginResBody
 @end
-@implementation KBIsLoggedInRes
-@end
-@implementation KBIsLoggedInArg
-@end
-@implementation KBPasswordLoginArg
-@end
-@implementation KBPubkeyLoginArg
-@end
-@implementation KBPasswordLoginRes
-@end
-@implementation KBPubkeyLoginRes
-@end
-@implementation KBLogoutRes
-@end
-@implementation KBLogoutArg
-@end
-@implementation KBSwitchUserRes
-@end
-@implementation KBSwitchUserArg
+@implementation KBLoginRes
 @end
 @implementation KBSignupResBody
 @end
