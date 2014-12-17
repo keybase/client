@@ -37,3 +37,11 @@ func GetConfigClient() (cli keybase_1.ConfigClient, err error) {
 	}
 	return
 }
+
+func GetLoginClient() (cli keybase_1.LoginClient, err error) {
+	var rpc *rpc.Client
+	if rpc, err = GetRpcClient(); err == nil {
+		cli = keybase_1.LoginClient{rpc}
+	}
+	return
+}
