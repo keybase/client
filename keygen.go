@@ -200,7 +200,6 @@ func (s *KeyGen) GeneratePost() (err error) {
 		"is_primary":   I{1},
 	}
 	if s.arg.DoSecretPush {
-		G.Log.Debug("XXX %s\n", seckey)
 		s.httpArgs.Add("private_key", S{seckey})
 	}
 	return
