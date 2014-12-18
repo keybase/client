@@ -70,8 +70,16 @@
 
 @end
 
+typedef NS_ENUM (NSInteger, KBTrackDiffType) {
+	KBNone, 
+	KBError, 
+	KBClash, 
+	KBDeleted, 
+	KBUpgraded, 
+	KBNew, 
+};
 @interface KBTrackDiff : KBRObject
-@property KBTrackDiffType *type;
+@property KBTrackDiffType type;
 @property NSString *displayMarkup;
 @end
 
@@ -84,8 +92,8 @@
 @end
 
 @interface KBIdentifyKey : KBRObject
-@property KBbytes *pgpFingerprint;
-@property KBbytes *KID;
+@property NSData *pgpFingerprint;
+@property NSData *KID;
 @end
 
 @interface KBIdentifyStartResBody : KBRObject

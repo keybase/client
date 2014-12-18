@@ -157,7 +157,7 @@
 
 - (void)indentifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion {
 
-  NSDictionary *params = @{@"sessionId": sessionId, @"rowId": rowId};
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"rowId": @(rowId)};
   [self.client sendRequestWithMethod:@"indentifyCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
     KBIdentifyCheckRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyCheckRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
@@ -166,7 +166,7 @@
 
 - (void)identifyFinishWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyFinishRes * identifyFinishRes))completion {
 
-  NSDictionary *params = @{@"sessionId": sessionId};
+  NSDictionary *params = @{@"sessionId": @(sessionId)};
   [self.client sendRequestWithMethod:@"identifyFinish" params:params completion:^(NSError *error, NSDictionary *dict) {
     KBIdentifyFinishRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyFinishRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);

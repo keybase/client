@@ -1,10 +1,14 @@
 require "json"
+require "active_support/inflector"
 
 script_path = File.expand_path(File.dirname(__FILE__))
 
 paths = Dir["#{script_path}/../json/*.json"]
 
-def objc_for_type(type)
+defined_types = []
+enums = []
+
+def objc_for_type(type, enums)
   if type.kind_of?(Hash)
     type = type["type"]
   end
@@ -19,11 +23,13 @@ def objc_for_type(type)
   when "int" then "NSInteger "
   when "array" then "NSArray *"
   when "boolean" then "BOOL "
-  when "binary" then "NSData *"
+  when "bytes" then "NSData *"
   when "null" then "void"
   else
     if type.start_with?("void")
       type
+    elsif enums.include?(type)
+      "KB#{type} "
     else
       "KB#{type} *"
     end
@@ -32,6 +38,10 @@ end
 
 def is_native_type(type)
   ["string", "int", "array", "boolean", "null"].include?(type)
+end
+
+def is_primitive_type(type)
+  ["int", "boolean", "null"].include?(type)
 end
 
 def default_name_for_type(type)
@@ -45,8 +55,6 @@ def default_name_for_type(type)
   else type[0, 1].downcase + type[1..-1] # uncapitalize
   end
 end
-
-defined_types = []
 
 header = []
 header << "#import \"KBRObject.h\""
@@ -63,15 +71,24 @@ paths.each do |path|
     next if (defined_types.include?(type["name"]))
     defined_types << type["name"]
 
+    if type["type"] == "enum"
+      enums << type["name"]
+      header << "typedef NS_ENUM (NSInteger, KB#{type["name"]}) {"
+      type["symbols"].each do |sym|
+        header << "\tKB#{sym.capitalize}, "
+      end
+      header << "};"
+    end
+
     if type["type"] == "fixed"
       type["type"] = "record"
-      type["fields"] = [{"name" => "data", "type" => "binary"}]
+      type["fields"] = [{"name" => "data", "type" => "bytes"}]
     end
 
     if type["type"] == "record"
       header << "@interface KB#{type["name"]} : KBRObject"
       type["fields"].each do |field|
-        header << "@property #{objc_for_type(field["type"])}#{field["name"]};"
+        header << "@property #{objc_for_type(field["type"], enums)}#{field["name"]};"
       end
       header << "@end\n"
       impl << "@implementation KB#{type["name"]}"
@@ -89,12 +106,18 @@ paths.each do |path|
     request_params = mparam["request"]
     response_type = mparam["response"]
 
-    request_dict = request_params.map { |p| "@\"#{p["name"]}\": #{p["name"]}" }
+    request_dict = request_params.map do |p|
+      if is_primitive_type(p["type"])
+        "@\"#{p["name"]}\": @(#{p["name"]})"
+      else
+        "@\"#{p["name"]}\": #{p["name"]}"
+      end
+    end
 
     response_completion = if response_type == "null" then
       "void (^)(NSError *error)"
     else
-      "void (^)(NSError *error, #{objc_for_type(response_type)} #{default_name_for_type(response_type)})"
+      "void (^)(NSError *error, #{objc_for_type(response_type, enums)} #{default_name_for_type(response_type)})"
     end
 
     request_params << { "name" => "completion", "type" => response_completion }
@@ -104,7 +127,7 @@ paths.each do |path|
       name = "With#{name.capitalize}" if index == 0
       name = "" if request_params.length == 1
 
-      "#{name}:(#{objc_for_type(param["type"])})#{param["name"]}"
+      "#{name}:(#{objc_for_type(param["type"], enums)})#{param["name"]}"
     end
 
     # Uncapitalize
