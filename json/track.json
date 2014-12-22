@@ -155,6 +155,10 @@
     } ]
   } ],
   "messages" : {
+    "IdentifySelfStart" : {
+      "request" : [ ],
+      "response" : "IdentifyStartRes"
+    },
     "IdentifyStart" : {
       "request" : [ {
         "name" : "username",
@@ -162,7 +166,7 @@
       } ],
       "response" : "IdentifyStartRes"
     },
-    "IndentifyCheck" : {
+    "IdentifyCheck" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"

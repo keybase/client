@@ -206,14 +206,18 @@ type IdentifyFinishRes struct {
 	Body   *IdentifyFinishResBody `codec:"body,omitempty"`
 }
 
-type IndentifyCheckArg struct {
+type IdentifySelfStartArg struct {
+}
+
+type IdentifyCheckArg struct {
 	SessionId int `codec:"sessionId"`
 	RowId     int `codec:"rowId"`
 }
 
 type TrackInterface interface {
+	IdentifySelfStart(arg *IdentifySelfStartArg, res *IdentifyStartRes) error
 	IdentifyStart(username *string, res *IdentifyStartRes) error
-	IndentifyCheck(arg *IndentifyCheckArg, res *IdentifyCheckRes) error
+	IdentifyCheck(arg *IdentifyCheckArg, res *IdentifyCheckRes) error
 	IdentifyFinish(sessionId *int, res *IdentifyFinishRes) error
 }
 
@@ -225,12 +229,16 @@ type TrackClient struct {
 	Cli GenericClient
 }
 
+func (c TrackClient) IdentifySelfStart(arg IdentifySelfStartArg, res *IdentifyStartRes) error {
+	return c.Cli.Call("keybase.1.track.IdentifySelfStart", arg, res)
+}
+
 func (c TrackClient) IdentifyStart(username string, res *IdentifyStartRes) error {
 	return c.Cli.Call("keybase.1.track.IdentifyStart", username, res)
 }
 
-func (c TrackClient) IndentifyCheck(arg IndentifyCheckArg, res *IdentifyCheckRes) error {
-	return c.Cli.Call("keybase.1.track.IndentifyCheck", arg, res)
+func (c TrackClient) IdentifyCheck(arg IdentifyCheckArg, res *IdentifyCheckRes) error {
+	return c.Cli.Call("keybase.1.track.IdentifyCheck", arg, res)
 }
 
 func (c TrackClient) IdentifyFinish(sessionId int, res *IdentifyFinishRes) error {

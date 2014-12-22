@@ -69,7 +69,8 @@ protocol track {
 		union { null, IdentifyFinishResBody } body;
 	}
 
+	IdentifyStartRes IdentifySelfStart();
 	IdentifyStartRes IdentifyStart(string username);
-	IdentifyCheckRes IndentifyCheck(int sessionId, int rowId);
+	IdentifyCheckRes IdentifyCheck(int sessionId, int rowId);
 	IdentifyFinishRes IdentifyFinish(int sessionId);
 }
