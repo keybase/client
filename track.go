@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/go-libkb"
 	"net"
 	"sync"
+	"time"
 )
 
 type TrackHandler struct {
@@ -43,21 +44,47 @@ func (h *TrackHandler) getNextSessionId() int {
 }
 
 func (h *TrackHandler) getNewUI(u *libkb.User) (*RemoteTrackUI, int) {
-	ui := &RemoteTrackUI{u}
+	ui := NewRemoteTrackUI(u)
+	h.mutex.Lock()
 	sid := h.getNextSessionId()
 	h.sessions[sid] = ui
+	h.mutex.Unlock()
 	return ui, sid
+}
+
+func (h *TrackHandler) killSession(i int) {
+	h.mutex.Lock()
+	delete(h.sessions, i)
+	h.mutex.Unlock()
 }
 
 func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartRes) {
 	ui, sid := h.getNewUI(u)
-	_, err := u.IdentifySelf(ui)
+	go func(){
+		_, err := u.IdentifySelf(ui)
+		ui.ch <- IdentifyResOrError { err : err }
+	}()
+	go func(){
+		time.Sleep(libkb.TRACK_SESSION_TIMEOUT)
+		h.killSession(sid)
+	}()
+
+	// Wait until either identify self flops, or it's gotten as far as
+	// the first network wait point.
+	ioe := <-ui.ch
+
+	err := ioe.err
+	if err == nil && ioe.err != nil {
+		err = ioe.err
+	}
 	res.Status = libkb.ExportErrorAsStatus(err)
 	if err == nil {
-		var body keybase_1.IdentifyStartResBody
-		res.Body = &body
-		body.SessionId = sid
+		res.Body = ioe.body
+		res.Body.SessionId = sid
 	}
+
+	h.killSession(sid)
+
 	return
 }
 
