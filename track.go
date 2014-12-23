@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/protocol/go"
 	"sync"
 	"time"
 )
@@ -110,7 +111,9 @@ func (tl TrackLookup) IsRemote() bool {
 type TrackDiff interface {
 	BreaksTracking() bool
 	ToDisplayString() string
+	ToDisplayMarkup() *Markup
 	IsSameAsTracked() bool
+	GetTrackDiffType() int
 }
 
 type TrackDiffError struct {
@@ -125,6 +128,12 @@ func (t TrackDiffError) ToDisplayString() string {
 }
 func (t TrackDiffError) IsSameAsTracked() bool {
 	return false
+}
+func (t TrackDiffError) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffError) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_ERROR
 }
 
 type TrackDiffUpgraded struct {
@@ -143,6 +152,12 @@ func (t TrackDiffUpgraded) ToDisplayString() string {
 }
 func (t TrackDiffUpgraded) GetPrev() string { return t.prev }
 func (t TrackDiffUpgraded) GetCurr() string { return t.curr }
+func (t TrackDiffUpgraded) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffUpgraded) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_UPGRADED
+}
 
 type TrackDiffNone struct{}
 
@@ -155,6 +170,12 @@ func (t TrackDiffNone) IsSameAsTracked() bool {
 
 func (t TrackDiffNone) ToDisplayString() string {
 	return "tracked"
+}
+func (t TrackDiffNone) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffNone) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_NONE
 }
 
 type TrackDiffNew struct{}
@@ -173,6 +194,12 @@ type TrackDiffClash struct {
 func (t TrackDiffNew) ToDisplayString() string {
 	return "new"
 }
+func (t TrackDiffNew) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffNew) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_NEW
+}
 
 func (t TrackDiffClash) BreaksTracking() bool {
 	return true
@@ -183,6 +210,12 @@ func (t TrackDiffClash) ToDisplayString() string {
 }
 func (t TrackDiffClash) IsSameAsTracked() bool {
 	return false
+}
+func (t TrackDiffClash) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffClash) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_CLASH
 }
 
 type TrackDiffDeleted struct {
@@ -198,6 +231,12 @@ func (t TrackDiffDeleted) ToDisplayString() string {
 func (t TrackDiffDeleted) IsSameAsTracked() bool {
 	return false
 }
+func (t TrackDiffDeleted) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffDeleted) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_DELETED
+}
 
 type TrackDiffRemoteFail struct {
 	observed int
@@ -208,6 +247,12 @@ func (t TrackDiffRemoteFail) BreaksTracking() bool {
 }
 func (t TrackDiffRemoteFail) ToDisplayString() string {
 	return "remote failed"
+}
+func (t TrackDiffRemoteFail) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffRemoteFail) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_REMOTE_FAIL
 }
 func (t TrackDiffRemoteFail) IsSameAsTracked() bool {
 	return false
@@ -223,6 +268,12 @@ func (t TrackDiffRemoteWorking) BreaksTracking() bool {
 func (t TrackDiffRemoteWorking) ToDisplayString() string {
 	return "working"
 }
+func (t TrackDiffRemoteWorking) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffRemoteWorking) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_REMOTE_WORKING
+}
 func (t TrackDiffRemoteWorking) IsSameAsTracked() bool {
 	return false
 }
@@ -237,8 +288,20 @@ func (t TrackDiffRemoteChanged) BreaksTracking() bool {
 func (t TrackDiffRemoteChanged) ToDisplayString() string {
 	return "changed"
 }
+func (t TrackDiffRemoteChanged) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffRemoteChanged) GetTrackDiffType() int {
+	return keybase_1.TrackDiffType_REMOTE_CHANGED
+}
 func (t TrackDiffRemoteChanged) IsSameAsTracked() bool {
 	return false
+}
+
+func ExportTrackDiff(d TrackDiff) (res keybase_1.TrackDiff) {
+	res.Type = keybase_1.TrackDiffType(d.GetTrackDiffType())
+	res.DisplayMarkup = d.ToDisplayMarkup().GetRaw()
+	return
 }
 
 func NewTrackLookup(link *TrackChainLink) *TrackLookup {

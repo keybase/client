@@ -34,3 +34,5 @@ func (m Markup) ToReader() io.Reader {
 func (m *Markup) Append(s string) {
 	m.data += s
 }
+
+func (m Markup) GetRaw() string { return m.data }
