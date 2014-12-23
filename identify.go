@@ -35,7 +35,7 @@ type IdentifyRes struct {
 	Error       error
 	KeyDiff     TrackDiff
 	Deleted     []TrackDiffDeleted
-	ProofChecks []LinkCheckResult
+	ProofChecks []*LinkCheckResult
 	Warnings    []Warning
 	TrackUsed   *TrackLookup
 	TrackEqual  bool // Whether the track statement was equal to what we saw
@@ -147,7 +147,7 @@ func NewIdentifyRes(m bool) *IdentifyRes {
 	return &IdentifyRes{
 		MeSet:       m,
 		Warnings:    make([]Warning, 0, 0),
-		ProofChecks: make([]LinkCheckResult, 0, 1),
+		ProofChecks: make([]*LinkCheckResult, 0, 1),
 	}
 }
 
@@ -171,10 +171,6 @@ func (s *IdentifyState) Unlock() {
 	s.mutex.Unlock()
 }
 
-func (res *IdentifyRes) AddLinkCheckResult(lcr LinkCheckResult) {
-	res.ProofChecks = append(res.ProofChecks, lcr)
-}
-
 func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState {
 	return IdentifyState{arg, res, u, nil, new(sync.Mutex)}
 }
@@ -195,6 +191,25 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 		// the we have a problem.  Mark the proof as "DELETED"
 		if e.GetProofState() == PROOF_STATE_OK {
 			s.res.Deleted = append(s.res.Deleted, TrackDiffDeleted{e})
+		}
+	}
+}
+
+func (is *IdentifyState) InitResultList() {
+	idt := is.u.IdTable
+	l := len(idt.activeProofs)
+	is.res.ProofChecks = make([]*LinkCheckResult, l)
+	for i, p := range idt.activeProofs {
+		is.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: PROOF_STATE_NONE}
+	}
+}
+
+func (is *IdentifyState) ComputeTrackDiffs() {
+	if is.track != nil {
+		G.Log.Debug("| with tracking %v", is.track.set)
+		for _, c := range is.res.ProofChecks {
+			c.diff = c.link.ComputeTrackDiff(is.track)
+			c.trackedProofState = is.track.GetProofState(c.link)
 		}
 	}
 }
@@ -227,9 +242,12 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	if res.Error = u.IdentifyKey(is); res.Error != nil {
 		return
 	}
-	is.ComputeDeletedProofs()
-	is.GetUI().LaunchNetworkChecks(res)
 
+	is.InitResultList()
+	is.ComputeTrackDiffs()
+	is.ComputeDeletedProofs()
+
+	is.GetUI().LaunchNetworkChecks(res)
 	u.IdTable.Identify(is)
 
 	G.Log.Debug("- Identify(%s)", u.name)

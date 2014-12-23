@@ -785,16 +785,13 @@ func (idt *IdentityTable) Len() int {
 }
 
 func (idt *IdentityTable) Identify(is IdentifyState) {
-	if is.track != nil {
-		G.Log.Debug("| with tracking %v", is.track.set)
-	}
 
 	done := make(chan bool)
-	for _, activeProof := range idt.activeProofs {
-		go func(p RemoteProofChainLink) {
-			idt.IdentifyActiveProof(p, is)
+	for _, lcr := range is.res.ProofChecks {
+		go func(l *LinkCheckResult) {
+			idt.IdentifyActiveProof(l, is)
 			done <- true
-		}(activeProof)
+		}(lcr)
 	}
 
 	// wait for all goroutines to complete before exiting
@@ -809,21 +806,21 @@ func (idt *IdentityTable) Identify(is IdentifyState) {
 
 //=========================================================================
 
-func (idt *IdentityTable) IdentifyActiveProof(p RemoteProofChainLink, is IdentifyState) {
-	lcr := idt.CheckActiveProof(p, is.track)
-
+func (idt *IdentityTable) IdentifyActiveProof(lcr *LinkCheckResult, is IdentifyState) {
+	idt.ProofRemoteCheck(is.track, lcr)
 	is.Lock()
-	p.DisplayCheck(is.GetUI(), lcr)
-	is.res.AddLinkCheckResult(lcr)
+	lcr.link.DisplayCheck(is.GetUI(), *lcr)
 	is.Unlock()
 }
 
 type LinkCheckResult struct {
-	hint       *SigHint
-	cached     *CheckResult
-	err        ProofError
-	diff       TrackDiff
-	remoteDiff TrackDiff
+	hint              *SigHint
+	cached            *CheckResult
+	err               ProofError
+	diff              TrackDiff
+	remoteDiff        TrackDiff
+	link              RemoteProofChainLink
+	trackedProofState int
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
@@ -843,17 +840,16 @@ func ComputeRemoteDiff(tracked, observed int) TrackDiff {
 	}
 }
 
-func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackLookup) (
-	res LinkCheckResult) {
+func (idt *IdentityTable) ProofRemoteCheck(track *TrackLookup, res *LinkCheckResult) {
 
-	trackedProofState := PROOF_STATE_NONE
+	p := res.link
 
-	G.Log.Debug("+ CheckActiveProof %s", p.ToDebugString())
+	G.Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())
 	defer func() {
-		G.Log.Debug("- CheckActiveProof %s", p.ToDebugString())
+		G.Log.Debug("- RemoteCheckProof %s", p.ToDebugString())
 		observedProofState := ProofErrorToState(res.err)
 		if track != nil {
-			res.remoteDiff = ComputeRemoteDiff(trackedProofState, observedProofState)
+			res.remoteDiff = ComputeRemoteDiff(res.trackedProofState, observedProofState)
 		}
 	}()
 
@@ -863,18 +859,6 @@ func (idt *IdentityTable) CheckActiveProof(p RemoteProofChainLink, track *TrackL
 		res.err = NewProofError(PROOF_NO_HINT,
 			"No server-given hint for sig=%s", sid.ToString(true))
 		return
-	}
-
-	if track != nil {
-		//
-		// XXX maybe revisit this decision...
-		// We're using a shared TrackLookup() object, so let's
-		// serialize access to it here.
-		//
-		track.Lock()
-		res.diff = p.ComputeTrackDiff(track)
-		trackedProofState = track.GetProofState(p)
-		track.Unlock()
 	}
 
 	if G.ProofCache != nil {

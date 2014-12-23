@@ -209,6 +209,7 @@ type IdentifyUI interface {
 	DisplayKey(*PgpFingerprint, TrackDiff)
 	ReportLastTrack(*TrackLookup)
 	Start()
+	LaunchNetworkChecks(*IdentifyRes)
 }
 
 type Checker struct {
