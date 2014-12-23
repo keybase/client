@@ -30,3 +30,6 @@ func (u *RemoteTrackUI) ReportLastTrack(*libkb.TrackLookup) {
 func (u *RemoteTrackUI) Start() {
 	return
 }
+func (u *RemoteTrackUI) LaunchNetworkChecks(*libkb.IdentifyRes) {
+
+}
