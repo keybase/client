@@ -123,6 +123,9 @@
     }, {
       "name" : "cachedTimestamp",
       "type" : "int"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
     } ]
   }, {
     "type" : "record",

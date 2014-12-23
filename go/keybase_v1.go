@@ -189,8 +189,9 @@ type IdentifyStartRes struct {
 }
 
 type IdentifyCheckRes struct {
-	Status          Status `codec:"status"`
-	CachedTimestamp int    `codec:"cachedTimestamp"`
+	Status          Status     `codec:"status"`
+	CachedTimestamp int        `codec:"cachedTimestamp"`
+	TrackDiff       *TrackDiff `codec:"trackDiff,omitempty"`
 }
 
 type IdentifyFinishResBody struct {

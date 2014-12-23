@@ -52,11 +52,6 @@ protocol track {
 		union { null, TrackDiff } trackDiff;
 	}
 
-	record IdentifyCheckRes {
-		Status status;
-		int cachedTimestamp;
-	}
-
 	record IdentifyFinishResBody {
 		int numTrackFailures;
 		int numTrackChanges;
