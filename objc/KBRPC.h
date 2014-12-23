@@ -77,6 +77,9 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 	KBDeleted, 
 	KBUpgraded, 
 	KBNew, 
+	KBRemote_fail, 
+	KBRemote_working, 
+	KBRemote_changed, 
 };
 @interface KBTrackDiff : KBRObject
 @property KBTrackDiffType type;
@@ -94,6 +97,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBIdentifyKey : KBRObject
 @property NSData *pgpFingerprint;
 @property NSData *KID;
+@property KBTrackDiff *trackDiff;
 @end
 
 @interface KBIdentifyStartResBody : KBRObject
@@ -114,6 +118,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBIdentifyCheckRes : KBRObject
 @property KBStatus *status;
 @property NSInteger cachedTimestamp;
+@property KBTrackDiff *trackDiff;
 @end
 
 @interface KBIdentifyFinishResBody : KBRObject
@@ -130,9 +135,11 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @end
 
 @interface KBRTrack : KBRRequest
+- (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
+
 - (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
 
-- (void)indentifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
+- (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
 
 - (void)identifyFinishWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyFinishRes * identifyFinishRes))completion;
 

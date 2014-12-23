@@ -122,7 +122,7 @@
 @end
 
 @implementation KBIdentifyKey
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID" }; }
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID", @"trackDiff": @"trackDiff" }; }
 @end
 
 @implementation KBIdentifyStartResBody
@@ -134,7 +134,7 @@
 @end
 
 @implementation KBIdentifyCheckRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"cachedTimestamp": @"cachedTimestamp" }; }
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"cachedTimestamp": @"cachedTimestamp", @"trackDiff": @"trackDiff" }; }
 @end
 
 @implementation KBIdentifyFinishResBody
@@ -146,6 +146,15 @@
 @end
 
 @implementation KBRTrack
+- (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
+
+  NSDictionary *params = @{};
+  [self.client sendRequestWithMethod:@"identifySelfStart" params:params completion:^(NSError *error, NSDictionary *dict) {
+    KBIdentifyStartRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyStartRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
 - (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
 
   NSDictionary *params = @{@"username": username};
@@ -155,10 +164,10 @@
   }];
 }
 
-- (void)indentifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion {
+- (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion {
 
   NSDictionary *params = @{@"sessionId": @(sessionId), @"rowId": @(rowId)};
-  [self.client sendRequestWithMethod:@"indentifyCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"identifyCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
     KBIdentifyCheckRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyCheckRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];

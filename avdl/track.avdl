@@ -10,7 +10,10 @@ protocol track {
 		CLASH,
 		DELETED,
 		UPGRADED,
-		NEW
+		NEW,
+		REMOTE_FAIL,
+		REMOTE_WORKING,
+		REMOTE_CHANGED
 	}
 
 	record TrackDiff {
@@ -29,6 +32,7 @@ protocol track {
 	record IdentifyKey {
 		bytes pgpFingerprint;
 		bytes KID;
+		union { null, TrackDiff } trackDiff;
 	}
 
 	record IdentifyStartResBody {

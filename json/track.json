@@ -27,7 +27,7 @@
   }, {
     "type" : "enum",
     "name" : "TrackDiffType",
-    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW" ]
+    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
   }, {
     "type" : "record",
     "name" : "TrackDiff",
@@ -66,6 +66,9 @@
     }, {
       "name" : "KID",
       "type" : "bytes"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
     } ]
   }, {
     "type" : "record",

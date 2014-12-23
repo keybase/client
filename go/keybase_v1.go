@@ -147,12 +147,15 @@ func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
 type TrackDiffType int
 
 const (
-	TrackDiffType_NONE     = 0
-	TrackDiffType_ERROR    = 1
-	TrackDiffType_CLASH    = 2
-	TrackDiffType_DELETED  = 3
-	TrackDiffType_UPGRADED = 4
-	TrackDiffType_NEW      = 5
+	TrackDiffType_NONE           = 0
+	TrackDiffType_ERROR          = 1
+	TrackDiffType_CLASH          = 2
+	TrackDiffType_DELETED        = 3
+	TrackDiffType_UPGRADED       = 4
+	TrackDiffType_NEW            = 5
+	TrackDiffType_REMOTE_FAIL    = 6
+	TrackDiffType_REMOTE_WORKING = 7
+	TrackDiffType_REMOTE_CHANGED = 8
 )
 
 type TrackDiff struct {
@@ -169,8 +172,9 @@ type IdentifyRow struct {
 }
 
 type IdentifyKey struct {
-	PgpFingerprint []byte `codec:"pgpFingerprint"`
-	KID            []byte `codec:"KID"`
+	PgpFingerprint []byte     `codec:"pgpFingerprint"`
+	KID            []byte     `codec:"KID"`
+	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty"`
 }
 
 type IdentifyStartResBody struct {
