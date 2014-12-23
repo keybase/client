@@ -49,6 +49,7 @@ protocol track {
 	record IdentifyCheckRes {
 		Status status;
 		int cachedTimestamp;
+		union { null, TrackDiff } trackDiff;
 	}
 
 	record IdentifyCheckRes {
