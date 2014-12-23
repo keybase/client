@@ -22,8 +22,9 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 }
 
 type IdentifyArg struct {
-	Me *User // The user who's doing the tracking
-	Ui IdentifyUI
+	Me      *User // The user who's doing the tracking
+	Ui      IdentifyUI
+	noCache bool
 }
 
 func (i IdentifyArg) MeSet() bool {
@@ -200,8 +201,10 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 
 func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 
-	if cir := u.cachedIdentifyRes; cir != nil && (arg.MeSet() == cir.MeSet) {
-		return cir
+	if !arg.noCache {
+		if cir := u.cachedIdentifyRes; cir != nil && (arg.MeSet() == cir.MeSet) {
+			return cir
+		}
 	}
 
 	res = NewIdentifyRes(arg.MeSet())
@@ -224,9 +227,10 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	if res.Error = u.IdentifyKey(is); res.Error != nil {
 		return
 	}
-	u.IdTable.Identify(is)
-
 	is.ComputeDeletedProofs()
+	is.GetUI().LaunchNetworkChecks(res)
+
+	u.IdTable.Identify(is)
 
 	G.Log.Debug("- Identify(%s)", u.name)
 	u.cachedIdentifyRes = res
@@ -247,22 +251,23 @@ func (u *User) IdentifySimple(me *User) error {
 	return err
 }
 
-func (u *User) IdentifySelf() error {
+func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 
-	targ, err := u.GetActivePgpFingerprint()
+	fp, err = u.GetActivePgpFingerprint()
 	if err != nil {
-		return err
+		return
 	}
 
-	_, err = u.Identify(IdentifyArg{
-		Me: u,
-		Ui: G.UI.GetIdentifySelfUI(u),
-	})
+	if ui == nil {
+		ui = G.UI.GetIdentifySelfUI(u)
+	}
+
+	_, err = u.Identify(IdentifyArg{Me: u, Ui: ui})
 
 	if err == nil {
-		G.Log.Warning("Setting PGP fingerprint to: %s", targ.ToQuads())
-		G.Env.GetConfigWriter().SetPgpFingerprint(targ)
+		G.Log.Warning("Setting PGP fingerprint to: %s", fp.ToQuads())
+		G.Env.GetConfigWriter().SetPgpFingerprint(fp)
 	}
 
-	return err
+	return
 }
