@@ -179,7 +179,7 @@ func (t TrackDiffClash) BreaksTracking() bool {
 }
 
 func (t TrackDiffClash) ToDisplayString() string {
-	return "CHANGED from " + t.expected
+	return "CHANGED from \"" + t.expected + "\""
 }
 func (t TrackDiffClash) IsSameAsTracked() bool {
 	return false
