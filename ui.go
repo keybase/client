@@ -54,6 +54,10 @@ func (ui BaseIdentifyUI) baseFinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.T
 	return
 }
 
+func (ui BaseIdentifyUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
+	return
+}
+
 func (ui IdentifyLubaUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
 	return ui.baseFinishAndPrompt(ires)
 }

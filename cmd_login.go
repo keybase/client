@@ -20,7 +20,7 @@ func (v *CmdLogin) Run() error {
 	if _, not_found := err.(libkb.NoKeyError); not_found {
 		err = nil
 	} else if _, not_selected := err.(libkb.NoSelectedKeyError); not_selected {
-		err = u.IdentifySelf()
+		_, err = u.IdentifySelf(nil)
 	}
 	return err
 }
