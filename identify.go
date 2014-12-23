@@ -184,7 +184,7 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 
 	// These are the proofs that we previously tracked that we
 	// didn't observe in the current profile
-	diff := tracked.Subtract(found)
+	diff := (*tracked).Subtract(*found)
 
 	for _, e := range diff {
 		// If the proofs in the difference are for GOOD proofs,

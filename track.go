@@ -13,24 +13,35 @@ type TrackIdComponent interface {
 	ToIdString() string
 	ToKeyValuePair() (string, string)
 	GetProofState() int
+	LastWriterWins() bool
 }
 
-type TrackSet map[string]TrackIdComponent
+type TrackSet struct {
+	ids      map[string]TrackIdComponent
+	services map[string]bool
+}
+
+func NewTrackSet() *TrackSet {
+	return &TrackSet{
+		ids:      make(map[string]TrackIdComponent),
+		services: make(map[string]bool),
+	}
+}
 
 func (ts TrackSet) Add(t TrackIdComponent) {
-	ts[t.ToIdString()] = t
+	ts.ids[t.ToIdString()] = t
 }
 
 func (a TrackSet) GetProofState(tic TrackIdComponent) int {
 	ret := PROOF_STATE_NONE
-	if obj := a[tic.ToIdString()]; obj != nil {
+	if obj := a.ids[tic.ToIdString()]; obj != nil {
 		ret = obj.GetProofState()
 	}
 	return ret
 }
 
 func (A TrackSet) Subtract(B TrackSet) (out []TrackIdComponent) {
-	for _, c := range A {
+	for _, c := range A.ids {
 		if !B.HasMember(c) {
 			out = append(out, c)
 		}
@@ -39,12 +50,12 @@ func (A TrackSet) Subtract(B TrackSet) (out []TrackIdComponent) {
 }
 
 func (a TrackSet) HasMember(t TrackIdComponent) bool {
-	_, found := a[t.ToIdString()]
+	_, found := a.ids[t.ToIdString()]
 	return found
 }
 
 func (a TrackSet) LenEq(b TrackSet) bool {
-	return len(a) == len(b)
+	return len(a.ids) == len(b.ids)
 }
 
 //=====================================================================
@@ -58,7 +69,7 @@ type TrackInstructions struct {
 
 type TrackLookup struct {
 	link  *TrackChainLink     // The original chain link that I signed
-	set   TrackSet            // The total set of tracked identities
+	set   *TrackSet           // The total set of tracked identities
 	ids   map[string][]string // A http -> [foo.com, boo.com] lookup
 	mutex *sync.Mutex         // in case we're accessing in mutliple threads
 }
@@ -218,7 +229,7 @@ func (t TrackDiffRemoteChanged) IsSameAsTracked() bool {
 
 func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 	sbs := link.ToServiceBlocks()
-	set := make(TrackSet)
+	set := NewTrackSet()
 	ids := make(map[string][]string)
 	for _, sb := range sbs {
 		set.Add(sb)

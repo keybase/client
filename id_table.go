@@ -247,6 +247,10 @@ func (sb ServiceBlock) ToKeyValuePair() (string, string) {
 	return sb.typ, sb.id
 }
 
+func (sb ServiceBlock) LastWriterWins() bool {
+	return sb.social
+}
+
 func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
 	var social bool
 	var typ, id string
@@ -903,8 +907,8 @@ func (idt *IdentityTable) ToOkProofs(proofs []Proof) []Proof {
 
 //=========================================================================
 
-func (idt *IdentityTable) MakeTrackSet() TrackSet {
-	ret := make(TrackSet)
+func (idt *IdentityTable) MakeTrackSet() *TrackSet {
+	ret := NewTrackSet()
 	for _, ap := range idt.activeProofs {
 		ret.Add(ap)
 	}
