@@ -30,6 +30,10 @@ func NewTrackSet() *TrackSet {
 
 func (ts TrackSet) Add(t TrackIdComponent) {
 	ts.ids[t.ToIdString()] = t
+	if t.LastWriterWins() {
+		k, _ := t.ToKeyValuePair()
+		ts.services[k] = true
+	}
 }
 
 func (a TrackSet) GetProofState(tic TrackIdComponent) int {
@@ -49,8 +53,18 @@ func (A TrackSet) Subtract(B TrackSet) (out []TrackIdComponent) {
 	return
 }
 
-func (a TrackSet) HasMember(t TrackIdComponent) bool {
-	_, found := a.ids[t.ToIdString()]
+func (A TrackSet) HasMember(t TrackIdComponent) bool {
+	var found bool
+
+	// For LastWriterWins like social networks, then it just matters
+	// that there is some proof for the service.  For non-last-writer-wins,
+	// like HTTPS and DNS, then the full proof needs to show up in A.
+	if t.LastWriterWins() {
+		k, _ := t.ToKeyValuePair()
+		_, found = A.services[k]
+	} else {
+		_, found = A.ids[t.ToIdString()]
+	}
 	return found
 }
 
