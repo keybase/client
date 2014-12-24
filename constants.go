@@ -92,15 +92,15 @@ func PgpArmorHeaders() map[string]string {
 }
 
 var REMOTE_SERVICE_TYPES = map[string]int{
-	"keybase":    1,
-	"twitter":    2,
-	"github":     3,
-	"reddit":     4,
-	"coinbase":   5,
-	"hackernews": 6,
-	"https":      1000,
-	"http":       1000,
-	"dns":        1001,
+	"keybase":    PROOF_TYPE_KEYBASE,
+	"twitter":    PROOF_TYPE_TWITTER,
+	"github":     PROOF_TYPE_GITHUB,
+	"reddit":     PROOF_TYPE_REDDIT,
+	"coinbase":   PROOF_TYPE_COINBASE,
+	"hackernews": PROOF_TYPE_HACKERNEWS,
+	"https":      PROOF_TYPE_GENERIC_WEB_SITE,
+	"http":       PROOF_TYPE_GENERIC_WEB_SITE,
+	"dns":        PROOF_TYPE_DNS,
 }
 
 var CANONICAL_HOST = "keybase.io"
@@ -136,6 +136,18 @@ var (
 	HASH_PGP_SHA384    = 9
 	HASH_PGP_SHA512    = 10
 	HASH_PGP_SHA224    = 11
+)
+
+var (
+	PROOF_TYPE_NONE = 0
+	PROOF_TYPE_KEYBASE = 1
+	PROOF_TYPE_TWITTER = 2
+	PROOF_TYPE_GITHUB = 3
+	PROOF_TYPE_REDDIT = 4
+	PROOF_TYPE_COINBASE = 5
+	PROOF_TYPE_HACKERNEWS = 6
+	PROOF_TYPE_GENERIC_WEB_SITE = 1000
+	PROOF_TYPE_DNS = 1001
 )
 
 var (
