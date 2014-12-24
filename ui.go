@@ -40,10 +40,7 @@ func (u *RemoteTrackUI) DisplayKey(k *libkb.PgpFingerprint, diff libkb.TrackDiff
 	if k != nil {
 		u.body.Key.PgpFingerprint = (*k)[:]
 	}
-	if diff != nil {
-		d := libkb.ExportTrackDiff(diff)
-		u.body.Key.TrackDiff = &d
-	}
+	u.body.Key.TrackDiff = libkb.ExportTrackDiff(diff)
 	return
 }
 func (u *RemoteTrackUI) ReportLastTrack(l *libkb.TrackLookup) {
@@ -57,5 +54,8 @@ func (u *RemoteTrackUI) Start() {
 }
 
 func (u *RemoteTrackUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
+	for i, r := range res.ProofChecks {
+		u.body.Proofs = append(u.body.Proofs, r.ExportToIdentifyRow(i))
+	}
 	u.ch <- IdentifyResOrError{ body : &u.body }
 }
