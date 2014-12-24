@@ -44,8 +44,7 @@ protocol track {
 		int sessionId;
 		int whenLastTracked;
 		IdentifyKey key;
-		array<IdentifyRow> web;
-		array<IdentifyRow> social;
+		array<IdentifyRow> proofs;
 		array<IdentifyRow> cryptocurrency;
 		array<TrackDiff> deleted;
 	}

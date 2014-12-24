@@ -186,8 +186,7 @@ type IdentifyStartResBody struct {
 	SessionId       int           `codec:"sessionId"`
 	WhenLastTracked int           `codec:"whenLastTracked"`
 	Key             IdentifyKey   `codec:"key"`
-	Web             []IdentifyRow `codec:"web"`
-	Social          []IdentifyRow `codec:"social"`
+	Proofs          []IdentifyRow `codec:"proofs"`
 	Cryptocurrency  []IdentifyRow `codec:"cryptocurrency"`
 	Deleted         []TrackDiff   `codec:"deleted"`
 }

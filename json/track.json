@@ -93,13 +93,7 @@
       "name" : "key",
       "type" : "IdentifyKey"
     }, {
-      "name" : "web",
-      "type" : {
-        "type" : "array",
-        "items" : "IdentifyRow"
-      }
-    }, {
-      "name" : "social",
+      "name" : "proofs",
       "type" : {
         "type" : "array",
         "items" : "IdentifyRow"
