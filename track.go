@@ -58,6 +58,23 @@ func (h *TrackHandler) killSession(i int) {
 	h.mutex.Unlock()
 }
 
+func (h *TrackHandler) lookupSession(i int) *RemoteTrackUI {
+	h.mutex.Lock()
+	ret := h.sessions[i]
+	h.mutex.Unlock()
+	return ret
+}
+
+func (h *TrackHandler) IdentifyCheck(arg *keybase_1.IdentifyCheckArg, res *keybase_1.IdentifyCheckRes) error {
+	sess := h.lookupSession(arg.SessionId)
+	var err error 
+	if sess == nil {
+		err = BadTrackSessionError{arg.SessionId}
+	}	
+	res.Status = libkb.ExportErrorAsStatus(err)
+	return nil	
+}
+
 func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartRes) {
 	ui, sid := h.getNewUI(u)
 	go func(){
