@@ -123,16 +123,39 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "IdentifyCheckRes",
+    "name" : "ProofStatus",
+    "fields" : [ {
+      "name" : "state",
+      "type" : "int"
+    }, {
+      "name" : "status",
+      "type" : "int"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyCheckResBody",
     "fields" : [ {
       "name" : "status",
-      "type" : "Status"
+      "type" : "ProofStatus"
     }, {
       "name" : "cachedTimestamp",
       "type" : "int"
     }, {
       "name" : "trackDiff",
       "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyCheckRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "body",
+      "type" : [ "null", "IdentifyCheckResBody" ]
     } ]
   }, {
     "type" : "record",

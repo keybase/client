@@ -119,10 +119,21 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property KBIdentifyStartResBody *body;
 @end
 
-@interface KBIdentifyCheckRes : KBRObject
-@property KBStatus *status;
+@interface KBProofStatus : KBRObject
+@property NSInteger state;
+@property NSInteger status;
+@property NSString *desc;
+@end
+
+@interface KBIdentifyCheckResBody : KBRObject
+@property KBProofStatus *status;
 @property NSInteger cachedTimestamp;
 @property KBTrackDiff *trackDiff;
+@end
+
+@interface KBIdentifyCheckRes : KBRObject
+@property KBStatus *status;
+@property KBIdentifyCheckResBody *body;
 @end
 
 @interface KBIdentifyFinishResBody : KBRObject

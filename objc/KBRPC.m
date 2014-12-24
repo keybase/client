@@ -169,8 +169,16 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
 @end
 
-@implementation KBIdentifyCheckRes
+@implementation KBProofStatus
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"state": @"state", @"status": @"status", @"desc": @"desc" }; }
+@end
+
+@implementation KBIdentifyCheckResBody
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"cachedTimestamp": @"cachedTimestamp", @"trackDiff": @"trackDiff" }; }
+@end
+
+@implementation KBIdentifyCheckRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
 @end
 
 @implementation KBIdentifyFinishResBody

@@ -196,10 +196,21 @@ type IdentifyStartRes struct {
 	Body   *IdentifyStartResBody `codec:"body,omitempty"`
 }
 
+type ProofStatus struct {
+	State  int    `codec:"state"`
+	Status int    `codec:"status"`
+	Desc   string `codec:"desc"`
+}
+
+type IdentifyCheckResBody struct {
+	Status          ProofStatus `codec:"status"`
+	CachedTimestamp int         `codec:"cachedTimestamp"`
+	TrackDiff       *TrackDiff  `codec:"trackDiff,omitempty"`
+}
+
 type IdentifyCheckRes struct {
-	Status          Status     `codec:"status"`
-	CachedTimestamp int        `codec:"cachedTimestamp"`
-	TrackDiff       *TrackDiff `codec:"trackDiff,omitempty"`
+	Status Status                `codec:"status"`
+	Body   *IdentifyCheckResBody `codec:"body,omitempty"`
 }
 
 type IdentifyFinishResBody struct {

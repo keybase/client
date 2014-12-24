@@ -54,10 +54,21 @@ protocol track {
 		union { null, IdentifyStartResBody} body;
 	}
 
-	record IdentifyCheckRes {
-		Status status;
+	record ProofStatus {
+		int state;
+		int status;
+		string desc;	
+	}
+	
+	record IdentifyCheckResBody {
+		ProofStatus status;
 		int cachedTimestamp;
 		union { null, TrackDiff } trackDiff;
+	}
+
+	record IdentifyCheckRes {
+		Status status;
+		union { null, IdentifyCheckResBody } body;
 	}
 
 	record IdentifyFinishResBody {
