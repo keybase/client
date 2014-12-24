@@ -9,5 +9,5 @@
 #import "KBRObject.h"
 
 @implementation KBRObject
-
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{}; }
 @end

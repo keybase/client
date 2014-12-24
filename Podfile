@@ -1,9 +1,10 @@
-platform :osx, "10.9"
+platform :osx, "10.8"
 
 pod "Mantle"
 pod "GHKit"
-pod "MPMessagePack", :path => "../MPMessagePack"
+pod "MPMessagePack"
+pod "NAChloride"
 
 target :Tests do
-  pod "GRUnit", :path => "../GRUnit"
+  pod "GRUnit"#, :path => "../GRUnit"
 end

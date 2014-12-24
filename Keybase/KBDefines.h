@@ -6,4 +6,9 @@
 //  Copyright (c) 2014 Gabriel Handford. All rights reserved.
 //
 
+#import <GHKit/GHKit.h>
+
 typedef void (^KBCompletion)(NSError *error);
+
+
+#define KBMakeError(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"MPMessagePack" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey: [NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]

@@ -8,8 +8,10 @@
 
 #import "AppDelegate.h"
 
+#import "KBConnectWindowController.h"
+
 @interface AppDelegate ()
-@property (weak) IBOutlet NSWindow *window;
+@property (strong) KBConnectWindowController *connectController;
 @property KBRPClient *client;
 @end
 
@@ -17,13 +19,11 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   _client = [[KBRPClient alloc] init];
-  [_client open:^(NSError *error) {
-    if (error) {
-      [self reset];
-    } else {
-      [self checkSession];
-    }
-  }];
+  [_client open];
+  
+  self.connectController = [[KBConnectWindowController alloc] init];
+  [self.connectController.window center];
+  [self.connectController showWindow:nil];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
@@ -32,14 +32,6 @@
 
 + (KBRPClient *)client {
   return ((AppDelegate *)[NSApp delegate]).client;
-}
-
-- (void)checkSession {
-  
-}
-
-- (void)reset {
-  
 }
 
 @end

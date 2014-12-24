@@ -11,9 +11,9 @@
 #import "KBDefines.h"
 #import <MPMessagePack/MPMessagePackClient.h>
 
-@interface KBRPClient : NSObject
+@interface KBRPClient : NSObject <MPMessagePackClientDelegate>
 
-- (void)open:(KBCompletion)completion;
+- (void)open;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
 

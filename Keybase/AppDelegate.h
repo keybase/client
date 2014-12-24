@@ -9,6 +9,7 @@
 #import <Cocoa/Cocoa.h>
 
 #import "KBRPClient.h"
+#import "KBConnectWindowController.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
