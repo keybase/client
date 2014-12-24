@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/protocol/go"
 	"github.com/keybase/go-jsonw"
 	"strings"
 	"time"
@@ -91,6 +92,7 @@ type RemoteProofChainLink interface {
 	ToIdString() string
 	ToKeyValuePair() (string, string)
 	ComputeTrackDiff(tl *TrackLookup) TrackDiff
+	GetIntType() int
 }
 
 type WebProofChainLink struct {
@@ -110,6 +112,14 @@ func (w *WebProofChainLink) TableKey() string {
 		return "http"
 	} else {
 		return w.protocol
+	}
+}
+
+func (g *WebProofChainLink) GetIntType() int { 
+	if g.protocol == "dns" {
+		return PROOF_TYPE_DNS
+	} else {
+		return PROOF_TYPE_GENERIC_WEB_SITE
 	}
 }
 
@@ -154,6 +164,8 @@ func (s *WebProofChainLink) ToIdString() string { return s.ToDisplayString() }
 func (s *WebProofChainLink) ToKeyValuePair() (string, string) {
 	return s.GetProtocol(), s.GetHostname()
 }
+
+
 
 func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
 
@@ -219,6 +231,14 @@ func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("username", jsonw.NewString(s.username))
 	ret.SetKey("name", jsonw.NewString(s.service))
+	return ret
+}
+
+func (g *SocialProofChainLink) GetIntType() int {
+	ret, found := REMOTE_SERVICE_TYPES[g.service]
+	if !found {
+		ret = PROOF_TYPE_NONE
+	}	
 	return ret
 }
 
@@ -574,7 +594,21 @@ func (s *SelfSigChainLink) ToKeyValuePair() (string, string) {
 
 func (s *SelfSigChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff { return nil }
 
+func (s *SelfSigChainLink) GetIntType() int { return PROOF_TYPE_KEYBASE }
+
 //
+//=========================================================================
+
+func ExportRemoteProof(p RemoteProofChainLink) keybase_1.RemoteProof {
+	k,v := p.ToKeyValuePair()
+	return keybase_1.RemoteProof{
+		ProofType : p.GetIntType(),
+		Key : k,
+		Value : v,
+		DisplayMarkup : v,
+	}
+}
+
 //=========================================================================
 
 type IdentityTable struct {
@@ -825,6 +859,14 @@ type LinkCheckResult struct {
 	remoteDiff        TrackDiff
 	link              RemoteProofChainLink
 	trackedProofState int
+}
+
+func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase_1.IdentifyRow {
+	return keybase_1.IdentifyRow{
+		RowId : i,
+		Proof : ExportRemoteProof(l.link),
+		TrackDiff : ExportTrackDiff(l.diff),
+	}
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
