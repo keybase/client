@@ -2,8 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/protocol/go"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/protocol/go"
 	"strings"
 	"time"
 )
@@ -115,7 +115,7 @@ func (w *WebProofChainLink) TableKey() string {
 	}
 }
 
-func (g *WebProofChainLink) GetIntType() int { 
+func (g *WebProofChainLink) GetIntType() int {
 	if g.protocol == "dns" {
 		return PROOF_TYPE_DNS
 	} else {
@@ -164,8 +164,6 @@ func (s *WebProofChainLink) ToIdString() string { return s.ToDisplayString() }
 func (s *WebProofChainLink) ToKeyValuePair() (string, string) {
 	return s.GetProtocol(), s.GetHostname()
 }
-
-
 
 func (s *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
 
@@ -238,7 +236,7 @@ func (g *SocialProofChainLink) GetIntType() int {
 	ret, found := REMOTE_SERVICE_TYPES[g.service]
 	if !found {
 		ret = PROOF_TYPE_NONE
-	}	
+	}
 	return ret
 }
 
@@ -600,12 +598,12 @@ func (s *SelfSigChainLink) GetIntType() int { return PROOF_TYPE_KEYBASE }
 //=========================================================================
 
 func ExportRemoteProof(p RemoteProofChainLink) keybase_1.RemoteProof {
-	k,v := p.ToKeyValuePair()
+	k, v := p.ToKeyValuePair()
 	return keybase_1.RemoteProof{
-		ProofType : p.GetIntType(),
-		Key : k,
-		Value : v,
-		DisplayMarkup : v,
+		ProofType:     p.GetIntType(),
+		Key:           k,
+		Value:         v,
+		DisplayMarkup: v,
 	}
 }
 
@@ -863,9 +861,9 @@ type LinkCheckResult struct {
 
 func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase_1.IdentifyRow {
 	return keybase_1.IdentifyRow{
-		RowId : i,
-		Proof : ExportRemoteProof(l.link),
-		TrackDiff : ExportTrackDiff(l.diff),
+		RowId:     i,
+		Proof:     ExportRemoteProof(l.link),
+		TrackDiff: ExportTrackDiff(l.diff),
 	}
 }
 

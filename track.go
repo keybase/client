@@ -301,8 +301,8 @@ func (t TrackDiffRemoteChanged) IsSameAsTracked() bool {
 func ExportTrackDiff(d TrackDiff) (res *keybase_1.TrackDiff) {
 	if d != nil {
 		res = &keybase_1.TrackDiff{
-			Type : keybase_1.TrackDiffType(d.GetTrackDiffType()),
-			DisplayMarkup : d.ToDisplayMarkup().GetRaw(),
+			Type:          keybase_1.TrackDiffType(d.GetTrackDiffType()),
+			DisplayMarkup: d.ToDisplayMarkup().GetRaw(),
 		}
 	}
 	return
