@@ -200,7 +200,7 @@ func (is *IdentifyState) InitResultList() {
 	l := len(idt.activeProofs)
 	is.res.ProofChecks = make([]*LinkCheckResult, l)
 	for i, p := range idt.activeProofs {
-		is.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: PROOF_STATE_NONE}
+		is.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: PROOF_STATE_NONE, position: i}
 	}
 }
 

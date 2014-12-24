@@ -62,6 +62,14 @@ func NewProofApiError(s ProofStatus, u string, d string, a ...interface{}) *Proo
 	return &ProofApiError{*base, u}
 }
 
+func ExportProofError(pe ProofError) keybase_1.ProofStatus {
+	return keybase_1.ProofStatus{
+		Status: int(pe.GetStatus()),
+		State:  ProofErrorToState(pe),
+		Desc:   pe.GetDesc(),
+	}
+}
+
 //
 //=============================================================================
 

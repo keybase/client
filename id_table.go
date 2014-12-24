@@ -857,6 +857,7 @@ type LinkCheckResult struct {
 	remoteDiff        TrackDiff
 	link              RemoteProofChainLink
 	trackedProofState int
+	position          int
 }
 
 func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase_1.IdentifyRow {
@@ -867,10 +868,24 @@ func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase_1.IdentifyRow {
 	}
 }
 
+func (l LinkCheckResult) ExportToIdentifyCheckResBody() keybase_1.IdentifyCheckResBody {
+	ret := keybase_1.IdentifyCheckResBody{
+		ProofStatus: ExportProofError(l.err),
+	}
+	if l.cached != nil {
+		ret.CachedTimestamp = int(l.cached.Time.Unix())
+	}
+	if l.remoteDiff != nil {
+		ret.TrackDiff = ExportTrackDiff(l.remoteDiff)
+	}
+	return ret
+}
+
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
 func (l LinkCheckResult) GetError() error         { return l.err }
 func (l LinkCheckResult) GetHint() *SigHint       { return l.hint }
 func (l LinkCheckResult) GetCached() *CheckResult { return l.cached }
+func (l LinkCheckResult) GetPosition() int        { return l.position }
 
 func ComputeRemoteDiff(tracked, observed int) TrackDiff {
 	if observed == tracked {
