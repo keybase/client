@@ -49,7 +49,7 @@ typedef NS_ENUM(NSInteger, GRNavigationDirection) {
   
   if (transactionBlock) {
     [CATransaction begin];
-    transactionBlock();
+    if (transactionBlock) transactionBlock();
     [self reallyPushViewController:viewController animated:YES];
     [CATransaction commit];
   } else {

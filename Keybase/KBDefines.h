@@ -8,6 +8,8 @@
 
 #import <GHKit/GHKit.h>
 
+#import "KBOLookAndFeel.h"
+
 typedef void (^KBCompletion)(NSError *error);
 
 

@@ -30,10 +30,14 @@
     GHDebug(@"Error connecting to keybased: %@", error);
     
     // Retry
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-      [self open];
-    });
+    [self openAfterDelay:2];
   }
+}
+
+- (void)openAfterDelay:(NSTimeInterval)delay {
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    [self open];
+  });
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion {
@@ -53,7 +57,7 @@
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
   if (status == MPMessagePackClientStatusClosed) {
-    
+    [self openAfterDelay:2];
   }
 }
 

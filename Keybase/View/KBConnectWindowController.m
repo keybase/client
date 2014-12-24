@@ -27,6 +27,9 @@
   
   KBLoginViewController *loginViewController = [[KBLoginViewController alloc] initWithNibName:@"KBLogin" bundle:nil];
   self.navigationController.rootViewController = loginViewController;
+  
+  [self.window setContentSize:loginViewController.view.frame.size];
+  
   [self.navigationController setupRootViewController];
 }
 

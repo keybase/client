@@ -12,8 +12,8 @@
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
-        <window title="Keybase" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" animationBehavior="default" id="ywY-WH-C34">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+        <window allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" animationBehavior="default" id="ywY-WH-C34">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="196" y="240" width="340" height="460"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="877"/>
@@ -21,7 +21,7 @@
                 <rect key="frame" x="0.0" y="0.0" width="340" height="460"/>
                 <autoresizingMask key="autoresizingMask"/>
             </view>
-            <point key="canvasLocation" x="197" y="202"/>
+            <point key="canvasLocation" x="228" y="182"/>
         </window>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <viewController title="Navigation Controller" id="gp6-c9-nbA" customClass="GRNavigationController">
@@ -29,6 +29,5 @@
                 <outlet property="view" destination="zuQ-ML-Q5u" id="cmp-YR-esh"/>
             </connections>
         </viewController>
-        <viewController title="Key Gen" id="kWo-d6-jLp"/>
     </objects>
 </document>

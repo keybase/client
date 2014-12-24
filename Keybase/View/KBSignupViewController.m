@@ -17,13 +17,18 @@
 @property (weak) IBOutlet NSTextField *usernameField;
 @property (weak) IBOutlet NSTextField *passphraseField;
 @property (weak) IBOutlet NSTextField *inviteCodeField;
+@property (weak) IBOutlet NSButton *loginButton;
 @end
 
 @implementation KBSignupViewController
 
-- (IBAction)signUp:(id)sender {
-  KBRSignup *signUp = [[KBRSignup alloc] initWithClient:AppDelegate.client];
-  [signUp signupWithEmail:self.emailField.stringValue inviteCode:self.inviteCodeField.stringValue passphrase:self.passphraseField.stringValue username:self.usernameField.stringValue completion:^(NSError *error, KBSignupRes *res) {
+- (void)awakeFromNib {
+  [KBOLookAndFeel applyLinkStyle:self.loginButton];
+}
+
+- (IBAction)signup:(id)sender {
+  KBRSignup *signup = [[KBRSignup alloc] initWithClient:AppDelegate.client];
+  [signup signupWithEmail:self.emailField.stringValue inviteCode:self.inviteCodeField.stringValue passphrase:self.passphraseField.stringValue username:self.usernameField.stringValue completion:^(NSError *error, KBSignupRes *res) {
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:self.view.window completionHandler:nil];
       return;
@@ -35,9 +40,11 @@
 }
 
 - (IBAction)login:(id)sender {
-  //[self.navigationController popViewControllerAnimated:NO];
+  CATransition *transition = [CATransition animation];
+  [transition setType:kCATransitionFade];
+  
   KBLoginViewController *loginViewController = [[KBLoginViewController alloc] initWithNibName:@"KBLogin" bundle:nil];
-  [self.navigationController pushViewController:loginViewController animated:YES];
+  [self.navigationController pushViewController:loginViewController usingTransition:transition withTransactionBlock:nil];
 }
 
 @end

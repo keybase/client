@@ -9,6 +9,7 @@
             <connections>
                 <outlet property="emailField" destination="yaU-FK-yf2" id="aQD-sP-wve"/>
                 <outlet property="inviteCodeField" destination="yaU-FK-yf2" id="o6R-uo-FF0"/>
+                <outlet property="loginButton" destination="4tV-Ye-hBQ" id="kXm-lW-u3d"/>
                 <outlet property="passphraseField" destination="xgF-0s-v09" id="xyo-GF-i83"/>
                 <outlet property="usernameField" destination="UNE-Uu-PD0" id="Bbh-YT-clH"/>
                 <outlet property="view" destination="h8h-s6-Nsp" id="WaL-n4-mg5"/>
@@ -94,7 +95,7 @@
                         <font key="font" metaFont="system" size="18"/>
                     </buttonCell>
                     <connections>
-                        <action selector="signUp:" target="-2" id="G7k-aK-oja"/>
+                        <action selector="signup:" target="-2" id="frM-bI-Kt7"/>
                     </connections>
                 </button>
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4tV-Ye-hBQ">
@@ -104,7 +105,7 @@
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                     <connections>
-                        <action selector="login:" target="-2" id="sNa-wZ-gAf"/>
+                        <action selector="login:" target="-2" id="9by-4k-V5B"/>
                     </connections>
                 </button>
             </subviews>

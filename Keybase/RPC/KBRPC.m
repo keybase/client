@@ -43,7 +43,7 @@
 @implementation KBRLogin
 - (void)passphraseLoginWithPassphrase:(NSString *)passphrase completion:(void (^)(NSError *error, KBLoginRes * loginRes))completion {
 
-  NSDictionary *params = @{@"passphrase": passphrase};
+  NSDictionary *params = @{@"passphrase": KBRValue(passphrase)};
   [self.client sendRequestWithMethod:@"keybase.1.login.PassphraseLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -82,7 +82,7 @@
 
 - (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"username": username};
+  NSDictionary *params = @{@"username": KBRValue(username)};
   [self.client sendRequestWithMethod:@"keybase.1.login.SwitchUser" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -106,7 +106,7 @@
 @implementation KBRSignup
 - (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"username": username};
+  NSDictionary *params = @{@"username": KBRValue(username)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.CheckUsernameAvailable" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -119,20 +119,21 @@
 
 - (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBSignupRes * signupRes))completion {
 
-  NSDictionary *params = @{@"email": email, @"inviteCode": inviteCode, @"passphrase": passphrase, @"username": username};
+  NSDictionary *params = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.Signup" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
       return;
     }
     KBSignupRes *result = [MTLJSONAdapter modelOfClass:KBSignupRes.class fromJSONDictionary:dict error:&error];
+    if (!error && result.status) error = KBErrorFromStatus(result.status);
     completion(error, result);
   }];
 }
 
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"email": email, @"fullname": fullname, @"notes": notes};
+  NSDictionary *params = @{@"email": KBRValue(email), @"fullname": KBRValue(fullname), @"notes": KBRValue(notes)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.InviteRequest" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -193,7 +194,7 @@
 
 - (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
 
-  NSDictionary *params = @{@"username": username};
+  NSDictionary *params = @{@"username": KBRValue(username)};
   [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyStart" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

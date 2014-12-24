@@ -9,6 +9,7 @@
             <connections>
                 <outlet property="emailField" destination="pKk-Qw-Xsw" id="xLp-EH-IEj"/>
                 <outlet property="passphraseField" destination="s5u-by-iac" id="84Z-Jc-qld"/>
+                <outlet property="signupButton" destination="OD0-j7-Haq" id="5eM-cd-0I7"/>
                 <outlet property="view" destination="NlY-JR-ogD" id="edr-9B-Gg2"/>
             </connections>
         </customObject>
@@ -64,7 +65,7 @@
                         <font key="font" metaFont="system" size="18"/>
                     </buttonCell>
                     <connections>
-                        <action selector="login:" target="-2" id="EGZ-fG-guB"/>
+                        <action selector="login:" target="-2" id="yz4-Fb-CEu"/>
                     </connections>
                 </button>
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OD0-j7-Haq">
@@ -74,7 +75,7 @@
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                     <connections>
-                        <action selector="signup:" target="-2" id="aK3-7G-r0Q"/>
+                        <action selector="signup:" target="-2" id="zau-HB-vHc"/>
                     </connections>
                 </button>
             </subviews>
