@@ -10,7 +10,7 @@
 #import "KBRPC.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
-#import <GHKit/GHKit.h>
+#import "KBDefines.h"
 
 @interface KBRPClient ()
 @property MPMessagePackClient *client;
@@ -23,10 +23,13 @@
 - (void)open {
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
-  //[_client openWithHost:@"localhost" port:41111 completion:completion];
   NSError *error = nil;
-  GHDebug(@"Connecting to keybased...");
-  if (![_client openWithSocket:@"/tmp/keybase-gabe/keybased.sock" error:&error]) {
+  
+  NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
+  NSAssert(user, @"No user");
+  
+  GHDebug(@"Connecting to keybased (%@)...", user);
+  if (![_client openWithSocket:NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user) error:&error]) {
     GHDebug(@"Error connecting to keybased: %@", error);
     
     // Retry

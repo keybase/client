@@ -8,6 +8,7 @@ PODS:
   - MPMessagePack (1.0.3)
   - NAChloride (1.1.2):
     - libsodium
+  - ObjectiveSugar (1.1.0)
 
 DEPENDENCIES:
   - GHKit
@@ -15,6 +16,7 @@ DEPENDENCIES:
   - Mantle
   - MPMessagePack
   - NAChloride
+  - ObjectiveSugar
 
 SPEC CHECKSUMS:
   GHKit: 9466c08deeb753e144bbbfac7f76be1b38175cb0
@@ -23,5 +25,6 @@ SPEC CHECKSUMS:
   Mantle: d7c5ac734579ec751c58fecbf56189853056c58c
   MPMessagePack: 6fa039276a31d8ea1785e75fa8fc732b9400c308
   NAChloride: f5ec84c64efcdb5008f960d7d557dfac6c060a1d
+  ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2
 
 COCOAPODS: 0.35.0

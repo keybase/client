@@ -7,6 +7,7 @@
 //
 
 #import <GHKit/GHKit.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 #import "KBOLookAndFeel.h"
 
