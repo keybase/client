@@ -40,9 +40,9 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "IdentifyRow",
+    "name" : "RemoteProof",
     "fields" : [ {
-      "name" : "rowId",
+      "name" : "proofType",
       "type" : "int"
     }, {
       "name" : "key",
@@ -53,6 +53,16 @@
     }, {
       "name" : "displayMarkup",
       "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRow",
+    "fields" : [ {
+      "name" : "rowId",
+      "type" : "int"
+    }, {
+      "name" : "proof",
+      "type" : "RemoteProof"
     }, {
       "name" : "trackDiff",
       "type" : [ "null", "TrackDiff" ]

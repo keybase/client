@@ -12,44 +12,6 @@
 @property NSData *data;
 @end
 
-@interface KBGetCurrentStatusResBody : KBRObject
-@property BOOL configured;
-@property BOOL registered;
-@property BOOL loggedIn;
-@property BOOL publicKeySelected;
-@property BOOL hasPrivateKey;
-@end
-
-@interface KBGetCurrentStatusRes : KBRObject
-@property KBGetCurrentStatusResBody *body;
-@property KBStatus *status;
-@end
-
-@interface KBRConfig : KBRRequest
-- (void)getCurrentStatus:(void (^)(NSError *error, KBGetCurrentStatusRes * getCurrentStatusRes))completion;
-
-@end
-
-@interface KBLoginResBody : KBRObject
-@property KBUID *uid;
-@end
-
-@interface KBLoginRes : KBRObject
-@property KBLoginResBody *body;
-@property KBStatus *status;
-@end
-
-@interface KBRLogin : KBRRequest
-- (void)passphraseLoginWithPassphrase:(NSString *)passphrase completion:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
-
-- (void)pubkeyLogin:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
-
-- (void)logout:(void (^)(NSError *error, KBStatus * status))completion;
-
-- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion;
-
-@end
-
 @interface KBSignupResBody : KBRObject
 @property BOOL passphraseOk;
 @property BOOL postOk;
@@ -86,11 +48,16 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property NSString *displayMarkup;
 @end
 
-@interface KBIdentifyRow : KBRObject
-@property NSInteger rowId;
+@interface KBRemoteProof : KBRObject
+@property NSInteger proofType;
 @property NSString *key;
 @property NSString *value;
 @property NSString *displayMarkup;
+@end
+
+@interface KBIdentifyRow : KBRObject
+@property NSInteger rowId;
+@property KBRemoteProof *proof;
 @property KBTrackDiff *trackDiff;
 @end
 
@@ -142,5 +109,43 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 - (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
 
 - (void)identifyFinishWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyFinishRes * identifyFinishRes))completion;
+
+@end
+
+@interface KBGetCurrentStatusResBody : KBRObject
+@property BOOL configured;
+@property BOOL registered;
+@property BOOL loggedIn;
+@property BOOL publicKeySelected;
+@property BOOL hasPrivateKey;
+@end
+
+@interface KBGetCurrentStatusRes : KBRObject
+@property KBGetCurrentStatusResBody *body;
+@property KBStatus *status;
+@end
+
+@interface KBRConfig : KBRRequest
+- (void)getCurrentStatus:(void (^)(NSError *error, KBGetCurrentStatusRes * getCurrentStatusRes))completion;
+
+@end
+
+@interface KBLoginResBody : KBRObject
+@property KBUID *uid;
+@end
+
+@interface KBLoginRes : KBRObject
+@property KBLoginResBody *body;
+@property KBStatus *status;
+@end
+
+@interface KBRLogin : KBRRequest
+- (void)passphraseLoginWithPassphrase:(NSString *)passphrase completion:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
+
+- (void)pubkeyLogin:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
+
+- (void)logout:(void (^)(NSError *error, KBStatus * status))completion;
+
+- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 @end

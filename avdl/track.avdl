@@ -21,7 +21,7 @@ protocol track {
 		string displayMarkup;
 	}
 
-	record RemoteProof struct {
+	record RemoteProof {
 		int proofType;
 		string key;
 		string value;

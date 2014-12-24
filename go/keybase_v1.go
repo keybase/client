@@ -163,12 +163,17 @@ type TrackDiff struct {
 	DisplayMarkup string        `codec:"displayMarkup"`
 }
 
+type RemoteProof struct {
+	ProofType     int    `codec:"proofType"`
+	Key           string `codec:"key"`
+	Value         string `codec:"value"`
+	DisplayMarkup string `codec:"displayMarkup"`
+}
+
 type IdentifyRow struct {
-	RowId         int        `codec:"rowId"`
-	Key           string     `codec:"key"`
-	Value         string     `codec:"value"`
-	DisplayMarkup string     `codec:"displayMarkup"`
-	TrackDiff     *TrackDiff `codec:"trackDiff,omitempty"`
+	RowId     int         `codec:"rowId"`
+	Proof     RemoteProof `codec:"proof"`
+	TrackDiff *TrackDiff  `codec:"trackDiff,omitempty"`
 }
 
 type IdentifyKey struct {
