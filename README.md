@@ -3,8 +3,9 @@
 ## Install
 
 ```sh
-# Install CocoaPods
+# Install CocoaPods (if not installed)
 sudo gem install cocoapods
+pod setup
 
 # Generate workspace
 pod install
