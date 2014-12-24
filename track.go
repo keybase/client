@@ -70,7 +70,10 @@ func (h *TrackHandler) IdentifyCheck(arg *keybase_1.IdentifyCheckArg, res *keyba
 	var err error 
 	if sess == nil {
 		err = BadTrackSessionError{arg.SessionId}
-	}	
+	} else {
+		p := <- sess.checks[arg.RowId]
+		res.Body = &p
+	}
 	res.Status = libkb.ExportErrorAsStatus(err)
 	return nil	
 }

@@ -11,10 +11,13 @@ type IdentifyResOrError struct {
 	err error
 }
 
+type CheckResChan chan keybase_1.IdentifyCheckResBody
+
 type RemoteTrackUI struct {
 	them *libkb.User
 	body keybase_1.IdentifyStartResBody
 	ch chan IdentifyResOrError
+	checks []CheckResChan
 }
 
 func NewRemoteTrackUI(u *libkb.User) *RemoteTrackUI {
@@ -24,10 +27,12 @@ func NewRemoteTrackUI(u *libkb.User) *RemoteTrackUI {
 	}
 }
 
-func (u *RemoteTrackUI) FinishWebProofCheck(*libkb.WebProofChainLink, libkb.LinkCheckResult) {
+func (u *RemoteTrackUI) FinishWebProofCheck(link *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
+	u.checks[lcr.GetPosition()] <- lcr.ExportToIdentifyCheckResBody()
 	return
 }
-func (u *RemoteTrackUI) FinishSocialProofCheck(*libkb.SocialProofChainLink, libkb.LinkCheckResult) {
+func (u *RemoteTrackUI) FinishSocialProofCheck(link *libkb.SocialProofChainLink, lcr libkb.LinkCheckResult) {
+	u.checks[lcr.GetPosition()] <- lcr.ExportToIdentifyCheckResBody()
 	return
 }
 func (u *RemoteTrackUI) FinishAndPrompt(*libkb.IdentifyRes) (ti libkb.TrackInstructions, err error) {
@@ -54,8 +59,10 @@ func (u *RemoteTrackUI) Start() {
 }
 
 func (u *RemoteTrackUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
+	u.checks = make([]CheckResChan, len(res.ProofChecks))
 	for i, r := range res.ProofChecks {
 		u.body.Proofs = append(u.body.Proofs, r.ExportToIdentifyRow(i))
+		u.checks[i] = make(CheckResChan)
 	}
 	u.ch <- IdentifyResOrError{ body : &u.body }
 }
