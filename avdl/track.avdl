@@ -21,11 +21,16 @@ protocol track {
 		string displayMarkup;
 	}
 
-	record IdentifyRow {
-		int rowId;
+	record RemoteProof struct {
+		int proofType;
 		string key;
 		string value;
 		string displayMarkup;
+	}
+
+	record IdentifyRow {
+		int rowId;
+		RemoteProof proof;
 		union { null, TrackDiff } trackDiff;
 	}
 
