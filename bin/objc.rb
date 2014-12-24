@@ -67,6 +67,9 @@ paths.each do |path|
   file = File.read(path)
   h = JSON.parse(file)
 
+  protocol = h["protocol"]
+  namespace = h["namespace"]
+
   h["types"].each do |type|
     next if (defined_types.include?(type["name"]))
     defined_types << type["name"]
@@ -99,8 +102,8 @@ paths.each do |path|
   end
 
 
-  header << "@interface KBR#{h["protocol"].capitalize} : KBRRequest"
-  impl << "@implementation KBR#{h["protocol"].capitalize}"
+  header << "@interface KBR#{protocol.capitalize} : KBRRequest"
+  impl << "@implementation KBR#{protocol.capitalize}"
 
   h["messages"].each do |method, mparam|
     request_params = mparam["request"]
@@ -130,10 +133,9 @@ paths.each do |path|
       "#{name}:(#{objc_for_type(param["type"], enums)})#{param["name"]}"
     end
 
-    # Uncapitalize
-    method = method[0, 1].downcase + method[1..-1]
-
-    objc_method = "- (void)#{method}#{params_str.join(" ")}"
+    rpc_method = "#{namespace}.#{protocol}.#{method}"
+    dc_method = method[0, 1].downcase + method[1..-1] # Uncapitalize
+    objc_method = "- (void)#{dc_method}#{params_str.join(" ")}"
 
     header << "#{objc_method};\n"
     impl << "#{objc_method} {"
@@ -148,7 +150,11 @@ paths.each do |path|
 
     impl << "
   NSDictionary *params = @{#{request_dict.join(", ")}};
-  [self.client sendRequestWithMethod:@\"#{method}\" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     #{callback}
   }];"
 

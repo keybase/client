@@ -20,7 +20,11 @@
 - (void)getCurrentStatus:(void (^)(NSError *error, KBGetCurrentStatusRes * getCurrentStatusRes))completion {
 
   NSDictionary *params = @{};
-  [self.client sendRequestWithMethod:@"getCurrentStatus" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.config.GetCurrentStatus" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBGetCurrentStatusRes *result = [MTLJSONAdapter modelOfClass:KBGetCurrentStatusRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -40,7 +44,11 @@
 - (void)passphraseLoginWithPassphrase:(NSString *)passphrase completion:(void (^)(NSError *error, KBLoginRes * loginRes))completion {
 
   NSDictionary *params = @{@"passphrase": passphrase};
-  [self.client sendRequestWithMethod:@"passphraseLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.login.PassphraseLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBLoginRes *result = [MTLJSONAdapter modelOfClass:KBLoginRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -49,7 +57,11 @@
 - (void)pubkeyLogin:(void (^)(NSError *error, KBLoginRes * loginRes))completion {
 
   NSDictionary *params = @{};
-  [self.client sendRequestWithMethod:@"pubkeyLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.login.PubkeyLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBLoginRes *result = [MTLJSONAdapter modelOfClass:KBLoginRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -58,7 +70,11 @@
 - (void)logout:(void (^)(NSError *error, KBStatus * status))completion {
 
   NSDictionary *params = @{};
-  [self.client sendRequestWithMethod:@"logout" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.login.Logout" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -67,7 +83,11 @@
 - (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion {
 
   NSDictionary *params = @{@"username": username};
-  [self.client sendRequestWithMethod:@"switchUser" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.login.SwitchUser" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -87,7 +107,11 @@
 - (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion {
 
   NSDictionary *params = @{@"username": username};
-  [self.client sendRequestWithMethod:@"checkUsernameAvailable" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.signup.CheckUsernameAvailable" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -96,7 +120,11 @@
 - (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBSignupRes * signupRes))completion {
 
   NSDictionary *params = @{@"email": email, @"inviteCode": inviteCode, @"passphrase": passphrase, @"username": username};
-  [self.client sendRequestWithMethod:@"signup" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.signup.Signup" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBSignupRes *result = [MTLJSONAdapter modelOfClass:KBSignupRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -105,7 +133,11 @@
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error, KBStatus * status))completion {
 
   NSDictionary *params = @{@"email": email, @"fullname": fullname, @"notes": notes};
-  [self.client sendRequestWithMethod:@"inviteRequest" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.signup.InviteRequest" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -149,7 +181,11 @@
 - (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
 
   NSDictionary *params = @{};
-  [self.client sendRequestWithMethod:@"identifySelfStart" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifySelfStart" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBIdentifyStartRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyStartRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -158,7 +194,11 @@
 - (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
 
   NSDictionary *params = @{@"username": username};
-  [self.client sendRequestWithMethod:@"identifyStart" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyStart" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBIdentifyStartRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyStartRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -167,7 +207,11 @@
 - (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion {
 
   NSDictionary *params = @{@"sessionId": @(sessionId), @"rowId": @(rowId)};
-  [self.client sendRequestWithMethod:@"identifyCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBIdentifyCheckRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyCheckRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
@@ -176,7 +220,11 @@
 - (void)identifyFinishWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyFinishRes * identifyFinishRes))completion {
 
   NSDictionary *params = @{@"sessionId": @(sessionId)};
-  [self.client sendRequestWithMethod:@"identifyFinish" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyFinish" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     KBIdentifyFinishRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyFinishRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
