@@ -18,6 +18,8 @@
 		00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C61A41447800319401 /* KBRPClientTest.m */; };
 		00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
 		00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
+		00D61B991A4B755300EEA254 /* KBConnectWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807DA1A48D4890038BC63 /* KBConnectWindowController.m */; };
+		00D61B9A1A4B755B00EEA254 /* KBConnect.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807D31A48CDC70038BC63 /* KBConnect.xib */; };
 		00F807D41A48CDC70038BC63 /* KBConnect.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807D31A48CDC70038BC63 /* KBConnect.xib */; };
 		00F807DC1A48D4890038BC63 /* KBConnectWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807DA1A48D4890038BC63 /* KBConnectWindowController.m */; };
 		00F807E11A4A21CC0038BC63 /* KBView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807DF1A4A21CC0038BC63 /* KBView.m */; };
@@ -357,6 +359,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00F808021A4A5AE20038BC63 /* KBSignup.xib in Resources */,
+				00D61B9A1A4B755B00EEA254 /* KBConnect.xib in Resources */,
 				00F808051A4A5DFD0038BC63 /* KBKeyGen.xib in Resources */,
 				00F807FF1A4A57BF0038BC63 /* KBLogin.xib in Resources */,
 			);
@@ -463,6 +466,7 @@
 				00F807E21A4A21CC0038BC63 /* KBView.m in Sources */,
 				3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */,
 				004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */,
+				00D61B991A4B755300EEA254 /* KBConnectWindowController.m in Sources */,
 				00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */,
 				00F807F41A4A4AF50038BC63 /* KBLoginViewController.m in Sources */,
 				00F807E81A4A40E80038BC63 /* GRNavigationController.m in Sources */,
