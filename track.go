@@ -1,26 +1,25 @@
-
 package main
 
 import (
-	"github.com/keybase/protocol/go"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"net"
 	"sync"
 	"time"
 )
 
 type TrackHandler struct {
-	conn net.Conn
-	mutex *sync.Mutex
-	sessions map[int](*RemoteTrackUI)
+	conn      net.Conn
+	mutex     *sync.Mutex
+	sessions  map[int](*RemoteTrackUI)
 	sessionId int
 }
 
 func NewTrackHandler() *TrackHandler {
 	return &TrackHandler{
-		mutex : new(sync.Mutex),
-		sessions : make(map[int](*RemoteTrackUI)),
-		sessionId : 0,
+		mutex:     new(sync.Mutex),
+		sessions:  make(map[int](*RemoteTrackUI)),
+		sessionId: 0,
 	}
 }
 
@@ -67,15 +66,15 @@ func (h *TrackHandler) lookupSession(i int) *RemoteTrackUI {
 
 func (h *TrackHandler) IdentifyCheck(arg *keybase_1.IdentifyCheckArg, res *keybase_1.IdentifyCheckRes) error {
 	sess := h.lookupSession(arg.SessionId)
-	var err error 
+	var err error
 	if sess == nil {
 		err = BadTrackSessionError{arg.SessionId}
 	} else {
-		p := <- sess.checks[arg.RowId]
+		p := <-sess.checks[arg.RowId]
 		res.Body = &p
 	}
 	res.Status = libkb.ExportErrorAsStatus(err)
-	return nil	
+	return nil
 }
 
 func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartRes) {
@@ -85,16 +84,16 @@ func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartR
 
 func (h *TrackHandler) identify(them, me *libkb.User, self bool, res *keybase_1.IdentifyStartRes) {
 	ui, sid := h.getNewUI(them)
-	go func(){
+	go func() {
 		var err error
 		if self {
 			_, err = me.IdentifySelf(ui)
 		} else {
-			_, err = them.Identify(libkb.IdentifyArg{ Ui : ui, Me : me })
+			_, err = them.Identify(libkb.IdentifyArg{Ui: ui, Me: me})
 		}
-		ui.ch <- IdentifyStartResOrError { err : err }
+		ui.ch <- IdentifyStartResOrError{err: err}
 	}()
-	go func(){
+	go func() {
 		time.Sleep(libkb.TRACK_SESSION_TIMEOUT)
 		h.killSession(sid)
 	}()
@@ -117,4 +116,3 @@ func (h *TrackHandler) identify(them, me *libkb.User, self bool, res *keybase_1.
 
 	return
 }
-

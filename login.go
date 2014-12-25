@@ -1,9 +1,8 @@
-
 package main
 
 import (
-	"github.com/keybase/protocol/go"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"net"
 )
 

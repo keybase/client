@@ -1,9 +1,8 @@
-
 package main
 
 import (
-	"github.com/keybase/protocol/go"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"net"
 )
 
@@ -17,14 +16,13 @@ func (h SignupHandler) CheckUsernameAvailable(username *string, res *keybase_1.S
 	return nil
 }
 
-
 func (h SignupHandler) Signup(arg *keybase_1.SignupArg, res *keybase_1.SignupRes) error {
 	eng := libkb.NewSignupEngine()
 	seres := eng.Run(libkb.SignupEngineRunArg{
-		Username : arg.Username,
-		Email : arg.Email,
-		InviteCode : arg.InviteCode,
-		Passphrase : arg.Passphrase,
+		Username:   arg.Username,
+		Email:      arg.Email,
+		InviteCode: arg.InviteCode,
+		Passphrase: arg.Passphrase,
 	})
 	res.Status = libkb.ExportErrorAsStatus(seres.Error)
 	res.Body.PassphraseOk = seres.PassphraseOk
@@ -35,10 +33,9 @@ func (h SignupHandler) Signup(arg *keybase_1.SignupArg, res *keybase_1.SignupRes
 
 func (h SignupHandler) InviteRequest(arg *keybase_1.InviteRequestArg, res *keybase_1.Status) error {
 	err := libkb.PostInviteRequest(libkb.InviteRequestArg{
-		Email : arg.Email,
-		Fullname : arg.Fullname,
-		Notes : arg.Notes,
-
+		Email:    arg.Email,
+		Fullname: arg.Fullname,
+		Notes:    arg.Notes,
 	})
 	*res = libkb.ExportErrorAsStatus(err)
 	return nil

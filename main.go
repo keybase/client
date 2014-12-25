@@ -5,12 +5,12 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
-    "github.com/ugorji/go/codec"
-    fmprpc "github.com/maxtaco/go-framed-msgpack-rpc"
-	"os"
+	"github.com/keybase/protocol/go"
+	fmprpc "github.com/maxtaco/go-framed-msgpack-rpc"
+	"github.com/ugorji/go/codec"
 	"net"
 	"net/rpc"
-	"github.com/keybase/protocol/go"
+	"os"
 )
 
 // Keep this around to simplify things
@@ -53,7 +53,7 @@ func (d *Daemon) ListenLoop() (err error) {
 	if l, err = G.BindToSocket(); err != nil {
 		return
 	}
-	G.PushShutdownHook(func() error{
+	G.PushShutdownHook(func() error {
 		G.Log.Info("Closing socket")
 		return l.Close()
 	})
@@ -73,12 +73,12 @@ func (v *Daemon) ParseArgv(ctx *cli.Context) error {
 }
 
 func (d *Daemon) GetUsage() libkb.Usage {
-	return libkb.Usage {
-		Config : true,
-		KbKeyring : true,
-		GpgKeyring : true,
-		API : true,
-		Socket : true,
+	return libkb.Usage{
+		Config:     true,
+		KbKeyring:  true,
+		GpgKeyring: true,
+		API:        true,
+		Socket:     true,
 	}
 }
 
@@ -94,7 +94,6 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 	}
 	return cl, cmd, nil
 }
-
 
 func main() {
 	libcmdline.Main(parseArgs, nil)

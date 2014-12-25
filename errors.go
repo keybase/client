@@ -1,14 +1,13 @@
-
 package main
 
 import (
-	"github.com/keybase/protocol/go"
-	"github.com/keybase/go-libkb"
 	"fmt"
+	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 )
 
 type BadTrackSessionError struct {
-	i int	
+	i int
 }
 
 func (e BadTrackSessionError) Error() string {
@@ -16,10 +15,9 @@ func (e BadTrackSessionError) Error() string {
 }
 
 func (e BadTrackSessionError) ToStatus() keybase_1.Status {
-	return keybase_1.Status {
-		Code : libkb.SC_BAD_TRACK_SESSION,
-		Name : "BAD_TRACK_SESISON",
-		Desc : fmt.Sprintf("Track session %d wasn't found", e.i),
-	}	
+	return keybase_1.Status{
+		Code: libkb.SC_BAD_TRACK_SESSION,
+		Name: "BAD_TRACK_SESISON",
+		Desc: fmt.Sprintf("Track session %d wasn't found", e.i),
+	}
 }
-
