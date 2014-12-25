@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/protocol/go"
 )
 
-type IdentifyResOrError struct {
+type IdentifyStartResOrError struct {
 	body *keybase_1.IdentifyStartResBody
 	err error
 }
@@ -16,14 +16,14 @@ type CheckResChan chan keybase_1.IdentifyCheckResBody
 type RemoteTrackUI struct {
 	them *libkb.User
 	body keybase_1.IdentifyStartResBody
-	ch chan IdentifyResOrError
+	ch chan IdentifyStartResOrError
 	checks []CheckResChan
 }
 
 func NewRemoteTrackUI(u *libkb.User) *RemoteTrackUI {
 	return &RemoteTrackUI{
 		them : u,
-		ch : make(chan IdentifyResOrError),
+		ch : make(chan IdentifyStartResOrError),
 	}
 }
 
@@ -64,5 +64,5 @@ func (u *RemoteTrackUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
 		u.body.Proofs = append(u.body.Proofs, r.ExportToIdentifyRow(i))
 		u.checks[i] = make(CheckResChan)
 	}
-	u.ch <- IdentifyResOrError{ body : &u.body }
+	u.ch <- IdentifyStartResOrError{ body : &u.body }
 }

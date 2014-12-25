@@ -79,10 +79,20 @@ func (h *TrackHandler) IdentifyCheck(arg *keybase_1.IdentifyCheckArg, res *keyba
 }
 
 func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartRes) {
-	ui, sid := h.getNewUI(u)
+	h.identify(nil, u, true, res)
+	return
+}
+
+func (h *TrackHandler) identify(them, me *libkb.User, self bool, res *keybase_1.IdentifyStartRes) {
+	ui, sid := h.getNewUI(them)
 	go func(){
-		_, err := u.IdentifySelf(ui)
-		ui.ch <- IdentifyResOrError { err : err }
+		var err error
+		if self {
+			_, err = me.IdentifySelf(ui)
+		} else {
+			_, err = them.Identify(libkb.IdentifyArg{ Ui : ui, Me : me })
+		}
+		ui.ch <- IdentifyStartResOrError { err : err }
 	}()
 	go func(){
 		time.Sleep(libkb.TRACK_SESSION_TIMEOUT)
