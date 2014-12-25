@@ -182,7 +182,7 @@
 @end
 
 @implementation KBIdentifyFinishResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"numTrackFailures": @"numTrackFailures", @"numTrackChanges": @"numTrackChanges", @"numProofFailures": @"numProofFailures", @"numDeleted": @"numDeleted", @"numProofSuccessed": @"numProofSuccessed" }; }
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"numTrackFailures": @"numTrackFailures", @"numTrackChanges": @"numTrackChanges", @"numProofFailures": @"numProofFailures", @"numDeleted": @"numDeleted", @"numProofSuccesses": @"numProofSuccesses" }; }
 @end
 
 @implementation KBIdentifyFinishRes

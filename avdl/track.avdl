@@ -76,7 +76,7 @@ protocol track {
 		int numTrackChanges;
 		int numProofFailures;
 		int numDeleted;
-		int numProofSuccessed;
+		int numProofSuccesses;
 	}
 
 	record IdentifyFinishRes {

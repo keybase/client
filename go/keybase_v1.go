@@ -218,7 +218,7 @@ type IdentifyFinishResBody struct {
 	NumTrackChanges   int `codec:"numTrackChanges"`
 	NumProofFailures  int `codec:"numProofFailures"`
 	NumDeleted        int `codec:"numDeleted"`
-	NumProofSuccessed int `codec:"numProofSuccessed"`
+	NumProofSuccesses int `codec:"numProofSuccesses"`
 }
 
 type IdentifyFinishRes struct {

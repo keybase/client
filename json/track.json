@@ -173,7 +173,7 @@
       "name" : "numDeleted",
       "type" : "int"
     }, {
-      "name" : "numProofSuccessed",
+      "name" : "numProofSuccesses",
       "type" : "int"
     } ]
   }, {

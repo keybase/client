@@ -141,7 +141,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property NSInteger numTrackChanges;
 @property NSInteger numProofFailures;
 @property NSInteger numDeleted;
-@property NSInteger numProofSuccessed;
+@property NSInteger numProofSuccesses;
 @end
 
 @interface KBIdentifyFinishRes : KBRObject
