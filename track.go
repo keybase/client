@@ -96,7 +96,6 @@ func (h *TrackHandler) IdentifyFinish(sessionId *int, res *keybase_1.IdentifyFin
 	return nil
 }
 
-
 func (h *TrackHandler) identify(them, me *libkb.User, self bool, res *keybase_1.IdentifyStartRes) {
 	ui, sid := h.getNewUI(them)
 	go func() {
@@ -126,7 +125,6 @@ func (h *TrackHandler) identify(them, me *libkb.User, self bool, res *keybase_1.
 		res.Body = ioe.body
 		res.Body.SessionId = sid
 	}
-
 
 	return
 }

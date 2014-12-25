@@ -22,9 +22,9 @@ type RemoteTrackUI struct {
 
 func NewRemoteTrackUI(u *libkb.User) *RemoteTrackUI {
 	return &RemoteTrackUI{
-		them: u,
-		ch:   make(chan IdentifyStartResOrError),
-		finish : make(chan keybase_1.IdentifyFinishResBody),
+		them:   u,
+		ch:     make(chan IdentifyStartResOrError),
+		finish: make(chan keybase_1.IdentifyFinishResBody),
 	}
 }
 
