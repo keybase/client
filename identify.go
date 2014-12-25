@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/keybase/protocol/go"
 	"strings"
 	"sync"
 )
@@ -40,6 +41,15 @@ type IdentifyRes struct {
 	TrackUsed   *TrackLookup
 	TrackEqual  bool // Whether the track statement was equal to what we saw
 	MeSet       bool // whether me was set at the time
+}
+
+func (i IdentifyRes) ExportToIdentifyFinishResBody() (res keybase_1.IdentifyFinishResBody) {
+	res.NumTrackFailures = i.NumTrackFailures()
+	res.NumTrackChanges = i.NumTrackChanges()
+	res.NumProofFailures = i.NumProofFailures()
+	res.NumDeleted = i.NumDeleted()
+	res.NumProofSuccesses = i.NumProofSuccesses()
+	return
 }
 
 func (i IdentifyRes) NumDeleted() int {
