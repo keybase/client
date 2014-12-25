@@ -213,7 +213,7 @@ type IdentifyCheckRes struct {
 	Body   *IdentifyCheckResBody `codec:"body,omitempty"`
 }
 
-type IdentifyFinishResBody struct {
+type IdentifyWaitResBody struct {
 	NumTrackFailures  int `codec:"numTrackFailures"`
 	NumTrackChanges   int `codec:"numTrackChanges"`
 	NumProofFailures  int `codec:"numProofFailures"`
@@ -221,9 +221,9 @@ type IdentifyFinishResBody struct {
 	NumProofSuccesses int `codec:"numProofSuccesses"`
 }
 
-type IdentifyFinishRes struct {
-	Status Status                 `codec:"status"`
-	Body   *IdentifyFinishResBody `codec:"body,omitempty"`
+type IdentifyWaitRes struct {
+	Status Status               `codec:"status"`
+	Body   *IdentifyWaitResBody `codec:"body,omitempty"`
 }
 
 type IdentifySelfStartArg struct {
@@ -234,11 +234,19 @@ type IdentifyCheckArg struct {
 	RowId     int `codec:"rowId"`
 }
 
+type IdentifyFinishArg struct {
+	SessionId     int    `codec:"sessionId"`
+	DoRemoteTrack bool   `codec:"doRemoteTrack"`
+	DoLocalTrack  bool   `codec:"doLocalTrack"`
+	Status        Status `codec:"status"`
+}
+
 type TrackInterface interface {
 	IdentifySelfStart(arg *IdentifySelfStartArg, res *IdentifyStartRes) error
 	IdentifyStart(username *string, res *IdentifyStartRes) error
 	IdentifyCheck(arg *IdentifyCheckArg, res *IdentifyCheckRes) error
-	IdentifyFinish(sessionId *int, res *IdentifyFinishRes) error
+	IdentifyWait(sessionId *int, res *IdentifyWaitRes) error
+	IdentifyFinish(arg *IdentifyFinishArg, res *Status) error
 }
 
 func RegisterTrack(server *rpc.Server, i TrackInterface) error {
@@ -261,6 +269,10 @@ func (c TrackClient) IdentifyCheck(arg IdentifyCheckArg, res *IdentifyCheckRes) 
 	return c.Cli.Call("keybase.1.track.IdentifyCheck", arg, res)
 }
 
-func (c TrackClient) IdentifyFinish(sessionId int, res *IdentifyFinishRes) error {
-	return c.Cli.Call("keybase.1.track.IdentifyFinish", sessionId, res)
+func (c TrackClient) IdentifyWait(sessionId int, res *IdentifyWaitRes) error {
+	return c.Cli.Call("keybase.1.track.IdentifyWait", sessionId, res)
+}
+
+func (c TrackClient) IdentifyFinish(arg IdentifyFinishArg, res *Status) error {
+	return c.Cli.Call("keybase.1.track.IdentifyFinish", arg, res)
 }

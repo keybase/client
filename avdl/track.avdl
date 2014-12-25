@@ -71,7 +71,7 @@ protocol track {
 		union { null, IdentifyCheckResBody } body;
 	}
 
-	record IdentifyFinishResBody {
+	record IdentifyWaitResBody {
 		int numTrackFailures;
 		int numTrackChanges;
 		int numProofFailures;
@@ -79,13 +79,14 @@ protocol track {
 		int numProofSuccesses;
 	}
 
-	record IdentifyFinishRes {
+	record IdentifyWaitRes {
 		Status status;
-		union { null, IdentifyFinishResBody } body;
+		union { null, IdentifyWaitResBody } body;
 	}
 
 	IdentifyStartRes IdentifySelfStart();
 	IdentifyStartRes IdentifyStart(string username);
 	IdentifyCheckRes IdentifyCheck(int sessionId, int rowId);
-	IdentifyFinishRes IdentifyFinish(int sessionId);
+	IdentifyWaitRes IdentifyWait(int sessionId);
+	Status IdentifyFinish(int sessionId, boolean doRemoteTrack, boolean doLocalTrack, Status status);
 }

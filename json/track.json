@@ -159,7 +159,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "IdentifyFinishResBody",
+    "name" : "IdentifyWaitResBody",
     "fields" : [ {
       "name" : "numTrackFailures",
       "type" : "int"
@@ -178,13 +178,13 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "IdentifyFinishRes",
+    "name" : "IdentifyWaitRes",
     "fields" : [ {
       "name" : "status",
       "type" : "Status"
     }, {
       "name" : "body",
-      "type" : [ "null", "IdentifyFinishResBody" ]
+      "type" : [ "null", "IdentifyWaitResBody" ]
     } ]
   } ],
   "messages" : {
@@ -209,12 +209,28 @@
       } ],
       "response" : "IdentifyCheckRes"
     },
-    "IdentifyFinish" : {
+    "IdentifyWait" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"
       } ],
-      "response" : "IdentifyFinishRes"
+      "response" : "IdentifyWaitRes"
+    },
+    "IdentifyFinish" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "doRemoteTrack",
+        "type" : "boolean"
+      }, {
+        "name" : "doLocalTrack",
+        "type" : "boolean"
+      }, {
+        "name" : "status",
+        "type" : "Status"
+      } ],
+      "response" : "Status"
     }
   }
 }

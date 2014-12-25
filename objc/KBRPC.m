@@ -181,11 +181,11 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
 @end
 
-@implementation KBIdentifyFinishResBody
+@implementation KBIdentifyWaitResBody
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"numTrackFailures": @"numTrackFailures", @"numTrackChanges": @"numTrackChanges", @"numProofFailures": @"numProofFailures", @"numDeleted": @"numDeleted", @"numProofSuccesses": @"numProofSuccesses" }; }
 @end
 
-@implementation KBIdentifyFinishRes
+@implementation KBIdentifyWaitRes
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
 @end
 
@@ -229,15 +229,28 @@
   }];
 }
 
-- (void)identifyFinishWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyFinishRes * identifyFinishRes))completion {
+- (void)identifyWaitWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyWaitRes * identifyWaitRes))completion {
 
   NSDictionary *params = @{@"sessionId": @(sessionId)};
+  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyWait" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBIdentifyWaitRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyWaitRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)identifyFinishWithSessionid:(NSInteger )sessionId doRemoteTrack:(BOOL )doRemoteTrack doLocalTrack:(BOOL )doLocalTrack status:(KBStatus *)status completion:(void (^)(NSError *error, KBStatus * status))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"doRemoteTrack": @(doRemoteTrack), @"doLocalTrack": @(doLocalTrack), @"status": KBRValue(status)};
   [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyFinish" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBIdentifyFinishRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyFinishRes.class fromJSONDictionary:dict error:&error];
+    KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
 }

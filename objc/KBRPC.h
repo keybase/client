@@ -136,7 +136,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property KBIdentifyCheckResBody *body;
 @end
 
-@interface KBIdentifyFinishResBody : KBRObject
+@interface KBIdentifyWaitResBody : KBRObject
 @property NSInteger numTrackFailures;
 @property NSInteger numTrackChanges;
 @property NSInteger numProofFailures;
@@ -144,9 +144,9 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property NSInteger numProofSuccesses;
 @end
 
-@interface KBIdentifyFinishRes : KBRObject
+@interface KBIdentifyWaitRes : KBRObject
 @property KBStatus *status;
-@property KBIdentifyFinishResBody *body;
+@property KBIdentifyWaitResBody *body;
 @end
 
 @interface KBRTrack : KBRRequest
@@ -156,6 +156,8 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
 
-- (void)identifyFinishWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyFinishRes * identifyFinishRes))completion;
+- (void)identifyWaitWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyWaitRes * identifyWaitRes))completion;
+
+- (void)identifyFinishWithSessionid:(NSInteger )sessionId doRemoteTrack:(BOOL )doRemoteTrack doLocalTrack:(BOOL )doLocalTrack status:(KBStatus *)status completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 @end
