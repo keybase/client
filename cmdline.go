@@ -10,7 +10,8 @@ import (
 type Command interface {
 	libkb.Command
 	ParseArgv(*cli.Context) error // A command-specific parse-args
-	Run() error                   // Actually run the command (finally!)
+	Run() error         // Actually run the command (finally!)
+	RunClient() error             // Run in client mode
 }
 
 type CommandLine struct {
@@ -151,6 +152,8 @@ func (c *CmdBaseHelp) ParseArgv(*cli.Context) error { return nil }
 type CmdGeneralHelp struct {
 	CmdBaseHelp
 }
+
+func (c *CmdBaseHelp) RunClient() error { return c.Run() }
 
 func (c *CmdBaseHelp) Run() error {
 	cli.ShowAppHelp(c.ctx)

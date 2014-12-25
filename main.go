@@ -12,12 +12,12 @@ var G = &libkb.G
 
 type parseArgHook func() (libkb.CommandLine, Command, error)
 
-func Main(parseArgs parseArgHook, ui libkb.UI) {
+func Main(parseArgs parseArgHook, ui libkb.UI, canBeClient bool) {
 	G.Init()
 	G.SetUI(ui)
 
 	go HandleSignals()
-	err := main2(parseArgs)
+	err := main2(parseArgs, canBeClient)
 	e2 := G.Shutdown()
 	if err == nil {
 		err = e2
@@ -28,7 +28,7 @@ func Main(parseArgs parseArgHook, ui libkb.UI) {
 	}
 }
 
-func main2(parseArgs parseArgHook) error {
+func main2(parseArgs parseArgHook, canBeClient bool) error {
 
 	cmdline, cmd, err := parseArgs()
 	if cmd == nil || err != nil {
@@ -39,7 +39,12 @@ func main2(parseArgs parseArgHook) error {
 		return err
 	}
 
-	return cmd.Run()
+	if G.Env.GetStandalone() || !canBeClient {
+		err = cmd.Run()
+	} else {
+		err = cmd.RunClient()
+	}
+	return err
 }
 
 
