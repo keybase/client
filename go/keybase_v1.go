@@ -203,7 +203,7 @@ type ProofStatus struct {
 }
 
 type IdentifyCheckResBody struct {
-	Status          ProofStatus `codec:"status"`
+	ProofStatus     ProofStatus `codec:"proofStatus"`
 	CachedTimestamp int         `codec:"cachedTimestamp"`
 	TrackDiff       *TrackDiff  `codec:"trackDiff,omitempty"`
 }

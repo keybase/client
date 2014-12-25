@@ -174,7 +174,7 @@
 @end
 
 @implementation KBIdentifyCheckResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"cachedTimestamp": @"cachedTimestamp", @"trackDiff": @"trackDiff" }; }
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofStatus": @"proofStatus", @"cachedTimestamp": @"cachedTimestamp", @"trackDiff": @"trackDiff" }; }
 @end
 
 @implementation KBIdentifyCheckRes

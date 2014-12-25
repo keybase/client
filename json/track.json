@@ -138,7 +138,7 @@
     "type" : "record",
     "name" : "IdentifyCheckResBody",
     "fields" : [ {
-      "name" : "status",
+      "name" : "proofStatus",
       "type" : "ProofStatus"
     }, {
       "name" : "cachedTimestamp",

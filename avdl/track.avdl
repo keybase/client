@@ -61,7 +61,7 @@ protocol track {
 	}
 	
 	record IdentifyCheckResBody {
-		ProofStatus status;
+		ProofStatus proofStatus;
 		int cachedTimestamp;
 		union { null, TrackDiff } trackDiff;
 	}

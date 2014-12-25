@@ -126,7 +126,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @end
 
 @interface KBIdentifyCheckResBody : KBRObject
-@property KBProofStatus *status;
+@property KBProofStatus *proofStatus;
 @property NSInteger cachedTimestamp;
 @property KBTrackDiff *trackDiff;
 @end
