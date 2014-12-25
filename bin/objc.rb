@@ -113,7 +113,7 @@ paths.each do |path|
       if is_primitive_type(p["type"])
         "@\"#{p["name"]}\": @(#{p["name"]})"
       else
-        "@\"#{p["name"]}\": #{p["name"]}"
+        "@\"#{p["name"]}\": KBRValue(#{p["name"]})"
       end
     end
 
