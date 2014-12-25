@@ -82,7 +82,7 @@ func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartR
 	return
 }
 
-func (h *TrackHandler) IdentifyFinish(sessionId *int, res *keybase_1.IdentifyFinishRes) error {
+func (h *TrackHandler) IdentifyFinish(sessionId *int, res *keybase_1.IdentifyWaitRes) error {
 	sess := h.lookupSession(*sessionId)
 	var err error
 	if sess == nil {
