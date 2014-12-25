@@ -33,6 +33,10 @@ func (d *Daemon) Handle(c net.Conn) {
 	server.ServeCodec(rpcCodec)
 }
 
+func (d *Daemon) RunClient() (err error) {
+	return fmt.Errorf("can't run daemon in client mode")
+}
+
 func (d *Daemon) Run() (err error) {
 	if err = d.ConfigRpcServer(); err != nil {
 		return
@@ -96,5 +100,5 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 }
 
 func main() {
-	libcmdline.Main(parseArgs, nil)
+	libcmdline.Main(parseArgs, nil, false)
 }
