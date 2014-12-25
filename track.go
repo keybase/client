@@ -82,6 +82,21 @@ func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartR
 	return
 }
 
+func (h *TrackHandler) IdentifyFinish(sessionId *int, res *keybase_1.IdentifyFinishRes) error {
+	sess := h.lookupSession(*sessionId)
+	var err error
+	if sess == nil {
+		err = BadTrackSessionError{*sessionId}
+	} else {
+		p := <-sess.finish
+		res.Body = &p
+		h.killSession(*sessionId)
+	}
+	res.Status = libkb.ExportErrorAsStatus(err)
+	return nil
+}
+
+
 func (h *TrackHandler) identify(them, me *libkb.User, self bool, res *keybase_1.IdentifyStartRes) {
 	ui, sid := h.getNewUI(them)
 	go func() {
@@ -112,7 +127,6 @@ func (h *TrackHandler) identify(them, me *libkb.User, self bool, res *keybase_1.
 		res.Body.SessionId = sid
 	}
 
-	h.killSession(sid)
 
 	return
 }
