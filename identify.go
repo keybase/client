@@ -43,7 +43,7 @@ type IdentifyRes struct {
 	MeSet       bool // whether me was set at the time
 }
 
-func (i IdentifyRes) ExportToIdentifyFinishResBody() (res keybase_1.IdentifyFinishResBody) {
+func (i IdentifyRes) ExportToIdentifyWaitResBody() (res keybase_1.IdentifyWaitResBody) {
 	res.NumTrackFailures = i.NumTrackFailures()
 	res.NumTrackChanges = i.NumTrackChanges()
 	res.NumProofFailures = i.NumProofFailures()
