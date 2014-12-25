@@ -240,6 +240,8 @@ func (s *CmdSigsList) Display() (err error) {
 	return
 }
 
+func (s *CmdSigsList) RunClient() error { return s.Run() }
+
 func (s *CmdSigsList) Run() (err error) {
 
 	// XXX maybe do some sort of debug dump with the user that

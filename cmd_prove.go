@@ -216,6 +216,8 @@ func (v *CmdProve) CheckProofText() error {
 	return v.st.CheckProofText(v.postRes.Text, *v.sigId, v.sig)
 }
 
+func (v *CmdProve) RunClient() (err error) { return v.Run() }
+
 func (v *CmdProve) Run() (err error) {
 
 	if err = v.Login(); err != nil {

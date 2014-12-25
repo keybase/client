@@ -35,6 +35,8 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
+func (v *CmdId) RunClient() error { return v.Run() }
+
 func (v *CmdId) Run() error {
 	if v.luba {
 		return v.RunLuba()

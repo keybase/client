@@ -20,6 +20,8 @@ func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
+func (v *CmdMykeyGen) RunClient() error { return v.Run() }
+
 func (v *CmdMykeyGen) Run() (err error) {
 
 	gen := libkb.NewKeyGen(&v.state.arg)

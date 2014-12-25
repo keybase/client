@@ -222,6 +222,8 @@ func (s *CmdListTracking) Display() (err error) {
 	return
 }
 
+func (s *CmdListTracking) RunClient() error { return s.Run() }
+
 func (s *CmdListTracking) Run() (err error) {
 
 	arg := libkb.LoadUserArg{Self: true}

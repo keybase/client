@@ -370,6 +370,10 @@ func (s *CmdSignupState) RequestInvite() (err error) {
 	return err
 }
 
+func (s *CmdSignupState) RunClient() (err error) {
+	return s.Run()
+}
+
 func (s *CmdSignupState) Run() (err error) {
 	G.Log.Debug("+ CmdSignupState::Run")
 	if err = s.RunSignup(); err == nil {

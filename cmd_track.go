@@ -25,6 +25,8 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
+func (v *CmdTrack) RunClient() error { return v.Run() }
+
 func (v *CmdTrack) Run() error {
 
 	eng := &libkb.TrackEngine{

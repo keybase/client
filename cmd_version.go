@@ -13,6 +13,7 @@ func (v *CmdVersion) Run() error {
 	libkb.VersionMessage(func(s string) { fmt.Println(s) })
 	return nil
 }
+func (v *CmdVersion) RunClient() error { return v.Run() }
 
 func NewCmdVersion(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{

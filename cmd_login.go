@@ -8,6 +8,8 @@ import (
 
 type CmdLogin struct{}
 
+func (v *CmdLogin) RunClient() error { return v.Run() }
+
 func (v *CmdLogin) Run() error {
 	larg := libkb.LoginArg{Prompt: true, Retry: 3}
 	if err := G.LoginState.Login(larg); err != nil {

@@ -61,6 +61,8 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
+func (s *CmdSign) RunClient() (err error) { return s.Run() }
+
 func (s *CmdSign) Run() (err error) {
 	var key *libkb.PgpKeyBundle
 	var dumpTo io.WriteCloser

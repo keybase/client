@@ -22,6 +22,8 @@ func (v *CmdDbCache) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
+func (v *CmdDbCache) RunClient() error { return v.Run() }
+
 func (v *CmdDbCache) Run() error {
 
 	// XXX maybe do some sort of debug dump with the user that
