@@ -881,6 +881,20 @@ func (l LinkCheckResult) ExportToIdentifyCheckResBody() keybase_1.IdentifyCheckR
 	return ret
 }
 
+func (l LinkCheckResult) ExportToProofCheckRes() keybase_1.ProofCheckRes {
+	ret := keybase_1.ProofCheckRes{
+		ProofId:     l.position,
+		ProofStatus: ExportProofError(l.err),
+	}
+	if l.cached != nil {
+		ret.CachedTimestamp = int(l.cached.Time.Unix())
+	}
+	if l.remoteDiff != nil {
+		ret.TrackDiff = ExportTrackDiff(l.remoteDiff)
+	}
+	return ret
+}
+
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
 func (l LinkCheckResult) GetError() error         { return l.err }
 func (l LinkCheckResult) GetHint() *SigHint       { return l.hint }

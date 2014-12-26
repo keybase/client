@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-triplesec"
+	"github.com/keybase/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
@@ -398,4 +399,17 @@ func WriteP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher) (p3skb *P3SKB, er
 		err = G.Keyrings.P3SKB.PushAndSave(p3skb)
 	}
 	return
+}
+
+func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase_1.FOKID) {
+	if fp != nil {
+		b := (*fp)[:]
+		ret.PgpFingerprint = &b
+	}
+	if kid != nil {
+		b := []byte(kid)
+		ret.Kid = &b
+	}
+	return
+
 }
