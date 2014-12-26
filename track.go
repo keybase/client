@@ -15,8 +15,9 @@ type TrackHandler struct {
 	sessionId int
 }
 
-func NewTrackHandler() *TrackHandler {
+func NewTrackHandler(c net.Conn) *TrackHandler {
 	return &TrackHandler{
+		conn:      c,
 		mutex:     new(sync.Mutex),
 		sessions:  make(map[int](*RemoteTrackUI)),
 		sessionId: 0,
@@ -33,6 +34,11 @@ func (h *TrackHandler) IdentifySelfStart(arg *keybase_1.IdentifySelfStartArg, re
 	} else {
 		res.Status = libkb.ExportErrorAsStatus(err)
 	}
+	return nil
+}
+
+func (h *TrackHandler) IdentifyStart(arg *keybase_1.LoadUserArg, res *keybase_1.IdentifyStartRes) error {
+
 	return nil
 }
 
@@ -82,17 +88,34 @@ func (h *TrackHandler) identifySelf(u *libkb.User, res *keybase_1.IdentifyStartR
 	return
 }
 
-func (h *TrackHandler) IdentifyFinish(sessionId *int, res *keybase_1.IdentifyWaitRes) error {
+func (h *TrackHandler) IdentifyWait(sessionId *int, res *keybase_1.IdentifyWaitRes) error {
 	sess := h.lookupSession(*sessionId)
 	var err error
 	if sess == nil {
 		err = BadTrackSessionError{*sessionId}
 	} else {
-		p := <-sess.finish
+		p := <-sess.wait
 		res.Body = &p
-		h.killSession(*sessionId)
 	}
 	res.Status = libkb.ExportErrorAsStatus(err)
+	return nil
+}
+
+func (h *TrackHandler) IdentifyFinish(arg *keybase_1.IdentifyFinishArg, res *keybase_1.Status) error {
+	sess := h.lookupSession(arg.SessionId)
+	var err error
+	if sess == nil {
+		err = BadTrackSessionError{arg.SessionId}
+	} else {
+		sess.finish <- TrackInstructionsAndError{
+			ti:  libkb.TrackInstructions{Local: arg.DoLocalTrack, Remote: arg.DoRemoteTrack},
+			err: libkb.ImportStatusAsError(arg.Status),
+		}
+		isroe := <-sess.ch
+		err = isroe.err
+		h.killSession(arg.SessionId)
+	}
+	*res = libkb.ExportErrorAsStatus(err)
 	return nil
 }
 

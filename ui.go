@@ -10,6 +10,11 @@ type IdentifyStartResOrError struct {
 	err  error
 }
 
+type TrackInstructionsAndError struct {
+	ti  libkb.TrackInstructions
+	err error
+}
+
 type CheckResChan chan keybase_1.IdentifyCheckResBody
 
 type RemoteTrackUI struct {
@@ -17,14 +22,16 @@ type RemoteTrackUI struct {
 	body   keybase_1.IdentifyStartResBody
 	ch     chan IdentifyStartResOrError
 	checks []CheckResChan
-	finish chan keybase_1.IdentifyWaitResBody
+	wait   chan keybase_1.IdentifyWaitResBody
+	finish chan TrackInstructionsAndError
 }
 
 func NewRemoteTrackUI(u *libkb.User) *RemoteTrackUI {
 	return &RemoteTrackUI{
 		them:   u,
 		ch:     make(chan IdentifyStartResOrError),
-		finish: make(chan keybase_1.IdentifyWaitResBody),
+		wait:   make(chan keybase_1.IdentifyWaitResBody),
+		finish: make(chan TrackInstructionsAndError),
 	}
 }
 
@@ -37,7 +44,10 @@ func (u *RemoteTrackUI) FinishSocialProofCheck(link *libkb.SocialProofChainLink,
 	return
 }
 func (u *RemoteTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (ti libkb.TrackInstructions, err error) {
-	u.finish <- res.ExportToIdentifyWaitResBody()
+	u.wait <- res.ExportToIdentifyWaitResBody()
+	tiae := <-u.finish
+	ti = tiae.ti
+	err = tiae.err
 	return
 }
 func (u *RemoteTrackUI) DisplayCryptocurrency(*libkb.CryptocurrencyChainLink) {
