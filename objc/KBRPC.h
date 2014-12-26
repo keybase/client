@@ -82,6 +82,59 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property NSString *desc;
 @end
 
+@interface KBIdentifyStartResBody : KBRObject
+@property NSInteger sessionId;
+@property NSInteger whenLastTracked;
+@property KBIdentifyKey *key;
+@property NSArray *proofs;
+@property NSArray *cryptocurrency;
+@property NSArray *deleted;
+@end
+
+@interface KBIdentifyStartRes : KBRObject
+@property KBStatus *status;
+@property KBIdentifyStartResBody *body;
+@end
+
+@interface KBIdentifyCheckResBody : KBRObject
+@property KBProofStatus *proofStatus;
+@property NSInteger cachedTimestamp;
+@property KBTrackDiff *trackDiff;
+@end
+
+@interface KBIdentifyCheckRes : KBRObject
+@property KBStatus *status;
+@property KBIdentifyCheckResBody *body;
+@end
+
+@interface KBIdentifyWaitResBody : KBRObject
+@property NSInteger numTrackFailures;
+@property NSInteger numTrackChanges;
+@property NSInteger numProofFailures;
+@property NSInteger numDeleted;
+@property NSInteger numProofSuccesses;
+@end
+
+@interface KBIdentifyWaitRes : KBRObject
+@property KBStatus *status;
+@property KBIdentifyWaitResBody *body;
+@end
+
+@interface KBRIdentify : KBRRequest
+- (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
+
+- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
+
+- (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
+
+- (void)identifyWaitWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyWaitRes * identifyWaitRes))completion;
+
+- (void)identifyFinishWithSessionid:(NSInteger )sessionId doRemoteTrack:(BOOL )doRemoteTrack doLocalTrack:(BOOL )doLocalTrack status:(KBStatus *)status completion:(void (^)(NSError *error, KBStatus * status))completion;
+
+- (void)identifySelf:(void (^)(NSError *error, KBStatus * status))completion;
+
+@end
+
 @interface KBStartRes : KBRObject
 @property KBStatus *status;
 @property NSInteger sessionId;
@@ -174,44 +227,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error, KBStatus * status))completion;
 
-@end
-
-@interface KBIdentifyStartResBody : KBRObject
-@property NSInteger sessionId;
-@property NSInteger whenLastTracked;
-@property KBIdentifyKey *key;
-@property NSArray *proofs;
-@property NSArray *cryptocurrency;
-@property NSArray *deleted;
-@end
-
-@interface KBIdentifyStartRes : KBRObject
-@property KBStatus *status;
-@property KBIdentifyStartResBody *body;
-@end
-
-@interface KBIdentifyCheckResBody : KBRObject
-@property KBProofStatus *proofStatus;
-@property NSInteger cachedTimestamp;
-@property KBTrackDiff *trackDiff;
-@end
-
-@interface KBIdentifyCheckRes : KBRObject
-@property KBStatus *status;
-@property KBIdentifyCheckResBody *body;
-@end
-
-@interface KBIdentifyWaitResBody : KBRObject
-@property NSInteger numTrackFailures;
-@property NSInteger numTrackChanges;
-@property NSInteger numProofFailures;
-@property NSInteger numDeleted;
-@property NSInteger numProofSuccesses;
-@end
-
-@interface KBIdentifyWaitRes : KBRObject
-@property KBStatus *status;
-@property KBIdentifyWaitResBody *body;
 @end
 
 @interface KBRTrack : KBRRequest

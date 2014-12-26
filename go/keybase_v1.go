@@ -103,6 +103,103 @@ type ProofStatus struct {
 	Desc   string `codec:"desc"`
 }
 
+type IdentifyStartResBody struct {
+	SessionId       int           `codec:"sessionId"`
+	WhenLastTracked int           `codec:"whenLastTracked"`
+	Key             IdentifyKey   `codec:"key"`
+	Proofs          []IdentifyRow `codec:"proofs"`
+	Cryptocurrency  []IdentifyRow `codec:"cryptocurrency"`
+	Deleted         []TrackDiff   `codec:"deleted"`
+}
+
+type IdentifyStartRes struct {
+	Status Status                `codec:"status"`
+	Body   *IdentifyStartResBody `codec:"body,omitempty"`
+}
+
+type IdentifyCheckResBody struct {
+	ProofStatus     ProofStatus `codec:"proofStatus"`
+	CachedTimestamp int         `codec:"cachedTimestamp"`
+	TrackDiff       *TrackDiff  `codec:"trackDiff,omitempty"`
+}
+
+type IdentifyCheckRes struct {
+	Status Status                `codec:"status"`
+	Body   *IdentifyCheckResBody `codec:"body,omitempty"`
+}
+
+type IdentifyWaitResBody struct {
+	NumTrackFailures  int `codec:"numTrackFailures"`
+	NumTrackChanges   int `codec:"numTrackChanges"`
+	NumProofFailures  int `codec:"numProofFailures"`
+	NumDeleted        int `codec:"numDeleted"`
+	NumProofSuccesses int `codec:"numProofSuccesses"`
+}
+
+type IdentifyWaitRes struct {
+	Status Status               `codec:"status"`
+	Body   *IdentifyWaitResBody `codec:"body,omitempty"`
+}
+
+type IdentifySelfStartArg struct {
+}
+
+type IdentifyCheckArg struct {
+	SessionId int `codec:"sessionId"`
+	RowId     int `codec:"rowId"`
+}
+
+type IdentifyFinishArg struct {
+	SessionId     int    `codec:"sessionId"`
+	DoRemoteTrack bool   `codec:"doRemoteTrack"`
+	DoLocalTrack  bool   `codec:"doLocalTrack"`
+	Status        Status `codec:"status"`
+}
+
+type IdentifySelfArg struct {
+}
+
+type IdentifyInterface interface {
+	IdentifySelfStart(arg *IdentifySelfStartArg, res *IdentifyStartRes) error
+	IdentifyStart(arg *LoadUserArg, res *IdentifyStartRes) error
+	IdentifyCheck(arg *IdentifyCheckArg, res *IdentifyCheckRes) error
+	IdentifyWait(sessionId *int, res *IdentifyWaitRes) error
+	IdentifyFinish(arg *IdentifyFinishArg, res *Status) error
+	IdentifySelf(arg *IdentifySelfArg, res *Status) error
+}
+
+func RegisterIdentify(server *rpc.Server, i IdentifyInterface) error {
+	return server.RegisterName("keybase.1.identify", i)
+}
+
+type IdentifyClient struct {
+	Cli GenericClient
+}
+
+func (c IdentifyClient) IdentifySelfStart(arg IdentifySelfStartArg, res *IdentifyStartRes) error {
+	return c.Cli.Call("keybase.1.identify.IdentifySelfStart", arg, res)
+}
+
+func (c IdentifyClient) IdentifyStart(arg LoadUserArg, res *IdentifyStartRes) error {
+	return c.Cli.Call("keybase.1.identify.IdentifyStart", arg, res)
+}
+
+func (c IdentifyClient) IdentifyCheck(arg IdentifyCheckArg, res *IdentifyCheckRes) error {
+	return c.Cli.Call("keybase.1.identify.IdentifyCheck", arg, res)
+}
+
+func (c IdentifyClient) IdentifyWait(sessionId int, res *IdentifyWaitRes) error {
+	return c.Cli.Call("keybase.1.identify.IdentifyWait", sessionId, res)
+}
+
+func (c IdentifyClient) IdentifyFinish(arg IdentifyFinishArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identify.IdentifyFinish", arg, res)
+}
+
+func (c IdentifyClient) IdentifySelf(arg IdentifySelfArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identify.identifySelf", arg, res)
+}
+
 type StartRes struct {
 	Status    Status `codec:"status"`
 	SessionId int    `codec:"sessionId"`
@@ -322,44 +419,6 @@ func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
 
 func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
 	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
-}
-
-type IdentifyStartResBody struct {
-	SessionId       int           `codec:"sessionId"`
-	WhenLastTracked int           `codec:"whenLastTracked"`
-	Key             IdentifyKey   `codec:"key"`
-	Proofs          []IdentifyRow `codec:"proofs"`
-	Cryptocurrency  []IdentifyRow `codec:"cryptocurrency"`
-	Deleted         []TrackDiff   `codec:"deleted"`
-}
-
-type IdentifyStartRes struct {
-	Status Status                `codec:"status"`
-	Body   *IdentifyStartResBody `codec:"body,omitempty"`
-}
-
-type IdentifyCheckResBody struct {
-	ProofStatus     ProofStatus `codec:"proofStatus"`
-	CachedTimestamp int         `codec:"cachedTimestamp"`
-	TrackDiff       *TrackDiff  `codec:"trackDiff,omitempty"`
-}
-
-type IdentifyCheckRes struct {
-	Status Status                `codec:"status"`
-	Body   *IdentifyCheckResBody `codec:"body,omitempty"`
-}
-
-type IdentifyWaitResBody struct {
-	NumTrackFailures  int `codec:"numTrackFailures"`
-	NumTrackChanges   int `codec:"numTrackChanges"`
-	NumProofFailures  int `codec:"numProofFailures"`
-	NumDeleted        int `codec:"numDeleted"`
-	NumProofSuccesses int `codec:"numProofSuccesses"`
-}
-
-type IdentifyWaitRes struct {
-	Status Status               `codec:"status"`
-	Body   *IdentifyWaitResBody `codec:"body,omitempty"`
 }
 
 type IdentifySelfStartArg struct {

@@ -1,5 +1,5 @@
 {
-  "protocol" : "track",
+  "protocol" : "identify",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -253,6 +253,10 @@
         "name" : "status",
         "type" : "Status"
       } ],
+      "response" : "Status"
+    },
+    "identifySelf" : {
+      "request" : [ ],
       "response" : "Status"
     }
   }

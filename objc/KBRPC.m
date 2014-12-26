@@ -60,6 +60,111 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"state": @"state", @"status": @"status", @"desc": @"desc" }; }
 @end
 
+@implementation KBIdentifyStartResBody
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"sessionId": @"sessionId", @"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
+@end
+
+@implementation KBIdentifyStartRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
+@end
+
+@implementation KBIdentifyCheckResBody
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofStatus": @"proofStatus", @"cachedTimestamp": @"cachedTimestamp", @"trackDiff": @"trackDiff" }; }
+@end
+
+@implementation KBIdentifyCheckRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
+@end
+
+@implementation KBIdentifyWaitResBody
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"numTrackFailures": @"numTrackFailures", @"numTrackChanges": @"numTrackChanges", @"numProofFailures": @"numProofFailures", @"numDeleted": @"numDeleted", @"numProofSuccesses": @"numProofSuccesses" }; }
+@end
+
+@implementation KBIdentifyWaitRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
+@end
+
+@implementation KBRIdentify
+- (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
+
+  NSDictionary *params = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.identify.IdentifySelfStart" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBIdentifyStartRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyStartRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
+
+  NSDictionary *params = @{@"arg": KBRValue(arg)};
+  [self.client sendRequestWithMethod:@"keybase.1.identify.IdentifyStart" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBIdentifyStartRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyStartRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"rowId": @(rowId)};
+  [self.client sendRequestWithMethod:@"keybase.1.identify.IdentifyCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBIdentifyCheckRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyCheckRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)identifyWaitWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyWaitRes * identifyWaitRes))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId)};
+  [self.client sendRequestWithMethod:@"keybase.1.identify.IdentifyWait" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBIdentifyWaitRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyWaitRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)identifyFinishWithSessionid:(NSInteger )sessionId doRemoteTrack:(BOOL )doRemoteTrack doLocalTrack:(BOOL )doLocalTrack status:(KBStatus *)status completion:(void (^)(NSError *error, KBStatus * status))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"doRemoteTrack": @(doRemoteTrack), @"doLocalTrack": @(doLocalTrack), @"status": KBRValue(status)};
+  [self.client sendRequestWithMethod:@"keybase.1.identify.IdentifyFinish" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)identifySelf:(void (^)(NSError *error, KBStatus * status))completion {
+
+  NSDictionary *params = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.identify.identifySelf" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBStartRes
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"sessionId": @"sessionId" }; }
 @end
@@ -298,30 +403,6 @@
   }];
 }
 
-@end
-
-@implementation KBIdentifyStartResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"sessionId": @"sessionId", @"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
-@end
-
-@implementation KBIdentifyStartRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
-@end
-
-@implementation KBIdentifyCheckResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofStatus": @"proofStatus", @"cachedTimestamp": @"cachedTimestamp", @"trackDiff": @"trackDiff" }; }
-@end
-
-@implementation KBIdentifyCheckRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
-@end
-
-@implementation KBIdentifyWaitResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"numTrackFailures": @"numTrackFailures", @"numTrackChanges": @"numTrackChanges", @"numProofFailures": @"numProofFailures", @"numDeleted": @"numDeleted", @"numProofSuccesses": @"numProofSuccesses" }; }
-@end
-
-@implementation KBIdentifyWaitRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
 @end
 
 @implementation KBRTrack
