@@ -62,7 +62,7 @@ type LoadUserArg struct {
 
 type FOKID struct {
 	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty"`
-	KID            *[]byte `codec:"KID,omitempty"`
+	Kid            *[]byte `codec:"kid,omitempty"`
 }
 
 type ProofStatus struct {
@@ -103,49 +103,8 @@ func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentS
 	return c.Cli.Call("keybase.1.config.GetCurrentStatus", arg, res)
 }
 
-type IdentifyStartResBody struct {
-	SessionId       int           `codec:"sessionId"`
-	WhenLastTracked int           `codec:"whenLastTracked"`
-	Key             IdentifyKey   `codec:"key"`
-	Proofs          []IdentifyRow `codec:"proofs"`
-	Cryptocurrency  []IdentifyRow `codec:"cryptocurrency"`
-	Deleted         []TrackDiff   `codec:"deleted"`
-}
-
-type IdentifyStartRes struct {
-	Status Status                `codec:"status"`
-	Body   *IdentifyStartResBody `codec:"body,omitempty"`
-}
-
-type IdentifyCheckResBody struct {
-	ProofStatus     ProofStatus `codec:"proofStatus"`
-	CachedTimestamp int         `codec:"cachedTimestamp"`
-	TrackDiff       *TrackDiff  `codec:"trackDiff,omitempty"`
-}
-
-type IdentifyCheckRes struct {
-	Status Status                `codec:"status"`
-	Body   *IdentifyCheckResBody `codec:"body,omitempty"`
-}
-
-type IdentifyWaitResBody struct {
-	NumTrackFailures  int `codec:"numTrackFailures"`
-	NumTrackChanges   int `codec:"numTrackChanges"`
-	NumProofFailures  int `codec:"numProofFailures"`
-	NumDeleted        int `codec:"numDeleted"`
-	NumProofSuccesses int `codec:"numProofSuccesses"`
-}
-
-type IdentifyWaitRes struct {
-	Status Status               `codec:"status"`
-	Body   *IdentifyWaitResBody `codec:"body,omitempty"`
-}
-
-type IdentifySelfArg struct {
-}
-
 type IdentifyInterface interface {
-	IdentifySelf(arg *IdentifySelfArg, res *Status) error
+	IdentifySelf(sessionId *int, res *Status) error
 }
 
 func RegisterIdentify(server *rpc.Server, i IdentifyInterface) error {
@@ -156,16 +115,12 @@ type IdentifyClient struct {
 	Cli GenericClient
 }
 
-func (c IdentifyClient) IdentifySelf(arg IdentifySelfArg, res *Status) error {
-	return c.Cli.Call("keybase.1.identify.identifySelf", arg, res)
-}
-
-type StartRes struct {
-	Status    Status `codec:"status"`
-	SessionId int    `codec:"sessionId"`
+func (c IdentifyClient) IdentifySelf(sessionId int, res *Status) error {
+	return c.Cli.Call("keybase.1.identify.identifySelf", sessionId, res)
 }
 
 type Identity struct {
+	Status          Status        `codec:"status"`
 	WhenLastTracked int           `codec:"whenLastTracked"`
 	Key             IdentifyKey   `codec:"key"`
 	Proofs          []IdentifyRow `codec:"proofs"`
@@ -197,7 +152,7 @@ type FinishAndPromptRes struct {
 
 type FinishAndPromptArg struct {
 	SessionId int             `codec:"sessionId"`
-	Ioarg     IdentifyOutcome `codec:"ioarg"`
+	Outcome   IdentifyOutcome `codec:"outcome"`
 }
 
 type FinishWebProofCheckArg struct {
@@ -206,8 +161,8 @@ type FinishWebProofCheckArg struct {
 }
 
 type FinishSocialProofCheckArg struct {
-	SesionId int           `codec:"sesionId"`
-	Pcres    ProofCheckRes `codec:"pcres"`
+	SessionId int           `codec:"sessionId"`
+	Pcres     ProofCheckRes `codec:"pcres"`
 }
 
 type DisplayCryptocurrencyArg struct {
@@ -216,9 +171,9 @@ type DisplayCryptocurrencyArg struct {
 }
 
 type DisplayKeyArg struct {
-	SessionId int       `codec:"sessionId"`
-	Fokid     FOKID     `codec:"fokid"`
-	Diff      TrackDiff `codec:"diff"`
+	SessionId int        `codec:"sessionId"`
+	Fokid     FOKID      `codec:"fokid"`
+	Diff      *TrackDiff `codec:"diff,omitempty"`
 }
 
 type ReportLastTrackArg struct {
@@ -231,9 +186,6 @@ type LaunchNetworkChecksArg struct {
 	Id        Identity `codec:"id"`
 }
 
-type StartArg struct {
-}
-
 type IdentifyUiInterface interface {
 	FinishAndPrompt(arg *FinishAndPromptArg, res *FinishAndPromptRes) error
 	FinishWebProofCheck(arg *FinishWebProofCheckArg, res *Status) error
@@ -242,7 +194,6 @@ type IdentifyUiInterface interface {
 	DisplayKey(arg *DisplayKeyArg, res *Status) error
 	ReportLastTrack(arg *ReportLastTrackArg, res *Status) error
 	LaunchNetworkChecks(arg *LaunchNetworkChecksArg, res *Status) error
-	Start(arg *StartArg, res *StartRes) error
 }
 
 func RegisterIdentifyUi(server *rpc.Server, i IdentifyUiInterface) error {
@@ -279,10 +230,6 @@ func (c IdentifyUiClient) ReportLastTrack(arg ReportLastTrackArg, res *Status) e
 
 func (c IdentifyUiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg, res *Status) error {
 	return c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", arg, res)
-}
-
-func (c IdentifyUiClient) Start(arg StartArg, res *StartRes) error {
-	return c.Cli.Call("keybase.1.identifyUi.start", arg, res)
 }
 
 type LoginResBody struct {

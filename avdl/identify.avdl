@@ -4,43 +4,5 @@ protocol identify {
 
 	import idl "common.avdl";
 
-	record IdentifyStartResBody {
-		int sessionId;
-		int whenLastTracked;
-		IdentifyKey key;
-		array<IdentifyRow> proofs;
-		array<IdentifyRow> cryptocurrency;
-		array<TrackDiff> deleted;
-	}
-
-	record IdentifyStartRes {
-		Status status;
-		union { null, IdentifyStartResBody} body;
-	}
-
-	record IdentifyCheckResBody {
-		ProofStatus proofStatus;
-		int cachedTimestamp;
-		union { null, TrackDiff } trackDiff;
-	}
-
-	record IdentifyCheckRes {
-		Status status;
-		union { null, IdentifyCheckResBody } body;
-	}
-
-	record IdentifyWaitResBody {
-		int numTrackFailures;
-		int numTrackChanges;
-		int numProofFailures;
-		int numDeleted;
-		int numProofSuccesses;
-	}
-
-	record IdentifyWaitRes {
-		Status status;
-		union { null, IdentifyWaitResBody } body;
-	}
-
-	Status identifySelf();
+	Status identifySelf(int sessionId);
 }

@@ -29,7 +29,7 @@
 @end
 
 @implementation KBFOKID
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID" }; }
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"kid": @"kid" }; }
 @end
 
 @implementation KBProofStatus
@@ -60,34 +60,10 @@
 
 @end
 
-@implementation KBIdentifyStartResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"sessionId": @"sessionId", @"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
-@end
-
-@implementation KBIdentifyStartRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
-@end
-
-@implementation KBIdentifyCheckResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofStatus": @"proofStatus", @"cachedTimestamp": @"cachedTimestamp", @"trackDiff": @"trackDiff" }; }
-@end
-
-@implementation KBIdentifyCheckRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
-@end
-
-@implementation KBIdentifyWaitResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"numTrackFailures": @"numTrackFailures", @"numTrackChanges": @"numTrackChanges", @"numProofFailures": @"numProofFailures", @"numDeleted": @"numDeleted", @"numProofSuccesses": @"numProofSuccesses" }; }
-@end
-
-@implementation KBIdentifyWaitRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"body": @"body" }; }
-@end
-
 @implementation KBRIdentify
-- (void)identifySelf:(void (^)(NSError *error, KBStatus * status))completion {
+- (void)identifySelfWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{};
+  NSDictionary *params = @{@"sessionId": @(sessionId)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identifySelf" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -100,12 +76,8 @@
 
 @end
 
-@implementation KBStartRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"sessionId": @"sessionId" }; }
-@end
-
 @implementation KBIdentity
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
 @end
 
 @implementation KBProofCheckRes
@@ -121,9 +93,9 @@
 @end
 
 @implementation KBRIdentifyui
-- (void)finishAndPromptWithSessionid:(NSInteger )sessionId ioarg:(KBIdentifyOutcome *)ioarg completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion {
+- (void)finishAndPromptWithSessionid:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion {
 
-  NSDictionary *params = @{@"sessionId": @(sessionId), @"ioarg": KBRValue(ioarg)};
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"outcome": KBRValue(outcome)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishAndPrompt" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -147,9 +119,9 @@
   }];
 }
 
-- (void)finishSocialProofCheckWithSesionid:(NSInteger )sesionId pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion {
+- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"sesionId": @(sesionId), @"pcres": KBRValue(pcres)};
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"pcres": KBRValue(pcres)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishSocialProofCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -208,19 +180,6 @@
       return;
     }
     KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
-    completion(error, result);
-  }];
-}
-
-- (void)start:(void (^)(NSError *error, KBStartRes * startRes))completion {
-
-  NSDictionary *params = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.start" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBStartRes *result = [MTLJSONAdapter modelOfClass:KBStartRes.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
 }

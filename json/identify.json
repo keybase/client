@@ -25,62 +25,6 @@
     "name" : "UID",
     "size" : 16
   }, {
-    "type" : "enum",
-    "name" : "TrackDiffType",
-    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
-  }, {
-    "type" : "record",
-    "name" : "TrackDiff",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "TrackDiffType"
-    }, {
-      "name" : "displayMarkup",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "RemoteProof",
-    "fields" : [ {
-      "name" : "proofType",
-      "type" : "int"
-    }, {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    }, {
-      "name" : "displayMarkup",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyRow",
-    "fields" : [ {
-      "name" : "rowId",
-      "type" : "int"
-    }, {
-      "name" : "proof",
-      "type" : "RemoteProof"
-    }, {
-      "name" : "trackDiff",
-      "type" : [ "null", "TrackDiff" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyKey",
-    "fields" : [ {
-      "name" : "pgpFingerprint",
-      "type" : "bytes"
-    }, {
-      "name" : "KID",
-      "type" : "bytes"
-    }, {
-      "name" : "trackDiff",
-      "type" : [ "null", "TrackDiff" ]
-    } ]
-  }, {
     "type" : "record",
     "name" : "LoadUserArg",
     "fields" : [ {
@@ -100,119 +44,16 @@
       "name" : "pgpFingerprint",
       "type" : [ "null", "bytes" ]
     }, {
-      "name" : "KID",
+      "name" : "kid",
       "type" : [ "null", "bytes" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ProofStatus",
-    "fields" : [ {
-      "name" : "state",
-      "type" : "int"
-    }, {
-      "name" : "status",
-      "type" : "int"
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyStartResBody",
-    "fields" : [ {
-      "name" : "sessionId",
-      "type" : "int"
-    }, {
-      "name" : "whenLastTracked",
-      "type" : "int"
-    }, {
-      "name" : "key",
-      "type" : "IdentifyKey"
-    }, {
-      "name" : "proofs",
-      "type" : {
-        "type" : "array",
-        "items" : "IdentifyRow"
-      }
-    }, {
-      "name" : "cryptocurrency",
-      "type" : {
-        "type" : "array",
-        "items" : "IdentifyRow"
-      }
-    }, {
-      "name" : "deleted",
-      "type" : {
-        "type" : "array",
-        "items" : "TrackDiff"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyStartRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
-      "name" : "body",
-      "type" : [ "null", "IdentifyStartResBody" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyCheckResBody",
-    "fields" : [ {
-      "name" : "proofStatus",
-      "type" : "ProofStatus"
-    }, {
-      "name" : "cachedTimestamp",
-      "type" : "int"
-    }, {
-      "name" : "trackDiff",
-      "type" : [ "null", "TrackDiff" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyCheckRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
-      "name" : "body",
-      "type" : [ "null", "IdentifyCheckResBody" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyWaitResBody",
-    "fields" : [ {
-      "name" : "numTrackFailures",
-      "type" : "int"
-    }, {
-      "name" : "numTrackChanges",
-      "type" : "int"
-    }, {
-      "name" : "numProofFailures",
-      "type" : "int"
-    }, {
-      "name" : "numDeleted",
-      "type" : "int"
-    }, {
-      "name" : "numProofSuccesses",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyWaitRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
-      "name" : "body",
-      "type" : [ "null", "IdentifyWaitResBody" ]
     } ]
   } ],
   "messages" : {
     "identifySelf" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      } ],
       "response" : "Status"
     }
   }

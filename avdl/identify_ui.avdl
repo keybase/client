@@ -3,12 +3,50 @@
 protocol identifyUi {
 	import idl "common.avdl";
 
-	record StartRes {
-		Status status;
-		int sessionId;	
+	enum TrackDiffType {
+		NONE,
+		ERROR,
+		CLASH,
+		DELETED,
+		UPGRADED,
+		NEW,
+		REMOTE_FAIL,
+		REMOTE_WORKING,
+		REMOTE_CHANGED
+	}
+
+	record TrackDiff {
+		TrackDiffType type;
+		string displayMarkup;
+	}
+
+	record ProofStatus {
+		int state;
+		int status;
+		string desc;	
+	}
+
+	record RemoteProof {
+		int proofType;
+		string key;
+		string value;
+		string displayMarkup;
+	}
+
+	record IdentifyRow {
+		int rowId;
+		RemoteProof proof;
+		union { null, TrackDiff } trackDiff;
+	}
+
+	record IdentifyKey {
+		bytes pgpFingerprint;
+		bytes KID;
+		union { null, TrackDiff } trackDiff;
 	}
 
 	record Identity {
+		Status status;
 		int whenLastTracked;
 		IdentifyKey key;
 		array<IdentifyRow> proofs;
@@ -38,12 +76,11 @@ protocol identifyUi {
 		boolean trackRemote;
 	}
 
-	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome ioarg);
+	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome outcome);
 	Status finishWebProofCheck(int sessionId, ProofCheckRes pcres);
-	Status finishSocialProofCheck(int sesionId, ProofCheckRes pcres);
+	Status finishSocialProofCheck(int sessionId, ProofCheckRes pcres);
 	Status displayCryptocurrency(int sessionId, string address);
-	Status displayKey(int sessionId, FOKID fokid, TrackDiff diff);
+	Status displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
 	Status reportLastTrack(int sessionId, int time);
 	Status launchNetworkChecks(int sessionId, Identity id);
-	StartRes start();
 }

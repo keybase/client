@@ -25,6 +25,29 @@
     "name" : "UID",
     "size" : 16
   }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
     "type" : "enum",
     "name" : "TrackDiffType",
     "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
@@ -36,6 +59,19 @@
       "type" : "TrackDiffType"
     }, {
       "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ProofStatus",
+    "fields" : [ {
+      "name" : "state",
+      "type" : "int"
+    }, {
+      "name" : "status",
+      "type" : "int"
+    }, {
+      "name" : "desc",
       "type" : "string"
     } ]
   }, {
@@ -82,54 +118,11 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "LoadUserArg",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : [ "null", "UID" ]
-    }, {
-      "name" : "username",
-      "type" : [ "null", "string" ]
-    }, {
-      "name" : "self",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "FOKID",
-    "fields" : [ {
-      "name" : "pgpFingerprint",
-      "type" : [ "null", "bytes" ]
-    }, {
-      "name" : "KID",
-      "type" : [ "null", "bytes" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ProofStatus",
-    "fields" : [ {
-      "name" : "state",
-      "type" : "int"
-    }, {
-      "name" : "status",
-      "type" : "int"
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "StartRes",
+    "name" : "Identity",
     "fields" : [ {
       "name" : "status",
       "type" : "Status"
     }, {
-      "name" : "sessionId",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Identity",
-    "fields" : [ {
       "name" : "whenLastTracked",
       "type" : "int"
     }, {
@@ -212,7 +205,7 @@
         "name" : "sessionId",
         "type" : "int"
       }, {
-        "name" : "ioarg",
+        "name" : "outcome",
         "type" : "IdentifyOutcome"
       } ],
       "response" : "FinishAndPromptRes"
@@ -229,7 +222,7 @@
     },
     "finishSocialProofCheck" : {
       "request" : [ {
-        "name" : "sesionId",
+        "name" : "sessionId",
         "type" : "int"
       }, {
         "name" : "pcres",
@@ -256,7 +249,7 @@
         "type" : "FOKID"
       }, {
         "name" : "diff",
-        "type" : "TrackDiff"
+        "type" : [ "null", "TrackDiff" ]
       } ],
       "response" : "Status"
     },
@@ -279,10 +272,6 @@
         "type" : "Identity"
       } ],
       "response" : "Status"
-    },
-    "start" : {
-      "request" : [ ],
-      "response" : "StartRes"
     }
   }
 }

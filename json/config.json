@@ -100,7 +100,7 @@
       "name" : "pgpFingerprint",
       "type" : [ "null", "bytes" ]
     }, {
-      "name" : "KID",
+      "name" : "kid",
       "type" : [ "null", "bytes" ]
     } ]
   }, {
