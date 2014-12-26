@@ -16,38 +16,6 @@ type Status struct {
 }
 
 type UID [16]byte
-type GetCurrentStatusResBody struct {
-	Configured        bool `codec:"configured"`
-	Registered        bool `codec:"registered"`
-	LoggedIn          bool `codec:"loggedIn"`
-	PublicKeySelected bool `codec:"publicKeySelected"`
-	HasPrivateKey     bool `codec:"hasPrivateKey"`
-}
-
-type GetCurrentStatusRes struct {
-	Body   *GetCurrentStatusResBody `codec:"body,omitempty"`
-	Status Status                   `codec:"status"`
-}
-
-type GetCurrentStatusArg struct {
-}
-
-type ConfigInterface interface {
-	GetCurrentStatus(arg *GetCurrentStatusArg, res *GetCurrentStatusRes) error
-}
-
-func RegisterConfig(server *rpc.Server, i ConfigInterface) error {
-	return server.RegisterName("keybase.1.config", i)
-}
-
-type ConfigClient struct {
-	Cli GenericClient
-}
-
-func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentStatusRes) error {
-	return c.Cli.Call("keybase.1.config.GetCurrentStatus", arg, res)
-}
-
 type TrackDiffType int
 
 const (
@@ -86,6 +54,44 @@ type IdentifyKey struct {
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty"`
 }
 
+type LoadUserArg struct {
+	Uid      *UID    `codec:"uid,omitempty"`
+	Username *string `codec:"username,omitempty"`
+	Self     bool    `codec:"self"`
+}
+
+type GetCurrentStatusResBody struct {
+	Configured        bool `codec:"configured"`
+	Registered        bool `codec:"registered"`
+	LoggedIn          bool `codec:"loggedIn"`
+	PublicKeySelected bool `codec:"publicKeySelected"`
+	HasPrivateKey     bool `codec:"hasPrivateKey"`
+}
+
+type GetCurrentStatusRes struct {
+	Body   *GetCurrentStatusResBody `codec:"body,omitempty"`
+	Status Status                   `codec:"status"`
+}
+
+type GetCurrentStatusArg struct {
+}
+
+type ConfigInterface interface {
+	GetCurrentStatus(arg *GetCurrentStatusArg, res *GetCurrentStatusRes) error
+}
+
+func RegisterConfig(server *rpc.Server, i ConfigInterface) error {
+	return server.RegisterName("keybase.1.config", i)
+}
+
+type ConfigClient struct {
+	Cli GenericClient
+}
+
+func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentStatusRes) error {
+	return c.Cli.Call("keybase.1.config.GetCurrentStatus", arg, res)
+}
+
 type StartRes struct {
 	Status    Status `codec:"status"`
 	SessionId int    `codec:"sessionId"`
@@ -107,25 +113,25 @@ type LaunchNetworkChecksArg struct {
 type StartArg struct {
 }
 
-type Identify_uiInterface interface {
+type IdentifyUiInterface interface {
 	LaunchNetworkChecks(arg *LaunchNetworkChecksArg, res *Status) error
 	Start(arg *StartArg, res *StartRes) error
 }
 
-func RegisterIdentify_ui(server *rpc.Server, i Identify_uiInterface) error {
-	return server.RegisterName("keybase.1.identify_ui", i)
+func RegisterIdentifyUi(server *rpc.Server, i IdentifyUiInterface) error {
+	return server.RegisterName("keybase.1.identifyUi", i)
 }
 
-type Identify_uiClient struct {
+type IdentifyUiClient struct {
 	Cli GenericClient
 }
 
-func (c Identify_uiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg, res *Status) error {
-	return c.Cli.Call("keybase.1.identify_ui.LaunchNetworkChecks", arg, res)
+func (c IdentifyUiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identifyUi.LaunchNetworkChecks", arg, res)
 }
 
-func (c Identify_uiClient) Start(arg StartArg, res *StartRes) error {
-	return c.Cli.Call("keybase.1.identify_ui.start", arg, res)
+func (c IdentifyUiClient) Start(arg StartArg, res *StartRes) error {
+	return c.Cli.Call("keybase.1.identifyUi.start", arg, res)
 }
 
 type LoginResBody struct {
@@ -285,7 +291,7 @@ type IdentifyFinishArg struct {
 
 type TrackInterface interface {
 	IdentifySelfStart(arg *IdentifySelfStartArg, res *IdentifyStartRes) error
-	IdentifyStart(username *string, res *IdentifyStartRes) error
+	IdentifyStart(arg *LoadUserArg, res *IdentifyStartRes) error
 	IdentifyCheck(arg *IdentifyCheckArg, res *IdentifyCheckRes) error
 	IdentifyWait(sessionId *int, res *IdentifyWaitRes) error
 	IdentifyFinish(arg *IdentifyFinishArg, res *Status) error
@@ -303,8 +309,8 @@ func (c TrackClient) IdentifySelfStart(arg IdentifySelfStartArg, res *IdentifySt
 	return c.Cli.Call("keybase.1.track.IdentifySelfStart", arg, res)
 }
 
-func (c TrackClient) IdentifyStart(username string, res *IdentifyStartRes) error {
-	return c.Cli.Call("keybase.1.track.IdentifyStart", username, res)
+func (c TrackClient) IdentifyStart(arg LoadUserArg, res *IdentifyStartRes) error {
+	return c.Cli.Call("keybase.1.track.IdentifyStart", arg, res)
 }
 
 func (c TrackClient) IdentifyCheck(arg IdentifyCheckArg, res *IdentifyCheckRes) error {

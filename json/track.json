@@ -82,6 +82,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "IdentifyStartResBody",
     "fields" : [ {
       "name" : "sessionId",
@@ -194,8 +207,8 @@
     },
     "IdentifyStart" : {
       "request" : [ {
-        "name" : "username",
-        "type" : "string"
+        "name" : "arg",
+        "type" : "LoadUserArg"
       } ],
       "response" : "IdentifyStartRes"
     },

@@ -1,5 +1,5 @@
 {
-  "protocol" : "identify_ui",
+  "protocol" : "identifyUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -79,6 +79,19 @@
     }, {
       "name" : "trackDiff",
       "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",

@@ -47,4 +47,9 @@ protocol Common {
 		union { null, TrackDiff } trackDiff;
 	}
 	
+	record LoadUserArg {
+		union { null, UID } uid;	
+		union { null, string} username;
+		boolean self;
+	}
 }

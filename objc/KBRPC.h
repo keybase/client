@@ -12,24 +12,6 @@
 @property NSData *data;
 @end
 
-@interface KBGetCurrentStatusResBody : KBRObject
-@property BOOL configured;
-@property BOOL registered;
-@property BOOL loggedIn;
-@property BOOL publicKeySelected;
-@property BOOL hasPrivateKey;
-@end
-
-@interface KBGetCurrentStatusRes : KBRObject
-@property KBGetCurrentStatusResBody *body;
-@property KBStatus *status;
-@end
-
-@interface KBRConfig : KBRRequest
-- (void)getCurrentStatus:(void (^)(NSError *error, KBGetCurrentStatusRes * getCurrentStatusRes))completion;
-
-@end
-
 typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 	KBNone, 
 	KBError, 
@@ -65,6 +47,30 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property KBTrackDiff *trackDiff;
 @end
 
+@interface KBLoadUserArg : KBRObject
+@property KBUID *uid;
+@property NSString *username;
+@property BOOL self;
+@end
+
+@interface KBGetCurrentStatusResBody : KBRObject
+@property BOOL configured;
+@property BOOL registered;
+@property BOOL loggedIn;
+@property BOOL publicKeySelected;
+@property BOOL hasPrivateKey;
+@end
+
+@interface KBGetCurrentStatusRes : KBRObject
+@property KBGetCurrentStatusResBody *body;
+@property KBStatus *status;
+@end
+
+@interface KBRConfig : KBRRequest
+- (void)getCurrentStatus:(void (^)(NSError *error, KBGetCurrentStatusRes * getCurrentStatusRes))completion;
+
+@end
+
 @interface KBStartRes : KBRObject
 @property KBStatus *status;
 @property NSInteger sessionId;
@@ -78,7 +84,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property NSArray *deleted;
 @end
 
-@interface KBRIdentify_ui : KBRRequest
+@interface KBRIdentifyui : KBRRequest
 - (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 - (void)start:(void (^)(NSError *error, KBStartRes * startRes))completion;
@@ -172,7 +178,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBRTrack : KBRRequest
 - (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
 
-- (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
+- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
 
 - (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
 

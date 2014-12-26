@@ -1,6 +1,6 @@
 
 @namespace("keybase.1")
-protocol identify_ui {
+protocol identifyUi {
 	import idl "common.avdl";
 
 	record StartRes {

@@ -8,6 +8,26 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data" }; }
 @end
 
+@implementation KBTrackDiff
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"type": @"type", @"displayMarkup": @"displayMarkup" }; }
+@end
+
+@implementation KBRemoteProof
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofType": @"proofType", @"key": @"key", @"value": @"value", @"displayMarkup": @"displayMarkup" }; }
+@end
+
+@implementation KBIdentifyRow
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"rowId": @"rowId", @"proof": @"proof", @"trackDiff": @"trackDiff" }; }
+@end
+
+@implementation KBIdentifyKey
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID", @"trackDiff": @"trackDiff" }; }
+@end
+
+@implementation KBLoadUserArg
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"uid": @"uid", @"username": @"username", @"self": @"self" }; }
+@end
+
 @implementation KBGetCurrentStatusResBody
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"configured": @"configured", @"registered": @"registered", @"loggedIn": @"loggedIn", @"publicKeySelected": @"publicKeySelected", @"hasPrivateKey": @"hasPrivateKey" }; }
 @end
@@ -32,22 +52,6 @@
 
 @end
 
-@implementation KBTrackDiff
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"type": @"type", @"displayMarkup": @"displayMarkup" }; }
-@end
-
-@implementation KBRemoteProof
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofType": @"proofType", @"key": @"key", @"value": @"value", @"displayMarkup": @"displayMarkup" }; }
-@end
-
-@implementation KBIdentifyRow
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"rowId": @"rowId", @"proof": @"proof", @"trackDiff": @"trackDiff" }; }
-@end
-
-@implementation KBIdentifyKey
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID", @"trackDiff": @"trackDiff" }; }
-@end
-
 @implementation KBStartRes
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"sessionId": @"sessionId" }; }
 @end
@@ -56,11 +60,11 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
 @end
 
-@implementation KBRIdentify_ui
+@implementation KBRIdentifyui
 - (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error, KBStatus * status))completion {
 
   NSDictionary *params = @{@"sessionId": @(sessionId), @"id": KBRValue(id)};
-  [self.client sendRequestWithMethod:@"keybase.1.identify_ui.LaunchNetworkChecks" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.LaunchNetworkChecks" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
       return;
@@ -73,7 +77,7 @@
 - (void)start:(void (^)(NSError *error, KBStartRes * startRes))completion {
 
   NSDictionary *params = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.identify_ui.start" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.start" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
       return;
@@ -240,9 +244,9 @@
   }];
 }
 
-- (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
+- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
 
-  NSDictionary *params = @{@"username": KBRValue(username)};
+  NSDictionary *params = @{@"arg": KBRValue(arg)};
   [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyStart" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

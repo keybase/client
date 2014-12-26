@@ -25,6 +25,75 @@
     "name" : "UID",
     "size" : 16
   }, {
+    "type" : "enum",
+    "name" : "TrackDiffType",
+    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackDiff",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "TrackDiffType"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "RemoteProof",
+    "fields" : [ {
+      "name" : "proofType",
+      "type" : "int"
+    }, {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRow",
+    "fields" : [ {
+      "name" : "rowId",
+      "type" : "int"
+    }, {
+      "name" : "proof",
+      "type" : "RemoteProof"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyKey",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : "bytes"
+    }, {
+      "name" : "KID",
+      "type" : "bytes"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
     "type" : "record",
     "name" : "LoginResBody",
     "fields" : [ {
