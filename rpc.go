@@ -9,9 +9,9 @@ import (
 )
 
 var __cli *rpc.Client
+var __srv *rpc.Server
 
-func GetRpcClient() (ret *rpc.Client, err error) {
-	var conn net.Conn
+func GetRpcClient() (ret *rpc.Client, conn net.Conn, err error) {
 	if __cli != nil {
 	} else if conn, err = G.GetSocket(); err == nil {
 		var mh codec.MsgpackHandle
@@ -22,9 +22,21 @@ func GetRpcClient() (ret *rpc.Client, err error) {
 	return
 }
 
+func GetRpcServer() (ret *rpc.Server, conn net.Conn, err error) {
+	if __srv != nil {
+	} else if conn, err = G.GetSocket(); err == nil {
+		__srv = rpc.NewServer()
+		var mh codec.MsgpackHandle
+		rpcCodec := fmprpc.MsgpackSpecRpc.ServerCodec(conn, &mh, true)
+		__srv.ServeCodec(rpcCodec)
+	}
+	ret = __srv
+	return
+}
+
 func GetSignupClient() (cli keybase_1.SignupClient, err error) {
 	var rpc *rpc.Client
-	if rpc, err = GetRpcClient(); err == nil {
+	if rpc, _, err = GetRpcClient(); err == nil {
 		cli = keybase_1.SignupClient{rpc}
 	}
 	return
@@ -32,7 +44,7 @@ func GetSignupClient() (cli keybase_1.SignupClient, err error) {
 
 func GetConfigClient() (cli keybase_1.ConfigClient, err error) {
 	var rpc *rpc.Client
-	if rpc, err = GetRpcClient(); err == nil {
+	if rpc, _, err = GetRpcClient(); err == nil {
 		cli = keybase_1.ConfigClient{rpc}
 	}
 	return
@@ -40,8 +52,22 @@ func GetConfigClient() (cli keybase_1.ConfigClient, err error) {
 
 func GetLoginClient() (cli keybase_1.LoginClient, err error) {
 	var rpc *rpc.Client
-	if rpc, err = GetRpcClient(); err == nil {
+	if rpc, _, err = GetRpcClient(); err == nil {
 		cli = keybase_1.LoginClient{rpc}
+	}
+	return
+}
+
+// TrackClients also act as TrackServers since they have to reply
+// to UI events. So we allocate both at once.
+func GetTrackClient(gen func(con net.Conn) keybase_1.IdentifyUiInterface) (cli keybase_1.TrackClient, err error) {
+	var rcli *rpc.Client
+	var srv *rpc.Server
+	var con net.Conn
+	if rcli, _, err = GetRpcClient(); err != nil {
+	} else if srv, con, err = GetRpcServer(); err == nil {
+		cli = keybase_1.TrackClient{rcli}
+		keybase_1.RegisterIdentifyUi(srv, gen(con))
 	}
 	return
 }
