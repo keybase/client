@@ -60,13 +60,13 @@ func GetLoginClient() (cli keybase_1.LoginClient, err error) {
 
 // TrackClients also act as TrackServers since they have to reply
 // to UI events. So we allocate both at once.
-func GetTrackClient(gen func(con net.Conn) keybase_1.IdentifyUiInterface) (cli keybase_1.TrackClient, err error) {
+func GetIdentifyClient(gen func(con net.Conn) keybase_1.IdentifyUiInterface) (cli keybase_1.IdentifyClient, err error) {
 	var rcli *rpc.Client
 	var srv *rpc.Server
 	var con net.Conn
 	if rcli, _, err = GetRpcClient(); err != nil {
 	} else if srv, con, err = GetRpcServer(); err == nil {
-		cli = keybase_1.TrackClient{rcli}
+		cli = keybase_1.IdentifyClient{rcli}
 		keybase_1.RegisterIdentifyUi(srv, gen(con))
 	}
 	return

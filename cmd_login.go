@@ -6,9 +6,13 @@ import (
 	"github.com/keybase/go-libkb"
 )
 
-type CmdLogin struct{}
+type CmdLogin struct{
 
-func (v *CmdLogin) RunClient() error { return v.Run() }
+}
+
+func (v *CmdLogin) RunClient() error { 
+	return nil
+}
 
 func (v *CmdLogin) Run() error {
 	larg := libkb.LoginArg{Prompt: true, Retry: 3}
