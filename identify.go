@@ -46,6 +46,7 @@ func (u *RemoteIdentifyUI) FinishWebProofCheck(w *libkb.WebProofChainLink, lcr l
 	var status keybase_1.Status
 	u.uicli.FinishWebProofCheck(keybase_1.FinishWebProofCheckArg{
 		SessionId: u.sessionId,
+		Rp: libkb.ExportRemoteProof(w),
 		Pcres:     lcr.ExportToProofCheckRes(),
 	}, &status)
 	return
@@ -55,6 +56,7 @@ func (u *RemoteIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink,
 	var status keybase_1.Status
 	u.uicli.FinishSocialProofCheck(keybase_1.FinishSocialProofCheckArg{
 		SessionId: u.sessionId,
+		Rp: libkb.ExportRemoteProof(s),
 		Pcres:     lcr.ExportToProofCheckRes(),
 	}, &status)
 	return
