@@ -21,3 +21,9 @@ func (e BadTrackSessionError) ToStatus() keybase_1.Status {
 		Desc: fmt.Sprintf("Track session %d wasn't found", e.i),
 	}
 }
+
+type NotConnectedError struct {}
+
+func (e NotConnectedError) Error() string {
+	return "Not connected"
+}
