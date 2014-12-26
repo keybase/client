@@ -141,30 +141,10 @@ type IdentifyWaitRes struct {
 	Body   *IdentifyWaitResBody `codec:"body,omitempty"`
 }
 
-type IdentifySelfStartArg struct {
-}
-
-type IdentifyCheckArg struct {
-	SessionId int `codec:"sessionId"`
-	RowId     int `codec:"rowId"`
-}
-
-type IdentifyFinishArg struct {
-	SessionId     int    `codec:"sessionId"`
-	DoRemoteTrack bool   `codec:"doRemoteTrack"`
-	DoLocalTrack  bool   `codec:"doLocalTrack"`
-	Status        Status `codec:"status"`
-}
-
 type IdentifySelfArg struct {
 }
 
 type IdentifyInterface interface {
-	IdentifySelfStart(arg *IdentifySelfStartArg, res *IdentifyStartRes) error
-	IdentifyStart(arg *LoadUserArg, res *IdentifyStartRes) error
-	IdentifyCheck(arg *IdentifyCheckArg, res *IdentifyCheckRes) error
-	IdentifyWait(sessionId *int, res *IdentifyWaitRes) error
-	IdentifyFinish(arg *IdentifyFinishArg, res *Status) error
 	IdentifySelf(arg *IdentifySelfArg, res *Status) error
 }
 
@@ -174,26 +154,6 @@ func RegisterIdentify(server *rpc.Server, i IdentifyInterface) error {
 
 type IdentifyClient struct {
 	Cli GenericClient
-}
-
-func (c IdentifyClient) IdentifySelfStart(arg IdentifySelfStartArg, res *IdentifyStartRes) error {
-	return c.Cli.Call("keybase.1.identify.IdentifySelfStart", arg, res)
-}
-
-func (c IdentifyClient) IdentifyStart(arg LoadUserArg, res *IdentifyStartRes) error {
-	return c.Cli.Call("keybase.1.identify.IdentifyStart", arg, res)
-}
-
-func (c IdentifyClient) IdentifyCheck(arg IdentifyCheckArg, res *IdentifyCheckRes) error {
-	return c.Cli.Call("keybase.1.identify.IdentifyCheck", arg, res)
-}
-
-func (c IdentifyClient) IdentifyWait(sessionId int, res *IdentifyWaitRes) error {
-	return c.Cli.Call("keybase.1.identify.IdentifyWait", sessionId, res)
-}
-
-func (c IdentifyClient) IdentifyFinish(arg IdentifyFinishArg, res *Status) error {
-	return c.Cli.Call("keybase.1.identify.IdentifyFinish", arg, res)
 }
 
 func (c IdentifyClient) IdentifySelf(arg IdentifySelfArg, res *Status) error {

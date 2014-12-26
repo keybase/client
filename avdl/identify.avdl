@@ -42,11 +42,5 @@ protocol identify {
 		union { null, IdentifyWaitResBody } body;
 	}
 
-	IdentifyStartRes IdentifySelfStart();
-	IdentifyStartRes IdentifyStart(LoadUserArg arg);
-	IdentifyCheckRes IdentifyCheck(int sessionId, int rowId);
-	IdentifyWaitRes IdentifyWait(int sessionId);
-	Status IdentifyFinish(int sessionId, boolean doRemoteTrack, boolean doLocalTrack, Status status);
-
 	Status identifySelf();
 }

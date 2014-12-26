@@ -211,50 +211,6 @@
     } ]
   } ],
   "messages" : {
-    "IdentifySelfStart" : {
-      "request" : [ ],
-      "response" : "IdentifyStartRes"
-    },
-    "IdentifyStart" : {
-      "request" : [ {
-        "name" : "arg",
-        "type" : "LoadUserArg"
-      } ],
-      "response" : "IdentifyStartRes"
-    },
-    "IdentifyCheck" : {
-      "request" : [ {
-        "name" : "sessionId",
-        "type" : "int"
-      }, {
-        "name" : "rowId",
-        "type" : "int"
-      } ],
-      "response" : "IdentifyCheckRes"
-    },
-    "IdentifyWait" : {
-      "request" : [ {
-        "name" : "sessionId",
-        "type" : "int"
-      } ],
-      "response" : "IdentifyWaitRes"
-    },
-    "IdentifyFinish" : {
-      "request" : [ {
-        "name" : "sessionId",
-        "type" : "int"
-      }, {
-        "name" : "doRemoteTrack",
-        "type" : "boolean"
-      }, {
-        "name" : "doLocalTrack",
-        "type" : "boolean"
-      }, {
-        "name" : "status",
-        "type" : "Status"
-      } ],
-      "response" : "Status"
-    },
     "identifySelf" : {
       "request" : [ ],
       "response" : "Status"

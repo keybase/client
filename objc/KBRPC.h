@@ -121,16 +121,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @end
 
 @interface KBRIdentify : KBRRequest
-- (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
-
-- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
-
-- (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
-
-- (void)identifyWaitWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyWaitRes * identifyWaitRes))completion;
-
-- (void)identifyFinishWithSessionid:(NSInteger )sessionId doRemoteTrack:(BOOL )doRemoteTrack doLocalTrack:(BOOL )doLocalTrack status:(KBStatus *)status completion:(void (^)(NSError *error, KBStatus * status))completion;
-
 - (void)identifySelf:(void (^)(NSError *error, KBStatus * status))completion;
 
 @end
