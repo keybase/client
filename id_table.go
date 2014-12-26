@@ -868,19 +868,6 @@ func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase_1.IdentifyRow {
 	}
 }
 
-func (l LinkCheckResult) ExportToIdentifyCheckResBody() keybase_1.IdentifyCheckResBody {
-	ret := keybase_1.IdentifyCheckResBody{
-		ProofStatus: ExportProofError(l.err),
-	}
-	if l.cached != nil {
-		ret.CachedTimestamp = int(l.cached.Time.Unix())
-	}
-	if l.remoteDiff != nil {
-		ret.TrackDiff = ExportTrackDiff(l.remoteDiff)
-	}
-	return ret
-}
-
 func (l LinkCheckResult) ExportToProofCheckRes() keybase_1.ProofCheckRes {
 	ret := keybase_1.ProofCheckRes{
 		ProofId:     l.position,
