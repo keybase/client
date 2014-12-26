@@ -22,7 +22,7 @@ func (e BadTrackSessionError) ToStatus() keybase_1.Status {
 	}
 }
 
-type NotConnectedError struct {}
+type NotConnectedError struct{}
 
 func (e NotConnectedError) Error() string {
 	return "Not connected"

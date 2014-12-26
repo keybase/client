@@ -1,24 +1,23 @@
-
 package main
 
 import (
 	"github.com/keybase/go-libkb"
 	"github.com/keybase/protocol/go"
-	"net"
-	"net/rpc"
 	fmprpc "github.com/maxtaco/go-framed-msgpack-rpc"
 	"github.com/ugorji/go/codec"
+	"net"
+	"net/rpc"
 )
 
 type RemoteIdentifyUI struct {
 	sessionId int
-	rpccli *rpc.Client
-	uicli keybase_1.IdentifyUiClient
+	rpccli    *rpc.Client
+	uicli     keybase_1.IdentifyUiClient
 }
 
 type IdentifyHandler struct {
 	conn net.Conn
-	cli *rpc.Client
+	cli  *rpc.Client
 }
 
 func (h *IdentifyHandler) GetRpcClient() (cli *rpc.Client) {
@@ -28,14 +27,14 @@ func (h *IdentifyHandler) GetRpcClient() (cli *rpc.Client) {
 		cli = rpc.NewClientWithCodec(cdc)
 		h.cli = cli
 	}
-	return 
+	return
 }
 
 func NewRemoteIdentifyUI(sessionId int, c *rpc.Client) *RemoteIdentifyUI {
-	return &RemoteIdentifyUI {
-		sessionId : sessionId,
-		rpccli : c,
-		uicli : keybase_1.IdentifyUiClient{c},
+	return &RemoteIdentifyUI{
+		sessionId: sessionId,
+		rpccli:    c,
+		uicli:     keybase_1.IdentifyUiClient{c},
 	}
 }
 
@@ -46,24 +45,26 @@ func (h *IdentifyHandler) NewUi(sessionId int) libkb.IdentifyUI {
 func (u *RemoteIdentifyUI) FinishWebProofCheck(w *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
 	var status keybase_1.Status
 	u.uicli.FinishWebProofCheck(keybase_1.FinishWebProofCheckArg{
-		SessionId : u.sessionId,
-		Pcres : lcr.ExportToProofCheckRes(),
+		SessionId: u.sessionId,
+		Pcres:     lcr.ExportToProofCheckRes(),
 	}, &status)
 	return
 }
+
 func (u *RemoteIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lcr libkb.LinkCheckResult) {
 	var status keybase_1.Status
 	u.uicli.FinishSocialProofCheck(keybase_1.FinishSocialProofCheckArg{
-		SessionId : u.sessionId,
-		Pcres : lcr.ExportToProofCheckRes(),
+		SessionId: u.sessionId,
+		Pcres:     lcr.ExportToProofCheckRes(),
 	}, &status)
 	return
 }
+
 func (u *RemoteIdentifyUI) FinishAndPrompt(res *libkb.IdentifyRes) (ti libkb.TrackInstructions, err error) {
 	var fpr keybase_1.FinishAndPromptRes
-	err = u.uicli.FinishAndPrompt(keybase_1.FinishAndPromptArg {
-		SessionId : u.sessionId,
-		Outcome : res.ExportToIdentifyOutcome(),	
+	err = u.uicli.FinishAndPrompt(keybase_1.FinishAndPromptArg{
+		SessionId: u.sessionId,
+		Outcome:   res.ExportToIdentifyOutcome(),
 	}, &fpr)
 	if err == nil {
 		err = libkb.ImportStatusAsError(fpr.Status)
@@ -72,23 +73,26 @@ func (u *RemoteIdentifyUI) FinishAndPrompt(res *libkb.IdentifyRes) (ti libkb.Tra
 	}
 	return
 }
+
 func (u *RemoteIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainLink) {
 	var status keybase_1.Status
-	u.uicli.DisplayCryptocurrency(keybase_1.DisplayCryptocurrencyArg {
-		SessionId : u.sessionId,
-		Address : l.ToDisplayString(),
+	u.uicli.DisplayCryptocurrency(keybase_1.DisplayCryptocurrencyArg{
+		SessionId: u.sessionId,
+		Address:   l.ToDisplayString(),
 	}, &status)
 	return
 }
+
 func (u *RemoteIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint, d libkb.TrackDiff) {
 	var status keybase_1.Status
 	u.uicli.DisplayKey(keybase_1.DisplayKeyArg{
-		SessionId : u.sessionId,
-		Fokid : libkb.ExportAsFOKID(fp, nil),
-		Diff : libkb.ExportTrackDiff(d),
+		SessionId: u.sessionId,
+		Fokid:     libkb.ExportAsFOKID(fp, nil),
+		Diff:      libkb.ExportTrackDiff(d),
 	}, &status)
 	return
 }
+
 func (u *RemoteIdentifyUI) ReportLastTrack(tl *libkb.TrackLookup) {
 	var status keybase_1.Status
 	t := 0
@@ -96,8 +100,8 @@ func (u *RemoteIdentifyUI) ReportLastTrack(tl *libkb.TrackLookup) {
 		t = int(tl.GetCTime().Unix())
 	}
 	u.uicli.ReportLastTrack(keybase_1.ReportLastTrackArg{
-		SessionId : u.sessionId,
-		Time : t,
+		SessionId: u.sessionId,
+		Time:      t,
 	}, &status)
 	return
 }
@@ -107,8 +111,8 @@ func (u *RemoteIdentifyUI) Start() {}
 func (u *RemoteIdentifyUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
 	var status keybase_1.Status
 	u.uicli.LaunchNetworkChecks(keybase_1.LaunchNetworkChecksArg{
-		SessionId : u.sessionId,
-		Id : res.ExportToUncheckedIdentity(),
+		SessionId: u.sessionId,
+		Id:        res.ExportToUncheckedIdentity(),
 	}, &status)
 	return
 }
