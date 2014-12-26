@@ -52,4 +52,15 @@ protocol Common {
 		union { null, string} username;
 		boolean self;
 	}
-}
+
+	record FOKID {
+		union { null, bytes } pgpFingerprint;
+		union { null, bytes } KID;
+	}
+
+	record ProofStatus {
+		int state;
+		int status;
+		string desc;	
+	}
+}	

@@ -18,12 +18,6 @@ protocol track {
 		union { null, IdentifyStartResBody} body;
 	}
 
-	record ProofStatus {
-		int state;
-		int status;
-		string desc;	
-	}
-	
 	record IdentifyCheckResBody {
 		ProofStatus proofStatus;
 		int cachedTimestamp;

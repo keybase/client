@@ -16,6 +16,34 @@ protocol identifyUi {
 		array<TrackDiff> deleted;
 	}
 
-	Status LaunchNetworkChecks(int sessionId, Identity id);
+	record ProofCheckRes {
+		int proofId;
+		ProofStatus proofStatus;	
+		int cachedTimestamp;
+		union { null, TrackDiff } trackDiff;
+	}
+
+	record IdentifyOutcome {
+		Status status;
+		int numTrackFailures;
+		int numTrackChanges;
+		int numProofFailures;
+		int numDeleted;
+		int numProofSuccesses;
+	}
+
+	record FinishAndPromptRes {
+		Status status;
+		boolean trackLocal;
+		boolean trackRemote;
+	}
+
+	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome ioarg);
+	Status finishWebProofCheck(int sessionId, ProofCheckRes pcres);
+	Status finishSocialProofCheck(int sesionId, ProofCheckRes pcres);
+	Status displayCryptocurrency(int sessionId, string address);
+	Status displayKey(int sessionId, FOKID fokid, TrackDiff diff);
+	Status reportLastTrack(int sessionId, int time);
+	Status launchNetworkChecks(int sessionId, Identity id);
 	StartRes start();
 }

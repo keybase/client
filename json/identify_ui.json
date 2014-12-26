@@ -95,6 +95,29 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "KID",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ProofStatus",
+    "fields" : [ {
+      "name" : "state",
+      "type" : "int"
+    }, {
+      "name" : "status",
+      "type" : "int"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "StartRes",
     "fields" : [ {
       "name" : "status",
@@ -131,9 +154,123 @@
         "items" : "TrackDiff"
       }
     } ]
+  }, {
+    "type" : "record",
+    "name" : "ProofCheckRes",
+    "fields" : [ {
+      "name" : "proofId",
+      "type" : "int"
+    }, {
+      "name" : "proofStatus",
+      "type" : "ProofStatus"
+    }, {
+      "name" : "cachedTimestamp",
+      "type" : "int"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyOutcome",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "numTrackFailures",
+      "type" : "int"
+    }, {
+      "name" : "numTrackChanges",
+      "type" : "int"
+    }, {
+      "name" : "numProofFailures",
+      "type" : "int"
+    }, {
+      "name" : "numDeleted",
+      "type" : "int"
+    }, {
+      "name" : "numProofSuccesses",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FinishAndPromptRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "trackLocal",
+      "type" : "boolean"
+    }, {
+      "name" : "trackRemote",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
-    "LaunchNetworkChecks" : {
+    "finishAndPrompt" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "ioarg",
+        "type" : "IdentifyOutcome"
+      } ],
+      "response" : "FinishAndPromptRes"
+    },
+    "finishWebProofCheck" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "pcres",
+        "type" : "ProofCheckRes"
+      } ],
+      "response" : "Status"
+    },
+    "finishSocialProofCheck" : {
+      "request" : [ {
+        "name" : "sesionId",
+        "type" : "int"
+      }, {
+        "name" : "pcres",
+        "type" : "ProofCheckRes"
+      } ],
+      "response" : "Status"
+    },
+    "displayCryptocurrency" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "address",
+        "type" : "string"
+      } ],
+      "response" : "Status"
+    },
+    "displayKey" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "fokid",
+        "type" : "FOKID"
+      }, {
+        "name" : "diff",
+        "type" : "TrackDiff"
+      } ],
+      "response" : "Status"
+    },
+    "reportLastTrack" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "time",
+        "type" : "int"
+      } ],
+      "response" : "Status"
+    },
+    "launchNetworkChecks" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"

@@ -92,6 +92,17 @@ func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentS
 	return c.Cli.Call("keybase.1.config.GetCurrentStatus", arg, res)
 }
 
+type FOKID struct {
+	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty"`
+	KID            *[]byte `codec:"KID,omitempty"`
+}
+
+type ProofStatus struct {
+	State  int    `codec:"state"`
+	Status int    `codec:"status"`
+	Desc   string `codec:"desc"`
+}
+
 type StartRes struct {
 	Status    Status `codec:"status"`
 	SessionId int    `codec:"sessionId"`
@@ -105,6 +116,59 @@ type Identity struct {
 	Deleted         []TrackDiff   `codec:"deleted"`
 }
 
+type ProofCheckRes struct {
+	ProofId         int         `codec:"proofId"`
+	ProofStatus     ProofStatus `codec:"proofStatus"`
+	CachedTimestamp int         `codec:"cachedTimestamp"`
+	TrackDiff       *TrackDiff  `codec:"trackDiff,omitempty"`
+}
+
+type IdentifyOutcome struct {
+	Status            Status `codec:"status"`
+	NumTrackFailures  int    `codec:"numTrackFailures"`
+	NumTrackChanges   int    `codec:"numTrackChanges"`
+	NumProofFailures  int    `codec:"numProofFailures"`
+	NumDeleted        int    `codec:"numDeleted"`
+	NumProofSuccesses int    `codec:"numProofSuccesses"`
+}
+
+type FinishAndPromptRes struct {
+	Status      Status `codec:"status"`
+	TrackLocal  bool   `codec:"trackLocal"`
+	TrackRemote bool   `codec:"trackRemote"`
+}
+
+type FinishAndPromptArg struct {
+	SessionId int             `codec:"sessionId"`
+	Ioarg     IdentifyOutcome `codec:"ioarg"`
+}
+
+type FinishWebProofCheckArg struct {
+	SessionId int           `codec:"sessionId"`
+	Pcres     ProofCheckRes `codec:"pcres"`
+}
+
+type FinishSocialProofCheckArg struct {
+	SesionId int           `codec:"sesionId"`
+	Pcres    ProofCheckRes `codec:"pcres"`
+}
+
+type DisplayCryptocurrencyArg struct {
+	SessionId int    `codec:"sessionId"`
+	Address   string `codec:"address"`
+}
+
+type DisplayKeyArg struct {
+	SessionId int       `codec:"sessionId"`
+	Fokid     FOKID     `codec:"fokid"`
+	Diff      TrackDiff `codec:"diff"`
+}
+
+type ReportLastTrackArg struct {
+	SessionId int `codec:"sessionId"`
+	Time      int `codec:"time"`
+}
+
 type LaunchNetworkChecksArg struct {
 	SessionId int      `codec:"sessionId"`
 	Id        Identity `codec:"id"`
@@ -114,6 +178,12 @@ type StartArg struct {
 }
 
 type IdentifyUiInterface interface {
+	FinishAndPrompt(arg *FinishAndPromptArg, res *FinishAndPromptRes) error
+	FinishWebProofCheck(arg *FinishWebProofCheckArg, res *Status) error
+	FinishSocialProofCheck(arg *FinishSocialProofCheckArg, res *Status) error
+	DisplayCryptocurrency(arg *DisplayCryptocurrencyArg, res *Status) error
+	DisplayKey(arg *DisplayKeyArg, res *Status) error
+	ReportLastTrack(arg *ReportLastTrackArg, res *Status) error
 	LaunchNetworkChecks(arg *LaunchNetworkChecksArg, res *Status) error
 	Start(arg *StartArg, res *StartRes) error
 }
@@ -126,8 +196,32 @@ type IdentifyUiClient struct {
 	Cli GenericClient
 }
 
+func (c IdentifyUiClient) FinishAndPrompt(arg FinishAndPromptArg, res *FinishAndPromptRes) error {
+	return c.Cli.Call("keybase.1.identifyUi.finishAndPrompt", arg, res)
+}
+
+func (c IdentifyUiClient) FinishWebProofCheck(arg FinishWebProofCheckArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", arg, res)
+}
+
+func (c IdentifyUiClient) FinishSocialProofCheck(arg FinishSocialProofCheckArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", arg, res)
+}
+
+func (c IdentifyUiClient) DisplayCryptocurrency(arg DisplayCryptocurrencyArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", arg, res)
+}
+
+func (c IdentifyUiClient) DisplayKey(arg DisplayKeyArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identifyUi.displayKey", arg, res)
+}
+
+func (c IdentifyUiClient) ReportLastTrack(arg ReportLastTrackArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identifyUi.reportLastTrack", arg, res)
+}
+
 func (c IdentifyUiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg, res *Status) error {
-	return c.Cli.Call("keybase.1.identifyUi.LaunchNetworkChecks", arg, res)
+	return c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", arg, res)
 }
 
 func (c IdentifyUiClient) Start(arg StartArg, res *StartRes) error {
@@ -242,12 +336,6 @@ type IdentifyStartResBody struct {
 type IdentifyStartRes struct {
 	Status Status                `codec:"status"`
 	Body   *IdentifyStartResBody `codec:"body,omitempty"`
-}
-
-type ProofStatus struct {
-	State  int    `codec:"state"`
-	Status int    `codec:"status"`
-	Desc   string `codec:"desc"`
 }
 
 type IdentifyCheckResBody struct {
