@@ -1,0 +1,138 @@
+{
+  "protocol" : "identify_ui",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "enum",
+    "name" : "TrackDiffType",
+    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackDiff",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "TrackDiffType"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "RemoteProof",
+    "fields" : [ {
+      "name" : "proofType",
+      "type" : "int"
+    }, {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRow",
+    "fields" : [ {
+      "name" : "rowId",
+      "type" : "int"
+    }, {
+      "name" : "proof",
+      "type" : "RemoteProof"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyKey",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : "bytes"
+    }, {
+      "name" : "KID",
+      "type" : "bytes"
+    }, {
+      "name" : "trackDiff",
+      "type" : [ "null", "TrackDiff" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "StartRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "sessionId",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Identity",
+    "fields" : [ {
+      "name" : "whenLastTracked",
+      "type" : "int"
+    }, {
+      "name" : "key",
+      "type" : "IdentifyKey"
+    }, {
+      "name" : "proofs",
+      "type" : {
+        "type" : "array",
+        "items" : "IdentifyRow"
+      }
+    }, {
+      "name" : "cryptocurrency",
+      "type" : {
+        "type" : "array",
+        "items" : "IdentifyRow"
+      }
+    }, {
+      "name" : "deleted",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackDiff"
+      }
+    } ]
+  } ],
+  "messages" : {
+    "LaunchNetworkChecks" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "id",
+        "type" : "Identity"
+      } ],
+      "response" : "Status"
+    },
+    "start" : {
+      "request" : [ ],
+      "response" : "StartRes"
+    }
+  }
+}

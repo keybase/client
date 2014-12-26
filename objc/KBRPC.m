@@ -32,6 +32,59 @@
 
 @end
 
+@implementation KBTrackDiff
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"type": @"type", @"displayMarkup": @"displayMarkup" }; }
+@end
+
+@implementation KBRemoteProof
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofType": @"proofType", @"key": @"key", @"value": @"value", @"displayMarkup": @"displayMarkup" }; }
+@end
+
+@implementation KBIdentifyRow
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"rowId": @"rowId", @"proof": @"proof", @"trackDiff": @"trackDiff" }; }
+@end
+
+@implementation KBIdentifyKey
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID", @"trackDiff": @"trackDiff" }; }
+@end
+
+@implementation KBStartRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"sessionId": @"sessionId" }; }
+@end
+
+@implementation KBIdentity
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
+@end
+
+@implementation KBRIdentify_ui
+- (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error, KBStatus * status))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"id": KBRValue(id)};
+  [self.client sendRequestWithMethod:@"keybase.1.identify_ui.LaunchNetworkChecks" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)start:(void (^)(NSError *error, KBStartRes * startRes))completion {
+
+  NSDictionary *params = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.identify_ui.start" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBStartRes *result = [MTLJSONAdapter modelOfClass:KBStartRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBLoginResBody
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"uid": @"uid" }; }
 @end
@@ -143,22 +196,6 @@
   }];
 }
 
-@end
-
-@implementation KBTrackDiff
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"type": @"type", @"displayMarkup": @"displayMarkup" }; }
-@end
-
-@implementation KBRemoteProof
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofType": @"proofType", @"key": @"key", @"value": @"value", @"displayMarkup": @"displayMarkup" }; }
-@end
-
-@implementation KBIdentifyRow
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"rowId": @"rowId", @"proof": @"proof", @"trackDiff": @"trackDiff" }; }
-@end
-
-@implementation KBIdentifyKey
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID", @"trackDiff": @"trackDiff" }; }
 @end
 
 @implementation KBIdentifyStartResBody

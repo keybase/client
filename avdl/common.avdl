@@ -10,4 +10,41 @@ protocol Common {
 	}
 
 	fixed UID(16);
+
+	enum TrackDiffType {
+		NONE,
+		ERROR,
+		CLASH,
+		DELETED,
+		UPGRADED,
+		NEW,
+		REMOTE_FAIL,
+		REMOTE_WORKING,
+		REMOTE_CHANGED
+	}
+
+	record TrackDiff {
+		TrackDiffType type;
+		string displayMarkup;
+	}
+
+	record RemoteProof {
+		int proofType;
+		string key;
+		string value;
+		string displayMarkup;
+	}
+
+	record IdentifyRow {
+		int rowId;
+		RemoteProof proof;
+		union { null, TrackDiff } trackDiff;
+	}
+
+	record IdentifyKey {
+		bytes pgpFingerprint;
+		bytes KID;
+		union { null, TrackDiff } trackDiff;
+	}
+	
 }

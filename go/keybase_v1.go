@@ -48,6 +48,86 @@ func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentS
 	return c.Cli.Call("keybase.1.config.GetCurrentStatus", arg, res)
 }
 
+type TrackDiffType int
+
+const (
+	TrackDiffType_NONE           = 0
+	TrackDiffType_ERROR          = 1
+	TrackDiffType_CLASH          = 2
+	TrackDiffType_DELETED        = 3
+	TrackDiffType_UPGRADED       = 4
+	TrackDiffType_NEW            = 5
+	TrackDiffType_REMOTE_FAIL    = 6
+	TrackDiffType_REMOTE_WORKING = 7
+	TrackDiffType_REMOTE_CHANGED = 8
+)
+
+type TrackDiff struct {
+	Type          TrackDiffType `codec:"type"`
+	DisplayMarkup string        `codec:"displayMarkup"`
+}
+
+type RemoteProof struct {
+	ProofType     int    `codec:"proofType"`
+	Key           string `codec:"key"`
+	Value         string `codec:"value"`
+	DisplayMarkup string `codec:"displayMarkup"`
+}
+
+type IdentifyRow struct {
+	RowId     int         `codec:"rowId"`
+	Proof     RemoteProof `codec:"proof"`
+	TrackDiff *TrackDiff  `codec:"trackDiff,omitempty"`
+}
+
+type IdentifyKey struct {
+	PgpFingerprint []byte     `codec:"pgpFingerprint"`
+	KID            []byte     `codec:"KID"`
+	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty"`
+}
+
+type StartRes struct {
+	Status    Status `codec:"status"`
+	SessionId int    `codec:"sessionId"`
+}
+
+type Identity struct {
+	WhenLastTracked int           `codec:"whenLastTracked"`
+	Key             IdentifyKey   `codec:"key"`
+	Proofs          []IdentifyRow `codec:"proofs"`
+	Cryptocurrency  []IdentifyRow `codec:"cryptocurrency"`
+	Deleted         []TrackDiff   `codec:"deleted"`
+}
+
+type LaunchNetworkChecksArg struct {
+	SessionId int      `codec:"sessionId"`
+	Id        Identity `codec:"id"`
+}
+
+type StartArg struct {
+}
+
+type Identify_uiInterface interface {
+	LaunchNetworkChecks(arg *LaunchNetworkChecksArg, res *Status) error
+	Start(arg *StartArg, res *StartRes) error
+}
+
+func RegisterIdentify_ui(server *rpc.Server, i Identify_uiInterface) error {
+	return server.RegisterName("keybase.1.identify_ui", i)
+}
+
+type Identify_uiClient struct {
+	Cli GenericClient
+}
+
+func (c Identify_uiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg, res *Status) error {
+	return c.Cli.Call("keybase.1.identify_ui.LaunchNetworkChecks", arg, res)
+}
+
+func (c Identify_uiClient) Start(arg StartArg, res *StartRes) error {
+	return c.Cli.Call("keybase.1.identify_ui.start", arg, res)
+}
+
 type LoginResBody struct {
 	Uid UID `codec:"uid"`
 }
@@ -142,44 +222,6 @@ func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
 
 func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
 	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
-}
-
-type TrackDiffType int
-
-const (
-	TrackDiffType_NONE           = 0
-	TrackDiffType_ERROR          = 1
-	TrackDiffType_CLASH          = 2
-	TrackDiffType_DELETED        = 3
-	TrackDiffType_UPGRADED       = 4
-	TrackDiffType_NEW            = 5
-	TrackDiffType_REMOTE_FAIL    = 6
-	TrackDiffType_REMOTE_WORKING = 7
-	TrackDiffType_REMOTE_CHANGED = 8
-)
-
-type TrackDiff struct {
-	Type          TrackDiffType `codec:"type"`
-	DisplayMarkup string        `codec:"displayMarkup"`
-}
-
-type RemoteProof struct {
-	ProofType     int    `codec:"proofType"`
-	Key           string `codec:"key"`
-	Value         string `codec:"value"`
-	DisplayMarkup string `codec:"displayMarkup"`
-}
-
-type IdentifyRow struct {
-	RowId     int         `codec:"rowId"`
-	Proof     RemoteProof `codec:"proof"`
-	TrackDiff *TrackDiff  `codec:"trackDiff,omitempty"`
-}
-
-type IdentifyKey struct {
-	PgpFingerprint []byte     `codec:"pgpFingerprint"`
-	KID            []byte     `codec:"KID"`
-	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty"`
 }
 
 type IdentifyStartResBody struct {

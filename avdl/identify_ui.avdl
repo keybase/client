@@ -1,0 +1,21 @@
+
+@namespace("keybase.1")
+protocol identify_ui {
+	import idl "common.avdl";
+
+	record StartRes {
+		Status status;
+		int sessionId;	
+	}
+
+	record Identity {
+		int whenLastTracked;
+		IdentifyKey key;
+		array<IdentifyRow> proofs;
+		array<IdentifyRow> cryptocurrency;
+		array<TrackDiff> deleted;
+	}
+
+	Status LaunchNetworkChecks(int sessionId, Identity id);
+	StartRes start();
+}

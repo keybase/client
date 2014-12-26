@@ -30,6 +30,61 @@
 
 @end
 
+typedef NS_ENUM (NSInteger, KBTrackDiffType) {
+	KBNone, 
+	KBError, 
+	KBClash, 
+	KBDeleted, 
+	KBUpgraded, 
+	KBNew, 
+	KBRemote_fail, 
+	KBRemote_working, 
+	KBRemote_changed, 
+};
+@interface KBTrackDiff : KBRObject
+@property KBTrackDiffType type;
+@property NSString *displayMarkup;
+@end
+
+@interface KBRemoteProof : KBRObject
+@property NSInteger proofType;
+@property NSString *key;
+@property NSString *value;
+@property NSString *displayMarkup;
+@end
+
+@interface KBIdentifyRow : KBRObject
+@property NSInteger rowId;
+@property KBRemoteProof *proof;
+@property KBTrackDiff *trackDiff;
+@end
+
+@interface KBIdentifyKey : KBRObject
+@property NSData *pgpFingerprint;
+@property NSData *KID;
+@property KBTrackDiff *trackDiff;
+@end
+
+@interface KBStartRes : KBRObject
+@property KBStatus *status;
+@property NSInteger sessionId;
+@end
+
+@interface KBIdentity : KBRObject
+@property NSInteger whenLastTracked;
+@property KBIdentifyKey *key;
+@property NSArray *proofs;
+@property NSArray *cryptocurrency;
+@property NSArray *deleted;
+@end
+
+@interface KBRIdentify_ui : KBRRequest
+- (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error, KBStatus * status))completion;
+
+- (void)start:(void (^)(NSError *error, KBStartRes * startRes))completion;
+
+@end
+
 @interface KBLoginResBody : KBRObject
 @property KBUID *uid;
 @end
@@ -68,41 +123,6 @@
 
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error, KBStatus * status))completion;
 
-@end
-
-typedef NS_ENUM (NSInteger, KBTrackDiffType) {
-	KBNone, 
-	KBError, 
-	KBClash, 
-	KBDeleted, 
-	KBUpgraded, 
-	KBNew, 
-	KBRemote_fail, 
-	KBRemote_working, 
-	KBRemote_changed, 
-};
-@interface KBTrackDiff : KBRObject
-@property KBTrackDiffType type;
-@property NSString *displayMarkup;
-@end
-
-@interface KBRemoteProof : KBRObject
-@property NSInteger proofType;
-@property NSString *key;
-@property NSString *value;
-@property NSString *displayMarkup;
-@end
-
-@interface KBIdentifyRow : KBRObject
-@property NSInteger rowId;
-@property KBRemoteProof *proof;
-@property KBTrackDiff *trackDiff;
-@end
-
-@interface KBIdentifyKey : KBRObject
-@property NSData *pgpFingerprint;
-@property NSData *KID;
-@property KBTrackDiff *trackDiff;
 @end
 
 @interface KBIdentifyStartResBody : KBRObject
