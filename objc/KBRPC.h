@@ -121,9 +121,9 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBRIdentifyui : KBRRequest
 - (void)finishAndPromptWithSessionid:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion;
 
-- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion;
 
-- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 - (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId address:(NSString *)address completion:(void (^)(NSError *error, KBStatus * status))completion;
 

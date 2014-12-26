@@ -157,11 +157,13 @@ type FinishAndPromptArg struct {
 
 type FinishWebProofCheckArg struct {
 	SessionId int           `codec:"sessionId"`
+	Rp        RemoteProof   `codec:"rp"`
 	Pcres     ProofCheckRes `codec:"pcres"`
 }
 
 type FinishSocialProofCheckArg struct {
 	SessionId int           `codec:"sessionId"`
+	Rp        RemoteProof   `codec:"rp"`
 	Pcres     ProofCheckRes `codec:"pcres"`
 }
 

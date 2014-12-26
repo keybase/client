@@ -106,9 +106,9 @@
   }];
 }
 
-- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion {
+- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"sessionId": @(sessionId), @"pcres": KBRValue(pcres)};
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"rp": KBRValue(rp), @"pcres": KBRValue(pcres)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishWebProofCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
@@ -119,9 +119,9 @@
   }];
 }
 
-- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion {
+- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"sessionId": @(sessionId), @"pcres": KBRValue(pcres)};
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"rp": KBRValue(rp), @"pcres": KBRValue(pcres)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishSocialProofCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

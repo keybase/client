@@ -215,6 +215,9 @@
         "name" : "sessionId",
         "type" : "int"
       }, {
+        "name" : "rp",
+        "type" : "RemoteProof"
+      }, {
         "name" : "pcres",
         "type" : "ProofCheckRes"
       } ],
@@ -224,6 +227,9 @@
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"
+      }, {
+        "name" : "rp",
+        "type" : "RemoteProof"
       }, {
         "name" : "pcres",
         "type" : "ProofCheckRes"

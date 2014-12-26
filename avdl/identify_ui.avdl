@@ -77,8 +77,8 @@ protocol identifyUi {
 	}
 
 	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome outcome);
-	Status finishWebProofCheck(int sessionId, ProofCheckRes pcres);
-	Status finishSocialProofCheck(int sessionId, ProofCheckRes pcres);
+	Status finishWebProofCheck(int sessionId, RemoteProof rp, ProofCheckRes pcres);
+	Status finishSocialProofCheck(int sessionId, RemoteProof rp, ProofCheckRes pcres);
 	Status displayCryptocurrency(int sessionId, string address);
 	Status displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
 	Status reportLastTrack(int sessionId, int time);
