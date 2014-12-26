@@ -44,10 +44,6 @@ func (u *RemoteTrackUI) FinishSocialProofCheck(link *libkb.SocialProofChainLink,
 	return
 }
 func (u *RemoteTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (ti libkb.TrackInstructions, err error) {
-	u.wait <- res.ExportToIdentifyWaitResBody()
-	tiae := <-u.finish
-	ti = tiae.ti
-	err = tiae.err
 	return
 }
 func (u *RemoteTrackUI) DisplayCryptocurrency(*libkb.CryptocurrencyChainLink) {
