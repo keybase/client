@@ -25,6 +25,19 @@
     "name" : "UID",
     "size" : 16
   }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "TrackDiffType",
     "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
@@ -194,8 +207,8 @@
     },
     "IdentifyStart" : {
       "request" : [ {
-        "name" : "username",
-        "type" : "string"
+        "name" : "arg",
+        "type" : "LoadUserArg"
       } ],
       "response" : "IdentifyStartRes"
     },

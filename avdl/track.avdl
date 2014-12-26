@@ -85,7 +85,7 @@ protocol track {
 	}
 
 	IdentifyStartRes IdentifySelfStart();
-	IdentifyStartRes IdentifyStart(string username);
+	IdentifyStartRes IdentifyStart(LoadUserArg arg);
 	IdentifyCheckRes IdentifyCheck(int sessionId, int rowId);
 	IdentifyWaitRes IdentifyWait(int sessionId);
 	Status IdentifyFinish(int sessionId, boolean doRemoteTrack, boolean doLocalTrack, Status status);

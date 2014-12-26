@@ -145,6 +145,10 @@
 
 @end
 
+@implementation KBLoadUserArg
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"uid": @"uid", @"username": @"username", @"self": @"self" }; }
+@end
+
 @implementation KBTrackDiff
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"type": @"type", @"displayMarkup": @"displayMarkup" }; }
 @end
@@ -203,9 +207,9 @@
   }];
 }
 
-- (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
+- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
 
-  NSDictionary *params = @{@"username": KBRValue(username)};
+  NSDictionary *params = @{@"arg": KBRValue(arg)};
   [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyStart" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

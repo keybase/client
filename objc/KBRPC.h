@@ -70,6 +70,12 @@
 
 @end
 
+@interface KBLoadUserArg : KBRObject
+@property KBUID *uid;
+@property NSString *username;
+@property BOOL self;
+@end
+
 typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 	KBNone, 
 	KBError, 
@@ -152,7 +158,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBRTrack : KBRRequest
 - (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
 
-- (void)identifyStartWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
+- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
 
 - (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
 

@@ -144,6 +144,12 @@ func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
 	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
 }
 
+type LoadUserArg struct {
+	Uid      *UID    `codec:"uid,omitempty"`
+	Username *string `codec:"username,omitempty"`
+	Self     bool    `codec:"self"`
+}
+
 type TrackDiffType int
 
 const (
@@ -243,7 +249,7 @@ type IdentifyFinishArg struct {
 
 type TrackInterface interface {
 	IdentifySelfStart(arg *IdentifySelfStartArg, res *IdentifyStartRes) error
-	IdentifyStart(username *string, res *IdentifyStartRes) error
+	IdentifyStart(arg *LoadUserArg, res *IdentifyStartRes) error
 	IdentifyCheck(arg *IdentifyCheckArg, res *IdentifyCheckRes) error
 	IdentifyWait(sessionId *int, res *IdentifyWaitRes) error
 	IdentifyFinish(arg *IdentifyFinishArg, res *Status) error
@@ -261,8 +267,8 @@ func (c TrackClient) IdentifySelfStart(arg IdentifySelfStartArg, res *IdentifySt
 	return c.Cli.Call("keybase.1.track.IdentifySelfStart", arg, res)
 }
 
-func (c TrackClient) IdentifyStart(username string, res *IdentifyStartRes) error {
-	return c.Cli.Call("keybase.1.track.IdentifyStart", username, res)
+func (c TrackClient) IdentifyStart(arg LoadUserArg, res *IdentifyStartRes) error {
+	return c.Cli.Call("keybase.1.track.IdentifyStart", arg, res)
 }
 
 func (c TrackClient) IdentifyCheck(arg IdentifyCheckArg, res *IdentifyCheckRes) error {

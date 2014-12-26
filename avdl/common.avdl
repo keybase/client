@@ -10,4 +10,10 @@ protocol Common {
 	}
 
 	fixed UID(16);
+	
+	record LoadUserArg {
+		union { null, UID } uid;	
+		union { null, string} username;
+		boolean self;
+	}
 }
