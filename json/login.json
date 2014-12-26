@@ -95,6 +95,29 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "KID",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ProofStatus",
+    "fields" : [ {
+      "name" : "state",
+      "type" : "int"
+    }, {
+      "name" : "status",
+      "type" : "int"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "LoginResBody",
     "fields" : [ {
       "name" : "uid",

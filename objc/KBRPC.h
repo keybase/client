@@ -53,6 +53,17 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property BOOL self;
 @end
 
+@interface KBFOKID : KBRObject
+@property NSData *pgpFingerprint;
+@property NSData *KID;
+@end
+
+@interface KBProofStatus : KBRObject
+@property NSInteger state;
+@property NSInteger status;
+@property NSString *desc;
+@end
+
 @interface KBGetCurrentStatusResBody : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -69,17 +80,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBRConfig : KBRRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBGetCurrentStatusRes * getCurrentStatusRes))completion;
 
-@end
-
-@interface KBFOKID : KBRObject
-@property NSData *pgpFingerprint;
-@property NSData *KID;
-@end
-
-@interface KBProofStatus : KBRObject
-@property NSInteger state;
-@property NSInteger status;
-@property NSString *desc;
 @end
 
 @interface KBIdentifyStartResBody : KBRObject
@@ -226,18 +226,5 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 - (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBSignupRes * signupRes))completion;
 
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error, KBStatus * status))completion;
-
-@end
-
-@interface KBRTrack : KBRRequest
-- (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
-
-- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion;
-
-- (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion;
-
-- (void)identifyWaitWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyWaitRes * identifyWaitRes))completion;
-
-- (void)identifyFinishWithSessionid:(NSInteger )sessionId doRemoteTrack:(BOOL )doRemoteTrack doLocalTrack:(BOOL )doLocalTrack status:(KBStatus *)status completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 @end

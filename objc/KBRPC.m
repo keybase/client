@@ -28,6 +28,14 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"uid": @"uid", @"username": @"username", @"self": @"self" }; }
 @end
 
+@implementation KBFOKID
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID" }; }
+@end
+
+@implementation KBProofStatus
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"state": @"state", @"status": @"status", @"desc": @"desc" }; }
+@end
+
 @implementation KBGetCurrentStatusResBody
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"configured": @"configured", @"registered": @"registered", @"loggedIn": @"loggedIn", @"publicKeySelected": @"publicKeySelected", @"hasPrivateKey": @"hasPrivateKey" }; }
 @end
@@ -50,14 +58,6 @@
   }];
 }
 
-@end
-
-@implementation KBFOKID
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID" }; }
-@end
-
-@implementation KBProofStatus
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"state": @"state", @"status": @"status", @"desc": @"desc" }; }
 @end
 
 @implementation KBIdentifyStartResBody
@@ -394,74 +394,6 @@
 
   NSDictionary *params = @{@"email": KBRValue(email), @"fullname": KBRValue(fullname), @"notes": KBRValue(notes)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.InviteRequest" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
-    completion(error, result);
-  }];
-}
-
-@end
-
-@implementation KBRTrack
-- (void)identifySelfStart:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
-
-  NSDictionary *params = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifySelfStart" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBIdentifyStartRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyStartRes.class fromJSONDictionary:dict error:&error];
-    completion(error, result);
-  }];
-}
-
-- (void)identifyStartWithArg:(KBLoadUserArg *)arg completion:(void (^)(NSError *error, KBIdentifyStartRes * identifyStartRes))completion {
-
-  NSDictionary *params = @{@"arg": KBRValue(arg)};
-  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyStart" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBIdentifyStartRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyStartRes.class fromJSONDictionary:dict error:&error];
-    completion(error, result);
-  }];
-}
-
-- (void)identifyCheckWithSessionid:(NSInteger )sessionId rowId:(NSInteger )rowId completion:(void (^)(NSError *error, KBIdentifyCheckRes * identifyCheckRes))completion {
-
-  NSDictionary *params = @{@"sessionId": @(sessionId), @"rowId": @(rowId)};
-  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBIdentifyCheckRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyCheckRes.class fromJSONDictionary:dict error:&error];
-    completion(error, result);
-  }];
-}
-
-- (void)identifyWaitWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBIdentifyWaitRes * identifyWaitRes))completion {
-
-  NSDictionary *params = @{@"sessionId": @(sessionId)};
-  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyWait" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBIdentifyWaitRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyWaitRes.class fromJSONDictionary:dict error:&error];
-    completion(error, result);
-  }];
-}
-
-- (void)identifyFinishWithSessionid:(NSInteger )sessionId doRemoteTrack:(BOOL )doRemoteTrack doLocalTrack:(BOOL )doLocalTrack status:(KBStatus *)status completion:(void (^)(NSError *error, KBStatus * status))completion {
-
-  NSDictionary *params = @{@"sessionId": @(sessionId), @"doRemoteTrack": @(doRemoteTrack), @"doLocalTrack": @(doLocalTrack), @"status": KBRValue(status)};
-  [self.client sendRequestWithMethod:@"keybase.1.track.IdentifyFinish" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
       return;

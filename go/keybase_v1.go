@@ -60,6 +60,17 @@ type LoadUserArg struct {
 	Self     bool    `codec:"self"`
 }
 
+type FOKID struct {
+	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty"`
+	KID            *[]byte `codec:"KID,omitempty"`
+}
+
+type ProofStatus struct {
+	State  int    `codec:"state"`
+	Status int    `codec:"status"`
+	Desc   string `codec:"desc"`
+}
+
 type GetCurrentStatusResBody struct {
 	Configured        bool `codec:"configured"`
 	Registered        bool `codec:"registered"`
@@ -90,17 +101,6 @@ type ConfigClient struct {
 
 func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentStatusRes) error {
 	return c.Cli.Call("keybase.1.config.GetCurrentStatus", arg, res)
-}
-
-type FOKID struct {
-	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty"`
-	KID            *[]byte `codec:"KID,omitempty"`
-}
-
-type ProofStatus struct {
-	State  int    `codec:"state"`
-	Status int    `codec:"status"`
-	Desc   string `codec:"desc"`
 }
 
 type IdentifyStartResBody struct {
@@ -419,55 +419,4 @@ func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
 
 func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
 	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
-}
-
-type IdentifySelfStartArg struct {
-}
-
-type IdentifyCheckArg struct {
-	SessionId int `codec:"sessionId"`
-	RowId     int `codec:"rowId"`
-}
-
-type IdentifyFinishArg struct {
-	SessionId     int    `codec:"sessionId"`
-	DoRemoteTrack bool   `codec:"doRemoteTrack"`
-	DoLocalTrack  bool   `codec:"doLocalTrack"`
-	Status        Status `codec:"status"`
-}
-
-type TrackInterface interface {
-	IdentifySelfStart(arg *IdentifySelfStartArg, res *IdentifyStartRes) error
-	IdentifyStart(arg *LoadUserArg, res *IdentifyStartRes) error
-	IdentifyCheck(arg *IdentifyCheckArg, res *IdentifyCheckRes) error
-	IdentifyWait(sessionId *int, res *IdentifyWaitRes) error
-	IdentifyFinish(arg *IdentifyFinishArg, res *Status) error
-}
-
-func RegisterTrack(server *rpc.Server, i TrackInterface) error {
-	return server.RegisterName("keybase.1.track", i)
-}
-
-type TrackClient struct {
-	Cli GenericClient
-}
-
-func (c TrackClient) IdentifySelfStart(arg IdentifySelfStartArg, res *IdentifyStartRes) error {
-	return c.Cli.Call("keybase.1.track.IdentifySelfStart", arg, res)
-}
-
-func (c TrackClient) IdentifyStart(arg LoadUserArg, res *IdentifyStartRes) error {
-	return c.Cli.Call("keybase.1.track.IdentifyStart", arg, res)
-}
-
-func (c TrackClient) IdentifyCheck(arg IdentifyCheckArg, res *IdentifyCheckRes) error {
-	return c.Cli.Call("keybase.1.track.IdentifyCheck", arg, res)
-}
-
-func (c TrackClient) IdentifyWait(sessionId int, res *IdentifyWaitRes) error {
-	return c.Cli.Call("keybase.1.track.IdentifyWait", sessionId, res)
-}
-
-func (c TrackClient) IdentifyFinish(arg IdentifyFinishArg, res *Status) error {
-	return c.Cli.Call("keybase.1.track.IdentifyFinish", arg, res)
 }
