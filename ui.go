@@ -203,7 +203,9 @@ type RemoteProofWrapper struct {
 
 func (w RemoteProofWrapper) GetRemoteUsername() string { return w.p.Value }
 func (w RemoteProofWrapper) GetService() string        { return w.p.Value }
-func (w RemoteProofWrapper) GetProtocol() string       { return w.p.Value }
+func (w RemoteProofWrapper) GetProtocol() string       { return w.p.Key }
+func (w RemoteProofWrapper) GetHostname() string       { return w.p.Value }
+func (w RemoteProofWrapper) GetDomain() string         { return w.p.Value }
 
 func (w RemoteProofWrapper) ToDisplayString() string {
 	return libkb.NewMarkup(w.p.DisplayMarkup).GetRaw()
@@ -277,7 +279,7 @@ func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr libkb.L
 		if s.GetProtocol() == "dns" {
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(ok_color, "DNS") + " zone " +
-				ColorString(ok_color, p.Value) +
+				ColorString(ok_color, s.GetDomain()) +
 				": found TXT entry " + lcr.GetHint().GetCheckText())
 		} else {
 			var color string
@@ -287,7 +289,7 @@ func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr libkb.L
 				color = ok_color
 			}
 			msg += (CHECK + " " + lcrs + "admin of " +
-				ColorString(color, p.Value) + " via " +
+				ColorString(color, s.GetHostname()) + " via " +
 				ColorString(color, strings.ToUpper(s.GetProtocol())) +
 				": " + lcr.GetHint().GetHumanUrl())
 		}
