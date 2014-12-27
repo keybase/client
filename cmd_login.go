@@ -6,11 +6,10 @@ import (
 	"github.com/keybase/go-libkb"
 )
 
-type CmdLogin struct{
-
+type CmdLogin struct {
 }
 
-func (v *CmdLogin) RunClient() error { 
+func (v *CmdLogin) RunClient() error {
 	return nil
 }
 

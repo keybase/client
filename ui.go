@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"os"
 	"strconv"
 	"strings"
@@ -196,8 +197,22 @@ func (u BaseIdentifyUI) PromptForConfirmation(s string) error {
 	return u.parent.PromptForConfirmation(s)
 }
 
-func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lcr libkb.LinkCheckResult) {
+type RemoteProofWrapper struct {
+	p keybase_1.RemoteProof
+}
+
+func (w RemoteProofWrapper) GetRemoteUsername() string { return w.p.Value }
+func (w RemoteProofWrapper) GetService() string        { return w.p.Value }
+func (w RemoteProofWrapper) GetProtocol() string       { return w.p.Value }
+
+func (w RemoteProofWrapper) ToDisplayString() string {
+	return libkb.NewMarkup(w.p.DisplayMarkup).GetRaw()
+}
+
+func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
 	var msg, lcrs string
+
+	s := RemoteProofWrapper{p}
 
 	if diff := lcr.GetDiff(); diff != nil {
 		lcrs = TrackDiffToColoredString(diff) + " "
@@ -246,12 +261,14 @@ func (u BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) str
 	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
+func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
 	var msg, lcrs string
 
 	if diff := lcr.GetDiff(); diff != nil {
 		lcrs = TrackDiffToColoredString(diff) + " "
 	}
+
+	s := RemoteProofWrapper{p}
 
 	great_color := "green"
 	ok_color := "yellow"
@@ -260,7 +277,7 @@ func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libk
 		if s.GetProtocol() == "dns" {
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(ok_color, "DNS") + " zone " +
-				ColorString(ok_color, s.GetHostname()) +
+				ColorString(ok_color, p.Value) +
 				": found TXT entry " + lcr.GetHint().GetCheckText())
 		} else {
 			var color string
@@ -270,7 +287,7 @@ func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libk
 				color = ok_color
 			}
 			msg += (CHECK + " " + lcrs + "admin of " +
-				ColorString(color, s.GetHostname()) + " via " +
+				ColorString(color, p.Value) + " via " +
 				ColorString(color, strings.ToUpper(s.GetProtocol())) +
 				": " + lcr.GetHint().GetHumanUrl())
 		}
