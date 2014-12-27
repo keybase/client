@@ -42,21 +42,21 @@ func (h *IdentifyHandler) NewUi(sessionId int) libkb.IdentifyUI {
 	return NewRemoteIdentifyUI(sessionId, h.GetRpcClient())
 }
 
-func (u *RemoteIdentifyUI) FinishWebProofCheck(w *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
+func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
 	var status keybase_1.Status
 	u.uicli.FinishWebProofCheck(keybase_1.FinishWebProofCheckArg{
 		SessionId: u.sessionId,
-		Rp: libkb.ExportRemoteProof(w),
+		Rp:        p,
 		Pcres:     lcr.ExportToProofCheckRes(),
 	}, &status)
 	return
 }
 
-func (u *RemoteIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lcr libkb.LinkCheckResult) {
+func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
 	var status keybase_1.Status
 	u.uicli.FinishSocialProofCheck(keybase_1.FinishSocialProofCheckArg{
 		SessionId: u.sessionId,
-		Rp: libkb.ExportRemoteProof(s),
+		Rp:        p,
 		Pcres:     lcr.ExportToProofCheckRes(),
 	}, &status)
 	return
