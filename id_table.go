@@ -133,7 +133,7 @@ func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 }
 
 func (s *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	ui.FinishWebProofCheck(s, lcr)
+	ui.FinishWebProofCheck(ExportRemoteProof(s), lcr)
 }
 
 func (w *WebProofChainLink) Type() string { return "proof" }
@@ -222,7 +222,7 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 }
 
 func (s *SocialProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	ui.FinishSocialProofCheck(s, lcr)
+	ui.FinishSocialProofCheck(ExportRemoteProof(s), lcr)
 }
 
 func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {

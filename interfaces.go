@@ -12,6 +12,7 @@ package libkb
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/protocol/go"
 	"net/url"
 )
 
@@ -202,8 +203,8 @@ type GpgClient interface {
 }
 
 type IdentifyUI interface {
-	FinishWebProofCheck(*WebProofChainLink, LinkCheckResult)
-	FinishSocialProofCheck(*SocialProofChainLink, LinkCheckResult)
+	FinishWebProofCheck(keybase_1.RemoteProof, LinkCheckResult)
+	FinishSocialProofCheck(keybase_1.RemoteProof, LinkCheckResult)
 	FinishAndPrompt(*IdentifyRes) (TrackInstructions, error)
 	DisplayCryptocurrency(*CryptocurrencyChainLink)
 	DisplayKey(*PgpFingerprint, TrackDiff)
