@@ -10,7 +10,8 @@ type CmdLogin struct{
 
 }
 
-func (v *CmdLogin) RunClient() error { 
+func (v *CmdLogin) RunClient() (err error) { 
+
 	return nil
 }
 
