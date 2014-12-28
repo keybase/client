@@ -44,14 +44,12 @@ func (u IdentifyUI) Start() {
 	G.Log.Info("Identifying " + ColorString("bold", u.them.GetName()))
 }
 
-func (ui BaseIdentifyUI) baseFinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	var warnings libkb.Warnings
-	err, warnings = ires.GetErrorLax()
-	if err != nil {
-		return
-	} else if !warnings.IsEmpty() {
+func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
+	warnings := libkb.ImportWarnings(o.Warnings)
+	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 	}
+	ret.Status = o.Status
 	return
 }
 
@@ -59,32 +57,31 @@ func (ui BaseIdentifyUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
 	return
 }
 
-func (ui IdentifyLubaUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	return ui.baseFinishAndPrompt(ires)
+func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes {
+	return ui.baseFinishAndPrompt(o)
 }
-func (ui IdentifyUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	return ui.baseFinishAndPrompt(ires)
+func (ui IdentifyUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes {
+	return ui.baseFinishAndPrompt(o)
 }
 
-func (ui IdentifySelfUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	var warnings libkb.Warnings
-	err, warnings = ires.GetErrorLax()
+func (ui IdentifySelfUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
+	ret.Status = o.Status
+	err := libkb.ImportStatusAsError(o.Status)
+	warnings := libkb.ImportWarnings(o.Warnings)
 	var prompt string
 	if err != nil {
 		return
 	} else if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 		prompt = "Do you still accept these credentials to be your own?"
-	} else if len(ires.ProofChecks) == 0 {
+	} else if o.NumProofSuccesses == 0 {
 		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
 	} else {
 		prompt = "Is this you?"
 	}
 
 	err = ui.PromptForConfirmation(prompt)
-	if err != nil {
-		return
-	}
+	ret.Status = libkb.ExportErrorAsStatus(err)
 	return
 }
 
@@ -93,49 +90,51 @@ type IdentifyTrackUI struct {
 	strict bool
 }
 
-func (ui IdentifyTrackUI) ReportDeleted(del []libkb.TrackDiffDeleted) {
+func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 	if len(del) > 0 {
 		G.Log.Warning("Some proofs you previously tracked were deleted:")
 		for _, d := range del {
-			ui.ReportHook(BADX + " " + TrackDiffToColoredString(*libkb.ExportTrackDiff(d)))
+			ui.ReportHook(BADX + " " + TrackDiffToColoredString(d))
 		}
 	}
 }
 
-func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
+func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
 	var prompt string
 	un := ui.them.GetName()
 
 	// A "Track Failure" is when we previously tracked this user, and
 	// some aspect of their proof changed.  Like their key changed, or
 	// they changed Twitter names
-	ntf := res.NumTrackFailures()
+	ntf := o.NumTrackFailures
 
 	// A "Track Change" isn't necessary a failure, maybe they upgraded
 	// a proof from HTTP to HTTPS.  But we still should retrack if we can.
-	ntc := res.NumTrackChanges()
+	ntc := o.NumTrackChanges
 
 	// The number of proofs that failed.
-	npf := res.NumProofFailures()
+	npf := o.NumProofFailures
 
 	// Deleted proofs are those we used to look for but are gone!
-	nd := res.NumDeleted()
+	nd := o.NumDeleted
 
 	// The number of proofs that actually worked
-	nps := res.NumProofSuccesses()
+	nps := o.NumProofSuccesses
 
 	// Whether we used a tracking statement when checking the identity
 	// this time...
-	tracked := res.TrackUsed != nil
+	tracked := o.TrackUsed != nil
 	is_remote := false
 	if tracked {
-		is_remote = res.TrackUsed.IsRemote()
+		is_remote = o.TrackUsed.IsRemote
 	}
 
 	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; nd=%d; nps=%d; tracked=%v; is_remote=%v",
 		un, ntf, ntc, npf, nd, nps, tracked, is_remote)
 
-	ui.ReportDeleted(res.Deleted)
+	ui.ReportDeleted(o.Deleted)
+
+	var err error
 
 	def := true
 	is_equal := false
@@ -164,24 +163,20 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 	if !is_equal {
 		var ok bool
 		if ok, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
-			return
 		} else if !ok {
 			err = NotConfirmedError{}
-			return
 		}
-		i.Local = true
+		ret.TrackLocal = true
 	} else if is_remote {
-		i.Local = false
+		ret.TrackLocal = false
 	}
 
-	if !is_equal || !is_remote {
+	if err == nil && (!is_equal || !is_remote) {
 		def = true
-		prompt = "Publicly write tracking statement to server?"
-		if i.Remote, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
-			return
-		}
+		prompt = "publicly write tracking statement to server?"
+		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, &def)
 	}
-
+	ret.Status = libkb.ExportErrorAsStatus(err)
 	return
 }
 
