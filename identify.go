@@ -70,12 +70,9 @@ func (u *RemoteIdentifyUI) FinishAndPrompt(io *keybase_1.IdentifyOutcome) (ret k
 	return
 }
 
-func (u *RemoteIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainLink) {
+func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase_1.Cryptocurrency) {
 	var status keybase_1.Status
-	u.uicli.DisplayCryptocurrency(keybase_1.DisplayCryptocurrencyArg{
-		SessionId: u.sessionId,
-		Address:   l.ToDisplayString(),
-	}, &status)
+	u.uicli.DisplayCryptocurrency(keybase_1.DisplayCryptocurrencyArg{SessionId: u.sessionId, C: c }, &status)
 	return
 }
 
