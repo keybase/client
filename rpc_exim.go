@@ -1,4 +1,4 @@
-// Export-Import
+// Export-Import for RPC stubs
 
 package libkb
 
