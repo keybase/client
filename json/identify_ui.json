@@ -233,6 +233,16 @@
       "name" : "trackRemote",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "TrackSummary",
+    "fields" : [ {
+      "name" : "time",
+      "type" : "int"
+    }, {
+      "name" : "isRemote",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "finishAndPrompt" : {
@@ -299,8 +309,8 @@
         "name" : "sessionId",
         "type" : "int"
       }, {
-        "name" : "time",
-        "type" : "int"
+        "name" : "track",
+        "type" : [ "null", "TrackSummary" ]
       } ],
       "response" : "Status"
     },

@@ -100,6 +100,10 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"trackLocal": @"trackLocal", @"trackRemote": @"trackRemote" }; }
 @end
 
+@implementation KBTrackSummary
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"time": @"time", @"isRemote": @"isRemote" }; }
+@end
+
 @implementation KBRIdentifyui
 - (void)finishAndPromptWithSessionid:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion {
 
@@ -166,9 +170,9 @@
   }];
 }
 
-- (void)reportLastTrackWithSessionid:(NSInteger )sessionId time:(NSInteger )time completion:(void (^)(NSError *error, KBStatus * status))completion {
+- (void)reportLastTrackWithSessionid:(NSInteger )sessionId track:(KBTrackSummary *)track completion:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"sessionId": @(sessionId), @"time": @(time)};
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"track": KBRValue(track)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportLastTrack" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

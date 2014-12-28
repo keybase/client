@@ -133,6 +133,11 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property BOOL trackRemote;
 @end
 
+@interface KBTrackSummary : KBRObject
+@property NSInteger time;
+@property BOOL isRemote;
+@end
+
 @interface KBRIdentifyui : KBRRequest
 - (void)finishAndPromptWithSessionid:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion;
 
@@ -144,7 +149,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)displayKeyWithSessionid:(NSInteger )sessionId fokid:(KBFOKID *)fokid diff:(KBTrackDiff *)diff completion:(void (^)(NSError *error, KBStatus * status))completion;
 
-- (void)reportLastTrackWithSessionid:(NSInteger )sessionId time:(NSInteger )time completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)reportLastTrackWithSessionid:(NSInteger )sessionId track:(KBTrackSummary *)track completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 - (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error, KBStatus * status))completion;
 

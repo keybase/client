@@ -165,6 +165,11 @@ type FinishAndPromptRes struct {
 	TrackRemote bool   `codec:"trackRemote"`
 }
 
+type TrackSummary struct {
+	Time     int  `codec:"time"`
+	IsRemote bool `codec:"isRemote"`
+}
+
 type FinishAndPromptArg struct {
 	SessionId int             `codec:"sessionId"`
 	Outcome   IdentifyOutcome `codec:"outcome"`
@@ -194,8 +199,8 @@ type DisplayKeyArg struct {
 }
 
 type ReportLastTrackArg struct {
-	SessionId int `codec:"sessionId"`
-	Time      int `codec:"time"`
+	SessionId int           `codec:"sessionId"`
+	Track     *TrackSummary `codec:"track,omitempty"`
 }
 
 type LaunchNetworkChecksArg struct {

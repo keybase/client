@@ -91,11 +91,16 @@ protocol identifyUi {
 		boolean trackRemote;
 	}
 
+	record TrackSummary {
+		int time;	
+		boolean isRemote;
+	}
+
 	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome outcome);
 	Status finishWebProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
 	Status finishSocialProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
 	Status displayCryptocurrency(int sessionId, string address);
 	Status displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
-	Status reportLastTrack(int sessionId, int time);
+	Status reportLastTrack(int sessionId, union { null, TrackSummary } track);
 	Status launchNetworkChecks(int sessionId, Identity id);
 }
