@@ -382,8 +382,8 @@ func (u BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff)
 	u.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) ReportLastTrack(t *libkb.TrackLookup) {
-	if t != nil {
+func (u BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
+	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {
 			locally = "locally "
