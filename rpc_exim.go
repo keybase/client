@@ -275,3 +275,11 @@ func ImportWarnings(v []string) Warnings {
 }
 
 //=============================================================================
+
+func (c CryptocurrencyChainLink) Export() (ret keybase_1.Cryptocurrency) {
+	ret.Pkhash = c.pkhash
+	ret.Address = c.address
+	return
+}
+
+//=============================================================================

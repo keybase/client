@@ -206,7 +206,7 @@ type IdentifyUI interface {
 	FinishWebProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishAndPrompt(*keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes
-	DisplayCryptocurrency(*CryptocurrencyChainLink)
+	DisplayCryptocurrency(keybase_1.Cryptocurrency)
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*keybase_1.TrackSummary)
 	Start()

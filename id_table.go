@@ -521,7 +521,7 @@ func (l *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
 }
 
 func (l CryptocurrencyChainLink) Display(ui IdentifyUI) {
-	ui.DisplayCryptocurrency(&l)
+	ui.DisplayCryptocurrency(l.Export())
 }
 
 //
