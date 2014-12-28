@@ -357,8 +357,8 @@ func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1
 	u.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainLink) {
-	msg := (BTC + " bitcoin " + ColorString("green", l.GetAddress()))
+func (u BaseIdentifyUI) DisplayCryptocurrency(l keybase_1.Cryptocurrency) {
+	msg := (BTC + " bitcoin " + ColorString("green", l.Address))
 	u.ReportHook(msg)
 }
 
