@@ -97,7 +97,7 @@ func (ui IdentifyTrackUI) ReportDeleted(del []libkb.TrackDiffDeleted) {
 	if len(del) > 0 {
 		G.Log.Warning("Some proofs you previously tracked were deleted:")
 		for _, d := range del {
-			ui.ReportHook(BADX + " " + TrackDiffToColoredString(d))
+			ui.ReportHook(BADX + " " + TrackDiffToColoredString(*libkb.ExportTrackDiff(d)))
 		}
 	}
 }
@@ -211,13 +211,68 @@ func (w RemoteProofWrapper) ToDisplayString() string {
 	return libkb.NewMarkup(w.p.DisplayMarkup).GetRaw()
 }
 
-func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
+type LinkCheckResultWrapper struct {
+	lcr keybase_1.LinkCheckResult
+}
+
+func (w LinkCheckResultWrapper) GetDiff() *keybase_1.TrackDiff {
+	return w.lcr.Diff
+}
+
+func (w LinkCheckResultWrapper) GetError() error {
+	return libkb.ImportProofError(w.lcr.ProofStatus)
+}
+
+type SigHintWrapper struct {
+	hint *keybase_1.SigHint
+}
+
+func (shw SigHintWrapper) GetHumanUrl() (ret string) {
+	if shw.hint == nil {
+		ret = "nil"
+	} else {
+		ret = shw.hint.HumanUrl
+	}
+	return
+}
+
+func (shw SigHintWrapper) GetCheckText() (ret string) {
+	if shw.hint == nil {
+		ret = "nil"
+	} else {
+		ret = shw.hint.CheckText
+	}
+	return
+}
+
+func (w LinkCheckResultWrapper) GetHint() SigHintWrapper {
+	return SigHintWrapper{w.lcr.Hint}
+}
+
+type CheckResultWrapper struct {
+	cr *keybase_1.CheckResult
+}
+
+func (crw CheckResultWrapper) ToDisplayString() string {
+	return crw.cr.DisplayMarkup
+}
+
+func (w LinkCheckResultWrapper) GetCached() *CheckResultWrapper {
+	if o := w.lcr.Cached; o == nil {
+		return nil
+	} else {
+		return &CheckResultWrapper{o}
+	}
+}
+
+func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
+	lcr := LinkCheckResultWrapper{l}
 
 	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = TrackDiffToColoredString(diff) + " "
+		lcrs = TrackDiffToColoredString(*diff) + " "
 	}
 	run := s.GetRemoteUsername()
 
@@ -229,7 +284,7 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr libk
 		msg += (BADX + " " + lcrs +
 			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
 				ColorString("bold", "failed")+": "+
-				lcr.GetError().Error()))
+				err.Error()))
 	}
 	if cached := lcr.GetCached(); cached != nil {
 		msg += " " + ColorString("magenta", cached.ToDisplayString())
@@ -237,17 +292,17 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr libk
 	u.ReportHook(msg)
 }
 
-func TrackDiffToColoredString(t libkb.TrackDiff) string {
-	s := "<" + t.ToDisplayString() + ">"
+func TrackDiffToColoredString(t keybase_1.TrackDiff) string {
+	s := "<" + t.DisplayMarkup + ">"
 	var color string
-	switch t.(type) {
-	case libkb.TrackDiffError, libkb.TrackDiffClash, libkb.TrackDiffDeleted:
+	switch t.Type {
+	case keybase_1.TrackDiffType_ERROR, keybase_1.TrackDiffType_CLASH, keybase_1.TrackDiffType_DELETED:
 		color = "red"
-	case libkb.TrackDiffUpgraded:
+	case keybase_1.TrackDiffType_UPGRADED:
 		color = "orange"
-	case libkb.TrackDiffNew:
+	case keybase_1.TrackDiffType_NEW:
 		color = "blue"
-	case libkb.TrackDiffNone:
+	case keybase_1.TrackDiffType_NONE:
 		color = "green"
 	}
 	if len(color) > 0 {
@@ -263,14 +318,15 @@ func (u BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) str
 	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
+func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
 
-	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = TrackDiffToColoredString(diff) + " "
-	}
-
 	s := RemoteProofWrapper{p}
+	lcr := LinkCheckResultWrapper{l}
+
+	if diff := lcr.GetDiff(); diff != nil {
+		lcrs = TrackDiffToColoredString(*diff) + " "
+	}
 
 	great_color := "green"
 	ok_color := "yellow"
@@ -311,13 +367,18 @@ func (u BaseIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainLink) 
 	u.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint, diff libkb.TrackDiff) {
+func (u BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff) {
 	var ds string
 	if diff != nil {
-		ds = TrackDiffToColoredString(diff) + " "
+		ds = TrackDiffToColoredString(*diff) + " "
 	}
-	msg := CHECK + " " + ds +
-		ColorString("green", "public key fingerprint: "+fp.ToQuads())
+	var s string
+	if fp := libkb.ImportPgpFingerprint(f); fp != nil {
+		s = fp.ToQuads()
+	} else {
+		s = "<none>"
+	}
+	msg := CHECK + " " + ds + ColorString("green", "public key fingerprint: "+s)
 	u.ReportHook(msg)
 }
 
