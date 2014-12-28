@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/protocol/go"
 	"strings"
 	"sync"
 )
@@ -41,33 +40,6 @@ type IdentifyRes struct {
 	TrackUsed   *TrackLookup
 	TrackEqual  bool // Whether the track statement was equal to what we saw
 	MeSet       bool // whether me was set at the time
-}
-
-func (i IdentifyRes) ExportToIdentifyOutcome() (res keybase_1.IdentifyOutcome) {
-	res.NumTrackFailures = i.NumTrackFailures()
-	res.NumTrackChanges = i.NumTrackChanges()
-	res.NumProofFailures = i.NumProofFailures()
-	res.NumDeleted = i.NumDeleted()
-	res.NumProofSuccesses = i.NumProofSuccesses()
-	return
-}
-
-func (i IdentifyRes) ExportToUncheckedIdentity() (res keybase_1.Identity) {
-	res.Status = ExportErrorAsStatus(i.Error)
-	if i.TrackUsed != nil {
-		res.WhenLastTracked = int(i.TrackUsed.GetCTime().Unix())
-	}
-	res.Proofs = make([]keybase_1.IdentifyRow, len(i.ProofChecks))
-	for j, p := range i.ProofChecks {
-		res.Proofs[j] = p.ExportToIdentifyRow(j)
-	}
-	res.Deleted = make([]keybase_1.TrackDiff, len(i.Deleted))
-	for j, d := range i.Deleted {
-		// Should have all non-nil elements...
-		res.Deleted[j] = *ExportTrackDiff(d)
-	}
-
-	return
 }
 
 func (i IdentifyRes) NumDeleted() int {

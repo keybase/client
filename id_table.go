@@ -3,7 +3,6 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
-	"github.com/keybase/protocol/go"
 	"strings"
 	"time"
 )
@@ -133,7 +132,7 @@ func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
 }
 
 func (s *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	ui.FinishWebProofCheck(ExportRemoteProof(s), lcr)
+	ui.FinishWebProofCheck(ExportRemoteProof(s), lcr.Export())
 }
 
 func (w *WebProofChainLink) Type() string { return "proof" }
@@ -222,7 +221,7 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 }
 
 func (s *SocialProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	ui.FinishSocialProofCheck(ExportRemoteProof(s), lcr)
+	ui.FinishSocialProofCheck(ExportRemoteProof(s), lcr.Export())
 }
 
 func (s *SocialProofChainLink) CheckDataJson() *jsonw.Wrapper {
@@ -597,16 +596,6 @@ func (s *SelfSigChainLink) GetIntType() int { return PROOF_TYPE_KEYBASE }
 //
 //=========================================================================
 
-func ExportRemoteProof(p RemoteProofChainLink) keybase_1.RemoteProof {
-	k, v := p.ToKeyValuePair()
-	return keybase_1.RemoteProof{
-		ProofType:     p.GetIntType(),
-		Key:           k,
-		Value:         v,
-		DisplayMarkup: v,
-	}
-}
-
 //=========================================================================
 
 type IdentityTable struct {
@@ -858,28 +847,6 @@ type LinkCheckResult struct {
 	link              RemoteProofChainLink
 	trackedProofState int
 	position          int
-}
-
-func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase_1.IdentifyRow {
-	return keybase_1.IdentifyRow{
-		RowId:     i,
-		Proof:     ExportRemoteProof(l.link),
-		TrackDiff: ExportTrackDiff(l.diff),
-	}
-}
-
-func (l LinkCheckResult) ExportToProofCheckRes() keybase_1.ProofCheckRes {
-	ret := keybase_1.ProofCheckRes{
-		ProofId:     l.position,
-		ProofStatus: ExportProofError(l.err),
-	}
-	if l.cached != nil {
-		ret.CachedTimestamp = int(l.cached.Time.Unix())
-	}
-	if l.remoteDiff != nil {
-		ret.TrackDiff = ExportTrackDiff(l.remoteDiff)
-	}
-	return ret
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }

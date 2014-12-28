@@ -203,8 +203,8 @@ type GpgClient interface {
 }
 
 type IdentifyUI interface {
-	FinishWebProofCheck(keybase_1.RemoteProof, LinkCheckResult)
-	FinishSocialProofCheck(keybase_1.RemoteProof, LinkCheckResult)
+	FinishWebProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
+	FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishAndPrompt(*IdentifyRes) (TrackInstructions, error)
 	DisplayCryptocurrency(*CryptocurrencyChainLink)
 	DisplayKey(*PgpFingerprint, TrackDiff)

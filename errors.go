@@ -3,7 +3,6 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
-	"github.com/keybase/protocol/go"
 	"strings"
 )
 
@@ -62,15 +61,6 @@ func NewProofApiError(s ProofStatus, u string, d string, a ...interface{}) *Proo
 	return &ProofApiError{*base, u}
 }
 
-func ExportProofError(pe ProofError) keybase_1.ProofStatus {
-	return keybase_1.ProofStatus{
-		Status: int(pe.GetStatus()),
-		State:  ProofErrorToState(pe),
-		Desc:   pe.GetDesc(),
-	}
-}
-
-//
 //=============================================================================
 
 func XapiError(err error, u string) *ProofApiError {
@@ -304,11 +294,6 @@ func (b BadFingerprintError) Error() string {
 
 //=============================================================================
 
-type ExportableError interface {
-	error
-	ToStatus() keybase_1.Status
-}
-
 //=============================================================================
 
 type AppStatusError struct {
@@ -316,20 +301,6 @@ type AppStatusError struct {
 	Name   string
 	Desc   string
 	Fields map[string]bool
-}
-
-func (a AppStatusError) ToStatus() keybase_1.Status {
-	var fields []string
-	for k, _ := range a.Fields {
-		fields = append(fields, k)
-	}
-
-	return keybase_1.Status{
-		Code:   a.Code,
-		Name:   a.Name,
-		Desc:   a.Desc,
-		Fields: fields,
-	}
 }
 
 func (a AppStatusError) IsBadField(s string) bool {
@@ -511,47 +482,6 @@ type KeyCannotSignError struct{}
 
 func (s KeyCannotSignError) Error() string {
 	return "Key cannot create signatures"
-}
-
-//=============================================================================
-
-func ExportErrorAsStatus(e error) (ret keybase_1.Status) {
-	if e == nil {
-		ret = keybase_1.Status{
-			Name: "OK",
-			Code: 0,
-		}
-	} else if ee, ok := e.(ExportableError); ok {
-		ret = ee.ToStatus()
-	} else {
-		ret = keybase_1.Status{
-			Name: "GENERIC",
-			Code: SC_GENERIC,
-			Desc: e.Error(),
-		}
-	}
-	return
-}
-
-//=============================================================================
-
-func ImportStatusAsError(s keybase_1.Status) error {
-	if s.Code == SC_OK {
-		return nil
-	} else if s.Code == SC_GENERIC {
-		return fmt.Errorf(s.Desc)
-	} else {
-		ase := AppStatusError{
-			Code:   s.Code,
-			Name:   s.Name,
-			Desc:   s.Desc,
-			Fields: make(map[string]bool),
-		}
-		for _, f := range s.Fields {
-			ase.Fields[f] = true
-		}
-		return ase
-	}
 }
 
 //=============================================================================
