@@ -42,22 +42,22 @@ func (h *IdentifyHandler) NewUi(sessionId int) libkb.IdentifyUI {
 	return NewRemoteIdentifyUI(sessionId, h.GetRpcClient())
 }
 
-func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
+func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {
 	var status keybase_1.Status
 	u.uicli.FinishWebProofCheck(keybase_1.FinishWebProofCheckArg{
 		SessionId: u.sessionId,
 		Rp:        p,
-		Lcr:       lcr.Export(),
+		Lcr:       lcr,
 	}, &status)
 	return
 }
 
-func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr libkb.LinkCheckResult) {
+func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {
 	var status keybase_1.Status
 	u.uicli.FinishSocialProofCheck(keybase_1.FinishSocialProofCheckArg{
 		SessionId: u.sessionId,
 		Rp:        p,
-		Lcr:     lcr.Export(),
+		Lcr:     lcr,
 	}, &status)
 	return
 }
@@ -93,11 +93,11 @@ func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase_1.TrackSummary) {
 
 func (u *RemoteIdentifyUI) Start() {}
 
-func (u *RemoteIdentifyUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
+func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity) {
 	var status keybase_1.Status
 	u.uicli.LaunchNetworkChecks(keybase_1.LaunchNetworkChecksArg{
 		SessionId: u.sessionId,
-		Id:        res.ExportToUncheckedIdentity(),
+		Id:        *id,
 	}, &status)
 	return
 }
