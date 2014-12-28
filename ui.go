@@ -53,7 +53,7 @@ func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret 
 	return
 }
 
-func (ui BaseIdentifyUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
+func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase_1.Identity) {
 	return
 }
 
