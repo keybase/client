@@ -87,6 +87,12 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 @end
 
+@interface KBCryptocurrency : KBRObject
+@property NSInteger rowId;
+@property NSData *pkhash;
+@property NSString *address;
+@end
+
 @interface KBIdentity : KBRObject
 @property KBStatus *status;
 @property NSInteger whenLastTracked;
@@ -148,7 +154,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error, KBStatus * status))completion;
 
-- (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId address:(NSString *)address completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId c:(KBCryptocurrency *)c completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 - (void)displayKeyWithSessionid:(NSInteger )sessionId fokid:(KBFOKID *)fokid diff:(KBTrackDiff *)diff completion:(void (^)(NSError *error, KBStatus * status))completion;
 
