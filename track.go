@@ -400,7 +400,8 @@ func (e *TrackEngine) Run() (err error) {
 	} else if err = e.LoadMe(); err != nil {
 		return
 	} else if e.NoSelf && e.Me.Equal(*e.Them) {
-		err = fmt.Errorf("Cannot track yourself")
+		err = SelfTrackError{}
+		return
 	}
 
 	var ti TrackInstructions

@@ -229,3 +229,47 @@ func ExportTrackSummary(l *TrackLookup) *keybase_1.TrackSummary {
 }
 
 //=============================================================================
+
+func (ir *IdentifyRes) Export() *keybase_1.IdentifyOutcome {
+	v := make([]string, len(ir.Warnings))
+	for i, w := range ir.Warnings {
+		v[i] = w.Warning()
+	}
+	del := make([]keybase_1.TrackDiff, 0, len(ir.Deleted))
+	for i, d := range ir.Deleted {
+		del[i] = *ExportTrackDiff(d)
+	}
+	ret := &keybase_1.IdentifyOutcome{
+		Status:            ExportErrorAsStatus(ir.Error),
+		Warnings:          v,
+		TrackUsed:         ExportTrackSummary(ir.TrackUsed),
+		NumTrackFailures:  ir.NumTrackFailures(),
+		NumTrackChanges:   ir.NumTrackChanges(),
+		NumProofFailures:  ir.NumProofFailures(),
+		NumDeleted:        ir.NumDeleted(),
+		NumProofSuccesses: ir.NumProofSuccesses(),
+		Deleted:           del,
+	}
+	return ret
+}
+
+//=============================================================================
+
+func ImportFinishAndPromptRes(f keybase_1.FinishAndPromptRes) (ti TrackInstructions, err error) {
+	ti.Local = f.TrackLocal
+	ti.Remote = f.TrackRemote
+	err = ImportStatusAsError(f.Status)
+	return
+}
+
+//=============================================================================
+
+func ImportWarnings(v []string) Warnings {
+	w := make([]Warning, len(v))
+	for i, s := range v {
+		w[i] = StringWarning(s)
+	}
+	return Warnings{w}
+}
+
+//=============================================================================

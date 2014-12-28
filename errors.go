@@ -493,3 +493,11 @@ func (n NoConfigFile) Error() string {
 }
 
 //=============================================================================
+
+type SelfTrackError struct{}
+
+func (e SelfTrackError) Error() string {
+	return "Cannot track yourself"
+}
+
+//=============================================================================

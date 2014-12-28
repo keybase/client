@@ -737,7 +737,7 @@ func (u User) HasActiveKey() bool {
 }
 
 func (u1 User) Equal(u2 User) bool {
-	return (u1.id == u2.id)
+	return u1.id.Eq(u2.id)
 }
 
 func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {

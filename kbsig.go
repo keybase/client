@@ -55,7 +55,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
 	track.SetKey("id", jsonw.NewString(u.id.ToString()))
-	track.SetKey("remote_key_proofs", u.IdTable.ToTrackingStatement())
+	track.SetKey("remote_proofs", u.IdTable.ToTrackingStatement())
 
 	if err != nil {
 		return

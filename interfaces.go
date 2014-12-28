@@ -205,7 +205,7 @@ type GpgClient interface {
 type IdentifyUI interface {
 	FinishWebProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
-	FinishAndPrompt(*IdentifyRes) (TrackInstructions, error)
+	FinishAndPrompt(*keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes
 	DisplayCryptocurrency(*CryptocurrencyChainLink)
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*keybase_1.TrackSummary)
