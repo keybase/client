@@ -183,3 +183,20 @@ func ExportTrackDiff(d TrackDiff) (res *keybase_1.TrackDiff) {
 }
 
 //=============================================================================
+
+func ImportPgpFingerprint(f keybase_1.FOKID) (ret *PgpFingerprint) {
+	if f.PgpFingerprint != nil && len(*f.PgpFingerprint) == PGP_FINGERPRINT_LEN {
+		var tmp PgpFingerprint
+		copy(tmp[:], (*f.PgpFingerprint)[:])
+		ret = &tmp
+	}
+	return
+}
+
+func (f *PgpFingerprint) ExportToFOKID() (ret keybase_1.FOKID) {
+	slc := (*f)[:]
+	ret.PgpFingerprint = &slc
+	return
+}
+
+//=============================================================================

@@ -207,7 +207,7 @@ type IdentifyUI interface {
 	FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishAndPrompt(*IdentifyRes) (TrackInstructions, error)
 	DisplayCryptocurrency(*CryptocurrencyChainLink)
-	DisplayKey(*PgpFingerprint, TrackDiff)
+	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*TrackLookup)
 	Start()
 	LaunchNetworkChecks(*IdentifyRes)

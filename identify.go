@@ -16,7 +16,7 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 	if e != nil {
 		return e
 	}
-	is.GetUI().DisplayKey(fp, diff)
+	is.GetUI().DisplayKey(fp.ExportToFOKID(), ExportTrackDiff(diff))
 
 	return nil
 }
