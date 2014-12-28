@@ -62,16 +62,10 @@ func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr l
 	return
 }
 
-func (u *RemoteIdentifyUI) FinishAndPrompt(res *libkb.IdentifyRes) (ti libkb.TrackInstructions, err error) {
-	var fpr keybase_1.FinishAndPromptRes
-	err = u.uicli.FinishAndPrompt(keybase_1.FinishAndPromptArg{
-		SessionId: u.sessionId,
-		Outcome:   res.ExportToIdentifyOutcome(),
-	}, &fpr)
-	if err == nil {
-		err = libkb.ImportStatusAsError(fpr.Status)
-		ti.Local = fpr.TrackLocal
-		ti.Remote = fpr.TrackRemote
+func (u *RemoteIdentifyUI) FinishAndPrompt(io *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
+	err := u.uicli.FinishAndPrompt(keybase_1.FinishAndPromptArg{SessionId: u.sessionId, Outcome: *io, }, &ret)
+	if err != nil {
+		ret.Status = libkb.ExportErrorAsStatus(err)
 	}
 	return
 }
@@ -85,26 +79,15 @@ func (u *RemoteIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainLin
 	return
 }
 
-func (u *RemoteIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint, d libkb.TrackDiff) {
+func (u *RemoteIdentifyUI) DisplayKey(k keybase_1.FOKID, d *keybase_1.TrackDiff) {
 	var status keybase_1.Status
-	u.uicli.DisplayKey(keybase_1.DisplayKeyArg{
-		SessionId: u.sessionId,
-		Fokid:     libkb.ExportAsFOKID(fp, nil),
-		Diff:      libkb.ExportTrackDiff(d),
-	}, &status)
+	u.uicli.DisplayKey(keybase_1.DisplayKeyArg{SessionId: u.sessionId, Fokid: k, Diff: d}, &status)
 	return
 }
 
-func (u *RemoteIdentifyUI) ReportLastTrack(tl *libkb.TrackLookup) {
+func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase_1.TrackSummary) {
 	var status keybase_1.Status
-	t := 0
-	if tl != nil {
-		t = int(tl.GetCTime().Unix())
-	}
-	u.uicli.ReportLastTrack(keybase_1.ReportLastTrackArg{
-		SessionId: u.sessionId,
-		Time:      t,
-	}, &status)
+	u.uicli.ReportLastTrack(keybase_1.ReportLastTrackArg{SessionId: u.sessionId, Track: t}, &status)
 	return
 }
 
