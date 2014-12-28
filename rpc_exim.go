@@ -72,21 +72,23 @@ func (i IdentifyRes) ExportToIdentifyOutcome() (res keybase_1.IdentifyOutcome) {
 	return
 }
 
-func (i IdentifyRes) ExportToUncheckedIdentity() (res keybase_1.Identity) {
-	res.Status = ExportErrorAsStatus(i.Error)
+func (i IdentifyRes) ExportToUncheckedIdentity() (res *keybase_1.Identity) {
+	tmp := keybase_1.Identity{
+		Status: ExportErrorAsStatus(i.Error),
+	}
 	if i.TrackUsed != nil {
-		res.WhenLastTracked = int(i.TrackUsed.GetCTime().Unix())
+		tmp.WhenLastTracked = int(i.TrackUsed.GetCTime().Unix())
 	}
-	res.Proofs = make([]keybase_1.IdentifyRow, len(i.ProofChecks))
+	tmp.Proofs = make([]keybase_1.IdentifyRow, len(i.ProofChecks))
 	for j, p := range i.ProofChecks {
-		res.Proofs[j] = p.ExportToIdentifyRow(j)
+		tmp.Proofs[j] = p.ExportToIdentifyRow(j)
 	}
-	res.Deleted = make([]keybase_1.TrackDiff, len(i.Deleted))
+	tmp.Deleted = make([]keybase_1.TrackDiff, len(i.Deleted))
 	for j, d := range i.Deleted {
 		// Should have all non-nil elements...
-		res.Deleted[j] = *ExportTrackDiff(d)
+		tmp.Deleted[j] = *ExportTrackDiff(d)
 	}
-
+	res = &tmp
 	return
 }
 
