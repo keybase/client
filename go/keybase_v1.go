@@ -128,11 +128,26 @@ type Identity struct {
 	Deleted         []TrackDiff   `codec:"deleted"`
 }
 
-type ProofCheckRes struct {
-	ProofId         int         `codec:"proofId"`
-	ProofStatus     ProofStatus `codec:"proofStatus"`
-	CachedTimestamp int         `codec:"cachedTimestamp"`
-	TrackDiff       *TrackDiff  `codec:"trackDiff,omitempty"`
+type SigHint struct {
+	RemoteId  string `codec:"remoteId"`
+	HumanUrl  string `codec:"humanUrl"`
+	ApiUrl    string `codec:"apiUrl"`
+	CheckText string `codec:"checkText"`
+}
+
+type CheckResult struct {
+	ProofStatus   ProofStatus `codec:"proofStatus"`
+	Timestamp     int         `codec:"timestamp"`
+	DisplayMarkup string      `codec:"displayMarkup"`
+}
+
+type LinkCheckResult struct {
+	ProofId     int          `codec:"proofId"`
+	ProofStatus ProofStatus  `codec:"proofStatus"`
+	Cached      *CheckResult `codec:"cached,omitempty"`
+	Diff        *TrackDiff   `codec:"diff,omitempty"`
+	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty"`
+	Hint        *SigHint     `codec:"hint,omitempty"`
 }
 
 type IdentifyOutcome struct {
@@ -156,15 +171,15 @@ type FinishAndPromptArg struct {
 }
 
 type FinishWebProofCheckArg struct {
-	SessionId int           `codec:"sessionId"`
-	Rp        RemoteProof   `codec:"rp"`
-	Pcres     ProofCheckRes `codec:"pcres"`
+	SessionId int             `codec:"sessionId"`
+	Rp        RemoteProof     `codec:"rp"`
+	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type FinishSocialProofCheckArg struct {
-	SessionId int           `codec:"sessionId"`
-	Rp        RemoteProof   `codec:"rp"`
-	Pcres     ProofCheckRes `codec:"pcres"`
+	SessionId int             `codec:"sessionId"`
+	Rp        RemoteProof     `codec:"rp"`
+	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type DisplayCryptocurrencyArg struct {

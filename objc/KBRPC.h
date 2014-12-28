@@ -96,11 +96,26 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property NSArray *deleted;
 @end
 
-@interface KBProofCheckRes : KBRObject
+@interface KBSigHint : KBRObject
+@property NSString *remoteId;
+@property NSString *humanUrl;
+@property NSString *apiUrl;
+@property NSString *checkText;
+@end
+
+@interface KBCheckResult : KBRObject
+@property KBProofStatus *proofStatus;
+@property NSInteger timestamp;
+@property NSString *displayMarkup;
+@end
+
+@interface KBLinkCheckResult : KBRObject
 @property NSInteger proofId;
 @property KBProofStatus *proofStatus;
-@property NSInteger cachedTimestamp;
-@property KBTrackDiff *trackDiff;
+@property KBCheckResult *cached;
+@property KBTrackDiff *diff;
+@property KBTrackDiff *remoteDiff;
+@property KBSigHint *hint;
 @end
 
 @interface KBIdentifyOutcome : KBRObject
@@ -121,9 +136,9 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBRIdentifyui : KBRRequest
 - (void)finishAndPromptWithSessionid:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion;
 
-- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error, KBStatus * status))completion;
 
-- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp pcres:(KBProofCheckRes *)pcres completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error, KBStatus * status))completion;
 
 - (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId address:(NSString *)address completion:(void (^)(NSError *error, KBStatus * status))completion;
 

@@ -54,11 +54,26 @@ protocol identifyUi {
 		array<TrackDiff> deleted;
 	}
 
-	record ProofCheckRes {
+	record SigHint {
+		string remoteId;
+		string humanUrl;
+		string apiUrl;
+		string checkText;
+	}
+
+	record CheckResult {
+		ProofStatus proofStatus;
+		int timestamp;
+		string displayMarkup;
+	}
+
+	record LinkCheckResult {
 		int proofId;
 		ProofStatus proofStatus;	
-		int cachedTimestamp;
-		union { null, TrackDiff } trackDiff;
+		union { null, CheckResult } cached;
+		union { null, TrackDiff } diff;
+		union { null, TrackDiff } remoteDiff;
+		union { null, SigHint } hint;
 	}
 
 	record IdentifyOutcome {
@@ -77,8 +92,8 @@ protocol identifyUi {
 	}
 
 	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome outcome);
-	Status finishWebProofCheck(int sessionId, RemoteProof rp, ProofCheckRes pcres);
-	Status finishSocialProofCheck(int sessionId, RemoteProof rp, ProofCheckRes pcres);
+	Status finishWebProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
+	Status finishSocialProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
 	Status displayCryptocurrency(int sessionId, string address);
 	Status displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
 	Status reportLastTrack(int sessionId, int time);

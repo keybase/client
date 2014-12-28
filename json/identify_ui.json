@@ -149,7 +149,36 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "ProofCheckRes",
+    "name" : "SigHint",
+    "fields" : [ {
+      "name" : "remoteId",
+      "type" : "string"
+    }, {
+      "name" : "humanUrl",
+      "type" : "string"
+    }, {
+      "name" : "apiUrl",
+      "type" : "string"
+    }, {
+      "name" : "checkText",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "CheckResult",
+    "fields" : [ {
+      "name" : "proofStatus",
+      "type" : "ProofStatus"
+    }, {
+      "name" : "timestamp",
+      "type" : "int"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "LinkCheckResult",
     "fields" : [ {
       "name" : "proofId",
       "type" : "int"
@@ -157,11 +186,17 @@
       "name" : "proofStatus",
       "type" : "ProofStatus"
     }, {
-      "name" : "cachedTimestamp",
-      "type" : "int"
+      "name" : "cached",
+      "type" : [ "null", "CheckResult" ]
     }, {
-      "name" : "trackDiff",
+      "name" : "diff",
       "type" : [ "null", "TrackDiff" ]
+    }, {
+      "name" : "remoteDiff",
+      "type" : [ "null", "TrackDiff" ]
+    }, {
+      "name" : "hint",
+      "type" : [ "null", "SigHint" ]
     } ]
   }, {
     "type" : "record",
@@ -218,8 +253,8 @@
         "name" : "rp",
         "type" : "RemoteProof"
       }, {
-        "name" : "pcres",
-        "type" : "ProofCheckRes"
+        "name" : "lcr",
+        "type" : "LinkCheckResult"
       } ],
       "response" : "Status"
     },
@@ -231,8 +266,8 @@
         "name" : "rp",
         "type" : "RemoteProof"
       }, {
-        "name" : "pcres",
-        "type" : "ProofCheckRes"
+        "name" : "lcr",
+        "type" : "LinkCheckResult"
       } ],
       "response" : "Status"
     },
