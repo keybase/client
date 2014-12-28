@@ -208,7 +208,7 @@ type IdentifyUI interface {
 	FinishAndPrompt(*IdentifyRes) (TrackInstructions, error)
 	DisplayCryptocurrency(*CryptocurrencyChainLink)
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
-	ReportLastTrack(*TrackLookup)
+	ReportLastTrack(*keybase_1.TrackSummary)
 	Start()
 	LaunchNetworkChecks(*IdentifyRes)
 }

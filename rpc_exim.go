@@ -5,6 +5,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/protocol/go"
+	"time"
 )
 
 func (sh SigHint) Export() *keybase_1.SigHint {
@@ -197,6 +198,34 @@ func (f *PgpFingerprint) ExportToFOKID() (ret keybase_1.FOKID) {
 	slc := (*f)[:]
 	ret.PgpFingerprint = &slc
 	return
+}
+
+//=============================================================================
+
+func (s TrackSummary) Export() (ret keybase_1.TrackSummary) {
+	ret.Time = int(s.time.Unix())
+	ret.IsRemote = s.isRemote
+	return
+}
+
+func ImportTrackSummary(s *keybase_1.TrackSummary) *TrackSummary {
+	if s == nil {
+		return nil
+	} else {
+		return &TrackSummary{
+			time:     time.Unix(int64(s.Time), 0),
+			isRemote: s.IsRemote,
+		}
+	}
+}
+
+func ExportTrackSummary(l *TrackLookup) *keybase_1.TrackSummary {
+	if l == nil {
+		return nil
+	} else {
+		tmp := l.ToSummary().Export()
+		return &tmp
+	}
 }
 
 //=============================================================================

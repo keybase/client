@@ -82,11 +82,28 @@ type TrackInstructions struct {
 
 //=====================================================================
 
+type TrackSummary struct {
+	time     time.Time
+	isRemote bool
+}
+
+func (s TrackSummary) IsRemote() bool      { return s.isRemote }
+func (s TrackSummary) GetCTime() time.Time { return s.time }
+
+//=====================================================================
+
 type TrackLookup struct {
 	link  *TrackChainLink     // The original chain link that I signed
 	set   *TrackSet           // The total set of tracked identities
 	ids   map[string][]string // A http -> [foo.com, boo.com] lookup
 	mutex *sync.Mutex         // in case we're accessing in mutliple threads
+}
+
+func (l TrackLookup) ToSummary() TrackSummary {
+	return TrackSummary{
+		time:     l.GetCTime(),
+		isRemote: l.IsRemote(),
+	}
 }
 
 func (l TrackLookup) GetProofState(tic TrackIdComponent) int {

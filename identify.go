@@ -235,7 +235,7 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 		res.TrackUsed = is.track
 	}
 
-	is.GetUI().ReportLastTrack(is.track)
+	is.GetUI().ReportLastTrack(ExportTrackSummary(is.track))
 
 	G.Log.Debug("+ Identify(%s)", u.name)
 
