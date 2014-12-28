@@ -200,10 +200,29 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "TrackSummary",
+    "fields" : [ {
+      "name" : "time",
+      "type" : "int"
+    }, {
+      "name" : "isRemote",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "IdentifyOutcome",
     "fields" : [ {
       "name" : "status",
       "type" : "Status"
+    }, {
+      "name" : "warnings",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "trackUsed",
+      "type" : [ "null", "TrackSummary" ]
     }, {
       "name" : "numTrackFailures",
       "type" : "int"
@@ -219,6 +238,12 @@
     }, {
       "name" : "numProofSuccesses",
       "type" : "int"
+    }, {
+      "name" : "deleted",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackDiff"
+      }
     } ]
   }, {
     "type" : "record",
@@ -231,16 +256,6 @@
       "type" : "boolean"
     }, {
       "name" : "trackRemote",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "TrackSummary",
-    "fields" : [ {
-      "name" : "time",
-      "type" : "int"
-    }, {
-      "name" : "isRemote",
       "type" : "boolean"
     } ]
   } ],

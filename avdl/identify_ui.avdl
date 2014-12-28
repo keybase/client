@@ -76,24 +76,27 @@ protocol identifyUi {
 		union { null, SigHint } hint;
 	}
 
+	record TrackSummary {
+		int time;	
+		boolean isRemote;
+	}
+
 	record IdentifyOutcome {
 		Status status;
+		array<string> warnings;
+		union { null, TrackSummary } trackUsed;
 		int numTrackFailures;
 		int numTrackChanges;
 		int numProofFailures;
 		int numDeleted;
 		int numProofSuccesses;
+		array<TrackDiff> deleted;
 	}
 
 	record FinishAndPromptRes {
 		Status status;
 		boolean trackLocal;
 		boolean trackRemote;
-	}
-
-	record TrackSummary {
-		int time;	
-		boolean isRemote;
 	}
 
 	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome outcome);

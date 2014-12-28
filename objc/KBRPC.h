@@ -118,24 +118,27 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property KBSigHint *hint;
 @end
 
+@interface KBTrackSummary : KBRObject
+@property NSInteger time;
+@property BOOL isRemote;
+@end
+
 @interface KBIdentifyOutcome : KBRObject
 @property KBStatus *status;
+@property NSArray *warnings;
+@property KBTrackSummary *trackUsed;
 @property NSInteger numTrackFailures;
 @property NSInteger numTrackChanges;
 @property NSInteger numProofFailures;
 @property NSInteger numDeleted;
 @property NSInteger numProofSuccesses;
+@property NSArray *deleted;
 @end
 
 @interface KBFinishAndPromptRes : KBRObject
 @property KBStatus *status;
 @property BOOL trackLocal;
 @property BOOL trackRemote;
-@end
-
-@interface KBTrackSummary : KBRObject
-@property NSInteger time;
-@property BOOL isRemote;
 @end
 
 @interface KBRIdentifyui : KBRRequest

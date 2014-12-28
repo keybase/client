@@ -150,24 +150,27 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty"`
 }
 
+type TrackSummary struct {
+	Time     int  `codec:"time"`
+	IsRemote bool `codec:"isRemote"`
+}
+
 type IdentifyOutcome struct {
-	Status            Status `codec:"status"`
-	NumTrackFailures  int    `codec:"numTrackFailures"`
-	NumTrackChanges   int    `codec:"numTrackChanges"`
-	NumProofFailures  int    `codec:"numProofFailures"`
-	NumDeleted        int    `codec:"numDeleted"`
-	NumProofSuccesses int    `codec:"numProofSuccesses"`
+	Status            Status        `codec:"status"`
+	Warnings          []string      `codec:"warnings"`
+	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty"`
+	NumTrackFailures  int           `codec:"numTrackFailures"`
+	NumTrackChanges   int           `codec:"numTrackChanges"`
+	NumProofFailures  int           `codec:"numProofFailures"`
+	NumDeleted        int           `codec:"numDeleted"`
+	NumProofSuccesses int           `codec:"numProofSuccesses"`
+	Deleted           []TrackDiff   `codec:"deleted"`
 }
 
 type FinishAndPromptRes struct {
 	Status      Status `codec:"status"`
 	TrackLocal  bool   `codec:"trackLocal"`
 	TrackRemote bool   `codec:"trackRemote"`
-}
-
-type TrackSummary struct {
-	Time     int  `codec:"time"`
-	IsRemote bool `codec:"isRemote"`
 }
 
 type FinishAndPromptArg struct {
