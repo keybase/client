@@ -279,6 +279,10 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 			Name : "daemon-port",
 			Usage : "specify a daemon port on 127.0.0.1",
 		},
+		cli.BoolFlag{
+			Name : "standalone",
+			Usage : "use the client without any daemon support",
+		},
 	}
 
 
