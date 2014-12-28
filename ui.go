@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"os"
 	"strconv"
 	"strings"
@@ -43,14 +44,12 @@ func (u IdentifyUI) Start() {
 	G.Log.Info("Identifying " + ColorString("bold", u.them.GetName()))
 }
 
-func (ui BaseIdentifyUI) baseFinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	var warnings libkb.Warnings
-	err, warnings = ires.GetErrorLax()
-	if err != nil {
-		return
-	} else if !warnings.IsEmpty() {
+func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
+	warnings := libkb.ImportWarnings(o.Warnings)
+	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 	}
+	ret.Status = o.Status
 	return
 }
 
@@ -58,32 +57,31 @@ func (ui BaseIdentifyUI) LaunchNetworkChecks(res *libkb.IdentifyRes) {
 	return
 }
 
-func (ui IdentifyLubaUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	return ui.baseFinishAndPrompt(ires)
+func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes {
+	return ui.baseFinishAndPrompt(o)
 }
-func (ui IdentifyUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	return ui.baseFinishAndPrompt(ires)
+func (ui IdentifyUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes {
+	return ui.baseFinishAndPrompt(o)
 }
 
-func (ui IdentifySelfUI) FinishAndPrompt(ires *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
-	var warnings libkb.Warnings
-	err, warnings = ires.GetErrorLax()
+func (ui IdentifySelfUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
+	ret.Status = o.Status
+	err := libkb.ImportStatusAsError(o.Status)
+	warnings := libkb.ImportWarnings(o.Warnings)
 	var prompt string
 	if err != nil {
 		return
 	} else if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 		prompt = "Do you still accept these credentials to be your own?"
-	} else if len(ires.ProofChecks) == 0 {
+	} else if o.NumProofSuccesses == 0 {
 		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
 	} else {
 		prompt = "Is this you?"
 	}
 
 	err = ui.PromptForConfirmation(prompt)
-	if err != nil {
-		return
-	}
+	ret.Status = libkb.ExportErrorAsStatus(err)
 	return
 }
 
@@ -92,7 +90,7 @@ type IdentifyTrackUI struct {
 	strict bool
 }
 
-func (ui IdentifyTrackUI) ReportDeleted(del []libkb.TrackDiffDeleted) {
+func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 	if len(del) > 0 {
 		G.Log.Warning("Some proofs you previously tracked were deleted:")
 		for _, d := range del {
@@ -101,40 +99,42 @@ func (ui IdentifyTrackUI) ReportDeleted(del []libkb.TrackDiffDeleted) {
 	}
 }
 
-func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.TrackInstructions, err error) {
+func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
 	var prompt string
 	un := ui.them.GetName()
 
 	// A "Track Failure" is when we previously tracked this user, and
 	// some aspect of their proof changed.  Like their key changed, or
 	// they changed Twitter names
-	ntf := res.NumTrackFailures()
+	ntf := o.NumTrackFailures
 
 	// A "Track Change" isn't necessary a failure, maybe they upgraded
 	// a proof from HTTP to HTTPS.  But we still should retrack if we can.
-	ntc := res.NumTrackChanges()
+	ntc := o.NumTrackChanges
 
 	// The number of proofs that failed.
-	npf := res.NumProofFailures()
+	npf := o.NumProofFailures
 
 	// Deleted proofs are those we used to look for but are gone!
-	nd := res.NumDeleted()
+	nd := o.NumDeleted
 
 	// The number of proofs that actually worked
-	nps := res.NumProofSuccesses()
+	nps := o.NumProofSuccesses
 
 	// Whether we used a tracking statement when checking the identity
 	// this time...
-	tracked := res.TrackUsed != nil
+	tracked := o.TrackUsed != nil
 	is_remote := false
 	if tracked {
-		is_remote = res.TrackUsed.IsRemote()
+		is_remote = o.TrackUsed.IsRemote
 	}
 
 	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; nd=%d; nps=%d; tracked=%v; is_remote=%v",
 		un, ntf, ntc, npf, nd, nps, tracked, is_remote)
 
-	ui.ReportDeleted(res.Deleted)
+	ui.ReportDeleted(o.Deleted)
+
+	var err error
 
 	def := true
 	is_equal := false
@@ -163,24 +163,20 @@ func (ui IdentifyTrackUI) FinishAndPrompt(res *libkb.IdentifyRes) (i libkb.Track
 	if !is_equal {
 		var ok bool
 		if ok, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
-			return
 		} else if !ok {
 			err = NotConfirmedError{}
-			return
 		}
-		i.Local = true
+		ret.TrackLocal = true
 	} else if is_remote {
-		i.Local = false
+		ret.TrackLocal = false
 	}
 
-	if !is_equal || !is_remote {
+	if err == nil && (!is_equal || !is_remote) {
 		def = true
-		prompt = "Publicly write tracking statement to server?"
-		if i.Remote, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
-			return
-		}
+		prompt = "publicly write tracking statement to server?"
+		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, &def)
 	}
-
+	ret.Status = libkb.ExportErrorAsStatus(err)
 	return
 }
 
@@ -196,11 +192,82 @@ func (u BaseIdentifyUI) PromptForConfirmation(s string) error {
 	return u.parent.PromptForConfirmation(s)
 }
 
-func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lcr libkb.LinkCheckResult) {
+type RemoteProofWrapper struct {
+	p keybase_1.RemoteProof
+}
+
+func (w RemoteProofWrapper) GetRemoteUsername() string { return w.p.Value }
+func (w RemoteProofWrapper) GetService() string        { return w.p.Value }
+func (w RemoteProofWrapper) GetProtocol() string       { return w.p.Key }
+func (w RemoteProofWrapper) GetHostname() string       { return w.p.Value }
+func (w RemoteProofWrapper) GetDomain() string         { return w.p.Value }
+
+func (w RemoteProofWrapper) ToDisplayString() string {
+	return libkb.NewMarkup(w.p.DisplayMarkup).GetRaw()
+}
+
+type LinkCheckResultWrapper struct {
+	lcr keybase_1.LinkCheckResult
+}
+
+func (w LinkCheckResultWrapper) GetDiff() *keybase_1.TrackDiff {
+	return w.lcr.Diff
+}
+
+func (w LinkCheckResultWrapper) GetError() error {
+	return libkb.ImportProofError(w.lcr.ProofStatus)
+}
+
+type SigHintWrapper struct {
+	hint *keybase_1.SigHint
+}
+
+func (shw SigHintWrapper) GetHumanUrl() (ret string) {
+	if shw.hint == nil {
+		ret = "nil"
+	} else {
+		ret = shw.hint.HumanUrl
+	}
+	return
+}
+
+func (shw SigHintWrapper) GetCheckText() (ret string) {
+	if shw.hint == nil {
+		ret = "nil"
+	} else {
+		ret = shw.hint.CheckText
+	}
+	return
+}
+
+func (w LinkCheckResultWrapper) GetHint() SigHintWrapper {
+	return SigHintWrapper{w.lcr.Hint}
+}
+
+type CheckResultWrapper struct {
+	cr *keybase_1.CheckResult
+}
+
+func (crw CheckResultWrapper) ToDisplayString() string {
+	return crw.cr.DisplayMarkup
+}
+
+func (w LinkCheckResultWrapper) GetCached() *CheckResultWrapper {
+	if o := w.lcr.Cached; o == nil {
+		return nil
+	} else {
+		return &CheckResultWrapper{o}
+	}
+}
+
+func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
 
+	s := RemoteProofWrapper{p}
+	lcr := LinkCheckResultWrapper{l}
+
 	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = TrackDiffToColoredString(diff) + " "
+		lcrs = TrackDiffToColoredString(*diff) + " "
 	}
 	run := s.GetRemoteUsername()
 
@@ -212,7 +279,7 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lc
 		msg += (BADX + " " + lcrs +
 			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
 				ColorString("bold", "failed")+": "+
-				lcr.GetError().Error()))
+				err.Error()))
 	}
 	if cached := lcr.GetCached(); cached != nil {
 		msg += " " + ColorString("magenta", cached.ToDisplayString())
@@ -220,17 +287,17 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(s *libkb.SocialProofChainLink, lc
 	u.ReportHook(msg)
 }
 
-func TrackDiffToColoredString(t libkb.TrackDiff) string {
-	s := "<" + t.ToDisplayString() + ">"
+func TrackDiffToColoredString(t keybase_1.TrackDiff) string {
+	s := "<" + t.DisplayMarkup + ">"
 	var color string
-	switch t.(type) {
-	case libkb.TrackDiffError, libkb.TrackDiffClash, libkb.TrackDiffDeleted:
+	switch t.Type {
+	case keybase_1.TrackDiffType_ERROR, keybase_1.TrackDiffType_CLASH, keybase_1.TrackDiffType_DELETED:
 		color = "red"
-	case libkb.TrackDiffUpgraded:
+	case keybase_1.TrackDiffType_UPGRADED:
 		color = "orange"
-	case libkb.TrackDiffNew:
+	case keybase_1.TrackDiffType_NEW:
 		color = "blue"
-	case libkb.TrackDiffNone:
+	case keybase_1.TrackDiffType_NONE:
 		color = "green"
 	}
 	if len(color) > 0 {
@@ -246,11 +313,14 @@ func (u BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) str
 	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libkb.LinkCheckResult) {
+func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
 
+	s := RemoteProofWrapper{p}
+	lcr := LinkCheckResultWrapper{l}
+
 	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = TrackDiffToColoredString(diff) + " "
+		lcrs = TrackDiffToColoredString(*diff) + " "
 	}
 
 	great_color := "green"
@@ -260,7 +330,7 @@ func (u BaseIdentifyUI) FinishWebProofCheck(s *libkb.WebProofChainLink, lcr libk
 		if s.GetProtocol() == "dns" {
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(ok_color, "DNS") + " zone " +
-				ColorString(ok_color, s.GetHostname()) +
+				ColorString(ok_color, s.GetDomain()) +
 				": found TXT entry " + lcr.GetHint().GetCheckText())
 		} else {
 			var color string
@@ -292,18 +362,23 @@ func (u BaseIdentifyUI) DisplayCryptocurrency(l *libkb.CryptocurrencyChainLink) 
 	u.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) DisplayKey(fp *libkb.PgpFingerprint, diff libkb.TrackDiff) {
+func (u BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff) {
 	var ds string
 	if diff != nil {
-		ds = TrackDiffToColoredString(diff) + " "
+		ds = TrackDiffToColoredString(*diff) + " "
 	}
-	msg := CHECK + " " + ds +
-		ColorString("green", "public key fingerprint: "+fp.ToQuads())
+	var s string
+	if fp := libkb.ImportPgpFingerprint(f); fp != nil {
+		s = fp.ToQuads()
+	} else {
+		s = "<none>"
+	}
+	msg := CHECK + " " + ds + ColorString("green", "public key fingerprint: "+s)
 	u.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) ReportLastTrack(t *libkb.TrackLookup) {
-	if t != nil {
+func (u BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
+	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {
 			locally = "locally "

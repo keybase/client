@@ -6,12 +6,10 @@ import (
 	"github.com/keybase/go-libkb"
 )
 
-type CmdLogin struct{
-
+type CmdLogin struct {
 }
 
 func (v *CmdLogin) RunClient() (err error) { 
-
 	return nil
 }
 
