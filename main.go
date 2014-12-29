@@ -22,7 +22,7 @@ type Daemon struct {
 func RegisterProtocols(server *rpc.Server, c net.Conn) {
 	keybase_1.RegisterSignup(server, SignupHandler{c})
 	keybase_1.RegisterConfig(server, ConfigHandler{c})
-	keybase_1.RegisterLogin(server, LoginHandler{c})
+	keybase_1.RegisterLogin(server, &LoginHandler{conn : c})
 	keybase_1.RegisterIdentify(server, &IdentifyHandler{conn: c})
 }
 
