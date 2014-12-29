@@ -1,0 +1,87 @@
+{
+  "protocol" : "loginUi",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "GetEmailOrUsernameRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "emailOrUsername",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "GetKeybasePassphraseRes",
+    "fields" : [ {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "passphrase",
+      "type" : "string"
+    } ]
+  } ],
+  "messages" : {
+    "getEmailOrUsername" : {
+      "request" : [ {
+        "name" : "prompt",
+        "type" : "string"
+      } ],
+      "response" : "GetEmailOrUsernameRes"
+    },
+    "getKeybasePassphrase" : {
+      "request" : [ {
+        "name" : "retry",
+        "type" : "string"
+      } ],
+      "response" : "GetKeybasePassphraseRes"
+    }
+  }
+}
