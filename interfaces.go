@@ -227,11 +227,17 @@ type PromptArg struct {
 	RetryMessage   string
 }
 
+type LoginUI interface {
+	GetEmailOrUsername() keybase_1.GetEmailOrUsernameRes
+	GetKeybasePassphrase(retry string) keybase_1.GetKeybasePassphraseRes
+}
+
 type UI interface {
 	GetIdentifyUI(them *User) IdentifyUI
 	GetIdentifySelfUI(them *User) IdentifyUI
 	GetIdentifyTrackUI(them *User, strict bool) IdentifyUI
 	GetIdentifyLubaUI(them *User) IdentifyUI
+	GetLoginUI() LoginUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
 	PromptForKeybasePassphrase(string) (string, error)

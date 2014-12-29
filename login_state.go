@@ -203,6 +203,7 @@ type LoginArg struct {
 	Prompt   bool
 	Retry    int
 	RetryMsg string
+	Ui       LoginUI
 }
 
 func (s *LoginState) Login(arg LoginArg) error {
@@ -213,6 +214,9 @@ func (s *LoginState) Login(arg LoginArg) error {
 		n_tries = 1
 	}
 	var err error
+	if arg.Ui == nil {
+		arg.Ui = G.UI.GetLoginUI()
+	}
 
 	for i := 0; i < n_tries; i++ {
 		err = s.login(arg)
@@ -250,12 +254,21 @@ func (s *LoginState) login(arg LoginArg) error {
 		return err
 	}
 
-	email_or_username, prompted, err := G.Env.GetOrPromptForEmailOrUsername(arg.Prompt)
-	if err != nil {
-		return err
+	prompted := false
+	var err error
+	var email_or_username string
+	if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt {
+		res := arg.Ui.GetEmailOrUsername()
+		prompted = true
+		if err = ImportStatusAsError(res.Status); err != nil {
+			return err
+		} else {
+			email_or_username = res.EmailOrUsername
+		}
 	}
+
 	if len(email_or_username) == 0 {
-		err = fmt.Errorf("Username or login not known")
+		err = NoUsernameError{}
 		return err
 	}
 
@@ -265,7 +278,7 @@ func (s *LoginState) login(arg LoginArg) error {
 		return err
 	}
 
-	if _, err = s.GetTriplesec(arg.RetryMsg); err != nil {
+	if _, err = s.GetTriplesec(arg.RetryMsg, arg.Ui); err != nil {
 		return err
 	}
 
@@ -290,7 +303,7 @@ func (s *LoginState) login(arg LoginArg) error {
 	return nil
 }
 
-func (s *LoginState) GetTriplesec(retry string) (ret *triplesec.Cipher, err error) {
+func (s *LoginState) GetTriplesec(retry string, ui LoginUI) (ret *triplesec.Cipher, err error) {
 	if s.tsec != nil {
 		ret = s.tsec
 		return
@@ -303,9 +316,11 @@ func (s *LoginState) GetTriplesec(retry string) (ret *triplesec.Cipher, err erro
 	}
 
 	var pw string
-	if pw, err = G.UI.PromptForKeybasePassphrase(retry); err != nil {
+	res := ui.GetKeybasePassphrase(retry)
+	if err = ImportStatusAsError(res.Status); err != nil {
 		return
 	}
+	pw = res.Passphrase
 
 	if err = s.StretchKey(pw); err != nil {
 		return

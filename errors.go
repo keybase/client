@@ -454,6 +454,14 @@ func (e BadUsernameError) Error() string {
 
 //=============================================================================
 
+type NoUsernameError struct{}
+
+func (e NoUsernameError) Error() string {
+	return "No username known"
+}
+
+//=============================================================================
+
 type UnmarshalError struct {
 	t string
 }

@@ -381,18 +381,6 @@ func (e Env) GetEmailOrUsername() string {
 	return em
 }
 
-func (e Env) GetOrPromptForEmailOrUsername(do_prompt bool) (un string, prompted bool, err error) {
-
-	if un = e.GetEmailOrUsername(); len(un) > 0 {
-	} else if do_prompt {
-		un, err = G.UI.Prompt("Your keybase username or email", false,
-			CheckEmailOrUsername)
-		prompted = true
-	}
-
-	return
-}
-
 // XXX implement me
 func (e Env) GetTestMode() bool {
 	return false
