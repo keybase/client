@@ -9,7 +9,7 @@ import (
 type CmdLogin struct {
 }
 
-func (v *CmdLogin) RunClient() (err error) { 
+func (v *CmdLogin) RunClient() (err error) {
 	return nil
 }
 

@@ -50,10 +50,19 @@ func GetConfigClient() (cli keybase_1.ConfigClient, err error) {
 	return
 }
 
-func GetLoginClient() (cli keybase_1.LoginClient, err error) {
-	var rpc *rpc.Client
-	if rpc, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.LoginClient{rpc}
+func GetLoginClient(gen func(con net.Conn) keybase_1.LoginUiInterface) (cli keybase_1.LoginClient, err error) {
+	var rcli *rpc.Client
+	var srv *rpc.Server
+	var con net.Conn
+	if rcli, _, err = GetRpcClient(); err != nil {
+		return
+	}
+	cli = keybase_1.LoginClient{rcli}
+	if gen == nil {
+		return
+	}
+	if srv, con, err = GetRpcServer(); err == nil {
+		keybase_1.RegisterLoginUi(srv, gen(con))
 	}
 	return
 }
@@ -65,8 +74,13 @@ func GetIdentifyClient(gen func(con net.Conn) keybase_1.IdentifyUiInterface) (cl
 	var srv *rpc.Server
 	var con net.Conn
 	if rcli, _, err = GetRpcClient(); err != nil {
-	} else if srv, con, err = GetRpcServer(); err == nil {
-		cli = keybase_1.IdentifyClient{rcli}
+		return
+	}
+	cli = keybase_1.IdentifyClient{rcli}
+	if gen == nil {
+		return
+	}
+	if srv, con, err = GetRpcServer(); err == nil {
 		keybase_1.RegisterIdentifyUi(srv, gen(con))
 	}
 	return

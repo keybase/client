@@ -405,6 +405,29 @@ func (u *UI) GetIdentifyLubaUI(them *libkb.User) libkb.IdentifyUI {
 	return IdentifyLubaUI{BaseIdentifyUI{u, them}}
 }
 
+func (u *UI) GetLoginUI() libkb.LoginUI {
+	return LoginUI{u}
+}
+
+type LoginUI struct {
+	parent *UI
+}
+
+func (l LoginUI) GetEmailOrUsername() (ret keybase_1.GetEmailOrUsernameRes) {
+	un, err := l.parent.Prompt("Your keybase username or email", false,
+		libkb.CheckEmailOrUsername)
+	ret.Status = libkb.ExportErrorAsStatus(err)
+	ret.EmailOrUsername = un
+	return
+}
+
+func (l LoginUI) GetKeybasePassphrase(retry string) (ret keybase_1.GetKeybasePassphraseRes) {
+	pp, err := l.parent.PromptForKeybasePassphrase(retry)
+	ret.Status = libkb.ExportErrorAsStatus(err)
+	ret.Passphrase = pp
+	return
+}
+
 func (u *UI) GetSecret(args []libkb.SecretEntryArg) (*libkb.SecretEntryRes, error) {
 	var term_arg *libkb.SecretEntryArg
 	if len(args) > 1 {
