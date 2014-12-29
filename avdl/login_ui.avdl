@@ -1,0 +1,18 @@
+
+@namespace("keybase.1")
+protocol loginUi {
+	import idl "common.avdl";
+
+	record GetEmailOrUsernameRes {
+		Status status;
+		string emailOrUsername;	
+	}
+
+	record GetKeybasePassphraseRes {
+		Status status;
+		string passphrase;
+	}
+
+	GetEmailOrUsernameRes getEmailOrUsername(string prompt);
+	GetKeybasePassphraseRes getKeybasePassphrase(string retry);
+}

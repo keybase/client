@@ -309,6 +309,37 @@ func (c LoginClient) SwitchUser(username string, res *Status) error {
 	return c.Cli.Call("keybase.1.login.SwitchUser", username, res)
 }
 
+type GetEmailOrUsernameRes struct {
+	Status          Status `codec:"status"`
+	EmailOrUsername string `codec:"emailOrUsername"`
+}
+
+type GetKeybasePassphraseRes struct {
+	Status     Status `codec:"status"`
+	Passphrase string `codec:"passphrase"`
+}
+
+type LoginUiInterface interface {
+	GetEmailOrUsername(prompt *string, res *GetEmailOrUsernameRes) error
+	GetKeybasePassphrase(retry *string, res *GetKeybasePassphraseRes) error
+}
+
+func RegisterLoginUi(server *rpc.Server, i LoginUiInterface) error {
+	return server.RegisterName("keybase.1.loginUi", i)
+}
+
+type LoginUiClient struct {
+	Cli GenericClient
+}
+
+func (c LoginUiClient) GetEmailOrUsername(prompt string, res *GetEmailOrUsernameRes) error {
+	return c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", prompt, res)
+}
+
+func (c LoginUiClient) GetKeybasePassphrase(retry string, res *GetKeybasePassphraseRes) error {
+	return c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", retry, res)
+}
+
 type SignupResBody struct {
 	PassphraseOk bool `codec:"passphraseOk"`
 	PostOk       bool `codec:"postOk"`

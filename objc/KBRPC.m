@@ -265,6 +265,43 @@
 
 @end
 
+@implementation KBGetEmailOrUsernameRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"emailOrUsername": @"emailOrUsername" }; }
+@end
+
+@implementation KBGetKeybasePassphraseRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"passphrase": @"passphrase" }; }
+@end
+
+@implementation KBRLoginui
+- (void)getEmailOrUsernameWithPrompt:(NSString *)prompt completion:(void (^)(NSError *error, KBGetEmailOrUsernameRes * getEmailOrUsernameRes))completion {
+
+  NSDictionary *params = @{@"prompt": KBRValue(prompt)};
+  [self.client sendRequestWithMethod:@"keybase.1.loginUi.getEmailOrUsername" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBGetEmailOrUsernameRes *result = [MTLJSONAdapter modelOfClass:KBGetEmailOrUsernameRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)getKeybasePassphraseWithRetry:(NSString *)retry completion:(void (^)(NSError *error, KBGetKeybasePassphraseRes * getKeybasePassphraseRes))completion {
+
+  NSDictionary *params = @{@"retry": KBRValue(retry)};
+  [self.client sendRequestWithMethod:@"keybase.1.loginUi.getKeybasePassphrase" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBGetKeybasePassphraseRes *result = [MTLJSONAdapter modelOfClass:KBGetKeybasePassphraseRes.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBSignupResBody
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"passphraseOk": @"passphraseOk", @"postOk": @"postOk", @"writeOk": @"writeOk" }; }
 @end
