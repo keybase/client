@@ -274,9 +274,9 @@
 @end
 
 @implementation KBRLoginui
-- (void)getEmailOrUsernameWithPrompt:(NSString *)prompt completion:(void (^)(NSError *error, KBGetEmailOrUsernameRes * getEmailOrUsernameRes))completion {
+- (void)getEmailOrUsername:(void (^)(NSError *error, KBGetEmailOrUsernameRes * getEmailOrUsernameRes))completion {
 
-  NSDictionary *params = @{@"prompt": KBRValue(prompt)};
+  NSDictionary *params = @{};
   [self.client sendRequestWithMethod:@"keybase.1.loginUi.getEmailOrUsername" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

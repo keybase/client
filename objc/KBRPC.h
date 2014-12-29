@@ -195,7 +195,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @end
 
 @interface KBRLoginui : KBRRequest
-- (void)getEmailOrUsernameWithPrompt:(NSString *)prompt completion:(void (^)(NSError *error, KBGetEmailOrUsernameRes * getEmailOrUsernameRes))completion;
+- (void)getEmailOrUsername:(void (^)(NSError *error, KBGetEmailOrUsernameRes * getEmailOrUsernameRes))completion;
 
 - (void)getKeybasePassphraseWithRetry:(NSString *)retry completion:(void (^)(NSError *error, KBGetKeybasePassphraseRes * getKeybasePassphraseRes))completion;
 

@@ -319,8 +319,11 @@ type GetKeybasePassphraseRes struct {
 	Passphrase string `codec:"passphrase"`
 }
 
+type GetEmailOrUsernameArg struct {
+}
+
 type LoginUiInterface interface {
-	GetEmailOrUsername(prompt *string, res *GetEmailOrUsernameRes) error
+	GetEmailOrUsername(arg *GetEmailOrUsernameArg, res *GetEmailOrUsernameRes) error
 	GetKeybasePassphrase(retry *string, res *GetKeybasePassphraseRes) error
 }
 
@@ -332,8 +335,8 @@ type LoginUiClient struct {
 	Cli GenericClient
 }
 
-func (c LoginUiClient) GetEmailOrUsername(prompt string, res *GetEmailOrUsernameRes) error {
-	return c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", prompt, res)
+func (c LoginUiClient) GetEmailOrUsername(arg GetEmailOrUsernameArg, res *GetEmailOrUsernameRes) error {
+	return c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", arg, res)
 }
 
 func (c LoginUiClient) GetKeybasePassphrase(retry string, res *GetKeybasePassphraseRes) error {

@@ -13,6 +13,6 @@ protocol loginUi {
 		string passphrase;
 	}
 
-	GetEmailOrUsernameRes getEmailOrUsername(string prompt);
+	GetEmailOrUsernameRes getEmailOrUsername();
 	GetKeybasePassphraseRes getKeybasePassphrase(string retry);
 }
