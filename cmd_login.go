@@ -4,13 +4,43 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 )
 
-type CmdLogin struct {
+type CmdLogin struct {}
+
+type LoginUIServer struct {
+	eng libkb.LoginUI
+}
+
+func NewLoginUIServer() *LoginUIServer {
+	return &LoginUIServer { G_UI.GetLoginUI() }
+}
+
+func (u *LoginUIServer) GetEmailOrUsername(arg *keybase_1.GetEmailOrUsernameArg, res *keybase_1.GetEmailOrUsernameRes) error {
+	*res = u.eng.GetEmailOrUsername()	
+	return nil
+}
+
+func (u *LoginUIServer) GetKeybasePassphrase(prompt *string, res *keybase_1.GetKeybasePassphraseRes) error {
+	*res = u.eng.GetKeybasePassphrase(*prompt)
+	return nil
 }
 
 func (v *CmdLogin) RunClient() (err error) {
-	return nil
+	var cli keybase_1.LoginClient
+	var status keybase_1.Status
+	if cli, err = GetLoginClient(); err != nil {
+	} else {
+		if err = RegisterLoginUiServer(NewLoginUIServer()); err != nil {
+		} else {
+			if err = cli.PassphraseLogin(keybase_1.PassphraseLoginArg{}, &status); err != nil {
+			} else {
+				err = libkb.ImportStatusAsError(status)
+			}
+		}
+	}
+	return 
 }
 
 func (v *CmdLogin) Run() error {

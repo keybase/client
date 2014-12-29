@@ -28,7 +28,7 @@ func GetRpcServer() (ret *rpc.Server, conn net.Conn, err error) {
 		__srv = rpc.NewServer()
 		var mh codec.MsgpackHandle
 		rpcCodec := fmprpc.MsgpackSpecRpc.ServerCodec(conn, &mh, true)
-		__srv.ServeCodec(rpcCodec)
+		go __srv.ServeCodec(rpcCodec)
 	}
 	ret = __srv
 	return
@@ -50,38 +50,35 @@ func GetConfigClient() (cli keybase_1.ConfigClient, err error) {
 	return
 }
 
-func GetLoginClient(gen func(con net.Conn) keybase_1.LoginUiInterface) (cli keybase_1.LoginClient, err error) {
+func GetLoginClient() (cli keybase_1.LoginClient, err error) {
 	var rcli *rpc.Client
-	var srv *rpc.Server
-	var con net.Conn
-	if rcli, _, err = GetRpcClient(); err != nil {
-		return
-	}
-	cli = keybase_1.LoginClient{rcli}
-	if gen == nil {
-		return
-	}
-	if srv, con, err = GetRpcServer(); err == nil {
-		keybase_1.RegisterLoginUi(srv, gen(con))
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.LoginClient{rcli}
 	}
 	return
 }
 
-// TrackClients also act as TrackServers since they have to reply
-// to UI events. So we allocate both at once.
-func GetIdentifyClient(gen func(con net.Conn) keybase_1.IdentifyUiInterface) (cli keybase_1.IdentifyClient, err error) {
-	var rcli *rpc.Client
+func RegisterLoginUiServer(i keybase_1.LoginUiInterface) (err error) {
 	var srv *rpc.Server
-	var con net.Conn
-	if rcli, _, err = GetRpcClient(); err != nil {
-		return
+	if srv, _, err = GetRpcServer(); err == nil {
+		keybase_1.RegisterLoginUi(srv, i)
 	}
-	cli = keybase_1.IdentifyClient{rcli}
-	if gen == nil {
-		return
+	return
+}
+
+func GetIdentifyClient() (cli keybase_1.IdentifyClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.IdentifyClient{rcli}
 	}
-	if srv, con, err = GetRpcServer(); err == nil {
-		keybase_1.RegisterIdentifyUi(srv, gen(con))
+	return
+}
+
+
+func RegisterIdentifyUiServer(i keybase_1.IdentifyUiInterface) (err error) {
+	var srv *rpc.Server
+	if srv, _, err = GetRpcServer(); err == nil {
+		keybase_1.RegisterIdentifyUi(srv, i)
 	}
 	return
 }
