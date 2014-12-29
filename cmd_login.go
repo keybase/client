@@ -14,20 +14,7 @@ func (v *CmdLogin) RunClient() (err error) {
 }
 
 func (v *CmdLogin) Run() error {
-	larg := libkb.LoginArg{Prompt: true, Retry: 3}
-	if err := G.LoginState.Login(larg); err != nil {
-		return err
-	}
-
-	// We might need to ID ourselves, to load us in here
-	luarg := libkb.LoadUserArg{}
-	u, err := libkb.LoadMe(luarg)
-	if _, not_found := err.(libkb.NoKeyError); not_found {
-		err = nil
-	} else if _, not_selected := err.(libkb.NoSelectedKeyError); not_selected {
-		_, err = u.IdentifySelf(nil)
-	}
-	return err
+	return libkb.LoginAndIdentify(nil, nil)
 }
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
