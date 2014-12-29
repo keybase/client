@@ -334,3 +334,19 @@ func (s *LoginState) GetTriplesec(retry string, ui LoginUI) (ret *triplesec.Ciph
 func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 	return s.tsec
 }
+
+func LoginAndIdentify(login LoginUI, identify IdentifyUI) error {
+	larg := LoginArg{Prompt: true, Retry: 3, Ui: login}
+	if err := G.LoginState.Login(larg); err != nil {
+		return err
+	}
+
+	// We might need to ID ourselves, to load us in here
+	u, err := LoadMe(LoadUserArg{})
+	if _, not_found := err.(NoKeyError); not_found {
+		err = nil
+	} else if _, not_selected := err.(NoSelectedKeyError); not_selected {
+		_, err = u.IdentifySelf(identify)
+	}
+	return err
+}
