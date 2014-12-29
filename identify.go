@@ -20,7 +20,7 @@ type IdentifyHandler struct {
 	cli  *rpc.Client
 }
 
-func (h *IdentifyHandler) GetRpcClient() (cli *rpc.Client) {
+func (h *IdentifyHandler) getRpcClient() (cli *rpc.Client) {
 	if cli = h.cli; cli == nil {
 		var mh codec.MsgpackHandle
 		cdc := fmprpc.MsgpackSpecRpc.ClientCodec(h.conn, &mh, true)
@@ -38,8 +38,8 @@ func NewRemoteIdentifyUI(sessionId int, c *rpc.Client) *RemoteIdentifyUI {
 	}
 }
 
-func (h *IdentifyHandler) NewUi(sessionId int) libkb.IdentifyUI {
-	return NewRemoteIdentifyUI(sessionId, h.GetRpcClient())
+func (h *IdentifyHandler) newUi(sessionId int) libkb.IdentifyUI {
+	return NewRemoteIdentifyUI(sessionId, h.getRpcClient())
 }
 
 func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {
@@ -105,7 +105,7 @@ func (h *IdentifyHandler) IdentifySelf(sessionId *int, res *keybase_1.Status) er
 	if _, not_found := err.(libkb.NoKeyError); not_found {
 		err = nil
 	} else if _, not_selected := err.(libkb.NoSelectedKeyError); not_selected {
-		_, err = u.IdentifySelf(h.NewUi(*sessionId))
+		_, err = u.IdentifySelf(h.newUi(*sessionId))
 	}
 	status := libkb.ExportErrorAsStatus(err)
 	res = &status
