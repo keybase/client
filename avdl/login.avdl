@@ -4,17 +4,8 @@ protocol login {
 
 	import idl "common.avdl";
 
-	record LoginResBody {
-		UID uid;
-	}
-
-	record LoginRes {
-		union { null, LoginResBody } body;
-		Status status;
-	}
-
-	LoginRes PassphraseLogin(string passphrase);
-	LoginRes PubkeyLogin();
+	Status PassphraseLogin();
+	Status PubkeyLogin();
 	Status Logout();
 	Status SwitchUser(string username);
 }

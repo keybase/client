@@ -202,29 +202,21 @@
 
 @end
 
-@implementation KBLoginResBody
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"uid": @"uid" }; }
-@end
-
-@implementation KBLoginRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"body": @"body", @"status": @"status" }; }
-@end
-
 @implementation KBRLogin
-- (void)passphraseLoginWithPassphrase:(NSString *)passphrase completion:(void (^)(NSError *error, KBLoginRes * loginRes))completion {
+- (void)passphraseLogin:(void (^)(NSError *error, KBStatus * status))completion {
 
-  NSDictionary *params = @{@"passphrase": KBRValue(passphrase)};
+  NSDictionary *params = @{};
   [self.client sendRequestWithMethod:@"keybase.1.login.PassphraseLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBLoginRes *result = [MTLJSONAdapter modelOfClass:KBLoginRes.class fromJSONDictionary:dict error:&error];
+    KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
 }
 
-- (void)pubkeyLogin:(void (^)(NSError *error, KBLoginRes * loginRes))completion {
+- (void)pubkeyLogin:(void (^)(NSError *error, KBStatus * status))completion {
 
   NSDictionary *params = @{};
   [self.client sendRequestWithMethod:@"keybase.1.login.PubkeyLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
@@ -232,7 +224,7 @@
       completion(error, nil);
       return;
     }
-    KBLoginRes *result = [MTLJSONAdapter modelOfClass:KBLoginRes.class fromJSONDictionary:dict error:&error];
+    KBStatus *result = [MTLJSONAdapter modelOfClass:KBStatus.class fromJSONDictionary:dict error:&error];
     completion(error, result);
   }];
 }

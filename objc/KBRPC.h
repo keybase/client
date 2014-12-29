@@ -164,19 +164,10 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 @end
 
-@interface KBLoginResBody : KBRObject
-@property KBUID *uid;
-@end
-
-@interface KBLoginRes : KBRObject
-@property KBLoginResBody *body;
-@property KBStatus *status;
-@end
-
 @interface KBRLogin : KBRRequest
-- (void)passphraseLoginWithPassphrase:(NSString *)passphrase completion:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
+- (void)passphraseLogin:(void (^)(NSError *error, KBStatus * status))completion;
 
-- (void)pubkeyLogin:(void (^)(NSError *error, KBLoginRes * loginRes))completion;
+- (void)pubkeyLogin:(void (^)(NSError *error, KBStatus * status))completion;
 
 - (void)logout:(void (^)(NSError *error, KBStatus * status))completion;
 

@@ -263,13 +263,7 @@ func (c IdentifyUiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg, res *S
 	return c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", arg, res)
 }
 
-type LoginResBody struct {
-	Uid UID `codec:"uid"`
-}
-
-type LoginRes struct {
-	Body   *LoginResBody `codec:"body,omitempty"`
-	Status Status        `codec:"status"`
+type PassphraseLoginArg struct {
 }
 
 type PubkeyLoginArg struct {
@@ -279,8 +273,8 @@ type LogoutArg struct {
 }
 
 type LoginInterface interface {
-	PassphraseLogin(passphrase *string, res *LoginRes) error
-	PubkeyLogin(arg *PubkeyLoginArg, res *LoginRes) error
+	PassphraseLogin(arg *PassphraseLoginArg, res *Status) error
+	PubkeyLogin(arg *PubkeyLoginArg, res *Status) error
 	Logout(arg *LogoutArg, res *Status) error
 	SwitchUser(username *string, res *Status) error
 }
@@ -293,11 +287,11 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) PassphraseLogin(passphrase string, res *LoginRes) error {
-	return c.Cli.Call("keybase.1.login.PassphraseLogin", passphrase, res)
+func (c LoginClient) PassphraseLogin(arg PassphraseLoginArg, res *Status) error {
+	return c.Cli.Call("keybase.1.login.PassphraseLogin", arg, res)
 }
 
-func (c LoginClient) PubkeyLogin(arg PubkeyLoginArg, res *LoginRes) error {
+func (c LoginClient) PubkeyLogin(arg PubkeyLoginArg, res *Status) error {
 	return c.Cli.Call("keybase.1.login.PubkeyLogin", arg, res)
 }
 
