@@ -1,7 +1,7 @@
 package keybase_1
 
 import (
-	"net/rpc"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type GenericClient interface {
@@ -27,7 +27,7 @@ type FOKID struct {
 	Kid            *[]byte `codec:"kid,omitempty"`
 }
 
-type GetCurrentStatusResBody struct {
+type GetCurrentStatusRes struct {
 	Configured        bool `codec:"configured"`
 	Registered        bool `codec:"registered"`
 	LoggedIn          bool `codec:"loggedIn"`
@@ -35,44 +35,62 @@ type GetCurrentStatusResBody struct {
 	HasPrivateKey     bool `codec:"hasPrivateKey"`
 }
 
-type GetCurrentStatusRes struct {
-	Body   *GetCurrentStatusResBody `codec:"body,omitempty"`
-	Status Status                   `codec:"status"`
-}
-
-type GetCurrentStatusArg struct {
-}
-
 type ConfigInterface interface {
-	GetCurrentStatus(arg *GetCurrentStatusArg, res *GetCurrentStatusRes) error
+	GetCurrentStatus() (GetCurrentStatusRes, error)
 }
 
-func RegisterConfig(server *rpc.Server, i ConfigInterface) error {
-	return server.RegisterName("keybase.1.config", i)
+func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.config",
+		Methods: map[string]rpc2.ServeHook{
+			"getCurrentStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args interface{}
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetCurrentStatus()
+				}
+				return
+			},
+		},
+	}
+
 }
 
 type ConfigClient struct {
 	Cli GenericClient
 }
 
-func (c ConfigClient) GetCurrentStatus(arg GetCurrentStatusArg, res *GetCurrentStatusRes) error {
-	return c.Cli.Call("keybase.1.config.GetCurrentStatus", arg, res)
+func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
+	err = c.Cli.Call("keybase.1.config.getCurrentStatus", nil, &res)
+	return
 }
 
 type IdentifyInterface interface {
-	IdentifySelf(sessionId *int, res *Status) error
+	IdentifySelf(sessionId int) error
 }
 
-func RegisterIdentify(server *rpc.Server, i IdentifyInterface) error {
-	return server.RegisterName("keybase.1.identify", i)
+func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.identify",
+		Methods: map[string]rpc2.ServeHook{
+			"identifySelf": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args int
+				if err = nxt(&args); err == nil {
+					err = i.IdentifySelf(args)
+				}
+				return
+			},
+		},
+	}
+
 }
 
 type IdentifyClient struct {
 	Cli GenericClient
 }
 
-func (c IdentifyClient) IdentifySelf(sessionId int, res *Status) error {
-	return c.Cli.Call("keybase.1.identify.identifySelf", sessionId, res)
+func (c IdentifyClient) IdentifySelf(sessionId int) (err error) {
+	err = c.Cli.Call("keybase.1.identify.identifySelf", sessionId, nil)
+	return
 }
 
 type TrackDiffType int
@@ -211,89 +229,178 @@ type LaunchNetworkChecksArg struct {
 }
 
 type IdentifyUiInterface interface {
-	FinishAndPrompt(arg *FinishAndPromptArg, res *FinishAndPromptRes) error
-	FinishWebProofCheck(arg *FinishWebProofCheckArg, res *null) error
-	FinishSocialProofCheck(arg *FinishSocialProofCheckArg, res *null) error
-	DisplayCryptocurrency(arg *DisplayCryptocurrencyArg, res *null) error
-	DisplayKey(arg *DisplayKeyArg, res *null) error
-	ReportLastTrack(arg *ReportLastTrackArg, res *null) error
-	LaunchNetworkChecks(arg *LaunchNetworkChecksArg, res *null) error
+	FinishAndPrompt(arg FinishAndPromptArg) (FinishAndPromptRes, error)
+	FinishWebProofCheck(arg FinishWebProofCheckArg) error
+	FinishSocialProofCheck(arg FinishSocialProofCheckArg) error
+	DisplayCryptocurrency(arg DisplayCryptocurrencyArg) error
+	DisplayKey(arg DisplayKeyArg) error
+	ReportLastTrack(arg ReportLastTrackArg) error
+	LaunchNetworkChecks(arg LaunchNetworkChecksArg) error
 }
 
-func RegisterIdentifyUi(server *rpc.Server, i IdentifyUiInterface) error {
-	return server.RegisterName("keybase.1.identifyUi", i)
+func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.identifyUi",
+		Methods: map[string]rpc2.ServeHook{
+			"finishAndPrompt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args FinishAndPromptArg
+				if err = nxt(&args); err == nil {
+					ret, err = i.FinishAndPrompt(args)
+				}
+				return
+			},
+			"finishWebProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args FinishWebProofCheckArg
+				if err = nxt(&args); err == nil {
+					err = i.FinishWebProofCheck(args)
+				}
+				return
+			},
+			"finishSocialProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args FinishSocialProofCheckArg
+				if err = nxt(&args); err == nil {
+					err = i.FinishSocialProofCheck(args)
+				}
+				return
+			},
+			"displayCryptocurrency": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args DisplayCryptocurrencyArg
+				if err = nxt(&args); err == nil {
+					err = i.DisplayCryptocurrency(args)
+				}
+				return
+			},
+			"displayKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args DisplayKeyArg
+				if err = nxt(&args); err == nil {
+					err = i.DisplayKey(args)
+				}
+				return
+			},
+			"reportLastTrack": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args ReportLastTrackArg
+				if err = nxt(&args); err == nil {
+					err = i.ReportLastTrack(args)
+				}
+				return
+			},
+			"launchNetworkChecks": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args LaunchNetworkChecksArg
+				if err = nxt(&args); err == nil {
+					err = i.LaunchNetworkChecks(args)
+				}
+				return
+			},
+		},
+	}
+
 }
 
 type IdentifyUiClient struct {
 	Cli GenericClient
 }
 
-func (c IdentifyUiClient) FinishAndPrompt(arg FinishAndPromptArg, res *FinishAndPromptRes) error {
-	return c.Cli.Call("keybase.1.identifyUi.finishAndPrompt", arg, res)
+func (c IdentifyUiClient) FinishAndPrompt(arg FinishAndPromptArg) (res FinishAndPromptRes, err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishAndPrompt", arg, &res)
+	return
 }
 
-func (c IdentifyUiClient) FinishWebProofCheck(arg FinishWebProofCheckArg, res *null) error {
-	return c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", arg, res)
+func (c IdentifyUiClient) FinishWebProofCheck(arg FinishWebProofCheckArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", arg, nil)
+	return
 }
 
-func (c IdentifyUiClient) FinishSocialProofCheck(arg FinishSocialProofCheckArg, res *null) error {
-	return c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", arg, res)
+func (c IdentifyUiClient) FinishSocialProofCheck(arg FinishSocialProofCheckArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", arg, nil)
+	return
 }
 
-func (c IdentifyUiClient) DisplayCryptocurrency(arg DisplayCryptocurrencyArg, res *null) error {
-	return c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", arg, res)
+func (c IdentifyUiClient) DisplayCryptocurrency(arg DisplayCryptocurrencyArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", arg, nil)
+	return
 }
 
-func (c IdentifyUiClient) DisplayKey(arg DisplayKeyArg, res *null) error {
-	return c.Cli.Call("keybase.1.identifyUi.displayKey", arg, res)
+func (c IdentifyUiClient) DisplayKey(arg DisplayKeyArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.displayKey", arg, nil)
+	return
 }
 
-func (c IdentifyUiClient) ReportLastTrack(arg ReportLastTrackArg, res *null) error {
-	return c.Cli.Call("keybase.1.identifyUi.reportLastTrack", arg, res)
+func (c IdentifyUiClient) ReportLastTrack(arg ReportLastTrackArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.reportLastTrack", arg, nil)
+	return
 }
 
-func (c IdentifyUiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg, res *null) error {
-	return c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", arg, res)
-}
-
-type PassphraseLoginArg struct {
-}
-
-type PubkeyLoginArg struct {
-}
-
-type LogoutArg struct {
+func (c IdentifyUiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", arg, nil)
+	return
 }
 
 type LoginInterface interface {
-	PassphraseLogin(arg *PassphraseLoginArg, res *Status) error
-	PubkeyLogin(arg *PubkeyLoginArg, res *Status) error
-	Logout(arg *LogoutArg, res *Status) error
-	SwitchUser(username *string, res *Status) error
+	PassphraseLogin() error
+	PubkeyLogin() error
+	Logout() error
+	SwitchUser(username string) error
 }
 
-func RegisterLogin(server *rpc.Server, i LoginInterface) error {
-	return server.RegisterName("keybase.1.login", i)
+func LoginProtocol(i LoginInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.login",
+		Methods: map[string]rpc2.ServeHook{
+			"passphraseLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args interface{}
+				if err = nxt(&args); err == nil {
+					err = i.PassphraseLogin()
+				}
+				return
+			},
+			"pubkeyLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args interface{}
+				if err = nxt(&args); err == nil {
+					err = i.PubkeyLogin()
+				}
+				return
+			},
+			"logout": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args interface{}
+				if err = nxt(&args); err == nil {
+					err = i.Logout()
+				}
+				return
+			},
+			"switchUser": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args string
+				if err = nxt(&args); err == nil {
+					err = i.SwitchUser(args)
+				}
+				return
+			},
+		},
+	}
+
 }
 
 type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) PassphraseLogin(arg PassphraseLoginArg, res *Status) error {
-	return c.Cli.Call("keybase.1.login.PassphraseLogin", arg, res)
+func (c LoginClient) PassphraseLogin() (err error) {
+	err = c.Cli.Call("keybase.1.login.passphraseLogin", nil, nil)
+	return
 }
 
-func (c LoginClient) PubkeyLogin(arg PubkeyLoginArg, res *Status) error {
-	return c.Cli.Call("keybase.1.login.PubkeyLogin", arg, res)
+func (c LoginClient) PubkeyLogin() (err error) {
+	err = c.Cli.Call("keybase.1.login.pubkeyLogin", nil, nil)
+	return
 }
 
-func (c LoginClient) Logout(arg LogoutArg, res *Status) error {
-	return c.Cli.Call("keybase.1.login.Logout", arg, res)
+func (c LoginClient) Logout() (err error) {
+	err = c.Cli.Call("keybase.1.login.logout", nil, nil)
+	return
 }
 
-func (c LoginClient) SwitchUser(username string, res *Status) error {
-	return c.Cli.Call("keybase.1.login.SwitchUser", username, res)
+func (c LoginClient) SwitchUser(username string) (err error) {
+	err = c.Cli.Call("keybase.1.login.switchUser", username, nil)
+	return
 }
 
 type GetEmailOrUsernameRes struct {
@@ -306,39 +413,52 @@ type GetKeybasePassphraseRes struct {
 	Passphrase string `codec:"passphrase"`
 }
 
-type GetEmailOrUsernameArg struct {
-}
-
 type LoginUiInterface interface {
-	GetEmailOrUsername(arg *GetEmailOrUsernameArg, res *GetEmailOrUsernameRes) error
-	GetKeybasePassphrase(retry *string, res *GetKeybasePassphraseRes) error
+	GetEmailOrUsername() (GetEmailOrUsernameRes, error)
+	GetKeybasePassphrase(retry string) (GetKeybasePassphraseRes, error)
 }
 
-func RegisterLoginUi(server *rpc.Server, i LoginUiInterface) error {
-	return server.RegisterName("keybase.1.loginUi", i)
+func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.loginUi",
+		Methods: map[string]rpc2.ServeHook{
+			"getEmailOrUsername": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args interface{}
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetEmailOrUsername()
+				}
+				return
+			},
+			"getKeybasePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args string
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetKeybasePassphrase(args)
+				}
+				return
+			},
+		},
+	}
+
 }
 
 type LoginUiClient struct {
 	Cli GenericClient
 }
 
-func (c LoginUiClient) GetEmailOrUsername(arg GetEmailOrUsernameArg, res *GetEmailOrUsernameRes) error {
-	return c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", arg, res)
+func (c LoginUiClient) GetEmailOrUsername() (res GetEmailOrUsernameRes, err error) {
+	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", nil, &res)
+	return
 }
 
-func (c LoginUiClient) GetKeybasePassphrase(retry string, res *GetKeybasePassphraseRes) error {
-	return c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", retry, res)
-}
-
-type SignupResBody struct {
-	PassphraseOk bool `codec:"passphraseOk"`
-	PostOk       bool `codec:"postOk"`
-	WriteOk      bool `codec:"writeOk"`
+func (c LoginUiClient) GetKeybasePassphrase(retry string) (res GetKeybasePassphraseRes, err error) {
+	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", retry, &res)
+	return
 }
 
 type SignupRes struct {
-	Body   SignupResBody `codec:"body"`
-	Status Status        `codec:"status"`
+	PassphraseOk bool `codec:"passphraseOk"`
+	PostOk       bool `codec:"postOk"`
+	WriteOk      bool `codec:"writeOk"`
 }
 
 type SignupArg struct {
@@ -355,27 +475,56 @@ type InviteRequestArg struct {
 }
 
 type SignupInterface interface {
-	CheckUsernameAvailable(username *string, res *Status) error
-	Signup(arg *SignupArg, res *SignupRes) error
-	InviteRequest(arg *InviteRequestArg, res *Status) error
+	CheckUsernameAvailable(username string) (bool, error)
+	Signup(arg SignupArg) (SignupRes, error)
+	InviteRequest(arg InviteRequestArg) error
 }
 
-func RegisterSignup(server *rpc.Server, i SignupInterface) error {
-	return server.RegisterName("keybase.1.signup", i)
+func SignupProtocol(i SignupInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.signup",
+		Methods: map[string]rpc2.ServeHook{
+			"checkUsernameAvailable": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args string
+				if err = nxt(&args); err == nil {
+					ret, err = i.CheckUsernameAvailable(args)
+				}
+				return
+			},
+			"signup": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args SignupArg
+				if err = nxt(&args); err == nil {
+					ret, err = i.Signup(args)
+				}
+				return
+			},
+			"inviteRequest": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args InviteRequestArg
+				if err = nxt(&args); err == nil {
+					err = i.InviteRequest(args)
+				}
+				return
+			},
+		},
+	}
+
 }
 
 type SignupClient struct {
 	Cli GenericClient
 }
 
-func (c SignupClient) CheckUsernameAvailable(username string, res *Status) error {
-	return c.Cli.Call("keybase.1.signup.CheckUsernameAvailable", username, res)
+func (c SignupClient) CheckUsernameAvailable(username string) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", username, &res)
+	return
 }
 
-func (c SignupClient) Signup(arg SignupArg, res *SignupRes) error {
-	return c.Cli.Call("keybase.1.signup.Signup", arg, res)
+func (c SignupClient) Signup(arg SignupArg) (res SignupRes, err error) {
+	err = c.Cli.Call("keybase.1.signup.signup", arg, &res)
+	return
 }
 
-func (c SignupClient) InviteRequest(arg InviteRequestArg, res *Status) error {
-	return c.Cli.Call("keybase.1.signup.InviteRequest", arg, res)
+func (c SignupClient) InviteRequest(arg InviteRequestArg) (err error) {
+	err = c.Cli.Call("keybase.1.signup.inviteRequest", arg, nil)
+	return
 }

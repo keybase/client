@@ -4,8 +4,8 @@ protocol login {
 
 	import idl "common.avdl";
 
-	Status PassphraseLogin();
-	Status PubkeyLogin();
-	Status Logout();
-	Status SwitchUser(string username);
+	void passphraseLogin();
+	void pubkeyLogin();
+	void logout();
+	void switchUser(string username);
 }

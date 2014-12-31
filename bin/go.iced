@@ -219,12 +219,13 @@ class GoEmitter2 extends GoEmitter
   emit_server_hook : (name, details) ->
     arg = details.request[0]
     res = details.response
-    @output """"#{name}": func(next rpc2.DecodeNext) (ret interface{}, err error) {"""
+    resvar = if res is "null" then "" else "ret, "
+    @output """"#{name}": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {"""
     @tab()
     @output "var args #{if arg? then arg.type else 'interface{}'}"
     @output "if err = nxt(&args); err == nil {"
     @tab()
-    @output "ret, err = i.#{@go_export_case(name)}(#{if arg? then 'args' else ''})"
+    @output "#{resvar}err = i.#{@go_export_case(name)}(#{if arg? then 'args' else ''})"
     @untab()
     @output "} "
     @output "return"
@@ -254,7 +255,7 @@ class GoEmitter2 extends GoEmitter
     res = details.response
     args = if arg? then "#{arg.name} #{arg.type}" else ""
     res_types = []
-    if res isnt "null" then res_types.push res
+    if res isnt "null" then res_types.push @go_primitive_type(res)
     res_types.push "error"
     @output "#{@go_export_case(name)}(#{args}) (#{res_types.join ","})"
 
@@ -264,7 +265,7 @@ class GoEmitter2 extends GoEmitter
     res = details.response
     out_list = []
     if res isnt "null"
-      out_list.push "res #{res}"
+      out_list.push "res #{@go_primitive_type(res)}"
       res_in = "&res"
     else
       res_in = "nil"

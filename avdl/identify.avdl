@@ -4,5 +4,5 @@ protocol identify {
 
 	import idl "common.avdl";
 
-	Status identifySelf(int sessionId);
+	void identifySelf(int sessionId);
 }

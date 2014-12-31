@@ -4,7 +4,7 @@ protocol config {
 
 	import idl "common.avdl";
 
-	record GetCurrentStatusResBody {
+	record GetCurrentStatusRes {
 		boolean configured;
 		boolean registered;
 		boolean loggedIn;
@@ -12,10 +12,5 @@ protocol config {
 		boolean hasPrivateKey;
 	}
 
-	record GetCurrentStatusRes {
-		union { null, GetCurrentStatusResBody } body;
-		Status status;
-	}
-
-	GetCurrentStatusRes GetCurrentStatus();
+	GetCurrentStatusRes getCurrentStatus();
 }

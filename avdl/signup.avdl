@@ -4,18 +4,13 @@ protocol signup {
 
 	import idl "common.avdl";
 
-	record SignupResBody {
+	record SignupRes {
 		boolean passphraseOk;
 		boolean postOk;
 		boolean writeOk;
 	}
 
-	record SignupRes {
-		SignupResBody body;
-		Status status;
-	}
-
-	Status CheckUsernameAvailable(string username);
-	SignupRes Signup(string email, string inviteCode, string passphrase, string username);
-	Status InviteRequest(string email, string fullname, string notes);
+	boolean checkUsernameAvailable(string username);
+	SignupRes signup(string email, string inviteCode, string passphrase, string username);
+	void inviteRequest(string email, string fullname, string notes);
 }

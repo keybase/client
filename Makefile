@@ -22,11 +22,6 @@ build-stamp: \
 
 go/keybase_v1.go: build-stamp
 	@mkdir -p go/
-	$(ICED) ./bin/go.iced -d json -t go -o $@
-	gofmt -w $@
-
-go/keybase_v2.go: build-stamp
-	@mkdir -p go/
 	$(ICED) ./bin/go.iced -v 2 -d json -t go -o $@
 	gofmt -w $@
 
@@ -37,7 +32,7 @@ objc-build-stamp: build-stamp
 clean:
 	rm -rf json/*.json go/*.go objc/*
 
-build: build-stamp go/keybase_v1.go go/keybase_v2.go objc-build-stamp
+build: build-stamp go/keybase_v1.go objc-build-stamp
 
 .PHONY: test setup config
 

@@ -49,24 +49,24 @@
     } ]
   } ],
   "messages" : {
-    "PassphraseLogin" : {
+    "passphraseLogin" : {
       "request" : [ ],
-      "response" : "Status"
+      "response" : "null"
     },
-    "PubkeyLogin" : {
+    "pubkeyLogin" : {
       "request" : [ ],
-      "response" : "Status"
+      "response" : "null"
     },
-    "Logout" : {
+    "logout" : {
       "request" : [ ],
-      "response" : "Status"
+      "response" : "null"
     },
-    "SwitchUser" : {
+    "switchUser" : {
       "request" : [ {
         "name" : "username",
         "type" : "string"
       } ],
-      "response" : "Status"
+      "response" : "null"
     }
   }
 }

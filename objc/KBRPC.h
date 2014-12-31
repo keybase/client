@@ -23,17 +23,12 @@
 @property NSData *kid;
 @end
 
-@interface KBGetCurrentStatusResBody : KBRObject
+@interface KBGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
 @property BOOL loggedIn;
 @property BOOL publicKeySelected;
 @property BOOL hasPrivateKey;
-@end
-
-@interface KBGetCurrentStatusRes : KBRObject
-@property KBGetCurrentStatusResBody *body;
-@property KBStatus *status;
 @end
 
 @interface KBRConfig : KBRRequest
@@ -42,7 +37,7 @@
 @end
 
 @interface KBRIdentify : KBRRequest
-- (void)identifySelfWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)identifySelfWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -158,13 +153,13 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @end
 
 @interface KBRLogin : KBRRequest
-- (void)passphraseLogin:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)passphraseLogin:(void (^)(NSError *error))completion;
 
-- (void)pubkeyLogin:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)pubkeyLogin:(void (^)(NSError *error))completion;
 
-- (void)logout:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)logout:(void (^)(NSError *error))completion;
 
-- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -185,22 +180,17 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 @end
 
-@interface KBSignupResBody : KBRObject
+@interface KBSignupRes : KBRObject
 @property BOOL passphraseOk;
 @property BOOL postOk;
 @property BOOL writeOk;
 @end
 
-@interface KBSignupRes : KBRObject
-@property KBSignupResBody *body;
-@property KBStatus *status;
-@end
-
 @interface KBRSignup : KBRRequest
-- (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error, BOOL  b))completion;
 
 - (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBSignupRes * signupRes))completion;
 
-- (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error))completion;
 
 @end

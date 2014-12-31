@@ -54,7 +54,7 @@
         "name" : "sessionId",
         "type" : "int"
       } ],
-      "response" : "Status"
+      "response" : "null"
     }
   }
 }
