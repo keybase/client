@@ -71,6 +71,10 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID", @"trackDiff": @"trackDiff" }; }
 @end
 
+@implementation KBCryptocurrency
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"rowId": @"rowId", @"pkhash": @"pkhash", @"address": @"address" }; }
+@end
+
 @implementation KBIdentity
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
 @end
@@ -137,9 +141,9 @@
   }];
 }
 
-- (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId address:(NSString *)address completion:(void (^)(NSError *error))completion {
+- (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId c:(KBCryptocurrency *)c completion:(void (^)(NSError *error))completion {
 
-  NSDictionary *params = @{@"sessionId": @(sessionId), @"address": KBRValue(address)};
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"c": KBRValue(c)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayCryptocurrency" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

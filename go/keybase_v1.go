@@ -137,13 +137,19 @@ type IdentifyKey struct {
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty"`
 }
 
+type Cryptocurrency struct {
+	RowId   int    `codec:"rowId"`
+	Pkhash  []byte `codec:"pkhash"`
+	Address string `codec:"address"`
+}
+
 type Identity struct {
-	Status          Status        `codec:"status"`
-	WhenLastTracked int           `codec:"whenLastTracked"`
-	Key             IdentifyKey   `codec:"key"`
-	Proofs          []IdentifyRow `codec:"proofs"`
-	Cryptocurrency  []IdentifyRow `codec:"cryptocurrency"`
-	Deleted         []TrackDiff   `codec:"deleted"`
+	Status          Status           `codec:"status"`
+	WhenLastTracked int              `codec:"whenLastTracked"`
+	Key             IdentifyKey      `codec:"key"`
+	Proofs          []IdentifyRow    `codec:"proofs"`
+	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency"`
+	Deleted         []TrackDiff      `codec:"deleted"`
 }
 
 type SigHint struct {
@@ -208,8 +214,8 @@ type FinishSocialProofCheckArg struct {
 }
 
 type DisplayCryptocurrencyArg struct {
-	SessionId int    `codec:"sessionId"`
-	Address   string `codec:"address"`
+	SessionId int            `codec:"sessionId"`
+	C         Cryptocurrency `codec:"c"`
 }
 
 type DisplayKeyArg struct {

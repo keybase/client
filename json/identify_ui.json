@@ -118,6 +118,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "Cryptocurrency",
+    "fields" : [ {
+      "name" : "rowId",
+      "type" : "int"
+    }, {
+      "name" : "pkhash",
+      "type" : "bytes"
+    }, {
+      "name" : "address",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "Identity",
     "fields" : [ {
       "name" : "status",
@@ -138,7 +151,7 @@
       "name" : "cryptocurrency",
       "type" : {
         "type" : "array",
-        "items" : "IdentifyRow"
+        "items" : "Cryptocurrency"
       }
     }, {
       "name" : "deleted",
@@ -298,8 +311,8 @@
         "name" : "sessionId",
         "type" : "int"
       }, {
-        "name" : "address",
-        "type" : "string"
+        "name" : "c",
+        "type" : "Cryptocurrency"
       } ],
       "response" : "null"
     },
