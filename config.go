@@ -3,24 +3,21 @@ package main
 import (
 	"github.com/keybase/go-libkb"
 	"github.com/keybase/protocol/go"
-	"net"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type ConfigHandler struct {
-	conn net.Conn
+	xp *rpc2.Transport
 }
 
-func (h ConfigHandler) GetCurrentStatus(arg *keybase_1.GetCurrentStatusArg, res *keybase_1.GetCurrentStatusRes) error {
-	cs, err := libkb.GetCurrentStatus()
-	res.Status = libkb.ExportErrorAsStatus(err)
+func (h ConfigHandler) GetCurrentStatus() (res keybase_1.GetCurrentStatusRes, err error) {
+	var cs libkb.CurrentStatus
+	cs, err = libkb.GetCurrentStatus()
 	if err == nil {
-		body := keybase_1.GetCurrentStatusResBody{
-			Configured:        cs.Configured,
-			Registered:        cs.Registered,
-			LoggedIn:          cs.LoggedIn,
-			PublicKeySelected: cs.PublicKeySelected,
-		}
-		res.Body = &body
+		res.Configured =        cs.Configured
+		res.Registered =        cs.Registered
+		res.LoggedIn =          cs.LoggedIn
+		res.PublicKeySelected = cs.PublicKeySelected
 	}
-	return nil
+	return
 }

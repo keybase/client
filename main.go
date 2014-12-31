@@ -6,10 +6,8 @@ import (
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"github.com/keybase/protocol/go"
-	fmprpc "github.com/maxtaco/go-framed-msgpack-rpc"
-	"github.com/ugorji/go/codec"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"net"
-	"net/rpc"
 	"os"
 )
 
@@ -19,19 +17,18 @@ var G = &libkb.G
 type Daemon struct {
 }
 
-func RegisterProtocols(server *rpc.Server, c net.Conn) {
-	keybase_1.RegisterSignup(server, SignupHandler{c})
-	keybase_1.RegisterConfig(server, ConfigHandler{c})
-	keybase_1.RegisterLogin(server, &LoginHandler{conn : c})
-	keybase_1.RegisterIdentify(server, &IdentifyHandler{conn: c})
+func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
+	srv.Register(keybase_1.SignupProtocol(SignupHandler{xp}))
+	srv.Register(keybase_1.ConfigProtocol(ConfigHandler{xp}))
+	srv.Register(keybase_1.LoginProtocol(&LoginHandler{xp:xp}))
+	srv.Register(keybase_1.IdentifyProtocol(&IdentifyHandler{xp:xp}))
 }
 
 func (d *Daemon) Handle(c net.Conn) {
-	server := rpc.NewServer()
-	RegisterProtocols(server, c)
-	var mh codec.MsgpackHandle
-	rpcCodec := fmprpc.MsgpackSpecRpc.ServerCodec(c, &mh, true)
-	server.ServeCodec(rpcCodec)
+	xp := rpc2.NewTransport(c, nil)
+	server := rpc2.NewServer(xp, libkb.WrapError)
+	RegisterProtocols(server, xp)
+	server.Run(true)
 }
 
 func (d *Daemon) RunClient() (err error) {
