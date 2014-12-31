@@ -47,38 +47,18 @@
       "name" : "kid",
       "type" : [ "null", "bytes" ]
     } ]
-  }, {
-    "type" : "record",
-    "name" : "GetEmailOrUsernameRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
-      "name" : "emailOrUsername",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "GetKeybasePassphraseRes",
-    "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
-      "name" : "passphrase",
-      "type" : "string"
-    } ]
   } ],
   "messages" : {
     "getEmailOrUsername" : {
       "request" : [ ],
-      "response" : "GetEmailOrUsernameRes"
+      "response" : "string"
     },
     "getKeybasePassphrase" : {
       "request" : [ {
         "name" : "retry",
         "type" : "string"
       } ],
-      "response" : "GetKeybasePassphraseRes"
+      "response" : "string"
     }
   }
 }

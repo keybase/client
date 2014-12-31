@@ -10,7 +10,7 @@ protocol signup {
 		boolean writeOk;
 	}
 
-	boolean checkUsernameAvailable(string username);
+	void checkUsernameAvailable(string username);
 	SignupRes signup(string email, string inviteCode, string passphrase, string username);
 	void inviteRequest(string email, string fullname, string notes);
 }

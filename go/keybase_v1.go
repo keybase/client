@@ -409,19 +409,9 @@ func (c LoginClient) SwitchUser(username string) (err error) {
 	return
 }
 
-type GetEmailOrUsernameRes struct {
-	Status          Status `codec:"status"`
-	EmailOrUsername string `codec:"emailOrUsername"`
-}
-
-type GetKeybasePassphraseRes struct {
-	Status     Status `codec:"status"`
-	Passphrase string `codec:"passphrase"`
-}
-
 type LoginUiInterface interface {
-	GetEmailOrUsername() (GetEmailOrUsernameRes, error)
-	GetKeybasePassphrase(retry string) (GetKeybasePassphraseRes, error)
+	GetEmailOrUsername() (string, error)
+	GetKeybasePassphrase(retry string) (string, error)
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -451,12 +441,12 @@ type LoginUiClient struct {
 	Cli GenericClient
 }
 
-func (c LoginUiClient) GetEmailOrUsername() (res GetEmailOrUsernameRes, err error) {
+func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
 	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", nil, &res)
 	return
 }
 
-func (c LoginUiClient) GetKeybasePassphrase(retry string) (res GetKeybasePassphraseRes, err error) {
+func (c LoginUiClient) GetKeybasePassphrase(retry string) (res string, err error) {
 	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", retry, &res)
 	return
 }
@@ -481,7 +471,7 @@ type InviteRequestArg struct {
 }
 
 type SignupInterface interface {
-	CheckUsernameAvailable(username string) (bool, error)
+	CheckUsernameAvailable(username string) error
 	Signup(arg SignupArg) (SignupRes, error)
 	InviteRequest(arg InviteRequestArg) error
 }
@@ -493,7 +483,7 @@ func SignupProtocol(i SignupInterface) rpc2.Protocol {
 			"checkUsernameAvailable": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				var args string
 				if err = nxt(&args); err == nil {
-					ret, err = i.CheckUsernameAvailable(args)
+					err = i.CheckUsernameAvailable(args)
 				}
 				return
 			},
@@ -520,8 +510,8 @@ type SignupClient struct {
 	Cli GenericClient
 }
 
-func (c SignupClient) CheckUsernameAvailable(username string) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", username, &res)
+func (c SignupClient) CheckUsernameAvailable(username string) (err error) {
+	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", username, nil)
 	return
 }
 

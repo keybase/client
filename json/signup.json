@@ -67,7 +67,7 @@
         "name" : "username",
         "type" : "string"
       } ],
-      "response" : "boolean"
+      "response" : "null"
     },
     "signup" : {
       "request" : [ {

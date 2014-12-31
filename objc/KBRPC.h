@@ -169,20 +169,10 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 @end
 
-@interface KBGetEmailOrUsernameRes : KBRObject
-@property KBStatus *status;
-@property NSString *emailOrUsername;
-@end
-
-@interface KBGetKeybasePassphraseRes : KBRObject
-@property KBStatus *status;
-@property NSString *passphrase;
-@end
-
 @interface KBRLoginui : KBRRequest
-- (void)getEmailOrUsername:(void (^)(NSError *error, KBGetEmailOrUsernameRes * getEmailOrUsernameRes))completion;
+- (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion;
 
-- (void)getKeybasePassphraseWithRetry:(NSString *)retry completion:(void (^)(NSError *error, KBGetKeybasePassphraseRes * getKeybasePassphraseRes))completion;
+- (void)getKeybasePassphraseWithRetry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
 
 @end
 
@@ -193,7 +183,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @end
 
 @interface KBRSignup : KBRRequest
-- (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error, BOOL  b))completion;
+- (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 - (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBSignupRes * signupRes))completion;
 
