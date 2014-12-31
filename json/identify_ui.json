@@ -118,19 +118,6 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "Cryptocurrency",
-    "fields" : [ {
-      "name" : "rowId",
-      "type" : "int"
-    }, {
-      "name" : "pkhash",
-      "type" : "bytes"
-    }, {
-      "name" : "address",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "Identity",
     "fields" : [ {
       "name" : "status",
@@ -151,7 +138,7 @@
       "name" : "cryptocurrency",
       "type" : {
         "type" : "array",
-        "items" : "Cryptocurrency"
+        "items" : "IdentifyRow"
       }
     }, {
       "name" : "deleted",
@@ -262,9 +249,6 @@
     "type" : "record",
     "name" : "FinishAndPromptRes",
     "fields" : [ {
-      "name" : "status",
-      "type" : "Status"
-    }, {
       "name" : "trackLocal",
       "type" : "boolean"
     }, {
@@ -294,7 +278,7 @@
         "name" : "lcr",
         "type" : "LinkCheckResult"
       } ],
-      "response" : "Status"
+      "response" : "null"
     },
     "finishSocialProofCheck" : {
       "request" : [ {
@@ -307,17 +291,17 @@
         "name" : "lcr",
         "type" : "LinkCheckResult"
       } ],
-      "response" : "Status"
+      "response" : "null"
     },
     "displayCryptocurrency" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"
       }, {
-        "name" : "c",
-        "type" : "Cryptocurrency"
+        "name" : "address",
+        "type" : "string"
       } ],
-      "response" : "Status"
+      "response" : "null"
     },
     "displayKey" : {
       "request" : [ {
@@ -330,7 +314,7 @@
         "name" : "diff",
         "type" : [ "null", "TrackDiff" ]
       } ],
-      "response" : "Status"
+      "response" : "null"
     },
     "reportLastTrack" : {
       "request" : [ {
@@ -340,7 +324,7 @@
         "name" : "track",
         "type" : [ "null", "TrackSummary" ]
       } ],
-      "response" : "Status"
+      "response" : "null"
     },
     "launchNetworkChecks" : {
       "request" : [ {
@@ -350,7 +334,7 @@
         "name" : "id",
         "type" : "Identity"
       } ],
-      "response" : "Status"
+      "response" : "null"
     }
   }
 }

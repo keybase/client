@@ -111,7 +111,7 @@ class GoEmitter
 
   emit_wrapper_object : (name, details) ->
     args = details.request
-    if args.length != 1
+    if args.length isnt 1
       klass_name = @go_export_case(name) + "Arg"
       obj =
         name : klass_name
@@ -165,6 +165,9 @@ class GoEmitter
     @untab()
     @output "}"
 
+  emit_imports : () ->
+    @output '"net/rpc"'
+
   emit_package : (json, cb) ->
     pkg = json.namespace
     err = null
@@ -174,7 +177,7 @@ class GoEmitter
       @output "package #{@go_package pkg}"
       @output "import ("
       @tab()
-      @output '"net/rpc"'
+      @emit_imports()
       @untab()
       @output ")"
       @output ""
@@ -188,6 +191,92 @@ class GoEmitter
     @emit_types json.types
     @emit_interface json.protocol, json.messages
     cb null
+
+#====================================================================
+
+class GoEmitter2 extends GoEmitter
+
+  emit_interface_server : (protocol, messages) ->
+    p = @go_export_case protocol
+    @output "type #{p}Interface interface {"
+    @tab()
+    for k,v of messages
+      @emit_message_server k,v
+    @untab()
+    @output "}"
+    @emit_protocol_server protocol, messages
+
+  emit_wrapper_object : (name, details) ->
+    args = details.request
+    if args.length is 0
+      details.request = [ null ]
+    else
+      super name, details
+
+  emit_imports : () ->
+    @output '"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"'
+
+  emit_server_hook : (name, details) ->
+    arg = details.request[0]
+    res = details.response
+    @output """"#{name}": func(next rpc2.DecodeNext) (ret interface{}, err error) {"""
+    @tab()
+    @output "var args #{if arg? then arg.type else 'interface{}'}"
+    @output "if err = nxt(&args); err == nil {"
+    @tab()
+    @output "ret, err = i.#{@go_export_case(name)}(#{if arg? then 'args' else ''})"
+    @untab()
+    @output "} "
+    @output "return"
+    @untab()
+    @output "}," 
+
+  emit_protocol_server : (protocol, messages) ->
+    p = @go_export_case protocol
+    @output "func #{p}Protocol(i #{p}Interface) rpc2.Protocol {"
+    @tab()
+    @output "return rpc2.Protocol {"
+    @tab()
+    @output """Name: "#{@_pkg}.#{protocol}","""
+    @output "Methods: map[string]rpc2.ServeHook{"
+    @tab()
+    for k,v of messages
+      @emit_server_hook k, v
+    @untab()
+    @output "},"
+    @untab()
+    @output "}"
+    @untab()
+    @output "}"
+
+  emit_message_server : (name, details) ->
+    arg = details.request[0]
+    res = details.response
+    args = if arg? then "#{arg.name} #{arg.type}" else ""
+    res_types = []
+    if res isnt "null" then res_types.push res
+    res_types.push "error"
+    @output "#{@go_export_case(name)}(#{args}) (#{res_types.join ","})"
+
+  emit_message_client: (protocol, name, details, async) ->
+    p = @go_export_case protocol
+    arg = details.request[0]
+    res = details.response
+    out_list = []
+    if res isnt "null"
+      out_list.push "res #{res}"
+      res_in = "&res"
+    else
+      res_in = "nil"
+    out_list.push "err error"
+    outs = out_list.join ","
+    params = if arg? then "#{arg.name} #{arg.type}" else ""
+    @output "func (c #{p}Client) #{@go_export_case(name)}(#{params}) (#{outs}) {"
+    @tab()
+    @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{if arg? then arg.name else 'nil'}, #{res_in})"""
+    @output "return"
+    @untab()
+    @output "}"
 
 #====================================================================
 
@@ -210,7 +299,8 @@ class Runner
       @output = @argv.o
       switch @targ
         when "go"
-          @emitter = new GoEmitter
+          klass = if @argv.v is 2 then GoEmitter2 else GoEmitter
+          @emitter = new klass
         else
           err = new Error "Unknown language target; I support {go}"
     cb err

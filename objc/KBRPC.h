@@ -12,41 +12,6 @@
 @property NSData *data;
 @end
 
-typedef NS_ENUM (NSInteger, KBTrackDiffType) {
-	KBNone, 
-	KBError, 
-	KBClash, 
-	KBDeleted, 
-	KBUpgraded, 
-	KBNew, 
-	KBRemote_fail, 
-	KBRemote_working, 
-	KBRemote_changed, 
-};
-@interface KBTrackDiff : KBRObject
-@property KBTrackDiffType type;
-@property NSString *displayMarkup;
-@end
-
-@interface KBRemoteProof : KBRObject
-@property NSInteger proofType;
-@property NSString *key;
-@property NSString *value;
-@property NSString *displayMarkup;
-@end
-
-@interface KBIdentifyRow : KBRObject
-@property NSInteger rowId;
-@property KBRemoteProof *proof;
-@property KBTrackDiff *trackDiff;
-@end
-
-@interface KBIdentifyKey : KBRObject
-@property NSData *pgpFingerprint;
-@property NSData *KID;
-@property KBTrackDiff *trackDiff;
-@end
-
 @interface KBLoadUserArg : KBRObject
 @property KBUID *uid;
 @property NSString *username;
@@ -56,12 +21,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBFOKID : KBRObject
 @property NSData *pgpFingerprint;
 @property NSData *kid;
-@end
-
-@interface KBProofStatus : KBRObject
-@property NSInteger state;
-@property NSInteger status;
-@property NSString *desc;
 @end
 
 @interface KBGetCurrentStatusResBody : KBRObject
@@ -87,10 +46,45 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 @end
 
-@interface KBCryptocurrency : KBRObject
+typedef NS_ENUM (NSInteger, KBTrackDiffType) {
+	KBNone, 
+	KBError, 
+	KBClash, 
+	KBDeleted, 
+	KBUpgraded, 
+	KBNew, 
+	KBRemote_fail, 
+	KBRemote_working, 
+	KBRemote_changed, 
+};
+@interface KBTrackDiff : KBRObject
+@property KBTrackDiffType type;
+@property NSString *displayMarkup;
+@end
+
+@interface KBProofStatus : KBRObject
+@property NSInteger state;
+@property NSInteger status;
+@property NSString *desc;
+@end
+
+@interface KBRemoteProof : KBRObject
+@property NSInteger proofType;
+@property NSString *key;
+@property NSString *value;
+@property NSString *displayMarkup;
+@end
+
+@interface KBIdentifyRow : KBRObject
 @property NSInteger rowId;
-@property NSData *pkhash;
-@property NSString *address;
+@property KBRemoteProof *proof;
+@property KBTrackDiff *trackDiff;
+@end
+
+@interface KBIdentifyKey : KBRObject
+@property NSData *pgpFingerprint;
+@property NSData *KID;
+@property KBTrackDiff *trackDiff;
 @end
 
 @interface KBIdentity : KBRObject
@@ -142,7 +136,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @end
 
 @interface KBFinishAndPromptRes : KBRObject
-@property KBStatus *status;
 @property BOOL trackLocal;
 @property BOOL trackRemote;
 @end
@@ -150,17 +143,17 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBRIdentifyui : KBRRequest
 - (void)finishAndPromptWithSessionid:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion;
 
-- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion;
 
-- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion;
 
-- (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId c:(KBCryptocurrency *)c completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId address:(NSString *)address completion:(void (^)(NSError *error))completion;
 
-- (void)displayKeyWithSessionid:(NSInteger )sessionId fokid:(KBFOKID *)fokid diff:(KBTrackDiff *)diff completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)displayKeyWithSessionid:(NSInteger )sessionId fokid:(KBFOKID *)fokid diff:(KBTrackDiff *)diff completion:(void (^)(NSError *error))completion;
 
-- (void)reportLastTrackWithSessionid:(NSInteger )sessionId track:(KBTrackSummary *)track completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)reportLastTrackWithSessionid:(NSInteger )sessionId track:(KBTrackSummary *)track completion:(void (^)(NSError *error))completion;
 
-- (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error, KBStatus * status))completion;
+- (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error))completion;
 
 @end
 

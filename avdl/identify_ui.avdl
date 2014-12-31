@@ -45,18 +45,12 @@ protocol identifyUi {
 		union { null, TrackDiff } trackDiff;
 	}
 
-	record Cryptocurrency {
-		int rowId;
-		bytes pkhash;
-		string address;
-	}
-
 	record Identity {
 		Status status;
 		int whenLastTracked;
 		IdentifyKey key;
 		array<IdentifyRow> proofs;
-		array<Cryptocurrency> cryptocurrency;
+		array<IdentifyRow> cryptocurrency;
 		array<TrackDiff> deleted;
 	}
 
@@ -100,16 +94,15 @@ protocol identifyUi {
 	}
 
 	record FinishAndPromptRes {
-		Status status;
 		boolean trackLocal;
 		boolean trackRemote;
 	}
 
 	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome outcome);
-	Status finishWebProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
-	Status finishSocialProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
-	Status displayCryptocurrency(int sessionId, Cryptocurrency c);
-	Status displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
-	Status reportLastTrack(int sessionId, union { null, TrackSummary } track);
-	Status launchNetworkChecks(int sessionId, Identity id);
+	void finishWebProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
+	void finishSocialProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
+	void displayCryptocurrency(int sessionId, string address);
+	void displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
+	void reportLastTrack(int sessionId, union { null, TrackSummary } track);
+	void launchNetworkChecks(int sessionId, Identity id);
 }
