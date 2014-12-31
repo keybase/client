@@ -258,8 +258,9 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 func (u *User) Identify(arg IdentifyArg) (ti TrackInstructions, err error) {
 	arg.Ui.Start()
 	res := u._identify(arg)
-	ti, err = ImportFinishAndPromptRes(arg.Ui.FinishAndPrompt(res.Export()))
-	return
+	tmp, err := arg.Ui.FinishAndPrompt(res.Export())
+	fpr := ImportFinishAndPromptRes(tmp)
+	return fpr, err
 }
 
 func (u *User) IdentifySimple(me *User) error {

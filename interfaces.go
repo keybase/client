@@ -205,7 +205,7 @@ type GpgClient interface {
 type IdentifyUI interface {
 	FinishWebProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
-	FinishAndPrompt(*keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes
+	FinishAndPrompt(*keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error)
 	DisplayCryptocurrency(keybase_1.Cryptocurrency)
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*keybase_1.TrackSummary)
@@ -228,8 +228,8 @@ type PromptArg struct {
 }
 
 type LoginUI interface {
-	GetEmailOrUsername() keybase_1.GetEmailOrUsernameRes
-	GetKeybasePassphrase(retry string) keybase_1.GetKeybasePassphraseRes
+	GetEmailOrUsername() (string, error)
+	GetKeybasePassphrase(retry string) (string, error)
 }
 
 type UI interface {

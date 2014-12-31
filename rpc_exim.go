@@ -5,6 +5,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"time"
 )
 
@@ -138,6 +139,20 @@ func ExportErrorAsStatus(e error) (ret keybase_1.Status) {
 
 //=============================================================================
 
+func WrapError(e error) interface{} {
+	return ExportErrorAsStatus(e)
+}
+
+func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
+	var s keybase_1.Status
+	if dispatch = nxt(&s); dispatch == nil {
+		app = ImportStatusAsError(s)
+	}
+	return
+}
+
+//=============================================================================
+
 func ImportStatusAsError(s keybase_1.Status) error {
 	if s.Code == SC_OK {
 		return nil
@@ -257,10 +272,9 @@ func (ir *IdentifyRes) Export() *keybase_1.IdentifyOutcome {
 
 //=============================================================================
 
-func ImportFinishAndPromptRes(f keybase_1.FinishAndPromptRes) (ti TrackInstructions, err error) {
+func ImportFinishAndPromptRes(f keybase_1.FinishAndPromptRes) (ti TrackInstructions) {
 	ti.Local = f.TrackLocal
 	ti.Remote = f.TrackRemote
-	err = ImportStatusAsError(f.Status)
 	return
 }
 

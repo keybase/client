@@ -258,13 +258,7 @@ func (s *LoginState) login(arg LoginArg) error {
 	var err error
 	var email_or_username string
 	if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt {
-		res := arg.Ui.GetEmailOrUsername()
-		prompted = true
-		if err = ImportStatusAsError(res.Status); err != nil {
-			return err
-		} else {
-			email_or_username = res.EmailOrUsername
-		}
+		email_or_username, err = arg.Ui.GetEmailOrUsername()
 	}
 
 	if len(email_or_username) == 0 {
@@ -315,14 +309,12 @@ func (s *LoginState) GetTriplesec(retry string, ui LoginUI) (ret *triplesec.Ciph
 		err = fmt.Errorf("Cannot encrypt; no salt found")
 	}
 
-	var pw string
-	res := ui.GetKeybasePassphrase(retry)
-	if err = ImportStatusAsError(res.Status); err != nil {
+	var pp string
+	if pp, err = ui.GetKeybasePassphrase(retry); err != nil {
 		return
 	}
-	pw = res.Passphrase
 
-	if err = s.StretchKey(pw); err != nil {
+	if err = s.StretchKey(pp); err != nil {
 		return
 	}
 
