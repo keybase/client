@@ -63,10 +63,8 @@ type RemoteSignupEngine struct {
 func (e *RemoteSignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ RemoteSignupEngine::CheckRegistered")
 	var rres keybase_1.GetCurrentStatusRes
-	var rarg keybase_1.GetCurrentStatusArg
-	if err = e.ccli.GetCurrentStatus(rarg, &rres); err != nil {
-	} else if err = libkb.ImportStatusAsError(rres.Status); err != nil {
-	} else if rres.Body.Registered {
+	if rres, err = e.ccli.GetCurrentStatus(); err != nil {
+	} else if rres.Registered {
 		err = libkb.AlreadyRegisteredError{}
 	}
 	G.Log.Debug("- RemoteSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
@@ -88,14 +86,11 @@ func (e *RemoteSignupEngine) Run(arg libkb.SignupEngineRunArg) (res libkb.Signup
 		InviteCode: arg.InviteCode,
 		Passphrase: arg.Passphrase,
 	}
-	var rres keybase_1.SignupRes
-	if err := e.scli.Signup(rarg, &rres); err != nil {
-		res.Error = err
-	} else {
-		res.Error = libkb.ImportStatusAsError(rres.Status)
-		res.PassphraseOk = rres.Body.PassphraseOk
-		res.PostOk = rres.Body.PostOk
-		res.WriteOk = rres.Body.WriteOk
+	rres, err := e.scli.Signup(rarg)
+	if res.Error = err; err == nil {
+		res.PassphraseOk = rres.PassphraseOk
+		res.PostOk = rres.PostOk
+		res.WriteOk = rres.WriteOk
 	}
 	return
 }
@@ -106,10 +101,7 @@ func (e *RemoteSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err 
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,
 	}
-	var rres keybase_1.Status
-	if err = e.scli.InviteRequest(rarg, &rres); err == nil {
-		err = libkb.ImportStatusAsError(rres)
-	}
+	err = e.scli.InviteRequest(rarg)
 	return
 }
 

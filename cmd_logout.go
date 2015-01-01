@@ -11,11 +11,9 @@ type CmdLogout struct{}
 
 func (v *CmdLogout) RunClient() (err error) {
 	var cli keybase_1.LoginClient
-	var status keybase_1.Status
 	if cli, err = GetLoginClient(); err != nil {
-	} else if err = cli.Logout(keybase_1.LogoutArg{}, &status); err != nil {
 	} else {
-		err = libkb.ImportStatusAsError(status)
+		err = cli.Logout() 
 	}
 	return
 }
