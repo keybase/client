@@ -278,7 +278,11 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 		return
 	}
 
-	if ui == nil {
+	if ui != nil {
+	} else if G.UI == nil {
+		err = NoUiError{}
+		return
+	} else {
 		ui = G.UI.GetIdentifySelfUI(u)
 	}
 

@@ -509,3 +509,9 @@ func (e SelfTrackError) Error() string {
 }
 
 //=============================================================================
+
+type NoUiError struct{}
+
+func (e NoUiError) Error() string {
+	return "no UI was available"
+}

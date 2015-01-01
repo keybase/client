@@ -4,6 +4,7 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"net"
 	"runtime"
 )
@@ -71,6 +72,7 @@ func ConfigureSocketInfo() (ret SocketInfo, err error) {
 
 type SocketWrapper struct {
 	conn net.Conn
+	xp   *rpc2.Transport
 	err  error
 }
 
@@ -78,10 +80,14 @@ func (g *Global) BindToSocket() (net.Listener, error) {
 	return BindToSocket(g.SocketInfo)
 }
 
-func (g *Global) GetSocket() (net.Conn, error) {
+func (g *Global) GetSocket() (net.Conn, *rpc2.Transport, error) {
 	if g.SocketWrapper == nil {
 		c, e := DialSocket(g.SocketInfo)
-		g.SocketWrapper = &SocketWrapper{c, e}
+		g.SocketWrapper = &SocketWrapper{
+			conn: c,
+			xp:   rpc2.NewTransport(c, nil),
+			err:  e,
+		}
 	}
-	return g.SocketWrapper.conn, g.SocketWrapper.err
+	return g.SocketWrapper.conn, g.SocketWrapper.xp, g.SocketWrapper.err
 }
