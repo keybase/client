@@ -44,12 +44,11 @@ func (u IdentifyUI) Start() {
 	G.Log.Info("Identifying " + ColorString("bold", u.them.GetName()))
 }
 
-func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
+func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 	}
-	ret.Status = o.Status
 	return
 }
 
@@ -57,16 +56,15 @@ func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase_1.Identity) {
 	return
 }
 
-func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes {
+func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
 	return ui.baseFinishAndPrompt(o)
 }
-func (ui IdentifyUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) keybase_1.FinishAndPromptRes {
+func (ui IdentifyUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
 	return ui.baseFinishAndPrompt(o)
 }
 
-func (ui IdentifySelfUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
-	ret.Status = o.Status
-	err := libkb.ImportStatusAsError(o.Status)
+func (ui IdentifySelfUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
+	err = libkb.ImportStatusAsError(o.Status)
 	warnings := libkb.ImportWarnings(o.Warnings)
 	var prompt string
 	if err != nil {
@@ -81,7 +79,6 @@ func (ui IdentifySelfUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keyb
 	}
 
 	err = ui.PromptForConfirmation(prompt)
-	ret.Status = libkb.ExportErrorAsStatus(err)
 	return
 }
 
@@ -99,7 +96,8 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 	}
 }
 
-func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes) {
+func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
+
 	var prompt string
 	un := ui.them.GetName()
 
@@ -133,8 +131,6 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		un, ntf, ntc, npf, nd, nps, tracked, is_remote)
 
 	ui.ReportDeleted(o.Deleted)
-
-	var err error
 
 	def := true
 	is_equal := false
@@ -176,7 +172,6 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		prompt = "publicly write tracking statement to server?"
 		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, &def)
 	}
-	ret.Status = libkb.ExportErrorAsStatus(err)
 	return
 }
 
@@ -413,19 +408,13 @@ type LoginUI struct {
 	parent *UI
 }
 
-func (l LoginUI) GetEmailOrUsername() (ret keybase_1.GetEmailOrUsernameRes) {
-	un, err := l.parent.Prompt("Your keybase username or email", false,
+func (l LoginUI) GetEmailOrUsername() (string, error) {
+	return l.parent.Prompt("Your keybase username or email", false,
 		libkb.CheckEmailOrUsername)
-	ret.Status = libkb.ExportErrorAsStatus(err)
-	ret.EmailOrUsername = un
-	return
 }
 
-func (l LoginUI) GetKeybasePassphrase(retry string) (ret keybase_1.GetKeybasePassphraseRes) {
-	pp, err := l.parent.PromptForKeybasePassphrase(retry)
-	ret.Status = libkb.ExportErrorAsStatus(err)
-	ret.Passphrase = pp
-	return
+func (l LoginUI) GetKeybasePassphrase(retry string) (string, error) {
+	return l.parent.PromptForKeybasePassphrase(retry)
 }
 
 func (u *UI) GetSecret(args []libkb.SecretEntryArg) (*libkb.SecretEntryRes, error) {

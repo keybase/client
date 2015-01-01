@@ -1,21 +1,21 @@
 package main
 
 import (
+	"github.com/keybase/go-libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"github.com/keybase/go-libkb"
 )
 
 func GetRpcClient() (ret *rpc2.Client, xp *rpc2.Transport, err error) {
 	if _, xp, err = G.GetSocket(); err == nil {
-		ret = rpc2.NewClient(xp, libkb.UnwrapError)	
+		ret = rpc2.NewClient(xp, libkb.UnwrapError)
 	}
 	return
 }
 
 func GetRpcServer() (ret *rpc2.Server, xp *rpc2.Transport, err error) {
 	if _, xp, err = G.GetSocket(); err == nil {
-		ret = rpc2.NewServer(xp, libkb.WrapError)	
+		ret = rpc2.NewServer(xp, libkb.WrapError)
 	}
 	return
 }
@@ -59,7 +59,6 @@ func GetIdentifyClient() (cli keybase_1.IdentifyClient, err error) {
 	}
 	return
 }
-
 
 func RegisterIdentifyUiServer(i keybase_1.IdentifyUiInterface) (err error) {
 	var srv *rpc2.Server

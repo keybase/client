@@ -7,14 +7,14 @@ import (
 	"github.com/keybase/protocol/go"
 )
 
-type CmdLogin struct {}
+type CmdLogin struct{}
 
 type LoginUIServer struct {
 	eng libkb.LoginUI
 }
 
 func NewLoginUIServer() *LoginUIServer {
-	return &LoginUIServer { G_UI.GetLoginUI() }
+	return &LoginUIServer{G_UI.GetLoginUI()}
 }
 
 func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
@@ -32,7 +32,7 @@ func (v *CmdLogin) RunClient() (err error) {
 	} else {
 		err = cli.PassphraseLogin()
 	}
-	return 
+	return
 }
 
 func (v *CmdLogin) Run() error {
