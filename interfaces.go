@@ -41,6 +41,7 @@ type CommandLine interface {
 	GetSocketFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
+	GetLocalRpcDebug() string
 }
 
 type Server interface {
@@ -94,6 +95,7 @@ type ConfigReader interface {
 	GetSocketFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
+	GetLocalRpcDebug() string
 }
 
 type ConfigWriter interface {

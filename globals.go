@@ -41,6 +41,7 @@ type Global struct {
 	SocketInfo    SocketInfo     // which socket to bind/connect to
 	SocketWrapper *SocketWrapper // only need one connection per
 	UI            UI             // Interact with the UI
+	Daemon        bool           // whether we're in daemon mode
 	shutdown      bool           // whether we've shut down or not
 }
 
@@ -58,6 +59,7 @@ func (g *Global) Init() {
 	g.LoginState = NewLoginState()
 	g.Session = NewSession()
 	g.SessionWriter = g.Session
+	g.Daemon = false
 }
 
 func (g *Global) ConfigureLogging() error {

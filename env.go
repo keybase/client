@@ -32,6 +32,7 @@ func (n NullConfiguration) GetSalt() []byte                    { return nil }
 func (n NullConfiguration) GetSocketFile() string              { return "" }
 func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, false }
+func (n NullConfiguration) GetLocalRpcDebug() string           { return "" }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -478,4 +479,12 @@ func (e Env) GetSecretKeyring() string {
 
 func (e Env) GetSalt() []byte {
 	return e.config.GetSalt()
+}
+
+func (e Env) GetLocalRpcDebug() string {
+	return e.GetString(
+		func() string { return e.cmd.GetLocalRpcDebug() },
+		func() string { return os.Getenv("KEYBASE_LOCAL_RPC_DEBUG") },
+		func() string { return e.config.GetLocalRpcDebug() },
+	)
 }

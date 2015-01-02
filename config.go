@@ -242,6 +242,9 @@ func (f JsonConfigFile) GetGpg() string {
 	res, _ := f.GetStringAtPath("gpg.command")
 	return res
 }
+func (f JsonConfigFile) GetLocalRpcDebug() string {
+	return f.GetTopLevelString("local_rpc_debug")
+}
 func (f JsonConfigFile) GetGpgOptions() []string {
 	var ret []string
 	if f.jw == nil {
