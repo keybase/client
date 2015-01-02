@@ -231,7 +231,7 @@ type PromptArg struct {
 
 type LoginUI interface {
 	GetEmailOrUsername() (string, error)
-	GetKeybasePassphrase(retry string) (string, error)
+	GetKeybasePassphrase(username string, retry string) (string, error)
 }
 
 type UI interface {
@@ -242,7 +242,6 @@ type UI interface {
 	GetLoginUI() LoginUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
-	PromptForKeybasePassphrase(string) (string, error)
 	GetSecret([]SecretEntryArg) (*SecretEntryRes, error)
 	Configure() error
 	Shutdown() error

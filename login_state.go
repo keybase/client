@@ -203,6 +203,7 @@ type LoginArg struct {
 	Prompt   bool
 	Retry    int
 	RetryMsg string
+	Username string
 	Ui       LoginUI
 }
 
@@ -219,7 +220,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 	}
 
 	for i := 0; i < n_tries; i++ {
-		err = s.login(arg)
+		err = s.login(&arg)
 		if err == nil {
 			break
 		} else if _, badpw := err.(PassphraseError); !badpw {
@@ -231,17 +232,22 @@ func (s *LoginState) Login(arg LoginArg) error {
 	return err
 }
 
-func (s *LoginState) login(arg LoginArg) error {
+func (s *LoginState) login(arg *LoginArg) (err error) {
+	G.Log.Debug("+ LoginState.login (username=%s)", arg.Username)
+	defer func() {
+		G.Log.Debug("- LoginState.login -> %s", ErrToOk(err))
+	}()
 
 	if s.LoggedIn && !arg.Force {
 		G.Log.Debug("- Login short-circuited; already logged in")
-		return nil
+		return
 	}
 
 	if !arg.Force {
-		is_valid, err := G.Session.LoadAndCheck()
+		var is_valid bool
+		is_valid, err = G.Session.LoadAndCheck()
 		if err != nil {
-			return err
+			return
 		}
 
 		if is_valid {
@@ -250,37 +256,43 @@ func (s *LoginState) login(arg LoginArg) error {
 			G.Log.Debug("Our session token is still valid; we're logged in")
 			return nil
 		}
-	} else if err := G.Session.Load(); err != nil {
-		return err
+	} else if err = G.Session.Load(); err != nil {
+		return
 	}
 
 	prompted := false
-	var err error
-	var email_or_username string
-	if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt {
-		email_or_username, err = arg.Ui.GetEmailOrUsername()
-		prompted = true
+
+	email_or_username := arg.Username
+	if len(email_or_username) == 0 {
+		if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt {
+			email_or_username, err = arg.Ui.GetEmailOrUsername()
+			if err == nil {
+				arg.Username = email_or_username
+				prompted = true
+			}
+		}
 	}
 
 	if len(email_or_username) == 0 {
 		err = NoUsernameError{}
-		return err
+		return
 	}
 
 	G.Log.Debug(fmt.Sprintf("| got username: %s\n", email_or_username))
 
 	if err = s.GetSaltAndLoginSession(email_or_username); err != nil {
-		return err
+		return
 	}
 
-	if _, err = s.GetTriplesec(arg.RetryMsg, arg.Ui); err != nil {
-		return err
+	if _, err = s.GetTriplesec(email_or_username, arg.RetryMsg, arg.Ui); err != nil {
+		return
 	}
 
-	lgpw, err := s.ComputeLoginPw()
+	var lgpw []byte
+	lgpw, err = s.ComputeLoginPw()
 
 	if err != nil {
-		return err
+		return
 	}
 
 	err = s.PostLoginToServer(email_or_username, lgpw)
@@ -294,11 +306,10 @@ func (s *LoginState) login(arg LoginArg) error {
 		return err
 	}
 
-	G.Log.Debug("- Login completed")
-	return nil
+	return
 }
 
-func (s *LoginState) GetTriplesec(retry string, ui LoginUI) (ret *triplesec.Cipher, err error) {
+func (s *LoginState) GetTriplesec(un string, retry string, ui LoginUI) (ret *triplesec.Cipher, err error) {
 	if s.tsec != nil {
 		ret = s.tsec
 		return
@@ -311,7 +322,7 @@ func (s *LoginState) GetTriplesec(retry string, ui LoginUI) (ret *triplesec.Ciph
 	}
 
 	var pp string
-	if pp, err = ui.GetKeybasePassphrase(retry); err != nil {
+	if pp, err = ui.GetKeybasePassphrase(un, retry); err != nil {
 		return
 	}
 
