@@ -259,6 +259,7 @@ func (s *LoginState) login(arg LoginArg) error {
 	var email_or_username string
 	if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt {
 		email_or_username, err = arg.Ui.GetEmailOrUsername()
+		prompted = true
 	}
 
 	if len(email_or_username) == 0 {
@@ -339,6 +340,13 @@ func LoginAndIdentify(login LoginUI, identify IdentifyUI) error {
 		err = nil
 	} else if _, not_selected := err.(NoSelectedKeyError); not_selected {
 		_, err = u.IdentifySelf(identify)
+		if err == nil {
+			if cw := G.Env.GetConfigWriter(); cw != nil {
+				err = cw.Write()
+			} else {
+				err = NoConfigWriterError{}
+			}
+		}
 	}
 	return err
 }

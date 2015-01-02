@@ -515,3 +515,11 @@ type NoUiError struct{}
 func (e NoUiError) Error() string {
 	return "no UI was available"
 }
+
+//=============================================================================
+
+type NoConfigWriterError struct{}
+
+func (e NoConfigWriterError) Error() string {
+	return "Can't write; no ConfigWriter available"
+}
