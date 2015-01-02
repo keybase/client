@@ -24,6 +24,16 @@ func (h *IdentifyHandler) getRpcClient() (cli *rpc2.Client) {
 	return h.cli
 }
 
+var (
+	__sessionId = 0
+)
+
+func NextRemoteIdentifyUI(c *rpc2.Client) *RemoteIdentifyUI {
+	nxt := __sessionId
+	__sessionId++
+	return NewRemoteIdentifyUI(nxt, c)
+}
+
 func NewRemoteIdentifyUI(sessionId int, c *rpc2.Client) *RemoteIdentifyUI {
 	return &RemoteIdentifyUI{
 		sessionId: sessionId,
