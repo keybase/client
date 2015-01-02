@@ -130,6 +130,10 @@ func (p CommandLine) GetStandalone() (bool, bool) {
 	return p.GetBool("standalone", true)
 }
 
+func (p CommandLine) GetLocalRpcDebug() string {
+	return p.GetGString("local-rpc-debug")
+}
+
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {
@@ -283,6 +287,10 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 			Name : "standalone",
 			Usage : "use the client without any daemon support",
 		},
+		cli.StringFlag{
+			Name : "local-rpc-debug",
+			Usage : "use to debug local RPC",
+		}
 	}
 
 
