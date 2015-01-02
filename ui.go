@@ -413,8 +413,8 @@ func (l LoginUI) GetEmailOrUsername() (string, error) {
 		libkb.CheckEmailOrUsername)
 }
 
-func (l LoginUI) GetKeybasePassphrase(retry string) (string, error) {
-	return l.parent.PromptForKeybasePassphrase(retry)
+func (l LoginUI) GetKeybasePassphrase(username string, retry string) (string, error) {
+	return l.parent.PromptForKeybasePassphrase(username, retry)
 }
 
 func (u *UI) GetSecret(args []libkb.SecretEntryArg) (*libkb.SecretEntryRes, error) {
@@ -482,11 +482,12 @@ func (ui *UI) PromptForNewPassphrase(arg libkb.PromptArg) (text string, err erro
 	return
 }
 
-func (ui *UI) PromptForKeybasePassphrase(retry string) (text string, err error) {
+func (ui *UI) PromptForKeybasePassphrase(username string, retry string) (text string, err error) {
+	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
 	return ui.ppprompt(libkb.PromptArg{
 		TerminalPrompt: "keybase passphrase",
 		PinentryPrompt: "Your passphrase",
-		PinentryDesc:   "Please enter your keybase passphrase (12+ characters)",
+		PinentryDesc:   desc,
 		Checker:        &libkb.CheckPasswordSimple,
 		RetryMessage:   retry,
 	})

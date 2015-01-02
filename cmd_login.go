@@ -29,8 +29,8 @@ func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
 	return u.eng.GetEmailOrUsername()
 }
 
-func (u *LoginUIServer) GetKeybasePassphrase(prompt string) (string, error) {
-	return u.eng.GetKeybasePassphrase(prompt)
+func (u *LoginUIServer) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (string, error) {
+	return u.eng.GetKeybasePassphrase(arg.Username, arg.Retry)
 }
 
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {
