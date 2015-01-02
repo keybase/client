@@ -36,6 +36,7 @@ func (d *Daemon) RunClient() (err error) {
 }
 
 func (d *Daemon) Run() (err error) {
+	G.Daemon = true
 	if err = d.ConfigRpcServer(); err != nil {
 		return
 	}
