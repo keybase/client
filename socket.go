@@ -85,7 +85,7 @@ func (g *Global) GetSocket() (net.Conn, *rpc2.Transport, error) {
 		c, e := DialSocket(g.SocketInfo)
 		g.SocketWrapper = &SocketWrapper{
 			conn: c,
-			xp:   rpc2.NewTransport(c, nil),
+			xp:   rpc2.NewTransport(c, NewRpcLogFactory()),
 			err:  e,
 		}
 	}
