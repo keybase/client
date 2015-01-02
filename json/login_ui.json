@@ -55,6 +55,9 @@
     },
     "getKeybasePassphrase" : {
       "request" : [ {
+        "name" : "username",
+        "type" : "string"
+      }, {
         "name" : "retry",
         "type" : "string"
       } ],

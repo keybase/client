@@ -409,9 +409,14 @@ func (c LoginClient) SwitchUser(username string) (err error) {
 	return
 }
 
+type GetKeybasePassphraseArg struct {
+	Username string `codec:"username"`
+	Retry    string `codec:"retry"`
+}
+
 type LoginUiInterface interface {
 	GetEmailOrUsername() (string, error)
-	GetKeybasePassphrase(retry string) (string, error)
+	GetKeybasePassphrase(arg GetKeybasePassphraseArg) (string, error)
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -426,7 +431,7 @@ func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
 				return
 			},
 			"getKeybasePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args string
+				var args GetKeybasePassphraseArg
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetKeybasePassphrase(args)
 				}
@@ -446,8 +451,8 @@ func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
 	return
 }
 
-func (c LoginUiClient) GetKeybasePassphrase(retry string) (res string, err error) {
-	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", retry, &res)
+func (c LoginUiClient) GetKeybasePassphrase(arg GetKeybasePassphraseArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", arg, &res)
 	return
 }
 
