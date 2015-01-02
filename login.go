@@ -51,8 +51,8 @@ func (u *LoginUI) GetEmailOrUsername() (ret string, err error) {
 	return u.cli.GetEmailOrUsername()
 }
 
-func (u *LoginUI) GetKeybasePassphrase(retry string) (string, error) {
-	return u.cli.GetKeybasePassphrase(retry)
+func (u *LoginUI) GetKeybasePassphrase(username string, retry string) (string, error) {
+	return u.cli.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{username, retry})
 }
 
 func (h *LoginHandler) Logout() error {
