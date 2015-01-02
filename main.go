@@ -25,7 +25,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 }
 
 func (d *Daemon) Handle(c net.Conn) {
-	xp := rpc2.NewTransport(c, nil)
+	xp := rpc2.NewTransport(c, libkb.NewRpcLogFactory())
 	server := rpc2.NewServer(xp, libkb.WrapError)
 	RegisterProtocols(server, xp)
 	server.Run(true)
