@@ -34,26 +34,32 @@ func (u *LoginUIServer) GetKeybasePassphrase(prompt string) (string, error) {
 }
 
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {
+	res, err = i.eng.FinishAndPrompt(&arg.Outcome)
 	return
 }
 
 func (i *IdentifyUIServer) FinishWebProofCheck(arg keybase_1.FinishWebProofCheckArg) error {
+	i.eng.FinishWebProofCheck(arg.Rp, arg.Lcr)
 	return nil
 }
 
 func (i *IdentifyUIServer) FinishSocialProofCheck(arg keybase_1.FinishSocialProofCheckArg) error {
+	i.eng.FinishSocialProofCheck(arg.Rp, arg.Lcr)
 	return nil
 }
 
 func (i *IdentifyUIServer) DisplayCryptocurrency(arg keybase_1.DisplayCryptocurrencyArg) error {
+	i.eng.DisplayCryptocurrency(arg.C)
 	return nil
 }
 
 func (i *IdentifyUIServer) DisplayKey(arg keybase_1.DisplayKeyArg) error {
+	i.eng.DisplayKey(arg.Fokid, arg.Diff)
 	return nil
 }
 
 func (i *IdentifyUIServer) ReportLastTrack(arg keybase_1.ReportLastTrackArg) error {
+	i.eng.ReportLastTrack(arg.Track)
 	return nil
 }
 
