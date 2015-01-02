@@ -290,7 +290,7 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 		cli.StringFlag{
 			Name : "local-rpc-debug",
 			Usage : "use to debug local RPC",
-		}
+		},
 	}
 
 
