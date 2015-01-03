@@ -73,20 +73,20 @@ func (s *Session) Load() error {
 		return err
 	}
 
-	if s.file.jw != nil {
+	if s.file.exists {
 		var tmp error
 		var token, csrf string
 		ok := true
 		s.file.jw.AtKey("session").GetStringVoid(&token, &tmp)
 		if tmp != nil {
 			G.Log.Warning("Bad 'session' value in session file %s: %s",
-				s.file.filename, err.Error())
+				s.file.filename, tmp.Error())
 			ok = false
 		}
 		s.file.jw.AtKey("csrf").GetStringVoid(&csrf, &tmp)
 		if tmp != nil {
 			G.Log.Warning("Bad 'csrf' value in session file %s: %s",
-				s.file.filename, err.Error())
+				s.file.filename, tmp.Error())
 			ok = false
 		}
 		mtime, _ := s.file.jw.AtKey("mtime").GetInt64()
