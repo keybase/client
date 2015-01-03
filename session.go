@@ -102,9 +102,6 @@ func (s *Session) Load() error {
 }
 
 func (s *Session) GetDictionary() *jsonw.Wrapper {
-	if s.file.jw == nil {
-		s.file.jw = jsonw.NewDictionary()
-	}
 	return s.file.jw
 }
 
