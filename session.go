@@ -73,7 +73,7 @@ func (s *Session) Load() error {
 		return err
 	}
 
-	if s.file.exists {
+	if s.file.Exists() {
 		var tmp error
 		var token, csrf string
 		ok := true

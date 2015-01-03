@@ -20,6 +20,8 @@ func NewJsonFile(filename, which string) *JsonFile {
 	return &JsonFile{filename, which, jsonw.NewDictionary(), false, false}
 }
 
+func (f *JsonFile) Exists() bool { return f.exists }
+
 func (f *JsonFile) Load(warnOnNotFound bool) error {
 	G.Log.Debug(fmt.Sprintf("+ loading %s file: %s", f.which, f.filename))
 	file, err := os.Open(f.filename)
