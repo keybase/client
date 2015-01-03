@@ -20,8 +20,8 @@ type Daemon struct {
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 	srv.Register(keybase_1.SignupProtocol(SignupHandler{xp}))
 	srv.Register(keybase_1.ConfigProtocol(ConfigHandler{xp}))
-	srv.Register(keybase_1.LoginProtocol(&LoginHandler{xp:xp}))
-	srv.Register(keybase_1.IdentifyProtocol(&IdentifyHandler{xp:xp}))
+	srv.Register(keybase_1.LoginProtocol(&LoginHandler{xp: xp}))
+	srv.Register(keybase_1.IdentifyProtocol(&IdentifyHandler{xp: xp}))
 }
 
 func (d *Daemon) Handle(c net.Conn) {
