@@ -384,6 +384,10 @@ func (u BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
 	}
 }
 
+func (u BaseIdentifyUI) Warning(m string) {
+	G.Log.Warning(m)
+}
+
 func (u *UI) GetIdentifySelfUI(them *libkb.User) libkb.IdentifyUI {
 	return IdentifySelfUI{BaseIdentifyUI{u, them}}
 }
