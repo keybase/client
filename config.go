@@ -40,7 +40,7 @@ func getInt(w *jsonw.Wrapper) (interface{}, error) {
 	return w.GetInt()
 }
 
-func (f *JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
+func (f JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
 	i, is_set := f.getValueAtPath(p, getString)
 	if is_set {
 		ret = i.(string)
@@ -48,7 +48,7 @@ func (f *JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
 	return
 }
 
-func (f *JsonConfigFile) GetBoolAtPath(p string) (ret bool, is_set bool) {
+func (f JsonConfigFile) GetBoolAtPath(p string) (ret bool, is_set bool) {
 	i, is_set := f.getValueAtPath(p, getBool)
 	if is_set {
 		ret = i.(bool)
@@ -56,7 +56,7 @@ func (f *JsonConfigFile) GetBoolAtPath(p string) (ret bool, is_set bool) {
 	return
 }
 
-func (f *JsonConfigFile) GetIntAtPath(p string) (ret int, is_set bool) {
+func (f JsonConfigFile) GetIntAtPath(p string) (ret int, is_set bool) {
 	i, is_set := f.getValueAtPath(p, getInt)
 	if is_set {
 		ret = i.(int)
@@ -64,7 +64,7 @@ func (f *JsonConfigFile) GetIntAtPath(p string) (ret int, is_set bool) {
 	return
 }
 
-func (f *JsonConfigFile) GetNullAtPath(p string) (is_set bool) {
+func (f JsonConfigFile) GetNullAtPath(p string) (is_set bool) {
 	is_set = false
 	if f.jw != nil {
 		w := f.jw.AtPath(p)
@@ -73,7 +73,7 @@ func (f *JsonConfigFile) GetNullAtPath(p string) (is_set bool) {
 	return
 }
 
-func (f *JsonConfigFile) GetTopLevelString(s string) (ret string) {
+func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	if f.jw != nil {
 		f.jw.AtKey(s).GetStringVoid(&ret, &e)
@@ -82,7 +82,7 @@ func (f *JsonConfigFile) GetTopLevelString(s string) (ret string) {
 	return
 }
 
-func (f *JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
+func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
 	is_set = false
 	res = false
 	if f.jw != nil {
@@ -195,7 +195,7 @@ func (f *JsonConfigFile) Write() error {
 	return f.MaybeSave(true, 0)
 }
 
-func (f *JsonConfigFile) GetUserField(s string) string {
+func (f JsonConfigFile) GetUserField(s string) string {
 	var ret string
 	var err error
 	if f.jw != nil {
@@ -208,36 +208,36 @@ func (f *JsonConfigFile) GetUserField(s string) string {
 	return ret
 }
 
-func (f *JsonConfigFile) GetHome() (ret string) {
+func (f JsonConfigFile) GetHome() (ret string) {
 	return f.GetTopLevelString("home")
 }
-func (f *JsonConfigFile) GetServerUri() (ret string) {
+func (f JsonConfigFile) GetServerUri() (ret string) {
 	return f.GetTopLevelString("server")
 }
-func (f *JsonConfigFile) GetConfigFilename() (ret string) {
+func (f JsonConfigFile) GetConfigFilename() (ret string) {
 	return f.GetTopLevelString("config")
 }
-func (f *JsonConfigFile) GetSecretKeyring() string {
+func (f JsonConfigFile) GetSecretKeyring() string {
 	return f.GetTopLevelString("secret_keyring")
 }
-func (f *JsonConfigFile) GetSessionFilename() (ret string) {
+func (f JsonConfigFile) GetSessionFilename() (ret string) {
 	return f.GetTopLevelString("session")
 }
-func (f *JsonConfigFile) GetDbFilename() (ret string) {
+func (f JsonConfigFile) GetDbFilename() (ret string) {
 	return f.GetTopLevelString("db")
 }
-func (f *JsonConfigFile) GetPinentry() string {
+func (f JsonConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
 	return res
 }
-func (f *JsonConfigFile) GetGpg() string {
+func (f JsonConfigFile) GetGpg() string {
 	res, _ := f.GetStringAtPath("gpg.command")
 	return res
 }
-func (f *JsonConfigFile) GetLocalRpcDebug() string {
+func (f JsonConfigFile) GetLocalRpcDebug() string {
 	return f.GetTopLevelString("local_rpc_debug")
 }
-func (f *JsonConfigFile) GetGpgOptions() []string {
+func (f JsonConfigFile) GetGpgOptions() []string {
 	var ret []string
 	if f.jw == nil {
 		// noop
@@ -255,13 +255,13 @@ func (f *JsonConfigFile) GetGpgOptions() []string {
 	}
 	return ret
 }
-func (f *JsonConfigFile) GetNoPinentry() (bool, bool) {
+func (f JsonConfigFile) GetNoPinentry() (bool, bool) {
 	return f.GetBoolAtPath("pinentry.disabled")
 }
-func (f *JsonConfigFile) GetUsername() string {
+func (f JsonConfigFile) GetUsername() string {
 	return f.GetUserField("name")
 }
-func (f *JsonConfigFile) GetSalt() []byte {
+func (f JsonConfigFile) GetSalt() []byte {
 	s := f.GetUserField("salt")
 	if len(s) == 0 {
 		return nil
@@ -272,33 +272,34 @@ func (f *JsonConfigFile) GetSalt() []byte {
 	}
 	return b
 }
-func (f *JsonConfigFile) GetUid() *UID {
+func (f JsonConfigFile) GetUid() *UID {
 	i, err := UidFromHex(f.GetUserField("id"))
 	if err != nil {
 		i = nil
 	}
 	return i
 }
-func (f *JsonConfigFile) GetPgpFingerprint() *PgpFingerprint {
-	return PgpFingerprintFromHexNoError(f.GetUserField("fingerprint"))
+func (f JsonConfigFile) GetPgpFingerprint() *PgpFingerprint {
+	ret := PgpFingerprintFromHexNoError(f.GetUserField("fingerprint"))
+	return ret
 }
-func (f *JsonConfigFile) GetEmail() (ret string) {
+func (f JsonConfigFile) GetEmail() (ret string) {
 	return f.GetTopLevelString("email")
 }
-func (f *JsonConfigFile) GetProxy() (ret string) {
+func (f JsonConfigFile) GetProxy() (ret string) {
 	return f.GetTopLevelString("proxy")
 }
-func (f *JsonConfigFile) GetDebug() (bool, bool) {
+func (f JsonConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }
-func (f *JsonConfigFile) GetPlainLogging() (bool, bool) {
+func (f JsonConfigFile) GetPlainLogging() (bool, bool) {
 	return f.GetTopLevelBool("plain_logging")
 }
-func (f *JsonConfigFile) GetStandalone() (bool, bool) {
+func (f JsonConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
 
-func (f *JsonConfigFile) GetCacheSize(w string) (ret int, ok bool) {
+func (f JsonConfigFile) GetCacheSize(w string) (ret int, ok bool) {
 	if f.jw != nil {
 		ret, ok = f.jw.AtPathGetInt(w)
 	} else {
@@ -307,14 +308,14 @@ func (f *JsonConfigFile) GetCacheSize(w string) (ret int, ok bool) {
 	return
 }
 
-func (f *JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
+func (f JsonConfigFile) GetUserCacheSize() (ret int, ok bool) {
 	return f.GetCacheSize("cache.limits.users")
 }
-func (f *JsonConfigFile) GetProofCacheSize() (ret int, ok bool) {
+func (f JsonConfigFile) GetProofCacheSize() (ret int, ok bool) {
 	return f.GetCacheSize("cache.limits.proofs")
 }
 
-func (f *JsonConfigFile) GetMerkleKeyFingerprints() []string {
+func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {
 	if f.jw == nil {
 		return nil
 	} else if v, err := f.jw.AtKey("keys").AtKey("merkle").ToArray(); err != nil || v == nil {
@@ -336,7 +337,7 @@ func (f *JsonConfigFile) GetMerkleKeyFingerprints() []string {
 	}
 }
 
-func (f *JsonConfigFile) GetPgpDir() (ret string) {
+func (f JsonConfigFile) GetPgpDir() (ret string) {
 	ret = f.GetTopLevelString("pgpdir")
 	if len(ret) == 0 {
 		ret = f.GetTopLevelString("gpgdir")
@@ -347,7 +348,7 @@ func (f *JsonConfigFile) GetPgpDir() (ret string) {
 	return ret
 }
 
-func (f *JsonConfigFile) GetBundledCA(host string) (ret string) {
+func (f JsonConfigFile) GetBundledCA(host string) (ret string) {
 
 	if f.jw != nil {
 		var err error
@@ -359,9 +360,9 @@ func (f *JsonConfigFile) GetBundledCA(host string) (ret string) {
 	return ret
 }
 
-func (f *JsonConfigFile) GetSocketFile() string {
+func (f JsonConfigFile) GetSocketFile() string {
 	return f.GetTopLevelString("socket_file")
 }
-func (f *JsonConfigFile) GetDaemonPort() (int, bool) {
+func (f JsonConfigFile) GetDaemonPort() (int, bool) {
 	return f.GetIntAtPath("daemon_port")
 }
