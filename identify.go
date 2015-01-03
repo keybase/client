@@ -83,6 +83,11 @@ func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase_1.TrackSummary) {
 	return
 }
 
+func (u *RemoteIdentifyUI) Warning(s string) {
+	u.uicli.Warning(keybase_1.WarningArg{SessionId: u.sessionId, Msg : s})
+	return
+}
+
 func (u *RemoteIdentifyUI) Start() {}
 
 func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity) {
