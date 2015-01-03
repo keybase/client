@@ -156,6 +156,8 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error))completion;
 
+- (void)warningWithSessionid:(NSInteger )sessionId msg:(NSString *)msg completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRLogin : KBRRequest

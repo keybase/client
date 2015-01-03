@@ -348,6 +348,16 @@
         "type" : "Identity"
       } ],
       "response" : "null"
+    },
+    "warning" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "msg",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

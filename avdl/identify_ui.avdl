@@ -111,4 +111,5 @@ protocol identifyUi {
 	void displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
 	void reportLastTrack(int sessionId, union { null, TrackSummary } track);
 	void launchNetworkChecks(int sessionId, Identity id);
+	void warning(int sessionId, string msg);
 }
