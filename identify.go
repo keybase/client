@@ -289,8 +289,11 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 	_, err = u.Identify(IdentifyArg{Me: u, Ui: ui})
 
 	if err == nil {
-		G.Log.Warning("Setting PGP fingerprint to: %s", fp.ToQuads())
-		G.Env.GetConfigWriter().SetPgpFingerprint(fp)
+		cw := G.Env.GetConfigWriter()
+		cw.SetPgpFingerprint(fp)
+		if err = cw.Write(); err != nil {
+			G.Log.Error("Write error: %s", err.Error())
+		}
 	}
 
 	return

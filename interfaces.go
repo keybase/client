@@ -213,6 +213,7 @@ type IdentifyUI interface {
 	ReportLastTrack(*keybase_1.TrackSummary)
 	Start()
 	LaunchNetworkChecks(*keybase_1.Identity)
+	Warning(s string)
 }
 
 type Checker struct {

@@ -350,13 +350,10 @@ func LoginAndIdentify(login LoginUI, identify IdentifyUI) error {
 	if _, not_found := err.(NoKeyError); not_found {
 		err = nil
 	} else if _, not_selected := err.(NoSelectedKeyError); not_selected {
-		_, err = u.IdentifySelf(identify)
+		var fp *PgpFingerprint
+		fp, err = u.IdentifySelf(identify)
 		if err == nil {
-			if cw := G.Env.GetConfigWriter(); cw != nil {
-				err = cw.Write()
-			} else {
-				err = NoConfigWriterError{}
-			}
+			identify.Warning(fmt.Sprintf("Setting PGP fingerprint to: %s", fp.ToQuads()))
 		}
 	}
 	return err
