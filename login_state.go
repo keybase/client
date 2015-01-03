@@ -346,7 +346,7 @@ func LoginAndIdentify(login LoginUI, identify IdentifyUI) error {
 	}
 
 	// We might need to ID ourselves, to load us in here
-	u, err := LoadMe(LoadUserArg{})
+	u, err := LoadMe(LoadUserArg{ForceReload: true})
 	if _, not_found := err.(NoKeyError); not_found {
 		err = nil
 	} else if _, not_selected := err.(NoSelectedKeyError); not_selected {

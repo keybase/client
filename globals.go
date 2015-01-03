@@ -78,7 +78,7 @@ func (g *Global) ConfigureConfig() error {
 	if err != nil {
 		return fmt.Errorf("Failed to open config file: %s\n", err.Error())
 	}
-	g.Env.SetConfig(*c)
+	g.Env.SetConfig(c)
 	g.Env.SetConfigWriter(c)
 	g.PushShutdownHook(func() error {
 		return c.Write()

@@ -251,7 +251,9 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	u.IdTable.Identify(is)
 
 	G.Log.Debug("- Identify(%s)", u.name)
-	u.cachedIdentifyRes = res
+	if !arg.noCache {
+		u.cachedIdentifyRes = res
+	}
 	return
 }
 
@@ -286,7 +288,7 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 		ui = G.UI.GetIdentifySelfUI(u)
 	}
 
-	_, err = u.Identify(IdentifyArg{Me: u, Ui: ui})
+	_, err = u.Identify(IdentifyArg{Me: u, Ui: ui, noCache: true})
 
 	if err == nil {
 		cw := G.Env.GetConfigWriter()
