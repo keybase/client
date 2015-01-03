@@ -18,12 +18,10 @@ type valueGetter func(*jsonw.Wrapper) (interface{}, error)
 func (f JsonConfigFile) getValueAtPath(
 	p string, getter valueGetter) (ret interface{}, is_set bool) {
 	is_set = false
-	if f.jw != nil {
-		var err error
-		ret, err = getter(f.jw.AtPath(p))
-		if err == nil {
-			is_set = true
-		}
+	var err error
+	ret, err = getter(f.jw.AtPath(p))
+	if err == nil {
+		is_set = true
 	}
 	return
 }
@@ -66,37 +64,30 @@ func (f JsonConfigFile) GetIntAtPath(p string) (ret int, is_set bool) {
 
 func (f JsonConfigFile) GetNullAtPath(p string) (is_set bool) {
 	is_set = false
-	if f.jw != nil {
-		w := f.jw.AtPath(p)
-		is_set = w.IsNil() && w.Error() == nil
-	}
+	w := f.jw.AtPath(p)
+	is_set = w.IsNil() && w.Error() == nil
 	return
 }
 
 func (f JsonConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
-	if f.jw != nil {
-		f.jw.AtKey(s).GetStringVoid(&ret, &e)
-		G.Log.Debug("Config: mapping %s -> %s", s, ret)
-	}
+	f.jw.AtKey(s).GetStringVoid(&ret, &e)
+	G.Log.Debug("Config: mapping %s -> %s", s, ret)
 	return
 }
 
 func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
 	is_set = false
 	res = false
-	if f.jw != nil {
-		if w := f.jw.AtKey(s); !w.IsNil() {
-			is_set = true
-			var e error
-			w.GetBoolVoid(&res, &e)
-		}
+	if w := f.jw.AtKey(s); !w.IsNil() {
+		is_set = true
+		var e error
+		w.GetBoolVoid(&res, &e)
 	}
 	return
 }
 
 func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
-	f.CheckOrCreateJsonObj()
 	if f.jw.AtKey("user").IsNil() {
 		f.jw.SetKey("user", jsonw.NewDictionary())
 		f.dirty = true
@@ -129,14 +120,7 @@ func (f *JsonConfigFile) SetIntAtPath(p string, v int) (err error) {
 	return f.setValueAtPath(p, getInt, v)
 }
 
-func (f *JsonConfigFile) CheckOrCreateJsonObj() {
-	if f.jw == nil {
-		f.Reset()
-	}
-}
-
 func (f *JsonConfigFile) SetNullAtPath(p string) (err error) {
-	f.CheckOrCreateJsonObj()
 	existing := f.jw.AtPath(p)
 	if !existing.IsNil() || existing.Error() != nil {
 		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
@@ -198,11 +182,9 @@ func (f *JsonConfigFile) Write() error {
 func (f JsonConfigFile) GetUserField(s string) string {
 	var ret string
 	var err error
-	if f.jw != nil {
-		ret, err = f.jw.AtKey("user").AtKey(s).GetString()
-		if err != nil {
-			ret = ""
-		}
+	ret, err = f.jw.AtKey("user").AtKey(s).GetString()
+	if err != nil {
+		ret = ""
 	}
 	G.Log.Debug("Config: mapping user.%s-> %s", s, ret)
 	return ret
@@ -300,11 +282,7 @@ func (f JsonConfigFile) GetStandalone() (bool, bool) {
 }
 
 func (f JsonConfigFile) GetCacheSize(w string) (ret int, ok bool) {
-	if f.jw != nil {
-		ret, ok = f.jw.AtPathGetInt(w)
-	} else {
-		ok = false
-	}
+	ret, ok = f.jw.AtPathGetInt(w)
 	return
 }
 
@@ -349,13 +327,10 @@ func (f JsonConfigFile) GetPgpDir() (ret string) {
 }
 
 func (f JsonConfigFile) GetBundledCA(host string) (ret string) {
-
-	if f.jw != nil {
-		var err error
-		f.jw.AtKey("bundled_CAs").AtKey(host).GetStringVoid(&ret, &err)
-		if err == nil {
-			G.Log.Debug("Read bundled CA for %s", host)
-		}
+	var err error
+	f.jw.AtKey("bundled_CAs").AtKey(host).GetStringVoid(&ret, &err)
+	if err == nil {
+		G.Log.Debug("Read bundled CA for %s", host)
 	}
 	return ret
 }

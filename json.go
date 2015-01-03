@@ -17,7 +17,7 @@ type JsonFile struct {
 }
 
 func NewJsonFile(filename, which string) *JsonFile {
-	return &JsonFile{filename, which, nil, false, false}
+	return &JsonFile{filename, which, jsonw.NewDictionary(), false, false}
 }
 
 func (f *JsonFile) Load(warnOnNotFound bool) error {
