@@ -65,32 +65,18 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 }
 
 type IdentifyInterface interface {
-	IdentifySelf(sessionId int) error
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
 	return rpc2.Protocol{
-		Name: "keybase.1.identify",
-		Methods: map[string]rpc2.ServeHook{
-			"identifySelf": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args int
-				if err = nxt(&args); err == nil {
-					err = i.IdentifySelf(args)
-				}
-				return
-			},
-		},
+		Name:    "keybase.1.identify",
+		Methods: map[string]rpc2.ServeHook{},
 	}
 
 }
 
 type IdentifyClient struct {
 	Cli GenericClient
-}
-
-func (c IdentifyClient) IdentifySelf(sessionId int) (err error) {
-	err = c.Cli.Call("keybase.1.identify.identifySelf", sessionId, nil)
-	return
 }
 
 type TrackDiffType int

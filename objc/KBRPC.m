@@ -37,18 +37,6 @@
 @end
 
 @implementation KBRIdentify
-- (void)identifySelfWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error))completion {
-
-  NSDictionary *params = @{@"sessionId": @(sessionId)};
-  [self.client sendRequestWithMethod:@"keybase.1.identify.identifySelf" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    completion(error);
-  }];
-}
-
 @end
 
 @implementation KBTrackDiff

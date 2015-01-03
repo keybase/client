@@ -48,13 +48,5 @@
       "type" : [ "null", "bytes" ]
     } ]
   } ],
-  "messages" : {
-    "identifySelf" : {
-      "request" : [ {
-        "name" : "sessionId",
-        "type" : "int"
-      } ],
-      "response" : "null"
-    }
-  }
+  "messages" : { }
 }

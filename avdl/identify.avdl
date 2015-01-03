@@ -1,8 +1,5 @@
 
 @namespace("keybase.1")
 protocol identify {
-
 	import idl "common.avdl";
-
-	void identifySelf(int sessionId);
 }

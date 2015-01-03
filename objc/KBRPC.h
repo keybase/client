@@ -37,8 +37,6 @@
 @end
 
 @interface KBRIdentify : KBRRequest
-- (void)identifySelfWithSessionid:(NSInteger )sessionId completion:(void (^)(NSError *error))completion;
-
 @end
 
 typedef NS_ENUM (NSInteger, KBTrackDiffType) {
