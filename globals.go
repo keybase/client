@@ -190,7 +190,7 @@ func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
 			return err
 		}
 	}
-	if usage.API {
+	if usage.Socket || !G.Env.GetStandalone() {
 		if err = g.ConfigureSocketInfo(); err != nil {
 			return err
 		}
