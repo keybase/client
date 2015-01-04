@@ -1,11 +1,7 @@
 package libkb
 
 import (
-	"fmt"
-	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
-	"io/ioutil"
-	"os"
 )
 
 type ProofEngine struct {
@@ -20,27 +16,8 @@ type ProofEngine struct {
 	sig                string
 	sigId              *SigId
 	postRes            *PostProofRes
-	ui                 UI
-}
-
-func (v *ProofEngine) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
-	var err error
-	v.force = ctx.Bool("force")
-	v.output = ctx.String("output")
-
-	if nargs > 2 || nargs == 0 {
-		err = fmt.Errorf("prove takes 1 or args: <service> [<username>]")
-	} else {
-		v.service = ctx.Args()[0]
-		if nargs == 2 {
-			v.username = ctx.Args()[1]
-		}
-		if v.st = GetServiceType(v.service); v.st == nil {
-			err = BadServiceError{v.service}
-		}
-	}
-	return err
+	proveUi            ProveUI
+	loginUi            LoginUI
 }
 
 func (v *ProofEngine) Login() (err error) {
@@ -55,11 +32,8 @@ func (v *ProofEngine) CheckExists1() (err error) {
 	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
 	if len(proofs) != 0 && !v.force && v.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
-		prompt := "You already have a proof " +
-			ColorString("bold", lst.ToDisplayString()) + "; overwrite?"
-		def := false
 		var redo bool
-		redo, err = v.ui.PromptYesNo(prompt, &def)
+		redo, err = v.proveUi.PromptOverwrite1(lst.ToDisplayString())
 		if err != nil {
 		} else if !redo {
 			err = NotConfirmedError{}
@@ -72,7 +46,17 @@ func (v *ProofEngine) CheckExists1() (err error) {
 
 func (v *ProofEngine) PromptRemoteName() (err error) {
 	if len(v.username) == 0 {
-		v.username, err = v.ui.Prompt(v.st.GetPrompt(), false, v.st.ToChecker())
+		var prevErr error
+		for len(v.username) == 0 && err == nil {
+			var un string
+			un, err = v.proveUi.PromptUsername(v.st.GetPrompt(), prevErr)
+			if err != nil {
+				prevErr = v.st.CheckUsername(un)
+				if prevErr == nil {
+					v.username = un
+				}
+			}
+		}
 	} else {
 		err = v.st.CheckUsername(v.username)
 	}
@@ -98,10 +82,7 @@ func (v *ProofEngine) CheckExists2() (err error) {
 		}
 		if found != nil {
 			var redo bool
-			prompt := "You already have claimed ownership of " +
-				ColorString("bold", found.ToDisplayString()) + "; overwrite? "
-			def := false
-			redo, err = v.ui.PromptYesNo(prompt, &def)
+			redo, err = v.proveUi.PromptOverwrite2(found.ToDisplayString())
 			if err != nil {
 			} else if !redo {
 				err = NotConfirmedError{}
@@ -116,18 +97,16 @@ func (v *ProofEngine) CheckExists2() (err error) {
 func (v *ProofEngine) DoPrechecks() (err error) {
 	var w *Markup
 	w, err = v.st.PreProofCheck(v.usernameNormalized)
-	Render(os.Stdout, w)
+	if w != nil {
+		v.proveUi.OutputPrechecks(w.Export())
+	}
 	return
 }
 
 func (v *ProofEngine) DoWarnings() (err error) {
 	if mu := v.st.PreProofWarning(v.usernameNormalized); mu != nil {
-		Render(os.Stdout, mu)
-		prompt := "Proceed?"
-		def := false
 		var ok bool
-		ok, err = v.ui.PromptYesNo(prompt, &def)
-		if err == nil && !ok {
+		if ok, err = v.proveUi.PreProofWarning(mu.Export()); err == nil && !ok {
 			err = NotConfirmedError{}
 		}
 	}
@@ -162,36 +141,21 @@ func (v *ProofEngine) PostProofToServer() (err error) {
 
 func (v *ProofEngine) InstructAction() (err error) {
 	mkp := v.st.PostInstructions(v.usernameNormalized)
-	Render(os.Stdout, mkp)
 	var txt string
 	if txt, err = v.st.FormatProofText(v.postRes); err != nil {
 		return
 	}
-	if len(v.output) > 0 {
-		G.Log.Info("Writing proof to file '" + v.output + "'...")
-		err = ioutil.WriteFile(v.output, []byte(txt), os.FileMode(0644))
-		G.Log.Info("Written.")
-	} else {
-		err = v.ui.Output("\n" + txt + "\n")
-	}
+	err = v.proveUi.OutputInstructions(mkp.Export(), txt)
 	return
 }
 
 func (v *ProofEngine) PromptPostedLoop() (err error) {
-	first := true
 	found := false
 	for i := 0; ; i++ {
-		var agn string
 		var retry bool
 		var status int
 		var warn *Markup
-		if !first {
-			agn = "again "
-		}
-		first = false
-		prompt := "Check " + v.st.DisplayName(v.usernameNormalized) + " " + agn + "now?"
-		def := true
-		retry, err = v.ui.PromptYesNo(prompt, &def)
+		retry, err = v.proveUi.OkToCheck(v.st.DisplayName(v.usernameNormalized), i)
 		if !retry || err != nil {
 			break
 		}
@@ -200,9 +164,10 @@ func (v *ProofEngine) PromptPostedLoop() (err error) {
 			break
 		}
 		warn, err = v.st.RecheckProofPosting(status, i)
-		Render(os.Stderr, warn)
-		if err != nil {
-			break
+		if warn != nil {
+			if err = v.proveUi.DisplayRecheck(warn.Export()); err != nil {
+				break
+			}
 		}
 	}
 	if !found && err == nil {

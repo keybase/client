@@ -235,6 +235,17 @@ type LoginUI interface {
 	GetKeybasePassphrase(username string, retry string) (string, error)
 }
 
+type ProveUI interface {
+	PromptOverwrite1(string) (bool, error)
+	PromptOverwrite2(string) (bool, error)
+	PromptUsername(prompt string, prevError error) (string, error)
+	OutputPrechecks(keybase_1.Text)
+	PreProofWarning(keybase_1.Text) (bool, error)
+	OutputInstructions(instructions keybase_1.Text, proof string) error
+	OkToCheck(name string, attempt int) (bool, error)
+	DisplayRecheck(keybase_1.Text) error
+}
+
 type UI interface {
 	GetIdentifyUI(them *User) IdentifyUI
 	GetIdentifySelfUI() IdentifyUI

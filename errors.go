@@ -554,3 +554,11 @@ type NotConfirmedError struct{}
 func (e NotConfirmedError) Error() string {
 	return "Not confirmed"
 }
+
+//=============================================================================
+
+type ProofNotYetAvailableError struct{}
+
+func (e ProofNotYetAvailableError) Error() string {
+	return "Proof wasn't available; we'll keep trying"
+}
