@@ -271,6 +271,114 @@
 
 @end
 
+@implementation KBText
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
+@end
+
+@implementation KBRProveui
+- (void)promptOverwrite1WithSessionid:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"account": KBRValue(account)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.promptOverwrite1" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBboolean *result = [MTLJSONAdapter modelOfClass:KBboolean.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)promptOverwrite2WithSessionid:(NSInteger )sessionId service:(NSString *)service completion:(void (^)(NSError *error, BOOL  b))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"service": KBRValue(service)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.promptOverwrite2" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBboolean *result = [MTLJSONAdapter modelOfClass:KBboolean.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)promptUsernameWithSessionid:(NSInteger )sessionId prompt:(NSString *)prompt prevError:(KBStatus *)prevError completion:(void (^)(NSError *error, NSString * str))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"prompt": KBRValue(prompt), @"prevError": KBRValue(prevError)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.promptUsername" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBstring *result = [MTLJSONAdapter modelOfClass:KBstring.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)outputPrechecksWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"text": KBRValue(text)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.outputPrechecks" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    completion(error);
+  }];
+}
+
+- (void)preProofWarningWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error, BOOL  b))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"text": KBRValue(text)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.preProofWarning" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBboolean *result = [MTLJSONAdapter modelOfClass:KBboolean.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)outputInstructionsWithSessionid:(NSInteger )sessionId instructions:(KBText *)instructions proof:(NSString *)proof completion:(void (^)(NSError *error))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"instructions": KBRValue(instructions), @"proof": KBRValue(proof)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.outputInstructions" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    completion(error);
+  }];
+}
+
+- (void)okToCheckWithSessionid:(NSInteger )sessionId name:(NSString *)name attempt:(NSInteger )attempt completion:(void (^)(NSError *error, BOOL  b))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"name": KBRValue(name), @"attempt": @(attempt)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.okToCheck" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBboolean *result = [MTLJSONAdapter modelOfClass:KBboolean.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+- (void)displayRecheckWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion {
+
+  NSDictionary *params = @{@"sessionId": @(sessionId), @"text": KBRValue(text)};
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.displayRecheck" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBSignupRes
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"passphraseOk": @"passphraseOk", @"postOk": @"postOk", @"writeOk": @"writeOk" }; }
 @end
@@ -313,10 +421,6 @@
   }];
 }
 
-@end
-
-@implementation KBText
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
 @end
 
 @implementation KBRUi

@@ -1,0 +1,152 @@
+{
+  "protocol" : "proveUi",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  } ],
+  "messages" : {
+    "promptOverwrite1" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "account",
+        "type" : "string"
+      } ],
+      "response" : "boolean"
+    },
+    "promptOverwrite2" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "service",
+        "type" : "string"
+      } ],
+      "response" : "boolean"
+    },
+    "promptUsername" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "prompt",
+        "type" : "string"
+      }, {
+        "name" : "prevError",
+        "type" : "Status"
+      } ],
+      "response" : "string"
+    },
+    "outputPrechecks" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "text",
+        "type" : "Text"
+      } ],
+      "response" : "null"
+    },
+    "preProofWarning" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "text",
+        "type" : "Text"
+      } ],
+      "response" : "boolean"
+    },
+    "outputInstructions" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "instructions",
+        "type" : "Text"
+      }, {
+        "name" : "proof",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "okToCheck" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "name",
+        "type" : "string"
+      }, {
+        "name" : "attempt",
+        "type" : "int"
+      } ],
+      "response" : "boolean"
+    },
+    "displayRecheck" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "text",
+        "type" : "Text"
+      } ],
+      "response" : "null"
+    }
+  }
+}

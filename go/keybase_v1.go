@@ -460,6 +460,174 @@ func (c LoginUiClient) GetKeybasePassphrase(arg GetKeybasePassphraseArg) (res st
 	return
 }
 
+type Text struct {
+	Data   string `codec:"data"`
+	Markup bool   `codec:"markup"`
+}
+
+type PromptOverwrite1Arg struct {
+	SessionId int    `codec:"sessionId"`
+	Account   string `codec:"account"`
+}
+
+type PromptOverwrite2Arg struct {
+	SessionId int    `codec:"sessionId"`
+	Service   string `codec:"service"`
+}
+
+type PromptUsernameArg struct {
+	SessionId int    `codec:"sessionId"`
+	Prompt    string `codec:"prompt"`
+	PrevError Status `codec:"prevError"`
+}
+
+type OutputPrechecksArg struct {
+	SessionId int  `codec:"sessionId"`
+	Text      Text `codec:"text"`
+}
+
+type PreProofWarningArg struct {
+	SessionId int  `codec:"sessionId"`
+	Text      Text `codec:"text"`
+}
+
+type OutputInstructionsArg struct {
+	SessionId    int    `codec:"sessionId"`
+	Instructions Text   `codec:"instructions"`
+	Proof        string `codec:"proof"`
+}
+
+type OkToCheckArg struct {
+	SessionId int    `codec:"sessionId"`
+	Name      string `codec:"name"`
+	Attempt   int    `codec:"attempt"`
+}
+
+type DisplayRecheckArg struct {
+	SessionId int  `codec:"sessionId"`
+	Text      Text `codec:"text"`
+}
+
+type ProveUiInterface interface {
+	PromptOverwrite1(arg PromptOverwrite1Arg) (bool, error)
+	PromptOverwrite2(arg PromptOverwrite2Arg) (bool, error)
+	PromptUsername(arg PromptUsernameArg) (string, error)
+	OutputPrechecks(arg OutputPrechecksArg) error
+	PreProofWarning(arg PreProofWarningArg) (bool, error)
+	OutputInstructions(arg OutputInstructionsArg) error
+	OkToCheck(arg OkToCheckArg) (bool, error)
+	DisplayRecheck(arg DisplayRecheckArg) error
+}
+
+func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.proveUi",
+		Methods: map[string]rpc2.ServeHook{
+			"promptOverwrite1": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args PromptOverwrite1Arg
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptOverwrite1(args)
+				}
+				return
+			},
+			"promptOverwrite2": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args PromptOverwrite2Arg
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptOverwrite2(args)
+				}
+				return
+			},
+			"promptUsername": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args PromptUsernameArg
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptUsername(args)
+				}
+				return
+			},
+			"outputPrechecks": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args OutputPrechecksArg
+				if err = nxt(&args); err == nil {
+					err = i.OutputPrechecks(args)
+				}
+				return
+			},
+			"preProofWarning": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args PreProofWarningArg
+				if err = nxt(&args); err == nil {
+					ret, err = i.PreProofWarning(args)
+				}
+				return
+			},
+			"outputInstructions": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args OutputInstructionsArg
+				if err = nxt(&args); err == nil {
+					err = i.OutputInstructions(args)
+				}
+				return
+			},
+			"okToCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args OkToCheckArg
+				if err = nxt(&args); err == nil {
+					ret, err = i.OkToCheck(args)
+				}
+				return
+			},
+			"displayRecheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args DisplayRecheckArg
+				if err = nxt(&args); err == nil {
+					err = i.DisplayRecheck(args)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type ProveUiClient struct {
+	Cli GenericClient
+}
+
+func (c ProveUiClient) PromptOverwrite1(arg PromptOverwrite1Arg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite1", arg, &res)
+	return
+}
+
+func (c ProveUiClient) PromptOverwrite2(arg PromptOverwrite2Arg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite2", arg, &res)
+	return
+}
+
+func (c ProveUiClient) PromptUsername(arg PromptUsernameArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptUsername", arg, &res)
+	return
+}
+
+func (c ProveUiClient) OutputPrechecks(arg OutputPrechecksArg) (err error) {
+	err = c.Cli.Call("keybase.1.proveUi.outputPrechecks", arg, nil)
+	return
+}
+
+func (c ProveUiClient) PreProofWarning(arg PreProofWarningArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.preProofWarning", arg, &res)
+	return
+}
+
+func (c ProveUiClient) OutputInstructions(arg OutputInstructionsArg) (err error) {
+	err = c.Cli.Call("keybase.1.proveUi.outputInstructions", arg, nil)
+	return
+}
+
+func (c ProveUiClient) OkToCheck(arg OkToCheckArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.okToCheck", arg, &res)
+	return
+}
+
+func (c ProveUiClient) DisplayRecheck(arg DisplayRecheckArg) (err error) {
+	err = c.Cli.Call("keybase.1.proveUi.displayRecheck", arg, nil)
+	return
+}
+
 type SignupRes struct {
 	PassphraseOk bool `codec:"passphraseOk"`
 	PostOk       bool `codec:"postOk"`
@@ -532,11 +700,6 @@ func (c SignupClient) Signup(arg SignupArg) (res SignupRes, err error) {
 func (c SignupClient) InviteRequest(arg InviteRequestArg) (err error) {
 	err = c.Cli.Call("keybase.1.signup.inviteRequest", arg, nil)
 	return
-}
-
-type Text struct {
-	Data   string `codec:"data"`
-	Markup bool   `codec:"markup"`
 }
 
 type PromptYesNoArg struct {

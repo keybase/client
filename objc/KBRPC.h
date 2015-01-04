@@ -176,6 +176,30 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 @end
 
+@interface KBText : KBRObject
+@property NSString *data;
+@property BOOL markup;
+@end
+
+@interface KBRProveui : KBRRequest
+- (void)promptOverwrite1WithSessionid:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion;
+
+- (void)promptOverwrite2WithSessionid:(NSInteger )sessionId service:(NSString *)service completion:(void (^)(NSError *error, BOOL  b))completion;
+
+- (void)promptUsernameWithSessionid:(NSInteger )sessionId prompt:(NSString *)prompt prevError:(KBStatus *)prevError completion:(void (^)(NSError *error, NSString * str))completion;
+
+- (void)outputPrechecksWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
+
+- (void)preProofWarningWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error, BOOL  b))completion;
+
+- (void)outputInstructionsWithSessionid:(NSInteger )sessionId instructions:(KBText *)instructions proof:(NSString *)proof completion:(void (^)(NSError *error))completion;
+
+- (void)okToCheckWithSessionid:(NSInteger )sessionId name:(NSString *)name attempt:(NSInteger )attempt completion:(void (^)(NSError *error, BOOL  b))completion;
+
+- (void)displayRecheckWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBSignupRes : KBRObject
 @property BOOL passphraseOk;
 @property BOOL postOk;
@@ -189,11 +213,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error))completion;
 
-@end
-
-@interface KBText : KBRObject
-@property NSString *data;
-@property BOOL markup;
 @end
 
 @interface KBRUi : KBRRequest
