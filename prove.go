@@ -5,10 +5,9 @@ import (
 )
 
 type ProofEngine struct {
+	Force              bool
+	Service, Username  string
 	me                 *User
-	force              bool
-	service, username  string
-	output             string
 	st                 ServiceType
 	usernameNormalized string
 	supersede          bool
@@ -16,12 +15,12 @@ type ProofEngine struct {
 	sig                string
 	sigId              *SigId
 	postRes            *PostProofRes
-	proveUi            ProveUI
-	loginUi            LoginUI
+	ProveUI            ProveUI
+	LoginUI            LoginUI
 }
 
 func (v *ProofEngine) Login() (err error) {
-	return G.LoginState.Login(LoginArg{})
+	return G.LoginState.Login(LoginArg{Ui: v.LoginUI})
 }
 
 func (v *ProofEngine) LoadMe() (err error) {
@@ -30,10 +29,10 @@ func (v *ProofEngine) LoadMe() (err error) {
 }
 func (v *ProofEngine) CheckExists1() (err error) {
 	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
-	if len(proofs) != 0 && !v.force && v.st.LastWriterWins() {
+	if len(proofs) != 0 && !v.Force && v.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
 		var redo bool
-		redo, err = v.proveUi.PromptOverwrite1(lst.ToDisplayString())
+		redo, err = v.ProveUI.PromptOverwrite1(lst.ToDisplayString())
 		if err != nil {
 		} else if !redo {
 			err = NotConfirmedError{}
@@ -45,26 +44,26 @@ func (v *ProofEngine) CheckExists1() (err error) {
 }
 
 func (v *ProofEngine) PromptRemoteName() (err error) {
-	if len(v.username) == 0 {
+	if len(v.Username) == 0 {
 		var prevErr error
-		for len(v.username) == 0 && err == nil {
+		for len(v.Username) == 0 && err == nil {
 			var un string
-			un, err = v.proveUi.PromptUsername(v.st.GetPrompt(), prevErr)
+			un, err = v.ProveUI.PromptUsername(v.st.GetPrompt(), prevErr)
 			if err != nil {
 				prevErr = v.st.CheckUsername(un)
 				if prevErr == nil {
-					v.username = un
+					v.Username = un
 				}
 			}
 		}
 	} else {
-		err = v.st.CheckUsername(v.username)
+		err = v.st.CheckUsername(v.Username)
 	}
 	return
 }
 
 func (v *ProofEngine) NormalizeRemoteName() (err error) {
-	v.usernameNormalized, err = v.st.NormalizeUsername(v.username)
+	v.usernameNormalized, err = v.st.NormalizeUsername(v.Username)
 	return
 }
 
@@ -82,7 +81,7 @@ func (v *ProofEngine) CheckExists2() (err error) {
 		}
 		if found != nil {
 			var redo bool
-			redo, err = v.proveUi.PromptOverwrite2(found.ToDisplayString())
+			redo, err = v.ProveUI.PromptOverwrite2(found.ToDisplayString())
 			if err != nil {
 			} else if !redo {
 				err = NotConfirmedError{}
@@ -98,7 +97,7 @@ func (v *ProofEngine) DoPrechecks() (err error) {
 	var w *Markup
 	w, err = v.st.PreProofCheck(v.usernameNormalized)
 	if w != nil {
-		v.proveUi.OutputPrechecks(w.Export())
+		v.ProveUI.OutputPrechecks(w.Export())
 	}
 	return
 }
@@ -106,7 +105,7 @@ func (v *ProofEngine) DoPrechecks() (err error) {
 func (v *ProofEngine) DoWarnings() (err error) {
 	if mu := v.st.PreProofWarning(v.usernameNormalized); mu != nil {
 		var ok bool
-		if ok, err = v.proveUi.PreProofWarning(mu.Export()); err == nil && !ok {
+		if ok, err = v.ProveUI.PreProofWarning(mu.Export()); err == nil && !ok {
 			err = NotConfirmedError{}
 		}
 	}
@@ -145,7 +144,7 @@ func (v *ProofEngine) InstructAction() (err error) {
 	if txt, err = v.st.FormatProofText(v.postRes); err != nil {
 		return
 	}
-	err = v.proveUi.OutputInstructions(mkp.Export(), txt)
+	err = v.ProveUI.OutputInstructions(mkp.Export(), txt)
 	return
 }
 
@@ -155,7 +154,7 @@ func (v *ProofEngine) PromptPostedLoop() (err error) {
 		var retry bool
 		var status int
 		var warn *Markup
-		retry, err = v.proveUi.OkToCheck(v.st.DisplayName(v.usernameNormalized), i)
+		retry, err = v.ProveUI.OkToCheck(v.st.DisplayName(v.usernameNormalized), i)
 		if !retry || err != nil {
 			break
 		}
@@ -165,7 +164,7 @@ func (v *ProofEngine) PromptPostedLoop() (err error) {
 		}
 		warn, err = v.st.RecheckProofPosting(status, i)
 		if warn != nil {
-			if err = v.proveUi.DisplayRecheck(warn.Export()); err != nil {
+			if err = v.ProveUI.DisplayRecheck(warn.Export()); err != nil {
 				break
 			}
 		}
@@ -181,8 +180,18 @@ func (v *ProofEngine) CheckProofText() error {
 	return v.st.CheckProofText(v.postRes.Text, *v.sigId, v.sig)
 }
 
+func (v *ProofEngine) GetServiceType() (err error) {
+	if v.st = GetServiceType(v.Service); v.st == nil {
+		err = BadServiceError{v.Service}
+	}
+	return
+}
+
 func (v *ProofEngine) Run() (err error) {
 
+	if err = v.GetServiceType(); err != nil {
+		return
+	}
 	if err = v.Login(); err != nil {
 		return
 	}
