@@ -533,3 +533,42 @@ func (c SignupClient) InviteRequest(arg InviteRequestArg) (err error) {
 	err = c.Cli.Call("keybase.1.signup.inviteRequest", arg, nil)
 	return
 }
+
+type Text struct {
+	Data   string `codec:"data"`
+	Markup bool   `codec:"markup"`
+}
+
+type PromptYesNoArg struct {
+	Text Text  `codec:"text"`
+	Def  *bool `codec:"def,omitempty"`
+}
+
+type UiInterface interface {
+	PromptYesNo(arg PromptYesNoArg) (bool, error)
+}
+
+func UiProtocol(i UiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.ui",
+		Methods: map[string]rpc2.ServeHook{
+			"promptYesNo": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args PromptYesNoArg
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptYesNo(args)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type UiClient struct {
+	Cli GenericClient
+}
+
+func (c UiClient) PromptYesNo(arg PromptYesNoArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.ui.promptYesNo", arg, &res)
+	return
+}

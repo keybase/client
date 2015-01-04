@@ -314,3 +314,23 @@
 }
 
 @end
+
+@implementation KBText
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
+@end
+
+@implementation KBRUi
+- (void)promptYesNoWithText:(KBText *)text def:(BOOL )def completion:(void (^)(NSError *error, BOOL  b))completion {
+
+  NSDictionary *params = @{@"text": KBRValue(text), @"def": KBRValue(def)};
+  [self.client sendRequestWithMethod:@"keybase.1.ui.promptYesNo" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBboolean *result = [MTLJSONAdapter modelOfClass:KBboolean.class fromJSONDictionary:dict error:&error];
+    completion(error, result);
+  }];
+}
+
+@end

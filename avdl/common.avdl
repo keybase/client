@@ -21,4 +21,9 @@ protocol Common {
 		union { null, bytes } pgpFingerprint;
 		union { null, bytes } kid;
 	}
+
+	record Text {
+		string data;
+		boolean markup;
+	}
 }	

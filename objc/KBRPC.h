@@ -190,3 +190,13 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error))completion;
 
 @end
+
+@interface KBText : KBRObject
+@property NSString *data;
+@property BOOL markup;
+@end
+
+@interface KBRUi : KBRRequest
+- (void)promptYesNoWithText:(KBText *)text def:(BOOL )def completion:(void (^)(NSError *error, BOOL  b))completion;
+
+@end
