@@ -536,3 +536,21 @@ type NoConfigWriterError struct{}
 func (e NoConfigWriterError) Error() string {
 	return "Can't write; no ConfigWriter available"
 }
+
+//=============================================================================
+
+type BadServiceError struct {
+	n string
+}
+
+func (e BadServiceError) Error() string {
+	return e.n + ": unsupported service"
+}
+
+//=============================================================================
+
+type NotConfirmedError struct{}
+
+func (e NotConfirmedError) Error() string {
+	return "Not confirmed"
+}
