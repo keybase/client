@@ -181,6 +181,11 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property BOOL markup;
 @end
 
+@interface KBRProve : KBRRequest
+- (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRProveui : KBRRequest
 - (void)promptOverwrite1WithSessionid:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion;
 

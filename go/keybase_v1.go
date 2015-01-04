@@ -465,6 +465,41 @@ type Text struct {
 	Markup bool   `codec:"markup"`
 }
 
+type ProveArg struct {
+	Service  string `codec:"service"`
+	Username string `codec:"username"`
+	Force    bool   `codec:"force"`
+}
+
+type ProveInterface interface {
+	Prove(arg ProveArg) error
+}
+
+func ProveProtocol(i ProveInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.prove",
+		Methods: map[string]rpc2.ServeHook{
+			"prove": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args ProveArg
+				if err = nxt(&args); err == nil {
+					err = i.Prove(args)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type ProveClient struct {
+	Cli GenericClient
+}
+
+func (c ProveClient) Prove(arg ProveArg) (err error) {
+	err = c.Cli.Call("keybase.1.prove.prove", arg, nil)
+	return
+}
+
 type PromptOverwrite1Arg struct {
 	SessionId int    `codec:"sessionId"`
 	Account   string `codec:"account"`

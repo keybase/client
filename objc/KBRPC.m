@@ -275,6 +275,21 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
 @end
 
+@implementation KBRProve
+- (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion {
+
+  NSDictionary *params = @{@"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force)};
+  [self.client sendRequestWithMethod:@"keybase.1.prove.prove" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRProveui
 - (void)promptOverwrite1WithSessionid:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion {
 

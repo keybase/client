@@ -1,0 +1,8 @@
+
+@namespace("keybase.1")
+protocol prove {
+
+	import idl "common.avdl";
+
+	void prove(string service, string username, boolean force);
+}
