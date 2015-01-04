@@ -408,6 +408,50 @@ func (u *UI) GetLoginUI() libkb.LoginUI {
 	return LoginUI{u}
 }
 
+func (u *UI) GetProveUI() libkb.ProveUI {
+	return ProveUI{u}
+}
+
+//============================================================
+
+type ProveUI struct {
+	parent *UI
+}
+
+func (p ProveUI) PromptOverwrite1(string) (bool, error) {
+	return
+}
+
+func (p ProveUI) PromptOverwrite2(string) (bool, error) {
+	return
+}
+
+func (p ProveUI) PromptUsername(prompt string, prevError error) (string, error) {
+	return
+}
+
+func (p ProveUI) OutputPrechecks(keybase_1.Text) {
+	return
+}
+
+func (p ProveUI) PreProofWarning(keybase_1.Text) (bool, error) {
+	return
+}
+
+func (p ProveUI) OutputInstructions(instructions keybase_1.Text, proof string) error {
+	return
+}
+
+func (p ProveUI) OkToCheck(name string, attempt int) (bool, error) {
+	return
+}
+
+func (p ProveUI) DisplayRecheck(keybase_1.Text) error {
+	return
+}
+
+//============================================================
+
 type LoginUI struct {
 	parent *UI
 }

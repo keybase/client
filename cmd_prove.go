@@ -11,17 +11,9 @@ import (
 )
 
 type CmdProve struct {
-	me                 *libkb.User
 	force              bool
 	service, username  string
 	output             string
-	st                 libkb.ServiceType
-	usernameNormalized string
-	supersede          bool
-	proof              *jsonw.Wrapper
-	sig                string
-	sigId              *libkb.SigId
-	postRes            *libkb.PostProofRes
 }
 
 func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
