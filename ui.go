@@ -435,7 +435,7 @@ func (p ProveUI) PromptUsername(prompt string, prevError error) (string, error) 
 	if prevError != nil {
 		G.Log.Error(prevError.Error())
 	}
-	return p.parent.Terminal.Prompt(prompt)
+	return p.parent.Terminal.Prompt(prompt + ": ")
 }
 
 func (p ProveUI) Render(txt keybase_1.Text) {
