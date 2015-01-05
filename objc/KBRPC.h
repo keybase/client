@@ -23,6 +23,11 @@
 @property NSData *kid;
 @end
 
+@interface KBText : KBRObject
+@property NSString *data;
+@property BOOL markup;
+@end
+
 @interface KBGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -156,11 +161,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)warningWithSessionid:(NSInteger )sessionId msg:(NSString *)msg completion:(void (^)(NSError *error))completion;
 
-@end
-
-@interface KBText : KBRObject
-@property NSString *data;
-@property BOOL markup;
 @end
 
 typedef NS_ENUM (NSInteger, KBLogLevel) {

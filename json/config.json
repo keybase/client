@@ -49,6 +49,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "GetCurrentStatusRes",
     "fields" : [ {
       "name" : "configured",

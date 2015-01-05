@@ -222,7 +222,7 @@ class GoEmitter2 extends GoEmitter
     resvar = if res is "null" then "" else "ret, "
     @output """"#{name}": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {"""
     @tab()
-    @output "var args #{if arg? then arg.type else 'interface{}'}"
+    @output "var args #{if arg? then @go_primitive_type(arg.type) else 'interface{}'}"
     @output "if err = nxt(&args); err == nil {"
     @tab()
     @output "#{resvar}err = i.#{@go_export_case(name)}(#{if arg? then 'args' else ''})"
@@ -230,7 +230,7 @@ class GoEmitter2 extends GoEmitter
     @output "} "
     @output "return"
     @untab()
-    @output "}," 
+    @output "},"
 
   emit_protocol_server : (protocol, messages) ->
     p = @go_export_case protocol
@@ -253,7 +253,7 @@ class GoEmitter2 extends GoEmitter
   emit_message_server : (name, details) ->
     arg = details.request[0]
     res = details.response
-    args = if arg? then "#{arg.name} #{arg.type}" else ""
+    args = if arg? then "#{arg.name} #{@go_primitive_type(arg.type)}" else ""
     res_types = []
     if res isnt "null" then res_types.push @go_primitive_type(res)
     res_types.push "error"
@@ -271,7 +271,7 @@ class GoEmitter2 extends GoEmitter
       res_in = "nil"
     out_list.push "err error"
     outs = out_list.join ","
-    params = if arg? then "#{arg.name} #{arg.type}" else ""
+    params = if arg? then "#{arg.name} #{@go_primitive_type(arg.type)}" else ""
     @output "func (c #{p}Client) #{@go_export_case(name)}(#{params}) (#{outs}) {"
     @tab()
     @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{if arg? then arg.name else 'nil'}, #{res_in})"""

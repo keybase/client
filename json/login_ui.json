@@ -47,6 +47,16 @@
       "name" : "kid",
       "type" : [ "null", "bytes" ]
     } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "getEmailOrUsername" : {

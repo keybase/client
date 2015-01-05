@@ -48,6 +48,16 @@
       "type" : [ "null", "bytes" ]
     } ]
   }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "TrackDiffType",
     "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]

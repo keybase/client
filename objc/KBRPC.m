@@ -16,6 +16,10 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"kid": @"kid" }; }
 @end
 
+@implementation KBText
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
+@end
+
 @implementation KBGetCurrentStatusRes
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"configured": @"configured", @"registered": @"registered", @"loggedIn": @"loggedIn", @"publicKeySelected": @"publicKeySelected", @"hasPrivateKey": @"hasPrivateKey" }; }
 @end
@@ -189,10 +193,6 @@
   }];
 }
 
-@end
-
-@implementation KBText
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
 @end
 
 @implementation KBRLog

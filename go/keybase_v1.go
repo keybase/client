@@ -27,6 +27,11 @@ type FOKID struct {
 	Kid            *[]byte `codec:"kid,omitempty"`
 }
 
+type Text struct {
+	Data   string `codec:"data"`
+	Markup bool   `codec:"markup"`
+}
+
 type GetCurrentStatusRes struct {
 	Configured        bool `codec:"configured"`
 	Registered        bool `codec:"registered"`
@@ -345,11 +350,6 @@ func (c IdentifyUiClient) Warning(arg WarningArg) (err error) {
 	return
 }
 
-type Text struct {
-	Data   string `codec:"data"`
-	Markup bool   `codec:"markup"`
-}
-
 type LogLevel int
 
 const (
@@ -396,7 +396,7 @@ func (c LogClient) Log(arg LogArg) (err error) {
 }
 
 type LoginInterface interface {
-	PassphraseLogin(identify boolean) error
+	PassphraseLogin(identify bool) error
 	PubkeyLogin() error
 	Logout() error
 	SwitchUser(username string) error
@@ -407,7 +407,7 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 		Name: "keybase.1.login",
 		Methods: map[string]rpc2.ServeHook{
 			"passphraseLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args boolean
+				var args bool
 				if err = nxt(&args); err == nil {
 					err = i.PassphraseLogin(args)
 				}
@@ -443,7 +443,7 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) PassphraseLogin(identify boolean) (err error) {
+func (c LoginClient) PassphraseLogin(identify bool) (err error) {
 	err = c.Cli.Call("keybase.1.login.passphraseLogin", identify, nil)
 	return
 }
