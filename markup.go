@@ -5,6 +5,7 @@ import (
 	"fmt"
 	Q "github.com/PuerkitoBio/goquery"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"github.com/kr/text"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -191,10 +192,18 @@ func (r *Renderer) RenderNode(node *html.Node) {
 	}
 }
 
+func getWriter(w io.Writer) io.Writer {
+	if w == nil {
+		w = os.Stdout
+	}
+	return w
+}
+
 func Render(w io.Writer, m *libkb.Markup) {
 	if m == nil {
 		return
 	}
+	w = getWriter(w)
 	doc, err := Q.NewDocumentFromReader(m.ToReader())
 	if err != nil {
 		fmt.Printf("Cannot render markup: %s\n", err.Error())
@@ -202,4 +211,13 @@ func Render(w io.Writer, m *libkb.Markup) {
 	}
 	renderer := NewRenderer(os.Stdout)
 	renderer.RenderNodes(doc.Nodes)
+}
+
+func RenderText(w io.Writer, txt keybase_1.Text) {
+	w = getWriter(w)
+	if txt.Markup {
+		fmt.Fprintln(w, txt.Data)
+	} else {
+		Render(w, libkb.NewMarkup(txt.Data))
+	}
 }

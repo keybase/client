@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
-	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"io/ioutil"
@@ -11,9 +10,9 @@ import (
 )
 
 type CmdProve struct {
-	force              bool
-	service, username  string
-	output             string
+	force             bool
+	service, username string
+	output            string
 }
 
 func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
@@ -29,230 +28,36 @@ func (v *CmdProve) ParseArgv(ctx *cli.Context) error {
 		if nargs == 2 {
 			v.username = ctx.Args()[1]
 		}
-		if v.st = libkb.GetServiceType(v.service); v.st == nil {
-			err = BadServiceError{v.service}
-		}
 	}
 	return err
 }
 
-func (v *CmdProve) Login() (err error) {
-	return G.LoginState.Login(libkb.LoginArg{})
-}
-func (v *CmdProve) LoadMe() (err error) {
-	v.me, err = libkb.LoadMe(libkb.LoadUserArg{LoadSecrets: true, AllKeys: false})
+func (v *CmdProve) fileOutputHook(txt string) (err error) {
+	G.Log.Info("Writing proof to file '" + v.output + "'...")
+	err = ioutil.WriteFile(v.output, []byte(txt), os.FileMode(0644))
+	G.Log.Info("Written.")
 	return
-}
-func (v *CmdProve) CheckExists1() (err error) {
-	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
-	if len(proofs) != 0 && !v.force && v.st.LastWriterWins() {
-		lst := proofs[len(proofs)-1]
-		prompt := "You already have a proof " +
-			ColorString("bold", lst.ToDisplayString()) + "; overwrite?"
-		def := false
-		var redo bool
-		redo, err = G_UI.PromptYesNo(prompt, &def)
-		if err != nil {
-		} else if !redo {
-			err = NotConfirmedError{}
-		} else {
-			v.supersede = true
-		}
-	}
-	return
-}
-
-func (v *CmdProve) PromptRemoteName() (err error) {
-	if len(v.username) == 0 {
-		v.username, err = G_UI.Prompt(v.st.GetPrompt(), false, v.st.ToChecker())
-	} else {
-		err = v.st.CheckUsername(v.username)
-	}
-	return
-}
-
-func (v *CmdProve) NormalizeRemoteName() (err error) {
-	v.usernameNormalized, err = v.st.NormalizeUsername(v.username)
-	return
-}
-
-func (v *CmdProve) CheckExists2() (err error) {
-	G.Log.Debug("+ CheckExists2")
-	defer func() { G.Log.Debug("- CheckExists2 -> %s", libkb.ErrToOk(err)) }()
-	if !v.st.LastWriterWins() {
-		var found libkb.RemoteProofChainLink
-		for _, p := range v.me.IdTable.GetActiveProofsFor(v.st) {
-			_, name := p.ToKeyValuePair()
-			if libkb.Cicmp(name, v.usernameNormalized) {
-				found = p
-				break
-			}
-		}
-		if found != nil {
-			var redo bool
-			prompt := "You already have claimed ownership of " +
-				ColorString("bold", found.ToDisplayString()) + "; overwrite? "
-			def := false
-			redo, err = G_UI.PromptYesNo(prompt, &def)
-			if err != nil {
-			} else if !redo {
-				err = NotConfirmedError{}
-			} else {
-				v.supersede = true
-			}
-		}
-	}
-	return
-}
-
-func (v *CmdProve) DoPrechecks() (err error) {
-	var w *libkb.Markup
-	w, err = v.st.PreProofCheck(v.usernameNormalized)
-	Render(os.Stdout, w)
-	return
-}
-
-func (v *CmdProve) DoWarnings() (err error) {
-	if mu := v.st.PreProofWarning(v.usernameNormalized); mu != nil {
-		Render(os.Stdout, mu)
-		prompt := "Proceed?"
-		def := false
-		var ok bool
-		ok, err = G_UI.PromptYesNo(prompt, &def)
-		if err == nil && !ok {
-			err = NotConfirmedError{}
-		}
-	}
-	return
-}
-func (v *CmdProve) GenerateProof() (err error) {
-	var key libkb.GenericKey
-	if v.proof, err = v.me.ServiceProof(v.st, v.usernameNormalized); err != nil {
-		return
-	}
-	if key, err = G.Keyrings.GetSecretKey("proof signature"); err != nil {
-		return
-	}
-	if v.sig, v.sigId, _, err = libkb.SignJson(v.proof, key); err != nil {
-		return
-	}
-	return
-}
-
-func (v *CmdProve) PostProofToServer() (err error) {
-	arg := libkb.PostProofArg{
-		Sig:            v.sig,
-		ProofType:      v.st.GetProofType(),
-		Id:             *v.sigId,
-		Supersede:      v.supersede,
-		RemoteUsername: v.usernameNormalized,
-		RemoteKey:      v.st.GetApiArgKey(),
-	}
-	v.postRes, err = libkb.PostProof(arg)
-	return
-}
-
-func (v *CmdProve) InstructAction() (err error) {
-	mkp := v.st.PostInstructions(v.usernameNormalized)
-	Render(os.Stdout, mkp)
-	var txt string
-	if txt, err = v.st.FormatProofText(v.postRes); err != nil {
-		return
-	}
-	if len(v.output) > 0 {
-		G.Log.Info("Writing proof to file '" + v.output + "'...")
-		err = ioutil.WriteFile(v.output, []byte(txt), os.FileMode(0644))
-		G.Log.Info("Written.")
-	} else {
-		err = G_UI.Output("\n" + txt + "\n")
-	}
-	return
-}
-
-func (v *CmdProve) PromptPostedLoop() (err error) {
-	first := true
-	found := false
-	for i := 0; ; i++ {
-		var agn string
-		var retry bool
-		var status int
-		var warn *libkb.Markup
-		if !first {
-			agn = "again "
-		}
-		first = false
-		prompt := "Check " + v.st.DisplayName(v.usernameNormalized) + " " + agn + "now?"
-		def := true
-		retry, err = G_UI.PromptYesNo(prompt, &def)
-		if !retry || err != nil {
-			break
-		}
-		found, status, err = libkb.CheckPosted(v.postRes.Id)
-		if found || err != nil {
-			break
-		}
-		warn, err = v.st.RecheckProofPosting(status, i)
-		Render(os.Stderr, warn)
-		if err != nil {
-			break
-		}
-	}
-	if !found && err == nil {
-		err = ProofNotYetAvailableError{}
-	}
-
-	return
-}
-
-func (v *CmdProve) CheckProofText() error {
-	return v.st.CheckProofText(v.postRes.Text, *v.sigId, v.sig)
 }
 
 func (v *CmdProve) RunClient() (err error) { return v.Run() }
 
 func (v *CmdProve) Run() (err error) {
-
-	if err = v.Login(); err != nil {
-		return
+	ui := ProveUI{parent: G_UI}
+	if len(v.output) > 0 {
+		ui.outputHook = func(s string) error {
+			return v.fileOutputHook(s)
+		}
 	}
-	if err = v.LoadMe(); err != nil {
-		return
+	eng := &libkb.ProofEngine{
+		Username: v.username,
+		Service:  v.service,
+		Force:    v.force,
+		ProveUI:  ui,
 	}
-	if err = v.CheckExists1(); err != nil {
-		return
+	if err = eng.Run(); err == nil {
+		G.Log.Notice("Success!")
 	}
-	if err = v.PromptRemoteName(); err != nil {
-		return
-	}
-	if err = v.NormalizeRemoteName(); err != nil {
-		return
-	}
-	if err = v.CheckExists2(); err != nil {
-		return
-	}
-	if err = v.DoPrechecks(); err != nil {
-		return
-	}
-	if err = v.DoWarnings(); err != nil {
-		return
-	}
-	if err = v.GenerateProof(); err != nil {
-		return
-	}
-	if err = v.PostProofToServer(); err != nil {
-		return
-	}
-	if err = v.CheckProofText(); err != nil {
-		return
-	}
-	if err = v.InstructAction(); err != nil {
-		return
-	}
-	if err = v.PromptPostedLoop(); err != nil {
-		return
-	}
-	G.Log.Notice("Success!")
-	return nil
+	return
 }
 
 func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
