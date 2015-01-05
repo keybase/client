@@ -14,7 +14,7 @@ func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase signup [-c <code>]",
 		Description: "signup for a new account",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdSignupState(), "signup", c)
+			cl.ChooseCommand(&CmdSignupState{}, "signup", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -38,21 +38,6 @@ type SignupEngine interface {
 	Run(libkb.SignupEngineRunArg) libkb.SignupEngineRunRes
 	PostInviteRequest(libkb.InviteRequestArg) error
 	Init() error
-}
-
-func NewCmdSignupState() *CmdSignupState {
-	var engine SignupEngine
-
-	// For now, comment this work out
-	if G.Env.GetStandalone() {
-		engine = libkb.NewSignupEngine()
-	} else {
-		engine = &RemoteSignupEngine{}
-	}
-
-	return &CmdSignupState{
-		engine: engine,
-	}
 }
 
 type RemoteSignupEngine struct {
@@ -363,11 +348,13 @@ func (s *CmdSignupState) RequestInvite() (err error) {
 }
 
 func (s *CmdSignupState) RunClient() (err error) {
+	s.engine = &RemoteSignupEngine{}
 	return s.Run()
 }
 
 func (s *CmdSignupState) Run() (err error) {
 	G.Log.Debug("+ CmdSignupState::Run")
+	s.engine = libkb.NewSignupEngine()
 	if err = s.RunSignup(); err == nil {
 	} else if _, cce := err.(CleanCancelError); cce {
 		err = s.RequestInvite()
