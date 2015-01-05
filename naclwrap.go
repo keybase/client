@@ -69,6 +69,10 @@ func (k NaclDHKeyPublic) GetKid() KID {
 	return KID(out)
 }
 
+func (k NaclDHKeyPair) GetFingerprintP() *PgpFingerprint {
+	return nil
+}
+
 func (k NaclSigningKeyPublic) GetKid() KID {
 	prefix := []byte{
 		byte(KEYBASE_KID_V1),
@@ -82,6 +86,10 @@ func (k NaclSigningKeyPublic) GetKid() KID {
 
 func (p NaclSigningKeyPair) GetKid() (ret KID) {
 	return p.Public.GetKid()
+}
+
+func (p NaclSigningKeyPair) GetFingerprintP() *PgpFingerprint {
+	return nil
 }
 
 func (p NaclDHKeyPair) GetKid() (ret KID) {

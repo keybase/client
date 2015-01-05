@@ -141,6 +141,11 @@ func (k PgpKeyBundle) GetFingerprint() PgpFingerprint {
 	return PgpFingerprint(k.PrimaryKey.Fingerprint)
 }
 
+func (k PgpKeyBundle) GetFingerprintP() *PgpFingerprint {
+	fp := k.GetFingerprint()
+	return &fp
+}
+
 func (k PgpKeyBundle) KeysById(id uint64) []openpgp.Key {
 	return k.toList().KeysById(id)
 }
@@ -267,6 +272,7 @@ type KID2 []byte
 
 type GenericKey interface {
 	GetKid() KID
+	GetFingerprintP() *PgpFingerprint
 	SignToString([]byte) (string, *SigId, error)
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
 }
