@@ -78,7 +78,7 @@ func (v *CmdLogin) RunClient() (err error) {
 	} else if err = RegisterLoginUiServer(NewLoginUIServer()); err != nil {
 	} else if err = RegisterIdentifyUiServer(NewIdentifyUIServer()); err != nil {
 	} else {
-		err = cli.PassphraseLogin()
+		err = cli.PassphraseLogin(true)
 	}
 	return
 }
