@@ -286,9 +286,21 @@ func (k *PgpKeyBundle) GetKid() KID {
 		byte(k.PrimaryKey.PubKeyAlgo),
 	}
 
+	// XXX Hack;  Because PublicKey.serializeWithoutHeaders is off-limits
+	// to us, we need to do a full serialize and then strip off the header.
+	// The further annoyance is that the size of the header varies with the
+	// bitlen of the key.  Small keys (<191 bytes total) yield 8 bytes of header
+	// material --- for instance, 1024-bit test keys.  For longer keys, we
+	// have 9 bytes of header material, to encode a 2-byte frame, rather than
+	// a 1-byte frame.
 	buf := bytes.Buffer{}
 	k.PrimaryKey.Serialize(&buf)
-	sum := sha256.Sum256(buf.Bytes()[9:])
+	byts := buf.Bytes()
+	hdr_bytes := 8
+	if len(byts) >= 193 {
+		hdr_bytes++
+	}
+	sum := sha256.Sum256(buf.Bytes()[hdr_bytes:])
 
 	out := append(prefix, sum[:]...)
 	out = append(out, byte(ID_SUFFIX_KID))
