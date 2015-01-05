@@ -59,9 +59,12 @@ func (h *LoginHandler) Logout() error {
 	return G.LoginState.Logout()
 }
 
-func (h *LoginHandler) PassphraseLogin() error {
+func (h *LoginHandler) PassphraseLogin(doIdentify bool) error {
 	loginui := h.getLoginUi()
-	idui := h.getIdentifyUi()
+	var idui libkb.IdentifyUI
+	if doIdentify {
+		idui = h.getIdentifyUi()
+	}
 	return libkb.LoginAndIdentify(loginui, idui)
 }
 
