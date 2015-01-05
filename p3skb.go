@@ -56,6 +56,7 @@ func (key *PgpKeyBundle) ToP3SKB(tsec *triplesec.Cipher) (ret *P3SKB, err error)
 		return
 	}
 	ret.Pub = pk.Bytes()
+	ret.Type = key.GetAlgoType()
 
 	return
 }

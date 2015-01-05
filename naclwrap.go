@@ -73,6 +73,14 @@ func (k NaclDHKeyPair) GetFingerprintP() *PgpFingerprint {
 	return nil
 }
 
+func (k NaclDHKeyPair) GetAlgoType() int {
+	return KID_NACL_DH
+}
+
+func (k NaclSigningKeyPair) GetAlgoType() int {
+	return KID_NACL_EDDSA
+}
+
 func (k NaclSigningKeyPublic) GetKid() KID {
 	prefix := []byte{
 		byte(KEYBASE_KID_V1),

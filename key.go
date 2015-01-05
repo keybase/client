@@ -273,6 +273,7 @@ type KID2 []byte
 type GenericKey interface {
 	GetKid() KID
 	GetFingerprintP() *PgpFingerprint
+	GetAlgoType() int
 	SignToString([]byte) (string, *SigId, error)
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
 }
@@ -330,6 +331,10 @@ func (k PgpKeyBundle) GetKid2() KID2 {
 	out = append(out, byte(ID_SUFFIX_KID))
 
 	return KID2(out)
+}
+
+func (k PgpKeyBundle) GetAlgoType() int {
+	return int(k.PrimaryKey.PubKeyAlgo)
 }
 
 func (k PgpKeyBundle) KeyDescription() string {
