@@ -10,5 +10,5 @@ protocol proveUi {
 	boolean preProofWarning(int sessionId, Text text);
 	void outputInstructions(int sessionId, Text instructions, string proof);
 	boolean okToCheck(int sessionId, string name, int attempt);
-	void displayRecheck(int sessionId, Text text);
+	void displayRecheckWarning(int sessionId, Text text);
 }
