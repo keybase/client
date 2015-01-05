@@ -357,7 +357,7 @@ type TrackEngine struct {
 
 	trackStatementBytes []byte
 	trackStatement      *jsonw.Wrapper
-	signingKey          *PgpKeyBundle
+	signingKey          GenericKey
 	sig                 string
 	sigid               *SigId
 }
@@ -489,7 +489,7 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 		return
 	}
 
-	if e.sig, e.sigid, err = SimpleSign(e.trackStatementBytes, *e.signingKey); err != nil {
+	if e.sig, e.sigid, err = e.signingKey.SignToString(e.trackStatementBytes); err != nil {
 		return
 	}
 

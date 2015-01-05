@@ -9,10 +9,10 @@ type KeyUnlocker struct {
 	Reason   string
 	KeyDesc  string
 	Which    string
-	Unlocker func(pw string) (ret *PgpKeyBundle, err error)
+	Unlocker func(pw string) (ret GenericKey, err error)
 }
 
-func (arg KeyUnlocker) Run() (ret *PgpKeyBundle, err error) {
+func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 
 	var emsg string
 

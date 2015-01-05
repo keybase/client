@@ -276,6 +276,12 @@ type GenericKey interface {
 	GetAlgoType() int
 	SignToString([]byte) (string, *SigId, error)
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
+	VerboseDescription() string
+	CheckSecretKey() error
+}
+
+func (k KID) ToMapKey() string {
+	return k.ToString()
 }
 
 func (k KID) ToString() string {
@@ -284,6 +290,15 @@ func (k KID) ToString() string {
 
 func (k KID) ToBytes() []byte {
 	return []byte(k)
+}
+
+func (k *PgpKeyBundle) CheckSecretKey() (err error) {
+	if k.PrivateKey == nil {
+		err = NoKeyError{"no private key found"}
+	} else if k.PrivateKey.Encrypted {
+		err = BadKeyError{"PGP key material should be unencrypted"}
+	}
+	return
 }
 
 func (k *PgpKeyBundle) GetKid() KID {
@@ -369,7 +384,7 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 		return nil
 	}
 
-	unlocker := func(pw string) (ret *PgpKeyBundle, err error) {
+	unlocker := func(pw string) (ret GenericKey, err error) {
 
 		if err = p.PrivateKey.Decrypt([]byte(pw)); err == nil {
 

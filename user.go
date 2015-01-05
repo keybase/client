@@ -477,14 +477,17 @@ func (u *User) StoreTopLevel() error {
 
 func getSecretKey(jw *jsonw.Wrapper, fp PgpFingerprint) (ret *P3SKB, err error) {
 	var packet *KeybasePacket
-	var pub *PgpKeyBundle
+	var key GenericKey
 
 	if packet, err = GetPacket(jw.AtKey("bundle")); err != nil {
 	} else if ret, err = packet.ToP3SKB(); err != nil {
-	} else if pub, err = ret.GetPubKey(); err != nil {
-	} else if fp2 := pub.GetFingerprint(); !fp2.Eq(fp) {
+	} else if key, err = ret.GetPubKey(); err != nil {
+	} else if fp2 := key.GetFingerprintP(); fp2 == nil {
 		ret = nil
-		err = WrongKeyError{&fp, &fp2}
+		err = NoKeyError{"No PGP key found"}
+	} else if !fp2.Eq(fp) {
+		ret = nil
+		err = WrongKeyError{&fp, fp2}
 	}
 	return
 }

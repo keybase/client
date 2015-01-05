@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"os"
 )
@@ -20,8 +21,8 @@ type P3SKB struct {
 	Pub  []byte    `codec:"pub"`
 	Type int       `codec:"type,omitempty"`
 
-	decodedPub      *PgpKeyBundle
-	decryptedSecret *PgpKeyBundle
+	decodedPub      GenericKey
+	decryptedSecret GenericKey
 }
 
 type P3SKBPriv struct {
@@ -71,16 +72,26 @@ func (p *P3SKB) ToPacket() (ret *KeybasePacket, err error) {
 	return
 }
 
-func (p *P3SKB) GetPubKey() (key *PgpKeyBundle, err error) {
+func (p *P3SKB) ReadKey(priv bool) (g GenericKey, err error) {
+	switch packet.PublicKeyAlgorithm(p.Type) {
+	case packet.PubKeyAlgoRSA, packet.PubKeyAlgoRSAEncryptOnly,
+		packet.PubKeyAlgoRSASignOnly, packet.PubKeyAlgoDSA, packet.PubKeyAlgoECDSA:
+		g, err = ReadOneKeyFromBytes(p.Pub)
+	default:
+	}
+	return
+}
+
+func (p *P3SKB) GetPubKey() (key GenericKey, err error) {
 	if key = p.decodedPub; key == nil {
-		key, err = ReadOneKeyFromBytes(p.Pub)
+		key, err = p.ReadKey(false)
 		p.decodedPub = key
 	}
 	return
 }
 
 func (p *P3SKB) VerboseDescription() (ret string, err error) {
-	var key *PgpKeyBundle
+	var key GenericKey
 	key, err = p.GetPubKey()
 	if err == nil && key != nil {
 		ret = key.VerboseDescription()
@@ -88,7 +99,7 @@ func (p *P3SKB) VerboseDescription() (ret string, err error) {
 	return
 }
 
-func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key *PgpKeyBundle, err error) {
+func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key GenericKey, err error) {
 	if key = p.decryptedSecret; key != nil {
 		return
 	}
@@ -107,11 +118,7 @@ func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key *PgpKeyBundle, err 
 		return
 	}
 
-	if key.PrivateKey == nil {
-		err = NoKeyError{"no private key found"}
-	} else if key.PrivateKey.Encrypted {
-		err = BadKeyError{"PGP key material should be unencrypted"}
-	} else {
+	if err = key.CheckSecretKey(); err == nil {
 		p.decryptedSecret = key
 	}
 	return
@@ -120,7 +127,8 @@ func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key *PgpKeyBundle, err 
 type P3SKBKeyringFile struct {
 	filename string
 	Blocks   []*P3SKB
-	index    map[PgpFingerprint]*P3SKB
+	fpIndex  map[PgpFingerprint]*P3SKB
+	kidIndex map[string]*P3SKB
 	dirty    bool
 }
 
@@ -128,7 +136,8 @@ func NewP3SKBKeyringFile(n string) *P3SKBKeyringFile {
 	return &P3SKBKeyringFile{
 		filename: n,
 		Blocks:   make([]*P3SKB, 0, 1),
-		index:    make(map[PgpFingerprint]*P3SKB),
+		fpIndex:  make(map[PgpFingerprint]*P3SKB),
+		kidIndex: make(map[string]*P3SKB),
 		dirty:    false,
 	}
 }
@@ -161,24 +170,37 @@ func (k *P3SKBKeyringFile) Load() (err error) {
 	return
 }
 
+func (k *P3SKBKeyringFile) addToIndex(g GenericKey, b *P3SKB) {
+	if fp := g.GetFingerprintP(); fp != nil {
+		k.fpIndex[*fp] = b
+	}
+	k.kidIndex[g.GetKid().ToMapKey()] = b
+}
+
 func (k *P3SKBKeyringFile) Index() (err error) {
 	for _, b := range k.Blocks {
-		var key *PgpKeyBundle
+		var key GenericKey
 		key, err = b.GetPubKey()
 		if err != nil {
 			return
 		}
-		fp := key.GetFingerprint()
-
 		// Last-writer wins!
-		k.index[fp] = b
+		k.addToIndex(key, b)
 	}
 	G.Log.Debug("| Indexed %d secret keys", len(k.Blocks))
 	return
 }
 
-func (k P3SKBKeyringFile) Lookup(fp PgpFingerprint) *P3SKB {
-	ret, ok := k.index[fp]
+func (k P3SKBKeyringFile) LookupByFingerprint(fp PgpFingerprint) *P3SKB {
+	ret, ok := k.fpIndex[fp]
+	if !ok {
+		ret = nil
+	}
+	return ret
+}
+
+func (f P3SKBKeyringFile) LookupByKid(k KID) *P3SKB {
+	ret, ok := f.kidIndex[k.ToMapKey()]
 	if !ok {
 		ret = nil
 	}
@@ -213,8 +235,7 @@ func (f *P3SKBKeyringFile) Push(p3skb *P3SKB) error {
 	}
 	f.dirty = true
 	f.Blocks = append(f.Blocks, p3skb)
-	fp := PgpFingerprint(k.PrimaryKey.Fingerprint)
-	f.index[fp] = p3skb
+	f.addToIndex(k, p3skb)
 	return nil
 }
 
@@ -265,7 +286,7 @@ func (p KeybasePackets) ToListOfP3SKBs() (ret []*P3SKB, err error) {
 	return
 }
 
-func (p *P3SKB) PromptAndUnlock(reason string, which string) (ret *PgpKeyBundle, err error) {
+func (p *P3SKB) PromptAndUnlock(reason string, which string) (ret GenericKey, err error) {
 	if ret = p.decryptedSecret; ret != nil {
 		return
 	}
@@ -286,7 +307,7 @@ func (p *P3SKB) PromptAndUnlock(reason string, which string) (ret *PgpKeyBundle,
 		return
 	}
 
-	unlocker := func(pw string) (ret *PgpKeyBundle, err error) {
+	unlocker := func(pw string) (ret GenericKey, err error) {
 		var tsec *triplesec.Cipher
 		tsec, err = triplesec.NewCipher([]byte(pw), nil)
 		if err == nil {

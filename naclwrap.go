@@ -6,6 +6,7 @@ import (
 	// "golang.org/x/crypto/nacl/secretbox"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"github.com/keybase/go-triplesec"
 )
 
@@ -96,12 +97,33 @@ func (p NaclSigningKeyPair) GetKid() (ret KID) {
 	return p.Public.GetKid()
 }
 
+func (p NaclSigningKeyPair) VerboseDescription() string {
+	return fmt.Sprintf("255-bit EdDSA signing key (%s)", p.GetKid().ToString())
+}
+func (p NaclDHKeyPair) VerboseDescription() string {
+	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", p.GetKid().ToString())
+}
+
 func (p NaclSigningKeyPair) GetFingerprintP() *PgpFingerprint {
 	return nil
 }
 
 func (p NaclDHKeyPair) GetKid() (ret KID) {
 	ret = p.Public.GetKid()
+	return
+}
+
+func (k NaclSigningKeyPair) CheckSecretKey() (err error) {
+	if k.Private == nil {
+		err = NoKeyError{"no private key found"}
+	}
+	return
+}
+
+func (k NaclDHKeyPair) CheckSecretKey() (err error) {
+	if k.Private == nil {
+		err = NoKeyError{"no private key found"}
+	}
 	return
 }
 

@@ -199,7 +199,7 @@ func (k KeyringFile) Save() error {
 	return SafeWriteToFile(k)
 }
 
-func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
+func (k Keyrings) GetSecretKey(reason string) (key GenericKey, err error) {
 	var me *User
 	var fp *PgpFingerprint
 	var p3skb *P3SKB
@@ -237,7 +237,7 @@ func (k Keyrings) GetSecretKey(reason string) (key *PgpKeyBundle, err error) {
 		// noop
 	} else {
 		G.Log.Debug("| Looking up secret key in local keychain")
-		p3skb = k.P3SKB.Lookup(*fp)
+		p3skb = k.P3SKB.LookupByFingerprint(*fp)
 	}
 
 	if p3skb == nil {
