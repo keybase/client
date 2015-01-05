@@ -138,7 +138,7 @@
       } ],
       "response" : "boolean"
     },
-    "displayRecheck" : {
+    "displayRecheckWarning" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"

@@ -380,10 +380,10 @@
   }];
 }
 
-- (void)displayRecheckWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion {
+- (void)displayRecheckWarningWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion {
 
   NSDictionary *params = @{@"sessionId": @(sessionId), @"text": KBRValue(text)};
-  [self.client sendRequestWithMethod:@"keybase.1.proveUi.displayRecheck" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.displayRecheckWarning" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);
       return;

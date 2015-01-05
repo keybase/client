@@ -201,7 +201,7 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)okToCheckWithSessionid:(NSInteger )sessionId name:(NSString *)name attempt:(NSInteger )attempt completion:(void (^)(NSError *error, BOOL  b))completion;
 
-- (void)displayRecheckWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
+- (void)displayRecheckWarningWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
 
 @end
 

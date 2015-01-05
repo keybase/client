@@ -538,7 +538,7 @@ type OkToCheckArg struct {
 	Attempt   int    `codec:"attempt"`
 }
 
-type DisplayRecheckArg struct {
+type DisplayRecheckWarningArg struct {
 	SessionId int  `codec:"sessionId"`
 	Text      Text `codec:"text"`
 }
@@ -551,7 +551,7 @@ type ProveUiInterface interface {
 	PreProofWarning(arg PreProofWarningArg) (bool, error)
 	OutputInstructions(arg OutputInstructionsArg) error
 	OkToCheck(arg OkToCheckArg) (bool, error)
-	DisplayRecheck(arg DisplayRecheckArg) error
+	DisplayRecheckWarning(arg DisplayRecheckWarningArg) error
 }
 
 func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
@@ -607,10 +607,10 @@ func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"displayRecheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args DisplayRecheckArg
+			"displayRecheckWarning": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args DisplayRecheckWarningArg
 				if err = nxt(&args); err == nil {
-					err = i.DisplayRecheck(args)
+					err = i.DisplayRecheckWarning(args)
 				}
 				return
 			},
@@ -658,8 +658,8 @@ func (c ProveUiClient) OkToCheck(arg OkToCheckArg) (res bool, err error) {
 	return
 }
 
-func (c ProveUiClient) DisplayRecheck(arg DisplayRecheckArg) (err error) {
-	err = c.Cli.Call("keybase.1.proveUi.displayRecheck", arg, nil)
+func (c ProveUiClient) DisplayRecheckWarning(arg DisplayRecheckWarningArg) (err error) {
+	err = c.Cli.Call("keybase.1.proveUi.displayRecheckWarning", arg, nil)
 	return
 }
 
