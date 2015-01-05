@@ -134,7 +134,7 @@ func (v *CmdProve) DoWarnings() (err error) {
 	return
 }
 func (v *CmdProve) GenerateProof() (err error) {
-	var key *libkb.PgpKeyBundle
+	var key libkb.GenericKey
 	if v.proof, err = v.me.ServiceProof(v.st, v.usernameNormalized); err != nil {
 		return
 	}

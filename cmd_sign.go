@@ -64,7 +64,9 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 func (s *CmdSign) RunClient() (err error) { return s.Run() }
 
 func (s *CmdSign) Run() (err error) {
-	var key *libkb.PgpKeyBundle
+	var key libkb.GenericKey
+	var pgp *libkb.PgpKeyBundle
+	var ok bool
 	var dumpTo io.WriteCloser
 	var written int64
 
@@ -82,12 +84,15 @@ func (s *CmdSign) Run() (err error) {
 	key, err = G.Keyrings.GetSecretKey("command-line signature")
 	if err != nil {
 		return
+	} else if pgp, ok = key.(*libkb.PgpKeyBundle); !ok {
+		err = fmt.Errorf("Can only sign with PGP keys (for now)")
+		return
 	} else if key == nil {
 		err = fmt.Errorf("No secret key available")
 		return
 	}
 
-	dumpTo, err = libkb.AttachedSignWrapper(s.sink, *key, !s.binary)
+	dumpTo, err = libkb.AttachedSignWrapper(s.sink, *pgp, !s.binary)
 	if err != nil {
 		return
 	}
