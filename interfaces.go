@@ -243,7 +243,7 @@ type ProveUI interface {
 	PreProofWarning(keybase_1.Text) (bool, error)
 	OutputInstructions(instructions keybase_1.Text, proof string) error
 	OkToCheck(name string, attempt int) (bool, error)
-	DisplayRecheck(keybase_1.Text) error
+	DisplayRecheckWarning(keybase_1.Text)
 }
 
 type UI interface {
@@ -252,6 +252,7 @@ type UI interface {
 	GetIdentifyTrackUI(them *User, strict bool) IdentifyUI
 	GetIdentifyLubaUI(them *User) IdentifyUI
 	GetLoginUI() LoginUI
+	GetProveUI() ProveUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
 	GetSecret([]SecretEntryArg) (*SecretEntryRes, error)

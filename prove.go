@@ -19,6 +19,16 @@ type ProofEngine struct {
 	LoginUI            LoginUI
 }
 
+func (v *ProofEngine) Init() error {
+	if v.ProveUI == nil {
+		v.ProveUI = G.UI.GetProveUI()
+	}
+	if v.LoginUI == nil {
+		v.LoginUI = G.UI.GetLoginUI()
+	}
+	return nil
+}
+
 func (v *ProofEngine) Login() (err error) {
 	return G.LoginState.Login(LoginArg{Ui: v.LoginUI})
 }
@@ -27,6 +37,7 @@ func (v *ProofEngine) LoadMe() (err error) {
 	v.me, err = LoadMe(LoadUserArg{LoadSecrets: true, AllKeys: false})
 	return
 }
+
 func (v *ProofEngine) CheckExists1() (err error) {
 	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
 	if len(proofs) != 0 && !v.Force && v.st.LastWriterWins() {
@@ -164,9 +175,10 @@ func (v *ProofEngine) PromptPostedLoop() (err error) {
 		}
 		warn, err = v.st.RecheckProofPosting(status, i)
 		if warn != nil {
-			if err = v.ProveUI.DisplayRecheck(warn.Export()); err != nil {
-				break
-			}
+			v.ProveUI.DisplayRecheckWarning(warn.Export())
+		}
+		if err != nil {
+			break
 		}
 	}
 	if !found && err == nil {
@@ -189,6 +201,9 @@ func (v *ProofEngine) GetServiceType() (err error) {
 
 func (v *ProofEngine) Run() (err error) {
 
+	if err = v.Init(); err != nil {
+		return
+	}
 	if err = v.GetServiceType(); err != nil {
 		return
 	}
