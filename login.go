@@ -7,9 +7,9 @@ import (
 )
 
 type LoginHandler struct {
-	xp *rpc2.Transport
-	cli *rpc2.Client
-	loginCli *keybase_1.LoginUiClient
+	xp         *rpc2.Transport
+	cli        *rpc2.Client
+	loginCli   *keybase_1.LoginUiClient
 	identifyUi libkb.IdentifyUI
 }
 
@@ -33,16 +33,16 @@ type LoginUI struct {
 
 type IdentifyUI struct {
 	sessionId int
-	cli *keybase_1.IdentifyUiClient
+	cli       *keybase_1.IdentifyUiClient
 }
 
 func (h *LoginHandler) getLoginUi() libkb.LoginUI {
-	return &LoginUI { h.getLoginUiCli() }
+	return &LoginUI{h.getLoginUiCli()}
 }
 
 func (h *LoginHandler) getIdentifyUi() libkb.IdentifyUI {
 	if h.identifyUi == nil {
-		h.identifyUi = NextRemoteIdentifyUI(h.getRpcClient())
+		h.identifyUi = NextRemoteSelfIdentifyUI(h.getRpcClient())
 	}
 	return h.identifyUi
 }
@@ -51,8 +51,8 @@ func (u *LoginUI) GetEmailOrUsername() (ret string, err error) {
 	return u.cli.GetEmailOrUsername()
 }
 
-func (u *LoginUI) GetKeybasePassphrase(retry string) (string, error) {
-	return u.cli.GetKeybasePassphrase(retry)
+func (u *LoginUI) GetKeybasePassphrase(username string, retry string) (string, error) {
+	return u.cli.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{username, retry})
 }
 
 func (h *LoginHandler) Logout() error {

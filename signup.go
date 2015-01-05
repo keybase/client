@@ -10,7 +10,7 @@ type SignupHandler struct {
 	xp *rpc2.Transport
 }
 
-func (h SignupHandler) CheckUsernameAvailable(username string) (error) {
+func (h SignupHandler) CheckUsernameAvailable(username string) error {
 	return libkb.CheckUsernameAvailable(username)
 }
 
