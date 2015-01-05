@@ -349,7 +349,7 @@ func LoginAndIdentify(login LoginUI, identify IdentifyUI) error {
 	u, err := LoadMe(LoadUserArg{ForceReload: true})
 	if _, not_found := err.(NoKeyError); not_found {
 		err = nil
-	} else if _, not_selected := err.(NoSelectedKeyError); not_selected {
+	} else if _, not_selected := err.(NoSelectedKeyError); not_selected && identify != nil {
 		var fp *PgpFingerprint
 		fp, err = u.IdentifySelf(identify)
 		if err == nil {
