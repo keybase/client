@@ -60,7 +60,7 @@ func (v *ProofEngine) PromptRemoteName() (err error) {
 		for len(v.Username) == 0 && err == nil {
 			var un string
 			un, err = v.ProveUI.PromptUsername(v.st.GetPrompt(), prevErr)
-			if err != nil {
+			if err == nil {
 				prevErr = v.st.CheckUsername(un)
 				if prevErr == nil {
 					v.Username = un
