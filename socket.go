@@ -82,16 +82,16 @@ func (g *Global) BindToSocket() (net.Listener, error) {
 
 func (g *Global) GetSocket() (net.Conn, *rpc2.Transport, error) {
 	if g.SocketWrapper == nil {
-		c, e := DialSocket(g.SocketInfo)
-		var xp *rpc2.Transport
-		if e == nil {
-			xp = rpc2.NewTransport(c, NewRpcLogFactory())
+		sw := SocketWrapper{}
+		if g.SocketInfo == nil {
+			sw.err = fmt.Errorf("Cannot get socket in standalone mode")
+		} else {
+			sw.conn, sw.err = DialSocket(g.SocketInfo)
+			if sw.err == nil {
+				sw.xp = rpc2.NewTransport(sw.conn, NewRpcLogFactory())
+			}
 		}
-		g.SocketWrapper = &SocketWrapper{
-			conn: c,
-			xp:   xp,
-			err:  e,
-		}
+		g.SocketWrapper = &sw
 	}
 	return g.SocketWrapper.conn, g.SocketWrapper.xp, g.SocketWrapper.err
 }
