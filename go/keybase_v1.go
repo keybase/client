@@ -396,7 +396,7 @@ func (c LogClient) Log(arg LogArg) (err error) {
 }
 
 type LoginInterface interface {
-	PassphraseLogin() error
+	PassphraseLogin(identify boolean) error
 	PubkeyLogin() error
 	Logout() error
 	SwitchUser(username string) error
@@ -407,9 +407,9 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 		Name: "keybase.1.login",
 		Methods: map[string]rpc2.ServeHook{
 			"passphraseLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args interface{}
+				var args boolean
 				if err = nxt(&args); err == nil {
-					err = i.PassphraseLogin()
+					err = i.PassphraseLogin(args)
 				}
 				return
 			},
@@ -443,8 +443,8 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) PassphraseLogin() (err error) {
-	err = c.Cli.Call("keybase.1.login.passphraseLogin", nil, nil)
+func (c LoginClient) PassphraseLogin(identify boolean) (err error) {
+	err = c.Cli.Call("keybase.1.login.passphraseLogin", identify, nil)
 	return
 }
 

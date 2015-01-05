@@ -211,9 +211,9 @@
 @end
 
 @implementation KBRLogin
-- (void)passphraseLogin:(void (^)(NSError *error))completion {
+- (void)passphraseLoginWithIdentify:(BOOL )identify completion:(void (^)(NSError *error))completion {
 
-  NSDictionary *params = @{};
+  NSDictionary *params = @{@"identify": @(identify)};
   [self.client sendRequestWithMethod:@"keybase.1.login.passphraseLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
       completion(error, nil);

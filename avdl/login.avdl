@@ -4,7 +4,7 @@ protocol login {
 
 	import idl "common.avdl";
 
-	void passphraseLogin();
+	void passphraseLogin(boolean identify);
 	void pubkeyLogin();
 	void logout();
 	void switchUser(string username);

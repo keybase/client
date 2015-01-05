@@ -47,10 +47,23 @@
       "name" : "kid",
       "type" : [ "null", "bytes" ]
     } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "passphraseLogin" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "identify",
+        "type" : "boolean"
+      } ],
       "response" : "null"
     },
     "pubkeyLogin" : {
