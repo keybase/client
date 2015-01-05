@@ -158,6 +158,24 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 @end
 
+@interface KBText : KBRObject
+@property NSString *data;
+@property BOOL markup;
+@end
+
+typedef NS_ENUM (NSInteger, KBLogLevel) {
+	KBNone, 
+	KBDebug, 
+	KBInfo, 
+	KBWarn, 
+	KBError, 
+	KBCritical, 
+};
+@interface KBRLog : KBRRequest
+- (void)logWithLevel:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRLogin : KBRRequest
 - (void)passphraseLogin:(void (^)(NSError *error))completion;
 
@@ -174,11 +192,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
 
-@end
-
-@interface KBText : KBRObject
-@property NSString *data;
-@property BOOL markup;
 @end
 
 @interface KBRProve : KBRRequest

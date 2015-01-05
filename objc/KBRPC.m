@@ -191,6 +191,25 @@
 
 @end
 
+@implementation KBText
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
+@end
+
+@implementation KBRLog
+- (void)logWithLevel:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion {
+
+  NSDictionary *params = @{@"level": KBRValue(level), @"text": KBRValue(text)};
+  [self.client sendRequestWithMethod:@"keybase.1.log.log" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRLogin
 - (void)passphraseLogin:(void (^)(NSError *error))completion {
 
@@ -269,10 +288,6 @@
   }];
 }
 
-@end
-
-@implementation KBText
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
 @end
 
 @implementation KBRProve

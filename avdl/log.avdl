@@ -1,0 +1,16 @@
+
+@namespace("keybase.1")
+protocol log {
+	import idl "common.avdl";
+
+	enum LogLevel {
+		NONE,
+		DEBUG,
+		INFO,
+		WARN,
+		ERROR,
+		CRITICAL
+	}
+
+	void log(LogLevel level, Text text);
+}

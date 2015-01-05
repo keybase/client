@@ -345,6 +345,56 @@ func (c IdentifyUiClient) Warning(arg WarningArg) (err error) {
 	return
 }
 
+type Text struct {
+	Data   string `codec:"data"`
+	Markup bool   `codec:"markup"`
+}
+
+type LogLevel int
+
+const (
+	LogLevel_NONE     = 0
+	LogLevel_DEBUG    = 1
+	LogLevel_INFO     = 2
+	LogLevel_WARN     = 3
+	LogLevel_ERROR    = 4
+	LogLevel_CRITICAL = 5
+)
+
+type LogArg struct {
+	Level LogLevel `codec:"level"`
+	Text  Text     `codec:"text"`
+}
+
+type LogInterface interface {
+	Log(arg LogArg) error
+}
+
+func LogProtocol(i LogInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.log",
+		Methods: map[string]rpc2.ServeHook{
+			"log": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args LogArg
+				if err = nxt(&args); err == nil {
+					err = i.Log(args)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type LogClient struct {
+	Cli GenericClient
+}
+
+func (c LogClient) Log(arg LogArg) (err error) {
+	err = c.Cli.Call("keybase.1.log.log", arg, nil)
+	return
+}
+
 type LoginInterface interface {
 	PassphraseLogin() error
 	PubkeyLogin() error
@@ -458,11 +508,6 @@ func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
 func (c LoginUiClient) GetKeybasePassphrase(arg GetKeybasePassphraseArg) (res string, err error) {
 	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", arg, &res)
 	return
-}
-
-type Text struct {
-	Data   string `codec:"data"`
-	Markup bool   `codec:"markup"`
 }
 
 type ProveArg struct {
