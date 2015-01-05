@@ -171,6 +171,9 @@ func (k *P3SKBKeyringFile) Load() (err error) {
 }
 
 func (k *P3SKBKeyringFile) addToIndex(g GenericKey, b *P3SKB) {
+	if g == nil {
+		return
+	}
 	if fp := g.GetFingerprintP(); fp != nil {
 		k.fpIndex[*fp] = b
 	}
