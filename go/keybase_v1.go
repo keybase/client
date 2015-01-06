@@ -141,7 +141,7 @@ type Cryptocurrency struct {
 }
 
 type Identity struct {
-	Status          Status           `codec:"status"`
+	Status          *Status          `codec:"status,omitempty"`
 	WhenLastTracked int              `codec:"whenLastTracked"`
 	Key             IdentifyKey      `codec:"key"`
 	Proofs          []IdentifyRow    `codec:"proofs"`
@@ -177,7 +177,7 @@ type TrackSummary struct {
 }
 
 type IdentifyOutcome struct {
-	Status            Status        `codec:"status"`
+	Status            *Status       `codec:"status,omitempty"`
 	Warnings          []string      `codec:"warnings"`
 	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty"`
 	NumTrackFailures  int           `codec:"numTrackFailures"`

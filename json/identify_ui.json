@@ -144,7 +144,7 @@
     "name" : "Identity",
     "fields" : [ {
       "name" : "status",
-      "type" : "Status"
+      "type" : [ "null", "Status" ]
     }, {
       "name" : "whenLastTracked",
       "type" : "int"
@@ -236,7 +236,7 @@
     "name" : "IdentifyOutcome",
     "fields" : [ {
       "name" : "status",
-      "type" : "Status"
+      "type" : [ "null", "Status" ]
     }, {
       "name" : "warnings",
       "type" : {

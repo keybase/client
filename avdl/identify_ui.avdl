@@ -23,7 +23,7 @@ protocol identifyUi {
 	record ProofStatus {
 		int state;
 		int status;
-		string desc;	
+		string desc;
 	}
 
 	record RemoteProof {
@@ -52,7 +52,7 @@ protocol identifyUi {
 	}
 
 	record Identity {
-		Status status;
+		union { null, Status } status;
 		int whenLastTracked;
 		IdentifyKey key;
 		array<IdentifyRow> proofs;
@@ -75,7 +75,7 @@ protocol identifyUi {
 
 	record LinkCheckResult {
 		int proofId;
-		ProofStatus proofStatus;	
+		ProofStatus proofStatus;
 		union { null, CheckResult } cached;
 		union { null, TrackDiff } diff;
 		union { null, TrackDiff } remoteDiff;
@@ -83,12 +83,12 @@ protocol identifyUi {
 	}
 
 	record TrackSummary {
-		int time;	
+		int time;
 		boolean isRemote;
 	}
 
 	record IdentifyOutcome {
-		Status status;
+		union { null, Status } status;
 		array<string> warnings;
 		union { null, TrackSummary } trackUsed;
 		int numTrackFailures;
