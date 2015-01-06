@@ -20,22 +20,33 @@ type PostProofArg struct {
 }
 
 type PostNewKeyArg struct {
-	Sig  string
-	Id   SigId
-	Type string
+	Sig        string
+	Id         SigId
+	Type       string
+	PublicKey  GenericKey
+	SigningKey GenericKey
+	PrimaryKey GenericKey
 }
 
 func PostNewKey(arg PostNewKeyArg) error {
+	pub, err := arg.PublicKey.Encode()
+	if err != nil {
+		return err
+	}
 	hargs := HttpArgs{
 		"sig_id_base":     S{arg.Id.ToString(false)},
 		"sig_id_short":    S{arg.Id.ToShortId()},
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{false},
 		"type":            S{arg.Type},
+		"primary_kid":     S{arg.PrimaryKey.GetKid().ToString()},
+		"signing_kid":     S{arg.PrimaryKey.GetKid().ToString()},
+		"public_key":      S{pub},
 	}
+
 	G.Log.Debug("Post NewKey: %v", hargs)
-	_, err := G.API.Post(ApiArg{
-		Endpoint:    "sig/post",
+	_, err = G.API.Post(ApiArg{
+		Endpoint:    "key/add",
 		NeedSession: true,
 		Args:        hargs,
 	})
