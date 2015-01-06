@@ -138,7 +138,7 @@ paths.each do |path|
       "#{name}:(#{objc_for_type(param["type"], enums)})#{param["name"]}"
     end
 
-    rpc_method = "#{namespace}.#{protocol}.#{method.camelize(:upper)}"
+    rpc_method = "#{namespace}.#{protocol}.#{method}"
     dc_method = method.camelize(:lower)
     objc_method = "- (void)#{dc_method}#{params_str.join(" ")}"
 
