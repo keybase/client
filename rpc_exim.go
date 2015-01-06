@@ -297,3 +297,19 @@ func (c CryptocurrencyChainLink) Export() (ret keybase_1.Cryptocurrency) {
 }
 
 //=============================================================================
+
+func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
+	ret.Configured = c.Configured
+	ret.Registered = c.Registered
+	ret.LoggedIn = c.LoggedIn
+	ret.PublicKeySelected = c.PublicKeySelected
+	if c.User != nil {
+		ret.User = &keybase_1.UserInfo{
+			Uid:      c.User.Uid.ToString(),
+			Username: c.User.Username,
+		}
+	}
+	return
+}
+
+//=============================================================================
