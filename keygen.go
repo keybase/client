@@ -288,10 +288,14 @@ func (s *KeyGen) GenNacl() (err error) {
 	var sibkey GenericKey
 	sibkey = s.bundle
 	G.Log.Debug("+ GenNacl()")
+	defer func() {
+		G.Log.Debug("- GenNacl() -> %s", ErrToOk(err))
+	}()
 	if s.arg.DoNaclEddsa {
 		G.Log.Info("Generating NaCl EdDSA key (255 bits on Curve25519)")
 		gen := NewNaclKeyGen(NaclKeyGenArg{
 			Signer:    sibkey,
+			Primary:   s.bundle,
 			Generator: GenerateNaclSigningKeyPair,
 			Type:      "sibkey",
 			Me:        s.me,
@@ -301,18 +305,28 @@ func (s *KeyGen) GenNacl() (err error) {
 			sibkey = gen.GetKeyPair()
 		}
 	}
-	if err == nil && s.arg.DoNaclDH {
-		G.Log.Info("Generating NaCl DH-key (255 bits on Curve25519)")
-		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Signer:    sibkey,
-			Generator: GenerateNaclDHKeyPair,
-			Type:      "subkey",
-			Me:        s.me,
-			ExpireIn:  NACL_DH_EXPIRE_IN,
-		})
-		err = gen.Run()
+
+	if err != nil || !s.arg.DoNaclDH {
+		return
 	}
-	G.Log.Debug("- GenNacl() -> %s", ErrToOk(err))
+
+	// XXX this doesn't work, due to a race condition.  The server hasn't
+	// had a chance to update its merkle tree yet.  We probably need to
+	// explicitly reload it or compute it ourselves... Sigh...
+	if err = s.ReloadMe(); err != nil {
+		return
+	}
+
+	G.Log.Info("Generating NaCl DH-key (255 bits on Curve25519)")
+	gen := NewNaclKeyGen(NaclKeyGenArg{
+		Signer:    sibkey,
+		Primary:   s.bundle,
+		Generator: GenerateNaclDHKeyPair,
+		Type:      "subkey",
+		Me:        s.me,
+		ExpireIn:  NACL_DH_EXPIRE_IN,
+	})
+	err = gen.Run()
 	return err
 }
 
