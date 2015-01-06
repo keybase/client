@@ -348,13 +348,19 @@ func (s *CmdSignupState) RequestInvite() (err error) {
 }
 
 func (s *CmdSignupState) RunClient() (err error) {
+	G.Log.Debug("| Remote mode")
 	s.engine = &RemoteSignupEngine{}
-	return s.Run()
+	return s.run()
 }
 
 func (s *CmdSignupState) Run() (err error) {
-	G.Log.Debug("+ CmdSignupState::Run")
+	G.Log.Debug("| Standalone mode")
 	s.engine = libkb.NewSignupEngine()
+	return s.run()
+}
+
+func (s *CmdSignupState) run() (err error) {
+	G.Log.Debug("+ CmdSignupState::Run")
 	if err = s.RunSignup(); err == nil {
 	} else if _, cce := err.(CleanCancelError); cce {
 		err = s.RequestInvite()
