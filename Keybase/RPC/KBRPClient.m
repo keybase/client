@@ -8,6 +8,7 @@
 
 #import "KBRPClient.h"
 #import "KBRPC.h"
+#import "AppDelegate.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
 #import "KBDefines.h"
@@ -23,24 +24,42 @@
 - (void)open {
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
-  NSError *error = nil;
   
   NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
   NSAssert(user, @"No user");
   
   GHDebug(@"Connecting to keybased (%@)...", user);
-  if (![_client openWithSocket:NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user) error:&error]) {
-    GHDebug(@"Error connecting to keybased: %@", error);
+  [_client openWithSocket:NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user) completion:^(NSError *error) {
+    if (error) {
+      GHDebug(@"Error connecting to keybased: %@", error);
+      // Retry
+      [self openAfterDelay:2];
+      return;
+    }
     
-    // Retry
-    [self openAfterDelay:2];
-  }
+    [self checkStatus];
+  }];
 }
 
 - (void)openAfterDelay:(NSTimeInterval)delay {
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
     [self open];
   });
+}
+
+- (void)checkStatus {
+  KBRConfig *config = [[KBRConfig alloc] initWithClient:self];
+  [config getCurrentStatus:^(NSError *error, KBGetCurrentStatusRes *getCurrentStatusRes) {
+    if (error) {
+      // TODO
+    }
+    GHDebug(@"status: %@", getCurrentStatusRes);
+    
+    if (!getCurrentStatusRes.loggedIn) {
+      [AppDelegate.sharedDelegate showLogin];
+    }
+    
+  }];
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion {
@@ -60,7 +79,9 @@
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
   if (status == MPMessagePackClientStatusClosed) {
-    [self openAfterDelay:2];
+    //[self openAfterDelay:2];
+  } else if (status == MPMessagePackClientStatusOpen) {
+    
   }
 }
 

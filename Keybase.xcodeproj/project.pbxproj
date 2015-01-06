@@ -177,11 +177,11 @@
 		00CC434B1A3A9E6C006118A9 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
+				00CC434E1A3A9E6C006118A9 /* AppDelegate.h */,
+				00CC434F1A3A9E6C006118A9 /* AppDelegate.m */,
 				00F807D51A48D3300038BC63 /* View */,
 				00D2E7C41A4106A200319401 /* KBDefines.h */,
 				004D14971A3BD25A0083888D /* RPC */,
-				00CC434E1A3A9E6C006118A9 /* AppDelegate.h */,
-				00CC434F1A3A9E6C006118A9 /* AppDelegate.m */,
 				00CC43531A3A9E6C006118A9 /* Images.xcassets */,
 				00CC43551A3A9E6C006118A9 /* MainMenu.xib */,
 				00CC434C1A3A9E6C006118A9 /* Supporting Files */,

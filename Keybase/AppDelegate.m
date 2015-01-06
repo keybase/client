@@ -11,7 +11,8 @@
 #import "KBConnectWindowController.h"
 
 @interface AppDelegate ()
-@property (strong) KBConnectWindowController *connectController;
+@property KBConnectWindowController *connectController;
+@property NSStatusItem *statusItem;
 @property KBRPClient *client;
 @end
 
@@ -19,14 +20,42 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   _client = [[KBRPClient alloc] init];
+  GHDebug(@"Opening");
   [_client open];
   
-  self.connectController = [[KBConnectWindowController alloc] init];
-  [self.connectController.window center];
+  _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
+  _statusItem.title = @"KB";
+  //_statusItem.image = [NSImage imageNamed:@"StatusIcon"];
+  //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
+  _statusItem.highlightMode = YES; // Blue background when selected
+}
+
+- (void)showLogin {
+  if (!self.connectController) {
+    _statusItem.menu = [self connectMenu];
+    self.connectController = [[KBConnectWindowController alloc] init];
+    [self.connectController.window setLevel:NSStatusWindowLevel];
+    [self.connectController.window center];
+  }
   [self.connectController showWindow:nil];
 }
 
-- (void)applicationWillTerminate:(NSNotification *)aNotification {
+- (NSMenu *)connectMenu {
+  NSMenu *menu = [[NSMenu alloc] init];
+  [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
+  return menu;
+}
+
+- (NSMenu *)menu {
+  NSMenu *menu = [[NSMenu alloc] init];
+  [menu addItemWithTitle:@"Contacts" action:@selector(contacts:) keyEquivalent:@""];
+  [menu addItemWithTitle:@"Log Out" action:@selector(logout:) keyEquivalent:@""];
+  [menu addItem:[NSMenuItem separatorItem]];
+  [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
+  return menu;
+}
+
+- (void)applicationWillTerminate:(NSNotification *)notification {
 
 }
 
@@ -37,5 +66,14 @@
 + (KBRPClient *)client {
   return ((AppDelegate *)[NSApp delegate]).client;
 }
+
++ (AppDelegate *)sharedDelegate {
+  return (AppDelegate *)[[NSApplication sharedApplication] delegate];
+}
+
+
+- (void)contacts:(id)sender { }
+- (void)logout:(id)sender { }
+- (void)quit:(id)sender { }
 
 @end

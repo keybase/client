@@ -27,12 +27,12 @@
 
 - (IBAction)login:(id)sender {
   KBRLogin *login = [[KBRLogin alloc] initWithClient:AppDelegate.client];
-  [login passphraseLoginWithPassphrase:self.passphraseField.stringValue completion:^(NSError *error, KBLoginRes *loginRes) {
+  [login passphraseLoginWithIdentify:YES completion:^(NSError *error) {
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:self.view.window completionHandler:nil];
       return;
     }
-    
+
   }];
 }
 

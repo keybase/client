@@ -15,5 +15,9 @@
 
 + (KBRPClient *)client;
 
++ (AppDelegate *)sharedDelegate;
+
+- (void)showLogin;
+
 @end
 

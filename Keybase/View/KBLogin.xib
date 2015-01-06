@@ -9,7 +9,7 @@
             <connections>
                 <outlet property="emailField" destination="pKk-Qw-Xsw" id="xLp-EH-IEj"/>
                 <outlet property="passphraseField" destination="s5u-by-iac" id="84Z-Jc-qld"/>
-                <outlet property="signupButton" destination="OD0-j7-Haq" id="5eM-cd-0I7"/>
+                <outlet property="signupButton" destination="OD0-j7-Haq" id="s4B-hU-qqy"/>
                 <outlet property="view" destination="NlY-JR-ogD" id="edr-9B-Gg2"/>
             </connections>
         </customObject>
@@ -39,7 +39,7 @@
                     </secureTextFieldCell>
                 </secureTextField>
                 <box verticalHuggingPriority="750" fixedFrame="YES" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="cta-NE-MhG">
-                    <rect key="frame" x="20" y="198" width="271" height="5"/>
+                    <rect key="frame" x="20" y="198" width="271" height="4"/>
                     <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                     <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     <font key="titleFont" metaFont="system"/>
