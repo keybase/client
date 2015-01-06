@@ -185,6 +185,8 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 @interface KBRLogin : KBRRequest
 - (void)passphraseLoginWithIdentify:(BOOL )identify completion:(void (^)(NSError *error))completion;
 
+- (void)passphraseLoginNoIdentifyWithUsername:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
+
 - (void)pubkeyLogin:(void (^)(NSError *error))completion;
 
 - (void)logout:(void (^)(NSError *error))completion;

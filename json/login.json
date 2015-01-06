@@ -66,6 +66,16 @@
       } ],
       "response" : "null"
     },
+    "passphraseLoginNoIdentify" : {
+      "request" : [ {
+        "name" : "username",
+        "type" : "string"
+      }, {
+        "name" : "passphrase",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "pubkeyLogin" : {
       "request" : [ ],
       "response" : "null"

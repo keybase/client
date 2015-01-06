@@ -410,8 +410,15 @@ func (c LogClient) Log(arg LogArg) (err error) {
 	return
 }
 
+type PassphraseLoginNoIdentifyArg struct {
+	_struct    bool   `codec:",toarray"`
+	Username   string `codec:"username"`
+	Passphrase string `codec:"passphrase"`
+}
+
 type LoginInterface interface {
 	PassphraseLogin(identify bool) error
+	PassphraseLoginNoIdentify(arg PassphraseLoginNoIdentifyArg) error
 	PubkeyLogin() error
 	Logout() error
 	SwitchUser(username string) error
@@ -425,6 +432,13 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 				args := make([]bool, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PassphraseLogin(args[0])
+				}
+				return
+			},
+			"passphraseLoginNoIdentify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				var args PassphraseLoginNoIdentifyArg
+				if err = nxt(&args); err == nil {
+					err = i.PassphraseLoginNoIdentify(args)
 				}
 				return
 			},
@@ -460,6 +474,11 @@ type LoginClient struct {
 
 func (c LoginClient) PassphraseLogin(identify bool) (err error) {
 	err = c.Cli.Call("keybase.1.login.passphraseLogin", []interface{}{identify}, nil)
+	return
+}
+
+func (c LoginClient) PassphraseLoginNoIdentify(arg PassphraseLoginNoIdentifyArg) (err error) {
+	err = c.Cli.Call("keybase.1.login.passphraseLoginNoIdentify", arg, nil)
 	return
 }
 

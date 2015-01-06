@@ -191,6 +191,14 @@
   }];
 }
 
+- (void)passphraseLoginNoIdentifyWithUsername:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[KBRValue(username), KBRValue(passphrase)];
+  [self.client sendRequestWithMethod:@"keybase.1.login.PassphraseLoginNoIdentify" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
 - (void)pubkeyLogin:(void (^)(NSError *error))completion {
 
   NSArray *params = @[];
