@@ -69,6 +69,11 @@ func (h *LoginHandler) PassphraseLogin(doIdentify bool) error {
 	return libkb.LoginAndIdentify(loginui, idui)
 }
 
+func (h *LoginHandler) PassphraseLoginNoIdentify(arg keybase_1.PassphraseLoginNoIdentifyArg) error {
+	largs := libkb.LoginArg{ Username : arg.Username, Passphrase : arg.Passphrase, NoUi : true }
+	return libkb.Login(largs)
+}
+
 func (h *LoginHandler) PubkeyLogin() error {
 	return nil
 }
