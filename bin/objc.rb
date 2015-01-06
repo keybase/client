@@ -114,11 +114,11 @@ paths.each do |path|
     request_params = mparam["request"]
     response_type = mparam["response"]
 
-    request_dict = request_params.map do |p|
+    request_params_array = request_params.map do |p|
       if is_primitive_type(p["type"]) || enums.include?(p["type"])
-        "@\"#{p["name"]}\": @(#{p["name"]})"
+        "@(#{p["name"]})"
       else
-        "@\"#{p["name"]}\": KBRValue(#{p["name"]})"
+        "KBRValue(#{p["name"]})"
       end
     end
 
@@ -160,7 +160,7 @@ paths.each do |path|
     end
 
     impl << "
-  NSDictionary *params = @{#{request_dict.join(", ")}};
+  NSArray *params = @[#{request_params_array.join(", ")}];
   [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params completion:^(NSError *error, NSDictionary *dict) {
     #{callback}
   }];"
