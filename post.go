@@ -40,7 +40,7 @@ func PostNewKey(arg PostNewKeyArg) error {
 		"is_remote_proof": B{false},
 		"type":            S{arg.Type},
 		"primary_kid":     S{arg.PrimaryKey.GetKid().ToString()},
-		"signing_kid":     S{arg.PrimaryKey.GetKid().ToString()},
+		"signing_kid":     S{arg.SigningKey.GetKid().ToString()},
 		"public_key":      S{pub},
 	}
 
