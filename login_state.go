@@ -229,7 +229,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 		err = s.login(&arg)
 		if err == nil {
 			break
-		} else if _, badpw := err.(PassphraseError); !badpw || len(arg.Passphrase) == 0 {
+		} else if _, badpw := err.(PassphraseError); !badpw || len(arg.Passphrase) > 0 {
 			break
 		} else {
 			arg.RetryMsg = err.Error()
