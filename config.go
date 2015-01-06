@@ -12,12 +12,8 @@ type ConfigHandler struct {
 
 func (h ConfigHandler) GetCurrentStatus() (res keybase_1.GetCurrentStatusRes, err error) {
 	var cs libkb.CurrentStatus
-	cs, err = libkb.GetCurrentStatus()
-	if err == nil {
-		res.Configured = cs.Configured
-		res.Registered = cs.Registered
-		res.LoggedIn = cs.LoggedIn
-		res.PublicKeySelected = cs.PublicKeySelected
+	if cs, err = libkb.GetCurrentStatus(); err == nil {
+		res = cs.Export()
 	}
 	return
 }
