@@ -203,12 +203,14 @@ func (s *LoginState) Logout() error {
 }
 
 type LoginArg struct {
-	Force    bool
-	Prompt   bool
-	Retry    int
-	RetryMsg string
-	Username string
-	Ui       LoginUI
+	Force      bool
+	Prompt     bool
+	Retry      int
+	RetryMsg   string
+	Username   string
+	Passphrase string
+	Ui         LoginUI
+	NoUi       bool
 }
 
 func (s *LoginState) Login(arg LoginArg) error {
@@ -219,7 +221,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 		n_tries = 1
 	}
 	var err error
-	if arg.Ui == nil {
+	if arg.Ui == nil && !arg.NoUi {
 		arg.Ui = G.UI.GetLoginUI()
 	}
 
@@ -227,7 +229,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 		err = s.login(&arg)
 		if err == nil {
 			break
-		} else if _, badpw := err.(PassphraseError); !badpw {
+		} else if _, badpw := err.(PassphraseError); !badpw || len(arg.Passphrase) == 0 {
 			break
 		} else {
 			arg.RetryMsg = err.Error()
@@ -268,7 +270,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 
 	email_or_username := arg.Username
 	if len(email_or_username) == 0 {
-		if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt {
+		if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt && arg.Ui != nil {
 			email_or_username, err = arg.Ui.GetEmailOrUsername()
 			if err == nil {
 				arg.Username = email_or_username
@@ -288,7 +290,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 		return
 	}
 
-	if _, err = s.GetTriplesec(email_or_username, arg.RetryMsg, arg.Ui); err != nil {
+	if _, err = s.GetTriplesec(email_or_username, arg.Passphrase, arg.RetryMsg, arg.Ui); err != nil {
 		return
 	}
 
@@ -313,7 +315,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 	return
 }
 
-func (s *LoginState) GetTriplesec(un string, retry string, ui LoginUI) (ret *triplesec.Cipher, err error) {
+func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui LoginUI) (ret *triplesec.Cipher, err error) {
 	if s.tsec != nil {
 		ret = s.tsec
 		return
@@ -325,8 +327,10 @@ func (s *LoginState) GetTriplesec(un string, retry string, ui LoginUI) (ret *tri
 		err = fmt.Errorf("Cannot encrypt; no salt found")
 	}
 
-	var pp string
-	if pp, err = ui.GetKeybasePassphrase(un, retry); err != nil {
+	if len(pp) > 0 {
+	} else if ui == nil {
+		err = fmt.Errorf("No passphrase available")
+	} else if pp, err = ui.GetKeybasePassphrase(un, retry); err != nil {
 		return
 	}
 
@@ -335,12 +339,15 @@ func (s *LoginState) GetTriplesec(un string, retry string, ui LoginUI) (ret *tri
 	}
 
 	ret = s.tsec
-
 	return
 }
 
 func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 	return s.tsec
+}
+
+func Login(arg LoginArg) error {
+	return G.LoginState.Login(arg)
 }
 
 func LoginAndIdentify(login LoginUI, identify IdentifyUI) error {

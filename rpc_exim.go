@@ -158,6 +158,8 @@ func ImportStatusAsError(s keybase_1.Status) error {
 		return nil
 	} else if s.Code == SC_GENERIC {
 		return fmt.Errorf(s.Desc)
+	} else if s.Code == SC_BAD_LOGIN_PASSWORD {
+		return PassphraseError{s.Desc}
 	} else {
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -309,6 +311,15 @@ func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
 			Username: c.User.Username,
 		}
 	}
+	return
+}
+
+//=============================================================================
+
+func (p PassphraseError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_BAD_LOGIN_PASSWORD
+	s.Name = "BAD_LOGIN_PASSWORD"
+	s.Desc = p.msg
 	return
 }
 
