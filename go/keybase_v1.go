@@ -65,7 +65,7 @@ type ConfigClient struct {
 }
 
 func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
-	err = c.Cli.Call("keybase.1.config.getCurrentStatus", nil, &res)
+	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{}, &res)
 	return
 }
 
@@ -188,44 +188,52 @@ type FinishAndPromptRes struct {
 }
 
 type FinishAndPromptArg struct {
+	_struct   bool            `codec:",toarray"`
 	SessionId int             `codec:"sessionId"`
 	Outcome   IdentifyOutcome `codec:"outcome"`
 }
 
 type FinishWebProofCheckArg struct {
+	_struct   bool            `codec:",toarray"`
 	SessionId int             `codec:"sessionId"`
 	Rp        RemoteProof     `codec:"rp"`
 	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type FinishSocialProofCheckArg struct {
+	_struct   bool            `codec:",toarray"`
 	SessionId int             `codec:"sessionId"`
 	Rp        RemoteProof     `codec:"rp"`
 	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type DisplayCryptocurrencyArg struct {
+	_struct   bool           `codec:",toarray"`
 	SessionId int            `codec:"sessionId"`
 	C         Cryptocurrency `codec:"c"`
 }
 
 type DisplayKeyArg struct {
+	_struct   bool       `codec:",toarray"`
 	SessionId int        `codec:"sessionId"`
 	Fokid     FOKID      `codec:"fokid"`
-	Diff      *TrackDiff `codec:"diff,omitempty"`
+	Diff      *TrackDiff `codec:"diff"`
 }
 
 type ReportLastTrackArg struct {
+	_struct   bool          `codec:",toarray"`
 	SessionId int           `codec:"sessionId"`
-	Track     *TrackSummary `codec:"track,omitempty"`
+	Track     *TrackSummary `codec:"track"`
 }
 
 type LaunchNetworkChecksArg struct {
+	_struct   bool     `codec:",toarray"`
 	SessionId int      `codec:"sessionId"`
 	Id        Identity `codec:"id"`
 }
 
 type WarningArg struct {
+	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Msg       string `codec:"msg"`
 }
@@ -362,8 +370,9 @@ const (
 )
 
 type LogArg struct {
-	Level LogLevel `codec:"level"`
-	Text  Text     `codec:"text"`
+	_struct bool     `codec:",toarray"`
+	Level   LogLevel `codec:"level"`
+	Text    Text     `codec:"text"`
 }
 
 type LogInterface interface {
@@ -407,9 +416,9 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 		Name: "keybase.1.login",
 		Methods: map[string]rpc2.ServeHook{
 			"passphraseLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args bool
+				args := make([]bool, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PassphraseLogin(args)
+					err = i.PassphraseLogin(args[0])
 				}
 				return
 			},
@@ -428,9 +437,9 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 				return
 			},
 			"switchUser": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args string
+				args := make([]string, 1)
 				if err = nxt(&args); err == nil {
-					err = i.SwitchUser(args)
+					err = i.SwitchUser(args[0])
 				}
 				return
 			},
@@ -444,26 +453,27 @@ type LoginClient struct {
 }
 
 func (c LoginClient) PassphraseLogin(identify bool) (err error) {
-	err = c.Cli.Call("keybase.1.login.passphraseLogin", identify, nil)
+	err = c.Cli.Call("keybase.1.login.passphraseLogin", []interface{}{identify}, nil)
 	return
 }
 
 func (c LoginClient) PubkeyLogin() (err error) {
-	err = c.Cli.Call("keybase.1.login.pubkeyLogin", nil, nil)
+	err = c.Cli.Call("keybase.1.login.pubkeyLogin", []interface{}{}, nil)
 	return
 }
 
 func (c LoginClient) Logout() (err error) {
-	err = c.Cli.Call("keybase.1.login.logout", nil, nil)
+	err = c.Cli.Call("keybase.1.login.logout", []interface{}{}, nil)
 	return
 }
 
 func (c LoginClient) SwitchUser(username string) (err error) {
-	err = c.Cli.Call("keybase.1.login.switchUser", username, nil)
+	err = c.Cli.Call("keybase.1.login.switchUser", []interface{}{username}, nil)
 	return
 }
 
 type GetKeybasePassphraseArg struct {
+	_struct  bool   `codec:",toarray"`
 	Username string `codec:"username"`
 	Retry    string `codec:"retry"`
 }
@@ -501,7 +511,7 @@ type LoginUiClient struct {
 }
 
 func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
-	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", nil, &res)
+	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{}, &res)
 	return
 }
 
@@ -511,6 +521,7 @@ func (c LoginUiClient) GetKeybasePassphrase(arg GetKeybasePassphraseArg) (res st
 }
 
 type ProveArg struct {
+	_struct  bool   `codec:",toarray"`
 	Service  string `codec:"service"`
 	Username string `codec:"username"`
 	Force    bool   `codec:"force"`
@@ -546,44 +557,52 @@ func (c ProveClient) Prove(arg ProveArg) (err error) {
 }
 
 type PromptOverwrite1Arg struct {
+	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Account   string `codec:"account"`
 }
 
 type PromptOverwrite2Arg struct {
+	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Service   string `codec:"service"`
 }
 
 type PromptUsernameArg struct {
+	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Prompt    string `codec:"prompt"`
 	PrevError Status `codec:"prevError"`
 }
 
 type OutputPrechecksArg struct {
+	_struct   bool `codec:",toarray"`
 	SessionId int  `codec:"sessionId"`
 	Text      Text `codec:"text"`
 }
 
 type PreProofWarningArg struct {
+	_struct   bool `codec:",toarray"`
 	SessionId int  `codec:"sessionId"`
 	Text      Text `codec:"text"`
 }
 
 type OutputInstructionsArg struct {
+	_struct      bool   `codec:",toarray"`
 	SessionId    int    `codec:"sessionId"`
 	Instructions Text   `codec:"instructions"`
 	Proof        string `codec:"proof"`
 }
 
 type OkToCheckArg struct {
+	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Name      string `codec:"name"`
 	Attempt   int    `codec:"attempt"`
 }
 
 type DisplayRecheckWarningArg struct {
+	_struct   bool `codec:",toarray"`
 	SessionId int  `codec:"sessionId"`
 	Text      Text `codec:"text"`
 }
@@ -715,6 +734,7 @@ type SignupRes struct {
 }
 
 type SignupArg struct {
+	_struct    bool   `codec:",toarray"`
 	Email      string `codec:"email"`
 	InviteCode string `codec:"inviteCode"`
 	Passphrase string `codec:"passphrase"`
@@ -722,6 +742,7 @@ type SignupArg struct {
 }
 
 type InviteRequestArg struct {
+	_struct  bool   `codec:",toarray"`
 	Email    string `codec:"email"`
 	Fullname string `codec:"fullname"`
 	Notes    string `codec:"notes"`
@@ -738,9 +759,9 @@ func SignupProtocol(i SignupInterface) rpc2.Protocol {
 		Name: "keybase.1.signup",
 		Methods: map[string]rpc2.ServeHook{
 			"checkUsernameAvailable": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args string
+				args := make([]string, 1)
 				if err = nxt(&args); err == nil {
-					err = i.CheckUsernameAvailable(args)
+					err = i.CheckUsernameAvailable(args[0])
 				}
 				return
 			},
@@ -768,7 +789,7 @@ type SignupClient struct {
 }
 
 func (c SignupClient) CheckUsernameAvailable(username string) (err error) {
-	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", username, nil)
+	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", []interface{}{username}, nil)
 	return
 }
 
@@ -783,8 +804,9 @@ func (c SignupClient) InviteRequest(arg InviteRequestArg) (err error) {
 }
 
 type PromptYesNoArg struct {
-	Text Text  `codec:"text"`
-	Def  *bool `codec:"def,omitempty"`
+	_struct bool  `codec:",toarray"`
+	Text    Text  `codec:"text"`
+	Def     *bool `codec:"def"`
 }
 
 type UiInterface interface {

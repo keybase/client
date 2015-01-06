@@ -46,12 +46,15 @@ class GoEmitter
     else "ERROR"
     { type , optional }
 
-  emit_record : (json) ->
+  emit_wrapper_record_first : () ->
+
+  emit_record : (json, {wrapper} ) ->
     @output "type #{@go_export_case(json.name)} struct {"
     @tab()
+    @emit_wrapper_record_first() if wrapper
     for f in json.fields
       {type, optional } = @emit_field_type(f.type)
-      omitempty = if optional then ",omitempty" else ""
+      omitempty = if optional and not(wrapper) then ",omitempty" else ""
       @output [
         @go_export_case(f.name),
         type,
@@ -71,7 +74,7 @@ class GoEmitter
     return if @_cache[t.name]
     switch t.type
       when "record"
-        @emit_record t
+        @emit_record t, {}
       when "fixed"
         @emit_fixed t
       when "enum"
@@ -109,6 +112,8 @@ class GoEmitter
     for k,v of messages
       @emit_wrapper_object k, v
 
+  special_wrapper_object : () -> true
+
   emit_wrapper_object : (name, details) ->
     args = details.request
     if args.length isnt 1
@@ -116,10 +121,11 @@ class GoEmitter
       obj =
         name : klass_name
         fields : args
-      @emit_record obj
+      @emit_record obj, { wrapper : @special_wrapper_object() }
       details.request = [{
         type : klass_name
         name : "arg"
+        wrapper : true
       }]
 
   emit_interface : (protocol, messages) ->
@@ -206,6 +212,11 @@ class GoEmitter2 extends GoEmitter
     @output "}"
     @emit_protocol_server protocol, messages
 
+  emit_wrapper_record_first : () ->
+    @output """_struct bool `codec:",toarray"`"""
+
+  special_wrapper_object : () -> true
+
   emit_wrapper_object : (name, details) ->
     args = details.request
     if args.length is 0
@@ -222,10 +233,16 @@ class GoEmitter2 extends GoEmitter
     resvar = if res is "null" then "" else "ret, "
     @output """"#{name}": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {"""
     @tab()
-    @output "var args #{if arg? then @go_primitive_type(arg.type) else 'interface{}'}"
+    decargs = if not arg? then "var args interface{}"
+    else if arg.wrapper then "var args #{@go_primitive_type(arg.type)}"
+    else "args := make([]#{@go_primitive_type(arg.type)}, 1)"
+    @output decargs
     @output "if err = nxt(&args); err == nil {"
     @tab()
-    @output "#{resvar}err = i.#{@go_export_case(name)}(#{if arg? then 'args' else ''})"
+    farg = if not arg? then ''
+    else if arg.wrapper then "args"
+    else "args[0]"
+    @output "#{resvar}err = i.#{@go_export_case(name)}(#{farg})"
     @untab()
     @output "} "
     @output "return"
@@ -274,7 +291,10 @@ class GoEmitter2 extends GoEmitter
     params = if arg? then "#{arg.name} #{@go_primitive_type(arg.type)}" else ""
     @output "func (c #{p}Client) #{@go_export_case(name)}(#{params}) (#{outs}) {"
     @tab()
-    @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{if arg? then arg.name else 'nil'}, #{res_in})"""
+    oarg = if not arg? then "[]interface{}{}"
+    else if arg.wrapper then arg.name
+    else "[]interface{}{#{arg.name}}"
+    @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
     @output "return"
     @untab()
     @output "}"
