@@ -62,7 +62,7 @@
   }];
 }
 
-- (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion {
+- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
     completion(KBMakeError(-400, @"We are unable to connect to the keybased client.", @""), nil);
     return;
