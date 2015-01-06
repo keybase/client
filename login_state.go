@@ -193,6 +193,10 @@ func (s *LoginState) Logout() error {
 	if err == nil {
 		s.LoggedIn = false
 		s.SessionVerified = false
+		if s.tsec != nil {
+			s.tsec.Scrub()
+			s.tsec = nil
+		}
 	}
 	G.Log.Debug("- Logout called")
 	return err
