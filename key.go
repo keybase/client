@@ -278,6 +278,7 @@ type GenericKey interface {
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
+	Encode() (string, error) // encode public key to string
 }
 
 func (k KID) ToMapKey() string {

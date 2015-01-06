@@ -331,7 +331,20 @@ func NewAppStatusError(jw *jsonw.Wrapper) AppStatusError {
 }
 
 func (a AppStatusError) Error() string {
-	return fmt.Sprintf("Failure from server: %s (error %d)", a.Desc, a.Code)
+	v := make([]string, len(a.Fields))
+	i := 0
+
+	for k, _ := range a.Fields {
+		v[i] = k
+		i++
+	}
+
+	fields := ""
+	if i > 0 {
+		fields = fmt.Sprintf(" (bad fields: %s)", strings.Join(v, ","))
+	}
+
+	return fmt.Sprintf("Failure from server: %s%s (error %d)", a.Desc, fields, a.Code)
 }
 
 //=============================================================================

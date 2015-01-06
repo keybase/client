@@ -13,7 +13,8 @@ type NaclKeyGenArg struct {
 	Generator func() (NaclKeyPair, error)
 	Me        *User
 	Type      string
-	ExpireIn  int // how long it lasts
+	ExpireIn  int        // how long it lasts
+	Primary   GenericKey // the primary key for this epoch
 }
 
 type NaclKeyGen struct {
@@ -46,7 +47,14 @@ func (g *NaclKeyGen) Push() (err error) {
 	if sig, id, err = SignJson(jw, g.arg.Signer); err != nil {
 		return
 	}
-	arg := PostNewKeyArg{Sig: sig, Id: *id, Type: g.arg.Type}
+	arg := PostNewKeyArg{
+		Sig:        sig,
+		Id:         *id,
+		Type:       g.arg.Type,
+		PrimaryKey: g.arg.Primary,
+		SigningKey: g.arg.Signer,
+		PublicKey:  g.pair,
+	}
 	if err = PostNewKey(arg); err != nil {
 		return
 	}

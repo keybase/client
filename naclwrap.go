@@ -120,6 +120,16 @@ func (k NaclSigningKeyPair) CheckSecretKey() (err error) {
 	return
 }
 
+func (k NaclSigningKeyPair) Encode() (s string, err error) {
+	s = k.GetKid().ToString()
+	return
+}
+
+func (k NaclDHKeyPair) Encode() (s string, err error) {
+	s = k.GetKid().ToString()
+	return
+}
+
 func (k NaclDHKeyPair) CheckSecretKey() (err error) {
 	if k.Private == nil {
 		err = NoKeyError{"no private key found"}
