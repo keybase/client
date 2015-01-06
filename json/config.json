@@ -59,6 +59,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "UserInfo",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "string"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "GetCurrentStatusRes",
     "fields" : [ {
       "name" : "configured",
@@ -75,6 +85,9 @@
     }, {
       "name" : "hasPrivateKey",
       "type" : "boolean"
+    }, {
+      "name" : "user",
+      "type" : [ "null", "UserInfo" ]
     } ]
   } ],
   "messages" : {

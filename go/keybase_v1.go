@@ -32,12 +32,18 @@ type Text struct {
 	Markup bool   `codec:"markup"`
 }
 
+type UserInfo struct {
+	Uid      string `codec:"uid"`
+	Username string `codec:"username"`
+}
+
 type GetCurrentStatusRes struct {
-	Configured        bool `codec:"configured"`
-	Registered        bool `codec:"registered"`
-	LoggedIn          bool `codec:"loggedIn"`
-	PublicKeySelected bool `codec:"publicKeySelected"`
-	HasPrivateKey     bool `codec:"hasPrivateKey"`
+	Configured        bool      `codec:"configured"`
+	Registered        bool      `codec:"registered"`
+	LoggedIn          bool      `codec:"loggedIn"`
+	PublicKeySelected bool      `codec:"publicKeySelected"`
+	HasPrivateKey     bool      `codec:"hasPrivateKey"`
+	User              *UserInfo `codec:"user,omitempty"`
 }
 
 type ConfigInterface interface {
