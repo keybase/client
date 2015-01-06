@@ -52,7 +52,8 @@ func (u *LoginUI) GetEmailOrUsername() (ret string, err error) {
 }
 
 func (u *LoginUI) GetKeybasePassphrase(username string, retry string) (string, error) {
-	return u.cli.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{username, retry})
+	arg := keybase_1.GetKeybasePassphraseArg{Username : username, Retry :retry}
+	return u.cli.GetKeybasePassphrase(arg)
 }
 
 func (h *LoginHandler) Logout() error {
