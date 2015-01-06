@@ -45,15 +45,15 @@
 @end
 
 typedef NS_ENUM (NSInteger, KBTrackDiffType) {
-	KBNone, 
-	KBError, 
-	KBClash, 
-	KBDeleted, 
-	KBUpgraded, 
-	KBNew, 
-	KBRemote_fail, 
-	KBRemote_working, 
-	KBRemote_changed, 
+	KBTrackDiffTypeNone, 
+	KBTrackDiffTypeError, 
+	KBTrackDiffTypeClash, 
+	KBTrackDiffTypeDeleted, 
+	KBTrackDiffTypeUpgraded, 
+	KBTrackDiffTypeNew, 
+	KBTrackDiffTypeRemote_fail, 
+	KBTrackDiffTypeRemote_working, 
+	KBTrackDiffTypeRemote_changed, 
 };
 @interface KBTrackDiff : KBRObject
 @property KBTrackDiffType type;
@@ -144,32 +144,32 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property BOOL trackRemote;
 @end
 
-@interface KBRIdentifyui : KBRRequest
-- (void)finishAndPromptWithSessionid:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion;
+@interface KBRIdentifyUi : KBRRequest
+- (void)finishAndPromptWithSessionId:(NSInteger )sessionId outcome:(KBIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBFinishAndPromptRes * finishAndPromptRes))completion;
 
-- (void)finishWebProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion;
+- (void)finishWebProofCheckWithSessionId:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion;
 
-- (void)finishSocialProofCheckWithSessionid:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion;
+- (void)finishSocialProofCheckWithSessionId:(NSInteger )sessionId rp:(KBRemoteProof *)rp lcr:(KBLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion;
 
-- (void)displayCryptocurrencyWithSessionid:(NSInteger )sessionId c:(KBCryptocurrency *)c completion:(void (^)(NSError *error))completion;
+- (void)displayCryptocurrencyWithSessionId:(NSInteger )sessionId c:(KBCryptocurrency *)c completion:(void (^)(NSError *error))completion;
 
-- (void)displayKeyWithSessionid:(NSInteger )sessionId fokid:(KBFOKID *)fokid diff:(KBTrackDiff *)diff completion:(void (^)(NSError *error))completion;
+- (void)displayKeyWithSessionId:(NSInteger )sessionId fokid:(KBFOKID *)fokid diff:(KBTrackDiff *)diff completion:(void (^)(NSError *error))completion;
 
-- (void)reportLastTrackWithSessionid:(NSInteger )sessionId track:(KBTrackSummary *)track completion:(void (^)(NSError *error))completion;
+- (void)reportLastTrackWithSessionId:(NSInteger )sessionId track:(KBTrackSummary *)track completion:(void (^)(NSError *error))completion;
 
-- (void)launchNetworkChecksWithSessionid:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error))completion;
+- (void)launchNetworkChecksWithSessionId:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error))completion;
 
-- (void)warningWithSessionid:(NSInteger )sessionId msg:(NSString *)msg completion:(void (^)(NSError *error))completion;
+- (void)warningWithSessionId:(NSInteger )sessionId msg:(NSString *)msg completion:(void (^)(NSError *error))completion;
 
 @end
 
 typedef NS_ENUM (NSInteger, KBLogLevel) {
-	KBNone, 
-	KBDebug, 
-	KBInfo, 
-	KBWarn, 
-	KBError, 
-	KBCritical, 
+	KBLogLevelNone, 
+	KBLogLevelDebug, 
+	KBLogLevelInfo, 
+	KBLogLevelWarn, 
+	KBLogLevelError, 
+	KBLogLevelCritical, 
 };
 @interface KBRLog : KBRRequest
 - (void)logWithLevel:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion;
@@ -187,7 +187,7 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
-@interface KBRLoginui : KBRRequest
+@interface KBRLoginUi : KBRRequest
 - (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion;
 
 - (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
@@ -199,22 +199,22 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
-@interface KBRProveui : KBRRequest
-- (void)promptOverwrite1WithSessionid:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion;
+@interface KBRProveUi : KBRRequest
+- (void)promptOverwrite1WithSessionId:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion;
 
-- (void)promptOverwrite2WithSessionid:(NSInteger )sessionId service:(NSString *)service completion:(void (^)(NSError *error, BOOL  b))completion;
+- (void)promptOverwrite2WithSessionId:(NSInteger )sessionId service:(NSString *)service completion:(void (^)(NSError *error, BOOL  b))completion;
 
-- (void)promptUsernameWithSessionid:(NSInteger )sessionId prompt:(NSString *)prompt prevError:(KBStatus *)prevError completion:(void (^)(NSError *error, NSString * str))completion;
+- (void)promptUsernameWithSessionId:(NSInteger )sessionId prompt:(NSString *)prompt prevError:(KBStatus *)prevError completion:(void (^)(NSError *error, NSString * str))completion;
 
-- (void)outputPrechecksWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
+- (void)outputPrechecksWithSessionId:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
 
-- (void)preProofWarningWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error, BOOL  b))completion;
+- (void)preProofWarningWithSessionId:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error, BOOL  b))completion;
 
-- (void)outputInstructionsWithSessionid:(NSInteger )sessionId instructions:(KBText *)instructions proof:(NSString *)proof completion:(void (^)(NSError *error))completion;
+- (void)outputInstructionsWithSessionId:(NSInteger )sessionId instructions:(KBText *)instructions proof:(NSString *)proof completion:(void (^)(NSError *error))completion;
 
-- (void)okToCheckWithSessionid:(NSInteger )sessionId name:(NSString *)name attempt:(NSInteger )attempt completion:(void (^)(NSError *error, BOOL  b))completion;
+- (void)okToCheckWithSessionId:(NSInteger )sessionId name:(NSString *)name attempt:(NSInteger )attempt completion:(void (^)(NSError *error, BOOL  b))completion;
 
-- (void)displayRecheckWarningWithSessionid:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
+- (void)displayRecheckWarningWithSessionId:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
 
 @end
 

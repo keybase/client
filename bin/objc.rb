@@ -37,10 +37,14 @@ def objc_for_type(type, enums)
 end
 
 def is_native_type(type)
-  ["string", "int", "array", "boolean", "null"].include?(type)
+  is_primitive_type(type) || ["string", "array"].include?(type)
 end
 
 def is_primitive_type(type)
+  if type.kind_of?(Array) # Union
+    type = type.find { |t| t != "null" }
+  end
+
   ["int", "boolean", "null"].include?(type)
 end
 
@@ -52,7 +56,7 @@ def default_name_for_type(type)
   when "boolean" then "b"
   when "binary" then "data"
   when "null" then "void"
-  else type[0, 1].downcase + type[1..-1] # uncapitalize
+  else type.camelize(:lower)
   end
 end
 
@@ -76,9 +80,10 @@ paths.each do |path|
 
     if type["type"] == "enum"
       enums << type["name"]
-      header << "typedef NS_ENUM (NSInteger, KB#{type["name"]}) {"
+      enum_name = "KB#{type["name"]}"
+      header << "typedef NS_ENUM (NSInteger, #{enum_name}) {"
       type["symbols"].each do |sym|
-        header << "\tKB#{sym.capitalize}, "
+        header << "\t#{enum_name}#{sym.capitalize}, "
       end
       header << "};"
     end
@@ -102,15 +107,15 @@ paths.each do |path|
   end
 
 
-  header << "@interface KBR#{protocol.capitalize} : KBRRequest"
-  impl << "@implementation KBR#{protocol.capitalize}"
+  header << "@interface KBR#{protocol.camelize} : KBRRequest"
+  impl << "@implementation KBR#{protocol.camelize}"
 
   h["messages"].each do |method, mparam|
     request_params = mparam["request"]
     response_type = mparam["response"]
 
     request_dict = request_params.map do |p|
-      if is_primitive_type(p["type"])
+      if is_primitive_type(p["type"]) || enums.include?(p["type"])
         "@\"#{p["name"]}\": @(#{p["name"]})"
       else
         "@\"#{p["name"]}\": KBRValue(#{p["name"]})"
@@ -127,14 +132,14 @@ paths.each do |path|
 
     params_str = request_params.each_with_index.collect do |param, index|
       name = param["name"]
-      name = "With#{name.capitalize}" if index == 0
+      name = "With#{name.camelize}" if index == 0
       name = "" if request_params.length == 1
 
       "#{name}:(#{objc_for_type(param["type"], enums)})#{param["name"]}"
     end
 
-    rpc_method = "#{namespace}.#{protocol}.#{method}"
-    dc_method = method[0, 1].downcase + method[1..-1] # Uncapitalize
+    rpc_method = "#{namespace}.#{protocol}.#{method.camelize(:upper)}"
+    dc_method = method.camelize(:lower)
     objc_method = "- (void)#{dc_method}#{params_str.join(" ")}"
 
     header << "#{objc_method};\n"
@@ -142,19 +147,21 @@ paths.each do |path|
 
     callback = if response_type == "null" then
       "completion(error);"
+    elsif is_native_type(response_type)
+      "completion(error, 0);" # TODO
     else
       classname = "KB#{response_type}"
-      "#{classname} *result = [MTLJSONAdapter modelOfClass:#{classname}.class fromJSONDictionary:dict error:&error];
-    completion(error, result);"
+      "if (error) {
+        completion(error, nil);
+        return;
+      }
+      #{classname} *result = [MTLJSONAdapter modelOfClass:#{classname}.class fromJSONDictionary:dict error:&error];
+      completion(error, result);"
     end
 
     impl << "
   NSDictionary *params = @{#{request_dict.join(", ")}};
   [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
     #{callback}
   }];"
 
