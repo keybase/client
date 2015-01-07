@@ -44,7 +44,7 @@ func (g *NaclKeyGen) Push() (err error) {
 	}
 	var sig string
 	var id *SigId
-	if sig, id, err = SignJson(jw, g.arg.Signer); err != nil {
+	if sig, id, _, err = SignJson(jw, g.arg.Signer); err != nil {
 		return
 	}
 	arg := PostNewKeyArg{

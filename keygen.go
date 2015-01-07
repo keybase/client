@@ -182,7 +182,7 @@ func (s *KeyGen) GeneratePost() (err error) {
 	if jw, err = s.me.SelfProof(); err != nil {
 		return
 	}
-	if sig, sigid, err = SignJson(jw, s.bundle); err != nil {
+	if sig, sigid, _, err = SignJson(jw, s.bundle); err != nil {
 		return
 	}
 	if pubkey, err = s.bundle.Encode(); err != nil {
