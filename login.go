@@ -52,7 +52,7 @@ func (u *LoginUI) GetEmailOrUsername() (ret string, err error) {
 }
 
 func (u *LoginUI) GetKeybasePassphrase(username string, retry string) (string, error) {
-	arg := keybase_1.GetKeybasePassphraseArg{Username : username, Retry :retry}
+	arg := keybase_1.GetKeybasePassphraseArg{Username: username, Retry: retry}
 	return u.cli.GetKeybasePassphrase(arg)
 }
 
@@ -60,18 +60,23 @@ func (h *LoginHandler) Logout() error {
 	return G.LoginState.Logout()
 }
 
-func (h *LoginHandler) PassphraseLogin(doIdentify bool) error {
-	loginui := h.getLoginUi()
-	var idui libkb.IdentifyUI
-	if doIdentify {
-		idui = h.getIdentifyUi()
+func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
+	var liarg libkb.LoginAndIdentifyArg
+	liarg.Login.Username = arg.Username
+	liarg.Login.Passphrase = arg.Passphrase
+	if len(arg.Username) > 0 && len(arg.Passphrase) > 0 {
+		liarg.Login.NoUi = true
+	} else {
+		liarg.Login.Prompt = true
+		liarg.Login.Retry = 3
+		liarg.Login.Ui = h.getLoginUi()
 	}
-	return libkb.LoginAndIdentify(loginui, idui)
-}
 
-func (h *LoginHandler) PassphraseLoginNoIdentify(arg keybase_1.PassphraseLoginNoIdentifyArg) error {
-	largs := libkb.LoginArg{ Username : arg.Username, Passphrase : arg.Passphrase, NoUi : true }
-	return libkb.Login(largs)
+	if arg.Identify {
+		liarg.IdentifyUI = h.getIdentifyUi()
+	}
+
+	return libkb.LoginAndIdentify(liarg)
 }
 
 func (h *LoginHandler) PubkeyLogin() error {
