@@ -46,15 +46,13 @@ class GoEmitter
     else "ERROR"
     { type , optional }
 
-  emit_wrapper_record_first : () ->
-
   emit_record : (json, {wrapper} ) ->
     @output "type #{@go_export_case(json.name)} struct {"
     @tab()
     @emit_wrapper_record_first() if wrapper
     for f in json.fields
       {type, optional } = @emit_field_type(f.type)
-      omitempty = if optional and not(wrapper) then ",omitempty" else ""
+      omitempty = if optional then ",omitempty" else ""
       @output [
         @go_export_case(f.name),
         type,
@@ -112,21 +110,20 @@ class GoEmitter
     for k,v of messages
       @emit_wrapper_object k, v
 
-  special_wrapper_object : () -> true
-
   emit_wrapper_object : (name, details) ->
     args = details.request
-    if args.length isnt 1
-      klass_name = @go_export_case(name) + "Arg"
-      obj =
-        name : klass_name
-        fields : args
-      @emit_record obj, { wrapper : @special_wrapper_object() }
-      details.request = [{
-        type : klass_name
-        name : "arg"
-        wrapper : true
-      }]
+    klass_name = @go_export_case(name) + "Arg"
+    obj =
+      name : klass_name
+      fields : args
+    @emit_record obj, {}
+    details.request = {
+      type : klass_name
+      name : "__arg"
+      wrapper : true
+      nargs : args.length
+      single : if args.length is 1 then args[0] else null
+    }
 
   emit_interface : (protocol, messages) ->
     @emit_wrapper_objects messages
@@ -212,35 +209,22 @@ class GoEmitter2 extends GoEmitter
     @output "}"
     @emit_protocol_server protocol, messages
 
-  emit_wrapper_record_first : () ->
-    @output """_struct bool `codec:",toarray"`"""
-
   special_wrapper_object : () -> true
-
-  emit_wrapper_object : (name, details) ->
-    args = details.request
-    if args.length is 0
-      details.request = [ null ]
-    else
-      super name, details
 
   emit_imports : () ->
     @output '"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"'
 
   emit_server_hook : (name, details) ->
-    arg = details.request[0]
+    arg = details.request
     res = details.response
     resvar = if res is "null" then "" else "ret, "
     @output """"#{name}": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {"""
     @tab()
-    decargs = if not arg? then "var args interface{}"
-    else if arg.wrapper then "var args #{@go_primitive_type(arg.type)}"
-    else "args := make([]#{@go_primitive_type(arg.type)}, 1)"
-    @output decargs
+    @output "args := make([]#{@go_primitive_type(arg.type)}, 1)"
     @output "if err = nxt(&args); err == nil {"
     @tab()
-    farg = if not arg? then ''
-    else if arg.wrapper then "args"
+    farg = if arg.nargs is 0 then ''
+    else if arg.nargs is 1 then "args[0].#{@go_export_case arg.single.name}"
     else "args[0]"
     @output "#{resvar}err = i.#{@go_export_case(name)}(#{farg})"
     @untab()
@@ -268,9 +252,9 @@ class GoEmitter2 extends GoEmitter
     @output "}"
 
   emit_message_server : (name, details) ->
-    arg = details.request[0]
+    arg = details.request
     res = details.response
-    args = if arg? then "#{arg.name} #{@go_primitive_type(arg.type)}" else ""
+    args = if arg.nargs then "#{@go_primitive_type((arg.single or arg).type)}" else ""
     res_types = []
     if res isnt "null" then res_types.push @go_primitive_type(res)
     res_types.push "error"
@@ -278,7 +262,7 @@ class GoEmitter2 extends GoEmitter
 
   emit_message_client: (protocol, name, details, async) ->
     p = @go_export_case protocol
-    arg = details.request[0]
+    arg = details.request
     res = details.response
     out_list = []
     if res isnt "null"
@@ -288,12 +272,19 @@ class GoEmitter2 extends GoEmitter
       res_in = "nil"
     out_list.push "err error"
     outs = out_list.join ","
-    params = if arg? then "#{arg.name} #{@go_primitive_type(arg.type)}" else ""
+    params = if arg.nargs is 0 then ""
+    else
+      parg = arg.single or arg
+      "#{parg.name} #{@go_primitive_type(parg.type)}"
     @output "func (c #{p}Client) #{@go_export_case(name)}(#{params}) (#{outs}) {"
     @tab()
-    oarg = if not arg? then "[]interface{}{}"
-    else if arg.wrapper then arg.name
-    else "[]interface{}{#{arg.name}}"
+    if arg.nargs is 1
+      n = arg.single.name
+      @output "#{arg.name} := #{arg.type}{ #{@go_export_case n} : #{n} }"
+    oarg = "[]interface{}{"
+    oarg += if arg.nargs is 0 then "#{arg.type}{}"
+    else arg.name
+    oarg += "}"
     @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
     @output "return"
     @untab()

@@ -46,6 +46,9 @@ type GetCurrentStatusRes struct {
 	User              *UserInfo `codec:"user,omitempty"`
 }
 
+type GetCurrentStatusArg struct {
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus() (GetCurrentStatusRes, error)
 }
@@ -55,7 +58,7 @@ func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
 		Name: "keybase.1.config",
 		Methods: map[string]rpc2.ServeHook{
 			"getCurrentStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args interface{}
+				args := make([]GetCurrentStatusArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetCurrentStatus()
 				}
@@ -71,7 +74,7 @@ type ConfigClient struct {
 }
 
 func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
-	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{}, &res)
+	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{GetCurrentStatusArg{}}, &res)
 	return
 }
 
@@ -194,65 +197,57 @@ type FinishAndPromptRes struct {
 }
 
 type FinishAndPromptArg struct {
-	_struct   bool            `codec:",toarray"`
 	SessionId int             `codec:"sessionId"`
 	Outcome   IdentifyOutcome `codec:"outcome"`
 }
 
 type FinishWebProofCheckArg struct {
-	_struct   bool            `codec:",toarray"`
 	SessionId int             `codec:"sessionId"`
 	Rp        RemoteProof     `codec:"rp"`
 	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type FinishSocialProofCheckArg struct {
-	_struct   bool            `codec:",toarray"`
 	SessionId int             `codec:"sessionId"`
 	Rp        RemoteProof     `codec:"rp"`
 	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type DisplayCryptocurrencyArg struct {
-	_struct   bool           `codec:",toarray"`
 	SessionId int            `codec:"sessionId"`
 	C         Cryptocurrency `codec:"c"`
 }
 
 type DisplayKeyArg struct {
-	_struct   bool       `codec:",toarray"`
 	SessionId int        `codec:"sessionId"`
 	Fokid     FOKID      `codec:"fokid"`
-	Diff      *TrackDiff `codec:"diff"`
+	Diff      *TrackDiff `codec:"diff,omitempty"`
 }
 
 type ReportLastTrackArg struct {
-	_struct   bool          `codec:",toarray"`
 	SessionId int           `codec:"sessionId"`
-	Track     *TrackSummary `codec:"track"`
+	Track     *TrackSummary `codec:"track,omitempty"`
 }
 
 type LaunchNetworkChecksArg struct {
-	_struct   bool     `codec:",toarray"`
 	SessionId int      `codec:"sessionId"`
 	Id        Identity `codec:"id"`
 }
 
 type WarningArg struct {
-	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Msg       string `codec:"msg"`
 }
 
 type IdentifyUiInterface interface {
-	FinishAndPrompt(arg FinishAndPromptArg) (FinishAndPromptRes, error)
-	FinishWebProofCheck(arg FinishWebProofCheckArg) error
-	FinishSocialProofCheck(arg FinishSocialProofCheckArg) error
-	DisplayCryptocurrency(arg DisplayCryptocurrencyArg) error
-	DisplayKey(arg DisplayKeyArg) error
-	ReportLastTrack(arg ReportLastTrackArg) error
-	LaunchNetworkChecks(arg LaunchNetworkChecksArg) error
-	Warning(arg WarningArg) error
+	FinishAndPrompt(FinishAndPromptArg) (FinishAndPromptRes, error)
+	FinishWebProofCheck(FinishWebProofCheckArg) error
+	FinishSocialProofCheck(FinishSocialProofCheckArg) error
+	DisplayCryptocurrency(DisplayCryptocurrencyArg) error
+	DisplayKey(DisplayKeyArg) error
+	ReportLastTrack(ReportLastTrackArg) error
+	LaunchNetworkChecks(LaunchNetworkChecksArg) error
+	Warning(WarningArg) error
 }
 
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
@@ -260,58 +255,58 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 		Name: "keybase.1.identifyUi",
 		Methods: map[string]rpc2.ServeHook{
 			"finishAndPrompt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args FinishAndPromptArg
+				args := make([]FinishAndPromptArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.FinishAndPrompt(args)
+					ret, err = i.FinishAndPrompt(args[0])
 				}
 				return
 			},
 			"finishWebProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args FinishWebProofCheckArg
+				args := make([]FinishWebProofCheckArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.FinishWebProofCheck(args)
+					err = i.FinishWebProofCheck(args[0])
 				}
 				return
 			},
 			"finishSocialProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args FinishSocialProofCheckArg
+				args := make([]FinishSocialProofCheckArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.FinishSocialProofCheck(args)
+					err = i.FinishSocialProofCheck(args[0])
 				}
 				return
 			},
 			"displayCryptocurrency": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args DisplayCryptocurrencyArg
+				args := make([]DisplayCryptocurrencyArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.DisplayCryptocurrency(args)
+					err = i.DisplayCryptocurrency(args[0])
 				}
 				return
 			},
 			"displayKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args DisplayKeyArg
+				args := make([]DisplayKeyArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.DisplayKey(args)
+					err = i.DisplayKey(args[0])
 				}
 				return
 			},
 			"reportLastTrack": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args ReportLastTrackArg
+				args := make([]ReportLastTrackArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.ReportLastTrack(args)
+					err = i.ReportLastTrack(args[0])
 				}
 				return
 			},
 			"launchNetworkChecks": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args LaunchNetworkChecksArg
+				args := make([]LaunchNetworkChecksArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.LaunchNetworkChecks(args)
+					err = i.LaunchNetworkChecks(args[0])
 				}
 				return
 			},
 			"warning": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args WarningArg
+				args := make([]WarningArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Warning(args)
+					err = i.Warning(args[0])
 				}
 				return
 			},
@@ -324,43 +319,43 @@ type IdentifyUiClient struct {
 	Cli GenericClient
 }
 
-func (c IdentifyUiClient) FinishAndPrompt(arg FinishAndPromptArg) (res FinishAndPromptRes, err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishAndPrompt", arg, &res)
+func (c IdentifyUiClient) FinishAndPrompt(__arg FinishAndPromptArg) (res FinishAndPromptRes, err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishAndPrompt", []interface{}{__arg}, &res)
 	return
 }
 
-func (c IdentifyUiClient) FinishWebProofCheck(arg FinishWebProofCheckArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", arg, nil)
+func (c IdentifyUiClient) FinishWebProofCheck(__arg FinishWebProofCheckArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) FinishSocialProofCheck(arg FinishSocialProofCheckArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", arg, nil)
+func (c IdentifyUiClient) FinishSocialProofCheck(__arg FinishSocialProofCheckArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) DisplayCryptocurrency(arg DisplayCryptocurrencyArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", arg, nil)
+func (c IdentifyUiClient) DisplayCryptocurrency(__arg DisplayCryptocurrencyArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) DisplayKey(arg DisplayKeyArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.displayKey", arg, nil)
+func (c IdentifyUiClient) DisplayKey(__arg DisplayKeyArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) ReportLastTrack(arg ReportLastTrackArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.reportLastTrack", arg, nil)
+func (c IdentifyUiClient) ReportLastTrack(__arg ReportLastTrackArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) LaunchNetworkChecks(arg LaunchNetworkChecksArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", arg, nil)
+func (c IdentifyUiClient) LaunchNetworkChecks(__arg LaunchNetworkChecksArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) Warning(arg WarningArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.warning", arg, nil)
+func (c IdentifyUiClient) Warning(__arg WarningArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.warning", []interface{}{__arg}, nil)
 	return
 }
 
@@ -376,13 +371,12 @@ const (
 )
 
 type LogArg struct {
-	_struct bool     `codec:",toarray"`
-	Level   LogLevel `codec:"level"`
-	Text    Text     `codec:"text"`
+	Level LogLevel `codec:"level"`
+	Text  Text     `codec:"text"`
 }
 
 type LogInterface interface {
-	Log(arg LogArg) error
+	Log(LogArg) error
 }
 
 func LogProtocol(i LogInterface) rpc2.Protocol {
@@ -390,9 +384,9 @@ func LogProtocol(i LogInterface) rpc2.Protocol {
 		Name: "keybase.1.log",
 		Methods: map[string]rpc2.ServeHook{
 			"log": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args LogArg
+				args := make([]LogArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Log(args)
+					err = i.Log(args[0])
 				}
 				return
 			},
@@ -405,23 +399,32 @@ type LogClient struct {
 	Cli GenericClient
 }
 
-func (c LogClient) Log(arg LogArg) (err error) {
-	err = c.Cli.Call("keybase.1.log.log", arg, nil)
+func (c LogClient) Log(__arg LogArg) (err error) {
+	err = c.Cli.Call("keybase.1.log.log", []interface{}{__arg}, nil)
 	return
 }
 
 type PassphraseLoginArg struct {
-	_struct    bool   `codec:",toarray"`
 	Identify   bool   `codec:"identify"`
 	Username   string `codec:"username"`
 	Passphrase string `codec:"passphrase"`
 }
 
+type PubkeyLoginArg struct {
+}
+
+type LogoutArg struct {
+}
+
+type SwitchUserArg struct {
+	Username string `codec:"username"`
+}
+
 type LoginInterface interface {
-	PassphraseLogin(arg PassphraseLoginArg) error
+	PassphraseLogin(PassphraseLoginArg) error
 	PubkeyLogin() error
 	Logout() error
-	SwitchUser(username string) error
+	SwitchUser(string) error
 }
 
 func LoginProtocol(i LoginInterface) rpc2.Protocol {
@@ -429,30 +432,30 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 		Name: "keybase.1.login",
 		Methods: map[string]rpc2.ServeHook{
 			"passphraseLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args PassphraseLoginArg
+				args := make([]PassphraseLoginArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PassphraseLogin(args)
+					err = i.PassphraseLogin(args[0])
 				}
 				return
 			},
 			"pubkeyLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args interface{}
+				args := make([]PubkeyLoginArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PubkeyLogin()
 				}
 				return
 			},
 			"logout": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args interface{}
+				args := make([]LogoutArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Logout()
 				}
 				return
 			},
 			"switchUser": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]string, 1)
+				args := make([]SwitchUserArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.SwitchUser(args[0])
+					err = i.SwitchUser(args[0].Username)
 				}
 				return
 			},
@@ -465,35 +468,38 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) PassphraseLogin(arg PassphraseLoginArg) (err error) {
-	err = c.Cli.Call("keybase.1.login.passphraseLogin", arg, nil)
+func (c LoginClient) PassphraseLogin(__arg PassphraseLoginArg) (err error) {
+	err = c.Cli.Call("keybase.1.login.passphraseLogin", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) PubkeyLogin() (err error) {
-	err = c.Cli.Call("keybase.1.login.pubkeyLogin", []interface{}{}, nil)
+	err = c.Cli.Call("keybase.1.login.pubkeyLogin", []interface{}{PubkeyLoginArg{}}, nil)
 	return
 }
 
 func (c LoginClient) Logout() (err error) {
-	err = c.Cli.Call("keybase.1.login.logout", []interface{}{}, nil)
+	err = c.Cli.Call("keybase.1.login.logout", []interface{}{LogoutArg{}}, nil)
 	return
 }
 
 func (c LoginClient) SwitchUser(username string) (err error) {
-	err = c.Cli.Call("keybase.1.login.switchUser", []interface{}{username}, nil)
+	__arg := SwitchUserArg{Username: username}
+	err = c.Cli.Call("keybase.1.login.switchUser", []interface{}{__arg}, nil)
 	return
 }
 
+type GetEmailOrUsernameArg struct {
+}
+
 type GetKeybasePassphraseArg struct {
-	_struct  bool   `codec:",toarray"`
 	Username string `codec:"username"`
 	Retry    string `codec:"retry"`
 }
 
 type LoginUiInterface interface {
 	GetEmailOrUsername() (string, error)
-	GetKeybasePassphrase(arg GetKeybasePassphraseArg) (string, error)
+	GetKeybasePassphrase(GetKeybasePassphraseArg) (string, error)
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -501,16 +507,16 @@ func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
 		Name: "keybase.1.loginUi",
 		Methods: map[string]rpc2.ServeHook{
 			"getEmailOrUsername": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args interface{}
+				args := make([]GetEmailOrUsernameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetEmailOrUsername()
 				}
 				return
 			},
 			"getKeybasePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args GetKeybasePassphraseArg
+				args := make([]GetKeybasePassphraseArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetKeybasePassphrase(args)
+					ret, err = i.GetKeybasePassphrase(args[0])
 				}
 				return
 			},
@@ -524,24 +530,23 @@ type LoginUiClient struct {
 }
 
 func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
-	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{}, &res)
+	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{GetEmailOrUsernameArg{}}, &res)
 	return
 }
 
-func (c LoginUiClient) GetKeybasePassphrase(arg GetKeybasePassphraseArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", arg, &res)
+func (c LoginUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", []interface{}{__arg}, &res)
 	return
 }
 
 type ProveArg struct {
-	_struct  bool   `codec:",toarray"`
 	Service  string `codec:"service"`
 	Username string `codec:"username"`
 	Force    bool   `codec:"force"`
 }
 
 type ProveInterface interface {
-	Prove(arg ProveArg) error
+	Prove(ProveArg) error
 }
 
 func ProveProtocol(i ProveInterface) rpc2.Protocol {
@@ -549,9 +554,9 @@ func ProveProtocol(i ProveInterface) rpc2.Protocol {
 		Name: "keybase.1.prove",
 		Methods: map[string]rpc2.ServeHook{
 			"prove": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args ProveArg
+				args := make([]ProveArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Prove(args)
+					err = i.Prove(args[0])
 				}
 				return
 			},
@@ -564,71 +569,63 @@ type ProveClient struct {
 	Cli GenericClient
 }
 
-func (c ProveClient) Prove(arg ProveArg) (err error) {
-	err = c.Cli.Call("keybase.1.prove.prove", arg, nil)
+func (c ProveClient) Prove(__arg ProveArg) (err error) {
+	err = c.Cli.Call("keybase.1.prove.prove", []interface{}{__arg}, nil)
 	return
 }
 
 type PromptOverwrite1Arg struct {
-	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Account   string `codec:"account"`
 }
 
 type PromptOverwrite2Arg struct {
-	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Service   string `codec:"service"`
 }
 
 type PromptUsernameArg struct {
-	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Prompt    string `codec:"prompt"`
 	PrevError Status `codec:"prevError"`
 }
 
 type OutputPrechecksArg struct {
-	_struct   bool `codec:",toarray"`
 	SessionId int  `codec:"sessionId"`
 	Text      Text `codec:"text"`
 }
 
 type PreProofWarningArg struct {
-	_struct   bool `codec:",toarray"`
 	SessionId int  `codec:"sessionId"`
 	Text      Text `codec:"text"`
 }
 
 type OutputInstructionsArg struct {
-	_struct      bool   `codec:",toarray"`
 	SessionId    int    `codec:"sessionId"`
 	Instructions Text   `codec:"instructions"`
 	Proof        string `codec:"proof"`
 }
 
 type OkToCheckArg struct {
-	_struct   bool   `codec:",toarray"`
 	SessionId int    `codec:"sessionId"`
 	Name      string `codec:"name"`
 	Attempt   int    `codec:"attempt"`
 }
 
 type DisplayRecheckWarningArg struct {
-	_struct   bool `codec:",toarray"`
 	SessionId int  `codec:"sessionId"`
 	Text      Text `codec:"text"`
 }
 
 type ProveUiInterface interface {
-	PromptOverwrite1(arg PromptOverwrite1Arg) (bool, error)
-	PromptOverwrite2(arg PromptOverwrite2Arg) (bool, error)
-	PromptUsername(arg PromptUsernameArg) (string, error)
-	OutputPrechecks(arg OutputPrechecksArg) error
-	PreProofWarning(arg PreProofWarningArg) (bool, error)
-	OutputInstructions(arg OutputInstructionsArg) error
-	OkToCheck(arg OkToCheckArg) (bool, error)
-	DisplayRecheckWarning(arg DisplayRecheckWarningArg) error
+	PromptOverwrite1(PromptOverwrite1Arg) (bool, error)
+	PromptOverwrite2(PromptOverwrite2Arg) (bool, error)
+	PromptUsername(PromptUsernameArg) (string, error)
+	OutputPrechecks(OutputPrechecksArg) error
+	PreProofWarning(PreProofWarningArg) (bool, error)
+	OutputInstructions(OutputInstructionsArg) error
+	OkToCheck(OkToCheckArg) (bool, error)
+	DisplayRecheckWarning(DisplayRecheckWarningArg) error
 }
 
 func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
@@ -636,58 +633,58 @@ func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
 		Name: "keybase.1.proveUi",
 		Methods: map[string]rpc2.ServeHook{
 			"promptOverwrite1": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args PromptOverwrite1Arg
+				args := make([]PromptOverwrite1Arg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptOverwrite1(args)
+					ret, err = i.PromptOverwrite1(args[0])
 				}
 				return
 			},
 			"promptOverwrite2": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args PromptOverwrite2Arg
+				args := make([]PromptOverwrite2Arg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptOverwrite2(args)
+					ret, err = i.PromptOverwrite2(args[0])
 				}
 				return
 			},
 			"promptUsername": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args PromptUsernameArg
+				args := make([]PromptUsernameArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptUsername(args)
+					ret, err = i.PromptUsername(args[0])
 				}
 				return
 			},
 			"outputPrechecks": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args OutputPrechecksArg
+				args := make([]OutputPrechecksArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.OutputPrechecks(args)
+					err = i.OutputPrechecks(args[0])
 				}
 				return
 			},
 			"preProofWarning": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args PreProofWarningArg
+				args := make([]PreProofWarningArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PreProofWarning(args)
+					ret, err = i.PreProofWarning(args[0])
 				}
 				return
 			},
 			"outputInstructions": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args OutputInstructionsArg
+				args := make([]OutputInstructionsArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.OutputInstructions(args)
+					err = i.OutputInstructions(args[0])
 				}
 				return
 			},
 			"okToCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args OkToCheckArg
+				args := make([]OkToCheckArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.OkToCheck(args)
+					ret, err = i.OkToCheck(args[0])
 				}
 				return
 			},
 			"displayRecheckWarning": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args DisplayRecheckWarningArg
+				args := make([]DisplayRecheckWarningArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.DisplayRecheckWarning(args)
+					err = i.DisplayRecheckWarning(args[0])
 				}
 				return
 			},
@@ -700,43 +697,43 @@ type ProveUiClient struct {
 	Cli GenericClient
 }
 
-func (c ProveUiClient) PromptOverwrite1(arg PromptOverwrite1Arg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite1", arg, &res)
+func (c ProveUiClient) PromptOverwrite1(__arg PromptOverwrite1Arg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite1", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) PromptOverwrite2(arg PromptOverwrite2Arg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite2", arg, &res)
+func (c ProveUiClient) PromptOverwrite2(__arg PromptOverwrite2Arg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite2", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) PromptUsername(arg PromptUsernameArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptUsername", arg, &res)
+func (c ProveUiClient) PromptUsername(__arg PromptUsernameArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) OutputPrechecks(arg OutputPrechecksArg) (err error) {
-	err = c.Cli.Call("keybase.1.proveUi.outputPrechecks", arg, nil)
+func (c ProveUiClient) OutputPrechecks(__arg OutputPrechecksArg) (err error) {
+	err = c.Cli.Call("keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ProveUiClient) PreProofWarning(arg PreProofWarningArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.preProofWarning", arg, &res)
+func (c ProveUiClient) PreProofWarning(__arg PreProofWarningArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) OutputInstructions(arg OutputInstructionsArg) (err error) {
-	err = c.Cli.Call("keybase.1.proveUi.outputInstructions", arg, nil)
+func (c ProveUiClient) OutputInstructions(__arg OutputInstructionsArg) (err error) {
+	err = c.Cli.Call("keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ProveUiClient) OkToCheck(arg OkToCheckArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.okToCheck", arg, &res)
+func (c ProveUiClient) OkToCheck(__arg OkToCheckArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) DisplayRecheckWarning(arg DisplayRecheckWarningArg) (err error) {
-	err = c.Cli.Call("keybase.1.proveUi.displayRecheckWarning", arg, nil)
+func (c ProveUiClient) DisplayRecheckWarning(__arg DisplayRecheckWarningArg) (err error) {
+	err = c.Cli.Call("keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil)
 	return
 }
 
@@ -746,8 +743,11 @@ type SignupRes struct {
 	WriteOk      bool `codec:"writeOk"`
 }
 
+type CheckUsernameAvailableArg struct {
+	Username string `codec:"username"`
+}
+
 type SignupArg struct {
-	_struct    bool   `codec:",toarray"`
 	Email      string `codec:"email"`
 	InviteCode string `codec:"inviteCode"`
 	Passphrase string `codec:"passphrase"`
@@ -755,16 +755,15 @@ type SignupArg struct {
 }
 
 type InviteRequestArg struct {
-	_struct  bool   `codec:",toarray"`
 	Email    string `codec:"email"`
 	Fullname string `codec:"fullname"`
 	Notes    string `codec:"notes"`
 }
 
 type SignupInterface interface {
-	CheckUsernameAvailable(username string) error
-	Signup(arg SignupArg) (SignupRes, error)
-	InviteRequest(arg InviteRequestArg) error
+	CheckUsernameAvailable(string) error
+	Signup(SignupArg) (SignupRes, error)
+	InviteRequest(InviteRequestArg) error
 }
 
 func SignupProtocol(i SignupInterface) rpc2.Protocol {
@@ -772,23 +771,23 @@ func SignupProtocol(i SignupInterface) rpc2.Protocol {
 		Name: "keybase.1.signup",
 		Methods: map[string]rpc2.ServeHook{
 			"checkUsernameAvailable": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]string, 1)
+				args := make([]CheckUsernameAvailableArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.CheckUsernameAvailable(args[0])
+					err = i.CheckUsernameAvailable(args[0].Username)
 				}
 				return
 			},
 			"signup": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args SignupArg
+				args := make([]SignupArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.Signup(args)
+					ret, err = i.Signup(args[0])
 				}
 				return
 			},
 			"inviteRequest": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args InviteRequestArg
+				args := make([]InviteRequestArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.InviteRequest(args)
+					err = i.InviteRequest(args[0])
 				}
 				return
 			},
@@ -802,28 +801,28 @@ type SignupClient struct {
 }
 
 func (c SignupClient) CheckUsernameAvailable(username string) (err error) {
-	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", []interface{}{username}, nil)
+	__arg := CheckUsernameAvailableArg{Username: username}
+	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil)
 	return
 }
 
-func (c SignupClient) Signup(arg SignupArg) (res SignupRes, err error) {
-	err = c.Cli.Call("keybase.1.signup.signup", arg, &res)
+func (c SignupClient) Signup(__arg SignupArg) (res SignupRes, err error) {
+	err = c.Cli.Call("keybase.1.signup.signup", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SignupClient) InviteRequest(arg InviteRequestArg) (err error) {
-	err = c.Cli.Call("keybase.1.signup.inviteRequest", arg, nil)
+func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
+	err = c.Cli.Call("keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
 	return
 }
 
 type PromptYesNoArg struct {
-	_struct bool  `codec:",toarray"`
-	Text    Text  `codec:"text"`
-	Def     *bool `codec:"def"`
+	Text Text  `codec:"text"`
+	Def  *bool `codec:"def,omitempty"`
 }
 
 type UiInterface interface {
-	PromptYesNo(arg PromptYesNoArg) (bool, error)
+	PromptYesNo(PromptYesNoArg) (bool, error)
 }
 
 func UiProtocol(i UiInterface) rpc2.Protocol {
@@ -831,9 +830,9 @@ func UiProtocol(i UiInterface) rpc2.Protocol {
 		Name: "keybase.1.ui",
 		Methods: map[string]rpc2.ServeHook{
 			"promptYesNo": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args PromptYesNoArg
+				args := make([]PromptYesNoArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptYesNo(args)
+					ret, err = i.PromptYesNo(args[0])
 				}
 				return
 			},
@@ -846,7 +845,7 @@ type UiClient struct {
 	Cli GenericClient
 }
 
-func (c UiClient) PromptYesNo(arg PromptYesNoArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.ui.promptYesNo", arg, &res)
+func (c UiClient) PromptYesNo(__arg PromptYesNoArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
 	return
 }
