@@ -10,6 +10,7 @@ type SigChain struct {
 	username   string
 	chainLinks []*ChainLink
 	idVerified bool
+	last       *LinkSummary
 }
 
 func (sc SigChain) Len() int {
@@ -103,7 +104,14 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 
 	if tail != nil {
 		dirtyTail = tail.ToLinkSummary()
+
+		// If we've stored a `last` and it's less than the one
+		// we just loaded, then nuke it.
+		if sc.last != nil && sc.last.Less(*dirtyTail) {
+			sc.last = nil
+		}
 	}
+
 	sc.chainLinks = append(sc.chainLinks, links...)
 	return
 }
@@ -130,7 +138,9 @@ func (sc *SigChain) VerifyChain() error {
 }
 
 func (sc SigChain) GetLastId() (ret LinkId) {
-	if l := last(sc.chainLinks); l != nil {
+	if sc.last != nil {
+		ret = sc.last.id
+	} else if l := last(sc.chainLinks); l != nil {
 		ret = l.id
 	}
 	return
@@ -141,7 +151,9 @@ func (sc SigChain) GetLastLink() *ChainLink {
 }
 
 func (sc SigChain) GetLastSeqno() (ret Seqno) {
-	if l := last(sc.chainLinks); l != nil {
+	if sc.last != nil {
+		ret = sc.last.seqno
+	} else if l := last(sc.chainLinks); l != nil {
 		ret = l.GetSeqno()
 	}
 	return

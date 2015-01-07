@@ -416,6 +416,10 @@ type LinkSummary struct {
 	seqno Seqno
 }
 
+func (ls LinkSummary) Less(ls2 LinkSummary) bool {
+	return ls.seqno < ls2.seqno
+}
+
 func (l LinkSummary) ToJson() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("id", jsonw.NewString(l.id.ToString()))
