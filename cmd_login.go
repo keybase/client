@@ -22,7 +22,7 @@ func NewLoginUIServer() *LoginUIServer {
 }
 
 func NewIdentifyUIServer() *IdentifyUIServer {
-	return &IdentifyUIServer{G_UI.GetIdentifySelfUI(nil)}
+	return &IdentifyUIServer{G_UI.GetIdentifySelfUI()}
 }
 
 func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
@@ -78,13 +78,19 @@ func (v *CmdLogin) RunClient() (err error) {
 	} else if err = RegisterLoginUiServer(NewLoginUIServer()); err != nil {
 	} else if err = RegisterIdentifyUiServer(NewIdentifyUIServer()); err != nil {
 	} else {
-		err = cli.PassphraseLogin(true)
+		err = cli.PassphraseLogin(keybase_1.PassphraseLoginArg{Identify: true})
 	}
 	return
 }
 
 func (v *CmdLogin) Run() error {
-	return libkb.LoginAndIdentify(nil, nil)
+	return libkb.LoginAndIdentify(libkb.LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Prompt: true,
+			Retry:  3,
+		},
+		IdentifyUI: G_UI.GetIdentifySelfUI(),
+	})
 }
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {

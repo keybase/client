@@ -388,8 +388,8 @@ func (u BaseIdentifyUI) Warning(m string) {
 	G.Log.Warning(m)
 }
 
-func (u *UI) GetIdentifySelfUI(them *libkb.User) libkb.IdentifyUI {
-	return IdentifySelfUI{BaseIdentifyUI{u, them}}
+func (u *UI) GetIdentifySelfUI() libkb.IdentifyUI {
+	return IdentifySelfUI{BaseIdentifyUI{u, nil}}
 }
 
 func (u *UI) GetIdentifyTrackUI(them *libkb.User, strict bool) libkb.IdentifyUI {
