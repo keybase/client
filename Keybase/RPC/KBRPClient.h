@@ -15,6 +15,14 @@
 
 - (void)open;
 
-- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion;
+- (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler;
+
+- (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
+
+// Methods
+
+- (void)checkStatus;
+
+- (void)logout;
 
 @end

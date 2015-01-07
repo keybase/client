@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import "GRViewController.h"
+#import "KBViewController.h"
 
-@interface KBSignupViewController : GRViewController
+@interface KBSignupViewController : KBViewController
 
 @end

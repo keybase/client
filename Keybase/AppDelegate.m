@@ -9,18 +9,20 @@
 #import "AppDelegate.h"
 
 #import "KBConnectWindowController.h"
+#import "KBKeyGenViewController.h"
 
 @interface AppDelegate ()
 @property KBConnectWindowController *connectController;
 @property NSStatusItem *statusItem;
 @property KBRPClient *client;
+
+@property NSString *username;
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   _client = [[KBRPClient alloc] init];
-  GHDebug(@"Opening");
   [_client open];
   
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
@@ -30,25 +32,33 @@
   _statusItem.highlightMode = YES; // Blue background when selected
 }
 
-- (void)showLogin {
-  if (!self.connectController) {
-    _statusItem.menu = [self connectMenu];
-    self.connectController = [[KBConnectWindowController alloc] init];
-    [self.connectController.window setLevel:NSStatusWindowLevel];
-    [self.connectController.window center];
-  }
-  [self.connectController showWindow:nil];
-}
-
 - (NSMenu *)connectMenu {
   NSMenu *menu = [[NSMenu alloc] init];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
   return menu;
 }
 
+- (void)setConnected:(BOOL)loggedIn hasKey:(BOOL)hasKey username:(NSString *)username {
+  [self.connectController close];
+  _username = username;
+  _statusItem.menu = [self menu];
+  
+  if (!loggedIn || (loggedIn && !hasKey)) {
+    self.connectController = [[KBConnectWindowController alloc] init];
+    [self.connectController.window setLevel:NSStatusWindowLevel];
+    
+    if (loggedIn && !hasKey) {
+      KBKeyGenViewController *keyGenViewController = [[KBKeyGenViewController alloc] init];
+      [self.connectController.navigationController pushViewController:keyGenViewController animated:NO];
+    } else {
+      _statusItem.menu = [self connectMenu];
+    }
+    [self.connectController showWindow:nil];
+  }
+}
+
 - (NSMenu *)menu {
   NSMenu *menu = [[NSMenu alloc] init];
-  [menu addItemWithTitle:@"Contacts" action:@selector(contacts:) keyEquivalent:@""];
   [menu addItemWithTitle:@"Log Out" action:@selector(logout:) keyEquivalent:@""];
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
@@ -59,9 +69,9 @@
 
 }
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
-  return YES;
-}
+//- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
+//  return NO;
+//}
 
 + (KBRPClient *)client {
   return ((AppDelegate *)[NSApp delegate]).client;
@@ -73,7 +83,13 @@
 
 
 - (void)contacts:(id)sender { }
-- (void)logout:(id)sender { }
-- (void)quit:(id)sender { }
+
+- (void)logout:(id)sender {
+  [_client logout];
+}
+
+- (void)quit:(id)sender {
+  [NSApplication.sharedApplication terminate:sender];
+}
 
 @end

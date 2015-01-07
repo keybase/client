@@ -36,14 +36,18 @@
 		00F807F81A4A4EC50038BC63 /* KBKeySelectViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807F61A4A4EC50038BC63 /* KBKeySelectViewController.m */; };
 		00F807FB1A4A4ED50038BC63 /* KBKeyGenViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807FA1A4A4ED50038BC63 /* KBKeyGenViewController.m */; };
 		00F807FC1A4A4ED50038BC63 /* KBKeyGenViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807FA1A4A4ED50038BC63 /* KBKeyGenViewController.m */; };
-		00F807FE1A4A57BF0038BC63 /* KBLogin.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807FD1A4A57BF0038BC63 /* KBLogin.xib */; };
-		00F807FF1A4A57BF0038BC63 /* KBLogin.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807FD1A4A57BF0038BC63 /* KBLogin.xib */; };
-		00F808011A4A5AE20038BC63 /* KBSignup.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808001A4A5AE20038BC63 /* KBSignup.xib */; };
-		00F808021A4A5AE20038BC63 /* KBSignup.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808001A4A5AE20038BC63 /* KBSignup.xib */; };
-		00F808041A4A5DFD0038BC63 /* KBKeyGen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808031A4A5DFD0038BC63 /* KBKeyGen.xib */; };
-		00F808051A4A5DFD0038BC63 /* KBKeyGen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808031A4A5DFD0038BC63 /* KBKeyGen.xib */; };
+		00F807FE1A4A57BF0038BC63 /* KBLoginViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807FD1A4A57BF0038BC63 /* KBLoginViewController.xib */; };
+		00F807FF1A4A57BF0038BC63 /* KBLoginViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807FD1A4A57BF0038BC63 /* KBLoginViewController.xib */; };
+		00F808011A4A5AE20038BC63 /* KBSignupViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808001A4A5AE20038BC63 /* KBSignupViewController.xib */; };
+		00F808021A4A5AE20038BC63 /* KBSignupViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808001A4A5AE20038BC63 /* KBSignupViewController.xib */; };
+		00F808041A4A5DFD0038BC63 /* KBKeyGenViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808031A4A5DFD0038BC63 /* KBKeyGenViewController.xib */; };
+		00F808051A4A5DFD0038BC63 /* KBKeyGenViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F808031A4A5DFD0038BC63 /* KBKeyGenViewController.xib */; };
 		00F8080B1A4A6ACE0038BC63 /* KBOLookAndFeel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F8080A1A4A6ACE0038BC63 /* KBOLookAndFeel.m */; };
 		00F8080C1A4A6ACE0038BC63 /* KBOLookAndFeel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F8080A1A4A6ACE0038BC63 /* KBOLookAndFeel.m */; };
+		00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
+		00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
+		00FE16071A5CB49A00CF3FA5 /* KBViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16061A5CB49A00CF3FA5 /* KBViewController.m */; };
+		00FE16081A5CB49A00CF3FA5 /* KBViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16061A5CB49A00CF3FA5 /* KBViewController.m */; };
 		2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC436D1A3A9EC7006118A9 /* KBRPC.m */; };
 		3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC434F1A3A9E6C006118A9 /* AppDelegate.m */; };
 		AB6462168F9FDCF3B14CF810 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D2E3EA46FD4983BE27801D1E /* main.m */; };
@@ -99,12 +103,15 @@
 		00F807F61A4A4EC50038BC63 /* KBKeySelectViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeySelectViewController.m; sourceTree = "<group>"; };
 		00F807F91A4A4ED50038BC63 /* KBKeyGenViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyGenViewController.h; sourceTree = "<group>"; };
 		00F807FA1A4A4ED50038BC63 /* KBKeyGenViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyGenViewController.m; sourceTree = "<group>"; };
-		00F807FD1A4A57BF0038BC63 /* KBLogin.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBLogin.xib; sourceTree = "<group>"; };
-		00F808001A4A5AE20038BC63 /* KBSignup.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBSignup.xib; sourceTree = "<group>"; };
-		00F808031A4A5DFD0038BC63 /* KBKeyGen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBKeyGen.xib; sourceTree = "<group>"; };
+		00F807FD1A4A57BF0038BC63 /* KBLoginViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBLoginViewController.xib; sourceTree = "<group>"; };
+		00F808001A4A5AE20038BC63 /* KBSignupViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBSignupViewController.xib; sourceTree = "<group>"; };
+		00F808031A4A5DFD0038BC63 /* KBKeyGenViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBKeyGenViewController.xib; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		00F808091A4A6ACE0038BC63 /* KBOLookAndFeel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBOLookAndFeel.h; sourceTree = "<group>"; };
 		00F8080A1A4A6ACE0038BC63 /* KBOLookAndFeel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBOLookAndFeel.m; sourceTree = "<group>"; };
+		00FE16021A5C933F00CF3FA5 /* KBDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefines.m; sourceTree = "<group>"; };
+		00FE16051A5CB49A00CF3FA5 /* KBViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBViewController.h; sourceTree = "<group>"; };
+		00FE16061A5CB49A00CF3FA5 /* KBViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBViewController.m; sourceTree = "<group>"; };
 		03789C52C3DF0B9CD33BF3ED /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		611C5EDA1DAAF19EB60AD786 /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
 		6390DE2CB3F2D33C7BA77399 /* libPods-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -177,10 +184,11 @@
 		00CC434B1A3A9E6C006118A9 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
+				00D2E7C41A4106A200319401 /* KBDefines.h */,
+				00FE16021A5C933F00CF3FA5 /* KBDefines.m */,
 				00CC434E1A3A9E6C006118A9 /* AppDelegate.h */,
 				00CC434F1A3A9E6C006118A9 /* AppDelegate.m */,
 				00F807D51A48D3300038BC63 /* View */,
-				00D2E7C41A4106A200319401 /* KBDefines.h */,
 				004D14971A3BD25A0083888D /* RPC */,
 				00CC43531A3A9E6C006118A9 /* Images.xcassets */,
 				00CC43551A3A9E6C006118A9 /* MainMenu.xib */,
@@ -206,17 +214,19 @@
 				00F807D31A48CDC70038BC63 /* KBConnect.xib */,
 				00F807ED1A4A4A3B0038BC63 /* KBSignupViewController.h */,
 				00F807EE1A4A4A3B0038BC63 /* KBSignupViewController.m */,
-				00F808001A4A5AE20038BC63 /* KBSignup.xib */,
+				00F808001A4A5AE20038BC63 /* KBSignupViewController.xib */,
 				00F807F11A4A4AF50038BC63 /* KBLoginViewController.h */,
 				00F807F21A4A4AF50038BC63 /* KBLoginViewController.m */,
-				00F807FD1A4A57BF0038BC63 /* KBLogin.xib */,
+				00F807FD1A4A57BF0038BC63 /* KBLoginViewController.xib */,
 				00F807F51A4A4EC50038BC63 /* KBKeySelectViewController.h */,
 				00F807F61A4A4EC50038BC63 /* KBKeySelectViewController.m */,
 				00F807F91A4A4ED50038BC63 /* KBKeyGenViewController.h */,
 				00F807FA1A4A4ED50038BC63 /* KBKeyGenViewController.m */,
-				00F808031A4A5DFD0038BC63 /* KBKeyGen.xib */,
+				00F808031A4A5DFD0038BC63 /* KBKeyGenViewController.xib */,
 				00F807DE1A4A21CC0038BC63 /* KBView.h */,
 				00F807DF1A4A21CC0038BC63 /* KBView.m */,
+				00FE16051A5CB49A00CF3FA5 /* KBViewController.h */,
+				00FE16061A5CB49A00CF3FA5 /* KBViewController.m */,
 				00F807E51A4A40E80038BC63 /* GRNavigationController.h */,
 				00F807E61A4A40E80038BC63 /* GRNavigationController.m */,
 				00F807E91A4A40F90038BC63 /* GRViewController.h */,
@@ -346,10 +356,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */,
-				00F808041A4A5DFD0038BC63 /* KBKeyGen.xib in Resources */,
+				00F808041A4A5DFD0038BC63 /* KBKeyGenViewController.xib in Resources */,
 				00F807D41A48CDC70038BC63 /* KBConnect.xib in Resources */,
-				00F808011A4A5AE20038BC63 /* KBSignup.xib in Resources */,
-				00F807FE1A4A57BF0038BC63 /* KBLogin.xib in Resources */,
+				00F808011A4A5AE20038BC63 /* KBSignupViewController.xib in Resources */,
+				00F807FE1A4A57BF0038BC63 /* KBLoginViewController.xib in Resources */,
 				00CC43571A3A9E6C006118A9 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -358,10 +368,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00F808021A4A5AE20038BC63 /* KBSignup.xib in Resources */,
+				00F808021A4A5AE20038BC63 /* KBSignupViewController.xib in Resources */,
 				00D61B9A1A4B755B00EEA254 /* KBConnect.xib in Resources */,
-				00F808051A4A5DFD0038BC63 /* KBKeyGen.xib in Resources */,
-				00F807FF1A4A57BF0038BC63 /* KBLogin.xib in Resources */,
+				00F808051A4A5DFD0038BC63 /* KBKeyGenViewController.xib in Resources */,
+				00F807FF1A4A57BF0038BC63 /* KBLoginViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,6 +446,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00CC43711A3A9EDF006118A9 /* KBRObject.m in Sources */,
+				00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */,
 				00F807F71A4A4EC50038BC63 /* KBKeySelectViewController.m in Sources */,
 				00F807DC1A48D4890038BC63 /* KBConnectWindowController.m in Sources */,
 				00CC436E1A3A9EC7006118A9 /* KBRPC.m in Sources */,
@@ -449,6 +460,7 @@
 				00F807E71A4A40E80038BC63 /* GRNavigationController.m in Sources */,
 				00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */,
 				00F807EF1A4A4A3B0038BC63 /* KBSignupViewController.m in Sources */,
+				00FE16071A5CB49A00CF3FA5 /* KBViewController.m in Sources */,
 				00F807EB1A4A40F90038BC63 /* GRViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -467,10 +479,12 @@
 				3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */,
 				004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */,
 				00D61B991A4B755300EEA254 /* KBConnectWindowController.m in Sources */,
+				00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */,
 				00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */,
 				00F807F41A4A4AF50038BC63 /* KBLoginViewController.m in Sources */,
 				00F807E81A4A40E80038BC63 /* GRNavigationController.m in Sources */,
 				00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */,
+				00FE16081A5CB49A00CF3FA5 /* KBViewController.m in Sources */,
 				00F807F01A4A4A3B0038BC63 /* KBSignupViewController.m in Sources */,
 				00F807EC1A4A40F90038BC63 /* GRViewController.m in Sources */,
 			);

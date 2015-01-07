@@ -17,6 +17,8 @@
 @property MPMessagePackClient *client;
 
 @property MPMessagePackServer *server;
+
+@property NSMutableDictionary *methods;
 @end
 
 @implementation KBRPClient
@@ -24,6 +26,18 @@
 - (void)open {
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
+  _methods = [NSMutableDictionary dictionary];
+  
+  GHWeakSelf blockSelf = self;
+  _client.requestHandler = ^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
+    MPRequestHandler requestHandler = blockSelf.methods[method];
+    if (!requestHandler) {
+      completion(KBMakeError(-1, @"Method not found", @"Method not found: %@", method), nil);
+      return;
+    }
+    requestHandler(method, params, completion);
+  };
   
   NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
   NSAssert(user, @"No user");
@@ -41,6 +55,10 @@
   }];
 }
 
+- (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler {
+  _methods[method] = requestHandler;
+}
+
 - (void)openAfterDelay:(NSTimeInterval)delay {
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
     [self open];
@@ -53,16 +71,21 @@
     if (error) {
       // TODO
     }
-    GHDebug(@"status: %@", getCurrentStatusRes);
+    GHDebug(@"Status: %@", getCurrentStatusRes);
     
-    if (!getCurrentStatusRes.loggedIn) {
-      [AppDelegate.sharedDelegate showLogin];
-    }
-    
+    [AppDelegate.sharedDelegate setConnected:getCurrentStatusRes.loggedIn hasKey:getCurrentStatusRes.hasPrivateKey username:getCurrentStatusRes.user.username];
+  }];
+}
+
+- (void)logout {
+  KBRLogin *login = [[KBRLogin alloc] initWithClient:AppDelegate.client];
+  [login logout:^(NSError *error) {
+    [self checkStatus];
   }];
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
+  GHDebug(@"Send request: %@(%@)", method, [params join:@", "]);
   if (_client.status != MPMessagePackClientStatusOpen) {
     completion(KBMakeError(-400, @"We are unable to connect to the keybased client.", @""), nil);
     return;
@@ -74,19 +97,19 @@
 #pragma mark -
 
 - (void)client:(MPMessagePackClient *)client didError:(NSError *)error fatal:(BOOL)fatal {
-  
+  GHDebug(@"Error (%d): %@", fatal, error);
 }
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
   if (status == MPMessagePackClientStatusClosed) {
-    //[self openAfterDelay:2];
+    [self openAfterDelay:2];
   } else if (status == MPMessagePackClientStatusOpen) {
     
   }
 }
 
 - (void)client:(MPMessagePackClient *)client didReceiveNotificationWithMethod:(NSString *)method params:(id)params {
-  
+  GHDebug(@"Notification: %@(%@)", method, [params join:@","]);
 }
 
 @end

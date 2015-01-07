@@ -9,6 +9,7 @@
 #import "KBKeyGenViewController.h"
 
 #import "KBDefines.h"
+#import "KBRPC.h"
 
 @interface KBKeyGenViewController ()
 @property IBOutlet NSButton *selectButton;
@@ -18,6 +19,14 @@
 
 - (void)awakeFromNib {
   [KBOLookAndFeel applyLinkStyle:self.selectButton];
+}
+
+- (IBAction)generateKey:(id)sender {
+  
+}
+
+- (IBAction)selectKey:(id)sender {
+  
 }
 
 @end

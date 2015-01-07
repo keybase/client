@@ -13,11 +13,13 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
+@property (readonly) NSString *username;
+
 + (KBRPClient *)client;
 
 + (AppDelegate *)sharedDelegate;
 
-- (void)showLogin;
+- (void)setConnected:(BOOL)loggedIn hasKey:(BOOL)hasKey username:(NSString *)username;
 
 @end
 

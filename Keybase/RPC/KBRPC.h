@@ -28,12 +28,18 @@
 @property BOOL markup;
 @end
 
+@interface KBUserInfo : KBRObject
+@property NSString *uid;
+@property NSString *username;
+@end
+
 @interface KBGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
 @property BOOL loggedIn;
 @property BOOL publicKeySelected;
 @property BOOL hasPrivateKey;
+@property KBUserInfo *user;
 @end
 
 @interface KBRConfig : KBRRequest
@@ -178,6 +184,8 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @interface KBRLogin : KBRRequest
 - (void)passphraseLoginWithIdentify:(BOOL )identify completion:(void (^)(NSError *error))completion;
+
+- (void)passphraseLoginNoIdentifyWithUsername:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
 - (void)pubkeyLogin:(void (^)(NSError *error))completion;
 

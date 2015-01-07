@@ -11,9 +11,9 @@
 
 #import "GRNavigationController.h"
 #import "KBLoginViewController.h"
+#import "KBKeyGenViewController.h"
 
 @interface KBConnectWindowController ()
-@property IBOutlet GRNavigationController *navigationController;
 @end
 
 @implementation KBConnectWindowController
@@ -25,10 +25,11 @@
 - (void)windowDidLoad {
   self.window.backgroundColor = NSColor.whiteColor;
   
-  KBLoginViewController *loginViewController = [[KBLoginViewController alloc] initWithNibName:@"KBLogin" bundle:nil];
+  KBLoginViewController *loginViewController = [[KBLoginViewController alloc] init];
   self.navigationController.rootViewController = loginViewController;
   
   [self.window setContentSize:loginViewController.view.frame.size];
+  [self.window center];
   
   [self.navigationController setupRootViewController];
 }

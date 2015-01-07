@@ -8,6 +8,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="KBLoginViewController">
             <connections>
                 <outlet property="emailField" destination="pKk-Qw-Xsw" id="xLp-EH-IEj"/>
+                <outlet property="loginButton" destination="TUq-j2-Uwb" id="hiL-7r-JHJ"/>
                 <outlet property="passphraseField" destination="s5u-by-iac" id="84Z-Jc-qld"/>
                 <outlet property="signupButton" destination="OD0-j7-Haq" id="s4B-hU-qqy"/>
                 <outlet property="view" destination="NlY-JR-ogD" id="edr-9B-Gg2"/>
@@ -37,9 +38,12 @@
                             <string>NSAllRomanInputSourcesLocaleIdentifier</string>
                         </allowedInputSourceLocales>
                     </secureTextFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="TUq-j2-Uwb" id="Cm5-Qp-bQx"/>
+                    </connections>
                 </secureTextField>
                 <box verticalHuggingPriority="750" fixedFrame="YES" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="cta-NE-MhG">
-                    <rect key="frame" x="20" y="198" width="271" height="4"/>
+                    <rect key="frame" x="20" y="198" width="271" height="5"/>
                     <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                     <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     <font key="titleFont" metaFont="system"/>
@@ -52,11 +56,14 @@
                 </box>
                 <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pKk-Qw-Xsw">
                     <rect key="frame" x="20" y="202" width="271" height="22"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" focusRingType="none" placeholderString="Email" drawsBackground="YES" id="TDB-Ec-ejB">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" focusRingType="none" placeholderString="Email or Username" drawsBackground="YES" id="TDB-Ec-ejB">
                         <font key="font" metaFont="system" size="18"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="s5u-by-iac" id="0Az-c3-gum"/>
+                    </connections>
                 </textField>
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TUq-j2-Uwb">
                     <rect key="frame" x="18" y="54" width="275" height="49"/>

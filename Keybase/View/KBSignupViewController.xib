@@ -7,10 +7,11 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="KBSignupViewController">
             <connections>
-                <outlet property="emailField" destination="yaU-FK-yf2" id="aQD-sP-wve"/>
+                <outlet property="emailField" destination="udN-dj-46f" id="BWP-iR-tkP"/>
                 <outlet property="inviteCodeField" destination="yaU-FK-yf2" id="o6R-uo-FF0"/>
                 <outlet property="loginButton" destination="4tV-Ye-hBQ" id="kXm-lW-u3d"/>
                 <outlet property="passphraseField" destination="xgF-0s-v09" id="xyo-GF-i83"/>
+                <outlet property="signupButton" destination="gKZ-w3-ppS" id="mkc-VC-ies"/>
                 <outlet property="usernameField" destination="UNE-Uu-PD0" id="Bbh-YT-clH"/>
                 <outlet property="view" destination="h8h-s6-Nsp" id="WaL-n4-mg5"/>
             </connections>
@@ -36,6 +37,9 @@
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="udN-dj-46f" id="ch6-Eu-O3p"/>
+                    </connections>
                 </textField>
                 <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UNE-Uu-PD0">
                     <rect key="frame" x="20" y="170" width="271" height="22"/>
@@ -44,6 +48,9 @@
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="xgF-0s-v09" id="KNv-di-48t"/>
+                    </connections>
                 </textField>
                 <secureTextField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xgF-0s-v09">
                     <rect key="frame" x="20" y="138" width="271" height="22"/>
@@ -55,6 +62,9 @@
                             <string>NSAllRomanInputSourcesLocaleIdentifier</string>
                         </allowedInputSourceLocales>
                     </secureTextFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="gKZ-w3-ppS" id="qNg-c8-QyU"/>
+                    </connections>
                 </secureTextField>
                 <box verticalHuggingPriority="750" fixedFrame="YES" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="4TF-0G-eiV">
                     <rect key="frame" x="20" y="231" width="271" height="5"/>
@@ -87,6 +97,9 @@
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="UNE-Uu-PD0" id="bx8-hy-Zpd"/>
+                    </connections>
                 </textField>
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gKZ-w3-ppS">
                     <rect key="frame" x="18" y="54" width="275" height="49"/>
@@ -109,7 +122,7 @@
                     </connections>
                 </button>
             </subviews>
-            <point key="canvasLocation" x="298.5" y="208.5"/>
+            <point key="canvasLocation" x="192.5" y="220.5"/>
         </view>
     </objects>
 </document>

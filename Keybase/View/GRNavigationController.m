@@ -191,6 +191,14 @@ typedef NS_ENUM(NSInteger, GRNavigationDirection) {
 {
   GRViewController *currentVC = [self currentViewController];
   
+//  if (!currentVC) {
+//    self.rootViewController = viewController;
+//    [self.view.window setContentSize:viewController.view.frame.size];
+//    [self.view.window center];
+//    [self setupRootViewController];
+//    return;
+//  }
+  
   [self replaceViewController:currentVC withViewController:viewController animated:animated direction:GRNavigationDirectionForward];
   
   [self updateWindowTitleWithViewController:viewController];

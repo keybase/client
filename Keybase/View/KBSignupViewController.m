@@ -18,24 +18,32 @@
 @property (weak) IBOutlet NSTextField *passphraseField;
 @property (weak) IBOutlet NSTextField *inviteCodeField;
 @property (weak) IBOutlet NSButton *loginButton;
+@property (weak) IBOutlet NSButton *signupButton;
 @end
 
 @implementation KBSignupViewController
 
 - (void)awakeFromNib {
   [KBOLookAndFeel applyLinkStyle:self.loginButton];
+  
+  self.inviteCodeField.stringValue = @"202020202020202020202111";
 }
 
 - (IBAction)signup:(id)sender {
   KBRSignup *signup = [[KBRSignup alloc] initWithClient:AppDelegate.client];
-  [signup signupWithEmail:self.emailField.stringValue inviteCode:self.inviteCodeField.stringValue passphrase:self.passphraseField.stringValue username:self.usernameField.stringValue completion:^(NSError *error, KBSignupRes *res) {
+  
+  NSString *passphrase = self.passphraseField.stringValue;
+  
+  [self setInProgress:YES sender:self.signupButton];
+  [signup signupWithEmail:self.emailField.stringValue inviteCode:self.inviteCodeField.stringValue passphrase:passphrase username:self.usernameField.stringValue completion:^(NSError *error, KBSignupRes *res) {
+    [self setInProgress:NO sender:self.signupButton];
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:self.view.window completionHandler:nil];
       return;
     }
     
-    
-    
+    self.passphraseField.stringValue = @"";
+    [AppDelegate.client checkStatus];
   }];
 }
 
@@ -43,7 +51,7 @@
   CATransition *transition = [CATransition animation];
   [transition setType:kCATransitionFade];
   
-  KBLoginViewController *loginViewController = [[KBLoginViewController alloc] initWithNibName:@"KBLogin" bundle:nil];
+  KBLoginViewController *loginViewController = [[KBLoginViewController alloc] init];
   [self.navigationController pushViewController:loginViewController usingTransition:transition withTransactionBlock:nil];
 }
 
