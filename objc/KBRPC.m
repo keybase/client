@@ -183,18 +183,10 @@
 @end
 
 @implementation KBRLogin
-- (void)passphraseLoginWithIdentify:(BOOL )identify completion:(void (^)(NSError *error))completion {
+- (void)passphraseLoginWithIdentify:(BOOL )identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion {
 
-  NSArray *params = @[@(identify)];
+  NSArray *params = @[@(identify), KBRValue(username), KBRValue(passphrase)];
   [self.client sendRequestWithMethod:@"keybase.1.login.passphraseLogin" params:params completion:^(NSError *error, NSDictionary *dict) {
-    completion(error);
-  }];
-}
-
-- (void)passphraseLoginNoIdentifyWithUsername:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion {
-
-  NSArray *params = @[KBRValue(username), KBRValue(passphrase)];
-  [self.client sendRequestWithMethod:@"keybase.1.login.passphraseLoginNoIdentify" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];
 }

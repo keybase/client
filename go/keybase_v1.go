@@ -410,15 +410,15 @@ func (c LogClient) Log(arg LogArg) (err error) {
 	return
 }
 
-type PassphraseLoginNoIdentifyArg struct {
+type PassphraseLoginArg struct {
 	_struct    bool   `codec:",toarray"`
+	Identify   bool   `codec:"identify"`
 	Username   string `codec:"username"`
 	Passphrase string `codec:"passphrase"`
 }
 
 type LoginInterface interface {
-	PassphraseLogin(identify bool) error
-	PassphraseLoginNoIdentify(arg PassphraseLoginNoIdentifyArg) error
+	PassphraseLogin(arg PassphraseLoginArg) error
 	PubkeyLogin() error
 	Logout() error
 	SwitchUser(username string) error
@@ -429,16 +429,9 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 		Name: "keybase.1.login",
 		Methods: map[string]rpc2.ServeHook{
 			"passphraseLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]bool, 1)
+				var args PassphraseLoginArg
 				if err = nxt(&args); err == nil {
-					err = i.PassphraseLogin(args[0])
-				}
-				return
-			},
-			"passphraseLoginNoIdentify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				var args PassphraseLoginNoIdentifyArg
-				if err = nxt(&args); err == nil {
-					err = i.PassphraseLoginNoIdentify(args)
+					err = i.PassphraseLogin(args)
 				}
 				return
 			},
@@ -472,13 +465,8 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) PassphraseLogin(identify bool) (err error) {
-	err = c.Cli.Call("keybase.1.login.passphraseLogin", []interface{}{identify}, nil)
-	return
-}
-
-func (c LoginClient) PassphraseLoginNoIdentify(arg PassphraseLoginNoIdentifyArg) (err error) {
-	err = c.Cli.Call("keybase.1.login.passphraseLoginNoIdentify", arg, nil)
+func (c LoginClient) PassphraseLogin(arg PassphraseLoginArg) (err error) {
+	err = c.Cli.Call("keybase.1.login.passphraseLogin", arg, nil)
 	return
 }
 

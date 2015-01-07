@@ -63,11 +63,7 @@
       "request" : [ {
         "name" : "identify",
         "type" : "boolean"
-      } ],
-      "response" : "null"
-    },
-    "passphraseLoginNoIdentify" : {
-      "request" : [ {
+      }, {
         "name" : "username",
         "type" : "string"
       }, {
