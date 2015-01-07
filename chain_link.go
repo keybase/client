@@ -254,6 +254,11 @@ func (c *ChainLink) CheckNameAndId(s string, i UID) error {
 
 }
 
+func ComputeLinkId(d []byte) LinkId {
+	h := sha256.Sum256(d)
+	return LinkId(h[:])
+}
+
 func (c *ChainLink) VerifyHash() error {
 	if c.hashVerified {
 		return nil
