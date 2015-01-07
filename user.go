@@ -497,11 +497,20 @@ func (u *User) GetSecretKey(fp PgpFingerprint) (ret *P3SKB, err error) {
 	defer func() {
 		G.Log.Debug("- User.GetSecretKey() -> %s", ErrToOk(err))
 	}()
-	if u.privateKeys == nil || u.privateKeys.IsNil() {
+
+	var jw *jsonw.Wrapper
+	if u.privateKeys != nil {
+		jw = u.privateKeys.AtKey("primary")
+		if jw.IsNil() {
+			jw = nil
+		}
+	}
+	if jw == nil {
 		G.Log.Debug("| short-circuit; no privateKeys object found")
 		return
 	}
-	ret, err = getSecretKey(u.privateKeys.AtKey("primary"), fp)
+
+	ret, err = getSecretKey(jw, fp)
 	return
 }
 
