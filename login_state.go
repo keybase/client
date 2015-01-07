@@ -346,15 +346,18 @@ func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 	return s.tsec
 }
 
-func Login(arg LoginArg) error {
-	return G.LoginState.Login(arg)
+type LoginAndIdentifyArg struct {
+	Login      LoginArg
+	IdentifyUI IdentifyUI
 }
 
-func LoginAndIdentify(login LoginUI, identify IdentifyUI) error {
-	larg := LoginArg{Prompt: true, Retry: 3, Ui: login}
-	if err := G.LoginState.Login(larg); err != nil {
+func LoginAndIdentify(arg LoginAndIdentifyArg) error {
+
+	if err := G.LoginState.Login(arg.Login); err != nil {
 		return err
 	}
+
+	identify := arg.IdentifyUI
 
 	// We might need to ID ourselves, to load us in here
 	u, err := LoadMe(LoadUserArg{ForceReload: true})

@@ -237,7 +237,7 @@ type LoginUI interface {
 
 type UI interface {
 	GetIdentifyUI(them *User) IdentifyUI
-	GetIdentifySelfUI(them *User) IdentifyUI
+	GetIdentifySelfUI() IdentifyUI
 	GetIdentifyTrackUI(them *User, strict bool) IdentifyUI
 	GetIdentifyLubaUI(them *User) IdentifyUI
 	GetLoginUI() LoginUI
