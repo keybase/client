@@ -311,13 +311,6 @@ func (s *KeyGen) GenNacl() (err error) {
 		return
 	}
 
-	// XXX this doesn't work, due to a race condition.  The server hasn't
-	// had a chance to update its merkle tree yet.  We probably need to
-	// explicitly reload it or compute it ourselves... Sigh...
-	if err = s.ReloadMe(); err != nil {
-		return
-	}
-
 	G.Log.Info("Generating NaCl DH-key (255 bits on Curve25519)")
 	gen := NewNaclKeyGen(NaclKeyGenArg{
 		Signer:    sibkey,

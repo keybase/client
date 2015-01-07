@@ -45,6 +45,15 @@ func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {
 	return
 }
 
+func (sc *SigChain) Bump(id LinkId) {
+	summary := LinkSummary{
+		id:    id,
+		seqno: sc.GetLastSeqno() + 1,
+	}
+	G.Log.Debug("| Bumping SigChain LastSeqno to %d", summary.seqno)
+	sc.last = &summary
+}
+
 func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err error) {
 
 	low := sc.GetLastSeqno()
@@ -108,6 +117,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 		// If we've stored a `last` and it's less than the one
 		// we just loaded, then nuke it.
 		if sc.last != nil && sc.last.Less(*dirtyTail) {
+			G.Log.Debug("| Clear cached last (%d < %d)", sc.last.seqno, dirtyTail.seqno)
 			sc.last = nil
 		}
 	}
@@ -151,9 +161,15 @@ func (sc SigChain) GetLastLink() *ChainLink {
 }
 
 func (sc SigChain) GetLastSeqno() (ret Seqno) {
+	G.Log.Debug("+ GetLastSeqno()")
+	defer func() {
+		G.Log.Debug("- GetLastSeqno() -> %d", ret)
+	}()
 	if sc.last != nil {
+		G.Log.Debug("| Cached in last summary object...")
 		ret = sc.last.seqno
 	} else if l := last(sc.chainLinks); l != nil {
+		G.Log.Debug("| Fetched from main chain")
 		ret = l.GetSeqno()
 	}
 	return

@@ -38,13 +38,14 @@ func (g *NaclKeyGen) Save() (err error) {
 
 func (g *NaclKeyGen) Push() (err error) {
 	var jw *jsonw.Wrapper
-	jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Type, g.arg.ExpireIn)
+	jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn)
 	if err != nil {
 		return
 	}
 	var sig string
 	var id *SigId
-	if sig, id, _, err = SignJson(jw, g.arg.Signer); err != nil {
+	var lid LinkId
+	if sig, id, lid, err = SignJson(jw, g.arg.Signer); err != nil {
 		return
 	}
 	arg := PostNewKeyArg{
@@ -58,6 +59,7 @@ func (g *NaclKeyGen) Push() (err error) {
 	if err = PostNewKey(arg); err != nil {
 		return
 	}
+	g.arg.Me.sigChain.Bump(lid)
 	return
 }
 
