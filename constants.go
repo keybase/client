@@ -48,6 +48,7 @@ var TRACK_SESSION_TIMEOUT = time.Minute
 const (
 	SC_OK                        = 0
 	SC_BAD_SESSION               = 202
+	SC_BAD_LOGIN_PASSWORD        = 204
 	SC_GENERIC                   = 218
 	SC_BAD_SIGNUP_USERNAME_TAKEN = 701
 	SC_BAD_TRACK_SESSION         = 1301

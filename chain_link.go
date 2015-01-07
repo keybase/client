@@ -254,6 +254,11 @@ func (c *ChainLink) CheckNameAndId(s string, i UID) error {
 
 }
 
+func ComputeLinkId(d []byte) LinkId {
+	h := sha256.Sum256(d)
+	return LinkId(h[:])
+}
+
 func (c *ChainLink) VerifyHash() error {
 	if c.hashVerified {
 		return nil
@@ -409,6 +414,10 @@ func (c ChainLink) MatchUidAndUsername(uid UID, username string) bool {
 type LinkSummary struct {
 	id    LinkId
 	seqno Seqno
+}
+
+func (ls LinkSummary) Less(ls2 LinkSummary) bool {
+	return ls.seqno < ls2.seqno
 }
 
 func (l LinkSummary) ToJson() *jsonw.Wrapper {

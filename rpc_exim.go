@@ -119,16 +119,13 @@ func ImportProofError(e keybase_1.ProofStatus) ProofError {
 	}
 }
 
-func ExportErrorAsStatus(e error) (ret keybase_1.Status) {
+func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
 	if e == nil {
-		ret = keybase_1.Status{
-			Name: "OK",
-			Code: 0,
-		}
 	} else if ee, ok := e.(ExportableError); ok {
-		ret = ee.ToStatus()
+		tmp := ee.ToStatus()
+		ret = &tmp
 	} else {
-		ret = keybase_1.Status{
+		ret = &keybase_1.Status{
 			Name: "GENERIC",
 			Code: SC_GENERIC,
 			Desc: e.Error(),
@@ -144,7 +141,7 @@ func WrapError(e error) interface{} {
 }
 
 func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
-	var s keybase_1.Status
+	var s *keybase_1.Status
 	if dispatch = nxt(&s); dispatch == nil {
 		app = ImportStatusAsError(s)
 	}
@@ -153,11 +150,15 @@ func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
 
 //=============================================================================
 
-func ImportStatusAsError(s keybase_1.Status) error {
-	if s.Code == SC_OK {
+func ImportStatusAsError(s *keybase_1.Status) error {
+	if s == nil {
+		return nil
+	} else if s.Code == SC_OK {
 		return nil
 	} else if s.Code == SC_GENERIC {
 		return fmt.Errorf(s.Desc)
+	} else if s.Code == SC_BAD_LOGIN_PASSWORD {
+		return PassphraseError{s.Desc}
 	} else {
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -293,6 +294,31 @@ func ImportWarnings(v []string) Warnings {
 func (c CryptocurrencyChainLink) Export() (ret keybase_1.Cryptocurrency) {
 	ret.Pkhash = c.pkhash
 	ret.Address = c.address
+	return
+}
+
+//=============================================================================
+
+func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
+	ret.Configured = c.Configured
+	ret.Registered = c.Registered
+	ret.LoggedIn = c.LoggedIn
+	ret.PublicKeySelected = c.PublicKeySelected
+	if c.User != nil {
+		ret.User = &keybase_1.UserInfo{
+			Uid:      c.User.Uid.ToString(),
+			Username: c.User.Username,
+		}
+	}
+	return
+}
+
+//=============================================================================
+
+func (p PassphraseError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_BAD_LOGIN_PASSWORD
+	s.Name = "BAD_LOGIN_PASSWORD"
+	s.Desc = p.msg
 	return
 }
 

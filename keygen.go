@@ -138,13 +138,14 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 }
 
 type KeyGen struct {
-	me       *User
-	bundle   *PgpKeyBundle
-	p3skb    *P3SKB
-	tsec     *triplesec.Cipher
-	httpArgs *HttpArgs
-	arg      *KeyGenArg
-	phase    int
+	me        *User
+	bundle    *PgpKeyBundle
+	p3skb     *P3SKB
+	tsec      *triplesec.Cipher
+	httpArgs  *HttpArgs
+	arg       *KeyGenArg
+	phase     int
+	nxtLinkId LinkId
 }
 
 func (s *KeyGen) CheckNoKey() error {
@@ -182,7 +183,7 @@ func (s *KeyGen) GeneratePost() (err error) {
 	if jw, err = s.me.SelfProof(); err != nil {
 		return
 	}
-	if sig, sigid, err = SignJson(jw, s.bundle); err != nil {
+	if sig, sigid, s.nxtLinkId, err = SignJson(jw, s.bundle); err != nil {
 		return
 	}
 	if pubkey, err = s.bundle.Encode(); err != nil {
