@@ -123,14 +123,14 @@ func (v *ProofEngine) DoWarnings() (err error) {
 	return
 }
 func (v *ProofEngine) GenerateProof() (err error) {
-	var key *PgpKeyBundle
+	var key GenericKey
 	if v.proof, err = v.me.ServiceProof(v.st, v.usernameNormalized); err != nil {
 		return
 	}
 	if key, err = G.Keyrings.GetSecretKey("proof signature"); err != nil {
 		return
 	}
-	if v.sig, v.sigId, err = SignJson(v.proof, key); err != nil {
+	if v.sig, v.sigId, _, err = SignJson(v.proof, key); err != nil {
 		return
 	}
 	return

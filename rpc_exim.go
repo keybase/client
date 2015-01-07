@@ -319,6 +319,7 @@ func (p PassphraseError) ToStatus() (s keybase_1.Status) {
 	s.Code = SC_BAD_LOGIN_PASSWORD
 	s.Name = "BAD_LOGIN_PASSWORD"
 	s.Desc = p.msg
+	return
 }
 
 func (m Markup) Export() (ret keybase_1.Text) {
