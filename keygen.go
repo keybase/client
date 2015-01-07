@@ -286,8 +286,8 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 }
 
 func (s *KeyGen) GenNacl() (err error) {
-	var sibkey GenericKey
-	sibkey = s.bundle
+	var signer GenericKey
+	signer = s.bundle
 	G.Log.Debug("+ GenNacl()")
 	defer func() {
 		G.Log.Debug("- GenNacl() -> %s", ErrToOk(err))
@@ -295,16 +295,14 @@ func (s *KeyGen) GenNacl() (err error) {
 	if s.arg.DoNaclEddsa {
 		G.Log.Info("Generating NaCl EdDSA key (255 bits on Curve25519)")
 		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Signer:    sibkey,
+			Signer:    signer,
 			Primary:   s.bundle,
 			Generator: GenerateNaclSigningKeyPair,
 			Type:      "sibkey",
 			Me:        s.me,
 			ExpireIn:  NACL_EDDSA_EXPIRE_IN,
 		})
-		if err = gen.Run(); err == nil {
-			sibkey = gen.GetKeyPair()
-		}
+		err = gen.Run()
 	}
 
 	if err != nil || !s.arg.DoNaclDH {
@@ -313,7 +311,7 @@ func (s *KeyGen) GenNacl() (err error) {
 
 	G.Log.Info("Generating NaCl DH-key (255 bits on Curve25519)")
 	gen := NewNaclKeyGen(NaclKeyGenArg{
-		Signer:    sibkey,
+		Signer:    signer,
 		Primary:   s.bundle,
 		Generator: GenerateNaclDHKeyPair,
 		Type:      "subkey",
@@ -429,8 +427,9 @@ func (s *KeyGen) Push() (err error) {
 	if err = s.PostToServer(); err != nil {
 		return
 	}
-	G.Log.Debug("| Reload user")
-	err = s.ReloadMe()
+
+	G.Log.Debug("| Fudge User Sig Chain")
+	s.me.sigChain.Bump(s.nxtLinkId)
 
 	s.phase = KEYGEN_PHASE_POSTED
 
