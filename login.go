@@ -50,6 +50,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	if arg.Identify {
 		liarg.IdentifyUI = h.getIdentifyUi()
 	}
+	liarg.LogUI = h.getLogUI()
 
 	return libkb.LoginAndIdentify(liarg)
 }

@@ -85,14 +85,7 @@ func (u *RemoteBaseIdentifyUI) ReportLastTrack(t *keybase_1.TrackSummary) {
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) Warning(s string) {
-	u.uicli.Warning(keybase_1.WarningArg{SessionId: u.sessionId, Msg: s})
-	return
-}
-
 func (u *RemoteSelfIdentifyUI) Start() {
-	msg := "Verifying your key fingerprint..."
-	u.uicli.Warning(keybase_1.WarningArg{SessionId: u.sessionId, Msg: msg})
 	return
 }
 
