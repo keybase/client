@@ -491,7 +491,7 @@ func (l LoginUI) GetKeybasePassphrase(username string, retry string) (string, er
 	return l.parent.PromptForKeybasePassphrase(username, retry)
 }
 
-func (u *UI) GetSecret(pinentry libkb.SecretEntryArg, term *libkb.SecretEntryArg) (*libkb.SecretEntryRes, error) {
+func (u *UI) GetSecret(pinentry keybase_1.SecretEntryArg, term *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
 	return u.SecretEntry.Get(pinentry, term)
 }
 
@@ -566,7 +566,7 @@ func (ui *UI) PromptForKeybasePassphrase(username string, retry string) (text st
 func (ui *UI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 	first := true
-	var res *libkb.SecretEntryRes
+	var res *keybase_1.SecretEntryRes
 
 	for {
 
@@ -582,12 +582,12 @@ func (ui *UI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 		tp = tp + ": "
 
-		res, err = ui.GetSecret(libkb.SecretEntryArg{
-			Error:  emp,
+		res, err = ui.GetSecret(keybase_1.SecretEntryArg{
+			Err:    emp,
 			Desc:   arg.PinentryDesc,
 			Prompt: arg.PinentryPrompt,
-		}, &libkb.SecretEntryArg{
-			Error:  emt,
+		}, &keybase_1.SecretEntryArg{
+			Err:    emt,
 			Prompt: tp,
 		})
 

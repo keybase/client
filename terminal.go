@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"io"
 )
 
@@ -34,13 +34,13 @@ func (t Terminal) GetSize() (int, int) {
 	return t.engine.GetSize()
 }
 
-func (t Terminal) GetSecret(arg *libkb.SecretEntryArg) (res *libkb.SecretEntryRes, err error) {
+func (t Terminal) GetSecret(arg *keybase_1.SecretEntryArg) (res *keybase_1.SecretEntryRes, err error) {
 
 	desc := arg.Desc
 	prompt := arg.Prompt
 
-	if len(arg.Error) > 0 {
-		G.Log.Error(arg.Error)
+	if len(arg.Err) > 0 {
+		G.Log.Error(arg.Err)
 	}
 
 	if len(desc) > 0 {
@@ -55,10 +55,10 @@ func (t Terminal) GetSecret(arg *libkb.SecretEntryArg) (res *libkb.SecretEntryRe
 	if err != nil {
 		if err == io.EOF {
 			err = nil
-			res = &libkb.SecretEntryRes{Canceled: true}
+			res = &keybase_1.SecretEntryRes{Canceled: true}
 		}
 	} else {
-		res = &libkb.SecretEntryRes{Text: txt}
+		res = &keybase_1.SecretEntryRes{Text: txt}
 	}
 
 	return

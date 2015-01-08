@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 )
 
 type SecretEntry struct {
@@ -50,8 +51,8 @@ func (se *SecretEntry) Init() (err error) {
 	return err
 }
 
-func (se *SecretEntry) Get(arg libkb.SecretEntryArg, term_arg *libkb.SecretEntryArg) (
-	res *libkb.SecretEntryRes, err error) {
+func (se *SecretEntry) Get(arg keybase_1.SecretEntryArg, term_arg *keybase_1.SecretEntryArg) (
+	res *keybase_1.SecretEntryRes, err error) {
 
 	if err = se.Init(); err != nil {
 		return
