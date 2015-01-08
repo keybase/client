@@ -11,6 +11,7 @@ type BaseHandler struct {
 	cli       *rpc2.Client
 	loginCli  *keybase_1.LoginUiClient
 	secretCli *keybase_1.SecretUiClient
+	logCli    *keybase_1.LogUiClient
 }
 
 type LoginUI struct {
@@ -48,4 +49,15 @@ func (h *BaseHandler) getSecretUiCli() *keybase_1.SecretUiClient {
 
 func (h *BaseHandler) getSecretUI() libkb.SecretUI {
 	return &SecretUI{h.getSecretUiCli()}
+}
+
+func (h *BaseHandler) getLogUICli() *keybase_1.LogUiClient {
+	if h.logCli == nil {
+		h.logCli = &keybase_1.LogUiClient{h.getRpcClient()}
+	}
+	return h.logCli
+}
+
+func (h *BaseHandler) getLogUI() libkb.LogUI {
+	return &LogUI{0, h.getLogUICli()}
 }

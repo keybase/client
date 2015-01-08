@@ -72,6 +72,7 @@ func (ph *ProveHandler) Prove(arg keybase_1.ProveArg) (err error) {
 		ProveUI:  ph.getProveUI(),
 		LoginUI:  ph.getLoginUi(),
 		SecretUI: ph.getSecretUI(),
+		LogUI:    ph.getLogUI(),
 	}
 	err = eng.Run()
 	return
