@@ -17,6 +17,7 @@ type ProofEngine struct {
 	postRes            *PostProofRes
 	ProveUI            ProveUI
 	LoginUI            LoginUI
+	SecretUI           SecretUI
 }
 
 func (v *ProofEngine) Init() error {
@@ -26,6 +27,9 @@ func (v *ProofEngine) Init() error {
 	if v.LoginUI == nil {
 		v.LoginUI = G.UI.GetLoginUI()
 	}
+	if v.SecretUI == nil {
+		v.SecretUI = G.UI.GetSecretUI()
+	}
 	return nil
 }
 
@@ -34,7 +38,7 @@ func (v *ProofEngine) Login() (err error) {
 }
 
 func (v *ProofEngine) LoadMe() (err error) {
-	v.me, err = LoadMe(LoadUserArg{LoadSecrets: true, AllKeys: false})
+	v.me, err = LoadMe(LoadUserArg{LoadSecrets: true, AllKeys: false, ForceReload: true})
 	return
 }
 
@@ -127,7 +131,7 @@ func (v *ProofEngine) GenerateProof() (err error) {
 	if v.proof, err = v.me.ServiceProof(v.st, v.usernameNormalized); err != nil {
 		return
 	}
-	if key, err = G.Keyrings.GetSecretKey("proof signature"); err != nil {
+	if key, err = G.Keyrings.GetSecretKey("proof signature", v.SecretUI); err != nil {
 		return
 	}
 	if v.sig, v.sigId, _, err = SignJson(v.proof, key); err != nil {

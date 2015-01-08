@@ -289,7 +289,7 @@ func (p KeybasePackets) ToListOfP3SKBs() (ret []*P3SKB, err error) {
 	return
 }
 
-func (p *P3SKB) PromptAndUnlock(reason string, which string) (ret GenericKey, err error) {
+func (p *P3SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret GenericKey, err error) {
 	if ret = p.decryptedSecret; ret != nil {
 		return
 	}
@@ -325,6 +325,7 @@ func (p *P3SKB) PromptAndUnlock(reason string, which string) (ret GenericKey, er
 		KeyDesc:  desc,
 		Unlocker: unlocker,
 		Which:    which,
+		Ui:       ui,
 	}.Run()
 }
 

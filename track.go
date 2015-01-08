@@ -482,7 +482,7 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 	G.Log.Debug("+ StoreRemoteTrack")
 	defer G.Log.Debug("- StoreRemoteTrack -> %s", ErrToOk(err))
 
-	if e.signingKey, err = G.Keyrings.GetSecretKey("tracking signature"); err != nil {
+	if e.signingKey, err = G.Keyrings.GetSecretKey("tracking signature", nil); err != nil {
 		return
 	} else if e.signingKey == nil {
 		err = NoSecretKeyError{}

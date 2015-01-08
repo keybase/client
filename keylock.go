@@ -10,6 +10,7 @@ type KeyUnlocker struct {
 	Reason   string
 	KeyDesc  string
 	Which    string
+	Ui       SecretUI
 	Unlocker func(pw string) (ret GenericKey, err error)
 }
 
@@ -27,7 +28,10 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		desc = desc + "\nReason: " + arg.Reason
 	}
 
-	sui := G.UI.GetSecretUI()
+	sui := arg.Ui
+	if sui == nil {
+		sui = G.UI.GetSecretUI()
+	}
 	if sui == nil {
 		err = NoUiError{}
 		return

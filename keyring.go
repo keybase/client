@@ -199,7 +199,7 @@ func (k KeyringFile) Save() error {
 	return SafeWriteToFile(k)
 }
 
-func (k Keyrings) GetSecretKey(reason string) (key GenericKey, err error) {
+func (k Keyrings) GetSecretKey(reason string, ui SecretUI) (key GenericKey, err error) {
 	var me *User
 	var fp *PgpFingerprint
 	var p3skb *P3SKB
@@ -244,7 +244,7 @@ func (k Keyrings) GetSecretKey(reason string) (key GenericKey, err error) {
 		err = NoKeyError{fmt.Sprintf("No secret key found for %s", fp.ToString())}
 	} else {
 		G.Log.Debug("| Prompt/Unlock key")
-		key, err = p3skb.PromptAndUnlock(reason, which)
+		key, err = p3skb.PromptAndUnlock(reason, which, ui)
 	}
 	return
 }
