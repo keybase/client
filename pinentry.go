@@ -3,6 +3,7 @@ package libkb
 import (
 	"bufio"
 	"fmt"
+	"github.com/keybase/protocol/go"
 	"io"
 	"os"
 	"os/exec"
@@ -74,7 +75,7 @@ func (pe *Pinentry) GetTerminalName() error {
 	return nil
 }
 
-func (pe *Pinentry) Get(arg SecretEntryArg) (res *SecretEntryRes, err error) {
+func (pe *Pinentry) Get(arg keybase_1.SecretEntryArg) (res *keybase_1.SecretEntryRes, err error) {
 
 	G.Log.Debug("+ Pinentry::Get()")
 
@@ -173,13 +174,13 @@ func descEncode(s string) string {
 	return s
 }
 
-func (pi *pinentryInstance) Run(arg SecretEntryArg) (res *SecretEntryRes, err error) {
+func (pi *pinentryInstance) Run(arg keybase_1.SecretEntryArg) (res *keybase_1.SecretEntryRes, err error) {
 
 	pi.Set("SETPROMPT", arg.Prompt, &err)
 	pi.Set("SETDESC", descEncode(arg.Desc), &err)
-	pi.Set("SETOK", arg.OK, &err)
+	pi.Set("SETOK", arg.Ok, &err)
 	pi.Set("SETCANCEL", arg.Cancel, &err)
-	pi.Set("SETERROR", arg.Error, &err)
+	pi.Set("SETERROR", arg.Err, &err)
 
 	if err != nil {
 		return
@@ -194,11 +195,11 @@ func (pi *pinentryInstance) Run(arg SecretEntryArg) (res *SecretEntryRes, err er
 	}
 	line := string(lineb)
 	if strings.HasPrefix(line, "D ") {
-		res = &SecretEntryRes{Text: line[2:]}
+		res = &keybase_1.SecretEntryRes{Text: line[2:]}
 	} else if strings.HasPrefix(line, "ERR 83886179 canceled") {
-		res = &SecretEntryRes{Canceled: true}
+		res = &keybase_1.SecretEntryRes{Canceled: true}
 	} else if line == "OK" {
-		res = &SecretEntryRes{}
+		res = &keybase_1.SecretEntryRes{}
 	} else {
 		err = fmt.Errorf("GETPIN response didn't start with D; got %q", line)
 	}

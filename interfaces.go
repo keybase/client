@@ -124,21 +124,6 @@ type HttpRequest interface {
 type ProofCheckers interface {
 }
 
-type SecretEntryArg struct {
-	Desc   string
-	Prompt string
-	Error  string
-	Cancel string
-	OK     string
-}
-
-// Eventually we'll learn how to set checkboxes like GPG2 does on
-// OSX. But for now, just the string...
-type SecretEntryRes struct {
-	Text     string
-	Canceled bool
-}
-
 type Usage struct {
 	Config     bool
 	GpgKeyring bool
@@ -255,7 +240,7 @@ type UI interface {
 	GetProveUI() ProveUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
-	GetSecret(pinentry SecretEntryArg, terminal *SecretEntryArg) (*SecretEntryRes, error)
+	GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error)
 	Configure() error
 	Shutdown() error
 }
