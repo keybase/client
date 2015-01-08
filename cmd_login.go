@@ -68,16 +68,12 @@ func (i *IdentifyUIServer) LaunchNetworkChecks(arg keybase_1.LaunchNetworkChecks
 	return nil
 }
 
-func (i *IdentifyUIServer) Warning(arg keybase_1.WarningArg) error {
-	G.Log.Warning(arg.Msg)
-	return nil
-}
-
 func (v *CmdLogin) RunClient() (err error) {
 	var cli keybase_1.LoginClient
 	protocols := []rpc2.Protocol{
 		NewLoginUIProtocol(),
 		NewIdentifyUIProtocol(),
+		NewLogUIProtocol(),
 	}
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
