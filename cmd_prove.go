@@ -54,9 +54,7 @@ func (v *CmdProve) Run() (err error) {
 		Force:    v.force,
 		ProveUI:  ui,
 	}
-	if err = eng.Run(); err == nil {
-		G.Log.Notice("Success!")
-	}
+	err = eng.Run()
 	return
 }
 
