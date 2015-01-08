@@ -255,7 +255,7 @@ type UI interface {
 	GetProveUI() ProveUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
-	GetSecret([]SecretEntryArg) (*SecretEntryRes, error)
+	GetSecret(pinentry SecretEntryArg, terminal *SecretEntryArg) (*SecretEntryRes, error)
 	Configure() error
 	Shutdown() error
 }
