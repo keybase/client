@@ -5,7 +5,7 @@ protocol proveUi {
 
 	boolean promptOverwrite1(int sessionId, string account);
 	boolean promptOverwrite2(int sessionId, string service);
-	string promptUsername(int sessionId, string prompt, Status prevError);
+	string promptUsername(int sessionId, string prompt, union {null, Status } prevError);
 	void outputPrechecks(int sessionId, Text text);
 	boolean preProofWarning(int sessionId, Text text);
 	void outputInstructions(int sessionId, Text instructions, string proof);

@@ -585,9 +585,9 @@ type PromptOverwrite2Arg struct {
 }
 
 type PromptUsernameArg struct {
-	SessionId int    `codec:"sessionId"`
-	Prompt    string `codec:"prompt"`
-	PrevError Status `codec:"prevError"`
+	SessionId int     `codec:"sessionId"`
+	Prompt    string  `codec:"prompt"`
+	PrevError *Status `codec:"prevError,omitempty"`
 }
 
 type OutputPrechecksArg struct {
