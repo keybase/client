@@ -231,16 +231,20 @@ type ProveUI interface {
 	DisplayRecheckWarning(keybase_1.Text)
 }
 
+type SecretUI interface {
+	GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error)
+}
+
 type UI interface {
 	GetIdentifyUI(them *User) IdentifyUI
 	GetIdentifySelfUI() IdentifyUI
 	GetIdentifyTrackUI(them *User, strict bool) IdentifyUI
 	GetIdentifyLubaUI(them *User) IdentifyUI
 	GetLoginUI() LoginUI
+	GetSecretUI() SecretUI
 	GetProveUI() ProveUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
-	GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error)
 	Configure() error
 	Shutdown() error
 }

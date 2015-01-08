@@ -27,11 +27,17 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		desc = desc + "\nReason: " + arg.Reason
 	}
 
+	sui := G.UI.GetSecretUI()
+	if sui == nil {
+		err = NoUiError{}
+		return
+	}
+
 	prompt := "Your key passphrase"
 
 	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
 		var res *keybase_1.SecretEntryRes
-		res, err = G.UI.GetSecret(keybase_1.SecretEntryArg{
+		res, err = sui.GetSecret(keybase_1.SecretEntryArg{
 			Err:    emsg,
 			Desc:   desc,
 			Prompt: prompt,
