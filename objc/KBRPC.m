@@ -172,9 +172,9 @@
 @end
 
 @implementation KBRLog
-- (void)logWithLevel:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion {
+- (void)logWithSessionId:(NSInteger )sessionId level:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion {
 
-  NSArray *params = @[@{@"level": @(level), @"text": KBRValue(text)}];
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"level": @(level), @"text": KBRValue(text)}];
   [self.client sendRequestWithMethod:@"keybase.1.log.log" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];

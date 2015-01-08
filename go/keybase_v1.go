@@ -371,8 +371,9 @@ const (
 )
 
 type LogArg struct {
-	Level LogLevel `codec:"level"`
-	Text  Text     `codec:"text"`
+	SessionId int      `codec:"sessionId"`
+	Level     LogLevel `codec:"level"`
+	Text      Text     `codec:"text"`
 }
 
 type LogInterface interface {
