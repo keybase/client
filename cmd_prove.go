@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
 	"io/ioutil"
 	"os"
 )
@@ -39,7 +40,52 @@ func (v *CmdProve) fileOutputHook(txt string) (err error) {
 	return
 }
 
-func (v *CmdProve) RunClient() (err error) { return v.Run() }
+type ProveUIServer struct {
+	eng libkb.ProveUI
+}
+
+func NewProveUIServer() *ProveUIServer {
+	return &ProveUIServer{G_UI.GetProveUI()}
+}
+
+func (p *ProveUIServer) PromptOverwrite1(arg keybase_1.PromptOverwrite1Arg) (ok bool, err error) {
+	return
+}
+func (p *ProveUIServer) PromptOverwrite2(arg keybase_1.PromptOverwrite2Arg) (ok bool, err error) {
+	return
+}
+func (p *ProveUIServer) PromptUsername(arg keybase_1.PromptUsernameArg) (un string, err error) {
+	return
+}
+func (p *ProveUIServer) OutputPrechecks(arg keybase_1.OutputPrechecksArg) (err error) {
+	return
+}
+func (p *ProveUIServer) PreProofWarning(arg keybase_1.PreProofWarningArg) (ok bool, err error) {
+	return
+}
+func (p *ProveUIServer) OutputInstructions(arg keybase_1.OutputInstructionsArg) (err error) {
+	return
+}
+func (p *ProveUIServer) OkToCheck(arg keybase_1.OkToCheckArg) (ok bool, err error) {
+	return
+}
+func (p *ProveUIServer) DisplayRecheckWarning(arg keybase_1.DisplayRecheckWarningArg) (err error) {
+	return
+}
+
+func (v *CmdProve) RunClient() (err error) {
+	var cli keybase_1.ProveClient
+	if cli, err = GetProveClient(); err != nil {
+	} else if err = RegisterProveUiServer(NewProveUIServer()); err != nil {
+	} else {
+		err = cli.Prove(keybase_1.ProveArg{
+			Username: v.username,
+			Service:  v.service,
+			Force:    v.force,
+		})
+	}
+	return
+}
 
 func (v *CmdProve) Run() (err error) {
 	ui := ProveUI{parent: G_UI}

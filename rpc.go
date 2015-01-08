@@ -67,3 +67,19 @@ func RegisterIdentifyUiServer(i keybase_1.IdentifyUiInterface) (err error) {
 	}
 	return
 }
+
+func GetProveClient() (cli keybase_1.ProveClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.ProveClient{rcli}
+	}
+	return
+}
+
+func RegisterProveUiServer(i keybase_1.ProveUiInterface) (err error) {
+	var srv *rpc2.Server
+	if srv, _, err = GetRpcServer(); err == nil {
+		srv.Register(keybase_1.ProveUiProtocol(i))
+	}
+	return
+}
