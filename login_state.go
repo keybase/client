@@ -349,6 +349,7 @@ func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 type LoginAndIdentifyArg struct {
 	Login      LoginArg
 	IdentifyUI IdentifyUI
+	LogUI      LogUI
 }
 
 func LoginAndIdentify(arg LoginAndIdentifyArg) error {
@@ -358,6 +359,10 @@ func LoginAndIdentify(arg LoginAndIdentifyArg) error {
 	}
 
 	identify := arg.IdentifyUI
+	log := arg.LogUI
+	if log == nil && G.UI != nil {
+		log = G.UI.GetLogUI()
+	}
 
 	// We might need to ID ourselves, to load us in here
 	u, err := LoadMe(LoadUserArg{ForceReload: true})
@@ -365,9 +370,10 @@ func LoginAndIdentify(arg LoginAndIdentifyArg) error {
 		err = nil
 	} else if _, not_selected := err.(NoSelectedKeyError); not_selected && identify != nil {
 		var fp *PgpFingerprint
+		log.Warning("Verifying your fingerprint...")
 		fp, err = u.IdentifySelf(identify)
-		if err == nil {
-			identify.Warning(fmt.Sprintf("Setting PGP fingerprint to: %s", fp.ToQuads()))
+		if err == nil && log != nil {
+			log.Warning("Setting PGP fingerprint to: %s", fp.ToQuads())
 		}
 	}
 	return err
