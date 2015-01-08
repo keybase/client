@@ -48,35 +48,38 @@ func NewProveUIServer() *ProveUIServer {
 	return &ProveUIServer{G_UI.GetProveUI()}
 }
 
-func (p *ProveUIServer) PromptOverwrite1(arg keybase_1.PromptOverwrite1Arg) (ok bool, err error) {
-	return
+func (p *ProveUIServer) PromptOverwrite1(arg keybase_1.PromptOverwrite1Arg) (bool, error) {
+	return p.eng.PromptOverwrite1(arg.Account)
 }
-func (p *ProveUIServer) PromptOverwrite2(arg keybase_1.PromptOverwrite2Arg) (ok bool, err error) {
-	return
+func (p *ProveUIServer) PromptOverwrite2(arg keybase_1.PromptOverwrite2Arg) (bool, error) {
+	return p.eng.PromptOverwrite1(arg.Service)
 }
-func (p *ProveUIServer) PromptUsername(arg keybase_1.PromptUsernameArg) (un string, err error) {
-	return
+func (p *ProveUIServer) PromptUsername(arg keybase_1.PromptUsernameArg) (string, error) {
+	return p.eng.PromptUsername(arg.Prompt, libkb.ImportStatusAsError(arg.PrevError))
 }
-func (p *ProveUIServer) OutputPrechecks(arg keybase_1.OutputPrechecksArg) (err error) {
-	return
+func (p *ProveUIServer) OutputPrechecks(arg keybase_1.OutputPrechecksArg) error {
+	p.eng.OutputPrechecks(arg.Text)
+	return nil
 }
-func (p *ProveUIServer) PreProofWarning(arg keybase_1.PreProofWarningArg) (ok bool, err error) {
-	return
+func (p *ProveUIServer) PreProofWarning(arg keybase_1.PreProofWarningArg) (bool, error) {
+	return p.eng.PreProofWarning(arg.Text)
 }
-func (p *ProveUIServer) OutputInstructions(arg keybase_1.OutputInstructionsArg) (err error) {
-	return
+func (p *ProveUIServer) OutputInstructions(arg keybase_1.OutputInstructionsArg) (error) {
+	return p.eng.OutputInstructions(arg.Instructions, arg.Proof)
 }
-func (p *ProveUIServer) OkToCheck(arg keybase_1.OkToCheckArg) (ok bool, err error) {
-	return
+func (p *ProveUIServer) OkToCheck(arg keybase_1.OkToCheckArg) (bool, error) {
+	return p.eng.OkToCheck(arg.Name, arg.Attempt)
 }
-func (p *ProveUIServer) DisplayRecheckWarning(arg keybase_1.DisplayRecheckWarningArg) (err error) {
-	return
+func (p *ProveUIServer) DisplayRecheckWarning(arg keybase_1.DisplayRecheckWarningArg) error {
+	p.eng.DisplayRecheckWarning(arg.Text)
+	return nil
 }
 
 func (v *CmdProve) RunClient() (err error) {
 	var cli keybase_1.ProveClient
 	if cli, err = GetProveClient(); err != nil {
 	} else if err = RegisterProveUiServer(NewProveUIServer()); err != nil {
+	} else if err = RegisterLoginUiServer(NewLoginUIServer()); err != nil {
 	} else {
 		err = cli.Prove(keybase_1.ProveArg{
 			Username: v.username,
