@@ -416,6 +416,10 @@ func (u *UI) GetProveUI() libkb.ProveUI {
 	return ProveUI{parent: u}
 }
 
+func (u *UI) GetLogUI() libkb.LogUI {
+	return G.Log
+}
+
 //============================================================
 
 type ProveUI struct {

@@ -99,6 +99,7 @@ func (v *CmdProve) RunClient() (err error) {
 		NewProveUIProtocol(),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
+		NewLogUIProtocol(),
 	}
 
 	if cli, err = GetProveClient(); err != nil {
