@@ -18,6 +18,7 @@ type ProofEngine struct {
 	ProveUI            ProveUI
 	LoginUI            LoginUI
 	SecretUI           SecretUI
+	LogUI              LogUI
 }
 
 func (v *ProofEngine) Init() error {
@@ -250,6 +251,6 @@ func (v *ProofEngine) Run() (err error) {
 	if err = v.PromptPostedLoop(); err != nil {
 		return
 	}
-	G.Log.Notice("Success!")
+	v.LogUI.Notice("Success!")
 	return nil
 }

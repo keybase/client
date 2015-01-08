@@ -235,6 +235,15 @@ type SecretUI interface {
 	GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error)
 }
 
+type LogUI interface {
+	Debug(format string, args ...interface{})
+	Info(format string, args ...interface{})
+	Warning(format string, args ...interface{})
+	Notice(format string, args ...interface{})
+	Error(format string, args ...interface{})
+	Critical(format string, args ...interface{})
+}
+
 type UI interface {
 	GetIdentifyUI(them *User) IdentifyUI
 	GetIdentifySelfUI() IdentifyUI
@@ -243,6 +252,7 @@ type UI interface {
 	GetLoginUI() LoginUI
 	GetSecretUI() SecretUI
 	GetProveUI() ProveUI
+	GetLogUI() LogUI
 	Prompt(string, bool, Checker) (string, error)
 	PromptForNewPassphrase(PromptArg) (string, error)
 	Configure() error
