@@ -1,14 +1,12 @@
 package main
 
 import (
-	"github.com/keybase/go-libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type RemoteBaseIdentifyUI struct {
 	sessionId int
-	rpccli    *rpc2.Client
 	uicli     keybase_1.IdentifyUiClient
 }
 
@@ -17,35 +15,35 @@ type RemoteSelfIdentifyUI struct {
 }
 
 type IdentifyHandler struct {
-	xp  *rpc2.Transport
-	cli *rpc2.Client
+	BaseHandler
 }
 
-func (h *IdentifyHandler) getRpcClient() (cli *rpc2.Client) {
-	if h.cli == nil {
-		h.cli = rpc2.NewClient(h.xp, libkb.UnwrapError)
-	}
-	return h.cli
+func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
+	return &IdentifyHandler{BaseHandler{xp: xp}}
 }
 
 var (
 	__sessionId = 0
 )
 
+func nextSessionId() int {
+	ret := __sessionId
+	__sessionId++
+	return ret
+}
+
 func NextRemoteSelfIdentifyUI(c *rpc2.Client) *RemoteSelfIdentifyUI {
 	return &RemoteSelfIdentifyUI{NextRemoteBaseIdentifyUI(c)}
 }
 
 func NextRemoteBaseIdentifyUI(c *rpc2.Client) *RemoteBaseIdentifyUI {
-	nxt := __sessionId
-	__sessionId++
+	nxt := nextSessionId()
 	return NewRemoteBaseIdentifyUI(nxt, c)
 }
 
 func NewRemoteBaseIdentifyUI(sessionId int, c *rpc2.Client) *RemoteBaseIdentifyUI {
 	return &RemoteBaseIdentifyUI{
 		sessionId: sessionId,
-		rpccli:    c,
 		uicli:     keybase_1.IdentifyUiClient{c},
 	}
 }

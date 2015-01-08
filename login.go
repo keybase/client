@@ -7,17 +7,13 @@ import (
 )
 
 type LoginHandler struct {
-	xp         *rpc2.Transport
-	cli        *rpc2.Client
+	BaseHandler
 	loginCli   *keybase_1.LoginUiClient
 	identifyUi libkb.IdentifyUI
 }
 
-func (h *LoginHandler) getRpcClient() *rpc2.Client {
-	if h.cli == nil {
-		h.cli = rpc2.NewClient(h.xp, libkb.UnwrapError)
-	}
-	return h.cli
+func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
+	return &LoginHandler{BaseHandler{xp: xp}, nil, nil}
 }
 
 func (h *LoginHandler) getLoginUiCli() *keybase_1.LoginUiClient {
@@ -29,11 +25,6 @@ func (h *LoginHandler) getLoginUiCli() *keybase_1.LoginUiClient {
 
 type LoginUI struct {
 	cli *keybase_1.LoginUiClient
-}
-
-type IdentifyUI struct {
-	sessionId int
-	cli       *keybase_1.IdentifyUiClient
 }
 
 func (h *LoginHandler) getLoginUi() libkb.LoginUI {
