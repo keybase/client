@@ -173,11 +173,12 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 	KBLogLevelNone, 
 	KBLogLevelDebug, 
 	KBLogLevelInfo, 
+	KBLogLevelNotice, 
 	KBLogLevelWarn, 
 	KBLogLevelError, 
 	KBLogLevelCritical, 
 };
-@interface KBRLog : KBRRequest
+@interface KBRLogUi : KBRRequest
 - (void)logWithSessionId:(NSInteger )sessionId level:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion;
 
 @end

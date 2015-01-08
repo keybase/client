@@ -1,5 +1,5 @@
 {
-  "protocol" : "log",
+  "protocol" : "logUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -60,7 +60,7 @@
   }, {
     "type" : "enum",
     "name" : "LogLevel",
-    "symbols" : [ "NONE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL" ]
+    "symbols" : [ "NONE", "DEBUG", "INFO", "NOTICE", "WARN", "ERROR", "CRITICAL" ]
   } ],
   "messages" : {
     "log" : {

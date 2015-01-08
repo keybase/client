@@ -1,12 +1,13 @@
 
 @namespace("keybase.1")
-protocol log {
+protocol logUi {
 	import idl "common.avdl";
 
 	enum LogLevel {
 		NONE,
 		DEBUG,
 		INFO,
+		NOTICE,
 		WARN,
 		ERROR,
 		CRITICAL

@@ -365,9 +365,10 @@ const (
 	LogLevel_NONE     = 0
 	LogLevel_DEBUG    = 1
 	LogLevel_INFO     = 2
-	LogLevel_WARN     = 3
-	LogLevel_ERROR    = 4
-	LogLevel_CRITICAL = 5
+	LogLevel_NOTICE   = 3
+	LogLevel_WARN     = 4
+	LogLevel_ERROR    = 5
+	LogLevel_CRITICAL = 6
 )
 
 type LogArg struct {
@@ -376,13 +377,13 @@ type LogArg struct {
 	Text      Text     `codec:"text"`
 }
 
-type LogInterface interface {
+type LogUiInterface interface {
 	Log(LogArg) error
 }
 
-func LogProtocol(i LogInterface) rpc2.Protocol {
+func LogUiProtocol(i LogUiInterface) rpc2.Protocol {
 	return rpc2.Protocol{
-		Name: "keybase.1.log",
+		Name: "keybase.1.logUi",
 		Methods: map[string]rpc2.ServeHook{
 			"log": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]LogArg, 1)
@@ -396,12 +397,12 @@ func LogProtocol(i LogInterface) rpc2.Protocol {
 
 }
 
-type LogClient struct {
+type LogUiClient struct {
 	Cli GenericClient
 }
 
-func (c LogClient) Log(__arg LogArg) (err error) {
-	err = c.Cli.Call("keybase.1.log.log", []interface{}{__arg}, nil)
+func (c LogUiClient) Log(__arg LogArg) (err error) {
+	err = c.Cli.Call("keybase.1.logUi.log", []interface{}{__arg}, nil)
 	return
 }
 
