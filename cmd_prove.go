@@ -64,7 +64,7 @@ func (p *ProveUIServer) OutputPrechecks(arg keybase_1.OutputPrechecksArg) error 
 func (p *ProveUIServer) PreProofWarning(arg keybase_1.PreProofWarningArg) (bool, error) {
 	return p.eng.PreProofWarning(arg.Text)
 }
-func (p *ProveUIServer) OutputInstructions(arg keybase_1.OutputInstructionsArg) (error) {
+func (p *ProveUIServer) OutputInstructions(arg keybase_1.OutputInstructionsArg) error {
 	return p.eng.OutputInstructions(arg.Instructions, arg.Proof)
 }
 func (p *ProveUIServer) OkToCheck(arg keybase_1.OkToCheckArg) (bool, error) {
