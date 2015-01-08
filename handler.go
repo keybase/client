@@ -7,13 +7,18 @@ import (
 )
 
 type BaseHandler struct {
-	xp       *rpc2.Transport
-	cli      *rpc2.Client
-	loginCli *keybase_1.LoginUiClient
+	xp        *rpc2.Transport
+	cli       *rpc2.Client
+	loginCli  *keybase_1.LoginUiClient
+	secretCli *keybase_1.SecretUiClient
 }
 
 type LoginUI struct {
 	cli *keybase_1.LoginUiClient
+}
+
+type SecretUI struct {
+	cli *keybase_1.SecretUiClient
 }
 
 func (h *BaseHandler) getRpcClient() *rpc2.Client {
@@ -32,4 +37,15 @@ func (h *BaseHandler) getLoginUiCli() *keybase_1.LoginUiClient {
 
 func (h *BaseHandler) getLoginUi() libkb.LoginUI {
 	return &LoginUI{h.getLoginUiCli()}
+}
+
+func (h *BaseHandler) getSecretUiCli() *keybase_1.SecretUiClient {
+	if h.secretCli == nil {
+		h.secretCli = &keybase_1.SecretUiClient{h.getRpcClient()}
+	}
+	return h.secretCli
+}
+
+func (h *BaseHandler) getSecretUI() libkb.SecretUI {
+	return &SecretUI{h.getSecretUiCli()}
 }

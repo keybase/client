@@ -52,6 +52,10 @@ func (p *ProveUI) DisplayRecheckWarning(text keybase_1.Text) {
 	p.cli.DisplayRecheckWarning(keybase_1.DisplayRecheckWarningArg{p.sessionId, text})
 	return
 }
+func (l *SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+	res, err := l.cli.GetSecret(keybase_1.GetSecretArg{pinentry, terminal})
+	return &res, err
+}
 
 func (h *ProveHandler) getProveUI() libkb.ProveUI {
 	if h.proveUI == nil {
@@ -67,6 +71,7 @@ func (ph *ProveHandler) Prove(arg keybase_1.ProveArg) (err error) {
 		Force:    arg.Force,
 		ProveUI:  ph.getProveUI(),
 		LoginUI:  ph.getLoginUi(),
+		SecretUI: ph.getSecretUI(),
 	}
 	err = eng.Run()
 	return
