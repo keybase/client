@@ -737,6 +737,53 @@ func (c ProveUiClient) DisplayRecheckWarning(__arg DisplayRecheckWarningArg) (er
 	return
 }
 
+type SecretEntryArg struct {
+	Desc   string `codec:"desc"`
+	Prompt string `codec:"prompt"`
+	Err    string `codec:"err"`
+	Cancel string `codec:"cancel"`
+	Ok     string `codec:"ok"`
+}
+
+type SecretEntryRes struct {
+	Text     string `codec:"text"`
+	Canceled bool   `codec:"canceled"`
+}
+
+type GetSecretArg struct {
+	Pinentry SecretEntryArg  `codec:"pinentry"`
+	Terminal *SecretEntryArg `codec:"terminal,omitempty"`
+}
+
+type SecretUiInterface interface {
+	GetSecret(GetSecretArg) (SecretEntryRes, error)
+}
+
+func SecretUiProtocol(i SecretUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.secretUi",
+		Methods: map[string]rpc2.ServeHook{
+			"getSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetSecretArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetSecret(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type SecretUiClient struct {
+	Cli GenericClient
+}
+
+func (c SecretUiClient) GetSecret(__arg GetSecretArg) (res SecretEntryRes, err error) {
+	err = c.Cli.Call("keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
+	return
+}
+
 type SignupRes struct {
 	PassphraseOk bool `codec:"passphraseOk"`
 	PostOk       bool `codec:"postOk"`

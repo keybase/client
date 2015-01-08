@@ -314,6 +314,30 @@
 
 @end
 
+@implementation KBSecretEntryArg
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"desc": @"desc", @"prompt": @"prompt", @"err": @"err", @"cancel": @"cancel", @"ok": @"ok" }; }
+@end
+
+@implementation KBSecretEntryRes
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"text": @"text", @"canceled": @"canceled" }; }
+@end
+
+@implementation KBRSecretUi
+- (void)getSecretWithPinentry:(KBSecretEntryArg *)pinentry terminal:(KBSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBSecretEntryRes * secretEntryRes))completion {
+
+  NSArray *params = @[@{@"pinentry": KBRValue(pinentry), @"terminal": KBRValue(terminal)}];
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getSecret" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBSecretEntryRes *result = [MTLJSONAdapter modelOfClass:KBSecretEntryRes.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBSignupRes
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"passphraseOk": @"passphraseOk", @"postOk": @"postOk", @"writeOk": @"writeOk" }; }
 @end

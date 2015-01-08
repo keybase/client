@@ -12,5 +12,5 @@ protocol log {
 		CRITICAL
 	}
 
-	void log(LogLevel level, Text text);
+	void log(int sessionId, LogLevel level, Text text);
 }

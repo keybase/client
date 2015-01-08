@@ -224,6 +224,24 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
+@interface KBSecretEntryArg : KBRObject
+@property NSString *desc;
+@property NSString *prompt;
+@property NSString *err;
+@property NSString *cancel;
+@property NSString *ok;
+@end
+
+@interface KBSecretEntryRes : KBRObject
+@property NSString *text;
+@property BOOL canceled;
+@end
+
+@interface KBRSecretUi : KBRRequest
+- (void)getSecretWithPinentry:(KBSecretEntryArg *)pinentry terminal:(KBSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBSecretEntryRes * secretEntryRes))completion;
+
+@end
+
 @interface KBSignupRes : KBRObject
 @property BOOL passphraseOk;
 @property BOOL postOk;
