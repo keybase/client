@@ -11,7 +11,7 @@ type RemoteBaseIdentifyUI struct {
 }
 
 type RemoteSelfIdentifyUI struct {
-	*RemoteBaseIdentifyUI
+	RemoteBaseIdentifyUI
 }
 
 type IdentifyHandler struct {
@@ -32,20 +32,8 @@ func nextSessionId() int {
 	return ret
 }
 
-func NextRemoteSelfIdentifyUI(c *rpc2.Client) *RemoteSelfIdentifyUI {
-	return &RemoteSelfIdentifyUI{NextRemoteBaseIdentifyUI(c)}
-}
-
-func NextRemoteBaseIdentifyUI(c *rpc2.Client) *RemoteBaseIdentifyUI {
-	nxt := nextSessionId()
-	return NewRemoteBaseIdentifyUI(nxt, c)
-}
-
-func NewRemoteBaseIdentifyUI(sessionId int, c *rpc2.Client) *RemoteBaseIdentifyUI {
-	return &RemoteBaseIdentifyUI{
-		sessionId: sessionId,
-		uicli:     keybase_1.IdentifyUiClient{c},
-	}
+func NewRemoteSelfIdentifyUI(sessionId int, c *rpc2.Client) *RemoteSelfIdentifyUI {
+	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI(sessionId, c)}
 }
 
 func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {

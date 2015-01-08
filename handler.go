@@ -15,7 +15,8 @@ type BaseHandler struct {
 }
 
 type LoginUI struct {
-	cli *keybase_1.LoginUiClient
+	sessionId int
+	cli       *keybase_1.LoginUiClient
 }
 
 type SecretUI struct {
@@ -36,8 +37,8 @@ func (h *BaseHandler) getLoginUiCli() *keybase_1.LoginUiClient {
 	return h.loginCli
 }
 
-func (h *BaseHandler) getLoginUi() libkb.LoginUI {
-	return &LoginUI{h.getLoginUiCli()}
+func (h *BaseHandler) getLoginUi(sessionId int) libkb.LoginUI {
+	return &LoginUI{sessionId, h.getLoginUiCli()}
 }
 
 func (h *BaseHandler) getSecretUiCli() *keybase_1.SecretUiClient {
@@ -58,6 +59,6 @@ func (h *BaseHandler) getLogUICli() *keybase_1.LogUiClient {
 	return h.logCli
 }
 
-func (h *BaseHandler) getLogUI() libkb.LogUI {
-	return &LogUI{0, h.getLogUICli()}
+func (h *BaseHandler) getLogUI(sessionId int) libkb.LogUI {
+	return &LogUI{sessionId, h.getLogUICli()}
 }
