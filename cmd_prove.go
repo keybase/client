@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"io/ioutil"
 	"os"
 )
@@ -44,8 +45,8 @@ type ProveUIServer struct {
 	eng libkb.ProveUI
 }
 
-func NewProveUIServer() *ProveUIServer {
-	return &ProveUIServer{G_UI.GetProveUI()}
+func NewProveUIProtocol() rpc2.Protocol {
+	return keybase_1.ProveUiProtocol(&ProveUIServer{G_UI.GetProveUI()})
 }
 
 func (p *ProveUIServer) PromptOverwrite1(arg keybase_1.PromptOverwrite1Arg) (bool, error) {
@@ -77,9 +78,14 @@ func (p *ProveUIServer) DisplayRecheckWarning(arg keybase_1.DisplayRecheckWarnin
 
 func (v *CmdProve) RunClient() (err error) {
 	var cli keybase_1.ProveClient
+
+	protocols := []rpc2.Protocol{
+		NewProveUIProtocol(),
+		NewLoginUIProtocol(),
+	}
+
 	if cli, err = GetProveClient(); err != nil {
-	} else if err = RegisterProveUiServer(NewProveUIServer()); err != nil {
-	} else if err = RegisterLoginUiServer(NewLoginUIServer()); err != nil {
+	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
 		err = cli.Prove(keybase_1.ProveArg{
 			Username: v.username,

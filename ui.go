@@ -408,6 +408,10 @@ func (u *UI) GetLoginUI() libkb.LoginUI {
 	return LoginUI{u}
 }
 
+func (u *UI) GetSecretUI() libkb.SecretUI {
+	return SecretUI{u}
+}
+
 func (u *UI) GetProveUI() libkb.ProveUI {
 	return ProveUI{parent: u}
 }
@@ -491,8 +495,12 @@ func (l LoginUI) GetKeybasePassphrase(username string, retry string) (string, er
 	return l.parent.PromptForKeybasePassphrase(username, retry)
 }
 
-func (u *UI) GetSecret(pinentry keybase_1.SecretEntryArg, term *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
-	return u.SecretEntry.Get(pinentry, term)
+type SecretUI struct {
+	parent *UI
+}
+
+func (u SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, term *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+	return u.parent.SecretEntry.Get(pinentry, term)
 }
 
 func (u *UI) Configure() error {
@@ -568,6 +576,12 @@ func (ui *UI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 	first := true
 	var res *keybase_1.SecretEntryRes
 
+	sui := ui.GetSecretUI()
+	if sui == nil {
+		err = libkb.NoUiError{}
+		return
+	}
+
 	for {
 
 		tp := arg.TerminalPrompt
@@ -582,7 +596,7 @@ func (ui *UI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 		tp = tp + ": "
 
-		res, err = ui.GetSecret(keybase_1.SecretEntryArg{
+		res, err = sui.GetSecret(keybase_1.SecretEntryArg{
 			Err:    emp,
 			Desc:   arg.PinentryDesc,
 			Prompt: arg.PinentryPrompt,

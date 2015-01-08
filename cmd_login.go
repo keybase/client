@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
 	"github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdLogin struct{}
@@ -17,12 +18,12 @@ type IdentifyUIServer struct {
 	eng libkb.IdentifyUI
 }
 
-func NewLoginUIServer() *LoginUIServer {
-	return &LoginUIServer{G_UI.GetLoginUI()}
+func NewLoginUIProtocol() rpc2.Protocol {
+	return keybase_1.LoginUiProtocol(&LoginUIServer{G_UI.GetLoginUI()})
 }
 
-func NewIdentifyUIServer() *IdentifyUIServer {
-	return &IdentifyUIServer{G_UI.GetIdentifySelfUI()}
+func NewIdentifyUIProtocol() rpc2.Protocol {
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifySelfUI()})
 }
 
 func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
@@ -74,9 +75,12 @@ func (i *IdentifyUIServer) Warning(arg keybase_1.WarningArg) error {
 
 func (v *CmdLogin) RunClient() (err error) {
 	var cli keybase_1.LoginClient
+	protocols := []rpc2.Protocol{
+		NewLoginUIProtocol(),
+		NewIdentifyUIProtocol(),
+	}
 	if cli, err = GetLoginClient(); err != nil {
-	} else if err = RegisterLoginUiServer(NewLoginUIServer()); err != nil {
-	} else if err = RegisterIdentifyUiServer(NewIdentifyUIServer()); err != nil {
+	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
 		err = cli.PassphraseLogin(keybase_1.PassphraseLoginArg{Identify: true})
 	}

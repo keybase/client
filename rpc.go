@@ -44,10 +44,15 @@ func GetLoginClient() (cli keybase_1.LoginClient, err error) {
 	return
 }
 
-func RegisterLoginUiServer(i keybase_1.LoginUiInterface) (err error) {
+func RegisterProtocols(prots []rpc2.Protocol) (err error) {
 	var srv *rpc2.Server
-	if srv, _, err = GetRpcServer(); err == nil {
-		srv.Register(keybase_1.LoginUiProtocol(i))
+	if srv, _, err = GetRpcServer(); err != nil {
+		return
+	}
+	for _, p := range prots {
+		if err = srv.Register(p); err != nil {
+			return
+		}
 	}
 	return
 }
@@ -60,26 +65,10 @@ func GetIdentifyClient() (cli keybase_1.IdentifyClient, err error) {
 	return
 }
 
-func RegisterIdentifyUiServer(i keybase_1.IdentifyUiInterface) (err error) {
-	var srv *rpc2.Server
-	if srv, _, err = GetRpcServer(); err == nil {
-		srv.Register(keybase_1.IdentifyUiProtocol(i))
-	}
-	return
-}
-
 func GetProveClient() (cli keybase_1.ProveClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
 		cli = keybase_1.ProveClient{rcli}
-	}
-	return
-}
-
-func RegisterProveUiServer(i keybase_1.ProveUiInterface) (err error) {
-	var srv *rpc2.Server
-	if srv, _, err = GetRpcServer(); err == nil {
-		srv.Register(keybase_1.ProveUiProtocol(i))
 	}
 	return
 }
