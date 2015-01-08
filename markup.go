@@ -215,7 +215,7 @@ func Render(w io.Writer, m *libkb.Markup) {
 
 func RenderText(w io.Writer, txt keybase_1.Text) {
 	w = getWriter(w)
-	if txt.Markup {
+	if !txt.Markup {
 		fmt.Fprintln(w, txt.Data)
 	} else {
 		Render(w, libkb.NewMarkup(txt.Data))

@@ -45,8 +45,16 @@ type ProveUIServer struct {
 	eng libkb.ProveUI
 }
 
+type SecretUIServer struct {
+	eng libkb.SecretUI
+}
+
 func NewProveUIProtocol() rpc2.Protocol {
 	return keybase_1.ProveUiProtocol(&ProveUIServer{G_UI.GetProveUI()})
+}
+
+func NewSecretUIProtocol() rpc2.Protocol {
+	return keybase_1.SecretUiProtocol(&SecretUIServer{G_UI.GetSecretUI()})
 }
 
 func (p *ProveUIServer) PromptOverwrite1(arg keybase_1.PromptOverwrite1Arg) (bool, error) {
@@ -75,6 +83,14 @@ func (p *ProveUIServer) DisplayRecheckWarning(arg keybase_1.DisplayRecheckWarnin
 	p.eng.DisplayRecheckWarning(arg.Text)
 	return nil
 }
+func (s *SecretUIServer) GetSecret(arg keybase_1.GetSecretArg) (res keybase_1.SecretEntryRes, err error) {
+	var resp *keybase_1.SecretEntryRes
+	resp, err = s.eng.GetSecret(arg.Pinentry, arg.Terminal)
+	if resp != nil {
+		res = *resp
+	}
+	return
+}
 
 func (v *CmdProve) RunClient() (err error) {
 	var cli keybase_1.ProveClient
@@ -82,6 +98,7 @@ func (v *CmdProve) RunClient() (err error) {
 	protocols := []rpc2.Protocol{
 		NewProveUIProtocol(),
 		NewLoginUIProtocol(),
+		NewSecretUIProtocol(),
 	}
 
 	if cli, err = GetProveClient(); err != nil {
