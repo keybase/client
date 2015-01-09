@@ -49,8 +49,8 @@ type SecretUIServer struct {
 	eng libkb.SecretUI
 }
 
-func NewProveUIProtocol() rpc2.Protocol {
-	return keybase_1.ProveUiProtocol(&ProveUIServer{G_UI.GetProveUI()})
+func NewProveUIProtocol(ui ProveUI) rpc2.Protocol {
+	return keybase_1.ProveUiProtocol(&ProveUIServer{ui})
 }
 
 func NewSecretUIProtocol() rpc2.Protocol {
@@ -95,8 +95,11 @@ func (s *SecretUIServer) GetSecret(arg keybase_1.GetSecretArg) (res keybase_1.Se
 func (v *CmdProve) RunClient() (err error) {
 	var cli keybase_1.ProveClient
 
+	prove_ui := ProveUI{parent: G_UI}
+	v.installOutputHook(&prove_ui)
+
 	protocols := []rpc2.Protocol{
-		NewProveUIProtocol(),
+		NewProveUIProtocol(prove_ui),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLogUIProtocol(),
@@ -114,13 +117,18 @@ func (v *CmdProve) RunClient() (err error) {
 	return
 }
 
-func (v *CmdProve) Run() (err error) {
-	ui := ProveUI{parent: G_UI}
+func (v *CmdProve) installOutputHook(ui *ProveUI) {
 	if len(v.output) > 0 {
 		ui.outputHook = func(s string) error {
 			return v.fileOutputHook(s)
 		}
 	}
+}
+
+func (v *CmdProve) Run() (err error) {
+	ui := ProveUI{parent: G_UI}
+	v.installOutputHook(&ui)
+
 	eng := &libkb.ProofEngine{
 		Username: v.username,
 		Service:  v.service,
