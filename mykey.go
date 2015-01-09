@@ -35,5 +35,15 @@ func (h *MykeyHandler) getKeyGenUI(sessionId int) libkb.KeyGenUI {
 }
 
 func (h *MykeyHandler) KeyGen(arg keybase_1.KeyGenArg) (err error) {
-	return nil
+	iarg := libkb.ImportKeyGenArg(arg)
+
+	sessionId := nextSessionId()
+	iarg.LogUI = h.getLogUI(sessionId)
+	iarg.LoginUI = h.getLoginUI(sessionId)
+	iarg.KeyGenUI = h.getKeyGenUI(sessionId)
+	iarg.SecretUI = h.getSecretUI(sessionId)
+
+	eng := libkb.NewKeyGen(&iarg)
+	_, err = eng.Run()
+	return
 }

@@ -49,6 +49,12 @@ func (l *SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybas
 	res, err := l.cli.GetSecret(keybase_1.GetSecretArg{pinentry, terminal})
 	return &res, err
 }
+func (l *SecretUI) GetNewPassphrase(arg keybase_1.GetNewPassphraseArg) (string, error) {
+	return l.cli.GetNewPassphrase(arg)
+}
+func (l *SecretUI) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (string, error) {
+	return l.cli.GetKeybasePassphrase(arg)
+}
 
 func (h *ProveHandler) getProveUI(sessionId int) libkb.ProveUI {
 	if h.proveUI == nil {
@@ -67,7 +73,7 @@ func (ph *ProveHandler) Prove(arg keybase_1.ProveArg) (err error) {
 		Service:  arg.Service,
 		Force:    arg.Force,
 		ProveUI:  ph.getProveUI(sessionId),
-		LoginUI:  ph.getLoginUi(sessionId),
+		LoginUI:  ph.getLoginUI(sessionId),
 		SecretUI: ph.getSecretUI(sessionId),
 		LogUI:    ph.getLogUI(sessionId),
 	}

@@ -31,18 +31,18 @@ func (h *BaseHandler) getRpcClient() *rpc2.Client {
 	return h.cli
 }
 
-func (h *BaseHandler) getLoginUiCli() *keybase_1.LoginUiClient {
+func (h *BaseHandler) getLoginUICli() *keybase_1.LoginUiClient {
 	if h.loginCli == nil {
 		h.loginCli = &keybase_1.LoginUiClient{h.getRpcClient()}
 	}
 	return h.loginCli
 }
 
-func (h *BaseHandler) getLoginUi(sessionId int) libkb.LoginUI {
-	return &LoginUI{sessionId, h.getLoginUiCli()}
+func (h *BaseHandler) getLoginUI(sessionId int) libkb.LoginUI {
+	return &LoginUI{sessionId, h.getLoginUICli()}
 }
 
-func (h *BaseHandler) getSecretUiCli() *keybase_1.SecretUiClient {
+func (h *BaseHandler) getSecretUICli() *keybase_1.SecretUiClient {
 	if h.secretCli == nil {
 		h.secretCli = &keybase_1.SecretUiClient{h.getRpcClient()}
 	}
@@ -50,7 +50,7 @@ func (h *BaseHandler) getSecretUiCli() *keybase_1.SecretUiClient {
 }
 
 func (h *BaseHandler) getSecretUI(sessionId int) libkb.SecretUI {
-	return &SecretUI{sessionId, h.getSecretUiCli()}
+	return &SecretUI{sessionId, h.getSecretUICli()}
 }
 
 func (h *BaseHandler) getLogUICli() *keybase_1.LogUiClient {
