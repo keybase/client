@@ -1,0 +1,19 @@
+
+@namespace("keybase.1")
+protocol mykey {
+
+	import idl "common.avdl";
+
+	record KeyGenArg {
+		int primaryBits;
+		int subkeyBits;
+		PgpIdentity identity;
+		boolean noPassphrase;
+		boolean kbPassphrase;
+		boolean doNaclEddsa;
+		boolean doNaclDh;
+		string pregen;
+	}
+
+	void keyGen(KeyGenArg arg);
+}

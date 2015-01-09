@@ -199,6 +199,28 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
+@interface KBPgpIdentity : KBRObject
+@property NSString *username;
+@property NSString *comment;
+@property NSString *email;
+@end
+
+@interface KBKeyGenArg : KBRObject
+@property NSInteger primaryBits;
+@property NSInteger subkeyBits;
+@property KBPgpIdentity *identity;
+@property BOOL noPassphrase;
+@property BOOL kbPassphrase;
+@property BOOL doNaclEddsa;
+@property BOOL doNaclDh;
+@property NSString *pregen;
+@end
+
+@interface KBRMykey : KBRRequest
+- (void)keyGenWithArg:(KBKeyGenArg *)arg completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRProve : KBRRequest
 - (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion;
 

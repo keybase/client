@@ -14,6 +14,7 @@ build-stamp: \
 	json/config.json \
 	json/identify.json \
 	json/identify_ui.json \
+	json/mykey.json \
 	json/log_ui.json \
 	json/login.json \
 	json/login_ui.json \

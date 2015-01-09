@@ -523,6 +523,57 @@ func (c LoginUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res 
 	return
 }
 
+type PgpIdentity struct {
+	Username string `codec:"username"`
+	Comment  string `codec:"comment"`
+	Email    string `codec:"email"`
+}
+
+type KeyGenArg struct {
+	PrimaryBits  int         `codec:"primaryBits"`
+	SubkeyBits   int         `codec:"subkeyBits"`
+	Identity     PgpIdentity `codec:"identity"`
+	NoPassphrase bool        `codec:"noPassphrase"`
+	KbPassphrase bool        `codec:"kbPassphrase"`
+	DoNaclEddsa  bool        `codec:"doNaclEddsa"`
+	DoNaclDh     bool        `codec:"doNaclDh"`
+	Pregen       string      `codec:"pregen"`
+}
+
+type KeyGenArg struct {
+	Arg KeyGenArg `codec:"arg"`
+}
+
+type MykeyInterface interface {
+	KeyGen(KeyGenArg) error
+}
+
+func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.mykey",
+		Methods: map[string]rpc2.ServeHook{
+			"keyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]KeyGenArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.KeyGen(args[0].Arg)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type MykeyClient struct {
+	Cli GenericClient
+}
+
+func (c MykeyClient) KeyGen(arg KeyGenArg) (err error) {
+	__arg := KeyGenArg{Arg: arg}
+	err = c.Cli.Call("keybase.1.mykey.keyGen", []interface{}{__arg}, nil)
+	return
+}
+
 type ProveArg struct {
 	Service  string `codec:"service"`
 	Username string `codec:"username"`

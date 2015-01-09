@@ -228,6 +228,25 @@
 
 @end
 
+@implementation KBPgpIdentity
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"username": @"username", @"comment": @"comment", @"email": @"email" }; }
+@end
+
+@implementation KBKeyGenArg
++ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"primaryBits": @"primaryBits", @"subkeyBits": @"subkeyBits", @"identity": @"identity", @"noPassphrase": @"noPassphrase", @"kbPassphrase": @"kbPassphrase", @"doNaclEddsa": @"doNaclEddsa", @"doNaclDh": @"doNaclDh", @"pregen": @"pregen" }; }
+@end
+
+@implementation KBRMykey
+- (void)keyGenWithArg:(KBKeyGenArg *)arg completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"arg": KBRValue(arg)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGen" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRProve
 - (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion {
 

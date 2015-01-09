@@ -26,4 +26,10 @@ protocol Common {
 		string data;
 		boolean markup;
 	}
+
+	record PgpIdentity {
+		string username;
+		string comment;
+		string email;
+	}
 }	

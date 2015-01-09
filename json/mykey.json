@@ -1,0 +1,111 @@
+{
+  "protocol" : "mykey",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "KeyGenArg",
+    "fields" : [ {
+      "name" : "primaryBits",
+      "type" : "int"
+    }, {
+      "name" : "subkeyBits",
+      "type" : "int"
+    }, {
+      "name" : "identity",
+      "type" : "PgpIdentity"
+    }, {
+      "name" : "noPassphrase",
+      "type" : "boolean"
+    }, {
+      "name" : "kbPassphrase",
+      "type" : "boolean"
+    }, {
+      "name" : "doNaclEddsa",
+      "type" : "boolean"
+    }, {
+      "name" : "doNaclDh",
+      "type" : "boolean"
+    }, {
+      "name" : "pregen",
+      "type" : "string"
+    } ]
+  } ],
+  "messages" : {
+    "keyGen" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "KeyGenArg"
+      } ],
+      "response" : "null"
+    }
+  }
+}
