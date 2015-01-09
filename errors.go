@@ -523,10 +523,12 @@ func (e SelfTrackError) Error() string {
 
 //=============================================================================
 
-type NoUiError struct{}
+type NoUiError struct {
+	which string
+}
 
 func (e NoUiError) Error() string {
-	return "no UI was available"
+	return fmt.Sprintf("no %s-UI was available", e.which)
 }
 
 //=============================================================================

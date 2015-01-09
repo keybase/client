@@ -329,3 +329,77 @@ func (m Markup) Export() (ret keybase_1.Text) {
 }
 
 //=============================================================================
+
+func (ids Identities) Export() (res []keybase_1.PgpIdentity) {
+	var n int
+	if ids == nil {
+		n = 0
+	} else {
+		n = len(ids)
+	}
+	res = make([]keybase_1.PgpIdentity, n)
+	for i, id := range ids {
+		res[i] = id.Export()
+	}
+	return
+}
+
+func ImportPgpIdentitites(ids []keybase_1.PgpIdentity) (ret Identities) {
+	ret = Identities(make([]Identity, len(ids)))
+	for i, id := range ids {
+		ret[i] = ImportPgpIdentity(id)
+	}
+	return
+}
+
+//=============================================================================
+
+func (id Identity) Export() (ret keybase_1.PgpIdentity) {
+	ret.Username = id.Username
+	ret.Email = id.Email
+	ret.Comment = id.Comment
+	return
+}
+
+func ImportPgpIdentity(arg keybase_1.PgpIdentity) (ret Identity) {
+	ret.Username = arg.Username
+	ret.Email = arg.Email
+	ret.Comment = arg.Comment
+	return
+}
+
+//=============================================================================
+
+func (a KeyGenArg) Export() (ret keybase_1.KeyGenArg) {
+	ret.PrimaryBits = a.PrimaryBits
+	ret.SubkeyBits = a.SubkeyBits
+	ret.Ids = a.Ids.Export()
+	ret.NoPassphrase = a.NoPassphrase
+	ret.KbPassphrase = a.KbPassphrase
+	ret.DoNaclEddsa = a.DoNaclEddsa
+	ret.DoNaclDh = a.DoNaclDh
+
+	if a.Pregen == nil {
+	} else if s, e := a.Pregen.Encode(); e != nil {
+		G.Log.Error("Encode PGP error: %s", e.Error())
+	} else {
+		ret.Pregen = s
+	}
+
+	return
+}
+
+//=============================================================================
+
+func ImportKeyGenArg(a keybase_1.KeyGenArg) (ret KeyGenArg) {
+	ret.PrimaryBits = a.PrimaryBits
+	ret.SubkeyBits = a.SubkeyBits
+	ret.Ids = ImportPgpIdentitites(a.Ids)
+	ret.NoPassphrase = a.NoPassphrase
+	ret.KbPassphrase = a.KbPassphrase
+	ret.DoNaclEddsa = a.DoNaclEddsa
+	ret.DoNaclDh = a.DoNaclDh
+	return
+}
+
+//=============================================================================

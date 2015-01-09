@@ -281,7 +281,7 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 	}
 
 	if ui == nil {
-		err = NoUiError{}
+		err = NoUiError{"identify"}
 		return
 	}
 

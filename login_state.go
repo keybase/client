@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-triplesec"
+	"github.com/keybase/protocol/go"
 )
 
 type LoggedInResult struct {
@@ -210,19 +211,34 @@ type LoginArg struct {
 	Username   string
 	Passphrase string
 	Ui         LoginUI
+	SecretUI   SecretUI
 	NoUi       bool
 }
 
-func (s *LoginState) Login(arg LoginArg) error {
+func (s *LoginState) Login(arg LoginArg) (err error) {
 	G.Log.Debug("+ Login called")
 
 	n_tries := arg.Retry
 	if n_tries == 0 {
 		n_tries = 1
 	}
-	var err error
+
 	if arg.Ui == nil && !arg.NoUi {
-		arg.Ui = G.UI.GetLoginUI()
+		if G.UI != nil {
+			arg.Ui = G.UI.GetLoginUI()
+		} else {
+			err = NoUiError{"login"}
+			return
+		}
+	}
+
+	if arg.SecretUI == nil && !arg.NoUi {
+		if G.UI != nil {
+			arg.SecretUI = G.UI.GetSecretUI()
+		} else {
+			err = NoUiError{"secret"}
+			return
+		}
 	}
 
 	for i := 0; i < n_tries; i++ {
@@ -235,7 +251,7 @@ func (s *LoginState) Login(arg LoginArg) error {
 			arg.RetryMsg = err.Error()
 		}
 	}
-	return err
+	return
 }
 
 func (s *LoginState) login(arg *LoginArg) (err error) {
@@ -290,7 +306,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 		return
 	}
 
-	if _, err = s.GetTriplesec(email_or_username, arg.Passphrase, arg.RetryMsg, arg.Ui); err != nil {
+	if _, err = s.GetTriplesec(email_or_username, arg.Passphrase, arg.RetryMsg, arg.SecretUI); err != nil {
 		return
 	}
 
@@ -315,7 +331,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 	return
 }
 
-func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui LoginUI) (ret *triplesec.Cipher, err error) {
+func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui SecretUI) (ret *triplesec.Cipher, err error) {
 	if s.tsec != nil {
 		ret = s.tsec
 		return
@@ -327,10 +343,15 @@ func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui LoginUI
 		err = fmt.Errorf("Cannot encrypt; no salt found")
 	}
 
+	arg := keybase_1.GetKeybasePassphraseArg{
+		Username: un,
+		Retry:    retry,
+	}
+
 	if len(pp) > 0 {
 	} else if ui == nil {
-		err = fmt.Errorf("No passphrase available")
-	} else if pp, err = ui.GetKeybasePassphrase(un, retry); err != nil {
+		err = NoUiError{"secret"}
+	} else if pp, err = ui.GetKeybasePassphrase(arg); err != nil {
 		return
 	}
 
@@ -360,6 +381,7 @@ func LoginAndIdentify(arg LoginAndIdentifyArg) error {
 
 	identify := arg.IdentifyUI
 	log := arg.LogUI
+
 	if log == nil && G.UI != nil {
 		log = G.UI.GetLogUI()
 	}

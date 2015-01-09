@@ -30,13 +30,14 @@ var CheckEmailOrUsername = Checker{
 	Hint: "valid usernames are 2-12 letters long",
 }
 
-var CheckPasswordSimple = Checker{
+var CheckPassphraseSimple = Checker{
 	F: func(s string) bool {
 		return len(s) > 0
 	},
 	Hint: "passphrase cannot be empty",
 }
-var CheckNewPassword = Checker{
+
+var CheckPassphraseNew = Checker{
 
 	F: func(s string) bool {
 		r := []rune(s)

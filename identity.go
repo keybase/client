@@ -50,12 +50,14 @@ func (i Identity) ToPgpUserId() *packet.UserId {
 
 }
 
-func KeybaseIdentity(un string) *Identity {
+func KeybaseIdentity(un string) Identity {
 	if len(un) == 0 {
 		un = G.Env.GetUsername()
 	}
-	return &Identity{
+	return Identity{
 		Username: CANONICAL_HOST + "/" + un,
 		Email:    un + "@" + CANONICAL_HOST,
 	}
 }
+
+type Identities []Identity

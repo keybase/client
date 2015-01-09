@@ -33,7 +33,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		sui = G.UI.GetSecretUI()
 	}
 	if sui == nil {
-		err = NoUiError{}
+		err = NoUiError{"secret"}
 		return
 	}
 

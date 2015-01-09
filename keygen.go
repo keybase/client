@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-triplesec"
+	"github.com/keybase/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/errors"
 	"golang.org/x/crypto/openpgp/packet"
@@ -48,7 +49,7 @@ import (
 func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 	currentTime := arg.Config.Now()
 
-	uid := arg.Id.ToPgpUserId()
+	uid := arg.Ids[0].ToPgpUserId()
 
 	if uid == nil {
 		return nil, errors.InvalidArgumentError("UserId field was nil")
@@ -163,8 +164,8 @@ func (s *KeyGen) LoadMe() (err error) {
 }
 
 func (s *KeyGen) GenerateKey() (err error) {
-	if s.arg.Id == nil {
-		s.arg.Id = KeybaseIdentity("")
+	if s.arg.Ids == nil || len(s.arg.Ids) == 0 {
+		s.arg.Ids = Identities{KeybaseIdentity("")}
 	}
 	s.bundle, err = NewPgpKeyBundle(*s.arg)
 	return
@@ -219,18 +220,19 @@ func (s *KeyGen) PostToServer() error {
 type KeyGenArg struct {
 	PrimaryBits  int
 	SubkeyBits   int
-	Id           *Identity
+	Ids          Identities
 	Config       *packet.Config
 	DoPush       bool
 	DoSecretPush bool
 	NoPassphrase bool
 	KbPassphrase bool
 	DoNaclEddsa  bool
-	DoNaclDH     bool
+	DoNaclDh     bool
 	Pregen       *PgpKeyBundle
 	KeyGenUI     KeyGenUI
 	LoginUI      LoginUI
 	LogUI        LogUI
+	SecretUI     SecretUI
 }
 
 func (s *KeyGen) UpdateUser() error {
@@ -270,7 +272,7 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 		return InternalError{"bad use of Keygen; wrong phase"}
 	}
 
-	if err = G.LoginState.Login(LoginArg{Ui: s.arg.LoginUI}); err != nil {
+	if err = G.LoginState.Login(LoginArg{Ui: s.arg.LoginUI, SecretUI: s.arg.SecretUI}); err != nil {
 		return
 	}
 
@@ -309,7 +311,7 @@ func (s *KeyGen) GenNacl() (err error) {
 		err = gen.Run()
 	}
 
-	if err != nil || !s.arg.DoNaclDH {
+	if err != nil || !s.arg.DoNaclDh {
 		return
 	}
 
@@ -328,16 +330,20 @@ func (s *KeyGen) GenNacl() (err error) {
 
 func (s *KeyGen) Init() error {
 	if s.arg.LogUI == nil {
-		s.arg.LogUI = G.UI.GetLogUI()
+		s.arg.LogUI = G.Log
 	}
 	return nil
 }
 
 func (s *KeyGen) Prompt() (err error) {
 	if ui := s.arg.KeyGenUI; ui == nil {
-		err = NoUiError{}
+		err = NoUiError{"keygen"}
 	} else {
-		s.arg.DoPush, s.arg.DoSecretPush, err = ui.GetPushPreferences()
+		var pp keybase_1.PushPreferences
+		if pp, err = ui.GetPushPreferences(); err == nil {
+			s.arg.DoPush = pp.Public
+			s.arg.DoSecretPush = pp.Private
+		}
 	}
 	return err
 }
@@ -385,22 +391,31 @@ func (s *KeyGen) Generate() (ret *PgpKeyBundle, err error) {
 	}
 
 	if useKbPp && G.LoginState.tsec == nil {
-		if err = G.LoginState.Login(LoginArg{Force: true, Retry: 4}); err != nil {
+		if err = G.LoginState.Login(LoginArg{
+			Force:    true,
+			Retry:    4,
+			SecretUI: s.arg.SecretUI,
+			Ui:       s.arg.LoginUI,
+		}); err != nil {
 			return
 		}
 	}
 
 	if useKbPp {
 		s.tsec = G.LoginState.tsec
-	} else if !s.arg.NoPassphrase {
-		s.tsec, err = PromptForNewTsec(PromptArg{
+	} else if s.arg.NoPassphrase {
+	} else if s.arg.SecretUI == nil {
+		err = NoUiError{"secret"}
+	} else {
+		s.tsec, err = PromptForNewTsec(keybase_1.GetNewPassphraseArg{
 			TerminalPrompt: "A good passphrase to protect your key",
 			PinentryDesc:   "Please pick a good passphrase to protect your key (12+ characters)",
 			PinentryPrompt: "Key passphrase",
-		})
-		if err != nil {
-			return
-		}
+		}, s.arg.SecretUI)
+	}
+
+	if err != nil {
+		return
 	}
 
 	G.Log.Debug("| GenerateKey")

@@ -216,7 +216,6 @@ type PromptArg struct {
 
 type LoginUI interface {
 	GetEmailOrUsername() (string, error)
-	GetKeybasePassphrase(username string, retry string) (string, error)
 }
 
 type ProveUI interface {
@@ -232,6 +231,8 @@ type ProveUI interface {
 
 type SecretUI interface {
 	GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error)
+	GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error)
+	GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error)
 }
 
 type LogUI interface {
@@ -244,7 +245,7 @@ type LogUI interface {
 }
 
 type KeyGenUI interface {
-	GetPushPreferences() (pub bool, priv bool, err error)
+	GetPushPreferences() (pp keybase_1.PushPreferences, err error)
 }
 
 type UI interface {
@@ -257,7 +258,6 @@ type UI interface {
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
 	Prompt(string, bool, Checker) (string, error)
-	PromptForNewPassphrase(PromptArg) (string, error)
 	Configure() error
 	Shutdown() error
 }
