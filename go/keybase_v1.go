@@ -540,10 +540,6 @@ type KeyGenArg struct {
 	Pregen       string      `codec:"pregen"`
 }
 
-type KeyGenArg struct {
-	Arg KeyGenArg `codec:"arg"`
-}
-
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
 }
@@ -555,7 +551,7 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 			"keyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]KeyGenArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.KeyGen(args[0].Arg)
+					err = i.KeyGen(args[0])
 				}
 				return
 			},
@@ -568,8 +564,7 @@ type MykeyClient struct {
 	Cli GenericClient
 }
 
-func (c MykeyClient) KeyGen(arg KeyGenArg) (err error) {
-	__arg := KeyGenArg{Arg: arg}
+func (c MykeyClient) KeyGen(__arg KeyGenArg) (err error) {
 	err = c.Cli.Call("keybase.1.mykey.keyGen", []interface{}{__arg}, nil)
 	return
 }

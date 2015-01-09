@@ -232,14 +232,10 @@
 + (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"username": @"username", @"comment": @"comment", @"email": @"email" }; }
 @end
 
-@implementation KBKeyGenArg
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"primaryBits": @"primaryBits", @"subkeyBits": @"subkeyBits", @"identity": @"identity", @"noPassphrase": @"noPassphrase", @"kbPassphrase": @"kbPassphrase", @"doNaclEddsa": @"doNaclEddsa", @"doNaclDh": @"doNaclDh", @"pregen": @"pregen" }; }
-@end
-
 @implementation KBRMykey
-- (void)keyGenWithArg:(KBKeyGenArg *)arg completion:(void (^)(NSError *error))completion {
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits identity:(KBPgpIdentity *)identity noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase doNaclEddsa:(BOOL )doNaclEddsa doNaclDh:(BOOL )doNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion {
 
-  NSArray *params = @[@{@"arg": KBRValue(arg)}];
+  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"identity": KBRValue(identity), @"noPassphrase": @(noPassphrase), @"kbPassphrase": @(kbPassphrase), @"doNaclEddsa": @(doNaclEddsa), @"doNaclDh": @(doNaclDh), @"pregen": KBRValue(pregen)}];
   [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGen" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];

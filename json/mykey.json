@@ -70,40 +70,33 @@
       "name" : "email",
       "type" : "string"
     } ]
-  }, {
-    "type" : "record",
-    "name" : "KeyGenArg",
-    "fields" : [ {
-      "name" : "primaryBits",
-      "type" : "int"
-    }, {
-      "name" : "subkeyBits",
-      "type" : "int"
-    }, {
-      "name" : "identity",
-      "type" : "PgpIdentity"
-    }, {
-      "name" : "noPassphrase",
-      "type" : "boolean"
-    }, {
-      "name" : "kbPassphrase",
-      "type" : "boolean"
-    }, {
-      "name" : "doNaclEddsa",
-      "type" : "boolean"
-    }, {
-      "name" : "doNaclDh",
-      "type" : "boolean"
-    }, {
-      "name" : "pregen",
-      "type" : "string"
-    } ]
   } ],
   "messages" : {
     "keyGen" : {
       "request" : [ {
-        "name" : "arg",
-        "type" : "KeyGenArg"
+        "name" : "primaryBits",
+        "type" : "int"
+      }, {
+        "name" : "subkeyBits",
+        "type" : "int"
+      }, {
+        "name" : "identity",
+        "type" : "PgpIdentity"
+      }, {
+        "name" : "noPassphrase",
+        "type" : "boolean"
+      }, {
+        "name" : "kbPassphrase",
+        "type" : "boolean"
+      }, {
+        "name" : "doNaclEddsa",
+        "type" : "boolean"
+      }, {
+        "name" : "doNaclDh",
+        "type" : "boolean"
+      }, {
+        "name" : "pregen",
+        "type" : "string"
       } ],
       "response" : "null"
     }
