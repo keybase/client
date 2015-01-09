@@ -57,20 +57,23 @@
       "name" : "markup",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
   } ],
   "messages" : {
     "getEmailOrUsername" : {
       "request" : [ ],
-      "response" : "string"
-    },
-    "getKeybasePassphrase" : {
-      "request" : [ {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "retry",
-        "type" : "string"
-      } ],
       "response" : "string"
     }
   }

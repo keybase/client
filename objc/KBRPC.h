@@ -192,17 +192,15 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
-@interface KBRLoginUi : KBRRequest
-- (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion;
-
-- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
-
-@end
-
 @interface KBPgpIdentity : KBRObject
 @property NSString *username;
 @property NSString *comment;
 @property NSString *email;
+@end
+
+@interface KBRLoginUi : KBRRequest
+- (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion;
+
 @end
 
 @interface KBRMykey : KBRRequest
@@ -215,8 +213,8 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 @property BOOL private;
 @end
 
-@interface KBRMykey : KBRRequest
-- (void)promptPushPreferences:(void (^)(NSError *error, KBPushPreferences * pushPreferences))completion;
+@interface KBRMykeyUi : KBRRequest
+- (void)getPushPreferences:(void (^)(NSError *error, KBPushPreferences * pushPreferences))completion;
 
 @end
 
@@ -259,6 +257,10 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @interface KBRSecretUi : KBRRequest
 - (void)getSecretWithPinentry:(KBSecretEntryArg *)pinentry terminal:(KBSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBSecretEntryRes * secretEntryRes))completion;
+
+- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString * str))completion;
+
+- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
 
 @end
 

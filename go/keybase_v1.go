@@ -473,17 +473,17 @@ func (c LoginClient) SwitchUser(username string) (err error) {
 	return
 }
 
-type GetEmailOrUsernameArg struct {
+type PgpIdentity struct {
+	Username string `codec:"username"`
+	Comment  string `codec:"comment"`
+	Email    string `codec:"email"`
 }
 
-type GetKeybasePassphraseArg struct {
-	Username string `codec:"username"`
-	Retry    string `codec:"retry"`
+type GetEmailOrUsernameArg struct {
 }
 
 type LoginUiInterface interface {
 	GetEmailOrUsername() (string, error)
-	GetKeybasePassphrase(GetKeybasePassphraseArg) (string, error)
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -494,13 +494,6 @@ func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
 				args := make([]GetEmailOrUsernameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetEmailOrUsername()
-				}
-				return
-			},
-			"getKeybasePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetKeybasePassphraseArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetKeybasePassphrase(args[0])
 				}
 				return
 			},
@@ -516,17 +509,6 @@ type LoginUiClient struct {
 func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
 	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{GetEmailOrUsernameArg{}}, &res)
 	return
-}
-
-func (c LoginUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.loginUi.getKeybasePassphrase", []interface{}{__arg}, &res)
-	return
-}
-
-type PgpIdentity struct {
-	Username string `codec:"username"`
-	Comment  string `codec:"comment"`
-	Email    string `codec:"email"`
 }
 
 type KeyGenArg struct {
@@ -574,21 +556,21 @@ type PushPreferences struct {
 	Private bool `codec:"private"`
 }
 
-type PromptPushPreferencesArg struct {
+type GetPushPreferencesArg struct {
 }
 
-type MykeyInterface interface {
-	PromptPushPreferences() (PushPreferences, error)
+type MykeyUiInterface interface {
+	GetPushPreferences() (PushPreferences, error)
 }
 
-func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
+func MykeyUiProtocol(i MykeyUiInterface) rpc2.Protocol {
 	return rpc2.Protocol{
-		Name: "keybase.1.mykey",
+		Name: "keybase.1.mykeyUi",
 		Methods: map[string]rpc2.ServeHook{
-			"promptPushPreferences": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptPushPreferencesArg, 1)
+			"getPushPreferences": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetPushPreferencesArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptPushPreferences()
+					ret, err = i.GetPushPreferences()
 				}
 				return
 			},
@@ -597,12 +579,12 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 
 }
 
-type MykeyClient struct {
+type MykeyUiClient struct {
 	Cli GenericClient
 }
 
-func (c MykeyClient) PromptPushPreferences() (res PushPreferences, err error) {
-	err = c.Cli.Call("keybase.1.mykey.promptPushPreferences", []interface{}{PromptPushPreferencesArg{}}, &res)
+func (c MykeyUiClient) GetPushPreferences() (res PushPreferences, err error) {
+	err = c.Cli.Call("keybase.1.mykeyUi.getPushPreferences", []interface{}{GetPushPreferencesArg{}}, &res)
 	return
 }
 
@@ -822,8 +804,22 @@ type GetSecretArg struct {
 	Terminal *SecretEntryArg `codec:"terminal,omitempty"`
 }
 
+type GetNewPassphraseArg struct {
+	TerminalPrompt string `codec:"terminalPrompt"`
+	PinentryDesc   string `codec:"pinentryDesc"`
+	PinentryPrompt string `codec:"pinentryPrompt"`
+	RetryMessage   string `codec:"retryMessage"`
+}
+
+type GetKeybasePassphraseArg struct {
+	Username string `codec:"username"`
+	Retry    string `codec:"retry"`
+}
+
 type SecretUiInterface interface {
 	GetSecret(GetSecretArg) (SecretEntryRes, error)
+	GetNewPassphrase(GetNewPassphraseArg) (string, error)
+	GetKeybasePassphrase(GetKeybasePassphraseArg) (string, error)
 }
 
 func SecretUiProtocol(i SecretUiInterface) rpc2.Protocol {
@@ -834,6 +830,20 @@ func SecretUiProtocol(i SecretUiInterface) rpc2.Protocol {
 				args := make([]GetSecretArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetSecret(args[0])
+				}
+				return
+			},
+			"getNewPassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetNewPassphraseArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetNewPassphrase(args[0])
+				}
+				return
+			},
+			"getKeybasePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetKeybasePassphraseArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetKeybasePassphrase(args[0])
 				}
 				return
 			},
@@ -848,6 +858,16 @@ type SecretUiClient struct {
 
 func (c SecretUiClient) GetSecret(__arg GetSecretArg) (res SecretEntryRes, err error) {
 	err = c.Cli.Call("keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SecretUiClient) GetNewPassphrase(__arg GetNewPassphraseArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
 	return
 }
 

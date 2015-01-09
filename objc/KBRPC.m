@@ -189,6 +189,9 @@
 
 @end
 
+@implementation KBPgpIdentity
+@end
+
 @implementation KBRLoginUi
 - (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion {
 
@@ -198,17 +201,6 @@
   }];
 }
 
-- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion {
-
-  NSArray *params = @[@{@"username": KBRValue(username), @"retry": KBRValue(retry)}];
-  [self.client sendRequestWithMethod:@"keybase.1.loginUi.getKeybasePassphrase" params:params completion:^(NSError *error, NSDictionary *dict) {
-    completion(error, 0);
-  }];
-}
-
-@end
-
-@implementation KBPgpIdentity
 @end
 
 @implementation KBRMykey
@@ -225,11 +217,11 @@
 @implementation KBPushPreferences
 @end
 
-@implementation KBRMykey
-- (void)promptPushPreferences:(void (^)(NSError *error, KBPushPreferences * pushPreferences))completion {
+@implementation KBRMykeyUi
+- (void)getPushPreferences:(void (^)(NSError *error, KBPushPreferences * pushPreferences))completion {
 
   NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.promptPushPreferences" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.mykeyUi.getPushPreferences" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
         return;
@@ -336,6 +328,22 @@
       }
       KBSecretEntryRes *result = [MTLJSONAdapter modelOfClass:KBSecretEntryRes.class fromJSONDictionary:dict error:&error];
       completion(error, result);
+  }];
+}
+
+- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString * str))completion {
+
+  NSArray *params = @[@{@"terminalPrompt": KBRValue(terminalPrompt), @"pinentryDesc": KBRValue(pinentryDesc), @"pinentryPrompt": KBRValue(pinentryPrompt), @"retryMessage": KBRValue(retryMessage)}];
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getNewPassphrase" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error, 0);
+  }];
+}
+
+- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion {
+
+  NSArray *params = @[@{@"username": KBRValue(username), @"retry": KBRValue(retry)}];
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getKeybasePassphrase" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error, 0);
   }];
 }
 

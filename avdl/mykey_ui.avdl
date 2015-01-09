@@ -1,5 +1,6 @@
 @namespace("keybase.1")
-protocol mykey {
+
+protocol mykeyUi {
 
 	import idl "common.avdl";
 
@@ -8,6 +9,6 @@ protocol mykey {
 		boolean private;
 	}
 
-	PushPreferences promptPushPreferences();
+	PushPreferences getPushPreferences();
 
 }

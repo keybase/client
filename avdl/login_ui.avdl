@@ -4,5 +4,4 @@ protocol loginUi {
 	import idl "common.avdl";
 
 	string getEmailOrUsername();
-	string getKeybasePassphrase(string username, string retry);
 }

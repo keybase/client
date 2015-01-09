@@ -1,5 +1,5 @@
 {
-  "protocol" : "mykey",
+  "protocol" : "mykeyUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -82,7 +82,7 @@
     } ]
   } ],
   "messages" : {
-    "promptPushPreferences" : {
+    "getPushPreferences" : {
       "request" : [ ],
       "response" : "PushPreferences"
     }
