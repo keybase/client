@@ -161,14 +161,6 @@
   }];
 }
 
-- (void)warningWithSessionId:(NSInteger )sessionId msg:(NSString *)msg completion:(void (^)(NSError *error))completion {
-
-  NSArray *params = @[@{@"sessionId": @(sessionId), @"msg": KBRValue(msg)}];
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.warning" params:params completion:^(NSError *error, NSDictionary *dict) {
-    completion(error);
-  }];
-}
-
 @end
 
 @implementation KBRLogUi

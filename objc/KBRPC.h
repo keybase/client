@@ -165,8 +165,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)launchNetworkChecksWithSessionId:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error))completion;
 
-- (void)warningWithSessionId:(NSInteger )sessionId msg:(NSString *)msg completion:(void (^)(NSError *error))completion;
-
 @end
 
 typedef NS_ENUM (NSInteger, KBLogLevel) {
