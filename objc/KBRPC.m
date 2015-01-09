@@ -1,31 +1,24 @@
 #import "KBRPC.h"
 
 @implementation KBStatus
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"code": @"code", @"name": @"name", @"desc": @"desc", @"fields": @"fields" }; }
 @end
 
 @implementation KBUID
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data" }; }
 @end
 
 @implementation KBLoadUserArg
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"uid": @"uid", @"username": @"username", @"self": @"self" }; }
 @end
 
 @implementation KBFOKID
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"kid": @"kid" }; }
 @end
 
 @implementation KBText
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"data": @"data", @"markup": @"markup" }; }
 @end
 
 @implementation KBUserInfo
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"uid": @"uid", @"username": @"username" }; }
 @end
 
 @implementation KBGetCurrentStatusRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"configured": @"configured", @"registered": @"registered", @"loggedIn": @"loggedIn", @"publicKeySelected": @"publicKeySelected", @"hasPrivateKey": @"hasPrivateKey", @"user": @"user" }; }
 @end
 
 @implementation KBRConfig
@@ -48,55 +41,42 @@
 @end
 
 @implementation KBTrackDiff
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"type": @"type", @"displayMarkup": @"displayMarkup" }; }
 @end
 
 @implementation KBProofStatus
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"state": @"state", @"status": @"status", @"desc": @"desc" }; }
 @end
 
 @implementation KBRemoteProof
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofType": @"proofType", @"key": @"key", @"value": @"value", @"displayMarkup": @"displayMarkup" }; }
 @end
 
 @implementation KBIdentifyRow
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"rowId": @"rowId", @"proof": @"proof", @"trackDiff": @"trackDiff" }; }
 @end
 
 @implementation KBIdentifyKey
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"pgpFingerprint": @"pgpFingerprint", @"KID": @"KID", @"trackDiff": @"trackDiff" }; }
 @end
 
 @implementation KBCryptocurrency
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"rowId": @"rowId", @"pkhash": @"pkhash", @"address": @"address" }; }
 @end
 
 @implementation KBIdentity
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"whenLastTracked": @"whenLastTracked", @"key": @"key", @"proofs": @"proofs", @"cryptocurrency": @"cryptocurrency", @"deleted": @"deleted" }; }
 @end
 
 @implementation KBSigHint
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"remoteId": @"remoteId", @"humanUrl": @"humanUrl", @"apiUrl": @"apiUrl", @"checkText": @"checkText" }; }
 @end
 
 @implementation KBCheckResult
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofStatus": @"proofStatus", @"timestamp": @"timestamp", @"displayMarkup": @"displayMarkup" }; }
 @end
 
 @implementation KBLinkCheckResult
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"proofId": @"proofId", @"proofStatus": @"proofStatus", @"cached": @"cached", @"diff": @"diff", @"remoteDiff": @"remoteDiff", @"hint": @"hint" }; }
 @end
 
 @implementation KBTrackSummary
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"time": @"time", @"isRemote": @"isRemote" }; }
 @end
 
 @implementation KBIdentifyOutcome
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"status": @"status", @"warnings": @"warnings", @"trackUsed": @"trackUsed", @"numTrackFailures": @"numTrackFailures", @"numTrackChanges": @"numTrackChanges", @"numProofFailures": @"numProofFailures", @"numDeleted": @"numDeleted", @"numProofSuccesses": @"numProofSuccesses", @"deleted": @"deleted" }; }
 @end
 
 @implementation KBFinishAndPromptRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"trackLocal": @"trackLocal", @"trackRemote": @"trackRemote" }; }
 @end
 
 @implementation KBRIdentifyUi
@@ -229,7 +209,6 @@
 @end
 
 @implementation KBPgpIdentity
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"username": @"username", @"comment": @"comment", @"email": @"email" }; }
 @end
 
 @implementation KBRMykey
@@ -322,11 +301,9 @@
 @end
 
 @implementation KBSecretEntryArg
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"desc": @"desc", @"prompt": @"prompt", @"err": @"err", @"cancel": @"cancel", @"ok": @"ok" }; }
 @end
 
 @implementation KBSecretEntryRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"text": @"text", @"canceled": @"canceled" }; }
 @end
 
 @implementation KBRSecretUi
@@ -346,7 +323,6 @@
 @end
 
 @implementation KBSignupRes
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{@"passphraseOk": @"passphraseOk", @"postOk": @"postOk", @"writeOk": @"writeOk" }; }
 @end
 
 @implementation KBRSignup

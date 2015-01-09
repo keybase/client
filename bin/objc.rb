@@ -100,8 +100,6 @@ paths.each do |path|
       end
       header << "@end\n"
       impl << "@implementation KB#{type["name"]}"
-      names = type["fields"].map { |p| "@\"#{p["name"]}\": @\"#{p["name"]}\"" }
-      impl << "+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{#{names.join(", ")} }; }"
       impl << "@end\n"
     end
   end
