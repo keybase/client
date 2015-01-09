@@ -23,15 +23,8 @@ func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 func (v *CmdMykeyGen) RunClient() error { return v.Run() }
 
 func (v *CmdMykeyGen) Run() (err error) {
-
+	v.state.arg.KeyGenUI = &v.state
 	gen := libkb.NewKeyGen(&v.state.arg)
-
-	if err = gen.LoginAndCheckKey(); err != nil {
-		return
-	}
-	if err = v.state.Prompt(); err != nil {
-		return
-	}
 	if _, err = gen.Run(); err != nil {
 		return
 	}

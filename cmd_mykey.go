@@ -33,7 +33,16 @@ func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	if a.arg.NoPassphrase && a.arg.DoSecretPush {
 		err = fmt.Errorf("Passphrase required for pushing secret key to server")
 	}
+
 	return err
+}
+
+func (a *MyKeyState) GetPushPreferences() (public bool, private bool, err error) {
+	if err = a.Prompt(); err == nil {
+		public = a.arg.DoPush
+		private = a.arg.DoSecretPush
+	}	
+	return
 }
 
 func (a *MyKeyState) Prompt() (err error) {
@@ -59,9 +68,8 @@ func (a *MyKeyState) PromptPush() (err error) {
 func (a *MyKeyState) PromptSecretPush(def bool) (err error) {
 
 	msg := `
-Keybase can host an encrypted copy of your private key on its servers.
+Keybase can host an encrypted copy of your PGP private key on its servers.
 It can only be decrypted with your passphrase, which Keybase never knows.
-We suggest use of this feature to synchronize your key across your devices.
 
 `
 	G_UI.Output(msg)
