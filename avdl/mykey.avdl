@@ -7,7 +7,7 @@ protocol mykey {
 	void keyGen(
 		int primaryBits,
 		int subkeyBits,
-		PgpIdentity identity,
+		array<PgpIdentity> ids,
 		boolean noPassphrase,
 		boolean kbPassphrase,
 		boolean doNaclEddsa,

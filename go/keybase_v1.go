@@ -530,14 +530,14 @@ type PgpIdentity struct {
 }
 
 type KeyGenArg struct {
-	PrimaryBits  int         `codec:"primaryBits"`
-	SubkeyBits   int         `codec:"subkeyBits"`
-	Identity     PgpIdentity `codec:"identity"`
-	NoPassphrase bool        `codec:"noPassphrase"`
-	KbPassphrase bool        `codec:"kbPassphrase"`
-	DoNaclEddsa  bool        `codec:"doNaclEddsa"`
-	DoNaclDh     bool        `codec:"doNaclDh"`
-	Pregen       string      `codec:"pregen"`
+	PrimaryBits  int           `codec:"primaryBits"`
+	SubkeyBits   int           `codec:"subkeyBits"`
+	Ids          []PgpIdentity `codec:"ids"`
+	NoPassphrase bool          `codec:"noPassphrase"`
+	KbPassphrase bool          `codec:"kbPassphrase"`
+	DoNaclEddsa  bool          `codec:"doNaclEddsa"`
+	DoNaclDh     bool          `codec:"doNaclDh"`
+	Pregen       string        `codec:"pregen"`
 }
 
 type MykeyInterface interface {
@@ -566,6 +566,43 @@ type MykeyClient struct {
 
 func (c MykeyClient) KeyGen(__arg KeyGenArg) (err error) {
 	err = c.Cli.Call("keybase.1.mykey.keyGen", []interface{}{__arg}, nil)
+	return
+}
+
+type PushPreferences struct {
+	Public  bool `codec:"public"`
+	Private bool `codec:"private"`
+}
+
+type PromptPushPreferencesArg struct {
+}
+
+type MykeyInterface interface {
+	PromptPushPreferences() (PushPreferences, error)
+}
+
+func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.mykey",
+		Methods: map[string]rpc2.ServeHook{
+			"promptPushPreferences": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PromptPushPreferencesArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptPushPreferences()
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type MykeyClient struct {
+	Cli GenericClient
+}
+
+func (c MykeyClient) PromptPushPreferences() (res PushPreferences, err error) {
+	err = c.Cli.Call("keybase.1.mykey.promptPushPreferences", []interface{}{PromptPushPreferencesArg{}}, &res)
 	return
 }
 

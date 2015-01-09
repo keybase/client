@@ -1,0 +1,13 @@
+@namespace("keybase.1")
+protocol mykey {
+
+	import idl "common.avdl";
+
+	record PushPreferences {
+		boolean public;
+		boolean private;
+	}
+
+	PushPreferences promptPushPreferences();
+
+}

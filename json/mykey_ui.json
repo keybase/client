@@ -70,38 +70,21 @@
       "name" : "email",
       "type" : "string"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "PushPreferences",
+    "fields" : [ {
+      "name" : "public",
+      "type" : "boolean"
+    }, {
+      "name" : "private",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
-    "keyGen" : {
-      "request" : [ {
-        "name" : "primaryBits",
-        "type" : "int"
-      }, {
-        "name" : "subkeyBits",
-        "type" : "int"
-      }, {
-        "name" : "ids",
-        "type" : {
-          "type" : "array",
-          "items" : "PgpIdentity"
-        }
-      }, {
-        "name" : "noPassphrase",
-        "type" : "boolean"
-      }, {
-        "name" : "kbPassphrase",
-        "type" : "boolean"
-      }, {
-        "name" : "doNaclEddsa",
-        "type" : "boolean"
-      }, {
-        "name" : "doNaclDh",
-        "type" : "boolean"
-      }, {
-        "name" : "pregen",
-        "type" : "string"
-      } ],
-      "response" : "null"
+    "promptPushPreferences" : {
+      "request" : [ ],
+      "response" : "PushPreferences"
     }
   }
 }

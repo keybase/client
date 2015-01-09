@@ -212,11 +212,30 @@
 @end
 
 @implementation KBRMykey
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits identity:(KBPgpIdentity *)identity noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase doNaclEddsa:(BOOL )doNaclEddsa doNaclDh:(BOOL )doNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion {
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits ids:(NSArray *)ids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase doNaclEddsa:(BOOL )doNaclEddsa doNaclDh:(BOOL )doNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion {
 
-  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"identity": KBRValue(identity), @"noPassphrase": @(noPassphrase), @"kbPassphrase": @(kbPassphrase), @"doNaclEddsa": @(doNaclEddsa), @"doNaclDh": @(doNaclDh), @"pregen": KBRValue(pregen)}];
+  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"ids": KBRValue(ids), @"noPassphrase": @(noPassphrase), @"kbPassphrase": @(kbPassphrase), @"doNaclEddsa": @(doNaclEddsa), @"doNaclDh": @(doNaclDh), @"pregen": KBRValue(pregen)}];
   [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGen" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
+  }];
+}
+
+@end
+
+@implementation KBPushPreferences
+@end
+
+@implementation KBRMykey
+- (void)promptPushPreferences:(void (^)(NSError *error, KBPushPreferences * pushPreferences))completion {
+
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.promptPushPreferences" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBPushPreferences *result = [MTLJSONAdapter modelOfClass:KBPushPreferences.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
   }];
 }
 

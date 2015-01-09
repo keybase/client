@@ -206,7 +206,17 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 @end
 
 @interface KBRMykey : KBRRequest
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits identity:(KBPgpIdentity *)identity noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase doNaclEddsa:(BOOL )doNaclEddsa doNaclDh:(BOOL )doNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion;
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits ids:(NSArray *)ids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase doNaclEddsa:(BOOL )doNaclEddsa doNaclDh:(BOOL )doNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBPushPreferences : KBRObject
+@property BOOL public;
+@property BOOL private;
+@end
+
+@interface KBRMykey : KBRRequest
+- (void)promptPushPreferences:(void (^)(NSError *error, KBPushPreferences * pushPreferences))completion;
 
 @end
 
