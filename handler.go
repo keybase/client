@@ -20,7 +20,8 @@ type LoginUI struct {
 }
 
 type SecretUI struct {
-	cli *keybase_1.SecretUiClient
+	sesisonId int
+	cli       *keybase_1.SecretUiClient
 }
 
 func (h *BaseHandler) getRpcClient() *rpc2.Client {
@@ -48,8 +49,8 @@ func (h *BaseHandler) getSecretUiCli() *keybase_1.SecretUiClient {
 	return h.secretCli
 }
 
-func (h *BaseHandler) getSecretUI() libkb.SecretUI {
-	return &SecretUI{h.getSecretUiCli()}
+func (h *BaseHandler) getSecretUI(sessionId int) libkb.SecretUI {
+	return &SecretUI{sessionId, h.getSecretUiCli()}
 }
 
 func (h *BaseHandler) getLogUICli() *keybase_1.LogUiClient {

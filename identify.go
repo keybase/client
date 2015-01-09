@@ -33,7 +33,10 @@ func nextSessionId() int {
 }
 
 func NewRemoteSelfIdentifyUI(sessionId int, c *rpc2.Client) *RemoteSelfIdentifyUI {
-	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI(sessionId, c)}
+	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
+		sessionId: sessionId,
+		uicli:     keybase_1.IdentifyUiClient{c},
+	}}
 }
 
 func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {

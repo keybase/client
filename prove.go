@@ -20,13 +20,6 @@ func NewProveHandler(xp *rpc2.Transport) *ProveHandler {
 	return &ProveHandler{BaseHandler{xp: xp}, nil}
 }
 
-func NextProveUI(c *rpc2.Client) *ProveUI {
-	return &ProveUI{
-		sessionId: nextSessionId(),
-		cli:       keybase_1.ProveUiClient{c},
-	}
-}
-
 func (p *ProveUI) PromptOverwrite1(prompt string) (b bool, err error) {
 	return p.cli.PromptOverwrite1(keybase_1.PromptOverwrite1Arg{p.sessionId, prompt})
 }
@@ -57,22 +50,26 @@ func (l *SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybas
 	return &res, err
 }
 
-func (h *ProveHandler) getProveUI() libkb.ProveUI {
+func (h *ProveHandler) getProveUI(sessionId int) libkb.ProveUI {
 	if h.proveUI == nil {
-		h.proveUI = NextProveUI(h.getRpcClient())
+		h.proveUI = &ProveUI{
+			sessionId: sessionId,
+			cli:       keybase_1.ProveUiClient{h.getRpcClient()},
+		}
 	}
 	return h.proveUI
 }
 
 func (ph *ProveHandler) Prove(arg keybase_1.ProveArg) (err error) {
+	sessionId := nextSessionId()
 	eng := &libkb.ProofEngine{
 		Username: arg.Username,
 		Service:  arg.Service,
 		Force:    arg.Force,
-		ProveUI:  ph.getProveUI(),
-		LoginUI:  ph.getLoginUi(),
-		SecretUI: ph.getSecretUI(),
-		LogUI:    ph.getLogUI(),
+		ProveUI:  ph.getProveUI(sessionId),
+		LoginUI:  ph.getLoginUi(sessionId),
+		SecretUI: ph.getSecretUI(sessionId),
+		LogUI:    ph.getLogUI(sessionId),
 	}
 	err = eng.Run()
 	return
