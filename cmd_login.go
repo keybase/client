@@ -30,10 +30,6 @@ func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
 	return u.eng.GetEmailOrUsername()
 }
 
-func (u *LoginUIServer) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (string, error) {
-	return u.eng.GetKeybasePassphrase(arg.Username, arg.Retry)
-}
-
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {
 	res, err = i.eng.FinishAndPrompt(&arg.Outcome)
 	return
@@ -74,6 +70,7 @@ func (v *CmdLogin) RunClient() (err error) {
 		NewLoginUIProtocol(),
 		NewIdentifyUIProtocol(),
 		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
 	}
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {

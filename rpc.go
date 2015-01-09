@@ -72,3 +72,11 @@ func GetProveClient() (cli keybase_1.ProveClient, err error) {
 	}
 	return
 }
+
+func GetMykeyClient() (cli keybase_1.MykeyClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.MykeyClient{rcli}
+	}
+	return
+}

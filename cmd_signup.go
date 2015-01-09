@@ -192,7 +192,7 @@ func (s *CmdSignupState) Prompt() (err error) {
 	if err = s.prompter.Run(); err != nil {
 		return
 	}
-	arg := libkb.PromptArg{
+	arg := keybase_1.GetNewPassphraseArg{
 		TerminalPrompt: "Pick a strong passphrase",
 		PinentryDesc:   "Pick a strong passphrase (12+ characters)",
 		PinentryPrompt: "Passphrase",
@@ -200,7 +200,7 @@ func (s *CmdSignupState) Prompt() (err error) {
 
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
-		s.passphrase, err = G_UI.PromptForNewPassphrase(arg)
+		s.passphrase, err = G_UI.GetSecretUI().GetNewPassphrase(arg)
 	}
 
 	return

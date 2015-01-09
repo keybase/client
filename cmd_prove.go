@@ -91,6 +91,12 @@ func (s *SecretUIServer) GetSecret(arg keybase_1.GetSecretArg) (res keybase_1.Se
 	}
 	return
 }
+func (s *SecretUIServer) GetNewPassphrase(arg keybase_1.GetNewPassphraseArg) (string, error) {
+	return s.eng.GetNewPassphrase(arg)
+}
+func (s *SecretUIServer) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (string, error) {
+	return s.eng.GetKeybasePassphrase(arg)
+}
 
 func (v *CmdProve) RunClient() (err error) {
 	var cli keybase_1.ProveClient

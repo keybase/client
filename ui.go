@@ -495,10 +495,6 @@ func (l LoginUI) GetEmailOrUsername() (string, error) {
 		libkb.CheckEmailOrUsername)
 }
 
-func (l LoginUI) GetKeybasePassphrase(username string, retry string) (string, error) {
-	return l.parent.PromptForKeybasePassphrase(username, retry)
-}
-
 type SecretUI struct {
 	parent *UI
 }
@@ -525,10 +521,14 @@ func (u *UI) Shutdown() error {
 	return err
 }
 
-func (ui *UI) PromptForNewPassphrase(arg libkb.PromptArg) (text string, err error) {
+func (u SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text string, err error) {
 
-	if arg.Checker == nil {
-		arg.Checker = &libkb.CheckNewPassword
+	arg := libkb.PromptArg{
+		TerminalPrompt: earg.TerminalPrompt,
+		PinentryDesc:   earg.PinentryDesc,
+		PinentryPrompt: earg.PinentryPrompt,
+		RetryMessage:   earg.RetryMessage,
+		Checker:        &libkb.CheckPassphraseNew,
 	}
 
 	orig := arg
@@ -543,7 +543,7 @@ func (ui *UI) PromptForNewPassphrase(arg libkb.PromptArg) (text string, err erro
 			rm = ""
 		}
 
-		if text, err = ui.ppprompt(arg); err != nil {
+		if text, err = u.ppprompt(arg); err != nil {
 			return
 		}
 
@@ -552,7 +552,7 @@ func (ui *UI) PromptForNewPassphrase(arg libkb.PromptArg) (text string, err erro
 		arg.RetryMessage = ""
 		arg.Checker = nil
 
-		if text2, err = ui.ppprompt(arg); err != nil {
+		if text2, err = u.ppprompt(arg); err != nil {
 			return
 		}
 		if text == text2 {
@@ -564,27 +564,21 @@ func (ui *UI) PromptForNewPassphrase(arg libkb.PromptArg) (text string, err erro
 	return
 }
 
-func (ui *UI) PromptForKeybasePassphrase(username string, retry string) (text string, err error) {
-	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
-	return ui.ppprompt(libkb.PromptArg{
+func (u SecretUI) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (text string, err error) {
+	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", arg.Username)
+	return u.ppprompt(libkb.PromptArg{
 		TerminalPrompt: "keybase passphrase",
 		PinentryPrompt: "Your passphrase",
 		PinentryDesc:   desc,
-		Checker:        &libkb.CheckPasswordSimple,
-		RetryMessage:   retry,
+		Checker:        &libkb.CheckPassphraseSimple,
+		RetryMessage:   arg.Retry,
 	})
 }
 
-func (ui *UI) ppprompt(arg libkb.PromptArg) (text string, err error) {
+func (u SecretUI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 	first := true
 	var res *keybase_1.SecretEntryRes
-
-	sui := ui.GetSecretUI()
-	if sui == nil {
-		err = libkb.NoUiError{}
-		return
-	}
 
 	for {
 
@@ -600,7 +594,7 @@ func (ui *UI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 		tp = tp + ": "
 
-		res, err = sui.GetSecret(keybase_1.SecretEntryArg{
+		res, err = u.GetSecret(keybase_1.SecretEntryArg{
 			Err:    emp,
 			Desc:   arg.PinentryDesc,
 			Prompt: arg.PinentryPrompt,

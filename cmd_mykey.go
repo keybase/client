@@ -5,6 +5,8 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type MyKeyState struct {
@@ -21,7 +23,7 @@ func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	a.arg.KbPassphrase = ctx.Bool("keybase-passphrase")
 	if !ctx.Bool("skip-nacl") {
 		a.arg.DoNaclEddsa = true
-		a.arg.DoNaclDH = true
+		a.arg.DoNaclDh = true
 	}
 	if ctx.Bool("debug") {
 		a.arg.PrimaryBits = SMALL_KEY
@@ -37,11 +39,15 @@ func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (a *MyKeyState) GetPushPreferences() (public bool, private bool, err error) {
+func (a *MyKeyState) NewKeyGenUIProtocol() rpc2.Protocol {
+	return keybase_1.MykeyUiProtocol(a)
+}
+
+func (a *MyKeyState) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
 	if err = a.Prompt(); err == nil {
-		public = a.arg.DoPush
-		private = a.arg.DoSecretPush
-	}	
+		ret.Public = a.arg.DoPush
+		ret.Private = a.arg.DoSecretPush
+	}
 	return
 }
 

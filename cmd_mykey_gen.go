@@ -5,6 +5,8 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-libcmdline"
 	"github.com/keybase/go-libkb"
+	"github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdMykeyGen struct {
@@ -20,10 +22,25 @@ func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (v *CmdMykeyGen) RunClient() error { return v.Run() }
+func (v *CmdMykeyGen) RunClient() (err error) {
+	var cli keybase_1.MykeyClient
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		v.state.NewKeyGenUIProtocol(),
+		NewLoginUIProtocol(),
+		NewSecretUIProtocol(),
+	}
+	if cli, err = GetMykeyClient(); err != nil {
+	} else if err = RegisterProtocols(protocols); err != nil {
+	} else {
+		err = cli.KeyGen(v.state.arg.Export())
+	}
+	return
+}
 
 func (v *CmdMykeyGen) Run() (err error) {
 	v.state.arg.KeyGenUI = &v.state
+	v.state.arg.SecretUI = G_UI.GetSecretUI()
 	gen := libkb.NewKeyGen(&v.state.arg)
 	if _, err = gen.Run(); err != nil {
 		return
