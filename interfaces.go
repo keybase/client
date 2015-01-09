@@ -243,6 +243,10 @@ type LogUI interface {
 	Critical(format string, args ...interface{})
 }
 
+type KeyGenUI interface {
+	GetPushPreferences() (pub bool, priv bool, err error)
+}
+
 type UI interface {
 	GetIdentifyUI(them *User) IdentifyUI
 	GetIdentifySelfUI() IdentifyUI

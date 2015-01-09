@@ -61,18 +61,18 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 		arg.SubkeyBits = 4096
 	}
 
-	G.Log.Info("Generating primary key (%d bits)", arg.PrimaryBits)
+	arg.LogUI.Info("Generating primary key (%d bits)", arg.PrimaryBits)
 	masterPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.PrimaryBits)
 	if err != nil {
 		return nil, err
 	}
 
-	G.Log.Info("Generating encryption subkey (%d bits)", arg.SubkeyBits)
+	arg.LogUI.Info("Generating encryption subkey (%d bits)", arg.SubkeyBits)
 	encryptingPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.SubkeyBits)
 	if err != nil {
 		return nil, err
 	}
-	G.Log.Info("Generating signing subkey (%d bits)", arg.SubkeyBits)
+	arg.LogUI.Info("Generating signing subkey (%d bits)", arg.SubkeyBits)
 	signingPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.SubkeyBits)
 	if err != nil {
 		return nil, err
@@ -146,6 +146,7 @@ type KeyGen struct {
 	arg       *KeyGenArg
 	phase     int
 	nxtLinkId LinkId
+	LogUI     LogUI
 }
 
 func (s *KeyGen) CheckNoKey() error {
@@ -227,6 +228,9 @@ type KeyGenArg struct {
 	DoNaclEddsa  bool
 	DoNaclDH     bool
 	Pregen       *PgpKeyBundle
+	KeyGenUI     KeyGenUI
+	LoginUI      LoginUI
+	LogUI        LogUI
 }
 
 func (s *KeyGen) UpdateUser() error {
@@ -266,7 +270,7 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 		return InternalError{"bad use of Keygen; wrong phase"}
 	}
 
-	if err = G.LoginState.Login(LoginArg{}); err != nil {
+	if err = G.LoginState.Login(LoginArg{Ui: s.arg.LoginUI}); err != nil {
 		return
 	}
 
@@ -293,7 +297,7 @@ func (s *KeyGen) GenNacl() (err error) {
 		G.Log.Debug("- GenNacl() -> %s", ErrToOk(err))
 	}()
 	if s.arg.DoNaclEddsa {
-		G.Log.Info("Generating NaCl EdDSA key (255 bits on Curve25519)")
+		s.arg.LogUI.Info("Generating NaCl EdDSA key (255 bits on Curve25519)")
 		gen := NewNaclKeyGen(NaclKeyGenArg{
 			Signer:    signer,
 			Primary:   s.bundle,
@@ -309,7 +313,7 @@ func (s *KeyGen) GenNacl() (err error) {
 		return
 	}
 
-	G.Log.Info("Generating NaCl DH-key (255 bits on Curve25519)")
+	s.arg.LogUI.Info("Generating NaCl DH-key (255 bits on Curve25519)")
 	gen := NewNaclKeyGen(NaclKeyGenArg{
 		Signer:    signer,
 		Primary:   s.bundle,
@@ -322,6 +326,22 @@ func (s *KeyGen) GenNacl() (err error) {
 	return err
 }
 
+func (s *KeyGen) Init() error {
+	if s.arg.LogUI == nil {
+		s.arg.LogUI = G.UI.GetLogUI()
+	}
+	return nil
+}
+
+func (s *KeyGen) Prompt() (err error) {
+	if ui := s.arg.KeyGenUI; ui == nil {
+		err = NoUiError{}
+	} else {
+		s.arg.DoPush, s.arg.DoSecretPush, err = ui.GetPushPreferences()
+	}
+	return err
+}
+
 func (s *KeyGen) Run() (ret *PgpKeyBundle, err error) {
 
 	G.Log.Debug("+ KeyGen::Run")
@@ -329,7 +349,9 @@ func (s *KeyGen) Run() (ret *PgpKeyBundle, err error) {
 		G.Log.Debug("- KeyGen::Run -> %s", ErrToOk(err))
 	}()
 
-	if err = s.LoginAndCheckKey(); err != nil {
+	if err = s.Init(); err != nil {
+	} else if err = s.LoginAndCheckKey(); err != nil {
+	} else if err = s.Prompt(); err != nil {
 	} else if ret, err = s.Generate(); err != nil {
 	} else if err = s.Push(); err != nil {
 	} else {
