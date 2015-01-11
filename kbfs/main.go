@@ -11,8 +11,8 @@ import (
 	"runtime/pprof"
 
 	"github.com/hanwen/go-fuse/fuse/nodefs"
-	libkb "github.com/keybase/go-libkb"
 	libkbfs "github.com/keybase/go-libkbfs-priv"
+	libkb "github.com/keybase/go/libkb"
 )
 
 func GetUI() libkb.UI {
