@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	Q "github.com/PuerkitoBio/goquery"
-	"github.com/keybase/go-libkb"
+	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/kr/text"
 	"golang.org/x/net/html"

@@ -5,7 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-libcmdline"
-	"github.com/keybase/go-libkb"
+	"github.com/keybase/go/libkb"
 	"io"
 	"os"
 	"regexp"

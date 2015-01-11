@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/keybase/go-libkb"
+	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 	"os"
 	"strconv"
