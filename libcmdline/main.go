@@ -1,8 +1,7 @@
-
 package libcmdline
 
 import (
-	"github.com/keybase/go-libkb"
+	"github.com/keybase/go/libkb"
 	"os"
 	"os/signal"
 )
@@ -46,7 +45,6 @@ func main2(parseArgs parseArgHook, canBeClient bool) error {
 	}
 	return err
 }
-
 
 func HandleSignals() {
 	c := make(chan os.Signal, 1)

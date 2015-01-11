@@ -2,7 +2,7 @@ package libcmdline
 
 import (
 	"github.com/codegangsta/cli"
-	"github.com/keybase/go-libkb"
+	"github.com/keybase/go/libkb"
 	"regexp"
 	"strings"
 )
@@ -10,7 +10,7 @@ import (
 type Command interface {
 	libkb.Command
 	ParseArgv(*cli.Context) error // A command-specific parse-args
-	Run() error         // Actually run the command (finally!)
+	Run() error                   // Actually run the command (finally!)
 	RunClient() error             // Run in client mode
 }
 
@@ -280,19 +280,18 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 			Usage: "Options to use when calling GPG",
 		},
 		cli.IntFlag{
-			Name : "daemon-port",
-			Usage : "specify a daemon port on 127.0.0.1",
+			Name:  "daemon-port",
+			Usage: "specify a daemon port on 127.0.0.1",
 		},
 		cli.BoolFlag{
-			Name : "standalone",
-			Usage : "use the client without any daemon support",
+			Name:  "standalone",
+			Usage: "use the client without any daemon support",
 		},
 		cli.StringFlag{
-			Name : "local-rpc-debug",
-			Usage : "use to debug local RPC",
+			Name:  "local-rpc-debug",
+			Usage: "use to debug local RPC",
 		},
 	}
-
 
 	// Finally, add help if we asked for it
 	if addHelp {
