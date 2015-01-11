@@ -22,5 +22,3 @@ _testmain.go
 *.exe
 *.test
 *.prof
-go-keybased
-test/node/node_modules/
