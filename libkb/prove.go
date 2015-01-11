@@ -35,7 +35,7 @@ func (v *ProofEngine) Init() error {
 }
 
 func (v *ProofEngine) Login() (err error) {
-	return G.LoginState.Login(LoginArg{Ui: v.LoginUI})
+	return G.LoginState.Login(LoginArg{Ui: v.LoginUI, SecretUI: v.SecretUI})
 }
 
 func (v *ProofEngine) LoadMe() (err error) {
