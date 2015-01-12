@@ -40,7 +40,7 @@ func NewLockTable() *LockTable {
 	}
 }
 
-func (t *LockTable) Acquire(s string) (ret *NamedLock) {
+func (t *LockTable) Lock(s string) (ret *NamedLock) {
 	t.lock.Lock()
 	if ret = t.locks[s]; ret == nil {
 		ret = &NamedLock{refs: 0, name: s, parent: t}

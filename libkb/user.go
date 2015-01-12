@@ -110,6 +110,7 @@ type UserCache struct {
 	lru          *lru.Cache
 	resolveCache map[string]ResolveResult
 	uidMap       map[string]UID
+	lockTable    *LockTable
 }
 
 func NewUserCache(c int) (ret *UserCache, err error) {
@@ -120,6 +121,7 @@ func NewUserCache(c int) (ret *UserCache, err error) {
 			tmp,
 			make(map[string]ResolveResult),
 			make(map[string]UID),
+			NewLockTable(),
 		}
 	}
 	return ret, err
@@ -639,6 +641,9 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	uid_s := uid.ToString()
 	G.Log.Debug("| resolved to %s", uid_s)
+
+	nlock := G.UserCache.lockTable.Lock(uid_s)
+	defer nlock.Unlock()
 
 	var local, remote *User
 
