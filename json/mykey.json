@@ -92,10 +92,10 @@
         "name" : "kbPassphrase",
         "type" : "boolean"
       }, {
-        "name" : "doNaclEddsa",
+        "name" : "noNaclEddsa",
         "type" : "boolean"
       }, {
-        "name" : "doNaclDh",
+        "name" : "noNaclDh",
         "type" : "boolean"
       }, {
         "name" : "pregen",

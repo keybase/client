@@ -10,8 +10,8 @@ protocol mykey {
 		array<PgpIdentity> ids,
 		boolean noPassphrase,
 		boolean kbPassphrase,
-		boolean doNaclEddsa,
-		boolean doNaclDh,
+		boolean noNaclEddsa,
+		boolean noNaclDh,
 		string pregen);
 
 }

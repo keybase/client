@@ -517,8 +517,8 @@ type KeyGenArg struct {
 	Ids          []PgpIdentity `codec:"ids"`
 	NoPassphrase bool          `codec:"noPassphrase"`
 	KbPassphrase bool          `codec:"kbPassphrase"`
-	DoNaclEddsa  bool          `codec:"doNaclEddsa"`
-	DoNaclDh     bool          `codec:"doNaclDh"`
+	NoNaclEddsa  bool          `codec:"noNaclEddsa"`
+	NoNaclDh     bool          `codec:"noNaclDh"`
 	Pregen       string        `codec:"pregen"`
 }
 
