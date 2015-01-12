@@ -649,20 +649,9 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if !arg.ForceReload {
 
-		//
-		// XXX - this isn't exactly right. We should maybe still poll the
-		// server for updates....
-		//
-		// Also, let's only allow a cached version if it has secrets
-		// or if the load wasn't for a user with secrets.
-		//
-		if u := G.UserCache.Get(uid); u != nil && (u.secret || !arg.LoadSecrets) {
+		if local = G.UserCache.Get(uid); local != nil && (local.secret || !arg.LoadSecrets) {
 			G.Log.Debug("| Found user in user cache: %s", uid_s)
-			return u, nil
-		}
-
-		local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets)
-		if err != nil {
+		} else if local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets); err != nil {
 			G.Log.Warning("Failed to load %s from storage: %s",
 				uid_s, err.Error())
 		}
