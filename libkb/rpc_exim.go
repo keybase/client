@@ -344,7 +344,7 @@ func (ids Identities) Export() (res []keybase_1.PgpIdentity) {
 	return
 }
 
-func ImportPgpIdentitites(ids []keybase_1.PgpIdentity) (ret Identities) {
+func ImportPgpIdentities(ids []keybase_1.PgpIdentity) (ret Identities) {
 	ret = Identities(make([]Identity, len(ids)))
 	for i, id := range ids {
 		ret[i] = ImportPgpIdentity(id)
@@ -394,7 +394,7 @@ func (a KeyGenArg) Export() (ret keybase_1.KeyGenArg) {
 func ImportKeyGenArg(a keybase_1.KeyGenArg) (ret KeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.Ids = ImportPgpIdentitites(a.Ids)
+	ret.Ids = ImportPgpIdentities(a.Ids)
 	ret.NoPassphrase = a.NoPassphrase
 	ret.KbPassphrase = a.KbPassphrase
 	ret.NoNaclEddsa = a.NoNaclEddsa

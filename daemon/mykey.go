@@ -36,14 +36,23 @@ func (h *MykeyHandler) getKeyGenUI(sessionId int) libkb.KeyGenUI {
 
 func (h *MykeyHandler) KeyGen(arg keybase_1.KeyGenArg) (err error) {
 	iarg := libkb.ImportKeyGenArg(arg)
+	return h.keygen(iarg)
+}
 
+func (h *MykeyHandler) keygen(iarg libkb.KeyGenArg) (err error) {
 	sessionId := nextSessionId()
 	iarg.LogUI = h.getLogUI(sessionId)
 	iarg.LoginUI = h.getLoginUI(sessionId)
 	iarg.KeyGenUI = h.getKeyGenUI(sessionId)
 	iarg.SecretUI = h.getSecretUI(sessionId)
-
 	eng := libkb.NewKeyGen(&iarg)
 	_, err = eng.Run()
 	return
+}
+
+func (h *MykeyHandler) KeyGenSimple(arg []keybase_1.PgpIdentity) (err error) {
+	iarg := libkb.KeyGenArg{
+		Ids: libkb.ImportPgpIdentities(arg),
+	}
+	return h.keygen(iarg)
 }
