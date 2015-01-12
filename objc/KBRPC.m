@@ -212,6 +212,14 @@
   }];
 }
 
+- (void)keyGenSimpleWithIds:(NSArray *)ids completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"ids": KBRValue(ids)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGenSimple" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBPushPreferences

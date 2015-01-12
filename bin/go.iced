@@ -254,7 +254,7 @@ class GoEmitter2 extends GoEmitter
   emit_message_server : (name, details) ->
     arg = details.request
     res = details.response
-    args = if arg.nargs then "#{@go_primitive_type((arg.single or arg).type)}" else ""
+    args = if arg.nargs then "#{(@emit_field_type (arg.single or arg).type ).type}" else ""
     res_types = []
     if res isnt "null" then res_types.push @go_primitive_type(res)
     res_types.push "error"
@@ -275,7 +275,7 @@ class GoEmitter2 extends GoEmitter
     params = if arg.nargs is 0 then ""
     else
       parg = arg.single or arg
-      "#{parg.name} #{@go_primitive_type(parg.type)}"
+      "#{parg.name} #{(@emit_field_type parg.type).type}"
     @output "func (c #{p}Client) #{@go_export_case(name)}(#{params}) (#{outs}) {"
     @tab()
     if arg.nargs is 1
