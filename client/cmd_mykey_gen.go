@@ -55,8 +55,8 @@ func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 		Description: "Generate a new PGP key and write to local secret keychain",
 		Flags: append([]cli.Flag{
 			cli.BoolFlag{
-				Name:  "p, push",
-				Usage: "Push to server",
+				Name:  "skip-push",
+				Usage: "No push to server (on by default)",
 			},
 			cli.BoolFlag{
 				Name:  "push-secret",

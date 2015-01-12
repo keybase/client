@@ -263,14 +263,14 @@ func (f P3SKBKeyringFile) WriteTo(w io.Writer) error {
 	return nil
 }
 
-func (f *P3SKBKeyringFile) Save() error {
+func (f *P3SKBKeyringFile) Save(lui LogUI) error {
 	if !f.dirty {
 		return nil
 	}
 	err := SafeWriteToFile(*f)
 	if err == nil {
 		f.dirty = false
-		G.Log.Info("Updated keyring %s", f.filename)
+		lui.Info("Updated keyring %s", f.filename)
 	}
 	return err
 }
@@ -329,9 +329,9 @@ func (p *P3SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret G
 	}.Run()
 }
 
-func (p *P3SKBKeyringFile) PushAndSave(p3skb *P3SKB) (err error) {
+func (p *P3SKBKeyringFile) PushAndSave(p3skb *P3SKB, lui LogUI) (err error) {
 	if err = p.Push(p3skb); err == nil {
-		err = p.Save()
+		err = p.Save(lui)
 	}
 	return
 }

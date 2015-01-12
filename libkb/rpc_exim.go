@@ -376,8 +376,8 @@ func (a KeyGenArg) Export() (ret keybase_1.KeyGenArg) {
 	ret.Ids = a.Ids.Export()
 	ret.NoPassphrase = a.NoPassphrase
 	ret.KbPassphrase = a.KbPassphrase
-	ret.DoNaclEddsa = a.DoNaclEddsa
-	ret.DoNaclDh = a.DoNaclDh
+	ret.NoNaclEddsa = a.NoNaclEddsa
+	ret.NoNaclDh = a.NoNaclDh
 
 	if a.Pregen == nil {
 	} else if s, e := a.Pregen.Encode(); e != nil {
@@ -397,8 +397,8 @@ func ImportKeyGenArg(a keybase_1.KeyGenArg) (ret KeyGenArg) {
 	ret.Ids = ImportPgpIdentitites(a.Ids)
 	ret.NoPassphrase = a.NoPassphrase
 	ret.KbPassphrase = a.KbPassphrase
-	ret.DoNaclEddsa = a.DoNaclEddsa
-	ret.DoNaclDh = a.DoNaclDh
+	ret.NoNaclEddsa = a.NoNaclEddsa
+	ret.NoNaclDh = a.NoNaclDh
 	return
 }
 

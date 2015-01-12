@@ -55,13 +55,6 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 		return nil, errors.InvalidArgumentError("UserId field was nil")
 	}
 
-	if arg.PrimaryBits == 0 {
-		arg.PrimaryBits = 4096
-	}
-	if arg.SubkeyBits == 0 {
-		arg.SubkeyBits = 4096
-	}
-
 	arg.LogUI.Info("Generating primary key (%d bits)", arg.PrimaryBits)
 	masterPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.PrimaryBits)
 	if err != nil {
@@ -147,7 +140,6 @@ type KeyGen struct {
 	arg       *KeyGenArg
 	phase     int
 	nxtLinkId LinkId
-	LogUI     LogUI
 }
 
 func (s *KeyGen) CheckNoKey() error {
@@ -172,7 +164,7 @@ func (s *KeyGen) GenerateKey() (err error) {
 }
 
 func (s *KeyGen) WriteKey() (err error) {
-	s.p3skb, err = WriteP3SKBToKeyring(s.bundle, s.tsec)
+	s.p3skb, err = WriteP3SKBToKeyring(s.bundle, s.tsec, s.arg.LogUI)
 	return
 }
 
@@ -222,12 +214,12 @@ type KeyGenArg struct {
 	SubkeyBits   int
 	Ids          Identities
 	Config       *packet.Config
-	DoPush       bool
+	NoPublicPush bool
 	DoSecretPush bool
 	NoPassphrase bool
 	KbPassphrase bool
-	DoNaclEddsa  bool
-	DoNaclDh     bool
+	NoNaclEddsa  bool
+	NoNaclDh     bool
 	Pregen       *PgpKeyBundle
 	KeyGenUI     KeyGenUI
 	LoginUI      LoginUI
@@ -298,7 +290,7 @@ func (s *KeyGen) GenNacl() (err error) {
 	defer func() {
 		G.Log.Debug("- GenNacl() -> %s", ErrToOk(err))
 	}()
-	if s.arg.DoNaclEddsa {
+	if !s.arg.NoNaclEddsa {
 		s.arg.LogUI.Info("Generating NaCl EdDSA key (255 bits on Curve25519)")
 		gen := NewNaclKeyGen(NaclKeyGenArg{
 			Signer:    signer,
@@ -307,11 +299,12 @@ func (s *KeyGen) GenNacl() (err error) {
 			Type:      "sibkey",
 			Me:        s.me,
 			ExpireIn:  NACL_EDDSA_EXPIRE_IN,
+			LogUI:     s.arg.LogUI,
 		})
 		err = gen.Run()
 	}
 
-	if err != nil || !s.arg.DoNaclDh {
+	if err != nil || s.arg.NoNaclDh {
 		return
 	}
 
@@ -323,16 +316,28 @@ func (s *KeyGen) GenNacl() (err error) {
 		Type:      "subkey",
 		Me:        s.me,
 		ExpireIn:  NACL_DH_EXPIRE_IN,
+		LogUI:     s.arg.LogUI,
 	})
 	err = gen.Run()
 	return err
 }
 
-func (s *KeyGen) Init() error {
-	if s.arg.LogUI == nil {
-		s.arg.LogUI = G.Log
+func (a *KeyGenArg) Init() error {
+	if a.LogUI == nil {
+		a.LogUI = G.Log
+	}
+	if a.PrimaryBits == 0 {
+		a.PrimaryBits = 4096
+	}
+	if a.SubkeyBits == 0 {
+		a.SubkeyBits = 4096
 	}
 	return nil
+}
+
+func (s *KeyGen) Init() error {
+	return s.arg.Init()
+
 }
 
 func (s *KeyGen) Prompt() (err error) {
@@ -341,7 +346,7 @@ func (s *KeyGen) Prompt() (err error) {
 	} else {
 		var pp keybase_1.PushPreferences
 		if pp, err = ui.GetPushPreferences(); err == nil {
-			s.arg.DoPush = pp.Public
+			s.arg.NoPublicPush = !pp.Public
 			s.arg.DoSecretPush = pp.Private
 		}
 	}
@@ -447,7 +452,7 @@ func (s *KeyGen) Push() (err error) {
 		return InternalError{"bad use of Keygen; wrong phase"}
 	}
 
-	if !s.arg.DoPush && !s.arg.DoSecretPush {
+	if s.arg.NoPublicPush && !s.arg.DoSecretPush {
 		G.Log.Debug("| Push skipped")
 		return nil
 	}

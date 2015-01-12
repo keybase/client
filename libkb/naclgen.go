@@ -15,6 +15,7 @@ type NaclKeyGenArg struct {
 	Type      string
 	ExpireIn  int        // how long it lasts
 	Primary   GenericKey // the primary key for this epoch
+	LogUI     LogUI
 }
 
 type NaclKeyGen struct {
@@ -32,7 +33,7 @@ func (g *NaclKeyGen) Generate() (err error) {
 }
 
 func (g *NaclKeyGen) Save() (err error) {
-	_, err = WriteP3SKBToKeyring(g.pair, nil)
+	_, err = WriteP3SKBToKeyring(g.pair, nil, g.arg.LogUI)
 	return
 }
 

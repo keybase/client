@@ -18,19 +18,19 @@ var SMALL_KEY int = 1024
 
 func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	a.arg.DoSecretPush = ctx.Bool("push-secret")
-	a.arg.DoPush = ctx.Bool("push") || a.arg.DoSecretPush
+	a.arg.NoPublicPush = ctx.Bool("skip-push") && !a.arg.DoSecretPush
 	a.arg.NoPassphrase = ctx.Bool("no-passphrase")
 	a.arg.KbPassphrase = ctx.Bool("keybase-passphrase")
-	if !ctx.Bool("skip-nacl") {
-		a.arg.DoNaclEddsa = true
-		a.arg.DoNaclDh = true
+	if ctx.Bool("skip-nacl") {
+		a.arg.NoNaclEddsa = true
+		a.arg.NoNaclDh = true
 	}
 	if ctx.Bool("debug") {
 		a.arg.PrimaryBits = SMALL_KEY
 		a.arg.SubkeyBits = SMALL_KEY
 	}
 	batch := ctx.Bool("batch")
-	a.interactive = (!a.arg.DoPush && !a.arg.NoPassphrase && !batch)
+	a.interactive = (!a.arg.NoPublicPush && !a.arg.NoPassphrase && !batch)
 
 	if a.arg.NoPassphrase && a.arg.DoSecretPush {
 		err = fmt.Errorf("Passphrase required for pushing secret key to server")
@@ -45,7 +45,7 @@ func (a *MyKeyState) NewKeyGenUIProtocol() rpc2.Protocol {
 
 func (a *MyKeyState) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
 	if err = a.Prompt(); err == nil {
-		ret.Public = a.arg.DoPush
+		ret.Public = !a.arg.NoPublicPush
 		ret.Private = a.arg.DoSecretPush
 	}
 	return
@@ -66,8 +66,10 @@ func (a *MyKeyState) Prompt() (err error) {
 func (a *MyKeyState) PromptPush() (err error) {
 
 	def := true
+	tmp := false
 	prompt := "Publish your new public key to Keybase.io (strongly recommended)?"
-	a.arg.DoPush, err = G_UI.PromptYesNo(prompt, &def)
+	tmp, err = G_UI.PromptYesNo(prompt, &def)
+	a.arg.NoPublicPush = !tmp
 	return
 }
 
