@@ -60,7 +60,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 	uid_s := sc.uid.ToString()
 
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", uid_s, low)
-	defer G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err))
+	defer func() { G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "sig/get",
@@ -314,7 +314,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	uid_s := l.GetUidString()
 
 	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid_s)
-	defer G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid_s, ErrToOk(err))
+	defer func() { G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid_s, ErrToOk(err)) }()
 
 	if ls, err = l.LoadLastLinkIdFromStorage(); err != nil || ls == nil {
 		G.Log.Debug("| Failed to load last link ID")
