@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/go-jsonw"
 	"strings"
 	"time"
+	"sync"
 )
 
 type TypedChainLink interface {
@@ -811,18 +812,17 @@ func (idt *IdentityTable) Len() int {
 
 func (idt *IdentityTable) Identify(is IdentifyState) {
 
-	done := make(chan bool)
+	var wg sync.WaitGroup
 	for _, lcr := range is.res.ProofChecks {
+
 		go func(l *LinkCheckResult) {
+			defer wg.Done()
 			idt.IdentifyActiveProof(l, is)
-			done <- true
 		}(lcr)
 	}
 
 	// wait for all goroutines to complete before exiting
-	for _ = range idt.activeProofs {
-		<-done
-	}
+	wg.Wait()
 
 	if acc := idt.ActiveCryptocurrency(); acc != nil {
 		acc.Display(is.GetUI())
