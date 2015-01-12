@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"strings"
-	"time"
 	"sync"
+	"time"
 )
 
 type TypedChainLink interface {

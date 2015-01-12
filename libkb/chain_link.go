@@ -296,6 +296,14 @@ func (c ChainLink) GetSeqno() Seqno {
 	}
 }
 
+func (c ChainLink) GetSigId() *SigId {
+	if c.unpacked != nil {
+		return &c.unpacked.sigId
+	} else {
+		return nil
+	}
+}
+
 func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	cached = false
 
@@ -416,6 +424,12 @@ type LinkSummary struct {
 	seqno Seqno
 }
 
+func (mt MerkleTriple) ToLinkSummary() (ret LinkSummary) {
+	ret.id = mt.linkId
+	ret.seqno = mt.seqno
+	return
+}
+
 func (ls LinkSummary) Less(ls2 LinkSummary) bool {
 	return ls.seqno < ls2.seqno
 }
@@ -443,4 +457,16 @@ func (l ChainLink) ToLinkSummary() *LinkSummary {
 		id:    l.id,
 		seqno: l.GetSeqno(),
 	}
+}
+
+func (l ChainLink) ToMerkleTriple() (ret MerkleTriple) {
+	return MerkleTriple{
+		linkId: l.id,
+		seqno:  l.GetSeqno(),
+		sigId:  l.GetSigId(),
+	}
+}
+
+func (mt MerkleTriple) Less(ls LinkSummary) bool {
+	return mt.seqno < ls.seqno
 }

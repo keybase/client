@@ -139,7 +139,7 @@ type KeyGen struct {
 	httpArgs  *HttpArgs
 	arg       *KeyGenArg
 	phase     int
-	nxtLinkId LinkId
+	chainTail MerkleTriple
 }
 
 func (s *KeyGen) CheckNoKey() error {
@@ -177,9 +177,10 @@ func (s *KeyGen) GeneratePost() (err error) {
 	if jw, err = s.me.SelfProof(); err != nil {
 		return
 	}
-	if sig, sigid, s.nxtLinkId, err = SignJson(jw, s.bundle); err != nil {
+	if sig, sigid, s.chainTail.linkId, err = SignJson(jw, s.bundle); err != nil {
 		return
 	}
+	s.chainTail.sigId = sigid
 	if pubkey, err = s.bundle.Encode(); err != nil {
 		return
 	}
@@ -471,7 +472,7 @@ func (s *KeyGen) Push() (err error) {
 	}
 
 	G.Log.Debug("| Fudge User Sig Chain")
-	s.me.sigChain.Bump(s.nxtLinkId)
+	s.me.sigChain.Bump(s.chainTail)
 
 	s.phase = KEYGEN_PHASE_POSTED
 

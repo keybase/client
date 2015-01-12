@@ -10,7 +10,11 @@ type SigChain struct {
 	username   string
 	chainLinks []*ChainLink
 	idVerified bool
-	last       *LinkSummary
+
+	// If we've made local modifications to our chain, mark it here;
+	// there's a slight lag on the server and we might not get the
+	// new chain tail if we query the server right after an update.
+	localChainTail *MerkleTriple
 }
 
 func (sc SigChain) Len() int {
@@ -45,13 +49,10 @@ func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {
 	return
 }
 
-func (sc *SigChain) Bump(id LinkId) {
-	summary := LinkSummary{
-		id:    id,
-		seqno: sc.GetLastSeqno() + 1,
-	}
-	G.Log.Debug("| Bumping SigChain LastSeqno to %d", summary.seqno)
-	sc.last = &summary
+func (sc *SigChain) Bump(mt MerkleTriple) {
+	mt.seqno = sc.GetLastSeqno() + 1
+	G.Log.Debug("| Bumping SigChain LastSeqno to %d", mt.seqno)
+	sc.localChainTail = &mt
 }
 
 func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err error) {
@@ -116,9 +117,9 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 
 		// If we've stored a `last` and it's less than the one
 		// we just loaded, then nuke it.
-		if sc.last != nil && sc.last.Less(*dirtyTail) {
-			G.Log.Debug("| Clear cached last (%d < %d)", sc.last.seqno, dirtyTail.seqno)
-			sc.last = nil
+		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
+			G.Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.seqno, dirtyTail.seqno)
+			sc.localChainTail = nil
 		}
 	}
 
@@ -148,8 +149,8 @@ func (sc *SigChain) VerifyChain() error {
 }
 
 func (sc SigChain) GetLastId() (ret LinkId) {
-	if sc.last != nil {
-		ret = sc.last.id
+	if sc.localChainTail != nil {
+		ret = sc.localChainTail.linkId
 	} else if l := last(sc.chainLinks); l != nil {
 		ret = l.id
 	}
@@ -165,9 +166,9 @@ func (sc SigChain) GetLastSeqno() (ret Seqno) {
 	defer func() {
 		G.Log.Debug("- GetLastSeqno() -> %d", ret)
 	}()
-	if sc.last != nil {
+	if sc.localChainTail != nil {
 		G.Log.Debug("| Cached in last summary object...")
-		ret = sc.last.seqno
+		ret = sc.localChainTail.seqno
 	} else if l := last(sc.chainLinks); l != nil {
 		G.Log.Debug("| Fetched from main chain")
 		ret = l.GetSeqno()
@@ -342,7 +343,6 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		}
 	}
 
-	// Do a list-reverse
 	reverse(links)
 
 	l.links = links

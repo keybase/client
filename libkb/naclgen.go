@@ -60,7 +60,7 @@ func (g *NaclKeyGen) Push() (err error) {
 	if err = PostNewKey(arg); err != nil {
 		return
 	}
-	g.arg.Me.sigChain.Bump(lid)
+	g.arg.Me.sigChain.Bump(MerkleTriple{linkId: lid, sigId: id})
 	return
 }
 
