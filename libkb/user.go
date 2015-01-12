@@ -61,6 +61,8 @@ func GetUidVoid(w *jsonw.Wrapper, u *UID, e *error) {
 	return
 }
 
+//==================================================================
+
 type User struct {
 	// Raw JSON element read from the server or our local DB.
 	basics      *jsonw.Wrapper
@@ -89,7 +91,6 @@ type User struct {
 }
 
 //==================================================================
-// Thin wrapper around hashicorp's LRU to store users locally
 
 type LoadUserArg struct {
 	Uid               *UID
@@ -101,6 +102,9 @@ type LoadUserArg struct {
 	ForceReload       bool
 	AllKeys           bool
 }
+
+//==================================================================
+// Thin wrapper around hashicorp's LRU to store users locally
 
 type UserCache struct {
 	lru          *lru.Cache
