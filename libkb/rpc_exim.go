@@ -159,6 +159,8 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 		return fmt.Errorf(s.Desc)
 	} else if s.Code == SC_BAD_LOGIN_PASSWORD {
 		return PassphraseError{s.Desc}
+	} else if s.Code == SC_KEY_BAD_GEN {
+		return KeyGenError{s.Desc}
 	} else {
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -325,6 +327,15 @@ func (p PassphraseError) ToStatus() (s keybase_1.Status) {
 func (m Markup) Export() (ret keybase_1.Text) {
 	ret.Data = m.data
 	ret.Markup = true
+	return
+}
+
+//=============================================================================
+
+func (e KeyGenError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_KEY_BAD_GEN
+	s.Name = "KEY_BAD_GEN"
+	s.Desc = e.msg
 	return
 }
 

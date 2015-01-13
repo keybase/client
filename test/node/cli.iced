@@ -10,7 +10,7 @@ if err
   console.log "error connecting"
 else
   c = new rpc.Client x, "keybase.1"
-  await c.invoke 'mykey.keyGenDefault', [{ pushPublic : true }], defer err, response
+  await c.invoke 'mykey.keyGenDefault', [{ pushPublic : false }], defer err, response
   if err?
     console.log "Err: #{JSON.stringify err}"
   if response?

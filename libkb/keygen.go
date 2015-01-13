@@ -327,7 +327,7 @@ func (s *KeyGen) GenNacl() (err error) {
 	return err
 }
 
-func (a *KeyGenArg) Init() error {
+func (a *KeyGenArg) Init() (err error) {
 	if a.LogUI == nil {
 		a.LogUI = G.Log
 	}
@@ -337,12 +337,14 @@ func (a *KeyGenArg) Init() error {
 	if a.SubkeyBits == 0 {
 		a.SubkeyBits = 4096
 	}
-	return nil
+	if (!a.NoNaclDh || !a.NoNaclEddsa) && a.NoPublicPush {
+		err = KeyGenError{"Can't generate NaCl keys without a public push"}
+	}
+	return
 }
 
 func (s *KeyGen) Init() error {
 	return s.arg.Init()
-
 }
 
 func (s *KeyGen) Prompt() (err error) {

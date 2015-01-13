@@ -51,6 +51,7 @@ const (
 	SC_BAD_LOGIN_PASSWORD        = 204
 	SC_GENERIC                   = 218
 	SC_BAD_SIGNUP_USERNAME_TAKEN = 701
+	SC_KEY_BAD_GEN               = 913
 	SC_BAD_TRACK_SESSION         = 1301
 )
 
