@@ -103,16 +103,6 @@
       } ],
       "response" : "null"
     },
-    "keyGenSimple" : {
-      "request" : [ {
-        "name" : "ids",
-        "type" : {
-          "type" : "array",
-          "items" : "PgpIdentity"
-        }
-      } ],
-      "response" : "null"
-    },
     "keyGenDefault" : {
       "request" : [ {
         "name" : "ids",
