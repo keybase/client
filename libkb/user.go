@@ -726,14 +726,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
 		}
 		err = NoKeyError{emsg}
-		return
 	}
 
 	// We can still return a user with an Error, but never will we
 	// put such a user into the Cache.
-	if err != nil {
-		G.UserCache.Put(ret)
-	}
+	G.Log.Debug("| Caching %s", uid_s)
+	G.UserCache.Put(ret)
 
 	return
 }

@@ -26,13 +26,10 @@ func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
 }
 
-func (sc SigChain) GetCheckableChainTail() (ret *MerkleTriple) {
+func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
 	now := time.Now()
 	if sc.localChainTail != nil && now.Sub(sc.localChainUpdateTime) < SERVER_UPDATE_LAG {
 		ret = sc.localChainTail
-	} else if link := sc.GetLastLink(); link != nil {
-		tmp := link.ToMerkleTriple()
-		ret = &tmp
 	}
 	return
 }
@@ -163,6 +160,14 @@ func (sc *SigChain) VerifyChain() error {
 	}
 
 	return nil
+}
+
+func (sc SigChain) GetCurrentTailTriple() (cli *MerkleTriple) {
+	if l := sc.GetLastLink(); l != nil {
+		tmp := l.ToMerkleTriple()
+		cli = &tmp
+	}
+	return
 }
 
 func (sc SigChain) GetLastLoadedId() (ret LinkId) {
@@ -320,6 +325,7 @@ type SigChainLoader struct {
 	links     []*ChainLink
 	fp        *PgpFingerprint
 	dirtyTail *LinkSummary
+	cleanTail *LinkSummary
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -349,10 +355,13 @@ func (l *SigChainLoader) LoadLastLinkIdFromStorage() (ls *LinkSummary, err error
 
 func (l *SigChainLoader) AccessPreload() (cached bool, err error) {
 	if l.preload != nil && (l.preload.allKeys == l.allKeys) {
+		G.Log.Debug("| Preload successful")
 		cached = true
 		src := l.preload.chainLinks
 		l.links = make([]*ChainLink, len(src))
 		copy(l.links, src)
+	} else {
+		G.Log.Debug("| Preload failed")
 	}
 	return
 }
@@ -373,10 +382,9 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return err
 	}
 
-	if l.fp == nil && !l.allKeys {
-		G.Log.Debug("| Current fingerprint is nil; short-circuiting local load")
-		return
-	}
+	// Load whatever the last fingerprint was in the chain if we're not loading
+	// allKeys. We have to load something...
+	loadFp := l.fp
 
 	curr = ls.id
 	var link *ChainLink
@@ -385,9 +393,14 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		G.Log.Debug("| loading link; curr=%s", curr.ToString())
 		if link, err = ImportLinkFromStorage(curr); err != nil {
 			return
-		} else if fp2 := link.GetPgpFingerprint(); !l.allKeys && l.fp != nil && !l.fp.Eq(fp2) {
+		}
+		fp2 := link.GetPgpFingerprint()
+		if loadFp == nil {
+			loadFp = &fp2
+			G.Log.Debug("| Setting loadFp=%s", fp2.ToString())
+		} else if !l.allKeys && loadFp != nil && !loadFp.Eq(fp2) {
 			good_key = false
-			G.Log.Debug("| Stop loading at fp=%s (!= fp=%s)", l.fp.ToString(), fp2.ToString())
+			G.Log.Debug("| Stop loading at fp=%s (!= fp=%s)", loadFp.ToString(), fp2.ToString())
 		} else {
 			links = append(links, link)
 			curr = link.GetPrev()
@@ -436,11 +449,15 @@ func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 
 func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) {
 	current = false
-	cli := sc.GetCheckableChainTail()
+
+	cli := sc.GetCurrentTailTriple()
+
+	future := sc.GetFutureChainTail()
 	Efn := NewServerChainError
 	G.Log.Debug("+ CheckFreshness")
 	a := Seqno(-1)
 	b := Seqno(-1)
+
 	if srv != nil {
 		G.Log.Debug("| Server triple: %v", srv)
 		b = srv.seqno
@@ -451,14 +468,19 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 		G.Log.Debug("| Client triple: %v", cli)
 		a = cli.seqno
 	} else {
-		G.Log.Debug("| Client client=nil")
+		G.Log.Debug("| Client triple=nil")
+	}
+	if future != nil {
+		G.Log.Debug("| Future triple: %v", future)
+	} else {
+		G.Log.Debug("| Future triple=nil")
 	}
 
 	if srv == nil && cli != nil {
 		err = Efn("Server claimed not to have this user in its tree (we had v=%d)", cli.seqno)
 	} else if srv == nil {
 	} else if b < 0 || a > b {
-		err = Efn("Server version-rollback sustpected: Local %d > %d", a, b)
+		err = Efn("Server version-rollback suspected: Local %d > %d", a, b)
 	} else if b == a {
 		G.Log.Debug("| Local chain version is up-to-date @ version %d", b)
 		current = true
@@ -472,9 +494,8 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 		current = false
 	}
 
-	k := sc.GetLastKnownSeqno()
-	if current && ((srv != nil && srv.seqno < k) || (srv == nil && k > 0)) {
-		G.Log.Debug("| Still need to reload, since locally, we know seqno=%d is last", k)
+	if current && future != nil && (cli == nil || cli.seqno < future.seqno) {
+		G.Log.Debug("| Still need to reload, since locally, we know seqno=%d is last", future.seqno)
 		current = false
 	}
 
