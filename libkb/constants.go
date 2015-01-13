@@ -157,3 +157,7 @@ var (
 var (
 	SIG_KB_EDDSA = KID_NACL_EDDSA
 )
+
+var (
+	SERVER_UPDATE_LAG = time.Minute
+)

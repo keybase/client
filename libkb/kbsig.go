@@ -162,8 +162,8 @@ func (u *User) ProofMetadata(ei int, signingKey GenericKey) (ret *jsonw.Wrapper,
 	var prev_s string
 	var key, prev *jsonw.Wrapper
 
-	last_seqno := u.sigChain.GetLastSeqno()
-	last_link := u.sigChain.GetLastId()
+	last_seqno := u.sigChain.GetLastKnownSeqno()
+	last_link := u.sigChain.GetLastKnownId()
 	if last_link == nil {
 		seqno = 1
 		prev = jsonw.NewNil()

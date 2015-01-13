@@ -96,10 +96,10 @@ type LoadUserArg struct {
 	Uid               *UID
 	Name              string
 	PublicKeyOptional bool
-	NoCacheResult     bool
+	NoCacheResult     bool // currently ignore
 	Self              bool
 	LoadSecrets       bool
-	ForceReload       bool
+	ForceReload       bool // currently ignored
 	AllKeys           bool
 }
 
@@ -110,6 +110,7 @@ type UserCache struct {
 	lru          *lru.Cache
 	resolveCache map[string]ResolveResult
 	uidMap       map[string]UID
+	lockTable    *LockTable
 }
 
 func NewUserCache(c int) (ret *UserCache, err error) {
@@ -120,6 +121,7 @@ func NewUserCache(c int) (ret *UserCache, err error) {
 			tmp,
 			make(map[string]ResolveResult),
 			make(map[string]UID),
+			NewLockTable(),
 		}
 	}
 	return ret, err
@@ -420,7 +422,7 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
-	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain)
+	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain, u.sigChain)
 
 	// Eventually load the others, but for now, this one is good enough
 	return err
@@ -640,27 +642,16 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	uid_s := uid.ToString()
 	G.Log.Debug("| resolved to %s", uid_s)
 
+	nlock := G.UserCache.lockTable.Lock(uid_s)
+	defer nlock.Unlock()
+
 	var local, remote *User
 
-	if !arg.ForceReload {
-
-		//
-		// XXX - this isn't exactly right. We should maybe still poll the
-		// server for updates....
-		//
-		// Also, let's only allow a cached version if it has secrets
-		// or if the load wasn't for a user with secrets.
-		//
-		if u := G.UserCache.Get(uid); u != nil && (u.secret || !arg.LoadSecrets) {
-			G.Log.Debug("| Found user in user cache: %s", uid_s)
-			return u, nil
-		}
-
-		local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets)
-		if err != nil {
-			G.Log.Warning("Failed to load %s from storage: %s",
-				uid_s, err.Error())
-		}
+	if local = G.UserCache.Get(uid); local != nil && (local.secret || !arg.LoadSecrets) {
+		G.Log.Debug("| Found user in user cache: %s", uid_s)
+	} else if local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets); err != nil {
+		G.Log.Warning("Failed to load %s from storage: %s",
+			uid_s, err.Error())
 	}
 
 	leaf, err := LookupMerkleLeaf(uid, local)
@@ -735,14 +726,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			emsg = "You don't have a public key; try `keybase push` if you have a key; or `keybase gen` if you don't"
 		}
 		err = NoKeyError{emsg}
-		return
 	}
 
 	// We can still return a user with an Error, but never will we
 	// put such a user into the Cache.
-	if !arg.NoCacheResult {
-		G.UserCache.Put(ret)
-	}
+	G.Log.Debug("| Caching %s", uid_s)
+	G.UserCache.Put(ret)
 
 	return
 }

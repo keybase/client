@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"time"
 )
 
 type SigChain struct {
@@ -10,15 +11,27 @@ type SigChain struct {
 	username   string
 	chainLinks []*ChainLink
 	idVerified bool
+	allKeys    bool
 
 	// If we've made local modifications to our chain, mark it here;
 	// there's a slight lag on the server and we might not get the
 	// new chain tail if we query the server right after an update.
 	localChainTail *MerkleTriple
+
+	// When the local chain was updated.
+	localChainUpdateTime time.Time
 }
 
 func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
+}
+
+func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
+	now := time.Now()
+	if sc.localChainTail != nil && now.Sub(sc.localChainUpdateTime) < SERVER_UPDATE_LAG {
+		ret = sc.localChainTail
+	}
+	return
 }
 
 func reverse(links []*ChainLink) {
@@ -50,14 +63,15 @@ func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {
 }
 
 func (sc *SigChain) Bump(mt MerkleTriple) {
-	mt.seqno = sc.GetLastSeqno() + 1
-	G.Log.Debug("| Bumping SigChain LastSeqno to %d", mt.seqno)
+	mt.seqno = sc.GetLastKnownSeqno() + 1
+	G.Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.seqno)
 	sc.localChainTail = &mt
+	sc.localChainUpdateTime = time.Now()
 }
 
 func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err error) {
 
-	low := sc.GetLastSeqno()
+	low := sc.GetLastLoadedSeqno()
 	uid_s := sc.uid.ToString()
 
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", uid_s, low)
@@ -148,11 +162,26 @@ func (sc *SigChain) VerifyChain() error {
 	return nil
 }
 
-func (sc SigChain) GetLastId() (ret LinkId) {
+func (sc SigChain) GetCurrentTailTriple() (cli *MerkleTriple) {
+	if l := sc.GetLastLink(); l != nil {
+		tmp := l.ToMerkleTriple()
+		cli = &tmp
+	}
+	return
+}
+
+func (sc SigChain) GetLastLoadedId() (ret LinkId) {
+	if l := last(sc.chainLinks); l != nil {
+		ret = l.id
+	}
+	return
+}
+
+func (sc SigChain) GetLastKnownId() (ret LinkId) {
 	if sc.localChainTail != nil {
 		ret = sc.localChainTail.linkId
-	} else if l := last(sc.chainLinks); l != nil {
-		ret = l.id
+	} else {
+		ret = sc.GetLastLoadedId()
 	}
 	return
 }
@@ -161,15 +190,26 @@ func (sc SigChain) GetLastLink() *ChainLink {
 	return last(sc.chainLinks)
 }
 
-func (sc SigChain) GetLastSeqno() (ret Seqno) {
-	G.Log.Debug("+ GetLastSeqno()")
+func (sc SigChain) GetLastKnownSeqno() (ret Seqno) {
+	G.Log.Debug("+ GetLastKnownSeqno()")
 	defer func() {
-		G.Log.Debug("- GetLastSeqno() -> %d", ret)
+		G.Log.Debug("- GetLastKnownSeqno() -> %d", ret)
 	}()
 	if sc.localChainTail != nil {
 		G.Log.Debug("| Cached in last summary object...")
 		ret = sc.localChainTail.seqno
-	} else if l := last(sc.chainLinks); l != nil {
+	} else {
+		ret = sc.GetLastLoadedSeqno()
+	}
+	return
+}
+
+func (sc SigChain) GetLastLoadedSeqno() (ret Seqno) {
+	G.Log.Debug("+ GetLastLoadedSeqno()")
+	defer func() {
+		G.Log.Debug("- GetLastLoadedSeqno() -> %d", ret)
+	}()
+	if l := last(sc.chainLinks); l != nil {
 		G.Log.Debug("| Fetched from main chain")
 		ret = l.GetSeqno()
 	}
@@ -285,6 +325,10 @@ type SigChainLoader struct {
 	links     []*ChainLink
 	fp        *PgpFingerprint
 	dirtyTail *LinkSummary
+
+	// The preloaded sigchain; maybe we're loading a user that already was
+	// loaded, and here's the existing sigchain.
+	preload *SigChain
 }
 
 //========================================================================
@@ -301,7 +345,22 @@ func (l *SigChainLoader) LoadLastLinkIdFromStorage() (ls *LinkSummary, err error
 	} else if w == nil {
 		G.Log.Debug("| LastLinkId was null")
 	} else {
-		ls, err = GetLinkSummary(w)
+		if ls, err = GetLinkSummary(w); err == nil {
+			G.Log.Debug("| LastLinkID loaded as %v", *ls)
+		}
+	}
+	return
+}
+
+func (l *SigChainLoader) AccessPreload() (cached bool, err error) {
+	if l.preload != nil && (l.preload.allKeys == l.allKeys) {
+		G.Log.Debug("| Preload successful")
+		cached = true
+		src := l.preload.chainLinks
+		l.links = make([]*ChainLink, len(src))
+		copy(l.links, src)
+	} else {
+		G.Log.Debug("| Preload failed")
 	}
 	return
 }
@@ -322,10 +381,11 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return err
 	}
 
-	if l.fp == nil && !l.allKeys {
-		G.Log.Debug("| Current fingerprint is nil; short-circuiting local load")
-		return
-	}
+	// Load whatever the last fingerprint was in the chain if we're not loading
+	// allKeys. We have to load something...  Note that we don't use l.fp
+	// here (as we used to) since if the user used to have chainlinks, and then
+	// removed their key, we still want to load their last chainlinks.
+	var loadFp *PgpFingerprint
 
 	curr = ls.id
 	var link *ChainLink
@@ -334,9 +394,14 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		G.Log.Debug("| loading link; curr=%s", curr.ToString())
 		if link, err = ImportLinkFromStorage(curr); err != nil {
 			return
-		} else if fp2 := link.GetPgpFingerprint(); !l.allKeys && l.fp != nil && !l.fp.Eq(fp2) {
+		}
+		fp2 := link.GetPgpFingerprint()
+		if loadFp == nil {
+			loadFp = &fp2
+			G.Log.Debug("| Setting loadFp=%s", fp2.ToString())
+		} else if !l.allKeys && loadFp != nil && !loadFp.Eq(fp2) {
 			good_key = false
-			G.Log.Debug("| Stop loading at fp=%s (!= fp=%s)", l.fp.ToString(), fp2.ToString())
+			G.Log.Debug("| Stop loading at fp=%s (!= fp=%s)", loadFp.ToString(), fp2.ToString())
 		} else {
 			links = append(links, link)
 			curr = link.GetPrev()
@@ -356,6 +421,7 @@ func (l *SigChainLoader) MakeSigChain() error {
 		uid:        l.user.GetUid(),
 		username:   l.user.GetName(),
 		chainLinks: l.links,
+		allKeys:    l.allKeys,
 	}
 	for _, l := range l.links {
 		l.parent = sc
@@ -382,28 +448,59 @@ func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 
 //========================================================================
 
-func (sc *SigChain) CheckFreshness(t *MerkleTriple) (current bool, err error) {
+func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) {
 	current = false
-	a := sc.GetLastSeqno()
+
+	cli := sc.GetCurrentTailTriple()
+
+	future := sc.GetFutureChainTail()
 	Efn := NewServerChainError
-	if t == nil && a > 0 {
-		err = Efn("Server claimed not to have this user in its tree (we had v=%d)", a)
-	} else if t == nil {
-	} else if b := t.seqno; b < 0 || a > b {
-		err = Efn("Server version-rollback sustpected: Local %d > %d", a, b)
+	G.Log.Debug("+ CheckFreshness")
+	a := Seqno(-1)
+	b := Seqno(-1)
+
+	if srv != nil {
+		G.Log.Debug("| Server triple: %v", srv)
+		b = srv.seqno
+	} else {
+		G.Log.Debug("| Server triple=nil")
+	}
+	if cli != nil {
+		G.Log.Debug("| Client triple: %v", cli)
+		a = cli.seqno
+	} else {
+		G.Log.Debug("| Client triple=nil")
+	}
+	if future != nil {
+		G.Log.Debug("| Future triple: %v", future)
+	} else {
+		G.Log.Debug("| Future triple=nil")
+	}
+
+	if srv == nil && cli != nil {
+		err = Efn("Server claimed not to have this user in its tree (we had v=%d)", cli.seqno)
+	} else if srv == nil {
+	} else if b < 0 || a > b {
+		err = Efn("Server version-rollback suspected: Local %d > %d", a, b)
 	} else if b == a {
 		G.Log.Debug("| Local chain version is up-to-date @ version %d", b)
 		current = true
-		if last := sc.GetLastId(); last == nil {
+		if cli == nil {
 			err = Efn("Failed to read last link for user")
-		} else if !last.Eq(t.linkId) {
+		} else if !cli.linkId.Eq(srv.linkId) {
 			err = Efn("The server returned the wrong sigchain tail")
 		}
 	} else {
 		G.Log.Debug("| Local chain version is out-of-date: %d < %d", a, b)
 		current = false
 	}
-	G.Log.Debug("| CheckFreshness (%s) -> (%v,%s)", sc.uid.ToString(), current, ErrToOk(err))
+
+	if current && future != nil && (cli == nil || cli.seqno < future.seqno) {
+		G.Log.Debug("| Still need to reload, since locally, we know seqno=%d is last", future.seqno)
+		current = false
+	}
+
+	G.Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid.ToString(), current, ErrToOk(err))
 	return
 }
 
@@ -416,7 +513,8 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 //========================================================================
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
-	l.dirtyTail, err = l.chain.LoadFromServer(l.GetMerkleTriple())
+	srv := l.GetMerkleTriple()
+	l.dirtyTail, err = l.chain.LoadFromServer(srv)
 	return
 }
 
@@ -451,6 +549,7 @@ func (l *SigChainLoader) StoreTail() (err error) {
 		nil,
 		l.dirtyTail.ToJson(),
 	)
+	G.Log.Debug("| Storing dirtyTail @ %d", l.dirtyTail.seqno)
 	if err == nil {
 		l.dirtyTail = nil
 	}
@@ -471,6 +570,7 @@ func (l *SigChainLoader) Store() (err error) {
 
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	var current bool
+	var preload bool
 
 	uid_s := l.GetUidString()
 
@@ -487,10 +587,19 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	if err = l.GetFingerprint(); err != nil {
 		return
 	}
-	stage("LoadLinksFromStorage")
-	if err = l.LoadLinksFromStorage(); err != nil {
+
+	stage("AccessPreload")
+	if preload, err = l.AccessPreload(); err != nil {
 		return
 	}
+
+	if !preload {
+		stage("LoadLinksFromStorage")
+		if err = l.LoadLinksFromStorage(); err != nil {
+			return
+		}
+	}
+
 	stage("MakeSigChain")
 	if err = l.MakeSigChain(); err != nil {
 		return
@@ -530,8 +639,8 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 //========================================================================
 
-func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType) (ret *SigChain, err error) {
-	loader := SigChainLoader{user: u, allKeys: allKeys, leaf: f, chainType: t}
+func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType, preload *SigChain) (ret *SigChain, err error) {
+	loader := SigChainLoader{user: u, allKeys: allKeys, leaf: f, chainType: t, preload: preload}
 	return loader.Load()
 }
 
