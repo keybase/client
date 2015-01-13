@@ -161,3 +161,10 @@ var (
 var (
 	SERVER_UPDATE_LAG = time.Minute
 )
+
+// key_revocation_types
+var (
+	REV_SIMPLE_DELETE = 0
+	REV_FULL          = 1
+	REV_DATED         = 2
+)

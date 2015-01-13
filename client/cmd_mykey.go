@@ -103,6 +103,7 @@ func NewCmdMykey(cl *libcmdline.CommandLine) cli.Command {
 		Subcommands: []cli.Command{
 			NewCmdMykeySelect(cl),
 			NewCmdMykeyGen(cl),
+			NewCmdMykeyDelete(cl),
 		},
 	}
 }

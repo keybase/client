@@ -103,6 +103,17 @@ func PostInviteRequest(arg InviteRequestArg) (err error) {
 	return err
 }
 
+func DeletePrimary() (err error) {
+	_, err = G.API.Post(ApiArg{
+		Endpoint: "key/revoke",
+		Args: HttpArgs{
+			"revoke_primary":  I{1},
+			"revocation_type": I{REV_SIMPLE_DELETE},
+		},
+	})
+	return
+}
+
 func CheckPosted(proofId string) (found bool, status int, err error) {
 	res, e2 := G.API.Post(ApiArg{
 		Endpoint:    "sig/posted",
