@@ -325,7 +325,6 @@ type SigChainLoader struct {
 	links     []*ChainLink
 	fp        *PgpFingerprint
 	dirtyTail *LinkSummary
-	cleanTail *LinkSummary
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -383,8 +382,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	}
 
 	// Load whatever the last fingerprint was in the chain if we're not loading
-	// allKeys. We have to load something...
-	loadFp := l.fp
+	// allKeys. We have to load something...  Note that we don't use l.fp
+	// here (as we used to) since if the user used to have chainlinks, and then
+	// removed their key, we still want to load their last chainlinks.
+	var loadFp *PgpFingerprint
 
 	curr = ls.id
 	var link *ChainLink
