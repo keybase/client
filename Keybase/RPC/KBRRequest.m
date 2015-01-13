@@ -10,6 +10,11 @@
 
 @implementation KBRRequest
 
+- (instancetype)init {
+  [NSException raise:NSGenericException format:@"Use initWithClient:"];
+  return nil;
+}
+
 - (instancetype)initWithClient:(KBRPClient *)client {
   if ((self = [super init])) {
     _client = client;

@@ -21,6 +21,15 @@
 @property NSMutableDictionary *methods;
 @end
 
+@interface KBMantleCoder : NSObject <MPMessagePackCoder>
+@end
+
+@implementation KBMantleCoder
+- (NSDictionary *)encodeObject:(id)obj {
+  return [obj conformsToProtocol:@protocol(MTLJSONSerializing)] ? [MTLJSONAdapter JSONDictionaryFromModel:obj] : obj;
+}
+@end
+
 @implementation KBRPClient
 
 - (void)open {
@@ -38,6 +47,8 @@
     }
     requestHandler(method, params, completion);
   };
+
+  _client.coder = [[KBMantleCoder alloc] init];
   
   NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
   NSAssert(user, @"No user");
@@ -73,7 +84,7 @@
     }
     GHDebug(@"Status: %@", getCurrentStatusRes);
     
-    [AppDelegate.sharedDelegate setConnected:getCurrentStatusRes.loggedIn hasKey:getCurrentStatusRes.hasPrivateKey username:getCurrentStatusRes.user.username];
+    [AppDelegate.sharedDelegate setConnected:getCurrentStatusRes.loggedIn hasKey:getCurrentStatusRes.publicKeySelected username:getCurrentStatusRes.user.username];
   }];
 }
 

@@ -165,27 +165,24 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)launchNetworkChecksWithSessionId:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error))completion;
 
-- (void)warningWithSessionId:(NSInteger )sessionId msg:(NSString *)msg completion:(void (^)(NSError *error))completion;
-
 @end
 
 typedef NS_ENUM (NSInteger, KBLogLevel) {
 	KBLogLevelNone, 
 	KBLogLevelDebug, 
 	KBLogLevelInfo, 
+	KBLogLevelNotice, 
 	KBLogLevelWarn, 
 	KBLogLevelError, 
 	KBLogLevelCritical, 
 };
-@interface KBRLog : KBRRequest
-- (void)logWithLevel:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion;
+@interface KBRLogUi : KBRRequest
+- (void)logWithSessionId:(NSInteger )sessionId level:(KBLogLevel )level text:(KBText *)text completion:(void (^)(NSError *error))completion;
 
 @end
 
 @interface KBRLogin : KBRRequest
-- (void)passphraseLoginWithIdentify:(BOOL )identify completion:(void (^)(NSError *error))completion;
-
-- (void)passphraseLoginNoIdentifyWithUsername:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
+- (void)passphraseLoginWithIdentify:(BOOL )identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
 - (void)pubkeyLogin:(void (^)(NSError *error))completion;
 
@@ -195,10 +192,31 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
+@interface KBPgpIdentity : KBRObject
+@property NSString *username;
+@property NSString *comment;
+@property NSString *email;
+@end
+
 @interface KBRLoginUi : KBRRequest
 - (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion;
 
-- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
+@end
+
+@interface KBRMykey : KBRRequest
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits ids:(NSArray *)ids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase noNaclEddsa:(BOOL )noNaclEddsa noNaclDh:(BOOL )noNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion;
+
+- (void)keyGenSimpleWithIds:(NSArray *)ids completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBPushPreferences : KBRObject
+@property BOOL public;
+@property BOOL private;
+@end
+
+@interface KBRMykeyUi : KBRRequest
+- (void)getPushPreferences:(void (^)(NSError *error, KBPushPreferences * pushPreferences))completion;
 
 @end
 
@@ -223,6 +241,28 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 - (void)okToCheckWithSessionId:(NSInteger )sessionId name:(NSString *)name attempt:(NSInteger )attempt completion:(void (^)(NSError *error, BOOL  b))completion;
 
 - (void)displayRecheckWarningWithSessionId:(NSInteger )sessionId text:(KBText *)text completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBSecretEntryArg : KBRObject
+@property NSString *desc;
+@property NSString *prompt;
+@property NSString *err;
+@property NSString *cancel;
+@property NSString *ok;
+@end
+
+@interface KBSecretEntryRes : KBRObject
+@property NSString *text;
+@property BOOL canceled;
+@end
+
+@interface KBRSecretUi : KBRRequest
+- (void)getSecretWithPinentry:(KBSecretEntryArg *)pinentry terminal:(KBSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBSecretEntryRes * secretEntryRes))completion;
+
+- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString * str))completion;
+
+- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
 
 @end
 

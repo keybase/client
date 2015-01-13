@@ -1,5 +1,5 @@
 //
-//  KBView.h
+//  KBIBView.h
 //  Keybase
 //
 //  Created by Gabriel on 12/23/14.
@@ -8,6 +8,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface KBView : NSView
+@interface KBIBView : NSView
 
 @end

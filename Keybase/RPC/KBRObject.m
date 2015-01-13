@@ -28,7 +28,28 @@
   return nil;
 }
 
-+ (NSDictionary *)JSONKeyPathsByPropertyKey { return @{}; }
++ (NSArray *)propertyNames:(Class)clazz {
+  unsigned int count;
+  objc_property_t *properties = class_copyPropertyList(clazz, &count);
+  NSMutableArray *propertyNames = [NSMutableArray arrayWithCapacity:count];
+  for (NSUInteger i = 0; i < count; i++) {
+    objc_property_t property = properties[i];
+    const char *propName = property_getName(property);
+    NSString *propertyName = [NSString stringWithCString:propName encoding:NSUTF8StringEncoding];
+    [propertyNames addObject:propertyName];
+  }
+  free(properties);
+  return propertyNames;
+}
+
++ (NSDictionary *)JSONKeyPathsByPropertyKey {
+  NSArray *propertyNames = [self propertyNames:self];
+  NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:[propertyNames count]];
+  for (NSString *propertyName in propertyNames) {
+    dict[propertyName] = propertyName;
+  }
+  return dict;
+}
 
 + (NSValueTransformer *)JSONTransformerForKey:(NSString *)key {
   NSString *className = [self classNameOfPropertyNamed:key];

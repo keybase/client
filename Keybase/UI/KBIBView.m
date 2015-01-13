@@ -1,18 +1,18 @@
 //
-//  KBView.m
+//  KBIBView.m
 //  Keybase
 //
 //  Created by Gabriel on 12/23/14.
 //  Copyright (c) 2014 Gabriel Handford. All rights reserved.
 //
 
-#import "KBView.h"
+#import "KBIBView.h"
 
-@interface KBView ()
+@interface KBIBView ()
 
 @end
 
-@implementation KBView
+@implementation KBIBView
 
 - (void)drawRect:(NSRect)rect {
   [NSColor.whiteColor setFill];

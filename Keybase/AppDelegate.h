@@ -10,12 +10,14 @@
 
 #import "KBRPClient.h"
 #import "KBConnectWindowController.h"
+#import <KBKeybase/KBKeybase.h>
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
 @property (readonly) NSString *username;
 
 + (KBRPClient *)client;
++ (KBAPIClient *)APIClient;
 
 + (AppDelegate *)sharedDelegate;
 

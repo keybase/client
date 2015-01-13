@@ -9,8 +9,6 @@
 #import <GHKit/GHKit.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
-#import "KBOLookAndFeel.h"
-
 typedef void (^KBCompletion)(NSError *error);
 
 

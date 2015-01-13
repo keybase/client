@@ -8,12 +8,12 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "GRNavigationController.h"
+#import "KBNavigationController.h"
 
 @interface KBConnectWindowController : NSWindowController
 
 @property (strong) IBOutlet NSWindow *window;
 
-@property IBOutlet GRNavigationController *navigationController;
+@property IBOutlet KBNavigationController *navigationController;
 
 @end

@@ -7,9 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
-#import "GRViewController.h"
-
-@interface KBKeySelectViewController : GRViewController
+@interface KBKeySelectViewController : NSViewController
 
 @end

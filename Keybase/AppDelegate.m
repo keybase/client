@@ -9,12 +9,18 @@
 #import "AppDelegate.h"
 
 #import "KBConnectWindowController.h"
-#import "KBKeyGenViewController.h"
+#import "KBKeyGenView.h"
+#import "KBUsersViewController.h"
+#import "KBUserProfileViewController.h"
 
 @interface AppDelegate ()
 @property KBConnectWindowController *connectController;
+@property KBUsersViewController *usersViewController;
+@property KBUserProfileViewController *userProfileViewController;
 @property NSStatusItem *statusItem;
 @property KBRPClient *client;
+
+@property KBAPIClient *APIClient;
 
 @property NSString *username;
 @end
@@ -24,7 +30,9 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   _client = [[KBRPClient alloc] init];
   [_client open];
-  
+
+  _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
+
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   _statusItem.title = @"KB";
   //_statusItem.image = [NSImage imageNamed:@"StatusIcon"];
@@ -42,18 +50,20 @@
   [self.connectController close];
   _username = username;
   _statusItem.menu = [self menu];
-  
+
   if (!loggedIn || (loggedIn && !hasKey)) {
-    self.connectController = [[KBConnectWindowController alloc] init];
+    self.connectController = [[KBConnectWindowController alloc] initWithWindowNibName:@"KBConnectWindowController"];
     [self.connectController.window setLevel:NSStatusWindowLevel];
     
     if (loggedIn && !hasKey) {
-      KBKeyGenViewController *keyGenViewController = [[KBKeyGenViewController alloc] init];
-      [self.connectController.navigationController pushViewController:keyGenViewController animated:NO];
+      KBKeyGenView *keyGenView = [[KBKeyGenView alloc] init];
+      [self.connectController.navigationController pushView:keyGenView animated:NO];
     } else {
       _statusItem.menu = [self connectMenu];
     }
     [self.connectController showWindow:nil];
+  } else {
+    [self showUser:_username];
   }
 }
 
@@ -63,6 +73,12 @@
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
   return menu;
+}
+
+- (void)showUser:(NSString *)username {
+  self.userProfileViewController = [[KBUserProfileViewController alloc] initWithWindowNibName:@"KBUserProfileViewController"];
+  [self.userProfileViewController loadUsername:username];
+  [self.userProfileViewController showWindow:nil];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -77,10 +93,14 @@
   return ((AppDelegate *)[NSApp delegate]).client;
 }
 
++ (KBAPIClient *)APIClient {
+  return ((AppDelegate *)[NSApp delegate]).APIClient;
+}
+
+
 + (AppDelegate *)sharedDelegate {
   return (AppDelegate *)[[NSApplication sharedApplication] delegate];
 }
-
 
 - (void)contacts:(id)sender { }
 

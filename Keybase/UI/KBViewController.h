@@ -7,10 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
-#import "GRViewController.h"
-
-@interface KBViewController : GRViewController
+@interface KBViewController : NSViewController
 
 - (void)setInProgress:(BOOL)inProgress sender:(id)sender;
 

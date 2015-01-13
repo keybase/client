@@ -14,5 +14,5 @@ pod install
 open Keybase.xcworkspace
 ```
 
-Then select a target ```Keybase``` (most likely) and run.
+Then select the target ```Keybase``` and run.
 
