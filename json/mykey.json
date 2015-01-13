@@ -113,6 +113,25 @@
       } ],
       "response" : "null"
     },
+    "keyGenDefault" : {
+      "request" : [ {
+        "name" : "ids",
+        "type" : {
+          "type" : "array",
+          "items" : "PgpIdentity"
+        }
+      }, {
+        "name" : "pushPublic",
+        "type" : "boolean"
+      }, {
+        "name" : "pushSecret",
+        "type" : "boolean"
+      }, {
+        "name" : "passphrase",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "revokePrimary" : {
       "request" : [ ],
       "response" : "null"

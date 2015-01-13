@@ -15,5 +15,9 @@ protocol mykey {
 		string pregen);
 
 	void keyGenSimple(array<PgpIdentity> ids);
+	void keyGenDefault(array<PgpIdentity> ids, 
+		boolean pushPublic,
+		boolean pushSecret, 
+		string passphrase);
 	void revokePrimary();
 }
