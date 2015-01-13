@@ -105,7 +105,8 @@ func PostInviteRequest(arg InviteRequestArg) (err error) {
 
 func DeletePrimary() (err error) {
 	_, err = G.API.Post(ApiArg{
-		Endpoint: "key/revoke",
+		Endpoint:    "key/revoke",
+		NeedSession: true,
 		Args: HttpArgs{
 			"revoke_primary":  I{1},
 			"revocation_type": I{REV_SIMPLE_DELETE},

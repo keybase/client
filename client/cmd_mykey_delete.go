@@ -22,8 +22,8 @@ func (v *MykeyDeleteClient) Init() (err error) {
 	return
 }
 
-func (v *MykeyDeleteClient) Run() (err error) {
-	return
+func (v *MykeyDeleteClient) run() (err error) {
+	return v.cli.DeletePrimary()
 }
 
 func (v *CmdMykeyDelete) Run() (err error) {
@@ -31,11 +31,21 @@ func (v *CmdMykeyDelete) Run() (err error) {
 	return v.run()
 }
 
-func (v *CmdMykeyDelete) run() (err error) {
-	return
+func (v *CmdMykeyDelete) PromptForConfirmation() (err error) {
+	G.Log.Error(ColorString("bold", "DANGER ZONE") + ": Really delete your primary key and all of your proofs?")
+	return G_UI.PromptForConfirmation("Go ahead?")
 }
 
-func (v MykeyDeleteStandlone) Run() (err error) {
+func (v *CmdMykeyDelete) run() (err error) {
+	if !v.force {
+		if err = v.PromptForConfirmation(); err != nil {
+			return
+		}
+	}
+	return v.eng.run()
+}
+
+func (v MykeyDeleteStandlone) run() (err error) {
 	return libkb.DeletePrimary()
 }
 
@@ -45,7 +55,7 @@ type MykeyDeleteClient struct {
 }
 
 type MykeyDeleteEngine interface {
-	Run() error
+	run() error
 }
 
 type CmdMykeyDelete struct {

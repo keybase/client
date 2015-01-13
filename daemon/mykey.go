@@ -62,3 +62,7 @@ func (h *MykeyHandler) KeyGenDefault(arg keybase_1.KeyGenDefaultArg) (err error)
 	}
 	return h.keygen(iarg, false)
 }
+
+func (h *MykeyHandler) DeletePrimary() (err error) {
+	return libkb.DeletePrimary()
+}
