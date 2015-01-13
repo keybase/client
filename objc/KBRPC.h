@@ -210,7 +210,7 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 - (void)keyGenDefaultWithIds:(NSArray *)ids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
-- (void)revokePrimary:(void (^)(NSError *error))completion;
+- (void)deletePrimary:(void (^)(NSError *error))completion;
 
 @end
 

@@ -228,10 +228,10 @@
   }];
 }
 
-- (void)revokePrimary:(void (^)(NSError *error))completion {
+- (void)deletePrimary:(void (^)(NSError *error))completion {
 
   NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.revokePrimary" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.deletePrimary" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];
 }

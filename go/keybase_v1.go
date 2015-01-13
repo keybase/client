@@ -533,14 +533,14 @@ type KeyGenDefaultArg struct {
 	Passphrase string        `codec:"passphrase"`
 }
 
-type RevokePrimaryArg struct {
+type DeletePrimaryArg struct {
 }
 
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
 	KeyGenSimple([]PgpIdentity) error
 	KeyGenDefault(KeyGenDefaultArg) error
-	RevokePrimary() error
+	DeletePrimary() error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -568,10 +568,10 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"revokePrimary": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]RevokePrimaryArg, 1)
+			"deletePrimary": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeletePrimaryArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.RevokePrimary()
+					err = i.DeletePrimary()
 				}
 				return
 			},
@@ -600,8 +600,8 @@ func (c MykeyClient) KeyGenDefault(__arg KeyGenDefaultArg) (err error) {
 	return
 }
 
-func (c MykeyClient) RevokePrimary() (err error) {
-	err = c.Cli.Call("keybase.1.mykey.revokePrimary", []interface{}{RevokePrimaryArg{}}, nil)
+func (c MykeyClient) DeletePrimary() (err error) {
+	err = c.Cli.Call("keybase.1.mykey.deletePrimary", []interface{}{DeletePrimaryArg{}}, nil)
 	return
 }
 

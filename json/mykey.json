@@ -132,7 +132,7 @@
       } ],
       "response" : "null"
     },
-    "revokePrimary" : {
+    "deletePrimary" : {
       "request" : [ ],
       "response" : "null"
     }
