@@ -14,5 +14,8 @@ protocol mykey {
 		boolean noNaclDh,
 		string pregen);
 
-	void keyGenSimple(array<PgpIdentity> ids);
+	void keyGenDefault(array<PgpIdentity> ids, 
+		boolean pushPublic,
+		boolean pushSecret, 
+		string passphrase);
 }

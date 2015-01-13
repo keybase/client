@@ -522,13 +522,16 @@ type KeyGenArg struct {
 	Pregen       string        `codec:"pregen"`
 }
 
-type KeyGenSimpleArg struct {
-	Ids []PgpIdentity `codec:"ids"`
+type KeyGenDefaultArg struct {
+	Ids        []PgpIdentity `codec:"ids"`
+	PushPublic bool          `codec:"pushPublic"`
+	PushSecret bool          `codec:"pushSecret"`
+	Passphrase string        `codec:"passphrase"`
 }
 
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
-	KeyGenSimple([]PgpIdentity) error
+	KeyGenDefault(KeyGenDefaultArg) error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -542,10 +545,10 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"keyGenSimple": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]KeyGenSimpleArg, 1)
+			"keyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]KeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.KeyGenSimple(args[0].Ids)
+					err = i.KeyGenDefault(args[0])
 				}
 				return
 			},
@@ -563,9 +566,8 @@ func (c MykeyClient) KeyGen(__arg KeyGenArg) (err error) {
 	return
 }
 
-func (c MykeyClient) KeyGenSimple(ids []PgpIdentity) (err error) {
-	__arg := KeyGenSimpleArg{Ids: ids}
-	err = c.Cli.Call("keybase.1.mykey.keyGenSimple", []interface{}{__arg}, nil)
+func (c MykeyClient) KeyGenDefault(__arg KeyGenDefaultArg) (err error) {
+	err = c.Cli.Call("keybase.1.mykey.keyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
