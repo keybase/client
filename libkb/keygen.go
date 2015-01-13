@@ -226,6 +226,7 @@ type KeyGenArg struct {
 	LoginUI      LoginUI
 	LogUI        LogUI
 	SecretUI     SecretUI
+	Passphrase   string
 }
 
 func (s *KeyGen) UpdateUser() error {
@@ -265,7 +266,10 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 		return InternalError{"bad use of Keygen; wrong phase"}
 	}
 
-	if err = G.LoginState.Login(LoginArg{Ui: s.arg.LoginUI, SecretUI: s.arg.SecretUI}); err != nil {
+	if err = G.LoginState.Login(LoginArg{
+		Ui:       s.arg.LoginUI,
+		SecretUI: s.arg.SecretUI,
+		NoUi:     true}); err != nil {
 		return
 	}
 
@@ -342,9 +346,7 @@ func (s *KeyGen) Init() error {
 }
 
 func (s *KeyGen) Prompt() (err error) {
-	if ui := s.arg.KeyGenUI; ui == nil {
-		err = NoUiError{"keygen"}
-	} else {
+	if ui := s.arg.KeyGenUI; ui != nil {
 		var pp keybase_1.PushPreferences
 		if pp, err = ui.GetPushPreferences(); err == nil {
 			s.arg.NoPublicPush = !pp.Public
@@ -397,6 +399,7 @@ func (s *KeyGen) Generate() (ret *PgpKeyBundle, err error) {
 	}
 
 	if useKbPp && G.LoginState.tsec == nil {
+		G.Log.Debug("| checking login state, with useKbPp=true")
 		if err = G.LoginState.Login(LoginArg{
 			Force:    true,
 			Retry:    4,
@@ -410,7 +413,10 @@ func (s *KeyGen) Generate() (ret *PgpKeyBundle, err error) {
 	if useKbPp {
 		s.tsec = G.LoginState.tsec
 	} else if s.arg.NoPassphrase {
+	} else if len(s.arg.Passphrase) > 0 {
+		s.tsec, err = triplesec.NewCipher([]byte(s.arg.Passphrase), nil)
 	} else if s.arg.SecretUI == nil {
+		G.Log.Debug("| No SecretUI before prompt")
 		err = NoUiError{"secret"}
 	} else {
 		s.tsec, err = PromptForNewTsec(keybase_1.GetNewPassphraseArg{

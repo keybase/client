@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -36,23 +37,29 @@ func (h *MykeyHandler) getKeyGenUI(sessionId int) libkb.KeyGenUI {
 
 func (h *MykeyHandler) KeyGen(arg keybase_1.KeyGenArg) (err error) {
 	iarg := libkb.ImportKeyGenArg(arg)
-	return h.keygen(iarg)
+	return h.keygen(iarg, true)
 }
 
-func (h *MykeyHandler) keygen(iarg libkb.KeyGenArg) (err error) {
+func (h *MykeyHandler) keygen(iarg libkb.KeyGenArg, doInteractive bool) (err error) {
 	sessionId := nextSessionId()
 	iarg.LogUI = h.getLogUI(sessionId)
 	iarg.LoginUI = h.getLoginUI(sessionId)
-	iarg.KeyGenUI = h.getKeyGenUI(sessionId)
-	iarg.SecretUI = h.getSecretUI(sessionId)
+	if doInteractive {
+		iarg.KeyGenUI = h.getKeyGenUI(sessionId)
+		iarg.SecretUI = h.getSecretUI(sessionId)
+	}
 	eng := libkb.NewKeyGen(&iarg)
 	_, err = eng.Run()
 	return
 }
 
-func (h *MykeyHandler) KeyGenSimple(arg []keybase_1.PgpIdentity) (err error) {
+func (h *MykeyHandler) KeyGenDefault(arg keybase_1.KeyGenDefaultArg) (err error) {
 	iarg := libkb.KeyGenArg{
-		Ids: libkb.ImportPgpIdentities(arg),
+		Ids:          libkb.ImportPgpIdentities(arg.Ids),
+		Passphrase:   arg.Passphrase,
+		KbPassphrase: (len(arg.Passphrase) == 0),
+		NoPublicPush: !arg.PushPublic,
+		DoSecretPush: arg.PushSecret,
 	}
-	return h.keygen(iarg)
+	return h.keygen(iarg, false)
 }
