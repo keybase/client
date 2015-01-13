@@ -15,4 +15,5 @@ protocol mykey {
 		string pregen);
 
 	void keyGenSimple(array<PgpIdentity> ids);
+	void revokePrimary();
 }

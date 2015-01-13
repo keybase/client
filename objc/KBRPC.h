@@ -208,6 +208,8 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 - (void)keyGenSimpleWithIds:(NSArray *)ids completion:(void (^)(NSError *error))completion;
 
+- (void)revokePrimary:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBPushPreferences : KBRObject

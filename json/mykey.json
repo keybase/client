@@ -112,6 +112,10 @@
         }
       } ],
       "response" : "null"
+    },
+    "revokePrimary" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }

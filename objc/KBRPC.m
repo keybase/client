@@ -220,6 +220,14 @@
   }];
 }
 
+- (void)revokePrimary:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.revokePrimary" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBPushPreferences
