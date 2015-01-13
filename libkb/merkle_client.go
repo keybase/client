@@ -476,6 +476,7 @@ func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 		jw, err = jsonw.Unmarshal([]byte(payload))
 		if err != nil {
 			err = fmt.Errorf("Can't parse JSON at level=%d: %s", i, err.Error())
+			fmt.Printf("fuuuuuck %s\n", payload)
 			break
 		}
 

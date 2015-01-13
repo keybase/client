@@ -96,10 +96,10 @@ type LoadUserArg struct {
 	Uid               *UID
 	Name              string
 	PublicKeyOptional bool
-	NoCacheResult     bool
+	NoCacheResult     bool // currently ignore
 	Self              bool
 	LoadSecrets       bool
-	ForceReload       bool
+	ForceReload       bool // currently ignored
 	AllKeys           bool
 }
 
@@ -422,7 +422,7 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
-	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain)
+	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain, u.sigChain)
 
 	// Eventually load the others, but for now, this one is good enough
 	return err
@@ -647,14 +647,11 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var local, remote *User
 
-	if !arg.ForceReload {
-
-		if local = G.UserCache.Get(uid); local != nil && (local.secret || !arg.LoadSecrets) {
-			G.Log.Debug("| Found user in user cache: %s", uid_s)
-		} else if local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets); err != nil {
-			G.Log.Warning("Failed to load %s from storage: %s",
-				uid_s, err.Error())
-		}
+	if local = G.UserCache.Get(uid); local != nil && (local.secret || !arg.LoadSecrets) {
+		G.Log.Debug("| Found user in user cache: %s", uid_s)
+	} else if local, err = LoadUserFromLocalStorage(uid, arg.AllKeys, arg.LoadSecrets); err != nil {
+		G.Log.Warning("Failed to load %s from storage: %s",
+			uid_s, err.Error())
 	}
 
 	leaf, err := LookupMerkleLeaf(uid, local)
@@ -734,7 +731,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	// We can still return a user with an Error, but never will we
 	// put such a user into the Cache.
-	if !arg.NoCacheResult {
+	if err != nil {
 		G.UserCache.Put(ret)
 	}
 

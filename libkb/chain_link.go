@@ -400,9 +400,10 @@ func (l *ChainLink) Store() (didStore bool, err error) {
 	if err = G.LocalDb.Put(key, []DbKey{}, l.packed); err != nil {
 		return
 	}
+	G.Log.Debug("| Store Link %s", l.id.ToString())
 
 	l.storedLocally = true
-	l.dirty = true
+	l.dirty = false
 	didStore = true
 	return
 }
