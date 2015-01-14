@@ -57,11 +57,8 @@ func NewSecretUIProtocol() rpc2.Protocol {
 	return keybase_1.SecretUiProtocol(&SecretUIServer{G_UI.GetSecretUI()})
 }
 
-func (p *ProveUIServer) PromptOverwrite1(arg keybase_1.PromptOverwrite1Arg) (bool, error) {
-	return p.eng.PromptOverwrite1(arg.Account)
-}
-func (p *ProveUIServer) PromptOverwrite2(arg keybase_1.PromptOverwrite2Arg) (bool, error) {
-	return p.eng.PromptOverwrite1(arg.Service)
+func (p *ProveUIServer) PromptOverwrite(arg keybase_1.PromptOverwriteArg) (bool, error) {
+	return p.eng.PromptOverwrite(arg.Account, arg.Typ)
 }
 func (p *ProveUIServer) PromptUsername(arg keybase_1.PromptUsernameArg) (string, error) {
 	return p.eng.PromptUsername(arg.Prompt, libkb.ImportStatusAsError(arg.PrevError))

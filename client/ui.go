@@ -427,14 +427,16 @@ type ProveUI struct {
 	outputHook func(string) error
 }
 
-func (p ProveUI) PromptOverwrite1(a string) (bool, error) {
-	prompt := "You already have a proof for " + ColorString("bold", a) + "; overwrite?"
-	def := false
-	return p.parent.PromptYesNo(prompt, &def)
-}
-
-func (p ProveUI) PromptOverwrite2(o string) (bool, error) {
-	prompt := "You already have claimed ownership of " + ColorString("bold", o) + "; overwrite? "
+func (p ProveUI) PromptOverwrite(a string, typ keybase_1.PromptOverwriteType) (bool, error) {
+	var prompt string
+	switch typ {
+	case keybase_1.PromptOverwriteType_SOCIAL:
+		prompt = "You already have a proof for " + ColorString("bold", a) + "; overwrite?"
+	case keybase_1.PromptOverwriteType_SITE:
+		prompt = "You already have claimed ownership of " + ColorString("bold", a) + "; overwrite?"
+	default:
+		prompt = "Overwrite " + a + "?"
+	}
 	def := false
 	return p.parent.PromptYesNo(prompt, &def)
 }

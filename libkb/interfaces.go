@@ -219,8 +219,7 @@ type LoginUI interface {
 }
 
 type ProveUI interface {
-	PromptOverwrite1(string) (bool, error)
-	PromptOverwrite2(string) (bool, error)
+	PromptOverwrite(string, keybase_1.PromptOverwriteType) (bool, error)
 	PromptUsername(prompt string, prevError error) (string, error)
 	OutputPrechecks(keybase_1.Text)
 	PreProofWarning(keybase_1.Text) (bool, error)

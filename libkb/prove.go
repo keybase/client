@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"github.com/keybase/go-jsonw"
+	"github.com/keybase/protocol/go"
 )
 
 type ProofEngine struct {
@@ -48,7 +49,8 @@ func (v *ProofEngine) CheckExists1() (err error) {
 	if len(proofs) != 0 && !v.Force && v.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
 		var redo bool
-		redo, err = v.ProveUI.PromptOverwrite1(lst.ToDisplayString())
+		redo, err = v.ProveUI.PromptOverwrite(lst.ToDisplayString(),
+			keybase_1.PromptOverwriteType_SOCIAL)
 		if err != nil {
 		} else if !redo {
 			err = NotConfirmedError{}
@@ -97,7 +99,8 @@ func (v *ProofEngine) CheckExists2() (err error) {
 		}
 		if found != nil {
 			var redo bool
-			redo, err = v.ProveUI.PromptOverwrite2(found.ToDisplayString())
+			redo, err = v.ProveUI.PromptOverwrite(found.ToDisplayString(),
+				keybase_1.PromptOverwriteType_SITE)
 			if err != nil {
 			} else if !redo {
 				err = NotConfirmedError{}

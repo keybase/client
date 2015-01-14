@@ -20,11 +20,8 @@ func NewProveHandler(xp *rpc2.Transport) *ProveHandler {
 	return &ProveHandler{BaseHandler{xp: xp}, nil}
 }
 
-func (p *ProveUI) PromptOverwrite1(prompt string) (b bool, err error) {
-	return p.cli.PromptOverwrite1(keybase_1.PromptOverwrite1Arg{p.sessionId, prompt})
-}
-func (p *ProveUI) PromptOverwrite2(prompt string) (b bool, err error) {
-	return p.cli.PromptOverwrite2(keybase_1.PromptOverwrite2Arg{p.sessionId, prompt})
+func (p *ProveUI) PromptOverwrite(prompt string, typ keybase_1.PromptOverwriteType) (b bool, err error) {
+	return p.cli.PromptOverwrite(keybase_1.PromptOverwriteArg{p.sessionId, prompt, typ})
 }
 func (p *ProveUI) PromptUsername(prompt string, prevError error) (un string, err error) {
 	return p.cli.PromptUsername(keybase_1.PromptUsernameArg{p.sessionId, prompt, libkb.ExportErrorAsStatus(prevError)})
