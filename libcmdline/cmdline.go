@@ -323,6 +323,12 @@ func (p *CommandLine) ChooseCommand(cmd Command, name string, ctx *cli.Context) 
 }
 
 func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
+	// This is suboptimal, but the default help action when there are
+	// no args crashes.
+	// (cli sets HelpPrinter to nil when p.app.Run(...) returns.)
+	if len(args) == 1 {
+		args = append(args, "help")
+	}
 
 	// Actually pick a command
 	err = p.app.Run(args)
@@ -333,6 +339,8 @@ func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
 	if err != nil || cmd == nil {
 		return
 	}
+
+	// cli.HelpPrinter is nil here...anything that needs it will panic.
 
 	// If we failed to parse arguments properly, switch to the help command
 	if err = p.cmd.ParseArgv(p.ctx); err != nil {
