@@ -57,25 +57,35 @@
       "name" : "markup",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "PromptOverwriteType",
+    "symbols" : [ "SOCIAL", "SITE" ]
   } ],
   "messages" : {
-    "promptOverwrite1" : {
+    "promptOverwrite" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"
       }, {
         "name" : "account",
         "type" : "string"
-      } ],
-      "response" : "boolean"
-    },
-    "promptOverwrite2" : {
-      "request" : [ {
-        "name" : "sessionId",
-        "type" : "int"
       }, {
-        "name" : "service",
-        "type" : "string"
+        "name" : "typ",
+        "type" : "PromptOverwriteType"
       } ],
       "response" : "boolean"
     },

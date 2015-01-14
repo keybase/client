@@ -261,18 +261,10 @@
 @end
 
 @implementation KBRProveUi
-- (void)promptOverwrite1WithSessionId:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion {
+- (void)promptOverwriteWithSessionId:(NSInteger )sessionId account:(NSString *)account typ:(KBPromptOverwriteType )typ completion:(void (^)(NSError *error, BOOL  b))completion {
 
-  NSArray *params = @[@{@"sessionId": @(sessionId), @"account": KBRValue(account)}];
-  [self.client sendRequestWithMethod:@"keybase.1.proveUi.promptOverwrite1" params:params completion:^(NSError *error, NSDictionary *dict) {
-    completion(error, 0);
-  }];
-}
-
-- (void)promptOverwrite2WithSessionId:(NSInteger )sessionId service:(NSString *)service completion:(void (^)(NSError *error, BOOL  b))completion {
-
-  NSArray *params = @[@{@"sessionId": @(sessionId), @"service": KBRValue(service)}];
-  [self.client sendRequestWithMethod:@"keybase.1.proveUi.promptOverwrite2" params:params completion:^(NSError *error, NSDictionary *dict) {
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"account": KBRValue(account), @"typ": @(typ)}];
+  [self.client sendRequestWithMethod:@"keybase.1.proveUi.promptOverwrite" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error, 0);
   }];
 }

@@ -227,10 +227,12 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
+typedef NS_ENUM (NSInteger, KBPromptOverwriteType) {
+	KBPromptOverwriteTypeSocial, 
+	KBPromptOverwriteTypeSite, 
+};
 @interface KBRProveUi : KBRRequest
-- (void)promptOverwrite1WithSessionId:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion;
-
-- (void)promptOverwrite2WithSessionId:(NSInteger )sessionId service:(NSString *)service completion:(void (^)(NSError *error, BOOL  b))completion;
+- (void)promptOverwriteWithSessionId:(NSInteger )sessionId account:(NSString *)account typ:(KBPromptOverwriteType )typ completion:(void (^)(NSError *error, BOOL  b))completion;
 
 - (void)promptUsernameWithSessionId:(NSInteger )sessionId prompt:(NSString *)prompt prevError:(KBStatus *)prevError completion:(void (^)(NSError *error, NSString * str))completion;
 
