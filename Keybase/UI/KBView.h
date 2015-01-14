@@ -16,6 +16,8 @@
 
 @property KBNavigationController *navigationController;
 
-- (void)setInProgress:(BOOL)inProgress sender:(id)sender;
+- (void)setInProgress:(BOOL)inProgress sender:(NSView *)sender;
+
+- (void)setError:(NSError *)error;
 
 @end

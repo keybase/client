@@ -31,11 +31,11 @@
     CGFloat y = 10;
 
     if (yself.headerLabel.attributedText.length > 0) {
-      y += [layout setFrame:CGRectMake(x, y, size.width - x - 5, 0) view:yself.headerLabel sizeToFit:YES].size.height;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 5, 0) view:yself.headerLabel].size.height;
     }
 
     for (NSView *view in yself.textLabels) {
-      y += [layout setFrame:CGRectMake(x, y, size.width - x - 5, 0) view:view sizeToFit:YES].size.height;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 5, 0) view:view].size.height;
     }
 
     y += 2;

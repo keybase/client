@@ -20,4 +20,16 @@
   }
 }
 
+- (void)setFrame:(NSRect)frame {
+  [super setFrame:frame];
+  [self setRounded:roundf(frame.size.width/2.0)];
+}
+
+- (void)setRounded:(CGFloat)cornerRadius {
+  [self setWantsLayer: YES];
+  self.layer.borderWidth = 1.0;
+  self.layer.cornerRadius = cornerRadius;
+  self.layer.masksToBounds = YES;
+}
+
 @end

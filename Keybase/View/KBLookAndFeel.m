@@ -39,6 +39,10 @@
   return [NSFont systemFontOfSize:14];
 }
 
++ (NSFont *)boldTextFont {
+  return [NSFont boldSystemFontOfSize:14];
+}
+
 + (NSFont *)buttonFont {
   return [NSFont systemFontOfSize:18];
 }

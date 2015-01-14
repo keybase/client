@@ -5,7 +5,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="KBConnectWindowController">
+        <customObject id="-2" userLabel="File's Owner" customClass="KBWindowController">
             <connections>
                 <outlet property="navigationController" destination="gp6-c9-nbA" id="61I-Cv-uzs"/>
                 <outlet property="window" destination="ywY-WH-C34" id="gFu-vu-8gM"/>
@@ -13,7 +13,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <window allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="ywY-WH-C34">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" resizable="YES"/>
             <rect key="contentRect" x="196" y="240" width="340" height="460"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="877"/>
             <view key="contentView" wantsLayer="YES" id="zuQ-ML-Q5u">

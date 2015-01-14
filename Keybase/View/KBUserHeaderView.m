@@ -27,7 +27,7 @@
   [self addSubview:_imageView];
 
   _name1Label = [[KBTextLabel alloc] init];
-  _name1Label.font = [NSFont systemFontOfSize:20];
+  _name1Label.font = [NSFont systemFontOfSize:24];
   [self addSubview:_name1Label];
 
   _locationLabel = [[KBTextLabel alloc] init];
@@ -41,20 +41,19 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 15;
-    CGFloat y = 12;
+    CGFloat x = 0;
+    CGFloat y = 20;
 
-    [layout setFrame:CGRectMake(x, y, 50, 50) view:yself.imageView];
-    x += 50 + 15;
+    y += [layout setFrame:CGRectMake(size.width/2.0 - 80, y, 160, 160) view:yself.imageView].size.height + 20;
 
-    y += [layout setFrame:CGRectMake(x, y, size.width - x - 5, 0) view:yself.name1Label sizeToFit:YES].size.height + 6;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 5, 0) view:yself.name1Label].size.height + 6;
 
     if (yself.locationLabel.attributedText.length > 0) {
-      y += [layout setFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.locationLabel sizeToFit:YES].size.height + 6;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.locationLabel].size.height + 6;
     }
 
     if (yself.bioLabel.attributedText.length > 0) {
-      y += [layout setFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.bioLabel sizeToFit:YES].size.height + 6;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.bioLabel].size.height + 6;
     }
 
     y += 6;
@@ -67,11 +66,7 @@
 
 - (void)setUser:(KBUser *)user {
 
-  if (user.fullName) {
-    _name1Label.text = user.fullName;
-  } else {
-    _name1Label.placeholder = @"Full Name";
-  }
+  [_name1Label setText:user.userName textAlignment:NSCenterTextAlignment];
 
   _locationLabel.text = user.location;
   _bioLabel.text = user.bio;

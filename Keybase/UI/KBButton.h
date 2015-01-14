@@ -18,5 +18,7 @@ typedef void (^KBButtonTargetBlock)();
 
 + (KBButton *)buttonAsLinkWithText:(NSString *)text;
 
++ (KBButton *)buttonWithText:(NSString *)text;
+
 @end
 

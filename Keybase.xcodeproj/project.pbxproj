@@ -7,18 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00086C9E1A65B1DB0000460F /* WAYSourceListWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086C9D1A65B1DB0000460F /* WAYSourceListWindow.m */; };
+		00086C9F1A65B1DB0000460F /* WAYSourceListWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086C9D1A65B1DB0000460F /* WAYSourceListWindow.m */; };
+		00086CA21A65BCE60000460F /* KBKeySelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CA11A65BCE60000460F /* KBKeySelectView.m */; };
+		00086CA31A65BCE60000460F /* KBKeySelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CA11A65BCE60000460F /* KBKeySelectView.m */; };
+		00086CA61A65CEC60000460F /* KBSplashView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CA51A65CEC60000460F /* KBSplashView.m */; };
+		00086CA71A65CEC60000460F /* KBSplashView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CA51A65CEC60000460F /* KBSplashView.m */; };
+		00086CAA1A65D0820000460F /* KBTwitterConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CA91A65D0820000460F /* KBTwitterConnectView.m */; };
+		00086CAB1A65D0820000460F /* KBTwitterConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CA91A65D0820000460F /* KBTwitterConnectView.m */; };
 		00358D481A5F34E90052B016 /* KBUsersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00358D471A5F34E90052B016 /* KBUsersView.m */; };
 		00358D491A5F34E90052B016 /* KBUsersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00358D471A5F34E90052B016 /* KBUsersView.m */; };
-		00358D511A5F3D2A0052B016 /* KBUsersViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00358D501A5F3D2A0052B016 /* KBUsersViewController.xib */; };
-		00358D521A5F3D2A0052B016 /* KBUsersViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00358D501A5F3D2A0052B016 /* KBUsersViewController.xib */; };
-		00358D551A5F3D9C0052B016 /* KBUsersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00358D541A5F3D9C0052B016 /* KBUsersViewController.m */; };
-		00358D561A5F3D9C0052B016 /* KBUsersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00358D541A5F3D9C0052B016 /* KBUsersViewController.m */; };
 		00358D5D1A5F564E0052B016 /* KBLookAndFeel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00358D5C1A5F564E0052B016 /* KBLookAndFeel.m */; };
 		00358D5E1A5F564E0052B016 /* KBLookAndFeel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00358D5C1A5F564E0052B016 /* KBLookAndFeel.m */; };
 		004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
 		004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
-		005A452D1A6093D900DC732D /* KBUserProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 005A452C1A6093D900DC732D /* KBUserProfileViewController.m */; };
-		005A452E1A6093D900DC732D /* KBUserProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 005A452C1A6093D900DC732D /* KBUserProfileViewController.m */; };
 		005A45341A60948000DC732D /* KBUserHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005A45331A60948000DC732D /* KBUserHeaderView.m */; };
 		005A45351A60948000DC732D /* KBUserHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005A45331A60948000DC732D /* KBUserHeaderView.m */; };
 		005A45441A609A6E00DC732D /* KBProofsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005A45431A609A6E00DC732D /* KBProofsView.m */; };
@@ -34,10 +36,8 @@
 		00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C61A41447800319401 /* KBRPClientTest.m */; };
 		00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
 		00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
-		00D61B991A4B755300EEA254 /* KBConnectWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807DA1A48D4890038BC63 /* KBConnectWindowController.m */; };
-		00D61B9A1A4B755B00EEA254 /* KBConnectWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807D31A48CDC70038BC63 /* KBConnectWindowController.xib */; };
-		00E3E3B41A647C3000CCB8F4 /* KBUserProfileViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00E3E3B31A647C3000CCB8F4 /* KBUserProfileViewController.xib */; };
-		00E3E3B51A647C3000CCB8F4 /* KBUserProfileViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00E3E3B31A647C3000CCB8F4 /* KBUserProfileViewController.xib */; };
+		00D61B991A4B755300EEA254 /* KBWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807DA1A48D4890038BC63 /* KBWindowController.m */; };
+		00D61B9A1A4B755B00EEA254 /* KBWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807D31A48CDC70038BC63 /* KBWindowController.xib */; };
 		00E3E3B81A64822700CCB8F4 /* KBKeyGenView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3B71A64822700CCB8F4 /* KBKeyGenView.m */; };
 		00E3E3B91A64822700CCB8F4 /* KBKeyGenView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3B71A64822700CCB8F4 /* KBKeyGenView.m */; };
 		00E3E3C01A64B68A00CCB8F4 /* KBUserProfileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3BF1A64B68A00CCB8F4 /* KBUserProfileView.m */; };
@@ -58,20 +58,14 @@
 		00E3E3EC1A64BA9F00CCB8F4 /* KBTextLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3D81A64BA9F00CCB8F4 /* KBTextLabel.m */; };
 		00E3E3ED1A64BA9F00CCB8F4 /* KBView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3DA1A64BA9F00CCB8F4 /* KBView.m */; };
 		00E3E3EE1A64BA9F00CCB8F4 /* KBView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3DA1A64BA9F00CCB8F4 /* KBView.m */; };
-		00E3E3EF1A64BA9F00CCB8F4 /* KBViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3DC1A64BA9F00CCB8F4 /* KBViewController.m */; };
-		00E3E3F01A64BA9F00CCB8F4 /* KBViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3DC1A64BA9F00CCB8F4 /* KBViewController.m */; };
 		00E3E3F11A64BA9F00CCB8F4 /* WAYWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3DE1A64BA9F00CCB8F4 /* WAYWindow.m */; };
 		00E3E3F21A64BA9F00CCB8F4 /* WAYWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3DE1A64BA9F00CCB8F4 /* WAYWindow.m */; };
 		00E3E3F51A64C61600CCB8F4 /* KBSignupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3F41A64C61600CCB8F4 /* KBSignupView.m */; };
 		00E3E3F61A64C61600CCB8F4 /* KBSignupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3F41A64C61600CCB8F4 /* KBSignupView.m */; };
-		00E3E3F91A64C9BE00CCB8F4 /* KBSecureTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3F81A64C9BE00CCB8F4 /* KBSecureTextField.m */; };
-		00E3E3FA1A64C9BE00CCB8F4 /* KBSecureTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3F81A64C9BE00CCB8F4 /* KBSecureTextField.m */; };
 		00EF2ADE1A5E062D0007E56E /* KBUserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EF2ADD1A5E062D0007E56E /* KBUserView.m */; };
 		00EF2ADF1A5E062D0007E56E /* KBUserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EF2ADD1A5E062D0007E56E /* KBUserView.m */; };
-		00F807D41A48CDC70038BC63 /* KBConnectWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807D31A48CDC70038BC63 /* KBConnectWindowController.xib */; };
-		00F807DC1A48D4890038BC63 /* KBConnectWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807DA1A48D4890038BC63 /* KBConnectWindowController.m */; };
-		00F807F71A4A4EC50038BC63 /* KBKeySelectViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807F61A4A4EC50038BC63 /* KBKeySelectViewController.m */; };
-		00F807F81A4A4EC50038BC63 /* KBKeySelectViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807F61A4A4EC50038BC63 /* KBKeySelectViewController.m */; };
+		00F807D41A48CDC70038BC63 /* KBWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00F807D31A48CDC70038BC63 /* KBWindowController.xib */; };
+		00F807DC1A48D4890038BC63 /* KBWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F807DA1A48D4890038BC63 /* KBWindowController.m */; };
 		00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
 		00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
 		2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC436D1A3A9EC7006118A9 /* KBRPC.m */; };
@@ -94,19 +88,22 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00086C9C1A65B1DB0000460F /* WAYSourceListWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WAYSourceListWindow.h; sourceTree = "<group>"; };
+		00086C9D1A65B1DB0000460F /* WAYSourceListWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WAYSourceListWindow.m; sourceTree = "<group>"; };
+		00086CA01A65BCE60000460F /* KBKeySelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeySelectView.h; sourceTree = "<group>"; };
+		00086CA11A65BCE60000460F /* KBKeySelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeySelectView.m; sourceTree = "<group>"; };
+		00086CA41A65CEC60000460F /* KBSplashView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSplashView.h; sourceTree = "<group>"; };
+		00086CA51A65CEC60000460F /* KBSplashView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSplashView.m; sourceTree = "<group>"; };
+		00086CA81A65D0820000460F /* KBTwitterConnectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTwitterConnectView.h; sourceTree = "<group>"; };
+		00086CA91A65D0820000460F /* KBTwitterConnectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTwitterConnectView.m; sourceTree = "<group>"; };
 		00358D461A5F34E90052B016 /* KBUsersView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUsersView.h; sourceTree = "<group>"; };
 		00358D471A5F34E90052B016 /* KBUsersView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUsersView.m; sourceTree = "<group>"; };
-		00358D501A5F3D2A0052B016 /* KBUsersViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBUsersViewController.xib; sourceTree = "<group>"; };
-		00358D531A5F3D9C0052B016 /* KBUsersViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUsersViewController.h; sourceTree = "<group>"; };
-		00358D541A5F3D9C0052B016 /* KBUsersViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUsersViewController.m; sourceTree = "<group>"; };
 		00358D5B1A5F564E0052B016 /* KBLookAndFeel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLookAndFeel.h; sourceTree = "<group>"; };
 		00358D5C1A5F564E0052B016 /* KBLookAndFeel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLookAndFeel.m; sourceTree = "<group>"; };
 		00358D5F1A5F56980052B016 /* KBUIDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = KBUIDefines.h; path = ../View/KBUIDefines.h; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		004D14DB1A3FA64C0083888D /* KBRPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPClient.h; sourceTree = "<group>"; };
 		004D14DC1A3FA64C0083888D /* KBRPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPClient.m; sourceTree = "<group>"; };
-		005A452B1A6093D900DC732D /* KBUserProfileViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserProfileViewController.h; sourceTree = "<group>"; };
-		005A452C1A6093D900DC732D /* KBUserProfileViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserProfileViewController.m; sourceTree = "<group>"; };
 		005A45321A60948000DC732D /* KBUserHeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserHeaderView.h; sourceTree = "<group>"; };
 		005A45331A60948000DC732D /* KBUserHeaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserHeaderView.m; sourceTree = "<group>"; };
 		005A45421A609A6E00DC732D /* KBProofsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofsView.h; sourceTree = "<group>"; };
@@ -128,7 +125,6 @@
 		00D2E7C61A41447800319401 /* KBRPClientTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KBRPClientTest.m; path = Tests/KBRPClientTest.m; sourceTree = "<group>"; };
 		00D2E7C81A41476E00319401 /* KBRRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRRequest.h; sourceTree = "<group>"; };
 		00D2E7C91A41476E00319401 /* KBRRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRRequest.m; sourceTree = "<group>"; };
-		00E3E3B31A647C3000CCB8F4 /* KBUserProfileViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBUserProfileViewController.xib; sourceTree = "<group>"; };
 		00E3E3B61A64822700CCB8F4 /* KBKeyGenView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyGenView.h; sourceTree = "<group>"; };
 		00E3E3B71A64822700CCB8F4 /* KBKeyGenView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyGenView.m; sourceTree = "<group>"; };
 		00E3E3BE1A64B68A00CCB8F4 /* KBUserProfileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserProfileView.h; sourceTree = "<group>"; };
@@ -149,21 +145,15 @@
 		00E3E3D81A64BA9F00CCB8F4 /* KBTextLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTextLabel.m; sourceTree = "<group>"; };
 		00E3E3D91A64BA9F00CCB8F4 /* KBView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBView.h; sourceTree = "<group>"; };
 		00E3E3DA1A64BA9F00CCB8F4 /* KBView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBView.m; sourceTree = "<group>"; };
-		00E3E3DB1A64BA9F00CCB8F4 /* KBViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBViewController.h; sourceTree = "<group>"; };
-		00E3E3DC1A64BA9F00CCB8F4 /* KBViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBViewController.m; sourceTree = "<group>"; };
 		00E3E3DD1A64BA9F00CCB8F4 /* WAYWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WAYWindow.h; sourceTree = "<group>"; };
 		00E3E3DE1A64BA9F00CCB8F4 /* WAYWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WAYWindow.m; sourceTree = "<group>"; };
 		00E3E3F31A64C61600CCB8F4 /* KBSignupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSignupView.h; sourceTree = "<group>"; };
 		00E3E3F41A64C61600CCB8F4 /* KBSignupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSignupView.m; sourceTree = "<group>"; };
-		00E3E3F71A64C9BE00CCB8F4 /* KBSecureTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSecureTextField.h; sourceTree = "<group>"; };
-		00E3E3F81A64C9BE00CCB8F4 /* KBSecureTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSecureTextField.m; sourceTree = "<group>"; };
 		00EF2ADC1A5E062D0007E56E /* KBUserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserView.h; sourceTree = "<group>"; };
 		00EF2ADD1A5E062D0007E56E /* KBUserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserView.m; sourceTree = "<group>"; };
-		00F807D31A48CDC70038BC63 /* KBConnectWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBConnectWindowController.xib; sourceTree = "<group>"; };
-		00F807D91A48D4890038BC63 /* KBConnectWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConnectWindowController.h; sourceTree = "<group>"; };
-		00F807DA1A48D4890038BC63 /* KBConnectWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConnectWindowController.m; sourceTree = "<group>"; };
-		00F807F51A4A4EC50038BC63 /* KBKeySelectViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeySelectViewController.h; sourceTree = "<group>"; };
-		00F807F61A4A4EC50038BC63 /* KBKeySelectViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeySelectViewController.m; sourceTree = "<group>"; };
+		00F807D31A48CDC70038BC63 /* KBWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = KBWindowController.xib; sourceTree = "<group>"; };
+		00F807D91A48D4890038BC63 /* KBWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWindowController.h; sourceTree = "<group>"; };
+		00F807DA1A48D4890038BC63 /* KBWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWindowController.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		00FE16021A5C933F00CF3FA5 /* KBDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefines.m; sourceTree = "<group>"; };
 		03789C52C3DF0B9CD33BF3ED /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -275,16 +265,14 @@
 				00E3E3D41A64BA9F00CCB8F4 /* KBImageView.m */,
 				00E3E3D51A64BA9F00CCB8F4 /* KBTextField.h */,
 				00E3E3D61A64BA9F00CCB8F4 /* KBTextField.m */,
-				00E3E3F71A64C9BE00CCB8F4 /* KBSecureTextField.h */,
-				00E3E3F81A64C9BE00CCB8F4 /* KBSecureTextField.m */,
 				00E3E3D71A64BA9F00CCB8F4 /* KBTextLabel.h */,
 				00E3E3D81A64BA9F00CCB8F4 /* KBTextLabel.m */,
 				00E3E3D91A64BA9F00CCB8F4 /* KBView.h */,
 				00E3E3DA1A64BA9F00CCB8F4 /* KBView.m */,
-				00E3E3DB1A64BA9F00CCB8F4 /* KBViewController.h */,
-				00E3E3DC1A64BA9F00CCB8F4 /* KBViewController.m */,
 				00E3E3DD1A64BA9F00CCB8F4 /* WAYWindow.h */,
 				00E3E3DE1A64BA9F00CCB8F4 /* WAYWindow.m */,
+				00086C9C1A65B1DB0000460F /* WAYSourceListWindow.h */,
+				00086C9D1A65B1DB0000460F /* WAYSourceListWindow.m */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -292,29 +280,23 @@
 		00F807D51A48D3300038BC63 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				00F807D91A48D4890038BC63 /* KBConnectWindowController.h */,
-				00F807DA1A48D4890038BC63 /* KBConnectWindowController.m */,
-				00F807D31A48CDC70038BC63 /* KBConnectWindowController.xib */,
+				00F807D91A48D4890038BC63 /* KBWindowController.h */,
+				00F807DA1A48D4890038BC63 /* KBWindowController.m */,
+				00F807D31A48CDC70038BC63 /* KBWindowController.xib */,
 				00E3E3F31A64C61600CCB8F4 /* KBSignupView.h */,
 				00E3E3F41A64C61600CCB8F4 /* KBSignupView.m */,
 				00E3E3C21A64B94C00CCB8F4 /* KBLoginView.h */,
 				00E3E3C31A64B94C00CCB8F4 /* KBLoginView.m */,
-				00F807F51A4A4EC50038BC63 /* KBKeySelectViewController.h */,
-				00F807F61A4A4EC50038BC63 /* KBKeySelectViewController.m */,
 				00E3E3B61A64822700CCB8F4 /* KBKeyGenView.h */,
 				00E3E3B71A64822700CCB8F4 /* KBKeyGenView.m */,
+				00086CA01A65BCE60000460F /* KBKeySelectView.h */,
+				00086CA11A65BCE60000460F /* KBKeySelectView.m */,
 				00EF2ADC1A5E062D0007E56E /* KBUserView.h */,
 				00EF2ADD1A5E062D0007E56E /* KBUserView.m */,
 				00358D461A5F34E90052B016 /* KBUsersView.h */,
 				00358D471A5F34E90052B016 /* KBUsersView.m */,
-				00358D531A5F3D9C0052B016 /* KBUsersViewController.h */,
-				00358D541A5F3D9C0052B016 /* KBUsersViewController.m */,
-				00358D501A5F3D2A0052B016 /* KBUsersViewController.xib */,
 				00358D5B1A5F564E0052B016 /* KBLookAndFeel.h */,
 				00358D5C1A5F564E0052B016 /* KBLookAndFeel.m */,
-				005A452B1A6093D900DC732D /* KBUserProfileViewController.h */,
-				005A452C1A6093D900DC732D /* KBUserProfileViewController.m */,
-				00E3E3B31A647C3000CCB8F4 /* KBUserProfileViewController.xib */,
 				00E3E3BE1A64B68A00CCB8F4 /* KBUserProfileView.h */,
 				00E3E3BF1A64B68A00CCB8F4 /* KBUserProfileView.m */,
 				005A45321A60948000DC732D /* KBUserHeaderView.h */,
@@ -323,6 +305,10 @@
 				005A45431A609A6E00DC732D /* KBProofsView.m */,
 				005A45461A60A5DB00DC732D /* KBItemsLabel.h */,
 				005A45471A60A5DB00DC732D /* KBItemsLabel.m */,
+				00086CA41A65CEC60000460F /* KBSplashView.h */,
+				00086CA51A65CEC60000460F /* KBSplashView.m */,
+				00086CA81A65D0820000460F /* KBTwitterConnectView.h */,
+				00086CA91A65D0820000460F /* KBTwitterConnectView.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -446,9 +432,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */,
-				00358D511A5F3D2A0052B016 /* KBUsersViewController.xib in Resources */,
-				00F807D41A48CDC70038BC63 /* KBConnectWindowController.xib in Resources */,
-				00E3E3B41A647C3000CCB8F4 /* KBUserProfileViewController.xib in Resources */,
+				00F807D41A48CDC70038BC63 /* KBWindowController.xib in Resources */,
 				00CC43571A3A9E6C006118A9 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -457,9 +441,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00358D521A5F3D2A0052B016 /* KBUsersViewController.xib in Resources */,
-				00E3E3B51A647C3000CCB8F4 /* KBUserProfileViewController.xib in Resources */,
-				00D61B9A1A4B755B00EEA254 /* KBConnectWindowController.xib in Resources */,
+				00D61B9A1A4B755B00EEA254 /* KBWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -535,19 +517,17 @@
 			files = (
 				00E3E3DF1A64BA9F00CCB8F4 /* KBNavigationController.m in Sources */,
 				00E3E3E91A64BA9F00CCB8F4 /* KBTextField.m in Sources */,
+				00086CA61A65CEC60000460F /* KBSplashView.m in Sources */,
 				00358D5D1A5F564E0052B016 /* KBLookAndFeel.m in Sources */,
-				00358D551A5F3D9C0052B016 /* KBUsersViewController.m in Sources */,
 				005A45441A609A6E00DC732D /* KBProofsView.m in Sources */,
 				00CC43711A3A9EDF006118A9 /* KBRObject.m in Sources */,
+				00086C9E1A65B1DB0000460F /* WAYSourceListWindow.m in Sources */,
 				00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */,
 				00E3E3F51A64C61600CCB8F4 /* KBSignupView.m in Sources */,
-				00F807F71A4A4EC50038BC63 /* KBKeySelectViewController.m in Sources */,
-				00F807DC1A48D4890038BC63 /* KBConnectWindowController.m in Sources */,
+				00F807DC1A48D4890038BC63 /* KBWindowController.m in Sources */,
 				005A45341A60948000DC732D /* KBUserHeaderView.m in Sources */,
-				00E3E3F91A64C9BE00CCB8F4 /* KBSecureTextField.m in Sources */,
 				00E3E3C41A64B94C00CCB8F4 /* KBLoginView.m in Sources */,
 				00CC436E1A3A9EC7006118A9 /* KBRPC.m in Sources */,
-				005A452D1A6093D900DC732D /* KBUserProfileViewController.m in Sources */,
 				00E3E3E51A64BA9F00CCB8F4 /* KBIBView.m in Sources */,
 				00EF2ADE1A5E062D0007E56E /* KBUserView.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
@@ -555,10 +535,11 @@
 				00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */,
 				00E3E3E71A64BA9F00CCB8F4 /* KBImageView.m in Sources */,
 				00E3E3F11A64BA9F00CCB8F4 /* WAYWindow.m in Sources */,
+				00086CAA1A65D0820000460F /* KBTwitterConnectView.m in Sources */,
 				00358D481A5F34E90052B016 /* KBUsersView.m in Sources */,
 				00E3E3EB1A64BA9F00CCB8F4 /* KBTextLabel.m in Sources */,
 				004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */,
-				00E3E3EF1A64BA9F00CCB8F4 /* KBViewController.m in Sources */,
+				00086CA21A65BCE60000460F /* KBKeySelectView.m in Sources */,
 				00E3E3ED1A64BA9F00CCB8F4 /* KBView.m in Sources */,
 				005A45481A60A5DB00DC732D /* KBItemsLabel.m in Sources */,
 				00E3E3B81A64822700CCB8F4 /* KBKeyGenView.m in Sources */,
@@ -573,13 +554,11 @@
 			files = (
 				005A45491A60A5DB00DC732D /* KBItemsLabel.m in Sources */,
 				AB6462168F9FDCF3B14CF810 /* main.m in Sources */,
-				00F807F81A4A4EC50038BC63 /* KBKeySelectViewController.m in Sources */,
-				005A452E1A6093D900DC732D /* KBUserProfileViewController.m in Sources */,
-				00E3E3FA1A64C9BE00CCB8F4 /* KBSecureTextField.m in Sources */,
 				EDDC07383FDE0A2BDAA2BD1E /* KBRObject.m in Sources */,
 				00E3E3C11A64B68A00CCB8F4 /* KBUserProfileView.m in Sources */,
 				00E3E3F61A64C61600CCB8F4 /* KBSignupView.m in Sources */,
-				00E3E3F01A64BA9F00CCB8F4 /* KBViewController.m in Sources */,
+				00086CAB1A65D0820000460F /* KBTwitterConnectView.m in Sources */,
+				00086CA71A65CEC60000460F /* KBSplashView.m in Sources */,
 				2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */,
 				00E3E3E41A64BA9F00CCB8F4 /* KBButton.m in Sources */,
 				00E3E3B91A64822700CCB8F4 /* KBKeyGenView.m in Sources */,
@@ -588,19 +567,20 @@
 				004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */,
 				00E3E3E01A64BA9F00CCB8F4 /* KBNavigationController.m in Sources */,
 				00E3E3E81A64BA9F00CCB8F4 /* KBImageView.m in Sources */,
-				00D61B991A4B755300EEA254 /* KBConnectWindowController.m in Sources */,
+				00D61B991A4B755300EEA254 /* KBWindowController.m in Sources */,
 				00EF2ADF1A5E062D0007E56E /* KBUserView.m in Sources */,
 				00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */,
 				00E3E3E61A64BA9F00CCB8F4 /* KBIBView.m in Sources */,
 				00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */,
 				005A45451A609A6E00DC732D /* KBProofsView.m in Sources */,
+				00086C9F1A65B1DB0000460F /* WAYSourceListWindow.m in Sources */,
 				005A45351A60948000DC732D /* KBUserHeaderView.m in Sources */,
 				00E3E3F21A64BA9F00CCB8F4 /* WAYWindow.m in Sources */,
 				00E3E3EC1A64BA9F00CCB8F4 /* KBTextLabel.m in Sources */,
 				00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */,
 				00358D5E1A5F564E0052B016 /* KBLookAndFeel.m in Sources */,
-				00358D561A5F3D9C0052B016 /* KBUsersViewController.m in Sources */,
 				00358D491A5F34E90052B016 /* KBUsersView.m in Sources */,
+				00086CA31A65BCE60000460F /* KBKeySelectView.m in Sources */,
 				00E3E3EA1A64BA9F00CCB8F4 /* KBTextField.m in Sources */,
 				00E3E3C51A64B94C00CCB8F4 /* KBLoginView.m in Sources */,
 			);

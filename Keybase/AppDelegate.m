@@ -8,36 +8,86 @@
 
 #import "AppDelegate.h"
 
-#import "KBConnectWindowController.h"
 #import "KBKeyGenView.h"
-#import "KBUsersViewController.h"
-#import "KBUserProfileViewController.h"
+#import "KBRPC.h"
+#import "KBUserProfileView.h"
 
 @interface AppDelegate ()
-@property KBConnectWindowController *connectController;
-@property KBUsersViewController *usersViewController;
-@property KBUserProfileViewController *userProfileViewController;
+@property KBWindowController *windowController;
 @property NSStatusItem *statusItem;
 @property KBRPClient *client;
 
 @property KBAPIClient *APIClient;
-
-@property NSString *username;
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-  _client = [[KBRPClient alloc] init];
-  [_client open];
-
-  _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
-
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   _statusItem.title = @"KB";
   //_statusItem.image = [NSImage imageNamed:@"StatusIcon"];
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
+
+  self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
+  [self.windowController window];
+
+  _client = [[KBRPClient alloc] init];
+  _client.delegate = self;
+  [_client open];
+
+  GHWeakSelf gself = self;
+  [_client registerMethod:@"keybase.1.secretUi.getSecret" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    NSString *prompt = params[0][@"pinentry"][@"prompt"];
+    NSString *description = params[0][@"pinentry"][@"desc"];
+    [gself passwordPrompt:prompt description:description completion:^(BOOL canceled, NSString *password) {
+      KBSecretEntryRes *entry = [[KBSecretEntryRes alloc] init];
+      entry.text = password;
+      entry.canceled = canceled;
+      completion(nil, entry);
+    }];
+  }];
+
+  // Just for mocking
+  _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
+}
+
+- (void)RPClientDidConnect:(KBRPClient *)RPClient {
+  [self checkStatus];
+}
+
+- (void)RPClientDidLogout:(KBRPClient *)RPClient {
+  [self checkStatus];
+}
+
+- (void)checkStatus {
+  KBRConfig *config = [[KBRConfig alloc] initWithClient:_client];
+  [config getCurrentStatus:^(NSError *error, KBGetCurrentStatusRes *status) {
+    // TODO: check error
+    GHDebug(@"Status: %@", status);
+    [self setStatus:status];
+  }];
+}
+
+- (void)passwordPrompt:(NSString *)prompt description:(NSString *)description completion:(void (^)(BOOL canceled, NSString *password))completion {
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert addButtonWithTitle:@"OK"];
+  [alert addButtonWithTitle:@"Cancel"];
+
+  [alert setMessageText:prompt];
+  [alert setInformativeText:description];
+  [alert setAlertStyle:NSWarningAlertStyle];
+
+  NSTextField *input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
+  [alert setAccessoryView:input];
+
+  [alert beginSheetModalForWindow:self.windowController.window completionHandler:^(NSModalResponse returnCode) {
+    if (returnCode == NSAlertFirstButtonReturn) {
+      completion(NO, input.stringValue);
+    } else {
+      completion(YES, nil);
+    }
+  }];
 }
 
 - (NSMenu *)connectMenu {
@@ -46,24 +96,19 @@
   return menu;
 }
 
-- (void)setConnected:(BOOL)loggedIn hasKey:(BOOL)hasKey username:(NSString *)username {
-  [self.connectController close];
-  _username = username;
+- (void)setStatus:(KBGetCurrentStatusRes *)status {
+  _status = status;
   _statusItem.menu = [self menu];
 
-  if (!loggedIn || (loggedIn && !hasKey)) {
-    self.connectController = [[KBConnectWindowController alloc] initWithWindowNibName:@"KBConnectWindowController"];
-    [self.connectController.window setLevel:NSStatusWindowLevel];
-    
-    if (loggedIn && !hasKey) {
-      KBKeyGenView *keyGenView = [[KBKeyGenView alloc] init];
-      [self.connectController.navigationController pushView:keyGenView animated:NO];
+  if (!status.loggedIn || (status.loggedIn && !status.publicKeySelected)) {
+    if (status.loggedIn && !status.publicKeySelected) {
+      [self.windowController showKeyGen:NO];
     } else {
-      _statusItem.menu = [self connectMenu];
+      [self.windowController showLogin:NO];
     }
-    [self.connectController showWindow:nil];
   } else {
-    [self showUser:_username];
+    //[self.windowController showTwitterConnect:YES];
+    [self.windowController showUser:status.user animated:NO];
   }
 }
 
@@ -73,12 +118,6 @@
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
   return menu;
-}
-
-- (void)showUser:(NSString *)username {
-  self.userProfileViewController = [[KBUserProfileViewController alloc] initWithWindowNibName:@"KBUserProfileViewController"];
-  [self.userProfileViewController loadUsername:username];
-  [self.userProfileViewController showWindow:nil];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

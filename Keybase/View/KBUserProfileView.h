@@ -13,6 +13,8 @@
 
 @interface KBUserProfileView : KBView
 
+- (void)loadUID:(NSString *)UID;
+
 - (void)setUser:(KBUser *)user;
 
 @end

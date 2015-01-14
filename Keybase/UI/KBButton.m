@@ -27,6 +27,12 @@
   return button;
 }
 
++ (KBButton *)buttonWithText:(NSString *)text {
+  KBButton *button = [[KBButton alloc] init];
+  button.text = text;
+  return button;
+}
+
 - (void)setText:(NSString *)text {
   self.title = text ? text : @"";
 }

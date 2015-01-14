@@ -9,19 +9,22 @@
 #import <Cocoa/Cocoa.h>
 
 #import "KBRPClient.h"
-#import "KBConnectWindowController.h"
+#import "KBWindowController.h"
 #import <KBKeybase/KBKeybase.h>
+#import "KBRPC.h"
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, KBRPClientDelegate>
 
-@property (readonly) NSString *username;
+@property (nonatomic) KBGetCurrentStatusRes *status;
+
+@property (readonly) KBWindowController *windowController;
 
 + (KBRPClient *)client;
 + (KBAPIClient *)APIClient;
 
 + (AppDelegate *)sharedDelegate;
 
-- (void)setConnected:(BOOL)loggedIn hasKey:(BOOL)hasKey username:(NSString *)username;
+- (void)passwordPrompt:(NSString *)prompt description:(NSString *)description completion:(void (^)(BOOL canceled, NSString *password))completion;
 
 @end
 

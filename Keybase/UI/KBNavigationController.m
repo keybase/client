@@ -129,6 +129,11 @@ typedef NS_ENUM (NSInteger, KBNavigationDirection) {
 
   view.frame = self.view.frame;
 
+  if (!currentView) {
+    self.rootView = view;
+    return;
+  }
+
   [self replaceView:currentView withView:view animated:animated direction:KBNavigationDirectionForward];
   [self addView:view];
 }

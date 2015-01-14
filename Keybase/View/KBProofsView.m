@@ -27,7 +27,7 @@
     CGFloat y = 0;
 
     for (KBItemsLabel *label in yself.proofLabels) {
-      y += [layout setFrame:CGRectMake(15, y, 305, 0) view:label sizeToFit:YES].size.height + 8;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(15, y, 305, 0) view:label].size.height + 8;
     }
 
     return CGSizeMake(size.width, y);

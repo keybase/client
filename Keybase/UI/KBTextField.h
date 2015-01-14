@@ -9,6 +9,14 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-@interface KBTextField : NSTextField
+#import "KBUIDefines.h"
 
+@interface KBTextField : YONSView
+
+@property (nonatomic) NSString *text;
+@property (nonatomic) NSString *placeholder;
+
+@end
+
+@interface KBSecureTextField : KBTextField
 @end

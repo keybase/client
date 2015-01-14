@@ -37,20 +37,20 @@
   [self addSubview:_titleLabel];
 
   _inviteField = [[KBTextField alloc] init];
-  _inviteField.placeholderString = @"Invite Code";
-  _inviteField.stringValue = @"202020202020202020202111";
+  _inviteField.placeholder = @"Invite Code";
+  _inviteField.text = @"202020202020202020202111";
   //[self addSubview:_inviteField];
 
   _emailField = [[KBTextField alloc] init];
-  _emailField.placeholderString = @"Email";
+  _emailField.placeholder = @"Email";
   [self addSubview:_emailField];
 
   _usernameField = [[KBTextField alloc] init];
-  _usernameField.placeholderString = @"Username";
+  _usernameField.placeholder = @"Username";
   [self addSubview:_usernameField];
 
   _passwordField = [[KBTextField alloc] init];
-  _passwordField.placeholderString = @"Passphrase";
+  _passwordField.placeholder = @"Passphrase";
   [self addSubview:_passwordField];
 
   _signupButton = [[KBButton alloc] init];
@@ -60,7 +60,7 @@
   };
   [self addSubview:_signupButton];
 
-  _loginButton = [KBButton buttonAsLinkWithText:@"Sign Up"];
+  _loginButton = [KBButton buttonAsLinkWithText:@"Log In"];
   _loginButton.targetBlock = ^{
     [gself login];
   };
@@ -94,17 +94,17 @@
 - (void)signup {
   KBRSignup *signup = [[KBRSignup alloc] initWithClient:AppDelegate.client];
 
-  NSString *passphrase = self.passwordField.stringValue;
+  NSString *passphrase = self.passwordField.text;
 
   [self setInProgress:YES sender:self.signupButton];
-  [signup signupWithEmail:self.emailField.stringValue inviteCode:self.inviteField.stringValue passphrase:passphrase username:self.usernameField.stringValue completion:^(NSError *error, KBSignupRes *res) {
+  [signup signupWithEmail:self.emailField.text inviteCode:self.inviteField.text passphrase:passphrase username:self.usernameField.text completion:^(NSError *error, KBSignupRes *res) {
     [self setInProgress:NO sender:self.signupButton];
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
       return;
     }
 
-    self.passwordField.stringValue = @"";
+    self.passwordField.text = nil;
     [AppDelegate.client checkStatus];
   }];
 }

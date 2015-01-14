@@ -40,15 +40,20 @@ PODS:
   - Mantle (1.5.3):
     - Mantle/extobjc (= 1.5.3)
   - Mantle/extobjc (1.5.3)
-  - MPMessagePack (1.0.7)
+  - MPMessagePack (1.0.8)
   - NAChloride (1.1.2):
     - libsodium
   - ObjectiveSugar (1.1.0)
   - OpenSSL-Universal (1.0.1.k)
+  - Slash (0.1.2):
+    - Slash/arc (= 0.1.2)
+    - Slash/no-arc (= 0.1.2)
+  - Slash/arc (0.1.2)
+  - Slash/no-arc (0.1.2)
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout (0.0.6)
+  - YOLayout (0.0.8)
 
 DEPENDENCIES:
   - GHKit
@@ -57,6 +62,7 @@ DEPENDENCIES:
   - Mantle
   - MPMessagePack
   - ObjectiveSugar
+  - Slash
   - YOLayout
 
 SPEC CHECKSUMS:
@@ -67,11 +73,12 @@ SPEC CHECKSUMS:
   KBKeybase: d7c1b3f784f2755c4fce34d4c33ecef837598292
   libsodium: ac34cc59b942350fb1377380cfb31f05c3d6170e
   Mantle: 8d84cacd6c2a69ff6fbce985a2b51298a5495de3
-  MPMessagePack: d73d4f98e3c0b927770cab674009ddfc8602d21b
+  MPMessagePack: 3a7884128c0a3c8b80b623b3516e6548260fbfc1
   NAChloride: f5ec84c64efcdb5008f960d7d557dfac6c060a1d
   ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2
   OpenSSL-Universal: 60ee5ddf6530100c0aa702c2e0c9881cfd4a89a5
+  Slash: d98d6ff27ece4297d8d65fb49fc1ce4307a75f46
   TSTripleSec: 7371672f757735ab696d8c0d0fc0d98b7a38059e
-  YOLayout: 2b8255d9faa13c5ba2b2757a62313379639b54a9
+  YOLayout: 7c0d00a6f3a9155e7c34a344ce19d9caccf3e18f
 
 COCOAPODS: 0.36.0.beta.1

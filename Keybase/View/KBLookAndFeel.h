@@ -17,6 +17,7 @@
 + (NSColor *)disabledTextColor;
 
 + (NSFont *)textFont;
++ (NSFont *)boldTextFont;
 + (NSFont *)buttonFont;
 
 @end

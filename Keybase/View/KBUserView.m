@@ -42,8 +42,8 @@
     [layout setFrame:CGRectMake(x, y, 40, 40) view:yself.imageView];
     x += 50;
 
-    y += [layout setFrame:CGRectMake(x, y - 2, size.width - x, 30) view:yself.nameLabel sizeToFit:YES].size.height;
-    y += [layout setFrame:CGRectMake(x, y, size.width - x, 30) view:yself.descriptionLabel sizeToFit:YES].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y - 2, size.width - x, 30) view:yself.nameLabel].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 30) view:yself.descriptionLabel].size.height + 10;
 
     if (y < 60) y = 60;
 

@@ -212,10 +212,18 @@
   }];
 }
 
-- (void)keyGenSimpleWithIds:(NSArray *)ids completion:(void (^)(NSError *error))completion {
+- (void)keyGenDefaultWithIds:(NSArray *)ids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion {
 
-  NSArray *params = @[@{@"ids": KBRValue(ids)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGenSimple" params:params completion:^(NSError *error, NSDictionary *dict) {
+  NSArray *params = @[@{@"ids": KBRValue(ids), @"pushPublic": @(pushPublic), @"pushSecret": @(pushSecret), @"passphrase": KBRValue(passphrase)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGenDefault" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
+- (void)deletePrimary:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.deletePrimary" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];
 }

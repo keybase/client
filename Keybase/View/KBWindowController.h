@@ -9,11 +9,21 @@
 #import <Cocoa/Cocoa.h>
 
 #import "KBNavigationController.h"
+#import "KBRPC.h"
 
-@interface KBConnectWindowController : NSWindowController
+@interface KBWindowController : NSWindowController
 
 @property (strong) IBOutlet NSWindow *window;
 
 @property IBOutlet KBNavigationController *navigationController;
+
+- (void)showLogin:(BOOL)animated;
+- (void)showSignup:(BOOL)animated;
+
+- (void)showKeyGen:(BOOL)animated;
+
+- (void)showTwitterConnect:(BOOL)animated;
+
+- (void)showUser:(KBUserInfo *)userInfo animated:(BOOL)animated;
 
 @end

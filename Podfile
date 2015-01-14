@@ -3,6 +3,8 @@ platform :osx, "10.8"
 pod "Mantle"
 pod "GHKit"
 pod "ObjectiveSugar"
+pod "Slash"
+
 pod "MPMessagePack"#, :path => "../../MPMessagePack"
 
 pod "KBKeybase"#, :path => "../../KBKeybase/"

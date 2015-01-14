@@ -8,16 +8,12 @@
 
 #import "KBRPClient.h"
 #import "KBRPC.h"
-#import "AppDelegate.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
-#import "KBDefines.h"
 
 @interface KBRPClient ()
 @property MPMessagePackClient *client;
-
 @property MPMessagePackServer *server;
-
 @property NSMutableDictionary *methods;
 @end
 
@@ -62,7 +58,7 @@
       return;
     }
     
-    [self checkStatus];
+    [self.delegate RPClientDidConnect:self];
   }];
 }
 
@@ -76,22 +72,11 @@
   });
 }
 
-- (void)checkStatus {
-  KBRConfig *config = [[KBRConfig alloc] initWithClient:self];
-  [config getCurrentStatus:^(NSError *error, KBGetCurrentStatusRes *getCurrentStatusRes) {
-    if (error) {
-      // TODO
-    }
-    GHDebug(@"Status: %@", getCurrentStatusRes);
-    
-    [AppDelegate.sharedDelegate setConnected:getCurrentStatusRes.loggedIn hasKey:getCurrentStatusRes.publicKeySelected username:getCurrentStatusRes.user.username];
-  }];
-}
-
 - (void)logout {
-  KBRLogin *login = [[KBRLogin alloc] initWithClient:AppDelegate.client];
+  KBRLogin *login = [[KBRLogin alloc] initWithClient:self];
   [login logout:^(NSError *error) {
-    [self checkStatus];
+    // TODO: check error
+    [self.delegate RPClientDidLogout:self];
   }];
 }
 

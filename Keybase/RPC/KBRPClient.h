@@ -11,7 +11,17 @@
 #import "KBDefines.h"
 #import <MPMessagePack/MPMessagePackClient.h>
 
+@class KBRPClient;
+
+@protocol KBRPClientDelegate
+- (void)RPClientDidConnect:(KBRPClient *)RPClient;
+- (void)RPClientDidLogout:(KBRPClient *)RPClient;
+@end
+
+
 @interface KBRPClient : NSObject <MPMessagePackClientDelegate>
+
+@property (weak) id<KBRPClientDelegate> delegate;
 
 - (void)open;
 

@@ -16,4 +16,9 @@
 #import "KBTextLabel.h"
 #import "KBButton.h"
 #import "KBTextField.h"
-#import "KBSecureTextField.h"
+
+#define KBDefaultWidth (360)
+#define KBDefaultHeight (600)
+
+
+#define KBTODO(__SELF__) ([[NSAlert alertWithError:[NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:@"TODO"}]] beginSheetModalForWindow:__SELF__.window completionHandler:nil])

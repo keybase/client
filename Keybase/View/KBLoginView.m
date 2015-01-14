@@ -31,17 +31,16 @@
   GHWeakSelf gself = self;
 
   _titleLabel = [[KBTextLabel alloc] init];
-  _titleLabel.text = @"Keybase";
-  _titleLabel.textAlignment = NSCenterTextAlignment;
+  [_titleLabel setText:@"Keybase" textAlignment:NSCenterTextAlignment];
   _titleLabel.font = [NSFont fontWithName:@"Helvetica Neue Thin" size:48];
   [self addSubview:_titleLabel];
 
   _usernameField = [[KBTextField alloc] init];
-  _usernameField.placeholderString = @"Email or Username";
+  _usernameField.placeholder = @"Email or Username";
   [self addSubview:_usernameField];
 
   _passwordField = [[KBSecureTextField alloc] init];
-  _passwordField.placeholderString = @"Passphrase";
+  _passwordField.placeholder = @"Passphrase";
   [self addSubview:_passwordField];
 
   _loginButton = [[KBButton alloc] init];
@@ -67,12 +66,12 @@
 
     y += [layout setFrame:CGRectMake(20, y, size.width - 40, 80) view:yself.titleLabel].size.height + 40;
 
-    y += [layout setFrame:CGRectMake(40, y, size.width - 40, 22) view:yself.usernameField].size.height + 10;
-    y += [layout setFrame:CGRectMake(40, y, size.width - 40, 22) view:yself.passwordField].size.height + 40;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 40;
 
-    y += [layout setFrame:CGRectMake(20, y, size.width - 40, 56) view:yself.loginButton].size.height;
+    y += [layout setFrame:CGRectMake(40, y, size.width - 80, 56) view:yself.loginButton].size.height;
 
-    y += [layout setFrame:CGRectMake(20, y, 80, 30) view:yself.signUpButton].size.height + 30;
+    y += [layout setFrame:CGRectMake(40, y, 80, 30) view:yself.signUpButton].size.height + 30;
 
 
     return CGSizeMake(size.width, 480);
@@ -86,16 +85,16 @@
 - (void)login {
   KBRLogin *login = [[KBRLogin alloc] initWithClient:AppDelegate.client];
 
-  NSString *passphrase = self.passwordField.stringValue;
+  NSString *passphrase = self.passwordField.text;
   [self setInProgress:YES sender:self.loginButton];
-  [login passphraseLoginWithIdentify:false username:self.usernameField.stringValue passphrase:passphrase completion:^(NSError *error) {
+  [login passphraseLoginWithIdentify:false username:self.usernameField.text passphrase:passphrase completion:^(NSError *error) {
     [self setInProgress:NO sender:self.loginButton];
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
       return;
     }
 
-    self.passwordField.stringValue = @"";
+    self.passwordField.text = nil;
 
     KBKeyGenView *keyGenView = [[KBKeyGenView alloc] init];
     [self.navigationController pushView:keyGenView animated:YES];
@@ -106,7 +105,7 @@
   CATransition *transition = [CATransition animation];
   [transition setType:kCATransitionFade];
 
-  KBSignupView *view = [[KBSignupView alloc] initWithFrame:CGRectMake(0, 0, 320, 480)];
+  KBSignupView *view = [[KBSignupView alloc] init];
   [self.navigationController pushView:view transition:transition transactionBlock:nil];
 }
 

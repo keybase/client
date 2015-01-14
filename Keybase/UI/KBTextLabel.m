@@ -27,21 +27,19 @@
 }
 
 - (void)setText:(NSString *)text {
+  [self setText:text textAlignment:NSLeftTextAlignment];
+}
+
+- (void)setText:(NSString *)text textAlignment:(NSTextAlignment)textAlignment {
   if (!text) text = @"";
   NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
   NSDictionary *attributes = @{NSForegroundColorAttributeName:self.textColor, NSFontAttributeName:self.font};
   [str setAttributes:attributes range:NSMakeRange(0, str.length)];
-  [self setAttributedText:str];
-}
 
-- (void)setTextAlignment:(NSTextAlignment)textAlignment {
-  _textAlignment = textAlignment;
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = textAlignment;
-
-  NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithAttributedString:self.attributedString];
   [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
-  [self.textStorage setAttributedString:str];
+  [self setAttributedText:str];
 }
 
 - (void)setPlaceholder:(NSString *)placeholder {
@@ -68,7 +66,8 @@
   (void)[layoutManager glyphRangeForTextContainer:textContainer];
 
   NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
-  return CGRectIntegral(rect).size;
+  CGSize sizeThatFits = CGRectIntegral(rect).size;
+  return CGSizeMake(size.width, sizeThatFits.height);
 }
 
 @end

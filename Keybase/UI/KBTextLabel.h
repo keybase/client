@@ -12,11 +12,10 @@
 @interface KBTextLabel : NSTextView
 
 @property (nonatomic) NSAttributedString *attributedText;
-@property (nonatomic) NSTextAlignment textAlignment;
 @property (nonatomic) NSString *placeholder;
 
 - (void)setText:(NSString *)text;
-
+- (void)setText:(NSString *)text textAlignment:(NSTextAlignment)textAlignment;
 - (void)setPlaceholder:(NSString *)placeholder;
 
 @end
