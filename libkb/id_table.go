@@ -814,7 +814,7 @@ func (idt *IdentityTable) Identify(is IdentifyState) {
 
 	var wg sync.WaitGroup
 	for _, lcr := range is.res.ProofChecks {
-
+		wg.Add(1)
 		go func(l *LinkCheckResult) {
 			defer wg.Done()
 			idt.IdentifyActiveProof(l, is)
