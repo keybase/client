@@ -42,6 +42,8 @@ type CommandLine interface {
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRpcDebug() string
+	GetPerDeviceKID() string
+	GetDeviceId() string
 }
 
 type Server interface {
@@ -96,6 +98,8 @@ type ConfigReader interface {
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRpcDebug() string
+	GetPerDeviceKID() string
+	GetDeviceId() string
 }
 
 type ConfigWriter interface {
@@ -103,6 +107,8 @@ type ConfigWriter interface {
 	SetUid(UID)
 	SetPgpFingerprint(*PgpFingerprint)
 	SetSalt([]byte)
+	SetPerDeviceKID(KID) error
+	SetDeviceId(*DeviceId) error
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error

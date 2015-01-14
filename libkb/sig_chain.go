@@ -13,6 +13,10 @@ type SigChain struct {
 	idVerified bool
 	allKeys    bool
 
+	// If we've locally delegated a key, it won't be reflected in our
+	// loaded chain, so we need to make a note of it here.
+	localCki *ComputedKeyInfos
+
 	// If we've made local modifications to our chain, mark it here;
 	// there's a slight lag on the server and we might not get the
 	// new chain tail if we query the server right after an update.
@@ -24,6 +28,38 @@ type SigChain struct {
 
 func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
+}
+
+func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, signingKid KID, isSibkey bool) (err error) {
+
+	cki := sc.localCki
+	l := sc.GetLastLink()
+	if cki == nil && l != nil && l.cki != nil {
+		cki = l.cki.Copy()
+	}
+	if cki == nil {
+		cki = kf.NewComputedKeyInfos()
+	}
+
+	// Update the current state
+	sc.localCki = cki
+
+	if sigId != nil {
+		err = cki.Delegate(key.GetKid().ToString(), NowAsKeybaseTime(0), *sigId, signingKid, isSibkey)
+	}
+
+	return
+}
+
+func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
+
+	cki = sc.localCki
+	if cki == nil {
+		if l := sc.GetLastLink(); l != nil {
+			cki = l.cki
+		}
+	}
+	return
 }
 
 func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
@@ -134,6 +170,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
 			G.Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.seqno, dirtyTail.seqno)
 			sc.localChainTail = nil
+			sc.localCki = nil
 		}
 	}
 
@@ -227,50 +264,104 @@ func (sc *SigChain) Store() (err error) {
 	return nil
 }
 
-func (sc *SigChain) verifyId(fp PgpFingerprint) (good bool, searched bool) {
+// LimitToKeyFamily takes the given sigchain and walks backwards,
+// stopping at either the chain beginning or the first link that's
+// not a member of the current KeyFamily
+func (sc *SigChain) LimitToKeyFamily(kf *KeyFamily) (links []*ChainLink) {
+	var fokid *FOKID
+	if fokid = kf.GetEldest(); fokid == nil {
+		return
+	}
+	return sc.LimitToEldestFOKID(*fokid)
+}
 
-	var search, ok bool
-
-	if sc.chainLinks != nil {
-		for i := len(sc.chainLinks) - 1; i >= 0; i-- {
-			cl := sc.chainLinks[i]
-			if !cl.MatchFingerprint(fp) {
-				break
-			}
-			search = true
-			if ok = cl.MatchUidAndUsername(sc.uid, sc.username); ok {
-				return true, true
-			}
+// LimitToEldestFOKID takes the given sigchain and walks backward,
+// stopping once it scrolls of the current FOKID.
+func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
+	if sc.chainLinks == nil {
+		return
+	}
+	l := len(sc.chainLinks)
+	lastGood := l
+	for i := l - 1; i >= 0; i-- {
+		if sc.chainLinks[i].MatchEldestFOKID(fokid) {
+			lastGood = i
+		} else {
+			break
 		}
 	}
-
-	return false, search
+	if lastGood == 0 {
+		links = sc.chainLinks
+	} else {
+		links = sc.chainLinks[lastGood:]
+	}
+	return
 }
 
-func (sc *SigChain) VerifyId(key *PgpKeyBundle) error {
+// verifySubchain verifies the given subchain and outputs a yes/no answer
+// on whether or not it's well-formed, and also yields ComputedKeyInfos for
+// all keys found in the process, including those that are now retired.
+func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *ComputedKeyInfos, err error) {
 
-	if sc.idVerified {
-		return nil
+	if links == nil || len(links) == 0 {
+		return
 	}
 
-	fp := key.GetFingerprint()
-
-	good, searched := sc.verifyId(fp)
-	if good {
-		sc.idVerified = true
-		return nil
+	last := links[len(links)-1]
+	if cki = last.GetSigCheckCache(); cki != nil {
+		cached = true
+		G.Log.Debug("Skipped verification (cached): %s", last.id.ToString())
+		return
 	}
 
-	if !searched && key.FindKeybaseUsername(sc.username) {
-		sc.idVerified = true
-		return nil
+	cki = kf.NewComputedKeyInfos()
+
+	ckf := ComputedKeyFamily{&kf, cki}
+
+	var prev *ChainLink
+	var prev_fokid *FOKID
+
+	for _, link := range links {
+
+		new_fokid := link.ToFOKID()
+
+		tcl, w := NewTypedChainLink(link)
+		if w != nil {
+			w.Warn()
+		}
+
+		if dlg := tcl.IsDelegation(); dlg == DLG_NONE {
+		} else if _, err = link.VerifySigWithKeyFamily(ckf); err != nil {
+			return
+		} else if err = ckf.Delegate(tcl); err != nil {
+			return
+		}
+
+		if err = ckf.Revoke(tcl); err != nil {
+			return
+		}
+
+		if prev_fokid != nil && !prev_fokid.Eq(new_fokid) {
+			_, err = prev.VerifySigWithKeyFamily(ckf)
+		}
+
+		if err != nil {
+			return
+		}
+
+		prev = link
+		prev_fokid = &new_fokid
 	}
 
-	return fmt.Errorf("No proof of UID %s for user %s w/ key %s",
-		sc.uid.ToString(), sc.username, fp.ToString())
+	// Always verify the last...
+	if _, err = last.VerifySigWithKeyFamily(ckf); err == nil {
+		last.PutSigCheckCache(cki)
+	}
+
+	return
 }
 
-func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
 	uid_s := sc.uid.ToString()
@@ -280,20 +371,28 @@ func (sc *SigChain) VerifyWithKey(key *PgpKeyBundle) (cached bool, err error) {
 		return
 	}
 
-	if key == nil {
+	if ckf.kf == nil {
 		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
 
-	if err = sc.VerifyId(key); err != nil {
+	links := sc.LimitToKeyFamily(ckf.kf)
+	if links == nil || len(links) == 0 {
+		G.Log.Debug("| Empty chain after we limited to KeyFamily %v", *ckf.kf)
 		return
 	}
 
-	if last := sc.GetLastLink(); last != nil {
-		cached, err = last.VerifySig(*key)
+	if cached, ckf.cki, err = verifySubchain(*ckf.kf, links); err == nil {
+		return
 	}
 
-	G.Log.Debug("- VerifyWithKey for user %s -> %v", uid_s, (err == nil))
+	// We used to check for a self-signature of one's keybase username
+	// here, but that doesn't make sense because we haven't accounted
+	// for revocations.  We'll go it later, after reconstructing
+	// the id_table.  See LoadUser in user.go and
+	// https://github.com/keybase/go/issues/43
+
+	G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %v %v", uid_s, (err == nil))
 
 	return
 }
@@ -323,7 +422,7 @@ type SigChainLoader struct {
 	chain     *SigChain
 	chainType *ChainType
 	links     []*ChainLink
-	fp        *PgpFingerprint
+	ckf       ComputedKeyFamily
 	dirtyTail *LinkSummary
 
 	// The preloaded sigchain; maybe we're loading a user that already was
@@ -385,7 +484,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	// allKeys. We have to load something...  Note that we don't use l.fp
 	// here (as we used to) since if the user used to have chainlinks, and then
 	// removed their key, we still want to load their last chainlinks.
-	var loadFp *PgpFingerprint
+	var loadFokid *FOKID
 
 	curr = ls.id
 	var link *ChainLink
@@ -395,14 +494,18 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		if link, err = ImportLinkFromStorage(curr); err != nil {
 			return
 		}
-		fp2 := link.GetPgpFingerprint()
-		if loadFp == nil {
-			loadFp = &fp2
-			G.Log.Debug("| Setting loadFp=%s", fp2.ToString())
-		} else if !l.allKeys && loadFp != nil && !loadFp.Eq(fp2) {
+		fokid2 := link.ToEldestFOKID()
+
+		if loadFokid == nil {
+			loadFokid = &fokid2
+			G.Log.Debug("| Setting loadFokid=%s", fokid2.ToString())
+		} else if !l.allKeys && loadFokid != nil && !loadFokid.Eq(fokid2) {
 			good_key = false
-			G.Log.Debug("| Stop loading at fp=%s (!= fp=%s)", loadFp.ToString(), fp2.ToString())
-		} else {
+			G.Log.Debug("| Stop loading at FOKID=%s (!= FOKID=%s)",
+				loadFokid.ToString(), fokid2.ToString())
+		}
+
+		if good_key {
 			links = append(links, link)
 			curr = link.GetPrev()
 		}
@@ -432,8 +535,8 @@ func (l *SigChainLoader) MakeSigChain() error {
 
 //========================================================================
 
-func (l *SigChainLoader) GetFingerprint() (err error) {
-	l.fp, err = l.user.GetActivePgpFingerprint()
+func (l *SigChainLoader) GetKeyFamily() (err error) {
+	l.ckf.kf = l.user.GetKeyFamily()
 	return
 }
 
@@ -520,21 +623,11 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 
 //========================================================================
 
-func (l *SigChainLoader) VerifySig() (err error) {
-	var key *PgpKeyBundle
+func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 
-	if l.fp == nil {
-		return
+	if l.ckf.kf != nil {
+		_, err = l.chain.VerifySigsAndComputeKeys(&l.ckf)
 	}
-	if key, err = l.user.GetActiveKey(); err != nil {
-		return
-	}
-	if err = key.CheckFingerprint(l.fp); err != nil {
-		return
-	}
-
-	_, err = l.chain.VerifyWithKey(key)
-
 	return
 }
 
@@ -584,7 +677,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("GetFingerprint")
-	if err = l.GetFingerprint(); err != nil {
+	if err = l.GetKeyFamily(); err != nil {
 		return
 	}
 
@@ -610,13 +703,23 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		return
 	}
 	stage("CheckFreshness")
-	if current, err = l.CheckFreshness(); err != nil || current {
+	if current, err = l.CheckFreshness(); err != nil {
 		return
 	}
-	stage("LoadFromServer")
-	if err = l.LoadFromServer(); err != nil {
+	if !current {
+		stage("LoadFromServer")
+		if err = l.LoadFromServer(); err != nil {
+			return
+		}
+	}
+
+	if !current {
+	} else if l.chain.GetComputedKeyInfos() == nil {
+		G.Log.Debug("| Need to reverify chain since we don't have ComputedKeyInfos")
+	} else {
 		return
 	}
+
 	stage("VerifyChain")
 	if err = l.chain.VerifyChain(); err != nil {
 		return
@@ -626,7 +729,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		return
 	}
 	stage("VerifySig")
-	if err = l.VerifySig(); err != nil {
+	if err = l.VerifySigsAndComputeKeys(); err != nil {
 		return
 	}
 	stage("Store")

@@ -20,6 +20,7 @@ type ProofEngine struct {
 	LoginUI            LoginUI
 	SecretUI           SecretUI
 	LogUI              LogUI
+	signingKey         GenericKey
 }
 
 func (v *ProofEngine) Init() error {
@@ -31,6 +32,9 @@ func (v *ProofEngine) Init() error {
 	}
 	if v.SecretUI == nil {
 		v.SecretUI = G.UI.GetSecretUI()
+	}
+	if v.LogUI == nil {
+		v.LogUI = G.UI.GetLogUI()
 	}
 	return nil
 }
@@ -131,14 +135,23 @@ func (v *ProofEngine) DoWarnings() (err error) {
 	return
 }
 func (v *ProofEngine) GenerateProof() (err error) {
-	var key GenericKey
-	if v.proof, err = v.me.ServiceProof(v.st, v.usernameNormalized); err != nil {
+	var locked *P3SKB
+	var which string
+	var seckey GenericKey
+
+	if locked, which, err = G.Keyrings.GetSecretKeyLocked(); err != nil {
 		return
 	}
-	if key, err = G.Keyrings.GetSecretKey("proof signature", v.SecretUI); err != nil {
+	if v.signingKey, err = locked.GetPubKey(); err != nil {
 		return
 	}
-	if v.sig, v.sigId, _, err = SignJson(v.proof, key); err != nil {
+	if v.proof, err = v.me.ServiceProof(v.signingKey, v.st, v.usernameNormalized); err != nil {
+		return
+	}
+	if seckey, err = locked.PromptAndUnlock("proof signature", which, v.SecretUI); err != nil {
+		return
+	}
+	if v.sig, v.sigId, _, err = SignJson(v.proof, seckey); err != nil {
 		return
 	}
 	return
@@ -152,6 +165,7 @@ func (v *ProofEngine) PostProofToServer() (err error) {
 		Supersede:      v.supersede,
 		RemoteUsername: v.usernameNormalized,
 		RemoteKey:      v.st.GetApiArgKey(),
+		SigningKey:     v.signingKey,
 	}
 	v.postRes, err = PostProof(arg)
 	return
@@ -209,48 +223,72 @@ func (v *ProofEngine) GetServiceType() (err error) {
 
 func (v *ProofEngine) Run() (err error) {
 
+	G.Log.Debug("+ ProofEngine.Run")
+	defer func() {
+		G.Log.Debug("- ProofEngine.Run -> %s", ErrToOk(err))
+	}()
+
+	stage := func(s string) {
+		G.Log.Debug("| ProofEngine.Run() %s", s)
+	}
+
+	stage("init")
 	if err = v.Init(); err != nil {
 		return
 	}
+	stage("GetServiceType")
 	if err = v.GetServiceType(); err != nil {
 		return
 	}
+	stage("Login")
 	if err = v.Login(); err != nil {
 		return
 	}
+	stage("LoadMe")
 	if err = v.LoadMe(); err != nil {
 		return
 	}
+	stage("CheckExists1")
 	if err = v.CheckExists1(); err != nil {
 		return
 	}
+	stage("PromptRemoteName")
 	if err = v.PromptRemoteName(); err != nil {
 		return
 	}
+	stage("NormalizeRemoteName")
 	if err = v.NormalizeRemoteName(); err != nil {
 		return
 	}
+	stage("CheckExists2")
 	if err = v.CheckExists2(); err != nil {
 		return
 	}
+	stage("DoPrechecks")
 	if err = v.DoPrechecks(); err != nil {
 		return
 	}
+	stage("DoWarnings")
 	if err = v.DoWarnings(); err != nil {
 		return
 	}
+	stage("GenerateProof")
 	if err = v.GenerateProof(); err != nil {
 		return
 	}
+	stage("PostProofToServer")
 	if err = v.PostProofToServer(); err != nil {
 		return
 	}
+	stage("CheckProofText")
 	if err = v.CheckProofText(); err != nil {
 		return
 	}
+	stage("InstructAction")
 	if err = v.InstructAction(); err != nil {
 		return
 	}
+	stage("PromptPostedLoop")
 	if err = v.PromptPostedLoop(); err != nil {
 		return
 	}

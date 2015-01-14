@@ -132,6 +132,16 @@ func NewNeedInputError(s string, a ...interface{}) AssertionParseError {
 
 //=============================================================================
 
+type WrongKidError struct {
+	wanted, got KID
+}
+
+func (w WrongKidError) Error() string {
+	return fmt.Sprintf("Wanted KID=%s; but got KID=%s", w.wanted.ToString(), w.got.ToString())
+}
+
+//=============================================================================
+
 type WrongKeyError struct {
 	wanted, got *PgpFingerprint
 }
@@ -213,6 +223,13 @@ func (u NoKeyError) Error() string {
 	}
 }
 
+type NoEldestKeyError struct {
+}
+
+func (e NoEldestKeyError) Error() string {
+	return "No Eldest key found"
+}
+
 //=============================================================================
 
 type NoSecretKeyError struct {
@@ -250,7 +267,11 @@ type KeyExistsError struct {
 }
 
 func (k KeyExistsError) Error() string {
-	return fmt.Sprintf("Key already exists for user (%s)", k.key.ToString())
+	ret := "Key already exists for user"
+	if k.key != nil {
+		fmt.Sprintf("%s (%s)", ret, k.key.ToString())
+	}
+	return ret
 }
 
 //=============================================================================
@@ -291,8 +312,6 @@ func (b BadFingerprintError) Error() string {
 	return fmt.Sprintf("Got bad PGP key; fingerprint %s != %s",
 		b.fp1.ToString(), b.fp2.ToString())
 }
-
-//=============================================================================
 
 //=============================================================================
 
@@ -505,6 +524,12 @@ func (s KeyCannotSignError) Error() string {
 	return "Key cannot create signatures"
 }
 
+type KeyCannotVerifyError struct{}
+
+func (k KeyCannotVerifyError) Error() string {
+	return "Key cannot verify signatures"
+}
+
 //=============================================================================
 
 type NoConfigFile struct{}
@@ -573,6 +598,62 @@ type KeyGenError struct {
 
 func (e KeyGenError) Error() string {
 	return fmt.Sprintf("KeyGen error: %s", e.msg)
+}
+
+//=============================================================================
+
+type KeyFamilyError struct {
+	msg string
+}
+
+func (e KeyFamilyError) Error() string {
+	return fmt.Sprintf("Bad key family: %s", e.msg)
+}
+
+//=============================================================================
+
+type BadRevocationError struct {
+	msg string
+}
+
+func (e BadRevocationError) Error() string {
+	return fmt.Sprintf("Bad revocation: %s", e.msg)
+}
+
+//=============================================================================
+
+type NoSigChainError struct{}
+
+func (e NoSigChainError) Error() string {
+	return "No sigchain was available"
+}
+
+//=============================================================================
+
+type NotProvisionedError struct{}
+
+func (e NotProvisionedError) Error() string {
+	return "This device isn't provisioned (no 'device_kid' entry in config.json)"
+}
+
+//=============================================================================
+
+type UidMismatchError struct {
+	msg string
+}
+
+func (u UidMismatchError) Error() string {
+	return fmt.Sprintf("UID mismatch error: %s", u.msg)
+}
+
+//=============================================================================
+
+type KeyRevokedError struct {
+	msg string
+}
+
+func (r KeyRevokedError) Error() string {
+	return fmt.Sprintf("Key revoked: %s", r.msg)
 }
 
 //=============================================================================

@@ -341,3 +341,41 @@ func (f JsonConfigFile) GetSocketFile() string {
 func (f JsonConfigFile) GetDaemonPort() (int, bool) {
 	return f.GetIntAtPath("daemon_port")
 }
+
+func (f JsonConfigFile) GetPerDeviceKID() (ret string) {
+	if f.jw != nil {
+		if kid, err := f.jw.AtPath("device.kid").GetString(); err == nil {
+			ret = kid
+		}
+	}
+	return
+}
+
+func (f *JsonConfigFile) SetPerDeviceKID(kid KID) (err error) {
+	path := "device.kid"
+	if kid == nil {
+		f.DeleteAtPath(path)
+	} else {
+		f.SetStringAtPath(path, kid.ToString())
+	}
+	return
+}
+
+func (f JsonConfigFile) GetDeviceId() (ret string) {
+	if f.jw != nil {
+		if id, err := f.jw.AtPath("device.id").GetString(); err == nil {
+			ret = id
+		}
+	}
+	return
+}
+
+func (f *JsonConfigFile) SetDeviceId(did *DeviceId) (err error) {
+	key := "device.id"
+	if did == nil {
+		f.DeleteAtPath(key)
+	} else {
+		f.SetStringAtPath(key, did.ToString())
+	}
+	return
+}

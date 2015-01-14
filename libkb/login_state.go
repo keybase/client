@@ -390,12 +390,16 @@ func LoginAndIdentify(arg LoginAndIdentifyArg) error {
 	u, err := LoadMe(LoadUserArg{ForceReload: true})
 	if _, not_found := err.(NoKeyError); not_found {
 		err = nil
-	} else if _, not_selected := err.(NoSelectedKeyError); not_selected && identify != nil {
-		var fp *PgpFingerprint
-		log.Warning("Verifying your fingerprint...")
-		fp, err = u.IdentifySelf(identify)
+	} else if err != nil {
+
+	} else if u2 := G.Env.GetUid(); u2 != nil && !u2.Eq(u.id) {
+		err = UidMismatchError{fmt.Sprintf("Got wrong uid; wanted %s but got %s",
+			u.id.ToString(), u2.ToString())}
+	} else if u2 == nil && identify != nil {
+		log.Warning("Verifying your UID...")
+		err = u.IdentifySelf(identify)
 		if err == nil && log != nil {
-			log.Warning("Setting PGP fingerprint to: %s", fp.ToQuads())
+			log.Warning("Setting UID to %s", u.id.ToString())
 		}
 	}
 	return err

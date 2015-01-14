@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"os"
 )
@@ -73,10 +72,13 @@ func (p *P3SKB) ToPacket() (ret *KeybasePacket, err error) {
 }
 
 func (p *P3SKB) ReadKey(priv bool) (g GenericKey, err error) {
-	switch packet.PublicKeyAlgorithm(p.Type) {
-	case packet.PubKeyAlgoRSA, packet.PubKeyAlgoRSAEncryptOnly,
-		packet.PubKeyAlgoRSASignOnly, packet.PubKeyAlgoDSA, packet.PubKeyAlgoECDSA:
+	switch {
+	case IsPgpAlgo(p.Type):
 		g, err = ReadOneKeyFromBytes(p.Pub)
+	case p.Type == KID_NACL_EDDSA:
+		g, err = ImportNaclSigningKeyPairFromBytes(p.Pub, nil)
+	case p.Type == KID_NACL_DH:
+		g, err = ImportNaclDHKeyPairFromBytes(p.Pub, nil)
 	default:
 	}
 	return
@@ -114,8 +116,13 @@ func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key GenericKey, err err
 		return
 	}
 
-	if key, err = ReadOneKeyFromBytes(unlocked); err != nil {
-		return
+	switch {
+	case IsPgpAlgo(p.Type):
+		key, err = ReadOneKeyFromBytes(unlocked)
+	case p.Type == KID_NACL_EDDSA:
+		key, err = ImportNaclSigningKeyPairFromBytes(p.Pub, unlocked)
+	case p.Type == KID_NACL_DH:
+		key, err = ImportNaclDHKeyPairFromBytes(p.Pub, unlocked)
 	}
 
 	if err = key.CheckSecretKey(); err == nil {
@@ -194,12 +201,52 @@ func (k *P3SKBKeyringFile) Index() (err error) {
 	return
 }
 
+func (k P3SKBKeyringFile) LookupWithComputedKeyFamily(ckf *ComputedKeyFamily) *P3SKB {
+	var kid KID
+	G.Log.Debug("+ P3SKBKeyringFile.LookupWithComputedKeyFamily")
+	defer func() {
+		var res string
+		if kid != nil {
+			res = kid.ToString()
+		} else {
+			res = "<nil>"
+		}
+		G.Log.Debug("- P3SKBKeyringFile.LookupWithComputedKeyFamily -> %s\n", res)
+	}()
+	G.Log.Debug("| Checking %d possible blocks", len(k.Blocks))
+	for i := len(k.Blocks) - 1; i >= 0; i-- {
+		G.Log.Debug("| trying key index# -> %d", i)
+		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {
+			kid = key.GetKid()
+			active := ckf.IsKidActive(kid)
+			G.Log.Debug("| Checking KID: %s -> %d", kid.ToString(), int(active))
+			if active == DLG_SIBKEY {
+				return k.Blocks[i]
+			}
+		} else {
+			G.Log.Debug("| failed --> %v", err)
+		}
+	}
+	return nil
+}
+
 func (k P3SKBKeyringFile) LookupByFingerprint(fp PgpFingerprint) *P3SKB {
 	ret, ok := k.fpIndex[fp]
 	if !ok {
 		ret = nil
 	}
 	return ret
+}
+
+// FindSecretKey will, given a list of KIDs, find the first one in the
+// list that has a corresponding secret key in the keyring file.
+func (f P3SKBKeyringFile) FindSecretKey(kids []KID) (ret *P3SKB) {
+	for _, kid := range kids {
+		if ret = f.LookupByKid(kid); ret != nil {
+			return
+		}
+	}
+	return
 }
 
 func (f P3SKBKeyringFile) LookupByKid(k KID) *P3SKB {

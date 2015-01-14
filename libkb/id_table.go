@@ -10,6 +10,7 @@ import (
 
 type TypedChainLink interface {
 	GetRevocations() []*SigId
+	GetRevokeKids() []KID
 	insertIntoTable(tab *IdentityTable)
 	GetSigId() SigId
 	GetArmoredSig() string
@@ -19,13 +20,19 @@ type TypedChainLink interface {
 	ToDisplayString() string
 	IsRevocationIsh() bool
 	IsRevoked() bool
+	IsDelegation() KeyStatus
 	GetSeqno() Seqno
 	GetCTime() time.Time
-	GetPgpFingerprint() PgpFingerprint
+	GetPgpFingerprint() *PgpFingerprint
+	GetKid() KID
+	GetFOKID() FOKID
+	IsInCurrentFamily(u *User) bool
 	GetUsername() string
 	MarkChecked(ProofError)
 	GetProofState() int
 	GetUID() UID
+	GetDelegatedKid() KID
+	GetMerkleSeqno() int
 }
 
 //=========================================================================
@@ -52,10 +59,13 @@ func (b *GenericChainLink) ToDebugString() string {
 		string(b.parent.uid.ToString()), b.unpacked.seqno, b.id.ToString())
 }
 
-func (g *GenericChainLink) IsRevocationIsh() bool { return false }
-func (g *GenericChainLink) IsRevoked() bool       { return g.revoked }
-func (g *GenericChainLink) GetSeqno() Seqno       { return g.unpacked.seqno }
-func (g *GenericChainLink) GetPgpFingerprint() PgpFingerprint {
+func (g *GenericChainLink) GetDelegatedKid() KID    { return nil }
+func (g *GenericChainLink) IsRevocationIsh() bool   { return false }
+func (g *GenericChainLink) IsDelegation() KeyStatus { return DLG_NONE }
+func (g *GenericChainLink) IsSibkey() bool          { return false }
+func (g *GenericChainLink) IsRevoked() bool         { return g.revoked }
+func (g *GenericChainLink) GetSeqno() Seqno         { return g.unpacked.seqno }
+func (g *GenericChainLink) GetPgpFingerprint() *PgpFingerprint {
 	return g.unpacked.pgpFingerprint
 }
 
@@ -429,8 +439,59 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 //=========================================================================
 
 //=========================================================================
-// UntrackChainLink
+// SibkeyChainLink
 //
+
+type SibkeyChainLink struct {
+	GenericChainLink
+	kid KID
+}
+
+func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) {
+	var kid KID
+	if kid, err = GetKID(b.payloadJson.AtPath("body.sibkey.kid")); err != nil {
+		err = fmt.Errorf("Bad sibkey statement @%s: %s", b.ToDebugString(), err.Error())
+	} else {
+		ret = &SibkeyChainLink{b, kid}
+	}
+	return
+
+}
+
+func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
+func (s *SibkeyChainLink) IsDelegation() KeyStatus { return DLG_SIBKEY }
+func (s *SibkeyChainLink) Type() string            { return "sibkey" }
+func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.ToString() }
+
+//
+//=========================================================================
+// SubkeyChainLink
+
+type SubkeyChainLink struct {
+	GenericChainLink
+	kid KID
+}
+
+func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) {
+	var kid KID
+	if kid, err = GetKID(b.payloadJson.AtPath("body.subkey.kid")); err != nil {
+		err = fmt.Errorf("Bad subkey statement @%s: %s", b.ToDebugString(), err.Error())
+	} else {
+		ret = &SubkeyChainLink{b, kid}
+	}
+	return
+}
+
+func (s *SubkeyChainLink) Type() string            { return "subkey" }
+func (r *SubkeyChainLink) ToDisplayString() string { return r.kid.ToString() }
+func (s *SubkeyChainLink) IsDelegation() KeyStatus { return DLG_SUBKEY }
+func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
+
+//
+//=========================================================================
+
+//=========================================================================
+// UntrackChainLink
 
 type UntrackChainLink struct {
 	GenericChainLink
@@ -600,17 +661,17 @@ func (s *SelfSigChainLink) GetIntType() int { return PROOF_TYPE_KEYBASE }
 //=========================================================================
 
 type IdentityTable struct {
-	sigChain          *SigChain
-	revocations       map[SigId]bool
-	links             map[SigId]TypedChainLink
-	remoteProofs      map[string][]RemoteProofChainLink
-	tracks            map[string][]*TrackChainLink
-	Order             []TypedChainLink
-	sigHints          *SigHints
-	activeProofs      []RemoteProofChainLink
-	cryptocurrency    []*CryptocurrencyChainLink
-	checkResult       *CheckResult
-	activeFingerprint PgpFingerprint
+	sigChain       *SigChain
+	revocations    map[SigId]bool
+	links          map[SigId]TypedChainLink
+	remoteProofs   map[string][]RemoteProofChainLink
+	tracks         map[string][]*TrackChainLink
+	Order          []TypedChainLink
+	sigHints       *SigHints
+	activeProofs   []RemoteProofChainLink
+	cryptocurrency []*CryptocurrencyChainLink
+	checkResult    *CheckResult
+	eldest         FOKID
 }
 
 func (tab *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
@@ -651,6 +712,10 @@ func (tab *IdentityTable) MarkCheckResult(err ProofError) {
 
 func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
+	if ret = cl.typed; ret != nil {
+		return
+	}
+
 	base := GenericChainLink{cl}
 
 	s, err := cl.payloadJson.AtKey("body").AtKey("type").GetString()
@@ -668,6 +733,10 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret = &RevokeChainLink{base}
+		case "sibkey":
+			ret, err = ParseSibkeyChainLink(base)
+		case "subkey":
+			ret, err = ParseSubkeyChainLink(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}
@@ -678,23 +747,25 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 		ret = &base
 	}
 
+	cl.typed = ret
+
 	// Basically we never fail, since worse comes to worse, we treat
 	// unknown signatures as "generic" and can still display them
 	return
 }
 
-func NewIdentityTable(active PgpFingerprint, sc *SigChain, h *SigHints) *IdentityTable {
+func NewIdentityTable(eldest FOKID, sc *SigChain, h *SigHints) *IdentityTable {
 	ret := &IdentityTable{
-		sigChain:          sc,
-		revocations:       make(map[SigId]bool),
-		links:             make(map[SigId]TypedChainLink),
-		remoteProofs:      make(map[string][]RemoteProofChainLink),
-		tracks:            make(map[string][]*TrackChainLink),
-		Order:             make([]TypedChainLink, 0, sc.Len()),
-		sigHints:          h,
-		activeProofs:      make([]RemoteProofChainLink, 0, sc.Len()),
-		cryptocurrency:    make([]*CryptocurrencyChainLink, 0, 0),
-		activeFingerprint: active,
+		sigChain:       sc,
+		revocations:    make(map[SigId]bool),
+		links:          make(map[SigId]TypedChainLink),
+		remoteProofs:   make(map[string][]RemoteProofChainLink),
+		tracks:         make(map[string][]*TrackChainLink),
+		Order:          make([]TypedChainLink, 0, sc.Len()),
+		sigHints:       h,
+		activeProofs:   make([]RemoteProofChainLink, 0, sc.Len()),
+		cryptocurrency: make([]*CryptocurrencyChainLink, 0, 0),
+		eldest:         eldest,
 	}
 	ret.Populate()
 	ret.CollectAndDedupeActiveProofs()
@@ -703,7 +774,7 @@ func NewIdentityTable(active PgpFingerprint, sc *SigChain, h *SigHints) *Identit
 
 func (idt *IdentityTable) Populate() {
 	G.Log.Debug("+ Populate ID Table")
-	for _, link := range idt.sigChain.VerifiedChainLinks(idt.activeFingerprint) {
+	for _, link := range idt.sigChain.LimitToEldestFOKID(idt.eldest) {
 		tl, w := NewTypedChainLink(link)
 		tl.insertIntoTable(idt)
 		if w != nil {

@@ -347,9 +347,11 @@ type TrackEngine struct {
 
 	trackStatementBytes []byte
 	trackStatement      *jsonw.Wrapper
-	signingKey          GenericKey
+	signingKeyPriv      GenericKey
 	sig                 string
 	sigid               *SigId
+	lockedKey           *P3SKB
+	signingKeyPub       GenericKey
 	idUI                IdentifyUI
 	secretUI            SecretUI
 }
@@ -412,6 +414,17 @@ func (e *TrackEngine) LoadMe() error {
 	return nil
 }
 
+func (e *TrackEngine) GetSigningKeyPub() (err error) {
+	// Get out key that we're going to sign with.
+	if e.lockedKey, _, err = G.Keyrings.GetSecretKeyLocked(); err != nil {
+		return
+	}
+	if e.signingKeyPub, err = e.lockedKey.GetPubKey(); err != nil {
+		return
+	}
+	return
+}
+
 func (e *TrackEngine) Run() (err error) {
 	if err = e.LoadThem(); err != nil {
 		return
@@ -432,9 +445,12 @@ func (e *TrackEngine) Run() (err error) {
 		return
 	}
 
-	e.trackStatement, err = e.Me.TrackingProofFor(e.Them)
-	if err != nil {
-		return err
+	if err = e.GetSigningKeyPub(); err != nil {
+		return
+	}
+
+	if e.trackStatement, err = e.Me.TrackingProofFor(e.signingKeyPub, e.Them); err != nil {
+		return
 	}
 
 	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
@@ -452,7 +468,7 @@ func (e *TrackEngine) Run() (err error) {
 }
 
 func TrackStatementJSON(me, them *User) (string, error) {
-	stmt, err := me.TrackingProofFor(them)
+	stmt, err := me.TrackingProofFor(nil, them)
 	if err != nil {
 		return "", err
 	}
@@ -512,14 +528,14 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 	G.Log.Debug("+ StoreRemoteTrack")
 	defer G.Log.Debug("- StoreRemoteTrack -> %s", ErrToOk(err))
 
-	if e.signingKey, err = G.Keyrings.GetSecretKey("tracking signature", e.SecretUI()); err != nil {
+	if e.signingKeyPriv, err = G.Keyrings.GetSecretKey("tracking signature", e.SecretUI()); err != nil {
 		return
-	} else if e.signingKey == nil {
+	} else if e.signingKeyPriv == nil {
 		err = NoSecretKeyError{}
 		return
 	}
 
-	if e.sig, e.sigid, err = e.signingKey.SignToString(e.trackStatementBytes); err != nil {
+	if e.sig, e.sigid, err = e.signingKeyPriv.SignToString(e.trackStatementBytes); err != nil {
 		return
 	}
 

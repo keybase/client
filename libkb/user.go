@@ -86,6 +86,12 @@ type User struct {
 	IdTable  *IdentityTable
 	sigHints *SigHints
 
+	// Loaded from publicKeys
+	keyFamily *KeyFamily
+
+	// Computed as a result of sigchain traversal
+	cki *ComputedKeyInfos
+
 	loggedIn bool // if we were logged in when we loaded it
 	secret   bool // if we asked for secret keys when we loaded
 
@@ -190,11 +196,17 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		return nil, fmt.Errorf("user object for %s lacks a name", uid.ToString())
 	}
 
+	kf, err := ParseKeyFamily(o.AtKey("public_keys"))
+	if err != nil {
+		return nil, err
+	}
+
 	return &User{
 		basics:      o.AtKey("basics"),
 		publicKeys:  o.AtKey("public_keys"),
 		sigs:        o.AtKey("sigs"),
 		privateKeys: o.AtKey("private_keys"),
+		keyFamily:   kf,
 		id:          *uid,
 		name:        name,
 		loggedIn:    false,
@@ -274,23 +286,37 @@ func LoadUserFromLocalStorage(uid UID, allKeys bool, loadSecrets bool) (u *User,
 	return
 }
 
-func (u *User) GetActivePgpFingerprint() (f *PgpFingerprint, err error) {
+func (u *User) GetKeyFamily() *KeyFamily {
+	return u.keyFamily
+}
 
-	if u.activePgpFingerprint != nil {
-		return u.activePgpFingerprint, nil
+func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
+	if u.sigChain != nil && u.keyFamily != nil {
+		cki := u.sigChain.GetComputedKeyInfos()
+		if cki != nil {
+			ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily}
+		}
 	}
-	var key *PgpKeyBundle
-	key, err = u.GetActiveKey()
-	if err != nil {
-		return
-	}
-	if key == nil {
-		return
-	}
+	return
+}
 
-	fp := key.GetFingerprint()
-	f = &fp
-	u.activePgpFingerprint = f
+// GetActivePgpKeys looks into the user's ComputedKeyFamily and
+// returns only the active PGP keys.  If you want only sibkeys, then
+// specify sibkey=true.
+func (u User) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
+	if ckf := u.GetComputedKeyFamily(); ckf != nil {
+		ret = ckf.GetActivePgpKeys(sibkey)
+	}
+	return
+}
+
+// GetActivePgpKeys looks into the user's ComputedKeyFamily and
+// returns only the fingerprint of the active PGP keys.
+// If you want only sibkeys, then // specify sibkey=true.
+func (u User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
+	for _, pgp := range u.GetActivePgpKeys(sibkey) {
+		ret = append(ret, pgp.GetFingerprint())
+	}
 	return
 }
 
@@ -320,38 +346,6 @@ func (u *User) SetActiveKey(pgp *PgpKeyBundle) (err error) {
 
 	u.dirty = true
 	return nil
-}
-
-func (u *User) GetActiveKey() (pgp *PgpKeyBundle, err error) {
-
-	G.Log.Debug("+ GetActiveKey() for %s", u.name)
-	defer func() {
-		var s string
-		if pgp != nil {
-			s = pgp.GetFingerprint().ToString()
-		} else {
-			s = "<none>"
-		}
-		G.Log.Debug("- GetActiveKey() -> %s,%s", s, ErrToOk(err))
-	}()
-
-	if pgp = u.activeKey; pgp != nil {
-		return
-	}
-
-	w := u.publicKeys.AtKey("primary").AtKey("bundle")
-	if w.IsNil() {
-		return
-	}
-
-	pgp, err = GetOneKey(w)
-
-	if err != nil {
-		return
-	}
-
-	u.activeKey = pgp
-	return
 }
 
 func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
@@ -490,42 +484,44 @@ func (u *User) StoreTopLevel() error {
 	return err
 }
 
-func getSecretKey(jw *jsonw.Wrapper, fp PgpFingerprint) (ret *P3SKB, err error) {
+func getSecretKey(jw *jsonw.Wrapper, ckf *ComputedKeyFamily) (ret *P3SKB, err error) {
 	var packet *KeybasePacket
 	var key GenericKey
 
 	if packet, err = GetPacket(jw.AtKey("bundle")); err != nil {
 	} else if ret, err = packet.ToP3SKB(); err != nil {
 	} else if key, err = ret.GetPubKey(); err != nil {
-	} else if fp2 := key.GetFingerprintP(); fp2 == nil {
+	} else if ckf.IsKidActive(key.GetKid()) != DLG_SIBKEY {
 		ret = nil
-		err = NoKeyError{"No PGP key found"}
-	} else if !fp2.Eq(fp) {
-		ret = nil
-		err = WrongKeyError{&fp, fp2}
 	}
 	return
 }
 
-func (u *User) GetSecretKey(fp PgpFingerprint) (ret *P3SKB, err error) {
-	G.Log.Debug("+ User.GetSecretKey(%s)", fp.ToString())
+func (u *User) GetSyncedSecretKey() (ret *P3SKB, err error) {
+	G.Log.Debug("+ User.GetSyncedSecretKey()")
 	defer func() {
-		G.Log.Debug("- User.GetSecretKey() -> %s", ErrToOk(err))
+		G.Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
-	var jw *jsonw.Wrapper
-	if u.privateKeys != nil {
-		jw = u.privateKeys.AtKey("primary")
-		if jw.IsNil() {
-			jw = nil
-		}
-	}
-	if jw == nil {
+	l, e := u.privateKeys.Len()
+	if e != nil || l == 0 {
 		G.Log.Debug("| short-circuit; no privateKeys object found")
 		return
 	}
 
-	ret, err = getSecretKey(jw, fp)
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		G.Log.Debug("| short-circuit; no Computed key family")
+		return
+	}
+
+	for i := 0; i < l; i++ {
+		if ret, e = getSecretKey(u.privateKeys.AtIndex(i), ckf); ret != nil && e == nil {
+			return
+		}
+	}
+
+	err = NoKeyError{"No synchronized public key"}
 	return
 }
 
@@ -555,15 +551,17 @@ func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
 	return
 }
 
-func (u *User) MakeIdTable(allKeys bool) (err error) {
-	var fp *PgpFingerprint
-	if fp, err = u.GetActivePgpFingerprint(); err != nil {
-	} else if fp == nil {
+func (u *User) GetEldestFOKID() (ret *FOKID) {
+	return u.keyFamily.eldest
+}
+
+func (u *User) MakeIdTable() (err error) {
+	if fokid := u.GetEldestFOKID(); fokid == nil {
 		err = NoKeyError{"Expected a key but didn't find one"}
 	} else {
-		u.IdTable = NewIdentityTable(*fp, u.sigChain, u.sigHints)
+		u.IdTable = NewIdentityTable(*fokid, u.sigChain, u.sigHints)
 	}
-	return nil
+	return
 }
 
 func LoadMe(arg LoadUserArg) (ret *User, err error) {
@@ -589,21 +587,12 @@ func (u *User) VerifySelfSig() error {
 	return fmt.Errorf("Failed to find a self-signature for %s", u.name)
 }
 
-func (u *User) VerifySelfSigByKey() bool {
-
+func (u *User) VerifySelfSigByKey() (ret bool) {
 	name := u.GetName()
-	if key, err := u.GetActiveKey(); err == nil && key != nil {
-		for _, ident := range key.Identities {
-			if i, e2 := ParseIdentity(ident.Name); e2 == nil {
-				if i.Email == KeybaseEmailAddress(name) {
-					G.Log.Debug("| Found self-sig for %s in key ID: %s",
-						name, ident.Name)
-					return true
-				}
-			}
-		}
+	if ckf := u.GetComputedKeyFamily(); ckf != nil {
+		ret = ckf.FindKeybaseName(name)
 	}
-	return false
+	return
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
@@ -712,18 +701,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if ret.HasActiveKey() {
 
-		if err = ret.MakeIdTable(arg.AllKeys); err != nil {
+		if err = ret.MakeIdTable(); err != nil {
 			return
 		}
 
-		if err = ret.checkKeyFingerprint(arg); err != nil {
-			return
-		}
-
-		// XXX this is actually the second time we're checking this;
-		// We're also checking it in 	VerifySigChain(); However, in this
-		// case, we're looking out for revoked signature chains.
-		// See https://github.com/keybase/go-libkb/issues/52
+		// Check that the user has self-signed only after we
+		// consider revocations. See: https://github.com/keybase/go/issues/43
 		if err = ret.VerifySelfSig(); err != nil {
 			return
 		}
@@ -746,8 +729,11 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 }
 
 func (u User) HasActiveKey() bool {
-	key, err := u.GetActiveKey()
-	return key != nil && err == nil
+	if ckf := u.GetComputedKeyFamily(); ckf == nil {
+		return false
+	} else {
+		return ckf.HasActiveKey()
+	}
 }
 
 func (u1 User) Equal(u2 User) bool {
@@ -795,7 +781,7 @@ func (u User) ToOkProofSet() *ProofSet {
 		{Key: "keybase", Value: u.name},
 		{Key: "uid", Value: u.id.ToString()},
 	}
-	if fp, err := u.GetActivePgpFingerprint(); err != nil {
+	for _, fp := range u.GetActivePgpFingerprints(true) {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.ToString()})
 	}
 	if u.IdTable != nil {
@@ -805,33 +791,20 @@ func (u User) ToOkProofSet() *ProofSet {
 	return NewProofSet(proofs)
 }
 
-func (u *User) checkKeyFingerprint(arg LoadUserArg) error {
+// localDelegateKey takes the given GenericKey and provisions it locally so that
+// we can use the key without needing a refresh from the server.  The eventual
+// refresh we do get from the server will clobber our work here.
+func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey bool) (err error) {
 
-	fp, err := u.GetActivePgpFingerprint()
-
-	if err != nil {
-		return err
+	if err = u.keyFamily.LocalDelegate(key, isSibkey, kid == nil); err != nil {
+		return
 	}
-
-	key, err := u.GetActiveKey()
-	if err != nil {
-		return err
+	if u.sigChain == nil {
+		err = NoSigChainError{}
+		return
 	}
-
-	if err = key.CheckFingerprint(fp); err != nil {
-		return err
-	}
-
-	if arg.Self {
-		fp2 := G.Env.GetPgpFingerprint()
-		if fp2 == nil {
-			return NoSelectedKeyError{fp}
-		} else if !fp.Eq(*fp2) {
-			return WrongKeyError{fp, fp2}
-		}
-	}
-
-	return nil
+	err = u.sigChain.LocalDelegate(u.keyFamily, key, sigId, kid, isSibkey)
+	return
 }
 
 //==================================================================

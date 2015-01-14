@@ -59,6 +59,79 @@ type NaclDHKeyPair struct {
 	Private *NaclDHKeyPrivate
 }
 
+func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
+	var kid KID
+	if kid, err = ImportKID(s); err != nil {
+		return
+	}
+	return importNaclKid(kid, typ, bodyLen)
+}
+
+func importNaclKid(kid KID, typ byte, bodyLen int) (ret []byte, err error) {
+	l := len(kid)
+	if l != bodyLen+3 {
+		err = BadKeyError{fmt.Sprintf("Wrong length; wanted %d, got %d", l, bodyLen+3)}
+		return
+	}
+
+	if kid[0] != byte(KEYBASE_KID_V1) || kid[l-1] != byte(ID_SUFFIX_KID) || kid[1] != typ {
+		err = BadKeyError{"bad header or trailer bytes"}
+		return
+	}
+	ret = kid[2:(l - 1)]
+	return
+}
+
+func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigningKeyPair, err error) {
+	var body []byte
+	if body, err = importNaclKid(KID(pub), byte(KID_NACL_EDDSA), ed25519.PublicKeySize); err != nil {
+		return
+	}
+	copy(ret.Public[:], body)
+	if priv == nil {
+	} else if len(priv) != ed25519.PrivateKeySize {
+		err = BadKeyError{"Secret key was wrong size"}
+	} else {
+		ret.Private = &NaclSigningKeyPrivate{}
+		copy(ret.Private[:], priv)
+	}
+	return
+}
+
+func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {
+	var body []byte
+	if body, err = importNaclHex(s, byte(KID_NACL_EDDSA), ed25519.PublicKeySize); err != nil {
+		return
+	}
+	copy(ret.Public[:], body)
+	return
+}
+
+func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, err error) {
+	var body []byte
+	if body, err = importNaclKid(KID(pub), byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
+		return
+	}
+	copy(ret.Public[:], body)
+	if priv == nil {
+	} else if len(priv) != NACL_DH_KEYSIZE {
+		err = BadKeyError{"Secret key was wrong size"}
+	} else {
+		ret.Private = &NaclDHKeyPrivate{}
+		copy(ret.Private[:], priv)
+	}
+	return
+}
+
+func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
+	var body []byte
+	if body, err = importNaclHex(s, byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
+		return
+	}
+	copy(ret.Public[:], body)
+	return
+}
+
 func (k NaclDHKeyPublic) GetKid() KID {
 	prefix := []byte{
 		byte(KEYBASE_KID_V1),
@@ -97,11 +170,19 @@ func (p NaclSigningKeyPair) GetKid() (ret KID) {
 	return p.Public.GetKid()
 }
 
+func (p NaclSigningKeyPair) ToShortIdString() string {
+	return p.Public.GetKid().ToShortIdString()
+}
+
+func (p NaclDHKeyPair) ToShortIdString() string {
+	return p.Public.GetKid().ToShortIdString()
+}
+
 func (p NaclSigningKeyPair) VerboseDescription() string {
-	return fmt.Sprintf("255-bit EdDSA signing key (%s)", p.GetKid().ToString())
+	return fmt.Sprintf("255-bit EdDSA signing key (%s)", p.ToShortIdString())
 }
 func (p NaclDHKeyPair) VerboseDescription() string {
-	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", p.GetKid().ToString())
+	return fmt.Sprintf("255-bit Curve25519 DH key (%s)", p.ToShortIdString())
 }
 
 func (p NaclSigningKeyPair) GetFingerprintP() *PgpFingerprint {
@@ -201,6 +282,43 @@ func (s NaclSig) Verify() (err error) {
 	return
 }
 
+func (k NaclDHKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
+	err = KeyCannotSignError{}
+	return
+}
+
+func (k NaclSigningKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
+	var packet *KeybasePacket
+	var sig *NaclSig
+	var ok bool
+	var byt []byte
+
+	if byt, err = base64.StdEncoding.DecodeString(armored); err != nil {
+		return
+	}
+	if packet, err = DecodePacket(byt); err != nil {
+		return
+	}
+	if sig, ok = packet.Body.(*NaclSig); !ok {
+		err = UnmarshalError{"NACL signature"}
+		return
+	}
+	if err = sig.Verify(); err != nil {
+		return
+	}
+	if !sig.Kid.Eq(k.GetKid()) {
+		err = WrongKidError{sig.Kid, k.GetKid()}
+		return
+	}
+	if !FastByteArrayEq(sig.Payload, expected) {
+		err = BadSigError{"wrong payload"}
+		return
+	}
+	id := ComputeSigIdFromSigBody(byt)
+	sigId = &id
+	return
+}
+
 func (s *NaclSig) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
@@ -252,4 +370,28 @@ func GenerateNaclDHKeyPair() (NaclKeyPair, error) {
 	copy(npriv[:], priv[:])
 	ret.Private = &npriv
 	return ret, nil
+}
+
+func SigAssertKbPayload(armored string, expected []byte) (sigId *SigId, err error) {
+	var byt []byte
+	var packet *KeybasePacket
+	var sig *NaclSig
+	var ok bool
+
+	if byt, err = base64.StdEncoding.DecodeString(armored); err != nil {
+		return
+	}
+	if packet, err = DecodePacket(byt); err != nil {
+		return
+	}
+	if sig, ok = packet.Body.(*NaclSig); !ok {
+		err = UnmarshalError{"NaCl Signature"}
+		return
+	}
+	if !FastByteArrayEq(expected, sig.Payload) {
+		err = BadSigError{"wrong payload"}
+	}
+	id := ComputeSigIdFromSigBody(byt)
+	sigId = &id
+	return
 }

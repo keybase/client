@@ -97,12 +97,7 @@ func (s *CmdListTracking) skipLink(link libkb.TypedChainLink) bool {
 }
 
 func (s *CmdListTracking) IsActiveKey(link libkb.TypedChainLink) bool {
-	fp1, _ := s.user.GetActivePgpFingerprint()
-	if fp1 == nil {
-		return false
-	}
-	fp2 := link.GetPgpFingerprint()
-	return fp1.Eq(fp2)
+	return link.IsInCurrentFamily(s.user)
 }
 
 func (s *CmdListTracking) CondenseRecord(l *libkb.TrackChainLink) (out *jsonw.Wrapper, err error) {

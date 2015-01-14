@@ -11,11 +11,11 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 		diff = mt.ComputeKeyDiff(*u.activePgpFingerprint)
 		is.res.KeyDiff = diff
 	}
-	fp, e := u.GetActivePgpFingerprint()
-	if e != nil {
-		return e
+	fokid := u.GetEldestFOKID()
+	if fokid == nil {
+		return NoEldestKeyError{}
 	}
-	is.GetUI().DisplayKey(fp.ExportToFOKID(), ExportTrackDiff(diff))
+	is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
 
 	return nil
 }
@@ -266,12 +266,7 @@ func (u *User) IdentifySimple(me *User, ui IdentifyUI) (*IdentifyOutcome, error)
 	return outcome, err
 }
 
-func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
-
-	fp, err = u.GetActivePgpFingerprint()
-	if err != nil {
-		return
-	}
+func (u *User) IdentifySelf(ui IdentifyUI) (err error) {
 
 	if ui == nil {
 		err = NoUiError{"identify"}
@@ -282,7 +277,7 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 
 	if err == nil {
 		cw := G.Env.GetConfigWriter()
-		cw.SetPgpFingerprint(fp)
+		cw.SetUid(u.id)
 		if err = cw.Write(); err != nil {
 			G.Log.Error("Write error: %s", err.Error())
 		}
