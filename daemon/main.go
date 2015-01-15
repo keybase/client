@@ -7,8 +7,12 @@ import (
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 // Keep this around to simplify things
@@ -39,6 +43,9 @@ func (d *Daemon) RunClient() (err error) {
 
 func (d *Daemon) Run() (err error) {
 	G.Daemon = true
+	if err = d.checkPIDFile(); err != nil {
+		return
+	}
 	if err = d.ConfigRpcServer(); err != nil {
 		return
 	}
@@ -46,6 +53,69 @@ func (d *Daemon) Run() (err error) {
 		return
 	}
 	return
+}
+
+func (d *Daemon) pidFilename() string {
+	dir, err := G.Env.GetRuntimeDir()
+	if err != nil {
+		dir = "/tmp"
+	}
+	return filepath.Join(dir, "keybased.pid")
+}
+
+func (d *Daemon) checkPIDFile() error {
+	f, err := os.OpenFile(d.pidFilename(), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+	if err != nil {
+		if !os.IsExist(err) {
+			return err
+		}
+
+		// pid file exists
+		running, err := d.checkRunning()
+		if err != nil {
+			return err
+		}
+		if running {
+			return fmt.Errorf("daemon already running")
+		}
+
+		// pid not active, create/truncate pid file
+		f, err = os.Create(d.pidFilename())
+		if err != nil {
+			return err
+		}
+
+		if sf, err := G.Env.GetSocketFile(); err == nil {
+			G.Log.Debug("removing stale socket file: %s", sf)
+			if err = os.Remove(sf); err != nil {
+				G.Log.Warning("error removing stale socket file: %s", err)
+			}
+		}
+	}
+	defer f.Close()
+	fmt.Fprintf(f, "%d", os.Getpid())
+	G.Log.Debug("wrote pid %d => %s", os.Getpid(), d.pidFilename())
+	G.PushShutdownHook(func() error {
+		G.Log.Info("Removing pid file")
+		return os.Remove(d.pidFilename())
+	})
+	return nil
+}
+
+// checkRunning determines if the pid specified in the pid file is active.
+func (d *Daemon) checkRunning() (running bool, err error) {
+	contents, err := ioutil.ReadFile(d.pidFilename())
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	rpid, err := strconv.Atoi(strings.TrimSpace(string(contents)))
+	if err != nil {
+		return false, err
+	}
+	return libkb.PidExists(rpid), nil
 }
 
 func (d *Daemon) ConfigRpcServer() (err error) {

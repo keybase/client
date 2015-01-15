@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -186,4 +187,11 @@ func IsValidHostname(s string) bool {
 		}
 		return true
 	}
+}
+
+// PidExists returns true if pid is an active process ID.
+func PidExists(pid int) bool {
+	// kill with signal 0 checks if process exists
+	err := syscall.Kill(pid, 0)
+	return err == nil
 }
