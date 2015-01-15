@@ -17,7 +17,9 @@ func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if err = v.state.ParseArgv(ctx); err != nil {
 	} else if nargs != 0 {
-		err = fmt.Errorf("keygen takes 0 args")
+		err = fmt.Errorf("mykey gen takes 0 args")
+	} else {
+		v.state.arg.CustomEmail = ctx.String("email")
 	}
 	return err
 }
@@ -33,6 +35,8 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 	if cli, err = GetMykeyClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
+		// create the IDs here so they are included in the export.
+		v.state.arg.CreateIds()
 		err = cli.KeyGen(v.state.arg.Export())
 	}
 	return
@@ -77,6 +81,10 @@ func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "k, keybase-passprhase",
 				Usage: "Lock your key with your present Keybase passphrase",
+			},
+			cli.StringFlag{
+				Name:  "e, email",
+				Usage: "Specify custom email address for inclusion in key (default is username@keybase.io)",
 			},
 		}, mykeyFlags()...),
 		Action: func(c *cli.Context) {

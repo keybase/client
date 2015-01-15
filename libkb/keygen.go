@@ -156,9 +156,7 @@ func (s *KeyGen) LoadMe() (err error) {
 }
 
 func (s *KeyGen) GenerateKey() (err error) {
-	if s.arg.Ids == nil || len(s.arg.Ids) == 0 {
-		s.arg.Ids = Identities{KeybaseIdentity("")}
-	}
+	s.arg.CreateIds()
 	s.bundle, err = NewPgpKeyBundle(*s.arg)
 	return
 }
@@ -227,6 +225,19 @@ type KeyGenArg struct {
 	LogUI        LogUI
 	SecretUI     SecretUI
 	Passphrase   string
+	CustomEmail  string
+}
+
+// CreateIds fills in an Identity for KeyGenArg.Ids if none exist.  It will use
+// CustomEmail as the email address if it exists.
+func (a *KeyGenArg) CreateIds() {
+	if len(a.Ids) > 0 {
+		return
+	}
+	a.Ids = Identities{KeybaseIdentity("")}
+	if len(a.CustomEmail) > 0 {
+		a.Ids[0].Email = a.CustomEmail
+	}
 }
 
 func (s *KeyGen) UpdateUser() error {
