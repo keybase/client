@@ -28,6 +28,7 @@ func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
 func (v *CmdMykeySelect) RunClient() error { return v.Run() }
 func (v *CmdMykeySelect) Run() (err error) {
 
+	v.state.arg.SecretUI = G_UI.GetSecretUI()
 	gen := libkb.NewKeyGen(&v.state.arg)
 
 	if err = gen.LoginAndCheckKey(); err != nil {
