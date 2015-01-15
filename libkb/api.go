@@ -141,6 +141,7 @@ func doRequestShared(api Requester, arg ApiArg, req *http.Request, wantJsonRes b
 
 		decoder := json.NewDecoder(resp.Body)
 		var obj interface{}
+		decoder.UseNumber()
 		err = decoder.Decode(&obj)
 		resp.Body.Close()
 		if err != nil {
