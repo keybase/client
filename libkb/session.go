@@ -114,9 +114,7 @@ func (s *Session) IsRecent() bool {
 		return false
 	}
 	t := time.Unix(s.mtime, 0)
-	now := time.Now()
-	expires := t.Add(time.Hour)
-	return now.Before(expires)
+	return time.Since(t) < time.Hour
 }
 
 func (s *Session) Check() error {

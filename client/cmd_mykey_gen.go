@@ -17,7 +17,13 @@ func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if err = v.state.ParseArgv(ctx); err != nil {
 	} else if nargs != 0 {
-		err = fmt.Errorf("keygen takes 0 args")
+		err = fmt.Errorf("mykey gen takes 0 args")
+	} else {
+		v.state.arg.PGPUids = ctx.StringSlice("pgp-uid")
+		v.state.arg.NoDefPGPUid = ctx.Bool("no-default-pgp-uid")
+		if v.state.arg.NoDefPGPUid && len(v.state.arg.PGPUids) == 0 {
+			err = fmt.Errorf("if you don't want the default PGP uid, you must supply a PGP uid with the --pgp-uid option.")
+		}
 	}
 	return err
 }
@@ -32,6 +38,8 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 	}
 	if cli, err = GetMykeyClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
+
+	} else if err = v.state.arg.CreatePgpIDs(); err != nil {
 	} else {
 		err = cli.KeyGen(v.state.arg.Export())
 	}
@@ -77,6 +85,15 @@ func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 			cli.BoolFlag{
 				Name:  "k, keybase-passprhase",
 				Usage: "Lock your key with your present Keybase passphrase",
+			},
+			cli.StringSliceFlag{
+				Name:  "pgp-uid",
+				Usage: "Specify custom PGP uid(s)",
+				Value: &cli.StringSlice{},
+			},
+			cli.BoolFlag{
+				Name:  "no-default-pgp-uid",
+				Usage: "Do not include the default PGP uid 'username@keybase.io' in the key",
 			},
 		}, mykeyFlags()...),
 		Action: func(c *cli.Context) {

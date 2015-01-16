@@ -57,5 +57,4 @@ func HandleSignals() {
 			os.Exit(3)
 		}
 	}
-
 }

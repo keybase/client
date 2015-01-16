@@ -41,10 +41,10 @@ func reverse(links []*ChainLink) {
 }
 
 func last(links []*ChainLink) (ret *ChainLink) {
-	if links != nil {
-		ret = links[len(links)-1]
+	if len(links) == 0 {
+		return nil
 	}
-	return
+	return links[len(links)-1]
 }
 
 func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {

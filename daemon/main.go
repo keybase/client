@@ -9,6 +9,7 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"net"
 	"os"
+	"path/filepath"
 )
 
 // Keep this around to simplify things
@@ -39,6 +40,9 @@ func (d *Daemon) RunClient() (err error) {
 
 func (d *Daemon) Run() (err error) {
 	G.Daemon = true
+	if err = d.setupRun(); err != nil {
+		return
+	}
 	if err = d.ConfigRpcServer(); err != nil {
 		return
 	}
@@ -46,6 +50,43 @@ func (d *Daemon) Run() (err error) {
 		return
 	}
 	return
+}
+
+func (d *Daemon) setupRun() error {
+	if err := d.lockPIDFile(); err != nil {
+		return err
+	}
+	sf, err := G.Env.GetSocketFile()
+	if err != nil {
+		return err
+	}
+
+	if exists, err := libkb.FileExists(sf); err != nil {
+		return err
+	} else if exists {
+		G.Log.Debug("removing stale socket file: %s", sf)
+		if err = os.Remove(sf); err != nil {
+			G.Log.Warning("error removing stale socket file: %s", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *Daemon) pidFilename() string {
+	dir, err := G.Env.GetRuntimeDir()
+	if err != nil {
+		dir = "/tmp"
+	}
+	return filepath.Join(dir, "keybased.pid")
+}
+
+func (d *Daemon) lockPIDFile() error {
+	err := libkb.LockPIDFile(d.pidFilename())
+	if err != nil {
+		return fmt.Errorf("error locking %s.  daemon already running.", d.pidFilename())
+	}
+	return nil
 }
 
 func (d *Daemon) ConfigRpcServer() (err error) {
