@@ -22,14 +22,14 @@ var cidTests = []cidTest{
 		{Email: "pc@pc.com"},
 	}},
 	{"default + custom", false, []string{"pc@pc.com"}, nil, []Identity{
-		{Username: "keybase.io/foo", Email: "foo@keybase.io"},
 		{Email: "pc@pc.com"},
+		{Username: "keybase.io/foo", Email: "foo@keybase.io"},
 	}},
 	{"default + many custom", false, []string{"pc@pc.com", "ab@ab.com", "cd@cd.com"}, nil, []Identity{
-		{Username: "keybase.io/foo", Email: "foo@keybase.io"},
 		{Email: "pc@pc.com"},
 		{Email: "ab@ab.com"},
 		{Email: "cd@cd.com"},
+		{Username: "keybase.io/foo", Email: "foo@keybase.io"},
 	}},
 	{"pgp uid", true, []string{"Patrick Crosby <pc@pc.com>"}, nil, []Identity{
 		{Username: "Patrick Crosby", Email: "pc@pc.com"},
@@ -41,11 +41,11 @@ var cidTests = []cidTest{
 		{Email: "xyz@xyz.com"},
 	}},
 	{"mixture", false, []string{"Patrick Crosby", "pc@pc.com", "<ab@ab.com>", "CD <cd@cd.com>"}, nil, []Identity{
-		{Username: "keybase.io/foo", Email: "foo@keybase.io"},
 		{Username: "Patrick Crosby"},
 		{Email: "pc@pc.com"},
 		{Email: "ab@ab.com"},
 		{Username: "CD", Email: "cd@cd.com"},
+		{Username: "keybase.io/foo", Email: "foo@keybase.io"},
 	}},
 }
 

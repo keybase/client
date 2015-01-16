@@ -85,8 +85,11 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 		PrivateKey: packet.NewRSAPrivateKey(currentTime, masterPriv),
 		Identities: make(map[string]*openpgp.Identity),
 	}
-	isPrimaryId := true
-	for _, uid := range uids {
+	for i, uid := range uids {
+		isPrimaryId := true
+		if i > 0 {
+			isPrimaryId = false
+		}
 		e.Identities[uid.Id] = &openpgp.Identity{
 			Name:   uid.Name,
 			UserId: uid,
@@ -252,9 +255,6 @@ func (a *KeyGenArg) CreateIDs() error {
 	if a.NoDefPGPUid && len(a.PGPUids) == 0 {
 		return ErrKeyGenArgNoDefNoCustom
 	}
-	if !a.NoDefPGPUid {
-		a.Ids = append(a.Ids, KeybaseIdentity(""))
-	}
 	for _, id := range a.PGPUids {
 		if !strings.Contains(id, "<") && CheckEmail.F(id) {
 			a.Ids = append(a.Ids, Identity{Email: id})
@@ -265,6 +265,9 @@ func (a *KeyGenArg) CreateIDs() error {
 			return err
 		}
 		a.Ids = append(a.Ids, *parsed)
+	}
+	if !a.NoDefPGPUid {
+		a.Ids = append(a.Ids, KeybaseIdentity(""))
 	}
 	return nil
 }
