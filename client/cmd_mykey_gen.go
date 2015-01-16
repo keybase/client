@@ -38,9 +38,9 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 	}
 	if cli, err = GetMykeyClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
+
+	} else if err = v.state.arg.CreatePgpIDs(); err != nil {
 	} else {
-		// create the IDs here so they are included in the export.
-		v.state.arg.CreateIDs()
 		err = cli.KeyGen(v.state.arg.Export())
 	}
 	return

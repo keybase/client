@@ -17,7 +17,7 @@ var cidTests = []cidTest{
 	{"empty", false, []string{}, nil, []Identity{
 		{Username: "keybase.io/foo", Email: "foo@keybase.io"},
 	}},
-	{"no default, no custom", true, []string{}, ErrKeyGenArgNoDefNoCustom, []Identity{}},
+	{"no default, no custom", true, []string{}, nil, []Identity{}},
 	{"no default", true, []string{"pc@pc.com"}, nil, []Identity{
 		{Email: "pc@pc.com"},
 	}},
@@ -58,7 +58,7 @@ func TestCreateIds(t *testing.T) {
 			t.Errorf("%s: arg init err: %s", test.name, err)
 			continue
 		}
-		err := arg.CreateIDs()
+		err := arg.CreatePgpIDs()
 		if err != test.errOut {
 			t.Errorf("%s: error %v, expected %v", test.name, err, test.errOut)
 			continue
@@ -67,6 +67,7 @@ func TestCreateIds(t *testing.T) {
 			// this is an error test, no need to do anything else
 			continue
 		}
+		arg.AddDefaultUid()
 		if len(arg.Ids) != len(test.idsOut) {
 			t.Errorf("%s: %d IDs, expected %d.", test.name, len(arg.Ids), len(test.idsOut))
 			continue
@@ -75,6 +76,10 @@ func TestCreateIds(t *testing.T) {
 			if id != test.idsOut[i] {
 				t.Errorf("%s: id %d = %+v, expected %+v", test.name, i, id, test.idsOut[i])
 			}
+		}
+
+		if len(arg.Ids) == 0 {
+			continue
 		}
 
 		// test the PgpKeyBundle

@@ -384,7 +384,7 @@ func ImportPgpIdentity(arg keybase_1.PgpIdentity) (ret Identity) {
 func (a KeyGenArg) Export() (ret keybase_1.KeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.Ids = a.Ids.Export()
+	ret.CreateUids = keybase_1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
 	ret.NoPassphrase = a.NoPassphrase
 	ret.KbPassphrase = a.KbPassphrase
 	ret.NoNaclEddsa = a.NoNaclEddsa
@@ -405,7 +405,8 @@ func (a KeyGenArg) Export() (ret keybase_1.KeyGenArg) {
 func ImportKeyGenArg(a keybase_1.KeyGenArg) (ret KeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.Ids = ImportPgpIdentities(a.Ids)
+	ret.NoDefPGPUid = !a.CreateUids.UseDefault
+	ret.Ids = ImportPgpIdentities(a.CreateUids.Ids)
 	ret.NoPassphrase = a.NoPassphrase
 	ret.KbPassphrase = a.KbPassphrase
 	ret.NoNaclEddsa = a.NoNaclEddsa

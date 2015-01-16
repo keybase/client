@@ -59,8 +59,12 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, id := range uids {
-		arg.LogUI.Info("PGP User ID: %+v", id)
+	for i, id := range arg.Ids {
+		extra := ""
+		if i == 0 {
+			extra = "[primary]"
+		}
+		arg.LogUI.Info("PGP User ID: %s %s", id, extra)
 	}
 
 	arg.LogUI.Info("Generating primary key (%d bits)", arg.PrimaryBits)
@@ -169,7 +173,7 @@ func (s *KeyGen) LoadMe() (err error) {
 }
 
 func (s *KeyGen) GenerateKey() (err error) {
-	if err = s.arg.CreateIDs(); err != nil {
+	if err = s.arg.CreatePgpIDs(); err != nil {
 		return
 	}
 	s.bundle, err = NewPgpKeyBundle(*s.arg)
@@ -247,13 +251,11 @@ type KeyGenArg struct {
 var ErrKeyGenArgNoDefNoCustom = stderrors.New("invalid args:  NoDefPGPUid set, but no custom PGPUids.")
 
 // CreateIDs creates identities for KeyGenArg.Ids if none exist.
-// It uses PGPUids and NoDefPGPUid to determine the set of Ids.
-func (a *KeyGenArg) CreateIDs() error {
+// It uses PGPUids to determine the set of Ids.  It does not set the
+// default keybase.io uid.  AddDefaultUid() does that.
+func (a *KeyGenArg) CreatePgpIDs() error {
 	if len(a.Ids) > 0 {
 		return nil
-	}
-	if a.NoDefPGPUid && len(a.PGPUids) == 0 {
-		return ErrKeyGenArgNoDefNoCustom
 	}
 	for _, id := range a.PGPUids {
 		if !strings.Contains(id, "<") && CheckEmail.F(id) {
@@ -266,10 +268,14 @@ func (a *KeyGenArg) CreateIDs() error {
 		}
 		a.Ids = append(a.Ids, *parsed)
 	}
-	if !a.NoDefPGPUid {
-		a.Ids = append(a.Ids, KeybaseIdentity(""))
-	}
 	return nil
+}
+
+func (a *KeyGenArg) AddDefaultUid() {
+	if a.NoDefPGPUid {
+		return
+	}
+	a.Ids = append(a.Ids, KeybaseIdentity(""))
 }
 
 func (a *KeyGenArg) PGPUserIDs() ([]*packet.UserId, error) {

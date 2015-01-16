@@ -47,6 +47,7 @@ func (h *MykeyHandler) keygen(iarg libkb.KeyGenArg, doInteractive bool) (err err
 		iarg.KeyGenUI = h.getKeyGenUI(sessionId)
 		iarg.SecretUI = h.getSecretUI(sessionId)
 	}
+	iarg.AddDefaultUid()
 	eng := libkb.NewKeyGen(&iarg)
 	_, err = eng.Run()
 	return
@@ -54,7 +55,8 @@ func (h *MykeyHandler) keygen(iarg libkb.KeyGenArg, doInteractive bool) (err err
 
 func (h *MykeyHandler) KeyGenDefault(arg keybase_1.KeyGenDefaultArg) (err error) {
 	iarg := libkb.KeyGenArg{
-		Ids:          libkb.ImportPgpIdentities(arg.Ids),
+		Ids:          libkb.ImportPgpIdentities(arg.CreateUids.Ids),
+		NoDefPGPUid:  !arg.CreateUids.UseDefault,
 		Passphrase:   arg.Passphrase,
 		KbPassphrase: (len(arg.Passphrase) == 0),
 		NoPublicPush: !arg.PushPublic,

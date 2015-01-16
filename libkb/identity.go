@@ -45,6 +45,10 @@ func (i Identity) Format() string {
 	return strings.Join(parts, " ")
 }
 
+func (i Identity) String() string {
+	return i.Format()
+}
+
 func (i Identity) ToPgpUserId() *packet.UserId {
 	return packet.NewUserId(i.Username, i.Comment, i.Email)
 
