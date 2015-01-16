@@ -2,12 +2,15 @@ package libkb
 
 import (
 	"crypto/rsa"
+	stderrors "errors"
+	"fmt"
 	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-triplesec"
 	"github.com/keybase/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/errors"
 	"golang.org/x/crypto/openpgp/packet"
+	"strings"
 )
 
 //
@@ -49,10 +52,15 @@ import (
 func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 	currentTime := arg.Config.Now()
 
-	uid := arg.Ids[0].ToPgpUserId()
-
-	if uid == nil {
-		return nil, errors.InvalidArgumentError("UserId field was nil")
+	if len(arg.Ids) == 0 {
+		return nil, errors.InvalidArgumentError("No Ids in KeyGenArg")
+	}
+	uids, err := arg.PGPUserIDs()
+	if err != nil {
+		return nil, err
+	}
+	for _, id := range uids {
+		arg.LogUI.Info("PGP User ID: %+v", id)
 	}
 
 	arg.LogUI.Info("Generating primary key (%d bits)", arg.PrimaryBits)
@@ -78,20 +86,22 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 		Identities: make(map[string]*openpgp.Identity),
 	}
 	isPrimaryId := true
-	e.Identities[uid.Id] = &openpgp.Identity{
-		Name:   uid.Name,
-		UserId: uid,
-		SelfSignature: &packet.Signature{
-			CreationTime: currentTime,
-			SigType:      packet.SigTypePositiveCert,
-			PubKeyAlgo:   packet.PubKeyAlgoRSA,
-			Hash:         arg.Config.Hash(),
-			IsPrimaryId:  &isPrimaryId,
-			FlagsValid:   true,
-			FlagSign:     true,
-			FlagCertify:  true,
-			IssuerKeyId:  &e.PrimaryKey.KeyId,
-		},
+	for _, uid := range uids {
+		e.Identities[uid.Id] = &openpgp.Identity{
+			Name:   uid.Name,
+			UserId: uid,
+			SelfSignature: &packet.Signature{
+				CreationTime: currentTime,
+				SigType:      packet.SigTypePositiveCert,
+				PubKeyAlgo:   packet.PubKeyAlgoRSA,
+				Hash:         arg.Config.Hash(),
+				IsPrimaryId:  &isPrimaryId,
+				FlagsValid:   true,
+				FlagSign:     true,
+				FlagCertify:  true,
+				IssuerKeyId:  &e.PrimaryKey.KeyId,
+			},
+		}
 	}
 
 	e.Subkeys = make([]openpgp.Subkey, 2)
@@ -156,7 +166,9 @@ func (s *KeyGen) LoadMe() (err error) {
 }
 
 func (s *KeyGen) GenerateKey() (err error) {
-	s.arg.CreateIds()
+	if err = s.arg.CreateIDs(); err != nil {
+		return
+	}
 	s.bundle, err = NewPgpKeyBundle(*s.arg)
 	return
 }
@@ -225,19 +237,47 @@ type KeyGenArg struct {
 	LogUI        LogUI
 	SecretUI     SecretUI
 	Passphrase   string
-	CustomEmail  string
+	PGPUids      []string
+	NoDefPGPUid  bool
 }
 
-// CreateIds fills in an Identity for KeyGenArg.Ids if none exist.  It will use
-// CustomEmail as the email address if it exists.
-func (a *KeyGenArg) CreateIds() {
+var ErrKeyGenArgNoDefNoCustom = stderrors.New("invalid args:  NoDefPGPUid set, but no custom PGPUids.")
+
+// CreateIDs creates identities for KeyGenArg.Ids if none exist.
+// It uses PGPUids and NoDefPGPUid to determine the set of Ids.
+func (a *KeyGenArg) CreateIDs() error {
 	if len(a.Ids) > 0 {
-		return
+		return nil
 	}
-	a.Ids = Identities{KeybaseIdentity("")}
-	if len(a.CustomEmail) > 0 {
-		a.Ids[0].Email = a.CustomEmail
+	if a.NoDefPGPUid && len(a.PGPUids) == 0 {
+		return ErrKeyGenArgNoDefNoCustom
 	}
+	if !a.NoDefPGPUid {
+		a.Ids = append(a.Ids, KeybaseIdentity(""))
+	}
+	for _, id := range a.PGPUids {
+		if !strings.Contains(id, "<") && CheckEmail.F(id) {
+			a.Ids = append(a.Ids, Identity{Email: id})
+			continue
+		}
+		parsed, err := ParseIdentity(id)
+		if err != nil {
+			return err
+		}
+		a.Ids = append(a.Ids, *parsed)
+	}
+	return nil
+}
+
+func (a *KeyGenArg) PGPUserIDs() ([]*packet.UserId, error) {
+	uids := make([]*packet.UserId, len(a.Ids))
+	for i, id := range a.Ids {
+		uids[i] = id.ToPgpUserId()
+		if uids[i] == nil {
+			return nil, fmt.Errorf("Id[%d] failed to convert to PGPUserId (%+v)", i, id)
+		}
+	}
+	return uids, nil
 }
 
 func (s *KeyGen) UpdateUser() error {
