@@ -511,10 +511,15 @@ func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
 	return
 }
 
+type PgpCreateUids struct {
+	UseDefault bool          `codec:"useDefault"`
+	Ids        []PgpIdentity `codec:"ids"`
+}
+
 type KeyGenArg struct {
 	PrimaryBits  int           `codec:"primaryBits"`
 	SubkeyBits   int           `codec:"subkeyBits"`
-	Ids          []PgpIdentity `codec:"ids"`
+	CreateUids   PgpCreateUids `codec:"createUids"`
 	NoPassphrase bool          `codec:"noPassphrase"`
 	KbPassphrase bool          `codec:"kbPassphrase"`
 	NoNaclEddsa  bool          `codec:"noNaclEddsa"`
@@ -523,7 +528,7 @@ type KeyGenArg struct {
 }
 
 type KeyGenDefaultArg struct {
-	Ids        []PgpIdentity `codec:"ids"`
+	CreateUids PgpCreateUids `codec:"createUids"`
 	PushPublic bool          `codec:"pushPublic"`
 	PushSecret bool          `codec:"pushSecret"`
 	Passphrase string        `codec:"passphrase"`

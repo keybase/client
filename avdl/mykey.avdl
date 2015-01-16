@@ -4,17 +4,23 @@ protocol mykey {
 
 	import idl "common.avdl";
 
+        record PgpCreateUids {
+                boolean useDefault;
+		array<PgpIdentity> ids;
+        }
+
 	void keyGen(
 		int primaryBits,
 		int subkeyBits,
-		array<PgpIdentity> ids,
+		PgpCreateUids createUids,
 		boolean noPassphrase,
 		boolean kbPassphrase,
 		boolean noNaclEddsa,
 		boolean noNaclDh,
 		string pregen);
 
-	void keyGenDefault(array<PgpIdentity> ids,
+	void keyGenDefault(
+		PgpCreateUids createUids,
 		boolean pushPublic,
 		boolean pushSecret,
 		string passphrase);

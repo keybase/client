@@ -70,6 +70,19 @@
       "name" : "email",
       "type" : "string"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpCreateUids",
+    "fields" : [ {
+      "name" : "useDefault",
+      "type" : "boolean"
+    }, {
+      "name" : "ids",
+      "type" : {
+        "type" : "array",
+        "items" : "PgpIdentity"
+      }
+    } ]
   } ],
   "messages" : {
     "keyGen" : {
@@ -80,11 +93,8 @@
         "name" : "subkeyBits",
         "type" : "int"
       }, {
-        "name" : "ids",
-        "type" : {
-          "type" : "array",
-          "items" : "PgpIdentity"
-        }
+        "name" : "createUids",
+        "type" : "PgpCreateUids"
       }, {
         "name" : "noPassphrase",
         "type" : "boolean"
@@ -105,11 +115,8 @@
     },
     "keyGenDefault" : {
       "request" : [ {
-        "name" : "ids",
-        "type" : {
-          "type" : "array",
-          "items" : "PgpIdentity"
-        }
+        "name" : "createUids",
+        "type" : "PgpCreateUids"
       }, {
         "name" : "pushPublic",
         "type" : "boolean"
