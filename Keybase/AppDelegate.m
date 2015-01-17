@@ -52,8 +52,8 @@
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
 
   // For debug
-  _catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
-  [_catalogController showCatalog];
+  //_catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
+  //[_catalogController showCatalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {

@@ -18,9 +18,6 @@
 - (void)viewInit {
   [super viewInit];
   _headerLabel = [[KBTextLabel alloc] init];
-  _headerLabel.backgroundColor = [NSColor clearColor];
-  _headerLabel.font = [KBLookAndFeel textFont];
-  _headerLabel.textColor = [NSColor colorWithWhite:145.0/255.0 alpha:1.0];
   [self addSubview:_headerLabel];
 
   _textLabels = [NSMutableArray array];
@@ -62,11 +59,12 @@
 }
 
 - (void)setHeaderText:(NSString *)headerText items:(NSArray *)items texts:(NSArray *)texts font:(NSFont *)font placeHolder:(NSString *)placeHolder targetBlock:(void (^)(id sender, id object))targetBlock {
+  NSAssert(NO, @"TODO");
   if (headerText) {
-    _headerLabel.text = headerText;
+    //_headerLabel.text = headerText;
     _headerLabel.hidden = NO;
   } else {
-    _headerLabel.text = nil;
+    //_headerLabel.text = nil;
     _headerLabel.hidden = YES;
   }
 

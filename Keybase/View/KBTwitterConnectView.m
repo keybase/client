@@ -42,13 +42,8 @@
   [super viewInit];
   GHWeakSelf gself = self;
 
-  _titleLabel = [[KBTextLabel alloc] init];
-  [_titleLabel setText:@"Twitter" textAlignment:NSCenterTextAlignment];
-  _titleLabel.font = [NSFont fontWithName:@"Helvetica Neue Thin" size:48];
-  [self addSubview:_titleLabel];
-
   _infoLabel = [[KBTextLabel alloc] init];
-  _infoLabel.text = @"Do you want to connect your Twitter account? This will add a photo to your profile and will help people verify your identity.";
+  [_infoLabel setText:@"Do you want to connect your Twitter account? This will add a photo to your profile and will help people verify your identity." font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   [self addSubview:_infoLabel];
 
   _inputView = [[KBTwitterInputView alloc] init];
@@ -108,7 +103,7 @@
 
   self.proofView.instructionsLabel.attributedText = str;
 
-  self.proofView.proofLabel.text = proofText;
+  [self.proofView.proofLabel setText:proofText font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   [self.proofView setNeedsLayout];
   [self.proofView sizeToFit];
 
@@ -184,7 +179,8 @@
   [self addSubview:_instructionsLabel];
 
   _proofLabel = [[KBTextLabel alloc] init];
-  _proofLabel.selectable = YES;
+  // TODO Make selectable
+  //_proofLabel.selectable = YES;
   [self addSubview:_proofLabel];
 
   _button = [KBButton buttonWithText:@"OK, I posted it."];

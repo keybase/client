@@ -27,16 +27,12 @@
   [self addSubview:_imageView];
 
   _name1Label = [[KBTextLabel alloc] init];
-  _name1Label.font = [NSFont systemFontOfSize:24];
   [self addSubview:_name1Label];
 
   _locationLabel = [[KBTextLabel alloc] init];
-  _locationLabel.font = [NSFont systemFontOfSize:16];
   [self addSubview:_locationLabel];
 
   _bioLabel = [[KBTextLabel alloc] init];
-  _bioLabel.font = [NSFont systemFontOfSize:14];
-  _bioLabel.textColor = [NSColor colorWithWhite:145.0/255.0 alpha:1.0];
   [self addSubview:_bioLabel];
 
   YOSelf yself = self;
@@ -66,10 +62,10 @@
 
 - (void)setUser:(KBUser *)user {
 
-  [_name1Label setText:user.userName textAlignment:NSCenterTextAlignment];
+  [_name1Label setText:user.userName font:[NSFont systemFontOfSize:24] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
 
-  _locationLabel.text = user.location;
-  _bioLabel.text = user.bio;
+  [_locationLabel setText:user.location font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+  [_bioLabel setText:user.bio font:[NSFont systemFontOfSize:15] color:[NSColor colorWithWhite:145.0/255.0 alpha:1.0] alignment:NSCenterTextAlignment];
 
   [_imageView setURLString:user.image.URLString ? user.image.URLString : @"https://keybase.io/images/no_photo.png"];
 

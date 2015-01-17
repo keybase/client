@@ -22,7 +22,7 @@
   [self addSubview:imageView];
 
   _backView = [KBButton buttonWithImage:[NSImage imageNamed:@"46-Arrows-white-arrow-65-30"]];
-  [self addSubview:_backView];
+  //[self addSubview:_backView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {

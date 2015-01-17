@@ -22,8 +22,6 @@
   [super viewInit];
 
   _titleLabel = [[KBTextLabel alloc] init];
-  _titleLabel.font = [NSFont fontWithName:@"HelveticaNeue-Thin" size:48];
-  _titleLabel.textColor = [NSColor blackColor];
   [self addSubview:_titleLabel];
 
   _descLabel = [[KBTextLabel alloc] init];
@@ -49,7 +47,7 @@
 }
 
 - (void)setTitle:(NSString *)title message:(NSString *)message messageFont:(NSFont *)messageFont {
-  [_titleLabel setText:title textAlignment:NSCenterTextAlignment];
+  [_titleLabel setText:title font:[NSFont fontWithName:@"HelveticaNeue-Thin" size:48] color:[NSColor blackColor] alignment:NSCenterTextAlignment];
 
   if (!messageFont) messageFont = [NSFont systemFontOfSize:20];
   NSDictionary *style = @{@"$default": @{NSFontAttributeName: messageFont},

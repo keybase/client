@@ -25,13 +25,9 @@
   [self addSubview:self.imageView];
 
   self.nameLabel = [[KBTextLabel alloc] init];
-  self.nameLabel.textColor = [KBLookAndFeel textColor];
-  self.nameLabel.font = [NSFont boldSystemFontOfSize:16];
   [self addSubview:self.nameLabel];
 
   self.descriptionLabel = [[KBTextLabel alloc] init];
-  self.descriptionLabel.textColor = [KBLookAndFeel secondaryTextColor];
-  self.descriptionLabel.font = [KBLookAndFeel textFont];
   [self addSubview:self.descriptionLabel];
 
   YOSelf yself = self;
@@ -52,8 +48,8 @@
 }
 
 - (void)setUser:(KBUser *)user {
-  self.nameLabel.text = user.userName;
-  self.descriptionLabel.text = user.bio;
+  [self.nameLabel setText:user.userName font:[NSFont boldSystemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [self.descriptionLabel setText:user.bio font:[KBLookAndFeel textFont] color:[KBLookAndFeel secondaryTextColor] alignment:NSLeftTextAlignment];
   self.imageView.URLString = user.image.URLString;
   [self setNeedsLayout];
 }
