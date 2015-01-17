@@ -53,7 +53,7 @@ PODS:
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout (0.0.8)
+  - YOLayout (0.0.9)
 
 DEPENDENCIES:
   - GHKit
@@ -63,11 +63,7 @@ DEPENDENCIES:
   - MPMessagePack
   - ObjectiveSugar
   - Slash
-  - YOLayout (from `../../YOLayout`)
-
-EXTERNAL SOURCES:
-  YOLayout:
-    :path: ../../YOLayout
+  - YOLayout
 
 SPEC CHECKSUMS:
   AFNetworking: 0f54cb5d16ce38c1b76948faffb8d5fb705021c7
@@ -83,6 +79,6 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: 60ee5ddf6530100c0aa702c2e0c9881cfd4a89a5
   Slash: d98d6ff27ece4297d8d65fb49fc1ce4307a75f46
   TSTripleSec: 7371672f757735ab696d8c0d0fc0d98b7a38059e
-  YOLayout: 5dc0c572436a3c1cde2172ea0bc54a1ff4e122b8
+  YOLayout: 13a870ee399532b32d7ad83ed488abaec89f732b
 
 COCOAPODS: 0.35.0

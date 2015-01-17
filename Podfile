@@ -9,7 +9,7 @@ pod "MPMessagePack"#, :path => "../../MPMessagePack"
 
 pod "KBKeybase"#, :path => "../../KBKeybase/"
 
-pod "YOLayout", :path => "../../YOLayout"
+pod "YOLayout"#, :path => "../../YOLayout"
 
 #pod "WAYAppStoreWindow"
 
