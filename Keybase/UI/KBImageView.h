@@ -12,5 +12,6 @@
 @interface KBImageView : NSImageView
 
 @property (nonatomic) NSString *URLString;
+@property float roundedRatio;
 
 @end

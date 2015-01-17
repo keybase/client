@@ -72,14 +72,6 @@
   });
 }
 
-- (void)logout {
-  KBRLogin *login = [[KBRLogin alloc] initWithClient:self];
-  [login logout:^(NSError *error) {
-    // TODO: check error
-    [self.delegate RPClientDidLogout:self];
-  }];
-}
-
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
   GHDebug(@"Send request: %@(%@)", method, [params join:@", "]);
   if (_client.status != MPMessagePackClientStatusOpen) {

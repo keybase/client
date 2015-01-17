@@ -13,9 +13,9 @@
 
 @interface KBWindowController : NSWindowController
 
-@property (strong) IBOutlet NSWindow *window;
+@property IBOutlet NSWindow *window;
 
-@property IBOutlet KBNavigationController *navigationController;
+@property KBNavigationController *navigationController;
 
 - (void)showLogin:(BOOL)animated;
 - (void)showSignup:(BOOL)animated;
@@ -25,5 +25,7 @@
 - (void)showTwitterConnect:(BOOL)animated;
 
 - (void)showUser:(KBUserInfo *)userInfo animated:(BOOL)animated;
+
+- (void)showCatalog;
 
 @end

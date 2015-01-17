@@ -10,6 +10,12 @@
 
 @implementation KBView
 
+- (void)viewInit {
+  [super viewInit];
+  self.wantsLayer = YES;
+  [self.layer setBackgroundColor:NSColor.whiteColor.CGColor];
+}
+
 - (void)setInProgress:(BOOL)inProgress sender:(NSView *)sender {
   [self _setInProgress:inProgress subviews:(sender ? sender.subviews : self.subviews)];
 }
@@ -28,9 +34,9 @@
   [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
 }
 
-- (void)viewWillAppear:(BOOL)animated { }
-- (void)viewDidAppear:(BOOL)animated { }
-- (void)viewWillDisappear:(BOOL)animated { }
-- (void)viewDidDisappear:(BOOL)animated { }
+//- (void)viewWillAppear:(BOOL)animated { }
+//- (void)viewDidAppear:(BOOL)animated { }
+//- (void)viewWillDisappear:(BOOL)animated { }
+//- (void)viewDidDisappear:(BOOL)animated { }
 
 @end

@@ -9,13 +9,15 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-@interface KBTextLabel : NSTextView
+#import <YOLayout/YOLayout.h>
+
+@interface KBTextLabel : YONSView
 
 @property (nonatomic) NSAttributedString *attributedText;
-@property (nonatomic) NSString *placeholder;
 
-- (void)setText:(NSString *)text;
-- (void)setText:(NSString *)text textAlignment:(NSTextAlignment)textAlignment;
-- (void)setPlaceholder:(NSString *)placeholder;
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
+
++ (CGSize)sizeThatFits:(CGSize)size textView:(NSTextView *)textView;
 
 @end
+

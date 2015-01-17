@@ -9,12 +9,14 @@
 @import Cocoa;
 @import QuartzCore;
 
+#import <YOLayout/YOLayout.h>
 
 @interface KBNavigationController : NSViewController
 
-@property (nonatomic) NSView *rootView;
-
 @property (nonatomic, strong) CATransition *transition;
+
+@property (nonatomic) NSView *titleView;
+@property (nonatomic) NSView *rootView;
 
 - (void)pushView:(NSView *)view animated:(BOOL)animated;
 

@@ -31,7 +31,6 @@
   [self addSubview:_textField];
 
   _box = [[NSBox alloc] init];
-  _box.fillColor = [NSColor colorWithWhite:0.9 alpha:1.0];
   _box.borderColor = [NSColor colorWithWhite:0.9 alpha:1.0];
   _box.borderWidth = 1;
   _box.borderType = NSLineBorder;
@@ -45,6 +44,20 @@
     y += [layout setFrame:CGRectMake(0, y, size.width, 1) view:yself.box].size.height;
     return CGSizeMake(size.width, y);
   }];
+}
+
+//- (BOOL)becomeFirstResponder {
+//  _box.borderColor = [NSColor colorWithRed:0.0f green:0.49f blue:0.96f alpha:1.0f];
+//  return [_textField becomeFirstResponder];
+//}
+//
+//- (BOOL)resignFirstResponder {
+//  _box.borderColor = [NSColor colorWithWhite:0.9 alpha:1.0];
+//  return [_textField resignFirstResponder];
+//}
+
+- (void)setNextKeyView:(NSView *)nextKeyView {
+  [_textField setNextKeyView:nextKeyView];
 }
 
 - (void)setText:(NSString *)text {

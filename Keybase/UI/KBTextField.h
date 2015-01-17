@@ -11,7 +11,7 @@
 
 #import "KBUIDefines.h"
 
-@interface KBTextField : YONSView
+@interface KBTextField : YONSView <NSTextFieldDelegate>
 
 @property (nonatomic) NSString *text;
 @property (nonatomic) NSString *placeholder;

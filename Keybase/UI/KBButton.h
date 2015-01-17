@@ -20,5 +20,7 @@ typedef void (^KBButtonTargetBlock)();
 
 + (KBButton *)buttonWithText:(NSString *)text;
 
++ (KBButton *)buttonWithImage:(NSImage *)image;
+
 @end
 

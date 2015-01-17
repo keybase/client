@@ -33,6 +33,13 @@
   return button;
 }
 
++ (KBButton *)buttonWithImage:(NSImage *)image {
+  KBButton *button = [[KBButton alloc] init];
+  button.image = image;
+  button.bordered = NO;
+  return button;
+}
+
 - (void)setText:(NSString *)text {
   self.title = text ? text : @"";
 }

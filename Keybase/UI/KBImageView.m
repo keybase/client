@@ -10,6 +10,17 @@
 
 @implementation KBImageView
 
+//- (instancetype)initWithFrame:(NSRect)frame {
+//  if ((self = [super initWithFrame:frame])) {
+//    [self unregisterDraggedTypes];
+//  }
+//  return self;
+//}
+
+- (BOOL)mouseDownCanMoveWindow {
+  return YES;
+}
+
 - (void)setURLString:(NSString *)URLString {
   _URLString = URLString;
   if (URLString) {
@@ -22,7 +33,9 @@
 
 - (void)setFrame:(NSRect)frame {
   [super setFrame:frame];
-  [self setRounded:roundf(frame.size.width/2.0)];
+  if (_roundedRatio > 0) {
+    [self setRounded:roundf(frame.size.width/2.0)];
+  }
 }
 
 - (void)setRounded:(CGFloat)cornerRadius {

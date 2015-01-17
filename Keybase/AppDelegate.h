@@ -18,13 +18,16 @@
 @property (nonatomic) KBGetCurrentStatusRes *status;
 
 @property (readonly) KBWindowController *windowController;
+@property KBWindowController *catalogController;
 
 + (KBRPClient *)client;
 + (KBAPIClient *)APIClient;
 
 + (AppDelegate *)sharedDelegate;
 
-- (void)passwordPrompt:(NSString *)prompt description:(NSString *)description completion:(void (^)(BOOL canceled, NSString *password))completion;
++ (void)passwordPrompt:(NSString *)prompt description:(NSString *)description view:(NSView *)view completion:(void (^)(BOOL canceled, NSString *password))completion;
+
+- (void)checkStatus;
 
 @end
 

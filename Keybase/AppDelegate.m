@@ -24,7 +24,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-  _statusItem.title = @"KB";
+  _statusItem.title = @"Keybase";
   //_statusItem.image = [NSImage imageNamed:@"StatusIcon"];
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
@@ -40,7 +40,7 @@
   [_client registerMethod:@"keybase.1.secretUi.getSecret" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     NSString *prompt = params[0][@"pinentry"][@"prompt"];
     NSString *description = params[0][@"pinentry"][@"desc"];
-    [gself passwordPrompt:prompt description:description completion:^(BOOL canceled, NSString *password) {
+    [AppDelegate passwordPrompt:prompt description:description view:gself completion:^(BOOL canceled, NSString *password) {
       KBSecretEntryRes *entry = [[KBSecretEntryRes alloc] init];
       entry.text = password;
       entry.canceled = canceled;
@@ -50,6 +50,10 @@
 
   // Just for mocking
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
+
+  // For debug
+  _catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
+  [_catalogController showCatalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
@@ -69,7 +73,15 @@
   }];
 }
 
-- (void)passwordPrompt:(NSString *)prompt description:(NSString *)description completion:(void (^)(BOOL canceled, NSString *password))completion {
+- (void)logout {
+  KBRLogin *login = [[KBRLogin alloc] initWithClient:_client];
+  [login logout:^(NSError *error) {
+    // TODO: check error
+    [self checkStatus];
+  }];
+}
+
++ (void)passwordPrompt:(NSString *)prompt description:(NSString *)description view:(NSView *)view completion:(void (^)(BOOL canceled, NSString *password))completion {
   NSAlert *alert = [[NSAlert alloc] init];
   [alert addButtonWithTitle:@"OK"];
   [alert addButtonWithTitle:@"Cancel"];
@@ -81,7 +93,7 @@
   NSTextField *input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
   [alert setAccessoryView:input];
 
-  [alert beginSheetModalForWindow:self.windowController.window completionHandler:^(NSModalResponse returnCode) {
+  [alert beginSheetModalForWindow:view.window completionHandler:^(NSModalResponse returnCode) {
     if (returnCode == NSAlertFirstButtonReturn) {
       completion(NO, input.stringValue);
     } else {
@@ -114,7 +126,7 @@
 
 - (NSMenu *)menu {
   NSMenu *menu = [[NSMenu alloc] init];
-  [menu addItemWithTitle:@"Log Out" action:@selector(logout:) keyEquivalent:@""];
+  [menu addItemWithTitle:@"Log Out" action:@selector(logout) keyEquivalent:@""];
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
   return menu;
@@ -142,10 +154,6 @@
 }
 
 - (void)contacts:(id)sender { }
-
-- (void)logout:(id)sender {
-  [_client logout];
-}
 
 - (void)quit:(id)sender {
   [NSApplication.sharedApplication terminate:sender];

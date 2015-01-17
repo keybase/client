@@ -7,7 +7,7 @@
 //
 
 #import <AppKit/AppKit.h>
-#import <YOLayout/YONSView.h>
+#import <YOLayout/YOLayout.h>
 
 #import "KBDefines.h"
 #import "KBView.h"

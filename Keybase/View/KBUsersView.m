@@ -19,7 +19,7 @@
 
 - (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row {
 
-  KBUserView *userView = [_tableView makeViewWithIdentifier:@"KBUserView" owner:self];
+  //KBUserView *userView = [_tableView makeViewWithIdentifier:@"KBUserView" owner:self];
 
   return nil;
 }

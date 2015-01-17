@@ -203,10 +203,15 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
-@interface KBRMykey : KBRRequest
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits ids:(NSArray *)ids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase noNaclEddsa:(BOOL )noNaclEddsa noNaclDh:(BOOL )noNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion;
+@interface KBPgpCreateUids : KBRObject
+@property BOOL useDefault;
+@property NSArray *ids;
+@end
 
-- (void)keyGenDefaultWithIds:(NSArray *)ids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
+@interface KBRMykey : KBRRequest
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBPgpCreateUids *)createUids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase noNaclEddsa:(BOOL )noNaclEddsa noNaclDh:(BOOL )noNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion;
+
+- (void)keyGenDefaultWithCreateUids:(KBPgpCreateUids *)createUids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
 - (void)deletePrimary:(void (^)(NSError *error))completion;
 
@@ -227,10 +232,12 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 @end
 
+typedef NS_ENUM (NSInteger, KBPromptOverwriteType) {
+	KBPromptOverwriteTypeSocial, 
+	KBPromptOverwriteTypeSite, 
+};
 @interface KBRProveUi : KBRRequest
-- (void)promptOverwrite1WithSessionId:(NSInteger )sessionId account:(NSString *)account completion:(void (^)(NSError *error, BOOL  b))completion;
-
-- (void)promptOverwrite2WithSessionId:(NSInteger )sessionId service:(NSString *)service completion:(void (^)(NSError *error, BOOL  b))completion;
+- (void)promptOverwriteWithSessionId:(NSInteger )sessionId account:(NSString *)account typ:(KBPromptOverwriteType )typ completion:(void (^)(NSError *error, BOOL  b))completion;
 
 - (void)promptUsernameWithSessionId:(NSInteger )sessionId prompt:(NSString *)prompt prevError:(KBStatus *)prevError completion:(void (^)(NSError *error, NSString * str))completion;
 

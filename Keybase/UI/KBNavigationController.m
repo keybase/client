@@ -13,19 +13,53 @@ typedef NS_ENUM (NSInteger, KBNavigationDirection) {
   KBNavigationDirectionForward = 1
 };
 
-@interface NSView (KBNavigation)
+@interface NSView (KBNavigationView)
 - (void)setNavigationController:(KBNavigationController *)controller;
-- (void)viewWillAppear:(BOOL)animated;
-- (void)viewDidAppear:(BOOL)animated;
-- (void)viewWillDisappear:(BOOL)animated;
-- (void)viewDidDisappear:(BOOL)animated;
+//- (void)viewWillAppear:(BOOL)animated;
+//- (void)viewDidAppear:(BOOL)animated;
+//- (void)viewWillDisappear:(BOOL)animated;
+//- (void)viewDidDisappear:(BOOL)animated;
 @end
 
-@interface KBNavigationController ()
+@interface KBNavigationView : YONSView
 @property (nonatomic) NSMutableArray *views;
 @end
 
+@interface KBNavigationController ()
+@property KBNavigationView *navigationView;
+@end
+
+@implementation KBNavigationView
+
+- (void)viewInit {
+  [super viewInit];
+  _views = [NSMutableArray array];
+}
+
+@end
+
 @implementation KBNavigationController
+
+- (void)loadView {
+  //  NSVisualEffectView *effectView = [[NSVisualEffectView alloc] init];
+  //  effectView.blendingMode = NSVisualEffectBlendingModeBehindWindow;
+  //  effectView.state = NSVisualEffectStateActive;
+
+  _navigationView = [[KBNavigationView alloc] initWithFrame:CGRectMake(0, 0, 350, 600)];
+  YOSelf yself = self;
+  _navigationView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 0;
+    if (yself.titleView) {
+      y += [layout setFrame:CGRectMake(0, 0, size.width, yself.titleView.frame.size.height) view:yself.titleView].size.height;
+    }
+
+    for (NSView *view in yself.navigationView.views) {
+      [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:view];
+    }
+    return size;
+  }];
+  self.view = _navigationView;
+}
 
 - (void)pushView:(NSView *)view animated:(BOOL)animated {
   if (animated) {
@@ -54,8 +88,8 @@ typedef NS_ENUM (NSInteger, KBNavigationDirection) {
 }
 
 - (void)popViewAnimated:(BOOL)animated {
-  if (!self.views || self.views.count == 1) {
-    @throw [NSException exceptionWithName:@"Cannot pop view controller" reason:@"KBNavigationController must have at least 1 child view controller" userInfo:@{}];
+  if (!_navigationView.views || _navigationView.views.count == 1) {
+    [NSException raise:NSGenericException format:@"KBNavigationController must have at least 1 child view"];
     return;
   }
   
@@ -74,60 +108,64 @@ typedef NS_ENUM (NSInteger, KBNavigationDirection) {
   [self removeView:[self currentView]];
 }
 
-- (NSMutableArray *)views {
-  if (!_views) _views = [NSMutableArray array];
-  return _views;
-}
-
 - (CATransition *)transition {
   // Create a default transition if not set
   if (!_transition) {
     _transition = [CATransition animation];
     _transition.type = kCATransitionPush;
     _transition.subtype = kCATransitionFromRight;
+    [_transition setValue:(id)kCFBooleanFalse forKey:kCATransitionFade];
   }
   
   return _transition;
 }
 
 - (void)setRootView:(NSView *)rootView {
+  [self view];
+  [_rootView removeFromSuperview];
+  if (_rootView) [self removeView:_rootView];
   _rootView = rootView;
-  [self.view addSubview:self.rootView];
-  [self addView:self.rootView];
+  [_navigationView addSubview:_rootView];
+  [self addView:_rootView];
 
-  [self.rootView viewWillAppear:NO];
-  [self.rootView viewDidAppear:NO];
+  [_navigationView setNeedsLayout];
+
+  //[self.rootView viewWillAppear:NO];
+  //[self.rootView viewDidAppear:NO];
+}
+
+- (void)setTitleView:(NSView *)titleView {
+  [self view];
+  [_titleView removeFromSuperview];
+  _titleView = titleView;
+  [_navigationView addSubview:_titleView];
+  [_navigationView setNeedsLayout];
 }
 
 - (void)addView:(NSView *)view {
-  NSMutableArray *views = [self.views mutableCopy];
-  [views addObject:view];
-  _views = views;  
+  [self view];
+  [_navigationView.views addObject:view];
   [view setNavigationController:self];
 }
 
 - (void)removeView:(NSView *)view {
-  NSMutableArray *views = [self.views mutableCopy];
-  [views removeObject:view];
-  _views = views;  
+  [self view];
+  [_navigationView.views removeObject:view];
   [view setNavigationController:nil];
 }
 
 - (NSView *)currentView {
-  if (self.views.count == 0) return nil;
-  return self.views[self.views.count-1];
+  if (_navigationView.views.count == 0) return nil;
+  return _navigationView.views[_navigationView.views.count-1];
 }
 
 - (NSView *)previousView {
   if ([self currentView] == self.rootView) return nil;
-  
-  return self.views[self.views.count-2];
+  return _navigationView.views[_navigationView.views.count-2];
 }
 
 - (void)_pushView:(NSView *)view animated:(BOOL)animated {
   NSView *currentView = [self currentView];
-
-  view.frame = self.view.frame;
 
   if (!currentView) {
     self.rootView = view;
@@ -139,8 +177,12 @@ typedef NS_ENUM (NSInteger, KBNavigationDirection) {
 }
 
 - (void)replaceView:(NSView *)outView withView:(NSView *)inView animated:(BOOL)animated direction:(KBNavigationDirection)direction {
+  inView.frame = outView.frame;
+
   if (animated) {
     [CATransaction begin]; {
+      //[CATransaction setAnimationDuration:5.0];
+      /*
       [outView viewWillDisappear:animated];
       [inView viewWillAppear:animated];
       
@@ -148,18 +190,19 @@ typedef NS_ENUM (NSInteger, KBNavigationDirection) {
         [inView viewDidAppear:animated];
         [outView viewDidDisappear:animated];
       }];
-      
+       */
+
       [self.view.animator replaceSubview:outView with:inView];
     }
     [CATransaction commit];
   } else {
-    [outView viewWillDisappear:animated];
-    [inView viewWillAppear:animated];
-    
+    //[outView viewWillDisappear:animated];
+    //[inView viewWillAppear:animated];
+
     [self.view replaceSubview:outView with:inView];
     
-    [inView viewDidAppear:animated];
-    [outView viewDidDisappear:animated];
+    //[inView viewDidAppear:animated];
+    //[outView viewDidDisappear:animated];
   }
 }
 

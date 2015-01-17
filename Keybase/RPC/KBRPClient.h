@@ -15,7 +15,6 @@
 
 @protocol KBRPClientDelegate
 - (void)RPClientDidConnect:(KBRPClient *)RPClient;
-- (void)RPClientDidLogout:(KBRPClient *)RPClient;
 @end
 
 
@@ -28,11 +27,5 @@
 - (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
-
-// Methods
-
-- (void)checkStatus;
-
-- (void)logout;
 
 @end

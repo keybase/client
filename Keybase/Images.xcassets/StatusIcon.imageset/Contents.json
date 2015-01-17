@@ -3,12 +3,12 @@
     {
       "idiom" : "universal",
       "scale" : "1x",
-      "filename" : "StatusIcon.png"
+      "filename" : "lock-4.png"
     },
     {
       "idiom" : "universal",
       "scale" : "2x",
-      "filename" : "StatusIcon2x.png"
+      "filename" : "lock-4-1.png"
     },
     {
       "idiom" : "universal",
