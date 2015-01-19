@@ -92,10 +92,6 @@ type User struct {
 	activeKey            *PgpKeyBundle
 	activePgpFingerprint *PgpFingerprint
 
-	// If we've previously identified this user, the result
-	// can be cached here.
-	cachedIdentifyRes *IdentifyRes
-
 	dirty bool
 }
 

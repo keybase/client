@@ -31,9 +31,8 @@ type IdentifyArgPrime struct {
 }
 
 type IdentifyArg struct {
-	Me      *User // The user who's doing the tracking
-	Ui      IdentifyUI
-	noCache bool
+	Me *User // The user who's doing the tracking
+	Ui IdentifyUI
 }
 
 func (i IdentifyArg) MeSet() bool {
@@ -224,13 +223,6 @@ func (is *IdentifyState) ComputeTrackDiffs() {
 }
 
 func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
-
-	if !arg.noCache {
-		if cir := u.cachedIdentifyRes; cir != nil && (arg.MeSet() == cir.MeSet) {
-			return cir
-		}
-	}
-
 	res = NewIdentifyRes(arg.MeSet())
 	is := NewIdentifyState(&arg, res, u)
 
@@ -260,9 +252,6 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	u.IdTable.Identify(is)
 
 	G.Log.Debug("- Identify(%s)", u.name)
-	if !arg.noCache {
-		u.cachedIdentifyRes = res
-	}
 	return
 }
 
@@ -294,7 +283,7 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 		return
 	}
 
-	_, err = u.Identify(IdentifyArg{Me: u, Ui: ui, noCache: true})
+	_, err = u.Identify(IdentifyArg{Me: u, Ui: ui})
 
 	if err == nil {
 		cw := G.Env.GetConfigWriter()
