@@ -2,4 +2,12 @@
 @namespace("keybase.1")
 protocol identify {
 	import idl "common.avdl";
+
+        void identify(
+                UID uid,
+                string user,
+                boolean trackStatement,
+                boolean luba,
+                boolean loadSelf
+        );
 }

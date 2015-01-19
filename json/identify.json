@@ -57,6 +57,39 @@
       "name" : "markup",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
   } ],
-  "messages" : { }
+  "messages" : {
+    "identify" : {
+      "request" : [ {
+        "name" : "uid",
+        "type" : "UID"
+      }, {
+        "name" : "user",
+        "type" : "string"
+      }, {
+        "name" : "trackStatement",
+        "type" : "boolean"
+      }, {
+        "name" : "luba",
+        "type" : "boolean"
+      }, {
+        "name" : "loadSelf",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
+    }
+  }
 }

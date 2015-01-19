@@ -78,19 +78,47 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	return
 }
 
+type PgpIdentity struct {
+	Username string `codec:"username"`
+	Comment  string `codec:"comment"`
+	Email    string `codec:"email"`
+}
+
+type IdentifyArg struct {
+	Uid            UID    `codec:"uid"`
+	User           string `codec:"user"`
+	TrackStatement bool   `codec:"trackStatement"`
+	Luba           bool   `codec:"luba"`
+	LoadSelf       bool   `codec:"loadSelf"`
+}
+
 type IdentifyInterface interface {
+	Identify(IdentifyArg) error
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
 	return rpc2.Protocol{
-		Name:    "keybase.1.identify",
-		Methods: map[string]rpc2.ServeHook{},
+		Name: "keybase.1.identify",
+		Methods: map[string]rpc2.ServeHook{
+			"identify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]IdentifyArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Identify(args[0])
+				}
+				return
+			},
+		},
 	}
 
 }
 
 type IdentifyClient struct {
 	Cli GenericClient
+}
+
+func (c IdentifyClient) Identify(__arg IdentifyArg) (err error) {
+	err = c.Cli.Call("keybase.1.identify.identify", []interface{}{__arg}, nil)
+	return
 }
 
 type TrackDiffType int
@@ -471,12 +499,6 @@ func (c LoginClient) SwitchUser(username string) (err error) {
 	__arg := SwitchUserArg{Username: username}
 	err = c.Cli.Call("keybase.1.login.switchUser", []interface{}{__arg}, nil)
 	return
-}
-
-type PgpIdentity struct {
-	Username string `codec:"username"`
-	Comment  string `codec:"comment"`
-	Email    string `codec:"email"`
 }
 
 type GetEmailOrUsernameArg struct {
