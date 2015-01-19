@@ -262,6 +262,11 @@ type LaunchNetworkChecksArg struct {
 	Id        Identity `codec:"id"`
 }
 
+type DisplayTrackStatementArg struct {
+	SessionId int    `codec:"sessionId"`
+	Stmt      string `codec:"stmt"`
+}
+
 type IdentifyUiInterface interface {
 	FinishAndPrompt(FinishAndPromptArg) (FinishAndPromptRes, error)
 	FinishWebProofCheck(FinishWebProofCheckArg) error
@@ -270,6 +275,7 @@ type IdentifyUiInterface interface {
 	DisplayKey(DisplayKeyArg) error
 	ReportLastTrack(ReportLastTrackArg) error
 	LaunchNetworkChecks(LaunchNetworkChecksArg) error
+	DisplayTrackStatement(DisplayTrackStatementArg) error
 }
 
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
@@ -325,6 +331,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"displayTrackStatement": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayTrackStatementArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayTrackStatement(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -366,6 +379,11 @@ func (c IdentifyUiClient) ReportLastTrack(__arg ReportLastTrackArg) (err error) 
 
 func (c IdentifyUiClient) LaunchNetworkChecks(__arg LaunchNetworkChecksArg) (err error) {
 	err = c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
 	return
 }
 

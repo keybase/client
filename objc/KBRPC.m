@@ -152,6 +152,14 @@
   }];
 }
 
+- (void)displayTrackStatementWithSessionId:(NSInteger )sessionId stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"stmt": KBRValue(stmt)}];
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTrackStatement" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRLogUi

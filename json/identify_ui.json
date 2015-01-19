@@ -58,6 +58,19 @@
       "type" : "boolean"
     } ]
   }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "TrackDiffType",
     "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
@@ -356,6 +369,16 @@
       }, {
         "name" : "id",
         "type" : "Identity"
+      } ],
+      "response" : "null"
+    },
+    "displayTrackStatement" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "stmt",
+        "type" : "string"
       } ],
       "response" : "null"
     }
