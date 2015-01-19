@@ -45,7 +45,7 @@
 		},
 		{
 			"ImportPath": "github.com/keybase/go-jsonw",
-			"Rev": "d3319dcffa4ee8dc82d622a9ef126f5e9773b4a9"
+			"Rev": "c4770820d55c7a52cab5df7ecfb5c87af431a141"
 		},
 		{
 			"ImportPath": "github.com/keybase/go-triplesec",
