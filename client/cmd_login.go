@@ -23,6 +23,10 @@ func NewLoginUIProtocol() rpc2.Protocol {
 }
 
 func NewIdentifyUIProtocol() rpc2.Protocol {
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI(nil)})
+}
+
+func NewIdentifySelfUIProtocol() rpc2.Protocol {
 	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifySelfUI()})
 }
 
@@ -68,7 +72,7 @@ func (v *CmdLogin) RunClient() (err error) {
 	var cli keybase_1.LoginClient
 	protocols := []rpc2.Protocol{
 		NewLoginUIProtocol(),
-		NewIdentifyUIProtocol(),
+		NewIdentifySelfUIProtocol(),
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
