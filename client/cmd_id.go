@@ -52,7 +52,6 @@ func (v *CmdId) RunClient() (err error) {
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewIdentifyUIProtocol(),
-		NewSecretUIProtocol(),
 	}
 	if cli, err = GetIdentifyClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
