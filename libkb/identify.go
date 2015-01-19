@@ -21,6 +21,15 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 	return nil
 }
 
+type IdentifyArgPrime struct {
+	Uid            *UID
+	User           string
+	TrackStatement bool
+	Luba           bool
+	LoadSelf       bool
+	LogUI          LogUI
+}
+
 type IdentifyArg struct {
 	Me      *User // The user who's doing the tracking
 	Ui      IdentifyUI
@@ -265,10 +274,10 @@ func (u *User) Identify(arg IdentifyArg) (ti TrackInstructions, err error) {
 	return fpr, err
 }
 
-func (u *User) IdentifySimple(me *User) error {
+func (u *User) IdentifySimple(me *User, ui IdentifyUI) error {
 	_, err := u.Identify(IdentifyArg{
 		Me: me,
-		Ui: G.UI.GetIdentifyUI(u),
+		Ui: ui,
 	})
 	return err
 }
@@ -296,4 +305,49 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 	}
 
 	return
+}
+
+// IdentifyEng is the type used by cmd_id Run, daemon id handler.
+type IdentifyEng struct {
+	arg *IdentifyArgPrime
+	ui  IdentifyUI
+}
+
+func NewIdentifyEng(arg *IdentifyArgPrime, ui IdentifyUI) *IdentifyEng {
+	return &IdentifyEng{arg: arg, ui: ui}
+}
+
+func (e *IdentifyEng) Run() error {
+	if e.arg.Luba {
+		return e.RunLuba()
+	}
+	return e.RunStandard()
+}
+
+func (e *IdentifyEng) RunLuba() error {
+	r := LoadUserByAssertions(e.arg.User, e.arg.LoadSelf)
+	if r.Error != nil {
+		return r.Error
+	}
+	G.Log.Info("Success; loaded %s", r.User.GetName())
+	return nil
+}
+
+func (e *IdentifyEng) RunStandard() error {
+	arg := LoadUserArg{
+		Self: (len(e.arg.User) == 0),
+	}
+	if e.arg.Uid != nil {
+		arg.Uid = e.arg.Uid
+	} else {
+		arg.Name = e.arg.User
+	}
+	u, err := LoadUser(arg)
+	if err != nil {
+		return err
+	}
+	if e.ui == nil {
+		e.ui = G.UI.GetIdentifyUI(u)
+	}
+	return u.IdentifySimple(nil, e.ui)
 }

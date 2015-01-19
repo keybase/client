@@ -511,15 +511,10 @@ func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
 	return
 }
 
-type PgpCreateUids struct {
-	UseDefault bool          `codec:"useDefault"`
-	Ids        []PgpIdentity `codec:"ids"`
-}
-
 type KeyGenArg struct {
 	PrimaryBits  int           `codec:"primaryBits"`
 	SubkeyBits   int           `codec:"subkeyBits"`
-	CreateUids   PgpCreateUids `codec:"createUids"`
+	Ids          []PgpIdentity `codec:"ids"`
 	NoPassphrase bool          `codec:"noPassphrase"`
 	KbPassphrase bool          `codec:"kbPassphrase"`
 	NoNaclEddsa  bool          `codec:"noNaclEddsa"`
@@ -528,7 +523,7 @@ type KeyGenArg struct {
 }
 
 type KeyGenDefaultArg struct {
-	CreateUids PgpCreateUids `codec:"createUids"`
+	Ids        []PgpIdentity `codec:"ids"`
 	PushPublic bool          `codec:"pushPublic"`
 	PushSecret bool          `codec:"pushSecret"`
 	Passphrase string        `codec:"passphrase"`
@@ -664,17 +659,14 @@ func (c ProveClient) Prove(__arg ProveArg) (err error) {
 	return
 }
 
-type PromptOverwriteType int
+type PromptOverwrite1Arg struct {
+	SessionId int    `codec:"sessionId"`
+	Account   string `codec:"account"`
+}
 
-const (
-	PromptOverwriteType_SOCIAL = 0
-	PromptOverwriteType_SITE   = 1
-)
-
-type PromptOverwriteArg struct {
-	SessionId int                 `codec:"sessionId"`
-	Account   string              `codec:"account"`
-	Typ       PromptOverwriteType `codec:"typ"`
+type PromptOverwrite2Arg struct {
+	SessionId int    `codec:"sessionId"`
+	Service   string `codec:"service"`
 }
 
 type PromptUsernameArg struct {
@@ -711,7 +703,8 @@ type DisplayRecheckWarningArg struct {
 }
 
 type ProveUiInterface interface {
-	PromptOverwrite(PromptOverwriteArg) (bool, error)
+	PromptOverwrite1(PromptOverwrite1Arg) (bool, error)
+	PromptOverwrite2(PromptOverwrite2Arg) (bool, error)
 	PromptUsername(PromptUsernameArg) (string, error)
 	OutputPrechecks(OutputPrechecksArg) error
 	PreProofWarning(PreProofWarningArg) (bool, error)
@@ -724,10 +717,17 @@ func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.proveUi",
 		Methods: map[string]rpc2.ServeHook{
-			"promptOverwrite": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptOverwriteArg, 1)
+			"promptOverwrite1": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PromptOverwrite1Arg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptOverwrite(args[0])
+					ret, err = i.PromptOverwrite1(args[0])
+				}
+				return
+			},
+			"promptOverwrite2": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PromptOverwrite2Arg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptOverwrite2(args[0])
 				}
 				return
 			},
@@ -782,8 +782,13 @@ type ProveUiClient struct {
 	Cli GenericClient
 }
 
-func (c ProveUiClient) PromptOverwrite(__arg PromptOverwriteArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res)
+func (c ProveUiClient) PromptOverwrite1(__arg PromptOverwrite1Arg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite1", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProveUiClient) PromptOverwrite2(__arg PromptOverwrite2Arg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite2", []interface{}{__arg}, &res)
 	return
 }
 

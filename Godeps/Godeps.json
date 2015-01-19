@@ -53,7 +53,7 @@
 		},
 		{
 			"ImportPath": "github.com/keybase/protocol/go",
-			"Rev": "d6eb40f8301b75b4cabc9a270df014ce91dba5f3"
+			"Rev": "3d1e88a90d55df6e28efdfc206433943481335e3"
 		},
 		{
 			"ImportPath": "github.com/kr/text",

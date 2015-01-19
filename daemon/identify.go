@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -20,6 +22,20 @@ type IdentifyHandler struct {
 
 func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
 	return &IdentifyHandler{BaseHandler{xp: xp}}
+}
+
+func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) error {
+	iarg := libkb.ImportIdentifyArg(arg)
+	return h.identify(iarg, true)
+}
+
+func (h *IdentifyHandler) identify(iarg libkb.IdentifyArgPrime, doInteractive bool) error {
+	sessionId := nextSessionId()
+	iarg.LogUI = h.getLogUI(sessionId)
+	iarg.LogUI.Info("Identify:  session id = %v", sessionId)
+
+	eng := libkb.NewIdentifyEng(&iarg, NewRemoteIdentifyUI(sessionId, h.cli))
+	return eng.Run()
 }
 
 var (
@@ -85,5 +101,20 @@ func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity) {
 		SessionId: u.sessionId,
 		Id:        *id,
 	})
+	return
+}
+
+type RemoteIdentifyUI struct {
+	RemoteBaseIdentifyUI
+}
+
+func NewRemoteIdentifyUI(sessionId int, c *rpc2.Client) *RemoteIdentifyUI {
+	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
+		sessionId: sessionId,
+		uicli:     keybase_1.IdentifyUiClient{c},
+	}}
+}
+
+func (u *RemoteIdentifyUI) Start() {
 	return
 }

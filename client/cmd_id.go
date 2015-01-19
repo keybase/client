@@ -5,6 +5,8 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdId struct {
@@ -35,43 +37,36 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdId) RunClient() error { return v.Run() }
+func (v *CmdId) makeArg() *libkb.IdentifyArgPrime {
+	return &libkb.IdentifyArgPrime{
+		Uid:            v.uid,
+		User:           v.user,
+		TrackStatement: v.track,
+		Luba:           v.luba,
+		LoadSelf:       v.loadSelf,
+	}
+}
+
+func (v *CmdId) RunClient() (err error) {
+	var cli keybase_1.IdentifyClient
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewIdentifyUIProtocol(),
+		NewSecretUIProtocol(),
+	}
+	if cli, err = GetIdentifyClient(); err != nil {
+	} else if err = RegisterProtocols(protocols); err != nil {
+	} else {
+		arg := v.makeArg()
+		err = cli.Identify(arg.Export())
+	}
+	return
+}
 
 func (v *CmdId) Run() error {
-	if v.luba {
-		return v.RunLuba()
-	} else {
-		return v.RunStandard()
-	}
-}
-
-func (v *CmdId) RunLuba() error {
-	r := libkb.LoadUserByAssertions(v.user, v.loadSelf)
-	if r.Error != nil {
-		return r.Error
-	} else {
-		G.Log.Info("Success; loaded %s", r.User.GetName())
-	}
-	return nil
-}
-
-func (v *CmdId) RunStandard() error {
-
-	arg := libkb.LoadUserArg{
-		Self: (len(v.user) == 0),
-	}
-	if v.uid != nil {
-		arg.Uid = v.uid
-	} else {
-		arg.Name = v.user
-	}
-	u, err := libkb.LoadUser(arg)
-
-	if err == nil {
-		err = u.IdentifySimple(nil)
-	}
-
-	return err
+	arg := v.makeArg()
+	eng := libkb.NewIdentifyEng(arg, nil)
+	return eng.Run()
 }
 
 func NewCmdId(cl *libcmdline.CommandLine) cli.Command {

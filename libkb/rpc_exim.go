@@ -64,6 +64,29 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase_1.RemoteProof {
 	}
 }
 
+func (a IdentifyArgPrime) Export() (res keybase_1.IdentifyArg) {
+	if a.Uid != nil {
+		res.Uid = keybase_1.UID(*a.Uid)
+	}
+	res.User = a.User
+	res.TrackStatement = a.TrackStatement
+	res.Luba = a.Luba
+	res.LoadSelf = a.LoadSelf
+	return res
+}
+
+func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArgPrime) {
+	uid := UID(a.Uid)
+	if !uid.IsZero() {
+		ret.Uid = &uid
+	}
+	ret.User = a.User
+	ret.TrackStatement = a.TrackStatement
+	ret.Luba = a.Luba
+	ret.LoadSelf = a.LoadSelf
+	return ret
+}
+
 func (i IdentifyRes) ExportToIdentifyOutcome() (res keybase_1.IdentifyOutcome) {
 	res.NumTrackFailures = i.NumTrackFailures()
 	res.NumTrackChanges = i.NumTrackChanges()

@@ -18,6 +18,15 @@ func (u UID) ToString() string {
 	return hex.EncodeToString(u[:])
 }
 
+func (u UID) IsZero() bool {
+	for _, b := range u {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 func UidFromHex(s string) (u *UID, err error) {
 	var bv []byte
 	bv, err = hex.DecodeString(s)
