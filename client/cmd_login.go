@@ -68,6 +68,11 @@ func (i *IdentifyUIServer) LaunchNetworkChecks(arg keybase_1.LaunchNetworkChecks
 	return nil
 }
 
+func (i *IdentifyUIServer) DisplayTrackStatement(arg keybase_1.DisplayTrackStatementArg) error {
+	i.eng.DisplayTrackStatement(arg.Stmt)
+	return nil
+}
+
 func (v *CmdLogin) RunClient() (err error) {
 	var cli keybase_1.LoginClient
 	protocols := []rpc2.Protocol{

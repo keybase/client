@@ -91,6 +91,11 @@ func (u *RemoteBaseIdentifyUI) ReportLastTrack(t *keybase_1.TrackSummary) {
 	return
 }
 
+func (u *RemoteBaseIdentifyUI) DisplayTrackStatement(s string) error {
+	return u.uicli.DisplayTrackStatement(keybase_1.DisplayTrackStatementArg{Stmt: s, SessionId: u.sessionId})
+	// return
+}
+
 func (u *RemoteSelfIdentifyUI) Start() {
 	return
 }

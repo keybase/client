@@ -314,7 +314,7 @@ func (e *IdentifyEng) Run() error {
 }
 
 func (e *IdentifyEng) RunLuba() error {
-	r := LoadUserByAssertions(e.arg.User, e.arg.LoadSelf)
+	r := LoadUserByAssertions(e.arg.User, e.arg.LoadSelf, e.ui)
 	if r.Error != nil {
 		return r.Error
 	}
@@ -338,5 +338,30 @@ func (e *IdentifyEng) RunStandard() error {
 	if e.ui == nil {
 		e.ui = G.UI.GetIdentifyUI(u)
 	}
-	return u.IdentifySimple(nil, e.ui)
+	err = u.IdentifySimple(nil, e.ui)
+	if err != nil {
+		return err
+	}
+
+	if !e.arg.TrackStatement {
+		return nil
+	}
+	if arg.Self == true {
+		return nil
+	}
+
+	// they want a json tracking statement:
+	me, err := LoadMe(LoadUserArg{LoadSecrets: true})
+	if err != nil {
+		G.Log.Warning("error loading me: %s", err)
+		return err
+	}
+	stmt, err := TrackStatementJSON(me, u)
+	if err != nil {
+		G.Log.Warning("error getting track statement: %s", err)
+		return err
+	}
+	// return e.ui.DisplayTrackStatement(DisplayTrackArg(0, stmt))
+	G.Log.Info("json track statement: %s", stmt)
+	return e.ui.DisplayTrackStatement(stmt)
 }

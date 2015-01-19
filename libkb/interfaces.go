@@ -198,6 +198,7 @@ type IdentifyUI interface {
 	ReportLastTrack(*keybase_1.TrackSummary)
 	Start()
 	LaunchNetworkChecks(*keybase_1.Identity)
+	DisplayTrackStatement(string) error
 }
 
 type Checker struct {

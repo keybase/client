@@ -20,8 +20,8 @@ type LubaRes struct {
 	IdentifyRes *IdentifyRes
 }
 
-func LoadUserByAssertions(a string, withTracking bool) (res LubaRes) {
-	res.Load(a, withTracking)
+func LoadUserByAssertions(a string, withTracking bool, ui IdentifyUI) (res LubaRes) {
+	res.Load(a, withTracking, ui)
 	return
 }
 
@@ -56,7 +56,7 @@ func (l *LubaRes) FindBestComponent() string {
 	return ""
 }
 
-func (l *LubaRes) Load(a string, withTracking bool) {
+func (l *LubaRes) Load(a string, withTracking bool, ui IdentifyUI) {
 
 	// Parse assertion but don't allow OR operators, only
 	// AND operators
@@ -90,9 +90,13 @@ func (l *LubaRes) Load(a string, withTracking bool) {
 		return
 	}
 
+	if ui == nil {
+		ui = G.UI.GetIdentifyLubaUI(l.User)
+	}
+
 	_, l.Error = l.User.Identify(IdentifyArg{
 		Me: me,
-		Ui: G.UI.GetIdentifyLubaUI(l.User),
+		Ui: ui,
 	})
 	if l.Error != nil {
 		return

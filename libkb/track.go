@@ -433,6 +433,18 @@ func (e *TrackEngine) Run() (err error) {
 	return
 }
 
+func TrackStatementJSON(me, them *User) (string, error) {
+	stmt, err := me.TrackingProofFor(them)
+	if err != nil {
+		return "", err
+	}
+	json, err := stmt.Marshal()
+	if err != nil {
+		return "", err
+	}
+	return string(json), nil
+}
+
 func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
 	uid_s := i.ToString()
 	G.Log.Debug("+ GetLocalTrack(%s)", uid_s)

@@ -298,6 +298,15 @@ func (ir *IdentifyRes) Export() *keybase_1.IdentifyOutcome {
 
 //=============================================================================
 
+func DisplayTrackArg(sessionID int, stmt string) *keybase_1.DisplayTrackStatementArg {
+	return &keybase_1.DisplayTrackStatementArg{
+		SessionId: sessionID,
+		Stmt:      stmt,
+	}
+}
+
+//=============================================================================
+
 func ImportFinishAndPromptRes(f keybase_1.FinishAndPromptRes) (ti TrackInstructions) {
 	ti.Local = f.TrackLocal
 	ti.Remote = f.TrackRemote
