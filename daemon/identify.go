@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
