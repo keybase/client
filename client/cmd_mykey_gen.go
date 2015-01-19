@@ -83,7 +83,7 @@ func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "Don't go into interactive mode",
 			},
 			cli.BoolFlag{
-				Name:  "k, keybase-passprhase",
+				Name:  "k, keybase-passphrase",
 				Usage: "Lock your key with your present Keybase passphrase",
 			},
 			cli.StringSliceFlag{
