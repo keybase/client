@@ -394,9 +394,9 @@ func (e *TrackEngine) LoadThem() error {
 			ForceReload: false,
 		}); err != nil {
 			return err
+		} else {
+			e.Them = u
 		}
-
-		e.Them = u
 	}
 	return nil
 }
@@ -405,9 +405,9 @@ func (e *TrackEngine) LoadMe() error {
 	if e.Me == nil {
 		if me, err := LoadMe(LoadUserArg{LoadSecrets: true}); err != nil && e.MeRequired {
 			return err
+		} else {
+			e.Me = me
 		}
-
-		e.Me = me
 	}
 	return nil
 }
