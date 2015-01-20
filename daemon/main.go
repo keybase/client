@@ -53,6 +53,13 @@ func (d *Daemon) Run() (err error) {
 }
 
 func (d *Daemon) setupRun() error {
+	dir, err := G.Env.GetRuntimeDir()
+	if err != nil {
+		return err
+	}
+	if err = os.MkdirAll(dir, libkb.PERM_DIR); err != nil {
+		return err
+	}
 	if err := d.lockPIDFile(); err != nil {
 		return err
 	}
@@ -84,7 +91,7 @@ func (d *Daemon) pidFilename() string {
 func (d *Daemon) lockPIDFile() error {
 	err := libkb.LockPIDFile(d.pidFilename())
 	if err != nil {
-		return fmt.Errorf("error locking %s.  daemon already running.", d.pidFilename())
+		return fmt.Errorf("error locking %s:  daemon already running", d.pidFilename())
 	}
 	return nil
 }
@@ -111,10 +118,9 @@ func (d *Daemon) ListenLoop() (err error) {
 		go d.Handle(c)
 
 	}
-	return nil
 }
 
-func (v *Daemon) ParseArgv(ctx *cli.Context) error {
+func (d *Daemon) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
