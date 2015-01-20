@@ -28,6 +28,7 @@
   //_statusItem.image = [NSImage imageNamed:@"StatusIcon"];
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
+  _statusItem.menu = [self menu];
 
   self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
   [self.windowController window];
@@ -102,7 +103,6 @@
 
 - (void)setStatus:(KBGetCurrentStatusRes *)status {
   _status = status;
-  _statusItem.menu = [self menu];
 
   if (!status.loggedIn || (status.loggedIn && !status.publicKeySelected)) {
     if (status.loggedIn && !status.publicKeySelected) {
