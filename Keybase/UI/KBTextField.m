@@ -46,15 +46,21 @@
   }];
 }
 
-//- (BOOL)becomeFirstResponder {
-//  _box.borderColor = [NSColor colorWithRed:0.0f green:0.49f blue:0.96f alpha:1.0f];
-//  return [_textField becomeFirstResponder];
-//}
-//
-//- (BOOL)resignFirstResponder {
-//  _box.borderColor = [NSColor colorWithWhite:0.9 alpha:1.0];
-//  return [_textField resignFirstResponder];
-//}
+- (BOOL)becomeFirstResponder {
+  return [_textField becomeFirstResponder];
+}
+
+- (BOOL)resignFirstResponder {
+  return [_textField resignFirstResponder];
+}
+
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+
+- (BOOL)canBecomeKeyView {
+  return YES;
+}
 
 - (void)setNextKeyView:(NSView *)nextKeyView {
   [_textField setNextKeyView:nextKeyView];

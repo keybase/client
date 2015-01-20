@@ -10,7 +10,7 @@
 
 #import "KBUIDefines.h"
 
-@interface KBLogoView : KBView
+@interface KBLogoView : YONSView <KBNavigationViewDelegate>
 
 @property KBButton *backView;
 

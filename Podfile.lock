@@ -37,9 +37,9 @@ PODS:
     - ObjectiveSugar
     - TSTripleSec
   - libsodium (1.0.1)
-  - Mantle (1.5.3):
-    - Mantle/extobjc (= 1.5.3)
-  - Mantle/extobjc (1.5.3)
+  - Mantle (1.5.4):
+    - Mantle/extobjc (= 1.5.4)
+  - Mantle/extobjc (1.5.4)
   - MPMessagePack (1.0.8)
   - NAChloride (1.1.2):
     - libsodium
@@ -72,7 +72,7 @@ SPEC CHECKSUMS:
   GRUnit: daa7670b1af32fe97889b8ceedb8eba2f5d8726d
   KBKeybase: d7c1b3f784f2755c4fce34d4c33ecef837598292
   libsodium: ac34cc59b942350fb1377380cfb31f05c3d6170e
-  Mantle: 8d84cacd6c2a69ff6fbce985a2b51298a5495de3
+  Mantle: d5fbaf30fbc58031223af13812c060e15934a1fe
   MPMessagePack: 3a7884128c0a3c8b80b623b3516e6548260fbfc1
   NAChloride: f5ec84c64efcdb5008f960d7d557dfac6c060a1d
   ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2

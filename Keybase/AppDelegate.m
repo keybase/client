@@ -32,6 +32,8 @@
   self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
   [self.windowController window];
 
+  [self.windowController showLogin:NO];
+
   _client = [[KBRPClient alloc] init];
   _client.delegate = self;
   [_client open];
@@ -40,7 +42,7 @@
   [_client registerMethod:@"keybase.1.secretUi.getSecret" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     NSString *prompt = params[0][@"pinentry"][@"prompt"];
     NSString *description = params[0][@"pinentry"][@"desc"];
-    [AppDelegate passwordPrompt:prompt description:description view:gself completion:^(BOOL canceled, NSString *password) {
+    [AppDelegate passwordPrompt:prompt description:description view:gself.windowController.window.contentView completion:^(BOOL canceled, NSString *password) {
       KBSecretEntryRes *entry = [[KBSecretEntryRes alloc] init];
       entry.text = password;
       entry.canceled = canceled;
@@ -50,10 +52,6 @@
 
   // Just for mocking
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
-
-  // For debug
-  //_catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
-  //[_catalogController showCatalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
@@ -102,12 +100,6 @@
   }];
 }
 
-- (NSMenu *)connectMenu {
-  NSMenu *menu = [[NSMenu alloc] init];
-  [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
-  return menu;
-}
-
 - (void)setStatus:(KBGetCurrentStatusRes *)status {
   _status = status;
   _statusItem.menu = [self menu];
@@ -126,6 +118,7 @@
 
 - (NSMenu *)menu {
   NSMenu *menu = [[NSMenu alloc] init];
+  [menu addItemWithTitle:@"Catalog" action:@selector(catalog) keyEquivalent:@""];
   [menu addItemWithTitle:@"Log Out" action:@selector(logout) keyEquivalent:@""];
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
@@ -157,6 +150,12 @@
 
 - (void)quit:(id)sender {
   [NSApplication.sharedApplication terminate:sender];
+}
+
+- (void)catalog {
+  _catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
+  [_catalogController window];
+  [_catalogController showCatalog];
 }
 
 @end

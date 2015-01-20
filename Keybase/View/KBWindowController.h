@@ -8,14 +8,14 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "KBNavigationController.h"
+#import "KBNavigationView.h"
 #import "KBRPC.h"
 
 @interface KBWindowController : NSWindowController
 
 @property IBOutlet NSWindow *window;
 
-@property KBNavigationController *navigationController;
+@property KBNavigationView *navigation;
 
 - (void)showLogin:(BOOL)animated;
 - (void)showSignup:(BOOL)animated;
@@ -27,5 +27,7 @@
 - (void)showUser:(KBUserInfo *)userInfo animated:(BOOL)animated;
 
 - (void)showCatalog;
+
+- (void)showUsers:(BOOL)animated;
 
 @end

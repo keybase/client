@@ -94,6 +94,10 @@
   }];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  [self.window makeFirstResponder:_inputView];
+}
+
 - (void)setInstructions:(NSString *)instructions proofText:(NSString *)proofText {
   NSDictionary *style = @{@"$default": @{NSFontAttributeName: [KBLookAndFeel textFont]},
                           @"p": @{NSFontAttributeName: [KBLookAndFeel textFont]},

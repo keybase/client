@@ -32,6 +32,14 @@
 		00CB67C11A69D16700B5882A /* KBLogoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CB11A672D5C0000460F /* KBLogoView.m */; };
 		00CB67C21A69D16800B5882A /* KBLogoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CB11A672D5C0000460F /* KBLogoView.m */; };
 		00CB67C31A69D17F00B5882A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43531A3A9E6C006118A9 /* Images.xcassets */; };
+		00CB67CA1A6DD50500B5882A /* KBNavigationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67C91A6DD50500B5882A /* KBNavigationView.m */; };
+		00CB67CB1A6DD50500B5882A /* KBNavigationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67C91A6DD50500B5882A /* KBNavigationView.m */; };
+		00CB67CE1A6DF1D300B5882A /* KBActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67CD1A6DF1D300B5882A /* KBActivityIndicatorView.m */; };
+		00CB67CF1A6DF1D300B5882A /* KBActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67CD1A6DF1D300B5882A /* KBActivityIndicatorView.m */; };
+		00CB67D21A6DFF2900B5882A /* KBProgressOverlayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67D11A6DFF2900B5882A /* KBProgressOverlayView.m */; };
+		00CB67D31A6DFF2900B5882A /* KBProgressOverlayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67D11A6DFF2900B5882A /* KBProgressOverlayView.m */; };
+		00CB67D61A6E1D6B00B5882A /* KBTableRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67D51A6E1D6B00B5882A /* KBTableRowView.m */; };
+		00CB67D71A6E1D6B00B5882A /* KBTableRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB67D51A6E1D6B00B5882A /* KBTableRowView.m */; };
 		00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC434F1A3A9E6C006118A9 /* AppDelegate.m */; };
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43531A3A9E6C006118A9 /* Images.xcassets */; };
@@ -48,8 +56,6 @@
 		00E3E3C11A64B68A00CCB8F4 /* KBUserProfileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3BF1A64B68A00CCB8F4 /* KBUserProfileView.m */; };
 		00E3E3C41A64B94C00CCB8F4 /* KBConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3C31A64B94C00CCB8F4 /* KBConnectView.m */; };
 		00E3E3C51A64B94C00CCB8F4 /* KBConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3C31A64B94C00CCB8F4 /* KBConnectView.m */; };
-		00E3E3DF1A64BA9F00CCB8F4 /* KBNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3CC1A64BA9F00CCB8F4 /* KBNavigationController.m */; };
-		00E3E3E01A64BA9F00CCB8F4 /* KBNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3CC1A64BA9F00CCB8F4 /* KBNavigationController.m */; };
 		00E3E3E31A64BA9F00CCB8F4 /* KBButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3D01A64BA9F00CCB8F4 /* KBButton.m */; };
 		00E3E3E41A64BA9F00CCB8F4 /* KBButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3D01A64BA9F00CCB8F4 /* KBButton.m */; };
 		00E3E3E71A64BA9F00CCB8F4 /* KBImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3D41A64BA9F00CCB8F4 /* KBImageView.m */; };
@@ -118,6 +124,14 @@
 		00CB67A31A69CFCF00B5882A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		00CB67AE1A69CFD000B5882A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00CB67AF1A69CFD000B5882A /* CatalogTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CatalogTests.m; sourceTree = "<group>"; };
+		00CB67C81A6DD50500B5882A /* KBNavigationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNavigationView.h; sourceTree = "<group>"; };
+		00CB67C91A6DD50500B5882A /* KBNavigationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNavigationView.m; sourceTree = "<group>"; };
+		00CB67CC1A6DF1D300B5882A /* KBActivityIndicatorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBActivityIndicatorView.h; sourceTree = "<group>"; };
+		00CB67CD1A6DF1D300B5882A /* KBActivityIndicatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBActivityIndicatorView.m; sourceTree = "<group>"; };
+		00CB67D01A6DFF2900B5882A /* KBProgressOverlayView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProgressOverlayView.h; sourceTree = "<group>"; };
+		00CB67D11A6DFF2900B5882A /* KBProgressOverlayView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProgressOverlayView.m; sourceTree = "<group>"; };
+		00CB67D41A6E1D6B00B5882A /* KBTableRowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTableRowView.h; sourceTree = "<group>"; };
+		00CB67D51A6E1D6B00B5882A /* KBTableRowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTableRowView.m; sourceTree = "<group>"; };
 		00CC43491A3A9E6C006118A9 /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00CC434D1A3A9E6C006118A9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00CC434E1A3A9E6C006118A9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -139,8 +153,6 @@
 		00E3E3BF1A64B68A00CCB8F4 /* KBUserProfileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserProfileView.m; sourceTree = "<group>"; };
 		00E3E3C21A64B94C00CCB8F4 /* KBConnectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConnectView.h; sourceTree = "<group>"; };
 		00E3E3C31A64B94C00CCB8F4 /* KBConnectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConnectView.m; sourceTree = "<group>"; };
-		00E3E3CB1A64BA9F00CCB8F4 /* KBNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNavigationController.h; sourceTree = "<group>"; };
-		00E3E3CC1A64BA9F00CCB8F4 /* KBNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNavigationController.m; sourceTree = "<group>"; };
 		00E3E3CF1A64BA9F00CCB8F4 /* KBButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBButton.h; sourceTree = "<group>"; };
 		00E3E3D01A64BA9F00CCB8F4 /* KBButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBButton.m; sourceTree = "<group>"; };
 		00E3E3D31A64BA9F00CCB8F4 /* KBImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBImageView.h; sourceTree = "<group>"; };
@@ -296,8 +308,6 @@
 			isa = PBXGroup;
 			children = (
 				00358D5F1A5F56980052B016 /* KBUIDefines.h */,
-				00E3E3CB1A64BA9F00CCB8F4 /* KBNavigationController.h */,
-				00E3E3CC1A64BA9F00CCB8F4 /* KBNavigationController.m */,
 				00E3E3CF1A64BA9F00CCB8F4 /* KBButton.h */,
 				00E3E3D01A64BA9F00CCB8F4 /* KBButton.m */,
 				00E3E3D31A64BA9F00CCB8F4 /* KBImageView.h */,
@@ -308,6 +318,14 @@
 				00E3E3D81A64BA9F00CCB8F4 /* KBTextLabel.m */,
 				00E3E3D91A64BA9F00CCB8F4 /* KBView.h */,
 				00E3E3DA1A64BA9F00CCB8F4 /* KBView.m */,
+				00CB67C81A6DD50500B5882A /* KBNavigationView.h */,
+				00CB67C91A6DD50500B5882A /* KBNavigationView.m */,
+				00CB67CC1A6DF1D300B5882A /* KBActivityIndicatorView.h */,
+				00CB67CD1A6DF1D300B5882A /* KBActivityIndicatorView.m */,
+				00CB67D01A6DFF2900B5882A /* KBProgressOverlayView.h */,
+				00CB67D11A6DFF2900B5882A /* KBProgressOverlayView.m */,
+				00CB67D41A6E1D6B00B5882A /* KBTableRowView.h */,
+				00CB67D51A6E1D6B00B5882A /* KBTableRowView.m */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -553,7 +571,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E3E3DF1A64BA9F00CCB8F4 /* KBNavigationController.m in Sources */,
+				00CB67CA1A6DD50500B5882A /* KBNavigationView.m in Sources */,
+				00CB67D21A6DFF2900B5882A /* KBProgressOverlayView.m in Sources */,
 				00E3E3E91A64BA9F00CCB8F4 /* KBTextField.m in Sources */,
 				00086CA61A65CEC60000460F /* KBSplashView.m in Sources */,
 				00358D5D1A5F564E0052B016 /* KBLookAndFeel.m in Sources */,
@@ -564,11 +583,13 @@
 				00CB67C11A69D16700B5882A /* KBLogoView.m in Sources */,
 				00F807DC1A48D4890038BC63 /* KBWindowController.m in Sources */,
 				005A45341A60948000DC732D /* KBUserHeaderView.m in Sources */,
+				00CB67CE1A6DF1D300B5882A /* KBActivityIndicatorView.m in Sources */,
 				00E3E3C41A64B94C00CCB8F4 /* KBConnectView.m in Sources */,
 				00CC436E1A3A9EC7006118A9 /* KBRPC.m in Sources */,
 				00EF2ADE1A5E062D0007E56E /* KBUserView.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
 				00E3E3E31A64BA9F00CCB8F4 /* KBButton.m in Sources */,
+				00CB67D61A6E1D6B00B5882A /* KBTableRowView.m in Sources */,
 				00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */,
 				00E3E3E71A64BA9F00CCB8F4 /* KBImageView.m in Sources */,
 				00086CAA1A65D0820000460F /* KBTwitterConnectView.m in Sources */,
@@ -590,7 +611,9 @@
 			files = (
 				005A45491A60A5DB00DC732D /* KBItemsLabel.m in Sources */,
 				AB6462168F9FDCF3B14CF810 /* main.m in Sources */,
+				00CB67D31A6DFF2900B5882A /* KBProgressOverlayView.m in Sources */,
 				EDDC07383FDE0A2BDAA2BD1E /* KBRObject.m in Sources */,
+				00CB67CB1A6DD50500B5882A /* KBNavigationView.m in Sources */,
 				00E3E3C11A64B68A00CCB8F4 /* KBUserProfileView.m in Sources */,
 				00086CAB1A65D0820000460F /* KBTwitterConnectView.m in Sources */,
 				00086CA71A65CEC60000460F /* KBSplashView.m in Sources */,
@@ -600,13 +623,14 @@
 				3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */,
 				00E3E3EE1A64BA9F00CCB8F4 /* KBView.m in Sources */,
 				004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */,
-				00E3E3E01A64BA9F00CCB8F4 /* KBNavigationController.m in Sources */,
 				00E3E3E81A64BA9F00CCB8F4 /* KBImageView.m in Sources */,
 				00D61B991A4B755300EEA254 /* KBWindowController.m in Sources */,
 				00EF2ADF1A5E062D0007E56E /* KBUserView.m in Sources */,
 				00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */,
 				00CB67BF1A69D0E000B5882A /* KBCatalogView.m in Sources */,
+				00CB67D71A6E1D6B00B5882A /* KBTableRowView.m in Sources */,
 				00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */,
+				00CB67CF1A6DF1D300B5882A /* KBActivityIndicatorView.m in Sources */,
 				00CB67C21A69D16800B5882A /* KBLogoView.m in Sources */,
 				005A45451A609A6E00DC732D /* KBProofsView.m in Sources */,
 				005A45351A60948000DC732D /* KBUserHeaderView.m in Sources */,

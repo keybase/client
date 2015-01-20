@@ -22,7 +22,7 @@
   [self addSubview:imageView];
 
   _backView = [KBButton buttonWithImage:[NSImage imageNamed:@"46-Arrows-white-arrow-65-30"]];
-  //[self addSubview:_backView];
+  [self addSubview:_backView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -31,6 +31,16 @@
     [layout setFrame:CGRectMake(20, 30, size.width - 40, size.height - 40) view:imageView];
     return CGSizeMake(size.width, size.height);
   }];
+}
+
+- (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType {
+  if (transitionType == KBNavigationTransitionTypePush && navigationView.views.count >= 1) {
+    _backView.hidden = NO;
+  } else if (transitionType == KBNavigationTransitionTypePop && navigationView.views.count > 2) {
+    _backView.hidden = NO;
+  } else {
+    _backView.hidden = YES;
+  }
 }
 
 @end

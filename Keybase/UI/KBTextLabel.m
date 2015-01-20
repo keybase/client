@@ -18,19 +18,20 @@
 - (void)viewInit {
   [super viewInit];
   _textView = [[NSTextView alloc] init];
-  [self addSubview:_textView];
-
   _textView.backgroundColor = NSColor.clearColor;
   _textView.editable = NO;
   _textView.selectable = NO;
   _textView.textContainerInset = NSMakeSize(0, 0);
   _textView.textContainer.lineFragmentPadding = 0;
+  [self addSubview:_textView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGSize textSize = [KBTextLabel sizeThatFits:size textView:yself.textView];
-    [layout setFrame:CGRectMake(0, size.height/2.0 - textSize.height/2.0, size.width, textSize.height) view:yself.textView];
+    [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, size.width, textSize.height + 20)) view:yself.textView];
     return size;
+    //[layout setFrame:CGRectIntegral(CGRectMake(0, 0, size.width, textSize.height)) view:yself.textView];
+    //return CGSizeMake(size.width, textSize.height);
   }];
 }
 
@@ -40,6 +41,8 @@
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment {
+  NSParameterAssert(font);
+  NSParameterAssert(color);
   if (!text) text = @"";
   NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
   NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font};
@@ -53,8 +56,11 @@
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
   _attributedText = attributedText;
-  NSAssert(_textView.textStorage, @"No text storage");
-  [_textView.textStorage setAttributedString:attributedText];
+  if (_attributedText) {
+    NSAssert(_textView.textStorage, @"No text storage");
+    [_textView.textStorage setAttributedString:attributedText];
+  }
+  [self setNeedsLayout];
 }
 
 + (CGSize)sizeThatFits:(CGSize)size textView:(NSTextView *)textView {

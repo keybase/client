@@ -6,7 +6,9 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import <AppKit/AppKit.h>
+@import AppKit;
+@import QuartzCore;
+
 #import <YOLayout/YOLayout.h>
 
 #import "KBDefines.h"
@@ -16,6 +18,8 @@
 #import "KBTextLabel.h"
 #import "KBButton.h"
 #import "KBTextField.h"
+#import "KBNavigationView.h"
+#import "KBTableRowView.h"
 
 #define KBDefaultWidth (360)
 #define KBDefaultHeight (600)

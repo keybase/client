@@ -9,15 +9,23 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
+#import "KBDefines.h"
 #import <YOLayout/YONSView.h>
-#import "KBNavigationController.h"
+
+@class KBNavigationView;
 
 @interface KBView : YONSView
 
-@property KBNavigationController *navigationController;
+@property KBNavigationView *navigation;
+@property (readonly) KBErrorBlock errorHandler;
+
+@property (nonatomic) BOOL progressIndicatorEnabled;
 
 - (void)setInProgress:(BOOL)inProgress sender:(NSView *)sender;
 
 - (void)setError:(NSError *)error;
+- (void)setError:(NSError *)error sender:(NSView *)sender;
+
+- (void)viewWillAppear:(BOOL)animated;
 
 @end

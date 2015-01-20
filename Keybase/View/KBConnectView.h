@@ -10,8 +10,9 @@
 
 #import "KBUIDefines.h"
 
-@interface KBConnectView : KBView
-- (void)setLoginEnabled:(BOOL)loginEnabled animated:(BOOL)animated;
+@interface KBConnectView : KBNavigationView
+- (void)showLogin:(BOOL)animated;
+- (void)showSignup:(BOOL)animated;
 @end
 
 @interface KBLoginView : KBView

@@ -44,48 +44,29 @@
   GHWeakSelf gself = self;
   _loginView = [[KBLoginView alloc] init];
   _loginView.signUpButton.targetBlock = ^{
-    [gself setLoginEnabled:NO animated:YES];
+    [gself showSignup:YES];
   };
-  [self addSubview:_loginView];
 
   _signupView = [[KBSignupView alloc] init];
   _signupView.loginButton.targetBlock = ^{
-    [gself setLoginEnabled:YES animated:YES];
+    [gself showLogin:YES];
   };
 
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 0;
-    //y += [layout setFrame:CGRectMake(0, 0, size.width, 100) view:yself.logoView].size.height;
-
-    [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.loginView];
-    [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.signupView];
-    return size;
-  }];
+  [self setView:_loginView transitionType:KBNavigationTransitionTypeNone];
 }
 
-- (void)setLoginEnabled:(BOOL)loginEnabled animated:(BOOL)animated {
-  if (animated) {
-    CATransition *transition = [CATransition animation];
-    [transition setType:kCATransitionFade];
-    self.animations = @{@"subviews": transition};
+- (void)layout {
+  [super layout];
+  _loginView.frame = self.bounds;
+  _signupView.frame = self.bounds;
+}
 
-    [CATransaction begin];
-    if (!loginEnabled) {
-      [self.animator replaceSubview:_loginView with:_signupView];
-    } else {
-      [self.animator replaceSubview:_signupView with:_loginView];
-    }
-    [CATransaction commit];
-  } else {
-    if (loginEnabled) {
-      [_signupView removeFromSuperview];
-      [self addSubview:_loginView];
-    } else {
-      [_loginView removeFromSuperview];
-      [self addSubview:_signupView];
-    }
-  }
+- (void)showLogin:(BOOL)animated {
+  [self swapView:_loginView animated:animated];
+}
+
+- (void)showSignup:(BOOL)animated {
+  [self swapView:_signupView animated:animated];
 }
 
 @end
@@ -134,7 +115,7 @@
   }];
 }
 
-- (void)viewWillAppear:(BOOL)animated {
+- (void)viewDidAppear:(BOOL)animated {
   [self.window makeFirstResponder:_usernameField];
 }
 
@@ -145,24 +126,19 @@
   NSString *passphrase = self.passwordField.text;
 
   if ([NSString gh_isBlank:username]) {
-    // TODO Become first responder
-    [self setError:KBErrorAlert(@"You need to enter a username or email address.")];
+    [self setError:KBErrorAlert(@"You need to enter a username or email address.") sender:_usernameField];
     return;
   }
 
   if ([NSString gh_isBlank:passphrase]) {
-    // TODO Become first responder
-    [self setError:KBErrorAlert(@"You need to enter a password.")];
+    [self setError:KBErrorAlert(@"You need to enter a password.") sender:_passwordField];
     return;
   }
 
-  [self setInProgress:YES sender:self.loginButton];
+  [self setInProgress:YES sender:nil];
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
-    [self setInProgress:NO sender:self.loginButton];
-    if (error) {
-      [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
-      return;
-    }
+    [self setInProgress:NO sender:nil];
+    [self setError:error];
 
     self.passwordField.text = nil;
 
@@ -253,9 +229,9 @@
     return;
   }
 
-  [self setInProgress:YES sender:self.signupButton];
+  [self setInProgress:YES sender:nil];
   [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username completion:^(NSError *error, KBSignupRes *res) {
-    [self setInProgress:NO sender:self.signupButton];
+    [self setInProgress:NO sender:nil];
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
       return;

@@ -47,7 +47,15 @@
 
 @end
 
+@interface KBPgpIdentity : KBRObject
+@property NSString *username;
+@property NSString *comment;
+@property NSString *email;
+@end
+
 @interface KBRIdentify : KBRRequest
+- (void)identifyWithUid:(KBUID *)uid user:(NSString *)user trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error))completion;
+
 @end
 
 typedef NS_ENUM (NSInteger, KBTrackDiffType) {
@@ -165,6 +173,8 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 
 - (void)launchNetworkChecksWithSessionId:(NSInteger )sessionId id:(KBIdentity *)id completion:(void (^)(NSError *error))completion;
 
+- (void)displayTrackStatementWithSessionId:(NSInteger )sessionId stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion;
+
 @end
 
 typedef NS_ENUM (NSInteger, KBLogLevel) {
@@ -190,12 +200,6 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 - (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
-@end
-
-@interface KBPgpIdentity : KBRObject
-@property NSString *username;
-@property NSString *comment;
-@property NSString *email;
 @end
 
 @interface KBRLoginUi : KBRRequest

@@ -20,8 +20,11 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.wantsLayer = YES;
+  [self.layer setBackgroundColor:NSColor.clearColor.CGColor];
 
   self.imageView = [[KBImageView alloc] init];
+  self.imageView.roundedRatio = 1.0;
   [self addSubview:self.imageView];
 
   self.nameLabel = [[KBTextLabel alloc] init];

@@ -24,6 +24,7 @@
   [super viewInit];
 
   _imageView = [[KBImageView alloc] init];
+  _imageView.roundedRatio = 1.0;
   [self addSubview:_imageView];
 
   _name1Label = [[KBTextLabel alloc] init];
@@ -37,19 +38,18 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 0;
     CGFloat y = 20;
 
     y += [layout setFrame:CGRectMake(size.width/2.0 - 80, y, 160, 160) view:yself.imageView].size.height + 20;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 5, 0) view:yself.name1Label].size.height + 6;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name1Label].size.height + 6;
 
     if (yself.locationLabel.attributedText.length > 0) {
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.locationLabel].size.height + 6;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.locationLabel].size.height + 6;
     }
 
     if (yself.bioLabel.attributedText.length > 0) {
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.bioLabel].size.height + 6;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.bioLabel].size.height + 6;
     }
 
     y += 6;

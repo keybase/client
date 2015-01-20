@@ -75,7 +75,7 @@
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
   GHDebug(@"Send request: %@(%@)", method, [params join:@", "]);
   if (_client.status != MPMessagePackClientStatusOpen) {
-    completion(KBMakeError(-400, @"We are unable to connect to the keybased client.", @""), nil);
+    completion(KBMakeError(-400, @"We are unable to connect to the keybase daemon.", @""), nil);
     return;
   }
         

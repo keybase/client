@@ -8,8 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-#import <AppKit/AppKit.h>
+#import "KBUIDefines.h"
 
-@interface KBUsersView : NSView
+@interface KBUsersView : KBView <NSTableViewDelegate, NSTableViewDataSource>
+
+- (void)loadUsernames:(NSArray *)usernames;
 
 @end

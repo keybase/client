@@ -13,17 +13,22 @@
 #import "AppDelegate.h"
 
 @interface KBUserProfileView ()
+@property NSScrollView *scrollView;
 @property KBUserHeaderView *headerView;
-//@property KBProofsView *proofsView;
+@property KBProofsView *proofsView;
 @end
 
 @implementation KBUserProfileView
 
 - (void)viewInit {
+  [super viewInit];
+  
   _headerView = [[KBUserHeaderView alloc] init];
+  _headerView.hidden = YES;
   [self addSubview:_headerView];
-  //_proofsView = [[KBProofsView alloc] init];
-  //[self addSubview:_proofsView];
+
+  _proofsView = [[KBProofsView alloc] init];
+  [self addSubview:_proofsView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -31,14 +36,16 @@
     CGFloat y = 0;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width, 0) view:yself.headerView].size.height;
-    //y += [layout setFrame:CGRectMake(x, y, size.width, 0) view:yself.proofsView sizeToFit:YES].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width, 0) view:yself.proofsView].size.height;
 
     return CGSizeMake(size.width, y);
   }];
 }
 
 - (void)loadUID:(NSString *)UID {
+  //self.progressIndicatorEnabled = YES;
   [AppDelegate.APIClient userForKey:@"uids" value:UID fields:nil success:^(KBUser *user) {
+    //self.progressIndicatorEnabled = NO;
     [self setUser:user];
   } failure:^(NSError *error) {
     [self setError:error];
@@ -46,8 +53,9 @@
 }
 
 - (void)setUser:(KBUser *)user {
+  _headerView.hidden = NO;
   [_headerView setUser:user];
-  //[_proofsView setUser:user editableTypes:[NSSet setWithArray:@[@(KBProofTypeTwitter), @(KBProofTypeGithub), @(KBProofTypeHackerNews)]]];
+  [_proofsView setUser:user editableTypes:[NSSet setWithArray:@[@(KBProofTypeTwitter), @(KBProofTypeGithub), @(KBProofTypeHackerNews)]]];
 
   [self setNeedsLayout];
 }

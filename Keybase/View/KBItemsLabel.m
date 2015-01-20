@@ -59,12 +59,11 @@
 }
 
 - (void)setHeaderText:(NSString *)headerText items:(NSArray *)items texts:(NSArray *)texts font:(NSFont *)font placeHolder:(NSString *)placeHolder targetBlock:(void (^)(id sender, id object))targetBlock {
-  NSAssert(NO, @"TODO");
   if (headerText) {
-    //_headerLabel.text = headerText;
+    [_headerLabel setText:headerText font:font ? font : [KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
     _headerLabel.hidden = NO;
   } else {
-    //_headerLabel.text = nil;
+    _headerLabel.attributedText = nil;
     _headerLabel.hidden = YES;
   }
 

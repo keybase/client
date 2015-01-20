@@ -8,12 +8,28 @@
 
 #import "KBView.h"
 
+#import "KBProgressOverlayView.h"
+#import "KBActivityIndicatorView.h"
+
+@interface KBView ()
+@property KBProgressOverlayView *progressView;
+@end
+
 @implementation KBView
 
 - (void)viewInit {
   [super viewInit];
   self.wantsLayer = YES;
   [self.layer setBackgroundColor:NSColor.whiteColor.CGColor];
+  GHWeakSelf gself = self;
+  _errorHandler = ^(NSError *error) { [gself setError:error]; };
+}
+
+- (void)layout {
+  [super layout];
+  if (_progressView) {
+    _progressView.frame = self.bounds;
+  }
 }
 
 - (void)setInProgress:(BOOL)inProgress sender:(NSView *)sender {
@@ -30,13 +46,30 @@
   }
 }
 
-- (void)setError:(NSError *)error {
-  [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
+- (void)setProgressIndicatorEnabled:(BOOL)progressIndicatorEnabled {
+  if (progressIndicatorEnabled) {
+    if (!_progressView) {
+      _progressView = [[KBProgressOverlayView alloc] init];
+      [self addSubview:_progressView];
+    }
+    [_progressView startAnimating];
+  } else {
+    [_progressView stopAnimating];
+  }
 }
 
-//- (void)viewWillAppear:(BOOL)animated { }
-//- (void)viewDidAppear:(BOOL)animated { }
-//- (void)viewWillDisappear:(BOOL)animated { }
-//- (void)viewDidDisappear:(BOOL)animated { }
+- (void)setError:(NSError *)error {
+  [self setError:error sender:nil];
+}
+
+- (void)setError:(NSError *)error sender:(NSView *)sender {
+  if (error) {
+    [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
+    [sender becomeFirstResponder];
+  }
+}
+
+- (void)viewWillAppear:(BOOL)animated { }
+- (void)viewDidAppear:(BOOL)animated { }
 
 @end

@@ -37,7 +37,18 @@
 
 @end
 
+@implementation KBPgpIdentity
+@end
+
 @implementation KBRIdentify
+- (void)identifyWithUid:(KBUID *)uid user:(NSString *)user trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"uid": KBRValue(uid), @"user": KBRValue(user), @"trackStatement": @(trackStatement), @"luba": @(luba), @"loadSelf": @(loadSelf)}];
+  [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBTrackDiff
@@ -141,6 +152,14 @@
   }];
 }
 
+- (void)displayTrackStatementWithSessionId:(NSInteger )sessionId stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"stmt": KBRValue(stmt)}];
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTrackStatement" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRLogUi
@@ -187,9 +206,6 @@
   }];
 }
 
-@end
-
-@implementation KBPgpIdentity
 @end
 
 @implementation KBRLoginUi
