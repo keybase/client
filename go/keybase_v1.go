@@ -1021,6 +1021,40 @@ func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
 	return
 }
 
+type TrackArg struct {
+	TheirName string `codec:"theirName"`
+}
+
+type TrackInterface interface {
+	Track(string) error
+}
+
+func TrackProtocol(i TrackInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.track",
+		Methods: map[string]rpc2.ServeHook{
+			"track": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TrackArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Track(args[0].TheirName)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type TrackClient struct {
+	Cli GenericClient
+}
+
+func (c TrackClient) Track(theirName string) (err error) {
+	__arg := TrackArg{TheirName: theirName}
+	err = c.Cli.Call("keybase.1.track.track", []interface{}{__arg}, nil)
+	return
+}
+
 type PromptYesNoArg struct {
 	Text Text  `codec:"text"`
 	Def  *bool `codec:"def,omitempty"`

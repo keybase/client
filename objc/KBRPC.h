@@ -294,6 +294,11 @@ typedef NS_ENUM (NSInteger, KBPromptOverwriteType) {
 
 @end
 
+@interface KBRTrack : KBRRequest
+- (void)trackWithTheirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRUi : KBRRequest
 - (void)promptYesNoWithText:(KBText *)text def:(BOOL )def completion:(void (^)(NSError *error, BOOL  b))completion;
 

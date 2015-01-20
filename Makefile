@@ -23,6 +23,7 @@ build-stamp: \
 	json/prove_ui.json \
 	json/secret_ui.json \
 	json/signup.json \
+	json/track.json \
 	json/ui.json
 	@mkdir -p json
 	date > $@

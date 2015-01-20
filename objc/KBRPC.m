@@ -411,6 +411,17 @@
 
 @end
 
+@implementation KBRTrack
+- (void)trackWithTheirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"theirName": KBRValue(theirName)}];
+  [self.client sendRequestWithMethod:@"keybase.1.track.track" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRUi
 - (void)promptYesNoWithText:(KBText *)text def:(BOOL )def completion:(void (^)(NSError *error, BOOL  b))completion {
 
