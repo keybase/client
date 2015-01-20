@@ -47,6 +47,7 @@ type IdentifyRes struct {
 	TrackUsed   *TrackLookup
 	TrackEqual  bool // Whether the track statement was equal to what we saw
 	MeSet       bool // whether me was set at the time
+	TheirName   string
 }
 
 func (i IdentifyRes) NumDeleted() int {
@@ -111,7 +112,7 @@ func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warni
 
 	probs := make([]string, 0, 0)
 
-	soft_err := func(s string) {
+	softErr := func(s string) {
 		if strict {
 			probs = append(probs, s)
 		} else {
@@ -120,12 +121,12 @@ func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warni
 	}
 
 	for _, deleted := range i.Deleted {
-		soft_err(deleted.ToDisplayString())
+		softErr(deleted.ToDisplayString())
 	}
 
 	if nfails := i.NumProofFailures(); nfails > 0 {
 		p := fmt.Sprintf("PROBLEM: %d proof%s failed remote checks", nfails, GiveMeAnS(nfails))
-		soft_err(p)
+		softErr(p)
 	}
 
 	if ntf := i.NumTrackFailures(); ntf > 0 {
@@ -193,21 +194,21 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 	}
 }
 
-func (is *IdentifyState) InitResultList() {
-	idt := is.u.IdTable
+func (s *IdentifyState) InitResultList() {
+	idt := s.u.IdTable
 	l := len(idt.activeProofs)
-	is.res.ProofChecks = make([]*LinkCheckResult, l)
+	s.res.ProofChecks = make([]*LinkCheckResult, l)
 	for i, p := range idt.activeProofs {
-		is.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: PROOF_STATE_NONE, position: i}
+		s.res.ProofChecks[i] = &LinkCheckResult{link: p, trackedProofState: PROOF_STATE_NONE, position: i}
 	}
 }
 
-func (is *IdentifyState) ComputeTrackDiffs() {
-	if is.track != nil {
-		G.Log.Debug("| with tracking %v", is.track.set)
-		for _, c := range is.res.ProofChecks {
-			c.diff = c.link.ComputeTrackDiff(is.track)
-			c.trackedProofState = is.track.GetProofState(c.link)
+func (s *IdentifyState) ComputeTrackDiffs() {
+	if s.track != nil {
+		G.Log.Debug("| with tracking %v", s.track.set)
+		for _, c := range s.res.ProofChecks {
+			c.diff = c.link.ComputeTrackDiff(s.track)
+			c.trackedProofState = s.track.GetProofState(c.link)
 		}
 	}
 }
@@ -225,6 +226,8 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 		is.track = NewTrackLookup(tlink)
 		res.TrackUsed = is.track
 	}
+
+	res.TheirName = u.name
 
 	is.GetUI().ReportLastTrack(ExportTrackSummary(is.track))
 

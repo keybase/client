@@ -18,6 +18,10 @@ func NewIdentifySelfUIProtocol() rpc2.Protocol {
 	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifySelfUI()})
 }
 
+func NewIdentifyTrackUIProtocol() rpc2.Protocol {
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyTrackUI(nil, true)})
+}
+
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {
 	res, err = i.eng.FinishAndPrompt(&arg.Outcome)
 	return

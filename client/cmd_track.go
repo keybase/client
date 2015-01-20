@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdTrack struct {
@@ -25,18 +26,26 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdTrack) RunClient() error { return v.Run() }
+func (v *CmdTrack) RunClient() error {
+	cli, err := GetTrackClient()
+	if err != nil {
+		return err
+	}
+
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+		NewIdentifyTrackUIProtocol(),
+		NewSecretUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+
+	return cli.Track(v.user)
+}
 
 func (v *CmdTrack) Run() error {
-
-	eng := &libkb.TrackEngine{
-		TheirName:    v.user,
-		NoSelf:       true,
-		Interactive:  true,
-		Me:           nil,
-		StrictProofs: false,
-		MeRequired:   true,
-	}
+	eng := libkb.NewTrackEngine(v.user, nil, nil)
 	return eng.Run()
 }
 

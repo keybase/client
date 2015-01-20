@@ -31,17 +31,17 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (u IdentifySelfUI) Start() {
+func (ui IdentifySelfUI) Start() {
 	G.Log.Info("Verifying your key fingerprint....")
 }
-func (u IdentifyTrackUI) Start() {
-	G.Log.Info("Generating tracking statement for " + ColorString("bold", u.them.GetName()))
+func (ui IdentifyTrackUI) Start() {
+	G.Log.Info("Generating tracking statement for " + ColorString("bold", ui.them.GetName()))
 }
-func (u IdentifyLubaUI) Start() {
-	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", u.them.GetName()))
+func (ui IdentifyLubaUI) Start() {
+	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", ui.them.GetName()))
 }
-func (u IdentifyUI) Start() {
-	G.Log.Info("Identifying " + ColorString("bold", u.them.GetName()))
+func (ui IdentifyUI) Start() {
+	G.Log.Info("Identifying " + ColorString("bold", ui.them.GetName()))
 }
 
 func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
@@ -103,7 +103,8 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
 
 	var prompt string
-	un := ui.them.GetName()
+	// un := ui.them.GetName()
+	un := o.TheirName
 
 	// A "Track Failure" is when we previously tracked this user, and
 	// some aspect of their proof changed.  Like their key changed, or
@@ -126,18 +127,18 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 	// Whether we used a tracking statement when checking the identity
 	// this time...
 	tracked := o.TrackUsed != nil
-	is_remote := false
+	isRemote := false
 	if tracked {
-		is_remote = o.TrackUsed.IsRemote
+		isRemote = o.TrackUsed.IsRemote
 	}
 
-	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; nd=%d; nps=%d; tracked=%v; is_remote=%v",
-		un, ntf, ntc, npf, nd, nps, tracked, is_remote)
+	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; nd=%d; nps=%d; tracked=%v; isRemote=%v",
+		un, ntf, ntc, npf, nd, nps, tracked, isRemote)
 
 	ui.ReportDeleted(o.Deleted)
 
 	def := true
-	is_equal := false
+	isEqual := false
 	if ntf > 0 || nd > 0 {
 		prompt = "Your tracking statement of " + un + " is broken; fix it?"
 		def = false
@@ -151,7 +152,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		def = false
 	} else if tracked && ntc == 0 {
 		G.Log.Info("Your tracking statement is up-to-date")
-		is_equal = true
+		isEqual = true
 	} else if npf > 0 {
 		prompt = "Some proofs failed; still track " + un + "?"
 		def = false
@@ -160,18 +161,18 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		def = true
 	}
 
-	if !is_equal {
+	if !isEqual {
 		var ok bool
 		if ok, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
 		} else if !ok {
 			err = NotConfirmedError{}
 		}
 		ret.TrackLocal = true
-	} else if is_remote {
+	} else if isRemote {
 		ret.TrackLocal = false
 	}
 
-	if err == nil && (!is_equal || !is_remote) {
+	if err == nil && (!isEqual || !isRemote) {
 		def = true
 		prompt = "publicly write tracking statement to server?"
 		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, &def)
@@ -179,16 +180,16 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 	return
 }
 
-func (u BaseIdentifyUI) ReportHook(s string) {
+func (ui BaseIdentifyUI) ReportHook(s string) {
 	os.Stdout.Write([]byte(s + "\n"))
 }
 
-func (u BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
+func (ui BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
 	w.Warn()
 }
 
-func (u BaseIdentifyUI) PromptForConfirmation(s string) error {
-	return u.parent.PromptForConfirmation(s)
+func (ui BaseIdentifyUI) PromptForConfirmation(s string) error {
+	return ui.parent.PromptForConfirmation(s)
 }
 
 type RemoteProofWrapper struct {
@@ -252,14 +253,13 @@ func (crw CheckResultWrapper) ToDisplayString() string {
 }
 
 func (w LinkCheckResultWrapper) GetCached() *CheckResultWrapper {
-	if o := w.lcr.Cached; o == nil {
-		return nil
-	} else {
+	if o := w.lcr.Cached; o != nil {
 		return &CheckResultWrapper{o}
 	}
+	return nil
 }
 
-func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
+func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -283,7 +283,7 @@ func (u BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keybas
 	if cached := lcr.GetCached(); cached != nil {
 		msg += " " + ColorString("magenta", cached.ToDisplayString())
 	}
-	u.ReportHook(msg)
+	ui.ReportHook(msg)
 }
 
 func TrackDiffToColoredString(t keybase_1.TrackDiff) string {
@@ -305,14 +305,14 @@ func TrackDiffToColoredString(t keybase_1.TrackDiff) string {
 	return s
 }
 
-func (u BaseIdentifyUI) TrackDiffErrorToString(libkb.TrackDiffError) string {
+func (ui BaseIdentifyUI) TrackDiffErrorToString(libkb.TrackDiffError) string {
 	return ColorString("red", "<error>")
 }
-func (u BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) string {
+func (ui BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) string {
 	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
+func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -322,21 +322,21 @@ func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1
 		lcrs = TrackDiffToColoredString(*diff) + " "
 	}
 
-	great_color := "green"
-	ok_color := "yellow"
+	greatColor := "green"
+	okColor := "yellow"
 
 	if err := lcr.GetError(); err == nil {
 		if s.GetProtocol() == "dns" {
 			msg += (CHECK + " " + lcrs + "admin of " +
-				ColorString(ok_color, "DNS") + " zone " +
-				ColorString(ok_color, s.GetDomain()) +
+				ColorString(okColor, "DNS") + " zone " +
+				ColorString(okColor, s.GetDomain()) +
 				": found TXT entry " + lcr.GetHint().GetCheckText())
 		} else {
 			var color string
 			if s.GetProtocol() == "https" {
-				color = great_color
+				color = greatColor
 			} else {
-				color = ok_color
+				color = okColor
 			}
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(color, s.GetHostname()) + " via " +
@@ -353,15 +353,15 @@ func (u BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1
 	if cached := lcr.GetCached(); cached != nil {
 		msg += " " + ColorString("magenta", cached.ToDisplayString())
 	}
-	u.ReportHook(msg)
+	ui.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) DisplayCryptocurrency(l keybase_1.Cryptocurrency) {
+func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase_1.Cryptocurrency) {
 	msg := (BTC + " bitcoin " + ColorString("green", l.Address))
-	u.ReportHook(msg)
+	ui.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff) {
+func (ui BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff) {
 	var ds string
 	if diff != nil {
 		ds = TrackDiffToColoredString(*diff) + " "
@@ -373,54 +373,54 @@ func (u BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff)
 		s = "<none>"
 	}
 	msg := CHECK + " " + ds + ColorString("green", "public key fingerprint: "+s)
-	u.ReportHook(msg)
+	ui.ReportHook(msg)
 }
 
-func (u BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
+func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {
 			locally = "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
-			locally, u.them.GetName(), libkb.FormatTime(t.GetCTime())))
-		u.ReportHook(msg)
+			locally, ui.them.GetName(), libkb.FormatTime(t.GetCTime())))
+		ui.ReportHook(msg)
 	}
 }
 
-func (u BaseIdentifyUI) Warning(m string) {
+func (ui BaseIdentifyUI) Warning(m string) {
 	G.Log.Warning(m)
 }
 
-func (u *UI) GetIdentifySelfUI() libkb.IdentifyUI {
-	return IdentifySelfUI{BaseIdentifyUI{u, nil}}
+func (ui *UI) GetIdentifySelfUI() libkb.IdentifyUI {
+	return IdentifySelfUI{BaseIdentifyUI{ui, nil}}
 }
 
-func (u *UI) GetIdentifyTrackUI(them *libkb.User, strict bool) libkb.IdentifyUI {
-	return IdentifyTrackUI{BaseIdentifyUI{u, them}, strict}
+func (ui *UI) GetIdentifyTrackUI(them *libkb.User, strict bool) libkb.IdentifyUI {
+	return IdentifyTrackUI{BaseIdentifyUI{ui, them}, strict}
 }
 
-func (u *UI) GetIdentifyUI(them *libkb.User) libkb.IdentifyUI {
-	return IdentifyUI{BaseIdentifyUI{u, them}}
+func (ui *UI) GetIdentifyUI(them *libkb.User) libkb.IdentifyUI {
+	return IdentifyUI{BaseIdentifyUI{ui, them}}
 }
 
-func (u *UI) GetIdentifyLubaUI(them *libkb.User) libkb.IdentifyUI {
-	return IdentifyLubaUI{BaseIdentifyUI{u, them}}
+func (ui *UI) GetIdentifyLubaUI(them *libkb.User) libkb.IdentifyUI {
+	return IdentifyLubaUI{BaseIdentifyUI{ui, them}}
 }
 
-func (u *UI) GetLoginUI() libkb.LoginUI {
-	return LoginUI{u}
+func (ui *UI) GetLoginUI() libkb.LoginUI {
+	return LoginUI{ui}
 }
 
-func (u *UI) GetSecretUI() libkb.SecretUI {
-	return SecretUI{u}
+func (ui *UI) GetSecretUI() libkb.SecretUI {
+	return SecretUI{ui}
 }
 
-func (u *UI) GetProveUI() libkb.ProveUI {
-	return ProveUI{parent: u}
+func (ui *UI) GetProveUI() libkb.ProveUI {
+	return ProveUI{parent: ui}
 }
 
-func (u *UI) GetLogUI() libkb.LogUI {
+func (ui *UI) GetLogUI() libkb.LogUI {
 	return G.Log
 }
 
@@ -505,29 +505,29 @@ type SecretUI struct {
 	parent *UI
 }
 
-func (u SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, term *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
-	return u.parent.SecretEntry.Get(pinentry, term)
+func (ui SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, term *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+	return ui.parent.SecretEntry.Get(pinentry, term)
 }
 
-func (u *UI) Configure() error {
-	u.Terminal = NewTerminal()
-	u.SecretEntry = NewSecretEntry(u.Terminal)
+func (ui *UI) Configure() error {
+	ui.Terminal = NewTerminal()
+	ui.SecretEntry = NewSecretEntry(ui.Terminal)
 	return nil
 }
 
-func (u *UI) GetTerminalSize() (int, int) {
-	return u.Terminal.GetSize()
+func (ui *UI) GetTerminalSize() (int, int) {
+	return ui.Terminal.GetSize()
 }
 
-func (u *UI) Shutdown() error {
+func (ui *UI) Shutdown() error {
 	var err error
-	if u.Terminal != nil {
-		err = u.Terminal.Shutdown()
+	if ui.Terminal != nil {
+		err = ui.Terminal.Shutdown()
 	}
 	return err
 }
 
-func (u SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text string, err error) {
+func (ui SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text string, err error) {
 
 	arg := libkb.PromptArg{
 		TerminalPrompt: earg.TerminalPrompt,
@@ -549,7 +549,7 @@ func (u SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text str
 			rm = ""
 		}
 
-		if text, err = u.ppprompt(arg); err != nil {
+		if text, err = ui.ppprompt(arg); err != nil {
 			return
 		}
 
@@ -558,7 +558,7 @@ func (u SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text str
 		arg.RetryMessage = ""
 		arg.Checker = nil
 
-		if text2, err = u.ppprompt(arg); err != nil {
+		if text2, err = ui.ppprompt(arg); err != nil {
 			return
 		}
 		if text == text2 {
@@ -570,9 +570,9 @@ func (u SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text str
 	return
 }
 
-func (u SecretUI) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (text string, err error) {
+func (ui SecretUI) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (text string, err error) {
 	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", arg.Username)
-	return u.ppprompt(libkb.PromptArg{
+	return ui.ppprompt(libkb.PromptArg{
 		TerminalPrompt: "keybase passphrase",
 		PinentryPrompt: "Your passphrase",
 		PinentryDesc:   desc,
@@ -581,7 +581,7 @@ func (u SecretUI) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (t
 	})
 }
 
-func (u SecretUI) ppprompt(arg libkb.PromptArg) (text string, err error) {
+func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 	first := true
 	var res *keybase_1.SecretEntryRes
@@ -600,7 +600,7 @@ func (u SecretUI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 		tp = tp + ": "
 
-		res, err = u.GetSecret(keybase_1.SecretEntryArg{
+		res, err = ui.GetSecret(keybase_1.SecretEntryArg{
 			Err:    emp,
 			Desc:   arg.PinentryDesc,
 			Prompt: arg.PinentryPrompt,

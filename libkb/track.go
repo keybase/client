@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"github.com/keybase/protocol/go"
-	"sync"
 	"time"
 )
 
@@ -37,24 +36,24 @@ func (ts TrackSet) Add(t TrackIdComponent) {
 	}
 }
 
-func (a TrackSet) GetProofState(tic TrackIdComponent) int {
+func (ts TrackSet) GetProofState(tic TrackIdComponent) int {
 	ret := PROOF_STATE_NONE
-	if obj := a.ids[tic.ToIdString()]; obj != nil {
+	if obj := ts.ids[tic.ToIdString()]; obj != nil {
 		ret = obj.GetProofState()
 	}
 	return ret
 }
 
-func (A TrackSet) Subtract(B TrackSet) (out []TrackIdComponent) {
-	for _, c := range A.ids {
-		if !B.HasMember(c) {
+func (ts TrackSet) Subtract(b TrackSet) (out []TrackIdComponent) {
+	for _, c := range ts.ids {
+		if !b.HasMember(c) {
 			out = append(out, c)
 		}
 	}
 	return
 }
 
-func (A TrackSet) HasMember(t TrackIdComponent) bool {
+func (ts TrackSet) HasMember(t TrackIdComponent) bool {
 	var found bool
 
 	// For LastWriterWins like social networks, then it just matters
@@ -62,15 +61,15 @@ func (A TrackSet) HasMember(t TrackIdComponent) bool {
 	// like HTTPS and DNS, then the full proof needs to show up in A.
 	if t.LastWriterWins() {
 		k, _ := t.ToKeyValuePair()
-		_, found = A.services[k]
+		_, found = ts.services[k]
 	} else {
-		_, found = A.ids[t.ToIdString()]
+		_, found = ts.ids[t.ToIdString()]
 	}
 	return found
 }
 
-func (a TrackSet) LenEq(b TrackSet) bool {
-	return len(a.ids) == len(b.ids)
+func (ts TrackSet) LenEq(b TrackSet) bool {
+	return len(ts.ids) == len(b.ids)
 }
 
 //=====================================================================
@@ -93,10 +92,9 @@ func (s TrackSummary) GetCTime() time.Time { return s.time }
 //=====================================================================
 
 type TrackLookup struct {
-	link  *TrackChainLink     // The original chain link that I signed
-	set   *TrackSet           // The total set of tracked identities
-	ids   map[string][]string // A http -> [foo.com, boo.com] lookup
-	mutex *sync.Mutex         // in case we're accessing in mutliple threads
+	link *TrackChainLink     // The original chain link that I signed
+	set  *TrackSet           // The total set of tracked identities
+	ids  map[string][]string // A http -> [foo.com, boo.com] lookup
 }
 
 func (l TrackLookup) ToSummary() TrackSummary {
@@ -110,8 +108,8 @@ func (l TrackLookup) GetProofState(tic TrackIdComponent) int {
 	return l.set.GetProofState(tic)
 }
 
-func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
-	prev, err := tl.link.GetTrackedPgpFingerprint()
+func (l *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
+	prev, err := l.link.GetTrackedPgpFingerprint()
 	if err != nil {
 		return TrackDiffError{err}
 	} else if prev.Eq(curr) {
@@ -121,8 +119,8 @@ func (tl *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
 	}
 }
 
-func (tl TrackLookup) IsRemote() bool {
-	return tl.link.IsRemote()
+func (l TrackLookup) IsRemote() bool {
+	return l.link.IsRemote()
 }
 
 type TrackDiff interface {
@@ -328,20 +326,12 @@ func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 		}
 		ids[k] = append(list, v)
 	}
-	ret := &TrackLookup{link: link, set: set, ids: ids, mutex: new(sync.Mutex)}
+	ret := &TrackLookup{link: link, set: set, ids: ids}
 	return ret
 }
 
-func (l *TrackLookup) Lock() {
-	l.mutex.Lock()
-}
-
-func (l *TrackLookup) Unlock() {
-	l.mutex.Unlock()
-}
-
-func (e *TrackLookup) GetCTime() time.Time {
-	return e.link.GetCTime()
+func (l *TrackLookup) GetCTime() time.Time {
+	return l.link.GetCTime()
 }
 
 //=====================================================================
@@ -360,10 +350,39 @@ type TrackEngine struct {
 	signingKey          GenericKey
 	sig                 string
 	sigid               *SigId
+	idUI                IdentifyUI
+	secretUI            SecretUI
+}
+
+// NewTrackEngine creates a default TrackEngine for tracking theirName.
+func NewTrackEngine(theirName string, ui IdentifyUI, sui SecretUI) *TrackEngine {
+	return &TrackEngine{
+		TheirName:    theirName,
+		NoSelf:       true,
+		Interactive:  true,
+		Me:           nil,
+		StrictProofs: false,
+		MeRequired:   true,
+		idUI:         ui,
+		secretUI:     sui,
+	}
+}
+
+func (e *TrackEngine) UI() IdentifyUI {
+	if e.idUI == nil {
+		e.idUI = G.UI.GetIdentifyTrackUI(e.Them, e.StrictProofs)
+	}
+	return e.idUI
+}
+
+func (e *TrackEngine) SecretUI() SecretUI {
+	if e.secretUI == nil {
+		e.secretUI = G.UI.GetSecretUI()
+	}
+	return e.secretUI
 }
 
 func (e *TrackEngine) LoadThem() error {
-
 	if e.Them == nil && len(e.TheirName) == 0 {
 		return fmt.Errorf("No 'them' passed to TrackEngine")
 	}
@@ -375,9 +394,9 @@ func (e *TrackEngine) LoadThem() error {
 			ForceReload: false,
 		}); err != nil {
 			return err
-		} else {
-			e.Them = u
 		}
+
+		e.Them = u
 	}
 	return nil
 }
@@ -386,15 +405,14 @@ func (e *TrackEngine) LoadMe() error {
 	if e.Me == nil {
 		if me, err := LoadMe(LoadUserArg{LoadSecrets: true}); err != nil && e.MeRequired {
 			return err
-		} else {
-			e.Me = me
 		}
+
+		e.Me = me
 	}
 	return nil
 }
 
 func (e *TrackEngine) Run() (err error) {
-
 	if err = e.LoadThem(); err != nil {
 		return
 	} else if err = e.LoadMe(); err != nil {
@@ -407,7 +425,7 @@ func (e *TrackEngine) Run() (err error) {
 	var ti TrackInstructions
 	ti, err = e.Them.Identify(IdentifyArg{
 		Me: e.Me,
-		Ui: G.UI.GetIdentifyTrackUI(e.Them, e.StrictProofs),
+		Ui: e.UI(),
 	})
 
 	if err != nil {
@@ -494,7 +512,7 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 	G.Log.Debug("+ StoreRemoteTrack")
 	defer G.Log.Debug("- StoreRemoteTrack -> %s", ErrToOk(err))
 
-	if e.signingKey, err = G.Keyrings.GetSecretKey("tracking signature", nil); err != nil {
+	if e.signingKey, err = G.Keyrings.GetSecretKey("tracking signature", e.SecretUI()); err != nil {
 		return
 	} else if e.signingKey == nil {
 		err = NoSecretKeyError{}

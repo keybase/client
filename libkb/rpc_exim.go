@@ -87,28 +87,19 @@ func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArgPrime) {
 	return ret
 }
 
-func (i IdentifyRes) ExportToIdentifyOutcome() (res keybase_1.IdentifyOutcome) {
-	res.NumTrackFailures = i.NumTrackFailures()
-	res.NumTrackChanges = i.NumTrackChanges()
-	res.NumProofFailures = i.NumProofFailures()
-	res.NumDeleted = i.NumDeleted()
-	res.NumProofSuccesses = i.NumProofSuccesses()
-	return
-}
-
-func (i IdentifyRes) ExportToUncheckedIdentity() (res *keybase_1.Identity) {
+func (ir IdentifyRes) ExportToUncheckedIdentity() (res *keybase_1.Identity) {
 	tmp := keybase_1.Identity{
-		Status: ExportErrorAsStatus(i.Error),
+		Status: ExportErrorAsStatus(ir.Error),
 	}
-	if i.TrackUsed != nil {
-		tmp.WhenLastTracked = int(i.TrackUsed.GetCTime().Unix())
+	if ir.TrackUsed != nil {
+		tmp.WhenLastTracked = int(ir.TrackUsed.GetCTime().Unix())
 	}
-	tmp.Proofs = make([]keybase_1.IdentifyRow, len(i.ProofChecks))
-	for j, p := range i.ProofChecks {
+	tmp.Proofs = make([]keybase_1.IdentifyRow, len(ir.ProofChecks))
+	for j, p := range ir.ProofChecks {
 		tmp.Proofs[j] = p.ExportToIdentifyRow(j)
 	}
-	tmp.Deleted = make([]keybase_1.TrackDiff, len(i.Deleted))
-	for j, d := range i.Deleted {
+	tmp.Deleted = make([]keybase_1.TrackDiff, len(ir.Deleted))
+	for j, d := range ir.Deleted {
 		// Should have all non-nil elements...
 		tmp.Deleted[j] = *ExportTrackDiff(d)
 	}
@@ -137,9 +128,8 @@ func ImportProofError(e keybase_1.ProofStatus) ProofError {
 	ps := ProofStatus(e.Status)
 	if ps == PROOF_STATE_OK {
 		return nil
-	} else {
-		return NewProofError(ps, e.Desc)
 	}
+	return NewProofError(ps, e.Desc)
 }
 
 func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
@@ -202,7 +192,7 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 
 func (a AppStatusError) ToStatus() keybase_1.Status {
 	var fields []string
-	for k, _ := range a.Fields {
+	for k := range a.Fields {
 		fields = append(fields, k)
 	}
 
@@ -254,21 +244,21 @@ func (s TrackSummary) Export() (ret keybase_1.TrackSummary) {
 func ImportTrackSummary(s *keybase_1.TrackSummary) *TrackSummary {
 	if s == nil {
 		return nil
-	} else {
-		return &TrackSummary{
-			time:     time.Unix(int64(s.Time), 0),
-			isRemote: s.IsRemote,
-		}
+	}
+
+	return &TrackSummary{
+		time:     time.Unix(int64(s.Time), 0),
+		isRemote: s.IsRemote,
 	}
 }
 
 func ExportTrackSummary(l *TrackLookup) *keybase_1.TrackSummary {
 	if l == nil {
 		return nil
-	} else {
-		tmp := l.ToSummary().Export()
-		return &tmp
 	}
+
+	tmp := l.ToSummary().Export()
+	return &tmp
 }
 
 //=============================================================================
@@ -292,6 +282,7 @@ func (ir *IdentifyRes) Export() *keybase_1.IdentifyOutcome {
 		NumDeleted:        ir.NumDeleted(),
 		NumProofSuccesses: ir.NumProofSuccesses(),
 		Deleted:           del,
+		TheirName:         ir.TheirName,
 	}
 	return ret
 }
