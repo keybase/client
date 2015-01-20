@@ -97,6 +97,7 @@ protocol identifyUi {
 		int numDeleted;
 		int numProofSuccesses;
 		array<TrackDiff> deleted;
+                string theirName;
 	}
 
 	record FinishAndPromptRes {

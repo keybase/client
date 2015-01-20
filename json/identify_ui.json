@@ -280,6 +280,9 @@
         "type" : "array",
         "items" : "TrackDiff"
       }
+    }, {
+      "name" : "theirName",
+      "type" : "string"
     } ]
   }, {
     "type" : "record",
