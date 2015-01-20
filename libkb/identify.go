@@ -3,7 +3,6 @@ package libkb
 import (
 	"fmt"
 	"strings"
-	"sync"
 )
 
 func (u *User) IdentifyKey(is IdentifyState) error {
@@ -164,23 +163,14 @@ type IdentifyState struct {
 	res   *IdentifyRes
 	u     *User
 	track *TrackLookup
-	mutex *sync.Mutex
 }
 
 func (s IdentifyState) GetUI() IdentifyUI {
 	return s.arg.Ui
 }
 
-func (s *IdentifyState) Lock() {
-	s.mutex.Lock()
-}
-
-func (s *IdentifyState) Unlock() {
-	s.mutex.Unlock()
-}
-
 func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState {
-	return IdentifyState{arg, res, u, nil, new(sync.Mutex)}
+	return IdentifyState{arg, res, u, nil}
 }
 
 func (s *IdentifyState) ComputeDeletedProofs() {

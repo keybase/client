@@ -833,9 +833,7 @@ func (idt *IdentityTable) Identify(is IdentifyState) {
 
 func (idt *IdentityTable) IdentifyActiveProof(lcr *LinkCheckResult, is IdentifyState) {
 	idt.ProofRemoteCheck(is.track, lcr)
-	is.Lock()
 	lcr.link.DisplayCheck(is.GetUI(), *lcr)
-	is.Unlock()
 }
 
 type LinkCheckResult struct {
