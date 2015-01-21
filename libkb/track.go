@@ -423,7 +423,7 @@ func (e *TrackEngine) Run() (err error) {
 	}
 
 	var ti TrackInstructions
-	ti, err = e.Them.Identify(IdentifyArg{
+	_, ti, err = e.Them.Identify(IdentifyArg{
 		Me: e.Me,
 		Ui: e.UI(),
 	})

@@ -17,7 +17,7 @@ type LubaRes struct {
 	Error       error
 	AE          AssertionExpression
 	Warnings    []error
-	IdentifyRes *IdentifyRes
+	IdentifyRes *IdentifyOutcome
 }
 
 func LoadUserByAssertions(a string, withTracking bool, ui IdentifyUI) (res LubaRes) {
@@ -94,7 +94,7 @@ func (l *LubaRes) Load(a string, withTracking bool, ui IdentifyUI) {
 		ui = G.UI.GetIdentifyLubaUI(l.User.GetName())
 	}
 
-	_, l.Error = l.User.Identify(IdentifyArg{
+	_, _, l.Error = l.User.Identify(IdentifyArg{
 		Me: me,
 		Ui: ui,
 	})

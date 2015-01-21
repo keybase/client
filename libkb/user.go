@@ -176,6 +176,10 @@ func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
 
 //==================================================================
 
+func NewUserThin(name string, uid UID) *User {
+	return &User{name: name, id: uid}
+}
+
 func NewUser(o *jsonw.Wrapper) (*User, error) {
 	uid, err := GetUid(o.AtKey("id"))
 	if err != nil {

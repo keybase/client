@@ -57,7 +57,7 @@ func (v *CmdId) RunClient() (err error) {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
 		arg := v.makeArg()
-		err = cli.Identify(arg.Export())
+		_, err = cli.Identify(arg.Export())
 	}
 	return
 }
@@ -65,7 +65,8 @@ func (v *CmdId) RunClient() (err error) {
 func (v *CmdId) Run() error {
 	arg := v.makeArg()
 	eng := libkb.NewIdentifyEng(arg, nil)
-	return eng.Run()
+	_, err := eng.Run()
+	return err
 }
 
 func NewCmdId(cl *libcmdline.CommandLine) cli.Command {

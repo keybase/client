@@ -68,7 +68,7 @@ func (a IdentifyArgPrime) Export() (res keybase_1.IdentifyArg) {
 	if a.Uid != nil {
 		res.Uid = keybase_1.UID(*a.Uid)
 	}
-	res.User = a.User
+	res.Username = a.User
 	res.TrackStatement = a.TrackStatement
 	res.Luba = a.Luba
 	res.LoadSelf = a.LoadSelf
@@ -80,14 +80,14 @@ func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArgPrime) {
 	if !uid.IsZero() {
 		ret.Uid = &uid
 	}
-	ret.User = a.User
+	ret.User = a.Username
 	ret.TrackStatement = a.TrackStatement
 	ret.Luba = a.Luba
 	ret.LoadSelf = a.LoadSelf
 	return ret
 }
 
-func (ir IdentifyRes) ExportToUncheckedIdentity() (res *keybase_1.Identity) {
+func (ir IdentifyOutcome) ExportToUncheckedIdentity() (res *keybase_1.Identity) {
 	tmp := keybase_1.Identity{
 		Status: ExportErrorAsStatus(ir.Error),
 	}
@@ -263,7 +263,7 @@ func ExportTrackSummary(l *TrackLookup) *keybase_1.TrackSummary {
 
 //=============================================================================
 
-func (ir *IdentifyRes) Export() *keybase_1.IdentifyOutcome {
+func (ir *IdentifyOutcome) Export() *keybase_1.IdentifyOutcome {
 	v := make([]string, len(ir.Warnings))
 	for i, w := range ir.Warnings {
 		v[i] = w.Warning()
@@ -284,6 +284,18 @@ func (ir *IdentifyRes) Export() *keybase_1.IdentifyOutcome {
 		Deleted:           del,
 	}
 	return ret
+}
+
+//=============================================================================
+
+func (ir *IdentifyRes) Export() *keybase_1.IdentifyRes {
+	return &keybase_1.IdentifyRes{
+		Outcome: *((*ir.Outcome).Export()),
+		User: &keybase_1.User{
+			Uid:      keybase_1.UID(ir.User.GetUid()),
+			Username: ir.User.GetName(),
+		},
+	}
 }
 
 //=============================================================================

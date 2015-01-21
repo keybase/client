@@ -23,12 +23,25 @@ func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
 	return &IdentifyHandler{BaseHandler{xp: xp}}
 }
 
-func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) error {
+func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) (keybase_1.IdentifyRes, error) {
 	iarg := libkb.ImportIdentifyArg(arg)
-	return h.identify(iarg, true)
+	res, err := h.identify(iarg, true)
+	if err != nil {
+		return keybase_1.IdentifyRes{}, err
+	}
+	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) identify(iarg libkb.IdentifyArgPrime, doInteractive bool) error {
+func (h *IdentifyHandler) IdentifyDefault(username string) (keybase_1.IdentifyRes, error) {
+	arg := libkb.IdentifyArgPrime{User: username}
+	res, err := h.identify(arg, true)
+	if err != nil {
+		return keybase_1.IdentifyRes{}, err
+	}
+	return *(res.Export()), nil
+}
+
+func (h *IdentifyHandler) identify(iarg libkb.IdentifyArgPrime, doInteractive bool) (*libkb.IdentifyRes, error) {
 	sessionId := nextSessionId()
 	iarg.LogUI = h.getLogUI(sessionId)
 	iarg.LogUI.Info("Identify:  session id = %v", sessionId)

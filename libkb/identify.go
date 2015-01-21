@@ -39,6 +39,11 @@ func (i IdentifyArg) MeSet() bool {
 }
 
 type IdentifyRes struct {
+	Outcome *IdentifyOutcome
+	User    *User
+}
+
+type IdentifyOutcome struct {
 	Error       error
 	KeyDiff     TrackDiff
 	Deleted     []TrackDiffDeleted
@@ -49,11 +54,11 @@ type IdentifyRes struct {
 	MeSet       bool // whether me was set at the time
 }
 
-func (i IdentifyRes) NumDeleted() int {
+func (i IdentifyOutcome) NumDeleted() int {
 	return len(i.Deleted)
 }
 
-func (i IdentifyRes) NumProofFailures() int {
+func (i IdentifyOutcome) NumProofFailures() int {
 	nfails := 0
 	for _, c := range i.ProofChecks {
 		if c.err != nil {
@@ -63,7 +68,7 @@ func (i IdentifyRes) NumProofFailures() int {
 	return nfails
 }
 
-func (i IdentifyRes) NumProofSuccesses() int {
+func (i IdentifyOutcome) NumProofSuccesses() int {
 	nsucc := 0
 	for _, c := range i.ProofChecks {
 		if c.err == nil {
@@ -73,7 +78,7 @@ func (i IdentifyRes) NumProofSuccesses() int {
 	return nsucc
 }
 
-func (i IdentifyRes) NumTrackFailures() int {
+func (i IdentifyOutcome) NumTrackFailures() int {
 	ntf := 0
 	check := func(d TrackDiff) bool {
 		return d != nil && d.BreaksTracking()
@@ -89,7 +94,7 @@ func (i IdentifyRes) NumTrackFailures() int {
 	return ntf
 }
 
-func (i IdentifyRes) NumTrackChanges() int {
+func (i IdentifyOutcome) NumTrackChanges() int {
 	ntc := 0
 	check := func(d TrackDiff) bool {
 		return d != nil && !d.IsSameAsTracked()
@@ -102,7 +107,7 @@ func (i IdentifyRes) NumTrackChanges() int {
 	return ntc
 }
 
-func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {
+func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (err error, warnings Warnings) {
 
 	if i.Error != nil {
 		err = i.Error
@@ -141,17 +146,17 @@ func (i IdentifyRes) GetErrorAndWarnings(strict bool) (err error, warnings Warni
 	return
 }
 
-func (i IdentifyRes) GetError() error {
+func (i IdentifyOutcome) GetError() error {
 	e, _ := i.GetErrorAndWarnings(true)
 	return e
 }
 
-func (i IdentifyRes) GetErrorLax() (error, Warnings) {
+func (i IdentifyOutcome) GetErrorLax() (error, Warnings) {
 	return i.GetErrorAndWarnings(true)
 }
 
-func NewIdentifyRes(m bool) *IdentifyRes {
-	return &IdentifyRes{
+func NewIdentifyOutcome(m bool) *IdentifyOutcome {
+	return &IdentifyOutcome{
 		MeSet:       m,
 		Warnings:    make([]Warning, 0, 0),
 		ProofChecks: make([]*LinkCheckResult, 0, 1),
@@ -160,7 +165,7 @@ func NewIdentifyRes(m bool) *IdentifyRes {
 
 type IdentifyState struct {
 	arg   *IdentifyArg
-	res   *IdentifyRes
+	res   *IdentifyOutcome
 	u     *User
 	track *TrackLookup
 }
@@ -169,7 +174,7 @@ func (s IdentifyState) GetUI() IdentifyUI {
 	return s.arg.Ui
 }
 
-func NewIdentifyState(arg *IdentifyArg, res *IdentifyRes, u *User) IdentifyState {
+func NewIdentifyState(arg *IdentifyArg, res *IdentifyOutcome, u *User) IdentifyState {
 	return IdentifyState{arg, res, u, nil}
 }
 
@@ -212,8 +217,8 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 	}
 }
 
-func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
-	res = NewIdentifyRes(arg.MeSet())
+func (u *User) _identify(arg IdentifyArg) (res *IdentifyOutcome) {
+	res = NewIdentifyOutcome(arg.MeSet())
 	is := NewIdentifyState(&arg, res, u)
 
 	if arg.Me == nil {
@@ -245,20 +250,20 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 	return
 }
 
-func (u *User) Identify(arg IdentifyArg) (ti TrackInstructions, err error) {
+func (u *User) Identify(arg IdentifyArg) (outcome *IdentifyOutcome, ti TrackInstructions, err error) {
 	arg.Ui.Start()
-	res := u._identify(arg)
-	tmp, err := arg.Ui.FinishAndPrompt(res.Export())
+	outcome = u._identify(arg)
+	tmp, err := arg.Ui.FinishAndPrompt(outcome.Export())
 	fpr := ImportFinishAndPromptRes(tmp)
-	return fpr, err
+	return outcome, fpr, err
 }
 
-func (u *User) IdentifySimple(me *User, ui IdentifyUI) error {
-	_, err := u.Identify(IdentifyArg{
+func (u *User) IdentifySimple(me *User, ui IdentifyUI) (*IdentifyOutcome, error) {
+	outcome, _, err := u.Identify(IdentifyArg{
 		Me: me,
 		Ui: ui,
 	})
-	return err
+	return outcome, err
 }
 
 func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
@@ -273,7 +278,7 @@ func (u *User) IdentifySelf(ui IdentifyUI) (fp *PgpFingerprint, err error) {
 		return
 	}
 
-	_, err = u.Identify(IdentifyArg{Me: u, Ui: ui})
+	_, _, err = u.Identify(IdentifyArg{Me: u, Ui: ui})
 
 	if err == nil {
 		cw := G.Env.GetConfigWriter()
@@ -296,23 +301,27 @@ func NewIdentifyEng(arg *IdentifyArgPrime, ui IdentifyUI) *IdentifyEng {
 	return &IdentifyEng{arg: arg, ui: ui}
 }
 
-func (e *IdentifyEng) Run() error {
+func (e *IdentifyEng) Run() (*IdentifyRes, error) {
 	if e.arg.Luba {
 		return e.RunLuba()
 	}
 	return e.RunStandard()
 }
 
-func (e *IdentifyEng) RunLuba() error {
+func (e *IdentifyEng) RunLuba() (*IdentifyRes, error) {
 	r := LoadUserByAssertions(e.arg.User, e.arg.LoadSelf, e.ui)
 	if r.Error != nil {
-		return r.Error
+		return nil, r.Error
 	}
 	G.Log.Info("Success; loaded %s", r.User.GetName())
-	return nil
+	res := &IdentifyRes{
+		User:    r.User,
+		Outcome: r.IdentifyRes,
+	}
+	return res, nil
 }
 
-func (e *IdentifyEng) RunStandard() error {
+func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
 	arg := LoadUserArg{
 		Self: (len(e.arg.User) == 0),
 	}
@@ -323,35 +332,41 @@ func (e *IdentifyEng) RunStandard() error {
 	}
 	u, err := LoadUser(arg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if e.ui == nil {
 		e.ui = G.UI.GetIdentifyUI(u.GetName())
 	}
-	err = u.IdentifySimple(nil, e.ui)
+	outcome, err := u.IdentifySimple(nil, e.ui)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	res := &IdentifyRes{Outcome: outcome, User: u}
+
 	if !e.arg.TrackStatement {
-		return nil
+		return res, nil
 	}
 	if arg.Self == true {
-		return nil
+		return res, nil
 	}
 
 	// they want a json tracking statement:
 	me, err := LoadMe(LoadUserArg{LoadSecrets: true})
 	if err != nil {
 		G.Log.Warning("error loading me: %s", err)
-		return err
+		return nil, err
 	}
 	stmt, err := TrackStatementJSON(me, u)
 	if err != nil {
 		G.Log.Warning("error getting track statement: %s", err)
-		return err
+		return nil, err
 	}
 	// return e.ui.DisplayTrackStatement(DisplayTrackArg(0, stmt))
 	G.Log.Info("json track statement: %s", stmt)
-	return e.ui.DisplayTrackStatement(stmt)
+	if err = e.ui.DisplayTrackStatement(stmt); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
