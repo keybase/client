@@ -8,8 +8,7 @@
 @property NSArray *fields;
 @end
 
-@interface KBUID : KBRObject
-@property NSData *data;
+@interface KBUID : NSData
 @end
 
 @interface KBLoadUserArg : KBRObject

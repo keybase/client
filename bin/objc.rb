@@ -88,9 +88,12 @@ paths.each do |path|
       header << "};"
     end
 
+
     if type["type"] == "fixed"
-      type["type"] = "record"
-      type["fields"] = [{"name" => "data", "type" => "bytes"}]
+      header << "@interface KB#{type["name"]} : NSData"
+      header << "@end\n"
+      impl << "@implementation KB#{type["name"]}"
+      impl << "@end\n"
     end
 
     if type["type"] == "record"
