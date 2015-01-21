@@ -32,6 +32,17 @@ type Text struct {
 	Markup bool   `codec:"markup"`
 }
 
+type PgpIdentity struct {
+	Username string `codec:"username"`
+	Comment  string `codec:"comment"`
+	Email    string `codec:"email"`
+}
+
+type User struct {
+	Uid      UID    `codec:"uid"`
+	Username string `codec:"username"`
+}
+
 type UserInfo struct {
 	Uid      string `codec:"uid"`
 	Username string `codec:"username"`
@@ -78,49 +89,6 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	return
 }
 
-type PgpIdentity struct {
-	Username string `codec:"username"`
-	Comment  string `codec:"comment"`
-	Email    string `codec:"email"`
-}
-
-type IdentifyArg struct {
-	Uid            UID    `codec:"uid"`
-	User           string `codec:"user"`
-	TrackStatement bool   `codec:"trackStatement"`
-	Luba           bool   `codec:"luba"`
-	LoadSelf       bool   `codec:"loadSelf"`
-}
-
-type IdentifyInterface interface {
-	Identify(IdentifyArg) error
-}
-
-func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.identify",
-		Methods: map[string]rpc2.ServeHook{
-			"identify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]IdentifyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Identify(args[0])
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type IdentifyClient struct {
-	Cli GenericClient
-}
-
-func (c IdentifyClient) Identify(__arg IdentifyArg) (err error) {
-	err = c.Cli.Call("keybase.1.identify.identify", []interface{}{__arg}, nil)
-	return
-}
-
 type TrackDiffType int
 
 const (
@@ -138,6 +106,83 @@ const (
 type TrackDiff struct {
 	Type          TrackDiffType `codec:"type"`
 	DisplayMarkup string        `codec:"displayMarkup"`
+}
+
+type TrackSummary struct {
+	Time     int  `codec:"time"`
+	IsRemote bool `codec:"isRemote"`
+}
+
+type IdentifyOutcome struct {
+	Status            *Status       `codec:"status,omitempty"`
+	Warnings          []string      `codec:"warnings"`
+	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty"`
+	NumTrackFailures  int           `codec:"numTrackFailures"`
+	NumTrackChanges   int           `codec:"numTrackChanges"`
+	NumProofFailures  int           `codec:"numProofFailures"`
+	NumDeleted        int           `codec:"numDeleted"`
+	NumProofSuccesses int           `codec:"numProofSuccesses"`
+	Deleted           []TrackDiff   `codec:"deleted"`
+}
+
+type IdentifyRes struct {
+	User    *User           `codec:"user,omitempty"`
+	Outcome IdentifyOutcome `codec:"outcome"`
+}
+
+type IdentifyArg struct {
+	Uid            UID    `codec:"uid"`
+	Username       string `codec:"username"`
+	TrackStatement bool   `codec:"trackStatement"`
+	Luba           bool   `codec:"luba"`
+	LoadSelf       bool   `codec:"loadSelf"`
+}
+
+type IdentifyDefaultArg struct {
+	Username string `codec:"username"`
+}
+
+type IdentifyInterface interface {
+	Identify(IdentifyArg) (IdentifyRes, error)
+	IdentifyDefault(string) (IdentifyRes, error)
+}
+
+func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.identify",
+		Methods: map[string]rpc2.ServeHook{
+			"identify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]IdentifyArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Identify(args[0])
+				}
+				return
+			},
+			"identifyDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]IdentifyDefaultArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.IdentifyDefault(args[0].Username)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type IdentifyClient struct {
+	Cli GenericClient
+}
+
+func (c IdentifyClient) Identify(__arg IdentifyArg) (res IdentifyRes, err error) {
+	err = c.Cli.Call("keybase.1.identify.identify", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) IdentifyDefault(username string) (res IdentifyRes, err error) {
+	__arg := IdentifyDefaultArg{Username: username}
+	err = c.Cli.Call("keybase.1.identify.identifyDefault", []interface{}{__arg}, &res)
+	return
 }
 
 type ProofStatus struct {
@@ -200,23 +245,6 @@ type LinkCheckResult struct {
 	Diff        *TrackDiff   `codec:"diff,omitempty"`
 	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty"`
 	Hint        *SigHint     `codec:"hint,omitempty"`
-}
-
-type TrackSummary struct {
-	Time     int  `codec:"time"`
-	IsRemote bool `codec:"isRemote"`
-}
-
-type IdentifyOutcome struct {
-	Status            *Status       `codec:"status,omitempty"`
-	Warnings          []string      `codec:"warnings"`
-	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty"`
-	NumTrackFailures  int           `codec:"numTrackFailures"`
-	NumTrackChanges   int           `codec:"numTrackChanges"`
-	NumProofFailures  int           `codec:"numProofFailures"`
-	NumDeleted        int           `codec:"numDeleted"`
-	NumProofSuccesses int           `codec:"numProofSuccesses"`
-	Deleted           []TrackDiff   `codec:"deleted"`
 }
 
 type FinishAndPromptRes struct {

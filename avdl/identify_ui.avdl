@@ -2,23 +2,7 @@
 @namespace("keybase.1")
 protocol identifyUi {
 	import idl "common.avdl";
-
-	enum TrackDiffType {
-		NONE,
-		ERROR,
-		CLASH,
-		DELETED,
-		UPGRADED,
-		NEW,
-		REMOTE_FAIL,
-		REMOTE_WORKING,
-		REMOTE_CHANGED
-	}
-
-	record TrackDiff {
-		TrackDiffType type;
-		string displayMarkup;
-	}
+	import idl "identify_common.avdl";
 
 	record ProofStatus {
 		int state;
@@ -80,23 +64,6 @@ protocol identifyUi {
 		union { null, TrackDiff } diff;
 		union { null, TrackDiff } remoteDiff;
 		union { null, SigHint } hint;
-	}
-
-	record TrackSummary {
-		int time;
-		boolean isRemote;
-	}
-
-	record IdentifyOutcome {
-		union { null, Status } status;
-		array<string> warnings;
-		union { null, TrackSummary } trackUsed;
-		int numTrackFailures;
-		int numTrackChanges;
-		int numProofFailures;
-		int numDeleted;
-		int numProofSuccesses;
-		array<TrackDiff> deleted;
 	}
 
 	record FinishAndPromptRes {

@@ -15,6 +15,12 @@
 @implementation KBText
 @end
 
+@implementation KBPgpIdentity
+@end
+
+@implementation KBUser
+@end
+
 @implementation KBUserInfo
 @end
 
@@ -37,21 +43,45 @@
 
 @end
 
-@implementation KBPgpIdentity
+@implementation KBTrackDiff
+@end
+
+@implementation KBTrackSummary
+@end
+
+@implementation KBIdentifyOutcome
+@end
+
+@implementation KBIdentifyRes
 @end
 
 @implementation KBRIdentify
-- (void)identifyWithUid:(KBUID *)uid user:(NSString *)user trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error))completion {
+- (void)identifyWithUid:(KBUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBIdentifyRes * identifyRes))completion {
 
-  NSArray *params = @[@{@"uid": KBRValue(uid), @"user": KBRValue(user), @"trackStatement": @(trackStatement), @"luba": @(luba), @"loadSelf": @(loadSelf)}];
+  NSArray *params = @[@{@"uid": KBRValue(uid), @"username": KBRValue(username), @"trackStatement": @(trackStatement), @"luba": @(luba), @"loadSelf": @(loadSelf)}];
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:params completion:^(NSError *error, NSDictionary *dict) {
-    completion(error);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBIdentifyRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyRes.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
   }];
 }
 
-@end
+- (void)identifyDefaultWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyRes * identifyRes))completion {
 
-@implementation KBTrackDiff
+  NSArray *params = @[@{@"username": KBRValue(username)}];
+  [self.client sendRequestWithMethod:@"keybase.1.identify.identifyDefault" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBIdentifyRes *result = [MTLJSONAdapter modelOfClass:KBIdentifyRes.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBProofStatus
@@ -79,12 +109,6 @@
 @end
 
 @implementation KBLinkCheckResult
-@end
-
-@implementation KBTrackSummary
-@end
-
-@implementation KBIdentifyOutcome
 @end
 
 @implementation KBFinishAndPromptRes

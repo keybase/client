@@ -32,4 +32,9 @@ protocol Common {
 		string comment;
 		string email;
 	}
+        
+        record User {
+                UID uid;
+                string username;
+        }
 }

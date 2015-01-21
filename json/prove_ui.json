@@ -71,6 +71,16 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "PromptOverwriteType",
     "symbols" : [ "SOCIAL", "SITE" ]

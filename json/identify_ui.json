@@ -71,6 +71,16 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "TrackDiffType",
     "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
@@ -83,6 +93,63 @@
     }, {
       "name" : "displayMarkup",
       "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "TrackSummary",
+    "fields" : [ {
+      "name" : "time",
+      "type" : "int"
+    }, {
+      "name" : "isRemote",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyOutcome",
+    "fields" : [ {
+      "name" : "status",
+      "type" : [ "null", "Status" ]
+    }, {
+      "name" : "warnings",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "trackUsed",
+      "type" : [ "null", "TrackSummary" ]
+    }, {
+      "name" : "numTrackFailures",
+      "type" : "int"
+    }, {
+      "name" : "numTrackChanges",
+      "type" : "int"
+    }, {
+      "name" : "numProofFailures",
+      "type" : "int"
+    }, {
+      "name" : "numDeleted",
+      "type" : "int"
+    }, {
+      "name" : "numProofSuccesses",
+      "type" : "int"
+    }, {
+      "name" : "deleted",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackDiff"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRes",
+    "fields" : [ {
+      "name" : "user",
+      "type" : [ "null", "User" ]
+    }, {
+      "name" : "outcome",
+      "type" : "IdentifyOutcome"
     } ]
   }, {
     "type" : "record",
@@ -233,53 +300,6 @@
     }, {
       "name" : "hint",
       "type" : [ "null", "SigHint" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "TrackSummary",
-    "fields" : [ {
-      "name" : "time",
-      "type" : "int"
-    }, {
-      "name" : "isRemote",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyOutcome",
-    "fields" : [ {
-      "name" : "status",
-      "type" : [ "null", "Status" ]
-    }, {
-      "name" : "warnings",
-      "type" : {
-        "type" : "array",
-        "items" : "string"
-      }
-    }, {
-      "name" : "trackUsed",
-      "type" : [ "null", "TrackSummary" ]
-    }, {
-      "name" : "numTrackFailures",
-      "type" : "int"
-    }, {
-      "name" : "numTrackChanges",
-      "type" : "int"
-    }, {
-      "name" : "numProofFailures",
-      "type" : "int"
-    }, {
-      "name" : "numDeleted",
-      "type" : "int"
-    }, {
-      "name" : "numProofSuccesses",
-      "type" : "int"
-    }, {
-      "name" : "deleted",
-      "type" : {
-        "type" : "array",
-        "items" : "TrackDiff"
-      }
     } ]
   }, {
     "type" : "record",

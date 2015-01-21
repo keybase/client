@@ -58,6 +58,29 @@
       "type" : "boolean"
     } ]
   }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "LogLevel",
     "symbols" : [ "NONE", "DEBUG", "INFO", "NOTICE", "WARN", "ERROR", "CRITICAL" ]

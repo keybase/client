@@ -27,6 +27,17 @@
 @property BOOL markup;
 @end
 
+@interface KBPgpIdentity : KBRObject
+@property NSString *username;
+@property NSString *comment;
+@property NSString *email;
+@end
+
+@interface KBUser : KBRObject
+@property KBUID *uid;
+@property NSString *username;
+@end
+
 @interface KBUserInfo : KBRObject
 @property NSString *uid;
 @property NSString *username;
@@ -46,17 +57,6 @@
 
 @end
 
-@interface KBPgpIdentity : KBRObject
-@property NSString *username;
-@property NSString *comment;
-@property NSString *email;
-@end
-
-@interface KBRIdentify : KBRRequest
-- (void)identifyWithUid:(KBUID *)uid user:(NSString *)user trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error))completion;
-
-@end
-
 typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 	KBTrackDiffTypeNone, 
 	KBTrackDiffTypeError, 
@@ -71,6 +71,35 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @interface KBTrackDiff : KBRObject
 @property KBTrackDiffType type;
 @property NSString *displayMarkup;
+@end
+
+@interface KBTrackSummary : KBRObject
+@property NSInteger time;
+@property BOOL isRemote;
+@end
+
+@interface KBIdentifyOutcome : KBRObject
+@property KBStatus *status;
+@property NSArray *warnings;
+@property KBTrackSummary *trackUsed;
+@property NSInteger numTrackFailures;
+@property NSInteger numTrackChanges;
+@property NSInteger numProofFailures;
+@property NSInteger numDeleted;
+@property NSInteger numProofSuccesses;
+@property NSArray *deleted;
+@end
+
+@interface KBIdentifyRes : KBRObject
+@property KBUser *user;
+@property KBIdentifyOutcome *outcome;
+@end
+
+@interface KBRIdentify : KBRRequest
+- (void)identifyWithUid:(KBUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBIdentifyRes * identifyRes))completion;
+
+- (void)identifyDefaultWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBIdentifyRes * identifyRes))completion;
+
 @end
 
 @interface KBProofStatus : KBRObject
@@ -133,23 +162,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property KBTrackDiff *diff;
 @property KBTrackDiff *remoteDiff;
 @property KBSigHint *hint;
-@end
-
-@interface KBTrackSummary : KBRObject
-@property NSInteger time;
-@property BOOL isRemote;
-@end
-
-@interface KBIdentifyOutcome : KBRObject
-@property KBStatus *status;
-@property NSArray *warnings;
-@property KBTrackSummary *trackUsed;
-@property NSInteger numTrackFailures;
-@property NSInteger numTrackChanges;
-@property NSInteger numProofFailures;
-@property NSInteger numDeleted;
-@property NSInteger numProofSuccesses;
-@property NSArray *deleted;
 @end
 
 @interface KBFinishAndPromptRes : KBRObject

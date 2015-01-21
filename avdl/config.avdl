@@ -3,8 +3,9 @@
 protocol config {
 
 	import idl "common.avdl";
-
-	record UserInfo {
+       
+        /* type UID instead of string? */
+        record UserInfo {
 		string uid;
 		string username;
 	}
