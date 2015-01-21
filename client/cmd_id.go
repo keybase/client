@@ -51,7 +51,7 @@ func (v *CmdId) RunClient() (err error) {
 	var cli keybase_1.IdentifyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		NewIdentifyUIProtocol(),
+		NewIdentifyUIProtocol(v.user),
 	}
 	if cli, err = GetIdentifyClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {

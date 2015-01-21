@@ -47,7 +47,6 @@ type IdentifyRes struct {
 	TrackUsed   *TrackLookup
 	TrackEqual  bool // Whether the track statement was equal to what we saw
 	MeSet       bool // whether me was set at the time
-	TheirName   string
 }
 
 func (i IdentifyRes) NumDeleted() int {
@@ -226,8 +225,6 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyRes) {
 		is.track = NewTrackLookup(tlink)
 		res.TrackUsed = is.track
 	}
-
-	res.TheirName = u.name
 
 	is.GetUI().ReportLastTrack(ExportTrackSummary(is.track))
 

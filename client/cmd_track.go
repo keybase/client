@@ -34,7 +34,7 @@ func (v *CmdTrack) RunClient() error {
 
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		NewIdentifyTrackUIProtocol(),
+		NewIdentifyTrackUIProtocol(v.user),
 		NewSecretUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {

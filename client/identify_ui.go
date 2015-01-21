@@ -10,16 +10,16 @@ type IdentifyUIServer struct {
 	eng libkb.IdentifyUI
 }
 
-func NewIdentifyUIProtocol() rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI("")})
+func NewIdentifyUIProtocol(username string) rpc2.Protocol {
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI(username)})
 }
 
 func NewIdentifySelfUIProtocol() rpc2.Protocol {
 	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifySelfUI()})
 }
 
-func NewIdentifyTrackUIProtocol() rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyTrackUI("", true)})
+func NewIdentifyTrackUIProtocol(username string) rpc2.Protocol {
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyTrackUI(username, true)})
 }
 
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {

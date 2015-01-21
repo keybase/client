@@ -282,7 +282,6 @@ func (ir *IdentifyRes) Export() *keybase_1.IdentifyOutcome {
 		NumDeleted:        ir.NumDeleted(),
 		NumProofSuccesses: ir.NumProofSuccesses(),
 		Deleted:           del,
-		TheirName:         ir.TheirName,
 	}
 	return ret
 }
