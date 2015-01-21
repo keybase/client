@@ -150,7 +150,6 @@ typedef NS_ENUM (NSInteger, KBTrackDiffType) {
 @property NSInteger numDeleted;
 @property NSInteger numProofSuccesses;
 @property NSArray *deleted;
-@property NSString *theirName;
 @end
 
 @interface KBFinishAndPromptRes : KBRObject

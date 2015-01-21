@@ -217,7 +217,6 @@ type IdentifyOutcome struct {
 	NumDeleted        int           `codec:"numDeleted"`
 	NumProofSuccesses int           `codec:"numProofSuccesses"`
 	Deleted           []TrackDiff   `codec:"deleted"`
-	TheirName         string        `codec:"theirName"`
 }
 
 type FinishAndPromptRes struct {
