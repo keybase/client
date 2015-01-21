@@ -27,6 +27,7 @@ var local = flag.Bool("local", false,
 	"use a fake local user DB instead of Keybase")
 var localUser = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true")
+var client = flag.Bool("client", false, "use keybase daemon")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
 
 func main() {
@@ -74,12 +75,7 @@ func main() {
 	libkb.G.ConfigureMerkleClient()
 	libkb.G.SetUI(GetUI())
 
-	if !*local {
-		libkb.G.ConfigureAPI()
-		if ok, err := libkb.G.Session.LoadAndCheck(); !ok || err != nil {
-			log.Fatalf("Couldn't load session: %v\n", err)
-		}
-	} else {
+	if *local {
 		var localUid libkb.UID
 		switch {
 		case *localUser == "strib":
@@ -96,6 +92,15 @@ func main() {
 				"chris", libkb.UID{3}, []string{"twitter:malgorithms"}},
 		})
 		config.SetKBPKI(k)
+	} else if *client {
+		libkb.G.ConfigureSocketInfo()
+		k := libkbfs.NewKBPKIClient()
+		config.SetKBPKI(k)
+	} else {
+		libkb.G.ConfigureAPI()
+		if ok, err := libkb.G.Session.LoadAndCheck(); !ok || err != nil {
+			log.Fatalf("Couldn't load session: %v\n", err)
+		}
 	}
 
 	root := libkbfs.NewFuseRoot(config)
