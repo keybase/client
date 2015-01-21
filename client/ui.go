@@ -15,8 +15,7 @@ type UI struct {
 }
 
 type BaseIdentifyUI struct {
-	parent *UI
-	//them   *libkb.User
+	parent   *UI
 	username string
 }
 
@@ -104,8 +103,6 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
 
 	var prompt string
-	// un := ui.them.GetName()
-	// un := o.TheirName
 	un := ui.username
 
 	// A "Track Failure" is when we previously tracked this user, and
