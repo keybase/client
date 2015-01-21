@@ -329,7 +329,7 @@ func (e *IdentifyEng) RunStandard() error {
 		return err
 	}
 	if e.ui == nil {
-		e.ui = G.UI.GetIdentifyUI(u)
+		e.ui = G.UI.GetIdentifyUI(u.GetName())
 	}
 	err = u.IdentifySimple(nil, e.ui)
 	if err != nil {

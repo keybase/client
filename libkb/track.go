@@ -370,7 +370,7 @@ func NewTrackEngine(theirName string, ui IdentifyUI, sui SecretUI) *TrackEngine 
 
 func (e *TrackEngine) UI() IdentifyUI {
 	if e.idUI == nil {
-		e.idUI = G.UI.GetIdentifyTrackUI(e.Them, e.StrictProofs)
+		e.idUI = G.UI.GetIdentifyTrackUI(e.Them.GetName(), e.StrictProofs)
 	}
 	return e.idUI
 }

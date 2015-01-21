@@ -249,10 +249,10 @@ type KeyGenUI interface {
 }
 
 type UI interface {
-	GetIdentifyUI(them *User) IdentifyUI
+	GetIdentifyUI(username string) IdentifyUI
 	GetIdentifySelfUI() IdentifyUI
-	GetIdentifyTrackUI(them *User, strict bool) IdentifyUI
-	GetIdentifyLubaUI(them *User) IdentifyUI
+	GetIdentifyTrackUI(username string, strict bool) IdentifyUI
+	GetIdentifyLubaUI(username string) IdentifyUI
 	GetLoginUI() LoginUI
 	GetSecretUI() SecretUI
 	GetProveUI() ProveUI

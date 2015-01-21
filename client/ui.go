@@ -16,7 +16,8 @@ type UI struct {
 
 type BaseIdentifyUI struct {
 	parent *UI
-	them   *libkb.User
+	//them   *libkb.User
+	username string
 }
 
 type IdentifySelfUI struct {
@@ -35,13 +36,13 @@ func (ui IdentifySelfUI) Start() {
 	G.Log.Info("Verifying your key fingerprint....")
 }
 func (ui IdentifyTrackUI) Start() {
-	G.Log.Info("Generating tracking statement for " + ColorString("bold", ui.them.GetName()))
+	G.Log.Info("Generating tracking statement for " + ColorString("bold", ui.username))
 }
 func (ui IdentifyLubaUI) Start() {
-	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", ui.them.GetName()))
+	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", ui.username))
 }
 func (ui IdentifyUI) Start() {
-	G.Log.Info("Identifying " + ColorString("bold", ui.them.GetName()))
+	G.Log.Info("Identifying " + ColorString("bold", ui.username))
 }
 
 func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
@@ -104,7 +105,8 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 
 	var prompt string
 	// un := ui.them.GetName()
-	un := o.TheirName
+	// un := o.TheirName
+	un := ui.username
 
 	// A "Track Failure" is when we previously tracked this user, and
 	// some aspect of their proof changed.  Like their key changed, or
@@ -383,7 +385,7 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
 			locally = "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
-			locally, ui.them.GetName(), libkb.FormatTime(t.GetCTime())))
+			locally, ui.username, libkb.FormatTime(t.GetCTime())))
 		ui.ReportHook(msg)
 	}
 }
@@ -393,19 +395,19 @@ func (ui BaseIdentifyUI) Warning(m string) {
 }
 
 func (ui *UI) GetIdentifySelfUI() libkb.IdentifyUI {
-	return IdentifySelfUI{BaseIdentifyUI{ui, nil}}
+	return IdentifySelfUI{BaseIdentifyUI{parent: ui}}
 }
 
-func (ui *UI) GetIdentifyTrackUI(them *libkb.User, strict bool) libkb.IdentifyUI {
-	return IdentifyTrackUI{BaseIdentifyUI{ui, them}, strict}
+func (ui *UI) GetIdentifyTrackUI(username string, strict bool) libkb.IdentifyUI {
+	return IdentifyTrackUI{BaseIdentifyUI{parent: ui, username: username}, strict}
 }
 
-func (ui *UI) GetIdentifyUI(them *libkb.User) libkb.IdentifyUI {
-	return IdentifyUI{BaseIdentifyUI{ui, them}}
+func (ui *UI) GetIdentifyUI(username string) libkb.IdentifyUI {
+	return IdentifyUI{BaseIdentifyUI{parent: ui, username: username}}
 }
 
-func (ui *UI) GetIdentifyLubaUI(them *libkb.User) libkb.IdentifyUI {
-	return IdentifyLubaUI{BaseIdentifyUI{ui, them}}
+func (ui *UI) GetIdentifyLubaUI(username string) libkb.IdentifyUI {
+	return IdentifyLubaUI{BaseIdentifyUI{parent: ui, username: username}}
 }
 
 func (ui *UI) GetLoginUI() libkb.LoginUI {

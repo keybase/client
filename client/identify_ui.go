@@ -11,7 +11,7 @@ type IdentifyUIServer struct {
 }
 
 func NewIdentifyUIProtocol() rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI(nil)})
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI("")})
 }
 
 func NewIdentifySelfUIProtocol() rpc2.Protocol {
@@ -19,7 +19,7 @@ func NewIdentifySelfUIProtocol() rpc2.Protocol {
 }
 
 func NewIdentifyTrackUIProtocol() rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyTrackUI(nil, true)})
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyTrackUI("", true)})
 }
 
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {
