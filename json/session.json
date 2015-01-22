@@ -89,15 +89,6 @@
     }, {
       "name" : "username",
       "type" : "string"
-    }, {
-      "name" : "token",
-      "type" : "string"
-    }, {
-      "name" : "csrf",
-      "type" : "string"
-    }, {
-      "name" : "mtime",
-      "type" : "int"
     } ]
   } ],
   "messages" : {
