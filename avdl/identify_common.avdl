@@ -2,8 +2,8 @@
 
 protocol identifyCommon {
 	import idl "common.avdl";
-	
-        enum TrackDiffType {
+
+	enum TrackDiffType {
 		NONE,
 		ERROR,
 		CLASH,
@@ -19,13 +19,13 @@ protocol identifyCommon {
 		TrackDiffType type;
 		string displayMarkup;
 	}
-	
-        record TrackSummary {
+
+	record TrackSummary {
 		int time;
 		boolean isRemote;
 	}
-	
-        record IdentifyOutcome {
+
+	record IdentifyOutcome {
 		union { null, Status } status;
 		array<string> warnings;
 		union { null, TrackSummary } trackUsed;
