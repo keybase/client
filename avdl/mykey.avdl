@@ -5,7 +5,7 @@ protocol mykey {
 	import idl "common.avdl";
 
         record PgpCreateUids {
-                boolean useDefault;
+		boolean useDefault;
 		array<PgpIdentity> ids;
         }
 

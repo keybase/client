@@ -1,0 +1,12 @@
+@namespace("keybase.1")
+
+protocol session {
+	import idl "common.avdl";
+
+	record Session {
+		UID uid;
+		string username;
+	}
+
+	Session currentSession();
+}

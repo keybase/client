@@ -8,7 +8,9 @@ paths = Dir["#{script_path}/../json/*.json"]
 defined_types = []
 enums = []
 
-def objc_for_type(type, enums)
+objc_prefix = "KBR"
+
+def objc_for_type(type, enums, objc_prefix)
   if type.kind_of?(Hash)
     type = type["type"]
   end
@@ -29,9 +31,9 @@ def objc_for_type(type, enums)
     if type.start_with?("void")
       type
     elsif enums.include?(type)
-      "KB#{type} "
+      "#{objc_prefix}#{type} "
     else
-      "KB#{type} *"
+      "#{objc_prefix}#{type} *"
     end
   end
 end
@@ -80,7 +82,7 @@ paths.each do |path|
 
     if type["type"] == "enum"
       enums << type["name"]
-      enum_name = "KB#{type["name"]}"
+      enum_name = "#{objc_prefix}#{type["name"]}"
       header << "typedef NS_ENUM (NSInteger, #{enum_name}) {"
       type["symbols"].each do |sym|
         header << "\t#{enum_name}#{sym.capitalize}, "
@@ -90,26 +92,26 @@ paths.each do |path|
 
 
     if type["type"] == "fixed"
-      header << "@interface KB#{type["name"]} : NSData"
+      header << "@interface #{objc_prefix}#{type["name"]} : NSData"
       header << "@end\n"
-      impl << "@implementation KB#{type["name"]}"
+      impl << "@implementation #{objc_prefix}#{type["name"]}"
       impl << "@end\n"
     end
 
     if type["type"] == "record"
-      header << "@interface KB#{type["name"]} : KBRObject"
+      header << "@interface #{objc_prefix}#{type["name"]} : KBRObject"
       type["fields"].each do |field|
-        header << "@property #{objc_for_type(field["type"], enums)}#{field["name"]};"
+        header << "@property #{objc_for_type(field["type"], enums, objc_prefix)}#{field["name"]};"
       end
       header << "@end\n"
-      impl << "@implementation KB#{type["name"]}"
+      impl << "@implementation #{objc_prefix}#{type["name"]}"
       impl << "@end\n"
     end
   end
 
 
-  header << "@interface KBR#{protocol.camelize} : KBRRequest"
-  impl << "@implementation KBR#{protocol.camelize}"
+  header << "@interface #{objc_prefix}#{protocol.camelize}Request : KBRRequest"
+  impl << "@implementation #{objc_prefix}#{protocol.camelize}Request"
 
   h["messages"].each do |method, mparam|
     request_params = mparam["request"]
@@ -119,14 +121,14 @@ paths.each do |path|
       if is_primitive_type(p["type"]) || enums.include?(p["type"])
         "@\"#{p["name"]}\": @(#{p["name"]})"
       else
-        "@\"#{p["name"]}\": KBRValue(#{p["name"]})"
+        "@\"#{p["name"]}\": #{objc_prefix}Value(#{p["name"]})"
       end
     end
 
     response_completion = if response_type == "null" then
       "void (^)(NSError *error)"
     else
-      "void (^)(NSError *error, #{objc_for_type(response_type, enums)} #{default_name_for_type(response_type)})"
+      "void (^)(NSError *error, #{objc_for_type(response_type, enums, objc_prefix)} #{default_name_for_type(response_type)})"
     end
 
     request_params << { "name" => "completion", "type" => response_completion }
@@ -136,7 +138,7 @@ paths.each do |path|
       name = "With#{name.camelize}" if index == 0
       name = "" if request_params.length == 1
 
-      "#{name}:(#{objc_for_type(param["type"], enums)})#{param["name"]}"
+      "#{name}:(#{objc_for_type(param["type"], enums, objc_prefix)})#{param["name"]}"
     end
 
     rpc_method = "#{namespace}.#{protocol}.#{method}"
@@ -151,7 +153,7 @@ paths.each do |path|
     elsif is_native_type(response_type)
       "completion(error, 0);" # TODO
     else
-      classname = "KB#{response_type}"
+      classname = "#{objc_prefix}#{response_type}"
       "if (error) {
         completion(error, nil);
         return;

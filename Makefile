@@ -22,6 +22,7 @@ build-stamp: \
 	json/prove.json \
 	json/prove_ui.json \
 	json/secret_ui.json \
+	json/session.json \
 	json/signup.json \
 	json/track.json \
 	json/ui.json
