@@ -3,10 +3,10 @@
 protocol session {
 	import idl "common.avdl";
 
-        record Session {
-                UID uid;
-                string username;
-        }
+	record Session {
+		UID uid;
+		string username;
+	}
 
-        Session currentSession();
+	Session currentSession();
 }

@@ -37,8 +37,8 @@ protocol identifyCommon {
 		array<TrackDiff> deleted;
 	}
 
-        record IdentifyRes {
-                union { null, User } user;
-                IdentifyOutcome outcome;
-        }
+	record IdentifyRes {
+		union { null, User } user;
+		IdentifyOutcome outcome;
+	}
 }

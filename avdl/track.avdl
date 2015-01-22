@@ -3,7 +3,7 @@
 protocol track {
 	import idl "common.avdl";
 
-        void track(
-                string theirName
-        );
+	void track(
+		string theirName
+	);
 }
