@@ -230,6 +230,8 @@ typedef NS_ENUM (NSInteger, KBLogLevel) {
 
 - (void)deletePrimary:(void (^)(NSError *error))completion;
 
+- (void)show:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBPushPreferences : KBRObject

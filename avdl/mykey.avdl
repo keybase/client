@@ -26,4 +26,9 @@ protocol mykey {
 		string passphrase);
 
 	void deletePrimary();
+
+	// Just show the keys that are currently active via
+	// loggingUI.  We might eventually opt for something
+	// more interesting here.
+	void show();
 }

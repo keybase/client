@@ -605,10 +605,14 @@ type KeyGenDefaultArg struct {
 type DeletePrimaryArg struct {
 }
 
+type ShowArg struct {
+}
+
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
 	KeyGenDefault(KeyGenDefaultArg) error
 	DeletePrimary() error
+	Show() error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -636,6 +640,13 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"show": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ShowArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Show()
+				}
+				return
+			},
 		},
 	}
 
@@ -657,6 +668,11 @@ func (c MykeyClient) KeyGenDefault(__arg KeyGenDefaultArg) (err error) {
 
 func (c MykeyClient) DeletePrimary() (err error) {
 	err = c.Cli.Call("keybase.1.mykey.deletePrimary", []interface{}{DeletePrimaryArg{}}, nil)
+	return
+}
+
+func (c MykeyClient) Show() (err error) {
+	err = c.Cli.Call("keybase.1.mykey.show", []interface{}{ShowArg{}}, nil)
 	return
 }
 

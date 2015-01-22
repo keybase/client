@@ -142,6 +142,10 @@
     "deletePrimary" : {
       "request" : [ ],
       "response" : "null"
+    },
+    "show" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }
