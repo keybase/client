@@ -970,6 +970,46 @@ func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res
 	return
 }
 
+type Session struct {
+	Uid      UID    `codec:"uid"`
+	Username string `codec:"username"`
+	Token    string `codec:"token"`
+	Csrf     string `codec:"csrf"`
+	Mtime    int    `codec:"mtime"`
+}
+
+type CurrentSessionArg struct {
+}
+
+type SessionInterface interface {
+	CurrentSession() (Session, error)
+}
+
+func SessionProtocol(i SessionInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.session",
+		Methods: map[string]rpc2.ServeHook{
+			"currentSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CurrentSessionArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.CurrentSession()
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type SessionClient struct {
+	Cli GenericClient
+}
+
+func (c SessionClient) CurrentSession() (res Session, err error) {
+	err = c.Cli.Call("keybase.1.session.currentSession", []interface{}{CurrentSessionArg{}}, &res)
+	return
+}
+
 type SignupRes struct {
 	PassphraseOk bool `codec:"passphraseOk"`
 	PostOk       bool `codec:"postOk"`

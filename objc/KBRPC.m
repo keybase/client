@@ -400,6 +400,25 @@
 
 @end
 
+@implementation KBSession
+@end
+
+@implementation KBRSession
+- (void)currentSession:(void (^)(NSError *error, KBSession * session))completion {
+
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.session.currentSession" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBSession *result = [MTLJSONAdapter modelOfClass:KBSession.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBSignupRes
 @end
 

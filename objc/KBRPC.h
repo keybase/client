@@ -290,6 +290,19 @@ typedef NS_ENUM (NSInteger, KBPromptOverwriteType) {
 
 @end
 
+@interface KBSession : KBRObject
+@property KBUID *uid;
+@property NSString *username;
+@property NSString *token;
+@property NSString *csrf;
+@property NSInteger mtime;
+@end
+
+@interface KBRSession : KBRRequest
+- (void)currentSession:(void (^)(NSError *error, KBSession * session))completion;
+
+@end
+
 @interface KBSignupRes : KBRObject
 @property BOOL passphraseOk;
 @property BOOL postOk;
