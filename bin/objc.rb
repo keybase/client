@@ -63,8 +63,8 @@ def default_name_for_type(type)
 end
 
 header = []
-header << "#import \"#{objc_prefix}Object.h\""
-header << "#import \"#{objc_prefix}Request.h\""
+header << "#import \"KBRObject.h\""
+header << "#import \"KBRRequest.h\""
 header << ""
 impl = []
 impl << "#import \"KBRPC.h\"\n"
@@ -99,7 +99,7 @@ paths.each do |path|
     end
 
     if type["type"] == "record"
-      header << "@interface #{objc_prefix}#{type["name"]} : #{objc_prefix}Object"
+      header << "@interface #{objc_prefix}#{type["name"]} : KBRObject"
       type["fields"].each do |field|
         header << "@property #{objc_for_type(field["type"], enums, objc_prefix)}#{field["name"]};"
       end
@@ -110,8 +110,8 @@ paths.each do |path|
   end
 
 
-  header << "@interface #{objc_prefix}#{protocol.camelize} : #{objc_prefix}Request"
-  impl << "@implementation #{objc_prefix}#{protocol.camelize}"
+  header << "@interface #{objc_prefix}#{protocol.camelize}Request : KBRRequest"
+  impl << "@implementation #{objc_prefix}#{protocol.camelize}Request"
 
   h["messages"].each do |method, mparam|
     request_params = mparam["request"]

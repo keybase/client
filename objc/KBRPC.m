@@ -27,7 +27,7 @@
 @implementation KBRGetCurrentStatusRes
 @end
 
-@implementation KBRConfig
+@implementation KBRConfigRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion {
 
   NSArray *params = @[@{}];
@@ -55,7 +55,7 @@
 @implementation KBRIdentifyRes
 @end
 
-@implementation KBRIdentify
+@implementation KBRIdentifyRequest
 - (void)identifyWithUid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion {
 
   NSArray *params = @[@{@"uid": KBRValue(uid), @"username": KBRValue(username), @"trackStatement": @(trackStatement), @"luba": @(luba), @"loadSelf": @(loadSelf)}];
@@ -114,7 +114,7 @@
 @implementation KBRFinishAndPromptRes
 @end
 
-@implementation KBRIdentifyUi
+@implementation KBRIdentifyUiRequest
 - (void)finishAndPromptWithSessionId:(NSInteger )sessionId outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBRFinishAndPromptRes * finishAndPromptRes))completion {
 
   NSArray *params = @[@{@"sessionId": @(sessionId), @"outcome": KBRValue(outcome)}];
@@ -186,7 +186,7 @@
 
 @end
 
-@implementation KBRLogUi
+@implementation KBRLogUiRequest
 - (void)logWithSessionId:(NSInteger )sessionId level:(KBRLogLevel )level text:(KBRText *)text completion:(void (^)(NSError *error))completion {
 
   NSArray *params = @[@{@"sessionId": @(sessionId), @"level": @(level), @"text": KBRValue(text)}];
@@ -197,7 +197,7 @@
 
 @end
 
-@implementation KBRLogin
+@implementation KBRLoginRequest
 - (void)passphraseLoginWithIdentify:(BOOL )identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion {
 
   NSArray *params = @[@{@"identify": @(identify), @"username": KBRValue(username), @"passphrase": KBRValue(passphrase)}];
@@ -232,7 +232,7 @@
 
 @end
 
-@implementation KBRLoginUi
+@implementation KBRLoginUiRequest
 - (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion {
 
   NSArray *params = @[@{}];
@@ -246,7 +246,7 @@
 @implementation KBRPgpCreateUids
 @end
 
-@implementation KBRMykey
+@implementation KBRMykeyRequest
 - (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase noNaclEddsa:(BOOL )noNaclEddsa noNaclDh:(BOOL )noNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion {
 
   NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"noPassphrase": @(noPassphrase), @"kbPassphrase": @(kbPassphrase), @"noNaclEddsa": @(noNaclEddsa), @"noNaclDh": @(noNaclDh), @"pregen": KBRValue(pregen)}];
@@ -276,7 +276,7 @@
 @implementation KBRPushPreferences
 @end
 
-@implementation KBRMykeyUi
+@implementation KBRMykeyUiRequest
 - (void)getPushPreferences:(void (^)(NSError *error, KBRPushPreferences * pushPreferences))completion {
 
   NSArray *params = @[@{}];
@@ -292,7 +292,7 @@
 
 @end
 
-@implementation KBRProve
+@implementation KBRProveRequest
 - (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion {
 
   NSArray *params = @[@{@"service": KBRValue(service), @"username": KBRValue(username), @"force": @(force)}];
@@ -303,7 +303,7 @@
 
 @end
 
-@implementation KBRProveUi
+@implementation KBRProveUiRequest
 - (void)promptOverwriteWithSessionId:(NSInteger )sessionId account:(NSString *)account typ:(KBRPromptOverwriteType )typ completion:(void (^)(NSError *error, BOOL  b))completion {
 
   NSArray *params = @[@{@"sessionId": @(sessionId), @"account": KBRValue(account), @"typ": @(typ)}];
@@ -368,7 +368,7 @@
 @implementation KBRSecretEntryRes
 @end
 
-@implementation KBRSecretUi
+@implementation KBRSecretUiRequest
 - (void)getSecretWithPinentry:(KBRSecretEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRSecretEntryRes * secretEntryRes))completion {
 
   NSArray *params = @[@{@"pinentry": KBRValue(pinentry), @"terminal": KBRValue(terminal)}];
@@ -403,7 +403,7 @@
 @implementation KBRSession
 @end
 
-@implementation KBRSession
+@implementation KBRSessionRequest
 - (void)currentSession:(void (^)(NSError *error, KBRSession * session))completion {
 
   NSArray *params = @[@{}];
@@ -422,7 +422,7 @@
 @implementation KBRSignupRes
 @end
 
-@implementation KBRSignup
+@implementation KBRSignupRequest
 - (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
 
   NSArray *params = @[@{@"username": KBRValue(username)}];
@@ -454,7 +454,7 @@
 
 @end
 
-@implementation KBRTrack
+@implementation KBRTrackRequest
 - (void)trackWithTheirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
 
   NSArray *params = @[@{@"theirName": KBRValue(theirName)}];
@@ -465,7 +465,7 @@
 
 @end
 
-@implementation KBRUi
+@implementation KBRUiRequest
 - (void)promptYesNoWithText:(KBRText *)text def:(BOOL )def completion:(void (^)(NSError *error, BOOL  b))completion {
 
   NSArray *params = @[@{@"text": KBRValue(text), @"def": @(def)}];

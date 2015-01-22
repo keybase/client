@@ -52,7 +52,7 @@
 @property KBRUserInfo *user;
 @end
 
-@interface KBRConfig : KBRRequest
+@interface KBRConfigRequest : KBRRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion;
 
 @end
@@ -95,7 +95,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property KBRIdentifyOutcome *outcome;
 @end
 
-@interface KBRIdentify : KBRRequest
+@interface KBRIdentifyRequest : KBRRequest
 - (void)identifyWithUid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion;
 
 - (void)identifyDefaultWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion;
@@ -169,7 +169,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property BOOL trackRemote;
 @end
 
-@interface KBRIdentifyUi : KBRRequest
+@interface KBRIdentifyUiRequest : KBRRequest
 - (void)finishAndPromptWithSessionId:(NSInteger )sessionId outcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBRFinishAndPromptRes * finishAndPromptRes))completion;
 
 - (void)finishWebProofCheckWithSessionId:(NSInteger )sessionId rp:(KBRRemoteProof *)rp lcr:(KBRLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion;
@@ -197,12 +197,12 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 	KBRLogLevelError, 
 	KBRLogLevelCritical, 
 };
-@interface KBRLogUi : KBRRequest
+@interface KBRLogUiRequest : KBRRequest
 - (void)logWithSessionId:(NSInteger )sessionId level:(KBRLogLevel )level text:(KBRText *)text completion:(void (^)(NSError *error))completion;
 
 @end
 
-@interface KBRLogin : KBRRequest
+@interface KBRLoginRequest : KBRRequest
 - (void)passphraseLoginWithIdentify:(BOOL )identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
 - (void)pubkeyLogin:(void (^)(NSError *error))completion;
@@ -213,7 +213,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
-@interface KBRLoginUi : KBRRequest
+@interface KBRLoginUiRequest : KBRRequest
 - (void)getEmailOrUsername:(void (^)(NSError *error, NSString * str))completion;
 
 @end
@@ -223,7 +223,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSArray *ids;
 @end
 
-@interface KBRMykey : KBRRequest
+@interface KBRMykeyRequest : KBRRequest
 - (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase noNaclEddsa:(BOOL )noNaclEddsa noNaclDh:(BOOL )noNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion;
 
 - (void)keyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
@@ -237,12 +237,12 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property BOOL private;
 @end
 
-@interface KBRMykeyUi : KBRRequest
+@interface KBRMykeyUiRequest : KBRRequest
 - (void)getPushPreferences:(void (^)(NSError *error, KBRPushPreferences * pushPreferences))completion;
 
 @end
 
-@interface KBRProve : KBRRequest
+@interface KBRProveRequest : KBRRequest
 - (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion;
 
 @end
@@ -251,7 +251,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 	KBRPromptOverwriteTypeSocial, 
 	KBRPromptOverwriteTypeSite, 
 };
-@interface KBRProveUi : KBRRequest
+@interface KBRProveUiRequest : KBRRequest
 - (void)promptOverwriteWithSessionId:(NSInteger )sessionId account:(NSString *)account typ:(KBRPromptOverwriteType )typ completion:(void (^)(NSError *error, BOOL  b))completion;
 
 - (void)promptUsernameWithSessionId:(NSInteger )sessionId prompt:(NSString *)prompt prevError:(KBRStatus *)prevError completion:(void (^)(NSError *error, NSString * str))completion;
@@ -281,7 +281,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL canceled;
 @end
 
-@interface KBRSecretUi : KBRRequest
+@interface KBRSecretUiRequest : KBRRequest
 - (void)getSecretWithPinentry:(KBRSecretEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRSecretEntryRes * secretEntryRes))completion;
 
 - (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString * str))completion;
@@ -295,7 +295,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *username;
 @end
 
-@interface KBRSession : KBRRequest
+@interface KBRSessionRequest : KBRRequest
 - (void)currentSession:(void (^)(NSError *error, KBRSession * session))completion;
 
 @end
@@ -306,7 +306,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL writeOk;
 @end
 
-@interface KBRSignup : KBRRequest
+@interface KBRSignupRequest : KBRRequest
 - (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 - (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBRSignupRes * signupRes))completion;
@@ -315,12 +315,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
-@interface KBRTrack : KBRRequest
+@interface KBRTrackRequest : KBRRequest
 - (void)trackWithTheirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
 
 @end
 
-@interface KBRUi : KBRRequest
+@interface KBRUiRequest : KBRRequest
 - (void)promptYesNoWithText:(KBRText *)text def:(BOOL )def completion:(void (^)(NSError *error, BOOL  b))completion;
 
 @end
