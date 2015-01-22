@@ -5,7 +5,7 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-// TrackHandler is the RPC handler for the track command.
+// TrackHandler is the RPC handler for the track interface.
 type TrackHandler struct {
 	BaseHandler
 }
