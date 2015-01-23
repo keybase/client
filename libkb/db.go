@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"regexp"
@@ -54,6 +55,24 @@ func (j *JsonLocalDb) Get(id DbKey) (*jsonw.Wrapper, error) {
 		ret, err = jsonw.Unmarshal(bytes)
 	}
 	return ret, err
+}
+
+func (j *JsonLocalDb) GetInto(obj interface{}, id DbKey) (found bool, err error) {
+	var buf []byte
+	buf, found, err = j.engine.Get(id)
+	if err == nil && found {
+		err = json.Unmarshal(buf, &obj)
+	}
+	return
+}
+
+func (j *JsonLocalDb) PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error) {
+	var bytes []byte
+	bytes, err = json.Marshal(obj)
+	if err == nil {
+		err = j.engine.Put(id, aliases, bytes)
+	}
+	return err
 }
 
 func (j *JsonLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {

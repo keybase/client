@@ -46,6 +46,11 @@ func NewApiEngines(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 	return i, x, nil
 }
 
+type ApiStatus struct {
+	Code int    `json:"code"`
+	Name string `json:"name"`
+}
+
 //============================================================================
 // Errors
 

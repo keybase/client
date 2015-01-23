@@ -348,7 +348,7 @@ func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
 	}
 
 	// they want a json tracking statement:
-	me, err := LoadMe(LoadUserArg{LoadSecrets: true})
+	me, err := LoadMe(LoadUserArg{})
 	if err != nil {
 		G.Log.Warning("error loading me: %s", err)
 		return nil, err

@@ -8,7 +8,7 @@ type SelfProvisioner struct {
 }
 
 func (sp *SelfProvisioner) LoadMe() (err error) {
-	sp.me, err = LoadMe(LoadUserArg{LoadSecrets: true})
+	sp.me, err = LoadMe(LoadUserArg{})
 	return
 }
 

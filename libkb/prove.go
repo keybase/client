@@ -44,7 +44,7 @@ func (v *ProofEngine) Login() (err error) {
 }
 
 func (v *ProofEngine) LoadMe() (err error) {
-	v.me, err = LoadMe(LoadUserArg{LoadSecrets: true, AllKeys: false, ForceReload: true})
+	v.me, err = LoadMe(LoadUserArg{AllKeys: false, ForceReload: true})
 	return
 }
 

@@ -150,6 +150,7 @@ type ApiArg struct {
 	NeedSession bool
 	HttpStatus  []int
 	AppStatus   []string
+	DecodeTo    interface{}
 }
 
 type ApiRes struct {

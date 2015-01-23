@@ -73,13 +73,14 @@ func (p *P3SKB) ToPacket() (ret *KeybasePacket, err error) {
 
 func (p *P3SKB) ReadKey(priv bool) (g GenericKey, err error) {
 	switch {
-	case IsPgpAlgo(p.Type):
+	case IsPgpAlgo(p.Type) || p.Type == 0:
 		g, err = ReadOneKeyFromBytes(p.Pub)
 	case p.Type == KID_NACL_EDDSA:
 		g, err = ImportNaclSigningKeyPairFromBytes(p.Pub, nil)
 	case p.Type == KID_NACL_DH:
 		g, err = ImportNaclDHKeyPairFromBytes(p.Pub, nil)
 	default:
+		err = UnknownKeyTypeError{p.Type}
 	}
 	return
 }

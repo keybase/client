@@ -40,6 +40,7 @@ type Global struct {
 	ShutdownHooks []ShutdownHook // on shutdown, fire these...
 	SocketInfo    SocketInfo     // which socket to bind/connect to
 	SocketWrapper *SocketWrapper // only need one connection per
+	SecretSyncer  *SecretSyncer  // For syncing secrets between the server and client
 	UI            UI             // Interact with the UI
 	Daemon        bool           // whether we're in daemon mode
 	shutdown      bool           // whether we've shut down or not
@@ -138,6 +139,11 @@ func (g *Global) ConfigureMerkleClient() error {
 	return nil
 }
 
+func (g *Global) ConfigureSecretSyncer() error {
+	g.SecretSyncer = &SecretSyncer{}
+	return nil
+}
+
 func (g *Global) Shutdown() error {
 	if g.shutdown {
 		return nil
@@ -194,6 +200,10 @@ func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
 		if err = g.ConfigureSocketInfo(); err != nil {
 			return err
 		}
+	}
+
+	if err = g.ConfigureSecretSyncer(); err != nil {
+		return err
 	}
 
 	if err = g.ConfigureCaches(); err != nil {

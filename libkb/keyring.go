@@ -215,7 +215,7 @@ func (k Keyrings) GetSecretKeyLocked() (ret *P3SKB, which string, err error) {
 		return
 	}
 
-	if me, err = LoadMe(LoadUserArg{LoadSecrets: true}); err != nil {
+	if me, err = LoadMe(LoadUserArg{}); err != nil {
 		return
 	}
 
@@ -234,7 +234,7 @@ func (k Keyrings) GetSecretKeyLocked() (ret *P3SKB, which string, err error) {
 	}
 
 	if ret == nil {
-		err = NoKeyError{fmt.Sprintf("No secret key found")}
+		err = NoSecretKeyError{}
 	}
 	return
 }
