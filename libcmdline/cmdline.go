@@ -15,10 +15,11 @@ type Command interface {
 }
 
 type CommandLine struct {
-	app  *cli.App
-	ctx  *cli.Context
-	cmd  Command
-	name string // the name of the chosen command
+	app        *cli.App
+	ctx        *cli.Context
+	cmd        Command
+	name       string // the name of the chosen command
+	defaultCmd string
 }
 
 func (p CommandLine) GetHome() string {
@@ -322,6 +323,7 @@ func (cl *CommandLine) AddCommands(cmds []cli.Command) {
 }
 
 func (cl *CommandLine) SetDefaultCommand(name string, cmd Command) {
+	cl.defaultCmd = name
 	cl.app.Action = func(c *cli.Context) {
 		cl.cmd = cmd
 		cl.ctx = c
@@ -340,8 +342,8 @@ func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
 	// This is suboptimal, but the default help action when there are
 	// no args crashes.
 	// (cli sets HelpPrinter to nil when p.app.Run(...) returns.)
-	if len(args) == 1 {
-		args = append(args, "help")
+	if len(args) == 1 && p.defaultCmd == "help" {
+		args = append(args, p.defaultCmd)
 	}
 
 	// Actually pick a command

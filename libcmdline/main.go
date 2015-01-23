@@ -28,8 +28,8 @@ func Main(parseArgs parseArgHook, ui libkb.UI, canBeClient bool) {
 }
 
 func main2(parseArgs parseArgHook, canBeClient bool) error {
-
 	cmdline, cmd, err := parseArgs()
+
 	if cmd == nil || err != nil {
 		return err
 	}
