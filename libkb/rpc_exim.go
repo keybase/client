@@ -235,12 +235,12 @@ func (f *PgpFingerprint) ExportToFOKID() (ret keybase_1.FOKID) {
 
 //=============================================================================
 
-func (f FOKID) Export() (ret keybase_1.FOKID) {
-	if f.Fp != nil {
+func (f *FOKID) Export() (ret keybase_1.FOKID) {
+	if f != nil && f.Fp != nil {
 		slc := (*f.Fp)[:]
 		ret.PgpFingerprint = &slc
 	}
-	if ret.Kid != nil {
+	if f != nil && f.Kid != nil {
 		tmp := []byte(f.Kid)
 		ret.Kid = &tmp
 	}

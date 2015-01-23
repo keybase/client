@@ -395,6 +395,13 @@ func (l *TrackChainLink) GetTrackedPgpFingerprint() (*PgpFingerprint, error) {
 	return GetPgpFingerprint(l.payloadJson.AtPath("body.track.key.key_fingerprint"))
 }
 
+func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
+	jw := l.payloadJson.AtPath("body.track.key")
+	ret.Fp, _ = GetPgpFingerprint(jw.AtKey("key_fingerprint"))
+	ret.Kid, _ = GetKID(jw.AtKey("kid"))
+	return
+}
+
 func (l *TrackChainLink) GetTrackedUid() (*UID, error) {
 	return GetUid(l.payloadJson.AtPath("body.track.id"))
 }

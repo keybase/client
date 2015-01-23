@@ -7,14 +7,14 @@ import (
 
 func (u *User) IdentifyKey(is IdentifyState) error {
 	var diff TrackDiff
+
+	fokid := u.GetEldestFOKID()
+
 	if mt := is.track; mt != nil {
-		diff = mt.ComputeKeyDiff(*u.activePgpFingerprint)
+		diff = mt.ComputeKeyDiff(fokid)
 		is.res.KeyDiff = diff
 	}
-	fokid := u.GetEldestFOKID()
-	if fokid == nil {
-		return NoEldestKeyError{}
-	}
+
 	is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
 
 	return nil

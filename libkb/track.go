@@ -108,14 +108,15 @@ func (l TrackLookup) GetProofState(tic TrackIdComponent) int {
 	return l.set.GetProofState(tic)
 }
 
-func (l *TrackLookup) ComputeKeyDiff(curr PgpFingerprint) TrackDiff {
-	prev, err := l.link.GetTrackedPgpFingerprint()
-	if err != nil {
-		return TrackDiffError{err}
-	} else if prev.Eq(curr) {
+func (l *TrackLookup) ComputeKeyDiff(curr *FOKID) TrackDiff {
+	prev := l.link.GetTrackedFOKID()
+	if curr == nil {
+		curr = &FOKID{}
+	}
+	if prev.Eq(*curr) {
 		return TrackDiffNone{}
 	} else {
-		return TrackDiffClash{curr.ToQuads(), prev.ToQuads()}
+		return TrackDiffClash{curr.ToString(), prev.ToString()}
 	}
 }
 
