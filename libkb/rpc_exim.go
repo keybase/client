@@ -235,6 +235,20 @@ func (f *PgpFingerprint) ExportToFOKID() (ret keybase_1.FOKID) {
 
 //=============================================================================
 
+func (f *FOKID) Export() (ret keybase_1.FOKID) {
+	if f != nil && f.Fp != nil {
+		slc := (*f.Fp)[:]
+		ret.PgpFingerprint = &slc
+	}
+	if f != nil && f.Kid != nil {
+		tmp := []byte(f.Kid)
+		ret.Kid = &tmp
+	}
+	return
+}
+
+//=============================================================================
+
 func (s TrackSummary) Export() (ret keybase_1.TrackSummary) {
 	ret.Time = int(s.time.Unix())
 	ret.IsRemote = s.isRemote

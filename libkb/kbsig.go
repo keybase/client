@@ -19,15 +19,15 @@ func ClientId() *jsonw.Wrapper {
 
 func (u *User) ToTrackingStatementKey(errp *error) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	if key, err := u.GetActiveKey(); err != nil {
-		*errp = fmt.Errorf("User %s doesn't have an active key: %s",
-			u.name, err.Error())
-	} else if fp, err := u.GetActivePgpFingerprint(); err != nil {
-		*errp = fmt.Errorf("User %s doesn't have an active fingerprint: %s",
-			u.name, err.Error())
+
+	if !u.HasActiveKey() {
+		*errp = fmt.Errorf("User %s doesn't have an active key")
 	} else {
-		ret.SetKey("kid", jsonw.NewString(key.GetKid().ToString()))
-		ret.SetKey("key_fingerprint", jsonw.NewString(fp.ToString()))
+		fokid := u.GetEldestFOKID()
+		ret.SetKey("kid", jsonw.NewString(fokid.Kid.ToString()))
+		if fokid.Fp != nil {
+			ret.SetKey("key_fingerprint", jsonw.NewString(fokid.Fp.ToString()))
+		}
 	}
 	return ret
 }
@@ -67,30 +67,36 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	return
 }
 
-func (u *User) ToKeyStanza(sk GenericKey) (ret *jsonw.Wrapper, err error) {
+func (u *User) ToKeyStanza(sk GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 	ret.SetKey("uid", jsonw.NewString(u.id.ToString()))
 	ret.SetKey("username", jsonw.NewString(u.name))
 	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
 
-	if sk == nil {
-		var key *PgpKeyBundle
-		if key, err = u.GetActiveKey(); err != nil {
-			return
-		} else {
-			sk = key
-		}
+	if eldest == nil {
+		eldest = u.GetEldestFOKID()
 	}
 
-	if sk == nil {
-		err = NoKeyError{"No key found in ToKeyStanza()"}
-	} else {
+	var signingKid KID
+	if sk != nil {
+		signingKid = sk.GetKid()
+	} else if signingKid = G.Env.GetPerDeviceKID(); signingKid == nil {
+		err = NoSecretKeyError{}
+		return
+	}
+
+	if sk != nil {
 		if fp := sk.GetFingerprintP(); fp != nil {
 			ret.SetKey("fingerprint", jsonw.NewString(fp.ToString()))
 			ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))
 		}
-		ret.SetKey("kid", jsonw.NewString(sk.GetKid().ToString()))
 	}
+
+	ret.SetKey("kid", jsonw.NewString(signingKid.ToString()))
+	if eldest != nil {
+		ret.SetKey("eldest_kid", jsonw.NewString(eldest.Kid.ToString()))
+	}
+
 	return
 }
 
@@ -156,7 +162,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	return nil
 }
 
-func (u *User) ProofMetadata(ei int, signingKey GenericKey) (ret *jsonw.Wrapper, err error) {
+func (u *User) ProofMetadata(ei int, signingKey GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
 
 	var seqno int
 	var prev_s string
@@ -185,7 +191,7 @@ func (u *User) ProofMetadata(ei int, signingKey GenericKey) (ret *jsonw.Wrapper,
 	ret.SetKey("prev", prev)
 
 	body := jsonw.NewDictionary()
-	key, err = u.ToKeyStanza(signingKey)
+	key, err = u.ToKeyStanza(signingKey, eldest)
 	if err != nil {
 		ret = nil
 		return
@@ -196,24 +202,26 @@ func (u *User) ProofMetadata(ei int, signingKey GenericKey) (ret *jsonw.Wrapper,
 	return
 }
 
-func (u1 *User) TrackingProofFor(u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = u1.ProofMetadata(0, nil)
+func (u1 *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
+	ret, err = u1.ProofMetadata(0, signingKey, nil)
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"))
 	}
 	return
 }
 
-func (u *User) SelfProof() (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(0, nil)
-	body := ret.AtKey("body")
-	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
-	body.SetKey("type", jsonw.NewString("web_service_binding"))
+func (u *User) SelfProof(signingKey GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata(0, signingKey, eldest)
+	if err == nil {
+		body := ret.AtKey("body")
+		body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+		body.SetKey("type", jsonw.NewString("web_service_binding"))
+	}
 	return
 }
 
-func (u *User) ServiceProof(typ ServiceType, remotename string) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.SelfProof()
+func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename string) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.SelfProof(signingKey, nil)
 	if err != nil {
 		return
 	}
@@ -239,7 +247,7 @@ func KeyToProofJson(key GenericKey) *jsonw.Wrapper {
 }
 
 func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(ei, signingkey)
+	ret, err = u.ProofMetadata(ei, signingkey, nil)
 	if err != nil {
 		return
 	}

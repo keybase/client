@@ -30,7 +30,6 @@ func (s SigId) ToDisplayString(verbose bool) string {
 	} else {
 		return fmt.Sprintf("%s...", hex.EncodeToString(s[0:3]))
 	}
-
 }
 
 func SigIdFromSlice(s []byte) (*SigId, error) {
@@ -42,7 +41,6 @@ func SigIdFromSlice(s []byte) (*SigId, error) {
 		copy(ret[:], s)
 		return &ret, nil
 	}
-
 }
 
 func SigIdFromHex(s string, suffix bool) (*SigId, error) {
@@ -123,7 +121,7 @@ func (k PgpKeyBundle) Verify(armored string, expected []byte) (sigId *SigId,
 		return
 	}
 	if !FastByteArrayEq(res, expected) {
-		err = fmt.Errorf("Verified text failed to match expected text")
+		err = BadSigError{"wrong payload"}
 		return
 	}
 	return sig_id, nil
@@ -150,7 +148,16 @@ func OpenSig(armored string) (ps *ParsedSig, err error) {
 	return
 }
 
-func SigAssertPayload(armored string, expected []byte) (ps *ParsedSig, err error) {
+func SigAssertPayload(armored string, expected []byte) (sigId *SigId, err error) {
+	if strings.HasPrefix(armored, "-----BEGIN PGP") {
+		return SigAssertPgpPayload(armored, expected)
+	} else {
+		return SigAssertKbPayload(armored, expected)
+	}
+}
+
+func SigAssertPgpPayload(armored string, expected []byte) (sigId *SigId, err error) {
+	var ps *ParsedSig
 	ps, err = OpenSig(armored)
 	if err != nil {
 		return
@@ -159,6 +166,8 @@ func SigAssertPayload(armored string, expected []byte) (ps *ParsedSig, err error
 		ps = nil
 		return
 	}
+	tmp := ps.ID()
+	sigId = &tmp
 	return
 }
 

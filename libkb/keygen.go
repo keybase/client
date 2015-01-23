@@ -160,11 +160,10 @@ type KeyGen struct {
 }
 
 func (s *KeyGen) CheckNoKey() error {
-	fp, err := s.me.GetActivePgpFingerprint()
-	if err == nil && fp != nil {
-		err = KeyExistsError{fp}
+	if s.me.HasActiveKey() {
+		return KeyExistsError{}
 	}
-	return err
+	return nil
 }
 
 func (s *KeyGen) LoadMe() (err error) {
@@ -191,7 +190,9 @@ func (s *KeyGen) GeneratePost() (err error) {
 	var sig string
 	var sigid *SigId
 
-	if jw, err = s.me.SelfProof(); err != nil {
+	fokid := GenericKeyToFOKID(s.bundle)
+
+	if jw, err = s.me.SelfProof(s.bundle, &fokid); err != nil {
 		return
 	}
 	if sig, sigid, s.chainTail.linkId, err = SignJson(jw, s.bundle); err != nil {
@@ -290,9 +291,11 @@ func (a *KeyGenArg) PGPUserIDs() ([]*packet.UserId, error) {
 }
 
 func (s *KeyGen) UpdateUser() error {
-	err := s.me.SetActiveKey(s.bundle)
+	err := s.me.localDelegateKey(s.bundle, nil, nil, true)
 	fp := s.bundle.GetFingerprint()
 	G.Env.GetConfigWriter().SetPgpFingerprint(&fp)
+	G.Log.Debug("| Fudge User Sig Chain")
+	s.me.sigChain.Bump(s.chainTail)
 	return err
 }
 
@@ -367,6 +370,7 @@ func (s *KeyGen) GenNacl() (err error) {
 			LogUI:     s.arg.LogUI,
 		})
 		err = gen.Run()
+		signer = gen.GetKeyPair()
 	}
 
 	if err != nil || s.arg.NoNaclDh {
@@ -526,10 +530,6 @@ func (s *KeyGen) Push() (err error) {
 		return nil
 	}
 
-	G.Log.Debug("| UpdateUser")
-	if err = s.UpdateUser(); err != nil {
-		return
-	}
 	G.Log.Debug("| Generate HTTP Post")
 	if err = s.GeneratePost(); err != nil {
 		return
@@ -539,8 +539,10 @@ func (s *KeyGen) Push() (err error) {
 		return
 	}
 
-	G.Log.Debug("| Fudge User Sig Chain")
-	s.me.sigChain.Bump(s.chainTail)
+	G.Log.Debug("| UpdateUser")
+	if err = s.UpdateUser(); err != nil {
+		return
+	}
 
 	s.phase = KEYGEN_PHASE_POSTED
 

@@ -17,6 +17,7 @@ type PostProofArg struct {
 	ProofType      string
 	Supersede      bool
 	RemoteKey      string
+	SigningKey     GenericKey
 }
 
 type PostNewKeyArg struct {
@@ -60,6 +61,7 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
 		"supersede":       B{arg.Supersede},
+		"signing_kid":     S{arg.SigningKey.GetKid().ToString()},
 		"type":            S{arg.ProofType},
 	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})

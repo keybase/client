@@ -67,11 +67,14 @@ type ChainLinkUnpacked struct {
 	seqno          Seqno
 	payloadJsonStr string
 	ctime, etime   int64
-	pgpFingerprint PgpFingerprint
+	pgpFingerprint *PgpFingerprint
+	kid            KID
+	eldestKid      KID
 	sig            string
 	sigId          SigId
 	uid            UID
 	username       string
+	typ            string
 }
 
 type ChainLink struct {
@@ -90,6 +93,9 @@ type ChainLink struct {
 	payloadJson *jsonw.Wrapper
 	unpacked    *ChainLinkUnpacked
 	lastChecked *CheckResult
+	cki         *ComputedKeyInfos
+
+	typed TypedChainLink
 }
 
 func (c ChainLink) GetPrev() LinkId {
@@ -124,12 +130,26 @@ func (c *ChainLink) Pack() error {
 	p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJsonStr))
 	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 	p.SetKey("sig_id", jsonw.NewString(c.unpacked.sigId.ToString(true)))
-	p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
+	if c.unpacked.pgpFingerprint != nil {
+		p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
+	}
 	p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
+
+	if c.cki != nil {
+		p.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki))
+	}
 
 	c.packed = p
 
 	return nil
+}
+
+func (c ChainLink) GetMerkleSeqno() int {
+	i, err := c.payloadJson.AtPath("body.merkle_root.seqno").GetInt()
+	if err != nil {
+		i = 0
+	}
+	return i
 }
 
 func (c ChainLink) GetRevocations() []*SigId {
@@ -144,17 +164,35 @@ func (c ChainLink) GetRevocations() []*SigId {
 	l, err = v.Len()
 	if err == nil && l > 0 {
 		for i := 0; i < l; i++ {
-			s, err = GetSigId(v.AtIndex(i), true)
-			ret = append(ret, s)
+			if s, err = GetSigId(v.AtIndex(i), true); err == nil {
+				ret = append(ret, s)
+			}
 		}
 	}
 	return ret
 }
 
-func (c ChainLink) PackVerification(jw *jsonw.Wrapper) {
-	jw.SetKey("publicKey", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
-	jw.SetKey("seqno", jsonw.NewInt64(int64(c.unpacked.seqno)))
-	jw.SetKey("last_link", jsonw.NewString(c.id.ToString()))
+func (c ChainLink) GetRevokeKids() []KID {
+	ret := make([]KID, 0, 0)
+	jw := c.payloadJson.AtKey("body").AtKey("revoke")
+	if jw.IsNil() {
+		return nil
+	}
+	s, err := GetKID(jw.AtKey("kid"))
+	if err == nil {
+		ret = append(ret, s)
+	}
+	v := jw.AtKey("kids")
+	var l int
+	l, err = v.Len()
+	if err == nil && l > 0 {
+		for i := 0; i < l; i++ {
+			if s, err = GetKID(v.AtIndex(i)); err == nil {
+				ret = append(ret, s)
+			}
+		}
+	}
+	return ret
 }
 
 func (c ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err error) {
@@ -171,12 +209,27 @@ func (c ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err erro
 
 func (c *ChainLink) UnpackPayloadJson(tmp *ChainLinkUnpacked) (err error) {
 	var sq int64
+	var e2 error
 
-	GetPgpFingerprintVoid(c.payloadJson.AtPath("body.key.fingerprint"),
-		&tmp.pgpFingerprint, &err)
+	if jw := c.payloadJson.AtPath("body.key.fingerprint"); !jw.IsNil() {
+		if tmp.pgpFingerprint, e2 = GetPgpFingerprint(jw); e2 != nil {
+			err = e2
+		}
+	}
+	if jw := c.payloadJson.AtPath("body.key.kid"); !jw.IsNil() {
+		if tmp.kid, e2 = GetKID(jw); e2 != nil {
+			err = e2
+		}
+	}
+	if jw := c.payloadJson.AtPath("body.key.eldest_kid"); !jw.IsNil() {
+		if tmp.eldestKid, e2 = GetKID(jw); e2 != nil {
+			err = e2
+		}
+	}
 	c.payloadJson.AtPath("body.key.username").GetStringVoid(&tmp.username, &err)
 	GetUidVoid(c.payloadJson.AtPath("body.key.uid"), &tmp.uid, &err)
 	GetLinkIdVoid(c.payloadJson.AtKey("prev"), &tmp.prev, &err)
+	c.payloadJson.AtPath("body.type").GetStringVoid(&tmp.typ, &err)
 	c.payloadJson.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
 
 	c.payloadJson.AtKey("seqno").GetInt64Void(&sq, &err)
@@ -199,6 +252,17 @@ func (c *ChainLink) UnpackLocal() (err error) {
 	err = c.UnpackPayloadJson(&tmp)
 	if err == nil {
 		c.unpacked = &tmp
+	}
+	return
+}
+
+func (c *ChainLink) UnpackComputedKeyInfos(jw *jsonw.Wrapper) (err error) {
+	var tmp ComputedKeyInfos
+	if jw == nil || jw.IsNil() {
+		return
+	}
+	if err = jw.UnmarshalAgain(&tmp); err == nil {
+		c.cki = &tmp
 	}
 	return
 }
@@ -233,6 +297,9 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 		if e2 == nil && b {
 			c.sigVerified = true
 			G.Log.Debug("| Link is marked as 'sig_verified'")
+			if e3 := c.UnpackComputedKeyInfos(c.packed.AtKey("computed_key_infos")); e3 != nil {
+				G.Log.Warning("Problem unpacking computed key infos: %s\n", e3.Error())
+			}
 		}
 	}
 
@@ -273,17 +340,16 @@ func (c *ChainLink) VerifyHash() error {
 }
 
 func (c *ChainLink) VerifyPayload() error {
-	if c.payloadVerified || c.sigVerified {
+	if c.payloadVerified {
 		return nil
 	}
 
-	ps, err := SigAssertPayload(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr))
+	sigid, err := SigAssertPayload(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr))
 	if err != nil {
 		return err
 	}
 
-	c.unpacked.sigId = ps.ID()
-
+	c.unpacked.sigId = *sigid
 	c.payloadVerified = true
 	return nil
 }
@@ -304,6 +370,42 @@ func (c ChainLink) GetSigId() *SigId {
 	}
 }
 
+func (c *ChainLink) GetSigCheckCache() (cki *ComputedKeyInfos) {
+	if c.sigVerified && c.cki != nil {
+		cki = c.cki
+	}
+	return
+}
+
+func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
+	G.Log.Debug("Caching SigCheck for link %s:", c.id.ToString())
+	c.sigVerified = true
+	c.dirty = true
+	c.cki = cki
+	return
+}
+
+func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, err error) {
+
+	var key GenericKey
+	var sigId *SigId
+
+	if key, err = ckf.FindActiveSibkey(c.ToFOKID()); err != nil {
+		return
+	}
+
+	if err = c.VerifyLink(); err != nil {
+		return
+	}
+
+	if sigId, err = key.Verify(c.unpacked.sig, []byte(c.unpacked.payloadJsonStr)); err != nil {
+		return
+	}
+	c.unpacked.sigId = *sigId
+
+	return
+}
+
 func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	cached = false
 
@@ -313,7 +415,12 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 		return
 	}
 
-	if !k.GetFingerprint().Eq(c.unpacked.pgpFingerprint) {
+	if c.unpacked.pgpFingerprint == nil {
+		err = NoKeyError{}
+		return
+	}
+
+	if !k.GetFingerprint().Eq(*c.unpacked.pgpFingerprint) {
 		err = fmt.Errorf("Key fingerprint mismatch")
 		return
 	}
@@ -376,8 +483,9 @@ func (l *ChainLink) VerifyLink() error {
 }
 
 func (l *ChainLink) Store() (didStore bool, err error) {
+
 	if l.storedLocally && !l.dirty {
-		didStore = true
+		didStore = false
 		return
 	}
 
@@ -408,12 +516,42 @@ func (l *ChainLink) Store() (didStore bool, err error) {
 	return
 }
 
-func (c *ChainLink) GetPgpFingerprint() PgpFingerprint {
-	return c.unpacked.pgpFingerprint
+// ToFOKID takes the current chain link and extracts the current (signing)
+// FOKID
+func (c *ChainLink) ToFOKID() (ret FOKID) {
+	ret = FOKID{
+		Fp:  c.unpacked.pgpFingerprint,
+		Kid: c.unpacked.kid,
+	}
+	return
+}
+
+// ToEldestFOKID takes the current chain link and extracts the eldest
+// FOKID from it. Legacy links don't specify it, so we'll have to infer
+func (c *ChainLink) ToEldestFOKID() (ret FOKID) {
+	if c.unpacked.eldestKid != nil {
+		ret = FOKID{Kid: c.unpacked.eldestKid}
+	} else {
+		ret = c.ToFOKID()
+	}
+	return
+}
+
+// MatchFOKID checks if the given ChainLink matches the given
+// FOKID using standard FOKID equality.
+func (c *ChainLink) MatchEldestFOKID(fokid FOKID) bool {
+	return c.ToEldestFOKID().Eq(fokid)
+}
+
+func (c *ChainLink) GetPgpFingerprint() *PgpFingerprint { return c.unpacked.pgpFingerprint }
+func (c *ChainLink) GetKid() KID                        { return c.unpacked.kid }
+
+func (c *ChainLink) GetFOKID() FOKID {
+	return FOKID{Kid: c.GetKid(), Fp: c.GetPgpFingerprint()}
 }
 
 func (c ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
-	return fp.Eq(c.unpacked.pgpFingerprint)
+	return c.unpacked.pgpFingerprint != nil && fp.Eq(*c.unpacked.pgpFingerprint)
 }
 
 func (c ChainLink) MatchUidAndUsername(uid UID, username string) bool {
@@ -471,3 +609,16 @@ func (l ChainLink) ToMerkleTriple() (ret MerkleTriple) {
 func (mt MerkleTriple) Less(ls LinkSummary) bool {
 	return mt.seqno < ls.seqno
 }
+
+//=========================================================================
+// IsInCurrentFamily checks to see if the given chainlink
+// was signed by a key in the current family.
+func (c *ChainLink) IsInCurrentFamily(u *User) bool {
+	fokid := u.GetEldestFOKID()
+	if fokid == nil {
+		return false
+	}
+	return c.MatchEldestFOKID(*fokid)
+}
+
+//=========================================================================

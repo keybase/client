@@ -128,12 +128,7 @@ func (s *CmdSigsList) skipLink(link libkb.TypedChainLink) bool {
 }
 
 func (s *CmdSigsList) IsActiveKey(link libkb.TypedChainLink) bool {
-	fp1, _ := s.user.GetActivePgpFingerprint()
-	if fp1 == nil {
-		return false
-	}
-	fp2 := link.GetPgpFingerprint()
-	return fp1.Eq(fp2)
+	return link.IsInCurrentFamily(s.user)
 }
 
 func (s *CmdSigsList) DisplayTable() (err error) {

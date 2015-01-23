@@ -87,6 +87,12 @@ func (p CommandLine) GetSecretKeyring() string {
 func (p CommandLine) GetSocketFile() string {
 	return p.GetGString("socket-file")
 }
+func (p CommandLine) GetPerDeviceKID() string {
+	return p.GetGString("device-kid")
+}
+func (p CommandLine) GetDeviceId() string {
+	return p.GetGString("device-id")
+}
 func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
@@ -290,6 +296,14 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 		cli.StringFlag{
 			Name:  "local-rpc-debug",
 			Usage: "use to debug local RPC",
+		},
+		cli.StringFlag{
+			Name:  "device-kid",
+			Usage: "specify per-device KID",
+		},
+		cli.StringFlag{
+			Name:  "device-id",
+			Usage: "specify the device ID",
 		},
 	}
 
