@@ -95,9 +95,6 @@ type User struct {
 	loggedIn bool // if we were logged in when we loaded it
 	secret   bool // if we asked for secret keys when we loaded
 
-	activeKey            *PgpKeyBundle
-	activePgpFingerprint *PgpFingerprint
-
 	dirty bool
 }
 
@@ -318,34 +315,6 @@ func (u User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
 		ret = append(ret, pgp.GetFingerprint())
 	}
 	return
-}
-
-func (u *User) SetActiveKey(pgp *PgpKeyBundle) (err error) {
-	u.activeKey = nil
-	u.activePgpFingerprint = nil
-
-	if u.publicKeys == nil || u.publicKeys.IsNil() {
-		u.publicKeys = jsonw.NewDictionary()
-	}
-	var d *jsonw.Wrapper
-	if pgp != nil {
-		if s, err := pgp.Encode(); err != nil {
-			return err
-		} else {
-			d = jsonw.NewDictionary()
-			d.SetKey("bundle", jsonw.NewString(s))
-			d.SetKey("key_fingerprint", jsonw.NewString(pgp.GetFingerprint().ToString()))
-		}
-	} else {
-		d = jsonw.NewNil()
-	}
-
-	if err = u.publicKeys.SetKey("primary", d); err != nil {
-		return err
-	}
-
-	u.dirty = true
-	return nil
 }
 
 func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
