@@ -148,7 +148,7 @@ func (kf KeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, err error) {
 	var i string
 	kid := f.Kid
 	if kid == nil && f.Fp != nil {
-		i = f.Fp.ToString()
+		i = f.Fp.String()
 		if kid, found = kf.pgp2kid[i]; !found {
 			err = KeyFamilyError{fmt.Sprintf("No KID for PGP fingerprint %s found", i)}
 			return
@@ -159,7 +159,7 @@ func (kf KeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, err error) {
 		return
 	}
 
-	i = kid.ToString()
+	i = kid.String()
 	if sk, ok := kf.Sibkeys[i]; !ok {
 		err = KeyFamilyError{fmt.Sprintf("No sibkey found for %s", i)}
 	} else {
@@ -199,7 +199,7 @@ func (kf *KeyFamily) Import() (err error) {
 		return
 	}
 	for _, p := range kf.pgps {
-		kf.pgp2kid[p.GetFingerprint().ToString()] = p.GetKid()
+		kf.pgp2kid[p.GetFingerprint().String()] = p.GetKid()
 	}
 	err = kf.findEldest()
 	return
@@ -216,7 +216,7 @@ func (kf *KeyFamily) setEldest(hx string) (err error) {
 		kf.eldest = &FOKID{Kid: kid}
 	} else if !kf.eldest.EqKid(kid) {
 		err = KeyFamilyError{fmt.Sprintf("Kid mismatch: %s != %s",
-			kf.eldest.Kid.ToString(), hx)}
+			kf.eldest.Kid.String(), hx)}
 	}
 	return
 }
@@ -242,7 +242,7 @@ func (kf *KeyFamily) findEldest() (err error) {
 		}
 	}
 	if kf.eldest != nil {
-		x := kf.eldest.Kid.ToString()
+		x := kf.eldest.Kid.String()
 		if key, found := kf.Sibkeys[x]; !found {
 			err = KeyFamilyError{fmt.Sprintf("Eldest KID %s disappeared", x)}
 		} else {
@@ -290,7 +290,7 @@ func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
 		err = BadKeyError{fmt.Sprintf("algo=%d is unknown", skr.KeyAlgo)}
 	}
 	if err == nil {
-		G.Log.Debug("| Imported Key %s", skr.key.GetKid().ToString())
+		G.Log.Debug("| Imported Key %s", skr.key.GetKid())
 	}
 	return
 }
@@ -303,7 +303,7 @@ func (kf KeyFamily) GetSigningKey(kid_s string) (ret GenericKey) {
 }
 
 func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, err error) {
-	s := f.ToString()
+	s := f.String()
 	if ki := ckf.cki.Infos[s]; ki == nil {
 		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", s)}
 	} else if ki.Status != KEY_LIVE {
@@ -338,7 +338,7 @@ func NowAsKeybaseTime(seqno int) *KeybaseTime {
 // This maybe be a sub- or sibkey delegation.
 func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	kid := tcl.GetDelegatedKid()
-	kid_s := kid.ToString()
+	kid_s := kid.String()
 	sigid := tcl.GetSigId()
 	tm := TclToKeybaseTime(tcl)
 
@@ -361,7 +361,7 @@ func (cki *ComputedKeyInfos) Delegate(kid_s string, tm *KeybaseTime, sigid SigId
 	} else {
 		info.Status = KEY_LIVE
 	}
-	info.Delegations[sigid.ToString(true)] = signingKid.ToString()
+	info.Delegations[sigid.ToString(true)] = signingKid.String()
 	info.Sibkey = isSibkey
 	cki.Sigs[sigid.ToString(true)] = info
 	return
@@ -410,7 +410,7 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig SigId, tcl TypedChainLink) (err erro
 }
 
 func (ckf *ComputedKeyFamily) RevokeKid(kid KID, tcl TypedChainLink) (err error) {
-	if info, found := ckf.cki.Infos[kid.ToString()]; found {
+	if info, found := ckf.cki.Infos[kid.String()]; found {
 		info.Status = KEY_REVOKED
 		info.RevokedAt = TclToKeybaseTime(tcl)
 	}
@@ -424,13 +424,13 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 	kem := KeybaseEmailAddress(s)
 	for _, pgp := range ckf.kf.pgps {
 		kid := pgp.GetKid()
-		if info, found := ckf.cki.Infos[kid.ToString()]; !found {
+		if info, found := ckf.cki.Infos[kid.String()]; !found {
 			continue
 		} else if info.Status != KEY_LIVE || !info.Sibkey {
 			continue
 		}
 		if pgp.FindEmail(kem) {
-			G.Log.Debug("| Found self-sig for %s in key ID: %s", s, kid.ToString())
+			G.Log.Debug("| Found self-sig for %s in key ID: %s", s, kid)
 			return true
 		}
 	}
@@ -443,10 +443,10 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 // a clash.
 func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (err error) {
 	if pgp, ok := key.(*PgpKeyBundle); ok {
-		kf.pgp2kid[pgp.GetFingerprint().ToString()] = pgp.GetKid()
+		kf.pgp2kid[pgp.GetFingerprint().String()] = pgp.GetKid()
 		kf.pgps = append(kf.pgps, pgp)
 	}
-	kid_s := key.GetKid().ToString()
+	kid_s := key.GetKid().String()
 	skr := &ServerKeyRecord{key: key}
 	if isSibkey {
 		kf.Sibkeys[kid_s] = skr
@@ -459,7 +459,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 	if !eldest || !isSibkey {
 	} else if kf.eldest != nil && !kf.eldest.Eq(fokid) {
 		err = KeyFamilyError{fmt.Sprintf("Fokid mismatch on eldest key: %s != %s",
-			fokid.ToString(), kf.eldest.ToString())}
+			fokid.String(), kf.eldest.String())}
 	} else if kf.eldest == nil {
 		kf.eldest = &fokid
 	}
@@ -470,7 +470,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 // IsKidActive computes whether the given KID is active, and if so,
 // whether it's a sib or subkey
 func (ckf ComputedKeyFamily) IsKidActive(kid KID) (ret KeyStatus) {
-	return ckf.isKidHexActive(kid.ToString())
+	return ckf.isKidHexActive(kid.String())
 }
 
 func (ckf ComputedKeyFamily) isKidHexActive(hex string) (ret KeyStatus) {
@@ -491,7 +491,7 @@ func (ckf ComputedKeyFamily) IsFOKIDActive(f FOKID) (ret KeyStatus) {
 		return ckf.IsKidActive(f.Kid)
 	} else if f.Fp == nil {
 		return DLG_NONE
-	} else if kid, found := ckf.kf.pgp2kid[f.Fp.ToString()]; found {
+	} else if kid, found := ckf.kf.pgp2kid[f.Fp.String()]; found {
 		return ckf.IsKidActive(kid)
 	} else {
 		return DLG_NONE
@@ -522,7 +522,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeysKIDs() (ret []KID) {
 // The key has to be in the server-given KeyFamily and also in our ComputedKeyFamily.
 // The former check is so that we can handle the case nuked sigchains.
 func (ckf ComputedKeyFamily) HasActiveKey() bool {
-	for k, _ := range ckf.kf.Sibkeys {
+	for k := range ckf.kf.Sibkeys {
 		if ckf.isKidHexActive(k) == DLG_SIBKEY {
 			return true
 		}
@@ -545,7 +545,7 @@ func (cki ComputedKeyInfos) HasActiveKey() bool {
 // will return only the Sibkeys.
 func (ckf ComputedKeyFamily) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
 	for _, pgp := range ckf.kf.pgps {
-		if info, ok := ckf.cki.Infos[pgp.GetKid().ToString()]; ok {
+		if info, ok := ckf.cki.Infos[pgp.GetKid().String()]; ok {
 			if (!sibkey || info.Sibkey) && info.Status == KEY_LIVE {
 				ret = append(ret, pgp)
 			}
@@ -559,7 +559,7 @@ func (ckf ComputedKeyFamily) DumpToLog(ui LogUI) {
 
 	server_dump := func(key GenericKey, sibOrSub string) {
 		ui.Info("▶ Server key: algo=%d, kid=%s; %s", key.GetAlgoType(),
-			key.GetKid().ToString(), sibOrSub)
+			key.GetKid().String(), sibOrSub)
 	}
 	cki_dump := func(kid string) {
 		if info, ok := ckf.cki.Infos[kid]; !ok {

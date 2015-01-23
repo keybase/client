@@ -92,7 +92,7 @@ type FailedAssertionError struct {
 func (u FailedAssertionError) Error() string {
 	v := make([]string, len(u.bad), len(u.bad))
 	for i, u := range u.bad {
-		v[i] = u.ToString()
+		v[i] = u.String()
 	}
 	return ("for " + u.user + ", the follow assertions failed: " +
 		strings.Join(v, ", "))
@@ -137,7 +137,7 @@ type WrongKidError struct {
 }
 
 func (w WrongKidError) Error() string {
-	return fmt.Sprintf("Wanted KID=%s; but got KID=%s", w.wanted.ToString(), w.got.ToString())
+	return fmt.Sprintf("Wanted KID=%s; but got KID=%s", w.wanted, w.got)
 }
 
 //=============================================================================
@@ -147,8 +147,7 @@ type WrongKeyError struct {
 }
 
 func (e WrongKeyError) Error() string {
-	return fmt.Sprintf("Server gave wrong key; wanted %s; got %s",
-		e.wanted.ToString(), e.got.ToString())
+	return fmt.Sprintf("Server gave wrong key; wanted %s; got %s", e.wanted, e.got)
 }
 
 //=============================================================================
@@ -168,7 +167,7 @@ type UserNotFoundError struct {
 }
 
 func (u UserNotFoundError) Error() string {
-	return fmt.Sprintf("User %s wasn't found (%s)", u.uid.ToString(), u.msg)
+	return fmt.Sprintf("User %s wasn't found (%s)", u.uid, u.msg)
 }
 
 //=============================================================================
@@ -178,7 +177,7 @@ type AlreadyRegisteredError struct {
 }
 
 func (u AlreadyRegisteredError) Error() string {
-	return fmt.Sprintf("Already registered (with uid=%s)", u.uid.ToString())
+	return fmt.Sprintf("Already registered (with uid=%s)", u.uid)
 }
 
 //=============================================================================
@@ -247,7 +246,7 @@ type TooManyKeysError struct {
 }
 
 func (e TooManyKeysError) Error() string {
-	return fmt.Sprintf("Too many keys (%d) found for %s", e.n, e.fp.ToString())
+	return fmt.Sprintf("Too many keys (%d) found for %s", e.n, e.fp)
 }
 
 //=============================================================================
@@ -269,7 +268,7 @@ type KeyExistsError struct {
 func (k KeyExistsError) Error() string {
 	ret := "Key already exists for user"
 	if k.key != nil {
-		fmt.Sprintf("%s (%s)", ret, k.key.ToString())
+		fmt.Sprintf("%s (%s)", ret, k.key)
 	}
 	return ret
 }
@@ -309,8 +308,7 @@ type BadFingerprintError struct {
 }
 
 func (b BadFingerprintError) Error() string {
-	return fmt.Sprintf("Got bad PGP key; fingerprint %s != %s",
-		b.fp1.ToString(), b.fp2.ToString())
+	return fmt.Sprintf("Got bad PGP key; fingerprint %s != %s", b.fp1, b.fp2)
 }
 
 //=============================================================================
@@ -353,7 +351,7 @@ func (a AppStatusError) Error() string {
 	v := make([]string, len(a.Fields))
 	i := 0
 
-	for k, _ := range a.Fields {
+	for k := range a.Fields {
 		v[i] = k
 		i++
 	}

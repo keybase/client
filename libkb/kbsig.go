@@ -24,9 +24,9 @@ func (u *User) ToTrackingStatementKey(errp *error) *jsonw.Wrapper {
 		*errp = fmt.Errorf("User %s doesn't have an active key")
 	} else {
 		fokid := u.GetEldestFOKID()
-		ret.SetKey("kid", jsonw.NewString(fokid.Kid.ToString()))
+		ret.SetKey("kid", jsonw.NewString(fokid.Kid.String()))
 		if fokid.Fp != nil {
-			ret.SetKey("key_fingerprint", jsonw.NewString(fokid.Fp.ToString()))
+			ret.SetKey("key_fingerprint", jsonw.NewString(fokid.Fp.String()))
 		}
 	}
 	return ret
@@ -54,7 +54,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	track.SetKey("key", u.ToTrackingStatementKey(&err))
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
-	track.SetKey("id", jsonw.NewString(u.id.ToString()))
+	track.SetKey("id", jsonw.NewString(u.id.String()))
 	track.SetKey("remote_proofs", u.IdTable.ToTrackingStatement())
 
 	if err != nil {
@@ -69,7 +69,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 
 func (u *User) ToKeyStanza(sk GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
-	ret.SetKey("uid", jsonw.NewString(u.id.ToString()))
+	ret.SetKey("uid", jsonw.NewString(u.id.String()))
 	ret.SetKey("username", jsonw.NewString(u.name))
 	ret.SetKey("host", jsonw.NewString(CANONICAL_HOST))
 
@@ -87,14 +87,14 @@ func (u *User) ToKeyStanza(sk GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, er
 
 	if sk != nil {
 		if fp := sk.GetFingerprintP(); fp != nil {
-			ret.SetKey("fingerprint", jsonw.NewString(fp.ToString()))
+			ret.SetKey("fingerprint", jsonw.NewString(fp.String()))
 			ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))
 		}
 	}
 
-	ret.SetKey("kid", jsonw.NewString(signingKid.ToString()))
+	ret.SetKey("kid", jsonw.NewString(signingKid.String()))
 	if eldest != nil {
-		ret.SetKey("eldest_kid", jsonw.NewString(eldest.Kid.ToString()))
+		ret.SetKey("eldest_kid", jsonw.NewString(eldest.Kid.String()))
 	}
 
 	return
@@ -128,7 +128,7 @@ func (idt *IdentityTable) ToTrackingStatement() *jsonw.Wrapper {
 
 func (g *GenericChainLink) BaseToTrackingStatement() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("curr", jsonw.NewString(g.id.ToString()))
+	ret.SetKey("curr", jsonw.NewString(g.id.String()))
 	ret.SetKey("sig_id", jsonw.NewString(g.GetSigId().ToString(true)))
 
 	rkp := jsonw.NewDictionary()
@@ -140,7 +140,7 @@ func (g *GenericChainLink) BaseToTrackingStatement() *jsonw.Wrapper {
 	if prev == nil {
 		prev_val = jsonw.NewNil()
 	} else {
-		prev_val = jsonw.NewString(prev.ToString())
+		prev_val = jsonw.NewString(prev.String())
 	}
 
 	ret.SetKey("prev", prev_val)
@@ -175,7 +175,7 @@ func (u *User) ProofMetadata(ei int, signingKey GenericKey, eldest *FOKID) (ret 
 		prev = jsonw.NewNil()
 	} else {
 		seqno = int(last_seqno) + 1
-		prev_s = last_link.ToString()
+		prev_s = last_link.String()
 		prev = jsonw.NewString(prev_s)
 	}
 
@@ -242,7 +242,7 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, lid Lin
 
 func KeyToProofJson(key GenericKey) *jsonw.Wrapper {
 	d := jsonw.NewDictionary()
-	d.SetKey("kid", jsonw.NewString(key.GetKid().ToString()))
+	d.SetKey("kid", jsonw.NewString(key.GetKid().String()))
 	return d
 }
 

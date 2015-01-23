@@ -99,7 +99,7 @@ func (sh SigHints) MarshalToJson() *jsonw.Wrapper {
 }
 
 func (sh *SigHints) Store() (err error) {
-	uid_s := sh.uid.ToString()
+	uid_s := sh.uid.String()
 	G.Log.Debug("+ SigHints.Store() for uid=%s", uid_s)
 	if sh.dirty {
 		err = G.LocalDb.Put(
@@ -116,7 +116,7 @@ func (sh *SigHints) Store() (err error) {
 }
 
 func LoadSigHints(uid UID) (sh *SigHints, err error) {
-	uid_s := uid.ToString()
+	uid_s := uid.String()
 	G.Log.Debug("+ LoadSigHints(%s)", uid_s)
 	var jw *jsonw.Wrapper
 	jw, err = G.LocalDb.Get(DbKey{Typ: DB_SIG_HINTS, Key: uid_s})
@@ -132,7 +132,7 @@ func LoadSigHints(uid UID) (sh *SigHints, err error) {
 }
 
 func (sh *SigHints) Refresh() error {
-	uid_s := sh.uid.ToString()
+	uid_s := sh.uid.String()
 	G.Log.Debug("+ Refresh SigHints() for uid=%s", uid_s)
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "sig/hints",

@@ -48,12 +48,12 @@ func PgpFingerprintFromHexNoError(s string) *PgpFingerprint {
 	}
 }
 
-func (p PgpFingerprint) ToString() string {
+func (p PgpFingerprint) String() string {
 	return hex.EncodeToString(p[:])
 }
 
 func (p PgpFingerprint) ToQuads() string {
-	x := []byte(strings.ToUpper(p.ToString()))
+	x := []byte(strings.ToUpper(p.String()))
 	totlen := len(x)*5/4 - 1
 	ret := make([]byte, totlen)
 	j := 0
@@ -74,7 +74,7 @@ func (p PgpFingerprint) ToKeyId() string {
 
 func (p PgpFingerprint) ToDisplayString(verbose bool) string {
 	if verbose {
-		return p.ToString()
+		return p.String()
 	} else {
 		return p.ToKeyId()
 	}
@@ -83,7 +83,7 @@ func (p PgpFingerprint) ToDisplayString(verbose bool) string {
 func (p PgpFingerprint) LoadFromLocalDb() (*PgpKeyBundle, error) {
 	dbobj, err := G.LocalDb.Get(DbKey{
 		Typ: DB_PGP_KEY,
-		Key: p.ToString(),
+		Key: p.String(),
 	})
 	if err != nil {
 		return nil, err
@@ -99,10 +99,10 @@ func (p *PgpKeyBundle) StoreToLocalDb() error {
 		return err
 	} else {
 		val := jsonw.NewString(s)
-		G.Log.Debug("| Storing Key (fp=%s) to Local DB", p.GetFingerprint().ToString())
+		G.Log.Debug("| Storing Key (fp=%s) to Local DB", p.GetFingerprint())
 		err = G.LocalDb.Put(DbKey{
 			Typ: DB_PGP_KEY,
-			Key: p.GetFingerprint().ToString(),
+			Key: p.GetFingerprint().String(),
 		}, []DbKey{}, val)
 		return err
 	}

@@ -136,7 +136,7 @@ func (f *JsonConfigFile) SetUsername(s string) {
 }
 
 func (f *JsonConfigFile) SetUid(u UID) {
-	f.SetUserField("id", string(u.ToString()))
+	f.SetUserField("id", string(u.String()))
 }
 
 func (f *JsonConfigFile) SetSalt(b []byte) {
@@ -147,7 +147,7 @@ func (f *JsonConfigFile) SetPgpFingerprint(fp *PgpFingerprint) {
 	if fp == nil {
 		f.DeleteUserField(key)
 	} else {
-		s := fp.ToString()
+		s := fp.String()
 		f.SetUserField(key, s)
 	}
 }
@@ -356,7 +356,7 @@ func (f *JsonConfigFile) SetPerDeviceKID(kid KID) (err error) {
 	if kid == nil {
 		f.DeleteAtPath(path)
 	} else {
-		f.SetStringAtPath(path, kid.ToString())
+		f.SetStringAtPath(path, kid.String())
 	}
 	return
 }
@@ -375,7 +375,7 @@ func (f *JsonConfigFile) SetDeviceId(did *DeviceId) (err error) {
 	if did == nil {
 		f.DeleteAtPath(key)
 	} else {
-		f.SetStringAtPath(key, did.ToString())
+		f.SetStringAtPath(key, did.String())
 	}
 	return
 }

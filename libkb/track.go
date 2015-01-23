@@ -116,7 +116,7 @@ func (l *TrackLookup) ComputeKeyDiff(curr *FOKID) TrackDiff {
 	if prev.Eq(*curr) {
 		return TrackDiffNone{}
 	} else {
-		return TrackDiffClash{curr.ToString(), prev.ToString()}
+		return TrackDiffClash{curr.String(), prev.String()}
 	}
 }
 
@@ -481,13 +481,13 @@ func TrackStatementJSON(me, them *User) (string, error) {
 }
 
 func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
-	uid_s := i.ToString()
+	uid_s := i.String()
 	G.Log.Debug("+ GetLocalTrack(%s)", uid_s)
 	defer G.Log.Debug("- GetLocalTrack(%s) -> (%v, %s)", uid_s, ret, ErrToOk(err))
 
 	var obj *jsonw.Wrapper
 	obj, err = G.LocalDb.Get(
-		DbKey{Typ: DB_LOCAL_TRACK, Key: i.ToString()},
+		DbKey{Typ: DB_LOCAL_TRACK, Key: i.String()},
 	)
 	if err != nil {
 		G.Log.Debug("| DB lookup failed")
@@ -519,7 +519,7 @@ func (e *TrackEngine) StoreLocalTrack() error {
 func StoreLocalTrack(id UID, statement *jsonw.Wrapper) error {
 	G.Log.Debug("| StoreLocalTrack")
 	return G.LocalDb.Put(
-		DbKey{Typ: DB_LOCAL_TRACK, Key: id.ToString()},
+		DbKey{Typ: DB_LOCAL_TRACK, Key: id.String()},
 		nil,
 		statement,
 	)
@@ -547,7 +547,7 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 			"sig_id_base":  S{e.sigid.ToString(false)},
 			"sig_id_short": S{e.sigid.ToShortId()},
 			"sig":          S{e.sig},
-			"uid":          S{e.Them.GetUid().ToString()},
+			"uid":          S{e.Them.GetUid().String()},
 			"type":         S{"track"},
 		},
 	})

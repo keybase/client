@@ -56,7 +56,7 @@ func (b *GenericChainLink) markRevoked(r TypedChainLink) {
 }
 func (b *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s",
-		string(b.parent.uid.ToString()), b.unpacked.seqno, b.id.ToString())
+		string(b.parent.uid.String()), b.unpacked.seqno, b.id.String())
 }
 
 func (g *GenericChainLink) GetDelegatedKid() KID    { return nil }
@@ -468,7 +468,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 func (s *SibkeyChainLink) IsDelegation() KeyStatus { return DLG_SIBKEY }
 func (s *SibkeyChainLink) Type() string            { return "sibkey" }
-func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.ToString() }
+func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.String() }
 
 //
 //=========================================================================
@@ -490,7 +490,7 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 }
 
 func (s *SubkeyChainLink) Type() string            { return "subkey" }
-func (r *SubkeyChainLink) ToDisplayString() string { return r.kid.ToString() }
+func (r *SubkeyChainLink) ToDisplayString() string { return r.kid.String() }
 func (s *SubkeyChainLink) IsDelegation() KeyStatus { return DLG_SUBKEY }
 func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 
@@ -834,7 +834,7 @@ func (idt *IdentityTable) GetTrackingStatementFor(s string, uid UID) (
 				err = fmt.Errorf("Bad tracking statement for %s: %s", s, e2.Error())
 			} else if !uid.Eq(*uid2) {
 				err = fmt.Errorf("Bad UID in tracking statement for %s: %s != %s",
-					s, uid.ToString(), uid2.ToString())
+					s, uid.String(), uid2.String())
 			} else {
 				ret = link
 			}

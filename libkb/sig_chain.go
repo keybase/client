@@ -45,7 +45,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 	sc.localCki = cki
 
 	if sigId != nil {
-		err = cki.Delegate(key.GetKid().ToString(), NowAsKeybaseTime(0), *sigId, signingKid, isSibkey)
+		err = cki.Delegate(key.GetKid().String(), NowAsKeybaseTime(0), *sigId, signingKid, isSibkey)
 	}
 
 	return
@@ -108,7 +108,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err error) {
 
 	low := sc.GetLastLoadedSeqno()
-	uid_s := sc.uid.ToString()
+	uid_s := sc.uid.String()
 
 	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", uid_s, low)
 	defer func() { G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
@@ -158,7 +158,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 
 	if t != nil && !found_tail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
-			t.linkId.ToString(), int(t.seqno))
+			t.linkId.String(), int(t.seqno))
 		return
 	}
 
@@ -310,7 +310,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *Compute
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
 		cached = true
-		G.Log.Debug("Skipped verification (cached): %s", last.id.ToString())
+		G.Log.Debug("Skipped verification (cached): %s", last.id)
 		return
 	}
 
@@ -364,7 +364,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *Compute
 func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
-	uid_s := sc.uid.ToString()
+	uid_s := sc.uid.String()
 	G.Log.Debug("+ VerifyWithKey for user %s", uid_s)
 
 	if err = sc.VerifyChain(); err != nil {
@@ -433,14 +433,14 @@ type SigChainLoader struct {
 //========================================================================
 
 func (l *SigChainLoader) GetUidString() string {
-	return l.user.GetUid().ToString()
+	return l.user.GetUid().String()
 }
 
 func (l *SigChainLoader) LoadLastLinkIdFromStorage() (ls *LinkSummary, err error) {
 	var w *jsonw.Wrapper
 	w, err = G.LocalDb.Get(DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
 	if err != nil {
-		G.Log.Debug("| Error loading last link: %s", err.Error())
+		G.Log.Debug("| Error loading last link: %s", err)
 	} else if w == nil {
 		G.Log.Debug("| LastLinkId was null")
 	} else {
@@ -490,7 +490,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	var link *ChainLink
 
 	for curr != nil && good_key {
-		G.Log.Debug("| loading link; curr=%s", curr.ToString())
+		G.Log.Debug("| loading link; curr=%s", curr)
 		if link, err = ImportLinkFromStorage(curr); err != nil {
 			return
 		}
@@ -498,11 +498,11 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 		if loadFokid == nil {
 			loadFokid = &fokid2
-			G.Log.Debug("| Setting loadFokid=%s", fokid2.ToString())
+			G.Log.Debug("| Setting loadFokid=%s", fokid2)
 		} else if !l.allKeys && loadFokid != nil && !loadFokid.Eq(fokid2) {
 			good_key = false
 			G.Log.Debug("| Stop loading at FOKID=%s (!= FOKID=%s)",
-				loadFokid.ToString(), fokid2.ToString())
+				loadFokid.String(), fokid2.String())
 		}
 
 		if good_key {
@@ -603,7 +603,7 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 		current = false
 	}
 
-	G.Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid.ToString(), current, ErrToOk(err))
+	G.Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid, current, ErrToOk(err))
 	return
 }
 

@@ -50,7 +50,7 @@ func (l *LubaRes) FindBestComponent() string {
 	order := []AssertionUrl{uid, kb, fp, soc, urls[0]}
 	for _, p := range order {
 		if p != nil {
-			return p.ToString()
+			return p.String()
 		}
 	}
 	return ""

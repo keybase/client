@@ -57,8 +57,8 @@ func TestParser1(t *testing.T) {
 	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Errorf(err.Error())
-	} else if expr.ToString() != outp {
-		t.Errorf("Wrong parse result: %s v %s", expr.ToString(), outp)
+	} else if expr.String() != outp {
+		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
 	}
 }
 
@@ -68,8 +68,8 @@ func TestParser2(t *testing.T) {
 	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Errorf(err.Error())
-	} else if expr.ToString() != outp {
-		t.Errorf("Wrong parse result: %s v %s", expr.ToString(), outp)
+	} else if expr.String() != outp {
+		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
 	}
 }
 

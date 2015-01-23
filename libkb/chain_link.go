@@ -48,7 +48,7 @@ func LinkIdFromHex(s string) (LinkId, error) {
 	return ret, err
 }
 
-func (p LinkId) ToString() string {
+func (p LinkId) String() string {
 	return hex.EncodeToString(p)
 }
 
@@ -131,7 +131,7 @@ func (c *ChainLink) Pack() error {
 	p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 	p.SetKey("sig_id", jsonw.NewString(c.unpacked.sigId.ToString(true)))
 	if c.unpacked.pgpFingerprint != nil {
-		p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.ToString()))
+		p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
 	}
 	p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
 
@@ -303,7 +303,7 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 		}
 	}
 
-	G.Log.Debug("| Unpacked Link %s", c.id.ToString())
+	G.Log.Debug("| Unpacked Link %s", c.id)
 
 	return err
 }
@@ -311,11 +311,11 @@ func (c *ChainLink) Unpack(trusted bool) (err error) {
 func (c *ChainLink) CheckNameAndId(s string, i UID) error {
 	if !c.unpacked.uid.Eq(i) {
 		return fmt.Errorf("UID mismatch %s != %s in Link %s",
-			c.unpacked.uid.ToString(), i.ToString(), c.id.ToString())
+			c.unpacked.uid.String(), i.String(), c.id.String())
 	}
 	if !Cicmp(c.unpacked.username, s) {
 		return fmt.Errorf("Username mismatch %s != %s in Link %s",
-			c.unpacked.username, s, c.id.ToString())
+			c.unpacked.username, s, c.id.String())
 	}
 	return nil
 
@@ -378,7 +378,7 @@ func (c *ChainLink) GetSigCheckCache() (cki *ComputedKeyInfos) {
 }
 
 func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
-	G.Log.Debug("Caching SigCheck for link %s:", c.id.ToString())
+	G.Log.Debug("Caching SigCheck for link %s:", c.id)
 	c.sigVerified = true
 	c.dirty = true
 	c.cki = cki
@@ -410,7 +410,7 @@ func (c *ChainLink) VerifySig(k PgpKeyBundle) (cached bool, err error) {
 	cached = false
 
 	if c.sigVerified {
-		G.Log.Debug("Skipped verification (cached): %s", c.id.ToString())
+		G.Log.Debug("Skipped verification (cached): %s", c.id)
 		cached = true
 		return
 	}
@@ -459,7 +459,7 @@ func NewChainLink(parent *SigChain, id LinkId, jw *jsonw.Wrapper) *ChainLink {
 }
 
 func ImportLinkFromStorage(id LinkId) (*ChainLink, error) {
-	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.ToString()})
+	jw, err := G.LocalDb.Get(DbKey{Typ: DB_LINK, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
@@ -502,13 +502,13 @@ func (l *ChainLink) Store() (didStore bool, err error) {
 		return
 	}
 
-	key := DbKey{Typ: DB_LINK, Key: l.id.ToString()}
+	key := DbKey{Typ: DB_LINK, Key: l.id.String()}
 
 	// Don't write with any aliases
 	if err = G.LocalDb.Put(key, []DbKey{}, l.packed); err != nil {
 		return
 	}
-	G.Log.Debug("| Store Link %s", l.id.ToString())
+	G.Log.Debug("| Store Link %s", l.id)
 
 	l.storedLocally = true
 	l.dirty = false
@@ -575,7 +575,7 @@ func (ls LinkSummary) Less(ls2 LinkSummary) bool {
 
 func (l LinkSummary) ToJson() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("id", jsonw.NewString(l.id.ToString()))
+	ret.SetKey("id", jsonw.NewString(l.id.String()))
 	ret.SetKey("seqno", jsonw.NewInt(int(l.seqno)))
 	return ret
 }

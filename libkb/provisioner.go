@@ -70,6 +70,6 @@ func (sp *SelfProvisioner) ReprovisionKey() (err error) {
 		return
 	}
 	kid := key.GetKid()
-	G.Log.Info("Setting per-device KID to %s", kid.ToString())
+	G.Log.Info("Setting per-device KID to %s", kid)
 	return G.Env.GetConfigWriter().SetPerDeviceKID(kid)
 }

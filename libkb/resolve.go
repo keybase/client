@@ -104,9 +104,9 @@ func __resolveUsername(au AssertionUrl) (res ResolveResult) {
 	G.UserCache.CacheServerGetVector(them)
 
 	if l == 0 {
-		res.err = fmt.Errorf("No resolution found for %s", au.ToString())
+		res.err = fmt.Errorf("No resolution found for %s", au)
 	} else if l > 1 {
-		res.err = fmt.Errorf("Identity '%s' is ambiguous", au.ToString())
+		res.err = fmt.Errorf("Identity '%s' is ambiguous", au)
 	} else {
 		res.body = them.AtIndex(0)
 		res.uid, res.err = GetUid(res.body.AtKey("id"))

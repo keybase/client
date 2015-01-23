@@ -35,8 +35,8 @@ func TestFindMax(t *testing.T) {
 		for _, k := range keylist {
 			if fp := k.GetFingerprint(); fp == nil {
 				t.Errorf("Unexpected empty fingerprint")
-			} else if ok, found := expected[strings.ToUpper(fp.ToString())]; !ok || !found {
-				t.Errorf("Unexpected fingerprint: %s", fp.ToString())
+			} else if ok, found := expected[strings.ToUpper(fp.String())]; !ok || !found {
+				t.Errorf("Unexpected fingerprint: %s", fp.String())
 			}
 		}
 	}

@@ -207,7 +207,7 @@ func (k P3SKBKeyringFile) LookupWithComputedKeyFamily(ckf *ComputedKeyFamily) *P
 	defer func() {
 		var res string
 		if kid != nil {
-			res = kid.ToString()
+			res = kid.String()
 		} else {
 			res = "<nil>"
 		}
@@ -219,7 +219,7 @@ func (k P3SKBKeyringFile) LookupWithComputedKeyFamily(ckf *ComputedKeyFamily) *P
 		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {
 			kid = key.GetKid()
 			active := ckf.IsKidActive(kid)
-			G.Log.Debug("| Checking KID: %s -> %d", kid.ToString(), int(active))
+			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
 			if active == DLG_SIBKEY {
 				return k.Blocks[i]
 			}

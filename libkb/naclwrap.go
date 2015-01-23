@@ -202,12 +202,12 @@ func (k NaclSigningKeyPair) CheckSecretKey() (err error) {
 }
 
 func (k NaclSigningKeyPair) Encode() (s string, err error) {
-	s = k.GetKid().ToString()
+	s = k.GetKid().String()
 	return
 }
 
 func (k NaclDHKeyPair) Encode() (s string, err error) {
-	s = k.GetKid().ToString()
+	s = k.GetKid().String()
 	return
 }
 

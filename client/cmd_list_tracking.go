@@ -119,8 +119,8 @@ func (s *CmdListTracking) CondenseRecord(l *libkb.TrackChainLink) (out *jsonw.Wr
 		return
 	}
 
-	out.SetKey("uid", jsonw.NewString(uid.ToString()))
-	out.SetKey("key", jsonw.NewString(strings.ToUpper(fp.ToString())))
+	out.SetKey("uid", jsonw.NewString(uid.String()))
+	out.SetKey("key", jsonw.NewString(strings.ToUpper(fp.String())))
 	out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
 	out.SetKey("username", jsonw.NewString(un))
 	out.SetKey("proofs", rp)
@@ -169,7 +169,7 @@ func (s *CmdListTracking) DisplayTable() (err error) {
 			row = []string{
 				link.ToDisplayString(),
 				link.GetSigId().ToDisplayString(true),
-				strings.ToUpper(fp.ToString()),
+				strings.ToUpper(fp.String()),
 				libkb.FormatTime(link.GetCTime()),
 			}
 			for _, sb := range link.ToServiceBlocks() {

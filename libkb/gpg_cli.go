@@ -85,7 +85,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PgpFingerprint) (ret *PgpKeyBundle, e
 	}
 
 	arg := RunGpg2Arg{
-		Arguments: []string{cmd, fp.ToString()},
+		Arguments: []string{cmd, fp.String()},
 		Stdout:    true,
 	}
 

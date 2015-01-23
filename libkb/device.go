@@ -12,7 +12,7 @@ const (
 
 type DeviceId [DEVICE_ID_LEN]byte
 
-func (d DeviceId) ToString() string {
+func (d DeviceId) String() string {
 	return hex.EncodeToString(d[:])
 }
 

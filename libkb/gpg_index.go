@@ -61,7 +61,7 @@ func Uniquify(inp []string) []string {
 		m[strings.ToLower(s)] = true
 	}
 	ret := make([]string, 0, len(inp))
-	for k, _ := range m {
+	for k := range m {
 		ret = append(ret, k)
 	}
 	return ret
@@ -347,7 +347,7 @@ func NewGpgKeyIndex() *GpgKeyIndex {
 func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 	ki.Keys = append(ki.Keys, k)
 	if fp := k.GetFingerprint(); fp != nil {
-		ki.Fingerprints.Add(fp.ToString(), k)
+		ki.Fingerprints.Add(fp.String(), k)
 	}
 	for _, e := range Uniquify(k.GetEmails()) {
 		ki.Emails.Add(e, k)

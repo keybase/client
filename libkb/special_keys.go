@@ -20,10 +20,10 @@ func NewSpecialKeyRing(v []PgpFingerprint) *SpecialKeyRing {
 
 func (sk *SpecialKeyRing) Load(fp PgpFingerprint) (*PgpKeyBundle, error) {
 
-	G.Log.Debug("+ SpecialKeyRing.Load(%s)", fp.ToString())
+	G.Log.Debug("+ SpecialKeyRing.Load(%s)", fp)
 	key, found := sk.keys[fp]
 	if found {
-		G.Log.Debug("- SpecialKeyRing.Load(%s) -> hit inmem cache", fp.ToString())
+		G.Log.Debug("- SpecialKeyRing.Load(%s) -> hit inmem cache", fp)
 		return key, nil
 	}
 
@@ -31,13 +31,13 @@ func (sk *SpecialKeyRing) Load(fp PgpFingerprint) (*PgpKeyBundle, error) {
 
 	if err != nil || key == nil {
 
-		G.Log.Debug("| Load(%s) going to network", fp.ToString())
+		G.Log.Debug("| Load(%s) going to network", fp)
 		var res *ApiRes
 		res, err = G.API.Get(ApiArg{
 			Endpoint:    "key/special",
 			NeedSession: false,
 			Args: HttpArgs{
-				"fingerprint": S{fp.ToString()},
+				"fingerprint": S{fp.String()},
 			},
 		})
 
@@ -50,14 +50,14 @@ func (sk *SpecialKeyRing) Load(fp PgpFingerprint) (*PgpKeyBundle, error) {
 			}
 		}
 	} else {
-		G.Log.Debug("| Load(%s) hit DB-backed cache", fp.ToString())
+		G.Log.Debug("| Load(%s) hit DB-backed cache", fp)
 	}
 
 	if err == nil && key != nil {
 		sk.keys[fp] = key
 	}
 
-	G.Log.Debug("- SpecialKeyRing.Load(%s)", fp.ToString())
+	G.Log.Debug("- SpecialKeyRing.Load(%s)", fp)
 
 	return key, err
 }

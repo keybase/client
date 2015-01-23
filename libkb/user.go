@@ -14,12 +14,8 @@ const (
 
 type UID [UID_LEN]byte
 
-func (u UID) ToString() string {
-	return hex.EncodeToString(u[:])
-}
-
 func (u UID) String() string {
-	return u.ToString()
+	return hex.EncodeToString(u[:])
 }
 
 func (u UID) IsZero() bool {
@@ -194,7 +190,7 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 	}
 	name, err := o.AtKey("basics").AtKey("username").GetString()
 	if err != nil {
-		return nil, fmt.Errorf("user object for %s lacks a name", uid.ToString())
+		return nil, fmt.Errorf("user object for %s lacks a name", uid)
 	}
 
 	kf, err := ParseKeyFamily(o.AtKey("public_keys"))
@@ -246,7 +242,7 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 
 func LoadUserFromLocalStorage(uid UID, allKeys bool, loadSecrets bool) (u *User, err error) {
 
-	uid_s := uid.ToString()
+	uid_s := uid.String()
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid_s)
 
 	jw, err := G.LocalDb.Get(DbKey{Typ: DB_USER, Key: uid_s})
@@ -277,8 +273,7 @@ func LoadUserFromLocalStorage(uid UID, allKeys bool, loadSecrets bool) (u *User,
 	}
 
 	if !u.id.Eq(uid) {
-		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s",
-			uid_s, u.id.ToString())
+		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s", uid_s, u.id)
 	}
 
 	G.Log.Debug("| Loaded username %s (uid=%s)", u.name, uid_s)
@@ -323,7 +318,7 @@ func (u User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
 
 func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
 
-	uid_s := arg.Uid.ToString()
+	uid_s := arg.Uid.String()
 	G.Log.Debug("+ Load User from server: %s (secrets=%v)", uid_s, arg.LoadSecrets)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
@@ -441,7 +436,7 @@ func (u *User) StoreTopLevel() error {
 
 	G.Log.Debug("+ StoreTopLevel")
 
-	uid_s := u.id.ToString()
+	uid_s := u.id.String()
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", jsonw.NewString(uid_s))
 	jw.SetKey("basics", u.basics)
@@ -504,7 +499,7 @@ func (u *User) StoreSecretKeys() error {
 	if u.privateKeys != nil && !u.privateKeys.IsNil() {
 		G.Log.Debug("| doing put")
 		err = G.LocalDb.Put(
-			DbKey{Typ: DB_USER_SECRET_KEYS, Key: u.id.ToString()},
+			DbKey{Typ: DB_USER_SECRET_KEYS, Key: u.id.String()},
 			nil,
 			u.privateKeys,
 		)
@@ -515,7 +510,7 @@ func (u *User) StoreSecretKeys() error {
 
 func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
 	q := NewHttpArgs()
-	q.Add("uid", S{uid.ToString()})
+	q.Add("uid", S{uid.String()})
 
 	f, err = G.MerkleClient.LookupUser(q)
 	if err == nil && f == nil && local != nil {
@@ -610,7 +605,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		arg.Self = true
 	}
 
-	uid_s := uid.ToString()
+	uid_s := uid.String()
 	G.Log.Debug("| resolved to %s", uid_s)
 
 	nlock := G.UserCache.lockTable.Lock(uid_s)
@@ -715,7 +710,7 @@ func (u1 User) Equal(u2 User) bool {
 
 func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
 
-	uid_s := i.ToString()
+	uid_s := i.String()
 	G.Log.Debug("+ GetTrackingStatement for %s", uid_s)
 	defer G.Log.Debug("- GetTrackingStatement for %s -> %s", uid_s, ErrToOk(err))
 
@@ -752,10 +747,10 @@ func (u *User) GetRemoteTrackingStatementFor(s string, i UID) (link *TrackChainL
 func (u User) ToOkProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
-		{Key: "uid", Value: u.id.ToString()},
+		{Key: "uid", Value: u.id.String()},
 	}
 	for _, fp := range u.GetActivePgpFingerprints(true) {
-		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.ToString()})
+		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})
 	}
 	if u.IdTable != nil {
 		proofs = u.IdTable.ToOkProofs(proofs)

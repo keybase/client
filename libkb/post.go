@@ -40,8 +40,8 @@ func PostNewKey(arg PostNewKeyArg) error {
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{false},
 		"type":            S{arg.Type},
-		"primary_kid":     S{arg.PrimaryKey.GetKid().ToString()},
-		"signing_kid":     S{arg.SigningKey.GetKid().ToString()},
+		"primary_kid":     S{arg.PrimaryKey.GetKid().String()},
+		"signing_kid":     S{arg.SigningKey.GetKid().String()},
 		"public_key":      S{pub},
 	}
 
@@ -61,7 +61,7 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
 		"supersede":       B{arg.Supersede},
-		"signing_kid":     S{arg.SigningKey.GetKid().ToString()},
+		"signing_kid":     S{arg.SigningKey.GetKid().String()},
 		"type":            S{arg.ProofType},
 	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})

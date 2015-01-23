@@ -394,12 +394,12 @@ func LoginAndIdentify(arg LoginAndIdentifyArg) error {
 
 	} else if u2 := G.Env.GetUid(); u2 != nil && !u2.Eq(u.id) {
 		err = UidMismatchError{fmt.Sprintf("Got wrong uid; wanted %s but got %s",
-			u.id.ToString(), u2.ToString())}
+			u.id.String(), u2.String())}
 	} else if u2 == nil && identify != nil {
 		log.Warning("Verifying your UID...")
 		err = u.IdentifySelf(identify)
 		if err == nil && log != nil {
-			log.Warning("Setting UID to %s", u.id.ToString())
+			log.Warning("Setting UID to %s", u.id.String())
 		}
 	}
 	return err

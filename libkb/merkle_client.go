@@ -17,7 +17,7 @@ const (
 
 type NodeHash interface {
 	Check(s string) bool // Check if the node hashes to this string
-	ToString() string
+	String() string
 }
 
 type NodeHashShort [NODE_HASH_LEN_SHORT]byte
@@ -28,11 +28,11 @@ func (h1 NodeHashShort) Check(s string) bool {
 	return FastByteArrayEq(h1[:], h2[:])
 }
 
-func (h1 NodeHashShort) ToString() string {
+func (h1 NodeHashShort) String() string {
 	return hex.EncodeToString(h1[:])
 }
 
-func (h1 NodeHashLong) ToString() string {
+func (h1 NodeHashLong) String() string {
 	return hex.EncodeToString(h1[:])
 }
 
@@ -326,7 +326,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 
 	if key == nil {
 		return fmt.Errorf("Failed to find a Merkle signing key for %s",
-			root.pgpFingerprint.ToString())
+			root.pgpFingerprint.String())
 	}
 
 	// Actually run the PGP verification over the signature
@@ -458,7 +458,7 @@ func ParseMerkleUserLeaf(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
 func (vp *VerificationPath) Verify() (user *MerkleUserLeaf, err error) {
 
 	curr := vp.root.rootHash
-	uid_s := vp.uid.ToString()
+	uid_s := vp.uid.String()
 	bpath := uid_s
 	pos := 0
 	last_typ := 0
@@ -566,7 +566,7 @@ func (mr *MerkleRoot) ToSigJson() (ret *jsonw.Wrapper) {
 	ret = jsonw.NewDictionary()
 	ret.SetKey("seqno", jsonw.NewInt(int(mr.seqno)))
 	ret.SetKey("ctime", jsonw.NewInt64(mr.ctime))
-	ret.SetKey("hash", jsonw.NewString(mr.rootHash.ToString()))
+	ret.SetKey("hash", jsonw.NewString(mr.rootHash.String()))
 
 	return
 }

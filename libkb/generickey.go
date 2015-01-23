@@ -23,14 +23,14 @@ type GenericKey interface {
 }
 
 func (k KID) ToMapKey() string {
-	return k.ToString()
+	return k.String()
 }
 
 func (k KID) ToShortIdString() string {
 	return base64.StdEncoding.EncodeToString(k[0:12])
 }
 
-func (k KID) ToString() string {
+func (k KID) String() string {
 	return hex.EncodeToString(k)
 }
 
@@ -105,11 +105,11 @@ func (f FOKID) Eq(f2 FOKID) (ret bool) {
 	return ret
 }
 
-func (f FOKID) ToString() string {
+func (f FOKID) String() string {
 	if f.Kid != nil {
-		return f.Kid.ToString()
+		return f.Kid.String()
 	} else if f.Fp != nil {
-		return f.Fp.ToString()
+		return f.Fp.String()
 	} else {
 		return ""
 	}
@@ -117,10 +117,10 @@ func (f FOKID) ToString() string {
 
 func (f FOKID) ToStrings() (ret []string) {
 	if f.Kid != nil {
-		ret = append(ret, f.Kid.ToString())
+		ret = append(ret, f.Kid.String())
 	}
 	if f.Fp != nil {
-		ret = append(ret, f.Fp.ToString())
+		ret = append(ret, f.Fp.String())
 	}
 	return
 }

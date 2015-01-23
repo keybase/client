@@ -356,7 +356,7 @@ func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
 	ret.PublicKeySelected = c.PublicKeySelected
 	if c.User != nil {
 		ret.User = &keybase_1.UserInfo{
-			Uid:      c.User.Uid.ToString(),
+			Uid:      c.User.Uid.String(),
 			Username: c.User.Username,
 		}
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 type AssertionExpression interface {
-	ToString() string
+	String() string
 	MatchSet(ps ProofSet) bool
 	HasOr() bool
 	CollectUrls([]AssertionUrl) []AssertionUrl
@@ -35,10 +35,10 @@ func (a AssertionOr) CollectUrls(v []AssertionUrl) []AssertionUrl {
 	return v
 }
 
-func (a AssertionOr) ToString() string {
+func (a AssertionOr) String() string {
 	v := make([]string, len(a.terms))
 	for i, t := range a.terms {
-		v[i] = t.ToString()
+		v[i] = t.String()
 	}
 	return fmt.Sprintf("(%s)", strings.Join(v, " || "))
 }
@@ -72,10 +72,10 @@ func (a AssertionAnd) MatchSet(ps ProofSet) bool {
 	return true
 }
 
-func (a AssertionAnd) ToString() string {
+func (a AssertionAnd) String() string {
 	v := make([]string, len(a.factors))
 	for i, f := range a.factors {
-		v[i] = f.ToString()
+		v[i] = f.String()
 	}
 	return fmt.Sprintf("(%s)", strings.Join(v, " && "))
 }
@@ -205,7 +205,7 @@ func (a AssertionUrlBase) CheckHost() (err error) {
 	return
 }
 
-func (a AssertionUrlBase) ToString() string {
+func (a AssertionUrlBase) String() string {
 	return fmt.Sprintf("%s://%s", a.Key, a.Value)
 }
 

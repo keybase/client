@@ -6,7 +6,7 @@ import (
 )
 
 type HttpValue interface {
-	ToString() string
+	String() string
 }
 
 type HttpArgs map[string]HttpValue
@@ -31,9 +31,9 @@ func NewHttpArgs() HttpArgs {
 	return make(HttpArgs)
 }
 
-func (s S) ToString() string { return s.Val }
-func (i I) ToString() string { return fmt.Sprintf("%d", i.Val) }
-func (b B) ToString() string {
+func (s S) String() string { return s.Val }
+func (i I) String() string { return fmt.Sprintf("%d", i.Val) }
+func (b B) String() string {
 	i := 0
 	if b.Val {
 		i = 1
@@ -44,7 +44,7 @@ func (b B) ToString() string {
 func (a HttpArgs) ToValues() url.Values {
 	ret := url.Values{}
 	for k, v := range a {
-		ret.Set(k, v.ToString())
+		ret.Set(k, v.String())
 	}
 	return ret
 }
