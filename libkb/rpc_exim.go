@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"sort"
 	"time"
 )
 
@@ -62,6 +63,7 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase_1.RemoteProof {
 		Value:         v,
 		DisplayMarkup: v,
 		SigId:         keybase_1.SIGID(p.GetSigId()),
+		Mtime:         int(p.GetCTime().Unix()),
 	}
 }
 
@@ -88,7 +90,21 @@ func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArgPrime) {
 	return ret
 }
 
-func (ir IdentifyOutcome) ExportToUncheckedIdentity() (res *keybase_1.Identity) {
+type ByMtime []keybase_1.IdentifyRow
+
+func (x ByMtime) Len() int {
+	return len(x)
+}
+
+func (x ByMtime) Less(a, b int) bool {
+	return x[a].Proof.Mtime < x[b].Proof.Mtime
+}
+
+func (x ByMtime) Swap(a, b int) {
+	x[a], x[b] = x[b], x[a]
+}
+
+func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase_1.Identity {
 	tmp := keybase_1.Identity{
 		Status: ExportErrorAsStatus(ir.Error),
 	}
@@ -99,13 +115,13 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() (res *keybase_1.Identity) 
 	for j, p := range ir.ProofChecks {
 		tmp.Proofs[j] = p.ExportToIdentifyRow(j)
 	}
+	sort.Sort(ByMtime(tmp.Proofs))
 	tmp.Deleted = make([]keybase_1.TrackDiff, len(ir.Deleted))
 	for j, d := range ir.Deleted {
 		// Should have all non-nil elements...
 		tmp.Deleted[j] = *ExportTrackDiff(d)
 	}
-	res = &tmp
-	return
+	return &tmp
 }
 
 type ExportableError interface {
