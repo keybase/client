@@ -186,6 +186,9 @@
     }, {
       "name" : "sigId",
       "type" : "SIGID"
+    }, {
+      "name" : "mtime",
+      "type" : "int"
     } ]
   }, {
     "type" : "record",

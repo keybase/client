@@ -112,6 +112,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSString *value;
 @property NSString *displayMarkup;
 @property KBRSIGID *sigId;
+@property NSInteger mtime;
 @end
 
 @interface KBRIdentifyRow : KBRObject

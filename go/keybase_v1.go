@@ -193,6 +193,7 @@ type RemoteProof struct {
 	Value         string `codec:"value"`
 	DisplayMarkup string `codec:"displayMarkup"`
 	SigId         SIGID  `codec:"sigId"`
+	Mtime         int    `codec:"mtime"`
 }
 
 type IdentifyRow struct {
