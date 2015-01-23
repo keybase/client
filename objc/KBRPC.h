@@ -5,7 +5,7 @@
 @property NSInteger code;
 @property NSString *name;
 @property NSString *desc;
-@property NSArray *fields;
+@property NSArray *fields; /*of string*/
 @end
 
 @interface KBRUID : NSData
@@ -80,14 +80,14 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @interface KBRIdentifyOutcome : KBRObject
 @property KBRStatus *status;
-@property NSArray *warnings;
+@property NSArray *warnings; /*of string*/
 @property KBRTrackSummary *trackUsed;
 @property NSInteger numTrackFailures;
 @property NSInteger numTrackChanges;
 @property NSInteger numProofFailures;
 @property NSInteger numDeleted;
 @property NSInteger numProofSuccesses;
-@property NSArray *deleted;
+@property NSArray *deleted; /*of KBRTrackDiff*/
 @end
 
 @interface KBRIdentifyRes : KBRObject
@@ -137,9 +137,9 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property KBRStatus *status;
 @property NSInteger whenLastTracked;
 @property KBRIdentifyKey *key;
-@property NSArray *proofs;
-@property NSArray *cryptocurrency;
-@property NSArray *deleted;
+@property NSArray *proofs; /*of KBRIdentifyRow*/
+@property NSArray *cryptocurrency; /*of KBRCryptocurrency*/
+@property NSArray *deleted; /*of KBRTrackDiff*/
 @end
 
 @interface KBRSigHint : KBRObject
@@ -220,7 +220,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @interface KBRPgpCreateUids : KBRObject
 @property BOOL useDefault;
-@property NSArray *ids;
+@property NSArray *ids; /*of KBRPgpIdentity*/
 @end
 
 @interface KBRMykeyRequest : KBRRequest

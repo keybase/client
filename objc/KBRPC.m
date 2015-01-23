@@ -50,6 +50,7 @@
 @end
 
 @implementation KBRIdentifyOutcome
++ (NSValueTransformer *)deletedJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRIdentifyRes
@@ -100,6 +101,9 @@
 @end
 
 @implementation KBRIdentity
++ (NSValueTransformer *)proofsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRIdentifyRow.class]; }
++ (NSValueTransformer *)cryptocurrencyJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRCryptocurrency.class]; }
++ (NSValueTransformer *)deletedJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRSigHint
@@ -244,6 +248,7 @@
 @end
 
 @implementation KBRPgpCreateUids
++ (NSValueTransformer *)idsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
 @end
 
 @implementation KBRMykeyRequest

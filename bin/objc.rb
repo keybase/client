@@ -8,9 +8,12 @@ paths = Dir["#{script_path}/../json/*.json"]
 defined_types = []
 enums = []
 
-objc_prefix = "KBR"
+def classname(n)
+  "KBR#{n}"
+end
 
-def objc_for_type(type, enums, objc_prefix)
+def objc_for_type(type, enums)
+  # Subtype (for arrays)
   if type.kind_of?(Hash)
     type = type["type"]
   end
@@ -31,9 +34,9 @@ def objc_for_type(type, enums, objc_prefix)
     if type.start_with?("void")
       type
     elsif enums.include?(type)
-      "#{objc_prefix}#{type} "
+      classname(type) + " "
     else
-      "#{objc_prefix}#{type} *"
+      classname("#{type} *")
     end
   end
 end
@@ -82,7 +85,7 @@ paths.each do |path|
 
     if type["type"] == "enum"
       enums << type["name"]
-      enum_name = "#{objc_prefix}#{type["name"]}"
+      enum_name = "#{classname(type["name"])}"
       header << "typedef NS_ENUM (NSInteger, #{enum_name}) {"
       type["symbols"].each do |sym|
         header << "\t#{enum_name}#{sym.capitalize}, "
@@ -92,43 +95,58 @@ paths.each do |path|
 
 
     if type["type"] == "fixed"
-      header << "@interface #{objc_prefix}#{type["name"]} : NSData"
+      header << "@interface #{classname(type["name"])} : NSData"
       header << "@end\n"
-      impl << "@implementation #{objc_prefix}#{type["name"]}"
+      impl << "@implementation #{classname(type["name"])}"
       impl << "@end\n"
     end
 
+    transformers = []
     if type["type"] == "record"
-      header << "@interface #{objc_prefix}#{type["name"]} : KBRObject"
+      header << "@interface #{classname(type["name"])} : KBRObject"
       type["fields"].each do |field|
-        header << "@property #{objc_for_type(field["type"], enums, objc_prefix)}#{field["name"]};"
+        if field["type"].kind_of?(Hash)
+          subtype = field["type"]
+          if subtype["type"] == "array"
+
+            if is_native_type(subtype["items"])
+              header << "@property NSArray *#{field["name"]}; /*of #{subtype["items"]}*/"
+            else
+              header << "@property NSArray *#{field["name"]}; /*of #{classname(subtype["items"])}*/"
+              transformers << "+ (NSValueTransformer *)#{field["name"]}JSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:#{classname(subtype["items"])}.class]; }"
+            end
+          end
+        else
+          header << "@property #{objc_for_type(field["type"], enums)}#{field["name"]};"
+        end
       end
       header << "@end\n"
-      impl << "@implementation #{objc_prefix}#{type["name"]}"
+      impl << "@implementation #{classname(type["name"])}"
+      impl += transformers if transformers
       impl << "@end\n"
     end
   end
 
 
-  header << "@interface #{objc_prefix}#{protocol.camelize}Request : KBRRequest"
-  impl << "@implementation #{objc_prefix}#{protocol.camelize}Request"
+  header << "@interface #{classname(protocol.camelize)}Request : KBRRequest"
+  impl << "@implementation #{classname(protocol.camelize)}Request"
 
   h["messages"].each do |method, mparam|
-    request_params = mparam["request"]
+    request_params = mparam["request"].dup
     response_type = mparam["response"]
 
     request_params_items = request_params.map do |p|
       if is_primitive_type(p["type"]) || enums.include?(p["type"])
         "@\"#{p["name"]}\": @(#{p["name"]})"
       else
-        "@\"#{p["name"]}\": #{objc_prefix}Value(#{p["name"]})"
+        "@\"#{p["name"]}\": KBRValue(#{p["name"]})"
       end
     end
 
     response_completion = if response_type == "null" then
       "void (^)(NSError *error)"
     else
-      "void (^)(NSError *error, #{objc_for_type(response_type, enums, objc_prefix)} #{default_name_for_type(response_type)})"
+      "void (^)(NSError *error, #{objc_for_type(response_type, enums)} #{default_name_for_type(response_type)})"
     end
 
     request_params << { "name" => "completion", "type" => response_completion }
@@ -138,7 +156,7 @@ paths.each do |path|
       name = "With#{name.camelize}" if index == 0
       name = "" if request_params.length == 1
 
-      "#{name}:(#{objc_for_type(param["type"], enums, objc_prefix)})#{param["name"]}"
+      "#{name}:(#{objc_for_type(param["type"], enums)})#{param["name"]}"
     end
 
     rpc_method = "#{namespace}.#{protocol}.#{method}"
@@ -153,12 +171,12 @@ paths.each do |path|
     elsif is_native_type(response_type)
       "completion(error, 0);" # TODO
     else
-      classname = "#{objc_prefix}#{response_type}"
+      clsname = classname(response_type)
       "if (error) {
         completion(error, nil);
         return;
       }
-      #{classname} *result = [MTLJSONAdapter modelOfClass:#{classname}.class fromJSONDictionary:dict error:&error];
+      #{clsname} *result = [MTLJSONAdapter modelOfClass:#{clsname}.class fromJSONDictionary:dict error:&error];
       completion(error, result);"
     end
 
@@ -169,6 +187,12 @@ paths.each do |path|
   }];"
 
     impl << "}\n"
+
+    args = mparam["request"].each_with_index.collect do |param, index|
+      "#{objc_for_type(param["type"], enums)} #{param["name"]}"
+    end
+
+    #"typedef void (^#{classname(protocol.camelize)}Block)(#{args.join(", ")}, MPRequestCompletion completion);"
   end
   header << "@end\n"
   impl << "@end\n"
