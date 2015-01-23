@@ -42,7 +42,7 @@ func (ss *SecretSyncer) Load(uid UID) (err error) {
 	ss.Lock()
 	defer ss.Unlock()
 
-	uid_s := uid.ToString()
+	uid_s := uid.String()
 
 	G.Log.Debug("+ SecretSyncer.Load(%s)", uid_s)
 	defer func() {
@@ -50,7 +50,7 @@ func (ss *SecretSyncer) Load(uid UID) (err error) {
 	}()
 
 	if ss.Uid != nil && !ss.Uid.Eq(uid) {
-		err = UidMismatchError{fmt.Sprintf("%s != %s", ss.Uid.ToString(), uid.ToString())}
+		err = UidMismatchError{fmt.Sprintf("%s != %s", ss.Uid, uid)}
 		return
 	}
 	ss.Uid = &uid
@@ -107,7 +107,7 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 }
 
 func (ss *SecretSyncer) dbKey() DbKey {
-	return DbKey{Typ: DB_USER_SECRET_KEYS, Key: ss.Uid.ToString()}
+	return DbKey{Typ: DB_USER_SECRET_KEYS, Key: ss.Uid.String()}
 }
 
 func (ss *SecretSyncer) store() (err error) {
