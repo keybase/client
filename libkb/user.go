@@ -18,6 +18,10 @@ func (u UID) ToString() string {
 	return hex.EncodeToString(u[:])
 }
 
+func (u UID) String() string {
+	return u.ToString()
+}
+
 func (u UID) IsZero() bool {
 	for _, b := range u {
 		if b != 0 {

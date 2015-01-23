@@ -196,7 +196,7 @@ type IdentifyUI interface {
 	DisplayCryptocurrency(keybase_1.Cryptocurrency)
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*keybase_1.TrackSummary)
-	Start()
+	Start(username string)
 	LaunchNetworkChecks(*keybase_1.Identity)
 	DisplayTrackStatement(string) error
 }

@@ -251,7 +251,7 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyOutcome) {
 }
 
 func (u *User) Identify(arg IdentifyArg) (outcome *IdentifyOutcome, ti TrackInstructions, err error) {
-	arg.Ui.Start()
+	arg.Ui.Start(u.name)
 	outcome = u._identify(arg)
 	tmp, err := arg.Ui.FinishAndPrompt(outcome.Export())
 	fpr := ImportFinishAndPromptRes(tmp)

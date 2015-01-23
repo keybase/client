@@ -9,6 +9,7 @@ import (
 type RemoteBaseIdentifyUI struct {
 	sessionId int
 	uicli     keybase_1.IdentifyUiClient
+	logcli    keybase_1.LogUiClient
 }
 
 type RemoteSelfIdentifyUI struct {
@@ -109,7 +110,8 @@ func (u *RemoteBaseIdentifyUI) DisplayTrackStatement(s string) error {
 	// return
 }
 
-func (u *RemoteSelfIdentifyUI) Start() {
+func (u *RemoteSelfIdentifyUI) Start(username string) {
+	u.logcli.Log(keybase_1.LogArg{SessionId: u.sessionId, Level: keybase_1.LogLevel_INFO, Text: keybase_1.Text{Data: "Identifying " + username}})
 	return
 }
 
@@ -129,9 +131,11 @@ func NewRemoteIdentifyUI(sessionId int, c *rpc2.Client) *RemoteIdentifyUI {
 	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
 		uicli:     keybase_1.IdentifyUiClient{c},
+		logcli:    keybase_1.LogUiClient{c},
 	}}
 }
 
-func (u *RemoteIdentifyUI) Start() {
+func (u *RemoteIdentifyUI) Start(username string) {
+	u.logcli.Log(keybase_1.LogArg{SessionId: u.sessionId, Level: keybase_1.LogLevel_INFO, Text: keybase_1.Text{Data: "Identifying " + username}})
 	return
 }
