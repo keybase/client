@@ -305,10 +305,7 @@ func (ir *IdentifyOutcome) Export() *keybase_1.IdentifyOutcome {
 func (ir *IdentifyRes) Export() *keybase_1.IdentifyRes {
 	return &keybase_1.IdentifyRes{
 		Outcome: *((*ir.Outcome).Export()),
-		User: &keybase_1.User{
-			Uid:      keybase_1.UID(ir.User.GetUid()),
-			Username: ir.User.GetName(),
-		},
+		User:    ir.User.Export(),
 	}
 }
 
@@ -355,10 +352,7 @@ func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
 	ret.LoggedIn = c.LoggedIn
 	ret.PublicKeySelected = c.PublicKeySelected
 	if c.User != nil {
-		ret.User = &keybase_1.UserInfo{
-			Uid:      c.User.Uid.String(),
-			Username: c.User.Username,
-		}
+		ret.User = c.User.Export()
 	}
 	return
 }
@@ -470,4 +464,11 @@ func (u *UID) Export() keybase_1.UID {
 
 func ImportUID(u keybase_1.UID) UID {
 	return UID(u)
+}
+
+func (u *User) Export() *keybase_1.User {
+	return &keybase_1.User{
+		Uid:      keybase_1.UID(u.GetUid()),
+		Username: u.GetName(),
+	}
 }

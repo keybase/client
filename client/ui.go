@@ -135,7 +135,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		isRemote = o.TrackUsed.IsRemote
 	}
 
-	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; nd=%d; nps=%d; tracked=%v; isRemote=%v",
+	G.Log.Debug("| Status for track(%s): ntf=%d; ntc=%d; npf=%d, nd=%d; nps=%d; tracked=%v; isRemote=%v",
 		un, ntf, ntc, npf, nd, nps, tracked, isRemote)
 
 	ui.ReportDeleted(o.Deleted)
