@@ -43,18 +43,13 @@ type User struct {
 	Username string `codec:"username"`
 }
 
-type UserInfo struct {
-	Uid      string `codec:"uid"`
-	Username string `codec:"username"`
-}
-
 type GetCurrentStatusRes struct {
-	Configured        bool      `codec:"configured"`
-	Registered        bool      `codec:"registered"`
-	LoggedIn          bool      `codec:"loggedIn"`
-	PublicKeySelected bool      `codec:"publicKeySelected"`
-	HasPrivateKey     bool      `codec:"hasPrivateKey"`
-	User              *UserInfo `codec:"user,omitempty"`
+	Configured        bool  `codec:"configured"`
+	Registered        bool  `codec:"registered"`
+	LoggedIn          bool  `codec:"loggedIn"`
+	PublicKeySelected bool  `codec:"publicKeySelected"`
+	HasPrivateKey     bool  `codec:"hasPrivateKey"`
+	User              *User `codec:"user,omitempty"`
 }
 
 type GetCurrentStatusArg struct {

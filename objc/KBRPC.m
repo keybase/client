@@ -21,9 +21,6 @@
 @implementation KBRUser
 @end
 
-@implementation KBRUserInfo
-@end
-
 @implementation KBRGetCurrentStatusRes
 @end
 

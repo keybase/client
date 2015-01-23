@@ -4,19 +4,13 @@ protocol config {
 
 	import idl "common.avdl";
 
-	/* type UID instead of string? */
-	record UserInfo {
-		string uid;
-		string username;
-	}
-
 	record GetCurrentStatusRes {
 		boolean configured;
 		boolean registered;
 		boolean loggedIn;
 		boolean publicKeySelected;
 		boolean hasPrivateKey;
-		union { null, UserInfo } user;
+		union { null, User } user;
 	}
 
 	GetCurrentStatusRes getCurrentStatus();

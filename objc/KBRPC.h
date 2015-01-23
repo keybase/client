@@ -38,18 +38,13 @@
 @property NSString *username;
 @end
 
-@interface KBRUserInfo : KBRObject
-@property NSString *uid;
-@property NSString *username;
-@end
-
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
 @property BOOL loggedIn;
 @property BOOL publicKeySelected;
 @property BOOL hasPrivateKey;
-@property KBRUserInfo *user;
+@property KBRUser *user;
 @end
 
 @interface KBRConfigRequest : KBRRequest
