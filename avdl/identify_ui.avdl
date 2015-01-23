@@ -15,6 +15,7 @@ protocol identifyUi {
 		string key;
 		string value;
 		string displayMarkup;
+		SIGID sigId;
 	}
 
 	record IdentifyRow {

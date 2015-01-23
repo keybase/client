@@ -82,6 +82,9 @@
 
 @end
 
+@implementation KBRSIGID
+@end
+
 @implementation KBRProofStatus
 @end
 

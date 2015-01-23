@@ -97,6 +97,9 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @end
 
+@interface KBRSIGID : NSData
+@end
+
 @interface KBRProofStatus : KBRObject
 @property NSInteger state;
 @property NSInteger status;
@@ -108,6 +111,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSString *key;
 @property NSString *value;
 @property NSString *displayMarkup;
+@property KBRSIGID *sigId;
 @end
 
 @interface KBRIdentifyRow : KBRObject

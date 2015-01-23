@@ -180,6 +180,7 @@ func (c IdentifyClient) IdentifyDefault(username string) (res IdentifyRes, err e
 	return
 }
 
+type SIGID [32]byte
 type ProofStatus struct {
 	State  int    `codec:"state"`
 	Status int    `codec:"status"`
@@ -191,6 +192,7 @@ type RemoteProof struct {
 	Key           string `codec:"key"`
 	Value         string `codec:"value"`
 	DisplayMarkup string `codec:"displayMarkup"`
+	SigId         SIGID  `codec:"sigId"`
 }
 
 type IdentifyRow struct {

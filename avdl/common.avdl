@@ -37,4 +37,6 @@ protocol Common {
 		UID uid;
 		string username;
 	}
+	
+	fixed SIGID(32);
 }
