@@ -258,7 +258,7 @@ func LoadUserFromLocalStorage(uid UID, allKeys bool, loadSecrets bool) (u *User,
 	G.Log.Debug("| Loaded successfully")
 
 	if !loadSecrets {
-		// noop
+		G.Log.Debug("| Not loading private keys for user")
 	} else if sk, err := G.LocalDb.Get(DbKey{Typ: DB_USER_SECRET_KEYS, Key: uid_s}); err != nil {
 		return nil, err
 	} else if sk != nil {
