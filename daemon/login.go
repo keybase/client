@@ -15,9 +15,9 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 	return &LoginHandler{BaseHandler{xp: xp}, nil}
 }
 
-func (h *LoginHandler) getIdentifyUI(sessionId int) libkb.IdentifyUI {
+func (h *LoginHandler) getIdentifyUI(sessionId int, username string) libkb.IdentifyUI {
 	if h.identifyUi == nil {
-		h.identifyUi = NewRemoteSelfIdentifyUI(sessionId, h.getRpcClient())
+		h.identifyUi = NewRemoteSelfIdentifyUI(sessionId, username, h.getRpcClient())
 	}
 	return h.identifyUi
 }
@@ -46,7 +46,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	}
 
 	if arg.Identify {
-		liarg.IdentifyUI = h.getIdentifyUI(sessid)
+		liarg.IdentifyUI = h.getIdentifyUI(sessid, arg.Username)
 	}
 	liarg.LogUI = h.getLogUI(sessid)
 

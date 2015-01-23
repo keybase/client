@@ -60,6 +60,10 @@ func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase_1.Identity) {
 	return
 }
 
+func (ui BaseIdentifyUI) SetUsername(username string) {
+	ui.username = username
+}
+
 func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
 	return ui.baseFinishAndPrompt(o)
 }

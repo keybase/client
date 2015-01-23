@@ -251,7 +251,7 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyOutcome) {
 }
 
 func (u *User) Identify(arg IdentifyArg) (outcome *IdentifyOutcome, ti TrackInstructions, err error) {
-	arg.Ui.Start(u.name)
+	arg.Ui.Start()
 	outcome = u._identify(arg)
 	tmp, err := arg.Ui.FinishAndPrompt(outcome.Export())
 	fpr := ImportFinishAndPromptRes(tmp)
@@ -332,6 +332,7 @@ func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
 	if e.ui == nil {
 		e.ui = G.UI.GetIdentifyUI(u.GetName())
 	}
+	e.ui.SetUsername(u.GetName())
 	outcome, err := u.IdentifySimple(nil, e.ui)
 	if err != nil {
 		return nil, err

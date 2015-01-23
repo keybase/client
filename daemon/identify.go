@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -8,6 +9,7 @@ import (
 
 type RemoteBaseIdentifyUI struct {
 	sessionId int
+	username  string
 	uicli     keybase_1.IdentifyUiClient
 	logcli    keybase_1.LogUiClient
 }
@@ -45,9 +47,8 @@ func (h *IdentifyHandler) IdentifyDefault(username string) (keybase_1.IdentifyRe
 func (h *IdentifyHandler) identify(iarg libkb.IdentifyArgPrime, doInteractive bool) (*libkb.IdentifyRes, error) {
 	sessionId := nextSessionId()
 	iarg.LogUI = h.getLogUI(sessionId)
-	iarg.LogUI.Info("Identify:  session id = %v", sessionId)
 
-	eng := libkb.NewIdentifyEng(&iarg, NewRemoteIdentifyUI(sessionId, h.cli))
+	eng := libkb.NewIdentifyEng(&iarg, NewRemoteIdentifyUI(sessionId, iarg.User, h.cli))
 	return eng.Run()
 }
 
@@ -61,9 +62,11 @@ func nextSessionId() int {
 	return ret
 }
 
-func NewRemoteSelfIdentifyUI(sessionId int, c *rpc2.Client) *RemoteSelfIdentifyUI {
+func NewRemoteSelfIdentifyUI(sessionId int, username string, c *rpc2.Client) *RemoteSelfIdentifyUI {
+	fmt.Printf("************** NewRemoteSelfIdentifyUI\n")
 	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
+		username:  username,
 		uicli:     keybase_1.IdentifyUiClient{c},
 	}}
 }
@@ -110,11 +113,6 @@ func (u *RemoteBaseIdentifyUI) DisplayTrackStatement(s string) error {
 	// return
 }
 
-func (u *RemoteSelfIdentifyUI) Start(username string) {
-	u.logcli.Log(keybase_1.LogArg{SessionId: u.sessionId, Level: keybase_1.LogLevel_INFO, Text: keybase_1.Text{Data: "Identifying " + username}})
-	return
-}
-
 func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity) {
 	u.uicli.LaunchNetworkChecks(keybase_1.LaunchNetworkChecksArg{
 		SessionId: u.sessionId,
@@ -127,15 +125,20 @@ type RemoteIdentifyUI struct {
 	RemoteBaseIdentifyUI
 }
 
-func NewRemoteIdentifyUI(sessionId int, c *rpc2.Client) *RemoteIdentifyUI {
+func NewRemoteIdentifyUI(sessionId int, username string, c *rpc2.Client) *RemoteIdentifyUI {
 	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
+		username:  username,
 		uicli:     keybase_1.IdentifyUiClient{c},
 		logcli:    keybase_1.LogUiClient{c},
 	}}
 }
 
-func (u *RemoteIdentifyUI) Start(username string) {
-	u.logcli.Log(keybase_1.LogArg{SessionId: u.sessionId, Level: keybase_1.LogLevel_INFO, Text: keybase_1.Text{Data: "Identifying " + username}})
+func (u *RemoteBaseIdentifyUI) Start() {
+	u.logcli.Log(keybase_1.LogArg{SessionId: u.sessionId, Level: keybase_1.LogLevel_INFO, Text: keybase_1.Text{Data: "Identifying " + u.username}})
 	return
+}
+
+func (u *RemoteBaseIdentifyUI) SetUsername(username string) {
+	u.username = username
 }
