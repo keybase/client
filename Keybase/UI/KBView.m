@@ -20,6 +20,7 @@
 - (void)viewInit {
   [super viewInit];
   self.wantsLayer = YES;
+  [self setBackgroundColor:NSColor.whiteColor];
 
   GHWeakSelf gself = self;
   _errorHandler = ^(NSError *error) { [gself setError:error]; };

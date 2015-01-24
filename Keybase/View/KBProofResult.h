@@ -8,6 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBProofLabel : NSObject
+#import "KBRPC.h"
+
+@interface KBProofResult : NSObject
+
++ (instancetype)proofResultForProof:(KBRRemoteProof *)proof result:(KBRLinkCheckResult *)result;
+
+@property KBRRemoteProof *proof;
+@property KBRLinkCheckResult *result;
 
 @end

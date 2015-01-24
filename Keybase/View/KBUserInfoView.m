@@ -1,91 +1,82 @@
 //
-//  KBProofsView.m
+//  KBUserInfoView.m
 //  Keybase
 //
 //  Created by Gabriel on 1/9/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBProofsView.h"
+#import "KBUserInfoView.h"
 
-#import "KBItemsLabel.h"
+#import "KBUserInfoLabels.h"
+#import "KBRPC.h"
+#import "KBProofResult.h"
+#import <MPMessagePack/MPMessagePack.h>
 
-@interface KBProofsView ()
-@property KBUser *user;
-@property NSMutableArray /*KBItemsLabel*/*proofLabels;
+@interface KBUserInfoView ()
+@property NSMutableArray /*KBItemsLabel*/*labels;
 @end
 
 
-@implementation KBProofsView
+@implementation KBUserInfoView
 
 - (void)viewInit {
   [super viewInit];
-  _proofLabels = [NSMutableArray array];
+  _labels = [NSMutableArray array];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
 
-    for (KBItemsLabel *label in yself.proofLabels) {
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(15, y, 305, 0) view:label].size.height + 8;
+    for (KBUserInfoLabels *label in yself.labels) {
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:label].size.height + 8;
     }
 
     return CGSizeMake(size.width, y);
   }];
 }
 
-+ (KBItemsLabel *)labelWithHeaderText:(NSString *)headerText user:(KBUser *)user proofType:(KBProofType)proofType placeHolder:(NSString *)placeHolder targetBlock:(KBProofSelectBlock)targetBlock {
-  KBItemsLabel *label = [[KBItemsLabel alloc] init];
-  NSArray *proofs = [user proofsForType:proofType];
-  if ([proofs count] == 0 && !placeHolder) return nil;
-  NSArray *texts = [proofs map:^id(KBProof *proof) {
-    return [proof displayName];
-  }];
-  [label setHeaderText:headerText items:proofs texts:texts font:nil placeHolder:placeHolder targetBlock:^(id sender, KBProof *proof) {
-    targetBlock(proofType, proof);
-  }];
-  return label;
-}
-
 - (void)addLabels:(NSArray *)labels {
   for (NSView *label in labels) {
-    [_proofLabels addObject:label];
+    [_labels addObject:label];
     [self addSubview:label];
   }
 }
 
-- (void)clearLabels {
-  for (KBItemsLabel *label in _proofLabels) [label removeFromSuperview];
-  [_proofLabels removeAllObjects];
+- (void)clear {
+  for (KBUserInfoLabels *label in _labels) [label removeFromSuperview];
+  [_labels removeAllObjects];
+  [self setNeedsLayout];
 }
 
-+ (NSArray *)labelsForUser:(KBUser *)user editableTypes:(NSSet *)editableTypes targetBlock:(KBProofSelectBlock)targetBlock {
-  NSMutableArray *labels = [NSMutableArray array];
-  [labels gh_addObject:[KBProofsView labelWithHeaderText:@"Twitter" user:user proofType:KBProofTypeTwitter placeHolder:([editableTypes containsObject:@(KBProofTypeTwitter)] ? @"Prove my Twitter identity" : nil) targetBlock:targetBlock]];
-
-  [labels gh_addObject:[KBProofsView labelWithHeaderText:@"Github" user:user proofType:KBProofTypeGithub placeHolder:([editableTypes containsObject:@(KBProofTypeGithub)] ? @"Prove my Github identity" : nil) targetBlock:targetBlock]];
-
-  [labels gh_addObject:[KBProofsView labelWithHeaderText:@"Reddit" user:user proofType:KBProofTypeReddit placeHolder:([editableTypes containsObject:@(KBProofTypeReddit)] ? @"Prove my Reddit identity" : nil) targetBlock:targetBlock]];
-
-  [labels gh_addObject:[KBProofsView labelWithHeaderText:@"Coinbase" user:user proofType:KBProofTypeCoinbase placeHolder:([editableTypes containsObject:@(KBProofTypeCoinbase)] ? @"Prove my Coinbase identity" : nil) targetBlock:targetBlock]];
-
-  [labels gh_addObject:[KBProofsView labelWithHeaderText:@"Hacker News" user:user proofType:KBProofTypeHackerNews placeHolder:([editableTypes containsObject:@(KBProofTypeHackerNews)] ? @"Prove my Hacker News identity" : nil) targetBlock:targetBlock]];
-
-  [labels gh_addObject:[KBProofsView labelWithHeaderText:@"HTTPS" user:user proofType:KBProofTypeGenericWebSite placeHolder:nil targetBlock:targetBlock]];
-
-  [labels gh_addObject:[KBProofsView labelWithHeaderText:@"DNS" user:user proofType:KBProofTypeDNS placeHolder:nil targetBlock:targetBlock]];
-
-  return labels;
+- (void)updateProofResult:(KBProofResult *)proofResult {
+  for (KBUserInfoLabels *label in _labels) {
+    if ([label findLabelForProofResult:proofResult]) {
+      [label updateProofResult:proofResult];
+    }
+  }
 }
 
-- (void)setUser:(KBUser *)user editableTypes:(NSSet *)editableTypes {
-  self.user = user;
-  [self clearLabels];
-
-  NSArray *labels = [KBProofsView labelsForUser:user editableTypes:editableTypes targetBlock:^(KBProofType proofType, KBProof *proof) {
-
-  }];
-  [self addLabels:labels];
+- (void)addIdentityProofs:(NSArray *)identityProofs {
+  MPOrderedDictionary *labels = [MPOrderedDictionary dictionary];
+  for (KBRIdentifyRow *row in identityProofs) {
+    if (row.proof.proofType == 2) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Twitter"];
+    else if (row.proof.proofType == 3) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Github"];
+    else if (row.proof.proofType == 1000) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"HTTP"];
+    else if (row.proof.proofType == 1001) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"DNS"];
+    else if (row.proof.proofType == 4) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Reddit"];
+    else if (row.proof.proofType == 5) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Coinbase"];
+    else if (row.proof.proofType == 6) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"HN"];
+  }
+  //GHDebug(@"labels: %@", labels);
+  for (id key in labels) {
+    NSArray *proofResults = labels[key];
+    KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
+    [label setHeaderText:key proofResults:proofResults targetBlock:^(id sender, KBProofResult *proofResult) {
+      GHDebug(@"Selected: %@", proofResult);
+    }];
+    [self addLabels:@[label]];
+  }
 
   [self setNeedsLayout];
 }

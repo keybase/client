@@ -1,5 +1,5 @@
 //
-//  KBItemsLabel.h
+//  KBUserInfoLabels.h
 //  Keybase
 //
 //  Created by Gabriel on 1/9/15.
@@ -9,9 +9,18 @@
 #import <Foundation/Foundation.h>
 
 #import "KBUIDefines.h"
+#import "KBRPC.h"
+#import "KBProofResult.h"
+#import "KBProofLabel.h"
 
-@interface KBItemsLabel : YONSView
+@interface KBUserInfoLabels : YONSView
 
-- (void)setHeaderText:(NSString *)headerText items:(NSArray *)items texts:(NSArray *)texts font:(NSFont *)font placeHolder:(NSString *)placeHolder targetBlock:(void (^)(id sender, id object))targetBlock;
+@property (readonly) NSArray *proofResults;
+
+- (void)setHeaderText:(NSString *)headerText proofResults:(NSArray *)proofResults targetBlock:(void (^)(id sender, id object))targetBlock;
+
+- (void)updateProofResult:(KBProofResult *)proofResult;
+
+- (KBProofLabel *)findLabelForProofResult:(KBProofResult *)proofResult;
 
 @end

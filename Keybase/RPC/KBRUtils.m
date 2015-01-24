@@ -8,6 +8,12 @@
 
 #import "KBRUtils.h"
 
+#import <NAChloride/NAChloride.h>
+
 @implementation KBRUtils
+
++ (KBRUID *)UIDFromHexString:(NSString *)hexString {
+  return (KBRUID *)[hexString na_dataFromHexString];
+}
 
 @end

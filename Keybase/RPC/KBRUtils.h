@@ -8,6 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
+#import "KBRPC.h"
+
 @interface KBRUtils : NSObject
+
++ (KBRUID *)UIDFromHexString:(NSString *)hexString;
 
 @end

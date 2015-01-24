@@ -1,19 +1,18 @@
 //
-//  KBTextLabel.m
+//  KBLabel.m
 //  Keybase
 //
 //  Created by Gabriel on 1/9/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBTextLabel.h"
-#import "KBLookAndFeel.h"
+#import "KBLabel.h"
 
-@interface KBTextLabel ()
+@interface KBLabel ()
 @property NSTextView *textView;
 @end
 
-@implementation KBTextLabel
+@implementation KBLabel
 
 - (void)viewInit {
   [super viewInit];
@@ -27,17 +26,19 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGSize textSize = [KBTextLabel sizeThatFits:size textView:yself.textView];
+    CGSize textSize = [KBLabel sizeThatFits:size attributedString:yself.textView.attributedString];
     [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, size.width, textSize.height + 20)) view:yself.textView];
     return size;
-    //[layout setFrame:CGRectIntegral(CGRectMake(0, 0, size.width, textSize.height)) view:yself.textView];
-    //return CGSizeMake(size.width, textSize.height);
   }];
 }
 
 - (NSView *)hitTest:(NSPoint)point {
   // TODO call super if selectable?
   return nil;
+}
+
+- (BOOL)hasText {
+  return (self.attributedText && self.attributedText.length > 0);
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment {
@@ -63,8 +64,8 @@
   [self setNeedsLayout];
 }
 
-+ (CGSize)sizeThatFits:(CGSize)size textView:(NSTextView *)textView {
-  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:textView.attributedString];
++ (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString {
+  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
   NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:NSMakeSize(size.width, FLT_MAX)];
   NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
   [layoutManager addTextContainer:textContainer];
@@ -78,7 +79,22 @@
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-  return [KBTextLabel sizeThatFits:size textView:_textView];
+  return [KBLabel sizeThatFits:size attributedString:_textView.attributedString];
 }
+
++ (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter {
+  NSMutableAttributedString *text = [[NSMutableAttributedString alloc] init];
+  for (NSInteger index = 0; index < attributedStrings.count; index++) {
+    NSAttributedString *as = attributedStrings[index];
+    if (as.length > 0) {
+      [text appendAttributedString:as];
+      if (delimeter && index < attributedStrings.count - 1) {
+        [text appendAttributedString:delimeter];
+      }
+    }
+  }
+  return text;
+}
+
 
 @end

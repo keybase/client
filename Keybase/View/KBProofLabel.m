@@ -10,4 +10,27 @@
 
 @implementation KBProofLabel
 
++ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult targetBlock:(void (^)(id sender))targetBlock {
+  KBProofLabel *button = [[KBProofLabel alloc] init];
+  button.proofResult = proofResult;
+  button.targetBlock = targetBlock;
+  return button;
+}
+
+- (void)setProofResult:(KBProofResult *)proofResult {
+  _proofResult = proofResult;
+  self.bordered = NO;
+
+  NSColor *color = [KBLookAndFeel disabledTextColor];
+  if (_proofResult.result) {
+    if (_proofResult.result.proofStatus.status == 1) {
+      color = [KBLookAndFeel selectColor];
+    } else {
+      color = [KBLookAndFeel warnColor];
+    }
+  }
+
+  [self setText:proofResult.proof.value font:[NSFont systemFontOfSize:20] color:color alignment:NSLeftTextAlignment];
+}
+
 @end

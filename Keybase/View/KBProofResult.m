@@ -6,8 +6,19 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBProofLabel.h"
+#import "KBProofResult.h"
 
-@implementation KBProofLabel
+@implementation KBProofResult
+
++ (instancetype)proofResultForProof:(KBRRemoteProof *)proof result:(KBRLinkCheckResult *)result {
+  KBProofResult *label = [[KBProofResult alloc] init];
+  label.proof = proof;
+  label.result = result;
+  return label;
+}
+
+- (NSString *)description {
+  return _proof.value;
+}
 
 @end

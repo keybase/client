@@ -1,5 +1,5 @@
 //
-//  KBProofsView.h
+//  KBUserInfoView.h
 //  Keybase
 //
 //  Created by Gabriel on 1/9/15.
@@ -9,14 +9,14 @@
 #import <Foundation/Foundation.h>
 
 #import "KBUIDefines.h"
-#import "KBUser.h"
+#import "KBProofResult.h"
 
-typedef void (^KBProofSelectBlock)(KBProofType proofType, KBProof *proof);
+@interface KBUserInfoView : KBView
 
-@interface KBProofsView : KBView
+- (void)updateProofResult:(KBProofResult *)proofResult;
 
-- (void)setUser:(KBUser *)user editableTypes:(NSSet *)editableTypes;
+- (void)addIdentityProofs:(NSArray *)identityProofs;
 
-+ (NSArray *)labelsForUser:(KBUser *)user editableTypes:(NSSet *)editableTypes targetBlock:(KBProofSelectBlock)targetBlock;
+- (void)clear;
 
 @end

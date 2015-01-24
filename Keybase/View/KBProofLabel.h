@@ -8,6 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBProofLabel : NSObject
+#import "KBUIDefines.h"
+#import "KBProofResult.h"
+#import "KBRPC.h"
+
+@interface KBProofLabel : KBButton
+
+@property (nonatomic) KBProofResult *proofResult;
+
++ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult targetBlock:(void (^)(id sender))targetBlock;
 
 @end
