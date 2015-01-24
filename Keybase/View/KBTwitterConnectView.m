@@ -22,14 +22,14 @@
 @end
 
 @interface KBTwitterProofView : KBView
-@property KBTextLabel *instructionsLabel;
-@property KBTextLabel *proofLabel;
+@property KBLabel *instructionsLabel;
+@property KBLabel *proofLabel;
 @property KBButton *button;
 @end
 
 @interface KBTwitterConnectView ()
-@property KBTextLabel *titleLabel;
-@property KBTextLabel *infoLabel;
+@property KBLabel *titleLabel;
+@property KBLabel *infoLabel;
 @property KBTwitterInputView *inputView;
 @property KBTwitterProofView *proofView;
 
@@ -42,7 +42,7 @@
   [super viewInit];
   GHWeakSelf gself = self;
 
-  _infoLabel = [[KBTextLabel alloc] init];
+  _infoLabel = [[KBLabel alloc] init];
   [_infoLabel setText:@"Do you want to connect your Twitter account? This will add a photo to your profile and will help people verify your identity." font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   [self addSubview:_infoLabel];
 
@@ -68,7 +68,7 @@
     };
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite1" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     // TODO
     completion(nil, @(YES));
   }];
@@ -127,7 +127,7 @@
 
   GHWeakSelf gself = self;
   [self setInProgress:YES sender:_inputView];
-  KBRProve *prove = [[KBRProve alloc] initWithClient:AppDelegate.client];
+  KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:AppDelegate.client];
   [prove proveWithService:@"twitter" username:userName force:NO completion:^(NSError *error) {
     [self setInProgress:NO sender:gself.inputView];
     if (error) {
@@ -150,11 +150,10 @@
   _usernameField.placeholder = @"@username";
   [self addSubview:_usernameField];
 
-  _button = [[KBButton alloc] init];
-  _button.text = @"Connect";
+  _button = [KBButton buttonWithText:@"Connect"];
   [self addSubview:_button];
 
-  _skipButton = [KBButton buttonAsLinkWithText:@"No Thanks"];
+  _skipButton = [KBButton buttonWithLinkText:@"No Thanks"];
   _skipButton.targetBlock = ^{
   };
   [self addSubview:_skipButton];
@@ -163,9 +162,9 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 20;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.usernameField].size.height + 20;
 
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, 56) view:yself.button].size.height + 20;
+    y += [layout centerWithSize:CGSizeMake(200, 48) frame:CGRectMake(0, y, size.width, 48) view:yself.button].size.height + 20;
 
     y += [layout setFrame:CGRectMake(40, y, 80, 30) view:yself.skipButton].size.height;
 
@@ -179,10 +178,10 @@
 
 - (void)viewInit {
   [super viewInit];
-  _instructionsLabel = [[KBTextLabel alloc] init];
+  _instructionsLabel = [[KBLabel alloc] init];
   [self addSubview:_instructionsLabel];
 
-  _proofLabel = [[KBTextLabel alloc] init];
+  _proofLabel = [[KBLabel alloc] init];
   // TODO Make selectable
   //_proofLabel.selectable = YES;
   [self addSubview:_proofLabel];

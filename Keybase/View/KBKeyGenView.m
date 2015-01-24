@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 
 @interface KBKeyGenView ()
-@property KBTextLabel *infoLabel;
+@property KBLabel *infoLabel;
 @property KBButton *button;
 @property KBButton *selectButton;
 @end
@@ -23,18 +23,17 @@
   [super viewInit];
   GHWeakSelf gself = self;
 
-  _infoLabel = [[KBTextLabel alloc] init];
+  _infoLabel = [[KBLabel alloc] init];
   [_infoLabel setText:@"Welcome to keybase.io! You now need to associate a key with your account." font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_infoLabel];
 
-  _button = [[KBButton alloc] init];
-  _button.text = @"Create Key";
+  _button = [KBButton buttonWithText:@"Create Key"];
   self.button.targetBlock = ^{
     [gself generateKey];
   };
   [self addSubview:_button];
 
-  _selectButton = [KBButton buttonAsLinkWithText:@"I have a key already, let me select it."];
+  _selectButton = [KBButton buttonWithLinkText:@"I have a key already, let me select it."];
   _selectButton.targetBlock = ^{
     KBTODO(gself);
   };
@@ -47,7 +46,7 @@
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.infoLabel].size.height + 20;
 
-    y += [layout setFrame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.button].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(200, 48) frame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.button].size.height + 30;
 
     y += [layout setFrame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.selectButton].size.height + 30;
 
@@ -67,11 +66,11 @@
   NSString *username = AppDelegate.sharedDelegate.status.user.username;
   NSAssert(username, @"No username");
 
-  KBPgpCreateUids *uids = [[KBPgpCreateUids alloc] init];
+  KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
   uids.useDefault = YES;
 
   [self setInProgress:YES sender:nil];
-  KBRMykey *mykey = [[KBRMykey alloc] initWithClient:AppDelegate.client];
+  KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
   [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:NO passphrase:password completion:^(NSError *error) {
     [gself setInProgress:NO sender:nil];
     if (error) {

@@ -9,12 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import "KBUIDefines.h"
-#import "KBUser.h"
+#import "KBRPC.h"
 
 @interface KBUserProfileView : KBView
 
-- (void)loadUID:(NSString *)UID;
-
-- (void)setUser:(KBUser *)user;
+- (void)setUser:(KBRUser *)user;
 
 @end

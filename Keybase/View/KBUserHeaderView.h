@@ -9,10 +9,13 @@
 #import <Foundation/Foundation.h>
 
 #import "KBUIDefines.h"
+#import "KBRPC.h"
 #import "KBUser.h"
 
 @interface KBUserHeaderView : KBView
 
-- (void)setUser:(KBUser *)user;
+- (void)setUser:(KBRUser *)user;
+
+- (void)setUserInfo:(KBUser *)user;
 
 @end

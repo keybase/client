@@ -26,6 +26,8 @@
 - (void)setError:(NSError *)error;
 - (void)setError:(NSError *)error sender:(NSView *)sender;
 
-- (void)viewWillAppear:(BOOL)animated;
+- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated;
+
+- (void)setBackgroundColor:(NSColor *)backgroundColor;
 
 @end

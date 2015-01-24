@@ -15,7 +15,7 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, KBRPClientDelegate>
 
-@property (nonatomic) KBGetCurrentStatusRes *status;
+@property (nonatomic) KBRGetCurrentStatusRes *status;
 
 @property (readonly) KBWindowController *windowController;
 @property KBWindowController *catalogController;

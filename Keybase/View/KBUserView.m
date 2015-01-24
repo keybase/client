@@ -12,8 +12,8 @@
 
 @interface KBUserView ()
 @property KBImageView *imageView;
-@property KBTextLabel *nameLabel;
-@property KBTextLabel *descriptionLabel;
+@property KBLabel *nameLabel;
+@property KBLabel *descriptionLabel;
 @end
 
 @implementation KBUserView
@@ -27,10 +27,10 @@
   self.imageView.roundedRatio = 1.0;
   [self addSubview:self.imageView];
 
-  self.nameLabel = [[KBTextLabel alloc] init];
+  self.nameLabel = [[KBLabel alloc] init];
   [self addSubview:self.nameLabel];
 
-  self.descriptionLabel = [[KBTextLabel alloc] init];
+  self.descriptionLabel = [[KBLabel alloc] init];
   [self addSubview:self.descriptionLabel];
 
   YOSelf yself = self;
@@ -52,7 +52,17 @@
 
 - (void)setUser:(KBUser *)user {
   [self.nameLabel setText:user.userName font:[NSFont boldSystemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  [self.descriptionLabel setText:user.bio font:[KBLookAndFeel textFont] color:[KBLookAndFeel secondaryTextColor] alignment:NSLeftTextAlignment];
+
+  NSMutableArray *strings = [NSMutableArray array];
+  [strings addObject:[[NSAttributedString alloc] initWithString:user.fullName attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
+
+  NSString *twitter = [[[user proofsForType:KBProofTypeTwitter] gh_firstObject] displayName];
+  if (twitter) {
+    [strings addObject:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@"@%@", twitter) attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
+  }
+
+  _descriptionLabel.attributedText = [KBLabel join:strings delimeter:[[NSAttributedString alloc] initWithString:@" • "]];
+
   self.imageView.URLString = user.image.URLString;
   [self setNeedsLayout];
 }

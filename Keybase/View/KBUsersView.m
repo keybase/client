@@ -28,21 +28,19 @@
   [super viewInit];
   _usersDataSource = [NSMutableArray array];
 
-  _scrollView = [[NSScrollView alloc] init];
-  [self addSubview:_scrollView];
-
   _tableView = [[NSTableView alloc] init];
   _tableView.dataSource = self;
   _tableView.delegate = self;
-  //_tableView.rowSizeStyle = NSTableViewRowSizeStyleCustom;
   [_tableView setHeaderView:nil];
 
   NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@""];
   [_tableView addTableColumn:column1];
 
+  _scrollView = [[NSScrollView alloc] init];
+  [_scrollView setHasVerticalScroller:YES];
+  [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
   [_scrollView setDocumentView:_tableView];
-
-  [self.tableView reloadData];
+  [self addSubview:_scrollView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -98,7 +96,8 @@
     [rowView setEmphasized:NO];
     KBUser *user = [_usersDataSource objectAtIndex:selectedRow];
     KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-    [userProfileView setUser:user];
+    KBRUser *ruser = [[KBRUser alloc] initWithDictionary:@{@"uid": [user.identifier na_dataFromHexString], @"username": user.userName} error:nil];
+    [userProfileView setUser:ruser];
     [self.navigation pushView:userProfileView animated:YES];
   }
   [_tableView deselectAll:nil];

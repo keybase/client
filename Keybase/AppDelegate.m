@@ -30,10 +30,9 @@
   _statusItem.highlightMode = YES; // Blue background when selected
   _statusItem.menu = [self menu];
 
-  self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
-  [self.windowController window];
-
-  [self.windowController showLogin:NO];
+//  self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
+//  [self.windowController window];
+//  [self.windowController showLogin:NO];
 
   _client = [[KBRPClient alloc] init];
   _client.delegate = self;
@@ -44,7 +43,7 @@
     NSString *prompt = params[0][@"pinentry"][@"prompt"];
     NSString *description = params[0][@"pinentry"][@"desc"];
     [AppDelegate passwordPrompt:prompt description:description view:gself.windowController.window.contentView completion:^(BOOL canceled, NSString *password) {
-      KBSecretEntryRes *entry = [[KBSecretEntryRes alloc] init];
+      KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
       entry.text = password;
       entry.canceled = canceled;
       completion(nil, entry);
@@ -53,6 +52,8 @@
 
   // Just for mocking
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
+
+  [self catalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
@@ -64,8 +65,8 @@
 }
 
 - (void)checkStatus {
-  KBRConfig *config = [[KBRConfig alloc] initWithClient:_client];
-  [config getCurrentStatus:^(NSError *error, KBGetCurrentStatusRes *status) {
+  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
+  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
     // TODO: check error
     GHDebug(@"Status: %@", status);
     [self setStatus:status];
@@ -73,7 +74,7 @@
 }
 
 - (void)logout {
-  KBRLogin *login = [[KBRLogin alloc] initWithClient:_client];
+  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:_client];
   [login logout:^(NSError *error) {
     // TODO: check error
     [self checkStatus];
@@ -101,7 +102,7 @@
   }];
 }
 
-- (void)setStatus:(KBGetCurrentStatusRes *)status {
+- (void)setStatus:(KBRGetCurrentStatusRes *)status {
   _status = status;
 
   if (!status.loggedIn || (status.loggedIn && !status.publicKeySelected)) {
@@ -153,8 +154,10 @@
 }
 
 - (void)catalog {
-  _catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
-  [_catalogController window];
+  if (!_catalogController) {
+    _catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
+    [_catalogController window];
+  }
   [_catalogController showCatalog];
 }
 

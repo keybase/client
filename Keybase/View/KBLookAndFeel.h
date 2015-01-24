@@ -16,6 +16,10 @@
 + (NSColor *)selectColor;
 + (NSColor *)disabledTextColor;
 
++ (NSColor *)okColor;
++ (NSColor *)warnColor;
++ (NSColor *)errorColor;
+
 + (NSFont *)textFont;
 + (NSFont *)boldTextFont;
 + (NSFont *)buttonFont;

@@ -76,16 +76,16 @@
   [self showWindow:nil];
 }
 
-- (void)showUser:(KBUserInfo *)userInfo animated:(BOOL)animated {
+- (void)showUser:(KBRUser *)user animated:(BOOL)animated {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  [userProfileView loadUID:userInfo.uid];
+  [userProfileView setUser:user];
   [self.navigation setView:userProfileView transitionType:KBNavigationTransitionTypeFade];
   [self showWindow:nil];
 }
 
 - (void)showCatalog {
   KBCatalogView *catalogView = [[KBCatalogView alloc] init];
-  [self.navigation pushView:catalogView animated:NO];
+  [self.navigation setView:catalogView transitionType:KBNavigationTransitionTypeNone];
   [self showWindow:nil];
 }
 

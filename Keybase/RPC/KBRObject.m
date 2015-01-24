@@ -9,8 +9,13 @@
 #import "KBRObject.h"
 #import <Mantle/Mantle.h>
 #import <objc/objc-runtime.h>
+#import <GHKit/GHKit.h>
 
 @implementation KBRObject
+
+//- (NSString *)description {
+//  return [[MTLJSONAdapter JSONDictionaryFromModel:self] gh_toJSON:NSJSONWritingPrettyPrinted error:nil];
+//}
 
 + (NSString *)classNameOfPropertyNamed:(NSString *)propertyName {
   objc_property_t property = class_getProperty(self, propertyName.UTF8String);

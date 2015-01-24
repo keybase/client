@@ -35,9 +35,9 @@
   
   GHWeakSelf blockSelf = self;
   _client.requestHandler = ^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
     MPRequestHandler requestHandler = blockSelf.methods[method];
     if (!requestHandler) {
+      GHDebug(@"Received unhandled request: %@(%@)", method, [params join:@", "]);
       completion(KBMakeError(-1, @"Method not found", @"Method not found: %@", method), nil);
       return;
     }

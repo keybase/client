@@ -17,7 +17,7 @@
 
 @interface NSView (KBViews)
 - (void)setNavigation:(KBNavigationView *)navigation;
-- (void)viewWillAppear:(BOOL)animated;
+- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated;
 - (void)viewDidAppear:(BOOL)animated;
 @end
 
@@ -54,6 +54,7 @@
   NSView *currentView = [self currentView];
   [self _setView:view transitionType:(animated ? KBNavigationTransitionTypeFade : KBNavigationTransitionTypeNone)];
   if (currentView) [self removeView:currentView];
+  [self addView:view];
 }
 
 - (void)setView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType {
@@ -76,8 +77,8 @@
   [self removeView:currentView];
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-  [[self currentView] viewWillAppear:animated];
+- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated {
+  [[self currentView] viewWillAppearInView:view animated:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -147,7 +148,8 @@
   inView.frame = _contentView.bounds;
 
   if (!outView) transition = nil;
-  [inView viewWillAppear:!!transition];
+
+  [inView viewWillAppearInView:_contentView animated:!!transition];
 
   if (transition) {
     self.contentView.animations = @{@"subviews": transition};
@@ -157,11 +159,13 @@
     [CATransaction commit];
   } else {
     if (outView) {
-      [self replaceSubview:outView with:inView];
+      [_contentView replaceSubview:outView with:inView];
     } else {
       [_contentView addSubview:inView];
     }
-    [inView viewDidAppear:NO];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [inView viewDidAppear:NO];
+    });
   }
 }
 

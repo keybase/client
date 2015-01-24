@@ -35,6 +35,18 @@
   return GHNSColorFromRGB(0x999999);
 }
 
++ (NSColor *)okColor {
+  return [NSColor colorWithRed:9.0/255.0 green:179.0/255.0 blue:18.0/255.0 alpha:1.0f];
+}
+
++ (NSColor *)warnColor {
+  return [NSColor colorWithRed:1.0f green:0.58f blue:0.19f alpha:1.0f];
+}
+
++ (NSColor *)errorColor {
+  return [NSColor colorWithRed:1.0f green:0.22f blue:0.22f alpha:1.0f];
+}
+
 + (NSFont *)textFont {
   return [NSFont systemFontOfSize:14];
 }

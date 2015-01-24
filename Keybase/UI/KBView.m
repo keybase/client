@@ -20,9 +20,13 @@
 - (void)viewInit {
   [super viewInit];
   self.wantsLayer = YES;
-  [self.layer setBackgroundColor:NSColor.whiteColor.CGColor];
+
   GHWeakSelf gself = self;
   _errorHandler = ^(NSError *error) { [gself setError:error]; };
+}
+
+- (void)setBackgroundColor:(NSColor *)backgroundColor {
+  [self.layer setBackgroundColor:backgroundColor.CGColor];
 }
 
 - (void)layout {
@@ -69,7 +73,7 @@
   }
 }
 
-- (void)viewWillAppear:(BOOL)animated { }
+- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated { }
 - (void)viewDidAppear:(BOOL)animated { }
 
 @end

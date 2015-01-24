@@ -9,11 +9,11 @@
 #import "KBProgressOverlayView.h"
 
 #import "KBActivityIndicatorView.h"
-#import "KBTextLabel.h"
+#import "KBLabel.h"
 #import "KBLookAndFeel.h"
 
 @interface KBProgressOverlayView ()
-@property KBTextLabel *label;
+@property KBLabel *label;
 @property (nonatomic) KBActivityIndicatorView *indicatorView;
 @end
 
@@ -25,7 +25,7 @@
   self.hidesWhenStopped = YES;
   self.hidden = YES;
 
-  _label = [[KBTextLabel alloc] init];
+  _label = [[KBLabel alloc] init];
   [_label setText:@"Loading ..." font:[NSFont systemFontOfSize:20] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_label];
 

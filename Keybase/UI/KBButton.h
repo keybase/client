@@ -13,14 +13,17 @@ typedef void (^KBButtonTargetBlock)();
 
 @interface KBButton : NSButton
 
-@property (nonatomic) NSString *text;
 @property (nonatomic, copy) KBButtonTargetBlock targetBlock;
 
-+ (KBButton *)buttonAsLinkWithText:(NSString *)text;
++ (instancetype)buttonWithLinkText:(NSString *)text;
 
-+ (KBButton *)buttonWithText:(NSString *)text;
++ (instancetype)buttonWithLinkText:(NSString *)text font:(NSFont *)font alignment:(NSTextAlignment)alignment;
 
-+ (KBButton *)buttonWithImage:(NSImage *)image;
++ (instancetype)buttonWithText:(NSString *)text;
+
++ (instancetype)buttonWithImage:(NSImage *)image;
+
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
 
 @end
 

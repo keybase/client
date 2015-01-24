@@ -8,12 +8,11 @@
 
 #import "KBUserHeaderView.h"
 
-#import "KBUser.h"
-
 @interface KBUserHeaderView ()
-@property KBTextLabel *name1Label;
-@property KBTextLabel *locationLabel;
-@property KBTextLabel *bioLabel;
+@property KBLabel *name1Label;
+@property KBLabel *name2Label;
+@property KBLabel *locationLabel;
+@property KBLabel *bioLabel;
 @property KBImageView *imageView;
 @end
 
@@ -27,47 +26,58 @@
   _imageView.roundedRatio = 1.0;
   [self addSubview:_imageView];
 
-  _name1Label = [[KBTextLabel alloc] init];
+  _name1Label = [[KBLabel alloc] init];
   [self addSubview:_name1Label];
 
-  _locationLabel = [[KBTextLabel alloc] init];
+  _name2Label = [[KBLabel alloc] init];
+  [self addSubview:_name2Label];
+
+  _locationLabel = [[KBLabel alloc] init];
   [self addSubview:_locationLabel];
 
-  _bioLabel = [[KBTextLabel alloc] init];
+  _bioLabel = [[KBLabel alloc] init];
   [self addSubview:_bioLabel];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
 
-    y += [layout setFrame:CGRectMake(size.width/2.0 - 80, y, 160, 160) view:yself.imageView].size.height + 20;
+    y += [layout setFrame:CGRectMake(size.width/2.0 - 80, y, 160, 160) view:yself.imageView].size.height + 10;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name1Label].size.height + 6;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name1Label].size.height + 10;
 
-    if (yself.locationLabel.attributedText.length > 0) {
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.locationLabel].size.height + 6;
+    if ([yself.name2Label hasText]) {
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name2Label].size.height + 10;
     }
 
-    if (yself.bioLabel.attributedText.length > 0) {
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.bioLabel].size.height + 6;
+    if ([yself.locationLabel hasText]) {
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.locationLabel].size.height + 10;
     }
 
-    y += 6;
+    if ([yself.bioLabel hasText]) {
+      //[layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(20, y, size.width - 40, 0) view:yself.bioLabel].size.height + 10;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(80, y, size.width - 160, 0) view:yself.bioLabel].size.height + 10;
+    }
 
-    if (y < 74) y = 74;
+    y += 10;
 
     return CGSizeMake(size.width, y);
   }];
 }
 
-- (void)setUser:(KBUser *)user {
+- (void)setUserInfo:(KBUser *)user {
+  [_name2Label setText:user.fullName font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
 
-  [_name1Label setText:user.userName font:[NSFont systemFontOfSize:24] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
-
-  [_locationLabel setText:user.location font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
-  [_bioLabel setText:user.bio font:[NSFont systemFontOfSize:15] color:[NSColor colorWithWhite:145.0/255.0 alpha:1.0] alignment:NSCenterTextAlignment];
+  [_locationLabel setText:user.location font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
+  [_bioLabel setText:user.bio font:[NSFont systemFontOfSize:15] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
 
   [_imageView setURLString:user.image.URLString ? user.image.URLString : @"https://keybase.io/images/no_photo.png"];
+  [self setNeedsLayout];
+}
+
+- (void)setUser:(KBRUser *)user {
+
+  [_name1Label setText:user.username font:[NSFont systemFontOfSize:24] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
 
   [self setNeedsLayout];
 }

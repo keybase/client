@@ -64,13 +64,14 @@
 
 - (void)showUsers {
   KBUsersView *usersView = [[KBUsersView alloc] init];
-  [usersView loadUsernames:@[@"gabrielh", @"max", @"chris", @"strib", @"patrick"]];
+  [usersView loadUsernames:@[@"gabrielh", @"max", @"chris", @"strib", @"patrick", @"min", @"amiruci", @"relme", @"feldstein"]];
   [self.navigation pushView:usersView animated:YES];
 }
 
 - (void)showUser {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  [userProfileView loadUID:@"b7c2eaddcced7727bcb229751d91e800"];
+  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"uid": @"b7c2eaddcced7727bcb229751d91e800", @"username": @"gabrielh"} error:nil];
+  [userProfileView setUser:user];
   [self.navigation pushView:userProfileView animated:YES];
 }
 
@@ -85,9 +86,9 @@
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
   NSDictionary *obj = [_items objectAtIndex:row];
 
-  KBTextLabel *view = [_tableView makeViewWithIdentifier:@"text" owner:self];
+  KBLabel *view = [_tableView makeViewWithIdentifier:@"text" owner:self];
   if (!view) {
-    view = [[KBTextLabel alloc] init];
+    view = [[KBLabel alloc] init];
     view.identifier = @"text";
   }
   [view setText:obj[@"name"] font:[NSFont systemFontOfSize:20] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];

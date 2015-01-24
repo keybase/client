@@ -51,8 +51,11 @@
   _signupView.loginButton.targetBlock = ^{
     [gself showLogin:YES];
   };
+}
 
-  [self setView:_loginView transitionType:KBNavigationTransitionTypeNone];
+- (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated {
+  [super viewWillAppearInView:view animated:animated];
+  if (view.subviews.count == 0) [self setView:_loginView transitionType:KBNavigationTransitionTypeNone];
 }
 
 - (void)layout {
@@ -85,14 +88,14 @@
   _passwordField.placeholder = @"Passphrase";
   [self addSubview:_passwordField];
 
-  _loginButton = [[KBButton alloc] init];
-  _loginButton.text = @"Log In";
+  _loginButton = [KBButton buttonWithText:@"Log In"];
   _loginButton.targetBlock = ^{
     [gself login];
   };
+  //[_loginButton setKeyEquivalent:@"\r"];
   [self addSubview:_loginButton];
 
-  _signUpButton = [KBButton buttonAsLinkWithText:@"Sign Up"];
+  _signUpButton = [KBButton buttonWithLinkText:@"Sign Up"];
   _signUpButton.alignment = NSLeftTextAlignment;
   [self addSubview:_signUpButton];
 
@@ -120,7 +123,7 @@
 }
 
 - (void)login {
-  KBRLogin *login = [[KBRLogin alloc] initWithClient:AppDelegate.client];
+  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
 
   NSString *username = self.usernameField.text;
   NSString *passphrase = self.passwordField.text;
@@ -172,14 +175,13 @@
   _passwordField.placeholder = @"Passphrase";
   [self addSubview:_passwordField];
 
-  _signupButton = [[KBButton alloc] init];
-  _signupButton.text = @"Sign Up";
+  _signupButton = [KBButton buttonWithText:@"Sign Up"];
   _signupButton.targetBlock = ^{
     [gself signup];
   };
   [self addSubview:_signupButton];
 
-  _loginButton = [KBButton buttonAsLinkWithText:@"Log In"];
+  _loginButton = [KBButton buttonWithLinkText:@"Log In"];
   _loginButton.alignment = NSLeftTextAlignment;
   [self addSubview:_loginButton];
 
@@ -205,9 +207,12 @@
   }];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  [self.window makeFirstResponder:_emailField];
+}
 
 - (void)signup {
-  KBRSignup *signup = [[KBRSignup alloc] initWithClient:AppDelegate.client];
+  KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
 
   NSString *email = [self.emailField.text gh_strip];
   NSString *username = [self.usernameField.text gh_strip];
@@ -230,7 +235,7 @@
   }
 
   [self setInProgress:YES sender:nil];
-  [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username completion:^(NSError *error, KBSignupRes *res) {
+  [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username completion:^(NSError *error, KBRSignupRes *res) {
     [self setInProgress:NO sender:nil];
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];

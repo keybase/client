@@ -11,8 +11,8 @@
 #import <Slash/Slash.h>
 
 @interface KBSplashView ()
-@property KBTextLabel *titleLabel;
-@property KBTextLabel *descLabel;
+@property KBLabel *titleLabel;
+@property KBLabel *descLabel;
 @property NSMutableArray *controls;
 @end
 
@@ -21,10 +21,10 @@
 - (void)viewInit {
   [super viewInit];
 
-  _titleLabel = [[KBTextLabel alloc] init];
+  _titleLabel = [[KBLabel alloc] init];
   [self addSubview:_titleLabel];
 
-  _descLabel = [[KBTextLabel alloc] init];
+  _descLabel = [[KBLabel alloc] init];
   [self addSubview:_descLabel];
 
   YOSelf yself = self;
@@ -73,7 +73,7 @@
   //button.borderColor = [KBLookAndFeel selectColor];
   //button.cornerRadius = 4;
   //button.font = [NSFont systemFontOfSize:16];
-  button.text = title;
+  [button setText:title font:[KBLookAndFeel buttonFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
   button.targetBlock = ^(id sender) {
     target();
   };
@@ -81,7 +81,7 @@
 }
 
 - (void)addLinkButtonWithTitle:(NSString *)title target:(dispatch_block_t)target {
-  KBButton *b = [KBButton buttonAsLinkWithText:title];
+  KBButton *b = [KBButton buttonWithLinkText:title];
   b.targetBlock = target;
   b.alignment = NSCenterTextAlignment;
   b.frame = CGRectMake(0, 0, 300, 56);

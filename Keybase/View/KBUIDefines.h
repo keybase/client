@@ -11,11 +11,13 @@
 
 #import <YOLayout/YOLayout.h>
 
+typedef struct { CGFloat top, left , bottom, right ; } KBEdgeInsets;
+
 #import "KBDefines.h"
 #import "KBView.h"
 #import "KBLookAndFeel.h"
 #import "KBImageView.h"
-#import "KBTextLabel.h"
+#import "KBLabel.h"
 #import "KBButton.h"
 #import "KBTextField.h"
 #import "KBNavigationView.h"

@@ -24,7 +24,7 @@
 
 - (void)showTwitterConnect:(BOOL)animated;
 
-- (void)showUser:(KBUserInfo *)userInfo animated:(BOOL)animated;
+- (void)showUser:(KBRUser *)userInfo animated:(BOOL)animated;
 
 - (void)showCatalog;
 

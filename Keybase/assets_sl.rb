@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'json'
 
-dir = "/Users/gabe/Downloads/Chrome/Streamline - PNG/PNG Outline"
+dir = "/Users/gabe/Pictures/Streamline - PNG/PNG Outline"
 #style = "black"
 icons_dirname = "Streamline-Outline"
 includes = ["lock-4", "arrow-67", "arrow-65"]
