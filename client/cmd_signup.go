@@ -26,11 +26,11 @@ func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 }
 
 type PromptFields struct {
-	email, code, username, passphraseRetry *Field
+	email, code, username, passphraseRetry, deviceName *Field
 }
 
 func (pf PromptFields) ToList() []*Field {
-	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry}
+	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
 }
 
 type SignupEngine interface {
@@ -173,11 +173,19 @@ func (s *CmdSignupState) MakePrompter() {
 		Checker: &libkb.CheckUsername,
 	}
 
+	deviceName := &Field{
+		Defval:  "home computer",
+		Name:    "devname",
+		Prompt:  "A public name for this device",
+		Checker: &libkb.CheckNotEmpty,
+	}
+
 	s.fields = &PromptFields{
 		email:           email,
 		code:            code,
 		username:        username,
 		passphraseRetry: passphraseRetry,
+		deviceName:      deviceName,
 	}
 
 	s.prompter = NewPrompter(s.fields.ToList())
