@@ -220,6 +220,7 @@ func (s *CmdSignupState) RunEngine() (retry bool, err error) {
 		Email:      s.fields.email.GetValue(),
 		InviteCode: s.fields.code.GetValue(),
 		Passphrase: s.passphrase,
+		DeviceName: s.fields.deviceName.GetValue(),
 	}
 	res := s.engine.Run(arg)
 	if res.PassphraseOk {

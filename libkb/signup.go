@@ -16,6 +16,7 @@ type SignupEngine struct {
 	csrf           string
 	lastPassphrase string
 	username       string
+	deviceName     string
 }
 
 func NewSignupEngine() *SignupEngine { return &SignupEngine{} }
@@ -79,6 +80,7 @@ type SignupEngineRunArg struct {
 	Email      string
 	InviteCode string
 	Passphrase string
+	DeviceName string
 }
 
 func (s *SignupEngine) Post(arg SignupEngineRunArg) (err error) {
