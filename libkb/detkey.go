@@ -8,7 +8,7 @@ import (
 const (
 	pwhIndex   = 0
 	pwhLen     = 32
-	eddsaIndex = pwhLen
+	eddsaIndex = pwhIndex + pwhLen
 	eddsaLen   = 32
 	dhIndex    = eddsaIndex + eddsaLen
 	dhLen      = 32
