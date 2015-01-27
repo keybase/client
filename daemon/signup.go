@@ -15,8 +15,8 @@ func (h SignupHandler) CheckUsernameAvailable(username string) error {
 }
 
 func (h SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes, err error) {
-	eng := libkb.NewSignupEngine()
-	seres := eng.Run(libkb.SignupEngineRunArg{
+	eng := libkb.NewSignupJoinEngine()
+	seres := eng.Run(libkb.SignupJoinEngineRunArg{
 		Username:   arg.Username,
 		Email:      arg.Email,
 		InviteCode: arg.InviteCode,

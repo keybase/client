@@ -39,11 +39,11 @@ func (d DetKey) PWHash() []byte {
 	return d[pwhIndex:eddsaIndex]
 }
 
-func (d DetKey) EddsaSecretKey() []byte {
+func (d DetKey) EdDSASecretKey() []byte {
 	return d[eddsaIndex:dhIndex]
 }
 
-func (d DetKey) DhSecretKey() []byte {
+func (d DetKey) DHSecretKey() []byte {
 	return d[dhIndex:lksIndex]
 }
 
@@ -52,6 +52,6 @@ func (d DetKey) LksClientHalf() []byte {
 }
 
 func (d DetKey) String() string {
-	return fmt.Sprintf("pwh:   %x\neddsa: %x\ndh:    %x\nlks:   %x", d.PWHash(), d.EddsaSecretKey(), d.DhSecretKey(), d.LksClientHalf())
+	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASecretKey(), d.DHSecretKey(), d.LksClientHalf())
 	// return hex.EncodeToString(d[:])
 }

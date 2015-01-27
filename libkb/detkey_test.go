@@ -55,11 +55,11 @@ func TestDetKey(t *testing.T) {
 		if hex.EncodeToString(dk.PWHash()) != test.pwh {
 			t.Errorf("%s: pwh = %x, expected %q", test.name, dk.PWHash(), test.pwh)
 		}
-		if hex.EncodeToString(dk.EddsaSecretKey()) != test.ekey {
-			t.Errorf("%s: eddsa = %x, expected %q", test.name, dk.EddsaSecretKey(), test.ekey)
+		if hex.EncodeToString(dk.EdDSASecretKey()) != test.ekey {
+			t.Errorf("%s: eddsa = %x, expected %q", test.name, dk.EdDSASecretKey(), test.ekey)
 		}
-		if hex.EncodeToString(dk.DhSecretKey()) != test.dkey {
-			t.Errorf("%s: dh = %x, expected %q", test.name, dk.DhSecretKey(), test.dkey)
+		if hex.EncodeToString(dk.DHSecretKey()) != test.dkey {
+			t.Errorf("%s: dh = %x, expected %q", test.name, dk.DHSecretKey(), test.dkey)
 		}
 		if hex.EncodeToString(dk.LksClientHalf()) != test.lkey {
 			t.Errorf("%s: lks = %x, expected %q", test.name, dk.LksClientHalf(), test.lkey)

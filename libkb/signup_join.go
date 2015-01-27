@@ -6,20 +6,19 @@ import (
 	"github.com/keybase/go-triplesec"
 )
 
-type SignupEngine struct {
-	loginState *LoginState
-	salt       []byte
-	pwh        []byte
+type SignupJoinEngine struct {
+	signupState *SignupState
+	salt        []byte
+	pwh         []byte
 
 	uid            UID
 	session        string
 	csrf           string
 	lastPassphrase string
 	username       string
-	deviceName     string
 }
 
-func NewSignupEngine() *SignupEngine { return &SignupEngine{} }
+func NewSignupJoinEngine() *SignupJoinEngine { return &SignupJoinEngine{} }
 
 func CheckUsernameAvailable(s string) (err error) {
 	_, err = G.API.Get(ApiArg{
@@ -42,48 +41,52 @@ func CheckUsernameAvailable(s string) (err error) {
 	return
 }
 
-func (s *SignupEngine) Init() error {
+func (s *SignupJoinEngine) Init() error {
 	return nil
 }
 
-func (s *SignupEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ libkb.SignupEngine::CheckRegistered")
+func (s *SignupJoinEngine) CheckRegistered() (err error) {
+	G.Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUid(); u != nil {
 		err = AlreadyRegisteredError{*u}
 	}
-	G.Log.Debug("- libkb.SignupEngine::CheckRegistered -> %s", ErrToOk(err))
+	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", ErrToOk(err))
 	return err
 }
 
-func (s *SignupEngine) GenPwh(p string) (err error) {
-	G.Log.Debug("+ GenPwh")
-	defer G.Log.Debug("- GenPwh")
-	if p == s.lastPassphrase && s.loginState != nil {
-		return
+func (s *SignupJoinEngine) GenDetKey(p string) error {
+	G.Log.Debug("+ GenDetKey")
+	defer G.Log.Debug("- GenDetKey")
+	if p == s.lastPassphrase && s.signupState != nil {
+		return nil
 	}
-	state := NewLoginState()
-	if err = state.GenerateNewSalt(); err != nil {
-	} else if err = state.StretchKey(p); err != nil {
-	} else {
-		s.pwh = state.GetSharedSecret()
-		s.salt, err = state.GetSalt()
-		s.loginState = state
-		s.lastPassphrase = p
+
+	state := NewSignupState()
+	if err := state.GenerateNewSalt(); err != nil {
+		return err
 	}
-	return err
+	if err := state.DetKey(p); err != nil {
+		return err
+	}
+
+	s.pwh = state.PWHash()
+	s.salt = state.Salt()
+	s.signupState = state
+	s.lastPassphrase = p
+
+	return nil
 }
 
-type SignupEngineRunArg struct {
+type SignupJoinEngineRunArg struct {
 	Username   string
 	Email      string
 	InviteCode string
 	Passphrase string
-	DeviceName string
 }
 
-func (s *SignupEngine) Post(arg SignupEngineRunArg) (err error) {
+func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 	var res *ApiRes
 	res, err = G.API.Post(ApiArg{
 		Endpoint: "signup",
@@ -104,7 +107,7 @@ func (s *SignupEngine) Post(arg SignupEngineRunArg) (err error) {
 	return
 }
 
-type SignupEngineRunRes struct {
+type SignupJoinEngineRunRes struct {
 	PassphraseOk bool
 	PostOk       bool
 	WriteOk      bool
@@ -112,11 +115,12 @@ type SignupEngineRunRes struct {
 	Error        error
 }
 
-func (s *SignupEngine) Run(arg SignupEngineRunArg) (res SignupEngineRunRes) {
-	if res.Error = s.GenPwh(arg.Passphrase); res.Error != nil {
+func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
+	if res.Error = s.GenDetKey(arg.Passphrase); res.Error != nil {
 		return
 	}
 	res.PassphraseOk = true
+
 	if res.Error = s.Post(arg); res.Error != nil {
 		return
 	}
@@ -129,7 +133,7 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) (res SignupEngineRunRes) {
 	return
 }
 
-func (s *SignupEngine) WriteConfig() error {
+func (s *SignupJoinEngine) WriteConfig() error {
 	cw := G.Env.GetConfigWriter()
 	if cw == nil {
 		return fmt.Errorf("No configuration writer available")
@@ -140,7 +144,7 @@ func (s *SignupEngine) WriteConfig() error {
 	return cw.Write()
 }
 
-func (s *SignupEngine) WriteSession() error {
+func (s *SignupJoinEngine) WriteSession() error {
 
 	// First load up the Session file...
 	if err := G.Session.Load(); err != nil {
@@ -161,7 +165,7 @@ func (s *SignupEngine) WriteSession() error {
 	return sw.Write()
 }
 
-func (s *SignupEngine) WriteOut() (err error) {
+func (s *SignupJoinEngine) WriteOut() (err error) {
 	err = s.WriteConfig()
 	if err == nil {
 		err = s.WriteSession()
@@ -169,6 +173,6 @@ func (s *SignupEngine) WriteOut() (err error) {
 	return err
 }
 
-func (s *SignupEngine) PostInviteRequest(arg InviteRequestArg) error {
+func (s *SignupJoinEngine) PostInviteRequest(arg InviteRequestArg) error {
 	return PostInviteRequest(arg)
 }
