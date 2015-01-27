@@ -10,6 +10,10 @@
 
 #import "KBProofLabel.h"
 
+#import <NAChloride/NAChloride.h>
+#import <KBKeybase/KBKeybase.h>
+
+
 @interface KBUserInfoLabels ()
 @property KBLabel *headerLabel;
 @property KBImageView *imageView;
@@ -30,7 +34,8 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = (size.width/2.0) - 25;
+    //CGFloat x = (size.width/2.0) - 25;
+    CGFloat x = 100;
     CGFloat y = 0;
 
     if ([yself.headerLabel hasText]) {
@@ -43,16 +48,11 @@
     }
 
     for (NSView *view in yself.labels) {
-      y += [layout setFrame:CGRectMake(x, y, 1000, 25) view:view].size.height;
+      y += [layout setFrame:CGRectMake(x, y, size.width - x - 40, 25) view:view options:YOLayoutOptionsSizeToFitHorizontal|YOLayoutOptionsConstrainWidth].size.height;
     }
 
     return CGSizeMake(size.width, y);
   }];
-}
-
-- (void)clearLabels {
-  for (NSView *view in _labels) [view removeFromSuperview];
-  [_labels removeAllObjects];
 }
 
 - (NSString *)imageNameForType:(NSString *)type {
@@ -69,33 +69,60 @@
 }
 
 - (KBProofLabel *)findLabelForProofResult:(KBProofResult *)proofResult {
-  for (KBProofLabel *label in _labels) {
-    //if ([label.proofResult.proof.sigId isEqual:proofResult.proof.sigId]) return label;
-    if (label.proofResult.proof.proofType == proofResult.proof.proofType && [label.proofResult.proof.value isEqual:proofResult.proof.value]) return label;
+  for (id label in _labels) {
+    if ([label respondsToSelector:@selector(proofResult)]) {
+      if ([[label proofResult].proof.sigId isEqual:proofResult.proof.sigId]) return label;
+      //if (label.proofResult.proof.proofType == proofResult.proof.proofType && [label.proofResult.proof.value isEqual:proofResult.proof.value]) return label;
+    }
   }
   return nil;
 }
 
-- (void)setHeaderText:(NSString *)headerText proofResults:(NSArray *)proofResults targetBlock:(void (^)(id sender, id object))targetBlock {
+- (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock {
+  _imageView.image = [NSImage imageNamed:@"1-Edition-black-key-2-30"];
+  [_headerLabel setText:nil font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+
+  NSString *keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
+  KBButton *button = [KBButton buttonWithLinkText:keyDescription font:[NSFont systemFontOfSize:20] alignment:NSLeftTextAlignment];
+  button.targetBlock = ^{
+
+  };
+
+  [_labels addObject:button];
+  [self addSubview:button];
+  [self setNeedsLayout];
+}
+
+- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock {
+  _imageView.image = [NSImage imageNamed:@"24-Business-Finance-black-bitcoins-30"];
+  [_headerLabel setText:nil font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithLinkText:cryptocurrency.address font:[NSFont systemFontOfSize:20] alignment:NSLeftTextAlignment];
+  button.targetBlock = ^{
+
+  };
+  [_labels addObject:button];
+  [self addSubview:button];
+  [self setNeedsLayout];
+}
+
+- (void)addProofResults:(NSArray *)proofResults header:(NSString *)header targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   _proofResults = proofResults;
-  NSImage *image = [NSImage imageNamed:[self imageNameForType:headerText]];
+  NSImage *image = [NSImage imageNamed:[self imageNameForType:header]];
   _imageView.image = image;
 
   if (!_imageView.image) {
-    [_headerLabel setText:headerText font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+    [_headerLabel setText:header font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   } else {
     _headerLabel.attributedText = nil;
   }
 
-  [self clearLabels];
-  GHWeakSelf blockSelf = self;
   if ([proofResults count] == 0) {
     //[self addLabelWithText:@"Edit" font:[NSFont systemFontOfSize:20] tag:-1 targetBlock:^(id sender) { targetBlock(blockSelf, nil); }];
   } else {
     for (NSInteger index = 0; index < [proofResults count]; index++) {
-      KBProofLabel *proofLabel = [KBProofLabel labelWithProofResult:proofResults[index] targetBlock:^(id sender) {
-        targetBlock(blockSelf, proofResults[index]);
-      }];
+      KBProofLabel *proofLabel = [KBProofLabel labelWithProofResult:proofResults[index]];
+      __weak KBProofLabel *selectLabel = proofLabel;
+      proofLabel.targetBlock = ^{ targetBlock(selectLabel); };
       [_labels addObject:proofLabel];
       [self addSubview:proofLabel];
     }

@@ -12,6 +12,7 @@
 #import "KBRPC.h"
 #import "KBProofResult.h"
 #import <MPMessagePack/MPMessagePack.h>
+#import "KBWebView.h"
 
 @interface KBUserInfoView ()
 @property NSMutableArray /*KBItemsLabel*/*labels;
@@ -41,6 +42,7 @@
     [_labels addObject:label];
     [self addSubview:label];
   }
+  [self setNeedsLayout];
 }
 
 - (void)clear {
@@ -57,7 +59,23 @@
   }
 }
 
-- (void)addIdentityProofs:(NSArray *)identityProofs {
+- (void)addKey:(KBRFOKID *)key {
+  KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
+  [label addKey:key targetBlock:^(id sender, KBProofResult *proofResult) {
+    GHDebug(@"Selected: %@", proofResult);
+  }];
+  [self addLabels:@[label]];
+}
+
+- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency {
+  KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
+  [label addCryptocurrency:cryptocurrency targetBlock:^(id sender, KBProofResult *proofResult) {
+    GHDebug(@"Selected: %@", proofResult);
+  }];
+  [self addLabels:@[label]];
+}
+
+- (void)addIdentityProofs:(NSArray *)identityProofs targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   MPOrderedDictionary *labels = [MPOrderedDictionary dictionary];
   for (KBRIdentifyRow *row in identityProofs) {
     if (row.proof.proofType == 2) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Twitter"];
@@ -72,14 +90,11 @@
   for (id key in labels) {
     NSArray *proofResults = labels[key];
     KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-    [label setHeaderText:key proofResults:proofResults targetBlock:^(id sender, KBProofResult *proofResult) {
-      GHDebug(@"Selected: %@", proofResult);
-    }];
+    [label addProofResults:proofResults header:key targetBlock:targetBlock];
     [self addLabels:@[label]];
   }
 
   [self setNeedsLayout];
 }
-
 
 @end

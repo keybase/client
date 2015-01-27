@@ -64,6 +64,7 @@
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
   [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
   [self setAttributedTitle:str];
 }

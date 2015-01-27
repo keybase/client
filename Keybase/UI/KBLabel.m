@@ -8,6 +8,8 @@
 
 #import "KBLabel.h"
 
+#import <Slash/Slash.h>
+
 @interface KBLabel ()
 @property NSTextView *textView;
 @end
@@ -51,6 +53,22 @@
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
+  [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
+  [self setAttributedText:str];
+}
+
+- (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  NSDictionary *style = @{@"$default": @{NSFontAttributeName: font},
+                          @"p": @{NSFontAttributeName: font},
+                          @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:16]},
+                          @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},};
+  NSMutableAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:nil] mutableCopy];
+  [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
+
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = lineBreakMode;
   [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
   [self setAttributedText:str];
 }
@@ -66,7 +84,9 @@
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString {
   NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
-  NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:NSMakeSize(size.width, FLT_MAX)];
+  if (size.height == 0) size.height = CGFLOAT_MAX;
+  if (size.width == 0) size.width = CGFLOAT_MAX;
+  NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:size];
   NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
   [layoutManager addTextContainer:textContainer];
   [textStorage addLayoutManager:layoutManager];

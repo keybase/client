@@ -10,10 +10,9 @@
 
 @implementation KBProofLabel
 
-+ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult targetBlock:(void (^)(id sender))targetBlock {
++ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult {
   KBProofLabel *button = [[KBProofLabel alloc] init];
   button.proofResult = proofResult;
-  button.targetBlock = targetBlock;
   return button;
 }
 

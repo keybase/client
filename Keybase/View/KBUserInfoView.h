@@ -10,12 +10,17 @@
 
 #import "KBUIDefines.h"
 #import "KBProofResult.h"
+#import "KBProofLabel.h"
 
 @interface KBUserInfoView : KBView
 
 - (void)updateProofResult:(KBProofResult *)proofResult;
 
-- (void)addIdentityProofs:(NSArray *)identityProofs;
+- (void)addKey:(KBRFOKID *)key;
+
+- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency;
+
+- (void)addIdentityProofs:(NSArray *)identityProofs targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
 
 - (void)clear;
 

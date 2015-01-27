@@ -28,7 +28,6 @@
   //_statusItem.image = [NSImage imageNamed:@"StatusIcon"];
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
-  _statusItem.menu = [self menu];
 
 //  self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
 //  [self.windowController window];
@@ -115,15 +114,20 @@
     //[self.windowController showTwitterConnect:YES];
     [self.windowController showUser:status.user animated:NO];
   }
+  [self updateMenu];
 }
 
-- (NSMenu *)menu {
+- (void)updateMenu {
   NSMenu *menu = [[NSMenu alloc] init];
-  [menu addItemWithTitle:@"Catalog" action:@selector(catalog) keyEquivalent:@""];
-  [menu addItemWithTitle:@"Log Out" action:@selector(logout) keyEquivalent:@""];
-  [menu addItem:[NSMenuItem separatorItem]];
+  if (_status.loggedIn) {
+    // TODO: update when username bug fixed
+    NSString *username = [_status.user.username gh_isPresent] ? _status.user.username : [_status.user.uid na_hexString];
+    [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", username) action:@selector(logout) keyEquivalent:@""];
+    [menu addItem:[NSMenuItem separatorItem]];
+  }
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
-  return menu;
+
+  _statusItem.menu = menu;
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

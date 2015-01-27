@@ -17,6 +17,8 @@
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
 
+- (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString;
 
 - (BOOL)hasText;

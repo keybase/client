@@ -10,6 +10,7 @@
 #import "AppDelegate.h"
 #import "KBUserProfileView.h"
 #import "KBUsersView.h"
+#import "KBWebView.h"
 
 @interface KBCatalogView ()
 @property NSMutableArray *items;
@@ -70,7 +71,7 @@
 
 - (void)showUser {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"uid": @"b7c2eaddcced7727bcb229751d91e800", @"username": @"gabrielh"} error:nil];
+  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"uid": [@"b7c2eaddcced7727bcb229751d91e800" na_dataFromHexString], @"username": @"gabrielh"} error:nil];
   [userProfileView setUser:user];
   [self.navigation pushView:userProfileView animated:YES];
 }

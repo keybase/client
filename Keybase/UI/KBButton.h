@@ -11,6 +11,8 @@
 
 typedef void (^KBButtonTargetBlock)();
 
+#define KBDefaultButtonHeight (56)
+
 @interface KBButton : NSButton
 
 @property (nonatomic, copy) KBButtonTargetBlock targetBlock;

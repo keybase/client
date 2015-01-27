@@ -16,6 +16,6 @@
 
 @property (nonatomic) KBProofResult *proofResult;
 
-+ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult targetBlock:(void (^)(id sender))targetBlock;
++ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult;
 
 @end

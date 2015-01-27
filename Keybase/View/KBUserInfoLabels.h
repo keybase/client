@@ -17,7 +17,11 @@
 
 @property (readonly) NSArray *proofResults;
 
-- (void)setHeaderText:(NSString *)headerText proofResults:(NSArray *)proofResults targetBlock:(void (^)(id sender, id object))targetBlock;
+- (void)addProofResults:(NSArray *)proofResults header:(NSString *)header targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
+
+- (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock;
+
+- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock;
 
 - (void)updateProofResult:(KBProofResult *)proofResult;
 

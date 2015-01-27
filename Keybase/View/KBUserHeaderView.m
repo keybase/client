@@ -40,44 +40,55 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 20;
 
-    y += [layout setFrame:CGRectMake(size.width/2.0 - 80, y, 160, 160) view:yself.imageView].size.height + 10;
+    CGFloat x = 20;
+    CGFloat imageWidth = 100;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name1Label].size.height + 10;
+    x += [layout setFrame:CGRectMake(20, 20, imageWidth, imageWidth) view:yself.imageView].size.width + 10;
 
-    if ([yself.name2Label hasText]) {
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name2Label].size.height + 10;
-    }
+    [layout setFrame:CGRectMake(x, 20, size.width - x, imageWidth) view:yself.name1Label options:YOLayoutOptionsSizeToFitHorizontal];
 
-    if ([yself.locationLabel hasText]) {
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.locationLabel].size.height + 10;
-    }
-
-    if ([yself.bioLabel hasText]) {
-      //[layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(20, y, size.width - 40, 0) view:yself.bioLabel].size.height + 10;
-      y += [layout sizeToFitVerticalInFrame:CGRectMake(80, y, size.width - 160, 0) view:yself.bioLabel].size.height + 10;
-    }
-
-    y += 10;
-
-    return CGSizeMake(size.width, y);
+    return CGSizeMake(size.width, imageWidth + 40);
   }];
+
+//  YOSelf yself = self;
+//  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+//    CGFloat y = 20;
+//
+//    y += [layout setFrame:CGRectMake(size.width/2.0 - 80, y, 160, 160) view:yself.imageView].size.height + 10;
+//    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name1Label].size.height + 10;
+//
+//    if ([yself.name2Label hasText]) {
+//      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name2Label].size.height + 10;
+//    }
+//
+//    if ([yself.locationLabel hasText]) {
+//      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.locationLabel].size.height + 10;
+//    }
+//
+//    if ([yself.bioLabel hasText]) {
+//      //[layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(20, y, size.width - 40, 0) view:yself.bioLabel].size.height + 10;
+//      y += [layout sizeToFitVerticalInFrame:CGRectMake(80, y, size.width - 160, 0) view:yself.bioLabel].size.height + 10;
+//    }
+//
+//    y += 10;
+//
+//    return CGSizeMake(size.width, y);
+//  }];
 }
 
 - (void)setUserInfo:(KBUser *)user {
-  [_name2Label setText:user.fullName font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
-
-  [_locationLabel setText:user.location font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
-  [_bioLabel setText:user.bio font:[NSFont systemFontOfSize:15] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
+//  [_name2Label setText:user.fullName font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
+//
+//  [_locationLabel setText:user.location font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
+//  [_bioLabel setText:user.bio font:[NSFont systemFontOfSize:15] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
 
   [_imageView setURLString:user.image.URLString ? user.image.URLString : @"https://keybase.io/images/no_photo.png"];
   [self setNeedsLayout];
 }
 
 - (void)setUser:(KBRUser *)user {
-
-  [_name1Label setText:user.username font:[NSFont systemFontOfSize:24] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+  [_name1Label setMarkup:NSStringWithFormat(@"<p>keybase.io/<strong>%@</strong></p>", user.username) font:[NSFont systemFontOfSize:36] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   [self setNeedsLayout];
 }

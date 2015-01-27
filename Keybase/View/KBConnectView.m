@@ -110,7 +110,8 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 40;
 
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, 56) view:yself.loginButton].size.height;
+    y += [layout setFrame:CGRectMake(40, y, size.width - 80, KBDefaultButtonHeight) view:yself.loginButton].size.height;
+    //y += [layout centerWithSize:CGSizeMake(200, 48) frame:CGRectMake(40, y, size.width - 40, KBDefaultButtonHeight) view:yself.loginButton].size.height;
 
     y += [layout setFrame:CGRectMake(40, y, 80, 30) view:yself.signUpButton].size.height;
 
@@ -198,7 +199,7 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 40;
 
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, 56) view:yself.signupButton].size.height;
+    y += [layout setFrame:CGRectMake(40, y, size.width - 80, KBDefaultButtonHeight) view:yself.signupButton].size.height;
 
     y += [layout setFrame:CGRectMake(40, y, 80, 30) view:yself.loginButton].size.height + 30;
 
