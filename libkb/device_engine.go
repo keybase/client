@@ -1,15 +1,38 @@
 package libkb
 
 type DeviceEngine struct {
-	deviceName string
+	deviceName  string
+	deviceID    []byte
+	localEncKey []byte
 }
 
 func NewDeviceEngine() *DeviceEngine {
 	return &DeviceEngine{}
 }
 
+func (d *DeviceEngine) Init() error {
+	return nil
+}
+
 func (d *DeviceEngine) Run(deviceName string) error {
 	d.deviceName = deviceName
+	var err error
+	d.deviceID, err = RandBytes(32)
+	if err != nil {
+		return err
+	}
+	d.localEncKey, err = RandBytes(32)
+	if err != nil {
+		return err
+	}
+
+	G.Log.Info("Device name:   %s", d.deviceName)
+	G.Log.Info("Device ID:     %x", d.deviceID)
+	G.Log.Info("Local Enc Key: %x", d.localEncKey)
+
+	// XXX once api endpoint for adding a device ready, add call to it here
+	G.Log.Info("(waiting for api endpoint implementation...)")
+
 	return nil
 }
 

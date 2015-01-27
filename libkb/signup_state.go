@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"crypto/rand"
 	"github.com/keybase/go-triplesec"
 )
 
@@ -15,11 +14,11 @@ func NewSignupState() *SignupState {
 }
 
 func (s *SignupState) GenerateNewSalt() error {
-	buf := make([]byte, triplesec.SaltLen)
-	if _, err := rand.Read(buf); err != nil {
+	var err error
+	s.salt, err = RandBytes(triplesec.SaltLen)
+	if err != nil {
 		return err
 	}
-	s.salt = buf
 	return nil
 }
 

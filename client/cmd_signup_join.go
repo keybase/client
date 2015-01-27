@@ -190,13 +190,11 @@ func (e *RemoteSignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) (
 }
 
 func (s *CmdSignupJoinState) RunClient() error {
-	G.Log.Debug("| Remote mode")
 	s.engine = &RemoteSignupJoinEngine{}
 	return s.run()
 }
 
 func (s *CmdSignupJoinState) Run() error {
-	G.Log.Debug("| Standalone mode")
 	s.engine = libkb.NewSignupJoinEngine()
 	return s.run()
 }

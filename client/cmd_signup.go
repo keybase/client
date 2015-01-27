@@ -68,20 +68,33 @@ func (s *CmdSignupState) Run() error {
 func (s *CmdSignupState) run() error {
 	G.Log.Debug("+ CmdSignupState::Run")
 	defer G.Log.Debug("- CmdSignupState::Run")
-	if proceed, err := s.join(); err != nil {
+	if s.remote {
+		G.Log.Debug("| Remote mode")
+	} else {
+		G.Log.Debug("| Standalone mode")
+	}
+
+	if done, err := s.join(); err != nil {
 		return err
-	} else if !proceed {
+	} else if done {
 		return nil
 	}
 
-	// s.registerDevice()
-	// s.provision()
+	if err := s.registerDevice(); err != nil {
+		return err
+	}
+
+	if err := s.provision(); err != nil {
+		return err
+	}
 
 	s.SuccessMessage()
 	return nil
 }
 
-func (s *CmdSignupState) join() (proceed bool, err error) {
+func (s *CmdSignupState) join() (done bool, err error) {
+	G.Log.Debug("+ CmdSignupState::join")
+	defer G.Log.Debug("- CmdSignupState::join")
 	state := &CmdSignupJoinState{code: s.code}
 	if s.remote {
 		err = state.RunClient()
@@ -92,8 +105,24 @@ func (s *CmdSignupState) join() (proceed bool, err error) {
 		return false, err
 	}
 	// if they requested an invite, we're done...
-	proceed = !state.requestedInvite
-	return proceed, nil
+	done = state.requestedInvite
+	return done, nil
+}
+
+func (s *CmdSignupState) registerDevice() error {
+	G.Log.Debug("+ CmdSignupState::registerDevice")
+	defer G.Log.Debug("- CmdSignupState::registerDevice")
+	state := NewCmdSignupRegDevState()
+	if s.remote {
+		return state.RunClient()
+	}
+	return state.Run()
+}
+
+func (s *CmdSignupState) provision() error {
+	G.Log.Debug("+ CmdSignupState::provision")
+	defer G.Log.Debug("- CmdSignupState::provision")
+	return nil
 }
 
 func (v *CmdSignupState) GetUsage() libkb.Usage {
