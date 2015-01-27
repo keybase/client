@@ -40,6 +40,20 @@
 
 @end
 
+@implementation KBRSIGID
+@end
+
+@implementation KBRDeviceRequest
+- (void)registerWithDeviceName:(NSString *)deviceName completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"deviceName": KBRValue(deviceName)}];
+  [self.client sendRequestWithMethod:@"keybase.1.device.register" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRTrackDiff
 @end
 
@@ -80,9 +94,6 @@
   }];
 }
 
-@end
-
-@implementation KBRSIGID
 @end
 
 @implementation KBRProofStatus

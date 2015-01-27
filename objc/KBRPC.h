@@ -52,6 +52,14 @@
 
 @end
 
+@interface KBRSIGID : NSData
+@end
+
+@interface KBRDeviceRequest : KBRRequest
+- (void)registerWithDeviceName:(NSString *)deviceName completion:(void (^)(NSError *error))completion;
+
+@end
+
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 	KBRTrackDiffTypeNone, 
 	KBRTrackDiffTypeError, 
@@ -95,9 +103,6 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 - (void)identifyDefaultWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion;
 
-@end
-
-@interface KBRSIGID : NSData
 @end
 
 @interface KBRProofStatus : KBRObject

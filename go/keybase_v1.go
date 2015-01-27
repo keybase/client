@@ -84,6 +84,41 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	return
 }
 
+type SIGID [32]byte
+type RegisterArg struct {
+	DeviceName string `codec:"deviceName"`
+}
+
+type DeviceInterface interface {
+	Register(string) error
+}
+
+func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.device",
+		Methods: map[string]rpc2.ServeHook{
+			"register": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]RegisterArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Register(args[0].DeviceName)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type DeviceClient struct {
+	Cli GenericClient
+}
+
+func (c DeviceClient) Register(deviceName string) (err error) {
+	__arg := RegisterArg{DeviceName: deviceName}
+	err = c.Cli.Call("keybase.1.device.register", []interface{}{__arg}, nil)
+	return
+}
+
 type TrackDiffType int
 
 const (
@@ -180,7 +215,6 @@ func (c IdentifyClient) IdentifyDefault(username string) (res IdentifyRes, err e
 	return
 }
 
-type SIGID [32]byte
 type ProofStatus struct {
 	State  int    `codec:"state"`
 	Status int    `codec:"status"`
