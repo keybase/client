@@ -554,6 +554,7 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 			"sig":          S{e.sig},
 			"uid":          S{e.Them.GetUid().String()},
 			"type":         S{"track"},
+			"signing_kid":  S{e.signingKeyPub.GetKid().String()},
 		},
 	})
 
