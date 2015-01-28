@@ -117,6 +117,7 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 
 	if err == nil {
 		d.rootKey = eddsaPair
+		d.me.sigChain.Bump(MerkleTriple{linkId: linkid, sigId: sigid})
 	}
 
 	return err
