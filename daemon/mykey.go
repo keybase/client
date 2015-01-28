@@ -45,8 +45,8 @@ func (h *MykeyHandler) keygen(iarg libkb.KeyGenArg, doInteractive bool) (err err
 	iarg.LoginUI = h.getLoginUI(sessionId)
 	if doInteractive {
 		iarg.KeyGenUI = h.getKeyGenUI(sessionId)
-		iarg.SecretUI = h.getSecretUI(sessionId)
 	}
+	iarg.SecretUI = h.getSecretUI(sessionId)
 	iarg.AddDefaultUid()
 	eng := libkb.NewKeyGen(&iarg)
 	_, err = eng.Run()
