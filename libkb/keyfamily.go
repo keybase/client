@@ -47,7 +47,7 @@ type ServerKeyRecord struct {
 	KeyLevel       int     `json:"key_level"`
 	Status         int     `json:"status"`
 	KeyBits        int     `json:"key_bits"`
-	KeyAlgo        int     `json:"key_algo"`
+	KeyAlgo        int     `json:"key_algo"a`
 
 	key GenericKey `json:-`
 }
@@ -632,15 +632,24 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	return
 }
 
-// GetDeviceSibkey gets the current per-device key for the given Device. Will
+// GetSibkeyForDevice gets the current per-device key for the given Device. Will
 // return nil if one isn't found, and set err for a real error. The sibkey should
 // be a signing key, not an encryption key of course.
-func (ckf *ComputedKeyFamily) GetDeviceSibkey(did DeviceId) (key GenericKey, err error) {
+func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceId) (key GenericKey, err error) {
 	var kid KID
-	if kidString, found := ckf.cki.KidToDeviceId[did.String()]; !found {
-	} else if kid, err = ImportKID(kidString); err != nil {
+	if device, found := ckf.cki.Devices[did.String()]; !found {
+	} else if device.Kid == nil || len(*device.Kid) == 0 {
+	} else if kid, err = ImportKID(*device.Kid); err != nil {
 	} else {
 		key, err = ckf.FindActiveSibkey(FOKID{Kid: kid})
+	}
+	return
+}
+
+// GetDeviceForKey gets the device that this key is bound to, if any.
+func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err error) {
+	if didString, found := ckf.cki.KidToDeviceId[key.GetKid().String()]; found {
+		ret = ckf.cki.Devices[didString]
 	}
 	return
 }
