@@ -5,6 +5,12 @@ import (
 	"github.com/keybase/go-triplesec"
 )
 
+// TSPassKey is a deterministic set of keys generated from a user's passphrase
+// and a salt using triplesec.
+//
+// It consists of a password hash, an EdDSA seed, a DH seed, and a local key
+// storage client key.
+
 const (
 	pwhIndex   = 0
 	pwhLen     = 32

@@ -56,9 +56,9 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	return err
 }
 
-func (s *SignupJoinEngine) GenDetKey(p string) error {
-	G.Log.Debug("+ GenDetKey")
-	defer G.Log.Debug("- GenDetKey")
+func (s *SignupJoinEngine) GenTSPassKey(p string) error {
+	G.Log.Debug("+ GenTSPassKey")
+	defer G.Log.Debug("- GenTSPassKey")
 	if p == s.lastPassphrase && s.signupState != nil {
 		return nil
 	}
@@ -67,7 +67,7 @@ func (s *SignupJoinEngine) GenDetKey(p string) error {
 	if err := state.GenerateNewSalt(); err != nil {
 		return err
 	}
-	if err := state.DetKey(p); err != nil {
+	if err := state.TSPassKey(p); err != nil {
 		return err
 	}
 
@@ -116,7 +116,7 @@ type SignupJoinEngineRunRes struct {
 }
 
 func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
-	if res.Error = s.GenDetKey(arg.Passphrase); res.Error != nil {
+	if res.Error = s.GenTSPassKey(arg.Passphrase); res.Error != nil {
 		return
 	}
 	res.PassphraseOk = true

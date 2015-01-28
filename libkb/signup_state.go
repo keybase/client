@@ -5,8 +5,8 @@ import (
 )
 
 type SignupState struct {
-	salt   []byte
-	detkey DetKey
+	salt    []byte
+	passkey TSPassKey
 }
 
 func NewSignupState() *SignupState {
@@ -22,14 +22,14 @@ func (s *SignupState) GenerateNewSalt() error {
 	return nil
 }
 
-func (s *SignupState) DetKey(passphrase string) error {
+func (s *SignupState) TSPassKey(passphrase string) error {
 	var err error
-	s.detkey, err = NewDetKey(passphrase, s.salt)
+	s.passkey, err = NewTSPassKey(passphrase, s.salt)
 	return err
 }
 
 func (s *SignupState) PWHash() []byte {
-	return s.detkey.PWHash()
+	return s.passkey.PWHash()
 }
 
 func (s *SignupState) Salt() []byte {
