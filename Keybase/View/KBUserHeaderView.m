@@ -8,12 +8,16 @@
 
 #import "KBUserHeaderView.h"
 
+#import "KBActivityIndicatorView.h"
+
 @interface KBUserHeaderView ()
 @property KBLabel *name1Label;
 @property KBLabel *name2Label;
 @property KBLabel *locationLabel;
 @property KBLabel *bioLabel;
 @property KBImageView *imageView;
+
+@property KBActivityIndicatorView *progressView;
 @end
 
 
@@ -21,6 +25,9 @@
 
 - (void)viewInit {
   [super viewInit];
+
+  _progressView = [[KBActivityIndicatorView alloc] init];
+  [self addSubview:_progressView];
 
   _imageView = [[KBImageView alloc] init];
   _imageView.roundedRatio = 1.0;
@@ -47,6 +54,8 @@
     x += [layout setFrame:CGRectMake(20, 20, imageWidth, imageWidth) view:yself.imageView].size.width + 10;
 
     [layout setFrame:CGRectMake(x, 20, size.width - x, imageWidth) view:yself.name1Label options:YOLayoutOptionsSizeToFitHorizontal];
+
+    [layout setFrame:CGRectMake(12, 12, imageWidth + 16, imageWidth + 16) view:yself.progressView];
 
     return CGSizeMake(size.width, imageWidth + 40);
   }];
@@ -75,6 +84,10 @@
 //
 //    return CGSizeMake(size.width, y);
 //  }];
+}
+
+- (void)setProgressEnabled:(BOOL)progressEnabled {
+  [_progressView setAnimating:progressEnabled];
 }
 
 - (void)setUserInfo:(KBUser *)user {

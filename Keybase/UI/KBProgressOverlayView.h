@@ -19,4 +19,6 @@
 - (void)startAnimating;
 - (void)stopAnimating;
 
+- (void)setAnimating:(BOOL)animating;
+
 @end

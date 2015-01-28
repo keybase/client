@@ -19,7 +19,6 @@
 
 @interface KBActivityIndicatorView ()
 @property (nonatomic, weak) CAShapeLayer *shapeLayer;
-@property (getter=isAnimating) BOOL animating;
 @end
 
 @interface NSBezierPath (KBCGPath)
@@ -67,6 +66,11 @@
   NSBezierPath *bezierPath = [[NSBezierPath alloc] init];
   [bezierPath appendBezierPathWithArcWithCenter:CGPointMake(width/2.0f, width/2.0f) radius:width/2.2f startAngle:0 endAngle:54 clockwise:YES];
   return bezierPath;
+}
+
+- (void)setAnimating:(BOOL)animating {
+  if (_animating == animating) return;
+  animating ? [self startAnimating] : [self stopAnimating];
 }
 
 - (void)startAnimating {

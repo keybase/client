@@ -13,6 +13,6 @@
 
 @interface KBUserProfileView : KBView
 
-- (void)setUser:(KBRUser *)user;
+- (void)setUser:(KBRUser *)user track:(BOOL)track;
 
 @end

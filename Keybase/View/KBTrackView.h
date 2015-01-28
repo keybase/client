@@ -11,8 +11,14 @@
 #import "KBUIDefines.h"
 #import "KBRPC.h"
 
+typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response);
+
 @interface KBTrackView : YONSView
 
-@property (nonatomic) KBRIdentifyRes *identify;
+- (void)clear;
+
+- (BOOL)setUser:(KBRUser *)user identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse;
+
+- (void)setTrackCompleted:(NSError *)error;
 
 @end

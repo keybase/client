@@ -35,9 +35,10 @@
   
   GHWeakSelf blockSelf = self;
   _client.requestHandler = ^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
     MPRequestHandler requestHandler = blockSelf.methods[method];
     if (!requestHandler) {
-      GHDebug(@"Received unhandled request: %@(%@)", method, [params join:@", "]);
+      GHDebug(@"No handler for request");
       completion(KBMakeError(-1, @"Method not found", @"Method not found: %@", method), nil);
       return;
     }
@@ -73,19 +74,23 @@
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
-  GHDebug(@"Send request: %@(%@)", method, [params join:@", "]);
   if (_client.status != MPMessagePackClientStatusOpen) {
     completion(KBMakeError(-400, @"We are unable to connect to the keybase daemon.", @""), nil);
     return;
   }
         
-  [_client sendRequestWithMethod:method params:params completion:completion];
+  [_client sendRequestWithMethod:method params:params completion:^(NSError *error, id result) {
+    if (error) GHDebug(@"Error: %@", error);
+    completion(error, result);
+  }];
+  GHDebug(@"Sent request: %@(%@)", method, params);
+  //GHDebug(@"Sent request: %@", [request gh_toJSON:NSJSONWritingPrettyPrinted error:nil]);
 }
 
 #pragma mark -
 
 - (void)client:(MPMessagePackClient *)client didError:(NSError *)error fatal:(BOOL)fatal {
-  GHDebug(@"Error (%d): %@", fatal, error);
+  GHDebug(@"Error (fatal=%d): %@", fatal, error);
 }
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {

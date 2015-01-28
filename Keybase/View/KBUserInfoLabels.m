@@ -37,18 +37,19 @@
     //CGFloat x = (size.width/2.0) - 25;
     CGFloat x = 100;
     CGFloat y = 0;
+    CGFloat lineHeight = 18;
 
     if ([yself.headerLabel hasText]) {
       CGSize headerLabelSize = [yself.headerLabel sizeThatFits:size];
-      [layout setFrame:CGRectMake(x - headerLabelSize.width, 0, headerLabelSize.width, 25) view:yself.headerLabel];
+      [layout setFrame:CGRectMake(x - headerLabelSize.width, 0, headerLabelSize.width, lineHeight) view:yself.headerLabel];
     }
 
     if (yself.imageView.image) {
-      [layout setFrame:CGRectMake(x - 35, y, 25, 25) view:yself.imageView];
+      [layout setFrame:CGRectMake(x - 35, y, lineHeight, lineHeight) view:yself.imageView];
     }
 
     for (NSView *view in yself.labels) {
-      y += [layout setFrame:CGRectMake(x, y, size.width - x - 40, 25) view:view options:YOLayoutOptionsSizeToFitHorizontal|YOLayoutOptionsConstrainWidth].size.height;
+      y += [layout setFrame:CGRectMake(x, y, size.width - x - 40, lineHeight) view:view options:YOLayoutOptionsSizeToFitHorizontal|YOLayoutOptionsConstrainWidth].size.height;
     }
 
     return CGSizeMake(size.width, y);
@@ -80,10 +81,10 @@
 
 - (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock {
   _imageView.image = [NSImage imageNamed:@"1-Edition-black-key-2-30"];
-  [_headerLabel setText:nil font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
 
   NSString *keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
-  KBButton *button = [KBButton buttonWithLinkText:keyDescription font:[NSFont systemFontOfSize:20] alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithLinkText:keyDescription font:[NSFont systemFontOfSize:14] alignment:NSLeftTextAlignment];
   button.targetBlock = ^{
 
   };
@@ -95,8 +96,8 @@
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock {
   _imageView.image = [NSImage imageNamed:@"24-Business-Finance-black-bitcoins-30"];
-  [_headerLabel setText:nil font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  KBButton *button = [KBButton buttonWithLinkText:cryptocurrency.address font:[NSFont systemFontOfSize:20] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithLinkText:cryptocurrency.address font:[NSFont systemFontOfSize:14] alignment:NSLeftTextAlignment];
   button.targetBlock = ^{
 
   };
@@ -111,13 +112,13 @@
   _imageView.image = image;
 
   if (!_imageView.image) {
-    [_headerLabel setText:header font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+    [_headerLabel setText:header font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   } else {
     _headerLabel.attributedText = nil;
   }
 
   if ([proofResults count] == 0) {
-    //[self addLabelWithText:@"Edit" font:[NSFont systemFontOfSize:20] tag:-1 targetBlock:^(id sender) { targetBlock(blockSelf, nil); }];
+    //[self addLabelWithText:@"Edit" font:[NSFont systemFontOfSize:14] tag:-1 targetBlock:^(id sender) { targetBlock(blockSelf, nil); }];
   } else {
     for (NSInteger index = 0; index < [proofResults count]; index++) {
       KBProofLabel *proofLabel = [KBProofLabel labelWithProofResult:proofResults[index]];

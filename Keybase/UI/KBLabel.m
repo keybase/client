@@ -53,7 +53,7 @@
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
-  paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
+  //paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
   [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
   [self setAttributedText:str];
 }
@@ -95,6 +95,7 @@
   (void)[layoutManager glyphRangeForTextContainer:textContainer];
 
   NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
+  rect.size.height += 3; // For descenders to not get clipped? TODO: Fixme
   return CGRectIntegral(rect).size;
 }
 

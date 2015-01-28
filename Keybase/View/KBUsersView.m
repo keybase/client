@@ -97,7 +97,7 @@
     KBUser *user = [_usersDataSource objectAtIndex:selectedRow];
     KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
     KBRUser *ruser = [[KBRUser alloc] initWithDictionary:@{@"uid": [user.identifier na_dataFromHexString], @"username": user.userName} error:nil];
-    [userProfileView setUser:ruser];
+    [userProfileView setUser:ruser track:YES];
     [self.navigation pushView:userProfileView animated:YES];
   }
   [_tableView deselectAll:nil];

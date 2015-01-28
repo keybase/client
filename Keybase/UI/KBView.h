@@ -30,4 +30,6 @@
 
 - (void)setBackgroundColor:(NSColor *)backgroundColor;
 
++ (void)setInProgress:(BOOL)inProgress view:(NSView *)view;
+
 @end

@@ -16,13 +16,14 @@
 #import "KBErrorView.h"
 #import "KBTrackView.h"
 //#import "KBWebView.h"
+#import "KBProgressOverlayView.h"
 
 @interface KBUserProfileView ()
 @property NSScrollView *scrollView;
 @property KBUserHeaderView *headerView;
 @property KBUserInfoView *userInfoView;
 @property KBTrackView *trackView;
-@property KBErrorView *errorView;
+@property KBRUser *user;
 @end
 
 @implementation KBUserProfileView
@@ -33,12 +34,10 @@
   _headerView = [[KBUserHeaderView alloc] init];
   _userInfoView = [[KBUserInfoView alloc] init];
   _trackView = [[KBTrackView alloc] init];
-  _errorView = [[KBErrorView alloc] init];
   KBView *view = [[KBView alloc] init];
   [view addSubview:_headerView];
   [view addSubview:_userInfoView];
   [view addSubview:_trackView];
-  [view addSubview:_errorView];
   view.viewLayout = [YOLayout vertical:view];
 
   _scrollView = [[NSScrollView alloc] init];
@@ -63,7 +62,6 @@
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRIdentity *identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"id"] error:nil];
     GHDebug(@"Identity: %@", identity);
-    [yself.userInfoView setProgressIndicatorEnabled:NO];
     [yself.userInfoView addIdentityProofs:identity.proofs targetBlock:^(KBProofLabel *proofLabel) {
       [yself openURLString:proofLabel.proofResult.result.hint.humanUrl];
     }];
@@ -100,7 +98,19 @@
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    completion(nil, nil);
+    [yself.headerView setProgressEnabled:NO];
+    KBRIdentifyOutcome *identifyOutcome = [MTLJSONAdapter modelOfClass:KBRIdentifyOutcome.class fromJSONDictionary:params[0][@"outcome"] error:nil];
+    yself.trackView.hidden = NO;
+    BOOL trackPrompt = [yself.trackView setUser:yself.user identifyOutcome:identifyOutcome trackResponse:^(KBRFinishAndPromptRes *response) {
+      [KBView setInProgress:YES view:yself.trackView];
+      completion(nil, response);
+    }];
+    [yself setNeedsLayout];
+
+    if (!trackPrompt) {
+      GHDebug(@"No track prompt required");
+      completion(nil, nil);
+    }
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.reportLastTrack" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -122,31 +132,31 @@
 }
 
 - (void)setError:(NSError *)error {
-  [_errorView setError:error];
+  [super setError:error];
+  // TODO: Redo track process (if failed on track)
 }
 
-- (void)setUser:(KBRUser *)user {
+- (void)setUser:(KBRUser *)user track:(BOOL)track {
+  _user = user;
   //_headerView.hidden = NO;
   [_headerView setUser:user];
   [_userInfoView clear];
-  [_trackView setIdentify:nil];
-  [_errorView setError:nil];
+  [_trackView clear];
+  _trackView.hidden = YES;
   [self setNeedsLayout];
 
   GHWeakSelf gself = self;
-  [_userInfoView setProgressIndicatorEnabled:YES];
-  KBRIdentifyRequest *identify = [[KBRIdentifyRequest alloc] initWithClient:AppDelegate.client];
-  [identify identifyDefaultWithUsername:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
-    if (error) {
-      GHErr(@"Error: %@", error);
-      [gself.errorView setError:error];
+
+  if (track) {
+    [_headerView setProgressEnabled:YES];
+    KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:AppDelegate.client];
+    [trackRequest trackWithTheirName:user.username completion:^(NSError *error) {
+      [gself.headerView setProgressEnabled:NO];
+      [KBView setInProgress:NO view:gself.trackView];
+      [gself.trackView setTrackCompleted:error];
       [self setNeedsLayout];
-    } else {
-      GHDebug(@"Identified: %@", identifyRes);
-      [gself.trackView setIdentify:identifyRes];
-      [self setNeedsLayout];
-    }
-  }];
+    }];
+  }
 
   //self.progressIndicatorEnabled = YES;
   [AppDelegate.APIClient userForKey:@"uids" value:[user.uid na_hexString] fields:nil success:^(KBUser *user) {

@@ -13,6 +13,7 @@
 #import "KBLookAndFeel.h"
 
 @interface KBProgressOverlayView ()
+//@property NSView *overlay;
 @property KBLabel *label;
 @property (nonatomic) KBActivityIndicatorView *indicatorView;
 @end
@@ -25,6 +26,13 @@
   self.hidesWhenStopped = YES;
   self.hidden = YES;
 
+  self.wantsLayer = YES;
+
+//  _overlay = [[NSView alloc] init];
+//  _overlay.wantsLayer = YES;
+//  self.layer.backgroundColor = [NSColor colorWithDeviceRed:1.0 green:0 blue:0 alpha:0.5].CGColor;
+//  [self addSubview:_overlay];
+
   _label = [[KBLabel alloc] init];
   [_label setText:@"Loading ..." font:[NSFont systemFontOfSize:20] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_label];
@@ -32,6 +40,11 @@
   _indicatorView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_indicatorView];
 }
+
+//- (NSView *)hitTest:(NSPoint)point {
+//  if (self.hidden) return nil;
+//  return self;
+//}
 
 - (void)layout {
   [super layout];
@@ -42,6 +55,12 @@
 
   _indicatorView.frame = CGRectMake(x, y, indicatorWidth, indicatorWidth);
   _label.frame = CGRectMake(0, y - 40, self.bounds.size.width, 40);
+
+  //_overlay.frame = self.bounds;
+}
+
+- (void)setAnimating:(BOOL)animating {
+  animating ? [self startAnimating] : [self stopAnimating];
 }
 
 - (void)startAnimating {

@@ -14,7 +14,7 @@
 
 @interface KBActivityIndicatorView : YONSView
 
-@property (readonly, getter=isAnimating) BOOL animating;
+@property (nonatomic, getter=isAnimating) BOOL animating;
 @property BOOL hidesWhenStopped;
 
 - (void)startAnimating;

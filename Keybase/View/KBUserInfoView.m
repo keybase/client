@@ -32,7 +32,6 @@
     for (KBUserInfoLabels *label in yself.labels) {
       y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:label].size.height + 8;
     }
-
     return CGSizeMake(size.width, y);
   }];
 }

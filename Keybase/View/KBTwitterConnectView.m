@@ -166,7 +166,7 @@
 
     y += [layout centerWithSize:CGSizeMake(200, 48) frame:CGRectMake(0, y, size.width, 48) view:yself.button].size.height + 20;
 
-    y += [layout setFrame:CGRectMake(40, y, 80, 30) view:yself.skipButton].size.height;
+    y += [layout centerWithSize:CGSizeMake(200, 30) frame:CGRectMake(0, y, size.width, 48) view:yself.skipButton].size.height + 20;
 
     return CGSizeMake(size.width, y);
   }];

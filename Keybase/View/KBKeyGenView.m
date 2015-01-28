@@ -27,6 +27,15 @@
   [_infoLabel setText:@"Welcome to keybase.io! You now need to associate a key with your account." font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_infoLabel];
 
+  /*
+   Publish your new public key to Keybase.io (strongly recommended)? [Y/n]
+
+   Keybase can host an encrypted copy of your PGP private key on its servers.
+   It can only be decrypted with your passphrase, which Keybase never knows.
+
+   Push an encrypted copy of your private key to Keybase.io? [Y/n]
+   */
+
   _button = [KBButton buttonWithText:@"Create Key"];
   self.button.targetBlock = ^{
     [gself generateKey];
@@ -44,7 +53,7 @@
     CGFloat x = 20;
     CGFloat y = 20;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.infoLabel].size.height + 20;
+    y += [layout centerWithSize:CGSizeMake(300, 48) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.infoLabel].size.height + 20;
 
     y += [layout centerWithSize:CGSizeMake(200, 48) frame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.button].size.height + 30;
 
@@ -69,10 +78,10 @@
   KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
   uids.useDefault = YES;
 
-  [self setInProgress:YES sender:nil];
+  [self setProgressIndicatorEnabled:YES];
   KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
-  [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:NO passphrase:password completion:^(NSError *error) {
-    [gself setInProgress:NO sender:nil];
+  [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:YES passphrase:password completion:^(NSError *error) {
+    [gself setProgressIndicatorEnabled:NO];
     if (error) {
       [[NSAlert alertWithError:error] beginSheetModalForWindow:gself.window completionHandler:nil];
       return;

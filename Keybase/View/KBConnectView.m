@@ -172,7 +172,7 @@
   _usernameField.placeholder = @"Username";
   [self addSubview:_usernameField];
 
-  _passwordField = [[KBTextField alloc] init];
+  _passwordField = [[KBSecureTextField alloc] init];
   _passwordField.placeholder = @"Passphrase";
   [self addSubview:_passwordField];
 
@@ -186,6 +186,7 @@
   _loginButton.alignment = NSLeftTextAlignment;
   [self addSubview:_loginButton];
 
+  _emailField.nextKeyView = _usernameField;
   _usernameField.nextKeyView = _passwordField;
   _passwordField.nextKeyView = _loginButton;
   _loginButton.nextKeyView = _usernameField;

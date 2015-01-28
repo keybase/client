@@ -18,4 +18,6 @@
 
 - (void)setUserInfo:(KBUser *)user;
 
+- (void)setProgressEnabled:(BOOL)progressEnabled;
+
 @end

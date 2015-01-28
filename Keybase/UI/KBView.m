@@ -38,20 +38,25 @@
 }
 
 - (void)setInProgress:(BOOL)inProgress sender:(NSView *)sender {
-  [self _setInProgress:inProgress subviews:(sender ? sender.subviews : self.subviews)];
+  [self.class _setInProgress:self inProgress:inProgress subviews:(sender ? sender.subviews : self.subviews)];
 }
 
-- (void)_setInProgress:(BOOL)inProgress subviews:(NSArray *)subviews {
++ (void)setInProgress:(BOOL)inProgress view:(NSView *)view {
+  [self.class _setInProgress:view inProgress:inProgress subviews:view.subviews];
+}
+
++ (void)_setInProgress:(NSView *)view inProgress:(BOOL)inProgress subviews:(NSArray *)subviews {
   for (NSView *view in subviews) {
     if ([view isKindOfClass:NSControl.class]) {
       ((NSControl *)view).enabled = !inProgress;
     } else {
-      [self _setInProgress:inProgress subviews:view.subviews];
+      [self _setInProgress:view inProgress:inProgress subviews:view.subviews];
     }
   }
 }
 
 - (void)setProgressIndicatorEnabled:(BOOL)progressIndicatorEnabled {
+  [self setInProgress:progressIndicatorEnabled sender:nil];
   if (progressIndicatorEnabled) {
     if (!_progressView) {
       _progressView = [[KBProgressOverlayView alloc] init];

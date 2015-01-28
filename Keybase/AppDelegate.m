@@ -37,11 +37,11 @@
   _client.delegate = self;
   [_client open];
 
-  GHWeakSelf gself = self;
   [_client registerMethod:@"keybase.1.secretUi.getSecret" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    GHDebug(@"Password prompt: %@", params);
     NSString *prompt = params[0][@"pinentry"][@"prompt"];
     NSString *description = params[0][@"pinentry"][@"desc"];
-    [AppDelegate passwordPrompt:prompt description:description view:gself.windowController.window.contentView completion:^(BOOL canceled, NSString *password) {
+    [AppDelegate passwordPrompt:prompt description:description view:nil completion:^(BOOL canceled, NSString *password) {
       KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
       entry.text = password;
       entry.canceled = canceled;
@@ -92,13 +92,23 @@
   NSTextField *input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
   [alert setAccessoryView:input];
 
-  [alert beginSheetModalForWindow:view.window completionHandler:^(NSModalResponse returnCode) {
+  void (^response)(NSModalResponse returnCode) = ^(NSModalResponse returnCode) {
     if (returnCode == NSAlertFirstButtonReturn) {
       completion(NO, input.stringValue);
     } else {
       completion(YES, nil);
     }
-  }];
+  };
+
+  NSWindow *window = view.window;
+  if (!window) window = [NSApp mainWindow];
+
+  if (window) {
+    [alert beginSheetModalForWindow:window completionHandler:response];
+  } else {
+    NSModalResponse returnCode = [alert runModal];
+    response(returnCode);
+  }
 }
 
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {

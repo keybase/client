@@ -12,7 +12,7 @@
 #import "KBProofResult.h"
 #import "KBProofLabel.h"
 
-@interface KBUserInfoView : KBView
+@interface KBUserInfoView : YONSView
 
 - (void)updateProofResult:(KBProofResult *)proofResult;
 

@@ -31,7 +31,7 @@
   [_items addObject:@{@"name": @"KeyGen", @"block":^{ [AppDelegate.sharedDelegate.catalogController showKeyGen:YES]; }}];
   [_items addObject:@{@"name": @"TwitterConnect", @"block":^{ [AppDelegate.sharedDelegate.catalogController showTwitterConnect:YES]; }}];
   [_items addObject:@{@"name": @"Users", @"block":^{ [self showUsers]; }}];
-  [_items addObject:@{@"name": @"User Profile", @"block":^{ [self showUser]; }}];
+  [_items addObject:@{@"name": @"Tracking", @"block":^{ [self showTracking]; }}];
   [_items addObject:@{@"name": @"Password Prompt", @"block":^{ [gself passwordPrompt]; }}];
 
   _scrollView = [[NSScrollView alloc] init];
@@ -58,7 +58,8 @@
 }
 
 - (void)passwordPrompt {
-  [AppDelegate passwordPrompt:@"Prompt" description:@"Description" view:AppDelegate.sharedDelegate.catalogController.window.contentView completion:^(BOOL canceled, NSString *password) {
+  NSString *description = @"Please enter your Keybase.io login passphrase to unlock the secret key for:\nuser: keybase.io/gbrl27 <gbrl27@keybase.io>\n  4096-bit RSA key, ID 47FFDF4E65C0037F, created 2015-01-27\n\nReason: tracking signature";
+  [AppDelegate passwordPrompt:@"Your key passphrase" description:description view:nil completion:^(BOOL canceled, NSString *password) {
    // Password
   }];
 }
@@ -69,10 +70,10 @@
   [self.navigation pushView:usersView animated:YES];
 }
 
-- (void)showUser {
+- (void)showTracking {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"uid": [@"b7c2eaddcced7727bcb229751d91e800" na_dataFromHexString], @"username": @"gabrielh"} error:nil];
-  [userProfileView setUser:user];
+  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"uid": [@"dbb165b7879fe7b1174df73bed0b9500" na_dataFromHexString], @"username": @"max"} error:nil];
+  [userProfileView setUser:user track:YES];
   [self.navigation pushView:userProfileView animated:YES];
 }
 
