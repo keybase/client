@@ -16,6 +16,7 @@ type NaclKeyGenArg struct {
 	ExpireIn  int        // how long it lasts
 	Primary   GenericKey // the primary key for this epoch
 	LogUI     LogUI
+	Device    *Device
 }
 
 type NaclKeyGen struct {

@@ -20,6 +20,7 @@ func setup(t *testing.T) {
 	}
 	os.Setenv("XDG_CONFIG_HOME", homedir)
 	os.Setenv("XDG_CACHE_HOME", homedir)
+	os.Setenv("XDG_DATA_HOME", homedir)
 	G.Init()
 	if err := G.ConfigureAPI(); err != nil {
 		t.Fatal(err)
@@ -27,6 +28,17 @@ func setup(t *testing.T) {
 	if err := G.ConfigureConfig(); err != nil {
 		t.Fatal(err)
 	}
+	if err := G.ConfigureCaches(); err != nil {
+		t.Fatal(err)
+	}
+	if err := G.ConfigureMerkleClient(); err != nil {
+		t.Fatal(err)
+	}
+	/*
+		if err := G.UI.Configure(); err != nil {
+			t.Fatal(err)
+		}
+	*/
 	rand.Seed(time.Now().UnixNano())
 }
 

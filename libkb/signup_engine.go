@@ -8,6 +8,7 @@ import (
 type SignupEngine struct {
 	pwsalt []byte
 	tspkey TSPassKey
+	uid    UID
 }
 
 func NewSignupEngine() *SignupEngine {
@@ -51,7 +52,10 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
+	fmt.Printf("**** join success\n")
+
 	if err := s.registerDevice(arg.DeviceName); err != nil {
+		fmt.Printf("register device error: %s\n", err)
 		return err
 	}
 
@@ -86,11 +90,16 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 		PWSalt:     s.pwsalt,
 	}
 	res := joinEngine.Run(arg)
-	return res.Error
+	if res.Error != nil {
+		return res.Error
+	}
+	s.uid = *res.Uid
+	return nil
 }
 
 func (s *SignupEngine) registerDevice(deviceName string) error {
-	return nil
+	eng := NewDeviceEngine()
+	return eng.Run(deviceName)
 }
 
 func (s *SignupEngine) genDetKeys() error {
