@@ -17,9 +17,9 @@ const (
 	extraLen   = pwhLen + eddsaLen + dhLen + lksLen
 )
 
-type DetKey [extraLen]byte
+type TSPassKey [extraLen]byte
 
-func NewDetKey(passphrase string, salt []byte) (dk DetKey, err error) {
+func NewTSPassKey(passphrase string, salt []byte) (dk TSPassKey, err error) {
 	tsec, err := triplesec.NewCipher([]byte(passphrase), salt)
 	if err != nil {
 		return dk, err
@@ -35,23 +35,23 @@ func NewDetKey(passphrase string, salt []byte) (dk DetKey, err error) {
 	return dk, nil
 }
 
-func (d DetKey) PWHash() []byte {
+func (d TSPassKey) PWHash() []byte {
 	return d[pwhIndex:eddsaIndex]
 }
 
-func (d DetKey) EdDSASecretKey() []byte {
+func (d TSPassKey) EdDSASeed() []byte {
 	return d[eddsaIndex:dhIndex]
 }
 
-func (d DetKey) DHSecretKey() []byte {
+func (d TSPassKey) DHSeed() []byte {
 	return d[dhIndex:lksIndex]
 }
 
-func (d DetKey) LksClientHalf() []byte {
+func (d TSPassKey) LksClientHalf() []byte {
 	return d[lksIndex:]
 }
 
-func (d DetKey) String() string {
-	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASecretKey(), d.DHSecretKey(), d.LksClientHalf())
+func (d TSPassKey) String() string {
+	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASeed(), d.DHSeed(), d.LksClientHalf())
 	// return hex.EncodeToString(d[:])
 }
