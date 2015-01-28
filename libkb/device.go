@@ -3,10 +3,11 @@ package libkb
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/go-jsonw"
 )
 
 const (
-	DEVICE_ID_LEN    = 32
+	DEVICE_ID_LEN    = 16
 	DEVICE_ID_SUFFIX = 0x18
 )
 
@@ -42,4 +43,33 @@ type DeviceStatus struct {
 	Provisioned  bool
 	Keyed        bool
 	KeyAvailable bool
+}
+
+type Device struct {
+	Id          string  `json:"id"`
+	Type        int     `json:"type"`
+	Kid         *string `json:"kid",omitempty`
+	Description *string `json:"description",omitempty`
+	Status      *int    `json:"status",omitempty`
+}
+
+func ParseDevice(jw *jsonw.Wrapper) (ret *Device, err error) {
+	var obj Device
+	if err = jw.UnmarshalAgain(&obj); err != nil {
+		ret = &obj
+	}
+	return
+}
+
+func (d *Device) Merge(d2 *Device) {
+	d.Type = d2.Type
+	if d2.Kid != nil {
+		d.Kid = d2.Kid
+	}
+	if d2.Description != nil {
+		d.Kid = d2.Kid
+	}
+	if d2.Status != nil {
+		d.Status = d2.Status
+	}
 }

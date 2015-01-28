@@ -66,6 +66,12 @@ type ComputedKeyInfos struct {
 	// Map of a SigId (in Binary) to the ComputedKeyInfo describing when the key was
 	// delegated.
 	Sigs map[string]*ComputedKeyInfo
+
+	// Map of DeviceID (in HEX) to the most current device object
+	Devices map[string]*Device
+
+	// Map of KID -> DeviceID (in Hex)
+	KidToDeviceId map[string]string
 }
 
 // As returned by user/lookup.json
@@ -106,9 +112,11 @@ func (cki *ComputedKeyInfos) Insert(f *FOKID, i *ComputedKeyInfo) {
 
 func (cki ComputedKeyInfos) Copy() *ComputedKeyInfos {
 	ret := &ComputedKeyInfos{
-		dirty: cki.dirty,
-		Infos: make(map[string]*ComputedKeyInfo),
-		Sigs:  make(map[string]*ComputedKeyInfo),
+		dirty:         cki.dirty,
+		Infos:         make(map[string]*ComputedKeyInfo),
+		Sigs:          make(map[string]*ComputedKeyInfo),
+		Devices:       make(map[string]*Device),
+		KidToDeviceId: make(map[string]string),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -126,8 +134,10 @@ func (cki ComputedKeyInfos) Copy() *ComputedKeyInfos {
 func (kf KeyFamily) NewComputedKeyInfos() *ComputedKeyInfos {
 
 	ret := ComputedKeyInfos{
-		Infos: make(map[string]*ComputedKeyInfo),
-		Sigs:  make(map[string]*ComputedKeyInfo),
+		Infos:         make(map[string]*ComputedKeyInfo),
+		Sigs:          make(map[string]*ComputedKeyInfo),
+		Devices:       make(map[string]*Device),
+		KidToDeviceId: make(map[string]string),
 	}
 
 	ret.Insert(kf.eldest, &ComputedKeyInfo{
@@ -367,15 +377,19 @@ func (cki *ComputedKeyInfos) Delegate(kid_s string, tm *KeybaseTime, sigid SigId
 	return
 }
 
+// Revoke examines a TypeChainLink and applies any revocations in the link
+// to the current ComputedKeyInfos.
 func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
-	err = ckf.RevokeSigs(tcl.GetRevocations(), tcl)
+	err = ckf.revokeSigs(tcl.GetRevocations(), tcl)
 	if err == nil {
-		err = ckf.RevokeKids(tcl.GetRevokeKids(), tcl)
+		err = ckf.revokeKids(tcl.GetRevokeKids(), tcl)
 	}
 	return err
 }
 
-func (ckf *ComputedKeyFamily) RevokeSigs(sigs []*SigId, tcl TypedChainLink) (err error) {
+// revokeSigs operates on the per-signature revocations in the given
+// TypedChainLink and applies them accordingly.
+func (ckf *ComputedKeyFamily) revokeSigs(sigs []*SigId, tcl TypedChainLink) (err error) {
 	for _, s := range sigs {
 		if s != nil {
 			if err = ckf.RevokeSig(*s, tcl); err != nil {
@@ -386,7 +400,9 @@ func (ckf *ComputedKeyFamily) RevokeSigs(sigs []*SigId, tcl TypedChainLink) (err
 	return
 }
 
-func (ckf *ComputedKeyFamily) RevokeKids(kids []KID, tcl TypedChainLink) (err error) {
+// revokeKids operates on the per-kid revocations in the given
+// TypedChainLink and applies them accordingly.
+func (ckf *ComputedKeyFamily) revokeKids(kids []KID, tcl TypedChainLink) (err error) {
 	for _, k := range kids {
 		if k != nil {
 			if err = ckf.RevokeKid(k, tcl); err != nil {
@@ -581,4 +597,50 @@ func (ckf ComputedKeyFamily) DumpToLog(ui LogUI) {
 		server_dump(v.key, "SUB")
 		cki_dump(k)
 	}
+}
+
+// UpdateDevices takes the Device object from the given ChainLink
+// and updates keys to reflects any device changes encoded therein.
+func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
+	var dobj *Device
+	if dobj = tcl.GetDevice(); dobj == nil {
+		return
+	}
+
+	did := dobj.Id
+	kid := dobj.Kid
+	var prevKid *string
+
+	if existing, found := ckf.cki.Devices[did]; found {
+		prevKid = existing.Kid
+		existing.Merge(dobj)
+		dobj = existing
+	} else {
+		ckf.cki.Devices[did] = dobj
+	}
+
+	// Clear out the old Key that this device used to refer to.
+	// We might wind up just clobbering it with the same thing, but
+	// that's fine for now.
+	if prevKid != nil && len(*prevKid) > 0 {
+		delete(ckf.cki.KidToDeviceId, *prevKid)
+	}
+
+	if kid != nil && len(*kid) > 0 {
+		ckf.cki.KidToDeviceId[*kid] = did
+	}
+	return
+}
+
+// GetDeviceSibkey gets the current per-device key for the given Device. Will
+// return nil if one isn't found, and set err for a real error. The sibkey should
+// be a signing key, not an encryption key of course.
+func (ckf *ComputedKeyFamily) GetDeviceSibkey(did DeviceId) (key GenericKey, err error) {
+	var kid KID
+	if kidString, found := ckf.cki.KidToDeviceId[did.String()]; !found {
+	} else if kid, err = ImportKID(kidString); err != nil {
+	} else {
+		key, err = ckf.FindActiveSibkey(FOKID{Kid: kid})
+	}
+	return
 }

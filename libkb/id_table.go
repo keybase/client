@@ -33,6 +33,7 @@ type TypedChainLink interface {
 	GetUID() UID
 	GetDelegatedKid() KID
 	GetMerkleSeqno() int
+	GetDevice() *Device
 }
 
 //=========================================================================
@@ -62,7 +63,6 @@ func (b *GenericChainLink) ToDebugString() string {
 func (g *GenericChainLink) GetDelegatedKid() KID    { return nil }
 func (g *GenericChainLink) IsRevocationIsh() bool   { return false }
 func (g *GenericChainLink) IsDelegation() KeyStatus { return DLG_NONE }
-func (g *GenericChainLink) IsSibkey() bool          { return false }
 func (g *GenericChainLink) IsRevoked() bool         { return g.revoked }
 func (g *GenericChainLink) GetSeqno() Seqno         { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPgpFingerprint() *PgpFingerprint {
@@ -82,6 +82,8 @@ func (g *GenericChainLink) GetUID() UID {
 	return g.unpacked.uid
 }
 func (g *GenericChainLink) GetProofState() int { return g.GetProofState0() }
+
+func (g *GenericChainLink) GetDevice() *Device { return nil }
 
 //
 //=========================================================================
@@ -451,16 +453,27 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 
 type SibkeyChainLink struct {
 	GenericChainLink
-	kid KID
+	kid    KID
+	device *Device
 }
 
 func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) {
 	var kid KID
+	var device *Device
+
 	if kid, err = GetKID(b.payloadJson.AtPath("body.sibkey.kid")); err != nil {
 		err = fmt.Errorf("Bad sibkey statement @%s: %s", b.ToDebugString(), err.Error())
-	} else {
-		ret = &SibkeyChainLink{b, kid}
+		return
 	}
+
+	if jw := b.payloadJson.AtPath("body.sibkey.device"); !jw.IsNil() {
+		if device, err = ParseDevice(jw); err != nil {
+			return
+		}
+	}
+
+	ret = &SibkeyChainLink{b, kid, device}
+
 	return
 
 }
@@ -469,6 +482,7 @@ func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 func (s *SibkeyChainLink) IsDelegation() KeyStatus { return DLG_SIBKEY }
 func (s *SibkeyChainLink) Type() string            { return "sibkey" }
 func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.String() }
+func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
 
 //
 //=========================================================================
@@ -496,6 +510,23 @@ func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 
 //
 //=========================================================================
+//
+
+type DeviceChainLink struct {
+	GenericChainLink
+	device *Device
+}
+
+func ParseDeviceChainLink(b GenericChainLink) (ret *DeviceChainLink, err error) {
+	var dobj *Device
+	if dobj, err = ParseDevice(b.payloadJson.AtPath("body.device")); err != nil {
+	} else {
+		ret = &DeviceChainLink{b, dobj}
+	}
+	return
+}
+
+func (s *DeviceChainLink) GetDevice() *Device { return s.device }
 
 //=========================================================================
 // UntrackChainLink
@@ -744,6 +775,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseSibkeyChainLink(base)
 		case "subkey":
 			ret, err = ParseSubkeyChainLink(base)
+		case "device":
+			ret, err = ParseDeviceChainLink(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}

@@ -341,6 +341,10 @@ func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *Compute
 			return
 		}
 
+		if err = ckf.UpdateDevices(tcl); err != nil {
+			return
+		}
+
 		if prev_fokid != nil && !prev_fokid.Eq(new_fokid) {
 			_, err = prev.VerifySigWithKeyFamily(ckf)
 		}
