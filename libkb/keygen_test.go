@@ -51,6 +51,7 @@ var cidTests = []cidTest{
 
 func TestCreateIds(t *testing.T) {
 	os.Setenv("KEYBASE_USERNAME", "foo")
+	os.Setenv("KEYBASE_SERVER_UI", "http://localhost:3000")
 	G.Init()
 	for _, test := range cidTests {
 		arg := &KeyGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUidArg, NoDefPGPUid: test.noDefArg}

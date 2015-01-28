@@ -45,9 +45,9 @@ var dktests = []dktest{
 	},
 }
 
-func TestDetKey(t *testing.T) {
+func TestTSPassKey(t *testing.T) {
 	for _, test := range dktests {
-		dk, err := NewDetKey(test.passphrase, []byte(test.salt))
+		dk, err := NewTSPassKey(test.passphrase, []byte(test.salt))
 		if err != nil {
 			t.Errorf("%s: got unexpected error: %s", test.name, err)
 			continue
@@ -55,11 +55,11 @@ func TestDetKey(t *testing.T) {
 		if hex.EncodeToString(dk.PWHash()) != test.pwh {
 			t.Errorf("%s: pwh = %x, expected %q", test.name, dk.PWHash(), test.pwh)
 		}
-		if hex.EncodeToString(dk.EdDSASecretKey()) != test.ekey {
-			t.Errorf("%s: eddsa = %x, expected %q", test.name, dk.EdDSASecretKey(), test.ekey)
+		if hex.EncodeToString(dk.EdDSASeed()) != test.ekey {
+			t.Errorf("%s: eddsa = %x, expected %q", test.name, dk.EdDSASeed(), test.ekey)
 		}
-		if hex.EncodeToString(dk.DHSecretKey()) != test.dkey {
-			t.Errorf("%s: dh = %x, expected %q", test.name, dk.DHSecretKey(), test.dkey)
+		if hex.EncodeToString(dk.DHSeed()) != test.dkey {
+			t.Errorf("%s: dh = %x, expected %q", test.name, dk.DHSeed(), test.dkey)
 		}
 		if hex.EncodeToString(dk.LksClientHalf()) != test.lkey {
 			t.Errorf("%s: lks = %x, expected %q", test.name, dk.LksClientHalf(), test.lkey)

@@ -124,6 +124,7 @@ func (s *CmdSignupJoinState) Prompt() (err error) {
 	return
 }
 
+/*
 type PromptFields struct {
 	email, code, username, passphraseRetry *Field
 }
@@ -131,6 +132,7 @@ type PromptFields struct {
 func (pf PromptFields) ToList() []*Field {
 	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry}
 }
+*/
 
 type SignupJoinEngine interface {
 	CheckRegistered() error
@@ -139,58 +141,9 @@ type SignupJoinEngine interface {
 	Init() error
 }
 
-type RemoteSignupJoinEngine struct {
-	scli keybase_1.SignupClient
-	ccli keybase_1.ConfigClient
-}
-
-func (e *RemoteSignupJoinEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ RemoteSignupJoinEngine::CheckRegistered")
-	var rres keybase_1.GetCurrentStatusRes
-	if rres, err = e.ccli.GetCurrentStatus(); err != nil {
-	} else if rres.Registered {
-		err = libkb.AlreadyRegisteredError{}
-	}
-	G.Log.Debug("- RemoteSignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
-	return
-}
-
-func (e *RemoteSignupJoinEngine) Init() (err error) {
-	e.scli, err = GetSignupClient()
-	if err == nil {
-		e.ccli, err = GetConfigClient()
-	}
-	return
-}
-
-func (e *RemoteSignupJoinEngine) Run(arg libkb.SignupJoinEngineRunArg) (res libkb.SignupJoinEngineRunRes) {
-	rarg := keybase_1.SignupArg{
-		Username:   arg.Username,
-		Email:      arg.Email,
-		InviteCode: arg.InviteCode,
-		Passphrase: arg.Passphrase,
-	}
-	rres, err := e.scli.Signup(rarg)
-	if res.Error = err; err == nil {
-		res.PassphraseOk = rres.PassphraseOk
-		res.PostOk = rres.PostOk
-		res.WriteOk = rres.WriteOk
-	}
-	return
-}
-
-func (e *RemoteSignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
-	rarg := keybase_1.InviteRequestArg{
-		Email:    arg.Email,
-		Fullname: arg.Fullname,
-		Notes:    arg.Notes,
-	}
-	err = e.scli.InviteRequest(rarg)
-	return
-}
-
 func (s *CmdSignupJoinState) RunClient() error {
-	s.engine = &RemoteSignupJoinEngine{}
+	// XXX
+	//s.engine = &RemoteSignupJoinEngine{}
 	return s.run()
 }
 
@@ -215,21 +168,23 @@ func (s *CmdSignupJoinState) run() error {
 }
 
 func (s *CmdSignupJoinState) RunEngine() (retry bool, err error) {
-	arg := libkb.SignupJoinEngineRunArg{
-		Username:   s.fields.username.GetValue(),
-		Email:      s.fields.email.GetValue(),
-		InviteCode: s.fields.code.GetValue(),
-		Passphrase: s.passphrase,
-	}
-	res := s.engine.Run(arg)
-	if res.PassphraseOk {
-		s.fields.passphraseRetry.Disabled = false
-	}
-	if !res.PostOk {
-		retry, err = s.HandlePostError(res.Error)
-	} else {
-		err = res.Error
-	}
+	/*
+		arg := libkb.SignupJoinEngineRunArg{
+			Username:   s.fields.username.GetValue(),
+			Email:      s.fields.email.GetValue(),
+			InviteCode: s.fields.code.GetValue(),
+			Passphrase: s.passphrase,
+		}
+		res := s.engine.Run(arg)
+		if res.PassphraseOk {
+			s.fields.passphraseRetry.Disabled = false
+		}
+		if !res.PostOk {
+			retry, err = s.HandlePostError(res.Error)
+		} else {
+			err = res.Error
+		}
+	*/
 	return
 }
 

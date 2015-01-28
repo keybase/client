@@ -8,8 +8,8 @@ import (
 
 type SignupJoinEngine struct {
 	signupState *SignupState
-	salt        []byte
-	pwh         []byte
+	// salt        []byte
+	// pwh         []byte
 
 	uid            UID
 	session        string
@@ -56,6 +56,7 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	return err
 }
 
+/*
 func (s *SignupJoinEngine) GenTSPassKey(p string) error {
 	G.Log.Debug("+ GenTSPassKey")
 	defer G.Log.Debug("- GenTSPassKey")
@@ -78,21 +79,28 @@ func (s *SignupJoinEngine) GenTSPassKey(p string) error {
 
 	return nil
 }
+*/
 
 type SignupJoinEngineRunArg struct {
 	Username   string
 	Email      string
 	InviteCode string
-	Passphrase string
+	// Passphrase string
+	PWHash []byte
+	PWSalt []byte
 }
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
+	G.Log.Info("signupjoinengine post: G = %v", G)
+	G.Log.Info("signupjoinengine post: G.API = %v", G.API)
 	var res *ApiRes
 	res, err = G.API.Post(ApiArg{
 		Endpoint: "signup",
 		Args: HttpArgs{
-			"salt":          S{hex.EncodeToString(s.salt)},
-			"pwh":           S{hex.EncodeToString(s.pwh)},
+			// "salt":          S{hex.EncodeToString(s.salt)},
+			"salt": S{hex.EncodeToString(arg.PWSalt)},
+			// "pwh":           S{hex.EncodeToString(s.pwh)},
+			"pwh":           S{hex.EncodeToString(arg.PWHash)},
 			"username":      S{arg.Username},
 			"email":         S{arg.Email},
 			"invitation_id": S{arg.InviteCode},
@@ -116,16 +124,18 @@ type SignupJoinEngineRunRes struct {
 }
 
 func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
-	if res.Error = s.GenTSPassKey(arg.Passphrase); res.Error != nil {
-		return
-	}
+	/*
+		if res.Error = s.GenTSPassKey(arg.Passphrase); res.Error != nil {
+			return
+		}
+	*/
 	res.PassphraseOk = true
 
 	if res.Error = s.Post(arg); res.Error != nil {
 		return
 	}
 	res.PostOk = true
-	if res.Error = s.WriteOut(); res.Error != nil {
+	if res.Error = s.WriteOut(arg.PWSalt); res.Error != nil {
 		return
 	}
 	res.WriteOk = true
@@ -133,14 +143,14 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 	return
 }
 
-func (s *SignupJoinEngine) WriteConfig() error {
+func (s *SignupJoinEngine) WriteConfig(salt []byte) error {
 	cw := G.Env.GetConfigWriter()
 	if cw == nil {
 		return fmt.Errorf("No configuration writer available")
 	}
 	cw.SetUsername(s.username)
 	cw.SetUid(s.uid)
-	cw.SetSalt(s.salt)
+	cw.SetSalt(salt)
 	return cw.Write()
 }
 
@@ -165,8 +175,8 @@ func (s *SignupJoinEngine) WriteSession() error {
 	return sw.Write()
 }
 
-func (s *SignupJoinEngine) WriteOut() (err error) {
-	err = s.WriteConfig()
+func (s *SignupJoinEngine) WriteOut(salt []byte) (err error) {
+	err = s.WriteConfig(salt)
 	if err == nil {
 		err = s.WriteSession()
 	}
