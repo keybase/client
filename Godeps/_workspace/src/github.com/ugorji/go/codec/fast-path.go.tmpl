@@ -225,7 +225,7 @@ Slices can change if they
 - are settable (e.g. contained in an interface{})
 */}}
 func (f decFnInfo) {{ .MethodNamePfx "fastpathDec" false }}R(rv reflect.Value) { 
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported 
 		vp := rv.Addr().Interface().(*[]{{ .Elem }})
 		v, changed := fastpathTV.{{ .MethodNamePfx "Dec" false }}V(*vp, fastpathCheckNilFalse, !array, f.d)

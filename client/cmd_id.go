@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
@@ -9,7 +10,7 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-type CmdId struct {
+type CmdID struct {
 	user      string
 	uid       *libkb.UID
 	assertion string
@@ -18,15 +19,15 @@ type CmdId struct {
 	loadSelf  bool
 }
 
-func (v *CmdId) ParseArgv(ctx *cli.Context) error {
+func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 	v.track = ctx.Bool("track-statement")
 	v.luba = ctx.Bool("luba")
 	v.loadSelf = ctx.Bool("load-self")
-	byUid := ctx.Bool("uid")
+	byUID := ctx.Bool("uid")
 	if nargs == 1 {
-		if byUid {
+		if byUID {
 			v.uid, err = libkb.UidFromHex(ctx.Args()[0])
 		} else {
 			v.user = ctx.Args()[0]
@@ -37,7 +38,7 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdId) makeArg() *libkb.IdentifyArgPrime {
+func (v *CmdID) makeArg() *libkb.IdentifyArgPrime {
 	return &libkb.IdentifyArgPrime{
 		Uid:            v.uid,
 		User:           v.user,
@@ -47,7 +48,7 @@ func (v *CmdId) makeArg() *libkb.IdentifyArgPrime {
 	}
 }
 
-func (v *CmdId) RunClient() (err error) {
+func (v *CmdID) RunClient() (err error) {
 	var cli keybase_1.IdentifyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
@@ -62,14 +63,14 @@ func (v *CmdId) RunClient() (err error) {
 	return
 }
 
-func (v *CmdId) Run() error {
+func (v *CmdID) Run() error {
 	arg := v.makeArg()
 	eng := libkb.NewIdentifyEng(arg, nil)
 	_, err := eng.Run()
 	return err
 }
 
-func NewCmdId(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdID(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "id",
 		Usage:       "keybase id <username>",
@@ -97,12 +98,12 @@ func NewCmdId(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdId{}, "id", c)
+			cl.ChooseCommand(&CmdID{}, "id", c)
 		},
 	}
 }
 
-func (v *CmdId) GetUsage() libkb.Usage {
+func (v *CmdID) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: false,

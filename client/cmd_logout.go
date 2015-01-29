@@ -40,4 +40,4 @@ func (v *CmdLogout) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdLogout) ParseArgv(*cli.Context) error { return nil }
+func (v *CmdLogout) ParseArgv(*cli.Context) error { return nil }

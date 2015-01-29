@@ -30,7 +30,7 @@ type CmdMykeyShow struct{}
 func (d *CmdMykeyShow) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if nargs != 0 {
-		err = BadArgsError{"show doesn't take arguments"}
+		err = BadArgsError("show doesn't take arguments")
 	}
 	return err
 }

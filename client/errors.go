@@ -1,67 +1,37 @@
 package main
 
-type NoTerminalError struct{}
+import "errors"
 
-func (e NoTerminalError) Error() string {
-	return "No Terminal available"
-}
+var (
+	NoTerminalError           = errors.New("No Terminal available")
+	InputCanceledError        = errors.New("Input canceled")
+	NotConfirmedError         = errors.New("Not confirmed")
+	CleanCancelError          = errors.New("clean cancel")
+	ProofNotYetAvailableError = errors.New("Proof wasn't available; we'll keep trying")
+)
 
-type InputCanceledError struct{}
-
-func (e InputCanceledError) Error() string {
-	return "Input canceled"
-}
-
-type NotConfirmedError struct{}
-
-func (e NotConfirmedError) Error() string {
-	return "Not confirmed"
-}
-
-type BadArgsError struct {
-	msg string
-}
+type BadArgsError string
 
 func (e BadArgsError) Error() string {
-	return "bad command-line arguments: " + e.msg
+	return "bad command-line arguments: " + string(e)
 }
 
-type CleanCancelError struct{}
+type CanceledError string
 
-func (e CleanCancelError) Error() string {
-	return "clean cancel"
-}
-
-type CanceledError struct {
-	msg string
-}
-
-type BadServiceError struct {
-	n string
-}
+type BadServiceError string
 
 func (e BadServiceError) Error() string {
-	return e.n + ": unsupported service"
+	return string(e) + ": unsupported service"
 }
 
-type BadUsernameError struct {
-	n string
-}
+type BadUsernameError string
 
 func (e BadUsernameError) Error() string {
-	return "Bad username: '" + e.n + "'"
+	return "Bad username: '" + string(e) + "'"
 }
 
-type InternalError struct {
-	m string
-}
+type InternalError string
 
 func (e InternalError) Error() string {
-	return "Internal error: " + e.m
-}
-
-type ProofNotYetAvailableError struct{}
-
-func (e ProofNotYetAvailableError) Error() string {
-	return "Proof wasn't available; we'll keep trying"
+	return "Internal error: " + string(e)
 }

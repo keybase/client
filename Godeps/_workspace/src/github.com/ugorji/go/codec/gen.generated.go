@@ -55,29 +55,34 @@ r.ReadMapEnd()
 `
 
 const genDecListTmpl = `
-const {{var "Arr"}} bool = {{ .Array }}
 {{var "v"}} := *{{ .Varname }}
 {{var "h"}}, {{var "l"}} := z.DecSliceHelperStart()
 
 var {{var "c"}} bool 
-{{ if not .Array }}if {{var "v"}} == nil {
+{{ if not isArray }}if {{var "v"}} == nil {
 	if {{var "l"}} <= 0 {
-		{{var "v"}} = []{{ .Typ }}{}
+        {{var "v"}} = make({{ .CTyp }}, 0)
 	} else {
-		{{var "v"}} = make([]{{ .Typ }}, {{var "l"}}, {{var "l"}})
+		{{var "v"}} = make({{ .CTyp }}, {{var "l"}})
 	}
 	{{var "c"}} = true 
 } 
 {{ end }}
-if {{var "l"}} == 0 { {{ if not .Array }}
+if {{var "l"}} == 0 { {{ if isSlice }}
 	if len({{var "v"}}) != 0 { 
 		{{var "v"}} = {{var "v"}}[:0] 
 		{{var "c"}} = true 
 	} {{ end }}
 } else if {{var "l"}} > 0 {
+	{{ if isChan }}
+	for {{var "r"}} := 0; {{var "r"}} < {{var "l"}}; {{var "r"}}++ {
+		var {{var "t"}} {{ .Typ }}
+		{{ $x := printf "%st%s" .TempVar .Rand }}{{ decLineVar $x }}
+		{{var "v"}} <- {{var "t"}} 
+	{{ else }} 
 	{{var "n"}} := {{var "l"}} 
 	if {{var "l"}} > cap({{var "v"}}) {
-		{{ if .Array }}r.ReadArrayCannotExpand(len({{var "v"}}), {{var "l"}})
+		{{ if isArray }}r.ReadArrayCannotExpand(len({{var "v"}}), {{var "l"}})
 		{{var "n"}} = len({{var "v"}})
 		{{ else }}{{ if .Immutable }}
 		{{var "v2"}} := {{var "v"}}
@@ -95,30 +100,32 @@ if {{var "l"}} == 0 { {{ if not .Array }}
 	{{var "j"}} := 0
 	for ; {{var "j"}} < {{var "n"}} ; {{var "j"}}++ {
 		{{ $x := printf "%[1]vv%[2]v[%[1]vj%[2]v]" .TempVar .Rand }}{{ decLineVar $x }}
-	} {{ if .Array }}
+	} {{ if isArray }}
 	for ; {{var "j"}} < {{var "l"}} ; {{var "j"}}++ {
 		z.DecSwallow()
 	}{{ end }}
+	{{ end }}{{/* closing if not chan */}}
 } else {
 	for {{var "j"}} := 0; !r.CheckBreak(); {{var "j"}}++ {
 		if {{var "j"}} >= len({{var "v"}}) {
-			{{ if .Array }}r.ReadArrayCannotExpand(len({{var "v"}}), {{var "j"}}+1)
-			{{ else }}{{var "v"}} = append({{var "v"}}, {{zero}})// var {{var "z"}} {{ .Typ }}
+			{{ if isArray }}r.ReadArrayCannotExpand(len({{var "v"}}), {{var "j"}}+1)
+			{{ else if isSlice}}{{var "v"}} = append({{var "v"}}, {{zero}})// var {{var "z"}} {{ .Typ }}
 			{{var "c"}} = true {{ end }}
 		}
 		if {{var "j"}} > 0 {
 			{{var "h"}}.Sep({{var "j"}})
 		}
+		{{ if isChan}}
+		var {{var "t"}} {{ .Typ }}
+		{{ $x := printf "%st%s" .TempVar .Rand }}{{ decLineVar $x }}
+		{{var "v"}} <- {{var "t"}} 
+		{{ else }}
 		if {{var "j"}} < len({{var "v"}}) {
-			{{/* .TempVar }}t{{ .Rand }} := &{{var "v"}}[{{var "j"}}]{{ decLine "t" }} 
-			*/}}{{ $x := printf "%[1]vv%[2]v[%[1]vj%[2]v]" .TempVar .Rand }}{{ decLineVar $x }}
+			{{ $x := printf "%[1]vv%[2]v[%[1]vj%[2]v]" .TempVar .Rand }}{{ decLineVar $x }}
 		} else {
-			{{/* 
-			var {{var "z"}} {{ .Typ }}
-				{{var "t"}} := &{{var "z"}}{{ decLine "t" }}
-			{{ $x := printf "%vz%v" .TempVar .Rand }}{{ decLineVar $x }} 
-			*/}}z.DecSwallow()
+			z.DecSwallow()
 		}
+		{{ end }}
 	}
 	{{var "h"}}.End()
 }

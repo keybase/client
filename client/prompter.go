@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/keybase/go/libkb"
 	"strings"
+
+	"github.com/keybase/go/libkb"
 )
 
 type Field struct {
@@ -58,7 +59,7 @@ func (p *Prompter) ReadField(f *Field) (err error) {
 
 	term := G_UI.Terminal
 	if term == nil {
-		return NoTerminalError{}
+		return NoTerminalError
 	}
 
 	for !done && err == nil {

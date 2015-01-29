@@ -49,8 +49,8 @@ type noopDrv struct {
 func (h *noopDrv) r(v int) int { return h.rand.Intn(v) }
 func (h *noopDrv) m(v int) int { h.i++; return h.i % v }
 
-func (h *noopDrv) newEncDriver(w encWriter) encDriver { return h }
-func (h *noopDrv) newDecDriver(r decReader) decDriver { return h }
+func (h *noopDrv) newEncDriver(_ *Encoder) encDriver { return h }
+func (h *noopDrv) newDecDriver(_ *Decoder) decDriver { return h }
 
 // --- encDriver
 
@@ -120,11 +120,11 @@ func (h *noopDrv) TryDecodeAsNil() bool {
 		return h.m(8) == 0
 	}
 }
-func (h *noopDrv) DecodeExt(rv interface{}, xtag uint64, ext Ext, d *Decoder) uint64 {
+func (h *noopDrv) DecodeExt(rv interface{}, xtag uint64, ext Ext) uint64 {
 	return 0
 }
 
-func (h *noopDrv) DecodeNaked(d *Decoder) (v interface{}, vt valueType, decodeFurther bool) {
+func (h *noopDrv) DecodeNaked() (v interface{}, vt valueType, decodeFurther bool) {
 	// use h.r (random) not h.m() because h.m() could cause the same value to be given.
 	var sk int
 	if h.mk {

@@ -32,18 +32,24 @@ type Text struct {
 	Markup bool   `codec:"markup"`
 }
 
-type UserInfo struct {
-	Uid      string `codec:"uid"`
+type PgpIdentity struct {
+	Username string `codec:"username"`
+	Comment  string `codec:"comment"`
+	Email    string `codec:"email"`
+}
+
+type User struct {
+	Uid      UID    `codec:"uid"`
 	Username string `codec:"username"`
 }
 
 type GetCurrentStatusRes struct {
-	Configured        bool      `codec:"configured"`
-	Registered        bool      `codec:"registered"`
-	LoggedIn          bool      `codec:"loggedIn"`
-	PublicKeySelected bool      `codec:"publicKeySelected"`
-	HasPrivateKey     bool      `codec:"hasPrivateKey"`
-	User              *UserInfo `codec:"user,omitempty"`
+	Configured        bool  `codec:"configured"`
+	Registered        bool  `codec:"registered"`
+	LoggedIn          bool  `codec:"loggedIn"`
+	PublicKeySelected bool  `codec:"publicKeySelected"`
+	HasPrivateKey     bool  `codec:"hasPrivateKey"`
+	User              *User `codec:"user,omitempty"`
 }
 
 type GetCurrentStatusArg struct {
@@ -78,21 +84,6 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	return
 }
 
-type IdentifyInterface interface {
-}
-
-func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name:    "keybase.1.identify",
-		Methods: map[string]rpc2.ServeHook{},
-	}
-
-}
-
-type IdentifyClient struct {
-	Cli GenericClient
-}
-
 type TrackDiffType int
 
 const (
@@ -112,6 +103,84 @@ type TrackDiff struct {
 	DisplayMarkup string        `codec:"displayMarkup"`
 }
 
+type TrackSummary struct {
+	Time     int  `codec:"time"`
+	IsRemote bool `codec:"isRemote"`
+}
+
+type IdentifyOutcome struct {
+	Status            *Status       `codec:"status,omitempty"`
+	Warnings          []string      `codec:"warnings"`
+	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty"`
+	NumTrackFailures  int           `codec:"numTrackFailures"`
+	NumTrackChanges   int           `codec:"numTrackChanges"`
+	NumProofFailures  int           `codec:"numProofFailures"`
+	NumDeleted        int           `codec:"numDeleted"`
+	NumProofSuccesses int           `codec:"numProofSuccesses"`
+	Deleted           []TrackDiff   `codec:"deleted"`
+}
+
+type IdentifyRes struct {
+	User    *User           `codec:"user,omitempty"`
+	Outcome IdentifyOutcome `codec:"outcome"`
+}
+
+type IdentifyArg struct {
+	Uid            UID    `codec:"uid"`
+	Username       string `codec:"username"`
+	TrackStatement bool   `codec:"trackStatement"`
+	Luba           bool   `codec:"luba"`
+	LoadSelf       bool   `codec:"loadSelf"`
+}
+
+type IdentifyDefaultArg struct {
+	Username string `codec:"username"`
+}
+
+type IdentifyInterface interface {
+	Identify(IdentifyArg) (IdentifyRes, error)
+	IdentifyDefault(string) (IdentifyRes, error)
+}
+
+func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.identify",
+		Methods: map[string]rpc2.ServeHook{
+			"identify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]IdentifyArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Identify(args[0])
+				}
+				return
+			},
+			"identifyDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]IdentifyDefaultArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.IdentifyDefault(args[0].Username)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type IdentifyClient struct {
+	Cli GenericClient
+}
+
+func (c IdentifyClient) Identify(__arg IdentifyArg) (res IdentifyRes, err error) {
+	err = c.Cli.Call("keybase.1.identify.identify", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) IdentifyDefault(username string) (res IdentifyRes, err error) {
+	__arg := IdentifyDefaultArg{Username: username}
+	err = c.Cli.Call("keybase.1.identify.identifyDefault", []interface{}{__arg}, &res)
+	return
+}
+
+type SIGID [32]byte
 type ProofStatus struct {
 	State  int    `codec:"state"`
 	Status int    `codec:"status"`
@@ -123,6 +192,8 @@ type RemoteProof struct {
 	Key           string `codec:"key"`
 	Value         string `codec:"value"`
 	DisplayMarkup string `codec:"displayMarkup"`
+	SigId         SIGID  `codec:"sigId"`
+	Mtime         int    `codec:"mtime"`
 }
 
 type IdentifyRow struct {
@@ -174,23 +245,6 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty"`
 }
 
-type TrackSummary struct {
-	Time     int  `codec:"time"`
-	IsRemote bool `codec:"isRemote"`
-}
-
-type IdentifyOutcome struct {
-	Status            *Status       `codec:"status,omitempty"`
-	Warnings          []string      `codec:"warnings"`
-	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty"`
-	NumTrackFailures  int           `codec:"numTrackFailures"`
-	NumTrackChanges   int           `codec:"numTrackChanges"`
-	NumProofFailures  int           `codec:"numProofFailures"`
-	NumDeleted        int           `codec:"numDeleted"`
-	NumProofSuccesses int           `codec:"numProofSuccesses"`
-	Deleted           []TrackDiff   `codec:"deleted"`
-}
-
 type FinishAndPromptRes struct {
 	TrackLocal  bool `codec:"trackLocal"`
 	TrackRemote bool `codec:"trackRemote"`
@@ -234,6 +288,11 @@ type LaunchNetworkChecksArg struct {
 	Id        Identity `codec:"id"`
 }
 
+type DisplayTrackStatementArg struct {
+	SessionId int    `codec:"sessionId"`
+	Stmt      string `codec:"stmt"`
+}
+
 type IdentifyUiInterface interface {
 	FinishAndPrompt(FinishAndPromptArg) (FinishAndPromptRes, error)
 	FinishWebProofCheck(FinishWebProofCheckArg) error
@@ -242,6 +301,7 @@ type IdentifyUiInterface interface {
 	DisplayKey(DisplayKeyArg) error
 	ReportLastTrack(ReportLastTrackArg) error
 	LaunchNetworkChecks(LaunchNetworkChecksArg) error
+	DisplayTrackStatement(DisplayTrackStatementArg) error
 }
 
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
@@ -297,6 +357,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"displayTrackStatement": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayTrackStatementArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayTrackStatement(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -338,6 +405,11 @@ func (c IdentifyUiClient) ReportLastTrack(__arg ReportLastTrackArg) (err error) 
 
 func (c IdentifyUiClient) LaunchNetworkChecks(__arg LaunchNetworkChecksArg) (err error) {
 	err = c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
 	return
 }
 
@@ -473,12 +545,6 @@ func (c LoginClient) SwitchUser(username string) (err error) {
 	return
 }
 
-type PgpIdentity struct {
-	Username string `codec:"username"`
-	Comment  string `codec:"comment"`
-	Email    string `codec:"email"`
-}
-
 type GetEmailOrUsernameArg struct {
 }
 
@@ -511,10 +577,15 @@ func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
 	return
 }
 
+type PgpCreateUids struct {
+	UseDefault bool          `codec:"useDefault"`
+	Ids        []PgpIdentity `codec:"ids"`
+}
+
 type KeyGenArg struct {
 	PrimaryBits  int           `codec:"primaryBits"`
 	SubkeyBits   int           `codec:"subkeyBits"`
-	Ids          []PgpIdentity `codec:"ids"`
+	CreateUids   PgpCreateUids `codec:"createUids"`
 	NoPassphrase bool          `codec:"noPassphrase"`
 	KbPassphrase bool          `codec:"kbPassphrase"`
 	NoNaclEddsa  bool          `codec:"noNaclEddsa"`
@@ -523,7 +594,7 @@ type KeyGenArg struct {
 }
 
 type KeyGenDefaultArg struct {
-	Ids        []PgpIdentity `codec:"ids"`
+	CreateUids PgpCreateUids `codec:"createUids"`
 	PushPublic bool          `codec:"pushPublic"`
 	PushSecret bool          `codec:"pushSecret"`
 	Passphrase string        `codec:"passphrase"`
@@ -532,10 +603,14 @@ type KeyGenDefaultArg struct {
 type DeletePrimaryArg struct {
 }
 
+type ShowArg struct {
+}
+
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
 	KeyGenDefault(KeyGenDefaultArg) error
 	DeletePrimary() error
+	Show() error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -563,6 +638,13 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"show": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ShowArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Show()
+				}
+				return
+			},
 		},
 	}
 
@@ -584,6 +666,11 @@ func (c MykeyClient) KeyGenDefault(__arg KeyGenDefaultArg) (err error) {
 
 func (c MykeyClient) DeletePrimary() (err error) {
 	err = c.Cli.Call("keybase.1.mykey.deletePrimary", []interface{}{DeletePrimaryArg{}}, nil)
+	return
+}
+
+func (c MykeyClient) Show() (err error) {
+	err = c.Cli.Call("keybase.1.mykey.show", []interface{}{ShowArg{}}, nil)
 	return
 }
 
@@ -659,14 +746,17 @@ func (c ProveClient) Prove(__arg ProveArg) (err error) {
 	return
 }
 
-type PromptOverwrite1Arg struct {
-	SessionId int    `codec:"sessionId"`
-	Account   string `codec:"account"`
-}
+type PromptOverwriteType int
 
-type PromptOverwrite2Arg struct {
-	SessionId int    `codec:"sessionId"`
-	Service   string `codec:"service"`
+const (
+	PromptOverwriteType_SOCIAL = 0
+	PromptOverwriteType_SITE   = 1
+)
+
+type PromptOverwriteArg struct {
+	SessionId int                 `codec:"sessionId"`
+	Account   string              `codec:"account"`
+	Typ       PromptOverwriteType `codec:"typ"`
 }
 
 type PromptUsernameArg struct {
@@ -703,8 +793,7 @@ type DisplayRecheckWarningArg struct {
 }
 
 type ProveUiInterface interface {
-	PromptOverwrite1(PromptOverwrite1Arg) (bool, error)
-	PromptOverwrite2(PromptOverwrite2Arg) (bool, error)
+	PromptOverwrite(PromptOverwriteArg) (bool, error)
 	PromptUsername(PromptUsernameArg) (string, error)
 	OutputPrechecks(OutputPrechecksArg) error
 	PreProofWarning(PreProofWarningArg) (bool, error)
@@ -717,17 +806,10 @@ func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.proveUi",
 		Methods: map[string]rpc2.ServeHook{
-			"promptOverwrite1": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptOverwrite1Arg, 1)
+			"promptOverwrite": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PromptOverwriteArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptOverwrite1(args[0])
-				}
-				return
-			},
-			"promptOverwrite2": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptOverwrite2Arg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PromptOverwrite2(args[0])
+					ret, err = i.PromptOverwrite(args[0])
 				}
 				return
 			},
@@ -782,13 +864,8 @@ type ProveUiClient struct {
 	Cli GenericClient
 }
 
-func (c ProveUiClient) PromptOverwrite1(__arg PromptOverwrite1Arg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite1", []interface{}{__arg}, &res)
-	return
-}
-
-func (c ProveUiClient) PromptOverwrite2(__arg PromptOverwrite2Arg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite2", []interface{}{__arg}, &res)
+func (c ProveUiClient) PromptOverwrite(__arg PromptOverwriteArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res)
 	return
 }
 
@@ -907,6 +984,43 @@ func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res
 	return
 }
 
+type Session struct {
+	Uid      UID    `codec:"uid"`
+	Username string `codec:"username"`
+}
+
+type CurrentSessionArg struct {
+}
+
+type SessionInterface interface {
+	CurrentSession() (Session, error)
+}
+
+func SessionProtocol(i SessionInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.session",
+		Methods: map[string]rpc2.ServeHook{
+			"currentSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CurrentSessionArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.CurrentSession()
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type SessionClient struct {
+	Cli GenericClient
+}
+
+func (c SessionClient) CurrentSession() (res Session, err error) {
+	err = c.Cli.Call("keybase.1.session.currentSession", []interface{}{CurrentSessionArg{}}, &res)
+	return
+}
+
 type SignupRes struct {
 	PassphraseOk bool `codec:"passphraseOk"`
 	PostOk       bool `codec:"postOk"`
@@ -983,6 +1097,40 @@ func (c SignupClient) Signup(__arg SignupArg) (res SignupRes, err error) {
 
 func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
 	err = c.Cli.Call("keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
+	return
+}
+
+type TrackArg struct {
+	TheirName string `codec:"theirName"`
+}
+
+type TrackInterface interface {
+	Track(string) error
+}
+
+func TrackProtocol(i TrackInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.track",
+		Methods: map[string]rpc2.ServeHook{
+			"track": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TrackArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Track(args[0].TheirName)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type TrackClient struct {
+	Cli GenericClient
+}
+
+func (c TrackClient) Track(theirName string) (err error) {
+	__arg := TrackArg{TheirName: theirName}
+	err = c.Cli.Call("keybase.1.track.track", []interface{}{__arg}, nil)
 	return
 }
 

@@ -3,12 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/keybase/go/libcmdline"
-	"github.com/keybase/go/libkb"
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/codegangsta/cli"
+	"github.com/keybase/go/libcmdline"
+	"github.com/keybase/go/libkb"
 )
 
 type CmdConfig struct {
@@ -29,15 +30,15 @@ func (v *CmdConfig) ParseArgv(ctx *cli.Context) error {
 	if !v.location && !v.reset &&
 		nargs != 1 && nargs != 2 {
 		return errors.New("incorrect config usage")
-	} else {
-		if nargs > 0 {
-			v.key = ctx.Args()[0]
-		}
-		if nargs > 1 {
-			v.value = ctx.Args()[1]
-			// distinguish between no value and an empty string
-			v.valueSet = true
-		}
+	}
+
+	if nargs > 0 {
+		v.key = ctx.Args()[0]
+	}
+	if nargs > 1 {
+		v.value = ctx.Args()[1]
+		// distinguish between no value and an empty string
+		v.valueSet = true
 	}
 
 	if v.clear && (v.key == "" || v.valueSet) {
@@ -98,13 +99,13 @@ func (v *CmdConfig) Run() error {
 		} else {
 			cr := G.Env.GetConfig()
 			// TODO: print dictionaries?
-			if s, is_set := cr.GetStringAtPath(v.key); is_set {
+			if s, isSet := cr.GetStringAtPath(v.key); isSet {
 				fmt.Fprintf(v.writer, "%s: %s\n", v.key, s)
-			} else if b, is_set := cr.GetBoolAtPath(v.key); is_set {
+			} else if b, isSet := cr.GetBoolAtPath(v.key); isSet {
 				fmt.Fprintf(v.writer, "%s: %t\n", v.key, b)
-			} else if i, is_set := cr.GetIntAtPath(v.key); is_set {
+			} else if i, isSet := cr.GetIntAtPath(v.key); isSet {
 				fmt.Fprintf(v.writer, "%s: %d\n", v.key, i)
-			} else if is_set := cr.GetNullAtPath(v.key); is_set {
+			} else if isSet := cr.GetNullAtPath(v.key); isSet {
 				fmt.Fprintf(v.writer, "%s: null\n", v.key)
 			} else {
 				G.Log.Info(fmt.Sprintf("%s does not map to a value", v.key))

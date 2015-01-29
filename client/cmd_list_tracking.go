@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/keybase/go-jsonw"
-	"github.com/keybase/go/libcmdline"
-	"github.com/keybase/go/libkb"
 	"io"
 	"os"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/codegangsta/cli"
+	"github.com/keybase/go-jsonw"
+	"github.com/keybase/go/libcmdline"
+	"github.com/keybase/go/libkb"
 )
 
 type TrackList []*libkb.TrackChainLink
@@ -184,7 +185,7 @@ func (s *CmdListTracking) DisplayTable() (err error) {
 	return
 }
 
-func (s *CmdListTracking) DisplayJson() (err error) {
+func (s *CmdListTracking) DisplayJSON() (err error) {
 	tmp := make([]*jsonw.Wrapper, 0, 1)
 	for _, e := range s.tracks {
 		var rec *jsonw.Wrapper
@@ -210,7 +211,7 @@ func (s *CmdListTracking) DisplayJson() (err error) {
 
 func (s *CmdListTracking) Display() (err error) {
 	if s.json {
-		err = s.DisplayJson()
+		err = s.DisplayJSON()
 	} else {
 		err = s.DisplayTable()
 	}
@@ -272,7 +273,7 @@ func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdListTracking) GetUsage() libkb.Usage {
+func (s *CmdListTracking) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
 )
@@ -61,7 +62,7 @@ func (se *SecretEntry) Get(arg keybase_1.SecretEntryArg, term_arg *keybase_1.Sec
 	if pe := se.pinentry; pe != nil {
 		res, err = pe.Get(arg)
 	} else if se.terminal == nil {
-		err = NoTerminalError{}
+		err = NoTerminalError
 	} else {
 		if term_arg == nil {
 			term_arg = &arg

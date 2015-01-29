@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/keybase/go/libkb"
+	"github.com/keybase/protocol/go"
 )
 
 type UI struct {
@@ -168,7 +169,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		var ok bool
 		if ok, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
 		} else if !ok {
-			err = NotConfirmedError{}
+			err = NotConfirmedError
 		}
 		ret.TrackLocal = true
 	} else if isRemote {
@@ -225,7 +226,7 @@ type SigHintWrapper struct {
 	hint *keybase_1.SigHint
 }
 
-func (shw SigHintWrapper) GetHumanUrl() (ret string) {
+func (shw SigHintWrapper) GetHumanURL() (ret string) {
 	if shw.hint == nil {
 		ret = "nil"
 	} else {
@@ -276,7 +277,7 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keyba
 	if err := lcr.GetError(); err == nil {
 		msg += (CHECK + " " + lcrs + `"` +
 			ColorString("green", run) + `" on ` + s.GetService() +
-			": " + lcr.GetHint().GetHumanUrl())
+			": " + lcr.GetHint().GetHumanURL())
 	} else {
 		msg += (BADX + " " + lcrs +
 			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
@@ -344,7 +345,7 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(color, s.GetHostname()) + " via " +
 				ColorString(color, strings.ToUpper(s.GetProtocol())) +
-				": " + lcr.GetHint().GetHumanUrl())
+				": " + lcr.GetHint().GetHumanURL())
 		}
 	} else {
 		msg = (BADX + " " + lcrs +
@@ -613,7 +614,7 @@ func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 		})
 
 		if err == nil && res.Canceled {
-			err = InputCanceledError{}
+			err = InputCanceledError
 		}
 		if err != nil {
 			break
@@ -632,7 +633,7 @@ func (ui *UI) Prompt(prompt string, password bool, checker libkb.Checker) (strin
 	var prompter func(string) (string, error)
 
 	if ui.Terminal == nil {
-		return "", NoTerminalError{}
+		return "", NoTerminalError
 	}
 
 	if password {
@@ -669,7 +670,7 @@ func (ui *UI) Prompt(prompt string, password bool, checker libkb.Checker) (strin
 func (ui *UI) PromptForConfirmation(prompt string) error {
 
 	if ui.Terminal == nil {
-		return NoTerminalError{}
+		return NoTerminalError
 	}
 
 	res, err := ui.Terminal.Prompt(prompt + " (type 'YES' to confirm): ")
@@ -677,7 +678,7 @@ func (ui *UI) PromptForConfirmation(prompt string) error {
 		return err
 	}
 	if res != "YES" {
-		return NotConfirmedError{}
+		return NotConfirmedError
 	}
 	return nil
 
@@ -729,7 +730,7 @@ func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 	}
 	err = NewPrompter([]*Field{field}).Run()
 	if p := field.Value; p == nil {
-		err = InputCanceledError{}
+		err = InputCanceledError
 	} else {
 		ret, err = strconv.Atoi(*p)
 	}
