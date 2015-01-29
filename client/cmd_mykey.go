@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go/Godeps/_workspace/src/github.com/keybase/protocol/go"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -14,7 +15,7 @@ type MyKeyState struct {
 	interactive bool
 }
 
-var SMALL_KEY int = 1024
+var SmalllKey = 1024
 
 func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	a.arg.DoSecretPush = ctx.Bool("push-secret")
@@ -26,8 +27,8 @@ func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 		a.arg.NoNaclDh = true
 	}
 	if ctx.Bool("debug") {
-		a.arg.PrimaryBits = SMALL_KEY
-		a.arg.SubkeyBits = SMALL_KEY
+		a.arg.PrimaryBits = SmallKey
+		a.arg.SubkeyBits = SmallKey
 	}
 	batch := ctx.Bool("batch")
 	a.interactive = (!a.arg.NoPublicPush && !a.arg.NoPassphrase && !batch)

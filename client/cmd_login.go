@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go/Godeps/_workspace/src/github.com/keybase/protocol/go"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -22,7 +22,7 @@ func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
 	return u.eng.GetEmailOrUsername()
 }
 
-func (v *CmdLogin) RunClient() (err error) {
+func (c *CmdLogin) RunClient() (err error) {
 	var cli keybase_1.LoginClient
 	protocols := []rpc2.Protocol{
 		NewLoginUIProtocol(),
@@ -38,7 +38,7 @@ func (v *CmdLogin) RunClient() (err error) {
 	return
 }
 
-func (v *CmdLogin) Run() error {
+func (c *CmdLogin) Run() error {
 	return libkb.LoginAndIdentify(libkb.LoginAndIdentifyArg{
 		Login: libkb.LoginArg{
 			Prompt: true,
@@ -61,7 +61,7 @@ func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
 
 func (c *CmdLogin) ParseArgv(*cli.Context) error { return nil }
 
-func (v *CmdLogin) GetUsage() libkb.Usage {
+func (c *CmdLogin) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: false,

@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"io/ioutil"
-	"os"
 )
 
 type CmdProve struct {
@@ -98,8 +98,8 @@ func (s *SecretUIServer) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphrase
 func (v *CmdProve) RunClient() (err error) {
 	var cli keybase_1.ProveClient
 
-	prove_ui := ProveUI{parent: G_UI}
-	v.installOutputHook(&prove_ui)
+	proveUI := ProveUI{parent: G_UI}
+	v.installOutputHook(&proveUI)
 
 	protocols := []rpc2.Protocol{
 		NewProveUIProtocol(prove_ui),

@@ -144,9 +144,8 @@ func (s *CmdSignupState) MakePrompter() {
 		code.Thrower = func(k, v string) error {
 			if len(v) == 0 {
 				return CleanCancelError
-			} else {
-				return nil
 			}
+			return nil
 		}
 	}
 
@@ -370,7 +369,7 @@ func (s *CmdSignupState) run() (err error) {
 	return
 }
 
-func (v *CmdSignupState) GetUsage() libkb.Usage {
+func (s *CmdSignupState) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:   true,
 		API:      true,

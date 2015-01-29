@@ -225,7 +225,7 @@ type SigHintWrapper struct {
 	hint *keybase_1.SigHint
 }
 
-func (shw SigHintWrapper) GetHumanUrl() (ret string) {
+func (shw SigHintWrapper) GetHumanURL() (ret string) {
 	if shw.hint == nil {
 		ret = "nil"
 	} else {
