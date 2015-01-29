@@ -53,3 +53,100 @@ func (to TestOutput) Write(p []byte) (n int, err error) {
 	*to.called = true
 	return len(p), nil
 }
+
+type TestContext struct {
+	G          Global
+	PrevGlobal Global
+	Tp         TestParameters
+}
+
+func (tc *TestContext) Cleanup() {
+	if len(tc.Tp.Home) > 0 {
+		G.Log.Debug("cleaning up %s", tc.Tp.Home)
+		os.RemoveAll(tc.Tp.Home)
+	}
+}
+
+func SetupTestContext(nm string) (tc TestContext, err error) {
+
+	var g Global = NewGlobal()
+	g.Init()
+
+	// Set up our testing parameters.  We might add others later on
+	if tc.Tp.Home, err = ioutil.TempDir(os.TempDir(), nm); err != nil {
+		return
+	}
+
+	tc.Tp.ServerUri = "http://localhost:3000"
+	g.Env.Test = tc.Tp
+
+	if err = g.ConfigureAPI(); err != nil {
+		return
+	}
+	if err = g.ConfigureConfig(); err != nil {
+		return
+	}
+	if err = g.ConfigureCaches(); err != nil {
+		return
+	}
+	if err = g.ConfigureMerkleClient(); err != nil {
+		return
+	}
+	g.UI = &nullui{}
+	if err = g.UI.Configure(); err != nil {
+		return
+	}
+	if err = g.ConfigureKeyring(Usage{KbKeyring: true}); err != nil {
+		return
+	}
+
+	tc.PrevGlobal = G
+	G = g
+	tc.G = g
+	return
+}
+
+func setupTest(t *testing.T, nm string) (tc TestContext) {
+	var err error
+	tc, err = SetupTestContext(nm)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return tc
+}
+
+type nullui struct{}
+
+func (n *nullui) GetIdentifyUI(username string) IdentifyUI {
+	return nil
+}
+func (n *nullui) GetIdentifySelfUI() IdentifyUI {
+	return nil
+}
+func (n *nullui) GetIdentifyTrackUI(username string, strict bool) IdentifyUI {
+	return nil
+}
+func (n *nullui) GetLoginUI() LoginUI {
+	return nil
+}
+func (n *nullui) GetSecretUI() SecretUI {
+	return nil
+}
+func (n *nullui) GetProveUI() ProveUI {
+	return nil
+}
+func (n *nullui) GetLogUI() LogUI {
+	return G.Log
+}
+func (n *nullui) Prompt(string, bool, Checker) (string, error) {
+	return "", nil
+}
+func (n *nullui) GetIdentifyLubaUI(username string) IdentifyUI {
+	return nil
+}
+func (n *nullui) Configure() error {
+	return nil
+}
+func (n *nullui) Shutdown() error {
+	return nil
+}
