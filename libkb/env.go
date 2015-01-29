@@ -67,6 +67,8 @@ func (n NullConfiguration) GetNullAtPath(string) bool {
 
 type TestParameters struct {
 	ConfigFilename string
+	Home           string
+	ServerUri      string
 }
 
 type Env struct {
@@ -101,12 +103,11 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 }
 
 func (e Env) getHomeFromCmdOrConfig() string {
-	var ret string
-	ret = e.cmd.GetHome()
-	if len(ret) == 0 {
-		ret = e.config.GetHome()
-	}
-	return ret
+	return e.GetString(
+		func() string { return e.Test.Home },
+		func() string { return e.cmd.GetHome() },
+		func() string { return e.config.GetHome() },
+	)
 }
 
 func (e Env) GetHome() string                { return e.homeFinder.Home(false) }
@@ -188,6 +189,7 @@ func (e Env) GetInt(def int, flist ...func() (int, bool)) int {
 
 func (e Env) GetServerUri() string {
 	return e.GetString(
+		func() string { return e.Test.ServerUri },
 		func() string { return e.cmd.GetServerUri() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.config.GetServerUri() },

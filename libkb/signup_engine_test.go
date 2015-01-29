@@ -12,16 +12,15 @@ import (
 var homedir string
 
 func setup(t *testing.T) {
-	os.Setenv("KEYBASE_SERVER_URI", "http://localhost:3000")
+	G.Init()
 	var err error
 	homedir, err = ioutil.TempDir(os.TempDir(), "setest")
 	if err != nil {
 		t.Fatal(err)
 	}
-	os.Setenv("XDG_CONFIG_HOME", homedir)
-	os.Setenv("XDG_CACHE_HOME", homedir)
-	os.Setenv("XDG_DATA_HOME", homedir)
-	G.Init()
+	G.Env.Test.ServerUri = "http://localhost:3000"
+	G.Env.Test.Home = homedir
+
 	if err := G.ConfigureAPI(); err != nil {
 		t.Fatal(err)
 	}
