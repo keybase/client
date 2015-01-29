@@ -466,7 +466,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 		return
 	}
 
-	if jw := b.payloadJson.AtPath("body.sibkey.device"); !jw.IsNil() {
+	if jw := b.payloadJson.AtPath("body.device"); !jw.IsNil() {
 		if device, err = ParseDevice(jw); err != nil {
 			return
 		}
