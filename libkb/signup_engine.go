@@ -101,5 +101,6 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 }
 
 func (s *SignupEngine) genDetKeys() error {
-	return nil
+	eng := NewDetKeyEngine()
+	return eng.Run(s.tspkey.EdDSASeed(), s.tspkey.DHSeed())
 }
