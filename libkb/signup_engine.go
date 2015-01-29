@@ -52,8 +52,6 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
-	fmt.Printf("**** join success\n")
-
 	if err := s.registerDevice(arg.DeviceName); err != nil {
 		fmt.Printf("register device error: %s\n", err)
 		return err

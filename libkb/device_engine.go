@@ -34,8 +34,9 @@ func (d *DeviceEngine) Run(deviceName string) error {
 			return err
 		}
 	*/
-	G.Log.Info("Device name:   %s", d.deviceName)
-	G.Log.Info("Device ID:     %x", d.deviceID)
+
+	G.Log.Debug("Device name:   %s", d.deviceName)
+	G.Log.Debug("Device ID:     %x", d.deviceID)
 	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
 	d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
@@ -58,7 +59,7 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	if err != nil {
 		return err
 	}
-	G.Log.Info("EdDSA: %s", eddsaPair.VerboseDescription())
+	G.Log.Debug("EdDSA: %s", eddsaPair.VerboseDescription())
 
 	// copying stuff from keygen.go/GeneratePost
 	fokid := GenericKeyToFOKID(eddsaPair)
@@ -66,13 +67,12 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	if err != nil {
 		return err
 	}
-	G.Log.Info("self proof json: %s", jw)
+	G.Log.Debug("self proof json: %s", jw.MarshalPretty())
 
 	sig, sigid, linkid, err := SignJson(jw, eddsaPair)
 	if err != nil {
 		return err
 	}
-	G.Log.Info("sig: %v, sigid: %v, linkid: %v", sig, sigid, linkid)
 
 	pubkey, err := eddsaPair.Encode()
 	if err != nil {
@@ -102,6 +102,16 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	return nil
 }
 
+func (d *DeviceEngine) device() *Device {
+	s := 1
+	return &Device{
+		Id:          d.deviceID.String(),
+		Description: &d.deviceName,
+		Type:        "desktop", // XXX always desktop?
+		Status:      &s,
+	}
+}
+
 func (d *DeviceEngine) pushDHKey() error {
 	gen := NewNaclKeyGen(NaclKeyGenArg{
 		Signer:    d.rootKey,
@@ -110,8 +120,8 @@ func (d *DeviceEngine) pushDHKey() error {
 		Type:      "subkey",
 		Me:        d.me,
 		ExpireIn:  NACL_DH_EXPIRE_IN,
+		Device:    d.device(),
 		// LogUI:     s.arg.LogUI,
-		Device: &Device{Id: d.deviceID.String(), Description: &d.deviceName},
 	})
 
 	// XXX haven't implemented saving yet...when that's ready, this should work:

@@ -58,7 +58,7 @@ type DeviceStatus struct {
 
 type Device struct {
 	Id          string  `json:"id"`
-	Type        int     `json:"type"`
+	Type        string  `json:"type"`
 	Kid         *string `json:"kid",omitempty`
 	Description *string `json:"description",omitempty`
 	Status      *int    `json:"status",omitempty`
@@ -78,9 +78,13 @@ func (d *Device) Merge(d2 *Device) {
 		d.Kid = d2.Kid
 	}
 	if d2.Description != nil {
-		d.Kid = d2.Kid
+		d.Description = d2.Description
 	}
 	if d2.Status != nil {
 		d.Status = d2.Status
 	}
+}
+
+func (d *Device) Export() *jsonw.Wrapper {
+	return jsonw.NewWrapper(d)
 }

@@ -1,19 +1,21 @@
 package main
 
+/*
 import (
+	"github.com/keybase/go/libkb"
 	"io/ioutil"
 	"testing"
 )
 
 func TestLocation(t *testing.T) {
-	config := &TestConfig{}
+	config := &libkb.TestConfig{}
 	config.InitTest(t, "{}")
 	defer config.CleanTest()
 
 	var called bool
 	c := CmdConfig{}
 	c.location = true
-	c.writer = TestOutput{config.configFileName + "\n", t, &called}
+	c.writer = libkb.TestOutput{config.configFileName + "\n", t, &called}
 	c.Run()
 	if !called {
 		t.Errorf("Did not read %s", c.key)
@@ -350,3 +352,4 @@ func TestClear(t *testing.T) {
 			"ret=%s, is_set=%t", ret, is_set)
 	}
 }
+*/
