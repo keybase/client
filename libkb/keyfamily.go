@@ -26,6 +26,13 @@ type ComputedKeyInfo struct {
 	Eldest bool
 	Sibkey bool
 
+	// For subkeys, a pointer back to our parent
+	Parent *string
+
+	// For Sibkeys, a pointer to all subkeys, some of which may be
+	// revoked
+	Subkeys []string
+
 	// Map of SigId -> KID, both as hex strings
 	// (since we can't unmarhsal into KIDs)
 	Delegations map[string]string
@@ -47,7 +54,7 @@ type ServerKeyRecord struct {
 	KeyLevel       int     `json:"key_level"`
 	Status         int     `json:"status"`
 	KeyBits        int     `json:"key_bits"`
-	KeyAlgo        int     `json:"key_algo"a`
+	KeyAlgo        int     `json:"key_algo"`
 
 	key GenericKey `json:-`
 }
@@ -374,6 +381,17 @@ func (cki *ComputedKeyInfos) Delegate(kid_s string, tm *KeybaseTime, sigid SigId
 	info.Delegations[sigid.ToString(true)] = signingKid.String()
 	info.Sibkey = isSibkey
 	cki.Sigs[sigid.ToString(true)] = info
+
+	// If it's a subkey, make a pointer from it to its parent,
+	// and also from its parent to it.
+	if !isSibkey {
+		skid_s := signingKid.String()
+		info.Parent = &skid_s
+		if parent, found := cki.Infos[skid_s]; found {
+			parent.Subkeys = append(parent.Subkeys, kid_s)
+		}
+	}
+
 	return
 }
 
