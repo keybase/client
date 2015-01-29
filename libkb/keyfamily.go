@@ -29,9 +29,9 @@ type ComputedKeyInfo struct {
 	// For subkeys, a pointer back to our parent
 	Parent *string
 
-	// For Sibkeys, a pointer to all subkeys, some of which may be
+	// For Sibkeys, a pointer to the last-added subkey
 	// revoked
-	Subkeys []string
+	Subkey *string
 
 	// Map of SigId -> KID, both as hex strings
 	// (since we can't unmarhsal into KIDs)
@@ -79,6 +79,9 @@ type ComputedKeyInfos struct {
 
 	// Map of KID -> DeviceID (in Hex)
 	KidToDeviceId map[string]string
+
+	// The last-added Web device, to figure out where the DetKey is.
+	WebDevice *Device
 }
 
 // As returned by user/lookup.json
@@ -181,6 +184,15 @@ func (kf KeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, err error) {
 		err = KeyFamilyError{fmt.Sprintf("No sibkey found for %s", i)}
 	} else {
 		key = sk.key
+	}
+	return
+}
+
+// FindActiveEncryptionSubkey finds a subkey in our KeyFamily that is both a subkey
+// and for encryption.  It doesn't check that it's still valid.
+func (kf KeyFamily) FindActiveEncryptionSubkey(k KID) (key GenericKey, err error) {
+	if subkey, ok := kf.Subkeys[k.String()]; ok && subkey.key != nil && CanEncrypt(subkey.key) {
+		key = subkey.key
 	}
 	return
 }
@@ -319,18 +331,46 @@ func (kf KeyFamily) GetSigningKey(kid_s string) (ret GenericKey) {
 	return
 }
 
-func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, err error) {
-	s := f.String()
+func (ckf ComputedKeyFamily) findLiveComputedKeyInfo(s string) (ret *ComputedKeyInfo, err error) {
 	if ki := ckf.cki.Infos[s]; ki == nil {
 		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", s)}
 	} else if ki.Status != KEY_LIVE {
 		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", s)}
+	} else {
+		ret = ki
+	}
+	return
+}
+
+// FindActiveSibkey takes a given PGP Fingerprint OR KID (in the form of a FOKID)
+// and finds the corresponding active sibkey in the current key family.  If for any reason
+// it cannot find the key, it will return an error saying why.  Otherwise, it will return
+// the key.  In this case either key is non-nil, or err is non-nil.
+func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, err error) {
+	s := f.String()
+	if ki, err := ckf.findLiveComputedKeyInfo(s); ki == nil || err != nil {
 	} else if !ki.Sibkey {
 		err = BadKeyError{fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", s)}
 	} else {
 		key, err = ckf.kf.FindActiveSibkey(f)
 	}
 	return
+}
+
+// FindActiveEncryptionSubkey takes a given PGP Fingerprint OR KID (in the form of a FOKID)
+// and finds the corresponding active encryption subkey in the current key family.  If for any reason
+// it cannot find the key, it will return an error saying why.  Otherwise, it will return
+// the key.  In this case either key is non-nil, or err is non-nil.
+func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (key GenericKey, err error) {
+	s := kid.String()
+	if ki, err := ckf.findLiveComputedKeyInfo(s); ki == nil || err != nil {
+	} else if ki.Sibkey {
+		err = BadKeyError{fmt.Sprintf("The key '%s' was delegated as a sibkey", s)}
+	} else {
+		key, err = ckf.kf.FindActiveEncryptionSubkey(kid)
+	}
+	return
+
 }
 
 // TclToKeybaseTime turns a TypedChainLink into a KeybaseTime tuple, looking
@@ -388,7 +428,7 @@ func (cki *ComputedKeyInfos) Delegate(kid_s string, tm *KeybaseTime, sigid SigId
 		skid_s := signingKid.String()
 		info.Parent = &skid_s
 		if parent, found := cki.Infos[skid_s]; found {
-			parent.Subkeys = append(parent.Subkeys, kid_s)
+			parent.Subkey = &kid_s
 		}
 	}
 
@@ -647,6 +687,12 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	if kid != nil && len(*kid) > 0 {
 		ckf.cki.KidToDeviceId[*kid] = did
 	}
+
+	// Last-writer wins on the Web device
+	if dobj != nil && dobj.IsWeb() {
+		ckf.cki.WebDevice = dobj
+	}
+
 	return
 }
 
@@ -682,16 +728,14 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceId) (key Ge
 	if kid == nil {
 		return
 	}
-	//	if cki, found := ckf.cki.Infos[kid.String()]; found {
-	//		for _, subkey := range(cki.Subkeys) {
-	//			var e2 error
-	//			if kid, e2 = ImportKID(subkey); e2 != nil {
-	//				if key, err = ckf.FindActiveEncryptionKey(kid); key != nil {}
-	//
-	//			}
-	//		}
-	//	}
-	//}
+	if cki, found := ckf.cki.Infos[kid.String()]; !found {
+		return
+	} else if cki.Subkey == nil {
+		return
+	} else if kid, err = ImportKID(*cki.Subkey); err != nil {
+	} else {
+		key, err = ckf.FindActiveEncryptionSubkey(kid)
+	}
 	return
 }
 
@@ -700,5 +744,19 @@ func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err 
 	if didString, found := ckf.cki.KidToDeviceId[key.GetKid().String()]; found {
 		ret = ckf.cki.Devices[didString]
 	}
+	return
+}
+
+// IsDetKey tells if the given Key represents a deterministically-generated
+// Web key
+func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
+	var dev *Device
+	if dev, err = ckf.GetDeviceForKey(key); err != nil {
+		return
+	}
+	if dev == nil {
+		return
+	}
+	ret = dev.IsWeb()
 	return
 }

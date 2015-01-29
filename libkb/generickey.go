@@ -54,6 +54,17 @@ func GetKID(w *jsonw.Wrapper) (kid KID, err error) {
 	return
 }
 
+func CanEncrypt(key GenericKey) bool {
+	switch key.(type) {
+	case NaclDHKeyPair:
+		return true
+	case *PgpKeyBundle:
+		return true
+	default:
+		return false
+	}
+}
+
 func (k KID) ToBytes() []byte {
 	return []byte(k)
 }

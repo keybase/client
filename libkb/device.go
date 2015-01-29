@@ -64,6 +64,11 @@ type Device struct {
 	Status      *int    `json:"status",omitempty`
 }
 
+// IsWeb returns true if the device is a Web pseudo-device
+func (d *Device) IsWeb() bool {
+	return d.Type == "web"
+}
+
 func ParseDevice(jw *jsonw.Wrapper) (ret *Device, err error) {
 	var obj Device
 	if err = jw.UnmarshalAgain(&obj); err != nil {
