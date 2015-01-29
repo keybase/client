@@ -466,7 +466,7 @@ func doTestCodecTableOne(t *testing.T, testNil bool, h Handle,
 		if err != nil {
 			continue
 		}
-		if h.isBinaryEncoding() {
+		if h.isBinary() {
 			logT(t, "         Encoded bytes: len: %v, %v\n", len(b0), b0)
 		} else {
 			logT(t, "         Encoded string: len: %v, %v\n", len(string(b0)), string(b0))
@@ -586,7 +586,7 @@ func testCodecMiscOne(t *testing.T, h Handle) {
 		logT(t, "------- Size must be > 40. Size: %d", len(b))
 		t.FailNow()
 	}
-	if h.isBinaryEncoding() {
+	if h.isBinary() {
 		logT(t, "------- b: %v", b)
 	} else {
 		logT(t, "------- b: %s", b)
@@ -707,6 +707,43 @@ func testCodecUnderlyingType(t *testing.T, h Handle) {
 	NewDecoderBytes(bs, h).MustDecode(&v2)
 	if err != nil {
 		logT(t, "Error during decode: %v", err)
+		failT(t)
+	}
+}
+
+func testCodecChan(t *testing.T, h Handle) {
+	// - send a slice []*int64 (sl1) into an chan (ch1) with cap > len(s1)
+	// - encode ch1 as a stream array
+	// - decode a chan (ch2), with cap > len(s1) from the stream array
+	// - receive from ch2 into slice sl2
+	// - compare sl1 and sl2
+	// - do this for codecs: json, cbor (covers all types)
+	sl1 := make([]*int64, 4)
+	for i := range sl1 {
+		var j int64 = int64(i)
+		sl1[i] = &j
+	}
+	ch1 := make(chan *int64, 4)
+	for _, j := range sl1 {
+		ch1 <- j
+	}
+	var bs []byte
+	NewEncoderBytes(&bs, h).MustEncode(ch1)
+	// if !h.isBinary() {
+	// 	fmt.Printf("before: len(ch1): %v, bs: %s\n", len(ch1), bs)
+	// }
+	// var ch2 chan *int64 // this will block if json, etc.
+	ch2 := make(chan *int64, 8)
+	NewDecoderBytes(bs, h).MustDecode(&ch2)
+	// logT(t, "Len(ch2): %v", len(ch2))
+	// fmt.Printf("after:  len(ch2): %v, ch2: %v\n", len(ch2), ch2)
+	close(ch2)
+	var sl2 []*int64
+	for j := range ch2 {
+		sl2 = append(sl2, j)
+	}
+	if err := deepEqual(sl1, sl2); err != nil {
+		logT(t, "Not Match: %v; len: %v, %v", err, len(sl1), len(sl2))
 		failT(t)
 	}
 }
@@ -1010,6 +1047,14 @@ func TestJsonCodecsMisc(t *testing.T) {
 
 func TestJsonCodecsEmbeddedPointer(t *testing.T) {
 	testCodecEmbeddedPointer(t, testJsonH)
+}
+
+func TestJsonCodecChan(t *testing.T) {
+	testCodecChan(t, testJsonH)
+}
+
+func TestCborCodecChan(t *testing.T) {
+	testCodecChan(t, testCborH)
 }
 
 // ----- RPC -----

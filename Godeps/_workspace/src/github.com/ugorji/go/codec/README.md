@@ -15,6 +15,18 @@ To install:
 
     go get github.com/ugorji/go/codec
 
+This package understands the `unsafe` tag, to allow using unsafe semantics:
+
+  - When decoding into a struct, you need to read the field name as a string 
+    so you can find the struct field it is mapped to.
+    Using `unsafe` will bypass the allocation and copying overhead of `[]byte->string` conversion.
+
+To use it, you must pass the `unsafe` tag during install:
+
+```
+go install -tags=unsafe github.com/ugorji/go/codec 
+```
+
 Online documentation: http://godoc.org/github.com/ugorji/go/codec  
 Detailed Usage/How-to Primer: http://ugorji.net/blog/go-codec-primer
 
@@ -45,11 +57,14 @@ Rich Feature Set includes:
   - Fast (no-reflection) encoding/decoding of common maps and slices
   - Code-generation for faster performance.
   - Support binary (e.g. messagepack, cbor) and text (e.g. json) formats
-  - Support indefinite-length formats to enable true streaming
+  - Support indefinite-length formats to enable true streaming 
+    (for formats which support it e.g. json, cbor)
   - NIL in data stream decoded as zero value
   - Never silently skip data when decoding.
     User decides whether to return an error or silently skip data when keys or indexes
     in the data stream do not map to fields in the struct.
+  - Encode/Decode from/to chan types (for iterative streaming support)
+  - Drop-in replacement for encoding/json. `json:` key in struct tag supported.
   - Provides a RPC Server and Client Codec for net/rpc communication protocol.
   - Handle unique idiosynchracies of codecs e.g. 
     - For messagepack, configure how ambiguities in handling raw bytes are resolved 

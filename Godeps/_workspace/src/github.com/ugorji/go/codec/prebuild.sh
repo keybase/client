@@ -29,14 +29,12 @@ _needgen() {
 # generated files and put stubs in place, before calling "go run" again
 # to recreate them.
 _build() {
-    if [[ "${zforce}" == "1" ||
+    if ! [[ "${zforce}" == "1" ||
                 "1" == $( _needgen "fast-path.generated.go" ) ||
                 "1" == $( _needgen "gen-helper.generated.go" ) ||
                 "1" == $( _needgen "gen.generated.go" ) ||
                 1 == 0 ]]
     then
-        true  # continue. do not return
-    else 
         return 0
     fi 
 
@@ -51,7 +49,7 @@ _build() {
         # [ -e "safe${_gg}" ] && mv safe${_gg} safe${_gg}__${_zts}.bak
         # [ -e "unsafe${_gg}" ] && mv unsafe${_gg} unsafe${_gg}__${_zts}.bak
     else 
-        rm -f fast-path.generated.go gen.generated.go gen-helper.generated.go *safe.generated.go
+        rm -f fast-path.generated.go gen.generated.go gen-helper.generated.go *safe.generated.go *_generated_test.go
     fi
 
     cat > gen.generated.go <<EOF

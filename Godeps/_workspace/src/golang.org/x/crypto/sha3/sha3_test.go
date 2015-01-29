@@ -23,7 +23,7 @@ import (
 
 const (
 	testString  = "brekeccakkeccak koax koax"
-	katFilename = "keccakKats.json.deflate"
+	katFilename = "testdata/keccakKats.json.deflate"
 )
 
 // Internal-use instances of SHAKE used to test against KATs.

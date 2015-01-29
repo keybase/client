@@ -10918,7 +10918,7 @@ func fastpathDecodeTypeSwitch(iv interface{}, d *Decoder) bool {
 // -- -- fast path functions
 
 func (f decFnInfo) fastpathDecSliceIntfR(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]interface{})
 		v, changed := fastpathTV.DecSliceIntfV(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11019,7 +11019,7 @@ func (_ fastpathT) DecSliceIntfV(v []interface{}, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceStringR(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]string)
 		v, changed := fastpathTV.DecSliceStringV(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11119,7 +11119,7 @@ func (_ fastpathT) DecSliceStringV(v []string, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceFloat32R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]float32)
 		v, changed := fastpathTV.DecSliceFloat32V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11219,7 +11219,7 @@ func (_ fastpathT) DecSliceFloat32V(v []float32, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceFloat64R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]float64)
 		v, changed := fastpathTV.DecSliceFloat64V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11319,7 +11319,7 @@ func (_ fastpathT) DecSliceFloat64V(v []float64, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceUintR(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]uint)
 		v, changed := fastpathTV.DecSliceUintV(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11419,7 +11419,7 @@ func (_ fastpathT) DecSliceUintV(v []uint, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceUint16R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]uint16)
 		v, changed := fastpathTV.DecSliceUint16V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11519,7 +11519,7 @@ func (_ fastpathT) DecSliceUint16V(v []uint16, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceUint32R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]uint32)
 		v, changed := fastpathTV.DecSliceUint32V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11619,7 +11619,7 @@ func (_ fastpathT) DecSliceUint32V(v []uint32, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceUint64R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]uint64)
 		v, changed := fastpathTV.DecSliceUint64V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11719,7 +11719,7 @@ func (_ fastpathT) DecSliceUint64V(v []uint64, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceIntR(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]int)
 		v, changed := fastpathTV.DecSliceIntV(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11819,7 +11819,7 @@ func (_ fastpathT) DecSliceIntV(v []int, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceInt8R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]int8)
 		v, changed := fastpathTV.DecSliceInt8V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -11919,7 +11919,7 @@ func (_ fastpathT) DecSliceInt8V(v []int8, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceInt16R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]int16)
 		v, changed := fastpathTV.DecSliceInt16V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -12019,7 +12019,7 @@ func (_ fastpathT) DecSliceInt16V(v []int16, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceInt32R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]int32)
 		v, changed := fastpathTV.DecSliceInt32V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -12119,7 +12119,7 @@ func (_ fastpathT) DecSliceInt32V(v []int32, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceInt64R(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]int64)
 		v, changed := fastpathTV.DecSliceInt64V(*vp, fastpathCheckNilFalse, !array, f.d)
@@ -12219,7 +12219,7 @@ func (_ fastpathT) DecSliceInt64V(v []int64, checkNil bool, canChange bool,
 }
 
 func (f decFnInfo) fastpathDecSliceBoolR(rv reflect.Value) {
-	array := f.array
+	array := f.seq == seqTypeArray
 	if !array && rv.CanAddr() { // CanSet => CanAddr + Exported
 		vp := rv.Addr().Interface().(*[]bool)
 		v, changed := fastpathTV.DecSliceBoolV(*vp, fastpathCheckNilFalse, !array, f.d)

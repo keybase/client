@@ -57,6 +57,7 @@ const (
 // -------------------
 
 type cborEncDriver struct {
+	e *Encoder
 	w encWriter
 	h *CborHandle
 	noBuiltInTypes
@@ -164,6 +165,7 @@ func (e *cborEncDriver) EncodeStringBytes(c charEncoding, v []byte) {
 // ----------------------
 
 type cborDecDriver struct {
+	d      *Decoder
 	h      *CborHandle
 	r      decReader
 	br     bool // bytes reader
@@ -181,7 +183,7 @@ func (d *cborDecDriver) readNextBd() {
 	d.bdType = valueTypeUnset
 }
 
-func (d *cborDecDriver) IsContainerType(vt valueType) bool {
+func (d *cborDecDriver) IsContainerType(vt valueType) (bv bool) {
 	switch vt {
 	case valueTypeNil:
 		return d.bd == cborBdNil
@@ -194,8 +196,8 @@ func (d *cborDecDriver) IsContainerType(vt valueType) bool {
 	case valueTypeMap:
 		return d.bd == cborBdIndefiniteMap || (d.bd >= cborBaseMap && d.bd < cborBaseTag)
 	}
-	decErr("isContainerType: unsupported parameter: %v", vt)
-	panic("unreachable")
+	d.d.errorf("isContainerType: unsupported parameter: %v", vt)
+	return // "unreachable"
 }
 
 func (d *cborDecDriver) TryDecodeAsNil() bool {
@@ -235,7 +237,8 @@ func (d *cborDecDriver) decUint() (ui uint64) {
 		} else if v == 0x1b {
 			ui = uint64(bigen.Uint64(d.r.readx(8)))
 		} else {
-			decErr("decUint: Invalid descriptor: %v", d.bd)
+			d.d.errorf("decUint: Invalid descriptor: %v", d.bd)
+			return
 		}
 	}
 	return
@@ -250,7 +253,8 @@ func (d *cborDecDriver) decCheckInteger() (neg bool) {
 	} else if major == cborMajorNegInt {
 		neg = true
 	} else {
-		decErr("invalid major: %v (bd: %v)", major, d.bd)
+		d.d.errorf("invalid major: %v (bd: %v)", major, d.bd)
+		return
 	}
 	return
 }
@@ -262,16 +266,19 @@ func (d *cborDecDriver) DecodeInt(bitsize uint8) (i int64) {
 	var overflow bool
 	if neg {
 		if i, overflow = chkOvf.SignedInt(ui + 1); overflow {
-			decErr("cbor: overflow converting %v to signed integer", ui+1)
+			d.d.errorf("cbor: overflow converting %v to signed integer", ui+1)
+			return
 		}
 		i = -i
 	} else {
 		if i, overflow = chkOvf.SignedInt(ui); overflow {
-			decErr("cbor: overflow converting %v to signed integer", ui)
+			d.d.errorf("cbor: overflow converting %v to signed integer", ui)
+			return
 		}
 	}
 	if chkOvf.Int(i, bitsize) {
-		decErr("cbor: overflow integer: %v", i)
+		d.d.errorf("cbor: overflow integer: %v", i)
+		return
 	}
 	d.bdRead = false
 	return
@@ -279,11 +286,13 @@ func (d *cborDecDriver) DecodeInt(bitsize uint8) (i int64) {
 
 func (d *cborDecDriver) DecodeUint(bitsize uint8) (ui uint64) {
 	if d.decCheckInteger() {
-		decErr("Assigning negative signed value to unsigned type")
+		d.d.errorf("Assigning negative signed value to unsigned type")
+		return
 	}
 	ui = d.decUint()
 	if chkOvf.Uint(ui, bitsize) {
-		decErr("cbor: overflow integer: %v", ui)
+		d.d.errorf("cbor: overflow integer: %v", ui)
+		return
 	}
 	d.bdRead = false
 	return
@@ -302,10 +311,12 @@ func (d *cborDecDriver) DecodeFloat(chkOverflow32 bool) (f float64) {
 	} else if bd >= cborBaseUint && bd < cborBaseBytes {
 		f = float64(d.DecodeInt(64))
 	} else {
-		decErr("Float only valid from float16/32/64: Invalid descriptor: %v", bd)
+		d.d.errorf("Float only valid from float16/32/64: Invalid descriptor: %v", bd)
+		return
 	}
 	if chkOverflow32 && chkOvf.Float32(f) {
-		decErr("cbor: float32 overflow: %v", f)
+		d.d.errorf("cbor: float32 overflow: %v", f)
+		return
 	}
 	d.bdRead = false
 	return
@@ -320,7 +331,8 @@ func (d *cborDecDriver) DecodeBool() (b bool) {
 		b = true
 	} else if bd == cborBdFalse {
 	} else {
-		decErr("Invalid single-byte value for bool: %s: %x", msgBadDesc, d.bd)
+		d.d.errorf("Invalid single-byte value for bool: %s: %x", msgBadDesc, d.bd)
+		return
 	}
 	d.bdRead = false
 	return
@@ -353,7 +365,8 @@ func (d *cborDecDriver) decAppendIndefiniteBytes(bs []byte) []byte {
 			break
 		}
 		if major := d.bd >> 5; major != cborMajorBytes && major != cborMajorText {
-			decErr("cbor: expect bytes or string major type in indefinite string/bytes; got: %v, byte: %v", major, d.bd)
+			d.d.errorf("cbor: expect bytes or string major type in indefinite string/bytes; got: %v, byte: %v", major, d.bd)
+			return nil
 		}
 		n := d.decLen()
 		oldLen := len(bs)
@@ -403,7 +416,7 @@ func (d *cborDecDriver) DecodeString() (s string) {
 	return string(d.DecodeBytes(d.b[:], true, true))
 }
 
-func (d *cborDecDriver) DecodeExt(rv interface{}, xtag uint64, ext Ext, de *Decoder) (realxtag uint64) {
+func (d *cborDecDriver) DecodeExt(rv interface{}, xtag uint64, ext Ext) (realxtag uint64) {
 	if !d.bdRead {
 		d.readNextBd()
 	}
@@ -413,19 +426,20 @@ func (d *cborDecDriver) DecodeExt(rv interface{}, xtag uint64, ext Ext, de *Deco
 	if ext == nil {
 		re := rv.(*RawExt)
 		re.Tag = realxtag
-		de.decode(&re.Value)
+		d.d.decode(&re.Value)
 	} else if xtag != realxtag {
-		decErr("Wrong extension tag. Got %b. Expecting: %v", realxtag, xtag)
+		d.d.errorf("Wrong extension tag. Got %b. Expecting: %v", realxtag, xtag)
+		return
 	} else {
 		var v interface{}
-		de.decode(&v)
+		d.d.decode(&v)
 		ext.UpdateExt(rv, v)
 	}
 	d.bdRead = false
 	return
 }
 
-func (d *cborDecDriver) DecodeNaked(de *Decoder) (v interface{}, vt valueType, decodeFurther bool) {
+func (d *cborDecDriver) DecodeNaked() (v interface{}, vt valueType, decodeFurther bool) {
 	if !d.bdRead {
 		d.readNextBd()
 	}
@@ -488,11 +502,12 @@ func (d *cborDecDriver) DecodeNaked(de *Decoder) (v interface{}, vt valueType, d
 			ui := d.decUint()
 			d.bdRead = false
 			re.Tag = ui
-			de.decode(&re.Value)
+			d.d.decode(&re.Value)
 			v = &re
 			// decodeFurther = true
 		default:
-			decErr("decodeNaked: Unrecognized d.bd: 0x%x", d.bd)
+			d.d.errorf("decodeNaked: Unrecognized d.bd: 0x%x", d.bd)
+			return
 		}
 	}
 
@@ -539,13 +554,12 @@ type CborHandle struct {
 	binaryEncodingType
 }
 
-func (h *CborHandle) newEncDriver(w encWriter) encDriver {
-	return &cborEncDriver{w: w, h: h}
+func (h *CborHandle) newEncDriver(e *Encoder) encDriver {
+	return &cborEncDriver{e: e, w: e.w, h: h}
 }
 
-func (h *CborHandle) newDecDriver(r decReader) decDriver {
-	_, ok := r.(*bytesDecReader)
-	return &cborDecDriver{r: r, h: h, br: ok}
+func (h *CborHandle) newDecDriver(d *Decoder) decDriver {
+	return &cborDecDriver{d: d, r: d.r, h: h, br: d.bytes}
 }
 
 var _ decDriver = (*cborDecDriver)(nil)
