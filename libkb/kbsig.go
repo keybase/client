@@ -256,7 +256,7 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 	body.SetKey("type", jsonw.NewString(typ))
 
 	// XXX work here:
-	if device {
+	if device != nil {
 
 	}
 
