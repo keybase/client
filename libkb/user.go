@@ -534,7 +534,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	if arg.Uid != nil {
 		uid = *arg.Uid
 	} else if len(arg.Name) == 0 {
-		err = LoadUserError{arg.Name}
+		err = LoadUserError{"we don't know the current user's UID or name"}
 		return
 	} else if rres = ResolveUid(arg.Name); rres.err != nil {
 		err = rres.err
