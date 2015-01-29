@@ -6,9 +6,11 @@ import (
 )
 
 type SignupEngine struct {
-	pwsalt []byte
-	tspkey TSPassKey
-	uid    UID
+	pwsalt     []byte
+	tspkey     TSPassKey
+	uid        UID
+	me         *User
+	signingKey GenericKey
 }
 
 func NewSignupEngine() *SignupEngine {
@@ -92,15 +94,25 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 		return res.Error
 	}
 	s.uid = *res.Uid
+	user, err := LoadUser(LoadUserArg{Uid: res.Uid, PublicKeyOptional: true})
+	if err != nil {
+		return err
+	}
+	s.me = user
 	return nil
 }
 
 func (s *SignupEngine) registerDevice(deviceName string) error {
-	eng := NewDeviceEngine()
-	return eng.Run(deviceName)
+	eng := NewDeviceEngine(s.me)
+	err := eng.Run(deviceName)
+	if err != nil {
+		return err
+	}
+	s.signingKey = eng.RootSigningKey()
+	return nil
 }
 
 func (s *SignupEngine) genDetKeys() error {
-	eng := NewDetKeyEngine()
+	eng := NewDetKeyEngine(s.me, s.signingKey)
 	return eng.Run(s.tspkey.EdDSASeed(), s.tspkey.DHSeed())
 }

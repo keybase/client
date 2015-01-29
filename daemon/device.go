@@ -17,7 +17,9 @@ func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
 
 // Register registers a device.
 func (h *DeviceHandler) Register(deviceName string) error {
-	engine := libkb.NewDeviceEngine()
+	// XXX need me user here...this is just so it compiles
+	panic("need to implement this")
+	engine := libkb.NewDeviceEngine(nil)
 	if err := engine.Init(); err != nil {
 		return err
 	}

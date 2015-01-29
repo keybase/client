@@ -1,9 +1,5 @@
 package libkb
 
-import (
-	"fmt"
-)
-
 type DeviceEngine struct {
 	deviceName  string
 	deviceID    DeviceId
@@ -12,8 +8,8 @@ type DeviceEngine struct {
 	rootKey     NaclKeyPair
 }
 
-func NewDeviceEngine() *DeviceEngine {
-	return &DeviceEngine{}
+func NewDeviceEngine(me *User) *DeviceEngine {
+	return &DeviceEngine{me: me}
 }
 
 func (d *DeviceEngine) Init() error {
@@ -39,11 +35,13 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	G.Log.Debug("Device ID:     %x", d.deviceID)
 	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
-	d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
-	if err != nil {
-		fmt.Printf("LoadMe error: %s\n", err)
-		return err
-	}
+	/*
+		d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
+		if err != nil {
+			fmt.Printf("LoadMe error: %s\n", err)
+			return err
+		}
+	*/
 
 	if err := d.pushRootSigningKey(); err != nil {
 		return err
@@ -52,6 +50,10 @@ func (d *DeviceEngine) Run(deviceName string) error {
 		return err
 	}
 	return nil
+}
+
+func (d *DeviceEngine) RootSigningKey() GenericKey {
+	return d.rootKey
 }
 
 func (d *DeviceEngine) pushRootSigningKey() error {

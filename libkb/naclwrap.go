@@ -70,7 +70,7 @@ func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 func importNaclKid(kid KID, typ byte, bodyLen int) (ret []byte, err error) {
 	l := len(kid)
 	if l != bodyLen+3 {
-		err = BadKeyError{fmt.Sprintf("Wrong length; wanted %d, got %d", l, bodyLen+3)}
+		err = BadKeyError{fmt.Sprintf("Wrong length; wanted %d, got %d", bodyLen+3, l)}
 		return
 	}
 
