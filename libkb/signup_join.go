@@ -118,6 +118,7 @@ type SignupJoinEngineRunRes struct {
 	PostOk       bool
 	WriteOk      bool
 	Uid          *UID
+	User         *User
 	Error        error
 }
 
