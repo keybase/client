@@ -46,10 +46,14 @@ type Global struct {
 	shutdown      bool           // whether we've shut down or not
 }
 
-var G Global = Global{
-	Log:           NewDefaultLogger(),
-	ShutdownHooks: make([]ShutdownHook, 0, 0),
+func NewGlobal() Global {
+	return Global{
+		Log:           NewDefaultLogger(),
+		ShutdownHooks: make([]ShutdownHook, 0, 0),
+	}
 }
+
+var G Global = NewGlobal()
 
 func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
@@ -135,7 +139,7 @@ func (g *Global) ConfigureCaches() (err error) {
 }
 
 func (g *Global) ConfigureMerkleClient() error {
-	g.MerkleClient = NewMerkleClient()
+	g.MerkleClient = NewMerkleClient(g)
 	return nil
 }
 
