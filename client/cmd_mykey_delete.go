@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
-	"github.com/keybase/go/Godeps/_workspace/src/github.com/keybase/protocol/go"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/protocol/go"
 )
 
 func (v *CmdMykeyDelete) RunClient() (err error) {
@@ -65,7 +65,7 @@ type CmdMykeyDelete struct {
 
 func (v *CmdMykeyDelete) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	d.force = ctx.Bool("force")
+	v.force = ctx.Bool("force")
 	if nargs != 0 {
 		err = BadArgsError("delete doesn't take arguments")
 	}

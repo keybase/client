@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/protocol/go"
 )
 
 type UI struct {
@@ -276,7 +277,7 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keyba
 	if err := lcr.GetError(); err == nil {
 		msg += (CHECK + " " + lcrs + `"` +
 			ColorString("green", run) + `" on ` + s.GetService() +
-			": " + lcr.GetHint().GetHumanUrl())
+			": " + lcr.GetHint().GetHumanURL())
 	} else {
 		msg += (BADX + " " + lcrs +
 			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
@@ -344,7 +345,7 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(color, s.GetHostname()) + " via " +
 				ColorString(color, strings.ToUpper(s.GetProtocol())) +
-				": " + lcr.GetHint().GetHumanUrl())
+				": " + lcr.GetHint().GetHumanURL())
 		}
 	} else {
 		msg = (BADX + " " + lcrs +

@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/codegangsta/cli"
-	"github.com/keybase/go/Godeps/_workspace/src/github.com/keybase/protocol/go"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -98,12 +98,12 @@ func NewCmdID(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdId{}, "id", c)
+			cl.ChooseCommand(&CmdID{}, "id", c)
 		},
 	}
 }
 
-func (v *CmdId) GetUsage() libkb.Usage {
+func (v *CmdID) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: false,

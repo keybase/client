@@ -8,6 +8,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -102,7 +103,7 @@ func (v *CmdProve) RunClient() (err error) {
 	v.installOutputHook(&proveUI)
 
 	protocols := []rpc2.Protocol{
-		NewProveUIProtocol(prove_ui),
+		NewProveUIProtocol(proveUI),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLogUIProtocol(),

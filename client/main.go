@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"os"
 )
 
 // Keep this around to simplify things
@@ -18,7 +19,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 	cmds := []cli.Command{
 		NewCmdConfig(cl),
 		NewCmdDb(cl),
-		NewCmdId(cl),
+		NewCmdID(cl),
 		NewCmdListTracking(cl),
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),

@@ -211,7 +211,7 @@ func (s *CmdListTracking) DisplayJSON() (err error) {
 
 func (s *CmdListTracking) Display() (err error) {
 	if s.json {
-		err = s.DisplayJson()
+		err = s.DisplayJSON()
 	} else {
 		err = s.DisplayTable()
 	}
