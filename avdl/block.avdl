@@ -1,0 +1,16 @@
+@namespace("keybase.1")
+
+protocol block {
+
+	record PutRes {
+		boolean putOk;
+	}
+
+	record DeleteRes {
+		boolean deleteOk;
+	}
+
+	bytes get(bytes blockid);
+	void delete(bytes blockid);
+	void put(bytes blockid, bytes buf);
+}

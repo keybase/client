@@ -8,6 +8,84 @@ type GenericClient interface {
 	Call(s string, args interface{}, res interface{}) error
 }
 
+type PutRes struct {
+	PutOk bool `codec:"putOk"`
+}
+
+type DeleteRes struct {
+	DeleteOk bool `codec:"deleteOk"`
+}
+
+type GetArg struct {
+	Blockid []byte `codec:"blockid"`
+}
+
+type DeleteArg struct {
+	Blockid []byte `codec:"blockid"`
+}
+
+type PutArg struct {
+	Blockid []byte `codec:"blockid"`
+	Buf     []byte `codec:"buf"`
+}
+
+type BlockInterface interface {
+	Get([]byte) ([]byte, error)
+	Delete([]byte) error
+	Put(PutArg) error
+}
+
+func BlockProtocol(i BlockInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.block",
+		Methods: map[string]rpc2.ServeHook{
+			"get": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Get(args[0].Blockid)
+				}
+				return
+			},
+			"delete": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeleteArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Delete(args[0].Blockid)
+				}
+				return
+			},
+			"put": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PutArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Put(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type BlockClient struct {
+	Cli GenericClient
+}
+
+func (c BlockClient) Get(blockid []byte) (res []byte, err error) {
+	__arg := GetArg{Blockid: blockid}
+	err = c.Cli.Call("keybase.1.block.get", []interface{}{__arg}, &res)
+	return
+}
+
+func (c BlockClient) Delete(blockid []byte) (err error) {
+	__arg := DeleteArg{Blockid: blockid}
+	err = c.Cli.Call("keybase.1.block.delete", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BlockClient) Put(__arg PutArg) (err error) {
+	err = c.Cli.Call("keybase.1.block.put", []interface{}{__arg}, nil)
+	return
+}
+
 type Status struct {
 	Code   int      `codec:"code"`
 	Name   string   `codec:"name"`

@@ -25,7 +25,8 @@ build-stamp: \
 	json/session.json \
 	json/signup.json \
 	json/track.json \
-	json/ui.json
+	json/ui.json \
+	json/block.json
 	@mkdir -p json
 	date > $@
 
