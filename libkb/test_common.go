@@ -11,6 +11,8 @@ type TestConfig struct {
 	configFileName string
 }
 
+func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
+
 func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	G.Init()
 	var f *os.File
@@ -43,6 +45,10 @@ type TestOutput struct {
 	expected string
 	t        *testing.T
 	called   *bool
+}
+
+func NewTestOutput(e string, t *testing.T, c *bool) TestOutput {
+	return TestOutput{e, t, c}
 }
 
 func (to TestOutput) Write(p []byte) (n int, err error) {
