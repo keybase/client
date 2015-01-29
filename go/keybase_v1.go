@@ -8,14 +8,6 @@ type GenericClient interface {
 	Call(s string, args interface{}, res interface{}) error
 }
 
-type PutRes struct {
-	PutOk bool `codec:"putOk"`
-}
-
-type DeleteRes struct {
-	DeleteOk bool `codec:"deleteOk"`
-}
-
 type GetArg struct {
 	Blockid []byte `codec:"blockid"`
 }
