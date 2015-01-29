@@ -1,11 +1,12 @@
 package main
 
 import (
+	"os"
+
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go/Godeps/_workspace/src/github.com/keybase/protocol/go"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
-	"os"
 )
 
 func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
@@ -108,7 +109,7 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	s.code = ctx.String("invite-code")
 
 	if nargs != 0 {
-		err = BadArgsError{"signup doesn't take arguments"}
+		err = BadArgsError("signup doesn't take arguments")
 	}
 	return err
 }
@@ -124,7 +125,7 @@ func (s *CmdSignupState) CheckRegistered() (err error) {
 	if rereg, err := G_UI.PromptYesNo(prompt, &def); err != nil {
 		return err
 	} else if !rereg {
-		return NotConfirmedError{}
+		return NotConfirmedError
 	}
 	return nil
 }
@@ -142,7 +143,7 @@ func (s *CmdSignupState) MakePrompter() {
 		code.Prompt += " (leave blank if you don't have one)"
 		code.Thrower = func(k, v string) error {
 			if len(v) == 0 {
-				return CleanCancelError{}
+				return CleanCancelError
 			} else {
 				return nil
 			}
@@ -300,7 +301,7 @@ func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
 	var invite bool
 	if invite, err = G_UI.PromptYesNo(prompt, &def); err != nil {
 	} else if !invite {
-		err = NotConfirmedError{}
+		err = NotConfirmedError
 	}
 	return err
 }
@@ -361,8 +362,8 @@ func (s *CmdSignupState) Run() (err error) {
 
 func (s *CmdSignupState) run() (err error) {
 	G.Log.Debug("+ CmdSignupState::Run")
-	if err = s.RunSignup(); err == nil {
-	} else if _, cce := err.(CleanCancelError); cce {
+	err = s.RunSignup()
+	if err == CleanCancelError {
 		err = s.RequestInvite()
 	}
 	G.Log.Debug("- CmdSignupState::Run")

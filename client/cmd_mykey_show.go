@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go/Godeps/_workspace/src/github.com/keybase/protocol/go"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -30,7 +30,7 @@ type CmdMykeyShow struct{}
 func (d *CmdMykeyShow) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if nargs != 0 {
-		err = BadArgsError{"show doesn't take arguments"}
+		err = BadArgsError("show doesn't take arguments")
 	}
 	return err
 }

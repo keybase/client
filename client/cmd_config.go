@@ -3,12 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/keybase/go/libcmdline"
-	"github.com/keybase/go/libkb"
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/codegangsta/cli"
+	"github.com/keybase/go/libcmdline"
+	"github.com/keybase/go/libkb"
 )
 
 type CmdConfig struct {
