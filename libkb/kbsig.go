@@ -255,6 +255,12 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	body.SetKey("type", jsonw.NewString(typ))
 
+	if device != nil {
+		kid := newkey.GetKid().String()
+		device.Kid = &kid
+		body.SetKey("device", device.Export())
+	}
+
 	// 'typ' can be 'subkey' or 'sibkey'
 	body.SetKey(typ, KeyToProofJson(newkey))
 	return

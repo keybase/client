@@ -106,25 +106,6 @@ func (s *CmdSignupState) run() error {
 	return nil
 }
 
-/*
-func (s *CmdSignupState) join() (done bool, err error) {
-	G.Log.Debug("+ CmdSignupState::join")
-	defer G.Log.Debug("- CmdSignupState::join")
-	state := &CmdSignupJoinState{code: s.code}
-	if s.remote {
-		err = state.RunClient()
-	} else {
-		err = state.Run()
-	}
-	if err != nil {
-		return false, err
-	}
-	// if they requested an invite, we're done...
-	done = state.requestedInvite
-	return done, nil
-}
-*/
-
 func (s *CmdSignupState) CheckRegistered() (err error) {
 	if err = s.engine.CheckRegistered(); err == nil {
 		return
@@ -383,3 +364,37 @@ func (e *RemoteSignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) (
 	err = e.scli.InviteRequest(rarg)
 	return
 }
+
+/*
+func (s *CmdSignupState) HandlePostError(inerr error) (retry bool, err error) {
+	retry = false
+	err = inerr
+	if ase, ok := inerr.(libkb.AppStatusError); ok {
+		switch ase.Name {
+		case "BAD_SIGNUP_EMAIL_TAKEN":
+			v := s.fields.email.Clear()
+			G.Log.Error("Email address '%s' already taken", v)
+			retry = true
+			err = nil
+		case "BAD_SIGNUP_USERNAME_TAKEN":
+			v := s.fields.username.Clear()
+			G.Log.Error("Username '%s' already taken", v)
+			retry = true
+			err = nil
+		case "INPUT_ERROR":
+			if ase.IsBadField("username") {
+				v := s.fields.username.Clear()
+				G.Log.Error("Username '%s' rejected by server", v)
+				retry = true
+				err = nil
+			}
+		case "BAD_INVITATION_CODE":
+			v := s.fields.code.Clear()
+			G.Log.Error("Bad invitation code '%s' given", v)
+			retry = true
+			err = nil
+		}
+	}
+	return
+}
+*/

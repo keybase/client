@@ -27,11 +27,7 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	if err != nil {
 		return err
 	}
-	d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
-	if err != nil {
-		fmt.Printf("LoadMe error: %s\n", err)
-		return err
-	}
+	// do we need this?
 	/*
 		d.localEncKey, err = RandBytes(32)
 		if err != nil {
@@ -39,31 +35,15 @@ func (d *DeviceEngine) Run(deviceName string) error {
 		}
 	*/
 
-	G.Log.Info("Device name:   %s", d.deviceName)
-	G.Log.Info("Device ID:     %x", d.deviceID)
+	G.Log.Debug("Device name:   %s", d.deviceName)
+	G.Log.Debug("Device ID:     %x", d.deviceID)
 	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
-	// eddsa key:
-	/*
-		eddsaSalt, err := RandBytes(32)
-		pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(eddsaSalt))
-		if err != nil {
-			return err
-		}
-		G.Log.Info("EdDSA salt:        %x", eddsaSalt)
-		G.Log.Info("EdDSA public key:  %x", *pub)
-		G.Log.Info("EdDSA private key: %x", *priv)
-
-		// dh key:
-		dhSalt, err := RandBytes(32)
-		pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(eddsaSalt))
-		if err != nil {
-			return err
-		}
-		G.Log.Info("EdDSA salt:        %x", eddsaSalt)
-		G.Log.Info("EdDSA public key:  %x", *pub)
-		G.Log.Info("EdDSA private key: %x", *priv)
-	*/
+	d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		fmt.Printf("LoadMe error: %s\n", err)
+		return err
+	}
 
 	if err := d.pushRootSigningKey(); err != nil {
 		return err
@@ -79,7 +59,7 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	if err != nil {
 		return err
 	}
-	G.Log.Info("EdDSA: %s", eddsaPair.VerboseDescription())
+	G.Log.Debug("EdDSA: %s", eddsaPair.VerboseDescription())
 
 	// copying stuff from keygen.go/GeneratePost
 	fokid := GenericKeyToFOKID(eddsaPair)
@@ -87,13 +67,12 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	if err != nil {
 		return err
 	}
-	G.Log.Info("self proof json: %s", jw)
+	G.Log.Debug("self proof json: %s", jw.MarshalPretty())
 
 	sig, sigid, linkid, err := SignJson(jw, eddsaPair)
 	if err != nil {
 		return err
 	}
-	G.Log.Info("sig: %v, sigid: %v, linkid: %v", sig, sigid, linkid)
 
 	pubkey, err := eddsaPair.Encode()
 	if err != nil {
@@ -113,26 +92,27 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 		NeedSession: true,
 		Args:        args,
 	})
-
-	if err == nil {
-		d.rootKey = eddsaPair
-		d.me.sigChain.Bump(MerkleTriple{linkId: linkid, sigId: sigid})
+	if err != nil {
+		return err
 	}
 
-	return err
+	d.rootKey = eddsaPair
+	d.me.sigChain.Bump(MerkleTriple{linkId: linkid, sigId: sigid})
+
+	return nil
+}
+
+func (d *DeviceEngine) device() *Device {
+	s := 1
+	return &Device{
+		Id:          d.deviceID.String(),
+		Description: &d.deviceName,
+		Type:        "desktop", // XXX always desktop?
+		Status:      &s,
+	}
 }
 
 func (d *DeviceEngine) pushDHKey() error {
-	/*
-		dhPair, err := GenerateNaclDHKeyPair()
-		if err != nil {
-			return err
-		}
-		G.Log.Info("DH: %s", dhPair.VerboseDescription())
-
-		return nil
-	*/
-
 	gen := NewNaclKeyGen(NaclKeyGenArg{
 		Signer:    d.rootKey,
 		Primary:   d.rootKey,
@@ -140,8 +120,8 @@ func (d *DeviceEngine) pushDHKey() error {
 		Type:      "subkey",
 		Me:        d.me,
 		ExpireIn:  NACL_DH_EXPIRE_IN,
+		Device:    d.device(),
 		// LogUI:     s.arg.LogUI,
-		Device: &Device{Id: d.deviceID.String(), Description: &d.deviceName},
 	})
 
 	// XXX haven't implemented saving yet...when that's ready, this should work:

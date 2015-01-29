@@ -91,8 +91,6 @@ type SignupJoinEngineRunArg struct {
 }
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
-	G.Log.Info("signupjoinengine post: G = %v", G)
-	G.Log.Info("signupjoinengine post: G.API = %v", G.API)
 	var res *ApiRes
 	res, err = G.API.Post(ApiArg{
 		Endpoint: "signup",
