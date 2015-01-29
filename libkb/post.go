@@ -27,6 +27,7 @@ type PostNewKeyArg struct {
 	PublicKey  GenericKey
 	SigningKey GenericKey
 	PrimaryKey GenericKey
+	ServerHalf string
 }
 
 func PostNewKey(arg PostNewKeyArg) error {
@@ -43,6 +44,7 @@ func PostNewKey(arg PostNewKeyArg) error {
 		"primary_kid":     S{arg.PrimaryKey.GetKid().String()},
 		"signing_kid":     S{arg.SigningKey.GetKid().String()},
 		"public_key":      S{pub},
+		"server_half":     S{arg.ServerHalf},
 	}
 
 	G.Log.Debug("Post NewKey: %v", hargs)

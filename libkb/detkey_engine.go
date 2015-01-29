@@ -95,11 +95,13 @@ func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int) error
 	}
 	sig, sigid, linkid, err := SignJson(jw, key)
 
-	pubkey, err := key.Encode()
-	if err != nil {
-		fmt.Printf("key encode err: %q\n", err)
-		return err
-	}
+	/*
+		pubkey, err := key.Encode()
+		if err != nil {
+			fmt.Printf("key encode err: %q\n", err)
+			return err
+		}
+	*/
 
 	// save it to local keyring:
 	_, err = WriteP3SKBToKeyring(key, nil, G.UI.GetLogUI())
@@ -108,22 +110,36 @@ func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int) error
 		return err
 	}
 
-	args := HttpArgs{
-		"sig_id_base":  S{sigid.ToString(false)},
-		"sig_id_short": S{sigid.ToShortId()},
-		"sig":          S{sig},
-		"public_key":   S{pubkey},
-		"is_primary":   I{1},
-		"server_half":  S{hex.EncodeToString(serverHalf)},
-	}
+	/*
+		args := HttpArgs{
+			"sig_id_base":  S{sigid.ToString(false)},
+			"sig_id_short": S{sigid.ToShortId()},
+			"sig":          S{sig},
+			"public_key":   S{pubkey},
+			"is_primary":   I{1},
+			"server_half":  S{hex.EncodeToString(serverHalf)},
+		}
 
-	_, err = G.API.Post(ApiArg{
-		Endpoint:    "key/add",
-		NeedSession: true,
-		Args:        args,
-	})
-	if err != nil {
-		fmt.Printf("api post err: %q\n", err)
+		_, err = G.API.Post(ApiArg{
+			Endpoint:    "key/add",
+			NeedSession: true,
+			Args:        args,
+		})
+		if err != nil {
+			fmt.Printf("api post err: %q\n", err)
+			return err
+		}
+	*/
+	arg := PostNewKeyArg{
+		Sig:        sig,
+		Id:         *sigid,
+		Type:       "sibkey",
+		PublicKey:  key,
+		SigningKey: d.signingKey,
+		PrimaryKey: d.signingKey,
+		ServerHalf: hex.EncodeToString(serverHalf),
+	}
+	if err := PostNewKey(arg); err != nil {
 		return err
 	}
 
