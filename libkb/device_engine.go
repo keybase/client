@@ -27,43 +27,22 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	if err != nil {
 		return err
 	}
-	d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
-	if err != nil {
-		fmt.Printf("LoadMe error: %s\n", err)
-		return err
-	}
+	// do we need this?
 	/*
 		d.localEncKey, err = RandBytes(32)
 		if err != nil {
 			return err
 		}
 	*/
-
 	G.Log.Info("Device name:   %s", d.deviceName)
 	G.Log.Info("Device ID:     %x", d.deviceID)
 	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
-	// eddsa key:
-	/*
-		eddsaSalt, err := RandBytes(32)
-		pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(eddsaSalt))
-		if err != nil {
-			return err
-		}
-		G.Log.Info("EdDSA salt:        %x", eddsaSalt)
-		G.Log.Info("EdDSA public key:  %x", *pub)
-		G.Log.Info("EdDSA private key: %x", *priv)
-
-		// dh key:
-		dhSalt, err := RandBytes(32)
-		pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(eddsaSalt))
-		if err != nil {
-			return err
-		}
-		G.Log.Info("EdDSA salt:        %x", eddsaSalt)
-		G.Log.Info("EdDSA public key:  %x", *pub)
-		G.Log.Info("EdDSA private key: %x", *priv)
-	*/
+	d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		fmt.Printf("LoadMe error: %s\n", err)
+		return err
+	}
 
 	if err := d.pushRootSigningKey(); err != nil {
 		return err
@@ -113,26 +92,17 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 		NeedSession: true,
 		Args:        args,
 	})
-
-	if err == nil {
-		d.rootKey = eddsaPair
-		d.me.sigChain.Bump(MerkleTriple{linkId: linkid, sigId: sigid})
+	if err != nil {
+		return err
 	}
 
-	return err
+	d.rootKey = eddsaPair
+	d.me.sigChain.Bump(MerkleTriple{linkId: linkid, sigId: sigid})
+
+	return nil
 }
 
 func (d *DeviceEngine) pushDHKey() error {
-	/*
-		dhPair, err := GenerateNaclDHKeyPair()
-		if err != nil {
-			return err
-		}
-		G.Log.Info("DH: %s", dhPair.VerboseDescription())
-
-		return nil
-	*/
-
 	gen := NewNaclKeyGen(NaclKeyGenArg{
 		Signer:    d.rootKey,
 		Primary:   d.rootKey,
