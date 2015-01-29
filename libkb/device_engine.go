@@ -1,13 +1,12 @@
 package libkb
 
 import (
-	"encoding/hex"
 	"fmt"
 )
 
 type DeviceEngine struct {
 	deviceName  string
-	deviceID    []byte
+	deviceID    DeviceId
 	localEncKey []byte
 	me          *User
 	rootKey     NaclKeyPair
@@ -24,7 +23,7 @@ func (d *DeviceEngine) Init() error {
 func (d *DeviceEngine) Run(deviceName string) error {
 	d.deviceName = deviceName
 	var err error
-	d.deviceID, err = RandBytes(DEVICE_ID_LEN)
+	d.deviceID, err = NewDeviceId()
 	if err != nil {
 		return err
 	}
@@ -142,7 +141,7 @@ func (d *DeviceEngine) pushDHKey() error {
 		Me:        d.me,
 		ExpireIn:  NACL_DH_EXPIRE_IN,
 		// LogUI:     s.arg.LogUI,
-		Device: &Device{Id: hex.EncodeToString(d.deviceID), Description: &d.deviceName},
+		Device: &Device{Id: d.deviceID.String(), Description: &d.deviceName},
 	})
 
 	// XXX haven't implemented saving yet...when that's ready, this should work:
