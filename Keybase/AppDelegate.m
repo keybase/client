@@ -11,6 +11,7 @@
 #import "KBKeyGenView.h"
 #import "KBRPC.h"
 #import "KBUserProfileView.h"
+#import "KBCatalogView.h"
 
 @interface AppDelegate ()
 @property KBWindowController *windowController;
@@ -168,11 +169,14 @@
 }
 
 - (void)catalog {
-  if (!_catalogController) {
-    _catalogController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
-    [_catalogController window];
-  }
-  [_catalogController showCatalog];
+  KBCatalogView *catalogView = [[KBCatalogView alloc] init];
+  KBWindow *window = [KBWindow windowWithContentView:catalogView size:CGSizeMake(400, 500) retain:YES];
+  window.minSize = CGSizeMake(300, 400);
+  window.maxSize = CGSizeMake(600, 900);
+  window.styleMask = window.styleMask | NSResizableWindowMask;
+  window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Debug/Catalog" navigation:window.navigation];
+  //[window setLevel:NSStatusWindowLevel];
+  [window makeKeyAndOrderFront:nil];
 }
 
 @end

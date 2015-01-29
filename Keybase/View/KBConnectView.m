@@ -142,11 +142,21 @@
   [self setInProgress:YES sender:nil];
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
     [self setInProgress:NO sender:nil];
-    [self setError:error];
+    if (error) {
+      [self setError:error];
+      return;
+    }
 
     self.passwordField.text = nil;
 
-    [AppDelegate.sharedDelegate checkStatus];
+    KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
+    [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+      if (error) {
+        [self setError:error];
+        return;
+      }
+      [self.delegate loginView:self didLoginWithStatus:status];
+    }];
   }];
 }
 
@@ -240,12 +250,20 @@
   [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username completion:^(NSError *error, KBRSignupRes *res) {
     [self setInProgress:NO sender:nil];
     if (error) {
-      [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:nil];
+      [self setError:error];
       return;
     }
 
     self.passwordField.text = nil;
-    [AppDelegate.sharedDelegate checkStatus];
+
+    KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
+    [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+      if (error) {
+        [self setError:error];
+        return;
+      }
+      [self.delegate signupView:self didSignupWithStatus:status];
+    }];
   }];
 }
 

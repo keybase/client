@@ -72,9 +72,6 @@
 - (void)_generateKey:(NSString *)password {
   GHWeakSelf gself = self;
 
-  NSString *username = AppDelegate.sharedDelegate.status.user.username;
-  NSAssert(username, @"No username");
-
   KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
   uids.useDefault = YES;
 
@@ -83,7 +80,7 @@
   [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:YES passphrase:password completion:^(NSError *error) {
     [gself setProgressIndicatorEnabled:NO];
     if (error) {
-      [[NSAlert alertWithError:error] beginSheetModalForWindow:gself.window completionHandler:nil];
+      [self setError:error];
       return;
     }
 

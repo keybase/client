@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBUIDefines.h"
+#import "KBView.h"
 
 typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
   KBNavigationTransitionTypeNone,
@@ -19,14 +19,14 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 
 @class KBNavigationView;
 
-@protocol KBNavigationViewDelegate <NSObject>
+@protocol KBNavigationTitleView <NSObject>
+- (void)setProgressEnabled:(BOOL)progressEnabled;
 - (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType;
 @end
 
 @interface KBNavigationView : KBView
 
-@property (nonatomic) NSView<KBNavigationViewDelegate> *titleView;
-@property (weak) id<KBNavigationViewDelegate> delegate;
+@property (nonatomic) NSView<KBNavigationTitleView> *titleView;
 @property (readonly) NSMutableArray *views; // Fix mutable
 
 - (void)pushView:(NSView *)view animated:(BOOL)animated;

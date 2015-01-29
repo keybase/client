@@ -38,7 +38,17 @@
   [view addSubview:_headerView];
   [view addSubview:_userInfoView];
   [view addSubview:_trackView];
-  view.viewLayout = [YOLayout vertical:view];
+
+  YOSelf yself = self;
+  view.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 0;
+    //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
+    //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 20, 0) view:yself.headerView].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.userInfoView].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.trackView].size.height;
+    return CGSizeMake(size.width, y);
+  }];
 
   _scrollView = [[NSScrollView alloc] init];
   [_scrollView setHasVerticalScroller:YES];
@@ -46,10 +56,9 @@
   [self addSubview:_scrollView];
 
   [_scrollView setDocumentView:view];
-  YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, CGFLOAT_MAX) view:view];
-    [layout setSize:size view:yself.scrollView];
+    [layout setSize:size view:yself.scrollView options:0];
     return size;
   }];
 
@@ -98,6 +107,7 @@
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    //[yself.navigation.titleView setProgressEnabled:NO];
     [yself.headerView setProgressEnabled:NO];
     KBRIdentifyOutcome *identifyOutcome = [MTLJSONAdapter modelOfClass:KBRIdentifyOutcome.class fromJSONDictionary:params[0][@"outcome"] error:nil];
     yself.trackView.hidden = NO;
@@ -137,6 +147,7 @@
 }
 
 - (void)setUser:(KBRUser *)user track:(BOOL)track {
+  NSAssert(self.navigation, @"No navigation, push before setting user");
   _user = user;
   //_headerView.hidden = NO;
   [_headerView setUser:user];
@@ -148,12 +159,16 @@
   GHWeakSelf gself = self;
 
   if (track) {
-    [_headerView setProgressEnabled:YES];
+    //[self.navigation.titleView setProgressEnabled:YES];
+    [self.headerView setProgressEnabled:YES];
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:AppDelegate.client];
     [trackRequest trackWithTheirName:user.username completion:^(NSError *error) {
+      //[gself.navigation.titleView setProgressEnabled:NO];
       [gself.headerView setProgressEnabled:NO];
       [KBView setInProgress:NO view:gself.trackView];
-      [gself.trackView setTrackCompleted:error];
+      if (![gself.trackView setTrackCompleted:error]) {
+        [self setError:error];
+      }
       [self setNeedsLayout];
     }];
   }

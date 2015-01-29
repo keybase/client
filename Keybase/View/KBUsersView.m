@@ -44,7 +44,7 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout setSize:size view:yself.scrollView];
+    [layout setSize:size view:yself.scrollView options:0];
     return size;
   }];
 }
@@ -97,8 +97,8 @@
     KBUser *user = [_usersDataSource objectAtIndex:selectedRow];
     KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
     KBRUser *ruser = [[KBRUser alloc] initWithDictionary:@{@"uid": [user.identifier na_dataFromHexString], @"username": user.userName} error:nil];
-    [userProfileView setUser:ruser track:YES];
     [self.navigation pushView:userProfileView animated:YES];
+    [userProfileView setUser:ruser track:YES];
   }
   [_tableView deselectAll:nil];
 }

@@ -36,7 +36,7 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.descLabel].size.height + 30;
 
     for (NSControl *control in yself.controls) {
-      y += [layout setOrigin:CGPointMake(size.width/2.0f - control.frame.size.width/2.0, y) view:control].size.height;
+      y += [layout setOrigin:CGPointMake(size.width/2.0f - control.frame.size.width/2.0, y) view:control options:0].size.height;
     }
     return size;
   }];

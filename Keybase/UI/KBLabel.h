@@ -15,6 +15,8 @@
 
 @property (nonatomic) NSAttributedString *attributedText;
 
+- (void)setBackgroundColor:(NSColor *)backgroundColor;
+
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;

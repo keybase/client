@@ -34,7 +34,7 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
     if (yself.titleView) {
-      y += [layout setFrame:CGRectMake(0, 0, size.width, yself.titleView.frame.size.height) view:yself.titleView].size.height;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, 0) view:yself.titleView].size.height;
     }
 
     [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.contentView];
@@ -85,7 +85,7 @@
   [[self currentView] viewDidAppear:animated];
 }
 
-- (void)setTitleView:(NSView<KBNavigationViewDelegate> *)titleView {
+- (void)setTitleView:(NSView<KBNavigationTitleView> *)titleView {
   [_titleView removeFromSuperview];
   _titleView = titleView;
   [self addSubview:_titleView];
@@ -112,13 +112,6 @@
   return _views[_views.count-2];
 }
 
-- (void)_setView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType {
-  NSView *currentView = [self currentView];
-  if (currentView == view) return;
-
-  [_titleView navigationView:self willTransitionView:view transitionType:transitionType];
-  [self replaceView:currentView withView:view transition:[self transitionForType:transitionType]];
-}
 
 - (CATransition *)transitionForType:(KBNavigationTransitionType)type {
   switch (type) {
@@ -144,20 +137,28 @@
   }
 }
 
-- (void)replaceView:(NSView *)outView withView:(NSView *)inView transition:(CATransition *)transition {
+- (void)_setView:(NSView *)inView transitionType:(KBNavigationTransitionType)transitionType {
+  NSView *outView = [self currentView];
+  if (outView == inView) return;
+
   inView.frame = _contentView.bounds;
 
+  CATransition *transition = [self transitionForType:transitionType];
   if (!outView) transition = nil;
-
-  [inView viewWillAppearInView:_contentView animated:!!transition];
 
   if (transition) {
     self.contentView.animations = @{@"subviews": transition};
     [CATransaction begin];
+    //[CATransaction setAnimationDuration:2.0]; // For debug
+    [_titleView navigationView:self willTransitionView:inView transitionType:transitionType];
+    [inView viewWillAppearInView:_contentView animated:YES];
+    [self layoutView];
     [CATransaction setCompletionBlock:^{ [inView viewDidAppear:YES]; }];
     [self.contentView.animator replaceSubview:outView with:inView];
     [CATransaction commit];
   } else {
+    [self layoutView];
+    [inView viewWillAppearInView:_contentView animated:NO];
     if (outView) {
       [_contentView replaceSubview:outView with:inView];
     } else {

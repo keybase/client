@@ -8,6 +8,7 @@
 
 #import "KBLogoView.h"
 
+
 @implementation KBLogoView
 
 - (void)viewInit {

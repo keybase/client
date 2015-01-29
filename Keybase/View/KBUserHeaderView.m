@@ -49,15 +49,16 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
     CGFloat x = 20;
+    CGFloat y = 10;
     CGFloat imageWidth = 100;
 
-    x += [layout setFrame:CGRectMake(20, 20, imageWidth, imageWidth) view:yself.imageView].size.width + 10;
+    x += [layout setFrame:CGRectMake(20, y, imageWidth, imageWidth) view:yself.imageView].size.width + 10;
 
-    [layout setFrame:CGRectMake(x, 20, size.width - x, imageWidth) view:yself.name1Label options:YOLayoutOptionsSizeToFitHorizontal];
+    CGRect name1Rect = [layout setFrame:CGRectMake(x, y, size.width - x, imageWidth) view:yself.name1Label options:YOLayoutOptionsSizeToFitHorizontal];
 
-    [layout setFrame:CGRectMake(12, 12, imageWidth + 16, imageWidth + 16) view:yself.progressView];
+    [layout setFrame:CGRectMake(12, y - 8, imageWidth + 16, imageWidth + 16) view:yself.progressView];
 
-    return CGSizeMake(size.width, imageWidth + 40);
+    return CGSizeMake(x + name1Rect.size.width, imageWidth + 30);
   }];
 
 //  YOSelf yself = self;

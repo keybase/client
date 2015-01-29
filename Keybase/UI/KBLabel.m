@@ -39,6 +39,10 @@
   return nil;
 }
 
+- (void)setBackgroundColor:(NSColor *)backgroundColor {
+  _textView.backgroundColor = backgroundColor;
+}
+
 - (BOOL)hasText {
   return (self.attributedText && self.attributedText.length > 0);
 }

@@ -10,6 +10,8 @@
 
 #import "KBUIDefines.h"
 
-@interface KBCatalogView : KBView <NSTableViewDelegate, NSTableViewDataSource>
+#import "KBConnectView.h"
+
+@interface KBCatalogView : KBView <NSTableViewDelegate, NSTableViewDataSource, KBSignupViewDelegate, KBLoginViewDelegate>
 
 @end

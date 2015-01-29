@@ -12,10 +12,10 @@
 #import "KBUserProfileView.h"
 #import "KBKeyGenView.h"
 #import "KBTwitterConnectView.h"
-#import "KBConnectView.h"
 #import "KBLogoView.h"
 #import "KBCatalogView.h"
 #import "KBUsersView.h"
+#import "AppDelegate.h"
 
 @interface KBWindowController ()
 @property KBConnectView *connectView;
@@ -42,6 +42,16 @@
   self.window.contentView = self.navigation;
 
   _connectView = [[KBConnectView alloc] init];
+  _connectView.loginView.delegate = self;
+  _connectView.signupView.delegate = self;
+}
+
+- (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
+  AppDelegate.sharedDelegate.status = status;
+}
+
+- (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status {
+  AppDelegate.sharedDelegate.status = status;
 }
 
 - (void)showLogin:(BOOL)animated {
@@ -78,14 +88,8 @@
 
 - (void)showUser:(KBRUser *)user animated:(BOOL)animated {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  [userProfileView setUser:user];
+  [userProfileView setUser:user track:YES];
   [self.navigation setView:userProfileView transitionType:KBNavigationTransitionTypeFade];
-  [self showWindow:nil];
-}
-
-- (void)showCatalog {
-  KBCatalogView *catalogView = [[KBCatalogView alloc] init];
-  [self.navigation setView:catalogView transitionType:KBNavigationTransitionTypeNone];
   [self showWindow:nil];
 }
 

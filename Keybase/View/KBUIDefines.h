@@ -22,6 +22,8 @@ typedef struct { CGFloat top, left , bottom, right ; } KBEdgeInsets;
 #import "KBTextField.h"
 #import "KBNavigationView.h"
 #import "KBTableRowView.h"
+#import "KBWindow.h"
+#import "KBTitleView.h"
 
 #define KBDefaultWidth (360)
 #define KBDefaultHeight (600)

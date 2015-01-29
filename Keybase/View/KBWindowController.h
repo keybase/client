@@ -10,8 +10,9 @@
 
 #import "KBNavigationView.h"
 #import "KBRPC.h"
+#import "KBConnectView.h"
 
-@interface KBWindowController : NSWindowController
+@interface KBWindowController : NSWindowController <KBLoginViewDelegate, KBSignupViewDelegate>
 
 @property IBOutlet NSWindow *window;
 
@@ -25,8 +26,6 @@
 - (void)showTwitterConnect:(BOOL)animated;
 
 - (void)showUser:(KBRUser *)userInfo animated:(BOOL)animated;
-
-- (void)showCatalog;
 
 - (void)showUsers:(BOOL)animated;
 
