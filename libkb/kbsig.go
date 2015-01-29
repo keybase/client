@@ -246,7 +246,7 @@ func KeyToProofJson(key GenericKey) *jsonw.Wrapper {
 	return d
 }
 
-func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int) (ret *jsonw.Wrapper, err error) {
+func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int, device *Device) (ret *jsonw.Wrapper, err error) {
 	ret, err = u.ProofMetadata(ei, signingkey, nil)
 	if err != nil {
 		return

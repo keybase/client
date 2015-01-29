@@ -40,7 +40,7 @@ func (g *NaclKeyGen) Save() (err error) {
 
 func (g *NaclKeyGen) Push() (err error) {
 	var jw *jsonw.Wrapper
-	jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn)
+	jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn, g.arg.Device)
 	if err != nil {
 		return
 	}

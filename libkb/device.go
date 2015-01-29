@@ -17,6 +17,17 @@ func (d DeviceId) String() string {
 	return hex.EncodeToString(d[:])
 }
 
+func NewDeviceId() (id DeviceId, err error) {
+	var b []byte
+	b, err = RandBytes(DEVICE_ID_LEN)
+	if err != nil {
+		return id, err
+	}
+	b[DEVICE_ID_LEN-1] = DEVICE_ID_SUFFIX
+	copy(id[:], b)
+	return id, nil
+}
+
 func ImportDeviceId(s string) (d *DeviceId, err error) {
 	if len(s) != 2*DEVICE_ID_LEN {
 		err = fmt.Errorf("Bad Deviced ID length: %d", len(s))
