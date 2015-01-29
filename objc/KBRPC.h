@@ -47,6 +47,9 @@
 @property NSString *username;
 @end
 
+@interface KBRSIGID : NSData
+@end
+
 @interface KBRSignupRes : KBRObject
 @property BOOL passphraseOk;
 @property BOOL postOk;
@@ -207,9 +210,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @interface KBRConfigRequest : KBRRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion;
 
-@end
-
-@interface KBRSIGID : NSData
 @end
 
 @interface KBRProofStatus : KBRObject

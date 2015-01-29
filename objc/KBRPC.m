@@ -53,6 +53,9 @@
 @implementation KBRUser
 @end
 
+@implementation KBRSIGID
+@end
+
 @implementation KBRSignupRes
 @end
 
@@ -327,9 +330,6 @@
   }];
 }
 
-@end
-
-@implementation KBRSIGID
 @end
 
 @implementation KBRProofStatus

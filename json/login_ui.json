@@ -80,6 +80,10 @@
       "name" : "username",
       "type" : "string"
     } ]
+  }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
   } ],
   "messages" : {
     "getEmailOrUsername" : {

@@ -113,6 +113,7 @@ type User struct {
 	Username string `codec:"username"`
 }
 
+type SIGID [32]byte
 type GetCurrentStatusRes struct {
 	Configured        bool  `codec:"configured"`
 	Registered        bool  `codec:"registered"`
@@ -250,7 +251,6 @@ func (c IdentifyClient) IdentifyDefault(username string) (res IdentifyRes, err e
 	return
 }
 
-type SIGID [32]byte
 type ProofStatus struct {
 	State  int    `codec:"state"`
 	Status int    `codec:"status"`
