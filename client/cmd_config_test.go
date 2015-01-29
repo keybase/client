@@ -1,6 +1,5 @@
 package main
 
-/*
 import (
 	"github.com/keybase/go/libkb"
 	"io/ioutil"
@@ -352,4 +351,3 @@ func TestClear(t *testing.T) {
 			"ret=%s, is_set=%t", ret, is_set)
 	}
 }
-*/

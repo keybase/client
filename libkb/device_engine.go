@@ -79,6 +79,12 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 		return err
 	}
 
+	// save it to local keyring:
+	_, err = WriteP3SKBToKeyring(eddsaPair, nil, G.UI.GetLogUI())
+	if err != nil {
+		return err
+	}
+
 	args := HttpArgs{
 		"sig_id_base":  S{sigid.ToString(false)},
 		"sig_id_short": S{sigid.ToShortId()},
@@ -121,15 +127,15 @@ func (d *DeviceEngine) pushDHKey() error {
 		Me:        d.me,
 		ExpireIn:  NACL_DH_EXPIRE_IN,
 		Device:    d.device(),
-		// LogUI:     s.arg.LogUI,
+		LogUI:     G.UI.GetLogUI(),
 	})
 
-	// XXX haven't implemented saving yet...when that's ready, this should work:
-	// return gen.Run()
-	// XXX but for now, generate and push:
+	return gen.Run()
 
-	if err := gen.Generate(); err != nil {
-		return err
-	}
-	return gen.Push()
+	/*
+		if err := gen.Generate(); err != nil {
+			return err
+		}
+		return gen.Push()
+	*/
 }

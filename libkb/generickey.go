@@ -71,6 +71,21 @@ func WriteP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb
 	return
 }
 
+/*
+func WriteP3SKBLocalKeyToKeyring(k GenericKey, lui LogUI) (p3skb *P3SKB, err error) {
+	if G.Keyrings == nil {
+		return nil, NoKeyringsError{}
+	}
+	p3skb, err = k.ToP3SKB()
+	if err != nil {
+		return nil, err
+	}
+
+	err = G.Keyrings.P3SKB.PushAndSave(p3skb, lui)
+	return p3skb, err
+}
+*/
+
 // FOKID is a "Fingerprint Or a KID" or both, or neither.
 // We have different things in different sigchains, so we
 // have this layer to abstract away the differences.

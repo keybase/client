@@ -34,11 +34,13 @@ func setup(t *testing.T) {
 	if err := G.ConfigureMerkleClient(); err != nil {
 		t.Fatal(err)
 	}
-	/*
-		if err := G.UI.Configure(); err != nil {
-			t.Fatal(err)
-		}
-	*/
+	G.UI = &nullui{}
+	if err := G.UI.Configure(); err != nil {
+		t.Fatal(err)
+	}
+	if err := G.ConfigureKeyring(Usage{KbKeyring: true}); err != nil {
+		t.Fatal(err)
+	}
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -65,4 +67,41 @@ func TestSignupEngine(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// XXX move this somewhere reusable?
+type nullui struct{}
+
+func (n *nullui) GetIdentifyUI(username string) IdentifyUI {
+	return nil
+}
+func (n *nullui) GetIdentifySelfUI() IdentifyUI {
+	return nil
+}
+func (n *nullui) GetIdentifyTrackUI(username string, strict bool) IdentifyUI {
+	return nil
+}
+func (n *nullui) GetLoginUI() LoginUI {
+	return nil
+}
+func (n *nullui) GetSecretUI() SecretUI {
+	return nil
+}
+func (n *nullui) GetProveUI() ProveUI {
+	return nil
+}
+func (n *nullui) GetLogUI() LogUI {
+	return G.Log
+}
+func (n *nullui) Prompt(string, bool, Checker) (string, error) {
+	return "", nil
+}
+func (n *nullui) GetIdentifyLubaUI(username string) IdentifyUI {
+	return nil
+}
+func (n *nullui) Configure() error {
+	return nil
+}
+func (n *nullui) Shutdown() error {
+	return nil
 }
