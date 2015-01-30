@@ -398,13 +398,13 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	sigid := tcl.GetSigId()
 	tm := TclToKeybaseTime(tcl)
 
-	err = ckf.cki.Delegate(kid_s, tm, sigid, tcl.GetKid(), (tcl.IsDelegation() == DLG_SIBKEY))
+	err = ckf.cki.Delegate(kid_s, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.IsDelegation() == DLG_SIBKEY))
 	return
 }
 
 // Delegate marks the given ComputedKeyInfos object that the given kid_s is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kid_s string, tm *KeybaseTime, sigid SigId, signingKid KID, isSibkey bool) (err error) {
+func (cki *ComputedKeyInfos) Delegate(kid_s string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool) (err error) {
 	info, found := cki.Infos[kid_s]
 	if !found {
 		info = &ComputedKeyInfo{
@@ -423,10 +423,10 @@ func (cki *ComputedKeyInfos) Delegate(kid_s string, tm *KeybaseTime, sigid SigId
 
 	// If it's a subkey, make a pointer from it to its parent,
 	// and also from its parent to it.
-	if !isSibkey {
-		skid_s := signingKid.String()
-		info.Parent = &skid_s
-		if parent, found := cki.Infos[skid_s]; found {
+	if parentKid != nil {
+		s := parentKid.String()
+		info.Parent = &s
+		if parent, found := cki.Infos[s]; found {
 			parent.Subkey = &kid_s
 		}
 	}

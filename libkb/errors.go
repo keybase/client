@@ -665,3 +665,13 @@ func (e UnknownKeyTypeError) Error() string {
 }
 
 //=============================================================================
+
+type ChainLinkError struct {
+	msg string
+}
+
+func (c ChainLinkError) Error() string {
+	return fmt.Sprintf("Error in parsing chain Link: %s", c.msg)
+}
+
+//=============================================================================
