@@ -23,7 +23,7 @@ func fakeUser(t *testing.T, prefix string) (username, email string) {
 func TestSignupEngine(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
-	s := NewSignupEngine(G.UI.GetLogUI())
+	s := NewSignupEngine(G.UI.GetLogUI(), nil)
 	username, email := fakeUser(t, "se")
 	arg := SignupEngineRunArg{username, email, "202020202020202020202020", "passphrase passphrase", "my device"}
 	err := s.Run(arg)

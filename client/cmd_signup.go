@@ -87,7 +87,8 @@ func (s *CmdSignupState) RunClient() error {
 
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
-	s.engine = engine.NewSignupEngine(G.UI.GetLogUI())
+	panic("need to implement GPGUI for standalone mode")
+	s.engine = engine.NewSignupEngine(G.UI.GetLogUI(), nil)
 	return s.run()
 }
 

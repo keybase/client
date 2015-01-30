@@ -6,6 +6,13 @@ import (
 	"github.com/keybase/go/libkb"
 )
 
+/*
+type SignupUI interface {
+	libkb.LogUI
+	GPGUI
+}
+*/
+
 type SignupEngine struct {
 	pwsalt     []byte
 	tspkey     libkb.TSPassKey
@@ -13,10 +20,11 @@ type SignupEngine struct {
 	me         *libkb.User
 	signingKey libkb.GenericKey
 	logui      libkb.LogUI
+	gpgui      GPGUI
 }
 
-func NewSignupEngine(logui libkb.LogUI) *SignupEngine {
-	return &SignupEngine{logui: logui}
+func NewSignupEngine(logui libkb.LogUI, gpgui GPGUI) *SignupEngine {
+	return &SignupEngine{logui: logui, gpgui: gpgui}
 }
 
 func (s *SignupEngine) Init() error {
@@ -122,6 +130,6 @@ func (s *SignupEngine) genDetKeys() error {
 }
 
 func (s *SignupEngine) checkGPG() error {
-	eng := NewGPG()
+	eng := NewGPG(s.gpgui)
 	return eng.Run()
 }

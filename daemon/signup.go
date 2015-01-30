@@ -21,7 +21,10 @@ func (h *SignupHandler) CheckUsernameAvailable(username string) error {
 
 func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes, err error) {
 	sessionID := nextSessionId()
-	eng := engine.NewSignupEngine(h.getLogUI(sessionID))
+	eng := engine.NewSignupEngine(
+		h.getLogUI(sessionID),
+		NewRemoteGPGUI(sessionID, h.getRpcClient()),
+	)
 
 	err = eng.Run(engine.SignupEngineRunArg{
 		Username:   arg.Username,
@@ -62,3 +65,14 @@ func (h *SignupHandler) InviteRequest(arg keybase_1.InviteRequestArg) (err error
 		Notes:    arg.Notes,
 	})
 }
+
+/*
+type signupHandlerUI struct {
+	libkb.LogUI
+	*RemoteGPGUI
+}
+
+func (h *SignupHandler) getSignupUI(sessionId int) engine.SignupUI {
+	return &signupHandlerUI{h.getLogUI(sessionId), NewRemoteGPGUI(sessionId, h.getRpcClient())}
+}
+*/
