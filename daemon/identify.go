@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/keybase/go/libkb/engine"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -63,7 +62,6 @@ func nextSessionId() int {
 }
 
 func NewRemoteSelfIdentifyUI(sessionId int, username string, c *rpc2.Client) *RemoteSelfIdentifyUI {
-	fmt.Printf("************** NewRemoteSelfIdentifyUI\n")
 	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
 		username:  username,
