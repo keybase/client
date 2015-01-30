@@ -19,6 +19,7 @@ type GenericKey interface {
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
+	CanSign() bool
 	Encode() (string, error) // encode public key to string
 }
 
