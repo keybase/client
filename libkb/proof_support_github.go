@@ -86,7 +86,7 @@ func (t GithubServiceType) ToServiceJson(un string) *jsonw.Wrapper {
 
 func (t GithubServiceType) PostInstructions(un string) *Markup {
 	return FmtMarkup(`Please <strong>publicly</strong> post the following Gist,
-and name it <strong><color name="red">keybase.md</color><strong>`)
+and name it <strong><color name="red">keybase.md</color></strong>`)
 }
 
 func (t GithubServiceType) DisplayName(un string) string { return "Github" }
