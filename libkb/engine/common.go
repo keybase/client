@@ -4,4 +4,4 @@ import (
 	"github.com/keybase/go/libkb"
 )
 
-var G = libkb.G
+var G = &libkb.G

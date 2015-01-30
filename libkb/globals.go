@@ -55,6 +55,10 @@ func NewGlobal() Global {
 
 var G Global = NewGlobal()
 
+func init() {
+	G = NewGlobal()
+}
+
 func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
 func (g *Global) SetUI(u UI) { g.UI = u }

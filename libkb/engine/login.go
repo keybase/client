@@ -12,7 +12,6 @@ type LoginAndIdentifyArg struct {
 }
 
 func LoginAndIdentify(arg LoginAndIdentifyArg) error {
-
 	if err := G.LoginState.Login(arg.Login); err != nil {
 		return err
 	}
