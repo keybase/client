@@ -218,6 +218,9 @@ func (k NaclDHKeyPair) CheckSecretKey() (err error) {
 	return
 }
 
+func (k NaclSigningKeyPair) CanSign() bool { return k.Private != nil }
+func (k NaclDHKeyPair) CanSign() bool      { return false }
+
 func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSig, err error) {
 	if k.Private == nil {
 		err = NoSecretKeyError{}
