@@ -42,7 +42,7 @@ def objc_for_type(type, enums)
 end
 
 def is_native_type(type)
-  is_primitive_type(type) || ["string", "array"].include?(type)
+  is_primitive_type(type) || ["string", "array", "bytes"].include?(type)
 end
 
 def is_primitive_type(type)
@@ -188,11 +188,10 @@ paths.each do |path|
 
     impl << "}\n"
 
-    args = mparam["request"].each_with_index.collect do |param, index|
-      "#{objc_for_type(param["type"], enums)} #{param["name"]}"
-    end
-
-    #"typedef void (^#{classname(protocol.camelize)}Block)(#{args.join(", ")}, MPRequestCompletion completion);"
+    # args = mparam["request"].each_with_index.collect do |param, index|
+    #   "#{objc_for_type(param["type"], enums)}#{param["name"]}"
+    # end
+    # header << "typedef void (^#{method.camelize}Block)(#{args.join(", ")}, MPRequestCompletion completion);\n"
   end
   header << "@end\n"
   impl << "@end\n"
