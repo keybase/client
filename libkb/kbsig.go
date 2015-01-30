@@ -261,7 +261,20 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 		body.SetKey("device", device.Export())
 	}
 
+	kp := KeyToProofJson(newkey)
+	if typ == "sibkey" && newkey.CanSign() {
+		rsig_json := jsonw.NewDictionary()
+		rsig_json.SetKey("reverse_key_sig", jsonw.NewString(signingkey.GetKid().String()))
+		var rsig string
+		if rsig, _, _, err = SignJson(rsig_json, newkey); err != nil {
+			return
+		}
+		rsig_dict := jsonw.NewDictionary()
+		rsig_dict.SetKey("sig", jsonw.NewString(rsig))
+		rsig_dict.SetKey("type", jsonw.NewString("kb"))
+		kp.SetKey("reverse_sig", rsig_dict)
+	}
 	// 'typ' can be 'subkey' or 'sibkey'
-	body.SetKey(typ, KeyToProofJson(newkey))
+	body.SetKey(typ, kp)
 	return
 }
