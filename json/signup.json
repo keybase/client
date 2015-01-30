@@ -119,6 +119,9 @@
       }, {
         "name" : "username",
         "type" : "string"
+      }, {
+        "name" : "deviceName",
+        "type" : "string"
       } ],
       "response" : "SignupRes"
     },

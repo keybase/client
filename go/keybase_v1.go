@@ -1106,6 +1106,7 @@ type SignupArg struct {
 	InviteCode string `codec:"inviteCode"`
 	Passphrase string `codec:"passphrase"`
 	Username   string `codec:"username"`
+	DeviceName string `codec:"deviceName"`
 }
 
 type InviteRequestArg struct {
