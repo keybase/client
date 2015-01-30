@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"github.com/keybase/go-jsonw"
 )
 
@@ -46,6 +47,8 @@ func PostNewKey(arg PostNewKeyArg) error {
 		"public_key":      S{pub},
 		"server_half":     S{arg.ServerHalf},
 	}
+
+	fmt.Printf("http args:\n%+v", hargs)
 
 	G.Log.Debug("Post NewKey: %v", hargs)
 	_, err = G.API.Post(ApiArg{

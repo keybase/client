@@ -139,6 +139,7 @@ func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int) error
 		PrimaryKey: d.signingKey,
 		ServerHalf: hex.EncodeToString(serverHalf),
 	}
+	fmt.Printf("PostNewKeyArg:\n%+v\n", arg)
 	if err := PostNewKey(arg); err != nil {
 		return err
 	}
