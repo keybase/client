@@ -176,6 +176,7 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 
 	// check to see if the error is a join engine run result:
 	if e, ok := err.(libkb.SignupJoinEngineRunRes); ok {
+		G.Log.Info("got a signup join engine run res error: %+v", e)
 		if e.PassphraseOk {
 			s.fields.passphraseRetry.Disabled = false
 		}
@@ -186,6 +187,8 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		}
 		return retry, err
 	}
+
+	G.Log.Info("not a signup join engine run res error: %q (%T)", err, err)
 
 	return false, err
 }
@@ -355,8 +358,19 @@ func (e *RemoteSignupJoinEngine) Run(arg libkb.SignupEngineRunArg) error {
 		Passphrase: arg.Passphrase,
 		DeviceName: arg.DeviceName,
 	}
-	// XXX use res?
-	_, err := e.scli.Signup(rarg)
+	res, err := e.scli.Signup(rarg)
+	if err == nil {
+		return nil
+	}
+	if !res.PassphraseOk || !res.PostOk || !res.WriteOk {
+		// problem with the join phase
+		return libkb.SignupJoinEngineRunRes{
+			PassphraseOk: res.PassphraseOk,
+			PostOk:       res.PostOk,
+			WriteOk:      res.WriteOk,
+			Err:          err,
+		}
+	}
 	/*
 		if res.Error = err; err == nil {
 			res.PassphraseOk = rres.PassphraseOk
