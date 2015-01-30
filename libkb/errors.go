@@ -683,3 +683,13 @@ func (c ChainLinkError) Error() string {
 }
 
 //=============================================================================
+
+type ReverseSigError struct {
+	msg string
+}
+
+func (r ReverseSigError) Error() string {
+	return fmt.Sprintf("Error in reverse signature: %s", r.msg)
+}
+
+//=============================================================================

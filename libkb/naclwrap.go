@@ -290,7 +290,7 @@ func (k NaclDHKeyPair) Verify(armored string, expected []byte) (sigId *SigId, er
 	return
 }
 
-func (k NaclSigningKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
+func (k NaclSigningKeyPair) VerifyAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
 	var packet *KeybasePacket
 	var sig *NaclSig
 	var ok bool
@@ -313,12 +313,20 @@ func (k NaclSigningKeyPair) Verify(armored string, expected []byte) (sigId *SigI
 		err = WrongKidError{sig.Kid, k.GetKid()}
 		return
 	}
-	if !FastByteArrayEq(sig.Payload, expected) {
+	payload = sig.Payload
+
+	id := ComputeSigIdFromSigBody(byt)
+	sigId = &id
+	return
+}
+
+func (k NaclSigningKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
+	var received []byte
+	received, sigId, err = k.VerifyAndExtract(armored)
+	if !FastByteArrayEq(received, expected) {
 		err = BadSigError{"wrong payload"}
 		return
 	}
-	id := ComputeSigIdFromSigBody(byt)
-	sigId = &id
 	return
 }
 
