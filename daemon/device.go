@@ -19,7 +19,7 @@ func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
 func (h *DeviceHandler) Register(deviceName string) error {
 	// XXX need me user here...this is just so it compiles
 	panic("need to implement this")
-	engine := libkb.NewDeviceEngine(nil)
+	engine := libkb.NewDeviceEngine(nil, nil)
 	if err := engine.Init(); err != nil {
 		return err
 	}

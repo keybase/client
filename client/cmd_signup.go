@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"os"
 )
 
@@ -85,7 +86,7 @@ func (s *CmdSignupState) RunClient() error {
 
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
-	s.engine = libkb.NewSignupEngine()
+	s.engine = libkb.NewSignupEngine(G.UI.GetLogUI())
 	return s.run()
 }
 
@@ -168,24 +169,25 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		Passphrase: s.passphrase,
 		DeviceName: s.fields.deviceName.GetValue(),
 	}
-	/*
-		res := s.engine.Run(arg)
-		if res.PassphraseOk {
+	err = s.engine.Run(arg)
+	if err == nil {
+		return false, nil
+	}
+
+	// check to see if the error is a join engine run result:
+	if e, ok := err.(libkb.SignupJoinEngineRunRes); ok {
+		if e.PassphraseOk {
 			s.fields.passphraseRetry.Disabled = false
 		}
-		if !res.PostOk {
-			retry, err = s.HandlePostError(res.Error)
+		if !e.PostOk {
+			retry, err = s.HandlePostError(e.Err)
 		} else {
-			err = res.Error
+			err = e.Err
 		}
-	*/
-
-	// XXX should handle the result stuff like above in comment...
-	err = s.engine.Run(arg)
-	if err != nil {
-		return false, err
+		return retry, err
 	}
-	return false, nil
+
+	return false, err
 }
 
 func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
@@ -326,12 +328,23 @@ func (e *RemoteSignupJoinEngine) CheckRegistered() (err error) {
 	return
 }
 
-func (e *RemoteSignupJoinEngine) Init() (err error) {
-	e.scli, err = GetSignupClient()
-	if err == nil {
-		e.ccli, err = GetConfigClient()
+func (e *RemoteSignupJoinEngine) Init() error {
+	var err error
+	if e.scli, err = GetSignupClient(); err != nil {
+		return err
 	}
-	return
+
+	if e.ccli, err = GetConfigClient(); err != nil {
+		return err
+	}
+
+	protocols := []rpc2.Protocol{
+		NewLogUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (e *RemoteSignupJoinEngine) Run(arg libkb.SignupEngineRunArg) error {
@@ -365,7 +378,6 @@ func (e *RemoteSignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) (
 	return
 }
 
-/*
 func (s *CmdSignupState) HandlePostError(inerr error) (retry bool, err error) {
 	retry = false
 	err = inerr
@@ -397,4 +409,3 @@ func (s *CmdSignupState) HandlePostError(inerr error) (retry bool, err error) {
 	}
 	return
 }
-*/

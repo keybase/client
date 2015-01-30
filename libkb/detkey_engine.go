@@ -10,10 +10,11 @@ import (
 type DetKeyEngine struct {
 	me         *User
 	signingKey GenericKey
+	logui      LogUI
 }
 
-func NewDetKeyEngine(me *User, signingKey GenericKey) *DetKeyEngine {
-	return &DetKeyEngine{me: me, signingKey: signingKey}
+func NewDetKeyEngine(me *User, signingKey GenericKey, logui LogUI) *DetKeyEngine {
+	return &DetKeyEngine{me: me, signingKey: signingKey, logui: logui}
 }
 
 func (d *DetKeyEngine) Run(eddsaSeed, dhSeed []byte) error {
@@ -88,7 +89,7 @@ func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int, typ s
 	sig, sigid, linkid, err := SignJson(jw, d.signingKey)
 
 	// save it to local keyring:
-	_, err = WriteP3SKBToKeyring(key, nil, G.UI.GetLogUI())
+	_, err = WriteP3SKBToKeyring(key, nil, d.logui)
 	if err != nil {
 		return err
 	}

@@ -6,10 +6,11 @@ type DeviceEngine struct {
 	localEncKey []byte
 	me          *User
 	rootKey     NaclKeyPair
+	logui       LogUI
 }
 
-func NewDeviceEngine(me *User) *DeviceEngine {
-	return &DeviceEngine{me: me}
+func NewDeviceEngine(me *User, logui LogUI) *DeviceEngine {
+	return &DeviceEngine{me: me, logui: logui}
 }
 
 func (d *DeviceEngine) Init() error {
@@ -74,7 +75,7 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	}
 
 	// save it to local keyring:
-	_, err = WriteP3SKBToKeyring(eddsaPair, nil, G.UI.GetLogUI())
+	_, err = WriteP3SKBToKeyring(eddsaPair, nil, d.logui)
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ func (d *DeviceEngine) pushDHKey() error {
 		Me:        d.me,
 		ExpireIn:  NACL_DH_EXPIRE_IN,
 		Device:    d.device(),
-		LogUI:     G.UI.GetLogUI(),
+		LogUI:     d.logui,
 	})
 
 	return gen.Run()

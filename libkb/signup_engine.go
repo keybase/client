@@ -11,10 +11,11 @@ type SignupEngine struct {
 	uid        UID
 	me         *User
 	signingKey GenericKey
+	logui      LogUI
 }
 
-func NewSignupEngine() *SignupEngine {
-	return &SignupEngine{}
+func NewSignupEngine(logui LogUI) *SignupEngine {
+	return &SignupEngine{logui: logui}
 }
 
 func (s *SignupEngine) Init() error {
@@ -76,8 +77,6 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 	return err
 }
 
-// XXX might have to do more with the joinEngine result...for now, just returning
-// error.
 func (s *SignupEngine) join(username, email, inviteCode string) error {
 	joinEngine := NewSignupJoinEngine()
 
@@ -89,9 +88,10 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 		PWSalt:     s.pwsalt,
 	}
 	res := joinEngine.Run(arg)
-	if res.Error != nil {
-		return res.Error
+	if res.Err != nil {
+		return res
 	}
+
 	s.uid = *res.Uid
 	user, err := LoadUser(LoadUserArg{Uid: res.Uid, PublicKeyOptional: true})
 	if err != nil {
@@ -102,7 +102,7 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 }
 
 func (s *SignupEngine) registerDevice(deviceName string) error {
-	eng := NewDeviceEngine(s.me)
+	eng := NewDeviceEngine(s.me, s.logui)
 	err := eng.Run(deviceName)
 	if err != nil {
 		return err
@@ -112,6 +112,6 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 }
 
 func (s *SignupEngine) genDetKeys() error {
-	eng := NewDetKeyEngine(s.me, s.signingKey)
+	eng := NewDetKeyEngine(s.me, s.signingKey, s.logui)
 	return eng.Run(s.tspkey.EdDSASeed(), s.tspkey.DHSeed())
 }

@@ -89,17 +89,21 @@ type SignupJoinEngineRunRes struct {
 	WriteOk      bool
 	Uid          *UID
 	User         *User
-	Error        error
+	Err          error
+}
+
+func (r SignupJoinEngineRunRes) Error() string {
+	return r.Err.Error()
 }
 
 func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
 	res.PassphraseOk = true
 
-	if res.Error = s.Post(arg); res.Error != nil {
+	if res.Err = s.Post(arg); res.Err != nil {
 		return
 	}
 	res.PostOk = true
-	if res.Error = s.WriteOut(arg.PWSalt); res.Error != nil {
+	if res.Err = s.WriteOut(arg.PWSalt); res.Err != nil {
 		return
 	}
 	res.WriteOk = true
