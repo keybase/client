@@ -20,15 +20,6 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 	return nil
 }
 
-type IdentifyArgPrime struct {
-	Uid            *UID
-	User           string
-	TrackStatement bool
-	Luba           bool
-	LoadSelf       bool
-	LogUI          LogUI
-}
-
 type IdentifyArg struct {
 	Me *User // The user who's doing the tracking
 	Ui IdentifyUI
@@ -36,11 +27,6 @@ type IdentifyArg struct {
 
 func (i IdentifyArg) MeSet() bool {
 	return i.Me != nil
-}
-
-type IdentifyRes struct {
-	Outcome *IdentifyOutcome
-	User    *User
 }
 
 type IdentifyOutcome struct {
@@ -284,85 +270,4 @@ func (u *User) IdentifySelf(ui IdentifyUI) (err error) {
 	}
 
 	return
-}
-
-// IdentifyEng is the type used by cmd_id Run, daemon id handler.
-type IdentifyEng struct {
-	arg *IdentifyArgPrime
-	ui  IdentifyUI
-}
-
-func NewIdentifyEng(arg *IdentifyArgPrime, ui IdentifyUI) *IdentifyEng {
-	return &IdentifyEng{arg: arg, ui: ui}
-}
-
-func (e *IdentifyEng) Run() (*IdentifyRes, error) {
-	if e.arg.Luba {
-		return e.RunLuba()
-	}
-	return e.RunStandard()
-}
-
-func (e *IdentifyEng) RunLuba() (*IdentifyRes, error) {
-	r := LoadUserByAssertions(e.arg.User, e.arg.LoadSelf, e.ui)
-	if r.Error != nil {
-		return nil, r.Error
-	}
-	G.Log.Info("Success; loaded %s", r.User.GetName())
-	res := &IdentifyRes{
-		User:    r.User,
-		Outcome: r.IdentifyRes,
-	}
-	return res, nil
-}
-
-func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
-	arg := LoadUserArg{
-		Self: (len(e.arg.User) == 0),
-	}
-	if e.arg.Uid != nil {
-		arg.Uid = e.arg.Uid
-	} else {
-		arg.Name = e.arg.User
-	}
-	u, err := LoadUser(arg)
-	if err != nil {
-		return nil, err
-	}
-	if e.ui == nil {
-		e.ui = G.UI.GetIdentifyUI(u.GetName())
-	}
-	e.ui.SetUsername(u.GetName())
-	outcome, err := u.IdentifySimple(nil, e.ui)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &IdentifyRes{Outcome: outcome, User: u}
-
-	if !e.arg.TrackStatement {
-		return res, nil
-	}
-	if arg.Self == true {
-		return res, nil
-	}
-
-	// they want a json tracking statement:
-	me, err := LoadMe(LoadUserArg{})
-	if err != nil {
-		G.Log.Warning("error loading me: %s", err)
-		return nil, err
-	}
-	stmt, err := TrackStatementJSON(me, u)
-	if err != nil {
-		G.Log.Warning("error getting track statement: %s", err)
-		return nil, err
-	}
-	// return e.ui.DisplayTrackStatement(DisplayTrackArg(0, stmt))
-	G.Log.Info("json track statement: %s", stmt)
-	if err = e.ui.DisplayTrackStatement(stmt); err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }

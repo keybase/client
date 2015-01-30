@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/go/libkb/engine"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -27,7 +27,7 @@ func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
 }
 
 func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) (keybase_1.IdentifyRes, error) {
-	iarg := libkb.ImportIdentifyArg(arg)
+	iarg := engine.ImportIdentifyArg(arg)
 	res, err := h.identify(iarg, true)
 	if err != nil {
 		return keybase_1.IdentifyRes{}, err
@@ -36,7 +36,7 @@ func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) (keybase_1.Identif
 }
 
 func (h *IdentifyHandler) IdentifyDefault(username string) (keybase_1.IdentifyRes, error) {
-	arg := libkb.IdentifyArgPrime{User: username}
+	arg := engine.IdentifyArgPrime{User: username}
 	res, err := h.identify(arg, true)
 	if err != nil {
 		return keybase_1.IdentifyRes{}, err
@@ -44,11 +44,11 @@ func (h *IdentifyHandler) IdentifyDefault(username string) (keybase_1.IdentifyRe
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) identify(iarg libkb.IdentifyArgPrime, doInteractive bool) (*libkb.IdentifyRes, error) {
+func (h *IdentifyHandler) identify(iarg engine.IdentifyArgPrime, doInteractive bool) (*engine.IdentifyRes, error) {
 	sessionId := nextSessionId()
 	iarg.LogUI = h.getLogUI(sessionId)
 
-	eng := libkb.NewIdentifyEng(&iarg, NewRemoteIdentifyUI(sessionId, iarg.User, h.cli))
+	eng := engine.NewIdentifyEng(&iarg, NewRemoteIdentifyUI(sessionId, iarg.User, h.cli))
 	return eng.Run()
 }
 

@@ -67,29 +67,6 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase_1.RemoteProof {
 	}
 }
 
-func (a IdentifyArgPrime) Export() (res keybase_1.IdentifyArg) {
-	if a.Uid != nil {
-		res.Uid = a.Uid.Export()
-	}
-	res.Username = a.User
-	res.TrackStatement = a.TrackStatement
-	res.Luba = a.Luba
-	res.LoadSelf = a.LoadSelf
-	return res
-}
-
-func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArgPrime) {
-	uid := ImportUID(a.Uid)
-	if !uid.IsZero() {
-		ret.Uid = &uid
-	}
-	ret.User = a.Username
-	ret.TrackStatement = a.TrackStatement
-	ret.Luba = a.Luba
-	ret.LoadSelf = a.LoadSelf
-	return ret
-}
-
 type ByMtime []keybase_1.IdentifyRow
 
 func (x ByMtime) Len() int {
@@ -315,15 +292,6 @@ func (ir *IdentifyOutcome) Export() *keybase_1.IdentifyOutcome {
 		Deleted:           del,
 	}
 	return ret
-}
-
-//=============================================================================
-
-func (ir *IdentifyRes) Export() *keybase_1.IdentifyRes {
-	return &keybase_1.IdentifyRes{
-		Outcome: *((*ir.Outcome).Export()),
-		User:    ir.User.Export(),
-	}
 }
 
 //=============================================================================

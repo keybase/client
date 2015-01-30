@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/go/libkb/engine"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -37,8 +38,8 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdId) makeArg() *libkb.IdentifyArgPrime {
-	return &libkb.IdentifyArgPrime{
+func (v *CmdId) makeArg() *engine.IdentifyArgPrime {
+	return &engine.IdentifyArgPrime{
 		Uid:            v.uid,
 		User:           v.user,
 		TrackStatement: v.track,
@@ -64,7 +65,7 @@ func (v *CmdId) RunClient() (err error) {
 
 func (v *CmdId) Run() error {
 	arg := v.makeArg()
-	eng := libkb.NewIdentifyEng(arg, nil)
+	eng := engine.NewIdentifyEng(arg, nil)
 	_, err := eng.Run()
 	return err
 }

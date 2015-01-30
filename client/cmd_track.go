@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/go/libkb/engine"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -45,7 +46,7 @@ func (v *CmdTrack) RunClient() error {
 }
 
 func (v *CmdTrack) Run() error {
-	eng := libkb.NewTrackEngine(v.user, nil, nil)
+	eng := engine.NewTrackEngine(v.user, nil, nil)
 	return eng.Run()
 }
 
