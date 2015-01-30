@@ -46,7 +46,7 @@ func (d *DetKeyEngine) eddsa(seed []byte) error {
 	key.Private = &NaclSigningKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(key, serverHalf, NACL_EDDSA_EXPIRE_IN)
+	return d.push(key, serverHalf, NACL_EDDSA_EXPIRE_IN, "sibkey")
 }
 
 func (d *DetKeyEngine) dh(seed []byte) error {
@@ -74,7 +74,7 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 	key.Private = &NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(key, serverHalf, NACL_DH_EXPIRE_IN)
+	return d.push(key, serverHalf, NACL_DH_EXPIRE_IN, "subkey")
 }
 
 func (d *DetKeyEngine) serverSeed(seed []byte) (newseed, serverHalf []byte, err error) {
@@ -87,13 +87,13 @@ func (d *DetKeyEngine) serverSeed(seed []byte) (newseed, serverHalf []byte, err 
 	return newseed, serverHalf, nil
 }
 
-func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int) error {
-	jw, err := d.me.KeyProof(key, d.signingKey, "sibkey", expire, nil)
+func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int, typ string) error {
+	jw, err := d.me.KeyProof(key, d.signingKey, typ, expire, nil)
 	if err != nil {
 		fmt.Printf("keyproof err: %q\n", err)
 		return err
 	}
-	sig, sigid, linkid, err := SignJson(jw, key)
+	sig, sigid, linkid, err := SignJson(jw, d.signingKey)
 
 	/*
 		pubkey, err := key.Encode()
@@ -133,7 +133,7 @@ func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int) error
 	arg := PostNewKeyArg{
 		Sig:        sig,
 		Id:         *sigid,
-		Type:       "sibkey",
+		Type:       typ,
 		PublicKey:  key,
 		SigningKey: d.signingKey,
 		PrimaryKey: d.signingKey,
