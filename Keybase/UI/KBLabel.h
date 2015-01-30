@@ -14,8 +14,11 @@
 @interface KBLabel : YONSView
 
 @property (nonatomic) NSAttributedString *attributedText;
+@property (nonatomic) BOOL selectable;
 
 - (void)setBackgroundColor:(NSColor *)backgroundColor;
+
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
 
@@ -26,6 +29,8 @@
 - (BOOL)hasText;
 
 + (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter;
+
++ (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color;
 
 @end
 

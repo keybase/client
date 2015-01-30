@@ -1,5 +1,32 @@
 #import "KBRPC.h"
 
+@implementation KBRBlockRequest
+- (void)getWithBlockid:(NSData *)blockid completion:(void (^)(NSError *error, NSData * bytes))completion {
+
+  NSArray *params = @[@{@"blockid": KBRValue(blockid)}];
+  [self.client sendRequestWithMethod:@"keybase.1.block.get" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error, 0);
+  }];
+}
+
+- (void)deleteWithBlockid:(NSData *)blockid completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"blockid": KBRValue(blockid)}];
+  [self.client sendRequestWithMethod:@"keybase.1.block.delete" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
+- (void)putWithBlockid:(NSData *)blockid buf:(NSData *)buf completion:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{@"blockid": KBRValue(blockid), @"buf": KBRValue(buf)}];
+  [self.client sendRequestWithMethod:@"keybase.1.block.put" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRStatus
 @end
 
@@ -21,6 +48,9 @@
 @implementation KBRUser
 @end
 
+@implementation KBRSIGID
+@end
+
 @implementation KBRGetCurrentStatusRes
 @end
 
@@ -38,9 +68,6 @@
   }];
 }
 
-@end
-
-@implementation KBRSIGID
 @end
 
 @implementation KBRTrackDiff

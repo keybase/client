@@ -18,8 +18,8 @@
 - (void)setTitle:(NSString *)title message:(NSString *)message messageFont:(NSFont *)messageFont;
 
 - (void)addButton:(KBButton *)button;
-- (void)addButtonWithTitle:(NSString *)title target:(dispatch_block_t)target;
-- (void)addButtonWithTitle:(NSString *)title size:(CGSize)size target:(dispatch_block_t)target;
+//- (void)addButtonWithTitle:(NSString *)title target:(dispatch_block_t)target;
+//- (void)addButtonWithTitle:(NSString *)title size:(CGSize)size target:(dispatch_block_t)target;
 - (void)addLinkButtonWithTitle:(NSString *)title target:(dispatch_block_t)target;
 
 

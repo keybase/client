@@ -42,10 +42,10 @@
     GHDebug(@"Password prompt: %@", params);
     NSString *prompt = params[0][@"pinentry"][@"prompt"];
     NSString *description = params[0][@"pinentry"][@"desc"];
-    [AppDelegate passwordPrompt:prompt description:description view:nil completion:^(BOOL canceled, NSString *password) {
+    [KBAlert promptForInputWithTitle:prompt description:description secure:YES style:NSWarningAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
-      entry.text = password;
-      entry.canceled = canceled;
+      entry.text = response == NSAlertFirstButtonReturn ? password : nil;
+      entry.canceled = response == NSAlertSecondButtonReturn;
       completion(nil, entry);
     }];
   }];
@@ -79,37 +79,6 @@
     // TODO: check error
     [self checkStatus];
   }];
-}
-
-+ (void)passwordPrompt:(NSString *)prompt description:(NSString *)description view:(NSView *)view completion:(void (^)(BOOL canceled, NSString *password))completion {
-  NSAlert *alert = [[NSAlert alloc] init];
-  [alert addButtonWithTitle:@"OK"];
-  [alert addButtonWithTitle:@"Cancel"];
-
-  [alert setMessageText:prompt];
-  [alert setInformativeText:description];
-  [alert setAlertStyle:NSWarningAlertStyle];
-
-  NSTextField *input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
-  [alert setAccessoryView:input];
-
-  void (^response)(NSModalResponse returnCode) = ^(NSModalResponse returnCode) {
-    if (returnCode == NSAlertFirstButtonReturn) {
-      completion(NO, input.stringValue);
-    } else {
-      completion(YES, nil);
-    }
-  };
-
-  NSWindow *window = view.window;
-  if (!window) window = [NSApp mainWindow];
-
-  if (window) {
-    [alert beginSheetModalForWindow:window completionHandler:response];
-  } else {
-    NSModalResponse returnCode = [alert runModal];
-    response(returnCode);
-  }
 }
 
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
@@ -177,6 +146,13 @@
   window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Debug/Catalog" navigation:window.navigation];
   //[window setLevel:NSStatusWindowLevel];
   [window makeKeyAndOrderFront:nil];
+}
+
++ (NSString *)loadFile:(NSString *)file {
+  NSString *path = [[NSBundle mainBundle] pathForResource:[file stringByDeletingPathExtension] ofType:[file pathExtension]];
+  NSString *contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
+  NSAssert(contents, @"No contents at file: %@", file);
+  return contents;
 }
 
 @end

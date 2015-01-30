@@ -9,9 +9,12 @@
 #import "KBLabel.h"
 
 #import <Slash/Slash.h>
+#import "KBDefines.h"
+#import "KBBox.h"
 
 @interface KBLabel ()
 @property NSTextView *textView;
+@property KBBox *border; // Optional
 @end
 
 @implementation KBLabel
@@ -30,17 +33,32 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGSize textSize = [KBLabel sizeThatFits:size attributedString:yself.textView.attributedString];
     [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, size.width, textSize.height + 20)) view:yself.textView];
+    [layout setSize:size view:yself.border options:0];
     return size;
   }];
 }
 
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
+  _border = [KBBox roundedWithWidth:1.0 color:GHNSColorFromRGB(0xDDDDDD) cornerRadius:4.0];
+  [self addSubview:_border];
+  [self setNeedsLayout];
+}
+
 - (NSView *)hitTest:(NSPoint)point {
   // TODO call super if selectable?
-  return nil;
+  return _textView.selectable ? _textView : nil;
 }
 
 - (void)setBackgroundColor:(NSColor *)backgroundColor {
   _textView.backgroundColor = backgroundColor;
+}
+
+- (void)setSelectable:(BOOL)selectable {
+  _textView.selectable = selectable;
+}
+
+- (BOOL)selectable {
+  return _textView.selectable;
 }
 
 - (BOOL)hasText {
@@ -62,13 +80,25 @@
   [self setAttributedText:str];
 }
 
-- (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
++ (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color {
   NSDictionary *style = @{@"$default": @{NSFontAttributeName: font},
                           @"p": @{NSFontAttributeName: font},
                           @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:16]},
-                          @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},};
-  NSMutableAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:nil] mutableCopy];
-  [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
+                          @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
+                          @"color": @{},
+                          };
+  NSError *error = nil;
+  NSMutableAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:&error] mutableCopy];
+  if (!str) {
+    GHDebug(@"Unable to parse markup: %@; %@", markup, error);
+    str = [[NSMutableAttributedString alloc] initWithString:markup attributes:@{NSFontAttributeName: font}];
+  }
+  if (color) [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
+  return str;
+}
+
+- (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  NSMutableAttributedString *str = [KBLabel parseMarkup:markup font:font color:color];
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;

@@ -25,8 +25,7 @@
   self.wantsLayer = YES;
   self.layer.backgroundColor = [NSColor colorWithWhite:254.0/255.0 alpha:1.0].CGColor;
 
-  _backButton = [[KBButton alloc] init];
-  _backButton.bordered = NO;
+  _backButton = [KBButton buttonWithText:@"Back" style:KBButtonStyleLink];
   [self addSubview:_backButton];
 //  _backView = [KBButton buttonWithImage:[NSImage imageNamed:@"46-Arrows-white-arrow-65-30"]];
 //  [self addSubview:_backView];
@@ -43,7 +42,7 @@
 }
 
 - (void)setBackTitle:(NSString *)backTitle targetBlock:(KBButtonTargetBlock)targetBlock {
-  [_backButton setText:backTitle font:[KBLookAndFeel textFont] color:[KBLookAndFeel selectColor] alignment:NSLeftTextAlignment];
+  [_backButton setText:backTitle font:[KBLookAndFeel textFont] color:[KBLookAndFeel selectColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   _backButton.targetBlock = targetBlock;
   [self setNeedsLayout];
 }

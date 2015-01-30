@@ -11,21 +11,29 @@
 
 typedef void (^KBButtonTargetBlock)();
 
-#define KBDefaultButtonHeight (56)
+typedef NS_ENUM (NSInteger, KBButtonStyle) {
+  KBButtonStyleDefault,
+  KBButtonStylePrimary,
+  KBButtonStyleLink,
+};
 
 @interface KBButton : NSButton
 
 @property (nonatomic, copy) KBButtonTargetBlock targetBlock;
 
-+ (instancetype)buttonWithLinkText:(NSString *)text;
-
-+ (instancetype)buttonWithLinkText:(NSString *)text font:(NSFont *)font alignment:(NSTextAlignment)alignment;
-
-+ (instancetype)buttonWithText:(NSString *)text;
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
 
 + (instancetype)buttonWithImage:(NSImage *)image;
 
-- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
+@end
+
+@interface KBButtonCell : NSButtonCell
+
+@property KBButtonStyle style;
+
+- (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment;
 
 @end
 

@@ -25,7 +25,7 @@
 @property KBTextField *usernameField;
 @property KBSecureTextField *passwordField;
 @property KBButton *loginButton;
-@property KBButton *signUpButton;
+@property KBButton *signupButton;
 @end
 
 @interface KBSignupView ()
@@ -43,7 +43,7 @@
   [super viewInit];
   GHWeakSelf gself = self;
   _loginView = [[KBLoginView alloc] init];
-  _loginView.signUpButton.targetBlock = ^{
+  _loginView.signupButton.targetBlock = ^{
     [gself showSignup:YES];
   };
 
@@ -88,16 +88,16 @@
   _passwordField.placeholder = @"Passphrase";
   [self addSubview:_passwordField];
 
-  _loginButton = [KBButton buttonWithText:@"Log In"];
+  _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStylePrimary];
   _loginButton.targetBlock = ^{
     [gself login];
   };
-  //[_loginButton setKeyEquivalent:@"\r"];
+  [_loginButton setKeyEquivalent:@"\r"];
   [self addSubview:_loginButton];
 
-  _signUpButton = [KBButton buttonWithLinkText:@"Sign Up"];
-  _signUpButton.alignment = NSLeftTextAlignment;
-  [self addSubview:_signUpButton];
+  _signupButton = [KBButton buttonWithText:@"Sign Up" style:KBButtonStyleLink];
+  _signupButton.alignment = NSLeftTextAlignment;
+  [self addSubview:_signupButton];
 
   _usernameField.nextKeyView = _passwordField;
   _passwordField.nextKeyView = _loginButton;
@@ -110,10 +110,9 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 40;
 
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, KBDefaultButtonHeight) view:yself.loginButton].size.height;
-    //y += [layout centerWithSize:CGSizeMake(200, 48) frame:CGRectMake(40, y, size.width - 40, KBDefaultButtonHeight) view:yself.loginButton].size.height;
-
-    y += [layout setFrame:CGRectMake(40, y, 80, 30) view:yself.signUpButton].size.height;
+    CGRect buttonFrame = [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.loginButton];
+    y += buttonFrame.size.height + 10;
+    y += [layout setFrame:CGRectMake(buttonFrame.origin.x, y, 0, 30) view:yself.signupButton options:YOLayoutOptionsSizeToFitHorizontal].size.height;
 
     return CGSizeMake(size.width, y);
   }];
@@ -186,13 +185,13 @@
   _passwordField.placeholder = @"Passphrase";
   [self addSubview:_passwordField];
 
-  _signupButton = [KBButton buttonWithText:@"Sign Up"];
+  _signupButton = [KBButton buttonWithText:@"Sign Up" style:KBButtonStylePrimary];
   _signupButton.targetBlock = ^{
     [gself signup];
   };
   [self addSubview:_signupButton];
 
-  _loginButton = [KBButton buttonWithLinkText:@"Log In"];
+  _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStyleLink];
   _loginButton.alignment = NSLeftTextAlignment;
   [self addSubview:_loginButton];
 
@@ -210,10 +209,9 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 40;
 
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, KBDefaultButtonHeight) view:yself.signupButton].size.height;
-
-    y += [layout setFrame:CGRectMake(40, y, 80, 30) view:yself.loginButton].size.height + 30;
-
+    CGRect buttonFrame = [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.signupButton];
+    y += buttonFrame.size.height + 10;
+    y += [layout setFrame:CGRectMake(buttonFrame.origin.x, y, 0, 30) view:yself.loginButton options:YOLayoutOptionsSizeToFitHorizontal].size.height;
 
     return CGSizeMake(size.width, y);
   }];

@@ -19,4 +19,15 @@
   return box;
 }
 
++ (KBBox *)roundedWithWidth:(CGFloat)width color:(NSColor *)color cornerRadius:(CGFloat)cornerRadius {
+  KBBox *box = [[KBBox alloc] init];
+  box.wantsLayer = YES;
+  box.layer.backgroundColor = NSColor.clearColor.CGColor;
+  box.borderColor = color;
+  box.borderWidth = width;
+  box.borderType = NSLineBorder;
+  box.boxType = NSBoxCustom;
+  return box;
+}
+
 @end

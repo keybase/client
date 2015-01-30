@@ -14,4 +14,6 @@
 
 + (KBBox *)lineWithWidth:(CGFloat)width color:(NSColor *)color;
 
++ (KBBox *)roundedWithWidth:(CGFloat)width color:(NSColor *)color cornerRadius:(CGFloat)cornerRadius;
+
 @end

@@ -34,7 +34,7 @@
   [self addSubview:_trackOptionsView];
 
   GHWeakSelf gself = self;
-  _button = [KBButton buttonWithText:@"Done"];
+  _button = [KBButton buttonWithText:@"Done" style:KBButtonStylePrimary];
   _button.targetBlock = ^{
     gself.trackOptions = nil;
     if (gself.trackOptionsView.indexOfSelectedItem == 0) {
@@ -56,7 +56,7 @@
 
     y += [layout setFrame:CGRectMake(40, y, size.width - 80, 24) view:yself.trackOptionsView].size.height + 10;
 
-    y += [layout setFrame:CGRectMake(40, y, 100, KBDefaultButtonHeight) view:yself.button].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, 100, 0) view:yself.button].size.height + 10;
     return CGSizeMake(size.width, y);
   }];
 

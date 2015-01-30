@@ -44,7 +44,7 @@
     CGFloat y = 0;
     //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
     //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 20, 0) view:yself.headerView].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width - 20, 0) view:yself.headerView].size.height;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.userInfoView].size.height;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.trackView].size.height;
     return CGSizeMake(size.width, y);
@@ -174,7 +174,7 @@
   }
 
   //self.progressIndicatorEnabled = YES;
-  [AppDelegate.APIClient userForKey:@"uids" value:[user.uid na_hexString] fields:nil success:^(KBUser *user) {
+  [AppDelegate.APIClient userForKey:@"usernames" value:user.username fields:nil success:^(KBUser *user) {
     //self.progressIndicatorEnabled = NO;
     [self.headerView setUserInfo:user];
     [self setNeedsLayout];

@@ -64,24 +64,24 @@
   [self setNeedsLayout];
 }
 
-- (void)addButtonWithTitle:(NSString *)title target:(dispatch_block_t)target {
-  [self addButtonWithTitle:title size:CGSizeMake(300, 56) target:target];
-}
-
-- (void)addButtonWithTitle:(NSString *)title size:(CGSize)size target:(dispatch_block_t)target {
-  KBButton *button = [[KBButton alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
-  //button.borderColor = [KBLookAndFeel selectColor];
-  //button.cornerRadius = 4;
-  //button.font = [NSFont systemFontOfSize:16];
-  [button setText:title font:[KBLookAndFeel buttonFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
-  button.targetBlock = ^(id sender) {
-    target();
-  };
-  [self addButton:button];
-}
+//- (void)addButtonWithTitle:(NSString *)title target:(dispatch_block_t)target {
+//  [self addButtonWithTitle:title size:CGSizeMake(300, 56) target:target];
+//}
+//
+//- (void)addButtonWithTitle:(NSString *)title size:(CGSize)size target:(dispatch_block_t)target {
+//  KBButton *button = [[KBButton alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
+//  //button.borderColor = [KBLookAndFeel selectColor];
+//  //button.cornerRadius = 4;
+//  //button.font = [NSFont systemFontOfSize:16];
+//  [button setText:title font:[KBLookAndFeel buttonFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+//  button.targetBlock = ^(id sender) {
+//    target();
+//  };
+//  [self addButton:button];
+//}
 
 - (void)addLinkButtonWithTitle:(NSString *)title target:(dispatch_block_t)target {
-  KBButton *b = [KBButton buttonWithLinkText:title];
+  KBButton *b = [KBButton buttonWithText:title style:KBButtonStyleLink];
   b.targetBlock = target;
   b.alignment = NSCenterTextAlignment;
   b.frame = CGRectMake(0, 0, 300, 56);

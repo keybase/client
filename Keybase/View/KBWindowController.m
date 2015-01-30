@@ -11,7 +11,7 @@
 
 #import "KBUserProfileView.h"
 #import "KBKeyGenView.h"
-#import "KBTwitterConnectView.h"
+#import "KBProveView.h"
 #import "KBLogoView.h"
 #import "KBCatalogView.h"
 #import "KBUsersView.h"
@@ -75,7 +75,7 @@
 }
 
 - (void)showTwitterConnect:(BOOL)animated {
-  KBTwitterConnectView *twitterView = [[KBTwitterConnectView alloc] init];
+  KBProveView *twitterView = [[KBProveView alloc] init];
   [self.navigation pushView:twitterView animated:animated];
   [self showWindow:nil];
 }

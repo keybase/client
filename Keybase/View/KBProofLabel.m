@@ -29,7 +29,7 @@
     }
   }
 
-  [self setText:proofResult.proof.value font:[NSFont systemFontOfSize:14] color:color alignment:NSLeftTextAlignment];
+  [self setText:proofResult.proof.value font:[NSFont systemFontOfSize:14] color:color alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 }
 
 @end

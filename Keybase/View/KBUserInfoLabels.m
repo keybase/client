@@ -84,7 +84,7 @@
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
 
   NSString *keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
-  KBButton *button = [KBButton buttonWithLinkText:keyDescription font:[NSFont systemFontOfSize:14] alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink];
   button.targetBlock = ^{
 
   };
@@ -97,7 +97,7 @@
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock {
   _imageView.image = [NSImage imageNamed:@"24-Business-Finance-black-bitcoins-30"];
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  KBButton *button = [KBButton buttonWithLinkText:cryptocurrency.address font:[NSFont systemFontOfSize:14] alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithText:cryptocurrency.address style:KBButtonStyleLink];
   button.targetBlock = ^{
 
   };

@@ -12,50 +12,41 @@
 #import "KBUsersView.h"
 #import "KBWebView.h"
 #import "KBKeyGenView.h"
-#import "KBTwitterConnectView.h"
+#import "KBProveView.h"
+
 
 @interface KBCatalogView ()
 @property NSMutableArray *items;
-
-@property NSScrollView *scrollView;
-@property NSTableView *tableView;
 @end
 
 @implementation KBCatalogView
 
 - (void)viewInit {
   [super viewInit];
-  _items = [NSMutableArray array];
+  WKWebView *webView = [[WKWebView alloc] init];
+  webView.navigationDelegate = self;
+  [self addSubview:webView];
 
-  [_items addObject:@{@"name": @"Login", @"block":^{ [self showLogin:YES]; }}];
-  [_items addObject:@{@"name": @"Signup", @"block":^{ [self showSignup:YES]; }}];
-  [_items addObject:@{@"name": @"KeyGen", @"block":^{ [self showKeyGen:YES]; }}];
-  [_items addObject:@{@"name": @"TwitterConnect", @"block":^{ [self showTwitterConnect:YES]; }}];
-  [_items addObject:@{@"name": @"Users", @"block":^{ [self showUsers]; }}];
-  [_items addObject:@{@"name": @"Tracking", @"block":^{ [self showTracking]; }}];
-  [_items addObject:@{@"name": @"Password Prompt", @"block":^{ [self passwordPrompt]; }}];
+  [webView loadHTMLString:[AppDelegate loadFile:@"catalog.html"] baseURL:nil];
 
-  _scrollView = [[NSScrollView alloc] init];
-  [self addSubview:_scrollView];
+  self.viewLayout = [YOLayout fill:self];
+}
 
-  _tableView = [[NSTableView alloc] init];
-  _tableView.dataSource = self;
-  _tableView.delegate = self;
-  [_tableView setHeaderView:nil];
-
-  NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@""];
-  //[column1 setWidth:360];
-  [_tableView addTableColumn:column1];
-
-  [_scrollView setDocumentView:_tableView];
-
-  [self.tableView reloadData];
-
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout setSize:size view:yself.scrollView options:0];
-    return size;
-  }];
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+{
+  NSString *path = navigationAction.request.URL.absoluteString;
+  if ([path isEqualTo:@"about:blank"]) {
+    decisionHandler(WKNavigationActionPolicyAllow);
+    return;
+  }
+  if ([path isEqualTo:@"/login"]) [self showLogin:YES];
+  if ([path isEqualTo:@"/signup"]) [self showSignup:YES];
+  if ([path isEqualTo:@"/keygen"]) [self showKeyGen:YES];
+  if ([path gh_startsWith:@"/prove/"]) [self showProve:[path lastPathComponent]];
+  if ([path isEqualTo:@"/users"]) [self showUsers];
+  if ([path gh_startsWith:@"/tracking/"]) [self showTracking:[path lastPathComponent]];
+  if ([path gh_startsWith:@"/prompt/"]) [self prompt:[path lastPathComponent]];
+  decisionHandler(WKNavigationActionPolicyCancel);
 }
 
 - (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
@@ -87,16 +78,38 @@
   [self.navigation pushView:keyGenView animated:animated];
 }
 
-- (void)showTwitterConnect:(BOOL)animated {
-  KBTwitterConnectView *twitterView = [[KBTwitterConnectView alloc] init];
-  [self.navigation pushView:twitterView animated:animated];
+- (void)showProve:(NSString *)type {
+  if ([type isEqualTo:@"instructions"]) {
+    KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
+    KBRText *text = [[KBRText alloc] init];
+    text.data = @"<p>Please <strong>publicly</strong> post the following to the Mission,\nand name it <strong>hipster.md</strong></p>";
+    text.markup = 1;
+    NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
+    [instructionsView setInstructions:text proofText:proofText targetBlock:^{
+      [self.navigation popViewAnimated:YES];
+    }];
+    [self.navigation pushView:instructionsView animated:YES];
+  } else {
+    KBProveView *view = [[KBProveView alloc] init];
+    view.proveType = KBProveTypeForServiceName(type);
+    [self.navigation pushView:view animated:YES];
+  }
 }
 
-- (void)passwordPrompt {
-  NSString *description = @"Please enter your Keybase.io login passphrase to unlock the secret key for:\nuser: keybase.io/thisisjustatestuser <thisisjustatestuser@keybase.io>\n  4096-bit RSA key, ID XXXXXXXXXXXXXXX, created 2015-01-27\n\nReason: tracking signature";
-  [AppDelegate passwordPrompt:@"Your key passphrase" description:description view:nil completion:^(BOOL canceled, NSString *password) {
+- (void)prompt:(NSString *)type {
+  if ([type isEqualTo:@"password"]) {
+    [KBAlert promptForInputWithTitle:@"Your secret password" description:@"Williamsburg heirloom Carles. Meggings sriracha High Life keytar photo booth craft beer. Artisan keytar cliche, Pinterest mumblecore 8-bit hella kale chips" secure:YES style:NSWarningAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
 
-  }];
+    }];
+  } else if ([type isEqualTo:@"yes_no"]) {
+    [KBAlert promptWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Give me my Pabst", @"No"] view:self completion:^(NSModalResponse response) {
+
+    }];
+  } else if ([type isEqualTo:@"input"]) {
+    [KBAlert promptForInputWithTitle:@"What's my favorite color?" description:@"Cold-pressed aesthetic yr fap locavore American Apparel, bespoke fanny pack." secure:NO style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *input) {
+
+    }];
+  }
 }
 
 - (void)showUsers {
@@ -105,8 +118,9 @@
   [self.navigation pushView:usersView animated:YES];
 }
 
-- (void)showTracking {
-  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"uid": [@"b7c2eaddcced7727bcb229751d91e800" na_dataFromHexString], @"username": @"gabrielh"} error:nil];
+- (void)showTracking:(NSString *)username {
+  //@"uid": [@"b7c2eaddcced7727bcb229751d91e800" na_dataFromHexString]
+  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": username} error:nil];
 
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
   KBWindow *window = [KBWindow windowWithContentView:userProfileView size:CGSizeMake(360, 500) retain:YES];
@@ -115,42 +129,6 @@
   [window makeKeyAndOrderFront:nil];
 
   [userProfileView setUser:user track:YES];
-}
-
-- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-  return [_items count];
-}
-
-- (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row {
-  return [[KBTableRowView alloc] init];
-}
-
-- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-  NSDictionary *obj = [_items objectAtIndex:row];
-
-  KBLabel *view = [_tableView makeViewWithIdentifier:@"text" owner:self];
-  if (!view) {
-    view = [[KBLabel alloc] init];
-    view.identifier = @"text";
-  }
-  [view setText:obj[@"name"] font:[NSFont systemFontOfSize:20] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
-  return view;
-}
-
-- (void)tableViewSelectionDidChange:(NSNotification *)notification {
-  NSTableView *tableView = notification.object;
-
-  if (tableView.selectedRow >= 0) {
-    NSDictionary *obj = [_items objectAtIndex:tableView.selectedRow];
-    dispatch_block_t block = obj[@"block"];
-    block();
-  }
-
-  [tableView deselectAll:nil];
-}
-
-- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
-  return 50;
 }
 
 @end

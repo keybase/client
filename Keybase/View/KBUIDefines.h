@@ -24,9 +24,11 @@ typedef struct { CGFloat top, left , bottom, right ; } KBEdgeInsets;
 #import "KBTableRowView.h"
 #import "KBWindow.h"
 #import "KBTitleView.h"
+#import "KBAlert.h"
+#import "KBBox.h"
 
 #define KBDefaultWidth (360)
 #define KBDefaultHeight (600)
 
 
-#define KBTODO(__SELF__) ([[NSAlert alertWithError:[NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:@"TODO"}]] beginSheetModalForWindow:__SELF__.window completionHandler:nil])
+#define KBTODO() ([[NSAlert alertWithError:[NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:@"TODO"}]] beginSheetModalForWindow:[NSApp mainWindow] completionHandler:nil])

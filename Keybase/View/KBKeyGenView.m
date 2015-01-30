@@ -36,13 +36,13 @@
    Push an encrypted copy of your private key to Keybase.io? [Y/n]
    */
 
-  _button = [KBButton buttonWithText:@"Create Key"];
+  _button = [KBButton buttonWithText:@"Create Key" style:KBButtonStylePrimary];
   self.button.targetBlock = ^{
     [gself generateKey];
   };
   [self addSubview:_button];
 
-  _selectButton = [KBButton buttonWithLinkText:@"I have a key already, let me select it."];
+  _selectButton = [KBButton buttonWithText:@"I have a key already, let me select it." style:KBButtonStyleLink];
   _selectButton.targetBlock = ^{
     KBTODO(gself);
   };
@@ -55,17 +55,17 @@
 
     y += [layout centerWithSize:CGSizeMake(300, 48) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.infoLabel].size.height + 20;
 
-    y += [layout centerWithSize:CGSizeMake(200, 48) frame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.button].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.button].size.height + 30;
 
-    y += [layout setFrame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.selectButton].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(0, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.selectButton].size.height + 30;
 
     return CGSizeMake(size.width, y);
   }];
 }
 
 - (void)generateKey {
-  [AppDelegate passwordPrompt:@"Your key passphrase" description:@"We'll encrypt your secret key with this password." view:self completion:^(BOOL canceled, NSString *password) {
-    [self _generateKey:password];
+  [KBAlert promptForInputWithTitle:@"Your key passphrase" description:@"We'll encrypt your secret key with this password." secure:YES style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
+    if (response == NSAlertFirstButtonReturn) [self _generateKey:password];
   }];
 }
 

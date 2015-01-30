@@ -25,9 +25,9 @@
 
 + (AppDelegate *)sharedDelegate;
 
-+ (void)passwordPrompt:(NSString *)prompt description:(NSString *)description view:(NSView *)view completion:(void (^)(BOOL canceled, NSString *password))completion;
-
 - (void)checkStatus;
+
++ (NSString *)loadFile:(NSString *)file;
 
 @end
 

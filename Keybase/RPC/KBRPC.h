@@ -1,6 +1,15 @@
 #import "KBRObject.h"
 #import "KBRRequest.h"
 
+@interface KBRBlockRequest : KBRRequest
+- (void)getWithBlockid:(NSData *)blockid completion:(void (^)(NSError *error, NSData * bytes))completion;
+
+- (void)deleteWithBlockid:(NSData *)blockid completion:(void (^)(NSError *error))completion;
+
+- (void)putWithBlockid:(NSData *)blockid buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRStatus : KBRObject
 @property NSInteger code;
 @property NSString *name;
@@ -38,6 +47,9 @@
 @property NSString *username;
 @end
 
+@interface KBRSIGID : NSData
+@end
+
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -50,9 +62,6 @@
 @interface KBRConfigRequest : KBRRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion;
 
-@end
-
-@interface KBRSIGID : NSData
 @end
 
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {

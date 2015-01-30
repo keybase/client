@@ -12,6 +12,9 @@
 
 #import "KBConnectView.h"
 
-@interface KBCatalogView : KBView <NSTableViewDelegate, NSTableViewDataSource, KBSignupViewDelegate, KBLoginViewDelegate>
+@import WebKit;
+
+//NSTableViewDelegate, NSTableViewDataSource
+@interface KBCatalogView : KBView <KBSignupViewDelegate, KBLoginViewDelegate, WKNavigationDelegate>
 
 @end

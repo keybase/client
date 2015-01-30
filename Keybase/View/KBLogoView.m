@@ -44,4 +44,8 @@
   }
 }
 
+- (void)setProgressEnabled:(BOOL)progressEnabled {
+  // No-op
+}
+
 @end
