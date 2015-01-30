@@ -5,6 +5,8 @@ import (
 	"github.com/keybase/go/libkb"
 	"regexp"
 	"strings"
+	"text/tabwriter"
+	"text/template"
 )
 
 type Command interface {
@@ -166,7 +168,26 @@ type CmdGeneralHelp struct {
 
 func (c *CmdBaseHelp) RunClient() error { return c.Run() }
 
+// This is a hack to work around codegangsta/cli destroying the HelpPrinter
+// object.
+func (c *CmdBaseHelp) MakeHelpPrinter() {
+	if cli.HelpPrinter != nil {
+		return
+	}
+
+	cli.HelpPrinter = func(templ string, data interface{}) {
+		w := tabwriter.NewWriter(c.ctx.App.Writer, 0, 8, 1, '\t', 0)
+		t := template.Must(template.New("help").Parse(templ))
+		err := t.Execute(w, data)
+		if err != nil {
+			panic(err)
+		}
+		w.Flush()
+	}
+}
+
 func (c *CmdBaseHelp) Run() error {
+	c.MakeHelpPrinter()
 	cli.ShowAppHelp(c.ctx)
 	return nil
 }

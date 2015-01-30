@@ -19,6 +19,7 @@ type GenericKey interface {
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
+	CanSign() bool
 	Encode() (string, error) // encode public key to string
 }
 
@@ -54,6 +55,17 @@ func GetKID(w *jsonw.Wrapper) (kid KID, err error) {
 	return
 }
 
+func CanEncrypt(key GenericKey) bool {
+	switch key.(type) {
+	case NaclDHKeyPair:
+		return true
+	case *PgpKeyBundle:
+		return true
+	default:
+		return false
+	}
+}
+
 func (k KID) ToBytes() []byte {
 	return []byte(k)
 }
@@ -70,6 +82,21 @@ func WriteP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb
 	}
 	return
 }
+
+/*
+func WriteP3SKBLocalKeyToKeyring(k GenericKey, lui LogUI) (p3skb *P3SKB, err error) {
+	if G.Keyrings == nil {
+		return nil, NoKeyringsError{}
+	}
+	p3skb, err = k.ToP3SKB()
+	if err != nil {
+		return nil, err
+	}
+
+	err = G.Keyrings.P3SKB.PushAndSave(p3skb, lui)
+	return p3skb, err
+}
+*/
 
 // FOKID is a "Fingerprint Or a KID" or both, or neither.
 // We have different things in different sigchains, so we

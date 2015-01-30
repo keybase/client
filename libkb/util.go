@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/hmac"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"os"
@@ -186,4 +187,23 @@ func IsValidHostname(s string) bool {
 		}
 		return true
 	}
+}
+
+func RandBytes(length int) ([]byte, error) {
+	buf := make([]byte, length)
+	if _, err := rand.Read(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+func XORBytes(dst, a, b []byte) int {
+	n := len(a)
+	if len(b) < n {
+		n = len(b)
+	}
+	for i := 0; i < n; i++ {
+		dst[i] = a[i] ^ b[i]
+	}
+	return n
 }

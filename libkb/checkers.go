@@ -82,3 +82,10 @@ var CheckYesNo = Checker{
 	},
 	Hint: "'yes' or 'no'",
 }
+
+var CheckNotEmpty = Checker{
+	F: func(s string) bool {
+		return len(s) > 0
+	},
+	Hint: "cannot be empty",
+}

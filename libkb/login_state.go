@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"crypto/hmac"
-	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
@@ -55,11 +54,11 @@ func (s *LoginState) GetSalt() (salt []byte, err error) {
 }
 
 func (s *LoginState) GenerateNewSalt() error {
-	buf := make([]byte, triplesec.SaltLen)
-	if _, err := rand.Read(buf); err != nil {
+	var err error
+	s.salt, err = RandBytes(triplesec.SaltLen)
+	if err != nil {
 		return err
 	}
-	s.salt = buf
 	return nil
 }
 

@@ -275,6 +275,10 @@ func (k *PgpKeyBundle) CheckSecretKey() (err error) {
 	return
 }
 
+func (k *PgpKeyBundle) CanSign() bool {
+	return k.PrivateKey != nil && !k.PrivateKey.Encrypted
+}
+
 func (k *PgpKeyBundle) GetKid() KID {
 
 	prefix := []byte{

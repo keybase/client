@@ -1,16 +1,13 @@
 package libkb
 
 import (
-	"crypto/rand"
 	"encoding/base32"
 	"os"
 	"strings"
 )
 
 func TempFile(prefix string, mode os.FileMode) (string, *os.File, error) {
-	n := 20
-	buf := make([]byte, n)
-	_, err := rand.Read(buf)
+	buf, err := RandBytes(20)
 	if err != nil {
 		return "", nil, err
 	}
