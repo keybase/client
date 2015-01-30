@@ -64,6 +64,10 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
+	if err := s.checkGPG(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -115,4 +119,9 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 func (s *SignupEngine) genDetKeys() error {
 	eng := NewDetKeyEngine(s.me, s.signingKey, s.logui)
 	return eng.Run(s.tspkey.EdDSASeed(), s.tspkey.DHSeed())
+}
+
+func (s *SignupEngine) checkGPG() error {
+	eng := NewGPG()
+	return eng.Run()
 }
