@@ -8,8 +8,6 @@ import (
 
 type SignupJoinEngine struct {
 	signupState *SignupState
-	// salt        []byte
-	// pwh         []byte
 
 	uid            UID
 	session        string
@@ -56,38 +54,12 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	return err
 }
 
-/*
-func (s *SignupJoinEngine) GenTSPassKey(p string) error {
-	G.Log.Debug("+ GenTSPassKey")
-	defer G.Log.Debug("- GenTSPassKey")
-	if p == s.lastPassphrase && s.signupState != nil {
-		return nil
-	}
-
-	state := NewSignupState()
-	if err := state.GenerateNewSalt(); err != nil {
-		return err
-	}
-	if err := state.TSPassKey(p); err != nil {
-		return err
-	}
-
-	s.pwh = state.PWHash()
-	s.salt = state.Salt()
-	s.signupState = state
-	s.lastPassphrase = p
-
-	return nil
-}
-*/
-
 type SignupJoinEngineRunArg struct {
 	Username   string
 	Email      string
 	InviteCode string
-	// Passphrase string
-	PWHash []byte
-	PWSalt []byte
+	PWHash     []byte
+	PWSalt     []byte
 }
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
@@ -95,9 +67,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 	res, err = G.API.Post(ApiArg{
 		Endpoint: "signup",
 		Args: HttpArgs{
-			// "salt":          S{hex.EncodeToString(s.salt)},
-			"salt": S{hex.EncodeToString(arg.PWSalt)},
-			// "pwh":           S{hex.EncodeToString(s.pwh)},
+			"salt":          S{hex.EncodeToString(arg.PWSalt)},
 			"pwh":           S{hex.EncodeToString(arg.PWHash)},
 			"username":      S{arg.Username},
 			"email":         S{arg.Email},
@@ -123,11 +93,6 @@ type SignupJoinEngineRunRes struct {
 }
 
 func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngineRunRes) {
-	/*
-		if res.Error = s.GenTSPassKey(arg.Passphrase); res.Error != nil {
-			return
-		}
-	*/
 	res.PassphraseOk = true
 
 	if res.Error = s.Post(arg); res.Error != nil {
