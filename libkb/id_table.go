@@ -33,6 +33,7 @@ type TypedChainLink interface {
 	GetUID() UID
 	GetDelegatedKid() KID
 	GetParentKid() KID
+	VerifyReverseSig() error
 	GetMerkleSeqno() int
 	GetDevice() *Device
 }
@@ -63,6 +64,7 @@ func (b *GenericChainLink) ToDebugString() string {
 
 func (g *GenericChainLink) GetDelegatedKid() KID    { return nil }
 func (g *GenericChainLink) GetParentKid() KID       { return nil }
+func (g *GenericChainLink) VerifyReverseSig() error { return nil }
 func (g *GenericChainLink) IsRevocationIsh() bool   { return false }
 func (g *GenericChainLink) IsDelegation() KeyStatus { return DLG_NONE }
 func (g *GenericChainLink) IsRevoked() bool         { return g.revoked }
@@ -455,16 +457,23 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 
 type SibkeyChainLink struct {
 	GenericChainLink
-	kid    KID
-	device *Device
+	kid        KID
+	device     *Device
+	reverseSig string
 }
 
 func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) {
 	var kid KID
 	var device *Device
+	var sig string
 
 	if kid, err = GetKID(b.payloadJson.AtPath("body.sibkey.kid")); err != nil {
-		err = fmt.Errorf("Bad sibkey statement @%s: %s", b.ToDebugString(), err.Error())
+		err = ChainLinkError{fmt.Sprintf("Bad sibkey statement @%s: %s", b.ToDebugString(), err.Error())}
+		return
+	}
+
+	if sig, err = b.payloadJson.AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
+		err = ChainLinkError{fmt.Sprintf("No reverse_sig in sibkey delegation @%s: %s", b.ToDebugString(), err.Error())}
 		return
 	}
 
@@ -474,7 +483,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 		}
 	}
 
-	ret = &SibkeyChainLink{b, kid, device}
+	ret = &SibkeyChainLink{b, kid, device, sig}
 
 	return
 
@@ -485,6 +494,16 @@ func (s *SibkeyChainLink) IsDelegation() KeyStatus { return DLG_SIBKEY }
 func (s *SibkeyChainLink) Type() string            { return SIBKEY_TYPE }
 func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
+
+//-------------------------------------
+
+func (s *SibkeyChainLink) VerifyReverseSig() (err error) {
+	if len(s.reverseSig) == 0 {
+		err = ReverseSigError{fmt.Sprintf("empty sig @%s", s.ToDebugString())}
+		return
+	}
+	return nil
+}
 
 //
 //=========================================================================
