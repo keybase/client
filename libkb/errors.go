@@ -637,11 +637,11 @@ func (e NotProvisionedError) Error() string {
 //=============================================================================
 
 type UidMismatchError struct {
-	msg string
+	Msg string
 }
 
 func (u UidMismatchError) Error() string {
-	return fmt.Sprintf("UID mismatch error: %s", u.msg)
+	return fmt.Sprintf("UID mismatch error: %s", u.Msg)
 }
 
 //=============================================================================
