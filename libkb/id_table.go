@@ -32,6 +32,7 @@ type TypedChainLink interface {
 	GetProofState() int
 	GetUID() UID
 	GetDelegatedKid() KID
+	GetParentKid() KID
 	GetMerkleSeqno() int
 	GetDevice() *Device
 }
@@ -61,6 +62,7 @@ func (b *GenericChainLink) ToDebugString() string {
 }
 
 func (g *GenericChainLink) GetDelegatedKid() KID    { return nil }
+func (g *GenericChainLink) GetParentKid() KID       { return nil }
 func (g *GenericChainLink) IsRevocationIsh() bool   { return false }
 func (g *GenericChainLink) IsDelegation() KeyStatus { return DLG_NONE }
 func (g *GenericChainLink) IsRevoked() bool         { return g.revoked }
@@ -490,23 +492,27 @@ func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
 
 type SubkeyChainLink struct {
 	GenericChainLink
-	kid KID
+	kid       KID
+	parentKid KID
 }
 
 func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) {
-	var kid KID
+	var kid, pkid KID
 	if kid, err = GetKID(b.payloadJson.AtPath("body.subkey.kid")); err != nil {
-		err = fmt.Errorf("Bad subkey statement @%s: %s", b.ToDebugString(), err.Error())
+		err = ChainLinkError{fmt.Sprintf("Can't get KID for subkey @%s: %s", b.ToDebugString(), err.Error())}
+	} else if pkid, err = GetKID(b.payloadJson.AtPath("body.subkey.parent_kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get parent_kid for subkey @%s: %s", b.ToDebugString(), err.Error())}
 	} else {
-		ret = &SubkeyChainLink{b, kid}
+		ret = &SubkeyChainLink{b, kid, pkid}
 	}
 	return
 }
 
 func (s *SubkeyChainLink) Type() string            { return SUBKEY_TYPE }
-func (r *SubkeyChainLink) ToDisplayString() string { return r.kid.String() }
+func (s *SubkeyChainLink) ToDisplayString() string { return s.kid.String() }
 func (s *SubkeyChainLink) IsDelegation() KeyStatus { return DLG_SUBKEY }
 func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
+func (s *SubkeyChainLink) GetParentKid() KID       { return s.parentKid }
 
 //
 //=========================================================================

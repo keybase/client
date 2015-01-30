@@ -240,10 +240,30 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, lid Lin
 	return
 }
 
-func KeyToProofJson(key GenericKey) *jsonw.Wrapper {
-	d := jsonw.NewDictionary()
-	d.SetKey("kid", jsonw.NewString(key.GetKid().String()))
-	return d
+func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey) (ret *jsonw.Wrapper, err error) {
+	ret = jsonw.NewDictionary()
+
+	if typ == SIBKEY_TYPE && newkey.CanSign() {
+		var rsig string
+		rsig_json := jsonw.NewDictionary()
+		rsig_json.SetKey("reverse_key_sig", jsonw.NewString(signingKey.GetKid().String()))
+		if rsig, _, _, err = SignJson(rsig_json, newkey); err != nil {
+			return
+		}
+		rsig_dict := jsonw.NewDictionary()
+		rsig_dict.SetKey("sig", jsonw.NewString(rsig))
+		rsig_dict.SetKey("type", jsonw.NewString("kb"))
+		ret.SetKey("reverse_sig", rsig_dict)
+	}
+
+	// For subkeys let's say who are parent is.  In this case it's the signing key,
+	// though that can change in the future.
+	if typ == SUBKEY_TYPE && signingKey != nil {
+		ret.SetKey("parent_kid", jsonw.NewString(signingKey.GetKid().String()))
+	}
+
+	ret.SetKey("kid", jsonw.NewString(newkey.GetKid().String()))
+	return
 }
 
 func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int, device *Device) (ret *jsonw.Wrapper, err error) {
@@ -261,19 +281,11 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 		body.SetKey("device", device.Export())
 	}
 
-	kp := KeyToProofJson(newkey)
-	if typ == SIBKEY_TYPE && newkey.CanSign() {
-		rsig_json := jsonw.NewDictionary()
-		rsig_json.SetKey("reverse_key_sig", jsonw.NewString(signingkey.GetKid().String()))
-		var rsig string
-		if rsig, _, _, err = SignJson(rsig_json, newkey); err != nil {
-			return
-		}
-		rsig_dict := jsonw.NewDictionary()
-		rsig_dict.SetKey("sig", jsonw.NewString(rsig))
-		rsig_dict.SetKey("type", jsonw.NewString("kb"))
-		kp.SetKey("reverse_sig", rsig_dict)
+	var kp *jsonw.Wrapper
+	if kp, err = KeyToProofJson(newkey, typ, signingkey); err != nil {
+		return
 	}
+
 	// 'typ' can be 'subkey' or 'sibkey'
 	body.SetKey(typ, kp)
 	return
