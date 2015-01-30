@@ -38,6 +38,9 @@
 @property NSString *username;
 @end
 
+@interface KBRSIGID : NSData
+@end
+
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -49,14 +52,6 @@
 
 @interface KBRConfigRequest : KBRRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion;
-
-@end
-
-@interface KBRSIGID : NSData
-@end
-
-@interface KBRDeviceRequest : KBRRequest
-- (void)registerWithDeviceName:(NSString *)deviceName completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -316,7 +311,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSignupRequest : KBRRequest
 - (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBRSignupRes * signupRes))completion;
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error, KBRSignupRes * signupRes))completion;
 
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error))completion;
 

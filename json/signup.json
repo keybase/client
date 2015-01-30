@@ -81,6 +81,10 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
+  }, {
     "type" : "record",
     "name" : "SignupRes",
     "fields" : [ {
@@ -114,6 +118,9 @@
         "type" : "string"
       }, {
         "name" : "username",
+        "type" : "string"
+      }, {
+        "name" : "deviceName",
         "type" : "string"
       } ],
       "response" : "SignupRes"

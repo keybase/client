@@ -81,6 +81,10 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
+  }, {
     "type" : "enum",
     "name" : "PromptOverwriteType",
     "symbols" : [ "SOCIAL", "SITE" ]

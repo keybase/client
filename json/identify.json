@@ -81,6 +81,10 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
+  }, {
     "type" : "enum",
     "name" : "TrackDiffType",
     "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]

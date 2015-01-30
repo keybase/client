@@ -11,6 +11,6 @@ protocol signup {
 	}
 
 	void checkUsernameAvailable(string username);
-	SignupRes signup(string email, string inviteCode, string passphrase, string username);
+	SignupRes signup(string email, string inviteCode, string passphrase, string username, string deviceName);
 	void inviteRequest(string email, string fullname, string notes);
 }

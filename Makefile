@@ -12,7 +12,6 @@ config:
 
 build-stamp: \
 	json/config.json \
-	json/device.json \
 	json/identify.json \
 	json/identify_ui.json \
 	json/mykey.json \

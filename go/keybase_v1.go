@@ -43,6 +43,7 @@ type User struct {
 	Username string `codec:"username"`
 }
 
+type SIGID [32]byte
 type GetCurrentStatusRes struct {
 	Configured        bool  `codec:"configured"`
 	Registered        bool  `codec:"registered"`
@@ -81,41 +82,6 @@ type ConfigClient struct {
 
 func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{GetCurrentStatusArg{}}, &res)
-	return
-}
-
-type SIGID [32]byte
-type RegisterArg struct {
-	DeviceName string `codec:"deviceName"`
-}
-
-type DeviceInterface interface {
-	Register(string) error
-}
-
-func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.device",
-		Methods: map[string]rpc2.ServeHook{
-			"register": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]RegisterArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Register(args[0].DeviceName)
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type DeviceClient struct {
-	Cli GenericClient
-}
-
-func (c DeviceClient) Register(deviceName string) (err error) {
-	__arg := RegisterArg{DeviceName: deviceName}
-	err = c.Cli.Call("keybase.1.device.register", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1070,6 +1036,7 @@ type SignupArg struct {
 	InviteCode string `codec:"inviteCode"`
 	Passphrase string `codec:"passphrase"`
 	Username   string `codec:"username"`
+	DeviceName string `codec:"deviceName"`
 }
 
 type InviteRequestArg struct {
