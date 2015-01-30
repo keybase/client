@@ -27,7 +27,6 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 	srv.Register(keybase_1.ProveProtocol(NewProveHandler(xp)))
 	srv.Register(keybase_1.SessionProtocol(NewSessionHandler(xp)))
 	srv.Register(keybase_1.TrackProtocol(NewTrackHandler(xp)))
-	srv.Register(keybase_1.DeviceProtocol(NewDeviceHandler(xp)))
 }
 
 func (d *Daemon) Handle(c net.Conn) {

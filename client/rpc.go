@@ -44,14 +44,6 @@ func GetLoginClient() (cli keybase_1.LoginClient, err error) {
 	return
 }
 
-func GetDeviceClient() (cli keybase_1.DeviceClient, err error) {
-	var rpc *rpc2.Client
-	if rpc, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.DeviceClient{rpc}
-	}
-	return
-}
-
 func RegisterProtocols(prots []rpc2.Protocol) (err error) {
 	var srv *rpc2.Server
 	if srv, _, err = GetRpcServer(); err != nil {
