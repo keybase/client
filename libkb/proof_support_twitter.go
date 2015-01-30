@@ -137,7 +137,7 @@ func (t TwitterServiceType) ToServiceJson(un string) *jsonw.Wrapper {
 }
 
 func (t TwitterServiceType) PostInstructions(un string) *Markup {
-	return FmtMarkup(`Please <strong>publicly</strong> the following, and don't delete it:`)
+	return FmtMarkup(`Please <strong>publicly</strong> tweet the following, and don't delete it:`)
 }
 
 func (t TwitterServiceType) DisplayName(un string) string { return "Twitter" }
