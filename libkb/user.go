@@ -720,3 +720,7 @@ func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey 
 }
 
 //==================================================================
+
+func (u *User) SigChainBump(linkID LinkId, sigID *SigId) {
+	u.sigChain.Bump(MerkleTriple{linkId: linkID, sigId: sigID})
+}

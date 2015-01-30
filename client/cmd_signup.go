@@ -4,6 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/go/libkb/engine"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"os"
@@ -37,7 +38,7 @@ func (pf PromptFields) ToList() []*Field {
 type signupEngine interface {
 	CheckRegistered() error
 	// Run(libkb.SignupEngineRunArg) libkb.SignupJoinEngineRunRes
-	Run(libkb.SignupEngineRunArg) error
+	Run(engine.SignupEngineRunArg) error
 	PostInviteRequest(libkb.InviteRequestArg) error
 	Init() error
 }
@@ -86,7 +87,7 @@ func (s *CmdSignupState) RunClient() error {
 
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
-	s.engine = libkb.NewSignupEngine(G.UI.GetLogUI())
+	s.engine = engine.NewSignupEngine(G.UI.GetLogUI())
 	return s.run()
 }
 
@@ -162,7 +163,7 @@ func (s *CmdSignupState) runSignup() (err error) {
 }
 
 func (s *CmdSignupState) runEngine() (retry bool, err error) {
-	arg := libkb.SignupEngineRunArg{
+	arg := engine.SignupEngineRunArg{
 		Username:   s.fields.username.GetValue(),
 		Email:      s.fields.email.GetValue(),
 		InviteCode: s.fields.code.GetValue(),
@@ -175,7 +176,7 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 	}
 
 	// check to see if the error is a join engine run result:
-	if e, ok := err.(libkb.SignupJoinEngineRunRes); ok {
+	if e, ok := err.(engine.SignupJoinEngineRunRes); ok {
 		G.Log.Info("got a signup join engine run res error: %+v", e)
 		if e.PassphraseOk {
 			s.fields.passphraseRetry.Disabled = false
@@ -350,7 +351,7 @@ func (e *RemoteSignupJoinEngine) Init() error {
 	return nil
 }
 
-func (e *RemoteSignupJoinEngine) Run(arg libkb.SignupEngineRunArg) error {
+func (e *RemoteSignupJoinEngine) Run(arg engine.SignupEngineRunArg) error {
 	rarg := keybase_1.SignupArg{
 		Username:   arg.Username,
 		Email:      arg.Email,
@@ -364,7 +365,7 @@ func (e *RemoteSignupJoinEngine) Run(arg libkb.SignupEngineRunArg) error {
 	}
 	if !res.PassphraseOk || !res.PostOk || !res.WriteOk {
 		// problem with the join phase
-		return libkb.SignupJoinEngineRunRes{
+		return engine.SignupJoinEngineRunRes{
 			PassphraseOk: res.PassphraseOk,
 			PostOk:       res.PostOk,
 			WriteOk:      res.WriteOk,

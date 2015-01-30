@@ -1,12 +1,13 @@
-package libkb
+package engine
 
 import (
 	"github.com/keybase/go-triplesec"
+	"github.com/keybase/go/libkb"
 )
 
 type SignupState struct {
 	salt    []byte
-	passkey TSPassKey
+	passkey libkb.TSPassKey
 }
 
 func NewSignupState() *SignupState {
@@ -15,7 +16,7 @@ func NewSignupState() *SignupState {
 
 func (s *SignupState) GenerateNewSalt() error {
 	var err error
-	s.salt, err = RandBytes(triplesec.SaltLen)
+	s.salt, err = libkb.RandBytes(triplesec.SaltLen)
 	if err != nil {
 		return err
 	}
@@ -24,7 +25,7 @@ func (s *SignupState) GenerateNewSalt() error {
 
 func (s *SignupState) TSPassKey(passphrase string) error {
 	var err error
-	s.passkey, err = NewTSPassKey(passphrase, s.salt)
+	s.passkey, err = libkb.NewTSPassKey(passphrase, s.salt)
 	return err
 }
 

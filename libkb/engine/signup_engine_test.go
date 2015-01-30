@@ -1,4 +1,4 @@
-package libkb
+package engine
 
 import (
 	"crypto/rand"

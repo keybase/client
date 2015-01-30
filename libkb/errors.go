@@ -173,11 +173,11 @@ func (u UserNotFoundError) Error() string {
 //=============================================================================
 
 type AlreadyRegisteredError struct {
-	uid UID
+	Uid UID
 }
 
 func (u AlreadyRegisteredError) Error() string {
-	return fmt.Sprintf("Already registered (with uid=%s)", u.uid)
+	return fmt.Sprintf("Already registered (with uid=%s)", u.Uid)
 }
 
 //=============================================================================

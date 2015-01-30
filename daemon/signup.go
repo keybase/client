@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/go/libkb/engine"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -15,14 +16,14 @@ func NewSignupHandler(xp *rpc2.Transport) *SignupHandler {
 }
 
 func (h *SignupHandler) CheckUsernameAvailable(username string) error {
-	return libkb.CheckUsernameAvailable(username)
+	return engine.CheckUsernameAvailable(username)
 }
 
 func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes, err error) {
 	sessionID := nextSessionId()
-	eng := libkb.NewSignupEngine(h.getLogUI(sessionID))
+	eng := engine.NewSignupEngine(h.getLogUI(sessionID))
 
-	err = eng.Run(libkb.SignupEngineRunArg{
+	err = eng.Run(engine.SignupEngineRunArg{
 		Username:   arg.Username,
 		Email:      arg.Email,
 		InviteCode: arg.InviteCode,
@@ -42,7 +43,7 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 	}
 
 	// check to see if the error is a join engine run result:
-	if e, ok := err.(libkb.SignupJoinEngineRunRes); ok {
+	if e, ok := err.(engine.SignupJoinEngineRunRes); ok {
 		res.PassphraseOk = e.PassphraseOk
 		res.PostOk = e.PostOk
 		res.WriteOk = e.WriteOk

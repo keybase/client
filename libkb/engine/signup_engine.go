@@ -1,20 +1,21 @@
-package libkb
+package engine
 
 import (
 	"fmt"
 	"github.com/keybase/go-triplesec"
+	"github.com/keybase/go/libkb"
 )
 
 type SignupEngine struct {
 	pwsalt     []byte
-	tspkey     TSPassKey
-	uid        UID
-	me         *User
-	signingKey GenericKey
-	logui      LogUI
+	tspkey     libkb.TSPassKey
+	uid        libkb.UID
+	me         *libkb.User
+	signingKey libkb.GenericKey
+	logui      libkb.LogUI
 }
 
-func NewSignupEngine(logui LogUI) *SignupEngine {
+func NewSignupEngine(logui libkb.LogUI) *SignupEngine {
 	return &SignupEngine{logui: logui}
 }
 
@@ -27,14 +28,14 @@ func (s *SignupEngine) CheckRegistered() (err error) {
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUid(); u != nil {
-		err = AlreadyRegisteredError{*u}
+		err = libkb.AlreadyRegisteredError{Uid: *u}
 	}
-	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", ErrToOk(err))
+	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
 }
 
-func (s *SignupEngine) PostInviteRequest(arg InviteRequestArg) error {
-	return PostInviteRequest(arg)
+func (s *SignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {
+	return libkb.PostInviteRequest(arg)
 }
 
 type SignupEngineRunArg struct {
@@ -67,13 +68,13 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 }
 
 func (s *SignupEngine) genTSPassKey(passphrase string) error {
-	salt, err := RandBytes(triplesec.SaltLen)
+	salt, err := libkb.RandBytes(triplesec.SaltLen)
 	if err != nil {
 		return err
 	}
 	s.pwsalt = salt
 
-	s.tspkey, err = NewTSPassKey(passphrase, salt)
+	s.tspkey, err = libkb.NewTSPassKey(passphrase, salt)
 	return err
 }
 
@@ -93,7 +94,7 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 	}
 
 	s.uid = *res.Uid
-	user, err := LoadUser(LoadUserArg{Uid: res.Uid, PublicKeyOptional: true})
+	user, err := libkb.LoadUser(libkb.LoadUserArg{Uid: res.Uid, PublicKeyOptional: true})
 	if err != nil {
 		return err
 	}

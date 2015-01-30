@@ -1,15 +1,19 @@
-package libkb
+package engine
+
+import (
+	"github.com/keybase/go/libkb"
+)
 
 type DeviceEngine struct {
 	deviceName  string
-	deviceID    DeviceId
+	deviceID    libkb.DeviceId
 	localEncKey []byte
-	me          *User
-	rootKey     NaclKeyPair
-	logui       LogUI
+	me          *libkb.User
+	rootKey     libkb.NaclKeyPair
+	logui       libkb.LogUI
 }
 
-func NewDeviceEngine(me *User, logui LogUI) *DeviceEngine {
+func NewDeviceEngine(me *libkb.User, logui libkb.LogUI) *DeviceEngine {
 	return &DeviceEngine{me: me, logui: logui}
 }
 
@@ -20,7 +24,7 @@ func (d *DeviceEngine) Init() error {
 func (d *DeviceEngine) Run(deviceName string) error {
 	d.deviceName = deviceName
 	var err error
-	d.deviceID, err = NewDeviceId()
+	d.deviceID, err = libkb.NewDeviceId()
 	if err != nil {
 		return err
 	}
@@ -45,26 +49,26 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	return nil
 }
 
-func (d *DeviceEngine) RootSigningKey() GenericKey {
+func (d *DeviceEngine) RootSigningKey() libkb.GenericKey {
 	return d.rootKey
 }
 
 func (d *DeviceEngine) pushRootSigningKey() error {
-	eddsaPair, err := GenerateNaclSigningKeyPair()
+	eddsaPair, err := libkb.GenerateNaclSigningKeyPair()
 	if err != nil {
 		return err
 	}
 	G.Log.Debug("EdDSA: %s", eddsaPair.VerboseDescription())
 
 	// copying stuff from keygen.go/GeneratePost
-	fokid := GenericKeyToFOKID(eddsaPair)
+	fokid := libkb.GenericKeyToFOKID(eddsaPair)
 	jw, err := d.me.SelfProof(eddsaPair, &fokid)
 	if err != nil {
 		return err
 	}
 	G.Log.Debug("self proof json: %s", jw.MarshalPretty())
 
-	sig, sigid, linkid, err := SignJson(jw, eddsaPair)
+	sig, sigid, linkid, err := libkb.SignJson(jw, eddsaPair)
 	if err != nil {
 		return err
 	}
@@ -75,20 +79,20 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	}
 
 	// save it to local keyring:
-	_, err = WriteP3SKBToKeyring(eddsaPair, nil, d.logui)
+	_, err = libkb.WriteP3SKBToKeyring(eddsaPair, nil, d.logui)
 	if err != nil {
 		return err
 	}
 
-	args := HttpArgs{
-		"sig_id_base":  S{sigid.ToString(false)},
-		"sig_id_short": S{sigid.ToShortId()},
-		"sig":          S{sig},
-		"public_key":   S{pubkey},
-		"is_primary":   I{1},
+	args := libkb.HttpArgs{
+		"sig_id_base":  libkb.S{sigid.ToString(false)},
+		"sig_id_short": libkb.S{sigid.ToShortId()},
+		"sig":          libkb.S{sig},
+		"public_key":   libkb.S{pubkey},
+		"is_primary":   libkb.I{1},
 	}
 
-	_, err = G.API.Post(ApiArg{
+	_, err = G.API.Post(libkb.ApiArg{
 		Endpoint:    "key/add",
 		NeedSession: true,
 		Args:        args,
@@ -98,14 +102,14 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 	}
 
 	d.rootKey = eddsaPair
-	d.me.sigChain.Bump(MerkleTriple{linkId: linkid, sigId: sigid})
+	d.me.SigChainBump(linkid, sigid)
 
 	return nil
 }
 
-func (d *DeviceEngine) device() *Device {
+func (d *DeviceEngine) device() *libkb.Device {
 	s := 1
-	return &Device{
+	return &libkb.Device{
 		Id:          d.deviceID.String(),
 		Description: &d.deviceName,
 		Type:        "desktop", // XXX always desktop?
@@ -114,13 +118,13 @@ func (d *DeviceEngine) device() *Device {
 }
 
 func (d *DeviceEngine) pushDHKey() error {
-	gen := NewNaclKeyGen(NaclKeyGenArg{
+	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Signer:    d.rootKey,
 		Primary:   d.rootKey,
-		Generator: GenerateNaclDHKeyPair,
-		Type:      SUBKEY_TYPE,
+		Generator: libkb.GenerateNaclDHKeyPair,
+		Type:      libkb.SUBKEY_TYPE,
 		Me:        d.me,
-		ExpireIn:  NACL_DH_EXPIRE_IN,
+		ExpireIn:  libkb.NACL_DH_EXPIRE_IN,
 		Device:    d.device(),
 		LogUI:     d.logui,
 	})

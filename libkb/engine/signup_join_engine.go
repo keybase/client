@@ -1,15 +1,16 @@
-package libkb
+package engine
 
 import (
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-triplesec"
+	"github.com/keybase/go/libkb"
 )
 
 type SignupJoinEngine struct {
 	signupState *SignupState
 
-	uid            UID
+	uid            libkb.UID
 	session        string
 	csrf           string
 	lastPassphrase string
@@ -19,21 +20,21 @@ type SignupJoinEngine struct {
 func NewSignupJoinEngine() *SignupJoinEngine { return &SignupJoinEngine{} }
 
 func CheckUsernameAvailable(s string) (err error) {
-	_, err = G.API.Get(ApiArg{
+	_, err = G.API.Get(libkb.ApiArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
-		Args: HttpArgs{
-			"username": S{s},
-			"fields":   S{"basics"},
+		Args: libkb.HttpArgs{
+			"username": libkb.S{s},
+			"fields":   libkb.S{"basics"},
 		},
 	})
 	if err == nil {
-		err = AppStatusError{
-			Code: SC_BAD_SIGNUP_USERNAME_TAKEN,
+		err = libkb.AppStatusError{
+			Code: libkb.SC_BAD_SIGNUP_USERNAME_TAKEN,
 			Name: "BAD_SIGNUP_USERNAME_TAKEN",
 			Desc: fmt.Sprintf("Username '%s' is taken", s),
 		}
-	} else if ase, ok := err.(AppStatusError); ok && ase.Name == "NOT_FOUND" {
+	} else if ase, ok := err.(libkb.AppStatusError); ok && ase.Name == "NOT_FOUND" {
 		err = nil
 	}
 	return
@@ -48,9 +49,9 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUid(); u != nil {
-		err = AlreadyRegisteredError{*u}
+		err = libkb.AlreadyRegisteredError{*u}
 	}
-	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", ErrToOk(err))
+	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
 }
 
@@ -63,20 +64,20 @@ type SignupJoinEngineRunArg struct {
 }
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
-	var res *ApiRes
-	res, err = G.API.Post(ApiArg{
+	var res *libkb.ApiRes
+	res, err = G.API.Post(libkb.ApiArg{
 		Endpoint: "signup",
-		Args: HttpArgs{
-			"salt":          S{hex.EncodeToString(arg.PWSalt)},
-			"pwh":           S{hex.EncodeToString(arg.PWHash)},
-			"username":      S{arg.Username},
-			"email":         S{arg.Email},
-			"invitation_id": S{arg.InviteCode},
-			"pwh_version":   I{int(triplesec.Version)},
+		Args: libkb.HttpArgs{
+			"salt":          libkb.S{hex.EncodeToString(arg.PWSalt)},
+			"pwh":           libkb.S{hex.EncodeToString(arg.PWHash)},
+			"username":      libkb.S{arg.Username},
+			"email":         libkb.S{arg.Email},
+			"invitation_id": libkb.S{arg.InviteCode},
+			"pwh_version":   libkb.I{int(triplesec.Version)},
 		}})
 	if err == nil {
 		s.username = arg.Username
-		GetUidVoid(res.Body.AtKey("uid"), &s.uid, &err)
+		libkb.GetUidVoid(res.Body.AtKey("uid"), &s.uid, &err)
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
 	}
@@ -87,8 +88,8 @@ type SignupJoinEngineRunRes struct {
 	PassphraseOk bool
 	PostOk       bool
 	WriteOk      bool
-	Uid          *UID
-	User         *User
+	Uid          *libkb.UID
+	User         *libkb.User
 	Err          error
 }
 
@@ -129,7 +130,7 @@ func (s *SignupJoinEngine) WriteSession() error {
 		return err
 	}
 
-	lir := LoggedInResult{
+	lir := libkb.LoggedInResult{
 		SessionId: s.session,
 		CsrfToken: s.csrf,
 		Uid:       s.uid,
@@ -151,6 +152,6 @@ func (s *SignupJoinEngine) WriteOut(salt []byte) (err error) {
 	return err
 }
 
-func (s *SignupJoinEngine) PostInviteRequest(arg InviteRequestArg) error {
-	return PostInviteRequest(arg)
+func (s *SignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {
+	return libkb.PostInviteRequest(arg)
 }

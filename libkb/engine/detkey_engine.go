@@ -1,19 +1,20 @@
-package libkb
+package engine
 
 import (
 	"bytes"
 	"encoding/hex"
 	"github.com/agl/ed25519"
+	"github.com/keybase/go/libkb"
 	"golang.org/x/crypto/nacl/box"
 )
 
 type DetKeyEngine struct {
-	me         *User
-	signingKey GenericKey
-	logui      LogUI
+	me         *libkb.User
+	signingKey libkb.GenericKey
+	logui      libkb.LogUI
 }
 
-func NewDetKeyEngine(me *User, signingKey GenericKey, logui LogUI) *DetKeyEngine {
+func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, logui libkb.LogUI) *DetKeyEngine {
 	return &DetKeyEngine{me: me, signingKey: signingKey, logui: logui}
 }
 
@@ -41,12 +42,12 @@ func (d *DetKeyEngine) eddsa(seed []byte) error {
 	G.Log.Info("detkey[eddsa] pub:        %x", *pub)
 	G.Log.Info("detkey[eddsa] priv:       %x", *priv)
 
-	var key NaclSigningKeyPair
+	var key libkb.NaclSigningKeyPair
 	copy(key.Public[:], (*pub)[:])
-	key.Private = &NaclSigningKeyPrivate{}
+	key.Private = &libkb.NaclSigningKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(key, serverHalf, NACL_EDDSA_EXPIRE_IN, SIBKEY_TYPE)
+	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, libkb.SIBKEY_TYPE)
 }
 
 func (d *DetKeyEngine) dh(seed []byte) error {
@@ -63,38 +64,38 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 	G.Log.Info("detkey[dh] pub:        %x", *pub)
 	G.Log.Info("detkey[dh] priv:       %x", *priv)
 
-	var key NaclDHKeyPair
+	var key libkb.NaclDHKeyPair
 	copy(key.Public[:], (*pub)[:])
-	key.Private = &NaclDHKeyPrivate{}
+	key.Private = &libkb.NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(key, serverHalf, NACL_DH_EXPIRE_IN, SUBKEY_TYPE)
+	return d.push(key, serverHalf, libkb.NACL_DH_EXPIRE_IN, libkb.SUBKEY_TYPE)
 }
 
 func (d *DetKeyEngine) serverSeed(seed []byte) (newseed, serverHalf []byte, err error) {
-	serverHalf, err = RandBytes(len(seed))
+	serverHalf, err = libkb.RandBytes(len(seed))
 	if err != nil {
 		return
 	}
 	newseed = make([]byte, len(seed))
-	XORBytes(newseed, seed, serverHalf)
+	libkb.XORBytes(newseed, seed, serverHalf)
 	return newseed, serverHalf, nil
 }
 
-func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int, typ string) error {
+func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int, typ string) error {
 	jw, err := d.me.KeyProof(key, d.signingKey, typ, expire, nil)
 	if err != nil {
 		return err
 	}
-	sig, sigid, linkid, err := SignJson(jw, d.signingKey)
+	sig, sigid, linkid, err := libkb.SignJson(jw, d.signingKey)
 
 	// save it to local keyring:
-	_, err = WriteP3SKBToKeyring(key, nil, d.logui)
+	_, err = libkb.WriteP3SKBToKeyring(key, nil, d.logui)
 	if err != nil {
 		return err
 	}
 
-	arg := PostNewKeyArg{
+	arg := libkb.PostNewKeyArg{
 		Sig:        sig,
 		Id:         *sigid,
 		Type:       typ,
@@ -103,11 +104,11 @@ func (d *DetKeyEngine) push(key GenericKey, serverHalf []byte, expire int, typ s
 		PrimaryKey: d.signingKey,
 		ServerHalf: hex.EncodeToString(serverHalf),
 	}
-	if err := PostNewKey(arg); err != nil {
+	if err := libkb.PostNewKey(arg); err != nil {
 		return err
 	}
 
-	d.me.sigChain.Bump(MerkleTriple{linkId: linkid, sigId: sigid})
+	d.me.SigChainBump(linkid, sigid)
 
 	return nil
 }
