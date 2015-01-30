@@ -64,6 +64,11 @@ const (
 	MERKLE_TREE_LEAF = 2
 )
 
+const (
+	SIBKEY_TYPE = "sibkey"
+	SUBKEY_TYPE = "subkey"
+)
+
 // Taken from node-client/src/constants.iced
 const (
 	PROOF_STATE_NONE         = 0

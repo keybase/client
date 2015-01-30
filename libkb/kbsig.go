@@ -262,7 +262,7 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 	}
 
 	kp := KeyToProofJson(newkey)
-	if typ == "sibkey" && newkey.CanSign() {
+	if typ == SIBKEY_TYPE && newkey.CanSign() {
 		rsig_json := jsonw.NewDictionary()
 		rsig_json.SetKey("reverse_key_sig", jsonw.NewString(signingkey.GetKid().String()))
 		var rsig string

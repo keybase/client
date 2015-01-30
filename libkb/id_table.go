@@ -480,7 +480,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 
 func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 func (s *SibkeyChainLink) IsDelegation() KeyStatus { return DLG_SIBKEY }
-func (s *SibkeyChainLink) Type() string            { return "sibkey" }
+func (s *SibkeyChainLink) Type() string            { return SIBKEY_TYPE }
 func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
 
@@ -503,7 +503,7 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 	return
 }
 
-func (s *SubkeyChainLink) Type() string            { return "subkey" }
+func (s *SubkeyChainLink) Type() string            { return SUBKEY_TYPE }
 func (r *SubkeyChainLink) ToDisplayString() string { return r.kid.String() }
 func (s *SubkeyChainLink) IsDelegation() KeyStatus { return DLG_SUBKEY }
 func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
@@ -771,9 +771,9 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret = &RevokeChainLink{base}
-		case "sibkey":
+		case SIBKEY_TYPE:
 			ret, err = ParseSibkeyChainLink(base)
-		case "subkey":
+		case SUBKEY_TYPE:
 			ret, err = ParseSubkeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)

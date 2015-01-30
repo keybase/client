@@ -35,14 +35,6 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	G.Log.Debug("Device ID:     %x", d.deviceID)
 	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
-	/*
-		d.me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
-		if err != nil {
-			fmt.Printf("LoadMe error: %s\n", err)
-			return err
-		}
-	*/
-
 	if err := d.pushRootSigningKey(); err != nil {
 		return err
 	}
@@ -125,7 +117,7 @@ func (d *DeviceEngine) pushDHKey() error {
 		Signer:    d.rootKey,
 		Primary:   d.rootKey,
 		Generator: GenerateNaclDHKeyPair,
-		Type:      "subkey",
+		Type:      SUBKEY_TYPE,
 		Me:        d.me,
 		ExpireIn:  NACL_DH_EXPIRE_IN,
 		Device:    d.device(),
@@ -133,11 +125,4 @@ func (d *DeviceEngine) pushDHKey() error {
 	})
 
 	return gen.Run()
-
-	/*
-		if err := gen.Generate(); err != nil {
-			return err
-		}
-		return gen.Push()
-	*/
 }

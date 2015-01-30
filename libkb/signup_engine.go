@@ -55,7 +55,6 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 	}
 
 	if err := s.registerDevice(arg.DeviceName); err != nil {
-		fmt.Printf("register device error: %s\n", err)
 		return err
 	}
 
