@@ -30,7 +30,6 @@ type ComputedKeyInfo struct {
 	Parent *string
 
 	// For Sibkeys, a pointer to the last-added subkey
-	// revoked
 	Subkey *string
 
 	// Map of SigId -> KID, both as hex strings
@@ -741,7 +740,11 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceId) (key Ge
 
 // GetDeviceForKey gets the device that this key is bound to, if any.
 func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err error) {
-	if didString, found := ckf.cki.KidToDeviceId[key.GetKid().String()]; found {
+	return ckf.getDeviceForHexKid(key.GetKid().String())
+}
+
+func (ckf *ComputedKeyFamily) getDeviceForHexKid(s string) (ret *Device, err error) {
+	if didString, found := ckf.cki.KidToDeviceId[s]; found {
 		ret = ckf.cki.Devices[didString]
 	}
 	return
@@ -750,8 +753,26 @@ func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err 
 // IsDetKey tells if the given Key represents a deterministically-generated
 // Web key
 func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
+
+	// First try to see if the key itself is a detkey
+	kid_s := key.GetKid().String()
+	if ret, err = ckf.isDetKeyHelper(kid_s); ret || err != nil {
+		return
+	}
+
+	// Then see if the parent is a detkey and we're a subkey of it.
+	if info, found := ckf.cki.Infos[kid_s]; found && info.Parent != nil && !info.Sibkey {
+		ret, err = ckf.isDetKeyHelper(*info.Parent)
+	}
+	return
+}
+
+// isDetKeyHelper looks at the given KID (in hex) and sees if it is marked as a
+// deterministic Key (if the IsWeb() flag is on).  It won't look up or down the
+// key graph.
+func (ckf *ComputedKeyFamily) isDetKeyHelper(hexKid string) (ret bool, err error) {
 	var dev *Device
-	if dev, err = ckf.GetDeviceForKey(key); err != nil {
+	if dev, err = ckf.getDeviceForHexKid(hexKid); err != nil {
 		return
 	}
 	if dev == nil {
