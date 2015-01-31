@@ -88,7 +88,7 @@ paths.each do |path|
       enum_name = "#{classname(type["name"])}"
       header << "typedef NS_ENUM (NSInteger, #{enum_name}) {"
       type["symbols"].each do |sym|
-        header << "\t#{enum_name}#{sym.capitalize}, "
+        header << "\t#{enum_name}#{sym.capitalize.camelize},"
       end
       header << "};"
     end
