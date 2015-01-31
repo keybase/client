@@ -152,16 +152,10 @@
 		0065CA2E1A7AE8EA006E1772 /* minimal.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = minimal.css; sourceTree = "<group>"; };
 		0065CA331A7B104F006E1772 /* KBAlert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAlert.h; sourceTree = "<group>"; };
 		0065CA341A7B104F006E1772 /* KBAlert.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAlert.m; sourceTree = "<group>"; };
+		0065CA3B1A7C2E46006E1772 /* assets_sl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_sl.rb; sourceTree = "<group>"; };
+		0065CA3C1A7C2E46006E1772 /* assets_pl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_pl.rb; sourceTree = "<group>"; };
 		00CB678B1A69C9A600B5882A /* KBCatalogView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCatalogView.h; sourceTree = "<group>"; };
 		00CB678C1A69C9A600B5882A /* KBCatalogView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCatalogView.m; sourceTree = "<group>"; };
-		00CB679A1A69CFCF00B5882A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00CB679B1A69CFCF00B5882A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		00CB679C1A69CFCF00B5882A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		00CB679E1A69CFCF00B5882A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		00CB67A01A69CFCF00B5882A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		00CB67A31A69CFCF00B5882A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		00CB67AE1A69CFD000B5882A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00CB67AF1A69CFD000B5882A /* CatalogTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CatalogTests.m; sourceTree = "<group>"; };
 		00CB67C81A6DD50500B5882A /* KBNavigationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNavigationView.h; sourceTree = "<group>"; };
 		00CB67C91A6DD50500B5882A /* KBNavigationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNavigationView.m; sourceTree = "<group>"; };
 		00CB67CC1A6DF1D300B5882A /* KBActivityIndicatorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBActivityIndicatorView.h; sourceTree = "<group>"; };
@@ -277,42 +271,12 @@
 			path = HTML;
 			sourceTree = "<group>";
 		};
-		00CB67981A69CFCF00B5882A /* Catalog */ = {
+		00C84D201A7C3A9D00BA0803 /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
-				00CB679B1A69CFCF00B5882A /* AppDelegate.h */,
-				00CB679C1A69CFCF00B5882A /* AppDelegate.m */,
-				00CB67A01A69CFCF00B5882A /* Images.xcassets */,
-				00CB67A21A69CFCF00B5882A /* MainMenu.xib */,
-				00CB67991A69CFCF00B5882A /* Supporting Files */,
 			);
-			path = Catalog;
-			sourceTree = "<group>";
-		};
-		00CB67991A69CFCF00B5882A /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				00CB679A1A69CFCF00B5882A /* Info.plist */,
-				00CB679E1A69CFCF00B5882A /* main.m */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		00CB67AC1A69CFD000B5882A /* CatalogTests */ = {
-			isa = PBXGroup;
-			children = (
-				00CB67AF1A69CFD000B5882A /* CatalogTests.m */,
-				00CB67AD1A69CFD000B5882A /* Supporting Files */,
-			);
-			path = CatalogTests;
-			sourceTree = "<group>";
-		};
-		00CB67AD1A69CFD000B5882A /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				00CB67AE1A69CFD000B5882A /* Info.plist */,
-			);
-			name = "Supporting Files";
+			name = Mocks;
+			path = Tests/Mocks;
 			sourceTree = "<group>";
 		};
 		00CC43401A3A9E6C006118A9 = {
@@ -321,12 +285,10 @@
 				00F808061A4A5F600038BC63 /* README.md */,
 				004D14961A3BCF1F0083888D /* Podfile */,
 				00CC434B1A3A9E6C006118A9 /* Keybase */,
-				00CB67981A69CFCF00B5882A /* Catalog */,
-				00CB67AC1A69CFD000B5882A /* CatalogTests */,
+				4A1398D8A1B7A96F0CD7F917 /* Tests */,
 				00CC434A1A3A9E6C006118A9 /* Products */,
 				D28313B93FED2BB6CA992160 /* Pods */,
 				468C135BF6D934E5DFBB8513 /* Frameworks */,
-				4A1398D8A1B7A96F0CD7F917 /* Tests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -351,6 +313,8 @@
 				0065CA2C1A7AE8EA006E1772 /* HTML */,
 				004D14971A3BD25A0083888D /* RPC */,
 				00CC43531A3A9E6C006118A9 /* Images.xcassets */,
+				0065CA3B1A7C2E46006E1772 /* assets_sl.rb */,
+				0065CA3C1A7C2E46006E1772 /* assets_pl.rb */,
 				00CC43551A3A9E6C006118A9 /* MainMenu.xib */,
 				00CC434C1A3A9E6C006118A9 /* Supporting Files */,
 			);
@@ -463,6 +427,7 @@
 		4A1398D8A1B7A96F0CD7F917 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				00C84D201A7C3A9D00BA0803 /* Mocks */,
 				D2E3EA46FD4983BE27801D1E /* main.m */,
 				00D2E7C61A41447800319401 /* KBRPClientTest.m */,
 			);
@@ -764,14 +729,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		00CB67A21A69CFCF00B5882A /* MainMenu.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				00CB67A31A69CFCF00B5882A /* Base */,
-			);
-			name = MainMenu.xib;
-			sourceTree = "<group>";
-		};
 		00CC43551A3A9E6C006118A9 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (

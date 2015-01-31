@@ -65,15 +65,15 @@
 @end
 
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
-	KBRTrackDiffTypeNone, 
-	KBRTrackDiffTypeError, 
-	KBRTrackDiffTypeClash, 
-	KBRTrackDiffTypeDeleted, 
-	KBRTrackDiffTypeUpgraded, 
-	KBRTrackDiffTypeNew, 
-	KBRTrackDiffTypeRemote_fail, 
-	KBRTrackDiffTypeRemote_working, 
-	KBRTrackDiffTypeRemote_changed, 
+	KBRTrackDiffTypeNone,
+	KBRTrackDiffTypeError,
+	KBRTrackDiffTypeClash,
+	KBRTrackDiffTypeDeleted,
+	KBRTrackDiffTypeUpgraded,
+	KBRTrackDiffTypeNew,
+	KBRTrackDiffTypeRemoteFail,
+	KBRTrackDiffTypeRemoteWorking,
+	KBRTrackDiffTypeRemoteChanged,
 };
 @interface KBRTrackDiff : KBRObject
 @property KBRTrackDiffType type;
@@ -198,13 +198,13 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRLogLevel) {
-	KBRLogLevelNone, 
-	KBRLogLevelDebug, 
-	KBRLogLevelInfo, 
-	KBRLogLevelNotice, 
-	KBRLogLevelWarn, 
-	KBRLogLevelError, 
-	KBRLogLevelCritical, 
+	KBRLogLevelNone,
+	KBRLogLevelDebug,
+	KBRLogLevelInfo,
+	KBRLogLevelNotice,
+	KBRLogLevelWarn,
+	KBRLogLevelError,
+	KBRLogLevelCritical,
 };
 @interface KBRLogUiRequest : KBRRequest
 - (void)logWithSessionId:(NSInteger )sessionId level:(KBRLogLevel )level text:(KBRText *)text completion:(void (^)(NSError *error))completion;
@@ -259,8 +259,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
-	KBRPromptOverwriteTypeSocial, 
-	KBRPromptOverwriteTypeSite, 
+	KBRPromptOverwriteTypeSocial,
+	KBRPromptOverwriteTypeSite,
 };
 @interface KBRProveUiRequest : KBRRequest
 - (void)promptOverwriteWithSessionId:(NSInteger )sessionId account:(NSString *)account typ:(KBRPromptOverwriteType )typ completion:(void (^)(NSError *error, BOOL  b))completion;
@@ -320,7 +320,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSignupRequest : KBRRequest
 - (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username completion:(void (^)(NSError *error, KBRSignupRes * signupRes))completion;
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error, KBRSignupRes * signupRes))completion;
 
 - (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error))completion;
 

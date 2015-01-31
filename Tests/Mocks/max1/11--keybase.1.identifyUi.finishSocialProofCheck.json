@@ -1,0 +1,44 @@
+[
+  {
+    "lcr" : {
+      "cached" : {
+        "proofStatus" : {
+          "desc" : "",
+          "state" : 1,
+          "status" : 1
+        },
+        "displayMarkup" : "[cached 2015-01-30 14:15:40 PST]",
+        "timestamp" : 1422656140
+      },
+      "diff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofId" : 7,
+      "hint" : {
+        "checkText" : "\n\nyMHQAnicbZFdSBRRFMd3\/Uhc28gMDRGs20MPWc7nnZmF8MUsRFqoQANhnTv37jar\nO7PNruuuplQEYh+apCUWIi2FgfosRWX2BUZRPdgXaRIL4rZIIpKB1ozYU73cy\/mf\n3\/\/POZynznSbw97nKHPa1zJm7C\/HE422YzN3eloA0nEMuFpAPVn\/vKrmI0bQULUw\ncAGReBFhCIcxDxHLMwILWY6IXkjxDGJkzNIyhCytgBJwUg9ZDjMGySGyX9VNzSw8\nKjbV\/\/CN6w2MEA15JIiC5CUCommBw16BRQRTSOIpygJDxNDkADHpgBwFrSXAFCKq\nQqxxNxoGwVgN\/wOHZUW3DOFY0FKaCPJseD1I1bC5qmmJECOk6hpw0SaphFXLTHOU\nQENIU1QJINGgahCPahG8AEWKstSgQSJmJGIZUcGIkyiOIEWhJShzkgIFlue9LCES\nw0oImxUWGA4SiVK8DKUIRGAp86EgAtY2pzQduHjenFP2mZkh1afJ4UaDgNaJ8doM\nm91h25SZZl3L5sje+veG8StZqwWdmwd7H6bldG87PlfUnbvKn60aXRQPNFWn9qaW\nd4uvqPmRe7Gq1I4fswVJd27zKjswlSzKmW6YK8bx6smcn+nZDzL7XE3P7kfhbVi4\n53JbQh\/J2DLddW7X8\/yk80Mt6AxkDT6KtM1Ime2+oYXAXGlsSRgbKK5Tot\/Lhw72\nFehL+bqbgdrUkcTH+LXhio41eTLlvtWf97nm7aGvv0sP+5tfLyfjee+r57dfcDu\/\nNRhxT3vlyonk43f7rrt9QgqJvy4VVu5URv1d\/S+Gy598uXoR1Hb1DvvuVpzuqHPb\n3kzUNLAriZ5ix2J4diF+dM0fLKz5VH\/z\/Bn\/jbLxP52YD5k=\n",
+        "apiUrl" : "https:\/\/www.reddit.com\/r\/KeybaseProofs\/comments\/2clf9c\/my_keybase_proof_redditmaxtaco_keybasemax\/.json",
+        "remoteId" : "t3_2clf9c",
+        "humanUrl" : "https:\/\/www.reddit.com\/r\/KeybaseProofs\/comments\/2clf9c\/my_keybase_proof_redditmaxtaco_keybasemax\/"
+      },
+      "remoteDiff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofStatus" : {
+        "desc" : "",
+        "state" : 1,
+        "status" : 1
+      }
+    },
+    "rp" : {
+      "sigId" : "Binary-095d87d153e6590c2d6c032752d3c43485a1f64e61b99d58f989f6da28b2a832",
+      "value" : "maxtaco",
+      "key" : "reddit",
+      "mtime" : 1407166100,
+      "proofType" : 4,
+      "displayMarkup" : "maxtaco"
+    },
+    "sessionId" : 12
+  }
+]

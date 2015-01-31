@@ -1,0 +1,44 @@
+[
+  {
+    "lcr" : {
+      "cached" : {
+        "proofStatus" : {
+          "desc" : "",
+          "state" : 1,
+          "status" : 1
+        },
+        "displayMarkup" : "[cached 2015-01-30 14:15:40 PST]",
+        "timestamp" : 1422656140
+      },
+      "diff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofId" : 0,
+      "hint" : {
+        "checkText" : "Verifying myself: I am max on Keybase.io. ZnBizHMA8RKSB598TaDtjlPlLKSEu1WuaT59 \/",
+        "apiUrl" : "https:\/\/twitter.com\/maxtaco\/status\/433688676975927296",
+        "remoteId" : "433688676975927296",
+        "humanUrl" : "https:\/\/twitter.com\/maxtaco\/status\/433688676975927296"
+      },
+      "remoteDiff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofStatus" : {
+        "desc" : "",
+        "state" : 1,
+        "status" : 1
+      }
+    },
+    "rp" : {
+      "sigId" : "Binary-667062cc7300f11292079f7c4da0ed8e53e52ca484bb55ae693e7d0aa614322a",
+      "value" : "maxtaco",
+      "key" : "twitter",
+      "mtime" : 1392234388,
+      "proofType" : 2,
+      "displayMarkup" : "maxtaco"
+    },
+    "sessionId" : 12
+  }
+]

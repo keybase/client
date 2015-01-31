@@ -77,19 +77,19 @@
 - (void)addIdentityProofs:(NSArray *)identityProofs targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   MPOrderedDictionary *labels = [MPOrderedDictionary dictionary];
   for (KBRIdentifyRow *row in identityProofs) {
-    if (row.proof.proofType == 2) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Twitter"];
-    else if (row.proof.proofType == 3) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Github"];
-    else if (row.proof.proofType == 1000) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"HTTP"];
-    else if (row.proof.proofType == 1001) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"DNS"];
-    else if (row.proof.proofType == 4) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Reddit"];
-    else if (row.proof.proofType == 5) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"Coinbase"];
-    else if (row.proof.proofType == 6) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@"HN"];
+    if (row.proof.proofType == 2) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeTwitter)];
+    else if (row.proof.proofType == 3) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeGithub)];
+    else if (row.proof.proofType == 1000) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeHTTPS)];
+    else if (row.proof.proofType == 1001) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeDNS)];
+    else if (row.proof.proofType == 4) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeReddit)];
+    else if (row.proof.proofType == 5) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeCoinbase)];
+    else if (row.proof.proofType == 6) [labels addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeHackernews)];
   }
   //GHDebug(@"labels: %@", labels);
   for (id key in labels) {
     NSArray *proofResults = labels[key];
     KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-    [label addProofResults:proofResults header:key targetBlock:targetBlock];
+    [label addProofResults:proofResults proveType:[key integerValue] targetBlock:targetBlock];
     [self addLabels:@[label]];
   }
 

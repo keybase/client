@@ -56,13 +56,6 @@
   }];
 }
 
-- (NSString *)imageNameForType:(NSString *)type {
-  if ([type isEqualToString:@"Twitter"]) return @"Social networks-Outline-Twitter-25";
-  else if ([type isEqualToString:@"Github"]) return @"Social networks-Outline-Github-25";
-  else if ([type isEqualToString:@"Reddit"]) return @"Social networks-Outline-Reddit-25";
-  else return nil;
-}
-
 - (void)updateProofResult:(KBProofResult *)proofResult {
   KBProofLabel *label = [self findLabelForProofResult:proofResult];
   label.proofResult = proofResult;
@@ -106,13 +99,13 @@
   [self setNeedsLayout];
 }
 
-- (void)addProofResults:(NSArray *)proofResults header:(NSString *)header targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
+- (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   _proofResults = proofResults;
-  NSImage *image = [NSImage imageNamed:[self imageNameForType:header]];
+  NSImage *image = [NSImage imageNamed:KBImageNameForProveType(proveType)];
   _imageView.image = image;
 
   if (!_imageView.image) {
-    [_headerLabel setText:header font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+    [_headerLabel setText:KBNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   } else {
     _headerLabel.attributedText = nil;
   }

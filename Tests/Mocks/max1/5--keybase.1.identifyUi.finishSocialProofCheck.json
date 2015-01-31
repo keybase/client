@@ -1,0 +1,44 @@
+[
+  {
+    "lcr" : {
+      "cached" : {
+        "proofStatus" : {
+          "desc" : "",
+          "state" : 1,
+          "status" : 1
+        },
+        "displayMarkup" : "[cached 2015-01-30 14:15:40 PST]",
+        "timestamp" : 1422656140
+      },
+      "diff" : {
+        "type" : 1,
+        "displayMarkup" : "error"
+      },
+      "proofId" : 1,
+      "hint" : {
+        "checkText" : "\n\nowFlkV1IU2EYxzc1rdlC7EIyIXgvTGTEOTs77zlnkXM2KtAsBKPoYpz3vO\/ZTuE2\nzza3ZSsJS6obU4LyIr3Q6Esok4xRoqGUaF2UIlaiLRt9gFDrIvKjzhG76r15eP\/P\n7\/\/neXhazZkGk\/GayWE2rmbNGceHFpChJv3wRSNAfhwD9kZwkqwVWfF5iBpQFV8I\n2AFPZESsxIYxCxHDWjkGMjbCy5BircgqYoYWIWRoCViA1x\/UHVoMEoNkl+LXNO3j\nVrCm6nyF1eliaKfO79V64bUGRoiGLOJ4TpAJh2ias2GZYxDBFBJYitLBIFF9Yh3R\n6DoxCuIWoAkNikT0cdcbHiXkDaP\/4JAo+XVDKBbQlQhB7nWvGyk+rK2qWRqIGlT8\nPmCnNVIKKbqZZgSao6wCb7MAEg0oKnErOsFykKe0ZwEBlTRokRRtg4hwEgOhILIy\ni0VeIIJA8YRHiJVpGSNBlmQMsRVDKLI0hDaZpjhW5CCj7Qv0bep9fmBntDFFjxYZ\nVDw+MRRWCYhfNBZlGYwmQ\/aGDP1YBtOmvH8n9PblrDqMM+6xTyVX2JHpxd4i19va\ng7HSwsGaB9NZ31YSLZm7q3Kl4ltPMzY295Uku0450z8WgptPnIZNk6\/nXw0XfJno\nEKn0aFN+tPx8OPno2buJlu7JnuXZVNtA+1Bq0f31\/SJO3UVPhLzc8tiRwk716PGz\nkc\/355133mw7FJrfV3V1yrS9P9laXP1ncOD5+P7KkeFU4leP0xsxu968lLq6mfwt\nfP3P5IedlTtMly\/1gniiaymRgwumbjaSj53fhTFXLbp++15mepTuc0wsCzOexO+t\nzecO98fMx+iR2f700sqFA+VLjra6eMeZaNnc3J72als0uyLjcSTnBuUqK\/0L\n",
+        "apiUrl" : "https:\/\/gist.github.com\/maxtaco\/8847250\/raw\/fa9ca4b08f316384daa51c3817bf1e59a71753eb\/keybase.md",
+        "remoteId" : "8847250",
+        "humanUrl" : "https:\/\/gist.github.com\/8847250"
+      },
+      "remoteDiff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofStatus" : {
+        "desc" : "",
+        "state" : 1,
+        "status" : 1
+      }
+    },
+    "rp" : {
+      "sigId" : "Binary-9f731fa7c75b64e1c9d70300b4383196a8fb432294a4308f8d7a379376a0b190",
+      "value" : "maxtaco",
+      "key" : "github",
+      "mtime" : 1391702984,
+      "proofType" : 3,
+      "displayMarkup" : "maxtaco"
+    },
+    "sessionId" : 12
+  }
+]

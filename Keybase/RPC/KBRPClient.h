@@ -29,4 +29,8 @@
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
 
 
+#pragma mark Debug
+
+- (void)replayRecordId:(NSString *)recordId range:(NSRange)range;
+
 @end

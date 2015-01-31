@@ -1,0 +1,44 @@
+[
+  {
+    "lcr" : {
+      "cached" : {
+        "proofStatus" : {
+          "desc" : "",
+          "state" : 1,
+          "status" : 1
+        },
+        "displayMarkup" : "[cached 2015-01-30 14:15:40 PST]",
+        "timestamp" : 1422656140
+      },
+      "diff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofId" : 5,
+      "hint" : {
+        "checkText" : "keybase-site-verification=uqzZedLr4yVILSkh6nLfctv5oxrqpp8rFLHsz-0xxy4",
+        "apiUrl" : "dns:\/\/maxk.org",
+        "remoteId" : "dns:\/\/maxk.org",
+        "humanUrl" : "dns:\/\/maxk.org"
+      },
+      "remoteDiff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofStatus" : {
+        "desc" : "",
+        "state" : 1,
+        "status" : 1
+      }
+    },
+    "rp" : {
+      "sigId" : "Binary-baacd979d2ebe325482d2921ea72df72dbf9a31aeaa69f2b14b1eccfed31c72e",
+      "value" : "maxk.org",
+      "key" : "dns",
+      "mtime" : 1397071368,
+      "proofType" : 1001,
+      "displayMarkup" : "maxk.org"
+    },
+    "sessionId" : 12
+  }
+]

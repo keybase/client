@@ -20,16 +20,68 @@
   _proofResult = proofResult;
   self.bordered = NO;
 
-  NSColor *color = [KBLookAndFeel disabledTextColor];
-  if (_proofResult.result) {
-    if (_proofResult.result.proofStatus.status == 1) {
-      color = [KBLookAndFeel selectColor];
-    } else {
-      color = [KBLookAndFeel warnColor];
+  BOOL errored = NO;
+  NSColor *color = [KBLookAndFeel selectColor];
+  NSString *trackInfo = nil;
+
+  if (!_proofResult.result) {
+    // Loading the result
+    color = [KBLookAndFeel disabledTextColor];
+  } else {
+    KBRTrackDiff *diff = proofResult.result.diff;
+    switch (diff.type) {
+      case KBRTrackDiffTypeNone:
+        break;
+      case KBRTrackDiffTypeError:
+      case KBRTrackDiffTypeClash:
+      case KBRTrackDiffTypeDeleted:
+        trackInfo = diff.displayMarkup;
+        color = [KBLookAndFeel errorColor];
+        errored = YES;
+        break;
+
+      case KBRTrackDiffTypeUpgraded:
+      case KBRTrackDiffTypeNew:
+        color = [KBLookAndFeel greenColor];
+        trackInfo = diff.displayMarkup;
+        break;
+
+      case KBRTrackDiffTypeRemoteFail:
+      case KBRTrackDiffTypeRemoteChanged:
+        trackInfo = diff.displayMarkup;
+        color = [KBLookAndFeel warnColor];
+        break;
+
+      case KBRTrackDiffTypeRemoteWorking:
+        trackInfo = diff.displayMarkup;
+        break;
     }
+
+    // What about _proofResult.result.proofStatus.status?
   }
 
-  [self setText:proofResult.proof.value font:[NSFont systemFontOfSize:14] color:color alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+
+  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:[NSFont systemFontOfSize:14]};
+  NSMutableAttributedString *value = [[NSMutableAttributedString alloc] initWithString:proofResult.proof.value];
+  [value setAttributes:attributes range:NSMakeRange(0, value.length)];
+
+  if (errored) {
+    [value addAttribute:NSStrikethroughStyleAttributeName value:@(YES) range:NSMakeRange(0, value.length)];
+  }
+
+  NSMutableAttributedString *result = [[NSMutableAttributedString alloc] init];
+  [result appendAttributedString:value];
+
+  if (trackInfo) {
+    NSMutableAttributedString *info = [[NSMutableAttributedString alloc] initWithString:trackInfo];
+    [info setAttributes:attributes range:NSMakeRange(0, info.length)];
+
+    [result appendAttributedString:[[NSAttributedString alloc] initWithString:@" (" attributes:attributes]];
+    [result appendAttributedString:info];
+    [result appendAttributedString:[[NSAttributedString alloc] initWithString:@")" attributes:attributes]];
+  }
+
+  [self setAttributedTitle:result];
 }
 
 @end

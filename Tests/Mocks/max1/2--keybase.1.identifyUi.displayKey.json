@@ -1,0 +1,13 @@
+[
+  {
+    "fokid" : {
+      "kid" : "Binary-01013ef90b4c4e62121d12a51d18569b57996002c8bdccc9b2740935c9e4a07d20b40a",
+      "pgpFingerprint" : "Binary-8efbe2e4dd56b35273634e8f6052b2ad31a6631c"
+    },
+    "diff" : {
+      "type" : 0,
+      "displayMarkup" : "tracked"
+    },
+    "sessionId" : 12
+  }
+]

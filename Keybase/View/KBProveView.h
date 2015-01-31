@@ -15,6 +15,11 @@ typedef NS_ENUM (NSInteger, KBProveType) {
   KBProveTypeUnknown,
   KBProveTypeTwitter,
   KBProveTypeGithub,
+  KBProveTypeReddit,
+  KBProveTypeCoinbase,
+  KBProveTypeHackernews,
+  KBProveTypeHTTPS,
+  KBProveTypeDNS,
 };
 
 @interface KBProveView : KBView
@@ -23,6 +28,8 @@ typedef NS_ENUM (NSInteger, KBProveType) {
 
 NSString *KBServiceNameForProveType(KBProveType proveType);
 KBProveType KBProveTypeForServiceName(NSString *serviceName);
+NSString *KBImageNameForProveType(KBProveType proveType);
+NSString *KBNameForProveType(KBProveType proveType);
 
 @end
 
@@ -40,6 +47,8 @@ KBProveType KBProveTypeForServiceName(NSString *serviceName);
 @property NSScrollView *scrollView;
 @property KBButton *button;
 @property KBButton *clipboardCopyButton;
+
+@property NSString *proofText;
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText targetBlock:(KBButtonTargetBlock)targetBlock;
 @end
 

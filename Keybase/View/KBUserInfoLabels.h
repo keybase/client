@@ -12,12 +12,13 @@
 #import "KBRPC.h"
 #import "KBProofResult.h"
 #import "KBProofLabel.h"
+#import "KBProveView.h"
 
 @interface KBUserInfoLabels : YONSView
 
 @property (readonly) NSArray *proofResults;
 
-- (void)addProofResults:(NSArray *)proofResults header:(NSString *)header targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
+- (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
 
 - (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock;
 

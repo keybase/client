@@ -1,0 +1,44 @@
+[
+  {
+    "lcr" : {
+      "cached" : {
+        "proofStatus" : {
+          "desc" : "",
+          "state" : 1,
+          "status" : 1
+        },
+        "displayMarkup" : "[cached 2015-01-30 14:15:40 PST]",
+        "timestamp" : 1422656140
+      },
+      "diff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofId" : 4,
+      "hint" : {
+        "checkText" : "keybase-site-verification=S0xnyDtJlarl1KXd6Rb7NXYlUeZ-NdTU8b6Z4jCSOGA",
+        "apiUrl" : "dns:\/\/nutflex.com",
+        "remoteId" : "dns:\/\/nutflex.com",
+        "humanUrl" : "dns:\/\/nutflex.com"
+      },
+      "remoteDiff" : {
+        "type" : 0,
+        "displayMarkup" : "tracked"
+      },
+      "proofStatus" : {
+        "desc" : "",
+        "state" : 1,
+        "status" : 1
+      }
+    },
+    "rp" : {
+      "sigId" : "Binary-4b4c67c83b4995aae5d4a5dde916fb35762551e67e35d4d4f1be99e230923860",
+      "value" : "nutflex.com",
+      "key" : "dns",
+      "mtime" : 1401977613,
+      "proofType" : 1001,
+      "displayMarkup" : "nutflex.com"
+    },
+    "sessionId" : 12
+  }
+]

@@ -20,6 +20,8 @@
 + (NSColor *)warnColor;
 + (NSColor *)errorColor;
 
++ (NSColor *)greenColor;
+
 + (NSFont *)textFont;
 + (NSFont *)boldTextFont;
 + (NSFont *)buttonFont;

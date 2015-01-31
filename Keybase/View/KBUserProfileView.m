@@ -68,9 +68,9 @@
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {    
     KBRIdentity *identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"id"] error:nil];
-    GHDebug(@"Identity: %@", identity);
+    //GHDebug(@"Identity: %@", identity);
     [yself.userInfoView addIdentityProofs:identity.proofs targetBlock:^(KBProofLabel *proofLabel) {
       [yself openURLString:proofLabel.proofResult.result.hint.humanUrl];
     }];
@@ -95,7 +95,6 @@
     KBRLinkCheckResult *lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
     [yself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
     [self setNeedsLayout];
-
     completion(nil, nil);
   }];
 

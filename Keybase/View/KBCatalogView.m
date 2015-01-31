@@ -38,15 +38,19 @@
   if ([path isEqualTo:@"about:blank"]) {
     decisionHandler(WKNavigationActionPolicyAllow);
     return;
+  } else {
+    decisionHandler(WKNavigationActionPolicyCancel);
   }
+
   if ([path isEqualTo:@"/login"]) [self showLogin:YES];
   if ([path isEqualTo:@"/signup"]) [self showSignup:YES];
   if ([path isEqualTo:@"/keygen"]) [self showKeyGen:YES];
+  if ([path isEqualTo:@"/prove-instructions"]) [self showProveInstructions];
   if ([path gh_startsWith:@"/prove/"]) [self showProve:[path lastPathComponent]];
   if ([path isEqualTo:@"/users"]) [self showUsers];
-  if ([path gh_startsWith:@"/tracking/"]) [self showTracking:[path lastPathComponent]];
+  if ([path isEqualTo:@"/track-replay"]) [self showTrackReplay];
+  if ([path gh_startsWith:@"/track/"]) [self showTrack:[path lastPathComponent]];
   if ([path gh_startsWith:@"/prompt/"]) [self prompt:[path lastPathComponent]];
-  decisionHandler(WKNavigationActionPolicyCancel);
 }
 
 - (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
@@ -78,22 +82,22 @@
   [self.navigation pushView:keyGenView animated:animated];
 }
 
+- (void)showProveInstructions {
+  KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
+  KBRText *text = [[KBRText alloc] init];
+  text.data = @"<p>Please <strong>publicly</strong> post the following to the internets, and name it <strong>hello.md</strong></p>";
+  text.markup = 1;
+  NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
+  [instructionsView setInstructions:text proofText:proofText targetBlock:^{
+    [self.navigation popViewAnimated:YES];
+  }];
+  [self.navigation pushView:instructionsView animated:YES];
+}
+
 - (void)showProve:(NSString *)type {
-  if ([type isEqualTo:@"instructions"]) {
-    KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
-    KBRText *text = [[KBRText alloc] init];
-    text.data = @"<p>Please <strong>publicly</strong> post the following to the Mission,\nand name it <strong>hipster.md</strong></p>";
-    text.markup = 1;
-    NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
-    [instructionsView setInstructions:text proofText:proofText targetBlock:^{
-      [self.navigation popViewAnimated:YES];
-    }];
-    [self.navigation pushView:instructionsView animated:YES];
-  } else {
-    KBProveView *view = [[KBProveView alloc] init];
-    view.proveType = KBProveTypeForServiceName(type);
-    [self.navigation pushView:view animated:YES];
-  }
+  KBProveView *view = [[KBProveView alloc] init];
+  view.proveType = KBProveTypeForServiceName(type);
+  [self.navigation pushView:view animated:YES];
 }
 
 - (void)prompt:(NSString *)type {
@@ -118,7 +122,7 @@
   [self.navigation pushView:usersView animated:YES];
 }
 
-- (void)showTracking:(NSString *)username {
+- (void)showTrack:(NSString *)username {
   //@"uid": [@"b7c2eaddcced7727bcb229751d91e800" na_dataFromHexString]
   KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": username} error:nil];
 
@@ -129,6 +133,18 @@
   [window makeKeyAndOrderFront:nil];
 
   [userProfileView setUser:user track:YES];
+}
+
+- (void)showTrackReplay {
+  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": @"max"} error:nil];
+  KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
+  KBWindow *window = [KBWindow windowWithContentView:userProfileView size:CGSizeMake(360, 500) retain:YES];
+  window.navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:window.navigation];
+  [window setLevel:NSStatusWindowLevel];
+  [window makeKeyAndOrderFront:nil];
+
+  [userProfileView setUser:user track:NO];
+  [AppDelegate.client replayRecordId:@"max1" range:NSMakeRange(0, 16)];
 }
 
 @end

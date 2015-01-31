@@ -29,8 +29,12 @@
   return GHNSColorFromRGB(0x999999);
 }
 
-+ (NSColor *)okColor {
++ (NSColor *)greenColor {
   return [NSColor colorWithRed:9.0/255.0 green:179.0/255.0 blue:18.0/255.0 alpha:1.0f];
+}
+
++ (NSColor *)okColor {
+  return [self greenColor];
 }
 
 + (NSColor *)warnColor {

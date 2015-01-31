@@ -65,7 +65,7 @@
 
     CGSize labelSize = [yself.label sizeThatFits:size];
     CGRect labelRect = [layout centerWithSize:labelSize frame:CGRectMake(0, y, size.width, 32) view:yself.label];
-    [layout setFrame:CGRectMake(CGRectGetMaxX(labelRect), y + 6, 18, 18) view:yself.progressView];
+    [layout setFrame:CGRectMake(CGRectGetMaxX(labelRect), y + 7, 18, 18) view:yself.progressView];
     y += 32;
 
     [layout setFrame:CGRectMake(0, y - 1, size.width, 1) view:yself.border];

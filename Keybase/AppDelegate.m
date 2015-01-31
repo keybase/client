@@ -114,9 +114,9 @@
 
 }
 
-//- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
-//  return NO;
-//}
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
+  return YES;
+}
 
 + (KBRPClient *)client {
   return ((AppDelegate *)[NSApp delegate]).client;
