@@ -16,6 +16,7 @@ type GenericKey interface {
 	GetAlgoType() int
 	SignToString([]byte) (string, *SigId, error)
 	Verify(string, []byte) (*SigId, error)
+	VerifyAndExtract(string) ([]byte, *SigId, error)
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error

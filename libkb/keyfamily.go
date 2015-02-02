@@ -323,8 +323,13 @@ func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
 	return
 }
 
-func (kf KeyFamily) GetSigningKey(kid_s string) (ret GenericKey) {
+// FindKey finds any key in any list that matches the given KID.  No attention
+// is paid to whether or not the key is active.
+func (kf KeyFamily) FindKey(kid KID) (ret GenericKey) {
+	kid_s := kid.String()
 	if skr, found := kf.Sibkeys[kid_s]; found {
+		ret = skr.key
+	} else if skr, found = kf.Subkeys[kid_s]; found {
 		ret = skr.key
 	}
 	return

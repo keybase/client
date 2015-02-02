@@ -101,7 +101,7 @@ func (s SigId) ToShortId() string {
 	return depad(base64.URLEncoding.EncodeToString(s[0:SIG_SHORT_ID_BYTES]))
 }
 
-func (k PgpKeyBundle) ReadAndVerify(armored string) (msg []byte, sig_id *SigId,
+func (k PgpKeyBundle) VerifyAndExtract(armored string) (msg []byte, sig_id *SigId,
 	err error) {
 
 	var ps *ParsedSig
@@ -116,7 +116,7 @@ func (k PgpKeyBundle) ReadAndVerify(armored string) (msg []byte, sig_id *SigId,
 
 func (k PgpKeyBundle) Verify(armored string, expected []byte) (sigId *SigId,
 	err error) {
-	res, sig_id, err := k.ReadAndVerify(armored)
+	res, sig_id, err := k.VerifyAndExtract(armored)
 	if err != nil {
 		return
 	}

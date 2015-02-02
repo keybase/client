@@ -107,6 +107,10 @@ func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err erro
 	return
 }
 
+func ImportNaclSigningKeyPairFromKid(k KID) (ret NaclSigningKeyPair, err error) {
+	return ImportNaclSigningKeyPairFromBytes([]byte(k), nil)
+}
+
 func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclKid(KID(pub), byte(KID_NACL_DH), NACL_DH_KEYSIZE); err != nil {
@@ -286,6 +290,11 @@ func (s NaclSig) Verify() (err error) {
 }
 
 func (k NaclDHKeyPair) Verify(armored string, expected []byte) (sigId *SigId, err error) {
+	err = KeyCannotSignError{}
+	return
+}
+
+func (k NaclDHKeyPair) VerifyAndExtract(armored string) (payload []byte, sigId *SigId, err error) {
 	err = KeyCannotSignError{}
 	return
 }
