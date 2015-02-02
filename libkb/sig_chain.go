@@ -400,7 +400,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 	// the id_table.  See LoadUser in user.go and
 	// https://github.com/keybase/go/issues/43
 
-	G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %v %v", uid_s, (err == nil))
+	G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", uid_s, ErrToOk(err))
 
 	return
 }
