@@ -16,6 +16,7 @@ import (
 var G = &libkb.G
 
 type Daemon struct {
+	lockPid *libkb.LockPIDFile
 }
 
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
@@ -90,10 +91,10 @@ func (d *Daemon) pidFilename() string {
 	return filepath.Join(dir, "keybased.pid")
 }
 
-func (d *Daemon) lockPIDFile() error {
-	err := libkb.LockPIDFile(d.pidFilename())
-	if err != nil {
-		return fmt.Errorf("error locking %s:  daemon already running", d.pidFilename())
+func (d *Daemon) lockPIDFile() (err error) {
+	d.lockPid = libkb.NewLockPIDFile(d.pidFilename())
+	if err = d.lockPid.Lock(); err != nil {
+		return fmt.Errorf("error locking %s: daemon already running", d.pidFilename())
 	}
 	return nil
 }
@@ -110,6 +111,7 @@ func (d *Daemon) ListenLoop() (err error) {
 	}
 	G.PushShutdownHook(func() error {
 		G.Log.Info("Closing socket")
+		d.lockPid.Close()
 		return l.Close()
 	})
 	for {
