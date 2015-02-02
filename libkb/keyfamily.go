@@ -273,7 +273,7 @@ func (kf *KeyFamily) findEldest() (err error) {
 		x := kf.eldest.Kid.String()
 		if key, found := kf.Sibkeys[x]; !found {
 			err = KeyFamilyError{fmt.Sprintf("Eldest KID %s disappeared", x)}
-		} else {
+		} else if len(key.PgpFingerprint) > 0 {
 			kf.eldest.Fp, err = PgpFingerprintFromHex(key.PgpFingerprint)
 		}
 	}
