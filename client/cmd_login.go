@@ -12,7 +12,7 @@ import (
 type CmdLogin struct{}
 
 type LoginUIServer struct {
-	eng libkb.LoginUI
+	ui libkb.LoginUI
 }
 
 func NewLoginUIProtocol() rpc2.Protocol {
@@ -20,7 +20,7 @@ func NewLoginUIProtocol() rpc2.Protocol {
 }
 
 func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
-	return u.eng.GetEmailOrUsername()
+	return u.ui.GetEmailOrUsername()
 }
 
 func (v *CmdLogin) RunClient() (err error) {
