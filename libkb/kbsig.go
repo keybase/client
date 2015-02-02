@@ -244,16 +244,13 @@ func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey) (ret *
 	ret = jsonw.NewDictionary()
 
 	if typ == SIBKEY_TYPE && newkey.CanSign() {
-		var rsig string
-		rsig_json := jsonw.NewDictionary()
-		rsig_json.SetKey("reverse_key_sig", jsonw.NewString(signingKey.GetKid().String()))
-		if rsig, _, _, err = SignJson(rsig_json, newkey); err != nil {
+		rsp := ReverseSigPayload{signingKey.GetKid().String()}
+		var rs ReverseSig
+		if rs.Sig, _, _, err = SignJson(jsonw.NewWrapper(rsp), newkey); err != nil {
 			return
 		}
-		rsig_dict := jsonw.NewDictionary()
-		rsig_dict.SetKey("sig", jsonw.NewString(rsig))
-		rsig_dict.SetKey("type", jsonw.NewString("kb"))
-		ret.SetKey("reverse_sig", rsig_dict)
+		rs.Type = "kb"
+		ret.SetKey("reverse_sig", jsonw.NewWrapper(rs))
 	}
 
 	// For subkeys let's say who are parent is.  In this case it's the signing key,
