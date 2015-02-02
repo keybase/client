@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go/libkb"
 	"testing"
 
 	"github.com/keybase/go/libkb"
