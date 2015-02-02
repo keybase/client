@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -18,5 +18,5 @@ func NewRemoteGPGUI(sessionId int, c *rpc2.Client) *RemoteGPGUI {
 }
 
 func (r *RemoteGPGUI) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRes, error) {
-	return keybase_1.SelectKeyRes{}, nil
+	return r.uicli.SelectKey(arg)
 }

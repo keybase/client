@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
+	"io"
 	"os"
 	"strconv"
 	"strings"
+	"text/tabwriter"
+
+	"github.com/keybase/go/libkb"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 type UI struct {
@@ -427,6 +430,10 @@ func (ui *UI) GetLogUI() libkb.LogUI {
 	return G.Log
 }
 
+func (ui *UI) GetGPGUI() keybase_1.GpgUiInterface {
+	return GPGUI{ui}
+}
+
 //============================================================
 
 type ProveUI struct {
@@ -491,6 +498,31 @@ func (p ProveUI) OkToCheck(name string, attempt int) (bool, error) {
 
 func (p ProveUI) DisplayRecheckWarning(txt keybase_1.Text) {
 	p.Render(txt)
+}
+
+//============================================================
+
+type GPGUI struct {
+	parent *UI
+}
+
+func (g GPGUI) SelectKey(arg keybase_1.SelectKeyArg) (res keybase_1.SelectKeyRes, err error) {
+	w := new(tabwriter.Writer)
+	w.Init(g.parent.OutputWriter(), 5, 0, 3, ' ', 0)
+
+	fmt.Fprintf(w, "#\tAlgo\tKey Id\tExpires\tEmail\n")
+	fmt.Fprintf(w, "=\t====\t======\t=======\t=====\n")
+	for i, k := range arg.Keyset.Keys {
+		(fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, k.Algorithm, k.KeyID, k.Expiration, strings.Join(k.Identities, ", ")))
+	}
+	w.Flush()
+
+	ret, err := g.parent.PromptSelection("Choose a key", 1, len(arg.Keyset.Keys)+1)
+	if err != nil {
+		return res, err
+	}
+	res.KeyID = arg.Keyset.Keys[ret].KeyID
+	return res, nil
 }
 
 //============================================================
@@ -739,4 +771,8 @@ func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 func (ui *UI) Output(s string) error {
 	_, err := os.Stdout.Write([]byte(s))
 	return err
+}
+
+func (ui *UI) OutputWriter() io.Writer {
+	return os.Stdout
 }

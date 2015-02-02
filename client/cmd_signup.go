@@ -1,13 +1,14 @@
 package main
 
 import (
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/go/libkb/engine"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"os"
 )
 
 func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
@@ -37,7 +38,6 @@ func (pf PromptFields) ToList() []*Field {
 
 type signupEngine interface {
 	CheckRegistered() error
-	// Run(libkb.SignupEngineRunArg) libkb.SignupJoinEngineRunRes
 	Run(engine.SignupEngineRunArg) error
 	PostInviteRequest(libkb.InviteRequestArg) error
 	Init() error
@@ -88,7 +88,7 @@ func (s *CmdSignupState) RunClient() error {
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
 	panic("need to implement GPGUI for standalone mode")
-	s.engine = engine.NewSignupEngine(G.UI.GetLogUI(), nil)
+	s.engine = engine.NewSignupEngine(G.UI.GetLogUI(), G.UI.GetGPGUI())
 	return s.run()
 }
 
@@ -345,6 +345,7 @@ func (e *RemoteSignupJoinEngine) Init() error {
 
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
+		NewGPGUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err

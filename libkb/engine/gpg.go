@@ -67,5 +67,7 @@ func (g *GPG) Run() error {
 		return err
 	}
 
+	G.Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
+
 	return nil
 }

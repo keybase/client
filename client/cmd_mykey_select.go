@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"os"
-	"strings"
 )
 
 type CmdMykeySelect struct {
@@ -25,7 +26,10 @@ func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (v *CmdMykeySelect) RunClient() error { return v.Run() }
+func (v *CmdMykeySelect) RunClient() error {
+	return v.Run()
+}
+
 func (v *CmdMykeySelect) Run() (err error) {
 
 	v.state.arg.SecretUI = G_UI.GetSecretUI()
