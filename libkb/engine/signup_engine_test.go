@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
+
+	"github.com/keybase/go/libkb"
 )
 
 func fakeUser(t *testing.T, prefix string) (username, email string) {
@@ -18,7 +20,7 @@ func fakeUser(t *testing.T, prefix string) (username, email string) {
 }
 
 func TestSignupEngine(t *testing.T) {
-	tc := setupTest(t, "signup")
+	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI())
 	username, email := fakeUser(t, "se")

@@ -112,7 +112,7 @@ func SetupTestContext(nm string) (tc TestContext, err error) {
 	return
 }
 
-func setupTest(t *testing.T, nm string) (tc TestContext) {
+func SetupTest(t *testing.T, nm string) (tc TestContext) {
 	var err error
 	tc, err = SetupTestContext(nm)
 	if err != nil {
