@@ -101,7 +101,7 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 		Type:       typ,
 		PublicKey:  key,
 		SigningKey: d.signingKey,
-		PrimaryKey: d.signingKey,
+		EldestKey:  d.signingKey,
 		ServerHalf: hex.EncodeToString(serverHalf),
 	}
 	if err := libkb.PostNewKey(arg); err != nil {
