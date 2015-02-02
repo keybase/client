@@ -155,6 +155,87 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	return
 }
 
+type AddGpgKeyArg struct {
+}
+
+type GpgInterface interface {
+	AddGpgKey() error
+}
+
+func GpgProtocol(i GpgInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.gpg",
+		Methods: map[string]rpc2.ServeHook{
+			"addGpgKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]AddGpgKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.AddGpgKey()
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type GpgClient struct {
+	Cli GenericClient
+}
+
+func (c GpgClient) AddGpgKey() (err error) {
+	err = c.Cli.Call("keybase.1.gpg.addGpgKey", []interface{}{AddGpgKeyArg{}}, nil)
+	return
+}
+
+type GPGKey struct {
+	Algorithm  string   `codec:"Algorithm"`
+	KeyID      string   `codec:"KeyID"`
+	Expiration string   `codec:"Expiration"`
+	Identities []string `codec:"Identities"`
+}
+
+type GPGKeySet struct {
+	Keys []GPGKey `codec:"Keys"`
+}
+
+type SelectKeyRes struct {
+	KeyID string `codec:"KeyID"`
+}
+
+type SelectKeyArg struct {
+	SessionId int       `codec:"sessionId"`
+	Keyset    GPGKeySet `codec:"keyset"`
+}
+
+type GpgUiInterface interface {
+	SelectKey(SelectKeyArg) (SelectKeyRes, error)
+}
+
+func GpgUiProtocol(i GpgUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.gpgUi",
+		Methods: map[string]rpc2.ServeHook{
+			"SelectKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SelectKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SelectKey(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type GpgUiClient struct {
+	Cli GenericClient
+}
+
+func (c GpgUiClient) SelectKey(__arg SelectKeyArg) (res SelectKeyRes, err error) {
+	err = c.Cli.Call("keybase.1.gpgUi.SelectKey", []interface{}{__arg}, &res)
+	return
+}
+
 type TrackDiffType int
 
 const (

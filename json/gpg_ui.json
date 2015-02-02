@@ -1,0 +1,136 @@
+{
+  "protocol" : "gpgUi",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
+  }, {
+    "type" : "record",
+    "name" : "GPGKey",
+    "fields" : [ {
+      "name" : "Algorithm",
+      "type" : "string"
+    }, {
+      "name" : "KeyID",
+      "type" : "string"
+    }, {
+      "name" : "Expiration",
+      "type" : "string"
+    }, {
+      "name" : "Identities",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "GPGKeySet",
+    "fields" : [ {
+      "name" : "Keys",
+      "type" : {
+        "type" : "array",
+        "items" : "GPGKey"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SelectKeyRes",
+    "fields" : [ {
+      "name" : "KeyID",
+      "type" : "string"
+    } ]
+  } ],
+  "messages" : {
+    "SelectKey" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "keyset",
+        "type" : "GPGKeySet"
+      } ],
+      "response" : "SelectKeyRes"
+    }
+  }
+}

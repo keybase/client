@@ -1,0 +1,22 @@
+@namespace("keybase.1")
+
+protocol gpgUi {
+	import idl "common.avdl";
+
+	record GPGKey {
+		string Algorithm;
+		string KeyID;
+		string Expiration;
+		array<string> Identities;	
+	}
+
+	record GPGKeySet {
+		array<GPGKey> Keys;
+	}
+
+	record SelectKeyRes {
+		string KeyID;
+	}
+
+	SelectKeyRes SelectKey(int sessionId, GPGKeySet keyset);
+}
