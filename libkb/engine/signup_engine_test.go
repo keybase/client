@@ -33,7 +33,7 @@ func TestSignupEngine(t *testing.T) {
 	s := NewSignupEngine(G.UI.GetLogUI(), nil)
 	username, email := fakeUser(t, "se")
 	passphrase := fakePassphrase(t)
-	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device"}
+	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", true}
 	err := s.Run(arg)
 	if err != nil {
 		t.Fatal(err)

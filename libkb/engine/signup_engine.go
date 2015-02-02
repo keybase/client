@@ -2,7 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"github.com/keybase/go-triplesec"
+
+	triplesec "github.com/keybase/go-triplesec"
 	"github.com/keybase/go/libkb"
 )
 
@@ -52,6 +53,7 @@ type SignupEngineRunArg struct {
 	InviteCode string
 	Passphrase string
 	DeviceName string
+	SkipGPG    bool
 }
 
 // XXX this might need to return more than error...passphraseok, postok, writeok.
@@ -72,8 +74,10 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
-	if err := s.checkGPG(); err != nil {
-		return err
+	if !arg.SkipGPG {
+		if err := s.checkGPG(); err != nil {
+			return err
+		}
 	}
 
 	return nil
