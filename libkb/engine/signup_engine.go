@@ -7,13 +7,6 @@ import (
 	"github.com/keybase/go/libkb"
 )
 
-/*
-type SignupUI interface {
-	libkb.LogUI
-	GPGUI
-}
-*/
-
 type SignupEngine struct {
 	pwsalt     []byte
 	tspkey     libkb.TSPassKey
@@ -56,7 +49,6 @@ type SignupEngineRunArg struct {
 	SkipGPG    bool
 }
 
-// XXX this might need to return more than error...passphraseok, postok, writeok.
 func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 	if err := s.genTSPassKey(arg.Passphrase); err != nil {
 		return err
