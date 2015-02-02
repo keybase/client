@@ -308,7 +308,7 @@ func (s *CmdSignupState) MakePrompter() {
 func (v *CmdSignupState) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
-		GpgKeyring: false,
+		GpgKeyring: true,
 		KbKeyring:  true,
 		API:        true,
 		Terminal:   true,
