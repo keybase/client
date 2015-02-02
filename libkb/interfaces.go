@@ -10,10 +10,11 @@ package libkb
  */
 
 import (
-	"github.com/PuerkitoBio/goquery"
-	"github.com/keybase/go-jsonw"
-	"github.com/keybase/protocol/go"
 	"net/url"
+
+	"github.com/PuerkitoBio/goquery"
+	jsonw "github.com/keybase/go-jsonw"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 type CommandLine interface {
@@ -265,6 +266,7 @@ type UI interface {
 	GetSecretUI() SecretUI
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
+	GetGPGUI() keybase_1.GpgUiInterface
 	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error

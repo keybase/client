@@ -6,6 +6,13 @@ import (
 	"github.com/keybase/go/libkb"
 )
 
+/*
+type SignupUI interface {
+	libkb.LogUI
+	GPGUI
+}
+*/
+
 type SignupEngine struct {
 	pwsalt     []byte
 	tspkey     libkb.TSPassKey
@@ -13,10 +20,11 @@ type SignupEngine struct {
 	me         *libkb.User
 	signingKey libkb.GenericKey
 	logui      libkb.LogUI
+	gpgui      GPGUI
 }
 
-func NewSignupEngine(logui libkb.LogUI) *SignupEngine {
-	return &SignupEngine{logui: logui}
+func NewSignupEngine(logui libkb.LogUI, gpgui GPGUI) *SignupEngine {
+	return &SignupEngine{logui: logui, gpgui: gpgui}
 }
 
 func (s *SignupEngine) Init() error {
@@ -61,6 +69,10 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 	}
 
 	if err := s.genDetKeys(); err != nil {
+		return err
+	}
+
+	if err := s.checkGPG(); err != nil {
 		return err
 	}
 
@@ -115,4 +127,9 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 func (s *SignupEngine) genDetKeys() error {
 	eng := NewDetKeyEngine(s.me, s.signingKey, s.logui)
 	return eng.Run(s.tspkey.EdDSASeed(), s.tspkey.DHSeed())
+}
+
+func (s *SignupEngine) checkGPG() error {
+	eng := NewGPG(s.gpgui)
+	return eng.Run()
 }

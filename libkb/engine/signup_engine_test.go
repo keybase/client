@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/go/libkb"
 	"testing"
 
 	"github.com/keybase/go/libkb"
@@ -30,7 +31,7 @@ func fakePassphrase(t *testing.T) string {
 func TestSignupEngine(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
-	s := NewSignupEngine(G.UI.GetLogUI())
+	s := NewSignupEngine(G.UI.GetLogUI(), nil)
 	username, email := fakeUser(t, "se")
 	passphrase := fakePassphrase(t)
 	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device"}

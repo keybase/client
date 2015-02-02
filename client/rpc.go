@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 

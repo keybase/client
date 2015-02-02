@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 // TestConfig tracks libkb config during a test
@@ -139,6 +141,9 @@ func (n *nullui) GetSecretUI() SecretUI {
 	return nil
 }
 func (n *nullui) GetProveUI() ProveUI {
+	return nil
+}
+func (n *nullui) GetGPGUI() keybase_1.GpgUiInterface {
 	return nil
 }
 func (n *nullui) GetLogUI() LogUI {
