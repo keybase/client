@@ -373,7 +373,10 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 
 	cached = false
 	uid_s := sc.uid.String()
-	G.Log.Debug("+ VerifyWithKey for user %s", uid_s)
+	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s", uid_s)
+	defer func() {
+		G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", uid_s, ErrToOk(err))
+	}()
 
 	if err = sc.VerifyChain(); err != nil {
 		return
@@ -390,7 +393,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 		return
 	}
 
-	if cached, ckf.cki, err = verifySubchain(*ckf.kf, links); err == nil {
+	if cached, ckf.cki, err = verifySubchain(*ckf.kf, links); err != nil {
 		return
 	}
 
@@ -399,8 +402,6 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 	// for revocations.  We'll go it later, after reconstructing
 	// the id_table.  See LoadUser in user.go and
 	// https://github.com/keybase/go/issues/43
-
-	G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", uid_s, ErrToOk(err))
 
 	return
 }
