@@ -177,7 +177,6 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 
 	// check to see if the error is a join engine run result:
 	if e, ok := err.(engine.SignupJoinEngineRunRes); ok {
-		G.Log.Info("got a signup join engine run res error: %+v", e)
 		if e.PassphraseOk {
 			s.fields.passphraseRetry.Disabled = false
 		}
@@ -188,8 +187,6 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		}
 		return retry, err
 	}
-
-	G.Log.Info("not a signup join engine run res error: %q (%T)", err, err)
 
 	return false, err
 }
