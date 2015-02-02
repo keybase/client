@@ -337,7 +337,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *Compute
 			return
 		}
 
-		if err = tcl.VerifyReverseSig(); err != nil {
+		if err = tcl.VerifyReverseSig(&kf); err != nil {
 			return
 		}
 

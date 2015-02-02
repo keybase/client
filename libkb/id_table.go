@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"strings"
@@ -33,7 +34,7 @@ type TypedChainLink interface {
 	GetUID() UID
 	GetDelegatedKid() KID
 	GetParentKid() KID
-	VerifyReverseSig() error
+	VerifyReverseSig(kf *KeyFamily) error
 	GetMerkleSeqno() int
 	GetDevice() *Device
 }
@@ -62,13 +63,13 @@ func (b *GenericChainLink) ToDebugString() string {
 		string(b.parent.uid.String()), b.unpacked.seqno, b.id.String())
 }
 
-func (g *GenericChainLink) GetDelegatedKid() KID    { return nil }
-func (g *GenericChainLink) GetParentKid() KID       { return nil }
-func (g *GenericChainLink) VerifyReverseSig() error { return nil }
-func (g *GenericChainLink) IsRevocationIsh() bool   { return false }
-func (g *GenericChainLink) IsDelegation() KeyStatus { return DLG_NONE }
-func (g *GenericChainLink) IsRevoked() bool         { return g.revoked }
-func (g *GenericChainLink) GetSeqno() Seqno         { return g.unpacked.seqno }
+func (g *GenericChainLink) GetDelegatedKid() KID                 { return nil }
+func (g *GenericChainLink) GetParentKid() KID                    { return nil }
+func (g *GenericChainLink) VerifyReverseSig(kf *KeyFamily) error { return nil }
+func (g *GenericChainLink) IsRevocationIsh() bool                { return false }
+func (g *GenericChainLink) IsDelegation() KeyStatus              { return DLG_NONE }
+func (g *GenericChainLink) IsRevoked() bool                      { return g.revoked }
+func (g *GenericChainLink) GetSeqno() Seqno                      { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPgpFingerprint() *PgpFingerprint {
 	return g.unpacked.pgpFingerprint
 }
@@ -455,25 +456,34 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 // SibkeyChainLink
 //
 
+type ReverseSig struct {
+	Type string `json:"type"`
+	Sig  string `json:"sig"`
+}
+
+type ReverseSigPayload struct {
+	ReverseKeySig string `json:"reverse_key_sig"`
+}
+
 type SibkeyChainLink struct {
 	GenericChainLink
 	kid        KID
 	device     *Device
-	reverseSig string
+	reverseSig ReverseSig
 }
 
 func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) {
 	var kid KID
 	var device *Device
-	var sig string
 
 	if kid, err = GetKID(b.payloadJson.AtPath("body.sibkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Bad sibkey statement @%s: %s", b.ToDebugString(), err.Error())}
 		return
 	}
 
-	if sig, err = b.payloadJson.AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
-		err = ChainLinkError{fmt.Sprintf("No reverse_sig in sibkey delegation @%s: %s", b.ToDebugString(), err.Error())}
+	var rs ReverseSig
+	if err = b.payloadJson.AtPath("body.sibkey.reverse_sig").UnmarshalAgain(&rs); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Bad reverse_sig in sibkey delegation @%s: %s", b.ToDebugString(), err.Error())}
 		return
 	}
 
@@ -483,10 +493,8 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 		}
 	}
 
-	ret = &SibkeyChainLink{b, kid, device, sig}
-
+	ret = &SibkeyChainLink{b, kid, device, rs}
 	return
-
 }
 
 func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
@@ -497,12 +505,25 @@ func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
 
 //-------------------------------------
 
-func (s *SibkeyChainLink) VerifyReverseSig() (err error) {
-	if len(s.reverseSig) == 0 {
-		err = ReverseSigError{fmt.Sprintf("empty sig @%s", s.ToDebugString())}
+func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
+	var key GenericKey
+	if key = kf.FindKey(s.GetDelegatedKid()); key == nil {
+		err = ReverseSigError{fmt.Sprintf("Can't find a key for %s", s.GetDelegatedKid().String())}
 		return
 	}
-	return nil
+	var payload []byte
+	if payload, _, err = key.VerifyAndExtract(s.reverseSig.Sig); err != nil {
+		return
+	}
+	var reverseSigPayload ReverseSigPayload
+	if err = json.Unmarshal(payload, &reverseSigPayload); err != nil {
+		return
+	}
+	if a, b := reverseSigPayload.ReverseKeySig, s.GetKid().String(); a != b {
+		err = ReverseSigError{fmt.Sprintf("KID mismatch in reverse sig: %s != %s", a, b)}
+		return
+	}
+	return
 }
 
 //
