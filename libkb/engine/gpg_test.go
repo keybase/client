@@ -2,12 +2,14 @@ package engine
 
 import (
 	"fmt"
-	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
 	"testing"
+
+	"github.com/keybase/go/libkb"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 func TestGPGRun(t *testing.T) {
+	t.Skip()
 	tc := libkb.SetupTest(t, "gpg")
 	defer tc.Cleanup()
 
