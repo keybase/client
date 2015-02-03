@@ -87,7 +87,7 @@ func (s *CmdSignupState) RunClient() error {
 
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
-	s.engine = engine.NewSignupEngine(G.UI.GetLogUI(), G.UI.GetGPGUI())
+	s.engine = engine.NewSignupEngine(G.UI.GetLogUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI())
 	return s.run()
 }
 
@@ -342,6 +342,7 @@ func (e *RemoteSignupJoinEngine) Init() error {
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewGPGUIProtocol(),
+		NewSecretUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err

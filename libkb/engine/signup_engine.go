@@ -13,12 +13,13 @@ type SignupEngine struct {
 	uid        libkb.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
-	logui      libkb.LogUI
-	gpgui      GPGUI
+	logUI      libkb.LogUI
+	gpgUI      GPGUI
+	secretUI   libkb.SecretUI
 }
 
-func NewSignupEngine(logui libkb.LogUI, gpgui GPGUI) *SignupEngine {
-	return &SignupEngine{logui: logui, gpgui: gpgui}
+func NewSignupEngine(logUI libkb.LogUI, gpgUI GPGUI, secretUI libkb.SecretUI) *SignupEngine {
+	return &SignupEngine{logUI: logUI, gpgUI: gpgUI, secretUI: secretUI}
 }
 
 func (s *SignupEngine) Init() error {
@@ -111,7 +112,7 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 }
 
 func (s *SignupEngine) registerDevice(deviceName string) error {
-	eng := NewDeviceEngine(s.me, s.logui)
+	eng := NewDeviceEngine(s.me, s.logUI)
 	err := eng.Run(deviceName)
 	if err != nil {
 		return err
@@ -121,11 +122,11 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 }
 
 func (s *SignupEngine) genDetKeys() error {
-	eng := NewDetKeyEngine(s.me, s.signingKey, s.logui)
+	eng := NewDetKeyEngine(s.me, s.signingKey, s.logUI)
 	return eng.Run(s.tspkey.EdDSASeed(), s.tspkey.DHSeed())
 }
 
 func (s *SignupEngine) checkGPG() error {
-	eng := NewGPG(s.gpgui)
+	eng := NewGPG(s.gpgUI, s.secretUI)
 	return eng.Run()
 }

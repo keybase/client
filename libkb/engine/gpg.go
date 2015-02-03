@@ -12,11 +12,12 @@ type GPGUI interface {
 }
 
 type GPG struct {
-	ui GPGUI
+	ui       GPGUI
+	secretUI libkb.SecretUI
 }
 
-func NewGPG(ui GPGUI) *GPG {
-	return &GPG{ui: ui}
+func NewGPG(ui GPGUI, sui libkb.SecretUI) *GPG {
+	return &GPG{ui: ui, secretUI: sui}
 }
 
 func (g *GPG) Run() error {
@@ -61,16 +62,20 @@ func (g *GPG) Run() error {
 
 	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()))
 	if err != nil {
-		return err
+		return fmt.Errorf("ImportKey error: %s", err)
 	}
-	if err := bundle.Unlock("Import of key into keybase keyring"); err != nil {
-		return err
+
+	if err := bundle.Unlock("Import of key into keybase keyring", g.secretUI); err != nil {
+		return fmt.Errorf("bundle Unlock error: %s", err)
 	}
+
+	G.Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
 
 	// this seems a little weird to use keygen to post a key, but...
 	arg := &libkb.KeyGenArg{
 		Pregen:       bundle,
 		DoSecretPush: res.DoSecretPush,
+		SecretUI:     g.secretUI,
 	}
 	kg := libkb.NewKeyGen(arg)
 	if _, err := kg.Run(); err != nil {

@@ -2,7 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/protocol/go"
+
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 type KeyUnlocker struct {

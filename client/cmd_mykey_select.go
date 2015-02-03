@@ -90,7 +90,7 @@ func (v *CmdMykeySelect) GetKey() error {
 	if key, err = gpg.ImportKey(true, *keyInfo.GetFingerprint()); err != nil {
 		return err
 	}
-	if err = key.Unlock("Import of key into keybase keyring"); err != nil {
+	if err = key.Unlock("Import of key into keybase keyring", G.UI.GetSecretUI()); err != nil {
 		return err
 	}
 

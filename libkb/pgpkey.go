@@ -5,15 +5,16 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-jsonw"
-	"github.com/keybase/protocol/go"
+	"io"
+	"regexp"
+	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
+	keybase_1 "github.com/keybase/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
 	"golang.org/x/crypto/sha3"
-	"io"
-	"regexp"
-	"strings"
 )
 
 type PgpKeyBundle openpgp.Entity
@@ -357,7 +358,7 @@ func (k PgpKeyBundle) KeyDescription() string {
 	return desc
 }
 
-func (p *PgpKeyBundle) Unlock(reason string) error {
+func (p *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 	if !p.PrivateKey.Encrypted {
 		return nil
 	}
@@ -388,6 +389,7 @@ func (p *PgpKeyBundle) Unlock(reason string) error {
 		Reason:   reason,
 		KeyDesc:  p.VerboseDescription(),
 		Unlocker: unlocker,
+		Ui:       secretUI,
 	}.Run()
 	return err
 }

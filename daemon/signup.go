@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/go/libkb/engine"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -24,6 +24,7 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 	eng := engine.NewSignupEngine(
 		h.getLogUI(sessionID),
 		NewRemoteGPGUI(sessionID, h.getRpcClient()),
+		h.getSecretUI(sessionID),
 	)
 
 	err = eng.Run(engine.SignupEngineRunArg{
