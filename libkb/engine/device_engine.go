@@ -45,6 +45,8 @@ func (d *DeviceEngine) Run(deviceName string) (err error) {
 	if wr := G.Env.GetConfigWriter(); wr != nil {
 		if wr.SetDeviceId(&d.deviceID); err != nil {
 			return
+		} else if err = wr.SetPerDeviceKID(d.EldestKey().GetKid()); err != nil {
+			return
 		} else if err = wr.Write(); err != nil {
 			return
 		} else {
