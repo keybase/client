@@ -191,7 +191,8 @@ func CheckPosted(proofId string) (found bool, status int, err error) {
 
 func PostDeviceLKS(deviceID, deviceType string, serverHalf []byte) error {
 	_, err := G.API.Post(ApiArg{
-		Endpoint: "device/update",
+		Endpoint:    "device/update",
+		NeedSession: true,
 		Args: HttpArgs{
 			"device_id":       S{Val: deviceID},
 			"type":            S{Val: deviceType},
