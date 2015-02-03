@@ -432,13 +432,13 @@ func (u *User) StoreTopLevel() error {
 	return err
 }
 
-func (u *User) GetSyncedSecretKey() (ret *P3SKB, err error) {
+func (u *User) GetSyncedSecretKey(localOnly bool) (ret *P3SKB, err error) {
 	G.Log.Debug("+ User.GetSyncedSecretKey()")
 	defer func() {
 		G.Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
-	if err = G.SecretSyncer.Load(u.id); err != nil {
+	if err = G.SecretSyncer.Load(u.id, localOnly); err != nil {
 		return
 	}
 

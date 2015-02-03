@@ -37,7 +37,7 @@ type SecretSyncer struct {
 
 // Load loads a set of secret keys from storage and then checks if there are
 // updates on the server.  If there are, it will sync and store them.
-func (ss *SecretSyncer) Load(uid UID) (err error) {
+func (ss *SecretSyncer) Load(uid UID, localOnly bool) (err error) {
 
 	ss.Lock()
 	defer ss.Unlock()
@@ -56,6 +56,9 @@ func (ss *SecretSyncer) Load(uid UID) (err error) {
 	ss.Uid = &uid
 
 	if err = ss.loadFromStorage(); err != nil {
+		return
+	}
+	if localOnly {
 		return
 	}
 	if err = ss.syncFromServer(); err != nil {
