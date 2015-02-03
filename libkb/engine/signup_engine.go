@@ -116,7 +116,7 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 	if err != nil {
 		return err
 	}
-	s.signingKey = eng.RootSigningKey()
+	s.signingKey = eng.EldestKey()
 	return nil
 }
 

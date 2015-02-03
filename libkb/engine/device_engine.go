@@ -9,7 +9,7 @@ type DeviceEngine struct {
 	deviceID    libkb.DeviceId
 	localEncKey []byte
 	me          *libkb.User
-	rootKey     libkb.NaclKeyPair
+	eldestKey   libkb.NaclKeyPair
 	logui       libkb.LogUI
 }
 
@@ -40,7 +40,7 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	G.Log.Debug("Device ID:     %x", d.deviceID)
 	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
-	if err := d.pushRootSigningKey(); err != nil {
+	if err := d.pushEldestKey(); err != nil {
 		return err
 	}
 	if err := d.pushDHKey(); err != nil {
@@ -49,11 +49,11 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	return nil
 }
 
-func (d *DeviceEngine) RootSigningKey() libkb.GenericKey {
-	return d.rootKey
+func (d *DeviceEngine) EldestKey() libkb.GenericKey {
+	return d.eldestKey
 }
 
-func (d *DeviceEngine) pushRootSigningKey() error {
+func (d *DeviceEngine) pushEldestKey() error {
 	eddsaPair, err := libkb.GenerateNaclSigningKeyPair()
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (d *DeviceEngine) pushRootSigningKey() error {
 		return err
 	}
 
-	d.rootKey = eddsaPair
+	d.eldestKey = eddsaPair
 	d.me.SigChainBump(linkid, sigid)
 
 	return nil
@@ -119,8 +119,8 @@ func (d *DeviceEngine) device() *libkb.Device {
 
 func (d *DeviceEngine) pushDHKey() error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
-		Signer:    d.rootKey,
-		Primary:   d.rootKey,
+		Signer:    d.eldestKey,
+		Primary:   d.eldestKey,
 		Generator: libkb.GenerateNaclDHKeyPair,
 		Type:      libkb.SUBKEY_TYPE,
 		Me:        d.me,
