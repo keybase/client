@@ -119,7 +119,7 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 
 func (s *SignupEngine) registerDevice(deviceName string) error {
 	eng := NewDeviceEngine(s.me, s.logUI)
-	err := eng.Run(deviceName)
+	err := eng.Run(deviceName, s.tspkey.LksClientHalf())
 	if err != nil {
 		return err
 	}

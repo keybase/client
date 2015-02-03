@@ -1,16 +1,21 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/go/libkb"
 )
 
+// XXX this probably shouldn't be a constant...
+const deviceType = "desktop"
+
 type DeviceEngine struct {
-	deviceName  string
-	deviceID    libkb.DeviceId
-	localEncKey []byte
-	me          *libkb.User
-	eldestKey   libkb.NaclKeyPair
-	logui       libkb.LogUI
+	deviceName    string
+	deviceID      libkb.DeviceId
+	lksClientHalf []byte
+	me            *libkb.User
+	eldestKey     libkb.NaclKeyPair
+	logui         libkb.LogUI
 }
 
 func NewDeviceEngine(me *libkb.User, logui libkb.LogUI) *DeviceEngine {
@@ -21,8 +26,9 @@ func (d *DeviceEngine) Init() error {
 	return nil
 }
 
-func (d *DeviceEngine) Run(deviceName string) (err error) {
+func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) (err error) {
 	d.deviceName = deviceName
+	d.lksClientHalf = lksClientHalf
 	if d.deviceID, err = libkb.NewDeviceId(); err != nil {
 		return
 	}
@@ -55,10 +61,14 @@ func (d *DeviceEngine) Run(deviceName string) (err error) {
 	}
 
 	if err = d.pushDHKey(); err != nil {
-		return
+		return err
 	}
 
-	return
+	if err = d.pushLocalKeySec(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *DeviceEngine) EldestKey() libkb.GenericKey {
@@ -96,12 +106,31 @@ func (d *DeviceEngine) pushDHKey() error {
 	return gen.Run()
 }
 
+func (d *DeviceEngine) pushLocalKeySec() error {
+	if len(d.lksClientHalf) == 0 {
+		return fmt.Errorf("no local key security client half key set")
+	}
+
+	// 1. generate random secret key
+	localEncKey, err := libkb.RandBytes(len(d.lksClientHalf))
+	if err != nil {
+		return err
+	}
+
+	// 2. xor localEncKey with LksClientHalf bytes from tspasskey
+	serverHalf := make([]byte, len(d.lksClientHalf))
+	libkb.XORBytes(serverHalf, localEncKey, d.lksClientHalf)
+
+	// 3. send it to api server
+	return libkb.PostDeviceLKS(d.deviceID.String(), deviceType, serverHalf)
+}
+
 func (d *DeviceEngine) device() *libkb.Device {
 	s := 1
 	return &libkb.Device{
 		Id:          d.deviceID.String(),
 		Description: &d.deviceName,
-		Type:        "desktop", // XXX always desktop?
+		Type:        deviceType,
 		Status:      &s,
 	}
 }

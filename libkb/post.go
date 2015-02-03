@@ -1,6 +1,8 @@
 package libkb
 
 import (
+	"encoding/hex"
+
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -185,4 +187,16 @@ func CheckPosted(proofId string) (found bool, status int, err error) {
 	res.Body.AtKey("proof_ok").GetBoolVoid(&found, &err)
 	res.Body.AtPath("proof_res.status").GetIntVoid(&status, &err)
 	return
+}
+
+func PostDeviceLKS(deviceID, deviceType string, serverHalf []byte) error {
+	_, err := G.API.Post(ApiArg{
+		Endpoint: "device/update",
+		Args: HttpArgs{
+			"device_id":       S{Val: deviceID},
+			"type":            S{Val: deviceType},
+			"lks_server_half": S{Val: hex.EncodeToString(serverHalf)},
+		},
+	})
+	return err
 }
