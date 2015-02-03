@@ -31,6 +31,6 @@
 
 #pragma mark Debug
 
-- (void)replayRecordId:(NSString *)recordId range:(NSRange)range;
+- (void)replayRecordId:(NSString *)recordId;
 
 @end

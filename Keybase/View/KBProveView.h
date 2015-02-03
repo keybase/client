@@ -30,6 +30,7 @@ NSString *KBServiceNameForProveType(KBProveType proveType);
 KBProveType KBProveTypeForServiceName(NSString *serviceName);
 NSString *KBImageNameForProveType(KBProveType proveType);
 NSString *KBNameForProveType(KBProveType proveType);
+KBProveType KBProveTypeFromAPI(NSInteger proofType);
 
 @end
 

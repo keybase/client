@@ -35,7 +35,8 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     //CGFloat x = (size.width/2.0) - 25;
-    CGFloat x = 100;
+    CGFloat col1 = 80;
+    CGFloat x = col1;
     CGFloat y = 0;
     CGFloat lineHeight = 18;
 
@@ -49,7 +50,7 @@
     }
 
     for (NSView *view in yself.labels) {
-      y += [layout setFrame:CGRectMake(x, y, size.width - x - 40, lineHeight) view:view options:YOLayoutOptionsSizeToFitHorizontal|YOLayoutOptionsConstrainWidth].size.height;
+      y += [layout setFrame:CGRectMake(col1, y, size.width - x - 5, lineHeight) view:view options:YOLayoutOptionsSizeToFitHorizontal|YOLayoutOptionsConstrainWidth].size.height;
     }
 
     return CGSizeMake(size.width, y);
@@ -57,16 +58,15 @@
 }
 
 - (void)updateProofResult:(KBProofResult *)proofResult {
-  KBProofLabel *label = [self findLabelForProofResult:proofResult];
+  KBProofLabel *label = [self findLabelForSigId:proofResult.proof.sigId];
   label.proofResult = proofResult;
   [self setNeedsLayout];
 }
 
-- (KBProofLabel *)findLabelForProofResult:(KBProofResult *)proofResult {
+- (KBProofLabel *)findLabelForSigId:(KBRSIGID *)sigId {
   for (id label in _labels) {
     if ([label respondsToSelector:@selector(proofResult)]) {
-      if ([[label proofResult].proof.sigId isEqual:proofResult.proof.sigId]) return label;
-      //if (label.proofResult.proof.proofType == proofResult.proof.proofType && [label.proofResult.proof.value isEqual:proofResult.proof.value]) return label;
+      if ([[label proofResult].proof.sigId isEqual:sigId]) return label;
     }
   }
   return nil;
@@ -101,14 +101,14 @@
 
 - (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   _proofResults = proofResults;
-  NSImage *image = [NSImage imageNamed:KBImageNameForProveType(proveType)];
-  _imageView.image = image;
+  //NSImage *image = [NSImage imageNamed:KBImageNameForProveType(proveType)];
+  //_imageView.image = image;
 
-  if (!_imageView.image) {
-    [_headerLabel setText:KBNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  } else {
-    _headerLabel.attributedText = nil;
-  }
+  //if (!_imageView.image) {
+  [_headerLabel setText:KBNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  //} else {
+  //  _headerLabel.attributedText = nil;
+  //}
 
   if ([proofResults count] == 0) {
     //[self addLabelWithText:@"Edit" font:[NSFont systemFontOfSize:14] tag:-1 targetBlock:^(id sender) { targetBlock(blockSelf, nil); }];

@@ -24,6 +24,8 @@
 @property KBUserInfoView *userInfoView;
 @property KBTrackView *trackView;
 @property KBRUser *user;
+
+@property KBView *contentView;
 @end
 
 @implementation KBUserProfileView
@@ -34,13 +36,13 @@
   _headerView = [[KBUserHeaderView alloc] init];
   _userInfoView = [[KBUserInfoView alloc] init];
   _trackView = [[KBTrackView alloc] init];
-  KBView *view = [[KBView alloc] init];
-  [view addSubview:_headerView];
-  [view addSubview:_userInfoView];
-  [view addSubview:_trackView];
+  _contentView = [[KBView alloc] init];
+  [_contentView addSubview:_headerView];
+  [_contentView addSubview:_userInfoView];
+  [_contentView addSubview:_trackView];
 
   YOSelf yself = self;
-  view.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+  _contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
     //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
     //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
@@ -53,11 +55,11 @@
   _scrollView = [[NSScrollView alloc] init];
   [_scrollView setHasVerticalScroller:YES];
   [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+  [_scrollView setDocumentView:_contentView];
   [self addSubview:_scrollView];
 
-  [_scrollView setDocumentView:view];
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, CGFLOAT_MAX) view:view];
+    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, CGFLOAT_MAX) view:yself.contentView];
     [layout setSize:size view:yself.scrollView options:0];
     return size;
   }];
@@ -65,17 +67,29 @@
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.displayKey" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRFOKID *fokid = [MTLJSONAdapter modelOfClass:KBRFOKID.class fromJSONDictionary:params[0][@"fokid"] error:nil];
     [yself.userInfoView addKey:fokid];
+    [yself setNeedsLayout];
+
     completion(nil, nil);
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {    
     KBRIdentity *identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"id"] error:nil];
     //GHDebug(@"Identity: %@", identity);
-    [yself.userInfoView addIdentityProofs:identity.proofs targetBlock:^(KBProofLabel *proofLabel) {
-      [yself openURLString:proofLabel.proofResult.result.hint.humanUrl];
+    [yself.userInfoView addIdentity:identity targetBlock:^(KBProofLabel *proofLabel) {
+      if (proofLabel.proofResult.result.hint.humanUrl) [yself openURLString:proofLabel.proofResult.result.hint.humanUrl];
     }];
     [yself setNeedsLayout];
+    [yself expandWindow];
 
+    completion(nil, nil);
+  }];
+
+  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRCryptocurrency *cryptocurrency = [MTLJSONAdapter modelOfClass:KBRCryptocurrency.class fromJSONDictionary:params[0][@"c"] error:nil];
+    [yself.userInfoView addCryptocurrency:cryptocurrency];
+    [yself setNeedsLayout];
+
+    [yself expandWindow];
     completion(nil, nil);
   }];
 
@@ -95,13 +109,6 @@
     KBRLinkCheckResult *lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
     [yself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
     [self setNeedsLayout];
-    completion(nil, nil);
-  }];
-
-
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRCryptocurrency *cryptocurrency = [MTLJSONAdapter modelOfClass:KBRCryptocurrency.class fromJSONDictionary:params[0][@"c"] error:nil];
-    [yself.userInfoView addCryptocurrency:cryptocurrency];
     completion(nil, nil);
   }];
 
@@ -125,6 +132,16 @@
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.reportLastTrack" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
+}
+
+- (void)expandWindow {
+  [self layoutView];
+  CGSize size = CGSizeMake(_contentView.frame.size.width, _contentView.frame.size.height + 40);
+  // Only make it bigger (not smaller)
+  if (size.height > self.window.frame.size.height) {
+    CGRect frame = CGRectMake(self.window.frame.origin.x, self.window.frame.origin.y, size.width, size.height);
+    [self.window setFrame:frame display:YES];
+  }
 }
 
 - (void)openURLString:(NSString *)URLString {

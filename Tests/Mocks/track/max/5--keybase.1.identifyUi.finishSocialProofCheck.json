@@ -11,8 +11,8 @@
         "timestamp" : 1422656140
       },
       "diff" : {
-        "type" : 1,
-        "displayMarkup" : "error"
+        "type" : 3,
+        "displayMarkup" : "deleted"
       },
       "proofId" : 1,
       "hint" : {

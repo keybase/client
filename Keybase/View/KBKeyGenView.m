@@ -44,7 +44,7 @@
 
   _selectButton = [KBButton buttonWithText:@"I have a key already, let me select it." style:KBButtonStyleLink];
   _selectButton.targetBlock = ^{
-    KBTODO(gself);
+    KBTODO();
   };
   [self addSubview:_selectButton];
 
@@ -70,15 +70,14 @@
 }
 
 - (void)_generateKey:(NSString *)password {
-  GHWeakSelf gself = self;
-
   KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
   uids.useDefault = YES;
 
-  [self setProgressIndicatorEnabled:YES];
+  //[self setProgressIndicatorEnabled:YES];
+  [KBView setInProgress:YES view:self];
   KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
   [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:YES passphrase:password completion:^(NSError *error) {
-    [gself setProgressIndicatorEnabled:NO];
+    [KBView setInProgress:NO view:self];
     if (error) {
       [self setError:error];
       return;

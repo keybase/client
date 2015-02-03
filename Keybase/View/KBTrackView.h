@@ -11,7 +11,7 @@
 #import "KBUIDefines.h"
 #import "KBRPC.h"
 
-typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response);
+typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response); // Response nil on cancel
 
 @interface KBTrackView : YONSView
 

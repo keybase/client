@@ -1,0 +1,40 @@
+[
+  {
+    "id" : {
+      "deleted" : [
+
+      ],
+      "key" : {
+        "KID" : null,
+        "pgpFingerprint" : null
+      },
+      "proofs" : [
+        {
+          "proof" : {
+            "sigId" : "Binary-5f16bbb199c3a24149dd4c96c757cd79c4daa1819a728079d1bb3f1ae4171620",
+            "value" : "gbrltest",
+            "key" : "twitter",
+            "mtime" : 1422589300,
+            "proofType" : 2,
+            "displayMarkup" : "gbrltest"
+          },
+          "rowId" : 1
+        },
+        {
+          "proof" : {
+            "sigId" : "Binary-ae9da0664c2262287825f96cb82aa0acb7fa97f10e6f0ab1b79c0d833500b395",
+            "value" : "gbrltest",
+            "key" : "github",
+            "mtime" : 1422590182,
+            "proofType" : 3,
+            "displayMarkup" : "gbrltest"
+          },
+          "rowId" : 0
+        }
+      ],
+      "whenLastTracked" : 0,
+      "cryptocurrency" : null
+    },
+    "sessionId" : 7
+  }
+]

@@ -20,7 +20,7 @@
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency;
 
-- (void)addIdentityProofs:(NSArray *)identityProofs targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
+- (void)addIdentity:(KBRIdentity *)identity targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
 
 - (void)clear;
 

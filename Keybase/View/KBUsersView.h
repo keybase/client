@@ -9,8 +9,11 @@
 #import <Foundation/Foundation.h>
 
 #import "KBUIDefines.h"
+#import "KBTableView.h"
 
-@interface KBUsersView : KBView <NSTableViewDelegate, NSTableViewDataSource>
+@interface KBUsersView : KBTableView
+
+@property KBNavigationView *navigation;
 
 - (void)loadUsernames:(NSArray *)usernames;
 

@@ -5,18 +5,14 @@
       "deleted" : [
 
       ],
-      "numProofFailures" : 0,
+      "numProofFailures" : 1,
       "warnings" : [
 
       ],
-      "numProofSuccesses" : 10,
+      "numProofSuccesses" : 1,
       "numTrackFailures" : 0,
-      "trackUsed" : {
-        "time" : 1422402391,
-        "isRemote" : true
-      },
       "numDeleted" : 0
     },
-    "sessionId" : 12
+    "sessionId" : 7
   }
 ]

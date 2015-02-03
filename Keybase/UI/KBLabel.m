@@ -83,7 +83,7 @@
 + (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color {
   NSDictionary *style = @{@"$default": @{NSFontAttributeName: font},
                           @"p": @{NSFontAttributeName: font},
-                          @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:16]},
+                          @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
                           @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
                           @"color": @{},
                           };
@@ -117,9 +117,9 @@
 }
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString {
-  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
   if (size.height == 0) size.height = CGFLOAT_MAX;
   if (size.width == 0) size.width = CGFLOAT_MAX;
+  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
   NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:size];
   NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
   [layoutManager addTextContainer:textContainer];

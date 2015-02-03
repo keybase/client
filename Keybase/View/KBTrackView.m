@@ -10,7 +10,8 @@
 
 @interface KBTrackView ()
 @property KBLabel *label;
-@property NSPopUpButton *trackOptionsView;
+//@property NSPopUpButton *trackOptionsView;
+@property KBButton *skipButton;
 @property KBButton *button;
 
 @property KBRUser *user;
@@ -28,35 +29,59 @@
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
 
-  _trackOptionsView = [[NSPopUpButton alloc] init];
-  _trackOptionsView.font = [NSFont systemFontOfSize:14];
-  _trackOptionsView.focusRingType = NSFocusRingTypeNone;
-  [self addSubview:_trackOptionsView];
+//  _trackOptionsView = [[NSPopUpButton alloc] init];
+//  _trackOptionsView.font = [NSFont systemFontOfSize:14];
+//  _trackOptionsView.focusRingType = NSFocusRingTypeNone;
+//  [self addSubview:_trackOptionsView];
 
   GHWeakSelf gself = self;
-  _button = [KBButton buttonWithText:@"Done" style:KBButtonStylePrimary];
+  _button = [KBButton buttonWithText:@"Track" style:KBButtonStylePrimary];
+//  _button.targetBlock = ^{
+//    gself.trackOptions = nil;
+//    if (gself.trackOptionsView.indexOfSelectedItem == 0) {
+//      // Track (remote)
+//      gself.trackOptions = [[KBRFinishAndPromptRes alloc] init];
+//      gself.trackOptions.trackRemote = YES;
+//      gself.trackResponse(gself.trackOptions);
+//    } else if (gself.trackOptionsView.indexOfSelectedItem == 1) {
+//      // Nothing (don't track)
+//      gself.trackResponse(nil);
+//    }
+//  };
+  _button.hidden = YES;
   _button.targetBlock = ^{
-    gself.trackOptions = nil;
-    if (gself.trackOptionsView.indexOfSelectedItem == 0) {
-      // Track remote
-      gself.trackOptions = [[KBRFinishAndPromptRes alloc] init];
-      gself.trackOptions.trackRemote = YES;
-      gself.trackResponse(gself.trackOptions);
-    } else if (gself.trackOptionsView.indexOfSelectedItem == 1) {
-      // Nothing (don't track)
-      gself.trackResponse(nil);
-    }
+    gself.trackOptions = [[KBRFinishAndPromptRes alloc] init];
+    gself.trackOptions.trackRemote = YES;
+    gself.trackResponse(gself.trackOptions);
   };
   [self addSubview:_button];
+
+  _skipButton = [KBButton buttonWithText:@"No, Skip" style:KBButtonStyleLink];
+  _skipButton.hidden = YES;
+  _skipButton.targetBlock = ^{
+    gself.trackResponse(nil);
+  };
+  [self addSubview:_skipButton];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 40) view:yself.label].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.label].size.height + 10;
 
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, 24) view:yself.trackOptionsView].size.height + 10;
+//    if (!yself.trackOptionsView.hidden) {
+//      y += [layout setFrame:CGRectMake(40, y, size.width - 80, 24) view:yself.trackOptionsView].size.height + 10;
+//    }
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, 100, 0) view:yself.button].size.height + 10;
+    if (!yself.button.hidden) {
+      [layout sizeToFitVerticalInFrame:CGRectMake(40, y, 200, 0) view:yself.button];
+    }
+
+    if (!yself.skipButton.hidden) {
+      [layout sizeToFitVerticalInFrame:CGRectMake(260, y + 12, 200, 0) view:yself.skipButton];
+    }
+
+    y += 60;
+
     return CGSizeMake(size.width, y);
   }];
 
@@ -64,27 +89,27 @@
 }
 
 - (void)clear {
-  [_trackOptionsView removeAllItems];
+  //[_trackOptionsView removeAllItems];
   _trackResponse = nil;
 }
 
-- (void)enableTracking:(BOOL)update {
+- (void)enableTracking:(NSString *)label color:(NSColor *)color update:(BOOL)update {
+  [_label setMarkup:label font:[NSFont systemFontOfSize:14] color:color alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   if (update) {
-    [_label setMarkup:@"<strong>How would you like to proceed?</strong>" font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-
-    _trackOptionsView.hidden = NO;
-    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"retrack with new info %@", _user.username)];
-    [_trackOptionsView addItemWithTitle:@"no, don't update"];
-    [_trackOptionsView selectItemAtIndex:0];
+//    _trackOptionsView.hidden = NO;
+//    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"retrack %@ with updated info", _user.username)];
+//    [_trackOptionsView addItemWithTitle:@"no, don't update"];
+//    [_trackOptionsView selectItemAtIndex:0];
+    [_button setText:@"Yes, Update" style:KBButtonStylePrimary];
   } else {
-    [_label setMarkup:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong> <em>This is recommended.</em>", _user.username) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-
-    _trackOptionsView.hidden = NO;
-    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"yes, track %@", _user.username)];
-    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"no, don't track %@", _user.username)];
-    [_trackOptionsView selectItemAtIndex:0];
+//    _trackOptionsView.hidden = NO;
+//    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"yes, track %@", _user.username)];
+//    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"no, don't track %@", _user.username)];
+//    [_trackOptionsView selectItemAtIndex:0];
+    [_button setText:@"Yes, Track" style:KBButtonStylePrimary];
   }
 
+  _skipButton.hidden = NO;
   _button.hidden = NO;
 }
 
@@ -92,21 +117,28 @@
   _user = user;
   _trackResponse = trackResponse;
 
-  [_trackOptionsView removeAllItems];
-  _trackOptionsView.hidden = YES;
+//  [_trackOptionsView removeAllItems];
+//  _trackOptionsView.hidden = YES;
   _button.hidden = YES;
+  _skipButton.hidden = YES;
 
   _trackPrompt = NO;
+
+  /*
+   Track failure is if there was an irreconcilable error between the new state and the state that was previously tracked.
+   Proof failure is if there was a remote twitter proof (or githb proof) that failed to verify (network or server failure).
+   */
 
   BOOL tracked = !!identifyOutcome.trackUsed;
   //BOOL isRemote = tracked ? identifyOutcome.trackUsed.isRemote : NO;
 
   if (identifyOutcome.numTrackFailures > 0 || identifyOutcome.numDeleted > 0) {
     // Your tracking statement of _ is broken; fix it?
-    [_label setMarkup:@"Oops, your tracking statement is broken." font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [self enableTracking:@"Oops, your tracking statement is broken. Fix it?" color:[KBLookAndFeel warnColor] update:YES];
+    _trackPrompt = YES;
   } else if (identifyOutcome.numTrackChanges > 0) {
     // Your tracking statement of _ is still valid; update it to reflect new proofs?"
-    [self enableTracking:YES];
+    [self enableTracking:@"<strong>How would you like to proceed?</strong>" color:[KBLookAndFeel textColor] update:YES];
     _trackPrompt = YES;
   } else if (identifyOutcome.numProofSuccesses == 0) {
     // We found an account for _, but they haven't proven their identity.
@@ -119,7 +151,7 @@
     // Some proofs failed
     [_label setMarkup:@"Oops, some proofs failed." font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else {
-    [self enableTracking:NO];
+    [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong> <em>This is recommended.</em>", _user.username) color:[KBLookAndFeel textColor] update:NO];
     _trackPrompt = YES;
   }
 
@@ -136,7 +168,7 @@
   } else {
     [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   }
-  _trackOptionsView.hidden = YES;
+  //_trackOptionsView.hidden = YES;
   _button.hidden = YES;
   [self setNeedsLayout];
   return YES;

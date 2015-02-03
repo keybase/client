@@ -151,21 +151,21 @@
     [CATransaction begin];
     //[CATransaction setAnimationDuration:2.0]; // For debug
     [_titleView navigationView:self willTransitionView:inView transitionType:transitionType];
-    [inView viewWillAppearInView:_contentView animated:YES];
+    if ([inView respondsToSelector:@selector(viewWillAppearInView:animated:)]) [inView viewWillAppearInView:_contentView animated:YES];
     [self layoutView];
-    [CATransaction setCompletionBlock:^{ [inView viewDidAppear:YES]; }];
+    [CATransaction setCompletionBlock:^{ if ([inView respondsToSelector:@selector(viewDidAppear:)]) [inView viewDidAppear:YES]; }];
     [self.contentView.animator replaceSubview:outView with:inView];
     [CATransaction commit];
   } else {
     [self layoutView];
-    [inView viewWillAppearInView:_contentView animated:NO];
+    if ([inView respondsToSelector:@selector(viewWillAppearInView:animated:)]) [inView viewWillAppearInView:_contentView animated:NO];
     if (outView) {
       [_contentView replaceSubview:outView with:inView];
     } else {
       [_contentView addSubview:inView];
     }
     dispatch_async(dispatch_get_main_queue(), ^{
-      [inView viewDidAppear:NO];
+      if ([inView respondsToSelector:@selector(viewDidAppear:)]) [inView viewDidAppear:NO];
     });
   }
 }

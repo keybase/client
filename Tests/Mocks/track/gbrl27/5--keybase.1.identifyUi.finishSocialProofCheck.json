@@ -1,0 +1,36 @@
+[
+  {
+    "lcr" : {
+      "cached" : {
+        "proofStatus" : {
+          "desc" : "",
+          "state" : 1,
+          "status" : 1
+        },
+        "displayMarkup" : "[cached 2015-02-02 16:13:44 PST]",
+        "timestamp" : 1422922424
+      },
+      "proofId" : 1,
+      "hint" : {
+        "checkText" : "Verifying myself: I am gbrl27 on Keybase.io. Xxa7sZnDokFJ3UyWx1fNecTaoYGacoB50bs_ \/",
+        "apiUrl" : "https:\/\/twitter.com\/gbrltest\/status\/561006360016334848",
+        "remoteId" : "561006360016334848",
+        "humanUrl" : "https:\/\/twitter.com\/gbrltest\/status\/561006360016334848"
+      },
+      "proofStatus" : {
+        "desc" : "",
+        "state" : 1,
+        "status" : 1
+      }
+    },
+    "rp" : {
+      "sigId" : "Binary-5f16bbb199c3a24149dd4c96c757cd79c4daa1819a728079d1bb3f1ae4171620",
+      "value" : "gbrltest",
+      "key" : "twitter",
+      "mtime" : 1422589300,
+      "proofType" : 2,
+      "displayMarkup" : "gbrltest"
+    },
+    "sessionId" : 7
+  }
+]

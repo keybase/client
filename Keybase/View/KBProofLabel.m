@@ -22,44 +22,54 @@
 
   BOOL errored = NO;
   NSColor *color = [KBLookAndFeel selectColor];
-  NSString *trackInfo = nil;
+  NSString *info = nil;
+  NSString *errorMessage = nil;
 
   if (!_proofResult.result) {
     // Loading the result
     color = [KBLookAndFeel disabledTextColor];
   } else {
     KBRTrackDiff *diff = proofResult.result.diff;
-    switch (diff.type) {
-      case KBRTrackDiffTypeNone:
-        break;
-      case KBRTrackDiffTypeError:
-      case KBRTrackDiffTypeClash:
-      case KBRTrackDiffTypeDeleted:
-        trackInfo = diff.displayMarkup;
-        color = [KBLookAndFeel errorColor];
-        errored = YES;
-        break;
+    if (diff) {
+      switch (diff.type) {
+        case KBRTrackDiffTypeNone:
+          break;
+        case KBRTrackDiffTypeError:
+        case KBRTrackDiffTypeClash:
+        case KBRTrackDiffTypeDeleted:
+          info = diff.displayMarkup;
+          color = [KBLookAndFeel errorColor];
+          errored = YES;
+          break;
 
-      case KBRTrackDiffTypeUpgraded:
-      case KBRTrackDiffTypeNew:
-        color = [KBLookAndFeel greenColor];
-        trackInfo = diff.displayMarkup;
-        break;
+        case KBRTrackDiffTypeUpgraded:
+        case KBRTrackDiffTypeNew:
+          color = [KBLookAndFeel greenColor];
+          info = diff.displayMarkup;
+          break;
 
-      case KBRTrackDiffTypeRemoteFail:
-      case KBRTrackDiffTypeRemoteChanged:
-        trackInfo = diff.displayMarkup;
-        color = [KBLookAndFeel warnColor];
-        break;
+        case KBRTrackDiffTypeRemoteFail:
+        case KBRTrackDiffTypeRemoteChanged:
+          info = diff.displayMarkup;
+          color = [KBLookAndFeel warnColor];
+          break;
 
-      case KBRTrackDiffTypeRemoteWorking:
-        trackInfo = diff.displayMarkup;
-        break;
+        case KBRTrackDiffTypeRemoteWorking:
+          info = diff.displayMarkup;
+          break;
+      }
     }
 
-    // What about _proofResult.result.proofStatus.status?
+    if (_proofResult.result.proofStatus.status != 1) {
+      color = [KBLookAndFeel errorColor];
+      errored = YES;
+      errorMessage = _proofResult.result.proofStatus.desc;
+      info = @"status error";
+    } else if (!_proofResult.result.hint.humanUrl) {
+      // No link
+      color = [KBLookAndFeel textColor];
+    }
   }
-
 
   NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:[NSFont systemFontOfSize:14]};
   NSMutableAttributedString *value = [[NSMutableAttributedString alloc] initWithString:proofResult.proof.value];
@@ -72,12 +82,12 @@
   NSMutableAttributedString *result = [[NSMutableAttributedString alloc] init];
   [result appendAttributedString:value];
 
-  if (trackInfo) {
-    NSMutableAttributedString *info = [[NSMutableAttributedString alloc] initWithString:trackInfo];
-    [info setAttributes:attributes range:NSMakeRange(0, info.length)];
+  if (info) {
+    NSMutableAttributedString *infoStr = [[NSMutableAttributedString alloc] initWithString:info];
+    [infoStr setAttributes:attributes range:NSMakeRange(0, infoStr.length)];
 
     [result appendAttributedString:[[NSAttributedString alloc] initWithString:@" (" attributes:attributes]];
-    [result appendAttributedString:info];
+    [result appendAttributedString:infoStr];
     [result appendAttributedString:[[NSAttributedString alloc] initWithString:@")" attributes:attributes]];
   }
 

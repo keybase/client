@@ -1,0 +1,21 @@
+[
+  {
+    "lcr" : {
+      "proofId" : 0,
+      "proofStatus" : {
+        "desc" : "No server-given hint for sig=ae9da0664c2262287825f96cb82aa0acb7fa97f10e6f0ab1b79c0d833500b3950f",
+        "state" : 0,
+        "status" : 306
+      }
+    },
+    "rp" : {
+      "sigId" : "Binary-ae9da0664c2262287825f96cb82aa0acb7fa97f10e6f0ab1b79c0d833500b395",
+      "value" : "gbrltest",
+      "key" : "github",
+      "mtime" : 1422590182,
+      "proofType" : 3,
+      "displayMarkup" : "gbrltest"
+    },
+    "sessionId" : 7
+  }
+]

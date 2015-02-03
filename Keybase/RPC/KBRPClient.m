@@ -45,7 +45,7 @@
   _client.requestHandler = ^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
     // Recording
-    //[blockSelf recordMethod:method params:params];
+    [blockSelf recordMethod:method params:params];
 
     MPRequestHandler requestHandler = blockSelf.methods[method];
     if (!requestHandler) {
@@ -129,18 +129,24 @@
   [[NSJSONSerialization dataWithJSONObject:paramsCopy options:NSJSONWritingPrettyPrinted error:nil] writeToFile:file atomically:NO];
 }
 
-- (void)replayRecordId:(NSString *)recordId range:(NSRange)range {
+- (void)replayRecordId:(NSString *)recordId {
   NSString *directory = NSStringWithFormat(@"/Users/gabe/Projects/keybase/osx-client/Tests/Mocks/%@", recordId);
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
   NSMutableDictionary *fileDict = [NSMutableDictionary dictionary];
+  NSInteger start = NSIntegerMax;
+  NSInteger end = 0;
   for (NSString *file in files) {
     NSArray *split = [file split:@"--"];
     NSInteger index = [split[0] integerValue];
+
+    if (index < start) start = index;
+    if (index > end) end = index;
+
     NSString *method = [split[1] substringToIndex:[split[1] length] - 5];
     fileDict[@(index)] = @{@"file": file, @"method": method};
   }
 
-  for (NSInteger index = range.location; index < range.length; index++) {
+  for (NSInteger index = start; index <= end; index++) {
     NSString *file = fileDict[@(index)][@"file"];
     NSString *method = fileDict[@(index)][@"method"];
     id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];

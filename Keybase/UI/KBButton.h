@@ -25,6 +25,8 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 + (instancetype)buttonWithImage:(NSImage *)image;
 
+- (void)setText:(NSString *)text style:(KBButtonStyle)style;
+
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 @end

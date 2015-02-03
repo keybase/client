@@ -26,6 +26,6 @@
 
 - (void)updateProofResult:(KBProofResult *)proofResult;
 
-- (KBProofLabel *)findLabelForProofResult:(KBProofResult *)proofResult;
+- (KBProofLabel *)findLabelForSigId:(KBRSIGID *)sigId;
 
 @end

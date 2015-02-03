@@ -20,11 +20,7 @@
 
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style {
   KBButton *button = [[KBButton alloc] init];
-  button.style = style;
-  KBButtonCell *cell = [[KBButtonCell alloc] init];
-  cell.style = style;
-  [cell setText:text alignment:(style == KBButtonStyleLink ? NSLeftTextAlignment : NSCenterTextAlignment)];
-  button.cell = cell;
+  [button setText:text style:style];
   return button;
 }
 
@@ -64,6 +60,15 @@
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   [self setAttributedTitle:[KBButton attributedText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode]];
+}
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style {
+  self.style = style;
+  KBButtonCell *cell = [[KBButtonCell alloc] init];
+  cell.style = style;
+  [cell setText:text alignment:(style == KBButtonStyleLink ? NSLeftTextAlignment : NSCenterTextAlignment)];
+  self.cell = cell;
+  [self setNeedsDisplay];
 }
 
 - (void)setTargetBlock:(KBButtonTargetBlock)targetBlock {

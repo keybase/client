@@ -240,12 +240,18 @@
   }
 
   if ([NSString gh_isBlank:passphrase]) {
-    [self setError:KBErrorAlert(@"You need to enter a password.")];
+    [self setError:KBErrorAlert(@"You need to enter a passphrase.")];
+    return;
+  }
+
+  if (passphrase.length < 12) {
+    [self setError:KBErrorAlert(@"Your passphrase needs to be at least 12 characters long.")];
     return;
   }
 
   [self setInProgress:YES sender:nil];
-  [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username completion:^(NSError *error, KBRSignupRes *res) {
+
+  [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:@"" completion:^(NSError *error, KBRSignupRes *res) {
     [self setInProgress:NO sender:nil];
     if (error) {
       [self setError:error];

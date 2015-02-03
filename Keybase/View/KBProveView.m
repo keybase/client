@@ -138,6 +138,17 @@ NSString *KBNameForProveType(KBProveType proveType) {
   }
 }
 
+KBProveType KBProveTypeFromAPI(NSInteger proofType) {
+  if (proofType == 2) return KBProveTypeTwitter;
+  else if (proofType == 3) return KBProveTypeGithub;
+  else if (proofType == 1000) return KBProveTypeHTTPS;
+  else if (proofType == 1001) return KBProveTypeDNS;
+  else if (proofType == 4) return KBProveTypeReddit;
+  else if (proofType == 5) return KBProveTypeCoinbase;
+  else if (proofType == 6) return KBProveTypeHackernews;
+  return KBProveTypeUnknown;
+}
+
 - (void)viewDidAppear:(BOOL)animated {
   [self.window makeFirstResponder:_inputView];
 }
