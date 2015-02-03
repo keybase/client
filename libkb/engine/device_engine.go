@@ -21,12 +21,10 @@ func (d *DeviceEngine) Init() error {
 	return nil
 }
 
-func (d *DeviceEngine) Run(deviceName string) error {
+func (d *DeviceEngine) Run(deviceName string) (err error) {
 	d.deviceName = deviceName
-	var err error
-	d.deviceID, err = libkb.NewDeviceId()
-	if err != nil {
-		return err
+	if d.deviceID, err = libkb.NewDeviceId(); err != nil {
+		return
 	}
 	// do we need this?
 	/*
@@ -40,13 +38,25 @@ func (d *DeviceEngine) Run(deviceName string) error {
 	G.Log.Debug("Device ID:     %x", d.deviceID)
 	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
-	if err := d.pushEldestKey(); err != nil {
+	if err = d.pushEldestKey(); err != nil {
 		return err
 	}
-	if err := d.pushDHKey(); err != nil {
-		return err
+
+	if wr := G.Env.GetConfigWriter(); wr != nil {
+		if wr.SetDeviceId(&d.deviceID); err != nil {
+			return
+		} else if err = wr.Write(); err != nil {
+			return
+		} else {
+			G.Log.Info("Setting Device ID to %s", d.deviceID)
+		}
 	}
-	return nil
+
+	if err = d.pushDHKey(); err != nil {
+		return
+	}
+
+	return
 }
 
 func (d *DeviceEngine) EldestKey() libkb.GenericKey {
