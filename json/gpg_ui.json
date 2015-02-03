@@ -125,7 +125,7 @@
     } ]
   } ],
   "messages" : {
-    "SelectKey" : {
+    "selectKey" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"
@@ -134,6 +134,10 @@
         "type" : "GPGKeySet"
       } ],
       "response" : "SelectKeyRes"
+    },
+    "wantToAddGPGKey" : {
+      "request" : [ ],
+      "response" : "boolean"
     }
   }
 }

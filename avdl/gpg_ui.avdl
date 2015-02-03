@@ -7,7 +7,7 @@ protocol gpgUi {
 		string algorithm;
 		string keyID;
 		string expiration;
-		array<string> identities;	
+		array<string> identities;
 	}
 
 	record GPGKeySet {
@@ -19,5 +19,6 @@ protocol gpgUi {
 		boolean doSecretPush;
 	}
 
-	SelectKeyRes SelectKey(int sessionId, GPGKeySet keyset);
+	SelectKeyRes selectKey(int sessionId, GPGKeySet keyset);
+	boolean wantToAddGPGKey();
 }

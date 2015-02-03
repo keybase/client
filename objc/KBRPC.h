@@ -88,6 +88,8 @@
 @interface KBRGpgUiRequest : KBRRequest
 - (void)selectKeyWithSessionId:(NSInteger )sessionId keyset:(KBRGPGKeySet *)keyset completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion;
 
+- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion;
+
 @end
 
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {

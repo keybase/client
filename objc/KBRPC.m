@@ -95,13 +95,21 @@
 - (void)selectKeyWithSessionId:(NSInteger )sessionId keyset:(KBRGPGKeySet *)keyset completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion {
 
   NSArray *params = @[@{@"sessionId": @(sessionId), @"keyset": KBRValue(keyset)}];
-  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.SelectKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKey" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
         return;
       }
       KBRSelectKeyRes *result = [MTLJSONAdapter modelOfClass:KBRSelectKeyRes.class fromJSONDictionary:dict error:&error];
       completion(error, result);
+  }];
+}
+
+- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion {
+
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.wantToAddGPGKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error, 0);
   }];
 }
 
