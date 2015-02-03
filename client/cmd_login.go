@@ -5,7 +5,7 @@ import (
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/go/libkb/engine"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -40,7 +40,8 @@ func (v *CmdLogin) RunClient() (err error) {
 }
 
 func (v *CmdLogin) Run() error {
-	return engine.LoginAndIdentify(engine.LoginAndIdentifyArg{
+	li := engine.NewLoginEngine()
+	return li.LoginAndIdentify(engine.LoginAndIdentifyArg{
 		Login: libkb.LoginArg{
 			Prompt: true,
 			Retry:  3,

@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/go/libkb/engine"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -51,7 +51,8 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	}
 	liarg.LogUI = h.getLogUI(sessid)
 
-	return engine.LoginAndIdentify(liarg)
+	li := engine.NewLoginEngine()
+	return li.LoginAndIdentify(liarg)
 }
 
 func (h *LoginHandler) PubkeyLogin() error {

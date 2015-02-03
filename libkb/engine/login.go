@@ -2,8 +2,15 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/keybase/go/libkb"
 )
+
+type LoginEngine struct{}
+
+func NewLoginEngine() *LoginEngine {
+	return &LoginEngine{}
+}
 
 type LoginAndIdentifyArg struct {
 	Login      libkb.LoginArg
@@ -11,7 +18,7 @@ type LoginAndIdentifyArg struct {
 	LogUI      libkb.LogUI
 }
 
-func LoginAndIdentify(arg LoginAndIdentifyArg) error {
+func (e *LoginEngine) LoginAndIdentify(arg LoginAndIdentifyArg) error {
 	if err := G.LoginState.Login(arg.Login); err != nil {
 		return err
 	}
