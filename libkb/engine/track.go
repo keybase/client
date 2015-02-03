@@ -2,7 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
+
+	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/go/libkb"
 )
 
@@ -159,12 +160,12 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 		Endpoint:    "follow",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
-			"sig_id_base":  libkb.S{e.sigid.ToString(false)},
-			"sig_id_short": libkb.S{e.sigid.ToShortId()},
-			"sig":          libkb.S{e.sig},
-			"uid":          libkb.S{e.Them.GetUid().String()},
-			"type":         libkb.S{"track"},
-			"signing_kid":  libkb.S{e.signingKeyPub.GetKid().String()},
+			"sig_id_base":  libkb.S{Val: e.sigid.ToString(false)},
+			"sig_id_short": libkb.S{Val: e.sigid.ToShortId()},
+			"sig":          libkb.S{Val: e.sig},
+			"uid":          e.Them.GetUid(),
+			"type":         libkb.S{Val: "track"},
+			"signing_kid":  e.signingKeyPub.GetKid(),
 		},
 	})
 

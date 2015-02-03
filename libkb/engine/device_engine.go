@@ -85,11 +85,11 @@ func (d *DeviceEngine) pushEldestKey() error {
 	}
 
 	args := libkb.HttpArgs{
-		"sig_id_base":  libkb.S{sigid.ToString(false)},
-		"sig_id_short": libkb.S{sigid.ToShortId()},
-		"sig":          libkb.S{sig},
-		"public_key":   libkb.S{pubkey},
-		"is_primary":   libkb.I{1},
+		"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
+		"sig_id_short": libkb.S{Val: sigid.ToShortId()},
+		"sig":          libkb.S{Val: sig},
+		"public_key":   libkb.S{Val: pubkey},
+		"is_primary":   libkb.I{Val: 1},
 	}
 
 	_, err = G.API.Post(libkb.ApiArg{

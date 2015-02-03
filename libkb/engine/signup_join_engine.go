@@ -3,7 +3,8 @@ package engine
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-triplesec"
+
+	triplesec "github.com/keybase/go-triplesec"
 	"github.com/keybase/go/libkb"
 )
 
@@ -24,8 +25,8 @@ func CheckUsernameAvailable(s string) (err error) {
 		Endpoint:    "user/lookup",
 		NeedSession: false,
 		Args: libkb.HttpArgs{
-			"username": libkb.S{s},
-			"fields":   libkb.S{"basics"},
+			"username": libkb.S{Val: s},
+			"fields":   libkb.S{Val: "basics"},
 		},
 	})
 	if err == nil {
@@ -49,7 +50,7 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUid(); u != nil {
-		err = libkb.AlreadyRegisteredError{*u}
+		err = libkb.AlreadyRegisteredError{Uid: *u}
 	}
 	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
@@ -68,12 +69,12 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 	res, err = G.API.Post(libkb.ApiArg{
 		Endpoint: "signup",
 		Args: libkb.HttpArgs{
-			"salt":          libkb.S{hex.EncodeToString(arg.PWSalt)},
-			"pwh":           libkb.S{hex.EncodeToString(arg.PWHash)},
-			"username":      libkb.S{arg.Username},
-			"email":         libkb.S{arg.Email},
-			"invitation_id": libkb.S{arg.InviteCode},
-			"pwh_version":   libkb.I{int(triplesec.Version)},
+			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
+			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
+			"username":      libkb.S{Val: arg.Username},
+			"email":         libkb.S{Val: arg.Email},
+			"invitation_id": libkb.S{Val: arg.InviteCode},
+			"pwh_version":   libkb.I{Val: int(triplesec.Version)},
 		}})
 	if err == nil {
 		s.username = arg.Username
