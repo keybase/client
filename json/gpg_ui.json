@@ -119,6 +119,9 @@
     "fields" : [ {
       "name" : "keyID",
       "type" : "string"
+    }, {
+      "name" : "doSecretPush",
+      "type" : "boolean"
     } ]
   } ],
   "messages" : {

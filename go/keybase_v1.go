@@ -199,7 +199,8 @@ type GPGKeySet struct {
 }
 
 type SelectKeyRes struct {
-	KeyID string `codec:"keyID"`
+	KeyID        string `codec:"keyID"`
+	DoSecretPush bool   `codec:"doSecretPush"`
 }
 
 type SelectKeyArg struct {

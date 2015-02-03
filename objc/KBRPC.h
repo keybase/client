@@ -82,6 +82,7 @@
 
 @interface KBRSelectKeyRes : KBRObject
 @property NSString *keyID;
+@property BOOL doSecretPush;
 @end
 
 @interface KBRGpgUiRequest : KBRRequest

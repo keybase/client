@@ -16,6 +16,7 @@ protocol gpgUi {
 
 	record SelectKeyRes {
 		string keyID;
+		boolean doSecretPush;
 	}
 
 	SelectKeyRes SelectKey(int sessionId, GPGKeySet keyset);
