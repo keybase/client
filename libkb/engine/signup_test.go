@@ -30,7 +30,7 @@ func fakePassphrase(t *testing.T) string {
 func TestSignupEngine(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
-	s := NewSignupEngine(G.UI.GetLogUI(), nil)
+	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
 	username, email := fakeUser(t, "se")
 	passphrase := fakePassphrase(t)
 	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", true}
@@ -52,7 +52,8 @@ func TestSignupEngine(t *testing.T) {
 		},
 		LogUI: G.UI.GetLogUI(),
 	}
-	if err = LoginAndIdentify(larg); err != nil {
+	li := NewLoginEngine()
+	if err = li.LoginAndIdentify(larg); err != nil {
 		t.Fatal(err)
 	}
 }

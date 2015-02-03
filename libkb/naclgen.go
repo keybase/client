@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	"github.com/keybase/go-jsonw"
+	jsonw "github.com/keybase/go-jsonw"
 	// "github.com/agl/ed25519"
 	// "golang.org/x/crypto/nacl/box"
 	// "golang.org/x/crypto/nacl/secretbox"
@@ -40,14 +40,28 @@ func (g *NaclKeyGen) Save() (err error) {
 
 func (g *NaclKeyGen) Push() (err error) {
 	var jw *jsonw.Wrapper
-	jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn, g.arg.Device)
+	eldest := g.arg.Signer == nil && g.arg.Primary == nil
+
+	if eldest {
+		fokid := GenericKeyToFOKID(g.pair)
+		jw, err = g.arg.Me.SelfProof(g.pair, &fokid)
+	} else {
+		jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn, g.arg.Device)
+	}
 	if err != nil {
 		return
 	}
+
+	signer := g.arg.Signer
+	if eldest {
+		// eldest key signs itself
+		signer = g.pair
+	}
+
 	var sig string
 	var id *SigId
 	var lid LinkId
-	if sig, id, lid, err = SignJson(jw, g.arg.Signer); err != nil {
+	if sig, id, lid, err = SignJson(jw, signer); err != nil {
 		return
 	}
 	arg := PostNewKeyArg{
@@ -55,8 +69,9 @@ func (g *NaclKeyGen) Push() (err error) {
 		Id:         *id,
 		Type:       g.arg.Type,
 		EldestKey:  g.arg.Primary,
-		SigningKey: g.arg.Signer,
+		SigningKey: signer,
 		PublicKey:  g.pair,
+		IsPrimary:  eldest,
 	}
 	if err = PostNewKey(arg); err != nil {
 		return

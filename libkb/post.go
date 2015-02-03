@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	"github.com/keybase/go-jsonw"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type PostProofRes struct {
@@ -28,23 +28,38 @@ type PostNewKeyArg struct {
 	SigningKey GenericKey
 	EldestKey  GenericKey
 	ServerHalf string
+	IsPrimary  bool
+}
+
+func (a PostNewKeyArg) ToHttpArgs() (HttpArgs, error) {
+	pub, err := a.PublicKey.Encode()
+	if err != nil {
+		return HttpArgs{}, err
+	}
+
+	hargs := HttpArgs{
+		"sig_id_base":     S{Val: a.Id.ToString(false)},
+		"sig_id_short":    S{Val: a.Id.ToShortId()},
+		"sig":             S{Val: a.Sig},
+		"type":            S{Val: a.Type},
+		"is_remote_proof": B{Val: false},
+		"public_key":      S{Val: pub},
+		"server_half":     S{Val: a.ServerHalf},
+	}
+	if a.IsPrimary {
+		hargs["is_primary"] = I{Val: 1}
+	} else {
+		hargs["eldest_kid"] = a.EldestKey.GetKid()
+		hargs["signing_kid"] = a.SigningKey.GetKid()
+	}
+
+	return hargs, nil
 }
 
 func PostNewKey(arg PostNewKeyArg) error {
-	pub, err := arg.PublicKey.Encode()
+	hargs, err := arg.ToHttpArgs()
 	if err != nil {
 		return err
-	}
-	hargs := HttpArgs{
-		"sig_id_base":     S{arg.Id.ToString(false)},
-		"sig_id_short":    S{arg.Id.ToShortId()},
-		"sig":             S{arg.Sig},
-		"is_remote_proof": B{false},
-		"type":            S{arg.Type},
-		"eldest_kid":      S{arg.EldestKey.GetKid().String()},
-		"signing_kid":     S{arg.SigningKey.GetKid().String()},
-		"public_key":      S{pub},
-		"server_half":     S{arg.ServerHalf},
 	}
 
 	G.Log.Debug("Post NewKey: %v", hargs)

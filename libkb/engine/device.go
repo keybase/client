@@ -66,67 +66,19 @@ func (d *DeviceEngine) EldestKey() libkb.GenericKey {
 }
 
 func (d *DeviceEngine) pushEldestKey() error {
-	eddsaPair, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		return err
-	}
-	G.Log.Debug("EdDSA: %s", eddsaPair.VerboseDescription())
-
-	// copying stuff from keygen.go/GeneratePost
-	fokid := libkb.GenericKeyToFOKID(eddsaPair)
-	jw, err := d.me.SelfProof(eddsaPair, &fokid)
-	if err != nil {
-		return err
-	}
-	G.Log.Debug("self proof json: %s", jw.MarshalPretty())
-
-	sig, sigid, linkid, err := libkb.SignJson(jw, eddsaPair)
-	if err != nil {
-		return err
-	}
-
-	pubkey, err := eddsaPair.Encode()
-	if err != nil {
-		return err
-	}
-
-	// save it to local keyring:
-	_, err = libkb.WriteP3SKBToKeyring(eddsaPair, nil, d.logui)
-	if err != nil {
-		return err
-	}
-
-	args := libkb.HttpArgs{
-		"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
-		"sig_id_short": libkb.S{Val: sigid.ToShortId()},
-		"sig":          libkb.S{Val: sig},
-		"public_key":   libkb.S{Val: pubkey},
-		"is_primary":   libkb.I{Val: 1},
-	}
-
-	_, err = G.API.Post(libkb.ApiArg{
-		Endpoint:    "key/add",
-		NeedSession: true,
-		Args:        args,
+	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+		Generator: libkb.GenerateNaclSigningKeyPair,
+		Me:        d.me,
+		ExpireIn:  libkb.NACL_DH_EXPIRE_IN,
+		Device:    d.device(),
+		LogUI:     d.logui,
 	})
+	err := gen.Run()
 	if err != nil {
 		return err
 	}
-
-	d.eldestKey = eddsaPair
-	d.me.SigChainBump(linkid, sigid)
-
+	d.eldestKey = gen.GetKeyPair()
 	return nil
-}
-
-func (d *DeviceEngine) device() *libkb.Device {
-	s := 1
-	return &libkb.Device{
-		Id:          d.deviceID.String(),
-		Description: &d.deviceName,
-		Type:        "desktop", // XXX always desktop?
-		Status:      &s,
-	}
 }
 
 func (d *DeviceEngine) pushDHKey() error {
@@ -142,4 +94,14 @@ func (d *DeviceEngine) pushDHKey() error {
 	})
 
 	return gen.Run()
+}
+
+func (d *DeviceEngine) device() *libkb.Device {
+	s := 1
+	return &libkb.Device{
+		Id:          d.deviceID.String(),
+		Description: &d.deviceName,
+		Type:        "desktop", // XXX always desktop?
+		Status:      &s,
+	}
 }

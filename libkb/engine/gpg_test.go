@@ -13,7 +13,7 @@ func TestGPGRun(t *testing.T) {
 	tc := libkb.SetupTest(t, "gpg")
 	defer tc.Cleanup()
 
-	g := NewGPG(&gpgtestui{})
+	g := NewGPG(&gpgtestui{}, nil)
 	if err := g.Run(); err != nil {
 		t.Fatal(err)
 	}
@@ -27,4 +27,8 @@ func (g *gpgtestui) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRe
 	}
 	key := arg.Keyset.Keys[0]
 	return keybase_1.SelectKeyRes{KeyID: key.KeyID}, nil
+}
+
+func (g *gpgtestui) WantToAddGPGKey() (bool, error) {
+	return true, nil
 }
