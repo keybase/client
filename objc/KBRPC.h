@@ -64,6 +64,31 @@
 
 @end
 
+@interface KBRGpgRequest : KBRRequest
+- (void)addGpgKey:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRGPGKey : KBRObject
+@property NSString *algorithm;
+@property NSString *keyID;
+@property NSString *expiration;
+@property NSArray *identities; /*of string*/
+@end
+
+@interface KBRGPGKeySet : KBRObject
+@property NSArray *keys; /*of KBRGPGKey*/
+@end
+
+@interface KBRSelectKeyRes : KBRObject
+@property NSString *keyID;
+@end
+
+@interface KBRGpgUiRequest : KBRRequest
+- (void)selectKeyWithSessionId:(NSInteger )sessionId keyset:(KBRGPGKeySet *)keyset completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion;
+
+@end
+
 typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 	KBRTrackDiffTypeNone,
 	KBRTrackDiffTypeError,

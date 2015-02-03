@@ -188,18 +188,18 @@ func (c GpgClient) AddGpgKey() (err error) {
 }
 
 type GPGKey struct {
-	Algorithm  string   `codec:"Algorithm"`
-	KeyID      string   `codec:"KeyID"`
-	Expiration string   `codec:"Expiration"`
-	Identities []string `codec:"Identities"`
+	Algorithm  string   `codec:"algorithm"`
+	KeyID      string   `codec:"keyID"`
+	Expiration string   `codec:"expiration"`
+	Identities []string `codec:"identities"`
 }
 
 type GPGKeySet struct {
-	Keys []GPGKey `codec:"Keys"`
+	Keys []GPGKey `codec:"keys"`
 }
 
 type SelectKeyRes struct {
-	KeyID string `codec:"KeyID"`
+	KeyID string `codec:"keyID"`
 }
 
 type SelectKeyArg struct {

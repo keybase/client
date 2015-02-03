@@ -4,18 +4,18 @@ protocol gpgUi {
 	import idl "common.avdl";
 
 	record GPGKey {
-		string Algorithm;
-		string KeyID;
-		string Expiration;
-		array<string> Identities;	
+		string algorithm;
+		string keyID;
+		string expiration;
+		array<string> identities;	
 	}
 
 	record GPGKeySet {
-		array<GPGKey> Keys;
+		array<GPGKey> keys;
 	}
 
 	record SelectKeyRes {
-		string KeyID;
+		string keyID;
 	}
 
 	SelectKeyRes SelectKey(int sessionId, GPGKeySet keyset);

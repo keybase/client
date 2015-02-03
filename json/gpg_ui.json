@@ -88,16 +88,16 @@
     "type" : "record",
     "name" : "GPGKey",
     "fields" : [ {
-      "name" : "Algorithm",
+      "name" : "algorithm",
       "type" : "string"
     }, {
-      "name" : "KeyID",
+      "name" : "keyID",
       "type" : "string"
     }, {
-      "name" : "Expiration",
+      "name" : "expiration",
       "type" : "string"
     }, {
-      "name" : "Identities",
+      "name" : "identities",
       "type" : {
         "type" : "array",
         "items" : "string"
@@ -107,7 +107,7 @@
     "type" : "record",
     "name" : "GPGKeySet",
     "fields" : [ {
-      "name" : "Keys",
+      "name" : "keys",
       "type" : {
         "type" : "array",
         "items" : "GPGKey"
@@ -117,7 +117,7 @@
     "type" : "record",
     "name" : "SelectKeyRes",
     "fields" : [ {
-      "name" : "KeyID",
+      "name" : "keyID",
       "type" : "string"
     } ]
   } ],

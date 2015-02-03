@@ -70,6 +70,43 @@
 
 @end
 
+@implementation KBRGpgRequest
+- (void)addGpgKey:(void (^)(NSError *error))completion {
+
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpg.addGpgKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRGPGKey
+@end
+
+@implementation KBRGPGKeySet
++ (NSValueTransformer *)keysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRGPGKey.class]; }
+@end
+
+@implementation KBRSelectKeyRes
+@end
+
+@implementation KBRGpgUiRequest
+- (void)selectKeyWithSessionId:(NSInteger )sessionId keyset:(KBRGPGKeySet *)keyset completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion {
+
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"keyset": KBRValue(keyset)}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.SelectKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRSelectKeyRes *result = [MTLJSONAdapter modelOfClass:KBRSelectKeyRes.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBRTrackDiff
 @end
 
