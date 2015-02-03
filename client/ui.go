@@ -517,7 +517,7 @@ func (g GPGUI) SelectKey(arg keybase_1.SelectKeyArg) (res keybase_1.SelectKeyRes
 	if err != nil {
 		return res, err
 	}
-	res.KeyID = arg.Keyset.Keys[ret].KeyID
+	res.KeyID = arg.Keyset.Keys[ret-1].KeyID
 
 	msg := `
 Keybase can host an encrypted copy of your PGP private key on its servers.
