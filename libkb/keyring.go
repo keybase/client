@@ -199,6 +199,10 @@ func (k KeyringFile) Save() error {
 	return SafeWriteToFile(k)
 }
 
+// GetSecretKeyLocked gets a secret key for the current user by first
+// looking for keys synced from the server, and if that fails, tries
+// those in the local Keyring that are also active for the user.
+// In any case, the key will be locked.
 func (k Keyrings) GetSecretKeyLocked() (ret *P3SKB, which string, err error) {
 	var me *User
 
@@ -224,7 +228,23 @@ func (k Keyrings) GetSecretKeyLocked() (ret *P3SKB, which string, err error) {
 	} else if ret != nil {
 		G.Log.Debug("| Found secret key in user object")
 		which = "your Keybase.io login"
-	} else if k.P3SKB == nil {
+	} else {
+		G.Log.Debug("| Getting local secret key")
+		ret = k.GetLockedLocalSecretKey(me)
+	}
+
+	if ret == nil {
+		err = NoSecretKeyError{}
+	}
+	return
+
+}
+
+// GetLockedLocalSecretKey looks in the local keyring to find a key
+// for the given user.  Return non-nil if one was found, and nil
+// otherwise.
+func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *P3SKB) {
+	if k.P3SKB == nil {
 		G.Log.Debug("| No secret keyring found")
 	} else if ckf := me.GetComputedKeyFamily(); ckf == nil {
 		G.Log.Debug("| No ComputedKeyFamily found")
@@ -232,11 +252,7 @@ func (k Keyrings) GetSecretKeyLocked() (ret *P3SKB, which string, err error) {
 		G.Log.Debug("| Looking up secret key in local keychain")
 		ret = k.P3SKB.LookupWithComputedKeyFamily(ckf)
 	}
-
-	if ret == nil {
-		err = NoSecretKeyError{}
-	}
-	return
+	return ret
 }
 
 func (k Keyrings) GetSecretKey(reason string, ui SecretUI) (key GenericKey, err error) {
