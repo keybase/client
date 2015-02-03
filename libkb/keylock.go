@@ -29,7 +29,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 	}
 
 	sui := arg.Ui
-	if sui == nil {
+	if sui == nil && G.UI != nil {
 		sui = G.UI.GetSecretUI()
 	}
 	if sui == nil {
