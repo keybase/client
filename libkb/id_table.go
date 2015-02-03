@@ -507,16 +507,25 @@ func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
 
 func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 	var key GenericKey
+
+	if len(s.reverseSig.Sig) == 0 {
+		G.Log.Warning("!! Sibkey delegations without reverse sigs are soon to be retired!!")
+		G.Log.Warning("!! We're leaving them on for now for testing purposes!!")
+		return
+	}
+
 	if key = kf.FindKey(s.GetDelegatedKid()); key == nil {
 		err = ReverseSigError{fmt.Sprintf("Can't find a key for %s", s.GetDelegatedKid().String())}
 		return
 	}
 	var payload []byte
 	if payload, _, err = key.VerifyAndExtract(s.reverseSig.Sig); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err.Error())}
 		return
 	}
 	var reverseSigPayload ReverseSigPayload
 	if err = json.Unmarshal(payload, &reverseSigPayload); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Failed to unpack: %s", err.Error())}
 		return
 	}
 	if a, b := reverseSigPayload.ReverseKeySig, s.GetKid().String(); a != b {

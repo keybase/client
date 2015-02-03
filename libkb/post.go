@@ -26,7 +26,7 @@ type PostNewKeyArg struct {
 	Type       string
 	PublicKey  GenericKey
 	SigningKey GenericKey
-	PrimaryKey GenericKey
+	EldestKey  GenericKey
 	ServerHalf string
 }
 
@@ -41,7 +41,7 @@ func PostNewKey(arg PostNewKeyArg) error {
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{false},
 		"type":            S{arg.Type},
-		"primary_kid":     S{arg.PrimaryKey.GetKid().String()},
+		"eldest_kid":      S{arg.EldestKey.GetKid().String()},
 		"signing_kid":     S{arg.SigningKey.GetKid().String()},
 		"public_key":      S{pub},
 		"server_half":     S{arg.ServerHalf},

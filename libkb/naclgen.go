@@ -54,7 +54,7 @@ func (g *NaclKeyGen) Push() (err error) {
 		Sig:        sig,
 		Id:         *id,
 		Type:       g.arg.Type,
-		PrimaryKey: g.arg.Primary,
+		EldestKey:  g.arg.Primary,
 		SigningKey: g.arg.Signer,
 		PublicKey:  g.pair,
 	}
