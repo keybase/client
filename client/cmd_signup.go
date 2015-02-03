@@ -36,7 +36,7 @@ func (pf PromptFields) ToList() []*Field {
 	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
 }
 
-type signupEngine interface {
+type signupProcess interface {
 	CheckRegistered() error
 	Run(engine.SignupEngineRunArg) error
 	PostInviteRequest(libkb.InviteRequestArg) error
@@ -44,7 +44,7 @@ type signupEngine interface {
 }
 
 type CmdSignupState struct {
-	engine   signupEngine
+	engine   signupProcess
 	fields   *PromptFields
 	prompter *Prompter
 

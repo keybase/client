@@ -531,6 +531,10 @@ It can only be decrypted with your passphrase, which Keybase never knows.
 	return res, nil
 }
 
+func (g GPGUI) WantToAddGPGKey() (bool, error) {
+	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
+}
+
 //============================================================
 
 type LoginUI struct {

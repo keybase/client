@@ -67,8 +67,14 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
-	if !arg.SkipGPG {
-		if err := s.checkGPG(); err != nil {
+	if arg.SkipGPG {
+		return nil
+	}
+
+	if wantsGPG, err := s.checkGPG(); err != nil {
+		return err
+	} else if wantsGPG {
+		if err := s.addGPG(); err != nil {
 			return err
 		}
 	}
@@ -126,7 +132,12 @@ func (s *SignupEngine) genDetKeys() error {
 	return eng.Run(s.tspkey.EdDSASeed(), s.tspkey.DHSeed())
 }
 
-func (s *SignupEngine) checkGPG() error {
+func (s *SignupEngine) checkGPG() (bool, error) {
+	eng := NewGPG(s.gpgUI, s.secretUI)
+	return eng.WantsGPG()
+}
+
+func (s *SignupEngine) addGPG() error {
 	eng := NewGPG(s.gpgUI, s.secretUI)
 	return eng.Run()
 }

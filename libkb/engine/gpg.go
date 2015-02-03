@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"os/exec"
 
 	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
@@ -18,6 +19,24 @@ type GPG struct {
 
 func NewGPG(ui GPGUI, sui libkb.SecretUI) *GPG {
 	return &GPG{ui: ui, secretUI: sui}
+}
+
+func (g *GPG) WantsGPG() (bool, error) {
+	gpg := G.GetGpgClient()
+	if _, err := gpg.Configure(); err != nil {
+		if err == exec.ErrNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+
+	// they have gpg
+
+	res, err := g.ui.WantToAddGPGKey()
+	if err != nil {
+		return false, err
+	}
+	return res, nil
 }
 
 func (g *GPG) Run() error {

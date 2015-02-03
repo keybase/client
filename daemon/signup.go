@@ -66,14 +66,3 @@ func (h *SignupHandler) InviteRequest(arg keybase_1.InviteRequestArg) (err error
 		Notes:    arg.Notes,
 	})
 }
-
-/*
-type signupHandlerUI struct {
-	libkb.LogUI
-	*RemoteGPGUI
-}
-
-func (h *SignupHandler) getSignupUI(sessionId int) engine.SignupUI {
-	return &signupHandlerUI{h.getLogUI(sessionId), NewRemoteGPGUI(sessionId, h.getRpcClient())}
-}
-*/
