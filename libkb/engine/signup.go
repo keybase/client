@@ -59,6 +59,12 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
+	// registerDevice needs user to be logged in (for device/update api call).
+	// seems like signup should log them in, but...
+	if err := s.login(arg.Username, arg.Passphrase); err != nil {
+		return err
+	}
+
 	if err := s.registerDevice(arg.DeviceName); err != nil {
 		return err
 	}
@@ -140,4 +146,19 @@ func (s *SignupEngine) checkGPG() (bool, error) {
 func (s *SignupEngine) addGPG() error {
 	eng := NewGPG(s.gpgUI, s.secretUI)
 	return eng.Run()
+}
+
+func (s *SignupEngine) login(username, passphrase string) error {
+	arg := LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   username,
+			Passphrase: passphrase,
+			NoUi:       true,
+		},
+		LogUI: s.logUI,
+	}
+	li := NewLoginEngine()
+	return li.LoginAndIdentify(arg)
 }
