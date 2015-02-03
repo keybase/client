@@ -115,8 +115,7 @@ func (s *CmdSignupState) CheckRegistered() (err error) {
 		return
 	}
 	prompt := "Already registered; do you want to reregister?"
-	def := false
-	if rereg, err := G_UI.PromptYesNo(prompt, &def); err != nil {
+	if rereg, err := G_UI.PromptYesNo(prompt, PromptDefaultNo); err != nil {
 		return err
 	} else if !rereg {
 		return NotConfirmedError{}
@@ -193,9 +192,8 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 
 func (s *CmdSignupState) RequestInvitePromptForOk() (err error) {
 	prompt := "Would you like to be added to the invite request list?"
-	def := true
 	var invite bool
-	if invite, err = G_UI.PromptYesNo(prompt, &def); err != nil {
+	if invite, err = G_UI.PromptYesNo(prompt, PromptDefaultYes); err != nil {
 	} else if !invite {
 		err = NotConfirmedError{}
 	}

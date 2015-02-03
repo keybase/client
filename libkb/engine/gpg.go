@@ -67,6 +67,16 @@ func (g *GPG) Run() error {
 		return err
 	}
 
+	// this seems a little weird to use keygen to post a key, but...
+	arg := &libkb.KeyGenArg{
+		Pregen:       bundle,
+		DoSecretPush: res.DoSecretPush,
+	}
+	kg := libkb.NewKeyGen(arg)
+	if _, err := kg.Run(); err != nil {
+		return err
+	}
+
 	G.Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
 
 	return nil

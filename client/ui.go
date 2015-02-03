@@ -143,33 +143,33 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 
 	ui.ReportDeleted(o.Deleted)
 
-	def := true
+	def := PromptDefaultYes
 	isEqual := false
 	if ntf > 0 || nd > 0 {
 		prompt = "Your tracking statement of " + un + " is broken; fix it?"
-		def = false
+		def = PromptDefaultNo
 	} else if ntc > 0 {
 		prompt = "Your tracking statement of " + un +
 			"is still valid; update it to reflect new proofs?"
-		def = true
+		def = PromptDefaultYes
 	} else if nps == 0 {
 		prompt = "We found an account for " + un +
 			", but they haven't proven their identity. Still track them?"
-		def = false
+		def = PromptDefaultNo
 	} else if tracked && ntc == 0 {
 		G.Log.Info("Your tracking statement is up-to-date")
 		isEqual = true
 	} else if npf > 0 {
 		prompt = "Some proofs failed; still track " + un + "?"
-		def = false
+		def = PromptDefaultNo
 	} else {
 		prompt = "Is this the " + ColorString("bold", un) + " you wanted?"
-		def = true
+		def = PromptDefaultYes
 	}
 
 	if !isEqual {
 		var ok bool
-		if ok, err = ui.parent.PromptYesNo(prompt, &def); err != nil {
+		if ok, err = ui.parent.PromptYesNo(prompt, def); err != nil {
 		} else if !ok {
 			err = NotConfirmedError{}
 		}
@@ -179,9 +179,8 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 	}
 
 	if err == nil && (!isEqual || !isRemote) {
-		def = true
 		prompt = "publicly write tracking statement to server?"
-		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, &def)
+		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, PromptDefaultYes)
 	}
 	return
 }
@@ -451,8 +450,7 @@ func (p ProveUI) PromptOverwrite(a string, typ keybase_1.PromptOverwriteType) (b
 	default:
 		prompt = "Overwrite " + a + "?"
 	}
-	def := false
-	return p.parent.PromptYesNo(prompt, &def)
+	return p.parent.PromptYesNo(prompt, PromptDefaultNo)
 }
 
 func (p ProveUI) PromptUsername(prompt string, prevError error) (string, error) {
@@ -472,8 +470,7 @@ func (p ProveUI) OutputPrechecks(txt keybase_1.Text) {
 
 func (p ProveUI) PreProofWarning(txt keybase_1.Text) (bool, error) {
 	p.Render(txt)
-	def := false
-	return p.parent.PromptYesNo("Proceed?", &def)
+	return p.parent.PromptYesNo("Proceed?", PromptDefaultNo)
 }
 
 func (p ProveUI) OutputInstructions(instructions keybase_1.Text, proof string) (err error) {
@@ -492,8 +489,7 @@ func (p ProveUI) OkToCheck(name string, attempt int) (bool, error) {
 		agn = "again "
 	}
 	prompt := "Check " + name + " " + agn + "now?"
-	def := true
-	return p.parent.PromptYesNo(prompt, &def)
+	return p.parent.PromptYesNo(prompt, PromptDefaultYes)
 }
 
 func (p ProveUI) DisplayRecheckWarning(txt keybase_1.Text) {
@@ -522,6 +518,16 @@ func (g GPGUI) SelectKey(arg keybase_1.SelectKeyArg) (res keybase_1.SelectKeyRes
 		return res, err
 	}
 	res.KeyID = arg.Keyset.Keys[ret].KeyID
+
+	msg := `
+Keybase can host an encrypted copy of your PGP private key on its servers.
+It can only be decrypted with your passphrase, which Keybase never knows.
+
+`
+	g.parent.Output(msg)
+	prompt := "Push an encrypted copy of your private key to Keybase.io?"
+	res.DoSecretPush, err = g.parent.PromptYesNo(prompt, PromptDefaultYes)
+
 	return res, nil
 }
 
@@ -719,13 +725,22 @@ func sentencePunctuate(s string) string {
 	return strings.ToUpper(s[0:1]) + s[1:] + "."
 }
 
-func (ui *UI) PromptYesNo(p string, def *bool) (ret bool, err error) {
+type PromptDefault int
+
+const (
+	PromptDefaultNo PromptDefault = iota
+	PromptDefaultYes
+	PromptDefaultNeither
+)
+
+func (ui *UI) PromptYesNo(p string, def PromptDefault) (ret bool, err error) {
 	var ch string
-	if def == nil {
+	switch def {
+	case PromptDefaultNeither:
 		ch = "[y/n]"
-	} else if *def {
+	case PromptDefaultYes:
 		ch = "[Y/n]"
-	} else {
+	case PromptDefaultNo:
 		ch = "[y/N]"
 	}
 	prompt := p + " " + ch + " "
@@ -739,9 +754,14 @@ func (ui *UI) PromptYesNo(p string, def *bool) (ret bool, err error) {
 		} else if libkb.IsNo(s) {
 			ret = false
 			done = true
-		} else if def != nil && libkb.IsEmpty(s) {
-			ret = *def
-			done = true
+		} else if libkb.IsEmpty(s) {
+			if def == PromptDefaultNo {
+				ret = false
+				done = true
+			} else if def == PromptDefaultYes {
+				ret = true
+				done = true
+			}
 		}
 	}
 	return

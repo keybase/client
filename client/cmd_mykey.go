@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -63,18 +64,14 @@ func (a *MyKeyState) Prompt() (err error) {
 	return
 }
 
-func (a *MyKeyState) PromptPush() (err error) {
-
-	def := true
-	tmp := false
+func (a *MyKeyState) PromptPush() error {
 	prompt := "Publish your new public key to Keybase.io (strongly recommended)?"
-	tmp, err = G_UI.PromptYesNo(prompt, &def)
+	tmp, err := G_UI.PromptYesNo(prompt, PromptDefaultYes)
 	a.arg.NoPublicPush = !tmp
-	return
+	return err
 }
 
 func (a *MyKeyState) PromptSecretPush(def bool) (err error) {
-
 	msg := `
 Keybase can host an encrypted copy of your PGP private key on its servers.
 It can only be decrypted with your passphrase, which Keybase never knows.
@@ -82,7 +79,7 @@ It can only be decrypted with your passphrase, which Keybase never knows.
 `
 	G_UI.Output(msg)
 	prompt := "Push an encrypted copy of your private key to Keybase.io?"
-	a.arg.DoSecretPush, err = G_UI.PromptYesNo(prompt, &def)
+	a.arg.DoSecretPush, err = G_UI.PromptYesNo(prompt, PromptDefaultYes)
 	return
 }
 
