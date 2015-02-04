@@ -4,10 +4,11 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/protocol/go"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"sort"
 	"time"
+
+	keybase_1 "github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 func (sh SigHint) Export() *keybase_1.SigHint {
@@ -335,7 +336,6 @@ func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
 	ret.Configured = c.Configured
 	ret.Registered = c.Registered
 	ret.LoggedIn = c.LoggedIn
-	ret.PublicKeySelected = c.PublicKeySelected
 	if c.User != nil {
 		ret.User = c.User.Export()
 	}

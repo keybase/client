@@ -6,12 +6,10 @@ type UserInfo struct {
 }
 
 type CurrentStatus struct {
-	Configured        bool
-	Registered        bool
-	LoggedIn          bool
-	PublicKeySelected bool
-	HasPrivateKey     bool
-	User              *User
+	Configured bool
+	Registered bool
+	LoggedIn   bool
+	User       *User
 }
 
 func GetCurrentStatus() (res CurrentStatus, err error) {
@@ -23,9 +21,6 @@ func GetCurrentStatus() (res CurrentStatus, err error) {
 			res.User = NewUserThin(cr.GetUsername(), *u)
 		}
 		res.LoggedIn, err = G.Session.LoadAndCheck()
-		if fp := G.Env.GetPgpFingerprint(); fp != nil {
-			res.PublicKeySelected = true
-		}
 	}
 	return
 }
