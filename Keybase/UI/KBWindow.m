@@ -43,6 +43,7 @@
 
 + (instancetype)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain {
   KBWindow *window = [[self alloc] initWithContentView:contentView size:size];
+  // TODO: This will retain forever
   if (retain) [self registerWindow:window];
   return window;
 }

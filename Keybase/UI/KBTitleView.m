@@ -63,8 +63,9 @@
 
     CGFloat y = 0;
 
-    CGSize labelSize = [yself.label sizeThatFits:size];
+    CGSize labelSize = [yself.label sizeThatFits:CGSizeMake(size.width, 32)];
     CGRect labelRect = [layout centerWithSize:labelSize frame:CGRectMake(0, y, size.width, 32) view:yself.label];
+    //GHDebug(@"labelRect: %@, labelSize: %@, size: %@", YONSStringFromCGRect(labelRect), YONSStringFromCGSize(labelSize), YONSStringFromCGSize(size));
     [layout setFrame:CGRectMake(CGRectGetMaxX(labelRect), y + 7, 18, 18) view:yself.progressView];
     y += 32;
 

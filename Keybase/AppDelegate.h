@@ -18,7 +18,6 @@
 @property (nonatomic) KBRGetCurrentStatusRes *status;
 
 @property (readonly) KBWindowController *windowController;
-@property KBWindowController *catalogController;
 
 + (KBRPClient *)client;
 + (KBAPIClient *)APIClient;

@@ -73,11 +73,11 @@
 //    }
 
     if (!yself.button.hidden) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(40, y, 200, 0) view:yself.button];
+      [layout sizeToFitVerticalInFrame:CGRectMake(50, y, 200, 0) view:yself.button];
     }
 
     if (!yself.skipButton.hidden) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(260, y + 12, 200, 0) view:yself.skipButton];
+      [layout sizeToFitVerticalInFrame:CGRectMake(270, y + 12, 200, 0) view:yself.skipButton];
     }
 
     y += 60;

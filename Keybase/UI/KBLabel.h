@@ -11,10 +11,18 @@
 
 #import <YOLayout/YOLayout.h>
 
+typedef NS_ENUM(NSUInteger, KBTextAlignment) {
+  KBTextAlignmentTop,
+  KBTextAlignmentMiddle,
+  KBTextAlignmentBottom,
+  KBTextAlignmentBaseline,
+};
+
 @interface KBLabel : YONSView
 
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) BOOL selectable;
+@property NSTextBlockVerticalAlignment verticalAlignment;
 
 - (void)setBackgroundColor:(NSColor *)backgroundColor;
 

@@ -12,9 +12,11 @@
 #import "KBRPC.h"
 #import "KBUserProfileView.h"
 #import "KBCatalogView.h"
+#import "KBPreferences.h"
 
 @interface AppDelegate ()
 @property KBWindowController *windowController;
+@property KBPreferences *preferences;
 @property NSStatusItem *statusItem;
 @property KBRPClient *client;
 
@@ -99,12 +101,17 @@
 
 - (void)updateMenu {
   NSMenu *menu = [[NSMenu alloc] init];
+
+  [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
+
   if (_status.loggedIn) {
     // TODO: update when username bug fixed
     NSString *username = [_status.user.username gh_isPresent] ? _status.user.username : [_status.user.uid na_hexString];
     [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", username) action:@selector(logout) keyEquivalent:@""];
     [menu addItem:[NSMenuItem separatorItem]];
   }
+
+  [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
 
   _statusItem.menu = menu;
@@ -131,7 +138,10 @@
   return (AppDelegate *)[[NSApplication sharedApplication] delegate];
 }
 
-- (void)contacts:(id)sender { }
+- (void)preferences:(id)sender {
+  if (!_preferences) _preferences = [[KBPreferences alloc] init];
+  [_preferences open];
+}
 
 - (void)quit:(id)sender {
   [NSApplication.sharedApplication terminate:sender];

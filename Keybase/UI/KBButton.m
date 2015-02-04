@@ -32,7 +32,7 @@
 }
 
 - (CGSize)sizeThatFits:(NSSize)size {
-  if (self.style == KBButtonStyleLink) {
+  if (self.style == KBButtonStyleLink || self.style == KBButtonStyleCheckbox) {
     return [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
   }
 
@@ -66,7 +66,7 @@
   self.style = style;
   KBButtonCell *cell = [[KBButtonCell alloc] init];
   cell.style = style;
-  [cell setText:text alignment:(style == KBButtonStyleLink ? NSLeftTextAlignment : NSCenterTextAlignment)];
+  [cell setText:text alignment:(style == KBButtonStyleLink || style == KBButtonStyleCheckbox ? NSLeftTextAlignment : NSCenterTextAlignment)];
   self.cell = cell;
   [self setNeedsDisplay];
 }
@@ -101,6 +101,7 @@
     case KBButtonStyleDefault:
     case KBButtonStylePrimary: return [NSFont systemFontOfSize:18];
     case KBButtonStyleLink: return [NSFont systemFontOfSize:14];
+    case KBButtonStyleCheckbox: return [NSFont systemFontOfSize:14];
   }
 }
 
@@ -110,6 +111,7 @@
     case KBButtonStyleDefault: return GHNSColorFromRGB(0x333333);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0xFFFFFF);
     case KBButtonStyleLink: return self.highlighted ? GHNSColorFromRGB(0x000000) : [KBLookAndFeel selectColor];
+    case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
   }
 }
 
@@ -119,6 +121,7 @@
     case KBButtonStylePrimary:
       return GHNSColorFromRGB(0xEFEFEF);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleCheckbox: return nil;
   }
 }
 
@@ -127,6 +130,7 @@
     case KBButtonStyleDefault: return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0x286090);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleCheckbox: return nil;
   }
 }
 
@@ -137,16 +141,16 @@
     case KBButtonStyleDefault: return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : GHNSColorFromRGB(0xFFFFFF));
     case KBButtonStylePrimary: return self.highlighted ? GHNSColorFromRGB(0x286090) : GHNSColorFromRGB(0x337AB7);
     case KBButtonStyleLink: return self.highlighted ? nil : GHNSColorFromRGB(0xFFFFFF);
+    case KBButtonStyleCheckbox: return nil;
   }
 }
 
 - (NSColor *)disabledStrokeColorForState {
   switch (self.style) {
     case KBButtonStyleDefault:
-    case KBButtonStylePrimary:
-      return GHNSColorFromRGB(0xCCCCCC);
-    case KBButtonStyleLink:
-      return nil;
+    case KBButtonStylePrimary: return GHNSColorFromRGB(0xCCCCCC);
+    case KBButtonStyleLink: return nil;
+    case KBButtonStyleCheckbox: return nil;
   }
 }
 
@@ -156,6 +160,7 @@
     case KBButtonStyleDefault: return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0x2e6da4);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleCheckbox: return nil;
   }
 }
 

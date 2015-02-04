@@ -13,7 +13,7 @@
 #import "KBWebView.h"
 #import "KBKeyGenView.h"
 #import "KBProveView.h"
-#import "KBTestView.h"
+#import "KBStyleGuideView.h"
 
 
 @interface KBCatalogView ()
@@ -53,6 +53,8 @@
   if ([path gh_startsWith:@"/track/"]) [self showTrack:[path lastPathComponent]];
 
   if ([path gh_startsWith:@"/prompt/"]) [self prompt:[path lastPathComponent]];
+
+  if ([path isEqualTo:@"/style-guide"]) [self showStyleGuide];
   if ([path gh_startsWith:@"/test/"]) [self showTestView:[path lastPathComponent]];
 }
 
@@ -120,7 +122,7 @@
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
   KBWindow *window = [KBWindow windowWithContentView:userProfileView size:CGSizeMake(420, 400) retain:YES];
   window.navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:window.navigation];
-  [window setLevel:NSStatusWindowLevel];
+  [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
   [userProfileView setUser:user track:YES];
@@ -131,18 +133,22 @@
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
   KBWindow *window = [KBWindow windowWithContentView:userProfileView size:CGSizeMake(420, 400) retain:YES];
   window.navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:window.navigation];
-  [window setLevel:NSStatusWindowLevel];
+  [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
   [userProfileView setUser:user track:NO];
-  [AppDelegate.client replayRecordId:NSStringWithFormat(@"track/%@", username)];
+  if (![AppDelegate.client replayRecordId:NSStringWithFormat(@"track/%@", username)]) KBDebugAlert(@"Nothing to replay; Did you unpack the recorded data (./record.sh unpack)?");
+}
+
+- (void)showStyleGuide {
+  KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
+  KBWindow *window = [KBWindow windowWithContentView:testView size:CGSizeMake(420, 400) retain:YES];
+  window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Style Guide" navigation:window.navigation];
+  [window makeKeyAndOrderFront:nil];
 }
 
 - (void)showTestView:(NSString *)type {
-  if ([type isEqualTo:@"label"]) {
-    KBTestView *testView = [[KBTestView alloc] init];
-    [self.navigation pushView:testView animated:YES];
-  } else if ([type isEqualTo:@"prove-instructions"]) {
+  if ([type isEqualTo:@"prove-instructions"]) {
     KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
     KBRText *text = [[KBRText alloc] init];
     text.data = @"<p>Please <strong>publicly</strong> post the following to the internets, and name it <strong>hello.md</strong></p>";

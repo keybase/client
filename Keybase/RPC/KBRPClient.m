@@ -45,7 +45,9 @@
   _client.requestHandler = ^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
     // Recording
-    [blockSelf recordMethod:method params:params];
+    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+      [blockSelf recordMethod:method params:params];
+    }
 
     MPRequestHandler requestHandler = blockSelf.methods[method];
     if (!requestHandler) {
@@ -118,25 +120,41 @@
 
 #pragma mark Mock
 
+- (NSString *)directoryForRecordId:(NSString *)recordId {
+  NSString *applicationSupport = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) firstObject];
+  NSString *directory = NSStringWithFormat(@"%@/Keybase/Record/%@", applicationSupport, recordId);
+  if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil]) return nil;
+  return directory;
+}
+
 - (void)recordMethod:(NSString *)method params:(NSArray *)params {
   NSMutableArray *paramsCopy = [[NSKeyedUnarchiver unarchiveObjectWithData: [NSKeyedArchiver archivedDataWithRootObject:params]] mutableCopy];
-
-  NSString *directory = NSStringWithFormat(@"/Users/gabe/Projects/keybase/osx-client/Tests/Mocks/%@", _recordId);
-  [NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil];
+  NSString *directory = [self directoryForRecordId:_recordId];
   NSInteger index = _methodIndex++;
-  NSString *file = NSStringWithFormat(@"%@/%@--%@.json", directory, @(index), method);
+
+  NSNumberFormatter *indexFormatter = [[NSNumberFormatter alloc] init];
+  [indexFormatter setFormatWidth:4];
+  [indexFormatter setPaddingCharacter:@"0"];
+
+  NSString *file = NSStringWithFormat(@"%@/%@--%@.json", directory, [indexFormatter stringFromNumber:@(index)], method);
   KBConvertArrayTo(paramsCopy);
   [[NSJSONSerialization dataWithJSONObject:paramsCopy options:NSJSONWritingPrettyPrinted error:nil] writeToFile:file atomically:NO];
 }
 
-- (void)replayRecordId:(NSString *)recordId {
-  NSString *directory = NSStringWithFormat(@"/Users/gabe/Projects/keybase/osx-client/Tests/Mocks/%@", recordId);
+- (BOOL)replayRecordId:(NSString *)recordId {
+  NSString *directory = [self directoryForRecordId:recordId];
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
+
+  if (files.count == 0) {
+    return NO;
+  }
+
   NSMutableDictionary *fileDict = [NSMutableDictionary dictionary];
   NSInteger start = NSIntegerMax;
   NSInteger end = 0;
   for (NSString *file in files) {
     NSArray *split = [file split:@"--"];
+    if (split.count != 2) continue;
     NSInteger index = [split[0] integerValue];
 
     if (index < start) start = index;
@@ -154,6 +172,7 @@
     MPRequestHandler completion = _methods[method];
     if (completion) completion(method, params, ^(NSError *error, id result) { });
   }
+  return YES;
 }
 
 void KBConvertArrayTo(NSMutableArray *array) {

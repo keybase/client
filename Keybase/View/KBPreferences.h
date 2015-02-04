@@ -1,15 +1,15 @@
 //
-//  KBTestView.h
+//  KBPreferences.h
 //  Keybase
 //
-//  Created by Gabriel on 2/2/15.
+//  Created by Gabriel on 2/3/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-#import "KBUIDefines.h"
+@interface KBPreferences : NSObject
 
-@interface KBTestView : KBView
+- (void)open;
 
 @end

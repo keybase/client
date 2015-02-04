@@ -34,6 +34,7 @@
   [self addSubview:_imageView];
 
   _name1Label = [[KBLabel alloc] init];
+  _name1Label.verticalAlignment = KBTextAlignmentMiddle;
   [self addSubview:_name1Label];
 
   _name2Label = [[KBLabel alloc] init];

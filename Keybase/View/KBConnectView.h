@@ -35,6 +35,6 @@
 @property (weak) id<KBLoginViewDelegate> delegate;
 @end
 
-@interface KBSignupView : KBView
+@interface KBSignupView : KBView <NSTextFieldDelegate>
 @property (weak) id<KBSignupViewDelegate> delegate;
 @end

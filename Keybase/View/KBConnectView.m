@@ -14,6 +14,7 @@
 
 #import "KBLogoView.h"
 #import "KBKeyGenView.h"
+#import "KBStrengthLabel.h"
 
 @interface KBConnectView ()
 //@property KBLogoView *logoView;
@@ -41,6 +42,7 @@
 
 - (void)viewInit {
   [super viewInit];
+
   GHWeakSelf gself = self;
   _loginView = [[KBLoginView alloc] init];
   _loginView.signupButton.targetBlock = ^{
@@ -161,6 +163,11 @@
 
 @end
 
+@interface KBSignupView ()
+@property KBLabel *usernameStatusLabel;
+@property KBStrengthLabel *strengthLabel;
+@end
+
 
 @implementation KBSignupView
 
@@ -179,11 +186,19 @@
 
   _usernameField = [[KBTextField alloc] init];
   _usernameField.placeholder = @"Username";
+  _usernameField.textField.delegate = self;
   [self addSubview:_usernameField];
 
   _passwordField = [[KBSecureTextField alloc] init];
   _passwordField.placeholder = @"Passphrase";
+  _passwordField.textField.delegate = self;
   [self addSubview:_passwordField];
+
+  _strengthLabel = [[KBStrengthLabel alloc] init];
+  [self addSubview:_strengthLabel];
+
+  _usernameStatusLabel = [[KBLabel alloc] init];
+  [self addSubview:_usernameStatusLabel];
 
   _signupButton = [KBButton buttonWithText:@"Sign Up" style:KBButtonStylePrimary];
   _signupButton.targetBlock = ^{
@@ -200,14 +215,25 @@
   _passwordField.nextKeyView = _loginButton;
   _loginButton.nextKeyView = _usernameField;
 
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.SelectKey" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+    completion(nil, response);
+  }];
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 60;
 
     //y += [layout setFrame:CGRectMake(20, y, size.width - 40, 22) view:yself.inviteField].size.height + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 40;
+
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height;
+    [layout setFrame:CGRectMake(size.width - 80 - 40, y - 22, 80, 24) view:yself.usernameStatusLabel];
+    y += 10;
+
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height;
+    [layout setFrame:CGRectMake(size.width - 80 - 40, y - 22, 80, 24) view:yself.strengthLabel];
+    y += 40;
 
     CGRect buttonFrame = [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.signupButton];
     y += buttonFrame.size.height + 10;
@@ -219,6 +245,38 @@
 
 - (void)viewDidAppear:(BOOL)animated {
   [self.window makeFirstResponder:_emailField];
+}
+
+- (void)controlTextDidChange:(NSNotification *)notification {
+  NSTextField *textField = [notification object];
+  if (textField == _usernameField.textField) _usernameStatusLabel.attributedText = nil;
+  else if (textField == _passwordField.textField) [self checkPassword];
+}
+
+- (void)controlTextDidEndEditing:(NSNotification *)notification {
+  NSTextField *textField = [notification object];
+  if (textField == _usernameField.textField) [self checkUsername];
+}
+
+- (void)checkPassword {
+  NSString *password = [_passwordField.text gh_strip];
+  [_strengthLabel setPassword:password];
+}
+
+- (void)checkUsername {
+  NSString *userName = [_usernameField.text gh_strip];
+
+  GHWeakSelf gself = self;
+  [AppDelegate.APIClient checkForUserName:userName success:^(BOOL exists) {
+    if (!exists) {
+      [gself.usernameStatusLabel setText:@"OK" font:[NSFont systemFontOfSize:12] color:[KBLookAndFeel okColor] alignment:NSRightTextAlignment];
+    } else {
+      [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:[KBLookAndFeel errorColor] alignment:NSRightTextAlignment];
+    }
+  } failure:^(NSError *error) {
+    GHErr(@"Error: %@", error);
+    gself.usernameStatusLabel.attributedText = nil;
+  }];
 }
 
 - (void)signup {

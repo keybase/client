@@ -32,9 +32,21 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGSize textSize = [KBLabel sizeThatFits:size attributedString:yself.textView.attributedString];
-    [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, size.width, textSize.height + 20)) view:yself.textView];
-    [layout setSize:size view:yself.border options:0];
-    return size;
+    if (yself.border) {
+      textSize.width += yself.border.borderRect.size.width;
+      textSize.height += yself.border.borderRect.size.height;
+    }
+
+    if (size.height > 0 && self.verticalAlignment == KBTextAlignmentMiddle) {
+      [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, textSize.width, textSize.height)) view:yself.textView];
+      [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
+      return CGSizeMake(textSize.width, size.height);
+    } else {
+      CGSize textSize = [KBLabel sizeThatFits:size attributedString:yself.textView.attributedString];
+      [layout setSize:textSize view:yself.textView options:0];
+      [layout setSize:textSize view:yself.border options:0];
+      return textSize;
+    }
   }];
 }
 
@@ -112,6 +124,10 @@
   if (_attributedText) {
     NSAssert(_textView.textStorage, @"No text storage");
     [_textView.textStorage setAttributedString:attributedText];
+  } else {
+    if (_textView.textStorage.length > 0) {
+      [_textView.textStorage deleteCharactersInRange:NSMakeRange(0, _textView.textStorage.length)];
+    }
   }
   [self setNeedsLayout];
 }
@@ -129,13 +145,14 @@
   (void)[layoutManager glyphRangeForTextContainer:textContainer];
 
   NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
-  rect.size.height += 3; // For descenders to not get clipped? TODO: Fixme
+  //rect.size.height += 1; // For descenders to not get clipped? TODO: Fixme
+
   return CGRectIntegral(rect).size;
 }
 
-- (CGSize)sizeThatFits:(CGSize)size {
-  return [KBLabel sizeThatFits:size attributedString:_textView.attributedString];
-}
+//- (CGSize)sizeThatFits:(CGSize)size {
+//  return [KBLabel sizeThatFits:size attributedString:_textView.attributedString];
+//}
 
 + (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter {
   NSMutableAttributedString *text = [[NSMutableAttributedString alloc] init];

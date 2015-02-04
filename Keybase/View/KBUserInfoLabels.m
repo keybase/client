@@ -25,6 +25,7 @@
 - (void)viewInit {
   [super viewInit];
   _headerLabel = [[KBLabel alloc] init];
+  _headerLabel.verticalAlignment = KBTextAlignmentMiddle;
   [self addSubview:_headerLabel];
 
   _imageView = [[KBImageView alloc] init];
@@ -42,7 +43,7 @@
 
     if ([yself.headerLabel hasText]) {
       CGSize headerLabelSize = [yself.headerLabel sizeThatFits:size];
-      [layout setFrame:CGRectMake(x - headerLabelSize.width, 0, headerLabelSize.width, lineHeight) view:yself.headerLabel];
+      [layout setFrame:CGRectMake(x - headerLabelSize.width, 0, headerLabelSize.width, lineHeight + 1) view:yself.headerLabel];
     }
 
     if (yself.imageView.image) {
