@@ -39,7 +39,9 @@ type ComputedKeyInfo struct {
 	RevokedAt   *KeybaseTime
 }
 
-// As returned by user/lookup.json
+// As returned by user/lookup.json; these records are not to be trusted,
+// we need to Verify this data against the sigchain as we play the sigchain
+// forward.
 type ServerKeyRecord struct {
 	Kid            string  `json:"kid"`
 	KeyType        int     `json:"key_type"`
@@ -93,6 +95,9 @@ type KeyFamily struct {
 	Subkeys KeyMap `json:"subkeys"`
 }
 
+// ComputedKeyFamily is a joining of two sets of data; the KeyFamily is
+// what the server returned and is not to be trusted; the ComputedKeyInfos
+// is what we compute as a result of playing the user's sigchain forward.
 type ComputedKeyFamily struct {
 	kf  *KeyFamily
 	cki *ComputedKeyInfos
