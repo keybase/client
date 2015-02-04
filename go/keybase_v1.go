@@ -1067,8 +1067,8 @@ func (c ProveUiClient) DisplayRecheckWarning(__arg DisplayRecheckWarningArg) (er
 	return
 }
 
-type Session struct {
-	Uid       string `codec:"uid"`
+type SessionToken struct {
+	Uid       UID    `codec:"uid"`
 	Sid       string `codec:"sid"`
 	Generated int    `codec:"generated"`
 	Lifetime  int    `codec:"lifetime"`
@@ -1079,7 +1079,7 @@ type VerifySessionArg struct {
 }
 
 type QuotaInterface interface {
-	VerifySession(string) (Session, error)
+	VerifySession(string) (SessionToken, error)
 }
 
 func QuotaProtocol(i QuotaInterface) rpc2.Protocol {
@@ -1102,7 +1102,7 @@ type QuotaClient struct {
 	Cli GenericClient
 }
 
-func (c QuotaClient) VerifySession(session string) (res Session, err error) {
+func (c QuotaClient) VerifySession(session string) (res SessionToken, err error) {
 	__arg := VerifySessionArg{Session: session}
 	err = c.Cli.Call("keybase.1.quota.verifySession", []interface{}{__arg}, &res)
 	return
@@ -1191,6 +1191,11 @@ func (c SecretUiClient) GetNewPassphrase(__arg GetNewPassphraseArg) (res string,
 func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res string, err error) {
 	err = c.Cli.Call("keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
 	return
+}
+
+type Session struct {
+	Uid      UID    `codec:"uid"`
+	Username string `codec:"username"`
 }
 
 type CurrentSessionArg struct {

@@ -447,11 +447,11 @@
 
 @end
 
-@implementation KBRSession
+@implementation KBRSessionToken
 @end
 
 @implementation KBRQuotaRequest
-- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, KBRSession * session))completion {
+- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, KBRSessionToken * sessionToken))completion {
 
   NSArray *params = @[@{@"session": KBRValue(session)}];
   [self.client sendRequestWithMethod:@"keybase.1.quota.verifySession" params:params completion:^(NSError *error, NSDictionary *dict) {
@@ -459,7 +459,7 @@
         completion(error, nil);
         return;
       }
-      KBRSession *result = [MTLJSONAdapter modelOfClass:KBRSession.class fromJSONDictionary:dict error:&error];
+      KBRSessionToken *result = [MTLJSONAdapter modelOfClass:KBRSessionToken.class fromJSONDictionary:dict error:&error];
       completion(error, result);
   }];
 }
@@ -502,6 +502,9 @@
   }];
 }
 
+@end
+
+@implementation KBRSession
 @end
 
 @implementation KBRSessionRequest
