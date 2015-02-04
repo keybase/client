@@ -3,6 +3,13 @@
   "namespace" : "keybase.1",
   "types" : [ ],
   "messages" : {
+    "announceSession" : {
+      "request" : [ {
+        "name" : "sid",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "get" : {
       "request" : [ {
         "name" : "blockid",

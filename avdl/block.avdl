@@ -2,6 +2,7 @@
 
 protocol block {
 
+	void announceSession(string sid);
 	bytes get(bytes blockid);
 	void delete(bytes blockid);
 	void put(bytes blockid, bytes buf);

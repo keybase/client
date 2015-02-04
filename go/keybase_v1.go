@@ -8,6 +8,10 @@ type GenericClient interface {
 	Call(s string, args interface{}, res interface{}) error
 }
 
+type AnnounceSessionArg struct {
+	Sid string `codec:"sid"`
+}
+
 type GetArg struct {
 	Blockid []byte `codec:"blockid"`
 }
@@ -22,6 +26,7 @@ type PutArg struct {
 }
 
 type BlockInterface interface {
+	AnnounceSession(string) error
 	Get([]byte) ([]byte, error)
 	Delete([]byte) error
 	Put(PutArg) error
@@ -31,6 +36,13 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.block",
 		Methods: map[string]rpc2.ServeHook{
+			"announceSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]AnnounceSessionArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.AnnounceSession(args[0].Sid)
+				}
+				return
+			},
 			"get": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetArg, 1)
 				if err = nxt(&args); err == nil {
@@ -59,6 +71,12 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 
 type BlockClient struct {
 	Cli GenericClient
+}
+
+func (c BlockClient) AnnounceSession(sid string) (err error) {
+	__arg := AnnounceSessionArg{Sid: sid}
+	err = c.Cli.Call("keybase.1.block.announceSession", []interface{}{__arg}, nil)
+	return
 }
 
 func (c BlockClient) Get(blockid []byte) (res []byte, err error) {
