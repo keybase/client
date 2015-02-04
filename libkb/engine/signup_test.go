@@ -83,3 +83,24 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestLocalKeySecurity(t *testing.T) {
+	tc := libkb.SetupTest(t, "signup")
+	defer tc.Cleanup()
+	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
+	username, email := fakeUser(t, "se")
+	passphrase := fakePassphrase(t)
+	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", true}
+	err := s.Run(arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ch := s.tspkey.LksClientHalf()
+
+	lks := libkb.NewLKSecClientHalf(ch)
+	err = lks.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
