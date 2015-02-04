@@ -4,11 +4,11 @@
 protocol quota {
 
 	record Session {
-		string uid;
+		UID uid;
 		string sid;
 		int generated;
 		int lifetime;	
 	}
-	
+
 	Session verifySession(string session);
 }
