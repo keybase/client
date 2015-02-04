@@ -21,6 +21,9 @@ type KeybaseTime struct {
 	Chain int   // Merkle root chain time
 }
 
+// ComputedKeyInfo is a set of annotations that we apply to a ServerKeyRecord.
+// Everything here has been checked by the client. Each ComputedKeyInfo
+// refers to exactly one ServerKeyInfo.
 type ComputedKeyInfo struct {
 	Status int
 	Eldest bool
@@ -39,7 +42,9 @@ type ComputedKeyInfo struct {
 	RevokedAt   *KeybaseTime
 }
 
-// As returned by user/lookup.json
+// As returned by user/lookup.json; these records are not to be trusted,
+// we need to Verify this data against the sigchain as we play the sigchain
+// forward.
 type ServerKeyRecord struct {
 	Kid            string  `json:"kid"`
 	KeyType        int     `json:"key_type"`
@@ -83,7 +88,9 @@ type ComputedKeyInfos struct {
 	WebDevice *Device
 }
 
-// As returned by user/lookup.json
+// As returned by user/lookup.json; these records are not to be trusted,
+// we need to Verify this data against the sigchain as we play the sigchain
+// forward.
 type KeyFamily struct {
 	eldest  *FOKID
 	pgps    []*PgpKeyBundle
@@ -93,6 +100,9 @@ type KeyFamily struct {
 	Subkeys KeyMap `json:"subkeys"`
 }
 
+// ComputedKeyFamily is a joining of two sets of data; the KeyFamily is
+// what the server returned and is not to be trusted; the ComputedKeyInfos
+// is what we compute as a result of playing the user's sigchain forward.
 type ComputedKeyFamily struct {
 	kf  *KeyFamily
 	cki *ComputedKeyInfos
