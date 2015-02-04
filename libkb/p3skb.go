@@ -131,7 +131,6 @@ func (p *P3SKB) VerboseDescription() (ret string, err error) {
 	return
 }
 
-// func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key GenericKey, err error) {
 func (p *P3SKB) UnlockSecretKey(passphrase string) (key GenericKey, err error) {
 	if key = p.decryptedSecret; key != nil {
 		return
@@ -424,14 +423,6 @@ func (p *P3SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret G
 	}
 
 	unlocker := func(pw string) (ret GenericKey, err error) {
-		/*
-			var tsec *triplesec.Cipher
-			tsec, err = triplesec.NewCipher([]byte(pw), nil)
-			if err == nil {
-				ret, err = p.UnlockSecretKey(tsec)
-			}
-			return
-		*/
 		return p.UnlockSecretKey(pw)
 	}
 
