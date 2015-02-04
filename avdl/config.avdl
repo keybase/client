@@ -8,8 +8,6 @@ protocol config {
 		boolean configured;
 		boolean registered;
 		boolean loggedIn;
-		boolean publicKeySelected;
-		boolean hasPrivateKey;
 		union { null, User } user;
 	}
 

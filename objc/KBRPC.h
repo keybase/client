@@ -54,8 +54,6 @@
 @property BOOL configured;
 @property BOOL registered;
 @property BOOL loggedIn;
-@property BOOL publicKeySelected;
-@property BOOL hasPrivateKey;
 @property KBRUser *user;
 @end
 

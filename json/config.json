@@ -97,12 +97,6 @@
       "name" : "loggedIn",
       "type" : "boolean"
     }, {
-      "name" : "publicKeySelected",
-      "type" : "boolean"
-    }, {
-      "name" : "hasPrivateKey",
-      "type" : "boolean"
-    }, {
       "name" : "user",
       "type" : [ "null", "User" ]
     } ]

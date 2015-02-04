@@ -115,12 +115,10 @@ type User struct {
 
 type SIGID [32]byte
 type GetCurrentStatusRes struct {
-	Configured        bool  `codec:"configured"`
-	Registered        bool  `codec:"registered"`
-	LoggedIn          bool  `codec:"loggedIn"`
-	PublicKeySelected bool  `codec:"publicKeySelected"`
-	HasPrivateKey     bool  `codec:"hasPrivateKey"`
-	User              *User `codec:"user,omitempty"`
+	Configured bool  `codec:"configured"`
+	Registered bool  `codec:"registered"`
+	LoggedIn   bool  `codec:"loggedIn"`
+	User       *User `codec:"user,omitempty"`
 }
 
 type GetCurrentStatusArg struct {
