@@ -103,4 +103,18 @@ func TestLocalKeySecurity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	text := "the people on the bus go up and down, up and down, up and down"
+	enc, err := lks.Encrypt([]byte(text))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dec, err := lks.Decrypt(enc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(dec) != text {
+		t.Errorf("decrypt: %q, expected %q", string(dec), text)
+	}
 }

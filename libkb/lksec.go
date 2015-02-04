@@ -3,7 +3,11 @@ package libkb
 import (
 	"encoding/hex"
 	"fmt"
+
+	"golang.org/x/crypto/nacl/secretbox"
 )
+
+const LKSecVersion = 100
 
 type LKSec struct {
 	serverHalf []byte
@@ -54,12 +58,35 @@ func (s *LKSec) Load() error {
 	return nil
 }
 
-func (s *LKSec) Encrypt() error {
-	return nil
+func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
+	nonce, err := RandBytes(24)
+	if err != nil {
+		return nil, err
+	}
+	var fnonce [24]byte
+	copy(fnonce[:], nonce)
+	fs := s.fsecret()
+	box := secretbox.Seal(nil, src, &fnonce, &fs)
+
+	return append(nonce, box...), nil
 }
 
-func (s *LKSec) Decrypt() error {
-	return nil
+func (s *LKSec) Decrypt(src []byte) ([]byte, error) {
+	var nonce [24]byte
+	copy(nonce[:], src[0:24])
+	data := src[24:]
+	fs := s.fsecret()
+	res, ok := secretbox.Open(nil, data, &nonce, &fs)
+	if !ok {
+		return nil, fmt.Errorf("failed to open secretbox")
+	}
+
+	return res, nil
+}
+
+func (s *LKSec) fsecret() (res [32]byte) {
+	copy(res[:], s.secret)
+	return res
 }
 
 type device struct {

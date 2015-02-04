@@ -1,13 +1,13 @@
 package libkb
 
 import (
-	"github.com/agl/ed25519"
-	"golang.org/x/crypto/nacl/box"
-	// "golang.org/x/crypto/nacl/secretbox"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"github.com/keybase/go-triplesec"
+
+	"github.com/agl/ed25519"
+	triplesec "github.com/keybase/go-triplesec"
+	"golang.org/x/crypto/nacl/box"
 )
 
 type NaclSig struct {
@@ -362,6 +362,32 @@ func (k NaclDHKeyPair) ToP3SKB(t *triplesec.Cipher) (*P3SKB, error) {
 	ret.Type = KID_NACL_DH
 	ret.Priv.Encryption = 0
 	ret.Priv.Data = (*k.Private)[:]
+	return ret, nil
+}
+
+func (k NaclSigningKeyPair) ToLksP3SKB(lks *LKSec) (*P3SKB, error) {
+	data, err := lks.Encrypt(k.Private[:])
+	if err != nil {
+		return nil, err
+	}
+	ret := &P3SKB{}
+	ret.Pub = k.GetKid()
+	ret.Type = KID_NACL_EDDSA
+	ret.Priv.Encryption = LKSecVersion
+	ret.Priv.Data = data
+	return ret, nil
+}
+
+func (k NaclDHKeyPair) ToLksP3SKB(lks *LKSec) (*P3SKB, error) {
+	data, err := lks.Encrypt(k.Private[:])
+	if err != nil {
+		return nil, err
+	}
+	ret := &P3SKB{}
+	ret.Pub = k.GetKid()
+	ret.Type = KID_NACL_DH
+	ret.Priv.Encryption = LKSecVersion
+	ret.Priv.Data = data
 	return ret, nil
 }
 

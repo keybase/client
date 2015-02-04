@@ -9,10 +9,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/keybase/go-triplesec"
-	"golang.org/x/crypto/openpgp"
 	"io"
 	"os"
+
+	triplesec "github.com/keybase/go-triplesec"
+	"golang.org/x/crypto/openpgp"
 )
 
 type P3SKB struct {
@@ -59,6 +60,34 @@ func (key *PgpKeyBundle) ToP3SKB(tsec *triplesec.Cipher) (ret *P3SKB, err error)
 	ret.Type = key.GetAlgoType()
 
 	return
+}
+
+func (key *PgpKeyBundle) ToLksP3SKB(lks *LKSec) (ret *P3SKB, err error) {
+	if lks == nil {
+		return nil, fmt.Errorf("nil lks")
+	}
+	var pk, sk bytes.Buffer
+
+	err = (*openpgp.Entity)(key).SerializePrivate(&sk, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ret = &P3SKB{}
+	ret.Priv.Data, err = lks.Encrypt(sk.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	ret.Priv.Encryption = LKSecVersion
+
+	err = (*openpgp.Entity)(key).Serialize(&pk)
+	if err != nil {
+		return nil, err
+	}
+	ret.Pub = pk.Bytes()
+	ret.Type = key.GetAlgoType()
+
+	return ret, nil
 }
 
 func (p *P3SKB) ToPacket() (ret *KeybasePacket, err error) {

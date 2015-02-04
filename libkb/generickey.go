@@ -3,8 +3,9 @@ package libkb
 import (
 	"encoding/base64"
 	"encoding/hex"
-	"github.com/keybase/go-jsonw"
-	"github.com/keybase/go-triplesec"
+
+	jsonw "github.com/keybase/go-jsonw"
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 type KID []byte
@@ -18,6 +19,7 @@ type GenericKey interface {
 	Verify(string, []byte) (*SigId, error)
 	VerifyAndExtract(string) ([]byte, *SigId, error)
 	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
+	ToLksP3SKB(lks *LKSec) (*P3SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
 	CanSign() bool
