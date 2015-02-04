@@ -23,6 +23,7 @@ build-stamp: \
 	json/login_ui.json \
 	json/prove.json \
 	json/prove_ui.json \
+	json/quota.json \
 	json/secret_ui.json \
 	json/session.json \
 	json/signup.json \

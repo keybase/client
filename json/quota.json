@@ -1,0 +1,30 @@
+{
+  "protocol" : "quota",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Session",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "string"
+    }, {
+      "name" : "sid",
+      "type" : "string"
+    }, {
+      "name" : "generated",
+      "type" : "int"
+    }, {
+      "name" : "lifetime",
+      "type" : "int"
+    } ]
+  } ],
+  "messages" : {
+    "verifySession" : {
+      "request" : [ {
+        "name" : "session",
+        "type" : "string"
+      } ],
+      "response" : "Session"
+    }
+  }
+}

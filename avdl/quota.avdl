@@ -1,0 +1,14 @@
+
+@namespace("keybase.1")
+
+protocol quota {
+
+	record Session {
+		string uid;
+		string sid;
+		int generated;
+		int lifetime;	
+	}
+	
+	Session verifySession(string session);
+}

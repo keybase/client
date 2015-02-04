@@ -307,6 +307,18 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
+@interface KBRSession : KBRObject
+@property NSString *uid;
+@property NSString *sid;
+@property NSInteger generated;
+@property NSInteger lifetime;
+@end
+
+@interface KBRQuotaRequest : KBRRequest
+- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, KBRSession * session))completion;
+
+@end
+
 @interface KBRSecretEntryArg : KBRObject
 @property NSString *desc;
 @property NSString *prompt;
@@ -327,11 +339,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString * str))completion;
 
-@end
-
-@interface KBRSession : KBRObject
-@property KBRUID *uid;
-@property NSString *username;
 @end
 
 @interface KBRSessionRequest : KBRRequest

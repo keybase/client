@@ -447,6 +447,25 @@
 
 @end
 
+@implementation KBRSession
+@end
+
+@implementation KBRQuotaRequest
+- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, KBRSession * session))completion {
+
+  NSArray *params = @[@{@"session": KBRValue(session)}];
+  [self.client sendRequestWithMethod:@"keybase.1.quota.verifySession" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRSession *result = [MTLJSONAdapter modelOfClass:KBRSession.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBRSecretEntryArg
 @end
 
@@ -483,9 +502,6 @@
   }];
 }
 
-@end
-
-@implementation KBRSession
 @end
 
 @implementation KBRSessionRequest
