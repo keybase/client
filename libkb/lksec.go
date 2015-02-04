@@ -44,13 +44,12 @@ func (s *LKSec) Load() error {
 		return fmt.Errorf("client half not set")
 	}
 
-	// get device id from config
 	devid := G.Env.GetDeviceId()
 	if devid == nil {
 		return fmt.Errorf("no device id set")
 	}
 
-	if err := s.apiServerHalf(devid.String()); err != nil {
+	if err := s.apiServerHalf(devid); err != nil {
 		return err
 	}
 
@@ -101,41 +100,14 @@ func (s *LKSec) fsecret() (res [32]byte) {
 	return res
 }
 
-type device struct {
-	Type          int    `json:"type"`
-	CTime         int64  `json:"ctime"`
-	MTime         int64  `json:"mtime"`
-	Description   string `json:"description"`
-	Status        int    `json:"status"`
-	LksServerHalf string `json:"lks_server_half"`
-}
-
-func (s *LKSec) apiServerHalf(devid string) error {
-	res, err := G.API.Get(ApiArg{
-		Endpoint:    "key/fetch_private",
-		Args:        HttpArgs{},
-		NeedSession: true,
-	})
+func (s *LKSec) apiServerHalf(devid *DeviceId) error {
+	if err := G.SecretSyncer.Load(*(G.Env.GetUid())); err != nil {
+		return err
+	}
+	dev, err := G.SecretSyncer.FindDevice(devid)
 	if err != nil {
 		return err
-	}
-
-	var devs struct {
-		Devices map[string]device `json:"devices"`
-	}
-	if err = res.Body.UnmarshalAgain(&devs); err != nil {
-		return err
-	}
-	G.Log.Info("devices: %+v", devs.Devices)
-
-	dev, ok := devs.Devices[devid]
-	if !ok {
-		return fmt.Errorf("Device ID %s not found in server devices table.", devid)
 	}
 	s.serverHalf, err = hex.DecodeString(dev.LksServerHalf)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

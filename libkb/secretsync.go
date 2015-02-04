@@ -19,11 +19,23 @@ type ServerPrivateKey struct {
 
 type ServerPrivateKeyMap map[string]ServerPrivateKey
 
+type DeviceKey struct {
+	Type          int    `json:"type"`
+	CTime         int64  `json:"ctime"`
+	MTime         int64  `json:"mtime"`
+	Description   string `json:"description"`
+	Status        int    `json:"status"`
+	LksServerHalf string `json:"lks_server_half"`
+}
+
+type DeviceKeyMap map[string]DeviceKey
+
 type ServerPrivateKeys struct {
 	Status      ApiStatus           `json:"status"`
 	Version     int                 `json:"version"`
 	Mtime       *int                `json:"mtime"`
 	PrivateKeys ServerPrivateKeyMap `json:"private_keys"`
+	Devices     DeviceKeyMap        `json:"devices"`
 }
 
 type SecretSyncer struct {
@@ -155,4 +167,12 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *P3SKB, er
 		return
 	}
 	return packet.ToP3SKB()
+}
+
+func (ss *SecretSyncer) FindDevice(id *DeviceId) (DeviceKey, error) {
+	dev, ok := ss.keys.Devices[id.String()]
+	if !ok {
+		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)
+	}
+	return dev, nil
 }
