@@ -131,19 +131,23 @@ func (p *P3SKB) VerboseDescription() (ret string, err error) {
 	return
 }
 
-func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key GenericKey, err error) {
+// func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key GenericKey, err error) {
+func (p *P3SKB) UnlockSecretKey(passphrase string) (key GenericKey, err error) {
 	if key = p.decryptedSecret; key != nil {
 		return
 	}
 	var unlocked []byte
 
-	if p.Priv.Encryption == 0 {
+	switch p.Priv.Encryption {
+	case 0:
 		unlocked = p.Priv.Data
-	} else if unlocked, err = tsec.Decrypt(p.Priv.Data); err != nil {
-		if _, ok := err.(triplesec.BadPassphraseError); ok {
-			err = PassphraseError{}
-		}
-		return
+	case int(triplesec.Version):
+		unlocked, err = p.tsecUnlock(passphrase)
+	case LKSecVersion:
+		unlocked, err = p.lksUnlock(passphrase)
+	}
+	if err != nil {
+		return key, err
 	}
 
 	switch {
@@ -159,6 +163,35 @@ func (p *P3SKB) UnlockSecretKey(tsec *triplesec.Cipher) (key GenericKey, err err
 		p.decryptedSecret = key
 	}
 	return
+}
+
+func (p *P3SKB) tsecUnlock(passphrase string) ([]byte, error) {
+	tsec, err := triplesec.NewCipher([]byte(passphrase), nil)
+	if err != nil {
+		return nil, err
+	}
+	unlocked, err := tsec.Decrypt(p.Priv.Data)
+	if err != nil {
+		if _, ok := err.(triplesec.BadPassphraseError); ok {
+			err = PassphraseError{}
+		}
+		return nil, err
+	}
+	return unlocked, nil
+}
+
+func (p *P3SKB) lksUnlock(passphrase string) ([]byte, error) {
+	pwsalt := G.Env.GetSalt()
+	tpk, err := NewTSPassKey(passphrase, pwsalt)
+	if err != nil {
+		return nil, err
+	}
+	lks := NewLKSecClientHalf(tpk.LksClientHalf())
+	unlocked, err := lks.Decrypt(p.Priv.Data)
+	if err != nil {
+		return nil, err
+	}
+	return unlocked, nil
 }
 
 type P3SKBKeyringFile struct {
@@ -371,16 +404,19 @@ func (p *P3SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret G
 		return
 	}
 
-	// First try the triplsec that we have loaded in (if at all)
-	if tsec := G.LoginState.GetCachedTriplesec(); tsec != nil {
-		ret, err = p.UnlockSecretKey(tsec)
-		if err == nil {
-		} else if _, ok := err.(PassphraseError); ok {
-			err = nil
-		} else {
-			return
+	// this won't work with triplesec and lks keys...
+	/*
+		// First try the triplsec that we have loaded in (if at all)
+		if tsec := G.LoginState.GetCachedTriplesec(); tsec != nil {
+			ret, err = p.UnlockSecretKey(tsec)
+			if err == nil {
+			} else if _, ok := err.(PassphraseError); ok {
+				err = nil
+			} else {
+				return
+			}
 		}
-	}
+	*/
 
 	var desc string
 	if desc, err = p.VerboseDescription(); err != nil {
@@ -388,12 +424,15 @@ func (p *P3SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret G
 	}
 
 	unlocker := func(pw string) (ret GenericKey, err error) {
-		var tsec *triplesec.Cipher
-		tsec, err = triplesec.NewCipher([]byte(pw), nil)
-		if err == nil {
-			ret, err = p.UnlockSecretKey(tsec)
-		}
-		return
+		/*
+			var tsec *triplesec.Cipher
+			tsec, err = triplesec.NewCipher([]byte(pw), nil)
+			if err == nil {
+				ret, err = p.UnlockSecretKey(tsec)
+			}
+			return
+		*/
+		return p.UnlockSecretKey(pw)
 	}
 
 	return KeyUnlocker{

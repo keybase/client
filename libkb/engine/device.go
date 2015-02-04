@@ -12,7 +12,9 @@ const deviceType = "desktop"
 type DeviceEngine struct {
 	deviceName    string
 	deviceID      libkb.DeviceId
+	lksEncKey     []byte
 	lksClientHalf []byte
+	lks           *libkb.LKSec
 	me            *libkb.User
 	eldestKey     libkb.NaclKeyPair
 	logui         libkb.LogUI
@@ -32,17 +34,14 @@ func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) (err error) 
 	if d.deviceID, err = libkb.NewDeviceId(); err != nil {
 		return
 	}
-	// do we need this?
-	/*
-		d.localEncKey, err = RandBytes(32)
-		if err != nil {
-			return err
-		}
-	*/
+	d.lksEncKey, err = libkb.RandBytes(len(d.lksClientHalf))
+	if err != nil {
+		return err
+	}
+	d.lks = libkb.NewLKSecSecret(d.lksEncKey)
 
 	G.Log.Debug("Device name:   %s", d.deviceName)
 	G.Log.Debug("Device ID:     %x", d.deviceID)
-	// G.Log.Info("Local Enc Key: %x", d.localEncKey)
 
 	if err = d.pushEldestKey(); err != nil {
 		return err
@@ -75,6 +74,10 @@ func (d *DeviceEngine) EldestKey() libkb.GenericKey {
 	return d.eldestKey
 }
 
+func (d *DeviceEngine) LKSKey() []byte {
+	return d.lksEncKey
+}
+
 func (d *DeviceEngine) pushEldestKey() error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Generator: libkb.GenerateNaclSigningKeyPair,
@@ -83,7 +86,7 @@ func (d *DeviceEngine) pushEldestKey() error {
 		Device:    d.device(),
 		LogUI:     d.logui,
 	})
-	err := gen.Run()
+	err := gen.RunLKS(d.lks)
 	if err != nil {
 		return err
 	}
@@ -103,7 +106,7 @@ func (d *DeviceEngine) pushDHKey() error {
 		LogUI:     d.logui,
 	})
 
-	return gen.Run()
+	return gen.RunLKS(d.lks)
 }
 
 func (d *DeviceEngine) pushLocalKeySec() error {
@@ -111,17 +114,11 @@ func (d *DeviceEngine) pushLocalKeySec() error {
 		return fmt.Errorf("no local key security client half key set")
 	}
 
-	// 1. generate random secret key
-	localEncKey, err := libkb.RandBytes(len(d.lksClientHalf))
-	if err != nil {
-		return err
-	}
-
-	// 2. xor localEncKey with LksClientHalf bytes from tspasskey
+	// xor d.lksEncKey with LksClientHalf bytes from tspasskey
 	serverHalf := make([]byte, len(d.lksClientHalf))
-	libkb.XORBytes(serverHalf, localEncKey, d.lksClientHalf)
+	libkb.XORBytes(serverHalf, d.lksEncKey, d.lksClientHalf)
 
-	// 3. send it to api server
+	// send it to api server
 	return libkb.PostDeviceLKS(d.deviceID.String(), deviceType, serverHalf)
 }
 

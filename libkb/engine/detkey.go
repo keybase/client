@@ -3,6 +3,7 @@ package engine
 import (
 	"bytes"
 	"encoding/hex"
+
 	"github.com/agl/ed25519"
 	"github.com/keybase/go/libkb"
 	"golang.org/x/crypto/nacl/box"
@@ -11,6 +12,7 @@ import (
 type DetKeyEngine struct {
 	me         *libkb.User
 	signingKey libkb.GenericKey
+	lks        *libkb.LKSec
 	logui      libkb.LogUI
 }
 
@@ -18,11 +20,27 @@ func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, logui libkb.Lo
 	return &DetKeyEngine{me: me, signingKey: signingKey, logui: logui}
 }
 
-func (d *DetKeyEngine) Run(eddsaSeed, dhSeed []byte) error {
-	if err := d.eddsa(eddsaSeed); err != nil {
+// Run runs the detkey engine.
+func (d *DetKeyEngine) Run(tpk *libkb.TSPassKey) error {
+	d.lks = libkb.NewLKSecClientHalf(tpk.LksClientHalf())
+	return d.run(tpk)
+}
+
+// RunWithLKSLoaded runs the detkey engine with the local key
+// security secret key known in advance.  This saves an API
+// call to get the server half.  For example, during
+// the signup process, the secret key is known, so it uses this
+// Run function.
+func (d *DetKeyEngine) RunWithLKSLoaded(tpk *libkb.TSPassKey, lksKey []byte) error {
+	d.lks = libkb.NewLKSecSecret(lksKey)
+	return d.run(tpk)
+}
+
+func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {
+	if err := d.eddsa(tpk.EdDSASeed()); err != nil {
 		return err
 	}
-	if err := d.dh(dhSeed); err != nil {
+	if err := d.dh(tpk.DHSeed()); err != nil {
 		return err
 	}
 	return nil
@@ -90,7 +108,7 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 	sig, sigid, linkid, err := libkb.SignJson(jw, d.signingKey)
 
 	// save it to local keyring:
-	_, err = libkb.WriteP3SKBToKeyring(key, nil, d.logui)
+	_, err = libkb.WriteLksP3SKBToKeyring(key, d.lks, d.logui)
 	if err != nil {
 		return err
 	}

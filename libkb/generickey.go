@@ -77,7 +77,16 @@ func (k KID) Eq(k2 KID) bool {
 	return SecureByteArrayEq([]byte(k), []byte(k2))
 }
 
-func WriteP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *P3SKB, err error) {
+func WriteLksP3SKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (p3skb *P3SKB, err error) {
+	if G.Keyrings == nil {
+		err = NoKeyringsError{}
+	} else if p3skb, err = k.ToLksP3SKB(lks); err == nil {
+		err = G.Keyrings.P3SKB.PushAndSave(p3skb, lui)
+	}
+	return
+}
+
+func WriteTsecP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *P3SKB, err error) {
 	if G.Keyrings == nil {
 		err = NoKeyringsError{}
 	} else if p3skb, err = k.ToP3SKB(tsec); err == nil {

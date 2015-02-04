@@ -25,6 +25,12 @@ func NewLKSecClientHalf(clientHalf []byte) *LKSec {
 	return s
 }
 
+func NewLKSecSecret(secret []byte) *LKSec {
+	s := NewLKSec()
+	s.secret = secret
+	return s
+}
+
 func (s *LKSec) SetClientHalf(b []byte) {
 	s.clientHalf = b
 }
@@ -59,6 +65,9 @@ func (s *LKSec) Load() error {
 }
 
 func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
+	if err := s.Load(); err != nil {
+		return nil, err
+	}
 	nonce, err := RandBytes(24)
 	if err != nil {
 		return nil, err
@@ -72,6 +81,9 @@ func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
 }
 
 func (s *LKSec) Decrypt(src []byte) ([]byte, error) {
+	if err := s.Load(); err != nil {
+		return nil, err
+	}
 	var nonce [24]byte
 	copy(nonce[:], src[0:24])
 	data := src[24:]

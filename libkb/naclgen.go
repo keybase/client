@@ -34,8 +34,13 @@ func (g *NaclKeyGen) Generate() (err error) {
 }
 
 func (g *NaclKeyGen) Save() (err error) {
-	_, err = WriteP3SKBToKeyring(g.pair, nil, g.arg.LogUI)
+	_, err = WriteTsecP3SKBToKeyring(g.pair, nil, g.arg.LogUI)
 	return
+}
+
+func (g *NaclKeyGen) SaveLKS(lks *LKSec) error {
+	_, err := WriteLksP3SKBToKeyring(g.pair, lks, g.arg.LogUI)
+	return err
 }
 
 func (g *NaclKeyGen) Push() (err error) {
@@ -87,6 +92,17 @@ func (g *NaclKeyGen) Run() (err error) {
 		err = g.Push()
 	}
 	return
+}
+
+// RunLKS uses local key security to save the generated keys.
+func (g *NaclKeyGen) RunLKS(lks *LKSec) error {
+	if err := g.Generate(); err != nil {
+		return err
+	}
+	if err := g.SaveLKS(lks); err != nil {
+		return err
+	}
+	return g.Push()
 }
 
 func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {

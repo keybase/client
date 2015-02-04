@@ -4,13 +4,14 @@ import (
 	"crypto/rsa"
 	stderrors "errors"
 	"fmt"
-	"github.com/keybase/go-jsonw"
-	"github.com/keybase/go-triplesec"
-	"github.com/keybase/protocol/go"
+	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
+	triplesec "github.com/keybase/go-triplesec"
+	keybase_1 "github.com/keybase/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/errors"
 	"golang.org/x/crypto/openpgp/packet"
-	"strings"
 )
 
 //
@@ -180,7 +181,7 @@ func (s *KeyGen) GenerateKey() (err error) {
 }
 
 func (s *KeyGen) WriteKey() (err error) {
-	s.p3skb, err = WriteP3SKBToKeyring(s.bundle, s.tsec, s.arg.LogUI)
+	s.p3skb, err = WriteTsecP3SKBToKeyring(s.bundle, s.tsec, s.arg.LogUI)
 	return
 }
 
