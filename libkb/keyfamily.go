@@ -21,6 +21,9 @@ type KeybaseTime struct {
 	Chain int   // Merkle root chain time
 }
 
+// ComputedKeyInfo is a set of annotations that we apply to a ServerKeyRecord.
+// Everything here has been checked by the client. Each ComputedKeyInfo
+// refers to exactly one ServerKeyInfo.
 type ComputedKeyInfo struct {
 	Status int
 	Eldest bool
