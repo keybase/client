@@ -85,7 +85,9 @@ type ComputedKeyInfos struct {
 	WebDevice *Device
 }
 
-// As returned by user/lookup.json
+// As returned by user/lookup.json; these records are not to be trusted,
+// we need to Verify this data against the sigchain as we play the sigchain
+// forward.
 type KeyFamily struct {
 	eldest  *FOKID
 	pgps    []*PgpKeyBundle
