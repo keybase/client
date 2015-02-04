@@ -17,21 +17,17 @@ PODS:
   - AFNetworking/Reachability (2.5.0)
   - AFNetworking/Security (2.5.0)
   - AFNetworking/Serialization (2.5.0)
-  - GHBigNum (0.1.5):
-    - OpenSSL-Universal (~> 1.0.1k)
   - GHKit (1.0.21)
   - GRUnit (1.1.3)
-  - KBKeybase (0.1.7):
+  - KBKeybase (0.1.8):
     - AFNetworking
-    - GHBigNum
     - GHKit
-    - KBKeybase/Core (= 0.1.7)
+    - KBKeybase/Core (= 0.1.8)
     - Mantle
     - ObjectiveSugar
     - TSTripleSec
-  - KBKeybase/Core (0.1.7):
+  - KBKeybase/Core (0.1.8):
     - AFNetworking
-    - GHBigNum
     - GHKit
     - Mantle
     - ObjectiveSugar
@@ -45,7 +41,6 @@ PODS:
   - NAChloride (1.1.2):
     - libsodium
   - ObjectiveSugar (1.1.0)
-  - OpenSSL-Universal (1.0.1.l)
   - Slash (0.1.2):
     - Slash/arc (= 0.1.2)
     - Slash/no-arc (= 0.1.2)
@@ -54,7 +49,7 @@ PODS:
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout (0.1.2)
+  - YOLayout (0.1.3)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -63,36 +58,26 @@ DEPENDENCIES:
   - KBKeybase
   - Mantle
   - MASPreferences
-  - MPMessagePack (from `../../MPMessagePack`)
+  - MPMessagePack
   - ObjectiveSugar
   - Slash
-  - YOLayout (from `../../YOLayout`)
-  - ZXCVBN (from `../../ZXCVBN`)
-
-EXTERNAL SOURCES:
-  MPMessagePack:
-    :path: ../../MPMessagePack
-  YOLayout:
-    :path: ../../YOLayout
-  ZXCVBN:
-    :path: ../../ZXCVBN
+  - YOLayout
+  - ZXCVBN
 
 SPEC CHECKSUMS:
   AFNetworking: 0f54cb5d16ce38c1b76948faffb8d5fb705021c7
-  GHBigNum: c10615b4ffd94f5f28e21f82075481df05c0bf3c
   GHKit: b6f2b698849faca1156a6e64d19efa4195147277
   GRUnit: e1e502af105d714fa0ac17e12955288ebff79831
-  KBKeybase: d7c1b3f784f2755c4fce34d4c33ecef837598292
+  KBKeybase: dcc1a744ffeb441081a627bc6e792c9dbee5b0a5
   libsodium: ac34cc59b942350fb1377380cfb31f05c3d6170e
   Mantle: d5fbaf30fbc58031223af13812c060e15934a1fe
   MASPreferences: 48debf3a161039bb979e617b7416bc07bd879f75
-  MPMessagePack: 3d4a87ed1c66e69074d4829857209a33fc2381e1
+  MPMessagePack: 5f7a3be352856ae5dbe2ca7b76ff3642d578be06
   NAChloride: f5ec84c64efcdb5008f960d7d557dfac6c060a1d
   ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2
-  OpenSSL-Universal: ba0aeda135913e73f1dc785e13ef3204edf89b3e
   Slash: d98d6ff27ece4297d8d65fb49fc1ce4307a75f46
   TSTripleSec: 7371672f757735ab696d8c0d0fc0d98b7a38059e
-  YOLayout: 4d62df75cecc11e4b7dc455c9cc7867c6851f6d1
-  ZXCVBN: c11cf0fd690b43b7befc5bf5d49dfcfdc9a563b7
+  YOLayout: 402e8f7da7c0d8403026c75712931aaede2f705c
+  ZXCVBN: cc445c6207fc2f0b42276b7a4c2b2aee47624577
 
 COCOAPODS: 0.35.0
