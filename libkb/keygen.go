@@ -79,11 +79,6 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 	if err != nil {
 		return nil, err
 	}
-	arg.LogUI.Info("Generating signing subkey (%d bits)", arg.SubkeyBits)
-	signingPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.SubkeyBits)
-	if err != nil {
-		return nil, err
-	}
 
 	e := &openpgp.Entity{
 		PrimaryKey: packet.NewRSAPublicKey(currentTime, &masterPriv.PublicKey),
@@ -112,7 +107,7 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 		}
 	}
 
-	e.Subkeys = make([]openpgp.Subkey, 2)
+	e.Subkeys = make([]openpgp.Subkey, 1)
 	e.Subkeys[0] = openpgp.Subkey{
 		PublicKey:  packet.NewRSAPublicKey(currentTime, &encryptingPriv.PublicKey),
 		PrivateKey: packet.NewRSAPrivateKey(currentTime, encryptingPriv),
@@ -129,22 +124,6 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 	}
 	e.Subkeys[0].PublicKey.IsSubkey = true
 	e.Subkeys[0].PrivateKey.IsSubkey = true
-
-	e.Subkeys[1] = openpgp.Subkey{
-		PublicKey:  packet.NewRSAPublicKey(currentTime, &signingPriv.PublicKey),
-		PrivateKey: packet.NewRSAPrivateKey(currentTime, signingPriv),
-		Sig: &packet.Signature{
-			CreationTime: currentTime,
-			SigType:      packet.SigTypeSubkeyBinding,
-			PubKeyAlgo:   packet.PubKeyAlgoRSA,
-			Hash:         arg.Config.Hash(),
-			FlagsValid:   true,
-			FlagSign:     true,
-			IssuerKeyId:  &e.PrimaryKey.KeyId,
-		},
-	}
-	e.Subkeys[1].PublicKey.IsSubkey = true
-	e.Subkeys[1].PrivateKey.IsSubkey = true
 
 	return (*PgpKeyBundle)(e), nil
 }
