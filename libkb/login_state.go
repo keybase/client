@@ -257,10 +257,13 @@ func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
 	arg := PostAuthProofArg{
 		uid: me.id,
 		sig: sig,
+		key: key,
 	}
 	if pres, err = PostAuthProof(arg); err != nil {
 		return
 	}
+
+	fmt.Printf("Logged in with sessionID: %s\n", pres.SessionId)
 
 	if s.loggedInRes, err = pres.ToLoggedInResult(); err != nil {
 		return

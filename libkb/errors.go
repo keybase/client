@@ -402,6 +402,14 @@ func (e LoginRequiredError) Error() string {
 
 //=============================================================================
 
+type LogoutError struct{}
+
+func (e LogoutError) Error() string {
+	return "Failed to logout"
+}
+
+//=============================================================================
+
 type InternalError struct {
 	msg string
 }

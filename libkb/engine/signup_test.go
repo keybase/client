@@ -56,4 +56,30 @@ func TestSignupEngine(t *testing.T) {
 	if err = li.LoginAndIdentify(larg); err != nil {
 		t.Fatal(err)
 	}
+	if err = G.Session.AssertLoggedIn(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Now try to logout and log back in w/ PublicKey Auth
+	G.LoginState.Logout()
+
+	if err = G.Session.AssertLoggedOut(); err != nil {
+		t.Fatal(err)
+	}
+
+	sui := libkb.TestSecretUI{passphrase}
+	if err = G.LoginState.PubkeyLogin(sui); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = G.Session.AssertLoggedIn(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Now try to logout to make sure we logged out OK
+	G.LoginState.Logout()
+
+	if err = G.Session.AssertLoggedOut(); err != nil {
+		t.Fatal(err)
+	}
 }

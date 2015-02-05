@@ -94,6 +94,9 @@ func SetupTestContext(nm string) (tc TestContext, err error) {
 	if err = g.ConfigureConfig(); err != nil {
 		return
 	}
+	if err = g.ConfigureSecretSyncer(); err != nil {
+		return
+	}
 	if err = g.ConfigureCaches(); err != nil {
 		return
 	}
@@ -160,4 +163,23 @@ func (n *nullui) Configure() error {
 }
 func (n *nullui) Shutdown() error {
 	return nil
+}
+
+type TestSecretUI struct {
+	Passsphrase string
+}
+
+func (t TestSecretUI) GetSecret(p keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+	return &keybase_1.SecretEntryRes{
+		Text:     t.Passsphrase,
+		Canceled: false,
+	}, nil
+}
+
+func (t TestSecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
+	return t.Passsphrase, nil
+}
+
+func (t TestSecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
+	return t.Passsphrase, nil
 }

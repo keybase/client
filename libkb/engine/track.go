@@ -145,7 +145,7 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 	G.Log.Debug("+ StoreRemoteTrack")
 	defer G.Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 
-	if e.signingKeyPriv, err = G.Keyrings.GetSecretKey("tracking signature", e.SecretUI(), false); err != nil {
+	if e.signingKeyPriv, err = G.Keyrings.GetSecretKey("tracking signature", e.SecretUI(), e.Me, false); err != nil {
 		return
 	} else if e.signingKeyPriv == nil {
 		err = libkb.NoSecretKeyError{}
