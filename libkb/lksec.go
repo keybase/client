@@ -101,7 +101,7 @@ func (s *LKSec) fsecret() (res [32]byte) {
 }
 
 func (s *LKSec) apiServerHalf(devid *DeviceId) error {
-	if err := G.SecretSyncer.Load(*(G.Env.GetUid())); err != nil {
+	if err := G.SecretSyncer.Load(*(G.Env.GetUid()), false); err != nil {
 		return err
 	}
 	dev, err := G.SecretSyncer.FindDevice(devid)
