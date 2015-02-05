@@ -86,8 +86,8 @@ func TestSignupEngine(t *testing.T) {
 }
 
 func TestSignupWithGPG(t *testing.T) {
-	tc := libkb.SetupTest(t, "signup with gpg")
-	defer tc.Cleanup()
+	tc := libkb.SetupTest(t, "signupWithGPG")
+	//	defer tc.Cleanup()
 
 	username, email := fakeUser(t, "se")
 	if err := tc.GenerateGPGKeyring(email); err != nil {

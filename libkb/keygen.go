@@ -199,6 +199,9 @@ func (s *KeyGen) GeneratePost() error {
 		}
 	*/
 
+	G.Log.Info("GeneratePost() eldest key: %s", GenericKeyToFOKID(devsk))
+	G.Log.Info("from user eldest key: %s", s.me.GetEldestFOKID())
+
 	postArg := PostNewKeyArg{
 		Sig:        sig,
 		Id:         *sigid,
@@ -328,7 +331,7 @@ func (a *KeyGenArg) PGPUserIDs() ([]*packet.UserId, error) {
 }
 
 func (s *KeyGen) UpdateUser() error {
-	err := s.me.localDelegateKey(s.bundle, nil, nil, true)
+	err := s.me.localDelegateKey(s.bundle, s.chainTail.sigId, s.bundle.GetKid(), true)
 	fp := s.bundle.GetFingerprint()
 	G.Env.GetConfigWriter().SetPgpFingerprint(&fp)
 	G.Log.Debug("| Fudge User Sig Chain")
@@ -390,46 +393,6 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 	return
 }
 
-func (s *KeyGen) GenNacl() (err error) {
-	var signer GenericKey
-	signer = s.bundle
-	G.Log.Debug("+ GenNacl()")
-	defer func() {
-		G.Log.Debug("- GenNacl() -> %s", ErrToOk(err))
-	}()
-	if !s.arg.NoNaclEddsa {
-		s.arg.LogUI.Info("Generating NaCl EdDSA key (255 bits on Curve25519)")
-		gen := NewNaclKeyGen(NaclKeyGenArg{
-			Signer:    signer,
-			Primary:   s.bundle,
-			Generator: GenerateNaclSigningKeyPair,
-			Type:      SIBKEY_TYPE,
-			Me:        s.me,
-			ExpireIn:  NACL_EDDSA_EXPIRE_IN,
-			LogUI:     s.arg.LogUI,
-		})
-		err = gen.Run()
-		signer = gen.GetKeyPair()
-	}
-
-	if err != nil || s.arg.NoNaclDh {
-		return
-	}
-
-	s.arg.LogUI.Info("Generating NaCl DH-key (255 bits on Curve25519)")
-	gen := NewNaclKeyGen(NaclKeyGenArg{
-		Signer:    signer,
-		Primary:   s.bundle,
-		Generator: GenerateNaclDHKeyPair,
-		Type:      SUBKEY_TYPE,
-		Me:        s.me,
-		ExpireIn:  NACL_DH_EXPIRE_IN,
-		LogUI:     s.arg.LogUI,
-	})
-	err = gen.Run()
-	return err
-}
-
 func (a *KeyGenArg) Init() (err error) {
 	if a.LogUI == nil {
 		a.LogUI = G.Log
@@ -472,9 +435,8 @@ func (s *KeyGen) Run() (ret *PgpKeyBundle, err error) {
 	} else if err = s.LoginAndCheckKey(); err != nil {
 	} else if err = s.Prompt(); err != nil {
 	} else if ret, err = s.Generate(); err != nil {
-	} else if err = s.Push(); err != nil {
 	} else {
-		err = s.GenNacl()
+		err = s.Push()
 	}
 
 	return
