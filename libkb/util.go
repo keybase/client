@@ -207,3 +207,17 @@ func XORBytes(dst, a, b []byte) int {
 	}
 	return n
 }
+
+// The standard time.Unix() converter interprets 0 as the Unix epoch (1970).
+// But in PGP, an expiry time of zero indicates that a key never expires, and
+// it would be nice to be able to check for that case with Time.IsZero(). This
+// conversion special-cases 0 to be time.Time's zero-value (1 AD), so that we
+// get that nice property.
+func UnixToTimeMappingZero(unixTime int64) time.Time {
+	if unixTime == 0 {
+		var zeroTime time.Time
+		return zeroTime
+	} else {
+		return time.Unix(unixTime, 0)
+	}
+}

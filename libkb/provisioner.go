@@ -53,7 +53,7 @@ func (sp *SelfProvisioner) FindBestReprovisionKey() (ret GenericKey, err error) 
 			continue
 		} else if key, e2 := block.GetPubKey(); key == nil || e2 != nil {
 			continue
-		} else if key2, e2 := ckf.FindActiveSibkey(GenericKeyToFOKID(key)); key2 != nil && e2 == nil {
+		} else if key2, _, e2 := ckf.FindActiveSibkey(GenericKeyToFOKID(key)); key2 != nil && e2 == nil {
 			ret = key
 			return
 		}

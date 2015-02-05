@@ -24,6 +24,7 @@ type TypedChainLink interface {
 	IsDelegation() KeyStatus
 	GetSeqno() Seqno
 	GetCTime() time.Time
+	GetETime() time.Time
 	GetPgpFingerprint() *PgpFingerprint
 	GetKid() KID
 	GetFOKID() FOKID
@@ -74,9 +75,6 @@ func (g *GenericChainLink) GetPgpFingerprint() *PgpFingerprint {
 	return g.unpacked.pgpFingerprint
 }
 
-func (g *GenericChainLink) GetCTime() time.Time {
-	return time.Unix(int64(g.unpacked.ctime), 0)
-}
 func (g *GenericChainLink) GetArmoredSig() string {
 	return g.unpacked.sig
 }

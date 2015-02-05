@@ -39,13 +39,15 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 	}
 	if cki == nil {
 		cki = kf.NewComputedKeyInfos()
+		cki.InsertLocalEldestKey(FOKID{Kid: signingKid})
 	}
 
 	// Update the current state
 	sc.localCki = cki
 
 	if sigId != nil {
-		err = cki.Delegate(key.GetKid().String(), NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey)
+		var zeroTime time.Time
+		err = cki.Delegate(key.GetKid().String(), NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
@@ -74,6 +76,13 @@ func reverse(links []*ChainLink) {
 	for i, j := 0, len(links)-1; i < j; i, j = i+1, j-1 {
 		links[i], links[j] = links[j], links[i]
 	}
+}
+
+func first(links []*ChainLink) (ret *ChainLink) {
+	if len(links) == 0 {
+		return nil
+	}
+	return links[0]
 }
 
 func last(links []*ChainLink) (ret *ChainLink) {
@@ -223,6 +232,10 @@ func (sc SigChain) GetLastKnownId() (ret LinkId) {
 	return
 }
 
+func (sc SigChain) GetFirstLink() *ChainLink {
+	return first(sc.chainLinks)
+}
+
 func (sc SigChain) GetLastLink() *ChainLink {
 	return last(sc.chainLinks)
 }
@@ -301,7 +314,7 @@ func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
 // verifySubchain verifies the given subchain and outputs a yes/no answer
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
-func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *ComputedKeyInfos, err error) {
+func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, cki *ComputedKeyInfos, err error) {
 
 	if links == nil || len(links) == 0 {
 		return
@@ -315,22 +328,28 @@ func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *Compute
 	}
 
 	cki = kf.NewComputedKeyInfos()
-
 	ckf := ComputedKeyFamily{&kf, cki}
 
 	var prev *ChainLink
-	var prev_fokid *FOKID
+	var prevFokid *FOKID
+
+	first := true
 
 	for _, link := range links {
 
-		new_fokid := link.ToFOKID()
+		newFokid := link.ToFOKID()
 
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
 			w.Warn()
 		}
 
-		if dlg := tcl.IsDelegation(); dlg == DLG_NONE {
+		if first {
+			if err = ckf.InsertEldestLink(tcl, un); err != nil {
+				return
+			}
+			first = false
+		} else if dlg := tcl.IsDelegation(); dlg == DLG_NONE {
 		} else if _, err = link.VerifySigWithKeyFamily(ckf); err != nil {
 			return
 		} else if err = ckf.Delegate(tcl); err != nil {
@@ -349,7 +368,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *Compute
 			return
 		}
 
-		if prev_fokid != nil && !prev_fokid.Eq(new_fokid) {
+		if prevFokid != nil && !prevFokid.Eq(newFokid) {
 			_, err = prev.VerifySigWithKeyFamily(ckf)
 		}
 
@@ -358,7 +377,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *Compute
 		}
 
 		prev = link
-		prev_fokid = &new_fokid
+		prevFokid = &newFokid
 	}
 
 	// Always verify the last...
@@ -393,7 +412,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 		return
 	}
 
-	if cached, ckf.cki, err = verifySubchain(*ckf.kf, links); err != nil {
+	if cached, ckf.cki, err = verifySubchain(*ckf.kf, links, sc.username); err != nil {
 		return
 	}
 
