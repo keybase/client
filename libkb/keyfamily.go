@@ -5,8 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"time"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type KeyStatus int
@@ -735,6 +736,7 @@ func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceId) (kid KID, err 
 // return nil if one isn't found, and set err for a real error. The sibkey should
 // be a signing key, not an encryption key of course.
 func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceId) (key GenericKey, err error) {
+	G.Log.Info("GetSibkeyForDevice: %s", did)
 	var kid KID
 	kid, err = ckf.getSibkeyKidForDevice(did)
 	if kid != nil {

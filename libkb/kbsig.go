@@ -8,8 +8,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"time"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 func ClientId() *jsonw.Wrapper {
@@ -306,4 +307,8 @@ func (u *User) AuthenticationProof(key GenericKey, ei int) (ret *jsonw.Wrapper, 
 	}
 	body.SetKey("nonce", jsonw.NewString(hex.EncodeToString(nonce[:])))
 	return
+}
+
+func (u *User) GetDeviceSibkey() (GenericKey, error) {
+	return u.GetComputedKeyFamily().GetSibkeyForDevice(*(G.Env.GetDeviceId()))
 }

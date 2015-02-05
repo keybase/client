@@ -170,7 +170,57 @@ func (s *KeyGen) WriteKey() (err error) {
 	return
 }
 
-func (s *KeyGen) GeneratePost() (err error) {
+func (s *KeyGen) GeneratePost() error {
+	devsk := s.arg.SigningKey
+	if devsk == nil {
+		var err error
+		devsk, err = s.me.GetDeviceSibkey()
+		if err != nil {
+			return err
+		}
+		if devsk == nil {
+			return fmt.Errorf("GeneratePost: nil device sibkey")
+		}
+	}
+
+	// XXX SIG_EXPIRE_IN is correct?
+	jw, err := s.me.KeyProof(s.bundle, devsk, SIBKEY_TYPE, SIG_EXPIRE_IN, nil)
+	if err != nil {
+		return err
+	}
+
+	sig, sigid, linkid, err := SignJson(jw, devsk)
+	s.chainTail.linkId = linkid
+	s.chainTail.sigId = sigid
+
+	/*
+		if pubkey, err = s.bundle.Encode(); err != nil {
+			return err
+		}
+	*/
+
+	postArg := PostNewKeyArg{
+		Sig:        sig,
+		Id:         *sigid,
+		Type:       SIBKEY_TYPE,
+		PublicKey:  s.bundle,
+		SigningKey: devsk,
+		EldestKey:  devsk,
+		IsPrimary:  false,
+	}
+
+	if s.arg.DoSecretPush {
+		seckey, err := s.p3skb.ArmoredEncode()
+		if err != nil {
+			return err
+		}
+		postArg.EncodedPrivateKey = seckey
+	}
+
+	return PostNewKey(postArg)
+}
+
+func (s *KeyGen) GeneratePostOld() (err error) {
 	var jw *jsonw.Wrapper
 	var seckey, pubkey string
 	var sig string
@@ -226,6 +276,7 @@ type KeyGenArg struct {
 	NoNaclEddsa  bool
 	NoNaclDh     bool
 	Pregen       *PgpKeyBundle
+	SigningKey   GenericKey
 	KeyGenUI     KeyGenUI
 	LoginUI      LoginUI
 	LogUI        LogUI
@@ -327,10 +378,12 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 		return
 	}
 
-	G.Log.Debug("| CheckNoKey")
-	if err = s.CheckNoKey(); err != nil {
-		return
-	}
+	/*
+		G.Log.Debug("| CheckNoKey")
+		if err = s.CheckNoKey(); err != nil {
+			return
+		}
+	*/
 
 	s.phase = KEYGEN_PHASE_CHECKED
 
@@ -520,10 +573,10 @@ func (s *KeyGen) Push() (err error) {
 	if err = s.GeneratePost(); err != nil {
 		return
 	}
-	G.Log.Debug("| Post to server")
-	if err = s.PostToServer(); err != nil {
-		return
-	}
+	//	G.Log.Debug("| Post to server")
+	//	if err = s.PostToServer(); err != nil {
+	//		return
+	//	}
 
 	G.Log.Debug("| UpdateUser")
 	if err = s.UpdateUser(); err != nil {

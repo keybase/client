@@ -39,7 +39,7 @@ func (g *GPG) WantsGPG() (bool, error) {
 	return res, nil
 }
 
-func (g *GPG) Run() error {
+func (g *GPG) Run(signingKey libkb.GenericKey) error {
 	gpg := G.GetGpgClient()
 	if _, err := gpg.Configure(); err != nil {
 		return err
@@ -95,10 +95,11 @@ func (g *GPG) Run() error {
 		Pregen:       bundle,
 		DoSecretPush: res.DoSecretPush,
 		SecretUI:     g.secretUI,
+		SigningKey:   signingKey,
 	}
 	kg := libkb.NewKeyGen(arg)
 	if _, err := kg.Run(); err != nil {
-		return err
+		return fmt.Errorf("keygen run error: %s", err)
 	}
 
 	G.Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())

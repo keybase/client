@@ -141,5 +141,5 @@ func (s *SignupEngine) checkGPG() (bool, error) {
 
 func (s *SignupEngine) addGPG() error {
 	eng := NewGPG(s.gpgUI, s.secretUI)
-	return eng.Run()
+	return eng.Run(s.signingKey)
 }

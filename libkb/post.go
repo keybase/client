@@ -23,14 +23,15 @@ type PostProofArg struct {
 }
 
 type PostNewKeyArg struct {
-	Sig        string
-	Id         SigId
-	Type       string
-	PublicKey  GenericKey
-	SigningKey GenericKey
-	EldestKey  GenericKey
-	ServerHalf string
-	IsPrimary  bool
+	Sig               string
+	Id                SigId
+	Type              string
+	PublicKey         GenericKey
+	SigningKey        GenericKey
+	EldestKey         GenericKey
+	ServerHalf        string
+	IsPrimary         bool
+	EncodedPrivateKey string
 }
 
 func (a PostNewKeyArg) ToHttpArgs() (HttpArgs, error) {
@@ -53,6 +54,9 @@ func (a PostNewKeyArg) ToHttpArgs() (HttpArgs, error) {
 	} else {
 		hargs["eldest_kid"] = a.EldestKey.GetKid()
 		hargs["signing_kid"] = a.SigningKey.GetKid()
+	}
+	if len(a.EncodedPrivateKey) > 0 {
+		hargs["private_key"] = S{Val: a.EncodedPrivateKey}
 	}
 
 	return hargs, nil

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go/libkb"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 func fakeUser(t *testing.T, prefix string) (username, email string) {
@@ -87,12 +88,14 @@ func TestSignupEngine(t *testing.T) {
 func TestSignupWithGPG(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup with gpg")
 	defer tc.Cleanup()
+
 	username, email := fakeUser(t, "se")
 	if err := tc.GenerateGPGKeyring(email); err != nil {
 		t.Fatal(err)
 	}
-	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, nil)
 	passphrase := fakePassphrase(t)
+	secui := &tsecretUI{t: t, kbpw: passphrase}
+	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
 	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", false}
 	err := s.Run(arg)
 	if err != nil {
@@ -133,4 +136,19 @@ func TestLocalKeySecurity(t *testing.T) {
 	if string(dec) != text {
 		t.Errorf("decrypt: %q, expected %q", string(dec), text)
 	}
+}
+
+type tsecretUI struct {
+	t    *testing.T
+	kbpw string
+}
+
+func (u *tsecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+	return nil, nil
+}
+func (u *tsecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
+	return fakePassphrase(u.t), nil
+}
+func (u *tsecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
+	return u.kbpw, nil
 }

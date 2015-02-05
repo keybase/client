@@ -106,6 +106,9 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 		return err
 	}
 	sig, sigid, linkid, err := libkb.SignJson(jw, d.signingKey)
+	if err != nil {
+		return err
+	}
 
 	// save it to local keyring:
 	_, err = libkb.WriteLksP3SKBToKeyring(key, d.lks, d.logui)
