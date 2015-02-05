@@ -86,7 +86,7 @@ func (e *TrackEngine) LoadMe() error {
 
 func (e *TrackEngine) GetSigningKeyPub() (err error) {
 	// Get out key that we're going to sign with.
-	if e.lockedKey, _, err = G.Keyrings.GetSecretKeyLocked(false); err != nil {
+	if e.lockedKey, _, err = G.Keyrings.GetSecretKeyLocked(e.Me, false); err != nil {
 		return
 	}
 	if e.signingKeyPub, err = e.lockedKey.GetPubKey(); err != nil {

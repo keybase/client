@@ -81,6 +81,12 @@ func (ss *SecretSyncer) loadFromStorage() (err error) {
 
 func (ss *SecretSyncer) syncFromServer() (err error) {
 	hargs := HttpArgs{}
+
+	// Load the session for the following API request.
+	if err = G.Session.Load(); err != nil {
+		return
+	}
+
 	if ss.loaded {
 		hargs.Add("version", I{ss.keys.Version})
 	}

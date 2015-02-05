@@ -104,6 +104,40 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	return ret, err
 }
 
+type PostAuthProofArg struct {
+	uid UID
+	sig string
+}
+
+type PostAuthProofRes struct {
+	SessionId string `json:"session"`
+	AuthId    string `json:"auth_id"`
+	CsrfToken string `json:"csrf_token"`
+	UidHex    string `json:"uid"`
+	Username  string `json:"username"`
+}
+
+func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
+	hargs := HttpArgs{
+		"uid": S{arg.uid.String()},
+		"sig": S{arg.sig},
+	}
+	res, err := G.API.Post(ApiArg{
+		Endpoint:    "sig/post_auth",
+		NeedSession: false,
+		Args:        hargs,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var ret *PostAuthProofRes
+	var tmp PostAuthProofRes
+	if err = res.Body.UnmarshalAgain(&tmp); err == nil {
+		ret = &tmp
+	}
+	return ret, err
+}
+
 type InviteRequestArg struct {
 	Email    string
 	Fullname string

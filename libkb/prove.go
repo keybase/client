@@ -139,7 +139,7 @@ func (v *ProofEngine) GenerateProof() (err error) {
 	var which string
 	var seckey GenericKey
 
-	if locked, which, err = G.Keyrings.GetSecretKeyLocked(false); err != nil {
+	if locked, which, err = G.Keyrings.GetSecretKeyLocked(v.me, false); err != nil {
 		return
 	}
 	if v.signingKey, err = locked.GetPubKey(); err != nil {

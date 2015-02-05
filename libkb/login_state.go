@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/go-jsonw"
 	"github.com/keybase/go-triplesec"
 	"github.com/keybase/protocol/go"
 )
@@ -161,7 +162,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 	return nil
 }
 
-func (s *LoginState) SaveLoginState(prompted bool) error {
+func (s *LoginState) SaveLoginState(prompted bool, saveConfig bool) error {
 	s.LoggedIn = true
 	s.SessionVerified = true
 
@@ -212,6 +213,62 @@ type LoginArg struct {
 	Ui         LoginUI
 	SecretUI   SecretUI
 	NoUi       bool
+}
+
+func (r PostAuthProofRes) ToLoggedInResult() (ret *LoggedInResult, err error) {
+	var uid *UID
+	if uid, err = UidFromHex(r.UidHex); err != nil {
+		return
+	}
+	ret = &LoggedInResult{
+		SessionId: r.SessionId,
+		CsrfToken: r.CsrfToken,
+		Uid:       *uid,
+		Username:  r.Username,
+	}
+	return
+}
+
+// PubkeyLogin looks for a locally available private key and tries
+// to establish a session via public key signature.
+func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
+	var key GenericKey
+	var me *User
+	var proof *jsonw.Wrapper
+	var sig string
+	var pres *PostAuthProofRes
+
+	if me, err = LoadMe(LoadUserArg{}); err != nil {
+		return
+	}
+
+	if key, err = G.Keyrings.GetSecretKey("login", ui, me, true); err != nil {
+		return
+	}
+
+	if proof, err = me.AuthenticationProof(key, AUTH_EXPIRE_IN); err != nil {
+		return
+	}
+
+	if sig, _, _, err = SignJson(proof, key); err != nil {
+		return
+	}
+
+	arg := PostAuthProofArg{
+		uid: me.id,
+		sig: sig,
+	}
+	if pres, err = PostAuthProof(arg); err != nil {
+		return
+	}
+
+	if s.loggedInRes, err = pres.ToLoggedInResult(); err != nil {
+		return
+	}
+
+	err = s.SaveLoginState(false, false)
+
+	return
 }
 
 func (s *LoginState) Login(arg LoginArg) (err error) {
@@ -322,7 +379,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 		return err
 	}
 
-	err = s.SaveLoginState(prompted)
+	err = s.SaveLoginState(prompted, true)
 	if err != nil {
 		return err
 	}

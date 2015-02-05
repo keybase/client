@@ -5,6 +5,8 @@
 package libkb
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
 	"time"
@@ -285,5 +287,23 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 
 	// 'typ' can be 'subkey' or 'sibkey'
 	body.SetKey(typ, kp)
+	return
+}
+
+// AuthenticationProof makes a JSON proof statement for the user that he can sign
+// to prove a log-in to the system.  If successful, the server will return with
+// a session token.
+func (u *User) AuthenticationProof(key GenericKey, ei int) (ret *jsonw.Wrapper, err error) {
+	if ret, err = u.ProofMetadata(ei, key, nil); err != nil {
+		return
+	}
+	body := ret.AtKey("body")
+	body.SetKey("version", jsonw.NewInt(1))
+	body.SetKey("type", jsonw.NewString("auth"))
+	var nonce [16]byte
+	if _, err = rand.Read(nonce[:]); err != nil {
+		return
+	}
+	body.SetKey("nonce", jsonw.NewString(hex.EncodeToString(nonce[:])))
 	return
 }
