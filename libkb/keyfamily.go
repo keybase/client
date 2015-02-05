@@ -211,11 +211,23 @@ func (kf KeyFamily) FindActiveEncryptionSubkey(k KID) (key GenericKey, err error
 // also collects all PgpKeyBundles along the way.
 func (km KeyMap) Import(pgps_i []*PgpKeyBundle) (pgps_o []*PgpKeyBundle, err error) {
 	pgps_o = pgps_i
-	for _, v := range km {
+	var server_given_kid, computed_kid KID
+	for k, v := range km {
 		var pgp *PgpKeyBundle
 		if pgp, err = v.Import(); err != nil {
 			return
 		}
+
+		if server_given_kid, err = ImportKID(k); err != nil {
+			return
+		}
+
+		computed_kid = v.key.GetKid()
+		if !server_given_kid.Eq(computed_kid) {
+			err = WrongKidError{server_given_kid, computed_kid}
+			return
+		}
+
 		if pgp != nil {
 			pgps_o = append(pgps_o, pgp)
 		}
