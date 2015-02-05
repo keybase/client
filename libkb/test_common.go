@@ -3,9 +3,11 @@ package libkb
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	keybase_1 "github.com/keybase/protocol/go"
+	"golang.org/x/crypto/openpgp"
 )
 
 // TestConfig tracks libkb config during a test
@@ -66,6 +68,7 @@ type TestContext struct {
 	G          Global
 	PrevGlobal Global
 	Tp         TestParameters
+	t          *testing.T
 }
 
 func (tc *TestContext) Cleanup() {
@@ -75,7 +78,43 @@ func (tc *TestContext) Cleanup() {
 	}
 }
 
-func SetupTestContext(nm string) (tc TestContext, err error) {
+func (tc *TestContext) GenerateGPGKeyring(id string) error {
+	tc.t.Logf("generating gpg keyring in %s", tc.Tp.GPGHome)
+	arg := KeyGenArg{
+		PrimaryBits: 1024,
+		SubkeyBits:  1024,
+		PGPUids:     []string{id},
+	}
+	arg.CreatePgpIDs()
+	bundle, err := NewPgpKeyBundle(arg)
+	if err != nil {
+		return err
+	}
+
+	fsk, err := os.Create(path.Join(tc.Tp.GPGHome, "secring.gpg"))
+	if err != nil {
+		return err
+	}
+	err = (*openpgp.Entity)(bundle).SerializePrivate(fsk, nil)
+	if err != nil {
+		return err
+	}
+	fsk.Close()
+
+	fpk, err := os.Create(path.Join(tc.Tp.GPGHome, "pubring.gpg"))
+	if err != nil {
+		return err
+	}
+	err = (*openpgp.Entity)(bundle).Serialize(fpk)
+	if err != nil {
+		return err
+	}
+	fpk.Close()
+
+	return nil
+}
+
+func setupTestContext(nm string) (tc TestContext, err error) {
 
 	var g Global = NewGlobal()
 	g.Init()
@@ -84,6 +123,10 @@ func SetupTestContext(nm string) (tc TestContext, err error) {
 	if tc.Tp.Home, err = ioutil.TempDir(os.TempDir(), nm); err != nil {
 		return
 	}
+
+	// might as well be the same directory...
+	tc.Tp.GPGHome = tc.Tp.Home
+	tc.Tp.GPGOptions = []string{"--homedir=" + tc.Tp.GPGHome}
 
 	tc.Tp.ServerUri = "http://localhost:3000"
 	g.Env.Test = tc.Tp
@@ -119,10 +162,11 @@ func SetupTestContext(nm string) (tc TestContext, err error) {
 
 func SetupTest(t *testing.T, nm string) (tc TestContext) {
 	var err error
-	tc, err = SetupTestContext(nm)
+	tc, err = setupTestContext(nm)
 	if err != nil {
 		t.Fatal(err)
 	}
+	tc.t = t
 	return tc
 }
 

@@ -69,6 +69,8 @@ type TestParameters struct {
 	ConfigFilename string
 	Home           string
 	ServerUri      string
+	GPGHome        string
+	GPGOptions     []string
 }
 
 type Env struct {
@@ -307,6 +309,7 @@ func (e Env) GetProxy() string {
 
 func (e Env) GetPgpDir() string {
 	return e.GetString(
+		func() string { return e.Test.GPGHome },
 		func() string { return e.cmd.GetPgpDir() },
 		func() string { return os.Getenv("GNUPGHOME") },
 		func() string { return e.config.GetPgpDir() },
@@ -455,6 +458,7 @@ func (e Env) GetGpg() string {
 
 func (e Env) GetGpgOptions() []string {
 	return e.GetStringList(
+		func() []string { return e.Test.GPGOptions },
 		func() []string { return e.cmd.GetGpgOptions() },
 		func() []string { return e.config.GetGpgOptions() },
 	)

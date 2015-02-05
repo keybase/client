@@ -65,16 +65,22 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 		if i == 0 {
 			extra = "[primary]"
 		}
-		arg.LogUI.Info("PGP User ID: %s %s", id, extra)
+		if arg.LogUI != nil {
+			arg.LogUI.Info("PGP User ID: %s %s", id, extra)
+		}
 	}
 
-	arg.LogUI.Info("Generating primary key (%d bits)", arg.PrimaryBits)
+	if arg.LogUI != nil {
+		arg.LogUI.Info("Generating primary key (%d bits)", arg.PrimaryBits)
+	}
 	masterPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.PrimaryBits)
 	if err != nil {
 		return nil, err
 	}
 
-	arg.LogUI.Info("Generating encryption subkey (%d bits)", arg.SubkeyBits)
+	if arg.LogUI != nil {
+		arg.LogUI.Info("Generating encryption subkey (%d bits)", arg.SubkeyBits)
+	}
 	encryptingPriv, err := rsa.GenerateKey(arg.Config.Random(), arg.SubkeyBits)
 	if err != nil {
 		return nil, err

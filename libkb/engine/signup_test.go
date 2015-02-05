@@ -84,6 +84,22 @@ func TestSignupEngine(t *testing.T) {
 	}
 }
 
+func TestSignupWithGPG(t *testing.T) {
+	tc := libkb.SetupTest(t, "signup with gpg")
+	defer tc.Cleanup()
+	username, email := fakeUser(t, "se")
+	if err := tc.GenerateGPGKeyring(email); err != nil {
+		t.Fatal(err)
+	}
+	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, nil)
+	passphrase := fakePassphrase(t)
+	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", false}
+	err := s.Run(arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestLocalKeySecurity(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
