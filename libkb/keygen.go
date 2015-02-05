@@ -125,6 +125,7 @@ func NewPgpKeyBundle(arg KeyGenArg) (*PgpKeyBundle, error) {
 			FlagsValid:                true,
 			FlagEncryptStorage:        true,
 			FlagEncryptCommunications: true,
+			FlagSign:                  true,
 			IssuerKeyId:               &e.PrimaryKey.KeyId,
 		},
 	}
