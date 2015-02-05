@@ -183,8 +183,7 @@ func (s *KeyGen) GeneratePost() error {
 		}
 	}
 
-	// XXX SIG_EXPIRE_IN is correct?
-	jw, err := s.me.KeyProof(s.bundle, devsk, SIBKEY_TYPE, SIG_EXPIRE_IN, nil)
+	jw, err := s.me.KeyProof(s.bundle, devsk, SIBKEY_TYPE, KEY_EXPIRE_IN, nil)
 	if err != nil {
 		return err
 	}
@@ -192,15 +191,6 @@ func (s *KeyGen) GeneratePost() error {
 	sig, sigid, linkid, err := SignJson(jw, devsk)
 	s.chainTail.linkId = linkid
 	s.chainTail.sigId = sigid
-
-	/*
-		if pubkey, err = s.bundle.Encode(); err != nil {
-			return err
-		}
-	*/
-
-	G.Log.Info("GeneratePost() eldest key: %s", GenericKeyToFOKID(devsk))
-	G.Log.Info("from user eldest key: %s", s.me.GetEldestFOKID())
 
 	postArg := PostNewKeyArg{
 		Sig:        sig,

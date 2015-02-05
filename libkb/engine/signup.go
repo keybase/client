@@ -125,7 +125,6 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 		return err
 	}
 	s.signingKey = eng.EldestKey()
-	G.Log.Info("eldest key: %s", libkb.GenericKeyToFOKID(s.signingKey))
 	s.lksKey = eng.LKSKey()
 	return nil
 }

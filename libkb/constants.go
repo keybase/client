@@ -43,6 +43,7 @@ var SIG_EXPIRE_IN = 24 * 60 * 60 * 365 * 10       // 10 years
 var NACL_EDDSA_EXPIRE_IN = 24 * 60 * 60 * 365 * 3 // 3 years
 var NACL_DH_EXPIRE_IN = 24 * 60 * 60 * 365 * 3    // 3 years
 var AUTH_EXPIRE_IN = 24 * 60 * 60 * 365           // 1 year
+var KEY_EXPIRE_IN = 24 * 60 * 60 * 365 * 5        // 5 years
 
 var TRACK_SESSION_TIMEOUT = time.Minute
 
