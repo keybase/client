@@ -3,8 +3,9 @@ package libkb
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/hashicorp/golang-lru"
-	"github.com/keybase/go-jsonw"
+
+	lru "github.com/hashicorp/golang-lru"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 const (
@@ -432,7 +433,7 @@ func (u *User) StoreTopLevel() error {
 	return err
 }
 
-func (u *User) GetSyncedSecretKey() (ret *P3SKB, err error) {
+func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 	G.Log.Debug("+ User.GetSyncedSecretKey()")
 	defer func() {
 		G.Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))

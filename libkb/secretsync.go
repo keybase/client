@@ -1,4 +1,4 @@
-// A module for syncing secrets with the server, such as P3SKB PGP keys,
+// A module for syncing secrets with the server, such as SKB PGP keys,
 // and server-halves of our various secret keys.
 package libkb
 
@@ -145,7 +145,7 @@ func (ss *SecretSyncer) store() (err error) {
 
 // FindActiveKey examines the synced keys, looking for one that's currently active.
 // Returns ret=nil if none was found.
-func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *P3SKB, err error) {
+func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
 	for _, key := range ss.keys.PrivateKeys {
 		if ret, _ = key.FindActiveKey(ckf); ret != nil {
 			return
@@ -154,7 +154,7 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *P3SKB, err e
 	return
 }
 
-func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *P3SKB, err error) {
+func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
 	var kid KID
 	var packet *KeybasePacket
 
@@ -167,7 +167,7 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *P3SKB, er
 	if packet, err = DecodeArmoredPacket(k.Bundle); err != nil && packet == nil {
 		return
 	}
-	return packet.ToP3SKB()
+	return packet.ToSKB()
 }
 
 func (ss *SecretSyncer) FindDevice(id *DeviceId) (DeviceKey, error) {

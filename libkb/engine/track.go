@@ -21,7 +21,7 @@ type TrackEngine struct {
 	signingKeyPriv      libkb.GenericKey
 	sig                 string
 	sigid               *libkb.SigId
-	lockedKey           *libkb.P3SKB
+	lockedKey           *libkb.SKB
 	signingKeyPub       libkb.GenericKey
 	idUI                libkb.IdentifyUI
 	secretUI            libkb.SecretUI

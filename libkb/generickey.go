@@ -18,8 +18,8 @@ type GenericKey interface {
 	SignToString([]byte) (string, *SigId, error)
 	Verify(string, []byte) (*SigId, error)
 	VerifyAndExtract(string) ([]byte, *SigId, error)
-	ToP3SKB(ts *triplesec.Cipher) (*P3SKB, error)
-	ToLksP3SKB(lks *LKSec) (*P3SKB, error)
+	ToSKB(ts *triplesec.Cipher) (*SKB, error)
+	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
 	CanSign() bool
@@ -77,38 +77,23 @@ func (k KID) Eq(k2 KID) bool {
 	return SecureByteArrayEq([]byte(k), []byte(k2))
 }
 
-func WriteLksP3SKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (p3skb *P3SKB, err error) {
+func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (p3skb *SKB, err error) {
 	if G.Keyrings == nil {
 		err = NoKeyringsError{}
-	} else if p3skb, err = k.ToLksP3SKB(lks); err == nil {
-		err = G.Keyrings.P3SKB.PushAndSave(p3skb, lui)
+	} else if p3skb, err = k.ToLksSKB(lks); err == nil {
+		err = G.Keyrings.SKB.PushAndSave(p3skb, lui)
 	}
 	return
 }
 
-func WriteTsecP3SKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *P3SKB, err error) {
+func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *SKB, err error) {
 	if G.Keyrings == nil {
 		err = NoKeyringsError{}
-	} else if p3skb, err = k.ToP3SKB(tsec); err == nil {
-		err = G.Keyrings.P3SKB.PushAndSave(p3skb, lui)
+	} else if p3skb, err = k.ToSKB(tsec); err == nil {
+		err = G.Keyrings.SKB.PushAndSave(p3skb, lui)
 	}
 	return
 }
-
-/*
-func WriteP3SKBLocalKeyToKeyring(k GenericKey, lui LogUI) (p3skb *P3SKB, err error) {
-	if G.Keyrings == nil {
-		return nil, NoKeyringsError{}
-	}
-	p3skb, err = k.ToP3SKB()
-	if err != nil {
-		return nil, err
-	}
-
-	err = G.Keyrings.P3SKB.PushAndSave(p3skb, lui)
-	return p3skb, err
-}
-*/
 
 // FOKID is a "Fingerprint Or a KID" or both, or neither.
 // We have different things in different sigchains, so we

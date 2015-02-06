@@ -1,8 +1,8 @@
 package libkb
 
 //
-// Code for encoding and decoding P3SKB-formatted keys. Also works for decoding
-// general Keybase Packet types, but we only have P3SKB at present
+// Code for encoding and decoding SKB-formatted keys. Also works for decoding
+// general Keybase Packet types, but we only have SKB at present
 //
 
 import (
@@ -10,9 +10,10 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/keybase/go-jsonw"
-	"github.com/ugorji/go/codec"
 	"io"
+
+	jsonw "github.com/keybase/go-jsonw"
+	"github.com/ugorji/go/codec"
 )
 
 func CodecHandle() *codec.MsgpackHandle {
@@ -145,7 +146,7 @@ func (ret *KeybasePacket) MyUnmarshalBinary(data []byte) (err error) {
 
 	switch ret.Tag {
 	case TAG_P3SKB:
-		body = &P3SKB{}
+		body = &SKB{}
 	case TAG_SIGNATURE:
 		body = &NaclSig{}
 	default:

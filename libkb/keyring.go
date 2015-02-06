@@ -2,9 +2,10 @@ package libkb
 
 import (
 	"fmt"
-	"golang.org/x/crypto/openpgp"
 	"io"
 	"os"
+
+	"golang.org/x/crypto/openpgp"
 )
 
 type KeyringFile struct {
@@ -18,7 +19,7 @@ type KeyringFile struct {
 type Keyrings struct {
 	Public []*KeyringFile
 	Secret []*KeyringFile
-	P3SKB  *P3SKBKeyringFile
+	SKB    *SKBKeyringFile
 }
 
 func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
@@ -36,7 +37,7 @@ func NewKeyrings(e Env, usage Usage) *Keyrings {
 		ret.Secret = ret.MakeKeyrings(e.GetPgpSecretKeyrings(), false)
 	}
 	if usage.KbKeyring {
-		ret.P3SKB = NewP3SKBKeyringFile(e.GetSecretKeyring())
+		ret.SKB = NewSKBKeyringFile(e.GetSecretKeyring())
 	}
 	return ret
 }
@@ -106,8 +107,8 @@ func (k *Keyrings) Load() (err error) {
 	if err == nil && k.Secret != nil {
 		k.LoadKeyrings(k.Secret)
 	}
-	if k.P3SKB != nil && err == nil {
-		if e2 := k.P3SKB.LoadAndIndex(); e2 != nil && !os.IsNotExist(e2) {
+	if k.SKB != nil && err == nil {
+		if e2 := k.SKB.LoadAndIndex(); e2 != nil && !os.IsNotExist(e2) {
 			err = e2
 		}
 	}
@@ -203,7 +204,7 @@ func (k KeyringFile) Save() error {
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
 // In any case, the key will be locked.
-func (k Keyrings) GetSecretKeyLocked(me *User) (ret *P3SKB, which string, err error) {
+func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err error) {
 
 	G.Log.Debug("+ GetSecretKeyLocked()")
 	defer func() {
@@ -238,14 +239,14 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *P3SKB, which string, err er
 // GetLockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
-func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *P3SKB) {
-	if k.P3SKB == nil {
+func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
+	if k.SKB == nil {
 		G.Log.Debug("| No secret keyring found")
 	} else if ckf := me.GetComputedKeyFamily(); ckf == nil {
 		G.Log.Debug("| No ComputedKeyFamily found")
 	} else {
 		G.Log.Debug("| Looking up secret key in local keychain")
-		ret = k.P3SKB.LookupWithComputedKeyFamily(ckf)
+		ret = k.SKB.LookupWithComputedKeyFamily(ckf)
 	}
 	return ret
 }
@@ -255,7 +256,7 @@ func (k Keyrings) GetSecretKey(reason string, ui SecretUI, me *User) (key Generi
 	defer func() {
 		G.Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
 	}()
-	var p3skb *P3SKB
+	var p3skb *SKB
 	var which string
 	if p3skb, which, err = k.GetSecretKeyLocked(me); err == nil && p3skb != nil {
 		G.Log.Debug("| Prompt/Unlock key")

@@ -34,12 +34,12 @@ func (g *NaclKeyGen) Generate() (err error) {
 }
 
 func (g *NaclKeyGen) Save() (err error) {
-	_, err = WriteTsecP3SKBToKeyring(g.pair, nil, g.arg.LogUI)
+	_, err = WriteTsecSKBToKeyring(g.pair, nil, g.arg.LogUI)
 	return
 }
 
 func (g *NaclKeyGen) SaveLKS(lks *LKSec) error {
-	_, err := WriteLksP3SKBToKeyring(g.pair, lks, g.arg.LogUI)
+	_, err := WriteLksSKBToKeyring(g.pair, lks, g.arg.LogUI)
 	return err
 }
 

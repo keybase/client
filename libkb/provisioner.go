@@ -4,7 +4,7 @@ package libkb
 // posibilities
 type SelfProvisioner struct {
 	me        *User
-	secretKey *P3SKB
+	secretKey *SKB
 }
 
 func (sp *SelfProvisioner) LoadMe() (err error) {
@@ -18,7 +18,7 @@ func (sp *SelfProvisioner) LoadMe() (err error) {
 func (sp *SelfProvisioner) CheckKeyProvisioned() (err error) {
 	if kid := G.Env.GetPerDeviceKID(); kid == nil {
 		err = NotProvisionedError{}
-	} else if ring := G.Keyrings.P3SKB; ring == nil {
+	} else if ring := G.Keyrings.SKB; ring == nil {
 		err = NoKeyringsError{}
 	} else if sp.secretKey = ring.LookupByKid(kid); sp.secretKey == nil {
 		err = NoSecretKeyError{}
@@ -41,7 +41,7 @@ func (sp *SelfProvisioner) FindBestReprovisionKey() (ret GenericKey, err error) 
 		return
 	}
 
-	ring := G.Keyrings.P3SKB
+	ring := G.Keyrings.SKB
 	if ring == nil {
 		err = NoKeyringsError{}
 		return

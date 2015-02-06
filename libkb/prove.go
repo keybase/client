@@ -1,8 +1,8 @@
 package libkb
 
 import (
-	"github.com/keybase/go-jsonw"
-	"github.com/keybase/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 type ProofEngine struct {
@@ -135,7 +135,7 @@ func (v *ProofEngine) DoWarnings() (err error) {
 	return
 }
 func (v *ProofEngine) GenerateProof() (err error) {
-	var locked *P3SKB
+	var locked *SKB
 	var which string
 	var seckey GenericKey
 

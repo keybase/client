@@ -347,8 +347,8 @@ type NaclKeyPair interface {
 	GenericKey
 }
 
-func (k NaclSigningKeyPair) ToP3SKB(t *triplesec.Cipher) (*P3SKB, error) {
-	ret := &P3SKB{}
+func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
+	ret := &SKB{}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_EDDSA
 	ret.Priv.Encryption = 0
@@ -356,8 +356,8 @@ func (k NaclSigningKeyPair) ToP3SKB(t *triplesec.Cipher) (*P3SKB, error) {
 	return ret, nil
 }
 
-func (k NaclDHKeyPair) ToP3SKB(t *triplesec.Cipher) (*P3SKB, error) {
-	ret := &P3SKB{}
+func (k NaclDHKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
+	ret := &SKB{}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_DH
 	ret.Priv.Encryption = 0
@@ -365,12 +365,12 @@ func (k NaclDHKeyPair) ToP3SKB(t *triplesec.Cipher) (*P3SKB, error) {
 	return ret, nil
 }
 
-func (k NaclSigningKeyPair) ToLksP3SKB(lks *LKSec) (*P3SKB, error) {
+func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	data, err := lks.Encrypt(k.Private[:])
 	if err != nil {
 		return nil, err
 	}
-	ret := &P3SKB{}
+	ret := &SKB{}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_EDDSA
 	ret.Priv.Encryption = LKSecVersion
@@ -378,12 +378,12 @@ func (k NaclSigningKeyPair) ToLksP3SKB(lks *LKSec) (*P3SKB, error) {
 	return ret, nil
 }
 
-func (k NaclDHKeyPair) ToLksP3SKB(lks *LKSec) (*P3SKB, error) {
+func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	data, err := lks.Encrypt(k.Private[:])
 	if err != nil {
 		return nil, err
 	}
-	ret := &P3SKB{}
+	ret := &SKB{}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_DH
 	ret.Priv.Encryption = LKSecVersion
