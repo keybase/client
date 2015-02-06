@@ -44,9 +44,16 @@
 @property NSString *email;
 @end
 
+@interface KBRImage : KBRObject
+@property NSString *url;
+@property NSInteger width;
+@property NSInteger height;
+@end
+
 @interface KBRUser : KBRObject
 @property KBRUID *uid;
 @property NSString *username;
+@property KBRImage *image;
 @end
 
 @interface KBRSIGID : NSData

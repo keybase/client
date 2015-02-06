@@ -32,11 +32,18 @@ protocol Common {
 		string comment;
 		string email;
 	}
-        
+
+	record Image {
+		string url;
+		int width;
+		int height;
+	}
+
 	record User {
 		UID uid;
 		string username;
+		Image image;
 	}
-	
+
 	fixed SIGID(32);
 }
