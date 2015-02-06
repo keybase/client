@@ -53,6 +53,9 @@
 @implementation KBRPgpIdentity
 @end
 
+@implementation KBRImage
+@end
+
 @implementation KBRUser
 @end
 

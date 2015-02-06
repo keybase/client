@@ -126,9 +126,16 @@ type PgpIdentity struct {
 	Email    string `codec:"email"`
 }
 
+type Image struct {
+	Url    string `codec:"url"`
+	Width  int    `codec:"width"`
+	Height int    `codec:"height"`
+}
+
 type User struct {
 	Uid      UID    `codec:"uid"`
 	Username string `codec:"username"`
+	Image    Image  `codec:"image"`
 }
 
 type SIGID [32]byte
