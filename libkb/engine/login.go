@@ -36,7 +36,7 @@ func (e *LoginEngine) LoginAndIdentify(arg LoginAndIdentifyArg) error {
 		err = nil
 	} else if err != nil {
 
-	} else if u2 := G.Env.GetUid(); u2 != nil && !u2.Eq(u.GetUid()) {
+	} else if u2 := G.Env.GetVerifiedUID(); u2 != nil && !u2.Eq(u.GetUid()) {
 		err = libkb.UidMismatchError{Msg: fmt.Sprintf("Got wrong uid; wanted %s but got %s",
 			u.GetUid(), u2)}
 	} else if u2 == nil && identify != nil {

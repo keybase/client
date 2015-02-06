@@ -263,7 +263,7 @@ func (u *User) IdentifySelf(ui IdentifyUI) (err error) {
 
 	if err == nil {
 		cw := G.Env.GetConfigWriter()
-		cw.SetUid(u.id)
+		cw.SetUIDVerified()
 		if err = cw.Write(); err != nil {
 			G.Log.Error("Write error: %s", err.Error())
 		}

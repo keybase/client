@@ -23,7 +23,7 @@ func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false
 func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false }
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
 func (n NullConfiguration) GetPinentry() string                { return "" }
-func (n NullConfiguration) GetUid() *UID                       { return nil }
+func (n NullConfiguration) GetUID() *UID                       { return nil }
 func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
@@ -33,8 +33,10 @@ func (n NullConfiguration) GetSocketFile() string              { return "" }
 func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, false }
 func (n NullConfiguration) GetLocalRpcDebug() string           { return "" }
-func (n NullConfiguration) GetPerDeviceKID() string            { return "" }
-func (n NullConfiguration) GetDeviceId() string                { return "" }
+func (n NullConfiguration) GetDeviceID() *DeviceID             { return nil }
+
+func (n NullConfiguration) GetUserConfig() (*UserConfig, error)                    { return nil, nil }
+func (n NullConfiguration) GetUserConfigForUsername(s string) (*UserConfig, error) { return nil, nil }
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
@@ -259,11 +261,7 @@ func (e Env) GetApiDump() bool {
 }
 
 func (e Env) GetUsername() string {
-	return e.GetString(
-		func() string { return e.cmd.GetUsername() },
-		func() string { return os.Getenv("KEYBASE_USERNAME") },
-		func() string { return e.config.GetUsername() },
-	)
+	return e.config.GetUsername()
 }
 
 func (e Env) GetSocketFile() (ret string, err error) {
@@ -294,7 +292,6 @@ func (e Env) GetEmail() string {
 	return e.GetString(
 		func() string { return e.cmd.GetEmail() },
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
-		func() string { return e.config.GetEmail() },
 	)
 }
 
@@ -394,19 +391,8 @@ func (e Env) GetTestMode() bool {
 	return false
 }
 
-func (e Env) GetUid() *UID {
-	if i := e.cmd.GetUid(); i != nil {
-		return i
-	}
-	if s := os.Getenv("KEYBASE_USER_ID"); len(s) > 0 {
-		if i, err := UidFromHex(s); err != nil {
-			return i
-		}
-	}
-	if i := e.config.GetUid(); i != nil {
-		return i
-	}
-	return nil
+func (e Env) GetUID() *UID {
+	return e.config.GetUID()
 }
 
 func (e Env) GetStringList(list ...(func() []string)) []string {
@@ -464,18 +450,6 @@ func (e Env) GetGpgOptions() []string {
 	)
 }
 
-func (e Env) GetPgpFingerprint() *PgpFingerprint {
-	return e.getPgpFingerprint(
-		func() *PgpFingerprint { return e.cmd.GetPgpFingerprint() },
-		func() *PgpFingerprint {
-			return PgpFingerprintFromHexNoError(os.Getenv("KEYBASE_PGP_FINGERPRINT"))
-		},
-		func() *PgpFingerprint {
-			return e.config.GetPgpFingerprint()
-		},
-	)
-}
-
 func (e Env) GetSecretKeyring() string {
 	return e.GetString(
 		func() string { return e.cmd.GetSecretKeyring() },
@@ -497,32 +471,6 @@ func (e Env) GetLocalRpcDebug() string {
 	)
 }
 
-func (e Env) GetPerDeviceKID() (ret KID) {
-	s := e.GetString(
-		func() string { return e.cmd.GetPerDeviceKID() },
-		func() string { return os.Getenv("KEYBASE_PER_DEVICE_KID") },
-		func() string { return e.config.GetPerDeviceKID() },
-	)
-	if len(s) == 0 {
-	} else if kid, err := ImportKID(s); err != nil {
-		G.Log.Warning("Error importing KID %s: %s", s, err.Error())
-	} else {
-		ret = kid
-	}
-	return
-}
-
-func (e Env) GetDeviceId() (ret *DeviceId) {
-	s := e.GetString(
-		func() string { return e.cmd.GetDeviceId() },
-		func() string { return os.Getenv("KEYBASE_DEVICE_ID") },
-		func() string { return e.config.GetDeviceId() },
-	)
-	if len(s) == 0 {
-	} else if did, err := ImportDeviceId(s); err != nil {
-		G.Log.Warning("Error importing Device ID %s: %s", s, err.Error())
-	} else {
-		ret = did
-	}
-	return
+func (e Env) GetDeviceID() (ret *DeviceID) {
+	return e.config.GetDeviceID()
 }

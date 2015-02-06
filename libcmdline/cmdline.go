@@ -42,18 +42,6 @@ func (p CommandLine) GetDbFilename() string {
 func (p CommandLine) GetDebug() (bool, bool) {
 	return p.GetBool("debug", true)
 }
-func (p CommandLine) GetUsername() string {
-	return p.GetGString("username")
-}
-func (p CommandLine) GetUid() *libkb.UID {
-	if s := p.GetGString("uid"); len(s) == 0 {
-		return nil
-	} else if i, e := libkb.UidFromHex(s); e == nil {
-		return i
-	} else {
-		return nil
-	}
-}
 func (p CommandLine) GetPgpFingerprint() *libkb.PgpFingerprint {
 	return libkb.PgpFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
@@ -89,12 +77,6 @@ func (p CommandLine) GetSecretKeyring() string {
 }
 func (p CommandLine) GetSocketFile() string {
 	return p.GetGString("socket-file")
-}
-func (p CommandLine) GetPerDeviceKID() string {
-	return p.GetGString("device-kid")
-}
-func (p CommandLine) GetDeviceId() string {
-	return p.GetGString("device-id")
 }
 func (p CommandLine) GetGpgOptions() []string {
 	var ret []string

@@ -39,7 +39,7 @@ func (s Session) GetUsername() *string {
 	return s.username
 }
 
-func (s Session) GetUid() *UID {
+func (s Session) GetUID() *UID {
 	return s.uid
 }
 

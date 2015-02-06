@@ -24,8 +24,6 @@ type CommandLine interface {
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
-	GetUsername() string
-	GetUid() *UID
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string
@@ -43,8 +41,6 @@ type CommandLine interface {
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRpcDebug() string
-	GetPerDeviceKID() string
-	GetDeviceId() string
 }
 
 type Server interface {
@@ -74,13 +70,12 @@ type ConfigReader interface {
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
-	GetUsername() string
-	GetUid() *UID
+	GetUserConfig() (*UserConfig, error)
+	GetUserConfigForUsername(s string) (*UserConfig, error)
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetPgpDir() string
 	GetBundledCA(host string) string
-	GetEmail() string
 	GetStringAtPath(string) (string, bool)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
@@ -92,24 +87,19 @@ type ConfigReader interface {
 	GetNoPinentry() (bool, bool)
 	GetGpg() string
 	GetGpgOptions() []string
-	GetPgpFingerprint() *PgpFingerprint
 	GetSecretKeyring() string
 	GetSalt() []byte
 	GetSocketFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRpcDebug() string
-	GetPerDeviceKID() string
-	GetDeviceId() string
+	GetDeviceID() *DeviceID
+	GetUsername() string
+	GetUID() *UID
 }
 
 type ConfigWriter interface {
-	SetUsername(string)
-	SetUid(UID)
-	SetPgpFingerprint(*PgpFingerprint)
-	SetSalt([]byte)
-	SetPerDeviceKID(KID) error
-	SetDeviceId(*DeviceId) error
+	SetUserConfig(*UserConfig) error
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error

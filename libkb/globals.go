@@ -85,7 +85,7 @@ func (g *Global) ConfigureConfig() error {
 	c := NewJsonConfigFile(g.Env.GetConfigFilename())
 	err := c.Load(true)
 	if err != nil {
-		return fmt.Errorf("Failed to open config file: %s\n", err.Error())
+		return err
 	}
 	g.Env.SetConfig(*c)
 	g.Env.SetConfigWriter(c)
@@ -246,10 +246,10 @@ func (g *Global) GetGpgClient() GpgClient {
 	return g.GpgClient
 }
 
-func (g *Global) GetMyUid() (ret *UID) {
-	ret = g.Session.GetUid()
+func (g *Global) GetMyUID() (ret *UID) {
+	ret = g.Session.GetUID()
 	if ret == nil {
-		ret = g.Env.GetUid()
+		ret = g.Env.GetUID()
 	}
 	return ret
 }

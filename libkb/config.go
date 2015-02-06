@@ -1,16 +1,21 @@
 package libkb
 
 import (
-	"encoding/hex"
+	"fmt"
 	"github.com/keybase/go-jsonw"
 )
 
+type UserConfigWrapper struct {
+	userConfig *UserConfig
+}
+
 type JsonConfigFile struct {
 	*JsonFile
+	userConfigWrapper *UserConfigWrapper
 }
 
 func NewJsonConfigFile(s string) *JsonConfigFile {
-	return &JsonConfigFile{NewJsonFile(s, "config")}
+	return &JsonConfigFile{NewJsonFile(s, "config"), &UserConfigWrapper{}}
 }
 
 type valueGetter func(*jsonw.Wrapper) (interface{}, error)
@@ -87,14 +92,6 @@ func (f JsonConfigFile) GetTopLevelBool(s string) (res bool, is_set bool) {
 	return
 }
 
-func (f *JsonConfigFile) UserDict() *jsonw.Wrapper {
-	if f.jw.AtKey("user").IsNil() {
-		f.jw.SetKey("user", jsonw.NewDictionary())
-		f.dirty = true
-	}
-	return f.jw.AtKey("user")
-}
-
 func (f *JsonConfigFile) setValueAtPath(
 	p string, getter valueGetter, v interface{}) (err error) {
 	existing, err := getter(f.jw.AtPath(p))
@@ -131,38 +128,56 @@ func (f *JsonConfigFile) SetNullAtPath(p string) (err error) {
 	return
 }
 
-func (f *JsonConfigFile) SetUsername(s string) {
-	f.SetUserField("name", s)
-}
-
-func (f *JsonConfigFile) SetUid(u UID) {
-	f.SetUserField("id", string(u.String()))
-}
-
-func (f *JsonConfigFile) SetSalt(b []byte) {
-	f.SetUserField("salt", hex.EncodeToString(b))
-}
-func (f *JsonConfigFile) SetPgpFingerprint(fp *PgpFingerprint) {
-	key := "fingerprint"
-	if fp == nil {
-		f.DeleteUserField(key)
-	} else {
-		s := fp.String()
-		f.SetUserField(key, s)
+// GetUserConfig looks for the `current_user` field to see if there's
+// a corresponding user object in the `users` table. There really should be.
+func (f JsonConfigFile) GetUserConfig() (ret *UserConfig, err error) {
+	var s string
+	if ret = f.userConfigWrapper.userConfig; ret != nil {
+		return
 	}
+	if s, err = f.jw.AtKey("current_user").GetString(); err != nil {
+		return
+	}
+	if ret, err = f.GetUserConfigForUsername(s); err != nil {
+		return
+	} else if ret != nil {
+		f.userConfigWrapper.userConfig = ret
+	} else {
+		err = ConfigError{f.filename,
+			fmt.Sprintf("Didn't find a UserConfig for %s", s)}
+	}
+	return
 }
 
-func (f *JsonConfigFile) SetUserField(k, v string) {
-	existing := f.GetUserField(k)
-	if existing != v {
-		f.UserDict().SetKey(k, jsonw.NewString(v))
+// GetUserConfigForUsername sees if there's a UserConfig object for the given
+// username previously stored.
+func (f JsonConfigFile) GetUserConfigForUsername(s string) (ret *UserConfig, err error) {
+	return ImportUserConfigFromJsonWrapper(f.jw.AtKey("users").AtKey(s))
+}
+
+// SetUserConfig writes this UserConfig to the config file and updates the
+// currently active UserConfig in memory.  If the given UserConfig is nil, then
+// just empty everything out and clear the `current_user` field.  Note that
+// we never actually overwrite users.<username>, we just write it if it
+// doesn't already exist, and we update the `current_user` pointer.
+func (f *JsonConfigFile) SetUserConfig(u *UserConfig) (err error) {
+	f.userConfigWrapper.userConfig = u
+	if u == nil {
+		f.jw.DeleteKey("current_user")
+	} else {
+		parent := f.jw.AtKey("users")
+		un := u.GetUsername()
+		if parent.IsNil() {
+			parent = jsonw.NewDictionary()
+			f.jw.SetKey("users", parent)
+		}
+		if parent.AtKey(un).IsNil() {
+			parent.SetKey(un, jsonw.NewWrapper(*u))
+		}
+		f.jw.SetKey("current_user", jsonw.NewString(un))
 		f.dirty = true
 	}
-}
-
-func (f *JsonConfigFile) DeleteUserField(k string) {
-	f.jw.AtKey("user").DeleteKey(k)
-	f.dirty = true
+	return nil
 }
 
 func (f *JsonConfigFile) DeleteAtPath(p string) {
@@ -177,17 +192,6 @@ func (f *JsonConfigFile) Reset() {
 
 func (f *JsonConfigFile) Write() error {
 	return f.MaybeSave(true, 0)
-}
-
-func (f JsonConfigFile) GetUserField(s string) string {
-	var ret string
-	var err error
-	ret, err = f.jw.AtKey("user").AtKey(s).GetString()
-	if err != nil {
-		ret = ""
-	}
-	G.Log.Debug("Config: mapping user.%s-> %s", s, ret)
-	return ret
 }
 
 func (f JsonConfigFile) GetHome() (ret string) {
@@ -240,34 +244,32 @@ func (f JsonConfigFile) GetGpgOptions() []string {
 func (f JsonConfigFile) GetNoPinentry() (bool, bool) {
 	return f.GetBoolAtPath("pinentry.disabled")
 }
-func (f JsonConfigFile) GetUsername() string {
-	return f.GetUserField("name")
-}
-func (f JsonConfigFile) GetSalt() []byte {
-	s := f.GetUserField("salt")
-	if len(s) == 0 {
-		return nil
+func (f JsonConfigFile) GetUsername() (ret string) {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		ret = uc.GetUsername()
 	}
-	b, err := hex.DecodeString(s)
-	if err != nil {
-		G.Log.Warning("In getting salt from %s: %s", f.filename, err.Error())
-	}
-	return b
-}
-func (f JsonConfigFile) GetUid() *UID {
-	i, err := UidFromHex(f.GetUserField("id"))
-	if err != nil {
-		i = nil
-	}
-	return i
-}
-func (f JsonConfigFile) GetPgpFingerprint() *PgpFingerprint {
-	ret := PgpFingerprintFromHexNoError(f.GetUserField("fingerprint"))
 	return ret
 }
-func (f JsonConfigFile) GetEmail() (ret string) {
-	return f.GetTopLevelString("email")
+func (f JsonConfigFile) GetSalt() (ret []byte) {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		ret = uc.GetSalt()
+	}
+	return ret
 }
+func (f JsonConfigFile) GetUID() (ret *UID) {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		tmp := uc.GetUID()
+		ret = &tmp
+	}
+	return ret
+}
+func (f JsonConfigFile) GetDeviceID() (ret *DeviceID) {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		ret = uc.GetDeviceID()
+	}
+	return ret
+}
+
 func (f JsonConfigFile) GetProxy() (ret string) {
 	return f.GetTopLevelString("proxy")
 }
@@ -340,42 +342,4 @@ func (f JsonConfigFile) GetSocketFile() string {
 }
 func (f JsonConfigFile) GetDaemonPort() (int, bool) {
 	return f.GetIntAtPath("daemon_port")
-}
-
-func (f JsonConfigFile) GetPerDeviceKID() (ret string) {
-	if f.jw != nil {
-		if kid, err := f.jw.AtPath("device.kid").GetString(); err == nil {
-			ret = kid
-		}
-	}
-	return
-}
-
-func (f *JsonConfigFile) SetPerDeviceKID(kid KID) (err error) {
-	path := "device.kid"
-	if kid == nil {
-		f.DeleteAtPath(path)
-	} else {
-		f.SetStringAtPath(path, kid.String())
-	}
-	return
-}
-
-func (f JsonConfigFile) GetDeviceId() (ret string) {
-	if f.jw != nil {
-		if id, err := f.jw.AtPath("device.id").GetString(); err == nil {
-			ret = id
-		}
-	}
-	return
-}
-
-func (f *JsonConfigFile) SetDeviceId(did *DeviceId) (err error) {
-	key := "device.id"
-	if did == nil {
-		f.DeleteAtPath(key)
-	} else {
-		f.SetStringAtPath(key, did.String())
-	}
-	return
 }

@@ -116,12 +116,13 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 func (s *SignupJoinEngine) WriteConfig(salt []byte) error {
 	cw := G.Env.GetConfigWriter()
 	if cw == nil {
-		return fmt.Errorf("No configuration writer available")
+		return NoConfigWriterError{}
 	}
-	cw.SetUsername(s.username)
-	cw.SetUid(s.uid)
-	cw.SetSalt(salt)
-	return cw.Write()
+	if err = cw.SetUserConfig(NewUserConfig(s.uid.s.username, s.salt, nil)); err != nil {
+		return err
+	}
+	err = cw.Write()
+	return
 }
 
 func (s *SignupJoinEngine) WriteSession() error {

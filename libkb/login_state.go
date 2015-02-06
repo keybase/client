@@ -176,11 +176,11 @@ func (s *LoginState) SaveLoginState(prompted bool, saveConfig bool) error {
 	s.SessionVerified = true
 
 	if cfg := G.Env.GetConfigWriter(); cfg != nil {
-		if prompted {
-			cfg.SetUsername(s.loggedInRes.Username)
+
+		if err = cfg.SetUserConfig(NewUserConfig(s.loggedInRes.Uid, s.loggedInRes.Username,
+			s.salt, nil)); err != nil {
+			return err
 		}
-		cfg.SetUid(s.loggedInRes.Uid)
-		cfg.SetSalt(s.salt)
 
 		if err := cfg.Write(); err != nil {
 			return err

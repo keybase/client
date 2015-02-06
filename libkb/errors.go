@@ -701,3 +701,14 @@ func (r ReverseSigError) Error() string {
 }
 
 //=============================================================================
+
+type ConfigError struct {
+	fn  string
+	msg string
+}
+
+func (c ConfigError) Error() string {
+	return fmt.Sprintf("In config file %s: %s\n", c.fn, c.msg)
+}
+
+//=============================================================================

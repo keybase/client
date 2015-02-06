@@ -11,13 +11,13 @@ const (
 	DEVICE_ID_SUFFIX = 0x18
 )
 
-type DeviceId [DEVICE_ID_LEN]byte
+type DeviceID [DEVICE_ID_LEN]byte
 
-func (d DeviceId) String() string {
+func (d DeviceID) String() string {
 	return hex.EncodeToString(d[:])
 }
 
-func NewDeviceId() (id DeviceId, err error) {
+func NewDeviceID() (id DeviceID, err error) {
 	var b []byte
 	b, err = RandBytes(DEVICE_ID_LEN)
 	if err != nil {
@@ -28,7 +28,7 @@ func NewDeviceId() (id DeviceId, err error) {
 	return id, nil
 }
 
-func ImportDeviceId(s string) (d *DeviceId, err error) {
+func ImportDeviceID(s string) (d *DeviceID, err error) {
 	if len(s) != 2*DEVICE_ID_LEN {
 		err = fmt.Errorf("Bad Deviced ID length: %d", len(s))
 		return
@@ -44,7 +44,7 @@ func ImportDeviceId(s string) (d *DeviceId, err error) {
 		return
 	}
 
-	var ret DeviceId
+	var ret DeviceID
 	copy(ret[:], tmp)
 	d = &ret
 	return
