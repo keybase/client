@@ -4,10 +4,10 @@ protocol mykey {
 
 	import idl "common.avdl";
 
-        record PgpCreateUids {
+	record PgpCreateUids {
 		boolean useDefault;
 		array<PgpIdentity> ids;
-        }
+	}
 
 	void keyGen(
 		int primaryBits,
