@@ -76,7 +76,7 @@ func (g *GPG) Run(signingKey libkb.GenericKey) error {
 	}
 
 	if selected == nil {
-		return fmt.Errorf("no key selected")
+		return nil
 	}
 
 	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()))

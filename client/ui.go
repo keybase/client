@@ -513,8 +513,11 @@ func (g GPGUI) SelectKey(arg keybase_1.SelectKeyArg) (res keybase_1.SelectKeyRes
 	}
 	w.Flush()
 
-	ret, err := g.parent.PromptSelection("Choose a key", 1, len(arg.Keyset.Keys)+1)
+	ret, err := g.parent.PromptSelectionOrCancel("Choose a key", 1, len(arg.Keyset.Keys))
 	if err != nil {
+		if err == ErrInputCanceled {
+			return res, nil
+		}
 		return res, err
 	}
 	res.KeyID = arg.Keyset.Keys[ret-1].KeyID
@@ -771,6 +774,8 @@ func (ui *UI) PromptYesNo(p string, def PromptDefault) (ret bool, err error) {
 	return
 }
 
+var ErrInputCanceled InputCanceledError
+
 func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 	field := &Field{
 		Name:   "selection",
@@ -785,7 +790,31 @@ func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 	}
 	err = NewPrompter([]*Field{field}).Run()
 	if p := field.Value; p == nil {
-		err = InputCanceledError{}
+		err = ErrInputCanceled
+	} else {
+		ret, err = strconv.Atoi(*p)
+	}
+	return
+}
+
+func (ui *UI) PromptSelectionOrCancel(prompt string, low, hi int) (ret int, err error) {
+	field := &Field{
+		Name:   "selection",
+		Prompt: prompt,
+		Checker: &libkb.Checker{
+			F: func(s string) bool {
+				if s == "c" {
+					return true
+				}
+				v, e := strconv.Atoi(s)
+				return (e == nil && v >= low && v <= hi)
+			},
+			Hint: fmt.Sprintf("%d-%d, or c to cancel", low, hi),
+		},
+	}
+	err = NewPrompter([]*Field{field}).Run()
+	if p := field.Value; p == nil || *p == "c" {
+		err = ErrInputCanceled
 	} else {
 		ret, err = strconv.Atoi(*p)
 	}

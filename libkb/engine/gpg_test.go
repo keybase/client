@@ -9,11 +9,14 @@ import (
 )
 
 func TestGPGRun(t *testing.T) {
-	t.Skip()
 	tc := libkb.SetupTest(t, "gpg")
 	defer tc.Cleanup()
 
-	g := NewGPG(&gpgtestui{}, nil)
+	if err := tc.GenerateGPGKeyring("xxx@xxx.com"); err != nil {
+		t.Fatal(err)
+	}
+
+	g := NewGPG(&gpgcanceltestui{}, nil)
 	if err := g.Run(nil); err != nil {
 		t.Fatal(err)
 	}
@@ -31,4 +34,12 @@ func (g *gpgtestui) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRe
 
 func (g *gpgtestui) WantToAddGPGKey() (bool, error) {
 	return true, nil
+}
+
+type gpgcanceltestui struct {
+	*gpgtestui
+}
+
+func (g *gpgcanceltestui) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRes, error) {
+	return keybase_1.SelectKeyRes{}, nil
 }
