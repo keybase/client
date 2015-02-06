@@ -150,6 +150,13 @@
     "show" : {
       "request" : [ ],
       "response" : "null"
+    },
+    "select" : {
+      "request" : [ {
+        "name" : "query",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

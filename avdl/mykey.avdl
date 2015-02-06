@@ -31,4 +31,7 @@ protocol mykey {
 	// loggingUI.  We might eventually opt for something
 	// more interesting here.
 	void show();
+
+	// select an existing key and add to kb
+	void select(string query);
 }

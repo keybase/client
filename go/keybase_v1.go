@@ -790,11 +790,16 @@ type DeletePrimaryArg struct {
 type ShowArg struct {
 }
 
+type SelectArg struct {
+	Query string `codec:"query"`
+}
+
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
 	KeyGenDefault(KeyGenDefaultArg) error
 	DeletePrimary() error
 	Show() error
+	Select(string) error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -829,6 +834,13 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"select": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SelectArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Select(args[0].Query)
+				}
+				return
+			},
 		},
 	}
 
@@ -855,6 +867,12 @@ func (c MykeyClient) DeletePrimary() (err error) {
 
 func (c MykeyClient) Show() (err error) {
 	err = c.Cli.Call("keybase.1.mykey.show", []interface{}{ShowArg{}}, nil)
+	return
+}
+
+func (c MykeyClient) Select(query string) (err error) {
+	__arg := SelectArg{Query: query}
+	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
 	return
 }
 
