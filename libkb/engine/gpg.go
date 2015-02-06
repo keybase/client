@@ -39,12 +39,24 @@ func (g *GPG) WantsGPG() (bool, error) {
 	return res, nil
 }
 
-func (g *GPG) Run(signingKey libkb.GenericKey) error {
+func (g *GPG) RunLoadKey(query string) error {
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		return err
+	}
+	sk, err := me.GetDeviceSibkey()
+	if err != nil {
+		return err
+	}
+	return g.Run(sk, query)
+}
+
+func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
 	gpg := G.GetGpgClient()
 	if _, err := gpg.Configure(); err != nil {
 		return err
 	}
-	index, err, warns := gpg.Index(true, "")
+	index, err, warns := gpg.Index(true, query)
 	if err != nil {
 		return err
 	}

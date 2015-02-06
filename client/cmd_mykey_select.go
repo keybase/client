@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
+	"github.com/keybase/go/libkb/engine"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type CmdMykeySelect struct {
@@ -27,77 +27,25 @@ func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (v *CmdMykeySelect) RunClient() error {
-	return v.Run()
-}
-
-func (v *CmdMykeySelect) Run() (err error) {
-
-	v.state.arg.SecretUI = G_UI.GetSecretUI()
-	gen := libkb.NewKeyGen(&v.state.arg)
-
-	if err = gen.LoginAndCheckKey(); err != nil {
-		return
-	}
-	if err = v.GetKey(); err != nil {
-		return
-	}
-	if err = v.state.PromptSecretPush(false); err != nil {
-		return
-	}
-	if _, err = gen.Run(); err != nil {
-		return
-	}
-	return
-}
-func (v *CmdMykeySelect) GetKey() error {
-
-	gpg := G.GetGpgClient()
-	if _, err := gpg.Configure(); err != nil {
-		return err
-	}
-	index, err, warns := gpg.Index(true, v.query)
+	c, err := GetMykeyClient()
 	if err != nil {
 		return err
 	}
-	warns.Warn()
-	var keyInfo *libkb.GpgPrimaryKey
-	if len(index.Keys) > 1 {
-		if len(v.query) > 0 {
-			G_UI.Output("Multiple keys matched '" + v.query + "':\n")
-		} else {
-			G_UI.Output("Multiple keys found:\n")
-		}
-		headings := []string{
-			"#",
-			"Algo",
-			"Key Id",
-			"Expires",
-			"Email",
-		}
-		libkb.Tablify(os.Stdout, headings, index.GetRowFunc())
-		p := "Select a key"
-		var i int
-		if i, err = G_UI.PromptSelection(p, 1, len(index.Keys)+1); err != nil {
-			return err
-		}
-		keyInfo = index.Keys[i-1]
-		G.Log.Info("Selected: %s", strings.Join(keyInfo.ToRow(i), " "))
-	} else {
-		keyInfo = index.Keys[0]
-		G.Log.Info("Key selection is unambiguous: %s", keyInfo.GetFingerprint().ToQuads())
+	protocols := []rpc2.Protocol{
+		NewGPGUIProtocol(),
+		NewLogUIProtocol(),
+		NewSecretUIProtocol(),
 	}
-	var key *libkb.PgpKeyBundle
-	if key, err = gpg.ImportKey(true, *keyInfo.GetFingerprint()); err != nil {
-		return err
-	}
-	if err = key.Unlock("Import of key into keybase keyring", G.UI.GetSecretUI()); err != nil {
+	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
 
-	if err == nil {
-		v.state.arg.Pregen = key
-	}
-	return err
+	return c.Select(v.query)
+}
+
+func (v *CmdMykeySelect) Run() error {
+	gpg := engine.NewGPG(G.UI.GetGPGUI(), G.UI.GetSecretUI())
+	return gpg.RunLoadKey(v.query)
 }
 
 func NewCmdMykeySelect(cl *libcmdline.CommandLine) cli.Command {

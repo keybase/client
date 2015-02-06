@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
+	"github.com/keybase/go/libkb/engine"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -72,4 +73,12 @@ func (h *MykeyHandler) DeletePrimary() (err error) {
 func (h *MykeyHandler) Show() (err error) {
 	sessionId := nextSessionId()
 	return libkb.ShowKeys(h.getLogUI(sessionId))
+}
+
+func (h *MykeyHandler) Select(query string) error {
+	sessionID := nextSessionId()
+	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
+	secretui := h.getSecretUI(sessionID)
+	gpg := engine.NewGPG(gpgui, secretui)
+	return gpg.RunLoadKey(query)
 }
