@@ -51,8 +51,6 @@
 		00B543FE1A81CCF00044CC5B /* record.zip in Resources */ = {isa = PBXBuildFile; fileRef = 00B543FC1A81CCF00044CC5B /* record.zip */; };
 		00B544031A82F8B40044CC5B /* KBMainView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544021A82F8B40044CC5B /* KBMainView.m */; };
 		00B544041A82F8B40044CC5B /* KBMainView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544021A82F8B40044CC5B /* KBMainView.m */; };
-		00B544071A840AC90044CC5B /* KBSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544061A840AC90044CC5B /* KBSplitView.m */; };
-		00B544081A840AC90044CC5B /* KBSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544061A840AC90044CC5B /* KBSplitView.m */; };
 		00B5440B1A842DE40044CC5B /* KBSourceView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B5440A1A842DE40044CC5B /* KBSourceView.m */; };
 		00B5440C1A842DE40044CC5B /* KBSourceView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B5440A1A842DE40044CC5B /* KBSourceView.m */; };
 		00B5440F1A8459A10044CC5B /* KBLabelRow.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B5440E1A8459A10044CC5B /* KBLabelRow.m */; };
@@ -178,8 +176,6 @@
 		00B543FC1A81CCF00044CC5B /* record.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; name = record.zip; path = ../record.zip; sourceTree = "<group>"; };
 		00B544011A82F8B40044CC5B /* KBMainView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBMainView.h; sourceTree = "<group>"; };
 		00B544021A82F8B40044CC5B /* KBMainView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBMainView.m; sourceTree = "<group>"; };
-		00B544051A840AC90044CC5B /* KBSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSplitView.h; sourceTree = "<group>"; };
-		00B544061A840AC90044CC5B /* KBSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSplitView.m; sourceTree = "<group>"; };
 		00B544091A842DE40044CC5B /* KBSourceView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSourceView.h; sourceTree = "<group>"; };
 		00B5440A1A842DE40044CC5B /* KBSourceView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSourceView.m; sourceTree = "<group>"; };
 		00B5440D1A8459A10044CC5B /* KBLabelRow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLabelRow.h; sourceTree = "<group>"; };
@@ -395,8 +391,6 @@
 				0065CA341A7B104F006E1772 /* KBAlert.m */,
 				003BAABB1A806A3F00C309B9 /* KBTableView.h */,
 				003BAABC1A806A3F00C309B9 /* KBTableView.m */,
-				00B544051A840AC90044CC5B /* KBSplitView.h */,
-				00B544061A840AC90044CC5B /* KBSplitView.m */,
 				00B5440D1A8459A10044CC5B /* KBLabelRow.h */,
 				00B5440E1A8459A10044CC5B /* KBLabelRow.m */,
 			);
@@ -671,7 +665,6 @@
 				00086CA61A65CEC60000460F /* KBSplashView.m in Sources */,
 				00358D5D1A5F564E0052B016 /* KBLookAndFeel.m in Sources */,
 				00D52F821A76EDAE00DEB5F5 /* KBErrorView.m in Sources */,
-				00B544071A840AC90044CC5B /* KBSplitView.m in Sources */,
 				005A45441A609A6E00DC732D /* KBUserInfoView.m in Sources */,
 				0065CA231A79ABB7006E1772 /* KBBox.m in Sources */,
 				00B543F11A8178E30044CC5B /* KBStrengthLabel.m in Sources */,
@@ -749,7 +742,6 @@
 				00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */,
 				0065CA1C1A79A02E006E1772 /* KBWindow.m in Sources */,
 				00CB67BF1A69D0E000B5882A /* KBCatalogView.m in Sources */,
-				00B544081A840AC90044CC5B /* KBSplitView.m in Sources */,
 				00B544101A8459A10044CC5B /* KBLabelRow.m in Sources */,
 				00CB67D71A6E1D6B00B5882A /* KBTableRowView.m in Sources */,
 				00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */,
