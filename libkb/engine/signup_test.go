@@ -50,10 +50,11 @@ func TestSignupEngine(t *testing.T) {
 	// Now try to logout and log back in w/ PublicKey Auth
 	G.LoginState.Logout()
 
-	if err = G.Session.AssertLoggedOut(); err != nil {
+	if err := G.Session.AssertLoggedOut(); err != nil {
 		t.Fatal(err)
 	}
 
+<<<<<<< HEAD
 	sui := libkb.TestSecretUI{fu.Passphrase}
 	if err = G.LoginState.PubkeyLogin(sui); err != nil {
 		t.Fatal(err)
