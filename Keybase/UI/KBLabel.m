@@ -21,6 +21,7 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.identifier = self.className;
   _textView = [[NSTextView alloc] init];
   _textView.backgroundColor = NSColor.clearColor;
   _textView.editable = NO;
@@ -32,18 +33,18 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGSize textSize = [KBLabel sizeThatFits:size attributedString:yself.textView.attributedString];
-    if (yself.border) {
-      textSize.width += yself.border.borderRect.size.width;
-      textSize.height += yself.border.borderRect.size.height;
-    }
+
+//    if (yself.border) {
+//      inSize.width -= yself.border.borderRect.;
+//      inSize.height -= yself.border.borderRect.;
+//    }
 
     if (size.height > 0 && self.verticalAlignment == KBTextAlignmentMiddle) {
       [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, textSize.width, textSize.height)) view:yself.textView];
       [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
       return CGSizeMake(textSize.width, size.height);
     } else {
-      CGSize textSize = [KBLabel sizeThatFits:size attributedString:yself.textView.attributedString];
-      [layout setSize:textSize view:yself.textView options:0];
+      [layout setSize:textSize view:yself.textView options:0]; // TODO: Inset
       [layout setSize:textSize view:yself.border options:0];
       return textSize;
     }

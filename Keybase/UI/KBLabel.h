@@ -22,7 +22,7 @@ typedef NS_ENUM(NSUInteger, KBTextAlignment) {
 
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) BOOL selectable;
-@property NSTextBlockVerticalAlignment verticalAlignment;
+@property KBTextAlignment verticalAlignment;
 
 - (void)setBackgroundColor:(NSColor *)backgroundColor;
 

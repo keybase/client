@@ -45,6 +45,13 @@
   }];
 }
 
+- (instancetype)initWithView:(NSView *)view {
+  if ((self = [super initWithFrame:CGRectZero])) {
+    [self setView:view transitionType:KBNavigationTransitionTypeNone];
+  }
+  return self;
+}
+
 - (void)pushView:(NSView *)view animated:(BOOL)animated {
   [self _setView:view transitionType:(animated ? KBNavigationTransitionTypePush : KBNavigationTransitionTypeNone)];
   [self addView:view];
@@ -62,6 +69,7 @@
   NSArray *views = [_views copy];
   for (NSView *view in views) [self removeView:view];
   [self addView:view];
+  [self setNeedsLayout];
 }
 
 - (void)popViewAnimated:(BOOL)animated {
@@ -112,7 +120,6 @@
   return _views[_views.count-2];
 }
 
-
 - (CATransition *)transitionForType:(KBNavigationTransitionType)type {
   switch (type) {
     case KBNavigationTransitionTypeFade: {
@@ -141,6 +148,7 @@
   NSView *outView = [self currentView];
   if (outView == inView) return;
 
+  //NSAssert(_contentView.frame.size.width > 0 && _contentView.frame.size.height > 0, @"Content size is 0");
   inView.frame = _contentView.bounds;
 
   CATransition *transition = [self transitionForType:transitionType];

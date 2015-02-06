@@ -19,8 +19,12 @@
 @implementation KBButton
 
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style {
+  return [self buttonWithText:text style:style alignment:NSCenterTextAlignment];
+}
+
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
   KBButton *button = [[KBButton alloc] init];
-  [button setText:text style:style];
+  [button setText:text style:style alignment:alignment];
   return button;
 }
 
@@ -62,11 +66,11 @@
   [self setAttributedTitle:[KBButton attributedText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode]];
 }
 
-- (void)setText:(NSString *)text style:(KBButtonStyle)style {
+- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
   self.style = style;
   KBButtonCell *cell = [[KBButtonCell alloc] init];
   cell.style = style;
-  [cell setText:text alignment:(style == KBButtonStyleLink || style == KBButtonStyleCheckbox ? NSLeftTextAlignment : NSCenterTextAlignment)];
+  [cell setText:text alignment:alignment];
   self.cell = cell;
   [self setNeedsDisplay];
 }

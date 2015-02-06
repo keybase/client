@@ -77,7 +77,7 @@
     }
 
     if (!yself.skipButton.hidden) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(270, y + 12, 200, 0) view:yself.skipButton];
+      [layout sizeToFitVerticalInFrame:CGRectMake(270, y + 12, 100, 0) view:yself.skipButton];
     }
 
     y += 60;
@@ -100,13 +100,13 @@
 //    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"retrack %@ with updated info", _user.username)];
 //    [_trackOptionsView addItemWithTitle:@"no, don't update"];
 //    [_trackOptionsView selectItemAtIndex:0];
-    [_button setText:@"Yes, Update" style:KBButtonStylePrimary];
+    [_button setText:@"Yes, Update" style:KBButtonStylePrimary alignment:NSCenterTextAlignment];
   } else {
 //    _trackOptionsView.hidden = NO;
 //    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"yes, track %@", _user.username)];
 //    [_trackOptionsView addItemWithTitle:NSStringWithFormat(@"no, don't track %@", _user.username)];
 //    [_trackOptionsView selectItemAtIndex:0];
-    [_button setText:@"Yes, Track" style:KBButtonStylePrimary];
+    [_button setText:@"Yes, Track" style:KBButtonStylePrimary alignment:NSCenterTextAlignment];
   }
 
   _skipButton.hidden = NO;

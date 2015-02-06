@@ -13,9 +13,11 @@
 #import "KBUserProfileView.h"
 #import "KBCatalogView.h"
 #import "KBPreferences.h"
+#import "KBMainView.h"
 
 @interface AppDelegate ()
-@property KBWindowController *windowController;
+@property KBMainView *mainView;
+@property KBConnectView *connectView;
 @property KBPreferences *preferences;
 @property NSStatusItem *statusItem;
 @property KBRPClient *client;
@@ -27,10 +29,12 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-  _statusItem.title = @"Keybase";
-  //_statusItem.image = [NSImage imageNamed:@"StatusIcon"];
+  //_statusItem.title = @"Keybase";
+  _statusItem.image = [NSImage imageNamed:@"StatusIcon"];
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
+
+  _mainView = [[KBMainView alloc] init];
 
 //  self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
 //  [self.windowController window];
@@ -52,9 +56,10 @@
     }];
   }];
 
-  // Just for mocking
+  // Just for mocking, getting at data the RPC client doesn't give us yet
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
 
+  // Catalog for debugging
   [self catalog];
 }
 
@@ -86,15 +91,12 @@
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
   _status = status;
 
-  if (!status.loggedIn || (status.loggedIn && !status.publicKeySelected)) {
-    if (status.loggedIn && !status.publicKeySelected) {
-      [self.windowController showKeyGen:NO];
-    } else {
-      [self.windowController showLogin:NO];
-    }
+  if (!status.loggedIn) {
+    [_mainView.window close];
+    [self showLogin:status.user];
   } else {
-    //[self.windowController showTwitterConnect:YES];
-    [self.windowController showUser:status.user animated:NO];
+    [_connectView.window close];
+    [[_mainView createWindow] makeKeyAndOrderFront:nil];
   }
   [self updateMenu];
 }
@@ -117,13 +119,33 @@
   _statusItem.menu = menu;
 }
 
+- (void)showLogin:(KBRUser *)user {
+  if (!_connectView) {
+    _connectView = [[KBConnectView alloc] init];
+    _connectView.loginView.delegate = self;
+  }
+  [_connectView showLogin:NO];
+  [_connectView setUser:user];
+  [_connectView openWindow:@"Keybase"];
+}
+
+- (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
+  AppDelegate.sharedDelegate.status = status;
+  [signupView.window close];
+}
+
+- (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status {
+  AppDelegate.sharedDelegate.status = status;
+  [loginView.window close];
+}
+
 - (void)applicationWillTerminate:(NSNotification *)notification {
 
 }
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
-  return YES;
-}
+//- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
+//  return YES;
+//}
 
 + (KBRPClient *)client {
   return ((AppDelegate *)[NSApp delegate]).client;
@@ -149,11 +171,12 @@
 
 - (void)catalog {
   KBCatalogView *catalogView = [[KBCatalogView alloc] init];
-  KBWindow *window = [KBWindow windowWithContentView:catalogView size:CGSizeMake(400, 500) retain:YES];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:catalogView];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(400, 500) retain:YES];
   window.minSize = CGSizeMake(300, 400);
   window.maxSize = CGSizeMake(600, 900);
   window.styleMask = window.styleMask | NSResizableWindowMask;
-  window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Debug/Catalog" navigation:window.navigation];
+  navigation.titleView = [KBTitleView titleViewWithTitle:@"Debug/Catalog" navigation:navigation];
   //[window setLevel:NSStatusWindowLevel];
   [window makeKeyAndOrderFront:nil];
 }

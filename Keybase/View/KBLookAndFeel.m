@@ -45,6 +45,10 @@
   return [NSColor colorWithRed:1.0f green:0.22f blue:0.22f alpha:1.0f];
 }
 
++ (NSColor *)lineColor {
+  return [NSColor colorWithCalibratedWhite:0.8 alpha:1.0];
+}
+
 + (NSFont *)textFont {
   return [NSFont systemFontOfSize:14];
 }

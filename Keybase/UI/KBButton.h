@@ -23,10 +23,11 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 @property (nonatomic, copy) KBButtonTargetBlock targetBlock;
 
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
 
 + (instancetype)buttonWithImage:(NSImage *)image;
 
-- (void)setText:(NSString *)text style:(KBButtonStyle)style;
+- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 

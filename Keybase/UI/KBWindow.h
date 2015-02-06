@@ -10,10 +10,8 @@
 
 #import "KBUIDefines.h"
 
-@interface KBWindow : NSWindow
+@interface KBWindow : NSObject
 
-+ (instancetype)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain;
-
-@property KBNavigationView *navigation;
++ (NSWindow *)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain;
 
 @end

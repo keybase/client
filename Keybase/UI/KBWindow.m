@@ -12,23 +12,6 @@
 
 @implementation KBWindow
 
-- (instancetype)initWithContentView:(NSView *)contentView size:(CGSize)size {
-  if ((self = [super init])) {
-    self.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask |NSTexturedBackgroundWindowMask;
-    self.hasShadow = YES;
-    self.titleVisibility = NSWindowTitleHidden;
-    self.titlebarAppearsTransparent = YES;
-    self.movableByWindowBackground = YES;
-    [self setContentSize:size];
-    contentView.frame = CGRectMake(0, 0, size.width, size.height);
-
-    self.navigation = [[KBNavigationView alloc] init];
-    [self setContentView:self.navigation];
-    [self.navigation setView:contentView transitionType:KBNavigationTransitionTypeNone];
-  }
-  return self;
-}
-
 /*!
  Otherwise the window will disappear when its released.
  */
@@ -41,10 +24,30 @@
   [gRegisteredWindows addObject:window];
 }
 
-+ (instancetype)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain {
-  KBWindow *window = [[self alloc] initWithContentView:contentView size:size];
++ (NSWindow *)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain {
+  NSWindow *window = [[NSWindow alloc] init];
+  window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask;
+  window.hasShadow = YES;
+  window.titleVisibility = NSWindowTitleHidden;
+  window.titlebarAppearsTransparent = YES;
+  window.movableByWindowBackground = YES;
+  contentView.frame = CGRectMake(0, 0, size.width, size.height);
+  [window setContentSize:size];
+  [window setContentView:contentView];
+
   // TODO: This will retain forever
   if (retain) [self registerWindow:window];
+  return window;
+}
+
++ (NSWindow *)windowWithContentView:(NSView *)contentView {
+  NSWindow *window = [[NSWindow alloc] init];
+  window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask;
+  window.hasShadow = YES;
+  window.titleVisibility = NSWindowTitleHidden;
+  window.titlebarAppearsTransparent = YES;
+  window.movableByWindowBackground = YES;
+  [window setContentView:contentView];
   return window;
 }
 

@@ -30,7 +30,7 @@
 
   [webView loadHTMLString:[AppDelegate loadFile:@"catalog.html"] baseURL:nil];
 
-  self.viewLayout = [YOLayout fill:self];
+  self.viewLayout = [YOLayout fill:webView];
 }
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
@@ -60,26 +60,34 @@
 
 - (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
   AppDelegate.sharedDelegate.status = status;
-  [self.navigation popViewAnimated:YES];
+  [signupView.window close];
 }
 
 - (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status {
   AppDelegate.sharedDelegate.status = status;
-  [self.navigation popViewAnimated:YES];
+  [loginView.window close];
 }
 
 - (void)showLogin:(BOOL)animated {
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.loginView.delegate = self;
   [connectView showLogin:animated];
-  [self.navigation pushView:connectView animated:animated];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
+  navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:navigation];
+  [window setLevel:NSFloatingWindowLevel];
+  [window makeKeyAndOrderFront:nil];
 }
 
 - (void)showSignup:(BOOL)animated {
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.signupView.delegate = self;
   [connectView showSignup:animated];
-  [self.navigation pushView:connectView animated:animated];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
+  navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:navigation];
+  [window setLevel:NSFloatingWindowLevel];
+  [window makeKeyAndOrderFront:nil];
 }
 
 - (void)showKeyGen:(BOOL)animated {
@@ -120,8 +128,9 @@
   KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": username} error:nil];
 
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  KBWindow *window = [KBWindow windowWithContentView:userProfileView size:CGSizeMake(420, 400) retain:YES];
-  window.navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:window.navigation];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:userProfileView];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 400) retain:YES];
+  navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:navigation];
   [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
@@ -131,8 +140,9 @@
 - (void)showTrackReplay:(NSString *)username {
   KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": username} error:nil];
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  KBWindow *window = [KBWindow windowWithContentView:userProfileView size:CGSizeMake(420, 400) retain:YES];
-  window.navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:window.navigation];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:userProfileView];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 400) retain:YES];
+  navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:navigation];
   [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
@@ -142,8 +152,10 @@
 
 - (void)showStyleGuide {
   KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
-  KBWindow *window = [KBWindow windowWithContentView:testView size:CGSizeMake(420, 400) retain:YES];
-  window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Style Guide" navigation:window.navigation];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:testView];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 400) retain:YES];
+  navigation.titleView = [KBTitleView titleViewWithTitle:@"Style Guide" navigation:navigation];
+  window.styleMask = window.styleMask | NSResizableWindowMask;
   [window makeKeyAndOrderFront:nil];
 }
 

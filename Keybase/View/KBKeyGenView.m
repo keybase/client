@@ -24,7 +24,7 @@
   GHWeakSelf gself = self;
 
   _infoLabel = [[KBLabel alloc] init];
-  [_infoLabel setText:@"Welcome to keybase.io! You now need to associate a key with your account." font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+  [_infoLabel setText:@" " font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_infoLabel];
 
   /*
@@ -83,7 +83,6 @@
       return;
     }
 
-    [AppDelegate.sharedDelegate.windowController showTwitterConnect:YES];
   }];
 }
 

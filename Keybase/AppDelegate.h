@@ -9,15 +9,13 @@
 #import <Cocoa/Cocoa.h>
 
 #import "KBRPClient.h"
-#import "KBWindowController.h"
 #import <KBKeybase/KBKeybase.h>
 #import "KBRPC.h"
+#import "KBConnectView.h"
 
-@interface AppDelegate : NSObject <NSApplicationDelegate, KBRPClientDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, KBRPClientDelegate, KBSignupViewDelegate, KBLoginViewDelegate>
 
 @property (nonatomic) KBRGetCurrentStatusRes *status;
-
-@property (readonly) KBWindowController *windowController;
 
 + (KBRPClient *)client;
 + (KBAPIClient *)APIClient;

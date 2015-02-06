@@ -14,7 +14,6 @@
 
 @import WebKit;
 
-//NSTableViewDelegate, NSTableViewDataSource
 @interface KBCatalogView : KBView <KBSignupViewDelegate, KBLoginViewDelegate, WKNavigationDelegate>
 
 @end

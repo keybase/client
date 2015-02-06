@@ -18,7 +18,7 @@
   [super viewInit];
   _webView = [[WKWebView alloc] init];
   [self addSubview:_webView];
-  self.viewLayout = [YOLayout fill:self];
+  self.viewLayout = [YOLayout fill:_webView];
 }
 
 - (void)openURLString:(NSString *)URLString {

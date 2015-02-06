@@ -46,6 +46,10 @@
   }];
 }
 
+- (NSString *)description {
+  return NSStringWithFormat(@"%@: %@", self.className, self.text ? self.text : self.placeholder);
+}
+
 - (BOOL)becomeFirstResponder {
   return [_textField becomeFirstResponder];
 }
@@ -56,14 +60,6 @@
 
 - (BOOL)acceptsFirstResponder {
   return YES;
-}
-
-- (BOOL)canBecomeKeyView {
-  return YES;
-}
-
-- (void)setNextKeyView:(NSView *)nextKeyView {
-  [_textField setNextKeyView:nextKeyView];
 }
 
 - (void)setText:(NSString *)text {

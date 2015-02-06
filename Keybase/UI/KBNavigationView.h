@@ -20,6 +20,7 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 @class KBNavigationView;
 
 @protocol KBNavigationTitleView <NSObject>
+- (void)setTitle:(NSString *)title;
 - (void)setProgressEnabled:(BOOL)progressEnabled;
 - (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType;
 @end
@@ -28,6 +29,8 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 
 @property (nonatomic) NSView<KBNavigationTitleView> *titleView;
 @property (readonly) NSMutableArray *views; // Fix mutable
+
+- (instancetype)initWithView:(NSView *)view;
 
 - (void)pushView:(NSView *)view animated:(BOOL)animated;
 

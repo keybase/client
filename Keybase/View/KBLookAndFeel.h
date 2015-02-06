@@ -22,6 +22,8 @@
 
 + (NSColor *)greenColor;
 
++ (NSColor *)lineColor;
+
 + (NSFont *)textFont;
 + (NSFont *)boldTextFont;
 + (NSFont *)buttonFont;

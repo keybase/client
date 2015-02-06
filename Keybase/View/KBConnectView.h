@@ -27,6 +27,10 @@
 @property (readonly) KBLoginView *loginView;
 @property (readonly) KBSignupView *signupView;
 
+- (void)openWindow:(NSString *)title;
+
+- (void)setUser:(KBRUser *)user;
+
 - (void)showLogin:(BOOL)animated;
 - (void)showSignup:(BOOL)animated;
 @end
