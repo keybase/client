@@ -203,7 +203,7 @@ func (k KeyringFile) Save() error {
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
 // In any case, the key will be locked.
-func (k Keyrings) GetSecretKeyLocked(me *User, localOnly bool) (ret *P3SKB, which string, err error) {
+func (k Keyrings) GetSecretKeyLocked(me *User) (ret *P3SKB, which string, err error) {
 
 	G.Log.Debug("+ GetSecretKeyLocked()")
 	defer func() {
@@ -218,7 +218,7 @@ func (k Keyrings) GetSecretKeyLocked(me *User, localOnly bool) (ret *P3SKB, whic
 		}
 	}
 
-	if ret, err = me.GetSyncedSecretKey(localOnly); err != nil {
+	if ret, err = me.GetSyncedSecretKey(); err != nil {
 		return
 	} else if ret != nil {
 		G.Log.Debug("| Found secret key in user object")
@@ -250,14 +250,14 @@ func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *P3SKB) {
 	return ret
 }
 
-func (k Keyrings) GetSecretKey(reason string, ui SecretUI, me *User, localOnly bool) (key GenericKey, err error) {
+func (k Keyrings) GetSecretKey(reason string, ui SecretUI, me *User) (key GenericKey, err error) {
 	G.Log.Debug("+ GetSecretKey(%s)", reason)
 	defer func() {
 		G.Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
 	}()
 	var p3skb *P3SKB
 	var which string
-	if p3skb, which, err = k.GetSecretKeyLocked(me, localOnly); err == nil && p3skb != nil {
+	if p3skb, which, err = k.GetSecretKeyLocked(me); err == nil && p3skb != nil {
 		G.Log.Debug("| Prompt/Unlock key")
 		key, err = p3skb.PromptAndUnlock(reason, which, ui)
 	}

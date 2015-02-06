@@ -36,7 +36,7 @@ func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) (err error) 
 	}
 	d.lksEncKey, err = libkb.RandBytes(len(d.lksClientHalf))
 	if err != nil {
-		return err
+		return
 	}
 	d.lks = libkb.NewLKSecSecret(d.lksEncKey)
 
@@ -60,14 +60,18 @@ func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) (err error) 
 	}
 
 	if err = d.pushDHKey(); err != nil {
-		return err
+		return
 	}
 
 	if err = d.pushLocalKeySec(); err != nil {
-		return err
+		return
 	}
 
-	return nil
+	// Sync the LKS stuff back from the server, so that subsequent
+	// attempts to use public key login will work.
+	err = G.SecretSyncer.Load(d.me.GetUid())
+
+	return
 }
 
 func (d *DeviceEngine) EldestKey() libkb.GenericKey {

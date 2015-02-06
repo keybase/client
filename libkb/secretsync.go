@@ -49,7 +49,7 @@ type SecretSyncer struct {
 
 // Load loads a set of secret keys from storage and then checks if there are
 // updates on the server.  If there are, it will sync and store them.
-func (ss *SecretSyncer) Load(uid UID, localOnly bool) (err error) {
+func (ss *SecretSyncer) Load(uid UID) (err error) {
 
 	ss.Lock()
 	defer ss.Unlock()
@@ -70,7 +70,8 @@ func (ss *SecretSyncer) Load(uid UID, localOnly bool) (err error) {
 	if err = ss.loadFromStorage(); err != nil {
 		return
 	}
-	if localOnly {
+	if !G.Session.IsLoggedIn() {
+		G.Log.Debug("| Won't sync with server since we're not logged in")
 		return
 	}
 	if err = ss.syncFromServer(); err != nil {

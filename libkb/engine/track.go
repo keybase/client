@@ -86,7 +86,7 @@ func (e *TrackEngine) LoadMe() error {
 
 func (e *TrackEngine) GetSigningKeyPub() (err error) {
 	// Get out key that we're going to sign with.
-	if e.lockedKey, _, err = G.Keyrings.GetSecretKeyLocked(e.Me, false); err != nil {
+	if e.lockedKey, _, err = G.Keyrings.GetSecretKeyLocked(e.Me); err != nil {
 		return
 	}
 	if e.signingKeyPub, err = e.lockedKey.GetPubKey(); err != nil {
@@ -145,7 +145,7 @@ func (e *TrackEngine) StoreRemoteTrack() (err error) {
 	G.Log.Debug("+ StoreRemoteTrack")
 	defer G.Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 
-	if e.signingKeyPriv, err = G.Keyrings.GetSecretKey("tracking signature", e.SecretUI(), e.Me, false); err != nil {
+	if e.signingKeyPriv, err = G.Keyrings.GetSecretKey("tracking signature", e.SecretUI(), e.Me); err != nil {
 		return
 	} else if e.signingKeyPriv == nil {
 		err = libkb.NoSecretKeyError{}

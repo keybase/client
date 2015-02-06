@@ -242,7 +242,7 @@ func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
 		return
 	}
 
-	if key, err = G.Keyrings.GetSecretKey("login", ui, me, true); err != nil {
+	if key, err = G.Keyrings.GetSecretKey("login", ui, me); err != nil {
 		return
 	}
 

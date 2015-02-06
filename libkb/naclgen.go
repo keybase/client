@@ -95,14 +95,17 @@ func (g *NaclKeyGen) Run() (err error) {
 }
 
 // RunLKS uses local key security to save the generated keys.
-func (g *NaclKeyGen) RunLKS(lks *LKSec) error {
-	if err := g.Generate(); err != nil {
-		return err
+func (g *NaclKeyGen) RunLKS(lks *LKSec) (err error) {
+	if err = g.Generate(); err != nil {
+		return
 	}
-	if err := g.SaveLKS(lks); err != nil {
-		return err
+	if err = g.SaveLKS(lks); err != nil {
+		return
 	}
-	return g.Push()
+	if err = g.Push(); err != nil {
+		return
+	}
+	return
 }
 
 func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
