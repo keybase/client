@@ -213,7 +213,7 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err erro
 
 	G.Log.Debug("| LoadMe w/ Secrets on")
 
-	if me != nil {
+	if me == nil {
 		if me, err = LoadMe(LoadUserArg{}); err != nil {
 			return
 		}
