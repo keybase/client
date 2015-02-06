@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/go/libkb"
@@ -8,6 +9,8 @@ import (
 
 // XXX this probably shouldn't be a constant...
 const deviceType = "desktop"
+
+var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
 type DeviceEngine struct {
 	deviceName    string
@@ -29,6 +32,11 @@ func (d *DeviceEngine) Init() error {
 }
 
 func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) (err error) {
+	existingDevID := G.Env.GetDeviceId()
+	if existingDevID != nil && len(existingDevID) > 0 {
+		G.Log.Info("found existing device: %q", existingDevID)
+		return ErrDeviceAlreadyRegistered
+	}
 	d.deviceName = deviceName
 	d.lksClientHalf = lksClientHalf
 	if d.deviceID, err = libkb.NewDeviceId(); err != nil {
