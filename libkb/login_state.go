@@ -6,9 +6,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-jsonw"
-	"github.com/keybase/go-triplesec"
-	"github.com/keybase/protocol/go"
+
+	jsonw "github.com/keybase/go-jsonw"
+	triplesec "github.com/keybase/go-triplesec"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 type LoggedInResult struct {
@@ -27,6 +28,7 @@ type LoginState struct {
 	login_session     []byte
 	login_session_b64 string
 	tsec              *triplesec.Cipher
+	tspkey            *TSPassKey
 	sharedSecret      []byte
 
 	loggedInRes *LoggedInResult
@@ -108,11 +110,18 @@ func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 func (s *LoginState) StretchKey(passphrase string) (err error) {
 	if s.tsec == nil {
 		if s.tsec, err = triplesec.NewCipher([]byte(passphrase), s.salt); err != nil {
-			return
+			return err
+		}
+	}
+	if s.tspkey == nil {
+		if tk, err := NewTSPassKey(passphrase, s.salt); err != nil {
+			return err
+		} else {
+			s.tspkey = &tk
 		}
 	}
 	_, s.sharedSecret, err = s.tsec.DeriveKey(SharedSecretLen)
-	return
+	return nil
 }
 
 func (s *LoginState) ComputeLoginPw() ([]byte, error) {
@@ -197,6 +206,10 @@ func (s *LoginState) Logout() error {
 		if s.tsec != nil {
 			s.tsec.Scrub()
 			s.tsec = nil
+		}
+		if s.tspkey != nil {
+			s.tspkey.Scrub()
+			s.tspkey = nil
 		}
 	}
 	G.Log.Debug("- Logout called")
@@ -379,6 +392,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 	err = s.PostLoginToServer(email_or_username, lgpw)
 	if err != nil {
 		s.tsec = nil
+		s.tspkey = nil
 		return err
 	}
 
@@ -424,4 +438,8 @@ func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui SecretU
 
 func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 	return s.tsec
+}
+
+func (s *LoginState) GetCachedTSPassKey() *TSPassKey {
+	return s.tspkey
 }

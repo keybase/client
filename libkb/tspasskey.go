@@ -2,7 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-triplesec"
+
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 // TSPassKey is a deterministic set of keys generated from a user's passphrase
@@ -60,4 +61,10 @@ func (d TSPassKey) LksClientHalf() []byte {
 func (d TSPassKey) String() string {
 	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASeed(), d.DHSeed(), d.LksClientHalf())
 	// return hex.EncodeToString(d[:])
+}
+
+func (d *TSPassKey) Scrub() {
+	for i := 0; i < len(d); i++ {
+		d[i] = 0
+	}
 }
