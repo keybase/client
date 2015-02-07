@@ -36,8 +36,8 @@ func AssertDeviceID() (err error) {
 }
 
 func TestSignupEngine(t *testing.T) {
-	libkb.SetupTest(t, "signup")
-	// defer tc.Cleanup()
+	tc := libkb.SetupTest(t, "signup")
+	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
 	username, email := fakeUser(t, "se")
 	passphrase := fakePassphrase(t)

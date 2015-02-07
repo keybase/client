@@ -264,7 +264,7 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err erro
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
 func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
-	if skb, err := k.LoadSKBKeyring(me.name); skb != nil {
+	if skb, err := k.LoadSKBKeyring(me.name); err != nil || skb == nil {
 		var s string
 		if err != nil {
 			s = " (" + err.Error() + ")"
