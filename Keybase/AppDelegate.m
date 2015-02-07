@@ -127,6 +127,7 @@
   if (!_connectView) {
     _connectView = [[KBConnectView alloc] init];
     _connectView.loginView.delegate = self;
+    _connectView.signupView.delegate = self;
   }
   [_connectView showLogin:NO];
   [_connectView setUser:user];

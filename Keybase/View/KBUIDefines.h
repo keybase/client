@@ -11,10 +11,7 @@
 
 #import <YOLayout/YOLayout.h>
 
-typedef struct { CGFloat top, left , bottom, right ; } KBEdgeInsets;
-
 #import "KBDefines.h"
-#import "KBView.h"
 #import "KBLookAndFeel.h"
 #import "KBImageView.h"
 #import "KBLabel.h"
@@ -28,9 +25,6 @@ typedef struct { CGFloat top, left , bottom, right ; } KBEdgeInsets;
 #import "KBBox.h"
 #import "KBLabelRow.h"
 #import "KBSplitView.h"
-
-#define KBDefaultWidth (360)
-#define KBDefaultHeight (600)
 
 
 #define KBDebugAlert(DESC) ([[NSAlert alertWithError:[NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:DESC}]] beginSheetModalForWindow:[NSApp mainWindow] completionHandler:nil])
