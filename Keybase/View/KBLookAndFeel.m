@@ -49,6 +49,10 @@
   return [NSColor colorWithCalibratedWhite:0.8 alpha:1.0];
 }
 
++ (NSColor *)highlightBackgroundColor {
+  return [NSColor colorWithCalibratedWhite:0.9 alpha:1.0];
+}
+
 + (NSFont *)textFont {
   return [NSFont systemFontOfSize:14];
 }

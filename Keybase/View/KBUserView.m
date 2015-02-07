@@ -14,6 +14,7 @@
 @property KBImageView *imageView;
 @property KBLabel *nameLabel;
 //@property KBLabel *descriptionLabel;
+@property KBBox *border;
 @end
 
 @implementation KBUserView
@@ -23,13 +24,16 @@
   self.wantsLayer = YES;
   [self.layer setBackgroundColor:NSColor.clearColor.CGColor];
 
-  self.imageView = [[KBImageView alloc] init];
-  self.imageView.roundedRatio = 1.0;
+  _imageView = [[KBImageView alloc] init];
+  _imageView.roundedRatio = 1.0;
   [self addSubview:self.imageView];
 
-  self.nameLabel = [[KBLabel alloc] init];
-  self.nameLabel.verticalAlignment = KBVerticalAlignmentMiddle;
-  [self addSubview:self.nameLabel];
+  _nameLabel = [[KBLabel alloc] init];
+  _nameLabel.verticalAlignment = KBVerticalAlignmentMiddle;
+  [self addSubview:_nameLabel];
+
+  _border = [KBBox lineWithWidth:1.0 color:[KBLookAndFeel lineColor]];
+  [self addSubview:_border];
 
 //  self.descriptionLabel = [[KBLabel alloc] init];
 //  [self addSubview:self.descriptionLabel];
@@ -42,11 +46,12 @@
     [layout setFrame:CGRectMake(x, y, 40, 40) view:yself.imageView];
     x += 50;
 
-    y += [layout setFrame:CGRectMake(x, y - 2, size.width - x, 50) view:yself.nameLabel].size.height;
+    y += [layout setFrame:CGRectMake(x, y, size.width - x, 40) view:yself.nameLabel].size.height;
     //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 30) view:yself.descriptionLabel].size.height + 10;
 
     if (y < 60) y = 60;
 
+    [layout setFrame:CGRectMake(0, y - 0.5, size.width, 1) view:yself.border];
     return CGSizeMake(size.width, y);
   }];
 }

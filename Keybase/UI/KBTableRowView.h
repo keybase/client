@@ -12,4 +12,6 @@
 
 @interface KBTableRowView : NSTableRowView
 
+@property BOOL separatorDisabled;
+
 @end

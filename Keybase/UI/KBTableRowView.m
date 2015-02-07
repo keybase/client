@@ -7,17 +7,18 @@
 //
 
 #import "KBTableRowView.h"
+#import "KBLookAndFeel.h"
 
 @implementation KBTableRowView
 
 - (void)drawSelectionInRect:(NSRect)dirtyRect {
   if (self.selectionHighlightStyle != NSTableViewSelectionHighlightStyleNone) {
-    NSRect selectionRect = NSInsetRect(self.bounds, 2.5, 2.5);
-    [[NSColor colorWithCalibratedWhite:.9 alpha:1.0] setStroke];
-    [[NSColor colorWithCalibratedWhite:.9 alpha:1.0] setFill];
+    NSRect selectionRect = self.bounds; //NSInsetRect(self.bounds, 2.5, 2.5);
+    //[[NSColor colorWithCalibratedWhite:0.5 alpha:1.0] setStroke];
+    [[KBLookAndFeel highlightBackgroundColor] setFill];
     NSBezierPath *selectionPath = [NSBezierPath bezierPathWithRect:selectionRect]; //bezierPathWithRoundedRect:selectionRect xRadius:6 yRadius:6];
     [selectionPath fill];
-    [selectionPath stroke];
+    //[selectionPath stroke];
   }
 }
 

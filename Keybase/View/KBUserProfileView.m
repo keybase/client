@@ -43,7 +43,7 @@
 
   YOSelf yself = self;
   _contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 0;
+    CGFloat y = 10;
     //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
     //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width - 20, 0) view:yself.headerView].size.height;
@@ -170,7 +170,7 @@
 
 - (void)clear {
   _user = nil;
-  _headerView.hidden = NO;
+  _headerView.hidden = YES;
   [_userInfoView clear];
   [_trackView clear];
   _trackView.hidden = YES;
@@ -178,12 +178,11 @@
 }
 
 - (void)setUser:(KBRUser *)user track:(BOOL)track {
-
   [self clear];
 
   _user = user;
-  _headerView.hidden = NO;
   [_headerView setUser:_user];
+  _headerView.hidden = NO;
 
   GHWeakSelf gself = self;
 
@@ -204,7 +203,7 @@
   [_headerView setProgressEnabled:NO];
   [AppDelegate setInProgress:NO view:_trackView];
   if (![_trackView setTrackCompleted:error]) {
-    [self setError:error];
+    if (error) [self setError:error];
   }
   [self setNeedsLayout];
 }

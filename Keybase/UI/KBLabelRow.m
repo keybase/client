@@ -27,4 +27,11 @@
   _label.frame = CGRectMake(16, 0, self.frame.size.width, self.frame.size.height);
 }
 
+//- (void)drawSelectionInRect:(NSRect)dirtyRect {
+//  if (self.selectionHighlightStyle != NSTableViewSelectionHighlightStyleNone) {
+//    [[KBLookAndFeel highlightBackgroundColor] setFill];
+//    [[NSBezierPath bezierPathWithRect:self.bounds] fill];
+//  }
+//}
+
 @end

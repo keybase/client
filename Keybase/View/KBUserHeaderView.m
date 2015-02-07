@@ -31,6 +31,7 @@
 
   _imageView = [[KBImageView alloc] init];
   _imageView.roundedRatio = 1.0;
+  _imageView.hidden = YES;
   [self addSubview:_imageView];
 
   _name1Label = [[KBLabel alloc] init];
@@ -93,6 +94,14 @@
 }
 
 - (void)setUser:(KBRUser *)user {
+  if (!user) {
+    _name1Label.attributedText = nil;
+    _imageView.hidden = YES;
+    _imageView.URLString = nil;
+    return;
+  }
+
+  _imageView.hidden = NO;
   [_name1Label setMarkup:NSStringWithFormat(@"<p>keybase.io/<strong>%@</strong></p>", user.username) font:[NSFont systemFontOfSize:36] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   [_imageView setURLString:user.image.url ? user.image.url : @"https://keybase.io/images/no_photo.png"];

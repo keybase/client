@@ -20,4 +20,6 @@
 
 - (void)select:(id)object;
 
+- (void)deselectAll;
+
 @end

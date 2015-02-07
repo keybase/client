@@ -31,6 +31,8 @@
   _tableView = [[NSTableView alloc] init];
   _tableView.dataSource = self;
   _tableView.delegate = self;
+  _tableView.intercellSpacing = CGSizeZero;
+  //_tableView.gridStyleMask = NSTableViewSolidHorizontalGridLineMask;
   [_tableView setHeaderView:nil];
 
   NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -60,7 +62,9 @@
 }
 
 - (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row {
-  return [[KBTableRowView alloc] init];
+  KBTableRowView *rowView = [[KBTableRowView alloc] init];
+  GHDebug(@"row: %@", @(row));
+  return rowView;
 }
 
 - (void)updateView:(YONSView *)view object:(id)object {
@@ -69,6 +73,10 @@
 
 - (void)select:(id)object {
   // Abstract
+}
+
+- (void)deselectAll {
+  [_tableView deselectAll:nil];
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
@@ -103,7 +111,6 @@
     id object = [_dataSource objectAtIndex:selectedRow];
     [self select:object];
   }
-  [_tableView deselectAll:nil];
 }
 
 @end

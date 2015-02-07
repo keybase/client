@@ -23,6 +23,7 @@
 + (NSColor *)greenColor;
 
 + (NSColor *)lineColor;
++ (NSColor *)highlightBackgroundColor;
 
 + (NSFont *)textFont;
 + (NSFont *)boldTextFont;
