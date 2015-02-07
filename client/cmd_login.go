@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
@@ -9,7 +10,9 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-type CmdLogin struct{}
+type CmdLogin struct {
+	Username string
+}
 
 type LoginUIServer struct {
 	ui libkb.LoginUI
@@ -34,7 +37,8 @@ func (v *CmdLogin) RunClient() (err error) {
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
-		err = cli.PassphraseLogin(keybase_1.PassphraseLoginArg{Identify: true})
+		arg := keybase_1.PassphraseLoginArg{Identify: true, Username: v.Username}
+		err = cli.PassphraseLogin(arg)
 	}
 	return
 }
@@ -43,8 +47,9 @@ func (v *CmdLogin) Run() error {
 	li := engine.NewLoginEngine()
 	return li.LoginAndIdentify(engine.LoginAndIdentifyArg{
 		Login: libkb.LoginArg{
-			Prompt: true,
-			Retry:  3,
+			Prompt:   true,
+			Retry:    3,
+			Username: v.Username,
 		},
 		IdentifyUI: G_UI.GetIdentifySelfUI(),
 	})
@@ -61,7 +66,15 @@ func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdLogin) ParseArgv(*cli.Context) error { return nil }
+func (c *CmdLogin) ParseArgv(ctx *cli.Context) (err error) {
+	nargs := len(ctx.Args())
+	if nargs > 1 {
+		err = errors.New("login takes 0 or 1 argument: [<username>]")
+	} else if nargs == 1 {
+		c.Username = ctx.Args()[0]
+	}
+	return err
+}
 
 func (v *CmdLogin) GetUsage() libkb.Usage {
 	return libkb.Usage{

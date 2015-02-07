@@ -75,7 +75,7 @@ func (p CommandLine) GetGInt(s string) int {
 func (p CommandLine) GetGpg() string {
 	return p.GetGString("gpg")
 }
-func (p CommandLine) GetSecretKeyring() string {
+func (p CommandLine) GetSecretKeyringTemplate() string {
 	return p.GetGString("secret-keyring")
 }
 func (p CommandLine) GetSocketFile() string {
