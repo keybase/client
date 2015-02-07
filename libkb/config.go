@@ -163,20 +163,21 @@ func (f *JsonConfigFile) SetUIDVerified() (err error) {
 		err = NoUserConfigError{}
 	} else {
 		u.UidVerified = true
-		f.dirty = true
+		f.SetUserConfig(u, true)
 	}
 	return
 }
 
 // SetDeviceID sets the device field of the UserConfig object
 func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
+	G.Log.Debug("| Setting DeviceID to %v\n", did)
 	var u *UserConfig
 	if u, err = f.GetUserConfig(); err != nil {
 	} else if u == nil {
 		err = NoUserConfigError{}
 	} else {
 		u.SetDevice(did)
-		f.dirty = true
+		f.SetUserConfig(u, true)
 	}
 	return
 }
@@ -186,7 +187,7 @@ func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
 // just empty everything out and clear the `current_user` field.  Note that
 // we never actually overwrite users.<username>, we just write it if it
 // doesn't already exist, and we update the `current_user` pointer.
-func (f *JsonConfigFile) SetUserConfig(u *UserConfig) (err error) {
+func (f *JsonConfigFile) SetUserConfig(u *UserConfig, overwrite bool) (err error) {
 	f.userConfigWrapper.userConfig = u
 	if u == nil {
 		f.jw.DeleteKey("current_user")
@@ -197,7 +198,7 @@ func (f *JsonConfigFile) SetUserConfig(u *UserConfig) (err error) {
 			parent = jsonw.NewDictionary()
 			f.jw.SetKey("users", parent)
 		}
-		if parent.AtKey(un).IsNil() {
+		if parent.AtKey(un).IsNil() || overwrite {
 			parent.SetKey(un, jsonw.NewWrapper(*u))
 		}
 		f.jw.SetKey("current_user", jsonw.NewString(un))

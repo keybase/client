@@ -121,7 +121,7 @@ func (s *SignupJoinEngine) WriteConfig(salt []byte) (err error) {
 	if cw == nil {
 		return libkb.NoConfigWriterError{}
 	}
-	if err = cw.SetUserConfig(libkb.NewUserConfig(s.uid, s.username, salt, true, nil)); err != nil {
+	if err = cw.SetUserConfig(libkb.NewUserConfig(s.uid, s.username, salt, true, nil), false); err != nil {
 		return err
 	}
 	err = cw.Write()

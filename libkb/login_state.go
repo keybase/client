@@ -178,7 +178,7 @@ func (s *LoginState) SaveLoginState(uidVerified bool, saveConfig bool) (err erro
 	if cfg := G.Env.GetConfigWriter(); cfg != nil {
 
 		if err = cfg.SetUserConfig(NewUserConfig(s.loggedInRes.Uid, s.loggedInRes.Username,
-			s.salt, false, nil)); err != nil {
+			s.salt, false, nil), false); err != nil {
 			return err
 		}
 

@@ -101,7 +101,7 @@ type ConfigReader interface {
 }
 
 type ConfigWriter interface {
-	SetUserConfig(*UserConfig) error
+	SetUserConfig(cfg *UserConfig, overwrite bool) error
 	SetUIDVerified() error
 	SetDeviceID(*DeviceID) error
 	SetStringAtPath(string, string) error

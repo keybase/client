@@ -84,8 +84,9 @@ func ImportUserConfigFromJsonWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err er
 		return
 	}
 	if err = tmp.Import(); err != nil {
-		ret = &tmp
+		return
 	}
+	ret = &tmp
 	return
 }
 
