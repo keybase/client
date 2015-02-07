@@ -28,9 +28,16 @@ func fakePassphrase(t *testing.T) string {
 	return hex.EncodeToString(buf)
 }
 
+func AssertDeviceID() (err error) {
+	if G.Env.GetDeviceID() == nil {
+		err = fmt.Errorf("Device ID should not have been reset!")
+	}
+	return
+}
+
 func TestSignupEngine(t *testing.T) {
-	tc := libkb.SetupTest(t, "signup")
-	defer tc.Cleanup()
+	libkb.SetupTest(t, "signup")
+	// defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
 	username, email := fakeUser(t, "se")
 	passphrase := fakePassphrase(t)
@@ -40,8 +47,16 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err = AssertDeviceID(); err != nil {
+		t.Fatal(err)
+	}
+
 	// Now try to logout and log back in
 	G.LoginState.Logout()
+
+	if err = AssertDeviceID(); err != nil {
+		t.Fatal(err)
+	}
 
 	larg := LoginAndIdentifyArg{
 		Login: libkb.LoginArg{
@@ -57,7 +72,16 @@ func TestSignupEngine(t *testing.T) {
 	if err = li.LoginAndIdentify(larg); err != nil {
 		t.Fatal(err)
 	}
+
+	if err = AssertDeviceID(); err != nil {
+		t.Fatal(err)
+	}
+
 	if err = G.Session.AssertLoggedIn(); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = AssertDeviceID(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -73,12 +97,20 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err = AssertDeviceID(); err != nil {
+		t.Fatal(err)
+	}
+
 	if err = G.Session.AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
 	// Now try to logout to make sure we logged out OK
 	G.LoginState.Logout()
+
+	if err = AssertDeviceID(); err != nil {
+		t.Fatal(err)
+	}
 
 	if err = G.Session.AssertLoggedOut(); err != nil {
 		t.Fatal(err)
