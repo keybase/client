@@ -31,7 +31,7 @@ func (s *SignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
-	} else if u := cr.GetUid(); u != nil {
+	} else if u := cr.GetUID(); u != nil {
 		err = libkb.AlreadyRegisteredError{Uid: *u}
 	}
 	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))

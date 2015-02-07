@@ -49,7 +49,7 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
 	if cr := G.Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
-	} else if u := cr.GetUid(); u != nil {
+	} else if u := cr.GetUID(); u != nil {
 		err = libkb.AlreadyRegisteredError{Uid: *u}
 	}
 	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
@@ -83,7 +83,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
 	}
 	if err == nil {
-		err = CheckUIDAgainstUsername(s.uid, arg.Username)
+		err = libkb.CheckUIDAgainstUsername(s.uid, arg.Username)
 	}
 	return
 }
@@ -116,12 +116,12 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 	return
 }
 
-func (s *SignupJoinEngine) WriteConfig(salt []byte) error {
+func (s *SignupJoinEngine) WriteConfig(salt []byte) (err error) {
 	cw := G.Env.GetConfigWriter()
 	if cw == nil {
-		return NoConfigWriterError{}
+		return libkb.NoConfigWriterError{}
 	}
-	if err = cw.SetUserConfig(NewUserConfig(s.uid.s.username, s.salt, true, nil)); err != nil {
+	if err = cw.SetUserConfig(libkb.NewUserConfig(s.uid, s.username, salt, true, nil)); err != nil {
 		return err
 	}
 	err = cw.Write()

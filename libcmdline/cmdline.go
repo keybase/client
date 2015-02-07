@@ -51,6 +51,9 @@ func (p CommandLine) GetEmail() string {
 func (p CommandLine) GetProxy() string {
 	return p.GetGString("proxy")
 }
+func (p CommandLine) GetUsername() string {
+	return p.GetGString("username")
+}
 func (p CommandLine) GetPlainLogging() (bool, bool) {
 	return p.GetBool("plain-logging", true)
 }

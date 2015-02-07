@@ -27,7 +27,7 @@ func (h *SessionHandler) CurrentSession() (keybase_1.Session, error) {
 		return s, ErrNoSession
 	}
 
-	s.Uid = current.GetUid().Export()
+	s.Uid = current.GetUID().Export()
 	s.Username = *(current.GetUsername())
 
 	return s, nil

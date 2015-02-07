@@ -90,3 +90,16 @@ func ImportUserConfigFromJsonWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err er
 }
 
 //==================================================================
+
+func (u *UserConfig) SetDevice(d *DeviceID) {
+	u.importedDeviceId = d
+	var s *string
+	if d != nil {
+		tmp := d.String()
+		s = &tmp
+	}
+	u.Device = s
+	return
+}
+
+//==================================================================

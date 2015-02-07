@@ -168,6 +168,19 @@ func (f *JsonConfigFile) SetUIDVerified() (err error) {
 	return
 }
 
+// SetDeviceID sets the device field of the UserConfig object
+func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
+	var u *UserConfig
+	if u, err = f.GetUserConfig(); err != nil {
+	} else if u == nil {
+		err = NoUserConfigError{}
+	} else {
+		u.SetDevice(did)
+		f.dirty = true
+	}
+	return
+}
+
 // SetUserConfig writes this UserConfig to the config file and updates the
 // currently active UserConfig in memory.  If the given UserConfig is nil, then
 // just empty everything out and clear the `current_user` field.  Note that

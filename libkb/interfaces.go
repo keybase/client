@@ -19,6 +19,7 @@ import (
 
 type CommandLine interface {
 	GetHome() string
+	GetUsername() string
 	GetServerUri() string
 	GetConfigFilename() string
 	GetSessionFilename() string
@@ -102,6 +103,7 @@ type ConfigReader interface {
 type ConfigWriter interface {
 	SetUserConfig(*UserConfig) error
 	SetUIDVerified() error
+	SetDeviceID(*DeviceID) error
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
