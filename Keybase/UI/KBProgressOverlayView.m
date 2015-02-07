@@ -63,6 +63,10 @@
   animating ? [self startAnimating] : [self stopAnimating];
 }
 
+- (BOOL)animating {
+  return _indicatorView.animating;
+}
+
 - (void)startAnimating {
   if (self.hidesWhenStopped) self.hidden = NO;
   [_indicatorView startAnimating];

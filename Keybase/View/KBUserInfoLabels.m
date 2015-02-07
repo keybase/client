@@ -77,7 +77,12 @@
   _imageView.image = [NSImage imageNamed:@"1-Edition-black-key-2-30"];
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
 
-  NSString *keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
+  NSString *keyDescription;
+  if (key.pgpFingerprint) {
+    keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
+  } else {
+    keyDescription = [key.kid na_hexString];
+  }
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment];
   button.targetBlock = ^{
 

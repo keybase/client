@@ -292,7 +292,8 @@ KBProveType KBProveTypeFromAPI(NSInteger proofType) {
   _proofLabel.selectable = YES;
 
   _scrollView = [[NSScrollView alloc] init];
-  [_scrollView setHasVerticalScroller:YES];
+  _scrollView.hasVerticalScroller = YES;
+  _scrollView.autohidesScrollers = YES;
   [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
   [_scrollView setDocumentView:_proofLabel];
   _scrollView.borderType = NSBezelBorder;

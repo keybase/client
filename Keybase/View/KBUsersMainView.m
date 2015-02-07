@@ -10,11 +10,14 @@
 
 #import "KBUserProfileView.h"
 #import "AppDelegate.h"
+#import "KBProgressOverlayView.h"
 
 @interface KBUsersMainView ()
 @property KBUsersView *usersView;
 @property KBBox *border;
 @property KBUserProfileView *userProfileView;
+
+@property KBProgressOverlayView *progressView;
 @end
 
 @implementation KBUsersMainView
@@ -32,12 +35,16 @@
   _userProfileView = [[KBUserProfileView alloc] init];
   [self addSubview:_userProfileView];
 
+  _progressView = [[KBProgressOverlayView alloc] init];
+  [self addSubview:_progressView];
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat col1 = 200;
     [layout setFrame:CGRectMake(0, 0, col1 - 1, size.height) view:yself.usersView];
     [layout setFrame:CGRectMake(col1 - 1, 0, 1, size.height) view:yself.border];
     [layout setFrame:CGRectMake(col1, 0, size.width - col1, size.height) view:yself.userProfileView];
+    [layout setSize:size view:yself.progressView options:0];
     return size;
   }];
 }
@@ -59,10 +66,12 @@
   } else if ([user.username isEqualTo:@"max"]) {
     usernames = @[@"chris", @"samyagan", @"oconnor663", @"jbyers"];
   } else {
-    usernames = @[@"chris", @"max", @"gabrielh"];
+    usernames = @[@"chris", @"max", @"gabrielh", @"patrick"]; //, @"oconnor663", @"jbyers", @"twk", @"barmstrong", @"jbyers"];
   }
   GHWeakSelf gself = self;
+  _progressView.animating = YES;
   [self loadUsernames:usernames completion:^(NSError *error, NSArray *users) {
+    gself.progressView.animating = NO;
     [gself.usersView setUsers:users];
   }];
 }

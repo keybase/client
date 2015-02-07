@@ -23,7 +23,9 @@
 @property KBUserHeaderView *headerView;
 @property KBUserInfoView *userInfoView;
 @property KBTrackView *trackView;
+
 @property KBRUser *user;
+@property BOOL track;
 
 @property YONSView *contentView;
 @end
@@ -53,7 +55,8 @@
   }];
 
   _scrollView = [[NSScrollView alloc] init];
-  [_scrollView setHasVerticalScroller:YES];
+  _scrollView.hasVerticalScroller = YES;
+  _scrollView.autohidesScrollers = YES;
   [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
   [_scrollView setDocumentView:_contentView];
   [self addSubview:_scrollView];
@@ -181,6 +184,7 @@
   [self clear];
 
   _user = user;
+  _track = track;
   [_headerView setUser:_user];
   _headerView.hidden = NO;
 
@@ -192,6 +196,12 @@
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:AppDelegate.client];
     [trackRequest trackWithTheirName:user.username completion:^(NSError *error) {
       [gself setTrackCompleted:error];
+    }];
+  } else {
+    [self.headerView setProgressEnabled:YES];
+    KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:AppDelegate.client];
+    [identifyRequest identifyDefaultWithUsername:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+      [self.headerView setProgressEnabled:NO];
     }];
   }
 

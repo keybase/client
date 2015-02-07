@@ -96,7 +96,7 @@
     [self showLogin:status.user];
   } else {
     [_connectView.window close];
-    [self showMainView];
+    [self showMainView:status.user];
   }
   [self updateMenu];
 }
@@ -119,7 +119,8 @@
   _statusItem.menu = menu;
 }
 
-- (void)showMainView {
+- (void)showMainView:(KBRUser *)user {
+  [_mainView setUser:user];
   [_mainView openWindow];
 }
 

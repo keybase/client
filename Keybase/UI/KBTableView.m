@@ -39,8 +39,9 @@
   [_tableView addTableColumn:column1];
 
   _scrollView = [[NSScrollView alloc] init];
-  [_scrollView setHasVerticalScroller:YES];
   [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+  _scrollView.hasVerticalScroller = YES;
+  _scrollView.autohidesScrollers = YES;
   [_scrollView setDocumentView:_tableView];
   [self addSubview:_scrollView];
 
@@ -63,7 +64,6 @@
 
 - (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row {
   KBTableRowView *rowView = [[KBTableRowView alloc] init];
-  GHDebug(@"row: %@", @(row));
   return rowView;
 }
 

@@ -9,6 +9,7 @@
 #import "KBMainView.h"
 
 #import "KBUsersMainView.h"
+#import "KBUserProfileView.h"
 
 @interface KBMainView ()
 @property KBSourceView *sourceView;
@@ -16,6 +17,8 @@
 
 @property (nonatomic) NSView *contentView;
 @property KBUsersMainView *usersMainView;
+
+@property KBUserProfileView *userProfileView;
 @end
 
 @implementation KBMainView
@@ -55,6 +58,13 @@
   [self setContentView:_usersMainView];
 }
 
+- (void)showProfile {
+  NSAssert(_user, @"No user");
+  _userProfileView = [[KBUserProfileView alloc] init];
+  [_userProfileView setUser:_user track:NO];
+  [self setContentView:_userProfileView];
+}
+
 - (void)setUser:(KBRUser *)user {
   _user = user;
   [self setContentView:nil];
@@ -69,7 +79,7 @@
       [self setContentView:nil];
       break;
     case KBSourceViewItemProfile:
-      [self setContentView:nil];
+      [self showProfile];
       break;
     case KBSourceViewItemUsers:
       [self showUsers];
