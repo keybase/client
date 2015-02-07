@@ -77,20 +77,19 @@ func (k KID) Eq(k2 KID) bool {
 	return SecureByteArrayEq([]byte(k), []byte(k2))
 }
 
-func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (p3skb *SKB, err error) {
-	if G.Keyrings == nil {
-		err = NoKeyringsError{}
-	} else if p3skb, err = k.ToLksSKB(lks); err == nil {
-		err = G.Keyrings.SKB.PushAndSave(p3skb, lui)
+func WriteLksSKBToKeyring(username string, k GenericKey, lks *LKSec, lui LogUI) (skb *SKB, err error) {
+	if ring, err := G.LoadSKBKeyring(username); err != nil {
+	} else if skb, err = k.ToLksSKB(lks); err != nil {
+	} else {
+		err = ring.PushAndSave(skb, lui)
 	}
 	return
 }
 
-func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *SKB, err error) {
-	if G.Keyrings == nil {
-		err = NoKeyringsError{}
-	} else if p3skb, err = k.ToSKB(tsec); err == nil {
-		err = G.Keyrings.SKB.PushAndSave(p3skb, lui)
+func WriteTsecSKBToKeyring(username string, k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *SKB, err error) {
+	if ring, err := G.LoadSKBKeyring(username); err != nil {
+	} else if p3skb, err = k.ToSKB(tsec); err != nil {
+		err = ring.PushAndSave(p3skb, lui)
 	}
 	return
 }

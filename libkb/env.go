@@ -28,7 +28,7 @@ func (n NullConfiguration) GetVerifiedUID() *UID               { return nil }
 func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
-func (n NullConfiguration) GetSecretKeyring() string           { return "" }
+func (n NullConfiguration) GetSecretKeyringTemplate() string   { return "" }
 func (n NullConfiguration) GetSalt() []byte                    { return nil }
 func (n NullConfiguration) GetSocketFile() string              { return "" }
 func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
@@ -450,12 +450,12 @@ func (e Env) GetGpgOptions() []string {
 	)
 }
 
-func (e Env) GetSecretKeyring() string {
+func (e Env) GetSecretKeyringTemplate() string {
 	return e.GetString(
-		func() string { return e.cmd.GetSecretKeyring() },
-		func() string { return os.Getenv("KEYBASE_SECRET_KEYRING") },
-		func() string { return e.config.GetSecretKeyring() },
-		func() string { return filepath.Join(e.GetConfigDir(), SECRET_KEYRING) },
+		func() string { return e.cmd.GetSecretKeyringTemplate() },
+		func() string { return os.Getenv("KEYBASE_SECRET_KEYRING_TEMPLATE") },
+		func() string { return e.config.GetSecretKeyringTemplate() },
+		func() string { return filepath.Join(e.GetConfigDir(), SECRET_KEYRING_TEMPLATE) },
 	)
 }
 

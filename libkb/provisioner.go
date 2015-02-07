@@ -17,11 +17,11 @@ func (sp *SelfProvisioner) LoadMe() (err error) {
 // private key.
 func (sp *SelfProvisioner) CheckKeyProvisioned() (err error) {
 	var key GenericKey
+	var ring *SKBKeyringFile
 	if did := G.Env.GetDeviceID(); did == nil {
 		err = NotProvisionedError{}
+	} else if ring, err = G.LoadSKBKeyring(sp.me.name); err != nil {
 	} else if key, err = sp.me.GetComputedKeyFamily().GetSibkeyForDevice(*did); err != nil {
-	} else if ring := G.Keyrings.SKB; ring == nil {
-		err = NoKeyringsError{}
 	} else if sp.secretKey = ring.LookupByKid(key.GetKid()); sp.secretKey == nil {
 		err = NoSecretKeyError{}
 	}
@@ -43,9 +43,8 @@ func (sp *SelfProvisioner) FindBestReprovisionKey() (ret GenericKey, err error) 
 		return
 	}
 
-	ring := G.Keyrings.SKB
-	if ring == nil {
-		err = NoKeyringsError{}
+	var ring *SKBKeyringFile
+	if ring, err = G.LoadSKBKeyring(sp.me.name); err != nil {
 		return
 	}
 

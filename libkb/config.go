@@ -231,7 +231,7 @@ func (f JsonConfigFile) GetServerUri() (ret string) {
 func (f JsonConfigFile) GetConfigFilename() (ret string) {
 	return f.GetTopLevelString("config")
 }
-func (f JsonConfigFile) GetSecretKeyring() string {
+func (f JsonConfigFile) GetSecretKeyringTemplate() string {
 	return f.GetTopLevelString("secret_keyring")
 }
 func (f JsonConfigFile) GetSessionFilename() (ret string) {

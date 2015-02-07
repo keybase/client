@@ -37,7 +37,7 @@ type CommandLine interface {
 	GetGpg() string
 	GetGpgOptions() []string
 	GetPgpFingerprint() *PgpFingerprint
-	GetSecretKeyring() string
+	GetSecretKeyringTemplate() string
 	GetSocketFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
@@ -88,7 +88,7 @@ type ConfigReader interface {
 	GetNoPinentry() (bool, bool)
 	GetGpg() string
 	GetGpgOptions() []string
-	GetSecretKeyring() string
+	GetSecretKeyringTemplate() string
 	GetSalt() []byte
 	GetSocketFile() string
 	GetDaemonPort() (int, bool)

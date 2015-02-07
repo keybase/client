@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
+	"sync"
 
 	"golang.org/x/crypto/openpgp"
 )
@@ -19,7 +21,8 @@ type KeyringFile struct {
 type Keyrings struct {
 	Public []*KeyringFile
 	Secret []*KeyringFile
-	SKB    *SKBKeyringFile
+	skbMap map[string]*SKBKeyringFile
+	sync.Mutex
 }
 
 func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
@@ -31,13 +34,12 @@ func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile
 }
 
 func NewKeyrings(e Env, usage Usage) *Keyrings {
-	ret := &Keyrings{}
+	ret := &Keyrings{
+		skbMap: make(map[string]*SKBKeyringFile),
+	}
 	if usage.GpgKeyring {
 		ret.Public = ret.MakeKeyrings(e.GetPublicKeyrings(), true)
 		ret.Secret = ret.MakeKeyrings(e.GetPgpSecretKeyrings(), false)
-	}
-	if usage.KbKeyring {
-		ret.SKB = NewSKBKeyringFile(e.GetSecretKeyring())
 	}
 	return ret
 }
@@ -107,11 +109,6 @@ func (k *Keyrings) Load() (err error) {
 	if err == nil && k.Secret != nil {
 		k.LoadKeyrings(k.Secret)
 	}
-	if k.SKB != nil && err == nil {
-		if e2 := k.SKB.LoadAndIndex(); e2 != nil && !os.IsNotExist(e2) {
-			err = e2
-		}
-	}
 	G.Log.Debug("- Loaded keyrings")
 	return err
 }
@@ -123,6 +120,33 @@ func (k *Keyrings) LoadKeyrings(v []*KeyringFile) (err error) {
 		}
 	}
 	return nil
+}
+
+func SKBFilenameForUser(un string) string {
+	tmp := G.Env.GetSecretKeyringTemplate()
+	token := "%u"
+	if strings.Index(tmp, token) < 0 {
+		return tmp
+	} else {
+		return strings.Replace(tmp, token, un, -1)
+	}
+}
+
+func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
+	k.Lock()
+	defer k.Unlock()
+
+	if f = k.skbMap[un]; f != nil {
+	} else if len(un) == 0 {
+		err = NoUsernameError{}
+	} else {
+		f = NewSKBKeyringFile(SKBFilenameForUser(un))
+		if err = f.LoadAndIndex(); err == nil || os.IsNotExist(err) {
+			err = nil
+			k.skbMap[un] = f
+		}
+	}
+	return
 }
 
 func (k *KeyringFile) LoadAndIndex() error {
@@ -240,13 +264,17 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err erro
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
 func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
-	if k.SKB == nil {
-		G.Log.Debug("| No secret keyring found")
+	if skb, err := k.LoadSKBKeyring(me.name); skb != nil {
+		var s string
+		if err != nil {
+			s = " (" + err.Error() + ")"
+		}
+		G.Log.Debug("| No secret keyring found" + s)
 	} else if ckf := me.GetComputedKeyFamily(); ckf == nil {
 		G.Log.Debug("| No ComputedKeyFamily found")
 	} else {
 		G.Log.Debug("| Looking up secret key in local keychain")
-		ret = k.SKB.LookupWithComputedKeyFamily(ckf)
+		ret = skb.LookupWithComputedKeyFamily(ckf)
 	}
 	return ret
 }
@@ -275,4 +303,13 @@ func (k EmptyKeyRing) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
 }
 func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
 	return []openpgp.Key{}
+}
+
+func (g *Global) LoadSKBKeyring(name string) (f *SKBKeyringFile, err error) {
+	if g.Keyrings == nil {
+		err = NoKeyringsError{}
+	} else {
+		f, err = g.Keyrings.LoadSKBKeyring(name)
+	}
+	return
 }

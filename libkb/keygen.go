@@ -166,7 +166,7 @@ func (s *KeyGen) GenerateKey() (err error) {
 }
 
 func (s *KeyGen) WriteKey() (err error) {
-	s.p3skb, err = WriteTsecSKBToKeyring(s.bundle, s.tsec, s.arg.LogUI)
+	s.p3skb, err = WriteTsecSKBToKeyring(s.me.name, s.bundle, s.tsec, s.arg.LogUI)
 	return
 }
 

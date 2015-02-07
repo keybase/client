@@ -110,12 +110,6 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 		return err
 	}
 
-	// save it to local keyring:
-	_, err = libkb.WriteLksSKBToKeyring(key, d.lks, d.logui)
-	if err != nil {
-		return err
-	}
-
 	arg := libkb.PostNewKeyArg{
 		Sig:        sig,
 		Id:         *sigid,
