@@ -75,7 +75,7 @@
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
     // TODO: check error
-    GHDebug(@"Status: %@", status);
+    //GHDebug(@"Status: %@", status);
     [self setStatus:status];
   }];
 }
@@ -96,7 +96,7 @@
     [self showLogin:status.user];
   } else {
     [_connectView.window close];
-    [[_mainView createWindow] makeKeyAndOrderFront:nil];
+    [self showMainView];
   }
   [self updateMenu];
 }
@@ -117,6 +117,10 @@
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
 
   _statusItem.menu = menu;
+}
+
+- (void)showMainView {
+  [_mainView openWindow];
 }
 
 - (void)showLogin:(KBRUser *)user {
@@ -186,6 +190,32 @@
   NSString *contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
   NSAssert(contents, @"No contents at file: %@", file);
   return contents;
+}
+
+#pragma mark Progress
+
++ (void)setInProgress:(BOOL)inProgress view:(NSView *)view {
+  [self.class _setInProgress:view inProgress:inProgress subviews:view.subviews];
+}
+
++ (void)_setInProgress:(NSView *)view inProgress:(BOOL)inProgress subviews:(NSArray *)subviews {
+  for (NSView *view in subviews) {
+    if ([view isKindOfClass:NSControl.class]) {
+      ((NSControl *)view).enabled = !inProgress;
+    } else {
+      [self _setInProgress:view inProgress:inProgress subviews:view.subviews];
+    }
+  }
+}
+
+#pragma mark Error
+
++ (void)setError:(NSError *)error sender:(NSView *)sender {
+  NSParameterAssert(error);
+  NSWindow *window = sender.window;
+  if (!window) window = [NSApp mainWindow];
+  [[NSAlert alertWithError:error] beginSheetModalForWindow:window completionHandler:nil];
+  [sender becomeFirstResponder];
 }
 
 @end

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBView.h"
+#import <YOLayout/YOLayout.h>
 
 typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
   KBNavigationTransitionTypeNone,
@@ -25,7 +25,7 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 - (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType;
 @end
 
-@interface KBNavigationView : KBView
+@interface KBNavigationView : YONSView
 
 @property (nonatomic) NSView<KBNavigationTitleView> *titleView;
 @property (readonly) NSMutableArray *views; // Fix mutable

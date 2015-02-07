@@ -24,6 +24,9 @@
 
 - (void)checkStatus;
 
++ (void)setError:(NSError *)error sender:(NSView *)sender;
++ (void)setInProgress:(BOOL)inProgress view:(NSView *)view;
+
 + (NSString *)loadFile:(NSString *)file;
 
 @end

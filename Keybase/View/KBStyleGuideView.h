@@ -10,6 +10,8 @@
 
 #import "KBUIDefines.h"
 
-@interface KBStyleGuideView : KBView
+@interface KBStyleGuideView : YONSView
+
+@property KBNavigationView *navigation;
 
 @end

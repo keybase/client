@@ -30,7 +30,7 @@
     _outlineView.delegate = self;
     _outlineView.dataSource = self;
     _data = [MPOrderedDictionary dictionary];
-    [_data setObject:@[@"Profile", @"Following", @"Devices", @"Folders"] forKey:@"Keybase"];
+    [_data setObject:@[@"Profile", @"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
     _outlineView.floatsGroupRows = NO;
     [_outlineView reloadData];
     [_outlineView expandItem:nil expandChildren:YES];
@@ -47,8 +47,11 @@
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {
   if ([_outlineView selectedRow] != -1) {
     NSString *item = [_outlineView itemAtRow:[_outlineView selectedRow]];
-    if ([_outlineView parentForItem:item] != nil) { // Only change things for non-root items (root items can be selected, but are ignored)
-      // Update content view
+    if ([_outlineView parentForItem:item] != nil) {
+      if ([item isEqualTo:@"Profile"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemProfile];
+      if ([item isEqualTo:@"Users"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemUsers];
+      if ([item isEqualTo:@"Devices"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemDevices];
+      if ([item isEqualTo:@"Folders"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemFolders];
     }
   }
 }
@@ -82,7 +85,7 @@
   if ([self outlineView:outlineView isGroupItem:item]) return nil;
   KBLabelRow *labelRow = [outlineView makeViewWithIdentifier:@"KBLabelRow" owner:self];
   if (!labelRow) labelRow = [[KBLabelRow alloc] init];
-  labelRow.label.verticalAlignment = KBTextAlignmentMiddle;
+  labelRow.label.verticalAlignment = KBVerticalAlignmentMiddle;
   [labelRow.label setText:item font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   return labelRow;
 }
@@ -90,7 +93,7 @@
 - (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
   KBLabel *label = [outlineView makeViewWithIdentifier:@"KBLabel" owner:self];
   if (!label) label = [[KBLabel alloc] init];
-  label.verticalAlignment = KBTextAlignmentMiddle;
+  label.verticalAlignment = KBVerticalAlignmentMiddle;
   [label setText:[item uppercaseString] font:[NSFont systemFontOfSize:12] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   return label;
 }

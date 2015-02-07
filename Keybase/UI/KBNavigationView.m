@@ -86,7 +86,7 @@
 }
 
 - (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated {
-  [[self currentView] viewWillAppearInView:view animated:animated];
+  //[[self currentView] viewWillAppearInView:view animated:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated {

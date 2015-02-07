@@ -17,7 +17,7 @@ typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response); // Respon
 
 - (void)clear;
 
-- (BOOL)setUser:(KBRUser *)user identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse;
+- (BOOL)setUser:(KBRUser *)user popup:(BOOL)popup identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse;
 
 - (BOOL)setTrackCompleted:(NSError *)error;
 

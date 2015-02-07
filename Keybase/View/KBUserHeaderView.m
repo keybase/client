@@ -34,7 +34,7 @@
   [self addSubview:_imageView];
 
   _name1Label = [[KBLabel alloc] init];
-  _name1Label.verticalAlignment = KBTextAlignmentMiddle;
+  _name1Label.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_name1Label];
 
   _name2Label = [[KBLabel alloc] init];
@@ -92,19 +92,10 @@
   [_progressView setAnimating:progressEnabled];
 }
 
-- (void)setUserInfo:(KBUser *)user {
-//  [_name2Label setText:user.fullName font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
-//
-//  [_locationLabel setText:user.location font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
-//  [_bioLabel setText:user.bio font:[NSFont systemFontOfSize:15] color:[KBLookAndFeel secondaryTextColor] alignment:NSCenterTextAlignment];
-
-  [_imageView setURLString:user.image.URLString ? user.image.URLString : @"https://keybase.io/images/no_photo.png"];
-  [self setNeedsLayout];
-}
-
 - (void)setUser:(KBRUser *)user {
   [_name1Label setMarkup:NSStringWithFormat(@"<p>keybase.io/<strong>%@</strong></p>", user.username) font:[NSFont systemFontOfSize:36] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
+  [_imageView setURLString:user.image.url ? user.image.url : @"https://keybase.io/images/no_photo.png"];
   [self setNeedsLayout];
 }
 

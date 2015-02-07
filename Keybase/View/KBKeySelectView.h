@@ -11,6 +11,6 @@
 #import "KBUIDefines.h"
 #import "KBRPC.h"
 
-@interface KBKeySelectView : KBView
+@interface KBKeySelectView : YONSView
 
 @end

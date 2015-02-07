@@ -25,7 +25,7 @@
   [contentView addSubview:label1];
 
   KBLabel *label2 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 50)];
-  label2.verticalAlignment = KBTextAlignmentMiddle;
+  label2.verticalAlignment = KBVerticalAlignmentMiddle;
   [label2 setBorderWithColor:NSColor.blackColor width:1.0];
   [label2 setText:@"Text Middle Align" font:[NSFont systemFontOfSize:16] color:NSColor.blackColor alignment:NSCenterTextAlignment];
   [contentView addSubview:label2];

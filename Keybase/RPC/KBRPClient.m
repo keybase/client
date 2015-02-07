@@ -94,10 +94,21 @@
         
   [_client sendRequestWithMethod:method params:params completion:^(NSError *error, id result) {
     if (error) GHDebug(@"Error: %@", error);
+    GHDebug(@"Result: %@", result);
     completion(error, result);
   }];
-  GHDebug(@"Sent request: %@(%@)", method, params);
-  //GHDebug(@"Sent request: %@", [request gh_toJSON:NSJSONWritingPrettyPrinted error:nil]);
+
+  NSMutableArray *mparams = [params mutableCopy];
+  mparams[0] = KBScrubPassphrase(params[0]);
+
+  GHDebug(@"Sent request: %@(%@)", method, [mparams join:@", "]);
+}
+
+NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
+  NSMutableDictionary *mdict = [dict mutableCopy];
+  if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"XXXXX";
+  if (mdict[@"password"]) mdict[@"password"] = @"XXXXX";
+  return mdict;
 }
 
 #pragma mark -

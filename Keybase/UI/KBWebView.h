@@ -12,7 +12,7 @@
 
 #import <WebKit/WebKit.h>
 
-@interface KBWebView : KBView
+@interface KBWebView : YONSView
 
 - (void)openURLString:(NSString *)URLString;
 

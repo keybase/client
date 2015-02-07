@@ -24,6 +24,7 @@
 
 @interface KBConnectView : KBNavigationView
 
+@property KBNavigationView *navigation;
 @property (readonly) KBLoginView *loginView;
 @property (readonly) KBSignupView *signupView;
 
@@ -35,10 +36,12 @@
 - (void)showSignup:(BOOL)animated;
 @end
 
-@interface KBLoginView : KBView
+@interface KBLoginView : YONSView <NSTextFieldDelegate>
+@property KBNavigationView *navigation;
 @property (weak) id<KBLoginViewDelegate> delegate;
 @end
 
-@interface KBSignupView : KBView <NSTextFieldDelegate>
+@interface KBSignupView : YONSView <NSTextFieldDelegate>
+@property KBNavigationView *navigation;
 @property (weak) id<KBSignupViewDelegate> delegate;
 @end

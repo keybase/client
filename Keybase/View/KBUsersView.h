@@ -10,11 +10,18 @@
 
 #import "KBUIDefines.h"
 #import "KBTableView.h"
+#import "KBRPC.h"
+
+@class KBUsersView;
+
+@protocol KBUsersViewDelegate <NSObject>
+- (void)usersView:(KBUsersView *)usersView didSelectUser:(KBRUser *)user;
+@end
 
 @interface KBUsersView : KBTableView
 
-@property KBNavigationView *navigation;
+@property (weak) id<KBUsersViewDelegate> delegate;
 
-- (void)loadUsernames:(NSArray *)usernames;
+- (void)setUsers:(NSArray *)users;
 
 @end

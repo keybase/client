@@ -51,7 +51,7 @@
 
 - (void)setObjects:(NSArray *)objects {
   [_dataSource removeAllObjects];
-  [_dataSource addObjectsFromArray:objects];
+  if (objects) [_dataSource addObjectsFromArray:objects];
   [_tableView reloadData];
 }
 

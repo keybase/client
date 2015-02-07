@@ -13,7 +13,7 @@
 @interface KBUserView ()
 @property KBImageView *imageView;
 @property KBLabel *nameLabel;
-@property KBLabel *descriptionLabel;
+//@property KBLabel *descriptionLabel;
 @end
 
 @implementation KBUserView
@@ -28,10 +28,11 @@
   [self addSubview:self.imageView];
 
   self.nameLabel = [[KBLabel alloc] init];
+  self.nameLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:self.nameLabel];
 
-  self.descriptionLabel = [[KBLabel alloc] init];
-  [self addSubview:self.descriptionLabel];
+//  self.descriptionLabel = [[KBLabel alloc] init];
+//  [self addSubview:self.descriptionLabel];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -41,8 +42,8 @@
     [layout setFrame:CGRectMake(x, y, 40, 40) view:yself.imageView];
     x += 50;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y - 2, size.width - x, 30) view:yself.nameLabel].size.height;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 30) view:yself.descriptionLabel].size.height + 10;
+    y += [layout setFrame:CGRectMake(x, y - 2, size.width - x, 50) view:yself.nameLabel].size.height;
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 30) view:yself.descriptionLabel].size.height + 10;
 
     if (y < 60) y = 60;
 
@@ -50,20 +51,20 @@
   }];
 }
 
-- (void)setUser:(KBUser *)user {
-  [self.nameLabel setText:user.userName font:[NSFont boldSystemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+- (void)setUser:(KBRUser *)user {
+  [self.nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
 
-  NSMutableArray *strings = [NSMutableArray array];
-  [strings addObject:[[NSAttributedString alloc] initWithString:user.fullName attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
+//  NSMutableArray *strings = [NSMutableArray array];
+//  [strings addObject:[[NSAttributedString alloc] initWithString:user.fullName attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
+//
+//  NSString *twitter = [[[user proofsForType:KBProofTypeTwitter] gh_firstObject] displayName];
+//  if (twitter) {
+//    [strings addObject:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@"@%@", twitter) attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
+//  }
+//
+//  _descriptionLabel.attributedText = [KBLabel join:strings delimeter:[[NSAttributedString alloc] initWithString:@" • "]];
 
-  NSString *twitter = [[[user proofsForType:KBProofTypeTwitter] gh_firstObject] displayName];
-  if (twitter) {
-    [strings addObject:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@"@%@", twitter) attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
-  }
-
-  _descriptionLabel.attributedText = [KBLabel join:strings delimeter:[[NSAttributedString alloc] initWithString:@" • "]];
-
-  self.imageView.URLString = user.image.URLString;
+  self.imageView.URLString = user.image.url;
   [self setNeedsLayout];
 }
 

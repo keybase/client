@@ -10,7 +10,7 @@
 
 #import "KBUIDefines.h"
 
-@interface KBErrorView : KBView
+@interface KBErrorView : YONSView
 
 - (void)setError:(NSError *)error;
 

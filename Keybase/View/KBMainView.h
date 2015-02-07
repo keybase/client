@@ -9,9 +9,13 @@
 #import <Foundation/Foundation.h>
 
 #import "KBUIDefines.h"
+#import "KBRPC.h"
+#import "KBSourceView.h"
 
-@interface KBMainView : YONSView <NSSplitViewDelegate, NSWindowDelegate> //, NSWindowRestoration>
+@interface KBMainView : YONSView <NSWindowDelegate, KBSourceViewDelegate> //, NSWindowRestoration>
 
-- (NSWindow *)createWindow;
+@property (nonatomic) KBRUser *user;
+
+- (void)openWindow;
 
 @end

@@ -47,6 +47,8 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
   GHWeakSelf gself = self;
   _loginView = [[KBLoginView alloc] init];
@@ -72,16 +74,16 @@
     return;
   }
 
+  [self removeFromSuperview]; // TODO
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:self];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
   navigation.titleView = [KBTitleView titleViewWithTitle:title navigation:navigation];
   [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
-  [window layoutIfNeeded];
 }
 
 - (void)setUser:(KBRUser *)user {
-  if (user) {
+  if (user && [user.username gh_present]) {
     _loginView.usernameField.text = user.username;
     _loginView.usernameField.textField.editable = NO;
   } else {
@@ -165,20 +167,20 @@
   NSString *passphrase = self.passwordField.text;
 
   if ([NSString gh_isBlank:username]) {
-    [self setError:KBErrorAlert(@"You need to enter a username or email address.") sender:_usernameField];
+    [AppDelegate setError:KBErrorAlert(@"You need to enter a username or email address.") sender:_usernameField];
     return;
   }
 
   if ([NSString gh_isBlank:passphrase]) {
-    [self setError:KBErrorAlert(@"You need to enter a password.") sender:_passwordField];
+    [AppDelegate setError:KBErrorAlert(@"You need to enter a password.") sender:_passwordField];
     return;
   }
 
-  [self setInProgress:YES sender:nil];
+  [AppDelegate setInProgress:YES view:self];
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
-    [self setInProgress:NO sender:nil];
+    [AppDelegate setInProgress:NO view:self];
     if (error) {
-      [self setError:error];
+      [AppDelegate setError:error sender:self];
       return;
     }
 
@@ -187,7 +189,7 @@
     KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
     [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
       if (error) {
-        [self setError:error];
+        [AppDelegate setError:error sender:self];
         return;
       }
       [self.delegate loginView:self didLoginWithStatus:status];
@@ -258,6 +260,10 @@
     completion(nil, response);
   }];
 
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    completion(nil, @(NO));
+  }];
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 40;
@@ -266,15 +272,15 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + 10;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height;
-    [layout setFrame:CGRectMake(size.width - 80 - 40, y - 22, 80, 24) view:yself.usernameStatusLabel];
+    [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.usernameStatusLabel];
     y += 10;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height;
-    [layout setFrame:CGRectMake(size.width - 80 - 40, y - 22, 80, 24) view:yself.strengthLabel];
+    [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.strengthLabel];
     y += 10;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordConfirmField].size.height;
-    [layout setFrame:CGRectMake(size.width - 80 - 40, y - 22, 80, 24) view:yself.passwordConfirmLabel];
+    [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.passwordConfirmLabel];
     y += 10;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.deviceNameField].size.height;
@@ -301,7 +307,9 @@
   NSTextField *textField = [notification object];
   if (textField == _usernameField.textField) _usernameStatusLabel.attributedText = nil;
   else if (textField == _passwordField.textField) [self checkPassword];
-  else if (textField != _passwordConfirmField.textField) [self passwordConfirmed];
+
+  if (textField == _passwordField.textField || textField == _passwordConfirmField.textField) _passwordConfirmLabel.attributedText = nil;
+
   [self setNeedsLayout];
 }
 
@@ -362,50 +370,51 @@
 
   if ([NSString gh_isBlank:username]) {
     // TODO Become first responder
-    [self setError:KBErrorAlert(@"You need to enter a username.")];
+    [AppDelegate setError:KBErrorAlert(@"You need to enter a username.") sender:_usernameField];
     return;
   }
 
   if ([NSString gh_isBlank:email]) {
-    [self setError:KBErrorAlert(@"You need to enter an email address.")];
+    [AppDelegate setError:KBErrorAlert(@"You need to enter an email address.") sender:_emailField];
     return;
   }
 
   if ([NSString gh_isBlank:passphrase]) {
-    [self setError:KBErrorAlert(@"You need to enter a passphrase.")];
+    [AppDelegate setError:KBErrorAlert(@"You need to enter a passphrase.") sender:_passwordField];
     return;
   }
 
   if ([NSString gh_isBlank:deviceName]) {
-    [self setError:KBErrorAlert(@"You need to enter a passphrase.")];
+    [AppDelegate setError:KBErrorAlert(@"You need to enter a device name.") sender:_deviceNameField];
     return;
   }
 
   if (passphrase.length < 12) {
-    [self setError:KBErrorAlert(@"Your passphrase needs to be at least 12 characters long.")];
+    [AppDelegate setError:KBErrorAlert(@"Your passphrase needs to be at least 12 characters long.") sender:_passwordField];
     return;
   }
 
   if (![self passwordConfirmed]) {
-    [self setError:KBErrorAlert(@"Your passphrases don't match.")];
+    [AppDelegate setError:KBErrorAlert(@"Your passphrases don't match.") sender:_passwordField];
     return;
   }
 
-  [self setInProgress:YES sender:nil];
+  [AppDelegate setInProgress:YES view:self];
 
   [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
-    [self setInProgress:NO sender:nil];
+    [AppDelegate setInProgress:NO view:self];
     if (error) {
-      [self setError:error];
+      [AppDelegate setError:error sender:self];
       return;
     }
 
     self.passwordField.text = nil;
+    self.passwordConfirmField = nil;
 
     KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
     [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
       if (error) {
-        [self setError:error];
+        [AppDelegate setError:error sender:self];
         return;
       }
       [self.delegate signupView:self didSignupWithStatus:status];

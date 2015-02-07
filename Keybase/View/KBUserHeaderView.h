@@ -12,11 +12,9 @@
 #import "KBRPC.h"
 #import "KBUser.h"
 
-@interface KBUserHeaderView : KBView
+@interface KBUserHeaderView : YONSView
 
 - (void)setUser:(KBRUser *)user;
-
-- (void)setUserInfo:(KBUser *)user;
 
 - (void)setProgressEnabled:(BOOL)progressEnabled;
 

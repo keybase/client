@@ -14,6 +14,8 @@
 
 @import WebKit;
 
-@interface KBCatalogView : KBView <KBSignupViewDelegate, KBLoginViewDelegate, WKNavigationDelegate>
+@interface KBCatalogView : YONSView <KBSignupViewDelegate, KBLoginViewDelegate, WKNavigationDelegate>
+
+@property KBNavigationView *navigation;
 
 @end

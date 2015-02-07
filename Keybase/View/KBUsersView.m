@@ -24,27 +24,16 @@
   self.prototypeClass = KBUserView.class;
 }
 
-- (void)loadUsernames:(NSArray *)usernames {
-  //self.progressIndicatorEnabled = YES;
-  [AppDelegate.APIClient usersForKey:@"usernames" value:[usernames join:@","] fields:nil success:^(NSArray *users) {
-    //self.progressIndicatorEnabled = NO;
-    [self setUsers:users];
-  } failure:^(NSError *error) { }];
-}
-
 - (void)setUsers:(NSArray *)users {
   [self setObjects:users];
 }
 
-- (void)updateView:(KBUserView *)view object:(KBUser *)object {
+- (void)updateView:(KBUserView *)view object:(KBRUser *)object {
   [view setUser:object];
 }
 
-- (void)select:(KBUser *)user {
-  KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  KBRUser *ruser = [[KBRUser alloc] initWithDictionary:@{@"uid": [user.identifier na_dataFromHexString], @"username": user.userName} error:nil];
-  [self.navigation pushView:userProfileView animated:YES];
-  [userProfileView setUser:ruser track:YES];
+- (void)select:(KBRUser *)user {
+  [self.delegate usersView:self didSelectUser:user];
 }
 
 @end

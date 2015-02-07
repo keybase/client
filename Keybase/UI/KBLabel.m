@@ -32,23 +32,25 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGSize textSize = [KBLabel sizeThatFits:size attributedString:yself.textView.attributedString];
-
-//    if (yself.border) {
-//      inSize.width -= yself.border.borderRect.;
-//      inSize.height -= yself.border.borderRect.;
-//    }
-
-    if (size.height > 0 && self.verticalAlignment == KBTextAlignmentMiddle) {
+    if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
+      CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
       [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, textSize.width, textSize.height)) view:yself.textView];
       [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
       return CGSizeMake(textSize.width, size.height);
     } else {
-      [layout setSize:textSize view:yself.textView options:0]; // TODO: Inset
-      [layout setSize:textSize view:yself.border options:0];
-      return textSize;
+      [layout setSize:size view:yself.textView options:0]; // TODO: Inset
+      [layout setSize:size view:yself.border options:0];
+      return size;
     }
   }];
+}
+
+- (CGSize)sizeThatFits:(CGSize)size {
+  CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+  if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
+    return CGSizeMake(textSize.width, size.height);
+  }
+  return textSize;
 }
 
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {

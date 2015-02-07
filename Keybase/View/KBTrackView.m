@@ -11,7 +11,7 @@
 @interface KBTrackView ()
 @property KBLabel *label;
 //@property NSPopUpButton *trackOptionsView;
-@property KBButton *skipButton;
+//@property KBButton *skipButton;
 @property KBButton *button;
 
 @property KBRUser *user;
@@ -48,20 +48,20 @@
 //      gself.trackResponse(nil);
 //    }
 //  };
-  _button.hidden = YES;
   _button.targetBlock = ^{
     gself.trackOptions = [[KBRFinishAndPromptRes alloc] init];
     gself.trackOptions.trackRemote = YES;
     gself.trackResponse(gself.trackOptions);
   };
   [self addSubview:_button];
+  _button.hidden = YES;
 
-  _skipButton = [KBButton buttonWithText:@"No, Skip" style:KBButtonStyleLink];
-  _skipButton.hidden = YES;
-  _skipButton.targetBlock = ^{
-    gself.trackResponse(nil);
-  };
-  [self addSubview:_skipButton];
+//  _skipButton = [KBButton buttonWithText:@"No, Skip" style:KBButtonStyleLink];
+//  _skipButton.hidden = YES;
+//  _skipButton.targetBlock = ^{
+//    gself.trackResponse(nil);
+//  };
+//  [self addSubview:_skipButton];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -76,9 +76,9 @@
       [layout sizeToFitVerticalInFrame:CGRectMake(50, y, 200, 0) view:yself.button];
     }
 
-    if (!yself.skipButton.hidden) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(270, y + 12, 100, 0) view:yself.skipButton];
-    }
+//    if (!yself.skipButton.hidden) {
+//      [layout sizeToFitVerticalInFrame:CGRectMake(270, y + 12, 100, 0) view:yself.skipButton];
+//    }
 
     y += 60;
 
@@ -93,7 +93,7 @@
   _trackResponse = nil;
 }
 
-- (void)enableTracking:(NSString *)label color:(NSColor *)color update:(BOOL)update {
+- (void)enableTracking:(NSString *)label color:(NSColor *)color popup:(BOOL)popup update:(BOOL)update {
   [_label setMarkup:label font:[NSFont systemFontOfSize:14] color:color alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   if (update) {
 //    _trackOptionsView.hidden = NO;
@@ -109,18 +109,18 @@
     [_button setText:@"Yes, Track" style:KBButtonStylePrimary alignment:NSCenterTextAlignment];
   }
 
-  _skipButton.hidden = NO;
+//  _skipButton.hidden = !popup;
   _button.hidden = NO;
 }
 
-- (BOOL)setUser:(KBRUser *)user identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse {
+- (BOOL)setUser:(KBRUser *)user popup:(BOOL)popup identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse {
   _user = user;
   _trackResponse = trackResponse;
 
 //  [_trackOptionsView removeAllItems];
 //  _trackOptionsView.hidden = YES;
   _button.hidden = YES;
-  _skipButton.hidden = YES;
+//  _skipButton.hidden = YES;
 
   _trackPrompt = NO;
 
@@ -134,11 +134,11 @@
 
   if (identifyOutcome.numTrackFailures > 0 || identifyOutcome.numDeleted > 0) {
     // Your tracking statement of _ is broken; fix it?
-    [self enableTracking:@"Oops, your tracking statement is broken. Fix it?" color:[KBLookAndFeel warnColor] update:YES];
+    [self enableTracking:@"Oops, your tracking statement is broken. Fix it?" color:[KBLookAndFeel warnColor] popup:popup update:YES];
     _trackPrompt = YES;
   } else if (identifyOutcome.numTrackChanges > 0) {
     // Your tracking statement of _ is still valid; update it to reflect new proofs?"
-    [self enableTracking:@"<strong>How would you like to proceed?</strong>" color:[KBLookAndFeel textColor] update:YES];
+    [self enableTracking:@"<strong>Do you want to update your tracking statement?</strong>" color:[KBLookAndFeel textColor] popup:popup update:YES];
     _trackPrompt = YES;
   } else if (identifyOutcome.numProofSuccesses == 0) {
     // We found an account for _, but they haven't proven their identity.
@@ -151,7 +151,8 @@
     // Some proofs failed
     [_label setMarkup:@"Oops, some proofs failed." font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else {
-    [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong> <em>This is recommended.</em>", _user.username) color:[KBLookAndFeel textColor] update:NO];
+    //[self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong> <em>This is recommended.</em>", _user.username) color:[KBLookAndFeel textColor] update:NO];
+    [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong>", _user.username) color:[KBLookAndFeel textColor] popup:popup update:NO];
     _trackPrompt = YES;
   }
 
@@ -170,6 +171,7 @@
   }
   //_trackOptionsView.hidden = YES;
   _button.hidden = YES;
+//  _skipButton.hidden = YES;
   [self setNeedsLayout];
   return YES;
 }

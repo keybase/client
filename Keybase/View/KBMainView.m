@@ -8,12 +8,14 @@
 
 #import "KBMainView.h"
 
-#import "KBSourceView.h"
+#import "KBUsersMainView.h"
 
 @interface KBMainView ()
 @property KBSourceView *sourceView;
 @property KBBox *border;
-@property NSView *contentView;
+
+@property (nonatomic) NSView *contentView;
+@property KBUsersMainView *usersMainView;
 @end
 
 @implementation KBMainView
@@ -22,15 +24,11 @@
   [super viewInit];
 
   _sourceView = [[KBSourceView alloc] init];
+  _sourceView.delegate = self;
   [self addSubview:_sourceView];
 
   _border = [KBBox lineWithWidth:1.0 color:[KBLookAndFeel lineColor]];
   [self addSubview:_border];
-
-  _contentView = [[NSView alloc] init];
-  _contentView.wantsLayer = YES;
-  [_contentView.layer setBackgroundColor:[NSColor colorWithCalibratedWhite:0.96 alpha:1.0].CGColor];
-  [self addSubview:_contentView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -42,9 +40,47 @@
   }];
 }
 
+- (void)setContentView:(NSView *)contentView {
+  [_contentView removeFromSuperview];
+  _contentView = contentView;
+  if (_contentView) {
+    [self addSubview:_contentView];
+    [self setNeedsLayout];
+  }
+}
+
+- (void)showUsers {
+  if (!_usersMainView) _usersMainView = [[KBUsersMainView alloc] init];
+  [_usersMainView setUser:_user];
+  [self setContentView:_usersMainView];
+}
+
+- (void)setUser:(KBRUser *)user {
+  _user = user;
+  [self setContentView:nil];
+}
+
+- (void)sourceView:(KBSourceView *)sourceView didSelectItem:(KBSourceViewItem)item {
+  switch (item) {
+    case KBSourceViewItemDevices:
+      [self setContentView:nil];
+      break;
+    case KBSourceViewItemFolders:
+      [self setContentView:nil];
+      break;
+    case KBSourceViewItemProfile:
+      [self setContentView:nil];
+      break;
+    case KBSourceViewItemUsers:
+      [self showUsers];
+      break;
+  }
+}
+
 - (NSWindow *)createWindow {
-  NSWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(600, 400) retain:YES];
-  window.minSize = CGSizeMake(300, 300);
+  NSAssert(!self.superview, @"Already has superview");
+  NSWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 500) retain:YES];
+  window.minSize = CGSizeMake(600, 400);
   //window.restorable = YES;
   window.delegate = self;
   //window.maxSize = CGSizeMake(600, 900);
@@ -54,6 +90,16 @@
   //window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:window.navigation];
   //[window setLevel:NSStatusWindowLevel];
   return window;
+}
+
+- (void)openWindow {
+  if (self.window) {
+    [self.window makeKeyAndOrderFront:nil];
+    return;
+  }
+
+  NSWindow *window = [self createWindow];
+  [window makeKeyAndOrderFront:nil];
 }
 
 //- (void)window:(NSWindow *)window willEncodeRestorableState:(NSCoder *)state {

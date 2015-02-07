@@ -10,7 +10,7 @@
 
 #import "KBUIDefines.h"
 
-@interface KBSplashView : KBView
+@interface KBSplashView : YONSView
 
 @property (copy) dispatch_block_t closeBlock;
 

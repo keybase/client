@@ -10,6 +10,6 @@
 
 #import "KBUIDefines.h"
 
-@interface KBKeyGenView : KBView
+@interface KBKeyGenView : YONSView
 
 @end

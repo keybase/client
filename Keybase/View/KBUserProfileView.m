@@ -25,7 +25,7 @@
 @property KBTrackView *trackView;
 @property KBRUser *user;
 
-@property KBView *contentView;
+@property YONSView *contentView;
 @end
 
 @implementation KBUserProfileView
@@ -36,7 +36,7 @@
   _headerView = [[KBUserHeaderView alloc] init];
   _userInfoView = [[KBUserInfoView alloc] init];
   _trackView = [[KBTrackView alloc] init];
-  _contentView = [[KBView alloc] init];
+  _contentView = [[YONSView alloc] init];
   [_contentView addSubview:_headerView];
   [_contentView addSubview:_userInfoView];
   [_contentView addSubview:_trackView];
@@ -79,7 +79,7 @@
       if (proofLabel.proofResult.result.hint.humanUrl) [yself openURLString:proofLabel.proofResult.result.hint.humanUrl];
     }];
     [yself setNeedsLayout];
-    [yself expandWindow];
+    [yself updateWindow];
 
     completion(nil, nil);
   }];
@@ -89,7 +89,7 @@
     [yself.userInfoView addCryptocurrency:cryptocurrency];
     [yself setNeedsLayout];
 
-    [yself expandWindow];
+    [yself updateWindow];
     completion(nil, nil);
   }];
 
@@ -117,9 +117,13 @@
     [yself.headerView setProgressEnabled:NO];
     KBRIdentifyOutcome *identifyOutcome = [MTLJSONAdapter modelOfClass:KBRIdentifyOutcome.class fromJSONDictionary:params[0][@"outcome"] error:nil];
     yself.trackView.hidden = NO;
-    BOOL trackPrompt = [yself.trackView setUser:yself.user identifyOutcome:identifyOutcome trackResponse:^(KBRFinishAndPromptRes *response) {
-      [KBView setInProgress:YES view:yself.trackView];
-      completion(nil, response);
+    BOOL trackPrompt = [yself.trackView setUser:yself.user popup:yself.popup identifyOutcome:identifyOutcome trackResponse:^(KBRFinishAndPromptRes *response) {
+      [AppDelegate setInProgress:YES view:yself.trackView];
+      if (yself.mock) {
+        [yself setTrackCompleted:nil];
+      } else {
+        completion(nil, response);
+      }
     }];
     [yself setNeedsLayout];
 
@@ -134,7 +138,10 @@
   }];
 }
 
-- (void)expandWindow {
+- (void)updateWindow {
+  if (!_popup) return;
+
+  // If we are in a popup lets adjust our window so all the content is visible
   [self layoutView];
   CGSize size = CGSizeMake(_contentView.frame.size.width, _contentView.frame.size.height + 40);
   // Only make it bigger (not smaller)
@@ -158,19 +165,25 @@
 }
 
 - (void)setError:(NSError *)error {
-  [super setError:error];
-  // TODO: Redo track process (if failed on track)
+  [AppDelegate setError:error sender:self];
 }
 
-- (void)setUser:(KBRUser *)user track:(BOOL)track {
-  NSAssert(self.navigation, @"No navigation, push before setting user");
-  _user = user;
-  //_headerView.hidden = NO;
-  [_headerView setUser:user];
+- (void)clear {
+  _user = nil;
+  _headerView.hidden = NO;
   [_userInfoView clear];
   [_trackView clear];
   _trackView.hidden = YES;
   [self setNeedsLayout];
+}
+
+- (void)setUser:(KBRUser *)user track:(BOOL)track {
+
+  [self clear];
+
+  _user = user;
+  _headerView.hidden = NO;
+  [_headerView setUser:_user];
 
   GHWeakSelf gself = self;
 
@@ -179,25 +192,20 @@
     [self.headerView setProgressEnabled:YES];
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:AppDelegate.client];
     [trackRequest trackWithTheirName:user.username completion:^(NSError *error) {
-      //[gself.navigation.titleView setProgressEnabled:NO];
-      [gself.headerView setProgressEnabled:NO];
-      [KBView setInProgress:NO view:gself.trackView];
-      if (![gself.trackView setTrackCompleted:error]) {
-        [self setError:error];
-      }
-      [self setNeedsLayout];
+      [gself setTrackCompleted:error];
     }];
   }
 
-  //self.progressIndicatorEnabled = YES;
-  [AppDelegate.APIClient userForKey:@"usernames" value:user.username fields:nil success:^(KBUser *user) {
-    //self.progressIndicatorEnabled = NO;
-    [self.headerView setUserInfo:user];
-    [self setNeedsLayout];
-  } failure:^(NSError *error) {
-    [self setError:error];
-  }];
+  [self setNeedsLayout];
+}
 
+- (void)setTrackCompleted:(NSError *)error {
+  //[gself.navigation.titleView setProgressEnabled:NO];
+  [_headerView setProgressEnabled:NO];
+  [AppDelegate setInProgress:NO view:_trackView];
+  if (![_trackView setTrackCompleted:error]) {
+    [self setError:error];
+  }
   [self setNeedsLayout];
 }
 

@@ -25,7 +25,7 @@
 - (void)viewInit {
   [super viewInit];
   _headerLabel = [[KBLabel alloc] init];
-  _headerLabel.verticalAlignment = KBTextAlignmentMiddle;
+  _headerLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_headerLabel];
 
   _imageView = [[KBImageView alloc] init];

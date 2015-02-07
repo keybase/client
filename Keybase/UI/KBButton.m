@@ -18,6 +18,21 @@
 
 @implementation KBButton
 
+- (instancetype)initWithFrame:(NSRect)frameRect {
+  if ((self = [super initWithFrame:frameRect])) { [self viewInit]; }
+  return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder {
+  if ((self = [super initWithCoder:coder])) { [self viewInit]; }
+  return self;
+}
+
+- (void)viewInit {
+   self.target = self;
+   self.action = @selector(_performTargetBlock);
+}
+
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style {
   return [self buttonWithText:text style:style alignment:NSCenterTextAlignment];
 }
@@ -71,14 +86,14 @@
   KBButtonCell *cell = [[KBButtonCell alloc] init];
   cell.style = style;
   [cell setText:text alignment:alignment];
+  cell.target = self;
+  cell.action = @selector(_performTargetBlock);
   self.cell = cell;
   [self setNeedsDisplay];
 }
 
 - (void)setTargetBlock:(KBButtonTargetBlock)targetBlock {
   _targetBlock = targetBlock;
-  self.target = self;
-  self.action = @selector(_performTargetBlock);
 }
 
 - (void)_performTargetBlock {

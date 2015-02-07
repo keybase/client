@@ -10,9 +10,17 @@
 
 #import "KBUIDefines.h"
 #import "KBRPC.h"
+#import "KBTrackView.h"
 
-@interface KBUserProfileView : KBView
+@interface KBUserProfileView : YONSView
+
+@property KBNavigationView *navigation;
+@property (getter=isPopup) BOOL popup;
+
+@property BOOL mock;
 
 - (void)setUser:(KBRUser *)user track:(BOOL)track;
+
+- (void)clear;
 
 @end

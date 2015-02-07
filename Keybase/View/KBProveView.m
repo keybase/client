@@ -18,6 +18,9 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+  
   GHWeakSelf gself = self;
 
   _inputView = [[KBProveInputView alloc] init];
@@ -171,7 +174,7 @@ KBProveType KBProveTypeFromAPI(NSInteger proofType) {
 
   if ([NSString gh_isBlank:userName]) {
     // TODO Become first responder
-    [self setError:KBErrorAlert(@"You need to choose a username.")];
+    [AppDelegate setError:KBErrorAlert(@"You need to choose a username.") sender:_inputView];
     return;
   }
 
@@ -179,18 +182,18 @@ KBProveType KBProveTypeFromAPI(NSInteger proofType) {
   NSAssert(service, @"No service");
 
   GHWeakSelf gself = self;
-  [self setInProgress:YES sender:_inputView];
+  [AppDelegate setInProgress:YES view:_inputView];
   KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:AppDelegate.client];
   [self.navigation.titleView setProgressEnabled:YES];
   [prove proveWithService:service username:userName force:NO completion:^(NSError *error) {
-    [self setInProgress:NO sender:gself.inputView];
+    [AppDelegate setInProgress:NO view:gself.inputView];
     [self.navigation.titleView setProgressEnabled:NO];
     if (error) {
-      [gself setError:error];
+      [AppDelegate setError:error sender:gself.inputView];
       return;
     }
 
-    [KBView setInProgress:NO view:gself];
+    [AppDelegate setInProgress:NO view:gself];
     [KBAlert promptWithTitle:@"Success!" description:@"Ok that worked." style:NSInformationalAlertStyle buttonTitles:@[@"OK"] view:self completion:^(NSModalResponse response) {
       [self.navigation popViewAnimated:YES];
     }];
@@ -279,6 +282,9 @@ KBProveType KBProveTypeFromAPI(NSInteger proofType) {
 
 - (void)viewInit {
   [super viewInit];
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+
   _instructionsLabel = [[KBLabel alloc] init];
   [self addSubview:_instructionsLabel];
 
@@ -332,7 +338,7 @@ KBProveType KBProveTypeFromAPI(NSInteger proofType) {
 
   GHWeakSelf gself = self;
   self.button.targetBlock = ^{
-    [KBView setInProgress:YES view:gself.superview];
+    [AppDelegate setInProgress:YES view:gself.superview];
     targetBlock();
   };
 }

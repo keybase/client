@@ -22,8 +22,9 @@ typedef NS_ENUM (NSInteger, KBProveType) {
   KBProveTypeDNS,
 };
 
-@interface KBProveView : KBView
+@interface KBProveView : YONSView
 
+@property KBNavigationView *navigation;
 @property (nonatomic) KBProveType proveType;
 
 NSString *KBServiceNameForProveType(KBProveType proveType);
@@ -34,7 +35,7 @@ KBProveType KBProveTypeFromAPI(NSInteger proofType);
 
 @end
 
-@interface KBProveInputView : KBView
+@interface KBProveInputView : YONSView
 @property (nonatomic) KBProveType proveType;
 @property KBLabel *label;
 @property KBTextField *inputField;
@@ -42,7 +43,8 @@ KBProveType KBProveTypeFromAPI(NSInteger proofType);
 @property KBButton *skipButton;
 @end
 
-@interface KBProveInstructionsView : KBView
+@interface KBProveInstructionsView : YONSView
+@property KBNavigationView *navigation;
 @property KBLabel *instructionsLabel;
 @property KBLabel *proofLabel;
 @property NSScrollView *scrollView;

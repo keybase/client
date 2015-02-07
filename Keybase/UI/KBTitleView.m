@@ -10,6 +10,7 @@
 #import "KBLabel.h"
 #import "KBBox.h"
 #import "KBActivityIndicatorView.h"
+#import <GHKit/GHKit.h>
 
 @interface KBTitleView ()
 @property KBLabel *label;
