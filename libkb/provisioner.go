@@ -16,11 +16,13 @@ func (sp *SelfProvisioner) LoadMe() (err error) {
 // it has a provisioned key or not, and if so, whether we have the corresponding
 // private key.
 func (sp *SelfProvisioner) CheckKeyProvisioned() (err error) {
-	if kid := G.Env.GetPerDeviceKID(); kid == nil {
+	var key GenericKey
+	if did := G.Env.GetDeviceID(); did == nil {
 		err = NotProvisionedError{}
+	} else if key, err = sp.me.GetComputedKeyFamily().GetSibkeyForDevice(*did); err != nil {
 	} else if ring := G.Keyrings.SKB; ring == nil {
 		err = NoKeyringsError{}
-	} else if sp.secretKey = ring.LookupByKid(kid); sp.secretKey == nil {
+	} else if sp.secretKey = ring.LookupByKid(key.GetKid()); sp.secretKey == nil {
 		err = NoSecretKeyError{}
 	}
 	return
@@ -70,6 +72,6 @@ func (sp *SelfProvisioner) ReprovisionKey() (err error) {
 		return
 	}
 	kid := key.GetKid()
-	G.Log.Info("Setting per-device KID to %s", kid)
-	return G.Env.GetConfigWriter().SetPerDeviceKID(kid)
+	G.Log.Warning("Not setting per-device KID to %s; NOOP due to partial implementation", kid)
+	return
 }

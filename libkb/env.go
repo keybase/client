@@ -24,6 +24,7 @@ func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false
 func (n NullConfiguration) GetMerkleKeyFingerprints() []string { return nil }
 func (n NullConfiguration) GetPinentry() string                { return "" }
 func (n NullConfiguration) GetUID() *UID                       { return nil }
+func (n NullConfiguration) GetVerifiedUID() *UID               { return nil }
 func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
 func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
@@ -391,9 +392,8 @@ func (e Env) GetTestMode() bool {
 	return false
 }
 
-func (e Env) GetUID() *UID {
-	return e.config.GetUID()
-}
+func (e Env) GetUID() *UID         { return e.config.GetUID() }
+func (e Env) GetVerifiedUID() *UID { return e.config.GetVerifiedUID() }
 
 func (e Env) GetStringList(list ...(func() []string)) []string {
 	for _, f := range list {

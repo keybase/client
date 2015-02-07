@@ -96,10 +96,12 @@ type ConfigReader interface {
 	GetDeviceID() *DeviceID
 	GetUsername() string
 	GetUID() *UID
+	GetVerifiedUID() *UID
 }
 
 type ConfigWriter interface {
 	SetUserConfig(*UserConfig) error
+	SetUIDVerified() error
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error

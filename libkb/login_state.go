@@ -171,25 +171,25 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 	return nil
 }
 
-func (s *LoginState) SaveLoginState(prompted bool, saveConfig bool) error {
+func (s *LoginState) SaveLoginState(uidVerified bool, saveConfig bool) (err error) {
 	s.LoggedIn = true
 	s.SessionVerified = true
 
 	if cfg := G.Env.GetConfigWriter(); cfg != nil {
 
 		if err = cfg.SetUserConfig(NewUserConfig(s.loggedInRes.Uid, s.loggedInRes.Username,
-			s.salt, nil)); err != nil {
+			s.salt, false, nil)); err != nil {
 			return err
 		}
 
-		if err := cfg.Write(); err != nil {
+		if err = cfg.Write(); err != nil {
 			return err
 		}
 	}
 
 	if sw := G.SessionWriter; sw != nil {
 		sw.SetLoggedIn(*s.loggedInRes)
-		if err := sw.Write(); err != nil {
+		if err = sw.Write(); err != nil {
 			return err
 		}
 	}

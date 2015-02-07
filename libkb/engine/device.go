@@ -14,7 +14,7 @@ var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device i
 
 type DeviceEngine struct {
 	deviceName    string
-	deviceID      libkb.DeviceId
+	deviceID      libkb.DeviceID
 	lksEncKey     []byte
 	lksClientHalf []byte
 	lks           *libkb.LKSec
@@ -32,14 +32,14 @@ func (d *DeviceEngine) Init() error {
 }
 
 func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) (err error) {
-	existingDevID := G.Env.GetDeviceId()
+	existingDevID := G.Env.GetDeviceID()
 	if existingDevID != nil && len(existingDevID) > 0 {
 		G.Log.Info("found existing device: %q", existingDevID)
 		return ErrDeviceAlreadyRegistered
 	}
 	d.deviceName = deviceName
 	d.lksClientHalf = lksClientHalf
-	if d.deviceID, err = libkb.NewDeviceId(); err != nil {
+	if d.deviceID, err = libkb.NewDeviceID(); err != nil {
 		return
 	}
 	d.lksEncKey, err = libkb.RandBytes(len(d.lksClientHalf))

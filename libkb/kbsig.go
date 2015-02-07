@@ -83,7 +83,7 @@ func (u *User) ToKeyStanza(sk GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, er
 	var signingKid KID
 	if sk != nil {
 		signingKid = sk.GetKid()
-	} else if signingKid = G.Env.GetPerDeviceKID(); signingKid == nil {
+	} else {
 		err = NoSecretKeyError{}
 		return
 	}
@@ -310,5 +310,5 @@ func (u *User) AuthenticationProof(key GenericKey, ei int) (ret *jsonw.Wrapper, 
 }
 
 func (u *User) GetDeviceSibkey() (GenericKey, error) {
-	return u.GetComputedKeyFamily().GetSibkeyForDevice(*(G.Env.GetDeviceId()))
+	return u.GetComputedKeyFamily().GetSibkeyForDevice(*(G.Env.GetDeviceID()))
 }

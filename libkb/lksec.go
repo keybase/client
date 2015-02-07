@@ -44,7 +44,7 @@ func (s *LKSec) Load() error {
 		return fmt.Errorf("client half not set")
 	}
 
-	devid := G.Env.GetDeviceId()
+	devid := G.Env.GetDeviceID()
 	if devid == nil {
 		return fmt.Errorf("no device id set")
 	}
@@ -100,8 +100,8 @@ func (s *LKSec) fsecret() (res [32]byte) {
 	return res
 }
 
-func (s *LKSec) apiServerHalf(devid *DeviceId) error {
-	if err := G.SecretSyncer.Load(*(G.Env.GetUid())); err != nil {
+func (s *LKSec) apiServerHalf(devid *DeviceID) error {
+	if err := G.SecretSyncer.Load(*(G.Env.GetUID())); err != nil {
 		return err
 	}
 	dev, err := G.SecretSyncer.FindDevice(devid)

@@ -712,3 +712,11 @@ func (c ConfigError) Error() string {
 }
 
 //=============================================================================
+
+type NoUserConfigError struct{}
+
+func (n NoUserConfigError) Error() string {
+	return "No user config found for user"
+}
+
+//=============================================================================

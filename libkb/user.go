@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 
@@ -67,6 +68,26 @@ func GetUidVoid(w *jsonw.Wrapper, u *UID, e *error) {
 		*e = err
 	} else {
 		*u = *ret
+	}
+	return
+}
+
+//==================================================================
+
+// UsernameToUID works for users created after "Fri Feb  6 19:33:08 EST 2015"
+func UsernameToUID(s string) UID {
+	h := sha256.Sum256([]byte(s))
+	var uid UID
+	copy(uid[:], h[0:UID_LEN-1])
+	uid[UID_LEN-1] = 0x00
+	return uid
+}
+
+func CheckUIDAgainstUsername(uid UID, username string) (err error) {
+	u2 := UsernameToUID(username)
+	if !uid.Eq(u2) {
+		err = UidMismatchError{fmt.Sprintf("%s != %s (via %a)",
+			uid, u2, username)}
 	}
 	return
 }
@@ -520,7 +541,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = fmt.Errorf("If loading self, can't provide a username")
 	} else if !arg.Self {
 		// noop
-	} else if arg.Uid = G.GetMyUid(); arg.Uid == nil {
+	} else if arg.Uid = G.GetMyUID(); arg.Uid == nil {
 		arg.Name = G.Env.GetUsername()
 	}
 
@@ -548,7 +569,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		arg.Uid = &uid
 	}
 
-	if my_uid := G.GetMyUid(); my_uid != nil && arg.Uid != nil &&
+	if my_uid := G.GetMyUID(); my_uid != nil && arg.Uid != nil &&
 		my_uid.Eq(*arg.Uid) && !arg.Self {
 		arg.Self = true
 	}

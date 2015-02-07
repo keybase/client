@@ -723,7 +723,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	return
 }
 
-func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceId) (kid KID, err error) {
+func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (kid KID, err error) {
 	if device, found := ckf.cki.Devices[did.String()]; !found {
 	} else if device.Kid == nil || len(*device.Kid) == 0 {
 	} else {
@@ -735,7 +735,7 @@ func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceId) (kid KID, err 
 // GetSibkeyForDevice gets the current per-device key for the given Device. Will
 // return nil if one isn't found, and set err for a real error. The sibkey should
 // be a signing key, not an encryption key of course.
-func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceId) (key GenericKey, err error) {
+func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceID) (key GenericKey, err error) {
 	var kid KID
 	kid, err = ckf.getSibkeyKidForDevice(did)
 	if kid != nil {
@@ -747,7 +747,7 @@ func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceId) (key GenericKey, 
 // GetEncryptionSubkeyForDevice gets the current encryption subkey for the given
 // device.  Note that many devices might share an encryption public key but
 // might have different secret keys.
-func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceId) (key GenericKey, err error) {
+func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceID) (key GenericKey, err error) {
 	var kid KID
 	if kid, err = ckf.getSibkeyKidForDevice(did); err != nil {
 		return

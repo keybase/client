@@ -11,8 +11,8 @@ type UserConfig struct {
 	Id          string  `json:"id"`
 	Name        string  `json:"name"`
 	Salt        string  `json:"salt"`
-	Device      *string `json:"device"`
 	UidVerified bool    `json:"uid_verified"`
+	Device      *string `json:"device"`
 
 	importedId       UID
 	importedSalt     []byte
@@ -24,11 +24,11 @@ type UserConfig struct {
 func (u UserConfig) GetUID() UID                  { return u.importedId }
 func (u UserConfig) GetUsername() string          { return u.Name }
 func (u UserConfig) GetSalt() []byte              { return u.importedSalt }
-func (d UserConfig) GetDeviceID() (ret *DeviceID) { u.importedDeviceId }
+func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceId }
 
 func (u UserConfig) GetVerifiedUID() *UID {
 	if u.UidVerified {
-		return u.importedId
+		return &u.importedId
 	} else {
 		return nil
 	}
@@ -36,29 +36,33 @@ func (u UserConfig) GetVerifiedUID() *UID {
 
 //==================================================================
 
-func NewUserConfig(id UID, name string, salt []byte, dev *DeviceID) *UserConfig {
+func NewUserConfig(id UID, name string, salt []byte, uidVerified bool, dev *DeviceID) *UserConfig {
 	ret := &UserConfig{
 		Id:               id.String(),
 		Name:             name,
 		Salt:             hex.EncodeToString(salt),
+		UidVerified:      uidVerified,
 		Device:           nil,
 		importedId:       id,
 		importedSalt:     salt,
 		importedDeviceId: dev,
 	}
 	if dev != nil {
-		ret.Device = dev.String()
+		tmp := dev.String()
+		ret.Device = &tmp
 	}
-	return
+	return ret
 }
 
 //==================================================================
 
 func (u *UserConfig) Import() (err error) {
-	if u.importedId, err = UidFromHex(u.Id); err != nil {
+	var tmp *UID
+	if tmp, err = UidFromHex(u.Id); err != nil {
 		return
 	}
-	if u.importSalt, err = hex.DecodeString(u.Salt); err != nil {
+	u.importedId = *tmp
+	if u.importedSalt, err = hex.DecodeString(u.Salt); err != nil {
 		return
 	}
 	if u.Device != nil {

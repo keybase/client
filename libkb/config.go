@@ -155,6 +155,19 @@ func (f JsonConfigFile) GetUserConfigForUsername(s string) (ret *UserConfig, err
 	return ImportUserConfigFromJsonWrapper(f.jw.AtKey("users").AtKey(s))
 }
 
+// SetUIDVerified flips the "uid_verified" flag on our UserConfig to true
+func (f *JsonConfigFile) SetUIDVerified() (err error) {
+	var u *UserConfig
+	if u, err = f.GetUserConfig(); err != nil {
+	} else if u == nil {
+		err = NoUserConfigError{}
+	} else {
+		u.UidVerified = true
+		f.dirty = true
+	}
+	return
+}
+
 // SetUserConfig writes this UserConfig to the config file and updates the
 // currently active UserConfig in memory.  If the given UserConfig is nil, then
 // just empty everything out and clear the `current_user` field.  Note that
@@ -260,6 +273,12 @@ func (f JsonConfigFile) GetUID() (ret *UID) {
 	if uc, _ := f.GetUserConfig(); uc != nil {
 		tmp := uc.GetUID()
 		ret = &tmp
+	}
+	return ret
+}
+func (f JsonConfigFile) GetVerifiedUID() (ret *UID) {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		ret = uc.GetVerifiedUID()
 	}
 	return ret
 }

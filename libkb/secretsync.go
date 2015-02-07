@@ -170,7 +170,7 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 	return packet.ToSKB()
 }
 
-func (ss *SecretSyncer) FindDevice(id *DeviceId) (DeviceKey, error) {
+func (ss *SecretSyncer) FindDevice(id *DeviceID) (DeviceKey, error) {
 	dev, ok := ss.keys.Devices[id.String()]
 	if !ok {
 		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)

@@ -82,6 +82,9 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
 	}
+	if err == nil {
+		err = CheckUIDAgainstUsername(s.uid, arg.Username)
+	}
 	return
 }
 
@@ -118,7 +121,7 @@ func (s *SignupJoinEngine) WriteConfig(salt []byte) error {
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
-	if err = cw.SetUserConfig(NewUserConfig(s.uid.s.username, s.salt, nil)); err != nil {
+	if err = cw.SetUserConfig(NewUserConfig(s.uid.s.username, s.salt, true, nil)); err != nil {
 		return err
 	}
 	err = cw.Write()

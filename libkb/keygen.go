@@ -322,8 +322,6 @@ func (a *KeyGenArg) PGPUserIDs() ([]*packet.UserId, error) {
 
 func (s *KeyGen) UpdateUser() error {
 	err := s.me.localDelegateKey(s.bundle, s.chainTail.sigId, s.bundle.GetKid(), true)
-	fp := s.bundle.GetFingerprint()
-	G.Env.GetConfigWriter().SetPgpFingerprint(&fp)
 	G.Log.Debug("| Fudge User Sig Chain")
 	s.me.sigChain.Bump(s.chainTail)
 	return err
