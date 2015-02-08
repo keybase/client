@@ -189,11 +189,13 @@ func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
 // doesn't already exist, and we update the `current_user` pointer.
 func (f *JsonConfigFile) SetUserConfig(u *UserConfig, overwrite bool) (err error) {
 	if u == nil {
+		G.Log.Debug("| SetUserConfig(nil)")
 		f.jw.DeleteKey("current_user")
 		f.userConfigWrapper.userConfig = u
 	} else {
 		parent := f.jw.AtKey("users")
 		un := u.GetUsername()
+		G.Log.Debug("| SetUserConfig(%s)", un)
 		if parent.IsNil() {
 			parent = jsonw.NewDictionary()
 			f.jw.SetKey("users", parent)
