@@ -97,10 +97,11 @@ func (c BlockClient) Put(__arg PutArg) (err error) {
 }
 
 type Status struct {
-	Code   int      `codec:"code"`
-	Name   string   `codec:"name"`
-	Desc   string   `codec:"desc"`
-	Fields []string `codec:"fields"`
+	Code      int      `codec:"code"`
+	Name      string   `codec:"name"`
+	Desc      string   `codec:"desc"`
+	Fields    []string `codec:"fields"`
+	ServerUri string   `codec:"serverUri"`
 }
 
 type UID [16]byte

@@ -17,6 +17,7 @@
 @property NSString *name;
 @property NSString *desc;
 @property NSArray *fields; /*of string*/
+@property NSString *serverUri;
 @end
 
 @interface KBRUID : NSData
