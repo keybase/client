@@ -138,7 +138,7 @@ func (e *TrackEngine) Run() (err error) {
 }
 
 func (e *TrackEngine) StoreLocalTrack() error {
-	return libkb.StoreLocalTrack(e.Them.GetUid(), e.trackStatement)
+	return libkb.StoreLocalTrack(e.Me.GetUid(), e.Them.GetUid(), e.trackStatement)
 }
 
 func (e *TrackEngine) StoreRemoteTrack() (err error) {

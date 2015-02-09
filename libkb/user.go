@@ -681,7 +681,7 @@ func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, e
 	defer G.Log.Debug("- GetTrackingStatement for %s -> %s", uid_s, ErrToOk(err))
 
 	remote, e1 := u.GetRemoteTrackingStatementFor(s, i)
-	local, e2 := GetLocalTrack(i)
+	local, e2 := GetLocalTrack(u.id, i)
 
 	G.Log.Debug("| Load remote -> %v", (remote != nil))
 	G.Log.Debug("| Load local -> %v", (local != nil))

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"github.com/keybase/go-jsonw"
 	"github.com/keybase/protocol/go"
 	"time"
@@ -336,15 +337,18 @@ func (l *TrackLookup) GetCTime() time.Time {
 
 //=====================================================================
 
-func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
-	uid_s := i.String()
-	G.Log.Debug("+ GetLocalTrack(%s)", uid_s)
-	defer G.Log.Debug("- GetLocalTrack(%s) -> (%v, %s)", uid_s, ret, ErrToOk(err))
+func LocalTrackDBKey(tracker, trackee UID) DbKey {
+	return DbKey{Typ: DB_LOCAL_TRACK, Key: fmt.Sprintf("%s-%s", tracker.String(), trackee.String())}
+}
+
+//=====================================================================
+
+func GetLocalTrack(tracker, trackee UID) (ret *TrackChainLink, err error) {
+	G.Log.Debug("+ GetLocalTrack(%s,%s)", tracker, trackee)
+	defer G.Log.Debug("- GetLocalTrack(%s,%s) -> (%v, %s)", tracker, trackee, ret, ErrToOk(err))
 
 	var obj *jsonw.Wrapper
-	obj, err = G.LocalDb.Get(
-		DbKey{Typ: DB_LOCAL_TRACK, Key: i.String()},
-	)
+	obj, err = G.LocalDb.Get(LocalTrackDBKey(tracker, trackee))
 	if err != nil {
 		G.Log.Debug("| DB lookup failed")
 		return
@@ -368,11 +372,7 @@ func GetLocalTrack(i UID) (ret *TrackChainLink, err error) {
 	return
 }
 
-func StoreLocalTrack(id UID, statement *jsonw.Wrapper) error {
+func StoreLocalTrack(tracker UID, trackee UID, statement *jsonw.Wrapper) error {
 	G.Log.Debug("| StoreLocalTrack")
-	return G.LocalDb.Put(
-		DbKey{Typ: DB_LOCAL_TRACK, Key: id.String()},
-		nil,
-		statement,
-	)
+	return G.LocalDb.Put(LocalTrackDBKey(tracker, trackee), nil, statement)
 }
