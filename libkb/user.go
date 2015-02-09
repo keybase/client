@@ -86,7 +86,7 @@ func UsernameToUID(s string) UID {
 func CheckUIDAgainstUsername(uid UID, username string) (err error) {
 	u2 := UsernameToUID(username)
 	if !uid.Eq(u2) {
-		err = UidMismatchError{fmt.Sprintf("%s != %s (via %a)",
+		err = UidMismatchError{fmt.Sprintf("%s != %s (via %s)",
 			uid, u2, username)}
 	}
 	return

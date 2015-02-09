@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -10,22 +8,12 @@ import (
 	keybase_1 "github.com/keybase/protocol/go"
 )
 
-func fakeUser(t *testing.T, prefix string) (username, email string) {
-	buf := make([]byte, 5)
-	if _, err := rand.Read(buf); err != nil {
+func fakeUser(t *testing.T, prefix string) (fu *libkb.FakeUser) {
+	var err error
+	if fu, err = libkb.NewFakeUser(prefix); err != nil {
 		t.Fatal(err)
 	}
-	username = fmt.Sprintf("%s_%s", prefix, hex.EncodeToString(buf))
-	email = fmt.Sprintf("%s@email.com", username)
-	return username, email
-}
-
-func fakePassphrase(t *testing.T) string {
-	buf := make([]byte, 12)
-	if _, err := rand.Read(buf); err != nil {
-		t.Fatal(err)
-	}
-	return hex.EncodeToString(buf)
+	return
 }
 
 func AssertDeviceID() (err error) {
@@ -39,9 +27,8 @@ func TestSignupEngine(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	username, email := fakeUser(t, "se")
-	passphrase := fakePassphrase(t)
-	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", true}
+	fu := fakeUser(t, "se")
+	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", true}
 	err := s.Run(arg)
 	if err != nil {
 		t.Fatal(err)
@@ -62,8 +49,8 @@ func TestSignupEngine(t *testing.T) {
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
-			Username:   username,
-			Passphrase: passphrase,
+			Username:   fu.Username,
+			Passphrase: fu.Passphrase,
 			NoUi:       true,
 		},
 		LogUI: G.UI.GetLogUI(),
@@ -92,7 +79,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sui := libkb.TestSecretUI{passphrase}
+	sui := libkb.TestSecretUI{fu.Passphrase}
 	if err = G.LoginState.PubkeyLogin(sui); err != nil {
 		t.Fatal(err)
 	}
@@ -121,14 +108,13 @@ func TestSignupWithGPG(t *testing.T) {
 	tc := libkb.SetupTest(t, "signupWithGPG")
 	defer tc.Cleanup()
 
-	username, email := fakeUser(t, "se")
-	if err := tc.GenerateGPGKeyring(email); err != nil {
+	fu := fakeUser(t, "se")
+	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
 		t.Fatal(err)
 	}
-	passphrase := fakePassphrase(t)
-	secui := &tsecretUI{t: t, kbpw: passphrase}
+	secui := &tsecretUI{t: t, kbpw: fu.Passphrase}
 	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
-	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", false}
+	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", false}
 	err := s.Run(arg)
 	if err != nil {
 		t.Fatal(err)
@@ -139,9 +125,8 @@ func TestLocalKeySecurity(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	username, email := fakeUser(t, "se")
-	passphrase := fakePassphrase(t)
-	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, "my device", true}
+	fu := fakeUser(t, "se")
+	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", true}
 	err := s.Run(arg)
 	if err != nil {
 		t.Fatal(err)
@@ -179,7 +164,7 @@ func (u *tsecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keyba
 	return nil, nil
 }
 func (u *tsecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
-	return fakePassphrase(u.t), nil
+	return u.kbpw, nil
 }
 func (u *tsecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
 	return u.kbpw, nil

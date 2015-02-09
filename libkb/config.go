@@ -142,7 +142,6 @@ func (f JsonConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
 
 	var s string
 	if ret = f.userConfigWrapper.userConfig; ret != nil {
-		fmt.Printf("Cached GetUserConfig -> %v\n", ret)
 		return
 	}
 	if s, err = f.jw.AtKey("current_user").GetString(); err != nil {
