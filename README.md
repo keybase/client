@@ -15,4 +15,3 @@ open Keybase.xcworkspace
 ```
 
 Then select the target ```Keybase``` and run.
-
