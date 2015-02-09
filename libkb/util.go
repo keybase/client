@@ -18,7 +18,7 @@ func ErrToOk(err error) string {
 	if err == nil {
 		return "ok"
 	} else {
-		return "ERROR"
+		return "ERROR: " + err.Error()
 	}
 }
 

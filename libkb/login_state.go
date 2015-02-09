@@ -289,6 +289,7 @@ func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
 
 func (s *LoginState) Login(arg LoginArg) (err error) {
 	G.Log.Debug("+ Login called")
+	defer func() { G.Log.Debug("- Login -> %s", ErrToOk(err)) }()
 
 	n_tries := arg.Retry
 	if n_tries == 0 {

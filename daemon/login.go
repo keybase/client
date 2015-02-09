@@ -18,7 +18,7 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 
 func (h *LoginHandler) getIdentifyUI(sessionId int, username string) libkb.IdentifyUI {
 	if h.identifyUi == nil {
-		h.identifyUi = NewRemoteSelfIdentifyUI(sessionId, username, h.getRpcClient())
+		h.identifyUi = h.NewRemoteSelfIdentifyUI(sessionId, username)
 	}
 	return h.identifyUi
 }

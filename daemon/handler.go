@@ -63,3 +63,23 @@ func (h *BaseHandler) getLogUICli() *keybase_1.LogUiClient {
 func (h *BaseHandler) getLogUI(sessionId int) libkb.LogUI {
 	return &LogUI{sessionId, h.getLogUICli()}
 }
+
+func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionId int, username string) *RemoteSelfIdentifyUI {
+	c := h.getRpcClient()
+	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
+		sessionId: sessionId,
+		username:  username,
+		uicli:     keybase_1.IdentifyUiClient{c},
+		logUI:     h.getLogUI(sessionId),
+	}}
+}
+
+func (h *BaseHandler) NewRemoteIdentifyUI(sessionId int, username string) *RemoteIdentifyUI {
+	c := h.getRpcClient()
+	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
+		sessionId: sessionId,
+		username:  username,
+		uicli:     keybase_1.IdentifyUiClient{c},
+		logUI:     h.getLogUI(sessionId),
+	}}
+}

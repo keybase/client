@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/keybase/go/libkb"
 	"github.com/keybase/go/libkb/engine"
 	"github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -10,7 +11,7 @@ type RemoteBaseIdentifyUI struct {
 	sessionId int
 	username  string
 	uicli     keybase_1.IdentifyUiClient
-	logcli    keybase_1.LogUiClient
+	logUI     libkb.LogUI
 }
 
 type RemoteSelfIdentifyUI struct {
@@ -47,7 +48,7 @@ func (h *IdentifyHandler) identify(iarg engine.IdentifyArgPrime, doInteractive b
 	sessionId := nextSessionId()
 	iarg.LogUI = h.getLogUI(sessionId)
 
-	eng := engine.NewIdentifyEng(&iarg, NewRemoteIdentifyUI(sessionId, iarg.User, h.cli))
+	eng := engine.NewIdentifyEng(&iarg, h.NewRemoteIdentifyUI(sessionId, iarg.User))
 	return eng.Run()
 }
 
@@ -59,14 +60,6 @@ func nextSessionId() int {
 	ret := __sessionId
 	__sessionId++
 	return ret
-}
-
-func NewRemoteSelfIdentifyUI(sessionId int, username string, c *rpc2.Client) *RemoteSelfIdentifyUI {
-	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
-		sessionId: sessionId,
-		username:  username,
-		uicli:     keybase_1.IdentifyUiClient{c},
-	}}
 }
 
 func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {
@@ -123,17 +116,8 @@ type RemoteIdentifyUI struct {
 	RemoteBaseIdentifyUI
 }
 
-func NewRemoteIdentifyUI(sessionId int, username string, c *rpc2.Client) *RemoteIdentifyUI {
-	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
-		sessionId: sessionId,
-		username:  username,
-		uicli:     keybase_1.IdentifyUiClient{c},
-		logcli:    keybase_1.LogUiClient{c},
-	}}
-}
-
 func (u *RemoteBaseIdentifyUI) Start() {
-	u.logcli.Log(keybase_1.LogArg{SessionId: u.sessionId, Level: keybase_1.LogLevel_INFO, Text: keybase_1.Text{Data: "Identifying " + u.username}})
+	u.logUI.Info("Identifying " + u.username)
 	return
 }
 
