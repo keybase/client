@@ -202,7 +202,7 @@ type RemoteProofWrapper struct {
 }
 
 func (w RemoteProofWrapper) GetRemoteUsername() string { return w.p.Value }
-func (w RemoteProofWrapper) GetService() string        { return w.p.Value }
+func (w RemoteProofWrapper) GetService() string        { return w.p.Key }
 func (w RemoteProofWrapper) GetProtocol() string       { return w.p.Key }
 func (w RemoteProofWrapper) GetHostname() string       { return w.p.Value }
 func (w RemoteProofWrapper) GetDomain() string         { return w.p.Value }
