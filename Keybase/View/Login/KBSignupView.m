@@ -1,204 +1,23 @@
 //
-//  KBConnectView.m
+//  KBSignupView.m
 //  Keybase
 //
-//  Created by Gabriel on 1/12/15.
+//  Created by Gabriel on 2/9/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBConnectView.h"
-
-#import "KBUIDefines.h"
+#import "KBSignupView.h"
 #import "AppDelegate.h"
-#import "KBRPC.h"
-
-#import "KBLogoView.h"
-#import "KBKeyGenView.h"
 #import "KBStrengthLabel.h"
-
-@interface KBConnectView ()
-//@property KBLogoView *logoView;
-@property KBLoginView *loginView;
-@property KBSignupView *signupView;
-@end
-
-@interface KBLoginView ()
-@property KBTextField *usernameField;
-@property KBSecureTextField *passwordField;
-@property KBButton *loginButton;
-@property KBButton *signupButton;
-@end
 
 @interface KBSignupView ()
 @property KBTextField *inviteField;
-@property KBTextField *emailField;
-@property KBTextField *usernameField;
-@property KBTextField *deviceNameField;
 @property KBTextField *passwordField;
 @property KBTextField *passwordConfirmField;
-@property KBButton *loginButton;
-@property KBButton *signupButton;
 @property KBLabel *usernameStatusLabel;
 @property KBStrengthLabel *strengthLabel;
 @property KBLabel *passwordConfirmLabel;
 @end
-
-@implementation KBConnectView
-
-- (void)viewInit {
-  [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
-
-  GHWeakSelf gself = self;
-  _loginView = [[KBLoginView alloc] init];
-  _loginView.signupButton.targetBlock = ^{
-    [gself showSignup:YES];
-  };
-
-  _signupView = [[KBSignupView alloc] init];
-  _signupView.loginButton.targetBlock = ^{
-    [gself showLogin:YES];
-  };
-}
-
-- (void)layout {
-  [super layout];
-  _loginView.frame = self.bounds;
-  _signupView.frame = self.bounds;
-}
-
-- (void)openWindow:(NSString *)title {
-  if (self.window) {
-    [self.window makeKeyAndOrderFront:nil];
-    return;
-  }
-
-  [self removeFromSuperview]; // TODO
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:self];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:title navigation:navigation];
-  [window setLevel:NSFloatingWindowLevel];
-  [window makeKeyAndOrderFront:nil];
-}
-
-- (void)setUser:(KBRUser *)user {
-  if (user && [user.username gh_present]) {
-    _loginView.usernameField.text = user.username;
-    _loginView.usernameField.textField.editable = NO;
-  } else {
-    _loginView.usernameField.textField.editable = YES;
-  }
-}
-
-//- (NSString *)windowTitle {
-//  return [_loginView superview] ? @"Log In" : @"Sign Up";
-//}
-
-- (void)showLogin:(BOOL)animated {
-  [self swapView:_loginView animated:animated];
-  if (![_loginView.usernameField.text gh_present]) _loginView.usernameField.text = _signupView.usernameField.text;
-  if (![_loginView.passwordField.text gh_present]) _loginView.passwordField.text = _signupView.passwordField.text;
-}
-
-- (void)showSignup:(BOOL)animated {
-  [self swapView:_signupView animated:animated];
-  if (![_signupView.usernameField.text gh_present]) _signupView.usernameField.text = _loginView.usernameField.text;
-  if (![_signupView.passwordField.text gh_present])_signupView.passwordField.text = _loginView.passwordField.text;
-  if (![_signupView.passwordConfirmField.text gh_present]) _signupView.passwordConfirmField.text = _loginView.passwordField.text;
-}
-
-@end
-
-@implementation KBLoginView
-
-- (void)viewInit {
-  [super viewInit];
-  GHWeakSelf gself = self;
-
-  _usernameField = [[KBTextField alloc] init];
-  _usernameField.placeholder = @"Email or Username";
-  [self addSubview:_usernameField];
-
-  _passwordField = [[KBSecureTextField alloc] init];
-  _passwordField.placeholder = @"Passphrase";
-  [self addSubview:_passwordField];
-
-  _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStylePrimary];
-  _loginButton.targetBlock = ^{
-    [gself login];
-  };
-  [_loginButton setKeyEquivalent:@"\r"];
-  [self addSubview:_loginButton];
-
-  _signupButton = [KBButton buttonWithText:@"Don't have an account? Sign Up" style:KBButtonStyleLink];
-  [self addSubview:_signupButton];
-
-  KBButton *forgotPasswordButton = [KBButton buttonWithText:@"Forgot my password" style:KBButtonStyleLink];
-  [self addSubview:forgotPasswordButton];
-
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 40;
-
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 40;
-
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.loginButton].size.height + 30;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.signupButton].size.height + 20;
-
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:forgotPasswordButton].size.height + 20;
-
-    y += 20;
-
-    return CGSizeMake(size.width, y);
-  }];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-  [self.window recalculateKeyViewLoop];
-  [self.window makeFirstResponder:_usernameField];
-}
-
-- (void)login {
-  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
-
-  NSString *username = self.usernameField.text;
-  NSString *passphrase = self.passwordField.text;
-
-  if ([NSString gh_isBlank:username]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a username or email address.") sender:_usernameField];
-    return;
-  }
-
-  if ([NSString gh_isBlank:passphrase]) {
-    [AppDelegate setError:KBErrorAlert(@"You need to enter a password.") sender:_passwordField];
-    return;
-  }
-
-  [AppDelegate setInProgress:YES view:self];
-  [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
-    [AppDelegate setInProgress:NO view:self];
-    if (error) {
-      [AppDelegate setError:error sender:self];
-      return;
-    }
-
-    self.passwordField.text = nil;
-
-    KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
-    [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
-      if (error) {
-        [AppDelegate setError:error sender:self];
-        return;
-      }
-      [self.delegate loginView:self didLoginWithStatus:status];
-    }];
-  }];
-}
-
-@end
-
 
 @implementation KBSignupView
 
@@ -208,7 +27,7 @@
 
   _inviteField = [[KBTextField alloc] init];
   _inviteField.placeholder = @"Invite Code";
-  _inviteField.text = @"202020202020202020202111";
+  _inviteField.text = @"202020202020202020202111"; // TODO: Hardcoded
   //[self addSubview:_inviteField];
 
   _emailField = [[KBTextField alloc] init];
@@ -400,16 +219,17 @@
   }
 
   [AppDelegate setInProgress:YES view:self];
-
+  [self.navigation.titleView setProgressEnabled:YES];
   [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
     [AppDelegate setInProgress:NO view:self];
+    [self.navigation.titleView setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];
       return;
     }
 
     self.passwordField.text = nil;
-    self.passwordConfirmField = nil;
+    self.passwordConfirmField.text = nil;
 
     KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
     [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
