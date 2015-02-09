@@ -67,8 +67,6 @@
 		00B5442D1A895A910044CC5B /* KBProveInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B5442B1A895A910044CC5B /* KBProveInputView.m */; };
 		00B544301A895AB80044CC5B /* KBProveInstructionsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B5442F1A895AB80044CC5B /* KBProveInstructionsView.m */; };
 		00B544311A895AB80044CC5B /* KBProveInstructionsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B5442F1A895AB80044CC5B /* KBProveInstructionsView.m */; };
-		00B544341A895B3E0044CC5B /* KBProveWebQuestion.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544331A895B3E0044CC5B /* KBProveWebQuestion.m */; };
-		00B544351A895B3E0044CC5B /* KBProveWebQuestion.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544331A895B3E0044CC5B /* KBProveWebQuestion.m */; };
 		00B544381A8960D30044CC5B /* KBProveType.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544371A8960D30044CC5B /* KBProveType.m */; };
 		00B544391A8960D30044CC5B /* KBProveType.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544371A8960D30044CC5B /* KBProveType.m */; };
 		00B5443D1A896BA00044CC5B /* KBConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B5443C1A896BA00044CC5B /* KBConnectView.m */; };
@@ -206,8 +204,6 @@
 		00B5442B1A895A910044CC5B /* KBProveInputView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveInputView.m; sourceTree = "<group>"; };
 		00B5442E1A895AB80044CC5B /* KBProveInstructionsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProveInstructionsView.h; sourceTree = "<group>"; };
 		00B5442F1A895AB80044CC5B /* KBProveInstructionsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveInstructionsView.m; sourceTree = "<group>"; };
-		00B544321A895B3E0044CC5B /* KBProveWebQuestion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProveWebQuestion.h; sourceTree = "<group>"; };
-		00B544331A895B3E0044CC5B /* KBProveWebQuestion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveWebQuestion.m; sourceTree = "<group>"; };
 		00B544361A8960D30044CC5B /* KBProveType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProveType.h; sourceTree = "<group>"; };
 		00B544371A8960D30044CC5B /* KBProveType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveType.m; sourceTree = "<group>"; };
 		00B5443B1A896BA00044CC5B /* KBConnectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConnectView.h; sourceTree = "<group>"; };
@@ -336,8 +332,6 @@
 				00B5442B1A895A910044CC5B /* KBProveInputView.m */,
 				00B5442E1A895AB80044CC5B /* KBProveInstructionsView.h */,
 				00B5442F1A895AB80044CC5B /* KBProveInstructionsView.m */,
-				00B544321A895B3E0044CC5B /* KBProveWebQuestion.h */,
-				00B544331A895B3E0044CC5B /* KBProveWebQuestion.m */,
 				00B544361A8960D30044CC5B /* KBProveType.h */,
 				00B544371A8960D30044CC5B /* KBProveType.m */,
 			);
@@ -750,7 +744,6 @@
 				00E3E3E31A64BA9F00CCB8F4 /* KBButton.m in Sources */,
 				00B543F91A81990B0044CC5B /* KBPreferences.m in Sources */,
 				00B544261A895A810044CC5B /* KBProofResult.m in Sources */,
-				00B544341A895B3E0044CC5B /* KBProveWebQuestion.m in Sources */,
 				00B544301A895AB80044CC5B /* KBProveInstructionsView.m in Sources */,
 				00CB67D61A6E1D6B00B5882A /* KBTableRowView.m in Sources */,
 				003BAAB91A8042C700C309B9 /* KBStyleGuideView.m in Sources */,
@@ -801,7 +794,6 @@
 				0065CA361A7B104F006E1772 /* KBAlert.m in Sources */,
 				00B544391A8960D30044CC5B /* KBProveType.m in Sources */,
 				00B544141A8551320044CC5B /* KBSplitView.m in Sources */,
-				00B544351A895B3E0044CC5B /* KBProveWebQuestion.m in Sources */,
 				00B543FA1A81990B0044CC5B /* KBPreferences.m in Sources */,
 				00B5442D1A895A910044CC5B /* KBProveInputView.m in Sources */,
 				00B5443E1A896BA00044CC5B /* KBConnectView.m in Sources */,
