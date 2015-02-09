@@ -213,18 +213,30 @@ func (u1 *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wr
 	return
 }
 
-func (u *User) SelfProof(signingKey GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
+func setDeviceOnBody(body *jsonw.Wrapper, key GenericKey, device Device) {
+	kid := key.GetKid().String()
+	device.Kid = &kid
+	body.SetKey("device", device.Export())
+}
+
+func (u *User) SelfProof(signingKey GenericKey, eldest *FOKID, device *Device) (ret *jsonw.Wrapper, err error) {
 	ret, err = u.ProofMetadata(0, signingKey, eldest)
-	if err == nil {
-		body := ret.AtKey("body")
-		body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
-		body.SetKey("type", jsonw.NewString("web_service_binding"))
+	if err != nil {
+		return
 	}
+	body := ret.AtKey("body")
+	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("type", jsonw.NewString("web_service_binding"))
+
+	if device != nil {
+		setDeviceOnBody(body, signingKey, *device)
+	}
+
 	return
 }
 
 func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename string) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.SelfProof(signingKey, nil)
+	ret, err = u.SelfProof(signingKey, nil, nil)
 	if err != nil {
 		return
 	}
@@ -276,9 +288,7 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 	body.SetKey("type", jsonw.NewString(typ))
 
 	if device != nil {
-		kid := newkey.GetKid().String()
-		device.Kid = &kid
-		body.SetKey("device", device.Export())
+		setDeviceOnBody(body, newkey, *device)
 	}
 
 	var kp *jsonw.Wrapper

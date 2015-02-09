@@ -49,7 +49,7 @@ func (g *NaclKeyGen) Push() (err error) {
 
 	if eldest {
 		fokid := GenericKeyToFOKID(g.pair)
-		jw, err = g.arg.Me.SelfProof(g.pair, &fokid)
+		jw, err = g.arg.Me.SelfProof(g.pair, &fokid, g.arg.Device)
 	} else {
 		jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn, g.arg.Device)
 	}

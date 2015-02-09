@@ -322,6 +322,15 @@ func (u User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
 	return
 }
 
+func (u User) GetDeviceKID() (kid KID, err error) {
+	if ckf := u.GetComputedKeyFamily(); ckf == nil {
+		err = KeyFamilyError{"no key family available"}
+	} else {
+		kid, err = ckf.GetActiveSibkeyKidForCurrentDevice()
+	}
+	return
+}
+
 func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err error) {
 
 	uid_s := arg.Uid.String()

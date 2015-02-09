@@ -288,6 +288,11 @@ func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
 		G.Log.Debug("| No key for current device: %s", err.Error())
 	} else if kid != nil {
 		ret = keyring.LookupByKid(kid)
+		if ret != nil {
+			G.Log.Debug("| Using device key: %s", kid)
+		}
+	} else {
+		G.Log.Debug("| Empty kid for current device")
 	}
 
 	if ret == nil {

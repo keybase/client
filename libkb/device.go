@@ -71,7 +71,7 @@ func (d *Device) IsWeb() bool {
 
 func ParseDevice(jw *jsonw.Wrapper) (ret *Device, err error) {
 	var obj Device
-	if err = jw.UnmarshalAgain(&obj); err != nil {
+	if err = jw.UnmarshalAgain(&obj); err == nil {
 		ret = &obj
 	}
 	return

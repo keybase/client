@@ -221,7 +221,7 @@ func (s *KeyGen) GeneratePostOld() (err error) {
 
 	fokid := GenericKeyToFOKID(s.bundle)
 
-	if jw, err = s.me.SelfProof(s.bundle, &fokid); err != nil {
+	if jw, err = s.me.SelfProof(s.bundle, &fokid, nil); err != nil {
 		return
 	}
 	if sig, sigid, s.chainTail.linkId, err = SignJson(jw, s.bundle); err != nil {

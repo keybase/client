@@ -724,11 +724,15 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 }
 
 func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (kid KID, err error) {
+	G.Log.Debug("+ getSibkeyKidForDevice(%v)", did)
+	G.Log.Debug("| Devices map: %+v", ckf.cki.Devices)
+
 	if device, found := ckf.cki.Devices[did.String()]; !found {
 	} else if device.Kid == nil || len(*device.Kid) == 0 {
 	} else {
 		kid, err = ImportKID(*device.Kid)
 	}
+	G.Log.Debug("- Result -> (%v,%s)", kid, ErrToOk(err))
 	return
 }
 

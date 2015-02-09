@@ -331,7 +331,10 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 	jw := base.payloadJson.AtKey("body").AtKey("service")
 
 	if jw.IsNil() {
-		ret = &SelfSigChainLink{base}
+		self := &SelfSigChainLink{base, nil}
+		if e = self.ParseDevice(); e == nil {
+			ret = self
+		}
 	} else if sb, err := ParseServiceBlock(jw); err != nil {
 		e = fmt.Errorf("%s @%s", err.Error(), base.ToDebugString())
 	} else if sb.social {
@@ -714,6 +717,7 @@ func (l *RevokeChainLink) insertIntoTable(tab *IdentityTable) {
 
 type SelfSigChainLink struct {
 	GenericChainLink
+	device *Device
 }
 
 func (r *SelfSigChainLink) Type() string { return "self" }
@@ -747,6 +751,17 @@ func (s *SelfSigChainLink) ToKeyValuePair() (string, string) {
 func (s *SelfSigChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff { return nil }
 
 func (s *SelfSigChainLink) GetIntType() int { return PROOF_TYPE_KEYBASE }
+
+func (s *SelfSigChainLink) ParseDevice() (err error) {
+	if jw := s.payloadJson.AtPath("body.device"); !jw.IsNil() {
+		s.device, err = ParseDevice(jw)
+	}
+	return err
+}
+
+func (s *SelfSigChainLink) GetDevice() *Device {
+	return s.device
+}
 
 //
 //=========================================================================
