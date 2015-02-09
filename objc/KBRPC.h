@@ -44,16 +44,9 @@
 @property NSString *email;
 @end
 
-@interface KBRImage : KBRObject
-@property NSString *url;
-@property NSInteger width;
-@property NSInteger height;
-@end
-
 @interface KBRUser : KBRObject
 @property KBRUID *uid;
 @property NSString *username;
-@property KBRImage *image;
 @end
 
 @interface KBRSIGID : NSData
@@ -64,11 +57,21 @@
 @property BOOL registered;
 @property BOOL loggedIn;
 @property KBRUser *user;
-@property NSString *serverUri;
 @end
 
 @interface KBRConfigRequest : KBRRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion;
+
+@end
+
+@interface KBRImage : KBRObject
+@property NSString *url;
+@property NSInteger width;
+@property NSInteger height;
+@end
+
+@interface KBRDoctorUiRequest : KBRRequest
+- (void)promptDeviceNameWithSessionId:(NSInteger )sessionId completion:(void (^)(NSError *error, NSString * str))completion;
 
 @end
 

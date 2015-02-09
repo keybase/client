@@ -53,9 +53,6 @@
 @implementation KBRPgpIdentity
 @end
 
-@implementation KBRImage
-@end
-
 @implementation KBRUser
 @end
 
@@ -76,6 +73,20 @@
       }
       KBRGetCurrentStatusRes *result = [MTLJSONAdapter modelOfClass:KBRGetCurrentStatusRes.class fromJSONDictionary:dict error:&error];
       completion(error, result);
+  }];
+}
+
+@end
+
+@implementation KBRImage
+@end
+
+@implementation KBRDoctorUiRequest
+- (void)promptDeviceNameWithSessionId:(NSInteger )sessionId completion:(void (^)(NSError *error, NSString * str))completion {
+
+  NSArray *params = @[@{@"sessionId": @(sessionId)}];
+  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.promptDeviceName" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error, 0);
   }];
 }
 

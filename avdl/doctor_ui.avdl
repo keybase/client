@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol doctorUi {
+	import idl "common.avdl";
+
+	string promptDeviceName(int sessionId);
+}

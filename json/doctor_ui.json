@@ -1,5 +1,5 @@
 {
-  "protocol" : "mykey",
+  "protocol" : "doctorUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -100,79 +100,14 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
-  }, {
-    "type" : "record",
-    "name" : "PgpCreateUids",
-    "fields" : [ {
-      "name" : "useDefault",
-      "type" : "boolean"
-    }, {
-      "name" : "ids",
-      "type" : {
-        "type" : "array",
-        "items" : "PgpIdentity"
-      }
-    } ]
   } ],
   "messages" : {
-    "keyGen" : {
+    "promptDeviceName" : {
       "request" : [ {
-        "name" : "primaryBits",
+        "name" : "sessionId",
         "type" : "int"
-      }, {
-        "name" : "subkeyBits",
-        "type" : "int"
-      }, {
-        "name" : "createUids",
-        "type" : "PgpCreateUids"
-      }, {
-        "name" : "noPassphrase",
-        "type" : "boolean"
-      }, {
-        "name" : "kbPassphrase",
-        "type" : "boolean"
-      }, {
-        "name" : "noNaclEddsa",
-        "type" : "boolean"
-      }, {
-        "name" : "noNaclDh",
-        "type" : "boolean"
-      }, {
-        "name" : "pregen",
-        "type" : "string"
       } ],
-      "response" : "null"
-    },
-    "keyGenDefault" : {
-      "request" : [ {
-        "name" : "createUids",
-        "type" : "PgpCreateUids"
-      }, {
-        "name" : "pushPublic",
-        "type" : "boolean"
-      }, {
-        "name" : "pushSecret",
-        "type" : "boolean"
-      }, {
-        "name" : "passphrase",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "deletePrimary" : {
-      "request" : [ ],
-      "response" : "null"
-    },
-    "show" : {
-      "request" : [ ],
-      "response" : "null"
-    },
-    "select" : {
-      "request" : [ {
-        "name" : "query",
-        "type" : "string"
-      } ],
-      "response" : "null"
+      "response" : "string"
     }
   }
 }

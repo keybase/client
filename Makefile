@@ -12,6 +12,7 @@ config:
 
 build-stamp: \
 	json/config.json \
+	json/doctor_ui.json \
 	json/gpg.json \
 	json/gpg_ui.json \
 	json/identify.json \

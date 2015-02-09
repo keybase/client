@@ -126,25 +126,17 @@ type PgpIdentity struct {
 	Email    string `codec:"email"`
 }
 
-type Image struct {
-	Url    string `codec:"url"`
-	Width  int    `codec:"width"`
-	Height int    `codec:"height"`
-}
-
 type User struct {
 	Uid      UID    `codec:"uid"`
 	Username string `codec:"username"`
-	Image    *Image `codec:"image,omitempty"`
 }
 
 type SIGID [32]byte
 type GetCurrentStatusRes struct {
-	Configured bool   `codec:"configured"`
-	Registered bool   `codec:"registered"`
-	LoggedIn   bool   `codec:"loggedIn"`
-	User       *User  `codec:"user,omitempty"`
-	ServerUri  string `codec:"serverUri"`
+	Configured bool  `codec:"configured"`
+	Registered bool  `codec:"registered"`
+	LoggedIn   bool  `codec:"loggedIn"`
+	User       *User `codec:"user,omitempty"`
 }
 
 type GetCurrentStatusArg struct {
@@ -176,6 +168,46 @@ type ConfigClient struct {
 
 func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{GetCurrentStatusArg{}}, &res)
+	return
+}
+
+type Image struct {
+	Url    string `codec:"url"`
+	Width  int    `codec:"width"`
+	Height int    `codec:"height"`
+}
+
+type PromptDeviceNameArg struct {
+	SessionId int `codec:"sessionId"`
+}
+
+type DoctorUiInterface interface {
+	PromptDeviceName(int) (string, error)
+}
+
+func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.doctorUi",
+		Methods: map[string]rpc2.ServeHook{
+			"promptDeviceName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PromptDeviceNameArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptDeviceName(args[0].SessionId)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type DoctorUiClient struct {
+	Cli GenericClient
+}
+
+func (c DoctorUiClient) PromptDeviceName(sessionId int) (res string, err error) {
+	__arg := PromptDeviceNameArg{SessionId: sessionId}
+	err = c.Cli.Call("keybase.1.doctorUi.promptDeviceName", []interface{}{__arg}, &res)
 	return
 }
 
