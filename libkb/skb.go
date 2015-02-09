@@ -271,9 +271,9 @@ func (k *SKBKeyringFile) Index() (err error) {
 	return
 }
 
-func (k SKBKeyringFile) LookupWithComputedKeyFamily(ckf *ComputedKeyFamily) *SKB {
+func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily) *SKB {
 	var kid KID
-	G.Log.Debug("+ SKBKeyringFile.LookupWithComputedKeyFamily")
+	G.Log.Debug("+ SKBKeyringFile.SearchWithComputedKeyFamily")
 	defer func() {
 		var res string
 		if kid != nil {
@@ -281,9 +281,9 @@ func (k SKBKeyringFile) LookupWithComputedKeyFamily(ckf *ComputedKeyFamily) *SKB
 		} else {
 			res = "<nil>"
 		}
-		G.Log.Debug("- SKBKeyringFile.LookupWithComputedKeyFamily -> %s\n", res)
+		G.Log.Debug("- SKBKeyringFile.SearchWithComputedKeyFamily -> %s\n", res)
 	}()
-	G.Log.Debug("| Checking %d possible blocks", len(k.Blocks))
+	G.Log.Debug("| Searching %d possible blocks", len(k.Blocks))
 	for i := len(k.Blocks) - 1; i >= 0; i-- {
 		G.Log.Debug("| trying key index# -> %d", i)
 		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {

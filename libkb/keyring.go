@@ -243,14 +243,16 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err erro
 		}
 	}
 
+	if ret = k.GetLockedLocalSecretKey(me); ret != nil {
+		G.Log.Debug("| Getting local secret key")
+		return
+	}
+
 	if ret, err = me.GetSyncedSecretKey(); err != nil {
+		G.Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
 		return
 	} else if ret != nil {
-		G.Log.Debug("| Found secret key in user object")
-		which = "your Keybase.io login"
-	} else {
-		G.Log.Debug("| Getting local secret key")
-		ret = k.GetLockedLocalSecretKey(me)
+		which = "your Keybase.io passphrase"
 	}
 
 	if ret == nil {
@@ -264,17 +266,33 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err erro
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
 func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
-	if skb, err := k.LoadSKBKeyring(me.name); err != nil || skb == nil {
+	var keyring *SKBKeyringFile
+	var err error
+	var ckf *ComputedKeyFamily
+	if keyring, err = k.LoadSKBKeyring(me.name); err != nil || keyring == nil {
 		var s string
 		if err != nil {
 			s = " (" + err.Error() + ")"
 		}
 		G.Log.Debug("| No secret keyring found" + s)
-	} else if ckf := me.GetComputedKeyFamily(); ckf == nil {
-		G.Log.Debug("| No ComputedKeyFamily found")
-	} else {
+		return
+	}
+
+	if ckf = me.GetComputedKeyFamily(); ckf == nil {
+		G.Log.Warning("No ComputedKeyFamily found for %s", me.name)
+		return
+	}
+
+	var kid KID
+	if kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(); err != nil {
+		G.Log.Debug("| No key for current device: %s", err.Error())
+	} else if kid != nil {
+		ret = keyring.LookupByKid(kid)
+	}
+
+	if ret == nil {
 		G.Log.Debug("| Looking up secret key in local keychain")
-		ret = skb.LookupWithComputedKeyFamily(ckf)
+		ret = keyring.SearchWithComputedKeyFamily(ckf)
 	}
 	return ret
 }

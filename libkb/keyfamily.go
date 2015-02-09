@@ -744,6 +744,19 @@ func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceID) (key GenericKey, 
 	return
 }
 
+// GetActiveSibkeyKidForCurrentDevice looks up the current Device ID and, if found, tries to
+// get the corresponding KID, and if that's found, we check that it's active.
+func (ckf *ComputedKeyFamily) GetActiveSibkeyKidForCurrentDevice() (kid KID, err error) {
+	if did := G.Env.GetDeviceID(); did == nil {
+		err = NotProvisionedError{}
+	} else if kid, err = ckf.getSibkeyKidForDevice(*did); err != nil {
+	} else if ckf.IsKidActive(kid) != DLG_SIBKEY {
+		err = InactiveKeyError{kid}
+		kid = nil
+	}
+	return kid, err
+}
+
 // GetEncryptionSubkeyForDevice gets the current encryption subkey for the given
 // device.  Note that many devices might share an encryption public key but
 // might have different secret keys.

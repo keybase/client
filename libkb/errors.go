@@ -720,3 +720,13 @@ func (n NoUserConfigError) Error() string {
 }
 
 //=============================================================================
+
+type InactiveKeyError struct {
+	kid KID
+}
+
+func (i InactiveKeyError) Error() string {
+	return fmt.Sprintf("The key '%s' is not active", i.kid)
+}
+
+//=============================================================================
