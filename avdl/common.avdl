@@ -42,7 +42,7 @@ protocol Common {
 	record User {
 		UID uid;
 		string username;
-		Image image;
+		union { null, Image } image;
 	}
 
 	fixed SIGID(32);

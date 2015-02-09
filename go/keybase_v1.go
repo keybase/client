@@ -135,7 +135,7 @@ type Image struct {
 type User struct {
 	Uid      UID    `codec:"uid"`
 	Username string `codec:"username"`
-	Image    Image  `codec:"image"`
+	Image    *Image `codec:"image,omitempty"`
 }
 
 type SIGID [32]byte
