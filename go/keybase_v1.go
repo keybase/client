@@ -97,11 +97,10 @@ func (c BlockClient) Put(__arg PutArg) (err error) {
 }
 
 type Status struct {
-	Code      int      `codec:"code"`
-	Name      string   `codec:"name"`
-	Desc      string   `codec:"desc"`
-	Fields    []string `codec:"fields"`
-	ServerUri string   `codec:"serverUri"`
+	Code   int      `codec:"code"`
+	Name   string   `codec:"name"`
+	Desc   string   `codec:"desc"`
+	Fields []string `codec:"fields"`
 }
 
 type UID [16]byte
@@ -141,10 +140,11 @@ type User struct {
 
 type SIGID [32]byte
 type GetCurrentStatusRes struct {
-	Configured bool  `codec:"configured"`
-	Registered bool  `codec:"registered"`
-	LoggedIn   bool  `codec:"loggedIn"`
-	User       *User `codec:"user,omitempty"`
+	Configured bool   `codec:"configured"`
+	Registered bool   `codec:"registered"`
+	LoggedIn   bool   `codec:"loggedIn"`
+	User       *User  `codec:"user,omitempty"`
+	ServerUri  string `codec:"serverUri"`
 }
 
 type GetCurrentStatusArg struct {

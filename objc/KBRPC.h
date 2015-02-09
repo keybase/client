@@ -17,7 +17,6 @@
 @property NSString *name;
 @property NSString *desc;
 @property NSArray *fields; /*of string*/
-@property NSString *serverUri;
 @end
 
 @interface KBRUID : NSData
@@ -65,6 +64,7 @@
 @property BOOL registered;
 @property BOOL loggedIn;
 @property KBRUser *user;
+@property NSString *serverUri;
 @end
 
 @interface KBRConfigRequest : KBRRequest
