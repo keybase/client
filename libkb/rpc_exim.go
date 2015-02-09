@@ -339,6 +339,7 @@ func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
 	if c.User != nil {
 		ret.User = c.User.Export()
 	}
+	ret.ServerUri = G.Env.GetServerUri();
 	return
 }
 
