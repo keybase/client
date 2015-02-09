@@ -43,6 +43,10 @@ func (s Session) GetUid() *UID {
 	return s.uid
 }
 
+func (s Session) GetToken() string {
+	return s.token
+}
+
 func (s *Session) SetLoggedIn(lir LoggedInResult) {
 	s.valid = true
 	s.uid = &lir.Uid
