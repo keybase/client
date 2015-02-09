@@ -9,7 +9,7 @@ import (
 )
 
 func TestGPGRun(t *testing.T) {
-	tc := libkb.SetupTest(t, "gpg", false)
+	tc := libkb.SetupTest(t, "gpg")
 	defer tc.Cleanup()
 
 	if err := tc.GenerateGPGKeyring("xxx@xxx.com"); err != nil {

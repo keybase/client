@@ -6,7 +6,7 @@ import (
 )
 
 func TestGPGKeyring(t *testing.T) {
-	tc := SetupTest(t, "gpg_cli", false)
+	tc := SetupTest(t, "gpg_cli")
 	defer tc.Cleanup()
 	err := tc.GenerateGPGKeyring("no@no.no")
 	if err != nil {
