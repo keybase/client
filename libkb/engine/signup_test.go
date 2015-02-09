@@ -18,13 +18,9 @@ func AssertDeviceID() (err error) {
 func TestSignupEngine(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
-	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	fu := NewFakeUserOrBust(t, "se")
-	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", true}
-	err := s.Run(arg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	var err error
+
+	fu := CreateAndSignupFakeUser(t, "se")
 
 	if err = AssertDeviceID(); err != nil {
 		t.Fatal(err)
@@ -106,7 +102,7 @@ func TestSignupWithGPG(t *testing.T) {
 	}
 	secui := &tsecretUI{t: t, kbpw: fu.Passphrase}
 	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
-	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", false}
+	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", false}
 	err := s.Run(arg)
 	if err != nil {
 		t.Fatal(err)
@@ -118,7 +114,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
 	fu := NewFakeUserOrBust(t, "se")
-	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", true}
+	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true}
 	err := s.Run(arg)
 	if err != nil {
 		t.Fatal(err)
