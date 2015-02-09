@@ -260,11 +260,16 @@ func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
 		return
 	}
 
+	// Need the loginSession; the salt doesn't really matter here.
+	if err = s.GetSaltAndLoginSession(me.name); err != nil {
+		return
+	}
+
 	if key, err = G.Keyrings.GetSecretKey("login", ui, me); err != nil {
 		return
 	}
 
-	if proof, err = me.AuthenticationProof(key, AUTH_EXPIRE_IN); err != nil {
+	if proof, err = me.AuthenticationProof(key, s.loginSessionB64, AUTH_EXPIRE_IN); err != nil {
 		return
 	}
 
@@ -280,8 +285,6 @@ func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
 	if pres, err = PostAuthProof(arg); err != nil {
 		return
 	}
-
-	fmt.Printf("Logged in with sessionID: %s\n", pres.SessionId)
 
 	if s.loggedInRes, err = pres.ToLoggedInResult(); err != nil {
 		return
@@ -332,6 +335,21 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 	return
 }
 
+func (s *LoginState) getEmailOrUsername(arg *LoginArg) (res string, prompted bool, err error) {
+	if res = arg.Username; len(res) != 0 {
+	} else if res = G.Env.GetEmailOrUsername(); len(res) > 0 || !arg.Prompt || arg.Ui == nil {
+	} else if res, err = arg.Ui.GetEmailOrUsername(); err != nil {
+	} else {
+		arg.Username = res
+		prompted = true
+	}
+
+	if len(res) == 0 {
+		err = NoUsernameError{}
+	}
+	return
+}
+
 func (s *LoginState) login(arg *LoginArg) (err error) {
 	G.Log.Debug("+ LoginState.login (username=%s)", arg.Username)
 	defer func() {
@@ -360,31 +378,20 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 		return
 	}
 
-	prompted := false
+	var emailOrUsername string
+	var prompted bool
 
-	email_or_username := arg.Username
-	if len(email_or_username) == 0 {
-		if email_or_username = G.Env.GetEmailOrUsername(); len(email_or_username) == 0 && arg.Prompt && arg.Ui != nil {
-			email_or_username, err = arg.Ui.GetEmailOrUsername()
-			if err == nil {
-				arg.Username = email_or_username
-				prompted = true
-			}
-		}
-	}
-
-	if len(email_or_username) == 0 {
-		err = NoUsernameError{}
+	if emailOrUsername, prompted, err = s.getEmailOrUsername(arg); err != nil {
 		return
 	}
 
-	G.Log.Debug(fmt.Sprintf("| got username: %s\n", email_or_username))
+	G.Log.Debug(fmt.Sprintf("| got username: %s\n", emailOrUsername))
 
-	if err = s.GetSaltAndLoginSession(email_or_username); err != nil {
+	if err = s.GetSaltAndLoginSession(emailOrUsername); err != nil {
 		return
 	}
 
-	if _, err = s.GetTriplesec(email_or_username, arg.Passphrase, arg.RetryMsg, arg.SecretUI); err != nil {
+	if _, err = s.GetTriplesec(emailOrUsername, arg.Passphrase, arg.RetryMsg, arg.SecretUI); err != nil {
 		return
 	}
 
@@ -395,7 +402,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 		return
 	}
 
-	err = s.PostLoginToServer(email_or_username, lgpw)
+	err = s.PostLoginToServer(emailOrUsername, lgpw)
 	if err != nil {
 		s.tsec = nil
 		s.tspkey = nil

@@ -294,7 +294,7 @@ func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei
 // AuthenticationProof makes a JSON proof statement for the user that he can sign
 // to prove a log-in to the system.  If successful, the server will return with
 // a session token.
-func (u *User) AuthenticationProof(key GenericKey, ei int) (ret *jsonw.Wrapper, err error) {
+func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret *jsonw.Wrapper, err error) {
 	if ret, err = u.ProofMetadata(ei, key, nil); err != nil {
 		return
 	}
@@ -306,6 +306,7 @@ func (u *User) AuthenticationProof(key GenericKey, ei int) (ret *jsonw.Wrapper, 
 		return
 	}
 	body.SetKey("nonce", jsonw.NewString(hex.EncodeToString(nonce[:])))
+	body.SetKey("session", jsonw.NewString(session))
 	return
 }
 
