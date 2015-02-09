@@ -214,6 +214,9 @@ func (s *LoginState) Logout() error {
 			s.tspkey = nil
 		}
 	}
+	if G.SecretSyncer != nil {
+		G.SecretSyncer.Clear()
+	}
 	G.Log.Debug("- Logout called")
 	return err
 }

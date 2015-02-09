@@ -41,10 +41,20 @@ type ServerPrivateKeys struct {
 type SecretSyncer struct {
 	// Locks the whole object
 	sync.Mutex
-	Uid    *UID
-	loaded bool
-	dirty  bool
-	keys   ServerPrivateKeys
+	Uid   *UID
+	dirty bool
+	keys  *ServerPrivateKeys
+}
+
+func (ss *SecretSyncer) Clear() error {
+	ss.Lock()
+	defer ss.Unlock()
+
+	err := ss.store()
+	ss.Uid = nil
+	ss.keys = nil
+
+	return err
 }
 
 // Load loads a set of secret keys from storage and then checks if there are
@@ -84,10 +94,17 @@ func (ss *SecretSyncer) Load(uid UID) (err error) {
 }
 
 func (ss *SecretSyncer) loadFromStorage() (err error) {
-	ss.loaded, err = G.LocalDb.GetInto(&ss.keys, ss.dbKey())
-	G.Log.Debug("| loadFromStorage -> %v, %s", ss.loaded, ErrToOk(err))
-	if ss.loaded {
-		G.Log.Debug("| Loaded version %d", ss.keys.Version)
+	var tmp ServerPrivateKeys
+	var found bool
+	found, err = G.LocalDb.GetInto(&tmp, ss.dbKey())
+	G.Log.Debug("| loadFromStorage -> %v, %s", found, ErrToOk(err))
+	if found {
+		G.Log.Debug("| Loaded version %d", tmp.Version)
+	} else if err == nil {
+		G.Log.Debug("| Loaded empty record set")
+	}
+	if err == nil {
+		ss.keys = &tmp
 	}
 	return
 }
@@ -100,7 +117,7 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 		return
 	}
 
-	if ss.loaded {
+	if ss.keys != nil {
 		hargs.Add("version", I{ss.keys.Version})
 	}
 	var res *ApiRes
@@ -119,12 +136,12 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 		return
 	}
 
-	if !ss.loaded || obj.Version > ss.keys.Version {
+	if ss.keys == nil || obj.Version > ss.keys.Version {
 		G.Log.Debug("| upgrade to version -> %d", obj.Version)
-		ss.keys = obj
+		ss.keys = &obj
 		ss.dirty = true
 	}
-	ss.loaded = true
+
 	return
 }
 

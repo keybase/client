@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -79,7 +78,6 @@ type TestParameters struct {
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
-	fmt.Printf("fuuuuuudfoisj sodijf sodifj sdoifj sdoif jsdoif j %v\n", tp.Debug)
 	if tp.Debug {
 		return true, true
 	}

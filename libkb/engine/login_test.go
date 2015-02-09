@@ -6,8 +6,8 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	libkb.SetupTest(t, "login", false)
-	// defer tc.Cleanup()
+	tc := libkb.SetupTest(t, "login", false)
+	defer tc.Cleanup()
 
 	u1 := CreateAndSignupFakeUser(t, "login")
 	G.LoginState.Logout()
