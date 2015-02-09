@@ -19,10 +19,10 @@ func TestLogin(t *testing.T) {
 	u2.LoginOrBust(t)
 
 	return
-)
+}
 
 func TestLogin2(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := libkb.SetupTest(t, "login", false)
 	defer tc.Cleanup()
 	username, passphrase := createFakeUser(t, "my device")
 
@@ -67,7 +67,7 @@ func createFakeUserWithNoKeys(t *testing.T) (username, passphrase string) {
 }
 
 func TestLoginFakeUserNoKeys(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := libkb.SetupTest(t, "login", false)
 	defer tc.Cleanup()
 
 	createFakeUserWithNoKeys(t)
@@ -97,7 +97,7 @@ func TestLoginFakeUserNoKeys(t *testing.T) {
 }
 
 func TestLoginAddsKeys(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := libkb.SetupTest(t, "login", false)
 	defer tc.Cleanup()
 
 	username, passphrase := createFakeUserWithNoKeys(t)
@@ -112,7 +112,8 @@ func TestLoginAddsKeys(t *testing.T) {
 			Passphrase: passphrase,
 			NoUi:       true,
 		},
-		LogUI: G.UI.GetLogUI(),
+		LogUI:    G.UI.GetLogUI(),
+		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
 	if err := li.LoginAndIdentify(larg); err != nil {
@@ -141,10 +142,29 @@ func TestLoginAddsKeys(t *testing.T) {
 		t.Fatalf("user has no computed key family")
 	}
 
+	ckf.DumpToLog(G.UI.GetLogUI())
+
 	active := ckf.HasActiveKey()
 	if !active {
 		t.Errorf("user has no active key")
 	}
+
+	// XXX hold off on this, max could be fixing a bug related to this:
+	/*
+		dsk, err := me.GetDeviceSibkey()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if dsk == nil {
+			t.Fatal("nil sibkey")
+		}
+	*/
+}
+
+type ldocui struct{}
+
+func (l *ldocui) PromptDeviceName(sid int) (string, error) {
+	return "my test device", nil
 }
 
 func TestLogin2(t *testing.T) {
