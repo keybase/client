@@ -13,6 +13,7 @@
 #import "KBProgressOverlayView.h"
 
 @interface KBUsersMainView ()
+@property NSSearchField *searchField;
 @property KBUsersView *usersView;
 @property KBBox *border;
 @property KBUserProfileView *userProfileView;
@@ -24,6 +25,12 @@
 
 - (void)viewInit {
   [super viewInit];
+
+  _searchField = [[NSSearchField alloc] init];
+  _searchField.delegate = self;
+  _searchField.placeholderString = @"Search";
+  [_searchField.cell setMaximumRecents:20];
+  [self addSubview:_searchField];
 
   _usersView = [[KBUsersView alloc] init];
   _usersView.delegate = self;
@@ -40,13 +47,21 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+
     CGFloat col1 = 200;
-    [layout setFrame:CGRectMake(0, 0, col1 - 1, size.height) view:yself.usersView];
+    CGFloat col1y = 10;
+    col1y += [layout setFrame:CGRectMake(10, col1y, col1 - 21, 22) view:yself.searchField].size.height + 10;
+    [layout setFrame:CGRectMake(0, col1y, col1 - 1, size.height - col1y) view:yself.usersView];
+
     [layout setFrame:CGRectMake(col1 - 1, 0, 1, size.height) view:yself.border];
     [layout setFrame:CGRectMake(col1, 0, size.width - col1, size.height) view:yself.userProfileView];
     [layout setSize:size view:yself.progressView options:0];
     return size;
   }];
+}
+
+- (void)controlTextDidChange:(NSNotification *)notification {
+
 }
 
 - (void)usersView:(KBUsersView *)usersView didSelectUser:(KBRUser *)user {

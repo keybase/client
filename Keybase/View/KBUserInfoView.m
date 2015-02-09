@@ -58,6 +58,27 @@
   }
 }
 
+- (NSArray *)missingProveTypes {
+  NSMutableArray *proveTypes = [@[@(KBProveTypeTwitter), @(KBProveTypeGithub), @(KBProveTypeReddit), @(KBProveTypeCoinbase), @(KBProveTypeHackernews),] mutableCopy];
+
+  for (KBUserInfoLabels *label in _labels) {
+    for (KBProofResult *proofResult in label.proofResults) {
+      [proveTypes removeObject:@(KBProveTypeFromAPI([[proofResult proof] proofType]))];
+    }
+  }
+
+  // We can always add more of these types
+  [proveTypes addObjectsFromArray:@[@(KBProveTypeHTTPS), @(KBProveTypeDNS)]];
+
+  return proveTypes;
+}
+
+- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock {
+  KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
+  [label addConnectWithTypeName:typeName targetBlock:targetBlock];
+  [self addLabels:@[label]];
+}
+
 - (void)addKey:(KBRFOKID *)key {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
   [label addKey:key targetBlock:^(id sender, KBProofResult *proofResult) {

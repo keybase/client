@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBUsersView.h"
 
-@interface KBUsersMainView : YONSView <KBUsersViewDelegate>
+@interface KBUsersMainView : YONSView <KBUsersViewDelegate, NSTextFieldDelegate>
 
 - (void)setUser:(KBRUser *)user;
 

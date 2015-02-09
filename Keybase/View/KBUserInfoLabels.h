@@ -28,4 +28,6 @@
 
 - (KBProofLabel *)findLabelForSigId:(KBRSIGID *)sigId;
 
+- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock;
+
 @end

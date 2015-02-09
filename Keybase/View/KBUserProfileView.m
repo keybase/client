@@ -17,6 +17,7 @@
 #import "KBTrackView.h"
 //#import "KBWebView.h"
 #import "KBProgressOverlayView.h"
+#import "KBProveView.h"
 
 @interface KBUserProfileView ()
 @property NSScrollView *scrollView;
@@ -118,6 +119,13 @@
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     //[yself.navigation.titleView setProgressEnabled:NO];
     [yself.headerView setProgressEnabled:NO];
+
+    if (!yself.track) {
+      GHDebug(@"Not tracking (identify)");
+      completion(nil, nil);
+      return;
+    }
+
     KBRIdentifyOutcome *identifyOutcome = [MTLJSONAdapter modelOfClass:KBRIdentifyOutcome.class fromJSONDictionary:params[0][@"outcome"] error:nil];
     yself.trackView.hidden = NO;
     BOOL trackPrompt = [yself.trackView setUser:yself.user popup:yself.popup identifyOutcome:identifyOutcome trackResponse:^(KBRFinishAndPromptRes *response) {
@@ -198,10 +206,22 @@
       [gself setTrackCompleted:error];
     }];
   } else {
+    // For ourself
     [self.headerView setProgressEnabled:YES];
     KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:AppDelegate.client];
     [identifyRequest identifyDefaultWithUsername:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
-      [self.headerView setProgressEnabled:NO];
+      [gself.headerView setProgressEnabled:NO];
+
+      for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
+        KBProveType proveType = [proveTypeNumber integerValue];
+        [gself.userInfoView addConnectWithTypeName:KBNameForProveType(proveType) targetBlock:^{
+          [KBProveView connectWithProveType:proveType sender:gself completion:^(BOOL canceled) {
+            // Reload
+            [gself setUser:user track:NO];
+          }];
+        }];
+      }
+      [self setNeedsLayout];
     }];
   }
 

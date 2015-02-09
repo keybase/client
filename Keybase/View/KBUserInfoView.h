@@ -24,4 +24,8 @@
 
 - (void)clear;
 
+- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock;
+
+- (NSArray *)missingProveTypes;
+
 @end

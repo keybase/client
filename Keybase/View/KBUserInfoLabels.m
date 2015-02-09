@@ -73,6 +73,15 @@
   return nil;
 }
 
+- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock {
+  [_headerLabel setText:typeName font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithText:@"Connect" style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+  button.targetBlock = targetBlock;
+  [_labels addObject:button];
+  [self addSubview:button];
+  [self setNeedsLayout];
+}
+
 - (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock {
   _imageView.image = [NSImage imageNamed:@"1-Edition-black-key-2-30"];
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
