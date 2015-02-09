@@ -8,14 +8,6 @@ import (
 	keybase_1 "github.com/keybase/protocol/go"
 )
 
-func fakeUser(t *testing.T, prefix string) (fu *libkb.FakeUser) {
-	var err error
-	if fu, err = libkb.NewFakeUser(prefix); err != nil {
-		t.Fatal(err)
-	}
-	return
-}
-
 func AssertDeviceID() (err error) {
 	if G.Env.GetDeviceID() == nil {
 		err = fmt.Errorf("Device ID should not have been reset!")
@@ -27,7 +19,7 @@ func TestSignupEngine(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	fu := fakeUser(t, "se")
+	fu := NewFakeUserOrBust(t, "se")
 	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", true}
 	err := s.Run(arg)
 	if err != nil {
@@ -108,7 +100,7 @@ func TestSignupWithGPG(t *testing.T) {
 	tc := libkb.SetupTest(t, "signupWithGPG")
 	defer tc.Cleanup()
 
-	fu := fakeUser(t, "se")
+	fu := NewFakeUserOrBust(t, "se")
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +117,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	fu := fakeUser(t, "se")
+	fu := NewFakeUserOrBust(t, "se")
 	arg := SignupEngineRunArg{fu.Username, fu.Email, "202020202020202020202020", fu.Passphrase, "my device", true}
 	err := s.Run(arg)
 	if err != nil {
