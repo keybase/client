@@ -3,10 +3,12 @@ package libkb
 import (
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"sync"
 )
 
 type UserConfigWrapper struct {
 	userConfig *UserConfig
+	sync.Mutex
 }
 
 type JsonConfigFile struct {
@@ -128,11 +130,19 @@ func (f *JsonConfigFile) SetNullAtPath(p string) (err error) {
 	return
 }
 
+func (f JsonConfigFile) GetUserConfig() (ret *UserConfig, err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	return f.getUserConfigWithLock()
+}
+
 // GetUserConfig looks for the `current_user` field to see if there's
 // a corresponding user object in the `users` table. There really should be.
-func (f JsonConfigFile) GetUserConfig() (ret *UserConfig, err error) {
+func (f JsonConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
+
 	var s string
 	if ret = f.userConfigWrapper.userConfig; ret != nil {
+		fmt.Printf("Cached GetUserConfig -> %v\n", ret)
 		return
 	}
 	if s, err = f.jw.AtKey("current_user").GetString(); err != nil {
@@ -157,29 +167,40 @@ func (f JsonConfigFile) GetUserConfigForUsername(s string) (ret *UserConfig, err
 
 // SetUIDVerified flips the "uid_verified" flag on our UserConfig to true
 func (f *JsonConfigFile) SetUIDVerified() (err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+
 	var u *UserConfig
-	if u, err = f.GetUserConfig(); err != nil {
+	if u, err = f.getUserConfigWithLock(); err != nil {
 	} else if u == nil {
 		err = NoUserConfigError{}
 	} else {
 		u.UidVerified = true
-		f.SetUserConfig(u, true)
+		f.setUserConfigWithLock(u, true)
 	}
 	return
 }
 
 // SetDeviceID sets the device field of the UserConfig object
 func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+
 	G.Log.Debug("| Setting DeviceID to %v\n", did)
 	var u *UserConfig
-	if u, err = f.GetUserConfig(); err != nil {
+	if u, err = f.getUserConfigWithLock(); err != nil {
 	} else if u == nil {
 		err = NoUserConfigError{}
 	} else {
 		u.SetDevice(did)
-		f.SetUserConfig(u, true)
+		f.setUserConfigWithLock(u, true)
 	}
 	return
+}
+
+func (f *JsonConfigFile) getCurrentUser() string {
+	s, _ := f.jw.AtKey("current_user").GetString()
+	return s
 }
 
 // SetUserConfig writes this UserConfig to the config file and updates the
@@ -188,10 +209,17 @@ func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
 // we never actually overwrite users.<username>, we just write it if it
 // doesn't already exist, and we update the `current_user` pointer.
 func (f *JsonConfigFile) SetUserConfig(u *UserConfig, overwrite bool) (err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	return f.setUserConfigWithLock(u, overwrite)
+}
+
+func (f *JsonConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) (err error) {
+
 	if u == nil {
 		G.Log.Debug("| SetUserConfig(nil)")
 		f.jw.DeleteKey("current_user")
-		f.userConfigWrapper.userConfig = u
+		f.userConfigWrapper.userConfig = nil
 	} else {
 		parent := f.jw.AtKey("users")
 		un := u.GetUsername()
@@ -204,9 +232,13 @@ func (f *JsonConfigFile) SetUserConfig(u *UserConfig, overwrite bool) (err error
 			parent.SetKey(un, jsonw.NewWrapper(*u))
 			f.userConfigWrapper.userConfig = u
 		}
-		f.jw.SetKey("current_user", jsonw.NewString(un))
-		f.dirty = true
+
+		if f.getCurrentUser() != un {
+			f.jw.SetKey("current_user", jsonw.NewString(un))
+			f.userConfigWrapper.userConfig = nil
+		}
 	}
+	f.dirty = true
 	return nil
 }
 

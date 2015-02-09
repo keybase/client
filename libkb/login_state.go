@@ -171,7 +171,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 	return nil
 }
 
-func (s *LoginState) SaveLoginState(uidVerified bool, saveConfig bool) (err error) {
+func (s *LoginState) SaveLoginState(uidVerified bool) (err error) {
 	s.LoggedIn = true
 	s.SessionVerified = true
 	s.loginSession = nil
@@ -284,7 +284,7 @@ func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
 		return
 	}
 
-	err = s.SaveLoginState(false, false)
+	err = s.SaveLoginState(false)
 
 	return
 }
@@ -399,7 +399,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 		return err
 	}
 
-	err = s.SaveLoginState(prompted, true)
+	err = s.SaveLoginState(prompted)
 	if err != nil {
 		return err
 	}
