@@ -24,12 +24,12 @@ type LoginState struct {
 	LoggedIn        bool
 	SessionVerified bool
 
-	salt              []byte
-	login_session     []byte
-	login_session_b64 string
-	tsec              *triplesec.Cipher
-	tspkey            *TSPassKey
-	sharedSecret      []byte
+	salt            []byte
+	loginSession    []byte
+	loginSessionB64 string
+	tsec            *triplesec.Cipher
+	tspkey          *TSPassKey
+	sharedSecret    []byte
 
 	loggedInRes *LoggedInResult
 }
@@ -67,7 +67,7 @@ func (s *LoginState) GenerateNewSalt() error {
 
 func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 
-	if s.salt != nil && s.login_session != nil {
+	if s.salt != nil && s.loginSession != nil {
 		return nil
 	}
 
@@ -97,12 +97,12 @@ func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 		return err
 	}
 
-	s.login_session, err = base64.StdEncoding.DecodeString(ls_b64)
+	s.loginSession, err = base64.StdEncoding.DecodeString(ls_b64)
 	if err != nil {
 		return err
 	}
 
-	s.login_session_b64 = ls_b64
+	s.loginSessionB64 = ls_b64
 
 	return nil
 }
@@ -126,7 +126,7 @@ func (s *LoginState) StretchKey(passphrase string) (err error) {
 
 func (s *LoginState) ComputeLoginPw() ([]byte, error) {
 	mac := hmac.New(sha512.New, s.sharedSecret)
-	mac.Write(s.login_session)
+	mac.Write(s.loginSession)
 	return mac.Sum(nil), nil
 }
 
@@ -137,7 +137,7 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 		Args: HttpArgs{
 			"email_or_username": S{eOu},
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
-			"login_session":     S{s.login_session_b64},
+			"login_session":     S{s.loginSessionB64},
 		},
 		AppStatus: []string{"OK", "BAD_LOGIN_PASSWORD"},
 	})
@@ -174,6 +174,8 @@ func (s *LoginState) PostLoginToServer(eOu string, lgpw []byte) error {
 func (s *LoginState) SaveLoginState(uidVerified bool, saveConfig bool) (err error) {
 	s.LoggedIn = true
 	s.SessionVerified = true
+	s.loginSession = nil
+	s.loginSessionB64 = ""
 
 	if cfg := G.Env.GetConfigWriter(); cfg != nil {
 
