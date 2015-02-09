@@ -4,10 +4,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/go/libkb"
 	"testing"
 )
 
-var testingInviteCode string = "202020202020202020202020"
+var testInviteCode string = "202020202020202020202020"
 
 type FakeUser struct {
 	Username   string
@@ -42,10 +43,33 @@ func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
 func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(t, prefix)
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	arg := SignupEngineRunArg{fu.Username, fu.Email, testingInviteCode, fu.Passphrase, "my device", true}
+	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true}
 	err := s.Run(arg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return fu
+}
+
+func (fu *FakeUser) Login() (err error) {
+	larg := LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   fu.Username,
+			Passphrase: fu.Passphrase,
+			NoUi:       true,
+		},
+		LogUI: G.UI.GetLogUI(),
+	}
+	li := NewLoginEngine()
+	err = li.LoginAndIdentify(larg)
+	return err
+}
+
+func (fu *FakeUser) LoginOrBust(t *testing.T) {
+	if err := fu.Login(); err != nil {
+		t.Fatal(err)
+	}
+	return
 }

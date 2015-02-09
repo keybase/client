@@ -16,7 +16,7 @@ func AssertDeviceID() (err error) {
 }
 
 func TestSignupEngine(t *testing.T) {
-	tc := libkb.SetupTest(t, "signup")
+	tc := libkb.SetupTest(t, "signup", false)
 	defer tc.Cleanup()
 	var err error
 
@@ -33,20 +33,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	larg := LoginAndIdentifyArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   fu.Username,
-			Passphrase: fu.Passphrase,
-			NoUi:       true,
-		},
-		LogUI: G.UI.GetLogUI(),
-	}
-	li := NewLoginEngine()
-	if err = li.LoginAndIdentify(larg); err != nil {
-		t.Fatal(err)
-	}
+	fu.LoginOrBust(t)
 
 	if err = AssertDeviceID(); err != nil {
 		t.Fatal(err)
@@ -93,7 +80,7 @@ func TestSignupEngine(t *testing.T) {
 }
 
 func TestSignupWithGPG(t *testing.T) {
-	tc := libkb.SetupTest(t, "signupWithGPG")
+	tc := libkb.SetupTest(t, "signupWithGPG", false)
 	defer tc.Cleanup()
 
 	fu := NewFakeUserOrBust(t, "se")
@@ -110,7 +97,7 @@ func TestSignupWithGPG(t *testing.T) {
 }
 
 func TestLocalKeySecurity(t *testing.T) {
-	tc := libkb.SetupTest(t, "signup")
+	tc := libkb.SetupTest(t, "signup", false)
 	defer tc.Cleanup()
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
 	fu := NewFakeUserOrBust(t, "se")

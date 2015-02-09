@@ -114,7 +114,7 @@ func (tc *TestContext) GenerateGPGKeyring(id string) error {
 	return nil
 }
 
-func setupTestContext(nm string) (tc TestContext, err error) {
+func setupTestContext(nm string, debug bool) (tc TestContext, err error) {
 
 	var g Global = NewGlobal()
 	g.Init()
@@ -129,7 +129,10 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 	tc.Tp.GPGOptions = []string{"--homedir=" + tc.Tp.GPGHome}
 
 	tc.Tp.ServerUri = "http://localhost:3000"
+	tc.Tp.Debug = debug
 	g.Env.Test = tc.Tp
+
+	g.ConfigureLogging()
 
 	if err = g.ConfigureAPI(); err != nil {
 		return
@@ -160,9 +163,9 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 	return
 }
 
-func SetupTest(t *testing.T, nm string) (tc TestContext) {
+func SetupTest(t *testing.T, nm string, debug bool) (tc TestContext) {
 	var err error
-	tc, err = setupTestContext(nm)
+	tc, err = setupTestContext(nm, debug)
 	if err != nil {
 		t.Fatal(err)
 	}

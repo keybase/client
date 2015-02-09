@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -74,6 +75,15 @@ type TestParameters struct {
 	ServerUri      string
 	GPGHome        string
 	GPGOptions     []string
+	Debug          bool
+}
+
+func (tp TestParameters) GetDebug() (bool, bool) {
+	fmt.Printf("fuuuuuudfoisj sodijf sodifj sdoifj sdoif jsdoif j %v\n", tp.Debug)
+	if tp.Debug {
+		return true, true
+	}
+	return false, false
 }
 
 type Env struct {
@@ -232,6 +242,7 @@ func (e Env) GetDbFilename() string {
 
 func (e Env) GetDebug() bool {
 	return e.GetBool(false,
+		func() (bool, bool) { return e.Test.GetDebug() },
 		func() (bool, bool) { return e.cmd.GetDebug() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
 		func() (bool, bool) { return e.config.GetDebug() },
