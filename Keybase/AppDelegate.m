@@ -48,7 +48,7 @@
     GHDebug(@"Password prompt: %@", params);
     NSString *prompt = params[0][@"pinentry"][@"prompt"];
     NSString *description = params[0][@"pinentry"][@"desc"];
-    [KBAlert promptForInputWithTitle:prompt description:description secure:YES style:NSWarningAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+    [KBAlert promptForInputWithTitle:prompt description:description secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
       entry.text = response == NSAlertFirstButtonReturn ? password : nil;
       entry.canceled = response == NSAlertSecondButtonReturn;
@@ -56,11 +56,12 @@
     }];
   }];
 
+  [_client registerMethod:@"keybase.1.logUi.log" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    completion(nil, nil);
+  }];
+
   // Just for mocking, getting at data the RPC client doesn't give us yet
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
-
-  // Catalog for debugging
-  [self catalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
@@ -88,12 +89,16 @@
   }];
 }
 
+- (void)login {
+  [_mainView.window close];
+  [self showLogin:nil];
+}
+
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
   _status = status;
 
-  if (!status.loggedIn) {
-    [_mainView.window close];
-    [self showLogin:status.user];
+  if (!status.loggedIn || !status.user) {
+    [self login];
   } else {
     [_connectView.window close];
     [self showMainView:status.user];
@@ -110,6 +115,9 @@
     // TODO: update when username bug fixed
     NSString *username = [_status.user.username gh_isPresent] ? _status.user.username : [_status.user.uid na_hexString];
     [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", username) action:@selector(logout) keyEquivalent:@""];
+    [menu addItem:[NSMenuItem separatorItem]];
+  } else {
+    [menu addItemWithTitle:@"Log In" action:@selector(login) keyEquivalent:@""];
     [menu addItem:[NSMenuItem separatorItem]];
   }
 
@@ -149,9 +157,9 @@
 
 }
 
-//- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
-//  return YES;
-//}
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
+  return NO;
+}
 
 + (KBRPClient *)client {
   return ((AppDelegate *)[NSApp delegate]).client;
@@ -175,7 +183,7 @@
   [NSApplication.sharedApplication terminate:sender];
 }
 
-- (void)catalog {
+- (void)openCatalog {
   KBCatalogView *catalogView = [[KBCatalogView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:catalogView];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(400, 500) retain:YES];

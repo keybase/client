@@ -159,7 +159,7 @@
   switch (self.style) {
     case KBButtonStyleDefault: return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : GHNSColorFromRGB(0xFFFFFF));
     case KBButtonStylePrimary: return self.highlighted ? GHNSColorFromRGB(0x286090) : GHNSColorFromRGB(0x337AB7);
-    case KBButtonStyleLink: return self.highlighted ? nil : GHNSColorFromRGB(0xFFFFFF);
+    case KBButtonStyleLink: return nil;
     case KBButtonStyleCheckbox: return nil;
   }
 }

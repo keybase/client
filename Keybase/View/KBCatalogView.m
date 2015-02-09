@@ -71,24 +71,15 @@
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.loginView.delegate = self;
   connectView.signupView.delegate = self;
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:navigation];
-  [connectView showLogin:animated];
-  [window setLevel:NSFloatingWindowLevel];
-  [window makeKeyAndOrderFront:nil];
+  [connectView openWindow:@"Keybase"];
 }
 
 - (void)showSignup:(BOOL)animated {
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.loginView.delegate = self;
   connectView.signupView.delegate = self;
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:navigation];
   [connectView showSignup:animated];
-  [window setLevel:NSFloatingWindowLevel];
-  [window makeKeyAndOrderFront:nil];
+  [connectView openWindow:@"Keybase"];
 }
 
 - (void)showKeyGen:(BOOL)animated {
@@ -112,7 +103,7 @@
 
 - (void)prompt:(NSString *)type {
   if ([type isEqualTo:@"password"]) {
-    [KBAlert promptForInputWithTitle:@"Your secret password" description:@"Williamsburg heirloom Carles. Meggings sriracha High Life keytar photo booth craft beer. Artisan keytar cliche, Pinterest mumblecore 8-bit hella kale chips" secure:YES style:NSWarningAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+    [KBAlert promptForInputWithTitle:@"Your secret password" description:@"Williamsburg heirloom Carles. Meggings sriracha High Life keytar photo booth craft beer. Artisan keytar cliche, Pinterest mumblecore 8-bit hella kale chips" secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
 
     }];
   } else if ([type isEqualTo:@"yes_no"]) {

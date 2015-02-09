@@ -29,5 +29,9 @@
 
 + (NSString *)loadFile:(NSString *)file;
 
+#pragma mark Debug
+
+- (void)openCatalog;
+
 @end
 

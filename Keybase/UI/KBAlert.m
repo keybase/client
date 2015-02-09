@@ -11,9 +11,7 @@
 @implementation KBAlert
 
 - (void)showInView:(NSView *)view completion:(KBAlertResponse)completion {
-  NSWindow *window = view.window;
-  if (!window) window = [NSApp mainWindow];
-
+  NSWindow *window = view.window ? view.window : [NSApp mainWindow];
   if (window) {
     [self beginSheetModalForWindow:window completionHandler:completion];
   } else {
