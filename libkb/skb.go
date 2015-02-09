@@ -2,7 +2,10 @@ package libkb
 
 //
 // Code for encoding and decoding SKB-formatted keys. Also works for decoding
-// general Keybase Packet types, but we only have SKB at present
+// general Keybase Packet types, but we only have SKB at present.
+//
+// SKB = "Secret Key Bundle", which contains an unencrypted public key and
+// and encrypted secret key.
 //
 
 import (
