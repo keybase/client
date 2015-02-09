@@ -16,6 +16,7 @@ type LoginAndIdentifyArg struct {
 	Login      libkb.LoginArg
 	IdentifyUI libkb.IdentifyUI
 	LogUI      libkb.LogUI
+	DoctorUI   libkb.DoctorUI
 }
 
 func (e *LoginEngine) LoginAndIdentify(arg LoginAndIdentifyArg) error {
@@ -46,5 +47,14 @@ func (e *LoginEngine) LoginAndIdentify(arg LoginAndIdentifyArg) error {
 			log.Warning("Setting UID to %s", u.GetUid())
 		}
 	}
-	return err
+
+	if err != nil {
+		return err
+	}
+
+	// create a doctor engine to check the account
+	doctor := NewDoctor(arg.DoctorUI, arg.LogUI)
+	return doctor.LoginCheckup(u)
+
+	return nil
 }

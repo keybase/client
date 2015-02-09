@@ -251,6 +251,10 @@ type KeyGenUI interface {
 	GetPushPreferences() (pp keybase_1.PushPreferences, err error)
 }
 
+type DoctorUI interface {
+	keybase_1.DoctorUiInterface
+}
+
 type UI interface {
 	GetIdentifyUI(username string) IdentifyUI
 	GetIdentifySelfUI() IdentifyUI

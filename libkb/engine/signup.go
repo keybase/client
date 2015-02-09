@@ -13,7 +13,6 @@ type SignupEngine struct {
 	uid        libkb.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
-	lksKey     []byte
 	logUI      libkb.LogUI
 	gpgUI      GPGUI
 	secretUI   libkb.SecretUI
@@ -120,18 +119,16 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 
 func (s *SignupEngine) registerDevice(deviceName string) error {
 	eng := NewDeviceEngine(s.me, s.logUI)
-	err := eng.Run(deviceName, s.tspkey.LksClientHalf())
-	if err != nil {
+	if err := eng.Run(deviceName, s.tspkey.LksClientHalf()); err != nil {
 		return err
 	}
 	s.signingKey = eng.EldestKey()
-	s.lksKey = eng.LKSKey()
 	return nil
 }
 
 func (s *SignupEngine) genDetKeys() error {
 	eng := NewDetKeyEngine(s.me, s.signingKey, s.logUI)
-	return eng.RunWithLKSLoaded(&s.tspkey, s.lksKey)
+	return eng.Run(&s.tspkey)
 }
 
 func (s *SignupEngine) checkGPG() (bool, error) {

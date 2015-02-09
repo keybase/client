@@ -2,8 +2,9 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"sync"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type UserConfigWrapper struct {

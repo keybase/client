@@ -728,8 +728,11 @@ func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (kid KID, err 
 	G.Log.Debug("| Devices map: %+v", ckf.cki.Devices)
 
 	if device, found := ckf.cki.Devices[did.String()]; !found {
+		G.Log.Info("device %s not found in cki.Devices", did)
 	} else if device.Kid == nil || len(*device.Kid) == 0 {
+		G.Log.Info("device found, but Kid empty")
 	} else {
+		G.Log.Info("device found, kid: %s", device.Kid)
 		kid, err = ImportKID(*device.Kid)
 	}
 	G.Log.Debug("- Result -> (%v,%s)", kid, ErrToOk(err))
