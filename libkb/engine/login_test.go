@@ -142,6 +142,91 @@ func TestLoginAddsKeys(t *testing.T) {
 		t.Fatalf("user has no computed key family")
 	}
 
+	//	ckf.DumpToLog(G.UI.GetLogUI())
+
+	active := ckf.HasActiveKey()
+	if !active {
+		t.Errorf("user has no active key")
+	}
+
+	dsk, err := me.GetDeviceSibkey()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dsk == nil {
+		t.Fatal("nil sibkey")
+	}
+}
+
+func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
+	username, email := fakeUser(t, "login")
+	passphrase = fakePassphrase(t)
+
+	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
+
+	if err := s.genTSPassKey(passphrase); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.join(username, email, "202020202020202020202020"); err != nil {
+		t.Fatal(err)
+	}
+
+	// generate the detkey only, using SelfProof
+	eng := NewDetKeyEngine(s.me, nil, s.logUI)
+	if err := eng.RunSelfProof(&s.tspkey); err != nil {
+		t.Fatal(err)
+	}
+
+	return username, passphrase
+}
+
+func TestLoginDetKeyOnly(t *testing.T) {
+	tc := libkb.SetupTest(t, "login")
+	defer tc.Cleanup()
+
+	username, passphrase := createFakeUserWithDetKey(t)
+
+	G.LoginState.Logout()
+
+	larg := LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   username,
+			Passphrase: passphrase,
+			NoUi:       true,
+		},
+		LogUI:    G.UI.GetLogUI(),
+		DoctorUI: &ldocui{},
+	}
+	li := NewLoginEngine()
+	if err := li.LoginAndIdentify(larg); err != nil {
+		t.Fatal(err)
+	}
+	if err := G.Session.AssertLoggedIn(); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have a device key, login should have fixed that:
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	kf := me.GetKeyFamily()
+	if kf == nil {
+		t.Fatal("user has a nil key family")
+	}
+	if kf.GetEldest() == nil {
+		t.Fatal("user has no eldest key")
+	}
+
+	ckf := me.GetComputedKeyFamily()
+	if ckf == nil {
+		t.Fatalf("user has no computed key family")
+	}
+
 	ckf.DumpToLog(G.UI.GetLogUI())
 
 	active := ckf.HasActiveKey()

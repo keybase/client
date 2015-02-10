@@ -55,6 +55,4 @@ func (e *LoginEngine) LoginAndIdentify(arg LoginAndIdentifyArg) error {
 	// create a doctor engine to check the account
 	doctor := NewDoctor(arg.DoctorUI, arg.LogUI)
 	return doctor.LoginCheckup(u)
-
-	return nil
 }

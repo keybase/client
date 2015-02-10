@@ -3,8 +3,10 @@ package engine
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/agl/ed25519"
+	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/go/libkb"
 	"golang.org/x/crypto/nacl/box"
 )
@@ -12,6 +14,7 @@ import (
 type DetKeyEngine struct {
 	me         *libkb.User
 	signingKey libkb.GenericKey
+	selfProof  bool
 	logui      libkb.LogUI
 }
 
@@ -24,12 +27,25 @@ func (d *DetKeyEngine) Run(tpk *libkb.TSPassKey) error {
 	return d.run(tpk)
 }
 
+// RunSelfProof runs the detkey engine and uses the eddsa key as
+// the signing key.  This is currently only used for testing to
+// generate a fake users who only has a detkey, but perhaps it
+// will be useful for something else...
+func (d *DetKeyEngine) RunSelfProof(tpk *libkb.TSPassKey) error {
+	d.selfProof = true
+	return d.run(tpk)
+}
+
 func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {
 	if err := d.eddsa(tpk.EdDSASeed()); err != nil {
-		return err
+		return fmt.Errorf("eddsa error: %s", err)
 	}
+
+	// turn off self proof
+	d.selfProof = false
+
 	if err := d.dh(tpk.DHSeed()); err != nil {
-		return err
+		return fmt.Errorf("dh error: %s", err)
 	}
 	return nil
 }
@@ -44,14 +60,18 @@ func (d *DetKeyEngine) eddsa(seed []byte) error {
 		return err
 	}
 
-	G.Log.Info("detkey[eddsa] serverHalf: %x", serverHalf)
-	G.Log.Info("detkey[eddsa] pub:        %x", *pub)
-	G.Log.Info("detkey[eddsa] priv:       %x", *priv)
+	G.Log.Debug("detkey[eddsa] serverHalf: %x", serverHalf)
+	G.Log.Debug("detkey[eddsa] pub:        %x", *pub)
+	G.Log.Debug("detkey[eddsa] priv:       %x", *priv)
 
 	var key libkb.NaclSigningKeyPair
 	copy(key.Public[:], (*pub)[:])
 	key.Private = &libkb.NaclSigningKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
+
+	if d.selfProof {
+		d.signingKey = key
+	}
 
 	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, libkb.SIBKEY_TYPE)
 }
@@ -66,9 +86,9 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 		return err
 	}
 
-	G.Log.Info("detkey[dh] serverHalf: %x", serverHalf)
-	G.Log.Info("detkey[dh] pub:        %x", *pub)
-	G.Log.Info("detkey[dh] priv:       %x", *priv)
+	G.Log.Debug("detkey[dh] serverHalf: %x", serverHalf)
+	G.Log.Debug("detkey[dh] pub:        %x", *pub)
+	G.Log.Debug("detkey[dh] priv:       %x", *priv)
 
 	var key libkb.NaclDHKeyPair
 	copy(key.Public[:], (*pub)[:])
@@ -89,9 +109,17 @@ func (d *DetKeyEngine) serverSeed(seed []byte) (newseed, serverHalf []byte, err 
 }
 
 func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int, typ string) error {
-	jw, err := d.me.KeyProof(key, d.signingKey, typ, expire, nil)
+	var jw *jsonw.Wrapper
+	var err error
+
+	if d.selfProof {
+		fokid := libkb.GenericKeyToFOKID(key)
+		jw, err = d.me.SelfProof(key, &fokid, nil)
+	} else {
+		jw, err = d.me.KeyProof(key, d.signingKey, typ, expire, nil)
+	}
 	if err != nil {
-		return err
+		return fmt.Errorf("KeyProof error: %s", err)
 	}
 	sig, sigid, linkid, err := libkb.SignJson(jw, d.signingKey)
 	if err != nil {
@@ -107,6 +135,13 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 		EldestKey:  d.signingKey,
 		ServerHalf: hex.EncodeToString(serverHalf),
 	}
+
+	if d.selfProof {
+		arg.EldestKey = nil
+		arg.IsPrimary = true
+		arg.Type = "generic_binding"
+	}
+
 	if err := libkb.PostNewKey(arg); err != nil {
 		return err
 	}

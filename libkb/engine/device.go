@@ -31,7 +31,18 @@ func (d *DeviceEngine) Init() error {
 	return nil
 }
 
-func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) (err error) {
+// Run is for when the device key will be the eldest key.
+func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) error {
+	return d.run(deviceName, lksClientHalf)
+}
+
+// RunWithDetKey is for when you have a detkey already, but need a
+// device key.
+func (d *DeviceEngine) RunWithDetKey(deviceName string, lksClientHalf []byte, detkey libkb.GenericKey) error {
+	return d.run(deviceName, lksClientHalf)
+}
+
+func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte) (err error) {
 	existingDevID := G.Env.GetDeviceID()
 	if existingDevID != nil && len(existingDevID) > 0 {
 		G.Log.Info("found existing device: %q", existingDevID)
