@@ -53,6 +53,9 @@
 @implementation KBRPgpIdentity
 @end
 
+@implementation KBRImage
+@end
+
 @implementation KBRUser
 @end
 
@@ -76,9 +79,6 @@
   }];
 }
 
-@end
-
-@implementation KBRImage
 @end
 
 @implementation KBRDoctorUiRequest
