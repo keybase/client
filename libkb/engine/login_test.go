@@ -22,7 +22,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestLogin2(t *testing.T) {
-	tc := libkb.SetupTest(t, "login", false)
+	tc := libkb.SetupTest(t, "login")
 	defer tc.Cleanup()
 	username, passphrase := createFakeUser(t, "my device")
 
@@ -67,7 +67,7 @@ func createFakeUserWithNoKeys(t *testing.T) (username, passphrase string) {
 }
 
 func TestLoginFakeUserNoKeys(t *testing.T) {
-	tc := libkb.SetupTest(t, "login", false)
+	tc := libkb.SetupTest(t, "login")
 	defer tc.Cleanup()
 
 	createFakeUserWithNoKeys(t)
@@ -97,7 +97,7 @@ func TestLoginFakeUserNoKeys(t *testing.T) {
 }
 
 func TestLoginAddsKeys(t *testing.T) {
-	tc := libkb.SetupTest(t, "login", false)
+	tc := libkb.SetupTest(t, "login")
 	defer tc.Cleanup()
 
 	username, passphrase := createFakeUserWithNoKeys(t)
