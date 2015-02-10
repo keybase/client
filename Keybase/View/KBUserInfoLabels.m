@@ -51,7 +51,7 @@
     }
 
     for (NSView *view in yself.labels) {
-      y += [layout setFrame:CGRectMake(col1, y, size.width - x - 5, lineHeight) view:view].size.height;
+      y += [layout setFrame:CGRectMake(col1, y, size.width - x - 5, lineHeight) view:view options:YOLayoutOptionsSizeToFitHorizontal].size.height;
     }
 
     return CGSizeMake(size.width, y);
@@ -73,9 +73,9 @@
   return nil;
 }
 
-- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock {
-  [_headerLabel setText:typeName font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  KBButton *button = [KBButton buttonWithText:@"Connect" style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+- (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
+  [_headerLabel setText:header font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment];
   button.targetBlock = targetBlock;
   [_labels addObject:button];
   [self addSubview:button];
@@ -87,16 +87,13 @@
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
 
   NSString *keyDescription;
-  if (key.pgpFingerprint) {
-    keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
-  } else {
-    keyDescription = [key.kid na_hexString];
-  }
+  //if (key.pgpFingerprint) {
+  keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
+//  } else if (key.kid) {
+//    keyDescription = NSStringWithFormat(@"%@...", [[key.kid na_hexString] substringToIndex:16]);
+//  }
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment];
-  button.targetBlock = ^{
-
-  };
-
+  button.targetBlock = ^{ targetBlock(self, key); };
   [_labels addObject:button];
   [self addSubview:button];
   [self setNeedsLayout];
@@ -106,15 +103,13 @@
   _imageView.image = [NSImage imageNamed:@"24-Business-Finance-black-bitcoins-30"];
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
   KBButton *button = [KBButton buttonWithText:cryptocurrency.address style:KBButtonStyleLink alignment:NSLeftTextAlignment];
-  button.targetBlock = ^{
-
-  };
+  button.targetBlock = ^{ targetBlock(self, cryptocurrency); };
   [_labels addObject:button];
   [self addSubview:button];
   [self setNeedsLayout];
 }
 
-- (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
+- (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   _proofResults = proofResults;
   //NSImage *image = [NSImage imageNamed:KBImageNameForProveType(proveType)];
   //_imageView.image = image;
@@ -129,7 +124,7 @@
     //[self addLabelWithText:@"Edit" font:[NSFont systemFontOfSize:14] tag:-1 targetBlock:^(id sender) { targetBlock(blockSelf, nil); }];
   } else {
     for (NSInteger index = 0; index < [proofResults count]; index++) {
-      KBProofLabel *proofLabel = [KBProofLabel labelWithProofResult:proofResults[index]];
+      KBProofLabel *proofLabel = [KBProofLabel labelWithProofResult:proofResults[index] editable:editable];
       __weak KBProofLabel *selectLabel = proofLabel;
       proofLabel.targetBlock = ^{ targetBlock(selectLabel); };
       [_labels addObject:proofLabel];

@@ -43,8 +43,8 @@
     decisionHandler(WKNavigationActionPolicyCancel);
   }
 
-  if ([path isEqualTo:@"/login"]) [self showLogin:YES];
-  if ([path isEqualTo:@"/signup"]) [self showSignup:YES];
+  if ([path isEqualTo:@"/login"]) [self showLogin];
+  if ([path isEqualTo:@"/signup"]) [self showSignup];
   if ([path isEqualTo:@"/keygen"]) [self showKeyGen:YES];
   if ([path gh_startsWith:@"/prove/"]) [self showProve:[path lastPathComponent]];
 
@@ -67,18 +67,19 @@
   AppDelegate.sharedDelegate.status = status;
 }
 
-- (void)showLogin:(BOOL)animated {
+- (void)showLogin {
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.loginView.delegate = self;
   connectView.signupView.delegate = self;
+  [connectView showLogin:NO];
   [connectView openWindow:@"Keybase"];
 }
 
-- (void)showSignup:(BOOL)animated {
+- (void)showSignup {
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.loginView.delegate = self;
   connectView.signupView.delegate = self;
-  [connectView showSignup:animated];
+  [connectView showSignup:NO];
   [connectView openWindow:@"Keybase"];
 }
 
@@ -129,7 +130,7 @@
   [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
-  [userProfileView setUser:user track:YES];
+  [userProfileView setUser:user editable:NO];
 }
 
 - (void)showTrackReplay:(NSString *)username {
@@ -143,7 +144,7 @@
   [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
-  [userProfileView setUser:user track:NO];
+  [userProfileView setUser:user editable:NO];
   if (![AppDelegate.client replayRecordId:NSStringWithFormat(@"track/%@", username)]) KBDebugAlert(@"Nothing to replay; Did you unpack the recorded data (./record.sh unpack)?");
 }
 
@@ -163,9 +164,7 @@
     text.data = @"<p>Please <strong>publicly</strong> post the following to the internets, and name it <strong>hello.md</strong></p>";
     text.markup = 1;
     NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
-    [instructionsView setInstructions:text proofText:proofText targetBlock:^{
-      // 
-    }];
+    [instructionsView setInstructions:text proofText:proofText];
     [self openInWindow:instructionsView];
   }
 }

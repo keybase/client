@@ -62,6 +62,9 @@
 
   // Just for mocking, getting at data the RPC client doesn't give us yet
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
+
+  // For debugging
+  [self openCatalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {

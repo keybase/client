@@ -20,6 +20,9 @@ typedef NS_ENUM (NSInteger, KBProveType) {
 };
 NSString *KBServiceNameForProveType(KBProveType proveType);
 KBProveType KBProveTypeForServiceName(NSString *serviceName);
+KBProveType KBProveTypeFromAPI(NSInteger proofType);
+
 NSString *KBImageNameForProveType(KBProveType proveType);
 NSString *KBNameForProveType(KBProveType proveType);
-KBProveType KBProveTypeFromAPI(NSInteger proofType);
+NSString *KBDescriptionForProveType(KBProveType proveType);
+

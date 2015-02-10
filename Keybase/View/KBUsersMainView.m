@@ -65,7 +65,7 @@
 }
 
 - (void)usersView:(KBUsersView *)usersView didSelectUser:(KBRUser *)user {
-  [_userProfileView setUser:user track:YES];
+  [_userProfileView setUser:user editable:NO];
 }
 
 - (void)setUser:(KBRUser *)user {

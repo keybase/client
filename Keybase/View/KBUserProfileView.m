@@ -26,7 +26,9 @@
 @property KBTrackView *trackView;
 
 @property KBRUser *user;
-@property BOOL track;
+@property BOOL editable;
+
+@property KBRFOKID *fokid;
 
 @property YONSView *contentView;
 @end
@@ -70,8 +72,11 @@
 
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.displayKey" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRFOKID *fokid = [MTLJSONAdapter modelOfClass:KBRFOKID.class fromJSONDictionary:params[0][@"fokid"] error:nil];
-    [yself.userInfoView addKey:fokid];
-    [yself setNeedsLayout];
+    yself.fokid = fokid;
+    if (fokid.pgpFingerprint) {
+      [yself.userInfoView addKey:fokid];
+      [yself setNeedsLayout];
+    }
 
     completion(nil, nil);
   }];
@@ -79,8 +84,13 @@
   [AppDelegate.client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {    
     KBRIdentity *identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"id"] error:nil];
     //GHDebug(@"Identity: %@", identity);
-    [yself.userInfoView addIdentity:identity targetBlock:^(KBProofLabel *proofLabel) {
-      if (proofLabel.proofResult.result.hint.humanUrl) [yself openURLString:proofLabel.proofResult.result.hint.humanUrl];
+    [yself.userInfoView addProofs:identity.proofs editable:yself.editable targetBlock:^(KBProofLabel *proofLabel) {
+      if (proofLabel.proofResult.result.proofStatus.status != 1) {
+        // Fix it?
+        [self connectWithProveType:KBProveTypeFromAPI(proofLabel.proofResult.proof.proofType)];
+      } else if (proofLabel.proofResult.result.hint.humanUrl) {
+        [yself openURLString:proofLabel.proofResult.result.hint.humanUrl];
+      }
     }];
     [yself setNeedsLayout];
     [yself updateWindow];
@@ -120,8 +130,8 @@
     //[yself.navigation.titleView setProgressEnabled:NO];
     [yself.headerView setProgressEnabled:NO];
 
-    if (!yself.track) {
-      GHDebug(@"Not tracking (identify)");
+    if (yself.editable) {
+      GHDebug(@"Editable (not tracking, identify)");
       completion(nil, nil);
       return;
     }
@@ -188,17 +198,28 @@
   [self setNeedsLayout];
 }
 
-- (void)setUser:(KBRUser *)user track:(BOOL)track {
+- (void)connectWithProveType:(KBProveType)proveType {
+  GHWeakSelf gself = self;
+  [KBProveView connectWithProveType:proveType sender:self completion:^(BOOL canceled) {
+    if (!canceled) [gself reload];
+  }];
+}
+
+- (void)reload {
+  [self setUser:self.user editable:self.editable];
+}
+
+- (void)setUser:(KBRUser *)user editable:(BOOL)editable {
   [self clear];
 
   _user = user;
-  _track = track;
+  _editable = editable;
   [_headerView setUser:_user];
   _headerView.hidden = NO;
 
   GHWeakSelf gself = self;
 
-  if (track) {
+  if (!_editable) {
     //[self.navigation.titleView setProgressEnabled:YES];
     [self.headerView setProgressEnabled:YES];
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:AppDelegate.client];
@@ -212,14 +233,37 @@
     [identifyRequest identifyDefaultWithUsername:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
       [gself.headerView setProgressEnabled:NO];
 
+      [gself.userInfoView addHeader:@" " text:@" " targetBlock:^{}];
+
+      if (!gself.fokid) {
+        [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
+          KBTODO();
+        }];
+      }
+
       for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
         KBProveType proveType = [proveTypeNumber integerValue];
-        [gself.userInfoView addConnectWithTypeName:KBNameForProveType(proveType) targetBlock:^{
-          [KBProveView connectWithProveType:proveType sender:gself completion:^(BOOL canceled) {
-            // Reload
-            [gself setUser:user track:NO];
-          }];
-        }];
+
+        switch (proveType) {
+          case KBProveTypeDNS: {
+            [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProveType:proveType]; }];
+            break;
+          }
+          case KBProveTypeHTTPS: {
+            [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProveType:proveType]; }];
+            break;
+          }
+          case KBProveTypeTwitter:
+          case KBProveTypeGithub:
+          case KBProveTypeReddit:
+          case KBProveTypeCoinbase:
+          case KBProveTypeHackernews: {
+            [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBDescriptionForProveType(proveType)) targetBlock:^{ [gself connectWithProveType:proveType]; }];
+            break;
+          }
+          case KBProveTypeUnknown:
+            break;
+        }
       }
       [self setNeedsLayout];
     }];

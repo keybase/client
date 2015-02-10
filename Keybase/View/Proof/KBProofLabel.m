@@ -10,15 +10,15 @@
 
 @implementation KBProofLabel
 
-+ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult {
++ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult editable:(BOOL)editable {
   KBProofLabel *button = [[KBProofLabel alloc] init];
   button.proofResult = proofResult;
+  button.editable = editable;
   return button;
 }
 
 - (void)setProofResult:(KBProofResult *)proofResult {
   _proofResult = proofResult;
-  self.bordered = NO;
 
   BOOL errored = NO;
   NSColor *color = [KBLookAndFeel selectColor];
@@ -64,7 +64,7 @@
       color = [KBLookAndFeel errorColor];
       errored = YES;
       errorMessage = _proofResult.result.proofStatus.desc;
-      info = @"status error";
+      info = NSStringWithFormat(@"error: %@", @(_proofResult.result.proofStatus.status));
     } else if (!_proofResult.result.hint.humanUrl) {
       // No link
       color = [KBLookAndFeel textColor];
@@ -91,7 +91,7 @@
     [result appendAttributedString:[[NSAttributedString alloc] initWithString:@")" attributes:attributes]];
   }
 
-  [self setAttributedTitle:result];
+  [self setAttributedTitle:result style:KBButtonStyleText];
 }
 
 @end

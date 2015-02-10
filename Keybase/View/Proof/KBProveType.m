@@ -56,6 +56,19 @@ NSString *KBNameForProveType(KBProveType proveType) {
   }
 }
 
+NSString *KBDescriptionForProveType(KBProveType proveType) {
+  switch (proveType) {
+    case KBProveTypeUnknown: return nil;
+    case KBProveTypeTwitter: return @"Twitter";
+    case KBProveTypeGithub: return @"Github";
+    case KBProveTypeReddit: return @"Reddit";
+    case KBProveTypeCoinbase: return @"Coinbase";
+    case KBProveTypeHackernews: return @"Hackernews";
+    case KBProveTypeDNS: return @"Domain";
+    case KBProveTypeHTTPS: return @"Website";
+  }
+}
+
 KBProveType KBProveTypeFromAPI(NSInteger proofType) {
   if (proofType == 2) return KBProveTypeTwitter;
   else if (proofType == 3) return KBProveTypeGithub;

@@ -43,6 +43,9 @@
   _button = [KBButton buttonWithText:@"OK, I posted it." style:KBButtonStylePrimary];
   [self addSubview:_button];
 
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleLink];
+  [self addSubview:_cancelButton];
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 10;
@@ -50,30 +53,25 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.instructionsLabel].size.height + 10;
 
     [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width - 80, CGFLOAT_MAX) view:yself.proofLabel];
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, size.height - y - 170) view:yself.scrollView].size.height + 10;
+    y += [layout setFrame:CGRectMake(40, y, size.width - 80, size.height - y - 190) view:yself.scrollView].size.height + 10;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.clipboardCopyButton].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.clipboardCopyButton].size.height + 20;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.button].size.height;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.button].size.height + 20;
+
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.cancelButton].size.height;
 
     return CGSizeMake(size.width, y);
   }];
 }
 
-- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText targetBlock:(KBButtonTargetBlock)targetBlock {
+- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText {
   // TODO Check instructions.markup
   self.instructionsLabel.attributedText = [KBLabel parseMarkup:instructions.data font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor]];
 
   _proofText = proofText;
   [self.proofLabel setText:proofText font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  [self setNeedsLayout];
-  [self sizeToFit];
-
-  GHWeakSelf gself = self;
-  self.button.targetBlock = ^{
-    [AppDelegate setInProgress:YES view:gself.superview];
-    targetBlock();
-  };
+  [self layoutView];
 }
 
 @end

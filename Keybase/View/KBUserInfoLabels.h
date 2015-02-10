@@ -18,7 +18,7 @@
 
 @property (readonly) NSArray *proofResults;
 
-- (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
+- (void)addProofResults:(NSArray *)proofResults proveType:(KBProveType)proveType editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
 
 - (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock;
 
@@ -28,6 +28,6 @@
 
 - (KBProofLabel *)findLabelForSigId:(KBRSIGID *)sigId;
 
-- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock;
+- (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 
 @end

@@ -47,9 +47,9 @@
 
 - (CGSize)sizeThatFits:(CGSize)size {
   CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-  if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
-    return CGSizeMake(textSize.width, size.height);
-  }
+//  if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
+//    return CGSizeMake(textSize.width, size.height);
+//  }
   return textSize;
 }
 

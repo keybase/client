@@ -61,7 +61,7 @@
 - (void)showProfile {
   NSAssert(_user, @"No user");
   _userProfileView = [[KBUserProfileView alloc] init];
-  [_userProfileView setUser:_user track:NO];
+  [_userProfileView setUser:_user editable:YES];
   [self setContentView:_userProfileView];
 }
 

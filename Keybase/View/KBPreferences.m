@@ -39,9 +39,9 @@
     [recordCheckbox.cell addObserver:self forKeyPath:@"state" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:NULL];
     [advancedView addSubview:recordCheckbox];
 
-    KBButton *catalog = [KBButton buttonWithText:@"Catalog" style:KBButtonStyleLink alignment:NSLeftTextAlignment];
-    catalog.targetBlock = ^{ [AppDelegate.sharedDelegate openCatalog]; };
-    [advancedView addSubview:catalog];
+//    KBButton *catalog = [KBButton buttonWithText:@"Catalog" style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+//    catalog.targetBlock = ^{ [AppDelegate.sharedDelegate openCatalog]; };
+//    [advancedView addSubview:catalog];
 
     advancedView.viewLayout = [YOLayout vertical:advancedView.subviews margin:UIEdgeInsetsMake(20, 40, 20, 40) padding:10];
     [advancedView layoutView];

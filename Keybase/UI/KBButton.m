@@ -51,11 +51,14 @@
 }
 
 - (CGSize)sizeThatFits:(NSSize)size {
+  CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
   if (self.style == KBButtonStyleLink || self.style == KBButtonStyleCheckbox) {
-    return [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
+    return sizeThatFits;
+  } else {
+    sizeThatFits.height += 20;
+    sizeThatFits.width += 40;
+    return sizeThatFits;
   }
-
-  return CGSizeMake(size.width, size.height > 0 ? MIN(46, size.height) : 46);
 }
 
 //- (CGSize)sizeThatFits:(CGSize)size {
@@ -81,13 +84,26 @@
   [self setAttributedTitle:[KBButton attributedText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode]];
 }
 
-- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
-  self.style = style;
++ (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style sender:(id)sender {
   KBButtonCell *cell = [[KBButtonCell alloc] init];
   cell.style = style;
-  [cell setText:text alignment:alignment];
-  cell.target = self;
+  cell.target = sender;
   cell.action = @selector(_performTargetBlock);
+  return cell;
+}
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
+  self.style = style;
+  KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
+  [cell setText:text alignment:alignment];
+  self.cell = cell;
+  [self setNeedsDisplay];
+}
+
+- (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style {
+  self.style = style;
+  KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
+  [cell setAttributedTitle:attributedTitle];
   self.cell = cell;
   [self setNeedsDisplay];
 }
@@ -112,7 +128,7 @@
 }
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment {
-  [self setAttributedTitle:[KBButton attributedText:text font:[self fontForStyle] color:[NSColor blackColor] alignment:alignment lineBreakMode:NSLineBreakByTruncatingTail]];
+  [self setAttributedTitle:[KBButton attributedText:text font:[self fontForStyle] color:[KBLookAndFeel textColor] alignment:alignment lineBreakMode:NSLineBreakByTruncatingTail]];
 }
 
 - (NSFont *)fontForStyle {
@@ -120,6 +136,7 @@
     case KBButtonStyleDefault:
     case KBButtonStylePrimary: return [NSFont systemFontOfSize:18];
     case KBButtonStyleLink: return [NSFont systemFontOfSize:14];
+    case KBButtonStyleText: return [NSFont systemFontOfSize:14];
     case KBButtonStyleCheckbox: return [NSFont systemFontOfSize:14];
   }
 }
@@ -130,6 +147,7 @@
     case KBButtonStyleDefault: return GHNSColorFromRGB(0x333333);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0xFFFFFF);
     case KBButtonStyleLink: return self.highlighted ? GHNSColorFromRGB(0x000000) : [KBLookAndFeel selectColor];
+    case KBButtonStyleText: NSAssert(NO, @"Text style shouldn't get here");
     case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
   }
 }
@@ -140,6 +158,7 @@
     case KBButtonStylePrimary:
       return GHNSColorFromRGB(0xEFEFEF);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
   }
 }
@@ -149,6 +168,7 @@
     case KBButtonStyleDefault: return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0x286090);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
   }
 }
@@ -160,6 +180,7 @@
     case KBButtonStyleDefault: return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : GHNSColorFromRGB(0xFFFFFF));
     case KBButtonStylePrimary: return self.highlighted ? GHNSColorFromRGB(0x286090) : GHNSColorFromRGB(0x337AB7);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
   }
 }
@@ -169,6 +190,7 @@
     case KBButtonStyleDefault:
     case KBButtonStylePrimary: return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
   }
 }
@@ -179,6 +201,7 @@
     case KBButtonStyleDefault: return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0x2e6da4);
     case KBButtonStyleLink: return nil;
+    case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
   }
 }
@@ -186,7 +209,9 @@
 - (NSRect)drawTitle:(NSAttributedString *)title withFrame:(NSRect)frame inView:(NSView*)controlView {
   // Cache this?
   NSMutableAttributedString *titleCopy = [title mutableCopy];
-  [titleCopy addAttribute:NSForegroundColorAttributeName value:self.textColorForState range:NSMakeRange(0, titleCopy.length)];
+  if (self.style != KBButtonStyleText) {
+    [titleCopy addAttribute:NSForegroundColorAttributeName value:self.textColorForState range:NSMakeRange(0, titleCopy.length)];
+  }
   return [super drawTitle:titleCopy withFrame:frame inView:controlView];
 }
 

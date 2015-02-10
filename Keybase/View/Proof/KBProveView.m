@@ -34,6 +34,9 @@
 
   _instructionsView = [[KBProveInstructionsView alloc] init];
   _instructionsView.hidden = YES;
+  _instructionsView.cancelButton.targetBlock = ^{
+    gself.completion(YES);
+  };
   [self addSubview:_instructionsView];
 
   [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptUsername" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -42,8 +45,9 @@
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.proveUi.okToCheck" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    /*
     NSInteger attempt = [params[0][@"attempt"] integerValue];
+
+    /*
     NSString *name = params[0][@"name"];
     NSString *prompt = NSStringWithFormat(@"Check %@%@?", name, attempt > 0 ? @" again" : @"");
 
@@ -51,7 +55,8 @@
       completion(nil, @(response == NSAlertFirstButtonReturn));
     }];
      */
-    completion(nil, @(YES));
+
+    completion(nil, @(attempt == 0));
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -80,7 +85,11 @@
     KBRText *instructions = [MTLJSONAdapter modelOfClass:KBRText.class fromJSONDictionary:params[0][@"instructions"] error:nil];
     NSString *proof = params[0][@"proof"];
 
+    [AppDelegate setInProgress:NO view:gself];
+    [self.navigation.titleView setProgressEnabled:NO];
     [self setInstructions:instructions proofText:proof targetBlock:^{
+      [AppDelegate setInProgress:YES view:gself];
+      [gself.navigation.titleView setProgressEnabled:YES];
       completion(nil, @(YES));
     }];
   }];
@@ -89,7 +98,7 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 40;
 
-    [layout setFrame:CGRectMake(0, y, size.width, 0) view:yself.instructionsView];
+    [layout setFrame:CGRectMake(0, y, size.width, size.height) view:yself.instructionsView];
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.inputView].size.height;
 
@@ -115,17 +124,16 @@
   };
 }
 
-- (void)viewDidAppear:(BOOL)animated {
-  [self.window makeFirstResponder:_inputView];
-}
-
 - (void)setProveType:(KBProveType)proveType {
   _proveType = proveType;
   [_inputView setProveType:proveType];
+
+  [self.window makeFirstResponder:_inputView.inputField];
 }
 
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText targetBlock:(KBButtonTargetBlock)targetBlock {
-  [_instructionsView setInstructions:instructions proofText:proofText targetBlock:targetBlock];
+  [_instructionsView setInstructions:instructions proofText:proofText];
+  _instructionsView.button.targetBlock = targetBlock;
 
   // TODO Animate change
   self.inputView.hidden = YES;
@@ -145,19 +153,16 @@
   NSAssert(service, @"No service");
 
   GHWeakSelf gself = self;
-  [AppDelegate setInProgress:YES view:_inputView];
-  KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:AppDelegate.client];
+  [AppDelegate setInProgress:YES view:self];
   [self.navigation.titleView setProgressEnabled:YES];
+  KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:AppDelegate.client];
   [prove proveWithService:service username:userName force:NO completion:^(NSError *error) {
-    [AppDelegate setInProgress:NO view:gself.inputView];
+    [AppDelegate setInProgress:NO view:gself];
     [self.navigation.titleView setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:gself.inputView];
       return;
     }
-
-    [AppDelegate setInProgress:NO view:gself];
-
     self.completion(NO);
   }];
 }

@@ -15,7 +15,8 @@
 @interface KBProofLabel : KBButton
 
 @property (nonatomic) KBProofResult *proofResult;
+@property BOOL editable;
 
-+ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult;
++ (KBProofLabel *)labelWithProofResult:(KBProofResult *)proofResult editable:(BOOL)editable;
 
 @end

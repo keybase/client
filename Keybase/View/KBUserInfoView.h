@@ -20,11 +20,11 @@
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency;
 
-- (void)addIdentity:(KBRIdentity *)identity targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
+- (void)addProofs:(NSArray *)proofs editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
 
 - (void)clear;
 
-- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock;
+- (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 
 - (NSArray *)missingProveTypes;
 

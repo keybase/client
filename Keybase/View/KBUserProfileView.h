@@ -19,7 +19,7 @@
 
 @property BOOL mock;
 
-- (void)setUser:(KBRUser *)user track:(BOOL)track;
+- (void)setUser:(KBRUser *)user editable:(BOOL)editable;
 
 - (void)clear;
 

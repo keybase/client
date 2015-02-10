@@ -73,31 +73,29 @@
   return proveTypes;
 }
 
-- (void)addConnectWithTypeName:(NSString *)typeName targetBlock:(dispatch_block_t)targetBlock {
+- (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-  [label addConnectWithTypeName:typeName targetBlock:targetBlock];
+  [label addHeader:header text:text targetBlock:targetBlock];
   [self addLabels:@[label]];
 }
 
 - (void)addKey:(KBRFOKID *)key {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-  [label addKey:key targetBlock:^(id sender, KBProofResult *proofResult) {
-    GHDebug(@"Selected: %@", proofResult);
+  [label addKey:key targetBlock:^(id sender, KBRFOKID *key) {
+    GHDebug(@"Selected: %@", key);
   }];
   [self addLabels:@[label]];
 }
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-  [label addCryptocurrency:cryptocurrency targetBlock:^(id sender, KBProofResult *proofResult) {
-    GHDebug(@"Selected: %@", proofResult);
+  [label addCryptocurrency:cryptocurrency targetBlock:^(id sender, KBRCryptocurrency *proofResult) {
+    GHDebug(@"Selected: %@", cryptocurrency);
   }];
   [self addLabels:@[label]];
 }
 
-- (void)addIdentity:(KBRIdentity *)identity targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
-  NSArray *proofs = identity.proofs;
-
+- (void)addProofs:(NSArray *)proofs editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock {
   MPOrderedDictionary *results = [MPOrderedDictionary dictionary];
   for (KBRIdentifyRow *row in proofs) {
     [results addObject:[KBProofResult proofResultForProof:row.proof result:nil] forKey:@(KBProveTypeFromAPI(row.proof.proofType))];
@@ -106,7 +104,7 @@
   for (id key in results) {
     NSArray *proofResults = results[key];
     KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
-    [label addProofResults:proofResults proveType:[key integerValue] targetBlock:targetBlock];
+    [label addProofResults:proofResults proveType:[key integerValue] editable:editable targetBlock:targetBlock];
     [self addLabels:@[label]];
   }
 
