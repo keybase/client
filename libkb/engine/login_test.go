@@ -150,15 +150,13 @@ func TestLoginAddsKeys(t *testing.T) {
 	}
 
 	// XXX hold off on this, max could be fixing a bug related to this:
-	/*
-		dsk, err := me.GetDeviceSibkey()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if dsk == nil {
-			t.Fatal("nil sibkey")
-		}
-	*/
+	dsk, err := me.GetDeviceSibkey()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dsk == nil {
+		t.Fatal("nil sibkey")
+	}
 }
 
 type ldocui struct{}
