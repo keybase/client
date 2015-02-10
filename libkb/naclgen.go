@@ -1,11 +1,14 @@
 package libkb
 
 import (
+	"fmt"
+
 	jsonw "github.com/keybase/go-jsonw"
-	// "github.com/agl/ed25519"
-	// "golang.org/x/crypto/nacl/box"
-	// "golang.org/x/crypto/nacl/secretbox"
 )
+
+// "github.com/agl/ed25519"
+// "golang.org/x/crypto/nacl/box"
+// "golang.org/x/crypto/nacl/secretbox"
 
 type NaclKeyGenArg struct {
 	Signer    GenericKey // who is going to sign us into the Chain
@@ -54,7 +57,7 @@ func (g *NaclKeyGen) Push() (err error) {
 		jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn, g.arg.Device)
 	}
 	if err != nil {
-		return
+		return err
 	}
 
 	signer := g.arg.Signer
@@ -67,7 +70,7 @@ func (g *NaclKeyGen) Push() (err error) {
 	var id *SigId
 	var lid LinkId
 	if sig, id, lid, err = SignJson(jw, signer); err != nil {
-		return
+		return fmt.Errorf("sign json err: %s", err)
 	}
 	arg := PostNewKeyArg{
 		Sig:        sig,
@@ -103,6 +106,7 @@ func (g *NaclKeyGen) RunLKS(lks *LKSec) (err error) {
 		return
 	}
 	if err = g.Push(); err != nil {
+		G.Log.Info("push error: %s", err)
 		return
 	}
 	return

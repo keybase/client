@@ -1,6 +1,10 @@
 package engine
 
-import "github.com/keybase/go/libkb"
+import (
+	"fmt"
+
+	"github.com/keybase/go/libkb"
+)
 
 type Doctor struct {
 	user  *libkb.User
@@ -44,13 +48,26 @@ func (d *Doctor) checkKeys() error {
 	isDet, err := d.user.GetComputedKeyFamily().IsDetKey(eldest)
 	if err == nil {
 		G.Log.Info("eldest key is a detkey? %v", isDet)
-		G.Log.Info("eldest key: %+v", eldest)
+		G.Log.Info("eldest key: %s", eldest.VerboseDescription())
 	} else {
 		G.Log.Info("IsDetKey error: %s", err)
 	}
 
+	// XXX eldest should be a detkey, but the stuff above is failing...
+
+	// XXX also, eldest/detkey doesn't have private key.
+	// for now, let's just make a detkey in memory for this purpose...
+
+	// XXX need the serverHalf to reconstruct it...
+
+	detkey, err := GenSigningDetKey(d.tspkey(), nil)
+	if err != nil {
+		return err
+	}
+	G.Log.Info("generated detkey: %s", detkey.VerboseDescription())
+
 	// make a device key for them:
-	return d.addDeviceKeyWithDetKey()
+	return d.addDeviceKeyWithDetKey(detkey)
 }
 
 // addBasicKeys is used for accounts that have no device or det
@@ -82,15 +99,15 @@ func (d *Doctor) addDeviceKey() error {
 	return nil
 }
 
-func (d *Doctor) addDeviceKeyWithDetKey() error {
+func (d *Doctor) addDeviceKeyWithDetKey(eldest libkb.GenericKey) error {
 	// XXX session id...what to put there?
 	devname, err := d.docUI.PromptDeviceName(0)
 	if err != nil {
 		return err
 	}
 	eng := NewDeviceEngine(d.user, d.logUI)
-	if err := eng.RunWithDetKey(devname, d.tspkey().LksClientHalf(), nil); err != nil {
-		return err
+	if err := eng.RunWithDetKey(devname, d.tspkey().LksClientHalf(), eldest); err != nil {
+		return fmt.Errorf("RunWithDetKey error: %s", err)
 	}
 
 	d.signingKey = eng.EldestKey()

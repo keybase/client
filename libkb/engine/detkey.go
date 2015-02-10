@@ -37,7 +37,7 @@ func (d *DetKeyEngine) RunSelfProof(tpk *libkb.TSPassKey) error {
 }
 
 func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {
-	if err := d.eddsa(tpk.EdDSASeed()); err != nil {
+	if err := d.eddsa(tpk); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)
 	}
 
@@ -50,24 +50,34 @@ func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {
 	return nil
 }
 
-func (d *DetKeyEngine) eddsa(seed []byte) error {
-	xseed, serverHalf, err := d.serverSeed(seed)
+func (d *DetKeyEngine) eddsa(tpk *libkb.TSPassKey) error {
+	/*
+		xseed, serverHalf, err := serverSeed(seed)
+		if err != nil {
+			return err
+		}
+		pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(xseed))
+		if err != nil {
+			return err
+		}
+
+		G.Log.Debug("detkey[eddsa] serverHalf: %x", serverHalf)
+		G.Log.Debug("detkey[eddsa] pub:        %x", *pub)
+		G.Log.Debug("detkey[eddsa] priv:       %x", *priv)
+
+		var key libkb.NaclSigningKeyPair
+		copy(key.Public[:], (*pub)[:])
+		key.Private = &libkb.NaclSigningKeyPrivate{}
+		copy(key.Private[:], (*priv)[:])
+	*/
+	serverHalf, err := libkb.RandBytes(len(tpk.EdDSASeed()))
 	if err != nil {
 		return err
 	}
-	pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(xseed))
+	key, err := GenSigningDetKey(tpk, serverHalf)
 	if err != nil {
 		return err
 	}
-
-	G.Log.Debug("detkey[eddsa] serverHalf: %x", serverHalf)
-	G.Log.Debug("detkey[eddsa] pub:        %x", *pub)
-	G.Log.Debug("detkey[eddsa] priv:       %x", *priv)
-
-	var key libkb.NaclSigningKeyPair
-	copy(key.Public[:], (*pub)[:])
-	key.Private = &libkb.NaclSigningKeyPrivate{}
-	copy(key.Private[:], (*priv)[:])
 
 	if d.selfProof {
 		d.signingKey = key
@@ -76,8 +86,33 @@ func (d *DetKeyEngine) eddsa(seed []byte) error {
 	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, libkb.SIBKEY_TYPE)
 }
 
+func GenSigningDetKey(tpk *libkb.TSPassKey, serverHalf []byte) (gkey libkb.GenericKey, err error) {
+	xseed, err := serverSeed(tpk.EdDSASeed(), serverHalf)
+	if err != nil {
+		return nil, err
+	}
+	pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(xseed))
+	if err != nil {
+		return nil, err
+	}
+
+	G.Log.Debug("detkey[eddsa] pub:        %x", *pub)
+	G.Log.Debug("detkey[eddsa] priv:       %x", *priv)
+
+	var key libkb.NaclSigningKeyPair
+	copy(key.Public[:], (*pub)[:])
+	key.Private = &libkb.NaclSigningKeyPrivate{}
+	copy(key.Private[:], (*priv)[:])
+
+	return key, nil
+}
+
 func (d *DetKeyEngine) dh(seed []byte) error {
-	xseed, serverHalf, err := d.serverSeed(seed)
+	serverHalf, err := libkb.RandBytes(len(seed))
+	if err != nil {
+		return err
+	}
+	xseed, err := serverSeed(seed, serverHalf)
 	if err != nil {
 		return err
 	}
@@ -98,14 +133,14 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 	return d.push(key, serverHalf, libkb.NACL_DH_EXPIRE_IN, libkb.SUBKEY_TYPE)
 }
 
-func (d *DetKeyEngine) serverSeed(seed []byte) (newseed, serverHalf []byte, err error) {
-	serverHalf, err = libkb.RandBytes(len(seed))
-	if err != nil {
-		return
-	}
+func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
+	//	serverHalf, err = libkb.RandBytes(len(seed))
+	//	if err != nil {
+	//		return
+	//	}
 	newseed = make([]byte, len(seed))
 	libkb.XORBytes(newseed, seed, serverHalf)
-	return newseed, serverHalf, nil
+	return newseed, nil
 }
 
 func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int, typ string) error {

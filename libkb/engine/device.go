@@ -33,16 +33,16 @@ func (d *DeviceEngine) Init() error {
 
 // Run is for when the device key will be the eldest key.
 func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) error {
-	return d.run(deviceName, lksClientHalf)
+	return d.run(deviceName, lksClientHalf, nil)
 }
 
 // RunWithDetKey is for when you have a detkey already, but need a
 // device key.
 func (d *DeviceEngine) RunWithDetKey(deviceName string, lksClientHalf []byte, detkey libkb.GenericKey) error {
-	return d.run(deviceName, lksClientHalf)
+	return d.run(deviceName, lksClientHalf, detkey)
 }
 
-func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte) (err error) {
+func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, detkey libkb.GenericKey) (err error) {
 	existingDevID := G.Env.GetDeviceID()
 	if existingDevID != nil && len(existingDevID) > 0 {
 		G.Log.Info("found existing device: %q", existingDevID)
@@ -62,8 +62,14 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte) (err error) 
 	G.Log.Debug("Device name:   %s", d.deviceName)
 	G.Log.Debug("Device ID:     %x", d.deviceID)
 
-	if err = d.pushEldestKey(); err != nil {
-		return err
+	if detkey == nil {
+		if err = d.pushEldestKey(); err != nil {
+			return err
+		}
+	} else {
+		if err = d.pushSibKey(detkey); err != nil {
+			return err
+		}
 	}
 
 	if wr := G.Env.GetConfigWriter(); wr != nil {
@@ -112,6 +118,26 @@ func (d *DeviceEngine) pushEldestKey() error {
 		return err
 	}
 	d.eldestKey = gen.GetKeyPair()
+	return nil
+}
+
+func (d *DeviceEngine) pushSibKey(detkey libkb.GenericKey) error {
+	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+		Signer:    detkey,
+		Primary:   detkey,
+		Generator: libkb.GenerateNaclSigningKeyPair,
+		Type:      libkb.SIBKEY_TYPE,
+		Me:        d.me,
+		ExpireIn:  libkb.NACL_DH_EXPIRE_IN,
+		Device:    d.device(),
+		LogUI:     d.logui,
+	})
+	err := gen.RunLKS(d.lks)
+	if err != nil {
+		return err
+	}
+	// d.eldestKey = gen.GetKeyPair()
+	d.eldestKey = detkey
 	return nil
 }
 
