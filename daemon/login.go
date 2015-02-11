@@ -87,3 +87,7 @@ func NewRemoteDoctorUI(sessionId int, c *rpc2.Client) *RemoteDoctorUI {
 func (r *RemoteDoctorUI) PromptDeviceName(sessionID int) (string, error) {
 	return r.uicli.PromptDeviceName(sessionID)
 }
+
+func (r *RemoteDoctorUI) SelectSigner() (keybase_1.SelectSignerRes, error) {
+	return r.uicli.SelectSigner()
+}

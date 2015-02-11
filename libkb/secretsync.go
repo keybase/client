@@ -196,6 +196,20 @@ func (ss *SecretSyncer) FindDevice(id *DeviceID) (DeviceKey, error) {
 	return dev, nil
 }
 
+func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
+	if ss.keys == nil {
+		return nil, fmt.Errorf("no keys")
+	}
+	return ss.keys.Devices, nil
+}
+
+func (ss *SecretSyncer) HasDevices() bool {
+	if ss.keys == nil {
+		return false
+	}
+	return len(ss.keys.Devices) > 0
+}
+
 // FindDetKeySrvHalf locates the detkey matching kt and returns
 // the bundle, which is the server half of the detkey.
 func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {

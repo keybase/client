@@ -77,43 +77,23 @@ func (d *Doctor) checkKeys() error {
 		return nil
 	}
 
-	// for informational purposes only:
-	eldest := kf.FindKey(kf.GetEldest().Kid)
-	isDet, err := d.user.GetComputedKeyFamily().IsDetKey(eldest)
-	if err == nil {
-		G.Log.Info("eldest key is a detkey? %v", isDet)
-		G.Log.Info("eldest key: %s", eldest.VerboseDescription())
-	} else {
-		G.Log.Info("IsDetKey error: %s", err)
-	}
-
-	// XXX eldest should be a detkey, but the stuff above is failing...
-
-	// XXX also, eldest/detkey doesn't have private key.
-	// for now, let's just make a detkey in memory for this purpose...
-
-	// XXX need the serverHalf to reconstruct it...
-
+	// make sure secretsyncer loaded
 	err = G.SecretSyncer.Load(d.user.GetUid())
 	if err != nil {
 		return err
 	}
-	half, err := G.SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
-	if err != nil {
-		return err
+
+	if G.SecretSyncer.HasDevices() {
+		// they have at least one device, just not this device...
+		return d.deviceSign()
 	}
 
-	tk, err := d.tspkey()
+	// they don't have any devices.  use their detkey to sign a new device.
+	dk, err := d.detkey()
 	if err != nil {
 		return err
 	}
-	detkey, err := GenSigningDetKey(tk, half)
-	if err != nil {
-		return err
-	}
-
-	// make a device key for them:
-	return d.addDeviceKeyWithDetKey(detkey)
+	return d.addDeviceKeyWithDetKey(dk)
 }
 
 // addBasicKeys is used for accounts that have no device or det
@@ -177,6 +157,10 @@ func (d *Doctor) addDetKey() error {
 	return eng.Run(tk)
 }
 
+func (d *Doctor) deviceSign() error {
+	return nil
+}
+
 func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {
 	t := G.LoginState.GetCachedTSPassKey()
 	if t != nil {
@@ -193,4 +177,24 @@ func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {
 		return nil, err
 	}
 	return G.LoginState.GetCachedTSPassKey(), nil
+}
+
+func (d *Doctor) detkey() (libkb.GenericKey, error) {
+	// get server half of detkey via ss
+	half, err := G.SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	if err != nil {
+		return nil, err
+	}
+
+	// regenerate the detkey
+	tk, err := d.tspkey()
+	if err != nil {
+		return nil, err
+	}
+
+	detkey, err := GenSigningDetKey(tk, half)
+	if err != nil {
+		return nil, err
+	}
+	return detkey, nil
 }
