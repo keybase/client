@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
@@ -33,6 +34,7 @@ func (v *CmdLogin) RunClient() (err error) {
 		NewIdentifySelfUIProtocol(),
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
+		NewDoctorUIProtocol(),
 	}
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
@@ -50,6 +52,7 @@ func (v *CmdLogin) Run() error {
 			Prompt:   true,
 			Retry:    3,
 			Username: v.Username,
+			SecretUI: G_UI.GetSecretUI(),
 		},
 		IdentifyUI: G_UI.GetIdentifySelfUI(),
 	})

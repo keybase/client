@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type UI struct {
@@ -433,6 +434,10 @@ func (ui *UI) GetGPGUI() keybase_1.GpgUiInterface {
 	return GPGUI{ui}
 }
 
+func (ui *UI) GetDoctorUI() libkb.DoctorUI {
+	return DoctorUI{ui}
+}
+
 //============================================================
 
 type ProveUI struct {
@@ -536,6 +541,17 @@ It can only be decrypted with your passphrase, which Keybase never knows.
 
 func (g GPGUI) WantToAddGPGKey() (bool, error) {
 	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
+}
+
+//============================================================
+
+type DoctorUI struct {
+	parent *UI
+}
+
+func (d DoctorUI) PromptDeviceName(sessionID int) (string, error) {
+	return d.parent.Prompt("Enter a name for this device", false,
+		libkb.CheckNotEmpty)
 }
 
 //============================================================
@@ -828,4 +844,8 @@ func (ui *UI) Output(s string) error {
 
 func (ui *UI) OutputWriter() io.Writer {
 	return os.Stdout
+}
+
+func NewDoctorUIProtocol() rpc2.Protocol {
+	return keybase_1.DoctorUiProtocol(G_UI.GetDoctorUI())
 }

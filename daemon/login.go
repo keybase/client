@@ -10,10 +10,11 @@ import (
 type LoginHandler struct {
 	BaseHandler
 	identifyUi libkb.IdentifyUI
+	doctorUI   libkb.DoctorUI
 }
 
 func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
-	return &LoginHandler{BaseHandler{xp: xp}, nil}
+	return &LoginHandler{BaseHandler: BaseHandler{xp: xp}}
 }
 
 func (h *LoginHandler) getIdentifyUI(sessionId int, username string) libkb.IdentifyUI {
@@ -21,6 +22,13 @@ func (h *LoginHandler) getIdentifyUI(sessionId int, username string) libkb.Ident
 		h.identifyUi = h.NewRemoteSelfIdentifyUI(sessionId, username)
 	}
 	return h.identifyUi
+}
+
+func (h *LoginHandler) getDoctorUI(sessionId int) libkb.DoctorUI {
+	if h.doctorUI == nil {
+		h.doctorUI = NewRemoteDoctorUI(sessionId, h.getRpcClient())
+	}
+	return h.doctorUI
 }
 
 func (u *LoginUI) GetEmailOrUsername() (ret string, err error) {
@@ -50,6 +58,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		liarg.IdentifyUI = h.getIdentifyUI(sessid, arg.Username)
 	}
 	liarg.LogUI = h.getLogUI(sessid)
+	liarg.DoctorUI = h.getDoctorUI(sessid)
 
 	li := engine.NewLoginEngine()
 	return li.LoginAndIdentify(liarg)
@@ -61,4 +70,20 @@ func (h *LoginHandler) PubkeyLogin() error {
 
 func (h *LoginHandler) SwitchUser(username string) error {
 	return nil
+}
+
+type RemoteDoctorUI struct {
+	sessionId int
+	uicli     keybase_1.DoctorUiClient
+}
+
+func NewRemoteDoctorUI(sessionId int, c *rpc2.Client) *RemoteDoctorUI {
+	return &RemoteDoctorUI{
+		sessionId: sessionId,
+		uicli:     keybase_1.DoctorUiClient{c},
+	}
+}
+
+func (r *RemoteDoctorUI) PromptDeviceName(sessionID int) (string, error) {
+	return r.uicli.PromptDeviceName(sessionID)
 }

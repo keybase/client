@@ -4,18 +4,20 @@ import (
 	"fmt"
 
 	"github.com/keybase/go/libkb"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 type Doctor struct {
-	user  *libkb.User
-	docUI libkb.DoctorUI
-	logUI libkb.LogUI
+	user     *libkb.User
+	docUI    libkb.DoctorUI
+	secretUI libkb.SecretUI
+	logUI    libkb.LogUI
 
 	signingKey libkb.GenericKey
 }
 
-func NewDoctor(docUI libkb.DoctorUI, logUI libkb.LogUI) *Doctor {
-	return &Doctor{docUI: docUI, logUI: logUI}
+func NewDoctor(docUI libkb.DoctorUI, secUI libkb.SecretUI, logUI libkb.LogUI) *Doctor {
+	return &Doctor{docUI: docUI, secretUI: secUI, logUI: logUI}
 }
 
 func (d *Doctor) LoginCheckup(u *libkb.User) error {
@@ -69,7 +71,11 @@ func (d *Doctor) checkKeys() error {
 		return err
 	}
 
-	detkey, err := GenSigningDetKey(d.tspkey(), half)
+	tk, err := d.tspkey()
+	if err != nil {
+		return err
+	}
+	detkey, err := GenSigningDetKey(tk, half)
 	if err != nil {
 		return err
 	}
@@ -98,8 +104,12 @@ func (d *Doctor) addDeviceKey() error {
 	if err != nil {
 		return err
 	}
+	tk, err := d.tspkey()
+	if err != nil {
+		return err
+	}
 	eng := NewDeviceEngine(d.user, d.logUI)
-	if err := eng.Run(devname, d.tspkey().LksClientHalf()); err != nil {
+	if err := eng.Run(devname, tk.LksClientHalf()); err != nil {
 		return err
 	}
 
@@ -113,8 +123,12 @@ func (d *Doctor) addDeviceKeyWithDetKey(eldest libkb.GenericKey) error {
 	if err != nil {
 		return err
 	}
+	tk, err := d.tspkey()
+	if err != nil {
+		return err
+	}
 	eng := NewDeviceEngine(d.user, d.logUI)
-	if err := eng.RunWithDetKey(devname, d.tspkey().LksClientHalf(), eldest); err != nil {
+	if err := eng.RunWithDetKey(devname, tk.LksClientHalf(), eldest); err != nil {
 		return fmt.Errorf("RunWithDetKey error: %s", err)
 	}
 
@@ -123,11 +137,28 @@ func (d *Doctor) addDeviceKeyWithDetKey(eldest libkb.GenericKey) error {
 }
 
 func (d *Doctor) addDetKey() error {
+	tk, err := d.tspkey()
+	if err != nil {
+		return err
+	}
 	eng := NewDetKeyEngine(d.user, d.signingKey, d.logUI)
-	return eng.Run(d.tspkey())
+	return eng.Run(tk)
 }
 
-func (d *Doctor) tspkey() *libkb.TSPassKey {
-	// XXX if this doesn't exist, perhaps should use the secret ui to get the passphrase?
-	return G.LoginState.GetCachedTSPassKey()
+func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {
+	t := G.LoginState.GetCachedTSPassKey()
+	if t != nil {
+		return t, nil
+	}
+
+	// not cached: get it from the ui
+	pp, err := d.secretUI.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{Username: G.Env.GetUsername()})
+	if err != nil {
+		return nil, err
+	}
+	err = G.LoginState.StretchKey(pp)
+	if err != nil {
+		return nil, err
+	}
+	return G.LoginState.GetCachedTSPassKey(), nil
 }
