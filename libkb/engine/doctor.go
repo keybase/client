@@ -60,7 +60,16 @@ func (d *Doctor) checkKeys() error {
 
 	// XXX need the serverHalf to reconstruct it...
 
-	detkey, err := GenSigningDetKey(d.tspkey(), nil)
+	err = G.SecretSyncer.Load(d.user.GetUid())
+	if err != nil {
+		return err
+	}
+	half, err := G.SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	if err != nil {
+		return err
+	}
+
+	detkey, err := GenSigningDetKey(d.tspkey(), half)
 	if err != nil {
 		return err
 	}

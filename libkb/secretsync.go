@@ -3,6 +3,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"fmt"
 	"sync"
 )
@@ -193,4 +194,23 @@ func (ss *SecretSyncer) FindDevice(id *DeviceID) (DeviceKey, error) {
 		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)
 	}
 	return dev, nil
+}
+
+// FindDetKeySrvHalf locates the detkey matching kt and returns
+// the bundle, which is the server half of the detkey.
+func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
+	if kt != KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF && kt != KEY_TYPE_KB_NACL_DH_SERVER_HALF {
+		return nil, fmt.Errorf("invalid key type")
+	}
+	if ss.keys == nil {
+		return nil, fmt.Errorf("no keys")
+	}
+	for _, key := range ss.keys.PrivateKeys {
+		if KeyType(key.KeyType) != kt {
+			continue
+		}
+		G.Log.Info("key: %+v", key)
+		return hex.DecodeString(key.Bundle)
+	}
+	return nil, NotFoundError{msg: "detkey not found"}
 }

@@ -94,6 +94,18 @@ const (
 	SIG_TYPE_ANNOUNCEMENT   = 7
 )
 
+type KeyType int
+
+const (
+	KEY_TYPE_NONE                      KeyType = 0
+	KEY_TYPE_OPEN_PGP_PUBLIC                   = 1
+	KEY_TYPE_P3SKB_PRIVATE                     = 2
+	KEY_TYPE_KB_NACL_EDDSA                     = 3
+	KEY_TYPE_KB_NACL_DH                        = 4
+	KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF         = 5
+	KEY_TYPE_KB_NACL_DH_SERVER_HALF            = 6
+)
+
 var PGP_VERSION = "Keybase Go CLI " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
 
 func PgpArmorHeaders() map[string]string {
