@@ -21,7 +21,7 @@ type ServerPrivateKey struct {
 type ServerPrivateKeyMap map[string]ServerPrivateKey
 
 type DeviceKey struct {
-	Type          int    `json:"type"`
+	Type          string `json:"type"`
 	CTime         int64  `json:"ctime"`
 	MTime         int64  `json:"mtime"`
 	Description   string `json:"description"`
