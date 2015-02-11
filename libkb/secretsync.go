@@ -209,7 +209,6 @@ func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
 		if KeyType(key.KeyType) != kt {
 			continue
 		}
-		G.Log.Info("key: %+v", key)
 		return hex.DecodeString(key.Bundle)
 	}
 	return nil, NotFoundError{msg: "detkey not found"}

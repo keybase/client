@@ -73,7 +73,6 @@ func (d *Doctor) checkKeys() error {
 	if err != nil {
 		return err
 	}
-	G.Log.Info("generated detkey: %s", detkey.VerboseDescription())
 
 	// make a device key for them:
 	return d.addDeviceKeyWithDetKey(detkey)
