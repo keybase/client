@@ -208,7 +208,6 @@ func TestLoginDetKeyOnly(t *testing.T) {
 		t.Errorf("user has no active key")
 	}
 
-	// XXX hold off on this, max could be fixing a bug related to this:
 	dsk, err := me.GetDeviceSibkey()
 	if err != nil {
 		t.Fatal(err)
@@ -218,12 +217,61 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	}
 }
 
-type ldocui struct{}
+func TestLoginNewDevice(t *testing.T) {
+	tc := libkb.SetupTest(t, "login")
+	u1 := CreateAndSignupFakeUser(t, "login")
+	G.LoginState.Logout()
+	tc.Cleanup()
+
+	// redo SetupTest to get a new home directory...should look like a new device.
+	tc2 := libkb.SetupTest(t, "login")
+	defer tc2.Cleanup()
+
+	docui := &ldocui{}
+
+	larg := LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   u1.Username,
+			Passphrase: u1.Passphrase,
+			NoUi:       true,
+		},
+		LogUI:    G.UI.GetLogUI(),
+		DoctorUI: docui,
+	}
+
+	before := docui.selectSignerCount
+
+	li := NewLoginEngine()
+	/*
+		if err := li.LoginAndIdentify(larg); err != nil {
+			t.Fatal(err)
+		}
+		if err := G.Session.AssertLoggedIn(); err != nil {
+			t.Fatal(err)
+		}
+	*/
+
+	if err := li.LoginAndIdentify(larg); err != ErrNotYetImplemented {
+		t.Fatal(err)
+	}
+
+	after := docui.selectSignerCount
+	if after-before != 1 {
+		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
+	}
+}
+
+type ldocui struct {
+	selectSignerCount int
+}
 
 func (l *ldocui) PromptDeviceName(sid int) (string, error) {
 	return "my test device", nil
 }
 
 func (l *ldocui) SelectSigner() (res keybase_1.SelectSignerRes, err error) {
+	l.selectSignerCount++
 	return
 }

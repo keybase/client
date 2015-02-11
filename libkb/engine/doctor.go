@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/go/libkb"
@@ -157,8 +158,11 @@ func (d *Doctor) addDetKey() error {
 	return eng.Run(tk)
 }
 
+var ErrNotYetImplemented = errors.New("not yet implemented")
+
 func (d *Doctor) deviceSign() error {
-	return nil
+	d.docUI.SelectSigner()
+	return ErrNotYetImplemented
 }
 
 func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {
