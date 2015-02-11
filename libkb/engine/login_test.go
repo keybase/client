@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go/libkb"
-	//keybase_1 "github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 func TestLogin(t *testing.T) {
@@ -224,8 +224,6 @@ func (l *ldocui) PromptDeviceName(sid int) (string, error) {
 	return "my test device", nil
 }
 
-/*
 func (l *ldocui) SelectSigner() (res keybase_1.SelectSignerRes, err error) {
 	return
 }
-*/
