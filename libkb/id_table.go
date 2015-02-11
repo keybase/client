@@ -331,10 +331,7 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 	jw := base.payloadJson.AtKey("body").AtKey("service")
 
 	if jw.IsNil() {
-		self := &SelfSigChainLink{base, nil}
-		if e = self.ParseDevice(); e == nil {
-			ret = self
-		}
+		ret, e = ParseSelfSigChainLink(base)
 	} else if sb, err := ParseServiceBlock(jw); err != nil {
 		e = fmt.Errorf("%s @%s", err.Error(), base.ToDebugString())
 	} else if sb.social {
@@ -763,6 +760,14 @@ func (s *SelfSigChainLink) GetDevice() *Device {
 	return s.device
 }
 
+func ParseSelfSigChainLink(base GenericChainLink) (ret *SelfSigChainLink, err error) {
+	ret = &SelfSigChainLink{base, nil}
+	if err = ret.ParseDevice(); err != nil {
+		ret = nil
+	}
+	return
+}
+
 //
 //=========================================================================
 
@@ -831,6 +836,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 		err = fmt.Errorf("No type in signature @%s", base.ToDebugString())
 	} else {
 		switch s {
+		case "eldest":
+			ret, err = ParseSelfSigChainLink(base)
 		case "web_service_binding":
 			ret, err = ParseWebServiceBinding(base)
 		case "track":

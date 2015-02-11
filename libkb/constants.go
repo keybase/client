@@ -69,6 +69,7 @@ const (
 const (
 	SIBKEY_TYPE = "sibkey"
 	SUBKEY_TYPE = "subkey"
+	ELDEST_TYPE = "eldest"
 )
 
 // Taken from node-client/src/constants.iced

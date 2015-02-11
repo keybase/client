@@ -15,7 +15,7 @@ type NaclKeyGenArg struct {
 	ExpiresIn int
 	Generator func() (NaclKeyPair, error)
 	Me        *User
-	Type      string
+	Sibkey    bool
 	ExpireIn  int        // how long it lasts
 	Primary   GenericKey // the primary key for this epoch
 	LogUI     LogUI
@@ -48,14 +48,22 @@ func (g *NaclKeyGen) SaveLKS(lks *LKSec) error {
 
 func (g *NaclKeyGen) Push() (err error) {
 	var jw *jsonw.Wrapper
+	var pushType string
 	eldest := g.arg.Signer == nil && g.arg.Primary == nil
 
-	if eldest {
-		fokid := GenericKeyToFOKID(g.pair)
-		jw, err = g.arg.Me.SelfProof(g.pair, &fokid, g.arg.Device)
-	} else {
-		jw, err = g.arg.Me.KeyProof(g.pair, g.arg.Signer, g.arg.Type, g.arg.ExpireIn, g.arg.Device)
+	kpArg := KeyProofArg{
+		NewKey: g.pair,
+		Sibkey: g.arg.Sibkey,
+		Device: g.arg.Device,
+		Expire: g.arg.ExpireIn,
 	}
+
+	if !eldest {
+		kpArg.ExistingKey = g.arg.Signer
+	}
+
+	jw, pushType, err = g.arg.Me.KeyProof(kpArg)
+
 	if err != nil {
 		return err
 	}
@@ -75,7 +83,7 @@ func (g *NaclKeyGen) Push() (err error) {
 	arg := PostNewKeyArg{
 		Sig:        sig,
 		Id:         *id,
-		Type:       g.arg.Type,
+		Type:       pushType,
 		EldestKey:  g.arg.Primary,
 		SigningKey: signer,
 		PublicKey:  g.pair,

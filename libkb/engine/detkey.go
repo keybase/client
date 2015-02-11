@@ -83,7 +83,7 @@ func (d *DetKeyEngine) eddsa(tpk *libkb.TSPassKey) error {
 		d.signingKey = key
 	}
 
-	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, libkb.SIBKEY_TYPE)
+	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
 }
 
 func GenSigningDetKey(tpk *libkb.TSPassKey, serverHalf []byte) (gkey libkb.GenericKey, err error) {
@@ -130,7 +130,7 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 	key.Private = &libkb.NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(key, serverHalf, libkb.NACL_DH_EXPIRE_IN, libkb.SUBKEY_TYPE)
+	return d.push(key, serverHalf, libkb.NACL_DH_EXPIRE_IN, false)
 }
 
 func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
@@ -143,16 +143,21 @@ func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
 	return newseed, nil
 }
 
-func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int, typ string) error {
+func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
 	var jw *jsonw.Wrapper
 	var err error
-
-	if d.selfProof {
-		fokid := libkb.GenericKeyToFOKID(key)
-		jw, err = d.me.SelfProof(key, &fokid, nil)
-	} else {
-		jw, err = d.me.KeyProof(key, d.signingKey, typ, expire, nil)
+	var pushType string
+	kpArg := libkb.KeyProofArg{
+		NewKey: key,
+		Sibkey: sibkey,
+		Expire: expire,
 	}
+
+	if !d.selfProof {
+		kpArg.ExistingKey = d.signingKey
+	}
+	jw, pushType, err = d.me.KeyProof(kpArg)
+
 	if err != nil {
 		return fmt.Errorf("KeyProof error: %s", err)
 	}
@@ -164,7 +169,7 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 	arg := libkb.PostNewKeyArg{
 		Sig:        sig,
 		Id:         *sigid,
-		Type:       typ,
+		Type:       pushType,
 		PublicKey:  key,
 		SigningKey: d.signingKey,
 		EldestKey:  d.signingKey,
@@ -174,7 +179,6 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 	if d.selfProof {
 		arg.EldestKey = nil
 		arg.IsPrimary = true
-		arg.Type = "generic_binding"
 	}
 
 	if err := libkb.PostNewKey(arg); err != nil {

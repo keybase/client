@@ -219,14 +219,42 @@ func setDeviceOnBody(body *jsonw.Wrapper, key GenericKey, device Device) {
 	body.SetKey("device", device.Export())
 }
 
-func (u *User) SelfProof(signingKey GenericKey, eldest *FOKID, device *Device) (ret *jsonw.Wrapper, err error) {
+type KeyProofArg struct {
+	NewKey      GenericKey
+	ExistingKey GenericKey
+	Expire      int
+	Device      *Device
+	Sibkey      bool
+}
+
+func (u *User) KeyProof(arg KeyProofArg) (ret *jsonw.Wrapper, pushType string, err error) {
+	if arg.ExistingKey == nil {
+		fokid := GenericKeyToFOKID(arg.NewKey)
+		ret, err = u.eldestKeyProof(arg.NewKey, &fokid, arg.Device)
+		pushType = ELDEST_TYPE
+	} else {
+		if arg.Sibkey {
+			pushType = SIBKEY_TYPE
+		} else {
+			pushType = SUBKEY_TYPE
+		}
+		ret, err = u.delegateKeyProof(arg.NewKey, arg.ExistingKey, pushType, arg.Expire, arg.Device)
+	}
+	return
+}
+
+func (u *User) eldestKeyProof(signingKey GenericKey, eldest *FOKID, device *Device) (ret *jsonw.Wrapper, err error) {
+	return u.selfProof(signingKey, eldest, device, ELDEST_TYPE)
+}
+
+func (u *User) selfProof(signingKey GenericKey, eldest *FOKID, device *Device, typ string) (ret *jsonw.Wrapper, err error) {
 	ret, err = u.ProofMetadata(0, signingKey, eldest)
 	if err != nil {
 		return
 	}
 	body := ret.AtKey("body")
 	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
-	body.SetKey("type", jsonw.NewString("web_service_binding"))
+	body.SetKey("type", jsonw.NewString(typ))
 
 	if device != nil {
 		setDeviceOnBody(body, signingKey, *device)
@@ -236,7 +264,7 @@ func (u *User) SelfProof(signingKey GenericKey, eldest *FOKID, device *Device) (
 }
 
 func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename string) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.SelfProof(signingKey, nil, nil)
+	ret, err = u.selfProof(signingKey, nil, nil, "web_service_binding")
 	if err != nil {
 		return
 	}
@@ -278,7 +306,7 @@ func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey) (ret *
 	return
 }
 
-func (u *User) KeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int, device *Device) (ret *jsonw.Wrapper, err error) {
+func (u *User) delegateKeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int, device *Device) (ret *jsonw.Wrapper, err error) {
 	ret, err = u.ProofMetadata(ei, signingkey, nil)
 	if err != nil {
 		return

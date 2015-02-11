@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
 	keybase_1 "github.com/keybase/protocol/go"
 	"golang.org/x/crypto/openpgp"
@@ -183,7 +182,14 @@ func (s *KeyGen) GeneratePost() error {
 		}
 	}
 
-	jw, err := s.me.KeyProof(s.bundle, devsk, SIBKEY_TYPE, KEY_EXPIRE_IN, nil)
+	kpArg := KeyProofArg{
+		ExistingKey: devsk,
+		NewKey:      s.bundle,
+		Expire:      KEY_EXPIRE_IN,
+		Sibkey:      true,
+	}
+
+	jw, pushType, err := s.me.KeyProof(kpArg)
 	if err != nil {
 		return err
 	}
@@ -195,7 +201,7 @@ func (s *KeyGen) GeneratePost() error {
 	postArg := PostNewKeyArg{
 		Sig:        sig,
 		Id:         *sigid,
-		Type:       SIBKEY_TYPE,
+		Type:       pushType,
 		PublicKey:  s.bundle,
 		SigningKey: devsk,
 		EldestKey:  devsk,
@@ -211,41 +217,6 @@ func (s *KeyGen) GeneratePost() error {
 	}
 
 	return PostNewKey(postArg)
-}
-
-func (s *KeyGen) GeneratePostOld() (err error) {
-	var jw *jsonw.Wrapper
-	var seckey, pubkey string
-	var sig string
-	var sigid *SigId
-
-	fokid := GenericKeyToFOKID(s.bundle)
-
-	if jw, err = s.me.SelfProof(s.bundle, &fokid, nil); err != nil {
-		return
-	}
-	if sig, sigid, s.chainTail.linkId, err = SignJson(jw, s.bundle); err != nil {
-		return
-	}
-	s.chainTail.sigId = sigid
-	if pubkey, err = s.bundle.Encode(); err != nil {
-		return
-	}
-	if seckey, err = s.p3skb.ArmoredEncode(); err != nil {
-		return
-	}
-
-	s.httpArgs = &HttpArgs{
-		"sig_id_base":  S{sigid.ToString(false)},
-		"sig_id_short": S{sigid.ToShortId()},
-		"sig":          S{sig},
-		"public_key":   S{pubkey},
-		"is_primary":   I{1},
-	}
-	if s.arg.DoSecretPush {
-		s.httpArgs.Add("private_key", S{seckey})
-	}
-	return
 }
 
 func (s *KeyGen) PostToServer() error {
