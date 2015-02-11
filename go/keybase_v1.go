@@ -179,12 +179,41 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	return
 }
 
+type DeviceSignerKind int
+
+const (
+	DeviceSignerKind_DEVICE = 0
+	DeviceSignerKind_PGP    = 1
+)
+
+type SelectSignerAction int
+
+const (
+	SelectSignerAction_SIGN          = 0
+	SelectSignerAction_LOGOUT        = 1
+	SelectSignerAction_RESET_ACCOUNT = 2
+)
+
+type DeviceSigner struct {
+	Kind     DeviceSignerKind `codec:"kind"`
+	DeviceID *string          `codec:"deviceID,omitempty"`
+}
+
+type SelectSignerRes struct {
+	Action SelectSignerAction `codec:"action"`
+	Signer *DeviceSigner      `codec:"signer,omitempty"`
+}
+
 type PromptDeviceNameArg struct {
 	SessionId int `codec:"sessionId"`
 }
 
+type SelectSignerArg struct {
+}
+
 type DoctorUiInterface interface {
 	PromptDeviceName(int) (string, error)
+	SelectSigner() (SelectSignerRes, error)
 }
 
 func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
@@ -195,6 +224,13 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
 				args := make([]PromptDeviceNameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PromptDeviceName(args[0].SessionId)
+				}
+				return
+			},
+			"selectSigner": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SelectSignerArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SelectSigner()
 				}
 				return
 			},
@@ -210,6 +246,11 @@ type DoctorUiClient struct {
 func (c DoctorUiClient) PromptDeviceName(sessionId int) (res string, err error) {
 	__arg := PromptDeviceNameArg{SessionId: sessionId}
 	err = c.Cli.Call("keybase.1.doctorUi.promptDeviceName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DoctorUiClient) SelectSigner() (res SelectSignerRes, err error) {
+	err = c.Cli.Call("keybase.1.doctorUi.selectSigner", []interface{}{SelectSignerArg{}}, &res)
 	return
 }
 

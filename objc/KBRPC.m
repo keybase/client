@@ -81,12 +81,31 @@
 
 @end
 
+@implementation KBRDeviceSigner
+@end
+
+@implementation KBRSelectSignerRes
+@end
+
 @implementation KBRDoctorUiRequest
 - (void)promptDeviceNameWithSessionId:(NSInteger )sessionId completion:(void (^)(NSError *error, NSString * str))completion {
 
   NSArray *params = @[@{@"sessionId": @(sessionId)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.promptDeviceName" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error, 0);
+  }];
+}
+
+- (void)selectSigner:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion {
+
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.selectSigner" params:params completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRSelectSignerRes *result = [MTLJSONAdapter modelOfClass:KBRSelectSignerRes.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
   }];
 }
 

@@ -72,8 +72,29 @@
 
 @end
 
+typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
+	KBRDeviceSignerKindDevice,
+	KBRDeviceSignerKindPgp,
+};
+typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
+	KBRSelectSignerActionSign,
+	KBRSelectSignerActionLogout,
+	KBRSelectSignerActionResetAccount,
+};
+@interface KBRDeviceSigner : KBRObject
+@property KBRDeviceSignerKind kind;
+@property NSString *deviceID;
+@end
+
+@interface KBRSelectSignerRes : KBRObject
+@property KBRSelectSignerAction action;
+@property KBRDeviceSigner *signer;
+@end
+
 @interface KBRDoctorUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionId:(NSInteger )sessionId completion:(void (^)(NSError *error, NSString * str))completion;
+
+- (void)selectSigner:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion;
 
 @end
 

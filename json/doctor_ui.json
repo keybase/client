@@ -100,6 +100,34 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
+  }, {
+    "type" : "enum",
+    "name" : "DeviceSignerKind",
+    "symbols" : [ "DEVICE", "PGP" ]
+  }, {
+    "type" : "enum",
+    "name" : "SelectSignerAction",
+    "symbols" : [ "SIGN", "LOGOUT", "RESET_ACCOUNT" ]
+  }, {
+    "type" : "record",
+    "name" : "DeviceSigner",
+    "fields" : [ {
+      "name" : "kind",
+      "type" : "DeviceSignerKind"
+    }, {
+      "name" : "deviceID",
+      "type" : [ "null", "string" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SelectSignerRes",
+    "fields" : [ {
+      "name" : "action",
+      "type" : "SelectSignerAction"
+    }, {
+      "name" : "signer",
+      "type" : [ "null", "DeviceSigner" ]
+    } ]
   } ],
   "messages" : {
     "promptDeviceName" : {
@@ -108,6 +136,10 @@
         "type" : "int"
       } ],
       "response" : "string"
+    },
+    "selectSigner" : {
+      "request" : [ ],
+      "response" : "SelectSignerRes"
     }
   }
 }
