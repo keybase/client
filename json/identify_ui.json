@@ -72,6 +72,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "Image",
+    "fields" : [ {
+      "name" : "url",
+      "type" : "string"
+    }, {
+      "name" : "width",
+      "type" : "int"
+    }, {
+      "name" : "height",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "User",
     "fields" : [ {
       "name" : "uid",
@@ -79,6 +92,9 @@
     }, {
       "name" : "username",
       "type" : "string"
+    }, {
+      "name" : "image",
+      "type" : [ "null", "Image" ]
     } ]
   }, {
     "type" : "fixed",

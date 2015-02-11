@@ -64,6 +64,7 @@
 @property BOOL registered;
 @property BOOL loggedIn;
 @property KBRUser *user;
+@property NSString *serverUri;
 @end
 
 @interface KBRConfigRequest : KBRRequest

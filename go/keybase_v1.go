@@ -135,15 +135,16 @@ type Image struct {
 type User struct {
 	Uid      UID    `codec:"uid"`
 	Username string `codec:"username"`
-	Image    Image  `codec:"image"`
+	Image    *Image `codec:"image,omitempty"`
 }
 
 type SIGID [32]byte
 type GetCurrentStatusRes struct {
-	Configured bool  `codec:"configured"`
-	Registered bool  `codec:"registered"`
-	LoggedIn   bool  `codec:"loggedIn"`
-	User       *User `codec:"user,omitempty"`
+	Configured bool   `codec:"configured"`
+	Registered bool   `codec:"registered"`
+	LoggedIn   bool   `codec:"loggedIn"`
+	User       *User  `codec:"user,omitempty"`
+	ServerUri  string `codec:"serverUri"`
 }
 
 type GetCurrentStatusArg struct {

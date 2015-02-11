@@ -94,7 +94,7 @@
       "type" : "string"
     }, {
       "name" : "image",
-      "type" : "Image"
+      "type" : [ "null", "Image" ]
     } ]
   }, {
     "type" : "fixed",
@@ -115,6 +115,9 @@
     }, {
       "name" : "user",
       "type" : [ "null", "User" ]
+    }, {
+      "name" : "serverUri",
+      "type" : "string"
     } ]
   } ],
   "messages" : {
