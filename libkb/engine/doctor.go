@@ -161,7 +161,19 @@ func (d *Doctor) addDetKey() error {
 var ErrNotYetImplemented = errors.New("not yet implemented")
 
 func (d *Doctor) deviceSign() error {
-	d.docUI.SelectSigner()
+	devs, err := G.SecretSyncer.Devices()
+	if err != nil {
+		return err
+	}
+
+	for k, v := range devs {
+		G.Log.Info("Device %s: %+v", k, v)
+	}
+
+	_, err = d.docUI.SelectSigner()
+	if err != nil {
+		return err
+	}
 	return ErrNotYetImplemented
 }
 
