@@ -213,20 +213,20 @@ func (n *nullui) Shutdown() error {
 }
 
 type TestSecretUI struct {
-	Passsphrase string
+	Passphrase string
 }
 
 func (t TestSecretUI) GetSecret(p keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
 	return &keybase_1.SecretEntryRes{
-		Text:     t.Passsphrase,
+		Text:     t.Passphrase,
 		Canceled: false,
 	}, nil
 }
 
 func (t TestSecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
-	return t.Passsphrase, nil
+	return t.Passphrase, nil
 }
 
 func (t TestSecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
-	return t.Passsphrase, nil
+	return t.Passphrase, nil
 }

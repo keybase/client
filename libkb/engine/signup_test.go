@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/keybase/go/libkb"
-	keybase_1 "github.com/keybase/protocol/go"
 )
 
 func AssertDeviceID() (err error) {
@@ -87,7 +86,7 @@ func TestSignupWithGPG(t *testing.T) {
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
 		t.Fatal(err)
 	}
-	secui := &tsecretUI{t: t, kbpw: fu.Passphrase}
+	secui := libkb.TestSecretUI{fu.Passphrase}
 	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", false}
 	err := s.Run(arg)
@@ -128,19 +127,4 @@ func TestLocalKeySecurity(t *testing.T) {
 	if string(dec) != text {
 		t.Errorf("decrypt: %q, expected %q", string(dec), text)
 	}
-}
-
-type tsecretUI struct {
-	t    *testing.T
-	kbpw string
-}
-
-func (u *tsecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
-	return nil, nil
-}
-func (u *tsecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
-	return u.kbpw, nil
-}
-func (u *tsecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
-	return u.kbpw, nil
 }
