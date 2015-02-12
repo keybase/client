@@ -30,7 +30,12 @@ protocol doctorUi {
 		union { null, DeviceSigner } signer; // if action == SIGN, this will be used.
 	}
 
+	record DeviceDescription {
+		string type;
+		string name;
+	}
+
 	// selectSigner is for when a user logs in with a new device
 	// and it needs to be signed by an existing device or pgp.
-	SelectSignerRes selectSigner();
+	SelectSignerRes selectSigner(array<DeviceDescription> devices);
 }

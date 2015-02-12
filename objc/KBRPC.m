@@ -87,6 +87,9 @@
 @implementation KBRSelectSignerRes
 @end
 
+@implementation KBRDeviceDescription
+@end
+
 @implementation KBRDoctorUiRequest
 - (void)promptDeviceNameWithSessionId:(NSInteger )sessionId completion:(void (^)(NSError *error, NSString * str))completion {
 
@@ -96,9 +99,9 @@
   }];
 }
 
-- (void)selectSigner:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion {
+- (void)selectSignerWithDevices:(NSArray *)devices completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion {
 
-  NSArray *params = @[@{}];
+  NSArray *params = @[@{@"devices": KBRValue(devices)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.selectSigner" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);

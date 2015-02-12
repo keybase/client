@@ -128,6 +128,16 @@
       "name" : "signer",
       "type" : [ "null", "DeviceSigner" ]
     } ]
+  }, {
+    "type" : "record",
+    "name" : "DeviceDescription",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    } ]
   } ],
   "messages" : {
     "promptDeviceName" : {
@@ -138,7 +148,13 @@
       "response" : "string"
     },
     "selectSigner" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "devices",
+        "type" : {
+          "type" : "array",
+          "items" : "DeviceDescription"
+        }
+      } ],
       "response" : "SelectSignerRes"
     }
   }

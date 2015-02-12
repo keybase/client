@@ -91,10 +91,15 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @property KBRDeviceSigner *signer;
 @end
 
+@interface KBRDeviceDescription : KBRObject
+@property NSString *type;
+@property NSString *name;
+@end
+
 @interface KBRDoctorUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionId:(NSInteger )sessionId completion:(void (^)(NSError *error, NSString * str))completion;
 
-- (void)selectSigner:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion;
+- (void)selectSignerWithDevices:(NSArray *)devices completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion;
 
 @end
 
