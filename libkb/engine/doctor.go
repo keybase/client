@@ -8,27 +8,49 @@ import (
 )
 
 type Doctor struct {
-	user     *libkb.User
-	docUI    libkb.DoctorUI
-	secretUI libkb.SecretUI
-	logUI    libkb.LogUI
+	user       *libkb.User
+	docUI      libkb.DoctorUI
+	secretUI   libkb.SecretUI
+	logUI      libkb.LogUI
+	identifyUI libkb.IdentifyUI
 
 	signingKey libkb.GenericKey
 }
 
-func NewDoctor(docUI libkb.DoctorUI, secUI libkb.SecretUI, logUI libkb.LogUI) *Doctor {
-	return &Doctor{docUI: docUI, secretUI: secUI, logUI: logUI}
+func NewDoctor(docUI libkb.DoctorUI, secUI libkb.SecretUI, logUI libkb.LogUI, identifyUI libkb.IdentifyUI) *Doctor {
+	return &Doctor{docUI: docUI, secretUI: secUI, logUI: logUI, identifyUI: identifyUI}
 }
 
 func (d *Doctor) LoginCheckup(u *libkb.User) error {
 	d.user = u
 
+	// This can fail, but we'll warn if it does.
 	d.syncSecrets()
+
+	if err := d.checkUID(); err != nil {
+		return err
+	}
 
 	if err := d.checkKeys(); err != nil {
 		return err
 	}
 	return nil
+}
+
+// checkUID makes sure that we've verified our own UID.  This might result in a
+// self-tracking operation.
+func (d *Doctor) checkUID() (err error) {
+	uid := d.user.GetUid()
+	if u2 := G.Env.GetVerifiedUID(); u2 != nil && !u2.Eq(uid) {
+		err = libkb.UidMismatchError{Msg: fmt.Sprintf("Got wrong uid; wanted %s but got %s", uid, u2)}
+	} else if u2 == nil && d.identifyUI != nil {
+		d.logUI.Warning("Verifying your UID...")
+		err = d.user.IdentifySelf(d.identifyUI)
+		if err == nil {
+			d.logUI.Warning("Setting UID to %s", uid)
+		}
+	}
+	return err
 }
 
 func (d *Doctor) syncSecrets() (err error) {
