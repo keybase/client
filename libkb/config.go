@@ -220,6 +220,7 @@ func (f *JsonConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) (e
 		G.Log.Debug("| SetUserConfig(nil)")
 		f.jw.DeleteKey("current_user")
 		f.userConfigWrapper.userConfig = nil
+		f.dirty = true
 	} else {
 		parent := f.jw.AtKey("users")
 		un := u.GetUsername()
@@ -227,18 +228,20 @@ func (f *JsonConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) (e
 		if parent.IsNil() {
 			parent = jsonw.NewDictionary()
 			f.jw.SetKey("users", parent)
+			f.dirty = true
 		}
 		if parent.AtKey(un).IsNil() || overwrite {
 			parent.SetKey(un, jsonw.NewWrapper(*u))
 			f.userConfigWrapper.userConfig = u
+			f.dirty = true
 		}
 
 		if f.getCurrentUser() != un {
 			f.jw.SetKey("current_user", jsonw.NewString(un))
 			f.userConfigWrapper.userConfig = nil
+			f.dirty = true
 		}
 	}
-	f.dirty = true
 	return nil
 }
 

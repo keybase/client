@@ -98,7 +98,7 @@ func (ss *SecretSyncer) loadFromStorage() (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
 	found, err = G.LocalDb.GetInto(&tmp, ss.dbKey())
-	G.Log.Debug("| loadFromStorage -> %v, %s", found, ErrToOk(err))
+	G.Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if found {
 		G.Log.Debug("| Loaded version %d", tmp.Version)
 	} else if err == nil {

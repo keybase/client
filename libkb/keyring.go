@@ -269,6 +269,12 @@ func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
 	var keyring *SKBKeyringFile
 	var err error
 	var ckf *ComputedKeyFamily
+
+	G.Log.Debug("+ GetLockedLocalSecretKey(%s)", me.name)
+	defer func() {
+		G.Log.Debug("- GetLockedLocalSecretKey -> found=%v", ret != nil)
+	}()
+
 	if keyring, err = k.LoadSKBKeyring(me.name); err != nil || keyring == nil {
 		var s string
 		if err != nil {
@@ -287,6 +293,7 @@ func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
 	if kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(); err != nil {
 		G.Log.Debug("| No key for current device: %s", err.Error())
 	} else if kid != nil {
+		G.Log.Debug("| Found KID for current device: %s", kid)
 		ret = keyring.LookupByKid(kid)
 		if ret != nil {
 			G.Log.Debug("| Using device key: %s", kid)

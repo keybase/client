@@ -30,6 +30,7 @@ type LoginState struct {
 	tsec            *triplesec.Cipher
 	tspkey          *TSPassKey
 	sharedSecret    []byte
+	sessionFor      string
 
 	loggedInRes *LoggedInResult
 }
@@ -67,9 +68,10 @@ func (s *LoginState) GenerateNewSalt() error {
 
 func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 
-	if s.salt != nil && s.loginSession != nil {
+	if s.salt != nil && s.loginSession != nil && s.sessionFor == email_or_username {
 		return nil
 	}
+	s.sessionFor = ""
 
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "getsalt",
@@ -103,6 +105,7 @@ func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 	}
 
 	s.loginSessionB64 = ls_b64
+	s.sessionFor = email_or_username
 
 	return nil
 }
@@ -256,6 +259,9 @@ func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
 	var sig string
 	var pres *PostAuthProofRes
 
+	G.Log.Debug("+ PubkeyLogin()")
+	defer func() { G.Log.Debug("- PubkeyLogin() -> %s", ErrToOk(err)) }()
+
 	if me, err = LoadMe(LoadUserArg{}); err != nil {
 		return
 	}
@@ -320,6 +326,14 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 			err = NoUiError{"secret"}
 			return
 		}
+	}
+
+	if err = s.PubkeyLogin(arg.SecretUI); err != nil {
+		G.Log.Info("Public key login failed: %s", err.Error())
+		G.Log.Info("Falling back to passphrase login")
+		err = nil
+	} else {
+		G.Log.Debug("| Pubkey login succeeded")
 	}
 
 	for i := 0; i < n_tries; i++ {

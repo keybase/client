@@ -22,10 +22,20 @@ func NewDoctor(docUI libkb.DoctorUI, secUI libkb.SecretUI, logUI libkb.LogUI) *D
 
 func (d *Doctor) LoginCheckup(u *libkb.User) error {
 	d.user = u
+
+	d.syncSecrets()
+
 	if err := d.checkKeys(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (d *Doctor) syncSecrets() (err error) {
+	if err = G.SecretSyncer.Load(d.user.GetUid()); err != nil {
+		G.Log.Warning("Problem syncing secrets from server: %s", err.Error())
+	}
+	return err
 }
 
 func (d *Doctor) checkKeys() error {
