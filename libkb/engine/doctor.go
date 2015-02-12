@@ -42,7 +42,10 @@ func (d *Doctor) LoginCheckup(u *libkb.User) error {
 // self-tracking operation.
 func (d *Doctor) checkUID() (err error) {
 	uid := d.user.GetUid()
-	if u2 := G.Env.GetVerifiedUID(); u2 != nil && !u2.Eq(uid) {
+
+	if d.user.HasActiveKey() {
+		d.logUI.Debug("Skipping checkUID due to no active key")
+	} else if u2 := G.Env.GetVerifiedUID(); u2 != nil && !u2.Eq(uid) {
 		err = libkb.UidMismatchError{Msg: fmt.Sprintf("Got wrong uid; wanted %s but got %s", uid, u2)}
 	} else if u2 == nil && d.identifyUI != nil {
 		d.logUI.Warning("Verifying your UID...")
