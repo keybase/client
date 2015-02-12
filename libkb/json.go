@@ -20,6 +20,9 @@ func NewJsonFile(filename, which string) *JsonFile {
 	return &JsonFile{filename, which, jsonw.NewDictionary(), false, false}
 }
 
+func (f *JsonFile) GetWrapper() (*jsonw.Wrapper) {
+	return f.jw
+}
 func (f *JsonFile) Exists() bool { return f.exists }
 
 func (f *JsonFile) Load(warnOnNotFound bool) error {
