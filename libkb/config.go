@@ -159,6 +159,25 @@ func (f JsonConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
 	return
 }
 
+func (f *JsonConfigFile) SwitchUser(un string) (err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+
+	if cu := f.getCurrentUser(); cu == un {
+		G.Log.Debug("| Already configured as user=%s", un)
+		return nil
+	}
+
+	if !f.jw.AtKey("users").AtKey(un).IsNil() {
+		f.jw.SetKey("current_user", jsonw.NewString(un))
+		f.userConfigWrapper.userConfig = nil
+		f.dirty = true
+	} else {
+		err = UserNotFoundError{UID{}, un}
+	}
+	return err
+}
+
 // GetUserConfigForUsername sees if there's a UserConfig object for the given
 // username previously stored.
 func (f JsonConfigFile) GetUserConfigForUsername(s string) (ret *UserConfig, err error) {

@@ -410,6 +410,14 @@ func (e LogoutError) Error() string {
 
 //=============================================================================
 
+type LoggedInError struct{}
+
+func (e LoggedInError) Error() string {
+	return "You are already logged in as a different user; try logout first"
+}
+
+//=============================================================================
+
 type InternalError struct {
 	msg string
 }

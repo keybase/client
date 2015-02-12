@@ -316,14 +316,31 @@ func (s *LoginState) PubkeyLogin(name string, ui SecretUI) (err error) {
 }
 
 func (s *LoginState) Login(arg LoginArg) (err error) {
+	var loggedIn bool
+
 	G.Log.Debug("+ Login called")
 	defer func() { G.Log.Debug("- Login -> %s", ErrToOk(err)) }()
 
-	n_tries := arg.Retry
-	if n_tries == 0 {
-		n_tries = 1
+	if err = s.setupUIs(&arg); err != nil {
+		return err
+	}
+	if loggedIn, err = s.checkLoggedIn(arg); err != nil || loggedIn {
+		return err
+	}
+	if err = s.switchUser(arg); err != nil {
+		return
 	}
 
+	if loggedIn, err = s.tryPubkeyLogin(arg); err != nil || loggedIn {
+		return
+	}
+	if err = s.tryPasswordLogin(arg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *LoginState) setupUIs(arg *LoginArg) (err error) {
 	if arg.Ui == nil && !arg.NoUi {
 		if G.UI != nil {
 			arg.Ui = G.UI.GetLoginUI()
@@ -332,7 +349,6 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 			return
 		}
 	}
-
 	if arg.SecretUI == nil && !arg.NoUi {
 		if G.UI != nil {
 			arg.SecretUI = G.UI.GetSecretUI()
@@ -341,13 +357,62 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 			return
 		}
 	}
+	return nil
+}
 
+func (s *LoginState) checkLoggedIn(arg LoginArg) (loggedIn bool, err error) {
+
+	G.Log.Debug("+ checkedLoggedIn()")
+	defer func() { G.Log.Debug("- checkedLoggedIn() -> %v,%s", loggedIn, ErrToOk(err)) }()
+
+	var loggedInTmp bool
+	if loggedInTmp, err = G.Session.LoadAndCheck(); err != nil {
+		G.Log.Debug("| Session failed to load")
+		return
+	}
+
+	un := G.Session.GetUsername()
+	if loggedInTmp && len(arg.Username) > 0 && un != nil && arg.Username != *un {
+		err = LoggedInError{}
+		return
+	}
+
+	if !arg.Force && loggedInTmp {
+		s.LoggedIn = true
+		s.SessionVerified = true
+		G.Log.Debug("| Our session token is still valid; we're logged in")
+		loggedIn = true
+	}
+	return
+}
+
+func (s *LoginState) switchUser(arg LoginArg) error {
+	if len(arg.Username) == 0 || !CheckUsername.F(arg.Username) {
+	} else if err := G.Env.GetConfigWriter().SwitchUser(arg.Username); err != nil {
+		G.Log.Debug("| Can't switch user to %s: %s", arg.Username, err.Error())
+	} else {
+		G.Log.Debug("| Successfully switched user to %s", arg.Username)
+	}
+	return nil
+}
+
+func (s *LoginState) tryPubkeyLogin(arg LoginArg) (loggedIn bool, err error) {
 	if err = s.PubkeyLogin(arg.Username, arg.SecretUI); err != nil {
 		G.Log.Info("Public key login failed: %s", err.Error())
 		G.Log.Info("Falling back to passphrase login")
 		err = nil
 	} else {
 		G.Log.Debug("| Pubkey login succeeded")
+		loggedIn = true
+	}
+	return
+}
+
+func (s *LoginState) tryPasswordLogin(arg LoginArg) (err error) {
+
+	n_tries := arg.Retry
+	if n_tries == 0 {
+		n_tries = 1
 	}
 
 	for i := 0; i < n_tries; i++ {
@@ -383,28 +448,6 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 	defer func() {
 		G.Log.Debug("- LoginState.login -> %s", ErrToOk(err))
 	}()
-
-	if s.LoggedIn && !arg.Force {
-		G.Log.Debug("- Login short-circuited; already logged in")
-		return
-	}
-
-	if !arg.Force {
-		var is_valid bool
-		is_valid, err = G.Session.LoadAndCheck()
-		if err != nil {
-			return
-		}
-
-		if is_valid {
-			s.LoggedIn = true
-			s.SessionVerified = true
-			G.Log.Debug("Our session token is still valid; we're logged in")
-			return nil
-		}
-	} else if err = G.Session.Load(); err != nil {
-		return
-	}
 
 	var emailOrUsername string
 	var prompted bool
