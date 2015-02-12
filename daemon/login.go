@@ -88,6 +88,6 @@ func (r *RemoteDoctorUI) PromptDeviceName(sessionID int) (string, error) {
 	return r.uicli.PromptDeviceName(sessionID)
 }
 
-func (r *RemoteDoctorUI) SelectSigner() (keybase_1.SelectSignerRes, error) {
-	return r.uicli.SelectSigner()
+func (r *RemoteDoctorUI) SelectSigner(devices []keybase_1.DeviceDescription) (keybase_1.SelectSignerRes, error) {
+	return r.uicli.SelectSigner(devices)
 }

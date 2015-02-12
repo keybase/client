@@ -271,7 +271,7 @@ func (l *ldocui) PromptDeviceName(sid int) (string, error) {
 	return "my test device", nil
 }
 
-func (l *ldocui) SelectSigner() (res keybase_1.SelectSignerRes, err error) {
+func (l *ldocui) SelectSigner(devs []keybase_1.DeviceDescription) (res keybase_1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	return
 }

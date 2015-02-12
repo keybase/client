@@ -84,7 +84,7 @@ func (d *Doctor) checkKeys() error {
 		return err
 	}
 
-	if G.SecretSyncer.HasDevices() {
+	if G.SecretSyncer.HasActiveDevice() {
 		// they have at least one device, just not this device...
 		return d.deviceSign()
 	}
@@ -161,16 +161,18 @@ func (d *Doctor) addDetKey() error {
 var ErrNotYetImplemented = errors.New("not yet implemented")
 
 func (d *Doctor) deviceSign() error {
-	devs, err := G.SecretSyncer.Devices()
+	devs, err := G.SecretSyncer.ActiveDevices()
 	if err != nil {
 		return err
 	}
 
+	var devDescs []keybase_1.DeviceDescription
 	for k, v := range devs {
 		G.Log.Info("Device %s: %+v", k, v)
+		devDescs = append(devDescs, keybase_1.DeviceDescription{Type: v.Type, Name: v.Description})
 	}
 
-	_, err = d.docUI.SelectSigner()
+	_, err = d.docUI.SelectSigner(devDescs)
 	if err != nil {
 		return err
 	}

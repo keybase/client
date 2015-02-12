@@ -107,6 +107,12 @@ const (
 	KEY_TYPE_KB_NACL_DH_SERVER_HALF            = 6
 )
 
+const (
+	DEVICE_STATUS_NONE    = 0
+	DEVICE_STATUS_ACTIVE  = 1
+	DEVICE_STATUS_DEFUNCT = 2
+)
+
 var PGP_VERSION = "Keybase Go CLI " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
 
 func PgpArmorHeaders() map[string]string {

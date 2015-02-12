@@ -554,7 +554,7 @@ func (d DoctorUI) PromptDeviceName(sessionID int) (string, error) {
 		libkb.CheckNotEmpty)
 }
 
-func (d DoctorUI) SelectSigner() (res keybase_1.SelectSignerRes, err error) {
+func (d DoctorUI) SelectSigner(devices []keybase_1.DeviceDescription) (res keybase_1.SelectSignerRes, err error) {
 	d.parent.Output("select signer not yet implemented")
 	return
 }

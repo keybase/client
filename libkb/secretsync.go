@@ -196,6 +196,13 @@ func (ss *SecretSyncer) FindDevice(id *DeviceID) (DeviceKey, error) {
 	return dev, nil
 }
 
+func (ss *SecretSyncer) HasDevices() bool {
+	if ss.keys == nil {
+		return false
+	}
+	return len(ss.keys.Devices) > 0
+}
+
 func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
@@ -203,11 +210,30 @@ func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 	return ss.keys.Devices, nil
 }
 
-func (ss *SecretSyncer) HasDevices() bool {
+func (ss *SecretSyncer) HasActiveDevice() bool {
 	if ss.keys == nil {
 		return false
 	}
-	return len(ss.keys.Devices) > 0
+	for _, v := range ss.keys.Devices {
+		if v.Status == DEVICE_STATUS_ACTIVE {
+			return true
+		}
+	}
+	return false
+}
+
+func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
+	if ss.keys == nil {
+		return nil, fmt.Errorf("no keys")
+	}
+	res := make(DeviceKeyMap)
+	for k, v := range ss.keys.Devices {
+		if v.Status != DEVICE_STATUS_ACTIVE {
+			continue
+		}
+		res[k] = v
+	}
+	return res, nil
 }
 
 // FindDetKeySrvHalf locates the detkey matching kt and returns
