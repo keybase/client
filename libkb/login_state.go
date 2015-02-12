@@ -252,22 +252,36 @@ func (r PostAuthProofRes) ToLoggedInResult() (ret *LoggedInResult, err error) {
 
 // PubkeyLogin looks for a locally available private key and tries
 // to establish a session via public key signature.
-func (s *LoginState) PubkeyLogin(ui SecretUI) (err error) {
+func (s *LoginState) PubkeyLogin(name string, ui SecretUI) (err error) {
 	var key GenericKey
 	var me *User
 	var proof *jsonw.Wrapper
 	var sig string
 	var pres *PostAuthProofRes
+	var uc *UserConfig
 
 	G.Log.Debug("+ PubkeyLogin()")
 	defer func() { G.Log.Debug("- PubkeyLogin() -> %s", ErrToOk(err)) }()
 
-	if me, err = LoadMe(LoadUserArg{}); err != nil {
+	if len(name) == 0 {
+		if uc, err = G.Env.GetConfig().GetUserConfig(); err != nil {
+			G.Log.Debug("| Can't find current UserConfig")
+		} else {
+			name = uc.Name
+		}
+	} else if uc, err = G.Env.GetConfig().GetUserConfigForUsername(name); err != nil {
+		G.Log.Debug("| No Userconfig for %s", name)
+	}
+	if err != nil {
+		return
+	}
+
+	if me, err = LoadUser(LoadUserArg{Name: name}); err != nil {
 		return
 	}
 
 	// Need the loginSession; the salt doesn't really matter here.
-	if err = s.GetSaltAndLoginSession(me.name); err != nil {
+	if err = s.GetSaltAndLoginSession(name); err != nil {
 		return
 	}
 
@@ -328,7 +342,7 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 		}
 	}
 
-	if err = s.PubkeyLogin(arg.SecretUI); err != nil {
+	if err = s.PubkeyLogin(arg.Username, arg.SecretUI); err != nil {
 		G.Log.Info("Public key login failed: %s", err.Error())
 		G.Log.Info("Falling back to passphrase login")
 		err = nil
