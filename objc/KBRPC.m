@@ -99,9 +99,9 @@
   }];
 }
 
-- (void)selectSignerWithDevices:(NSArray *)devices completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion {
+- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL )hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion {
 
-  NSArray *params = @[@{@"devices": KBRValue(devices)}];
+  NSArray *params = @[@{@"devices": KBRValue(devices), @"hasPGP": @(hasPGP)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.selectSigner" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
@@ -695,6 +695,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.devices = params[0][@"devices"];
+    self.hasPGP = [params[0][@"hasPGP"] booleanValue];
   }
   return self;
 }

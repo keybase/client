@@ -137,6 +137,9 @@
     }, {
       "name" : "name",
       "type" : "string"
+    }, {
+      "name" : "deviceID",
+      "type" : "string"
     } ]
   } ],
   "messages" : {
@@ -154,6 +157,9 @@
           "type" : "array",
           "items" : "DeviceDescription"
         }
+      }, {
+        "name" : "hasPGP",
+        "type" : "boolean"
       } ],
       "response" : "SelectSignerRes"
     }
