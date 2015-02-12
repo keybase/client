@@ -43,11 +43,10 @@ func (d *DeviceEngine) RunWithDetKey(deviceName string, lksClientHalf []byte, de
 }
 
 func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, detkey libkb.GenericKey) (err error) {
-	existingDevID := G.Env.GetDeviceID()
-	if existingDevID != nil && len(existingDevID) > 0 {
-		G.Log.Info("found existing device: %q", existingDevID)
+	if d.me.HasDeviceInCurrentInstall() {
 		return ErrDeviceAlreadyRegistered
 	}
+
 	d.deviceName = deviceName
 	d.lksClientHalf = lksClientHalf
 	if d.deviceID, err = libkb.NewDeviceID(); err != nil {

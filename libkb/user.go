@@ -755,3 +755,30 @@ func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey 
 func (u *User) SigChainBump(linkID LinkId, sigID *SigId) {
 	u.sigChain.Bump(MerkleTriple{linkId: linkID, sigId: sigID})
 }
+
+func (u *User) GetDeviceSibkey() (GenericKey, error) {
+	if u.GetComputedKeyFamily() == nil {
+		return nil, fmt.Errorf("no computed key family")
+	}
+	if G.Env.GetDeviceID() == nil {
+		return nil, fmt.Errorf("no device id")
+	}
+	return u.GetComputedKeyFamily().GetSibkeyForDevice(*(G.Env.GetDeviceID()))
+}
+
+func (u *User) HasDeviceInCurrentInstall() bool {
+	existingDevID := G.Env.GetDeviceID()
+	if existingDevID == nil || len(existingDevID) == 0 {
+		return false
+	}
+
+	key, err := u.GetDeviceSibkey()
+	if err != nil {
+		return false
+	}
+	if key == nil {
+		return false
+	}
+
+	return true
+}

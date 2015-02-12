@@ -72,15 +72,13 @@ func (d *Doctor) checkKeys() error {
 
 	// they have at least one key
 
-	dkey, err := d.user.GetDeviceSibkey()
-	if err == nil && dkey != nil {
+	if d.user.HasDeviceInCurrentInstall() {
 		// they have a device sibkey for this device
 		return nil
 	}
 
 	// make sure secretsyncer loaded
-	err = G.SecretSyncer.Load(d.user.GetUid())
-	if err != nil {
+	if err := G.SecretSyncer.Load(d.user.GetUid()); err != nil {
 		return err
 	}
 

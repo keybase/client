@@ -347,13 +347,3 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 	body.SetKey("session", jsonw.NewString(session))
 	return
 }
-
-func (u *User) GetDeviceSibkey() (GenericKey, error) {
-	if u.GetComputedKeyFamily() == nil {
-		return nil, fmt.Errorf("no computed key family")
-	}
-	if G.Env.GetDeviceID() == nil {
-		return nil, fmt.Errorf("no device id")
-	}
-	return u.GetComputedKeyFamily().GetSibkeyForDevice(*(G.Env.GetDeviceID()))
-}
