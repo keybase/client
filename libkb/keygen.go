@@ -174,14 +174,16 @@ func (s *KeyGen) GeneratePost() error {
 	if devsk == nil {
 		var err error
 		devsk, err = s.me.GetDeviceSibkey()
-		if err != nil {
-			return err
-		}
-		if devsk == nil {
-			return fmt.Errorf("GeneratePost: nil device sibkey")
+		if err != nil || devsk == nil {
+			G.Log.Debug("no device sibkey.  making this the primary key.")
+			return s.primaryPost()
 		}
 	}
+	// have a device sibkey
+	return s.sibkeyPost(devsk)
+}
 
+func (s *KeyGen) sibkeyPost(devsk GenericKey) error {
 	kpArg := KeyProofArg{
 		ExistingKey: devsk,
 		NewKey:      s.bundle,
@@ -219,13 +221,40 @@ func (s *KeyGen) GeneratePost() error {
 	return PostNewKey(postArg)
 }
 
-func (s *KeyGen) PostToServer() error {
-	_, err := G.API.Post(ApiArg{
-		Endpoint:    "key/add",
-		NeedSession: true,
-		Args:        *s.httpArgs,
-	})
-	return err
+func (s *KeyGen) primaryPost() error {
+	kpArg := KeyProofArg{
+		NewKey: s.bundle,
+		Expire: KEY_EXPIRE_IN,
+		Sibkey: true,
+	}
+
+	jw, pushType, err := s.me.KeyProof(kpArg)
+	if err != nil {
+		return err
+	}
+
+	sig, sigid, linkid, err := SignJson(jw, s.bundle)
+	s.chainTail.linkId = linkid
+	s.chainTail.sigId = sigid
+
+	postArg := PostNewKeyArg{
+		Sig:        sig,
+		Id:         *sigid,
+		Type:       pushType,
+		PublicKey:  s.bundle,
+		SigningKey: s.bundle,
+		IsPrimary:  true,
+	}
+
+	if s.arg.DoSecretPush {
+		seckey, err := s.p3skb.ArmoredEncode()
+		if err != nil {
+			return err
+		}
+		postArg.EncodedPrivateKey = seckey
+	}
+
+	return PostNewKey(postArg)
 }
 
 type KeyGenArg struct {
@@ -494,10 +523,6 @@ func (s *KeyGen) Push() (err error) {
 	if err = s.GeneratePost(); err != nil {
 		return
 	}
-	//	G.Log.Debug("| Post to server")
-	//	if err = s.PostToServer(); err != nil {
-	//		return
-	//	}
 
 	G.Log.Debug("| UpdateUser")
 	if err = s.UpdateUser(); err != nil {

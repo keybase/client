@@ -263,6 +263,68 @@ func TestLoginNewDevice(t *testing.T) {
 	}
 }
 
+func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
+	fu := NewFakeUserOrBust(t, "login")
+	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
+		t.Fatal(err)
+	}
+
+	secui := libkb.TestSecretUI{fu.Passphrase}
+	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
+
+	if err := s.genTSPassKey(fu.Passphrase); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.join(fu.Username, fu.Email, "202020202020202020202020"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.addGPG(); err != nil {
+		t.Fatal(err)
+	}
+
+	return fu
+}
+
+func TestLoginPGPSignNewDevice(t *testing.T) {
+	tc := libkb.SetupTest(t, "login")
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	G.LoginState.Logout()
+	tc.Cleanup()
+
+	// redo SetupTest to get a new home directory...should look like a new device.
+	tc2 := libkb.SetupTest(t, "login")
+	defer tc2.Cleanup()
+
+	docui := &ldocui{}
+
+	larg := LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   u1.Username,
+			Passphrase: u1.Passphrase,
+			NoUi:       true,
+		},
+		LogUI:    G.UI.GetLogUI(),
+		DoctorUI: docui,
+	}
+
+	before := docui.selectSignerCount
+
+	li := NewLoginEngine()
+
+	if err := li.LoginAndIdentify(larg); err != ErrNotYetImplemented {
+		t.Fatal(err)
+	}
+
+	after := docui.selectSignerCount
+	if after-before != 1 {
+		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
+	}
+}
+
 type ldocui struct {
 	selectSignerCount int
 }
@@ -271,7 +333,9 @@ func (l *ldocui) PromptDeviceName(sid int) (string, error) {
 	return "my test device", nil
 }
 
-func (l *ldocui) SelectSigner(devs []keybase_1.DeviceDescription) (res keybase_1.SelectSignerRes, err error) {
+func (l *ldocui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
 	l.selectSignerCount++
+	res.Action = keybase_1.SelectSignerAction_SIGN
+	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_PGP}
 	return
 }

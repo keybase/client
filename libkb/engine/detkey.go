@@ -134,10 +134,6 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 }
 
 func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
-	//	serverHalf, err = libkb.RandBytes(len(seed))
-	//	if err != nil {
-	//		return
-	//	}
 	newseed = make([]byte, len(seed))
 	libkb.XORBytes(newseed, seed, serverHalf)
 	return newseed, nil
