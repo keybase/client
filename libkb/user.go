@@ -36,11 +36,11 @@ func UidFromHex(s string) (u *UID, err error) {
 		return
 	}
 	if len(bv) != UID_LEN {
-		err = fmt.Errorf("Bad UID '%s'; must be %d bytes long", UID_LEN)
+		err = fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
 		return
 	}
 	if bv[len(bv)-1] != UID_SUFFIX {
-		err = fmt.Errorf("Bad UID '%s': must end in 0x'%x'", UID_SUFFIX)
+		err = fmt.Errorf("Bad UID '%s': must end in 0x'%x'", s, UID_SUFFIX)
 		return
 	}
 	out := UID{}
