@@ -29,7 +29,7 @@ func (g *gpgtestui) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRe
 		return keybase_1.SelectKeyRes{}, fmt.Errorf("no keys in arg")
 	}
 	key := arg.Keyset.Keys[0]
-	return keybase_1.SelectKeyRes{KeyID: key.KeyID}, nil
+	return keybase_1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: true}, nil
 }
 
 func (g *gpgtestui) WantToAddGPGKey() (bool, error) {

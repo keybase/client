@@ -41,7 +41,7 @@ type ServerPrivateKeys struct {
 
 type SecretSyncer struct {
 	// Locks the whole object
-	sync.Mutex
+	sync.RWMutex
 	Uid   *UID
 	dirty bool
 	keys  *ServerPrivateKeys
@@ -164,12 +164,21 @@ func (ss *SecretSyncer) store() (err error) {
 // FindActiveKey examines the synced keys, looking for one that's currently active.
 // Returns ret=nil if none was found.
 func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+	ss.RLock()
+	defer ss.RUnlock()
 	for _, key := range ss.keys.PrivateKeys {
 		if ret, _ = key.FindActiveKey(ckf); ret != nil {
 			return
 		}
 	}
 	return
+}
+
+func (ss *SecretSyncer) FindPrivateKey(kid string) (ServerPrivateKey, bool) {
+	ss.RLock()
+	defer ss.RUnlock()
+	k, ok := ss.keys.PrivateKeys[kid]
+	return k, ok
 }
 
 func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
@@ -252,4 +261,11 @@ func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
 		return hex.DecodeString(key.Bundle)
 	}
 	return nil, NotFoundError{msg: "detkey not found"}
+}
+
+func (ss *SecretSyncer) DumpPrivateKeys() {
+	for s, key := range ss.keys.PrivateKeys {
+		G.Log.Debug("Private key: %s", s)
+		G.Log.Debug("  -- kid: %s, keytype: %d", key.Kid, key.KeyType)
+	}
 }

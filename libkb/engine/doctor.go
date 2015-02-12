@@ -1,11 +1,13 @@
 package engine
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
 	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 type Doctor struct {
@@ -64,6 +66,7 @@ func (d *Doctor) checkKeys() error {
 	hasPGP := false
 	// XXX this is wrong.  They could have a pgp key anywhere, not just
 	// eldest...
+	// XXX use d.user.GetActivePgpKeys(false) and see if len > 0?
 	eldest := kf.FindKey(kf.GetEldest().Kid)
 	if _, ok := eldest.(*libkb.PgpKeyBundle); ok {
 		hasPGP = true
@@ -200,16 +203,51 @@ func (d *Doctor) deviceSign(withPGPOption bool) error {
 	// sign action:
 
 	if res.Signer.Kind == keybase_1.DeviceSignerKind_PGP {
-		G.Log.Info("device sign with PGP not yet implemented")
-		return ErrNotYetImplemented
+		return d.deviceSignPGP()
 	}
 
 	if res.Signer.Kind == keybase_1.DeviceSignerKind_DEVICE {
-		G.Log.Info("device sign with existing device not yet implemented")
-		return ErrNotYetImplemented
+		return d.deviceSignExistingDevice(*res.Signer.DeviceID)
 	}
 
 	return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
+}
+
+func (d *Doctor) deviceSignPGP() error {
+
+	// XXX should show a list of pgp keys and let them select one.
+	// XXX for now, let's just see if we have a private one we can use...
+
+	pgpKeys := d.user.GetActivePgpKeys(false)
+	for _, k := range pgpKeys {
+		G.Log.Info("pgp key: %s", k.VerboseDescription())
+		G.Log.Info("pgp key kid: %s", k.GetKid())
+		if pk, ok := G.SecretSyncer.FindPrivateKey(k.GetKid().String()); ok {
+			buf := bytes.NewBufferString(pk.Bundle)
+			p, err := packet.Read(buf)
+			if err != nil {
+				return err
+			}
+			if packpk, tok := p.(*packet.PrivateKey); tok {
+				k.PrivateKey = packpk
+				return d.deviceSignPGPNext(k)
+			}
+		}
+	}
+
+	G.Log.Info("device sign with PGP not yet implemented")
+	return ErrNotYetImplemented
+}
+
+func (d *Doctor) deviceSignPGPNext(pgpk *libkb.PgpKeyBundle) error {
+	G.Log.Info("device sign with PGP not yet implemented")
+	return ErrNotYetImplemented
+}
+
+func (d *Doctor) deviceSignExistingDevice(id string) error {
+	G.Log.Info("device sign with existing device [%s]", id)
+	G.Log.Info("device sign with existing device not yet implemented")
+	return ErrNotYetImplemented
 }
 
 func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {
