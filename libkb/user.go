@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	UID_LEN    = 16
-	UID_SUFFIX = 0x00
+	UID_LEN      = 16
+	UID_SUFFIX   = 0x00
+	UID_SUFFIX_2 = 0x19
 )
 
 type UID [UID_LEN]byte
@@ -39,8 +40,8 @@ func UidFromHex(s string) (u *UID, err error) {
 		err = fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
 		return
 	}
-	if bv[len(bv)-1] != UID_SUFFIX {
-		err = fmt.Errorf("Bad UID '%s': must end in 0x'%x'", s, UID_SUFFIX)
+	if bv[len(bv)-1] != UID_SUFFIX && bv[len(bv)-1] != UID_SUFFIX_2 {
+		err = fmt.Errorf("Bad UID '%s': must end in 0x%x or 0x%x", s, UID_SUFFIX, UID_SUFFIX_2)
 		return
 	}
 	out := UID{}
@@ -79,7 +80,7 @@ func UsernameToUID(s string) UID {
 	h := sha256.Sum256([]byte(s))
 	var uid UID
 	copy(uid[:], h[0:UID_LEN-1])
-	uid[UID_LEN-1] = 0x00
+	uid[UID_LEN-1] = UID_SUFFIX_2
 	return uid
 }
 
