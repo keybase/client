@@ -61,9 +61,17 @@ func (d *Doctor) checkKeys() error {
 		return err
 	}
 
+	hasPGP := false
+	// XXX this is wrong.  They could have a pgp key anywhere, not just
+	// eldest...
+	eldest := kf.FindKey(kf.GetEldest().Kid)
+	if _, ok := eldest.(*libkb.PgpKeyBundle); ok {
+		hasPGP = true
+	}
+
 	if G.SecretSyncer.HasActiveDevice() {
 		// they have at least one device, just not this device...
-		return d.deviceSign()
+		return d.deviceSign(hasPGP)
 	}
 
 	// they don't have any devices.
@@ -71,14 +79,19 @@ func (d *Doctor) checkKeys() error {
 	dk, err := d.detkey()
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
-			// they don't have a detkey, so add basic keys.
+			// they don't have a detkey.
+			//
 			// they can get to this point if they sign up on the web,
 			// add a pgp key.  With that situation, they have keys
 			// so the check above for a nil key family doesn't apply.
-			//	return d.addBasicKeys()
 
-			// XXX this scenario isn't currently implemented.  PC working on it.
-			return fmt.Errorf("This scenario isn't implemented yet.  Presumably you are logging in with a user that has pgp keys and no detkey on a new device.  PC currently implementing this...")
+			// make sure we have pgp
+			if !hasPGP {
+				return fmt.Errorf("unknown state:  eldest key is not pgp (%T)", eldest)
+			}
+
+			// deviceSign will handle the rest...
+			return d.deviceSign(true)
 		}
 		return err
 	}
@@ -150,23 +163,53 @@ func (d *Doctor) addDetKey() error {
 
 var ErrNotYetImplemented = errors.New("not yet implemented")
 
-func (d *Doctor) deviceSign() error {
+// deviceSign is used to sign a new installation of keybase on a
+// new device.  It happens when the user has keys already, either
+// a device key, pgp key, or both.
+func (d *Doctor) deviceSign(withPGPOption bool) error {
 	devs, err := G.SecretSyncer.ActiveDevices()
 	if err != nil {
 		return err
 	}
 
-	var devDescs []keybase_1.DeviceDescription
+	var arg keybase_1.SelectSignerArg
 	for k, v := range devs {
 		G.Log.Info("Device %s: %+v", k, v)
-		devDescs = append(devDescs, keybase_1.DeviceDescription{Type: v.Type, Name: v.Description})
+		arg.Devices = append(arg.Devices, keybase_1.DeviceDescription{Type: v.Type, Name: v.Description, DeviceID: k})
 	}
+	arg.HasPGP = withPGPOption
 
-	_, err = d.docUI.SelectSigner(devDescs)
+	res, err := d.docUI.SelectSigner(arg)
 	if err != nil {
 		return err
 	}
-	return ErrNotYetImplemented
+
+	if res.Action == keybase_1.SelectSignerAction_LOGOUT {
+		// XXX another way to bail besides returning an error?
+		return fmt.Errorf("cancel requested by user")
+	}
+	if res.Action == keybase_1.SelectSignerAction_RESET_ACCOUNT {
+		G.Log.Info("reset account action not yet implemented")
+		return ErrNotYetImplemented
+	}
+
+	if res.Action != keybase_1.SelectSignerAction_SIGN {
+		return fmt.Errorf("unknown action value: %d", res.Action)
+	}
+
+	// sign action:
+
+	if res.Signer.Kind == keybase_1.DeviceSignerKind_PGP {
+		G.Log.Info("device sign with PGP not yet implemented")
+		return ErrNotYetImplemented
+	}
+
+	if res.Signer.Kind == keybase_1.DeviceSignerKind_DEVICE {
+		G.Log.Info("device sign with existing device not yet implemented")
+		return ErrNotYetImplemented
+	}
+
+	return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
 }
 
 func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {

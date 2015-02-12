@@ -7,9 +7,6 @@ import (
 	"github.com/keybase/go/libkb"
 )
 
-// XXX this probably shouldn't be a constant...
-const deviceType = "desktop"
-
 var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
 type DeviceEngine struct {
@@ -165,15 +162,15 @@ func (d *DeviceEngine) pushLocalKeySec() error {
 	libkb.XORBytes(serverHalf, d.lksEncKey, d.lksClientHalf)
 
 	// send it to api server
-	return libkb.PostDeviceLKS(d.deviceID.String(), deviceType, serverHalf)
+	return libkb.PostDeviceLKS(d.deviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }
 
 func (d *DeviceEngine) device() *libkb.Device {
-	s := 1
+	s := libkb.DEVICE_STATUS_ACTIVE
 	return &libkb.Device{
 		Id:          d.deviceID.String(),
 		Description: &d.deviceName,
-		Type:        deviceType,
+		Type:        libkb.DEVICE_TYPE_DESKTOP,
 		Status:      &s,
 	}
 }

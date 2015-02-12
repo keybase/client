@@ -554,9 +554,51 @@ func (d DoctorUI) PromptDeviceName(sessionID int) (string, error) {
 		libkb.CheckNotEmpty)
 }
 
-func (d DoctorUI) SelectSigner(devices []keybase_1.DeviceDescription) (res keybase_1.SelectSignerRes, err error) {
-	d.parent.Output("select signer not yet implemented")
-	return
+func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+	d.parent.Output("How would you like to sign this install of Keybase?\n\n")
+	w := new(tabwriter.Writer)
+	w.Init(d.parent.OutputWriter(), 5, 0, 3, ' ', 0)
+
+	optcount := 0
+	for i, dev := range arg.Devices {
+		var req string
+		switch dev.Type {
+		case libkb.DEVICE_TYPE_DESKTOP:
+			req = "requires access to that computer"
+		case libkb.DEVICE_TYPE_MOBILE:
+			req = "requires your device"
+		default:
+			return res, fmt.Errorf("unknown device type: %q", dev.Type)
+		}
+
+		fmt.Fprintf(w, "(%d) with your key called %q\t(%s)\n", i+1, dev.Name, req)
+		optcount++
+	}
+
+	if arg.HasPGP {
+		fmt.Fprintf(w, "(%d) using PGP\t(requires access to your PGP key)\n", len(arg.Devices)+1)
+		optcount++
+	}
+
+	w.Flush()
+
+	ret, err := d.parent.PromptSelectionOrCancel("Choose a signing option", 1, optcount)
+	if err != nil {
+		if err == ErrInputCanceled {
+			res.Action = keybase_1.SelectSignerAction_LOGOUT
+			return res, nil
+		}
+		return res, err
+	}
+	res.Action = keybase_1.SelectSignerAction_SIGN
+	res.Signer = &keybase_1.DeviceSigner{}
+	if ret >= len(arg.Devices) {
+		res.Signer.Kind = keybase_1.DeviceSignerKind_PGP
+	} else {
+		res.Signer.Kind = keybase_1.DeviceSignerKind_DEVICE
+		res.Signer.DeviceID = &(arg.Devices[ret-1].DeviceID)
+	}
+	return res, nil
 }
 
 //============================================================

@@ -114,6 +114,11 @@ const (
 	DEVICE_STATUS_DEFUNCT = 2
 )
 
+const (
+	DEVICE_TYPE_DESKTOP = "desktop"
+	DEVICE_TYPE_MOBILE  = "mobile"
+)
+
 var PGP_VERSION = "Keybase Go CLI " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
 
 func PgpArmorHeaders() map[string]string {
