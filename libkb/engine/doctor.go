@@ -90,11 +90,24 @@ func (d *Doctor) checkKeys() error {
 		return d.deviceSign()
 	}
 
-	// they don't have any devices.  use their detkey to sign a new device.
+	// they don't have any devices.
+
 	dk, err := d.detkey()
 	if err != nil {
+		if _, ok := err.(libkb.NotFoundError); ok {
+			// they don't have a detkey, so add basic keys.
+			// they can get to this point if they sign up on the web,
+			// add a pgp key.  With that situation, they have keys
+			// so the check above for a nil key family doesn't apply.
+			//	return d.addBasicKeys()
+
+			// XXX this scenario isn't currently implemented.  PC working on it.
+			return fmt.Errorf("This scenario isn't implemented yet.  Presumably you are logging in with a user that has pgp keys and no detkey on a new device.  PC currently implementing this...")
+		}
 		return err
 	}
+
+	// use their detkey to sign this device
 	return d.addDeviceKeyWithDetKey(dk)
 }
 
