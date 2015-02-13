@@ -138,5 +138,11 @@ func (s *SignupEngine) checkGPG() (bool, error) {
 
 func (s *SignupEngine) addGPG() error {
 	eng := NewGPG(s.gpgUI, s.secretUI)
-	return eng.Run(s.signingKey, "")
+	if err := eng.Run(s.signingKey, ""); err != nil {
+		return err
+	}
+	if s.signingKey == nil {
+		s.signingKey = eng.LastKey()
+	}
+	return nil
 }

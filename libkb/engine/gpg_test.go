@@ -22,13 +22,18 @@ func TestGPGRun(t *testing.T) {
 	}
 }
 
-type gpgtestui struct{}
+type gpgtestui struct {
+	index int
+}
 
 func (g *gpgtestui) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRes, error) {
 	if len(arg.Keyset.Keys) == 0 {
 		return keybase_1.SelectKeyRes{}, fmt.Errorf("no keys in arg")
 	}
-	key := arg.Keyset.Keys[0]
+	if g.index >= len(arg.Keyset.Keys) {
+		return keybase_1.SelectKeyRes{}, fmt.Errorf("test index %d outside bounds (num keys = %d)", g.index, len(arg.Keyset.Keys))
+	}
+	key := arg.Keyset.Keys[g.index]
 	return keybase_1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: true}, nil
 }
 

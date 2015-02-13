@@ -15,6 +15,7 @@ type GPGUI interface {
 type GPG struct {
 	ui       GPGUI
 	secretUI libkb.SecretUI
+	last     *libkb.PgpKeyBundle
 }
 
 func NewGPG(ui GPGUI, sui libkb.SecretUI) *GPG {
@@ -116,5 +117,11 @@ func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
 
 	G.Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
 
+	g.last = bundle
+
 	return nil
+}
+
+func (g *GPG) LastKey() *libkb.PgpKeyBundle {
+	return g.last
 }

@@ -218,6 +218,7 @@ func (d *Doctor) deviceSignPGP() error {
 	var selected *libkb.PgpKeyBundle
 	if len(pgpKeys) > 1 {
 		// show a list of pgp keys and let them select which one to use
+		return fmt.Errorf("multiple pgp keys not yet implemented")
 	} else {
 		selected = pgpKeys[0]
 	}

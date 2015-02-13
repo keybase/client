@@ -280,6 +280,39 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 	return fu
 }
 
+// multiple pgp keys
+func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
+	fu := NewFakeUserOrBust(t, "login")
+	if err := tc.GenerateGPGKeyring(fu.Email, "xxx@xxx.com"); err != nil {
+		t.Fatal(err)
+	}
+
+	secui := libkb.TestSecretUI{fu.Passphrase}
+	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
+
+	if err := s.genTSPassKey(fu.Passphrase); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.join(fu.Username, fu.Email, "202020202020202020202020"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.addGPG(); err != nil {
+		t.Fatal(err)
+	}
+
+	// hack the gpg ui to select a different key:
+	s.gpgUI = &gpgtestui{index: 1}
+	if err := s.addGPG(); err != nil {
+		t.Fatal(err)
+	}
+
+	// now it should have two pgp keys...
+
+	return fu
+}
+
 func TestLoginPGPSignNewDevice(t *testing.T) {
 	tc := libkb.SetupTest(t, "login")
 	u1 := createFakeUserWithPGPOnly(t, tc)
@@ -339,6 +372,46 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 
 	// now safe to cleanup first home
 	tc.Cleanup()
+
+	docui := &ldocuiPGP{&ldocui{}}
+
+	larg := LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   u1.Username,
+			Passphrase: u1.Passphrase,
+			NoUi:       true,
+		},
+		LogUI:    G.UI.GetLogUI(),
+		DoctorUI: docui,
+	}
+
+	before := docui.selectSignerCount
+
+	li := NewLoginEngine()
+
+	if err := li.LoginAndIdentify(larg); err != nil {
+		t.Fatal(err)
+	}
+
+	after := docui.selectSignerCount
+	if after-before != 1 {
+		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
+	}
+
+	testUserHasDeviceKey(t)
+}
+
+func TestLoginPGPMultSignNewDevice(t *testing.T) {
+	tc := libkb.SetupTest(t, "login")
+	u1 := createFakeUserWithPGPMult(t, tc)
+	G.LoginState.Logout()
+	tc.Cleanup()
+
+	// redo SetupTest to get a new home directory...should look like a new device.
+	tc2 := libkb.SetupTest(t, "login")
+	defer tc2.Cleanup()
 
 	docui := &ldocuiPGP{&ldocui{}}
 
