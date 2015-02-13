@@ -738,3 +738,22 @@ func (i InactiveKeyError) Error() string {
 }
 
 //=============================================================================
+
+type MerkleClientError struct {
+	m string
+}
+
+func (m MerkleClientError) Error() string {
+	return fmt.Sprintf("Error checking merkle tree: %s", m.m)
+}
+
+type MerkleNotFoundError struct {
+	k   string
+	msg string
+}
+
+func (m MerkleNotFoundError) Error() string {
+	return fmt.Sprintf("For key '%s', Merkle path not found: %s", m.msg)
+}
+
+//=============================================================================
