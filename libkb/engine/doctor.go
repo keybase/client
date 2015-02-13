@@ -61,14 +61,16 @@ func (d *Doctor) checkKeys() error {
 		return err
 	}
 
-	hasPGP := false
-	// XXX this is wrong.  They could have a pgp key anywhere, not just
-	// eldest...
-	// XXX use d.user.GetActivePgpKeys(false) and see if len > 0?
-	eldest := kf.FindKey(kf.GetEldest().Kid)
-	if _, ok := eldest.(*libkb.PgpKeyBundle); ok {
-		hasPGP = true
-	}
+	hasPGP := len(d.user.GetActivePgpKeys(false)) > 0
+
+	/*
+		G.Log.Info("user has active pgp keys? %v", hasPGP)
+		if d.user.GetComputedKeyFamily() == nil {
+			G.Log.Info("user has nil ckf")
+		} else {
+			d.user.GetComputedKeyFamily().DumpToLog(d.logUI)
+		}
+	*/
 
 	if G.SecretSyncer.HasActiveDevice() {
 		// they have at least one device, just not this device...
@@ -88,7 +90,7 @@ func (d *Doctor) checkKeys() error {
 
 			// make sure we have pgp
 			if !hasPGP {
-				return fmt.Errorf("unknown state:  eldest key is not pgp (%T)", eldest)
+				return fmt.Errorf("unknown state:  no detkey, no pgpkey, no devices, but have some key(s).\nOne way to get here is to create a web user, create a pgp key via web but don't store private key on web.  Then login.  When issue #174 is done (fixes a bug with the user's computedkeyfamily, activepgpkeys), then that scenario should work fine.")
 			}
 
 			// deviceSign will handle the rest...
@@ -212,29 +214,45 @@ func (d *Doctor) deviceSign(withPGPOption bool) error {
 }
 
 func (d *Doctor) deviceSignPGP() error {
-
-	// XXX should show a list of pgp keys and let them select one.
-	// XXX for now, let's just see if we have a private one we can use...
-
 	pgpKeys := d.user.GetActivePgpKeys(false)
-	for _, k := range pgpKeys {
-		G.Log.Info("pgp key: %s", k.VerboseDescription())
-		G.Log.Info("pgp key kid: %s", k.GetKid())
-		if pk, ok := G.SecretSyncer.FindPrivateKey(k.GetKid().String()); ok {
-			skb, err := pk.ToSKB()
-			if err != nil {
-				return err
-			}
-
-			pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", d.secretUI)
-			if err != nil {
-				return err
-			}
-			return d.deviceSignPGPNext(pgpk)
-		}
+	var selected *libkb.PgpKeyBundle
+	if len(pgpKeys) > 1 {
+		// show a list of pgp keys and let them select which one to use
+	} else {
+		selected = pgpKeys[0]
 	}
 
-	return fmt.Errorf("No active pgp key found w/ private key stored on server.  Haven't implemented using gpg to get private key yet...")
+	G.Log.Info("selected pgp key: %s", selected.VerboseDescription())
+	G.Log.Info("selected pgp key kid: %s", selected.GetKid())
+	if pk, ok := G.SecretSyncer.FindPrivateKey(selected.GetKid().String()); ok {
+		skb, err := pk.ToSKB()
+		if err != nil {
+			return err
+		}
+
+		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", d.secretUI)
+		if err != nil {
+			return err
+		}
+		return d.deviceSignPGPNext(pgpk)
+	}
+
+	// use gpg to unlock it
+	gpg := G.GetGpgClient()
+	if _, err := gpg.Configure(); err != nil {
+		return err
+	}
+
+	bundle, err := gpg.ImportKey(true, selected.GetFingerprint())
+	if err != nil {
+		return fmt.Errorf("ImportKey error: %s", err)
+	}
+
+	if err := bundle.Unlock("Import of key into keybase keyring", d.secretUI); err != nil {
+		return fmt.Errorf("bundle Unlock error: %s", err)
+	}
+
+	return d.deviceSignPGPNext(bundle)
 }
 
 func (d *Doctor) deviceSignPGPNext(pgpk libkb.GenericKey) error {

@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"os"
+	"path"
 	"testing"
 
 	"github.com/keybase/go/libkb"
@@ -236,6 +238,7 @@ func TestLoginNewDevice(t *testing.T) {
 	}
 }
 
+// synced key
 func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(t, "login")
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
@@ -244,6 +247,31 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
+
+	if err := s.genTSPassKey(fu.Passphrase); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.join(fu.Username, fu.Email, "202020202020202020202020"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.addGPG(); err != nil {
+		t.Fatal(err)
+	}
+
+	return fu
+}
+
+// private key not pushed to server
+func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
+	fu := NewFakeUserOrBust(t, "login")
+	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
+		t.Fatal(err)
+	}
+
+	secui := libkb.TestSecretUI{fu.Passphrase}
+	s := NewSignupEngine(G.UI.GetLogUI(), &gpgPubOnlyTestUI{}, secui)
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
 		t.Fatal(err)
@@ -269,6 +297,56 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	// redo SetupTest to get a new home directory...should look like a new device.
 	tc2 := libkb.SetupTest(t, "login")
 	defer tc2.Cleanup()
+
+	docui := &ldocui{}
+
+	larg := LoginAndIdentifyArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   u1.Username,
+			Passphrase: u1.Passphrase,
+			NoUi:       true,
+		},
+		LogUI:    G.UI.GetLogUI(),
+		DoctorUI: docui,
+	}
+
+	before := docui.selectSignerCount
+
+	li := NewLoginEngine()
+
+	if err := li.LoginAndIdentify(larg); err != nil {
+		t.Fatal(err)
+	}
+
+	after := docui.selectSignerCount
+	if after-before != 1 {
+		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
+	}
+
+	testUserHasDeviceKey(t)
+}
+
+func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
+	tc := libkb.SetupTest(t, "login")
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	G.LoginState.Logout()
+
+	// redo SetupTest to get a new home directory...should look like a new device.
+	tc2 := libkb.SetupTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := os.Rename(path.Join(tc.Tp.GPGHome, "secring.gpg"), path.Join(tc2.Tp.GPGHome, "secring.gpg")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Rename(path.Join(tc.Tp.GPGHome, "pubring.gpg"), path.Join(tc2.Tp.GPGHome, "pubring.gpg")); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
 
 	docui := &ldocui{}
 

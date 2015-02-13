@@ -294,10 +294,15 @@ func (u *User) GetKeyFamily() *KeyFamily {
 }
 
 func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
+	if u.sigChain == nil {
+		G.Log.Warning("sig chain is nil")
+	}
 	if u.sigChain != nil && u.keyFamily != nil {
 		cki := u.sigChain.GetComputedKeyInfos()
 		if cki != nil {
 			ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily}
+		} else {
+			G.Log.Warning("cki is nil")
 		}
 	}
 	return

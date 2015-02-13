@@ -43,3 +43,16 @@ type gpgcanceltestui struct {
 func (g *gpgcanceltestui) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRes, error) {
 	return keybase_1.SelectKeyRes{}, nil
 }
+
+// doesn't push secret to api server
+type gpgPubOnlyTestUI struct {
+	*gpgtestui
+}
+
+func (g *gpgPubOnlyTestUI) SelectKey(arg keybase_1.SelectKeyArg) (keybase_1.SelectKeyRes, error) {
+	if len(arg.Keyset.Keys) == 0 {
+		return keybase_1.SelectKeyRes{}, fmt.Errorf("no keys in arg")
+	}
+	key := arg.Keyset.Keys[0]
+	return keybase_1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: false}, nil
+}
