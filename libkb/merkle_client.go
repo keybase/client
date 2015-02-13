@@ -58,6 +58,7 @@ type MerkleRoot struct {
 	payloadJsonString string
 	payloadJson       *jsonw.Wrapper
 	rootHash          NodeHash
+	legacyUidRootHash NodeHash
 	ctime             int64
 }
 
@@ -185,7 +186,7 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	var payload_json_str string
 	var pj *jsonw.Wrapper
 	var fp PgpFingerprint
-	var rh NodeHash
+	var rh, lurh NodeHash
 	var ctime int64
 
 	jw.AtKey("sig").GetStringVoid(&sig, &err)
@@ -200,9 +201,10 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 		return
 	}
 
-	GetPgpFingerprintVoid(pj.AtKey("body").AtKey("key").AtKey("fingerprint"), &fp, &err)
-	pj.AtKey("body").AtKey("seqno").GetInt64Void(&seqno, &err)
-	GetNodeHashVoid(pj.AtKey("body").AtKey("root"), &rh, &err)
+	GetPgpFingerprintVoid(pj.AtPath("body.key.fingerprint"), &fp, &err)
+	pj.AtPath("body.seqno").GetInt64Void(&seqno, &err)
+	GetNodeHashVoid(pj.AtPath("body.root"), &rh, &err)
+	GetNodeHashVoid(pj.AtPath("body.legacy_uid_root"), &lurh, &err)
 	pj.AtKey("ctime").GetInt64Void(&ctime, &err)
 
 	if err != nil {
@@ -216,6 +218,7 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 		payloadJsonString: payload_json_str,
 		payloadJson:       pj,
 		rootHash:          rh,
+		legacyUidRootHash: lurh,
 		ctime:             ctime,
 	}
 	return
