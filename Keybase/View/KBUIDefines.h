@@ -25,6 +25,8 @@
 #import "KBBox.h"
 #import "KBLabelRow.h"
 #import "KBSplitView.h"
+#import "KBScrollView.h"
+#import "KBTextCollectionView.h"
 
 
 #define KBDebugAlert(DESC) ([[NSAlert alertWithError:[NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:DESC}]] beginSheetModalForWindow:[NSApp mainWindow] completionHandler:nil])

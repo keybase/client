@@ -46,9 +46,8 @@
 
   [_client registerMethod:@"keybase.1.secretUi.getSecret" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
-    NSString *prompt = params[0][@"pinentry"][@"prompt"];
-    NSString *description = params[0][@"pinentry"][@"desc"];
-    [KBAlert promptForInputWithTitle:prompt description:description secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+    KBRGetSecretRequestHandler *handler = [[KBRGetSecretRequestHandler alloc] initWithParams:params];
+    [KBAlert promptForInputWithTitle:handler.pinentry.prompt description:handler.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
       entry.text = response == NSAlertFirstButtonReturn ? password : nil;
       entry.canceled = response == NSAlertSecondButtonReturn;
@@ -69,6 +68,10 @@
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   [self checkStatus];
+}
+
+- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error {
+  // TODO
 }
 
 - (void)RPClientDidLogout:(KBRPClient *)RPClient {
@@ -114,10 +117,8 @@
 
   [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
 
-  if (_status.loggedIn) {
-    // TODO: update when username bug fixed
-    NSString *username = [_status.user.username gh_isPresent] ? _status.user.username : [_status.user.uid na_hexString];
-    [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", username) action:@selector(logout) keyEquivalent:@""];
+  if (_status.loggedIn && _status.user) {
+    [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", _status.user.username) action:@selector(logout) keyEquivalent:@""];
     [menu addItem:[NSMenuItem separatorItem]];
   } else {
     [menu addItemWithTitle:@"Log In" action:@selector(login) keyEquivalent:@""];

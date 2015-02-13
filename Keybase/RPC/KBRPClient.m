@@ -41,15 +41,15 @@
 
   _recordId = [[NSDate date] gh_formatISO8601];
   
-  GHWeakSelf blockSelf = self;
+  GHWeakSelf gself = self;
   _client.requestHandler = ^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
     // Recording
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
-      [blockSelf recordMethod:method params:params];
+      [gself recordMethod:method params:params];
     }
 
-    MPRequestHandler requestHandler = blockSelf.methods[method];
+    MPRequestHandler requestHandler = gself.methods[method];
     if (!requestHandler) {
       GHDebug(@"No handler for request");
       completion(KBMakeError(-1, @"Method not found", @"Method not found: %@", method), nil);
@@ -67,16 +67,26 @@
   [_client openWithSocket:NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user) completion:^(NSError *error) {
     if (error) {
       GHDebug(@"Error connecting to keybased: %@", error);
-      // Retry
-      [self openAfterDelay:2];
+      if (!gself.autoRetryDisabled) {
+        // Retry
+        [self openAfterDelay:2];
+      }
+      [self.delegate RPClient:self didErrorOnConnect:error];
       return;
     }
-    
+
+    GHDebug(@"Connected");
     [self.delegate RPClientDidConnect:self];
   }];
 }
 
+- (void)close {
+  [_client close];
+  [self.delegate RPClientDidDisconnect:self];
+}
+
 - (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler {
+  GHDebug(@"Registering %@", method);
   _methods[method] = requestHandler;
 }
 
@@ -106,8 +116,8 @@
 
 NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
   NSMutableDictionary *mdict = [dict mutableCopy];
-  if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"XXXXX";
-  if (mdict[@"password"]) mdict[@"password"] = @"XXXXX";
+  if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"[FILTERED]";
+  if (mdict[@"password"]) mdict[@"password"] = @"[FILTERED]";
   return mdict;
 }
 

@@ -45,16 +45,17 @@
   [_scrollView setDocumentView:_tableView];
   [self addSubview:_scrollView];
 
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout setSize:size view:yself.scrollView options:0];
-    return size;
-  }];
+  self.viewLayout = [YOLayout fill:_scrollView];
 }
 
 - (void)setObjects:(NSArray *)objects {
   [_dataSource removeAllObjects];
   if (objects) [_dataSource addObjectsFromArray:objects];
+  [_tableView reloadData];
+}
+
+- (void)addObjects:(NSArray *)objects {
+  [_dataSource addObjectsFromArray:objects];
   [_tableView reloadData];
 }
 

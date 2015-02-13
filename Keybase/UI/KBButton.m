@@ -33,6 +33,10 @@
    self.action = @selector(_performTargetBlock);
 }
 
++ (instancetype)button {
+  return [[KBButton alloc] init];
+}
+
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style {
   return [self buttonWithText:text style:style alignment:NSCenterTextAlignment];
 }
@@ -52,9 +56,10 @@
 
 - (CGSize)sizeThatFits:(NSSize)size {
   CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
-  if (self.style == KBButtonStyleLink || self.style == KBButtonStyleCheckbox) {
+  if (self.style == KBButtonStyleText || self.style == KBButtonStyleLink || self.style == KBButtonStyleCheckbox) {
     return sizeThatFits;
   } else {
+    // Padding for non text style buttons
     sizeThatFits.height += 20;
     sizeThatFits.width += 40;
     return sizeThatFits;
@@ -66,11 +71,11 @@
 //}
 
 + (NSMutableAttributedString *)attributedText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSParameterAssert(font);
-  NSParameterAssert(color);
   if (!text) text = @"";
   NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
-  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font};
+  NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+  if (font) attributes[NSFontAttributeName] = font;
+  if (color) attributes[NSForegroundColorAttributeName] = color;
   [str setAttributes:attributes range:NSMakeRange(0, str.length)];
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
@@ -81,7 +86,11 @@
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  [self setAttributedTitle:[KBButton attributedText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode]];
+  [self setAttributedTitle:[KBButton attributedText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode] style:KBButtonStyleText];
+}
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  [self setAttributedTitle:[KBButton attributedText:text font:font color:nil alignment:alignment lineBreakMode:lineBreakMode] style:style];
 }
 
 + (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style sender:(id)sender {
@@ -108,12 +117,30 @@
   [self setNeedsDisplay];
 }
 
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
+  self.style = style;
+  KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
+  [cell setMarkup:markup style:style alignment:alignment];
+  self.cell = cell;
+  [self setNeedsDisplay];
+}
+
 - (void)setTargetBlock:(KBButtonTargetBlock)targetBlock {
   _targetBlock = targetBlock;
 }
 
 - (void)_performTargetBlock {
   if (self.targetBlock) self.targetBlock();
+}
+
++ (NSFont *)fontForStyle:(KBButtonStyle)style {
+  switch (style) {
+    case KBButtonStyleDefault:
+    case KBButtonStylePrimary: return [NSFont systemFontOfSize:18];
+    case KBButtonStyleLink: return [NSFont systemFontOfSize:14];
+    case KBButtonStyleText: return [NSFont systemFontOfSize:14];
+    case KBButtonStyleCheckbox: return [NSFont systemFontOfSize:14];
+  }
 }
 
 @end
@@ -128,17 +155,12 @@
 }
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment {
-  [self setAttributedTitle:[KBButton attributedText:text font:[self fontForStyle] color:[KBLookAndFeel textColor] alignment:alignment lineBreakMode:NSLineBreakByTruncatingTail]];
+  [self setAttributedTitle:[KBButton attributedText:text font:[KBButton fontForStyle:self.style] color:[KBLookAndFeel textColor] alignment:alignment lineBreakMode:NSLineBreakByTruncatingTail]];
 }
 
-- (NSFont *)fontForStyle {
-  switch (self.style) {
-    case KBButtonStyleDefault:
-    case KBButtonStylePrimary: return [NSFont systemFontOfSize:18];
-    case KBButtonStyleLink: return [NSFont systemFontOfSize:14];
-    case KBButtonStyleText: return [NSFont systemFontOfSize:14];
-    case KBButtonStyleCheckbox: return [NSFont systemFontOfSize:14];
-  }
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
+  NSAttributedString *str = [KBLabel parseMarkup:markup font:[KBButton fontForStyle:style] color:nil alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
+  [self setAttributedTitle:str];
 }
 
 - (NSColor *)textColorForState {

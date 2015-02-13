@@ -40,5 +40,7 @@ typedef NS_ENUM(NSUInteger, KBVerticalAlignment) {
 
 + (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color;
 
++ (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
 @end
 

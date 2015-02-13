@@ -9,10 +9,11 @@
 #import "KBUserHeaderView.h"
 
 #import "KBActivityIndicatorView.h"
+#import "AppDelegate.h"
 
 @interface KBUserHeaderView ()
 @property KBLabel *name1Label;
-@property KBLabel *name2Label;
+@property KBButton *name2View;
 @property KBLabel *locationLabel;
 @property KBLabel *bioLabel;
 @property KBImageView *imageView;
@@ -38,8 +39,8 @@
   _name1Label.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_name1Label];
 
-  _name2Label = [[KBLabel alloc] init];
-  [self addSubview:_name2Label];
+  _name2View = [KBButton button];
+  [self addSubview:_name2View];
 
   _locationLabel = [[KBLabel alloc] init];
   [self addSubview:_locationLabel];
@@ -52,15 +53,18 @@
 
     CGFloat x = 20;
     CGFloat y = 10;
-    CGFloat imageWidth = 100;
+    CGFloat imageHeight = 100;
 
-    x += [layout setFrame:CGRectMake(20, y, imageWidth, imageWidth) view:yself.imageView].size.width + 10;
+    x += [layout setFrame:CGRectMake(20, y, imageHeight, imageHeight) view:yself.imageView].size.width + 20;
 
-    CGRect name1Rect = [layout setFrame:CGRectMake(x, y, size.width - x, imageWidth) view:yself.name1Label options:YOLayoutOptionsSizeToFitHorizontal];
+    y += 20;
+    y += [layout setFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name1Label].size.height + 4;
 
-    [layout setFrame:CGRectMake(12, y - 8, imageWidth + 16, imageWidth + 16) view:yself.progressView];
+    y += [layout setFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name2View].size.height;
 
-    return CGSizeMake(x + name1Rect.size.width, imageWidth + 30);
+    [layout setFrame:CGRectMake(12, y - 8, imageHeight + 16, imageHeight + 16) view:yself.progressView];
+
+    return CGSizeMake(size.width, imageHeight + 30);
   }];
 
 //  YOSelf yself = self;
@@ -102,9 +106,23 @@
   }
 
   _imageView.hidden = NO;
-  [_name1Label setMarkup:NSStringWithFormat(@"<p>keybase.io/<strong>%@</strong></p>", user.username) font:[NSFont systemFontOfSize:36] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_name1Label setText:user.username font:[NSFont boldSystemFontOfSize:36] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
 
-  [_imageView setURLString:user.image.url ? user.image.url : @"https://keybase.io/images/no_photo.png"];
+  [_name2View setText:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+
+  //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+
+  if (user.image.url) {
+
+  } else {
+    GHWeakSelf gself = self;
+    [AppDelegate.APIClient userForKey:@"usernames" value:user.username fields:@"pictures" success:^(KBUser *user) {
+      [gself.imageView setURLString:user.image.URLString];
+    } failure:^(NSError *error) {
+      [gself.imageView setURLString:@"https://keybase.io/images/no_photo.png"];
+    }];
+  }
+
   [self setNeedsLayout];
 }
 

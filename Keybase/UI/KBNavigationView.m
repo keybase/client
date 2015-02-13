@@ -102,7 +102,9 @@
 
 - (void)addView:(NSView *)view {
   [_views addObject:view];
-  [view setNavigation:self];
+  if ([view respondsToSelector:@selector(setNavigation:)]) {
+    [view setNavigation:self];
+  }
 }
 
 - (void)removeView:(NSView *)view {

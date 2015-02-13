@@ -15,6 +15,8 @@
 
 @protocol KBRPClientDelegate
 - (void)RPClientDidConnect:(KBRPClient *)RPClient;
+- (void)RPClientDidDisconnect:(KBRPClient *)RPClient;
+- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error;
 @end
 
 
@@ -22,7 +24,11 @@
 
 @property (weak) id<KBRPClientDelegate> delegate;
 
+@property (getter=isAutoRetryDisabled) BOOL autoRetryDisabled;
+
 - (void)open;
+
+- (void)close;
 
 - (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler;
 

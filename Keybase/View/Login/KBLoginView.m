@@ -40,6 +40,17 @@
   KBButton *forgotPasswordButton = [KBButton buttonWithText:@"Forgot my password" style:KBButtonStyleLink];
   [self addSubview:forgotPasswordButton];
 
+  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+//    KBRSelectSignerRequestHandler *handler = [[KBRSelectSignerRequestHandler alloc] initWithParams:params];
+//    KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
+//    response.action = KBRSelectSignerActionSign;
+//    response.signer = 
+//    completion(nil, response);
+
+    // TODO
+    completion(KBMakeError(-1, @"Unsupported", @"Can't login from a different device yet."), nil);
+  }];
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 40;

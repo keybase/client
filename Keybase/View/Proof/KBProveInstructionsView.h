@@ -16,7 +16,7 @@
 @property KBNavigationView *navigation;
 @property KBLabel *instructionsLabel;
 @property KBLabel *proofLabel;
-@property NSScrollView *scrollView;
+@property KBScrollView *scrollView;
 @property KBButton *button;
 @property KBButton *clipboardCopyButton;
 @property KBButton *cancelButton;

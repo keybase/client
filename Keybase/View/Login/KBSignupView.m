@@ -165,16 +165,18 @@
   }
 
   GHWeakSelf gself = self;
-  [AppDelegate.APIClient checkForUserName:userName success:^(BOOL exists) {
-    if (!exists) {
-      [gself.usernameStatusLabel setText:@"OK" font:[NSFont systemFontOfSize:12] color:[KBLookAndFeel okColor] alignment:NSRightTextAlignment];
-    } else {
+  KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
+  [request checkUsernameAvailableWithUsername:userName completion:^(NSError *error) {
+    if (error.code == 701) {
       [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:[KBLookAndFeel errorColor] alignment:NSRightTextAlignment];
+    } else if (error) {
+      GHErr(@"Error: %@", error);
+      gself.usernameStatusLabel.attributedText = nil;
+      [self setNeedsLayout];
+      return;
+    } else {
+      [gself.usernameStatusLabel setText:@"OK" font:[NSFont systemFontOfSize:12] color:[KBLookAndFeel okColor] alignment:NSRightTextAlignment];
     }
-    [self setNeedsLayout];
-  } failure:^(NSError *error) {
-    GHErr(@"Error: %@", error);
-    gself.usernameStatusLabel.attributedText = nil;
     [self setNeedsLayout];
   }];
 }
@@ -228,8 +230,12 @@
       return;
     }
 
+    // Clear all fields (esp password)
     self.passwordField.text = nil;
     self.passwordConfirmField.text = nil;
+    self.emailField.text = nil;
+    self.usernameField.text = nil;
+    self.deviceNameField.text = nil;
 
     KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
     [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {

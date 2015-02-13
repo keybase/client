@@ -12,7 +12,7 @@
 typedef void (^KBCompletionBlock)(NSError *error);
 typedef void (^KBErrorBlock)(NSError *error);
 
-#define KBMakeError(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"MPMessagePack" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey: [NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]
+#define KBMakeError(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey: [NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]
 
 
 /*!

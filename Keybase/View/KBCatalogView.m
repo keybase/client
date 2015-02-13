@@ -14,6 +14,7 @@
 #import "KBKeyGenView.h"
 #import "KBProveView.h"
 #import "KBStyleGuideView.h"
+#import "KBTestClientView.h"
 
 
 @interface KBCatalogView ()
@@ -43,6 +44,7 @@
     decisionHandler(WKNavigationActionPolicyCancel);
   }
 
+  if ([path isEqualTo:@"/test-client"]) [self showTestClientView];
   if ([path isEqualTo:@"/login"]) [self showLogin];
   if ([path isEqualTo:@"/signup"]) [self showSignup];
   if ([path isEqualTo:@"/keygen"]) [self showKeyGen:YES];
@@ -67,6 +69,11 @@
   AppDelegate.sharedDelegate.status = status;
 }
 
+- (void)showTestClientView {
+  KBTestClientView *testClientView = [[KBTestClientView alloc] init];
+  [self openInWindow:testClientView title:@"Test Client"];
+}
+
 - (void)showLogin {
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.loginView.delegate = self;
@@ -85,19 +92,19 @@
 
 - (void)showKeyGen:(BOOL)animated {
   KBKeyGenView *keyGenView = [[KBKeyGenView alloc] init];
-  [self openInWindow:keyGenView];
+  [self openInWindow:keyGenView title:@"Keygen"];
 }
 
 - (void)showProve:(NSString *)type {
   KBProveView *view = [[KBProveView alloc] init];
   view.proveType = KBProveTypeForServiceName(type);
-  [self openInWindow:view];
+  [self openInWindow:view title:@"Prove"];
 }
 
-- (NSWindow *)openInWindow:(NSView *)view {
+- (NSWindow *)openInWindow:(NSView *)view title:(NSString *)title {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:navigation];
+  navigation.titleView = [KBTitleView titleViewWithTitle:title navigation:navigation];
   [window makeKeyAndOrderFront:nil];
   return window;
 }
@@ -165,7 +172,7 @@
     text.markup = 1;
     NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
     [instructionsView setInstructions:text proofText:proofText];
-    [self openInWindow:instructionsView];
+    [self openInWindow:instructionsView title:@"Instructions View"];
   }
 }
 

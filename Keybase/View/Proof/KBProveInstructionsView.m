@@ -23,7 +23,7 @@
   _proofLabel = [[KBLabel alloc] init];
   _proofLabel.selectable = YES;
 
-  _scrollView = [[NSScrollView alloc] init];
+  _scrollView = [[KBScrollView alloc] init];
   _scrollView.hasVerticalScroller = YES;
   _scrollView.autohidesScrollers = YES;
   [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];

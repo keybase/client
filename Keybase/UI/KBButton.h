@@ -23,6 +23,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 @property (nonatomic, copy) KBButtonTargetBlock targetBlock;
 
++ (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
 
@@ -31,6 +32,10 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 - (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
 
 - (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style;
 
@@ -41,6 +46,8 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 @property KBButtonStyle style;
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment;
+
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
 
 @end
 

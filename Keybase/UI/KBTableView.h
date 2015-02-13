@@ -15,9 +15,12 @@
 @property Class prototypeClass;
 
 - (void)setObjects:(NSArray *)objects;
+- (void)addObjects:(NSArray *)objects;
 
+// Abstract
 - (void)updateView:(YONSView *)view object:(id)object;
 
+// Abstract
 - (void)select:(id)object;
 
 - (void)deselectAll;
