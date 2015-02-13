@@ -127,7 +127,7 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 }
 
 func (s *SignupEngine) genDetKeys() error {
-	eng := NewDetKeyEngine(s.me, s.signingKey, s.logUI)
+	eng := NewDetKeyEngine(s.me, s.signingKey, s.signingKey.GetKid(), s.logUI)
 	return eng.Run(&s.tspkey)
 }
 

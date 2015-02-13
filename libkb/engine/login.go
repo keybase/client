@@ -14,6 +14,7 @@ type LoginEngineArg struct {
 	Login    libkb.LoginArg
 	LogUI    libkb.LogUI
 	DoctorUI libkb.DoctorUI
+	GpgUI    GPGUI
 }
 
 func (e *LoginEngine) Run(arg LoginEngineArg) (err error) {
@@ -36,6 +37,6 @@ func (e *LoginEngine) Run(arg LoginEngineArg) (err error) {
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(arg.DoctorUI, arg.Login.SecretUI, arg.LogUI)
+	doctor := NewDoctor(&DocArg{DocUI: arg.DoctorUI, SecretUI: arg.Login.SecretUI, LogUI: arg.LogUI, IdentifyUI: arg.IdentifyUI, GpgUI: arg.GpgUI})
 	return doctor.LoginCheckup(u)
 }

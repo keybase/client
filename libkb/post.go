@@ -27,8 +27,8 @@ type PostNewKeyArg struct {
 	Id                SigId
 	Type              string
 	PublicKey         GenericKey
-	SigningKey        GenericKey
-	EldestKey         GenericKey
+	SigningKeyID      KID
+	EldestKeyID       KID
 	ServerHalf        string
 	IsPrimary         bool
 	EncodedPrivateKey string
@@ -52,8 +52,8 @@ func (a PostNewKeyArg) ToHttpArgs() (HttpArgs, error) {
 	if a.IsPrimary {
 		hargs["is_primary"] = I{Val: 1}
 	} else {
-		hargs["eldest_kid"] = a.EldestKey.GetKid()
-		hargs["signing_kid"] = a.SigningKey.GetKid()
+		hargs["eldest_kid"] = a.EldestKeyID
+		hargs["signing_kid"] = a.SigningKeyID
 	}
 	if len(a.EncodedPrivateKey) > 0 {
 		hargs["private_key"] = S{Val: a.EncodedPrivateKey}

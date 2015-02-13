@@ -11,15 +11,15 @@ import (
 // "golang.org/x/crypto/nacl/secretbox"
 
 type NaclKeyGenArg struct {
-	Signer    GenericKey // who is going to sign us into the Chain
-	ExpiresIn int
-	Generator func() (NaclKeyPair, error)
-	Me        *User
-	Sibkey    bool
-	ExpireIn  int        // how long it lasts
-	Primary   GenericKey // the primary key for this epoch
-	LogUI     LogUI
-	Device    *Device
+	Signer      GenericKey // who is going to sign us into the Chain
+	ExpiresIn   int
+	Generator   func() (NaclKeyPair, error)
+	Me          *User
+	Sibkey      bool
+	ExpireIn    int // how long it lasts
+	EldestKeyID KID // the eldest KID for this epoch
+	LogUI       LogUI
+	Device      *Device
 }
 
 type NaclKeyGen struct {
@@ -49,7 +49,7 @@ func (g *NaclKeyGen) SaveLKS(lks *LKSec) error {
 func (g *NaclKeyGen) Push() (err error) {
 	var jw *jsonw.Wrapper
 	var pushType string
-	eldest := g.arg.Signer == nil && g.arg.Primary == nil
+	eldest := g.arg.Signer == nil && g.arg.EldestKeyID == nil
 
 	kpArg := KeyProofArg{
 		NewKey: g.pair,
@@ -81,13 +81,13 @@ func (g *NaclKeyGen) Push() (err error) {
 		return fmt.Errorf("sign json err: %s", err)
 	}
 	arg := PostNewKeyArg{
-		Sig:        sig,
-		Id:         *id,
-		Type:       pushType,
-		EldestKey:  g.arg.Primary,
-		SigningKey: signer,
-		PublicKey:  g.pair,
-		IsPrimary:  eldest,
+		Sig:          sig,
+		Id:           *id,
+		Type:         pushType,
+		EldestKeyID:  g.arg.EldestKeyID,
+		SigningKeyID: signer.GetKid(),
+		PublicKey:    g.pair,
+		IsPrimary:    eldest,
 	}
 	if err = PostNewKey(arg); err != nil {
 		return

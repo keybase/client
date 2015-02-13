@@ -12,14 +12,15 @@ import (
 )
 
 type DetKeyEngine struct {
-	me         *libkb.User
-	signingKey libkb.GenericKey
-	selfProof  bool
-	logui      libkb.LogUI
+	me          *libkb.User
+	signingKey  libkb.GenericKey
+	eldestKeyID libkb.KID
+	selfProof   bool
+	logui       libkb.LogUI
 }
 
-func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, logui libkb.LogUI) *DetKeyEngine {
-	return &DetKeyEngine{me: me, signingKey: signingKey, logui: logui}
+func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, eldestKeyID libkb.KID, logui libkb.LogUI) *DetKeyEngine {
+	return &DetKeyEngine{me: me, signingKey: signingKey, eldestKeyID: eldestKeyID, logui: logui}
 }
 
 // Run runs the detkey engine.
@@ -51,25 +52,6 @@ func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {
 }
 
 func (d *DetKeyEngine) eddsa(tpk *libkb.TSPassKey) error {
-	/*
-		xseed, serverHalf, err := serverSeed(seed)
-		if err != nil {
-			return err
-		}
-		pub, priv, err := ed25519.GenerateKey(bytes.NewBuffer(xseed))
-		if err != nil {
-			return err
-		}
-
-		G.Log.Debug("detkey[eddsa] serverHalf: %x", serverHalf)
-		G.Log.Debug("detkey[eddsa] pub:        %x", *pub)
-		G.Log.Debug("detkey[eddsa] priv:       %x", *priv)
-
-		var key libkb.NaclSigningKeyPair
-		copy(key.Public[:], (*pub)[:])
-		key.Private = &libkb.NaclSigningKeyPrivate{}
-		copy(key.Private[:], (*priv)[:])
-	*/
 	serverHalf, err := libkb.RandBytes(len(tpk.EdDSASeed()))
 	if err != nil {
 		return err
@@ -81,6 +63,7 @@ func (d *DetKeyEngine) eddsa(tpk *libkb.TSPassKey) error {
 
 	if d.selfProof {
 		d.signingKey = key
+		d.eldestKeyID = key.GetKid()
 	}
 
 	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
@@ -162,18 +145,27 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int,
 		return err
 	}
 
-	arg := libkb.PostNewKeyArg{
-		Sig:        sig,
-		Id:         *sigid,
-		Type:       pushType,
-		PublicKey:  key,
-		SigningKey: d.signingKey,
-		EldestKey:  d.signingKey,
-		ServerHalf: hex.EncodeToString(serverHalf),
+	if d.eldestKeyID == nil {
+		efokid := d.me.GetEldestFOKID()
+		if efokid != nil {
+			d.eldestKeyID = efokid.Kid
+		}
 	}
 
+	arg := libkb.PostNewKeyArg{
+		Sig:          sig,
+		Id:           *sigid,
+		Type:         pushType,
+		PublicKey:    key,
+		SigningKeyID: d.signingKey.GetKid(),
+		EldestKeyID:  d.eldestKeyID,
+		ServerHalf:   hex.EncodeToString(serverHalf),
+	}
+
+	//	G.Log.Info("post new key arg: id = %v, type = %v, signing key id = %v, eldest key id = %v", arg.Id, arg.Type, arg.SigningKeyID, arg.EldestKeyID)
+
 	if d.selfProof {
-		arg.EldestKey = nil
+		arg.EldestKeyID = nil
 		arg.IsPrimary = true
 	}
 

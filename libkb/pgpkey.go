@@ -332,6 +332,11 @@ func (k PgpKeyBundle) GetAlgoType() int {
 }
 
 func (k PgpKeyBundle) KeyDescription() string {
+	algo, kid, creation := k.KeyInfo()
+	return fmt.Sprintf("%s, ID %s, created %s", algo, kid, creation)
+}
+
+func (k PgpKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	pubkey := k.PrimaryKey
 
 	var typ string
@@ -346,16 +351,16 @@ func (k PgpKeyBundle) KeyDescription() string {
 		typ = "<UNKONWN TYPE>"
 	}
 
-	layout := "2006-01-02"
-
 	bl, err := pubkey.BitLength()
 	if err != nil {
 		bl = 0
 	}
 
-	desc := fmt.Sprintf("%d-bit %s key, ID %s, created %s",
-		bl, typ, pubkey.KeyIdString(), pubkey.CreationTime.Format(layout))
-	return desc
+	algorithm = fmt.Sprintf("%d-bit %s key", bl, typ)
+	kid = pubkey.KeyIdString()
+	creation = pubkey.CreationTime.Format("2006-01-02")
+
+	return
 }
 
 func (p *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
@@ -438,4 +443,12 @@ func (pgp *PgpKeyBundle) FindEmail(em string) bool {
 		}
 	}
 	return false
+}
+
+func (pgp *PgpKeyBundle) IdentityNames() []string {
+	var names []string
+	for _, ident := range pgp.Identities {
+		names = append(names, ident.Name)
+	}
+	return names
 }

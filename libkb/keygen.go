@@ -201,13 +201,13 @@ func (s *KeyGen) sibkeyPost(devsk GenericKey) error {
 	s.chainTail.sigId = sigid
 
 	postArg := PostNewKeyArg{
-		Sig:        sig,
-		Id:         *sigid,
-		Type:       pushType,
-		PublicKey:  s.bundle,
-		SigningKey: devsk,
-		EldestKey:  devsk,
-		IsPrimary:  false,
+		Sig:          sig,
+		Id:           *sigid,
+		Type:         pushType,
+		PublicKey:    s.bundle,
+		SigningKeyID: devsk.GetKid(),
+		EldestKeyID:  devsk.GetKid(),
+		IsPrimary:    false,
 	}
 
 	if s.arg.DoSecretPush {
@@ -238,12 +238,12 @@ func (s *KeyGen) primaryPost() error {
 	s.chainTail.sigId = sigid
 
 	postArg := PostNewKeyArg{
-		Sig:        sig,
-		Id:         *sigid,
-		Type:       pushType,
-		PublicKey:  s.bundle,
-		SigningKey: s.bundle,
-		IsPrimary:  true,
+		Sig:          sig,
+		Id:           *sigid,
+		Type:         pushType,
+		PublicKey:    s.bundle,
+		SigningKeyID: s.bundle.GetKid(),
+		IsPrimary:    true,
 	}
 
 	if s.arg.DoSecretPush {

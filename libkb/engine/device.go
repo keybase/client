@@ -30,16 +30,16 @@ func (d *DeviceEngine) Init() error {
 
 // Run is for when the device key will be the eldest key.
 func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) error {
-	return d.run(deviceName, lksClientHalf, nil)
+	return d.run(deviceName, lksClientHalf, nil, nil)
 }
 
 // RunWithSigner is for when you have a key that can sign already,
 // but need a device key.
-func (d *DeviceEngine) RunWithSigner(deviceName string, lksClientHalf []byte, signer libkb.GenericKey) error {
-	return d.run(deviceName, lksClientHalf, signer)
+func (d *DeviceEngine) RunWithSigner(deviceName string, lksClientHalf []byte, signer libkb.GenericKey, eldestKID libkb.KID) error {
+	return d.run(deviceName, lksClientHalf, signer, eldestKID)
 }
 
-func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb.GenericKey) (err error) {
+func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb.GenericKey, eldestKID libkb.KID) (err error) {
 	if d.me.HasDeviceInCurrentInstall() {
 		return ErrDeviceAlreadyRegistered
 	}
@@ -62,8 +62,10 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb
 		if err = d.pushEldestKey(); err != nil {
 			return err
 		}
+		signer = d.eldestKey
+		eldestKID = d.eldestKey.GetKid()
 	} else {
-		if err = d.pushSibKey(signer); err != nil {
+		if err = d.pushSibKey(signer, eldestKID); err != nil {
 			return err
 		}
 	}
@@ -78,7 +80,7 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb
 		}
 	}
 
-	if err = d.pushDHKey(); err != nil {
+	if err = d.pushDHKey(signer, eldestKID); err != nil {
 		return
 	}
 
@@ -117,36 +119,34 @@ func (d *DeviceEngine) pushEldestKey() error {
 	return nil
 }
 
-func (d *DeviceEngine) pushSibKey(signer libkb.GenericKey) error {
+func (d *DeviceEngine) pushSibKey(signer libkb.GenericKey, eldestKID libkb.KID) error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
-		Signer:    signer,
-		Primary:   signer,
-		Generator: libkb.GenerateNaclSigningKeyPair,
-		Sibkey:    true,
-		Me:        d.me,
-		ExpireIn:  libkb.NACL_DH_EXPIRE_IN,
-		Device:    d.device(),
-		LogUI:     d.logui,
+		Signer:      signer,
+		EldestKeyID: eldestKID,
+		Generator:   libkb.GenerateNaclSigningKeyPair,
+		Sibkey:      true,
+		Me:          d.me,
+		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
+		Device:      d.device(),
+		LogUI:       d.logui,
 	})
 	err := gen.RunLKS(d.lks)
 	if err != nil {
 		return err
 	}
-	// d.eldestKey = gen.GetKeyPair()
-	d.eldestKey = signer
 	return nil
 }
 
-func (d *DeviceEngine) pushDHKey() error {
+func (d *DeviceEngine) pushDHKey(signer libkb.GenericKey, eldestKID libkb.KID) error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
-		Signer:    d.eldestKey,
-		Primary:   d.eldestKey,
-		Generator: libkb.GenerateNaclDHKeyPair,
-		Sibkey:    false,
-		Me:        d.me,
-		ExpireIn:  libkb.NACL_DH_EXPIRE_IN,
-		Device:    d.device(),
-		LogUI:     d.logui,
+		Signer:      signer,
+		EldestKeyID: eldestKID,
+		Generator:   libkb.GenerateNaclDHKeyPair,
+		Sibkey:      false,
+		Me:          d.me,
+		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
+		Device:      d.device(),
+		LogUI:       d.logui,
 	})
 
 	return gen.RunLKS(d.lks)

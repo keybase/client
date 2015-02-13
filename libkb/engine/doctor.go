@@ -9,16 +9,26 @@ import (
 )
 
 type Doctor struct {
-	user     *libkb.User
-	docUI    libkb.DoctorUI
-	secretUI libkb.SecretUI
-	logUI    libkb.LogUI
+	user       *libkb.User
+	docUI      libkb.DoctorUI
+	secretUI   libkb.SecretUI
+	logUI      libkb.LogUI
+	identifyUI libkb.IdentifyUI
+	gpgUI      GPGUI
 
 	signingKey libkb.GenericKey
 }
 
-func NewDoctor(docUI libkb.DoctorUI, secUI libkb.SecretUI, logUI libkb.LogUI) *Doctor {
-	return &Doctor{docUI: docUI, secretUI: secUI, logUI: logUI}
+type DocArg struct {
+	DocUI      libkb.DoctorUI
+	SecretUI   libkb.SecretUI
+	LogUI      libkb.LogUI
+	IdentifyUI libkb.IdentifyUI
+	GpgUI      GPGUI
+}
+
+func NewDoctor(arg *DocArg) *Doctor {
+	return &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, identifyUI: arg.IdentifyUI, gpgUI: arg.GpgUI}
 }
 
 func (d *Doctor) LoginCheckup(u *libkb.User) error {
@@ -100,7 +110,7 @@ func (d *Doctor) checkKeys() error {
 	}
 
 	// use their detkey to sign this device
-	return d.addDeviceKeyWithSigner(dk)
+	return d.addDeviceKeyWithSigner(dk, dk.GetKid())
 }
 
 // addBasicKeys is used for accounts that have no device or det
@@ -110,7 +120,7 @@ func (d *Doctor) addBasicKeys() error {
 		return err
 	}
 
-	if err := d.addDetKey(); err != nil {
+	if err := d.addDetKey(d.signingKey.GetKid()); err != nil {
 		return err
 	}
 
@@ -136,7 +146,7 @@ func (d *Doctor) addDeviceKey() error {
 	return nil
 }
 
-func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey) error {
+func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey, eldestKID libkb.KID) error {
 	// XXX session id...what to put there?
 	devname, err := d.docUI.PromptDeviceName(0)
 	if err != nil {
@@ -147,20 +157,20 @@ func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey) error {
 		return err
 	}
 	eng := NewDeviceEngine(d.user, d.logUI)
-	if err := eng.RunWithSigner(devname, tk.LksClientHalf(), signer); err != nil {
-		return fmt.Errorf("RunWithDetKey error: %s", err)
+	if err := eng.RunWithSigner(devname, tk.LksClientHalf(), signer, eldestKID); err != nil {
+		return fmt.Errorf("RunWithSigner error: %s", err)
 	}
 
-	d.signingKey = eng.EldestKey()
+	d.signingKey = signer
 	return nil
 }
 
-func (d *Doctor) addDetKey() error {
+func (d *Doctor) addDetKey(eldest libkb.KID) error {
 	tk, err := d.tspkey()
 	if err != nil {
 		return err
 	}
-	eng := NewDetKeyEngine(d.user, d.signingKey, d.logUI)
+	eng := NewDetKeyEngine(d.user, d.signingKey, eldest, d.logUI)
 	return eng.Run(tk)
 }
 
@@ -218,7 +228,14 @@ func (d *Doctor) deviceSignPGP() error {
 	var selected *libkb.PgpKeyBundle
 	if len(pgpKeys) > 1 {
 		// show a list of pgp keys and let them select which one to use
-		return fmt.Errorf("multiple pgp keys not yet implemented")
+		var err error
+		selected, err = d.selectPGPKey(pgpKeys)
+		if err != nil {
+			return err
+		}
+		if selected == nil {
+			return fmt.Errorf("no key selected")
+		}
 	} else {
 		selected = pgpKeys[0]
 	}
@@ -261,11 +278,13 @@ func (d *Doctor) deviceSignPGPNext(pgpk libkb.GenericKey) error {
 		return fmt.Errorf("pgp key can't sign")
 	}
 
-	if err := d.addDeviceKeyWithSigner(pgpk); err != nil {
+	eldest := d.user.GetEldestFOKID().Kid
+	G.Log.Info("eldest kid from user: %s", eldest)
+	if err := d.addDeviceKeyWithSigner(pgpk, eldest); err != nil {
 		return err
 	}
 
-	if err := d.addDetKey(); err != nil {
+	if err := d.addDetKey(eldest); err != nil {
 		return err
 	}
 
@@ -276,6 +295,39 @@ func (d *Doctor) deviceSignExistingDevice(id string) error {
 	G.Log.Info("device sign with existing device [%s]", id)
 	G.Log.Info("device sign with existing device not yet implemented")
 	return ErrNotYetImplemented
+}
+
+func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {
+	if d.gpgUI == nil {
+		return nil, fmt.Errorf("nil gpg ui")
+	}
+	var set keybase_1.GPGKeySet
+	for _, key := range keys {
+		algo, kid, _ := key.KeyInfo()
+		gk := keybase_1.GPGKey{
+			Algorithm:  algo,
+			KeyID:      kid,
+			Expiration: "",
+			Identities: key.IdentityNames(),
+		}
+		set.Keys = append(set.Keys, gk)
+	}
+
+	res, err := d.gpgUI.SelectKey(keybase_1.SelectKeyArg{Keyset: set})
+	if err != nil {
+		return nil, err
+	}
+	G.Log.Info("SelectKey result: %+v", res)
+
+	var selected *libkb.PgpKeyBundle
+	for _, key := range keys {
+		if key.GetFingerprint().ToKeyId() == res.KeyID {
+			selected = key
+			break
+		}
+	}
+
+	return selected, nil
 }
 
 func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {

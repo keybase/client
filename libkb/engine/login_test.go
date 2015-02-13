@@ -153,7 +153,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 	}
 
 	// generate the detkey only, using SelfProof
-	eng := NewDetKeyEngine(s.me, nil, s.logUI)
+	eng := NewDetKeyEngine(s.me, nil, nil, s.logUI)
 	if err := eng.RunSelfProof(&s.tspkey); err != nil {
 		t.Fatal(err)
 	}
@@ -425,6 +425,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 		},
 		LogUI:    G.UI.GetLogUI(),
 		DoctorUI: docui,
+		GpgUI:    &gpgtestui{1},
 	}
 
 	before := docui.selectSignerCount
