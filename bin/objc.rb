@@ -13,15 +13,8 @@ def classname(n)
 end
 
 def objc_for_type(type, enums)
-  # Subtype (for arrays)
-  if type.kind_of?(Hash)
-    type = type["type"]
-  end
-
-  # Union
-  if type.kind_of?(Array)
-    type = type.find { |t| t != "null" }
-  end
+  type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
+  type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
 
   case type
   when "string" then "NSString *"
@@ -46,10 +39,7 @@ def is_native_type(type)
 end
 
 def is_primitive_type(type)
-  if type.kind_of?(Array) # Union
-    type = type.find { |t| t != "null" }
-  end
-
+  type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
   ["int", "boolean", "null"].include?(type)
 end
 
@@ -65,12 +55,38 @@ def default_name_for_type(type)
   end
 end
 
+def value_for_type(type, name, enums)
+  type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
+  type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
+
+  varname = "params[0][@\"#{name}\"]"
+
+  if enums.include?(type)
+    return "[#{varname} integerValue]"
+  end
+
+  case type
+  when "int" then "[#{varname} integerValue]"
+  when "boolean" then "[#{varname} booleanValue]"
+
+  when "string" then varname
+  when "array" then varname
+  when "bytes" then varname
+  else
+    "[MTLJSONAdapter modelOfClass:#{classname(type)}.class fromJSONDictionary:#{varname} error:nil]"
+  end
+end
+
 header = []
 header << "#import \"KBRObject.h\""
 header << "#import \"KBRRequest.h\""
+header << "#import \"KBRRequestHandler.h\""
 header << ""
 impl = []
 impl << "#import \"KBRPC.h\"\n"
+
+header_handlers = []
+impl_handlers = []
 
 paths.each do |path|
   file = File.read(path)
@@ -188,16 +204,41 @@ paths.each do |path|
 
     impl << "}\n"
 
-    # args = mparam["request"].each_with_index.collect do |param, index|
-    #   "#{objc_for_type(param["type"], enums)}#{param["name"]}"
-    # end
-    # header << "typedef void (^#{method.camelize}Block)(#{args.join(", ")}, MPRequestCompletion completion);\n"
+
+    # Request handlers
+    if mparam["request"].length > 0
+      header_handlers << "@interface KBR#{method.camelize}RequestHandler : KBRRequestHandler"
+      mparam["request"].each do |param|
+        header_handlers << "@property #{objc_for_type(param["type"], enums)}#{param["name"]};"
+      end
+      header_handlers << "@end"
+
+      impl_handlers << "@implementation KBR#{method.camelize}RequestHandler\n"
+
+      impl_handlers << "- (instancetype)initWithParams:(NSArray *)params {"
+      impl_handlers << "  if ((self = [super initWithParams:params])) {"
+      mparam["request"].each do |param|
+        value = value_for_type(param["type"], param["name"], enums)
+        impl_handlers << "    self.#{param["name"]} = #{value};"
+      end
+      impl_handlers << "  }"
+      impl_handlers << "  return self;"
+      impl_handlers << "}\n"
+      impl_handlers << "@end\n"
+    end
+
   end
   header << "@end\n"
   impl << "@end\n"
 
 end
 
-File.open("#{script_path}/../objc/KBRPC.h", "w") { |file| file.write(header.join("\n")) }
-File.open("#{script_path}/../objc/KBRPC.m", "w") { |file| file.write(impl.join("\n")) }
+File.open("#{script_path}/../objc/KBRPC.h", "w") { |file|
+  file.write(header.join("\n"))
+  file.write(header_handlers.join("\n"))
+}
+File.open("#{script_path}/../objc/KBRPC.m", "w") { |file|
+  file.write(impl.join("\n"))
+  file.write(impl_handlers.join("\n"))
+}
 
