@@ -1,13 +1,11 @@
 package engine
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 
 	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 type Doctor struct {
@@ -100,7 +98,7 @@ func (d *Doctor) checkKeys() error {
 	}
 
 	// use their detkey to sign this device
-	return d.addDeviceKeyWithDetKey(dk)
+	return d.addDeviceKeyWithSigner(dk)
 }
 
 // addBasicKeys is used for accounts that have no device or det
@@ -136,7 +134,7 @@ func (d *Doctor) addDeviceKey() error {
 	return nil
 }
 
-func (d *Doctor) addDeviceKeyWithDetKey(eldest libkb.GenericKey) error {
+func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey) error {
 	// XXX session id...what to put there?
 	devname, err := d.docUI.PromptDeviceName(0)
 	if err != nil {
@@ -147,7 +145,7 @@ func (d *Doctor) addDeviceKeyWithDetKey(eldest libkb.GenericKey) error {
 		return err
 	}
 	eng := NewDeviceEngine(d.user, d.logUI)
-	if err := eng.RunWithDetKey(devname, tk.LksClientHalf(), eldest); err != nil {
+	if err := eng.RunWithSigner(devname, tk.LksClientHalf(), signer); err != nil {
 		return fmt.Errorf("RunWithDetKey error: %s", err)
 	}
 
@@ -223,25 +221,36 @@ func (d *Doctor) deviceSignPGP() error {
 		G.Log.Info("pgp key: %s", k.VerboseDescription())
 		G.Log.Info("pgp key kid: %s", k.GetKid())
 		if pk, ok := G.SecretSyncer.FindPrivateKey(k.GetKid().String()); ok {
-			buf := bytes.NewBufferString(pk.Bundle)
-			p, err := packet.Read(buf)
+			skb, err := pk.ToSKB()
 			if err != nil {
 				return err
 			}
-			if packpk, tok := p.(*packet.PrivateKey); tok {
-				k.PrivateKey = packpk
-				return d.deviceSignPGPNext(k)
+
+			pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", d.secretUI)
+			if err != nil {
+				return err
 			}
+			return d.deviceSignPGPNext(pgpk)
 		}
 	}
 
-	G.Log.Info("device sign with PGP not yet implemented")
-	return ErrNotYetImplemented
+	return fmt.Errorf("No active pgp key found w/ private key stored on server.  Haven't implemented using gpg to get private key yet...")
 }
 
-func (d *Doctor) deviceSignPGPNext(pgpk *libkb.PgpKeyBundle) error {
-	G.Log.Info("device sign with PGP not yet implemented")
-	return ErrNotYetImplemented
+func (d *Doctor) deviceSignPGPNext(pgpk libkb.GenericKey) error {
+	if pgpk.CanSign() == false {
+		return fmt.Errorf("pgp key can't sign")
+	}
+
+	if err := d.addDeviceKeyWithSigner(pgpk); err != nil {
+		return err
+	}
+
+	if err := d.addDetKey(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *Doctor) deviceSignExistingDevice(id string) error {

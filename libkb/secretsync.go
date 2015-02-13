@@ -265,7 +265,22 @@ func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
 
 func (ss *SecretSyncer) DumpPrivateKeys() {
 	for s, key := range ss.keys.PrivateKeys {
-		G.Log.Debug("Private key: %s", s)
-		G.Log.Debug("  -- kid: %s, keytype: %d", key.Kid, key.KeyType)
+		G.Log.Info("Private key: %s", s)
+		G.Log.Info("  -- kid: %s, keytype: %d, bits: %d, algo: %d", key.Kid, key.KeyType, key.KeyBits, key.KeyAlgo)
 	}
+}
+
+func (k ServerPrivateKey) ToSKB() (*SKB, error) {
+	if k.KeyType != KEY_TYPE_P3SKB_PRIVATE {
+		return nil, fmt.Errorf("invalid key type for skb conversion: %d", k.KeyType)
+	}
+	p, err := DecodeArmoredPacket(k.Bundle)
+	if err != nil {
+		return nil, err
+	}
+	skb, ok := p.Body.(*SKB)
+	if !ok {
+		return nil, fmt.Errorf("invalid packet type: %T", p.Body)
+	}
+	return skb, nil
 }

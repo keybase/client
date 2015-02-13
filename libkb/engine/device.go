@@ -33,13 +33,13 @@ func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) error {
 	return d.run(deviceName, lksClientHalf, nil)
 }
 
-// RunWithDetKey is for when you have a detkey already, but need a
-// device key.
-func (d *DeviceEngine) RunWithDetKey(deviceName string, lksClientHalf []byte, detkey libkb.GenericKey) error {
-	return d.run(deviceName, lksClientHalf, detkey)
+// RunWithSigner is for when you have a key that can sign already,
+// but need a device key.
+func (d *DeviceEngine) RunWithSigner(deviceName string, lksClientHalf []byte, signer libkb.GenericKey) error {
+	return d.run(deviceName, lksClientHalf, signer)
 }
 
-func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, detkey libkb.GenericKey) (err error) {
+func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb.GenericKey) (err error) {
 	if d.me.HasDeviceInCurrentInstall() {
 		return ErrDeviceAlreadyRegistered
 	}
@@ -58,12 +58,12 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, detkey libkb
 	G.Log.Debug("Device name:   %s", d.deviceName)
 	G.Log.Debug("Device ID:     %x", d.deviceID)
 
-	if detkey == nil {
+	if signer == nil {
 		if err = d.pushEldestKey(); err != nil {
 			return err
 		}
 	} else {
-		if err = d.pushSibKey(detkey); err != nil {
+		if err = d.pushSibKey(signer); err != nil {
 			return err
 		}
 	}
@@ -117,10 +117,10 @@ func (d *DeviceEngine) pushEldestKey() error {
 	return nil
 }
 
-func (d *DeviceEngine) pushSibKey(detkey libkb.GenericKey) error {
+func (d *DeviceEngine) pushSibKey(signer libkb.GenericKey) error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
-		Signer:    detkey,
-		Primary:   detkey,
+		Signer:    signer,
+		Primary:   signer,
 		Generator: libkb.GenerateNaclSigningKeyPair,
 		Sibkey:    true,
 		Me:        d.me,
@@ -133,7 +133,7 @@ func (d *DeviceEngine) pushSibKey(detkey libkb.GenericKey) error {
 		return err
 	}
 	// d.eldestKey = gen.GetKeyPair()
-	d.eldestKey = detkey
+	d.eldestKey = signer
 	return nil
 }
 
