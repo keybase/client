@@ -83,6 +83,7 @@ type VerificationPath struct {
 	path      PathSteps
 	uidPath   PathSteps
 	idVersion int64
+	username  string
 }
 
 type PathStep struct {
@@ -298,7 +299,12 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	vp = &VerificationPath{*uid, root, path_out, uid_path_out, idv}
+	username, err := res.Body.AtKey("username").GetString()
+	if err != nil {
+		return
+	}
+
+	vp = &VerificationPath{*uid, root, path_out, uid_path_out, idv, username}
 	return
 }
 
@@ -482,6 +488,28 @@ func ParseMerkleUserLeaf(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
 	return
 }
 
+func (vp *VerificationPath) VerifyUsername() (username string, err error) {
+	if CheckUIDAgainstUsername(vp.uid, vp.username) == nil {
+		username = vp.username
+		return
+	}
+	hsh := sha256.Sum256([]byte(vp.username))
+	hsh_s := hex.EncodeToString(hsh[:])
+	var leaf *jsonw.Wrapper
+	if leaf, err = vp.uidPath.VerifyPath(vp.root.legacyUidRootHash, hsh_s); err != nil {
+		return
+	}
+
+	var uid2 string
+	if uid2, err = leaf.GetString(); err != nil {
+		return
+	} else if uid1 := vp.uid.String(); uid2 != uid1 {
+		err = UidMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, uid1)}
+	}
+
+	return
+}
+
 func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 
 	curr := vp.root.rootHash
@@ -587,6 +615,11 @@ func (mc *MerkleClient) LookupUser(q HttpArgs) (u *MerkleUserLeaf, err error) {
 	if u, err = path.VerifyUser(); err != nil {
 		return
 	}
+
+	if u.username, err = path.VerifyUsername(); err != nil {
+		return
+	}
+
 	u.idVersion = path.idVersion
 
 	G.Log.Debug("- MerkleClient.LookupUser(%v) -> OK", q)
