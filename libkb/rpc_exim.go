@@ -161,25 +161,30 @@ func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
 func ImportStatusAsError(s *keybase_1.Status) error {
 	if s == nil {
 		return nil
-	} else if s.Code == SC_OK {
-		return nil
-	} else if s.Code == SC_GENERIC {
-		return fmt.Errorf(s.Desc)
-	} else if s.Code == SC_BAD_LOGIN_PASSWORD {
-		return PassphraseError{s.Desc}
-	} else if s.Code == SC_KEY_BAD_GEN {
-		return KeyGenError{s.Desc}
 	} else {
-		ase := AppStatusError{
-			Code:   s.Code,
-			Name:   s.Name,
-			Desc:   s.Desc,
-			Fields: make(map[string]bool),
+		switch s.Code {
+		case SC_OK:
+			return nil
+		case SC_GENERIC:
+			return fmt.Errorf(s.Desc)
+		case SC_BAD_LOGIN_PASSWORD:
+			return PassphraseError{s.Desc}
+		case SC_KEY_BAD_GEN:
+			return KeyGenError{s.Desc}
+		case SC_ALREADY_LOGGED_IN:
+			return LoggedInError{}
+		default:
+			ase := AppStatusError{
+				Code:   s.Code,
+				Name:   s.Name,
+				Desc:   s.Desc,
+				Fields: make(map[string]bool),
+			}
+			for _, f := range s.Fields {
+				ase.Fields[f] = true
+			}
+			return ase
 		}
-		for _, f := range s.Fields {
-			ase.Fields[f] = true
-		}
-		return ase
 	}
 }
 
@@ -355,6 +360,15 @@ func (p PassphraseError) ToStatus() (s keybase_1.Status) {
 func (m Markup) Export() (ret keybase_1.Text) {
 	ret.Data = m.data
 	ret.Markup = true
+	return
+}
+
+//=============================================================================
+
+func (e LoggedInError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_ALREADY_LOGGED_IN
+	s.Name = "ALREADY_LOGGED_IN"
+	s.Desc = "Already logged in as a different user"
 	return
 }
 
