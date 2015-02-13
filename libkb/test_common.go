@@ -78,38 +78,41 @@ func (tc *TestContext) Cleanup() {
 	}
 }
 
-func (tc *TestContext) GenerateGPGKeyring(id string) error {
+func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 	tc.t.Logf("generating gpg keyring in %s", tc.Tp.GPGHome)
-	arg := KeyGenArg{
-		PrimaryBits: 1024,
-		SubkeyBits:  1024,
-		PGPUids:     []string{id},
-	}
-	arg.CreatePgpIDs()
-	bundle, err := NewPgpKeyBundle(arg)
-	if err != nil {
-		return err
-	}
-
 	fsk, err := os.Create(path.Join(tc.Tp.GPGHome, "secring.gpg"))
 	if err != nil {
 		return err
 	}
-	err = (*openpgp.Entity)(bundle).SerializePrivate(fsk, nil)
-	if err != nil {
-		return err
-	}
-	fsk.Close()
-
+	defer fsk.Close()
 	fpk, err := os.Create(path.Join(tc.Tp.GPGHome, "pubring.gpg"))
 	if err != nil {
 		return err
 	}
-	err = (*openpgp.Entity)(bundle).Serialize(fpk)
-	if err != nil {
-		return err
+	defer fpk.Close()
+
+	for _, id := range ids {
+		arg := KeyGenArg{
+			PrimaryBits: 1024,
+			SubkeyBits:  1024,
+			PGPUids:     []string{id},
+		}
+		arg.CreatePgpIDs()
+		bundle, err := NewPgpKeyBundle(arg)
+		if err != nil {
+			return err
+		}
+
+		err = (*openpgp.Entity)(bundle).SerializePrivate(fsk, nil)
+		if err != nil {
+			return err
+		}
+
+		err = (*openpgp.Entity)(bundle).Serialize(fpk)
+		if err != nil {
+			return err
+		}
 	}
-	fpk.Close()
 
 	return nil
 }

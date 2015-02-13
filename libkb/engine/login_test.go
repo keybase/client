@@ -219,14 +219,6 @@ func TestLoginNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-	/*
-		if err := li.LoginAndIdentify(larg); err != nil {
-			t.Fatal(err)
-		}
-		if err := G.Session.AssertLoggedIn(); err != nil {
-			t.Fatal(err)
-		}
-	*/
 
 	if err := li.Run(larg); err != ErrNotYetImplemented {
 		t.Fatal(err)
@@ -298,7 +290,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	tc2 := libkb.SetupTest(t, "login")
 	defer tc2.Cleanup()
 
-	docui := &ldocui{}
+	docui := &ldocuiPGP{&ldocui{}}
 
 	larg := LoginAndIdentifyArg{
 		Login: libkb.LoginArg{
@@ -348,7 +340,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	// now safe to cleanup first home
 	tc.Cleanup()
 
-	docui := &ldocui{}
+	docui := &ldocuiPGP{&ldocui{}}
 
 	larg := LoginAndIdentifyArg{
 		Login: libkb.LoginArg{
@@ -387,6 +379,18 @@ func (l *ldocui) PromptDeviceName(sid int) (string, error) {
 }
 
 func (l *ldocui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+	l.selectSignerCount++
+	res.Action = keybase_1.SelectSignerAction_SIGN
+	devid := "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
+	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &devid}
+	return
+}
+
+type ldocuiPGP struct {
+	*ldocui
+}
+
+func (l *ldocuiPGP) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	res.Action = keybase_1.SelectSignerAction_SIGN
 	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_PGP}
