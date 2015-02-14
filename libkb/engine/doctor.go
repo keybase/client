@@ -9,26 +9,24 @@ import (
 )
 
 type Doctor struct {
-	user       *libkb.User
-	docUI      libkb.DoctorUI
-	secretUI   libkb.SecretUI
-	logUI      libkb.LogUI
-	identifyUI libkb.IdentifyUI
-	gpgUI      GPGUI
+	user     *libkb.User
+	docUI    libkb.DoctorUI
+	secretUI libkb.SecretUI
+	logUI    libkb.LogUI
+	gpgUI    GPGUI
 
 	signingKey libkb.GenericKey
 }
 
 type DocArg struct {
-	DocUI      libkb.DoctorUI
-	SecretUI   libkb.SecretUI
-	LogUI      libkb.LogUI
-	IdentifyUI libkb.IdentifyUI
-	GpgUI      GPGUI
+	DocUI    libkb.DoctorUI
+	SecretUI libkb.SecretUI
+	LogUI    libkb.LogUI
+	GpgUI    GPGUI
 }
 
 func NewDoctor(arg *DocArg) *Doctor {
-	return &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, identifyUI: arg.IdentifyUI, gpgUI: arg.GpgUI}
+	return &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, gpgUI: arg.GpgUI}
 }
 
 func (d *Doctor) LoginCheckup(u *libkb.User) error {

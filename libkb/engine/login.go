@@ -37,6 +37,6 @@ func (e *LoginEngine) Run(arg LoginEngineArg) (err error) {
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(&DocArg{DocUI: arg.DoctorUI, SecretUI: arg.Login.SecretUI, LogUI: arg.LogUI, IdentifyUI: arg.IdentifyUI, GpgUI: arg.GpgUI})
+	doctor := NewDoctor(&DocArg{DocUI: arg.DoctorUI, SecretUI: arg.Login.SecretUI, LogUI: arg.LogUI, GpgUI: arg.GpgUI})
 	return doctor.LoginCheckup(u)
 }

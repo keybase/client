@@ -115,7 +115,7 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -127,7 +127,7 @@ func TestLoginAddsKeys(t *testing.T) {
 		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
-	if err := li.LoginAndIdentify(larg); err != nil {
+	if err := li.Run(larg); err != nil {
 		t.Fatal(err)
 	}
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -325,7 +325,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 
 	docui := &ldocuiPGP{&ldocui{}}
 
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -341,7 +341,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 
 	li := NewLoginEngine()
 
-	if err := li.LoginAndIdentify(larg); err != nil {
+	if err := li.Run(larg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -375,7 +375,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 
 	docui := &ldocuiPGP{&ldocui{}}
 
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -391,7 +391,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 
 	li := NewLoginEngine()
 
-	if err := li.LoginAndIdentify(larg); err != nil {
+	if err := li.Run(larg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -415,7 +415,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 
 	docui := &ldocuiPGP{&ldocui{}}
 
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -432,7 +432,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 
 	li := NewLoginEngine()
 
-	if err := li.LoginAndIdentify(larg); err != nil {
+	if err := li.Run(larg); err != nil {
 		t.Fatal(err)
 	}
 
