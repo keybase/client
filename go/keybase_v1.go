@@ -298,12 +298,9 @@ func (c GpgClient) AddGpgKey() (err error) {
 type GPGKey struct {
 	Algorithm  string   `codec:"algorithm"`
 	KeyID      string   `codec:"keyID"`
+	Creation   string   `codec:"creation"`
 	Expiration string   `codec:"expiration"`
 	Identities []string `codec:"identities"`
-}
-
-type GPGKeySet struct {
-	Keys []GPGKey `codec:"keys"`
 }
 
 type SelectKeyRes struct {
@@ -311,34 +308,47 @@ type SelectKeyRes struct {
 	DoSecretPush bool   `codec:"doSecretPush"`
 }
 
-type SelectKeyArg struct {
-	SessionId int       `codec:"sessionId"`
-	Keyset    GPGKeySet `codec:"keyset"`
-}
-
 type WantToAddGPGKeyArg struct {
 }
 
+type SelectKeyAndPushOptionArg struct {
+	SessionId int      `codec:"sessionId"`
+	Keys      []GPGKey `codec:"keys"`
+}
+
+type SelectKeyArg struct {
+	SessionId int      `codec:"sessionId"`
+	Keys      []GPGKey `codec:"keys"`
+}
+
 type GpgUiInterface interface {
-	SelectKey(SelectKeyArg) (SelectKeyRes, error)
 	WantToAddGPGKey() (bool, error)
+	SelectKeyAndPushOption(SelectKeyAndPushOptionArg) (SelectKeyRes, error)
+	SelectKey(SelectKeyArg) (string, error)
 }
 
 func GpgUiProtocol(i GpgUiInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.gpgUi",
 		Methods: map[string]rpc2.ServeHook{
-			"selectKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SelectKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SelectKey(args[0])
-				}
-				return
-			},
 			"wantToAddGPGKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]WantToAddGPGKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.WantToAddGPGKey()
+				}
+				return
+			},
+			"selectKeyAndPushOption": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SelectKeyAndPushOptionArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SelectKeyAndPushOption(args[0])
+				}
+				return
+			},
+			"selectKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SelectKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SelectKey(args[0])
 				}
 				return
 			},
@@ -351,13 +361,18 @@ type GpgUiClient struct {
 	Cli GenericClient
 }
 
-func (c GpgUiClient) SelectKey(__arg SelectKeyArg) (res SelectKeyRes, err error) {
-	err = c.Cli.Call("keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res)
+func (c GpgUiClient) WantToAddGPGKey() (res bool, err error) {
+	err = c.Cli.Call("keybase.1.gpgUi.wantToAddGPGKey", []interface{}{WantToAddGPGKeyArg{}}, &res)
 	return
 }
 
-func (c GpgUiClient) WantToAddGPGKey() (res bool, err error) {
-	err = c.Cli.Call("keybase.1.gpgUi.wantToAddGPGKey", []interface{}{WantToAddGPGKeyArg{}}, &res)
+func (c GpgUiClient) SelectKeyAndPushOption(__arg SelectKeyAndPushOptionArg) (res SelectKeyRes, err error) {
+	err = c.Cli.Call("keybase.1.gpgUi.selectKeyAndPushOption", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GpgUiClient) SelectKey(__arg SelectKeyArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res)
 	return
 }
 

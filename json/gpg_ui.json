@@ -110,6 +110,9 @@
       "name" : "keyID",
       "type" : "string"
     }, {
+      "name" : "creation",
+      "type" : "string"
+    }, {
       "name" : "expiration",
       "type" : "string"
     }, {
@@ -117,16 +120,6 @@
       "type" : {
         "type" : "array",
         "items" : "string"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "GPGKeySet",
-    "fields" : [ {
-      "name" : "keys",
-      "type" : {
-        "type" : "array",
-        "items" : "GPGKey"
       }
     } ]
   }, {
@@ -141,19 +134,35 @@
     } ]
   } ],
   "messages" : {
+    "wantToAddGPGKey" : {
+      "request" : [ ],
+      "response" : "boolean"
+    },
+    "selectKeyAndPushOption" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "keys",
+        "type" : {
+          "type" : "array",
+          "items" : "GPGKey"
+        }
+      } ],
+      "response" : "SelectKeyRes"
+    },
     "selectKey" : {
       "request" : [ {
         "name" : "sessionId",
         "type" : "int"
       }, {
-        "name" : "keyset",
-        "type" : "GPGKeySet"
+        "name" : "keys",
+        "type" : {
+          "type" : "array",
+          "items" : "GPGKey"
+        }
       } ],
-      "response" : "SelectKeyRes"
-    },
-    "wantToAddGPGKey" : {
-      "request" : [ ],
-      "response" : "boolean"
+      "response" : "string"
     }
   }
 }

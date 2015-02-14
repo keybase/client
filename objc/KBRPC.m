@@ -128,18 +128,22 @@
 @implementation KBRGPGKey
 @end
 
-@implementation KBRGPGKeySet
-+ (NSValueTransformer *)keysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRGPGKey.class]; }
-@end
-
 @implementation KBRSelectKeyRes
 @end
 
 @implementation KBRGpgUiRequest
-- (void)selectKeyWithSessionId:(NSInteger )sessionId keyset:(KBRGPGKeySet *)keyset completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion {
+- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion {
 
-  NSArray *params = @[@{@"sessionId": @(sessionId), @"keyset": KBRValue(keyset)}];
-  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.wantToAddGPGKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error, 0);
+  }];
+}
+
+- (void)selectKeyAndPushOptionWithSessionId:(NSInteger )sessionId keys:(NSArray *)keys completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion {
+
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"keys": KBRValue(keys)}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
         return;
@@ -149,10 +153,10 @@
   }];
 }
 
-- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion {
+- (void)selectKeyWithSessionId:(NSInteger )sessionId keys:(NSArray *)keys completion:(void (^)(NSError *error, NSString * str))completion {
 
-  NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.wantToAddGPGKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"keys": KBRValue(keys)}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKey" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error, 0);
   }];
 }
