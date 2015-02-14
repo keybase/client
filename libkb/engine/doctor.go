@@ -301,27 +301,27 @@ func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, 
 	if d.gpgUI == nil {
 		return nil, fmt.Errorf("nil gpg ui")
 	}
-	var set keybase_1.GPGKeySet
+	var gks []keybase_1.GPGKey
 	for _, key := range keys {
-		algo, kid, _ := key.KeyInfo()
+		algo, kid, creation := key.KeyInfo()
 		gk := keybase_1.GPGKey{
 			Algorithm:  algo,
 			KeyID:      kid,
-			Expiration: "",
+			Creation:   creation,
 			Identities: key.IdentityNames(),
 		}
-		set.Keys = append(set.Keys, gk)
+		gks = append(gks, gk)
 	}
 
-	res, err := d.gpgUI.SelectKey(keybase_1.SelectKeyArg{Keyset: set})
+	keyid, err := d.gpgUI.SelectKey(keybase_1.SelectKeyArg{Keys: gks})
 	if err != nil {
 		return nil, err
 	}
-	G.Log.Info("SelectKey result: %+v", res)
+	G.Log.Info("SelectKey result: %+v", keyid)
 
 	var selected *libkb.PgpKeyBundle
 	for _, key := range keys {
-		if key.GetFingerprint().ToKeyId() == res.KeyID {
+		if key.GetFingerprint().ToKeyId() == keyid {
 			selected = key
 			break
 		}

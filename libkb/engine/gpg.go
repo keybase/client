@@ -63,7 +63,7 @@ func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
 	}
 	warns.Warn()
 
-	var set keybase_1.GPGKeySet
+	var gks []keybase_1.GPGKey
 	for _, key := range index.Keys {
 		gk := keybase_1.GPGKey{
 			Algorithm:  fmt.Sprintf("%d%s", key.Bits, key.AlgoString()),
@@ -71,10 +71,10 @@ func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
 			Expiration: key.ExpirationString(),
 			Identities: key.GetEmails(),
 		}
-		set.Keys = append(set.Keys, gk)
+		gks = append(gks, gk)
 	}
 
-	res, err := g.ui.SelectKey(keybase_1.SelectKeyArg{Keyset: set})
+	res, err := g.ui.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
 	}
