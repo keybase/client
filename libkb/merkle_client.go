@@ -209,8 +209,10 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	GetPgpFingerprintVoid(pj.AtPath("body.key.fingerprint"), &fp, &err)
 	pj.AtPath("body.seqno").GetInt64Void(&seqno, &err)
 	GetNodeHashVoid(pj.AtPath("body.root"), &rh, &err)
-	GetNodeHashVoid(pj.AtPath("body.legacy_uid_root"), &lurh, &err)
+	lurh, _ = GetNodeHash(pj.AtPath("body.legacy_uid_root"))
 	pj.AtKey("ctime").GetInt64Void(&ctime, &err)
+
+	fmt.Printf("yooo! %s\n", pj.MarshalToDebug())
 
 	if err != nil {
 		return
@@ -490,12 +492,19 @@ func ParseMerkleUserLeaf(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
 
 func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 	if CheckUIDAgainstUsername(vp.uid, vp.username) == nil {
+		G.Log.Debug("| Username %s mapped to %s via direct hash", vp.username, vp.uid)
 		username = vp.username
 		return
 	}
 	hsh := sha256.Sum256([]byte(vp.username))
 	hsh_s := hex.EncodeToString(hsh[:])
 	var leaf *jsonw.Wrapper
+
+	if vp.root.legacyUidRootHash == nil {
+		err = MerkleClientError{"no legacy UID root hash found in root"}
+		return
+	}
+
 	if leaf, err = vp.uidPath.VerifyPath(vp.root.legacyUidRootHash, hsh_s); err != nil {
 		return
 	}
@@ -505,6 +514,9 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		return
 	} else if uid1 := vp.uid.String(); uid2 != uid1 {
 		err = UidMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, uid1)}
+	} else {
+		G.Log.Debug("| Username %s mapped to %s via Merkle lookup", vp.username, vp.uid)
+		username = vp.username
 	}
 
 	return
@@ -517,6 +529,14 @@ func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 
 	var leaf *jsonw.Wrapper
 	leaf, err = vp.path.VerifyPath(curr, uid_s)
+
+	if leaf != nil && err == nil {
+		if leaf, err = leaf.ToArray(); err != nil {
+			msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s",
+				err.Error())
+			err = MerkleNotFoundError{uid_s, msg}
+		}
+	}
 
 	if err == nil {
 		// noop
@@ -578,13 +598,7 @@ func (path PathSteps) VerifyPath(curr NodeHash, uid_s string) (juser *jsonw.Wrap
 			}
 			juser = nil
 		} else {
-			juser, err = jw.AtKey("tab").AtKey(uid_s).ToArray()
-			if err != nil {
-				msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s",
-					err.Error())
-				err = MerkleNotFoundError{uid_s, msg}
-				break
-			}
+			juser = jw.AtKey("tab").AtKey(uid_s)
 		}
 	}
 
@@ -604,18 +618,22 @@ func (mc *MerkleClient) LookupUser(q HttpArgs) (u *MerkleUserLeaf, err error) {
 		return
 	}
 
+	G.Log.Debug("| LookupPath")
 	if path, err = mc.LookupPath(q); err != nil {
 		return
 	}
 
+	G.Log.Debug("| VerifyRoot")
 	if err = mc.VerifyRoot(path.root); err != nil {
 		return
 	}
 
+	G.Log.Debug("| VerifyUser")
 	if u, err = path.VerifyUser(); err != nil {
 		return
 	}
 
+	G.Log.Debug("| VerifyUsername")
 	if u.username, err = path.VerifyUsername(); err != nil {
 		return
 	}
