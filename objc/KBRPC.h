@@ -440,9 +440,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSArray *devices;
 @property BOOL hasPGP;
 @end
+@interface KBRSelectKeyAndPushOptionRequestHandler : KBRRequestHandler
+@property NSInteger sessionId;
+@property NSArray *keys;
+@end
 @interface KBRSelectKeyRequestHandler : KBRRequestHandler
 @property NSInteger sessionId;
-@property KBRGPGKeySet *keyset;
+@property NSArray *keys;
 @end
 @interface KBRIdentifyRequestHandler : KBRRequestHandler
 @property KBRUID *uid;

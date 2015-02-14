@@ -706,12 +706,24 @@
 
 @end
 
+@implementation KBRSelectKeyAndPushOptionRequestHandler
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionId = [params[0][@"sessionId"] integerValue];
+    self.keys = params[0][@"keys"];
+  }
+  return self;
+}
+
+@end
+
 @implementation KBRSelectKeyRequestHandler
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionId = [params[0][@"sessionId"] integerValue];
-    self.keyset = [MTLJSONAdapter modelOfClass:KBRGPGKeySet.class fromJSONDictionary:params[0][@"keyset"] error:nil];
+    self.keys = params[0][@"keys"];
   }
   return self;
 }
