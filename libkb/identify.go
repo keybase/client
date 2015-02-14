@@ -251,23 +251,3 @@ func (u *User) IdentifySimple(me *User, ui IdentifyUI) (*IdentifyOutcome, error)
 	})
 	return outcome, err
 }
-
-func (u *User) IdentifySelf(ui IdentifyUI) (err error) {
-
-	if ui == nil {
-		err = NoUiError{"identify"}
-		return
-	}
-
-	_, _, err = u.Identify(IdentifyArg{Me: u, Ui: ui})
-
-	if err == nil {
-		cw := G.Env.GetConfigWriter()
-		cw.SetUIDVerified()
-		if err = cw.Write(); err != nil {
-			G.Log.Error("Write error: %s", err.Error())
-		}
-	}
-
-	return
-}

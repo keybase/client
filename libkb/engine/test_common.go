@@ -52,7 +52,7 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 }
 
 func (fu *FakeUser) Login() (err error) {
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -63,7 +63,7 @@ func (fu *FakeUser) Login() (err error) {
 		LogUI: G.UI.GetLogUI(),
 	}
 	li := NewLoginEngine()
-	err = li.LoginAndIdentify(larg)
+	err = li.Run(larg)
 	return err
 }
 

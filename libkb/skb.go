@@ -167,12 +167,19 @@ func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, tspkey 
 	}
 
 	switch {
-	case IsPgpAlgo(p.Type):
+	case IsPgpAlgo(p.Type) || p.Type == 0:
 		key, err = ReadOneKeyFromBytes(unlocked)
 	case p.Type == KID_NACL_EDDSA:
 		key, err = ImportNaclSigningKeyPairFromBytes(p.Pub, unlocked)
 	case p.Type == KID_NACL_DH:
 		key, err = ImportNaclDHKeyPairFromBytes(p.Pub, unlocked)
+	}
+
+	if key == nil {
+		err = BadKeyError{"can't parse secret key after unlock"}
+	}
+	if err != nil {
+		return
 	}
 
 	if err = key.CheckSecretKey(); err == nil {

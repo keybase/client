@@ -42,7 +42,7 @@ func (h *LoginHandler) Logout() error {
 func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	sessid := nextSessionId()
 
-	var liarg engine.LoginAndIdentifyArg
+	var liarg engine.LoginEngineArg
 	liarg.Login.Username = arg.Username
 	liarg.Login.Passphrase = arg.Passphrase
 	if len(arg.Username) > 0 && len(arg.Passphrase) > 0 {
@@ -54,14 +54,11 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		liarg.Login.SecretUI = h.getSecretUI(sessid)
 	}
 
-	if arg.Identify {
-		liarg.IdentifyUI = h.getIdentifyUI(sessid, arg.Username)
-	}
 	liarg.LogUI = h.getLogUI(sessid)
 	liarg.DoctorUI = h.getDoctorUI(sessid)
 
 	li := engine.NewLoginEngine()
-	return li.LoginAndIdentify(liarg)
+	return li.Run(liarg)
 }
 
 func (h *LoginHandler) PubkeyLogin() error {

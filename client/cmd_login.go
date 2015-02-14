@@ -31,7 +31,6 @@ func (v *CmdLogin) RunClient() (err error) {
 	var cli keybase_1.LoginClient
 	protocols := []rpc2.Protocol{
 		NewLoginUIProtocol(),
-		NewIdentifySelfUIProtocol(),
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 		NewDoctorUIProtocol(),
@@ -39,7 +38,7 @@ func (v *CmdLogin) RunClient() (err error) {
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
-		arg := keybase_1.PassphraseLoginArg{Identify: true, Username: v.Username}
+		arg := keybase_1.PassphraseLoginArg{Username: v.Username}
 		err = cli.PassphraseLogin(arg)
 	}
 	return
@@ -47,14 +46,13 @@ func (v *CmdLogin) RunClient() (err error) {
 
 func (v *CmdLogin) Run() error {
 	li := engine.NewLoginEngine()
-	return li.LoginAndIdentify(engine.LoginAndIdentifyArg{
+	return li.Run(engine.LoginEngineArg{
 		Login: libkb.LoginArg{
 			Prompt:   true,
 			Retry:    3,
 			Username: v.Username,
 			SecretUI: G_UI.GetSecretUI(),
 		},
-		IdentifyUI: G_UI.GetIdentifySelfUI(),
 	})
 }
 

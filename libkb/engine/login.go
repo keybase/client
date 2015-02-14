@@ -10,14 +10,13 @@ func NewLoginEngine() *LoginEngine {
 	return &LoginEngine{}
 }
 
-type LoginAndIdentifyArg struct {
-	Login      libkb.LoginArg
-	IdentifyUI libkb.IdentifyUI
-	LogUI      libkb.LogUI
-	DoctorUI   libkb.DoctorUI
+type LoginEngineArg struct {
+	Login    libkb.LoginArg
+	LogUI    libkb.LogUI
+	DoctorUI libkb.DoctorUI
 }
 
-func (e *LoginEngine) LoginAndIdentify(arg LoginAndIdentifyArg) (err error) {
+func (e *LoginEngine) Run(arg LoginEngineArg) (err error) {
 	if err := G.LoginState.Login(arg.Login); err != nil {
 		return err
 	}
@@ -37,6 +36,6 @@ func (e *LoginEngine) LoginAndIdentify(arg LoginAndIdentifyArg) (err error) {
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(arg.DoctorUI, arg.Login.SecretUI, arg.LogUI, arg.IdentifyUI)
+	doctor := NewDoctor(arg.DoctorUI, arg.Login.SecretUI, arg.LogUI)
 	return doctor.LoginCheckup(u)
 }

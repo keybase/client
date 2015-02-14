@@ -212,8 +212,6 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	lurh, _ = GetNodeHash(pj.AtPath("body.legacy_uid_root"))
 	pj.AtKey("ctime").GetInt64Void(&ctime, &err)
 
-	fmt.Printf("yooo! %s\n", pj.MarshalToDebug())
-
 	if err != nil {
 		return
 	}
@@ -231,14 +229,12 @@ func NewMerkleRootFromJson(jw *jsonw.Wrapper) (ret *MerkleRoot, err error) {
 	return
 }
 
-func importPathFromJson(jw *jsonw.Wrapper, canBeNil bool) (out []*PathStep, err error) {
+func importPathFromJson(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 
 	if jw.IsNil() {
-		if !canBeNil {
-			err = MerkleClientError{"nil merkle path"}
-		}
 		return
 	}
+
 	var path *jsonw.Wrapper
 	if path, err = jw.ToArray(); err != nil {
 		return
@@ -291,12 +287,12 @@ func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error)
 		return
 	}
 
-	path_out, err := importPathFromJson(res.Body.AtKey("path"), true)
+	path_out, err := importPathFromJson(res.Body.AtKey("path"))
 	if err != nil {
 		return
 	}
 
-	uid_path_out, err := importPathFromJson(res.Body.AtKey("uid_proof_path"), false)
+	uid_path_out, err := importPathFromJson(res.Body.AtKey("uid_proof_path"))
 	if err != nil {
 		return
 	}

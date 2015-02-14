@@ -78,7 +78,7 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -90,7 +90,7 @@ func TestLoginAddsKeys(t *testing.T) {
 		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
-	if err := li.LoginAndIdentify(larg); err != nil {
+	if err := li.Run(larg); err != nil {
 		t.Fatal(err)
 	}
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -163,7 +163,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -175,7 +175,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
-	if err := li.LoginAndIdentify(larg); err != nil {
+	if err := li.Run(larg); err != nil {
 		t.Fatal(err)
 	}
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -229,7 +229,7 @@ func TestLoginNewDevice(t *testing.T) {
 
 	docui := &ldocui{}
 
-	larg := LoginAndIdentifyArg{
+	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
 			Prompt:     false,
@@ -253,7 +253,7 @@ func TestLoginNewDevice(t *testing.T) {
 		}
 	*/
 
-	if err := li.LoginAndIdentify(larg); err != ErrNotYetImplemented {
+	if err := li.Run(larg); err != ErrNotYetImplemented {
 		t.Fatal(err)
 	}
 
