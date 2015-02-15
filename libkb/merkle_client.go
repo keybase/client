@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/go-jsonw"
+	"strings"
 )
 
 type Seqno int64
@@ -493,7 +494,7 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		username = vp.username
 		return
 	}
-	hsh := sha256.Sum256([]byte(vp.username))
+	hsh := sha256.Sum256([]byte(strings.ToLower(vp.username)))
 	hsh_s := hex.EncodeToString(hsh[:])
 	var leaf *jsonw.Wrapper
 
@@ -662,11 +663,15 @@ func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
 	return
 }
 
-func (mul *MerkleUserLeaf) MatchUser(u *User) (err error) {
+func (mul *MerkleUserLeaf) MatchUser(u *User, uid *UID, un string) (err error) {
 	if mul.username != u.GetName() {
-		err = MerkleClashError{fmt.Sprintf("username %s != %s", mul.username, u.GetName())}
+		err = MerkleClashError{fmt.Sprintf("vs loaded object: username %s != %s", mul.username, u.GetName())}
 	} else if !mul.uid.Eq(u.GetUid()) {
-		err = MerkleClientError{fmt.Sprintf("UID %s != %s", mul.uid, u.GetUid())}
+		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUid())}
+	} else if len(un) > 0 && mul.username != un {
+		err = MerkleClashError{fmt.Sprintf("vs given arg: username %s != %s", mul.username, un)}
+	} else if uid != nil && !uid.Eq(mul.uid) {
+		err = MerkleClashError{fmt.Sprintf("vs given arg: UID %s != %s", *uid, mul.uid)}
 	}
 	return
 }

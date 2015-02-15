@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	lru "github.com/hashicorp/golang-lru"
 	jsonw "github.com/keybase/go-jsonw"
@@ -77,7 +78,7 @@ func GetUidVoid(w *jsonw.Wrapper, u *UID, e *error) {
 
 // UsernameToUID works for users created after "Fri Feb  6 19:33:08 EST 2015"
 func UsernameToUID(s string) UID {
-	h := sha256.Sum256([]byte(s))
+	h := sha256.Sum256([]byte(strings.ToLower(s)))
 	var uid UID
 	copy(uid[:], h[0:UID_LEN-1])
 	uid[UID_LEN-1] = UID_SUFFIX_2
@@ -634,7 +635,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	if err = leaf.MatchUser(ret); err != nil {
+	if err = leaf.MatchUser(ret, arg.Uid, arg.Name); err != nil {
 		return
 	}
 
