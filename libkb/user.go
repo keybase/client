@@ -634,6 +634,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
+	if err = leaf.MatchUser(ret); err != nil {
+		return
+	}
+
 	if err = ret.LoadSigChains(arg.AllKeys, leaf); err != nil {
 		return
 	}

@@ -756,4 +756,12 @@ func (m MerkleNotFoundError) Error() string {
 	return fmt.Sprintf("For key '%s', Merkle path not found: %s", m.msg)
 }
 
+type MerkleClashError struct {
+	c string
+}
+
+func (m MerkleClashError) Error() string {
+	return fmt.Sprintf("Merkle tree clashed with server reply: %s", m.c)
+}
+
 //=============================================================================

@@ -73,6 +73,7 @@ type MerkleUserLeaf struct {
 	private   *MerkleTriple
 	idVersion int64
 	username  string
+	uid       UID
 }
 
 type PathSteps []*PathStep
@@ -543,6 +544,9 @@ func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 	}
 
 	user, err = ParseMerkleUserLeaf(leaf)
+	if user != nil {
+		user.uid = vp.uid
+	}
 	return
 }
 
@@ -654,6 +658,15 @@ func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
 	// Lazy-init, only when needed.
 	if err = mc.Init(); err == nil {
 		ret = mc.lastRoot.ToSigJson()
+	}
+	return
+}
+
+func (mul *MerkleUserLeaf) MatchUser(u *User) (err error) {
+	if mul.username != u.GetName() {
+		err = MerkleClashError{fmt.Sprintf("username %s != %s", mul.username, u.GetName())}
+	} else if !mul.uid.Eq(u.GetUid()) {
+		err = MerkleClientError{fmt.Sprintf("UID %s != %s", mul.uid, u.GetUid())}
 	}
 	return
 }
