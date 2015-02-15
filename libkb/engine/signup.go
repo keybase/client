@@ -48,6 +48,7 @@ type SignupEngineRunArg struct {
 	Passphrase string
 	DeviceName string
 	SkipGPG    bool
+	SkipMail   bool
 }
 
 func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
@@ -55,7 +56,7 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
-	if err := s.join(arg.Username, arg.Email, arg.InviteCode); err != nil {
+	if err := s.join(arg.Username, arg.Email, arg.InviteCode, arg.SkipMail); err != nil {
 		return err
 	}
 
@@ -93,7 +94,7 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 	return err
 }
 
-func (s *SignupEngine) join(username, email, inviteCode string) error {
+func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) error {
 	joinEngine := NewSignupJoinEngine()
 
 	arg := SignupJoinEngineRunArg{
@@ -102,6 +103,7 @@ func (s *SignupEngine) join(username, email, inviteCode string) error {
 		InviteCode: inviteCode,
 		PWHash:     s.tspkey.PWHash(),
 		PWSalt:     s.pwsalt,
+		SkipMail:   skipMail,
 	}
 	res := joinEngine.Run(arg)
 	if res.Err != nil {

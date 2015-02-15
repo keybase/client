@@ -62,6 +62,7 @@ type SignupJoinEngineRunArg struct {
 	InviteCode string
 	PWHash     []byte
 	PWSalt     []byte
+	SkipMail   bool
 }
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
@@ -75,6 +76,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 			"email":         libkb.S{Val: arg.Email},
 			"invitation_id": libkb.S{Val: arg.InviteCode},
 			"pwh_version":   libkb.I{Val: int(triplesec.Version)},
+			"skip_mail":     libkb.B{Val: arg.SkipMail},
 		}})
 	if err == nil {
 		s.username = arg.Username
