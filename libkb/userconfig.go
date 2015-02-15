@@ -8,11 +8,10 @@ import (
 //==================================================================
 
 type UserConfig struct {
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
-	Salt        string  `json:"salt"`
-	UidVerified bool    `json:"uid_verified"`
-	Device      *string `json:"device"`
+	Id     string  `json:"id"`
+	Name   string  `json:"name"`
+	Salt   string  `json:"salt"`
+	Device *string `json:"device"`
 
 	importedId       UID
 	importedSalt     []byte
@@ -26,22 +25,13 @@ func (u UserConfig) GetUsername() string          { return u.Name }
 func (u UserConfig) GetSalt() []byte              { return u.importedSalt }
 func (u UserConfig) GetDeviceID() (ret *DeviceID) { return u.importedDeviceId }
 
-func (u UserConfig) GetVerifiedUID() *UID {
-	if u.UidVerified {
-		return &u.importedId
-	} else {
-		return nil
-	}
-}
-
 //==================================================================
 
-func NewUserConfig(id UID, name string, salt []byte, uidVerified bool, dev *DeviceID) *UserConfig {
+func NewUserConfig(id UID, name string, salt []byte, dev *DeviceID) *UserConfig {
 	ret := &UserConfig{
 		Id:               id.String(),
 		Name:             name,
 		Salt:             hex.EncodeToString(salt),
-		UidVerified:      uidVerified,
 		Device:           nil,
 		importedId:       id,
 		importedSalt:     salt,

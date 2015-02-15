@@ -57,6 +57,7 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb
 
 	G.Log.Debug("Device name:   %s", d.deviceName)
 	G.Log.Debug("Device ID:     %x", d.deviceID)
+	G.Log.Debug("Eldest FOKID:  %s", eldestKID)
 
 	if signer == nil {
 		if err = d.pushEldestKey(); err != nil {
