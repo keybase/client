@@ -30,7 +30,7 @@ func createFakeUser(t *testing.T, deviceName string) (username, passphrase strin
 	passphrase = fakePassphrase(t)
 
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	arg := SignupEngineRunArg{username, email, testInviteCode, deviceName, true, true}
+	arg := SignupEngineRunArg{username, email, testInviteCode, passphrase, deviceName, true, true}
 	if err := s.Run(arg); err != nil {
 		t.Fatal(err)
 	}
