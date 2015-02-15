@@ -13,7 +13,7 @@ func fakeUser(t *testing.T, prefix string) (username, email string) {
 		t.Fatal(err)
 	}
 	username = fmt.Sprintf("%s_%s", prefix, hex.EncodeToString(buf))
-	email = fmt.Sprintf("%s@email.com", username)
+	email = fmt.Sprintf("test+%s@keybase.io", username)
 	return username, email
 }
 
@@ -30,7 +30,7 @@ func createFakeUser(t *testing.T, deviceName string) (username, passphrase strin
 	passphrase = fakePassphrase(t)
 
 	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
-	arg := SignupEngineRunArg{username, email, "202020202020202020202020", passphrase, deviceName, true, true}
+	arg := SignupEngineRunArg{username, email, testInviteCode, deviceName, true, true}
 	if err := s.Run(arg); err != nil {
 		t.Fatal(err)
 	}
