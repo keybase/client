@@ -14,7 +14,7 @@ type KexStrongID [32]byte
 
 type KexContext struct {
 	UserID   libkb.UID
-	WeakID   int
+	WeakID   int64
 	StrongID KexStrongID
 	Src      libkb.DeviceID
 	Dst      libkb.DeviceID
@@ -41,7 +41,7 @@ type Kex struct {
 var kexTimeout = 5 * time.Minute
 
 func NewKex(s KexServer) *Kex {
-	return &Kex{server: s, helloReceived: make(chan bool)}
+	return &Kex{server: s, helloReceived: make(chan bool, 1)}
 }
 
 func (k *Kex) Run(u *libkb.User, src, dst libkb.DeviceID) error {
@@ -65,9 +65,11 @@ func (k *Kex) Run(u *libkb.User, src, dst libkb.DeviceID) error {
 		Src:      src,
 		Dst:      dst,
 	}
+
 	if err := k.server.StartKexSession(id, context); err != nil {
 		return err
 	}
+	//	go k.server.StartKexSession(id, context)
 
 	// tell user the command to enter on existing device (X)
 
@@ -83,8 +85,11 @@ func (k *Kex) Run(u *libkb.User, src, dst libkb.DeviceID) error {
 }
 
 func (k *Kex) waitHello() error {
+	G.Log.Info("waitHello start")
+	defer G.Log.Info("waitHello done")
 	select {
 	case <-k.helloReceived:
+		G.Log.Info("hello received")
 		return nil
 	case <-time.After(kexTimeout):
 		return fmt.Errorf("timeout waiting for Hello")
@@ -112,10 +117,17 @@ func (k *Kex) wordsToID(words []string) ([32]byte, error) {
 	return sha256.Sum256(key), nil
 }
 
-func (k *Kex) StartKexSession(id KexStrongID, context *KexContext) error { return nil }
-func (k *Kex) StartReverseKexSession(context *KexContext) error          { return nil }
+func (k *Kex) StartKexSession(id KexStrongID, context *KexContext) error {
+	G.Log.Info("StartKexSession: %x, %v", id, context)
+	defer G.Log.Info("StartKexSession done")
+	return k.server.Hello(context)
+}
+
+func (k *Kex) StartReverseKexSession(context *KexContext) error { return nil }
 
 func (k *Kex) Hello(context *KexContext) error {
+	G.Log.Info("Hello")
+	defer G.Log.Info("Hello done")
 	k.helloReceived <- true
 	return nil
 }

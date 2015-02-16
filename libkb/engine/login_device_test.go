@@ -12,10 +12,16 @@ import (
 func TestLoginNewDevice(t *testing.T) {
 	kexTimeout = 1 * time.Second
 	// fake kex server implementation
-	ksrv := &kexsrv{}
+	ksrv := newKexsrv()
 
 	tc := libkb.SetupTest(t, "login")
 	u1 := CreateAndSignupFakeUser(t, "login")
+	devX := G.Env.GetDeviceID()
+
+	// will this work???
+	kexX := NewKex(ksrv)
+	ksrv.RegisterTestDevice(kexX, *devX)
+
 	G.LoginState.Logout()
 	tc.Cleanup()
 
@@ -68,11 +74,34 @@ func (l *ldocuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_
 	return
 }
 
-type kexsrv struct{}
+type kexsrv struct {
+	devices map[libkb.DeviceID]KexServer
+}
 
-func (k *kexsrv) StartKexSession(id KexStrongID, context *KexContext) error     { return nil }
-func (k *kexsrv) StartReverseKexSession(context *KexContext) error              { return nil }
-func (k *kexsrv) Hello(context *KexContext) error                               { return nil }
-func (k *kexsrv) PleaseSign(context *KexContext) error                          { return nil }
-func (k *kexsrv) Done(context *KexContext) error                                { return nil }
-func (k *kexsrv) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error { return nil }
+func newKexsrv() *kexsrv {
+	return &kexsrv{devices: make(map[libkb.DeviceID]KexServer)}
+}
+
+func (k *kexsrv) StartKexSession(id KexStrongID, context *KexContext) error {
+	s, ok := k.devices[context.Dst]
+	if !ok {
+		return fmt.Errorf("device %x not registered", context.Dst)
+	}
+	return s.StartKexSession(id, context)
+}
+
+func (k *kexsrv) StartReverseKexSession(context *KexContext) error { return nil }
+func (k *kexsrv) Hello(context *KexContext) error {
+	s, ok := k.devices[context.Dst]
+	if !ok {
+		return fmt.Errorf("device %x not registered", context.Dst)
+	}
+	return s.Hello(context)
+}
+func (k *kexsrv) PleaseSign(context *KexContext) error { return nil }
+func (k *kexsrv) Done(context *KexContext) error       { return nil }
+
+func (k *kexsrv) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error {
+	k.devices[device] = srv
+	return nil
+}
