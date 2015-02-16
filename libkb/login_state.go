@@ -397,13 +397,15 @@ func (s *LoginState) switchUser(arg LoginArg) error {
 }
 
 func (s *LoginState) tryPubkeyLogin(arg LoginArg) (loggedIn bool, err error) {
-	if err = s.PubkeyLogin(arg.Username, arg.SecretUI); err != nil {
+	if err = s.PubkeyLogin(arg.Username, arg.SecretUI); err == nil {
+		G.Log.Debug("| Pubkey login succeeded")
+		loggedIn = true
+	} else if _, ok := err.(CanceledError); ok {
+		G.Log.Debug("Canceled pubkey login, so cancel login")
+	} else {
 		G.Log.Debug("Public key login failed: %s", err.Error())
 		G.Log.Debug("Falling back to passphrase login")
 		err = nil
-	} else {
-		G.Log.Debug("| Pubkey login succeeded")
-		loggedIn = true
 	}
 	return
 }

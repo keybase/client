@@ -765,3 +765,13 @@ func (m MerkleClashError) Error() string {
 }
 
 //=============================================================================
+
+type CanceledError struct {
+	m string
+}
+
+func (c CanceledError) Error() string {
+	return c.m
+}
+
+//=============================================================================

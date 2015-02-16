@@ -49,7 +49,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		}, nil)
 
 		if err == nil && res.Canceled {
-			err = fmt.Errorf("Attempt to unlock secret key entry canceled")
+			err = CanceledError{"Attempt to unlock secret key entry canceled"}
 		} else if err != nil {
 			// noop
 		} else if ret, err = arg.Unlocker(res.Text); err == nil {
