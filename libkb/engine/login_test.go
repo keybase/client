@@ -192,44 +192,6 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	testUserHasDeviceKey(t)
 }
 
-func TestLoginNewDevice(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
-	u1 := CreateAndSignupFakeUser(t, "login")
-	G.LoginState.Logout()
-	tc.Cleanup()
-
-	// redo SetupTest to get a new home directory...should look like a new device.
-	tc2 := libkb.SetupTest(t, "login")
-	defer tc2.Cleanup()
-
-	docui := &ldocui{}
-
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   u1.Username,
-			Passphrase: u1.Passphrase,
-			NoUi:       true,
-		},
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
-	}
-
-	before := docui.selectSignerCount
-
-	li := NewLoginEngine()
-
-	if err := li.Run(larg); err != ErrNotYetImplemented {
-		t.Fatal(err)
-	}
-
-	after := docui.selectSignerCount
-	if after-before != 1 {
-		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
-	}
-}
-
 // synced key
 func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(t, "login")
