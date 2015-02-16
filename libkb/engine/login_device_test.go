@@ -3,12 +3,17 @@ package engine
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
 )
 
 func TestLoginNewDevice(t *testing.T) {
+	kexTimeout = 1 * time.Second
+	// fake kex server implementation
+	ksrv := &kexsrv{}
+
 	tc := libkb.SetupTest(t, "login")
 	u1 := CreateAndSignupFakeUser(t, "login")
 	G.LoginState.Logout()
@@ -30,6 +35,7 @@ func TestLoginNewDevice(t *testing.T) {
 		},
 		LogUI:    G.UI.GetLogUI(),
 		DoctorUI: docui,
+		KexSrv:   ksrv,
 	}
 
 	before := docui.selectSignerCount
@@ -61,3 +67,12 @@ func (l *ldocuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_
 	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &devid}
 	return
 }
+
+type kexsrv struct{}
+
+func (k *kexsrv) StartKexSession(id KexStrongID, context *KexContext) error     { return nil }
+func (k *kexsrv) StartReverseKexSession(context *KexContext) error              { return nil }
+func (k *kexsrv) Hello(context *KexContext) error                               { return nil }
+func (k *kexsrv) PleaseSign(context *KexContext) error                          { return nil }
+func (k *kexsrv) Done(context *KexContext) error                                { return nil }
+func (k *kexsrv) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error { return nil }

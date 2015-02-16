@@ -16,6 +16,7 @@ type Doctor struct {
 	gpgUI    GPGUI
 
 	signingKey libkb.GenericKey
+	kexServer  KexServer
 }
 
 type DocArg struct {
@@ -25,8 +26,18 @@ type DocArg struct {
 	GpgUI    GPGUI
 }
 
-func NewDoctor(arg *DocArg) *Doctor {
-	return &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, gpgUI: arg.GpgUI}
+func NewDoctor(arg *DocArg, options ...func(*Doctor)) *Doctor {
+	d := &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, gpgUI: arg.GpgUI}
+	for _, opt := range options {
+		opt(d)
+	}
+	return d
+}
+
+func WithKexServer(s KexServer) func(r *Doctor) {
+	return func(d *Doctor) {
+		d.kexServer = s
+	}
 }
 
 func (d *Doctor) LoginCheckup(u *libkb.User) error {
@@ -291,8 +302,25 @@ func (d *Doctor) deviceSignPGPNext(pgpk libkb.GenericKey) error {
 
 func (d *Doctor) deviceSignExistingDevice(id string) error {
 	G.Log.Info("device sign with existing device [%s]", id)
-	G.Log.Info("device sign with existing device not yet implemented")
-	return ErrNotYetImplemented
+
+	if d.kexServer == nil {
+		return fmt.Errorf("no kex server")
+	}
+
+	// XXX move this to kex?  should it create the new device???
+	src, err := libkb.NewDeviceID()
+	if err != nil {
+		return err
+	}
+
+	dst, err := libkb.ImportDeviceID(id)
+	if err != nil {
+		return err
+	}
+
+	k := NewKex(d.kexServer)
+	return k.Run(d.user, src, *dst)
+
 }
 
 func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {

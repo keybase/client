@@ -15,6 +15,7 @@ type LoginEngineArg struct {
 	LogUI    libkb.LogUI
 	DoctorUI libkb.DoctorUI
 	GpgUI    GPGUI
+	KexSrv   KexServer
 }
 
 func (e *LoginEngine) Run(arg LoginEngineArg) (err error) {
@@ -37,6 +38,6 @@ func (e *LoginEngine) Run(arg LoginEngineArg) (err error) {
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(&DocArg{DocUI: arg.DoctorUI, SecretUI: arg.Login.SecretUI, LogUI: arg.LogUI, GpgUI: arg.GpgUI})
+	doctor := NewDoctor(&DocArg{DocUI: arg.DoctorUI, SecretUI: arg.Login.SecretUI, LogUI: arg.LogUI, GpgUI: arg.GpgUI}, WithKexServer(arg.KexSrv))
 	return doctor.LoginCheckup(u)
 }
