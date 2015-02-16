@@ -89,7 +89,7 @@ func (s *LKSec) Decrypt(src []byte) ([]byte, error) {
 	fs := s.fsecret()
 	res, ok := secretbox.Open(nil, data, &nonce, &fs)
 	if !ok {
-		return nil, fmt.Errorf("failed to open secretbox")
+		return nil, PassphraseError{"failed to open secretbox"}
 	}
 
 	return res, nil
