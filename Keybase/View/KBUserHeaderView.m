@@ -62,7 +62,7 @@
 
     y += [layout setFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name2View].size.height;
 
-    [layout setFrame:CGRectMake(12, y - 8, imageHeight + 16, imageHeight + 16) view:yself.progressView];
+    [layout setFrame:CGRectMake(12, 2, imageHeight + 16, imageHeight + 16) view:yself.progressView];
 
     return CGSizeMake(size.width, imageHeight + 30);
   }];
