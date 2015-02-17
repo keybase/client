@@ -188,7 +188,7 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 	if kid, err = ImportKID(k.Kid); err != nil {
 		return
 	}
-	if ckf.IsKidActive(kid) != DLG_SIBKEY {
+	if ckf.GetKeyRole(kid) != DLG_SIBKEY {
 		return
 	}
 	if packet, err = DecodeArmoredPacket(k.Bundle); err != nil && packet == nil {

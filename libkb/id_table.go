@@ -21,7 +21,7 @@ type TypedChainLink interface {
 	ToDisplayString() string
 	IsRevocationIsh() bool
 	IsRevoked() bool
-	IsDelegation() KeyStatus
+	GetRole() KeyRole
 	GetSeqno() Seqno
 	GetCTime() time.Time
 	GetETime() time.Time
@@ -68,7 +68,7 @@ func (g *GenericChainLink) GetDelegatedKid() KID                 { return nil }
 func (g *GenericChainLink) GetParentKid() KID                    { return nil }
 func (g *GenericChainLink) VerifyReverseSig(kf *KeyFamily) error { return nil }
 func (g *GenericChainLink) IsRevocationIsh() bool                { return false }
-func (g *GenericChainLink) IsDelegation() KeyStatus              { return DLG_NONE }
+func (g *GenericChainLink) GetRole() KeyRole                     { return DLG_NONE }
 func (g *GenericChainLink) IsRevoked() bool                      { return g.revoked }
 func (g *GenericChainLink) GetSeqno() Seqno                      { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPgpFingerprint() *PgpFingerprint {
@@ -496,7 +496,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 }
 
 func (s *SibkeyChainLink) GetDelegatedKid() KID    { return s.kid }
-func (s *SibkeyChainLink) IsDelegation() KeyStatus { return DLG_SIBKEY }
+func (s *SibkeyChainLink) GetRole() KeyRole        { return DLG_SIBKEY }
 func (s *SibkeyChainLink) Type() string            { return SIBKEY_TYPE }
 func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
@@ -557,7 +557,7 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 
 func (s *SubkeyChainLink) Type() string            { return SUBKEY_TYPE }
 func (s *SubkeyChainLink) ToDisplayString() string { return s.kid.String() }
-func (s *SubkeyChainLink) IsDelegation() KeyStatus { return DLG_SUBKEY }
+func (s *SubkeyChainLink) GetRole() KeyRole        { return DLG_SUBKEY }
 func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 func (s *SubkeyChainLink) GetParentKid() KID       { return s.parentKid }
 

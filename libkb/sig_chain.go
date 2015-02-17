@@ -353,7 +353,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, c
 				return
 			}
 			first = false
-		} else if dlg := tcl.IsDelegation(); dlg == DLG_NONE {
+		} else if dlg := tcl.GetRole(); dlg == DLG_NONE {
 		} else if _, err = link.VerifySigWithKeyFamily(ckf); err != nil {
 			return
 		} else if err = ckf.Delegate(tcl); err != nil {

@@ -10,8 +10,6 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type KeyStatus int
-
 // We have two notions of time we can use -- standard UTC which might
 // be screwy (skewy) based upon local clock problems; or MerkleRoot seqno,
 // which is totally ordered and all clients and server ought to agree on it.
@@ -529,7 +527,7 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	tm := TclToKeybaseTime(tcl)
 	fp := ckf.kf.kid2pgp[kidStr]
 
-	err = ckf.cki.Delegate(kidStr, fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.IsDelegation() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
+	err = ckf.cki.Delegate(kidStr, fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
 	return
 }
 
@@ -673,13 +671,19 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 	return
 }
 
-// IsKidActive computes whether the given KID is active, and if so,
-// whether it's a sib or subkey
-func (ckf ComputedKeyFamily) IsKidActive(kid KID) (ret KeyStatus) {
-	return ckf.isKidHexActive(kid.String())
+// GetKeyRole returns the KeyRole (sibkey/subkey/none), taking into account
+// whether the key has been cancelled.
+func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
+	return ckf.getKeyRoleFromStr(kid.String())
 }
 
-func (ckf ComputedKeyFamily) isKidHexActive(hex string) (ret KeyStatus) {
+// GetFOKIDRole returns the KeyRole (sibkey/subkey/none), taking into account
+// whether the key has been cancelled.
+func (ckf ComputedKeyFamily) GetFOKIDRole(f FOKID) (ret KeyRole) {
+	return ckf.getKeyRoleFromStr(f.String())
+}
+
+func (ckf ComputedKeyFamily) getKeyRoleFromStr(hex string) (ret KeyRole) {
 	if info, ok := ckf.cki.Infos[hex]; !ok || info.Status != KEY_UNCANCELLED {
 		ret = DLG_NONE
 	} else if info.Sibkey {
@@ -690,25 +694,11 @@ func (ckf ComputedKeyFamily) isKidHexActive(hex string) (ret KeyStatus) {
 	return
 }
 
-// IsFOKIDActive computes whether this FOKID is currently active, and whether
-// as a sibkey or a subkey
-func (ckf ComputedKeyFamily) IsFOKIDActive(f FOKID) (ret KeyStatus) {
-	if f.Kid != nil {
-		return ckf.IsKidActive(f.Kid)
-	} else if f.Fp == nil {
-		return DLG_NONE
-	} else if kid, found := ckf.kf.pgp2kid[f.Fp.String()]; found {
-		return ckf.IsKidActive(kid)
-	} else {
-		return DLG_NONE
-	}
-}
-
 // GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily,
 // sorted from oldest to newest.
 func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 	for _, skr := range ckf.kf.Sibkeys {
-		if ckf.isKidHexActive(skr.Kid) == DLG_SIBKEY && skr.key != nil {
+		if ckf.getKeyRoleFromStr(skr.Kid) == DLG_SIBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -729,7 +719,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeysKIDs() (ret []KID) {
 // The former check is so that we can handle the case nuked sigchains.
 func (ckf ComputedKeyFamily) HasActiveKey() bool {
 	for k := range ckf.kf.Sibkeys {
-		if ckf.isKidHexActive(k) == DLG_SIBKEY {
+		if ckf.getKeyRoleFromStr(k) == DLG_SIBKEY {
 			return true
 		}
 	}
@@ -862,7 +852,7 @@ func (ckf *ComputedKeyFamily) GetActiveSibkeyKidForCurrentDevice() (kid KID, err
 	if did := G.Env.GetDeviceID(); did == nil {
 		err = NotProvisionedError{}
 	} else if kid, err = ckf.getSibkeyKidForDevice(*did); err != nil {
-	} else if ckf.IsKidActive(kid) != DLG_SIBKEY {
+	} else if ckf.GetKeyRole(kid) != DLG_SIBKEY {
 		err = InactiveKeyError{kid}
 		kid = nil
 	}

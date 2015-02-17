@@ -295,7 +295,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily) *SKB
 		G.Log.Debug("| trying key index# -> %d", i)
 		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {
 			kid = key.GetKid()
-			active := ckf.IsKidActive(kid)
+			active := ckf.GetKeyRole(kid)
 			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
 			if active == DLG_SIBKEY {
 				return k.Blocks[i]

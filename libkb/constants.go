@@ -209,8 +209,10 @@ const (
 	KEY_SUPERSEDED
 )
 
-var (
-	DLG_NONE   KeyStatus = 0
-	DLG_SIBKEY KeyStatus = 1
-	DLG_SUBKEY KeyStatus = 2
+type KeyRole int
+
+const (
+	DLG_NONE KeyRole = iota
+	DLG_SIBKEY
+	DLG_SUBKEY
 )
