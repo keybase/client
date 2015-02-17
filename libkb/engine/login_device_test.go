@@ -62,6 +62,8 @@ func TestLoginNewDevice(t *testing.T) {
 	if after-before != 1 {
 		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
 	}
+
+	testUserHasDeviceKey(t)
 }
 
 type ldocuiDevice struct {
@@ -100,6 +102,7 @@ func (k *kexsrv) StartKexSession(ctx *KexContext, id KexStrongID) error {
 }
 
 func (k *kexsrv) StartReverseKexSession(ctx *KexContext) error { return nil }
+
 func (k *kexsrv) Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {

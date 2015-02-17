@@ -72,10 +72,10 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb
 	}
 
 	if wr := G.Env.GetConfigWriter(); wr != nil {
-		if wr.SetDeviceID(&d.deviceID); err != nil {
-			return
-		} else if err = wr.Write(); err != nil {
-			return
+		if err := wr.SetDeviceID(&d.deviceID); err != nil {
+			return err
+		} else if err := wr.Write(); err != nil {
+			return err
 		} else {
 			G.Log.Info("Setting Device ID to %s", d.deviceID)
 		}

@@ -169,6 +169,17 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 		return fmt.Errorf("gen.Push() error: %s", err)
 	}
 
+	// store the new device id
+	if wr := G.Env.GetConfigWriter(); wr != nil {
+		if err := wr.SetDeviceID(&k.deviceID); err != nil {
+			return err
+		} else if err := wr.Write(); err != nil {
+			return err
+		} else {
+			G.Log.Info("Setting Device ID to %s", k.deviceID)
+		}
+	}
+
 	// Device y makes a local note of Alice's UID (which is sent in the channel metadata).
 
 	return nil
