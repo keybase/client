@@ -25,11 +25,11 @@ func (c *KexContext) Swap() {
 }
 
 type KexServer interface {
-	StartKexSession(id KexStrongID, context *KexContext) error
-	StartReverseKexSession(context *KexContext) error
-	Hello(context *KexContext) error
-	PleaseSign(context *KexContext) error
-	Done(context *KexContext) error
+	StartKexSession(ctx *KexContext, id KexStrongID) error
+	StartReverseKexSession(ctx *KexContext) error
+	Hello(ctx *KexContext) error
+	PleaseSign(ctx *KexContext) error
+	Done(ctx *KexContext) error
 
 	// XXX get rid of this when real client comm works
 	RegisterTestDevice(srv KexServer, device libkb.DeviceID) error
@@ -77,16 +77,16 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID) error {
 
 	k.sessionID = id
 
-	context := &KexContext{
+	ctx := &KexContext{
 		UserID:   k.user.GetUid(),
 		StrongID: id,
 		Src:      src,
 		Dst:      dst,
 	}
 
-	G.Log.Info("StartForward initial context: src = %s, dst = %s", context.Src, context.Dst)
+	G.Log.Info("StartForward initial context: src = %s, dst = %s", ctx.Src, ctx.Dst)
 
-	if err := k.server.StartKexSession(id, context); err != nil {
+	if err := k.server.StartKexSession(ctx, id); err != nil {
 		return err
 	}
 
@@ -97,10 +97,10 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID) error {
 		return err
 	}
 
-	context.Src = src
-	context.Dst = dst
-	G.Log.Info("StartForward PleaseSign context: src = %s, dst = %s", context.Src, context.Dst)
-	if err := k.server.PleaseSign(context); err != nil {
+	ctx.Src = src
+	ctx.Dst = dst
+	G.Log.Info("StartForward PleaseSign context: src = %s, dst = %s", ctx.Src, ctx.Dst)
+	if err := k.server.PleaseSign(ctx); err != nil {
 		return err
 	}
 
@@ -163,47 +163,47 @@ func (k *Kex) wordsToID(words []string) ([32]byte, error) {
 	return sha256.Sum256(key), nil
 }
 
-func (k *Kex) StartKexSession(id KexStrongID, context *KexContext) error {
-	G.Log.Info("[%s] StartKexSession: %x, %v", k.debugName, id, context)
+func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
+	G.Log.Info("[%s] StartKexSession: %x, %v", k.debugName, id, ctx)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
-	if err := k.verifyDst(context); err != nil {
+	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
 
-	context.Swap()
+	ctx.Swap()
 
-	return k.server.Hello(context)
+	return k.server.Hello(ctx)
 }
 
-func (k *Kex) StartReverseKexSession(context *KexContext) error { return nil }
+func (k *Kex) StartReverseKexSession(ctx *KexContext) error { return nil }
 
-func (k *Kex) Hello(context *KexContext) error {
+func (k *Kex) Hello(ctx *KexContext) error {
 	G.Log.Info("[%s] Hello Receive", k.debugName)
 	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
-	if err := k.verifyDst(context); err != nil {
+	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
 	k.helloReceived <- true
 	return nil
 }
 
-func (k *Kex) PleaseSign(context *KexContext) error {
+func (k *Kex) PleaseSign(ctx *KexContext) error {
 	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
 	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
-	if err := k.verifyDst(context); err != nil {
+	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
 
-	context.Swap()
+	ctx.Swap()
 
-	return k.server.Done(context)
+	return k.server.Done(ctx)
 }
 
-func (k *Kex) Done(context *KexContext) error {
+func (k *Kex) Done(ctx *KexContext) error {
 	G.Log.Info("[%s] Done Receive", k.debugName)
 	defer G.Log.Info("[%s] Done Receive done", k.debugName)
-	if err := k.verifyDst(context); err != nil {
+	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
 	k.doneReceived <- true
@@ -212,9 +212,9 @@ func (k *Kex) Done(context *KexContext) error {
 
 func (k *Kex) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error { return nil }
 
-func (k *Kex) verifyDst(context *KexContext) error {
-	if context.Dst != k.deviceID {
-		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", context.Dst, k.deviceID)
+func (k *Kex) verifyDst(ctx *KexContext) error {
+	if ctx.Dst != k.deviceID {
+		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", ctx.Dst, k.deviceID)
 	}
 	return nil
 }

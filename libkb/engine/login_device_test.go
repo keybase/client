@@ -83,47 +83,47 @@ func newKexsrv() *kexsrv {
 	return &kexsrv{devices: make(map[libkb.DeviceID]KexServer)}
 }
 
-func (k *kexsrv) StartKexSession(id KexStrongID, context *KexContext) error {
-	s, err := k.findDevice(context.Dst)
+func (k *kexsrv) StartKexSession(ctx *KexContext, id KexStrongID) error {
+	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.StartKexSession(id, context)
+		return s.StartKexSession(ctx, id)
 	}
 	return k.gocall(f)
 }
 
-func (k *kexsrv) StartReverseKexSession(context *KexContext) error { return nil }
-func (k *kexsrv) Hello(context *KexContext) error {
-	s, err := k.findDevice(context.Dst)
+func (k *kexsrv) StartReverseKexSession(ctx *KexContext) error { return nil }
+func (k *kexsrv) Hello(ctx *KexContext) error {
+	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.Hello(context)
+		return s.Hello(ctx)
 	}
 	return k.gocall(f)
 }
 
-func (k *kexsrv) PleaseSign(context *KexContext) error {
-	s, err := k.findDevice(context.Dst)
+func (k *kexsrv) PleaseSign(ctx *KexContext) error {
+	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.PleaseSign(context)
+		return s.PleaseSign(ctx)
 	}
 	return k.gocall(f)
 }
 
-func (k *kexsrv) Done(context *KexContext) error {
-	s, err := k.findDevice(context.Dst)
+func (k *kexsrv) Done(ctx *KexContext) error {
+	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.Done(context)
+		return s.Done(ctx)
 	}
 	return k.gocall(f)
 }
