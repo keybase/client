@@ -30,7 +30,7 @@ type KexServer interface {
 	StartReverseKexSession(ctx *KexContext) error
 	Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error
 	PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
-	Done(ctx *KexContext) error
+	Done(ctx *KexContext, mt libkb.MerkleTriple) error
 
 	// XXX get rid of this when real client comm works
 	RegisterTestDevice(srv KexServer, device libkb.DeviceID) error
@@ -139,6 +139,35 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 	// Device y signs M_y into Alice's sigchain as a subkey.
 	// use eddsa to sign dh
 	// then push it
+	devY := libkb.Device{
+		Id:          k.deviceID.String(),
+		Type:        devType,
+		Description: &devDesc,
+	}
+	// generator function that just copies the public eddsa key into a
+	// NaclKeyPair (which implements GenericKey).
+	g := func() (libkb.NaclKeyPair, error) {
+		//		var ret libkb.NaclDHKeyPair
+		//	ret.Public = dh.Public
+		//	return ret, nil
+		return dh, nil
+	}
+	arg := libkb.NaclKeyGenArg{
+		Signer:      eddsa,
+		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
+		Sibkey:      false,
+		Me:          k.user,
+		EldestKeyID: k.user.GetEldestFOKID().Kid,
+		Generator:   g,
+		Device:      &devY,
+	}
+	gen := libkb.NewNaclKeyGen(arg)
+	if err := gen.Generate(); err != nil {
+		return fmt.Errorf("gen.Generate() error: %s", err)
+	}
+	if _, err := gen.Push(); err != nil {
+		return fmt.Errorf("gen.Push() error: %s", err)
+	}
 
 	// Device y makes a local note of Alice's UID (which is sent in the channel metadata).
 
@@ -292,20 +321,25 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 	if err := gen.Generate(); err != nil {
 		return fmt.Errorf("gen.Generate() error: %s", err)
 	}
-	if err := gen.Push(); err != nil {
+	mt, err := gen.Push()
+	if err != nil {
 		return fmt.Errorf("gen.Push() error: %s", err)
 	}
 
 	ctx.Swap()
-	return k.server.Done(ctx)
+	return k.server.Done(ctx, mt)
 }
 
-func (k *Kex) Done(ctx *KexContext) error {
+func (k *Kex) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 	G.Log.Info("[%s] Done Receive", k.debugName)
 	defer G.Log.Info("[%s] Done Receive done", k.debugName)
 	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
+
+	// device X changed the sigchain, so bump it here
+	k.user.SigChainBumpMT(mt)
+
 	k.doneReceived <- true
 	return nil
 }

@@ -122,13 +122,13 @@ func (k *kexsrv) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, s
 	return k.gocall(f)
 }
 
-func (k *kexsrv) Done(ctx *KexContext) error {
+func (k *kexsrv) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.Done(ctx)
+		return s.Done(ctx, mt)
 	}
 	return k.gocall(f)
 }

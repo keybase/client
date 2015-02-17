@@ -764,7 +764,11 @@ func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey 
 //==================================================================
 
 func (u *User) SigChainBump(linkID LinkId, sigID *SigId) {
-	u.sigChain.Bump(MerkleTriple{linkId: linkID, sigId: sigID})
+	u.SigChainBumpMT(MerkleTriple{linkId: linkID, sigId: sigID})
+}
+
+func (u *User) SigChainBumpMT(mt MerkleTriple) {
+	u.sigChain.Bump(mt)
 }
 
 func (u *User) GetDeviceSibkey() (GenericKey, error) {

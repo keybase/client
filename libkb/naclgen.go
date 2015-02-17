@@ -46,7 +46,7 @@ func (g *NaclKeyGen) SaveLKS(lks *LKSec) error {
 	return err
 }
 
-func (g *NaclKeyGen) Push() (err error) {
+func (g *NaclKeyGen) Push() (mt MerkleTriple, err error) {
 	var jw *jsonw.Wrapper
 	var pushType string
 	eldest := g.arg.Signer == nil && g.arg.EldestKeyID == nil
@@ -65,7 +65,7 @@ func (g *NaclKeyGen) Push() (err error) {
 	jw, pushType, err = g.arg.Me.KeyProof(kpArg)
 
 	if err != nil {
-		return err
+		return mt, err
 	}
 
 	signer := g.arg.Signer
@@ -78,7 +78,7 @@ func (g *NaclKeyGen) Push() (err error) {
 	var id *SigId
 	var lid LinkId
 	if sig, id, lid, err = SignJson(jw, signer); err != nil {
-		return fmt.Errorf("sign json err: %s", err)
+		return mt, fmt.Errorf("sign json err: %s", err)
 	}
 	arg := PostNewKeyArg{
 		Sig:          sig,
@@ -90,17 +90,18 @@ func (g *NaclKeyGen) Push() (err error) {
 		IsPrimary:    eldest,
 	}
 	if err = PostNewKey(arg); err != nil {
-		return
+		return mt, err
 	}
-	g.arg.Me.sigChain.Bump(MerkleTriple{linkId: lid, sigId: id})
-	return
+	mt = MerkleTriple{linkId: lid, sigId: id}
+	g.arg.Me.sigChain.Bump(mt)
+	return mt, nil
 }
 
 func (g *NaclKeyGen) Run() (err error) {
 	if err = g.Generate(); err != nil {
 	} else if err = g.Save(); err != nil {
 	} else {
-		err = g.Push()
+		_, err = g.Push()
 	}
 	return
 }
@@ -113,7 +114,7 @@ func (g *NaclKeyGen) RunLKS(lks *LKSec) (err error) {
 	if err = g.SaveLKS(lks); err != nil {
 		return
 	}
-	if err = g.Push(); err != nil {
+	if _, err = g.Push(); err != nil {
 		G.Log.Info("push error: %s", err)
 		return
 	}
