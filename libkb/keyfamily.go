@@ -453,15 +453,22 @@ func (kf KeyFamily) FindKey(kid KID) (ret GenericKey) {
 	return
 }
 
-func (ckf ComputedKeyFamily) findLiveComputedKeyInfo(s string) (ret *ComputedKeyInfo, err error) {
+func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(s string, t time.Time) (ret *ComputedKeyInfo, err error) {
+	unixTime := t.Unix()
 	if ki := ckf.cki.Infos[s]; ki == nil {
 		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", s)}
 	} else if ki.Status != KEY_UNCANCELLED {
 		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", s)}
+	} else if unixTime < ki.CTime || (ki.ETime > 0 && unixTime > ki.ETime) {
+		err = KeyExpiredError{fmt.Sprintf("The key '%s' expired at %s", s, time.Unix(ki.ETime, 0))}
 	} else {
 		ret = ki
 	}
 	return
+}
+
+func (ckf ComputedKeyFamily) getCkiIfActiveNow(s string) (ret *ComputedKeyInfo, err error) {
+	return ckf.getCkiIfActiveAtTime(s, time.Now())
 }
 
 // FindActiveSibkey takes a given PGP Fingerprint OR KID (in the form of a FOKID)
@@ -470,7 +477,7 @@ func (ckf ComputedKeyFamily) findLiveComputedKeyInfo(s string) (ret *ComputedKey
 // the key.  In this case either key is non-nil, or err is non-nil.
 func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, cki ComputedKeyInfo, err error) {
 	s := f.String()
-	liveCki, err := ckf.findLiveComputedKeyInfo(s)
+	liveCki, err := ckf.getCkiIfActiveNow(s)
 	if liveCki == nil || err != nil {
 		// err gets returned.
 	} else if !liveCki.Sibkey {
@@ -488,7 +495,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, cki Comp
 // the key.  In this case either key is non-nil, or err is non-nil.
 func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (key GenericKey, err error) {
 	s := kid.String()
-	ki, err := ckf.findLiveComputedKeyInfo(s)
+	ki, err := ckf.getCkiIfActiveNow(s)
 	if ki == nil || err != nil {
 		// err gets returned.
 	} else if ki.Sibkey {

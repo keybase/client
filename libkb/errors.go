@@ -672,6 +672,16 @@ func (r KeyRevokedError) Error() string {
 
 //=============================================================================
 
+type KeyExpiredError struct {
+	msg string
+}
+
+func (r KeyExpiredError) Error() string {
+	return fmt.Sprintf("Key expired: %s", r.msg)
+}
+
+//=============================================================================
+
 type UnknownKeyTypeError struct {
 	typ int
 }
