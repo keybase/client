@@ -108,7 +108,7 @@ func (d *DeviceEngine) pushEldestKey() error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Generator: libkb.GenerateNaclSigningKeyPair,
 		Me:        d.me,
-		ExpireIn:  libkb.NACL_DH_EXPIRE_IN,
+		ExpireIn:  libkb.NACL_EDDSA_EXPIRE_IN,
 		Device:    d.device(),
 		LogUI:     d.logui,
 	})
@@ -127,7 +127,7 @@ func (d *DeviceEngine) pushSibKey(signer libkb.GenericKey, eldestKID libkb.KID) 
 		Generator:   libkb.GenerateNaclSigningKeyPair,
 		Sibkey:      true,
 		Me:          d.me,
-		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
+		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
 		Device:      d.device(),
 		LogUI:       d.logui,
 	})

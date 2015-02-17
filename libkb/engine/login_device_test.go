@@ -18,9 +18,14 @@ func TestLoginNewDevice(t *testing.T) {
 	u1 := CreateAndSignupFakeUser(t, "login")
 	devX := G.Env.GetDeviceID()
 
+	secui := libkb.TestSecretUI{u1.Passphrase}
 	// will this work???
-	kexX := NewKex(ksrv, SetDebugName("device x"))
-	kexX.Listen(nil, *devX)
+	kexX := NewKex(ksrv, secui, SetDebugName("device x"))
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	kexX.Listen(me, *devX)
 	ksrv.RegisterTestDevice(kexX, *devX)
 
 	G.LoginState.Logout()
@@ -95,24 +100,24 @@ func (k *kexsrv) StartKexSession(ctx *KexContext, id KexStrongID) error {
 }
 
 func (k *kexsrv) StartReverseKexSession(ctx *KexContext) error { return nil }
-func (k *kexsrv) Hello(ctx *KexContext) error {
+func (k *kexsrv) Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.Hello(ctx)
+		return s.Hello(ctx, devID, devKey)
 	}
 	return k.gocall(f)
 }
 
-func (k *kexsrv) PleaseSign(ctx *KexContext) error {
+func (k *kexsrv) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.PleaseSign(ctx)
+		return s.PleaseSign(ctx, eddsa, sig, devType, devDesc)
 	}
 	return k.gocall(f)
 }

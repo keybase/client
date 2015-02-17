@@ -54,7 +54,7 @@ func (d *Doctor) LoginCheckup(u *libkb.User) error {
 
 func (d *Doctor) syncSecrets() (err error) {
 	if err = G.SecretSyncer.Load(d.user.GetUid()); err != nil {
-		G.Log.Warning("Problem syncing secrets from server: %s", err.Error())
+		G.Log.Warning("Problem syncing secrets from server: %s", err)
 	}
 	return err
 }
@@ -189,6 +189,11 @@ var ErrNotYetImplemented = errors.New("not yet implemented")
 // new device.  It happens when the user has keys already, either
 // a device key, pgp key, or both.
 func (d *Doctor) deviceSign(withPGPOption bool) error {
+	devname, err := d.docUI.PromptDeviceName(0)
+	if err != nil {
+		return err
+	}
+
 	devs, err := G.SecretSyncer.ActiveDevices()
 	if err != nil {
 		return err
@@ -226,7 +231,7 @@ func (d *Doctor) deviceSign(withPGPOption bool) error {
 	}
 
 	if res.Signer.Kind == keybase_1.DeviceSignerKind_DEVICE {
-		return d.deviceSignExistingDevice(*res.Signer.DeviceID)
+		return d.deviceSignExistingDevice(*res.Signer.DeviceID, devname, libkb.DEVICE_TYPE_DESKTOP)
 	}
 
 	return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
@@ -300,7 +305,7 @@ func (d *Doctor) deviceSignPGPNext(pgpk libkb.GenericKey) error {
 	return nil
 }
 
-func (d *Doctor) deviceSignExistingDevice(id string) error {
+func (d *Doctor) deviceSignExistingDevice(id, devName, devType string) error {
 	G.Log.Info("device sign with existing device [%s]", id)
 
 	if d.kexServer == nil {
@@ -318,8 +323,8 @@ func (d *Doctor) deviceSignExistingDevice(id string) error {
 		return err
 	}
 
-	k := NewKex(d.kexServer)
-	return k.StartForward(d.user, src, *dst)
+	k := NewKex(d.kexServer, d.secretUI)
+	return k.StartForward(d.user, src, *dst, devType, devName)
 }
 
 func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {

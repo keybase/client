@@ -11,10 +11,11 @@ import (
 )
 
 type KexStrongID [32]byte
+type KexWeakID [16]byte
 
 type KexContext struct {
 	UserID   libkb.UID
-	WeakID   int64
+	WeakID   KexWeakID
 	StrongID KexStrongID
 	Src      libkb.DeviceID
 	Dst      libkb.DeviceID
@@ -27,8 +28,8 @@ func (c *KexContext) Swap() {
 type KexServer interface {
 	StartKexSession(ctx *KexContext, id KexStrongID) error
 	StartReverseKexSession(ctx *KexContext) error
-	Hello(ctx *KexContext) error
-	PleaseSign(ctx *KexContext) error
+	Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error
+	PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
 	Done(ctx *KexContext) error
 
 	// XXX get rid of this when real client comm works
@@ -39,16 +40,20 @@ type Kex struct {
 	server        KexServer
 	user          *libkb.User
 	deviceID      libkb.DeviceID
+	deviceSibkey  libkb.GenericKey
+	sigKey        libkb.GenericKey
 	sessionID     KexStrongID
 	helloReceived chan bool
 	doneReceived  chan bool
 	debugName     string
+	xDevKey       libkb.NaclSigningKeyPublic
+	secretUI      libkb.SecretUI
 }
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s KexServer, options ...func(*Kex)) *Kex {
-	k := &Kex{server: s, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+func NewKex(s KexServer, sui libkb.SecretUI, options ...func(*Kex)) *Kex {
+	k := &Kex{server: s, secretUI: sui, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
 	for _, opt := range options {
 		opt(k)
 	}
@@ -61,7 +66,7 @@ func SetDebugName(name string) func(k *Kex) {
 	}
 }
 
-func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID) error {
+func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devDesc string) error {
 	k.user = u
 	k.deviceID = src
 
@@ -83,8 +88,7 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID) error {
 		Src:      src,
 		Dst:      dst,
 	}
-
-	G.Log.Info("StartForward initial context: src = %s, dst = %s", ctx.Src, ctx.Dst)
+	copy(ctx.WeakID[:], id[0:16])
 
 	if err := k.server.StartKexSession(ctx, id); err != nil {
 		return err
@@ -97,10 +101,33 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID) error {
 		return err
 	}
 
+	// E_y
+	eddsa, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		return err
+	}
+	eddsaPair, ok := eddsa.(libkb.NaclSigningKeyPair)
+	if !ok {
+		return fmt.Errorf("invalid key type %T", eddsa)
+	}
+
+	// M_y
+	dh, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		return err
+	}
+	dh = dh
+
+	// XXX store these in lks
+
+	sig, _, err := eddsa.SignToString(k.xDevKey[:])
+	if err != nil {
+		return err
+	}
+
 	ctx.Src = src
 	ctx.Dst = dst
-	G.Log.Info("StartForward PleaseSign context: src = %s, dst = %s", ctx.Src, ctx.Dst)
-	if err := k.server.PleaseSign(ctx); err != nil {
+	if err := k.server.PleaseSign(ctx, eddsaPair.Public, sig, devType, devDesc); err != nil {
 		return err
 	}
 
@@ -109,13 +136,30 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID) error {
 		return err
 	}
 
+	// Device y signs M_y into Alice's sigchain as a subkey.
+	// use eddsa to sign dh
+	// then push it
+
+	// Device y makes a local note of Alice's UID (which is sent in the channel metadata).
+
 	return nil
 }
 
 // XXX temporary...
+// this is to get around the fact that the globals won't work well
+// in the test with two devices communicating in the same process.
 func (k *Kex) Listen(u *libkb.User, src libkb.DeviceID) {
 	k.user = u
 	k.deviceID = src
+	var err error
+	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(src)
+	if err != nil {
+		G.Log.Warning("kex.Listen: error getting device sibkey: %s", err)
+	}
+	k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.secretUI, k.user)
+	if err != nil {
+		G.Log.Warning("GetSecretKey error: %s", err)
+	}
 }
 
 func (k *Kex) waitHello() error {
@@ -164,7 +208,7 @@ func (k *Kex) wordsToID(words []string) ([32]byte, error) {
 }
 
 func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
-	G.Log.Info("[%s] StartKexSession: %x, %v", k.debugName, id, ctx)
+	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
 	if err := k.verifyDst(ctx); err != nil {
@@ -172,31 +216,87 @@ func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
 	}
 
 	ctx.Swap()
-
-	return k.server.Hello(ctx)
+	pair, ok := k.deviceSibkey.(libkb.NaclSigningKeyPair)
+	if !ok {
+		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
+	}
+	return k.server.Hello(ctx, ctx.Src, pair.Public)
 }
 
 func (k *Kex) StartReverseKexSession(ctx *KexContext) error { return nil }
 
-func (k *Kex) Hello(ctx *KexContext) error {
+func (k *Kex) Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error {
 	G.Log.Info("[%s] Hello Receive", k.debugName)
 	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
 	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
+
+	k.xDevKey = devKey
+
 	k.helloReceived <- true
 	return nil
 }
 
-func (k *Kex) PleaseSign(ctx *KexContext) error {
+func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
 	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
 	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
 
-	ctx.Swap()
+	// XXX check sig matches
 
+	// make device object for Y
+	devY := libkb.Device{
+		Id:          ctx.Src.String(),
+		Type:        devType,
+		Description: &devDesc,
+	}
+
+	// generator function that just copies the public eddsa key into a
+	// NaclKeyPair (which implements GenericKey).
+	g := func() (libkb.NaclKeyPair, error) {
+		var ret libkb.NaclSigningKeyPair
+		copy(ret.Public[:], eddsa[:])
+		return ret, nil
+	}
+
+	// need the private device sibkey
+	// k.deviceSibkey is public only
+	// going to use keyring.go:GetSecretKey()
+	// however, it could return any key.
+	// there is a ticket to add preferences to it so we could only
+	// get a device key.
+	// but it should currently return a device key first...
+	if k.sigKey == nil {
+		var err error
+		k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.secretUI, k.user)
+		if err != nil {
+			return err
+		}
+	}
+
+	// use naclkeygen to sign eddsa with device X (this device) sibkey
+	// and push it to the server
+	arg := libkb.NaclKeyGenArg{
+		Signer:      k.sigKey,
+		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
+		Sibkey:      true,
+		Me:          k.user,
+		Device:      &devY,
+		EldestKeyID: k.user.GetEldestFOKID().Kid,
+		Generator:   g,
+	}
+	gen := libkb.NewNaclKeyGen(arg)
+	if err := gen.Generate(); err != nil {
+		return fmt.Errorf("gen.Generate() error: %s", err)
+	}
+	if err := gen.Push(); err != nil {
+		return fmt.Errorf("gen.Push() error: %s", err)
+	}
+
+	ctx.Swap()
 	return k.server.Done(ctx)
 }
 
