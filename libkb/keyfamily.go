@@ -690,8 +690,8 @@ func (ckf ComputedKeyFamily) GetFOKIDRole(f FOKID) (ret KeyRole) {
 	return ckf.getKeyRoleFromStr(f.String())
 }
 
-func (ckf ComputedKeyFamily) getKeyRoleFromStr(hex string) (ret KeyRole) {
-	if info, ok := ckf.cki.Infos[hex]; !ok || info.Status != KEY_UNCANCELLED {
+func (ckf ComputedKeyFamily) getKeyRoleFromStr(s string) (ret KeyRole) {
+	if info, err := ckf.getCkiIfActiveNow(s); err != nil {
 		ret = DLG_NONE
 	} else if info.Sibkey {
 		ret = DLG_SIBKEY
