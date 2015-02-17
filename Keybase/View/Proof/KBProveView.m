@@ -39,61 +39,6 @@
   };
   [self addSubview:_instructionsView];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptUsername" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    //NSString *prompt = params[0][@"prompt"];
-    completion(nil, gself.inputView.inputField.text);
-  }];
-
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.okToCheck" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    NSInteger attempt = [params[0][@"attempt"] integerValue];
-
-    /*
-    NSString *name = params[0][@"name"];
-    NSString *prompt = NSStringWithFormat(@"Check %@%@?", name, attempt > 0 ? @" again" : @"");
-
-    [KBAlert promptWithTitle:name description:prompt style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response) {
-      completion(nil, @(response == NSAlertFirstButtonReturn));
-    }];
-     */
-
-    completion(nil, @(attempt == 0));
-  }];
-
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-
-    NSString *account = params[0][@"account"];
-    KBRPromptOverwriteType type = [params[0][@"typ"] integerValue];
-
-    NSString *prompt;
-    switch (type) {
-      case KBRPromptOverwriteTypeSocial:
-        prompt = NSStringWithFormat(@"You already have a proof for %@.", account);
-        break;
-      case KBRPromptOverwriteTypeSite:
-        prompt = NSStringWithFormat(@"You already have claimed ownership of %@.", account);
-        break;
-    }
-
-    [KBAlert promptWithTitle:@"Overwrite?" description:prompt style:NSWarningAlertStyle buttonTitles:@[NSStringWithFormat(@"Yes, Overwrite %@", account), @"Cancel"] view:self completion:^(NSModalResponse response) {
-      completion(nil, @(response == NSAlertFirstButtonReturn));
-    }];
-  }];
-
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.outputInstructions" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    // TODO: Verify sessionId?
-    //sessionId = params[0][@"sessionId"];
-    KBRText *instructions = [MTLJSONAdapter modelOfClass:KBRText.class fromJSONDictionary:params[0][@"instructions"] error:nil];
-    NSString *proof = params[0][@"proof"];
-
-    [AppDelegate setInProgress:NO view:gself];
-    [self.navigation.titleView setProgressEnabled:NO];
-    [self setInstructions:instructions proofText:proof targetBlock:^{
-      [AppDelegate setInProgress:YES view:gself];
-      [gself.navigation.titleView setProgressEnabled:YES];
-      completion(nil, @(YES));
-    }];
-  }];
-
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 40;
@@ -153,11 +98,68 @@
   NSAssert(service, @"No service");
 
   GHWeakSelf gself = self;
+
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptUsername" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    //NSString *prompt = params[0][@"prompt"];
+    completion(nil, gself.inputView.inputField.text);
+  }];
+
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.okToCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    NSInteger attempt = [params[0][@"attempt"] integerValue];
+
+    /*
+     NSString *name = params[0][@"name"];
+     NSString *prompt = NSStringWithFormat(@"Check %@%@?", name, attempt > 0 ? @" again" : @"");
+
+     [KBAlert promptWithTitle:name description:prompt style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response) {
+     completion(nil, @(response == NSAlertFirstButtonReturn));
+     }];
+     */
+
+    completion(nil, @(attempt == 0));
+  }];
+
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+
+    NSString *account = params[0][@"account"];
+    KBRPromptOverwriteType type = [params[0][@"typ"] integerValue];
+
+    NSString *prompt;
+    switch (type) {
+      case KBRPromptOverwriteTypeSocial:
+        prompt = NSStringWithFormat(@"You already have a proof for %@.", account);
+        break;
+      case KBRPromptOverwriteTypeSite:
+        prompt = NSStringWithFormat(@"You already have claimed ownership of %@.", account);
+        break;
+    }
+
+    [KBAlert promptWithTitle:@"Overwrite?" description:prompt style:NSWarningAlertStyle buttonTitles:@[NSStringWithFormat(@"Yes, Overwrite %@", account), @"Cancel"] view:self completion:^(NSModalResponse response) {
+      completion(nil, @(response == NSAlertFirstButtonReturn));
+    }];
+  }];
+
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.outputInstructions" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    // TODO: Verify sessionId?
+    //sessionId = params[0][@"sessionId"];
+    KBRText *instructions = [MTLJSONAdapter modelOfClass:KBRText.class fromJSONDictionary:params[0][@"instructions"] error:nil];
+    NSString *proof = params[0][@"proof"];
+
+    [AppDelegate setInProgress:NO view:gself];
+    [self.navigation.titleView setProgressEnabled:NO];
+    [self setInstructions:instructions proofText:proof targetBlock:^{
+      [AppDelegate setInProgress:YES view:gself];
+      [gself.navigation.titleView setProgressEnabled:YES];
+      completion(nil, @(YES));
+    }];
+  }];
+
   [AppDelegate setInProgress:YES view:self];
   [self.navigation.titleView setProgressEnabled:YES];
   KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:AppDelegate.client];
   [prove proveWithService:service username:userName force:NO completion:^(NSError *error) {
     [AppDelegate setInProgress:NO view:gself];
+    [AppDelegate.client unregister:gself];
     [self.navigation.titleView setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:gself.inputView];

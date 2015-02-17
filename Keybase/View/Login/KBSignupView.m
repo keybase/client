@@ -74,15 +74,6 @@
   _passwordConfirmLabel = [[KBLabel alloc] init];
   [self addSubview:_passwordConfirmLabel];
 
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKey" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
-    completion(nil, response);
-  }];
-
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    completion(nil, @(NO));
-  }];
-
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 40;
@@ -182,8 +173,6 @@
 }
 
 - (void)signup {
-  KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
-
   NSString *email = [self.emailField.text gh_strip];
   NSString *username = [self.usernameField.text gh_strip];
   NSString *passphrase = self.passwordField.text;
@@ -220,6 +209,17 @@
     return;
   }
 
+  KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
+
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+    completion(nil, response);
+  }];
+
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    completion(nil, @(NO));
+  }];
+
   [AppDelegate setInProgress:YES view:self];
   [self.navigation.titleView setProgressEnabled:YES];
   [signup signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName completion:^(NSError *error, KBRSignupRes *res) {
@@ -229,6 +229,8 @@
       [AppDelegate setError:error sender:self];
       return;
     }
+
+    [AppDelegate.client unregister:self];
 
     // Clear all fields (esp password)
     self.passwordField.text = nil;

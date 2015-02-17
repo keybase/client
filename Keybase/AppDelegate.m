@@ -44,7 +44,7 @@
   _client.delegate = self;
   [_client open];
 
-  [_client registerMethod:@"keybase.1.secretUi.getSecret" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_client registerMethod:@"keybase.1.secretUi.getSecret" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
     KBRGetSecretRequestHandler *handler = [[KBRGetSecretRequestHandler alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:handler.pinentry.prompt description:handler.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
@@ -55,7 +55,7 @@
     }];
   }];
 
-  [_client registerMethod:@"keybase.1.logUi.log" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_client registerMethod:@"keybase.1.logUi.log" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 
@@ -68,6 +68,10 @@
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   [self checkStatus];
+}
+
+- (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
+  
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error {

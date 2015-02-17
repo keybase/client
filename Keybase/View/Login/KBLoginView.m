@@ -40,17 +40,6 @@
   KBButton *forgotPasswordButton = [KBButton buttonWithText:@"Forgot my password" style:KBButtonStyleLink];
   [self addSubview:forgotPasswordButton];
 
-  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-//    KBRSelectSignerRequestHandler *handler = [[KBRSelectSignerRequestHandler alloc] initWithParams:params];
-//    KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
-//    response.action = KBRSelectSignerActionSign;
-//    response.signer = 
-//    completion(nil, response);
-
-    // TODO
-    completion(KBMakeError(-1, @"Unsupported", @"Can't login from a different device yet."), nil);
-  }];
-
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 40;
@@ -75,8 +64,6 @@
 }
 
 - (void)login {
-  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
-
   NSString *username = self.usernameField.text;
   NSString *passphrase = self.passwordField.text;
 
@@ -90,11 +77,25 @@
     return;
   }
 
+  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
+
+  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    //    KBRSelectSignerRequestHandler *handler = [[KBRSelectSignerRequestHandler alloc] initWithParams:params];
+    //    KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
+    //    response.action = KBRSelectSignerActionSign;
+    //    response.signer =
+    //    completion(nil, response);
+
+    // TODO
+    completion(KBMakeError(-1, @"Unsupported", @"Can't login from a different device yet."), nil);
+  }];
+
   [AppDelegate setInProgress:YES view:self];
   [self.navigation.titleView setProgressEnabled:YES];
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
     [AppDelegate setInProgress:NO view:self];
     [self.navigation.titleView setProgressEnabled:NO];
+    [AppDelegate.client unregister:self];
     if (error) {
       [AppDelegate setError:error sender:self];
       return;

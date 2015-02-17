@@ -15,7 +15,7 @@
 - (void)viewInit {
   [super viewInit];
 
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.SelectKey" requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.SelectKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
 
   }];
 }

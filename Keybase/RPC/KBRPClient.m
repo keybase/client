@@ -9,6 +9,7 @@
 #import "KBRPClient.h"
 #import "KBRPC.h"
 #import "KBRUtils.h"
+#import "KBAlert.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
 #import <NAChloride/NAChloride.h>
@@ -16,7 +17,7 @@
 @interface KBRPClient ()
 @property MPMessagePackClient *client;
 @property MPMessagePackServer *server;
-@property NSMutableDictionary *methods;
+@property NSMapTable *registrations;
 
 // For recording/replaying
 @property NSString *recordId;
@@ -37,7 +38,7 @@
 - (void)open {
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
-  _methods = [NSMutableDictionary dictionary];
+  _registrations = [NSMapTable strongToStrongObjectsMapTable];
 
   _recordId = [[NSDate date] gh_formatISO8601];
   
@@ -49,9 +50,10 @@
       [gself recordMethod:method params:params];
     }
 
-    MPRequestHandler requestHandler = gself.methods[method];
+    NSMapTable *registration = [gself.registrations objectForKey:method];
+    MPRequestHandler requestHandler = [registration objectForKey:@"requestHandler"];
     if (!requestHandler) {
-      GHDebug(@"No handler for request");
+      GHDebug(@"No handler for request: %@", method);
       completion(KBMakeError(-1, @"Method not found", @"Method not found: %@", method), nil);
       return;
     }
@@ -85,9 +87,24 @@
   [self.delegate RPClientDidDisconnect:self];
 }
 
-- (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler {
+- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler {
   GHDebug(@"Registering %@", method);
-  _methods[method] = requestHandler;
+  // TODO
+  //NSAssert(![_methods objectForKey:method], @"Method already registered");
+
+  NSMapTable *registration = [NSMapTable strongToStrongObjectsMapTable];
+  [registration setObject:requestHandler forKey:@"requestHandler"];
+  [registration setObject:owner forKey:@"owner"];
+
+  [_registrations setObject:registration forKey:method];
+}
+
+- (void)unregister:(id)owner {
+  NSArray *keys = [[_registrations dictionaryRepresentation] allKeys];
+  for (NSString *method in keys) {
+    NSMapTable *registration = [_registrations objectForKey:method];
+    if ([[registration objectForKey:@"owner"] isEqualTo:owner]) [_registrations removeObjectForKey:method];
+  }
 }
 
 - (void)openAfterDelay:(NSTimeInterval)delay {
@@ -129,7 +146,8 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
   if (status == MPMessagePackClientStatusClosed) {
-    [self openAfterDelay:2];
+    // TODO: What if we have open requests?
+    if (!_autoRetryDisabled) [self openAfterDelay:2];
   } else if (status == MPMessagePackClientStatusOpen) {
     
   }
@@ -190,7 +208,7 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
     NSString *method = fileDict[@(index)][@"method"];
     id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
     KBConvertArrayFrom(params);
-    MPRequestHandler completion = _methods[method];
+    MPRequestHandler completion = [_registrations objectForKey:method];
     if (completion) completion(method, params, ^(NSError *error, id result) { });
   }
   return YES;

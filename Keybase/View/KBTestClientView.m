@@ -57,8 +57,9 @@
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
+  [_infoView addObjects:@[@"Disconnected"]];
   GHWeakSelf gself = self;
-  [_connectButton setText:@"Connect" style:KBButtonStyleDefault alignment:NSCenterTextAlignment];
+  [_connectButton setText:@"Connect" style:KBButtonStylePrimary alignment:NSCenterTextAlignment];
   _connectButton.targetBlock = ^{ [gself open]; };
 }
 

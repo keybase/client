@@ -30,7 +30,9 @@
 
 - (void)close;
 
-- (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler;
+- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler;
+
+- (void)unregister:(id)owner;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
 
