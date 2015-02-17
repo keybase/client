@@ -395,16 +395,9 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, err error) {
 
 	var key GenericKey
-	var cki ComputedKeyInfo
 	var sigId *SigId
 
-	if key, cki, err = ckf.FindActiveSibkey(c.ToFOKID()); err != nil {
-		return
-	}
-
-	etime := cki.GetETime()
-	if c.GetCTime().Before(cki.GetCTime()) || (!etime.IsZero() && c.GetCTime().After(etime)) {
-		err = BadSigError{"Signature date invalid."}
+	if key, _, err = ckf.FindActiveSibkeyAtTime(c.ToFOKID(), c.GetCTime()); err != nil {
 		return
 	}
 

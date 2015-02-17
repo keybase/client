@@ -471,13 +471,23 @@ func (ckf ComputedKeyFamily) getCkiIfActiveNow(s string) (ret *ComputedKeyInfo, 
 	return ckf.getCkiIfActiveAtTime(s, time.Now())
 }
 
-// FindActiveSibkey takes a given PGP Fingerprint OR KID (in the form of a FOKID)
-// and finds the corresponding active sibkey in the current key family.  If for any reason
-// it cannot find the key, it will return an error saying why.  Otherwise, it will return
-// the key.  In this case either key is non-nil, or err is non-nil.
+// FindActiveSibkey takes a given PGP Fingerprint OR KID (in the form of a
+// FOKID) and finds the corresponding active sibkey in the current key family.
+// If it cannot find the key, or if the key is no longer active (either by
+// revocation, or by expiring), it will return an error saying why. Otherwise,
+// it will return the key.  In this case either key is non-nil, or err is
+// non-nil.
 func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, cki ComputedKeyInfo, err error) {
+	return ckf.FindActiveSibkeyAtTime(f, time.Now())
+}
+
+// As FindActiveSibkey, but for a specific time. Note that going back in time
+// only affects expiration, not revocation. Thus this function is mainly useful
+// for validating the sigchain, when each delegation and revocation is getting
+// replayed in order.
+func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(f FOKID, t time.Time) (key GenericKey, cki ComputedKeyInfo, err error) {
 	s := f.String()
-	liveCki, err := ckf.getCkiIfActiveNow(s)
+	liveCki, err := ckf.getCkiIfActiveAtTime(s, t)
 	if liveCki == nil || err != nil {
 		// err gets returned.
 	} else if !liveCki.Sibkey {
