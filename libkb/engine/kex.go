@@ -94,7 +94,7 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 		return err
 	}
 
-	// tell user the command to enter on existing device (X)
+	// XXX tell user the command to enter on existing device (X)
 
 	// wait for Hello() from X
 	if err := k.waitHello(); err != nil {
@@ -116,7 +116,6 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 	if err != nil {
 		return err
 	}
-	dh = dh
 
 	// XXX store these in lks
 
@@ -144,12 +143,7 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 		Type:        devType,
 		Description: &devDesc,
 	}
-	// generator function that just copies the public eddsa key into a
-	// NaclKeyPair (which implements GenericKey).
 	g := func() (libkb.NaclKeyPair, error) {
-		//		var ret libkb.NaclDHKeyPair
-		//	ret.Public = dh.Public
-		//	return ret, nil
 		return dh, nil
 	}
 	arg := libkb.NaclKeyGenArg{
@@ -285,7 +279,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 		return err
 	}
 
-	// XXX check sig matches
+	// XXX check sig
 
 	// make device object for Y
 	devY := libkb.Device{
