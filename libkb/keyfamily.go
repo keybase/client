@@ -24,7 +24,7 @@ type KeybaseTime struct {
 // Everything here has been checked by the client. Each ComputedKeyInfo
 // refers to exactly one ServerKeyInfo.
 type ComputedKeyInfo struct {
-	Status int
+	Status KeyStatus
 	Eldest bool
 	Sibkey bool
 
@@ -170,7 +170,7 @@ func (kf KeyFamily) NewComputedKeyInfos() *ComputedKeyInfos {
 	}
 }
 
-func NewComputedKeyInfo(eldest, sibkey bool, status int, ctime, etime int64) ComputedKeyInfo {
+func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int64) ComputedKeyInfo {
 	return ComputedKeyInfo{
 		Eldest:      eldest,
 		Sibkey:      sibkey,

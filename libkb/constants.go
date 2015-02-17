@@ -201,9 +201,10 @@ var (
 	REV_DATED         = 2
 )
 
-// key_status
+type KeyStatus int
+
 const (
-	KEY_UNCANCELLED = iota
+	KEY_UNCANCELLED KeyStatus = iota
 	KEY_REVOKED
 	KEY_DELETED
 	KEY_SUPERSEDED
