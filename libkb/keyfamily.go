@@ -163,10 +163,6 @@ func (cki ComputedKeyInfos) Copy() *ComputedKeyInfos {
 	return ret
 }
 
-// NewComputedKeyInfos creates a new ComputedKeyInfos object
-// from the given key family.  It finds the eldest sibling in the family and marks
-// his status LIVE, so that he can be used to verify signatures. There's
-// obviously no one who can delegate to him, so we take it on faith.
 func (kf KeyFamily) NewComputedKeyInfos() *ComputedKeyInfos {
 	return &ComputedKeyInfos{
 		Infos:         make(map[string]*ComputedKeyInfo),
