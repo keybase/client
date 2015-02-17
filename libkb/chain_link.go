@@ -106,7 +106,7 @@ func (c *ChainLink) GetCTime() time.Time {
 	return time.Unix(int64(c.unpacked.ctime), 0)
 }
 func (c *ChainLink) GetETime() time.Time {
-	return UnixToTimeMappingZero(c.unpacked.ctime)
+	return UnixToTimeMappingZero(c.unpacked.etime)
 }
 
 func (c *ChainLink) MarkChecked(err ProofError) {

@@ -203,8 +203,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	found := false
 
 	// Figure out the creation time and expire time of the eldest key.
-	var ctime, ctimeKb, ctimePgp, etime, etimeKb, etimePgp int64
-
+	var ctimeKb, etimeKb int64 = 0, 0
 	if _, ok := tcl.(*SelfSigChainLink); ok {
 		// We don't need to check the signature on the first link, because
 		// verifySubchain will take care of that.
@@ -215,6 +214,8 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 		found = true
 	}
 
+	// Also check PGP key times.
+	var ctimePgp, etimePgp int64 = -1, -1
 	if pgp, ok := key.(*PgpKeyBundle); ok {
 		kbid := KeybaseIdentity(username)
 		for _, pgpIdentity := range pgp.Identities {
@@ -227,7 +228,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 					// No expiration time is OK, it just means it never expires.
 					etimePgp = 0
 				} else {
-					etimePgp = ctime + int64(*lifeSeconds)
+					etimePgp = ctimePgp + int64(*lifeSeconds)
 				}
 				found = true
 			}
@@ -239,12 +240,14 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 		return KeyFamilyError{"First link not self-signing and not pgp-signed."}
 	}
 
-	if ctimePgp > 0 {
+	var ctime int64
+	if ctimePgp >= 0 {
 		ctime = ctimePgp
 	} else {
 		ctime = ctimeKb
 	}
 
+	var etime int64
 	if etimePgp >= 0 {
 		etime = etimePgp
 	} else {
