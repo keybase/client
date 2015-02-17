@@ -319,8 +319,7 @@ func (d *Doctor) deviceSignExistingDevice(id string) error {
 	}
 
 	k := NewKex(d.kexServer)
-	return k.Run(d.user, src, *dst)
-
+	return k.StartForward(d.user, src, *dst)
 }
 
 func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {

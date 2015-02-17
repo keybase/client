@@ -19,7 +19,8 @@ func TestLoginNewDevice(t *testing.T) {
 	devX := G.Env.GetDeviceID()
 
 	// will this work???
-	kexX := NewKex(ksrv)
+	kexX := NewKex(ksrv, SetDebugName("device x"))
+	kexX.Listen(nil, *devX)
 	ksrv.RegisterTestDevice(kexX, *devX)
 
 	G.LoginState.Logout()
@@ -48,7 +49,7 @@ func TestLoginNewDevice(t *testing.T) {
 
 	li := NewLoginEngine()
 
-	if err := li.Run(larg); err != ErrNotYetImplemented {
+	if err := li.Run(larg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -83,25 +84,68 @@ func newKexsrv() *kexsrv {
 }
 
 func (k *kexsrv) StartKexSession(id KexStrongID, context *KexContext) error {
-	s, ok := k.devices[context.Dst]
-	if !ok {
-		return fmt.Errorf("device %x not registered", context.Dst)
+	s, err := k.findDevice(context.Dst)
+	if err != nil {
+		return err
 	}
-	return s.StartKexSession(id, context)
+	f := func() error {
+		return s.StartKexSession(id, context)
+	}
+	return k.gocall(f)
 }
 
 func (k *kexsrv) StartReverseKexSession(context *KexContext) error { return nil }
 func (k *kexsrv) Hello(context *KexContext) error {
-	s, ok := k.devices[context.Dst]
-	if !ok {
-		return fmt.Errorf("device %x not registered", context.Dst)
+	s, err := k.findDevice(context.Dst)
+	if err != nil {
+		return err
 	}
-	return s.Hello(context)
+	f := func() error {
+		return s.Hello(context)
+	}
+	return k.gocall(f)
 }
-func (k *kexsrv) PleaseSign(context *KexContext) error { return nil }
-func (k *kexsrv) Done(context *KexContext) error       { return nil }
+
+func (k *kexsrv) PleaseSign(context *KexContext) error {
+	s, err := k.findDevice(context.Dst)
+	if err != nil {
+		return err
+	}
+	f := func() error {
+		return s.PleaseSign(context)
+	}
+	return k.gocall(f)
+}
+
+func (k *kexsrv) Done(context *KexContext) error {
+	s, err := k.findDevice(context.Dst)
+	if err != nil {
+		return err
+	}
+	f := func() error {
+		return s.Done(context)
+	}
+	return k.gocall(f)
+}
 
 func (k *kexsrv) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error {
 	k.devices[device] = srv
 	return nil
+}
+
+func (k *kexsrv) gocall(fn func() error) error {
+	ch := make(chan error)
+	go func() {
+		err := fn()
+		ch <- err
+	}()
+	return <-ch
+}
+
+func (k *kexsrv) findDevice(id libkb.DeviceID) (KexServer, error) {
+	s, ok := k.devices[id]
+	if !ok {
+		return nil, fmt.Errorf("device %x not registered", id)
+	}
+	return s, nil
 }

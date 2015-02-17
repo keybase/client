@@ -20,6 +20,10 @@ type KexContext struct {
 	Dst      libkb.DeviceID
 }
 
+func (c *KexContext) Swap() {
+	c.Src, c.Dst = c.Dst, c.Src
+}
+
 type KexServer interface {
 	StartKexSession(id KexStrongID, context *KexContext) error
 	StartReverseKexSession(context *KexContext) error
@@ -34,18 +38,32 @@ type KexServer interface {
 type Kex struct {
 	server        KexServer
 	user          *libkb.User
+	deviceID      libkb.DeviceID
 	sessionID     KexStrongID
 	helloReceived chan bool
+	doneReceived  chan bool
+	debugName     string
 }
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s KexServer) *Kex {
-	return &Kex{server: s, helloReceived: make(chan bool, 1)}
+func NewKex(s KexServer, options ...func(*Kex)) *Kex {
+	k := &Kex{server: s, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+	for _, opt := range options {
+		opt(k)
+	}
+	return k
 }
 
-func (k *Kex) Run(u *libkb.User, src, dst libkb.DeviceID) error {
+func SetDebugName(name string) func(k *Kex) {
+	return func(k *Kex) {
+		k.debugName = name
+	}
+}
+
+func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID) error {
 	k.user = u
+	k.deviceID = src
 
 	// XXX this is just for testing
 	k.server.RegisterTestDevice(k, src)
@@ -55,7 +73,7 @@ func (k *Kex) Run(u *libkb.User, src, dst libkb.DeviceID) error {
 	if err != nil {
 		return err
 	}
-	G.Log.Info("kex: words = %v, id = %x", words, id)
+	G.Log.Info("kex [%s]: words = %v, id = %x", k.debugName, words, id)
 
 	k.sessionID = id
 
@@ -66,10 +84,11 @@ func (k *Kex) Run(u *libkb.User, src, dst libkb.DeviceID) error {
 		Dst:      dst,
 	}
 
+	G.Log.Info("StartForward initial context: src = %s, dst = %s", context.Src, context.Dst)
+
 	if err := k.server.StartKexSession(id, context); err != nil {
 		return err
 	}
-	//	go k.server.StartKexSession(id, context)
 
 	// tell user the command to enter on existing device (X)
 
@@ -78,21 +97,48 @@ func (k *Kex) Run(u *libkb.User, src, dst libkb.DeviceID) error {
 		return err
 	}
 
-	// send PleaseSign(...) to X
+	context.Src = src
+	context.Dst = dst
+	G.Log.Info("StartForward PleaseSign context: src = %s, dst = %s", context.Src, context.Dst)
+	if err := k.server.PleaseSign(context); err != nil {
+		return err
+	}
 
-	G.Log.Info("kex with existing device not yet implemented")
-	return ErrNotYetImplemented
+	// wait for Done() from X
+	if err := k.waitDone(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// XXX temporary...
+func (k *Kex) Listen(u *libkb.User, src libkb.DeviceID) {
+	k.user = u
+	k.deviceID = src
 }
 
 func (k *Kex) waitHello() error {
-	G.Log.Info("waitHello start")
-	defer G.Log.Info("waitHello done")
+	G.Log.Info("[%s] waitHello start", k.debugName)
+	defer G.Log.Info("[%s] waitHello done", k.debugName)
 	select {
 	case <-k.helloReceived:
-		G.Log.Info("hello received")
+		G.Log.Info("[%s] hello received", k.debugName)
 		return nil
 	case <-time.After(kexTimeout):
 		return fmt.Errorf("timeout waiting for Hello")
+	}
+}
+
+func (k *Kex) waitDone() error {
+	G.Log.Info("[%s] waitDone start", k.debugName)
+	defer G.Log.Info("[%s] waitDone done", k.debugName)
+	select {
+	case <-k.doneReceived:
+		G.Log.Info("[%s] done received", k.debugName)
+		return nil
+	case <-time.After(kexTimeout):
+		return fmt.Errorf("timeout waiting for Done")
 	}
 }
 
@@ -118,20 +164,57 @@ func (k *Kex) wordsToID(words []string) ([32]byte, error) {
 }
 
 func (k *Kex) StartKexSession(id KexStrongID, context *KexContext) error {
-	G.Log.Info("StartKexSession: %x, %v", id, context)
-	defer G.Log.Info("StartKexSession done")
+	G.Log.Info("[%s] StartKexSession: %x, %v", k.debugName, id, context)
+	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
+
+	if err := k.verifyDst(context); err != nil {
+		return err
+	}
+
+	context.Swap()
+
 	return k.server.Hello(context)
 }
 
 func (k *Kex) StartReverseKexSession(context *KexContext) error { return nil }
 
 func (k *Kex) Hello(context *KexContext) error {
-	G.Log.Info("Hello")
-	defer G.Log.Info("Hello done")
+	G.Log.Info("[%s] Hello Receive", k.debugName)
+	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
+	if err := k.verifyDst(context); err != nil {
+		return err
+	}
 	k.helloReceived <- true
 	return nil
 }
 
-func (k *Kex) PleaseSign(context *KexContext) error                          { return nil }
-func (k *Kex) Done(context *KexContext) error                                { return nil }
+func (k *Kex) PleaseSign(context *KexContext) error {
+	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
+	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
+	if err := k.verifyDst(context); err != nil {
+		return err
+	}
+
+	context.Swap()
+
+	return k.server.Done(context)
+}
+
+func (k *Kex) Done(context *KexContext) error {
+	G.Log.Info("[%s] Done Receive", k.debugName)
+	defer G.Log.Info("[%s] Done Receive done", k.debugName)
+	if err := k.verifyDst(context); err != nil {
+		return err
+	}
+	k.doneReceived <- true
+	return nil
+}
+
 func (k *Kex) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error { return nil }
+
+func (k *Kex) verifyDst(context *KexContext) error {
+	if context.Dst != k.deviceID {
+		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", context.Dst, k.deviceID)
+	}
+	return nil
+}
