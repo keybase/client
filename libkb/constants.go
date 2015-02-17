@@ -202,11 +202,11 @@ var (
 )
 
 // key_status
-var (
-	KEY_LIVE       = 0
-	KEY_REVOKED    = 1
-	KEY_DELETED    = 2
-	KEY_SUPERSEDED = 3
+const (
+	KEY_UNCANCELLED = iota
+	KEY_REVOKED
+	KEY_DELETED
+	KEY_SUPERSEDED
 )
 
 var (

@@ -190,7 +190,7 @@ func NewComputedKeyInfo(eldest, sibkey bool, status int, ctime, etime int64) Com
 func (ckis ComputedKeyInfos) InsertLocalEldestKey(fokid FOKID) {
 	// CTime and ETime are both initialized to zero, meaning that (until we get
 	// updates from the server) this key never expires.
-	eldestCki := NewComputedKeyInfo(true, true, KEY_LIVE, 0, 0)
+	eldestCki := NewComputedKeyInfo(true, true, KEY_UNCANCELLED, 0, 0)
 	ckis.Insert(&fokid, &eldestCki)
 }
 
@@ -257,7 +257,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 		etime = etimeKb
 	}
 
-	eldestCki := NewComputedKeyInfo(true, true, KEY_LIVE, ctime, etime)
+	eldestCki := NewComputedKeyInfo(true, true, KEY_UNCANCELLED, ctime, etime)
 
 	// If fokid is just a PGP fingerprint, expand it to include a proper KID.
 	fokidWithKid := GenericKeyToFOKID(key)
@@ -462,7 +462,7 @@ func (kf KeyFamily) FindKey(kid KID) (ret GenericKey) {
 func (ckf ComputedKeyFamily) findLiveComputedKeyInfo(s string) (ret *ComputedKeyInfo, err error) {
 	if ki := ckf.cki.Infos[s]; ki == nil {
 		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", s)}
-	} else if ki.Status != KEY_LIVE {
+	} else if ki.Status != KEY_UNCANCELLED {
 		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", s)}
 	} else {
 		ret = ki
@@ -542,7 +542,7 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 func (cki *ComputedKeyInfos) Delegate(kidStr string, fingerprintStr string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
 	info, found := cki.Infos[kidStr]
 	if !found {
-		newInfo := NewComputedKeyInfo(false, false, KEY_LIVE, ctime.Unix(), etime.Unix())
+		newInfo := NewComputedKeyInfo(false, false, KEY_UNCANCELLED, ctime.Unix(), etime.Unix())
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kidStr] = info
@@ -550,7 +550,7 @@ func (cki *ComputedKeyInfos) Delegate(kidStr string, fingerprintStr string, tm *
 			cki.Infos[fingerprintStr] = info
 		}
 	} else {
-		info.Status = KEY_LIVE
+		info.Status = KEY_UNCANCELLED
 		info.CTime = ctime.Unix()
 		info.ETime = etime.Unix()
 	}
@@ -636,7 +636,7 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 		kid := pgp.GetKid()
 		if info, found := ckf.cki.Infos[kid.String()]; !found {
 			continue
-		} else if info.Status != KEY_LIVE || !info.Sibkey {
+		} else if info.Status != KEY_UNCANCELLED || !info.Sibkey {
 			continue
 		}
 		if pgp.FindEmail(kem) {
@@ -684,7 +684,7 @@ func (ckf ComputedKeyFamily) IsKidActive(kid KID) (ret KeyStatus) {
 }
 
 func (ckf ComputedKeyFamily) isKidHexActive(hex string) (ret KeyStatus) {
-	if info, ok := ckf.cki.Infos[hex]; !ok || info.Status != KEY_LIVE {
+	if info, ok := ckf.cki.Infos[hex]; !ok || info.Status != KEY_UNCANCELLED {
 		ret = DLG_NONE
 	} else if info.Sibkey {
 		ret = DLG_SIBKEY
@@ -743,7 +743,7 @@ func (ckf ComputedKeyFamily) HasActiveKey() bool {
 // HasActiveKey returns if the given ComputeKeyInfos has any active keys.
 func (cki ComputedKeyInfos) HasActiveKey() bool {
 	for _, v := range cki.Infos {
-		if v.Status == KEY_LIVE {
+		if v.Status == KEY_UNCANCELLED {
 			return true
 		}
 	}
@@ -756,7 +756,7 @@ func (cki ComputedKeyInfos) HasActiveKey() bool {
 func (ckf ComputedKeyFamily) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
 	for _, pgp := range ckf.kf.pgps {
 		if info, ok := ckf.cki.Infos[pgp.GetKid().String()]; ok {
-			if (!sibkey || info.Sibkey) && info.Status == KEY_LIVE {
+			if (!sibkey || info.Sibkey) && info.Status == KEY_UNCANCELLED {
 				ret = append(ret, pgp)
 			}
 		}
