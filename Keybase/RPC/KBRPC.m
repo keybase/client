@@ -99,9 +99,9 @@
   }];
 }
 
-- (void)selectSignerWithDevices:(NSArray *)devices completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion {
+- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL )hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion {
 
-  NSArray *params = @[@{@"devices": KBRValue(devices)}];
+  NSArray *params = @[@{@"devices": KBRValue(devices), @"hasPGP": @(hasPGP)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.selectSigner" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
@@ -128,18 +128,22 @@
 @implementation KBRGPGKey
 @end
 
-@implementation KBRGPGKeySet
-+ (NSValueTransformer *)keysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRGPGKey.class]; }
-@end
-
 @implementation KBRSelectKeyRes
 @end
 
 @implementation KBRGpgUiRequest
-- (void)selectKeyWithSessionId:(NSInteger )sessionId keyset:(KBRGPGKeySet *)keyset completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion {
+- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion {
 
-  NSArray *params = @[@{@"sessionId": @(sessionId), @"keyset": KBRValue(keyset)}];
-  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.wantToAddGPGKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error, 0);
+  }];
+}
+
+- (void)selectKeyAndPushOptionWithSessionId:(NSInteger )sessionId keys:(NSArray *)keys completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion {
+
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"keys": KBRValue(keys)}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
         return;
@@ -149,10 +153,10 @@
   }];
 }
 
-- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion {
+- (void)selectKeyWithSessionId:(NSInteger )sessionId keys:(NSArray *)keys completion:(void (^)(NSError *error, NSString * str))completion {
 
-  NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.wantToAddGPGKey" params:params completion:^(NSError *error, NSDictionary *dict) {
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"keys": KBRValue(keys)}];
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.selectKey" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error, 0);
   }];
 }
@@ -695,6 +699,19 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.devices = params[0][@"devices"];
+    self.hasPGP = [params[0][@"hasPGP"] booleanValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSelectKeyAndPushOptionRequestHandler
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionId = [params[0][@"sessionId"] integerValue];
+    self.keys = params[0][@"keys"];
   }
   return self;
 }
@@ -706,7 +723,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionId = [params[0][@"sessionId"] integerValue];
-    self.keyset = [MTLJSONAdapter modelOfClass:KBRGPGKeySet.class fromJSONDictionary:params[0][@"keyset"] error:nil];
+    self.keys = params[0][@"keys"];
   }
   return self;
 }

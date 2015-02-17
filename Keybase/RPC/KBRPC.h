@@ -95,12 +95,13 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @interface KBRDeviceDescription : KBRObject
 @property NSString *type;
 @property NSString *name;
+@property NSString *deviceID;
 @end
 
 @interface KBRDoctorUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionId:(NSInteger )sessionId completion:(void (^)(NSError *error, NSString * str))completion;
 
-- (void)selectSignerWithDevices:(NSArray *)devices completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion;
+- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL )hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion;
 
 @end
 
@@ -112,12 +113,9 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @interface KBRGPGKey : KBRObject
 @property NSString *algorithm;
 @property NSString *keyID;
+@property NSString *creation;
 @property NSString *expiration;
 @property NSArray *identities; /*of string*/
-@end
-
-@interface KBRGPGKeySet : KBRObject
-@property NSArray *keys; /*of KBRGPGKey*/
 @end
 
 @interface KBRSelectKeyRes : KBRObject
@@ -126,9 +124,11 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @end
 
 @interface KBRGpgUiRequest : KBRRequest
-- (void)selectKeyWithSessionId:(NSInteger )sessionId keyset:(KBRGPGKeySet *)keyset completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion;
-
 - (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion;
+
+- (void)selectKeyAndPushOptionWithSessionId:(NSInteger )sessionId keys:(NSArray *)keys completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion;
+
+- (void)selectKeyWithSessionId:(NSInteger )sessionId keys:(NSArray *)keys completion:(void (^)(NSError *error, NSString * str))completion;
 
 @end
 
@@ -438,10 +438,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRSelectSignerRequestHandler : KBRRequestHandler
 @property NSArray *devices;
+@property BOOL hasPGP;
+@end
+@interface KBRSelectKeyAndPushOptionRequestHandler : KBRRequestHandler
+@property NSInteger sessionId;
+@property NSArray *keys;
 @end
 @interface KBRSelectKeyRequestHandler : KBRRequestHandler
 @property NSInteger sessionId;
-@property KBRGPGKeySet *keyset;
+@property NSArray *keys;
 @end
 @interface KBRIdentifyRequestHandler : KBRRequestHandler
 @property KBRUID *uid;
