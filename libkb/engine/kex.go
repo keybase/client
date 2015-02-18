@@ -17,8 +17,8 @@ type KexWeakID [16]byte
 
 type KexContext struct {
 	UserID   libkb.UID
-	WeakID   KexWeakID
-	StrongID KexStrongID
+	WeakID   KexWeakID   // `w` in doc
+	StrongID KexStrongID // `I` in doc
 	Src      libkb.DeviceID
 	Dst      libkb.DeviceID
 }
