@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/go/libkb"
 	"golang.org/x/crypto/scrypt"
 )
@@ -28,7 +29,7 @@ func (c *KexContext) Swap() {
 type KexServer interface {
 	StartKexSession(ctx *KexContext, id KexStrongID) error
 	StartReverseKexSession(ctx *KexContext) error
-	Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error
+	Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error
 	PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
 	Done(ctx *KexContext, mt libkb.MerkleTriple) error
 
@@ -46,7 +47,7 @@ type Kex struct {
 	helloReceived chan bool
 	doneReceived  chan bool
 	debugName     string
-	xDevKey       libkb.NaclSigningKeyPublic
+	xDevKeyID     libkb.KID
 	secretUI      libkb.SecretUI
 }
 
@@ -119,7 +120,14 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 
 	// XXX store these in lks
 
-	sig, _, err := eddsa.SignToString(k.xDevKey[:])
+	/*
+		sig, _, err := eddsa.SignToString(k.xDevKey[:])
+		if err != nil {
+			return err
+		}
+	*/
+	rsp := libkb.ReverseSigPayload{k.xDevKeyID.String()}
+	sig, _, _, err := libkb.SignJson(jsonw.NewWrapper(rsp), eddsa)
 	if err != nil {
 		return err
 	}
@@ -254,24 +262,25 @@ func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
 	if !ok {
 		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
 	}
-	return k.server.Hello(ctx, ctx.Src, pair.Public)
+	return k.server.Hello(ctx, ctx.Src, pair.GetKid())
 }
 
 func (k *Kex) StartReverseKexSession(ctx *KexContext) error { return nil }
 
-func (k *Kex) Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error {
+func (k *Kex) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	G.Log.Info("[%s] Hello Receive", k.debugName)
 	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
 	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
 
-	k.xDevKey = devKey
+	k.xDevKeyID = devKeyID
 
 	k.helloReceived <- true
 	return nil
 }
 
+// sig is the reverse sig.
 func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
 	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
@@ -279,7 +288,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 		return err
 	}
 
-	// XXX check sig
+	rs := &libkb.ReverseSig{Sig: sig, Type: "kb"}
 
 	// make device object for Y
 	devY := libkb.Device{
@@ -320,6 +329,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 		Me:          k.user,
 		Device:      &devY,
 		EldestKeyID: k.user.GetEldestFOKID().Kid,
+		RevSig:      rs,
 		Generator:   g,
 	}
 	gen := libkb.NewNaclKeyGen(arg)

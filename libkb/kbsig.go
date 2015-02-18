@@ -225,6 +225,7 @@ type KeyProofArg struct {
 	Expire      int
 	Device      *Device
 	Sibkey      bool
+	RevSig      *ReverseSig
 }
 
 func (u *User) KeyProof(arg KeyProofArg) (ret *jsonw.Wrapper, pushType string, err error) {
@@ -238,7 +239,7 @@ func (u *User) KeyProof(arg KeyProofArg) (ret *jsonw.Wrapper, pushType string, e
 		} else {
 			pushType = SUBKEY_TYPE
 		}
-		ret, err = u.delegateKeyProof(arg.NewKey, arg.ExistingKey, pushType, arg.Expire, arg.Device)
+		ret, err = u.delegateKeyProof(arg.NewKey, arg.ExistingKey, pushType, arg.Expire, arg.Device, arg.RevSig)
 	}
 	return
 }
@@ -283,17 +284,22 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, lid Lin
 	return
 }
 
-func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey) (ret *jsonw.Wrapper, err error) {
+// revSig is optional.  Added for kex scenario.
+func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig *ReverseSig) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 
-	if typ == SIBKEY_TYPE && newkey.CanSign() {
-		rsp := ReverseSigPayload{signingKey.GetKid().String()}
-		var rs ReverseSig
-		if rs.Sig, _, _, err = SignJson(jsonw.NewWrapper(rsp), newkey); err != nil {
-			return
+	if typ == SIBKEY_TYPE {
+		if revSig != nil {
+			ret.SetKey("reverse_sig", jsonw.NewWrapper(*revSig))
+		} else if newkey.CanSign() {
+			var rs ReverseSig
+			rsp := ReverseSigPayload{signingKey.GetKid().String()}
+			if rs.Sig, _, _, err = SignJson(jsonw.NewWrapper(rsp), newkey); err != nil {
+				return
+			}
+			rs.Type = "kb"
+			ret.SetKey("reverse_sig", jsonw.NewWrapper(rs))
 		}
-		rs.Type = "kb"
-		ret.SetKey("reverse_sig", jsonw.NewWrapper(rs))
 	}
 
 	// For subkeys let's say who are parent is.  In this case it's the signing key,
@@ -306,7 +312,7 @@ func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey) (ret *
 	return
 }
 
-func (u *User) delegateKeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int, device *Device) (ret *jsonw.Wrapper, err error) {
+func (u *User) delegateKeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int, device *Device, revSig *ReverseSig) (ret *jsonw.Wrapper, err error) {
 	ret, err = u.ProofMetadata(ei, signingkey, nil)
 	if err != nil {
 		return
@@ -320,7 +326,7 @@ func (u *User) delegateKeyProof(newkey GenericKey, signingkey GenericKey, typ st
 	}
 
 	var kp *jsonw.Wrapper
-	if kp, err = KeyToProofJson(newkey, typ, signingkey); err != nil {
+	if kp, err = KeyToProofJson(newkey, typ, signingkey, revSig); err != nil {
 		return
 	}
 

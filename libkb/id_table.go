@@ -3,10 +3,11 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"strings"
 	"sync"
 	"time"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type TypedChainLink interface {
@@ -509,6 +510,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 	if len(s.reverseSig.Sig) == 0 {
 		G.Log.Warning("!! Sibkey delegations without reverse sigs are soon to be retired!!")
 		G.Log.Warning("!! We're leaving them on for now for testing purposes!!")
+		G.Log.Warning("!! SibkeyChainLink: %s (device: %+v)", s.ToDisplayString(), s.device)
 		return
 	}
 

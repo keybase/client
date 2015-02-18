@@ -20,6 +20,7 @@ type NaclKeyGenArg struct {
 	EldestKeyID KID // the eldest KID for this epoch
 	LogUI       LogUI
 	Device      *Device
+	RevSig      *ReverseSig // optional reverse sig.  set to nil for autogenerate.
 }
 
 type NaclKeyGen struct {
@@ -56,6 +57,7 @@ func (g *NaclKeyGen) Push() (mt MerkleTriple, err error) {
 		Sibkey: g.arg.Sibkey,
 		Device: g.arg.Device,
 		Expire: g.arg.ExpireIn,
+		RevSig: g.arg.RevSig,
 	}
 
 	if !eldest {

@@ -103,13 +103,13 @@ func (k *kexsrv) StartKexSession(ctx *KexContext, id KexStrongID) error {
 
 func (k *kexsrv) StartReverseKexSession(ctx *KexContext) error { return nil }
 
-func (k *kexsrv) Hello(ctx *KexContext, devID libkb.DeviceID, devKey libkb.NaclSigningKeyPublic) error {
+func (k *kexsrv) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
 	}
 	f := func() error {
-		return s.Hello(ctx, devID, devKey)
+		return s.Hello(ctx, devID, devKeyID)
 	}
 	return k.gocall(f)
 }
