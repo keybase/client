@@ -256,7 +256,10 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 
 	eldestCki := NewComputedKeyInfo(true, true, KEY_LIVE, ctime, etime)
 
-	ckf.cki.Insert(&fokid, &eldestCki)
+	// If fokid is just a PGP fingerprint, expand it to include a proper KID.
+	fokidWithKid := GenericKeyToFOKID(key)
+
+	ckf.cki.Insert(&fokidWithKid, &eldestCki)
 	return nil
 }
 
