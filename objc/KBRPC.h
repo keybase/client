@@ -1,6 +1,6 @@
 #import "KBRObject.h"
 #import "KBRRequest.h"
-#import "KBRRequestHandler.h"
+#import "KBRRequestParams.h"
 
 @interface KBRStatus : KBRObject
 @property NSInteger code;
@@ -417,96 +417,96 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 - (void)promptYesNoWithText:(KBRText *)text def:(BOOL )def completion:(void (^)(NSError *error, BOOL  b))completion;
 
 @end
-@interface KBRAnnounceSessionRequestHandler : KBRRequestHandler
+@interface KBRAnnounceSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
-@interface KBRGetRequestHandler : KBRRequestHandler
+@interface KBRGetRequestParams : KBRRequestParams
 @property NSData *blockid;
 @property KBRUID *uid;
 @end
-@interface KBRDeleteRequestHandler : KBRRequestHandler
+@interface KBRDeleteRequestParams : KBRRequestParams
 @property NSData *blockid;
 @property KBRUID *uid;
 @end
-@interface KBRPutRequestHandler : KBRRequestHandler
+@interface KBRPutRequestParams : KBRRequestParams
 @property NSData *blockid;
 @property KBRUID *uid;
 @property NSData *buf;
 @end
-@interface KBRPromptDeviceNameRequestHandler : KBRRequestHandler
+@interface KBRPromptDeviceNameRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @end
-@interface KBRSelectSignerRequestHandler : KBRRequestHandler
+@interface KBRSelectSignerRequestParams : KBRRequestParams
 @property NSArray *devices;
 @property BOOL hasPGP;
 @end
-@interface KBRSelectKeyAndPushOptionRequestHandler : KBRRequestHandler
+@interface KBRSelectKeyAndPushOptionRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property NSArray *keys;
 @end
-@interface KBRSelectKeyRequestHandler : KBRRequestHandler
+@interface KBRSelectKeyRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property NSArray *keys;
 @end
-@interface KBRIdentifyRequestHandler : KBRRequestHandler
+@interface KBRIdentifyRequestParams : KBRRequestParams
 @property KBRUID *uid;
 @property NSString *username;
 @property BOOL trackStatement;
 @property BOOL luba;
 @property BOOL loadSelf;
 @end
-@interface KBRIdentifyDefaultRequestHandler : KBRRequestHandler
+@interface KBRIdentifyDefaultRequestParams : KBRRequestParams
 @property NSString *username;
 @end
-@interface KBRFinishAndPromptRequestHandler : KBRRequestHandler
+@interface KBRFinishAndPromptRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRIdentifyOutcome *outcome;
 @end
-@interface KBRFinishWebProofCheckRequestHandler : KBRRequestHandler
+@interface KBRFinishWebProofCheckRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRRemoteProof *rp;
 @property KBRLinkCheckResult *lcr;
 @end
-@interface KBRFinishSocialProofCheckRequestHandler : KBRRequestHandler
+@interface KBRFinishSocialProofCheckRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRRemoteProof *rp;
 @property KBRLinkCheckResult *lcr;
 @end
-@interface KBRDisplayCryptocurrencyRequestHandler : KBRRequestHandler
+@interface KBRDisplayCryptocurrencyRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRCryptocurrency *c;
 @end
-@interface KBRDisplayKeyRequestHandler : KBRRequestHandler
+@interface KBRDisplayKeyRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRFOKID *fokid;
 @property KBRTrackDiff *diff;
 @end
-@interface KBRReportLastTrackRequestHandler : KBRRequestHandler
+@interface KBRReportLastTrackRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRTrackSummary *track;
 @end
-@interface KBRLaunchNetworkChecksRequestHandler : KBRRequestHandler
+@interface KBRLaunchNetworkChecksRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRIdentity *id;
 @end
-@interface KBRDisplayTrackStatementRequestHandler : KBRRequestHandler
+@interface KBRDisplayTrackStatementRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property NSString *stmt;
 @end
-@interface KBRLogRequestHandler : KBRRequestHandler
+@interface KBRLogRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRLogLevel level;
 @property KBRText *text;
 @end
-@interface KBRPassphraseLoginRequestHandler : KBRRequestHandler
+@interface KBRPassphraseLoginRequestParams : KBRRequestParams
 @property BOOL identify;
 @property NSString *username;
 @property NSString *passphrase;
 @end
-@interface KBRSwitchUserRequestHandler : KBRRequestHandler
+@interface KBRSwitchUserRequestParams : KBRRequestParams
 @property NSString *username;
 @end
-@interface KBRKeyGenRequestHandler : KBRRequestHandler
+@interface KBRKeyGenRequestParams : KBRRequestParams
 @property NSInteger primaryBits;
 @property NSInteger subkeyBits;
 @property KBRPgpCreateUids *createUids;
@@ -516,88 +516,88 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL noNaclDh;
 @property NSString *pregen;
 @end
-@interface KBRKeyGenDefaultRequestHandler : KBRRequestHandler
+@interface KBRKeyGenDefaultRequestParams : KBRRequestParams
 @property KBRPgpCreateUids *createUids;
 @property BOOL pushPublic;
 @property BOOL pushSecret;
 @property NSString *passphrase;
 @end
-@interface KBRSelectRequestHandler : KBRRequestHandler
+@interface KBRSelectRequestParams : KBRRequestParams
 @property NSString *query;
 @end
-@interface KBRProveRequestHandler : KBRRequestHandler
+@interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;
 @property NSString *username;
 @property BOOL force;
 @end
-@interface KBRPromptOverwriteRequestHandler : KBRRequestHandler
+@interface KBRPromptOverwriteRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property NSString *account;
 @property KBRPromptOverwriteType typ;
 @end
-@interface KBRPromptUsernameRequestHandler : KBRRequestHandler
+@interface KBRPromptUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property NSString *prompt;
 @property KBRStatus *prevError;
 @end
-@interface KBROutputPrechecksRequestHandler : KBRRequestHandler
+@interface KBROutputPrechecksRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRText *text;
 @end
-@interface KBRPreProofWarningRequestHandler : KBRRequestHandler
+@interface KBRPreProofWarningRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRText *text;
 @end
-@interface KBROutputInstructionsRequestHandler : KBRRequestHandler
+@interface KBROutputInstructionsRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRText *instructions;
 @property NSString *proof;
 @end
-@interface KBROkToCheckRequestHandler : KBRRequestHandler
+@interface KBROkToCheckRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property NSString *name;
 @property NSInteger attempt;
 @end
-@interface KBRDisplayRecheckWarningRequestHandler : KBRRequestHandler
+@interface KBRDisplayRecheckWarningRequestParams : KBRRequestParams
 @property NSInteger sessionId;
 @property KBRText *text;
 @end
-@interface KBRVerifySessionRequestHandler : KBRRequestHandler
+@interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
 @end
-@interface KBRGetSecretRequestHandler : KBRRequestHandler
+@interface KBRGetSecretRequestParams : KBRRequestParams
 @property KBRSecretEntryArg *pinentry;
 @property KBRSecretEntryArg *terminal;
 @end
-@interface KBRGetNewPassphraseRequestHandler : KBRRequestHandler
+@interface KBRGetNewPassphraseRequestParams : KBRRequestParams
 @property NSString *terminalPrompt;
 @property NSString *pinentryDesc;
 @property NSString *pinentryPrompt;
 @property NSString *retryMessage;
 @end
-@interface KBRGetKeybasePassphraseRequestHandler : KBRRequestHandler
+@interface KBRGetKeybasePassphraseRequestParams : KBRRequestParams
 @property NSString *username;
 @property NSString *retry;
 @end
-@interface KBRCheckUsernameAvailableRequestHandler : KBRRequestHandler
+@interface KBRCheckUsernameAvailableRequestParams : KBRRequestParams
 @property NSString *username;
 @end
-@interface KBRSignupRequestHandler : KBRRequestHandler
+@interface KBRSignupRequestParams : KBRRequestParams
 @property NSString *email;
 @property NSString *inviteCode;
 @property NSString *passphrase;
 @property NSString *username;
 @property NSString *deviceName;
 @end
-@interface KBRInviteRequestRequestHandler : KBRRequestHandler
+@interface KBRInviteRequestRequestParams : KBRRequestParams
 @property NSString *email;
 @property NSString *fullname;
 @property NSString *notes;
 @end
-@interface KBRTrackRequestHandler : KBRRequestHandler
+@interface KBRTrackRequestParams : KBRRequestParams
 @property NSString *theirName;
 @end
-@interface KBRPromptYesNoRequestHandler : KBRRequestHandler
+@interface KBRPromptYesNoRequestParams : KBRRequestParams
 @property KBRText *text;
 @property BOOL def;
 @end

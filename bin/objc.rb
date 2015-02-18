@@ -83,7 +83,7 @@ end
 header = []
 header << "#import \"KBRObject.h\""
 header << "#import \"KBRRequest.h\""
-header << "#import \"KBRRequestHandler.h\""
+header << "#import \"KBRRequestParams.h\""
 header << ""
 impl = []
 impl << "#import \"KBRPC.h\"\n"
@@ -209,13 +209,13 @@ paths.each do |path|
 
     # Request handlers
     if mparam["request"].length > 0
-      header_handlers << "@interface KBR#{method.camelize}RequestHandler : KBRRequestHandler"
+      header_handlers << "@interface KBR#{method.camelize}RequestParams : KBRRequestParams"
       mparam["request"].each do |param|
         header_handlers << "@property #{objc_for_type(param["type"], enums)}#{param["name"]};"
       end
       header_handlers << "@end"
 
-      impl_handlers << "@implementation KBR#{method.camelize}RequestHandler\n"
+      impl_handlers << "@implementation KBR#{method.camelize}RequestParams\n"
 
       impl_handlers << "- (instancetype)initWithParams:(NSArray *)params {"
       impl_handlers << "  if ((self = [super initWithParams:params])) {"
