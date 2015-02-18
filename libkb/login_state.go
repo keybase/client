@@ -321,10 +321,10 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 	G.Log.Debug("+ Login called")
 	defer func() { G.Log.Debug("- Login -> %s", ErrToOk(err)) }()
 
-	if err = s.setupUIs(&arg); err != nil {
+	if loggedIn, err = s.checkLoggedIn(arg); err != nil || loggedIn {
 		return err
 	}
-	if loggedIn, err = s.checkLoggedIn(arg); err != nil || loggedIn {
+	if err = s.setupUIs(&arg); err != nil {
 		return err
 	}
 	if err = s.switchUser(arg); err != nil {
