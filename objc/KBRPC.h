@@ -92,7 +92,7 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @property KBRDeviceSigner *signer;
 @end
 
-@interface KBRDeviceDescription : KBRObject
+@interface KBRDevice : KBRObject
 @property NSString *type;
 @property NSString *name;
 @property NSString *deviceID;

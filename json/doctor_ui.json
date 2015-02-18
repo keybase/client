@@ -130,7 +130,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "DeviceDescription",
+    "name" : "Device",
     "fields" : [ {
       "name" : "type",
       "type" : "string"
@@ -155,7 +155,7 @@
         "name" : "devices",
         "type" : {
           "type" : "array",
-          "items" : "DeviceDescription"
+          "items" : "Device"
         }
       }, {
         "name" : "hasPGP",

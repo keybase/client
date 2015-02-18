@@ -205,7 +205,7 @@ type SelectSignerRes struct {
 	Signer *DeviceSigner      `codec:"signer,omitempty"`
 }
 
-type DeviceDescription struct {
+type Device struct {
 	Type     string `codec:"type"`
 	Name     string `codec:"name"`
 	DeviceID string `codec:"deviceID"`
@@ -216,8 +216,8 @@ type PromptDeviceNameArg struct {
 }
 
 type SelectSignerArg struct {
-	Devices []DeviceDescription `codec:"devices"`
-	HasPGP  bool                `codec:"hasPGP"`
+	Devices []Device `codec:"devices"`
+	HasPGP  bool     `codec:"hasPGP"`
 }
 
 type DisplaySecretWordsArg struct {

@@ -84,7 +84,7 @@
 @implementation KBRSelectSignerRes
 @end
 
-@implementation KBRDeviceDescription
+@implementation KBRDevice
 @end
 
 @implementation KBRDoctorUiRequest
