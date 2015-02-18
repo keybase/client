@@ -70,8 +70,8 @@
   self.instructionsLabel.attributedText = [KBLabel parseMarkup:instructions.data font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor]];
 
   _proofText = proofText;
-  [self.proofLabel setText:proofText font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  [self layoutView];
+  [self.proofLabel setText:proofText font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  [self setNeedsLayout];
 }
 
 @end

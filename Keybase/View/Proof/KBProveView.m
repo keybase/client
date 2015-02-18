@@ -41,13 +41,9 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 40;
-
-    [layout setFrame:CGRectMake(0, y, size.width, size.height) view:yself.instructionsView];
-
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.inputView].size.height;
-
-    return CGSizeMake(size.width, y);
+    [layout setFrame:CGRectMake(0, 40, size.width, size.height - 40) view:yself.inputView];
+    [layout setFrame:CGRectMake(0, 20, size.width, size.height - 20) view:yself.instructionsView];
+    return size;
   }];
 }
 
@@ -79,6 +75,7 @@
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText targetBlock:(KBButtonTargetBlock)targetBlock {
   [_instructionsView setInstructions:instructions proofText:proofText];
   _instructionsView.button.targetBlock = targetBlock;
+  [_instructionsView layoutView];
 
   // TODO Animate change
   self.inputView.hidden = YES;
@@ -102,6 +99,10 @@
   [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptUsername" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     //NSString *prompt = params[0][@"prompt"];
     completion(nil, gself.inputView.inputField.text);
+  }];
+
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.preProofWarning" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    completion(nil, nil);
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.proveUi.okToCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
