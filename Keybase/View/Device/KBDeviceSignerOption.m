@@ -10,4 +10,23 @@
 
 @implementation KBDeviceSignerOption
 
++ (instancetype)deviceWithIdentifier:(NSString *)identifier name:(NSString *)name {
+  KBDeviceSignerOption *option = [[KBDeviceSignerOption alloc] init];
+  option.signerType = KBDeviceSignerTypeDevice;
+  option.identifier = identifier;
+  option.title = name;
+  option.info = @"Use this computer to get an authentication token.";
+  option.imageSource = @"30-Hardware-black-computer-30";
+  return option;
+}
+
++ (instancetype)PGP {
+  KBDeviceSignerOption *option = [[KBDeviceSignerOption alloc] init];
+  option.signerType = KBDeviceSignerTypePGP;
+  option.title = @"PGP Key";
+  option.info = @"Use your PGP key.";
+  option.imageSource = @"1-Edition-black-key-2-30";
+  return option;
+}
+
 @end

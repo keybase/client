@@ -45,8 +45,11 @@
   _scrollView.hasVerticalScroller = YES;
   _scrollView.autohidesScrollers = YES;
   [_scrollView setDocumentView:_tableView];
-  _scrollView.borderType = NSLineBorder;
   [self addSubview:_scrollView];
+
+  self.wantsLayer = YES;
+  self.layer.borderColor = [KBLookAndFeel lineColor].CGColor;
+  self.layer.borderWidth = 1.0;
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {

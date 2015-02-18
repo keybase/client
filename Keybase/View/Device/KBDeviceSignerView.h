@@ -1,5 +1,5 @@
 //
-//  KBDeviceSigner.h
+//  KBDeviceSignerView.h
 //  Keybase
 //
 //  Created by Gabriel on 2/18/15.
@@ -8,6 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBDeviceSigner : NSObject
+#import "KBUIDefines.h"
+
+@interface KBDeviceSignerView : KBTableView
+
+- (void)setDeviceSignerOptions:(NSArray *)deviceSignerOptions;
 
 @end

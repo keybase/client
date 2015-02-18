@@ -88,6 +88,10 @@
   return titleView;
 }
 
+- (BOOL)mouseDownCanMoveWindow {
+  return YES;
+}
+
 - (void)setProgressEnabled:(BOOL)progressEnabled {
   [_progressView setAnimating:progressEnabled];
 }

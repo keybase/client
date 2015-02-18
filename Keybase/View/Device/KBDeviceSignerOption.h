@@ -8,6 +8,23 @@
 
 #import <Foundation/Foundation.h>
 
+#import "KBDefines.h"
+
+typedef NS_ENUM (NSInteger, KBDeviceSignerType) {
+  KBDeviceSignerTypeDevice,
+  KBDeviceSignerTypePGP,
+};
+
 @interface KBDeviceSignerOption : NSObject
+
+@property KBDeviceSignerType signerType;
+@property NSString *identifier;
+@property NSString *title;
+@property NSString *info;
+@property NSString *imageSource;
+
++ (instancetype)deviceWithIdentifier:(NSString *)identifier name:(NSString *)name;
+
++ (instancetype)PGP;
 
 @end

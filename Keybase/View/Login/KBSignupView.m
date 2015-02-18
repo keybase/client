@@ -79,27 +79,29 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 40;
 
+    CGFloat padding = 12;
+
     //y += [layout setFrame:CGRectMake(20, y, size.width - 40, 22) view:yself.inviteField].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + padding;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height;
     [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.usernameStatusLabel];
-    y += 10;
+    y += padding;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height;
     [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.strengthLabel];
-    y += 10;
+    y += padding;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordConfirmField].size.height;
     [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.passwordConfirmLabel];
-    y += 10;
+    y += padding;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.deviceNameField].size.height;
-    y += 10;
+    y += padding;
 
     y += 30;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.signupButton].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.signupButton].size.height + 24;
 
     y += [layout setFrame:CGRectMake(0, y, size.width, 30) view:yself.loginButton].size.height;
 
@@ -228,42 +230,9 @@
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRSelectKeyAndPushOptionRequestHandler *handler = [[KBRSelectKeyAndPushOptionRequestHandler alloc] initWithParams:params];
-
+    KBRSelectKeyAndPushOptionRequestParams *handler = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     GHDebug(@"Keys: %@", handler.keys);
-
-    KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
-
-    KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:selectView];
-    NSWindow *selectWindow = [KBWindow windowWithContentView:navigation size:CGSizeMake(600, 400) retain:YES];
-    navigation.titleView = [KBTitleView titleViewWithTitle:@"Select PGP Key" navigation:navigation];
-
-    [selectView.keysView setGPGKeys:handler.keys];
-    __weak KBKeySelectView *gselectView = selectView;
-    selectView.selectButton.targetBlock = ^{
-      NSString *keyID = [[gselectView.keysView selectedGPGKey] keyID];
-      if (!keyID) {
-        [AppDelegate setError:KBMakeError(-1, @"You need to select a key.", @"") sender:self];
-        return;
-      }
-      BOOL pushSecret = gselectView.pushCheckbox.state == 1;
-
-      [self.window endSheet:selectWindow];
-
-      KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
-      response.keyID = keyID;
-      response.doSecretPush = pushSecret;
-      completion(nil, response);
-    };
-
-    selectView.cancelButton.targetBlock = ^{
-      [self.window endSheet:selectWindow];
-      // No selection
-      KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
-      completion(nil, response);
-    };
-
-    [self.window beginSheet:selectWindow completionHandler:^(NSModalResponse returnCode) {}];
+    [self selectPGPKey:handler completion:completion];
   }];
 
   [AppDelegate setInProgress:YES view:self];
@@ -296,6 +265,41 @@
       [self.delegate signupView:self didSignupWithStatus:status];
     }];
   }];
+}
+
+- (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
+  KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
+
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:selectView];
+  NSWindow *selectWindow = [KBWindow windowWithContentView:navigation size:CGSizeMake(600, 400) retain:YES];
+  navigation.titleView = [KBTitleView titleViewWithTitle:@"Select PGP Key" navigation:navigation];
+
+  [selectView.keysView setGPGKeys:handler.keys];
+  __weak KBKeySelectView *gselectView = selectView;
+  selectView.selectButton.targetBlock = ^{
+    NSString *keyID = [[gselectView.keysView selectedGPGKey] keyID];
+    if (!keyID) {
+      [AppDelegate setError:KBMakeError(-1, @"You need to select a key.", @"") sender:self];
+      return;
+    }
+    BOOL pushSecret = gselectView.pushCheckbox.state == 1;
+
+    [self.window endSheet:selectWindow];
+
+    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+    response.keyID = keyID;
+    response.doSecretPush = pushSecret;
+    completion(nil, response);
+  };
+
+  selectView.cancelButton.targetBlock = ^{
+    [self.window endSheet:selectWindow];
+    // No selection
+    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+    completion(nil, response);
+  };
+
+  [self.window beginSheet:selectWindow completionHandler:^(NSModalResponse returnCode) {}];
 }
 
 @end
