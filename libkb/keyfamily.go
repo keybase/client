@@ -466,7 +466,9 @@ func (ckf ComputedKeyFamily) findLiveComputedKeyInfo(s string) (ret *ComputedKey
 // the key.  In this case either key is non-nil, or err is non-nil.
 func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, cki ComputedKeyInfo, err error) {
 	s := f.String()
-	if liveCki, err := ckf.findLiveComputedKeyInfo(s); liveCki == nil || err != nil {
+	liveCki, err := ckf.findLiveComputedKeyInfo(s)
+	if liveCki == nil || err != nil {
+		// err gets returned.
 	} else if !liveCki.Sibkey {
 		err = BadKeyError{fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", s)}
 	} else {
@@ -482,7 +484,9 @@ func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, cki Comp
 // the key.  In this case either key is non-nil, or err is non-nil.
 func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (key GenericKey, err error) {
 	s := kid.String()
-	if ki, err := ckf.findLiveComputedKeyInfo(s); ki == nil || err != nil {
+	ki, err := ckf.findLiveComputedKeyInfo(s)
+	if ki == nil || err != nil {
+		// err gets returned.
 	} else if ki.Sibkey {
 		err = BadKeyError{fmt.Sprintf("The key '%s' was delegated as a sibkey", s)}
 	} else {
