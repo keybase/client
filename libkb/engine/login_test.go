@@ -422,6 +422,10 @@ func (l *ldocui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sele
 	return
 }
 
+func (l *ldocui) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+	return nil
+}
+
 type ldocuiPGP struct {
 	*ldocui
 }

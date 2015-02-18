@@ -8,6 +8,7 @@ import (
 
 	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/go/libkb"
+	keybase_1 "github.com/keybase/protocol/go"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -48,15 +49,14 @@ type Kex struct {
 	doneReceived  chan bool
 	debugName     string
 	xDevKeyID     libkb.KID
-	secretUI      libkb.SecretUI
-	logUI         libkb.LogUI
+	uig           *libkb.UIGroup
 	lks           *libkb.LKSec
 }
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s KexServer, sui libkb.SecretUI, lui libkb.LogUI, lksCli []byte, options ...func(*Kex)) *Kex {
-	k := &Kex{server: s, secretUI: sui, logUI: lui, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+func NewKex(s KexServer, lksCli []byte, uig *libkb.UIGroup, options ...func(*Kex)) *Kex {
+	k := &Kex{server: s, uig: uig, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
 	k.lks = libkb.NewLKSecClientHalf(lksCli)
 	for _, opt := range options {
 		opt(k)
@@ -98,7 +98,10 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 		return err
 	}
 
-	// XXX tell user the command to enter on existing device (X)
+	// tell user the command to enter on existing device (X)
+	if err := k.uig.Doctor.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
+		return err
+	}
 
 	// wait for Hello() from X
 	if err := k.waitHello(); err != nil {
@@ -122,10 +125,10 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 	}
 
 	// store E_y, M_y in lks
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, k.logUI); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, k.uig.Log); err != nil {
 		return err
 	}
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, k.logUI); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, k.uig.Log); err != nil {
 		return err
 	}
 
@@ -149,8 +152,6 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 	}
 
 	// Device y signs M_y into Alice's sigchain as a subkey.
-	// use eddsa to sign dh
-	// then push it
 	devY := libkb.Device{
 		Id:          k.deviceID.String(),
 		Type:        devType,
@@ -187,8 +188,6 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 		}
 	}
 
-	// Device y makes a local note of Alice's UID (which is sent in the channel metadata).
-
 	return nil
 }
 
@@ -203,7 +202,7 @@ func (k *Kex) Listen(u *libkb.User, src libkb.DeviceID) {
 	if err != nil {
 		G.Log.Warning("kex.Listen: error getting device sibkey: %s", err)
 	}
-	k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.secretUI, k.user)
+	k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.uig.Secret, k.user)
 	if err != nil {
 		G.Log.Warning("GetSecretKey error: %s", err)
 	}
@@ -319,7 +318,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 	// but it should currently return a device key first...
 	if k.sigKey == nil {
 		var err error
-		k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.secretUI, k.user)
+		k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.uig.Secret, k.user)
 		if err != nil {
 			return err
 		}

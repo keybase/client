@@ -613,13 +613,21 @@ func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sel
 	}
 	res.Action = keybase_1.SelectSignerAction_SIGN
 	res.Signer = &keybase_1.DeviceSigner{}
-	if ret >= len(arg.Devices) {
+	if ret > len(arg.Devices) {
 		res.Signer.Kind = keybase_1.DeviceSignerKind_PGP
 	} else {
 		res.Signer.Kind = keybase_1.DeviceSignerKind_DEVICE
 		res.Signer.DeviceID = &(arg.Devices[ret-1].DeviceID)
 	}
 	return res, nil
+}
+
+func (d DoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+	d.parent.Printf("On your %q computer, a window should have appeared. Type this in it:\n\n", arg.XDevDescription)
+	d.parent.Printf("\t%s\n\n", arg.Secret)
+	d.parent.Printf("Alternatively, if you're using the terminal at %q, type this:\n\n", arg.XDevDescription)
+	d.parent.Printf("\tkeybase sibkey add '%s'\n\n", arg.Secret)
+	return nil
 }
 
 //============================================================
@@ -912,6 +920,10 @@ func (ui *UI) Output(s string) error {
 
 func (ui *UI) OutputWriter() io.Writer {
 	return os.Stdout
+}
+
+func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(ui.OutputWriter(), format, a...)
 }
 
 func NewDoctorUIProtocol() rpc2.Protocol {

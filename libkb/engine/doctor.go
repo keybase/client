@@ -329,7 +329,7 @@ func (d *Doctor) deviceSignExistingDevice(id, devName, devType string) error {
 	}
 	//	if err := eng.Run(devname, tk.LksClientHalf()); err != nil {
 
-	k := NewKex(d.kexServer, d.secretUI, d.logUI, tk.LksClientHalf())
+	k := NewKex(d.kexServer, tk.LksClientHalf(), &libkb.UIGroup{Secret: d.secretUI, Log: d.logUI, Doctor: d.docUI})
 	return k.StartForward(d.user, src, *dst, devType, devName)
 }
 
