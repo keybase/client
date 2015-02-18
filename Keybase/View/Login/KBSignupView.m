@@ -9,6 +9,7 @@
 #import "KBSignupView.h"
 #import "AppDelegate.h"
 #import "KBStrengthLabel.h"
+#import "KBKeySelectView.h"
 
 @interface KBSignupView ()
 @property KBTextField *inviteField;
@@ -106,6 +107,14 @@
 
     return CGSizeMake(size.width, y);
   }];
+
+//#ifdef DEBUG
+//  self.emailField.text = @"gabrielh+gbrl38@gmail.com";
+//  self.usernameField.text = @"gbrl38";
+//  self.passwordField.text = @"toomanysecrets";
+//  self.passwordConfirmField.text = @"toomanysecrets";
+//  self.deviceNameField.text = @"Test";
+//#endif
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -211,13 +220,50 @@
 
   KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
 
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
-    completion(nil, response);
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    [KBAlert promptWithTitle:@"Add PGP Key" description:@"Would you like to add one of your PGP keys to Keybase?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Add a PGP Key", @"No"] view:self completion:^(NSModalResponse response) {
+      BOOL resp = (response == NSAlertFirstButtonReturn);
+      completion(nil, @(resp));
+    }];
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    completion(nil, @(NO));
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRSelectKeyAndPushOptionRequestHandler *handler = [[KBRSelectKeyAndPushOptionRequestHandler alloc] initWithParams:params];
+
+    GHDebug(@"Keys: %@", handler.keys);
+
+    KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
+
+    KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:selectView];
+    NSWindow *selectWindow = [KBWindow windowWithContentView:navigation size:CGSizeMake(600, 400) retain:YES];
+    navigation.titleView = [KBTitleView titleViewWithTitle:@"Select PGP Key" navigation:navigation];
+
+    [selectView.keysView setGPGKeys:handler.keys];
+    __weak KBKeySelectView *gselectView = selectView;
+    selectView.selectButton.targetBlock = ^{
+      NSString *keyID = [[gselectView.keysView selectedGPGKey] keyID];
+      if (!keyID) {
+        [AppDelegate setError:KBMakeError(-1, @"You need to select a key.", @"") sender:self];
+        return;
+      }
+      BOOL pushSecret = gselectView.pushCheckbox.state == 1;
+
+      [self.window endSheet:selectWindow];
+
+      KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+      response.keyID = keyID;
+      response.doSecretPush = pushSecret;
+      completion(nil, response);
+    };
+
+    selectView.cancelButton.targetBlock = ^{
+      [self.window endSheet:selectWindow];
+      // No selection
+      KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+      completion(nil, response);
+    };
+
+    [self.window beginSheet:selectWindow completionHandler:^(NSModalResponse returnCode) {}];
   }];
 
   [AppDelegate setInProgress:YES view:self];
@@ -238,6 +284,8 @@
     self.emailField.text = nil;
     self.usernameField.text = nil;
     self.deviceNameField.text = nil;
+    self.usernameStatusLabel.attributedText = nil;
+    self.strengthLabel.attributedText = nil;
 
     KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
     [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {

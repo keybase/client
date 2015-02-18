@@ -15,6 +15,7 @@
 #import "KBProveView.h"
 #import "KBStyleGuideView.h"
 #import "KBTestClientView.h"
+#import "KBKeySelectView.h"
 
 
 @interface KBCatalogView ()
@@ -51,12 +52,15 @@
   if ([path gh_startsWith:@"/prove/"]) [self showProve:[path lastPathComponent]];
 
   if ([path gh_startsWith:@"/replay/track"]) [self showTrackReplay:[path lastPathComponent]];
+
   if ([path gh_startsWith:@"/track/"]) [self showTrack:[path lastPathComponent]];
 
   if ([path gh_startsWith:@"/prompt/"]) [self prompt:[path lastPathComponent]];
 
   if ([path isEqualTo:@"/style-guide"]) [self showStyleGuide];
-  if ([path gh_startsWith:@"/test/"]) [self showTestView:[path lastPathComponent]];
+
+  if ([path isEqualTo:@"/prove-instructions"]) [self showProveInstructions];
+  if ([path isEqualTo:@"/select-key"]) [self showSelectKey];
 }
 
 - (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
@@ -71,7 +75,7 @@
 
 - (void)showTestClientView {
   KBTestClientView *testClientView = [[KBTestClientView alloc] init];
-  [self openInWindow:testClientView title:@"Test Client"];
+  [self openInWindow:testClientView size:CGSizeMake(360, 420) title:@"Test Client"];
 }
 
 - (void)showLogin {
@@ -92,18 +96,19 @@
 
 - (void)showKeyGen:(BOOL)animated {
   KBKeyGenView *keyGenView = [[KBKeyGenView alloc] init];
-  [self openInWindow:keyGenView title:@"Keygen"];
+  [self openInWindow:keyGenView size:CGSizeMake(360, 420) title:@"Keygen"];
 }
 
 - (void)showProve:(NSString *)type {
   KBProveView *view = [[KBProveView alloc] init];
   view.proveType = KBProveTypeForServiceName(type);
-  [self openInWindow:view title:@"Prove"];
+  [self openInWindow:view size:CGSizeMake(360, 420) title:@"Prove"];
 }
 
-- (NSWindow *)openInWindow:(NSView *)view title:(NSString *)title {
+- (NSWindow *)openInWindow:(NSView *)view size:(CGSize)size title:(NSString *)title {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
+  window.styleMask = window.styleMask | NSResizableWindowMask;
   navigation.titleView = [KBTitleView titleViewWithTitle:title navigation:navigation];
   [window makeKeyAndOrderFront:nil];
   return window;
@@ -155,6 +160,19 @@
   if (![AppDelegate.client replayRecordId:NSStringWithFormat(@"track/%@", username)]) KBDebugAlert(@"Nothing to replay; Did you unpack the recorded data (./record.sh unpack)?");
 }
 
+- (void)showSelectKey {
+  NSArray *params = [AppDelegate.client paramsFromRecordId:@"signup/gbrl39" file:@"0003--keybase.1.gpgUi.selectKeyAndPushOption.json"];
+  KBRSelectKeyAndPushOptionRequestHandler *handler = [[KBRSelectKeyAndPushOptionRequestHandler alloc] initWithParams:params];
+
+  KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
+  [selectView.keysView setGPGKeys:handler.keys];
+  __weak KBKeySelectView *gselectView = selectView;
+  selectView.selectButton.targetBlock = ^{
+    GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
+  };
+  [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select Key"];
+}
+
 - (void)showStyleGuide {
   KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:testView];
@@ -164,16 +182,14 @@
   [window makeKeyAndOrderFront:nil];
 }
 
-- (void)showTestView:(NSString *)type {
-  if ([type isEqualTo:@"prove-instructions"]) {
-    KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
-    KBRText *text = [[KBRText alloc] init];
-    text.data = @"<p>Please <strong>publicly</strong> post the following to the internets, and name it <strong>hello.md</strong></p>";
-    text.markup = 1;
-    NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
-    [instructionsView setInstructions:text proofText:proofText];
-    [self openInWindow:instructionsView title:@"Instructions View"];
-  }
+- (void)showProveInstructions {
+  KBProveInstructionsView *instructionsView = [[KBProveInstructionsView alloc] init];
+  KBRText *text = [[KBRText alloc] init];
+  text.data = @"<p>Please <strong>publicly</strong> post the following to the internets, and name it <strong>hello.md</strong></p>";
+  text.markup = 1;
+  NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
+  [instructionsView setInstructions:text proofText:proofText];
+  [self openInWindow:instructionsView size:CGSizeMake(360, 420) title:@"Instructions View"];
 }
 
 @end

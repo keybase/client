@@ -34,7 +34,9 @@
 }
 
 + (instancetype)button {
-  return [[KBButton alloc] init];
+  KBButton *button = [[KBButton alloc] init];
+  button.bordered = NO;
+  return button;
 }
 
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style {
@@ -106,6 +108,10 @@
   KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
   [cell setText:text alignment:alignment];
   self.cell = cell;
+
+  if (style == KBButtonStyleCheckbox) {
+    [self setButtonType:NSSwitchButton];
+  }
   [self setNeedsDisplay];
 }
 

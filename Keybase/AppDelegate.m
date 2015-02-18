@@ -23,6 +23,7 @@
 @property KBRPClient *client;
 
 @property KBAPIClient *APIClient;
+@property BOOL alerting;
 @end
 
 @implementation AppDelegate
@@ -34,15 +35,12 @@
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
 
-  _mainView = [[KBMainView alloc] init];
+  [self updateMenu];
 
-//  self.windowController = [[KBWindowController alloc] initWithWindowNibName:@"KBWindowController"];
-//  [self.windowController window];
-//  [self.windowController showLogin:NO];
+  _mainView = [[KBMainView alloc] init];
 
   _client = [[KBRPClient alloc] init];
   _client.delegate = self;
-  [_client open];
 
   [_client registerMethod:@"keybase.1.secretUi.getSecret" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
@@ -59,11 +57,12 @@
     completion(nil, nil);
   }];
 
+  [_client open];
+
   // Just for mocking, getting at data the RPC client doesn't give us yet
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
 
-  // For debugging
-  [self openCatalog];
+  //[self openCatalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
@@ -74,8 +73,8 @@
   
 }
 
-- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error {
-  // TODO
+- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
+  if (connectAttempt == 1) [self.class setError:error sender:nil]; // Show error on first error attempt
 }
 
 - (void)RPClientDidLogout:(KBRPClient *)RPClient {
@@ -121,12 +120,14 @@
 
   [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
 
-  if (_status.loggedIn && _status.user) {
-    [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", _status.user.username) action:@selector(logout) keyEquivalent:@""];
-    [menu addItem:[NSMenuItem separatorItem]];
-  } else {
-    [menu addItemWithTitle:@"Log In" action:@selector(login) keyEquivalent:@""];
-    [menu addItem:[NSMenuItem separatorItem]];
+  if (_status) {
+    if (_status.loggedIn && _status.user) {
+      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", _status.user.username) action:@selector(logout) keyEquivalent:@""];
+      [menu addItem:[NSMenuItem separatorItem]];
+    } else {
+      [menu addItemWithTitle:@"Log In" action:@selector(login) keyEquivalent:@""];
+      [menu addItem:[NSMenuItem separatorItem]];
+    }
   }
 
   [menu addItem:[NSMenuItem separatorItem]];
@@ -229,10 +230,28 @@
 #pragma mark Error
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {
+  [AppDelegate.sharedDelegate setError:error sender:sender];
+}
+
+- (void)setError:(NSError *)error sender:(NSView *)sender {
   NSParameterAssert(error);
+
+  if (_alerting) {
+    GHDebug(@"Already showing error (%@)", error);
+    return;
+  }
+
   NSWindow *window = sender.window;
   if (!window) window = [NSApp mainWindow];
-  [[NSAlert alertWithError:error] beginSheetModalForWindow:window completionHandler:nil];
+  _alerting = YES;
+  GHWeakSelf gself = self;
+  if (window) {
+    [[NSAlert alertWithError:error] beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
+      gself.alerting = NO;
+    }];
+  } else {
+    [[NSAlert alertWithError:error] runModal];
+  }
   [sender becomeFirstResponder];
 }
 

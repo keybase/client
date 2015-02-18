@@ -81,6 +81,10 @@
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment {
+  [self setText:text font:font color:color alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
+}
+
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   NSParameterAssert(font);
   NSParameterAssert(color);
   if (!text) text = @"";
@@ -90,7 +94,7 @@
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
-  //paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
+  paragraphStyle.lineBreakMode = lineBreakMode;
   [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
   [self setAttributedText:str];
 }

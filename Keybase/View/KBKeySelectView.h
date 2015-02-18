@@ -10,7 +10,13 @@
 
 #import "KBUIDefines.h"
 #import "KBRPC.h"
+#import "KBGPGKeysView.h"
 
 @interface KBKeySelectView : YONSView
+
+@property KBGPGKeysView *keysView;
+@property KBButton *selectButton;
+@property KBButton *cancelButton;
+@property KBButton *pushCheckbox;
 
 @end

@@ -8,6 +8,24 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBGPGKeysView : NSObject
+#import "KBUIDefines.h"
+#import "KBRPC.h"
+
+@class KBGPGKeysView;
+
+@protocol KBGPGKeysViewDelegate <NSObject>
+- (void)GPGKeysView:(KBGPGKeysView *)GPGKeysView didSelectGPGKey:(KBRGPGKey *)GPGKey;
+@end
+
+@interface KBGPGKeysView : YONSView <NSTableViewDelegate, NSTableViewDataSource>
+
+@property NSTableView *tableView;
+@property NSScrollView *scrollView;
+
+@property (weak) id<KBGPGKeysViewDelegate> delegate;
+
+- (void)setGPGKeys:(NSArray */*of KBRGPGKey*/)GPGKeys;
+
+- (KBRGPGKey *)selectedGPGKey;
 
 @end

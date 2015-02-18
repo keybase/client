@@ -58,6 +58,12 @@
   secureTextField.placeholder = @"Secure Text Field";
   [contentView addSubview:secureTextField];
 
+  NSString *markup = @"<p>This is a sentence</p> <strong>bold</strong>";
+
+  KBLabel *markupLabel = [[KBLabel alloc] init];
+  [markupLabel setMarkup:markup font:[NSFont systemFontOfSize:16] color:NSColor.blackColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [contentView addSubview:markupLabel];
+
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
     for (id subview in contentView.subviews) {

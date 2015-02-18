@@ -48,6 +48,12 @@
   self.viewLayout = [YOLayout fill:_scrollView];
 }
 
+//- (void)removeTableColumns {
+//  for (NSTableColumn *tableColumn in [_tableView.tableColumns copy]) {
+//    [_tableView removeTableColumn:tableColumn];
+//  }
+//}
+
 - (void)setObjects:(NSArray *)objects {
   [_dataSource removeAllObjects];
   if (objects) [_dataSource addObjectsFromArray:objects];

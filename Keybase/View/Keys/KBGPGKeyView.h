@@ -8,6 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBGPGKeyView : NSObject
+#import "KBUIDefines.h"
+#import "KBRPC.h"
+
+@interface KBGPGKeyView : YONSView
+
+- (void)setGPGKey:(KBRGPGKey *)GPGKey;
 
 @end

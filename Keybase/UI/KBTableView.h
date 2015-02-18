@@ -17,12 +17,12 @@
 - (void)setObjects:(NSArray *)objects;
 - (void)addObjects:(NSArray *)objects;
 
+- (void)deselectAll;
+
 // Abstract
 - (void)updateView:(YONSView *)view object:(id)object;
 
 // Abstract
 - (void)select:(id)object;
-
-- (void)deselectAll;
 
 @end
