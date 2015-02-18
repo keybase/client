@@ -93,8 +93,8 @@
 - (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler {
   if (!_registrations) _registrations = [NSMapTable strongToStrongObjectsMapTable];
 
-  GHDebug(@"Registering %@", method);
-  NSAssert(![_registrations objectForKey:method], @"Method already registered");
+  //GHDebug(@"Registering %@", method);
+  //NSAssert(![_registrations objectForKey:method], @"Method already registered");
 
   NSMapTable *registration = [NSMapTable strongToStrongObjectsMapTable];
   [registration setObject:requestHandler forKey:@"requestHandler"];
@@ -108,7 +108,7 @@
   for (NSString *method in keys) {
     NSMapTable *registration = [_registrations objectForKey:method];
     if ([[registration objectForKey:@"owner"] isEqualTo:owner]) {
-      GHDebug(@"Unregistering %@", method);
+      //GHDebug(@"Unregistering %@", method);
       [_registrations removeObjectForKey:method];
     }
   }
@@ -127,7 +127,11 @@
   }
         
   [_client sendRequestWithMethod:method params:params completion:^(NSError *error, id result) {
-    if (error) GHDebug(@"Error: %@", error);
+    if (error) {
+      GHDebug(@"Error: %@", error);
+      NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
+      error = KBMakeError(error.code, errorInfo[@"desc"], @"");
+    }
     GHDebug(@"Result: %@", result);
     completion(error, result);
   }];
@@ -191,7 +195,9 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 
 - (NSArray *)paramsFromRecordId:(NSString *)recordId file:(NSString *)file {
   NSString *directory = [self directoryForRecordId:recordId];
-  id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
+  NSData *data = [NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)];
+  NSAssert(data, @"No data found");
+  id params = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
   KBConvertArrayFrom(params);
   return params;
 }

@@ -1,5 +1,5 @@
 //
-//  KBRRequestHandler.h
+//  KBRRequestParams.h
 //  Keybase
 //
 //  Created by Gabriel on 2/12/15.
@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBRRequestHandler : NSObject
+@interface KBRRequestParams : NSObject
 
 - (instancetype)initWithParams:(NSArray *)params;
 

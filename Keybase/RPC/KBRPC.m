@@ -604,7 +604,7 @@
 }
 
 @end
-@implementation KBRAnnounceSessionRequestHandler
+@implementation KBRAnnounceSessionRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -615,7 +615,7 @@
 
 @end
 
-@implementation KBRGetRequestHandler
+@implementation KBRGetRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -627,7 +627,7 @@
 
 @end
 
-@implementation KBRDeleteRequestHandler
+@implementation KBRDeleteRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -639,7 +639,7 @@
 
 @end
 
-@implementation KBRPutRequestHandler
+@implementation KBRPutRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -652,7 +652,7 @@
 
 @end
 
-@implementation KBRPromptDeviceNameRequestHandler
+@implementation KBRPromptDeviceNameRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -663,19 +663,19 @@
 
 @end
 
-@implementation KBRSelectSignerRequestHandler
+@implementation KBRSelectSignerRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.devices = [MTLJSONAdapter modelsOfClass:KBRDeviceDescription.class fromJSONArray:params[0][@"devices"] error:nil];
-    self.hasPGP = [params[0][@"hasPGP"] booleanValue];
+    self.hasPGP = [params[0][@"hasPGP"] boolValue];
   }
   return self;
 }
 
 @end
 
-@implementation KBRSelectKeyAndPushOptionRequestHandler
+@implementation KBRSelectKeyAndPushOptionRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -687,7 +687,7 @@
 
 @end
 
-@implementation KBRSelectKeyRequestHandler
+@implementation KBRSelectKeyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -699,22 +699,22 @@
 
 @end
 
-@implementation KBRIdentifyRequestHandler
+@implementation KBRIdentifyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.uid = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"uid"] error:nil];
     self.username = params[0][@"username"];
-    self.trackStatement = [params[0][@"trackStatement"] booleanValue];
-    self.luba = [params[0][@"luba"] booleanValue];
-    self.loadSelf = [params[0][@"loadSelf"] booleanValue];
+    self.trackStatement = [params[0][@"trackStatement"] boolValue];
+    self.luba = [params[0][@"luba"] boolValue];
+    self.loadSelf = [params[0][@"loadSelf"] boolValue];
   }
   return self;
 }
 
 @end
 
-@implementation KBRIdentifyDefaultRequestHandler
+@implementation KBRIdentifyDefaultRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -725,7 +725,7 @@
 
 @end
 
-@implementation KBRFinishAndPromptRequestHandler
+@implementation KBRFinishAndPromptRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -737,7 +737,7 @@
 
 @end
 
-@implementation KBRFinishWebProofCheckRequestHandler
+@implementation KBRFinishWebProofCheckRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -750,7 +750,7 @@
 
 @end
 
-@implementation KBRFinishSocialProofCheckRequestHandler
+@implementation KBRFinishSocialProofCheckRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -763,7 +763,7 @@
 
 @end
 
-@implementation KBRDisplayCryptocurrencyRequestHandler
+@implementation KBRDisplayCryptocurrencyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -775,7 +775,7 @@
 
 @end
 
-@implementation KBRDisplayKeyRequestHandler
+@implementation KBRDisplayKeyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -788,7 +788,7 @@
 
 @end
 
-@implementation KBRReportLastTrackRequestHandler
+@implementation KBRReportLastTrackRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -800,7 +800,7 @@
 
 @end
 
-@implementation KBRLaunchNetworkChecksRequestHandler
+@implementation KBRLaunchNetworkChecksRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -812,7 +812,7 @@
 
 @end
 
-@implementation KBRDisplayTrackStatementRequestHandler
+@implementation KBRDisplayTrackStatementRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -824,7 +824,7 @@
 
 @end
 
-@implementation KBRLogRequestHandler
+@implementation KBRLogRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -837,11 +837,11 @@
 
 @end
 
-@implementation KBRPassphraseLoginRequestHandler
+@implementation KBRPassphraseLoginRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.identify = [params[0][@"identify"] booleanValue];
+    self.identify = [params[0][@"identify"] boolValue];
     self.username = params[0][@"username"];
     self.passphrase = params[0][@"passphrase"];
   }
@@ -850,7 +850,7 @@
 
 @end
 
-@implementation KBRSwitchUserRequestHandler
+@implementation KBRSwitchUserRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -861,17 +861,17 @@
 
 @end
 
-@implementation KBRKeyGenRequestHandler
+@implementation KBRKeyGenRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.primaryBits = [params[0][@"primaryBits"] integerValue];
     self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.noPassphrase = [params[0][@"noPassphrase"] booleanValue];
-    self.kbPassphrase = [params[0][@"kbPassphrase"] booleanValue];
-    self.noNaclEddsa = [params[0][@"noNaclEddsa"] booleanValue];
-    self.noNaclDh = [params[0][@"noNaclDh"] booleanValue];
+    self.noPassphrase = [params[0][@"noPassphrase"] boolValue];
+    self.kbPassphrase = [params[0][@"kbPassphrase"] boolValue];
+    self.noNaclEddsa = [params[0][@"noNaclEddsa"] boolValue];
+    self.noNaclDh = [params[0][@"noNaclDh"] boolValue];
     self.pregen = params[0][@"pregen"];
   }
   return self;
@@ -879,13 +879,13 @@
 
 @end
 
-@implementation KBRKeyGenDefaultRequestHandler
+@implementation KBRKeyGenDefaultRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.pushPublic = [params[0][@"pushPublic"] booleanValue];
-    self.pushSecret = [params[0][@"pushSecret"] booleanValue];
+    self.pushPublic = [params[0][@"pushPublic"] boolValue];
+    self.pushSecret = [params[0][@"pushSecret"] boolValue];
     self.passphrase = params[0][@"passphrase"];
   }
   return self;
@@ -893,7 +893,7 @@
 
 @end
 
-@implementation KBRSelectRequestHandler
+@implementation KBRSelectRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -904,20 +904,20 @@
 
 @end
 
-@implementation KBRProveRequestHandler
+@implementation KBRProveRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.service = params[0][@"service"];
     self.username = params[0][@"username"];
-    self.force = [params[0][@"force"] booleanValue];
+    self.force = [params[0][@"force"] boolValue];
   }
   return self;
 }
 
 @end
 
-@implementation KBRPromptOverwriteRequestHandler
+@implementation KBRPromptOverwriteRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -930,7 +930,7 @@
 
 @end
 
-@implementation KBRPromptUsernameRequestHandler
+@implementation KBRPromptUsernameRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -943,7 +943,7 @@
 
 @end
 
-@implementation KBROutputPrechecksRequestHandler
+@implementation KBROutputPrechecksRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -955,7 +955,7 @@
 
 @end
 
-@implementation KBRPreProofWarningRequestHandler
+@implementation KBRPreProofWarningRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -967,7 +967,7 @@
 
 @end
 
-@implementation KBROutputInstructionsRequestHandler
+@implementation KBROutputInstructionsRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -980,7 +980,7 @@
 
 @end
 
-@implementation KBROkToCheckRequestHandler
+@implementation KBROkToCheckRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -993,7 +993,7 @@
 
 @end
 
-@implementation KBRDisplayRecheckWarningRequestHandler
+@implementation KBRDisplayRecheckWarningRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1005,7 +1005,7 @@
 
 @end
 
-@implementation KBRVerifySessionRequestHandler
+@implementation KBRVerifySessionRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1016,7 +1016,7 @@
 
 @end
 
-@implementation KBRGetSecretRequestHandler
+@implementation KBRGetSecretRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1028,7 +1028,7 @@
 
 @end
 
-@implementation KBRGetNewPassphraseRequestHandler
+@implementation KBRGetNewPassphraseRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1042,7 +1042,7 @@
 
 @end
 
-@implementation KBRGetKeybasePassphraseRequestHandler
+@implementation KBRGetKeybasePassphraseRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1054,7 +1054,7 @@
 
 @end
 
-@implementation KBRCheckUsernameAvailableRequestHandler
+@implementation KBRCheckUsernameAvailableRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1065,7 +1065,7 @@
 
 @end
 
-@implementation KBRSignupRequestHandler
+@implementation KBRSignupRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1080,7 +1080,7 @@
 
 @end
 
-@implementation KBRInviteRequestRequestHandler
+@implementation KBRInviteRequestRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1093,7 +1093,7 @@
 
 @end
 
-@implementation KBRTrackRequestHandler
+@implementation KBRTrackRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1104,12 +1104,12 @@
 
 @end
 
-@implementation KBRPromptYesNoRequestHandler
+@implementation KBRPromptYesNoRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.text = [MTLJSONAdapter modelOfClass:KBRText.class fromJSONDictionary:params[0][@"text"] error:nil];
-    self.def = [params[0][@"def"] booleanValue];
+    self.def = [params[0][@"def"] boolValue];
   }
   return self;
 }

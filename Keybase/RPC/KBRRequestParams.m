@@ -1,14 +1,14 @@
 //
-//  KBRRequestHandler.m
+//  KBRRequestParams.m
 //  Keybase
 //
 //  Created by Gabriel on 2/12/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBRRequestHandler.h"
+#import "KBRRequestParams.h"
 
-@implementation KBRRequestHandler
+@implementation KBRRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super init])) { }

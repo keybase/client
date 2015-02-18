@@ -44,7 +44,7 @@
 
   [_client registerMethod:@"keybase.1.secretUi.getSecret" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
-    KBRGetSecretRequestHandler *handler = [[KBRGetSecretRequestHandler alloc] initWithParams:params];
+    KBRGetSecretRequestParams *handler = [[KBRGetSecretRequestParams alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:handler.pinentry.prompt description:handler.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
       entry.text = response == NSAlertFirstButtonReturn ? password : nil;
@@ -54,13 +54,22 @@
   }];
 
   [_client registerMethod:@"keybase.1.secretUi.getNewPassphrase" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"Password prompt: %@", params);
-    KBRGetNewPassphraseRequestHandler *handler = [[KBRGetNewPassphraseRequestHandler alloc] initWithParams:params];
+    KBRGetNewPassphraseRequestParams *handler = [[KBRGetNewPassphraseRequestParams alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:handler.pinentryPrompt description:handler.pinentryDesc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
       completion(nil, text);
     }];
   }];
+
+  [_client registerMethod:@"keybase.1.secretUi.getKeybasePassphrase" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    GHDebug(@"Password prompt: %@", params);
+    KBRGetKeybasePassphraseRequestParams *handler = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
+    [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", handler.username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+      NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
+      completion(nil, text);
+    }];
+  }];
+
 
 
 
@@ -73,7 +82,7 @@
   // Just for mocking, getting at data the RPC client doesn't give us yet
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
 
-  //[self openCatalog];
+  [self openCatalog];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
@@ -111,7 +120,7 @@
 
 - (void)login {
   [_mainView.window close];
-  [self showLogin:nil];
+  [self showLogin:_status.user];
 }
 
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
