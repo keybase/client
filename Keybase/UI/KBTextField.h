@@ -11,7 +11,11 @@
 
 #import "KBUIDefines.h"
 
-@interface KBTextField : YONSView <NSTextFieldDelegate>
+@protocol KBTextFieldFocusDelegate
+- (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused;
+@end
+
+@interface KBTextField : YONSView <KBTextFieldFocusDelegate>
 
 @property (nonatomic) NSString *text;
 @property (nonatomic) NSString *placeholder;
