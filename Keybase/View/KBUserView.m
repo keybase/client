@@ -7,8 +7,6 @@
 //
 
 #import "KBUserView.h"
-#import "KBDefines.h"
-#import "KBUIDefines.h"
 
 @interface KBUserView ()
 @property KBImageView *imageView;

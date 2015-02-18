@@ -57,10 +57,10 @@
 
     x += [layout setFrame:CGRectMake(20, y, imageHeight, imageHeight) view:yself.imageView].size.width + 20;
 
-    y += 20;
-    y += [layout setFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name1Label].size.height + 4;
+    y += 16;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.name1Label].size.height + 4;
 
-    y += [layout setFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name2View].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name2View].size.height;
 
     [layout setFrame:CGRectMake(12, 2, imageHeight + 16, imageHeight + 16) view:yself.progressView];
 

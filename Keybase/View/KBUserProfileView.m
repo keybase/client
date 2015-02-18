@@ -241,7 +241,7 @@
 
       [gself.userInfoView addHeader:@" " text:@" " targetBlock:^{}];
 
-      if (!gself.fokid) {
+      if (!gself.fokid.pgpFingerprint) {
         [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
           KBTODO();
         }];

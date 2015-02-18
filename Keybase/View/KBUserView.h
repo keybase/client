@@ -7,9 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
 
-#import <YOLayout/YOLayout.h>
+#import "KBUIDefines.h"
 #import "KBRPC.h"
 
 @interface KBUserView : YONSView
