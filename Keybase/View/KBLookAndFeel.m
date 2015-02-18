@@ -22,7 +22,9 @@
 }
 
 + (NSColor *)selectColor {
-  return [NSColor colorWithRed:0.0f green:0.49f blue:0.96f alpha:1.0f];
+  //return [NSColor colorWithRed:87.0/255.0 green:153.0/255.0 blue:220.0/255.0 alpha:1.0f];
+  //return [NSColor colorWithRed:0.0f green:0.49f blue:0.96f alpha:1.0f];
+  return GHNSColorFromRGB(0x286090);
 }
 
 + (NSColor *)disabledTextColor {

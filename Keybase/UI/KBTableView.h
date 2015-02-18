@@ -19,6 +19,8 @@
 
 - (void)deselectAll;
 
+- (id)selectedObject;
+
 // Abstract
 - (void)updateView:(YONSView *)view object:(id)object;
 

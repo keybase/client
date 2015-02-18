@@ -63,9 +63,9 @@
 - (void)setUser:(KBRUser *)user {
   if (user && [user.username gh_present]) {
     _loginView.usernameField.text = user.username;
-    _loginView.usernameField.textField.editable = NO;
+    //_loginView.usernameField.textField.editable = NO;
   } else {
-    _loginView.usernameField.textField.editable = YES;
+    //_loginView.usernameField.textField.editable = YES;
   }
 }
 

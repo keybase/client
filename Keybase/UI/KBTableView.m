@@ -26,6 +26,11 @@
 
 - (void)viewInit {
   [super viewInit];
+
+  self.wantsLayer = YES;
+  self.layer.borderColor = [KBLookAndFeel lineColor].CGColor;
+  self.layer.borderWidth = 1.0;
+
   _dataSource = [NSMutableArray array];
 
   _tableView = [[NSTableView alloc] init];
@@ -53,6 +58,12 @@
 //    [_tableView removeTableColumn:tableColumn];
 //  }
 //}
+
+- (void)layout {
+  [super layout];
+  // TODO This causes some jankiness
+  [self.tableView reloadData];
+}
 
 - (void)setObjects:(NSArray *)objects {
   [_dataSource removeAllObjects];
@@ -105,19 +116,27 @@
   id object = [_dataSource objectAtIndex:row];
 
   [self updateView:_prototypeView object:object];
-  [_prototypeView setNeedsLayout];
+  [_prototypeView.viewLayout setNeedsLayout];
 
-  return [_prototypeView sizeThatFits:tableView.frame.size].height;
+  CGFloat height = [_prototypeView sizeThatFits:CGSizeMake(self.frame.size.width, CGFLOAT_MAX)].height;
+  //GHDebug(@"Row: %@, height: %@, width: %@", @(row), @(height), @(self.frame.size.width));
+  return height;
+}
+
+- (id)selectedObject {
+  NSInteger selectedRow = [_tableView selectedRow];
+  if (selectedRow < 0) return nil;
+  return _dataSource[selectedRow];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
   NSInteger selectedRow = [_tableView selectedRow];
-  if (selectedRow >= 0) {
-    NSTableRowView *rowView = [_tableView rowViewAtRow:selectedRow makeIfNecessary:NO];
-    [rowView setEmphasized:NO];
-    id object = [_dataSource objectAtIndex:selectedRow];
-    [self select:object];
-  }
+  if (selectedRow < 0) return;
+
+  NSTableRowView *rowView = [_tableView rowViewAtRow:selectedRow makeIfNecessary:NO];
+  [rowView setEmphasized:NO];
+  id object = [_dataSource objectAtIndex:selectedRow];
+  [self select:object];
 }
 
 @end

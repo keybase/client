@@ -9,9 +9,6 @@
 #import "KBUsersView.h"
 
 #import "KBUserView.h"
-#import "AppDelegate.h"
-#import "KBUserProfileView.h"
-#import "KBTableRowView.h"
 
 @interface KBUsersView ()
 @end

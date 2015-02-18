@@ -8,6 +8,8 @@
 
 #import "KBImageView.h"
 
+#import <GHKit/GHKit.h>
+
 @implementation KBImageView
 
 //- (instancetype)initWithFrame:(NSRect)frame {
@@ -36,6 +38,15 @@
   if (_roundedRatio > 0) {
     [self setRounded:roundf(frame.size.width/2.0)];
   }
+}
+
+- (void)setImageSource:(NSString *)imageSource {
+  if (!imageSource) {
+    self.image = nil;
+    return;
+  }
+  if ([imageSource gh_startsWith:@"http"]) self.URLString = imageSource;
+  else self.image = [NSImage imageNamed:imageSource];
 }
 
 - (void)setRounded:(CGFloat)cornerRadius {
