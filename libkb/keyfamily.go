@@ -106,9 +106,12 @@ type ComputedKeyInfos struct {
 // we need to Verify this data against the sigchain as we play the sigchain
 // forward.
 type KeyFamily struct {
-	eldest  *FOKID
-	pgps    []*PgpKeyBundle
+	eldest *FOKID
+	pgps   []*PgpKeyBundle
+
+	// These fields are computed on the client side, so they can be trusted.
 	pgp2kid map[string]KID
+	kid2pgp map[string]string
 
 	Sibkeys KeyMap `json:"sibkeys"`
 	Subkeys KeyMap `json:"subkeys"`
@@ -344,7 +347,10 @@ func (kf *KeyFamily) Import() (err error) {
 		return
 	}
 	for _, p := range kf.pgps {
-		kf.pgp2kid[p.GetFingerprint().String()] = p.GetKid()
+		fp := p.GetFingerprint().String()
+		kid := p.GetKid()
+		kf.pgp2kid[fp] = kid
+		kf.kid2pgp[kid.String()] = fp
 	}
 	err = kf.findEldest()
 	return
@@ -413,6 +419,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 
 	// Initialize this before the import step.
 	obj.pgp2kid = make(map[string]KID)
+	obj.kid2pgp = make(map[string]string)
 
 	if err = obj.Import(); err != nil {
 		return
@@ -524,20 +531,24 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	kidStr := kid.String()
 	sigid := tcl.GetSigId()
 	tm := TclToKeybaseTime(tcl)
+	fp := ckf.kf.kid2pgp[kidStr]
 
-	err = ckf.cki.Delegate(kidStr, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.IsDelegation() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
+	err = ckf.cki.Delegate(kidStr, fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.IsDelegation() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
 	return
 }
 
 // Delegate marks the given ComputedKeyInfos object that the given kidStr is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kidStr string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
+func (cki *ComputedKeyInfos) Delegate(kidStr string, fingerprintStr string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
 	info, found := cki.Infos[kidStr]
 	if !found {
 		newInfo := NewComputedKeyInfo(false, false, KEY_LIVE, ctime.Unix(), etime.Unix())
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kidStr] = info
+		if len(fingerprintStr) > 0 {
+			cki.Infos[fingerprintStr] = info
+		}
 	} else {
 		info.Status = KEY_LIVE
 		info.CTime = ctime.Unix()
