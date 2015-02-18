@@ -70,7 +70,7 @@ def value_for_type(type, name, enums)
 
   case type
   when "int" then "[#{varname} integerValue]"
-  when "boolean" then "[#{varname} booleanValue]"
+  when "boolean" then "[#{varname} boolValue]"
 
   when "string" then varname
   when "array" then varname

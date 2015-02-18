@@ -668,7 +668,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.devices = [MTLJSONAdapter modelsOfClass:KBRDeviceDescription.class fromJSONArray:params[0][@"devices"] error:nil];
-    self.hasPGP = [params[0][@"hasPGP"] booleanValue];
+    self.hasPGP = [params[0][@"hasPGP"] boolValue];
   }
   return self;
 }
@@ -705,9 +705,9 @@
   if ((self = [super initWithParams:params])) {
     self.uid = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"uid"] error:nil];
     self.username = params[0][@"username"];
-    self.trackStatement = [params[0][@"trackStatement"] booleanValue];
-    self.luba = [params[0][@"luba"] booleanValue];
-    self.loadSelf = [params[0][@"loadSelf"] booleanValue];
+    self.trackStatement = [params[0][@"trackStatement"] boolValue];
+    self.luba = [params[0][@"luba"] boolValue];
+    self.loadSelf = [params[0][@"loadSelf"] boolValue];
   }
   return self;
 }
@@ -841,7 +841,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.identify = [params[0][@"identify"] booleanValue];
+    self.identify = [params[0][@"identify"] boolValue];
     self.username = params[0][@"username"];
     self.passphrase = params[0][@"passphrase"];
   }
@@ -868,10 +868,10 @@
     self.primaryBits = [params[0][@"primaryBits"] integerValue];
     self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.noPassphrase = [params[0][@"noPassphrase"] booleanValue];
-    self.kbPassphrase = [params[0][@"kbPassphrase"] booleanValue];
-    self.noNaclEddsa = [params[0][@"noNaclEddsa"] booleanValue];
-    self.noNaclDh = [params[0][@"noNaclDh"] booleanValue];
+    self.noPassphrase = [params[0][@"noPassphrase"] boolValue];
+    self.kbPassphrase = [params[0][@"kbPassphrase"] boolValue];
+    self.noNaclEddsa = [params[0][@"noNaclEddsa"] boolValue];
+    self.noNaclDh = [params[0][@"noNaclDh"] boolValue];
     self.pregen = params[0][@"pregen"];
   }
   return self;
@@ -884,8 +884,8 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.pushPublic = [params[0][@"pushPublic"] booleanValue];
-    self.pushSecret = [params[0][@"pushSecret"] booleanValue];
+    self.pushPublic = [params[0][@"pushPublic"] boolValue];
+    self.pushSecret = [params[0][@"pushSecret"] boolValue];
     self.passphrase = params[0][@"passphrase"];
   }
   return self;
@@ -910,7 +910,7 @@
   if ((self = [super initWithParams:params])) {
     self.service = params[0][@"service"];
     self.username = params[0][@"username"];
-    self.force = [params[0][@"force"] booleanValue];
+    self.force = [params[0][@"force"] boolValue];
   }
   return self;
 }
@@ -1109,7 +1109,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.text = [MTLJSONAdapter modelOfClass:KBRText.class fromJSONDictionary:params[0][@"text"] error:nil];
-    self.def = [params[0][@"def"] booleanValue];
+    self.def = [params[0][@"def"] boolValue];
   }
   return self;
 }
