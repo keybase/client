@@ -51,6 +51,7 @@ type Kex struct {
 	xDevKeyID     libkb.KID
 	uig           *libkb.UIGroup
 	lks           *libkb.LKSec
+	getSecret     func() string // testing only
 }
 
 var kexTimeout = 5 * time.Minute
@@ -93,12 +94,13 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 	}
 	copy(ctx.WeakID[:], id[0:16])
 
-	if err := k.server.StartKexSession(ctx, id); err != nil {
+	// tell user the command to enter on existing device (X)
+	// note: this has to happen before StartKexSession call for tests to work.
+	if err := k.uig.Doctor.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
 		return err
 	}
 
-	// tell user the command to enter on existing device (X)
-	if err := k.uig.Doctor.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
+	if err := k.server.StartKexSession(ctx, id); err != nil {
 		return err
 	}
 
@@ -236,7 +238,7 @@ func (k *Kex) secret() (words []string, id [32]byte, err error) {
 	if err != nil {
 		return
 	}
-	id, err = k.wordsToID(words)
+	id, err = k.wordsToID(strings.Join(words, " "))
 	if err != nil {
 		return
 	}
@@ -244,8 +246,8 @@ func (k *Kex) secret() (words []string, id [32]byte, err error) {
 	return words, id, err
 }
 
-func (k *Kex) wordsToID(words []string) ([32]byte, error) {
-	key, err := scrypt.Key([]byte(strings.Join(words, " ")), []byte(k.user.GetName()), 32768, 8, 1, 32)
+func (k *Kex) wordsToID(words string) ([32]byte, error) {
+	key, err := scrypt.Key([]byte(words), []byte(k.user.GetName()), 32768, 8, 1, 32)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -256,7 +258,23 @@ func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
 	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
-	if err := k.verifyRequest(ctx); err != nil {
+	if err := k.verifyDst(ctx); err != nil {
+		return err
+	}
+
+	// generate secret
+	if k.getSecret != nil {
+		// this is for testing.
+		words := k.getSecret()
+		G.Log.Info("[%s] secret: %q", k.debugName, words)
+		id, err := k.wordsToID(words)
+		if err != nil {
+			return err
+		}
+		k.sessionID = id
+	}
+
+	if err := k.verifySession(ctx); err != nil {
 		return err
 	}
 
@@ -364,12 +382,26 @@ func (k *Kex) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 
 func (k *Kex) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error { return nil }
 
-func (k *Kex) verifyRequest(ctx *KexContext) error {
+func (k *Kex) verifyDst(ctx *KexContext) error {
 	if ctx.Dst != k.deviceID {
 		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", ctx.Dst, k.deviceID)
 	}
+	return nil
+}
+
+func (k *Kex) verifySession(ctx *KexContext) error {
 	if ctx.StrongID != k.sessionID {
 		return fmt.Errorf("%s: context StrongID (%x) != sessionID (%x)", k.debugName, ctx.StrongID, k.sessionID)
+	}
+	return nil
+}
+
+func (k *Kex) verifyRequest(ctx *KexContext) error {
+	if err := k.verifyDst(ctx); err != nil {
+		return err
+	}
+	if err := k.verifySession(ctx); err != nil {
+		return err
 	}
 	return nil
 }

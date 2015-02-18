@@ -18,11 +18,17 @@ func TestLoginNewDevice(t *testing.T) {
 	u1 := CreateAndSignupFakeUser(t, "login")
 	devX := G.Env.GetDeviceID()
 
+	docui := &ldocuiDevice{&ldocui{}, ""}
+
+	// this is all pretty hacky to get kex running on device X...
 	secui := libkb.TestSecretUI{u1.Passphrase}
 	kexX := NewKex(ksrv, nil, &libkb.UIGroup{Secret: secui}, SetDebugName("device x"))
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		t.Fatal(err)
+	}
+	kexX.getSecret = func() string {
+		return docui.secret
 	}
 	kexX.Listen(me, *devX)
 	ksrv.RegisterTestDevice(kexX, *devX)
@@ -33,8 +39,6 @@ func TestLoginNewDevice(t *testing.T) {
 	// redo SetupTest to get a new home directory...should look like a new device.
 	tc2 := libkb.SetupTest(t, "login")
 	defer tc2.Cleanup()
-
-	docui := &ldocuiDevice{&ldocui{}}
 
 	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
@@ -67,6 +71,7 @@ func TestLoginNewDevice(t *testing.T) {
 
 type ldocuiDevice struct {
 	*ldocui
+	secret string
 }
 
 // select the first device
@@ -79,6 +84,12 @@ func (l *ldocuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_
 	devid := arg.Devices[0].DeviceID
 	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &devid}
 	return
+}
+
+func (l *ldocuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+	l.secret = arg.Secret
+	G.Log.Info("secret words: %s", arg.Secret)
+	return nil
 }
 
 type kexsrv struct {
