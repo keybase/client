@@ -39,4 +39,8 @@ protocol doctorUi {
 	// selectSigner is for when a user logs in with a new device
 	// and it needs to be signed by an existing device or pgp.
 	SelectSignerRes selectSigner(array<DeviceDescription> devices, boolean hasPGP);
+
+	// displaySecretWords is for device provisioning when device Y (new device) gives 
+	// instructions containing the secret words to enter on device X (existing device).
+	void displaySecretWords(int sessionId, string secret, string xDevDescription);
 }

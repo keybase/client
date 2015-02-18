@@ -162,6 +162,19 @@
         "type" : "boolean"
       } ],
       "response" : "SelectSignerRes"
+    },
+    "displaySecretWords" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "secret",
+        "type" : "string"
+      }, {
+        "name" : "xDevDescription",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

@@ -103,6 +103,8 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 
 - (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL )hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes * selectSignerRes))completion;
 
+- (void)displaySecretWordsWithSessionId:(NSInteger )sessionId secret:(NSString *)secret xDevDescription:(NSString *)xDevDescription completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRGpgRequest : KBRRequest
@@ -439,6 +441,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSelectSignerRequestParams : KBRRequestParams
 @property NSArray *devices;
 @property BOOL hasPGP;
+@end
+@interface KBRDisplaySecretWordsRequestParams : KBRRequestParams
+@property NSInteger sessionId;
+@property NSString *secret;
+@property NSString *xDevDescription;
 @end
 @interface KBRSelectKeyAndPushOptionRequestParams : KBRRequestParams
 @property NSInteger sessionId;
