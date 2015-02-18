@@ -302,7 +302,7 @@ func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig
 		}
 	}
 
-	// For subkeys let's say who are parent is.  In this case it's the signing key,
+	// For subkeys let's say who our parent is.  In this case it's the signing key,
 	// though that can change in the future.
 	if typ == SUBKEY_TYPE && signingKey != nil {
 		ret.SetKey("parent_kid", jsonw.NewString(signingKey.GetKid().String()))
