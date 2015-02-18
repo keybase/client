@@ -56,10 +56,13 @@ def default_name_for_type(type)
 end
 
 def value_for_type(type, name, enums)
-  type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
   type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
-
   varname = "params[0][@\"#{name}\"]"
+
+  if type.kind_of?(Hash) # (for arrays)
+    array_class = type["items"]
+    return "[MTLJSONAdapter modelsOfClass:#{classname(array_class)}.class fromJSONArray:#{varname} error:nil]"
+  end
 
   if enums.include?(type)
     return "[#{varname} integerValue]"
@@ -145,7 +148,7 @@ paths.each do |path|
 
 
   header << "@interface #{classname(protocol.camelize)}Request : KBRRequest"
-  impl << "@implementation #{classname(protocol.camelize)}Request"
+  impl << "@implementation #{classname(protocol.camelize)}Request\n"
 
   h["messages"].each do |method, mparam|
     request_params = mparam["request"].dup
@@ -196,8 +199,7 @@ paths.each do |path|
       completion(error, result);"
     end
 
-    impl << "
-  NSArray *params = @[@{#{request_params_items.join(", ")}}];
+    impl << "  NSArray *params = @[@{#{request_params_items.join(", ")}}];
   [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params completion:^(NSError *error, NSDictionary *dict) {
     #{callback}
   }];"
