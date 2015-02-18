@@ -19,6 +19,8 @@
 @property MPMessagePackServer *server;
 @property NSMapTable *registrations;
 
+@property NSInteger connectAttempt;
+
 // For recording/replaying
 @property NSString *recordId;
 @property NSInteger methodIndex;
@@ -38,7 +40,6 @@
 - (void)open {
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
-  _registrations = [NSMapTable strongToStrongObjectsMapTable];
 
   _recordId = [[NSDate date] gh_formatISO8601];
   
@@ -66,6 +67,7 @@
   NSAssert(user, @"No user");
   
   GHDebug(@"Connecting to keybased (%@)...", user);
+  _connectAttempt++;
   [_client openWithSocket:NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user) completion:^(NSError *error) {
     if (error) {
       GHDebug(@"Error connecting to keybased: %@", error);
@@ -73,11 +75,12 @@
         // Retry
         [self openAfterDelay:2];
       }
-      [self.delegate RPClient:self didErrorOnConnect:error];
+      [self.delegate RPClient:self didErrorOnConnect:error connectAttempt:gself.connectAttempt];
       return;
     }
 
     GHDebug(@"Connected");
+    gself.connectAttempt = 1;
     [self.delegate RPClientDidConnect:self];
   }];
 }
@@ -88,9 +91,10 @@
 }
 
 - (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler {
+  if (!_registrations) _registrations = [NSMapTable strongToStrongObjectsMapTable];
+
   GHDebug(@"Registering %@", method);
-  // TODO
-  //NSAssert(![_methods objectForKey:method], @"Method already registered");
+  NSAssert(![_registrations objectForKey:method], @"Method already registered");
 
   NSMapTable *registration = [NSMapTable strongToStrongObjectsMapTable];
   [registration setObject:requestHandler forKey:@"requestHandler"];
@@ -103,7 +107,10 @@
   NSArray *keys = [[_registrations dictionaryRepresentation] allKeys];
   for (NSString *method in keys) {
     NSMapTable *registration = [_registrations objectForKey:method];
-    if ([[registration objectForKey:@"owner"] isEqualTo:owner]) [_registrations removeObjectForKey:method];
+    if ([[registration objectForKey:@"owner"] isEqualTo:owner]) {
+      GHDebug(@"Unregistering %@", method);
+      [_registrations removeObjectForKey:method];
+    }
   }
 }
 
@@ -135,6 +142,8 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
   NSMutableDictionary *mdict = [dict mutableCopy];
   if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"[FILTERED]";
   if (mdict[@"password"]) mdict[@"password"] = @"[FILTERED]";
+  if (mdict[@"inviteCode"]) mdict[@"inviteCode"] = @"[FILTERED]";
+  if (mdict[@"email"]) mdict[@"email"] = @"[FILTERED]";
   return mdict;
 }
 
@@ -180,7 +189,14 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
   [[NSJSONSerialization dataWithJSONObject:paramsCopy options:NSJSONWritingPrettyPrinted error:nil] writeToFile:file atomically:NO];
 }
 
-- (BOOL)replayRecordId:(NSString *)recordId {
+- (NSArray *)paramsFromRecordId:(NSString *)recordId file:(NSString *)file {
+  NSString *directory = [self directoryForRecordId:recordId];
+  id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
+  KBConvertArrayFrom(params);
+  return params;
+}
+
+- (BOOL)replayRecordId:(NSString *)recordId  {
   NSString *directory = [self directoryForRecordId:recordId];
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
 
@@ -208,7 +224,8 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
     NSString *method = fileDict[@(index)][@"method"];
     id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
     KBConvertArrayFrom(params);
-    MPRequestHandler completion = [_registrations objectForKey:method];
+    NSMapTable *registration = [_registrations objectForKey:method];
+    MPRequestHandler completion = [registration objectForKey:@"requestHandler"];
     if (completion) completion(method, params, ^(NSError *error, id result) { });
   }
   return YES;

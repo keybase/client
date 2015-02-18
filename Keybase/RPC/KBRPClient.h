@@ -16,7 +16,7 @@
 @protocol KBRPClientDelegate
 - (void)RPClientDidConnect:(KBRPClient *)RPClient;
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient;
-- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error;
+- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;
 @end
 
 
@@ -40,5 +40,7 @@
 #pragma mark Debug
 
 - (BOOL)replayRecordId:(NSString *)recordId;
+
+- (NSArray *)paramsFromRecordId:(NSString *)recordId file:(NSString *)file;
 
 @end

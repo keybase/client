@@ -63,7 +63,7 @@
   _connectButton.targetBlock = ^{ [gself open]; };
 }
 
-- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error {
+- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   [_infoView addObjects:@[error.localizedDescription]];
 }
 
