@@ -202,7 +202,7 @@ func (d *Doctor) deviceSign(withPGPOption bool) error {
 	var arg keybase_1.SelectSignerArg
 	for k, v := range devs {
 		G.Log.Info("Device %s: %+v", k, v)
-		arg.Devices = append(arg.Devices, keybase_1.DeviceDescription{Type: v.Type, Name: v.Description, DeviceID: k})
+		arg.Devices = append(arg.Devices, keybase_1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 	}
 	arg.HasPGP = withPGPOption
 

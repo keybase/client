@@ -82,7 +82,6 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 	if err != nil {
 		return err
 	}
-	G.Log.Info("kex [%s]: words = %v, id = %x", k.debugName, words, id)
 
 	k.sessionID = id
 
@@ -257,7 +256,7 @@ func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
 	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
-	if err := k.verifyDst(ctx); err != nil {
+	if err := k.verifyRequest(ctx); err != nil {
 		return err
 	}
 
@@ -274,7 +273,7 @@ func (k *Kex) StartReverseKexSession(ctx *KexContext) error { return nil }
 func (k *Kex) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	G.Log.Info("[%s] Hello Receive", k.debugName)
 	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
-	if err := k.verifyDst(ctx); err != nil {
+	if err := k.verifyRequest(ctx); err != nil {
 		return err
 	}
 
@@ -288,7 +287,7 @@ func (k *Kex) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) e
 func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
 	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
-	if err := k.verifyDst(ctx); err != nil {
+	if err := k.verifyRequest(ctx); err != nil {
 		return err
 	}
 
@@ -352,7 +351,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 func (k *Kex) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 	G.Log.Info("[%s] Done Receive", k.debugName)
 	defer G.Log.Info("[%s] Done Receive done", k.debugName)
-	if err := k.verifyDst(ctx); err != nil {
+	if err := k.verifyRequest(ctx); err != nil {
 		return err
 	}
 
@@ -365,9 +364,12 @@ func (k *Kex) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 
 func (k *Kex) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error { return nil }
 
-func (k *Kex) verifyDst(ctx *KexContext) error {
+func (k *Kex) verifyRequest(ctx *KexContext) error {
 	if ctx.Dst != k.deviceID {
 		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", ctx.Dst, k.deviceID)
+	}
+	if ctx.StrongID != k.sessionID {
+		return fmt.Errorf("%s: context StrongID (%x) != sessionID (%x)", k.debugName, ctx.StrongID, k.sessionID)
 	}
 	return nil
 }
