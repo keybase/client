@@ -53,6 +53,17 @@
     }];
   }];
 
+  [_client registerMethod:@"keybase.1.secretUi.getNewPassphrase" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    GHDebug(@"Password prompt: %@", params);
+    KBRGetNewPassphraseRequestHandler *handler = [[KBRGetNewPassphraseRequestHandler alloc] initWithParams:params];
+    [KBAlert promptForInputWithTitle:handler.pinentryPrompt description:handler.pinentryDesc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+      NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
+      completion(nil, text);
+    }];
+  }];
+
+
+
   [_client registerMethod:@"keybase.1.logUi.log" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
