@@ -17,6 +17,7 @@ type Doctor struct {
 
 	signingKey libkb.GenericKey
 	kexServer  KexServer
+	devName    string
 }
 
 type DocArg struct {
@@ -137,8 +138,7 @@ func (d *Doctor) addBasicKeys() error {
 }
 
 func (d *Doctor) addDeviceKey() error {
-	// XXX session id...what to put there?
-	devname, err := d.docUI.PromptDeviceName(0)
+	devname, err := d.deviceName()
 	if err != nil {
 		return err
 	}
@@ -156,8 +156,7 @@ func (d *Doctor) addDeviceKey() error {
 }
 
 func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey, eldestKID libkb.KID) error {
-	// XXX session id...what to put there?
-	devname, err := d.docUI.PromptDeviceName(0)
+	devname, err := d.deviceName()
 	if err != nil {
 		return err
 	}
@@ -189,7 +188,7 @@ var ErrNotYetImplemented = errors.New("not yet implemented")
 // new device.  It happens when the user has keys already, either
 // a device key, pgp key, or both.
 func (d *Doctor) deviceSign(withPGPOption bool) error {
-	devname, err := d.docUI.PromptDeviceName(0)
+	devname, err := d.deviceName()
 	if err != nil {
 		return err
 	}
@@ -201,7 +200,6 @@ func (d *Doctor) deviceSign(withPGPOption bool) error {
 
 	var arg keybase_1.SelectSignerArg
 	for k, v := range devs {
-		G.Log.Info("Device %s: %+v", k, v)
 		arg.Devices = append(arg.Devices, keybase_1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 	}
 	arg.HasPGP = withPGPOption
@@ -402,4 +400,16 @@ func (d *Doctor) detkey() (libkb.GenericKey, error) {
 		return nil, err
 	}
 	return detkey, nil
+}
+
+func (d *Doctor) deviceName() (string, error) {
+	if len(d.devName) == 0 {
+		// XXX session id...what to put there?
+		name, err := d.docUI.PromptDeviceName(0)
+		if err != nil {
+			return "", err
+		}
+		d.devName = name
+	}
+	return d.devName, nil
 }
