@@ -20,7 +20,7 @@ func TestLoginNewDevice(t *testing.T) {
 
 	secui := libkb.TestSecretUI{u1.Passphrase}
 	// will this work???
-	kexX := NewKex(ksrv, secui, SetDebugName("device x"))
+	kexX := NewKex(ksrv, secui, nil, nil, SetDebugName("device x"))
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		t.Fatal(err)

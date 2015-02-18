@@ -49,12 +49,15 @@ type Kex struct {
 	debugName     string
 	xDevKeyID     libkb.KID
 	secretUI      libkb.SecretUI
+	logUI         libkb.LogUI
+	lks           *libkb.LKSec
 }
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s KexServer, sui libkb.SecretUI, options ...func(*Kex)) *Kex {
-	k := &Kex{server: s, secretUI: sui, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+func NewKex(s KexServer, sui libkb.SecretUI, lui libkb.LogUI, lksCli []byte, options ...func(*Kex)) *Kex {
+	k := &Kex{server: s, secretUI: sui, logUI: lui, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+	k.lks = libkb.NewLKSecClientHalf(lksCli)
 	for _, opt := range options {
 		opt(k)
 	}
@@ -118,14 +121,16 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 		return err
 	}
 
-	// XXX store these in lks
+	// store E_y, M_y in lks
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, k.logUI); err != nil {
+		return err
+	}
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, k.logUI); err != nil {
+		return err
+	}
 
-	/*
-		sig, _, err := eddsa.SignToString(k.xDevKey[:])
-		if err != nil {
-			return err
-		}
-	*/
+	// The signature sent to PleaseSign is a reverse sig
+	// of X's dev key id.
 	rsp := libkb.ReverseSigPayload{k.xDevKeyID.String()}
 	sig, _, _, err := libkb.SignJson(jsonw.NewWrapper(rsp), eddsa)
 	if err != nil {
