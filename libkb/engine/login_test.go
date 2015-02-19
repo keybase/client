@@ -123,8 +123,6 @@ func TestLoginAddsKeys(t *testing.T) {
 			Passphrase: passphrase,
 			NoUi:       true,
 		},
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
 	secui := libkb.TestSecretUI{passphrase}
@@ -180,8 +178,6 @@ func TestLoginDetKeyOnly(t *testing.T) {
 			Passphrase: passphrase,
 			NoUi:       true,
 		},
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
 	secui := libkb.TestSecretUI{passphrase}
@@ -319,8 +315,6 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 			Passphrase: u1.Passphrase,
 			NoUi:       true,
 		},
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
 	}
 
 	before := docui.selectSignerCount
@@ -370,8 +364,6 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 			Passphrase: u1.Passphrase,
 			NoUi:       true,
 		},
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
 	}
 
 	before := docui.selectSignerCount
@@ -411,9 +403,6 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 			Passphrase: u1.Passphrase,
 			NoUi:       true,
 		},
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
-		GpgUI:    &gpgtestui{1},
 	}
 
 	before := docui.selectSignerCount

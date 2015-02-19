@@ -62,7 +62,6 @@ func (fu *FakeUser) Login() error {
 			Passphrase: fu.Passphrase,
 			NoUi:       true,
 		},
-		LogUI: G.UI.GetLogUI(),
 	}
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	li := NewLoginEngine()

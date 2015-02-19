@@ -48,9 +48,7 @@ func TestLoginNewDevice(t *testing.T) {
 			Passphrase: u1.Passphrase,
 			NoUi:       true,
 		},
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
-		KexSrv:   ksrv,
+		KexSrv: ksrv,
 	}
 
 	before := docui.selectSignerCount

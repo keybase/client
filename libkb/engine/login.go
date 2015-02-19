@@ -7,11 +7,8 @@ import (
 )
 
 type LoginEngineArg struct {
-	Login    libkb.LoginArg
-	LogUI    libkb.LogUI
-	DoctorUI libkb.DoctorUI
-	GpgUI    libkb.GPGUI
-	KexSrv   KexServer
+	Login  libkb.LoginArg
+	KexSrv KexServer
 }
 
 type LoginEngine struct{}
@@ -46,9 +43,11 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 		return err
 	}
 
-	if arg.LogUI == nil && G.UI != nil {
-		arg.LogUI = G.UI.GetLogUI()
-	}
+	/*
+		if arg.LogUI == nil && G.UI != nil {
+			arg.LogUI = G.UI.GetLogUI()
+		}
+	*/
 
 	var u *libkb.User
 
@@ -61,6 +60,6 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(&DocArg{DocUI: arg.DoctorUI, SecretUI: arg.Login.SecretUI, LogUI: arg.LogUI, GpgUI: arg.GpgUI}, WithKexServer(arg.KexSrv))
+	doctor := NewDoctor(&DocArg{DocUI: ctx.UIG().Doctor, SecretUI: ctx.UIG().Secret, LogUI: ctx.UIG().Log, GpgUI: ctx.UIG().GPG}, WithKexServer(arg.KexSrv))
 	return doctor.LoginCheckup(u)
 }
