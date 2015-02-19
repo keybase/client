@@ -228,7 +228,7 @@ func (k KeyringFile) Save() error {
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
 // In any case, the key will be locked.
-func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err error) {
+func (k Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string, err error) {
 
 	G.Log.Debug("+ GetSecretKeyLocked()")
 	defer func() {
@@ -237,18 +237,20 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err erro
 
 	G.Log.Debug("| LoadMe w/ Secrets on")
 
-	if me == nil {
-		if me, err = LoadMe(LoadUserArg{}); err != nil {
+	if ska.Me == nil {
+		if ska.Me, err = LoadMe(LoadUserArg{}); err != nil {
 			return
 		}
 	}
 
-	if ret = k.GetLockedLocalSecretKey(me); ret != nil {
+	if ret = k.GetLockedLocalSecretKey(ska); ret != nil {
 		G.Log.Debug("| Getting local secret key")
 		return
 	}
 
-	if ret, err = me.GetSyncedSecretKey(); err != nil {
+	if !ska.UseSyncedPGPKey() {
+		G.Log.Debug("| Skipped Synced PGP key (via prefs")
+	} else if ret, err = ska.Me.GetSyncedSecretKey(); err != nil {
 		G.Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
 		return
 	} else if ret != nil {
@@ -265,10 +267,12 @@ func (k Keyrings) GetSecretKeyLocked(me *User) (ret *SKB, which string, err erro
 // GetLockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
-func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
+func (k Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	var keyring *SKBKeyringFile
 	var err error
 	var ckf *ComputedKeyFamily
+
+	me := ska.Me
 
 	G.Log.Debug("+ GetLockedLocalSecretKey(%s)", me.name)
 	defer func() {
@@ -290,7 +294,9 @@ func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
 	}
 
 	var kid KID
-	if kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(); err != nil {
+	if !ska.UseDeviceKey() {
+		G.Log.Debug("| not using device key; preferences have disabled it")
+	} else if kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(); err != nil {
 		G.Log.Debug("| No key for current device: %s", err.Error())
 	} else if kid != nil {
 		G.Log.Debug("| Found KID for current device: %s", kid)
@@ -302,23 +308,40 @@ func (k Keyrings) GetLockedLocalSecretKey(me *User) (ret *SKB) {
 		G.Log.Debug("| Empty kid for current device")
 	}
 
-	if ret == nil {
+	if ret == nil && ska.SearchForKey() {
 		G.Log.Debug("| Looking up secret key in local keychain")
 		ret = keyring.SearchWithComputedKeyFamily(ckf)
 	}
 	return ret
 }
 
-func (k Keyrings) GetSecretKey(reason string, ui SecretUI, me *User) (key GenericKey, err error) {
-	G.Log.Debug("+ GetSecretKey(%s)", reason)
+type SecretKeyArg struct {
+
+	// Which keys to search for
+	All          bool // use all possible keys
+	DeviceKey    bool // use the device key (on by default)
+	SyncedPGPKey bool // use the sync'ed PGP key if there is one
+	SearchKey    bool // search for any key that's active in the local keyring
+
+	Reason string   // why it's needed (for an Unlock)
+	Ui     SecretUI // for Unlocking secrets
+	Me     *User    // Whose keys
+}
+
+func (s SecretKeyArg) UseDeviceKey() bool    { return s.All || s.DeviceKey }
+func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey }
+func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
+
+func (k Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, err error) {
+	G.Log.Debug("+ GetSecretKey(%s)", ska.Reason)
 	defer func() {
 		G.Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
 	}()
-	var p3skb *SKB
+	var skb *SKB
 	var which string
-	if p3skb, which, err = k.GetSecretKeyLocked(me); err == nil && p3skb != nil {
+	if skb, which, err = k.GetSecretKeyLocked(ska); err == nil && skb != nil {
 		G.Log.Debug("| Prompt/Unlock key")
-		key, err = p3skb.PromptAndUnlock(reason, which, ui)
+		key, err = skb.PromptAndUnlock(ska.Reason, which, ska.Ui)
 	}
 	return
 }

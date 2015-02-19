@@ -81,7 +81,7 @@ func (s *CmdSign) Run() (err error) {
 		s.Close(err)
 	}()
 
-	key, err = G.Keyrings.GetSecretKey("command-line signature", nil, nil)
+	key, err = G.Keyrings.GetSecretKey(libkb.SecretKeyArg{Reason: "command-line signature", All: true})
 	if err != nil {
 		return
 	} else if pgp, ok = key.(*libkb.PgpKeyBundle); !ok {
