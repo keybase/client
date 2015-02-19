@@ -161,7 +161,7 @@ func (cki ComputedKeyInfos) Copy() *ComputedKeyInfos {
 	return ret
 }
 
-func (kf KeyFamily) NewComputedKeyInfos() *ComputedKeyInfos {
+func NewComputedKeyInfos() *ComputedKeyInfos {
 	return &ComputedKeyInfos{
 		Infos:         make(map[string]*ComputedKeyInfo),
 		Sigs:          make(map[string]*ComputedKeyInfo),

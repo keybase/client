@@ -38,7 +38,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 		cki = l.cki.Copy()
 	}
 	if cki == nil {
-		cki = kf.NewComputedKeyInfos()
+		cki = NewComputedKeyInfos()
 		cki.InsertLocalEldestKey(FOKID{Kid: signingKid})
 	}
 
@@ -331,7 +331,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, c
 		return
 	}
 
-	cki = kf.NewComputedKeyInfos()
+	cki = NewComputedKeyInfos()
 	ckf := ComputedKeyFamily{&kf, cki}
 
 	var prev *ChainLink
