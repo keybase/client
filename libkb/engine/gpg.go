@@ -145,6 +145,7 @@ func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error
 		LogUI:        ctx.UIG().Log,
 		SecretUI:     ctx.UIG().Secret,
 	}
+	G.Log.Info("key gen arg: %+v", arg)
 	kg := libkb.NewKeyGen(arg)
 	if _, err := kg.Run(); err != nil {
 		return fmt.Errorf("keygen run error: %s", err)

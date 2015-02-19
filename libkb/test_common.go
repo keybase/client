@@ -240,6 +240,9 @@ func (t TestSecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (s
 type TestKeyGenUI struct{}
 
 func (t *TestKeyGenUI) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
+	G.Log.Info("TestKeyGenUI:GetPushPreferences()")
+	ret.Public = true
+	ret.Private = true
 	return
 }
 

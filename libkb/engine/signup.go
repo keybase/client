@@ -168,6 +168,7 @@ func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
 }
 
 func (s *SignupEngine) addGPG(ctx *Context) error {
+	fmt.Printf("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
 	eng := NewGPG()
 	arg := GPGArg{Signer: s.signingKey}
 	if err := RunEngine(eng, ctx, arg, nil); err != nil {

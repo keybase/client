@@ -513,11 +513,12 @@ func (s *KeyGen) Generate() (ret *PgpKeyBundle, err error) {
 }
 
 func (s *KeyGen) Push() (err error) {
-
 	G.Log.Debug("+ KeyGen::Push")
 	defer func() {
 		G.Log.Debug("- KeyGen::Push -> %s", ErrToOk(err))
 	}()
+
+	G.Log.Info("KeyGen: args %+v", s.arg)
 
 	if s.phase != KEYGEN_PHASE_GENERATED {
 		return InternalError{"bad use of Keygen; wrong phase"}
