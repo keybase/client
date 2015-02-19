@@ -97,6 +97,7 @@ type ConfigReader interface {
 	GetDeviceID() *DeviceID
 	GetUsername() string
 	GetUID() *UID
+	GetProxyCACerts() ([]string, error)
 }
 
 type ConfigWriter interface {

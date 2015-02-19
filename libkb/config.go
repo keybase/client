@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -44,6 +45,10 @@ func getBool(w *jsonw.Wrapper) (interface{}, error) {
 
 func getInt(w *jsonw.Wrapper) (interface{}, error) {
 	return w.GetInt()
+}
+
+func (f JsonConfigFile) GetFilename() string {
+	return f.filename
 }
 
 func (f JsonConfigFile) GetStringAtPath(p string) (ret string, is_set bool) {
@@ -410,4 +415,24 @@ func (f JsonConfigFile) GetSocketFile() string {
 }
 func (f JsonConfigFile) GetDaemonPort() (int, bool) {
 	return f.GetIntAtPath("daemon_port")
+}
+
+func (f JsonConfigFile) GetProxyCACerts() (ret []string, err error) {
+	jw := f.jw.AtKey("proxyCAs")
+	if l, e := jw.Len(); e == nil {
+		for i := 0; i < l; i++ {
+			if s, e := jw.AtIndex(i).GetString(); e != nil {
+				err = ConfigError{f.filename,
+					fmt.Sprintf("Error reading proxy CA file @ index %d: %s", i, e.Error())}
+				return
+			} else {
+				ret = append(ret, s)
+			}
+		}
+	} else if s, e := jw.GetString(); e == nil {
+		ret = strings.Split(s, ":")
+	} else if !jw.IsNil() {
+		err = ConfigError{f.filename, fmt.Sprintf("Can't read Proxy CA certs: %s", e.Error())}
+	}
+	return
 }

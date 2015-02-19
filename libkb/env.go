@@ -34,6 +34,7 @@ func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false
 func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, false }
 func (n NullConfiguration) GetLocalRpcDebug() string           { return "" }
 func (n NullConfiguration) GetDeviceID() *DeviceID             { return nil }
+func (n NullConfiguration) GetProxyCACerts() ([]string, error) { return nil, nil }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error)                    { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s string) (*UserConfig, error) { return nil, nil }

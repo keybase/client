@@ -94,6 +94,12 @@ func (e Env) GenClientConfig() (*ClientConfig, error) {
 		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
 			host, ShortCA(raw_ca)))
 	}
+
+	// If we're using proxies, they might have their own CAs.
+	if rootCAs, err = GetProxyCAs(rootCAs, e.config); err != nil {
+		return nil, err
+	}
+
 	ret := &ClientConfig{host, port, useTls, url, rootCAs, url.Path, true, HTTP_DEFAULT_TIMEOUT}
 	return ret, nil
 }
