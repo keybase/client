@@ -140,7 +140,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "DeviceDescription",
+    "name" : "Device",
     "fields" : [ {
       "name" : "type",
       "type" : "string"
@@ -165,13 +165,26 @@
         "name" : "devices",
         "type" : {
           "type" : "array",
-          "items" : "DeviceDescription"
+          "items" : "Device"
         }
       }, {
         "name" : "hasPGP",
         "type" : "boolean"
       } ],
       "response" : "SelectSignerRes"
+    },
+    "displaySecretWords" : {
+      "request" : [ {
+        "name" : "sessionId",
+        "type" : "int"
+      }, {
+        "name" : "secret",
+        "type" : "string"
+      }, {
+        "name" : "xDevDescription",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

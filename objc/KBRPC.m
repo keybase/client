@@ -92,7 +92,7 @@
 @implementation KBRSelectSignerRes
 @end
 
-@implementation KBRDeviceDescription
+@implementation KBRDevice
 @end
 
 @implementation KBRDoctorUiRequest
@@ -113,6 +113,13 @@
       }
       KBRSelectSignerRes *result = [MTLJSONAdapter modelOfClass:KBRSelectSignerRes.class fromJSONDictionary:dict error:&error];
       completion(error, result);
+  }];
+}
+
+- (void)displaySecretWordsWithSessionId:(NSInteger )sessionId secret:(NSString *)secret xDevDescription:(NSString *)xDevDescription completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionId": @(sessionId), @"secret": KBRValue(secret), @"xDevDescription": KBRValue(xDevDescription)}];
+  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.displaySecretWords" params:params completion:^(NSError *error, NSDictionary *dict) {
+    completion(error);
   }];
 }
 
@@ -675,8 +682,21 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.devices = [MTLJSONAdapter modelsOfClass:KBRDeviceDescription.class fromJSONArray:params[0][@"devices"] error:nil];
+    self.devices = [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:params[0][@"devices"] error:nil];
     self.hasPGP = [params[0][@"hasPGP"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDisplaySecretWordsRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionId = [params[0][@"sessionId"] integerValue];
+    self.secret = params[0][@"secret"];
+    self.xDevDescription = params[0][@"xDevDescription"];
   }
   return self;
 }

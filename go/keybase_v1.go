@@ -225,7 +225,7 @@ type SelectSignerRes struct {
 	Signer *DeviceSigner      `codec:"signer,omitempty"`
 }
 
-type DeviceDescription struct {
+type Device struct {
 	Type     string `codec:"type"`
 	Name     string `codec:"name"`
 	DeviceID string `codec:"deviceID"`
@@ -236,13 +236,20 @@ type PromptDeviceNameArg struct {
 }
 
 type SelectSignerArg struct {
-	Devices []DeviceDescription `codec:"devices"`
-	HasPGP  bool                `codec:"hasPGP"`
+	Devices []Device `codec:"devices"`
+	HasPGP  bool     `codec:"hasPGP"`
+}
+
+type DisplaySecretWordsArg struct {
+	SessionId       int    `codec:"sessionId"`
+	Secret          string `codec:"secret"`
+	XDevDescription string `codec:"xDevDescription"`
 }
 
 type DoctorUiInterface interface {
 	PromptDeviceName(int) (string, error)
 	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
+	DisplaySecretWords(DisplaySecretWordsArg) error
 }
 
 func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
@@ -263,6 +270,13 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"displaySecretWords": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplaySecretWordsArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplaySecretWords(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -280,6 +294,11 @@ func (c DoctorUiClient) PromptDeviceName(sessionId int) (res string, err error) 
 
 func (c DoctorUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
 	err = c.Cli.Call("keybase.1.doctorUi.selectSigner", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DoctorUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
+	err = c.Cli.Call("keybase.1.doctorUi.displaySecretWords", []interface{}{__arg}, nil)
 	return
 }
 
