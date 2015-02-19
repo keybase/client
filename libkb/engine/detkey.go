@@ -12,7 +12,8 @@ import (
 )
 
 type DetKeyArgs struct {
-	Tsp *libkb.TSPassKey
+	Tsp       *libkb.TSPassKey
+	SelfProof bool
 }
 
 type DetKeyEngine struct {
@@ -27,7 +28,7 @@ func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, eldestKeyID li
 }
 
 func (d *DetKeyEngine) Name() string {
-	return "DetKey Engine"
+	return "DetKey"
 }
 
 func (d *DetKeyEngine) RequiredUIs() []libkb.UIName {
@@ -44,16 +45,14 @@ func (d *DetKeyEngine) Run(ctx *Context, args interface{}, reply interface{}) er
 	if !ok {
 		return fmt.Errorf("invalid args type %T", args)
 	}
-	return d.run(da.Tsp)
-}
 
-// RunSelfProof runs the detkey engine and uses the eddsa key as
-// the signing key.  This is currently only used for testing to
-// generate a fake users who only has a detkey, but perhaps it
-// will be useful for something else...
-func (d *DetKeyEngine) RunSelfProof(tpk *libkb.TSPassKey) error {
-	d.selfProof = true
-	return d.run(tpk)
+	// d.selfProof = true: runs the detkey engine and uses the eddsa key as
+	// the signing key.  This is currently only used for testing to
+	// generate a fake users who only has a detkey, but perhaps it
+	// will be useful for something else...
+	d.selfProof = da.SelfProof
+
+	return d.run(da.Tsp)
 }
 
 func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {

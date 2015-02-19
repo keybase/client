@@ -154,7 +154,8 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 
 	// generate the detkey only, using SelfProof
 	eng := NewDetKeyEngine(s.me, nil, nil)
-	if err := eng.RunSelfProof(&s.tspkey); err != nil {
+	ctx := NewContext()
+	if err := RunEngine(eng, ctx, DetKeyArgs{Tsp: &s.tspkey, SelfProof: true}, nil); err != nil {
 		t.Fatal(err)
 	}
 
