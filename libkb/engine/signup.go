@@ -120,10 +120,19 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 }
 
 func (s *SignupEngine) registerDevice(deviceName string) error {
-	eng := NewDeviceEngine(s.me, s.logUI)
-	if err := eng.Run(deviceName, s.tspkey.LksClientHalf()); err != nil {
+	eng := NewDeviceEngine(s.me)
+
+	// XXX change when SignupEngine implements Engine (and has a context)
+	ctx := NewContext(s.logUI)
+	args := DeviceEngineArgs{
+		Name:          deviceName,
+		LksClientHalf: s.tspkey.LksClientHalf(),
+	}
+	if err := RunEngine(eng, ctx, args, nil); err != nil {
 		return err
 	}
+
+	// XXX get from reply instead?
 	s.signingKey = eng.EldestKey()
 	return nil
 }
@@ -131,10 +140,9 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 func (s *SignupEngine) genDetKeys() error {
 	eng := NewDetKeyEngine(s.me, s.signingKey, s.signingKey.GetKid())
 
-	// XXX change when SignupEngine implements Engine
+	// XXX change when SignupEngine implements Engine (and has a context)
 
-	ctx := NewContext()
-	ctx.AddUI(s.logUI)
+	ctx := NewContext(s.logUI)
 	return RunEngine(eng, ctx, DetKeyArgs{Tsp: &s.tspkey}, nil)
 }
 

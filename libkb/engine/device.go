@@ -9,6 +9,13 @@ import (
 
 var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
+type DeviceEngineArgs struct {
+	Name          string
+	LksClientHalf []byte
+	Signer        libkb.GenericKey
+	EldestKID     libkb.KID
+}
+
 type DeviceEngine struct {
 	deviceName    string
 	deviceID      libkb.DeviceID
@@ -17,29 +24,43 @@ type DeviceEngine struct {
 	lks           *libkb.LKSec
 	me            *libkb.User
 	eldestKey     libkb.NaclKeyPair
-	logui         libkb.LogUI
 }
 
-func NewDeviceEngine(me *libkb.User, logui libkb.LogUI) *DeviceEngine {
-	return &DeviceEngine{me: me, logui: logui}
+func NewDeviceEngine(me *libkb.User) *DeviceEngine {
+	return &DeviceEngine{me: me}
+}
+
+func (d *DeviceEngine) Name() string {
+	return "Device"
+}
+
+func (d *DeviceEngine) RequiredUIs() []libkb.UIName {
+	return []libkb.UIName{libkb.LogUIName}
+}
+
+func (d *DeviceEngine) SubEngines() []Engine {
+	return nil
 }
 
 func (d *DeviceEngine) Init() error {
 	return nil
 }
 
-// Run is for when the device key will be the eldest key.
-func (d *DeviceEngine) Run(deviceName string, lksClientHalf []byte) error {
-	return d.run(deviceName, lksClientHalf, nil, nil)
+// Run
+// when device is the eldest key:
+//    use args Name, LksClientHalf
+// when you have a key that can sign already but need a device
+// key:
+//    use args Name, LksClientHalf, Signer, and EldestKID
+func (d *DeviceEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
+	da, ok := args.(DeviceEngineArgs)
+	if !ok {
+		return fmt.Errorf("invalid args type: %T", args)
+	}
+	return d.run(ctx, da.Name, da.LksClientHalf, da.Signer, da.EldestKID)
 }
 
-// RunWithSigner is for when you have a key that can sign already,
-// but need a device key.
-func (d *DeviceEngine) RunWithSigner(deviceName string, lksClientHalf []byte, signer libkb.GenericKey, eldestKID libkb.KID) error {
-	return d.run(deviceName, lksClientHalf, signer, eldestKID)
-}
-
-func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb.GenericKey, eldestKID libkb.KID) (err error) {
+func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte, signer libkb.GenericKey, eldestKID libkb.KID) (err error) {
 	if d.me.HasDeviceInCurrentInstall() {
 		return ErrDeviceAlreadyRegistered
 	}
@@ -60,13 +81,13 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb
 	G.Log.Debug("Eldest FOKID:  %s", eldestKID)
 
 	if signer == nil {
-		if err = d.pushEldestKey(); err != nil {
+		if err = d.pushEldestKey(ctx); err != nil {
 			return err
 		}
 		signer = d.eldestKey
 		eldestKID = d.eldestKey.GetKid()
 	} else {
-		if err = d.pushSibKey(signer, eldestKID); err != nil {
+		if err = d.pushSibKey(ctx, signer, eldestKID); err != nil {
 			return err
 		}
 	}
@@ -81,7 +102,7 @@ func (d *DeviceEngine) run(deviceName string, lksClientHalf []byte, signer libkb
 		}
 	}
 
-	if err = d.pushDHKey(signer, eldestKID); err != nil {
+	if err = d.pushDHKey(ctx, signer, eldestKID); err != nil {
 		return
 	}
 
@@ -104,13 +125,13 @@ func (d *DeviceEngine) LKSKey() []byte {
 	return d.lksEncKey
 }
 
-func (d *DeviceEngine) pushEldestKey() error {
+func (d *DeviceEngine) pushEldestKey(ctx *Context) error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Generator: libkb.GenerateNaclSigningKeyPair,
 		Me:        d.me,
 		ExpireIn:  libkb.NACL_EDDSA_EXPIRE_IN,
 		Device:    d.device(),
-		LogUI:     d.logui,
+		LogUI:     ctx.UIG().Log,
 	})
 	err := gen.RunLKS(d.lks)
 	if err != nil {
@@ -120,7 +141,7 @@ func (d *DeviceEngine) pushEldestKey() error {
 	return nil
 }
 
-func (d *DeviceEngine) pushSibKey(signer libkb.GenericKey, eldestKID libkb.KID) error {
+func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Signer:      signer,
 		EldestKeyID: eldestKID,
@@ -129,7 +150,7 @@ func (d *DeviceEngine) pushSibKey(signer libkb.GenericKey, eldestKID libkb.KID) 
 		Me:          d.me,
 		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
 		Device:      d.device(),
-		LogUI:       d.logui,
+		LogUI:       ctx.UIG().Log,
 	})
 	err := gen.RunLKS(d.lks)
 	if err != nil {
@@ -138,7 +159,7 @@ func (d *DeviceEngine) pushSibKey(signer libkb.GenericKey, eldestKID libkb.KID) 
 	return nil
 }
 
-func (d *DeviceEngine) pushDHKey(signer libkb.GenericKey, eldestKID libkb.KID) error {
+func (d *DeviceEngine) pushDHKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Signer:      signer,
 		EldestKeyID: eldestKID,
@@ -147,7 +168,7 @@ func (d *DeviceEngine) pushDHKey(signer libkb.GenericKey, eldestKID libkb.KID) e
 		Me:          d.me,
 		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
 		Device:      d.device(),
-		LogUI:       d.logui,
+		LogUI:       ctx.UIG().Log,
 	})
 
 	return gen.RunLKS(d.lks)

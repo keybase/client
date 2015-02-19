@@ -146,11 +146,17 @@ func (d *Doctor) addDeviceKey() error {
 	if err != nil {
 		return err
 	}
-	eng := NewDeviceEngine(d.user, d.logUI)
-	if err := eng.Run(devname, tk.LksClientHalf()); err != nil {
+	eng := NewDeviceEngine(d.user)
+	ctx := NewContext(d.logUI)
+	args := DeviceEngineArgs{
+		Name:          devname,
+		LksClientHalf: tk.LksClientHalf(),
+	}
+	if err := RunEngine(eng, ctx, args, nil); err != nil {
 		return err
 	}
 
+	// XXX get this from reply?
 	d.signingKey = eng.EldestKey()
 	return nil
 }
@@ -164,9 +170,16 @@ func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey, eldestKID libkb
 	if err != nil {
 		return err
 	}
-	eng := NewDeviceEngine(d.user, d.logUI)
-	if err := eng.RunWithSigner(devname, tk.LksClientHalf(), signer, eldestKID); err != nil {
-		return fmt.Errorf("RunWithSigner error: %s", err)
+	eng := NewDeviceEngine(d.user)
+	ctx := NewContext(d.logUI)
+	args := DeviceEngineArgs{
+		Name:          devname,
+		LksClientHalf: tk.LksClientHalf(),
+		Signer:        signer,
+		EldestKID:     eldestKID,
+	}
+	if err := RunEngine(eng, ctx, args, nil); err != nil {
+		return err
 	}
 
 	d.signingKey = signer
@@ -180,8 +193,7 @@ func (d *Doctor) addDetKey(eldest libkb.KID) error {
 	}
 	eng := NewDetKeyEngine(d.user, d.signingKey, eldest)
 	// 	return eng.Run(tk)
-	ctx := NewContext()
-	ctx.AddUI(d.logUI)
+	ctx := NewContext(d.logUI)
 	return RunEngine(eng, ctx, DetKeyArgs{Tsp: tk}, nil)
 }
 
