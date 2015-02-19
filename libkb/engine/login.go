@@ -1,14 +1,10 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/go/libkb"
 )
-
-type LoginEngine struct{}
-
-func NewLoginEngine() *LoginEngine {
-	return &LoginEngine{}
-}
 
 type LoginEngineArg struct {
 	Login    libkb.LoginArg
@@ -18,7 +14,34 @@ type LoginEngineArg struct {
 	KexSrv   KexServer
 }
 
-func (e *LoginEngine) Run(arg LoginEngineArg) (err error) {
+type LoginEngine struct{}
+
+func NewLoginEngine() *LoginEngine {
+	return &LoginEngine{}
+}
+
+func (e *LoginEngine) Name() string {
+	return "Login"
+}
+
+func (e *LoginEngine) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{
+		libkb.LogUIKind,
+		libkb.DoctorUIKind,
+		libkb.GPGUIKind,
+		libkb.SecretUIKind,
+	}
+}
+
+func (e *LoginEngine) SubConsumers() []UIConsumer {
+	return nil
+}
+
+func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+	arg, ok := args.(LoginEngineArg)
+	if !ok {
+		return fmt.Errorf("LoginEngine.Run: invalid args type %T", args)
+	}
 	if err := G.LoginState.Login(arg.Login); err != nil {
 		return err
 	}

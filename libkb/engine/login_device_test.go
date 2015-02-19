@@ -56,8 +56,8 @@ func TestLoginNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-
-	if err := li.Run(larg); err != nil {
+	ctx := NewContext(G.UI.GetLogUI(), docui, &gpgtestui{}, secui)
+	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
 	}
 

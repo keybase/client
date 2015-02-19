@@ -53,7 +53,7 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 	return fu
 }
 
-func (fu *FakeUser) Login() (err error) {
+func (fu *FakeUser) Login() error {
 	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
@@ -64,9 +64,10 @@ func (fu *FakeUser) Login() (err error) {
 		},
 		LogUI: G.UI.GetLogUI(),
 	}
+	secui := libkb.TestSecretUI{fu.Passphrase}
 	li := NewLoginEngine()
-	err = li.Run(larg)
-	return err
+	ctx := NewContext(G.UI.GetLogUI(), &ldocui{}, &gpgtestui{}, secui)
+	return RunEngine(li, ctx, larg, nil)
 }
 
 func (fu *FakeUser) LoginOrBust(t *testing.T) {

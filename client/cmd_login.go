@@ -46,14 +46,16 @@ func (v *CmdLogin) RunClient() (err error) {
 
 func (v *CmdLogin) Run() error {
 	li := engine.NewLoginEngine()
-	return li.Run(engine.LoginEngineArg{
+	ctx := engine.NewContext()
+	arg := engine.LoginEngineArg{
 		Login: libkb.LoginArg{
 			Prompt:   true,
 			Retry:    3,
 			Username: v.Username,
 			SecretUI: G_UI.GetSecretUI(),
 		},
-	})
+	}
+	return engine.RunEngine(li, ctx, arg, nil)
 }
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {

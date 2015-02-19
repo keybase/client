@@ -127,7 +127,9 @@ func TestLoginAddsKeys(t *testing.T) {
 		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
-	if err := li.Run(larg); err != nil {
+	secui := libkb.TestSecretUI{passphrase}
+	ctx := NewContext(G.UI.GetLogUI(), &ldocui{}, &gpgtestui{}, secui)
+	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
 	}
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -154,7 +156,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 
 	// generate the detkey only, using SelfProof
 	eng := NewDetKeyEngine(s.me, nil, nil)
-	ctx := NewContext()
+	ctx := NewContext(G.UI.GetLogUI())
 	if err := RunEngine(eng, ctx, DetKeyArgs{Tsp: &s.tspkey, SelfProof: true}, nil); err != nil {
 		t.Fatal(err)
 	}
@@ -182,7 +184,9 @@ func TestLoginDetKeyOnly(t *testing.T) {
 		DoctorUI: &ldocui{},
 	}
 	li := NewLoginEngine()
-	if err := li.Run(larg); err != nil {
+	secui := libkb.TestSecretUI{passphrase}
+	ctx := NewContext(G.UI.GetLogUI(), &ldocui{}, secui, &gpgtestui{})
+	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
 	}
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -322,8 +326,9 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-
-	if err := li.Run(larg); err != nil {
+	secui := libkb.TestSecretUI{u1.Passphrase}
+	ctx := NewContext(G.UI.GetLogUI(), docui, secui, &gpgtestui{})
+	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -372,8 +377,9 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-
-	if err := li.Run(larg); err != nil {
+	secui := libkb.TestSecretUI{u1.Passphrase}
+	ctx := NewContext(G.UI.GetLogUI(), docui, secui, &gpgtestui{})
+	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -413,8 +419,9 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-
-	if err := li.Run(larg); err != nil {
+	secui := libkb.TestSecretUI{u1.Passphrase}
+	ctx := NewContext(G.UI.GetLogUI(), docui, &gpgtestui{1}, secui)
+	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
 	}
 

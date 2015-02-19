@@ -58,7 +58,8 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	liarg.DoctorUI = h.getDoctorUI(sessid)
 
 	li := engine.NewLoginEngine()
-	return li.Run(liarg)
+	ctx := engine.NewContext()
+	return engine.RunEngine(li, ctx, liarg, nil)
 }
 
 func (h *LoginHandler) PubkeyLogin() error {
