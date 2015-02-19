@@ -178,8 +178,11 @@ func (d *Doctor) addDetKey(eldest libkb.KID) error {
 	if err != nil {
 		return err
 	}
-	eng := NewDetKeyEngine(d.user, d.signingKey, eldest, d.logUI)
-	return eng.Run(tk)
+	eng := NewDetKeyEngine(d.user, d.signingKey, eldest)
+	// 	return eng.Run(tk)
+	ctx := NewContext()
+	ctx.AddUI(d.logUI)
+	return RunEngine(eng, ctx, DetKeyArgs{Tsp: tk}, nil)
 }
 
 var ErrNotYetImplemented = errors.New("not yet implemented")

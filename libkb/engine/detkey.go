@@ -11,21 +11,40 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
+type DetKeyArgs struct {
+	Tsp *libkb.TSPassKey
+}
+
 type DetKeyEngine struct {
 	me          *libkb.User
 	signingKey  libkb.GenericKey
 	eldestKeyID libkb.KID
 	selfProof   bool
-	logui       libkb.LogUI
 }
 
-func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, eldestKeyID libkb.KID, logui libkb.LogUI) *DetKeyEngine {
-	return &DetKeyEngine{me: me, signingKey: signingKey, eldestKeyID: eldestKeyID, logui: logui}
+func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, eldestKeyID libkb.KID) *DetKeyEngine {
+	return &DetKeyEngine{me: me, signingKey: signingKey, eldestKeyID: eldestKeyID}
+}
+
+func (d *DetKeyEngine) Name() string {
+	return "DetKey Engine"
+}
+
+func (d *DetKeyEngine) RequiredUIs() []libkb.UIName {
+	return nil
+}
+
+func (d *DetKeyEngine) SubEngines() []Engine {
+	return nil
 }
 
 // Run runs the detkey engine.
-func (d *DetKeyEngine) Run(tpk *libkb.TSPassKey) error {
-	return d.run(tpk)
+func (d *DetKeyEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
+	da, ok := args.(DetKeyArgs)
+	if !ok {
+		return fmt.Errorf("invalid args type %T", args)
+	}
+	return d.run(da.Tsp)
 }
 
 // RunSelfProof runs the detkey engine and uses the eddsa key as

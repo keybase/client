@@ -153,7 +153,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 	}
 
 	// generate the detkey only, using SelfProof
-	eng := NewDetKeyEngine(s.me, nil, nil, s.logUI)
+	eng := NewDetKeyEngine(s.me, nil, nil)
 	if err := eng.RunSelfProof(&s.tspkey); err != nil {
 		t.Fatal(err)
 	}

@@ -129,8 +129,13 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 }
 
 func (s *SignupEngine) genDetKeys() error {
-	eng := NewDetKeyEngine(s.me, s.signingKey, s.signingKey.GetKid(), s.logUI)
-	return eng.Run(&s.tspkey)
+	eng := NewDetKeyEngine(s.me, s.signingKey, s.signingKey.GetKid())
+
+	// XXX change when SignupEngine implements Engine
+
+	ctx := NewContext()
+	ctx.AddUI(s.logUI)
+	return RunEngine(eng, ctx, DetKeyArgs{Tsp: &s.tspkey}, nil)
 }
 
 func (s *SignupEngine) checkGPG() (bool, error) {
