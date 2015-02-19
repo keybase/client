@@ -12,7 +12,6 @@ config:
 
 build-stamp: \
 	json/block.json \
-	json/common.json \
 	json/config.json \
 	json/doctor_ui.json \
 	json/gpg.json \

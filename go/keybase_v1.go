@@ -145,21 +145,6 @@ func (c BlockClient) Put(__arg PutArg) (err error) {
 	return
 }
 
-type CommonInterface interface {
-}
-
-func CommonProtocol(i CommonInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name:    "keybase.1.Common",
-		Methods: map[string]rpc2.ServeHook{},
-	}
-
-}
-
-type CommonClient struct {
-	Cli GenericClient
-}
-
 type GetCurrentStatusRes struct {
 	Configured bool   `codec:"configured"`
 	Registered bool   `codec:"registered"`

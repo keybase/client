@@ -63,10 +63,6 @@
 
 @end
 
-@implementation KBRCommonRequest
-
-@end
-
 @implementation KBRGetCurrentStatusRes
 @end
 

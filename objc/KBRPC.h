@@ -65,9 +65,6 @@
 
 @end
 
-@interface KBRCommonRequest : KBRRequest
-@end
-
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
