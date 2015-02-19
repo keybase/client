@@ -59,6 +59,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		h.getLogUI(sessid),
 		h.getDoctorUI(sessid),
 		h.getSecretUI(sessid),
+		h.getLoginUI(sessid),
 		NewRemoteGPGUI(sessid, h.getRpcClient()))
 	return engine.RunEngine(li, ctx, liarg, nil)
 }
