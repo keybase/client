@@ -3,6 +3,16 @@
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
+    "name" : "StringKVPair",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "Status",
     "fields" : [ {
       "name" : "code",
@@ -17,7 +27,7 @@
       "name" : "fields",
       "type" : {
         "type" : "array",
-        "items" : "string"
+        "items" : "StringKVPair"
       }
     } ]
   }, {

@@ -8,11 +8,16 @@ type GenericClient interface {
 	Call(s string, args interface{}, res interface{}) error
 }
 
+type StringKVPair struct {
+	Key   string `codec:"key"`
+	Value string `codec:"value"`
+}
+
 type Status struct {
-	Code   int      `codec:"code"`
-	Name   string   `codec:"name"`
-	Desc   string   `codec:"desc"`
-	Fields []string `codec:"fields"`
+	Code   int            `codec:"code"`
+	Name   string         `codec:"name"`
+	Desc   string         `codec:"desc"`
+	Fields []StringKVPair `codec:"fields"`
 }
 
 type UID [16]byte
@@ -138,6 +143,21 @@ func (c BlockClient) Delete(__arg DeleteArg) (err error) {
 func (c BlockClient) Put(__arg PutArg) (err error) {
 	err = c.Cli.Call("keybase.1.block.put", []interface{}{__arg}, nil)
 	return
+}
+
+type CommonInterface interface {
+}
+
+func CommonProtocol(i CommonInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name:    "keybase.1.Common",
+		Methods: map[string]rpc2.ServeHook{},
+	}
+
+}
+
+type CommonClient struct {
+	Cli GenericClient
 }
 
 type GetCurrentStatusRes struct {

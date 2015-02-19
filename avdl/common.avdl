@@ -2,11 +2,16 @@
 @namespace("keybase.1")
 protocol Common {
 
+	record StringKVPair {
+		string key;
+		string value;
+	}
+
 	record Status {
 		int code;
 		string name;
 		string desc;
-		array<string> fields;
+		array<StringKVPair> fields;
 	}
 
 	fixed UID(16);

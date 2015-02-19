@@ -1,6 +1,10 @@
 #import "KBRPC.h"
 
+@implementation KBRStringKVPair
+@end
+
 @implementation KBRStatus
++ (NSValueTransformer *)fieldsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRStringKVPair.class]; }
 @end
 
 @implementation KBRUID
@@ -56,6 +60,10 @@
     completion(error);
   }];
 }
+
+@end
+
+@implementation KBRCommonRequest
 
 @end
 

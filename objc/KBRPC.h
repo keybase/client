@@ -2,11 +2,16 @@
 #import "KBRRequest.h"
 #import "KBRRequestParams.h"
 
+@interface KBRStringKVPair : KBRObject
+@property NSString *key;
+@property NSString *value;
+@end
+
 @interface KBRStatus : KBRObject
 @property NSInteger code;
 @property NSString *name;
 @property NSString *desc;
-@property NSArray *fields; /*of string*/
+@property NSArray *fields; /*of KBRStringKVPair*/
 @end
 
 @interface KBRUID : NSData
@@ -58,6 +63,9 @@
 
 - (void)putWithBlockid:(NSData *)blockid uid:(KBRUID *)uid buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
 
+@end
+
+@interface KBRCommonRequest : KBRRequest
 @end
 
 @interface KBRGetCurrentStatusRes : KBRObject

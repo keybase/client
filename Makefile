@@ -11,6 +11,8 @@ config:
 	npm install -d
 
 build-stamp: \
+	json/block.json \
+	json/common.json \
 	json/config.json \
 	json/doctor_ui.json \
 	json/gpg.json \
@@ -29,8 +31,7 @@ build-stamp: \
 	json/session.json \
 	json/signup.json \
 	json/track.json \
-	json/ui.json \
-	json/block.json
+	json/ui.json
 	@mkdir -p json
 	date > $@
 
