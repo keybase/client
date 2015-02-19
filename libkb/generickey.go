@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"strings"
 
 	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
@@ -31,7 +32,7 @@ func (k KID) ToMapKey() string {
 }
 
 func (k KID) ToShortIdString() string {
-	return base64.StdEncoding.EncodeToString(k[0:12])
+	return strings.TrimRight(base64.URLEncoding.EncodeToString(k[0:12]), "=")
 }
 
 func (k KID) String() string {
