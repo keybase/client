@@ -4,8 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go/libkb"
 	"testing"
+
+	"github.com/keybase/go/libkb"
 )
 
 var testInviteCode string = "202020202020202020202020"
@@ -42,9 +43,10 @@ func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
 
 func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(t, prefix)
-	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
-	err := s.Run(arg)
+	ctx := NewContext(G.UI.GetLogUI(), &gpgtestui{}, libkb.TestSecretUI{fu.Passphrase})
+	s := NewSignupEngine(nil, nil)
+	err := RunEngine(s, ctx, arg, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

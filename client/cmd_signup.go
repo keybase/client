@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -38,9 +39,10 @@ func (pf PromptFields) ToList() []*Field {
 
 type signupProcess interface {
 	CheckRegistered() error
-	Run(engine.SignupEngineRunArg) error
+	// Run(engine.SignupEngineRunArg) error
 	PostInviteRequest(libkb.InviteRequestArg) error
 	Init() error
+	engine.Engine
 }
 
 type CmdSignupState struct {
@@ -169,7 +171,9 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		Passphrase: s.passphrase,
 		DeviceName: s.fields.deviceName.GetValue(),
 	}
-	err = s.engine.Run(arg)
+	ctx := engine.NewContext()
+	err = engine.RunEngine(s.engine, ctx, arg, nil)
+	//	err = s.engine.Run(arg)
 	if err == nil {
 		return false, nil
 	}
@@ -318,6 +322,24 @@ type RemoteSignupJoinEngine struct {
 	ccli keybase_1.ConfigClient
 }
 
+func (e *RemoteSignupJoinEngine) Name() string {
+	return "RemoteSignupJoinEngine"
+}
+
+func (e *RemoteSignupJoinEngine) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{
+		libkb.LogUIKind,
+		libkb.GPGUIKind,
+		libkb.SecretUIKind,
+	}
+}
+
+func (e *RemoteSignupJoinEngine) SubEngines() []engine.Engine {
+	// this doesn't use any subengines itself, so nil is ok here.
+	// the destination of this will handle it...
+	return nil
+}
+
 func (e *RemoteSignupJoinEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ RemoteSignupJoinEngine::CheckRegistered")
 	var rres keybase_1.GetCurrentStatusRes
@@ -350,7 +372,11 @@ func (e *RemoteSignupJoinEngine) Init() error {
 	return nil
 }
 
-func (e *RemoteSignupJoinEngine) Run(arg engine.SignupEngineRunArg) error {
+func (e *RemoteSignupJoinEngine) Run(ctx *engine.Context, args interface{}, reply interface{}) error {
+	arg, ok := args.(engine.SignupEngineRunArg)
+	if !ok {
+		return fmt.Errorf("invalid run args type: %T", args)
+	}
 	rarg := keybase_1.SignupArg{
 		Username:   arg.Username,
 		Email:      arg.Email,

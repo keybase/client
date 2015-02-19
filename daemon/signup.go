@@ -27,13 +27,15 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 		h.getSecretUI(sessionID),
 	)
 
-	err = eng.Run(engine.SignupEngineRunArg{
+	ctx := engine.NewContext()
+	runarg := engine.SignupEngineRunArg{
 		Username:   arg.Username,
 		Email:      arg.Email,
 		InviteCode: arg.InviteCode,
 		Passphrase: arg.Passphrase,
 		DeviceName: arg.DeviceName,
-	})
+	}
+	err = engine.RunEngine(eng, ctx, runarg, nil)
 
 	if err == nil {
 		// everything succeeded

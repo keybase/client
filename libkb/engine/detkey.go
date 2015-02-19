@@ -31,7 +31,7 @@ func (d *DetKeyEngine) Name() string {
 	return "DetKey"
 }
 
-func (d *DetKeyEngine) RequiredUIs() []libkb.UIName {
+func (d *DetKeyEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 

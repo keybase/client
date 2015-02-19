@@ -25,6 +25,7 @@ func fakePassphrase(t *testing.T) string {
 	return hex.EncodeToString(buf)
 }
 
+/*
 func createFakeUser(t *testing.T, deviceName string) (username, passphrase string) {
 	username, email := fakeUser(t, "se")
 	passphrase = fakePassphrase(t)
@@ -36,3 +37,4 @@ func createFakeUser(t *testing.T, deviceName string) (username, passphrase strin
 	}
 	return username, passphrase
 }
+*/

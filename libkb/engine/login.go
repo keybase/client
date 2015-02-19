@@ -14,7 +14,7 @@ type LoginEngineArg struct {
 	Login    libkb.LoginArg
 	LogUI    libkb.LogUI
 	DoctorUI libkb.DoctorUI
-	GpgUI    GPGUI
+	GpgUI    libkb.GPGUI
 	KexSrv   KexServer
 }
 

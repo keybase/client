@@ -16,8 +16,8 @@ func NewContext(uis ...interface{}) *Context {
 	return c
 }
 
-func (c *Context) HasUI(name libkb.UIName) bool {
-	return c.uig.Exists(name)
+func (c *Context) HasUI(kind libkb.UIKind) bool {
+	return c.uig.Exists(kind)
 }
 
 func (c *Context) AddUIs(uis ...interface{}) error {

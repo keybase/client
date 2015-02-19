@@ -8,7 +8,7 @@ import (
 
 type Engine interface {
 	Run(ctx *Context, args interface{}, reply interface{}) error
-	RequiredUIs() []libkb.UIName
+	RequiredUIs() []libkb.UIKind
 	SubEngines() []Engine // XXX not sure if this is best way yet...
 	Name() string
 }

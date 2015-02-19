@@ -13,13 +13,29 @@ type SignupEngine struct {
 	uid        libkb.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
-	logUI      libkb.LogUI
-	gpgUI      GPGUI
+	gpgUI      libkb.GPGUI
 	secretUI   libkb.SecretUI
 }
 
-func NewSignupEngine(logUI libkb.LogUI, gpgUI GPGUI, secretUI libkb.SecretUI) *SignupEngine {
-	return &SignupEngine{logUI: logUI, gpgUI: gpgUI, secretUI: secretUI}
+func NewSignupEngine(gpgUI libkb.GPGUI, secretUI libkb.SecretUI) *SignupEngine {
+	return &SignupEngine{gpgUI: gpgUI, secretUI: secretUI}
+}
+
+func (s *SignupEngine) Name() string {
+	return "Signup"
+}
+
+func (e *SignupEngine) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{
+		libkb.LogUIKind,
+		libkb.GPGUIKind,
+		libkb.SecretUIKind,
+	}
+}
+
+// XXX fix this to be real...
+func (e *SignupEngine) SubEngines() []Engine {
+	return nil
 }
 
 func (s *SignupEngine) Init() error {
@@ -51,7 +67,12 @@ type SignupEngineRunArg struct {
 	SkipMail   bool
 }
 
-func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
+// func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
+func (s *SignupEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
+	arg, ok := args.(SignupEngineRunArg)
+	if !ok {
+		return fmt.Errorf("invalid args type: %T", args)
+	}
 	if err := s.genTSPassKey(arg.Passphrase); err != nil {
 		return err
 	}
@@ -60,11 +81,11 @@ func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 		return err
 	}
 
-	if err := s.registerDevice(arg.DeviceName); err != nil {
+	if err := s.registerDevice(ctx, arg.DeviceName); err != nil {
 		return err
 	}
 
-	if err := s.genDetKeys(); err != nil {
+	if err := s.genDetKeys(ctx); err != nil {
 		return err
 	}
 
@@ -119,11 +140,9 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 	return nil
 }
 
-func (s *SignupEngine) registerDevice(deviceName string) error {
+func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 	eng := NewDeviceEngine(s.me)
 
-	// XXX change when SignupEngine implements Engine (and has a context)
-	ctx := NewContext(s.logUI)
 	args := DeviceEngineArgs{
 		Name:          deviceName,
 		LksClientHalf: s.tspkey.LksClientHalf(),
@@ -137,12 +156,8 @@ func (s *SignupEngine) registerDevice(deviceName string) error {
 	return nil
 }
 
-func (s *SignupEngine) genDetKeys() error {
+func (s *SignupEngine) genDetKeys(ctx *Context) error {
 	eng := NewDetKeyEngine(s.me, s.signingKey, s.signingKey.GetKid())
-
-	// XXX change when SignupEngine implements Engine (and has a context)
-
-	ctx := NewContext(s.logUI)
 	return RunEngine(eng, ctx, DetKeyArgs{Tsp: &s.tspkey}, nil)
 }
 

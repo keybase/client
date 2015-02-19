@@ -13,7 +13,7 @@ type Doctor struct {
 	docUI    libkb.DoctorUI
 	secretUI libkb.SecretUI
 	logUI    libkb.LogUI
-	gpgUI    GPGUI
+	gpgUI    libkb.GPGUI
 
 	signingKey libkb.GenericKey
 	kexServer  KexServer
@@ -24,7 +24,7 @@ type DocArg struct {
 	DocUI    libkb.DoctorUI
 	SecretUI libkb.SecretUI
 	LogUI    libkb.LogUI
-	GpgUI    GPGUI
+	GpgUI    libkb.GPGUI
 }
 
 func NewDoctor(arg *DocArg, options ...func(*Doctor)) *Doctor {

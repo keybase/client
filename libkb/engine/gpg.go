@@ -8,17 +8,13 @@ import (
 	keybase_1 "github.com/keybase/protocol/go"
 )
 
-type GPGUI interface {
-	keybase_1.GpgUiInterface
-}
-
 type GPG struct {
-	ui       GPGUI
+	ui       libkb.GPGUI
 	secretUI libkb.SecretUI
 	last     *libkb.PgpKeyBundle
 }
 
-func NewGPG(ui GPGUI, sui libkb.SecretUI) *GPG {
+func NewGPG(ui libkb.GPGUI, sui libkb.SecretUI) *GPG {
 	return &GPG{ui: ui, secretUI: sui}
 }
 

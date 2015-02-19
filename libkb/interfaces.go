@@ -255,6 +255,10 @@ type DoctorUI interface {
 	keybase_1.DoctorUiInterface
 }
 
+type GPGUI interface {
+	keybase_1.GpgUiInterface
+}
+
 type UI interface {
 	GetIdentifyUI(username string) IdentifyUI
 	GetIdentifySelfUI() IdentifyUI

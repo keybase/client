@@ -28,7 +28,7 @@ func createFakeUserWithNoKeys(t *testing.T) (username, passphrase string) {
 	username, email := fakeUser(t, "login")
 	passphrase = fakePassphrase(t)
 
-	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
+	s := NewSignupEngine(nil, nil)
 
 	// going to just run the join step of signup engine
 	if err := s.genTSPassKey(passphrase); err != nil {
@@ -142,7 +142,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 	username, email := fakeUser(t, "login")
 	passphrase = fakePassphrase(t)
 
-	s := NewSignupEngine(G.UI.GetLogUI(), nil, nil)
+	s := NewSignupEngine(nil, nil)
 
 	if err := s.genTSPassKey(passphrase); err != nil {
 		t.Fatal(err)
@@ -201,7 +201,8 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
-	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
+	// s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
+	s := NewSignupEngine(&gpgtestui{}, secui)
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
 		t.Fatal(err)
@@ -226,7 +227,8 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 	}
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
-	s := NewSignupEngine(G.UI.GetLogUI(), &gpgPubOnlyTestUI{}, secui)
+	// s := NewSignupEngine(G.UI.GetLogUI(), &gpgPubOnlyTestUI{}, secui)
+	s := NewSignupEngine(&gpgPubOnlyTestUI{}, secui)
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
 		t.Fatal(err)
@@ -251,7 +253,8 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
-	s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
+	// s := NewSignupEngine(G.UI.GetLogUI(), &gpgtestui{}, secui)
+	s := NewSignupEngine(&gpgtestui{}, secui)
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
 		t.Fatal(err)

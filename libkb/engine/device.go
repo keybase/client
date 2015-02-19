@@ -34,8 +34,8 @@ func (d *DeviceEngine) Name() string {
 	return "Device"
 }
 
-func (d *DeviceEngine) RequiredUIs() []libkb.UIName {
-	return []libkb.UIName{libkb.LogUIName}
+func (d *DeviceEngine) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{libkb.LogUIKind}
 }
 
 func (d *DeviceEngine) SubEngines() []Engine {
