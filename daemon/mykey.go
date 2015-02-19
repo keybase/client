@@ -79,6 +79,8 @@ func (h *MykeyHandler) Select(query string) error {
 	sessionID := nextSessionId()
 	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
 	secretui := h.getSecretUI(sessionID)
-	gpg := engine.NewGPG(gpgui, secretui)
-	return gpg.RunLoadKey(query)
+	gpg := engine.NewGPG()
+	arg := engine.GPGArg{Query: query, LoadDeviceKey: true}
+	ctx := engine.NewContext(gpgui, secretui)
+	return engine.RunEngine(gpg, ctx, arg, nil)
 }

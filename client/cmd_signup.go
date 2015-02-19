@@ -89,7 +89,7 @@ func (s *CmdSignupState) RunClient() error {
 
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
-	s.engine = engine.NewSignupEngine(G.UI.GetLogUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI())
+	s.engine = engine.NewSignupEngine()
 	return s.run()
 }
 
@@ -171,9 +171,8 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		Passphrase: s.passphrase,
 		DeviceName: s.fields.deviceName.GetValue(),
 	}
-	ctx := engine.NewContext()
+	ctx := engine.NewContext(G.UI.GetLogUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI())
 	err = engine.RunEngine(s.engine, ctx, arg, nil)
-	//	err = s.engine.Run(arg)
 	if err == nil {
 		return false, nil
 	}
