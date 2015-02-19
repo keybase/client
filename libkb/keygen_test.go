@@ -55,7 +55,7 @@ func TestCreateIds(t *testing.T) {
 	// We need to fake the call to G.Env.GetUsername().  The best way to do this is to
 	// fake an entire UserConfig. Most of these fields won't be used in this test, so it's
 	// ok to give empty UIDs/Salts.
-	G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(UID{}, "foo", []byte{}, false, nil), true)
+	G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(UID{}, "foo", []byte{}, nil), true)
 
 	for _, test := range cidTests {
 		arg := &KeyGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUidArg, NoDefPGPUid: test.noDefArg}
