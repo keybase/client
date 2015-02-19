@@ -115,6 +115,7 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 
 	if config != nil && config.RootCAs != nil {
 		xprt = &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{RootCAs: config.RootCAs},
 		}
 		timeout = config.Timeout
