@@ -333,7 +333,7 @@ func (e *RemoteSignupJoinEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (e *RemoteSignupJoinEngine) SubEngines() []engine.Engine {
+func (e *RemoteSignupJoinEngine) SubConsumers() []engine.UIConsumer {
 	// this doesn't use any subengines itself, so nil is ok here.
 	// the destination of this will handle it...
 	return nil

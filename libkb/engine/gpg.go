@@ -37,7 +37,7 @@ func (g *GPG) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (g *GPG) SubEngines() []Engine {
+func (g *GPG) SubConsumers() []UIConsumer {
 	return nil
 }
 

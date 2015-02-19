@@ -35,7 +35,7 @@ func (d *DetKeyEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
-func (d *DetKeyEngine) SubEngines() []Engine {
+func (d *DetKeyEngine) SubConsumers() []UIConsumer {
 	return nil
 }
 

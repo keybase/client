@@ -31,9 +31,12 @@ func (e *SignupEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-// XXX fix this to be real...
-func (e *SignupEngine) SubEngines() []Engine {
-	return nil
+func (e *SignupEngine) SubConsumers() []UIConsumer {
+	return []UIConsumer{
+		NewDeviceEngine(nil),
+		NewDetKeyEngine(nil, nil, nil),
+		NewGPG(),
+	}
 }
 
 func (s *SignupEngine) Init() error {

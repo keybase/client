@@ -38,7 +38,7 @@ func (d *DeviceEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{libkb.LogUIKind}
 }
 
-func (d *DeviceEngine) SubEngines() []Engine {
+func (d *DeviceEngine) SubConsumers() []UIConsumer {
 	return nil
 }
 
