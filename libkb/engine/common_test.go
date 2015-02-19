@@ -65,7 +65,7 @@ func (fu *FakeUser) Login() error {
 	}
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	li := NewLoginEngine()
-	ctx := NewContext(G.UI.GetLogUI(), &ldocui{}, &gpgtestui{}, secui)
+	ctx := NewContext(G.UI.GetLogUI(), &ldocui{}, &gpgtestui{}, secui, &libkb.TestLoginUI{})
 	return RunEngine(li, ctx, larg, nil)
 }
 

@@ -24,6 +24,7 @@ func (e *LoginEngine) Name() string {
 func (e *LoginEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
+		libkb.LoginUIKind,
 		libkb.DoctorUIKind,
 		libkb.GPGUIKind,
 		libkb.SecretUIKind,
