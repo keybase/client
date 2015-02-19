@@ -452,3 +452,23 @@ func (pgp *PgpKeyBundle) IdentityNames() []string {
 	}
 	return names
 }
+
+func (pgp *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
+	ctime, etime = -1, -1
+	for _, pgpIdentity := range pgp.Identities {
+		if Cicmp(pgpIdentity.UserId.Email, kbid.Email) {
+			match = true
+			ctime = pgpIdentity.SelfSignature.CreationTime.Unix()
+			// This is a special case in OpenPGP, so we used KeyLifetimeSecs
+			lifeSeconds := pgpIdentity.SelfSignature.KeyLifetimeSecs
+			if lifeSeconds == nil {
+				// No expiration time is OK, it just means it never expires.
+				etime = 0
+			} else {
+				etime = ctime + int64(*lifeSeconds)
+			}
+			break
+		}
+	}
+	return
+}

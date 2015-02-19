@@ -188,6 +188,27 @@ func (ckis ComputedKeyInfos) InsertLocalEldestKey(fokid FOKID) {
 	ckis.Insert(&fokid, &eldestCki)
 }
 
+// For use when there are no chain links at all, so all we can do is trust the
+// eldest key that the server reported.
+func (ckis ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un string) error {
+	kbid := KeybaseIdentity(un)
+	if pgp, ok := eldestKey.(*PgpKeyBundle); ok {
+		match, ctime, etime := pgp.CheckIdentity(kbid)
+		if match {
+			eldestCki := NewComputedKeyInfo(true, true, KEY_UNCANCELLED, ctime, etime)
+			// If fokid is just a PGP fingerprint, expand it to include a proper KID.
+			// TODO: This is duplicated logic from InsertEldestKey. Clean them up somehow.
+			fokidWithKid := GenericKeyToFOKID(eldestKey)
+			ckis.Insert(&fokidWithKid, &eldestCki)
+			return nil
+		} else {
+			return KeyFamilyError{"InsertServerEldestKey found a non-matching eldest key."}
+		}
+	} else {
+		return KeyFamilyError{"InsertServerEldestKey found a non-PGP key."}
+	}
+}
+
 func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username string) (err error) {
 
 	fokid := tcl.GetFOKID()
@@ -215,21 +236,9 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	var ctimePgp, etimePgp int64 = -1, -1
 	if pgp, ok := key.(*PgpKeyBundle); ok {
 		kbid := KeybaseIdentity(username)
-		for _, pgpIdentity := range pgp.Identities {
-			if Cicmp(pgpIdentity.UserId.Email, kbid.Email) {
-
-				ctimePgp = pgpIdentity.SelfSignature.CreationTime.Unix()
-				// This is a special case in OpenPGP, so we used KeyLifetimeSecs
-				lifeSeconds := pgpIdentity.SelfSignature.KeyLifetimeSecs
-				if lifeSeconds == nil {
-					// No expiration time is OK, it just means it never expires.
-					etimePgp = 0
-				} else {
-					etimePgp = ctimePgp + int64(*lifeSeconds)
-				}
-				found = true
-			}
-		}
+		var foundPgp bool
+		foundPgp, ctimePgp, etimePgp = pgp.CheckIdentity(kbid)
+		found = found || foundPgp
 		if !found {
 			return KeyFamilyError{"First link signed by key that doesn't match Keybase user id."}
 		}

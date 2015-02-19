@@ -321,6 +321,7 @@ func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
 func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, cki *ComputedKeyInfos, err error) {
 
 	if links == nil || len(links) == 0 {
+		err = InternalError{"verifySubchain should never get an empty chain."}
 		return
 	}
 
@@ -411,8 +412,16 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 	}
 
 	links := sc.LimitToKeyFamily(ckf.kf)
+
 	if links == nil || len(links) == 0 {
 		G.Log.Debug("| Empty chain after we limited to KeyFamily %v", *ckf.kf)
+		if ckf.kf.eldest != nil {
+			eldestKey := ckf.kf.Sibkeys[ckf.kf.eldest.String()].key
+			sc.localCki = NewComputedKeyInfos()
+			sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
+		} else {
+			G.Log.Debug("| No keys found after we limited to KeyFamily %v", *ckf.kf)
+		}
 		return
 	}
 
