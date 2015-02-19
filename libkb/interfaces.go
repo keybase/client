@@ -248,7 +248,8 @@ type LogUI interface {
 }
 
 type KeyGenUI interface {
-	GetPushPreferences() (pp keybase_1.PushPreferences, err error)
+	// GetPushPreferences() (pp keybase_1.PushPreferences, err error)
+	keybase_1.MykeyUiInterface
 }
 
 type DoctorUI interface {
@@ -268,7 +269,8 @@ type UI interface {
 	GetSecretUI() SecretUI
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
-	GetGPGUI() keybase_1.GpgUiInterface
+	GetGPGUI() GPGUI
+	GetKeyGenUI(secPush, noPubPush, interactive bool) KeyGenUI
 	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error

@@ -336,6 +336,15 @@ func NewKeyGen(arg *KeyGenArg) *KeyGen {
 	return &KeyGen{arg: arg, phase: KEYGEN_PHASE_NONE}
 }
 
+func (k *KeyGen) RequiredUIs() []UIKind {
+	return []UIKind{
+		LogUIKind,
+		KeyGenUIKind,
+		LoginUIKind,
+		SecretUIKind,
+	}
+}
+
 const (
 	KEYGEN_PHASE_NONE      = iota
 	KEYGEN_PHASE_CHECKED   = iota

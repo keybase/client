@@ -196,7 +196,10 @@ func (n *nullui) GetSecretUI() SecretUI {
 func (n *nullui) GetProveUI() ProveUI {
 	return nil
 }
-func (n *nullui) GetGPGUI() keybase_1.GpgUiInterface {
+func (n *nullui) GetGPGUI() GPGUI {
+	return nil
+}
+func (n *nullui) GetKeyGenUI(s, x, i bool) KeyGenUI {
 	return nil
 }
 func (n *nullui) GetLogUI() LogUI {
@@ -232,4 +235,18 @@ func (t TestSecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, e
 
 func (t TestSecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
 	return t.Passphrase, nil
+}
+
+type TestKeyGenUI struct{}
+
+func (t *TestKeyGenUI) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
+	return
+}
+
+type TestLoginUI struct {
+	Username string
+}
+
+func (t TestLoginUI) GetEmailOrUsername() (string, error) {
+	return t.Username, nil
 }

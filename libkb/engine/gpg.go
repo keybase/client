@@ -38,7 +38,9 @@ func (g *GPG) RequiredUIs() []libkb.UIKind {
 }
 
 func (g *GPG) SubConsumers() []UIConsumer {
-	return nil
+	return []UIConsumer{
+		libkb.NewKeyGen(nil),
+	}
 }
 
 func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
@@ -137,8 +139,11 @@ func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error
 	arg := &libkb.KeyGenArg{
 		Pregen:       bundle,
 		DoSecretPush: res.DoSecretPush,
-		SecretUI:     ctx.UIG().Secret,
 		SigningKey:   signingKey,
+		KeyGenUI:     ctx.UIG().KeyGen,
+		LoginUI:      ctx.UIG().Login,
+		LogUI:        ctx.UIG().Log,
+		SecretUI:     ctx.UIG().Secret,
 	}
 	kg := libkb.NewKeyGen(arg)
 	if _, err := kg.Run(); err != nil {

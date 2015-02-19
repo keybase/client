@@ -89,7 +89,12 @@ func TestSignupWithGPG(t *testing.T) {
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	s := NewSignupEngine()
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", false, true}
-	ctx := NewContext(G.UI.GetLogUI(), &gpgtestui{}, secui)
+	ctx := NewContext(
+		G.UI.GetLogUI(),
+		&gpgtestui{},
+		secui,
+		&libkb.TestKeyGenUI{},
+		&libkb.TestLoginUI{fu.Username})
 	if err := RunEngine(s, ctx, arg, nil); err != nil {
 		t.Fatal(err)
 	}

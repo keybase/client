@@ -201,7 +201,12 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
-	ctx := NewContext(&gpgtestui{}, secui)
+	ctx := NewContext(
+		&gpgtestui{},
+		secui,
+		G.UI.GetLogUI(),
+		&libkb.TestKeyGenUI{},
+		&libkb.TestLoginUI{fu.Username})
 	s := NewSignupEngine()
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
@@ -228,7 +233,12 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	s := NewSignupEngine()
-	ctx := NewContext(&gpgPubOnlyTestUI{}, secui)
+	ctx := NewContext(
+		&gpgPubOnlyTestUI{},
+		secui,
+		G.UI.GetLogUI(),
+		&libkb.TestKeyGenUI{},
+		&libkb.TestLoginUI{fu.Username})
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
 		t.Fatal(err)
@@ -254,7 +264,12 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	s := NewSignupEngine()
-	ctx := NewContext(&gpgtestui{}, secui)
+	ctx := NewContext(
+		&gpgtestui{},
+		secui,
+		G.UI.GetLogUI(),
+		&libkb.TestKeyGenUI{},
+		&libkb.TestLoginUI{fu.Username})
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
 		t.Fatal(err)
