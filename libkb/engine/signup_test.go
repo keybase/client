@@ -87,7 +87,7 @@ func TestSignupWithGPG(t *testing.T) {
 		t.Fatal(err)
 	}
 	secui := libkb.TestSecretUI{fu.Passphrase}
-	s := NewSignupEngine(&gpgtestui{}, secui)
+	s := NewSignupEngine()
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", false, true}
 	ctx := NewContext(G.UI.GetLogUI(), &gpgtestui{}, secui)
 	if err := RunEngine(s, ctx, arg, nil); err != nil {
@@ -98,7 +98,7 @@ func TestSignupWithGPG(t *testing.T) {
 func TestLocalKeySecurity(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
-	s := NewSignupEngine(nil, nil)
+	s := NewSignupEngine()
 	fu := NewFakeUserOrBust(t, "se")
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}

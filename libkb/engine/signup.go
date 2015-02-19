@@ -13,12 +13,10 @@ type SignupEngine struct {
 	uid        libkb.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
-	gpgUI      libkb.GPGUI
-	secretUI   libkb.SecretUI
 }
 
-func NewSignupEngine(gpgUI libkb.GPGUI, secretUI libkb.SecretUI) *SignupEngine {
-	return &SignupEngine{gpgUI: gpgUI, secretUI: secretUI}
+func NewSignupEngine() *SignupEngine {
+	return &SignupEngine{}
 }
 
 func (s *SignupEngine) Name() string {
@@ -93,10 +91,10 @@ func (s *SignupEngine) Run(ctx *Context, args interface{}, reply interface{}) er
 		return nil
 	}
 
-	if wantsGPG, err := s.checkGPG(); err != nil {
+	if wantsGPG, err := s.checkGPG(ctx); err != nil {
 		return err
 	} else if wantsGPG {
-		if err := s.addGPG(); err != nil {
+		if err := s.addGPG(ctx); err != nil {
 			return err
 		}
 	}
@@ -161,16 +159,18 @@ func (s *SignupEngine) genDetKeys(ctx *Context) error {
 	return RunEngine(eng, ctx, DetKeyArgs{Tsp: &s.tspkey}, nil)
 }
 
-func (s *SignupEngine) checkGPG() (bool, error) {
-	eng := NewGPG(s.gpgUI, s.secretUI)
-	return eng.WantsGPG()
+func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
+	eng := NewGPG()
+	return eng.WantsGPG(ctx)
 }
 
-func (s *SignupEngine) addGPG() error {
-	eng := NewGPG(s.gpgUI, s.secretUI)
-	if err := eng.Run(s.signingKey, ""); err != nil {
+func (s *SignupEngine) addGPG(ctx *Context) error {
+	eng := NewGPG()
+	arg := GPGArg{Signer: s.signingKey}
+	if err := RunEngine(eng, ctx, arg, nil); err != nil {
 		return err
 	}
+
 	if s.signingKey == nil {
 		s.signingKey = eng.LastKey()
 	}

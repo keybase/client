@@ -8,17 +8,40 @@ import (
 	keybase_1 "github.com/keybase/protocol/go"
 )
 
+// LoadDeviceKey: true => then load the device key as a signer
+// else:
+// Signer: nil => will make the selected pgp key the primary
+// Signer: non-nil => will use Signer to sign selected pgp key
+type GPGArg struct {
+	Query         string
+	Signer        libkb.GenericKey
+	LoadDeviceKey bool
+}
+
 type GPG struct {
-	ui       libkb.GPGUI
-	secretUI libkb.SecretUI
-	last     *libkb.PgpKeyBundle
+	last *libkb.PgpKeyBundle
 }
 
-func NewGPG(ui libkb.GPGUI, sui libkb.SecretUI) *GPG {
-	return &GPG{ui: ui, secretUI: sui}
+func NewGPG() *GPG {
+	return &GPG{}
 }
 
-func (g *GPG) WantsGPG() (bool, error) {
+func (g *GPG) Name() string {
+	return "GPG"
+}
+
+func (g *GPG) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{
+		libkb.GPGUIKind,
+		libkb.SecretUIKind,
+	}
+}
+
+func (g *GPG) SubEngines() []Engine {
+	return nil
+}
+
+func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
 	gpg := G.GetGpgClient()
 	if _, err := gpg.Configure(); err != nil {
 		if err == exec.ErrNotFound {
@@ -29,14 +52,25 @@ func (g *GPG) WantsGPG() (bool, error) {
 
 	// they have gpg
 
-	res, err := g.ui.WantToAddGPGKey()
+	res, err := ctx.UIG().GPG.WantToAddGPGKey()
 	if err != nil {
 		return false, err
 	}
 	return res, nil
 }
 
-func (g *GPG) RunLoadKey(query string) error {
+func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) error {
+	arg, ok := args.(GPGArg)
+	if !ok {
+		return fmt.Errorf("GPG.Run: invalid args type: %T", args)
+	}
+	if arg.LoadDeviceKey {
+		return g.runLoadKey(ctx, arg.Query)
+	}
+	return g.run(ctx, arg.Signer, arg.Query)
+}
+
+func (g *GPG) runLoadKey(ctx *Context, query string) error {
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		return err
@@ -45,10 +79,10 @@ func (g *GPG) RunLoadKey(query string) error {
 	if err != nil {
 		return err
 	}
-	return g.Run(sk, query)
+	return g.run(ctx, sk, query)
 }
 
-func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
+func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error {
 	gpg := G.GetGpgClient()
 	if _, err := gpg.Configure(); err != nil {
 		return err
@@ -70,7 +104,7 @@ func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
 		gks = append(gks, gk)
 	}
 
-	res, err := g.ui.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
+	res, err := ctx.UIG().GPG.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
 	}
@@ -93,7 +127,7 @@ func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
 		return fmt.Errorf("ImportKey error: %s", err)
 	}
 
-	if err := bundle.Unlock("Import of key into keybase keyring", g.secretUI); err != nil {
+	if err := bundle.Unlock("Import of key into keybase keyring", ctx.UIG().Secret); err != nil {
 		return fmt.Errorf("bundle Unlock error: %s", err)
 	}
 
@@ -103,7 +137,7 @@ func (g *GPG) Run(signingKey libkb.GenericKey, query string) error {
 	arg := &libkb.KeyGenArg{
 		Pregen:       bundle,
 		DoSecretPush: res.DoSecretPush,
-		SecretUI:     g.secretUI,
+		SecretUI:     ctx.UIG().Secret,
 		SigningKey:   signingKey,
 	}
 	kg := libkb.NewKeyGen(arg)
