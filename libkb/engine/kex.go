@@ -203,7 +203,13 @@ func (k *Kex) Listen(u *libkb.User, src libkb.DeviceID) {
 	if err != nil {
 		G.Log.Warning("kex.Listen: error getting device sibkey: %s", err)
 	}
-	k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.uig.Secret, k.user)
+	arg := libkb.SecretKeyArg{
+		DeviceKey: true,
+		Reason:    "new device install",
+		Ui:        k.uig.Secret,
+		Me:        k.user,
+	}
+	k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 	if err != nil {
 		G.Log.Warning("GetSecretKey error: %s", err)
 	}
@@ -328,14 +334,15 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 
 	// need the private device sibkey
 	// k.deviceSibkey is public only
-	// going to use keyring.go:GetSecretKey()
-	// however, it could return any key.
-	// there is a ticket to add preferences to it so we could only
-	// get a device key.
-	// but it should currently return a device key first...
 	if k.sigKey == nil {
 		var err error
-		k.sigKey, err = G.Keyrings.GetSecretKey("new device install", k.uig.Secret, k.user)
+		arg := libkb.SecretKeyArg{
+			DeviceKey: true,
+			Reason:    "new device install",
+			Ui:        k.uig.Secret,
+			Me:        k.user,
+		}
+		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 		if err != nil {
 			return err
 		}
