@@ -317,26 +317,23 @@ type AppStatusError struct {
 	Code   int
 	Name   string
 	Desc   string
-	Fields map[string]bool
+	Fields map[string]string
 }
 
 func (a AppStatusError) IsBadField(s string) bool {
-	ok, found := a.Fields[s]
-	return ok && found
+	_, found := a.Fields[s]
+	return found
 }
 
 func NewAppStatusError(jw *jsonw.Wrapper) AppStatusError {
 	code, _ := jw.AtKey("code").GetInt64()
 	desc, _ := jw.AtKey("desc").GetString()
 	name, _ := jw.AtKey("name").GetString()
-	var tab map[string]bool
-	v := jw.AtKey("fields")
-	if l, err := v.Len(); err == nil {
-		tab = make(map[string]bool)
-		for i := 0; i < l; i++ {
-			if f, err := v.AtIndex(i).GetString(); err == nil {
-				tab[f] = true
-			}
+	tab := make(map[string]string)
+	fields := jw.AtKey("fields")
+	if keys, _ := fields.Keys(); keys != nil && len(keys) > 0 {
+		for _, k := range keys {
+			tab[k], _ = fields.AtKey(k).GetString()
 		}
 	}
 	return AppStatusError{
