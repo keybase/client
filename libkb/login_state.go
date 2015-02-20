@@ -29,20 +29,34 @@ type LoginState struct {
 	loginSessionB64 string
 	tsec            *triplesec.Cipher
 	tspkey          *TSPassKey
-	sharedSecret    []byte
 	sessionFor      string
+	extraKeystream []byte
 
 	loggedInRes *LoggedInResult
 }
 
-const SharedSecretLen = 32
+const (
+	pwhIndex   = 0
+	pwhLen     = 32
+	eddsaIndex = pwhIndex + pwhLen
+	eddsaLen   = 32
+	dhIndex    = eddsaIndex + eddsaLen
+	dhLen      = 32
+	lksIndex   = dhIndex + dhLen
+	lksLen     = 32
+	extraLen   = pwhLen + eddsaLen + dhLen + lksLen
+)
 
 func NewLoginState() *LoginState {
 	return &LoginState{}
 }
 
-func (s LoginState) GetSharedSecret() []byte {
-	return s.sharedSecret
+func (s LoginState) GetCachedSharedSecret() []byte {
+	return s.extraKeystream[pwhIndex:eddsaIndex]
+}
+
+func (s LoginState) GetCachedTSPassKey() TSPassKey {
+	return TSPassKey(s.extraKeystream)
 }
 
 func (s LoginState) IsLoggedIn() bool {
@@ -115,20 +129,21 @@ func (s *LoginState) StretchKey(passphrase string) (err error) {
 		if s.tsec, err = triplesec.NewCipher([]byte(passphrase), s.salt); err != nil {
 			return err
 		}
+		_, s.extraKeystream, err = s.tsec.DeriveKey(extraLen)
 	}
-	if s.tspkey == nil {
-		if tk, err := NewTSPassKey(passphrase, s.salt); err != nil {
-			return err
-		} else {
-			s.tspkey = &tk
-		}
-	}
-	_, s.sharedSecret, err = s.tsec.DeriveKey(SharedSecretLen)
 	return nil
 }
 
+func (s *LoginState) GetTSPassKey(passphrase string) (ret *TSPassKey, err error) {
+	if err = s.StretchKey(passphrase) != nil {
+		return
+	}
+	ret = s.GetCachedTSPassKey()
+	return
+}
+
 func (s *LoginState) ComputeLoginPw() ([]byte, error) {
-	mac := hmac.New(sha512.New, s.sharedSecret)
+	mac := hmac.New(sha512.New, s.GetCachedSharedSecret())
 	mac.Write(s.loginSession)
 	return mac.Sum(nil), nil
 }
@@ -212,10 +227,7 @@ func (s *LoginState) Logout() error {
 			s.tsec.Scrub()
 			s.tsec = nil
 		}
-		if s.tspkey != nil {
-			s.tspkey.Scrub()
-			s.tspkey = nil
-		}
+		s.extraKeystream = nil
 	}
 	if G.SecretSyncer != nil {
 		G.SecretSyncer.Clear()
@@ -478,7 +490,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 	err = s.PostLoginToServer(emailOrUsername, lgpw)
 	if err != nil {
 		s.tsec = nil
-		s.tspkey = nil
+		s.extraKeystream = nil
 		return err
 	}
 
@@ -526,6 +538,29 @@ func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 	return s.tsec
 }
 
-func (s *LoginState) GetCachedTSPassKey() *TSPassKey {
-	return s.tspkey
+//==================================================
+
+type TSPassKey []byte
+
+func (d TSPassKey) PWHash() []byte {
+	return d[pwhIndex:eddsaIndex]
 }
+
+func (d TSPassKey) EdDSASeed() []byte {
+	return d[eddsaIndex:dhIndex]
+}
+
+func (d TSPassKey) DHSeed() []byte {
+	return d[dhIndex:lksIndex]
+}
+
+func (d TSPassKey) LksClientHalf() []byte {
+	return d[lksIndex:]
+}
+
+func (d TSPassKey) String() string {
+	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASeed(), d.DHSeed(), d.LksClientHalf())
+}
+
+//==================================================
+
