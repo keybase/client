@@ -801,6 +801,11 @@ func (ckf ComputedKeyFamily) DumpToLog(ui LogUI) {
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
+
+	G.Log.Debug("+ UpdateDevice")
+	defer func() {
+		G.Log.Debug("- UpdateDevice -> %s", ErrToOk(err))
+	}()
 	var dobj *Device
 	if dobj = tcl.GetDevice(); dobj == nil {
 		return
@@ -810,11 +815,15 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	kid := dobj.Kid
 	var prevKid *string
 
+	G.Log.Debug("| Device ID=%s; KID=%s", did, kid)
+
 	if existing, found := ckf.cki.Devices[did]; found {
+		G.Log.Debug("| merge with existing")
 		prevKid = existing.Kid
 		existing.Merge(dobj)
 		dobj = existing
 	} else {
+		G.Log.Debug("| New insert")
 		ckf.cki.Devices[did] = dobj
 	}
 
@@ -822,6 +831,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// We might wind up just clobbering it with the same thing, but
 	// that's fine for now.
 	if prevKid != nil && len(*prevKid) > 0 {
+		G.Log.Debug("| Clear out old key")
 		delete(ckf.cki.KidToDeviceId, *prevKid)
 	}
 
@@ -831,6 +841,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 
 	// Last-writer wins on the Web device
 	if dobj != nil && dobj.IsWeb() {
+		G.Log.Debug("| Set Web/DetKey Device")
 		ckf.cki.WebDevice = dobj
 	}
 
