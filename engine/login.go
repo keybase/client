@@ -23,16 +23,12 @@ func (e *LoginEngine) Name() string {
 
 func (e *LoginEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
-		libkb.LogUIKind,
 		libkb.LoginUIKind,
-		libkb.DoctorUIKind,
-		libkb.GPGUIKind,
-		libkb.SecretUIKind,
 	}
 }
 
 func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{NewDoctor()}
 }
 
 func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
@@ -40,6 +36,8 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 	if !ok {
 		return fmt.Errorf("LoginEngine.Run: invalid args type %T", args)
 	}
+	arg.Login.SecretUI = ctx.UIG().Secret
+	arg.Login.Ui = ctx.UIG().Login
 	if err := G.LoginState.Login(arg.Login); err != nil {
 		return err
 	}
@@ -55,6 +53,6 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(&DocArg{DocUI: ctx.UIG().Doctor, SecretUI: ctx.UIG().Secret, LogUI: ctx.UIG().Log, GpgUI: ctx.UIG().GPG}, WithKexServer(arg.KexSrv))
-	return doctor.LoginCheckup(u)
+	doctor := NewDoctor(WithKexServer(arg.KexSrv))
+	return doctor.LoginCheckup(ctx, u)
 }

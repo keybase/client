@@ -9,26 +9,32 @@ import (
 )
 
 type Doctor struct {
-	user     *libkb.User
-	docUI    libkb.DoctorUI
-	secretUI libkb.SecretUI
-	logUI    libkb.LogUI
-	gpgUI    libkb.GPGUI
+	user *libkb.User
+	/*
+		docUI    libkb.DoctorUI
+		secretUI libkb.SecretUI
+		logUI    libkb.LogUI
+		gpgUI    libkb.GPGUI
+	*/
 
 	signingKey libkb.GenericKey
 	kexServer  KexServer
 	devName    string
 }
 
+/*
 type DocArg struct {
 	DocUI    libkb.DoctorUI
 	SecretUI libkb.SecretUI
 	LogUI    libkb.LogUI
 	GpgUI    libkb.GPGUI
 }
+*/
 
-func NewDoctor(arg *DocArg, options ...func(*Doctor)) *Doctor {
-	d := &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, gpgUI: arg.GpgUI}
+// func NewDoctor(arg *DocArg, options ...func(*Doctor)) *Doctor {
+func NewDoctor(options ...func(*Doctor)) *Doctor {
+	//	d := &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, gpgUI: arg.GpgUI}
+	d := &Doctor{}
 	for _, opt := range options {
 		opt(d)
 	}
@@ -41,13 +47,33 @@ func WithKexServer(s KexServer) func(r *Doctor) {
 	}
 }
 
-func (d *Doctor) LoginCheckup(u *libkb.User) error {
+func (d *Doctor) Name() string {
+	return "Doctor"
+}
+
+func (d *Doctor) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{
+		libkb.LogUIKind,
+		libkb.DoctorUIKind,
+		libkb.GPGUIKind,
+		libkb.SecretUIKind,
+	}
+}
+
+func (d *Doctor) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{
+		NewDeviceEngine(nil),
+		NewDetKeyEngine(nil, nil, nil),
+	}
+}
+
+func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
 	d.user = u
 
 	// This can fail, but we'll warn if it does.
 	d.syncSecrets()
 
-	if err := d.checkKeys(); err != nil {
+	if err := d.checkKeys(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -60,13 +86,13 @@ func (d *Doctor) syncSecrets() (err error) {
 	return err
 }
 
-func (d *Doctor) checkKeys() error {
+func (d *Doctor) checkKeys(ctx *Context) error {
 	kf := d.user.GetKeyFamily()
 	if kf == nil {
-		return d.addBasicKeys()
+		return d.addBasicKeys(ctx)
 	}
 	if kf.GetEldest() == nil {
-		return d.addBasicKeys()
+		return d.addBasicKeys(ctx)
 	}
 
 	// they have at least one key
@@ -94,12 +120,12 @@ func (d *Doctor) checkKeys() error {
 
 	if G.SecretSyncer.HasActiveDevice() {
 		// they have at least one device, just not this device...
-		return d.deviceSign(hasPGP)
+		return d.deviceSign(ctx, hasPGP)
 	}
 
 	// they don't have any devices.
 
-	dk, err := d.detkey()
+	dk, err := d.detkey(ctx)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
 			// they don't have a detkey.
@@ -114,40 +140,39 @@ func (d *Doctor) checkKeys() error {
 			}
 
 			// deviceSign will handle the rest...
-			return d.deviceSign(true)
+			return d.deviceSign(ctx, true)
 		}
 		return err
 	}
 
 	// use their detkey to sign this device
-	return d.addDeviceKeyWithSigner(dk, dk.GetKid())
+	return d.addDeviceKeyWithSigner(ctx, dk, dk.GetKid())
 }
 
 // addBasicKeys is used for accounts that have no device or det
 // keys.
-func (d *Doctor) addBasicKeys() error {
-	if err := d.addDeviceKey(); err != nil {
+func (d *Doctor) addBasicKeys(ctx *Context) error {
+	if err := d.addDeviceKey(ctx); err != nil {
 		return err
 	}
 
-	if err := d.addDetKey(d.signingKey.GetKid()); err != nil {
+	if err := d.addDetKey(ctx, d.signingKey.GetKid()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (d *Doctor) addDeviceKey() error {
-	devname, err := d.deviceName()
+func (d *Doctor) addDeviceKey(ctx *Context) error {
+	devname, err := d.deviceName(ctx)
 	if err != nil {
 		return err
 	}
-	tk, err := d.tspkey()
+	tk, err := d.tspkey(ctx)
 	if err != nil {
 		return err
 	}
 	eng := NewDeviceEngine(d.user)
-	ctx := NewContext(d.logUI)
 	args := DeviceEngineArgs{
 		Name:          devname,
 		LksClientHalf: tk.LksClientHalf(),
@@ -161,17 +186,16 @@ func (d *Doctor) addDeviceKey() error {
 	return nil
 }
 
-func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey, eldestKID libkb.KID) error {
-	devname, err := d.deviceName()
+func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
+	devname, err := d.deviceName(ctx)
 	if err != nil {
 		return err
 	}
-	tk, err := d.tspkey()
+	tk, err := d.tspkey(ctx)
 	if err != nil {
 		return err
 	}
 	eng := NewDeviceEngine(d.user)
-	ctx := NewContext(d.logUI)
 	args := DeviceEngineArgs{
 		Name:          devname,
 		LksClientHalf: tk.LksClientHalf(),
@@ -186,14 +210,12 @@ func (d *Doctor) addDeviceKeyWithSigner(signer libkb.GenericKey, eldestKID libkb
 	return nil
 }
 
-func (d *Doctor) addDetKey(eldest libkb.KID) error {
-	tk, err := d.tspkey()
+func (d *Doctor) addDetKey(ctx *Context, eldest libkb.KID) error {
+	tk, err := d.tspkey(ctx)
 	if err != nil {
 		return err
 	}
 	eng := NewDetKeyEngine(d.user, d.signingKey, eldest)
-	// 	return eng.Run(tk)
-	ctx := NewContext(d.logUI)
 	return RunEngine(eng, ctx, DetKeyArgs{Tsp: tk}, nil)
 }
 
@@ -202,8 +224,8 @@ var ErrNotYetImplemented = errors.New("not yet implemented")
 // deviceSign is used to sign a new installation of keybase on a
 // new device.  It happens when the user has keys already, either
 // a device key, pgp key, or both.
-func (d *Doctor) deviceSign(withPGPOption bool) error {
-	devname, err := d.deviceName()
+func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
+	devname, err := d.deviceName(ctx)
 	if err != nil {
 		return err
 	}
@@ -219,7 +241,7 @@ func (d *Doctor) deviceSign(withPGPOption bool) error {
 	}
 	arg.HasPGP = withPGPOption
 
-	res, err := d.docUI.SelectSigner(arg)
+	res, err := ctx.UIG().Doctor.SelectSigner(arg)
 	if err != nil {
 		return err
 	}
@@ -240,23 +262,23 @@ func (d *Doctor) deviceSign(withPGPOption bool) error {
 	// sign action:
 
 	if res.Signer.Kind == keybase_1.DeviceSignerKind_PGP {
-		return d.deviceSignPGP()
+		return d.deviceSignPGP(ctx)
 	}
 
 	if res.Signer.Kind == keybase_1.DeviceSignerKind_DEVICE {
-		return d.deviceSignExistingDevice(*res.Signer.DeviceID, devname, libkb.DEVICE_TYPE_DESKTOP)
+		return d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, devname, libkb.DEVICE_TYPE_DESKTOP)
 	}
 
 	return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
 }
 
-func (d *Doctor) deviceSignPGP() error {
+func (d *Doctor) deviceSignPGP(ctx *Context) error {
 	pgpKeys := d.user.GetActivePgpKeys(false)
 	var selected *libkb.PgpKeyBundle
 	if len(pgpKeys) > 1 {
 		// show a list of pgp keys and let them select which one to use
 		var err error
-		selected, err = d.selectPGPKey(pgpKeys)
+		selected, err = d.selectPGPKey(ctx, pgpKeys)
 		if err != nil {
 			return err
 		}
@@ -275,11 +297,11 @@ func (d *Doctor) deviceSignPGP() error {
 			return err
 		}
 
-		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", d.secretUI)
+		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", ctx.UIG().Secret)
 		if err != nil {
 			return err
 		}
-		return d.deviceSignPGPNext(pgpk)
+		return d.deviceSignPGPNext(ctx, pgpk)
 	}
 
 	// use gpg to unlock it
@@ -293,32 +315,32 @@ func (d *Doctor) deviceSignPGP() error {
 		return fmt.Errorf("ImportKey error: %s", err)
 	}
 
-	if err := bundle.Unlock("Import of key into keybase keyring", d.secretUI); err != nil {
+	if err := bundle.Unlock("Import of key into keybase keyring", ctx.UIG().Secret); err != nil {
 		return fmt.Errorf("bundle Unlock error: %s", err)
 	}
 
-	return d.deviceSignPGPNext(bundle)
+	return d.deviceSignPGPNext(ctx, bundle)
 }
 
-func (d *Doctor) deviceSignPGPNext(pgpk libkb.GenericKey) error {
+func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 	if pgpk.CanSign() == false {
 		return fmt.Errorf("pgp key can't sign")
 	}
 
 	eldest := d.user.GetEldestFOKID().Kid
 	G.Log.Info("eldest kid from user: %s", eldest)
-	if err := d.addDeviceKeyWithSigner(pgpk, eldest); err != nil {
+	if err := d.addDeviceKeyWithSigner(ctx, pgpk, eldest); err != nil {
 		return err
 	}
 
-	if err := d.addDetKey(eldest); err != nil {
+	if err := d.addDetKey(ctx, eldest); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (d *Doctor) deviceSignExistingDevice(id, devName, devType string) error {
+func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType string) error {
 	G.Log.Info("device sign with existing device [%s]", id)
 
 	if d.kexServer == nil {
@@ -336,20 +358,17 @@ func (d *Doctor) deviceSignExistingDevice(id, devName, devType string) error {
 		return err
 	}
 
-	tk, err := d.tspkey()
+	tk, err := d.tspkey(ctx)
 	if err != nil {
 		return err
 	}
 	//	if err := eng.Run(devname, tk.LksClientHalf()); err != nil {
 
-	k := NewKex(d.kexServer, tk.LksClientHalf(), &libkb.UIGroup{Secret: d.secretUI, Log: d.logUI, Doctor: d.docUI})
-	return k.StartForward(d.user, src, *dst, devType, devName)
+	k := NewKex(d.kexServer, tk.LksClientHalf())
+	return k.StartForward(ctx, d.user, src, *dst, devType, devName)
 }
 
-func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {
-	if d.gpgUI == nil {
-		return nil, fmt.Errorf("nil gpg ui")
-	}
+func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {
 	var gks []keybase_1.GPGKey
 	for _, key := range keys {
 		algo, kid, creation := key.KeyInfo()
@@ -362,7 +381,7 @@ func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, 
 		gks = append(gks, gk)
 	}
 
-	keyid, err := d.gpgUI.SelectKey(keybase_1.SelectKeyArg{Keys: gks})
+	keyid, err := ctx.UIG().GPG.SelectKey(keybase_1.SelectKeyArg{Keys: gks})
 	if err != nil {
 		return nil, err
 	}
@@ -379,14 +398,14 @@ func (d *Doctor) selectPGPKey(keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, 
 	return selected, nil
 }
 
-func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {
+func (d *Doctor) tspkey(ctx *Context) (*libkb.TSPassKey, error) {
 	t := G.LoginState.GetCachedTSPassKey()
 	if t != nil {
 		return t, nil
 	}
 
 	// not cached: get it from the ui
-	pp, err := d.secretUI.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{Username: G.Env.GetUsername()})
+	pp, err := ctx.UIG().Secret.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{Username: G.Env.GetUsername()})
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +416,7 @@ func (d *Doctor) tspkey() (*libkb.TSPassKey, error) {
 	return G.LoginState.GetCachedTSPassKey(), nil
 }
 
-func (d *Doctor) detkey() (libkb.GenericKey, error) {
+func (d *Doctor) detkey(ctx *Context) (libkb.GenericKey, error) {
 	// get server half of detkey via ss
 	half, err := G.SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
 	if err != nil {
@@ -405,7 +424,7 @@ func (d *Doctor) detkey() (libkb.GenericKey, error) {
 	}
 
 	// regenerate the detkey
-	tk, err := d.tspkey()
+	tk, err := d.tspkey(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -417,9 +436,9 @@ func (d *Doctor) detkey() (libkb.GenericKey, error) {
 	return detkey, nil
 }
 
-func (d *Doctor) deviceName() (string, error) {
+func (d *Doctor) deviceName(ctx *Context) (string, error) {
 	if len(d.devName) == 0 {
-		name, err := d.docUI.PromptDeviceName(0)
+		name, err := ctx.UIG().Doctor.PromptDeviceName(0)
 		if err != nil {
 			return "", err
 		}

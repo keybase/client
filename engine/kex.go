@@ -21,6 +21,7 @@ type KexContext struct {
 	StrongID KexStrongID // `I` in doc
 	Src      libkb.DeviceID
 	Dst      libkb.DeviceID
+	*Context
 }
 
 func (c *KexContext) Swap() {
@@ -49,15 +50,14 @@ type Kex struct {
 	doneReceived  chan bool
 	debugName     string
 	xDevKeyID     libkb.KID
-	uig           *libkb.UIGroup
 	lks           *libkb.LKSec
 	getSecret     func() string // testing only
 }
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s KexServer, lksCli []byte, uig *libkb.UIGroup, options ...func(*Kex)) *Kex {
-	k := &Kex{server: s, uig: uig, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+func NewKex(s KexServer, lksCli []byte, options ...func(*Kex)) *Kex {
+	k := &Kex{server: s, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
 	k.lks = libkb.NewLKSecClientHalf(lksCli)
 	for _, opt := range options {
 		opt(k)
@@ -71,7 +71,7 @@ func SetDebugName(name string) func(k *Kex) {
 	}
 }
 
-func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devDesc string) error {
+func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID, devType, devDesc string) error {
 	k.user = u
 	k.deviceID = src
 
@@ -91,12 +91,13 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 		StrongID: id,
 		Src:      src,
 		Dst:      dst,
+		Context:  ectx,
 	}
 	copy(ctx.WeakID[:], id[0:16])
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
-	if err := k.uig.Doctor.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
+	if err := ctx.UIG().Doctor.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
 		return err
 	}
 
@@ -126,10 +127,10 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 	}
 
 	// store E_y, M_y in lks
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, k.uig.Log); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, ctx.UIG().Log); err != nil {
 		return err
 	}
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, k.uig.Log); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, ctx.UIG().Log); err != nil {
 		return err
 	}
 
@@ -195,7 +196,7 @@ func (k *Kex) StartForward(u *libkb.User, src, dst libkb.DeviceID, devType, devD
 // XXX temporary...
 // this is to get around the fact that the globals won't work well
 // in the test with two devices communicating in the same process.
-func (k *Kex) Listen(u *libkb.User, src libkb.DeviceID) {
+func (k *Kex) Listen(ctx *Context, u *libkb.User, src libkb.DeviceID) {
 	k.user = u
 	k.deviceID = src
 	var err error
@@ -206,7 +207,7 @@ func (k *Kex) Listen(u *libkb.User, src libkb.DeviceID) {
 	arg := libkb.SecretKeyArg{
 		DeviceKey: true,
 		Reason:    "new device install",
-		Ui:        k.uig.Secret,
+		Ui:        ctx.UIG().Secret,
 		Me:        k.user,
 	}
 	k.sigKey, err = G.Keyrings.GetSecretKey(arg)
@@ -339,7 +340,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 		arg := libkb.SecretKeyArg{
 			DeviceKey: true,
 			Reason:    "new device install",
-			Ui:        k.uig.Secret,
+			Ui:        ctx.UIG().Secret,
 			Me:        k.user,
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)

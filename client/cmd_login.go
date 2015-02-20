@@ -48,7 +48,6 @@ func (v *CmdLogin) Run() error {
 			Prompt:   true,
 			Retry:    3,
 			Username: v.Username,
-			SecretUI: G_UI.GetSecretUI(),
 		},
 	}
 	return engine.RunEngine(li, ctx, arg, nil)
