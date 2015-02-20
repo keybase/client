@@ -77,7 +77,7 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 40;
+    CGFloat y = 30;
 
     CGFloat padding = 12;
 

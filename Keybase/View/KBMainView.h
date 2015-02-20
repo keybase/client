@@ -15,7 +15,10 @@
 @interface KBMainView : YONSView <NSWindowDelegate, KBSourceViewDelegate> //, NSWindowRestoration>
 
 @property (nonatomic) KBRUser *user;
+@property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 
 - (void)openWindow;
+
+- (void)logout;
 
 @end

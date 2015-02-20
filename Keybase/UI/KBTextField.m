@@ -19,6 +19,7 @@
 @interface KBTextField ()
 @property NSTextField *textField;
 @property NSBox *box;
+@property BOOL focused;
 @end
 
 @implementation KBTextField
@@ -60,6 +61,10 @@
   }];
 }
 
+- (void)dealloc {
+  [NSNotificationCenter.defaultCenter removeObserver:self];
+}
+
 - (NSString *)description {
   return NSStringWithFormat(@"%@: %@", self.className, self.text ? self.text : self.placeholder);
 }
@@ -77,11 +82,20 @@
 }
 
 - (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused {
-  GHDebug(@"Focused: %@ (%@)", @(focused), self.placeholder);
-  _box.borderColor = focused ? [KBLookAndFeel selectColor] : [KBLookAndFeel lineColor];
-  CGRect r = _box.frame;
-  r.size = CGSizeMake(_box.frame.size.width, focused ? 2.0 : 1.0);
-  _box.frame = r;
+  _focused = focused;
+//  GHDebug(@"Focused: %@ (%@)", @(focused), self.placeholder);
+//  _box.borderColor = focused ? [KBLookAndFeel selectColor] : [KBLookAndFeel lineColor];
+//  CGRect r = _box.frame;
+//  r.size = CGSizeMake(_box.frame.size.width, focused ? 2.0 : 1.0);
+//  _box.frame = r;
+}
+
+- (void)textField:(NSTextField *)textField didChangeEnabled:(BOOL)enabled {
+  if (enabled && _focused) {
+//    _box.borderColor = [KBLookAndFeel selectColor];
+  } else if (!enabled && _focused) {
+//    _box.borderColor = [KBLookAndFeel lineColor];
+  }
 }
 
 - (void)setText:(NSString *)text {
@@ -114,13 +128,39 @@
 @implementation KBNSTextField
 
 - (BOOL)becomeFirstResponder {
-  [self.focusDelegate textField:self didChangeFocus:(self.editable)];
-  return [super becomeFirstResponder];
+  BOOL responder = [super becomeFirstResponder];
+  [self.focusDelegate textField:self didChangeFocus:[self checkResponder:@"Become"]];
+  return responder;
+}
+
+- (BOOL)resignFirstResponder {
+  BOOL resigned = [super resignFirstResponder];
+  [self.focusDelegate textField:self didChangeFocus:[self checkResponder:@"Resign"]];
+  return resigned;
+}
+
+- (void)setEnabled:(BOOL)enabled {
+  [super setEnabled:enabled];
+  [self.focusDelegate textField:self didChangeEnabled:enabled];
+}
+
+- (BOOL)checkResponder:(NSString *)reason {
+  id firstResponder = [[NSApp keyWindow] firstResponder];
+
+  if ([firstResponder isKindOfClass:NSText.class]) {
+    firstResponder = (id)[(NSText *)firstResponder delegate];
+  }
+
+  BOOL isSelf = (firstResponder == self);
+  NSString *description = [firstResponder description];
+  if ([firstResponder respondsToSelector:@selector(placeholderString)]) description = [firstResponder placeholderString];
+  //GHDebug(@"[%@] First responder: %@ (%@); %@", reason, firstResponder, description, @(isSelf));
+  return isSelf;
 }
 
 - (void)textDidEndEditing:(NSNotification *)notification {
   [super textDidEndEditing:notification];
-  [self.focusDelegate textField:self didChangeFocus:NO];
+  [self.focusDelegate textField:self didChangeFocus:[self checkResponder:@"Resign"]];
 }
 
 @end

@@ -62,6 +62,10 @@
   [_preferencesWindowController showWindow:nil];
 }
 
+- (void)close {
+  [_preferencesWindowController close];
+}
+
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
   [NSUserDefaults.standardUserDefaults setObject:@([object state]) forKey:[object identifier]];
   [NSUserDefaults.standardUserDefaults synchronize];

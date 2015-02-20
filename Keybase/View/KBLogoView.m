@@ -44,12 +44,4 @@
   }
 }
 
-- (void)setTitle:(NSString *)title {
-  // Nothing
-}
-
-- (void)setProgressEnabled:(BOOL)progressEnabled {
-  // Nothing
-}
-
 @end

@@ -26,6 +26,7 @@
 
 + (void)setError:(NSError *)error sender:(NSView *)sender;
 + (void)setInProgress:(BOOL)inProgress view:(NSView *)view;
+- (void)setFatalError:(NSError *)error;
 
 + (NSString *)loadFile:(NSString *)file;
 

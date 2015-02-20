@@ -52,9 +52,17 @@
     frame.size.width = s;
     frame.size.height = s;
   }
-  self.shapeLayer.frame = frame;
 
+  if (_animating) {
+    [self removeAnimation];
+  }
+
+  self.shapeLayer.frame = frame;
   self.shapeLayer.path = [[self layoutPath] kb_CGPath];
+
+  if (_animating) {
+    [self addAnimation];
+  }
 }
 
 - (NSBezierPath *)layoutPath {

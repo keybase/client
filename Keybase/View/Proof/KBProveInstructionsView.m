@@ -24,11 +24,8 @@
   _proofLabel.selectable = YES;
 
   _scrollView = [[KBScrollView alloc] init];
-  _scrollView.hasVerticalScroller = YES;
-  _scrollView.autohidesScrollers = YES;
-  [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
   [_scrollView setDocumentView:_proofLabel];
-  _scrollView.borderType = NSBezelBorder;
+  _scrollView.scrollView.borderType = NSBezelBorder;
   [self addSubview:_scrollView];
 
   GHWeakSelf gself = self;
@@ -52,7 +49,6 @@
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.instructionsLabel].size.height + 10;
 
-    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width - 80, CGFLOAT_MAX) view:yself.proofLabel];
     y += [layout setFrame:CGRectMake(40, y, size.width - 80, size.height - y - 190) view:yself.scrollView].size.height + 10;
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.clipboardCopyButton].size.height + 20;

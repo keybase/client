@@ -96,7 +96,12 @@
   [_progressView setAnimating:progressEnabled];
 }
 
+- (BOOL)isProgressEnabled {
+  return _progressView.isAnimating;
+}
+
 - (void)setTitle:(NSString *)title {
+  _title = title;
   [_label setText:title font:[NSFont systemFontOfSize:18] color:[NSColor colorWithWhite:0.2 alpha:1.0] alignment:NSCenterTextAlignment];
   [self setNeedsLayout];
 }

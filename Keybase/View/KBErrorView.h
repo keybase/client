@@ -14,4 +14,6 @@
 
 - (void)setError:(NSError *)error;
 
+- (void)openInWindow;
+
 @end

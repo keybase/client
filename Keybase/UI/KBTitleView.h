@@ -19,11 +19,8 @@
 @property (weak) KBNavigationView *navigation;
 
 @property KBNavigationBar *bar;
+@property (nonatomic) NSString *title;
 
 + (instancetype)titleViewWithTitle:(NSString *)title navigation:(KBNavigationView *)navigation;
-
-- (void)setTitle:(NSString *)title;
-
-- (void)setProgressEnabled:(BOOL)progressEnabled;
 
 @end

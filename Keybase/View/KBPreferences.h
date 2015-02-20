@@ -12,4 +12,6 @@
 
 - (void)open;
 
+- (void)close;
+
 @end

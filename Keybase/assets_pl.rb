@@ -4,7 +4,7 @@ require 'json'
 dir = "/Users/gabe/Pictures/pixellove_pro/PNG"
 #style = "black"
 icons_dirname = "PixelLove"
-includes = ["Twitter", "Github", "Reddit"]
+includes = ["Twitter", "Github", "Reddit", "Sad_Face"]
 
 script_path = File.expand_path(File.dirname(__FILE__))
 assets_path = "#{script_path}/Images.xcassets/#{icons_dirname}"

@@ -10,6 +10,7 @@
 
 #import "KBUsersMainView.h"
 #import "KBUserProfileView.h"
+#import "AppDelegate.h"
 
 @interface KBMainView ()
 @property KBSourceView *sourceView;
@@ -52,6 +53,14 @@
   }
 }
 
+- (void)setProgressEnabled:(BOOL)progressEnabled {
+  [_sourceView setProgressEnabled:progressEnabled];
+}
+
+- (BOOL)isProgressEnabled {
+  return _sourceView.isProgressEnabled;
+}
+
 - (void)showUsers {
   if (!_usersMainView) _usersMainView = [[KBUsersMainView alloc] init];
   [_usersMainView setUser:_user];
@@ -63,6 +72,24 @@
   _userProfileView = [[KBUserProfileView alloc] init];
   [_userProfileView setUser:_user editable:YES];
   [self setContentView:_userProfileView];
+}
+
+- (void)logout {
+  [KBAlert promptWithTitle:@"Log Out" description:@"Are you sure you want to log out?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Log Out", @"No"] view:self completion:^(NSModalResponse response) {
+    if (response == NSAlertFirstButtonReturn) {
+      [self setProgressEnabled:YES];
+      KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
+      [login logout:^(NSError *error) {
+        [self setProgressEnabled:NO];
+        if (error) {
+          [AppDelegate setError:error sender:self];
+          return;
+        }
+
+        [AppDelegate.sharedDelegate checkStatus];
+      }];
+    }
+  }];
 }
 
 - (void)setUser:(KBRUser *)user {

@@ -14,13 +14,15 @@
 #import "KBCatalogView.h"
 #import "KBPreferences.h"
 #import "KBMainView.h"
+#import "KBErrorView.h"
 
 @interface AppDelegate ()
 @property KBMainView *mainView;
 @property KBConnectView *connectView;
 @property KBPreferences *preferences;
-@property NSStatusItem *statusItem;
 @property KBRPClient *client;
+
+@property NSStatusItem *statusItem; // Menubar
 
 @property KBAPIClient *APIClient;
 @property BOOL alerting;
@@ -94,27 +96,19 @@
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
-  if (connectAttempt == 1) [self.class setError:error sender:nil]; // Show error on first error attempt
-}
-
-- (void)RPClientDidLogout:(KBRPClient *)RPClient {
-  [self checkStatus];
+  if (connectAttempt == 1) [self setFatalError:error]; // Show error on first error attempt
 }
 
 - (void)checkStatus {
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+    if (error) {
+      [self setFatalError:error];
+      return;
+    }
     // TODO: check error
     //GHDebug(@"Status: %@", status);
     [self setStatus:status];
-  }];
-}
-
-- (void)logout {
-  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:_client];
-  [login logout:^(NSError *error) {
-    // TODO: check error
-    [self checkStatus];
   }];
 }
 
@@ -247,7 +241,20 @@
   }
 }
 
+- (void)closeAllWindows {
+  [_mainView.window close];
+  [_connectView.window close];
+  [_preferences close];
+}
+
 #pragma mark Error
+
+- (void)setFatalError:(NSError *)error {
+  [self closeAllWindows];
+  KBErrorView *fatalErrorView = [[KBErrorView alloc] init];
+  [fatalErrorView setError:error];
+  [fatalErrorView openInWindow];
+}
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {
   [AppDelegate.sharedDelegate setError:error sender:sender];

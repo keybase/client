@@ -15,7 +15,7 @@
 @interface KBProgressOverlayView : YONSView
 
 @property BOOL hidesWhenStopped;
-@property (nonatomic) BOOL animating;
+@property (nonatomic, getter=isAnimating) BOOL animating;
 
 - (void)startAnimating;
 - (void)stopAnimating;

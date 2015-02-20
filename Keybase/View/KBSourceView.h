@@ -26,5 +26,6 @@ typedef NS_ENUM (NSInteger, KBSourceViewItem) {
 @interface KBSourceView : YONSView <NSOutlineViewDataSource, NSOutlineViewDelegate>
 
 @property (weak) id<KBSourceViewDelegate> delegate;
+@property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 
 @end

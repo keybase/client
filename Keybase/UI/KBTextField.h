@@ -13,6 +13,7 @@
 
 @protocol KBTextFieldFocusDelegate
 - (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused;
+- (void)textField:(NSTextField *)textField didChangeEnabled:(BOOL)enabled;
 @end
 
 @interface KBTextField : YONSView <KBTextFieldFocusDelegate>

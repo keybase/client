@@ -46,14 +46,7 @@
   }
 
   if ([path isEqualTo:@"/test-client"]) [self showTestClientView];
-  if ([path isEqualTo:@"/login"]) [self showLogin];
-  if ([path isEqualTo:@"/signup"]) [self showSignup];
-  if ([path isEqualTo:@"/keygen"]) [self showKeyGen:YES];
-  if ([path gh_startsWith:@"/prove/"]) [self showProve:[path lastPathComponent]];
-
   if ([path gh_startsWith:@"/replay/track"]) [self showTrackReplay:[path lastPathComponent]];
-
-  if ([path gh_startsWith:@"/track/"]) [self showTrack:[path lastPathComponent]];
 
   if ([path gh_startsWith:@"/prompt/"]) [self prompt:[path lastPathComponent]];
 
@@ -62,6 +55,9 @@
   if ([path isEqualTo:@"/prove-instructions"]) [self showProveInstructions];
   if ([path isEqualTo:@"/select-key"]) [self showSelectKey];
   if ([path isEqualTo:@"/device-setup"]) [self showDeviceSetupView];
+
+  if ([path isEqualTo:@"/error"]) [self showError];
+  if ([path isEqualTo:@"/error-fatal"]) [self showFatalError];
 }
 
 - (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
@@ -200,6 +196,16 @@
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
   [deviceSetupView setDevices:handler.devices hasPGP:handler.hasPGP];
   [self openInWindow:deviceSetupView size:CGSizeMake(360, 420) title:@"Device Setup"];
+}
+
+- (void)showError {
+  NSError *error = KBMakeError(-1, @"This is the error message.", @"This is the recovery suggestion.");
+  [AppDelegate setError:error sender:self];
+}
+
+- (void)showFatalError {
+  NSError *error = KBMakeError(-1, @"This is the fatal error message.", @"This is the recovery suggestion.");
+  [AppDelegate.sharedDelegate setFatalError:error];
 }
 
 @end

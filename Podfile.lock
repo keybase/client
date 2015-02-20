@@ -19,14 +19,14 @@ PODS:
   - AFNetworking/Serialization (2.5.1)
   - GHKit (1.0.21)
   - GRUnit (1.1.3)
-  - KBKeybase (0.1.8):
+  - KBKeybase (0.1.9):
     - AFNetworking
     - GHKit
-    - KBKeybase/Core (= 0.1.8)
+    - KBKeybase/Core (= 0.1.9)
     - Mantle
     - ObjectiveSugar
     - TSTripleSec
-  - KBKeybase/Core (0.1.8):
+  - KBKeybase/Core (0.1.9):
     - AFNetworking
     - GHKit
     - Mantle
@@ -68,7 +68,7 @@ SPEC CHECKSUMS:
   AFNetworking: 8bee59492a6ff15d69130efa4d0dc67e0094a52a
   GHKit: b6f2b698849faca1156a6e64d19efa4195147277
   GRUnit: e1e502af105d714fa0ac17e12955288ebff79831
-  KBKeybase: dcc1a744ffeb441081a627bc6e792c9dbee5b0a5
+  KBKeybase: d2fb15f67d0ec98618f41577fff1fad09f3d1c06
   libsodium: ac34cc59b942350fb1377380cfb31f05c3d6170e
   Mantle: d5fbaf30fbc58031223af13812c060e15934a1fe
   MASPreferences: 48debf3a161039bb979e617b7416bc07bd879f75

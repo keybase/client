@@ -63,7 +63,7 @@
   animating ? [self startAnimating] : [self stopAnimating];
 }
 
-- (BOOL)animating {
+- (BOOL)isAnimating {
   return _indicatorView.animating;
 }
 

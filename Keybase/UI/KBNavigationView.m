@@ -52,6 +52,10 @@
   return self;
 }
 
+- (BOOL)mouseDownCanMoveWindow {
+  return YES;
+}
+
 - (void)pushView:(NSView *)view animated:(BOOL)animated {
   [self _setView:view transitionType:(animated ? KBNavigationTransitionTypePush : KBNavigationTransitionTypeNone)];
   [self addView:view];

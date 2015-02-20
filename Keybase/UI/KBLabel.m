@@ -11,6 +11,7 @@
 #import <Slash/Slash.h>
 #import "KBDefines.h"
 #import "KBBox.h"
+#import "KBLookAndFeel.h"
 
 @interface KBLabel ()
 @property NSTextView *textView;
@@ -76,6 +77,10 @@
   return _textView.selectable;
 }
 
+- (BOOL)mouseDownCanMoveWindow {
+  return !self.selectable;
+}
+
 - (BOOL)hasText {
   return (self.attributedText && self.attributedText.length > 0);
 }
@@ -100,10 +105,14 @@
 }
 
 + (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color {
-  NSDictionary *style = @{@"$default": @{NSFontAttributeName: font},
-                          @"p": @{NSFontAttributeName: font},
+
+  NSDictionary *defaultStyle = @{NSFontAttributeName: font, NSForegroundColorAttributeName: color ? color : [KBLookAndFeel textColor]};
+
+  NSDictionary *style = @{@"$default": defaultStyle,
+                          @"p": defaultStyle,
                           @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
                           @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
+                          @"a": @{NSForegroundColorAttributeName: [KBLookAndFeel selectColor]},
                           @"color": @{},
                           };
   NSError *error = nil;
@@ -112,7 +121,6 @@
     GHDebug(@"Unable to parse markup: %@; %@", markup, error);
     str = [[NSMutableAttributedString alloc] initWithString:markup attributes:@{NSFontAttributeName: font}];
   }
-  if (color) [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
   return str;
 }
 

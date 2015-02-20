@@ -13,7 +13,7 @@
 #import "KBLoginView.h"
 #import "KBSignupView.h"
 
-@interface KBConnectView : KBNavigationView
+@interface KBConnectView : YONSView
 
 @property KBNavigationView *navigation;
 @property (readonly) KBLoginView *loginView;

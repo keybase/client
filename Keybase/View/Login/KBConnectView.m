@@ -33,11 +33,14 @@
   _loginView.signupButton.targetBlock = ^{
     [gself showSignup:YES];
   };
+  [self addSubview:_loginView];
 
   _signupView = [[KBSignupView alloc] init];
   _signupView.loginButton.targetBlock = ^{
     [gself showLogin:YES];
   };
+  [self addSubview:_signupView];
+  _signupView.hidden = YES;
 }
 
 - (void)layout {
@@ -69,17 +72,29 @@
   }
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  if (!_loginView.hidden) {
+    [_loginView viewDidAppear:animated];
+    self.navigation.titleView.title = @"Keybase";
+  }
+  if (!_signupView.hidden) {
+    [_signupView viewDidAppear:animated];
+    self.navigation.titleView.title = @"Sign Up for Keybase";
+  }
+  _loginView.navigation = self.navigation;
+  _signupView.navigation = self.navigation;
+}
+
 - (void)showLogin:(BOOL)animated {
-  if (![_loginView.usernameField.text gh_present]) _loginView.usernameField.text = _signupView.usernameField.text;
-//  if (![_loginView.passwordField.text gh_present]) _loginView.passwordField.text = _signupView.passwordField.text;
-  [self swapView:_loginView animated:animated];
+  _loginView.hidden = NO;
+  _signupView.hidden = YES;
+  if (self.navigation) [self viewDidAppear:animated];
 }
 
 - (void)showSignup:(BOOL)animated {
-  if (![_signupView.usernameField.text gh_present]) _signupView.usernameField.text = _loginView.usernameField.text;
-//  if (![_signupView.passwordField.text gh_present])_signupView.passwordField.text = _loginView.passwordField.text;
-//  if (![_signupView.passwordConfirmField.text gh_present]) _signupView.passwordConfirmField.text = _loginView.passwordField.text;
-  [self swapView:_signupView animated:animated];
+  _loginView.hidden = YES;
+  _signupView.hidden = NO;
+  if (self.navigation) [self viewDidAppear:animated];
 }
 
 @end

@@ -44,7 +44,7 @@
     return CGSizeMake(size.width, y);
   }];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[self borderLayoutWithCenterView:_deviceSignerView topView:infoLabel bottomView:bottomView margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:20]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:infoLabel bottomView:bottomView margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:20]];
 }
 
 - (void)setDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP {
@@ -55,27 +55,6 @@
   if (hasPGP) [deviceSignerOptions addObject:[KBDeviceSignerOption PGP]];
 
   [_deviceSignerView setDeviceSignerOptions:deviceSignerOptions];
-}
-
-- (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView margin:(UIEdgeInsets)margin padding:(CGFloat)padding {
-  return ^CGSize(id<YOLayout> layout, CGSize size) {
-
-    CGSize sizeWithMargin = CGSizeMake(size.width - margin.left - margin.right, size.height - margin.top - margin.bottom);
-
-    CGSize topSize = [topView sizeThatFits:sizeWithMargin];
-    CGSize bottomSize = [bottomView sizeThatFits:sizeWithMargin];
-
-    CGFloat centerHeight = sizeWithMargin.height - topSize.height - bottomSize.height - (padding * 2);
-
-    CGFloat y = margin.top;
-    y += [layout setFrame:CGRectMake(margin.left, y, topSize.width, topSize.height) view:topView].size.height + padding;
-
-    y += [layout setFrame:CGRectMake(margin.left, y, sizeWithMargin.width, centerHeight) view:centerView].size.height + padding;
-
-    y += [layout setFrame:CGRectMake(margin.left, y, bottomSize.width, bottomSize.height) view:bottomView].size.height;
-
-    return size;
-  };
 }
 
 @end

@@ -28,7 +28,10 @@
 #import "KBScrollView.h"
 #import "KBTextCollectionView.h"
 #import "KBImageTextView.h"
-
+#import "KBLayouts.h"
+#import "KBProgressOverlayView.h"
+#import "KBActivityIndicatorView.h"
+#import "KBScrollView.h"
 
 #define KBDebugAlert(DESC) ([[NSAlert alertWithError:[NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:DESC}]] beginSheetModalForWindow:[NSApp mainWindow] completionHandler:nil])
 

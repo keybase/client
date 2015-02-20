@@ -9,6 +9,12 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-@interface KBScrollView : NSScrollView
+#import <YOLayout/YOLayout.h>
+
+@interface KBScrollView : YONSView
+
+@property NSScrollView *scrollView;
+
+- (void)setDocumentView:(NSView *)documentView;
 
 @end

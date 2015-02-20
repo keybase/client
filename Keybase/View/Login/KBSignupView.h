@@ -29,4 +29,6 @@
 @property KBButton *loginButton;
 @property KBButton *signupButton;
 
+- (void)viewDidAppear:(BOOL)animated;
+
 @end

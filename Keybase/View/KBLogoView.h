@@ -13,5 +13,7 @@
 @interface KBLogoView : YONSView <KBNavigationTitleView>
 
 @property KBButton *backView;
+@property (nonatomic) NSString *title;
+@property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 
 @end

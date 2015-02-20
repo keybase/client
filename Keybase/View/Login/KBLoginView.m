@@ -20,6 +20,10 @@
   [super viewInit];
   GHWeakSelf gself = self;
 
+  KBLabel *label = [[KBLabel alloc] init];
+  [label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [self addSubview:label];
+
   _usernameField = [[KBTextField alloc] init];
   _usernameField.placeholder = @"Email or Username";
   [self addSubview:_usernameField];
@@ -43,7 +47,9 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 40;
+    CGFloat y = 30;
+
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 12;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 12;
@@ -68,7 +74,9 @@
 
 - (void)_checkStatusAfterLogin {
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
+  [self.navigation.titleView setProgressEnabled:YES];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+    [self.navigation.titleView setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];
       return;
@@ -100,6 +108,12 @@
 
   KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
 
+  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.promptDeviceName" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+    //KBRPromptDeviceNameRequestParams *handler = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
+    // TODO
+    completion(nil, @"Test");
+  }];
+
   [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
     [self selectSigner:handler completion:completion];
@@ -118,6 +132,10 @@
 
     self.passwordField.text = nil;
     [self _checkStatusAfterLogin];
+  }];
+
+  [AppDelegate.APIClient logInWithEmailOrUserName:username password:passphrase success:^(KBSession *session) {
+  } failure:^(NSError *error) {
   }];
 }
 
@@ -159,7 +177,9 @@
 
   deviceSetupView.cancelButton.targetBlock = ^{
     [self.window endSheet:selectWindow];
-    completion(nil, nil);
+    KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
+    response.action = KBRSelectSignerActionLogout; // Will be renamed to cancel
+    completion(nil, response);
   };
 
   [self.window beginSheet:selectWindow completionHandler:^(NSModalResponse returnCode) {}];

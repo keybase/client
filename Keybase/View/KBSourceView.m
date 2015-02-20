@@ -14,6 +14,7 @@
 //@property KBBox *border;
 @property NSOutlineView *outlineView;
 @property MPOrderedDictionary *data;
+@property KBActivityIndicatorView *progressView;
 @end
 
 @implementation KBSourceView
@@ -34,6 +35,9 @@
     _outlineView.floatsGroupRows = NO;
     [_outlineView reloadData];
     [_outlineView expandItem:nil expandChildren:YES];
+
+    _progressView = [[KBActivityIndicatorView alloc] init];
+    [self addSubview:_progressView];
   }
   return self;
 }
@@ -42,6 +46,14 @@
   [super layout];
   //_border.frame = CGRectMake(0, 26, self.frame.size.width, 1);
   _outlineView.frame = CGRectMake(0, 27, self.frame.size.width, self.frame.size.height - 27);
+}
+
+- (void)setProgressEnabled:(BOOL)progressEnabled {
+  [_progressView setAnimating:progressEnabled];
+}
+
+- (BOOL)isProgressEnabled {
+  return _progressView.isAnimating;
 }
 
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {

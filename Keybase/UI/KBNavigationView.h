@@ -20,8 +20,8 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 @class KBNavigationView;
 
 @protocol KBNavigationTitleView <NSObject>
-- (void)setTitle:(NSString *)title;
-- (void)setProgressEnabled:(BOOL)progressEnabled;
+@property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
+@property (nonatomic) NSString *title;
 - (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType;
 @end
 
