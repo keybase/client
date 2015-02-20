@@ -241,7 +241,7 @@ func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
 	}
 	arg.HasPGP = withPGPOption
 
-	res, err := ctx.UIG().Doctor.SelectSigner(arg)
+	res, err := ctx.DoctorUI.SelectSigner(arg)
 	if err != nil {
 		return err
 	}
@@ -297,7 +297,7 @@ func (d *Doctor) deviceSignPGP(ctx *Context) error {
 			return err
 		}
 
-		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", ctx.UIG().Secret)
+		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", ctx.SecretUI)
 		if err != nil {
 			return err
 		}
@@ -315,7 +315,7 @@ func (d *Doctor) deviceSignPGP(ctx *Context) error {
 		return fmt.Errorf("ImportKey error: %s", err)
 	}
 
-	if err := bundle.Unlock("Import of key into keybase keyring", ctx.UIG().Secret); err != nil {
+	if err := bundle.Unlock("Import of key into keybase keyring", ctx.SecretUI); err != nil {
 		return fmt.Errorf("bundle Unlock error: %s", err)
 	}
 
@@ -381,7 +381,7 @@ func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.
 		gks = append(gks, gk)
 	}
 
-	keyid, err := ctx.UIG().GPG.SelectKey(keybase_1.SelectKeyArg{Keys: gks})
+	keyid, err := ctx.GPGUI.SelectKey(keybase_1.SelectKeyArg{Keys: gks})
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func (d *Doctor) tspkey(ctx *Context) (*libkb.TSPassKey, error) {
 	}
 
 	// not cached: get it from the ui
-	pp, err := ctx.UIG().Secret.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{Username: G.Env.GetUsername()})
+	pp, err := ctx.SecretUI.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{Username: G.Env.GetUsername()})
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func (d *Doctor) detkey(ctx *Context) (libkb.GenericKey, error) {
 
 func (d *Doctor) deviceName(ctx *Context) (string, error) {
 	if len(d.devName) == 0 {
-		name, err := ctx.UIG().Doctor.PromptDeviceName(0)
+		name, err := ctx.DoctorUI.PromptDeviceName(0)
 		if err != nil {
 			return "", err
 		}

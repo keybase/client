@@ -27,6 +27,6 @@ func (r *RemoteGPGUI) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptio
 	return r.uicli.SelectKeyAndPushOption(arg)
 }
 
-func (r *RemoteGPGUI) WantToAddGPGKey() (bool, error) {
+func (r *RemoteGPGUI) WantToAddGPGKey(int) (bool, error) {
 	return r.uicli.WantToAddGPGKey(r.sessionId)
 }

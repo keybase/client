@@ -55,12 +55,13 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	}
 
 	li := engine.NewLoginEngine()
-	ctx := engine.NewContext(
-		h.getLogUI(sessid),
-		h.getDoctorUI(sessid),
-		h.getSecretUI(sessid),
-		h.getLoginUI(sessid),
-		NewRemoteGPGUI(sessid, h.getRpcClient()))
+	ctx := &engine.Context{
+		LogUI:    h.getLogUI(sessid),
+		DoctorUI: h.getDoctorUI(sessid),
+		SecretUI: h.getSecretUI(sessid),
+		LoginUI:  h.getLoginUI(sessid),
+		GPGUI:    NewRemoteGPGUI(sessid, h.getRpcClient()),
+	}
 	return engine.RunEngine(li, ctx, liarg, nil)
 }
 

@@ -23,13 +23,13 @@ func (h *SignupHandler) CheckUsernameAvailable(username string) error {
 func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes, err error) {
 	sessionID := nextSessionId()
 	eng := engine.NewSignupEngine()
-	ctx := engine.NewContext(
-		h.getLogUI(sessionID),
-		NewRemoteGPGUI(sessionID, h.getRpcClient()),
-		h.getSecretUI(sessionID),
-		h.getLoginUI(sessionID),
-		h.getKeyGenUI(sessionID),
-	)
+	ctx := &engine.Context{
+		LogUI:    h.getLogUI(sessionID),
+		GPGUI:    NewRemoteGPGUI(sessionID, h.getRpcClient()),
+		SecretUI: h.getSecretUI(sessionID),
+		LoginUI:  h.getLoginUI(sessionID),
+		KeyGenUI: h.getKeyGenUI(sessionID),
+	}
 	runarg := engine.SignupEngineRunArg{
 		Username:   arg.Username,
 		Email:      arg.Email,

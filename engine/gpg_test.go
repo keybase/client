@@ -17,7 +17,7 @@ func TestGPGRun(t *testing.T) {
 	}
 
 	g := NewGPG()
-	ctx := NewContext(&gpgcanceltestui{})
+	ctx := &Context{GPGUI: &gpgcanceltestui{}}
 	if err := g.run(ctx, nil, ""); err != nil {
 		t.Fatal(err)
 	}

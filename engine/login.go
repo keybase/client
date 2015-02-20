@@ -37,8 +37,8 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 	if !ok {
 		return fmt.Errorf("LoginEngine.Run: invalid args type %T", args)
 	}
-	arg.Login.SecretUI = ctx.UIG().Secret
-	arg.Login.Ui = ctx.UIG().Login
+	arg.Login.SecretUI = ctx.SecretUI
+	arg.Login.Ui = ctx.LoginUI
 	if err := G.LoginState.Login(arg.Login); err != nil {
 		return err
 	}

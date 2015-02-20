@@ -1,34 +1,34 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/go/libkb"
 )
 
 type Context struct {
-	uig *libkb.UIGroup
-}
-
-func NewContext(uis ...interface{}) *Context {
-	c := &Context{uig: libkb.NewUIGroup()}
-	if err := c.AddUIs(uis...); err != nil {
-		panic(err)
-	}
-	return c
+	DoctorUI libkb.DoctorUI
+	GPGUI    libkb.GPGUI
+	KeyGenUI libkb.KeyGenUI
+	LogUI    libkb.LogUI
+	LoginUI  libkb.LoginUI
+	SecretUI libkb.SecretUI
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {
-	return c.uig.Exists(kind)
-}
-
-func (c *Context) AddUIs(uis ...interface{}) error {
-	for _, ui := range uis {
-		if err := c.uig.Add(ui); err != nil {
-			return err
-		}
+	switch kind {
+	case libkb.DoctorUIKind:
+		return c.DoctorUI != nil
+	case libkb.GPGUIKind:
+		return c.GPGUI != nil
+	case libkb.KeyGenUIKind:
+		return c.KeyGenUI != nil
+	case libkb.LogUIKind:
+		return c.LogUI != nil
+	case libkb.LoginUIKind:
+		return c.LoginUI != nil
+	case libkb.SecretUIKind:
+		return c.SecretUI != nil
 	}
-	return nil
-}
-
-func (c *Context) UIG() libkb.UIGroup {
-	return *c.uig
+	panic(fmt.Sprintf("unhandled kind:  %d", kind))
 }

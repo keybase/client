@@ -44,7 +44,10 @@ func (v *CmdMykeySelect) RunClient() error {
 }
 
 func (v *CmdMykeySelect) Run() error {
-	ctx := engine.NewContext(G.UI.GetGPGUI(), G.UI.GetSecretUI())
+	ctx := &engine.Context{
+		GPGUI:    G.UI.GetGPGUI(),
+		SecretUI: G.UI.GetSecretUI(),
+	}
 	gpg := engine.NewGPG()
 	arg := engine.GPGArg{Query: v.query, LoadDeviceKey: true}
 	return engine.RunEngine(gpg, ctx, arg, nil)

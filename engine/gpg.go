@@ -54,7 +54,7 @@ func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
 
 	// they have gpg
 
-	res, err := ctx.UIG().GPG.WantToAddGPGKey(0)
+	res, err := ctx.GPGUI.WantToAddGPGKey(0)
 	if err != nil {
 		return false, err
 	}
@@ -106,7 +106,7 @@ func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error
 		gks = append(gks, gk)
 	}
 
-	res, err := ctx.UIG().GPG.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
+	res, err := ctx.GPGUI.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error
 		return fmt.Errorf("ImportKey error: %s", err)
 	}
 
-	if err := bundle.Unlock("Import of key into keybase keyring", ctx.UIG().Secret); err != nil {
+	if err := bundle.Unlock("Import of key into keybase keyring", ctx.SecretUI); err != nil {
 		return fmt.Errorf("bundle Unlock error: %s", err)
 	}
 
@@ -140,10 +140,10 @@ func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error
 		Pregen:       bundle,
 		DoSecretPush: res.DoSecretPush,
 		SigningKey:   signingKey,
-		KeyGenUI:     ctx.UIG().KeyGen,
-		LoginUI:      ctx.UIG().Login,
-		LogUI:        ctx.UIG().Log,
-		SecretUI:     ctx.UIG().Secret,
+		KeyGenUI:     ctx.KeyGenUI,
+		LoginUI:      ctx.LoginUI,
+		LogUI:        ctx.LogUI,
+		SecretUI:     ctx.SecretUI,
 	}
 	G.Log.Info("key gen arg: %+v", arg)
 	kg := libkb.NewKeyGen(arg)

@@ -42,7 +42,13 @@ func (v *CmdLogin) RunClient() (err error) {
 
 func (v *CmdLogin) Run() error {
 	li := engine.NewLoginEngine()
-	ctx := engine.NewContext(G.UI.GetLogUI(), G.UI.GetLoginUI(), G.UI.GetDoctorUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI())
+	ctx := &engine.Context{
+		LogUI:    G.UI.GetLogUI(),
+		LoginUI:  G.UI.GetLoginUI(),
+		DoctorUI: G.UI.GetDoctorUI(),
+		GPGUI:    G.UI.GetGPGUI(),
+		SecretUI: G.UI.GetSecretUI(),
+	}
 	arg := engine.LoginEngineArg{
 		Login: libkb.LoginArg{
 			Prompt:   true,

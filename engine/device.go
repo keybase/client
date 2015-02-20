@@ -131,7 +131,7 @@ func (d *DeviceEngine) pushEldestKey(ctx *Context) error {
 		Me:        d.me,
 		ExpireIn:  libkb.NACL_EDDSA_EXPIRE_IN,
 		Device:    d.device(),
-		LogUI:     ctx.UIG().Log,
+		LogUI:     ctx.LogUI,
 	})
 	err := gen.RunLKS(d.lks)
 	if err != nil {
@@ -150,7 +150,7 @@ func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestK
 		Me:          d.me,
 		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
 		Device:      d.device(),
-		LogUI:       ctx.UIG().Log,
+		LogUI:       ctx.LogUI,
 	})
 	err := gen.RunLKS(d.lks)
 	if err != nil {
@@ -168,7 +168,7 @@ func (d *DeviceEngine) pushDHKey(ctx *Context, signer libkb.GenericKey, eldestKI
 		Me:          d.me,
 		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
 		Device:      d.device(),
-		LogUI:       ctx.UIG().Log,
+		LogUI:       ctx.LogUI,
 	})
 
 	return gen.RunLKS(d.lks)

@@ -40,10 +40,6 @@ type UIGroup struct {
 	Secret SecretUI
 }
 
-func NewUIGroup() *UIGroup {
-	return &UIGroup{}
-}
-
 func (u *UIGroup) Exists(kind UIKind) bool {
 	switch kind {
 	case DoctorUIKind:

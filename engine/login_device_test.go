@@ -22,7 +22,7 @@ func TestLoginNewDevice(t *testing.T) {
 
 	// this is all pretty hacky to get kex running on device X...
 	secui := libkb.TestSecretUI{u1.Passphrase}
-	xctx := NewContext(docui, secui, G.UI.GetLogUI())
+	xctx := &Context{DoctorUI: docui, SecretUI: secui, LogUI: G.UI.GetLogUI()}
 	kexX := NewKex(ksrv, nil, SetDebugName("device x"))
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
@@ -55,7 +55,7 @@ func TestLoginNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-	ctx := NewContext(G.UI.GetLogUI(), docui, &gpgtestui{}, secui, &libkb.TestLoginUI{})
+	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
 	}

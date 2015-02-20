@@ -97,7 +97,7 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
-	if err := ctx.UIG().Doctor.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
+	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
 		return err
 	}
 
@@ -127,10 +127,10 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 	}
 
 	// store E_y, M_y in lks
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, ctx.UIG().Log); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, ctx.LogUI); err != nil {
 		return err
 	}
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, ctx.UIG().Log); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, ctx.LogUI); err != nil {
 		return err
 	}
 
@@ -207,7 +207,7 @@ func (k *Kex) Listen(ctx *Context, u *libkb.User, src libkb.DeviceID) {
 	arg := libkb.SecretKeyArg{
 		DeviceKey: true,
 		Reason:    "new device install",
-		Ui:        ctx.UIG().Secret,
+		Ui:        ctx.SecretUI,
 		Me:        k.user,
 	}
 	k.sigKey, err = G.Keyrings.GetSecretKey(arg)
@@ -340,7 +340,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 		arg := libkb.SecretKeyArg{
 			DeviceKey: true,
 			Reason:    "new device install",
-			Ui:        ctx.UIG().Secret,
+			Ui:        ctx.SecretUI,
 			Me:        k.user,
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
