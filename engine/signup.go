@@ -24,11 +24,7 @@ func (s *SignupEngine) Name() string {
 }
 
 func (e *SignupEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.LogUIKind,
-		libkb.GPGUIKind,
-		libkb.SecretUIKind,
-	}
+	return nil
 }
 
 func (e *SignupEngine) SubConsumers() []UIConsumer {
