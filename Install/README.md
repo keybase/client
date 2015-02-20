@@ -1,5 +1,4 @@
 # Installer
-=======================
 
 ### Pre-requisites
 

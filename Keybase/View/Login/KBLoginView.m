@@ -108,11 +108,11 @@
 
   KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
 
-  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.promptDeviceName" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    //KBRPromptDeviceNameRequestParams *handler = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
-    // TODO
-    completion(nil, @"Test");
-  }];
+  // TODO
+//  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.promptDeviceName" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+//    //KBRPromptDeviceNameRequestParams *handler = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
+//    //completion(nil, @"");
+//  }];
 
   [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];

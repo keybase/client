@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>io.keybase.keybased</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>hello</string>
+        <string>world</string>
+    </array>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- For debugging -->
+    <key>StandardOutPath</key>
+    <string>/var/log/keybased.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/log/keybased.log</string>
+    <key>Debug</key>
+    <true/>
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>Core</key>
+        <integer>9223372036854775807</integer>
+    </dict>
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>Core</key>
+        <integer>9223372036854775807</integer>
+    </dict>
+</dict>
+</plist>
