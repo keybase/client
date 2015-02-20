@@ -44,12 +44,6 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 		return err
 	}
 
-	/*
-		if arg.LogUI == nil && G.UI != nil {
-			arg.LogUI = G.UI.GetLogUI()
-		}
-	*/
-
 	var u *libkb.User
 
 	// We might need to ID ourselves, to load us in here
