@@ -261,6 +261,9 @@ func importPathFromJson(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 
 func (mc *MerkleClient) LookupPath(q HttpArgs) (vp *VerificationPath, err error) {
 
+	// Poll for 10s and ask for a race-free state.
+	q.Add("poll", I{10})
+
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "merkle/path",
 		NeedSession: false,
