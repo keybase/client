@@ -304,7 +304,7 @@ func (ir *IdentifyOutcome) Export() *keybase_1.IdentifyOutcome {
 
 func DisplayTrackArg(sessionID int, stmt string) *keybase_1.DisplayTrackStatementArg {
 	return &keybase_1.DisplayTrackStatementArg{
-		SessionId: sessionID,
+		SessionID: sessionID,
 		Stmt:      stmt,
 	}
 }

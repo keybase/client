@@ -23,7 +23,8 @@ func NewLoginUIProtocol() rpc2.Protocol {
 	return keybase_1.LoginUiProtocol(&LoginUIServer{G_UI.GetLoginUI()})
 }
 
-func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
+func (u *LoginUIServer) GetEmailOrUsername(sessionID int) (string, error) {
+	// func (u *LoginUIServer) GetEmailOrUsername() (string, error) {
 	return u.ui.GetEmailOrUsername()
 }
 

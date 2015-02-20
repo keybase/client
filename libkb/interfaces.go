@@ -248,8 +248,7 @@ type LogUI interface {
 }
 
 type KeyGenUI interface {
-	// GetPushPreferences() (pp keybase_1.PushPreferences, err error)
-	keybase_1.MykeyUiInterface
+	GetPushPreferences() (pp keybase_1.PushPreferences, err error)
 }
 
 type DoctorUI interface {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -43,7 +43,7 @@ func (p *ProveUI) DisplayRecheckWarning(text keybase_1.Text) {
 	return
 }
 func (l *SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
-	res, err := l.cli.GetSecret(keybase_1.GetSecretArg{pinentry, terminal})
+	res, err := l.cli.GetSecret(keybase_1.GetSecretArg{SessionID: l.sessionId, Pinentry: pinentry, Terminal: terminal})
 	return &res, err
 }
 func (l *SecretUI) GetNewPassphrase(arg keybase_1.GetNewPassphraseArg) (string, error) {

@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/keybase/protocol/go"
+
+	keybase_1 "github.com/keybase/protocol/go"
 )
 
 type LogUI struct {
@@ -13,7 +14,7 @@ type LogUI struct {
 func (l *LogUI) log(level int, format string, args []interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	l.cli.Log(keybase_1.LogArg{
-		SessionId: l.sessionId,
+		SessionID: l.sessionId,
 		Level:     keybase_1.LogLevel(level),
 		Text: keybase_1.Text{
 			Markup: false,

@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/keybase/go/engine"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -64,7 +64,7 @@ func nextSessionId() int {
 
 func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {
 	u.uicli.FinishWebProofCheck(keybase_1.FinishWebProofCheckArg{
-		SessionId: u.sessionId,
+		SessionID: u.sessionId,
 		Rp:        p,
 		Lcr:       lcr,
 	})
@@ -73,7 +73,7 @@ func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr 
 
 func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {
 	u.uicli.FinishSocialProofCheck(keybase_1.FinishSocialProofCheckArg{
-		SessionId: u.sessionId,
+		SessionID: u.sessionId,
 		Rp:        p,
 		Lcr:       lcr,
 	})
@@ -81,32 +81,32 @@ func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l
 }
 
 func (u *RemoteBaseIdentifyUI) FinishAndPrompt(io *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
-	return u.uicli.FinishAndPrompt(keybase_1.FinishAndPromptArg{SessionId: u.sessionId, Outcome: *io})
+	return u.uicli.FinishAndPrompt(keybase_1.FinishAndPromptArg{SessionID: u.sessionId, Outcome: *io})
 }
 
 func (u *RemoteBaseIdentifyUI) DisplayCryptocurrency(c keybase_1.Cryptocurrency) {
-	u.uicli.DisplayCryptocurrency(keybase_1.DisplayCryptocurrencyArg{SessionId: u.sessionId, C: c})
+	u.uicli.DisplayCryptocurrency(keybase_1.DisplayCryptocurrencyArg{SessionID: u.sessionId, C: c})
 	return
 }
 
 func (u *RemoteBaseIdentifyUI) DisplayKey(k keybase_1.FOKID, d *keybase_1.TrackDiff) {
-	u.uicli.DisplayKey(keybase_1.DisplayKeyArg{SessionId: u.sessionId, Fokid: k, Diff: d})
+	u.uicli.DisplayKey(keybase_1.DisplayKeyArg{SessionID: u.sessionId, Fokid: k, Diff: d})
 	return
 }
 
 func (u *RemoteBaseIdentifyUI) ReportLastTrack(t *keybase_1.TrackSummary) {
-	u.uicli.ReportLastTrack(keybase_1.ReportLastTrackArg{SessionId: u.sessionId, Track: t})
+	u.uicli.ReportLastTrack(keybase_1.ReportLastTrackArg{SessionID: u.sessionId, Track: t})
 	return
 }
 
 func (u *RemoteBaseIdentifyUI) DisplayTrackStatement(s string) error {
-	return u.uicli.DisplayTrackStatement(keybase_1.DisplayTrackStatementArg{Stmt: s, SessionId: u.sessionId})
+	return u.uicli.DisplayTrackStatement(keybase_1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionId})
 	// return
 }
 
 func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity) {
 	u.uicli.LaunchNetworkChecks(keybase_1.LaunchNetworkChecksArg{
-		SessionId: u.sessionId,
+		SessionID: u.sessionId,
 		Id:        *id,
 	})
 	return

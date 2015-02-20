@@ -44,7 +44,7 @@ func (a *MyKeyState) NewKeyGenUIProtocol() rpc2.Protocol {
 	return keybase_1.MykeyUiProtocol(a)
 }
 
-func (a *MyKeyState) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
+func (a *MyKeyState) GetPushPreferences(sessionID int) (ret keybase_1.PushPreferences, err error) {
 	if err = a.Prompt(); err == nil {
 		ret.Public = !a.arg.NoPublicPush
 		ret.Private = a.arg.DoSecretPush

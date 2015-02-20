@@ -32,7 +32,7 @@ func (h *LoginHandler) getDoctorUI(sessionId int) libkb.DoctorUI {
 }
 
 func (u *LoginUI) GetEmailOrUsername() (ret string, err error) {
-	return u.cli.GetEmailOrUsername()
+	return u.cli.GetEmailOrUsername(u.sessionId)
 }
 
 func (h *LoginHandler) Logout() error {

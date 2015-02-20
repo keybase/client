@@ -22,7 +22,7 @@ func NewMykeyHandler(xp *rpc2.Transport) *MykeyHandler {
 }
 
 func (p *KeyGenUI) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
-	return p.cli.GetPushPreferences()
+	return p.cli.GetPushPreferences(p.sessionId)
 }
 
 func (h *MykeyHandler) getKeyGenUI(sessionId int) libkb.KeyGenUI {
