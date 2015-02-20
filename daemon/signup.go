@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/keybase/go/libkb"
 	"github.com/keybase/go/engine"
+	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type SignupHandler struct {
 	BaseHandler
+	keyGenUI libkb.KeyGenUI
 }
 
 func NewSignupHandler(xp *rpc2.Transport) *SignupHandler {
-	return &SignupHandler{BaseHandler{xp: xp}}
+	return &SignupHandler{BaseHandler: BaseHandler{xp: xp}}
 }
 
 func (h *SignupHandler) CheckUsernameAvailable(username string) error {
@@ -26,6 +27,8 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 		h.getLogUI(sessionID),
 		NewRemoteGPGUI(sessionID, h.getRpcClient()),
 		h.getSecretUI(sessionID),
+		h.getLoginUI(sessionID),
+		h.getKeyGenUI(sessionID),
 	)
 	runarg := engine.SignupEngineRunArg{
 		Username:   arg.Username,
@@ -66,4 +69,14 @@ func (h *SignupHandler) InviteRequest(arg keybase_1.InviteRequestArg) (err error
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,
 	})
+}
+
+func (h *SignupHandler) getKeyGenUI(sessionId int) libkb.KeyGenUI {
+	if h.keyGenUI == nil {
+		h.keyGenUI = &KeyGenUI{
+			sessionId: sessionId,
+			cli:       keybase_1.MykeyUiClient{h.getRpcClient()},
+		}
+	}
+	return h.keyGenUI
 }

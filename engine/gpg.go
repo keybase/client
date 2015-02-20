@@ -37,8 +37,8 @@ func (g *GPG) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (g *GPG) SubConsumers() []UIConsumer {
-	return []UIConsumer{
+func (g *GPG) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{
 		libkb.NewKeyGen(nil),
 	}
 }

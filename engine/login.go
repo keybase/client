@@ -31,7 +31,7 @@ func (e *LoginEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (e *LoginEngine) SubConsumers() []UIConsumer {
+func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 

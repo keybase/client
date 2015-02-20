@@ -44,7 +44,7 @@ func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
 func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(t, prefix)
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
-	ctx := NewContext(G.UI.GetLogUI(), &gpgtestui{}, libkb.TestSecretUI{fu.Passphrase})
+	ctx := NewContext(G.UI.GetLogUI(), &gpgtestui{}, libkb.TestSecretUI{fu.Passphrase}, libkb.TestLoginUI{fu.Username}, &libkb.TestKeyGenUI{})
 	s := NewSignupEngine()
 	err := RunEngine(s, ctx, arg, nil)
 	if err != nil {

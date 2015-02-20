@@ -275,3 +275,9 @@ type UI interface {
 	Configure() error
 	Shutdown() error
 }
+
+type UIConsumer interface {
+	Name() string
+	RequiredUIs() []UIKind
+	SubConsumers() []UIConsumer
+}

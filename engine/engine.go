@@ -6,15 +6,9 @@ import (
 	"github.com/keybase/go/libkb"
 )
 
-type UIConsumer interface {
-	RequiredUIs() []libkb.UIKind
-}
-
 type Engine interface {
-	Name() string
 	Run(ctx *Context, args interface{}, reply interface{}) error
-	SubConsumers() []UIConsumer // XXX not sure if this is best way yet...
-	UIConsumer
+	libkb.UIConsumer
 }
 
 func RunEngine(e Engine, ctx *Context, args interface{}, reply interface{}) error {
@@ -24,24 +18,24 @@ func RunEngine(e Engine, ctx *Context, args interface{}, reply interface{}) erro
 	return e.Run(ctx, args, reply)
 }
 
-func check(e Engine, ctx *Context) error {
-	if err := checkUI(e, ctx); err != nil {
-		return fmt.Errorf("%s engine: %s", e.Name(), err)
+func check(c libkb.UIConsumer, ctx *Context) error {
+	if err := checkUI(c, ctx); err != nil {
+		return fmt.Errorf("%s: %s", c.Name(), err)
 	}
 
-	for _, sub := range e.SubConsumers() {
-		if err := checkUI(sub, ctx); err != nil {
-			return fmt.Errorf("%s engine: %s", e.Name(), err)
+	for _, sub := range c.SubConsumers() {
+		if err := check(sub, ctx); err != nil {
+			return fmt.Errorf("%s: %s", sub.Name(), err)
 		}
 	}
 
 	return nil
 }
 
-func checkUI(c UIConsumer, ctx *Context) error {
+func checkUI(c libkb.UIConsumer, ctx *Context) error {
 	for _, ui := range c.RequiredUIs() {
 		if !ctx.HasUI(ui) {
-			return fmt.Errorf("requires ui %s", ui)
+			return fmt.Errorf("requires ui %q", ui)
 		}
 	}
 	return nil

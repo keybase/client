@@ -336,6 +336,10 @@ func NewKeyGen(arg *KeyGenArg) *KeyGen {
 	return &KeyGen{arg: arg, phase: KEYGEN_PHASE_NONE}
 }
 
+func (s *KeyGen) Name() string {
+	return "KeyGen"
+}
+
 func (k *KeyGen) RequiredUIs() []UIKind {
 	return []UIKind{
 		LogUIKind,
@@ -343,6 +347,10 @@ func (k *KeyGen) RequiredUIs() []UIKind {
 		LoginUIKind,
 		SecretUIKind,
 	}
+}
+
+func (s *KeyGen) SubConsumers() []UIConsumer {
+	return nil
 }
 
 const (
@@ -517,8 +525,6 @@ func (s *KeyGen) Push() (err error) {
 	defer func() {
 		G.Log.Debug("- KeyGen::Push -> %s", ErrToOk(err))
 	}()
-
-	G.Log.Info("KeyGen: args %+v", s.arg)
 
 	if s.phase != KEYGEN_PHASE_GENERATED {
 		return InternalError{"bad use of Keygen; wrong phase"}

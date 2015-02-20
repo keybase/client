@@ -27,8 +27,8 @@ func (e *SignupEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
-func (e *SignupEngine) SubConsumers() []UIConsumer {
-	return []UIConsumer{
+func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{
 		NewDeviceEngine(nil),
 		NewDetKeyEngine(nil, nil, nil),
 		NewGPG(),

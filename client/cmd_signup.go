@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go/engine"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/go/engine"
 	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -171,7 +171,7 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		Passphrase: s.passphrase,
 		DeviceName: s.fields.deviceName.GetValue(),
 	}
-	ctx := engine.NewContext(G.UI.GetLogUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI())
+	ctx := engine.NewContext(G.UI.GetLogUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI(), G.UI.GetKeyGenUI(false, false, true), G.UI.GetLoginUI())
 	err = engine.RunEngine(s.engine, ctx, arg, nil)
 	if err == nil {
 		return false, nil
@@ -333,7 +333,7 @@ func (e *RemoteSignupJoinEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (e *RemoteSignupJoinEngine) SubConsumers() []engine.UIConsumer {
+func (e *RemoteSignupJoinEngine) SubConsumers() []libkb.UIConsumer {
 	// this doesn't use any subengines itself, so nil is ok here.
 	// the destination of this will handle it...
 	return nil

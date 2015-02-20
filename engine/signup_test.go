@@ -107,7 +107,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	fu := NewFakeUserOrBust(t, "se")
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
-	ctx := NewContext(G.UI.GetLogUI(), &gpgtestui{}, secui)
+	ctx := NewContext(G.UI.GetLogUI(), &gpgtestui{}, secui, &libkb.TestKeyGenUI{}, &libkb.TestLoginUI{fu.Username})
 	if err := RunEngine(s, ctx, arg, nil); err != nil {
 		t.Fatal(err)
 	}
