@@ -7,7 +7,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/go/libkb/engine"
+	"github.com/keybase/go/engine"
 	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
