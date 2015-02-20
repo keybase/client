@@ -334,6 +334,7 @@ type SelectKeyRes struct {
 }
 
 type WantToAddGPGKeyArg struct {
+	SessionID int `codec:"sessionID"`
 }
 
 type SelectKeyAndPushOptionArg struct {
@@ -347,7 +348,7 @@ type SelectKeyArg struct {
 }
 
 type GpgUiInterface interface {
-	WantToAddGPGKey() (bool, error)
+	WantToAddGPGKey(int) (bool, error)
 	SelectKeyAndPushOption(SelectKeyAndPushOptionArg) (SelectKeyRes, error)
 	SelectKey(SelectKeyArg) (string, error)
 }
@@ -359,7 +360,7 @@ func GpgUiProtocol(i GpgUiInterface) rpc2.Protocol {
 			"wantToAddGPGKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]WantToAddGPGKeyArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.WantToAddGPGKey()
+					ret, err = i.WantToAddGPGKey(args[0].SessionID)
 				}
 				return
 			},
@@ -386,8 +387,9 @@ type GpgUiClient struct {
 	Cli GenericClient
 }
 
-func (c GpgUiClient) WantToAddGPGKey() (res bool, err error) {
-	err = c.Cli.Call("keybase.1.gpgUi.wantToAddGPGKey", []interface{}{WantToAddGPGKeyArg{}}, &res)
+func (c GpgUiClient) WantToAddGPGKey(sessionID int) (res bool, err error) {
+	__arg := WantToAddGPGKeyArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.gpgUi.wantToAddGPGKey", []interface{}{__arg}, &res)
 	return
 }
 

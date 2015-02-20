@@ -145,7 +145,10 @@
   } ],
   "messages" : {
     "wantToAddGPGKey" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "boolean"
     },
     "selectKeyAndPushOption" : {

@@ -131,7 +131,7 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @end
 
 @interface KBRGpgUiRequest : KBRRequest
-- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion;
+- (void)wantToAddGPGKeyWithSessionID:(NSInteger )sessionID completion:(void (^)(NSError *error, BOOL  b))completion;
 
 - (void)selectKeyAndPushOptionWithSessionID:(NSInteger )sessionID keys:(NSArray *)keys completion:(void (^)(NSError *error, KBRSelectKeyRes * selectKeyRes))completion;
 
@@ -452,6 +452,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *secret;
 @property NSString *xDevDescription;
+@end
+@interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRSelectKeyAndPushOptionRequestParams : KBRRequestParams
 @property NSInteger sessionID;

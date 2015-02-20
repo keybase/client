@@ -140,8 +140,8 @@
 
 @implementation KBRGpgUiRequest
 
-- (void)wantToAddGPGKey:(void (^)(NSError *error, BOOL  b))completion {
-  NSArray *params = @[@{}];
+- (void)wantToAddGPGKeyWithSessionID:(NSInteger )sessionID completion:(void (^)(NSError *error, BOOL  b))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
   [self.client sendRequestWithMethod:@"keybase.1.gpgUi.wantToAddGPGKey" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error, 0);
   }];
@@ -694,6 +694,17 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.secret = params[0][@"secret"];
     self.xDevDescription = params[0][@"xDevDescription"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRWantToAddGPGKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }
