@@ -21,7 +21,7 @@ func NewMykeyHandler(xp *rpc2.Transport) *MykeyHandler {
 	return &MykeyHandler{BaseHandler{xp: xp}, nil}
 }
 
-func (p *KeyGenUI) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
+func (p *KeyGenUI) GetPushPreferences(dummy int) (ret keybase_1.PushPreferences, err error) {
 	return p.cli.GetPushPreferences(p.sessionId)
 }
 

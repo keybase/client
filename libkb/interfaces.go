@@ -219,7 +219,7 @@ type PromptArg struct {
 }
 
 type LoginUI interface {
-	GetEmailOrUsername() (string, error)
+	keybase_1.LoginUiInterface
 }
 
 type ProveUI interface {
@@ -248,19 +248,15 @@ type LogUI interface {
 }
 
 type KeyGenUI interface {
-	GetPushPreferences() (pp keybase_1.PushPreferences, err error)
+	keybase_1.MykeyUiInterface
 }
 
 type DoctorUI interface {
-	SelectSigner(keybase_1.SelectSignerArg) (keybase_1.SelectSignerRes, error)
-	DisplaySecretWords(keybase_1.DisplaySecretWordsArg) error
-	PromptDeviceName() (string, error)
+	keybase_1.DoctorUiInterface
 }
 
 type GPGUI interface {
-	WantToAddGPGKey() (bool, error)
-	SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg) (keybase_1.SelectKeyRes, error)
-	SelectKey(keybase_1.SelectKeyArg) (string, error)
+	keybase_1.GpgUiInterface
 }
 
 type UI interface {

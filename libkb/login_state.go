@@ -433,7 +433,7 @@ func (s *LoginState) tryPasswordLogin(arg LoginArg) (err error) {
 func (s *LoginState) getEmailOrUsername(arg *LoginArg) (res string, prompted bool, err error) {
 	if res = arg.Username; len(res) != 0 {
 	} else if res = G.Env.GetEmailOrUsername(); len(res) > 0 || !arg.Prompt || arg.Ui == nil {
-	} else if res, err = arg.Ui.GetEmailOrUsername(); err != nil {
+	} else if res, err = arg.Ui.GetEmailOrUsername(0); err != nil {
 	} else {
 		arg.Username = res
 		prompted = true

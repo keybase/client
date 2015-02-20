@@ -54,7 +54,7 @@ func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
 
 	// they have gpg
 
-	res, err := ctx.UIG().GPG.WantToAddGPGKey()
+	res, err := ctx.UIG().GPG.WantToAddGPGKey(0)
 	if err != nil {
 		return false, err
 	}

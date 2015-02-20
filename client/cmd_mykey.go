@@ -45,11 +45,7 @@ type KeygenUIServer struct {
 }
 
 func NewKeyGenUIProtocol() rpc2.Protocol {
-	return keybase_1.MykeyUiProtocol(&KeygenUIServer{G_UI.GetKeyGenUI()})
-}
-
-func (s *KeygenUIServer) GetPushPreferences(sessionID int) (ret keybase_1.PushPreferences, err error) {
-	return s.ui.GetPushPreferences()
+	return keybase_1.MykeyUiProtocol(G_UI.GetKeyGenUI())
 }
 
 func mykeyFlags() []cli.Flag {

@@ -15,35 +15,12 @@ type CmdLogin struct {
 	Username string
 }
 
-type LoginUIServer struct {
-	ui libkb.LoginUI
-}
-
 func NewLoginUIProtocol() rpc2.Protocol {
-	return keybase_1.LoginUiProtocol(&LoginUIServer{G_UI.GetLoginUI()})
-}
-
-func (u *LoginUIServer) GetEmailOrUsername(sessionID int) (string, error) {
-	return u.ui.GetEmailOrUsername()
-}
-
-type DoctorUIServer struct {
-	ui libkb.DoctorUI
+	return keybase_1.LoginUiProtocol(G_UI.GetLoginUI())
 }
 
 func NewDoctorUIProtocol() rpc2.Protocol {
-	return keybase_1.DoctorUiProtocol(&DoctorUIServer{G_UI.GetDoctorUI()})
-}
-
-func (u *DoctorUIServer) SelectSigner(arg keybase_1.SelectSignerArg) (keybase_1.SelectSignerRes, error) {
-	return u.ui.SelectSigner(arg)
-}
-
-func (u *DoctorUIServer) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
-	return u.ui.DisplaySecretWords(arg)
-}
-func (u *DoctorUIServer) PromptDeviceName(sessionID int) (string, error) {
-	return u.ui.PromptDeviceName()
+	return keybase_1.DoctorUiProtocol(G_UI.GetDoctorUI())
 }
 
 func (v *CmdLogin) RunClient() (err error) {

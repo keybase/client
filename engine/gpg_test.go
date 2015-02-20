@@ -49,7 +49,7 @@ func (g *gpgtestui) SelectKey(arg keybase_1.SelectKeyArg) (string, error) {
 	return key.KeyID, nil
 }
 
-func (g *gpgtestui) WantToAddGPGKey() (bool, error) {
+func (g *gpgtestui) WantToAddGPGKey(dummy int) (bool, error) {
 	return true, nil
 }
 

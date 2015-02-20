@@ -421,7 +421,7 @@ func (s *KeyGen) Init() error {
 func (s *KeyGen) Prompt() (err error) {
 	if ui := s.arg.KeyGenUI; ui != nil {
 		var pp keybase_1.PushPreferences
-		if pp, err = ui.GetPushPreferences(); err == nil {
+		if pp, err = ui.GetPushPreferences(0); err == nil {
 			s.arg.NoPublicPush = !pp.Public
 			s.arg.DoSecretPush = pp.Private
 		}

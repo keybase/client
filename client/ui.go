@@ -480,7 +480,7 @@ type DoctorUI struct {
 	parent *UI
 }
 
-func (d DoctorUI) PromptDeviceName() (string, error) {
+func (d DoctorUI) PromptDeviceName(dummy int) (string, error) {
 	return d.parent.Prompt("Enter a name for this device", false,
 		libkb.CheckNotEmpty)
 }
@@ -546,7 +546,7 @@ type LoginUI struct {
 	parent *UI
 }
 
-func (l LoginUI) GetEmailOrUsername() (string, error) {
+func (l LoginUI) GetEmailOrUsername(dummy int) (string, error) {
 	return l.parent.Prompt("Your keybase username or email", false,
 		libkb.CheckEmailOrUsername)
 }
@@ -842,7 +842,7 @@ type KeyGenUI struct {
 	parent *UI
 }
 
-func (s KeyGenUI) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
+func (s KeyGenUI) GetPushPreferences(sessionID int) (ret keybase_1.PushPreferences, err error) {
 	// Do a public push by default
 	if ret.Public, err = s.PromptPush(); err == nil {
 		ret.Private, err = s.PromptSecretPush()

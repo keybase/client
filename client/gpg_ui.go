@@ -2,34 +2,18 @@ package main
 
 import (
 	"fmt"
-	"strings"
-	"text/tabwriter"
-
-	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"strings"
+	"text/tabwriter"
 )
 
-type GPGUIServer struct {
-	ui libkb.GPGUI
-}
-
 func NewGPGUIProtocol() rpc2.Protocol {
-	return keybase_1.GpgUiProtocol(&GPGUIServer{G_UI.GetGPGUI()})
+	return keybase_1.GpgUiProtocol(G_UI.GetGPGUI())
 }
 
 type GPGUI struct {
 	parent *UI
-}
-
-func (g *GPGUIServer) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (res keybase_1.SelectKeyRes, err error) {
-	return g.ui.SelectKeyAndPushOption(arg)
-}
-func (g *GPGUIServer) SelectKey(arg keybase_1.SelectKeyArg) (string, error) {
-	return g.ui.SelectKey(arg)
-}
-func (g *GPGUIServer) WantToAddGPGKey(sessionID int) (bool, error) {
-	return g.ui.WantToAddGPGKey()
 }
 
 func (g GPGUI) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (res keybase_1.SelectKeyRes, err error) {
@@ -85,6 +69,6 @@ func (g GPGUI) SelectKey(arg keybase_1.SelectKeyArg) (string, error) {
 	return arg.Keys[ret-1].KeyID, nil
 }
 
-func (g GPGUI) WantToAddGPGKey() (bool, error) {
+func (g GPGUI) WantToAddGPGKey(dummy int) (bool, error) {
 	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
 }

@@ -242,7 +242,7 @@ func (t TestSecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (s
 
 type TestKeyGenUI struct{}
 
-func (t *TestKeyGenUI) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
+func (t *TestKeyGenUI) GetPushPreferences(dummy int) (ret keybase_1.PushPreferences, err error) {
 	G.Log.Info("TestKeyGenUI:GetPushPreferences()")
 	ret.Public = true
 	ret.Private = true
@@ -253,6 +253,6 @@ type TestLoginUI struct {
 	Username string
 }
 
-func (t TestLoginUI) GetEmailOrUsername() (string, error) {
+func (t TestLoginUI) GetEmailOrUsername(dummy int) (string, error) {
 	return t.Username, nil
 }

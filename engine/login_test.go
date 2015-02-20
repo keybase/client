@@ -426,7 +426,7 @@ type ldocui struct {
 	selectSignerCount int
 }
 
-func (l *ldocui) PromptDeviceName() (string, error) {
+func (l *ldocui) PromptDeviceName(dummy int) (string, error) {
 	return "my test device", nil
 }
 

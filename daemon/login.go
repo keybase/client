@@ -31,7 +31,7 @@ func (h *LoginHandler) getDoctorUI(sessionId int) libkb.DoctorUI {
 	return h.doctorUI
 }
 
-func (u *LoginUI) GetEmailOrUsername() (ret string, err error) {
+func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
 	return u.cli.GetEmailOrUsername(u.sessionId)
 }
 
@@ -84,7 +84,7 @@ func NewRemoteDoctorUI(sessionId int, c *rpc2.Client) *RemoteDoctorUI {
 	}
 }
 
-func (r *RemoteDoctorUI) PromptDeviceName() (string, error) {
+func (r *RemoteDoctorUI) PromptDeviceName(dummy int) (string, error) {
 	return r.uicli.PromptDeviceName(r.sessionId)
 }
 
