@@ -32,7 +32,7 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 	var cli keybase_1.MykeyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		v.state.NewKeyGenUIProtocol(),
+		NewKeyGenUIProtocol(),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 	}
@@ -47,8 +47,9 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 }
 
 func (v *CmdMykeyGen) Run() (err error) {
-	v.state.arg.KeyGenUI = &v.state
+	v.state.arg.KeyGenUI = G_UI.GetKeyGenUI()
 	v.state.arg.SecretUI = G_UI.GetSecretUI()
+	v.state.arg.LogUI = G_UI.GetLogUI()
 	gen := libkb.NewKeyGen(&v.state.arg)
 	if _, err = gen.Run(); err != nil {
 		return

@@ -170,7 +170,7 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		Passphrase: s.passphrase,
 		DeviceName: s.fields.deviceName.GetValue(),
 	}
-	ctx := engine.NewContext(G.UI.GetLogUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI(), G.UI.GetKeyGenUI(false, false, true), G.UI.GetLoginUI())
+	ctx := engine.NewContext(G.UI.GetLogUI(), G.UI.GetGPGUI(), G.UI.GetSecretUI(), G.UI.GetKeyGenUI(), G.UI.GetLoginUI())
 	err = engine.RunEngine(s.engine, ctx, arg, nil)
 	if err == nil {
 		return false, nil

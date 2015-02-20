@@ -269,7 +269,7 @@ type UI interface {
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetDoctorUI() DoctorUI
-	GetKeyGenUI(secPush, noPubPush, interactive bool) KeyGenUI
+	GetKeyGenUI() KeyGenUI
 	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error

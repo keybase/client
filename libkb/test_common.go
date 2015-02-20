@@ -199,7 +199,7 @@ func (n *nullui) GetProveUI() ProveUI {
 func (n *nullui) GetGPGUI() GPGUI {
 	return nil
 }
-func (n *nullui) GetKeyGenUI(s, x, i bool) KeyGenUI {
+func (n *nullui) GetKeyGenUI() KeyGenUI {
 	return nil
 }
 func (n *nullui) GetLogUI() LogUI {

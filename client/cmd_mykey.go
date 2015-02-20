@@ -40,47 +40,16 @@ func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (a *MyKeyState) NewKeyGenUIProtocol() rpc2.Protocol {
-	return keybase_1.MykeyUiProtocol(a)
+type KeygenUIServer struct {
+	ui libkb.KeyGenUI
 }
 
-func (a *MyKeyState) GetPushPreferences(sessionID int) (ret keybase_1.PushPreferences, err error) {
-	if err = a.Prompt(); err == nil {
-		ret.Public = !a.arg.NoPublicPush
-		ret.Private = a.arg.DoSecretPush
-	}
-	return
+func NewKeyGenUIProtocol() rpc2.Protocol {
+	return keybase_1.MykeyUiProtocol(&KeygenUIServer{G_UI.GetKeyGenUI()})
 }
 
-func (a *MyKeyState) Prompt() (err error) {
-
-	if !a.interactive {
-		return
-	}
-
-	if err = a.PromptPush(); err == nil {
-		err = a.PromptSecretPush(true)
-	}
-	return
-}
-
-func (a *MyKeyState) PromptPush() error {
-	prompt := "Publish your new public key to Keybase.io (strongly recommended)?"
-	tmp, err := G_UI.PromptYesNo(prompt, PromptDefaultYes)
-	a.arg.NoPublicPush = !tmp
-	return err
-}
-
-func (a *MyKeyState) PromptSecretPush(def bool) (err error) {
-	msg := `
-Keybase can host an encrypted copy of your PGP private key on its servers.
-It can only be decrypted with your passphrase, which Keybase never knows.
-
-`
-	G_UI.Output(msg)
-	prompt := "Push an encrypted copy of your private key to Keybase.io?"
-	a.arg.DoSecretPush, err = G_UI.PromptYesNo(prompt, PromptDefaultYes)
-	return
+func (s *KeygenUIServer) GetPushPreferences(sessionID int) (ret keybase_1.PushPreferences, err error) {
+	return s.ui.GetPushPreferences()
 }
 
 func mykeyFlags() []cli.Flag {

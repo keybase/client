@@ -392,6 +392,10 @@ func (ui *UI) GetSecretUI() libkb.SecretUI {
 	return SecretUI{ui}
 }
 
+func (ui *UI) GetKeyGenUI() libkb.KeyGenUI {
+	return KeyGenUI{ui}
+}
+
 func (ui *UI) GetProveUI() libkb.ProveUI {
 	return ProveUI{parent: ui}
 }
@@ -406,10 +410,6 @@ func (ui *UI) GetGPGUI() libkb.GPGUI {
 
 func (ui *UI) GetDoctorUI() libkb.DoctorUI {
 	return DoctorUI{ui}
-}
-
-func (ui *UI) GetKeyGenUI(secPush, noPubPush, interactive bool) libkb.KeyGenUI {
-	return &KeyGenUI{parent: ui, DoSecretPush: secPush, NoPublicPush: noPubPush, Interactive: interactive}
 }
 
 //============================================================
@@ -840,3 +840,36 @@ func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 func NewDoctorUIProtocol() rpc2.Protocol {
 	return keybase_1.DoctorUiProtocol(G_UI.GetDoctorUI())
 }
+
+//=====================================================
+
+type KeyGenUI struct {
+	parent *UI
+}
+
+func (s KeyGenUI) GetPushPreferences() (ret keybase_1.PushPreferences, err error) {
+	// Do a public push by default
+	if ret.Public, err = s.PromptPush(); err == nil {
+		ret.Private, err = s.PromptSecretPush()
+	}
+	return
+}
+
+func (s KeyGenUI) PromptPush() (bool, error) {
+	prompt := "Publish your new public key to Keybase.io (strongly recommended)?"
+	return s.parent.PromptYesNo(prompt, PromptDefaultYes)
+}
+
+func (a KeyGenUI) PromptSecretPush() (push bool, err error) {
+	msg := `
+Keybase can host an encrypted copy of your PGP private key on its servers.
+It can only be decrypted with your passphrase, which Keybase never knows.
+
+`
+	a.parent.Output(msg)
+	prompt := "Push an encrypted copy of your private key to Keybase.io? XX"
+
+	return a.parent.PromptYesNo(prompt, PromptDefaultNeither)
+}
+
+//=====================================================
