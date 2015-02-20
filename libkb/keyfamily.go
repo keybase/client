@@ -330,9 +330,9 @@ func (km KeyMap) Import(pgps_i []*PgpKeyBundle) (pgps_o []*PgpKeyBundle, err err
 // Import takes all Subkeys and Subkeys and imports them and indexes them.
 // It indexes them both by KID and by PgpFingerprint, if available.
 func (kf *KeyFamily) Import() (err error) {
-	G.Log.Debug("+ ImportKeys")
+	G.Log.Debug("+ KeyFamily.Import")
 	defer func() {
-		G.Log.Debug("- ImportKeys -> %s", ErrToOk(err))
+		G.Log.Debug("- KeyFamily.Import -> %s", ErrToOk(err))
 	}()
 	if kf.pgps, err = kf.Sibkeys.Import(kf.pgps); err != nil {
 		return
@@ -353,6 +353,7 @@ func (kf *KeyFamily) Import() (err error) {
 // setEldest sets this keyFamily's eldest KID to the given KID (specified in hex).
 // It is strict that there can only be one eldest KID in the family.
 func (kf *KeyFamily) setEldest(hx string) (err error) {
+	G.Log.Debug("| KeyFamily.setEldest(%s)", hx)
 	var kid KID
 	if kid, err = ImportKID(hx); err != nil {
 		return
@@ -376,6 +377,7 @@ func (kf *KeyFamily) GetEldest() *FOKID {
 // object to capture both the KID and the (optional) PgpFingerprint
 // of the eldest key in the family.
 func (kf *KeyFamily) findEldest() (err error) {
+	G.Log.Debug("| KeyFamily.findEldest w/ %d sibkeys", len(kf.Sibkeys))
 	for _, v := range kf.Sibkeys {
 		if v.EldestKid == nil {
 			err = kf.setEldest(v.Kid)
