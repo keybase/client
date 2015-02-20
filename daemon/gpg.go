@@ -18,13 +18,15 @@ func NewRemoteGPGUI(sessionId int, c *rpc2.Client) *RemoteGPGUI {
 }
 
 func (r *RemoteGPGUI) SelectKey(arg keybase_1.SelectKeyArg) (string, error) {
+	arg.SessionID = r.sessionId
 	return r.uicli.SelectKey(arg)
 }
 
 func (r *RemoteGPGUI) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (keybase_1.SelectKeyRes, error) {
+	arg.SessionID = r.sessionId
 	return r.uicli.SelectKeyAndPushOption(arg)
 }
 
 func (r *RemoteGPGUI) WantToAddGPGKey() (bool, error) {
-	return r.uicli.WantToAddGPGKey()
+	return r.uicli.WantToAddGPGKey(r.sessionId)
 }

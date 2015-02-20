@@ -84,14 +84,16 @@ func NewRemoteDoctorUI(sessionId int, c *rpc2.Client) *RemoteDoctorUI {
 	}
 }
 
-func (r *RemoteDoctorUI) PromptDeviceName(sessionID int) (string, error) {
-	return r.uicli.PromptDeviceName(sessionID)
+func (r *RemoteDoctorUI) PromptDeviceName() (string, error) {
+	return r.uicli.PromptDeviceName(r.sessionId)
 }
 
 func (r *RemoteDoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (keybase_1.SelectSignerRes, error) {
+	arg.SessionID = r.sessionId
 	return r.uicli.SelectSigner(arg)
 }
 
 func (r *RemoteDoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+	arg.SessionID = r.sessionId
 	return r.uicli.DisplaySecretWords(arg)
 }

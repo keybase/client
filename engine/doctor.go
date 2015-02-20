@@ -420,7 +420,7 @@ func (d *Doctor) detkey() (libkb.GenericKey, error) {
 func (d *Doctor) deviceName() (string, error) {
 	if len(d.devName) == 0 {
 		// XXX session id...what to put there?
-		name, err := d.docUI.PromptDeviceName(0)
+		name, err := d.docUI.PromptDeviceName()
 		if err != nil {
 			return "", err
 		}

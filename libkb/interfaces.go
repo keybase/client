@@ -252,11 +252,15 @@ type KeyGenUI interface {
 }
 
 type DoctorUI interface {
-	keybase_1.DoctorUiInterface
+	SelectSigner(keybase_1.SelectSignerArg) (keybase_1.SelectSignerRes, error)
+	DisplaySecretWords(keybase_1.DisplaySecretWordsArg) error
+	PromptDeviceName() (string, error)
 }
 
 type GPGUI interface {
-	keybase_1.GpgUiInterface
+	WantToAddGPGKey() (bool, error)
+	SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg) (keybase_1.SelectKeyRes, error)
+	SelectKey(keybase_1.SelectKeyArg) (string, error)
 }
 
 type UI interface {

@@ -10,7 +10,6 @@ import (
 
 	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type UI struct {
@@ -481,7 +480,7 @@ type DoctorUI struct {
 	parent *UI
 }
 
-func (d DoctorUI) PromptDeviceName(sessionID int) (string, error) {
+func (d DoctorUI) PromptDeviceName() (string, error) {
 	return d.parent.Prompt("Enter a name for this device", false,
 		libkb.CheckNotEmpty)
 }
@@ -835,10 +834,6 @@ func (ui *UI) OutputWriter() io.Writer {
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 	return fmt.Fprintf(ui.OutputWriter(), format, a...)
-}
-
-func NewDoctorUIProtocol() rpc2.Protocol {
-	return keybase_1.DoctorUiProtocol(G_UI.GetDoctorUI())
 }
 
 //=====================================================
