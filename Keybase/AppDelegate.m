@@ -216,7 +216,7 @@
   window.minSize = CGSizeMake(300, 400);
   window.maxSize = CGSizeMake(600, 900);
   window.styleMask = window.styleMask | NSResizableWindowMask;
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Debug/Catalog" navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Debug/Catalog" navigation:navigation];
   //[window setLevel:NSStatusWindowLevel];
   [window makeKeyAndOrderFront:nil];
 }

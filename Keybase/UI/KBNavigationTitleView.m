@@ -1,25 +1,25 @@
 //
-//  KBTitleView.m
+//  KBNavigationTitleView.m
 //  Keybase
 //
 //  Created by Gabriel on 1/28/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBTitleView.h"
+#import "KBNavigationTitleView.h"
 #import "KBLabel.h"
 #import "KBBox.h"
 #import "KBActivityIndicatorView.h"
 #import <GHKit/GHKit.h>
 
-@interface KBTitleView ()
+@interface KBNavigationTitleView ()
 @property KBLabel *label;
 @property KBBox *border;
-@property BOOL barEnabled;
+@property BOOL menuBarEnabled;
 @property KBActivityIndicatorView *progressView;
 @end
 
-@implementation KBTitleView
+@implementation KBNavigationTitleView
 
 - (void)viewInit {
   [super viewInit];
@@ -39,13 +39,13 @@
   [self addSubview:_border];
 
   GHWeakSelf gself = self;
-  _bar = [[KBNavigationBar alloc] init];
-  [_bar setBackTitle:@"Back" targetBlock:^{
+  _menuBar = [[KBMenuBar alloc] init];
+  [_menuBar setBackTitle:@"Back" targetBlock:^{
     [gself.navigation popViewAnimated:YES];
   }];
-  [self addSubview:_bar];
-  _bar.alphaValue = 0;
-  _barEnabled = NO;
+  [self addSubview:_menuBar];
+  _menuBar.alphaValue = 0;
+  _menuBarEnabled = NO;
 
   _progressView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_progressView];
@@ -72,8 +72,8 @@
 
     [layout setFrame:CGRectMake(0, y - 1, size.width, 1) view:yself.border];
 
-    if (yself.barEnabled) {
-      y += [layout setFrame:CGRectMake(0, y, size.width, 32) view:yself.bar].size.height;
+    if (yself.menuBarEnabled) {
+      y += [layout setFrame:CGRectMake(0, y, size.width, 32) view:yself.menuBar].size.height;
     }
 
     [layout setFrame:CGRectMake(0, 0, size.width, 32) view:background1];
@@ -82,7 +82,7 @@
 }
 
 + (instancetype)titleViewWithTitle:(NSString *)title navigation:(KBNavigationView *)navigation {
-  KBTitleView *titleView = [[self alloc] initWithFrame:CGRectMake(0, 0, 360, 0)];
+  KBNavigationTitleView *titleView = [[self alloc] initWithFrame:CGRectMake(0, 0, 360, 0)];
   [titleView setTitle:title];
   titleView.navigation = navigation;
   return titleView;
@@ -108,14 +108,14 @@
 
 - (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType {
   if (transitionType == KBNavigationTransitionTypePush && navigationView.views.count >= 1) {
-    _bar.animator.alphaValue = 1.0;
-    _barEnabled = YES;
+    _menuBar.animator.alphaValue = 1.0;
+    _menuBarEnabled = YES;
   } else if (transitionType == KBNavigationTransitionTypePop && navigationView.views.count > 2) {
-    _bar.animator.alphaValue = 1.0;
-    _barEnabled = YES;
+    _menuBar.animator.alphaValue = 1.0;
+    _menuBarEnabled = YES;
   } else {
-    _bar.animator.alphaValue = 0.0;
-    _barEnabled = NO;
+    _menuBar.animator.alphaValue = 0.0;
+    _menuBarEnabled = NO;
   }
 }
 

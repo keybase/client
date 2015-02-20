@@ -1,23 +1,23 @@
 //
-//  KBBreadCrumb.m
+//  KBMenuBar.m
 //  Keybase
 //
 //  Created by Gabriel on 1/28/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBNavigationBar.h"
+#import "KBMenuBar.h"
 #import "KBLabel.h"
 #import "KBBox.h"
 #import "KBButton.h"
 #import "KBAppearance.h"
 
-@interface KBNavigationBar ()
+@interface KBMenuBar ()
 @property KBButton *backButton;
 @property KBBox *border;
 @end
 
-@implementation KBNavigationBar
+@implementation KBMenuBar
 
 - (void)viewInit {
   [super viewInit];

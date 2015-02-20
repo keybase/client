@@ -272,7 +272,7 @@
 
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:selectView];
   NSWindow *selectWindow = [KBWindow windowWithContentView:navigation size:CGSizeMake(600, 400) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Select PGP Key" navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Select PGP Key" navigation:navigation];
 
   [selectView.keysView setGPGKeys:handler.keys];
   __weak KBKeySelectView *gselectView = selectView;

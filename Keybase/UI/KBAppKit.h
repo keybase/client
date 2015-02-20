@@ -28,7 +28,7 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import "KBNavigationView.h"
 #import "KBTableRowView.h"
 #import "KBWindow.h"
-#import "KBTitleView.h"
+#import "KBNavigationTitleView.h"
 #import "KBAlert.h"
 #import "KBBox.h"
 #import "KBLabelRow.h"

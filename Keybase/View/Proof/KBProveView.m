@@ -53,7 +53,7 @@
 
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:proveView];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 420) retain:NO];
-  navigation.titleView = [KBTitleView titleViewWithTitle:NSStringWithFormat(@"Connect with %@", KBNameForProveType(proveType)) navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:NSStringWithFormat(@"Connect with %@", KBNameForProveType(proveType)) navigation:navigation];
 
   NSWindow *sourceWindow = sender.window ? sender.window : [NSApp mainWindow];
   [sourceWindow beginSheet:window completionHandler:^(NSModalResponse returnCode) {

@@ -1,5 +1,5 @@
 //
-//  KBTitleView.h
+//  KBNavigationTitleView.h
 //  Keybase
 //
 //  Created by Gabriel on 1/28/15.
@@ -11,14 +11,14 @@
 #import <YOLayout/YOLayout.h>
 #import "KBButton.h"
 #import "KBNavigationView.h"
-#import "KBNavigationBar.h"
+#import "KBMenuBar.h"
 
-@interface KBTitleView : YONSView <KBNavigationTitleView>
+@interface KBNavigationTitleView : YONSView <KBNavigationTitleView>
 
 //@property KBButton *backView;
 @property (weak) KBNavigationView *navigation;
 
-@property KBNavigationBar *bar;
+@property KBMenuBar *menuBar;
 @property (nonatomic) NSString *title;
 
 + (instancetype)titleViewWithTitle:(NSString *)title navigation:(KBNavigationView *)navigation;

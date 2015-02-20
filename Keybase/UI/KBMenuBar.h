@@ -1,5 +1,5 @@
 //
-//  KBNavigationBar.h
+//  KBMenuBar.h
 //  Keybase
 //
 //  Created by Gabriel on 1/28/15.
@@ -12,7 +12,7 @@
 
 #import "KBButton.h"
 
-@interface KBNavigationBar : YONSView
+@interface KBMenuBar : YONSView
 
 - (void)setBackTitle:(NSString *)backTitle targetBlock:(KBButtonTargetBlock)targetBlock;
 

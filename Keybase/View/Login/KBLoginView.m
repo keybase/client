@@ -145,7 +145,7 @@
 
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:deviceSetupView];
   NSWindow *selectWindow = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 400) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Device Setup" navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Device Setup" navigation:navigation];
 
   __weak KBDeviceSetupView *gdeviceSetupView = deviceSetupView;
   deviceSetupView.selectButton.targetBlock = ^{

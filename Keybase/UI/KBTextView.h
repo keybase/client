@@ -10,6 +10,6 @@
 
 #import "KBLabel.h"
 
+// Alias
 @interface KBTextView : KBLabel
-
 @end

@@ -107,7 +107,7 @@
 
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(300, 200) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Sheet" navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Sheet" navigation:navigation];
 
   [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
 

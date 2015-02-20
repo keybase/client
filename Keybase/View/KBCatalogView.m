@@ -106,7 +106,7 @@
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
-  navigation.titleView = [KBTitleView titleViewWithTitle:title navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:title navigation:navigation];
   [window makeKeyAndOrderFront:nil];
   return window;
 }
@@ -135,7 +135,7 @@
   userProfileView.popup = YES;
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:userProfileView];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 400) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:user.username navigation:navigation];
   [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
@@ -149,7 +149,7 @@
   userProfileView.mock = YES;
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:userProfileView];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 400) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:user.username navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:user.username navigation:navigation];
   [window setLevel:NSFloatingWindowLevel];
   [window makeKeyAndOrderFront:nil];
 
@@ -174,7 +174,7 @@
   KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:testView];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(600, 400) retain:YES];
-  navigation.titleView = [KBTitleView titleViewWithTitle:@"Style Guide" navigation:navigation];
+  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Style Guide" navigation:navigation];
   window.styleMask = window.styleMask | NSResizableWindowMask;
   [window makeKeyAndOrderFront:nil];
 }

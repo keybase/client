@@ -63,8 +63,8 @@
 		00566A181A97DA1800CA236E /* KBLabelRow.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669EA1A97DA1800CA236E /* KBLabelRow.m */; };
 		00566A191A97DA1800CA236E /* KBLayouts.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669EC1A97DA1800CA236E /* KBLayouts.m */; };
 		00566A1A1A97DA1800CA236E /* KBLayouts.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669EC1A97DA1800CA236E /* KBLayouts.m */; };
-		00566A1B1A97DA1800CA236E /* KBNavigationBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669EE1A97DA1800CA236E /* KBNavigationBar.m */; };
-		00566A1C1A97DA1800CA236E /* KBNavigationBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669EE1A97DA1800CA236E /* KBNavigationBar.m */; };
+		00566A1B1A97DA1800CA236E /* KBMenuBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669EE1A97DA1800CA236E /* KBMenuBar.m */; };
+		00566A1C1A97DA1800CA236E /* KBMenuBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669EE1A97DA1800CA236E /* KBMenuBar.m */; };
 		00566A1D1A97DA1800CA236E /* KBNavigationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669F01A97DA1800CA236E /* KBNavigationView.m */; };
 		00566A1E1A97DA1800CA236E /* KBNavigationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669F01A97DA1800CA236E /* KBNavigationView.m */; };
 		00566A1F1A97DA1800CA236E /* KBProgressOverlayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669F21A97DA1800CA236E /* KBProgressOverlayView.m */; };
@@ -83,8 +83,8 @@
 		00566A2C1A97DA1800CA236E /* KBTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669FE1A97DA1800CA236E /* KBTextField.m */; };
 		00566A2D1A97DA1800CA236E /* KBTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A001A97DA1800CA236E /* KBTextView.m */; };
 		00566A2E1A97DA1800CA236E /* KBTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A001A97DA1800CA236E /* KBTextView.m */; };
-		00566A2F1A97DA1800CA236E /* KBTitleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A021A97DA1800CA236E /* KBTitleView.m */; };
-		00566A301A97DA1800CA236E /* KBTitleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A021A97DA1800CA236E /* KBTitleView.m */; };
+		00566A2F1A97DA1800CA236E /* KBNavigationTitleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A021A97DA1800CA236E /* KBNavigationTitleView.m */; };
+		00566A301A97DA1800CA236E /* KBNavigationTitleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A021A97DA1800CA236E /* KBNavigationTitleView.m */; };
 		00566A311A97DA1800CA236E /* KBWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A041A97DA1800CA236E /* KBWebView.m */; };
 		00566A321A97DA1800CA236E /* KBWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A041A97DA1800CA236E /* KBWebView.m */; };
 		00566A331A97DA1800CA236E /* KBWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A061A97DA1800CA236E /* KBWindow.m */; };
@@ -224,8 +224,8 @@
 		005669EA1A97DA1800CA236E /* KBLabelRow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLabelRow.m; sourceTree = "<group>"; };
 		005669EB1A97DA1800CA236E /* KBLayouts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLayouts.h; sourceTree = "<group>"; };
 		005669EC1A97DA1800CA236E /* KBLayouts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLayouts.m; sourceTree = "<group>"; };
-		005669ED1A97DA1800CA236E /* KBNavigationBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNavigationBar.h; sourceTree = "<group>"; };
-		005669EE1A97DA1800CA236E /* KBNavigationBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNavigationBar.m; sourceTree = "<group>"; };
+		005669ED1A97DA1800CA236E /* KBMenuBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBMenuBar.h; sourceTree = "<group>"; };
+		005669EE1A97DA1800CA236E /* KBMenuBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBMenuBar.m; sourceTree = "<group>"; };
 		005669EF1A97DA1800CA236E /* KBNavigationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNavigationView.h; sourceTree = "<group>"; };
 		005669F01A97DA1800CA236E /* KBNavigationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNavigationView.m; sourceTree = "<group>"; };
 		005669F11A97DA1800CA236E /* KBProgressOverlayView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProgressOverlayView.h; sourceTree = "<group>"; };
@@ -244,8 +244,8 @@
 		005669FE1A97DA1800CA236E /* KBTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTextField.m; sourceTree = "<group>"; };
 		005669FF1A97DA1800CA236E /* KBTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTextView.h; sourceTree = "<group>"; };
 		00566A001A97DA1800CA236E /* KBTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTextView.m; sourceTree = "<group>"; };
-		00566A011A97DA1800CA236E /* KBTitleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTitleView.h; sourceTree = "<group>"; };
-		00566A021A97DA1800CA236E /* KBTitleView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTitleView.m; sourceTree = "<group>"; };
+		00566A011A97DA1800CA236E /* KBNavigationTitleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNavigationTitleView.h; sourceTree = "<group>"; };
+		00566A021A97DA1800CA236E /* KBNavigationTitleView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNavigationTitleView.m; sourceTree = "<group>"; };
 		00566A031A97DA1800CA236E /* KBWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWebView.h; sourceTree = "<group>"; };
 		00566A041A97DA1800CA236E /* KBWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWebView.m; sourceTree = "<group>"; };
 		00566A051A97DA1800CA236E /* KBWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWindow.h; sourceTree = "<group>"; };
@@ -532,8 +532,8 @@
 				005669EA1A97DA1800CA236E /* KBLabelRow.m */,
 				005669EB1A97DA1800CA236E /* KBLayouts.h */,
 				005669EC1A97DA1800CA236E /* KBLayouts.m */,
-				005669ED1A97DA1800CA236E /* KBNavigationBar.h */,
-				005669EE1A97DA1800CA236E /* KBNavigationBar.m */,
+				005669ED1A97DA1800CA236E /* KBMenuBar.h */,
+				005669EE1A97DA1800CA236E /* KBMenuBar.m */,
 				005669EF1A97DA1800CA236E /* KBNavigationView.h */,
 				005669F01A97DA1800CA236E /* KBNavigationView.m */,
 				005669F11A97DA1800CA236E /* KBProgressOverlayView.h */,
@@ -552,8 +552,8 @@
 				005669FE1A97DA1800CA236E /* KBTextField.m */,
 				005669FF1A97DA1800CA236E /* KBTextView.h */,
 				00566A001A97DA1800CA236E /* KBTextView.m */,
-				00566A011A97DA1800CA236E /* KBTitleView.h */,
-				00566A021A97DA1800CA236E /* KBTitleView.m */,
+				00566A011A97DA1800CA236E /* KBNavigationTitleView.h */,
+				00566A021A97DA1800CA236E /* KBNavigationTitleView.m */,
 				00566A031A97DA1800CA236E /* KBWebView.h */,
 				00566A041A97DA1800CA236E /* KBWebView.m */,
 				00566A051A97DA1800CA236E /* KBWindow.h */,
@@ -806,7 +806,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00566A1B1A97DA1800CA236E /* KBNavigationBar.m in Sources */,
+				00566A1B1A97DA1800CA236E /* KBMenuBar.m in Sources */,
 				00566A0B1A97DA1800CA236E /* KBAppearance.m in Sources */,
 				00566A091A97DA1800CA236E /* KBAlert.m in Sources */,
 				00566A291A97DA1800CA236E /* KBTextCollectionView.m in Sources */,
@@ -824,7 +824,7 @@
 				00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */,
 				00566A171A97DA1800CA236E /* KBLabelRow.m in Sources */,
 				00B544451A896BC60044CC5B /* KBSignupView.m in Sources */,
-				00566A2F1A97DA1800CA236E /* KBTitleView.m in Sources */,
+				00566A2F1A97DA1800CA236E /* KBNavigationTitleView.m in Sources */,
 				00CB67C11A69D16700B5882A /* KBLogoView.m in Sources */,
 				0017125A1A951A9C00C7AD58 /* KBUsersMainView.m in Sources */,
 				00566A0F1A97DA1800CA236E /* KBButton.m in Sources */,
@@ -896,7 +896,7 @@
 				00B544461A896BC60044CC5B /* KBSignupView.m in Sources */,
 				00086CA71A65CEC60000460F /* KBSplashView.m in Sources */,
 				2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */,
-				00566A301A97DA1800CA236E /* KBTitleView.m in Sources */,
+				00566A301A97DA1800CA236E /* KBNavigationTitleView.m in Sources */,
 				00B543F21A8178E30044CC5B /* KBStrengthLabel.m in Sources */,
 				00566A161A97DA1800CA236E /* KBLabel.m in Sources */,
 				00B544251A895A810044CC5B /* KBProofLabel.m in Sources */,
@@ -938,7 +938,7 @@
 				001712291A94100500C7AD58 /* KBGPGKeysView.m in Sources */,
 				00566A241A97DA1800CA236E /* KBSplitView.m in Sources */,
 				00566A341A97DA1800CA236E /* KBWindow.m in Sources */,
-				00566A1C1A97DA1800CA236E /* KBNavigationBar.m in Sources */,
+				00566A1C1A97DA1800CA236E /* KBMenuBar.m in Sources */,
 				00D52F831A76EDAE00DEB5F5 /* KBErrorView.m in Sources */,
 				00566A321A97DA1800CA236E /* KBWebView.m in Sources */,
 				001712551A951A9C00C7AD58 /* KBUsersView.m in Sources */,
