@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go/engine"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
-	"github.com/keybase/go/engine"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 

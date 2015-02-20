@@ -20,12 +20,12 @@ func RunEngine(e Engine, ctx *Context, args interface{}, reply interface{}) erro
 
 func check(c libkb.UIConsumer, ctx *Context) error {
 	if err := checkUI(c, ctx); err != nil {
-		return fmt.Errorf("%s: %s", c.Name(), err)
+		return CheckError{fmt.Sprintf("%s: %s", c.Name(), err.Error())}
 	}
 
 	for _, sub := range c.SubConsumers() {
 		if err := check(sub, ctx); err != nil {
-			return fmt.Errorf("%s: %s", sub.Name(), err)
+			return CheckError{fmt.Sprintf("%s: %s", sub.Name(), err)}
 		}
 	}
 
@@ -35,7 +35,7 @@ func check(c libkb.UIConsumer, ctx *Context) error {
 func checkUI(c libkb.UIConsumer, ctx *Context) error {
 	for _, ui := range c.RequiredUIs() {
 		if !ctx.HasUI(ui) {
-			return fmt.Errorf("requires ui %q", ui)
+			return CheckError{fmt.Sprintf("requires ui %q", ui)}
 		}
 	}
 	return nil
