@@ -270,6 +270,7 @@ type UI interface {
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
+	GetDoctorUI() DoctorUI
 	GetKeyGenUI(secPush, noPubPush, interactive bool) KeyGenUI
 	Prompt(string, bool, Checker) (string, error)
 	Configure() error

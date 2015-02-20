@@ -205,6 +205,9 @@ func (n *nullui) GetKeyGenUI(s, x, i bool) KeyGenUI {
 func (n *nullui) GetLogUI() LogUI {
 	return G.Log
 }
+func (n *nullui) GetDoctorUI() DoctorUI {
+	return nil
+}
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {
 	return "", nil
 }
