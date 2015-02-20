@@ -39,7 +39,6 @@ func (pf PromptFields) ToList() []*Field {
 
 type signupProcess interface {
 	CheckRegistered() error
-	// Run(engine.SignupEngineRunArg) error
 	PostInviteRequest(libkb.InviteRequestArg) error
 	Init() error
 	engine.Engine
@@ -71,7 +70,7 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 
 func (s *CmdSignupState) SuccessMessage() error {
 	msg := `
-Welcome to keybase.io! 
+Welcome to keybase.io!
 
     (need new instructions here...)
 
@@ -82,8 +81,8 @@ Enjoy!
 }
 
 func (s *CmdSignupState) RunClient() error {
-	G.Log.Debug("| Remote mode")
-	s.engine = &RemoteSignupJoinEngine{}
+	G.Log.Debug("| Client mode")
+	s.engine = &ClientModeSignupEngine{}
 	return s.run()
 }
 
@@ -316,16 +315,16 @@ func (v *CmdSignupState) GetUsage() libkb.Usage {
 	}
 }
 
-type RemoteSignupJoinEngine struct {
+type ClientModeSignupEngine struct {
 	scli keybase_1.SignupClient
 	ccli keybase_1.ConfigClient
 }
 
-func (e *RemoteSignupJoinEngine) Name() string {
-	return "RemoteSignupJoinEngine"
+func (e *ClientModeSignupEngine) Name() string {
+	return "ClientModeSignupEngine"
 }
 
-func (e *RemoteSignupJoinEngine) RequiredUIs() []libkb.UIKind {
+func (e *ClientModeSignupEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
 		libkb.GPGUIKind,
@@ -333,24 +332,24 @@ func (e *RemoteSignupJoinEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (e *RemoteSignupJoinEngine) SubConsumers() []libkb.UIConsumer {
+func (e *ClientModeSignupEngine) SubConsumers() []libkb.UIConsumer {
 	// this doesn't use any subengines itself, so nil is ok here.
 	// the destination of this will handle it...
 	return nil
 }
 
-func (e *RemoteSignupJoinEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ RemoteSignupJoinEngine::CheckRegistered")
+func (e *ClientModeSignupEngine) CheckRegistered() (err error) {
+	G.Log.Debug("+ ClientModeSignupEngine::CheckRegistered")
 	var rres keybase_1.GetCurrentStatusRes
 	if rres, err = e.ccli.GetCurrentStatus(); err != nil {
 	} else if rres.Registered {
 		err = libkb.AlreadyRegisteredError{}
 	}
-	G.Log.Debug("- RemoteSignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+	G.Log.Debug("- ClientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return
 }
 
-func (e *RemoteSignupJoinEngine) Init() error {
+func (e *ClientModeSignupEngine) Init() error {
 	var err error
 	if e.scli, err = GetSignupClient(); err != nil {
 		return err
@@ -371,7 +370,7 @@ func (e *RemoteSignupJoinEngine) Init() error {
 	return nil
 }
 
-func (e *RemoteSignupJoinEngine) Run(ctx *engine.Context, args interface{}, reply interface{}) error {
+func (e *ClientModeSignupEngine) Run(ctx *engine.Context, args interface{}, reply interface{}) error {
 	arg, ok := args.(engine.SignupEngineRunArg)
 	if !ok {
 		return fmt.Errorf("invalid run args type: %T", args)
@@ -396,18 +395,10 @@ func (e *RemoteSignupJoinEngine) Run(ctx *engine.Context, args interface{}, repl
 			Err:          err,
 		}
 	}
-	/*
-		if res.Error = err; err == nil {
-			res.PassphraseOk = rres.PassphraseOk
-			res.PostOk = rres.PostOk
-			res.WriteOk = rres.WriteOk
-		}
-		return
-	*/
 	return err
 }
 
-func (e *RemoteSignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
+func (e *ClientModeSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
 	rarg := keybase_1.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,
