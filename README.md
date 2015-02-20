@@ -1,6 +1,6 @@
 # Keybase for Mac OS X
 
-## Install
+## Xcode
 
 ```sh
 # Install CocoaPods (if not installed)
