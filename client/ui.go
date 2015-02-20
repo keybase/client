@@ -23,10 +23,6 @@ type BaseIdentifyUI struct {
 	username string
 }
 
-type IdentifySelfUI struct {
-	BaseIdentifyUI
-}
-
 type IdentifyLubaUI struct {
 	BaseIdentifyUI
 }
@@ -35,9 +31,6 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui IdentifySelfUI) Start() {
-	G.Log.Info("Verifying your key fingerprint....")
-}
 func (ui IdentifyTrackUI) Start() {
 	G.Log.Info("Generating tracking statement for " + ColorString("bold", ui.username))
 }
@@ -73,25 +66,6 @@ func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_
 }
 func (ui IdentifyUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
 	return ui.baseFinishAndPrompt(o)
-}
-
-func (ui IdentifySelfUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
-	err = libkb.ImportStatusAsError(o.Status)
-	warnings := libkb.ImportWarnings(o.Warnings)
-	var prompt string
-	if err != nil {
-		return
-	} else if !warnings.IsEmpty() {
-		ui.ShowWarnings(warnings)
-		prompt = "Do you still accept these credentials to be your own?"
-	} else if o.NumProofSuccesses == 0 {
-		prompt = "We found your account, but you have no hosted proofs. Check your fingerprint carefully. Is this you?"
-	} else {
-		prompt = "Is this you?"
-	}
-
-	err = ui.PromptForConfirmation(prompt)
-	return
 }
 
 type IdentifyTrackUI struct {
@@ -396,10 +370,6 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
 
 func (ui BaseIdentifyUI) Warning(m string) {
 	G.Log.Warning(m)
-}
-
-func (ui *UI) GetIdentifySelfUI() libkb.IdentifyUI {
-	return IdentifySelfUI{BaseIdentifyUI{parent: ui}}
 }
 
 func (ui *UI) GetIdentifyTrackUI(username string, strict bool) libkb.IdentifyUI {

@@ -14,10 +14,6 @@ func NewIdentifyUIProtocol(username string) rpc2.Protocol {
 	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI(username)})
 }
 
-func NewIdentifySelfUIProtocol() rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifySelfUI()})
-}
-
 func NewIdentifyTrackUIProtocol(username string) rpc2.Protocol {
 	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyTrackUI(username, true)})
 }

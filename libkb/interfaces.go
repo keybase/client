@@ -262,7 +262,6 @@ type GPGUI interface {
 
 type UI interface {
 	GetIdentifyUI(username string) IdentifyUI
-	GetIdentifySelfUI() IdentifyUI
 	GetIdentifyTrackUI(username string, strict bool) IdentifyUI
 	GetIdentifyLubaUI(username string) IdentifyUI
 	GetLoginUI() LoginUI
