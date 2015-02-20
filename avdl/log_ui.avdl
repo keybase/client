@@ -13,5 +13,5 @@ protocol logUi {
 		CRITICAL
 	}
 
-	void log(int sessionId, LogLevel level, Text text);
+	void log(int sessionID, LogLevel level, Text text);
 }

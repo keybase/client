@@ -118,7 +118,7 @@
   "messages" : {
     "log" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "level",

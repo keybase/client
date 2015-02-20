@@ -3,5 +3,5 @@
 protocol loginUi {
 	import idl "common.avdl";
 
-	string getEmailOrUsername();
+	string getEmailOrUsername(int sessionID);
 }

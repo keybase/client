@@ -73,12 +73,12 @@ protocol identifyUi {
 		boolean trackRemote;
 	}
 
-	FinishAndPromptRes finishAndPrompt(int sessionId, IdentifyOutcome outcome);
-	void finishWebProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
-	void finishSocialProofCheck(int sessionId, RemoteProof rp, LinkCheckResult lcr);
-	void displayCryptocurrency(int sessionId, Cryptocurrency c);
-	void displayKey(int sessionId, FOKID fokid, union { null, TrackDiff } diff);
-	void reportLastTrack(int sessionId, union { null, TrackSummary } track);
-	void launchNetworkChecks(int sessionId, Identity id);
-	void displayTrackStatement(int sessionId, string stmt);
+	FinishAndPromptRes finishAndPrompt(int sessionID, IdentifyOutcome outcome);
+	void finishWebProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
+	void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
+	void displayCryptocurrency(int sessionID, Cryptocurrency c);
+	void displayKey(int sessionID, FOKID fokid, union { null, TrackDiff } diff);
+	void reportLastTrack(int sessionID, union { null, TrackSummary } track);
+	void launchNetworkChecks(int sessionID, Identity id);
+	void displayTrackStatement(int sessionID, string stmt);
 }

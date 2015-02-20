@@ -113,7 +113,10 @@
   } ],
   "messages" : {
     "getEmailOrUsername" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "string"
     }
   }

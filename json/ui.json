@@ -114,6 +114,9 @@
   "messages" : {
     "promptYesNo" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "text",
         "type" : "Text"
       }, {

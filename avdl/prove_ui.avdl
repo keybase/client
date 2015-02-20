@@ -8,11 +8,11 @@ protocol proveUi {
 		SITE
 	}
 
-	boolean promptOverwrite(int sessionId, string account, PromptOverwriteType typ);
-	string promptUsername(int sessionId, string prompt, union {null, Status } prevError);
-	void outputPrechecks(int sessionId, Text text);
-	boolean preProofWarning(int sessionId, Text text);
-	void outputInstructions(int sessionId, Text instructions, string proof);
-	boolean okToCheck(int sessionId, string name, int attempt);
-	void displayRecheckWarning(int sessionId, Text text);
+	boolean promptOverwrite(int sessionID, string account, PromptOverwriteType typ);
+	string promptUsername(int sessionID, string prompt, union {null, Status } prevError);
+	void outputPrechecks(int sessionID, Text text);
+	boolean preProofWarning(int sessionID, Text text);
+	void outputInstructions(int sessionID, Text instructions, string proof);
+	boolean okToCheck(int sessionID, string name, int attempt);
+	void displayRecheckWarning(int sessionID, Text text);
 }

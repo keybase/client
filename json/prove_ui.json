@@ -118,7 +118,7 @@
   "messages" : {
     "promptOverwrite" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "account",
@@ -131,7 +131,7 @@
     },
     "promptUsername" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "prompt",
@@ -144,7 +144,7 @@
     },
     "outputPrechecks" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "text",
@@ -154,7 +154,7 @@
     },
     "preProofWarning" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "text",
@@ -164,7 +164,7 @@
     },
     "outputInstructions" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "instructions",
@@ -177,7 +177,7 @@
     },
     "okToCheck" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "name",
@@ -190,7 +190,7 @@
     },
     "displayRecheckWarning" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "text",

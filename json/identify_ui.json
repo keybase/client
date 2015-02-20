@@ -351,7 +351,7 @@
   "messages" : {
     "finishAndPrompt" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "outcome",
@@ -361,7 +361,7 @@
     },
     "finishWebProofCheck" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "rp",
@@ -374,7 +374,7 @@
     },
     "finishSocialProofCheck" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "rp",
@@ -387,7 +387,7 @@
     },
     "displayCryptocurrency" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "c",
@@ -397,7 +397,7 @@
     },
     "displayKey" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "fokid",
@@ -410,7 +410,7 @@
     },
     "reportLastTrack" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "track",
@@ -420,7 +420,7 @@
     },
     "launchNetworkChecks" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "id",
@@ -430,7 +430,7 @@
     },
     "displayTrackStatement" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "stmt",

@@ -9,6 +9,6 @@ protocol mykeyUi {
 		boolean private;
 	}
 
-	PushPreferences getPushPreferences();
+	PushPreferences getPushPreferences(int sessionID);
 
 }

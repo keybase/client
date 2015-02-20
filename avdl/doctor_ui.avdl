@@ -7,8 +7,6 @@
 protocol doctorUi {
 	import idl "common.avdl";
 
-	string promptDeviceName(int sessionId);
-
 	enum DeviceSignerKind {
 		DEVICE,
 		PGP
@@ -35,12 +33,14 @@ protocol doctorUi {
 		string name;
 		string deviceID;
 	}
+	
+	string promptDeviceName(int sessionID);
 
 	// selectSigner is for when a user logs in with a new device
 	// and it needs to be signed by an existing device or pgp.
-	SelectSignerRes selectSigner(array<Device> devices, boolean hasPGP);
+	SelectSignerRes selectSigner(int sessionID, array<Device> devices, boolean hasPGP);
 
 	// displaySecretWords is for device provisioning when device Y (new device) gives 
 	// instructions containing the secret words to enter on device X (existing device).
-	void displaySecretWords(int sessionId, string secret, string xDevDescription);
+	void displaySecretWords(int sessionID, string secret, string xDevDescription);
 }

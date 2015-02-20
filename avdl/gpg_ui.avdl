@@ -17,6 +17,6 @@ protocol gpgUi {
 	}
 
 	boolean wantToAddGPGKey();
-	SelectKeyRes selectKeyAndPushOption(int sessionId, array<GPGKey> keys);
-	string selectKey(int sessionId, array<GPGKey> keys);
+	SelectKeyRes selectKeyAndPushOption(int sessionID, array<GPGKey> keys);
+	string selectKey(int sessionID, array<GPGKey> keys);
 }

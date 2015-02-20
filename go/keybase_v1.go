@@ -217,16 +217,17 @@ type Device struct {
 }
 
 type PromptDeviceNameArg struct {
-	SessionId int `codec:"sessionId"`
+	SessionID int `codec:"sessionID"`
 }
 
 type SelectSignerArg struct {
-	Devices []Device `codec:"devices"`
-	HasPGP  bool     `codec:"hasPGP"`
+	SessionID int      `codec:"sessionID"`
+	Devices   []Device `codec:"devices"`
+	HasPGP    bool     `codec:"hasPGP"`
 }
 
 type DisplaySecretWordsArg struct {
-	SessionId       int    `codec:"sessionId"`
+	SessionID       int    `codec:"sessionID"`
 	Secret          string `codec:"secret"`
 	XDevDescription string `codec:"xDevDescription"`
 }
@@ -244,7 +245,7 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
 			"promptDeviceName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PromptDeviceNameArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PromptDeviceName(args[0].SessionId)
+					ret, err = i.PromptDeviceName(args[0].SessionID)
 				}
 				return
 			},
@@ -271,8 +272,8 @@ type DoctorUiClient struct {
 	Cli GenericClient
 }
 
-func (c DoctorUiClient) PromptDeviceName(sessionId int) (res string, err error) {
-	__arg := PromptDeviceNameArg{SessionId: sessionId}
+func (c DoctorUiClient) PromptDeviceName(sessionID int) (res string, err error) {
+	__arg := PromptDeviceNameArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.doctorUi.promptDeviceName", []interface{}{__arg}, &res)
 	return
 }
@@ -336,12 +337,12 @@ type WantToAddGPGKeyArg struct {
 }
 
 type SelectKeyAndPushOptionArg struct {
-	SessionId int      `codec:"sessionId"`
+	SessionID int      `codec:"sessionID"`
 	Keys      []GPGKey `codec:"keys"`
 }
 
 type SelectKeyArg struct {
-	SessionId int      `codec:"sessionId"`
+	SessionID int      `codec:"sessionID"`
 	Keys      []GPGKey `codec:"keys"`
 }
 
@@ -566,45 +567,45 @@ type FinishAndPromptRes struct {
 }
 
 type FinishAndPromptArg struct {
-	SessionId int             `codec:"sessionId"`
+	SessionID int             `codec:"sessionID"`
 	Outcome   IdentifyOutcome `codec:"outcome"`
 }
 
 type FinishWebProofCheckArg struct {
-	SessionId int             `codec:"sessionId"`
+	SessionID int             `codec:"sessionID"`
 	Rp        RemoteProof     `codec:"rp"`
 	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type FinishSocialProofCheckArg struct {
-	SessionId int             `codec:"sessionId"`
+	SessionID int             `codec:"sessionID"`
 	Rp        RemoteProof     `codec:"rp"`
 	Lcr       LinkCheckResult `codec:"lcr"`
 }
 
 type DisplayCryptocurrencyArg struct {
-	SessionId int            `codec:"sessionId"`
+	SessionID int            `codec:"sessionID"`
 	C         Cryptocurrency `codec:"c"`
 }
 
 type DisplayKeyArg struct {
-	SessionId int        `codec:"sessionId"`
+	SessionID int        `codec:"sessionID"`
 	Fokid     FOKID      `codec:"fokid"`
 	Diff      *TrackDiff `codec:"diff,omitempty"`
 }
 
 type ReportLastTrackArg struct {
-	SessionId int           `codec:"sessionId"`
+	SessionID int           `codec:"sessionID"`
 	Track     *TrackSummary `codec:"track,omitempty"`
 }
 
 type LaunchNetworkChecksArg struct {
-	SessionId int      `codec:"sessionId"`
+	SessionID int      `codec:"sessionID"`
 	Id        Identity `codec:"id"`
 }
 
 type DisplayTrackStatementArg struct {
-	SessionId int    `codec:"sessionId"`
+	SessionID int    `codec:"sessionID"`
 	Stmt      string `codec:"stmt"`
 }
 
@@ -741,7 +742,7 @@ const (
 )
 
 type LogArg struct {
-	SessionId int      `codec:"sessionId"`
+	SessionID int      `codec:"sessionID"`
 	Level     LogLevel `codec:"level"`
 	Text      Text     `codec:"text"`
 }
@@ -861,10 +862,11 @@ func (c LoginClient) SwitchUser(username string) (err error) {
 }
 
 type GetEmailOrUsernameArg struct {
+	SessionID int `codec:"sessionID"`
 }
 
 type LoginUiInterface interface {
-	GetEmailOrUsername() (string, error)
+	GetEmailOrUsername(int) (string, error)
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
@@ -874,7 +876,7 @@ func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
 			"getEmailOrUsername": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetEmailOrUsernameArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetEmailOrUsername()
+					ret, err = i.GetEmailOrUsername(args[0].SessionID)
 				}
 				return
 			},
@@ -887,8 +889,9 @@ type LoginUiClient struct {
 	Cli GenericClient
 }
 
-func (c LoginUiClient) GetEmailOrUsername() (res string, err error) {
-	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{GetEmailOrUsernameArg{}}, &res)
+func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error) {
+	__arg := GetEmailOrUsernameArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1013,10 +1016,11 @@ type PushPreferences struct {
 }
 
 type GetPushPreferencesArg struct {
+	SessionID int `codec:"sessionID"`
 }
 
 type MykeyUiInterface interface {
-	GetPushPreferences() (PushPreferences, error)
+	GetPushPreferences(int) (PushPreferences, error)
 }
 
 func MykeyUiProtocol(i MykeyUiInterface) rpc2.Protocol {
@@ -1026,7 +1030,7 @@ func MykeyUiProtocol(i MykeyUiInterface) rpc2.Protocol {
 			"getPushPreferences": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetPushPreferencesArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetPushPreferences()
+					ret, err = i.GetPushPreferences(args[0].SessionID)
 				}
 				return
 			},
@@ -1039,8 +1043,9 @@ type MykeyUiClient struct {
 	Cli GenericClient
 }
 
-func (c MykeyUiClient) GetPushPreferences() (res PushPreferences, err error) {
-	err = c.Cli.Call("keybase.1.mykeyUi.getPushPreferences", []interface{}{GetPushPreferencesArg{}}, &res)
+func (c MykeyUiClient) GetPushPreferences(sessionID int) (res PushPreferences, err error) {
+	__arg := GetPushPreferencesArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.mykeyUi.getPushPreferences", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1087,41 +1092,41 @@ const (
 )
 
 type PromptOverwriteArg struct {
-	SessionId int                 `codec:"sessionId"`
+	SessionID int                 `codec:"sessionID"`
 	Account   string              `codec:"account"`
 	Typ       PromptOverwriteType `codec:"typ"`
 }
 
 type PromptUsernameArg struct {
-	SessionId int     `codec:"sessionId"`
+	SessionID int     `codec:"sessionID"`
 	Prompt    string  `codec:"prompt"`
 	PrevError *Status `codec:"prevError,omitempty"`
 }
 
 type OutputPrechecksArg struct {
-	SessionId int  `codec:"sessionId"`
+	SessionID int  `codec:"sessionID"`
 	Text      Text `codec:"text"`
 }
 
 type PreProofWarningArg struct {
-	SessionId int  `codec:"sessionId"`
+	SessionID int  `codec:"sessionID"`
 	Text      Text `codec:"text"`
 }
 
 type OutputInstructionsArg struct {
-	SessionId    int    `codec:"sessionId"`
+	SessionID    int    `codec:"sessionID"`
 	Instructions Text   `codec:"instructions"`
 	Proof        string `codec:"proof"`
 }
 
 type OkToCheckArg struct {
-	SessionId int    `codec:"sessionId"`
+	SessionID int    `codec:"sessionID"`
 	Name      string `codec:"name"`
 	Attempt   int    `codec:"attempt"`
 }
 
 type DisplayRecheckWarningArg struct {
-	SessionId int  `codec:"sessionId"`
+	SessionID int  `codec:"sessionID"`
 	Text      Text `codec:"text"`
 }
 
@@ -1287,8 +1292,9 @@ type SecretEntryRes struct {
 }
 
 type GetSecretArg struct {
-	Pinentry SecretEntryArg  `codec:"pinentry"`
-	Terminal *SecretEntryArg `codec:"terminal,omitempty"`
+	SessionID int             `codec:"sessionID"`
+	Pinentry  SecretEntryArg  `codec:"pinentry"`
+	Terminal  *SecretEntryArg `codec:"terminal,omitempty"`
 }
 
 type GetNewPassphraseArg struct {
@@ -1299,8 +1305,9 @@ type GetNewPassphraseArg struct {
 }
 
 type GetKeybasePassphraseArg struct {
-	Username string `codec:"username"`
-	Retry    string `codec:"retry"`
+	SessionID int    `codec:"sessionID"`
+	Username  string `codec:"username"`
+	Retry     string `codec:"retry"`
 }
 
 type SecretUiInterface interface {
@@ -1510,8 +1517,9 @@ func (c TrackClient) Track(theirName string) (err error) {
 }
 
 type PromptYesNoArg struct {
-	Text Text  `codec:"text"`
-	Def  *bool `codec:"def,omitempty"`
+	SessionID int   `codec:"sessionID"`
+	Text      Text  `codec:"text"`
+	Def       *bool `codec:"def,omitempty"`
 }
 
 type UiInterface interface {

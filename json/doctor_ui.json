@@ -155,13 +155,16 @@
   "messages" : {
     "promptDeviceName" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       } ],
       "response" : "string"
     },
     "selectSigner" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "devices",
         "type" : {
           "type" : "array",
@@ -175,7 +178,7 @@
     },
     "displaySecretWords" : {
       "request" : [ {
-        "name" : "sessionId",
+        "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "secret",
