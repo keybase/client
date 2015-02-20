@@ -29,7 +29,7 @@
 
 //- (void)drawSelectionInRect:(NSRect)dirtyRect {
 //  if (self.selectionHighlightStyle != NSTableViewSelectionHighlightStyleNone) {
-//    [[KBLookAndFeel highlightBackgroundColor] setFill];
+//    [[KBAppearance.currentAppearance highlightBackgroundColor] setFill];
 //    [[NSBezierPath bezierPathWithRect:self.bounds] fill];
 //  }
 //}

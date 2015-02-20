@@ -21,7 +21,7 @@
   GHWeakSelf gself = self;
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self addSubview:label];
 
   _usernameField = [[KBTextField alloc] init];

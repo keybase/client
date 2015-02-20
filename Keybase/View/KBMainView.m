@@ -31,7 +31,7 @@
   _sourceView.delegate = self;
   [self addSubview:_sourceView];
 
-  _border = [KBBox lineWithWidth:1.0 color:[KBLookAndFeel lineColor]];
+  _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
   [self addSubview:_border];
 
   YOSelf yself = self;

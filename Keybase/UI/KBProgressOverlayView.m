@@ -10,7 +10,7 @@
 
 #import "KBActivityIndicatorView.h"
 #import "KBLabel.h"
-#import "KBLookAndFeel.h"
+#import "KBAppearance.h"
 
 @interface KBProgressOverlayView ()
 //@property NSView *overlay;
@@ -34,7 +34,7 @@
 //  [self addSubview:_overlay];
 
   _label = [[KBLabel alloc] init];
-  [_label setText:@"Loading ..." font:[NSFont systemFontOfSize:20] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+  [_label setText:@"Loading ..." font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_label];
 
   _indicatorView = [[KBActivityIndicatorView alloc] init];

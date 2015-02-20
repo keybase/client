@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBUIDefines.h"
+#import "KBAppKit.h"
 #import "KBDeviceSignerView.h"
 #import "KBDeviceSignerOption.h"
 

@@ -8,7 +8,7 @@
 
 #import "KBPreferences.h"
 
-#import "KBUIDefines.h"
+#import "KBAppKit.h"
 #import <MASPreferences/MASPreferencesWindowController.h>
 #import "AppDelegate.h"
 

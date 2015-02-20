@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBUIDefines.h"
+#import "KBAppKit.h"
 #import "KBRPC.h"
 
 typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response); // Response nil on cancel

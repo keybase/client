@@ -8,7 +8,7 @@
 
 #import "KBKeyGenView.h"
 #import "AppDelegate.h"
-#import "KBUIDefines.h"
+#import "KBAppKit.h"
 #import "KBRPC.h"
 
 @interface KBKeyGenView ()
@@ -24,7 +24,7 @@
   GHWeakSelf gself = self;
 
   _infoLabel = [[KBLabel alloc] init];
-  [_infoLabel setText:@" " font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+  [_infoLabel setText:@" " font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_infoLabel];
 
   /*

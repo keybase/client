@@ -21,13 +21,13 @@
   _proofResult = proofResult;
 
   BOOL errored = NO;
-  NSColor *color = [KBLookAndFeel selectColor];
+  NSColor *color = [KBAppearance.currentAppearance selectColor];
   NSString *info = nil;
   NSString *errorMessage = nil;
 
   if (!_proofResult.result) {
     // Loading the result
-    color = [KBLookAndFeel disabledTextColor];
+    color = [KBAppearance.currentAppearance disabledTextColor];
   } else {
     KBRTrackDiff *diff = proofResult.result.diff;
     if (diff) {
@@ -38,20 +38,20 @@
         case KBRTrackDiffTypeClash:
         case KBRTrackDiffTypeDeleted:
           info = diff.displayMarkup;
-          color = [KBLookAndFeel errorColor];
+          color = [KBAppearance.currentAppearance errorColor];
           errored = YES;
           break;
 
         case KBRTrackDiffTypeUpgraded:
         case KBRTrackDiffTypeNew:
-          color = [KBLookAndFeel greenColor];
+          color = [KBAppearance.currentAppearance greenColor];
           info = diff.displayMarkup;
           break;
 
         case KBRTrackDiffTypeRemoteFail:
         case KBRTrackDiffTypeRemoteChanged:
           info = diff.displayMarkup;
-          color = [KBLookAndFeel warnColor];
+          color = [KBAppearance.currentAppearance warnColor];
           break;
 
         case KBRTrackDiffTypeRemoteWorking:
@@ -61,13 +61,13 @@
     }
 
     if (_proofResult.result.proofStatus.status != 1) {
-      color = [KBLookAndFeel errorColor];
+      color = [KBAppearance.currentAppearance errorColor];
       errored = YES;
       errorMessage = _proofResult.result.proofStatus.desc;
       info = NSStringWithFormat(@"error: %@", @(_proofResult.result.proofStatus.status));
     } else if (!_proofResult.result.hint.humanUrl) {
       // No link
-      color = [KBLookAndFeel textColor];
+      color = [KBAppearance.currentAppearance textColor];
     }
   }
 

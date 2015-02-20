@@ -7,6 +7,7 @@
 //
 
 #import "KBErrorView.h"
+#import "KBAppKit.h"
 
 @interface KBErrorView ()
 @property KBLabel *titleLabel;
@@ -66,8 +67,8 @@
 }
 
 - (void)setError:(NSError *)error {
-  [_titleLabel setText:@"There was a problem and we couldn't recover. This usually means there is something wrong with your Keybase installation. This information might help you resolve this issue:" font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  [_descriptionLabel setText:error.localizedDescription font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [_titleLabel setText:@"There was a problem and we couldn't recover. This usually means there is something wrong with your Keybase installation. This information might help you resolve this issue:" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_descriptionLabel setText:error.localizedDescription font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   [self setNeedsLayout];
 }
 

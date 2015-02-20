@@ -8,6 +8,11 @@
 
 #import "KBImageTextView.h"
 
+#import "KBImageView.h"
+#import "KBLabel.h"
+#import "KBBox.h"
+#import "KBAppearance.h"
+
 @interface KBImageTextView ()
 @property KBImageView *imageView;
 @property KBLabel *titleLabel;
@@ -29,7 +34,7 @@
   _titleLabel = [[KBLabel alloc] init];
   [self addSubview:_titleLabel];
 
-  _border = [KBBox lineWithWidth:1.0 color:[KBLookAndFeel lineColor]];
+  _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
   [self addSubview:_border];
 
   _descriptionLabel = [[KBLabel alloc] init];
@@ -58,8 +63,8 @@
 }
 
 - (void)setTitle:(NSString *)title description:(NSString *)description imageSource:(NSString *)imageSource {
-  [self.titleLabel setText:title font:[NSFont boldSystemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
-  [self.descriptionLabel setText:description font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel secondaryTextColor] alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:title font:[NSFont boldSystemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [self.descriptionLabel setText:description font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance secondaryTextColor] alignment:NSLeftTextAlignment];
   [self.imageView setImageSource:imageSource];
   [self setNeedsLayout];
 }

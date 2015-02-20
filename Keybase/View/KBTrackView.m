@@ -134,25 +134,25 @@
 
   if (identifyOutcome.numTrackFailures > 0 || identifyOutcome.numDeleted > 0) {
     // Your tracking statement of _ is broken; fix it?
-    [self enableTracking:@"Oops, your tracking statement is broken. Fix it?" color:[KBLookAndFeel warnColor] popup:popup update:YES];
+    [self enableTracking:@"Oops, your tracking statement is broken. Fix it?" color:[KBAppearance.currentAppearance warnColor] popup:popup update:YES];
     _trackPrompt = YES;
   } else if (identifyOutcome.numTrackChanges > 0) {
     // Your tracking statement of _ is still valid; update it to reflect new proofs?"
-    [self enableTracking:@"<strong>Do you want to update your tracking statement?</strong>" color:[KBLookAndFeel textColor] popup:popup update:YES];
+    [self enableTracking:@"<strong>Do you want to update your tracking statement?</strong>" color:[KBAppearance.currentAppearance textColor] popup:popup update:YES];
     _trackPrompt = YES;
   } else if (identifyOutcome.numProofSuccesses == 0) {
     // We found an account for _, but they haven't proven their identity.
-    [_label setMarkup:@"We found an account, but they haven't proven their identity." font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:@"We found an account, but they haven't proven their identity." font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else if (tracked && identifyOutcome.numTrackChanges == 0) {
     // Your tracking statement is up-to-date
     //NSDate *trackDate =  [NSDate gh_parseTimeSinceEpoch:@(identifyOutcome.trackUsed.time) withDefault:nil];
-    [_label setMarkup:NSStringWithFormat(@"Your tracking statement of %@ is up to date.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Your tracking statement of %@ is up to date.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else if (identifyOutcome.numProofFailures > 0) {
     // Some proofs failed
-    [_label setMarkup:@"Oops, some proofs failed." font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:@"Oops, some proofs failed." font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else {
-    //[self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong> <em>This is recommended.</em>", _user.username) color:[KBLookAndFeel textColor] update:NO];
-    [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong>", _user.username) color:[KBLookAndFeel textColor] popup:popup update:NO];
+    //[self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong> <em>This is recommended.</em>", _user.username) color:[KBAppearance.currentAppearance textColor] update:NO];
+    [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong>", _user.username) color:[KBAppearance.currentAppearance textColor] popup:popup update:NO];
     _trackPrompt = YES;
   }
 
@@ -163,11 +163,11 @@
   if (!_trackPrompt) return NO;
 
   if (error) {
-    [_label setMarkup:NSStringWithFormat(@"There was an error tracking %@. (%@)", _user.username, error.localizedDescription) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel errorColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"There was an error tracking %@. (%@)", _user.username, error.localizedDescription) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance errorColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else if (!_trackOptions) {
-    [_label setMarkup:NSStringWithFormat(@"Ok, we skipped tracking %@.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Ok, we skipped tracking %@.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else {
-    [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   }
   //_trackOptionsView.hidden = YES;
   _button.hidden = YES;

@@ -7,8 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-
-#import "KBUIDefines.h"
+#import <AppKit/AppKit.h>
 
 @interface KBWindow : NSObject
 

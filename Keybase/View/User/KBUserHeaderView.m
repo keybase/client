@@ -106,7 +106,7 @@
   }
 
   _imageView.hidden = NO;
-  [_name1Label setText:user.username font:[NSFont boldSystemFontOfSize:36] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [_name1Label setText:user.username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
   [_name2View setText:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 

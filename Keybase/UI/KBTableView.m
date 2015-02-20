@@ -8,9 +8,7 @@
 
 #import "KBTableView.h"
 
-#import "KBUserView.h"
-#import "AppDelegate.h"
-#import "KBUserProfileView.h"
+#import "KBAppearance.h"
 #import "KBTableRowView.h"
 
 @interface KBTableView ()
@@ -28,7 +26,7 @@
   [super viewInit];
 
   self.wantsLayer = YES;
-  self.layer.borderColor = [KBLookAndFeel lineColor].CGColor;
+  self.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
   self.layer.borderWidth = 1.0;
 
   _dataSource = [NSMutableArray array];

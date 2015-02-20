@@ -22,7 +22,7 @@
 - (instancetype)initWithFrame:(NSRect)frameRect {
   if ((self = [super initWithFrame:frameRect])) {
 
-//    _border = [KBBox lineWithWidth:1.0 color:[KBLookAndFeel lineColor]];
+//    _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
 //    [self addSubview:_border];
 
     _outlineView = [[NSOutlineView alloc] init];
@@ -98,7 +98,7 @@
   KBLabelRow *labelRow = [outlineView makeViewWithIdentifier:@"KBLabelRow" owner:self];
   if (!labelRow) labelRow = [[KBLabelRow alloc] init];
   labelRow.label.verticalAlignment = KBVerticalAlignmentMiddle;
-  [labelRow.label setText:item font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [labelRow.label setText:item font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   return labelRow;
 }
 
@@ -106,7 +106,7 @@
   KBLabel *label = [outlineView makeViewWithIdentifier:@"KBLabel" owner:self];
   if (!label) label = [[KBLabel alloc] init];
   label.verticalAlignment = KBVerticalAlignmentMiddle;
-  [label setText:[item uppercaseString] font:[NSFont systemFontOfSize:12] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [label setText:[item uppercaseString] font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   return label;
 }
 

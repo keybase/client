@@ -8,6 +8,8 @@
 
 #import "KBSplitView.h"
 
+#import "KBBox.h"
+
 @interface KBSplitView ()
 @property NSView *sourceView;
 @property KBBox *border;

@@ -8,8 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBUIDefines.h"
-
+#import <YOLayout/YOLayout.h>
 #import <WebKit/WebKit.h>
 
 @interface KBWebView : YONSView

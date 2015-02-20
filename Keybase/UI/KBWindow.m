@@ -8,8 +8,6 @@
 
 #import "KBWindow.h"
 
-#import "KBLogoView.h"
-
 @implementation KBWindow
 
 /*!

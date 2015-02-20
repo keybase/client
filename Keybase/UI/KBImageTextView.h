@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBUIDefines.h"
+#import <YOLayout/YOLayout.h>
 
 @interface KBImageTextView : YONSView
 

@@ -10,6 +10,7 @@
 
 #import "KBDefines.h"
 #import <ZXCVBN/BBPasswordStrength.h>
+#import "KBAppKit.h"
 
 @implementation KBStrengthLabel
 

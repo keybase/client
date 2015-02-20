@@ -74,7 +74,7 @@
 }
 
 - (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
-  [_headerLabel setText:header font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:header font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   KBButton *button = [KBButton buttonWithText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment];
   button.targetBlock = targetBlock;
   [_labels addObject:button];
@@ -84,7 +84,7 @@
 
 - (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(id sender, id object))targetBlock {
   _imageView.image = [NSImage imageNamed:@"1-Edition-black-key-2-30"];
-  [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
   NSString *keyDescription;
   //if (key.pgpFingerprint) {
@@ -101,7 +101,7 @@
 
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock {
   _imageView.image = [NSImage imageNamed:@"24-Business-Finance-black-bitcoins-30"];
-  [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   KBButton *button = [KBButton buttonWithText:cryptocurrency.address style:KBButtonStyleLink alignment:NSLeftTextAlignment];
   button.targetBlock = ^{ targetBlock(self, cryptocurrency); };
   [_labels addObject:button];
@@ -115,7 +115,7 @@
   //_imageView.image = image;
 
   //if (!_imageView.image) {
-  [_headerLabel setText:KBNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:KBNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   //} else {
   //  _headerLabel.attributedText = nil;
   //}

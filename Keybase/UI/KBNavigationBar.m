@@ -10,7 +10,7 @@
 #import "KBLabel.h"
 #import "KBBox.h"
 #import "KBButton.h"
-#import "KBLookAndFeel.h"
+#import "KBAppearance.h"
 
 @interface KBNavigationBar ()
 @property KBButton *backButton;
@@ -42,7 +42,7 @@
 }
 
 - (void)setBackTitle:(NSString *)backTitle targetBlock:(KBButtonTargetBlock)targetBlock {
-  [_backButton setText:backTitle font:[KBLookAndFeel textFont] color:[KBLookAndFeel selectColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [_backButton setText:backTitle font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance selectColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   _backButton.targetBlock = targetBlock;
   [self setNeedsLayout];
 }

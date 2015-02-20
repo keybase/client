@@ -8,7 +8,7 @@
 
 #import "KBConnectView.h"
 
-#import "KBUIDefines.h"
+#import "KBAppKit.h"
 #import "AppDelegate.h"
 #import "KBRPC.h"
 

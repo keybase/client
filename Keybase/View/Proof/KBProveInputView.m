@@ -46,31 +46,31 @@
 
   switch (proveType) {
     case KBProveTypeTwitter:
-      [_label setText:@"What is your Twitter username?" font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+      [_label setText:@"What is your Twitter username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
       _inputField.placeholder = @"@username";
       break;
     case KBProveTypeGithub:
-      [_label setText:@"What is your Github username?" font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+      [_label setText:@"What is your Github username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
       _inputField.placeholder = @"username";
       break;
     case KBProveTypeReddit:
-      [_label setText:@"What is your Reddit username?" font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+      [_label setText:@"What is your Reddit username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
       _inputField.placeholder = @"username";
       break;
     case KBProveTypeCoinbase:
-      [_label setText:@"What is your Coinbase username?" font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+      [_label setText:@"What is your Coinbase username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
       _inputField.placeholder = @"username";
       break;
     case KBProveTypeHackernews:
-      [_label setText:@"What is your Hackernews username?" font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+      [_label setText:@"What is your Hackernews username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
       _inputField.placeholder = @"username";
       break;
     case KBProveTypeDNS:
-      [_label setText:@"Do you want to connect your domain name?" font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+      [_label setText:@"Do you want to connect your domain name?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
       _inputField.placeholder = @"yoursite.com";
       break;
     case KBProveTypeHTTPS:
-      [_label setText:@"Do you want to connect your web site?" font:[KBLookAndFeel textFont] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+      [_label setText:@"Do you want to connect your web site?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
       _inputField.placeholder = @"yoursite.com";
       break;
     case KBProveTypeUnknown:

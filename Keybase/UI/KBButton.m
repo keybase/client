@@ -8,9 +8,8 @@
 
 #import "KBButton.h"
 
-#import "KBLookAndFeel.h"
+#import "KBAppearance.h"
 #import "KBLabel.h"
-#import "KBDefines.h"
 
 @interface KBButton ()
 @property KBButtonStyle style;
@@ -161,7 +160,7 @@
 }
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment {
-  [self setAttributedTitle:[KBButton attributedText:text font:[KBButton fontForStyle:self.style] color:[KBLookAndFeel textColor] alignment:alignment lineBreakMode:NSLineBreakByTruncatingTail]];
+  [self setAttributedTitle:[KBButton attributedText:text font:[KBButton fontForStyle:self.style] color:[KBAppearance.currentAppearance textColor] alignment:alignment lineBreakMode:NSLineBreakByTruncatingTail]];
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
@@ -174,7 +173,7 @@
   switch (self.style) {
     case KBButtonStyleDefault: return GHNSColorFromRGB(0x333333);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0xFFFFFF);
-    case KBButtonStyleLink: return self.highlighted ? GHNSColorFromRGB(0x000000) : [KBLookAndFeel selectColor];
+    case KBButtonStyleLink: return self.highlighted ? GHNSColorFromRGB(0x000000) : [KBAppearance.currentAppearance selectColor];
     case KBButtonStyleText: NSAssert(NO, @"Text style shouldn't get here");
     case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
   }

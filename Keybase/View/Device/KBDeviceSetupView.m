@@ -23,7 +23,7 @@
   self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
   KBLabel *infoLabel = [[KBLabel alloc] init];
-  [infoLabel setText:@"This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?" font:[NSFont systemFontOfSize:14] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+  [infoLabel setText:@"This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
   [self addSubview:infoLabel];
 
   _deviceSignerView = [[KBDeviceSignerView alloc] init];

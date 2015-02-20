@@ -24,7 +24,7 @@
   _nameLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_nameLabel];
 
-  _border = [KBBox lineWithWidth:1.0 color:[KBLookAndFeel lineColor]];
+  _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
   [self addSubview:_border];
 
   YOSelf yself = self;
@@ -40,7 +40,7 @@
 }
 
 - (void)setGPGKey:(KBRGPGKey *)GPGKey {
-  //[self.nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  //[self.nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   [self setNeedsLayout];
 }
 

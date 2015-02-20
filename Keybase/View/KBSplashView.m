@@ -7,7 +7,7 @@
 //
 
 #import "KBSplashView.h"
-#import "KBLookAndFeel.h"
+#import "KBAppearance.h"
 #import <Slash/Slash.h>
 
 @interface KBSplashView ()
@@ -58,7 +58,7 @@
 
   NSMutableAttributedString *s = [[SLSMarkupParser attributedStringWithMarkup:message style:style error:NULL] mutableCopy];
   [s addAttribute:NSParagraphStyleAttributeName value:pstyle range:NSMakeRange(0, [s length])];
-  [s addAttribute:NSForegroundColorAttributeName value:[KBLookAndFeel secondaryTextColor] range:NSMakeRange(0, [s length])];
+  [s addAttribute:NSForegroundColorAttributeName value:[KBAppearance.currentAppearance secondaryTextColor] range:NSMakeRange(0, [s length])];
 
   _descLabel.attributedText = s;
   [self setNeedsLayout];
@@ -70,10 +70,10 @@
 //
 //- (void)addButtonWithTitle:(NSString *)title size:(CGSize)size target:(dispatch_block_t)target {
 //  KBButton *button = [[KBButton alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
-//  //button.borderColor = [KBLookAndFeel selectColor];
+//  //button.borderColor = [KBAppearance.currentAppearance selectColor];
 //  //button.cornerRadius = 4;
 //  //button.font = [NSFont systemFontOfSize:16];
-//  [button setText:title font:[KBLookAndFeel buttonFont] color:[KBLookAndFeel textColor] alignment:NSCenterTextAlignment];
+//  [button setText:title font:[KBAppearance.currentAppearance buttonFont] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
 //  button.targetBlock = ^(id sender) {
 //    target();
 //  };

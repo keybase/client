@@ -23,7 +23,7 @@
 
   KBLabel *label1 = [[KBLabel alloc] init];
   [label1 setBackgroundColor:[NSColor colorWithWhite:0.9 alpha:1.0]];
-  [label1 setMarkup:@"Text <strong>Strong</strong> <em>Emphasis</em>" font:[NSFont systemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [label1 setMarkup:@"Text <strong>Strong</strong> <em>Emphasis</em>" font:[NSFont systemFontOfSize:16] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [contentView addSubview:label1];
 
   KBLabel *label2 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 50)];

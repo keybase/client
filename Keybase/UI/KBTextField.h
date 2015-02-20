@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-#import "KBUIDefines.h"
+#import <YOLayout/YOLayout.h>
 
 @protocol KBTextFieldFocusDelegate
 - (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused;

@@ -15,6 +15,7 @@
 #import "KBPreferences.h"
 #import "KBMainView.h"
 #import "KBErrorView.h"
+#import "KBAppearance.h"
 
 @interface AppDelegate ()
 @property KBMainView *mainView;
@@ -31,6 +32,8 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  [KBAppearance setCurrentAppearance:[[KBAppearanceLight alloc] init]];
+
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
   _statusItem.image = [NSImage imageNamed:@"StatusIcon"];

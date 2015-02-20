@@ -8,6 +8,8 @@
 
 #import "KBTextField.h"
 
+#import "KBAppearance.h"
+
 @interface KBNSTextField : NSTextField
 @property (weak) id<KBTextFieldFocusDelegate> focusDelegate;
 @end
@@ -44,7 +46,7 @@
   [self addSubview:_textField];
 
   _box = [[NSBox alloc] init];
-  _box.borderColor = [KBLookAndFeel lineColor];
+  _box.borderColor = [KBAppearance.currentAppearance lineColor];
   _box.borderWidth = 1;
   _box.frame = CGRectMake(0, 0, 0, 1);
   _box.borderType = NSLineBorder;
@@ -66,7 +68,7 @@
 }
 
 - (NSString *)description {
-  return NSStringWithFormat(@"%@: %@", self.className, self.text ? self.text : self.placeholder);
+  return [NSString stringWithFormat:@"%@: %@", self.className, self.text ? self.text : self.placeholder];
 }
 
 - (BOOL)becomeFirstResponder {
@@ -84,7 +86,7 @@
 - (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused {
   _focused = focused;
 //  GHDebug(@"Focused: %@ (%@)", @(focused), self.placeholder);
-//  _box.borderColor = focused ? [KBLookAndFeel selectColor] : [KBLookAndFeel lineColor];
+//  _box.borderColor = focused ? [KBAppearance.currentAppearance selectColor] : [KBAppearance.currentAppearance lineColor];
 //  CGRect r = _box.frame;
 //  r.size = CGSizeMake(_box.frame.size.width, focused ? 2.0 : 1.0);
 //  _box.frame = r;
@@ -92,9 +94,9 @@
 
 - (void)textField:(NSTextField *)textField didChangeEnabled:(BOOL)enabled {
   if (enabled && _focused) {
-//    _box.borderColor = [KBLookAndFeel selectColor];
+//    _box.borderColor = [KBAppearance.currentAppearance selectColor];
   } else if (!enabled && _focused) {
-//    _box.borderColor = [KBLookAndFeel lineColor];
+//    _box.borderColor = [KBAppearance.currentAppearance lineColor];
   }
 }
 

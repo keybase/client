@@ -30,7 +30,7 @@
   _nameLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_nameLabel];
 
-  _border = [KBBox lineWithWidth:1.0 color:[KBLookAndFeel lineColor]];
+  _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
   [self addSubview:_border];
 
 //  self.descriptionLabel = [[KBLabel alloc] init];
@@ -55,14 +55,14 @@
 }
 
 - (void)setUser:(KBRUser *)user {
-  [self.nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:[KBLookAndFeel textColor] alignment:NSLeftTextAlignment];
+  [self.nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
 //  NSMutableArray *strings = [NSMutableArray array];
-//  [strings addObject:[[NSAttributedString alloc] initWithString:user.fullName attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
+//  [strings addObject:[[NSAttributedString alloc] initWithString:user.fullName attributes:@{NSForegroundColorAttributeName: [KBAppearance.currentAppearance textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
 //
 //  NSString *twitter = [[[user proofsForType:KBProofTypeTwitter] gh_firstObject] displayName];
 //  if (twitter) {
-//    [strings addObject:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@"@%@", twitter) attributes:@{NSForegroundColorAttributeName: [KBLookAndFeel textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
+//    [strings addObject:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@"@%@", twitter) attributes:@{NSForegroundColorAttributeName: [KBAppearance.currentAppearance textColor], NSFontAttributeName: [NSFont systemFontOfSize:15]}]];
 //  }
 //
 //  _descriptionLabel.attributedText = [KBLabel join:strings delimeter:[[NSAttributedString alloc] initWithString:@" • "]];

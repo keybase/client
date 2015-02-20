@@ -9,9 +9,9 @@
 #import "KBLabel.h"
 
 #import <Slash/Slash.h>
-#import "KBDefines.h"
 #import "KBBox.h"
-#import "KBLookAndFeel.h"
+#import "KBAppearance.h"
+#import <GHKit/GHKit.h>
 
 @interface KBLabel ()
 @property NSTextView *textView;
@@ -106,13 +106,13 @@
 
 + (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color {
 
-  NSDictionary *defaultStyle = @{NSFontAttributeName: font, NSForegroundColorAttributeName: color ? color : [KBLookAndFeel textColor]};
+  NSDictionary *defaultStyle = @{NSFontAttributeName: font, NSForegroundColorAttributeName: color ? color : [KBAppearance.currentAppearance textColor]};
 
   NSDictionary *style = @{@"$default": defaultStyle,
                           @"p": defaultStyle,
                           @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
                           @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
-                          @"a": @{NSForegroundColorAttributeName: [KBLookAndFeel selectColor]},
+                          @"a": @{NSForegroundColorAttributeName: [KBAppearance.currentAppearance selectColor]},
                           @"color": @{},
                           };
   NSError *error = nil;
