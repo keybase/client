@@ -760,7 +760,7 @@ type MerkleNotFoundError struct {
 }
 
 func (m MerkleNotFoundError) Error() string {
-	return fmt.Sprintf("For key '%s', Merkle path not found: %s", m.msg)
+	return fmt.Sprintf("For key '%s', Merkle path not found: %s", m.k, m.msg)
 }
 
 type MerkleClashError struct {
