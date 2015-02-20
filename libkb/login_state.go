@@ -134,8 +134,8 @@ func (s *LoginState) StretchKey(passphrase string) (err error) {
 	return nil
 }
 
-func (s *LoginState) GetTSPassKey(passphrase string) (ret *TSPassKey, err error) {
-	if err = s.StretchKey(passphrase) != nil {
+func (s *LoginState) GetTSPassKey(passphrase string) (ret TSPassKey, err error) {
+	if err = s.StretchKey(passphrase); err != nil {
 		return
 	}
 	ret = s.GetCachedTSPassKey()
@@ -512,6 +512,10 @@ func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui SecretU
 		return
 	} else if salt == nil {
 		err = fmt.Errorf("Cannot encrypt; no salt found")
+	}
+
+	if len(un) == 0 {
+		un = G.Env.GetUsername()
 	}
 
 	arg := keybase_1.GetKeybasePassphraseArg{

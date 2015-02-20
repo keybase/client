@@ -134,7 +134,7 @@ func (p *SKB) VerboseDescription() (ret string, err error) {
 	return
 }
 
-func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, tspkey *TSPassKey) (key GenericKey, err error) {
+func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, tspkey TSPassKey) (key GenericKey, err error) {
 	if key = p.decryptedSecret; key != nil {
 		return
 	}
@@ -153,12 +153,10 @@ func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, tspkey 
 		unlocked, err = p.tsecUnlock(tsec)
 	case LKSecVersion:
 		if tspkey == nil {
-			pwsalt := G.Env.GetSalt()
-			tk, err := NewTSPassKey(passphrase, pwsalt)
+			tspkey, err = G.LoginState.GetTSPassKey(passphrase)
 			if err != nil {
 				return key, err
 			}
-			tspkey = &tk
 		}
 		unlocked, err = p.lksUnlock(tspkey)
 	}
@@ -199,7 +197,7 @@ func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 	return unlocked, nil
 }
 
-func (p *SKB) lksUnlock(tpk *TSPassKey) ([]byte, error) {
+func (p *SKB) lksUnlock(tpk TSPassKey) ([]byte, error) {
 	lks := NewLKSecClientHalf(tpk.LksClientHalf())
 	unlocked, err := lks.Decrypt(p.Priv.Data)
 	if err != nil {
