@@ -547,6 +547,9 @@ func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 
 //==================================================
 
+// GetPassphraseStream either returns a cached, verified passphrase stream
+// (maybe from a previous login) or generates a new one via Login. It will
+// return the current Passphrase stream on success or an error on failure.
 func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
 	if ret = s.GetCachedPassphraseStream(); ret != nil {
 		return
