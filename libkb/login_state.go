@@ -573,6 +573,9 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err
 
 //==================================================
 
+// GetUnverifiedPassphraseStream takes a passphrase as a parameter and
+// also the salt from the LoginState and computes a Triplesec and
+// a passphrase stream.  It's not verified through a Login.
 func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
 	var salt []byte
 	if salt, err = s.GetSalt(); err != nil {
@@ -581,6 +584,10 @@ func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *tri
 	return StretchPassphrase(passphrase, salt)
 }
 
+// SetPassphraseStream takes the Triplesec and PassphraseStream returned from
+// GetUnverifiedPassphraseStream and commits it to the current LoginState.
+// Do this after we've verified a PassphraseStream via successful LKS
+// decryption.
 func (s *LoginState) SetPassphraseStream(tsec *triplesec.Cipher, pps PassphraseStream) {
 	s.tsec = tsec
 	s.passphraseStream = pps
