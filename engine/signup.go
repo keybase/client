@@ -9,7 +9,7 @@ import (
 
 type SignupEngine struct {
 	pwsalt     []byte
-	tspkey     libkb.TSPassKey
+	tspkey     libkb.PassphraseStream
 	uid        libkb.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
@@ -107,8 +107,7 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 		return err
 	}
 	s.pwsalt = salt
-
-	s.tspkey, err = libkb.NewTSPassKey(passphrase, salt)
+	_, s.tspkey, err = libkb.StretchPassphrase(passphrase, salt)
 	return err
 }
 
@@ -155,7 +154,7 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 
 func (s *SignupEngine) genDetKeys(ctx *Context) error {
 	eng := NewDetKeyEngine(s.me, s.signingKey, s.signingKey.GetKid())
-	return RunEngine(eng, ctx, DetKeyArgs{Tsp: &s.tspkey}, nil)
+	return RunEngine(eng, ctx, DetKeyArgs{Tsp: s.tspkey}, nil)
 }
 
 func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {

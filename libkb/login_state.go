@@ -24,13 +24,13 @@ type LoginState struct {
 	LoggedIn        bool
 	SessionVerified bool
 
-	salt            []byte
-	loginSession    []byte
-	loginSessionB64 string
-	tsec            *triplesec.Cipher
-	tspkey          *PassphraseStream
-	sessionFor      string
-	extraKeystream  []byte
+	salt             []byte
+	loginSession     []byte
+	loginSessionB64  string
+	tsec             *triplesec.Cipher
+	tspkey           *PassphraseStream
+	sessionFor       string
+	passphraseStream PassphraseStream
 
 	loggedInRes *LoggedInResult
 }
@@ -52,11 +52,11 @@ func NewLoginState() *LoginState {
 }
 
 func (s LoginState) GetCachedSharedSecret() []byte {
-	return s.extraKeystream[pwhIndex:eddsaIndex]
+	return s.passphraseStream[pwhIndex:eddsaIndex]
 }
 
 func (s LoginState) GetCachedPassphraseStream() PassphraseStream {
-	return PassphraseStream(s.extraKeystream)
+	return s.passphraseStream
 }
 
 func (s LoginState) IsLoggedIn() bool {
@@ -124,14 +124,23 @@ func (s *LoginState) GetSaltAndLoginSession(email_or_username string) error {
 	return nil
 }
 
-func (s *LoginState) StretchKey(passphrase string) (err error) {
-	if s.tsec == nil {
-		if s.tsec, err = triplesec.NewCipher([]byte(passphrase), s.salt); err != nil {
-			return err
-		}
-		_, s.extraKeystream, err = s.tsec.DeriveKey(extraLen)
+func StretchPassphrase(passphrase string, salt []byte) (tsec *triplesec.Cipher, pps PassphraseStream, err error) {
+	var tmp []byte
+	if tsec, err = triplesec.NewCipher([]byte(passphrase), salt); err != nil {
+		return
 	}
-	return nil
+	if _, tmp, err = tsec.DeriveKey(extraLen); err != nil {
+		return
+	}
+	pps = PassphraseStream(tmp)
+	return
+}
+
+func (s *LoginState) StretchPassphrase(passphrase string) (err error) {
+	if s.tsec == nil {
+		s.tsec, s.passphraseStream, err = StretchPassphrase(passphrase, s.salt)
+	}
+	return err
 }
 
 func (s *LoginState) ComputeLoginPw() ([]byte, error) {
@@ -219,7 +228,7 @@ func (s *LoginState) Logout() error {
 			s.tsec.Scrub()
 			s.tsec = nil
 		}
-		s.extraKeystream = nil
+		s.passphraseStream = nil
 	}
 	if G.SecretSyncer != nil {
 		G.SecretSyncer.Clear()
@@ -482,7 +491,7 @@ func (s *LoginState) login(arg *LoginArg) (err error) {
 	err = s.PostLoginToServer(emailOrUsername, lgpw)
 	if err != nil {
 		s.tsec = nil
-		s.extraKeystream = nil
+		s.passphraseStream = nil
 		return err
 	}
 
@@ -506,10 +515,6 @@ func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui SecretU
 		err = fmt.Errorf("Cannot encrypt; no salt found")
 	}
 
-	if len(un) == 0 {
-		un = G.Env.GetUsername()
-	}
-
 	arg := keybase_1.GetKeybasePassphraseArg{
 		Username: un,
 		Retry:    retry,
@@ -522,7 +527,7 @@ func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui SecretU
 		return
 	}
 
-	if err = s.StretchKey(pp); err != nil {
+	if err = s.StretchPassphrase(pp); err != nil {
 		return
 	}
 

@@ -7,7 +7,7 @@ import (
 
 type SignupState struct {
 	salt    []byte
-	passkey libkb.TSPassKey
+	passkey libkb.PassphraseStream
 }
 
 func NewSignupState() *SignupState {
@@ -25,7 +25,7 @@ func (s *SignupState) GenerateNewSalt() error {
 
 func (s *SignupState) TSPassKey(passphrase string) error {
 	var err error
-	s.passkey, err = libkb.NewTSPassKey(passphrase, s.salt)
+	_, s.passkey, err = libkb.StretchPassphrase(passphrase, s.salt)
 	return err
 }
 

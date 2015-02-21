@@ -398,22 +398,8 @@ func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.
 	return selected, nil
 }
 
-func (d *Doctor) tspkey(ctx *Context) (*libkb.TSPassKey, error) {
-	t := G.LoginState.GetCachedTSPassKey()
-	if t != nil {
-		return t, nil
-	}
-
-	// not cached: get it from the ui
-	pp, err := ctx.SecretUI.GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg{Username: G.Env.GetUsername()})
-	if err != nil {
-		return nil, err
-	}
-	err = G.LoginState.StretchKey(pp)
-	if err != nil {
-		return nil, err
-	}
-	return G.LoginState.GetCachedTSPassKey(), nil
+func (d *Doctor) tspkey(ctx *Context) (libkb.PassphraseStream, error) {
+	return G.LoginState.GetPassphraseStream(ctx.SecretUI)
 }
 
 func (d *Doctor) detkey(ctx *Context) (libkb.GenericKey, error) {

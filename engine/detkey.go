@@ -12,7 +12,7 @@ import (
 )
 
 type DetKeyArgs struct {
-	Tsp       *libkb.TSPassKey
+	Tsp       libkb.PassphraseStream
 	SelfProof bool
 }
 
@@ -55,7 +55,7 @@ func (d *DetKeyEngine) Run(ctx *Context, args interface{}, reply interface{}) er
 	return d.run(da.Tsp)
 }
 
-func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {
+func (d *DetKeyEngine) run(tpk libkb.PassphraseStream) error {
 	if err := d.eddsa(tpk); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)
 	}
@@ -69,7 +69,7 @@ func (d *DetKeyEngine) run(tpk *libkb.TSPassKey) error {
 	return nil
 }
 
-func (d *DetKeyEngine) eddsa(tpk *libkb.TSPassKey) error {
+func (d *DetKeyEngine) eddsa(tpk libkb.PassphraseStream) error {
 	serverHalf, err := libkb.RandBytes(len(tpk.EdDSASeed()))
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (d *DetKeyEngine) eddsa(tpk *libkb.TSPassKey) error {
 	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
 }
 
-func GenSigningDetKey(tpk *libkb.TSPassKey, serverHalf []byte) (gkey libkb.GenericKey, err error) {
+func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
 	xseed, err := serverSeed(tpk.EdDSASeed(), serverHalf)
 	if err != nil {
 		return nil, err
