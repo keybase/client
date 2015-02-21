@@ -162,7 +162,7 @@ func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(p.Priv.Encryption))}
 	}
-	if err != nil {
+	if err == nil {
 		key, err = p.parseUnlocked(unlocked)
 	}
 	return
@@ -418,6 +418,12 @@ func (p KeybasePackets) ToListOfSKBs() (ret []*SKB, err error) {
 }
 
 func (p *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret GenericKey, err error) {
+
+	G.Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
+	defer func() {
+		G.Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
+	}()
+
 	if ret = p.decryptedSecret; ret != nil {
 		return
 	}
