@@ -218,17 +218,21 @@ func (s *LoginState) SaveLoginState(uidVerified bool) (err error) {
 	return nil
 }
 
+func (s *LoginState) ClearPassphrase() {
+	if s.tsec != nil {
+		s.tsec.Scrub()
+		s.tsec = nil
+	}
+	s.passphraseStream = nil
+}
+
 func (s *LoginState) Logout() error {
 	G.Log.Debug("+ Logout called")
 	err := G.Session.Logout()
 	if err == nil {
 		s.LoggedIn = false
 		s.SessionVerified = false
-		if s.tsec != nil {
-			s.tsec.Scrub()
-			s.tsec = nil
-		}
-		s.passphraseStream = nil
+		s.ClearPassphrase()
 	}
 	if G.SecretSyncer != nil {
 		G.SecretSyncer.Clear()
@@ -562,6 +566,21 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err
 		err = InternalError{"No cached keystream data after login attempt"}
 	}
 	return
+}
+
+//==================================================
+
+func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
+	var salt []byte
+	if salt, err = s.GetSalt(); err != nil {
+		return
+	}
+	return StretchPassphrase(passphrase, salt)
+}
+
+func (s *LoginState) SetPassphraseStream(tsec *triplesec.Cipher, pps PassphraseStream) {
+	s.tsec = tsec
+	s.passphraseStream = pps
 }
 
 //==================================================
