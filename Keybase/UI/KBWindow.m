@@ -10,6 +10,14 @@
 
 @implementation KBWindow
 
+- (BOOL)canBecomeKeyWindow {
+  return YES;
+}
+
+- (BOOL)canBecomeMainWindow {
+  return YES;
+}
+
 /*!
  Otherwise the window will disappear when its released.
  */

@@ -1,28 +1,28 @@
 //
-//  KBMainView.m
+//  KBAppView.m
 //  Keybase
 //
 //  Created by Gabriel on 2/4/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBMainView.h"
+#import "KBAppView.h"
 
-#import "KBUsersMainView.h"
+#import "KBUsersAppView.h"
 #import "KBUserProfileView.h"
 #import "AppDelegate.h"
 
-@interface KBMainView ()
+@interface KBAppView ()
 @property KBSourceView *sourceView;
 @property KBBox *border;
 
 @property (nonatomic) NSView *contentView;
-@property KBUsersMainView *usersMainView;
+@property KBUsersAppView *usersMainView;
 
 @property KBUserProfileView *userProfileView;
 @end
 
-@implementation KBMainView
+@implementation KBAppView
 
 - (void)viewInit {
   [super viewInit];
@@ -62,7 +62,7 @@
 }
 
 - (void)showUsers {
-  if (!_usersMainView) _usersMainView = [[KBUsersMainView alloc] init];
+  if (!_usersMainView) _usersMainView = [[KBUsersAppView alloc] init];
   [_usersMainView setUser:_user];
   [self setContentView:_usersMainView];
 }
@@ -123,7 +123,9 @@
   //window.maxSize = CGSizeMake(600, 900);
   window.titleVisibility = NO;
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
-  //window.restorationClass = self.class;
+
+  window.restorable = YES;
+  window.restorationClass = self.class;
   //window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:window.navigation];
   //[window setLevel:NSStatusWindowLevel];
   return window;
@@ -136,22 +138,17 @@
   }
 
   NSWindow *window = [self createWindow];
+  [window center];
   [window makeKeyAndOrderFront:nil];
 }
 
-//- (void)window:(NSWindow *)window willEncodeRestorableState:(NSCoder *)state {
-//  [state encodeObject:[NSValue valueWithRect:window.frame] forKey:@"frame"];
-//}
-//
-//- (void)window:(NSWindow *)window didDecodeRestorableState:(NSCoder *)state {}
-//
+//- (void)encodeRestorableStateWithCoder:(NSCoder *)coder { }
+//- (void)restoreStateWithCoder:(NSCoder *)coder { }
+//invalidateRestorableState
+
 //+ (void)restoreWindowWithIdentifier:(NSString *)identifier state:(NSCoder *)state completionHandler:(void (^)(NSWindow *window, NSError *error))completionHandler {
-//  NSRect rect = [[state decodeObjectForKey:@"frame"] rectValue];
-//
-//  KBMainView *mainView = [[KBMainView alloc] init];
-//  NSWindow *window = [mainView createWindow];
-//  if (rect.size.width > 0) [window setFrame:rect display:YES];
-//
+//  KBAppView *appView = [[KBAppView alloc] init];
+//  NSWindow *window = [appView createWindow];
 //  completionHandler(window, nil);
 //}
 

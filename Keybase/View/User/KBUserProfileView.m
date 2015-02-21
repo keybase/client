@@ -239,6 +239,11 @@
       [gself.headerView setProgressEnabled:NO];
       [AppDelegate.client unregister:gself];
 
+      if (error) {
+        [AppDelegate setError:error sender:nil];
+        return;
+      }
+
       [gself.userInfoView addHeader:@" " text:@" " targetBlock:^{}];
 
       if (!gself.fokid.pgpFingerprint) {

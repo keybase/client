@@ -8,11 +8,6 @@
 
 #import "KBImageTextView.h"
 
-#import "KBImageView.h"
-#import "KBLabel.h"
-#import "KBBox.h"
-#import "KBAppearance.h"
-
 @interface KBImageTextView ()
 @property KBImageView *imageView;
 @property KBLabel *titleLabel;
@@ -43,19 +38,19 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat x = 10;
-    CGFloat y = 10;
+    CGFloat y = 8;
 
-    CGFloat minHeight = 0;
-    if (yself.imageView.image) {
-      [layout setFrame:CGRectMake(x, y, 40, 40) view:yself.imageView];
+    CGFloat minY = 0;
+    if (yself.imageView.image || yself.imageSize.width > 0) {
+      CGRect imageViewFrame = [layout setFrame:CGRectMake(x, y, MAX(40, yself.imageSize.width), MAX(40, yself.imageSize.height)) view:yself.imageView];
       x += 50;
-      minHeight = 60;
+      minY = imageViewFrame.origin.y + imageViewFrame.size.height;
     }
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.titleLabel].size.height;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.descriptionLabel].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.titleLabel].size.height + 2;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.descriptionLabel].size.height;
 
-    if (y < minHeight) y = minHeight;
+    y = MAX(y, minY) + 8;
 
     [layout setFrame:CGRectMake(0, y - 0.5, size.width, 1) view:yself.border];
     return CGSizeMake(size.width, y);

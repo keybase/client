@@ -9,12 +9,11 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
-#import "KBDeviceSignerView.h"
 #import "KBDeviceSignerOption.h"
 
 @interface KBDeviceSetupView : YONSView
 
-@property KBDeviceSignerView *deviceSignerView;
+@property KBListView *deviceSignerView;
 @property KBButton *selectButton;
 @property KBButton *cancelButton;
 

@@ -8,7 +8,6 @@
 
 #import "KBDeviceSetupView.h"
 
-#import "KBDeviceSignerView.h"
 #import "KBRPC.h"
 #import "KBDeviceSignerOption.h"
 
@@ -26,7 +25,10 @@
   [infoLabel setText:@"This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
   [self addSubview:infoLabel];
 
-  _deviceSignerView = [[KBDeviceSignerView alloc] init];
+  _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextView.class rowHeight:0];
+  _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
+    [view setTitle:option.title description:option.info imageSource:option.imageSource];
+  };
   [self addSubview:_deviceSignerView];
 
   YONSView *bottomView = [[YONSView alloc] init];
@@ -54,7 +56,7 @@
   }
   if (hasPGP) [deviceSignerOptions addObject:[KBDeviceSignerOption PGP]];
 
-  [_deviceSignerView setDeviceSignerOptions:deviceSignerOptions];
+  [_deviceSignerView setObjects:deviceSignerOptions];
 }
 
 @end

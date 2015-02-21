@@ -34,6 +34,7 @@
 - (NSColor *)highlightBackgroundColor;
 
 - (NSFont *)textFont;
+- (NSFont *)smallTextFont;
 - (NSFont *)boldTextFont;
 - (NSFont *)buttonFont;
 

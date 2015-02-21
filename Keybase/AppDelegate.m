@@ -13,12 +13,11 @@
 #import "KBUserProfileView.h"
 #import "KBCatalogView.h"
 #import "KBPreferences.h"
-#import "KBMainView.h"
 #import "KBErrorView.h"
 #import "KBAppearance.h"
 
 @interface AppDelegate ()
-@property KBMainView *mainView;
+@property KBAppView *appView;
 @property KBConnectView *connectView;
 @property KBPreferences *preferences;
 @property KBRPClient *client;
@@ -42,7 +41,7 @@
 
   [self updateMenu];
 
-  _mainView = [[KBMainView alloc] init];
+  _appView = [[KBAppView alloc] init];
 
   _client = [[KBRPClient alloc] init];
   _client.delegate = self;
@@ -116,7 +115,7 @@
 }
 
 - (void)login {
-  [_mainView.window close];
+  [_appView.window close];
   [self showLogin:_status.user];
 }
 
@@ -154,8 +153,8 @@
 }
 
 - (void)showMainView:(KBRUser *)user {
-  [_mainView setUser:user];
-  [_mainView openWindow];
+  [_appView setUser:user];
+  [_appView openWindow];
 }
 
 - (void)showLogin:(KBRUser *)user {
@@ -195,6 +194,9 @@
   return ((AppDelegate *)[NSApp delegate]).APIClient;
 }
 
++ (KBAppView *)appView {
+  return ((AppDelegate *)[NSApp delegate]).appView;
+}
 
 + (AppDelegate *)sharedDelegate {
   return (AppDelegate *)[[NSApplication sharedApplication] delegate];
@@ -228,8 +230,6 @@
   return contents;
 }
 
-#pragma mark Progress
-
 + (void)setInProgress:(BOOL)inProgress view:(NSView *)view {
   [self.class _setInProgress:view inProgress:inProgress subviews:view.subviews];
 }
@@ -245,7 +245,7 @@
 }
 
 - (void)closeAllWindows {
-  [_mainView.window close];
+  [_appView.window close];
   [_connectView.window close];
   [_preferences close];
 }

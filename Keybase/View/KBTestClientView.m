@@ -11,7 +11,7 @@
 @interface KBTestClientView ()
 @property KBRPClient *client;
 @property KBButton *connectButton;
-@property KBTextCollectionView *infoView;
+@property KBListView *infoView;
 @end
 
 @implementation KBTestClientView
@@ -24,7 +24,10 @@
   _connectButton.targetBlock = ^{ [gself open]; };
   [self addSubview:_connectButton];
 
-  _infoView = [[KBTextCollectionView alloc] init];
+  _infoView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
+  _infoView.cellSetBlock = ^(KBLabel *label, NSString *text, NSIndexPath *indexPath, id containingView/*NSTableView*/, BOOL dequeued) {
+    [label setText:text style:KBLabelStyleDefault];
+  };
   [self addSubview:_infoView];
 
   YOSelf yself = self;

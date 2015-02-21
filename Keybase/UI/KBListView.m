@@ -1,26 +1,28 @@
 //
-//  KBTableView.m
+//  KBListView.m
 //  Keybase
 //
 //  Created by Gabriel on 2/2/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBTableView.h"
+#import "KBListView.h"
 
 #import "KBAppearance.h"
 #import "KBTableRowView.h"
+#import "KBScrollView.h"
 
-@interface KBTableView ()
-@property NSScrollView *scrollView;
+@interface KBListView ()
+@property KBScrollView *scrollView;
 @property NSTableView *tableView;
 @property NSMutableArray *dataSource;
 
+@property Class prototypeClass;
 @property YONSView *prototypeView;
 @end
 
 
-@implementation KBTableView
+@implementation KBListView
 
 - (void)viewInit {
   [super viewInit];
@@ -41,26 +43,38 @@
   NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@""];
   [_tableView addTableColumn:column1];
 
-  _scrollView = [[NSScrollView alloc] init];
-  [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
-  _scrollView.hasVerticalScroller = YES;
-  _scrollView.autohidesScrollers = YES;
+  _scrollView = [[KBScrollView alloc] init];
   [_scrollView setDocumentView:_tableView];
   [self addSubview:_scrollView];
 
   self.viewLayout = [YOLayout fill:_scrollView];
 }
 
-//- (void)removeTableColumns {
-//  for (NSTableColumn *tableColumn in [_tableView.tableColumns copy]) {
-//    [_tableView removeTableColumn:tableColumn];
-//  }
-//}
++ (KBListView *)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight {
+  Class tableViewClass = KBListView.class;
+  if (rowHeight == 0) tableViewClass = KBListViewDynamicHeight.class;
+
+  KBListView *tableView = [[tableViewClass alloc] init];
+  tableView.prototypeClass = prototypeClass;
+  if (rowHeight > 0) tableView.tableView.rowHeight = rowHeight;
+  return tableView;
+}
+
++ (KBListView *)listViewWithRowHeight:(CGFloat)rowHeight {
+  KBListView *tableView = [[KBListView alloc] init];
+  tableView.tableView.rowHeight = rowHeight;
+  return tableView;
+}
 
 - (void)layout {
   [super layout];
   // TODO This causes some jankiness
-  [self.tableView reloadData];
+  //[self.tableView reloadData];
+}
+
+- (void)removeAllObjects {
+  [_dataSource removeAllObjects];
+  [_tableView reloadData];
 }
 
 - (void)setObjects:(NSArray *)objects {
@@ -83,14 +97,6 @@
   return rowView;
 }
 
-- (void)updateView:(YONSView *)view object:(id)object {
-  // Abstract
-}
-
-- (void)select:(id)object {
-  // Abstract
-}
-
 - (void)deselectAll {
   [_tableView deselectAll:nil];
 }
@@ -98,27 +104,17 @@
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
   id object = [_dataSource objectAtIndex:row];
   YONSView *view = [_tableView makeViewWithIdentifier:NSStringFromClass(_prototypeClass) owner:self];
+  BOOL dequeued = NO;
   if (!view) {
+    dequeued = YES;
     view = [[_prototypeClass alloc] init];
     view.identifier = NSStringFromClass(_prototypeClass);
   }
 
-  [self updateView:view object:object];
+  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableView, dequeued);
   [view setNeedsLayout];
 
   return view;
-}
-
-- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
-  if (!_prototypeView) _prototypeView = [[_prototypeClass alloc] init];
-  id object = [_dataSource objectAtIndex:row];
-
-  [self updateView:_prototypeView object:object];
-  [_prototypeView.viewLayout setNeedsLayout];
-
-  CGFloat height = [_prototypeView sizeThatFits:CGSizeMake(self.frame.size.width, CGFLOAT_MAX)].height;
-  //GHDebug(@"Row: %@, height: %@, width: %@", @(row), @(height), @(self.frame.size.width));
-  return height;
 }
 
 - (id)selectedObject {
@@ -134,8 +130,29 @@
   NSTableRowView *rowView = [_tableView rowViewAtRow:selectedRow makeIfNecessary:NO];
   [rowView setEmphasized:NO];
   id object = [_dataSource objectAtIndex:selectedRow];
-  [self select:object];
+  if (self.selectBlock) self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+}
+
+- (void)removeAllTableColumns {
+  for (NSTableColumn *tableColumn in [_tableView.tableColumns copy]) {
+    [_tableView removeTableColumn:tableColumn];
+  }
 }
 
 @end
 
+@implementation KBListViewDynamicHeight
+
+- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
+  if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
+  id object = [self.dataSource objectAtIndex:row];
+
+  self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], self.tableView, NO);
+  [self.prototypeView.viewLayout setNeedsLayout];
+
+  CGFloat height = [self.prototypeView sizeThatFits:CGSizeMake(self.frame.size.width, CGFLOAT_MAX)].height;
+  //GHDebug(@"Row: %@, height: %@, width: %@", @(row), @(height), @(self.frame.size.width));
+  return height;
+}
+
+@end

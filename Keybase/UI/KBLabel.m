@@ -12,6 +12,7 @@
 #import "KBBox.h"
 #import "KBAppearance.h"
 #import <GHKit/GHKit.h>
+#import "KBAppearance.h"
 
 @interface KBLabel ()
 @property NSTextView *textView;
@@ -85,6 +86,21 @@
   return (self.attributedText && self.attributedText.length > 0);
 }
 
+- (void)setText:(NSString *)text style:(KBLabelStyle)style {
+  [self setText:text style:style alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+}
+
+- (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  switch (style) {
+    case KBLabelStyleDefault:
+      [self setText:text font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:alignment lineBreakMode:lineBreakMode];
+      break;
+    case KBLabelStyleSecondaryText:
+      [self setText:text font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.secondaryTextColor alignment:alignment lineBreakMode:lineBreakMode];
+      break;
+  }
+}
+
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment {
   [self setText:text font:font color:color alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
 }
@@ -137,6 +153,14 @@
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   NSMutableAttributedString *str = [KBLabel parseMarkup:markup font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
   [self setAttributedText:str];
+}
+
+- (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = lineBreakMode;
+  [attributedText addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, attributedText.length)];
+  [self setAttributedText:attributedText];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {

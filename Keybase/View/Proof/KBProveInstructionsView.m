@@ -28,6 +28,9 @@
   _scrollView.scrollView.borderType = NSBezelBorder;
   [self addSubview:_scrollView];
 
+  YONSView *bottomView = [[YONSView alloc] init];
+  [self addSubview:bottomView];
+
   GHWeakSelf gself = self;
   _clipboardCopyButton = [KBButton buttonWithText:@"Copy to clipboard" style:KBButtonStyleLink];
   _clipboardCopyButton.targetBlock = ^{
@@ -35,30 +38,24 @@
     BOOL pasted = [NSPasteboard.generalPasteboard writeObjects:@[gself.proofText]];
     GHDebug(@"Pasted? %@", @(pasted));
   };
-  [self addSubview:_clipboardCopyButton];
+  [bottomView addSubview:_clipboardCopyButton];
 
   _button = [KBButton buttonWithText:@"OK, I posted it." style:KBButtonStylePrimary];
-  [self addSubview:_button];
+  [bottomView addSubview:_button];
 
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleLink];
-  [self addSubview:_cancelButton];
+  [bottomView addSubview:_cancelButton];
 
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 10;
-
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.instructionsLabel].size.height + 10;
-
-    y += [layout setFrame:CGRectMake(40, y, size.width - 80, size.height - y - 190) view:yself.scrollView].size.height + 10;
-
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.clipboardCopyButton].size.height + 20;
-
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.button].size.height + 20;
-
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.cancelButton].size.height;
-
+  bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 0;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.clipboardCopyButton].size.height + 30;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.button].size.height + 20;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.cancelButton].size.height;
     return CGSizeMake(size.width, y);
   }];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_scrollView topView:_instructionsLabel bottomView:bottomView margin:UIEdgeInsetsMake(20, 40, 20, 40) padding:20]];
 }
 
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText {

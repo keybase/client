@@ -9,7 +9,6 @@
 #import "KBCatalogView.h"
 #import "AppDelegate.h"
 #import "KBUserProfileView.h"
-#import "KBUsersView.h"
 #import "KBWebView.h"
 #import "KBKeyGenView.h"
 #import "KBProveView.h"
@@ -195,7 +194,7 @@
 
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
   [deviceSetupView setDevices:handler.devices hasPGP:handler.hasPGP];
-  [self openInWindow:deviceSetupView size:CGSizeMake(360, 420) title:@"Device Setup"];
+  [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
 }
 
 - (void)showError {

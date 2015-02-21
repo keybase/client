@@ -1,5 +1,5 @@
 //
-//  KBMainView.h
+//  KBAppView.h
 //  Keybase
 //
 //  Created by Gabriel on 2/4/15.
@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBSourceView.h"
 
-@interface KBMainView : YONSView <NSWindowDelegate, KBSourceViewDelegate> //, NSWindowRestoration>
+@interface KBAppView : YONSView <NSWindowDelegate, KBSourceViewDelegate> //, NSWindowRestoration>
 
 @property (nonatomic) KBRUser *user;
 @property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;

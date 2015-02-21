@@ -12,6 +12,7 @@
 #import <KBKeybase/KBKeybase.h>
 #import "KBRPC.h"
 #import "KBConnectView.h"
+#import "KBAppView.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, KBRPClientDelegate, KBSignupViewDelegate, KBLoginViewDelegate>
 
@@ -19,6 +20,7 @@
 
 + (KBRPClient *)client;
 + (KBAPIClient *)APIClient;
++ (KBAppView *)appView;
 
 + (AppDelegate *)sharedDelegate;
 

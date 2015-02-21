@@ -1,5 +1,5 @@
 //
-//  KBUsersMainView.h
+//  KBUsersAppView.h
 //  Keybase
 //
 //  Created by Gabriel on 2/6/15.
@@ -10,9 +10,8 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBUsersView.h"
 
-@interface KBUsersMainView : YONSView <KBUsersViewDelegate, NSTextFieldDelegate>
+@interface KBUsersAppView : YONSView <NSTextFieldDelegate>
 
 - (void)setUser:(KBRUser *)user;
 

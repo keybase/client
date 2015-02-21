@@ -18,6 +18,7 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 
 #import <YOLayout/YOLayout.h>
 #import <GHKit/GHKit.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 #import "KBAppearance.h"
 
@@ -34,10 +35,11 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import "KBLabelRow.h"
 #import "KBSplitView.h"
 #import "KBScrollView.h"
-#import "KBTextCollectionView.h"
 #import "KBImageTextView.h"
 #import "KBLayouts.h"
 #import "KBProgressOverlayView.h"
 #import "KBActivityIndicatorView.h"
 #import "KBScrollView.h"
+#import "KBListView.h"
+#import "KBSearchField.h"
 

@@ -46,6 +46,7 @@
   [super layout];
   //_border.frame = CGRectMake(0, 26, self.frame.size.width, 1);
   _outlineView.frame = CGRectMake(0, 27, self.frame.size.width, self.frame.size.height - 27);
+  _progressView.frame = CGRectMake(self.frame.size.width - 24, 31, 20, 20);
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {

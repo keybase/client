@@ -49,6 +49,11 @@
   else self.image = [NSImage imageNamed:imageSource];
 }
 
+- (void)setURLString:(NSString *)URLString defaultImage:(NSImage *)defaultImage {
+  self.image = defaultImage;
+  [self setURLString:URLString];
+}
+
 - (void)setRounded:(CGFloat)cornerRadius {
   [self setWantsLayer: YES];
   self.layer.borderWidth = 1.0;

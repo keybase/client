@@ -11,12 +11,17 @@
 
 #import <YOLayout/YOLayout.h>
 
-typedef NS_ENUM(NSUInteger, KBVerticalAlignment) {
+typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
   KBVerticalAlignmentTop,
   KBVerticalAlignmentMiddle,
   KBVerticalAlignmentBottom,
   KBVerticalAlignmentBaseline,
 };
+
+typedef NS_ENUM(NSInteger, KBLabelStyle) {
+  KBLabelStyleDefault,
+  KBLabelStyleSecondaryText,
+};;
 
 @interface KBLabel : YONSView
 
@@ -28,11 +33,17 @@ typedef NS_ENUM(NSUInteger, KBVerticalAlignment) {
 
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
+- (void)setText:(NSString *)text style:(KBLabelStyle)style;
+
+- (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
+- (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString;
 
