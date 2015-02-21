@@ -28,9 +28,9 @@ type LoginState struct {
 	loginSession    []byte
 	loginSessionB64 string
 	tsec            *triplesec.Cipher
-	tspkey          *TSPassKey
+	tspkey          *PassphraseStream
 	sessionFor      string
-	extraKeystream []byte
+	extraKeystream  []byte
 
 	loggedInRes *LoggedInResult
 }
@@ -55,8 +55,8 @@ func (s LoginState) GetCachedSharedSecret() []byte {
 	return s.extraKeystream[pwhIndex:eddsaIndex]
 }
 
-func (s LoginState) GetCachedTSPassKey() TSPassKey {
-	return TSPassKey(s.extraKeystream)
+func (s LoginState) GetCachedPassphraseStream() PassphraseStream {
+	return PassphraseStream(s.extraKeystream)
 }
 
 func (s LoginState) IsLoggedIn() bool {
@@ -132,14 +132,6 @@ func (s *LoginState) StretchKey(passphrase string) (err error) {
 		_, s.extraKeystream, err = s.tsec.DeriveKey(extraLen)
 	}
 	return nil
-}
-
-func (s *LoginState) GetTSPassKey(passphrase string) (ret TSPassKey, err error) {
-	if err = s.StretchKey(passphrase); err != nil {
-		return
-	}
-	ret = s.GetCachedTSPassKey()
-	return
 }
 
 func (s *LoginState) ComputeLoginPw() ([]byte, error) {
@@ -346,7 +338,7 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 	if loggedIn, err = s.tryPubkeyLogin(arg); err != nil || loggedIn {
 		return
 	}
-	if err = s.tryPasswordLogin(arg); err != nil {
+	if err = s.tryPassphraseLogin(arg); err != nil {
 		return err
 	}
 	return nil
@@ -422,7 +414,7 @@ func (s *LoginState) tryPubkeyLogin(arg LoginArg) (loggedIn bool, err error) {
 	return
 }
 
-func (s *LoginState) tryPasswordLogin(arg LoginArg) (err error) {
+func (s *LoginState) tryPassphraseLogin(arg LoginArg) (err error) {
 
 	n_tries := arg.Retry
 	if n_tries == 0 {
@@ -538,33 +530,57 @@ func (s *LoginState) GetTriplesec(un string, pp string, retry string, ui SecretU
 	return
 }
 
+//==================================================
+
 func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 	return s.tsec
 }
 
 //==================================================
 
-type TSPassKey []byte
+func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
+	if ret = s.GetCachedPassphraseStream(); ret != nil {
+		return
+	}
+	arg := LoginArg{
+		Retry:    3,
+		Prompt:   false,
+		Username: G.Env.GetUsername(),
+		SecretUI: ui,
+		Force:    true,
+	}
 
-func (d TSPassKey) PWHash() []byte {
-	return d[pwhIndex:eddsaIndex]
-}
-
-func (d TSPassKey) EdDSASeed() []byte {
-	return d[eddsaIndex:dhIndex]
-}
-
-func (d TSPassKey) DHSeed() []byte {
-	return d[dhIndex:lksIndex]
-}
-
-func (d TSPassKey) LksClientHalf() []byte {
-	return d[lksIndex:]
-}
-
-func (d TSPassKey) String() string {
-	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASeed(), d.DHSeed(), d.LksClientHalf())
+	if err = s.tryPassphraseLogin(arg); err != nil {
+		return
+	}
+	if ret = s.GetCachedPassphraseStream(); ret != nil {
+		err = InternalError{"No cached keystream data after login attempt"}
+	}
+	return
 }
 
 //==================================================
 
+type PassphraseStream []byte
+
+func (d PassphraseStream) PWHash() []byte {
+	return d[pwhIndex:eddsaIndex]
+}
+
+func (d PassphraseStream) EdDSASeed() []byte {
+	return d[eddsaIndex:dhIndex]
+}
+
+func (d PassphraseStream) DHSeed() []byte {
+	return d[dhIndex:lksIndex]
+}
+
+func (d PassphraseStream) LksClientHalf() []byte {
+	return d[lksIndex:]
+}
+
+func (d PassphraseStream) String() string {
+	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASeed(), d.DHSeed(), d.LksClientHalf())
+}
+
+//==================================================

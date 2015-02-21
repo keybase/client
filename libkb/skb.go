@@ -134,7 +134,7 @@ func (p *SKB) VerboseDescription() (ret string, err error) {
 	return
 }
 
-func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, tspkey TSPassKey) (key GenericKey, err error) {
+func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher) (key GenericKey, err error) {
 	if key = p.decryptedSecret; key != nil {
 		return
 	}
@@ -151,26 +151,24 @@ func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, tspkey 
 			}
 		}
 		unlocked, err = p.tsecUnlock(tsec)
-	case LKSecVersion:
-		if tspkey == nil {
-			tspkey, err = G.LoginState.GetTSPassKey(passphrase)
-			if err != nil {
-				return key, err
-			}
-		}
-		unlocked, err = p.lksUnlock(tspkey)
+	default:
+		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(p.Priv.Encryption))}
 	}
 	if err != nil {
-		return key, err
+		key, err = p.parseUnlocked(unlocked)
 	}
+	return
+}
+
+func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 
 	switch {
-	case IsPgpAlgo(p.Type) || p.Type == 0:
+	case IsPgpAlgo(s.Type) || s.Type == 0:
 		key, err = ReadOneKeyFromBytes(unlocked)
-	case p.Type == KID_NACL_EDDSA:
-		key, err = ImportNaclSigningKeyPairFromBytes(p.Pub, unlocked)
-	case p.Type == KID_NACL_DH:
-		key, err = ImportNaclDHKeyPairFromBytes(p.Pub, unlocked)
+	case s.Type == KID_NACL_EDDSA:
+		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
+	case s.Type == KID_NACL_DH:
+		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked)
 	}
 
 	if key == nil {
@@ -181,7 +179,7 @@ func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, tspkey 
 	}
 
 	if err = key.CheckSecretKey(); err == nil {
-		p.decryptedSecret = key
+		s.decryptedSecret = key
 	}
 	return
 }
@@ -197,8 +195,19 @@ func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 	return unlocked, nil
 }
 
-func (p *SKB) lksUnlock(tpk TSPassKey) ([]byte, error) {
-	lks := NewLKSecClientHalf(tpk.LksClientHalf())
+func (s *SKB) lksUnlock(ui SecretUI) (key GenericKey, err error) {
+	var pps PassphraseStream
+	var unlocked []byte
+	if pps, err = G.LoginState.GetPassphraseStream(ui); err != nil {
+	} else if unlocked, err = s.lksDecrypt(pps); err != nil {
+	} else {
+		key, err = s.parseUnlocked(unlocked)
+	}
+	return
+}
+
+func (p *SKB) lksDecrypt(pps PassphraseStream) ([]byte, error) {
+	lks := NewLKSecClientHalf(pps.LksClientHalf())
 	unlocked, err := lks.Decrypt(p.Priv.Data)
 	if err != nil {
 		return nil, err
@@ -416,10 +425,14 @@ func (p *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret Gen
 		return
 	}
 
+	if p.Priv.Encryption == LKSecVersion {
+		ret, err = p.lksUnlock(ui)
+		return
+	}
+
 	tsec := G.LoginState.GetCachedTriplesec()
-	tspkey := G.LoginState.GetCachedTSPassKey()
-	if tsec != nil && tspkey != nil {
-		ret, err = p.UnlockSecretKey("", tsec, tspkey)
+	if tsec != nil {
+		ret, err = p.UnlockSecretKey("", tsec)
 		if err == nil {
 			return
 		}
@@ -435,7 +448,7 @@ func (p *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret Gen
 	}
 
 	unlocker := func(pw string) (ret GenericKey, err error) {
-		return p.UnlockSecretKey(pw, nil, nil)
+		return p.UnlockSecretKey(pw, nil)
 	}
 
 	return KeyUnlocker{
