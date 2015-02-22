@@ -22,10 +22,6 @@ func (a *MyKeyState) ParseArgv(ctx *cli.Context) (err error) {
 	a.arg.NoPublicPush = ctx.Bool("skip-push") && !a.arg.DoSecretPush
 	a.arg.NoPassphrase = ctx.Bool("no-passphrase")
 	a.arg.KbPassphrase = ctx.Bool("keybase-passphrase")
-	if ctx.Bool("skip-nacl") {
-		a.arg.NoNaclEddsa = true
-		a.arg.NoNaclDh = true
-	}
 	if ctx.Bool("debug") {
 		a.arg.PrimaryBits = SMALL_KEY
 		a.arg.SubkeyBits = SMALL_KEY
@@ -49,12 +45,7 @@ func NewKeyGenUIProtocol() rpc2.Protocol {
 }
 
 func mykeyFlags() []cli.Flag {
-	return []cli.Flag{
-		cli.BoolFlag{
-			Name:  "skip-nacl",
-			Usage: "skip generation of NaCl keys",
-		},
-	}
+	return []cli.Flag{}
 }
 
 func NewCmdMykey(cl *libcmdline.CommandLine) cli.Command {

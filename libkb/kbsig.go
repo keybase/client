@@ -219,16 +219,7 @@ func setDeviceOnBody(body *jsonw.Wrapper, key GenericKey, device Device) {
 	body.SetKey("device", device.Export())
 }
 
-type KeyProofArg struct {
-	NewKey      GenericKey
-	ExistingKey GenericKey
-	Expire      int
-	Device      *Device
-	Sibkey      bool
-	RevSig      *ReverseSig
-}
-
-func (u *User) KeyProof(arg KeyProofArg) (ret *jsonw.Wrapper, pushType string, err error) {
+func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err error) {
 	if arg.ExistingKey == nil {
 		fokid := GenericKeyToFOKID(arg.NewKey)
 		ret, err = u.eldestKeyProof(arg.NewKey, &fokid, arg.Device)

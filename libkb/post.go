@@ -22,61 +22,6 @@ type PostProofArg struct {
 	SigningKey     GenericKey
 }
 
-type PostNewKeyArg struct {
-	Sig               string
-	Id                SigId
-	Type              string
-	PublicKey         GenericKey
-	SigningKeyID      KID
-	EldestKeyID       KID
-	ServerHalf        string
-	IsPrimary         bool
-	EncodedPrivateKey string
-}
-
-func (a PostNewKeyArg) ToHttpArgs() (HttpArgs, error) {
-	pub, err := a.PublicKey.Encode()
-	if err != nil {
-		return HttpArgs{}, err
-	}
-
-	hargs := HttpArgs{
-		"sig_id_base":     S{Val: a.Id.ToString(false)},
-		"sig_id_short":    S{Val: a.Id.ToShortId()},
-		"sig":             S{Val: a.Sig},
-		"type":            S{Val: a.Type},
-		"is_remote_proof": B{Val: false},
-		"public_key":      S{Val: pub},
-		"server_half":     S{Val: a.ServerHalf},
-	}
-	if a.IsPrimary {
-		hargs["is_primary"] = I{Val: 1}
-	} else {
-		hargs["eldest_kid"] = a.EldestKeyID
-		hargs["signing_kid"] = a.SigningKeyID
-	}
-	if len(a.EncodedPrivateKey) > 0 {
-		hargs["private_key"] = S{Val: a.EncodedPrivateKey}
-	}
-
-	return hargs, nil
-}
-
-func PostNewKey(arg PostNewKeyArg) error {
-	hargs, err := arg.ToHttpArgs()
-	if err != nil {
-		return err
-	}
-
-	G.Log.Debug("Post NewKey: %v", hargs)
-	_, err = G.API.Post(ApiArg{
-		Endpoint:    "key/add",
-		NeedSession: true,
-		Args:        hargs,
-	})
-	return err
-}
-
 func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	hargs := HttpArgs{
 		"sig_id_base":     S{arg.Id.ToString(false)},

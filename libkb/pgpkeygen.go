@@ -169,92 +169,24 @@ func (s *KeyGen) WriteKey() (err error) {
 	return
 }
 
-func (s *KeyGen) GeneratePost() error {
-	devsk := s.arg.SigningKey
-	if devsk == nil {
-		var err error
-		devsk, err = s.me.GetDeviceSibkey()
-		if err != nil || devsk == nil {
-			G.Log.Debug("no device sibkey.  making this the primary key.")
-			return s.primaryPost()
-		}
-	}
-	// have a device sibkey
-	return s.sibkeyPost(devsk)
-}
+func (s *KeyGen) GeneratePost() (err error) {
 
-func (s *KeyGen) sibkeyPost(devsk GenericKey) error {
-	kpArg := KeyProofArg{
-		ExistingKey: devsk,
+	d := Delegator{
+		ExistingKey: s.arg.SigningKey,
 		NewKey:      s.bundle,
+		Me:          s.me,
 		Expire:      KEY_EXPIRE_IN,
 		Sibkey:      true,
 	}
 
-	jw, pushType, err := s.me.KeyProof(kpArg)
-	if err != nil {
+	if !s.arg.DoSecretPush {
+	} else if seckey, err := s.p3skb.ArmoredEncode(); err != nil {
 		return err
+	} else {
+		d.EncodedPrivateKey = seckey
 	}
 
-	sig, sigid, linkid, err := SignJson(jw, devsk)
-	s.chainTail.linkId = linkid
-	s.chainTail.sigId = sigid
-
-	postArg := PostNewKeyArg{
-		Sig:          sig,
-		Id:           *sigid,
-		Type:         pushType,
-		PublicKey:    s.bundle,
-		SigningKeyID: devsk.GetKid(),
-		EldestKeyID:  devsk.GetKid(),
-		IsPrimary:    false,
-	}
-
-	if s.arg.DoSecretPush {
-		seckey, err := s.p3skb.ArmoredEncode()
-		if err != nil {
-			return err
-		}
-		postArg.EncodedPrivateKey = seckey
-	}
-
-	return PostNewKey(postArg)
-}
-
-func (s *KeyGen) primaryPost() error {
-	kpArg := KeyProofArg{
-		NewKey: s.bundle,
-		Expire: KEY_EXPIRE_IN,
-		Sibkey: true,
-	}
-
-	jw, pushType, err := s.me.KeyProof(kpArg)
-	if err != nil {
-		return err
-	}
-
-	sig, sigid, linkid, err := SignJson(jw, s.bundle)
-	s.chainTail.linkId = linkid
-	s.chainTail.sigId = sigid
-
-	postArg := PostNewKeyArg{
-		Sig:          sig,
-		Id:           *sigid,
-		Type:         pushType,
-		PublicKey:    s.bundle,
-		SigningKeyID: s.bundle.GetKid(),
-		IsPrimary:    true,
-	}
-
-	if s.arg.DoSecretPush {
-		seckey, err := s.p3skb.ArmoredEncode()
-		if err != nil {
-			return err
-		}
-		postArg.EncodedPrivateKey = seckey
-	}
-
-	return PostNewKey(postArg)
+	return d.Run()
 }
 
 type KeyGenArg struct {
@@ -266,8 +198,6 @@ type KeyGenArg struct {
 	DoSecretPush bool
 	NoPassphrase bool
 	KbPassphrase bool
-	NoNaclEddsa  bool
-	NoNaclDh     bool
 	Pregen       *PgpKeyBundle
 	SigningKey   GenericKey
 	KeyGenUI     KeyGenUI
@@ -318,13 +248,6 @@ func (a *KeyGenArg) PGPUserIDs() ([]*packet.UserId, error) {
 		}
 	}
 	return uids, nil
-}
-
-func (s *KeyGen) UpdateUser() error {
-	err := s.me.localDelegateKey(s.bundle, s.chainTail.sigId, s.bundle.GetKid(), true)
-	G.Log.Debug("| Fudge User Sig Chain")
-	s.me.sigChain.Bump(s.chainTail)
-	return err
 }
 
 func (s *KeyGen) ReloadMe() (err error) {
@@ -385,14 +308,6 @@ func (s *KeyGen) LoginAndCheckKey() (err error) {
 	if err = s.LoadMe(); err != nil {
 		return
 	}
-
-	/*
-		G.Log.Debug("| CheckNoKey")
-		if err = s.CheckNoKey(); err != nil {
-			return
-		}
-	*/
-
 	s.phase = KEYGEN_PHASE_CHECKED
 
 	return
@@ -407,9 +322,6 @@ func (a *KeyGenArg) Init() (err error) {
 	}
 	if a.SubkeyBits == 0 {
 		a.SubkeyBits = 4096
-	}
-	if (!a.NoNaclDh || !a.NoNaclEddsa) && a.NoPublicPush {
-		err = KeyGenError{"Can't generate NaCl keys without a public push"}
 	}
 	return
 }
@@ -537,11 +449,6 @@ func (s *KeyGen) Push() (err error) {
 
 	G.Log.Debug("| Generate HTTP Post")
 	if err = s.GeneratePost(); err != nil {
-		return
-	}
-
-	G.Log.Debug("| UpdateUser")
-	if err = s.UpdateUser(); err != nil {
 		return
 	}
 

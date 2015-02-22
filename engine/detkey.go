@@ -2,11 +2,8 @@ package engine
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
-
 	"github.com/agl/ed25519"
-	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/go/libkb"
 	"golang.org/x/crypto/nacl/box"
 )
@@ -20,6 +17,7 @@ type DetKeyEngine struct {
 	me          *libkb.User
 	signingKey  libkb.GenericKey
 	eldestKeyID libkb.KID
+	newEddsaKey libkb.GenericKey
 	selfProof   bool
 }
 
@@ -79,12 +77,14 @@ func (d *DetKeyEngine) eddsa(tpk libkb.PassphraseStream) error {
 		return err
 	}
 
-	if d.selfProof {
-		d.signingKey = key
-		d.eldestKeyID = key.GetKid()
-	}
+	var signingKey libkb.GenericKey
 
-	return d.push(key, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
+	if !d.selfProof {
+		signingKey = d.signingKey
+	}
+	d.newEddsaKey = key
+
+	return d.push(key, signingKey, serverHalf, libkb.NACL_EDDSA_EXPIRE_IN, true)
 }
 
 func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb.GenericKey, err error) {
@@ -131,7 +131,7 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 	key.Private = &libkb.NaclDHKeyPrivate{}
 	copy(key.Private[:], (*priv)[:])
 
-	return d.push(key, serverHalf, libkb.NACL_DH_EXPIRE_IN, false)
+	return d.push(key, d.newEddsaKey, serverHalf, libkb.NACL_DH_EXPIRE_IN, false)
 }
 
 func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
@@ -140,58 +140,14 @@ func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
 	return newseed, nil
 }
 
-func (d *DetKeyEngine) push(key libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
-	var jw *jsonw.Wrapper
-	var err error
-	var pushType string
-	kpArg := libkb.KeyProofArg{
-		NewKey: key,
-		Sibkey: sibkey,
-		Expire: expire,
+func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
+	g := libkb.Delegator{
+		NewKey:      key,
+		Sibkey:      sibkey,
+		Expire:      expire,
+		ExistingKey: signing,
+		ServerHalf:  serverHalf,
+		Me:          d.me,
 	}
-
-	if !d.selfProof {
-		kpArg.ExistingKey = d.signingKey
-	}
-	jw, pushType, err = d.me.KeyProof(kpArg)
-
-	if err != nil {
-		return fmt.Errorf("KeyProof error: %s", err)
-	}
-	sig, sigid, linkid, err := libkb.SignJson(jw, d.signingKey)
-	if err != nil {
-		return err
-	}
-
-	if d.eldestKeyID == nil {
-		efokid := d.me.GetEldestFOKID()
-		if efokid != nil {
-			d.eldestKeyID = efokid.Kid
-		}
-	}
-
-	arg := libkb.PostNewKeyArg{
-		Sig:          sig,
-		Id:           *sigid,
-		Type:         pushType,
-		PublicKey:    key,
-		SigningKeyID: d.signingKey.GetKid(),
-		EldestKeyID:  d.eldestKeyID,
-		ServerHalf:   hex.EncodeToString(serverHalf),
-	}
-
-	//	G.Log.Info("post new key arg: id = %v, type = %v, signing key id = %v, eldest key id = %v", arg.Id, arg.Type, arg.SigningKeyID, arg.EldestKeyID)
-
-	if d.selfProof {
-		arg.EldestKeyID = nil
-		arg.IsPrimary = true
-	}
-
-	if err := libkb.PostNewKey(arg); err != nil {
-		return err
-	}
-
-	d.me.SigChainBump(linkid, sigid)
-
-	return nil
+	return g.Run()
 }

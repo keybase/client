@@ -1,14 +1,6 @@
 package libkb
 
-import (
-	"fmt"
-
-	jsonw "github.com/keybase/go-jsonw"
-)
-
-// "github.com/agl/ed25519"
-// "golang.org/x/crypto/nacl/box"
-// "golang.org/x/crypto/nacl/secretbox"
+import ()
 
 type NaclKeyGenArg struct {
 	Signer      GenericKey // who is going to sign us into the Chain
@@ -48,64 +40,20 @@ func (g *NaclKeyGen) SaveLKS(lks *LKSec) error {
 }
 
 func (g *NaclKeyGen) Push() (mt MerkleTriple, err error) {
-	var jw *jsonw.Wrapper
-	var pushType string
-	eldest := g.arg.Signer == nil && g.arg.EldestKeyID == nil
-
-	kpArg := KeyProofArg{
-		NewKey: g.pair,
-		Sibkey: g.arg.Sibkey,
-		Device: g.arg.Device,
-		Expire: g.arg.ExpireIn,
-		RevSig: g.arg.RevSig,
+	d := Delegator{
+		NewKey:      g.pair,
+		RevSig:      g.arg.RevSig,
+		Device:      g.arg.Device,
+		Expire:      g.arg.ExpireIn,
+		Sibkey:      g.arg.Sibkey,
+		ExistingKey: g.arg.Signer,
+		Me:          g.arg.Me,
+		EldestKID:   g.arg.EldestKeyID,
 	}
-
-	if !eldest {
-		kpArg.ExistingKey = g.arg.Signer
+	if err = d.Run(); err != nil {
+		return
 	}
-
-	jw, pushType, err = g.arg.Me.KeyProof(kpArg)
-
-	if err != nil {
-		return mt, err
-	}
-
-	signer := g.arg.Signer
-	if eldest {
-		// eldest key signs itself
-		signer = g.pair
-	}
-
-	var sig string
-	var id *SigId
-	var lid LinkId
-	if sig, id, lid, err = SignJson(jw, signer); err != nil {
-		return mt, fmt.Errorf("sign json err: %s", err)
-	}
-	arg := PostNewKeyArg{
-		Sig:          sig,
-		Id:           *id,
-		Type:         pushType,
-		EldestKeyID:  g.arg.EldestKeyID,
-		SigningKeyID: signer.GetKid(),
-		PublicKey:    g.pair,
-		IsPrimary:    eldest,
-	}
-	if err = PostNewKey(arg); err != nil {
-		return mt, err
-	}
-	mt = MerkleTriple{linkId: lid, sigId: id}
-	g.arg.Me.sigChain.Bump(mt)
-	return mt, nil
-}
-
-func (g *NaclKeyGen) Run() (err error) {
-	if err = g.Generate(); err != nil {
-	} else if err = g.Save(); err != nil {
-	} else {
-		_, err = g.Push()
-	}
-	return
+	return d.GetMerkleTriple(), err
 }
 
 // RunLKS uses local key security to save the generated keys.
