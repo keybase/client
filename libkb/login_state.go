@@ -565,7 +565,7 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err
 	if err = s.tryPassphraseLogin(arg); err != nil {
 		return
 	}
-	if ret = s.GetCachedPassphraseStream(); ret != nil {
+	if ret = s.GetCachedPassphraseStream(); ret == nil {
 		err = InternalError{"No cached keystream data after login attempt"}
 	}
 	return
