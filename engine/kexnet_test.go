@@ -12,19 +12,19 @@ func TestBasicMessage(t *testing.T) {
 	tc := libkb.SetupTest(t, "kexnet")
 	defer tc.Cleanup()
 
-	u1 := CreateAndSignupFakeUser(t, "login")
-	u1 = u1
+	CreateAndSignupFakeUser(t, "login")
 
 	h := newKth()
 	s := NewKexSender()
 	r := NewKexReceiver(h)
 
-	ctx := &KexContext{}
 	sid := [32]byte{1, 1, 1, 1, 1}
+	ctx := &KexContext{Seqno: 2, StrongID: sid}
 	if err := s.StartKexSession(ctx, sid); err != nil {
 		t.Fatal(err)
 	}
-	if err := r.Receive(); err != nil {
+	rctx := &KexContext{}
+	if err := r.Receive(rctx); err != nil {
 		t.Fatal(err)
 	}
 	if h.callCount("startkex") != 1 {

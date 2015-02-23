@@ -68,10 +68,50 @@ func NewKexReceiver(handler KexHandler) *KexReceiver {
 	return &KexReceiver{handler: handler, pollDur: 20 * time.Second}
 }
 
-func (r *KexReceiver) Receive() error {
-	return nil
+func (r *KexReceiver) Receive(ctx *KexContext) error {
+	return r.get(ctx)
 }
 
 func (r *KexReceiver) ReceiveFilter(name string) error {
 	return nil
+}
+
+func (r *KexReceiver) get(ctx *KexContext) error {
+	res, err := G.API.Get(libkb.ApiArg{
+		Endpoint:    "kex/receive",
+		NeedSession: true,
+		Args: libkb.HttpArgs{
+			"w":    libkb.S{Val: hex.EncodeToString(ctx.WeakID[:])},
+			"dir":  libkb.I{Val: 1},
+			"low":  libkb.I{Val: 0},
+			"poll": libkb.I{Val: int(r.pollDur / time.Second)},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	G.Log.Info("get res: %+v", res)
+	G.Log.Info("body: %+v", res.Body)
+
+	var messages []KexMsg
+	err = res.Body.AtKey("msgs").UnmarshalAgain(&messages)
+	if err != nil {
+		return err
+	}
+	G.Log.Info("messages: %+v", messages)
+	for _, m := range messages {
+		G.Log.Info("message: %+v", m)
+	}
+
+	return nil
+}
+
+type KexMsg struct {
+	UID       string `json:uid`
+	Direction int    `json:dir`
+	Src       string `json:sender`
+	Dst       string `json:receiver`
+	Body      string `json:msg`
+	Seqno     int    `json:seqno`
 }
