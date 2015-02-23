@@ -12,12 +12,8 @@ protocol mykey {
 	void keyGen(
 		int primaryBits,
 		int subkeyBits,
-		PgpCreateUids createUids,
-		boolean noPassphrase,
-		boolean kbPassphrase,
-		boolean noNaclEddsa,
-		boolean noNaclDh,
-		string pregen);
+		PgpCreateUids createUids
+	);
 
 	void keyGenDefault(
 		PgpCreateUids createUids,

@@ -135,21 +135,6 @@
       }, {
         "name" : "createUids",
         "type" : "PgpCreateUids"
-      }, {
-        "name" : "noPassphrase",
-        "type" : "boolean"
-      }, {
-        "name" : "kbPassphrase",
-        "type" : "boolean"
-      }, {
-        "name" : "noNaclEddsa",
-        "type" : "boolean"
-      }, {
-        "name" : "noNaclDh",
-        "type" : "boolean"
-      }, {
-        "name" : "pregen",
-        "type" : "string"
       } ],
       "response" : "null"
     },

@@ -903,14 +903,9 @@ type PgpCreateUids struct {
 }
 
 type KeyGenArg struct {
-	PrimaryBits  int           `codec:"primaryBits"`
-	SubkeyBits   int           `codec:"subkeyBits"`
-	CreateUids   PgpCreateUids `codec:"createUids"`
-	NoPassphrase bool          `codec:"noPassphrase"`
-	KbPassphrase bool          `codec:"kbPassphrase"`
-	NoNaclEddsa  bool          `codec:"noNaclEddsa"`
-	NoNaclDh     bool          `codec:"noNaclDh"`
-	Pregen       string        `codec:"pregen"`
+	PrimaryBits int           `codec:"primaryBits"`
+	SubkeyBits  int           `codec:"subkeyBits"`
+	CreateUids  PgpCreateUids `codec:"createUids"`
 }
 
 type KeyGenDefaultArg struct {
@@ -1009,45 +1004,6 @@ func (c MykeyClient) Show() (err error) {
 func (c MykeyClient) Select(query string) (err error) {
 	__arg := SelectArg{Query: query}
 	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
-	return
-}
-
-type PushPreferences struct {
-	Public  bool `codec:"public"`
-	Private bool `codec:"private"`
-}
-
-type GetPushPreferencesArg struct {
-	SessionID int `codec:"sessionID"`
-}
-
-type MykeyUiInterface interface {
-	GetPushPreferences(int) (PushPreferences, error)
-}
-
-func MykeyUiProtocol(i MykeyUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.mykeyUi",
-		Methods: map[string]rpc2.ServeHook{
-			"getPushPreferences": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetPushPreferencesArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetPushPreferences(args[0].SessionID)
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type MykeyUiClient struct {
-	Cli GenericClient
-}
-
-func (c MykeyUiClient) GetPushPreferences(sessionID int) (res PushPreferences, err error) {
-	__arg := GetPushPreferencesArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.mykeyUi.getPushPreferences", []interface{}{__arg}, &res)
 	return
 }
 

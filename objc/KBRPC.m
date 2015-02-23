@@ -367,8 +367,8 @@
 
 @implementation KBRMykeyRequest
 
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase noNaclEddsa:(BOOL )noNaclEddsa noNaclDh:(BOOL )noNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"noPassphrase": @(noPassphrase), @"kbPassphrase": @(kbPassphrase), @"noNaclEddsa": @(noNaclEddsa), @"noNaclDh": @(noNaclDh), @"pregen": KBRValue(pregen)}];
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids)}];
   [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGen" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];
@@ -399,25 +399,6 @@
   NSArray *params = @[@{@"query": KBRValue(query)}];
   [self.client sendRequestWithMethod:@"keybase.1.mykey.select" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
-  }];
-}
-
-@end
-
-@implementation KBRPushPreferences
-@end
-
-@implementation KBRMykeyUiRequest
-
-- (void)getPushPreferencesWithSessionID:(NSInteger )sessionID completion:(void (^)(NSError *error, KBRPushPreferences * pushPreferences))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykeyUi.getPushPreferences" params:params completion:^(NSError *error, NSDictionary *dict) {
-    if (error) {
-        completion(error, nil);
-        return;
-      }
-      KBRPushPreferences *result = [MTLJSONAdapter modelOfClass:KBRPushPreferences.class fromJSONDictionary:dict error:&error];
-      completion(error, result);
   }];
 }
 
@@ -915,11 +896,6 @@
     self.primaryBits = [params[0][@"primaryBits"] integerValue];
     self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.noPassphrase = [params[0][@"noPassphrase"] boolValue];
-    self.kbPassphrase = [params[0][@"kbPassphrase"] boolValue];
-    self.noNaclEddsa = [params[0][@"noNaclEddsa"] boolValue];
-    self.noNaclDh = [params[0][@"noNaclDh"] boolValue];
-    self.pregen = params[0][@"pregen"];
   }
   return self;
 }
@@ -945,17 +921,6 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.query = params[0][@"query"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRGetPushPreferencesRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }

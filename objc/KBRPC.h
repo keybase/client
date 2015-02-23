@@ -308,7 +308,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRMykeyRequest : KBRRequest
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids noPassphrase:(BOOL )noPassphrase kbPassphrase:(BOOL )kbPassphrase noNaclEddsa:(BOOL )noNaclEddsa noNaclDh:(BOOL )noNaclDh pregen:(NSString *)pregen completion:(void (^)(NSError *error))completion;
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
 
 - (void)keyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
@@ -317,16 +317,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 - (void)show:(void (^)(NSError *error))completion;
 
 - (void)selectWithQuery:(NSString *)query completion:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRPushPreferences : KBRObject
-@property BOOL public;
-@property BOOL private;
-@end
-
-@interface KBRMykeyUiRequest : KBRRequest
-- (void)getPushPreferencesWithSessionID:(NSInteger )sessionID completion:(void (^)(NSError *error, KBRPushPreferences * pushPreferences))completion;
 
 @end
 
@@ -529,11 +519,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger primaryBits;
 @property NSInteger subkeyBits;
 @property KBRPgpCreateUids *createUids;
-@property BOOL noPassphrase;
-@property BOOL kbPassphrase;
-@property BOOL noNaclEddsa;
-@property BOOL noNaclDh;
-@property NSString *pregen;
 @end
 @interface KBRKeyGenDefaultRequestParams : KBRRequestParams
 @property KBRPgpCreateUids *createUids;
@@ -543,9 +528,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRSelectRequestParams : KBRRequestParams
 @property NSString *query;
-@end
-@interface KBRGetPushPreferencesRequestParams : KBRRequestParams
-@property NSInteger sessionID;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;
