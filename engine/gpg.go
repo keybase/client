@@ -33,7 +33,11 @@ func NewGPG() *GPG {
 	return &GPG{}
 }
 
-func (e *GPG) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (e *GPG) GetPrereqs() EnginePrereqs {
+	return EnginePrereqs{
+		Session: true,
+	}
+}
 
 func (g *GPG) Name() string {
 	return "GPG"

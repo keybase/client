@@ -59,7 +59,11 @@ func (s *PGPEngine) Name() string {
 	return "PGP"
 }
 
-func (e *PGPEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (e *PGPEngine) GetPrereqs() EnginePrereqs {
+	return EnginePrereqs{
+		Session: true,
+	}
+}
 
 func (k *PGPEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{

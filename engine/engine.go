@@ -16,8 +16,29 @@ type Engine interface {
 	libkb.UIConsumer
 }
 
+func runPrereqs(e Engine) (err error) {
+	prq := e.GetPrereqs()
+
+	if prq.Session {
+		var ok bool
+		ok, err = G.Session.LoadAndCheck()
+		if !ok {
+			err = libkb.LoginRequiredError{}
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return
+
+}
+
 func RunEngine(e Engine, ctx *Context, args interface{}, reply interface{}) error {
 	if err := check(e, ctx); err != nil {
+		return err
+	}
+	if err := runPrereqs(e); err != nil {
 		return err
 	}
 	return e.Run(ctx, args, reply)
