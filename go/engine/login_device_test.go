@@ -92,11 +92,11 @@ func (l *ldocuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) e
 }
 
 type kexsrv struct {
-	devices map[libkb.DeviceID]KexServer
+	devices map[libkb.DeviceID]KexHandler
 }
 
 func newKexsrv() *kexsrv {
-	return &kexsrv{devices: make(map[libkb.DeviceID]KexServer)}
+	return &kexsrv{devices: make(map[libkb.DeviceID]KexHandler)}
 }
 
 func (k *kexsrv) StartKexSession(ctx *KexContext, id KexStrongID) error {
@@ -145,7 +145,7 @@ func (k *kexsrv) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 	return k.gocall(f)
 }
 
-func (k *kexsrv) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error {
+func (k *kexsrv) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error {
 	k.devices[device] = srv
 	return nil
 }
@@ -159,7 +159,7 @@ func (k *kexsrv) gocall(fn func() error) error {
 	return <-ch
 }
 
-func (k *kexsrv) findDevice(id libkb.DeviceID) (KexServer, error) {
+func (k *kexsrv) findDevice(id libkb.DeviceID) (KexHandler, error) {
 	s, ok := k.devices[id]
 	if !ok {
 		return nil, fmt.Errorf("device %x not registered", id)

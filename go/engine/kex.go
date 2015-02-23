@@ -28,7 +28,7 @@ func (c *KexContext) Swap() {
 	c.Src, c.Dst = c.Dst, c.Src
 }
 
-type KexServer interface {
+type KexHandler interface {
 	StartKexSession(ctx *KexContext, id KexStrongID) error
 	StartReverseKexSession(ctx *KexContext) error
 	Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error
@@ -36,11 +36,11 @@ type KexServer interface {
 	Done(ctx *KexContext, mt libkb.MerkleTriple) error
 
 	// XXX get rid of this when real client comm works
-	RegisterTestDevice(srv KexServer, device libkb.DeviceID) error
+	RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error
 }
 
 type Kex struct {
-	server        KexServer
+	server        KexHandler
 	user          *libkb.User
 	deviceID      libkb.DeviceID
 	deviceSibkey  libkb.GenericKey
@@ -56,7 +56,7 @@ type Kex struct {
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s KexServer, lksCli []byte, options ...func(*Kex)) *Kex {
+func NewKex(s KexHandler, lksCli []byte, options ...func(*Kex)) *Kex {
 	k := &Kex{server: s, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
 	k.lks = libkb.NewLKSecClientHalf(lksCli)
 	for _, opt := range options {
@@ -388,7 +388,7 @@ func (k *Kex) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 	return nil
 }
 
-func (k *Kex) RegisterTestDevice(srv KexServer, device libkb.DeviceID) error { return nil }
+func (k *Kex) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error { return nil }
 
 func (k *Kex) verifyDst(ctx *KexContext) error {
 	if ctx.Dst != k.deviceID {

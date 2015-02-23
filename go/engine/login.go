@@ -8,7 +8,7 @@ import (
 
 type LoginEngineArg struct {
 	Login  libkb.LoginArg
-	KexSrv KexServer
+	KexSrv KexHandler
 }
 
 type LoginEngine struct{}
@@ -56,6 +56,6 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(WithKexServer(arg.KexSrv))
+	doctor := NewDoctor(WithKexHandler(arg.KexSrv))
 	return doctor.LoginCheckup(ctx, u)
 }

@@ -18,7 +18,7 @@ type Doctor struct {
 	*/
 
 	signingKey libkb.GenericKey
-	kexServer  KexServer
+	kexServer  KexHandler
 	devName    string
 }
 
@@ -41,7 +41,7 @@ func NewDoctor(options ...func(*Doctor)) *Doctor {
 	return d
 }
 
-func WithKexServer(s KexServer) func(r *Doctor) {
+func WithKexHandler(s KexHandler) func(r *Doctor) {
 	return func(d *Doctor) {
 		d.kexServer = s
 	}
