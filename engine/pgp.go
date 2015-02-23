@@ -1,5 +1,10 @@
 package engine
 
+//
+// engine.PGPEngine is a class for optionally generating PGP keys,
+// and pushing them into the keybase sigchain via the Delegator.
+//
+
 import (
 	stderrors "errors"
 	triplesec "github.com/keybase/go-triplesec"

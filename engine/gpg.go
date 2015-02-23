@@ -1,5 +1,12 @@
 package engine
 
+//
+// engine.GPG is a class that selects key from the GPG keyring via
+// shell-out to the gpg command line client. It's useful in `client mykey select`
+// and other places in which the user picks existing PGP keys on the existing
+// system for use in Keybase tasks.
+//
+
 import (
 	"fmt"
 	"os/exec"
