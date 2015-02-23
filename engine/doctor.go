@@ -47,6 +47,8 @@ func WithKexServer(s KexServer) func(r *Doctor) {
 	}
 }
 
+func (d *Doctor) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+
 func (d *Doctor) Name() string {
 	return "Doctor"
 }

@@ -27,6 +27,8 @@ func (e *SignupEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
+func (e *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+
 func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewDeviceEngine(nil),

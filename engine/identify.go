@@ -5,7 +5,7 @@ import (
 	"github.com/keybase/protocol/go"
 )
 
-type IdentifyArgPrime struct {
+type IdentifyArg struct {
 	Uid            *libkb.UID
 	User           string
 	TrackStatement bool
@@ -21,11 +21,11 @@ type IdentifyRes struct {
 
 // IdentifyEng is the type used by cmd_id Run, daemon id handler.
 type IdentifyEng struct {
-	arg *IdentifyArgPrime
+	arg *IdentifyArg
 	ui  libkb.IdentifyUI
 }
 
-func NewIdentifyEng(arg *IdentifyArgPrime, ui libkb.IdentifyUI) *IdentifyEng {
+func NewIdentifyEng(arg *IdentifyArg, ui libkb.IdentifyUI) *IdentifyEng {
 	return &IdentifyEng{arg: arg, ui: ui}
 }
 
@@ -100,7 +100,7 @@ func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
 	return res, nil
 }
 
-func (a IdentifyArgPrime) Export() (res keybase_1.IdentifyArg) {
+func (a IdentifyArg) Export() (res keybase_1.IdentifyArg) {
 	if a.Uid != nil {
 		res.Uid = a.Uid.Export()
 	}
@@ -111,7 +111,7 @@ func (a IdentifyArgPrime) Export() (res keybase_1.IdentifyArg) {
 	return res
 }
 
-func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArgPrime) {
+func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArg) {
 	uid := libkb.ImportUID(a.Uid)
 	if !uid.IsZero() {
 		ret.Uid = &uid

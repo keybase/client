@@ -42,6 +42,8 @@ func (d *DeviceEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
+func (d *DeviceEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+
 func (d *DeviceEngine) Init() error {
 	return nil
 }

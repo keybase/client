@@ -38,8 +38,8 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdId) makeArg() *engine.IdentifyArgPrime {
-	return &engine.IdentifyArgPrime{
+func (v *CmdId) makeArg() *engine.IdentifyArg {
+	return &engine.IdentifyArg{
 		Uid:            v.uid,
 		User:           v.user,
 		TrackStatement: v.track,

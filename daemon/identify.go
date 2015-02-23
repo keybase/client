@@ -36,7 +36,7 @@ func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) (keybase_1.Identif
 }
 
 func (h *IdentifyHandler) IdentifyDefault(username string) (keybase_1.IdentifyRes, error) {
-	arg := engine.IdentifyArgPrime{User: username}
+	arg := engine.IdentifyArg{User: username}
 	res, err := h.identify(arg, true)
 	if err != nil {
 		return keybase_1.IdentifyRes{}, err
@@ -44,7 +44,7 @@ func (h *IdentifyHandler) IdentifyDefault(username string) (keybase_1.IdentifyRe
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) identify(iarg engine.IdentifyArgPrime, doInteractive bool) (*engine.IdentifyRes, error) {
+func (h *IdentifyHandler) identify(iarg engine.IdentifyArg, doInteractive bool) (*engine.IdentifyRes, error) {
 	sessionId := nextSessionId()
 	iarg.LogUI = h.getLogUI(sessionId)
 

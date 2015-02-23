@@ -343,6 +343,8 @@ func (e *ClientModeSignupEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
+func (e *ClientModeSignupEngine) GetPrereqs() (ret engine.EnginePrereqs) { return }
+
 func (e *ClientModeSignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ ClientModeSignupEngine::CheckRegistered")
 	var rres keybase_1.GetCurrentStatusRes

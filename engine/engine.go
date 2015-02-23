@@ -6,8 +6,13 @@ import (
 	"github.com/keybase/go/libkb"
 )
 
+type EnginePrereqs struct {
+	Session bool
+}
+
 type Engine interface {
 	Run(ctx *Context, args interface{}, reply interface{}) error
+	GetPrereqs() EnginePrereqs
 	libkb.UIConsumer
 }
 
