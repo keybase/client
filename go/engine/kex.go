@@ -21,6 +21,7 @@ type KexContext struct {
 	StrongID KexStrongID // `I` in doc
 	Src      libkb.DeviceID
 	Dst      libkb.DeviceID
+	Seqno    int
 	*Context
 }
 
