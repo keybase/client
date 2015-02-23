@@ -47,7 +47,7 @@ var dktests = []dktest{
 
 func TestTSPassKey(t *testing.T) {
 	for _, test := range dktests {
-		dk, err := NewTSPassKey(test.passphrase, []byte(test.salt))
+		_, dk, err := StretchPassphrase(test.passphrase, []byte(test.salt))
 		if err != nil {
 			t.Errorf("%s: got unexpected error: %s", test.name, err)
 			continue
