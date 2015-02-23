@@ -15,13 +15,18 @@ import (
 type KexStrongID [32]byte
 type KexWeakID [16]byte
 
+type KexMeta struct {
+	UID       libkb.UID
+	WeakID    KexWeakID   // `w` in doc
+	StrongID  KexStrongID // `I` in doc
+	Src       libkb.DeviceID
+	Dst       libkb.DeviceID
+	Seqno     int
+	Direction int
+}
+
 type KexContext struct {
-	UserID   libkb.UID
-	WeakID   KexWeakID   // `w` in doc
-	StrongID KexStrongID // `I` in doc
-	Src      libkb.DeviceID
-	Dst      libkb.DeviceID
-	Seqno    int
+	KexMeta
 	*Context
 }
 
@@ -88,11 +93,13 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 	k.sessionID = id
 
 	ctx := &KexContext{
-		UserID:   k.user.GetUid(),
-		StrongID: id,
-		Src:      src,
-		Dst:      dst,
-		Context:  ectx,
+		KexMeta: KexMeta{
+			UID:      k.user.GetUid(),
+			StrongID: id,
+			Src:      src,
+			Dst:      dst,
+		},
+		Context: ectx,
 	}
 	copy(ctx.WeakID[:], id[0:16])
 

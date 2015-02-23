@@ -1,10 +1,14 @@
 package engine
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"time"
 
+	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/go/libkb"
+	"github.com/ugorji/go/codec"
 )
 
 var KexGlobalTimeout = 5 * time.Minute
@@ -91,15 +95,19 @@ func (r *KexReceiver) get(ctx *KexContext) error {
 		return err
 	}
 
-	G.Log.Info("get res: %+v", res)
-	G.Log.Info("body: %+v", res.Body)
-
-	var messages []KexMsg
-	err = res.Body.AtKey("msgs").UnmarshalAgain(&messages)
+	msgs := res.Body.AtKey("msgs")
+	n, err := msgs.Len()
 	if err != nil {
 		return err
 	}
-	G.Log.Info("messages: %+v", messages)
+	messages := make([]*KexMsg, n)
+	for i := 0; i < n; i++ {
+		messages[i], err = KexMsgImport(msgs.AtIndex(i))
+		if err != nil {
+			return err
+		}
+	}
+
 	for _, m := range messages {
 		G.Log.Info("message: %+v", m)
 	}
@@ -108,10 +116,111 @@ func (r *KexReceiver) get(ctx *KexContext) error {
 }
 
 type KexMsg struct {
-	UID       string `json:uid`
-	Direction int    `json:dir`
-	Src       string `json:sender`
-	Dst       string `json:receiver`
-	Body      string `json:msg`
-	Seqno     int    `json:seqno`
+	KexMeta
+	body string
+}
+
+func deviceID(w *jsonw.Wrapper) (libkb.DeviceID, error) {
+	s, err := w.GetString()
+	if err != nil {
+		return libkb.DeviceID{}, err
+	}
+	d, err := libkb.ImportDeviceID(s)
+	if err != nil {
+		return libkb.DeviceID{}, err
+	}
+	return *d, nil
+}
+
+func KexMsgImport(w *jsonw.Wrapper) (*KexMsg, error) {
+	r := &KexMsg{}
+	u, err := libkb.GetUid(w.AtKey("uid"))
+	if err != nil {
+		return nil, err
+	}
+	r.UID = *u
+
+	r.Src, err = deviceID(w.AtKey("sender"))
+	if err != nil {
+		return nil, err
+	}
+	r.Dst, err = deviceID(w.AtKey("receiver"))
+	if err != nil {
+		return nil, err
+	}
+
+	r.Seqno, err = w.AtKey("seqno").GetInt()
+	if err != nil {
+		return nil, err
+	}
+	r.Direction, err = w.AtKey("dir").GetInt()
+	if err != nil {
+		return nil, err
+	}
+
+	stID, err := w.AtKey("I").GetString()
+	if err != nil {
+		return nil, err
+	}
+	bstID, err := hex.DecodeString(stID)
+	if err != nil {
+		return nil, err
+	}
+	copy(r.StrongID[:], bstID)
+
+	wkID, err := w.AtKey("w").GetString()
+	if err != nil {
+		return nil, err
+	}
+	bwkID, err := hex.DecodeString(wkID)
+	if err != nil {
+		return nil, err
+	}
+	copy(r.WeakID[:], bwkID)
+
+	r.body, err = w.AtKey("msg").GetString()
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+type KXMB struct {
+	Name string
+	Args interface{}
+}
+
+func KXMBDecode(data string) (*KXMB, error) {
+	bytes, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return nil, err
+	}
+	var h codec.MsgpackHandle
+	var k KXMB
+	err = codec.NewDecoderBytes(bytes, &h).Decode(&k)
+	if err != nil {
+		return nil, err
+	}
+	return &k, nil
+}
+
+func (k *KXMB) Encode() (string, error) {
+	var buf bytes.Buffer
+	var h codec.MsgpackHandle
+	err := codec.NewEncoder(&buf, &h).Encode(k)
+	if err != nil {
+		return "", nil
+	}
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+}
+
+type KexMsgBody string
+
+func KexMsgBodyEncode(in string) KexMsgBody {
+	return KexMsgBody(in)
+}
+
+func (b KexMsgBody) Decode() string {
+	return string(b)
 }

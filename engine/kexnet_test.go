@@ -18,8 +18,16 @@ func TestBasicMessage(t *testing.T) {
 	s := NewKexSender()
 	r := NewKexReceiver(h)
 
+	sendID, err := libkb.NewDeviceID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	recID, err := libkb.NewDeviceID()
+	if err != nil {
+		t.Fatal(err)
+	}
 	sid := [32]byte{1, 1, 1, 1, 1}
-	ctx := &KexContext{Seqno: 2, StrongID: sid}
+	ctx := &KexContext{KexMeta: KexMeta{Seqno: 2, StrongID: sid, Src: sendID, Dst: recID}}
 	if err := s.StartKexSession(ctx, sid); err != nil {
 		t.Fatal(err)
 	}
