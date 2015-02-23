@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/go/engine"
 	"github.com/keybase/go/libcmdline"
 	"github.com/keybase/go/libkb"
 	"github.com/keybase/protocol/go"
@@ -10,20 +11,27 @@ import (
 )
 
 type CmdMykeyGen struct {
-	state MyKeyState
+	arg engine.PGPEngineArg
 }
+
+var SmallKey int = 1024
 
 func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	if err = v.state.ParseArgv(ctx); err != nil {
-	} else if nargs != 0 {
+	if nargs != 0 {
 		err = fmt.Errorf("mykey gen takes 0 args")
 	} else {
-		v.state.arg.PGPUids = ctx.StringSlice("pgp-uid")
-		v.state.arg.NoDefPGPUid = ctx.Bool("no-default-pgp-uid")
-		if v.state.arg.NoDefPGPUid && len(v.state.arg.PGPUids) == 0 {
+		g := libkb.PGPGenArg{}
+		g.PGPUids = ctx.StringSlice("pgp-uid")
+		g.NoDefPGPUid = ctx.Bool("no-default-pgp-uid")
+		if g.NoDefPGPUid && len(g.PGPUids) == 0 {
 			err = fmt.Errorf("if you don't want the default PGP uid, you must supply a PGP uid with the --pgp-uid option.")
 		}
+		if ctx.Bool("debug") {
+			g.PrimaryBits = SmallKey
+			g.SubkeyBits = SmallKey
+		}
+		v.arg.Gen = &g
 	}
 	return err
 }
@@ -32,29 +40,22 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 	var cli keybase_1.MykeyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		NewKeyGenUIProtocol(),
-		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 	}
+	gen := v.arg.Gen
 	if cli, err = GetMykeyClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
-
-	} else if err = v.state.arg.CreatePgpIDs(); err != nil {
+	} else if err = gen.CreatePgpIDs(); err != nil {
 	} else {
-		err = cli.KeyGen(v.state.arg.Export())
+		err = cli.KeyGen(gen.Export())
 	}
 	return
 }
 
 func (v *CmdMykeyGen) Run() (err error) {
-	v.state.arg.KeyGenUI = G_UI.GetKeyGenUI()
-	v.state.arg.SecretUI = G_UI.GetSecretUI()
-	v.state.arg.LogUI = G_UI.GetLogUI()
-	gen := libkb.NewKeyGen(&v.state.arg)
-	if _, err = gen.Run(); err != nil {
-		return
-	}
-	return nil
+	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), LogUI: G_UI.GetLogUI()}
+	eng := engine.NewPGPEngine(v.arg)
+	return engine.RunEngine(eng, ctx, nil, nil)
 }
 
 func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
@@ -64,28 +65,8 @@ func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 		Description: "Generate a new PGP key and write to local secret keychain",
 		Flags: append([]cli.Flag{
 			cli.BoolFlag{
-				Name:  "skip-push",
-				Usage: "No push to server (on by default)",
-			},
-			cli.BoolFlag{
-				Name:  "push-secret",
-				Usage: "Also push secret key to server (protected by passphrase)",
-			},
-			cli.BoolFlag{
 				Name:  "d, debug",
 				Usage: "Generate small keys for debugging",
-			},
-			cli.BoolFlag{
-				Name:  "P, no-passphrase",
-				Usage: "Don't protect the key with a passphrase",
-			},
-			cli.BoolFlag{
-				Name:  "b, batch",
-				Usage: "Don't go into interactive mode",
-			},
-			cli.BoolFlag{
-				Name:  "k, keybase-passphrase",
-				Usage: "Lock your key with your present Keybase passphrase",
 			},
 			cli.StringSliceFlag{
 				Name:  "pgp-uid",
@@ -96,7 +77,7 @@ func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "no-default-pgp-uid",
 				Usage: "Do not include the default PGP uid 'username@keybase.io' in the key",
 			},
-		}, mykeyFlags()...),
+		}),
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdMykeyGen{}, "gen", c)
 		},

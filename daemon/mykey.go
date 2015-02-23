@@ -9,30 +9,10 @@ import (
 
 type MykeyHandler struct {
 	BaseHandler
-	keyGenUI libkb.KeyGenUI
-}
-
-type KeyGenUI struct {
-	sessionId int
-	cli       keybase_1.MykeyUiClient
 }
 
 func NewMykeyHandler(xp *rpc2.Transport) *MykeyHandler {
-	return &MykeyHandler{BaseHandler{xp: xp}, nil}
-}
-
-func (p *KeyGenUI) GetPushPreferences(dummy int) (ret keybase_1.PushPreferences, err error) {
-	return p.cli.GetPushPreferences(p.sessionId)
-}
-
-func (h *MykeyHandler) getKeyGenUI(sessionId int) libkb.KeyGenUI {
-	if h.keyGenUI == nil {
-		h.keyGenUI = &KeyGenUI{
-			sessionId: sessionId,
-			cli:       keybase_1.MykeyUiClient{h.getRpcClient()},
-		}
-	}
-	return h.keyGenUI
+	return &MykeyHandler{BaseHandler{xp: xp}}
 }
 
 func (h *MykeyHandler) KeyGen(arg keybase_1.KeyGenArg) (err error) {
@@ -40,28 +20,19 @@ func (h *MykeyHandler) KeyGen(arg keybase_1.KeyGenArg) (err error) {
 	return h.keygen(iarg, true)
 }
 
-func (h *MykeyHandler) keygen(iarg libkb.KeyGenArg, doInteractive bool) (err error) {
+func (h *MykeyHandler) keygen(iarg libkb.PGPGenArg, doInteractive bool) (err error) {
 	sessionId := nextSessionId()
-	iarg.LogUI = h.getLogUI(sessionId)
-	iarg.LoginUI = h.getLoginUI(sessionId)
-	if doInteractive {
-		iarg.KeyGenUI = h.getKeyGenUI(sessionId)
-	}
-	iarg.SecretUI = h.getSecretUI(sessionId)
+	ctx := &engine.Context{LogUI: h.getLogUI(sessionId), SecretUI: h.getSecretUI(sessionId)}
 	iarg.AddDefaultUid()
-	eng := libkb.NewKeyGen(&iarg)
-	_, err = eng.Run()
-	return
+	eng := engine.NewPGPEngine(engine.PGPEngineArg{Gen: &iarg})
+	err = engine.RunEngine(eng, ctx, nil, nil)
+	return err
 }
 
 func (h *MykeyHandler) KeyGenDefault(arg keybase_1.KeyGenDefaultArg) (err error) {
-	iarg := libkb.KeyGenArg{
-		Ids:          libkb.ImportPgpIdentities(arg.CreateUids.Ids),
-		NoDefPGPUid:  !arg.CreateUids.UseDefault,
-		Passphrase:   arg.Passphrase,
-		KbPassphrase: (len(arg.Passphrase) == 0),
-		NoPublicPush: !arg.PushPublic,
-		DoSecretPush: arg.PushSecret,
+	iarg := libkb.PGPGenArg{
+		Ids:         libkb.ImportPgpIdentities(arg.CreateUids.Ids),
+		NoDefPGPUid: !arg.CreateUids.UseDefault,
 	}
 	return h.keygen(iarg, false)
 }
@@ -85,7 +56,6 @@ func (h *MykeyHandler) Select(query string) error {
 		GPGUI:    gpgui,
 		SecretUI: secretui,
 		LogUI:    h.getLogUI(sessionID),
-		KeyGenUI: h.getKeyGenUI(sessionID),
 		LoginUI:  h.getLoginUI(sessionID),
 	}
 	return engine.RunEngine(gpg, ctx, arg, nil)

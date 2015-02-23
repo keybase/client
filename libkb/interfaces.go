@@ -247,10 +247,6 @@ type LogUI interface {
 	Critical(format string, args ...interface{})
 }
 
-type KeyGenUI interface {
-	keybase_1.MykeyUiInterface
-}
-
 type DoctorUI interface {
 	keybase_1.DoctorUiInterface
 }
@@ -269,7 +265,6 @@ type UI interface {
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetDoctorUI() DoctorUI
-	GetKeyGenUI() KeyGenUI
 	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error

@@ -111,3 +111,14 @@ func (s *LKSec) apiServerHalf(devid *DeviceID) error {
 	s.serverHalf, err = hex.DecodeString(dev.LksServerHalf)
 	return err
 }
+
+// GetLKSForEncrypt gets a verified passphrase stream, and returns
+// an LKS that works for encryption.
+func NewLKSForEncrypt(ui SecretUI) (ret *LKSec, err error) {
+	var pps PassphraseStream
+	if pps, err = G.LoginState.GetPassphraseStream(ui); err != nil {
+		return
+	}
+	ret = NewLKSecClientHalf(pps.LksClientHalf())
+	return
+}

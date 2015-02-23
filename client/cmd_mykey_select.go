@@ -11,14 +11,11 @@ import (
 )
 
 type CmdMykeySelect struct {
-	state MyKeyState
 	query string
 }
 
 func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
-	nargs := len(ctx.Args())
-	if err = v.state.ParseArgv(ctx); err != nil {
-	} else if nargs == 1 {
+	if nargs := len(ctx.Args()); nargs == 1 {
 		v.query = ctx.Args()[0]
 	} else if nargs != 0 {
 		err = fmt.Errorf("mkey select takes 0 or 1 arguments")
@@ -61,7 +58,6 @@ func NewCmdMykeySelect(cl *libcmdline.CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdMykeySelect{}, "select", c)
 		},
-		Flags: mykeyFlags(),
 	}
 }
 

@@ -39,7 +39,7 @@ func (g *GPG) RequiredUIs() []libkb.UIKind {
 
 func (g *GPG) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		libkb.NewKeyGen(nil),
+		NewPGPEngine(PGPEngineArg{}),
 	}
 }
 
@@ -72,16 +72,38 @@ func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) error {
 	return g.run(ctx, arg.Signer, arg.Query)
 }
 
-func (g *GPG) runLoadKey(ctx *Context, query string) error {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
-	if err != nil {
+func (g *GPG) runLoadKey(ctx *Context, query string) (err error) {
+	var me *libkb.User
+	var sk libkb.GenericKey
+
+	G.Log.Debug("+ GPG::runLoadKey")
+	defer func() {
+		G.Log.Debug("- GPG::runLoadKey -> %s", libkb.ErrToOk(err))
+	}()
+
+	if me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true}); err != nil {
 		return err
 	}
-	sk, err := me.GetDeviceSibkey()
-	if err != nil {
-		return err
+
+	if !me.HasActiveKey() {
+		G.Log.Debug("| GPGEngine: User doesn't have an active key")
+	} else {
+		G.Log.Debug("| GPGEngine: Fetching secret key from keyring")
+		sk, err = G.Keyrings.GetSecretKey(libkb.SecretKeyArg{
+			All:    true,
+			Me:     me,
+			Ui:     ctx.SecretUI,
+			Reason: "sign selected PGP key",
+		})
+
+		if err != nil {
+			G.Log.Debug("| Failed to find secret key: %s", err.Error())
+			return
+		}
 	}
-	return g.run(ctx, sk, query)
+
+	err = g.run(ctx, sk, query)
+	return
 }
 
 func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error {
@@ -134,20 +156,8 @@ func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error
 	}
 
 	G.Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
-
-	// this seems a little weird to use keygen to post a key, but...
-	arg := &libkb.KeyGenArg{
-		Pregen:       bundle,
-		DoSecretPush: res.DoSecretPush,
-		SigningKey:   signingKey,
-		KeyGenUI:     ctx.KeyGenUI,
-		LoginUI:      ctx.LoginUI,
-		LogUI:        ctx.LogUI,
-		SecretUI:     ctx.SecretUI,
-	}
-	G.Log.Info("key gen arg: %+v", arg)
-	kg := libkb.NewKeyGen(arg)
-	if _, err := kg.Run(); err != nil {
+	eng := NewPGPEngine(PGPEngineArg{Pregen: bundle, SigningKey: signingKey})
+	if err = RunEngine(eng, ctx, nil, nil); err != nil {
 		return fmt.Errorf("keygen run error: %s", err)
 	}
 

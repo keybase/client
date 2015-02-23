@@ -1,12 +1,9 @@
 package engine
 
 import (
-	"os"
-	"path"
-	"testing"
-
 	"github.com/keybase/go/libkb"
 	keybase_1 "github.com/keybase/protocol/go"
+	"testing"
 )
 
 func TestLogin(t *testing.T) {
@@ -193,19 +190,17 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	testUserHasDeviceKey(t)
 }
 
-// synced key
+// createFakeUserWithPGPOnly creates a new fake/testing user, who signed
+// up on the Web site, and used the Web site to generate his/her key.  They
+// used triplesec-encryption and synced their key to the keybase servers.
 func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(t, "login")
-	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
-		t.Fatal(err)
-	}
 
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
 		LogUI:    G.UI.GetLogUI(),
-		KeyGenUI: &libkb.TestKeyGenUI{},
 		LoginUI:  &libkb.TestLoginUI{fu.Username},
 	}
 	s := NewSignupEngine()
@@ -218,7 +213,19 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		t.Fatal(err)
 	}
 
-	if err := s.addGPG(ctx); err != nil {
+	// Generate a new test PGP key for the user, and specify the PushSecret
+	// flag so that their triplesec'ed key is pushed to the server.
+	gen := libkb.PGPGenArg{
+		PrimaryBits: 1024,
+		SubkeyBits:  1024,
+	}
+	gen.AddDefaultUid()
+	peng := NewPGPEngine(PGPEngineArg{
+		Gen:        &gen,
+		PushSecret: true,
+	})
+
+	if err := RunEngine(peng, ctx, nil, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -238,7 +245,6 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		GPGUI:    &gpgPubOnlyTestUI{},
 		SecretUI: secui,
 		LogUI:    G.UI.GetLogUI(),
-		KeyGenUI: &libkb.TestKeyGenUI{},
 		LoginUI:  &libkb.TestLoginUI{fu.Username},
 	}
 
@@ -270,7 +276,6 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
 		LogUI:    G.UI.GetLogUI(),
-		KeyGenUI: &libkb.TestKeyGenUI{},
 		LoginUI:  &libkb.TestLoginUI{fu.Username},
 	}
 
@@ -297,6 +302,13 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
+// TestLoginPGPSignNewDevice
+//
+//  Setup: Create a new user who only has a Sync'ed PGP key, like our typical
+//    web user who has never used PGP.
+//  Step 1: Sign into a "new device" and authorize new keys with the synced
+//    PGP key.
+//
 func TestLoginPGPSignNewDevice(t *testing.T) {
 	tc := libkb.SetupTest(t, "login")
 	u1 := createFakeUserWithPGPOnly(t, tc)
@@ -352,10 +364,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	defer tc2.Cleanup()
 
 	// we need the gpg keyring that's in the first homedir
-	if err := os.Rename(path.Join(tc.Tp.GPGHome, "secring.gpg"), path.Join(tc2.Tp.GPGHome, "secring.gpg")); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Rename(path.Join(tc.Tp.GPGHome, "pubring.gpg"), path.Join(tc2.Tp.GPGHome, "pubring.gpg")); err != nil {
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
 		t.Fatal(err)
 	}
 
@@ -401,11 +410,16 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	tc := libkb.SetupTest(t, "login")
 	u1 := createFakeUserWithPGPMult(t, tc)
 	G.LoginState.Logout()
-	tc.Cleanup()
+	defer tc.Cleanup()
 
 	// redo SetupTest to get a new home directory...should look like a new device.
 	tc2 := libkb.SetupTest(t, "login")
 	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
 
 	docui := &ldocuiPGP{&ldocui{}}
 

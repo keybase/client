@@ -547,13 +547,7 @@ func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
 
 //==================================================
 
-// GetPassphraseStream either returns a cached, verified passphrase stream
-// (maybe from a previous login) or generates a new one via Login. It will
-// return the current Passphrase stream on success or an error on failure.
-func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
-	if ret = s.GetCachedPassphraseStream(); ret != nil {
-		return
-	}
+func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
 	arg := LoginArg{
 		Retry:    3,
 		Prompt:   false,
@@ -562,10 +556,37 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err
 		Force:    true,
 	}
 
-	if err = s.tryPassphraseLogin(arg); err != nil {
+	return s.tryPassphraseLogin(arg)
+}
+
+// GetPassphraseStream either returns a cached, verified passphrase stream
+// (maybe from a previous login) or generates a new one via Login. It will
+// return the current Passphrase stream on success or an error on failure.
+func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
+	if ret = s.GetCachedPassphraseStream(); ret != nil {
+		return
+	}
+	if err = s.verifyPassphrase(ui); err != nil {
 		return
 	}
 	if ret = s.GetCachedPassphraseStream(); ret == nil {
+		err = InternalError{"No cached keystream data after login attempt"}
+	}
+	return
+}
+
+//==================================================
+
+// GetVerifiedTripleSec either returns a cached, verified Triplesec
+// or generates a new one that's verified via Login.
+func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
+	if ret = s.GetCachedTriplesec(); ret != nil {
+		return
+	}
+	if err = s.verifyPassphrase(ui); err != nil {
+		return
+	}
+	if ret = s.GetCachedTriplesec(); ret == nil {
 		err = InternalError{"No cached keystream data after login attempt"}
 	}
 	return

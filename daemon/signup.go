@@ -9,7 +9,6 @@ import (
 
 type SignupHandler struct {
 	BaseHandler
-	keyGenUI libkb.KeyGenUI
 }
 
 func NewSignupHandler(xp *rpc2.Transport) *SignupHandler {
@@ -28,7 +27,6 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 		GPGUI:    NewRemoteGPGUI(sessionID, h.getRpcClient()),
 		SecretUI: h.getSecretUI(sessionID),
 		LoginUI:  h.getLoginUI(sessionID),
-		KeyGenUI: h.getKeyGenUI(sessionID),
 	}
 	runarg := engine.SignupEngineRunArg{
 		Username:   arg.Username,
@@ -69,14 +67,4 @@ func (h *SignupHandler) InviteRequest(arg keybase_1.InviteRequestArg) (err error
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,
 	})
-}
-
-func (h *SignupHandler) getKeyGenUI(sessionId int) libkb.KeyGenUI {
-	if h.keyGenUI == nil {
-		h.keyGenUI = &KeyGenUI{
-			sessionId: sessionId,
-			cli:       keybase_1.MykeyUiClient{h.getRpcClient()},
-		}
-	}
-	return h.keyGenUI
 }

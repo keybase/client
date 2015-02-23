@@ -49,7 +49,6 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 		GPGUI:    &gpgtestui{},
 		SecretUI: libkb.TestSecretUI{fu.Passphrase},
 		LoginUI:  libkb.TestLoginUI{fu.Username},
-		KeyGenUI: &libkb.TestKeyGenUI{},
 	}
 	s := NewSignupEngine()
 	err := RunEngine(s, ctx, arg, nil)

@@ -93,7 +93,6 @@ func TestSignupWithGPG(t *testing.T) {
 		LogUI:    G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
-		KeyGenUI: &libkb.TestKeyGenUI{},
 		LoginUI:  &libkb.TestLoginUI{fu.Username},
 	}
 	if err := RunEngine(s, ctx, arg, nil); err != nil {
@@ -112,7 +111,6 @@ func TestLocalKeySecurity(t *testing.T) {
 		LogUI:    G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
-		KeyGenUI: &libkb.TestKeyGenUI{},
 		LoginUI:  &libkb.TestLoginUI{fu.Username},
 	}
 	if err := RunEngine(s, ctx, arg, nil); err != nil {

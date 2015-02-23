@@ -7,7 +7,6 @@ type UIKind int
 const (
 	DoctorUIKind UIKind = iota
 	GPGUIKind
-	KeyGenUIKind
 	LogUIKind
 	LoginUIKind
 	SecretUIKind
@@ -19,8 +18,6 @@ func (u UIKind) String() string {
 		return "DoctorUI"
 	case GPGUIKind:
 		return "GPGUI"
-	case KeyGenUIKind:
-		return "KeyGenUI"
 	case LogUIKind:
 		return "LogUI"
 	case LoginUIKind:
@@ -34,7 +31,6 @@ func (u UIKind) String() string {
 type UIGroup struct {
 	Doctor DoctorUI
 	GPG    GPGUI
-	KeyGen KeyGenUI
 	Log    LogUI
 	Login  LoginUI
 	Secret SecretUI
@@ -46,8 +42,6 @@ func (u *UIGroup) Exists(kind UIKind) bool {
 		return u.Doctor != nil
 	case GPGUIKind:
 		return u.GPG != nil
-	case KeyGenUIKind:
-		return u.KeyGen != nil
 	case LogUIKind:
 		return u.Log != nil
 	case LoginUIKind:
@@ -64,8 +58,6 @@ func (u *UIGroup) Add(ui interface{}) error {
 		u.Doctor = x
 	case GPGUI:
 		u.GPG = x
-	case KeyGenUI:
-		u.KeyGen = x
 	case LogUI:
 		u.Log = x
 	case LoginUI:

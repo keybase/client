@@ -53,14 +53,17 @@ func (d Delegator) GetMerkleTriple() MerkleTriple { return d.merkleTriple }
 
 func (d *Delegator) checkArgs() (err error) {
 
+	G.Log.Debug("+ Delegator::checkArgs()")
+
 	if d.NewKey == nil {
 		err = NoSecretKeyError{}
 		return
 	}
 
 	if d.signingKey = d.ExistingKey; d.signingKey != nil {
-	} else if d.signingKey, _ = d.Me.GetDeviceSibkey(); d.signingKey != nil {
+		G.Log.Debug("| Picked passed-in signing key")
 	} else {
+		G.Log.Debug("| Picking new key for an eldest self-sig")
 		d.signingKey = d.NewKey
 		d.isEldest = true
 	}
@@ -73,6 +76,9 @@ func (d *Delegator) checkArgs() (err error) {
 		d.EldestKID = fokid.Kid
 	}
 
+	G.Log.Debug("| Picked key %s for signing", d.signingKey.GetKid())
+	G.Log.Debug("- Delegator::checkArgs()")
+
 	return nil
 }
 
@@ -82,19 +88,27 @@ func (d *Delegator) Run() (err error) {
 	var jw *jsonw.Wrapper
 	var linkid LinkId
 
+	G.Log.Debug("+ Delegator.Run()")
+	defer func() {
+		G.Log.Debug("- Delegator.Run() -> %s", ErrToOk(err))
+	}()
+
 	if err = d.checkArgs(); err != nil {
 		return
 	}
 
 	if jw, d.pushType, err = d.Me.KeyProof(*d); err != nil {
+		G.Log.Debug("| Failure in KeyProof()")
 		return
 	}
 
 	if d.sig, d.sigId, linkid, err = SignJson(jw, d.signingKey); err != nil {
+		G.Log.Debug("| Failure in SignJson()")
 		return err
 	}
 
 	if err = d.post(); err != nil {
+		G.Log.Debug("| Failure in post()")
 		return
 	}
 

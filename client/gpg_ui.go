@@ -36,15 +36,6 @@ func (g GPGUI) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (
 	}
 	res.KeyID = arg.Keys[ret-1].KeyID
 
-	msg := `
-Keybase can host an encrypted copy of your PGP private key on its servers.
-It can only be decrypted with your passphrase, which Keybase never knows.
-
-`
-	g.parent.Output(msg)
-	prompt := "Push an encrypted copy of your private key to Keybase.io?"
-	res.DoSecretPush, err = g.parent.PromptYesNo(prompt, PromptDefaultYes)
-
 	return res, nil
 }
 

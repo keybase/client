@@ -174,7 +174,6 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		LogUI:    G.UI.GetLogUI(),
 		GPGUI:    G.UI.GetGPGUI(),
 		SecretUI: G.UI.GetSecretUI(),
-		KeyGenUI: G.UI.GetKeyGenUI(),
 		LoginUI:  G.UI.GetLoginUI(),
 	}
 	err = engine.RunEngine(s.engine, ctx, arg, nil)

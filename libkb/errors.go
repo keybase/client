@@ -416,11 +416,11 @@ func (e LoggedInError) Error() string {
 //=============================================================================
 
 type InternalError struct {
-	msg string
+	Msg string
 }
 
 func (e InternalError) Error() string {
-	return fmt.Sprintf("Internal error: %s", e.msg)
+	return fmt.Sprintf("Internal error: %s", e.Msg)
 }
 
 //=============================================================================

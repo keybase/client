@@ -78,6 +78,21 @@ func (tc *TestContext) Cleanup() {
 	}
 }
 
+func (src TestContext) MoveGpgKeyringTo(dst TestContext) error {
+
+	mv := func(f string) (err error) {
+		return os.Rename(path.Join(src.Tp.GPGHome, f), path.Join(dst.Tp.GPGHome, f))
+	}
+
+	if err := mv("secring.gpg"); err != nil {
+		return err
+	}
+	if err := mv("pubring.gpg"); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 	tc.t.Logf("generating gpg keyring in %s", tc.Tp.GPGHome)
 	fsk, err := os.Create(path.Join(tc.Tp.GPGHome, "secring.gpg"))
@@ -92,13 +107,13 @@ func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 	defer fpk.Close()
 
 	for _, id := range ids {
-		arg := KeyGenArg{
+		arg := PGPGenArg{
 			PrimaryBits: 1024,
 			SubkeyBits:  1024,
 			PGPUids:     []string{id},
 		}
 		arg.CreatePgpIDs()
-		bundle, err := NewPgpKeyBundle(arg)
+		bundle, err := NewPgpKeyBundle(arg, G.UI.GetLogUI())
 		if err != nil {
 			return err
 		}
@@ -199,9 +214,6 @@ func (n *nullui) GetProveUI() ProveUI {
 func (n *nullui) GetGPGUI() GPGUI {
 	return nil
 }
-func (n *nullui) GetKeyGenUI() KeyGenUI {
-	return nil
-}
 func (n *nullui) GetLogUI() LogUI {
 	return G.Log
 }
@@ -238,15 +250,6 @@ func (t TestSecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, e
 
 func (t TestSecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
 	return t.Passphrase, nil
-}
-
-type TestKeyGenUI struct{}
-
-func (t *TestKeyGenUI) GetPushPreferences(dummy int) (ret keybase_1.PushPreferences, err error) {
-	G.Log.Info("TestKeyGenUI:GetPushPreferences()")
-	ret.Public = true
-	ret.Private = true
-	return
 }
 
 type TestLoginUI struct {

@@ -9,7 +9,6 @@ import (
 type Context struct {
 	DoctorUI libkb.DoctorUI
 	GPGUI    libkb.GPGUI
-	KeyGenUI libkb.KeyGenUI
 	LogUI    libkb.LogUI
 	LoginUI  libkb.LoginUI
 	SecretUI libkb.SecretUI
@@ -21,8 +20,6 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.DoctorUI != nil
 	case libkb.GPGUIKind:
 		return c.GPGUI != nil
-	case libkb.KeyGenUIKind:
-		return c.KeyGenUI != nil
 	case libkb.LogUIKind:
 		return c.LogUI != nil
 	case libkb.LoginUIKind:

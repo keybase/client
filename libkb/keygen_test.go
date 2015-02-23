@@ -58,7 +58,7 @@ func TestCreateIds(t *testing.T) {
 	G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(UID{}, "foo", []byte{}, nil), true)
 
 	for _, test := range cidTests {
-		arg := &KeyGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUidArg, NoDefPGPUid: test.noDefArg}
+		arg := &PGPGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUidArg, NoDefPGPUid: test.noDefArg}
 		if err := arg.Init(); err != nil {
 			t.Errorf("%s: arg init err: %s", test.name, err)
 			continue
@@ -88,7 +88,7 @@ func TestCreateIds(t *testing.T) {
 		}
 
 		// test the PgpKeyBundle
-		bundle, err := NewPgpKeyBundle(*arg)
+		bundle, err := NewPgpKeyBundle(*arg, G.UI.GetLogUI())
 		if err != nil {
 			t.Errorf("%s: bundle error: %s", test.name, err)
 		}

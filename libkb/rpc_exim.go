@@ -423,37 +423,6 @@ func ImportPgpIdentity(arg keybase_1.PgpIdentity) (ret Identity) {
 
 //=============================================================================
 
-func (a KeyGenArg) Export() (ret keybase_1.KeyGenArg) {
-	ret.PrimaryBits = a.PrimaryBits
-	ret.SubkeyBits = a.SubkeyBits
-	ret.CreateUids = keybase_1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
-	ret.NoPassphrase = a.NoPassphrase
-	ret.KbPassphrase = a.KbPassphrase
-
-	if a.Pregen == nil {
-	} else if s, e := a.Pregen.Encode(); e != nil {
-		G.Log.Error("Encode PGP error: %s", e.Error())
-	} else {
-		ret.Pregen = s
-	}
-
-	return
-}
-
-//=============================================================================
-
-func ImportKeyGenArg(a keybase_1.KeyGenArg) (ret KeyGenArg) {
-	ret.PrimaryBits = a.PrimaryBits
-	ret.SubkeyBits = a.SubkeyBits
-	ret.NoDefPGPUid = !a.CreateUids.UseDefault
-	ret.Ids = ImportPgpIdentities(a.CreateUids.Ids)
-	ret.NoPassphrase = a.NoPassphrase
-	ret.KbPassphrase = a.KbPassphrase
-	return
-}
-
-//=============================================================================
-
 func (u *UID) Export() keybase_1.UID {
 	return keybase_1.UID(*u)
 }
@@ -468,3 +437,24 @@ func (u *User) Export() *keybase_1.User {
 		Username: u.GetName(),
 	}
 }
+
+//=============================================================================
+
+func (a PGPGenArg) Export() (ret keybase_1.KeyGenArg) {
+	ret.PrimaryBits = a.PrimaryBits
+	ret.SubkeyBits = a.SubkeyBits
+	ret.CreateUids = keybase_1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
+	return
+}
+
+//=============================================================================
+
+func ImportKeyGenArg(a keybase_1.KeyGenArg) (ret PGPGenArg) {
+	ret.PrimaryBits = a.PrimaryBits
+	ret.SubkeyBits = a.SubkeyBits
+	ret.NoDefPGPUid = !a.CreateUids.UseDefault
+	ret.Ids = ImportPgpIdentities(a.CreateUids.Ids)
+	return
+}
+
+//=============================================================================
