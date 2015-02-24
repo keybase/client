@@ -40,6 +40,25 @@ func TestBasicMessage(t *testing.T) {
 	}
 }
 
+func TestEncode(t *testing.T) {
+	did, err := libkb.NewDeviceID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := struct {
+		DeviceID libkb.DeviceID
+		DevKeyID libkb.KID
+	}{
+		did,
+		libkb.KID([]byte{1, 2, 3, 4, 5}),
+	}
+
+	m := &KXMB{
+		Name: "startkex",
+		Args: a,
+	}
+}
+
 type kth struct {
 	calls map[string]int
 }
