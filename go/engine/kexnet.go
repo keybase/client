@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	jsonw "github.com/keybase/go-jsonw"
-	"github.com/keybase/go/libkb"
 	"github.com/ugorji/go/codec"
 )
 

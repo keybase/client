@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 // TestBasicMessage verifies that a message can be sent and
