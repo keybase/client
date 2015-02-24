@@ -186,9 +186,21 @@ func KexMsgImport(w *jsonw.Wrapper) (*KexMsg, error) {
 	return r, nil
 }
 
+// MsgArgs has optional fields in it, but there aren't that many,
+// so just using the same struct for all msgs for simplicity.
+type MsgArgs struct {
+	StrongID   KexStrongID
+	DeviceID   libkb.DeviceID
+	DevKeyID   libkb.KID
+	SigningKey libkb.NaclSigningKeyPublic
+	Sig        string
+	DevType    string
+	DevDesc    string
+}
+
 type KXMB struct {
 	Name string
-	Args interface{}
+	Args MsgArgs
 }
 
 func KXMBDecode(data string) (*KXMB, error) {

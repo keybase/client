@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -45,12 +46,9 @@ func TestEncode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a := struct {
-		DeviceID libkb.DeviceID
-		DevKeyID libkb.KID
-	}{
-		did,
-		libkb.KID([]byte{1, 2, 3, 4, 5}),
+	a := MsgArgs{
+		DeviceID: did,
+		DevKeyID: libkb.KID([]byte{1, 2, 3, 4, 5}),
 	}
 
 	m := &KXMB{
@@ -68,8 +66,9 @@ func TestEncode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// XXX
-	n = n
+	if !reflect.DeepEqual(m, n) {
+		t.Errorf("decoded msg (%+v) doesn't match original (%+v)", n, m)
+	}
 }
 
 type kth struct {
