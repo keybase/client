@@ -2,8 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"github.com/keybase/client/protocol/go"
+	"github.com/keybase/go-jsonw"
 	"time"
 )
 

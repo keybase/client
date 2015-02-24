@@ -81,6 +81,9 @@ func (p CommandLine) GetSecretKeyringTemplate() string {
 func (p CommandLine) GetSocketFile() string {
 	return p.GetGString("socket-file")
 }
+func (p CommandLine) GetPidFile() string {
+	return p.GetGString("pid-file")
+}
 func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
@@ -246,6 +249,10 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 		cli.StringFlag{
 			Name:  "socket-file",
 			Usage: "location of the keybased socket-file",
+		},
+		cli.StringFlag{
+			Name:  "pid-file",
+			Usage: "location of the keybased pid-file (to ensure only one running daemon)",
 		},
 		cli.StringFlag{
 			Name: "proxy",

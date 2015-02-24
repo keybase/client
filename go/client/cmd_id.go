@@ -38,8 +38,8 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (v *CmdId) makeArg() *engine.IdentifyArg {
-	return &engine.IdentifyArg{
+func (v *CmdId) makeArg() *engine.IdentifyEngineArg {
+	return &engine.IdentifyEngineArg{
 		Uid:            v.uid,
 		User:           v.user,
 		TrackStatement: v.track,
@@ -64,9 +64,12 @@ func (v *CmdId) RunClient() (err error) {
 }
 
 func (v *CmdId) Run() error {
-	arg := v.makeArg()
-	eng := engine.NewIdentifyEng(arg, nil)
-	_, err := eng.Run()
+	eng := engine.NewIdentifyEngine(v.makeArg())
+	ctx := engine.Context{
+		LogUI:      G_UI.GetLogUI(),
+		IdentifyUI: G.UI.GetIdentifyUI(v.user),
+	}
+	err := engine.RunEngine(eng, &ctx, nil, nil)
 	return err
 }
 

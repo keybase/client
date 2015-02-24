@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	jsonw "github.com/keybase/go-jsonw"
 	keybase_1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"

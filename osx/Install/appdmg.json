@@ -1,0 +1,10 @@
+{
+  "title": "Keybase",
+  "icon": "Keybase.icns",
+  "background": "Background.png",
+  "icon-size": 128,
+  "contents": [
+    { "x": 394, "y": 160, "type": "link", "path": "/Applications" },
+    { "x": 111, "y": 160, "type": "file", "path": "Applications/Keybase.app" }
+  ]
+}

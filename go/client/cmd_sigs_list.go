@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
-	"github.com/keybase/go-jsonw"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-jsonw"
 	"io"
 	"os"
 	"regexp"

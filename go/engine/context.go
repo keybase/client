@@ -7,12 +7,13 @@ import (
 )
 
 type Context struct {
-	DoctorUI libkb.DoctorUI
-	GPGUI    libkb.GPGUI
-	LogUI    libkb.LogUI
-	LoginUI  libkb.LoginUI
-	SecretUI libkb.SecretUI
-	TrackUI  libkb.IdentifyUI
+	DoctorUI   libkb.DoctorUI
+	GPGUI      libkb.GPGUI
+	LogUI      libkb.LogUI
+	LoginUI    libkb.LoginUI
+	SecretUI   libkb.SecretUI
+	TrackUI    libkb.IdentifyUI
+	IdentifyUI libkb.IdentifyUI
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {
@@ -29,6 +30,8 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.SecretUI != nil
 	case libkb.TrackUIKind:
 		return c.TrackUI != nil
+	case libkb.IdentifyUIKind:
+		return c.IdentifyUI != nil
 	}
 	panic(fmt.Sprintf("unhandled kind:  %d", kind))
 }

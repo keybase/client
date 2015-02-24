@@ -7,9 +7,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	keybase_1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
-	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type LoggedInResult struct {

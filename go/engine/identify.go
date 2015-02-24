@@ -5,7 +5,7 @@ import (
 	"github.com/keybase/client/protocol/go"
 )
 
-type IdentifyArg struct {
+type IdentifyEngineArg struct {
 	Uid            *libkb.UID
 	User           string
 	TrackStatement bool
@@ -20,24 +20,53 @@ type IdentifyRes struct {
 }
 
 // IdentifyEng is the type used by cmd_id Run, daemon id handler.
-type IdentifyEng struct {
-	arg *IdentifyArg
-	ui  libkb.IdentifyUI
+type IdentifyEngine struct {
+	arg *IdentifyEngineArg
+	res *IdentifyRes
 }
 
-func NewIdentifyEng(arg *IdentifyArg, ui libkb.IdentifyUI) *IdentifyEng {
-	return &IdentifyEng{arg: arg, ui: ui}
+func NewIdentifyEngine(arg *IdentifyEngineArg) *IdentifyEngine {
+	return &IdentifyEngine{arg: arg}
 }
 
-func (e *IdentifyEng) Run() (*IdentifyRes, error) {
-	if e.arg.Luba {
-		return e.RunLuba()
+func (s *IdentifyEngine) Name() string {
+	return "Identify"
+}
+
+func (e *IdentifyEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+
+func (k *IdentifyEngine) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{
+		libkb.IdentifyUIKind,
+		libkb.LogUIKind,
 	}
-	return e.RunStandard()
 }
 
-func (e *IdentifyEng) RunLuba() (*IdentifyRes, error) {
-	r := libkb.LoadUserByAssertions(e.arg.User, e.arg.LoadSelf, e.ui)
+func (s *IdentifyEngine) SubConsumers() []libkb.UIConsumer {
+	return nil
+}
+
+func (e *IdentifyEngine) Run(ctx *Context, arg interface{}, res interface{}) error {
+	return e.run(ctx)
+}
+
+func (e *IdentifyEngine) run(ctx *Context) (err error) {
+	var res *IdentifyRes
+	if e.arg.Luba {
+		res, err = e.runLuba(ctx)
+	} else {
+		res, err = e.runStandard(ctx)
+	}
+	e.res = res
+	return err
+}
+
+func (e *IdentifyEngine) Result() *IdentifyRes {
+	return e.res
+}
+
+func (e *IdentifyEngine) runLuba(ctx *Context) (*IdentifyRes, error) {
+	r := libkb.LoadUserByAssertions(e.arg.User, e.arg.LoadSelf, ctx.IdentifyUI)
 	if r.Error != nil {
 		return nil, r.Error
 	}
@@ -49,7 +78,7 @@ func (e *IdentifyEng) RunLuba() (*IdentifyRes, error) {
 	return res, nil
 }
 
-func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
+func (e *IdentifyEngine) runStandard(ctx *Context) (*IdentifyRes, error) {
 	arg := libkb.LoadUserArg{
 		Self: (len(e.arg.User) == 0),
 	}
@@ -62,11 +91,9 @@ func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
 	if err != nil {
 		return nil, err
 	}
-	if e.ui == nil {
-		e.ui = G.UI.GetIdentifyUI(u.GetName())
-	}
-	e.ui.SetUsername(u.GetName())
-	outcome, err := u.IdentifySimple(nil, e.ui)
+	ui := ctx.IdentifyUI
+	ui.SetUsername(u.GetName())
+	outcome, err := u.IdentifySimple(nil, ui)
 	if err != nil {
 		return nil, err
 	}
@@ -91,16 +118,16 @@ func (e *IdentifyEng) RunStandard() (*IdentifyRes, error) {
 		G.Log.Warning("error getting track statement: %s", err)
 		return nil, err
 	}
-	// return e.ui.DisplayTrackStatement(DisplayTrackArg(0, stmt))
+
 	G.Log.Info("json track statement: %s", stmt)
-	if err = e.ui.DisplayTrackStatement(stmt); err != nil {
+	if err = ui.DisplayTrackStatement(stmt); err != nil {
 		return nil, err
 	}
 
 	return res, nil
 }
 
-func (a IdentifyArg) Export() (res keybase_1.IdentifyArg) {
+func (a IdentifyEngineArg) Export() (res keybase_1.IdentifyArg) {
 	if a.Uid != nil {
 		res.Uid = a.Uid.Export()
 	}
@@ -111,7 +138,7 @@ func (a IdentifyArg) Export() (res keybase_1.IdentifyArg) {
 	return res
 }
 
-func ImportIdentifyArg(a keybase_1.IdentifyArg) (ret IdentifyArg) {
+func ImportIdentifyEngineArg(a keybase_1.IdentifyArg) (ret IdentifyEngineArg) {
 	uid := libkb.ImportUID(a.Uid)
 	if !uid.IsZero() {
 		ret.Uid = &uid
