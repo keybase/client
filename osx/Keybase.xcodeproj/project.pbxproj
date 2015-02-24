@@ -140,6 +140,7 @@
 		00D52F831A76EDAE00DEB5F5 /* KBErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D52F811A76EDAE00DEB5F5 /* KBErrorView.m */; };
 		00D52F8A1A77266A00DEB5F5 /* KBTrackView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D52F891A77266A00DEB5F5 /* KBTrackView.m */; };
 		00D52F8B1A77266A00DEB5F5 /* KBTrackView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D52F891A77266A00DEB5F5 /* KBTrackView.m */; };
+		00D5CB511A9D3A6A00456C54 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00D5CB501A9D3A6A00456C54 /* StoreKit.framework */; };
 		00E3E3B81A64822700CCB8F4 /* KBKeyGenView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3B71A64822700CCB8F4 /* KBKeyGenView.m */; };
 		00E3E3B91A64822700CCB8F4 /* KBKeyGenView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E3B71A64822700CCB8F4 /* KBKeyGenView.m */; };
 		00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
@@ -306,6 +307,7 @@
 		00D52F811A76EDAE00DEB5F5 /* KBErrorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorView.m; sourceTree = "<group>"; };
 		00D52F881A77266A00DEB5F5 /* KBTrackView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTrackView.h; sourceTree = "<group>"; };
 		00D52F891A77266A00DEB5F5 /* KBTrackView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTrackView.m; sourceTree = "<group>"; };
+		00D5CB501A9D3A6A00456C54 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		00E3E3B61A64822700CCB8F4 /* KBKeyGenView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyGenView.h; sourceTree = "<group>"; };
 		00E3E3B71A64822700CCB8F4 /* KBKeyGenView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyGenView.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -327,6 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ECE971A16A1F3E8AC3D9571B /* libPods.a in Frameworks */,
+				00D5CB511A9D3A6A00456C54 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -620,6 +623,7 @@
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				00D5CB501A9D3A6A00456C54 /* StoreKit.framework */,
 				03789C52C3DF0B9CD33BF3ED /* libPods.a */,
 				F58BA129DEDB61DE3EB65AD8 /* iOS */,
 				6390DE2CB3F2D33C7BA77399 /* libPods-Tests.a */,
@@ -710,6 +714,11 @@
 					00CC43481A3A9E6C006118A9 = {
 						CreatedOnToolsVersion = 6.1.1;
 						DevelopmentTeam = U2622K69A6;
+						SystemCapabilities = {
+							com.apple.InAppPurchase = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -1074,12 +1083,11 @@
 			baseConfigurationReference = 81076E015931C23010D4DCF8 /* Pods.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Keybase/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "258d0478-56b6-4607-92dd-57ab81fb63e2";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -1088,12 +1096,11 @@
 			baseConfigurationReference = ABB373EAF6E0F6769BCC3874 /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Keybase/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "258d0478-56b6-4607-92dd-57ab81fb63e2";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};

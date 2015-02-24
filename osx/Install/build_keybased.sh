@@ -3,7 +3,7 @@ set -e # Fail on error
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 DEST=$DIR
 
-DAEMON_SRC=~/Projects/go/src/github.com/keybase/go/daemon
+DAEMON_SRC=~/Projects/go/src/github.com/keybase/client/go/daemon
 echo "Using source: $DAEMON_SRC"
 
 cd $DAEMON_SRC
