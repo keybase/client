@@ -49,7 +49,8 @@ func (s *KexSender) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic
 }
 
 func (s *KexSender) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
-	return nil
+	mb := &KXMB{Name: doneMsg, Args: MsgArgs{MerkleTriple: mt}}
+	return s.post(ctx, mb)
 }
 
 // XXX get rid of this when real client comm works
@@ -230,13 +231,14 @@ func KexMsgImport(w *jsonw.Wrapper) (*KexMsg, error) {
 // MsgArgs has optional fields in it, but there aren't that many,
 // so just using the same struct for all msgs for simplicity.
 type MsgArgs struct {
-	StrongID   KexStrongID
-	DeviceID   libkb.DeviceID
-	DevKeyID   libkb.KID
-	SigningKey libkb.NaclSigningKeyPublic
-	Sig        string
-	DevType    string
-	DevDesc    string
+	StrongID     KexStrongID
+	DeviceID     libkb.DeviceID
+	DevKeyID     libkb.KID
+	SigningKey   libkb.NaclSigningKeyPublic
+	Sig          string
+	DevType      string
+	DevDesc      string
+	MerkleTriple libkb.MerkleTriple
 }
 
 type KXMB struct {
