@@ -70,10 +70,15 @@
   
   NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
   NSAssert(user, @"No user");
+
+  NSString *socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
+#ifdef DEBUG
+  socketPath = @"/tmp/keybase-debug.sock";
+#endif
   
   GHDebug(@"Connecting to keybased (%@)...", user);
   _connectAttempt++;
-  [_client openWithSocket:NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user) completion:^(NSError *error) {
+  [_client openWithSocket:socketPath completion:^(NSError *error) {
     if (error) {
       GHDebug(@"Error connecting to keybased: %@", error);
       if (!gself.autoRetryDisabled) {

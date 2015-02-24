@@ -110,7 +110,10 @@
   NSTask *task = [[NSTask alloc] init];
   [task setLaunchPath: @"/bin/launchctl"];
   [task setArguments:@[@"load", path]];
+  // Only do this for release versions
+#ifndef DEBUG
   [task launch];
+#endif
   completion(nil);
 }
 
