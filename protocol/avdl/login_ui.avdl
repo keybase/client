@@ -1,0 +1,7 @@
+
+@namespace("keybase.1")
+protocol loginUi {
+	import idl "common.avdl";
+
+	string getEmailOrUsername(int sessionID);
+}

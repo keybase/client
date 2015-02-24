@@ -1,0 +1,16 @@
+
+@namespace("keybase.1")
+protocol config {
+
+	import idl "common.avdl";
+
+	record GetCurrentStatusRes {
+		boolean configured;
+		boolean registered;
+		boolean loggedIn;
+		union { null, User } user;
+		string serverUri;
+	}
+
+	GetCurrentStatusRes getCurrentStatus();
+}

@@ -1,0 +1,18 @@
+
+@namespace("keybase.1")
+protocol proveUi {
+	import idl "common.avdl";
+
+	enum PromptOverwriteType {
+		SOCIAL,
+		SITE
+	}
+
+	boolean promptOverwrite(int sessionID, string account, PromptOverwriteType typ);
+	string promptUsername(int sessionID, string prompt, union {null, Status } prevError);
+	void outputPrechecks(int sessionID, Text text);
+	boolean preProofWarning(int sessionID, Text text);
+	void outputInstructions(int sessionID, Text instructions, string proof);
+	boolean okToCheck(int sessionID, string name, int attempt);
+	void displayRecheckWarning(int sessionID, Text text);
+}

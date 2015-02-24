@@ -1,0 +1,9 @@
+@namespace("keybase.1")
+
+protocol track {
+	import idl "common.avdl";
+
+	void track(
+		string theirName
+	);
+}

@@ -1,0 +1,16 @@
+
+@namespace("keybase.1")
+
+protocol quota {
+
+	import idl "common.avdl";
+
+	record SessionToken {
+		UID uid;
+		string sid;
+		int generated;
+		int lifetime;	
+	}
+
+	SessionToken verifySession(string session);
+}

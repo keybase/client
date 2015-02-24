@@ -1,0 +1,46 @@
+@namespace("keybase.1")
+
+// PC:  although this is currently only used by login, 
+// I think it will be used by a future 'doctor' command
+// that will do automatic fixes on your account, setup, etc.
+
+protocol doctorUi {
+	import idl "common.avdl";
+
+	enum DeviceSignerKind {
+		DEVICE,
+		PGP
+	}
+
+	enum SelectSignerAction {
+		SIGN,
+		LOGOUT,
+		RESET_ACCOUNT
+	}
+
+	record DeviceSigner {
+		DeviceSignerKind kind;
+		union { null, string } deviceID; // if kind == DEVICE, this will be used.
+	}
+
+	record SelectSignerRes {
+		SelectSignerAction action;
+		union { null, DeviceSigner } signer; // if action == SIGN, this will be used.
+	}
+
+	record Device {
+		string type;
+		string name;
+		string deviceID;
+	}
+	
+	string promptDeviceName(int sessionID);
+
+	// selectSigner is for when a user logs in with a new device
+	// and it needs to be signed by an existing device or pgp.
+	SelectSignerRes selectSigner(int sessionID, array<Device> devices, boolean hasPGP);
+
+	// displaySecretWords is for device provisioning when device Y (new device) gives 
+	// instructions containing the secret words to enter on device X (existing device).
+	void displaySecretWords(int sessionID, string secret, string xDevDescription);
+}

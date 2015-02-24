@@ -1,0 +1,33 @@
+
+@namespace("keybase.1")
+protocol mykey {
+
+	import idl "common.avdl";
+
+	record PgpCreateUids {
+		boolean useDefault;
+		array<PgpIdentity> ids;
+	}
+
+	void keyGen(
+		int primaryBits,
+		int subkeyBits,
+		PgpCreateUids createUids
+	);
+
+	void keyGenDefault(
+		PgpCreateUids createUids,
+		boolean pushPublic,
+		boolean pushSecret,
+		string passphrase);
+
+	void deletePrimary();
+
+	// Just show the keys that are currently active via
+	// loggingUI.  We might eventually opt for something
+	// more interesting here.
+	void show();
+
+	// select an existing key and add to kb
+	void select(string query);
+}

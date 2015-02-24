@@ -1,0 +1,168 @@
+{
+  "protocol" : "signup",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "StringKVPair",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "StringKVPair"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Image",
+    "fields" : [ {
+      "name" : "url",
+      "type" : "string"
+    }, {
+      "name" : "width",
+      "type" : "int"
+    }, {
+      "name" : "height",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "image",
+      "type" : [ "null", "Image" ]
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
+  }, {
+    "type" : "record",
+    "name" : "SignupRes",
+    "fields" : [ {
+      "name" : "passphraseOk",
+      "type" : "boolean"
+    }, {
+      "name" : "postOk",
+      "type" : "boolean"
+    }, {
+      "name" : "writeOk",
+      "type" : "boolean"
+    } ]
+  } ],
+  "messages" : {
+    "checkUsernameAvailable" : {
+      "request" : [ {
+        "name" : "username",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "signup" : {
+      "request" : [ {
+        "name" : "email",
+        "type" : "string"
+      }, {
+        "name" : "inviteCode",
+        "type" : "string"
+      }, {
+        "name" : "passphrase",
+        "type" : "string"
+      }, {
+        "name" : "username",
+        "type" : "string"
+      }, {
+        "name" : "deviceName",
+        "type" : "string"
+      } ],
+      "response" : "SignupRes"
+    },
+    "inviteRequest" : {
+      "request" : [ {
+        "name" : "email",
+        "type" : "string"
+      }, {
+        "name" : "fullname",
+        "type" : "string"
+      }, {
+        "name" : "notes",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    }
+  }
+}

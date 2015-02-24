@@ -1,0 +1,44 @@
+@namespace("keybase.1")
+
+protocol identifyCommon {
+	import idl "common.avdl";
+
+	enum TrackDiffType {
+		NONE,
+		ERROR,
+		CLASH,
+		DELETED,
+		UPGRADED,
+		NEW,
+		REMOTE_FAIL,
+		REMOTE_WORKING,
+		REMOTE_CHANGED
+	}
+
+	record TrackDiff {
+		TrackDiffType type;
+		string displayMarkup;
+	}
+
+	record TrackSummary {
+		int time;
+		boolean isRemote;
+	}
+
+	record IdentifyOutcome {
+		union { null, Status } status;
+		array<string> warnings;
+		union { null, TrackSummary } trackUsed;
+		int numTrackFailures;
+		int numTrackChanges;
+		int numProofFailures;
+		int numDeleted;
+		int numProofSuccesses;
+		array<TrackDiff> deleted;
+	}
+
+	record IdentifyRes {
+		union { null, User } user;
+		IdentifyOutcome outcome;
+	}
+}

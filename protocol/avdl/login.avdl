@@ -1,0 +1,11 @@
+
+@namespace("keybase.1")
+protocol login {
+
+	import idl "common.avdl";
+
+	void passphraseLogin(boolean identify, string username, string passphrase);
+	void pubkeyLogin();
+	void logout();
+	void switchUser(string username);
+}

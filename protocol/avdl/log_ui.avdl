@@ -1,0 +1,17 @@
+
+@namespace("keybase.1")
+protocol logUi {
+	import idl "common.avdl";
+
+	enum LogLevel {
+		NONE,
+		DEBUG,
+		INFO,
+		NOTICE,
+		WARN,
+		ERROR,
+		CRITICAL
+	}
+
+	void log(int sessionID, LogLevel level, Text text);
+}

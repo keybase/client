@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+protocol ui {
+
+	import idl "common.avdl";
+
+	boolean promptYesNo(int sessionID, Text text, union{ null, boolean} def);
+}

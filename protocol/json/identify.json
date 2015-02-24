@@ -1,0 +1,213 @@
+{
+  "protocol" : "identify",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "StringKVPair",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "StringKVPair"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Image",
+    "fields" : [ {
+      "name" : "url",
+      "type" : "string"
+    }, {
+      "name" : "width",
+      "type" : "int"
+    }, {
+      "name" : "height",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "image",
+      "type" : [ "null", "Image" ]
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
+  }, {
+    "type" : "enum",
+    "name" : "TrackDiffType",
+    "symbols" : [ "NONE", "ERROR", "CLASH", "DELETED", "UPGRADED", "NEW", "REMOTE_FAIL", "REMOTE_WORKING", "REMOTE_CHANGED" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackDiff",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "TrackDiffType"
+    }, {
+      "name" : "displayMarkup",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "TrackSummary",
+    "fields" : [ {
+      "name" : "time",
+      "type" : "int"
+    }, {
+      "name" : "isRemote",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyOutcome",
+    "fields" : [ {
+      "name" : "status",
+      "type" : [ "null", "Status" ]
+    }, {
+      "name" : "warnings",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "trackUsed",
+      "type" : [ "null", "TrackSummary" ]
+    }, {
+      "name" : "numTrackFailures",
+      "type" : "int"
+    }, {
+      "name" : "numTrackChanges",
+      "type" : "int"
+    }, {
+      "name" : "numProofFailures",
+      "type" : "int"
+    }, {
+      "name" : "numDeleted",
+      "type" : "int"
+    }, {
+      "name" : "numProofSuccesses",
+      "type" : "int"
+    }, {
+      "name" : "deleted",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackDiff"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IdentifyRes",
+    "fields" : [ {
+      "name" : "user",
+      "type" : [ "null", "User" ]
+    }, {
+      "name" : "outcome",
+      "type" : "IdentifyOutcome"
+    } ]
+  } ],
+  "messages" : {
+    "identify" : {
+      "request" : [ {
+        "name" : "uid",
+        "type" : "UID"
+      }, {
+        "name" : "username",
+        "type" : "string"
+      }, {
+        "name" : "trackStatement",
+        "type" : "boolean"
+      }, {
+        "name" : "luba",
+        "type" : "boolean"
+      }, {
+        "name" : "loadSelf",
+        "type" : "boolean"
+      } ],
+      "response" : "IdentifyRes"
+    },
+    "identifyDefault" : {
+      "request" : [ {
+        "name" : "username",
+        "type" : "string"
+      } ],
+      "response" : "IdentifyRes"
+    }
+  }
+}

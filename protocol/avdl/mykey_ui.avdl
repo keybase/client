@@ -1,0 +1,14 @@
+@namespace("keybase.1")
+
+protocol mykeyUi {
+
+	import idl "common.avdl";
+
+	record PushPreferences {
+		boolean public;
+		boolean private;
+	}
+
+	PushPreferences getPushPreferences(int sessionID);
+
+}

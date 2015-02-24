@@ -1,0 +1,16 @@
+
+@namespace("keybase.1")
+protocol signup {
+
+	import idl "common.avdl";
+
+	record SignupRes {
+		boolean passphraseOk;
+		boolean postOk;
+		boolean writeOk;
+	}
+
+	void checkUsernameAvailable(string username);
+	SignupRes signup(string email, string inviteCode, string passphrase, string username, string deviceName);
+	void inviteRequest(string email, string fullname, string notes);
+}

@@ -1,0 +1,54 @@
+
+@namespace("keybase.1")
+protocol Common {
+
+	record StringKVPair {
+		string key;
+		string value;
+	}
+
+	record Status {
+		int code;
+		string name;
+		string desc;
+		array<StringKVPair> fields;
+	}
+
+	fixed UID(16);
+
+	record LoadUserArg {
+		union { null, UID } uid;
+		union { null, string} username;
+		boolean self;
+	}
+
+	record FOKID {
+		union { null, bytes } pgpFingerprint;
+		union { null, bytes } kid;
+	}
+
+	record Text {
+		string data;
+		boolean markup;
+	}
+
+	record PgpIdentity {
+		string username;
+		string comment;
+		string email;
+	}
+
+	record Image {
+		string url;
+		int width;
+		int height;
+	}
+
+	record User {
+		UID uid;
+		string username;
+		union { null, Image } image;
+	}
+
+	fixed SIGID(32);
+}
