@@ -10,6 +10,7 @@ const (
 	LogUIKind
 	LoginUIKind
 	SecretUIKind
+	TrackUIKind
 )
 
 func (u UIKind) String() string {
@@ -24,48 +25,8 @@ func (u UIKind) String() string {
 		return "LoginUI"
 	case SecretUIKind:
 		return "SecretUI"
+	case TrackUIKind:
+		return "TrackUI"
 	}
 	panic(fmt.Sprintf("unhandled uikind: %d", u))
-}
-
-type UIGroup struct {
-	Doctor DoctorUI
-	GPG    GPGUI
-	Log    LogUI
-	Login  LoginUI
-	Secret SecretUI
-}
-
-func (u *UIGroup) Exists(kind UIKind) bool {
-	switch kind {
-	case DoctorUIKind:
-		return u.Doctor != nil
-	case GPGUIKind:
-		return u.GPG != nil
-	case LogUIKind:
-		return u.Log != nil
-	case LoginUIKind:
-		return u.Login != nil
-	case SecretUIKind:
-		return u.Secret != nil
-	}
-	panic(fmt.Sprintf("unhandled kind:  %d", kind))
-}
-
-func (u *UIGroup) Add(ui interface{}) error {
-	switch x := ui.(type) {
-	case DoctorUI:
-		u.Doctor = x
-	case GPGUI:
-		u.GPG = x
-	case LogUI:
-		u.Log = x
-	case LoginUI:
-		u.Login = x
-	case SecretUI:
-		u.Secret = x
-	default:
-		return fmt.Errorf("unknown ui type %T", ui)
-	}
-	return nil
 }

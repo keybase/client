@@ -18,6 +18,11 @@ func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
 // Track creates a TrackEngine and runs it.
 func (h *TrackHandler) Track(theirName string) error {
 	sessionID := nextSessionId()
-	eng := engine.NewTrackEngine(theirName, h.NewRemoteIdentifyUI(sessionID, theirName), h.getSecretUI(sessionID))
-	return eng.Run()
+	arg := engine.TrackEngineArg{TheirName: theirName}
+	ctx := engine.Context{
+		TrackUI:  h.NewRemoteIdentifyUI(sessionID, theirName),
+		SecretUI: h.getSecretUI(sessionID),
+	}
+	eng := engine.NewTrackEngine(&arg)
+	return engine.RunEngine(eng, &ctx, nil, nil)
 }

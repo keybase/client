@@ -22,6 +22,8 @@ type BaseIdentifyUI struct {
 	username string
 }
 
+func (ui BaseIdentifyUI) SetStrict(b bool) {}
+
 type IdentifyLubaUI struct {
 	BaseIdentifyUI
 }
@@ -70,6 +72,10 @@ func (ui IdentifyUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.Fi
 type IdentifyTrackUI struct {
 	BaseIdentifyUI
 	strict bool
+}
+
+func (ui IdentifyTrackUI) SetStrict(b bool) {
+	ui.strict = b
 }
 
 func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {

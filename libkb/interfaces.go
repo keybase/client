@@ -202,6 +202,7 @@ type IdentifyUI interface {
 	LaunchNetworkChecks(*keybase_1.Identity)
 	DisplayTrackStatement(string) error
 	SetUsername(username string)
+	SetStrict(b bool)
 }
 
 type Checker struct {

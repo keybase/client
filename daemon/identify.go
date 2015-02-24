@@ -12,6 +12,7 @@ type RemoteBaseIdentifyUI struct {
 	username  string
 	uicli     keybase_1.IdentifyUiClient
 	logUI     libkb.LogUI
+	strict    bool
 }
 
 type RemoteSelfIdentifyUI struct {
@@ -123,4 +124,8 @@ func (u *RemoteBaseIdentifyUI) Start() {
 
 func (u *RemoteBaseIdentifyUI) SetUsername(username string) {
 	u.username = username
+}
+
+func (u *RemoteBaseIdentifyUI) SetStrict(b bool) {
+	u.strict = b
 }

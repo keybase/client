@@ -12,6 +12,7 @@ type Context struct {
 	LogUI    libkb.LogUI
 	LoginUI  libkb.LoginUI
 	SecretUI libkb.SecretUI
+	TrackUI  libkb.IdentifyUI
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {
@@ -26,6 +27,8 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.LoginUI != nil
 	case libkb.SecretUIKind:
 		return c.SecretUI != nil
+	case libkb.TrackUIKind:
+		return c.TrackUI != nil
 	}
 	panic(fmt.Sprintf("unhandled kind:  %d", kind))
 }

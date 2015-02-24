@@ -15,7 +15,8 @@ func NewIdentifyUIProtocol(username string) rpc2.Protocol {
 }
 
 func NewIdentifyTrackUIProtocol(username string) rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyTrackUI(username, true)})
+	ui := G_UI.GetIdentifyTrackUI(username, true)
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {

@@ -46,8 +46,13 @@ func (v *CmdTrack) RunClient() error {
 }
 
 func (v *CmdTrack) Run() error {
-	eng := engine.NewTrackEngine(v.user, nil, nil)
-	return eng.Run()
+	arg := engine.TrackEngineArg{TheirName: v.user}
+	eng := engine.NewTrackEngine(&arg)
+	ctx := engine.Context{
+		SecretUI: G_UI.GetSecretUI(),
+		TrackUI:  G_UI.GetIdentifyTrackUI(v.user, true),
+	}
+	return engine.RunEngine(eng, &ctx, nil, nil)
 }
 
 func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
