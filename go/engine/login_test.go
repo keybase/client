@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// Test login switching between two different users.
 func TestLogin(t *testing.T) {
 	tc := libkb.SetupTest(t, "login")
 	defer tc.Cleanup()
