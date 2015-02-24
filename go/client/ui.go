@@ -247,6 +247,8 @@ func (w LinkCheckResultWrapper) GetCached() *CheckResultWrapper {
 func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
 
+	fmt.Printf("Social proof check...\n")
+
 	s := RemoteProofWrapper{p}
 	lcr := LinkCheckResultWrapper{l}
 
@@ -299,6 +301,8 @@ func (ui BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) st
 
 func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
 	var msg, lcrs string
+
+	fmt.Printf("Web proof check...\n")
 
 	s := RemoteProofWrapper{p}
 	lcr := LinkCheckResultWrapper{l}

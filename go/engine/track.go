@@ -3,8 +3,8 @@ package engine
 import (
 	"fmt"
 
-	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/client/go/libkb"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type TrackEngineArg struct {

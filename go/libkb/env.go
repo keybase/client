@@ -30,6 +30,7 @@ func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
 func (n NullConfiguration) GetSecretKeyringTemplate() string   { return "" }
 func (n NullConfiguration) GetSalt() []byte                    { return nil }
 func (n NullConfiguration) GetSocketFile() string              { return "" }
+func (n NullConfiguration) GetPidFile() string                 { return "" }
 func (n NullConfiguration) GetDaemonPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, false }
 func (n NullConfiguration) GetLocalRpcDebug() string           { return "" }
@@ -285,6 +286,22 @@ func (e Env) GetSocketFile() (ret string, err error) {
 		d, err = e.GetRuntimeDir()
 		if err == nil {
 			ret = filepath.Join(d, SOCKET_FILE)
+		}
+	}
+	return
+}
+
+func (e Env) GetPidFile() (ret string, err error) {
+	ret = e.GetString(
+		func() string { return e.cmd.GetPidFile() },
+		func() string { return os.Getenv("KEYBASE_PID_FILE") },
+		func() string { return e.config.GetPidFile() },
+	)
+	if len(ret) == 0 {
+		var d string
+		d, err = e.GetRuntimeDir()
+		if err == nil {
+			ret = filepath.Join(d, PID_FILE)
 		}
 	}
 	return

@@ -13,8 +13,8 @@ import (
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
-	jsonw "github.com/keybase/go-jsonw"
 	keybase_1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type CommandLine interface {
@@ -39,6 +39,7 @@ type CommandLine interface {
 	GetPgpFingerprint() *PgpFingerprint
 	GetSecretKeyringTemplate() string
 	GetSocketFile() string
+	GetPidFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRpcDebug() string
@@ -91,6 +92,7 @@ type ConfigReader interface {
 	GetSecretKeyringTemplate() string
 	GetSalt() []byte
 	GetSocketFile() string
+	GetPidFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRpcDebug() string

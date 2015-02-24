@@ -3,8 +3,8 @@ package engine
 import (
 	"fmt"
 
-	triplesec "github.com/keybase/go-triplesec"
 	"github.com/keybase/client/go/libkb"
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 type SignupEngine struct {

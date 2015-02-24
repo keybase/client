@@ -16,6 +16,7 @@ var API_URI_PATH_PREFIX = "/_/api/" + API_VERSION
 var CLIENT_VERSION = "1.0.0"
 var DAEMON_PORT = 40933
 var SOCKET_FILE = "keybased.sock"
+var PID_FILE = "keybased.pid"
 
 var GO_CLIENT_ID = "keybase.io go client"
 
