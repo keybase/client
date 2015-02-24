@@ -413,6 +413,9 @@ func (f JsonConfigFile) GetBundledCA(host string) (ret string) {
 func (f JsonConfigFile) GetSocketFile() string {
 	return f.GetTopLevelString("socket_file")
 }
+func (f JsonConfigFile) GetPidFile() string {
+	return f.GetTopLevelString("pid_file")
+}
 func (f JsonConfigFile) GetDaemonPort() (int, bool) {
 	return f.GetIntAtPath("daemon_port")
 }

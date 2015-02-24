@@ -9,7 +9,6 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"net"
 	"os"
-	"path/filepath"
 )
 
 // Keep this around to simplify things
@@ -83,19 +82,16 @@ func (d *Daemon) setupRun() error {
 	return nil
 }
 
-func (d *Daemon) pidFilename() string {
-	dir, err := G.Env.GetRuntimeDir()
-	if err != nil {
-		dir = "/tmp"
-	}
-	return filepath.Join(dir, "keybased.pid")
-}
-
 func (d *Daemon) lockPIDFile() (err error) {
-	d.lockPid = libkb.NewLockPIDFile(d.pidFilename())
-	if err = d.lockPid.Lock(); err != nil {
-		return fmt.Errorf("error locking %s: daemon already running", d.pidFilename())
+	var fn string
+	if fn, err = G.Env.GetPidFile(); err != nil {
+		return
 	}
+	d.lockPid = libkb.NewLockPIDFile(fn)
+	if err = d.lockPid.Lock(); err != nil {
+		return fmt.Errorf("error locking %s: daemon already running", fn)
+	}
+	G.Log.Debug("Locking pidfile %s\n", fn)
 	return nil
 }
 

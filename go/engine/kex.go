@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/crypto/scrypt"
 )
 
