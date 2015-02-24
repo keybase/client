@@ -23,5 +23,5 @@ _testmain.go
 *.test
 *.prof
 
-client/client
-daemon/daemon
+go/client/client
+go/daemon/daemon
