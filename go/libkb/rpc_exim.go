@@ -173,6 +173,8 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 			return KeyGenError{s.Desc}
 		case SC_ALREADY_LOGGED_IN:
 			return LoggedInError{}
+		case SC_CANCELED:
+			return CanceledError{}
 		default:
 			ase := AppStatusError{
 				Code:   s.Code,
@@ -378,6 +380,15 @@ func (e KeyGenError) ToStatus() (s keybase_1.Status) {
 	s.Code = SC_KEY_BAD_GEN
 	s.Name = "KEY_BAD_GEN"
 	s.Desc = e.msg
+	return
+}
+
+//=============================================================================
+
+func (c CanceledError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_CANCELED
+	s.Name = "CANCELED"
+	s.Desc = c.m
 	return
 }
 
