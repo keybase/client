@@ -9,7 +9,7 @@ import (
 
 	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
-	keybase_1 "github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type LoggedInResult struct {

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"os"
 )

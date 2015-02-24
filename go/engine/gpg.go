@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/keybase/go/libkb"
-	keybase_1 "github.com/keybase/protocol/go"
+	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 // LoadDeviceKey: true => then load the device key as a signer

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	triplesec "github.com/keybase/go-triplesec"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type SignupEngine struct {

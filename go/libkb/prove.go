@@ -2,7 +2,7 @@ package libkb
 
 import (
 	jsonw "github.com/keybase/go-jsonw"
-	keybase_1 "github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type ProofEngine struct {

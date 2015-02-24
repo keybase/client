@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	jsonw "github.com/keybase/go-jsonw"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type TrackEngineArg struct {

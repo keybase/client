@@ -2,7 +2,7 @@ package libkb
 
 import (
 	"github.com/keybase/go-triplesec"
-	"github.com/keybase/protocol/go"
+	"github.com/keybase/client/protocol/go"
 )
 
 func PromptForNewTsec(arg keybase_1.GetNewPassphraseArg, ui SecretUI) (tsec *triplesec.Cipher, err error) {

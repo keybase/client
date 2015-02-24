@@ -1,7 +1,7 @@
 package libcmdline
 
 import (
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	"os"
 	"os/signal"
 )

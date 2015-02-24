@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 func AssertDeviceID() (err error) {

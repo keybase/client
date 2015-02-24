@@ -6,7 +6,7 @@ import (
 	"path"
 	"testing"
 
-	keybase_1 "github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
 )
 

@@ -14,7 +14,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
-	keybase_1 "github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type CommandLine interface {

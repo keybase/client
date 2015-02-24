@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")

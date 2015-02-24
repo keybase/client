@@ -2,7 +2,7 @@ package libcmdline
 
 import (
 	"github.com/codegangsta/cli"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	"regexp"
 	"strings"
 	"text/tabwriter"

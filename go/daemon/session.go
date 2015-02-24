@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/keybase/protocol/go"
+	"github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 

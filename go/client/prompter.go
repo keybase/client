@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	"strings"
 )
 

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 var G = &libkb.G

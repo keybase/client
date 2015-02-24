@@ -3,7 +3,7 @@ package libkb
 import (
 	"bufio"
 	"fmt"
-	"github.com/keybase/protocol/go"
+	"github.com/keybase/client/protocol/go"
 	"io"
 	"os"
 	"os/exec"

@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
-	"github.com/keybase/go/libcmdline"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
 type CmdDbNuke struct {

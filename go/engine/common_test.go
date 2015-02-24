@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 var testInviteCode string = "202020202020202020202020"

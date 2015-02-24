@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/agl/ed25519"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/box"
 )
 

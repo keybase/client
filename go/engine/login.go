@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type LoginEngineArg struct {

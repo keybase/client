@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"github.com/keybase/go/libkb"
-	"github.com/keybase/protocol/go"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/protocol/go"
 )
 
 type IdentifyArg struct {

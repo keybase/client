@@ -8,7 +8,7 @@ package engine
 import (
 	stderrors "errors"
 	triplesec "github.com/keybase/go-triplesec"
-	"github.com/keybase/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 type PGPEngine struct {

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	keybase_1 "github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type LogUI struct {

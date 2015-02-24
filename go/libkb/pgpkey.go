@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	jsonw "github.com/keybase/go-jsonw"
-	keybase_1 "github.com/keybase/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
