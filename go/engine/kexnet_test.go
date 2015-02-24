@@ -57,6 +57,19 @@ func TestEncode(t *testing.T) {
 		Name: "startkex",
 		Args: a,
 	}
+	enc, err := m.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("encoded: %s", enc)
+
+	n, err := KXMBDecode(enc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// XXX
+	n = n
 }
 
 type kth struct {
