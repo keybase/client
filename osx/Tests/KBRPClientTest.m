@@ -18,16 +18,4 @@
 
 @implementation KBRPClientTest
 
-- (void)testData {
-  KBUID *uid = [[KBUID alloc] init];
-  uid.data = [@"deadbeef" na_dataFromHexString];
-  NSDictionary *dict = [MTLJSONAdapter JSONDictionaryFromModel:uid];
-  GRTestLog(@"Dict: %@", dict);
-  
-  NSError *error = nil;
-  KBUID *uid2 = [MTLJSONAdapter modelOfClass:KBUID.class fromJSONDictionary:dict error:&error];
-  if (error) GRErrorHandler(error);
-  GRTestLog(@"Data: %@", [uid2.data na_hexString]);
-}
-
 @end
