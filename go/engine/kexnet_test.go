@@ -36,11 +36,13 @@ func TestBasicMessage(t *testing.T) {
 	if err := r.Receive(rctx); err != nil {
 		t.Fatal(err)
 	}
-	if h.callCount("startkex") != 1 {
-		t.Errorf("startkex call count: %d, expected 1", h.callCount("startkex"))
+	if h.callCount(startkexMsg) != 1 {
+		t.Errorf("startkex call count: %d, expected 1", h.callCount(startkexMsg))
 	}
 }
 
+// TestEncode checks that the decoding of an encoded message
+// matches the original.
 func TestEncode(t *testing.T) {
 	did, err := libkb.NewDeviceID()
 	if err != nil {
@@ -52,7 +54,7 @@ func TestEncode(t *testing.T) {
 	}
 
 	m := &KXMB{
-		Name: "startkex",
+		Name: startkexMsg,
 		Args: a,
 	}
 	enc, err := m.Encode()
@@ -75,6 +77,8 @@ func TestMac(t *testing.T) {
 
 }
 
+// kth is a kex handler for testing.  It keeps track of how many
+// times the handle functions are called.
 type kth struct {
 	calls map[string]int
 }
@@ -97,13 +101,27 @@ func (h *kth) callCount(name string) int {
 }
 
 func (h *kth) StartKexSession(ctx *KexContext, id KexStrongID) error {
-	h.callInc("startkex")
+	h.callInc(startkexMsg)
 	return nil
 }
-func (h *kth) StartReverseKexSession(ctx *KexContext) error                          { return nil }
-func (h *kth) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error { return nil }
+
+func (h *kth) StartReverseKexSession(ctx *KexContext) error {
+	h.callInc(startrevkexMsg)
+	return nil
+}
+
+func (h *kth) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
+	h.callInc(helloMsg)
+	return nil
+}
+
 func (h *kth) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
+	h.callInc(pleasesignMsg)
 	return nil
 }
-func (h *kth) Done(ctx *KexContext, mt libkb.MerkleTriple) error              { return nil }
+func (h *kth) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
+	h.callInc(doneMsg)
+	return nil
+}
+
 func (h *kth) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error { return nil }

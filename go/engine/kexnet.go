@@ -269,13 +269,3 @@ func (k *KXMB) Encode() (string, error) {
 	}
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
-
-type KexMsgBody string
-
-func KexMsgBodyEncode(in string) KexMsgBody {
-	return KexMsgBody(in)
-}
-
-func (b KexMsgBody) Decode() string {
-	return string(b)
-}
