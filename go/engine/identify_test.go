@@ -7,13 +7,18 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-func runIdentify(username string) (*IdentifyRes, error) {
-	arg := IdentifyArg{
-		User:  username,
-		LogUI: G.UI.GetLogUI(),
+func runIdentify(username string) (res *IdentifyRes, err error) {
+	arg := IdentifyEngineArg{
+		User: username,
 	}
-	eng := NewIdentifyEng(&arg, FakeIdentifyUI{})
-	return eng.Run()
+	ctx := Context{
+		LogUI:      G.UI.GetLogUI(),
+		IdentifyUI: FakeIdentifyUI{},
+	}
+	eng := NewIdentifyEngine(&arg)
+	err = RunEngine(eng, &ctx, nil, nil)
+	res = eng.Result()
+	return
 }
 
 func TestIdAlice(t *testing.T) {
