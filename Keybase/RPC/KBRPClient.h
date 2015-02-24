@@ -28,7 +28,12 @@
 
 - (void)open;
 
+- (void)open:(void (^)(NSError *error))completion;
+
 - (void)close;
+
+- (void)check:(void (^)(NSError *error))completion;
+- (void)openAndCheck:(void (^)(NSError *error))completion;
 
 - (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler;
 
@@ -39,8 +44,8 @@
 
 #pragma mark Debug
 
-- (BOOL)replayRecordId:(NSString *)recordId;
+- (void)replayRecordId:(NSString *)recordId;
 
-- (NSArray *)paramsFromRecordId:(NSString *)recordId file:(NSString *)file;
+- (void)paramsFromRecordId:(NSString *)recordId file:(NSString *)file completion:(void (^)(NSArray *params))completion;
 
 @end

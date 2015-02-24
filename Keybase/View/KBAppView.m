@@ -125,7 +125,7 @@
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
 
   window.restorable = YES;
-  window.restorationClass = self.class;
+  //window.restorationClass = self.class;
   //window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:window.navigation];
   //[window setLevel:NSStatusWindowLevel];
   return window;

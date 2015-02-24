@@ -60,6 +60,7 @@
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(360, 420) retain:YES];
   navigation.titleView = [KBNavigationTitleView titleViewWithTitle:title navigation:navigation];
   [window setLevel:NSFloatingWindowLevel];
+  [window center];
   [window makeKeyAndOrderFront:nil];
 }
 

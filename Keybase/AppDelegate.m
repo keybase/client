@@ -15,6 +15,7 @@
 #import "KBPreferences.h"
 #import "KBErrorView.h"
 #import "KBAppearance.h"
+#import "KBInstaller.h"
 
 @interface AppDelegate ()
 @property KBAppView *appView;
@@ -43,6 +44,7 @@
 
   _appView = [[KBAppView alloc] init];
 
+  GHWeakSelf gself = self;
   _client = [[KBRPClient alloc] init];
   _client.delegate = self;
 
@@ -74,28 +76,33 @@
     }];
   }];
 
-
-
-
   [_client registerMethod:@"keybase.1.logUi.log" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 
-  [_client open];
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
+    GHDebug(@"Installed? %@, Type: %@", @(installed), @(installType));
+    if (error) {
+      [gself setFatalError:error];
+      return;
+    }
+    [gself.client open];
+  }];
 
   // Just for mocking, getting at data the RPC client doesn't give us yet
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
 
-  [self openCatalog];
+#ifdef DEBUG
+  //[self openCatalog];
+#endif
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   [self checkStatus];
 }
 
-- (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
-  
-}
+- (void)RPClientDidDisconnect:(KBRPClient *)RPClient { }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   if (connectAttempt == 1) [self setFatalError:error]; // Show error on first error attempt
@@ -223,11 +230,34 @@
   [window makeKeyAndOrderFront:nil];
 }
 
-+ (NSString *)loadFile:(NSString *)file {
++ (NSString *)bundleFile:(NSString *)file {
   NSString *path = [[NSBundle mainBundle] pathForResource:[file stringByDeletingPathExtension] ofType:[file pathExtension]];
   NSString *contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
   NSAssert(contents, @"No contents at file: %@", file);
   return contents;
+}
+
++ (void)applicationSupport:(NSArray *)subdirs create:(BOOL)create completion:(void (^)(NSError *error, NSString *directory))completion {
+  NSString *directory = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) firstObject];
+  if (!directory) {
+    NSError *error = KBMakeError(-1, @"No application support directory", @"");
+    completion(error, directory);
+    return;
+  }
+  directory = [directory stringByAppendingPathComponent:@"Keybase"];
+  if (subdirs) {
+    for (NSString *subdir in subdirs) {
+      directory = [directory stringByAppendingPathComponent:subdir];
+    }
+  }
+
+  NSError *error = nil;
+  if (create && ![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error]) {
+    completion(error, nil);
+    return;
+  }
+
+  completion(nil, directory);
 }
 
 + (void)setInProgress:(BOOL)inProgress view:(NSView *)view {

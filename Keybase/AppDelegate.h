@@ -30,7 +30,10 @@
 + (void)setInProgress:(BOOL)inProgress view:(NSView *)view;
 - (void)setFatalError:(NSError *)error;
 
-+ (NSString *)loadFile:(NSString *)file;
++ (NSString *)bundleFile:(NSString *)file;
+
+// Application support directory
++ (void)applicationSupport:(NSArray *)subdirs create:(BOOL)create completion:(void (^)(NSError *error, NSString *directory))completion;
 
 #pragma mark Debug
 

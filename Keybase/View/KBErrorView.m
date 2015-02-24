@@ -68,7 +68,24 @@
 
 - (void)setError:(NSError *)error {
   [_titleLabel setText:@"There was a problem and we couldn't recover. This usually means there is something wrong with your Keybase installation. This information might help you resolve this issue:" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-  [_descriptionLabel setText:error.localizedDescription font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+
+  NSMutableArray *info = [NSMutableArray array];
+
+  if (error.localizedDescription) [info addObject:error.localizedDescription];
+  if (error.localizedFailureReason) [info addObject:error.localizedFailureReason];
+  if (error.localizedRecoverySuggestion) [info addObject:error.localizedRecoverySuggestion];
+
+  NSMutableDictionary *other = [error.userInfo mutableCopy];
+  [other removeObjectForKey:NSLocalizedDescriptionKey];
+  [other removeObjectForKey:NSLocalizedFailureReasonErrorKey];
+  [other removeObjectForKey:NSLocalizedRecoverySuggestionErrorKey];
+  [other removeObjectForKey:NSLocalizedRecoveryOptionsErrorKey]; // Don't need options in error description
+
+  for (id key in other) {
+    [info addObject:NSStringWithFormat(@"%@: %@", key, error.userInfo[key])];
+  }
+
+  [_descriptionLabel setText:[info join:@"\n\n"] font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   [self setNeedsLayout];
 }
 

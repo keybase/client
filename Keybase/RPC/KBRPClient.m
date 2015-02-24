@@ -10,6 +10,7 @@
 #import "KBRPC.h"
 #import "KBRUtils.h"
 #import "KBAlert.h"
+#import "AppDelegate.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
 #import <NAChloride/NAChloride.h>
@@ -38,6 +39,10 @@
 @implementation KBRPClient
 
 - (void)open {
+  [self open:nil];
+}
+
+- (void)open:(void (^)(NSError *error))completion {
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
 
@@ -74,6 +79,8 @@
       if (!gself.autoRetryDisabled) {
         // Retry
         [self openAfterDelay:2];
+      } else {
+        if (completion) completion(error);
       }
       [self.delegate RPClient:self didErrorOnConnect:error connectAttempt:gself.connectAttempt];
       return;
@@ -82,6 +89,7 @@
     GHDebug(@"Connected");
     gself.connectAttempt = 1;
     [self.delegate RPClientDidConnect:self];
+    if (completion) completion(nil);
   }];
 }
 
@@ -116,7 +124,7 @@
 
 - (void)openAfterDelay:(NSTimeInterval)delay {
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-    [self open];
+    [self open:nil];
   });
 }
 
@@ -142,12 +150,35 @@
   GHDebug(@"Sent request: %@(%@)", method, [mparams join:@", "]);
 }
 
+- (void)check:(void (^)(NSError *error))completion {
+  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self];
+  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+    completion(error);
+  }];
+}
+
+- (void)openAndCheck:(void (^)(NSError *error))completion {
+  [self open:^(NSError *error) {
+    if (error) {
+      completion(error);
+      return;
+    }
+    [self check:^(NSError *error) {
+      if (error) {
+        completion(error);
+        return;
+      }
+    }];
+    completion(nil);
+  }];
+}
+
 NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
   NSMutableDictionary *mdict = [dict mutableCopy];
-  if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"[FILTERED]";
-  if (mdict[@"password"]) mdict[@"password"] = @"[FILTERED]";
-  if (mdict[@"inviteCode"]) mdict[@"inviteCode"] = @"[FILTERED]";
-  if (mdict[@"email"]) mdict[@"email"] = @"[FILTERED]";
+  if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"[FILTERED PASSPHRASE]";
+  if (mdict[@"password"]) mdict[@"password"] = @"[FILTERED PASSWORD]";
+  if (mdict[@"inviteCode"]) mdict[@"inviteCode"] = @"[FILTERED INVITE CODE]";
+  if (mdict[@"email"]) mdict[@"email"] = @"[FILTERED EMAIL]";
   return mdict;
 }
 
@@ -172,69 +203,66 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 
 #pragma mark Mock
 
-- (NSString *)directoryForRecordId:(NSString *)recordId {
-  NSString *applicationSupport = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) firstObject];
-  NSString *directory = NSStringWithFormat(@"%@/Keybase/Record/%@", applicationSupport, recordId);
-  if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil]) return nil;
-  return directory;
-}
 
 - (void)recordMethod:(NSString *)method params:(NSArray *)params {
-  NSMutableArray *paramsCopy = [[NSKeyedUnarchiver unarchiveObjectWithData: [NSKeyedArchiver archivedDataWithRootObject:params]] mutableCopy];
-  NSString *directory = [self directoryForRecordId:_recordId];
   NSInteger index = _methodIndex++;
+  [AppDelegate applicationSupport:@[_recordId] create:YES completion:^(NSError *error, NSString *directory) {
+    NSNumberFormatter *indexFormatter = [[NSNumberFormatter alloc] init];
+    [indexFormatter setFormatWidth:4];
+    [indexFormatter setPaddingCharacter:@"0"];
 
-  NSNumberFormatter *indexFormatter = [[NSNumberFormatter alloc] init];
-  [indexFormatter setFormatWidth:4];
-  [indexFormatter setPaddingCharacter:@"0"];
-
-  NSString *file = NSStringWithFormat(@"%@/%@--%@.json", directory, [indexFormatter stringFromNumber:@(index)], method);
-  KBConvertArrayTo(paramsCopy);
-  [[NSJSONSerialization dataWithJSONObject:paramsCopy options:NSJSONWritingPrettyPrinted error:nil] writeToFile:file atomically:NO];
+    NSString *file = NSStringWithFormat(@"%@/%@--%@.json", directory, [indexFormatter stringFromNumber:@(index)], method);
+    NSMutableArray *paramsCopy = [[NSKeyedUnarchiver unarchiveObjectWithData: [NSKeyedArchiver archivedDataWithRootObject:params]] mutableCopy];
+    KBConvertArrayTo(paramsCopy);
+    [[NSJSONSerialization dataWithJSONObject:paramsCopy options:NSJSONWritingPrettyPrinted error:nil] writeToFile:file atomically:NO];
+  }];
 }
 
-- (NSArray *)paramsFromRecordId:(NSString *)recordId file:(NSString *)file {
-  NSString *directory = [self directoryForRecordId:recordId];
-  NSData *data = [NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)];
-  NSAssert(data, @"No data found");
-  id params = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
-  KBConvertArrayFrom(params);
-  return params;
-}
 
-- (BOOL)replayRecordId:(NSString *)recordId  {
-  NSString *directory = [self directoryForRecordId:recordId];
-  NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
-
-  if (files.count == 0) {
-    return NO;
-  }
-
-  NSMutableDictionary *fileDict = [NSMutableDictionary dictionary];
-  NSInteger start = NSIntegerMax;
-  NSInteger end = 0;
-  for (NSString *file in files) {
-    NSArray *split = [file split:@"--"];
-    if (split.count != 2) continue;
-    NSInteger index = [split[0] integerValue];
-
-    if (index < start) start = index;
-    if (index > end) end = index;
-
-    NSString *method = [split[1] substringToIndex:[split[1] length] - 5];
-    fileDict[@(index)] = @{@"file": file, @"method": method};
-  }
-
-  for (NSInteger index = start; index <= end; index++) {
-    NSString *file = fileDict[@(index)][@"file"];
-    NSString *method = fileDict[@(index)][@"method"];
-    id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
+- (void)paramsFromRecordId:(NSString *)recordId file:(NSString *)file completion:(void (^)(NSArray *params))completion {
+  [AppDelegate applicationSupport:@[recordId] create:YES completion:^(NSError *error, NSString *directory) {
+    NSData *data = [NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)];
+    NSAssert(data, @"No data found");
+    id params = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
     KBConvertArrayFrom(params);
-    NSMapTable *registration = [_registrations objectForKey:method];
-    MPRequestHandler completion = [registration objectForKey:@"requestHandler"];
-    if (completion) completion(method, params, ^(NSError *error, id result) { });
-  }
-  return YES;
+    completion(params);
+  }];
+}
+
+- (void)replayRecordId:(NSString *)recordId {
+  GHWeakSelf gself = self;
+  [AppDelegate applicationSupport:@[recordId] create:YES completion:^(NSError *error, NSString *directory) {
+    NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
+
+    if (files.count == 0) {
+      return;
+    }
+
+    NSMutableDictionary *fileDict = [NSMutableDictionary dictionary];
+    NSInteger start = NSIntegerMax;
+    NSInteger end = 0;
+    for (NSString *file in files) {
+      NSArray *split = [file split:@"--"];
+      if (split.count != 2) continue;
+      NSInteger index = [split[0] integerValue];
+
+      if (index < start) start = index;
+      if (index > end) end = index;
+
+      NSString *method = [split[1] substringToIndex:[split[1] length] - 5];
+      fileDict[@(index)] = @{@"file": file, @"method": method};
+    }
+
+    for (NSInteger index = start; index <= end; index++) {
+      NSString *file = fileDict[@(index)][@"file"];
+      NSString *method = fileDict[@(index)][@"method"];
+      id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
+      KBConvertArrayFrom(params);
+      NSMapTable *registration = [gself.registrations objectForKey:method];
+      MPRequestHandler completion = [registration objectForKey:@"requestHandler"];
+      if (completion) completion(method, params, ^(NSError *error, id result) { });
+    }
+  }];
 }
 
 void KBConvertArrayTo(NSMutableArray *array) {

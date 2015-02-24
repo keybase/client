@@ -29,7 +29,7 @@
   webView.navigationDelegate = self;
   [self addSubview:webView];
 
-  [webView loadHTMLString:[AppDelegate loadFile:@"catalog.html"] baseURL:nil];
+  [webView loadHTMLString:[AppDelegate bundleFile:@"catalog.html"] baseURL:nil];
 
   self.viewLayout = [YOLayout fill:webView];
 }
@@ -153,20 +153,21 @@
   [window makeKeyAndOrderFront:nil];
 
   [userProfileView setUser:user editable:NO];
-  if (![AppDelegate.client replayRecordId:NSStringWithFormat(@"track/%@", username)]) KBDebugAlert(@"Nothing to replay; Did you unpack the recorded data (./record.sh unpack)?");
+  [AppDelegate.client replayRecordId:NSStringWithFormat(@"track/%@", username)];
 }
 
 - (void)showSelectKey {
-  NSArray *params = [AppDelegate.client paramsFromRecordId:@"signup/gbrl39" file:@"0003--keybase.1.gpgUi.selectKeyAndPushOption.json"];
-  KBRSelectKeyAndPushOptionRequestParams *handler = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
+  [AppDelegate.client paramsFromRecordId:@"signup/gbrl39" file:@"0003--keybase.1.gpgUi.selectKeyAndPushOption.json" completion:^(NSArray *params) {
+    KBRSelectKeyAndPushOptionRequestParams *handler = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
 
-  KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
-  [selectView.keysView setGPGKeys:handler.keys];
-  __weak KBKeySelectView *gselectView = selectView;
-  selectView.selectButton.targetBlock = ^{
-    GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
-  };
-  [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select Key"];
+    KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
+    [selectView.keysView setGPGKeys:handler.keys];
+    __weak KBKeySelectView *gselectView = selectView;
+    selectView.selectButton.targetBlock = ^{
+      GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
+    };
+    [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select Key"];
+  }];
 }
 
 - (void)showStyleGuide {
@@ -189,12 +190,14 @@
 }
 
 - (void)showDeviceSetupView {
-  NSArray *params = [AppDelegate.client paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json"];
-  KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
+  [AppDelegate.client paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json" completion:^(NSArray *params) {
 
-  KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
-  [deviceSetupView setDevices:handler.devices hasPGP:handler.hasPGP];
-  [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
+    KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
+
+    KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
+    [deviceSetupView setDevices:handler.devices hasPGP:handler.hasPGP];
+    [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
+  }];
 }
 
 - (void)showError {

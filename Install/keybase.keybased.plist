@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>keybase.keybased</string>
+    <key>Program</key>
+    <string>/Applications/Keybase.app/Contents/MacOS/keybased</string>
+    <key>KeepAlive</key>
+    <true/>
+</dict>
+</plist>
