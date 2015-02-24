@@ -2,8 +2,9 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"time"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type SigChain struct {
@@ -112,8 +113,8 @@ func (sc *SigChain) VerifiedChainLinks(fp PgpFingerprint) (ret []*ChainLink) {
 }
 
 func (sc *SigChain) Bump(mt MerkleTriple) {
-	mt.seqno = sc.GetLastKnownSeqno() + 1
-	G.Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.seqno)
+	mt.Seqno = sc.GetLastKnownSeqno() + 1
+	G.Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
 	sc.localChainTail = &mt
 	sc.localChainUpdateTime = time.Now()
 }
@@ -171,7 +172,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 
 	if t != nil && !found_tail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
-			t.linkId.String(), int(t.seqno))
+			t.LinkId, int(t.Seqno))
 		return
 	}
 
@@ -181,7 +182,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 		// If we've stored a `last` and it's less than the one
 		// we just loaded, then nuke it.
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
-			G.Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.seqno, dirtyTail.seqno)
+			G.Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.seqno)
 			sc.localChainTail = nil
 			sc.localCki = nil
 		}
@@ -229,7 +230,7 @@ func (sc SigChain) GetLastLoadedId() (ret LinkId) {
 
 func (sc SigChain) GetLastKnownId() (ret LinkId) {
 	if sc.localChainTail != nil {
-		ret = sc.localChainTail.linkId
+		ret = sc.localChainTail.LinkId
 	} else {
 		ret = sc.GetLastLoadedId()
 	}
@@ -251,7 +252,7 @@ func (sc SigChain) GetLastKnownSeqno() (ret Seqno) {
 	}()
 	if sc.localChainTail != nil {
 		G.Log.Debug("| Cached in last summary object...")
-		ret = sc.localChainTail.seqno
+		ret = sc.localChainTail.Seqno
 	} else {
 		ret = sc.GetLastLoadedSeqno()
 	}
@@ -605,13 +606,13 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 
 	if srv != nil {
 		G.Log.Debug("| Server triple: %v", srv)
-		b = srv.seqno
+		b = srv.Seqno
 	} else {
 		G.Log.Debug("| Server triple=nil")
 	}
 	if cli != nil {
 		G.Log.Debug("| Client triple: %v", cli)
-		a = cli.seqno
+		a = cli.Seqno
 	} else {
 		G.Log.Debug("| Client triple=nil")
 	}
@@ -622,7 +623,7 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 	}
 
 	if srv == nil && cli != nil {
-		err = Efn("Server claimed not to have this user in its tree (we had v=%d)", cli.seqno)
+		err = Efn("Server claimed not to have this user in its tree (we had v=%d)", cli.Seqno)
 	} else if srv == nil {
 	} else if b < 0 || a > b {
 		err = Efn("Server version-rollback suspected: Local %d > %d", a, b)
@@ -631,7 +632,7 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 		current = true
 		if cli == nil {
 			err = Efn("Failed to read last link for user")
-		} else if !cli.linkId.Eq(srv.linkId) {
+		} else if !cli.LinkId.Eq(srv.LinkId) {
 			err = Efn("The server returned the wrong sigchain tail")
 		}
 	} else {
@@ -639,8 +640,8 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 		current = false
 	}
 
-	if current && future != nil && (cli == nil || cli.seqno < future.seqno) {
-		G.Log.Debug("| Still need to reload, since locally, we know seqno=%d is last", future.seqno)
+	if current && future != nil && (cli == nil || cli.Seqno < future.Seqno) {
+		G.Log.Debug("| Still need to reload, since locally, we know seqno=%d is last", future.Seqno)
 		current = false
 	}
 

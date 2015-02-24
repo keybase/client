@@ -776,7 +776,7 @@ func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey 
 //==================================================================
 
 func (u *User) SigChainBump(linkID LinkId, sigID *SigId) {
-	u.SigChainBumpMT(MerkleTriple{linkId: linkID, sigId: sigID})
+	u.SigChainBumpMT(MerkleTriple{LinkId: linkID, SigId: sigID})
 }
 
 func (u *User) SigChainBumpMT(mt MerkleTriple) {

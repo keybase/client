@@ -4,8 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"time"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 const (
@@ -204,11 +205,11 @@ func (c ChainLink) GetRevokeKids() []KID {
 
 func (c ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err error) {
 	found = false
-	if t != nil && c.GetSeqno() == t.seqno {
-		G.Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.seqno))
+	if t != nil && c.GetSeqno() == t.Seqno {
+		G.Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.Seqno))
 		found = true
-		if !c.id.Eq(t.linkId) {
-			err = fmt.Errorf("Bad chain ID at seqno=%d", int(t.seqno))
+		if !c.id.Eq(t.LinkId) {
+			err = fmt.Errorf("Bad chain ID at seqno=%d", int(t.Seqno))
 		}
 	}
 	return
@@ -571,8 +572,8 @@ type LinkSummary struct {
 }
 
 func (mt MerkleTriple) ToLinkSummary() (ret LinkSummary) {
-	ret.id = mt.linkId
-	ret.seqno = mt.seqno
+	ret.id = mt.LinkId
+	ret.seqno = mt.Seqno
 	return
 }
 
@@ -607,14 +608,14 @@ func (l ChainLink) ToLinkSummary() *LinkSummary {
 
 func (l ChainLink) ToMerkleTriple() (ret MerkleTriple) {
 	return MerkleTriple{
-		linkId: l.id,
-		seqno:  l.GetSeqno(),
-		sigId:  l.GetSigId(),
+		LinkId: l.id,
+		Seqno:  l.GetSeqno(),
+		SigId:  l.GetSigId(),
 	}
 }
 
 func (mt MerkleTriple) Less(ls LinkSummary) bool {
-	return mt.seqno < ls.seqno
+	return mt.Seqno < ls.seqno
 }
 
 //=========================================================================

@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/hex"
+
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -161,7 +162,7 @@ func (d *Delegator) Run() (err error) {
 
 func (d *Delegator) updateLocalState(linkid LinkId) (err error) {
 	d.Me.SigChainBump(linkid, d.sigId)
-	d.merkleTriple = MerkleTriple{linkId: linkid, sigId: d.sigId}
+	d.merkleTriple = MerkleTriple{LinkId: linkid, SigId: d.sigId}
 
 	return d.Me.localDelegateKey(d.NewKey, d.sigId, d.getExistingKID(), d.IsSibkey())
 }

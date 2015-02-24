@@ -5,8 +5,9 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type Seqno int64
@@ -64,9 +65,9 @@ type MerkleRoot struct {
 }
 
 type MerkleTriple struct {
-	seqno  Seqno
-	linkId LinkId
-	sigId  *SigId
+	Seqno  Seqno
+	LinkId LinkId
+	SigId  *SigId
 }
 
 type MerkleUserLeaf struct {
