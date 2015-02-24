@@ -4,11 +4,20 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	jsonw "github.com/keybase/go-jsonw"
 	"github.com/ugorji/go/codec"
+)
+
+const (
+	startkexMsg    = "startkex"
+	startrevkexMsg = "startrevkex"
+	helloMsg       = "hello"
+	pleasesignMsg  = "pleasesign"
+	doneMsg        = "done"
 )
 
 var KexGlobalTimeout = 5 * time.Minute
@@ -21,7 +30,8 @@ func NewKexSender() *KexSender {
 }
 
 func (s *KexSender) StartKexSession(ctx *KexContext, id KexStrongID) error {
-	return s.post(ctx, "start kex")
+	mb := &KXMB{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
+	return s.post(ctx, mb)
 }
 
 func (s *KexSender) StartReverseKexSession(ctx *KexContext) error {
@@ -29,11 +39,13 @@ func (s *KexSender) StartReverseKexSession(ctx *KexContext) error {
 }
 
 func (s *KexSender) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	return nil
+	mb := &KXMB{Name: helloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
+	return s.post(ctx, mb)
 }
 
 func (s *KexSender) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	return nil
+	mb := &KXMB{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}}
+	return s.post(ctx, mb)
 }
 
 func (s *KexSender) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
@@ -45,18 +57,22 @@ func (s *KexSender) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) er
 	return nil
 }
 
-func (s *KexSender) post(ctx *KexContext, msg string) error {
-	_, err := G.API.Post(libkb.ApiArg{
+func (s *KexSender) post(ctx *KexContext, msg *KXMB) error {
+	menc, err := msg.Encode()
+	if err != nil {
+		return err
+	}
+	_, err = G.API.Post(libkb.ApiArg{
 		Endpoint:    "kex/send",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
-			"sender":   libkb.S{Val: ctx.Src.String()},
-			"receiver": libkb.S{Val: ctx.Dst.String()},
 			"dir":      libkb.I{Val: 1},
 			"I":        libkb.S{Val: hex.EncodeToString(ctx.StrongID[:])},
-			"w":        libkb.S{Val: hex.EncodeToString(ctx.WeakID[:])},
+			"msg":      libkb.S{Val: menc},
+			"receiver": libkb.S{Val: ctx.Dst.String()},
+			"sender":   libkb.S{Val: ctx.Src.String()},
 			"seqno":    libkb.I{Val: ctx.Seqno},
-			"msg":      libkb.S{Val: msg},
+			"w":        libkb.S{Val: hex.EncodeToString(ctx.WeakID[:])},
 		},
 	})
 	return err
@@ -73,14 +89,39 @@ func NewKexReceiver(handler KexHandler) *KexReceiver {
 }
 
 func (r *KexReceiver) Receive(ctx *KexContext) error {
-	return r.get(ctx)
+	msgs, err := r.get(ctx)
+	if err != nil {
+		return err
+	}
+	for _, m := range msgs {
+		mb, err := KXMBDecode(m.body)
+		if err != nil {
+			return err
+		}
+		switch mb.Name {
+		case startkexMsg:
+			return r.handler.StartKexSession(ctx, mb.Args.StrongID)
+		case startrevkexMsg:
+			return r.handler.StartReverseKexSession(ctx)
+		case helloMsg:
+			return r.handler.Hello(ctx, mb.Args.DeviceID, mb.Args.DevKeyID)
+		case pleasesignMsg:
+			return r.handler.PleaseSign(ctx, mb.Args.SigningKey, mb.Args.Sig, mb.Args.DevType, mb.Args.DevDesc)
+		case doneMsg:
+			// XXX fix nil merkletriple
+			return r.handler.Done(ctx, libkb.MerkleTriple{})
+		default:
+			return fmt.Errorf("unhandled message name: %q", mb.Name)
+		}
+	}
+	return nil
 }
 
 func (r *KexReceiver) ReceiveFilter(name string) error {
 	return nil
 }
 
-func (r *KexReceiver) get(ctx *KexContext) error {
+func (r *KexReceiver) get(ctx *KexContext) ([]*KexMsg, error) {
 	res, err := G.API.Get(libkb.ApiArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
@@ -92,19 +133,19 @@ func (r *KexReceiver) get(ctx *KexContext) error {
 		},
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	msgs := res.Body.AtKey("msgs")
 	n, err := msgs.Len()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	messages := make([]*KexMsg, n)
 	for i := 0; i < n; i++ {
 		messages[i], err = KexMsgImport(msgs.AtIndex(i))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -112,7 +153,7 @@ func (r *KexReceiver) get(ctx *KexContext) error {
 		G.Log.Info("message: %+v", m)
 	}
 
-	return nil
+	return messages, nil
 }
 
 type KexMsg struct {

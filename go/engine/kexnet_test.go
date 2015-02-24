@@ -71,6 +71,10 @@ func TestEncode(t *testing.T) {
 	}
 }
 
+func TestMac(t *testing.T) {
+
+}
+
 type kth struct {
 	calls map[string]int
 }
