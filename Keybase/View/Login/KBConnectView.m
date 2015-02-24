@@ -34,6 +34,7 @@
     [gself showSignup:YES];
   };
   [self addSubview:_loginView];
+  _loginView.hidden = YES;
 
   _signupView = [[KBSignupView alloc] init];
   _signupView.loginButton.targetBlock = ^{

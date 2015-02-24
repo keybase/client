@@ -248,7 +248,7 @@
 
       if (!gself.fokid.pgpFingerprint) {
         [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
-          KBTODO();
+          [gself addPGPKey];
         }];
       }
 
@@ -281,6 +281,13 @@
   }
 
   [self setNeedsLayout];
+}
+
+- (void)addPGPKey {
+  KBRGpgRequest *request = [[KBRGpgRequest alloc] initWithClient:AppDelegate.client];
+  [request addGpgKey:^(NSError *error) {
+    [self reload];
+  }];
 }
 
 - (void)setTrackCompleted:(NSError *)error {

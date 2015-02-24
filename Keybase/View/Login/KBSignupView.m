@@ -18,8 +18,6 @@
 @property KBLabel *usernameStatusLabel;
 @property KBStrengthLabel *strengthLabel;
 @property KBLabel *passwordConfirmLabel;
-
-@property BOOL pushSecret;
 @end
 
 @implementation KBSignupView
@@ -225,10 +223,12 @@
   KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
 
   [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    [KBAlert promptWithTitle:@"Add PGP Key" description:@"Would you like to add one of your PGP keys to Keybase?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Add a PGP Key", @"No"] view:self completion:^(NSModalResponse response) {
-      BOOL resp = (response == NSAlertFirstButtonReturn);
-      completion(nil, @(resp));
-    }];
+    completion(nil, @(NO));
+
+//    [KBAlert promptWithTitle:@"Add PGP Key" description:@"Would you like to add one of your PGP keys to Keybase?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Add a PGP Key", @"No"] view:self completion:^(NSModalResponse response) {
+//      BOOL resp = (response == NSAlertFirstButtonReturn);
+//      completion(nil, @(resp));
+//    }];
   }];
 
   [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -237,13 +237,13 @@
     [self selectPGPKey:handler completion:completion];
   }];
 
-  GHWeakSelf gself = self;
-  [AppDelegate.client registerMethod:@"keybase.1.mykeyUi.getPushPreferences" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRPushPreferences *pushPreferences = [[KBRPushPreferences alloc] init];
-    pushPreferences.public = YES;
-    pushPreferences.private = gself.pushSecret;
-    completion(nil, pushPreferences);
-  }];
+//  GHWeakSelf gself = self;
+//  [AppDelegate.client registerMethod:@"keybase.1.mykeyUi.getPushPreferences" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+//    KBRPushPreferences *pushPreferences = [[KBRPushPreferences alloc] init];
+//    pushPreferences.public = YES;
+//    pushPreferences.private = gself.pushSecret;
+//    completion(nil, pushPreferences);
+//  }];
 
   [AppDelegate setInProgress:YES view:self];
   [self.navigation.titleView setProgressEnabled:YES];
@@ -284,7 +284,6 @@
   NSWindow *selectWindow = [KBWindow windowWithContentView:navigation size:CGSizeMake(600, 400) retain:YES];
   navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Select PGP Key" navigation:navigation];
 
-  GHWeakSelf gself = self;
   [selectView.keysView setGPGKeys:handler.keys];
   __weak KBKeySelectView *gselectView = selectView;
   selectView.selectButton.targetBlock = ^{
@@ -299,7 +298,6 @@
 
     KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
     response.keyID = keyID;
-    gself.pushSecret = pushSecret;
     response.doSecretPush = pushSecret;
     completion(nil, response);
   };
