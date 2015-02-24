@@ -137,6 +137,11 @@ func (a *PGPGenArg) AddDefaultUid() {
 	a.Ids = append(a.Ids, KeybaseIdentity(""))
 }
 
+func (a *PGPGenArg) MakeAllIds() {
+	a.CreatePgpIDs()
+	a.AddDefaultUid()
+}
+
 func (a *PGPGenArg) PGPUserIDs() ([]*packet.UserId, error) {
 	uids := make([]*packet.UserId, len(a.Ids))
 	for i, id := range a.Ids {

@@ -54,6 +54,7 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 
 func (v *CmdMykeyGen) Run() (err error) {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), LogUI: G_UI.GetLogUI()}
+	v.arg.Gen.MakeAllIds()
 	eng := engine.NewPGPEngine(v.arg)
 	return engine.RunEngine(eng, ctx, nil, nil)
 }

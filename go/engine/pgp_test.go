@@ -12,11 +12,11 @@ func TestGenerateNewPGPKey(t *testing.T) {
 	secui := libkb.TestSecretUI{fu.Passphrase}
 	arg := PGPEngineArg{
 		Gen: &libkb.PGPGenArg{
-			PrimaryBits: 1024,
-			SubkeyBits:  1024,
+			PrimaryBits: 768,
+			SubkeyBits:  768,
 		},
 	}
-	arg.Gen.AddDefaultUid()
+	arg.Gen.MakeAllIds()
 	ctx := Context{
 		LogUI:    G.UI.GetLogUI(),
 		SecretUI: secui,
