@@ -2,8 +2,11 @@ package engine
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -20,6 +23,8 @@ const (
 	doneMsg        = "done"
 )
 
+var ErrMACMismatch = errors.New("Computed HMAC doesn't match message HMAC")
+
 var KexGlobalTimeout = 5 * time.Minute
 
 type KexSender struct {
@@ -30,7 +35,7 @@ func NewKexSender() *KexSender {
 }
 
 func (s *KexSender) StartKexSession(ctx *KexContext, id KexStrongID) error {
-	mb := &KXMB{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
+	mb := &KexBody{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
 	return s.post(ctx, mb)
 }
 
@@ -39,17 +44,17 @@ func (s *KexSender) StartReverseKexSession(ctx *KexContext) error {
 }
 
 func (s *KexSender) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	mb := &KXMB{Name: helloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
+	mb := &KexBody{Name: helloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
 	return s.post(ctx, mb)
 }
 
 func (s *KexSender) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	mb := &KXMB{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}}
+	mb := &KexBody{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}}
 	return s.post(ctx, mb)
 }
 
 func (s *KexSender) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
-	mb := &KXMB{Name: doneMsg, Args: MsgArgs{MerkleTriple: mt}}
+	mb := &KexBody{Name: doneMsg, Args: MsgArgs{MerkleTriple: mt}}
 	return s.post(ctx, mb)
 }
 
@@ -58,8 +63,16 @@ func (s *KexSender) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) er
 	return nil
 }
 
-func (s *KexSender) post(ctx *KexContext, msg *KXMB) error {
-	menc, err := msg.Encode()
+func (s *KexSender) post(ctx *KexContext, body *KexBody) error {
+	msg := NewKexMsg(ctx, body)
+	msg.Direction = 1
+	mac, err := msg.MacSum()
+	if err != nil {
+		return err
+	}
+	msg.Mac = mac
+
+	menc, err := msg.KexBody.Encode()
 	if err != nil {
 		return err
 	}
@@ -67,13 +80,13 @@ func (s *KexSender) post(ctx *KexContext, msg *KXMB) error {
 		Endpoint:    "kex/send",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
-			"dir":      libkb.I{Val: 1},
-			"I":        libkb.S{Val: hex.EncodeToString(ctx.StrongID[:])},
+			"dir":      libkb.I{Val: msg.Direction},
+			"I":        libkb.S{Val: hex.EncodeToString(msg.StrongID[:])},
 			"msg":      libkb.S{Val: menc},
-			"receiver": libkb.S{Val: ctx.Dst.String()},
-			"sender":   libkb.S{Val: ctx.Src.String()},
-			"seqno":    libkb.I{Val: ctx.Seqno},
-			"w":        libkb.S{Val: hex.EncodeToString(ctx.WeakID[:])},
+			"receiver": libkb.S{Val: msg.Dst.String()},
+			"sender":   libkb.S{Val: msg.Src.String()},
+			"seqno":    libkb.I{Val: msg.Seqno},
+			"w":        libkb.S{Val: hex.EncodeToString(msg.WeakID[:])},
 		},
 	})
 	return err
@@ -95,24 +108,19 @@ func (r *KexReceiver) Receive(ctx *KexContext) error {
 		return err
 	}
 	for _, m := range msgs {
-		mb, err := KXMBDecode(m.body)
-		if err != nil {
-			return err
-		}
-		switch mb.Name {
+		switch m.Name {
 		case startkexMsg:
-			return r.handler.StartKexSession(ctx, mb.Args.StrongID)
+			return r.handler.StartKexSession(ctx, m.Args.StrongID)
 		case startrevkexMsg:
 			return r.handler.StartReverseKexSession(ctx)
 		case helloMsg:
-			return r.handler.Hello(ctx, mb.Args.DeviceID, mb.Args.DevKeyID)
+			return r.handler.Hello(ctx, m.Args.DeviceID, m.Args.DevKeyID)
 		case pleasesignMsg:
-			return r.handler.PleaseSign(ctx, mb.Args.SigningKey, mb.Args.Sig, mb.Args.DevType, mb.Args.DevDesc)
+			return r.handler.PleaseSign(ctx, m.Args.SigningKey, m.Args.Sig, m.Args.DevType, m.Args.DevDesc)
 		case doneMsg:
-			// XXX fix nil merkletriple
-			return r.handler.Done(ctx, libkb.MerkleTriple{})
+			return r.handler.Done(ctx, m.Args.MerkleTriple)
 		default:
-			return fmt.Errorf("unhandled message name: %q", mb.Name)
+			return fmt.Errorf("unhandled message name: %q", m.Name)
 		}
 	}
 	return nil
@@ -150,16 +158,45 @@ func (r *KexReceiver) get(ctx *KexContext) ([]*KexMsg, error) {
 		}
 	}
 
-	for _, m := range messages {
-		G.Log.Info("message: %+v", m)
-	}
-
 	return messages, nil
 }
 
 type KexMsg struct {
 	KexMeta
-	body string
+	KexBody
+}
+
+func NewKexMsg(ctx *KexContext, body *KexBody) *KexMsg {
+	return &KexMsg{
+		KexMeta: ctx.KexMeta,
+		KexBody: *body,
+	}
+}
+
+func (m *KexMsg) CheckMAC() (bool, error) {
+	sum, err := m.MacSum()
+	if err != nil {
+		return false, err
+	}
+	return hmac.Equal(sum, m.Mac), nil
+}
+
+func (m *KexMsg) MacSum() ([]byte, error) {
+	t := m.Mac
+	defer func() { m.Mac = t }()
+	m.Mac = nil
+	var buf bytes.Buffer
+	var h codec.MsgpackHandle
+	if err := codec.NewEncoder(&buf, &h).Encode(m); err != nil {
+		return nil, err
+	}
+	return m.mac(buf.Bytes(), m.StrongID[:]), nil
+}
+
+func (m *KexMsg) mac(message, key []byte) []byte {
+	mac := hmac.New(sha256.New, key)
+	mac.Write(message)
+	return mac.Sum(nil)
 }
 
 func deviceID(w *jsonw.Wrapper) (libkb.DeviceID, error) {
@@ -220,9 +257,22 @@ func KexMsgImport(w *jsonw.Wrapper) (*KexMsg, error) {
 	}
 	copy(r.WeakID[:], bwkID)
 
-	r.body, err = w.AtKey("msg").GetString()
+	body, err := w.AtKey("msg").GetString()
 	if err != nil {
 		return nil, err
+	}
+	mb, err := KexBodyDecode(body)
+	if err != nil {
+		return nil, err
+	}
+	r.KexBody = *mb
+
+	ok, err := r.CheckMAC()
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, ErrMACMismatch
 	}
 
 	return r, nil
@@ -241,18 +291,19 @@ type MsgArgs struct {
 	MerkleTriple libkb.MerkleTriple
 }
 
-type KXMB struct {
+type KexBody struct {
 	Name string
 	Args MsgArgs
+	Mac  []byte
 }
 
-func KXMBDecode(data string) (*KXMB, error) {
+func KexBodyDecode(data string) (*KexBody, error) {
 	bytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
 		return nil, err
 	}
 	var h codec.MsgpackHandle
-	var k KXMB
+	var k KexBody
 	err = codec.NewDecoderBytes(bytes, &h).Decode(&k)
 	if err != nil {
 		return nil, err
@@ -260,7 +311,7 @@ func KXMBDecode(data string) (*KXMB, error) {
 	return &k, nil
 }
 
-func (k *KXMB) Encode() (string, error) {
+func (k *KexBody) Encode() (string, error) {
 	var buf bytes.Buffer
 	var h codec.MsgpackHandle
 	err := codec.NewEncoder(&buf, &h).Encode(k)
