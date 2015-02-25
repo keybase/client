@@ -81,11 +81,11 @@ func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
 	}
 	r.UID = *u
 
-	r.Src, err = deviceID(w.AtKey("sender"))
+	r.Sender, err = deviceID(w.AtKey("sender"))
 	if err != nil {
 		return nil, err
 	}
-	r.Dst, err = deviceID(w.AtKey("receiver"))
+	r.Receiver, err = deviceID(w.AtKey("receiver"))
 	if err != nil {
 		return nil, err
 	}

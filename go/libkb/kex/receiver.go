@@ -28,12 +28,23 @@ func (r *Receiver) Receive(ctx *Context) error {
 		return err
 	}
 	for _, m := range msgs {
-		G.Log.Info("Receive: message seqno = %d, receiver seqno = %d", m.Seqno, r.seqno)
+		G.Log.Info("Receive: message %s: seqno = %d, receiver seqno = %d", m.Name, m.Seqno, r.seqno)
+		G.Log.Info("Receive: message %s: ctx.sender = %s, ctx.receiver = %s", m.Name, ctx.Sender, ctx.Receiver)
+		G.Log.Info("Receive: message %s: m.sender = %s, m.receiver = %s", m.Name, m.Sender, m.Receiver)
 		if m.Seqno > r.seqno {
 			r.seqno = m.Seqno
 		}
 
-		ctx.Dst = m.Dst
+		/*
+			zd := libkb.DeviceID{}
+			if ctx.Sender == zd {
+				ctx.Sender = m.Sender
+			}
+		*/
+
+		// set context's sender and receiver
+		ctx.Sender = m.Sender
+		ctx.Receiver = m.Receiver
 
 		switch m.Name {
 		case startkexMsg:

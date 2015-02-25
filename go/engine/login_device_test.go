@@ -30,7 +30,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 
 	go func() {
 		// authorize on device X
-		kx := NewKex(kex.NewSender(kex.DirectionXtoY), nil)
+		kx := NewKex(kex.NewSender(kex.DirectionXtoY), nil, SetDebugName("dev X"))
 
 		// is this going to mess everything up?
 		me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
@@ -173,7 +173,7 @@ func newKexsrv() *kexsrv {
 }
 
 func (k *kexsrv) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
-	s, err := k.findDevice(ctx.Dst)
+	s, err := k.findDevice(ctx.Receiver)
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func (k *kexsrv) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 func (k *kexsrv) StartReverseKexSession(ctx *kex.Context) error { return nil }
 
 func (k *kexsrv) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	s, err := k.findDevice(ctx.Dst)
+	s, err := k.findDevice(ctx.Receiver)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func (k *kexsrv) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KI
 }
 
 func (k *kexsrv) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	s, err := k.findDevice(ctx.Dst)
+	s, err := k.findDevice(ctx.Receiver)
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func (k *kexsrv) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, 
 }
 
 func (k *kexsrv) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
-	s, err := k.findDevice(ctx.Dst)
+	s, err := k.findDevice(ctx.Receiver)
 	if err != nil {
 		return err
 	}

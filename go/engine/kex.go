@@ -66,14 +66,14 @@ func (k *Kex) Run(ctx *Context, args, reply interface{}) error {
 // secret is needed before this can start because receive needs
 // the weak id, which is based on the strong id, which comes from
 // the secret.
-func (k *Kex) StartAccept(ectx *Context, u *libkb.User, src libkb.DeviceID, secret string, g *libkb.Global) error {
+func (k *Kex) StartAccept(ectx *Context, u *libkb.User, dev libkb.DeviceID, secret string, g *libkb.Global) error {
 	g.Log.Info("kex engine: StartAccept (%s)", secret)
 	k.user = u
-	k.deviceID = src
+	k.deviceID = dev
 	k.engctx = ectx
 
 	var err error
-	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(src)
+	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(dev)
 	if err != nil {
 		g.Log.Warning("StartAccept: error getting device sibkey: %s", err)
 		return err
@@ -99,7 +99,7 @@ func (k *Kex) StartAccept(ectx *Context, u *libkb.User, src libkb.DeviceID, secr
 	ctx := &kex.Context{
 		Meta: kex.Meta{
 			UID:      k.user.GetUid(),
-			Src:      src,
+			Receiver: dev,
 			StrongID: id,
 		},
 	}
@@ -136,8 +136,8 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 		Meta: kex.Meta{
 			UID:      k.user.GetUid(),
 			StrongID: id,
-			Src:      src,
-			Dst:      dst,
+			Sender:   src,
+			Receiver: dst,
 		},
 	}
 	copy(ctx.WeakID[:], id[0:16])
@@ -191,8 +191,8 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 		return err
 	}
 
-	ctx.Src = src
-	ctx.Dst = dst
+	ctx.Sender = src
+	ctx.Receiver = dst
 	if err := k.server.PleaseSign(ctx, eddsaPair.Public, sig, devType, devDesc); err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func (k *Kex) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
-	if err := k.verifyDst(ctx); err != nil {
+	if err := k.verifyReceiver(ctx); err != nil {
 		return err
 	}
 
@@ -339,7 +339,8 @@ func (k *Kex) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 	if !ok {
 		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
 	}
-	return k.server.Hello(ctx, ctx.Src, pair.GetKid())
+	G.Log.Info("[%s] calling Hello on server (ctx.Sender = %s, k.deviceID = %s, ctx.Receiver = %s)", k.debugName, ctx.Sender, k.deviceID, ctx.Receiver)
+	return k.server.Hello(ctx, ctx.Sender, pair.GetKid())
 }
 
 func (k *Kex) StartReverseKexSession(ctx *kex.Context) error { return nil }
@@ -369,7 +370,7 @@ func (k *Kex) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig
 
 	// make device object for Y
 	devY := libkb.Device{
-		Id:          ctx.Src.String(),
+		Id:          ctx.Sender.String(),
 		Type:        devType,
 		Description: &devDesc,
 	}
@@ -439,11 +440,11 @@ func (k *Kex) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
 
 func (k *Kex) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
 
-func (k *Kex) verifyDst(ctx *kex.Context) error {
-	G.Log.Debug("kex context: src device %s => dst device %s", ctx.Src, ctx.Dst)
+func (k *Kex) verifyReceiver(ctx *kex.Context) error {
+	G.Log.Debug("kex context: sender device %s => receiver device %s", ctx.Sender, ctx.Receiver)
 	G.Log.Debug("kex context: own device %s", k.deviceID)
-	if ctx.Dst != k.deviceID {
-		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", ctx.Dst, k.deviceID)
+	if ctx.Receiver != k.deviceID {
+		return fmt.Errorf("receiver device id (%s) invalid.  this is device (%s).", ctx.Receiver, k.deviceID)
 	}
 	return nil
 }
@@ -456,7 +457,7 @@ func (k *Kex) verifySession(ctx *kex.Context) error {
 }
 
 func (k *Kex) verifyRequest(ctx *kex.Context) error {
-	if err := k.verifyDst(ctx); err != nil {
+	if err := k.verifyReceiver(ctx); err != nil {
 		return err
 	}
 	if err := k.verifySession(ctx); err != nil {

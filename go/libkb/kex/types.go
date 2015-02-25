@@ -15,11 +15,13 @@ type StrongID [32]byte
 type WeakID [16]byte
 
 type Meta struct {
-	UID       libkb.UID
-	WeakID    WeakID   // `w` in doc
-	StrongID  StrongID // `I` in doc
-	Src       libkb.DeviceID
-	Dst       libkb.DeviceID
+	UID      libkb.UID
+	WeakID   WeakID   // `w` in doc
+	StrongID StrongID // `I` in doc
+	//	Src       libkb.DeviceID
+	//	Dst       libkb.DeviceID
+	Sender    libkb.DeviceID
+	Receiver  libkb.DeviceID
 	Seqno     int
 	Direction Direction
 }
@@ -29,7 +31,7 @@ type Context struct {
 }
 
 func (c *Context) Swap() {
-	c.Src, c.Dst = c.Dst, c.Src
+	c.Sender, c.Receiver = c.Receiver, c.Sender
 }
 
 type Handler interface {
