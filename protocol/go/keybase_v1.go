@@ -604,6 +604,7 @@ type ReportLastTrackArg struct {
 type LaunchNetworkChecksArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Id        Identity `codec:"id" json:"id"`
+	User      User     `codec:"user" json:"user"`
 }
 
 type DisplayTrackStatementArg struct {

@@ -229,7 +229,7 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyOutcome) {
 	is.ComputeTrackDiffs()
 	is.ComputeDeletedProofs()
 
-	is.GetUI().LaunchNetworkChecks(res.ExportToUncheckedIdentity())
+	is.GetUI().LaunchNetworkChecks(res.ExportToUncheckedIdentity(), u.Export())
 	u.IdTable.Identify(is)
 
 	G.Log.Debug("- Identify(%s)", u.name)

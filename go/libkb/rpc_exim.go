@@ -463,6 +463,7 @@ func (u *User) Export() *keybase_1.User {
 	return &keybase_1.User{
 		Uid:      keybase_1.UID(u.GetUid()),
 		Username: u.GetName(),
+		Image:    u.Image,
 	}
 }
 

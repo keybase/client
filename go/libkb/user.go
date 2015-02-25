@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	lru "github.com/hashicorp/golang-lru"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -108,6 +109,7 @@ type User struct {
 	sigChain *SigChain
 	IdTable  *IdentityTable
 	sigHints *SigHints
+	Image    *keybase_1.Image
 
 	// Loaded from publicKeys
 	keyFamily *KeyFamily
@@ -214,6 +216,16 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		return nil, fmt.Errorf("user object for %s lacks a name", uid)
 	}
 
+	var imagePtr *keybase_1.Image
+	pictureBlob := o.AtKey("pictures").AtKey("primary")
+	if !pictureBlob.IsNil() && pictureBlob.Error() == nil {
+		var image keybase_1.Image
+		err = pictureBlob.UnmarshalAgain(&image)
+		if err == nil {
+			imagePtr = &image
+		}
+	}
+
 	kf, err := ParseKeyFamily(o.AtKey("public_keys"))
 	if err != nil {
 		return nil, err
@@ -228,6 +240,7 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		name:       name,
 		loggedIn:   false,
 		dirty:      false,
+		Image:      imagePtr,
 	}, nil
 }
 
