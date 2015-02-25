@@ -10,16 +10,16 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-type CmdMykeyGen struct {
+type CmdPGPGen struct {
 	arg engine.PGPEngineArg
 }
 
 var SmallKey int = 1024
 
-func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
+func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if nargs != 0 {
-		err = fmt.Errorf("mykey gen takes 0 args")
+		err = fmt.Errorf("pgp gen takes 0 args")
 	} else {
 		g := libkb.PGPGenArg{}
 		g.PGPUids = ctx.StringSlice("pgp-uid")
@@ -36,7 +36,7 @@ func (v *CmdMykeyGen) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (v *CmdMykeyGen) RunClient() (err error) {
+func (v *CmdPGPGen) RunClient() (err error) {
 	var cli keybase_1.MykeyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
@@ -52,17 +52,17 @@ func (v *CmdMykeyGen) RunClient() (err error) {
 	return
 }
 
-func (v *CmdMykeyGen) Run() (err error) {
+func (v *CmdPGPGen) Run() (err error) {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), LogUI: G_UI.GetLogUI()}
 	v.arg.Gen.MakeAllIds()
 	eng := engine.NewPGPEngine(v.arg)
 	return engine.RunEngine(eng, ctx, nil, nil)
 }
 
-func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "gen",
-		Usage:       "keybase mykey gen",
+		Usage:       "keybase pgp gen",
 		Description: "Generate a new PGP key and write to local secret keychain",
 		Flags: append([]cli.Flag{
 			cli.BoolFlag{
@@ -80,12 +80,12 @@ func NewCmdMykeyGen(cl *libcmdline.CommandLine) cli.Command {
 			},
 		}),
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdMykeyGen{}, "gen", c)
+			cl.ChooseCommand(&CmdPGPGen{}, "gen", c)
 		},
 	}
 }
 
-func (v *CmdMykeyGen) GetUsage() libkb.Usage {
+func (v *CmdPGPGen) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: false,

@@ -23,6 +23,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 		NewCmdLogin(cl),
 		NewCmdLogout(cl),
 		NewCmdMykey(cl),
+		NewCmdPGP(cl),
 		NewCmdPing(cl),
 		NewCmdProve(cl),
 		NewCmdResolve(cl),
