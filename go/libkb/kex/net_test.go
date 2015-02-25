@@ -39,33 +39,6 @@ func testBody(t *testing.T) *Body {
 	}
 }
 
-// TestBasicMessage verifies that a message can be sent and
-// received.
-/*
-func TestBasicMessage(t *testing.T) {
-	tc := libkb.SetupTest(t, "kexnet")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(t, "login")
-
-	h := newKth()
-	s := NewKexSender()
-	r := NewKexReceiver(h)
-
-	ctx := testKexContext(t, fu.Username)
-	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
-		t.Fatal(err)
-	}
-	rctx := &KexContext{}
-	if err := r.Receive(rctx); err != nil {
-		t.Fatal(err)
-	}
-	if h.callCount(startkexMsg) != 1 {
-		t.Errorf("startkex call count: %d, expected 1", h.callCount(startkexMsg))
-	}
-}
-*/
-
 // TestEncode checks that the decoding of an encoded message
 // matches the original.
 func TestEncode(t *testing.T) {

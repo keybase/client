@@ -27,7 +27,7 @@ var ErrMACMismatch = errors.New("Computed HMAC doesn't match message HMAC")
 
 var GlobalTimeout = 5 * time.Minute
 
-var G = libkb.G
+var G = &libkb.G
 
 type Sender struct {
 }
@@ -78,6 +78,9 @@ func (s *Sender) post(ctx *Context, body *Body) error {
 	if err != nil {
 		return err
 	}
+
+	G.Log.Info("G.API: %+v", G.API)
+
 	_, err = G.API.Post(libkb.ApiArg{
 		Endpoint:    "kex/send",
 		NeedSession: true,
