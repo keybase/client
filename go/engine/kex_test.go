@@ -45,8 +45,8 @@ func TestBasicMessage(t *testing.T) {
 	fu := CreateAndSignupFakeUser(t, "login")
 
 	h := newKth()
-	s := kex.NewSender()
-	r := kex.NewReceiver(h)
+	s := kex.NewSender(kex.DirectionYtoX)
+	r := kex.NewReceiver(h, kex.DirectionYtoX)
 
 	ctx := testKexContext(t, fu.Username)
 	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
@@ -68,8 +68,8 @@ func TestBadMACMessage(t *testing.T) {
 	fu := CreateAndSignupFakeUser(t, "login")
 
 	h := newKth()
-	s := kex.NewSender()
-	r := kex.NewReceiver(h)
+	s := kex.NewSender(kex.DirectionYtoX)
+	r := kex.NewReceiver(h, kex.DirectionYtoX)
 
 	ctx := testKexContext(t, fu.Username)
 	if err := s.CorruptStartKexSession(ctx, ctx.StrongID); err != nil {

@@ -3,6 +3,7 @@ package kex
 import (
 	"encoding/hex"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -11,13 +12,14 @@ import (
 var GlobalTimeout = 5 * time.Minute
 
 type Receiver struct {
-	handler Handler
-	seqno   int
-	pollDur time.Duration
+	handler   Handler
+	seqno     int
+	pollDur   time.Duration
+	direction Direction
 }
 
-func NewReceiver(handler Handler) *Receiver {
-	return &Receiver{handler: handler, pollDur: 20 * time.Second}
+func NewReceiver(handler Handler, dir Direction) *Receiver {
+	return &Receiver{handler: handler, pollDur: 20 * time.Second, direction: dir}
 }
 
 func (r *Receiver) Receive(ctx *Context) error {
@@ -26,6 +28,13 @@ func (r *Receiver) Receive(ctx *Context) error {
 		return err
 	}
 	for _, m := range msgs {
+		G.Log.Info("Receive: message seqno = %d, receiver seqno = %d", m.Seqno, r.seqno)
+		if m.Seqno > r.seqno {
+			r.seqno = m.Seqno
+		}
+
+		ctx.Dst = m.Dst
+
 		switch m.Name {
 		case startkexMsg:
 			return r.handler.StartKexSession(ctx, m.Args.StrongID)
@@ -44,14 +53,15 @@ func (r *Receiver) Receive(ctx *Context) error {
 	return nil
 }
 
-func (r *Receiver) get(ctx *Context) ([]*Msg, error) {
+func (r *Receiver) get(ctx *Context) (MsgList, error) {
+	G.Log.Info("get: w = %x, dir = %d, seqno = %d", ctx.WeakID, r.direction, r.seqno)
 	res, err := G.API.Get(libkb.ApiArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
 			"w":    libkb.S{Val: hex.EncodeToString(ctx.WeakID[:])},
-			"dir":  libkb.I{Val: 1},
-			"low":  libkb.I{Val: 0},
+			"dir":  libkb.I{Val: int(r.direction)},
+			"low":  libkb.I{Val: r.seqno + 1},
 			"poll": libkb.I{Val: int(r.pollDur / time.Second)},
 		},
 	})
@@ -65,7 +75,7 @@ func (r *Receiver) get(ctx *Context) ([]*Msg, error) {
 		return nil, err
 	}
 
-	var messages []*Msg
+	var messages MsgList
 	for i := 0; i < n; i++ {
 		m, err := MsgImport(msgs.AtIndex(i))
 		if err != nil {
@@ -78,6 +88,8 @@ func (r *Receiver) get(ctx *Context) ([]*Msg, error) {
 			messages = append(messages, m)
 		}
 	}
+
+	sort.Sort(messages)
 
 	return messages, nil
 }

@@ -4,6 +4,13 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+type Direction int
+
+const (
+	DirectionYtoX Direction = 1 // messages intended for device X
+	DirectionXtoY           = 2 // messages intended for device Y
+)
+
 type StrongID [32]byte
 type WeakID [16]byte
 
@@ -14,7 +21,7 @@ type Meta struct {
 	Src       libkb.DeviceID
 	Dst       libkb.DeviceID
 	Seqno     int
-	Direction int
+	Direction Direction
 }
 
 type Context struct {

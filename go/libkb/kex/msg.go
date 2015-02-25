@@ -94,10 +94,11 @@ func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
 	if err != nil {
 		return nil, err
 	}
-	r.Direction, err = w.AtKey("dir").GetInt()
+	dir, err := w.AtKey("dir").GetInt()
 	if err != nil {
 		return nil, err
 	}
+	r.Direction = Direction(dir)
 
 	stID, err := w.AtKey("I").GetString()
 	if err != nil {
@@ -139,6 +140,12 @@ func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
 
 	return r, nil
 }
+
+type MsgList []*Msg
+
+func (m MsgList) Len() int           { return len(m) }
+func (m MsgList) Less(a, b int) bool { return m[a].Seqno < m[b].Seqno }
+func (m MsgList) Swap(a, b int)      { m[a], m[b] = m[b], m[a] }
 
 // MsgArgs has optional fields in it, but there aren't that many,
 // so just using the same struct for all msgs for simplicity.

@@ -10,11 +10,67 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-// TestLoginNewDeviceFakeComm is a device provisioning test.  It
+// TestLoginNewDeviceKex is a device provisioning test.  It
 // simulates the scenario where a user logs in to a new device and
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
 func TestLoginNewDeviceKex(t *testing.T) {
+	kexTimeout = time.Second
+
+	// test context for device X
+	tcX := libkb.SetupTest(t, "loginX")
+	defer tcX.Cleanup()
+
+	// sign up with device X
+	G = &tcX.G
+	u := CreateAndSignupFakeUser(t, "login")
+	devX := tcX.G.Env.GetDeviceID()
+	docui := &ldocuiDevice{&ldocui{}, ""}
+	secui := libkb.TestSecretUI{u.Passphrase}
+
+	go func() {
+		// authorize on device X
+		kx := NewKex(kex.NewSender(kex.DirectionXtoY), nil)
+
+		// is this going to mess everything up?
+		me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		ctx := &Context{LogUI: tcX.G.UI.GetLogUI(), DoctorUI: docui, SecretUI: secui}
+
+		// wait for docui to know the secret
+		for len(docui.secret) == 0 {
+			time.Sleep(50 * time.Millisecond)
+		}
+
+		if err := kx.StartAccept(ctx, me, *devX, docui.secret, &tcX.G); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	// test context for device Y
+	tcY := libkb.SetupTest(t, "loginY")
+	defer tcY.Cleanup()
+
+	// log in with device Y
+	G = &tcY.G
+	larg := LoginEngineArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   u.Username,
+			Passphrase: u.Passphrase,
+			NoUi:       true,
+		},
+		KexSrv: kex.NewSender(kex.DirectionYtoX),
+	}
+
+	li := NewLoginEngine()
+	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	if err := RunEngine(li, ctx, larg, nil); err != nil {
+		t.Fatal(err)
+	}
 
 }
 

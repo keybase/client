@@ -31,8 +31,8 @@ type Kex struct {
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s kex.Handler, lksCli []byte, options ...func(*Kex)) *Kex {
-	k := &Kex{server: s, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+func NewKex(server kex.Handler, lksCli []byte, options ...func(*Kex)) *Kex {
+	k := &Kex{server: server, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
 	k.lks = libkb.NewLKSecClientHalf(lksCli)
 	for _, opt := range options {
 		opt(k)
@@ -46,6 +46,76 @@ func SetDebugName(name string) func(k *Kex) {
 	}
 }
 
+type FwdArgs struct {
+	User    *libkb.User
+	Src     libkb.DeviceID
+	Dst     libkb.DeviceID
+	DevType string
+	DevDesc string
+}
+
+func (k *Kex) Run(ctx *Context, args, reply interface{}) error {
+	k.engctx = ctx
+	fargs, ok := args.(FwdArgs)
+	if !ok {
+		return fmt.Errorf("invalid args type: %T", args)
+	}
+	return k.StartForward(ctx, fargs.User, fargs.Src, fargs.Dst, fargs.DevType, fargs.DevDesc)
+}
+
+// secret is needed before this can start because receive needs
+// the weak id, which is based on the strong id, which comes from
+// the secret.
+func (k *Kex) StartAccept(ectx *Context, u *libkb.User, src libkb.DeviceID, secret string, g *libkb.Global) error {
+	g.Log.Info("kex engine: StartAccept (%s)", secret)
+	k.user = u
+	k.deviceID = src
+	k.engctx = ectx
+
+	var err error
+	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(src)
+	if err != nil {
+		g.Log.Warning("StartAccept: error getting device sibkey: %s", err)
+		return err
+	}
+	arg := libkb.SecretKeyArg{
+		DeviceKey: true,
+		Reason:    "new device install",
+		Ui:        ectx.SecretUI,
+		Me:        k.user,
+	}
+	k.sigKey, err = g.Keyrings.GetSecretKey(arg)
+	if err != nil {
+		g.Log.Warning("GetSecretKey error: %s", err)
+		//return err
+	}
+
+	id, err := k.wordsToID(secret)
+	if err != nil {
+		return err
+	}
+	k.sessionID = id
+
+	ctx := &kex.Context{
+		Meta: kex.Meta{
+			UID:      k.user.GetUid(),
+			Src:      src,
+			StrongID: id,
+		},
+	}
+	copy(ctx.WeakID[:], id[0:16])
+
+	k.receive(ctx, kex.DirectionYtoX)
+	return nil
+}
+
+// StartForward starts the forward version of kex device
+// provisioning.
+//
+// It should be called on the new device, device Y.
+// src = device id of device Y
+// dst = device id of device X (the existing device that will sign
+// it)
 func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID, devType, devDesc string) error {
 	k.user = u
 	k.deviceID = src
@@ -71,6 +141,8 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 		},
 	}
 	copy(ctx.WeakID[:], id[0:16])
+
+	go k.receive(ctx, kex.DirectionXtoY)
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
@@ -368,6 +440,8 @@ func (k *Kex) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
 func (k *Kex) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
 
 func (k *Kex) verifyDst(ctx *kex.Context) error {
+	G.Log.Debug("kex context: src device %s => dst device %s", ctx.Src, ctx.Dst)
+	G.Log.Debug("kex context: own device %s", k.deviceID)
 	if ctx.Dst != k.deviceID {
 		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", ctx.Dst, k.deviceID)
 	}
@@ -389,4 +463,13 @@ func (k *Kex) verifyRequest(ctx *kex.Context) error {
 		return err
 	}
 	return nil
+}
+
+func (k *Kex) receive(ctx *kex.Context, dir kex.Direction) {
+	rec := kex.NewReceiver(k, dir)
+	for {
+		if err := rec.Receive(ctx); err != nil {
+			G.Log.Info("receive error: %s", err)
+		}
+	}
 }

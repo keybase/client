@@ -7,10 +7,12 @@ import (
 )
 
 type Sender struct {
+	seqno     int
+	direction Direction
 }
 
-func NewSender() *Sender {
-	return &Sender{}
+func NewSender(dir Direction) *Sender {
+	return &Sender{direction: dir}
 }
 
 func (s *Sender) StartKexSession(ctx *Context, id StrongID) error {
@@ -66,7 +68,9 @@ func (s *Sender) send(ctx *Context, body *Body) error {
 
 func (s *Sender) genMsg(ctx *Context, body *Body) (*Msg, error) {
 	msg := NewMsg(ctx, body)
-	msg.Direction = 1
+	msg.Direction = s.direction
+	s.seqno++
+	msg.Seqno = s.seqno
 	mac, err := msg.MacSum()
 	if err != nil {
 		return nil, err
@@ -85,7 +89,7 @@ func (s *Sender) post(msg *Msg) error {
 		Endpoint:    "kex/send",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
-			"dir":      libkb.I{Val: msg.Direction},
+			"dir":      libkb.I{Val: int(msg.Direction)},
 			"I":        libkb.S{Val: hex.EncodeToString(msg.StrongID[:])},
 			"msg":      libkb.S{Val: menc},
 			"receiver": libkb.S{Val: msg.Dst.String()},
