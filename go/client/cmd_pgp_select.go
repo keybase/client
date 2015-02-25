@@ -10,11 +10,11 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-type CmdMykeySelect struct {
+type CmdPGPSelect struct {
 	query string
 }
 
-func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
+func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 	if nargs := len(ctx.Args()); nargs == 1 {
 		v.query = ctx.Args()[0]
 	} else if nargs != 0 {
@@ -23,7 +23,7 @@ func (v *CmdMykeySelect) ParseArgv(ctx *cli.Context) (err error) {
 	return err
 }
 
-func (v *CmdMykeySelect) RunClient() error {
+func (v *CmdPGPSelect) RunClient() error {
 	c, err := GetMykeyClient()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (v *CmdMykeySelect) RunClient() error {
 	return c.Select(v.query)
 }
 
-func (v *CmdMykeySelect) Run() error {
+func (v *CmdPGPSelect) Run() error {
 	ctx := &engine.Context{
 		GPGUI:    G.UI.GetGPGUI(),
 		SecretUI: G.UI.GetSecretUI(),
@@ -50,18 +50,18 @@ func (v *CmdMykeySelect) Run() error {
 	return engine.RunEngine(gpg, ctx, arg, nil)
 }
 
-func NewCmdMykeySelect(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "select",
-		Usage:       "keybase mykey select [<key-query>]",
+		Usage:       "keybase pgp select [<key-query>]",
 		Description: "Select a key as your own and push it to the server",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdMykeySelect{}, "select", c)
+			cl.ChooseCommand(&CmdPGPSelect{}, "select", c)
 		},
 	}
 }
 
-func (v *CmdMykeySelect) GetUsage() libkb.Usage {
+func (v *CmdPGPSelect) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,

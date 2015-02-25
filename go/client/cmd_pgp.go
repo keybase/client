@@ -12,6 +12,7 @@ func NewCmdPGP(cl *libcmdline.CommandLine) cli.Command {
 		Description: "Manipulate keybase PGP keys",
 		Subcommands: []cli.Command{
 			NewCmdPGPGen(cl),
+			NewCmdPGPSelect(cl),
 		},
 	}
 }
