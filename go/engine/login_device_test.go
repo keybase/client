@@ -10,7 +10,23 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-func TestLoginNewDevice(t *testing.T) {
+// TestLoginNewDeviceFakeComm is a device provisioning test.  It
+// simulates the scenario where a user logs in to a new device and
+// uses an existing device to provision it.  This test uses
+// the api server for all kex communication.
+func TestLoginNewDeviceKex(t *testing.T) {
+
+}
+
+// TestLoginNewDeviceFakeComm is a device provisioning test.  It
+// simulates the scenario where a user logs in to a new device and
+// uses an existing device to provision it.  This test bypasses
+// the api server for all kex communication, so it's basically
+// testing the logic in the engine.
+//
+// It's possible we can get rid of this test when
+// TestLoginNewDeviceKex works.
+func TestLoginNewDeviceFakeComm(t *testing.T) {
 	kexTimeout = 1 * time.Second
 	// fake kex server implementation
 	ksrv := newKexsrv()

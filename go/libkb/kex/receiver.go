@@ -64,11 +64,18 @@ func (r *Receiver) get(ctx *Context) ([]*Msg, error) {
 	if err != nil {
 		return nil, err
 	}
-	messages := make([]*Msg, n)
+
+	var messages []*Msg
 	for i := 0; i < n; i++ {
-		messages[i], err = MsgImport(msgs.AtIndex(i))
+		m, err := MsgImport(msgs.AtIndex(i))
 		if err != nil {
-			return nil, err
+			if err != ErrMACMismatch {
+				return nil, err
+			} else {
+				G.Log.Warning("Received message with bad HMAC.  Ignoring it.")
+			}
+		} else {
+			messages = append(messages, m)
 		}
 	}
 

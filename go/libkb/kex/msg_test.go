@@ -103,3 +103,51 @@ func TestMAC(t *testing.T) {
 		t.Errorf("decoded body, mac check failed")
 	}
 }
+
+func TestMACBad(t *testing.T) {
+	tc := libkb.SetupTest(t, "kexnet")
+	defer tc.Cleanup()
+
+	ctx := testKexContext(t, "kexnetuser")
+	b := testBody(t)
+	msg := NewMsg(ctx, b)
+
+	if msg.Mac != nil {
+		t.Fatalf("mac: %x, expected nil", msg.Mac)
+	}
+
+	mac, err := msg.MacSum()
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg.Mac = mac
+
+	msg.Mac[0] = ^msg.Mac[0]
+	ok, err := msg.CheckMAC()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok {
+		t.Error("CheckMAC() was ok, expected failure")
+	}
+
+	// now, encode and decode and verify hmac still doesn't match
+	enc, err := msg.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	n, err := BodyDecode(enc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	decMsg := NewMsg(ctx, n)
+	ok, err = decMsg.CheckMAC()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok {
+		t.Error("decoded msg CheckMAC() was ok, expected failure")
+	}
+}
