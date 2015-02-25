@@ -1,9 +1,6 @@
 package kex
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"reflect"
 	"testing"
 
@@ -106,75 +103,3 @@ func TestMAC(t *testing.T) {
 		t.Errorf("decoded body, mac check failed")
 	}
 }
-
-func TestHMAC(t *testing.T) {
-	secret := [32]byte{1, 1, 1, 1, 1}
-	data := "8aa44172677388a744657644657363a0a84465764b65794944c0a744657654797065a0a84465766963654944b000000000000000000000000000000000ac4d65726b6c65547269706c6583a64c696e6b4964c0a55365716e6f00a55369674964c0a3536967a0aa5369676e696e674b6579da00200000000000000000000000000000000000000000000000000000000000000000a85374726f6e674944da00200101010101000000000000000000000000000000000000000000000000000000a9446972656374696f6e01a3447374b0ff2f2d60ade554684b7221d25a246718a34d6163c0a44e616d65a873746172746b6578a55365716e6f02a3537263b0d9e7c081bd29a99bbf8f05f55d5fe118a85374726f6e674944da00200101010101000000000000000000000000000000000000000000000000000000a3554944b02414879a8ebe2e77b0e078218b5ea119a65765616b4944b000000000000000000000000000000000"
-	b, err := hex.DecodeString(data)
-	if err != nil {
-		t.Fatal(err)
-	}
-	mac := hmac.New(sha256.New, secret[:])
-	_, err = mac.Write(b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sum := mac.Sum(nil)
-
-	output, err := hex.DecodeString("f8fd43df66f1263371c17b95f70d84b61e0776eb9a4663c61c17744083fd3af6")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !hmac.Equal(sum, output) {
-		t.Errorf("hmac: %x, expected: %x", sum, output)
-	}
-}
-
-// kth is a kex handler for testing.  It keeps track of how many
-// times the handle functions are called.
-type kth struct {
-	calls map[string]int
-}
-
-func newKth() *kth {
-	return &kth{calls: make(map[string]int)}
-}
-
-func (h *kth) callInc(name string) {
-	cur := h.callCount(name)
-	h.calls[name] = cur + 1
-}
-
-func (h *kth) callCount(name string) int {
-	if cur, ok := h.calls[name]; !ok {
-		return 0
-	} else {
-		return cur
-	}
-}
-
-func (h *kth) StartKexSession(ctx *Context, id StrongID) error {
-	h.callInc(startkexMsg)
-	return nil
-}
-
-func (h *kth) StartReverseKexSession(ctx *Context) error {
-	h.callInc(startrevkexMsg)
-	return nil
-}
-
-func (h *kth) Hello(ctx *Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	h.callInc(helloMsg)
-	return nil
-}
-
-func (h *kth) PleaseSign(ctx *Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	h.callInc(pleasesignMsg)
-	return nil
-}
-func (h *kth) Done(ctx *Context, mt libkb.MerkleTriple) error {
-	h.callInc(doneMsg)
-	return nil
-}
-
-func (h *kth) RegisterTestDevice(srv Handler, device libkb.DeviceID) error { return nil }
