@@ -79,44 +79,7 @@ func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) error {
 	if !ok {
 		return fmt.Errorf("GPG.Run: invalid args type: %T", args)
 	}
-	if arg.LoadDeviceKey {
-		return g.runLoadKey(ctx, arg.Query)
-	}
 	return g.run(ctx, arg.Signer, arg.Query)
-}
-
-func (g *GPG) runLoadKey(ctx *Context, query string) (err error) {
-	var me *libkb.User
-	var sk libkb.GenericKey
-
-	G.Log.Debug("+ GPG::runLoadKey")
-	defer func() {
-		G.Log.Debug("- GPG::runLoadKey -> %s", libkb.ErrToOk(err))
-	}()
-
-	if me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true}); err != nil {
-		return err
-	}
-
-	if !me.HasActiveKey() {
-		G.Log.Debug("| GPGEngine: User doesn't have an active key")
-	} else {
-		G.Log.Debug("| GPGEngine: Fetching secret key from keyring")
-		sk, err = G.Keyrings.GetSecretKey(libkb.SecretKeyArg{
-			All:    true,
-			Me:     me,
-			Ui:     ctx.SecretUI,
-			Reason: "sign selected PGP key",
-		})
-
-		if err != nil {
-			G.Log.Debug("| Failed to find secret key: %s", err.Error())
-			return
-		}
-	}
-
-	err = g.run(ctx, sk, query)
-	return
 }
 
 func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error {

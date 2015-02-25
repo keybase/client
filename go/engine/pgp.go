@@ -16,6 +16,7 @@ type PGPEngine struct {
 	bundle *libkb.PgpKeyBundle
 	arg    PGPEngineArg
 	epk    string
+	del    *libkb.Delegator
 }
 
 type PGPEngineArg struct {
@@ -91,7 +92,7 @@ func (s *PGPEngine) Run(ctx *Context, args interface{}, reply interface{}) (err 
 
 	if err = s.init(); err != nil {
 	} else if err = s.loadMe(); err != nil {
-	} else if err = s.loadSigningKey(ctx); err != nil {
+	} else if err = s.loadDelegator(ctx); err != nil {
 	} else if err = s.generate(ctx); err != nil {
 	} else {
 		err = s.push(ctx)
@@ -100,25 +101,16 @@ func (s *PGPEngine) Run(ctx *Context, args interface{}, reply interface{}) (err 
 	return
 }
 
-func (s *PGPEngine) loadSigningKey(ctx *Context) (err error) {
-	if s.arg.SigningKey != nil {
-		G.Log.Debug("| PGPEngine: argSigning Key was passed in")
-		return
+func (s *PGPEngine) loadDelegator(ctx *Context) (err error) {
+
+	s.del = &libkb.Delegator{
+		ExistingKey: s.arg.SigningKey,
+		Me:          s.me,
+		Expire:      libkb.KEY_EXPIRE_IN,
+		Sibkey:      true,
 	}
 
-	if !s.me.HasActiveKey() {
-		G.Log.Debug("| PGPEngine: no active key found, so assuming set of eldest key")
-		return
-	}
-
-	s.arg.SigningKey, err = G.Keyrings.GetSecretKey(libkb.SecretKeyArg{
-		All:    true,
-		Me:     s.me,
-		Ui:     ctx.SecretUI,
-		Reason: "sign new key",
-	})
-
-	return err
+	return s.del.LoadSigningKey(ctx.SecretUI)
 }
 
 func (s *PGPEngine) generate(ctx *Context) (err error) {
@@ -165,17 +157,9 @@ func (s *PGPEngine) prepareSecretPush(ctx *Context) (err error) {
 
 func (s *PGPEngine) push(ctx *Context) (err error) {
 	G.Log.Debug("+ PGP::Push")
-	defer func() {
-		G.Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
-	}()
-	d := libkb.Delegator{
-		ExistingKey:       s.arg.SigningKey,
-		NewKey:            s.bundle,
-		Me:                s.me,
-		Expire:            libkb.KEY_EXPIRE_IN,
-		Sibkey:            true,
-		EncodedPrivateKey: s.epk,
-	}
-	err = d.Run()
+	s.del.NewKey = s.bundle
+	s.del.EncodedPrivateKey = s.epk
+	err = s.del.Run()
+	G.Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
 	return
 }
