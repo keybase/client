@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
@@ -18,7 +19,7 @@ type Doctor struct {
 	*/
 
 	signingKey libkb.GenericKey
-	kexServer  KexHandler
+	kexServer  kex.Handler
 	devName    string
 }
 
@@ -41,7 +42,7 @@ func NewDoctor(options ...func(*Doctor)) *Doctor {
 	return d
 }
 
-func WithKexHandler(s KexHandler) func(r *Doctor) {
+func WithKexHandler(s kex.Handler) func(r *Doctor) {
 	return func(d *Doctor) {
 		d.kexServer = s
 	}

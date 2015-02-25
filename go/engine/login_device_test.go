@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
@@ -92,14 +93,14 @@ func (l *ldocuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) e
 }
 
 type kexsrv struct {
-	devices map[libkb.DeviceID]KexHandler
+	devices map[libkb.DeviceID]kex.Handler
 }
 
 func newKexsrv() *kexsrv {
-	return &kexsrv{devices: make(map[libkb.DeviceID]KexHandler)}
+	return &kexsrv{devices: make(map[libkb.DeviceID]kex.Handler)}
 }
 
-func (k *kexsrv) StartKexSession(ctx *KexContext, id KexStrongID) error {
+func (k *kexsrv) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
@@ -110,9 +111,9 @@ func (k *kexsrv) StartKexSession(ctx *KexContext, id KexStrongID) error {
 	return k.gocall(f)
 }
 
-func (k *kexsrv) StartReverseKexSession(ctx *KexContext) error { return nil }
+func (k *kexsrv) StartReverseKexSession(ctx *kex.Context) error { return nil }
 
-func (k *kexsrv) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
+func (k *kexsrv) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
@@ -123,7 +124,7 @@ func (k *kexsrv) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID
 	return k.gocall(f)
 }
 
-func (k *kexsrv) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
+func (k *kexsrv) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
@@ -134,7 +135,7 @@ func (k *kexsrv) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, s
 	return k.gocall(f)
 }
 
-func (k *kexsrv) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
+func (k *kexsrv) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
 	s, err := k.findDevice(ctx.Dst)
 	if err != nil {
 		return err
@@ -145,7 +146,7 @@ func (k *kexsrv) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 	return k.gocall(f)
 }
 
-func (k *kexsrv) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error {
+func (k *kexsrv) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error {
 	k.devices[device] = srv
 	return nil
 }
@@ -159,7 +160,7 @@ func (k *kexsrv) gocall(fn func() error) error {
 	return <-ch
 }
 
-func (k *kexsrv) findDevice(id libkb.DeviceID) (KexHandler, error) {
+func (k *kexsrv) findDevice(id libkb.DeviceID) (kex.Handler, error) {
 	s, ok := k.devices[id]
 	if !ok {
 		return nil, fmt.Errorf("device %x not registered", id)

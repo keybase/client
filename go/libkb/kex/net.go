@@ -1,4 +1,4 @@
-package engine
+package kex
 
 import (
 	"bytes"
@@ -25,46 +25,48 @@ const (
 
 var ErrMACMismatch = errors.New("Computed HMAC doesn't match message HMAC")
 
-var KexGlobalTimeout = 5 * time.Minute
+var GlobalTimeout = 5 * time.Minute
 
-type KexSender struct {
+var G = libkb.G
+
+type Sender struct {
 }
 
-func NewKexSender() *KexSender {
-	return &KexSender{}
+func NewSender() *Sender {
+	return &Sender{}
 }
 
-func (s *KexSender) StartKexSession(ctx *KexContext, id KexStrongID) error {
-	mb := &KexBody{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
+func (s *Sender) StartKexSession(ctx *Context, id StrongID) error {
+	mb := &Body{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
 	return s.post(ctx, mb)
 }
 
-func (s *KexSender) StartReverseKexSession(ctx *KexContext) error {
+func (s *Sender) StartReverseKexSession(ctx *Context) error {
 	return nil
 }
 
-func (s *KexSender) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	mb := &KexBody{Name: helloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
+func (s *Sender) Hello(ctx *Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
+	mb := &Body{Name: helloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
 	return s.post(ctx, mb)
 }
 
-func (s *KexSender) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	mb := &KexBody{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}}
+func (s *Sender) PleaseSign(ctx *Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
+	mb := &Body{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}}
 	return s.post(ctx, mb)
 }
 
-func (s *KexSender) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
-	mb := &KexBody{Name: doneMsg, Args: MsgArgs{MerkleTriple: mt}}
+func (s *Sender) Done(ctx *Context, mt libkb.MerkleTriple) error {
+	mb := &Body{Name: doneMsg, Args: MsgArgs{MerkleTriple: mt}}
 	return s.post(ctx, mb)
 }
 
 // XXX get rid of this when real client comm works
-func (s *KexSender) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error {
+func (s *Sender) RegisterTestDevice(srv Handler, device libkb.DeviceID) error {
 	return nil
 }
 
-func (s *KexSender) post(ctx *KexContext, body *KexBody) error {
-	msg := NewKexMsg(ctx, body)
+func (s *Sender) post(ctx *Context, body *Body) error {
+	msg := NewMsg(ctx, body)
 	msg.Direction = 1
 	mac, err := msg.MacSum()
 	if err != nil {
@@ -72,7 +74,7 @@ func (s *KexSender) post(ctx *KexContext, body *KexBody) error {
 	}
 	msg.Mac = mac
 
-	menc, err := msg.KexBody.Encode()
+	menc, err := msg.Body.Encode()
 	if err != nil {
 		return err
 	}
@@ -93,16 +95,16 @@ func (s *KexSender) post(ctx *KexContext, body *KexBody) error {
 }
 
 type KexReceiver struct {
-	handler KexHandler
+	handler Handler
 	seqno   int
 	pollDur time.Duration
 }
 
-func NewKexReceiver(handler KexHandler) *KexReceiver {
+func NewKexReceiver(handler Handler) *KexReceiver {
 	return &KexReceiver{handler: handler, pollDur: 20 * time.Second}
 }
 
-func (r *KexReceiver) Receive(ctx *KexContext) error {
+func (r *KexReceiver) Receive(ctx *Context) error {
 	msgs, err := r.get(ctx)
 	if err != nil {
 		return err
@@ -130,7 +132,7 @@ func (r *KexReceiver) ReceiveFilter(name string) error {
 	return nil
 }
 
-func (r *KexReceiver) get(ctx *KexContext) ([]*KexMsg, error) {
+func (r *KexReceiver) get(ctx *Context) ([]*Msg, error) {
 	res, err := G.API.Get(libkb.ApiArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
@@ -150,9 +152,9 @@ func (r *KexReceiver) get(ctx *KexContext) ([]*KexMsg, error) {
 	if err != nil {
 		return nil, err
 	}
-	messages := make([]*KexMsg, n)
+	messages := make([]*Msg, n)
 	for i := 0; i < n; i++ {
-		messages[i], err = KexMsgImport(msgs.AtIndex(i))
+		messages[i], err = MsgImport(msgs.AtIndex(i))
 		if err != nil {
 			return nil, err
 		}
@@ -161,19 +163,19 @@ func (r *KexReceiver) get(ctx *KexContext) ([]*KexMsg, error) {
 	return messages, nil
 }
 
-type KexMsg struct {
-	KexMeta
-	KexBody
+type Msg struct {
+	Meta
+	Body
 }
 
-func NewKexMsg(ctx *KexContext, body *KexBody) *KexMsg {
-	return &KexMsg{
-		KexMeta: ctx.KexMeta,
-		KexBody: *body,
+func NewMsg(ctx *Context, body *Body) *Msg {
+	return &Msg{
+		Meta: ctx.Meta,
+		Body: *body,
 	}
 }
 
-func (m *KexMsg) CheckMAC() (bool, error) {
+func (m *Msg) CheckMAC() (bool, error) {
 	sum, err := m.MacSum()
 	if err != nil {
 		return false, err
@@ -181,7 +183,7 @@ func (m *KexMsg) CheckMAC() (bool, error) {
 	return hmac.Equal(sum, m.Mac), nil
 }
 
-func (m *KexMsg) MacSum() ([]byte, error) {
+func (m *Msg) MacSum() ([]byte, error) {
 	t := m.Mac
 	defer func() { m.Mac = t }()
 	m.Mac = nil
@@ -193,7 +195,7 @@ func (m *KexMsg) MacSum() ([]byte, error) {
 	return m.mac(buf.Bytes(), m.StrongID[:]), nil
 }
 
-func (m *KexMsg) mac(message, key []byte) []byte {
+func (m *Msg) mac(message, key []byte) []byte {
 	mac := hmac.New(sha256.New, key)
 	mac.Write(message)
 	return mac.Sum(nil)
@@ -211,8 +213,8 @@ func deviceID(w *jsonw.Wrapper) (libkb.DeviceID, error) {
 	return *d, nil
 }
 
-func KexMsgImport(w *jsonw.Wrapper) (*KexMsg, error) {
-	r := &KexMsg{}
+func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
+	r := &Msg{}
 	u, err := libkb.GetUid(w.AtKey("uid"))
 	if err != nil {
 		return nil, err
@@ -261,11 +263,11 @@ func KexMsgImport(w *jsonw.Wrapper) (*KexMsg, error) {
 	if err != nil {
 		return nil, err
 	}
-	mb, err := KexBodyDecode(body)
+	mb, err := BodyDecode(body)
 	if err != nil {
 		return nil, err
 	}
-	r.KexBody = *mb
+	r.Body = *mb
 
 	ok, err := r.CheckMAC()
 	if err != nil {
@@ -281,7 +283,7 @@ func KexMsgImport(w *jsonw.Wrapper) (*KexMsg, error) {
 // MsgArgs has optional fields in it, but there aren't that many,
 // so just using the same struct for all msgs for simplicity.
 type MsgArgs struct {
-	StrongID     KexStrongID
+	StrongID     StrongID
 	DeviceID     libkb.DeviceID
 	DevKeyID     libkb.KID
 	SigningKey   libkb.NaclSigningKeyPublic
@@ -291,19 +293,19 @@ type MsgArgs struct {
 	MerkleTriple libkb.MerkleTriple
 }
 
-type KexBody struct {
+type Body struct {
 	Name string
 	Args MsgArgs
 	Mac  []byte
 }
 
-func KexBodyDecode(data string) (*KexBody, error) {
+func BodyDecode(data string) (*Body, error) {
 	bytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
 		return nil, err
 	}
 	var h codec.MsgpackHandle
-	var k KexBody
+	var k Body
 	err = codec.NewDecoderBytes(bytes, &h).Decode(&k)
 	if err != nil {
 		return nil, err
@@ -311,7 +313,7 @@ func KexBodyDecode(data string) (*KexBody, error) {
 	return &k, nil
 }
 
-func (k *KexBody) Encode() (string, error) {
+func (k *Body) Encode() (string, error) {
 	var buf bytes.Buffer
 	var h codec.MsgpackHandle
 	err := codec.NewEncoder(&buf, &h).Encode(k)

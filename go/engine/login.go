@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/kex"
 )
 
 type LoginEngineArg struct {
 	Login  libkb.LoginArg
-	KexSrv KexHandler
+	KexSrv kex.Handler
 }
 
 type LoginEngine struct{}

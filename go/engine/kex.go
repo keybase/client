@@ -7,62 +7,31 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/crypto/scrypt"
 )
 
-type KexStrongID [32]byte
-type KexWeakID [16]byte
-
-type KexMeta struct {
-	UID       libkb.UID
-	WeakID    KexWeakID   // `w` in doc
-	StrongID  KexStrongID // `I` in doc
-	Src       libkb.DeviceID
-	Dst       libkb.DeviceID
-	Seqno     int
-	Direction int
-}
-
-type KexContext struct {
-	KexMeta
-	*Context
-}
-
-func (c *KexContext) Swap() {
-	c.Src, c.Dst = c.Dst, c.Src
-}
-
-type KexHandler interface {
-	StartKexSession(ctx *KexContext, id KexStrongID) error
-	StartReverseKexSession(ctx *KexContext) error
-	Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error
-	PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
-	Done(ctx *KexContext, mt libkb.MerkleTriple) error
-
-	// XXX get rid of this when real client comm works
-	RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error
-}
-
 type Kex struct {
-	server        KexHandler
+	server        kex.Handler
 	user          *libkb.User
 	deviceID      libkb.DeviceID
 	deviceSibkey  libkb.GenericKey
 	sigKey        libkb.GenericKey
-	sessionID     KexStrongID
+	sessionID     kex.StrongID
 	helloReceived chan bool
 	doneReceived  chan bool
 	debugName     string
 	xDevKeyID     libkb.KID
 	lks           *libkb.LKSec
 	getSecret     func() string // testing only
+	engctx        *Context      // so that kex interface doesn't need to depend on engine ctx
 }
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(s KexHandler, lksCli []byte, options ...func(*Kex)) *Kex {
+func NewKex(s kex.Handler, lksCli []byte, options ...func(*Kex)) *Kex {
 	k := &Kex{server: s, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
 	k.lks = libkb.NewLKSecClientHalf(lksCli)
 	for _, opt := range options {
@@ -80,6 +49,7 @@ func SetDebugName(name string) func(k *Kex) {
 func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID, devType, devDesc string) error {
 	k.user = u
 	k.deviceID = src
+	k.engctx = ectx
 
 	// XXX this is just for testing
 	k.server.RegisterTestDevice(k, src)
@@ -92,20 +62,19 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 
 	k.sessionID = id
 
-	ctx := &KexContext{
-		KexMeta: KexMeta{
+	ctx := &kex.Context{
+		Meta: kex.Meta{
 			UID:      k.user.GetUid(),
 			StrongID: id,
 			Src:      src,
 			Dst:      dst,
 		},
-		Context: ectx,
 	}
 	copy(ctx.WeakID[:], id[0:16])
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
-	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
+	if err := ectx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
 		return err
 	}
 
@@ -135,10 +104,10 @@ func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID
 	}
 
 	// store E_y, M_y in lks
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, ctx.LogUI); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, ectx.LogUI); err != nil {
 		return err
 	}
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, ctx.LogUI); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, ectx.LogUI); err != nil {
 		return err
 	}
 
@@ -269,7 +238,7 @@ func (k *Kex) wordsToID(words string) ([32]byte, error) {
 	return sha256.Sum256(key), nil
 }
 
-func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
+func (k *Kex) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
@@ -301,9 +270,9 @@ func (k *Kex) StartKexSession(ctx *KexContext, id KexStrongID) error {
 	return k.server.Hello(ctx, ctx.Src, pair.GetKid())
 }
 
-func (k *Kex) StartReverseKexSession(ctx *KexContext) error { return nil }
+func (k *Kex) StartReverseKexSession(ctx *kex.Context) error { return nil }
 
-func (k *Kex) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) error {
+func (k *Kex) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	G.Log.Info("[%s] Hello Receive", k.debugName)
 	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
 	if err := k.verifyRequest(ctx); err != nil {
@@ -317,7 +286,7 @@ func (k *Kex) Hello(ctx *KexContext, devID libkb.DeviceID, devKeyID libkb.KID) e
 }
 
 // sig is the reverse sig.
-func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
+func (k *Kex) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
 	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
 	if err := k.verifyRequest(ctx); err != nil {
@@ -348,7 +317,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 		arg := libkb.SecretKeyArg{
 			DeviceKey: true,
 			Reason:    "new device install",
-			Ui:        ctx.SecretUI,
+			Ui:        k.engctx.SecretUI,
 			Me:        k.user,
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
@@ -382,7 +351,7 @@ func (k *Kex) PleaseSign(ctx *KexContext, eddsa libkb.NaclSigningKeyPublic, sig,
 	return k.server.Done(ctx, mt)
 }
 
-func (k *Kex) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
+func (k *Kex) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
 	G.Log.Info("[%s] Done Receive", k.debugName)
 	defer G.Log.Info("[%s] Done Receive done", k.debugName)
 	if err := k.verifyRequest(ctx); err != nil {
@@ -396,23 +365,23 @@ func (k *Kex) Done(ctx *KexContext, mt libkb.MerkleTriple) error {
 	return nil
 }
 
-func (k *Kex) RegisterTestDevice(srv KexHandler, device libkb.DeviceID) error { return nil }
+func (k *Kex) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
 
-func (k *Kex) verifyDst(ctx *KexContext) error {
+func (k *Kex) verifyDst(ctx *kex.Context) error {
 	if ctx.Dst != k.deviceID {
 		return fmt.Errorf("destination device id (%s) invalid.  this is device (%s).", ctx.Dst, k.deviceID)
 	}
 	return nil
 }
 
-func (k *Kex) verifySession(ctx *KexContext) error {
+func (k *Kex) verifySession(ctx *kex.Context) error {
 	if ctx.StrongID != k.sessionID {
 		return fmt.Errorf("%s: context StrongID (%x) != sessionID (%x)", k.debugName, ctx.StrongID, k.sessionID)
 	}
 	return nil
 }
 
-func (k *Kex) verifyRequest(ctx *KexContext) error {
+func (k *Kex) verifyRequest(ctx *kex.Context) error {
 	if err := k.verifyDst(ctx); err != nil {
 		return err
 	}
