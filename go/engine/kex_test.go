@@ -46,7 +46,7 @@ func TestBasicMessage(t *testing.T) {
 
 	h := newKth()
 	s := kex.NewSender()
-	r := kex.NewKexReceiver(h)
+	r := kex.NewReceiver(h)
 
 	ctx := testKexContext(t, fu.Username)
 	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
