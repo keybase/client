@@ -175,6 +175,12 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 			return LoggedInError{}
 		case SC_CANCELED:
 			return CanceledError{}
+		case SC_KEY_IN_USE:
+			var fp *PgpFingerprint
+			if len(s.Desc) > 0 {
+				fp, _ = PgpFingerprintFromHex(s.Desc)
+			}
+			return KeyExistsError{fp}
 		default:
 			ase := AppStatusError{
 				Code:   s.Code,
@@ -394,6 +400,17 @@ func (c CanceledError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
+func (c KeyExistsError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_KEY_IN_USE
+	s.Name = "KEY_IN_USE"
+	if c.Key != nil {
+		s.Desc = c.Key.String()
+	}
+	return
+}
+
+//=============================================================================
+
 func (ids Identities) Export() (res []keybase_1.PgpIdentity) {
 	var n int
 	if ids == nil {
@@ -451,7 +468,7 @@ func (u *User) Export() *keybase_1.User {
 
 //=============================================================================
 
-func (a PGPGenArg) Export() (ret keybase_1.KeyGenArg) {
+func (a PGPGenArg) ExportTo(ret *keybase_1.KeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.CreateUids = keybase_1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}

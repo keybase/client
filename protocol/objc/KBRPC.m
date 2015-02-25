@@ -367,8 +367,8 @@
 
 @implementation KBRMykeyRequest
 
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids)}];
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"allowMulti": @(allowMulti), @"doExport": @(doExport)}];
   [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGen" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];
@@ -395,8 +395,8 @@
   }];
 }
 
-- (void)selectWithQuery:(NSString *)query completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"query": KBRValue(query)}];
+- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL )allowMulti skipImport:(BOOL )skipImport completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"query": KBRValue(query), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport)}];
   [self.client sendRequestWithMethod:@"keybase.1.mykey.select" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];
@@ -896,6 +896,8 @@
     self.primaryBits = [params[0][@"primaryBits"] integerValue];
     self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
+    self.allowMulti = [params[0][@"allowMulti"] boolValue];
+    self.doExport = [params[0][@"doExport"] boolValue];
   }
   return self;
 }
@@ -921,6 +923,8 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.query = params[0][@"query"];
+    self.allowMulti = [params[0][@"allowMulti"] boolValue];
+    self.skipImport = [params[0][@"skipImport"] boolValue];
   }
   return self;
 }

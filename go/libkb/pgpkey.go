@@ -186,7 +186,6 @@ func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 	if err = ((*openpgp.Entity)(k)).Serialize(writer); err != nil {
 		return
 	}
-
 	if err = writer.Close(); err != nil {
 		return
 	}
@@ -247,7 +246,8 @@ func (k PgpKeyBundle) VerboseDescription() string {
 }
 
 func (k PgpKeyBundle) UsersDescription() []string {
-	var pri string
+	var pri *openpgp.Identity
+	var s string
 	if len(k.Identities) == 0 {
 		return []string{}
 	}
@@ -257,14 +257,19 @@ func (k PgpKeyBundle) UsersDescription() []string {
 			first = id
 		}
 		if id.SelfSignature != nil && id.SelfSignature.IsPrimaryId != nil && *id.SelfSignature.IsPrimaryId {
-			pri = id.Name
+			pri = id
 			break
 		}
 	}
-	if len(pri) == 0 {
-		pri = first.Name
+	if pri == nil {
+		pri = first
 	}
-	return []string{"user: " + pri}
+	if pri.UserId != nil {
+		s = pri.UserId.Id
+	} else {
+		s = pri.Name
+	}
+	return []string{"user: " + s}
 }
 
 func (k *PgpKeyBundle) CheckSecretKey() (err error) {

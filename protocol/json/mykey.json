@@ -135,6 +135,12 @@
       }, {
         "name" : "createUids",
         "type" : "PgpCreateUids"
+      }, {
+        "name" : "allowMulti",
+        "type" : "boolean"
+      }, {
+        "name" : "doExport",
+        "type" : "boolean"
       } ],
       "response" : "null"
     },
@@ -166,6 +172,12 @@
       "request" : [ {
         "name" : "query",
         "type" : "string"
+      }, {
+        "name" : "allowMulti",
+        "type" : "boolean"
+      }, {
+        "name" : "skipImport",
+        "type" : "boolean"
       } ],
       "response" : "null"
     }

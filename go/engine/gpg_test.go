@@ -2,26 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"testing"
-
-	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
-
-func TestGPGRun(t *testing.T) {
-	tc := libkb.SetupTest(t, "gpg")
-	defer tc.Cleanup()
-
-	if err := tc.GenerateGPGKeyring("xxx@xxx.com"); err != nil {
-		t.Fatal(err)
-	}
-
-	g := NewGPG()
-	ctx := &Context{GPGUI: &gpgcanceltestui{}}
-	if err := g.run(ctx, nil, ""); err != nil {
-		t.Fatal(err)
-	}
-}
 
 type gpgtestui struct {
 	index int

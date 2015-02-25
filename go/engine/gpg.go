@@ -15,22 +15,21 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-// LoadDeviceKey: true => then load the device key as a signer
-// else:
-// Signer: nil => will make the selected pgp key the primary
-// Signer: non-nil => will use Signer to sign selected pgp key
 type GPGArg struct {
-	Query         string
-	Signer        libkb.GenericKey
-	LoadDeviceKey bool
+	Query      string
+	Signer     libkb.GenericKey
+	AllowMulti bool
+	SkipImport bool
+	Me         *libkb.User
 }
 
 type GPG struct {
 	last *libkb.PgpKeyBundle
+	arg  *GPGArg
 }
 
-func NewGPG() *GPG {
-	return &GPG{}
+func NewGPG(arg *GPGArg) *GPG {
+	return &GPG{arg: arg}
 }
 
 func (e *GPG) GetPrereqs() EnginePrereqs {
@@ -74,20 +73,24 @@ func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
 	return res, nil
 }
 
-func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) error {
-	arg, ok := args.(GPGArg)
-	if !ok {
-		return fmt.Errorf("GPG.Run: invalid args type: %T", args)
-	}
-	return g.run(ctx, arg.Signer, arg.Query)
-}
+func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
 
-func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error {
 	gpg := G.GetGpgClient()
-	if _, err := gpg.Configure(); err != nil {
+
+	me := g.arg.Me
+	if me != nil {
+	} else if me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true}); err != nil {
 		return err
 	}
-	index, err, warns := gpg.Index(true, query)
+
+	if err = PGPCheckMulti(me, g.arg.AllowMulti); err != nil {
+		return err
+	}
+
+	if _, err = gpg.Configure(); err != nil {
+		return err
+	}
+	index, err, warns := gpg.Index(true, g.arg.Query)
 	if err != nil {
 		return err
 	}
@@ -132,7 +135,14 @@ func (g *GPG) run(ctx *Context, signingKey libkb.GenericKey, query string) error
 	}
 
 	G.Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
-	eng := NewPGPEngine(PGPEngineArg{Pregen: bundle, SigningKey: signingKey})
+
+	eng := NewPGPEngine(PGPEngineArg{
+		Pregen:     bundle,
+		SigningKey: g.arg.Signer,
+		Me:         me,
+		AllowMulti: g.arg.AllowMulti,
+		NoSave:     g.arg.SkipImport,
+	})
 	if err = RunEngine(eng, ctx, nil, nil); err != nil {
 		return fmt.Errorf("keygen run error: %s", err)
 	}

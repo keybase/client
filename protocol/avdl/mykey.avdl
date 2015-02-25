@@ -12,7 +12,9 @@ protocol mykey {
 	void keyGen(
 		int primaryBits,
 		int subkeyBits,
-		PgpCreateUids createUids
+		PgpCreateUids createUids,
+		boolean allowMulti,
+		boolean doExport
 	);
 
 	void keyGenDefault(
@@ -29,5 +31,5 @@ protocol mykey {
 	void show();
 
 	// select an existing key and add to kb
-	void select(string query);
+	void select(string query, boolean allowMulti, boolean skipImport);
 }

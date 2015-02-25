@@ -906,6 +906,8 @@ type KeyGenArg struct {
 	PrimaryBits int           `codec:"primaryBits"`
 	SubkeyBits  int           `codec:"subkeyBits"`
 	CreateUids  PgpCreateUids `codec:"createUids"`
+	AllowMulti  bool          `codec:"allowMulti"`
+	DoExport    bool          `codec:"doExport"`
 }
 
 type KeyGenDefaultArg struct {
@@ -922,7 +924,9 @@ type ShowArg struct {
 }
 
 type SelectArg struct {
-	Query string `codec:"query"`
+	Query      string `codec:"query"`
+	AllowMulti bool   `codec:"allowMulti"`
+	SkipImport bool   `codec:"skipImport"`
 }
 
 type MykeyInterface interface {
@@ -930,7 +934,7 @@ type MykeyInterface interface {
 	KeyGenDefault(KeyGenDefaultArg) error
 	DeletePrimary() error
 	Show() error
-	Select(string) error
+	Select(SelectArg) error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -968,7 +972,7 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 			"select": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]SelectArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Select(args[0].Query)
+					err = i.Select(args[0])
 				}
 				return
 			},
@@ -1001,8 +1005,7 @@ func (c MykeyClient) Show() (err error) {
 	return
 }
 
-func (c MykeyClient) Select(query string) (err error) {
-	__arg := SelectArg{Query: query}
+func (c MykeyClient) Select(__arg SelectArg) (err error) {
 	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
 	return
 }

@@ -257,7 +257,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		t.Fatal(err)
 	}
 
-	if err := s.addGPG(ctx); err != nil {
+	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -288,13 +288,13 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 		t.Fatal(err)
 	}
 
-	if err := s.addGPG(ctx); err != nil {
+	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)
 	}
 
 	// hack the gpg ui to select a different key:
 	ctx.GPGUI = &gpgtestui{index: 1}
-	if err := s.addGPG(ctx); err != nil {
+	if err := s.addGPG(ctx, true); err != nil {
 		t.Fatal(err)
 	}
 

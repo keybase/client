@@ -464,6 +464,9 @@ func (kf KeyFamily) FindKey(kid KID) (ret GenericKey) {
 	return
 }
 
+// FindKey finds any key in any list that matches the given KID.  No attention
+// is paid to whether or not the key is active.
+
 func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(s string, t time.Time) (ret *ComputedKeyInfo, err error) {
 	unixTime := t.Unix()
 	if ki := ckf.cki.Infos[s]; ki == nil {
@@ -766,13 +769,13 @@ func (cki ComputedKeyInfos) HasActiveKey() bool {
 
 // GetActivePgpKeys gets the active PGP keys from the ComputedKeyFamily.
 // If sibkey is False it will return all active PGP keys. Otherwise, it
-// will return only the Sibkeys.
+// will return only the Sibkeys. Note the keys need to be non-canceled,
+// and non-expired.
 func (ckf ComputedKeyFamily) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
 	for _, pgp := range ckf.kf.pgps {
-		if info, ok := ckf.cki.Infos[pgp.GetKid().String()]; ok {
-			if (!sibkey || info.Sibkey) && info.Status == KEY_UNCANCELLED {
-				ret = append(ret, pgp)
-			}
+		role := ckf.getKeyRoleFromStr(pgp.GetKid().String())
+		if (sibkey && role == DLG_SIBKEY) || role != DLG_NONE {
+			ret = append(ret, pgp)
 		}
 	}
 	return

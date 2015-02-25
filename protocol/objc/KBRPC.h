@@ -308,7 +308,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRMykeyRequest : KBRRequest
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
+- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion;
 
 - (void)keyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
@@ -316,7 +316,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)show:(void (^)(NSError *error))completion;
 
-- (void)selectWithQuery:(NSString *)query completion:(void (^)(NSError *error))completion;
+- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL )allowMulti skipImport:(BOOL )skipImport completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -519,6 +519,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger primaryBits;
 @property NSInteger subkeyBits;
 @property KBRPgpCreateUids *createUids;
+@property BOOL allowMulti;
+@property BOOL doExport;
 @end
 @interface KBRKeyGenDefaultRequestParams : KBRRequestParams
 @property KBRPgpCreateUids *createUids;
@@ -528,6 +530,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRSelectRequestParams : KBRRequestParams
 @property NSString *query;
+@property BOOL allowMulti;
+@property BOOL skipImport;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;
