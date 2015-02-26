@@ -36,7 +36,7 @@ func (c *CmdSibkeyAdd) RunClient() error {
 // Run runs the command in standalone mode.
 func (c *CmdSibkeyAdd) Run() error {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI()}
-	eng := engine.NewSibkey(c.phrase)
+	eng := engine.NewSibkey(G, c.phrase)
 	return engine.RunEngine(eng, ctx, nil, nil)
 }
 
