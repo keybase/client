@@ -82,6 +82,47 @@ func (d *Delegator) checkArgs() (err error) {
 	return nil
 }
 
+// LoadSigningKey can be called before Run() to load the signing key into
+// the delegator. This will check the given key first, then a device Key if we have one,
+// and otherwise will leave the signing key unset so that we will set it
+// as the eldest key on upload.
+func (d *Delegator) LoadSigningKey(ui SecretUI) (err error) {
+
+	G.Log.Debug("+ Delegator::LoadSigningKey")
+	defer func() {
+		G.Log.Debug("+ Delegator::LoadSigningKey -> %s, (found=%v)", ErrToOk(err), (d.signingKey != nil))
+	}()
+
+	if d.ExistingKey != nil {
+		G.Log.Debug("| Was set ahead of time")
+		return
+	}
+
+	if d.Me == nil {
+		d.Me, err = LoadMe(LoadUserArg{PublicKeyOptional: true})
+		if err != nil {
+			return
+		} else if d.Me == nil {
+			G.Log.Debug("| Me didn't load")
+			return
+		}
+	}
+
+	if !d.Me.HasActiveKey() {
+		G.Log.Debug("| PGPEngine: no active key found, so assuming set of eldest key")
+		return
+	}
+
+	d.ExistingKey, err = G.Keyrings.GetSecretKey(SecretKeyArg{
+		All:    true,
+		Me:     d.Me,
+		Ui:     ui,
+		Reason: "sign new key",
+	})
+
+	return err
+}
+
 // Run the Delegator, performing all necessary internal operations.  Return err
 // on failure and nil on success.
 func (d *Delegator) Run() (err error) {

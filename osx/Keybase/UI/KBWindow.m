@@ -31,7 +31,7 @@
 }
 
 + (NSWindow *)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain {
-  NSWindow *window = [[NSWindow alloc] init];
+  KBWindow *window = [[KBWindow alloc] init];
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask;
   window.hasShadow = YES;
   window.titleVisibility = NSWindowTitleHidden;
@@ -47,7 +47,7 @@
 }
 
 + (NSWindow *)windowWithContentView:(NSView *)contentView {
-  NSWindow *window = [[NSWindow alloc] init];
+  KBWindow *window = [[KBWindow alloc] init];
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask;
   window.hasShadow = YES;
   window.titleVisibility = NSWindowTitleHidden;

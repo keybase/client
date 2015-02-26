@@ -56,7 +56,7 @@ class GoEmitter
       @output [
         @go_export_case(f.name),
         type,
-        "`codec:\"#{f.name}#{omitempty}\"`"
+        "`codec:\"#{f.name}#{omitempty}\" json:\"#{f.name}\"`"
       ].join "\t"
     @untab()
     @output "}"

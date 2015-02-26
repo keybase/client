@@ -9,6 +9,8 @@ import (
 	stderrors "errors"
 	"github.com/keybase/client/go/libkb"
 	triplesec "github.com/keybase/go-triplesec"
+	"os/exec"
+	"strings"
 )
 
 type PGPEngine struct {
@@ -16,17 +18,24 @@ type PGPEngine struct {
 	bundle *libkb.PgpKeyBundle
 	arg    PGPEngineArg
 	epk    string
+	del    *libkb.Delegator
 }
 
 type PGPEngineArg struct {
 	Gen        *libkb.PGPGenArg
 	Pregen     *libkb.PgpKeyBundle
 	SigningKey libkb.GenericKey
+	Me         *libkb.User
 	NoSave     bool
 	PushSecret bool
+	AllowMulti bool
+	DoExport   bool
 }
 
 func (s *PGPEngine) loadMe() (err error) {
+	if s.me = s.arg.Me; s.me != nil {
+		return
+	}
 	s.me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	return err
 }
@@ -83,6 +92,11 @@ func (s *PGPEngine) init() (err error) {
 	return err
 }
 
+func (s *PGPEngine) testExisting() (err error) {
+	return PGPCheckMulti(s.me, s.arg.AllowMulti)
+
+}
+
 func (s *PGPEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
 	G.Log.Debug("+ PGPEngine::Run")
 	defer func() {
@@ -91,34 +105,47 @@ func (s *PGPEngine) Run(ctx *Context, args interface{}, reply interface{}) (err 
 
 	if err = s.init(); err != nil {
 	} else if err = s.loadMe(); err != nil {
-	} else if err = s.loadSigningKey(ctx); err != nil {
+	} else if err = s.testExisting(); err != nil {
+	} else if err = s.loadDelegator(ctx); err != nil {
 	} else if err = s.generate(ctx); err != nil {
-	} else {
-		err = s.push(ctx)
+	} else if err = s.push(ctx); err != nil {
+	} else if err = s.exportToGPG(ctx); err != nil {
 	}
 
 	return
 }
 
-func (s *PGPEngine) loadSigningKey(ctx *Context) (err error) {
-	if s.arg.SigningKey != nil {
-		G.Log.Debug("| PGPEngine: argSigning Key was passed in")
+func (s *PGPEngine) exportToGPG(ctx *Context) (err error) {
+	if !s.arg.DoExport || s.arg.Pregen != nil {
+		G.Log.Debug("| Skipping export to GPG")
 		return
 	}
+	gpg := G.GetGpgClient()
 
-	if !s.me.HasActiveKey() {
-		G.Log.Debug("| PGPEngine: no active key found, so assuming set of eldest key")
-		return
+	if _, err := gpg.Configure(); err != nil {
+		if err == exec.ErrNotFound {
+			G.Log.Debug("Not saving new key to GPG since no gpg install was found")
+			err = nil
+		}
+		return err
 	}
-
-	s.arg.SigningKey, err = G.Keyrings.GetSecretKey(libkb.SecretKeyArg{
-		All:    true,
-		Me:     s.me,
-		Ui:     ctx.SecretUI,
-		Reason: "sign new key",
-	})
-
+	err = gpg.ExportKey(*s.bundle)
+	if err == nil {
+		ctx.LogUI.Info("Exported new key to the local GPG keychain")
+	}
 	return err
+}
+
+func (s *PGPEngine) loadDelegator(ctx *Context) (err error) {
+
+	s.del = &libkb.Delegator{
+		ExistingKey: s.arg.SigningKey,
+		Me:          s.me,
+		Expire:      libkb.KEY_EXPIRE_IN,
+		Sibkey:      true,
+	}
+
+	return s.del.LoadSigningKey(ctx.SecretUI)
 }
 
 func (s *PGPEngine) generate(ctx *Context) (err error) {
@@ -165,17 +192,26 @@ func (s *PGPEngine) prepareSecretPush(ctx *Context) (err error) {
 
 func (s *PGPEngine) push(ctx *Context) (err error) {
 	G.Log.Debug("+ PGP::Push")
-	defer func() {
-		G.Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
-	}()
-	d := libkb.Delegator{
-		ExistingKey:       s.arg.SigningKey,
-		NewKey:            s.bundle,
-		Me:                s.me,
-		Expire:            libkb.KEY_EXPIRE_IN,
-		Sibkey:            true,
-		EncodedPrivateKey: s.epk,
+	s.del.NewKey = s.bundle
+	s.del.EncodedPrivateKey = s.epk
+	err = s.del.Run()
+	G.Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
+
+	ctx.LogUI.Info("Generated and pushed new PGP key:")
+	d := s.bundle.VerboseDescription()
+	for _, line := range strings.Split(d, "\n") {
+		ctx.LogUI.Info("  %s", line)
 	}
-	err = d.Run()
+
+	return
+}
+
+func PGPCheckMulti(me *libkb.User, allowMulti bool) (err error) {
+	if allowMulti {
+		return
+	}
+	if pgps := me.GetActivePgpKeys(false); len(pgps) > 0 {
+		err = libkb.KeyExistsError{pgps[0].GetFingerprintP()}
+	}
 	return
 }

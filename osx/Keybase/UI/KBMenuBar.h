@@ -14,6 +14,6 @@
 
 @interface KBMenuBar : YONSView
 
-- (void)setBackTitle:(NSString *)backTitle targetBlock:(KBButtonTargetBlock)targetBlock;
+- (void)setBackTitle:(NSString *)backTitle targetBlock:(dispatch_block_t)targetBlock;
 
 @end

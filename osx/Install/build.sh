@@ -5,10 +5,21 @@ cd $DIR
 
 rm -rf Keybase.dmg Applications
 
-xcodebuild -workspace ../Keybase.xcworkspace -scheme Keybase DSTROOT=$DIR archive
+# Build in Xcode and Export
+#xcodebuild -workspace ../Keybase.xcworkspace -scheme Keybase DSTROOT=$DIR archive
 
-echo "Copying keybase binaries..."
+if [ ! -d "Keybase.app" ]; then
+	echo "You need to Export an archived build from Xcode (Keybase.app)"
+	exit 1
+fi
+
+if [ ! -f "keybased" ]; then
+	echo "You need to build the keybase binaries (build_keybase.sh)"
+	exit 1
+fi
+
+echo "Copying keybase binaries into Keybase.app..."
 chmod +x keybased
-cp keybased Applications/Keybase.app/Contents/MacOS/
+cp keybased Keybase.app/Contents/MacOS/
 
 appdmg appdmg.json Keybase.dmg

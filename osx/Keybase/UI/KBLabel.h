@@ -21,6 +21,7 @@ typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
 typedef NS_ENUM(NSInteger, KBLabelStyle) {
   KBLabelStyleDefault,
   KBLabelStyleSecondaryText,
+  KBLabelStyleHeader,
 };;
 
 @interface KBLabel : YONSView
@@ -29,18 +30,18 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property (nonatomic) BOOL selectable;
 @property KBVerticalAlignment verticalAlignment;
 
++ (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style;
+
 - (void)setBackgroundColor:(NSColor *)backgroundColor;
 
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
 - (void)setText:(NSString *)text style:(KBLabelStyle)style;
-
 - (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
-
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
-
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
+- (void)setMarkup:(NSString *)markup;
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;

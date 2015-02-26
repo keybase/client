@@ -7,6 +7,7 @@
 //
 
 #import "KBLabelRow.h"
+#import "KBAppearance.h"
 
 @interface KBLabelRow ()
 @property KBLabel *label;
@@ -24,7 +25,7 @@
 
 - (void)layout {
   [super layout];
-  _label.frame = CGRectMake(16, 0, self.frame.size.width, self.frame.size.height);
+  _label.frame = CGRectMake(16, 0, self.frame.size.width - 16, self.frame.size.height);
 }
 
 //- (void)drawSelectionInRect:(NSRect)dirtyRect {

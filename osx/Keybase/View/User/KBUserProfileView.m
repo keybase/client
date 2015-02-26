@@ -18,6 +18,7 @@
 //#import "KBWebView.h"
 #import "KBProgressOverlayView.h"
 #import "KBProveView.h"
+#import "KBRPClient.h"
 
 @interface KBUserProfileView ()
 @property NSScrollView *scrollView;
@@ -27,6 +28,7 @@
 
 @property KBRUser *user;
 @property BOOL editable;
+@property id<KBRPClient> client;
 
 @property KBRFOKID *fokid;
 
@@ -118,12 +120,12 @@
 }
 
 - (void)reload {
-  [self setUser:self.user editable:self.editable];
+  [self setUser:self.user editable:self.editable client:self.client];
 }
 
-- (void)registerClient {
+- (void)registerClient:(id<KBRPClient>)client {
   GHWeakSelf gself = self;
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.displayKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.displayKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRFOKID *fokid = [MTLJSONAdapter modelOfClass:KBRFOKID.class fromJSONDictionary:params[0][@"fokid"] error:nil];
     gself.fokid = fokid;
     if (fokid.pgpFingerprint) {
@@ -134,7 +136,7 @@
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRIdentity *identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"id"] error:nil];
     //GHDebug(@"Identity: %@", identity);
     [gself.userInfoView addProofs:identity.proofs editable:gself.editable targetBlock:^(KBProofLabel *proofLabel) {
@@ -151,7 +153,7 @@
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRCryptocurrency *cryptocurrency = [MTLJSONAdapter modelOfClass:KBRCryptocurrency.class fromJSONDictionary:params[0][@"c"] error:nil];
     [gself.userInfoView addCryptocurrency:cryptocurrency];
     [gself setNeedsLayout];
@@ -160,7 +162,7 @@
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"%@", params);
     KBRRemoteProof *proof = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
     KBRLinkCheckResult *lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
@@ -170,7 +172,7 @@
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"%@", params);
     KBRRemoteProof *proof = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
     KBRLinkCheckResult *lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
@@ -179,7 +181,7 @@
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     //[yself.navigation.titleView setProgressEnabled:NO];
     [gself.headerView setProgressEnabled:NO];
 
@@ -193,11 +195,7 @@
     gself.trackView.hidden = NO;
     BOOL trackPrompt = [gself.trackView setUser:gself.user popup:gself.popup identifyOutcome:identifyOutcome trackResponse:^(KBRFinishAndPromptRes *response) {
       [AppDelegate setInProgress:YES view:gself.trackView];
-      if (gself.mock) {
-        [gself setTrackCompleted:nil];
-      } else {
-        completion(nil, response);
-      }
+      completion(nil, response);
     }];
     [gself setNeedsLayout];
 
@@ -207,17 +205,19 @@
     }
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.identifyUi.reportLastTrack" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 }
 
-- (void)setUser:(KBRUser *)user editable:(BOOL)editable {
+- (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(id<KBRPClient>)client {
   [self clear];
-  [self registerClient];
+  [self registerClient:client];
 
   _user = user;
   _editable = editable;
+  _client = client;
+  
   [_headerView setUser:_user];
   _headerView.hidden = NO;
 
@@ -226,18 +226,18 @@
   if (!_editable) {
     //[self.navigation.titleView setProgressEnabled:YES];
     [self.headerView setProgressEnabled:YES];
-    KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:AppDelegate.client];
+    KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:client];
     [trackRequest trackWithTheirName:user.username completion:^(NSError *error) {
       [gself setTrackCompleted:error];
-      [AppDelegate.client unregister:gself];
+      [client unregister:gself];
     }];
   } else {
     // For ourself
     [self.headerView setProgressEnabled:YES];
-    KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:AppDelegate.client];
+    KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:client];
     [identifyRequest identifyDefaultWithUsername:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
       [gself.headerView setProgressEnabled:NO];
-      [AppDelegate.client unregister:gself];
+      [client unregister:gself];
 
       if (error) {
         [AppDelegate setError:error sender:nil];

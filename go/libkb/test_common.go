@@ -65,8 +65,8 @@ func (to TestOutput) Write(p []byte) (n int, err error) {
 }
 
 type TestContext struct {
-	G          Global
-	PrevGlobal Global
+	G          GlobalContext
+	PrevGlobal GlobalContext
 	Tp         TestParameters
 	t          *testing.T
 }
@@ -134,7 +134,7 @@ func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 
 func setupTestContext(nm string) (tc TestContext, err error) {
 
-	var g Global = NewGlobal()
+	var g GlobalContext = NewGlobalContext()
 	g.Init()
 
 	// Set up our testing parameters.  We might add others later on

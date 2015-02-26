@@ -17,9 +17,7 @@
 @property KBNavigationView *navigation;
 @property (getter=isPopup) BOOL popup;
 
-@property BOOL mock;
-
-- (void)setUser:(KBRUser *)user editable:(BOOL)editable;
+- (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(id<KBRPClient>)client;
 
 - (void)clear;
 

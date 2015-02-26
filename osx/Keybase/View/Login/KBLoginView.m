@@ -19,6 +19,8 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
   KBLabel *label = [[KBLabel alloc] init];
   [label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
@@ -47,12 +49,12 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 30;
+    CGFloat y = 60;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 12;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 12;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 12;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 12;
 
     y += 30;
 
@@ -70,6 +72,15 @@
 - (void)viewDidAppear:(BOOL)animated {
   [self.window recalculateKeyViewLoop];
   [self.window makeFirstResponder:_usernameField];
+}
+
+- (void)setUser:(KBRUser *)user {
+  if ([user.username gh_present]) {
+    self.usernameField.text = user.username;
+    //self.usernameField.textField.editable = NO;
+  } else {
+    //self.usernameField.textField.editable = YES;
+  }
 }
 
 - (void)_checkStatusAfterLogin {

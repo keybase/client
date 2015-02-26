@@ -21,6 +21,8 @@
 @property KBBox *border;
 @property KBUserProfileView *userProfileView;
 
+@property KBBox *borderCol1;
+
 @property KBActivityIndicatorView *progressView;
 @property NSString *searchText;
 @end
@@ -30,10 +32,10 @@
 - (void)viewInit {
   [super viewInit];
 
-  _searchField = [[KBSearchField alloc] init];
-  _searchField.focusRingType = NSFocusRingTypeNone;
+  _searchField = [[NSSearchField alloc] init];
   _searchField.delegate = self;
   _searchField.placeholderString = @"Search";
+  _searchField.sendsWholeSearchString = YES;
   [_searchField.cell setMaximumRecents:20];
   [self addSubview:_searchField];
 
@@ -44,7 +46,11 @@
   };
   [self addSubview:_usersView];
 
+  _borderCol1 = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
+  [self addSubview:_borderCol1];
+
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
+  _searchResultsView.layer.borderWidth = 0;
   _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
     [view setSearchResult:searchResult];
   };
@@ -57,26 +63,31 @@
   [self addSubview:_userProfileView];
 
   _progressView = [[KBActivityIndicatorView alloc] init];
+  _progressView.lineWidth = 1.0;
   [self addSubview:_progressView];
 
   YOSelf yself = self;
 
   _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
-    [yself.userProfileView setUser:user editable:NO];
+    [yself.userProfileView setUser:user editable:NO client:AppDelegate.client];
   };
 
   _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
-    [yself.userProfileView setUser:KBRUserFromSearchResult(searchResult) editable:NO];
+    [yself.userProfileView setUser:KBRUserFromSearchResult(searchResult) editable:NO client:AppDelegate.client];
   };
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
     CGFloat col1 = 240;
-    CGFloat col1y = 10;
+    // If this y is too small, the search field focus will conflict with the window title bar drag
+    // and the search field will become really janky.
+    CGFloat col1y = 24;
 
     [layout setFrame:CGRectMake(col1 - 46, col1y + 4, 14, 14) view:yself.progressView];
 
-    col1y += [layout setFrame:CGRectMake(10, col1y, col1 - 21, 22) view:yself.searchField].size.height + 10;
+    col1y += [layout setFrame:CGRectMake(10, col1y, col1 - 21, 22) view:yself.searchField].size.height + 9;
+
+    [layout setFrame:CGRectMake(0, col1y - 1, col1, 1) view:yself.borderCol1];
 
     [layout setFrame:CGRectMake(0, col1y, col1 - 1, size.height - col1y) view:yself.usersView];
     [layout setFrame:CGRectMake(0, col1y, col1 - 1, size.height - col1y) view:yself.searchResultsView];
@@ -91,6 +102,7 @@
 }
 
 - (void)controlTextDidChange:(NSNotification *)notification {
+  //[self.window makeFirstResponder:_searchField];
   NSString *searchText = [[_searchField stringValue] gh_strip];
   [self search:searchText];
 }
@@ -152,14 +164,26 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   [self _searchRemoteDelay:searchText];
 }
 
-- (void)_searchRemote:(NSString *)searchText {
+- (void)_searchRemoteDelay:(NSString *)searchText {
+  GHWeakSelf blockSelf = self;
   _searchText = searchText;
 
-  if (!searchText || [searchText isEqualToString:@""]) {
+  if (!searchText || [searchText length] < 2) {
     [_searchResultsView removeAllObjects];
     [self setSearchProgressEnabled:NO];
     return;
   }
+
+  [self setSearchProgressEnabled:YES];
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 700 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+    if ([blockSelf.searchText isEqual:searchText]) {
+      [blockSelf _searchRemote:searchText];
+    }
+  });
+}
+
+- (void)_searchRemote:(NSString *)searchText {
+  _searchText = searchText;
 
   [self setSearchProgressEnabled:YES];
 
@@ -179,17 +203,6 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
         [AppDelegate setError:error sender:self];
       });
     }];
-  });
-}
-
-- (void)_searchRemoteDelay:(NSString *)searchText {
-  GHWeakSelf blockSelf = self;
-  _searchText = searchText;
-  [self setSearchProgressEnabled:YES];
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 700 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
-    if ([blockSelf.searchText isEqual:searchText]) {
-      [blockSelf _searchRemote:searchText];
-    }
   });
 }
 

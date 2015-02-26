@@ -201,7 +201,7 @@ type IdentifyUI interface {
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*keybase_1.TrackSummary)
 	Start()
-	LaunchNetworkChecks(*keybase_1.Identity)
+	LaunchNetworkChecks(*keybase_1.Identity, *keybase_1.User)
 	DisplayTrackStatement(string) error
 	SetUsername(username string)
 	SetStrict(b bool)

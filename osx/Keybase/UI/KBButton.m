@@ -48,6 +48,13 @@
   return button;
 }
 
++ (instancetype)linkWithText:(NSString *)text actionBlock:(KBButtonActionBlock)actionBlock {
+  KBButton *button = [[KBButton alloc] init];
+  [button setText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+  button.actionBlock = actionBlock;
+  return button;
+}
+
 + (instancetype)buttonWithImage:(NSImage *)image {
   KBButton *button = [[KBButton alloc] init];
   button.image = image;
@@ -130,12 +137,9 @@
   [self setNeedsDisplay];
 }
 
-- (void)setTargetBlock:(KBButtonTargetBlock)targetBlock {
-  _targetBlock = targetBlock;
-}
-
 - (void)_performTargetBlock {
-  if (self.targetBlock) self.targetBlock();
+  if (self.targetBlock) self.targetBlock(); // Deprecated
+  if (self.actionBlock) self.actionBlock(self);
 }
 
 + (NSFont *)fontForStyle:(KBButtonStyle)style {

@@ -13,6 +13,12 @@
 
 @class KBRPClient;
 
+@protocol KBRPClient
+- (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
+- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler;
+- (void)unregister:(id)owner;
+@end
+
 @protocol KBRPClientDelegate
 - (void)RPClientDidConnect:(KBRPClient *)RPClient;
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient;
@@ -20,7 +26,7 @@
 @end
 
 
-@interface KBRPClient : NSObject <MPMessagePackClientDelegate>
+@interface KBRPClient : NSObject <KBRPClient, MPMessagePackClientDelegate>
 
 @property (weak) id<KBRPClientDelegate> delegate;
 
@@ -35,17 +41,5 @@
 - (void)check:(void (^)(NSError *error))completion;
 - (void)openAndCheck:(void (^)(NSError *error))completion;
 
-- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler;
-
-- (void)unregister:(id)owner;
-
-- (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
-
-
-#pragma mark Debug
-
-- (void)replayRecordId:(NSString *)recordId;
-
-- (void)paramsFromRecordId:(NSString *)recordId file:(NSString *)file completion:(void (^)(NSArray *params))completion;
 
 @end

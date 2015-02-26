@@ -79,6 +79,6 @@ protocol identifyUi {
 	void displayCryptocurrency(int sessionID, Cryptocurrency c);
 	void displayKey(int sessionID, FOKID fokid, union { null, TrackDiff } diff);
 	void reportLastTrack(int sessionID, union { null, TrackSummary } track);
-	void launchNetworkChecks(int sessionID, Identity id);
+	void launchNetworkChecks(int sessionID, Identity id, User user);
 	void displayTrackStatement(int sessionID, string stmt);
 }

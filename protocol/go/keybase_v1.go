@@ -9,71 +9,71 @@ type GenericClient interface {
 }
 
 type StringKVPair struct {
-	Key   string `codec:"key"`
-	Value string `codec:"value"`
+	Key   string `codec:"key" json:"key"`
+	Value string `codec:"value" json:"value"`
 }
 
 type Status struct {
-	Code   int            `codec:"code"`
-	Name   string         `codec:"name"`
-	Desc   string         `codec:"desc"`
-	Fields []StringKVPair `codec:"fields"`
+	Code   int            `codec:"code" json:"code"`
+	Name   string         `codec:"name" json:"name"`
+	Desc   string         `codec:"desc" json:"desc"`
+	Fields []StringKVPair `codec:"fields" json:"fields"`
 }
 
 type UID [16]byte
 type LoadUserArg struct {
-	Uid      *UID    `codec:"uid,omitempty"`
-	Username *string `codec:"username,omitempty"`
-	Self     bool    `codec:"self"`
+	Uid      *UID    `codec:"uid,omitempty" json:"uid"`
+	Username *string `codec:"username,omitempty" json:"username"`
+	Self     bool    `codec:"self" json:"self"`
 }
 
 type FOKID struct {
-	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty"`
-	Kid            *[]byte `codec:"kid,omitempty"`
+	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint"`
+	Kid            *[]byte `codec:"kid,omitempty" json:"kid"`
 }
 
 type Text struct {
-	Data   string `codec:"data"`
-	Markup bool   `codec:"markup"`
+	Data   string `codec:"data" json:"data"`
+	Markup bool   `codec:"markup" json:"markup"`
 }
 
 type PgpIdentity struct {
-	Username string `codec:"username"`
-	Comment  string `codec:"comment"`
-	Email    string `codec:"email"`
+	Username string `codec:"username" json:"username"`
+	Comment  string `codec:"comment" json:"comment"`
+	Email    string `codec:"email" json:"email"`
 }
 
 type Image struct {
-	Url    string `codec:"url"`
-	Width  int    `codec:"width"`
-	Height int    `codec:"height"`
+	Url    string `codec:"url" json:"url"`
+	Width  int    `codec:"width" json:"width"`
+	Height int    `codec:"height" json:"height"`
 }
 
 type User struct {
-	Uid      UID    `codec:"uid"`
-	Username string `codec:"username"`
-	Image    *Image `codec:"image,omitempty"`
+	Uid      UID    `codec:"uid" json:"uid"`
+	Username string `codec:"username" json:"username"`
+	Image    *Image `codec:"image,omitempty" json:"image"`
 }
 
 type SIGID [32]byte
 type AnnounceSessionArg struct {
-	Sid string `codec:"sid"`
+	Sid string `codec:"sid" json:"sid"`
 }
 
 type GetArg struct {
-	Blockid []byte `codec:"blockid"`
-	Uid     UID    `codec:"uid"`
+	Blockid []byte `codec:"blockid" json:"blockid"`
+	Uid     UID    `codec:"uid" json:"uid"`
 }
 
 type DeleteArg struct {
-	Blockid []byte `codec:"blockid"`
-	Uid     UID    `codec:"uid"`
+	Blockid []byte `codec:"blockid" json:"blockid"`
+	Uid     UID    `codec:"uid" json:"uid"`
 }
 
 type PutArg struct {
-	Blockid []byte `codec:"blockid"`
-	Uid     UID    `codec:"uid"`
-	Buf     []byte `codec:"buf"`
+	Blockid []byte `codec:"blockid" json:"blockid"`
+	Uid     UID    `codec:"uid" json:"uid"`
+	Buf     []byte `codec:"buf" json:"buf"`
 }
 
 type BlockInterface interface {
@@ -146,11 +146,11 @@ func (c BlockClient) Put(__arg PutArg) (err error) {
 }
 
 type GetCurrentStatusRes struct {
-	Configured bool   `codec:"configured"`
-	Registered bool   `codec:"registered"`
-	LoggedIn   bool   `codec:"loggedIn"`
-	User       *User  `codec:"user,omitempty"`
-	ServerUri  string `codec:"serverUri"`
+	Configured bool   `codec:"configured" json:"configured"`
+	Registered bool   `codec:"registered" json:"registered"`
+	LoggedIn   bool   `codec:"loggedIn" json:"loggedIn"`
+	User       *User  `codec:"user,omitempty" json:"user"`
+	ServerUri  string `codec:"serverUri" json:"serverUri"`
 }
 
 type GetCurrentStatusArg struct {
@@ -201,35 +201,35 @@ const (
 )
 
 type DeviceSigner struct {
-	Kind     DeviceSignerKind `codec:"kind"`
-	DeviceID *string          `codec:"deviceID,omitempty"`
+	Kind     DeviceSignerKind `codec:"kind" json:"kind"`
+	DeviceID *string          `codec:"deviceID,omitempty" json:"deviceID"`
 }
 
 type SelectSignerRes struct {
-	Action SelectSignerAction `codec:"action"`
-	Signer *DeviceSigner      `codec:"signer,omitempty"`
+	Action SelectSignerAction `codec:"action" json:"action"`
+	Signer *DeviceSigner      `codec:"signer,omitempty" json:"signer"`
 }
 
 type Device struct {
-	Type     string `codec:"type"`
-	Name     string `codec:"name"`
-	DeviceID string `codec:"deviceID"`
+	Type     string `codec:"type" json:"type"`
+	Name     string `codec:"name" json:"name"`
+	DeviceID string `codec:"deviceID" json:"deviceID"`
 }
 
 type PromptDeviceNameArg struct {
-	SessionID int `codec:"sessionID"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type SelectSignerArg struct {
-	SessionID int      `codec:"sessionID"`
-	Devices   []Device `codec:"devices"`
-	HasPGP    bool     `codec:"hasPGP"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Devices   []Device `codec:"devices" json:"devices"`
+	HasPGP    bool     `codec:"hasPGP" json:"hasPGP"`
 }
 
 type DisplaySecretWordsArg struct {
-	SessionID       int    `codec:"sessionID"`
-	Secret          string `codec:"secret"`
-	XDevDescription string `codec:"xDevDescription"`
+	SessionID       int    `codec:"sessionID" json:"sessionID"`
+	Secret          string `codec:"secret" json:"secret"`
+	XDevDescription string `codec:"xDevDescription" json:"xDevDescription"`
 }
 
 type DoctorUiInterface interface {
@@ -321,30 +321,30 @@ func (c GpgClient) AddGpgKey() (err error) {
 }
 
 type GPGKey struct {
-	Algorithm  string   `codec:"algorithm"`
-	KeyID      string   `codec:"keyID"`
-	Creation   string   `codec:"creation"`
-	Expiration string   `codec:"expiration"`
-	Identities []string `codec:"identities"`
+	Algorithm  string   `codec:"algorithm" json:"algorithm"`
+	KeyID      string   `codec:"keyID" json:"keyID"`
+	Creation   string   `codec:"creation" json:"creation"`
+	Expiration string   `codec:"expiration" json:"expiration"`
+	Identities []string `codec:"identities" json:"identities"`
 }
 
 type SelectKeyRes struct {
-	KeyID        string `codec:"keyID"`
-	DoSecretPush bool   `codec:"doSecretPush"`
+	KeyID        string `codec:"keyID" json:"keyID"`
+	DoSecretPush bool   `codec:"doSecretPush" json:"doSecretPush"`
 }
 
 type WantToAddGPGKeyArg struct {
-	SessionID int `codec:"sessionID"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type SelectKeyAndPushOptionArg struct {
-	SessionID int      `codec:"sessionID"`
-	Keys      []GPGKey `codec:"keys"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Keys      []GPGKey `codec:"keys" json:"keys"`
 }
 
 type SelectKeyArg struct {
-	SessionID int      `codec:"sessionID"`
-	Keys      []GPGKey `codec:"keys"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Keys      []GPGKey `codec:"keys" json:"keys"`
 }
 
 type GpgUiInterface interface {
@@ -418,42 +418,42 @@ const (
 )
 
 type TrackDiff struct {
-	Type          TrackDiffType `codec:"type"`
-	DisplayMarkup string        `codec:"displayMarkup"`
+	Type          TrackDiffType `codec:"type" json:"type"`
+	DisplayMarkup string        `codec:"displayMarkup" json:"displayMarkup"`
 }
 
 type TrackSummary struct {
-	Time     int  `codec:"time"`
-	IsRemote bool `codec:"isRemote"`
+	Time     int  `codec:"time" json:"time"`
+	IsRemote bool `codec:"isRemote" json:"isRemote"`
 }
 
 type IdentifyOutcome struct {
-	Status            *Status       `codec:"status,omitempty"`
-	Warnings          []string      `codec:"warnings"`
-	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty"`
-	NumTrackFailures  int           `codec:"numTrackFailures"`
-	NumTrackChanges   int           `codec:"numTrackChanges"`
-	NumProofFailures  int           `codec:"numProofFailures"`
-	NumDeleted        int           `codec:"numDeleted"`
-	NumProofSuccesses int           `codec:"numProofSuccesses"`
-	Deleted           []TrackDiff   `codec:"deleted"`
+	Status            *Status       `codec:"status,omitempty" json:"status"`
+	Warnings          []string      `codec:"warnings" json:"warnings"`
+	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty" json:"trackUsed"`
+	NumTrackFailures  int           `codec:"numTrackFailures" json:"numTrackFailures"`
+	NumTrackChanges   int           `codec:"numTrackChanges" json:"numTrackChanges"`
+	NumProofFailures  int           `codec:"numProofFailures" json:"numProofFailures"`
+	NumDeleted        int           `codec:"numDeleted" json:"numDeleted"`
+	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
+	Deleted           []TrackDiff   `codec:"deleted" json:"deleted"`
 }
 
 type IdentifyRes struct {
-	User    *User           `codec:"user,omitempty"`
-	Outcome IdentifyOutcome `codec:"outcome"`
+	User    *User           `codec:"user,omitempty" json:"user"`
+	Outcome IdentifyOutcome `codec:"outcome" json:"outcome"`
 }
 
 type IdentifyArg struct {
-	Uid            UID    `codec:"uid"`
-	Username       string `codec:"username"`
-	TrackStatement bool   `codec:"trackStatement"`
-	Luba           bool   `codec:"luba"`
-	LoadSelf       bool   `codec:"loadSelf"`
+	Uid            UID    `codec:"uid" json:"uid"`
+	Username       string `codec:"username" json:"username"`
+	TrackStatement bool   `codec:"trackStatement" json:"trackStatement"`
+	Luba           bool   `codec:"luba" json:"luba"`
+	LoadSelf       bool   `codec:"loadSelf" json:"loadSelf"`
 }
 
 type IdentifyDefaultArg struct {
-	Username string `codec:"username"`
+	Username string `codec:"username" json:"username"`
 }
 
 type IdentifyInterface interface {
@@ -500,115 +500,116 @@ func (c IdentifyClient) IdentifyDefault(username string) (res IdentifyRes, err e
 }
 
 type ProofStatus struct {
-	State  int    `codec:"state"`
-	Status int    `codec:"status"`
-	Desc   string `codec:"desc"`
+	State  int    `codec:"state" json:"state"`
+	Status int    `codec:"status" json:"status"`
+	Desc   string `codec:"desc" json:"desc"`
 }
 
 type RemoteProof struct {
-	ProofType     int    `codec:"proofType"`
-	Key           string `codec:"key"`
-	Value         string `codec:"value"`
-	DisplayMarkup string `codec:"displayMarkup"`
-	SigId         SIGID  `codec:"sigId"`
-	Mtime         int    `codec:"mtime"`
+	ProofType     int    `codec:"proofType" json:"proofType"`
+	Key           string `codec:"key" json:"key"`
+	Value         string `codec:"value" json:"value"`
+	DisplayMarkup string `codec:"displayMarkup" json:"displayMarkup"`
+	SigId         SIGID  `codec:"sigId" json:"sigId"`
+	Mtime         int    `codec:"mtime" json:"mtime"`
 }
 
 type IdentifyRow struct {
-	RowId     int         `codec:"rowId"`
-	Proof     RemoteProof `codec:"proof"`
-	TrackDiff *TrackDiff  `codec:"trackDiff,omitempty"`
+	RowId     int         `codec:"rowId" json:"rowId"`
+	Proof     RemoteProof `codec:"proof" json:"proof"`
+	TrackDiff *TrackDiff  `codec:"trackDiff,omitempty" json:"trackDiff"`
 }
 
 type IdentifyKey struct {
-	PgpFingerprint []byte     `codec:"pgpFingerprint"`
-	KID            []byte     `codec:"KID"`
-	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty"`
+	PgpFingerprint []byte     `codec:"pgpFingerprint" json:"pgpFingerprint"`
+	KID            []byte     `codec:"KID" json:"KID"`
+	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff"`
 }
 
 type Cryptocurrency struct {
-	RowId   int    `codec:"rowId"`
-	Pkhash  []byte `codec:"pkhash"`
-	Address string `codec:"address"`
+	RowId   int    `codec:"rowId" json:"rowId"`
+	Pkhash  []byte `codec:"pkhash" json:"pkhash"`
+	Address string `codec:"address" json:"address"`
 }
 
 type Identity struct {
-	Status          *Status          `codec:"status,omitempty"`
-	WhenLastTracked int              `codec:"whenLastTracked"`
-	Key             IdentifyKey      `codec:"key"`
-	Proofs          []IdentifyRow    `codec:"proofs"`
-	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency"`
-	Deleted         []TrackDiff      `codec:"deleted"`
+	Status          *Status          `codec:"status,omitempty" json:"status"`
+	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
+	Key             IdentifyKey      `codec:"key" json:"key"`
+	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
+	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
+	Deleted         []TrackDiff      `codec:"deleted" json:"deleted"`
 }
 
 type SigHint struct {
-	RemoteId  string `codec:"remoteId"`
-	HumanUrl  string `codec:"humanUrl"`
-	ApiUrl    string `codec:"apiUrl"`
-	CheckText string `codec:"checkText"`
+	RemoteId  string `codec:"remoteId" json:"remoteId"`
+	HumanUrl  string `codec:"humanUrl" json:"humanUrl"`
+	ApiUrl    string `codec:"apiUrl" json:"apiUrl"`
+	CheckText string `codec:"checkText" json:"checkText"`
 }
 
 type CheckResult struct {
-	ProofStatus   ProofStatus `codec:"proofStatus"`
-	Timestamp     int         `codec:"timestamp"`
-	DisplayMarkup string      `codec:"displayMarkup"`
+	ProofStatus   ProofStatus `codec:"proofStatus" json:"proofStatus"`
+	Timestamp     int         `codec:"timestamp" json:"timestamp"`
+	DisplayMarkup string      `codec:"displayMarkup" json:"displayMarkup"`
 }
 
 type LinkCheckResult struct {
-	ProofId     int          `codec:"proofId"`
-	ProofStatus ProofStatus  `codec:"proofStatus"`
-	Cached      *CheckResult `codec:"cached,omitempty"`
-	Diff        *TrackDiff   `codec:"diff,omitempty"`
-	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty"`
-	Hint        *SigHint     `codec:"hint,omitempty"`
+	ProofId     int          `codec:"proofId" json:"proofId"`
+	ProofStatus ProofStatus  `codec:"proofStatus" json:"proofStatus"`
+	Cached      *CheckResult `codec:"cached,omitempty" json:"cached"`
+	Diff        *TrackDiff   `codec:"diff,omitempty" json:"diff"`
+	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff"`
+	Hint        *SigHint     `codec:"hint,omitempty" json:"hint"`
 }
 
 type FinishAndPromptRes struct {
-	TrackLocal  bool `codec:"trackLocal"`
-	TrackRemote bool `codec:"trackRemote"`
+	TrackLocal  bool `codec:"trackLocal" json:"trackLocal"`
+	TrackRemote bool `codec:"trackRemote" json:"trackRemote"`
 }
 
 type FinishAndPromptArg struct {
-	SessionID int             `codec:"sessionID"`
-	Outcome   IdentifyOutcome `codec:"outcome"`
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Outcome   IdentifyOutcome `codec:"outcome" json:"outcome"`
 }
 
 type FinishWebProofCheckArg struct {
-	SessionID int             `codec:"sessionID"`
-	Rp        RemoteProof     `codec:"rp"`
-	Lcr       LinkCheckResult `codec:"lcr"`
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Rp        RemoteProof     `codec:"rp" json:"rp"`
+	Lcr       LinkCheckResult `codec:"lcr" json:"lcr"`
 }
 
 type FinishSocialProofCheckArg struct {
-	SessionID int             `codec:"sessionID"`
-	Rp        RemoteProof     `codec:"rp"`
-	Lcr       LinkCheckResult `codec:"lcr"`
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Rp        RemoteProof     `codec:"rp" json:"rp"`
+	Lcr       LinkCheckResult `codec:"lcr" json:"lcr"`
 }
 
 type DisplayCryptocurrencyArg struct {
-	SessionID int            `codec:"sessionID"`
-	C         Cryptocurrency `codec:"c"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	C         Cryptocurrency `codec:"c" json:"c"`
 }
 
 type DisplayKeyArg struct {
-	SessionID int        `codec:"sessionID"`
-	Fokid     FOKID      `codec:"fokid"`
-	Diff      *TrackDiff `codec:"diff,omitempty"`
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Fokid     FOKID      `codec:"fokid" json:"fokid"`
+	Diff      *TrackDiff `codec:"diff,omitempty" json:"diff"`
 }
 
 type ReportLastTrackArg struct {
-	SessionID int           `codec:"sessionID"`
-	Track     *TrackSummary `codec:"track,omitempty"`
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	Track     *TrackSummary `codec:"track,omitempty" json:"track"`
 }
 
 type LaunchNetworkChecksArg struct {
-	SessionID int      `codec:"sessionID"`
-	Id        Identity `codec:"id"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Id        Identity `codec:"id" json:"id"`
+	User      User     `codec:"user" json:"user"`
 }
 
 type DisplayTrackStatementArg struct {
-	SessionID int    `codec:"sessionID"`
-	Stmt      string `codec:"stmt"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Stmt      string `codec:"stmt" json:"stmt"`
 }
 
 type IdentifyUiInterface interface {
@@ -744,9 +745,9 @@ const (
 )
 
 type LogArg struct {
-	SessionID int      `codec:"sessionID"`
-	Level     LogLevel `codec:"level"`
-	Text      Text     `codec:"text"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Level     LogLevel `codec:"level" json:"level"`
+	Text      Text     `codec:"text" json:"text"`
 }
 
 type LogUiInterface interface {
@@ -779,9 +780,9 @@ func (c LogUiClient) Log(__arg LogArg) (err error) {
 }
 
 type PassphraseLoginArg struct {
-	Identify   bool   `codec:"identify"`
-	Username   string `codec:"username"`
-	Passphrase string `codec:"passphrase"`
+	Identify   bool   `codec:"identify" json:"identify"`
+	Username   string `codec:"username" json:"username"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
 }
 
 type PubkeyLoginArg struct {
@@ -791,7 +792,7 @@ type LogoutArg struct {
 }
 
 type SwitchUserArg struct {
-	Username string `codec:"username"`
+	Username string `codec:"username" json:"username"`
 }
 
 type LoginInterface interface {
@@ -864,7 +865,7 @@ func (c LoginClient) SwitchUser(username string) (err error) {
 }
 
 type GetEmailOrUsernameArg struct {
-	SessionID int `codec:"sessionID"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type LoginUiInterface interface {
@@ -898,21 +899,23 @@ func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error)
 }
 
 type PgpCreateUids struct {
-	UseDefault bool          `codec:"useDefault"`
-	Ids        []PgpIdentity `codec:"ids"`
+	UseDefault bool          `codec:"useDefault" json:"useDefault"`
+	Ids        []PgpIdentity `codec:"ids" json:"ids"`
 }
 
 type KeyGenArg struct {
-	PrimaryBits int           `codec:"primaryBits"`
-	SubkeyBits  int           `codec:"subkeyBits"`
-	CreateUids  PgpCreateUids `codec:"createUids"`
+	PrimaryBits int           `codec:"primaryBits" json:"primaryBits"`
+	SubkeyBits  int           `codec:"subkeyBits" json:"subkeyBits"`
+	CreateUids  PgpCreateUids `codec:"createUids" json:"createUids"`
+	AllowMulti  bool          `codec:"allowMulti" json:"allowMulti"`
+	DoExport    bool          `codec:"doExport" json:"doExport"`
 }
 
 type KeyGenDefaultArg struct {
-	CreateUids PgpCreateUids `codec:"createUids"`
-	PushPublic bool          `codec:"pushPublic"`
-	PushSecret bool          `codec:"pushSecret"`
-	Passphrase string        `codec:"passphrase"`
+	CreateUids PgpCreateUids `codec:"createUids" json:"createUids"`
+	PushPublic bool          `codec:"pushPublic" json:"pushPublic"`
+	PushSecret bool          `codec:"pushSecret" json:"pushSecret"`
+	Passphrase string        `codec:"passphrase" json:"passphrase"`
 }
 
 type DeletePrimaryArg struct {
@@ -922,7 +925,9 @@ type ShowArg struct {
 }
 
 type SelectArg struct {
-	Query string `codec:"query"`
+	Query      string `codec:"query" json:"query"`
+	AllowMulti bool   `codec:"allowMulti" json:"allowMulti"`
+	SkipImport bool   `codec:"skipImport" json:"skipImport"`
 }
 
 type MykeyInterface interface {
@@ -930,7 +935,7 @@ type MykeyInterface interface {
 	KeyGenDefault(KeyGenDefaultArg) error
 	DeletePrimary() error
 	Show() error
-	Select(string) error
+	Select(SelectArg) error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -968,7 +973,7 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 			"select": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]SelectArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Select(args[0].Query)
+					err = i.Select(args[0])
 				}
 				return
 			},
@@ -1001,16 +1006,15 @@ func (c MykeyClient) Show() (err error) {
 	return
 }
 
-func (c MykeyClient) Select(query string) (err error) {
-	__arg := SelectArg{Query: query}
+func (c MykeyClient) Select(__arg SelectArg) (err error) {
 	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
 	return
 }
 
 type ProveArg struct {
-	Service  string `codec:"service"`
-	Username string `codec:"username"`
-	Force    bool   `codec:"force"`
+	Service  string `codec:"service" json:"service"`
+	Username string `codec:"username" json:"username"`
+	Force    bool   `codec:"force" json:"force"`
 }
 
 type ProveInterface interface {
@@ -1050,42 +1054,42 @@ const (
 )
 
 type PromptOverwriteArg struct {
-	SessionID int                 `codec:"sessionID"`
-	Account   string              `codec:"account"`
-	Typ       PromptOverwriteType `codec:"typ"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Account   string              `codec:"account" json:"account"`
+	Typ       PromptOverwriteType `codec:"typ" json:"typ"`
 }
 
 type PromptUsernameArg struct {
-	SessionID int     `codec:"sessionID"`
-	Prompt    string  `codec:"prompt"`
-	PrevError *Status `codec:"prevError,omitempty"`
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	Prompt    string  `codec:"prompt" json:"prompt"`
+	PrevError *Status `codec:"prevError,omitempty" json:"prevError"`
 }
 
 type OutputPrechecksArg struct {
-	SessionID int  `codec:"sessionID"`
-	Text      Text `codec:"text"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Text      Text `codec:"text" json:"text"`
 }
 
 type PreProofWarningArg struct {
-	SessionID int  `codec:"sessionID"`
-	Text      Text `codec:"text"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Text      Text `codec:"text" json:"text"`
 }
 
 type OutputInstructionsArg struct {
-	SessionID    int    `codec:"sessionID"`
-	Instructions Text   `codec:"instructions"`
-	Proof        string `codec:"proof"`
+	SessionID    int    `codec:"sessionID" json:"sessionID"`
+	Instructions Text   `codec:"instructions" json:"instructions"`
+	Proof        string `codec:"proof" json:"proof"`
 }
 
 type OkToCheckArg struct {
-	SessionID int    `codec:"sessionID"`
-	Name      string `codec:"name"`
-	Attempt   int    `codec:"attempt"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Attempt   int    `codec:"attempt" json:"attempt"`
 }
 
 type DisplayRecheckWarningArg struct {
-	SessionID int  `codec:"sessionID"`
-	Text      Text `codec:"text"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Text      Text `codec:"text" json:"text"`
 }
 
 type ProveUiInterface interface {
@@ -1196,14 +1200,14 @@ func (c ProveUiClient) DisplayRecheckWarning(__arg DisplayRecheckWarningArg) (er
 }
 
 type SessionToken struct {
-	Uid       UID    `codec:"uid"`
-	Sid       string `codec:"sid"`
-	Generated int    `codec:"generated"`
-	Lifetime  int    `codec:"lifetime"`
+	Uid       UID    `codec:"uid" json:"uid"`
+	Sid       string `codec:"sid" json:"sid"`
+	Generated int    `codec:"generated" json:"generated"`
+	Lifetime  int    `codec:"lifetime" json:"lifetime"`
 }
 
 type VerifySessionArg struct {
-	Session string `codec:"session"`
+	Session string `codec:"session" json:"session"`
 }
 
 type QuotaInterface interface {
@@ -1237,35 +1241,35 @@ func (c QuotaClient) VerifySession(session string) (res SessionToken, err error)
 }
 
 type SecretEntryArg struct {
-	Desc   string `codec:"desc"`
-	Prompt string `codec:"prompt"`
-	Err    string `codec:"err"`
-	Cancel string `codec:"cancel"`
-	Ok     string `codec:"ok"`
+	Desc   string `codec:"desc" json:"desc"`
+	Prompt string `codec:"prompt" json:"prompt"`
+	Err    string `codec:"err" json:"err"`
+	Cancel string `codec:"cancel" json:"cancel"`
+	Ok     string `codec:"ok" json:"ok"`
 }
 
 type SecretEntryRes struct {
-	Text     string `codec:"text"`
-	Canceled bool   `codec:"canceled"`
+	Text     string `codec:"text" json:"text"`
+	Canceled bool   `codec:"canceled" json:"canceled"`
 }
 
 type GetSecretArg struct {
-	SessionID int             `codec:"sessionID"`
-	Pinentry  SecretEntryArg  `codec:"pinentry"`
-	Terminal  *SecretEntryArg `codec:"terminal,omitempty"`
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Pinentry  SecretEntryArg  `codec:"pinentry" json:"pinentry"`
+	Terminal  *SecretEntryArg `codec:"terminal,omitempty" json:"terminal"`
 }
 
 type GetNewPassphraseArg struct {
-	TerminalPrompt string `codec:"terminalPrompt"`
-	PinentryDesc   string `codec:"pinentryDesc"`
-	PinentryPrompt string `codec:"pinentryPrompt"`
-	RetryMessage   string `codec:"retryMessage"`
+	TerminalPrompt string `codec:"terminalPrompt" json:"terminalPrompt"`
+	PinentryDesc   string `codec:"pinentryDesc" json:"pinentryDesc"`
+	PinentryPrompt string `codec:"pinentryPrompt" json:"pinentryPrompt"`
+	RetryMessage   string `codec:"retryMessage" json:"retryMessage"`
 }
 
 type GetKeybasePassphraseArg struct {
-	SessionID int    `codec:"sessionID"`
-	Username  string `codec:"username"`
-	Retry     string `codec:"retry"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+	Retry     string `codec:"retry" json:"retry"`
 }
 
 type SecretUiInterface interface {
@@ -1324,8 +1328,8 @@ func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res
 }
 
 type Session struct {
-	Uid      UID    `codec:"uid"`
-	Username string `codec:"username"`
+	Uid      UID    `codec:"uid" json:"uid"`
+	Username string `codec:"username" json:"username"`
 }
 
 type CurrentSessionArg struct {
@@ -1361,27 +1365,27 @@ func (c SessionClient) CurrentSession() (res Session, err error) {
 }
 
 type SignupRes struct {
-	PassphraseOk bool `codec:"passphraseOk"`
-	PostOk       bool `codec:"postOk"`
-	WriteOk      bool `codec:"writeOk"`
+	PassphraseOk bool `codec:"passphraseOk" json:"passphraseOk"`
+	PostOk       bool `codec:"postOk" json:"postOk"`
+	WriteOk      bool `codec:"writeOk" json:"writeOk"`
 }
 
 type CheckUsernameAvailableArg struct {
-	Username string `codec:"username"`
+	Username string `codec:"username" json:"username"`
 }
 
 type SignupArg struct {
-	Email      string `codec:"email"`
-	InviteCode string `codec:"inviteCode"`
-	Passphrase string `codec:"passphrase"`
-	Username   string `codec:"username"`
-	DeviceName string `codec:"deviceName"`
+	Email      string `codec:"email" json:"email"`
+	InviteCode string `codec:"inviteCode" json:"inviteCode"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
+	Username   string `codec:"username" json:"username"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
 }
 
 type InviteRequestArg struct {
-	Email    string `codec:"email"`
-	Fullname string `codec:"fullname"`
-	Notes    string `codec:"notes"`
+	Email    string `codec:"email" json:"email"`
+	Fullname string `codec:"fullname" json:"fullname"`
+	Notes    string `codec:"notes" json:"notes"`
 }
 
 type SignupInterface interface {
@@ -1441,7 +1445,7 @@ func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
 }
 
 type TrackArg struct {
-	TheirName string `codec:"theirName"`
+	TheirName string `codec:"theirName" json:"theirName"`
 }
 
 type TrackInterface interface {
@@ -1475,9 +1479,9 @@ func (c TrackClient) Track(theirName string) (err error) {
 }
 
 type PromptYesNoArg struct {
-	SessionID int   `codec:"sessionID"`
-	Text      Text  `codec:"text"`
-	Def       *bool `codec:"def,omitempty"`
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	Text      Text  `codec:"text" json:"text"`
+	Def       *bool `codec:"def,omitempty" json:"def"`
 }
 
 type UiInterface interface {

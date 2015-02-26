@@ -106,11 +106,12 @@ func (g *GpgCLI) ImportKey(secret bool, fp PgpFingerprint) (ret *PgpKeyBundle, e
 }
 
 func (g *GpgCLI) ExportKey(k PgpKeyBundle) (err error) {
-	arg := RunGpgArg{
+	arg := RunGpg2Arg{
 		Arguments: []string{"--import"},
 		Stdin:     true,
 	}
-	res := g.Run(arg)
+
+	res := g.Run2(arg)
 	if res.Err != nil {
 		return res.Err
 	}

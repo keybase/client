@@ -17,6 +17,8 @@
 @property (nonatomic, getter=isAnimating) BOOL animating;
 @property BOOL hidesWhenStopped;
 
+@property (nonatomic) CGFloat lineWidth;
+
 - (void)startAnimating;
 - (void)stopAnimating;
 

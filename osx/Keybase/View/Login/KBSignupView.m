@@ -25,6 +25,12 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+
+  KBLabel *label = [[KBLabel alloc] init];
+  [label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [self addSubview:label];
 
   _inviteField = [[KBTextField alloc] init];
   _inviteField.placeholder = @"Invite Code";
@@ -77,26 +83,27 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 30;
-
+    CGFloat y = 60;
     CGFloat padding = 12;
 
-    //y += [layout setFrame:CGRectMake(20, y, size.width - 40, 22) view:yself.inviteField].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + padding;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height;
+    //y += [layout setFrame:CGRectMake(20, y, size.width - 40, 22) view:yself.inviteField].size.height + 10;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + padding;
+
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height;
     [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.usernameStatusLabel];
     y += padding;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height;
     [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.strengthLabel];
     y += padding;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordConfirmField].size.height;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordConfirmField].size.height;
     [layout setFrame:CGRectMake(size.width - 120 - 40, y - 22, 120, 24) view:yself.passwordConfirmLabel];
     y += padding;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.deviceNameField].size.height;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.deviceNameField].size.height;
     y += padding;
 
     y += 30;

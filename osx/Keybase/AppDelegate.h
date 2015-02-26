@@ -11,12 +11,10 @@
 #import "KBRPClient.h"
 #import <KBKeybase/KBKeybase.h>
 #import "KBRPC.h"
-#import "KBConnectView.h"
 #import "KBAppView.h"
+#import <GHKit/GHKit.h>
 
-@interface AppDelegate : NSObject <NSApplicationDelegate, KBRPClientDelegate, KBSignupViewDelegate, KBLoginViewDelegate>
-
-@property (nonatomic) KBRGetCurrentStatusRes *status;
+@interface AppDelegate : NSObject <NSApplicationDelegate>
 
 + (KBRPClient *)client;
 + (KBAPIClient *)APIClient;
@@ -24,7 +22,8 @@
 
 + (AppDelegate *)sharedDelegate;
 
-- (void)checkStatus;
+- (void)preferences:(id)sender;
+- (void)quit:(id)sender;
 
 + (void)setError:(NSError *)error sender:(NSView *)sender;
 + (void)setInProgress:(BOOL)inProgress view:(NSView *)view;
@@ -32,12 +31,7 @@
 
 + (NSString *)bundleFile:(NSString *)file;
 
-// Application support directory
-+ (void)applicationSupport:(NSArray *)subdirs create:(BOOL)create completion:(void (^)(NSError *error, NSString *directory))completion;
-
-#pragma mark Debug
-
-- (void)openCatalog;
++ (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error;
 
 @end
 

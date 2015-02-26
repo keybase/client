@@ -15,7 +15,7 @@
   return nil;
 }
 
-- (instancetype)initWithClient:(KBRPClient *)client {
+- (instancetype)initWithClient:(id<KBRPClient>)client {
   if ((self = [super init])) {
     _client = client;
   }

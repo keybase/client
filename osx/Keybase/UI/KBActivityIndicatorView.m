@@ -65,6 +65,14 @@
   }
 }
 
+- (void)setLineWidth:(CGFloat)lineWidth {
+  self.shapeLayer.lineWidth = lineWidth;
+}
+
+- (CGFloat)lineWidth {
+  return self.shapeLayer.lineWidth;
+}
+
 - (NSBezierPath *)layoutPath {
 //  const double TWO_M_PI = 2.0*M_PI;
 //  double startAngle = 0.75 * TWO_M_PI;

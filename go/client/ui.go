@@ -54,7 +54,7 @@ func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret 
 	return
 }
 
-func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase_1.Identity) {
+func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase_1.Identity, u *keybase_1.User) {
 	return
 }
 

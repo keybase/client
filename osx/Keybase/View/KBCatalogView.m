@@ -16,6 +16,8 @@
 #import "KBTestClientView.h"
 #import "KBKeySelectView.h"
 #import "KBDeviceSetupView.h"
+#import "KBRMockClient.h"
+#import "KBAppKit.h"
 
 @interface KBCatalogView ()
 @property NSMutableArray *items;
@@ -25,69 +27,50 @@
 
 - (void)viewInit {
   [super viewInit];
-  WKWebView *webView = [[WKWebView alloc] init];
-  webView.navigationDelegate = self;
-  [self addSubview:webView];
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
-  [webView loadHTMLString:[AppDelegate bundleFile:@"catalog.html"] baseURL:nil];
+  YONSView *contentView = [[YONSView alloc] init];
+  [contentView addSubview:[KBLabel labelWithText:@"Style Guides" style:KBLabelStyleHeader]];
+  [contentView addSubview:[KBButton linkWithText:@"Style Guide" actionBlock:^(id sender) { [self showStyleGuide]; }]];
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  self.viewLayout = [YOLayout fill:webView];
-}
+  [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBLabelStyleHeader]];
+  [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBLabelStyleDefault]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Setup" actionBlock:^(id sender) { [self showDeviceSetupView]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" actionBlock:^(id sender) { [self showProveInstructions]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Track (max)" actionBlock:^(id sender) { [self showTrackReplay:@"max"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Track (gbrl27)" actionBlock:^(id sender) { [self showTrackReplay:@"gbrl27"]; }]];
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
-{
-  NSString *path = navigationAction.request.URL.absoluteString;
-  if ([path isEqualTo:@"about:blank"]) {
-    decisionHandler(WKNavigationActionPolicyAllow);
-    return;
-  } else {
-    decisionHandler(WKNavigationActionPolicyCancel);
-  }
+  [contentView addSubview:[KBLabel labelWithText:@"Error Handling" style:KBLabelStyleHeader]];
+  [contentView addSubview:[KBButton linkWithText:@"Error" actionBlock:^(id sender) { [self showError]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Fatal" actionBlock:^(id sender) { [self showFatalError]; }]];
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  if ([path isEqualTo:@"/test-client"]) [self showTestClientView];
-  if ([path gh_startsWith:@"/replay/track"]) [self showTrackReplay:[path lastPathComponent]];
+  [contentView addSubview:[KBLabel labelWithText:@"Prompts" style:KBLabelStyleHeader]];
+  [contentView addSubview:[KBButton linkWithText:@"Password (Input)" actionBlock:^(id sender) { [self prompt:@"password"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Input" actionBlock:^(id sender) { [self prompt:@"input"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Yes/No" actionBlock:^(id sender) { [self prompt:@"yes_no"]; }]];
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  if ([path gh_startsWith:@"/prompt/"]) [self prompt:[path lastPathComponent]];
+  [contentView addSubview:[KBLabel labelWithText:@"Testing" style:KBLabelStyleHeader]];
+  [contentView addSubview:[KBButton linkWithText:@"Test RPC Client" actionBlock:^(id sender) { [self showTestClientView]; }]];
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  if ([path isEqualTo:@"/style-guide"]) [self showStyleGuide];
+  contentView.viewLayout = [YOLayout vertical:contentView.subviews margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:4];
 
-  if ([path isEqualTo:@"/prove-instructions"]) [self showProveInstructions];
-  if ([path isEqualTo:@"/select-key"]) [self showSelectKey];
-  if ([path isEqualTo:@"/device-setup"]) [self showDeviceSetupView];
+  KBScrollView *scrollView = [[KBScrollView alloc] init];
+  [scrollView setDocumentView:contentView];
+  [self addSubview:scrollView];
 
-  if ([path isEqualTo:@"/error"]) [self showError];
-  if ([path isEqualTo:@"/error-fatal"]) [self showFatalError];
-}
-
-- (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
-  [signupView.window close];
-  AppDelegate.sharedDelegate.status = status;
-}
-
-- (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status {
-  [loginView.window close];
-  AppDelegate.sharedDelegate.status = status;
+  self.viewLayout = [YOLayout fill:scrollView];
 }
 
 - (void)showTestClientView {
   KBTestClientView *testClientView = [[KBTestClientView alloc] init];
   [self openInWindow:testClientView size:CGSizeMake(360, 420) title:@"Test Client"];
-}
-
-- (void)showLogin {
-  KBConnectView *connectView = [[KBConnectView alloc] init];
-  connectView.loginView.delegate = self;
-  connectView.signupView.delegate = self;
-  [connectView showLogin:NO];
-  [connectView openWindow:@"Keybase"];
-}
-
-- (void)showSignup {
-  KBConnectView *connectView = [[KBConnectView alloc] init];
-  connectView.loginView.delegate = self;
-  connectView.signupView.delegate = self;
-  [connectView showSignup:NO];
-  [connectView openWindow:@"Keybase"];
 }
 
 - (void)showKeyGen:(BOOL)animated {
@@ -106,6 +89,7 @@
   NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
   navigation.titleView = [KBNavigationTitleView titleViewWithTitle:title navigation:navigation];
+  [window center];
   [window makeKeyAndOrderFront:nil];
   return window;
 }
@@ -126,57 +110,36 @@
   }
 }
 
-- (void)showTrack:(NSString *)username {
-  //@"uid": [@"b7c2eaddcced7727bcb229751d91e800" na_dataFromHexString]
-  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": username} error:nil];
-
-  KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
-  userProfileView.popup = YES;
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:userProfileView];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 400) retain:YES];
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:user.username navigation:navigation];
-  [window setLevel:NSFloatingWindowLevel];
-  [window makeKeyAndOrderFront:nil];
-
-  [userProfileView setUser:user editable:NO];
-}
-
 - (void)showTrackReplay:(NSString *)username {
   KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": username} error:nil];
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
   userProfileView.popup = YES;
-  userProfileView.mock = YES;
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:userProfileView];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 400) retain:YES];
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:user.username navigation:navigation];
+  NSWindow *window = [self openInWindow:userProfileView size:CGSizeMake(400, 400) title:@"Keybase"];
   [window setLevel:NSFloatingWindowLevel];
-  [window makeKeyAndOrderFront:nil];
 
-  [userProfileView setUser:user editable:NO];
-  [AppDelegate.client replayRecordId:NSStringWithFormat(@"track/%@", username)];
+  KBRMockClient *mockClient = [[KBRMockClient alloc] init];
+  [userProfileView setUser:user editable:NO client:mockClient];
+  [mockClient replayRecordId:NSStringWithFormat(@"track/%@", username)];
+  mockClient.completion(nil, nil);
 }
 
 - (void)showSelectKey {
-  [AppDelegate.client paramsFromRecordId:@"signup/gbrl39" file:@"0003--keybase.1.gpgUi.selectKeyAndPushOption.json" completion:^(NSArray *params) {
-    KBRSelectKeyAndPushOptionRequestParams *handler = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
+  id params = [KBRMockClient paramsFromRecordId:@"signup/gbrl39" file:@"0003--keybase.1.gpgUi.selectKeyAndPushOption.json"];
+  KBRSelectKeyAndPushOptionRequestParams *handler = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
 
-    KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
-    [selectView.keysView setGPGKeys:handler.keys];
-    __weak KBKeySelectView *gselectView = selectView;
-    selectView.selectButton.targetBlock = ^{
-      GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
-    };
-    [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select Key"];
-  }];
+  KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
+  [selectView.keysView setGPGKeys:handler.keys];
+  __weak KBKeySelectView *gselectView = selectView;
+  selectView.selectButton.targetBlock = ^{
+    GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
+  };
+  selectView.cancelButton.actionBlock = ^(id sender) { [[sender window] close]; };
+  [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select PGP Key"];
 }
 
 - (void)showStyleGuide {
   KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:testView];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(600, 400) retain:YES];
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Style Guide" navigation:navigation];
-  window.styleMask = window.styleMask | NSResizableWindowMask;
-  [window makeKeyAndOrderFront:nil];
+  [self openInWindow:testView size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showProveInstructions {
@@ -190,14 +153,14 @@
 }
 
 - (void)showDeviceSetupView {
-  [AppDelegate.client paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json" completion:^(NSArray *params) {
+  NSArray *params = [KBRMockClient paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json"];
 
-    KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
+  KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
 
-    KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
-    [deviceSetupView setDevices:handler.devices hasPGP:handler.hasPGP];
-    [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
-  }];
+  KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
+  [deviceSetupView setDevices:handler.devices hasPGP:handler.hasPGP];
+  deviceSetupView.cancelButton.actionBlock = ^(id sender) { [[sender window] close]; };
+  [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
 }
 
 - (void)showError {

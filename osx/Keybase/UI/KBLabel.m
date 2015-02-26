@@ -55,6 +55,12 @@
   return textSize;
 }
 
++ (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style {
+  KBLabel *label = [[KBLabel alloc] init];
+  [label setText:text style:style];
+  return label;
+}
+
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
   _border = [KBBox roundedWithWidth:1.0 color:GHNSColorFromRGB(0xDDDDDD) cornerRadius:4.0];
   [self addSubview:_border];
@@ -98,6 +104,9 @@
     case KBLabelStyleSecondaryText:
       [self setText:text font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.secondaryTextColor alignment:alignment lineBreakMode:lineBreakMode];
       break;
+    case KBLabelStyleHeader:
+      [self setText:text font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:alignment lineBreakMode:lineBreakMode];
+      break;
   }
 }
 
@@ -126,6 +135,8 @@
 
   NSDictionary *style = @{@"$default": defaultStyle,
                           @"p": defaultStyle,
+                          //@"h3": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 6]},
+                          //@"h4": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 4]},
                           @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
                           @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
                           @"a": @{NSForegroundColorAttributeName: [KBAppearance.currentAppearance selectColor]},
@@ -148,6 +159,10 @@
   paragraphStyle.lineBreakMode = lineBreakMode;
   [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
   return str;
+}
+
+- (void)setMarkup:(NSString *)markup {
+  [self setMarkup:markup font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {

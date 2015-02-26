@@ -16,25 +16,27 @@ func NewMykeyHandler(xp *rpc2.Transport) *MykeyHandler {
 }
 
 func (h *MykeyHandler) KeyGen(arg keybase_1.KeyGenArg) (err error) {
-	iarg := libkb.ImportKeyGenArg(arg)
-	return h.keygen(iarg, true)
+	earg := engine.ImportPGPEngineArg(arg)
+	return h.keygen(earg, true)
 }
 
-func (h *MykeyHandler) keygen(iarg libkb.PGPGenArg, doInteractive bool) (err error) {
+func (h *MykeyHandler) keygen(earg engine.PGPEngineArg, doInteractive bool) (err error) {
 	sessionId := nextSessionId()
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionId), SecretUI: h.getSecretUI(sessionId)}
-	iarg.AddDefaultUid()
-	eng := engine.NewPGPEngine(engine.PGPEngineArg{Gen: &iarg})
+	earg.Gen.AddDefaultUid()
+	eng := engine.NewPGPEngine(earg)
 	err = engine.RunEngine(eng, ctx, nil, nil)
 	return err
 }
 
 func (h *MykeyHandler) KeyGenDefault(arg keybase_1.KeyGenDefaultArg) (err error) {
-	iarg := libkb.PGPGenArg{
-		Ids:         libkb.ImportPgpIdentities(arg.CreateUids.Ids),
-		NoDefPGPUid: !arg.CreateUids.UseDefault,
+	earg := engine.PGPEngineArg{
+		Gen: &libkb.PGPGenArg{
+			Ids:         libkb.ImportPgpIdentities(arg.CreateUids.Ids),
+			NoDefPGPUid: !arg.CreateUids.UseDefault,
+		},
 	}
-	return h.keygen(iarg, false)
+	return h.keygen(earg, false)
 }
 
 func (h *MykeyHandler) DeletePrimary() (err error) {
@@ -46,17 +48,17 @@ func (h *MykeyHandler) Show() (err error) {
 	return libkb.ShowKeys(h.getLogUI(sessionId))
 }
 
-func (h *MykeyHandler) Select(query string) error {
+func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 	sessionID := nextSessionId()
 	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
 	secretui := h.getSecretUI(sessionID)
-	gpg := engine.NewGPG()
-	arg := engine.GPGArg{Query: query, LoadDeviceKey: true}
+	arg := engine.GPGArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
+	gpg := engine.NewGPG(&arg)
 	ctx := &engine.Context{
 		GPGUI:    gpgui,
 		SecretUI: secretui,
 		LogUI:    h.getLogUI(sessionID),
 		LoginUI:  h.getLoginUI(sessionID),
 	}
-	return engine.RunEngine(gpg, ctx, arg, nil)
+	return engine.RunEngine(gpg, ctx, nil, nil)
 }
