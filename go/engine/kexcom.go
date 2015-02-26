@@ -185,7 +185,6 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 			Reason:    "new device install",
 			Ui:        k.engctx.SecretUI,
 			Me:        k.user,
-			DeviceID:  &k.deviceID, // XXX remove this
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 		if err != nil {

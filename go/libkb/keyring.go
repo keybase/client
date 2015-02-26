@@ -296,23 +296,6 @@ func (k Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		return
 	}
 
-	// XXX PC delete this when MK adds global context
-	// If there's a DeviceID set in ska, try using it.
-	// This is mainly useful in testing situations, for example TestLoginNewDeviceKex,
-	// where G can get corrupted.
-	if ska.UseDeviceKey() && ska.DeviceID != nil {
-		G.Log.Debug("| DeviceID set in arg: %s", ska.DeviceID)
-		kid, err := ckf.getSibkeyKidForDevice(*ska.DeviceID)
-		if err != nil {
-			G.Log.Debug("| couldn't find kid for device in arg: %s", err)
-		} else {
-			ret = keyring.LookupByKid(kid)
-			if ret != nil {
-				return ret
-			}
-		}
-	}
-
 	var kid KID
 	if !ska.UseDeviceKey() {
 		k.G().Log.Debug("| not using device key; preferences have disabled it")
@@ -346,9 +329,6 @@ type SecretKeyArg struct {
 	Reason string   // why it's needed (for an Unlock)
 	Ui     SecretUI // for Unlocking secrets
 	Me     *User    // Whose keys
-
-	// XXX PC delete this when MK adds globalcontext passing
-	DeviceID *DeviceID // optional: the device id to look for
 }
 
 func (s SecretKeyArg) UseDeviceKey() bool    { return s.All || s.DeviceKey }

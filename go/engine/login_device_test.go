@@ -52,7 +52,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 
-		kx := NewSibkey(docui.secret)
+		kx := NewSibkey(&tcX.G, docui.secret)
 		if err := RunEngine(kx, ctx, nil, nil); err != nil {
 			t.Fatal(err)
 		}

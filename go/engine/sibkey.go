@@ -8,14 +8,16 @@ import (
 type Sibkey struct {
 	KexCom
 	secretPhrase string
+	libkb.Contextified
 }
 
 // NewSibkey creates a sibkey add engine.
 // The secretPhrase is needed before this engine can run because
 // the weak id used in receive() is based on it.
-func NewSibkey(secretPhrase string) *Sibkey {
+func NewSibkey(g *libkb.GlobalContext, secretPhrase string) *Sibkey {
 	return &Sibkey{
 		secretPhrase: secretPhrase,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -46,7 +48,7 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 
-	dp := G.Env.GetDeviceID()
+	dp := k.G().Env.GetDeviceID()
 	if dp == nil {
 		return libkb.ErrNoDevice
 	}
@@ -54,7 +56,7 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 
 	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(k.deviceID)
 	if err != nil {
-		G.Log.Warning("Sibkey.Run: error getting device sibkey: %s", err)
+		k.G().Log.Warning("Sibkey.Run: error getting device sibkey: %s", err)
 		return err
 	}
 	arg := libkb.SecretKeyArg{
@@ -62,11 +64,10 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 		Reason:    "new device install",
 		Ui:        ctx.SecretUI,
 		Me:        k.user,
-		DeviceID:  &k.deviceID,
 	}
-	k.sigKey, err = G.Keyrings.GetSecretKey(arg)
+	k.sigKey, err = k.G().Keyrings.GetSecretKey(arg)
 	if err != nil {
-		G.Log.Warning("Sibkey.Run: GetSecretKey error: %s", err)
+		k.G().Log.Warning("Sibkey.Run: GetSecretKey error: %s", err)
 		return err
 	}
 

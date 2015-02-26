@@ -273,3 +273,7 @@ func (c Contextified) G() *GlobalContext {
 		return &G
 	}
 }
+
+func NewContextified(gc *GlobalContext) Contextified {
+	return Contextified{g: gc}
+}
