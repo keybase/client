@@ -11,7 +11,8 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
-// KexCom is common functions for all kex engines.
+// KexCom contains common functions for all kex engines.  It
+// should be embedded in the kex engines.
 type KexCom struct {
 	server        kex.Handler
 	user          *libkb.User
@@ -44,14 +45,6 @@ func SetDebugName(name string) func(k *KexCom) {
 	return func(k *KexCom) {
 		k.debugName = name
 	}
-}
-
-type FwdArgs struct {
-	User    *libkb.User
-	Src     libkb.DeviceID
-	Dst     libkb.DeviceID
-	DevType string
-	DevDesc string
 }
 
 // secret is needed before this can start because receive needs
