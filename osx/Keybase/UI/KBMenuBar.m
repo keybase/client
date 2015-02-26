@@ -41,7 +41,7 @@
   }];
 }
 
-- (void)setBackTitle:(NSString *)backTitle targetBlock:(KBButtonTargetBlock)targetBlock {
+- (void)setBackTitle:(NSString *)backTitle targetBlock:(dispatch_block_t)targetBlock {
   [_backButton setText:backTitle font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance selectColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   _backButton.targetBlock = targetBlock;
   [self setNeedsLayout];

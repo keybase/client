@@ -79,6 +79,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return [NSFont boldSystemFontOfSize:14];
 }
 
+- (NSFont *)boldLargeTextFont {
+  return [NSFont boldSystemFontOfSize:20];
+}
+
 - (NSFont *)buttonFont {
   return [NSFont systemFontOfSize:18];
 }

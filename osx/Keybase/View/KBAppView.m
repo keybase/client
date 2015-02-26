@@ -11,6 +11,7 @@
 #import "KBUsersAppView.h"
 #import "KBUserProfileView.h"
 #import "AppDelegate.h"
+#import "KBCatalogView.h"
 
 @interface KBAppView ()
 @property KBSourceView *sourceView;
@@ -70,8 +71,13 @@
 - (void)showProfile {
   NSAssert(_user, @"No user");
   _userProfileView = [[KBUserProfileView alloc] init];
-  [_userProfileView setUser:_user editable:YES];
+  [_userProfileView setUser:_user editable:YES client:AppDelegate.client];
   [self setContentView:_userProfileView];
+}
+
+- (void)showDebug {
+  KBCatalogView *catalogView = [[KBCatalogView alloc] init];
+  [self setContentView:catalogView];
 }
 
 - (void)logout {
@@ -110,6 +116,9 @@
       break;
     case KBSourceViewItemUsers:
       [self showUsers];
+      break;
+    case KBSourceViewItemDebug:
+      [self showDebug];
       break;
   }
 }

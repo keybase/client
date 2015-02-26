@@ -36,6 +36,7 @@
 - (NSFont *)textFont;
 - (NSFont *)smallTextFont;
 - (NSFont *)boldTextFont;
+- (NSFont *)boldLargeTextFont;
 - (NSFont *)buttonFont;
 
 @end

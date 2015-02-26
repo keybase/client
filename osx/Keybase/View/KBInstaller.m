@@ -40,14 +40,14 @@
     completion(nil, NO, KBInstallTypeHomebrew);
   } else {
     GHWeakSelf gself = self;
-    [AppDelegate applicationSupport:nil create:YES completion:^(NSError *error, NSString *directory) {
-      if (error) {
-        completion(error, NO, KBInstallTypeNone);
-        return;
-      }
+    NSError *error = nil;
+    [AppDelegate applicationSupport:nil create:YES error:&error]; // Create application support dir
+    if (error) {
+      completion(error, NO, KBInstallTypeNone);
+      return;
+    }
 
-      [gself installLaunchAgent:completion];
-    }];
+    [gself installLaunchAgent:completion];
   }
 }
 
@@ -62,54 +62,63 @@
   }
 
   NSString *launchAgentPlistDest = [launchAgentDir stringByAppendingPathComponent:PLIST_PATH];
-  // TODO Only install if not exists or upgrade
-  if (YES) { //![NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
-    NSString *launchAgentPlistSource = [[NSBundle mainBundle] pathForResource:PLIST_PATH.stringByDeletingPathExtension ofType:PLIST_PATH.pathExtension];
 
-    if (!launchAgentPlistSource) {
-      NSError *error = KBMakeError(-1, @"Install Error", @"No launch agent plist found in bundle.", nil);
-      completion(error, NO, KBInstallTypeNone);
-      return;
-    }
+  //
+  // TODO
+  // Only install if not exists or upgrade. We are currently always installing/updating the plist.
+  //
+  //if (![NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
+  NSString *launchAgentPlistSource = [[NSBundle mainBundle] pathForResource:PLIST_PATH.stringByDeletingPathExtension ofType:PLIST_PATH.pathExtension];
 
-    NSError *error = nil;
-
-    // Remove if exists
-    if ([NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
-      if (![NSFileManager.defaultManager removeItemAtPath:launchAgentPlistDest error:&error]) {
-        if (!error) error = KBMakeError(-1, @"Install Error", @"Unable to remove existing luanch agent plist for upgrade.", nil);
-        completion(error, NO, KBInstallTypeNone);
-        return;
-      }
-    }
-
-    if (![NSFileManager.defaultManager copyItemAtPath:launchAgentPlistSource toPath:launchAgentPlistDest error:&error]) {
-      if (!error) error = KBMakeError(-1, @"Install Error", @"Unable to transfer launch agent plist.", nil);
-      completion(error, NO, KBInstallTypeNone);
-      return;
-    }
-
-    // We installed the launch agent plist
-    GHDebug(@"Installed");
-
-    [self checkLaunch:launchAgentPlistDest completion:^(NSError *error) {
-      if (error) {
-        completion(error, NO, KBInstallTypeNone);
-        return;
-      }
-      completion(nil, YES, KBInstallTypeInstaller);
-    }];
-
-  } else {
-    // Already installed
-    completion(nil, NO, KBInstallTypeInstaller);
+  if (!launchAgentPlistSource) {
+    NSError *error = KBMakeError(-1, @"Install Error", @"No launch agent plist found in bundle.", nil);
+    completion(error, NO, KBInstallTypeNone);
+    return;
   }
+
+  NSError *error = nil;
+
+  // Remove if exists
+  if ([NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
+    if (![NSFileManager.defaultManager removeItemAtPath:launchAgentPlistDest error:&error]) {
+      if (!error) error = KBMakeError(-1, @"Install Error", @"Unable to remove existing luanch agent plist for upgrade.", nil);
+      completion(error, NO, KBInstallTypeNone);
+      return;
+    }
+  }
+
+  if (![NSFileManager.defaultManager copyItemAtPath:launchAgentPlistSource toPath:launchAgentPlistDest error:&error]) {
+    if (!error) error = KBMakeError(-1, @"Install Error", @"Unable to transfer launch agent plist.", nil);
+    completion(error, NO, KBInstallTypeNone);
+    return;
+  }
+
+  // We installed the launch agent plist
+  GHDebug(@"Installed");
+
+  [self checkLaunch:launchAgentPlistDest completion:^(NSError *error) {
+    if (error) {
+      completion(error, NO, KBInstallTypeNone);
+      return;
+    }
+    completion(nil, YES, KBInstallTypeInstaller);
+  }];
+
+  [self installDebugMocks];
+
+//  } else {
+//    // Already installed
+//    completion(nil, NO, KBInstallTypeInstaller);
+//  }
 }
 
 - (void)checkLaunch:(NSString *)path completion:(void (^)(NSError *error))completion {
   NSTask *task = [[NSTask alloc] init];
-  [task setLaunchPath: @"/bin/launchctl"];
-  [task setArguments:@[@"load", path]];
+  task.launchPath = @"/bin/launchctl";
+  task.arguments = @[@"load", path];
+  task.terminationHandler = ^(NSTask *t) {
+    GHDebug(@"Task (launchctl) %@ exited with status: %@", t, @(t.terminationStatus));
+  };
   // Only do this for release versions
 #ifndef DEBUG
   [task launch];
@@ -144,5 +153,31 @@
 //    completion(nil);
 //  }
 //}
+
+- (void)removeDirectory:(NSString *)directory error:(NSError **)error {
+  NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:error];
+  for (NSString *file in files) {
+    [NSFileManager.defaultManager removeItemAtPath:[directory stringByAppendingPathComponent:file] error:error];
+  }
+  [NSFileManager.defaultManager removeItemAtPath:directory error:error];
+}
+
+- (void)installDebugMocks {
+  // TODO: Remove from release
+  NSString *recordZip = [[NSBundle mainBundle] pathForResource:@"record" ofType:@"zip"];
+  NSString *recordDir = [AppDelegate applicationSupport:@[@"Record"] create:NO error:nil];
+  [self removeDirectory:recordDir error:nil];
+  [NSFileManager.defaultManager createDirectoryAtPath:recordDir withIntermediateDirectories:YES attributes:nil error:nil];
+  NSTask *task = [[NSTask alloc] init];
+  task.currentDirectoryPath = recordDir;
+  task.launchPath = @"/usr/bin/unzip";
+  task.arguments = @[recordZip];
+  task.standardOutput = nil;
+  task.standardError = nil;
+  task.terminationHandler = ^(NSTask *t) {
+    GHDebug(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
+  };
+  [task launch];
+}
 
 @end

@@ -60,33 +60,31 @@
   linkView.viewLayout = [YOLayout vertical:linkView.subviews margin:UIEdgeInsetsMake(0, 0, 0, 0) padding:10];
   [contentView addSubview:linkView];
 
-  KBTextField *textField = [[KBTextField alloc] init];
-  textField.placeholder = @"Text Field";
-  [contentView addSubview:textField];
-
-  KBSecureTextField *secureTextField = [[KBSecureTextField alloc] init];
-  secureTextField.placeholder = @"Secure Text Field";
-  [contentView addSubview:secureTextField];
-
   _progressView = [[KBProgressOverlayView alloc] init];
   [contentView addSubview:_progressView];
   _progressView.animating = YES;
 
+  YONSView *textFieldsView = [[YONSView alloc] init];
+  KBTextField *textField = [[KBTextField alloc] init];
+  textField.placeholder = @"Text Field";
+  [textFieldsView addSubview:textField];
+
+  KBSecureTextField *secureTextField = [[KBSecureTextField alloc] init];
+  secureTextField.placeholder = @"Secure Text Field";
+  [textFieldsView addSubview:secureTextField];
+  textFieldsView.viewLayout = [YOLayout vertical:textFieldsView.subviews margin:UIEdgeInsetsMake(0, 40, 0, 40) padding:20];
+  [contentView addSubview:textFieldsView];
+
   YOSelf yself = self;
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
-    for (id subview in contentView.subviews) {
-      if (subview == label2) {
-        y += [layout setFrame:CGRectMake(40, y, 200, 100) view:subview].size.height;
-      } else {
-        y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:subview].size.height;
-      }
-      y += 20;
-    }
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label1].size.height + 20;
+    y += [layout setFrame:CGRectMake(40, y, 200, 100) view:label2].size.height + 20;
 
-    //[layout setSize:size view:yself.progressView options:0];
+    [layout setFrame:CGRectMake(40, y, size.width/2.0, 160) view:linkView];
+    y += [layout setFrame:CGRectMake(size.width/2.0, y, size.width/2.0, 160) view:yself.progressView].size.height + 20;
 
-    y += [layout setFrame:CGRectMake(40, y, 200, 200) view:yself.progressView].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:textFieldsView].size.height + 20;
 
     return CGSizeMake(size.width, y);
   }];

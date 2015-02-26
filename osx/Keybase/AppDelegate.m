@@ -92,10 +92,6 @@
 
   // Just for mocking, getting at data the RPC client doesn't give us yet
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
-
-#ifdef DEBUG
-  //[self openCatalog];
-#endif
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
@@ -218,18 +214,6 @@
   [NSApplication.sharedApplication terminate:sender];
 }
 
-- (void)openCatalog {
-  KBCatalogView *catalogView = [[KBCatalogView alloc] init];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:catalogView];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(400, 500) retain:YES];
-  window.minSize = CGSizeMake(300, 400);
-  window.maxSize = CGSizeMake(600, 900);
-  window.styleMask = window.styleMask | NSResizableWindowMask;
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Debug/Catalog" navigation:navigation];
-  //[window setLevel:NSStatusWindowLevel];
-  [window makeKeyAndOrderFront:nil];
-}
-
 + (NSString *)bundleFile:(NSString *)file {
   NSString *path = [[NSBundle mainBundle] pathForResource:[file stringByDeletingPathExtension] ofType:[file pathExtension]];
   NSString *contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
@@ -237,12 +221,11 @@
   return contents;
 }
 
-+ (void)applicationSupport:(NSArray *)subdirs create:(BOOL)create completion:(void (^)(NSError *error, NSString *directory))completion {
++ (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error {
   NSString *directory = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) firstObject];
   if (!directory) {
-    NSError *error = KBMakeError(-1, @"No application support directory", @"");
-    completion(error, directory);
-    return;
+    if (error) *error = KBMakeError(-1, @"No application support directory", @"");
+    return nil;
   }
   directory = [directory stringByAppendingPathComponent:@"Keybase"];
   if (subdirs) {
@@ -251,13 +234,13 @@
     }
   }
 
-  NSError *error = nil;
-  if (create && ![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error]) {
-    completion(error, nil);
-    return;
+  if (create && ![NSFileManager.defaultManager fileExistsAtPath:directory]) {
+    [NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:error];
+    if (error) {
+      return nil;
+    }
   }
-
-  completion(nil, directory);
+  return directory;
 }
 
 + (void)setInProgress:(BOOL)inProgress view:(NSView *)view {
@@ -283,7 +266,6 @@
 #pragma mark Error
 
 - (void)setFatalError:(NSError *)error {
-  [self closeAllWindows];
   KBErrorView *fatalErrorView = [[KBErrorView alloc] init];
   [fatalErrorView setError:error];
   [fatalErrorView openInWindow];

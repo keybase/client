@@ -31,7 +31,7 @@
     _outlineView.delegate = self;
     _outlineView.dataSource = self;
     _data = [MPOrderedDictionary dictionary];
-    [_data setObject:@[@"Profile", @"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
+    [_data setObject:@[@"Profile", @"Users", @"Devices", @"Folders", @"Debug"] forKey:@"Keybase"];
     _outlineView.floatsGroupRows = NO;
     [_outlineView reloadData];
     [_outlineView expandItem:nil expandChildren:YES];
@@ -65,6 +65,8 @@
       if ([item isEqualTo:@"Users"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemUsers];
       if ([item isEqualTo:@"Devices"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemDevices];
       if ([item isEqualTo:@"Folders"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemFolders];
+      if ([item isEqualTo:@"Debug"]) [self.delegate sourceView:self didSelectItem:KBSourceViewItemDebug];
+
     }
   }
 }

@@ -14,7 +14,8 @@ typedef NS_ENUM (NSInteger, KBSourceViewItem) {
   KBSourceViewItemProfile = 1,
   KBSourceViewItemUsers,
   KBSourceViewItemDevices,
-  KBSourceViewItemFolders
+  KBSourceViewItemFolders,
+  KBSourceViewItemDebug
 };
 
 @class KBSourceView;

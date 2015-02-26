@@ -8,11 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
-@import AppKit;
+#import <YOLayout/YOLayout.h>
 
-@interface KBBox : NSBox
+@interface KBBox : YONSView
+
+@property UIEdgeInsets insets;
+
++ (KBBox *)line;
 
 + (KBBox *)lineWithWidth:(CGFloat)width color:(NSColor *)color;
+
++ (KBBox *)lineWithInsets:(UIEdgeInsets)insets;
 
 + (KBBox *)roundedWithWidth:(CGFloat)width color:(NSColor *)color cornerRadius:(CGFloat)cornerRadius;
 

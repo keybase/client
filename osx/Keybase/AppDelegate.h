@@ -13,6 +13,7 @@
 #import "KBRPC.h"
 #import "KBConnectView.h"
 #import "KBAppView.h"
+#import <GHKit/GHKit.h>
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, KBRPClientDelegate, KBSignupViewDelegate, KBLoginViewDelegate>
 
@@ -32,8 +33,7 @@
 
 + (NSString *)bundleFile:(NSString *)file;
 
-// Application support directory
-+ (void)applicationSupport:(NSArray *)subdirs create:(BOOL)create completion:(void (^)(NSError *error, NSString *directory))completion;
++ (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error;
 
 #pragma mark Debug
 
