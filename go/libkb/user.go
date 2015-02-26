@@ -346,7 +346,7 @@ func (u User) GetDeviceKID() (kid KID, err error) {
 	if ckf := u.GetComputedKeyFamily(); ckf == nil {
 		err = KeyFamilyError{"no key family available"}
 	} else {
-		kid, err = ckf.GetActiveSibkeyKidForCurrentDevice()
+		kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(nil)
 	}
 	return
 }

@@ -131,7 +131,7 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 	}
 }
 
-func NewMerkleClient(g *Global) *MerkleClient {
+func NewMerkleClient(g *GlobalContext) *MerkleClient {
 	return &MerkleClient{
 		keyring:  NewSpecialKeyRing(g.Env.GetMerkleKeyFingerprints()),
 		verified: make(map[Seqno]bool),

@@ -16,6 +16,7 @@ type KeyringFile struct {
 	isPublic         bool
 	indexId          map[string](*openpgp.Entity) // Map of 64-bit uppercase-hex KeyIds
 	indexFingerprint map[PgpFingerprint](*openpgp.Entity)
+	Contextified
 }
 
 type Keyrings struct {
@@ -23,23 +24,25 @@ type Keyrings struct {
 	Secret []*KeyringFile
 	skbMap map[string]*SKBKeyringFile
 	sync.Mutex
+	Contextified
 }
 
 func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
 	v := make([]*KeyringFile, len(filenames), len(filenames))
 	for i, filename := range filenames {
-		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil}
+		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil, Contextified{k.g}}
 	}
 	return v
 }
 
-func NewKeyrings(e Env, usage Usage) *Keyrings {
+func NewKeyrings(g *GlobalContext, usage Usage) *Keyrings {
 	ret := &Keyrings{
-		skbMap: make(map[string]*SKBKeyringFile),
+		skbMap:       make(map[string]*SKBKeyringFile),
+		Contextified: Contextified{g},
 	}
 	if usage.GpgKeyring {
-		ret.Public = ret.MakeKeyrings(e.GetPublicKeyrings(), true)
-		ret.Secret = ret.MakeKeyrings(e.GetPgpSecretKeyrings(), false)
+		ret.Public = ret.MakeKeyrings(g.Env.GetPublicKeyrings(), true)
+		ret.Secret = ret.MakeKeyrings(g.Env.GetPgpSecretKeyrings(), false)
 	}
 	return ret
 }
@@ -102,14 +105,14 @@ func (k Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
 //===================================================================
 
 func (k *Keyrings) Load() (err error) {
-	G.Log.Debug("+ Loading keyrings")
+	k.G().Log.Debug("+ Loading keyrings")
 	if k.Public != nil {
 		err = k.LoadKeyrings(k.Public)
 	}
 	if err == nil && k.Secret != nil {
 		k.LoadKeyrings(k.Secret)
 	}
-	G.Log.Debug("- Loaded keyrings")
+	k.G().Log.Debug("- Loaded keyrings")
 	return err
 }
 
@@ -122,8 +125,8 @@ func (k *Keyrings) LoadKeyrings(v []*KeyringFile) (err error) {
 	return nil
 }
 
-func SKBFilenameForUser(un string) string {
-	tmp := G.Env.GetSecretKeyringTemplate()
+func (g *GlobalContext) SKBFilenameForUser(un string) string {
+	tmp := g.Env.GetSecretKeyringTemplate()
 	token := "%u"
 	if strings.Index(tmp, token) < 0 {
 		return tmp
@@ -140,7 +143,7 @@ func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
 	} else if len(un) == 0 {
 		err = NoUsernameError{}
 	} else {
-		f = NewSKBKeyringFile(SKBFilenameForUser(un))
+		f = NewSKBKeyringFile(k.G().SKBFilenameForUser(un))
 		if err = f.LoadAndIndex(); err == nil || os.IsNotExist(err) {
 			err = nil
 			k.skbMap[un] = f
@@ -151,16 +154,16 @@ func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
 
 func (k *KeyringFile) LoadAndIndex() error {
 	var err error
-	G.Log.Debug("+ LoadAndIndex on %s", k.filename)
+	k.G().Log.Debug("+ LoadAndIndex on %s", k.filename)
 	if err = k.Load(); err == nil {
 		err = k.Index()
 	}
-	G.Log.Debug("- LoadAndIndex on %s -> %s", k.filename, ErrToOk(err))
+	k.G().Log.Debug("- LoadAndIndex on %s -> %s", k.filename, ErrToOk(err))
 	return err
 }
 
 func (k *KeyringFile) Index() error {
-	G.Log.Debug("+ Index on %s", k.filename)
+	k.G().Log.Debug("+ Index on %s", k.filename)
 	k.indexId = make(map[string](*openpgp.Entity))
 	k.indexFingerprint = make(map[PgpFingerprint](*openpgp.Entity))
 	p := 0
@@ -183,13 +186,13 @@ func (k *KeyringFile) Index() error {
 			}
 		}
 	}
-	G.Log.Debug("| Indexed %d primary and %d subkeys", p, s)
-	G.Log.Debug("- Index on %s -> %s", k.filename, "OK")
+	k.G().Log.Debug("| Indexed %d primary and %d subkeys", p, s)
+	k.G().Log.Debug("- Index on %s -> %s", k.filename, "OK")
 	return nil
 }
 
 func (k *KeyringFile) Load() error {
-	G.Log.Debug(fmt.Sprintf("+ Loading PGP Keyring %s", k.filename))
+	k.G().Log.Debug(fmt.Sprintf("+ Loading PGP Keyring %s", k.filename))
 	file, err := os.Open(k.filename)
 	if os.IsNotExist(err) {
 		G.Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
@@ -205,7 +208,7 @@ func (k *KeyringFile) Load() error {
 			return err
 		}
 	}
-	G.Log.Debug(fmt.Sprintf("- Successfully loaded PGP Keyring"))
+	k.G().Log.Debug(fmt.Sprintf("- Successfully loaded PGP Keyring"))
 	return nil
 }
 
@@ -230,12 +233,12 @@ func (k KeyringFile) Save() error {
 // In any case, the key will be locked.
 func (k Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string, err error) {
 
-	G.Log.Debug("+ GetSecretKeyLocked()")
+	k.G().Log.Debug("+ GetSecretKeyLocked()")
 	defer func() {
-		G.Log.Debug("- GetSecretKeyLocked() -> %s", ErrToOk(err))
+		k.G().Log.Debug("- GetSecretKeyLocked() -> %s", ErrToOk(err))
 	}()
 
-	G.Log.Debug("| LoadMe w/ Secrets on")
+	k.G().Log.Debug("| LoadMe w/ Secrets on")
 
 	if ska.Me == nil {
 		if ska.Me, err = LoadMe(LoadUserArg{}); err != nil {
@@ -244,14 +247,14 @@ func (k Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string, 
 	}
 
 	if ret = k.GetLockedLocalSecretKey(ska); ret != nil {
-		G.Log.Debug("| Getting local secret key")
+		k.G().Log.Debug("| Getting local secret key")
 		return
 	}
 
 	if !ska.UseSyncedPGPKey() {
-		G.Log.Debug("| Skipped Synced PGP key (via prefs")
+		k.G().Log.Debug("| Skipped Synced PGP key (via prefs")
 	} else if ret, err = ska.Me.GetSyncedSecretKey(); err != nil {
-		G.Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
+		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
 		return
 	} else if ret != nil {
 		which = "your Keybase.io passphrase"
@@ -274,9 +277,9 @@ func (k Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 
 	me := ska.Me
 
-	G.Log.Debug("+ GetLockedLocalSecretKey(%s)", me.name)
+	k.G().Log.Debug("+ GetLockedLocalSecretKey(%s)", me.name)
 	defer func() {
-		G.Log.Debug("- GetLockedLocalSecretKey -> found=%v", ret != nil)
+		k.G().Log.Debug("- GetLockedLocalSecretKey -> found=%v", ret != nil)
 	}()
 
 	if keyring, err = k.LoadSKBKeyring(me.name); err != nil || keyring == nil {
@@ -284,32 +287,32 @@ func (k Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		if err != nil {
 			s = " (" + err.Error() + ")"
 		}
-		G.Log.Debug("| No secret keyring found" + s)
+		k.G().Log.Debug("| No secret keyring found" + s)
 		return
 	}
 
 	if ckf = me.GetComputedKeyFamily(); ckf == nil {
-		G.Log.Warning("No ComputedKeyFamily found for %s", me.name)
+		k.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
 		return
 	}
 
 	var kid KID
 	if !ska.UseDeviceKey() {
-		G.Log.Debug("| not using device key; preferences have disabled it")
-	} else if kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(); err != nil {
-		G.Log.Debug("| No key for current device: %s", err.Error())
+		k.G().Log.Debug("| not using device key; preferences have disabled it")
+	} else if kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(k.G()); err != nil {
+		k.G().Log.Debug("| No key for current device: %s", err.Error())
 	} else if kid != nil {
-		G.Log.Debug("| Found KID for current device: %s", kid)
+		k.G().Log.Debug("| Found KID for current device: %s", kid)
 		ret = keyring.LookupByKid(kid)
 		if ret != nil {
-			G.Log.Debug("| Using device key: %s", kid)
+			k.G().Log.Debug("| Using device key: %s", kid)
 		}
 	} else {
-		G.Log.Debug("| Empty kid for current device")
+		k.G().Log.Debug("| Empty kid for current device")
 	}
 
 	if ret == nil && ska.SearchForKey() {
-		G.Log.Debug("| Looking up secret key in local keychain")
+		k.G().Log.Debug("| Looking up secret key in local keychain")
 		ret = keyring.SearchWithComputedKeyFamily(ckf)
 	}
 	return ret
@@ -333,14 +336,14 @@ func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey }
 func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
 
 func (k Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, err error) {
-	G.Log.Debug("+ GetSecretKey(%s)", ska.Reason)
+	k.G().Log.Debug("+ GetSecretKey(%s)", ska.Reason)
 	defer func() {
-		G.Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
+		k.G().Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
 	}()
 	var skb *SKB
 	var which string
 	if skb, which, err = k.GetSecretKeyLocked(ska); err == nil && skb != nil {
-		G.Log.Debug("| Prompt/Unlock key")
+		k.G().Log.Debug("| Prompt/Unlock key")
 		key, err = skb.PromptAndUnlock(ska.Reason, which, ska.Ui)
 	}
 	return
@@ -358,7 +361,7 @@ func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
 	return []openpgp.Key{}
 }
 
-func (g *Global) LoadSKBKeyring(name string) (f *SKBKeyringFile, err error) {
+func (g *GlobalContext) LoadSKBKeyring(name string) (f *SKBKeyringFile, err error) {
 	if g.Keyrings == nil {
 		err = NoKeyringsError{}
 	} else {

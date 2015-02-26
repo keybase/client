@@ -22,7 +22,7 @@ import (
 
 type ShutdownHook func() error
 
-type Global struct {
+type GlobalContext struct {
 	Log           *Logger        // Handles all logging
 	Session       *Session       // The user's session cookie, &c
 	SessionWriter SessionWriter  // To write the session back out
@@ -46,24 +46,24 @@ type Global struct {
 	shutdown      bool           // whether we've shut down or not
 }
 
-func NewGlobal() Global {
-	return Global{
+func NewGlobalContext() GlobalContext {
+	return GlobalContext{
 		Log:           NewDefaultLogger(),
 		ShutdownHooks: make([]ShutdownHook, 0, 0),
 	}
 }
 
-var G Global = NewGlobal()
+var G GlobalContext = NewGlobalContext()
 
 func init() {
-	G = NewGlobal()
+	G = NewGlobalContext()
 }
 
-func (g *Global) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
+func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
-func (g *Global) SetUI(u UI) { g.UI = u }
+func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
-func (g *Global) Init() {
+func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.LoginState = NewLoginState()
 	g.Session = NewSession()
@@ -71,17 +71,17 @@ func (g *Global) Init() {
 	g.Daemon = false
 }
 
-func (g *Global) ConfigureLogging() error {
+func (g *GlobalContext) ConfigureLogging() error {
 	g.Log.Configure(g.Env)
 	g.Output = os.Stdout
 	return nil
 }
 
-func (g *Global) PushShutdownHook(sh ShutdownHook) {
+func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 	g.ShutdownHooks = append(g.ShutdownHooks, sh)
 }
 
-func (g *Global) ConfigureConfig() error {
+func (g *GlobalContext) ConfigureConfig() error {
 	c := NewJsonConfigFile(g.Env.GetConfigFilename())
 	err := c.Load(true)
 	if err != nil {
@@ -95,8 +95,8 @@ func (g *Global) ConfigureConfig() error {
 	return nil
 }
 
-func (g *Global) ConfigureKeyring(usage Usage) error {
-	c := NewKeyrings(*g.Env, usage)
+func (g *GlobalContext) ConfigureKeyring(usage Usage) error {
+	c := NewKeyrings(g, usage)
 	err := c.Load()
 	if err != nil {
 		return fmt.Errorf("Failed to configure keyrings: %s", err.Error())
@@ -111,11 +111,11 @@ func VersionMessage(linefn func(string)) {
 	linefn("- Visit https://keybase.io for more details")
 }
 
-func (g Global) StartupMessage() {
+func (g GlobalContext) StartupMessage() {
 	VersionMessage(func(s string) { g.Log.Debug(s) })
 }
 
-func (g *Global) ConfigureAPI() error {
+func (g *GlobalContext) ConfigureAPI() error {
 	iapi, xapi, err := NewApiEngines(*g.Env)
 	if err != nil {
 		return fmt.Errorf("Failed to configure API access: %s", err.Error())
@@ -125,7 +125,7 @@ func (g *Global) ConfigureAPI() error {
 	return nil
 }
 
-func (g *Global) ConfigureCaches() (err error) {
+func (g *GlobalContext) ConfigureCaches() (err error) {
 	g.UserCache, err = NewUserCache(g.Env.GetUserCacheSize())
 
 	if err == nil {
@@ -142,17 +142,17 @@ func (g *Global) ConfigureCaches() (err error) {
 	return
 }
 
-func (g *Global) ConfigureMerkleClient() error {
+func (g *GlobalContext) ConfigureMerkleClient() error {
 	g.MerkleClient = NewMerkleClient(g)
 	return nil
 }
 
-func (g *Global) ConfigureSecretSyncer() error {
+func (g *GlobalContext) ConfigureSecretSyncer() error {
 	g.SecretSyncer = &SecretSyncer{}
 	return nil
 }
 
-func (g *Global) Shutdown() error {
+func (g *GlobalContext) Shutdown() error {
 	if g.shutdown {
 		return nil
 	}
@@ -180,7 +180,7 @@ func (u Usage) UseKeyring() bool {
 	return u.KbKeyring || u.GpgKeyring
 }
 
-func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
+func (g *GlobalContext) ConfigureAll(line CommandLine, cmd Command) error {
 	var err error
 
 	g.SetCommandLine(line)
@@ -231,22 +231,22 @@ func (g *Global) ConfigureAll(line CommandLine, cmd Command) error {
 	return nil
 }
 
-func (g *Global) OutputString(s string) {
+func (g *GlobalContext) OutputString(s string) {
 	g.Output.Write([]byte(s))
 }
 
-func (g *Global) OutputBytes(b []byte) {
+func (g *GlobalContext) OutputBytes(b []byte) {
 	g.Output.Write(b)
 }
 
-func (g *Global) GetGpgClient() GpgClient {
+func (g *GlobalContext) GetGpgClient() GpgClient {
 	if g.GpgClient == nil {
 		g.GpgClient = NewGpgCLI()
 	}
 	return g.GpgClient
 }
 
-func (g *Global) GetMyUID() (ret *UID) {
+func (g *GlobalContext) GetMyUID() (ret *UID) {
 	ret = g.Session.GetUID()
 	if ret == nil {
 		ret = g.Env.GetUID()
@@ -254,7 +254,22 @@ func (g *Global) GetMyUID() (ret *UID) {
 	return ret
 }
 
-func (g *Global) ConfigureSocketInfo() (err error) {
+func (g *GlobalContext) ConfigureSocketInfo() (err error) {
 	g.SocketInfo, err = ConfigureSocketInfo()
 	return err
+}
+
+// Contextified objects have explicit references to the GlobalContext,
+// so that G can be swapped out for something else.  We're going to incrementally
+// start moving objects over to this system.
+type Contextified struct {
+	g *GlobalContext
+}
+
+func (c Contextified) G() *GlobalContext {
+	if c.g != nil {
+		return c.g
+	} else {
+		return &G
+	}
 }

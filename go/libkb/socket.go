@@ -76,11 +76,11 @@ type SocketWrapper struct {
 	err  error
 }
 
-func (g *Global) BindToSocket() (net.Listener, error) {
+func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return BindToSocket(g.SocketInfo)
 }
 
-func (g *Global) GetSocket() (net.Conn, *rpc2.Transport, error) {
+func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
 	if g.SocketWrapper == nil {
 		sw := SocketWrapper{}
 		if g.SocketInfo == nil {
