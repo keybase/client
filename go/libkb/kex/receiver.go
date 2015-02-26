@@ -9,8 +9,12 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+// GlobalTimeout is unused currently, but is intended to be the
+// overall timeout for a receive operation.
 var GlobalTimeout = 5 * time.Minute
 
+// Receiver gets kex messages from the server and routes them to a
+// kex Handler.
 type Receiver struct {
 	handler   Handler
 	seqno     int
@@ -18,10 +22,15 @@ type Receiver struct {
 	direction Direction
 }
 
+// NewReceiver creates a Receiver that will route messages to the
+// provided handler.  It will receive messages for the specified
+// direction.
 func NewReceiver(handler Handler, dir Direction) *Receiver {
 	return &Receiver{handler: handler, pollDur: 20 * time.Second, direction: dir}
 }
 
+// Receive gets the next set of messages from the server and
+// routes them to the handler.
 func (r *Receiver) Receive(m *Meta) error {
 	msgs, err := r.get(m)
 	if err != nil {
@@ -54,8 +63,9 @@ func (r *Receiver) Receive(m *Meta) error {
 	return nil
 }
 
+// get performs a Get request to long poll for a set of messages.
 func (r *Receiver) get(m *Meta) (MsgList, error) {
-	G.Log.Info("get: w = %x, dir = %d, seqno = %d", m.WeakID, r.direction, r.seqno)
+	G.Log.Debug("get: w = %x, dir = %d, seqno = %d", m.WeakID, r.direction, r.seqno)
 	res, err := G.API.Get(libkb.ApiArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
@@ -82,9 +92,8 @@ func (r *Receiver) get(m *Meta) (MsgList, error) {
 		if err != nil {
 			if err != ErrMACMismatch {
 				return nil, err
-			} else {
-				G.Log.Warning("Received message with bad HMAC.  Ignoring it.")
 			}
+			G.Log.Warning("Received message with bad HMAC.  Ignoring it.")
 		} else {
 			messages = append(messages, m)
 		}

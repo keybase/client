@@ -6,39 +6,50 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+// Sender is an implementation of the kex Handler interface that
+// sends messages to the api server.
 type Sender struct {
 	seqno     int
 	direction Direction
 }
 
+// NewSender creates a Sender for the given message direction.
 func NewSender(dir Direction) *Sender {
 	return &Sender{direction: dir}
 }
 
+// StartKexSession sends the StartKexSession message to the
+// server.
 func (s *Sender) StartKexSession(m *Meta, id StrongID) error {
 	mb := &Body{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
 	return s.send(m, mb)
 }
 
+// StartReverseKexSession sends the StartReverseKexSession message
+// to the server.
 func (s *Sender) StartReverseKexSession(m *Meta) error {
 	return nil
 }
 
+// Hello sends the Hello message to the server.
 func (s *Sender) Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	mb := &Body{Name: helloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
 	return s.send(m, mb)
 }
 
+// PleaseSign sends the PleaseSign message to the server.
 func (s *Sender) PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	mb := &Body{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}}
 	return s.send(m, mb)
 }
 
+// Done sends the Done message to the server.
 func (s *Sender) Done(m *Meta, mt libkb.MerkleTriple) error {
 	mb := &Body{Name: doneMsg, Args: MsgArgs{MerkleTriple: mt}}
 	return s.send(m, mb)
 }
 
+// RegisterTestDevice is used for testing.
 // XXX get rid of this when real client comm works
 func (s *Sender) RegisterTestDevice(srv Handler, device libkb.DeviceID) error {
 	return nil

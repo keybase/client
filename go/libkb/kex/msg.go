@@ -21,13 +21,16 @@ const (
 	doneMsg        = "done"
 )
 
+// ErrMACMismatch is returned when a MAC fails.
 var ErrMACMismatch = errors.New("Computed HMAC doesn't match message HMAC")
 
+// Msg is a kex message.
 type Msg struct {
 	Meta
 	Body
 }
 
+// NewMsg creates a kex message from metadata and a body.
 func NewMsg(mt *Meta, body *Body) *Msg {
 	return &Msg{
 		Meta: *mt,
@@ -35,6 +38,8 @@ func NewMsg(mt *Meta, body *Body) *Msg {
 	}
 }
 
+// CheckMAC verifies that the existing MAC matches the computed
+// MAC.
 func (m *Msg) CheckMAC() (bool, error) {
 	sum, err := m.MacSum()
 	if err != nil {
@@ -43,6 +48,9 @@ func (m *Msg) CheckMAC() (bool, error) {
 	return hmac.Equal(sum, m.Mac), nil
 }
 
+// MacSum calculates the MAC for a message.  It removes the
+// existing MAC from the message for the calculation, then puts it
+// back in place.
 func (m *Msg) MacSum() ([]byte, error) {
 	t := m.Mac
 	defer func() { m.Mac = t }()
@@ -55,6 +63,8 @@ func (m *Msg) MacSum() ([]byte, error) {
 	return m.mac(buf.Bytes(), m.StrongID[:]), nil
 }
 
+// mac is a convenience function to calculate the hmac of message
+// for key.
 func (m *Msg) mac(message, key []byte) []byte {
 	mac := hmac.New(sha256.New, key)
 	mac.Write(message)
@@ -73,6 +83,8 @@ func deviceID(w *jsonw.Wrapper) (libkb.DeviceID, error) {
 	return *d, nil
 }
 
+// MsgImport extracts a kex Msg from json.  It also checks the MAC
+// of the message.
 func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
 	r := &Msg{}
 	u, err := libkb.GetUid(w.AtKey("uid"))
@@ -141,14 +153,16 @@ func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
 	return r, nil
 }
 
+// MsgList is an array of messages.
 type MsgList []*Msg
 
 func (m MsgList) Len() int           { return len(m) }
 func (m MsgList) Less(a, b int) bool { return m[a].Seqno < m[b].Seqno }
 func (m MsgList) Swap(a, b int)      { m[a], m[b] = m[b], m[a] }
 
-// MsgArgs has optional fields in it, but there aren't that many,
-// so just using the same struct for all msgs for simplicity.
+// MsgArgs contains the union of all the args for the kex message
+// protocol interface.  Many of the fields are optional depending
+// on the message.
 type MsgArgs struct {
 	StrongID     StrongID
 	DeviceID     libkb.DeviceID
@@ -160,12 +174,15 @@ type MsgArgs struct {
 	MerkleTriple libkb.MerkleTriple
 }
 
+// Body is the message body.
 type Body struct {
 	Name string
 	Args MsgArgs
 	Mac  []byte
 }
 
+// BodyDecode takes a base64-encoded msgpack and turns it into a
+// message body.
 func BodyDecode(data string) (*Body, error) {
 	bytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
@@ -180,6 +197,7 @@ func BodyDecode(data string) (*Body, error) {
 	return &k, nil
 }
 
+// Encode transforms a message body into a base64-encoded msgpack.
 func (k *Body) Encode() (string, error) {
 	var buf bytes.Buffer
 	var h codec.MsgpackHandle
