@@ -15,7 +15,6 @@ import (
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
 func TestLoginNewDeviceKex(t *testing.T) {
-	t.Skip()
 	kexTimeout = time.Second
 
 	// test context for device X
@@ -25,7 +24,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	// sign up with device X
 	G = &tcX.G
 	u := CreateAndSignupFakeUser(t, "login")
-	devX := tcX.G.Env.GetDeviceID()
+	// devX := tcX.G.Env.GetDeviceID()
 	docui := &ldocuiDevice{&ldocui{}, ""}
 	secui := libkb.TestSecretUI{u.Passphrase}
 	G.Log.Warning("devx G value: %v", tcX.G)
@@ -46,13 +45,6 @@ func TestLoginNewDeviceKex(t *testing.T) {
 
 	go func() {
 		// authorize on device X
-		kx := NewKex(kex.NewSender(kex.DirectionXtoY), nil, SetDebugName("dev X"))
-
-		// is this going to mess everything up?
-		me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
-		if err != nil {
-			t.Fatal(err)
-		}
 		ctx := &Context{LogUI: tcX.G.UI.GetLogUI(), DoctorUI: docui, SecretUI: secui}
 
 		// wait for docui to know the secret
@@ -60,7 +52,8 @@ func TestLoginNewDeviceKex(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 
-		if err := kx.StartAccept(ctx, me, *devX, docui.secret, &tcX.G); err != nil {
+		kx := NewSibkey(docui.secret)
+		if err := RunEngine(kx, ctx, nil, nil); err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -99,6 +92,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 //
 // It's possible we can get rid of this test when
 // TestLoginNewDeviceKex works.
+/*
 func TestLoginNewDeviceFakeComm(t *testing.T) {
 	t.Skip()
 	kexTimeout = 1 * time.Second
@@ -158,6 +152,7 @@ func TestLoginNewDeviceFakeComm(t *testing.T) {
 
 	testUserHasDeviceKey(t)
 }
+*/
 
 type ldocuiDevice struct {
 	*ldocui
@@ -182,6 +177,7 @@ func (l *ldocuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) e
 	return nil
 }
 
+/*
 type kexsrv struct {
 	devices map[libkb.DeviceID]kex.Handler
 }
@@ -257,3 +253,4 @@ func (k *kexsrv) findDevice(id libkb.DeviceID) (kex.Handler, error) {
 	}
 	return s, nil
 }
+*/

@@ -27,7 +27,6 @@ type KexCom struct {
 	lks           *libkb.LKSec
 	getSecret     func() string // testing only
 	engctx        *Context      // so that kex interface doesn't need to depend on engine ctx
-	glob          *libkb.Global
 }
 
 var kexTimeout = 5 * time.Minute

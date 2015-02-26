@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb/kex"
 )
 
-func testKexContext(t *testing.T, username string) *kex.Context {
+func testKexMeta(t *testing.T, username string) *kex.Meta {
 	sendID, err := libkb.NewDeviceID()
 	if err != nil {
 		t.Fatal(err)
@@ -17,7 +17,7 @@ func testKexContext(t *testing.T, username string) *kex.Context {
 		t.Fatal(err)
 	}
 	sid := [32]byte{1, 1, 1, 1, 1}
-	return &kex.Context{Meta: kex.Meta{UID: libkb.UsernameToUID(username), Seqno: 2, StrongID: sid, Sender: sendID, Receiver: recID}}
+	return &kex.Meta{UID: libkb.UsernameToUID(username), Seqno: 2, StrongID: sid, Sender: sendID, Receiver: recID}
 }
 
 func testBody(t *testing.T) *kex.Body {
@@ -48,11 +48,11 @@ func TestBasicMessage(t *testing.T) {
 	s := kex.NewSender(kex.DirectionYtoX)
 	r := kex.NewReceiver(h, kex.DirectionYtoX)
 
-	ctx := testKexContext(t, fu.Username)
+	ctx := testKexMeta(t, fu.Username)
 	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
 		t.Fatal(err)
 	}
-	rctx := &kex.Context{}
+	rctx := &kex.Meta{}
 	if err := r.Receive(rctx); err != nil {
 		t.Fatal(err)
 	}
@@ -71,11 +71,11 @@ func TestBadMACMessage(t *testing.T) {
 	s := kex.NewSender(kex.DirectionYtoX)
 	r := kex.NewReceiver(h, kex.DirectionYtoX)
 
-	ctx := testKexContext(t, fu.Username)
+	ctx := testKexMeta(t, fu.Username)
 	if err := s.CorruptStartKexSession(ctx, ctx.StrongID); err != nil {
 		t.Fatal(err)
 	}
-	rctx := &kex.Context{}
+	rctx := &kex.Meta{}
 	if err := r.Receive(rctx); err != nil {
 		t.Fatal(err)
 	}
@@ -107,26 +107,26 @@ func (h *kth) callCount(name string) int {
 	}
 }
 
-func (h *kth) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
+func (h *kth) StartKexSession(ctx *kex.Meta, id kex.StrongID) error {
 	h.callInc(startkexMsg)
 	return nil
 }
 
-func (h *kth) StartReverseKexSession(ctx *kex.Context) error {
+func (h *kth) StartReverseKexSession(ctx *kex.Meta) error {
 	h.callInc(startrevkexMsg)
 	return nil
 }
 
-func (h *kth) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
+func (h *kth) Hello(ctx *kex.Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	h.callInc(helloMsg)
 	return nil
 }
 
-func (h *kth) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
+func (h *kth) PleaseSign(ctx *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	h.callInc(pleasesignMsg)
 	return nil
 }
-func (h *kth) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
+func (h *kth) Done(ctx *kex.Meta, mt libkb.MerkleTriple) error {
 	h.callInc(doneMsg)
 	return nil
 }
