@@ -9,6 +9,7 @@
 #import "KBImageView.h"
 
 #import <GHKit/GHKit.h>
+#import "KBAppearance.h"
 
 @implementation KBImageView
 
@@ -57,7 +58,7 @@
 - (void)setRounded:(CGFloat)cornerRadius {
   [self setWantsLayer: YES];
   self.layer.borderWidth = 1.0;
-  self.layer.borderColor = [NSColor colorWithWhite:0.8 alpha:1.0].CGColor;
+  self.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
   self.layer.cornerRadius = cornerRadius;
   self.layer.masksToBounds = YES;
 }

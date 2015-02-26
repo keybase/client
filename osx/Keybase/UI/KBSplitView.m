@@ -21,6 +21,8 @@
 - (void)viewInit {
   [super viewInit];
 
+  self.border = [KBBox line];
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat col1 = 150;

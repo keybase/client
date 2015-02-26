@@ -10,12 +10,17 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBSourceView.h"
+#import "KBSourceOutlineView.h"
+#import "KBSignupView.h"
+#import "KBLoginView.h"
 
-@interface KBAppView : YONSView <NSWindowDelegate, KBSourceViewDelegate> //, NSWindowRestoration>
+@interface KBAppView : YONSView <NSWindowDelegate, KBSourceOutlineViewDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate> //, NSWindowRestoration>
 
+@property (readonly) KBRPClient *client;
 @property (nonatomic) KBRUser *user;
 @property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
+
+- (void)connect;
 
 - (void)openWindow;
 

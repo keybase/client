@@ -18,6 +18,7 @@
 - (void)viewInit {
   [super viewInit];
   self.box = [[NSBox alloc] init];
+  [self addSubview:self.box];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {

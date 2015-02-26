@@ -27,4 +27,6 @@
 
 - (void)viewDidAppear:(BOOL)animated;
 
+- (void)setUser:(KBRUser *)user;
+
 @end

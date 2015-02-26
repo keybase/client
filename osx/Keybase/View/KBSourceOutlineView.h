@@ -1,5 +1,5 @@
 //
-//  KBSourceView.h
+//  KBSourceOutlineView.h
 //  Keybase
 //
 //  Created by Gabriel on 2/5/15.
@@ -18,15 +18,15 @@ typedef NS_ENUM (NSInteger, KBSourceViewItem) {
   KBSourceViewItemDebug
 };
 
-@class KBSourceView;
+@class KBSourceOutlineView;
 
-@protocol KBSourceViewDelegate
-- (void)sourceView:(KBSourceView *)sourceView didSelectItem:(KBSourceViewItem)item;
+@protocol KBSourceOutlineViewDelegate
+- (void)sourceOutlineView:(KBSourceOutlineView *)sourceOutlineView didSelectItem:(KBSourceViewItem)item;
 @end
 
-@interface KBSourceView : YONSView <NSOutlineViewDataSource, NSOutlineViewDelegate>
+@interface KBSourceOutlineView : YONSView <NSOutlineViewDataSource, NSOutlineViewDelegate>
 
-@property (weak) id<KBSourceViewDelegate> delegate;
+@property (weak) id<KBSourceOutlineViewDelegate> delegate;
 @property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 
 @end

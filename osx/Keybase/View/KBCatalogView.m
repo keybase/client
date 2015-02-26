@@ -68,35 +68,9 @@
   self.viewLayout = [YOLayout fill:scrollView];
 }
 
-- (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {
-  [signupView.window close];
-  AppDelegate.sharedDelegate.status = status;
-}
-
-- (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status {
-  [loginView.window close];
-  AppDelegate.sharedDelegate.status = status;
-}
-
 - (void)showTestClientView {
   KBTestClientView *testClientView = [[KBTestClientView alloc] init];
   [self openInWindow:testClientView size:CGSizeMake(360, 420) title:@"Test Client"];
-}
-
-- (void)showLogin {
-  KBConnectView *connectView = [[KBConnectView alloc] init];
-  connectView.loginView.delegate = self;
-  connectView.signupView.delegate = self;
-  [connectView showLogin:NO];
-  [connectView openWindow:@"Keybase"];
-}
-
-- (void)showSignup {
-  KBConnectView *connectView = [[KBConnectView alloc] init];
-  connectView.loginView.delegate = self;
-  connectView.signupView.delegate = self;
-  [connectView showSignup:NO];
-  [connectView openWindow:@"Keybase"];
 }
 
 - (void)showKeyGen:(BOOL)animated {

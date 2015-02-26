@@ -60,11 +60,11 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)lineColor {
-  return [NSColor colorWithCalibratedWhite:0.8 alpha:1.0];
+  return [NSColor colorWithCalibratedWhite:193.0/255.0 alpha:1.0];
 }
 
 - (NSColor *)highlightBackgroundColor {
-  return [NSColor colorWithCalibratedWhite:0.9 alpha:1.0];
+  return [NSColor colorWithCalibratedRed:8.0/255.0 green:80.0/255.0 blue:208.0/255.0 alpha:1.0];
 }
 
 - (NSFont *)textFont {

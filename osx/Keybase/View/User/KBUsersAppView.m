@@ -69,11 +69,11 @@
   YOSelf yself = self;
 
   _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
-    [yself.userProfileView setUser:user editable:NO];
+    [yself.userProfileView setUser:user editable:NO client:AppDelegate.client];
   };
 
   _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
-    [yself.userProfileView setUser:KBRUserFromSearchResult(searchResult) editable:NO];
+    [yself.userProfileView setUser:KBRUserFromSearchResult(searchResult) editable:NO client:AppDelegate.client];
   };
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {

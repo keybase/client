@@ -48,7 +48,7 @@
   [self addSubview:_scrollView];
 
   self.wantsLayer = YES;
-  self.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
+  self.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
   self.layer.borderWidth = 1.0;
 
   YOSelf yself = self;

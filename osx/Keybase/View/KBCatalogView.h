@@ -10,11 +10,7 @@
 
 #import "KBAppKit.h"
 
-#import "KBConnectView.h"
-
-@import WebKit;
-
-@interface KBCatalogView : YONSView <KBSignupViewDelegate, KBLoginViewDelegate, WKNavigationDelegate>
+@interface KBCatalogView : YONSView
 
 @property KBNavigationView *navigation;
 
