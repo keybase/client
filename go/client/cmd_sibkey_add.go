@@ -9,10 +9,14 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+// CmdSibkeyAdd is the 'sibkey add' command.  It is used for
+// device provisioning to enter a secret phrase on an existing
+// device.
 type CmdSibkeyAdd struct {
 	phrase string
 }
 
+// NewCmdSibkeyAdd creates a new cli.Command.
 func NewCmdSibkeyAdd(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "add",
@@ -24,16 +28,19 @@ func NewCmdSibkeyAdd(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
+// RunClient runs the command in client/server mode.
 func (c *CmdSibkeyAdd) RunClient() error {
 	return nil
 }
 
+// Run runs the command in standalone mode.
 func (c *CmdSibkeyAdd) Run() error {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI()}
 	eng := engine.NewSibkey(c.phrase)
 	return engine.RunEngine(eng, ctx, nil, nil)
 }
 
+// ParseArgv gets the secret phrase from the command args.
 func (c *CmdSibkeyAdd) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("sibkey add takes one arg: the secret phrase")
@@ -42,7 +49,8 @@ func (c *CmdSibkeyAdd) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdSibkeyAdd) GetUsage() libkb.Usage {
+// GetUsage says what this command needs to operate.
+func (c *CmdSibkeyAdd) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: false,
