@@ -72,7 +72,7 @@
   [self.window makeFirstResponder:_inputView.inputField];
 }
 
-- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText targetBlock:(KBButtonTargetBlock)targetBlock {
+- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText targetBlock:(dispatch_block_t)targetBlock {
   [_instructionsView setInstructions:instructions proofText:proofText];
   _instructionsView.button.targetBlock = targetBlock;
   [_instructionsView layoutView];
