@@ -55,6 +55,12 @@ func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (k *KexFwd) Run(ectx *Context, args, reply interface{}) error {
+	k.user = k.args.User
+	k.deviceID = k.args.Src
+	k.engctx = ectx
+	k.helloReceived = make(chan bool, 1)
+	k.doneReceived = make(chan bool, 1)
+
 	// make random secret S
 	words, err := k.makeSecret()
 	if err != nil {

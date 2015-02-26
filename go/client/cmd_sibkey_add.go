@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -28,7 +29,9 @@ func (c *CmdSibkeyAdd) RunClient() error {
 }
 
 func (c *CmdSibkeyAdd) Run() error {
-	return nil
+	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI()}
+	eng := engine.NewSibkey(c.phrase)
+	return engine.RunEngine(eng, ctx, nil, nil)
 }
 
 func (c *CmdSibkeyAdd) ParseArgv(ctx *cli.Context) error {

@@ -47,54 +47,6 @@ func SetDebugName(name string) func(k *KexCom) {
 	}
 }
 
-// secret is needed before this can start because receive needs
-// the weak id, which is based on the strong id, which comes from
-// the secret.
-func (k *KexCom) StartAccept(ectx *Context, u *libkb.User, dev libkb.DeviceID, secret string, g *libkb.Global) error {
-	g.Log.Info("kex engine: StartAccept (%s)", secret)
-	k.user = u
-	k.deviceID = dev
-	k.engctx = ectx
-	k.glob = g
-
-	var err error
-	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(dev)
-	if err != nil {
-		g.Log.Warning("StartAccept: error getting device sibkey: %s", err)
-		return err
-	}
-	arg := libkb.SecretKeyArg{
-		DeviceKey: true,
-		Reason:    "new device install",
-		Ui:        ectx.SecretUI,
-		Me:        k.user,
-		DeviceID:  &k.deviceID,
-	}
-	k.sigKey, err = g.Keyrings.GetSecretKey(arg)
-	if err != nil {
-		g.Log.Warning("GetSecretKey error: %s", err)
-		//return err
-	}
-
-	id, err := k.wordsToID(secret)
-	if err != nil {
-		return err
-	}
-	k.sessionID = id
-
-	ctx := &kex.Context{
-		Meta: kex.Meta{
-			UID:      k.user.GetUid(),
-			Receiver: dev,
-			StrongID: id,
-		},
-	}
-	copy(ctx.WeakID[:], id[0:16])
-
-	k.receive(ctx, kex.DirectionYtoX)
-	return nil
-}
-
 // XXX temporary...
 // this is to get around the fact that the globals won't work well
 // in the test with two devices communicating in the same process.
@@ -196,6 +148,7 @@ func (k *KexCom) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
 	}
 	G.Log.Info("[%s] calling Hello on server (ctx.Sender = %s, k.deviceID = %s, ctx.Receiver = %s)", k.debugName, ctx.Sender, k.deviceID, ctx.Receiver)
+	G.Log.Info("kexcom.StartKexSession: have a server? %v", k.server != nil)
 	return k.server.Hello(ctx, ctx.Sender, pair.GetKid())
 }
 

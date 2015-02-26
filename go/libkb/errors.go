@@ -1,9 +1,11 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
@@ -782,3 +784,5 @@ func (c CanceledError) Error() string {
 }
 
 //=============================================================================
+
+var ErrNoDevice = errors.New("No device found")
