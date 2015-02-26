@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func testKexContext(t *testing.T, username string) *Context {
+func testKexMeta(t *testing.T, username string) *Meta {
 	sendID, err := libkb.NewDeviceID()
 	if err != nil {
 		t.Fatal(err)
@@ -17,15 +17,9 @@ func testKexContext(t *testing.T, username string) *Context {
 		t.Fatal(err)
 	}
 	sid := [32]byte{1, 1, 1, 1, 1}
-	return &Context{
-		Meta: Meta{
-			UID:      libkb.UsernameToUID(username),
-			Seqno:    2,
-			StrongID: sid,
-			Sender:   sendID,
-			Receiver: recID,
-		},
-	}
+	m := NewMeta(libkb.UsernameToUID(username), sid, sendID, recID, DirectionYtoX)
+	m.Seqno = 2 // why?
+	return m
 }
 
 func testBody(t *testing.T) *Body {
@@ -68,9 +62,9 @@ func TestMAC(t *testing.T) {
 	tc := libkb.SetupTest(t, "kexnet")
 	defer tc.Cleanup()
 
-	ctx := testKexContext(t, "kexnetuser")
+	m := testKexMeta(t, "kexnetuser")
 	b := testBody(t)
-	msg := NewMsg(ctx, b)
+	msg := NewMsg(m, b)
 
 	if msg.Mac != nil {
 		t.Fatalf("mac: %x, expected nil", msg.Mac)
@@ -102,7 +96,7 @@ func TestMAC(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	decMsg := NewMsg(ctx, n)
+	decMsg := NewMsg(m, n)
 	ok, err = decMsg.CheckMAC()
 	if err != nil {
 		t.Fatal(err)
@@ -116,9 +110,9 @@ func TestMACBad(t *testing.T) {
 	tc := libkb.SetupTest(t, "kexnet")
 	defer tc.Cleanup()
 
-	ctx := testKexContext(t, "kexnetuser")
+	m := testKexMeta(t, "kexnetuser")
 	b := testBody(t)
-	msg := NewMsg(ctx, b)
+	msg := NewMsg(m, b)
 
 	if msg.Mac != nil {
 		t.Fatalf("mac: %x, expected nil", msg.Mac)
@@ -150,7 +144,7 @@ func TestMACBad(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	decMsg := NewMsg(ctx, n)
+	decMsg := NewMsg(m, n)
 	ok, err = decMsg.CheckMAC()
 	if err != nil {
 		t.Fatal(err)

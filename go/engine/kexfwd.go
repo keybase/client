@@ -54,10 +54,10 @@ func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (k *KexFwd) Run(ectx *Context, args, reply interface{}) error {
+func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	k.user = k.args.User
 	k.deviceID = k.args.Src
-	k.engctx = ectx
+	k.engctx = ctx
 	k.helloReceived = make(chan bool, 1)
 	k.doneReceived = make(chan bool, 1)
 
@@ -67,26 +67,20 @@ func (k *KexFwd) Run(ectx *Context, args, reply interface{}) error {
 		return err
 	}
 
-	// create the kex context
-	meta := kex.Meta{
-		UID:      k.args.User.GetUid(),
-		StrongID: k.sessionID,
-		Sender:   k.args.Src,
-		Receiver: k.args.Dst,
-	}
-	ctx := kex.NewContext(meta)
+	// create the kex meta data
+	m := kex.NewMeta(k.args.User.GetUid(), k.sessionID, k.args.Src, k.args.Dst, kex.DirectionXtoY)
 
 	// start the receive loop
-	go k.receive(ctx, kex.DirectionXtoY)
+	go k.receive(m, kex.DirectionXtoY)
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
-	if err := ectx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: k.args.DevDesc, Secret: words}); err != nil {
+	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: k.args.DevDesc, Secret: words}); err != nil {
 		return err
 	}
 
 	// start the kex session with X
-	if err := k.server.StartKexSession(ctx, k.sessionID); err != nil {
+	if err := k.server.StartKexSession(m, k.sessionID); err != nil {
 		return err
 	}
 
@@ -102,7 +96,7 @@ func (k *KexFwd) Run(ectx *Context, args, reply interface{}) error {
 	}
 
 	// store the keys in lks
-	if err := k.storeKeys(ectx, keys); err != nil {
+	if err := k.storeKeys(ctx, keys); err != nil {
 		return err
 	}
 
@@ -119,9 +113,9 @@ func (k *KexFwd) Run(ectx *Context, args, reply interface{}) error {
 	}
 
 	// send PleaseSign message to X
-	ctx.Sender = k.args.Src
-	ctx.Receiver = k.args.Dst
-	if err := k.server.PleaseSign(ctx, signer, rsig, k.args.DevType, k.args.DevDesc); err != nil {
+	m.Sender = k.args.Src
+	m.Receiver = k.args.Dst
+	if err := k.server.PleaseSign(m, signer, rsig, k.args.DevType, k.args.DevDesc); err != nil {
 		return err
 	}
 
@@ -187,11 +181,11 @@ func (k *KexFwd) makeKeys() (*keyres, error) {
 }
 
 // storeKeys stores E_y, M_y in lks.
-func (k *KexFwd) storeKeys(ectx *Context, keys *keyres) error {
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), keys.eddsa, k.lks, ectx.LogUI); err != nil {
+func (k *KexFwd) storeKeys(ctx *Context, keys *keyres) error {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), keys.eddsa, k.lks, ctx.LogUI); err != nil {
 		return err
 	}
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), keys.dh, k.lks, ectx.LogUI); err != nil {
+	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), keys.dh, k.lks, ctx.LogUI); err != nil {
 		return err
 	}
 	return nil

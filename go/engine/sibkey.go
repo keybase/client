@@ -36,8 +36,8 @@ func (k *Sibkey) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (k *Sibkey) Run(ectx *Context, args, reply interface{}) error {
-	k.engctx = ectx
+func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
+	k.engctx = ctx
 	k.server = kex.NewSender(kex.DirectionXtoY)
 
 	var err error
@@ -54,20 +54,20 @@ func (k *Sibkey) Run(ectx *Context, args, reply interface{}) error {
 
 	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(k.deviceID)
 	if err != nil {
-		G.Log.Warning("StartAccept: error getting device sibkey: %s", err)
+		G.Log.Warning("Sibkey.Run: error getting device sibkey: %s", err)
 		return err
 	}
 	arg := libkb.SecretKeyArg{
 		DeviceKey: true,
 		Reason:    "new device install",
-		Ui:        ectx.SecretUI,
+		Ui:        ctx.SecretUI,
 		Me:        k.user,
 		DeviceID:  &k.deviceID,
 	}
 	k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 	if err != nil {
-		G.Log.Warning("GetSecretKey error: %s", err)
-		//return err
+		G.Log.Warning("Sibkey.Run: GetSecretKey error: %s", err)
+		return err
 	}
 
 	id, err := k.wordsToID(k.secretPhrase)
@@ -76,7 +76,7 @@ func (k *Sibkey) Run(ectx *Context, args, reply interface{}) error {
 	}
 	k.sessionID = id
 
-	ctx := kex.NewContext(kex.Meta{UID: k.user.GetUid(), Receiver: k.deviceID, StrongID: id})
-	k.receive(ctx, kex.DirectionYtoX)
+	m := kex.NewMeta(k.user.GetUid(), id, libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	k.receive(m, kex.DirectionYtoX)
 	return nil
 }

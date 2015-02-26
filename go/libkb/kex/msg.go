@@ -28,9 +28,9 @@ type Msg struct {
 	Body
 }
 
-func NewMsg(ctx *Context, body *Body) *Msg {
+func NewMsg(mt *Meta, body *Body) *Msg {
 	return &Msg{
-		Meta: ctx.Meta,
+		Meta: *mt,
 		Body: *body,
 	}
 }

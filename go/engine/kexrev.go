@@ -37,6 +37,6 @@ func (k *KexRev) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (k *KexRev) Run(ectx *Context, args, reply interface{}) error {
+func (k *KexRev) Run(ctx *Context, args, reply interface{}) error {
 	return errors.New("KexRev not yet implemented")
 }

@@ -32,21 +32,6 @@ type KexCom struct {
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(server kex.Handler, lksCli []byte, options ...func(*KexCom)) *KexCom {
-	k := &KexCom{server: server, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
-	k.lks = libkb.NewLKSecClientHalf(lksCli)
-	for _, opt := range options {
-		opt(k)
-	}
-	return k
-}
-
-func SetDebugName(name string) func(k *KexCom) {
-	return func(k *KexCom) {
-		k.debugName = name
-	}
-}
-
 // XXX temporary...
 // this is to get around the fact that the globals won't work well
 // in the test with two devices communicating in the same process.
@@ -118,11 +103,11 @@ func (k *KexCom) wordsToID(words string) ([32]byte, error) {
 	return sha256.Sum256(key), nil
 }
 
-func (k *KexCom) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
+func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
 	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
-	if err := k.verifyReceiver(ctx); err != nil {
+	if err := k.verifyReceiver(m); err != nil {
 		return err
 	}
 
@@ -138,26 +123,26 @@ func (k *KexCom) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 		k.sessionID = id
 	}
 
-	if err := k.verifySession(ctx); err != nil {
+	if err := k.verifySession(m); err != nil {
 		return err
 	}
 
-	ctx.Swap()
+	m.Swap()
 	pair, ok := k.deviceSibkey.(libkb.NaclSigningKeyPair)
 	if !ok {
 		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
 	}
-	G.Log.Info("[%s] calling Hello on server (ctx.Sender = %s, k.deviceID = %s, ctx.Receiver = %s)", k.debugName, ctx.Sender, k.deviceID, ctx.Receiver)
+	G.Log.Info("[%s] calling Hello on server (m.Sender = %s, k.deviceID = %s, m.Receiver = %s)", k.debugName, m.Sender, k.deviceID, m.Receiver)
 	G.Log.Info("kexcom.StartKexSession: have a server? %v", k.server != nil)
-	return k.server.Hello(ctx, ctx.Sender, pair.GetKid())
+	return k.server.Hello(m, m.Sender, pair.GetKid())
 }
 
-func (k *KexCom) StartReverseKexSession(ctx *kex.Context) error { return nil }
+func (k *KexCom) StartReverseKexSession(m *kex.Meta) error { return nil }
 
-func (k *KexCom) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
+func (k *KexCom) Hello(m *kex.Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	G.Log.Info("[%s] Hello Receive", k.debugName)
 	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
-	if err := k.verifyRequest(ctx); err != nil {
+	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
 
@@ -168,10 +153,10 @@ func (k *KexCom) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KI
 }
 
 // sig is the reverse sig.
-func (k *KexCom) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
+func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
 	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
-	if err := k.verifyRequest(ctx); err != nil {
+	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
 
@@ -179,7 +164,7 @@ func (k *KexCom) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, 
 
 	// make device object for Y
 	devY := libkb.Device{
-		Id:          ctx.Sender.String(),
+		Id:          m.Sender.String(),
 		Type:        devType,
 		Description: &devDesc,
 	}
@@ -201,18 +186,7 @@ func (k *KexCom) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, 
 			Reason:    "new device install",
 			Ui:        k.engctx.SecretUI,
 			Me:        k.user,
-			DeviceID:  &k.deviceID,
-		}
-		G.Log.Warning("G value: %v", G)
-		G.Log.Warning("glob value: %v", k.glob)
-		G.Log.Warning("G.Env.GetDeviceID(): %s", G.Env.GetDeviceID())
-		G.Log.Warning("glob.Env.GetDeviceID(): %s", k.glob.Env.GetDeviceID())
-		if G.Env.GetDeviceID() == nil {
-			G.Log.Warning("setting G to k.glob")
-			//			prevG := G
-			G = k.glob
-			//			defer func() { G = prevG }()
-			G.Log.Warning("Now: G.Env.GetDeviceID(): %s", G.Env.GetDeviceID())
+			DeviceID:  &k.deviceID, // XXX remove this
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 		if err != nil {
@@ -241,14 +215,14 @@ func (k *KexCom) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, 
 		return fmt.Errorf("gen.Push() error: %s", err)
 	}
 
-	ctx.Swap()
-	return k.server.Done(ctx, mt)
+	m.Swap()
+	return k.server.Done(m, mt)
 }
 
-func (k *KexCom) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
+func (k *KexCom) Done(m *kex.Meta, mt libkb.MerkleTriple) error {
 	G.Log.Info("[%s] Done Receive", k.debugName)
 	defer G.Log.Info("[%s] Done Receive done", k.debugName)
-	if err := k.verifyRequest(ctx); err != nil {
+	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
 
@@ -261,37 +235,37 @@ func (k *KexCom) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
 
 func (k *KexCom) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
 
-func (k *KexCom) verifyReceiver(ctx *kex.Context) error {
-	G.Log.Debug("kex context: sender device %s => receiver device %s", ctx.Sender, ctx.Receiver)
-	G.Log.Debug("kex context: own device %s", k.deviceID)
-	if ctx.Receiver != k.deviceID {
-		return fmt.Errorf("receiver device id (%s) invalid.  this is device (%s).", ctx.Receiver, k.deviceID)
+func (k *KexCom) verifyReceiver(m *kex.Meta) error {
+	G.Log.Debug("kex Meta: sender device %s => receiver device %s", m.Sender, m.Receiver)
+	G.Log.Debug("kex Meta: own device %s", k.deviceID)
+	if m.Receiver != k.deviceID {
+		return fmt.Errorf("receiver device id (%s) invalid.  this is device (%s).", m.Receiver, k.deviceID)
 	}
 	return nil
 }
 
-func (k *KexCom) verifySession(ctx *kex.Context) error {
-	if ctx.StrongID != k.sessionID {
-		return fmt.Errorf("%s: context StrongID (%x) != sessionID (%x)", k.debugName, ctx.StrongID, k.sessionID)
+func (k *KexCom) verifySession(m *kex.Meta) error {
+	if m.StrongID != k.sessionID {
+		return fmt.Errorf("%s: Meta StrongID (%x) != sessionID (%x)", k.debugName, m.StrongID, k.sessionID)
 	}
 	return nil
 }
 
-func (k *KexCom) verifyRequest(ctx *kex.Context) error {
-	if err := k.verifyReceiver(ctx); err != nil {
+func (k *KexCom) verifyRequest(m *kex.Meta) error {
+	if err := k.verifyReceiver(m); err != nil {
 		return err
 	}
-	if err := k.verifySession(ctx); err != nil {
+	if err := k.verifySession(m); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (k *KexCom) receive(ctx *kex.Context, dir kex.Direction) {
+func (k *KexCom) receive(m *kex.Meta, dir kex.Direction) {
 	rec := kex.NewReceiver(k, dir)
 	for {
-		if err := rec.Receive(ctx); err != nil {
-			G.Log.Info("receive error: %s", err)
+		if err := rec.Receive(m); err != nil {
+			G.Log.Debug("receive error: %s", err)
 		}
 	}
 }
