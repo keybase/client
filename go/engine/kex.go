@@ -27,6 +27,7 @@ type Kex struct {
 	lks           *libkb.LKSec
 	getSecret     func() string // testing only
 	engctx        *Context      // so that kex interface doesn't need to depend on engine ctx
+	glob          *libkb.Global
 }
 
 var kexTimeout = 5 * time.Minute
@@ -71,6 +72,7 @@ func (k *Kex) StartAccept(ectx *Context, u *libkb.User, dev libkb.DeviceID, secr
 	k.user = u
 	k.deviceID = dev
 	k.engctx = ectx
+	k.glob = g
 
 	var err error
 	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(dev)
@@ -83,6 +85,7 @@ func (k *Kex) StartAccept(ectx *Context, u *libkb.User, dev libkb.DeviceID, secr
 		Reason:    "new device install",
 		Ui:        ectx.SecretUI,
 		Me:        k.user,
+		DeviceID:  &k.deviceID,
 	}
 	k.sigKey, err = g.Keyrings.GetSecretKey(arg)
 	if err != nil {
@@ -392,6 +395,18 @@ func (k *Kex) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig
 			Reason:    "new device install",
 			Ui:        k.engctx.SecretUI,
 			Me:        k.user,
+			DeviceID:  &k.deviceID,
+		}
+		G.Log.Warning("G value: %v", G)
+		G.Log.Warning("glob value: %v", k.glob)
+		G.Log.Warning("G.Env.GetDeviceID(): %s", G.Env.GetDeviceID())
+		G.Log.Warning("glob.Env.GetDeviceID(): %s", k.glob.Env.GetDeviceID())
+		if G.Env.GetDeviceID() == nil {
+			G.Log.Warning("setting G to k.glob")
+			//			prevG := G
+			G = k.glob
+			//			defer func() { G = prevG }()
+			G.Log.Warning("Now: G.Env.GetDeviceID(): %s", G.Env.GetDeviceID())
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 		if err != nil {

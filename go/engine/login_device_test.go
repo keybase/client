@@ -27,6 +27,21 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	devX := tcX.G.Env.GetDeviceID()
 	docui := &ldocuiDevice{&ldocui{}, ""}
 	secui := libkb.TestSecretUI{u.Passphrase}
+	G.Log.Warning("devx G value: %v", tcX.G)
+
+	// test that we can get the secret key:
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	arg := libkb.SecretKeyArg{
+		DeviceKey: true,
+		Reason:    "new device install",
+		Ui:        secui,
+		Me:        me,
+	}
+	key, err := G.Keyrings.GetSecretKey(arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	G.Log.Info("device X: have secret key: %v", key)
 
 	go func() {
 		// authorize on device X
@@ -55,6 +70,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 
 	// log in with device Y
 	G = &tcY.G
+	G.Log.Warning("devy G value: %v", tcY.G)
 	larg := LoginEngineArg{
 		Login: libkb.LoginArg{
 			Force:      true,
