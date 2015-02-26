@@ -17,7 +17,15 @@ func testKexContext(t *testing.T, username string) *Context {
 		t.Fatal(err)
 	}
 	sid := [32]byte{1, 1, 1, 1, 1}
-	return &Context{Meta: Meta{UID: libkb.UsernameToUID(username), Seqno: 2, StrongID: sid, Src: sendID, Dst: recID}}
+	return &Context{
+		Meta: Meta{
+			UID:      libkb.UsernameToUID(username),
+			Seqno:    2,
+			StrongID: sid,
+			Sender:   sendID,
+			Receiver: recID,
+		},
+	}
 }
 
 func testBody(t *testing.T) *Body {

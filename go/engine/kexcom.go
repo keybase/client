@@ -8,12 +8,11 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
-	keybase_1 "github.com/keybase/client/protocol/go"
-	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/crypto/scrypt"
 )
 
-type Kex struct {
+// KexCom is common functions for all kex engines.
+type KexCom struct {
 	server        kex.Handler
 	user          *libkb.User
 	deviceID      libkb.DeviceID
@@ -32,8 +31,8 @@ type Kex struct {
 
 var kexTimeout = 5 * time.Minute
 
-func NewKex(server kex.Handler, lksCli []byte, options ...func(*Kex)) *Kex {
-	k := &Kex{server: server, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
+func NewKex(server kex.Handler, lksCli []byte, options ...func(*KexCom)) *KexCom {
+	k := &KexCom{server: server, helloReceived: make(chan bool, 1), doneReceived: make(chan bool, 1)}
 	k.lks = libkb.NewLKSecClientHalf(lksCli)
 	for _, opt := range options {
 		opt(k)
@@ -41,8 +40,8 @@ func NewKex(server kex.Handler, lksCli []byte, options ...func(*Kex)) *Kex {
 	return k
 }
 
-func SetDebugName(name string) func(k *Kex) {
-	return func(k *Kex) {
+func SetDebugName(name string) func(k *KexCom) {
+	return func(k *KexCom) {
 		k.debugName = name
 	}
 }
@@ -55,19 +54,10 @@ type FwdArgs struct {
 	DevDesc string
 }
 
-func (k *Kex) Run(ctx *Context, args, reply interface{}) error {
-	k.engctx = ctx
-	fargs, ok := args.(FwdArgs)
-	if !ok {
-		return fmt.Errorf("invalid args type: %T", args)
-	}
-	return k.StartForward(ctx, fargs.User, fargs.Src, fargs.Dst, fargs.DevType, fargs.DevDesc)
-}
-
 // secret is needed before this can start because receive needs
 // the weak id, which is based on the strong id, which comes from
 // the secret.
-func (k *Kex) StartAccept(ectx *Context, u *libkb.User, dev libkb.DeviceID, secret string, g *libkb.Global) error {
+func (k *KexCom) StartAccept(ectx *Context, u *libkb.User, dev libkb.DeviceID, secret string, g *libkb.Global) error {
 	g.Log.Info("kex engine: StartAccept (%s)", secret)
 	k.user = u
 	k.deviceID = dev
@@ -112,143 +102,10 @@ func (k *Kex) StartAccept(ectx *Context, u *libkb.User, dev libkb.DeviceID, secr
 	return nil
 }
 
-// StartForward starts the forward version of kex device
-// provisioning.
-//
-// It should be called on the new device, device Y.
-// src = device id of device Y
-// dst = device id of device X (the existing device that will sign
-// it)
-func (k *Kex) StartForward(ectx *Context, u *libkb.User, src, dst libkb.DeviceID, devType, devDesc string) error {
-	k.user = u
-	k.deviceID = src
-	k.engctx = ectx
-
-	// XXX this is just for testing
-	k.server.RegisterTestDevice(k, src)
-
-	// make random secret S
-	words, id, err := k.secret()
-	if err != nil {
-		return err
-	}
-
-	k.sessionID = id
-
-	ctx := &kex.Context{
-		Meta: kex.Meta{
-			UID:      k.user.GetUid(),
-			StrongID: id,
-			Sender:   src,
-			Receiver: dst,
-		},
-	}
-	copy(ctx.WeakID[:], id[0:16])
-
-	go k.receive(ctx, kex.DirectionXtoY)
-
-	// tell user the command to enter on existing device (X)
-	// note: this has to happen before StartKexSession call for tests to work.
-	if err := ectx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: devDesc, Secret: strings.Join(words, " ")}); err != nil {
-		return err
-	}
-
-	if err := k.server.StartKexSession(ctx, id); err != nil {
-		return err
-	}
-
-	// wait for Hello() from X
-	if err := k.waitHello(); err != nil {
-		return err
-	}
-
-	// E_y
-	eddsa, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		return err
-	}
-	eddsaPair, ok := eddsa.(libkb.NaclSigningKeyPair)
-	if !ok {
-		return fmt.Errorf("invalid key type %T", eddsa)
-	}
-
-	// M_y
-	dh, err := libkb.GenerateNaclDHKeyPair()
-	if err != nil {
-		return err
-	}
-
-	// store E_y, M_y in lks
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), eddsa, k.lks, ectx.LogUI); err != nil {
-		return err
-	}
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), dh, k.lks, ectx.LogUI); err != nil {
-		return err
-	}
-
-	// The signature sent to PleaseSign is a reverse sig
-	// of X's dev key id.
-	rsp := libkb.ReverseSigPayload{k.xDevKeyID.String()}
-	sig, _, _, err := libkb.SignJson(jsonw.NewWrapper(rsp), eddsa)
-	if err != nil {
-		return err
-	}
-
-	ctx.Sender = src
-	ctx.Receiver = dst
-	if err := k.server.PleaseSign(ctx, eddsaPair.Public, sig, devType, devDesc); err != nil {
-		return err
-	}
-
-	// wait for Done() from X
-	if err := k.waitDone(); err != nil {
-		return err
-	}
-
-	// Device y signs M_y into Alice's sigchain as a subkey.
-	devY := libkb.Device{
-		Id:          k.deviceID.String(),
-		Type:        devType,
-		Description: &devDesc,
-	}
-	g := func() (libkb.NaclKeyPair, error) {
-		return dh, nil
-	}
-	arg := libkb.NaclKeyGenArg{
-		Signer:      eddsa,
-		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
-		Sibkey:      false,
-		Me:          k.user,
-		EldestKeyID: k.user.GetEldestFOKID().Kid,
-		Generator:   g,
-		Device:      &devY,
-	}
-	gen := libkb.NewNaclKeyGen(arg)
-	if err := gen.Generate(); err != nil {
-		return fmt.Errorf("gen.Generate() error: %s", err)
-	}
-	if _, err := gen.Push(); err != nil {
-		return fmt.Errorf("gen.Push() error: %s", err)
-	}
-
-	// store the new device id
-	if wr := G.Env.GetConfigWriter(); wr != nil {
-		if err := wr.SetDeviceID(&k.deviceID); err != nil {
-			return err
-		} else if err := wr.Write(); err != nil {
-			return err
-		} else {
-			G.Log.Info("Setting Device ID to %s", k.deviceID)
-		}
-	}
-
-	return nil
-}
-
 // XXX temporary...
 // this is to get around the fact that the globals won't work well
 // in the test with two devices communicating in the same process.
-func (k *Kex) Listen(ctx *Context, u *libkb.User, src libkb.DeviceID) {
+func (k *KexCom) Listen(ctx *Context, u *libkb.User, src libkb.DeviceID) {
 	k.user = u
 	k.deviceID = src
 	var err error
@@ -268,7 +125,7 @@ func (k *Kex) Listen(ctx *Context, u *libkb.User, src libkb.DeviceID) {
 	}
 }
 
-func (k *Kex) waitHello() error {
+func (k *KexCom) waitHello() error {
 	G.Log.Info("[%s] waitHello start", k.debugName)
 	defer G.Log.Info("[%s] waitHello done", k.debugName)
 	select {
@@ -280,7 +137,7 @@ func (k *Kex) waitHello() error {
 	}
 }
 
-func (k *Kex) waitDone() error {
+func (k *KexCom) waitDone() error {
 	G.Log.Info("[%s] waitDone start", k.debugName)
 	defer G.Log.Info("[%s] waitDone done", k.debugName)
 	select {
@@ -292,7 +149,7 @@ func (k *Kex) waitDone() error {
 	}
 }
 
-func (k *Kex) secret() (words []string, id [32]byte, err error) {
+func (k *KexCom) secret() (words []string, id [32]byte, err error) {
 	words, err = libkb.SecWordList(5)
 	if err != nil {
 		return
@@ -305,7 +162,10 @@ func (k *Kex) secret() (words []string, id [32]byte, err error) {
 	return words, id, err
 }
 
-func (k *Kex) wordsToID(words string) ([32]byte, error) {
+func (k *KexCom) wordsToID(words string) ([32]byte, error) {
+	if k.user == nil {
+		return [32]byte{}, fmt.Errorf("nil user")
+	}
 	key, err := scrypt.Key([]byte(words), []byte(k.user.GetName()), 32768, 8, 1, 32)
 	if err != nil {
 		return [32]byte{}, err
@@ -313,7 +173,7 @@ func (k *Kex) wordsToID(words string) ([32]byte, error) {
 	return sha256.Sum256(key), nil
 }
 
-func (k *Kex) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
+func (k *KexCom) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
 	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
 
@@ -346,9 +206,9 @@ func (k *Kex) StartKexSession(ctx *kex.Context, id kex.StrongID) error {
 	return k.server.Hello(ctx, ctx.Sender, pair.GetKid())
 }
 
-func (k *Kex) StartReverseKexSession(ctx *kex.Context) error { return nil }
+func (k *KexCom) StartReverseKexSession(ctx *kex.Context) error { return nil }
 
-func (k *Kex) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
+func (k *KexCom) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) error {
 	G.Log.Info("[%s] Hello Receive", k.debugName)
 	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
 	if err := k.verifyRequest(ctx); err != nil {
@@ -362,7 +222,7 @@ func (k *Kex) Hello(ctx *kex.Context, devID libkb.DeviceID, devKeyID libkb.KID) 
 }
 
 // sig is the reverse sig.
-func (k *Kex) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
+func (k *KexCom) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
 	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
 	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
 	if err := k.verifyRequest(ctx); err != nil {
@@ -439,7 +299,7 @@ func (k *Kex) PleaseSign(ctx *kex.Context, eddsa libkb.NaclSigningKeyPublic, sig
 	return k.server.Done(ctx, mt)
 }
 
-func (k *Kex) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
+func (k *KexCom) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
 	G.Log.Info("[%s] Done Receive", k.debugName)
 	defer G.Log.Info("[%s] Done Receive done", k.debugName)
 	if err := k.verifyRequest(ctx); err != nil {
@@ -453,9 +313,9 @@ func (k *Kex) Done(ctx *kex.Context, mt libkb.MerkleTriple) error {
 	return nil
 }
 
-func (k *Kex) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
+func (k *KexCom) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
 
-func (k *Kex) verifyReceiver(ctx *kex.Context) error {
+func (k *KexCom) verifyReceiver(ctx *kex.Context) error {
 	G.Log.Debug("kex context: sender device %s => receiver device %s", ctx.Sender, ctx.Receiver)
 	G.Log.Debug("kex context: own device %s", k.deviceID)
 	if ctx.Receiver != k.deviceID {
@@ -464,14 +324,14 @@ func (k *Kex) verifyReceiver(ctx *kex.Context) error {
 	return nil
 }
 
-func (k *Kex) verifySession(ctx *kex.Context) error {
+func (k *KexCom) verifySession(ctx *kex.Context) error {
 	if ctx.StrongID != k.sessionID {
 		return fmt.Errorf("%s: context StrongID (%x) != sessionID (%x)", k.debugName, ctx.StrongID, k.sessionID)
 	}
 	return nil
 }
 
-func (k *Kex) verifyRequest(ctx *kex.Context) error {
+func (k *KexCom) verifyRequest(ctx *kex.Context) error {
 	if err := k.verifyReceiver(ctx); err != nil {
 		return err
 	}
@@ -481,7 +341,7 @@ func (k *Kex) verifyRequest(ctx *kex.Context) error {
 	return nil
 }
 
-func (k *Kex) receive(ctx *kex.Context, dir kex.Direction) {
+func (k *KexCom) receive(ctx *kex.Context, dir kex.Direction) {
 	rec := kex.NewReceiver(k, dir)
 	for {
 		if err := rec.Receive(ctx); err != nil {

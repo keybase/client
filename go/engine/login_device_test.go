@@ -15,6 +15,7 @@ import (
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
 func TestLoginNewDeviceKex(t *testing.T) {
+	t.Skip()
 	kexTimeout = time.Second
 
 	// test context for device X
@@ -99,6 +100,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 // It's possible we can get rid of this test when
 // TestLoginNewDeviceKex works.
 func TestLoginNewDeviceFakeComm(t *testing.T) {
+	t.Skip()
 	kexTimeout = 1 * time.Second
 	// fake kex server implementation
 	ksrv := newKexsrv()

@@ -365,10 +365,16 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType str
 	if err != nil {
 		return err
 	}
-	//	if err := eng.Run(devname, tk.LksClientHalf()); err != nil {
 
-	k := NewKex(d.kexServer, tk.LksClientHalf())
-	return k.StartForward(ctx, d.user, src, *dst, devType, devName)
+	kargs := &KexFwdArgs{
+		User:    d.user,
+		Src:     src,
+		Dst:     *dst,
+		DevType: devType,
+		DevDesc: devName,
+	}
+	k := NewKexFwd(d.kexServer, tk.LksClientHalf(), kargs)
+	return RunEngine(k, ctx, nil, nil)
 }
 
 func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {

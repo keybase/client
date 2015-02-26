@@ -30,6 +30,12 @@ type Context struct {
 	Meta
 }
 
+func NewContext(meta Meta) *Context {
+	c := &Context{Meta: meta}
+	copy(c.WeakID[:], c.StrongID[0:16])
+	return c
+}
+
 func (c *Context) Swap() {
 	c.Sender, c.Receiver = c.Receiver, c.Sender
 }
