@@ -296,6 +296,7 @@ func (k Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		return
 	}
 
+	// XXX PC delete this when MK adds global context
 	// If there's a DeviceID set in ska, try using it.
 	// This is mainly useful in testing situations, for example TestLoginNewDeviceKex,
 	// where G can get corrupted.
@@ -346,6 +347,7 @@ type SecretKeyArg struct {
 	Ui     SecretUI // for Unlocking secrets
 	Me     *User    // Whose keys
 
+	// XXX PC delete this when MK adds globalcontext passing
 	DeviceID *DeviceID // optional: the device id to look for
 }
 
