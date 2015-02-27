@@ -1,9 +1,10 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
-	"testing"
 )
 
 // Test login switching between two different users.
@@ -88,8 +89,6 @@ func testUserHasDeviceKey(t *testing.T) {
 	if ckf == nil {
 		t.Fatalf("user has no computed key family")
 	}
-
-	//	ckf.DumpToLog(G.UI.GetLogUI())
 
 	active := ckf.HasActiveKey()
 	if !active {
