@@ -27,6 +27,7 @@ build-stamp: \
 	json/quota.json \
 	json/secret_ui.json \
 	json/session.json \
+	json/sibkey.json \
 	json/signup.json \
 	json/track.json \
 	json/ui.json

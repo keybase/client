@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net"
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"net"
-	"os"
 )
 
 // Keep this around to simplify things
@@ -19,13 +20,14 @@ type Daemon struct {
 }
 
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
-	srv.Register(keybase_1.SignupProtocol(NewSignupHandler(xp)))
 	srv.Register(keybase_1.ConfigProtocol(ConfigHandler{xp}))
 	srv.Register(keybase_1.IdentifyProtocol(NewIdentifyHandler(xp)))
 	srv.Register(keybase_1.LoginProtocol(NewLoginHandler(xp)))
 	srv.Register(keybase_1.MykeyProtocol(NewMykeyHandler(xp)))
 	srv.Register(keybase_1.ProveProtocol(NewProveHandler(xp)))
 	srv.Register(keybase_1.SessionProtocol(NewSessionHandler(xp)))
+	srv.Register(keybase_1.SibkeyProtocol(NewSibkeyHandler(xp)))
+	srv.Register(keybase_1.SignupProtocol(NewSignupHandler(xp)))
 	srv.Register(keybase_1.TrackProtocol(NewTrackHandler(xp)))
 }
 

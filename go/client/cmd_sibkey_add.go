@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 // CmdSibkeyAdd is the 'sibkey add' command.  It is used for
@@ -30,7 +31,18 @@ func NewCmdSibkeyAdd(cl *libcmdline.CommandLine) cli.Command {
 
 // RunClient runs the command in client/server mode.
 func (c *CmdSibkeyAdd) RunClient() error {
-	return nil
+	cli, err := GetSibkeyClient()
+	if err != nil {
+		return err
+	}
+	protocols := []rpc2.Protocol{
+		NewSecretUIProtocol(),
+	}
+	if err := RegisterProtocols(protocols); err != nil {
+		return err
+	}
+
+	return cli.Add(c.phrase)
 }
 
 // Run runs the command in standalone mode.

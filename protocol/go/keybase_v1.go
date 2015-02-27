@@ -1380,6 +1380,40 @@ func (c SessionClient) CurrentSession() (res Session, err error) {
 	return
 }
 
+type AddArg struct {
+	SecretPhrase string `codec:"secretPhrase" json:"secretPhrase"`
+}
+
+type SibkeyInterface interface {
+	Add(string) error
+}
+
+func SibkeyProtocol(i SibkeyInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.sibkey",
+		Methods: map[string]rpc2.ServeHook{
+			"add": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]AddArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Add(args[0].SecretPhrase)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type SibkeyClient struct {
+	Cli GenericClient
+}
+
+func (c SibkeyClient) Add(secretPhrase string) (err error) {
+	__arg := AddArg{SecretPhrase: secretPhrase}
+	err = c.Cli.Call("keybase.1.sibkey.add", []interface{}{__arg}, nil)
+	return
+}
+
 type SignupRes struct {
 	PassphraseOk bool `codec:"passphraseOk" json:"passphraseOk"`
 	PostOk       bool `codec:"postOk" json:"postOk"`
