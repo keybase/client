@@ -808,6 +808,17 @@ func (ckf ComputedKeyFamily) DumpToLog(ui LogUI) {
 		server_dump(v.key, "SUB")
 		cki_dump(k)
 	}
+
+	for k, v := range ckf.cki.Devices {
+		ui.Info("Device %s [%s] %q", k, v.Type, *v.Description)
+		kid, err := ImportKID(*v.Kid)
+		if err != nil {
+			ui.Info("    error finding sibkey: %q", err)
+		} else {
+			gk := ckf.kf.FindKey(kid)
+			server_dump(gk, "SIB")
+		}
+	}
 }
 
 // UpdateDevices takes the Device object from the given ChainLink

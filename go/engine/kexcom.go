@@ -224,8 +224,12 @@ func (k *KexCom) Done(m *kex.Meta, mt libkb.MerkleTriple) error {
 		return err
 	}
 
-	// device X changed the sigchain, so bump it here
-	k.user.SigChainBumpMT(mt)
+	// device X changed the sigchain, so reload the user to get the latest sigchain.
+	var err error
+	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		return err
+	}
 
 	k.doneReceived <- true
 	return nil

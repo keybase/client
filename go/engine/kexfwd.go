@@ -204,10 +204,12 @@ func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (string, error) {
 // pushSubkey pushes Y's subkey to the api server.
 func (k *KexFwd) pushSubkey(keys *keyres) error {
 	// Device y signs M_y into Alice's sigchain as a subkey.
+	s := libkb.DEVICE_STATUS_ACTIVE
 	devY := libkb.Device{
 		Id:          k.deviceID.String(),
 		Type:        k.args.DevType,
 		Description: &k.args.DevDesc,
+		Status:      &s,
 	}
 	g := func() (libkb.NaclKeyPair, error) {
 		return keys.dh, nil
