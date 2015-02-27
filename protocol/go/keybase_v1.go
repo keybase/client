@@ -291,8 +291,12 @@ func (c DoctorUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err err
 type AddGpgKeyArg struct {
 }
 
+type FoobArg struct {
+}
+
 type GpgInterface interface {
 	AddGpgKey() error
+	Foob() ([]string, error)
 }
 
 func GpgProtocol(i GpgInterface) rpc2.Protocol {
@@ -303,6 +307,13 @@ func GpgProtocol(i GpgInterface) rpc2.Protocol {
 				args := make([]AddGpgKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.AddGpgKey()
+				}
+				return
+			},
+			"foob": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FoobArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Foob()
 				}
 				return
 			},
@@ -317,6 +328,11 @@ type GpgClient struct {
 
 func (c GpgClient) AddGpgKey() (err error) {
 	err = c.Cli.Call("keybase.1.gpg.addGpgKey", []interface{}{AddGpgKeyArg{}}, nil)
+	return
+}
+
+func (c GpgClient) Foob() (res []string, err error) {
+	err = c.Cli.Call("keybase.1.gpg.foob", []interface{}{FoobArg{}}, &res)
 	return
 }
 

@@ -4,4 +4,6 @@ protocol gpg {
 	import idl "common.avdl";
 
 	void addGpgKey();
+
+	array<string> foob();
 }
