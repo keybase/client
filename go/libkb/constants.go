@@ -220,3 +220,10 @@ const (
 	DLG_SIBKEY
 	DLG_SUBKEY
 )
+
+const (
+	KEX_SCRYPT_COST   = 32768
+	KEX_SCRYPT_R      = 8
+	KEX_SCRYPT_P      = 1
+	KEX_SCRYPT_KEYLEN = 32
+)

@@ -62,7 +62,8 @@ func (k *KexCom) wordsToID(words string) (id [32]byte, err error) {
 	if k.user == nil {
 		return id, libkb.ErrNilUser
 	}
-	key, err := scrypt.Key([]byte(words), []byte(k.user.GetName()), 32768, 8, 1, 32)
+	key, err := scrypt.Key([]byte(words), []byte(k.user.GetName()),
+		libkb.KEX_SCRYPT_COST, libkb.KEX_SCRYPT_R, libkb.KEX_SCRYPT_P, libkb.KEX_SCRYPT_KEYLEN)
 	if err != nil {
 		return id, err
 	}
