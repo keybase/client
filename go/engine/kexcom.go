@@ -2,7 +2,6 @@ package engine
 
 import (
 	"crypto/hmac"
-	"crypto/sha256"
 	"fmt"
 	"strings"
 	"time"
@@ -102,16 +101,16 @@ func (k *KexCom) secret() (words []string, id [32]byte, err error) {
 	return words, id, err
 }
 
-func (k *KexCom) wordsToID(words string) ([32]byte, error) {
+func (k *KexCom) wordsToID(words string) (id [32]byte, err error) {
 	if k.user == nil {
-		return [32]byte{}, fmt.Errorf("nil user")
+		return id, libkb.ErrNilUser
 	}
 	key, err := scrypt.Key([]byte(words), []byte(k.user.GetName()), 32768, 8, 1, 32)
 	if err != nil {
-		return [32]byte{}, err
+		return id, err
 	}
-	// XXX remove this
-	return sha256.Sum256(key), nil
+	copy(id[:], key)
+	return id, nil
 }
 
 func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
@@ -126,7 +125,7 @@ func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
 	m.Swap()
 	pair, ok := k.deviceSibkey.(libkb.NaclSigningKeyPair)
 	if !ok {
-		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
+		return libkb.BadKeyError{Msg: fmt.Sprintf("invalid device sibkey type %T", k.deviceSibkey)}
 	}
 	G.Log.Debug("[%s] calling Hello on server (m.Sender = %s, k.deviceID = %s, m.Receiver = %s)", k.debugName, m.Sender, k.deviceID, m.Receiver)
 
@@ -207,11 +206,11 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 	}
 	gen := libkb.NewNaclKeyGen(arg)
 	if err := gen.Generate(); err != nil {
-		return fmt.Errorf("gen.Generate() error: %s", err)
+		return err
 	}
 	_, err := gen.Push()
 	if err != nil {
-		return fmt.Errorf("gen.Push() error: %s", err)
+		return err
 	}
 
 	k.pleaseSignReceived <- true
@@ -242,14 +241,14 @@ func (k *KexCom) verifyReceiver(m *kex.Meta) error {
 	G.Log.Debug("kex Meta: sender device %s => receiver device %s", m.Sender, m.Receiver)
 	G.Log.Debug("kex Meta: own device %s", k.deviceID)
 	if m.Receiver != k.deviceID {
-		return fmt.Errorf("receiver device id (%s) invalid:  this is device (%s)", m.Receiver, k.deviceID)
+		return libkb.ErrReceiverDevice
 	}
 	return nil
 }
 
 func (k *KexCom) verifySession(m *kex.Meta) error {
 	if !hmac.Equal(m.StrongID[:], k.sessionID[:]) {
-		return fmt.Errorf("%s: Meta StrongID (%x) != sessionID (%x)", k.debugName, m.StrongID, k.sessionID)
+		return libkb.ErrInvalidKexSession
 	}
 	return nil
 }

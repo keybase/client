@@ -292,13 +292,13 @@ func (p PassphraseError) Error() string {
 //=============================================================================
 
 type BadKeyError struct {
-	msg string
+	Msg string
 }
 
 func (p BadKeyError) Error() string {
 	msg := "Bad key found"
-	if len(p.msg) != 0 {
-		msg = msg + ": " + p.msg
+	if len(p.Msg) != 0 {
+		msg = msg + ": " + p.Msg
 	}
 	return msg
 }
@@ -787,3 +787,6 @@ func (c CanceledError) Error() string {
 
 var ErrNoDevice = errors.New("No device found")
 var ErrTimeout = errors.New("Operation timed out")
+var ErrNilUser = errors.New("User is nil")
+var ErrReceiverDevice = errors.New("Device ID mismatch in message receiver")
+var ErrInvalidKexSession = errors.New("Invalid kex session ID")

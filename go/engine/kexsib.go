@@ -85,6 +85,7 @@ func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
 	}
 	k.sessionID = id
 
+	G.Log.Debug("KexSib: starting receive loop")
 	m := kex.NewMeta(k.user.GetUid(), id, libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
 	return k.loopReceives(m)
 }
@@ -98,13 +99,17 @@ func (k *KexSib) loopReceives(m *kex.Meta) error {
 		wg.Done()
 	}()
 
+	G.Log.Debug("KexSib: waiting for startkex message")
 	if err := k.waitStartKex(); err != nil {
 		return err
 	}
+	G.Log.Debug("KexSib: waiting for pleasesign message")
 	if err := k.waitPleaseSign(); err != nil {
 		return err
 	}
+	G.Log.Debug("KexSib: finished with messages, waiting for receive to end.")
 	k.msgReceiveComplete <- true
 	wg.Wait()
+	G.Log.Debug("KexSib: done.")
 	return nil
 }

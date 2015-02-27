@@ -57,6 +57,8 @@ func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
+	G.Log.Debug("KexFwd: run starting")
+	defer G.Log.Debug("KexFwd: run finished")
 	k.user = k.args.User
 	k.deviceID = k.args.Src
 	k.engctx = ctx
@@ -80,27 +82,32 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
+	G.Log.Debug("KexFwd: displaying sibkey command")
 	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: k.args.DevDesc, Secret: words}); err != nil {
 		return err
 	}
 
 	// start the kex session with X
+	G.Log.Debug("KexFwd: sending StartKexSession to X")
 	if err := k.server.StartKexSession(m, k.sessionID); err != nil {
 		return err
 	}
 
 	// wait for Hello() from X
+	G.Log.Debug("KexFwd: waiting for Hello from X")
 	if err := k.waitHello(); err != nil {
 		return err
 	}
 
 	// make keys for device Y
+	G.Log.Debug("KexFwd: making keys for device Y")
 	keys, err := k.makeKeys()
 	if err != nil {
 		return err
 	}
 
 	// store the keys in lks
+	G.Log.Debug("KexFwd: storing keys for device Y in LKS")
 	if err := k.storeKeys(ctx, keys); err != nil {
 		return err
 	}
@@ -120,11 +127,13 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	// send PleaseSign message to X
 	m.Sender = k.args.Src
 	m.Receiver = k.args.Dst
+	G.Log.Debug("KexFwd: sending PleaseSign to X")
 	if err := k.server.PleaseSign(m, signer, rsig, k.args.DevType, k.args.DevDesc); err != nil {
 		return err
 	}
 
 	// wait for Done() from X
+	G.Log.Debug("KexFwd: waiting for Done from X")
 	if err := k.waitDone(); err != nil {
 		return err
 	}
@@ -132,6 +141,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	k.msgReceiveComplete <- true
 
 	// push the dh key as a subkey to the server
+	G.Log.Debug("KexFwd: pushing subkey")
 	if err := k.pushSubkey(keys); err != nil {
 		return err
 	}
@@ -166,7 +176,7 @@ type keyres struct {
 func (k keyres) signer() (pub libkb.NaclSigningKeyPublic, err error) {
 	s, ok := k.eddsa.(libkb.NaclSigningKeyPair)
 	if !ok {
-		return pub, fmt.Errorf("invalid key type %T", k.eddsa)
+		return pub, libkb.BadKeyError{Msg: fmt.Sprintf("invalid key type %T", k.eddsa)}
 	}
 	return s.Public, nil
 }
@@ -238,10 +248,10 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 	}
 	gen := libkb.NewNaclKeyGen(arg)
 	if err := gen.Generate(); err != nil {
-		return fmt.Errorf("gen.Generate() error: %s", err)
+		return err
 	}
 	if _, err := gen.Push(); err != nil {
-		return fmt.Errorf("gen.Push() error: %s", err)
+		return err
 	}
 	return nil
 }
