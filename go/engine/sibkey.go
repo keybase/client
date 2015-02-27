@@ -57,11 +57,15 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 	}
 	k.deviceID = *dp
 
+	if k.user.GetComputedKeyFamily() == nil {
+		return libkb.KeyFamilyError{Msg: "nil ckf"}
+	}
 	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(k.deviceID)
 	if err != nil {
 		k.G().Log.Warning("Sibkey.Run: error getting device sibkey: %s", err)
 		return err
 	}
+
 	arg := libkb.SecretKeyArg{
 		DeviceKey: true,
 		Reason:    "new device install",

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
 	"strings"
@@ -54,7 +55,7 @@ func (k *KexCom) waitStartKex() error {
 		G.Log.Debug("[%s] startkex received", k.debugName)
 		return nil
 	case <-time.After(kexTimeout):
-		return fmt.Errorf("timeout waiting for StartKexSession")
+		return libkb.ErrTimeout
 	}
 }
 
@@ -64,7 +65,7 @@ func (k *KexCom) waitHello() error {
 		G.Log.Debug("[%s] hello received", k.debugName)
 		return nil
 	case <-time.After(kexTimeout):
-		return fmt.Errorf("timeout waiting for Hello")
+		return libkb.ErrTimeout
 	}
 }
 
@@ -74,7 +75,7 @@ func (k *KexCom) waitPleaseSign() error {
 		G.Log.Debug("[%s] pleasesign received", k.debugName)
 		return nil
 	case <-time.After(kexTimeout):
-		return fmt.Errorf("timeout waiting for PleaseSign")
+		return libkb.ErrTimeout
 	}
 }
 
@@ -84,7 +85,7 @@ func (k *KexCom) waitDone() error {
 		G.Log.Debug("[%s] done received", k.debugName)
 		return nil
 	case <-time.After(kexTimeout):
-		return fmt.Errorf("timeout waiting for Done")
+		return libkb.ErrTimeout
 	}
 }
 
@@ -109,6 +110,7 @@ func (k *KexCom) wordsToID(words string) ([32]byte, error) {
 	if err != nil {
 		return [32]byte{}, err
 	}
+	// XXX remove this
 	return sha256.Sum256(key), nil
 }
 
@@ -246,7 +248,7 @@ func (k *KexCom) verifyReceiver(m *kex.Meta) error {
 }
 
 func (k *KexCom) verifySession(m *kex.Meta) error {
-	if m.StrongID != k.sessionID {
+	if !hmac.Equal(m.StrongID[:], k.sessionID[:]) {
 		return fmt.Errorf("%s: Meta StrongID (%x) != sessionID (%x)", k.debugName, m.StrongID, k.sessionID)
 	}
 	return nil
