@@ -39,13 +39,13 @@ func (s *Sender) Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error 
 
 // PleaseSign sends the PleaseSign message to the server.
 func (s *Sender) PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	mb := &Body{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}}
+	mb := &Body{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}, EOF: true}
 	return s.send(m, mb)
 }
 
 // Done sends the Done message to the server.
 func (s *Sender) Done(m *Meta) error {
-	mb := &Body{Name: doneMsg}
+	mb := &Body{Name: doneMsg, EOF: true}
 	return s.send(m, mb)
 }
 

@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
@@ -44,48 +43,6 @@ func newKexCom(server kex.Handler, lksClientHalf []byte) *KexCom {
 		kc.lks = libkb.NewLKSecClientHalf(lksClientHalf)
 	}
 	return kc
-}
-
-var kexTimeout = 5 * time.Minute
-
-func (k *KexCom) waitStartKex() error {
-	select {
-	case <-k.startKexReceived:
-		G.Log.Debug("[%s] startkex received", k.debugName)
-		return nil
-	case <-time.After(kexTimeout):
-		return libkb.ErrTimeout
-	}
-}
-
-func (k *KexCom) waitHello() error {
-	select {
-	case <-k.helloReceived:
-		G.Log.Debug("[%s] hello received", k.debugName)
-		return nil
-	case <-time.After(kexTimeout):
-		return libkb.ErrTimeout
-	}
-}
-
-func (k *KexCom) waitPleaseSign() error {
-	select {
-	case <-k.pleaseSignReceived:
-		G.Log.Debug("[%s] pleasesign received", k.debugName)
-		return nil
-	case <-time.After(kexTimeout):
-		return libkb.ErrTimeout
-	}
-}
-
-func (k *KexCom) waitDone() error {
-	select {
-	case <-k.doneReceived:
-		G.Log.Debug("[%s] done received", k.debugName)
-		return nil
-	case <-time.After(kexTimeout):
-		return libkb.ErrTimeout
-	}
 }
 
 func (k *KexCom) secret() (words []string, id [32]byte, err error) {
@@ -267,6 +224,10 @@ func (k *KexCom) receive(m *kex.Meta, dir kex.Direction) {
 	rec := kex.NewReceiver(k, dir)
 	for {
 		if _, err := rec.Receive(m); err != nil {
+			if err == kex.ErrProtocolEOF {
+				G.Log.Debug("received EOF in message, stopping receive")
+				return
+			}
 			G.Log.Debug("receive error: %s", err)
 		}
 		select {

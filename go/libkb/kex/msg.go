@@ -178,6 +178,7 @@ type Body struct {
 	Name string
 	Args MsgArgs
 	Mac  []byte
+	EOF  bool
 }
 
 // BodyDecode takes a base64-encoded msgpack and turns it into a

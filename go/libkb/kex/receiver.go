@@ -77,6 +77,12 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 		} else {
 			errorList = append(errorList, err)
 		}
+
+		// if the message has the EOF flag set, we are done receiving messages
+		// so break out now.
+		if msg.EOF {
+			return count, ErrProtocolEOF
+		}
 	}
 
 	if len(errorList) > 0 {

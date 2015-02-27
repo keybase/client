@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
@@ -268,4 +269,24 @@ func (k *KexFwd) storeDeviceID() error {
 		}
 	}
 	return nil
+}
+
+func (k *KexFwd) waitHello() error {
+	select {
+	case <-k.helloReceived:
+		G.Log.Debug("[%s] hello received", k.debugName)
+		return nil
+	case <-time.After(kex.StartTimeout):
+		return libkb.ErrTimeout
+	}
+}
+
+func (k *KexFwd) waitDone() error {
+	select {
+	case <-k.doneReceived:
+		G.Log.Debug("[%s] done received", k.debugName)
+		return nil
+	case <-time.After(kex.IntraTimeout):
+		return libkb.ErrTimeout
+	}
 }

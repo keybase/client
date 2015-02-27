@@ -16,7 +16,8 @@ import (
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
 func TestLoginNewDeviceKex(t *testing.T) {
-	kexTimeout = 5 * time.Second
+	kex.StartTimeout = 5 * time.Second
+	kex.IntraTimeout = 5 * time.Second
 	kex.PollDuration = 1 * time.Second
 
 	// test context for device X

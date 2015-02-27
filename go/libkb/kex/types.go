@@ -1,6 +1,8 @@
 package kex
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -61,3 +63,7 @@ type Handler interface {
 	PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
 	Done(m *Meta) error
 }
+
+// ErrProtocolEOF is returned by Receive when the message body has
+// the EOF flag set.
+var ErrProtocolEOF = errors.New("EOF")

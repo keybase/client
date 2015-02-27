@@ -2,6 +2,7 @@ package engine
 
 import (
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
@@ -112,4 +113,24 @@ func (k *KexSib) loopReceives(m *kex.Meta) error {
 	wg.Wait()
 	G.Log.Debug("KexSib: done.")
 	return nil
+}
+
+func (k *KexSib) waitStartKex() error {
+	select {
+	case <-k.startKexReceived:
+		G.Log.Debug("[%s] startkex received", k.debugName)
+		return nil
+	case <-time.After(kex.IntraTimeout):
+		return libkb.ErrTimeout
+	}
+}
+
+func (k *KexSib) waitPleaseSign() error {
+	select {
+	case <-k.pleaseSignReceived:
+		G.Log.Debug("[%s] pleasesign received", k.debugName)
+		return nil
+	case <-time.After(kex.IntraTimeout):
+		return libkb.ErrTimeout
+	}
 }
