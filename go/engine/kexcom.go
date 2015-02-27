@@ -55,11 +55,11 @@ func (k *KexCom) Listen(ctx *Context, u *libkb.User, src libkb.DeviceID) {
 }
 
 func (k *KexCom) waitHello() error {
-	G.Log.Info("[%s] waitHello start", k.debugName)
-	defer G.Log.Info("[%s] waitHello done", k.debugName)
+	G.Log.Debug("[%s] waitHello start", k.debugName)
+	defer G.Log.Debug("[%s] waitHello done", k.debugName)
 	select {
 	case <-k.helloReceived:
-		G.Log.Info("[%s] hello received", k.debugName)
+		G.Log.Debug("[%s] hello received", k.debugName)
 		return nil
 	case <-time.After(kexTimeout):
 		return fmt.Errorf("timeout waiting for Hello")
@@ -67,11 +67,11 @@ func (k *KexCom) waitHello() error {
 }
 
 func (k *KexCom) waitDone() error {
-	G.Log.Info("[%s] waitDone start", k.debugName)
-	defer G.Log.Info("[%s] waitDone done", k.debugName)
+	G.Log.Debug("[%s] waitDone start", k.debugName)
+	defer G.Log.Debug("[%s] waitDone done", k.debugName)
 	select {
 	case <-k.doneReceived:
-		G.Log.Info("[%s] done received", k.debugName)
+		G.Log.Debug("[%s] done received", k.debugName)
 		return nil
 	case <-time.After(kexTimeout):
 		return fmt.Errorf("timeout waiting for Done")
@@ -103,8 +103,8 @@ func (k *KexCom) wordsToID(words string) ([32]byte, error) {
 }
 
 func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
-	G.Log.Info("[%s] StartKexSession: %x", k.debugName, id)
-	defer G.Log.Info("[%s] StartKexSession done", k.debugName)
+	G.Log.Debug("[%s] StartKexSession: %x", k.debugName, id)
+	defer G.Log.Debug("[%s] StartKexSession done", k.debugName)
 
 	if err := k.verifyReceiver(m); err != nil {
 		return err
@@ -114,7 +114,7 @@ func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
 	if k.getSecret != nil {
 		// this is for testing.
 		words := k.getSecret()
-		G.Log.Info("[%s] secret: %q", k.debugName, words)
+		G.Log.Debug("[%s] secret: %q", k.debugName, words)
 		id, err := k.wordsToID(words)
 		if err != nil {
 			return err
@@ -131,16 +131,15 @@ func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
 	if !ok {
 		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
 	}
-	G.Log.Info("[%s] calling Hello on server (m.Sender = %s, k.deviceID = %s, m.Receiver = %s)", k.debugName, m.Sender, k.deviceID, m.Receiver)
-	G.Log.Info("kexcom.StartKexSession: have a server? %v", k.server != nil)
+	G.Log.Debug("[%s] calling Hello on server (m.Sender = %s, k.deviceID = %s, m.Receiver = %s)", k.debugName, m.Sender, k.deviceID, m.Receiver)
 	return k.server.Hello(m, m.Sender, pair.GetKid())
 }
 
 func (k *KexCom) StartReverseKexSession(m *kex.Meta) error { return nil }
 
 func (k *KexCom) Hello(m *kex.Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	G.Log.Info("[%s] Hello Receive", k.debugName)
-	defer G.Log.Info("[%s] Hello Receive done", k.debugName)
+	G.Log.Debug("[%s] Hello Receive", k.debugName)
+	defer G.Log.Debug("[%s] Hello Receive done", k.debugName)
 	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
@@ -153,8 +152,8 @@ func (k *KexCom) Hello(m *kex.Meta, devID libkb.DeviceID, devKeyID libkb.KID) er
 
 // sig is the reverse sig.
 func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	G.Log.Info("[%s] PleaseSign Receive", k.debugName)
-	defer G.Log.Info("[%s] PleaseSign Receive done", k.debugName)
+	G.Log.Debug("[%s] PleaseSign Receive", k.debugName)
+	defer G.Log.Debug("[%s] PleaseSign Receive done", k.debugName)
 	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
@@ -162,10 +161,12 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 	rs := &libkb.ReverseSig{Sig: sig, Type: "kb"}
 
 	// make device object for Y
+	s := libkb.DEVICE_STATUS_ACTIVE
 	devY := libkb.Device{
 		Id:          m.Sender.String(),
 		Type:        devType,
 		Description: &devDesc,
+		Status:      &s,
 	}
 
 	// generator function that just copies the public eddsa key into a
@@ -218,8 +219,8 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 }
 
 func (k *KexCom) Done(m *kex.Meta, mt libkb.MerkleTriple) error {
-	G.Log.Info("[%s] Done Receive", k.debugName)
-	defer G.Log.Info("[%s] Done Receive done", k.debugName)
+	G.Log.Debug("[%s] Done Receive", k.debugName)
+	defer G.Log.Debug("[%s] Done Receive done", k.debugName)
 	if err := k.verifyRequest(m); err != nil {
 		return err
 	}

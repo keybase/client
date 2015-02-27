@@ -124,6 +124,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 
+	// push the dh key as a subkey to the server
 	if err := k.pushSubkey(keys); err != nil {
 		return err
 	}
