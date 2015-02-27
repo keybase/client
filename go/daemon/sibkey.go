@@ -19,6 +19,6 @@ func NewSibkeyHandler(xp *rpc2.Transport) *SibkeyHandler {
 func (h *SibkeyHandler) Add(phrase string) error {
 	sessionID := nextSessionId()
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID)}
-	eng := engine.NewSibkey(G, phrase)
+	eng := engine.NewKexSib(G, phrase)
 	return engine.RunEngine(eng, ctx, nil, nil)
 }

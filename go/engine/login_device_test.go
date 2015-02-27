@@ -58,12 +58,10 @@ func TestLoginNewDeviceKex(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 
-		G.Log.Info("starting sibkey engine")
-		kx := NewSibkey(&tcX.G, docui.secret)
+		kx := NewKexSib(&tcX.G, docui.secret)
 		if err := RunEngine(kx, ctx, nil, nil); err != nil {
 			t.Fatal(err)
 		}
-		G.Log.Info("sibkey engine finished")
 		wg.Done()
 	}()
 

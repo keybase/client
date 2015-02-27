@@ -7,40 +7,41 @@ import (
 	"github.com/keybase/client/go/libkb/kex"
 )
 
-type Sibkey struct {
+type KexSib struct {
 	KexCom
 	secretPhrase string
 	libkb.Contextified
 }
 
-// NewSibkey creates a sibkey add engine.
+// NewKexSib creates a sibkey add engine.
+// This runs on device X to provision device Y in forward kex.
 // The secretPhrase is needed before this engine can run because
 // the weak id used in receive() is based on it.
-func NewSibkey(g *libkb.GlobalContext, secretPhrase string) *Sibkey {
-	return &Sibkey{
+func NewKexSib(g *libkb.GlobalContext, secretPhrase string) *KexSib {
+	return &KexSib{
 		secretPhrase: secretPhrase,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (k *Sibkey) Name() string {
-	return "Sibkey"
+func (k *KexSib) Name() string {
+	return "KexSib"
 }
 
-func (k *Sibkey) GetPrereqs() EnginePrereqs {
+func (k *KexSib) GetPrereqs() EnginePrereqs {
 	return EnginePrereqs{Session: true}
 }
 
-func (k *Sibkey) RequiredUIs() []libkb.UIKind {
+func (k *KexSib) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{libkb.SecretUIKind}
 }
 
-func (k *Sibkey) SubConsumers() []libkb.UIConsumer {
+func (k *KexSib) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
+func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
 	k.engctx = ctx
 	kc := newKexCom(kex.NewSender(kex.DirectionXtoY), nil)
 	k.KexCom = *kc
@@ -62,7 +63,7 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 	}
 	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(k.deviceID)
 	if err != nil {
-		k.G().Log.Warning("Sibkey.Run: error getting device sibkey: %s", err)
+		k.G().Log.Warning("KexSib.Run: error getting device sibkey: %s", err)
 		return err
 	}
 
@@ -74,7 +75,7 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 	}
 	k.sigKey, err = k.G().Keyrings.GetSecretKey(arg)
 	if err != nil {
-		k.G().Log.Warning("Sibkey.Run: GetSecretKey error: %s", err)
+		k.G().Log.Warning("KexSib.Run: GetSecretKey error: %s", err)
 		return err
 	}
 
@@ -88,29 +89,7 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 	return k.loopReceives(m)
 }
 
-func (k *Sibkey) individualReceives(m *kex.Meta) error {
-	// create a message receiver
-	rec := kex.NewReceiver(k, kex.DirectionYtoX)
-
-	// receive StartKexSession
-	if err := rec.ReceiveTimeout(m, kex.IntraTimeout); err != nil {
-		return err
-	}
-	if err := k.waitStartKex(); err != nil {
-		return err
-	}
-
-	// receive PleaseSign
-	if err := rec.ReceiveTimeout(m, kex.IntraTimeout); err != nil {
-		return err
-	}
-	if err := k.waitPleaseSign(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (k *Sibkey) loopReceives(m *kex.Meta) error {
+func (k *KexSib) loopReceives(m *kex.Meta) error {
 	// start receive loop
 	var wg sync.WaitGroup
 	wg.Add(1)
