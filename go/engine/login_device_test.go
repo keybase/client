@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
 func TestLoginNewDeviceKex(t *testing.T) {
-	kexTimeout = time.Second
+	kexTimeout = 5 * time.Second
 
 	// test context for device X
 	tcX := libkb.SetupTest(t, "loginX")
@@ -43,6 +44,9 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
 		// authorize on device X
 		ctx := &Context{LogUI: tcX.G.UI.GetLogUI(), DoctorUI: docui, SecretUI: secui}
@@ -52,10 +56,13 @@ func TestLoginNewDeviceKex(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 
+		G.Log.Info("starting sibkey engine")
 		kx := NewSibkey(&tcX.G, docui.secret)
 		if err := RunEngine(kx, ctx, nil, nil); err != nil {
 			t.Fatal(err)
 		}
+		G.Log.Info("sibkey engine finished")
+		wg.Done()
 	}()
 
 	// test context for device Y
@@ -81,6 +88,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(t)
+	wg.Wait()
 }
 
 type ldocuiDevice struct {

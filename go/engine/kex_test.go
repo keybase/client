@@ -53,8 +53,12 @@ func TestBasicMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 	rctx := &kex.Meta{}
-	if err := r.Receive(rctx); err != nil {
+	n, err := r.Receive(rctx)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Errorf("receive count: %d, expected 1", n)
 	}
 	if h.callCount(startkexMsg) != 1 {
 		t.Errorf("startkex call count: %d, expected 1", h.callCount(startkexMsg))
@@ -76,8 +80,12 @@ func TestBadMACMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 	rctx := &kex.Meta{}
-	if err := r.Receive(rctx); err != nil {
+	n, err := r.Receive(rctx)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if n != 0 {
+		t.Errorf("receive count: %d, expected 0", n)
 	}
 	if h.callCount(startkexMsg) != 0 {
 		t.Errorf("startkex call count: %d, expected 0", h.callCount(startkexMsg))

@@ -28,7 +28,8 @@ type KexFwdArgs struct {
 
 // NewKexFwd creates a KexFwd engine.
 func NewKexFwd(server kex.Handler, lksClientHalf []byte, args *KexFwdArgs, options ...func(*KexFwd)) *KexFwd {
-	kf := &KexFwd{KexCom: KexCom{server: server, lks: libkb.NewLKSecClientHalf(lksClientHalf)}, args: args}
+	kc := newKexCom(server, lksClientHalf)
+	kf := &KexFwd{KexCom: *kc, args: args}
 
 	for _, opt := range options {
 		opt(kf)
@@ -70,7 +71,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	// create the kex meta data
 	m := kex.NewMeta(k.args.User.GetUid(), k.sessionID, k.args.Src, k.args.Dst, kex.DirectionXtoY)
 
-	// start the receive loop
+	// start message receive loop
 	go k.receive(m, kex.DirectionXtoY)
 
 	// tell user the command to enter on existing device (X)
@@ -123,6 +124,8 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	if err := k.waitDone(); err != nil {
 		return err
 	}
+
+	k.msgReceiveComplete <- true
 
 	// push the dh key as a subkey to the server
 	if err := k.pushSubkey(keys); err != nil {

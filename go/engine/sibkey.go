@@ -40,7 +40,8 @@ func (k *Sibkey) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 	k.engctx = ctx
-	k.server = kex.NewSender(kex.DirectionXtoY)
+	kc := newKexCom(kex.NewSender(kex.DirectionXtoY), nil)
+	k.KexCom = *kc
 
 	var err error
 	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
@@ -78,6 +79,40 @@ func (k *Sibkey) Run(ctx *Context, args, reply interface{}) error {
 	k.sessionID = id
 
 	m := kex.NewMeta(k.user.GetUid(), id, libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
-	k.receive(m, kex.DirectionYtoX)
+	return k.loopReceives(m)
+}
+
+func (k *Sibkey) individualReceives(m *kex.Meta) error {
+	// create a message receiver
+	rec := kex.NewReceiver(k, kex.DirectionYtoX)
+
+	// receive StartKexSession
+	if err := rec.ReceiveTimeout(m, kex.IntraTimeout); err != nil {
+		return err
+	}
+	if err := k.waitStartKex(); err != nil {
+		return err
+	}
+
+	// receive PleaseSign
+	if err := rec.ReceiveTimeout(m, kex.IntraTimeout); err != nil {
+		return err
+	}
+	if err := k.waitPleaseSign(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k *Sibkey) loopReceives(m *kex.Meta) error {
+	// start receive loop
+	go k.receive(m, kex.DirectionYtoX)
+	if err := k.waitStartKex(); err != nil {
+		return err
+	}
+	if err := k.waitPleaseSign(); err != nil {
+		return err
+	}
+	k.msgReceiveComplete <- true
 	return nil
 }

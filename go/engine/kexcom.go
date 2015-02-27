@@ -14,26 +14,51 @@ import (
 // KexCom contains common functions for all kex engines.  It
 // should be embedded in the kex engines.
 type KexCom struct {
-	server        kex.Handler
-	user          *libkb.User
-	deviceID      libkb.DeviceID
-	deviceSibkey  libkb.GenericKey
-	sigKey        libkb.GenericKey
-	sessionID     kex.StrongID
-	helloReceived chan bool
-	doneReceived  chan bool
-	debugName     string
-	xDevKeyID     libkb.KID
-	lks           *libkb.LKSec
-	getSecret     func() string // testing only
-	engctx        *Context      // so that kex interface doesn't need to depend on engine ctx
+	server             kex.Handler
+	user               *libkb.User
+	deviceID           libkb.DeviceID
+	deviceSibkey       libkb.GenericKey
+	sigKey             libkb.GenericKey
+	sessionID          kex.StrongID
+	startKexReceived   chan bool
+	helloReceived      chan bool
+	pleaseSignReceived chan bool
+	doneReceived       chan bool
+	debugName          string
+	xDevKeyID          libkb.KID
+	lks                *libkb.LKSec
+	engctx             *Context // so that kex interface doesn't need to depend on engine ctx
+	msgReceiveComplete chan bool
+}
+
+func newKexCom(server kex.Handler, lksClientHalf []byte) *KexCom {
+	kc := &KexCom{
+		server:             server,
+		startKexReceived:   make(chan bool, 1),
+		helloReceived:      make(chan bool, 1),
+		pleaseSignReceived: make(chan bool, 1),
+		doneReceived:       make(chan bool, 1),
+		msgReceiveComplete: make(chan bool, 1),
+	}
+	if lksClientHalf != nil {
+		kc.lks = libkb.NewLKSecClientHalf(lksClientHalf)
+	}
+	return kc
 }
 
 var kexTimeout = 5 * time.Minute
 
+func (k *KexCom) waitStartKex() error {
+	select {
+	case <-k.startKexReceived:
+		G.Log.Debug("[%s] startkex received", k.debugName)
+		return nil
+	case <-time.After(kexTimeout):
+		return fmt.Errorf("timeout waiting for StartKexSession")
+	}
+}
+
 func (k *KexCom) waitHello() error {
-	G.Log.Debug("[%s] waitHello start", k.debugName)
-	defer G.Log.Debug("[%s] waitHello done", k.debugName)
 	select {
 	case <-k.helloReceived:
 		G.Log.Debug("[%s] hello received", k.debugName)
@@ -43,9 +68,17 @@ func (k *KexCom) waitHello() error {
 	}
 }
 
+func (k *KexCom) waitPleaseSign() error {
+	select {
+	case <-k.pleaseSignReceived:
+		G.Log.Debug("[%s] pleasesign received", k.debugName)
+		return nil
+	case <-time.After(kexTimeout):
+		return fmt.Errorf("timeout waiting for PleaseSign")
+	}
+}
+
 func (k *KexCom) waitDone() error {
-	G.Log.Debug("[%s] waitDone start", k.debugName)
-	defer G.Log.Debug("[%s] waitDone done", k.debugName)
 	select {
 	case <-k.doneReceived:
 		G.Log.Debug("[%s] done received", k.debugName)
@@ -80,23 +113,8 @@ func (k *KexCom) wordsToID(words string) ([32]byte, error) {
 }
 
 func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
-	G.Log.Debug("[%s] StartKexSession: %x", k.debugName, id)
-	defer G.Log.Debug("[%s] StartKexSession done", k.debugName)
-
 	if err := k.verifyReceiver(m); err != nil {
 		return err
-	}
-
-	// generate secret
-	if k.getSecret != nil {
-		// this is for testing.
-		words := k.getSecret()
-		G.Log.Debug("[%s] secret: %q", k.debugName, words)
-		id, err := k.wordsToID(words)
-		if err != nil {
-			return err
-		}
-		k.sessionID = id
 	}
 
 	if err := k.verifySession(m); err != nil {
@@ -109,6 +127,9 @@ func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
 		return fmt.Errorf("invalid device sibkey type %T", k.deviceSibkey)
 	}
 	G.Log.Debug("[%s] calling Hello on server (m.Sender = %s, k.deviceID = %s, m.Receiver = %s)", k.debugName, m.Sender, k.deviceID, m.Receiver)
+
+	k.startKexReceived <- true
+
 	return k.server.Hello(m, m.Sender, pair.GetKid())
 }
 
@@ -191,6 +212,8 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 		return fmt.Errorf("gen.Push() error: %s", err)
 	}
 
+	k.pleaseSignReceived <- true
+
 	m.Swap()
 	return k.server.Done(m)
 }
@@ -242,8 +265,13 @@ func (k *KexCom) verifyRequest(m *kex.Meta) error {
 func (k *KexCom) receive(m *kex.Meta, dir kex.Direction) {
 	rec := kex.NewReceiver(k, dir)
 	for {
-		if err := rec.Receive(m); err != nil {
+		if _, err := rec.Receive(m); err != nil {
 			G.Log.Debug("receive error: %s", err)
+		}
+		select {
+		case <-k.msgReceiveComplete:
+			return
+		default:
 		}
 	}
 }

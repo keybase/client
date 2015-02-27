@@ -786,3 +786,4 @@ func (c CanceledError) Error() string {
 //=============================================================================
 
 var ErrNoDevice = errors.New("No device found")
+var ErrTimeout = errors.New("Operation timed out")

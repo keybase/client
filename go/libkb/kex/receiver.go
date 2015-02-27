@@ -4,14 +4,19 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 )
 
-// GlobalTimeout is unused currently, but is intended to be the
-// overall timeout for a receive operation.
-var GlobalTimeout = 5 * time.Minute
+// StartTimeout is the time the kex protocol will wait for the
+// first message when the sibling device starts the key exchange.
+var StartTimeout = 5 * time.Minute
+
+// IntraTimeout is the time the kex protocol will wait for
+// messages once the key exchange has begun.
+var IntraTimeout = 1 * time.Minute
 
 // Receiver gets kex messages from the server and routes them to a
 // kex Handler.
@@ -30,16 +35,21 @@ func NewReceiver(handler Handler, dir Direction) *Receiver {
 }
 
 // Receive gets the next set of messages from the server and
-// routes them to the handler.
-func (r *Receiver) Receive(m *Meta) error {
+// routes them to the handler.  It returns the number of messages
+// it received successfully.
+func (r *Receiver) Receive(m *Meta) (int, error) {
 	msgs, err := r.get(m)
 	if err != nil {
-		return err
+		return 0, err
 	}
+	var count int
+	var errorList []error
 	for _, msg := range msgs {
 		if msg.Seqno > r.seqno {
 			r.seqno = msg.Seqno
 		}
+
+		G.Log.Debug("received message [%s]", msg.Name)
 
 		// set context's sender and receiver
 		m.Sender = msg.Sender
@@ -47,25 +57,57 @@ func (r *Receiver) Receive(m *Meta) error {
 
 		switch msg.Name {
 		case startkexMsg:
-			return r.handler.StartKexSession(m, msg.Args.StrongID)
+			err = r.handler.StartKexSession(m, msg.Args.StrongID)
 		case startrevkexMsg:
-			return r.handler.StartReverseKexSession(m)
+			err = r.handler.StartReverseKexSession(m)
 		case helloMsg:
-			return r.handler.Hello(m, msg.Args.DeviceID, msg.Args.DevKeyID)
+			err = r.handler.Hello(m, msg.Args.DeviceID, msg.Args.DevKeyID)
 		case pleasesignMsg:
-			return r.handler.PleaseSign(m, msg.Args.SigningKey, msg.Args.Sig, msg.Args.DevType, msg.Args.DevDesc)
+			err = r.handler.PleaseSign(m, msg.Args.SigningKey, msg.Args.Sig, msg.Args.DevType, msg.Args.DevDesc)
 		case doneMsg:
-			return r.handler.Done(m)
+			err = r.handler.Done(m)
 		default:
-			return fmt.Errorf("unhandled message name: %q", msg.Name)
+			err = fmt.Errorf("unhandled message name: %q", msg.Name)
+		}
+
+		if err == nil {
+			count++
+		} else {
+			errorList = append(errorList, err)
 		}
 	}
-	return nil
+
+	if len(errorList) > 0 {
+		var es []string
+		for _, e := range errorList {
+			es = append(es, e.Error())
+		}
+		return count, fmt.Errorf("receive message errors: %s", strings.Join(es, ", "))
+	}
+
+	return count, nil
+}
+
+// ReceiveTimeout will repeatedly call Receive until Receive
+// processes at least one message, or the timeout duration is
+// reached.
+func (r *Receiver) ReceiveTimeout(m *Meta, timeout time.Duration) error {
+	start := time.Now()
+	for time.Since(start) < timeout {
+		n, err := r.Receive(m)
+		if err != nil {
+			G.Log.Warning(err.Error())
+		}
+		if n > 0 {
+			return nil
+		}
+	}
+	return libkb.ErrTimeout
 }
 
 // get performs a Get request to long poll for a set of messages.
 func (r *Receiver) get(m *Meta) (MsgList, error) {
-	G.Log.Debug("get: w = %x, dir = %d, seqno = %d", m.WeakID, r.direction, r.seqno)
+	G.Log.Debug("get: {dir: %d, seqno: %d, w = %x, uid = %x}", r.direction, r.seqno, m.WeakID, G.GetMyUID())
 	res, err := G.API.Get(libkb.ApiArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
