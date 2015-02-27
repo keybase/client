@@ -127,7 +127,7 @@ func (h *kth) PleaseSign(ctx *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, d
 	return nil
 }
 
-func (h *kth) Done(ctx *kex.Meta, mt libkb.MerkleTriple) error {
+func (h *kth) Done(ctx *kex.Meta) error {
 	h.callInc(doneMsg)
 	return nil
 }

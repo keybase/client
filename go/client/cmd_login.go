@@ -7,7 +7,6 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -56,7 +55,6 @@ func (v *CmdLogin) Run() error {
 			Retry:    3,
 			Username: v.Username,
 		},
-		KexSrv: kex.NewSender(kex.DirectionYtoX),
 	}
 	return engine.RunEngine(li, ctx, arg, nil)
 }

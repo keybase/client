@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
@@ -73,7 +72,6 @@ func TestLoginNewDeviceKex(t *testing.T) {
 			Passphrase: u.Passphrase,
 			NoUi:       true,
 		},
-		KexSrv: kex.NewSender(kex.DirectionYtoX),
 	}
 
 	li := NewLoginEngine()
