@@ -186,16 +186,16 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 	if err := gen.Generate(); err != nil {
 		return fmt.Errorf("gen.Generate() error: %s", err)
 	}
-	mt, err := gen.Push()
+	_, err := gen.Push()
 	if err != nil {
 		return fmt.Errorf("gen.Push() error: %s", err)
 	}
 
 	m.Swap()
-	return k.server.Done(m, mt)
+	return k.server.Done(m)
 }
 
-func (k *KexCom) Done(m *kex.Meta, mt libkb.MerkleTriple) error {
+func (k *KexCom) Done(m *kex.Meta) error {
 	G.Log.Debug("[%s] Done Receive", k.debugName)
 	defer G.Log.Debug("[%s] Done Receive done", k.debugName)
 	if err := k.verifyRequest(m); err != nil {

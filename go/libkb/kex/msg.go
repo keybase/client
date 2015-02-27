@@ -164,14 +164,13 @@ func (m MsgList) Swap(a, b int)      { m[a], m[b] = m[b], m[a] }
 // protocol interface.  Many of the fields are optional depending
 // on the message.
 type MsgArgs struct {
-	StrongID     StrongID
-	DeviceID     libkb.DeviceID
-	DevKeyID     libkb.KID
-	SigningKey   libkb.NaclSigningKeyPublic
-	Sig          string
-	DevType      string
-	DevDesc      string
-	MerkleTriple libkb.MerkleTriple
+	StrongID   StrongID
+	DeviceID   libkb.DeviceID
+	DevKeyID   libkb.KID
+	SigningKey libkb.NaclSigningKeyPublic
+	Sig        string
+	DevType    string
+	DevDesc    string
 }
 
 // Body is the message body.

@@ -59,5 +59,5 @@ type Handler interface {
 	StartReverseKexSession(m *Meta) error
 	Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error
 	PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
-	Done(m *Meta, mt libkb.MerkleTriple) error
+	Done(m *Meta) error
 }

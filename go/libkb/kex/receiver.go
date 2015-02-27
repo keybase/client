@@ -55,7 +55,7 @@ func (r *Receiver) Receive(m *Meta) error {
 		case pleasesignMsg:
 			return r.handler.PleaseSign(m, msg.Args.SigningKey, msg.Args.Sig, msg.Args.DevType, msg.Args.DevDesc)
 		case doneMsg:
-			return r.handler.Done(m, msg.Args.MerkleTriple)
+			return r.handler.Done(m)
 		default:
 			return fmt.Errorf("unhandled message name: %q", msg.Name)
 		}

@@ -44,8 +44,8 @@ func (s *Sender) PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devT
 }
 
 // Done sends the Done message to the server.
-func (s *Sender) Done(m *Meta, mt libkb.MerkleTriple) error {
-	mb := &Body{Name: doneMsg, Args: MsgArgs{MerkleTriple: mt}}
+func (s *Sender) Done(m *Meta) error {
+	mb := &Body{Name: doneMsg}
 	return s.send(m, mb)
 }
 
