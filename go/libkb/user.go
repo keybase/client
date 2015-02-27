@@ -704,7 +704,6 @@ func (u User) HasActiveKey() bool {
 }
 
 func (u1 User) Equal(u2 User) bool {
-	G.Env
 	return u1.id.Eq(u2.id)
 }
 
