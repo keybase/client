@@ -15,7 +15,7 @@ import (
 // simulates the scenario where a user logs in to a new device and
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
-func TestLoginNewDeviceKex(t *testing.T) {
+func TestLoginNewDeviceKexCTCT(t *testing.T) {
 	kexTimeout = 5 * time.Second
 	kex.PollDuration = 1 * time.Second
 

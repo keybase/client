@@ -182,6 +182,7 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 }
 
 func SetupTest(t *testing.T, nm string) (tc TestContext) {
+	G.Log.Debug("SetupTest %s", nm)
 	var err error
 	tc, err = setupTestContext(nm)
 	if err != nil {

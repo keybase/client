@@ -100,7 +100,7 @@ func TestSignupWithGPG(t *testing.T) {
 	}
 }
 
-func TestLocalKeySecurity(t *testing.T) {
+func TestLocalKeySecurityCTCT(t *testing.T) {
 	tc := libkb.SetupTest(t, "signup")
 	defer tc.Cleanup()
 	s := NewSignupEngine()
