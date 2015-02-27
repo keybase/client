@@ -240,7 +240,7 @@ func (k *KexCom) verifyReceiver(m *kex.Meta) error {
 	G.Log.Debug("kex Meta: sender device %s => receiver device %s", m.Sender, m.Receiver)
 	G.Log.Debug("kex Meta: own device %s", k.deviceID)
 	if m.Receiver != k.deviceID {
-		return fmt.Errorf("receiver device id (%s) invalid.  this is device (%s).", m.Receiver, k.deviceID)
+		return fmt.Errorf("receiver device id (%s) invalid:  this is device (%s)", m.Receiver, k.deviceID)
 	}
 	return nil
 }

@@ -108,11 +108,7 @@ func (h *kth) callInc(name string) {
 }
 
 func (h *kth) callCount(name string) int {
-	if cur, ok := h.calls[name]; !ok {
-		return 0
-	} else {
-		return cur
-	}
+	return h.calls[name]
 }
 
 func (h *kth) StartKexSession(ctx *kex.Meta, id kex.StrongID) error {
