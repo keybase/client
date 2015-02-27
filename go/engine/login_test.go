@@ -9,7 +9,7 @@ import (
 
 // Test login switching between two different users.
 func TestLogin(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	u1 := CreateAndSignupFakeUser(t, "login")
@@ -42,7 +42,7 @@ func createFakeUserWithNoKeys(t *testing.T) (username, passphrase string) {
 }
 
 func TestLoginFakeUserNoKeys(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	createFakeUserWithNoKeys(t)
@@ -105,7 +105,7 @@ func testUserHasDeviceKey(t *testing.T) {
 }
 
 func TestLoginAddsKeys(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	username, passphrase := createFakeUserWithNoKeys(t)
@@ -160,7 +160,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 }
 
 func TestLoginDetKeyOnly(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	username, passphrase := createFakeUserWithDetKey(t)
@@ -310,13 +310,13 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 //    PGP key.
 //
 func TestLoginPGPSignNewDevice(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPOnly(t, tc)
 	G.LoginState.Logout()
 	tc.Cleanup()
 
-	// redo SetupTest to get a new home directory...should look like a new device.
-	tc2 := libkb.SetupTest(t, "login")
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
 	docui := &ldocuiPGP{&ldocui{}}
@@ -355,12 +355,12 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 }
 
 func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
 	G.LoginState.Logout()
 
-	// redo SetupTest to get a new home directory...should look like a new device.
-	tc2 := libkb.SetupTest(t, "login")
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
 	// we need the gpg keyring that's in the first homedir
@@ -407,13 +407,13 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 }
 
 func TestLoginPGPMultSignNewDevice(t *testing.T) {
-	tc := libkb.SetupTest(t, "login")
+	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPMult(t, tc)
 	G.LoginState.Logout()
 	defer tc.Cleanup()
 
-	// redo SetupTest to get a new home directory...should look like a new device.
-	tc2 := libkb.SetupTest(t, "login")
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
 	// we need the gpg keyring that's in the first homedir

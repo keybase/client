@@ -15,12 +15,12 @@ import (
 // simulates the scenario where a user logs in to a new device and
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
-func TestLoginNewDeviceKexCTCT(t *testing.T) {
+func TestLoginNewDeviceKex(t *testing.T) {
 	kexTimeout = 5 * time.Second
 	kex.PollDuration = 1 * time.Second
 
 	// test context for device X
-	tcX := libkb.SetupTest(t, "loginX")
+	tcX := SetupEngineTest(t, "loginX")
 	defer tcX.Cleanup()
 
 	// sign up with device X
@@ -68,7 +68,7 @@ func TestLoginNewDeviceKexCTCT(t *testing.T) {
 	}()
 
 	// test context for device Y
-	tcY := libkb.SetupTest(t, "loginY")
+	tcY := SetupEngineTest(t, "loginY")
 	defer tcY.Cleanup()
 
 	// log in with device Y

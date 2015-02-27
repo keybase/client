@@ -1,12 +1,13 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func TestDeviceKey(t *testing.T) {
-	tc := libkb.SetupTest(t, "dkal")
+	tc := SetupEngineTest(t, "dkal")
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(t, "dkal")

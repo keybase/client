@@ -65,7 +65,7 @@ func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdentifyRes, 
 }
 
 func TestIdAlice(t *testing.T) {
-	tc := libkb.SetupTest(t, "id")
+	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify("t_alice")
 	if err != nil {
@@ -75,7 +75,7 @@ func TestIdAlice(t *testing.T) {
 }
 
 func TestIdBob(t *testing.T) {
-	tc := libkb.SetupTest(t, "id")
+	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify("t_bob")
 	if err != nil {
@@ -85,7 +85,7 @@ func TestIdBob(t *testing.T) {
 }
 
 func TestIdCharlie(t *testing.T) {
-	tc := libkb.SetupTest(t, "id")
+	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify("t_charlie")
 	if err != nil {
@@ -95,7 +95,7 @@ func TestIdCharlie(t *testing.T) {
 }
 
 func TestIdDoug(t *testing.T) {
-	tc := libkb.SetupTest(t, "id")
+	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify("t_doug")
 	if err != nil {
@@ -105,7 +105,7 @@ func TestIdDoug(t *testing.T) {
 }
 
 func TestIdEllen(t *testing.T) {
-	tc := libkb.SetupTest(t, "id")
+	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	_, _, err := runIdentify("t_ellen")
 	if err == nil {

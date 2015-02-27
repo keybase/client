@@ -1,12 +1,13 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func TestGenerateNewPGPKey(t *testing.T) {
-	tc := libkb.SetupTest(t, "pgp")
+	tc := SetupEngineTest(t, "pgp")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(t, "pgp")
 	secui := libkb.TestSecretUI{fu.Passphrase}

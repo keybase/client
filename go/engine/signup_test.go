@@ -15,7 +15,7 @@ func AssertDeviceID() (err error) {
 }
 
 func TestSignupEngine(t *testing.T) {
-	tc := libkb.SetupTest(t, "signup")
+	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error
 
@@ -79,7 +79,7 @@ func TestSignupEngine(t *testing.T) {
 }
 
 func TestSignupWithGPG(t *testing.T) {
-	tc := libkb.SetupTest(t, "signupWithGPG")
+	tc := SetupEngineTest(t, "signupWithGPG")
 	defer tc.Cleanup()
 
 	fu := NewFakeUserOrBust(t, "se")
@@ -100,8 +100,8 @@ func TestSignupWithGPG(t *testing.T) {
 	}
 }
 
-func TestLocalKeySecurityCTCT(t *testing.T) {
-	tc := libkb.SetupTest(t, "signup")
+func TestLocalKeySecurity(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	s := NewSignupEngine()
 	fu := NewFakeUserOrBust(t, "se")

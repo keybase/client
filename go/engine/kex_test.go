@@ -39,7 +39,7 @@ func testBody(t *testing.T) *kex.Body {
 // TestBasicMessage verifies that a message can be sent and
 // received.
 func TestBasicMessage(t *testing.T) {
-	tc := libkb.SetupTest(t, "kex")
+	tc := SetupEngineTest(t, "kex")
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(t, "login")
@@ -66,7 +66,7 @@ func TestBasicMessage(t *testing.T) {
 }
 
 func TestBadMACMessage(t *testing.T) {
-	tc := libkb.SetupTest(t, "kex")
+	tc := SetupEngineTest(t, "kex")
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(t, "login")

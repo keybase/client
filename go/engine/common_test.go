@@ -9,6 +9,12 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+func SetupEngineTest(t *testing.T, name string) libkb.TestContext {
+	tc := libkb.SetupTest(t, name)
+	G = &libkb.G
+	return tc
+}
+
 var testInviteCode string = "202020202020202020202020"
 
 type FakeUser struct {
