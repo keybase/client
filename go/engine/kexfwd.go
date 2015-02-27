@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
@@ -59,8 +60,6 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	k.user = k.args.User
 	k.deviceID = k.args.Src
 	k.engctx = ctx
-	k.helloReceived = make(chan bool, 1)
-	k.doneReceived = make(chan bool, 1)
 
 	// make random secret S
 	words, err := k.makeSecret()
@@ -72,7 +71,12 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	m := kex.NewMeta(k.args.User.GetUid(), k.sessionID, k.args.Src, k.args.Dst, kex.DirectionXtoY)
 
 	// start message receive loop
-	go k.receive(m, kex.DirectionXtoY)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		k.receive(m, kex.DirectionXtoY)
+		wg.Done()
+	}()
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
@@ -133,7 +137,12 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	}
 
 	// store the new device id
-	return k.storeDeviceID()
+	if err := k.storeDeviceID(); err != nil {
+		return err
+	}
+
+	wg.Wait()
+	return nil
 }
 
 // makeSecret generates a random secret (S in doc).  It sets

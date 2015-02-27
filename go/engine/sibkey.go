@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
 )
@@ -106,7 +108,13 @@ func (k *Sibkey) individualReceives(m *kex.Meta) error {
 
 func (k *Sibkey) loopReceives(m *kex.Meta) error {
 	// start receive loop
-	go k.receive(m, kex.DirectionYtoX)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		k.receive(m, kex.DirectionYtoX)
+		wg.Done()
+	}()
+
 	if err := k.waitStartKex(); err != nil {
 		return err
 	}
@@ -114,5 +122,6 @@ func (k *Sibkey) loopReceives(m *kex.Meta) error {
 		return err
 	}
 	k.msgReceiveComplete <- true
+	wg.Wait()
 	return nil
 }

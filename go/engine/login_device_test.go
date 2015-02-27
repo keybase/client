@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
@@ -16,6 +17,7 @@ import (
 // the api server for all kex communication.
 func TestLoginNewDeviceKex(t *testing.T) {
 	kexTimeout = 5 * time.Second
+	kex.PollDuration = 1 * time.Second
 
 	// test context for device X
 	tcX := libkb.SetupTest(t, "loginX")

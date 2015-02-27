@@ -18,12 +18,14 @@ var StartTimeout = 5 * time.Minute
 // messages once the key exchange has begun.
 var IntraTimeout = 1 * time.Minute
 
+// PollDuration is the long poll duration for a kex/receive api call.
+var PollDuration = 20 * time.Second
+
 // Receiver gets kex messages from the server and routes them to a
 // kex Handler.
 type Receiver struct {
 	handler   Handler
 	seqno     int
-	pollDur   time.Duration
 	direction Direction
 }
 
@@ -31,7 +33,7 @@ type Receiver struct {
 // provided handler.  It will receive messages for the specified
 // direction.
 func NewReceiver(handler Handler, dir Direction) *Receiver {
-	return &Receiver{handler: handler, pollDur: 20 * time.Second, direction: dir}
+	return &Receiver{handler: handler, direction: dir}
 }
 
 // Receive gets the next set of messages from the server and
@@ -115,7 +117,7 @@ func (r *Receiver) get(m *Meta) (MsgList, error) {
 			"w":    libkb.S{Val: hex.EncodeToString(m.WeakID[:])},
 			"dir":  libkb.I{Val: int(r.direction)},
 			"low":  libkb.I{Val: r.seqno + 1},
-			"poll": libkb.I{Val: int(r.pollDur / time.Second)},
+			"poll": libkb.I{Val: int(PollDuration / time.Second)},
 		},
 	})
 	if err != nil {
