@@ -49,12 +49,6 @@ func (s *Sender) Done(m *Meta, mt libkb.MerkleTriple) error {
 	return s.send(m, mb)
 }
 
-// RegisterTestDevice is used for testing.
-// XXX get rid of this when real client comm works
-func (s *Sender) RegisterTestDevice(srv Handler, device libkb.DeviceID) error {
-	return nil
-}
-
 // CorruptStartKexSession sends a startkex message with a
 // corrupted MAC.  This is for testing, clearly.  It's an exposed
 // function since only an engine test can test this.

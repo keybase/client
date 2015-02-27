@@ -126,12 +126,11 @@ func (h *kth) PleaseSign(ctx *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, d
 	h.callInc(pleasesignMsg)
 	return nil
 }
+
 func (h *kth) Done(ctx *kex.Meta, mt libkb.MerkleTriple) error {
 	h.callInc(doneMsg)
 	return nil
 }
-
-func (h *kth) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
 
 const (
 	startkexMsg    = "startkex"

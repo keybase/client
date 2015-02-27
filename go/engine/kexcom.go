@@ -31,29 +31,6 @@ type KexCom struct {
 
 var kexTimeout = 5 * time.Minute
 
-// XXX temporary...
-// this is to get around the fact that the globals won't work well
-// in the test with two devices communicating in the same process.
-func (k *KexCom) Listen(ctx *Context, u *libkb.User, src libkb.DeviceID) {
-	k.user = u
-	k.deviceID = src
-	var err error
-	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(src)
-	if err != nil {
-		G.Log.Warning("kex.Listen: error getting device sibkey: %s", err)
-	}
-	arg := libkb.SecretKeyArg{
-		DeviceKey: true,
-		Reason:    "new device install",
-		Ui:        ctx.SecretUI,
-		Me:        k.user,
-	}
-	k.sigKey, err = G.Keyrings.GetSecretKey(arg)
-	if err != nil {
-		G.Log.Warning("GetSecretKey error: %s", err)
-	}
-}
-
 func (k *KexCom) waitHello() error {
 	G.Log.Debug("[%s] waitHello start", k.debugName)
 	defer G.Log.Debug("[%s] waitHello done", k.debugName)
@@ -235,8 +212,6 @@ func (k *KexCom) Done(m *kex.Meta, mt libkb.MerkleTriple) error {
 	k.doneReceived <- true
 	return nil
 }
-
-func (k *KexCom) RegisterTestDevice(srv kex.Handler, device libkb.DeviceID) error { return nil }
 
 func (k *KexCom) verifyReceiver(m *kex.Meta) error {
 	G.Log.Debug("kex Meta: sender device %s => receiver device %s", m.Sender, m.Receiver)

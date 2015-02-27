@@ -60,7 +60,4 @@ type Handler interface {
 	Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error
 	PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
 	Done(m *Meta, mt libkb.MerkleTriple) error
-
-	// XXX get rid of this when real client comm works
-	RegisterTestDevice(srv Handler, device libkb.DeviceID) error
 }
