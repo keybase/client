@@ -86,3 +86,7 @@ func (fu *FakeUser) LoginOrBust(t *testing.T) {
 	}
 	return
 }
+
+func (fu *FakeUser) NewSecretUI() libkb.TestSecretUI {
+	return libkb.TestSecretUI{Passphrase: fu.Passphrase}
+}

@@ -20,6 +20,7 @@ type TrackEngineArg struct {
 
 type TrackEngine struct {
 	arg *TrackEngineArg
+	res *IdentifyRes
 
 	trackStatementBytes []byte
 	trackStatement      *jsonw.Wrapper
@@ -108,7 +109,8 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 	}
 
 	var ti libkb.TrackInstructions
-	_, ti, err = e.arg.Them.Identify(libkb.IdentifyArg{
+	var io *libkb.IdentifyOutcome
+	io, ti, err = e.arg.Them.Identify(libkb.IdentifyArg{
 		Me: e.arg.Me,
 		Ui: ctx.TrackUI,
 	})
@@ -116,6 +118,8 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 	if err != nil {
 		return
 	}
+
+	e.res = &IdentifyRes{Outcome: io, User: e.arg.Them}
 
 	if err = e.GetSigningKeyPub(); err != nil {
 		return
@@ -137,6 +141,10 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 		err = e.storeLocalTrack()
 	}
 	return
+}
+
+func (e *TrackEngine) Result() *IdentifyRes {
+	return e.res
 }
 
 func (e *TrackEngine) storeLocalTrack() error {

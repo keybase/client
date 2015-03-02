@@ -23,6 +23,47 @@ func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdentifyRes, err e
 	return
 }
 
+func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+	checkKeyedProfile(t, idUI, res, "alice", true, map[string]string{
+		"github":  "kbtester2",
+		"twitter": "tacovontaco",
+	})
+}
+
+func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+	checkKeyedProfile(t, idUI, res, "bob", true, map[string]string{
+		"github":  "kbtester1",
+		"twitter": "kbtester1",
+	})
+}
+
+func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+	checkKeyedProfile(t, idUI, res, "charlie", true, map[string]string{
+		"github":  "tacoplusplus",
+		"twitter": "tacovontaco",
+	})
+}
+
+func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+	checkKeyedProfile(t, idUI, res, "doug", false, map[string]string{})
+}
+
+func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdentifyRes, name string, hasImg bool, expectedProofs map[string]string) {
+	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
+		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
+	}
+
+	if hasImg && result.User.Image == nil {
+		t.Fatal("Missing user image.")
+	} else if !hasImg && result.User.Image != nil {
+		t.Fatal("User has an image but shouldn't")
+	}
+
+	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
+		t.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
+	}
+}
+
 func TestIdAlice(t *testing.T) {
 	tc := libkb.SetupTest(t, "id")
 	defer tc.Cleanup()
@@ -30,20 +71,7 @@ func TestIdAlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// TODO: Lots of duplicated checks in all these tests. Refactor somehow.
-	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
-		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
-	}
-	if result.User.Image == nil {
-		t.Fatal("Missing user image.")
-	}
-	expectedProofs := map[string]string{
-		"github":  "kbtester2",
-		"twitter": "tacovontaco",
-	}
-	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
-		t.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
-	}
+	checkAliceProofs(t, idUI, result)
 }
 
 func TestIdBob(t *testing.T) {
@@ -53,19 +81,7 @@ func TestIdBob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
-		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
-	}
-	if result.User.Image == nil {
-		t.Fatal("Missing user image.")
-	}
-	expectedProofs := map[string]string{
-		"github":  "kbtester1",
-		"twitter": "kbtester1",
-	}
-	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
-		t.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
-	}
+	checkBobProofs(t, idUI, result)
 }
 
 func TestIdCharlie(t *testing.T) {
@@ -75,19 +91,7 @@ func TestIdCharlie(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
-		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
-	}
-	if result.User.Image == nil {
-		t.Fatal("Missing user image.")
-	}
-	expectedProofs := map[string]string{
-		"github":  "tacoplusplus",
-		"twitter": "tacovontaco",
-	}
-	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
-		t.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
-	}
+	checkCharlieProofs(t, idUI, result)
 }
 
 func TestIdDoug(t *testing.T) {
@@ -97,16 +101,7 @@ func TestIdDoug(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
-		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
-	}
-	if result.User.Image != nil {
-		t.Fatal("User image should be nil", result.User.Image)
-	}
-	expectedProofs := map[string]string{}
-	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
-		t.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
-	}
+	checkDougProofs(t, idUI, result)
 }
 
 func TestIdEllen(t *testing.T) {
@@ -123,6 +118,7 @@ func TestIdEllen(t *testing.T) {
 type FakeIdentifyUI struct {
 	Proofs map[string]string
 	User   *keybase_1.User
+	Fapr   keybase_1.FinishAndPromptRes
 }
 
 func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase_1.RemoteProof, result keybase_1.LinkCheckResult) {
@@ -132,6 +128,7 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase_1.RemoteProof, re
 	ui.Proofs[proof.Key] = proof.Value
 }
 func (ui *FakeIdentifyUI) FinishAndPrompt(*keybase_1.IdentifyOutcome) (res keybase_1.FinishAndPromptRes, err error) {
+	res = ui.Fapr
 	return
 }
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase_1.Cryptocurrency) {
