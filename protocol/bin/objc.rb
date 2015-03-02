@@ -44,6 +44,8 @@ def is_primitive_type(type)
 end
 
 def default_name_for_type(type)
+  type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
+
   case type
   when "string" then "str"
   when "int" then "n"
@@ -189,6 +191,10 @@ paths.each do |path|
       "completion(error);"
     elsif is_native_type(response_type)
       "completion(error, 0);" # TODO
+    elsif response_type.kind_of?(Hash) # Subtype (for arrays)
+      item_type = response_type["type"]
+      # TODO
+      raise "TODO: Unimplemented"
     else
       clsname = classname(response_type)
       "if (error) {
