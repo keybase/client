@@ -227,3 +227,5 @@ const (
 	KEX_SCRYPT_P      = 1
 	KEX_SCRYPT_KEYLEN = 32
 )
+
+const KEX_SESSION_ID_ENTROPY = 65 // kex doc specifies 65 bits of entropy

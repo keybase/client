@@ -47,7 +47,7 @@ func newKexCom(server kex.Handler, lksClientHalf []byte) *KexCom {
 }
 
 func (k *KexCom) secret() (words []string, id [32]byte, err error) {
-	words, err = libkb.SecWordList(5)
+	words, err = libkb.SecWordList(libkb.KEX_SESSION_ID_ENTROPY)
 	if err != nil {
 		return
 	}
