@@ -30,6 +30,23 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	docui := &ldocuiDevice{ldocui: &ldocui{}}
 	secui := libkb.TestSecretUI{u.Passphrase}
 
+	// test that we can get the secret key:
+	// XXX this is necessary for the test to pass once the goroutine starts
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	arg := libkb.SecretKeyArg{
+		DeviceKey: true,
+		Reason:    "new device install",
+		Ui:        secui,
+		Me:        me,
+	}
+	_, err = G.Keyrings.GetSecretKey(arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(1)

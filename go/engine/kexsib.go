@@ -47,25 +47,29 @@ func (k *KexSib) SubConsumers() []libkb.UIConsumer {
 func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
 	k.engctx = ctx
 
-	u, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
-	if err == nil {
-		k.user = *u
+	var err error
+	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		return err
 	}
 
 	dp := k.G().Env.GetDeviceID()
-	if dp != nil {
-		k.deviceID = *dp
+	if dp == nil {
+		return libkb.ErrNoDevice
 	}
+	k.deviceID = *dp
 	G.Log.Debug("device id: %s", k.deviceID)
 
-	if k.user.GetComputedKeyFamily() != nil {
-		k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(k.deviceID)
-		if err != nil {
-			k.G().Log.Warning("KexSib.Run: error getting device sibkey: %s", err)
-		}
+	if k.user.GetComputedKeyFamily() == nil {
+		return libkb.KeyFamilyError{Msg: "nil ckf"}
 	}
 
-	G.Log.Debug("username: %s, phrase: %s", k.user.GetName(), k.secretPhrase)
+	k.deviceSibkey, err = k.user.GetComputedKeyFamily().GetSibkeyForDevice(k.deviceID)
+	if err != nil {
+		k.G().Log.Warning("KexSib.Run: error getting device sibkey: %s", err)
+		return err
+	}
+
 	sec, err := kex.SecretFromPhrase(k.user.GetName(), k.secretPhrase)
 	if err != nil {
 		return err
@@ -77,10 +81,8 @@ func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
 		DeviceKey: true,
 		Reason:    "new device install",
 		Ui:        ctx.SecretUI,
-		Me:        &k.user,
+		Me:        k.user,
 	}
-	G.Log.Warning("k device id: %s", k.deviceID)
-	G.Log.Warning("k.G() device id: %s", k.G().Env.GetDeviceID())
 	k.sigKey, err = k.G().Keyrings.GetSecretKey(arg)
 	if err != nil {
 		k.G().Log.Warning("KexSib.Run: GetSecretKey error: %s", err)

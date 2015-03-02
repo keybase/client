@@ -55,7 +55,7 @@ func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
 func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	G.Log.Debug("KexFwd: run starting")
 	defer G.Log.Debug("KexFwd: run finished")
-	k.user = *k.args.User
+	k.user = k.args.User
 	k.deviceID = k.args.Src
 	k.engctx = ctx
 
@@ -228,7 +228,7 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 		Signer:      keys.eddsa,
 		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
 		Sibkey:      false,
-		Me:          &k.user,
+		Me:          k.user,
 		EldestKeyID: k.user.GetEldestFOKID().Kid,
 		Generator:   g,
 		Device:      &devY,

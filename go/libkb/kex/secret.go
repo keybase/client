@@ -9,12 +9,14 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+// Secret generates kex shared secrets.
 type Secret struct {
 	phrase   string
 	secret   SecretKey
 	strongID StrongID
 }
 
+// NewSecret creates a new random secret for a user.
 func NewSecret(username string) (*Secret, error) {
 	words, err := libkb.SecWordList(libkb.KEX_SESSION_ID_ENTROPY)
 	if err != nil {
@@ -24,6 +26,8 @@ func NewSecret(username string) (*Secret, error) {
 	return SecretFromPhrase(username, phrase)
 }
 
+// SecretFromPhrase creates a secret for a user give a secret
+// phrase.
 func SecretFromPhrase(username, phrase string) (*Secret, error) {
 	s := &Secret{}
 	s.phrase = phrase
@@ -33,6 +37,9 @@ func SecretFromPhrase(username, phrase string) (*Secret, error) {
 	return s, nil
 }
 
+// calculate runs scrypt on the phrase with the username as the
+// salt.  The result of that is the secret.  It calculates the
+// strong session ID by hmac-sha256'ing the secret.
 func (s *Secret) calculate(username string) error {
 	key, err := scrypt.Key([]byte(s.phrase), []byte(username),
 		libkb.KEX_SCRYPT_COST, libkb.KEX_SCRYPT_R, libkb.KEX_SCRYPT_P, libkb.KEX_SCRYPT_KEYLEN)
@@ -48,14 +55,17 @@ func (s *Secret) calculate(username string) error {
 	return nil
 }
 
+// Secret returns the secret key.
 func (s *Secret) Secret() SecretKey {
 	return s.secret
 }
 
+// Phrase returns the random words that generate the secret.
 func (s *Secret) Phrase() string {
 	return s.phrase
 }
 
+// StrongID returns the strong session id.
 func (s *Secret) StrongID() StrongID {
 	return s.strongID
 }

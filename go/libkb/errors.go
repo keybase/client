@@ -692,11 +692,11 @@ func (e UnknownKeyTypeError) Error() string {
 //=============================================================================
 
 type LoadUserError struct {
-	Msg string
+	msg string
 }
 
 func (e LoadUserError) Error() string {
-	return fmt.Sprintf("LoadUser error: %s", e.Msg)
+	return fmt.Sprintf("LoadUser error: %s", e.msg)
 }
 
 type ChainLinkError struct {

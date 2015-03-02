@@ -12,7 +12,7 @@ import (
 // should be embedded in the kex engines.
 type KexCom struct {
 	server             kex.Handler
-	user               libkb.User
+	user               *libkb.User
 	deviceID           libkb.DeviceID
 	deviceSibkey       libkb.GenericKey
 	sigKey             libkb.GenericKey
@@ -113,7 +113,7 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 			DeviceKey: true,
 			Reason:    "new device install",
 			Ui:        k.engctx.SecretUI,
-			Me:        &k.user,
+			Me:        k.user,
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 		if err != nil {
@@ -127,7 +127,7 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 		Signer:      k.sigKey,
 		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
 		Sibkey:      true,
-		Me:          &k.user,
+		Me:          k.user,
 		Device:      &devY,
 		EldestKeyID: k.user.GetEldestFOKID().Kid,
 		RevSig:      rs,
@@ -156,11 +156,11 @@ func (k *KexCom) Done(m *kex.Meta) error {
 	}
 
 	// device X changed the sigchain, so reload the user to get the latest sigchain.
-	u, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	var err error
+	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		return err
 	}
-	k.user = *u
 
 	k.doneReceived <- true
 	return nil
