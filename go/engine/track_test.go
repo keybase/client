@@ -1,9 +1,10 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
-	"testing"
 )
 
 func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdentifyRes, err error) {
@@ -65,7 +66,7 @@ func trackBob(t *testing.T, fu *FakeUser) {
 }
 
 func TestTrack(t *testing.T) {
-	tc := libkb.SetupTest(t, "track")
+	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(t, "track")
 
