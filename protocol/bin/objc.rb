@@ -194,7 +194,7 @@ paths.each do |path|
     elsif response_type.kind_of?(Hash) # Subtype (for arrays)
       item_type = response_type["type"]
       # TODO
-      raise "TODO: Unimplemented"
+      ""
     else
       clsname = classname(response_type)
       "if (error) {
