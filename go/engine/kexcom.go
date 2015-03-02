@@ -2,6 +2,7 @@ package engine
 
 import (
 	"crypto/hmac"
+	"crypto/sha256"
 	"fmt"
 	"strings"
 
@@ -58,6 +59,11 @@ func (k *KexCom) secret() (words []string, id [32]byte, err error) {
 	return words, id, err
 }
 
+// wordsToID takes a secret phrase and turns it into a session id
+// (I in the kex doc).
+// scrypt is run on the words using username as the salt.  This is
+// the secret S.  The session id is the hmac-sha256(S,
+// "kex-session").
 func (k *KexCom) wordsToID(words string) (id [32]byte, err error) {
 	if k.user == nil {
 		return id, libkb.ErrNilUser
@@ -67,7 +73,11 @@ func (k *KexCom) wordsToID(words string) (id [32]byte, err error) {
 	if err != nil {
 		return id, err
 	}
-	copy(id[:], key)
+
+	mac := hmac.New(sha256.New, []byte("kex-session"))
+	mac.Write(key)
+	copy(id[:], mac.Sum(nil))
+
 	return id, nil
 }
 
