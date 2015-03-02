@@ -13,10 +13,17 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func ClientId() *jsonw.Wrapper {
+func clientInfo() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("version", jsonw.NewString(CLIENT_VERSION))
 	ret.SetKey("name", jsonw.NewString(GO_CLIENT_ID))
+	return ret
+}
+
+func merkleRootInfo() (ret *jsonw.Wrapper) {
+	if mc := G.MerkleClient; mc != nil {
+		ret, _ = mc.LastRootToSigJson()
+	}
 	return ret
 }
 
@@ -201,6 +208,11 @@ func (u *User) ProofMetadata(ei int, signingKey GenericKey, eldest *FOKID) (ret 
 	}
 	body.SetKey("key", key)
 	ret.SetKey("body", body)
+
+	// Capture the most recent Merkle Root and also what kind of client
+	// we're running.
+	ret.SetKey("client", clientInfo())
+	ret.SetKey("merkle_root", merkleRootInfo())
 
 	return
 }
