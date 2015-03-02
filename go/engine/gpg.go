@@ -58,8 +58,10 @@ func (g *GPG) SubConsumers() []libkb.UIConsumer {
 func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
 	gpg := G.GetGpgClient()
 	if _, err := gpg.Configure(); err != nil {
-		if err == exec.ErrNotFound {
-			return false, nil
+		if oerr, ok := err.(*exec.Error); ok {
+			if oerr.Err == exec.ErrNotFound {
+				return false, nil
+			}
 		}
 		return false, err
 	}
