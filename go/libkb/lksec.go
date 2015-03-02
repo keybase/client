@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/hex"
 	"fmt"
+	"runtime/debug"
 
 	"golang.org/x/crypto/nacl/secretbox"
 )
@@ -46,6 +47,7 @@ func (s *LKSec) Load() error {
 
 	devid := G.Env.GetDeviceID()
 	if devid == nil {
+		debug.PrintStack()
 		return fmt.Errorf("no device id set")
 	}
 

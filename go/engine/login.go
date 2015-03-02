@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/libkb/kex"
 )
 
 type LoginEngineArg struct {
@@ -56,6 +55,6 @@ func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (er
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor(WithKexHandler(kex.NewSender(kex.DirectionYtoX)))
+	doctor := NewDoctor()
 	return doctor.LoginCheckup(ctx, u)
 }

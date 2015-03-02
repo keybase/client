@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -17,7 +16,8 @@ import (
 // device (referred to as device Y in comments).
 type KexFwd struct {
 	KexCom
-	args *KexFwdArgs
+	args   *KexFwdArgs
+	secret *kex.Secret
 }
 
 type KexFwdArgs struct {
@@ -29,14 +29,9 @@ type KexFwdArgs struct {
 }
 
 // NewKexFwd creates a KexFwd engine.
-func NewKexFwd(server kex.Handler, lksClientHalf []byte, args *KexFwdArgs, options ...func(*KexFwd)) *KexFwd {
-	kc := newKexCom(server, lksClientHalf)
+func NewKexFwd(lksClientHalf []byte, args *KexFwdArgs) *KexFwd {
+	kc := newKexCom(lksClientHalf)
 	kf := &KexFwd{KexCom: *kc, args: args}
-
-	for _, opt := range options {
-		opt(kf)
-	}
-
 	return kf
 }
 
@@ -60,15 +55,18 @@ func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
 func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	G.Log.Debug("KexFwd: run starting")
 	defer G.Log.Debug("KexFwd: run finished")
-	k.user = k.args.User
+	k.user = *k.args.User
 	k.deviceID = k.args.Src
 	k.engctx = ctx
 
-	// make random secret S
-	words, err := k.makeSecret()
+	// make random secret S, session id I
+	sec, err := kex.NewSecret(k.user.GetName())
 	if err != nil {
 		return err
 	}
+	k.secret = sec
+	k.sessionID = k.secret.StrongID()
+	k.server = kex.NewSender(kex.DirectionYtoX, k.secret.Secret())
 
 	// create the kex meta data
 	m := kex.NewMeta(k.args.User.GetUid(), k.sessionID, k.args.Src, k.args.Dst, kex.DirectionXtoY)
@@ -77,14 +75,14 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		k.receive(m, kex.DirectionXtoY)
+		k.receive(m, sec.Secret())
 		wg.Done()
 	}()
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
 	G.Log.Debug("KexFwd: displaying sibkey command")
-	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: k.args.DevDesc, Secret: words}); err != nil {
+	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: k.args.DevDesc, Secret: sec.Phrase()}); err != nil {
 		return err
 	}
 
@@ -154,18 +152,6 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 
 	wg.Wait()
 	return nil
-}
-
-// makeSecret generates a random secret (S in doc).  It sets
-// sessionID to the value and returns the phrase that generated
-// the secret.
-func (k *KexFwd) makeSecret() (string, error) {
-	words, id, err := k.secret()
-	if err != nil {
-		return "", err
-	}
-	k.sessionID = id
-	return strings.Join(words, " "), nil
 }
 
 type keyres struct {
@@ -242,7 +228,7 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 		Signer:      keys.eddsa,
 		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
 		Sibkey:      false,
-		Me:          k.user,
+		Me:          &k.user,
 		EldestKeyID: k.user.GetEldestFOKID().Kid,
 		Generator:   g,
 		Device:      &devY,

@@ -62,7 +62,8 @@ func TestMAC(t *testing.T) {
 	tc := libkb.SetupTest(t, "kexnet")
 	defer tc.Cleanup()
 
-	m := testKexMeta(t, "kexnetuser")
+	u := "kexnetuser"
+	m := testKexMeta(t, u)
 	b := testBody(t)
 	msg := NewMsg(m, b)
 
@@ -70,14 +71,19 @@ func TestMAC(t *testing.T) {
 		t.Fatalf("mac: %x, expected nil", msg.Mac)
 	}
 
-	mac, err := msg.MacSum()
+	s, err := NewSecret(u)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mac, err := msg.MacSum(s.Secret())
 	if err != nil {
 		t.Fatal(err)
 	}
 	msg.Mac = mac
 
 	// call should match existing hmac
-	ok, err := msg.CheckMAC()
+	ok, err := msg.CheckMAC(s.Secret())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +103,7 @@ func TestMAC(t *testing.T) {
 	}
 
 	decMsg := NewMsg(m, n)
-	ok, err = decMsg.CheckMAC()
+	ok, err = decMsg.CheckMAC(s.Secret())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +116,8 @@ func TestMACBad(t *testing.T) {
 	tc := libkb.SetupTest(t, "kexnet")
 	defer tc.Cleanup()
 
-	m := testKexMeta(t, "kexnetuser")
+	u := "kexnetuser"
+	m := testKexMeta(t, u)
 	b := testBody(t)
 	msg := NewMsg(m, b)
 
@@ -118,14 +125,19 @@ func TestMACBad(t *testing.T) {
 		t.Fatalf("mac: %x, expected nil", msg.Mac)
 	}
 
-	mac, err := msg.MacSum()
+	s, err := NewSecret(u)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mac, err := msg.MacSum(s.Secret())
 	if err != nil {
 		t.Fatal(err)
 	}
 	msg.Mac = mac
 
 	msg.Mac[0] = ^msg.Mac[0]
-	ok, err := msg.CheckMAC()
+	ok, err := msg.CheckMAC(s.Secret())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +157,7 @@ func TestMACBad(t *testing.T) {
 	}
 
 	decMsg := NewMsg(m, n)
-	ok, err = decMsg.CheckMAC()
+	ok, err = decMsg.CheckMAC(s.Secret())
 	if err != nil {
 		t.Fatal(err)
 	}

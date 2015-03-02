@@ -28,14 +28,15 @@ type Receiver struct {
 	seqno     int
 	direction Direction
 	seen      map[string]bool
+	secret    SecretKey
 }
 
 // NewReceiver creates a Receiver that will route messages to the
 // provided handler.  It will receive messages for the specified
 // direction.
-func NewReceiver(handler Handler, dir Direction) *Receiver {
+func NewReceiver(handler Handler, dir Direction, secret SecretKey) *Receiver {
 	sm := make(map[string]bool)
-	return &Receiver{handler: handler, direction: dir, seen: sm}
+	return &Receiver{handler: handler, direction: dir, secret: secret, seen: sm}
 }
 
 // Receive gets the next set of messages from the server and
@@ -149,7 +150,7 @@ func (r *Receiver) get(m *Meta) (MsgList, error) {
 
 	var messages MsgList
 	for i := 0; i < n; i++ {
-		m, err := MsgImport(msgs.AtIndex(i))
+		m, err := MsgImport(msgs.AtIndex(i), r.secret)
 		if err != nil {
 			if err != ErrMACMismatch {
 				return nil, err

@@ -27,25 +27,8 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	// sign up with device X
 	G = &tcX.G
 	u := CreateAndSignupFakeUser(t, "login")
-	// devX := tcX.G.Env.GetDeviceID()
-	docui := &ldocuiDevice{&ldocui{}, ""}
+	docui := &ldocuiDevice{ldocui: &ldocui{}}
 	secui := libkb.TestSecretUI{u.Passphrase}
-
-	// test that we can get the secret key:
-	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
-	if err != nil {
-		t.Fatal(err)
-	}
-	arg := libkb.SecretKeyArg{
-		DeviceKey: true,
-		Reason:    "new device install",
-		Ui:        secui,
-		Me:        me,
-	}
-	_, err = G.Keyrings.GetSecretKey(arg)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	var wg sync.WaitGroup
 
@@ -55,11 +38,11 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		ctx := &Context{LogUI: tcX.G.UI.GetLogUI(), DoctorUI: docui, SecretUI: secui}
 
 		// wait for docui to know the secret
-		for len(docui.secret) == 0 {
+		for len(docui.secretPhrase()) == 0 {
 			time.Sleep(50 * time.Millisecond)
 		}
 
-		kx := NewKexSib(&tcX.G, docui.secret)
+		kx := NewKexSib(&tcX.G, docui.secretPhrase())
 		if err := RunEngine(kx, ctx, nil, nil); err != nil {
 			t.Fatal(err)
 		}
@@ -95,6 +78,13 @@ func TestLoginNewDeviceKex(t *testing.T) {
 type ldocuiDevice struct {
 	*ldocui
 	secret string
+	sync.Mutex
+}
+
+func (l *ldocuiDevice) secretPhrase() string {
+	l.Lock()
+	defer l.Unlock()
+	return l.secret
 }
 
 // select the first device
@@ -110,7 +100,9 @@ func (l *ldocuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_
 }
 
 func (l *ldocuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+	l.Lock()
 	l.secret = arg.Secret
+	l.Unlock()
 	G.Log.Info("secret words: %s", arg.Secret)
 	return nil
 }

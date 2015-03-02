@@ -23,6 +23,9 @@ type StrongID [32]byte
 // WeakID is the weak session id type.
 type WeakID [16]byte
 
+// SecretKey is the shared secret key type.
+type SecretKey [32]byte
+
 // Meta is the metadata that is sent with every kex message.
 type Meta struct {
 	UID       libkb.UID

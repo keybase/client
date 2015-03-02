@@ -5,47 +5,17 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type Doctor struct {
-	user *libkb.User
-	/*
-		docUI    libkb.DoctorUI
-		secretUI libkb.SecretUI
-		logUI    libkb.LogUI
-		gpgUI    libkb.GPGUI
-	*/
-
+	user       *libkb.User
 	signingKey libkb.GenericKey
-	kexServer  kex.Handler
 	devName    string
 }
 
-/*
-type DocArg struct {
-	DocUI    libkb.DoctorUI
-	SecretUI libkb.SecretUI
-	LogUI    libkb.LogUI
-	GpgUI    libkb.GPGUI
-}
-*/
-
-// func NewDoctor(arg *DocArg, options ...func(*Doctor)) *Doctor {
-func NewDoctor(options ...func(*Doctor)) *Doctor {
-	//	d := &Doctor{docUI: arg.DocUI, secretUI: arg.SecretUI, logUI: arg.LogUI, gpgUI: arg.GpgUI}
-	d := &Doctor{}
-	for _, opt := range options {
-		opt(d)
-	}
-	return d
-}
-
-func WithKexHandler(s kex.Handler) func(r *Doctor) {
-	return func(d *Doctor) {
-		d.kexServer = s
-	}
+func NewDoctor() *Doctor {
+	return &Doctor{}
 }
 
 func (d *Doctor) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
@@ -346,11 +316,6 @@ func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType string) error {
 	G.Log.Info("device sign with existing device [%s]", id)
 
-	if d.kexServer == nil {
-		return fmt.Errorf("no kex server")
-	}
-
-	// XXX move this to kex?  should it create the new device???
 	src, err := libkb.NewDeviceID()
 	if err != nil {
 		return err
@@ -373,7 +338,7 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType str
 		DevType: devType,
 		DevDesc: devName,
 	}
-	k := NewKexFwd(d.kexServer, tk.LksClientHalf(), kargs)
+	k := NewKexFwd(tk.LksClientHalf(), kargs)
 	return RunEngine(k, ctx, nil, nil)
 }
 

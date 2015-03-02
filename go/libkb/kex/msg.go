@@ -40,8 +40,8 @@ func NewMsg(mt *Meta, body *Body) *Msg {
 
 // CheckMAC verifies that the existing MAC matches the computed
 // MAC.
-func (m *Msg) CheckMAC() (bool, error) {
-	sum, err := m.MacSum()
+func (m *Msg) CheckMAC(secret SecretKey) (bool, error) {
+	sum, err := m.MacSum(secret)
 	if err != nil {
 		return false, err
 	}
@@ -51,7 +51,7 @@ func (m *Msg) CheckMAC() (bool, error) {
 // MacSum calculates the MAC for a message.  It removes the
 // existing MAC from the message for the calculation, then puts it
 // back in place.
-func (m *Msg) MacSum() ([]byte, error) {
+func (m *Msg) MacSum(secret SecretKey) ([]byte, error) {
 	t := m.Mac
 	defer func() { m.Mac = t }()
 	m.Mac = nil
@@ -60,7 +60,7 @@ func (m *Msg) MacSum() ([]byte, error) {
 	if err := codec.NewEncoder(&buf, &h).Encode(m); err != nil {
 		return nil, err
 	}
-	return m.mac(buf.Bytes(), m.StrongID[:]), nil
+	return m.mac(buf.Bytes(), secret[:]), nil
 }
 
 // mac is a convenience function to calculate the hmac of message
@@ -85,7 +85,7 @@ func deviceID(w *jsonw.Wrapper) (libkb.DeviceID, error) {
 
 // MsgImport extracts a kex Msg from json.  It also checks the MAC
 // of the message.
-func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
+func MsgImport(w *jsonw.Wrapper, secret SecretKey) (*Msg, error) {
 	r := &Msg{}
 	u, err := libkb.GetUid(w.AtKey("uid"))
 	if err != nil {
@@ -142,7 +142,7 @@ func MsgImport(w *jsonw.Wrapper) (*Msg, error) {
 	}
 	r.Body = *mb
 
-	ok, err := r.CheckMAC()
+	ok, err := r.CheckMAC(secret)
 	if err != nil {
 		return nil, err
 	}

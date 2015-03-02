@@ -2,20 +2,17 @@ package engine
 
 import (
 	"crypto/hmac"
-	"crypto/sha256"
 	"fmt"
-	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
-	"golang.org/x/crypto/scrypt"
 )
 
 // KexCom contains common functions for all kex engines.  It
 // should be embedded in the kex engines.
 type KexCom struct {
 	server             kex.Handler
-	user               *libkb.User
+	user               libkb.User
 	deviceID           libkb.DeviceID
 	deviceSibkey       libkb.GenericKey
 	sigKey             libkb.GenericKey
@@ -31,9 +28,8 @@ type KexCom struct {
 	msgReceiveComplete chan bool
 }
 
-func newKexCom(server kex.Handler, lksClientHalf []byte) *KexCom {
+func newKexCom(lksClientHalf []byte) *KexCom {
 	kc := &KexCom{
-		server:             server,
 		startKexReceived:   make(chan bool, 1),
 		helloReceived:      make(chan bool, 1),
 		pleaseSignReceived: make(chan bool, 1),
@@ -44,41 +40,6 @@ func newKexCom(server kex.Handler, lksClientHalf []byte) *KexCom {
 		kc.lks = libkb.NewLKSecClientHalf(lksClientHalf)
 	}
 	return kc
-}
-
-func (k *KexCom) secret() (words []string, id [32]byte, err error) {
-	words, err = libkb.SecWordList(libkb.KEX_SESSION_ID_ENTROPY)
-	if err != nil {
-		return
-	}
-	id, err = k.wordsToID(strings.Join(words, " "))
-	if err != nil {
-		return
-	}
-
-	return words, id, err
-}
-
-// wordsToID takes a secret phrase and turns it into a session id
-// (I in the kex doc).
-// scrypt is run on the words using username as the salt.  This is
-// the secret S.  The session id is the hmac-sha256(S,
-// "kex-session").
-func (k *KexCom) wordsToID(words string) (id [32]byte, err error) {
-	if k.user == nil {
-		return id, libkb.ErrNilUser
-	}
-	key, err := scrypt.Key([]byte(words), []byte(k.user.GetName()),
-		libkb.KEX_SCRYPT_COST, libkb.KEX_SCRYPT_R, libkb.KEX_SCRYPT_P, libkb.KEX_SCRYPT_KEYLEN)
-	if err != nil {
-		return id, err
-	}
-
-	mac := hmac.New(sha256.New, []byte("kex-session"))
-	mac.Write(key)
-	copy(id[:], mac.Sum(nil))
-
-	return id, nil
 }
 
 func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
@@ -152,7 +113,7 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 			DeviceKey: true,
 			Reason:    "new device install",
 			Ui:        k.engctx.SecretUI,
-			Me:        k.user,
+			Me:        &k.user,
 		}
 		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
 		if err != nil {
@@ -166,7 +127,7 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 		Signer:      k.sigKey,
 		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
 		Sibkey:      true,
-		Me:          k.user,
+		Me:          &k.user,
 		Device:      &devY,
 		EldestKeyID: k.user.GetEldestFOKID().Kid,
 		RevSig:      rs,
@@ -195,11 +156,11 @@ func (k *KexCom) Done(m *kex.Meta) error {
 	}
 
 	// device X changed the sigchain, so reload the user to get the latest sigchain.
-	var err error
-	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	u, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		return err
 	}
+	k.user = *u
 
 	k.doneReceived <- true
 	return nil
@@ -231,8 +192,8 @@ func (k *KexCom) verifyRequest(m *kex.Meta) error {
 	return nil
 }
 
-func (k *KexCom) receive(m *kex.Meta, dir kex.Direction) {
-	rec := kex.NewReceiver(k, dir)
+func (k *KexCom) receive(m *kex.Meta, secret kex.SecretKey) {
+	rec := kex.NewReceiver(k, m.Direction, secret)
 	for {
 		if _, err := rec.Receive(m); err != nil {
 			if err == kex.ErrProtocolEOF {
