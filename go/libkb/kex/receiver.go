@@ -27,13 +27,15 @@ type Receiver struct {
 	handler   Handler
 	seqno     int
 	direction Direction
+	seen      map[string]bool
 }
 
 // NewReceiver creates a Receiver that will route messages to the
 // provided handler.  It will receive messages for the specified
 // direction.
 func NewReceiver(handler Handler, dir Direction) *Receiver {
-	return &Receiver{handler: handler, direction: dir}
+	sm := make(map[string]bool)
+	return &Receiver{handler: handler, direction: dir, seen: sm}
 }
 
 // Receive gets the next set of messages from the server and
@@ -47,6 +49,15 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 	var count int
 	var errorList []error
 	for _, msg := range msgs {
+
+		// check to see if this receiver has seen this message before
+		smac := hex.EncodeToString(msg.Body.Mac)
+		if _, seen := r.seen[smac]; seen {
+			G.Log.Warning("skipping message [%s:%s]: already seen", msg.Name, smac)
+		} else {
+			r.seen[smac] = true
+		}
+
 		if msg.Seqno > r.seqno {
 			r.seqno = msg.Seqno
 		}
