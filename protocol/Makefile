@@ -13,6 +13,7 @@ config:
 build-stamp: \
 	json/block.json \
 	json/config.json \
+	json/device.json \
 	json/doctor_ui.json \
 	json/gpg.json \
 	json/gpg_ui.json \

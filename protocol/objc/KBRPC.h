@@ -51,6 +51,12 @@
 @property KBRImage *image;
 @end
 
+@interface KBRDevice : KBRObject
+@property NSString *type;
+@property NSString *name;
+@property NSString *deviceID;
+@end
+
 @interface KBRSIGID : NSData
 @end
 
@@ -78,6 +84,11 @@
 
 @end
 
+@interface KBRDeviceRequest : KBRRequest
+- (void)deviceListWithSessionID:(NSInteger )sessionID completion:(void (^)(NSError *error, NSArray * items))completion;
+
+@end
+
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
 	KBRDeviceSignerKindDevice,
 	KBRDeviceSignerKindPgp,
@@ -95,12 +106,6 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @interface KBRSelectSignerRes : KBRObject
 @property KBRSelectSignerAction action;
 @property KBRDeviceSigner *signer;
-@end
-
-@interface KBRDevice : KBRObject
-@property NSString *type;
-@property NSString *name;
-@property NSString *deviceID;
 @end
 
 @interface KBRDoctorUiRequest : KBRRequest
@@ -434,6 +439,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSData *blockid;
 @property KBRUID *uid;
 @property NSData *buf;
+@end
+@interface KBRDeviceListRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRPromptDeviceNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;

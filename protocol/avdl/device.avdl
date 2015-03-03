@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol device {
+	import idl "common.avdl";
+
+	array<Device> deviceList(int sessionID);
+}

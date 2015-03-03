@@ -1,5 +1,5 @@
 {
-  "protocol" : "mykey",
+  "protocol" : "device",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -123,76 +123,17 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
-  }, {
-    "type" : "record",
-    "name" : "PgpCreateUids",
-    "fields" : [ {
-      "name" : "useDefault",
-      "type" : "boolean"
-    }, {
-      "name" : "ids",
-      "type" : {
-        "type" : "array",
-        "items" : "PgpIdentity"
-      }
-    } ]
   } ],
   "messages" : {
-    "keyGen" : {
+    "deviceList" : {
       "request" : [ {
-        "name" : "primaryBits",
+        "name" : "sessionID",
         "type" : "int"
-      }, {
-        "name" : "subkeyBits",
-        "type" : "int"
-      }, {
-        "name" : "createUids",
-        "type" : "PgpCreateUids"
-      }, {
-        "name" : "allowMulti",
-        "type" : "boolean"
-      }, {
-        "name" : "doExport",
-        "type" : "boolean"
       } ],
-      "response" : "null"
-    },
-    "keyGenDefault" : {
-      "request" : [ {
-        "name" : "createUids",
-        "type" : "PgpCreateUids"
-      }, {
-        "name" : "pushPublic",
-        "type" : "boolean"
-      }, {
-        "name" : "pushSecret",
-        "type" : "boolean"
-      }, {
-        "name" : "passphrase",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "deletePrimary" : {
-      "request" : [ ],
-      "response" : "null"
-    },
-    "show" : {
-      "request" : [ ],
-      "response" : "null"
-    },
-    "select" : {
-      "request" : [ {
-        "name" : "query",
-        "type" : "string"
-      }, {
-        "name" : "allowMulti",
-        "type" : "boolean"
-      }, {
-        "name" : "skipImport",
-        "type" : "boolean"
-      } ],
-      "response" : "null"
+      "response" : {
+        "type" : "array",
+        "items" : "Device"
+      }
     }
   }
 }

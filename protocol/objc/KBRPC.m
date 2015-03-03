@@ -28,6 +28,9 @@
 @implementation KBRUser
 @end
 
+@implementation KBRDevice
+@end
+
 @implementation KBRSIGID
 @end
 
@@ -82,13 +85,21 @@
 
 @end
 
+@implementation KBRDeviceRequest
+
+- (void)deviceListWithSessionID:(NSInteger )sessionID completion:(void (^)(NSError *error, NSArray * items))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.device.deviceList" params:params sessionId:self.sessionId completion:^(NSError *error, NSDictionary *dict) {
+    
+  }];
+}
+
+@end
+
 @implementation KBRDeviceSigner
 @end
 
 @implementation KBRSelectSignerRes
-@end
-
-@implementation KBRDevice
 @end
 
 @implementation KBRDoctorUiRequest
@@ -649,6 +660,17 @@
     self.blockid = params[0][@"blockid"];
     self.uid = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"uid"] error:nil];
     self.buf = params[0][@"buf"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDeviceListRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }

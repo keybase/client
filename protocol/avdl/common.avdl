@@ -49,6 +49,12 @@ protocol Common {
 		string username;
 		union { null, Image } image;
 	}
+	
+	record Device {
+		string type;
+		string name;
+		string deviceID;
+	}
 
 	fixed SIGID(32);
 }

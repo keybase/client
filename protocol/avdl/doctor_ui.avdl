@@ -27,12 +27,6 @@ protocol doctorUi {
 		SelectSignerAction action;
 		union { null, DeviceSigner } signer; // if action == SIGN, this will be used.
 	}
-
-	record Device {
-		string type;
-		string name;
-		string deviceID;
-	}
 	
 	string promptDeviceName(int sessionID);
 

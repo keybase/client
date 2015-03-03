@@ -107,6 +107,19 @@
       "type" : [ "null", "Image" ]
     } ]
   }, {
+    "type" : "record",
+    "name" : "Device",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "deviceID",
+      "type" : "string"
+    } ]
+  }, {
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
@@ -137,19 +150,6 @@
     }, {
       "name" : "signer",
       "type" : [ "null", "DeviceSigner" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Device",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "string"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "string"
     } ]
   } ],
   "messages" : {

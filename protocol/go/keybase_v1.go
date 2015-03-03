@@ -55,6 +55,12 @@ type User struct {
 	Image    *Image `codec:"image,omitempty" json:"image"`
 }
 
+type Device struct {
+	Type     string `codec:"type" json:"type"`
+	Name     string `codec:"name" json:"name"`
+	DeviceID string `codec:"deviceID" json:"deviceID"`
+}
+
 type SIGID [32]byte
 type AnnounceSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
@@ -185,6 +191,40 @@ func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	return
 }
 
+type DeviceListArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type DeviceInterface interface {
+	DeviceList(int) ([]Device, error)
+}
+
+func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.device",
+		Methods: map[string]rpc2.ServeHook{
+			"deviceList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeviceListArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.DeviceList(args[0].SessionID)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type DeviceClient struct {
+	Cli GenericClient
+}
+
+func (c DeviceClient) DeviceList(sessionID int) (res []Device, err error) {
+	__arg := DeviceListArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.device.deviceList", []interface{}{__arg}, &res)
+	return
+}
+
 type DeviceSignerKind int
 
 const (
@@ -208,12 +248,6 @@ type DeviceSigner struct {
 type SelectSignerRes struct {
 	Action SelectSignerAction `codec:"action" json:"action"`
 	Signer *DeviceSigner      `codec:"signer,omitempty" json:"signer"`
-}
-
-type Device struct {
-	Type     string `codec:"type" json:"type"`
-	Name     string `codec:"name" json:"name"`
-	DeviceID string `codec:"deviceID" json:"deviceID"`
 }
 
 type PromptDeviceNameArg struct {
