@@ -15,4 +15,7 @@
 
 @property KBNavigationView *navigation;
 
+// Optional content view created on access
+@property (nonatomic, readonly) YONSView *contentView;
+
 @end

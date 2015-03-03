@@ -25,68 +25,66 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
-  KBLabel *label = [[KBLabel alloc] init];
-  [label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [self addSubview:label];
+  //KBLabel *label = [[KBLabel alloc] init];
+  //[label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  //[self addSubview:label];
 
   _inviteField = [[KBTextField alloc] init];
   _inviteField.placeholder = @"Invite Code";
   _inviteField.text = @"202020202020202020202111"; // TODO: Hardcoded
-  //[self addSubview:_inviteField];
+  //[contentView addSubview:_inviteField];
 
   _emailField = [[KBTextField alloc] init];
   _emailField.placeholder = @"Email";
-  [self addSubview:_emailField];
+  [self.contentView addSubview:_emailField];
 
   _usernameField = [[KBTextField alloc] init];
   _usernameField.placeholder = @"Username";
   _usernameField.textField.delegate = self;
-  [self addSubview:_usernameField];
+  [self.contentView addSubview:_usernameField];
 
   _deviceNameField = [[KBTextField alloc] init];
   _deviceNameField.placeholder = @"Computer Name";
   _deviceNameField.textField.delegate = self;
   //_deviceNameField.text = [[NSHost currentHost] localizedName];
-  [self addSubview:_deviceNameField];
+  [self.contentView addSubview:_deviceNameField];
 
   _passwordField = [[KBSecureTextField alloc] init];
   _passwordField.placeholder = @"Passphrase";
   _passwordField.textField.delegate = self;
-  [self addSubview:_passwordField];
+  [self.contentView addSubview:_passwordField];
 
   _passwordConfirmField = [[KBSecureTextField alloc] init];
   _passwordConfirmField.placeholder = @"Confirm Passphrase";
   _passwordConfirmField.textField.delegate = self;
-  [self addSubview:_passwordConfirmField];
+  [self.contentView addSubview:_passwordConfirmField];
 
   _signupButton = [KBButton buttonWithText:@"Sign Up" style:KBButtonStylePrimary];
   _signupButton.targetBlock = ^{
     [gself signup];
   };
-  [self addSubview:_signupButton];
+  [self.contentView addSubview:_signupButton];
 
   _loginButton = [KBButton buttonWithText:@"Already have an account? Log In." style:KBButtonStyleLink];
-  [self addSubview:_loginButton];
+  [self.contentView addSubview:_loginButton];
 
   _usernameStatusLabel = [[KBLabel alloc] init];
-  [self addSubview:_usernameStatusLabel];
+  [self.contentView addSubview:_usernameStatusLabel];
 
   _strengthLabel = [[KBStrengthLabel alloc] init];
   // TODO: Strength label interfers with caps lock view
-  [self addSubview:_strengthLabel];
+  [self.contentView addSubview:_strengthLabel];
 
   _passwordConfirmLabel = [[KBLabel alloc] init];
-  [self addSubview:_passwordConfirmLabel];
+  [self.contentView addSubview:_passwordConfirmLabel];
 
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 60;
+  self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 20;
     CGFloat padding = 12;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
     //y += [layout setFrame:CGRectMake(20, y, size.width - 40, 22) view:yself.inviteField].size.height + 10;
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + padding;
@@ -112,9 +110,9 @@
 
     y += [layout setFrame:CGRectMake(0, y, size.width, 30) view:yself.loginButton].size.height;
 
-    y += 40;
+    y += 20;
 
-    return CGSizeMake(size.width, y);
+    return CGSizeMake(MIN(380, size.width), y);
   }];
 
 //#ifdef DEBUG

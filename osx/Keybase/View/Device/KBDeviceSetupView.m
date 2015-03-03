@@ -18,25 +18,30 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+
+  YONSView *topView = [[YONSView alloc] init];
+  [self.contentView addSubview:topView];
+  KBLabel *header = [[KBLabel alloc] init];
+  [header setText:@"Device Setup" style:KBLabelStyleHeader appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [topView addSubview:header];
 
   KBLabel *infoLabel = [[KBLabel alloc] init];
   [infoLabel setText:@"This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
-  [self addSubview:infoLabel];
+  [topView addSubview:infoLabel];
+  topView.viewLayout = [YOLayout vertical:topView.subviews margin:UIEdgeInsetsZero padding:20];
 
   _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextView.class rowHeight:0];
   _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
     [view setTitle:option.title info:option.info imageSource:option.imageSource appearance:KBAppearance.currentAppearance];
   };
-  [self addSubview:_deviceSignerView];
+  [self.contentView addSubview:_deviceSignerView];
 
   YONSView *bottomView = [[YONSView alloc] init];
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
   [bottomView addSubview:_selectButton];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [bottomView addSubview:_cancelButton];
-  [self addSubview:bottomView];
+  [self.contentView addSubview:bottomView];
 
   YOSelf yself = self;
   bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
@@ -46,7 +51,7 @@
     return CGSizeMake(size.width, y);
   }];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:infoLabel bottomView:bottomView margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:20]];
+  self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:20 maxSize:CGSizeMake(600, 450)]];
 }
 
 - (void)setDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP {

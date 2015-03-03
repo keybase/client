@@ -12,6 +12,6 @@
 
 @interface KBCatalogView : YONSView
 
-@property KBNavigationView *navigation;
++ (NSWindow *)createWindow;
 
 @end

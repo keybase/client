@@ -12,7 +12,8 @@
 
 @interface KBRMockClient : NSObject <KBRPClient>
 
-@property (readonly, copy) MPRequestCompletion completion;
+@property (copy) MPRequestCompletion completion;
+@property (copy) MPRequestHandler handler;
 
 - (void)recordMethod:(NSString *)method params:(NSArray *)params;
 

@@ -37,9 +37,14 @@
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
 #endif
 
+  NSWindow *catalogWindow = [KBCatalogView createWindow];
+
   _appView = [[KBAppView alloc] init];
   [_appView openWindow];
   [_appView connect];
+
+  [catalogWindow setFrameOrigin:NSMakePoint(NSMaxX(_appView.window.frame) + 10, _appView.window.frame.origin.y)];
+  [_appView.window addChildWindow:catalogWindow ordered:NSWindowAbove];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

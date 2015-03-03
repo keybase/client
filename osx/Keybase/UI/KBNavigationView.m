@@ -27,6 +27,9 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.wantsLayer = YES;
+  //self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+
   _views = [NSMutableArray array];
 
   _contentView = [[YONSView alloc] init];
@@ -39,9 +42,11 @@
       y += [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, 0) view:yself.titleView].size.height;
     }
 
-    [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.contentView];
+    CGRect contentRect = [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.contentView];
     for (NSView *view in yself.views) {
-      [layout setFrame:CGRectMake(0, 0, size.width, size.height - y) view:view];
+//      CGSize sizeThatFits = [(id)view sizeThatFits:contentRect.size];      
+//      [layout centerWithSize:sizeThatFits frame:CGRectMake(0, 0, contentRect.size.width, contentRect.size.height - y) view:view];
+      [layout setFrame:CGRectMake(0, 0, contentRect.size.width, contentRect.size.height) view:view];
     }
     return size;
   }];

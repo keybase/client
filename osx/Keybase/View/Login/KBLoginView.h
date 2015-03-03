@@ -19,6 +19,7 @@
 
 @interface KBLoginView : KBView <NSTextFieldDelegate>
 @property (weak) id<KBLoginViewDelegate> delegate;
+@property id<KBRPClient> client;
 
 @property KBTextField *usernameField;
 @property KBButton *loginButton;
@@ -27,5 +28,7 @@
 - (void)viewDidAppear:(BOOL)animated;
 
 - (void)setUser:(KBRUser *)user;
+
+- (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion;
 
 @end

@@ -21,7 +21,7 @@
 @property KBSourceOutlineView *sourceView;
 @property KBBox *border;
 
-@property (readonly) NSView *contentView;
+@property (readonly) YONSView *contentView;
 @property KBUsersAppView *usersMainView;
 
 @property KBUserProfileView *userProfileView;
@@ -80,6 +80,7 @@
     }
     y = 0;
     [layout setFrame:CGRectMake(x - 1, y, 1, size.height - y) view:yself.border];
+
     [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y) view:yself.contentView];
     return size;
   }];
@@ -154,7 +155,7 @@
   }];
 }
 
-- (void)setContentView:(NSView *)contentView showSourceView:(BOOL)showSourceView {
+- (void)setContentView:(YONSView *)contentView showSourceView:(BOOL)showSourceView {
   self.sourceView.hidden = !showSourceView;
   [_contentView removeFromSuperview];
   _contentView = contentView;
@@ -182,6 +183,7 @@
       [gself showSignup];
     };
   }
+  _loginView.client = AppDelegate.client;
   return _loginView;
 }
 
@@ -198,12 +200,16 @@
 }
 
 - (void)showLogin {
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:[self loginView] title:@"Keybase"];
+  KBLoginView *view = [self loginView];
+  [view removeFromSuperview];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:@"Keybase"];
   [self setContentView:navigation showSourceView:NO];
 }
 
 - (void)showSignup {
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:[self signupView] title:@"Keybase"];
+  KBSignupView *view = [self signupView];
+  [view removeFromSuperview];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:@"Keybase"];
   [self setContentView:navigation showSourceView:NO];
 }
 

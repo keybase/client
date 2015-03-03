@@ -26,29 +26,27 @@
   _keysView = [[KBGPGKeysView alloc] init];
   [self addSubview:_keysView];
 
+  YONSView *footerView = [[YONSView alloc] init];
   _pushCheckbox = [KBButton buttonWithText:@"Save to keybase.io" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment];
-  [self addSubview:_pushCheckbox];
+  [footerView addSubview:_pushCheckbox];
 
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
-  [self addSubview:_selectButton];
+  [footerView addSubview:_selectButton];
 
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  [self addSubview:_cancelButton];
-
+  [footerView addSubview:_cancelButton];
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-
+  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGSize footerSize = [yself.selectButton sizeThatFits:size];
-    [layout setFrame:CGRectMake(size.width - 300, size.height - footerSize.height - 20, 130, footerSize.height) view:yself.selectButton];
-    [layout setFrame:CGRectMake(size.width - 150, size.height - footerSize.height - 20, 130, footerSize.height) view:yself.cancelButton];
+    [layout setFrame:CGRectMake(size.width - 300, 0, 130, footerSize.height) view:yself.selectButton];
+    [layout setFrame:CGRectMake(size.width - 150, 0, 130, footerSize.height) view:yself.cancelButton];
 
-    [layout setFrame:CGRectMake(20, size.height - footerSize.height - 40, size.width - 40, 40) view:yself.pushCheckbox];
-    footerSize.height += 40;
-
-    [layout setFrame:CGRectMake(20, 20, size.width - 40, size.height - footerSize.height - 20) view:yself.keysView];
-
-    return size;
+    [layout setFrame:CGRectMake(20, 0, size.width - 40, footerSize.height) view:yself.pushCheckbox];
+    return CGSizeMake(size.width, footerSize.height);
   }];
+  [self addSubview:footerView];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_keysView topView:nil bottomView:footerView margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:20 maxSize:CGSizeMake(800, 400)]];
 }
 
 - (void)setGPGKeys:(NSArray *)GPGKeys completion:(MPRequestCompletion)completion {

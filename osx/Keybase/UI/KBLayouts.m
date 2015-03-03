@@ -10,7 +10,15 @@
 
 @implementation KBLayouts
 
-+ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView margin:(UIEdgeInsets)margin padding:(CGFloat)padding {
++ (YOLayoutBlock)center:(id)view {
+  return ^CGSize(id<YOLayout> layout, CGSize size) {
+    CGSize sizeThatFits = [view sizeThatFits:size];
+    [layout centerWithSize:sizeThatFits frame:CGRectMake(0, 0, size.width, size.height) view:view];
+    return size;
+  };
+}
+
++ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView margin:(UIEdgeInsets)margin padding:(CGFloat)padding maxSize:(CGSize)maxSize {
   return ^CGSize(id<YOLayout> layout, CGSize size) {
 
     CGSize sizeWithMargin = CGSizeMake(size.width - margin.left - margin.right, size.height - margin.top - margin.bottom);
@@ -21,13 +29,17 @@
     CGFloat centerHeight = sizeWithMargin.height - topSize.height - bottomSize.height - (padding * 2);
 
     CGFloat y = margin.top;
-    y += [layout setFrame:CGRectMake(margin.left, y, topSize.width, topSize.height) view:topView].size.height + padding;
+    if (topView) {
+      y += [layout setFrame:CGRectMake(margin.left, y, topSize.width, topSize.height) view:topView].size.height + padding;
+    }
 
     y += [layout setFrame:CGRectMake(margin.left, y, sizeWithMargin.width, centerHeight) view:centerView].size.height + padding;
 
-    y += [layout setFrame:CGRectMake(margin.left, y, bottomSize.width, bottomSize.height) view:bottomView].size.height;
+    if (bottomView) {
+      y += [layout setFrame:CGRectMake(margin.left, y, bottomSize.width, bottomSize.height) view:bottomView].size.height;
+    }
     
-    return size;
+    return CGSizeMake(MIN(size.width, maxSize.width), MIN(size.height, maxSize.height));
   };
 }
 

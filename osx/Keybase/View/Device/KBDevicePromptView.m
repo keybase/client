@@ -19,40 +19,38 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
   KBLabel *header = [[KBLabel alloc] init];
   [header setText:@"Set a Device Name" style:KBLabelStyleHeader appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [self addSubview:header];
+  [self.contentView addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
   [label setText:@"This is the first time you've logged into a device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance];
-  [self addSubview:label];
+  [self.contentView addSubview:label];
 
   _deviceNameField = [[KBTextField alloc] init];
   _deviceNameField.placeholder = @"e.g. Macbook";
-  [self addSubview:_deviceNameField];
+  [self.contentView addSubview:_deviceNameField];
 
   _saveButton = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
   _saveButton.targetBlock = ^{
     [gself save];
   };
   [_saveButton setKeyEquivalent:@"\r"];
-  [self addSubview:_saveButton];
+  [self.contentView addSubview:_saveButton];
 
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 40;
+  self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 20;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:header].size.height + 20;
     y += [layout centerWithSize:CGSizeMake(400, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.deviceNameField].size.height + 40;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.saveButton].size.height;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.saveButton].size.height + 20;
 
-    return CGSizeMake(size.width, y);
+    return CGSizeMake(MIN(480, size.width), y);
   }];
 }
 

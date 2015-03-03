@@ -20,37 +20,38 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+//  self.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
+//  self.layer.borderWidth = 1.0;
+//  self.layer.cornerRadius = 6;
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [self addSubview:label];
+  [label setMarkup:@"<p>Welcome to <strong>Keybase</strong></p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [self.contentView addSubview:label];
 
   _usernameField = [[KBTextField alloc] init];
   _usernameField.placeholder = @"Email or Username";
-  [self addSubview:_usernameField];
+  [self.contentView addSubview:_usernameField];
 
   _passwordField = [[KBSecureTextField alloc] init];
   _passwordField.placeholder = @"Passphrase";
-  [self addSubview:_passwordField];
+  [self.contentView addSubview:_passwordField];
 
   _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStylePrimary];
   _loginButton.targetBlock = ^{
     [gself login];
   };
   [_loginButton setKeyEquivalent:@"\r"];
-  [self addSubview:_loginButton];
+  [self.contentView addSubview:_loginButton];
 
   _signupButton = [KBButton buttonWithText:@"Don't have an account? Sign Up" style:KBButtonStyleLink];
-  [self addSubview:_signupButton];
+  [self.contentView addSubview:_signupButton];
 
 //  KBButton *forgotPasswordButton = [KBButton buttonWithText:@"Forgot my password" style:KBButtonStyleLink];
 //  [self addSubview:forgotPasswordButton];
 
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 60;
+  self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 20;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
@@ -66,8 +67,8 @@
 
     y += 20;
 
-    return CGSizeMake(size.width, y);
-  }];
+    return CGSizeMake(MIN(380, size.width), y);
+  }];  
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -85,7 +86,7 @@
 }
 
 - (void)_checkStatusAfterLogin {
-  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
+  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
   [self.navigation.titleView setProgressEnabled:YES];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
     [self.navigation.titleView setProgressEnabled:NO];
@@ -98,7 +99,7 @@
 }
 
 //- (void)loginWithKey {
-//  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
+//  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:self.client];
 //  [login pubkeyLogin:^(NSError *error) {
 //    [self _checkStatusAfterLogin];
 //  }];
@@ -120,7 +121,8 @@
     return;
   }
 
-  id<KBRPClient> client = AppDelegate.client;
+  NSAssert(self.client, @"No RPC client");
+  id<KBRPClient> client = self.client;
   KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:client];
 
   [client registerMethod:@"keybase.1.doctorUi.promptDeviceName" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {

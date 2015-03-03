@@ -55,7 +55,7 @@
     return CGSizeMake(size.width, y);
   }];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_scrollView topView:_instructionsLabel bottomView:bottomView margin:UIEdgeInsetsMake(20, 40, 20, 40) padding:20]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_scrollView topView:_instructionsLabel bottomView:bottomView margin:UIEdgeInsetsMake(20, 40, 20, 40) padding:20 maxSize:CGSizeMake(600, 600)]];
 }
 
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText {

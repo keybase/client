@@ -38,6 +38,7 @@
 
   [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBLabelStyleDefault]];
+  [contentView addSubview:[KBButton linkWithText:@"Login" actionBlock:^(id sender) { [self showLogin]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" actionBlock:^(id sender) { [self showDeviceSetupView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" actionBlock:^(id sender) { [self showDevicePrompt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
@@ -84,6 +85,15 @@
   KBProveView *view = [[KBProveView alloc] init];
   view.proveType = KBProveTypeForServiceName(type);
   [self openInWindow:view size:CGSizeMake(360, 420) title:@"Prove"];
+}
+
++ (NSWindow *)createWindow {
+  KBCatalogView *catalogView = [[KBCatalogView alloc] init];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:catalogView title:@"Debug"];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(400, 400) retain:YES];
+  window.styleMask = window.styleMask | NSResizableWindowMask;
+  [window center];
+  return window;
 }
 
 - (NSWindow *)openInWindow:(NSView *)view size:(CGSize)size title:(NSString *)title {
@@ -151,6 +161,24 @@
   NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
   [instructionsView setInstructions:text proofText:proofText];
   [self openInWindow:instructionsView size:CGSizeMake(360, 420) title:@"Keybase"];
+}
+
+- (void)showLogin {
+  KBLoginView *loginView = [[KBLoginView alloc] init];
+  KBRMockClient *mockClient = [[KBRMockClient alloc] init];
+  loginView.client = mockClient;
+  KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
+  mockClient.handler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    [loginView.navigation pushView:devicePromptView animated:YES];
+    completion(nil, @{});
+  };
+  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
+    KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:[KBRMockClient paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json"]];
+    [loginView selectSigner:requestParams completion:^(NSError *error, id result) {
+
+    }];
+  };
+  [self openInWindow:loginView size:CGSizeMake(800, 600) title:@"Keybase"];
 }
 
 - (void)showDeviceSetupView {

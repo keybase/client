@@ -16,8 +16,6 @@
 @property NSInteger methodIndex;
 @property NSString *recordId;
 @property NSMutableDictionary *registrations;
-
-@property (copy) MPRequestCompletion completion;
 @end
 
 @implementation KBRMockClient
@@ -36,7 +34,8 @@
 
 - (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   self.completion = completion;
-  return nil;
+  if (self.handler) self.handler(@(sessionId), method, params, completion);
+  return @[@(0), @(sessionId), method, params];
 }
 
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler {
@@ -83,7 +82,8 @@
     id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
     KBConvertArrayFrom(params);
     GHDebug(@"Replay %@", method);
-    for (KBRPCRegistration *registration in gself.registrations) {
+    for (id key in gself.registrations) {
+      KBRPCRegistration *registration = gself.registrations[key];
       MPRequestHandler completion = [registration requestHandlerForMethod:method];
       if (completion) completion(nil, method, params, ^(NSError *error, id result) { });
     }
