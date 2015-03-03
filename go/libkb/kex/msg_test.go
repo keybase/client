@@ -33,7 +33,7 @@ func testBody(t *testing.T) *Body {
 	}
 
 	return &Body{
-		Name: startkexMsg,
+		Name: StartKexMsg,
 		Args: a,
 	}
 }

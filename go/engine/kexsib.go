@@ -1,8 +1,7 @@
 package engine
 
 import (
-	"sync"
-	"time"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
@@ -11,6 +10,10 @@ import (
 type KexSib struct {
 	KexCom
 	secretPhrase string
+	engctx       *Context
+	deviceSibkey libkb.GenericKey
+	sigKey       libkb.GenericKey
+	devidY       libkb.DeviceID
 	libkb.Contextified
 }
 
@@ -19,7 +22,7 @@ type KexSib struct {
 // The secretPhrase is needed before this engine can run because
 // the weak id used in receive() is based on it.
 func NewKexSib(g *libkb.GlobalContext, secretPhrase string) *KexSib {
-	kc := newKexCom(nil)
+	kc := newKexCom()
 	return &KexSib{
 		KexCom:       *kc,
 		secretPhrase: secretPhrase,
@@ -96,44 +99,105 @@ func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
 
 func (k *KexSib) loopReceives(m *kex.Meta, sec kex.SecretKey) error {
 	// start receive loop
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		k.receive(m, sec)
-		wg.Done()
-	}()
+	k.poll(m, sec)
 
-	G.Log.Debug("KexSib: waiting for startkex message")
-	if err := k.waitStartKex(); err != nil {
+	// wait for StartKex() from Y
+	if err := k.next(kex.StartKexMsg, kex.IntraTimeout, k.handleStart); err != nil {
 		return err
 	}
-	G.Log.Debug("KexSib: waiting for pleasesign message")
-	if err := k.waitPleaseSign(); err != nil {
+
+	pair, ok := k.deviceSibkey.(libkb.NaclSigningKeyPair)
+	if !ok {
+		return libkb.BadKeyError{Msg: fmt.Sprintf("invalid device sibkey type %T", k.deviceSibkey)}
+	}
+	m.Sender = k.deviceID
+	m.Receiver = k.devidY
+	if err := k.server.Hello(m, m.Sender, pair.GetKid()); err != nil {
 		return err
 	}
+
+	// wait for PleaseSign() from Y
+	if err := k.next(kex.PleaseSignMsg, kex.IntraTimeout, k.handlePleaseSign); err != nil {
+		return err
+	}
+
+	m.Sender = k.deviceID
+	m.Receiver = k.devidY
+	if err := k.server.Done(m); err != nil {
+		return err
+	}
+
 	G.Log.Debug("KexSib: finished with messages, waiting for receive to end.")
-	k.msgReceiveComplete <- true
-	wg.Wait()
+	k.wg.Wait()
 	G.Log.Debug("KexSib: done.")
 	return nil
 }
 
-func (k *KexSib) waitStartKex() error {
-	select {
-	case <-k.startKexReceived:
-		G.Log.Debug("[%s] startkex received", k.debugName)
-		return nil
-	case <-time.After(kex.IntraTimeout):
-		return libkb.ErrTimeout
-	}
+func (k *KexSib) handleStart(m *kex.Msg) error {
+	k.devidY = m.Sender
+	return nil
 }
 
-func (k *KexSib) waitPleaseSign() error {
-	select {
-	case <-k.pleaseSignReceived:
-		G.Log.Debug("[%s] pleasesign received", k.debugName)
-		return nil
-	case <-time.After(kex.IntraTimeout):
-		return libkb.ErrTimeout
+func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
+	eddsa := m.Args.SigningKey
+	sig := m.Args.Sig
+	devType := m.Args.DevType
+	devDesc := m.Args.DevDesc
+
+	rs := &libkb.ReverseSig{Sig: sig, Type: "kb"}
+
+	// make device object for Y
+	s := libkb.DEVICE_STATUS_ACTIVE
+	devY := libkb.Device{
+		Id:          m.Sender.String(),
+		Type:        devType,
+		Description: &devDesc,
+		Status:      &s,
 	}
+
+	// generator function that just copies the public eddsa key into a
+	// NaclKeyPair (which implements GenericKey).
+	g := func() (libkb.NaclKeyPair, error) {
+		var ret libkb.NaclSigningKeyPair
+		copy(ret.Public[:], eddsa[:])
+		return ret, nil
+	}
+
+	// need the private device sibkey
+	// k.deviceSibkey is public only
+	if k.sigKey == nil {
+		var err error
+		arg := libkb.SecretKeyArg{
+			DeviceKey: true,
+			Reason:    "new device install",
+			Ui:        k.engctx.SecretUI,
+			Me:        k.user,
+		}
+		k.sigKey, err = k.G().Keyrings.GetSecretKey(arg)
+		if err != nil {
+			return err
+		}
+	}
+
+	// use naclkeygen to sign eddsa with device X (this device) sibkey
+	// and push it to the server
+	arg := libkb.NaclKeyGenArg{
+		Signer:      k.sigKey,
+		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
+		Sibkey:      true,
+		Me:          k.user,
+		Device:      &devY,
+		EldestKeyID: k.user.GetEldestFOKID().Kid,
+		RevSig:      rs,
+		Generator:   g,
+	}
+	gen := libkb.NewNaclKeyGen(arg)
+	if err := gen.Generate(); err != nil {
+		return err
+	}
+	_, err := gen.Push()
+	if err != nil {
+		return err
+	}
+	return nil
 }

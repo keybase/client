@@ -31,7 +31,7 @@ func testBody(t *testing.T) *kex.Body {
 	}
 
 	return &kex.Body{
-		Name: startkexMsg,
+		Name: kex.StartKexMsg,
 		Args: a,
 	}
 }
@@ -49,9 +49,8 @@ func TestBasicMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h := newKth()
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret())
-	r := kex.NewReceiver(h, kex.DirectionYtoX, sec.Secret())
+	r := kex.NewReceiver(kex.DirectionYtoX, sec.Secret())
 
 	ctx := testKexMeta(t, fu.Username)
 	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
@@ -65,8 +64,9 @@ func TestBasicMessage(t *testing.T) {
 	if n != 1 {
 		t.Errorf("receive count: %d, expected 1", n)
 	}
-	if h.callCount(startkexMsg) != 1 {
-		t.Errorf("startkex call count: %d, expected 1", h.callCount(startkexMsg))
+	msg := <-r.Msgs
+	if msg.Name != kex.StartKexMsg {
+		t.Errorf("msg: %s, expected %s", msg.Name, kex.StartKexMsg)
 	}
 }
 
@@ -81,9 +81,8 @@ func TestBadMACMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h := newKth()
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret())
-	r := kex.NewReceiver(h, kex.DirectionYtoX, sec.Secret())
+	r := kex.NewReceiver(kex.DirectionYtoX, sec.Secret())
 
 	ctx := testKexMeta(t, fu.Username)
 	if err := s.CorruptStartKexSession(ctx, ctx.StrongID); err != nil {
@@ -97,59 +96,4 @@ func TestBadMACMessage(t *testing.T) {
 	if n != 0 {
 		t.Errorf("receive count: %d, expected 0", n)
 	}
-	if h.callCount(startkexMsg) != 0 {
-		t.Errorf("startkex call count: %d, expected 0", h.callCount(startkexMsg))
-	}
 }
-
-// kth is a kex handler for testing.  It keeps track of how many
-// times the handle functions are called.
-type kth struct {
-	calls map[string]int
-}
-
-func newKth() *kth {
-	return &kth{calls: make(map[string]int)}
-}
-
-func (h *kth) callInc(name string) {
-	cur := h.callCount(name)
-	h.calls[name] = cur + 1
-}
-
-func (h *kth) callCount(name string) int {
-	return h.calls[name]
-}
-
-func (h *kth) StartKexSession(ctx *kex.Meta, id kex.StrongID) error {
-	h.callInc(startkexMsg)
-	return nil
-}
-
-func (h *kth) StartReverseKexSession(ctx *kex.Meta) error {
-	h.callInc(startrevkexMsg)
-	return nil
-}
-
-func (h *kth) Hello(ctx *kex.Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	h.callInc(helloMsg)
-	return nil
-}
-
-func (h *kth) PleaseSign(ctx *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	h.callInc(pleasesignMsg)
-	return nil
-}
-
-func (h *kth) Done(ctx *kex.Meta) error {
-	h.callInc(doneMsg)
-	return nil
-}
-
-const (
-	startkexMsg    = "startkex"
-	startrevkexMsg = "startrevkex"
-	helloMsg       = "hello"
-	pleasesignMsg  = "pleasesign"
-	doneMsg        = "done"
-)

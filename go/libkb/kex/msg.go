@@ -13,12 +13,16 @@ import (
 	"github.com/ugorji/go/codec"
 )
 
+// MsgName is for message names.
+type MsgName string
+
+// These are the valid message names for kex.
 const (
-	startkexMsg    = "startkex"
-	startrevkexMsg = "startrevkex"
-	helloMsg       = "hello"
-	pleasesignMsg  = "pleasesign"
-	doneMsg        = "done"
+	StartKexMsg    MsgName = "startkex"
+	StartRevKexMsg         = "startrevkex"
+	HelloMsg               = "hello"
+	PleaseSignMsg          = "pleasesign"
+	DoneMsg                = "done"
 )
 
 // ErrMACMismatch is returned when a MAC fails.
@@ -175,7 +179,7 @@ type MsgArgs struct {
 
 // Body is the message body.
 type Body struct {
-	Name string
+	Name MsgName
 	Args MsgArgs
 	Mac  []byte
 	EOF  bool

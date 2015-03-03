@@ -2,9 +2,7 @@ package kex
 
 import (
 	"encoding/hex"
-	"fmt"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -24,19 +22,48 @@ var PollDuration = 20 * time.Second
 // Receiver gets kex messages from the server and routes them to a
 // kex Handler.
 type Receiver struct {
-	handler   Handler
 	seqno     int
 	direction Direction
 	seen      map[string]bool
 	secret    SecretKey
+	Msgs      chan *Msg
 }
 
 // NewReceiver creates a Receiver that will route messages to the
 // provided handler.  It will receive messages for the specified
 // direction.
-func NewReceiver(handler Handler, dir Direction, secret SecretKey) *Receiver {
+func NewReceiver(dir Direction, secret SecretKey) *Receiver {
 	sm := make(map[string]bool)
-	return &Receiver{handler: handler, direction: dir, secret: secret, seen: sm}
+	ch := make(chan *Msg, 10)
+	return &Receiver{direction: dir, secret: secret, seen: sm, Msgs: ch}
+}
+
+// Poll calls Receive until it gets ErrProtocolEOF.
+func (r *Receiver) Poll(m *Meta) {
+	for {
+		_, err := r.Receive(m)
+		if err == ErrProtocolEOF {
+			return
+		}
+	}
+}
+
+// Next gets messages from the message channel, looking for one
+// that matches name.  If none are received for the duration of
+// timeout, it will return libkb.ErrTimeout.  If the channel is
+// closed, it will return ErrProtocolEOF.
+func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
+	start := time.Now()
+	for m := range r.Msgs {
+		if m.Name == name {
+			return m, nil
+		}
+		G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name, name)
+		if time.Since(start) > timeout {
+			return nil, libkb.ErrTimeout
+		}
+	}
+	return nil, ErrProtocolEOF
 }
 
 // Receive gets the next set of messages from the server and
@@ -48,7 +75,6 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 		return 0, err
 	}
 	var count int
-	var errorList []error
 	for _, msg := range msgs {
 
 		// check to see if this receiver has seen this message before
@@ -69,60 +95,19 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 		m.Sender = msg.Sender
 		m.Receiver = msg.Receiver
 
-		switch msg.Name {
-		case startkexMsg:
-			err = r.handler.StartKexSession(m, msg.Args.StrongID)
-		case startrevkexMsg:
-			err = r.handler.StartReverseKexSession(m)
-		case helloMsg:
-			err = r.handler.Hello(m, msg.Args.DeviceID, msg.Args.DevKeyID)
-		case pleasesignMsg:
-			err = r.handler.PleaseSign(m, msg.Args.SigningKey, msg.Args.Sig, msg.Args.DevType, msg.Args.DevDesc)
-		case doneMsg:
-			err = r.handler.Done(m)
-		default:
-			err = fmt.Errorf("unhandled message name: %q", msg.Name)
-		}
+		r.Msgs <- msg
 
-		if err == nil {
-			count++
-		} else {
-			errorList = append(errorList, err)
-		}
+		count++
 
 		// if the message has the EOF flag set, we are done receiving messages
 		// so break out now.
 		if msg.EOF {
+			close(r.Msgs)
 			return count, ErrProtocolEOF
 		}
 	}
 
-	if len(errorList) > 0 {
-		var es []string
-		for _, e := range errorList {
-			es = append(es, e.Error())
-		}
-		return count, fmt.Errorf("receive message errors: %s", strings.Join(es, ", "))
-	}
-
 	return count, nil
-}
-
-// ReceiveTimeout will repeatedly call Receive until Receive
-// processes at least one message, or the timeout duration is
-// reached.
-func (r *Receiver) ReceiveTimeout(m *Meta, timeout time.Duration) error {
-	start := time.Now()
-	for time.Since(start) < timeout {
-		n, err := r.Receive(m)
-		if err != nil {
-			G.Log.Warning(err.Error())
-		}
-		if n > 0 {
-			return nil
-		}
-	}
-	return libkb.ErrTimeout
 }
 
 // get performs a Get request to long poll for a set of messages.

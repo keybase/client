@@ -2,8 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"sync"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
@@ -16,8 +14,10 @@ import (
 // device (referred to as device Y in comments).
 type KexFwd struct {
 	KexCom
-	args   *KexFwdArgs
-	secret *kex.Secret
+	args      *KexFwdArgs
+	secret    *kex.Secret
+	lks       *libkb.LKSec
+	xDevKeyID libkb.KID
 }
 
 type KexFwdArgs struct {
@@ -30,8 +30,12 @@ type KexFwdArgs struct {
 
 // NewKexFwd creates a KexFwd engine.
 func NewKexFwd(lksClientHalf []byte, args *KexFwdArgs) *KexFwd {
-	kc := newKexCom(lksClientHalf)
+	kc := newKexCom()
 	kf := &KexFwd{KexCom: *kc, args: args}
+	kf.debugName = "KexFwd"
+	if lksClientHalf != nil {
+		kf.lks = libkb.NewLKSecClientHalf(lksClientHalf)
+	}
 	return kf
 }
 
@@ -59,7 +63,6 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	defer k.G().Log.Debug("KexFwd: run finished")
 	k.user = k.args.User
 	k.deviceID = k.args.Src
-	k.engctx = ctx
 
 	// make random secret S, session id I
 	sec, err := kex.NewSecret(k.user.GetName())
@@ -74,12 +77,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	m := kex.NewMeta(k.args.User.GetUid(), k.sessionID, k.args.Src, k.args.Dst, kex.DirectionXtoY)
 
 	// start message receive loop
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		k.receive(m, sec.Secret())
-		wg.Done()
-	}()
+	k.poll(m, sec.Secret())
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
@@ -95,8 +93,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	}
 
 	// wait for Hello() from X
-	k.G().Log.Debug("KexFwd: waiting for Hello from X")
-	if err := k.waitHello(); err != nil {
+	if err := k.next(kex.HelloMsg, kex.StartTimeout, k.handleHello); err != nil {
 		return err
 	}
 
@@ -134,12 +131,9 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	}
 
 	// wait for Done() from X
-	k.G().Log.Debug("KexFwd: waiting for Done from X")
-	if err := k.waitDone(); err != nil {
+	if err := k.next(kex.DoneMsg, kex.StartTimeout, k.handleDone); err != nil {
 		return err
 	}
-
-	k.msgReceiveComplete <- true
 
 	// push the dh key as a subkey to the server
 	k.G().Log.Debug("KexFwd: pushing subkey")
@@ -152,7 +146,22 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 
-	wg.Wait()
+	k.wg.Wait()
+	return nil
+}
+
+func (k *KexFwd) handleHello(m *kex.Msg) error {
+	k.xDevKeyID = m.Body.Args.DevKeyID
+	return nil
+}
+
+func (k *KexFwd) handleDone(m *kex.Msg) error {
+	// device X changed the sigchain, so reload the user to get the latest sigchain.
+	var err error
+	k.user, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -257,24 +266,4 @@ func (k *KexFwd) storeDeviceID() error {
 		}
 	}
 	return nil
-}
-
-func (k *KexFwd) waitHello() error {
-	select {
-	case <-k.helloReceived:
-		k.G().Log.Debug("[%s] hello received", k.debugName)
-		return nil
-	case <-time.After(kex.StartTimeout):
-		return libkb.ErrTimeout
-	}
-}
-
-func (k *KexFwd) waitDone() error {
-	select {
-	case <-k.doneReceived:
-		k.G().Log.Debug("[%s] done received", k.debugName)
-		return nil
-	case <-time.After(kex.IntraTimeout):
-		return libkb.ErrTimeout
-	}
 }

@@ -22,7 +22,7 @@ func NewSender(dir Direction, secret SecretKey) *Sender {
 // StartKexSession sends the StartKexSession message to the
 // server.
 func (s *Sender) StartKexSession(m *Meta, id StrongID) error {
-	mb := &Body{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
+	mb := &Body{Name: StartKexMsg, Args: MsgArgs{StrongID: id}}
 	return s.send(m, mb)
 }
 
@@ -34,19 +34,19 @@ func (s *Sender) StartReverseKexSession(m *Meta) error {
 
 // Hello sends the Hello message to the server.
 func (s *Sender) Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	mb := &Body{Name: helloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
+	mb := &Body{Name: HelloMsg, Args: MsgArgs{DeviceID: devID, DevKeyID: devKeyID}}
 	return s.send(m, mb)
 }
 
 // PleaseSign sends the PleaseSign message to the server.
 func (s *Sender) PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	mb := &Body{Name: pleasesignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}, EOF: true}
+	mb := &Body{Name: PleaseSignMsg, Args: MsgArgs{SigningKey: eddsa, Sig: sig, DevType: devType, DevDesc: devDesc}, EOF: true}
 	return s.send(m, mb)
 }
 
 // Done sends the Done message to the server.
 func (s *Sender) Done(m *Meta) error {
-	mb := &Body{Name: doneMsg, EOF: true}
+	mb := &Body{Name: DoneMsg, EOF: true}
 	return s.send(m, mb)
 }
 
@@ -54,7 +54,7 @@ func (s *Sender) Done(m *Meta) error {
 // corrupted MAC.  This is for testing, clearly.  It's an exposed
 // function since only an engine test can test this.
 func (s *Sender) CorruptStartKexSession(m *Meta, id StrongID) error {
-	mb := &Body{Name: startkexMsg, Args: MsgArgs{StrongID: id}}
+	mb := &Body{Name: StartKexMsg, Args: MsgArgs{StrongID: id}}
 	msg, err := s.genMsg(m, mb)
 	if err != nil {
 		return err
