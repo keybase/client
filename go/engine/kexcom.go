@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"crypto/hmac"
 	"sync"
 	"time"
 
@@ -15,7 +14,6 @@ type KexCom struct {
 	server    kex.Handler
 	user      *libkb.User
 	deviceID  libkb.DeviceID
-	sessionID kex.StrongID
 	debugName string
 	wg        sync.WaitGroup
 	rec       *kex.Receiver
@@ -35,24 +33,14 @@ func (k *KexCom) verifyReceiver(m *kex.Meta) error {
 	return nil
 }
 
-func (k *KexCom) verifySession(m *kex.Meta) error {
-	if !hmac.Equal(m.StrongID[:], k.sessionID[:]) {
-		return libkb.ErrInvalidKexSession
-	}
-	return nil
-}
-
 func (k *KexCom) verifyRequest(m *kex.Meta) error {
 	if err := k.verifyReceiver(m); err != nil {
 		return err
 	}
-	if err := k.verifySession(m); err != nil {
-		return err
-	}
 	return nil
 }
 
-func (k *KexCom) poll(m *kex.Meta, secret kex.SecretKey) {
+func (k *KexCom) poll(m *kex.Meta, secret *kex.Secret) {
 	k.rec = kex.NewReceiver(m.Direction, secret)
 	k.wg.Add(1)
 	go func() {

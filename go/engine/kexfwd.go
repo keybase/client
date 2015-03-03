@@ -70,14 +70,13 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 	k.secret = sec
-	k.sessionID = k.secret.StrongID()
 	k.server = kex.NewSender(kex.DirectionYtoX, k.secret.Secret())
 
 	// create the kex meta data
-	m := kex.NewMeta(k.args.User.GetUid(), k.sessionID, k.args.Src, k.args.Dst, kex.DirectionXtoY)
+	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.args.Src, k.args.Dst, kex.DirectionXtoY)
 
 	// start message receive loop
-	k.poll(m, sec.Secret())
+	k.poll(m, sec)
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
@@ -88,7 +87,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 
 	// start the kex session with X
 	k.G().Log.Debug("KexFwd: sending StartKexSession to X")
-	if err := k.server.StartKexSession(m, k.sessionID); err != nil {
+	if err := k.server.StartKexSession(m, k.secret.StrongID()); err != nil {
 		return err
 	}
 

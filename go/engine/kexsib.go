@@ -77,7 +77,6 @@ func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
 	if err != nil {
 		return err
 	}
-	k.sessionID = sec.StrongID()
 	k.server = kex.NewSender(kex.DirectionXtoY, sec.Secret())
 
 	arg := libkb.SecretKeyArg{
@@ -93,11 +92,11 @@ func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
 	}
 
 	G.Log.Debug("KexSib: starting receive loop")
-	m := kex.NewMeta(k.user.GetUid(), k.sessionID, libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
-	return k.loopReceives(m, sec.Secret())
+	m := kex.NewMeta(k.user.GetUid(), sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	return k.loopReceives(m, sec)
 }
 
-func (k *KexSib) loopReceives(m *kex.Meta, sec kex.SecretKey) error {
+func (k *KexSib) loopReceives(m *kex.Meta, sec *kex.Secret) error {
 	// start receive loop
 	k.poll(m, sec)
 

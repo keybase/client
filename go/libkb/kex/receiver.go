@@ -1,6 +1,7 @@
 package kex
 
 import (
+	"crypto/hmac"
 	"encoding/hex"
 	"sort"
 	"time"
@@ -25,14 +26,14 @@ type Receiver struct {
 	seqno     int
 	direction Direction
 	seen      map[string]bool
-	secret    SecretKey
+	secret    *Secret
 	Msgs      chan *Msg
 }
 
 // NewReceiver creates a Receiver that will route messages to the
 // provided handler.  It will receive messages for the specified
 // direction.
-func NewReceiver(dir Direction, secret SecretKey) *Receiver {
+func NewReceiver(dir Direction, secret *Secret) *Receiver {
 	sm := make(map[string]bool)
 	ch := make(chan *Msg, 10)
 	return &Receiver{direction: dir, secret: secret, seen: sm, Msgs: ch}
@@ -70,12 +71,17 @@ func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
 // routes them to the handler.  It returns the number of messages
 // it received successfully.
 func (r *Receiver) Receive(m *Meta) (int, error) {
-	msgs, err := r.get(m)
+	msgs, err := r.get()
 	if err != nil {
 		return 0, err
 	}
 	var count int
 	for _, msg := range msgs {
+
+		if err := r.check(msg); err != nil {
+			G.Log.Warning("[%s] message failed check: %s", msg, err)
+			continue
+		}
 
 		// check to see if this receiver has seen this message before
 		smac := hex.EncodeToString(msg.Body.Mac)
@@ -91,7 +97,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 
 		G.Log.Debug("received message [%s]", msg.Name)
 
-		// set context's sender and receiver
+		// set meta's sender and receiver
 		m.Sender = msg.Sender
 		m.Receiver = msg.Receiver
 
@@ -110,14 +116,37 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 	return count, nil
 }
 
+// check verifies the validity of the message.  It checks the
+// HMAC, the StrongID (I), and the WeakID (w).
+func (r *Receiver) check(msg *Msg) error {
+	// verify that the HMAC matches
+	sum, err := msg.MacSum(r.secret.Secret())
+	if err != nil {
+		return err
+	}
+	if !hmac.Equal(sum, msg.Mac) {
+		return ErrMACMismatch
+	}
+
+	if !hmac.Equal(r.secret.StrongIDSlice(), msg.StrongID[:]) {
+		return ErrStrongIDMismatch
+	}
+
+	if !hmac.Equal(r.secret.WeakIDSlice(), msg.WeakID[:]) {
+		return ErrWeakIDMismatch
+	}
+
+	return nil
+}
+
 // get performs a Get request to long poll for a set of messages.
-func (r *Receiver) get(m *Meta) (MsgList, error) {
-	G.Log.Debug("get: {dir: %d, seqno: %d, w = %x, uid = %x}", r.direction, r.seqno, m.WeakID, G.GetMyUID())
+func (r *Receiver) get() (MsgList, error) {
+	G.Log.Debug("get: {dir: %d, seqno: %d, w = %x, uid = %x}", r.direction, r.seqno, r.secret.WeakID(), G.GetMyUID())
 	res, err := G.API.Get(libkb.ApiArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
-			"w":    libkb.S{Val: hex.EncodeToString(m.WeakID[:])},
+			"w":    r.secret.WeakID(),
 			"dir":  libkb.I{Val: int(r.direction)},
 			"low":  libkb.I{Val: r.seqno + 1},
 			"poll": libkb.I{Val: int(PollDuration / time.Second)},
@@ -135,7 +164,7 @@ func (r *Receiver) get(m *Meta) (MsgList, error) {
 
 	var messages MsgList
 	for i := 0; i < n; i++ {
-		m, err := MsgImport(msgs.AtIndex(i), r.secret)
+		m, err := MsgImport(msgs.AtIndex(i), r.secret.Secret())
 		if err != nil {
 			if err != ErrMACMismatch {
 				return nil, err

@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	jsonw "github.com/keybase/go-jsonw"
@@ -28,6 +29,14 @@ const (
 // ErrMACMismatch is returned when a MAC fails.
 var ErrMACMismatch = errors.New("Computed HMAC doesn't match message HMAC")
 
+// ErrStrongIDMismatch is returned when the strong session ID (I)
+// in a message fails to match the receiver's strong session ID.
+var ErrStrongIDMismatch = errors.New("Strong session ID (I) mismatch between message and receiver")
+
+// ErrWeakIDMismatch is returned when the weak session ID (w)
+// in a message fails to match the receiver's weak session ID.
+var ErrWeakIDMismatch = errors.New("Weak session ID (w) mismatch between message and receiver")
+
 // Msg is a kex message.
 type Msg struct {
 	Meta
@@ -40,6 +49,12 @@ func NewMsg(mt *Meta, body *Body) *Msg {
 		Meta: *mt,
 		Body: *body,
 	}
+}
+
+// String returns a string summary of the message.
+func (m *Msg) String() string {
+	return fmt.Sprintf("%s {w = %s, I = %s, sender = %s, receiver = %s, seqno = %d, dir = %d}",
+		m.Name, m.WeakID, m.StrongID, m.Sender, m.Receiver, m.Seqno, m.Direction)
 }
 
 // CheckMAC verifies that the existing MAC matches the computed
@@ -145,14 +160,6 @@ func MsgImport(w *jsonw.Wrapper, secret SecretKey) (*Msg, error) {
 		return nil, err
 	}
 	r.Body = *mb
-
-	ok, err := r.CheckMAC(secret)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, ErrMACMismatch
-	}
 
 	return r, nil
 }

@@ -1,6 +1,7 @@
 package kex
 
 import (
+	"encoding/hex"
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
@@ -20,8 +21,18 @@ const (
 // StrongID is the strong session id type.
 type StrongID [32]byte
 
+// String returns a hex encoding of StrongID.
+func (s StrongID) String() string {
+	return hex.EncodeToString(s[:])
+}
+
 // WeakID is the weak session id type.
 type WeakID [16]byte
+
+// String returns a hex encoding of WeakID.
+func (w WeakID) String() string {
+	return hex.EncodeToString(w[:])
+}
 
 // SecretKey is the shared secret key type.
 type SecretKey [32]byte

@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb/kex"
 )
 
-func testKexMeta(t *testing.T, username string) *kex.Meta {
+func testKexMeta(t *testing.T, username string, sec *kex.Secret) *kex.Meta {
 	sendID, err := libkb.NewDeviceID()
 	if err != nil {
 		t.Fatal(err)
@@ -16,8 +16,7 @@ func testKexMeta(t *testing.T, username string) *kex.Meta {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sid := [32]byte{1, 1, 1, 1, 1}
-	return &kex.Meta{UID: libkb.UsernameToUID(username), Seqno: 2, StrongID: sid, Sender: sendID, Receiver: recID}
+	return &kex.Meta{UID: libkb.UsernameToUID(username), Seqno: 0, StrongID: sec.StrongID(), WeakID: sec.WeakID(), Sender: sendID, Receiver: recID}
 }
 
 func testBody(t *testing.T) *kex.Body {
@@ -50,13 +49,14 @@ func TestBasicMessage(t *testing.T) {
 	}
 
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret())
-	r := kex.NewReceiver(kex.DirectionYtoX, sec.Secret())
+	r := kex.NewReceiver(kex.DirectionYtoX, sec)
 
-	ctx := testKexMeta(t, fu.Username)
+	ctx := testKexMeta(t, fu.Username, sec)
 	if err := s.StartKexSession(ctx, ctx.StrongID); err != nil {
 		t.Fatal(err)
 	}
-	rctx := &kex.Meta{}
+	rctx := testKexMeta(t, fu.Username, sec)
+	rctx.Swap()
 	n, err := r.Receive(rctx)
 	if err != nil {
 		t.Fatal(err)
@@ -82,13 +82,14 @@ func TestBadMACMessage(t *testing.T) {
 	}
 
 	s := kex.NewSender(kex.DirectionYtoX, sec.Secret())
-	r := kex.NewReceiver(kex.DirectionYtoX, sec.Secret())
+	r := kex.NewReceiver(kex.DirectionYtoX, sec)
 
-	ctx := testKexMeta(t, fu.Username)
+	ctx := testKexMeta(t, fu.Username, sec)
 	if err := s.CorruptStartKexSession(ctx, ctx.StrongID); err != nil {
 		t.Fatal(err)
 	}
-	rctx := &kex.Meta{}
+	rctx := testKexMeta(t, fu.Username, sec)
+	rctx.Swap()
 	n, err := r.Receive(rctx)
 	if err != nil {
 		t.Fatal(err)

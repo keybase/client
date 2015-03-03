@@ -14,6 +14,7 @@ type Secret struct {
 	phrase   string
 	secret   SecretKey
 	strongID StrongID
+	weakID   WeakID
 }
 
 // NewSecret creates a new random secret for a user.
@@ -49,8 +50,10 @@ func (s *Secret) calculate(username string) error {
 
 	mac := hmac.New(sha256.New, []byte("kex-session"))
 	mac.Write(key)
+
 	copy(s.strongID[:], mac.Sum(nil))
 	copy(s.secret[:], key)
+	copy(s.weakID[:], s.strongID[0:16])
 
 	return nil
 }
@@ -68,4 +71,19 @@ func (s *Secret) Phrase() string {
 // StrongID returns the strong session id.
 func (s *Secret) StrongID() StrongID {
 	return s.strongID
+}
+
+// StrongIDSlice returns StrongID as a byte slice for convenience.
+func (s *Secret) StrongIDSlice() []byte {
+	return s.strongID[:]
+}
+
+// WeakID returns the weak session id.
+func (s *Secret) WeakID() WeakID {
+	return s.weakID
+}
+
+// WeakIDSlice returns WeakID as a byte slice for convenience.
+func (s *Secret) WeakIDSlice() []byte {
+	return s.weakID[:]
 }
