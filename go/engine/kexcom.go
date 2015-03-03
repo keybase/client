@@ -26,6 +26,7 @@ type KexCom struct {
 	lks                *libkb.LKSec
 	engctx             *Context // so that kex interface doesn't need to depend on engine ctx
 	msgReceiveComplete chan bool
+	libkb.Contextified
 }
 
 func newKexCom(lksClientHalf []byte) *KexCom {
@@ -56,7 +57,7 @@ func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
 	if !ok {
 		return libkb.BadKeyError{Msg: fmt.Sprintf("invalid device sibkey type %T", k.deviceSibkey)}
 	}
-	G.Log.Debug("[%s] calling Hello on server (m.Sender = %s, k.deviceID = %s, m.Receiver = %s)", k.debugName, m.Sender, k.deviceID, m.Receiver)
+	k.G().Log.Debug("[%s] calling Hello on server (m.Sender = %s, k.deviceID = %s, m.Receiver = %s)", k.debugName, m.Sender, k.deviceID, m.Receiver)
 
 	k.startKexReceived <- true
 
@@ -66,8 +67,8 @@ func (k *KexCom) StartKexSession(m *kex.Meta, id kex.StrongID) error {
 func (k *KexCom) StartReverseKexSession(m *kex.Meta) error { return nil }
 
 func (k *KexCom) Hello(m *kex.Meta, devID libkb.DeviceID, devKeyID libkb.KID) error {
-	G.Log.Debug("[%s] Hello Receive", k.debugName)
-	defer G.Log.Debug("[%s] Hello Receive done", k.debugName)
+	k.G().Log.Debug("[%s] Hello Receive", k.debugName)
+	defer k.G().Log.Debug("[%s] Hello Receive done", k.debugName)
 	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
@@ -80,8 +81,8 @@ func (k *KexCom) Hello(m *kex.Meta, devID libkb.DeviceID, devKeyID libkb.KID) er
 
 // sig is the reverse sig.
 func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error {
-	G.Log.Debug("[%s] PleaseSign Receive", k.debugName)
-	defer G.Log.Debug("[%s] PleaseSign Receive done", k.debugName)
+	k.G().Log.Debug("[%s] PleaseSign Receive", k.debugName)
+	defer k.G().Log.Debug("[%s] PleaseSign Receive done", k.debugName)
 	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 			Ui:        k.engctx.SecretUI,
 			Me:        k.user,
 		}
-		k.sigKey, err = G.Keyrings.GetSecretKey(arg)
+		k.sigKey, err = k.G().Keyrings.GetSecretKey(arg)
 		if err != nil {
 			return err
 		}
@@ -149,8 +150,8 @@ func (k *KexCom) PleaseSign(m *kex.Meta, eddsa libkb.NaclSigningKeyPublic, sig, 
 }
 
 func (k *KexCom) Done(m *kex.Meta) error {
-	G.Log.Debug("[%s] Done Receive", k.debugName)
-	defer G.Log.Debug("[%s] Done Receive done", k.debugName)
+	k.G().Log.Debug("[%s] Done Receive", k.debugName)
+	defer k.G().Log.Debug("[%s] Done Receive done", k.debugName)
 	if err := k.verifyRequest(m); err != nil {
 		return err
 	}
@@ -167,8 +168,8 @@ func (k *KexCom) Done(m *kex.Meta) error {
 }
 
 func (k *KexCom) verifyReceiver(m *kex.Meta) error {
-	G.Log.Debug("kex Meta: sender device %s => receiver device %s", m.Sender, m.Receiver)
-	G.Log.Debug("kex Meta: own device %s", k.deviceID)
+	k.G().Log.Debug("kex Meta: sender device %s => receiver device %s", m.Sender, m.Receiver)
+	k.G().Log.Debug("kex Meta: own device %s", k.deviceID)
 	if m.Receiver != k.deviceID {
 		return libkb.ErrReceiverDevice
 	}
@@ -197,10 +198,10 @@ func (k *KexCom) receive(m *kex.Meta, secret kex.SecretKey) {
 	for {
 		if _, err := rec.Receive(m); err != nil {
 			if err == kex.ErrProtocolEOF {
-				G.Log.Debug("received EOF in message, stopping receive")
+				k.G().Log.Debug("received EOF in message, stopping receive")
 				return
 			}
-			G.Log.Debug("receive error: %s", err)
+			k.G().Log.Debug("receive error: %s", err)
 		}
 		select {
 		case <-k.msgReceiveComplete:

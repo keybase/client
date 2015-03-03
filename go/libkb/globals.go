@@ -274,6 +274,8 @@ func (c Contextified) G() *GlobalContext {
 	}
 }
 
+func (c *Contextified) SetGlobalContext(g *GlobalContext) { c.g = g }
+
 func NewContextified(gc *GlobalContext) Contextified {
 	return Contextified{g: gc}
 }

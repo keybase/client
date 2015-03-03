@@ -12,6 +12,7 @@ type Doctor struct {
 	user       *libkb.User
 	signingKey libkb.GenericKey
 	devName    string
+	libkb.Contextified
 }
 
 func NewDoctor() *Doctor {
@@ -42,6 +43,7 @@ func (d *Doctor) SubConsumers() []libkb.UIConsumer {
 
 func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
 	d.user = u
+	d.SetGlobalContext(ctx.GlobalContext)
 
 	// This can fail, but we'll warn if it does.
 	d.syncSecrets()
@@ -53,8 +55,8 @@ func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
 }
 
 func (d *Doctor) syncSecrets() (err error) {
-	if err = G.SecretSyncer.Load(d.user.GetUid()); err != nil {
-		G.Log.Warning("Problem syncing secrets from server: %s", err)
+	if err = d.G().SecretSyncer.Load(d.user.GetUid()); err != nil {
+		d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 	}
 	return err
 }
@@ -76,7 +78,7 @@ func (d *Doctor) checkKeys(ctx *Context) error {
 	}
 
 	// make sure secretsyncer loaded
-	if err := G.SecretSyncer.Load(d.user.GetUid()); err != nil {
+	if err := d.G().SecretSyncer.Load(d.user.GetUid()); err != nil {
 		return err
 	}
 
@@ -91,7 +93,7 @@ func (d *Doctor) checkKeys(ctx *Context) error {
 		}
 	*/
 
-	if G.SecretSyncer.HasActiveDevice() {
+	if d.G().SecretSyncer.HasActiveDevice() {
 		// they have at least one device, just not this device...
 		return d.deviceSign(ctx, hasPGP)
 	}
@@ -203,7 +205,7 @@ func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
-	devs, err := G.SecretSyncer.ActiveDevices()
+	devs, err := d.G().SecretSyncer.ActiveDevices()
 	if err != nil {
 		return err
 	}
@@ -224,7 +226,7 @@ func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
 		return fmt.Errorf("cancel requested by user")
 	}
 	if res.Action == keybase_1.SelectSignerAction_RESET_ACCOUNT {
-		G.Log.Info("reset account action not yet implemented")
+		d.G().Log.Info("reset account action not yet implemented")
 		return ErrNotYetImplemented
 	}
 
@@ -262,9 +264,9 @@ func (d *Doctor) deviceSignPGP(ctx *Context) error {
 		selected = pgpKeys[0]
 	}
 
-	G.Log.Info("selected pgp key: %s", selected.VerboseDescription())
-	G.Log.Info("selected pgp key kid: %s", selected.GetKid())
-	if pk, ok := G.SecretSyncer.FindPrivateKey(selected.GetKid().String()); ok {
+	d.G().Log.Info("selected pgp key: %s", selected.VerboseDescription())
+	d.G().Log.Info("selected pgp key kid: %s", selected.GetKid())
+	if pk, ok := d.G().SecretSyncer.FindPrivateKey(selected.GetKid().String()); ok {
 		skb, err := pk.ToSKB()
 		if err != nil {
 			return err
@@ -278,7 +280,7 @@ func (d *Doctor) deviceSignPGP(ctx *Context) error {
 	}
 
 	// use gpg to unlock it
-	gpg := G.GetGpgClient()
+	gpg := d.G().GetGpgClient()
 	if _, err := gpg.Configure(); err != nil {
 		return err
 	}
@@ -301,7 +303,7 @@ func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 	}
 
 	eldest := d.user.GetEldestFOKID().Kid
-	G.Log.Info("eldest kid from user: %s", eldest)
+	d.G().Log.Info("eldest kid from user: %s", eldest)
 	if err := d.addDeviceKeyWithSigner(ctx, pgpk, eldest); err != nil {
 		return err
 	}
@@ -314,7 +316,7 @@ func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 }
 
 func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType string) error {
-	G.Log.Info("device sign with existing device [%s]", id)
+	d.G().Log.Info("device sign with existing device [%s]", id)
 
 	src, err := libkb.NewDeviceID()
 	if err != nil {
@@ -359,7 +361,7 @@ func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.
 	if err != nil {
 		return nil, err
 	}
-	G.Log.Info("SelectKey result: %+v", keyid)
+	d.G().Log.Info("SelectKey result: %+v", keyid)
 
 	var selected *libkb.PgpKeyBundle
 	for _, key := range keys {
@@ -373,12 +375,12 @@ func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.
 }
 
 func (d *Doctor) tspkey(ctx *Context) (libkb.PassphraseStream, error) {
-	return G.LoginState.GetPassphraseStream(ctx.SecretUI)
+	return d.G().LoginState.GetPassphraseStream(ctx.SecretUI)
 }
 
 func (d *Doctor) detkey(ctx *Context) (libkb.GenericKey, error) {
 	// get server half of detkey via ss
-	half, err := G.SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	half, err := d.G().SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
 	if err != nil {
 		return nil, err
 	}

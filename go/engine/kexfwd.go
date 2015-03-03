@@ -53,8 +53,10 @@ func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
-	G.Log.Debug("KexFwd: run starting")
-	defer G.Log.Debug("KexFwd: run finished")
+	k.SetGlobalContext(ctx.GlobalContext)
+
+	k.G().Log.Debug("KexFwd: run starting")
+	defer k.G().Log.Debug("KexFwd: run finished")
 	k.user = k.args.User
 	k.deviceID = k.args.Src
 	k.engctx = ctx
@@ -81,32 +83,32 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
-	G.Log.Debug("KexFwd: displaying sibkey command")
+	k.G().Log.Debug("KexFwd: displaying sibkey command")
 	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: k.args.DevDesc, Secret: sec.Phrase()}); err != nil {
 		return err
 	}
 
 	// start the kex session with X
-	G.Log.Debug("KexFwd: sending StartKexSession to X")
+	k.G().Log.Debug("KexFwd: sending StartKexSession to X")
 	if err := k.server.StartKexSession(m, k.sessionID); err != nil {
 		return err
 	}
 
 	// wait for Hello() from X
-	G.Log.Debug("KexFwd: waiting for Hello from X")
+	k.G().Log.Debug("KexFwd: waiting for Hello from X")
 	if err := k.waitHello(); err != nil {
 		return err
 	}
 
 	// make keys for device Y
-	G.Log.Debug("KexFwd: making keys for device Y")
+	k.G().Log.Debug("KexFwd: making keys for device Y")
 	keys, err := k.makeKeys()
 	if err != nil {
 		return err
 	}
 
 	// store the keys in lks
-	G.Log.Debug("KexFwd: storing keys for device Y in LKS")
+	k.G().Log.Debug("KexFwd: storing keys for device Y in LKS")
 	if err := k.storeKeys(ctx, keys); err != nil {
 		return err
 	}
@@ -126,13 +128,13 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	// send PleaseSign message to X
 	m.Sender = k.args.Src
 	m.Receiver = k.args.Dst
-	G.Log.Debug("KexFwd: sending PleaseSign to X")
+	k.G().Log.Debug("KexFwd: sending PleaseSign to X")
 	if err := k.server.PleaseSign(m, signer, rsig, k.args.DevType, k.args.DevDesc); err != nil {
 		return err
 	}
 
 	// wait for Done() from X
-	G.Log.Debug("KexFwd: waiting for Done from X")
+	k.G().Log.Debug("KexFwd: waiting for Done from X")
 	if err := k.waitDone(); err != nil {
 		return err
 	}
@@ -140,7 +142,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 	k.msgReceiveComplete <- true
 
 	// push the dh key as a subkey to the server
-	G.Log.Debug("KexFwd: pushing subkey")
+	k.G().Log.Debug("KexFwd: pushing subkey")
 	if err := k.pushSubkey(keys); err != nil {
 		return err
 	}
@@ -245,13 +247,13 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 
 // storeDeviceID stores Y's new device id to config file.
 func (k *KexFwd) storeDeviceID() error {
-	if wr := G.Env.GetConfigWriter(); wr != nil {
+	if wr := k.G().Env.GetConfigWriter(); wr != nil {
 		if err := wr.SetDeviceID(&k.deviceID); err != nil {
 			return err
 		} else if err := wr.Write(); err != nil {
 			return err
 		} else {
-			G.Log.Info("Setting Device ID to %s", k.deviceID)
+			k.G().Log.Info("Setting Device ID to %s", k.deviceID)
 		}
 	}
 	return nil
@@ -260,7 +262,7 @@ func (k *KexFwd) storeDeviceID() error {
 func (k *KexFwd) waitHello() error {
 	select {
 	case <-k.helloReceived:
-		G.Log.Debug("[%s] hello received", k.debugName)
+		k.G().Log.Debug("[%s] hello received", k.debugName)
 		return nil
 	case <-time.After(kex.StartTimeout):
 		return libkb.ErrTimeout
@@ -270,7 +272,7 @@ func (k *KexFwd) waitHello() error {
 func (k *KexFwd) waitDone() error {
 	select {
 	case <-k.doneReceived:
-		G.Log.Debug("[%s] done received", k.debugName)
+		k.G().Log.Debug("[%s] done received", k.debugName)
 		return nil
 	case <-time.After(kex.IntraTimeout):
 		return libkb.ErrTimeout

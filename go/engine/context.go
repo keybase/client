@@ -14,6 +14,9 @@ type Context struct {
 	SecretUI   libkb.SecretUI
 	TrackUI    libkb.IdentifyUI
 	IdentifyUI libkb.IdentifyUI
+
+	// For everything else global...
+	GlobalContext *libkb.GlobalContext
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {

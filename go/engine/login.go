@@ -10,7 +10,9 @@ type LoginEngineArg struct {
 	Login libkb.LoginArg
 }
 
-type LoginEngine struct{}
+type LoginEngine struct {
+	libkb.Contextified
+}
 
 func NewLoginEngine() *LoginEngine {
 	return &LoginEngine{}
@@ -34,13 +36,15 @@ func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+	e.SetGlobalContext(ctx.GlobalContext)
+
 	arg, ok := args.(LoginEngineArg)
 	if !ok {
 		return fmt.Errorf("LoginEngine.Run: invalid args type %T", args)
 	}
 	arg.Login.SecretUI = ctx.SecretUI
 	arg.Login.Ui = ctx.LoginUI
-	if err := G.LoginState.Login(arg.Login); err != nil {
+	if err := e.G().LoginState.Login(arg.Login); err != nil {
 		return err
 	}
 
