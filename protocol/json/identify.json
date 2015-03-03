@@ -185,6 +185,9 @@
   "messages" : {
     "identify" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "uid",
         "type" : "UID"
       }, {
@@ -204,6 +207,9 @@
     },
     "identifyDefault" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "username",
         "type" : "string"
       } ],

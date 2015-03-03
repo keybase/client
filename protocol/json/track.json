@@ -114,6 +114,9 @@
   "messages" : {
     "track" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "theirName",
         "type" : "string"
       } ],

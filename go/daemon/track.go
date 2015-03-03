@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/keybase/client/go/engine"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -16,13 +17,17 @@ func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
 }
 
 // Track creates a TrackEngine and runs it.
-func (h *TrackHandler) Track(theirName string) error {
-	sessionID := nextSessionId()
-	arg := engine.TrackEngineArg{TheirName: theirName}
+func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
+	sessionID := arg.SessionID
+	if sessionID == 0 {
+		sessionID = nextSessionId()
+	}
+	theirName := arg.TheirName
+	earg := engine.TrackEngineArg{TheirName: theirName}
 	ctx := engine.Context{
 		TrackUI:  h.NewRemoteIdentifyUI(sessionID, theirName),
 		SecretUI: h.getSecretUI(sessionID),
 	}
-	eng := engine.NewTrackEngine(&arg)
+	eng := engine.NewTrackEngine(&earg)
 	return engine.RunEngine(eng, &ctx, nil, nil)
 }

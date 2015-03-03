@@ -29,24 +29,26 @@ func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
 
 func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) (keybase_1.IdentifyRes, error) {
 	iarg := engine.ImportIdentifyEngineArg(arg)
-	res, err := h.identify(iarg, true)
+	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
 		return keybase_1.IdentifyRes{}, err
 	}
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) IdentifyDefault(username string) (keybase_1.IdentifyRes, error) {
-	arg := engine.IdentifyEngineArg{User: username}
-	res, err := h.identify(arg, true)
+func (h *IdentifyHandler) IdentifyDefault(arg keybase_1.IdentifyDefaultArg) (keybase_1.IdentifyRes, error) {
+	iarg := engine.IdentifyEngineArg{User: arg.Username}
+	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
 		return keybase_1.IdentifyRes{}, err
 	}
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) identify(iarg engine.IdentifyEngineArg, doInteractive bool) (res *engine.IdentifyRes, err error) {
-	sessionId := nextSessionId()
+func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdentifyEngineArg, doInteractive bool) (res *engine.IdentifyRes, err error) {
+	if sessionId == 0 {
+		sessionId = nextSessionId()
+	}
 	ctx := engine.Context{
 		LogUI:      h.getLogUI(sessionId),
 		IdentifyUI: h.NewRemoteIdentifyUI(sessionId, iarg.User),

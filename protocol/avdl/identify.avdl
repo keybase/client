@@ -5,6 +5,7 @@ protocol identify {
 	import idl "identify_common.avdl";
 
 	IdentifyRes identify(
+		int sessionID,
 		UID uid,
 		string username,
 		boolean trackStatement,
@@ -13,6 +14,7 @@ protocol identify {
 	);
 
 	IdentifyRes identifyDefault(
+		int sessionID,
 		string username
 	);
 }

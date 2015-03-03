@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -42,7 +43,7 @@ func (v *CmdTrack) RunClient() error {
 		return err
 	}
 
-	return cli.Track(v.user)
+	return cli.Track(keybase_1.TrackArg{TheirName: v.user})
 }
 
 func (v *CmdTrack) Run() error {

@@ -178,9 +178,9 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 @interface KBRIdentifyRequest : KBRRequest
-- (void)identifyWithUid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion;
+- (void)identifyWithSessionID:(NSInteger )sessionID uid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion;
 
-- (void)identifyDefaultWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion;
+- (void)identifyDefaultWithSessionID:(NSInteger )sessionID username:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion;
 
 @end
 
@@ -411,7 +411,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRTrackRequest : KBRRequest
-- (void)trackWithTheirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
+- (void)trackWithSessionID:(NSInteger )sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -460,6 +460,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSArray *keys;
 @end
 @interface KBRIdentifyRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRUID *uid;
 @property NSString *username;
 @property BOOL trackStatement;
@@ -467,6 +468,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL loadSelf;
 @end
 @interface KBRIdentifyDefaultRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property NSString *username;
 @end
 @interface KBRFinishAndPromptRequestParams : KBRRequestParams
@@ -614,6 +616,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *notes;
 @end
 @interface KBRTrackRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property NSString *theirName;
 @end
 @interface KBRPromptYesNoRequestParams : KBRRequestParams

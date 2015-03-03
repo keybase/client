@@ -115,13 +115,6 @@
     "addGpgKey" : {
       "request" : [ ],
       "response" : "null"
-    },
-    "foob" : {
-      "request" : [ ],
-      "response" : {
-        "type" : "array",
-        "items" : "string"
-      }
     }
   }
 }

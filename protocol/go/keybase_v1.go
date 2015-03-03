@@ -291,12 +291,8 @@ func (c DoctorUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err err
 type AddGpgKeyArg struct {
 }
 
-type FoobArg struct {
-}
-
 type GpgInterface interface {
 	AddGpgKey() error
-	Foob() ([]string, error)
 }
 
 func GpgProtocol(i GpgInterface) rpc2.Protocol {
@@ -307,13 +303,6 @@ func GpgProtocol(i GpgInterface) rpc2.Protocol {
 				args := make([]AddGpgKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.AddGpgKey()
-				}
-				return
-			},
-			"foob": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]FoobArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Foob()
 				}
 				return
 			},
@@ -328,11 +317,6 @@ type GpgClient struct {
 
 func (c GpgClient) AddGpgKey() (err error) {
 	err = c.Cli.Call("keybase.1.gpg.addGpgKey", []interface{}{AddGpgKeyArg{}}, nil)
-	return
-}
-
-func (c GpgClient) Foob() (res []string, err error) {
-	err = c.Cli.Call("keybase.1.gpg.foob", []interface{}{FoobArg{}}, &res)
 	return
 }
 
@@ -461,6 +445,7 @@ type IdentifyRes struct {
 }
 
 type IdentifyArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
 	Uid            UID    `codec:"uid" json:"uid"`
 	Username       string `codec:"username" json:"username"`
 	TrackStatement bool   `codec:"trackStatement" json:"trackStatement"`
@@ -469,12 +454,13 @@ type IdentifyArg struct {
 }
 
 type IdentifyDefaultArg struct {
-	Username string `codec:"username" json:"username"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type IdentifyInterface interface {
 	Identify(IdentifyArg) (IdentifyRes, error)
-	IdentifyDefault(string) (IdentifyRes, error)
+	IdentifyDefault(IdentifyDefaultArg) (IdentifyRes, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
@@ -491,7 +477,7 @@ func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
 			"identifyDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]IdentifyDefaultArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.IdentifyDefault(args[0].Username)
+					ret, err = i.IdentifyDefault(args[0])
 				}
 				return
 			},
@@ -509,8 +495,7 @@ func (c IdentifyClient) Identify(__arg IdentifyArg) (res IdentifyRes, err error)
 	return
 }
 
-func (c IdentifyClient) IdentifyDefault(username string) (res IdentifyRes, err error) {
-	__arg := IdentifyDefaultArg{Username: username}
+func (c IdentifyClient) IdentifyDefault(__arg IdentifyDefaultArg) (res IdentifyRes, err error) {
 	err = c.Cli.Call("keybase.1.identify.identifyDefault", []interface{}{__arg}, &res)
 	return
 }
@@ -1495,11 +1480,12 @@ func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
 }
 
 type TrackArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TheirName string `codec:"theirName" json:"theirName"`
 }
 
 type TrackInterface interface {
-	Track(string) error
+	Track(TrackArg) error
 }
 
 func TrackProtocol(i TrackInterface) rpc2.Protocol {
@@ -1509,7 +1495,7 @@ func TrackProtocol(i TrackInterface) rpc2.Protocol {
 			"track": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]TrackArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Track(args[0].TheirName)
+					err = i.Track(args[0])
 				}
 				return
 			},
@@ -1522,8 +1508,7 @@ type TrackClient struct {
 	Cli GenericClient
 }
 
-func (c TrackClient) Track(theirName string) (err error) {
-	__arg := TrackArg{TheirName: theirName}
+func (c TrackClient) Track(__arg TrackArg) (err error) {
 	err = c.Cli.Call("keybase.1.track.track", []interface{}{__arg}, nil)
 	return
 }

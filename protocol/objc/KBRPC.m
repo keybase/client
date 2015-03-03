@@ -183,8 +183,8 @@
 
 @implementation KBRIdentifyRequest
 
-- (void)identifyWithUid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion {
-  NSArray *params = @[@{@"uid": KBRValue(uid), @"username": KBRValue(username), @"trackStatement": @(trackStatement), @"luba": @(luba), @"loadSelf": @(loadSelf)}];
+- (void)identifyWithSessionID:(NSInteger )sessionID uid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL )trackStatement luba:(BOOL )luba loadSelf:(BOOL )loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"uid": KBRValue(uid), @"username": KBRValue(username), @"trackStatement": @(trackStatement), @"luba": @(luba), @"loadSelf": @(loadSelf)}];
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
@@ -195,8 +195,8 @@
   }];
 }
 
-- (void)identifyDefaultWithUsername:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion {
-  NSArray *params = @[@{@"username": KBRValue(username)}];
+- (void)identifyDefaultWithSessionID:(NSInteger )sessionID username:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes * identifyRes))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];
   [self.client sendRequestWithMethod:@"keybase.1.identify.identifyDefault" params:params completion:^(NSError *error, NSDictionary *dict) {
     if (error) {
         completion(error, nil);
@@ -588,8 +588,8 @@
 
 @implementation KBRTrackRequest
 
-- (void)trackWithTheirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"theirName": KBRValue(theirName)}];
+- (void)trackWithSessionID:(NSInteger )sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"theirName": KBRValue(theirName)}];
   [self.client sendRequestWithMethod:@"keybase.1.track.track" params:params completion:^(NSError *error, NSDictionary *dict) {
     completion(error);
   }];
@@ -731,6 +731,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.uid = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"uid"] error:nil];
     self.username = params[0][@"username"];
     self.trackStatement = [params[0][@"trackStatement"] boolValue];
@@ -746,6 +747,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
   }
   return self;
@@ -1149,6 +1151,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.theirName = params[0][@"theirName"];
   }
   return self;
