@@ -10,29 +10,27 @@
 #import "KBAppearance.h"
 
 @interface KBLabelRow ()
-@property KBLabel *label;
+@property (nonatomic) KBLabel *label;
 @end
 
 @implementation KBLabelRow
-
-- (instancetype)initWithFrame:(NSRect)frameRect {
-  if ((self = [super initWithFrame:frameRect])) {
-    _label = [[KBLabel alloc] init];
-    [self addSubview:_label];
-  }
-  return self;
-}
 
 - (void)layout {
   [super layout];
   _label.frame = CGRectMake(16, 0, self.frame.size.width - 16, self.frame.size.height);
 }
 
-//- (void)drawSelectionInRect:(NSRect)dirtyRect {
-//  if (self.selectionHighlightStyle != NSTableViewSelectionHighlightStyleNone) {
-//    [[KBAppearance.currentAppearance highlightBackgroundColor] setFill];
-//    [[NSBezierPath bezierPathWithRect:self.bounds] fill];
-//  }
+- (KBLabel *)label {
+  if (!_label) {
+    _label = [[KBLabel alloc] init];
+    [self addSubview:_label];
+  }
+  return _label;
+}
+
+//- (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
+//  id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
+//  [_label setStyle:KBLabelStyleDefault appearance:appearance];
 //}
 
 @end

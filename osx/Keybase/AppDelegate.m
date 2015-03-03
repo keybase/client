@@ -28,7 +28,7 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-  [KBAppearance setCurrentAppearance:[[KBAppearanceLight alloc] init]];  
+  [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
   // Just for mocking, getting at data the RPC client doesn't give us yet
 #ifdef DEBUG

@@ -8,10 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
+#import <YOLayout/YOLayout.h>
 #import "KBLabel.h"
 
 @interface KBLabelRow : NSTableRowView
 
-@property (readonly) KBLabel *label;
+@property (readonly, nonatomic) KBLabel *label;
 
 @end

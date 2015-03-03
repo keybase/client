@@ -23,6 +23,7 @@
 - (NSColor *)secondaryTextColor;
 - (NSColor *)selectColor;
 - (NSColor *)disabledTextColor;
+- (NSColor *)selectedTextColor;
 
 - (NSColor *)okColor;
 - (NSColor *)warnColor;
@@ -46,8 +47,14 @@
 + (void)setCurrentAppearance:(id<KBAppearance>)appearance;
 + (id<KBAppearance>)currentAppearance;
 
++ (id<KBAppearance>)darkAppearance;
++ (id<KBAppearance>)lightAppearance;
+
 @end
 
 @interface KBAppearanceLight : NSObject <KBAppearance>
-
 @end
+
+@interface KBAppearanceDark : KBAppearanceLight <KBAppearance>
+@end
+

@@ -13,6 +13,8 @@
 
 @interface KBSearchResultView : KBImageTextView
 
+@property (nonatomic) NSBackgroundStyle backgroundStyle;
+
 - (void)setSearchResult:(KBSearchResult *)searchResult;
 
 @end

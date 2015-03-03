@@ -11,8 +11,12 @@
 @interface KBImageTextView ()
 @property KBImageView *imageView;
 @property KBLabel *titleLabel;
-@property KBLabel *descriptionLabel;
+@property KBLabel *infoLabel;
 @property KBBox *border;
+
+@property NSString *title;
+@property NSString *info;
+@property NSString *imageSource;
 @end
 
 @implementation KBImageTextView
@@ -32,8 +36,8 @@
   _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
   [self addSubview:_border];
 
-  _descriptionLabel = [[KBLabel alloc] init];
-  [self addSubview:_descriptionLabel];
+  _infoLabel = [[KBLabel alloc] init];
+  [self addSubview:_infoLabel];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -48,7 +52,7 @@
     }
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.titleLabel].size.height + 2;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.descriptionLabel].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.infoLabel].size.height;
 
     y = MAX(y, minY) + 8;
 
@@ -57,11 +61,19 @@
   }];
 }
 
-- (void)setTitle:(NSString *)title description:(NSString *)description imageSource:(NSString *)imageSource {
-  [self.titleLabel setText:title font:[NSFont boldSystemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-  [self.descriptionLabel setText:description font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance secondaryTextColor] alignment:NSLeftTextAlignment];
+- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource appearance:(id<KBAppearance>)appearance {
+  _title = title;
+  _info = info;
+  _imageSource = imageSource;
+  [self.titleLabel setText:title font:appearance.boldTextFont color:appearance.textColor alignment:NSLeftTextAlignment];
+  [self.infoLabel setText:info style:KBLabelStyleSecondaryText appearance:appearance];
   [self.imageView setImageSource:imageSource];
   [self setNeedsLayout];
+}
+
+- (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
+  id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
+  [self setTitle:_title info:_info imageSource:_imageSource appearance:appearance];
 }
 
 @end

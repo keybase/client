@@ -9,7 +9,6 @@
 #import "KBGPGKeysView.h"
 
 #import "KBGPGKeyView.h"
-#import "KBTableRowView.h"
 
 @interface KBGPGKeysView ()
 @property NSMutableArray *dataSource;

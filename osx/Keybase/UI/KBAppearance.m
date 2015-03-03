@@ -17,11 +17,45 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 + (id<KBAppearance>)currentAppearance {
+  if (!gCurrentAppearance) return self.lightAppearance;
   return gCurrentAppearance;
+}
+
++ (id<KBAppearance>)lightAppearance {
+  static dispatch_once_t onceToken;
+  static id<KBAppearance> gLightAppearance = NULL;
+  dispatch_once(&onceToken, ^{
+    gLightAppearance = [[KBAppearanceLight alloc] init];
+  });
+  return gLightAppearance;
+}
+
++ (id<KBAppearance>)darkAppearance {
+  static dispatch_once_t onceToken;
+  static id<KBAppearance> gDarkAppearance = NULL;
+  dispatch_once(&onceToken, ^{
+    gDarkAppearance = [[KBAppearanceDark alloc] init];
+  });
+  return gDarkAppearance;
 }
 
 @end
 
+@implementation KBAppearanceDark
+
+- (NSColor *)textColor {
+  return GHNSColorFromRGB(0xFFFFFF);
+}
+
+- (NSColor *)secondaryTextColor {
+  return GHNSColorFromRGB(0xEEEEEE);
+}
+
+- (NSColor *)disabledTextColor {
+  return GHNSColorFromRGB(0x666666);
+}
+
+@end
 
 @implementation KBAppearanceLight
 
@@ -41,6 +75,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 - (NSColor *)disabledTextColor {
   return GHNSColorFromRGB(0x999999);
+}
+
+- (NSColor *)selectedTextColor {
+  return NSColor.whiteColor;
 }
 
 - (NSColor *)greenColor {
@@ -65,6 +103,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 - (NSColor *)highlightBackgroundColor {
   return [NSColor colorWithCalibratedRed:8.0/255.0 green:80.0/255.0 blue:208.0/255.0 alpha:1.0];
+  //return [NSColor colorWithCalibratedRed:231.0/255.0 green:239.0/255.0 blue:255.0/255.0 alpha:1.0];
 }
 
 - (NSFont *)textFont {

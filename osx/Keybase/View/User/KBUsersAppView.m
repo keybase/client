@@ -159,6 +159,16 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   _progressView.animating = searchProgressEnabled;
 }
 
+- (void)setSearchResults:(NSArray *)searchResults {
+  [self setSearchProgressEnabled:NO];
+  [_searchResultsView setObjects:searchResults];
+}
+
+- (void)clearSearchResults {
+  [self setSearchProgressEnabled:NO];
+  [_searchResultsView removeAllObjects];
+}
+
 - (void)search:(NSString *)searchText {
   _searchText = searchText;
   [self _searchRemoteDelay:searchText];
@@ -169,8 +179,7 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   _searchText = searchText;
 
   if (!searchText || [searchText length] < 2) {
-    [_searchResultsView removeAllObjects];
-    [self setSearchProgressEnabled:NO];
+    [self clearSearchResults];
     return;
   }
 
@@ -194,13 +203,12 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
     [AppDelegate.APIClient searchUsersWithQuery:searchText success:^(NSArray *searchResults) {
       dispatch_async(dispatch_get_main_queue(), ^{
         if ([gself.searchText isEqual:searchText]) {
-          [gself setSearchProgressEnabled:NO];
-          [gself.searchResultsView setObjects:searchResults];
+          [gself setSearchResults:searchResults];
         }
       });
     } failure:^(NSError *error) {
       dispatch_async(dispatch_get_main_queue(), ^{
-        [gself setSearchProgressEnabled:NO];
+        [gself clearSearchResults];
         [AppDelegate setError:error sender:gself];
       });
     }];

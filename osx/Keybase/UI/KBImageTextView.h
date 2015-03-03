@@ -18,11 +18,11 @@
 
 @property (readonly) KBImageView *imageView;
 @property (readonly) KBLabel *titleLabel;
-@property (readonly) KBLabel *descriptionLabel;
+@property (readonly) KBLabel *infoLabel;
 @property (readonly) KBBox *border;
 
 @property CGSize imageSize;
 
-- (void)setTitle:(NSString *)title description:(NSString *)description imageSource:(NSString *)imageSource;
+- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource appearance:(id<KBAppearance>)appearance;
 
 @end

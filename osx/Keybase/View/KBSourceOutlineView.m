@@ -28,6 +28,7 @@
     _data = [MPOrderedDictionary dictionary];
     [_data setObject:@[@"Profile", @"Users", @"Devices", @"Folders", @"Debug"] forKey:@"Keybase"];
     _outlineView.floatsGroupRows = NO;
+    _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
     [_outlineView reloadData];
     [_outlineView expandItem:nil expandChildren:YES];
 
@@ -97,7 +98,7 @@
   if ([self outlineView:outlineView isGroupItem:item]) return nil;
   KBLabelRow *labelRow = [outlineView makeViewWithIdentifier:@"KBLabelRow" owner:self];
   if (!labelRow) labelRow = [[KBLabelRow alloc] init];
-  labelRow.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
+  //labelRow.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
   labelRow.label.verticalAlignment = KBVerticalAlignmentMiddle;
   [labelRow.label setText:item font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   return labelRow;

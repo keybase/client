@@ -10,6 +10,7 @@
 #import <AppKit/AppKit.h>
 
 #import <YOLayout/YOLayout.h>
+#import "KBAppearance.h"
 
 typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
   KBVerticalAlignmentTop,
@@ -36,8 +37,8 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
-- (void)setText:(NSString *)text style:(KBLabelStyle)style;
-- (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+- (void)setText:(NSString *)text style:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance;
+- (void)setText:(NSString *)text style:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
@@ -45,6 +46,10 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
+- (void)setColor:(NSColor *)color font:(NSFont *)font;
+
+- (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance;
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString;
 

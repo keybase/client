@@ -57,7 +57,7 @@
 
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style {
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:text style:style];
+  [label setText:text style:style appearance:KBAppearance.currentAppearance];
   return label;
 }
 
@@ -93,19 +93,23 @@
 }
 
 - (void)setText:(NSString *)text style:(KBLabelStyle)style {
-  [self setText:text style:style alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [self setText:text style:style appearance:KBAppearance.currentAppearance];
 }
 
-- (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+- (void)setText:(NSString *)text style:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
+  [self setText:text style:style appearance:appearance alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+}
+
+- (void)setText:(NSString *)text style:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   switch (style) {
     case KBLabelStyleDefault:
-      [self setText:text font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:alignment lineBreakMode:lineBreakMode];
+      [self setText:text font:appearance.textFont color:appearance.textColor alignment:alignment lineBreakMode:lineBreakMode];
       break;
     case KBLabelStyleSecondaryText:
-      [self setText:text font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.secondaryTextColor alignment:alignment lineBreakMode:lineBreakMode];
+      [self setText:text font:appearance.textFont color:appearance.secondaryTextColor alignment:alignment lineBreakMode:lineBreakMode];
       break;
     case KBLabelStyleHeader:
-      [self setText:text font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:alignment lineBreakMode:lineBreakMode];
+      [self setText:text font:appearance.boldLargeTextFont color:appearance.textColor alignment:alignment lineBreakMode:lineBreakMode];
       break;
   }
 }
@@ -176,6 +180,29 @@
   paragraphStyle.lineBreakMode = lineBreakMode;
   [attributedText addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, attributedText.length)];
   [self setAttributedText:attributedText];
+}
+
+- (void)setColor:(NSColor *)color font:(NSFont *)font {
+  NSMutableAttributedString *str = [_attributedText mutableCopy];
+  NSMutableDictionary *attr = [NSMutableDictionary dictionary];
+  if (color) attr[NSForegroundColorAttributeName] = color;
+  if (font) attr[NSFontAttributeName] = font;
+  [str setAttributes:attr range:NSMakeRange(0, str.length)];
+  [self setAttributedText:str];
+}
+
+- (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
+  switch (style) {
+    case KBLabelStyleDefault:
+      [self setColor:appearance.textColor font:appearance.textFont];
+      break;
+    case KBLabelStyleSecondaryText:
+      [self setColor:appearance.secondaryTextColor font:appearance.textFont];
+      break;
+    case KBLabelStyleHeader:
+      [self setColor:appearance.textColor font:appearance.boldLargeTextFont];
+      break;
+  }
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {

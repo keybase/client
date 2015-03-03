@@ -23,11 +23,11 @@
   self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Set a Device Name" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:@"Set a Device Name" style:KBLabelStyleHeader appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:@"This is the first time you've logged into a device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault];
+  [label setText:@"This is the first time you've logged into a device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance];
   [self addSubview:label];
 
   _deviceNameField = [[KBTextField alloc] init];

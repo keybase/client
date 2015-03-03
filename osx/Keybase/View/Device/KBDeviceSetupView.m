@@ -27,7 +27,7 @@
 
   _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextView.class rowHeight:0];
   _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
-    [view setTitle:option.title description:option.info imageSource:option.imageSource];
+    [view setTitle:option.title info:option.info imageSource:option.imageSource appearance:KBAppearance.currentAppearance];
   };
   [self addSubview:_deviceSignerView];
 

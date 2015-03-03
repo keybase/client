@@ -124,9 +124,9 @@
   [self setUser:self.user editable:self.editable client:self.client];
 }
 
-- (void)registerClient:(id<KBRPClient>)client {
+- (void)registerClient:(id<KBRPClient>)client sessionId:(NSInteger)sessionId {
   GHWeakSelf gself = self;
-  [client registerMethod:@"keybase.1.identifyUi.displayKey" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.displayKey" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
     gself.fokid = requestParams.fokid;
     if (requestParams.fokid.pgpFingerprint) {
@@ -137,7 +137,7 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLaunchNetworkChecksRequestParams *requestParams = [[KBRLaunchNetworkChecksRequestParams alloc] initWithParams:params];
     [gself.headerView setUser:requestParams.user];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:gself.editable targetBlock:^(KBProofLabel *proofLabel) {
@@ -154,7 +154,7 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayCryptocurrencyRequestParams *requestParams = [[KBRDisplayCryptocurrencyRequestParams alloc] initWithParams:params];
     [gself.userInfoView addCryptocurrency:requestParams.c];
     [gself setNeedsLayout];
@@ -163,7 +163,7 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRFinishWebProofCheckRequestParams *requestParams = [[KBRFinishWebProofCheckRequestParams alloc] initWithParams:params];
     KBRRemoteProof *proof = requestParams.rp;
     KBRLinkCheckResult *lcr = requestParams.lcr;
@@ -173,7 +173,7 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRFinishSocialProofCheckRequestParams *requestParams = [[KBRFinishSocialProofCheckRequestParams alloc] initWithParams:params];
     KBRRemoteProof *proof = requestParams.rp;
     KBRLinkCheckResult *lcr = requestParams.lcr;
@@ -182,7 +182,7 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //[yself.navigation.titleView setProgressEnabled:NO];
     [gself.headerView setProgressEnabled:NO];
 
@@ -206,14 +206,13 @@
     }
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 }
 
 - (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(id<KBRPClient>)client {
   [self clear];
-  [self registerClient:client];
 
   _user = user;
   _editable = editable;
@@ -228,18 +227,17 @@
     // For others
     [self.headerView setProgressEnabled:YES];
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:client];
-    [trackRequest trackWithTheirName:user.username completion:^(NSError *error) {
+    [self registerClient:client sessionId:trackRequest.sessionId];
+    [trackRequest trackWithSessionID:trackRequest.sessionId theirName:user.username completion:^(NSError *error) {
       [gself setTrackCompleted:error];
-      [client unregister:gself];
     }];
   } else {
     // For ourself
     [self.headerView setProgressEnabled:YES];
     KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:client];
-    [identifyRequest identifyDefaultWithUsername:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+    [self registerClient:client sessionId:identifyRequest.sessionId];
+    [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId username:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
       [gself.headerView setProgressEnabled:NO];
-      [client unregister:gself];
-
       if (error) {
         [AppDelegate setError:error sender:nil];
         return;
@@ -296,12 +294,11 @@
 #pragma mark Key Select
 
 - (void)selectKey {
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     [self selectPGPKey:requestParams completion:completion];
   }];
-
-  KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
   [request selectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     if (error) [self setError:error];
     [self reload];

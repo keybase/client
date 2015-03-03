@@ -9,7 +9,6 @@
 #import "KBListView.h"
 
 #import "KBAppearance.h"
-#import "KBTableRowView.h"
 #import "KBScrollView.h"
 
 @interface KBListView ()
@@ -37,6 +36,7 @@
   _tableView.dataSource = self;
   _tableView.delegate = self;
   _tableView.intercellSpacing = CGSizeZero;
+  _tableView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleRegular;
   //_tableView.gridStyleMask = NSTableViewSolidHorizontalGridLineMask;
   [_tableView setHeaderView:nil];
 
@@ -92,16 +92,11 @@
   return [_dataSource count];
 }
 
-- (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row {
-  KBTableRowView *rowView = [[KBTableRowView alloc] init];
-  return rowView;
-}
-
 - (void)deselectAll {
   [_tableView deselectAll:nil];
 }
 
-- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+- (NSView *)viewForRow:(NSInteger)row {
   id object = [_dataSource objectAtIndex:row];
   YONSView *view = [_tableView makeViewWithIdentifier:NSStringFromClass(_prototypeClass) owner:self];
   BOOL dequeued = NO;
@@ -111,10 +106,13 @@
     view.identifier = NSStringFromClass(_prototypeClass);
   }
 
-  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableView, dequeued);
-  [view setNeedsLayout];
-
+  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], _tableView, dequeued);
+  if ([view respondsToSelector:@selector(setNeedsLayout)]) [view setNeedsLayout];
   return view;
+}
+
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+  return [self viewForRow:row];
 }
 
 - (id)selectedObject {
@@ -123,12 +121,10 @@
   return _dataSource[selectedRow];
 }
 
+
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
   NSInteger selectedRow = [_tableView selectedRow];
   if (selectedRow < 0) return;
-
-  NSTableRowView *rowView = [_tableView rowViewAtRow:selectedRow makeIfNecessary:NO];
-  [rowView setEmphasized:NO];
   id object = [_dataSource objectAtIndex:selectedRow];
   if (self.selectBlock) self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
 }
