@@ -19,9 +19,6 @@ func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
 // Track creates a TrackEngine and runs it.
 func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
 	sessionID := arg.SessionID
-	if sessionID == 0 {
-		sessionID = nextSessionId()
-	}
 	theirName := arg.TheirName
 	earg := engine.TrackEngineArg{TheirName: theirName}
 	ctx := engine.Context{

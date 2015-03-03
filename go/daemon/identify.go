@@ -46,9 +46,6 @@ func (h *IdentifyHandler) IdentifyDefault(arg keybase_1.IdentifyDefaultArg) (key
 }
 
 func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdentifyEngineArg, doInteractive bool) (res *engine.IdentifyRes, err error) {
-	if sessionId == 0 {
-		sessionId = nextSessionId()
-	}
 	ctx := engine.Context{
 		LogUI:      h.getLogUI(sessionId),
 		IdentifyUI: h.NewRemoteIdentifyUI(sessionId, iarg.User),
