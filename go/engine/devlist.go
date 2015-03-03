@@ -2,35 +2,61 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 // DevList is an engine that gets a list of all the user's
 // devices.
-type DevList struct{}
+type DevList struct {
+	devices []keybase_1.Device
+	libkb.Contextified
+}
 
 // NewDevList creates a DevList engine.
 func NewDevList() *DevList {
 	return &DevList{}
 }
 
-func (k *DevList) Name() string {
+func (d *DevList) Name() string {
 	return "DevList"
 }
 
-func (k *DevList) GetPrereqs() EnginePrereqs {
+func (d *DevList) GetPrereqs() EnginePrereqs {
 	return EnginePrereqs{Session: true}
 }
 
-func (k *DevList) RequiredUIs() []libkb.UIKind {
+func (d *DevList) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{libkb.LogUIKind}
 }
 
-func (k *DevList) SubConsumers() []libkb.UIConsumer {
+func (d *DevList) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (k *DevList) Run(ctx *Context, args, reply interface{}) error {
-	ctx.LogUI.Info("hi")
+func (d *DevList) Run(ctx *Context, args, reply interface{}) error {
+	u, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return err
+	}
+
+	if err := d.G().SecretSyncer.Load(u.GetUid()); err != nil {
+		return err
+	}
+
+	devs, err := d.G().SecretSyncer.ActiveDevices()
+	if err != nil {
+		return err
+	}
+	var pdevs []keybase_1.Device
+	for k, v := range devs {
+		pdevs = append(pdevs, keybase_1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
+	}
+	d.devices = pdevs
+
 	return nil
+}
+
+func (d *DevList) List() []keybase_1.Device {
+	return d.devices
 }

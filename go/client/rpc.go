@@ -100,7 +100,7 @@ func GetSibkeyClient() (cli keybase_1.SibkeyClient, err error) {
 func GetDeviceClient() (cli keybase_1.DeviceClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.DeviceClient{rcli}
+		cli = keybase_1.DeviceClient{Cli: rcli}
 	}
 	return
 }

@@ -1,10 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"text/tabwriter"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 // CmdDeviceList is the 'device list' command.  It displays all
@@ -27,7 +33,12 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 func (c *CmdDeviceList) Run() error {
 	ctx := &engine.Context{}
 	eng := engine.NewDevList()
-	return engine.RunEngine(eng, ctx, nil, nil)
+	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+		return err
+	}
+	devs := eng.List()
+	c.output(devs)
+	return nil
 }
 
 // RunClient runs the command in client/server mode.
@@ -43,7 +54,23 @@ func (c *CmdDeviceList) RunClient() error {
 		return err
 	}
 
-	return cli.DeviceList()
+	devs, err := cli.DeviceList(0)
+	if err != nil {
+		return err
+	}
+	c.output(devs)
+	return nil
+}
+
+func (c *CmdDeviceList) output(devs []keybase_1.Device) {
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 5, 0, 3, ' ', 0)
+	fmt.Fprintf(w, "Name\tType\tID\n")
+	fmt.Fprintf(w, "==========\t==========\t==========\n")
+	for _, v := range devs {
+		fmt.Fprintf(w, "%s\t%s\t%s\n", v.Name, v.Type, v.DeviceID)
+	}
+	w.Flush()
 }
 
 // ParseArgv does nothing for this command.
