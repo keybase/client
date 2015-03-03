@@ -152,11 +152,10 @@ func (c BlockClient) Put(__arg PutArg) (err error) {
 }
 
 type GetCurrentStatusRes struct {
-	Configured bool   `codec:"configured" json:"configured"`
-	Registered bool   `codec:"registered" json:"registered"`
-	LoggedIn   bool   `codec:"loggedIn" json:"loggedIn"`
-	User       *User  `codec:"user,omitempty" json:"user"`
-	ServerUri  string `codec:"serverUri" json:"serverUri"`
+	Configured bool  `codec:"configured" json:"configured"`
+	Registered bool  `codec:"registered" json:"registered"`
+	LoggedIn   bool  `codec:"loggedIn" json:"loggedIn"`
+	User       *User `codec:"user,omitempty" json:"user"`
 }
 
 type Config struct {

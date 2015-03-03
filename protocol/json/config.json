@@ -138,9 +138,6 @@
     }, {
       "name" : "user",
       "type" : [ "null", "User" ]
-    }, {
-      "name" : "serverUri",
-      "type" : "string"
     } ]
   }, {
     "type" : "record",

@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
+#import "KBUserStatusView.h"
 
 typedef NS_ENUM (NSInteger, KBSourceViewItem) {
   KBSourceViewItemProfile = 1,
@@ -28,5 +29,7 @@ typedef NS_ENUM (NSInteger, KBSourceViewItem) {
 
 @property (weak) id<KBSourceOutlineViewDelegate> delegate;
 @property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
+
+@property (readonly) KBUserStatusView *statusView;
 
 @end

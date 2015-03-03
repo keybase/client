@@ -15,13 +15,13 @@
 #import "KBLoginView.h"
 #import "KBSignupView.h"
 #import "KBInstaller.h"
+#import "KBUserStatusView.h"
 
 @interface KBAppView ()
-//@property KBListView *sourceView;
 @property KBSourceOutlineView *sourceView;
 @property KBBox *border;
-
 @property (readonly) YONSView *contentView;
+
 @property KBUsersAppView *usersMainView;
 
 @property KBUserProfileView *userProfileView;
@@ -50,22 +50,7 @@
   _sourceView.delegate = self;
   [self addSubview:_sourceView];
 
-//  _sourceView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
-//  _sourceView.cellSetBlock = ^(KBLabel *view, NSString *s, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
-//    [view setText:s style:KBLabelStyleDefault];
-//  };
-//  [_sourceView addObjects:@[@"Profile", @"Users", @"Devices", @"Folders", @"Debug"]];
-//  GHWeakSelf gself = self;
-//  _sourceView.selectBlock = ^(id sender, NSIndexPath *indexPath, NSString *option) {
-//    if ([option isEqualTo:@"Profile"]) [gself showProfile];
-//    if ([option isEqualTo:@"Users"]) [gself showUsers];
-//    if ([option isEqualTo:@"Devices"]) [gself setContentView:nil];
-//    if ([option isEqualTo:@"Folders"]) [gself setContentView:nil];
-//    if ([option isEqualTo:@"Debug"]) [gself showDebug];
-//  };
-//  [self addSubview:_sourceView];
-
-  _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
+  _border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
   [self addSubview:_border];
 
   YOSelf yself = self;
@@ -252,6 +237,8 @@
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
   _status = status;
   self.user = status.user;
+
+  [self.sourceView.statusView setStatus:status];
 
   [self updateMenu];
 

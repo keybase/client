@@ -66,31 +66,6 @@
 
     return CGSizeMake(size.width, imageHeight + 30);
   }];
-
-//  YOSelf yself = self;
-//  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-//    CGFloat y = 20;
-//
-//    y += [layout setFrame:CGRectMake(size.width/2.0 - 80, y, 160, 160) view:yself.imageView].size.height + 10;
-//    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name1Label].size.height + 10;
-//
-//    if ([yself.name2Label hasText]) {
-//      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.name2Label].size.height + 10;
-//    }
-//
-//    if ([yself.locationLabel hasText]) {
-//      y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.locationLabel].size.height + 10;
-//    }
-//
-//    if ([yself.bioLabel hasText]) {
-//      //[layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(20, y, size.width - 40, 0) view:yself.bioLabel].size.height + 10;
-//      y += [layout sizeToFitVerticalInFrame:CGRectMake(80, y, size.width - 160, 0) view:yself.bioLabel].size.height + 10;
-//    }
-//
-//    y += 10;
-//
-//    return CGSizeMake(size.width, y);
-//  }];
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {

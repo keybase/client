@@ -9,7 +9,6 @@ protocol config {
 		boolean registered;
 		boolean loggedIn;
 		union { null, User } user;
-		string serverUri;
 	}
 
 	GetCurrentStatusRes getCurrentStatus();

@@ -7,6 +7,7 @@
 //
 
 #import "KBSourceOutlineView.h"
+#import "KBUserStatusView.h"
 
 #import <MPMessagePack/MPOrderedDictionary.h>
 
@@ -14,35 +15,46 @@
 @property NSOutlineView *outlineView;
 @property MPOrderedDictionary *data;
 @property KBActivityIndicatorView *progressView;
+@property KBUserStatusView *statusView;
 @end
 
 @implementation KBSourceOutlineView
 
-- (instancetype)initWithFrame:(NSRect)frameRect {
-  if ((self = [super initWithFrame:frameRect])) {
-    _outlineView = [[NSOutlineView alloc] init];
-    [self addSubview:_outlineView];
+- (void)viewInit {
+  [super viewInit];
+  _outlineView = [[NSOutlineView alloc] init];
+  [self addSubview:_outlineView];
 
-    _outlineView.delegate = self;
-    _outlineView.dataSource = self;
-    _data = [MPOrderedDictionary dictionary];
-    [_data setObject:@[@"Profile", @"Users", @"Devices", @"Folders", @"Debug"] forKey:@"Keybase"];
-    _outlineView.floatsGroupRows = NO;
-    _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
-    [_outlineView reloadData];
-    [_outlineView expandItem:nil expandChildren:YES];
+  _outlineView.delegate = self;
+  _outlineView.dataSource = self;
+  _data = [MPOrderedDictionary dictionary];
+  [_data setObject:@[@"Users", @"Devices", @"Folders", @"Debug"] forKey:@"Keybase"];
+  _outlineView.floatsGroupRows = NO;
+  _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
+  [_outlineView reloadData];
+  [_outlineView expandItem:nil expandChildren:YES];
 
-    _progressView = [[KBActivityIndicatorView alloc] init];
-    [self addSubview:_progressView];
-  }
-  return self;
-}
+  _progressView = [[KBActivityIndicatorView alloc] init];
+  [self addSubview:_progressView];
 
-- (void)layout {
-  [super layout];
-  //_outlineView.frame = CGRectMake(0, 27, self.frame.size.width, self.frame.size.height - 27);
-  _outlineView.frame = self.bounds;
-  _progressView.frame = CGRectMake(self.frame.size.width - 24, 4, 20, 20);
+  KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
+  [self addSubview:border];
+
+  _statusView = [[KBUserStatusView alloc] init];
+  [self addSubview:_statusView];
+
+  YOSelf yself = self;
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+
+    [layout setFrame:CGRectMake(self.frame.size.width - 24, 4, 20, 20) view:yself.progressView];
+
+    CGSize statusViewSize = [yself.statusView sizeThatFits:size];
+    [layout setFrame:CGRectMake(0, 0, size.width, size.height - statusViewSize.height) view:yself.outlineView];
+    [layout setFrame:CGRectMake(0, size.height - statusViewSize.height - 1, size.width, 1) view:border];
+    [layout setFrame:CGRectMake(0, size.height - statusViewSize.height, statusViewSize.width, statusViewSize.height) view:yself.statusView];
+
+    return size;
+  }];
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {
