@@ -16,7 +16,7 @@
 
 - (void)setSearchResult:(KBSearchResult *)searchResult {
   _searchResult = searchResult;
-  [self.titleLabel setText:searchResult.userName style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [self.titleLabel setText:searchResult.userName style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:searchResult appearance:KBAppearance.currentAppearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self.imageView setURLString:searchResult.thumbnailURLString];
   self.imageView.roundedRatio = 0.5;
