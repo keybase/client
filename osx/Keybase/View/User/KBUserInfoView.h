@@ -14,7 +14,7 @@
 
 @interface KBUserInfoView : YONSView
 
-- (void)updateProofResult:(KBProofResult *)proofResult;
+- (BOOL)updateProofResult:(KBProofResult *)proofResult;
 
 - (void)addKey:(KBRFOKID *)key;
 

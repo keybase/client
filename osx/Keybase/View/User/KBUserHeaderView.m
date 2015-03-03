@@ -113,14 +113,9 @@
   //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];
 
   if (user.image.url) {
-
+    [self.imageView setURLString:user.image.url];
   } else {
-    GHWeakSelf gself = self;
-    [AppDelegate.APIClient userForKey:@"usernames" value:user.username fields:@"pictures" success:^(KBUser *user) {
-      [gself.imageView setURLString:user.image.URLString];
-    } failure:^(NSError *error) {
-      [gself.imageView setURLString:@"https://keybase.io/images/no_photo.png"];
-    }];
+    [self.imageView setURLString:@"https://keybase.io/images/no_photo.png"];
   }
 
   [self setNeedsLayout];

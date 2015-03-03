@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBDeviceSignerOption.h"
 
-@interface KBDeviceSetupView : YONSView
+@interface KBDeviceSetupView : KBView
 
 @property KBListView *deviceSignerView;
 @property KBButton *selectButton;

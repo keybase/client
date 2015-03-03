@@ -9,6 +9,8 @@
 #import "KBNavigationView.h"
 
 #import <QuartzCore/QuartzCore.h>
+#import "KBNavigationTitleView.h"
+#import <GHKit/GHKit.h>
 
 @interface KBNavigationView ()
 @property NSMutableArray *views;
@@ -45,8 +47,9 @@
   }];
 }
 
-- (instancetype)initWithView:(NSView *)view {
+- (instancetype)initWithView:(NSView *)view title:(NSString *)title {
   if ((self = [super initWithFrame:CGRectZero])) {
+    self.titleView = [KBNavigationTitleView titleViewWithTitle:title navigation:self];
     [self setView:view transitionType:KBNavigationTransitionTypeNone];
   }
   return self;
@@ -108,6 +111,8 @@
   [_views addObject:view];
   if ([view respondsToSelector:@selector(setNavigation:)]) {
     [view setNavigation:self];
+  } else {
+    GHDebug(@"View (%@) doesn't have a navigation property", NSStringFromClass(view.class));
   }
 }
 
@@ -181,6 +186,21 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       if ([inView respondsToSelector:@selector(viewDidAppear:)]) [inView viewDidAppear:NO];
     });
+  }
+}
+
+- (void)setProgressEnabled:(BOOL)progressEnabled {
+  [self.class setProgressEnabled:progressEnabled subviews:self.views];
+  [self.titleView setProgressEnabled:progressEnabled];
+}
+
++ (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews {
+  for (NSView *view in subviews) {
+    if ([view isKindOfClass:NSControl.class]) {
+      ((NSControl *)view).enabled = !progressEnabled;
+    } else {
+      [self setProgressEnabled:progressEnabled subviews:view.subviews];
+    }
   }
 }
 

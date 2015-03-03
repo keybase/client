@@ -19,6 +19,7 @@
 #import "KBProgressOverlayView.h"
 #import "KBProveView.h"
 #import "KBRPClient.h"
+#import "KBKeySelectView.h"
 
 @interface KBUserProfileView ()
 @property NSScrollView *scrollView;
@@ -125,21 +126,21 @@
 
 - (void)registerClient:(id<KBRPClient>)client {
   GHWeakSelf gself = self;
-  [client registerMethod:@"keybase.1.identifyUi.displayKey" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRFOKID *fokid = [MTLJSONAdapter modelOfClass:KBRFOKID.class fromJSONDictionary:params[0][@"fokid"] error:nil];
-    gself.fokid = fokid;
-    if (fokid.pgpFingerprint) {
-      [gself.userInfoView addKey:fokid];
+  [client registerMethod:@"keybase.1.identifyUi.displayKey" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
+    gself.fokid = requestParams.fokid;
+    if (requestParams.fokid.pgpFingerprint) {
+      [gself.userInfoView addKey:requestParams.fokid];
       [gself setNeedsLayout];
     }
 
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRIdentity *identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"id"] error:nil];
-    //GHDebug(@"Identity: %@", identity);
-    [gself.userInfoView addProofs:identity.proofs editable:gself.editable targetBlock:^(KBProofLabel *proofLabel) {
+  [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRLaunchNetworkChecksRequestParams *requestParams = [[KBRLaunchNetworkChecksRequestParams alloc] initWithParams:params];
+    [gself.headerView setUser:requestParams.user];
+    [gself.userInfoView addProofs:requestParams.id.proofs editable:gself.editable targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofStatus.status != 1) {
         // Fix it?
         [self connectWithProveType:KBProveTypeFromAPI(proofLabel.proofResult.proof.proofType)];
@@ -153,35 +154,35 @@
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRCryptocurrency *cryptocurrency = [MTLJSONAdapter modelOfClass:KBRCryptocurrency.class fromJSONDictionary:params[0][@"c"] error:nil];
-    [gself.userInfoView addCryptocurrency:cryptocurrency];
+  [client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRDisplayCryptocurrencyRequestParams *requestParams = [[KBRDisplayCryptocurrencyRequestParams alloc] initWithParams:params];
+    [gself.userInfoView addCryptocurrency:requestParams.c];
     [gself setNeedsLayout];
 
     [gself updateWindow];
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"%@", params);
-    KBRRemoteProof *proof = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
-    KBRLinkCheckResult *lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
+  [client registerMethod:@"keybase.1.identifyUi.finishWebProofCheck" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRFinishWebProofCheckRequestParams *requestParams = [[KBRFinishWebProofCheckRequestParams alloc] initWithParams:params];
+    KBRRemoteProof *proof = requestParams.rp;
+    KBRLinkCheckResult *lcr = requestParams.lcr;
     [gself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
     [self setNeedsLayout];
 
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"%@", params);
-    KBRRemoteProof *proof = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
-    KBRLinkCheckResult *lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
+  [client registerMethod:@"keybase.1.identifyUi.finishSocialProofCheck" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRFinishSocialProofCheckRequestParams *requestParams = [[KBRFinishSocialProofCheckRequestParams alloc] initWithParams:params];
+    KBRRemoteProof *proof = requestParams.rp;
+    KBRLinkCheckResult *lcr = requestParams.lcr;
     [gself.userInfoView updateProofResult:[KBProofResult proofResultForProof:proof result:lcr]];
     [self setNeedsLayout];
     completion(nil, nil);
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.finishAndPrompt" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //[yself.navigation.titleView setProgressEnabled:NO];
     [gself.headerView setProgressEnabled:NO];
 
@@ -191,10 +192,10 @@
       return;
     }
 
-    KBRIdentifyOutcome *identifyOutcome = [MTLJSONAdapter modelOfClass:KBRIdentifyOutcome.class fromJSONDictionary:params[0][@"outcome"] error:nil];
+    KBRFinishAndPromptRequestParams *requestParams = [[KBRFinishAndPromptRequestParams alloc] initWithParams:params];
     gself.trackView.hidden = NO;
-    BOOL trackPrompt = [gself.trackView setUser:gself.user popup:gself.popup identifyOutcome:identifyOutcome trackResponse:^(KBRFinishAndPromptRes *response) {
-      [AppDelegate setInProgress:YES view:gself.trackView];
+    BOOL trackPrompt = [gself.trackView setUser:gself.user popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
+      [KBNavigationView setProgressEnabled:YES subviews:gself.trackView.subviews];
       completion(nil, response);
     }];
     [gself setNeedsLayout];
@@ -205,7 +206,7 @@
     }
   }];
 
-  [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 }
@@ -224,7 +225,7 @@
   GHWeakSelf gself = self;
 
   if (!_editable) {
-    //[self.navigation.titleView setProgressEnabled:YES];
+    // For others
     [self.headerView setProgressEnabled:YES];
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:client];
     [trackRequest trackWithTheirName:user.username completion:^(NSError *error) {
@@ -248,7 +249,7 @@
 
       if (!gself.fokid.pgpFingerprint) {
         [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
-          [gself addPGPKey];
+          [gself selectKey];
         }];
       }
 
@@ -283,21 +284,41 @@
   [self setNeedsLayout];
 }
 
+- (void)setTrackCompleted:(NSError *)error {
+  [_headerView setProgressEnabled:NO];
+  [KBNavigationView setProgressEnabled:NO subviews:_trackView.subviews];
+  if (![_trackView setTrackCompleted:error]) {
+    if (error) [self setError:error];
+  }
+  [self setNeedsLayout];
+}
+
+#pragma mark Key Select
+
+- (void)selectKey {
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
+    [self selectPGPKey:requestParams completion:completion];
+  }];
+
+  KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
+  [request selectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
+    if (error) [self setError:error];
+    [self reload];
+  }];
+}
+
+- (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
+  KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
+  [selectView setGPGKeys:handler.keys completion:completion];
+  [self.navigation setView:selectView transitionType:KBNavigationTransitionTypeFade];
+}
+
 - (void)addPGPKey {
   KBRGpgRequest *request = [[KBRGpgRequest alloc] initWithClient:AppDelegate.client];
   [request addGpgKey:^(NSError *error) {
     [self reload];
   }];
-}
-
-- (void)setTrackCompleted:(NSError *)error {
-  //[gself.navigation.titleView setProgressEnabled:NO];
-  [_headerView setProgressEnabled:NO];
-  [AppDelegate setInProgress:NO view:_trackView];
-  if (![_trackView setTrackCompleted:error]) {
-    if (error) [self setError:error];
-  }
-  [self setNeedsLayout];
 }
 
 @end

@@ -1,19 +1,19 @@
 platform :osx, "10.8"
 
 pod "Mantle"
-pod "GHKit"#, :path => "../../gh-kit"
+pod "GHKit"
 pod "ObjectiveSugar"
 pod "Slash"
 pod "MASPreferences"
 
-pod "MPMessagePack"#, :path => "../../MPMessagePack"
+pod "MPMessagePack"#, :path => "../../../MPMessagePack"
 
-pod "KBKeybase"#, :path => "../../KBKeybase/"
+pod "KBKeybase"
 
-pod "YOLayout"#, :path => "../../YOLayout"
+pod "YOLayout"
 
-pod "ZXCVBN"#, :path => "../../ZXCVBN"
+pod "ZXCVBN"
 
 target :Tests do
-  pod "GRUnit"#, :path => "../GRUnit"
+  pod "GRUnit"
 end

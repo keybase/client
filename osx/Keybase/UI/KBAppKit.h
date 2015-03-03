@@ -41,4 +41,5 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import "KBActivityIndicatorView.h"
 #import "KBScrollView.h"
 #import "KBListView.h"
+#import "KBView.h"
 

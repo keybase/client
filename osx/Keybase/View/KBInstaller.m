@@ -56,7 +56,7 @@
   NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
 
   if (!launchAgentDir) {
-    NSError *error = KBMakeError(-1, @"Install Error", @"No launch agent directory.", nil);
+    NSError *error = KBMakeErrorWithRecovery(-1, @"Install Error", @"No launch agent directory.", nil);
     completion(error, NO, KBInstallTypeNone);
     return;
   }
@@ -71,7 +71,7 @@
   NSString *launchAgentPlistSource = [[NSBundle mainBundle] pathForResource:PLIST_PATH.stringByDeletingPathExtension ofType:PLIST_PATH.pathExtension];
 
   if (!launchAgentPlistSource) {
-    NSError *error = KBMakeError(-1, @"Install Error", @"No launch agent plist found in bundle.", nil);
+    NSError *error = KBMakeErrorWithRecovery(-1, @"Install Error", @"No launch agent plist found in bundle.", nil);
     completion(error, NO, KBInstallTypeNone);
     return;
   }
@@ -81,14 +81,14 @@
   // Remove if exists
   if ([NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
     if (![NSFileManager.defaultManager removeItemAtPath:launchAgentPlistDest error:&error]) {
-      if (!error) error = KBMakeError(-1, @"Install Error", @"Unable to remove existing luanch agent plist for upgrade.", nil);
+      if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing luanch agent plist for upgrade.", nil);
       completion(error, NO, KBInstallTypeNone);
       return;
     }
   }
 
   if (![NSFileManager.defaultManager copyItemAtPath:launchAgentPlistSource toPath:launchAgentPlistDest error:&error]) {
-    if (!error) error = KBMakeError(-1, @"Install Error", @"Unable to transfer launch agent plist.", nil);
+    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to transfer launch agent plist.", nil);
     completion(error, NO, KBInstallTypeNone);
     return;
   }
@@ -142,11 +142,11 @@
 //
 //  launch_data_t response = launch_msg(msg);
 //  if (!response) {
-//    NSError *error = KBMakeError(-1, @"Launchd Error", @"Unable to launch keybased agent.", nil);
+//    NSError *error = KBMakeErrorWithRecovery(-1, @"Launchd Error", @"Unable to launch keybased agent.", nil);
 //    completion(error);
 //  } else if (response && launch_data_get_type(response) == LAUNCH_DATA_ERRNO) {
 //    //strerror(launch_data_get_errno(response))
-//    //NSError *error = KBMakeError(-1, @"Launchd Error", @"Unable to launch keybased agent (LAUNCH_DATA_ERRNO).", nil);
+//    //NSError *error = KBMakeErrorWithRecovery(-1, @"Launchd Error", @"Unable to launch keybased agent (LAUNCH_DATA_ERRNO).", nil);
 //    //completion(error);
 //    completion(nil);
 //  } else {

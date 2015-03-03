@@ -96,9 +96,8 @@
   }
 
   [self removeFromSuperview];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:self];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:self title:@"Keybase"];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 410) retain:YES];
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Keybase" navigation:navigation];
   [window setLevel:NSFloatingWindowLevel];
   [window center];
   [window makeKeyAndOrderFront:nil];

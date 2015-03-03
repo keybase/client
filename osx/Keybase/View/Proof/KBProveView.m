@@ -51,9 +51,8 @@
   KBProveView *proveView = [[KBProveView alloc] init];
   proveView.proveType = proveType;
 
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:proveView];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:proveView title:NSStringWithFormat(@"Connect with %@", KBNameForProveType(proveType))];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 420) retain:NO];
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:NSStringWithFormat(@"Connect with %@", KBNameForProveType(proveType)) navigation:navigation];
 
   NSWindow *sourceWindow = sender.window ? sender.window : [NSApp mainWindow];
   [sourceWindow beginSheet:window completionHandler:^(NSModalResponse returnCode) {
@@ -96,20 +95,21 @@
 
   GHWeakSelf gself = self;
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptUsername" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptUsername" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //NSString *prompt = params[0][@"prompt"];
     completion(nil, gself.inputView.inputField.text);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.preProofWarning" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.preProofWarning" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.okToCheck" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    NSInteger attempt = [params[0][@"attempt"] integerValue];
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.okToCheck" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBROkToCheckRequestParams *requestParams = [[KBROkToCheckRequestParams alloc] initWithParams:params];
+    NSInteger attempt = requestParams.attempt;
 
     /*
-     NSString *name = params[0][@"name"];
+     NSString *name = requestParams.name;
      NSString *prompt = NSStringWithFormat(@"Check %@%@?", name, attempt > 0 ? @" again" : @"");
 
      [KBAlert promptWithTitle:name description:prompt style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response) {
@@ -120,10 +120,10 @@
     completion(nil, @(attempt == 0));
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-
-    NSString *account = params[0][@"account"];
-    KBRPromptOverwriteType type = [params[0][@"typ"] integerValue];
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRPromptOverwriteRequestParams *requestParams = [[KBRPromptOverwriteRequestParams alloc] initWithParams:params];
+    NSString *account = requestParams.account;
+    KBRPromptOverwriteType type = requestParams.typ;
 
     NSString *prompt;
     switch (type) {
@@ -140,28 +140,23 @@
     }];
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.outputInstructions" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    // TODO: Verify sessionId?
-    //sessionId = params[0][@"sessionId"];
-    KBRText *instructions = [MTLJSONAdapter modelOfClass:KBRText.class fromJSONDictionary:params[0][@"instructions"] error:nil];
-    NSString *proof = params[0][@"proof"];
+  [AppDelegate.client registerMethod:@"keybase.1.proveUi.outputInstructions" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBROutputInstructionsRequestParams *requestParams = [[KBROutputInstructionsRequestParams alloc] initWithParams:params];
+    KBRText *instructions = requestParams.instructions;
+    NSString *proof = requestParams.proof;
 
-    [AppDelegate setInProgress:NO view:gself];
-    [self.navigation.titleView setProgressEnabled:NO];
+    [self.navigation setProgressEnabled:NO];
     [self setInstructions:instructions proofText:proof targetBlock:^{
-      [AppDelegate setInProgress:YES view:gself];
-      [gself.navigation.titleView setProgressEnabled:YES];
+      [gself.navigation setProgressEnabled:YES];
       completion(nil, @(YES));
     }];
   }];
 
-  [AppDelegate setInProgress:YES view:self];
-  [self.navigation.titleView setProgressEnabled:YES];
+  [self.navigation setProgressEnabled:YES];
   KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:AppDelegate.client];
   [prove proveWithService:service username:userName force:NO completion:^(NSError *error) {
-    [AppDelegate setInProgress:NO view:gself];
+    [self.navigation setProgressEnabled:NO];
     [AppDelegate.client unregister:gself];
-    [self.navigation.titleView setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:gself.inputView];
       return;

@@ -103,10 +103,9 @@
   button.frame = CGRectMake(100, 20, 100, 42);
   [view addSubview:button];
 
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:@"Sheet"];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(300, 200) retain:YES];
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Sheet" navigation:navigation];
-
+  
   [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
 
   button.targetBlock = ^{ [self.window endSheet:window]; };

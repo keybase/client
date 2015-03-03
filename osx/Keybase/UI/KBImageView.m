@@ -32,6 +32,7 @@
   } else {
     self.image = nil;
   }
+  [self setNeedsDisplay:YES];
 }
 
 - (void)setFrame:(NSRect)frame {

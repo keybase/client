@@ -50,12 +50,18 @@
   [self setNeedsLayout];
 }
 
-- (void)updateProofResult:(KBProofResult *)proofResult {
+- (BOOL)updateProofResult:(KBProofResult *)proofResult {
+  BOOL updated = NO;
   for (KBUserInfoLabels *label in _labels) {
     if ([label findLabelForSigId:proofResult.proof.sigId]) {
       [label updateProofResult:proofResult];
+      updated = YES;
     }
   }
+  if (!updated) {
+    GHDebug(@"Proof result not found: %@", proofResult);
+  }
+  return updated;
 }
 
 - (NSArray *)missingProveTypes {

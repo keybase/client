@@ -18,7 +18,7 @@
 //@property KBButton *backView;
 @property (weak) KBNavigationView *navigation;
 
-@property KBMenuBar *menuBar;
+//@property KBMenuBar *menuBar;
 @property (nonatomic) NSString *title;
 
 + (instancetype)titleViewWithTitle:(NSString *)title navigation:(KBNavigationView *)navigation;

@@ -17,8 +17,7 @@
 - (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status;
 @end
 
-@interface KBLoginView : YONSView <NSTextFieldDelegate>
-@property KBNavigationView *navigation;
+@interface KBLoginView : KBView <NSTextFieldDelegate>
 @property (weak) id<KBLoginViewDelegate> delegate;
 
 @property KBTextField *usernameField;

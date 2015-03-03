@@ -15,7 +15,7 @@
 @interface KBNavigationTitleView ()
 @property KBLabel *label;
 @property KBBox *border;
-@property BOOL menuBarEnabled;
+//@property BOOL menuBarEnabled;
 @property KBActivityIndicatorView *progressView;
 @end
 
@@ -38,14 +38,14 @@
   _border = [KBBox lineWithWidth:1.0 color:[NSColor colorWithWhite:225.0/255.0 alpha:1.0]];
   [self addSubview:_border];
 
-  GHWeakSelf gself = self;
-  _menuBar = [[KBMenuBar alloc] init];
-  [_menuBar setBackTitle:@"Back" targetBlock:^{
-    [gself.navigation popViewAnimated:YES];
-  }];
-  [self addSubview:_menuBar];
-  _menuBar.alphaValue = 0;
-  _menuBarEnabled = NO;
+//  GHWeakSelf gself = self;
+//  _menuBar = [[KBMenuBar alloc] init];
+//  [_menuBar setBackTitle:@"Back" targetBlock:^{
+//    [gself.navigation popViewAnimated:YES];
+//  }];
+//  [self addSubview:_menuBar];
+//  _menuBar.alphaValue = 0;
+//  _menuBarEnabled = NO;
 
   _progressView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_progressView];
@@ -72,9 +72,9 @@
 
     [layout setFrame:CGRectMake(0, y - 1, size.width, 1) view:yself.border];
 
-    if (yself.menuBarEnabled) {
-      y += [layout setFrame:CGRectMake(0, y, size.width, 32) view:yself.menuBar].size.height;
-    }
+//    if (yself.menuBarEnabled) {
+//      y += [layout setFrame:CGRectMake(0, y, size.width, 32) view:yself.menuBar].size.height;
+//    }
 
     [layout setFrame:CGRectMake(0, 0, size.width, 32) view:background1];
     return CGSizeMake(size.width, y);
@@ -107,6 +107,7 @@
 }
 
 - (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType {
+  /*
   if (transitionType == KBNavigationTransitionTypePush && navigationView.views.count >= 1) {
     _menuBar.animator.alphaValue = 1.0;
     _menuBarEnabled = YES;
@@ -117,6 +118,7 @@
     _menuBar.animator.alphaValue = 0.0;
     _menuBarEnabled = NO;
   }
+   */
 }
 
 @end

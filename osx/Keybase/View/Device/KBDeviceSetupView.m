@@ -51,7 +51,7 @@
 
 - (void)setDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP {
   NSMutableArray *deviceSignerOptions = [NSMutableArray array];
-  for (KBRDeviceDescription *device in devices) {
+  for (KBRDevice *device in devices) {
     [deviceSignerOptions addObject:[KBDeviceSignerOption deviceWithIdentifier:device.deviceID name:device.name]];
   }
   if (hasPGP) [deviceSignerOptions addObject:[KBDeviceSignerOption PGP]];

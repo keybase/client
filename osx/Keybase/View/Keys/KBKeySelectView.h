@@ -12,11 +12,13 @@
 #import "KBRPC.h"
 #import "KBGPGKeysView.h"
 
-@interface KBKeySelectView : YONSView
+@interface KBKeySelectView : KBView
 
 @property KBGPGKeysView *keysView;
 @property KBButton *selectButton;
 @property KBButton *cancelButton;
 @property KBButton *pushCheckbox;
+
+- (void)setGPGKeys:(NSArray *)GPGKeys completion:(MPRequestCompletion)completion;
 
 @end

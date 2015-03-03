@@ -90,11 +90,8 @@
   return NO;
 }
 
-- (void)outlineView:(NSOutlineView *)outlineView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
-  GHDebug(@"Here");
-//  rowView.label.verticalAlignment = KBVerticalAlignmentMiddle;
-//  [rowView.label setText:item font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-}
+//- (void)outlineView:(NSOutlineView *)outlineView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
+//}
 
 - (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(id)item {
   if ([self outlineView:outlineView isGroupItem:item]) return nil;

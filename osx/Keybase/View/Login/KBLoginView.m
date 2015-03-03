@@ -9,6 +9,7 @@
 #import "KBLoginView.h"
 #import "AppDelegate.h"
 #import "KBDeviceSetupView.h"
+#import "KBDevicePromptView.h"
 
 @interface KBLoginView ()
 @property KBSecureTextField *passwordField;
@@ -107,6 +108,8 @@
   NSString *username = self.usernameField.text;
   NSString *passphrase = self.passwordField.text;
 
+  NSAssert(self.navigation, @"No navigation");
+
   if ([NSString gh_isBlank:username]) {
     [AppDelegate setError:KBErrorAlert(@"You need to enter a username or email address.") sender:_usernameField];
     return;
@@ -119,22 +122,27 @@
 
   KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
 
-  // TODO
-//  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.promptDeviceName" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-//    //KBRPromptDeviceNameRequestParams *handler = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
-//    //completion(nil, @"");
-//  }];
-
-  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
-    [self selectSigner:handler completion:completion];
+  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.promptDeviceName" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    //KBRPromptDeviceNameRequestParams *requestParams = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
+    [self.navigation setProgressEnabled:NO];
+    KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
+    devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
+      [self.navigation setProgressEnabled:YES];
+      completion(error, deviceName);
+    };
+    [self.navigation pushView:devicePromptView animated:YES];
   }];
 
-  [AppDelegate setInProgress:YES view:self];
+  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
+    [self.navigation setProgressEnabled:NO];
+    [self selectSigner:requestParams completion:completion];
+  }];
+
+  [self.navigation setProgressEnabled:YES];
   [self.navigation.titleView setProgressEnabled:YES];
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
-    [AppDelegate setInProgress:NO view:self];
-    [self.navigation.titleView setProgressEnabled:NO];
+    [self.navigation setProgressEnabled:NO];
     [AppDelegate.client unregister:self];
     if (error) {
       [AppDelegate setError:error sender:self];
@@ -145,28 +153,22 @@
     [self _checkStatusAfterLogin];
   }];
 
-  [AppDelegate.APIClient logInWithEmailOrUserName:username password:passphrase success:^(KBSession *session) {
-  } failure:^(NSError *error) {
-  }];
+//  [AppDelegate.APIClient logInWithEmailOrUserName:username password:passphrase success:^(KBSession *session) {
+//  } failure:^(NSError *error) {
+//  }];
 }
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion {
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
   [deviceSetupView setDevices:params.devices hasPGP:params.hasPGP];
 
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:deviceSetupView];
-  NSWindow *selectWindow = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 400) retain:YES];
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:@"Device Setup" navigation:navigation];
-
   __weak KBDeviceSetupView *gdeviceSetupView = deviceSetupView;
   deviceSetupView.selectButton.targetBlock = ^{
     KBDeviceSignerOption *option = [gdeviceSetupView.deviceSignerView selectedObject];
     if (!option) {
-      [AppDelegate setError:KBMakeError(-1, @"You need to select an option or cancel.", @"") sender:self];
+      [AppDelegate setError:KBMakeError(-1, @"You need to select an option or cancel.") sender:self];
       return;
     }
-
-    [self.window endSheet:selectWindow];
 
     KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
     response.action = KBRSelectSignerActionSign;
@@ -183,17 +185,17 @@
       }
     }
     response.signer = signer;
+    [self.navigation setProgressEnabled:YES];
     completion(nil, response);
   };
 
   deviceSetupView.cancelButton.targetBlock = ^{
-    [self.window endSheet:selectWindow];
     KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
     response.action = KBRSelectSignerActionLogout; // Will be renamed to cancel
     completion(nil, response);
   };
 
-  [self.window beginSheet:selectWindow completionHandler:^(NSModalResponse returnCode) {}];
+  [self.navigation pushView:deviceSetupView animated:YES];
 }
 
 @end

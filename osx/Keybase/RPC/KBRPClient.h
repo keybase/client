@@ -14,7 +14,7 @@
 @class KBRPClient;
 
 @protocol KBRPClient
-- (void)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
+- (NSArray *)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler;
 - (void)unregister:(id)owner;
 @end

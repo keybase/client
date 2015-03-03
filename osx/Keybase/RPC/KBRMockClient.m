@@ -29,8 +29,9 @@
   return self;
 }
 
-- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
+- (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
   self.completion = completion;
+  return @[@(0), @(0), NSNull.null, NSNull.null];
 }
 
 - (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler {
@@ -74,7 +75,7 @@
     KBConvertArrayFrom(params);
     GHDebug(@"Replay (%@) %@", self.registration, method);
     MPRequestHandler completion = [gself.registration requestHandlerForMethod:method];
-    if (completion) completion(method, params, ^(NSError *error, id result) { });
+    if (completion) completion(nil, method, params, ^(NSError *error, id result) { });
   }
 }
 

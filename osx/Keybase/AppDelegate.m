@@ -31,7 +31,11 @@
   [KBAppearance setCurrentAppearance:[[KBAppearanceLight alloc] init]];  
 
   // Just for mocking, getting at data the RPC client doesn't give us yet
+#ifdef DEBUG
+  _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPILocalHost];
+#else
   _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
+#endif
 
   _appView = [[KBAppView alloc] init];
   [_appView openWindow];
@@ -81,7 +85,7 @@
 + (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error {
   NSString *directory = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) firstObject];
   if (!directory) {
-    if (error) *error = KBMakeError(-1, @"No application support directory", @"");
+    if (error) *error = KBMakeError(-1, @"No application support directory");
     return nil;
   }
   directory = [directory stringByAppendingPathComponent:@"Keybase"];
@@ -98,20 +102,6 @@
     }
   }
   return directory;
-}
-
-+ (void)setInProgress:(BOOL)inProgress view:(NSView *)view {
-  [self.class _setInProgress:view inProgress:inProgress subviews:view.subviews];
-}
-
-+ (void)_setInProgress:(NSView *)view inProgress:(BOOL)inProgress subviews:(NSArray *)subviews {
-  for (NSView *view in subviews) {
-    if ([view isKindOfClass:NSControl.class]) {
-      ((NSControl *)view).enabled = !inProgress;
-    } else {
-      [self _setInProgress:view inProgress:inProgress subviews:view.subviews];
-    }
-  }
 }
 
 - (void)closeAllWindows {
@@ -133,6 +123,8 @@
 
 - (void)setError:(NSError *)error sender:(NSView *)sender {
   NSParameterAssert(error);
+
+  GHErr(@"Error: %@", error);
 
   if (_alerting) {
     GHDebug(@"Already showing error (%@)", error);

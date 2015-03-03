@@ -18,6 +18,7 @@
 #import "KBDeviceSetupView.h"
 #import "KBRMockClient.h"
 #import "KBAppKit.h"
+#import "KBDevicePromptView.h"
 
 @interface KBCatalogView ()
 @property NSMutableArray *items;
@@ -38,6 +39,7 @@
   [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBLabelStyleDefault]];
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" actionBlock:^(id sender) { [self showDeviceSetupView]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Prompt" actionBlock:^(id sender) { [self showDevicePrompt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" actionBlock:^(id sender) { [self showProveInstructions]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track (max)" actionBlock:^(id sender) { [self showTrackReplay:@"max"]; }]];
@@ -85,10 +87,9 @@
 }
 
 - (NSWindow *)openInWindow:(NSView *)view size:(CGSize)size title:(NSString *)title {
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
-  navigation.titleView = [KBNavigationTitleView titleViewWithTitle:title navigation:navigation];
   [window center];
   [window makeKeyAndOrderFront:nil];
   return window;
@@ -125,10 +126,10 @@
 
 - (void)showSelectKey {
   id params = [KBRMockClient paramsFromRecordId:@"signup/gbrl39" file:@"0003--keybase.1.gpgUi.selectKeyAndPushOption.json"];
-  KBRSelectKeyAndPushOptionRequestParams *handler = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
+  KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
 
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
-  [selectView.keysView setGPGKeys:handler.keys];
+  [selectView.keysView setGPGKeys:requestParams.keys];
   __weak KBKeySelectView *gselectView = selectView;
   selectView.selectButton.targetBlock = ^{
     GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
@@ -149,27 +150,35 @@
   text.markup = 1;
   NSString *proofText = @"Seitan four dollar toast banh mi, ethical ugh umami artisan paleo brunch listicle synth try-hard pop-up. Next level mixtape selfies, freegan Schlitz bitters Echo Park semiotics. Gentrify sustainable farm-to-table, cliche crucifix biodiesel ennui taxidermy try-hard cold-pressed Brooklyn fixie narwhal Bushwick Pitchfork. Ugh Etsy chia 3 wolf moon, drinking vinegar street art yr stumptown cliche Thundercats Marfa umami beard shabby chic Portland. Skateboard Vice four dollar toast stumptown, salvia direct trade hoodie. Wes Anderson swag small batch vinyl, taxidermy biodiesel Shoreditch cray pickled kale chips typewriter deep v. Actually XOXO tousled, freegan Marfa squid trust fund cardigan irony.\n\nPaleo pork belly heirloom dreamcatcher gastropub tousled. Banjo bespoke try-hard, gentrify Pinterest pork belly Schlitz sartorial narwhal Odd Future biodiesel 8-bit before they sold out selvage. Brunch disrupt put a bird on it Neutra organic. Pickled dreamcatcher post-ironic sriracha, organic Austin Bushwick Odd Future Marfa. Narwhal heirloom Tumblr forage trust fund, roof party gentrify keffiyeh High Life synth kogi Banksy. Kitsch photo booth slow-carb pour-over Etsy, Intelligentsia raw denim lomo. Brooklyn PBR&B Kickstarter direct trade literally, jean shorts photo booth narwhal irony kogi.";
   [instructionsView setInstructions:text proofText:proofText];
-  [self openInWindow:instructionsView size:CGSizeMake(360, 420) title:@"Instructions View"];
+  [self openInWindow:instructionsView size:CGSizeMake(360, 420) title:@"Keybase"];
 }
 
 - (void)showDeviceSetupView {
   NSArray *params = [KBRMockClient paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json"];
 
-  KBRSelectSignerRequestParams *handler = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
+  KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
 
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
-  [deviceSetupView setDevices:handler.devices hasPGP:handler.hasPGP];
+  [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
   deviceSetupView.cancelButton.actionBlock = ^(id sender) { [[sender window] close]; };
   [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
 }
 
+- (void)showDevicePrompt {
+  KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
+  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
+    [[sender window] close];
+  };
+  [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:@"Keybase"];
+}
+
 - (void)showError {
-  NSError *error = KBMakeError(-1, @"This is the error message.", @"This is the recovery suggestion.");
+  NSError *error = KBMakeErrorWithRecovery(-1, @"This is the error message.", @"This is the recovery suggestion.");
   [AppDelegate setError:error sender:self];
 }
 
 - (void)showFatalError {
-  NSError *error = KBMakeError(-1, @"This is the fatal error message.", @"This is the recovery suggestion.");
+  NSError *error = KBMakeErrorWithRecovery(-1, @"This is the fatal error message.", @"This is the recovery suggestion.");
   [AppDelegate.sharedDelegate setFatalError:error];
 }
 

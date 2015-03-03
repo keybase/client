@@ -10,6 +10,6 @@
 
 #import "KBAppKit.h"
 
-@interface KBKeyGenView : YONSView
+@interface KBKeyGenView : KBView
 
 @end

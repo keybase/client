@@ -111,10 +111,10 @@
   _client = [[KBRPClient alloc] init];
   _client.delegate = self;
 
-  [_client registerMethod:@"keybase.1.secretUi.getSecret" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_client registerMethod:@"keybase.1.secretUi.getSecret" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
-    KBRGetSecretRequestParams *handler = [[KBRGetSecretRequestParams alloc] initWithParams:params];
-    [KBAlert promptForInputWithTitle:handler.pinentry.prompt description:handler.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+    KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
+    [KBAlert promptForInputWithTitle:requestParams.pinentry.prompt description:requestParams.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
       entry.text = response == NSAlertFirstButtonReturn ? password : nil;
       entry.canceled = response == NSAlertSecondButtonReturn;
@@ -122,24 +122,24 @@
     }];
   }];
 
-  [_client registerMethod:@"keybase.1.secretUi.getNewPassphrase" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    KBRGetNewPassphraseRequestParams *handler = [[KBRGetNewPassphraseRequestParams alloc] initWithParams:params];
-    [KBAlert promptForInputWithTitle:handler.pinentryPrompt description:handler.pinentryDesc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+  [_client registerMethod:@"keybase.1.secretUi.getNewPassphrase" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRGetNewPassphraseRequestParams *requestParams = [[KBRGetNewPassphraseRequestParams alloc] initWithParams:params];
+    [KBAlert promptForInputWithTitle:requestParams.pinentryPrompt description:requestParams.pinentryDesc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
       completion(nil, text);
     }];
   }];
 
-  [_client registerMethod:@"keybase.1.secretUi.getKeybasePassphrase" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_client registerMethod:@"keybase.1.secretUi.getKeybasePassphrase" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
-    KBRGetKeybasePassphraseRequestParams *handler = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
-    [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", handler.username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
+    KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
+    [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", requestParams.username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *password) {
       NSString *text = response == NSAlertFirstButtonReturn ? password : nil;
       completion(nil, text);
     }];
   }];
 
-  [_client registerMethod:@"keybase.1.logUi.log" owner:self requestHandler:^(NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [_client registerMethod:@"keybase.1.logUi.log" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 
@@ -198,12 +198,13 @@
 }
 
 - (void)showLogin {
-  [self setContentView:[self loginView] showSourceView:NO];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:[self loginView] title:@"Keybase"];
+  [self setContentView:navigation showSourceView:NO];
 }
 
 - (void)showSignup {
-  self.sourceView.hidden = YES;
-  [self setContentView:[self signupView] showSourceView:NO];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:[self signupView] title:@"Keybase"];
+  [self setContentView:navigation showSourceView:NO];
 }
 
 - (void)showUsers {

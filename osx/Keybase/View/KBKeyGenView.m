@@ -74,10 +74,10 @@
   uids.useDefault = YES;
 
   //[self setProgressIndicatorEnabled:YES];
-  [AppDelegate setInProgress:YES view:self];
+  [self.navigation setProgressEnabled:YES];
   KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
   [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:YES passphrase:password completion:^(NSError *error) {
-    [AppDelegate setInProgress:NO view:self];
+    [self.navigation setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];
       return;

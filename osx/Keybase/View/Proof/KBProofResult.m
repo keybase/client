@@ -18,7 +18,7 @@
 }
 
 - (NSString *)description {
-  return _proof.value;
+  return GHDescription(@"proof", @"result");
 }
 
 @end

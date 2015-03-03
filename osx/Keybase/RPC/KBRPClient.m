@@ -44,8 +44,8 @@
   _client.delegate = self;
   
   GHWeakSelf gself = self;
-  _client.requestHandler = ^(NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
+  _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    GHDebug(@"Received request (messageId=%@): %@(%@)", messageId, method, [params join:@", "]);
     // Recording
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       //[gself recordMethod:method params:params];
@@ -54,10 +54,10 @@
     MPRequestHandler requestHandler = [gself.registration requestHandlerForMethod:method];
     if (!requestHandler) {
       GHDebug(@"No handler for request: %@", method);
-      completion(KBMakeError(-1, @"Method not found", @"Method not found: %@", method), nil);
+      completion(KBMakeErrorWithRecovery(-1, @"Method not found", @"Method not found: %@", method), nil);
       return;
     }
-    requestHandler(method, params, completion);
+    requestHandler(messageId, method, params, completion);
   };
 
   _client.coder = [[KBMantleCoder alloc] init];
@@ -103,17 +103,17 @@
   });
 }
 
-- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
+- (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
-    completion(KBMakeError(-400, @"We are unable to connect to the keybase daemon.", @""), nil);
-    return;
+    completion(KBMakeError(-400, @"We are unable to connect to the keybase daemon."), nil);
+    return nil;
   }
-        
-  [_client sendRequestWithMethod:method params:params completion:^(NSError *error, id result) {
+
+  NSArray *request = [_client sendRequestWithMethod:method params:params completion:^(NSError *error, id result) {
     if (error) {
       GHDebug(@"Error: %@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
-      error = KBMakeError(error.code, errorInfo[@"desc"], @"");
+      error = KBMakeError(error.code, @"%@", errorInfo[@"desc"]);
     }
     GHDebug(@"Result: %@", result);
     completion(error, result);
@@ -122,7 +122,9 @@
   NSMutableArray *mparams = [params mutableCopy];
   mparams[0] = KBScrubPassphrase(params[0]);
 
-  GHDebug(@"Sent request: %@(%@)", method, [mparams join:@", "]);
+  NSNumber *messageId = request[1];
+  GHDebug(@"Sent request (messageId=%@): %@(%@)", messageId, method, [mparams join:@", "]);
+  return request;
 }
 
 - (void)check:(void (^)(NSError *error))completion {

@@ -18,8 +18,7 @@
 @end
 
 
-@interface KBSignupView : YONSView <NSTextFieldDelegate>
-@property KBNavigationView *navigation;
+@interface KBSignupView : KBView <NSTextFieldDelegate>
 @property (weak) id<KBSignupViewDelegate> delegate;
 
 @property KBTextField *emailField;

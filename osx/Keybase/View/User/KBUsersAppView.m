@@ -194,13 +194,14 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
     [AppDelegate.APIClient searchUsersWithQuery:searchText success:^(NSArray *searchResults) {
       dispatch_async(dispatch_get_main_queue(), ^{
         if ([gself.searchText isEqual:searchText]) {
-          [self setSearchProgressEnabled:NO];
+          [gself setSearchProgressEnabled:NO];
           [gself.searchResultsView setObjects:searchResults];
         }
       });
     } failure:^(NSError *error) {
       dispatch_async(dispatch_get_main_queue(), ^{
-        [AppDelegate setError:error sender:self];
+        [gself setSearchProgressEnabled:NO];
+        [AppDelegate setError:error sender:gself];
       });
     }];
   });

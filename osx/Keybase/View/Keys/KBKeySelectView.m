@@ -10,6 +10,7 @@
 
 #import "KBGPGKeysView.h"
 #import "KBButton.h"
+#import "AppDelegate.h"
 
 @interface KBKeySelectView ()
 @end
@@ -48,6 +49,30 @@
 
     return size;
   }];
+}
+
+- (void)setGPGKeys:(NSArray *)GPGKeys completion:(MPRequestCompletion)completion {
+  [_keysView setGPGKeys:GPGKeys];
+  GHWeakSelf gself = self;
+  _selectButton.targetBlock = ^{
+    NSString *keyID = [[gself.keysView selectedGPGKey] keyID];
+    if (!keyID) {
+      [AppDelegate setError:KBMakeError(-1, @"You need to select a key.") sender:gself];
+      return;
+    }
+    BOOL pushSecret = gself.pushCheckbox.state == 1;
+
+    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+    response.keyID = keyID;
+    response.doSecretPush = pushSecret;
+    completion(nil, response);
+  };
+
+  self.cancelButton.targetBlock = ^{
+    // No selection
+    KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
+    completion(nil, response);
+  };
 }
 
 @end
