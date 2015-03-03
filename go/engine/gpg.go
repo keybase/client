@@ -9,7 +9,6 @@ package engine
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
@@ -57,13 +56,12 @@ func (g *GPG) SubConsumers() []libkb.UIConsumer {
 
 func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
 	gpg := G.GetGpgClient()
-	if _, err := gpg.Configure(); err != nil {
-		if oerr, ok := err.(*exec.Error); ok {
-			if oerr.Err == exec.ErrNotFound {
-				return false, nil
-			}
-		}
+	canExec, err := gpg.CanExec()
+	if err != nil {
 		return false, err
+	}
+	if !canExec {
+		return false, nil
 	}
 
 	// they have gpg

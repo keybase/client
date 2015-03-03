@@ -84,15 +84,6 @@ func (d *Doctor) checkKeys(ctx *Context) error {
 
 	hasPGP := len(d.user.GetActivePgpKeys(false)) > 0
 
-	/*
-		G.Log.Info("user has active pgp keys? %v", hasPGP)
-		if d.user.GetComputedKeyFamily() == nil {
-			G.Log.Info("user has nil ckf")
-		} else {
-			d.user.GetComputedKeyFamily().DumpToLog(d.logUI)
-		}
-	*/
-
 	if d.G().SecretSyncer.HasActiveDevice() {
 		// they have at least one device, just not this device...
 		return d.deviceSign(ctx, hasPGP)

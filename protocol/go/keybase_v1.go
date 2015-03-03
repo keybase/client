@@ -159,11 +159,22 @@ type GetCurrentStatusRes struct {
 	ServerUri  string `codec:"serverUri" json:"serverUri"`
 }
 
+type Config struct {
+	ServerURI  string `codec:"serverURI" json:"serverURI"`
+	SocketFile string `codec:"socketFile" json:"socketFile"`
+	GpgExists  bool   `codec:"gpgExists" json:"gpgExists"`
+	GpgPath    string `codec:"gpgPath" json:"gpgPath"`
+}
+
 type GetCurrentStatusArg struct {
+}
+
+type GetConfigArg struct {
 }
 
 type ConfigInterface interface {
 	GetCurrentStatus() (GetCurrentStatusRes, error)
+	GetConfig() (Config, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
@@ -174,6 +185,13 @@ func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
 				args := make([]GetCurrentStatusArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetCurrentStatus()
+				}
+				return
+			},
+			"getConfig": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetConfigArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetConfig()
 				}
 				return
 			},
@@ -188,6 +206,11 @@ type ConfigClient struct {
 
 func (c ConfigClient) GetCurrentStatus() (res GetCurrentStatusRes, err error) {
 	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{GetCurrentStatusArg{}}, &res)
+	return
+}
+
+func (c ConfigClient) GetConfig() (res Config, err error) {
+	err = c.Cli.Call("keybase.1.config.getConfig", []interface{}{GetConfigArg{}}, &res)
 	return
 }
 

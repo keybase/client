@@ -2,10 +2,11 @@ package libkb
 
 import (
 	"fmt"
-	"golang.org/x/crypto/openpgp"
 	"io"
 	"os/exec"
 	"sync"
+
+	"golang.org/x/crypto/openpgp"
 )
 
 type GpgCLI struct {
@@ -58,6 +59,28 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 	g.configError = err
 
 	return
+}
+
+// CanExec returns true if a gpg executable exists.
+func (g *GpgCLI) CanExec() (bool, error) {
+	if _, err := g.Configure(); err != nil {
+		if oerr, ok := err.(*exec.Error); ok {
+			if oerr.Err == exec.ErrNotFound {
+				return false, nil
+			}
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// Path returns the path of the gpg executable.  Configure must be
+// called before using this.
+func (g *GpgCLI) Path() string {
+	if !g.configured {
+		panic("GpgCLI not configured")
+	}
+	return g.path
 }
 
 type RunGpgArg struct {

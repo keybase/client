@@ -69,6 +69,9 @@
 @implementation KBRGetCurrentStatusRes
 @end
 
+@implementation KBRConfig
+@end
+
 @implementation KBRConfigRequest
 
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion {
@@ -79,6 +82,18 @@
         return;
       }
       KBRGetCurrentStatusRes *result = [MTLJSONAdapter modelOfClass:KBRGetCurrentStatusRes.class fromJSONDictionary:dict error:&error];
+      completion(error, result);
+  }];
+}
+
+- (void)getConfig:(void (^)(NSError *error, KBRConfig * config))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.config.getConfig" params:params sessionId:self.sessionId completion:^(NSError *error, NSDictionary *dict) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRConfig *result = [MTLJSONAdapter modelOfClass:KBRConfig.class fromJSONDictionary:dict error:&error];
       completion(error, result);
   }];
 }

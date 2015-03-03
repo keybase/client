@@ -79,8 +79,17 @@
 @property NSString *serverUri;
 @end
 
+@interface KBRConfig : KBRObject
+@property NSString *serverURI;
+@property NSString *socketFile;
+@property BOOL gpgExists;
+@property NSString *gpgPath;
+@end
+
 @interface KBRConfigRequest : KBRRequest
 - (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes * getCurrentStatusRes))completion;
+
+- (void)getConfig:(void (^)(NSError *error, KBRConfig * config))completion;
 
 @end
 

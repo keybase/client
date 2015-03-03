@@ -13,4 +13,13 @@ protocol config {
 	}
 
 	GetCurrentStatusRes getCurrentStatus();
+
+	record Config {
+		string serverURI;
+		string socketFile;
+		boolean gpgExists;
+		string gpgPath;
+	}
+
+	Config getConfig();
 }

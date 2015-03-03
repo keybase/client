@@ -142,11 +142,31 @@
       "name" : "serverUri",
       "type" : "string"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "Config",
+    "fields" : [ {
+      "name" : "serverURI",
+      "type" : "string"
+    }, {
+      "name" : "socketFile",
+      "type" : "string"
+    }, {
+      "name" : "gpgExists",
+      "type" : "boolean"
+    }, {
+      "name" : "gpgPath",
+      "type" : "string"
+    } ]
   } ],
   "messages" : {
     "getCurrentStatus" : {
       "request" : [ ],
       "response" : "GetCurrentStatusRes"
+    },
+    "getConfig" : {
+      "request" : [ ],
+      "response" : "Config"
     }
   }
 }

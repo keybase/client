@@ -191,6 +191,8 @@ type ExternalAPI interface {
 // A minimal access to the GPG client.
 type GpgClient interface {
 	Configure() (bool, error)                                        // bool = Whether the error is fatal or not
+	CanExec() (bool, error)                                          // does a gpg executable exist?
+	Path() string                                                    // path of gpg executable
 	ExportKey(k PgpKeyBundle) error                                  // Import a key into the GPG keyring
 	Index(secret bool, query string) (*GpgKeyIndex, error, Warnings) // Index the keychain
 	ImportKey(bool, PgpFingerprint) (*PgpKeyBundle, error)
