@@ -120,9 +120,10 @@
     return;
   }
 
-  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
+  id<KBRPClient> client = AppDelegate.client;
+  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:client];
 
-  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.promptDeviceName" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.doctorUi.promptDeviceName" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //KBRPromptDeviceNameRequestParams *requestParams = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
@@ -133,7 +134,7 @@
     [self.navigation pushView:devicePromptView animated:YES];
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.doctorUi.selectSigner" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.doctorUi.selectSigner" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     [self selectSigner:requestParams completion:completion];
@@ -143,7 +144,6 @@
   [self.navigation.titleView setProgressEnabled:YES];
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
-    [AppDelegate.client unregister:self];
     if (error) {
       [AppDelegate setError:error sender:self];
       return;

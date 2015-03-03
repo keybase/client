@@ -15,7 +15,7 @@
 @interface KBRMockClient ()
 @property NSInteger methodIndex;
 @property NSString *recordId;
-@property KBRPCRegistration *registration;
+@property NSMutableDictionary *registrations;
 
 @property (copy) MPRequestCompletion completion;
 @end
@@ -29,20 +29,29 @@
   return self;
 }
 
-- (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
+- (NSInteger)nextSessionId {
+  static NSInteger gSessionId = 0;
+  return ++gSessionId;
+}
+
+- (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   self.completion = completion;
-  return @[@(0), @(0), NSNull.null, NSNull.null];
+  return nil;
 }
 
-- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler {
-  if (!self.registration) self.registration = [[KBRPCRegistration alloc] init];
-  [self.registration registerMethod:method owner:owner requestHandler:requestHandler];
-  GHDebug(@"Registered (%@) %@", self.registration, method);
+- (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler {
+  if (!self.registrations) self.registrations = [NSMutableDictionary dictionary];
+  KBRPCRegistration *registration = self.registrations[@(sessionId)];
+  if (!registration) {
+    registration = [[KBRPCRegistration alloc] init];
+    self.registrations[@(sessionId)] = registration;
+  }
+  [registration registerMethod:method requestHandler:requestHandler];
 }
 
-- (void)unregister:(id)owner {
-  [self.registration unregister:owner];
-};
+- (void)unregister:(NSInteger)sessionId {
+  [self.registrations removeObjectForKey:@(sessionId)];
+}
 
 - (void)replayRecordId:(NSString *)recordId {
   GHWeakSelf gself = self;
@@ -73,9 +82,11 @@
     NSString *method = fileDict[@(index)][@"method"];
     id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
     KBConvertArrayFrom(params);
-    GHDebug(@"Replay (%@) %@", self.registration, method);
-    MPRequestHandler completion = [gself.registration requestHandlerForMethod:method];
-    if (completion) completion(nil, method, params, ^(NSError *error, id result) { });
+    GHDebug(@"Replay %@", method);
+    for (KBRPCRegistration *registration in gself.registrations) {
+      MPRequestHandler completion = [registration requestHandlerForMethod:method];
+      if (completion) completion(nil, method, params, ^(NSError *error, id result) { });
+    }
   }
 }
 

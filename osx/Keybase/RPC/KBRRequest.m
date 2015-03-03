@@ -18,6 +18,7 @@
 - (instancetype)initWithClient:(id<KBRPClient>)client {
   if ((self = [super init])) {
     _client = client;
+    _sessionId = [client nextSessionId];
   }
   return self;
 }

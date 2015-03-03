@@ -19,7 +19,7 @@
 @interface KBRPClient ()
 @property MPMessagePackClient *client;
 @property MPMessagePackServer *server;
-@property KBRPCRegistration *registration;
+@property MPOrderedDictionary *registrations;
 
 @property NSInteger connectAttempt;
 @end
@@ -45,19 +45,39 @@
   
   GHWeakSelf gself = self;
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"Received request (messageId=%@): %@(%@)", messageId, method, [params join:@", "]);
+    GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
     // Recording
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       //[gself recordMethod:method params:params];
     }
 
-    MPRequestHandler requestHandler = [gself.registration requestHandlerForMethod:method];
-    if (!requestHandler) {
-      GHDebug(@"No handler for request: %@", method);
-      completion(KBMakeErrorWithRecovery(-1, @"Method not found", @"Method not found: %@", method), nil);
-      return;
+    id sessionId = [[params lastObject] objectForKey:@"sessionID"];
+    if (!sessionId) {
+      NSMutableArray *requestHandlers = [NSMutableArray array];
+      for (id key in [gself.registrations reverseKeyEnumerator]) {
+        KBRPCRegistration *registration = gself.registrations[key];
+        MPRequestHandler requestHandler = [registration requestHandlerForMethod:method];
+        if (requestHandler) {
+          [requestHandlers addObject:requestHandler];
+        }
+      }
+      NSCAssert([requestHandlers count] < 2, @"More than 1 registered request handler");
+      if ([requestHandlers count] == 0) {
+        GHDebug(@"No handler for request: %@", method);
+        completion(KBMakeError(-1, @"Method not found: %@", method), nil);
+      } else {
+        ((MPRequestHandler)requestHandlers[0])(messageId, method, params, completion);
+      }
+    } else {
+      KBRPCRegistration *registration = gself.registrations[sessionId];
+      MPRequestHandler requestHandler = [registration requestHandlerForMethod:method];
+      if (requestHandler) {
+        requestHandler(messageId, method, params, completion);
+      } else {
+        GHDebug(@"No handler for request: %@", method);
+        completion(KBMakeError(-1, @"Method not found: %@", method), nil);
+      }
     }
-    requestHandler(messageId, method, params, completion);
   };
 
   _client.coder = [[KBMantleCoder alloc] init];
@@ -92,6 +112,11 @@
   }];
 }
 
+- (NSInteger)nextSessionId {
+  static NSInteger gSessionId = 0;
+  return ++gSessionId;
+}
+
 - (void)close {
   [_client close];
   [self.delegate RPClientDidDisconnect:self];
@@ -103,13 +128,16 @@
   });
 }
 
-- (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params completion:(MPRequestCompletion)completion {
+- (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
     completion(KBMakeError(-400, @"We are unable to connect to the keybase daemon."), nil);
     return nil;
   }
 
-  NSArray *request = [_client sendRequestWithMethod:method params:params completion:^(NSError *error, id result) {
+  NSAssert(sessionId > 0, @"Bad session id");
+
+  NSArray *request = [_client sendRequestWithMethod:method params:params messageId:sessionId completion:^(NSError *error, id result) {
+    [self unregister:sessionId];
     if (error) {
       GHDebug(@"Error: %@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
@@ -122,8 +150,8 @@
   NSMutableArray *mparams = [params mutableCopy];
   mparams[0] = KBScrubPassphrase(params[0]);
 
-  NSNumber *messageId = request[1];
-  GHDebug(@"Sent request (messageId=%@): %@(%@)", messageId, method, [mparams join:@", "]);
+  //NSNumber *messageId = request[1];
+  GHDebug(@"Sent request: %@(%@)", method, [mparams join:@", "]);
   return request;
 }
 
@@ -134,14 +162,19 @@
   }];
 }
 
-- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler {
-  if (!self.registration) self.registration = [[KBRPCRegistration alloc] init];
-  [self.registration registerMethod:method owner:owner requestHandler:requestHandler];
+- (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler {
+  if (!self.registrations) self.registrations = [MPOrderedDictionary dictionary];
+  KBRPCRegistration *registration = self.registrations[@(sessionId)];
+  if (!registration) {
+    registration = [[KBRPCRegistration alloc] init];
+    self.registrations[@(sessionId)] = registration;
+  }
+  [registration registerMethod:method requestHandler:requestHandler];
 }
 
-- (void)unregister:(id)owner {
-  [self.registration unregister:owner];
-};
+- (void)unregister:(NSInteger)sessionId {
+  [self.registrations removeObjectForKey:@(sessionId)];
+}
 
 - (void)openAndCheck:(void (^)(NSError *error))completion {
   [self open:^(NSError *error) {

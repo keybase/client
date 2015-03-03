@@ -14,9 +14,10 @@
 @class KBRPClient;
 
 @protocol KBRPClient
-- (NSArray *)sendRequestWithMethod:(NSString *)method params:(id)params completion:(MPRequestCompletion)completion;
-- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler;
-- (void)unregister:(id)owner;
+- (NSArray *)sendRequestWithMethod:(NSString *)method params:(id)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion;
+- (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler;
+- (void)unregister:(NSInteger)sessionId;
+- (NSInteger)nextSessionId;
 @end
 
 @protocol KBRPClientDelegate
@@ -40,6 +41,5 @@
 
 - (void)check:(void (^)(NSError *error))completion;
 - (void)openAndCheck:(void (^)(NSError *error))completion;
-
 
 @end

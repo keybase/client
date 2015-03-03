@@ -230,7 +230,7 @@
   KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
 
   // We'll add PGP key later
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" sessionId:signup.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, @(NO));
   }];
 
@@ -241,8 +241,6 @@
       [AppDelegate setError:error sender:self];
       return;
     }
-
-    [AppDelegate.client unregister:self];
 
     // Clear all fields (esp password)
     self.passwordField.text = nil;

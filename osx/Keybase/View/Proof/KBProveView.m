@@ -95,16 +95,19 @@
 
   GHWeakSelf gself = self;
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptUsername" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  id<KBRPClient> client = AppDelegate.client;
+  KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:client];
+
+  [client registerMethod:@"keybase.1.proveUi.promptUsername" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //NSString *prompt = params[0][@"prompt"];
     completion(nil, gself.inputView.inputField.text);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.preProofWarning" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.preProofWarning" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.okToCheck" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.okToCheck" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBROkToCheckRequestParams *requestParams = [[KBROkToCheckRequestParams alloc] initWithParams:params];
     NSInteger attempt = requestParams.attempt;
 
@@ -120,7 +123,7 @@
     completion(nil, @(attempt == 0));
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.promptOverwrite" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.promptOverwrite" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRPromptOverwriteRequestParams *requestParams = [[KBRPromptOverwriteRequestParams alloc] initWithParams:params];
     NSString *account = requestParams.account;
     KBRPromptOverwriteType type = requestParams.typ;
@@ -140,7 +143,7 @@
     }];
   }];
 
-  [AppDelegate.client registerMethod:@"keybase.1.proveUi.outputInstructions" owner:self requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.proveUi.outputInstructions" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBROutputInstructionsRequestParams *requestParams = [[KBROutputInstructionsRequestParams alloc] initWithParams:params];
     KBRText *instructions = requestParams.instructions;
     NSString *proof = requestParams.proof;
@@ -153,10 +156,8 @@
   }];
 
   [self.navigation setProgressEnabled:YES];
-  KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:AppDelegate.client];
   [prove proveWithService:service username:userName force:NO completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
-    [AppDelegate.client unregister:gself];
     if (error) {
       [AppDelegate setError:error sender:gself.inputView];
       return;

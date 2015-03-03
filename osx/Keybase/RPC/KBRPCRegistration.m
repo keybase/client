@@ -20,29 +20,16 @@
   return requestHandler;
 }
 
-- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler {
+- (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler {
   if (!_registrations) _registrations = [NSMapTable strongToStrongObjectsMapTable];
 
   //GHDebug(@"Registering %@", method);
-  //NSAssert(![_registrations objectForKey:method], @"Method already registered");
+  NSAssert(![_registrations objectForKey:method], @"Method already registered");
 
   NSMapTable *registration = [NSMapTable strongToStrongObjectsMapTable];
   [registration setObject:requestHandler forKey:@"requestHandler"];
-  [registration setObject:owner forKey:@"owner"];
 
   [_registrations setObject:registration forKey:method];
 }
-
-- (void)unregister:(id)owner {
-  NSArray *keys = [[_registrations dictionaryRepresentation] allKeys];
-  for (NSString *method in keys) {
-    NSMapTable *registration = [_registrations objectForKey:method];
-    if ([[registration objectForKey:@"owner"] isEqualTo:owner]) {
-      //GHDebug(@"Unregistering %@", method);
-      [_registrations removeObjectForKey:method];
-    }
-  }
-}
-
 
 @end

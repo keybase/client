@@ -12,9 +12,7 @@
 
 @interface KBRPCRegistration : NSObject
 
-- (void)registerMethod:(NSString *)method owner:(id)owner requestHandler:(MPRequestHandler)requestHandler;
-
-- (void)unregister:(id)owner;
+- (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler;
 
 - (MPRequestHandler)requestHandlerForMethod:(NSString *)method;
 
