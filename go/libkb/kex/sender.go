@@ -60,7 +60,7 @@ func (s *Sender) CorruptStartKexSession(m *Meta, id StrongID) error {
 		return err
 	}
 	// flip bits in first byte of mac to corrupt it
-	msg.Mac[0] = ^msg.Mac[0]
+	msg.Body.Mac[0] = ^msg.Body.Mac[0]
 	return s.post(msg)
 }
 
@@ -81,7 +81,7 @@ func (s *Sender) genMsg(m *Meta, body *Body) (*Msg, error) {
 	if err != nil {
 		return nil, err
 	}
-	msg.Mac = mac
+	msg.Body.Mac = mac
 	return msg, nil
 }
 
@@ -91,7 +91,7 @@ func (s *Sender) post(msg *Msg) error {
 		return err
 	}
 
-	G.Log.Debug("posting message %s {dir: %d, seqno: %d, w: %x, uid: %x}", msg.Body.Name, msg.Direction, msg.Seqno, msg.WeakID, G.GetMyUID())
+	G.Log.Debug("posting message %s {dir: %d, seqno: %d, w: %x, uid: %x}", msg.Name(), msg.Direction, msg.Seqno, msg.WeakID, G.GetMyUID())
 
 	_, err = G.API.Post(libkb.ApiArg{
 		Endpoint:    "kex/send",

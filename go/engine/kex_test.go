@@ -65,7 +65,7 @@ func TestBasicMessage(t *testing.T) {
 		t.Errorf("receive count: %d, expected 1", n)
 	}
 	msg := <-r.Msgs
-	if msg.Name != kex.StartKexMsg {
+	if msg.Name() != kex.StartKexMsg {
 		t.Errorf("msg: %s, expected %s", msg.Name, kex.StartKexMsg)
 	}
 }

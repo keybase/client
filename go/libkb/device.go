@@ -3,7 +3,8 @@ package libkb
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-jsonw"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 const (
@@ -48,6 +49,16 @@ func ImportDeviceID(s string) (d *DeviceID, err error) {
 	copy(ret[:], tmp)
 	d = &ret
 	return
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (d *DeviceID) UnmarshalJSON(b []byte) error {
+	v, err := ImportDeviceID(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*d = *v
+	return nil
 }
 
 type DeviceStatus struct {

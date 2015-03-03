@@ -10,6 +10,7 @@ package libkb
  */
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
@@ -174,6 +175,8 @@ type ExternalApiRes struct {
 
 type API interface {
 	Get(ApiArg) (*ApiRes, error)
+	GetResp(ApiArg) (*http.Response, error)
+	GetDecode(ApiArg, interface{}) error
 	Post(ApiArg) (*ApiRes, error)
 }
 

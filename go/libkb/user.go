@@ -52,6 +52,16 @@ func UidFromHex(s string) (u *UID, err error) {
 	return
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (u *UID) UnmarshalJSON(b []byte) error {
+	v, err := UidFromHex(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*u = *v
+	return nil
+}
+
 func GetUid(w *jsonw.Wrapper) (u *UID, err error) {
 	s, err := w.GetString()
 	if err != nil {

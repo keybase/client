@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -220,4 +221,12 @@ func UnixToTimeMappingZero(unixTime int64) time.Time {
 	} else {
 		return time.Unix(unixTime, 0)
 	}
+}
+
+func Unquote(data []byte) string {
+	return strings.Trim(string(data), "\"")
+}
+
+func HexDecodeQuoted(data []byte) ([]byte, error) {
+	return hex.DecodeString(Unquote(data))
 }

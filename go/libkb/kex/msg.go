@@ -5,12 +5,10 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	jsonw "github.com/keybase/go-jsonw"
 	"github.com/ugorji/go/codec"
 )
 
@@ -40,21 +38,21 @@ var ErrWeakIDMismatch = errors.New("Weak session ID (w) mismatch between message
 // Msg is a kex message.
 type Msg struct {
 	Meta
-	Body
+	Body *Body `json:"msg"`
 }
 
 // NewMsg creates a kex message from metadata and a body.
 func NewMsg(mt *Meta, body *Body) *Msg {
 	return &Msg{
 		Meta: *mt,
-		Body: *body,
+		Body: body,
 	}
 }
 
 // String returns a string summary of the message.
 func (m *Msg) String() string {
 	return fmt.Sprintf("%s {w = %s, I = %s, sender = %s, receiver = %s, seqno = %d, dir = %d}",
-		m.Name, m.WeakID, m.StrongID, m.Sender, m.Receiver, m.Seqno, m.Direction)
+		m.Body.Name, m.WeakID, m.StrongID, m.Sender, m.Receiver, m.Seqno, m.Direction)
 }
 
 // CheckMAC verifies that the existing MAC matches the computed
@@ -64,16 +62,16 @@ func (m *Msg) CheckMAC(secret SecretKey) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return hmac.Equal(sum, m.Mac), nil
+	return hmac.Equal(sum, m.Body.Mac), nil
 }
 
 // MacSum calculates the MAC for a message.  It removes the
 // existing MAC from the message for the calculation, then puts it
 // back in place.
 func (m *Msg) MacSum(secret SecretKey) ([]byte, error) {
-	t := m.Mac
-	defer func() { m.Mac = t }()
-	m.Mac = nil
+	t := m.Body.Mac
+	defer func() { m.Body.Mac = t }()
+	m.Body.Mac = nil
 	var buf bytes.Buffer
 	var h codec.MsgpackHandle
 	if err := codec.NewEncoder(&buf, &h).Encode(m); err != nil {
@@ -90,81 +88,17 @@ func (m *Msg) mac(message, key []byte) []byte {
 	return mac.Sum(nil)
 }
 
-func deviceID(w *jsonw.Wrapper) (libkb.DeviceID, error) {
-	s, err := w.GetString()
-	if err != nil {
-		return libkb.DeviceID{}, err
-	}
-	d, err := libkb.ImportDeviceID(s)
-	if err != nil {
-		return libkb.DeviceID{}, err
-	}
-	return *d, nil
+// Name returns the name of the message.
+func (m *Msg) Name() MsgName {
+	return m.Body.Name
 }
 
-// MsgImport extracts a kex Msg from json.  It also checks the MAC
-// of the message.
-func MsgImport(w *jsonw.Wrapper, secret SecretKey) (*Msg, error) {
-	r := &Msg{}
-	u, err := libkb.GetUid(w.AtKey("uid"))
-	if err != nil {
-		return nil, err
-	}
-	r.UID = *u
-
-	r.Sender, err = deviceID(w.AtKey("sender"))
-	if err != nil {
-		return nil, err
-	}
-	r.Receiver, err = deviceID(w.AtKey("receiver"))
-	if err != nil {
-		return nil, err
-	}
-
-	r.Seqno, err = w.AtKey("seqno").GetInt()
-	if err != nil {
-		return nil, err
-	}
-	dir, err := w.AtKey("dir").GetInt()
-	if err != nil {
-		return nil, err
-	}
-	r.Direction = Direction(dir)
-
-	stID, err := w.AtKey("I").GetString()
-	if err != nil {
-		return nil, err
-	}
-	bstID, err := hex.DecodeString(stID)
-	if err != nil {
-		return nil, err
-	}
-	copy(r.StrongID[:], bstID)
-
-	wkID, err := w.AtKey("w").GetString()
-	if err != nil {
-		return nil, err
-	}
-	bwkID, err := hex.DecodeString(wkID)
-	if err != nil {
-		return nil, err
-	}
-	copy(r.WeakID[:], bwkID)
-
-	body, err := w.AtKey("msg").GetString()
-	if err != nil {
-		return nil, err
-	}
-	mb, err := BodyDecode(body)
-	if err != nil {
-		return nil, err
-	}
-	r.Body = *mb
-
-	return r, nil
+// Args returns the message arguments.
+func (m *Msg) Args() MsgArgs {
+	return m.Body.Args
 }
 
-// MsgList is an array of messages.
+// MsgList is an array of messages that can sort by seqno.
 type MsgList []*Msg
 
 func (m MsgList) Len() int           { return len(m) }
@@ -208,11 +142,21 @@ func BodyDecode(data string) (*Body, error) {
 	return &k, nil
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (b *Body) UnmarshalJSON(data []byte) error {
+	bd, err := BodyDecode(libkb.Unquote(data))
+	if err != nil {
+		return err
+	}
+	*b = *bd
+	return nil
+}
+
 // Encode transforms a message body into a base64-encoded msgpack.
-func (k *Body) Encode() (string, error) {
+func (b *Body) Encode() (string, error) {
 	var buf bytes.Buffer
 	var h codec.MsgpackHandle
-	err := codec.NewEncoder(&buf, &h).Encode(k)
+	err := codec.NewEncoder(&buf, &h).Encode(b)
 	if err != nil {
 		return "", nil
 	}

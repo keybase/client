@@ -56,7 +56,7 @@ func (r *Receiver) Poll(m *Meta) {
 func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
 	start := time.Now()
 	for m := range r.Msgs {
-		if m.Name == name {
+		if m.Name() == name {
 			return m, nil
 		}
 		G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name, name)
@@ -107,7 +107,7 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 
 		// if the message has the EOF flag set, we are done receiving messages
 		// so break out now.
-		if msg.EOF {
+		if msg.Body.EOF {
 			close(r.Msgs)
 			return count, ErrProtocolEOF
 		}
@@ -124,7 +124,7 @@ func (r *Receiver) check(msg *Msg) error {
 	if err != nil {
 		return err
 	}
-	if !hmac.Equal(sum, msg.Mac) {
+	if !hmac.Equal(sum, msg.Body.Mac) {
 		return ErrMACMismatch
 	}
 
@@ -142,7 +142,11 @@ func (r *Receiver) check(msg *Msg) error {
 // get performs a Get request to long poll for a set of messages.
 func (r *Receiver) get() (MsgList, error) {
 	G.Log.Debug("get: {dir: %d, seqno: %d, w = %x, uid = %x}", r.direction, r.seqno, r.secret.WeakID(), G.GetMyUID())
-	res, err := G.API.Get(libkb.ApiArg{
+
+	var j struct {
+		Msgs MsgList `json:"msgs"`
+	}
+	args := libkb.ApiArg{
 		Endpoint:    "kex/receive",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
@@ -151,31 +155,12 @@ func (r *Receiver) get() (MsgList, error) {
 			"low":  libkb.I{Val: r.seqno + 1},
 			"poll": libkb.I{Val: int(PollDuration / time.Second)},
 		},
-	})
-	if err != nil {
+	}
+	if err := G.API.GetDecode(args, &j); err != nil {
 		return nil, err
 	}
 
-	msgs := res.Body.AtKey("msgs")
-	n, err := msgs.Len()
-	if err != nil {
-		return nil, err
-	}
+	sort.Sort(j.Msgs)
 
-	var messages MsgList
-	for i := 0; i < n; i++ {
-		m, err := MsgImport(msgs.AtIndex(i), r.secret.Secret())
-		if err != nil {
-			if err != ErrMACMismatch {
-				return nil, err
-			}
-			G.Log.Warning("Received message with bad HMAC.  Ignoring it.")
-		} else {
-			messages = append(messages, m)
-		}
-	}
-
-	sort.Sort(messages)
-
-	return messages, nil
+	return j.Msgs, nil
 }

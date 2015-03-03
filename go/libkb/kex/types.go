@@ -26,6 +26,16 @@ func (s StrongID) String() string {
 	return hex.EncodeToString(s[:])
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (s *StrongID) UnmarshalJSON(data []byte) error {
+	b, err := libkb.HexDecodeQuoted(data)
+	if err != nil {
+		return err
+	}
+	copy(s[:], b)
+	return nil
+}
+
 // WeakID is the weak session id type.
 type WeakID [16]byte
 
@@ -34,18 +44,28 @@ func (w WeakID) String() string {
 	return hex.EncodeToString(w[:])
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (w *WeakID) UnmarshalJSON(data []byte) error {
+	b, err := libkb.HexDecodeQuoted(data)
+	if err != nil {
+		return err
+	}
+	copy(w[:], b)
+	return nil
+}
+
 // SecretKey is the shared secret key type.
 type SecretKey [32]byte
 
 // Meta is the metadata that is sent with every kex message.
 type Meta struct {
 	UID       libkb.UID
-	WeakID    WeakID   // `w` in doc
-	StrongID  StrongID // `I` in doc
+	WeakID    WeakID   `json:"w"` // `w` in doc
+	StrongID  StrongID `json:"I"` // `I` in doc
 	Sender    libkb.DeviceID
 	Receiver  libkb.DeviceID
 	Seqno     int
-	Direction Direction
+	Direction Direction `json:"dir"`
 }
 
 // NewMeta creates a new Meta object.  Its main utility is

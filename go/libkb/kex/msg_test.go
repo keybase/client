@@ -67,8 +67,8 @@ func TestMAC(t *testing.T) {
 	b := testBody(t)
 	msg := NewMsg(m, b)
 
-	if msg.Mac != nil {
-		t.Fatalf("mac: %x, expected nil", msg.Mac)
+	if msg.Body.Mac != nil {
+		t.Fatalf("mac: %x, expected nil", msg.Body.Mac)
 	}
 
 	s, err := NewSecret(u)
@@ -80,7 +80,7 @@ func TestMAC(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg.Mac = mac
+	msg.Body.Mac = mac
 
 	// call should match existing hmac
 	ok, err := msg.CheckMAC(s.Secret())
@@ -92,7 +92,7 @@ func TestMAC(t *testing.T) {
 	}
 
 	// now, encode and decode and verify hmac still ok
-	enc, err := msg.Encode()
+	enc, err := msg.Body.Encode()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,8 +121,8 @@ func TestMACBad(t *testing.T) {
 	b := testBody(t)
 	msg := NewMsg(m, b)
 
-	if msg.Mac != nil {
-		t.Fatalf("mac: %x, expected nil", msg.Mac)
+	if msg.Body.Mac != nil {
+		t.Fatalf("mac: %x, expected nil", msg.Body.Mac)
 	}
 
 	s, err := NewSecret(u)
@@ -134,9 +134,9 @@ func TestMACBad(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg.Mac = mac
+	msg.Body.Mac = mac
 
-	msg.Mac[0] = ^msg.Mac[0]
+	msg.Body.Mac[0] = ^msg.Body.Mac[0]
 	ok, err := msg.CheckMAC(s.Secret())
 	if err != nil {
 		t.Fatal(err)
@@ -146,7 +146,7 @@ func TestMACBad(t *testing.T) {
 	}
 
 	// now, encode and decode and verify hmac still doesn't match
-	enc, err := msg.Encode()
+	enc, err := msg.Body.Encode()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -150,7 +150,7 @@ func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
 }
 
 func (k *KexFwd) handleHello(m *kex.Msg) error {
-	k.xDevKeyID = m.Body.Args.DevKeyID
+	k.xDevKeyID = m.Args().DevKeyID
 	return nil
 }
 

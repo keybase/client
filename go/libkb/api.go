@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/keybase/go-jsonw"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // Shared code across Internal and External APIs
@@ -248,6 +249,34 @@ func (api *InternalApiEngine) Get(arg ApiArg) (*ApiRes, error) {
 		return nil, err
 	}
 	return api.DoRequest(arg, req)
+}
+
+// GetResp performs a GET request and returns the http response.
+func (api *InternalApiEngine) GetResp(arg ApiArg) (*http.Response, error) {
+	url := api.getUrl(arg)
+	req, err := api.PrepareGet(url, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, _, err := doRequestShared(api, arg, req, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+// GetDecode performs a GET request and decodes the response via
+// JSON into the value pointed to by v.
+func (api *InternalApiEngine) GetDecode(arg ApiArg, v interface{}) error {
+	resp, err := api.GetResp(arg)
+	if err != nil {
+		return err
+	}
+	dec := json.NewDecoder(resp.Body)
+	defer resp.Body.Close()
+	return dec.Decode(&v)
 }
 
 func (api *InternalApiEngine) Post(arg ApiArg) (*ApiRes, error) {

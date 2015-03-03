@@ -138,10 +138,10 @@ func (k *KexSib) handleStart(m *kex.Msg) error {
 }
 
 func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
-	eddsa := m.Args.SigningKey
-	sig := m.Args.Sig
-	devType := m.Args.DevType
-	devDesc := m.Args.DevDesc
+	eddsa := m.Args().SigningKey
+	sig := m.Args().Sig
+	devType := m.Args().DevType
+	devDesc := m.Args().DevDesc
 
 	rs := &libkb.ReverseSig{Sig: sig, Type: "kb"}
 
