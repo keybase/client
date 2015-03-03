@@ -307,8 +307,17 @@
 
 - (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
-  [selectView setGPGKeys:handler.keys completion:completion];
-  [self.navigation setView:selectView transitionType:KBNavigationTransitionTypeFade];
+
+  NSWindow *window = [KBWindow windowWithContentView:selectView size:CGSizeMake(600, 400) retain:NO];
+
+  [selectView setGPGKeys:handler.keys completion:^(NSError *error, id result) {
+    [self.window endSheet:window];
+    completion(error, result);
+  }];
+  //[self.navigation setView:selectView transitionType:KBNavigationTransitionTypeFade];
+
+  selectView.cancelButton.actionBlock = ^(id sender) { [self.window endSheet:window]; };
+  [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
 }
 
 - (void)addPGPKey {

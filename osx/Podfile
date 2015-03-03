@@ -10,7 +10,7 @@ pod "MPMessagePack"#, :path => "../../../MPMessagePack"
 
 pod "KBKeybase"
 
-pod "YOLayout"
+pod "YOLayout"#, :path => "~/Projects/YOLayout"
 
 pod "ZXCVBN"
 

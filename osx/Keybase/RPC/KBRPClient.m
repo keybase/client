@@ -52,31 +52,17 @@
     }
 
     id sessionId = [[params lastObject] objectForKey:@"sessionID"];
-    if (!sessionId) {
-      NSMutableArray *requestHandlers = [NSMutableArray array];
-      for (id key in [gself.registrations reverseKeyEnumerator]) {
-        KBRPCRegistration *registration = gself.registrations[key];
-        MPRequestHandler requestHandler = [registration requestHandlerForMethod:method];
-        if (requestHandler) {
-          [requestHandlers addObject:requestHandler];
-        }
-      }
-      NSCAssert([requestHandlers count] < 2, @"More than 1 registered request handler");
-      if ([requestHandlers count] == 0) {
-        GHDebug(@"No handler for request: %@", method);
-        completion(KBMakeError(-1, @"Method not found: %@", method), nil);
-      } else {
-        ((MPRequestHandler)requestHandlers[0])(messageId, method, params, completion);
-      }
-    } else {
+    MPRequestHandler requestHandler;
+    if (sessionId) {
       KBRPCRegistration *registration = gself.registrations[sessionId];
-      MPRequestHandler requestHandler = [registration requestHandlerForMethod:method];
-      if (requestHandler) {
-        requestHandler(messageId, method, params, completion);
-      } else {
-        GHDebug(@"No handler for request: %@", method);
-        completion(KBMakeError(-1, @"Method not found: %@", method), nil);
-      }
+      requestHandler = [registration requestHandlerForMethod:method];
+    }
+    if (!requestHandler) requestHandler = [gself _requestHandlerForMethod:method]; // TODO: Remove when we have session id in all requests
+    if (requestHandler) {
+      requestHandler(messageId, method, params, completion);
+    } else {
+      GHDebug(@"No handler for request: %@", method);
+      completion(KBMakeError(-1, @"Method not found: %@", method), nil);
     }
   };
 
@@ -110,6 +96,18 @@
     [self.delegate RPClientDidConnect:self];
     if (completion) completion(nil);
   }];
+}
+
+// Request handler for method of any session (Will be deprecated)
+- (MPRequestHandler)_requestHandlerForMethod:(NSString *)method {
+  NSMutableArray *requestHandlers = [NSMutableArray array];
+  for (id key in [self.registrations reverseKeyEnumerator]) {
+    KBRPCRegistration *registration = self.registrations[key];
+    MPRequestHandler requestHandler = [registration requestHandlerForMethod:method];
+    if (requestHandler) [requestHandlers addObject:requestHandler];
+  }
+  NSCAssert([requestHandlers count] < 2, @"More than 1 registered request handler");
+  return [requestHandlers firstObject];
 }
 
 - (NSInteger)nextSessionId {
