@@ -206,7 +206,7 @@ paths.each do |path|
     end
 
     impl << "  NSArray *params = @[@{#{request_params_items.join(", ")}}];
-  [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params sessionId:self.sessionId completion:^(NSError *error, NSDictionary *dict) {
     #{callback}
   }];"
 
