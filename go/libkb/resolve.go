@@ -24,9 +24,10 @@ func (c *UserCache) PutResolution(key string, res ResolveResult) {
 //==================================================================
 
 type ResolveResult struct {
-	uid  *UID
-	body *jsonw.Wrapper
-	err  error
+	uid       *UID
+	body      *jsonw.Wrapper
+	err       error
+	isKeybase bool
 }
 
 func ResolveUid(input string) (res ResolveResult) {
@@ -74,6 +75,8 @@ func __resolveUsername(au AssertionUrl) (res ResolveResult) {
 	var key, val string
 	var ares *ApiRes
 	var l int
+
+	res.isKeybase = au.IsKeybase()
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {
 		return

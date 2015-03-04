@@ -658,8 +658,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	if err = leaf.MatchUser(ret, arg.Uid, arg.Name); err != nil {
-		return
+	// If the user was looked-up via a keybase username, then
+	// we should go ahead and check that the username matches the UID
+	if rres.isKeybase {
+		if err = leaf.MatchUser(ret, arg.Uid, arg.Name); err != nil {
+			return
+		}
 	}
 
 	if err = ret.LoadSigChains(arg.AllKeys, leaf); err != nil {
