@@ -1,5 +1,11 @@
 require "json"
-require "active_support/inflector"
+
+begin
+  require "active_support/inflector"
+rescue LoadError
+  puts "You need to install active support: gem install activesupport"
+  exit 1
+end
 
 script_path = File.expand_path(File.dirname(__FILE__))
 
