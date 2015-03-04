@@ -114,7 +114,7 @@ func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	err = G.SecretSyncer.Load(d.me.GetUid())
+	err = libkb.RunSyncer(G.SecretSyncer, d.me.GetUid().P())
 
 	return
 }

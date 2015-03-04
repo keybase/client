@@ -42,6 +42,7 @@ type ServerPrivateKeys struct {
 type SecretSyncer struct {
 	// Locks the whole object
 	sync.RWMutex
+	Contextified
 	Uid   *UID
 	dirty bool
 	keys  *ServerPrivateKeys
@@ -58,40 +59,12 @@ func (ss *SecretSyncer) Clear() error {
 	return err
 }
 
-// Load loads a set of secret keys from storage and then checks if there are
-// updates on the server.  If there are, it will sync and store them.
-func (ss *SecretSyncer) Load(uid UID) (err error) {
+func (ss *SecretSyncer) setUID(u UID) {
+	ss.Uid = &u
+}
 
-	ss.Lock()
-	defer ss.Unlock()
-
-	uid_s := uid.String()
-
-	G.Log.Debug("+ SecretSyncer.Load(%s)", uid_s)
-	defer func() {
-		G.Log.Debug("- SecretSyncer.Load(%s) -> %s", uid_s, ErrToOk(err))
-	}()
-
-	if ss.Uid != nil && !ss.Uid.Eq(uid) {
-		err = UidMismatchError{fmt.Sprintf("%s != %s", ss.Uid, uid)}
-		return
-	}
-	ss.Uid = &uid
-
-	if err = ss.loadFromStorage(); err != nil {
-		return
-	}
-	if !G.Session.IsLoggedIn() {
-		G.Log.Debug("| Won't sync with server since we're not logged in")
-		return
-	}
-	if err = ss.syncFromServer(); err != nil {
-		return
-	}
-	if err = ss.store(); err != nil {
-		return
-	}
-	return
+func (ss *SecretSyncer) getUID() *UID {
+	return ss.Uid
 }
 
 func (ss *SecretSyncer) loadFromStorage() (err error) {

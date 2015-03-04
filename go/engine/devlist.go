@@ -40,11 +40,13 @@ func (d *DevList) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 
-	if err := d.G().SecretSyncer.Load(u.GetUid()); err != nil {
+	ss := d.G().SecretSyncer
+
+	if err := libkb.RunSyncer(ss, u.GetUid().P()); err != nil {
 		return err
 	}
 
-	devs, err := d.G().SecretSyncer.ActiveDevices()
+	devs, err := ss.ActiveDevices()
 	if err != nil {
 		return err
 	}

@@ -23,6 +23,8 @@ func (u UID) String() string {
 	return hex.EncodeToString(u[:])
 }
 
+func (u UID) P() *UID { return &u }
+
 func (u UID) IsZero() bool {
 	for _, b := range u {
 		if b != 0 {
@@ -499,7 +501,7 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 		G.Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
-	if err = G.SecretSyncer.Load(u.id); err != nil {
+	if err = RunSyncer(G.SecretSyncer, &u.id); err != nil {
 		return
 	}
 

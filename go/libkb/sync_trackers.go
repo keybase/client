@@ -42,18 +42,3 @@ func NewTrackerSyncer(uid UID, g *GlobalContext) *TrackerSyncer {
 		trackers:     make(map[UID]*Tracker),
 	}
 }
-
-func (t *TrackerSyncer) Load(uid UID) (err error) {
-
-	t.Lock()
-	defer t.Unlock()
-
-	uid_s := t.uid.String()
-
-	t.G().Log.Debug("+ TrackerSyncer.Load(%s)", uid_s)
-	defer func() {
-		t.G().Log.Debug("- TrackerSyncer.Load(%s) -> %s", uid_s, ErrToOk(err))
-	}()
-
-	return
-}

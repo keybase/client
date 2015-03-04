@@ -55,7 +55,7 @@ func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
 }
 
 func (d *Doctor) syncSecrets() (err error) {
-	if err = d.G().SecretSyncer.Load(d.user.GetUid()); err != nil {
+	if err = libkb.RunSyncer(d.G().SecretSyncer, d.user.GetUid().P()); err != nil {
 		d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 	}
 	return err
@@ -77,10 +77,9 @@ func (d *Doctor) checkKeys(ctx *Context) error {
 		return nil
 	}
 
-	// make sure secretsyncer loaded
-	if err := d.G().SecretSyncer.Load(d.user.GetUid()); err != nil {
-		return err
-	}
+	// make sure secretsyncer loaded --- likely not needed since we
+	// already did this about
+	d.syncSecrets()
 
 	hasPGP := len(d.user.GetActivePgpKeys(false)) > 0
 

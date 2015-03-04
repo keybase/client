@@ -66,7 +66,7 @@ func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.LoginState = NewLoginState()
-	g.Session = NewSession()
+	g.Session = NewSession(g)
 	g.SessionWriter = g.Session
 	g.Daemon = false
 }
@@ -148,7 +148,7 @@ func (g *GlobalContext) ConfigureMerkleClient() error {
 }
 
 func (g *GlobalContext) ConfigureSecretSyncer() error {
-	g.SecretSyncer = &SecretSyncer{}
+	g.SecretSyncer = &SecretSyncer{Contextified: Contextified{g}}
 	return nil
 }
 
@@ -278,4 +278,8 @@ func (c *Contextified) SetGlobalContext(g *GlobalContext) { c.g = g }
 
 func NewContextified(gc *GlobalContext) Contextified {
 	return Contextified{g: gc}
+}
+
+type Contexitifier interface {
+	G() *GlobalContext
 }

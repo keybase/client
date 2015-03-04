@@ -7,6 +7,7 @@ import (
 )
 
 type Session struct {
+	Contextified
 	file     *JsonFile
 	token    string
 	csrf     string
@@ -19,8 +20,8 @@ type Session struct {
 	mtime    int64
 }
 
-func NewSession() *Session {
-	return &Session{}
+func NewSession(g *GlobalContext) *Session {
+	return &Session{Contextified: Contextified{g}}
 }
 
 // NewSessionThin creates a minimal (thin) session of just the uid and username.
@@ -55,6 +56,10 @@ func (s *Session) SetLoggedIn(lir LoggedInResult) {
 	s.GetDictionary().SetKey("session", jsonw.NewString(lir.SessionId))
 	s.SetCsrf(lir.CsrfToken)
 	s.SetDirty()
+
+	// Set up our SecretSyncer to work on the logged in user from here on
+	// out.
+	s.G().SecretSyncer.setUID(*s.uid)
 }
 
 func (s *Session) SetDirty() {
