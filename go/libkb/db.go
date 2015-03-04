@@ -99,6 +99,7 @@ const (
 	DB_SIG_CHAIN_TAIL_SEMIPRIVATE = 0xe8
 	DB_SIG_CHAIN_TAIL_ENCRYPTED   = 0xe9
 	DB_MERKLE_ROOT                = 0xf0
+	DB_TRACKERS                   = 0xf1
 )
 
 const (
