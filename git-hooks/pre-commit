@@ -38,9 +38,6 @@ check_go_vet() {
 
 	echo >&2 "go vet found issues:"
 	echo >&2 $warnings
-	#for msg in $warnings; do
-	#	echo >&2 $msg
-	#done
 
 	exit 1
 }
