@@ -7,10 +7,11 @@ package engine
 
 import (
 	stderrors "errors"
-	"github.com/keybase/client/go/libkb"
-	triplesec "github.com/keybase/go-triplesec"
 	"os/exec"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 type PGPEngine struct {
@@ -194,7 +195,9 @@ func (s *PGPEngine) push(ctx *Context) (err error) {
 	G.Log.Debug("+ PGP::Push")
 	s.del.NewKey = s.bundle
 	s.del.EncodedPrivateKey = s.epk
-	err = s.del.Run()
+	if err = s.del.Run(); err != nil {
+		return err
+	}
 	G.Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
 
 	ctx.LogUI.Info("Generated and pushed new PGP key:")
@@ -203,7 +206,7 @@ func (s *PGPEngine) push(ctx *Context) (err error) {
 		ctx.LogUI.Info("  %s", line)
 	}
 
-	return
+	return nil
 }
 
 func PGPCheckMulti(me *libkb.User, allowMulti bool) (err error) {
