@@ -323,8 +323,8 @@
   }];
 }
 
-- (void)launchNetworkChecksWithSessionID:(NSInteger )sessionID id:(KBRIdentity *)id user:(KBRUser *)user completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(id), @"user": KBRValue(user)}];
+- (void)launchNetworkChecksWithSessionID:(NSInteger )sessionID idn:(KBRIdentity *)idn user:(KBRUser *)user completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idn), @"user": KBRValue(user)}];
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.launchNetworkChecks" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];

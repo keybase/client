@@ -49,6 +49,11 @@ def is_primitive_type(type)
   ["int", "boolean", "null"].include?(type)
 end
 
+def alias_name(name)
+  return "idn" if name == "id"
+  name
+end
+
 def default_name_for_type(type)
   type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
 
@@ -168,7 +173,7 @@ paths.each do |path|
       if is_primitive_type(p["type"]) || enums.include?(p["type"])
         "@\"#{p["name"]}\": @(#{p["name"]})"
       else
-        "@\"#{p["name"]}\": KBRValue(#{p["name"]})"
+        "@\"#{p["name"]}\": KBRValue(#{alias_name(p["name"])})"
       end
     end
 
@@ -178,14 +183,14 @@ paths.each do |path|
       "void (^)(NSError *error, #{objc_for_type(response_type, enums)} #{default_name_for_type(response_type)})"
     end
 
-    request_params << { "name" => "completion", "type" => response_completion }
+    request_params << {"name" => "completion", "type" => response_completion}
 
     params_str = request_params.each_with_index.collect do |param, index|
-      name = param["name"]
+      name = alias_name(param["name"])
       name = "With#{name.camelize}" if index == 0
       name = "" if request_params.length == 1
 
-      "#{name}:(#{objc_for_type(param["type"], enums)})#{param["name"]}"
+      "#{name}:(#{objc_for_type(param["type"], enums)})#{alias_name(param["name"])}"
     end
 
     rpc_method = "#{namespace}.#{protocol}.#{method}"
