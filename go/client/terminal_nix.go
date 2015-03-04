@@ -1,11 +1,12 @@
-// +build +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
 
 package main
 
 import (
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
 	"os"
+
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type TerminalEngine struct {

@@ -31,7 +31,7 @@ func (u *User) ToTrackingStatementKey(errp *error) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 
 	if !u.HasActiveKey() {
-		*errp = fmt.Errorf("User %s doesn't have an active key")
+		*errp = fmt.Errorf("User %s doesn't have an active key", u.GetName())
 	} else {
 		fokid := u.GetEldestFOKID()
 		ret.SetKey("kid", jsonw.NewString(fokid.Kid.String()))

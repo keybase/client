@@ -1,10 +1,11 @@
 package libkb
 
 import (
-	"github.com/PuerkitoBio/goquery"
-	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
@@ -98,8 +99,6 @@ func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
 	} else {
 		return rc.findSigInTweet(h, p.First())
 	}
-
-	return nil
 }
 
 //

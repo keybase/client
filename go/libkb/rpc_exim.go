@@ -201,7 +201,7 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 func (a AppStatusError) ToStatus() keybase_1.Status {
 	var fields []keybase_1.StringKVPair
 	for k, v := range a.Fields {
-		fields = append(fields, keybase_1.StringKVPair{k, v})
+		fields = append(fields, keybase_1.StringKVPair{Key: k, Value: v})
 	}
 
 	return keybase_1.Status{

@@ -1,9 +1,10 @@
 package libkb
 
 import (
-	"github.com/keybase/go-jsonw"
 	"net"
 	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //=============================================================================
@@ -28,14 +29,11 @@ func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
 
 	wanted := ps.ID().ToMediumId()
 
-	if strings.HasSuffix(h.checkText, wanted) {
-		return nil
-	} else {
+	if !strings.HasSuffix(h.checkText, wanted) {
 		return NewProofError(PROOF_BAD_HINT_TEXT,
 			"Bad hint from server; wanted TXT value '%s' but got '%s'",
 			wanted, h.checkText)
 	}
-
 	return nil
 }
 

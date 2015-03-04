@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -15,9 +16,9 @@ func (v *CmdPing) Run() error {
 	_, err := G.API.Post(libkb.ApiArg{
 		Endpoint: "ping",
 		Args: libkb.HttpArgs{
-			"alice":   libkb.S{"hi alice"},
-			"bob":     libkb.I{1000},
-			"charlie": libkb.B{true},
+			"alice":   libkb.S{Val: "hi alice"},
+			"bob":     libkb.I{Val: 1000},
+			"charlie": libkb.B{Val: true},
 		},
 	})
 	if err != nil {

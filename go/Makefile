@@ -7,6 +7,9 @@ fmt:
 vet:
 	go vet ./...
 
+kbvet:
+	go vet ./... 2>&1 | grep -v "possible formatting directive" | grep -v "should have signature WriteTo"
+
 lint:
 	golint ./...
 

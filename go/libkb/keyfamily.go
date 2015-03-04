@@ -72,7 +72,7 @@ type ServerKeyRecord struct {
 	KeyBits        int     `json:"key_bits"`
 	KeyAlgo        int     `json:"key_algo"`
 
-	key GenericKey `json:-`
+	key GenericKey // not exported, so no json field tag necessary
 }
 
 type KeyMap map[string]*ServerKeyRecord

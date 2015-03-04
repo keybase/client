@@ -66,7 +66,7 @@ func TestBasicMessage(t *testing.T) {
 	}
 	msg := <-r.Msgs
 	if msg.Name() != kex.StartKexMsg {
-		t.Errorf("msg: %s, expected %s", msg.Name, kex.StartKexMsg)
+		t.Errorf("msg: %s, expected %s", msg.Name(), kex.StartKexMsg)
 	}
 }
 

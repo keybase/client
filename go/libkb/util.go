@@ -149,11 +149,11 @@ func SafeWriteToFile(t SafeWriter) error {
 		if err == nil {
 			err = os.Rename(tmpfn, fn)
 		} else {
-			G.Log.Error(fmt.Sprintf("Error closing temporary file %s: %s", tmp, err.Error()))
+			G.Log.Error(fmt.Sprintf("Error closing temporary file %s: %s", tmpfn, err.Error()))
 			os.Remove(tmpfn)
 		}
 	} else {
-		G.Log.Error(fmt.Sprintf("Error writing temporary keyring %s: %s", tmp, err.Error()))
+		G.Log.Error(fmt.Sprintf("Error writing temporary keyring %s: %s", tmpfn, err.Error()))
 		tmp.Close()
 		os.Remove(tmpfn)
 	}

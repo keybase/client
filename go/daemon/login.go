@@ -74,7 +74,7 @@ type RemoteDoctorUI struct {
 func NewRemoteDoctorUI(sessionId int, c *rpc2.Client) *RemoteDoctorUI {
 	return &RemoteDoctorUI{
 		sessionId: sessionId,
-		uicli:     keybase_1.DoctorUiClient{c},
+		uicli:     keybase_1.DoctorUiClient{Cli: c},
 	}
 }
 

@@ -70,9 +70,9 @@ type DeviceStatus struct {
 type Device struct {
 	Id          string  `json:"id"`
 	Type        string  `json:"type"`
-	Kid         *string `json:"kid",omitempty`
-	Description *string `json:"description",omitempty`
-	Status      *int    `json:"status",omitempty`
+	Kid         *string `json:"kid,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Status      *int    `json:"status,omitempty"`
 }
 
 // IsWeb returns true if the device is a Web pseudo-device

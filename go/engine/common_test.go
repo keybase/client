@@ -53,8 +53,8 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
-		SecretUI: libkb.TestSecretUI{fu.Passphrase},
-		LoginUI:  libkb.TestLoginUI{fu.Username},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine()
 	err := RunEngine(s, ctx, arg, nil)
@@ -74,7 +74,7 @@ func (fu *FakeUser) Login() error {
 			NoUi:       true,
 		},
 	}
-	secui := libkb.TestSecretUI{fu.Passphrase}
+	secui := fu.NewSecretUI()
 	li := NewLoginEngine()
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),

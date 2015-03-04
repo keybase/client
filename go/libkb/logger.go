@@ -1,10 +1,11 @@
 package libkb
 
 import (
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"github.com/op/go-logging"
 	"net"
 	"os"
+
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	logging "github.com/op/go-logging"
 )
 
 var (
@@ -116,7 +117,7 @@ func NewRpcLogFactory() *RpcLogFactory {
 }
 
 func (r *RpcLogFactory) NewLog(a net.Addr) rpc2.LogInterface {
-	ret := rpc2.SimpleLog{a, G.Log, getRpcLogOptions()}
+	ret := rpc2.SimpleLog{Addr: a, Out: G.Log, Opts: getRpcLogOptions()}
 	ret.TransportStart()
 	return ret
 }

@@ -150,7 +150,7 @@ func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) (err error)
 		// since the UI needs to know that. See:
 		//  https://github.com/keybase/client/issues/226
 		if _, ok := err.(libkb.CanceledError); !ok {
-			err = libkb.KeyGenError{err.Error()}
+			err = libkb.KeyGenError{Msg: err.Error()}
 		}
 		return
 	}

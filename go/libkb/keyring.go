@@ -27,7 +27,7 @@ type Keyrings struct {
 	Contextified
 }
 
-func (k Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
+func (k *Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
 	v := make([]*KeyringFile, len(filenames), len(filenames))
 	for i, filename := range filenames {
 		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil, Contextified{k.g}}
@@ -53,7 +53,7 @@ func NewKeyrings(g *GlobalContext, usage Usage) *Keyrings {
 // interface
 //
 
-func (k Keyrings) KeysById(id uint64) []openpgp.Key {
+func (k *Keyrings) KeysById(id uint64) []openpgp.Key {
 	out := make([]openpgp.Key, 10)
 	for _, ring := range k.Public {
 		out = append(out, ring.Entities.KeysById(id)...)
@@ -64,7 +64,7 @@ func (k Keyrings) KeysById(id uint64) []openpgp.Key {
 	return out
 }
 
-func (k Keyrings) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
+func (k *Keyrings) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
 	out := make([]openpgp.Key, 10)
 	for _, ring := range k.Public {
 		out = append(out, ring.Entities.KeysByIdUsage(id, usage)...)
@@ -75,7 +75,7 @@ func (k Keyrings) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
 	return out
 }
 
-func (k Keyrings) DecryptionKeys() []openpgp.Key {
+func (k *Keyrings) DecryptionKeys() []openpgp.Key {
 	out := make([]openpgp.Key, 10)
 	for _, ring := range k.Secret {
 		out = append(out, ring.Entities.DecryptionKeys()...)
@@ -85,7 +85,7 @@ func (k Keyrings) DecryptionKeys() []openpgp.Key {
 
 //===================================================================
 
-func (k Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
+func (k *Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
 	var l []*KeyringFile
 	if secret {
 		l = k.Secret
@@ -198,13 +198,13 @@ func (k *KeyringFile) Load() error {
 		G.Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
 		err = nil
 	} else if err != nil {
-		G.Log.Error(fmt.Sprintf("Cannot open keyring %s: %s\n", err.Error()))
+		G.Log.Error(fmt.Sprintf("Cannot open keyring %s: %s\n", k.filename, err.Error()))
 		return err
 	}
 	if file != nil {
 		k.Entities, err = openpgp.ReadKeyRing(file)
 		if err != nil {
-			G.Log.Error(fmt.Sprintf("Cannot parse keyring %s: %s\n", err.Error()))
+			G.Log.Error(fmt.Sprintf("Cannot parse keyring %s: %s\n", k.filename, err.Error()))
 			return err
 		}
 	}
@@ -231,7 +231,7 @@ func (k KeyringFile) Save() error {
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
 // In any case, the key will be locked.
-func (k Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string, err error) {
+func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string, err error) {
 
 	k.G().Log.Debug("+ GetSecretKeyLocked()")
 	defer func() {
@@ -270,7 +270,7 @@ func (k Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string, 
 // GetLockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
-func (k Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
+func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	var keyring *SKBKeyringFile
 	var err error
 	var ckf *ComputedKeyFamily
@@ -335,7 +335,7 @@ func (s SecretKeyArg) UseDeviceKey() bool    { return s.All || s.DeviceKey }
 func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey }
 func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
 
-func (k Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, err error) {
+func (k *Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, err error) {
 	k.G().Log.Debug("+ GetSecretKey(%s)", ska.Reason)
 	defer func() {
 		k.G().Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))

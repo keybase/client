@@ -53,7 +53,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sui := libkb.TestSecretUI{fu.Passphrase}
+	sui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	if err = G.LoginState.PubkeyLogin("", sui); err != nil {
 		t.Fatal(err)
 	}
@@ -86,14 +86,14 @@ func TestSignupWithGPG(t *testing.T) {
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {
 		t.Fatal(err)
 	}
-	secui := libkb.TestSecretUI{fu.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	s := NewSignupEngine()
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", false, true}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
-		LoginUI:  &libkb.TestLoginUI{fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	if err := RunEngine(s, ctx, arg, nil); err != nil {
 		t.Fatal(err)
@@ -105,13 +105,13 @@ func TestLocalKeySecurity(t *testing.T) {
 	defer tc.Cleanup()
 	s := NewSignupEngine()
 	fu := NewFakeUserOrBust(t, "se")
-	secui := libkb.TestSecretUI{fu.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
-		LoginUI:  &libkb.TestLoginUI{fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	if err := RunEngine(s, ctx, arg, nil); err != nil {
 		t.Fatal(err)

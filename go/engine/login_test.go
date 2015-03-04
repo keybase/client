@@ -122,7 +122,7 @@ func TestLoginAddsKeys(t *testing.T) {
 		},
 	}
 	li := NewLoginEngine()
-	secui := libkb.TestSecretUI{passphrase}
+	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
@@ -177,7 +177,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 		},
 	}
 	li := NewLoginEngine()
-	secui := libkb.TestSecretUI{passphrase}
+	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)
@@ -196,12 +196,12 @@ func TestLoginDetKeyOnly(t *testing.T) {
 func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(t, "login")
 
-	secui := libkb.TestSecretUI{fu.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
 		LogUI:    G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine()
 
@@ -239,13 +239,13 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		t.Fatal(err)
 	}
 
-	secui := libkb.TestSecretUI{fu.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	s := NewSignupEngine()
 	ctx := &Context{
 		GPGUI:    &gpgPubOnlyTestUI{},
 		SecretUI: secui,
 		LogUI:    G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
@@ -270,13 +270,13 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 		t.Fatal(err)
 	}
 
-	secui := libkb.TestSecretUI{fu.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	s := NewSignupEngine()
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
 		LogUI:    G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
@@ -334,7 +334,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-	secui := libkb.TestSecretUI{u1.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
 		DoctorUI: docui,
@@ -386,7 +386,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-	secui := libkb.TestSecretUI{u1.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
 		DoctorUI: docui,
@@ -436,13 +436,13 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	before := docui.selectSignerCount
 
 	li := NewLoginEngine()
-	secui := libkb.TestSecretUI{u1.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
 		DoctorUI: docui,
 		GPGUI:    &gpgtestui{1},
 		SecretUI: secui,
-		LoginUI:  &libkb.TestLoginUI{u1.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: u1.Username},
 	}
 	if err := RunEngine(li, ctx, larg, nil); err != nil {
 		t.Fatal(err)

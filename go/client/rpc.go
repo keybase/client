@@ -23,7 +23,7 @@ func GetRpcServer() (ret *rpc2.Server, xp *rpc2.Transport, err error) {
 func GetSignupClient() (cli keybase_1.SignupClient, err error) {
 	var rpc *rpc2.Client
 	if rpc, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.SignupClient{rpc}
+		cli = keybase_1.SignupClient{Cli: rpc}
 	}
 	return
 }
@@ -31,7 +31,7 @@ func GetSignupClient() (cli keybase_1.SignupClient, err error) {
 func GetConfigClient() (cli keybase_1.ConfigClient, err error) {
 	var rpc *rpc2.Client
 	if rpc, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.ConfigClient{rpc}
+		cli = keybase_1.ConfigClient{Cli: rpc}
 	}
 	return
 }
@@ -39,7 +39,7 @@ func GetConfigClient() (cli keybase_1.ConfigClient, err error) {
 func GetLoginClient() (cli keybase_1.LoginClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.LoginClient{rcli}
+		cli = keybase_1.LoginClient{Cli: rcli}
 	}
 	return
 }
@@ -60,7 +60,7 @@ func RegisterProtocols(prots []rpc2.Protocol) (err error) {
 func GetIdentifyClient() (cli keybase_1.IdentifyClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.IdentifyClient{rcli}
+		cli = keybase_1.IdentifyClient{Cli: rcli}
 	}
 	return
 }
@@ -68,7 +68,7 @@ func GetIdentifyClient() (cli keybase_1.IdentifyClient, err error) {
 func GetProveClient() (cli keybase_1.ProveClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.ProveClient{rcli}
+		cli = keybase_1.ProveClient{Cli: rcli}
 	}
 	return
 }
@@ -76,7 +76,7 @@ func GetProveClient() (cli keybase_1.ProveClient, err error) {
 func GetMykeyClient() (cli keybase_1.MykeyClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.MykeyClient{rcli}
+		cli = keybase_1.MykeyClient{Cli: rcli}
 	}
 	return
 }
@@ -84,7 +84,7 @@ func GetMykeyClient() (cli keybase_1.MykeyClient, err error) {
 func GetTrackClient() (cli keybase_1.TrackClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.TrackClient{rcli}
+		cli = keybase_1.TrackClient{Cli: rcli}
 	}
 	return
 }
@@ -92,7 +92,7 @@ func GetTrackClient() (cli keybase_1.TrackClient, err error) {
 func GetSibkeyClient() (cli keybase_1.SibkeyClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.SibkeyClient{rcli}
+		cli = keybase_1.SibkeyClient{Cli: rcli}
 	}
 	return
 }

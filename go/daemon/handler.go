@@ -33,7 +33,7 @@ func (h *BaseHandler) getRpcClient() *rpc2.Client {
 
 func (h *BaseHandler) getLoginUICli() *keybase_1.LoginUiClient {
 	if h.loginCli == nil {
-		h.loginCli = &keybase_1.LoginUiClient{h.getRpcClient()}
+		h.loginCli = &keybase_1.LoginUiClient{Cli: h.getRpcClient()}
 	}
 	return h.loginCli
 }
@@ -44,7 +44,7 @@ func (h *BaseHandler) getLoginUI(sessionId int) libkb.LoginUI {
 
 func (h *BaseHandler) getSecretUICli() *keybase_1.SecretUiClient {
 	if h.secretCli == nil {
-		h.secretCli = &keybase_1.SecretUiClient{h.getRpcClient()}
+		h.secretCli = &keybase_1.SecretUiClient{Cli: h.getRpcClient()}
 	}
 	return h.secretCli
 }
@@ -55,7 +55,7 @@ func (h *BaseHandler) getSecretUI(sessionId int) libkb.SecretUI {
 
 func (h *BaseHandler) getLogUICli() *keybase_1.LogUiClient {
 	if h.logCli == nil {
-		h.logCli = &keybase_1.LogUiClient{h.getRpcClient()}
+		h.logCli = &keybase_1.LogUiClient{Cli: h.getRpcClient()}
 	}
 	return h.logCli
 }
@@ -69,7 +69,7 @@ func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionId int, username string) *R
 	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
 		username:  username,
-		uicli:     keybase_1.IdentifyUiClient{c},
+		uicli:     keybase_1.IdentifyUiClient{Cli: c},
 		logUI:     h.getLogUI(sessionId),
 	}}
 }
@@ -79,7 +79,7 @@ func (h *BaseHandler) NewRemoteIdentifyUI(sessionId int, username string) *Remot
 	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
 		username:  username,
-		uicli:     keybase_1.IdentifyUiClient{c},
+		uicli:     keybase_1.IdentifyUiClient{Cli: c},
 		logUI:     h.getLogUI(sessionId),
 	}}
 }

@@ -160,7 +160,7 @@ func (s *PGPEngine) generate(ctx *Context) (err error) {
 	if s.arg.Pregen != nil {
 		s.bundle = s.arg.Pregen
 	} else if s.arg.Gen == nil {
-		err = libkb.InternalError{"PGPEngine: need either Gen or Pregen"}
+		err = libkb.InternalError{Msg: "PGPEngine: need either Gen or Pregen"}
 		return
 	} else if err = s.generateKey(ctx); err != nil {
 		return
@@ -214,7 +214,7 @@ func PGPCheckMulti(me *libkb.User, allowMulti bool) (err error) {
 		return
 	}
 	if pgps := me.GetActivePgpKeys(false); len(pgps) > 0 {
-		err = libkb.KeyExistsError{pgps[0].GetFingerprintP()}
+		err = libkb.KeyExistsError{Key: pgps[0].GetFingerprintP()}
 	}
 	return
 }

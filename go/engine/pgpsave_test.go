@@ -16,7 +16,7 @@ func TestPGPSave(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(t, "login")
-	secui := libkb.TestSecretUI{u.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), SecretUI: secui}
 
 	// try all four permutations of push options:

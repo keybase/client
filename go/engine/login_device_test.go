@@ -28,7 +28,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	G = &tcX.G
 	u := CreateAndSignupFakeUser(t, "login")
 	docui := &ldocuiDevice{ldocui: &ldocui{}}
-	secui := libkb.TestSecretUI{u.Passphrase}
+	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
 	// XXX this is necessary for the test to pass once the goroutine starts
