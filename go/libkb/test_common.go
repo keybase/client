@@ -108,13 +108,7 @@ func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 	defer fpk.Close()
 
 	for _, id := range ids {
-		arg := PGPGenArg{
-			PrimaryBits: 1024,
-			SubkeyBits:  1024,
-			PGPUids:     []string{id},
-		}
-		arg.CreatePgpIDs()
-		bundle, err := NewPgpKeyBundle(arg, G.UI.GetLogUI())
+		bundle, err := tc.MakePGPKey(id)
 		if err != nil {
 			return err
 		}
@@ -131,6 +125,16 @@ func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
 	}
 
 	return nil
+}
+
+func (tc *TestContext) MakePGPKey(id string) (*PgpKeyBundle, error) {
+	arg := PGPGenArg{
+		PrimaryBits: 1024,
+		SubkeyBits:  1024,
+		PGPUids:     []string{id},
+	}
+	arg.CreatePgpIDs()
+	return NewPgpKeyBundle(arg, tc.G.UI.GetLogUI())
 }
 
 func setupTestContext(nm string) (tc TestContext, err error) {

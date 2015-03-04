@@ -64,9 +64,21 @@ func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 }
 
 func (h *MykeyHandler) SaveArmoredPGPKey(arg keybase_1.SaveArmoredPGPKeyArg) error {
-	return nil
+	sessionID := nextSessionId()
+	ctx := &engine.Context{
+		SecretUI: h.getSecretUI(sessionID),
+		LogUI:    h.getLogUI(sessionID),
+	}
+	eng := engine.NewPGPSaveArmored(arg.Key, arg.PushPublic, arg.PushPrivate)
+	return engine.RunEngine(eng, ctx, nil, nil)
 }
 
 func (h *MykeyHandler) SavePGPKey(arg keybase_1.SavePGPKeyArg) error {
-	return nil
+	sessionID := nextSessionId()
+	ctx := &engine.Context{
+		SecretUI: h.getSecretUI(sessionID),
+		LogUI:    h.getLogUI(sessionID),
+	}
+	eng := engine.NewPGPSaveRaw(arg.Key, arg.PushPublic, arg.PushPrivate)
+	return engine.RunEngine(eng, ctx, nil, nil)
 }
