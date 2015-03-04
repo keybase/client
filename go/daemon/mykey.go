@@ -62,3 +62,11 @@ func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 	}
 	return engine.RunEngine(gpg, ctx, nil, nil)
 }
+
+func (h *MykeyHandler) SaveArmoredPGPKey(arg keybase_1.SaveArmoredPGPKeyArg) error {
+	return nil
+}
+
+func (h *MykeyHandler) SavePGPKey(arg keybase_1.SavePGPKeyArg) error {
+	return nil
+}

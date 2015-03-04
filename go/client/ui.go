@@ -518,7 +518,7 @@ func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sel
 	ret, err := d.parent.PromptSelectionOrCancel("Choose a signing option", 1, optcount)
 	if err != nil {
 		if err == ErrInputCanceled {
-			res.Action = keybase_1.SelectSignerAction_LOGOUT
+			res.Action = keybase_1.SelectSignerAction_CANCEL
 			return res, nil
 		}
 		return res, err

@@ -434,6 +434,20 @@
   }];
 }
 
+- (void)saveArmoredPGPKeyWithKey:(NSString *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"key": KBRValue(key), @"pushPublic": @(pushPublic), @"pushPrivate": @(pushPrivate)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.saveArmoredPGPKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)savePGPKeyWithKey:(NSData *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"key": KBRValue(key), @"pushPublic": @(pushPublic), @"pushPrivate": @(pushPrivate)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.savePGPKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRProveRequest
@@ -982,6 +996,32 @@
     self.query = params[0][@"query"];
     self.allowMulti = [params[0][@"allowMulti"] boolValue];
     self.skipImport = [params[0][@"skipImport"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSaveArmoredPGPKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.key = params[0][@"key"];
+    self.pushPublic = [params[0][@"pushPublic"] boolValue];
+    self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSavePGPKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.key = params[0][@"key"];
+    self.pushPublic = [params[0][@"pushPublic"] boolValue];
+    self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
   }
   return self;
 }

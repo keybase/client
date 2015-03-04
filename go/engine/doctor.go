@@ -212,7 +212,7 @@ func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
-	if res.Action == keybase_1.SelectSignerAction_LOGOUT {
+	if res.Action == keybase_1.SelectSignerAction_CANCEL {
 		// XXX another way to bail besides returning an error?
 		return fmt.Errorf("cancel requested by user")
 	}

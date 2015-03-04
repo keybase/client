@@ -193,6 +193,32 @@
         "type" : "boolean"
       } ],
       "response" : "null"
+    },
+    "saveArmoredPGPKey" : {
+      "request" : [ {
+        "name" : "key",
+        "type" : "string"
+      }, {
+        "name" : "pushPublic",
+        "type" : "boolean"
+      }, {
+        "name" : "pushPrivate",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
+    },
+    "savePGPKey" : {
+      "request" : [ {
+        "name" : "key",
+        "type" : "bytes"
+      }, {
+        "name" : "pushPublic",
+        "type" : "boolean"
+      }, {
+        "name" : "pushPrivate",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
     }
   }
 }

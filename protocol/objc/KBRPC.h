@@ -104,7 +104,7 @@ typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
 };
 typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 	KBRSelectSignerActionSign,
-	KBRSelectSignerActionLogout,
+	KBRSelectSignerActionCancel,
 	KBRSelectSignerActionResetAccount,
 };
 @interface KBRDeviceSigner : KBRObject
@@ -332,6 +332,10 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)selectWithQuery:(NSString *)query allowMulti:(BOOL )allowMulti skipImport:(BOOL )skipImport completion:(void (^)(NSError *error))completion;
 
+- (void)saveArmoredPGPKeyWithKey:(NSString *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion;
+
+- (void)savePGPKeyWithKey:(NSData *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRProveRequest : KBRRequest
@@ -557,6 +561,16 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *query;
 @property BOOL allowMulti;
 @property BOOL skipImport;
+@end
+@interface KBRSaveArmoredPGPKeyRequestParams : KBRRequestParams
+@property NSString *key;
+@property BOOL pushPublic;
+@property BOOL pushPrivate;
+@end
+@interface KBRSavePGPKeyRequestParams : KBRRequestParams
+@property NSData *key;
+@property BOOL pushPublic;
+@property BOOL pushPrivate;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;

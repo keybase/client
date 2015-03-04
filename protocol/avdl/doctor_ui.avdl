@@ -14,7 +14,7 @@ protocol doctorUi {
 
 	enum SelectSignerAction {
 		SIGN,
-		LOGOUT,
+		CANCEL,
 		RESET_ACCOUNT
 	}
 

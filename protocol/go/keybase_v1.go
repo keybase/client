@@ -258,7 +258,7 @@ type SelectSignerAction int
 
 const (
 	SelectSignerAction_SIGN          = 0
-	SelectSignerAction_LOGOUT        = 1
+	SelectSignerAction_CANCEL        = 1
 	SelectSignerAction_RESET_ACCOUNT = 2
 )
 
@@ -987,12 +987,26 @@ type SelectArg struct {
 	SkipImport bool   `codec:"skipImport" json:"skipImport"`
 }
 
+type SaveArmoredPGPKeyArg struct {
+	Key         string `codec:"key" json:"key"`
+	PushPublic  bool   `codec:"pushPublic" json:"pushPublic"`
+	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
+}
+
+type SavePGPKeyArg struct {
+	Key         []byte `codec:"key" json:"key"`
+	PushPublic  bool   `codec:"pushPublic" json:"pushPublic"`
+	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
+}
+
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
 	KeyGenDefault(KeyGenDefaultArg) error
 	DeletePrimary() error
 	Show() error
 	Select(SelectArg) error
+	SaveArmoredPGPKey(SaveArmoredPGPKeyArg) error
+	SavePGPKey(SavePGPKeyArg) error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -1034,6 +1048,20 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"saveArmoredPGPKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SaveArmoredPGPKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.SaveArmoredPGPKey(args[0])
+				}
+				return
+			},
+			"savePGPKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SavePGPKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.SavePGPKey(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1065,6 +1093,16 @@ func (c MykeyClient) Show() (err error) {
 
 func (c MykeyClient) Select(__arg SelectArg) (err error) {
 	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MykeyClient) SaveArmoredPGPKey(__arg SaveArmoredPGPKeyArg) (err error) {
+	err = c.Cli.Call("keybase.1.mykey.saveArmoredPGPKey", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MykeyClient) SavePGPKey(__arg SavePGPKeyArg) (err error) {
+	err = c.Cli.Call("keybase.1.mykey.savePGPKey", []interface{}{__arg}, nil)
 	return
 }
 
