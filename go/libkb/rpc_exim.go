@@ -385,7 +385,7 @@ func (e LoggedInError) ToStatus() (s keybase_1.Status) {
 func (e KeyGenError) ToStatus() (s keybase_1.Status) {
 	s.Code = SC_KEY_BAD_GEN
 	s.Name = "KEY_BAD_GEN"
-	s.Desc = e.msg
+	s.Desc = e.Msg
 	return
 }
 

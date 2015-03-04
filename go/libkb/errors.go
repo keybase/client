@@ -606,11 +606,11 @@ func (e ProofNotYetAvailableError) Error() string {
 //=============================================================================
 
 type KeyGenError struct {
-	msg string
+	Msg string
 }
 
 func (e KeyGenError) Error() string {
-	return fmt.Sprintf("KeyGen error: %s", e.msg)
+	return fmt.Sprintf("key generation error: %s", e.Msg)
 }
 
 //=============================================================================

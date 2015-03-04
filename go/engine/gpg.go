@@ -143,8 +143,16 @@ func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) (err error)
 		AllowMulti: g.arg.AllowMulti,
 		NoSave:     g.arg.SkipImport,
 	})
+
 	if err = RunEngine(eng, ctx, nil, nil); err != nil {
-		return fmt.Errorf("keygen run error: %s", err)
+
+		// It's important to propogate a CanceledError unmolested,
+		// since the UI needs to know that. See:
+		//  https://github.com/keybase/client/issues/226
+		if _, ok := err.(libkb.CanceledError); !ok {
+			err = libkb.KeyGenError{err.Error()}
+		}
+		return
 	}
 
 	G.Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
