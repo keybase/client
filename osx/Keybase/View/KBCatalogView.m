@@ -101,6 +101,7 @@
   NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
   [window center];
+  [window setFrameOrigin:self.window.frame.origin];
   [window makeKeyAndOrderFront:nil];
   return window;
 }

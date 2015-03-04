@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
+#import "KBContentView.h"
 
-@interface KBKeyGenView : KBView
+@interface KBKeyGenView : KBContentView
 
 @end

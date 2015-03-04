@@ -64,4 +64,15 @@
   self.layer.masksToBounds = YES;
 }
 
+- (NSImage *)imageTintedWithColor:(NSColor *)tint {
+  NSParameterAssert(tint);
+  NSImage *image = [self.image copy];
+  [image lockFocus];
+  [tint set];
+  NSRect imageRect = {NSZeroPoint, [image size]};
+  NSRectFillUsingOperation(imageRect, NSCompositeSourceAtop);
+  [image unlockFocus];
+  return image;
+}
+
 @end

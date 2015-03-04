@@ -10,8 +10,9 @@
 
 #import "KBAppKit.h"
 #import "KBDeviceSignerOption.h"
+#import "KBContentView.h"
 
-@interface KBDeviceSetupView : KBView
+@interface KBDeviceSetupView : KBContentView
 
 @property KBListView *deviceSignerView;
 @property KBButton *selectButton;

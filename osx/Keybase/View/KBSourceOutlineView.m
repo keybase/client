@@ -28,7 +28,7 @@
   _outlineView.delegate = self;
   _outlineView.dataSource = self;
   _data = [MPOrderedDictionary dictionary];
-  [_data setObject:@[@"Users", @"Devices", @"Folders", @"Debug"] forKey:@"Keybase"];
+  [_data setObject:@[@"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
   _outlineView.floatsGroupRows = NO;
   _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
   [_outlineView reloadData];
@@ -41,6 +41,8 @@
   [self addSubview:border];
 
   _statusView = [[KBUserStatusView alloc] init];
+  GHWeakSelf gself = self;
+  _statusView.button.actionBlock = ^(id sender) { [gself selectItem:KBSourceViewItemProfile]; };
   [self addSubview:_statusView];
 
   YOSelf yself = self;
@@ -65,15 +67,20 @@
   return _progressView.isAnimating;
 }
 
+- (void)selectItem:(KBSourceViewItem)item {
+  if (item == KBSourceViewItemProfile) {
+    [_outlineView deselectAll:self];
+  }
+  [self.delegate sourceOutlineView:self didSelectItem:item];
+}
+
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {
   if ([_outlineView selectedRow] != -1) {
     NSString *item = [_outlineView itemAtRow:[_outlineView selectedRow]];
     if ([_outlineView parentForItem:item] != nil) {
-      if ([item isEqualTo:@"Profile"]) [self.delegate sourceOutlineView:self didSelectItem:KBSourceViewItemProfile];
-      if ([item isEqualTo:@"Users"]) [self.delegate sourceOutlineView:self didSelectItem:KBSourceViewItemUsers];
-      if ([item isEqualTo:@"Devices"]) [self.delegate sourceOutlineView:self didSelectItem:KBSourceViewItemDevices];
-      if ([item isEqualTo:@"Folders"]) [self.delegate sourceOutlineView:self didSelectItem:KBSourceViewItemFolders];
-      if ([item isEqualTo:@"Debug"]) [self.delegate sourceOutlineView:self didSelectItem:KBSourceViewItemDebug];
+      if ([item isEqualTo:@"Users"]) [self selectItem:KBSourceViewItemUsers];
+      if ([item isEqualTo:@"Devices"]) [self selectItem:KBSourceViewItemDevices];
+      if ([item isEqualTo:@"Folders"]) [self selectItem:KBSourceViewItemFolders];
     }
   }
 }

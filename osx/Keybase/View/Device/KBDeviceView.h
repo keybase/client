@@ -1,5 +1,5 @@
 //
-//  KBUserStatusView.h
+//  KBDeviceView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/3/15.
@@ -11,11 +11,8 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBUserStatusView : YONSView
+@interface KBDeviceView : KBImageTextView
 
-@property KBButton *button;
-
-- (void)setStatus:(KBRGetCurrentStatusRes *)status;
-- (void)setConnected:(BOOL)connected;
+- (void)setDevice:(KBRDevice *)device;
 
 @end

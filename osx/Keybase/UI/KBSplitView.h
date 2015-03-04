@@ -12,6 +12,9 @@
 
 @interface KBSplitView : YONSView
 
+@property UIEdgeInsets insets;
+@property CGFloat dividerPosition;
+
 - (void)setSourceView:(NSView *)sourceView contentView:(NSView *)contentView;
 
 @end

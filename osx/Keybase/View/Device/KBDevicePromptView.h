@@ -8,10 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import "KBAppKit.h"
+#import "KBContentView.h"
 
 typedef void (^KBDevicePromptCompletion)(id sender, NSError *error, NSString *deviceName);
 
-@interface KBDevicePromptView : KBView
+@interface KBDevicePromptView : KBContentView
 
 @property (copy) KBDevicePromptCompletion completion;
 

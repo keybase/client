@@ -48,7 +48,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 
 - (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-- (void)setColor:(NSColor *)color font:(NSFont *)font;
+- (void)setFont:(NSFont *)font color:(NSColor *)color;
 
 - (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance;
 

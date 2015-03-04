@@ -40,6 +40,7 @@
   [self addSubview:_name1Label];
 
   _name2View = [KBButton button];
+  _name2View.hidden = YES;
   [self addSubview:_name2View];
 
   _locationLabel = [[KBLabel alloc] init];
@@ -77,12 +78,14 @@
     _name1Label.attributedText = nil;
     _imageView.hidden = YES;
     _imageView.URLString = nil;
+    _name2View.hidden = YES;
     return;
   }
 
   _imageView.hidden = NO;
   [_name1Label setText:user.username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
+  _name2View.hidden = NO;
   [_name2View setText:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];

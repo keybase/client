@@ -25,6 +25,8 @@
   [self addSubview:_connectButton];
 
   _infoView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
+  _infoView.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
+  _infoView.layer.borderWidth = 1.0;
   _infoView.cellSetBlock = ^(KBLabel *label, NSString *text, NSIndexPath *indexPath, id containingView/*NSTableView*/, BOOL dequeued) {
     [label setText:text style:KBLabelStyleDefault];
   };

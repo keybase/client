@@ -23,6 +23,6 @@
 
 @property CGSize imageSize;
 
-- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource appearance:(id<KBAppearance>)appearance;
+- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource;
 
 @end

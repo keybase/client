@@ -16,13 +16,15 @@
 #import "KBSignupView.h"
 #import "KBInstaller.h"
 #import "KBUserStatusView.h"
+#import "KBDevicesAppView.h"
 
 @interface KBAppView ()
 @property KBSourceOutlineView *sourceView;
 @property KBBox *border;
 @property (readonly) YONSView *contentView;
 
-@property KBUsersAppView *usersMainView;
+@property KBUsersAppView *usersAppView;
+@property KBDevicesAppView *devicesAppView;
 
 @property KBUserProfileView *userProfileView;
 @property (nonatomic) KBLoginView *loginView;
@@ -47,6 +49,7 @@
   [self updateMenu];
 
   _sourceView = [[KBSourceOutlineView alloc] init];
+  _sourceView.hidden = YES;
   _sourceView.delegate = self;
   [self addSubview:_sourceView];
 
@@ -55,7 +58,7 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat col1 = 150;
+    CGFloat col1 = 160;
 
     CGFloat x = 0;
     CGFloat y = 27;
@@ -142,13 +145,13 @@
 
 - (void)setContentView:(YONSView *)contentView showSourceView:(BOOL)showSourceView {
   self.sourceView.hidden = !showSourceView;
-  [_contentView removeFromSuperview];
-  _contentView = contentView;
-  if (_contentView) {
-    [self addSubview:_contentView];
+  if (_contentView != contentView) {
+    [_contentView removeFromSuperview];
+    _contentView = contentView;
+    if (_contentView) [self addSubview:_contentView];
+    if ([_contentView respondsToSelector:@selector(viewDidAppear:)]) [(id)_contentView viewDidAppear:NO];
+    [self setNeedsLayout];
   }
-  if ([_contentView respondsToSelector:@selector(viewDidAppear:)]) [(id)_contentView viewDidAppear:NO];
-  [self setNeedsLayout];
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {
@@ -199,9 +202,8 @@
 }
 
 - (void)showUsers {
-  if (!_usersMainView) _usersMainView = [[KBUsersAppView alloc] init];
-  [_usersMainView setUser:_user];
-  [self setContentView:_usersMainView showSourceView:YES];
+  if (!_usersAppView) _usersAppView = [[KBUsersAppView alloc] init];
+  [self setContentView:_usersAppView showSourceView:YES];
 }
 
 - (void)showProfile {
@@ -211,9 +213,10 @@
   [self setContentView:_userProfileView showSourceView:YES];
 }
 
-- (void)showDebug {
-  KBCatalogView *catalogView = [[KBCatalogView alloc] init];
-  [self setContentView:catalogView showSourceView:YES];
+- (void)showDevices {
+  if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
+  [_devicesAppView refresh];
+  [self setContentView:_devicesAppView showSourceView:YES];
 }
 
 - (void)logout {
@@ -243,15 +246,18 @@
   [self updateMenu];
 
   if (_status.loggedIn && _status.user) {
-    [self showProfile];
+    if (_sourceView.hidden) {
+      [self showProfile];
+    }
   } else {
-    [self showLogin];
+    if (!_sourceView.hidden) {
+      [self showLogin];
+    }
   }
 }
 
 - (void)setUser:(KBRUser *)user {
   _user = user;
-  [self setContentView:nil showSourceView:YES];
   [self.loginView setUser:user];
 }
 
@@ -264,13 +270,17 @@
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
+  [self.sourceView.statusView setConnected:YES];
   [self checkStatus];
 }
 
-- (void)RPClientDidDisconnect:(KBRPClient *)RPClient { }
+- (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
+  [self.sourceView.statusView setConnected:NO];
+}
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
-  if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
+  //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
+  [self.sourceView.statusView setConnected:NO];
 }
 
 - (void)checkStatus {
@@ -280,16 +290,14 @@
       [AppDelegate.sharedDelegate setFatalError:error];
       return;
     }
-    // TODO: check error
-    //GHDebug(@"Status: %@", status);
-    self.status = status;
+    [self setStatus:status];
   }];
 }
 
 - (void)sourceOutlineView:(KBSourceOutlineView *)sourceView didSelectItem:(KBSourceViewItem)item {
   switch (item) {
   case KBSourceViewItemDevices:
-    [self setContentView:nil showSourceView:YES];
+      [self showDevices];
     break;
   case KBSourceViewItemFolders:
     [self setContentView:nil showSourceView:YES];
@@ -299,9 +307,6 @@
     break;
   case KBSourceViewItemUsers:
     [self showUsers];
-    break;
-  case KBSourceViewItemDebug:
-    [self showDebug];
     break;
   }
 }

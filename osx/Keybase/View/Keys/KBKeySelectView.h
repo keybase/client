@@ -11,8 +11,9 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 #import "KBGPGKeysView.h"
+#import "KBContentView.h"
 
-@interface KBKeySelectView : KBView
+@interface KBKeySelectView : KBContentView
 
 @property KBGPGKeysView *keysView;
 @property KBButton *selectButton;

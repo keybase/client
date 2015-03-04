@@ -1,8 +1,8 @@
 //
-//  KBView.h
+//  KBContentView.h
 //  Keybase
 //
-//  Created by Gabriel on 3/2/15.
+//  Created by Gabriel on 3/3/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
@@ -11,7 +11,7 @@
 #import <YOLayout/YOLayout.h>
 #import "KBNavigationView.h"
 
-@interface KBView : YONSView
+@interface KBContentView : YONSView
 
 @property KBNavigationView *navigation;
 

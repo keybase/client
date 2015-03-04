@@ -10,6 +10,7 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
+#import "KBContentView.h"
 
 @class KBSignupView;
 
@@ -18,7 +19,7 @@
 @end
 
 
-@interface KBSignupView : KBView <NSTextFieldDelegate>
+@interface KBSignupView : KBContentView <NSTextFieldDelegate>
 @property (weak) id<KBSignupViewDelegate> delegate;
 
 @property KBTextField *emailField;

@@ -21,6 +21,9 @@
   self.wantsLayer = YES;
   self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
+  self.button = [KBButton buttonWithText:nil style:KBButtonStyleEmpty];
+  [self addSubview:self.button];
+
   _imageView = [[KBImageView alloc] init];
   _imageView.roundedRatio = 1.0;
   [self addSubview:_imageView];
@@ -42,6 +45,8 @@
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.nameLabel].size.height + 4;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.statusLabel].size.height + 4;
 
+    [layout setFrame:CGRectMake(0, 0, size.width, size.height) view:yself.button];
+
     return CGSizeMake(size.width, 60);
   }];
 }
@@ -51,8 +56,6 @@
 
   [_nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
-  [_statusLabel setText:@"Connected" font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.okColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-
   if (user.image.url) {
     [self.imageView setURLString:user.image.url];
   } else {
@@ -60,6 +63,14 @@
   }
 
   [self setNeedsLayout];
+}
+
+- (void)setConnected:(BOOL)connected {
+  if (connected) {
+    [_statusLabel setText:@"Connected" font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.okColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  } else {
+    [_statusLabel setText:@"Disconnected" font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.errorColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  }
 }
 
 @end

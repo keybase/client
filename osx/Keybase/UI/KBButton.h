@@ -17,6 +17,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleLink,
   KBButtonStyleCheckbox,
   KBButtonStyleText,
+  KBButtonStyleEmpty
 };
 
 @interface KBButton : NSButton

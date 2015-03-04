@@ -31,8 +31,11 @@
   topView.viewLayout = [YOLayout vertical:topView.subviews margin:UIEdgeInsetsZero padding:20];
 
   _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextView.class rowHeight:0];
+  _deviceSignerView.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
+  _deviceSignerView.layer.borderWidth = 1.0;
+
   _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
-    [view setTitle:option.title info:option.info imageSource:option.imageSource appearance:KBAppearance.currentAppearance];
+    [view setTitle:option.title info:option.info imageSource:option.imageSource];
   };
   [self.contentView addSubview:_deviceSignerView];
 

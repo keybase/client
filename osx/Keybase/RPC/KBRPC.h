@@ -280,7 +280,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 - (void)reportLastTrackWithSessionID:(NSInteger )sessionID track:(KBRTrackSummary *)track completion:(void (^)(NSError *error))completion;
 
-- (void)launchNetworkChecksWithSessionID:(NSInteger )sessionID id:(KBRIdentity *)id user:(KBRUser *)user completion:(void (^)(NSError *error))completion;
+- (void)launchNetworkChecksWithSessionID:(NSInteger )sessionID identity:(KBRIdentity *)identity user:(KBRUser *)user completion:(void (^)(NSError *error))completion;
 
 - (void)displayTrackStatementWithSessionID:(NSInteger )sessionID stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion;
 

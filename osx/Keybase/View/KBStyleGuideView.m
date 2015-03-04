@@ -32,6 +32,11 @@
   [label2 setText:@"Text Middle Align with border" font:[NSFont systemFontOfSize:16] color:NSColor.blackColor alignment:NSCenterTextAlignment];
   [contentView addSubview:label2];
 
+  KBImageTextView *imageTextView = [[KBImageTextView alloc] init];
+  imageTextView.imageSize = CGSizeMake(40, 40);
+  [imageTextView setTitle:@"Test" info:@"Info" imageSource:@"30-Hardware-black-computer-30"];
+  [contentView addSubview:imageTextView];
+
   YONSView *buttonView = [[YONSView alloc] init];
   KBButton *buttonPrimary = [KBButton buttonWithText:@"Primary" style:KBButtonStylePrimary];
   buttonPrimary.targetBlock = ^{ };
@@ -80,6 +85,7 @@
     CGFloat y = 20;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label1].size.height + 20;
     y += [layout setFrame:CGRectMake(40, y, 200, 100) view:label2].size.height + 20;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, 200, 100) view:imageTextView].size.height + 20;
 
     [layout setFrame:CGRectMake(40, y, size.width/2.0, 160) view:linkView];
     y += [layout setFrame:CGRectMake(size.width/2.0, y, size.width/2.0, 160) view:yself.progressView].size.height + 20;

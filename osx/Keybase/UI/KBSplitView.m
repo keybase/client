@@ -12,7 +12,6 @@
 
 @interface KBSplitView ()
 @property NSView *sourceView;
-@property KBBox *border;
 @property NSView *contentView;
 @end
 
@@ -21,14 +20,24 @@
 - (void)viewInit {
   [super viewInit];
 
-  self.border = [KBBox line];
+  _dividerPosition = 240;
+
+  KBBox *borderTop = [KBBox line];
+  [self addSubview:borderTop];
+
+  KBBox *borderMiddle = [KBBox line];
+  [self addSubview:borderMiddle];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat col1 = 150;
-    [layout setFrame:CGRectMake(0, 0, col1 - 1, size.height) view:yself.sourceView];
-    [layout setFrame:CGRectMake(col1 - 1, 0, 1, size.height) view:yself.border];
-    [layout setFrame:CGRectMake(col1, 0, size.width - col1, size.height) view:yself.contentView];
+    CGFloat col1 = yself.dividerPosition;
+
+    CGFloat y = yself.insets.top + 1;
+    y += [layout setFrame:CGRectMake(0, y, size.width, 1) view:borderTop].size.height;
+    [layout setFrame:CGRectMake(col1 - 1, y, 1, size.height) view:borderMiddle];
+
+    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y - yself.insets.bottom) view:yself.sourceView];
+    [layout setFrame:CGRectMake(col1, y, size.width - col1, size.height - y - yself.insets.bottom) view:yself.contentView];
     return size;
   }];
 }

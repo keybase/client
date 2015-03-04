@@ -182,7 +182,7 @@
   [self setAttributedText:attributedText];
 }
 
-- (void)setColor:(NSColor *)color font:(NSFont *)font {
+- (void)setFont:(NSFont *)font color:(NSColor *)color {
   NSMutableAttributedString *str = [_attributedText mutableCopy];
   NSMutableDictionary *attr = [NSMutableDictionary dictionary];
   if (color) attr[NSForegroundColorAttributeName] = color;
@@ -194,13 +194,13 @@
 - (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
   switch (style) {
     case KBLabelStyleDefault:
-      [self setColor:appearance.textColor font:appearance.textFont];
+      [self setFont:appearance.textFont color:appearance.textColor];
       break;
     case KBLabelStyleSecondaryText:
-      [self setColor:appearance.secondaryTextColor font:appearance.textFont];
+      [self setFont:appearance.textFont color:appearance.secondaryTextColor];
       break;
     case KBLabelStyleHeader:
-      [self setColor:appearance.textColor font:appearance.boldLargeTextFont];
+      [self setFont:appearance.boldLargeTextFont color:appearance.textColor];
       break;
   }
 }

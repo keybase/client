@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBUserView : YONSView
+@interface KBUserView : KBImageTextView
 
 - (void)setUser:(KBRUser *)user;
 

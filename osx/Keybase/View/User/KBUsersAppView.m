@@ -13,15 +13,13 @@
 #import "KBProgressOverlayView.h"
 #import "KBUserView.h"
 #import "KBSearchResultView.h"
+#import "KBSearchControl.h"
 
 @interface KBUsersAppView ()
-@property NSSearchField *searchField;
+@property KBSearchControl *searchField;
 @property KBListView *usersView;
 @property KBListView *searchResultsView;
-@property KBBox *border;
 @property KBUserProfileView *userProfileView;
-
-@property KBBox *borderCol1;
 
 @property KBActivityIndicatorView *progressView;
 @property NSString *searchText;
@@ -32,11 +30,10 @@
 - (void)viewInit {
   [super viewInit];
 
-  _searchField = [[NSSearchField alloc] init];
+  YOSelf yself = self;
+
+  _searchField = [[KBSearchControl alloc] init];
   _searchField.delegate = self;
-  _searchField.placeholderString = @"Search";
-  _searchField.sendsWholeSearchString = YES;
-  [_searchField.cell setMaximumRecents:20];
   [self addSubview:_searchField];
 
   _usersView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
@@ -44,20 +41,19 @@
   _usersView.cellSetBlock = ^(KBUserView *view, KBRUser *user, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
     [view setUser:user];
   };
+  _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
+    [yself selectUser:user];
+  };
   [self addSubview:_usersView];
 
-  _borderCol1 = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
-  [self addSubview:_borderCol1];
-
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
-  _searchResultsView.layer.borderWidth = 0;
   _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
     [view setSearchResult:searchResult];
   };
+  _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
+    [yself selectUser:KBRUserFromSearchResult(searchResult)];
+  };
   [self addSubview:_searchResultsView];
-
-  _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
-  [self addSubview:_border];
 
   _userProfileView = [[KBUserProfileView alloc] init];
   [self addSubview:_userProfileView];
@@ -66,15 +62,10 @@
   _progressView.lineWidth = 1.0;
   [self addSubview:_progressView];
 
-  YOSelf yself = self;
-
-  _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
-    [yself.userProfileView setUser:user editable:NO client:AppDelegate.client];
-  };
-
-  _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
-    [yself.userProfileView setUser:KBRUserFromSearchResult(searchResult) editable:NO client:AppDelegate.client];
-  };
+  KBBox *borderLeftTop = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
+  [self addSubview:borderLeftTop];
+  KBBox *borderMiddle = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
+  [self addSubview:borderMiddle];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
@@ -87,37 +78,29 @@
 
     col1y += [layout setFrame:CGRectMake(10, col1y, col1 - 21, 22) view:yself.searchField].size.height + 9;
 
-    [layout setFrame:CGRectMake(0, col1y - 1, col1, 1) view:yself.borderCol1];
+    [layout setFrame:CGRectMake(0, col1y - 1, col1, 1) view:borderLeftTop];
 
     [layout setFrame:CGRectMake(0, col1y, col1 - 1, size.height - col1y) view:yself.usersView];
     [layout setFrame:CGRectMake(0, col1y, col1 - 1, size.height - col1y) view:yself.searchResultsView];
 
     //[layout setFrame:CGRectMake(col1/2.0 - 16, col1y + 20, 32, 32) view:yself.progressView];
 
-    [layout setFrame:CGRectMake(col1 - 1, 0, 1, size.height) view:yself.border];
+    [layout setFrame:CGRectMake(col1 - 1, 0, 1, size.height) view:borderMiddle];
     [layout setFrame:CGRectMake(col1, 0, size.width - col1, size.height) view:yself.userProfileView];
 
     return size;
   }];
 }
 
-- (void)controlTextDidChange:(NSNotification *)notification {
-  //[self.window makeFirstResponder:_searchField];
-  NSString *searchText = [[_searchField stringValue] gh_strip];
-  [self search:searchText];
-}
-
-- (BOOL)control:(NSControl *)control textShouldBeginEditing:(NSText *)fieldEditor {
-  return YES;
-}
-
-- (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor {
-  return YES;
-}
-
 - (void)setUser:(KBRUser *)user {
   [_usersView removeAllObjects];
   [_userProfileView clear];
+  [self selectUser:user];
+}
+
+- (void)selectUser:(KBRUser *)user {
+  BOOL editable = [AppDelegate.appView.user.username isEqual:user.username];
+  [_userProfileView setUser:user editable:editable client:AppDelegate.client];
 }
 
 - (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *users))completion {
@@ -152,67 +135,26 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   return user;
 }
 
-#pragma mark -
+#pragma mark Search
 
-- (void)setSearchProgressEnabled:(BOOL)searchProgressEnabled {
-  //[AppDelegate.appView setProgressEnabled:searchProgressEnabled];
-  _progressView.animating = searchProgressEnabled;
-}
-
-- (void)setSearchResults:(NSArray *)searchResults {
-  [self setSearchProgressEnabled:NO];
+- (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(NSArray *)searchResults {
   [_searchResultsView setObjects:searchResults];
 }
 
-- (void)clearSearchResults {
-  [self setSearchProgressEnabled:NO];
+- (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl {
   [_searchResultsView removeAllObjects];
 }
 
-- (void)search:(NSString *)searchText {
-  _searchText = searchText;
-  [self _searchRemoteDelay:searchText];
+- (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {
+  _progressView.animating = progressEnabled;
 }
 
-- (void)_searchRemoteDelay:(NSString *)searchText {
-  GHWeakSelf blockSelf = self;
-  _searchText = searchText;
-
-  if (!searchText || [searchText length] < 2) {
-    [self clearSearchResults];
-    return;
-  }
-
-  [self setSearchProgressEnabled:YES];
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 700 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
-    if ([blockSelf.searchText isEqual:searchText]) {
-      [blockSelf _searchRemote:searchText];
-    }
-  });
-}
-
-- (void)_searchRemote:(NSString *)searchText {
-  _searchText = searchText;
-
-  [self setSearchProgressEnabled:YES];
-
-  GHWeakSelf gself = self;
-  GHDebug(@"Search (API): %@", searchText);
-
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    [AppDelegate.APIClient searchUsersWithQuery:searchText success:^(NSArray *searchResults) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        if ([gself.searchText isEqual:searchText]) {
-          [gself setSearchResults:searchResults];
-        }
-      });
-    } failure:^(NSError *error) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [gself clearSearchResults];
-        [AppDelegate setError:error sender:gself];
-      });
-    }];
-  });
+- (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *searchResults))completion {
+  [AppDelegate.APIClient searchUsersWithQuery:query success:^(NSArray *searchResults) {
+    completion(nil, searchResults);
+  } failure:^(NSError *error) {
+    completion(error, nil);
+  }];
 }
 
 @end

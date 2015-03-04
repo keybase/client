@@ -10,6 +10,7 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
+#import "KBContentView.h"
 
 @class KBLoginView;
 
@@ -17,7 +18,7 @@
 - (void)loginView:(KBLoginView *)loginView didLoginWithStatus:(KBRGetCurrentStatusRes *)status;
 @end
 
-@interface KBLoginView : KBView <NSTextFieldDelegate>
+@interface KBLoginView : KBContentView <NSTextFieldDelegate>
 @property (weak) id<KBLoginViewDelegate> delegate;
 @property id<KBRPClient> client;
 

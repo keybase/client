@@ -20,6 +20,7 @@
   [_scrollView setHasVerticalScroller:YES];
   _scrollView.verticalScrollElasticity = NSScrollElasticityAllowed;
   [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+  _scrollView.autohidesScrollers = YES;
   [self addSubview:_scrollView];
 
   YOSelf yself = self;

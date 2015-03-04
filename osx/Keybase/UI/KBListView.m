@@ -25,10 +25,9 @@
 
 - (void)viewInit {
   [super viewInit];
-
   self.wantsLayer = YES;
-  self.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
-  self.layer.borderWidth = 1.0;
+//  self.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
+//  self.layer.borderWidth = 1.0;
 
   _dataSource = [NSMutableArray array];
 

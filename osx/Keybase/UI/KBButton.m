@@ -33,9 +33,7 @@
 }
 
 + (instancetype)button {
-  KBButton *button = [[KBButton alloc] init];
-  button.bordered = NO;
-  return button;
+  return [KBButton buttonWithText:nil style:KBButtonStyleEmpty];
 }
 
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style {
@@ -149,6 +147,7 @@
     case KBButtonStyleLink: return [NSFont systemFontOfSize:14];
     case KBButtonStyleText: return [NSFont systemFontOfSize:14];
     case KBButtonStyleCheckbox: return [NSFont systemFontOfSize:14];
+    case KBButtonStyleEmpty: return nil;
   }
 }
 
@@ -180,6 +179,7 @@
     case KBButtonStyleLink: return self.highlighted ? GHNSColorFromRGB(0x000000) : [KBAppearance.currentAppearance selectColor];
     case KBButtonStyleText: NSAssert(NO, @"Text style shouldn't get here");
     case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
+    case KBButtonStyleEmpty: return nil;
   }
 }
 
@@ -191,12 +191,15 @@
     case KBButtonStyleLink: return nil;
     case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
+    case KBButtonStyleEmpty: return nil;
   }
 }
 
 - (NSColor *)highlightedFillColorForState {
   switch (self.style) {
-    case KBButtonStyleDefault: return GHNSColorFromRGB(0xCCCCCC);
+    case KBButtonStyleEmpty:
+    case KBButtonStyleDefault:
+      return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0x286090);
     case KBButtonStyleLink: return nil;
     case KBButtonStyleText: return nil;
@@ -208,7 +211,10 @@
   if (!self.enabled) return [self disabledFillColorForState];
   if (self.highlighted) return [self highlightedFillColorForState];
   switch (self.style) {
-    case KBButtonStyleDefault: return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : GHNSColorFromRGB(0xFFFFFF));
+    case KBButtonStyleEmpty:
+    case KBButtonStyleDefault:
+      return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : GHNSColorFromRGB(0xFFFFFF));
+
     case KBButtonStylePrimary: return self.highlighted ? GHNSColorFromRGB(0x286090) : GHNSColorFromRGB(0x337AB7);
     case KBButtonStyleLink: return nil;
     case KBButtonStyleText: return nil;
@@ -223,6 +229,7 @@
     case KBButtonStyleLink: return nil;
     case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
+    case KBButtonStyleEmpty: return nil;
   }
 }
 
@@ -234,6 +241,7 @@
     case KBButtonStyleLink: return nil;
     case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
+    case KBButtonStyleEmpty: return nil;
   }
 }
 

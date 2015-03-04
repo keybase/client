@@ -14,9 +14,8 @@
 @property KBLabel *infoLabel;
 @property KBBox *border;
 
-@property NSString *title;
-@property NSString *info;
-@property NSString *imageSource;
+@property NSImage *image;
+@property NSImage *imageTinted;
 @end
 
 @implementation KBImageTextView
@@ -61,19 +60,28 @@
   }];
 }
 
-- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource appearance:(id<KBAppearance>)appearance {
-  _title = title;
-  _info = info;
-  _imageSource = imageSource;
-  [self.titleLabel setText:title font:appearance.boldTextFont color:appearance.textColor alignment:NSLeftTextAlignment];
-  [self.infoLabel setText:info style:KBLabelStyleSecondaryText appearance:appearance];
+- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource {
+  [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [self.infoLabel setText:info style:KBLabelStyleSecondaryText appearance:KBAppearance.currentAppearance];
   [self.imageView setImageSource:imageSource];
+  self.image = nil;
+  self.imageTinted = nil;
   [self setNeedsLayout];
 }
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  [self setTitle:_title info:_info imageSource:_imageSource appearance:appearance];
+  [self.titleLabel setFont:appearance.boldTextFont color:appearance.textColor];
+  [self.infoLabel setStyle:KBLabelStyleSecondaryText appearance:appearance];
+
+  if (backgroundStyle == NSBackgroundStyleDark && self.imageView.image) {
+    self.image = self.imageView.image;
+    self.imageTinted = [self.imageView imageTintedWithColor:NSColor.whiteColor];
+    self.imageView.image = self.imageTinted;
+  } else if (self.image) {
+    self.imageView.image = self.image;
+  }
+  
 }
 
 @end
