@@ -30,8 +30,8 @@
 @property (nonatomic) KBLoginView *loginView;
 @property (nonatomic) KBSignupView *signupView;
 
+@property NSString *title;
 @property NSStatusItem *statusItem; // Menubar
-@property KBRPClient *client;
 @property (nonatomic) KBRGetCurrentStatusRes *status;
 @end
 
@@ -39,6 +39,8 @@
 
 - (void)viewInit {
   [super viewInit];
+
+  _title = @"Keybase";
 
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
@@ -95,11 +97,11 @@
   _statusItem.menu = menu;
 }
 
-- (void)connect {
-  GHWeakSelf gself = self;
-  _client = [[KBRPClient alloc] init];
+- (void)connect:(id<KBRPClient>)client {
+  _client = client;
   _client.delegate = self;
 
+  GHWeakSelf gself = self;  
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
     KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
@@ -132,9 +134,8 @@
     completion(nil, nil);
   }];
 
-  KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
-    GHDebug(@"Installed? %@, Type: %@", @(installed), @(installType));
+  [_client checkInstall:^(NSError *error) {
+    // TODO Better error handling here
     if (error) {
       [AppDelegate.sharedDelegate setFatalError:error];
       return;
@@ -145,13 +146,11 @@
 
 - (void)setContentView:(YONSView *)contentView showSourceView:(BOOL)showSourceView {
   self.sourceView.hidden = !showSourceView;
-  if (_contentView != contentView) {
-    [_contentView removeFromSuperview];
-    _contentView = contentView;
-    if (_contentView) [self addSubview:_contentView];
-    if ([_contentView respondsToSelector:@selector(viewDidAppear:)]) [(id)_contentView viewDidAppear:NO];
-    [self setNeedsLayout];
-  }
+  [_contentView removeFromSuperview];
+  _contentView = contentView;
+  if (_contentView) [self addSubview:_contentView];
+  if ([_contentView respondsToSelector:@selector(viewDidAppear:)]) [(id)_contentView viewDidAppear:NO];
+  [self setNeedsLayout];
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {
@@ -171,7 +170,7 @@
       [gself showSignup];
     };
   }
-  _loginView.client = AppDelegate.client;
+  _loginView.client = _client;
   return _loginView;
 }
 
@@ -184,46 +183,50 @@
       [gself showLogin];
     };
   }
+  _signupView.client = _client;
   return _signupView;
 }
 
 - (void)showLogin {
   KBLoginView *view = [self loginView];
   [view removeFromSuperview];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:@"Keybase"];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
   [self setContentView:navigation showSourceView:NO];
 }
 
 - (void)showSignup {
   KBSignupView *view = [self signupView];
   [view removeFromSuperview];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:@"Keybase"];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
   [self setContentView:navigation showSourceView:NO];
 }
 
 - (void)showUsers {
   if (!_usersAppView) _usersAppView = [[KBUsersAppView alloc] init];
+  _usersAppView.client = self.client;
   [self setContentView:_usersAppView showSourceView:YES];
 }
 
 - (void)showProfile {
   NSAssert(_user, @"No user");
   _userProfileView = [[KBUserProfileView alloc] init];
-  [_userProfileView setUser:_user editable:YES client:AppDelegate.client];
+  [_userProfileView setUser:_user editable:YES client:_client];
   [self setContentView:_userProfileView showSourceView:YES];
 }
 
 - (void)showDevices {
   if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
+  _devicesAppView.client = _client;
   [_devicesAppView refresh];
   [self setContentView:_devicesAppView showSourceView:YES];
 }
 
 - (void)logout {
+  GHWeakSelf gself = self;
   [KBAlert promptWithTitle:@"Log Out" description:@"Are you sure you want to log out?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Log Out", @"No"] view:self completion:^(NSModalResponse response) {
     if (response == NSAlertFirstButtonReturn) {
       [self setProgressEnabled:YES];
-      KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:AppDelegate.client];
+      KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
       [login logout:^(NSError *error) {
         [self setProgressEnabled:NO];
         if (error) {
@@ -250,9 +253,7 @@
       [self showProfile];
     }
   } else {
-    if (!_sourceView.hidden) {
-      [self showLogin];
-    }
+    [self showLogin];
   }
 }
 

@@ -16,11 +16,12 @@
 
 @interface KBAppView : YONSView <NSWindowDelegate, KBSourceOutlineViewDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate> //, NSWindowRestoration>
 
-@property (readonly) KBRPClient *client;
+@property id<KBRPClient> client;
+
 @property (nonatomic) KBRUser *user;
 @property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 
-- (void)connect;
+- (void)connect:(id<KBRPClient>)client;
 
 - (void)openWindow;
 

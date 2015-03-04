@@ -163,7 +163,7 @@
 }
 
 - (void)installDebugMocks {
-  // TODO: Remove from release
+  // TODO Remove from release
   NSString *recordZip = [[NSBundle mainBundle] pathForResource:@"record" ofType:@"zip"];
   NSString *recordDir = [AppDelegate applicationSupport:@[@"Record"] create:NO error:nil];
   [self removeDirectory:recordDir error:nil];

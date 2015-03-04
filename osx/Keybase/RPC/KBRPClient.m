@@ -12,6 +12,8 @@
 #import "KBAlert.h"
 #import "AppDelegate.h"
 #import "KBRPCRegistration.h"
+#import "KBInstaller.h"
+#import "KBRPCRecord.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
 #import <NAChloride/NAChloride.h>
@@ -21,16 +23,9 @@
 @property MPMessagePackServer *server;
 @property MPOrderedDictionary *registrations;
 
+@property KBRPCRecord *recorder;
+
 @property NSInteger connectAttempt;
-@end
-
-@interface KBMantleCoder : NSObject <MPMessagePackCoder>
-@end
-
-@implementation KBMantleCoder
-- (NSDictionary *)encodeObject:(id)obj {
-  return [obj conformsToProtocol:@protocol(MTLJSONSerializing)] ? [MTLJSONAdapter JSONDictionaryFromModel:obj] : obj;
-}
 @end
 
 @implementation KBRPClient
@@ -42,16 +37,18 @@
 - (void)open:(void (^)(NSError *error))completion {
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
+
+  _recorder = [[KBRPCRecord alloc] init];
   
   GHWeakSelf gself = self;
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
-    // Recording
-    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
-      //[gself recordMethod:method params:params];
-    }
 
     id sessionId = [[params lastObject] objectForKey:@"sessionID"];
+
+    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+      [gself.recorder recordMethod:method params:params sessionId:[sessionId integerValue] callback:YES];
+    }
     MPRequestHandler requestHandler;
     if (sessionId) {
       KBRPCRegistration *registration = gself.registrations[sessionId];
@@ -66,7 +63,7 @@
     }
   };
 
-  _client.coder = [[KBMantleCoder alloc] init];
+  _client.coder = [[KBRPCCoder alloc] init];
   
   NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
   NSAssert(user, @"No user");
@@ -126,15 +123,15 @@
   });
 }
 
-- (NSArray *)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
+- (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
     completion(KBMakeError(-400, @"We are unable to connect to the keybase daemon."), nil);
-    return nil;
+    return;
   }
 
   NSAssert(sessionId > 0, @"Bad session id");
 
-  NSArray *request = [_client sendRequestWithMethod:method params:params messageId:sessionId completion:^(NSError *error, id result) {
+  [_client sendRequestWithMethod:method params:params messageId:sessionId completion:^(NSError *error, id result) {
     [self unregister:sessionId];
     if (error) {
       GHDebug(@"Error: %@", error);
@@ -148,9 +145,11 @@
   NSMutableArray *mparams = [params mutableCopy];
   mparams[0] = KBScrubPassphrase(params[0]);
 
+  if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+    [self.recorder recordMethod:method params:mparams sessionId:sessionId callback:NO];
+  }
   //NSNumber *messageId = request[1];
-  GHDebug(@"Sent request: %@(%@)", method, [mparams join:@", "]);
-  return request;
+  GHDebug(@"Sent request: %@(%@)", method, mparams);
 }
 
 - (void)check:(void (^)(NSError *error))completion {
@@ -190,6 +189,14 @@
   }];
 }
 
+- (void)checkInstall:(KBCompletionBlock)completion {
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
+    GHDebug(@"Installed? %@, Type: %@", @(installed), @(installType));
+    completion(error);
+  }];
+}
+
 NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
   NSMutableDictionary *mdict = [dict mutableCopy];
   if (mdict[@"passphrase"]) mdict[@"passphrase"] = @"[FILTERED PASSPHRASE]";
@@ -218,4 +225,10 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
   GHDebug(@"Notification: %@(%@)", method, [params join:@","]);
 }
 
+@end
+
+@implementation KBRPCCoder
+- (NSDictionary *)encodeObject:(id)obj {
+  return [obj conformsToProtocol:@protocol(MTLJSONSerializing)] ? [MTLJSONAdapter JSONDictionaryFromModel:obj] : obj;
+}
 @end

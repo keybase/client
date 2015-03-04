@@ -20,7 +20,6 @@
 
 @interface KBLoginView : KBContentView <NSTextFieldDelegate>
 @property (weak) id<KBLoginViewDelegate> delegate;
-@property id<KBRPClient> client;
 
 @property KBTextField *usernameField;
 @property KBButton *loginButton;

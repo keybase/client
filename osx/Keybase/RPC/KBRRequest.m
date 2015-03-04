@@ -16,6 +16,7 @@
 }
 
 - (instancetype)initWithClient:(id<KBRPClient>)client {
+  NSParameterAssert(client);
   if ((self = [super init])) {
     _client = client;
     _sessionId = [client nextSessionId];

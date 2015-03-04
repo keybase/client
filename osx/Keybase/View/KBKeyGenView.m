@@ -75,7 +75,7 @@
 
   //[self setProgressIndicatorEnabled:YES];
   [self.navigation setProgressEnabled:YES];
-  KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
+  KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
   [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:YES passphrase:password completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {

@@ -43,7 +43,7 @@
 }
 
 - (void)refresh {
-  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:AppDelegate.client];
+  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:_client];
   GHWeakSelf gself = self;
   [request deviceListWithSessionID:request.sessionId completion:^(NSError *error, NSArray *items) {
     if (error) {

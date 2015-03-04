@@ -41,7 +41,9 @@
 
   _appView = [[KBAppView alloc] init];
   [_appView openWindow];
-  [_appView connect];
+
+  KBRPClient *client = [[KBRPClient alloc] init];
+  [_appView connect:client];
 
   [catalogWindow setFrameOrigin:NSMakePoint(NSMaxX(_appView.window.frame) + 10, _appView.window.frame.origin.y)];
   [_appView.window addChildWindow:catalogWindow ordered:NSWindowAbove];
@@ -53,10 +55,6 @@
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
   return NO;
-}
-
-+ (KBRPClient *)client {
-  return ((AppDelegate *)[NSApp delegate]).appView.client;
 }
 
 + (KBAPIClient *)APIClient {

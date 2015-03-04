@@ -100,7 +100,7 @@
 
 - (void)selectUser:(KBRUser *)user {
   BOOL editable = [AppDelegate.appView.user.username isEqual:user.username];
-  [_userProfileView setUser:user editable:editable client:AppDelegate.client];
+  [_userProfileView setUser:user editable:editable client:self.client];
 }
 
 - (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *users))completion {

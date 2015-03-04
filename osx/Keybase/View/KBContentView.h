@@ -10,10 +10,12 @@
 
 #import <YOLayout/YOLayout.h>
 #import "KBNavigationView.h"
+#import "KBRPC.h"
 
 @interface KBContentView : YONSView
 
 @property KBNavigationView *navigation;
+@property id<KBRPClient> client;
 
 // Optional content view created on access
 @property (nonatomic, readonly) YONSView *contentView;

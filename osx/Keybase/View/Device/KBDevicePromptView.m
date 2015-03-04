@@ -25,7 +25,7 @@
   [self.contentView addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:@"This is the first time you've logged into a device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance];
+  [label setText:@"This is the first time you've logged into this device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance];
   [self.contentView addSubview:label];
 
   _deviceNameField = [[KBTextField alloc] init];

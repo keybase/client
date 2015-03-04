@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBProofResult.h"
 #import "KBProofLabel.h"
-#import "KBProveView.h"
+#import "KBProveType.h"
 
 @interface KBUserInfoLabels : YONSView
 

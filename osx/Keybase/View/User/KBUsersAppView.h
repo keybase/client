@@ -14,6 +14,8 @@
 
 @interface KBUsersAppView : YONSView <KBSearchControlDelegate>
 
+@property id<KBRPClient> client;
+
 - (void)setUser:(KBRUser *)user;
 
 @end

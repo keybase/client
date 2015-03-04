@@ -144,6 +144,19 @@
 
   [self.navigation setProgressEnabled:YES];
   [self.navigation.titleView setProgressEnabled:YES];
+
+  [login pubkeyLogin:^(NSError *error) {
+    [self.navigation setProgressEnabled:NO];
+    if (error) {
+      [AppDelegate setError:error sender:self];
+      return;
+    }
+
+    self.passwordField.text = nil;
+    [self _checkStatusAfterLogin];
+  }];
+
+  /*
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
@@ -154,6 +167,7 @@
     self.passwordField.text = nil;
     [self _checkStatusAfterLogin];
   }];
+   */
 
 //  [AppDelegate.APIClient logInWithEmailOrUserName:username password:passphrase success:^(KBSession *session) {
 //  } failure:^(NSError *error) {

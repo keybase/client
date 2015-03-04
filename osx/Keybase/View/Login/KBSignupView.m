@@ -172,7 +172,7 @@
   }
 
   GHWeakSelf gself = self;
-  KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
+  KBRSignupRequest *request = [[KBRSignupRequest alloc] initWithClient:self.client];
   [request checkUsernameAvailableWithUsername:userName completion:^(NSError *error) {
     if (error.code == 701) {
       [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance errorColor] alignment:NSRightTextAlignment];
@@ -225,10 +225,10 @@
     return;
   }
 
-  KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:AppDelegate.client];
+  KBRSignupRequest *signup = [[KBRSignupRequest alloc] initWithClient:self.client];
 
   // We'll add PGP key later
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" sessionId:signup.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.gpgUi.wantToAddGPGKey" sessionId:signup.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, @(NO));
   }];
 
@@ -249,7 +249,7 @@
     self.usernameStatusLabel.attributedText = nil;
     self.strengthLabel.attributedText = nil;
 
-    KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:AppDelegate.client];
+    KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
     [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
       if (error) {
         [AppDelegate setError:error sender:self];

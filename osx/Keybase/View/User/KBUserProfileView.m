@@ -115,7 +115,7 @@
 
 - (void)connectWithProveType:(KBProveType)proveType {
   GHWeakSelf gself = self;
-  [KBProveView connectWithProveType:proveType sender:self completion:^(BOOL canceled) {
+  [KBProveView connectWithProveType:proveType client:self.client sender:self completion:^(BOOL canceled) {
     if (!canceled) [gself reload];
   }];
 }
@@ -294,8 +294,8 @@
 #pragma mark Key Select
 
 - (void)selectKey {
-  KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:AppDelegate.client];
-  [AppDelegate.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
+  [self.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     [self selectPGPKey:requestParams completion:completion];
   }];
@@ -321,7 +321,7 @@
 }
 
 - (void)addPGPKey {
-  KBRGpgRequest *request = [[KBRGpgRequest alloc] initWithClient:AppDelegate.client];
+  KBRGpgRequest *request = [[KBRGpgRequest alloc] initWithClient:self.client];
   [request addGpgKey:^(NSError *error) {
     [self reload];
   }];

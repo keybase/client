@@ -16,7 +16,6 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
-+ (KBRPClient *)client;
 + (KBAPIClient *)APIClient;
 + (KBAppView *)appView;
 

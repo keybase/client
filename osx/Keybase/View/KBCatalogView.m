@@ -38,7 +38,10 @@
 
   [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBLabelStyleDefault]];
+
+  [contentView addSubview:[KBButton linkWithText:@"App" actionBlock:^(id sender) { [self showAppView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Login" actionBlock:^(id sender) { [self showLogin]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Signup" actionBlock:^(id sender) { [self showSignup]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" actionBlock:^(id sender) { [self showDeviceSetupView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" actionBlock:^(id sender) { [self showDevicePrompt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
@@ -164,6 +167,13 @@
   [self openInWindow:instructionsView size:CGSizeMake(360, 420) title:@"Keybase"];
 }
 
+- (void)showAppView {
+  KBAppView *appView = [[KBAppView alloc] init];
+  [appView openWindow];
+  KBRMockClient *mockClient = [[KBRMockClient alloc] init];
+  [appView connect:mockClient];
+}
+
 - (void)showLogin {
   KBLoginView *loginView = [[KBLoginView alloc] init];
   KBRMockClient *mockClient = [[KBRMockClient alloc] init];
@@ -176,10 +186,20 @@
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
     KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:[KBRMockClient paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json"]];
     [loginView selectSigner:requestParams completion:^(NSError *error, id result) {
-
+      [loginView.window close];
     }];
   };
   [self openInWindow:loginView size:CGSizeMake(800, 600) title:@"Keybase"];
+}
+
+- (void)showSignup {
+  KBSignupView *signUpView = [[KBSignupView alloc] init];
+  KBRMockClient *mockClient = [[KBRMockClient alloc] init];
+  mockClient.handler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    [signUpView.window close];
+  };
+  signUpView.client = mockClient;
+  [self openInWindow:signUpView size:CGSizeMake(800, 600) title:@"Keybase"];
 }
 
 - (void)showDeviceSetupView {

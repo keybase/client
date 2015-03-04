@@ -15,7 +15,7 @@
 @property (copy) MPRequestCompletion completion;
 @property (copy) MPRequestHandler handler;
 
-- (void)recordMethod:(NSString *)method params:(NSArray *)params;
+@property (weak) id<KBRPClientDelegate> delegate;
 
 - (void)replayRecordId:(NSString *)recordId;
 

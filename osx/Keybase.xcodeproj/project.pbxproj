@@ -124,6 +124,8 @@
 		00C7DD5E1AA6815400F57AFC /* KBDeviceView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C7DD5C1AA6815400F57AFC /* KBDeviceView.m */; };
 		00C7DD611AA6839200F57AFC /* KBContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C7DD601AA6839200F57AFC /* KBContentView.m */; };
 		00C7DD621AA6839200F57AFC /* KBContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C7DD601AA6839200F57AFC /* KBContentView.m */; };
+		00C7DD6A1AA7966D00F57AFC /* KBRPCRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C7DD691AA7966D00F57AFC /* KBRPCRecord.m */; };
+		00C7DD6B1AA7966D00F57AFC /* KBRPCRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C7DD691AA7966D00F57AFC /* KBRPCRecord.m */; };
 		00CB67BF1A69D0E000B5882A /* KBCatalogView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB678C1A69C9A600B5882A /* KBCatalogView.m */; };
 		00CB67C01A69D0E100B5882A /* KBCatalogView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CB678C1A69C9A600B5882A /* KBCatalogView.m */; };
 		00CB67C11A69D16700B5882A /* KBLogoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00086CB11A672D5C0000460F /* KBLogoView.m */; };
@@ -298,6 +300,8 @@
 		00C7DD5C1AA6815400F57AFC /* KBDeviceView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceView.m; sourceTree = "<group>"; };
 		00C7DD5F1AA6839200F57AFC /* KBContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBContentView.h; sourceTree = "<group>"; };
 		00C7DD601AA6839200F57AFC /* KBContentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBContentView.m; sourceTree = "<group>"; };
+		00C7DD681AA7966D00F57AFC /* KBRPCRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPCRecord.h; sourceTree = "<group>"; };
+		00C7DD691AA7966D00F57AFC /* KBRPCRecord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPCRecord.m; sourceTree = "<group>"; };
 		00CB678B1A69C9A600B5882A /* KBCatalogView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCatalogView.h; sourceTree = "<group>"; };
 		00CB678C1A69C9A600B5882A /* KBCatalogView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCatalogView.m; sourceTree = "<group>"; };
 		00CC43491A3A9E6C006118A9 /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -433,6 +437,8 @@
 				00E531561A9E7955005A4185 /* KBRMockClient.m */,
 				00E531591A9E7C50005A4185 /* KBRPCRegistration.h */,
 				00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */,
+				00C7DD681AA7966D00F57AFC /* KBRPCRecord.h */,
+				00C7DD691AA7966D00F57AFC /* KBRPCRecord.m */,
 			);
 			path = RPC;
 			sourceTree = "<group>";
@@ -488,6 +494,14 @@
 			);
 			path = Login;
 			sourceTree = "<group>";
+		};
+		00C7DD671AA78BCE00F57AFC /* Mock */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Mock;
+			path = Keybase/Mock;
+			sourceTree = SOURCE_ROOT;
 		};
 		00C84D201A7C3A9D00BA0803 /* Mocks */ = {
 			isa = PBXGroup;
@@ -602,6 +616,7 @@
 		00F807D51A48D3300038BC63 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				00C7DD671AA78BCE00F57AFC /* Mock */,
 				00566A3E1A97EA8700CA236E /* Search */,
 				0017123F1A951A7800C7AD58 /* User */,
 				001712361A9519C500C7AD58 /* Device */,
@@ -893,6 +908,7 @@
 				0017122C1A94101000C7AD58 /* KBGPGKeyView.m in Sources */,
 				00566A211A97DA1800CA236E /* KBScrollView.m in Sources */,
 				00B543F91A81990B0044CC5B /* KBPreferences.m in Sources */,
+				00C7DD6A1AA7966D00F57AFC /* KBRPCRecord.m in Sources */,
 				00C7DD4D1AA63A1100F57AFC /* KBLabelRow.m in Sources */,
 				00B544261A895A810044CC5B /* KBProofResult.m in Sources */,
 				00566A111A97DA1800CA236E /* KBImageTextView.m in Sources */,
@@ -982,6 +998,7 @@
 				00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */,
 				00CB67C21A69D16800B5882A /* KBLogoView.m in Sources */,
 				00566A421A97EA9F00CA236E /* KBSearchResultView.m in Sources */,
+				00C7DD6B1AA7966D00F57AFC /* KBRPCRecord.m in Sources */,
 				001712631A951D0B00C7AD58 /* KBDeviceSetupView.m in Sources */,
 				00566A2E1A97DA1800CA236E /* KBTextView.m in Sources */,
 				00D52F8B1A77266A00DEB5F5 /* KBTrackView.m in Sources */,
