@@ -189,26 +189,31 @@ paths.each do |path|
     header << "#{objc_method};\n"
     impl << "#{objc_method} {"
 
-    callback = if response_type == "null" then
+    callback = if response_type == "null" then # No result
       "completion(error);"
-    elsif is_native_type(response_type)
+    elsif is_native_type(response_type) # Native type result
       "completion(error, 0);" # TODO
-    elsif response_type.kind_of?(Hash) # Subtype (for arrays)
-      item_type = response_type["type"]
-      # TODO
-      ""
-    else
+    elsif response_type.kind_of?(Hash) # Array result
+      item_type = response_type["items"]
+      item_clsname = classname(item_type)
+      "if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = [MTLJSONAdapter modelsOfClass:#{item_clsname}.class fromJSONArray:retval error:&error];
+      completion(error, results);"
+    else # Dictionary result
       clsname = classname(response_type)
       "if (error) {
         completion(error, nil);
         return;
       }
-      #{clsname} *result = [MTLJSONAdapter modelOfClass:#{clsname}.class fromJSONDictionary:dict error:&error];
+      #{clsname} *result = [MTLJSONAdapter modelOfClass:#{clsname}.class fromJSONDictionary:retval error:&error];
       completion(error, result);"
     end
 
     impl << "  NSArray *params = @[@{#{request_params_items.join(", ")}}];
-  [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params sessionId:self.sessionId completion:^(NSError *error, NSDictionary *dict) {
+  [self.client sendRequestWithMethod:@\"#{rpc_method}\" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     #{callback}
   }];"
 
