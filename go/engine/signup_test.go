@@ -53,7 +53,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	sui := libkb.TestSecretUI{fu.Passphrase}
 	if err = G.LoginState.PubkeyLogin("", sui); err != nil {
 		t.Fatal(err)
 	}

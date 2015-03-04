@@ -27,6 +27,23 @@ check_go_fmt() {
 	exit 1
 }
 
+check_go_vet() {
+	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$')
+	[ -z "$gofiles" ] && return 0
+	
+	warnings=$(go vet $gofiles 2>&1 | grep -v -e 'possible formatting directive' -e 'should have signature WriteTo' -e 'exit status 1')
+	[ -z "$warnings" ] && return 0
+
+	# go vet found issues
+
+	echo >&2 "go vet found issues:"
+	for msg in $warnings; do
+		echo >&2 $msg
+	done
+
+	exit 1
+}
+
 #
 # report bad files and die if there are any
 #
@@ -119,3 +136,4 @@ fi
 
 # checkLineLength
 check_go_fmt
+check_go_vet
