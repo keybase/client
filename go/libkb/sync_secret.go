@@ -70,12 +70,12 @@ func (ss *SecretSyncer) getUID() *UID {
 func (ss *SecretSyncer) loadFromStorage() (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
-	found, err = G.LocalDb.GetInto(&tmp, ss.dbKey())
-	G.Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
+	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey())
+	ss.G().Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if found {
-		G.Log.Debug("| Loaded version %d", tmp.Version)
+		ss.G().Log.Debug("| Loaded version %d", tmp.Version)
 	} else if err == nil {
-		G.Log.Debug("| Loaded empty record set")
+		ss.G().Log.Debug("| Loaded empty record set")
 	}
 	if err == nil {
 		ss.keys = &tmp
@@ -87,7 +87,7 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 	hargs := HttpArgs{}
 
 	// Load the session for the following API request.
-	if err = G.Session.Load(); err != nil {
+	if err = ss.G().Session.Load(); err != nil {
 		return
 	}
 
@@ -95,12 +95,12 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 		hargs.Add("version", I{ss.keys.Version})
 	}
 	var res *ApiRes
-	res, err = G.API.Get(ApiArg{
+	res, err = ss.G().API.Get(ApiArg{
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
 		NeedSession: true,
 	})
-	G.Log.Debug("| syncFromServer -> %s", ErrToOk(err))
+	ss.G().Log.Debug("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {
 		return
 	}
@@ -111,7 +111,7 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 	}
 
 	if ss.keys == nil || obj.Version > ss.keys.Version {
-		G.Log.Debug("| upgrade to version -> %d", obj.Version)
+		ss.G().Log.Debug("| upgrade to version -> %d", obj.Version)
 		ss.keys = &obj
 		ss.dirty = true
 	}
@@ -127,7 +127,7 @@ func (ss *SecretSyncer) store() (err error) {
 	if !ss.dirty {
 		return
 	}
-	if err = G.LocalDb.PutObj(ss.dbKey(), nil, ss.keys); err != nil {
+	if err = ss.G().LocalDb.PutObj(ss.dbKey(), nil, ss.keys); err != nil {
 		return
 	}
 	ss.dirty = false
@@ -238,8 +238,8 @@ func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
 
 func (ss *SecretSyncer) DumpPrivateKeys() {
 	for s, key := range ss.keys.PrivateKeys {
-		G.Log.Info("Private key: %s", s)
-		G.Log.Info("  -- kid: %s, keytype: %d, bits: %d, algo: %d", key.Kid, key.KeyType, key.KeyBits, key.KeyAlgo)
+		ss.G().Log.Info("Private key: %s", s)
+		ss.G().Log.Info("  -- kid: %s, keytype: %d, bits: %d, algo: %d", key.Kid, key.KeyType, key.KeyBits, key.KeyAlgo)
 	}
 }
 
