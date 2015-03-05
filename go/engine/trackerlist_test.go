@@ -18,7 +18,7 @@ func TestTrackerList(t *testing.T) {
 	trackAlice(t, fu)
 
 	uid := libkb.UsernameToUID("t_alice")
-	e := NewTrackerList(uid)
+	e := NewTrackerList(&uid)
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
 	if err := RunEngine(e, ctx, nil, nil); err != nil {
 		t.Fatal(err)

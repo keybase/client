@@ -18,6 +18,8 @@ func NewTrackerList(uid *libkb.UID) *TrackerList {
 	return &TrackerList{uid: uid}
 }
 
+// NewTrackerListUsername creates a TrackerList engine that will
+// do a lookup by username.
 func NewTrackerListUsername(username string) *TrackerList {
 	return &TrackerList{username: username}
 }

@@ -178,6 +178,8 @@ type API interface {
 	GetResp(ApiArg) (*http.Response, error)
 	GetDecode(ApiArg, interface{}) error
 	Post(ApiArg) (*ApiRes, error)
+	PostResp(ApiArg) (*http.Response, error)
+	PostDecode(ApiArg, interface{}) error
 }
 
 type ExternalAPI interface {

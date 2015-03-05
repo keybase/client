@@ -288,6 +288,32 @@ func (api *InternalApiEngine) Post(arg ApiArg) (*ApiRes, error) {
 	return api.DoRequest(arg, req)
 }
 
+// PostResp performs a POST request and returns the http response.
+func (api *InternalApiEngine) PostResp(arg ApiArg) (*http.Response, error) {
+	url := api.getUrl(arg)
+	req, err := api.PreparePost(url, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, _, err := doRequestShared(api, arg, req, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (api *InternalApiEngine) PostDecode(arg ApiArg, v interface{}) error {
+	resp, err := api.PostResp(arg)
+	if err != nil {
+		return err
+	}
+	dec := json.NewDecoder(resp.Body)
+	defer resp.Body.Close()
+	return dec.Decode(&v)
+}
+
 func (api *InternalApiEngine) DoRequest(
 	arg ApiArg, req *http.Request) (*ApiRes, error) {
 
