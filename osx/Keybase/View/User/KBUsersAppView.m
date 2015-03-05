@@ -105,7 +105,7 @@
 
 - (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *users))completion {
   //self.progressIndicatorEnabled = YES;
-  [AppDelegate.APIClient usersForKey:@"usernames" value:[usernames join:@","] fields:nil success:^(NSArray *users) {
+  [AppDelegate.sharedDelegate.APIClient usersForKey:@"usernames" value:[usernames join:@","] fields:nil success:^(NSArray *users) {
     //self.progressIndicatorEnabled = NO;
     completion(nil, KBRUsersFromAPIUsers(users));
   } failure:^(NSError *error) {
@@ -150,7 +150,7 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *searchResults))completion {
-  [AppDelegate.APIClient searchUsersWithQuery:query success:^(NSArray *searchResults) {
+  [AppDelegate.sharedDelegate.APIClient searchUsersWithQuery:query success:^(NSArray *searchResults) {
     completion(nil, searchResults);
   } failure:^(NSError *error) {
     completion(error, nil);

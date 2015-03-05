@@ -7,6 +7,7 @@
 //
 
 #import "KBUserStatusView.h"
+#import "AppDelegate.h"
 
 @interface KBUserStatusView ()
 @property KBImageView *imageView;
@@ -56,11 +57,7 @@
 
   [_nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
-  if (user.image.url) {
-    [self.imageView setURLString:user.image.url];
-  } else {
-    [self.imageView setURLString:@"https://keybase.io/images/no_photo.png"];
-  }
+  [self.imageView setURLString:KBUserImageURLString(user.username) defaultURLString:@"https://keybase.io/images/no_photo.png"];
 
   [self setNeedsLayout];
 }

@@ -18,7 +18,7 @@
   _searchResult = searchResult;
   [self.titleLabel setText:searchResult.userName style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:searchResult appearance:KBAppearance.currentAppearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [self.imageView setURLString:searchResult.thumbnailURLString];
+  [self.imageView setURLString:searchResult.thumbnailURLString defaultURLString:@"https://keybase.io/images/no_photo.png"];
   self.imageView.roundedRatio = 0.5;
   self.imageSize = CGSizeMake(40, 40);
   [self setNeedsLayout];

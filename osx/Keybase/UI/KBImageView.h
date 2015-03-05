@@ -19,6 +19,8 @@
 
 - (void)setURLString:(NSString *)URLString defaultImage:(NSImage *)defaultImage;
 
+- (void)setURLString:(NSString *)URLString defaultURLString:(NSString *)defaultURLString;
+
 - (NSImage *)imageTintedWithColor:(NSColor *)tint;
 
 @end

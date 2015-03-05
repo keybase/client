@@ -20,8 +20,6 @@
 @interface AppDelegate ()
 @property KBAppView *appView;
 @property KBPreferences *preferences;
-
-@property KBAPIClient *APIClient;
 @property BOOL alerting;
 @end
 
@@ -29,13 +27,6 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
-
-  // Just for mocking, getting at data the RPC client doesn't give us yet
-#ifdef DEBUG
-  _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPILocalHost];
-#else
-  _APIClient = [[KBAPIClient alloc] initWithAPIHost:KBAPIKeybaseIOHost];
-#endif
 
   NSWindow *catalogWindow = [KBCatalogView createWindow];
 
@@ -57,10 +48,6 @@
   return NO;
 }
 
-+ (KBAPIClient *)APIClient {
-  return ((AppDelegate *)[NSApp delegate]).APIClient;
-}
-
 + (KBAppView *)appView {
   return ((AppDelegate *)[NSApp delegate]).appView;
 }
@@ -72,6 +59,10 @@
 - (void)preferences:(id)sender {
   if (!_preferences) _preferences = [[KBPreferences alloc] init];
   [_preferences open];
+}
+
+NSString *KBUserImageURLString(NSString *username) {
+  return [AppDelegate.sharedDelegate.APIClient URLStringWithPath:NSStringWithFormat(@"%@/picture?format=square_200", username)];
 }
 
 - (void)quit:(id)sender {

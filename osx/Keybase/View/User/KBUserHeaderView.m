@@ -36,7 +36,6 @@
   [self addSubview:_imageView];
 
   _name1Label = [[KBLabel alloc] init];
-  _name1Label.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_name1Label];
 
   _name2View = [KBButton button];
@@ -90,11 +89,7 @@
 
   //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];
 
-  if (user.image.url) {
-    [self.imageView setURLString:user.image.url];
-  } else {
-    [self.imageView setURLString:@"https://keybase.io/images/no_photo.png"];
-  }
+  [self.imageView setURLString:KBUserImageURLString(user.username) defaultURLString:@"https://keybase.io/images/no_photo.png"];
 
   [self setNeedsLayout];
 }

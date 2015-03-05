@@ -24,15 +24,22 @@
   return YES;
 }
 
-- (void)setURLString:(NSString *)URLString {
+- (void)setURLString:(NSString *)URLString defaultURLString:(NSString *)defaultURLString {
   _URLString = URLString;
-  if (URLString) {
-    NSImage *image = [[NSImage alloc] initWithContentsOfURL:[NSURL URLWithString:URLString]];
-    self.image = image;
-  } else {
+  if (!URLString) {
     self.image = nil;
+    [self setNeedsDisplay:YES];
   }
-  [self setNeedsDisplay:YES];
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    NSImage *image = [[NSImage alloc] initWithContentsOfURL:[NSURL URLWithString:URLString]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      self.image = image;
+      if (!self.image && defaultURLString) {
+        [self setURLString:defaultURLString defaultURLString:nil];
+      }
+      [self setNeedsDisplay:YES];
+    });
+  });
 }
 
 - (void)setFrame:(NSRect)frame {
@@ -49,6 +56,10 @@
   }
   if ([imageSource gh_startsWith:@"http"]) self.URLString = imageSource;
   else self.image = [NSImage imageNamed:imageSource];
+}
+
+- (void)setURLString:(NSString *)URLString {
+  [self setURLString:URLString defaultURLString:nil];
 }
 
 - (void)setURLString:(NSString *)URLString defaultImage:(NSImage *)defaultImage {

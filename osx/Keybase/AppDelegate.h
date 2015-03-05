@@ -16,7 +16,8 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
-+ (KBAPIClient *)APIClient;
+@property KBAPIClient *APIClient;
+
 + (KBAppView *)appView;
 
 + (AppDelegate *)sharedDelegate;
@@ -32,4 +33,6 @@
 + (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error;
 
 @end
+
+NSString *KBUserImageURLString(NSString *username);
 
