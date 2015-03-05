@@ -31,7 +31,7 @@ check_go_vet() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$')
 	[ -z "$gofiles" ] && return 0
 	
-	warnings=$(go vet $gofiles 2>&1 | grep -v -e 'possible formatting directive' -e 'should have signature WriteTo' -e 'exit status 1')
+	warnings=$(go vet ./... 2>&1 | grep -v -e 'possible formatting directive' -e 'should have signature WriteTo' -e 'exit status 1')
 	[ -z "$warnings" ] && return 0
 
 	# go vet found issues
