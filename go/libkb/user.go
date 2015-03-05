@@ -64,6 +64,10 @@ func (u *UID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (u *UID) MarshalJSON() ([]byte, error) {
+	return []byte("\"" + u.String() + "\""), nil
+}
+
 func GetUid(w *jsonw.Wrapper) (u *UID, err error) {
 	s, err := w.GetString()
 	if err != nil {
