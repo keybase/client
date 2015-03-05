@@ -11,6 +11,23 @@ protocol user {
 	array<Tracker> trackerList(int sessionID, UID uid);
 	array<Tracker> trackerListByName(int sessionID, string username);
 
+	record TrackProof {
+		string proofType;
+		string proofName;
+		string idString;
+	}
+
+	record TrackEntry {
+		string username;
+		string sigId;
+		string pgpFingerprint;
+		long trackTime;
+		array<TrackProof> proofs;
+	}
+
+	array<TrackEntry> listTracking(string filter);
+	string listTrackingJson(string filter, boolean verbose);
+
 	record WebProof {
 		string hostname;
 		array<string> protocols;

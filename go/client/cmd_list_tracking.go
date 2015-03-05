@@ -3,29 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-jsonw"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"io"
 	"os"
-	"regexp"
-	"sort"
-	"strings"
+	"time"
 )
-
-type TrackList []*libkb.TrackChainLink
-
-func (tl TrackList) Len() int {
-	return len(tl)
-}
-
-func (tl TrackList) Swap(i, j int) {
-	tl[i], tl[j] = tl[j], tl[i]
-}
-
-func (tl TrackList) Less(i, j int) bool {
-	return strings.ToLower(tl[i].ToDisplayString()) < strings.ToLower(tl[j].ToDisplayString())
-}
 
 type CmdListTracking struct {
 	filter  string
@@ -33,7 +18,6 @@ type CmdListTracking struct {
 	verbose bool
 	headers bool
 	user    *libkb.User
-	tracks  TrackList
 }
 
 func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
@@ -52,87 +36,10 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdListTracking) filterTracks(f func(libkb.TrackChainLink) bool) {
-	tracks := make([]*libkb.TrackChainLink, 0, 0)
-	for _, link := range s.tracks {
-		if f(*link) {
-			tracks = append(tracks, link)
-		}
-	}
-	s.tracks = tracks
-}
-
-func (s *CmdListTracking) FilterRxx() error {
-	if len(s.filter) == 0 {
-		return nil
-	}
-	rxx, err := regexp.Compile(s.filter)
-	if err != nil {
-		return err
-	}
-	s.filterTracks(func(l libkb.TrackChainLink) bool {
-		if rxx.MatchString(l.ToDisplayString()) {
-			return true
-		}
-		for _, sb := range l.ToServiceBlocks() {
-			_, v := sb.ToKeyValuePair()
-			if rxx.MatchString(v) {
-				return true
-			}
-		}
-		return false
-	})
-	return nil
-}
-
-func (s *CmdListTracking) ProcessTracks() (err error) {
-	if err = s.FilterRxx(); err != nil {
-		return
-	}
-	return
-}
-
-func (s *CmdListTracking) skipLink(link libkb.TypedChainLink) bool {
-	return link.IsRevoked() || link.IsRevocationIsh() || !s.IsActiveKey(link)
-}
-
-func (s *CmdListTracking) IsActiveKey(link libkb.TypedChainLink) bool {
-	return link.IsInCurrentFamily(s.user)
-}
-
-func (s *CmdListTracking) CondenseRecord(l *libkb.TrackChainLink) (out *jsonw.Wrapper, err error) {
-	var uid *libkb.UID
-	var fp *libkb.PgpFingerprint
-	var un string
-	out = jsonw.NewDictionary()
-	rp := l.RemoteKeyProofs()
-
-	if uid, err = l.GetTrackedUid(); err != nil {
-		return
-	}
-
-	if fp, err = l.GetTrackedPgpFingerprint(); err != nil {
-		return
-	}
-
-	if un, err = l.GetTrackedUsername(); err != nil {
-		return
-	}
-
-	out.SetKey("uid", jsonw.NewString(uid.String()))
-	out.SetKey("key", jsonw.NewString(strings.ToUpper(fp.String())))
-	out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
-	out.SetKey("username", jsonw.NewString(un))
-	out.SetKey("proofs", rp)
-
-	return
-}
-
-func (s *CmdListTracking) DisplayTable() (err error) {
-
+func DisplayTable(entries []keybase_1.TrackEntry, verbose bool, headers bool) (err error) {
 	var cols []string
 
-	if s.headers && s.verbose {
+	if headers && verbose {
 		cols = []string{
 			"Username",
 			"Sig ID",
@@ -143,103 +50,83 @@ func (s *CmdListTracking) DisplayTable() (err error) {
 	}
 
 	i := 0
-	idtab := s.tracks
-
 	rowfunc := func() []string {
-		var row []string
+		if i >= len(entries) {
+			return nil
+		}
+		entry := entries[i]
+		i++
 
-		for ; i < len(idtab) && row == nil; i++ {
-			link := idtab[i]
+		if !verbose {
+			return []string{entry.Username}
+		}
 
-			if s.skipLink(link) {
-				continue
-			}
-
-			if !s.verbose {
-				row = []string{link.ToDisplayString()}
-				continue
-			}
-
-			fp, err := link.GetTrackedPgpFingerprint()
-			if err != nil {
-				G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err.Error())
-				continue
-			}
-
-			row = []string{
-				link.ToDisplayString(),
-				link.GetSigId().ToDisplayString(true),
-				strings.ToUpper(fp.String()),
-				libkb.FormatTime(link.GetCTime()),
-			}
-			for _, sb := range link.ToServiceBlocks() {
-				row = append(row, sb.ToIdString())
-			}
+		row := []string{
+			entry.Username,
+			entry.SigId,
+			entry.PgpFingerprint,
+			libkb.FormatTime(time.Unix(entry.TrackTime, 0)),
+		}
+		for _, proof := range entry.Proofs {
+			row = append(row, proof.IdString)
 		}
 		return row
 	}
 
 	libkb.Tablify(os.Stdout, cols, rowfunc)
-
 	return
 }
 
-func (s *CmdListTracking) DisplayJson() (err error) {
-	tmp := make([]*jsonw.Wrapper, 0, 1)
-	for _, e := range s.tracks {
-		var rec *jsonw.Wrapper
-		var e2 error
-		if s.verbose {
-			rec = e.GetPayloadJson()
-		} else if rec, e2 = s.CondenseRecord(e); e2 != nil {
-			G.Log.Warning("In conversion to JSON: %s", e2.Error())
-		}
-		if e2 == nil {
-			tmp = append(tmp, rec)
-		}
-	}
-
-	ret := jsonw.NewArray(len(tmp))
-	for i, r := range tmp {
-		ret.SetIndex(i, r)
-	}
-
-	_, err = io.WriteString(os.Stdout, ret.MarshalPretty()+"\n")
+func DisplayJson(jsonStr string) (err error) {
+	_, err = io.WriteString(os.Stdout, jsonStr+"\n")
 	return
 }
 
-func (s *CmdListTracking) Display() (err error) {
-	if s.json {
-		err = s.DisplayJson()
-	} else {
-		err = s.DisplayTable()
-	}
-	return
-}
-
-func (s *CmdListTracking) RunClient() error { return s.Run() }
-
-func (s *CmdListTracking) Run() (err error) {
-
-	arg := libkb.LoadUserArg{Self: true}
-	s.user, err = libkb.LoadUser(arg)
-
+func (s *CmdListTracking) RunClient() (err error) {
+	cli, err := GetUserClient()
 	if err != nil {
 		return
 	}
 
-	s.tracks = s.user.IdTable.GetTrackList()
+	if s.json {
+		var jsonStr string
+		jsonStr, err = cli.ListTrackingJson(keybase_1.ListTrackingJsonArg{
+			Filter:  s.filter,
+			Verbose: s.verbose,
+		})
+		if err != nil {
+			return
+		}
+		err = DisplayJson(jsonStr)
+	} else {
+		var table []keybase_1.TrackEntry
+		table, err = cli.ListTracking(s.filter)
+		if err != nil {
+			return
+		}
+		err = DisplayTable(table, s.verbose, s.headers)
+	}
+	return
+}
 
-	if err = s.ProcessTracks(); err != nil {
+func (s *CmdListTracking) Run() (err error) {
+	arg := engine.ListTrackingEngineArg{
+		Json:    s.json,
+		Verbose: s.verbose,
+		Filter:  s.filter,
+	}
+	eng := engine.NewListTrackingEngine(&arg)
+	ctx := engine.Context{}
+	err = engine.RunEngine(eng, &ctx, nil, nil)
+	if err != nil {
 		return
 	}
 
-	sort.Sort(s.tracks)
-
-	if err = s.Display(); err != nil {
-		return
+	if s.json {
+		err = DisplayJson(eng.JsonResult())
+	} else {
+		err = DisplayTable(eng.TableResult(), s.verbose, s.headers)
 	}
-
 	return
 }
 

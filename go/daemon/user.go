@@ -69,3 +69,25 @@ func (h *UserHandler) LoadUncheckedUserSummaries(kuids []keybase_1.UID) ([]keyba
 
 	return res, nil
 }
+
+func (h *UserHandler) ListTracking(filter string) (res []keybase_1.TrackEntry, err error) {
+	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
+		Filter: filter,
+		// Verbose has no effect on this call. At the engine level, it only
+		// affects JSON output.
+	})
+	err = engine.RunEngine(eng, &engine.Context{}, nil, nil)
+	res = eng.TableResult()
+	return
+}
+
+func (h *UserHandler) ListTrackingJson(arg keybase_1.ListTrackingJsonArg) (res string, err error) {
+	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
+		Json:    true,
+		Filter:  arg.Filter,
+		Verbose: arg.Verbose,
+	})
+	err = engine.RunEngine(eng, &engine.Context{}, nil, nil)
+	res = eng.JsonResult()
+	return
+}
