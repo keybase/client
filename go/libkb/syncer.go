@@ -17,6 +17,7 @@ type Syncer interface {
 	store() error
 	getUID() *UID
 	setUID(u UID)
+	needsLogin() bool
 }
 
 func RunSyncer(s Syncer, aUid *UID) (err error) {
@@ -57,7 +58,7 @@ func RunSyncer(s Syncer, aUid *UID) (err error) {
 	if err = s.loadFromStorage(); err != nil {
 		return
 	}
-	if !s.G().Session.IsLoggedIn() {
+	if !s.G().Session.IsLoggedIn() && s.needsLogin() {
 		s.G().Log.Debug("| Won't sync with server since we're not logged in")
 		return
 	}

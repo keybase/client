@@ -257,3 +257,5 @@ func (k ServerPrivateKey) ToSKB() (*SKB, error) {
 	}
 	return skb, nil
 }
+
+func (ss *SecretSyncer) needsLogin() bool { return true }
