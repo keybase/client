@@ -20,6 +20,7 @@
 @end
 
 @protocol KBRPClient
+@property (readonly) NSString *socketPath;
 @property (weak) id<KBRPClientDelegate> delegate;
 
 - (void)open;

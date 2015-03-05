@@ -17,8 +17,9 @@
 
 @property (weak) id<KBRPClientDelegate> delegate;
 
-- (void)replayRecordId:(NSString *)recordId;
+//- (void)replayRecordId:(NSString *)recordId;
 
-+ (id)paramsFromRecordId:(NSString *)recordId file:(NSString *)file;
++ (NSArray *)requestForMethod:(NSString *)method;
++ (NSDictionary *)responseForMethod:(NSString *)method;
 
 @end

@@ -10,12 +10,17 @@
 
 @interface KBRPCRecord : NSObject
 
-- (void)recordMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId callback:(BOOL)callback;
+- (void)recordRequest:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId callback:(BOOL)callback;
+- (void)recordResponse:(NSString *)method response:(NSArray *)response sessionId:(NSInteger)sessionId;
 
 @end
 
 void KBConvertArrayTo(NSMutableArray *array);
 void KBConvertArrayFrom(NSMutableArray *array);
+
+void KBConvertDictTo(NSMutableDictionary *dict);
+void KBConvertDictFrom(NSMutableDictionary *dict);
+
 typedef id (^KBCoverter)(id obj);
 void KBConvertArray(NSMutableArray *array, Class clazz, KBCoverter converter);
 void KBConvertDict(NSMutableDictionary *dict, Class clazz, KBCoverter converter);

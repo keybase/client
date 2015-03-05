@@ -166,8 +166,8 @@
   // TODO Remove from release
   NSString *recordZip = [[NSBundle mainBundle] pathForResource:@"record" ofType:@"zip"];
   NSString *recordDir = [AppDelegate applicationSupport:@[@"Record"] create:NO error:nil];
-  [self removeDirectory:recordDir error:nil];
-  [NSFileManager.defaultManager createDirectoryAtPath:recordDir withIntermediateDirectories:YES attributes:nil error:nil];
+  //[self removeDirectory:recordDir error:nil];
+  //[NSFileManager.defaultManager createDirectoryAtPath:recordDir withIntermediateDirectories:YES attributes:nil error:nil];
   NSTask *task = [[NSTask alloc] init];
   task.currentDirectoryPath = recordDir;
   task.launchPath = @"/usr/bin/unzip";

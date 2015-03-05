@@ -23,6 +23,7 @@
 @property MPMessagePackServer *server;
 @property MPOrderedDictionary *registrations;
 
+@property NSString *socketPath;
 @property KBRPCRecord *recorder;
 
 @property NSInteger connectAttempt;
@@ -47,7 +48,7 @@
     id sessionId = [[params lastObject] objectForKey:@"sessionID"];
 
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
-      [gself.recorder recordMethod:method params:params sessionId:[sessionId integerValue] callback:YES];
+      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
     }
     MPRequestHandler requestHandler;
     if (sessionId) {
@@ -68,14 +69,14 @@
   NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
   NSAssert(user, @"No user");
 
-  NSString *socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
+  self.socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
 #ifdef DEBUG
-  socketPath = @"/tmp/keybase-debug.sock";
+  self.socketPath = @"/tmp/keybase-debug.sock";
 #endif
   
   GHDebug(@"Connecting to keybased (%@)...", user);
   _connectAttempt++;
-  [_client openWithSocket:socketPath completion:^(NSError *error) {
+  [_client openWithSocket:self.socketPath completion:^(NSError *error) {
     if (error) {
       GHDebug(@"Error connecting to keybased: %@", error);
       if (!gself.autoRetryDisabled) {
@@ -138,6 +139,9 @@
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
       error = KBMakeErrorWithRecovery(error.code, NSStringWithFormat(@"Oops, we had a problem (%@).", @(error.code)), @"%@: %@", errorInfo[@"name"], errorInfo[@"desc"]);
     }
+    if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+      if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
+    }
     GHDebug(@"Result: %@", result);
     completion(error, result);
   }];
@@ -145,11 +149,11 @@
   NSMutableArray *mparams = [params mutableCopy];
   mparams[0] = KBScrubPassphrase(params[0]);
 
-  if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
-    [self.recorder recordMethod:method params:mparams sessionId:sessionId callback:NO];
-  }
   //NSNumber *messageId = request[1];
   GHDebug(@"Sent request: %@(%@)", method, mparams);
+  if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
+    [self.recorder recordRequest:method params:params sessionId:sessionId callback:NO];
+  }
 }
 
 - (void)check:(void (^)(NSError *error))completion {

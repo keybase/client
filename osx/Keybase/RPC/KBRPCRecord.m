@@ -31,7 +31,28 @@
   return self;
 }
 
-- (void)recordMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId callback:(BOOL)callback {
+- (void)recordRequest:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId callback:(BOOL)callback {
+  [self recordMethod:method data:[self convert:params] sessionId:sessionId label:@"request" callback:callback];
+}
+
+- (void)recordResponse:(NSString *)method response:(id)response sessionId:(NSInteger)sessionId {
+  [self recordMethod:method data:[self convert:response] sessionId:sessionId label:@"response" callback:NO];
+}
+
+- (id)convert:(id)obj {
+  if ([obj isKindOfClass:NSArray.class]) {
+    NSMutableArray *objCopy = [[NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:obj]] mutableCopy];
+    KBConvertArrayTo(objCopy);
+    return objCopy;
+  } else if ([obj isKindOfClass:NSDictionary.class]) {
+    NSMutableDictionary *objCopy = [[NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:obj]] mutableCopy];
+    KBConvertDictTo(objCopy);
+    return objCopy;
+  }
+  return obj;
+}
+
+- (void)recordMethod:(NSString *)method data:(id)data sessionId:(NSInteger)sessionId label:(NSString *)label callback:(BOOL)callback {
   // Skip some methods
   if ([method isEqualToString:@"keybase.1.logUi.log"]) return;
 
@@ -50,23 +71,25 @@
     sessionDirectory = _sessionDirectory[@(sessionId)];
     NSAssert(sessionDirectory, @"No current session for callback");
   } else {
-    sessionDirectory = [@[@(sessionId), method] join:@"-"];
-    NSAssert(!_sessionDirectory[@(sessionId)], @"Existing session directory");
+    NSNumberFormatter *indexFormatter = [[NSNumberFormatter alloc] init];
+    [indexFormatter setFormatWidth:4];
+    [indexFormatter setPaddingCharacter:@"0"];
+
+    sessionDirectory = [@[[indexFormatter stringFromNumber:@(sessionId)], method] join:@"-"];
+    //NSAssert(!_sessionDirectory[@(sessionId)], @"Existing session directory");
     _sessionDirectory[@(sessionId)] = sessionDirectory;
   }
 
-  NSString *directory = [AppDelegate applicationSupport:@[@"Record", _recordId, sessionDirectory] create:YES error:nil];
+  NSString *directory = [AppDelegate applicationSupport:@[@"Recording", _recordId, sessionDirectory] create:YES error:nil];
   NSNumberFormatter *indexFormatter = [[NSNumberFormatter alloc] init];
   [indexFormatter setFormatWidth:4];
   [indexFormatter setPaddingCharacter:@"0"];
 
-  NSString *file = NSStringWithFormat(@"%@--%@.json", [indexFormatter stringFromNumber:@(index)], method);
-  NSMutableArray *paramsCopy = [[NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:params]] mutableCopy];
-  KBConvertArrayTo(paramsCopy);
+  NSString *file = NSStringWithFormat(@"%@--%@-%@.json", [indexFormatter stringFromNumber:@(index)], method, label);
   NSError *error = nil;
-  NSData *data = [NSJSONSerialization dataWithJSONObject:paramsCopy options:NSJSONWritingPrettyPrinted error:&error];
+  NSData *JSONData = [NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:&error];
   NSString *JSONFile = [directory stringByAppendingPathComponent:file];
-  [data writeToFile:JSONFile atomically:YES];
+  [JSONData writeToFile:JSONFile atomically:YES];
 }
 
 @end
@@ -79,6 +102,19 @@ void KBConvertArrayTo(NSMutableArray *array) {
 
 void KBConvertArrayFrom(NSMutableArray *array) {
   KBConvertArray(array, NSString.class, ^id(NSString *str) {
+    if (![str gh_startsWith:@"Binary-"]) return nil;
+    return [[str substringFromIndex:6] na_dataFromHexString];
+  });
+}
+
+void KBConvertDictTo(NSMutableDictionary *dict) {
+  KBConvertDict(dict, NSData.class, ^id(NSData *data) {
+    return NSStringWithFormat(@"Binary-%@", [data na_hexString]);
+  });
+}
+
+void KBConvertDictFrom(NSMutableDictionary *dict) {
+  KBConvertDict(dict, NSString.class, ^id(NSString *str) {
     if (![str gh_startsWith:@"Binary-"]) return nil;
     return [[str substringFromIndex:6] na_dataFromHexString];
   });
@@ -110,7 +146,9 @@ id KBConvertObject(id item, Class clazz, KBCoverter converter) {
   } else if ([item isKindOfClass:NSMutableDictionary.class]) {
     KBConvertDict(item, clazz, converter);
   } else if ([item isKindOfClass:NSDictionary.class]) {
-    NSCAssert(NO, @"Not mutable dict");
+    //NSCAssert(NO, @"Not mutable dict");
+    NSMutableDictionary *itemCopy = (NSMutableDictionary *)CFBridgingRelease(CFPropertyListCreateDeepCopy(kCFAllocatorDefault, (CFDictionaryRef)item, kCFPropertyListMutableContainers));
+    KBConvertDict(itemCopy, clazz, converter);
   } else if ([item isKindOfClass:clazz]) {
     return converter(item);
   }

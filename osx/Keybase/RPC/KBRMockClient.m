@@ -15,6 +15,7 @@
 
 @interface KBRMockClient ()
 @property NSMutableDictionary *registrations;
+@property NSString *socketPath;
 @end
 
 @implementation KBRMockClient
@@ -25,6 +26,7 @@
 }
 
 - (void)open {
+  self.socketPath = @"RPCMock";
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
     [self.delegate RPClientDidConnect:self];
   });
@@ -37,6 +39,13 @@
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   self.completion = completion;
   if (self.handler) self.handler(@(sessionId), method, params, completion);
+
+  NSDictionary *response = [KBRMockClient responseForMethod:method];
+  if (response) {
+    completion(nil, response);
+  } else {
+    completion(KBMakeError(-1, @"No mock for method: %@", method), nil);
+  }
 }
 
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler {
@@ -53,6 +62,7 @@
   [self.registrations removeObjectForKey:@(sessionId)];
 }
 
+/*
 - (void)replayRecordId:(NSString *)recordId {
   GHWeakSelf gself = self;
   NSString *directory = [AppDelegate applicationSupport:@[@"Record", recordId] create:NO error:nil];
@@ -90,14 +100,27 @@
     }
   }
 }
+ */
 
-+ (id)paramsFromRecordId:(NSString *)recordId file:(NSString *)file {
-  NSString *path = [AppDelegate applicationSupport:@[@"Record", recordId, file] create:NO error:nil];
++ (id)responseForMethod:(NSString *)method {
+  NSMutableDictionary *response = [[self parse:@"default" file:NSStringWithFormat(@"%@-response.json", method)] mutableCopy];
+  KBConvertDictFrom(response);
+  return response;
+}
+
++ (NSArray *)requestForMethod:(NSString *)method {
+  NSMutableArray *request = [[self parse:@"default" file:NSStringWithFormat(@"%@-request.json", method)] mutableCopy];
+  KBConvertArrayFrom(request);
+  return request;
+}
+
++ (id)parse:(NSString *)dir file:(NSString *)file {
+  NSArray *paths = @[@"Record", dir, file];
+  NSString *path = [AppDelegate applicationSupport:paths create:NO error:nil];
   NSData *data = [NSData dataWithContentsOfFile:path];
-  NSAssert(data, @"No data found at %@", path);
-  id params = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
-  KBConvertArrayFrom(params);
-  return params;
+  //NSAssert(data, @"No data found at %@", path);
+  if (!data) return nil;
+  return [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
 }
 
 @end

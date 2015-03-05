@@ -46,8 +46,7 @@
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" actionBlock:^(id sender) { [self showDevicePrompt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" actionBlock:^(id sender) { [self showProveInstructions]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Track (max)" actionBlock:^(id sender) { [self showTrackReplay:@"max"]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Track (gbrl27)" actionBlock:^(id sender) { [self showTrackReplay:@"gbrl27"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Track" actionBlock:^(id sender) { [self showTrack]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBLabel labelWithText:@"Error Handling" style:KBLabelStyleHeader]];
@@ -125,21 +124,19 @@
   }
 }
 
-- (void)showTrackReplay:(NSString *)username {
-  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": username} error:nil];
+- (void)showTrack {
   KBUserProfileView *userProfileView = [[KBUserProfileView alloc] init];
   userProfileView.popup = YES;
   NSWindow *window = [self openInWindow:userProfileView size:CGSizeMake(400, 400) title:@"Keybase"];
   [window setLevel:NSFloatingWindowLevel];
 
   KBRMockClient *mockClient = [[KBRMockClient alloc] init];
+  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": @"gabrielh"} error:nil];
   [userProfileView setUser:user editable:NO client:mockClient];
-  [mockClient replayRecordId:NSStringWithFormat(@"track/%@", username)];
-  mockClient.completion(nil, nil);
 }
 
 - (void)showSelectKey {
-  id params = [KBRMockClient paramsFromRecordId:@"signup/gbrl39" file:@"0003--keybase.1.gpgUi.selectKeyAndPushOption.json"];
+  id params = [KBRMockClient requestForMethod:@"keybase.1.gpgUi.selectKeyAndPushOption"];
   KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
 
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
@@ -184,10 +181,10 @@
     completion(nil, @{});
   };
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
-    KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:[KBRMockClient paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json"]];
-    [loginView selectSigner:requestParams completion:^(NSError *error, id result) {
-      [loginView.window close];
-    }];
+//    KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:[KBRMockClient requestForMethod:@"keybase.1.doctorUi.selectSigner"]];
+//    [loginView selectSigner:requestParams completion:^(NSError *error, id result) {
+//      [loginView.window close];
+//    }];
   };
   [self openInWindow:loginView size:CGSizeMake(800, 600) title:@"Keybase"];
 }
@@ -203,7 +200,7 @@
 }
 
 - (void)showDeviceSetupView {
-  NSArray *params = [KBRMockClient paramsFromRecordId:@"device_setup/gbrl49" file:@"0000--keybase.1.doctorUi.selectSigner.json"];
+  NSArray *params = [KBRMockClient requestForMethod:@"keybase.1.doctorUi.selectSigner"];
 
   KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
 

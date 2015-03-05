@@ -37,6 +37,9 @@
     [recordCheckbox.cell addObserver:self forKeyPath:@"state" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:NULL];
     [advancedView addSubview:recordCheckbox];
 
+//    KBButton *recordOpenButton = [KBButton buttonWithText:@"Open" style:KBButtonStyleDefault];
+//    [advancedView addSubview:recordOpenButton];
+
 //    KBButton *catalog = [KBButton buttonWithText:@"Catalog" style:KBButtonStyleLink alignment:NSLeftTextAlignment];
 //    catalog.targetBlock = ^{ [AppDelegate.sharedDelegate openCatalog]; };
 //    [advancedView addSubview:catalog];
@@ -59,6 +62,7 @@
 
     _preferencesWindowController = [[MASPreferencesWindowController alloc] initWithViewControllers:controllers title:@"Preferences"];
   }
+  [_preferencesWindowController.window center];
   [_preferencesWindowController showWindow:nil];
 }
 
