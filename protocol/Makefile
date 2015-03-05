@@ -31,7 +31,8 @@ build-stamp: \
 	json/sibkey.json \
 	json/signup.json \
 	json/track.json \
-	json/ui.json
+	json/ui.json \
+	json/user.json 
 	@mkdir -p json
 	date > $@
 

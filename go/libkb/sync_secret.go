@@ -59,8 +59,8 @@ func (ss *SecretSyncer) Clear() error {
 	return err
 }
 
-func (ss *SecretSyncer) setUID(u UID) {
-	ss.Uid = &u
+func (ss *SecretSyncer) setUID(u *UID) {
+	ss.Uid = u
 }
 
 func (ss *SecretSyncer) getUID() *UID {

@@ -2,8 +2,9 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"time"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type Session struct {
@@ -59,7 +60,7 @@ func (s *Session) SetLoggedIn(lir LoggedInResult) {
 
 	// Set up our SecretSyncer to work on the logged in user from here on
 	// out.
-	s.G().SecretSyncer.setUID(*s.uid)
+	s.G().SecretSyncer.setUID(s.uid)
 }
 
 func (s *Session) SetDirty() {

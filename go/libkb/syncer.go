@@ -16,7 +16,7 @@ type Syncer interface {
 	syncFromServer() error
 	store() error
 	getUID() *UID
-	setUID(u UID)
+	setUID(u *UID)
 	needsLogin() bool
 }
 
@@ -43,7 +43,7 @@ func RunSyncer(s Syncer, aUid *UID) (err error) {
 		return
 	} else if aUid != nil {
 		uid = *aUid
-		s.setUID(uid)
+		s.setUID(aUid)
 	} else {
 		uid = *sUid
 	}

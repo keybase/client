@@ -30,6 +30,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 	srv.Register(keybase_1.SibkeyProtocol(NewSibkeyHandler(xp)))
 	srv.Register(keybase_1.SignupProtocol(NewSignupHandler(xp)))
 	srv.Register(keybase_1.TrackProtocol(NewTrackHandler(xp)))
+	srv.Register(keybase_1.UserProtocol(NewUserHandler(xp)))
 }
 
 func (d *Daemon) Handle(c net.Conn) {

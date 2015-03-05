@@ -65,6 +65,10 @@ func NewTrackerSyncer(uid UID, g *GlobalContext) *TrackerSyncer {
 	}
 }
 
+func (t *TrackerSyncer) Trackers() *Trackers {
+	return t.trackers
+}
+
 func (t *TrackerSyncer) dbKey() DbKey {
 	return DbKey{Typ: DB_TRACKERS, Key: t.uid.String()}
 }

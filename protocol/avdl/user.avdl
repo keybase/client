@@ -1,0 +1,18 @@
+@namespace("keybase.1")
+protocol user {
+	import idl "common.avdl";
+
+	record Tracker {
+		UID tracker;
+		int status; // 0 == none, 1 == tracking
+		int mtime;
+	}	
+
+	array<Tracker> trackerList(int sessionID, UID uid);
+
+	// to be implemented:
+	// 1. UserSummary record 
+	//    similar to what's found in autocomplete results on web
+	// 2. array<UserSummary> loadUncheckedUserSummaries(array<UID> uids);
+	//    "Unchecked" == client taking server's word for any info in summary
+}

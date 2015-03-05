@@ -1641,3 +1641,43 @@ func (c UiClient) PromptYesNo(__arg PromptYesNoArg) (res bool, err error) {
 	err = c.Cli.Call("keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
 	return
 }
+
+type Tracker struct {
+	Tracker UID `codec:"tracker" json:"tracker"`
+	Status  int `codec:"status" json:"status"`
+	Mtime   int `codec:"mtime" json:"mtime"`
+}
+
+type TrackerListArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Uid       UID `codec:"uid" json:"uid"`
+}
+
+type UserInterface interface {
+	TrackerList(TrackerListArg) ([]Tracker, error)
+}
+
+func UserProtocol(i UserInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.user",
+		Methods: map[string]rpc2.ServeHook{
+			"trackerList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TrackerListArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.TrackerList(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type UserClient struct {
+	Cli GenericClient
+}
+
+func (c UserClient) TrackerList(__arg TrackerListArg) (res []Tracker, err error) {
+	err = c.Cli.Call("keybase.1.user.trackerList", []interface{}{__arg}, &res)
+	return
+}
