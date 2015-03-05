@@ -104,3 +104,11 @@ func GetDeviceClient() (cli keybase_1.DeviceClient, err error) {
 	}
 	return
 }
+
+func GetUserClient() (cli keybase_1.UserClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.UserClient{Cli: rcli}
+	}
+	return
+}
