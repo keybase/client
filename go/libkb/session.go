@@ -27,10 +27,10 @@ func NewSession(g *GlobalContext) *Session {
 
 // NewSessionThin creates a minimal (thin) session of just the uid and username.
 // Clients of the daemon that use the session protocol need this.
-func NewSessionThin(uid UID, username string) *Session {
+func NewSessionThin(uid UID, username string, token string) *Session {
 	// XXX should this set valid to true?  daemon won't return a
 	// session unless valid is true, so...
-	return &Session{uid: &uid, username: &username, valid: true}
+	return &Session{uid: &uid, username: &username, token: token, valid: true}
 }
 
 func (s Session) IsLoggedIn() bool {
