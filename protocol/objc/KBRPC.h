@@ -447,6 +447,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRUserRequest : KBRRequest
 - (void)trackerListWithSessionID:(NSInteger )sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray * items))completion;
 
+- (void)trackerListByNameWithSessionID:(NSInteger )sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray * items))completion;
+
 @end
 @interface KBRAnnounceSessionRequestParams : KBRRequestParams
 @property NSString *sid;
@@ -669,4 +671,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTrackerListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRUID *uid;
+@end
+@interface KBRTrackerListByNameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
 @end

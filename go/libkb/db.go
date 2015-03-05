@@ -3,10 +3,11 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/keybase/go-jsonw"
 	"regexp"
 	"strconv"
 	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 func (k DbKey) ToString(table string) string {
@@ -61,6 +62,7 @@ func (j *JsonLocalDb) GetInto(obj interface{}, id DbKey) (found bool, err error)
 	var buf []byte
 	buf, found, err = j.engine.Get(id)
 	if err == nil && found {
+		G.Log.Info("buf: %v", string(buf))
 		err = json.Unmarshal(buf, &obj)
 	}
 	return

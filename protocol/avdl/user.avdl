@@ -9,6 +9,7 @@ protocol user {
 	}	
 
 	array<Tracker> trackerList(int sessionID, UID uid);
+	array<Tracker> trackerListByName(int sessionID, string username);
 
 	// to be implemented:
 	// 1. UserSummary record 

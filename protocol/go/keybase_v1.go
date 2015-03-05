@@ -1653,8 +1653,14 @@ type TrackerListArg struct {
 	Uid       UID `codec:"uid" json:"uid"`
 }
 
+type TrackerListByNameArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type UserInterface interface {
 	TrackerList(TrackerListArg) ([]Tracker, error)
+	TrackerListByName(TrackerListByNameArg) ([]Tracker, error)
 }
 
 func UserProtocol(i UserInterface) rpc2.Protocol {
@@ -1665,6 +1671,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]TrackerListArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.TrackerList(args[0])
+				}
+				return
+			},
+			"trackerListByName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]TrackerListByNameArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.TrackerListByName(args[0])
 				}
 				return
 			},
@@ -1679,5 +1692,10 @@ type UserClient struct {
 
 func (c UserClient) TrackerList(__arg TrackerListArg) (res []Tracker, err error) {
 	err = c.Cli.Call("keybase.1.user.trackerList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) TrackerListByName(__arg TrackerListByNameArg) (res []Tracker, err error) {
+	err = c.Cli.Call("keybase.1.user.trackerListByName", []interface{}{__arg}, &res)
 	return
 }

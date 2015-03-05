@@ -671,6 +671,18 @@
   }];
 }
 
+- (void)trackerListByNameWithSessionID:(NSInteger )sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray * items))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.trackerListByName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error];
+      completion(error, results);
+  }];
+}
+
 @end
 @implementation KBRAnnounceSessionRequestParams
 
@@ -1280,6 +1292,18 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.uid = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"uid"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRTrackerListByNameRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
   }
   return self;
 }

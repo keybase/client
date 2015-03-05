@@ -40,11 +40,16 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 
 // Run runs the command in standalone mode.
 func (c *CmdListTrackers) Run() error {
-	if err := c.ensureUID(); err != nil {
-		return err
-	}
 	ctx := &engine.Context{LogUI: G.UI.GetLogUI()}
-	eng := engine.NewTrackerList(*c.uid)
+	var eng *engine.TrackerList
+	if c.uid != nil {
+		eng = engine.NewTrackerList(c.uid)
+	} else if len(c.username) > 0 {
+		eng = engine.NewTrackerListUsername(c.username)
+	} else {
+		return fmt.Errorf("need uid or username")
+	}
+
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
 		return err
 	}
@@ -55,10 +60,6 @@ func (c *CmdListTrackers) Run() error {
 
 // RunClient runs the command in client/server mode.
 func (c *CmdListTrackers) RunClient() error {
-	if err := c.ensureUID(); err != nil {
-		return err
-	}
-
 	cli, err := GetUserClient()
 	if err != nil {
 		return err
@@ -70,7 +71,12 @@ func (c *CmdListTrackers) RunClient() error {
 		return err
 	}
 
-	trs, err := cli.TrackerList(keybase_1.TrackerListArg{Uid: c.uid.Export()})
+	var trs []keybase_1.Tracker
+	if c.uid != nil {
+		trs, err = cli.TrackerList(keybase_1.TrackerListArg{Uid: c.uid.Export()})
+	} else if len(c.username) > 0 {
+		trs, err = cli.TrackerListByName(keybase_1.TrackerListByNameArg{Username: c.username})
+	}
 	if err != nil {
 		return err
 	}
@@ -114,22 +120,6 @@ func (c *CmdListTrackers) output(trs []libkb.Tracker) {
 	w.Flush()
 }
 
-func (c *CmdListTrackers) ensureUID() error {
-	if c.uid != nil {
-		return nil
-	}
-	if len(c.username) == 0 {
-		c.uid = G.GetMyUID()
-		return nil
-	}
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Name: c.username})
-	if err != nil {
-		return err
-	}
-	c.uid = user.GetUid().P()
-	return nil
-}
-
 // ParseArgv parses the command args.
 func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 	byUID := ctx.Bool("uid")
@@ -142,6 +132,14 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 			}
 		} else {
 			c.username = ctx.Args()[0]
+		}
+	}
+
+	if len(c.username) == 0 && c.uid == nil {
+		// nothing specified, so use current user
+		c.uid = G.GetMyUID()
+		if c.uid == nil {
+			return libkb.NoUserConfigError{}
 		}
 	}
 	return nil
