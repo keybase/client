@@ -6,11 +6,11 @@ pod "ObjectiveSugar"
 pod "Slash"
 pod "MASPreferences"
 
-pod "MPMessagePack"#, :path => "../../../MPMessagePack"
+pod "MPMessagePack"
 
-pod "KBKeybase"
+pod "KBKeybase"#, :path => "~/Projects/KBKeybase"
 
-pod "YOLayout", :path => "~/Projects/YOLayout"
+pod "YOLayout"#, :path => "~/Projects/YOLayout"
 
 pod "ZXCVBN"
 

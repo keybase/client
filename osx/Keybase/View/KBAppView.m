@@ -17,22 +17,26 @@
 #import "KBInstaller.h"
 #import "KBUserStatusView.h"
 #import "KBDevicesAppView.h"
+#import "KBConnectView.h"
+#import "KBDebugStatusView.h"
 
 @interface KBAppView ()
 @property KBSourceOutlineView *sourceView;
-@property KBBox *border;
 @property (readonly) YONSView *contentView;
 
 @property KBUsersAppView *usersAppView;
 @property KBDevicesAppView *devicesAppView;
 
 @property KBUserProfileView *userProfileView;
+@property (nonatomic) KBConnectView *connectView;
 @property (nonatomic) KBLoginView *loginView;
 @property (nonatomic) KBSignupView *signupView;
 
 @property NSString *title;
 @property NSStatusItem *statusItem; // Menubar
 @property (nonatomic) KBRGetCurrentStatusRes *status;
+
+@property KBDebugStatusView *debugStatusView;
 @end
 
 @implementation KBAppView
@@ -55,25 +59,31 @@
   _sourceView.delegate = self;
   [self addSubview:_sourceView];
 
-  _border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
-  [self addSubview:_border];
+  _debugStatusView = [[KBDebugStatusView alloc] init];
+  [self addSubview:_debugStatusView];
+
+  KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
+  [self addSubview:border];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat col1 = 160;
 
     CGFloat x = 0;
-    CGFloat y = 27;
+    CGFloat y = 24;
     if (!yself.sourceView.hidden) {
       [layout setFrame:CGRectMake(x, y, col1 - 1, size.height - y) view:yself.sourceView];
       x += col1;
     }
     y = 0;
-    [layout setFrame:CGRectMake(x - 1, y, 1, size.height - y) view:yself.border];
+    [layout setFrame:CGRectMake(x - 1, y, 1, size.height - y) view:border];
 
-    [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y) view:yself.contentView];
+    [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y - 30) view:yself.contentView];
+    [layout setFrame:CGRectMake(x, size.height - y - 30, size.width - x, 30) view:yself.debugStatusView];
     return size;
   }];
+
+  [self showConnect];
 }
 
 - (void)updateMenu {
@@ -100,6 +110,8 @@
 - (void)connect:(id<KBRPClient>)client {
   _client = client;
   _client.delegate = self;
+
+  _debugStatusView.client = client;
 
   GHWeakSelf gself = self;  
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -187,6 +199,20 @@
   return _signupView;
 }
 
+- (KBConnectView *)connectView {
+  if (!_connectView) {
+    _connectView = [[KBConnectView alloc] init];
+  }
+  return _connectView;
+}
+
+- (void)showConnect {
+  KBConnectView *connectView = [self connectView];
+  connectView.progressView.animating = YES;
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView title:_title];
+  [self setContentView:navigation showSourceView:NO];
+}
+
 - (void)showLogin {
   KBLoginView *view = [self loginView];
   [view removeFromSuperview];
@@ -240,6 +266,32 @@
   }];
 }
 
+- (void)checkStatus {
+  GHWeakSelf gself = self;
+  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
+  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+    if (error) {
+      [AppDelegate.sharedDelegate setFatalError:error];
+      return;
+    }
+    KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
+    [request getConfig:^(NSError *error, KBRConfig *config) {
+      if (error) {
+        [AppDelegate.sharedDelegate setFatalError:error];
+        return;
+      }
+      [self setConfig:config];
+      [self setStatus:status];
+      gself.debugStatusView.config = config;
+      [gself.debugStatusView setRPCConnected:YES serverConnected:YES];
+    }];
+  }];
+}
+
+- (void)setConfig:(KBRConfig *)config {
+  AppDelegate.sharedDelegate.APIClient = [[KBAPIClient alloc] initWithAPIHost:config.serverURI];
+}
+
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
   _status = status;
   self.user = status.user;
@@ -282,17 +334,7 @@
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
   [self.sourceView.statusView setConnected:NO];
-}
-
-- (void)checkStatus {
-  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
-  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
-    if (error) {
-      [AppDelegate.sharedDelegate setFatalError:error];
-      return;
-    }
-    [self setStatus:status];
-  }];
+  [self.debugStatusView setRPCConnected:NO serverConnected:NO];
 }
 
 - (void)sourceOutlineView:(KBSourceOutlineView *)sourceView didSelectItem:(KBSourceViewItem)item {

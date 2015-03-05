@@ -1,5 +1,5 @@
 //
-//  KBStatusDebugView.h
+//  KBDebugStatusView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/5/15.
@@ -8,6 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBStatusDebugView : NSObject
+#import "KBAppKit.h"
+#import "KBRPC.h"
+
+@interface KBDebugStatusView : KBView
+
+@property id<KBRPClient> client;
+@property KBRConfig *config;
+
+- (void)setRPCConnected:(BOOL)RPCConnected serverConnected:(BOOL)serverConnected;
 
 @end

@@ -48,7 +48,6 @@
   _emailField.placeholder = @"Email";
   _emailField.attributes[@"title"] = @"Email Address";
   _emailField.attributes[@"info"] = @"Your email address can be used to help recover your account.";
-  _emailField.flag = 1;
   _emailField.focusDelegate = self;
   [self.contentView addSubview:_emailField];
 

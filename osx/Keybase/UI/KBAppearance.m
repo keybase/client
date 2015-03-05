@@ -55,6 +55,14 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return GHNSColorFromRGB(0x666666);
 }
 
+- (NSColor *)backgroundColor {
+  return NSColor.blackColor;
+}
+
+- (NSColor *)secondaryBackgroundColor {
+  return [NSColor colorWithCalibratedWhite:0.05 alpha:1.0];
+}
+
 @end
 
 @implementation KBAppearanceLight
@@ -124,6 +132,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 - (NSFont *)buttonFont {
   return [NSFont systemFontOfSize:18];
+}
+
+- (NSColor *)backgroundColor {
+  return NSColor.whiteColor;
 }
 
 - (NSColor *)secondaryBackgroundColor {

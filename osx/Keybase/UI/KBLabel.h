@@ -11,13 +11,7 @@
 
 #import <YOLayout/YOLayout.h>
 #import "KBAppearance.h"
-
-typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
-  KBVerticalAlignmentTop,
-  KBVerticalAlignmentMiddle,
-  KBVerticalAlignmentBottom,
-  KBVerticalAlignmentBaseline,
-};
+#import "KBView.h"
 
 typedef NS_ENUM(NSInteger, KBLabelStyle) {
   KBLabelStyleDefault,
@@ -44,6 +38,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setMarkup:(NSString *)markup;
+- (void)setMarkup:(NSString *)markup style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;

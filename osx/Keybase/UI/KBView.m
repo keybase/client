@@ -7,7 +7,23 @@
 //
 
 #import "KBView.h"
+#import "KBAppearance.h"
 
 @implementation KBView
+
+- (void)viewInit {
+  [super viewInit];
+  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+}
+
+- (BOOL)wantsDefaultClipping {
+  return _clipToBounds;
+}
+
+- (void)setBackgroundColor:(NSColor *)backgroundColor {
+  _backgroundColor = backgroundColor;
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = backgroundColor.CGColor;
+}
 
 @end

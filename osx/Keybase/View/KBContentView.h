@@ -8,16 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-#import <YOLayout/YOLayout.h>
-#import "KBNavigationView.h"
+#import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBContentView : YONSView
+@interface KBContentView : KBView
 
 @property KBNavigationView *navigation;
 @property id<KBRPClient> client;
 
 // Optional content view created on access
-@property (nonatomic, readonly) YONSView *contentView;
+@property (nonatomic, readonly) KBView *contentView;
 
 @end

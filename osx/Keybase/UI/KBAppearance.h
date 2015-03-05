@@ -40,6 +40,7 @@
 - (NSFont *)boldLargeTextFont;
 - (NSFont *)buttonFont;
 
+- (NSColor *)backgroundColor;
 - (NSColor *)secondaryBackgroundColor;
 
 @end

@@ -8,6 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBConnectView : NSObject
+#import "KBContentView.h"
+
+@interface KBConnectView : KBContentView
+
+@property KBProgressOverlayView *progressView;
 
 @end

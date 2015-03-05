@@ -53,7 +53,7 @@
 
   YOSelf yself = self;
   self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 20;
+    CGFloat y = 50;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
@@ -168,10 +168,6 @@
     self.passwordField.text = nil;
     [self _checkStatusAfterLogin];
   }];
-
-//  [AppDelegate.APIClient logInWithEmailOrUserName:username password:passphrase success:^(KBSession *session) {
-//  } failure:^(NSError *error) {
-//  }];
 }
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion {

@@ -34,8 +34,8 @@
 //  [self addSubview:_overlay];
 
   _label = [[KBLabel alloc] init];
-  [_label setText:@"Loading ..." font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
   [self addSubview:_label];
+  [self setTitle:@"Loading"];
 
   _indicatorView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_indicatorView];
@@ -50,8 +50,9 @@
     CGFloat x = size.width/2.0 - indicatorWidth/2.0;
     CGFloat y = size.height/2.0 - indicatorWidth/2.0;
 
-    y += [layout setFrame:CGRectMake(x, y, indicatorWidth, indicatorWidth) view:yself.indicatorView].size.height;
-    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, 0) view:yself.label];
+    [layout setFrame:CGRectMake(x, y, indicatorWidth, indicatorWidth) view:yself.indicatorView];
+    CGSize labelSize = [yself.label sizeThatFits:size];
+    [layout setFrame:CGRectMake(size.width/2.0 - labelSize.width/2.0, y - labelSize.height - 8, labelSize.width, labelSize.height) view:yself.label];
     return CGSizeMake(size.width, size.height);
   }];
 }
@@ -67,6 +68,11 @@
 
 - (BOOL)isAnimating {
   return _indicatorView.animating;
+}
+
+- (void)setTitle:(NSString *)title {
+  [_label setText:[NSString stringWithFormat:@"%@ ...", title] font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
+  [self setNeedsLayout];
 }
 
 - (void)startAnimating {

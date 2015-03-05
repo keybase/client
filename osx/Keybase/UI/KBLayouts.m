@@ -71,4 +71,36 @@
   };
 }
 
+/*
++ (YOLayoutBlock)layout:(id)subview options:(YOLayoutOptions)options verticalAlignment:(YOVerticalAlignment)verticalAlignment horizontalAlignment:(YOHorizontalAlignment)horizontalAlignment {
+  return ^CGSize(id<YOLayout> layout, CGSize size) {
+    if ((options & YOLayoutOptionsSizeToFitHorizontal) != 0 && (options & YOLayoutOptionsSizeToFitVertical) != 0) {
+      [layout setSize:size view:subview options:0];
+      return size;
+    } else if ((options & YOLayoutOptionsSizeToFitHorizontal) != 0) {
+      CGSize sizeThatFits = [subview sizeThatFits:size];
+      switch (verticalAlignment) {
+        case YOVerticalAlignmentMiddle:
+          [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - sizeThatFits.height/2.0, sizeThatFits.width, sizeThatFits.height)) view:subview];
+          break;
+        case YOVerticalAlignmentTop:
+          [layout setFrame:CGRectIntegral(CGRectMake(0, 0, sizeThatFits.width, sizeThatFits.height)) view:subview];
+          break;
+        default:
+          NSAssert(NO, @"Unsupported");
+      }
+      return CGSizeMake(sizeThatFits.width, size.height);
+    } else if ((options & YOLayoutOptionsSizeToFitVertical) != 0) {
+      CGSize sizeThatFits = [subview sizeThatFits:size];
+      [layout setSize:CGSizeMake(size.width, sizeThatFits.height) view:subview options:0];
+      return CGSizeMake(size.width, sizeThatFits.height);
+    } else {
+      CGSize sizeThatFits = [subview sizeThatFits:size];
+      [layout setSize:sizeThatFits view:subview options:0];
+      return sizeThatFits;
+    }
+  };
+}
+ */
+
 @end

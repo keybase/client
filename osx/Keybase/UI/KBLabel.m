@@ -12,7 +12,6 @@
 #import "KBBox.h"
 #import "KBAppearance.h"
 #import <GHKit/GHKit.h>
-#import "KBAppearance.h"
 
 @interface KBLabel ()
 @property NSTextView *textView;
@@ -49,10 +48,44 @@
 
 - (CGSize)sizeThatFits:(CGSize)size {
   CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-//  if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
-//    return CGSizeMake(textSize.width, size.height);
-//  }
+  //  if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
+  //    return CGSizeMake(textSize.width, size.height);
+  //  }
   return textSize;
+}
+
+  /*
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    if ((self.autoresizingMask & NSViewHeightSizable) != 0 && (self.autoresizingMask & NSViewWidthSizable) != 0) {
+      [layout setSize:size view:yself.textView options:0];
+      [layout setSize:size view:yself.border options:0];
+      return size;
+    } else if ((self.autoresizingMask & NSViewWidthSizable) != 0) {
+      CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+      textSize.width += 10;
+      switch (self.verticalAlignment) {
+        case YOVerticalAlignmentMiddle:
+          [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, textSize.width, textSize.height)) view:yself.textView];
+          break;
+        case YOVerticalAlignmentTop:
+          [layout setFrame:CGRectIntegral(CGRectMake(0, 0, textSize.width, textSize.height)) view:yself.textView];
+          break;
+        default:
+          NSAssert(NO, @"Unsupported");
+      }
+      [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
+      return CGSizeMake(textSize.width, size.height);
+    } else {
+      CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+      [layout setSize:textSize view:yself.textView options:0];
+      return textSize;
+    }
+  }];
+}
+   */
+
+- (NSString *)description {
+  return [NSString stringWithFormat:@"%@ %@", super.description, self.attributedText];
 }
 
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style {
@@ -134,8 +167,7 @@
 }
 
 + (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color {
-
-  NSDictionary *defaultStyle = @{NSFontAttributeName: font, NSForegroundColorAttributeName: color ? color : [KBAppearance.currentAppearance textColor]};
+  NSDictionary *defaultStyle = @{NSFontAttributeName:font ? font : KBAppearance.currentAppearance.textFont, NSForegroundColorAttributeName:color ? color : KBAppearance.currentAppearance.textColor};
 
   NSDictionary *style = @{@"$default": defaultStyle,
                           @"p": defaultStyle,
@@ -143,7 +175,9 @@
                           //@"h4": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 4]},
                           @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
                           @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
-                          @"a": @{NSForegroundColorAttributeName: [KBAppearance.currentAppearance selectColor]},
+                          @"a": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor},
+                          @"ok": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.okColor},
+                          @"error": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.errorColor},
                           @"color": @{},
                           };
   NSError *error = nil;
@@ -167,6 +201,10 @@
 
 - (void)setMarkup:(NSString *)markup {
   [self setMarkup:markup font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+}
+
+- (void)setMarkup:(NSString *)markup style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  [self setMarkup:markup font:nil color:nil alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {

@@ -17,6 +17,8 @@
 @property BOOL hidesWhenStopped;
 @property (nonatomic, getter=isAnimating) BOOL animating;
 
+- (void)setTitle:(NSString *)title;
+
 - (void)startAnimating;
 - (void)stopAnimating;
 

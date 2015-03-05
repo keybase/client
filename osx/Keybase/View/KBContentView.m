@@ -11,7 +11,7 @@
 #import "KBLayouts.h"
 
 @interface KBContentView ()
-@property (nonatomic) YONSView *contentView;
+@property (nonatomic) KBView *contentView;
 @end
 
 @implementation KBContentView
@@ -22,9 +22,9 @@
   self.layer.backgroundColor = NSColor.whiteColor.CGColor;
 }
 
-- (YONSView *)contentView {
+- (KBView *)contentView {
   if (!_contentView) {
-    _contentView = [[YONSView alloc] init];
+    _contentView = [[KBView alloc] init];
     [self addSubview:_contentView];
     if (!self.viewLayout) {
       self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:_contentView]];

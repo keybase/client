@@ -9,8 +9,9 @@
 #import <Foundation/Foundation.h>
 
 #import <YOLayout/YOLayout.h>
+#import "KBView.h"
 
-@interface KBPopoverView : YONSView
+@interface KBPopoverView : KBView
 
 - (void)setText:(NSString *)text title:(NSString *)title;
 
