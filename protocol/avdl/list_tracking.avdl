@@ -1,0 +1,23 @@
+@namespace("keybase.1")
+
+protocol listTracking {
+	import idl "common.avdl";
+
+	record TrackProof {
+		string proofType;
+		string proofName;
+		string idString;
+	}
+
+	record TrackEntry {
+		string username;
+		string sigId;
+		string pgpFingerprint;
+		long trackTime;
+		array<TrackProof> proofs;
+	}
+
+	array<TrackEntry> listTracking(string filter);
+
+	string listTrackingJson(string filter, boolean verbose);
+}

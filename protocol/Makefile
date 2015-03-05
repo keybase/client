@@ -19,6 +19,7 @@ build-stamp: \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \
+	json/list_tracking.json \
 	json/mykey.json \
 	json/log_ui.json \
 	json/login.json \
