@@ -401,6 +401,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSession : KBRObject
 @property KBRUID *uid;
 @property NSString *username;
+@property NSString *token;
 @end
 
 @interface KBRSessionRequest : KBRRequest

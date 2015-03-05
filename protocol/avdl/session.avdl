@@ -6,6 +6,7 @@ protocol session {
 	record Session {
 		UID uid;
 		string username;
+		string token;
 	}
 
 	Session currentSession();

@@ -132,6 +132,9 @@
     }, {
       "name" : "username",
       "type" : "string"
+    }, {
+      "name" : "token",
+      "type" : "string"
     } ]
   } ],
   "messages" : {

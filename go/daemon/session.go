@@ -29,6 +29,7 @@ func (h *SessionHandler) CurrentSession() (keybase_1.Session, error) {
 
 	s.Uid = current.GetUID().Export()
 	s.Username = *(current.GetUsername())
+	s.Token = current.GetToken()
 
 	return s, nil
 }
