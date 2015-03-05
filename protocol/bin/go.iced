@@ -18,6 +18,7 @@ class GoEmitter
     map =
       boolean : "bool"
       bytes : "[]byte"
+      long : "int64"
     map[m] or m
 
   constructor : () ->
