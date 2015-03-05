@@ -433,12 +433,15 @@ func (p *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret Gen
 	if tsec != nil || pps != nil {
 		ret, err = p.UnlockSecretKey("", tsec, pps)
 		if err == nil {
+			G.Log.Debug("| Unlocked key with cached 3Sec and passphrase stream")
 			return
 		}
 		if _, ok := err.(PassphraseError); !ok {
 			return
 		}
 		// if it's a passphrase error, fall through...
+	} else {
+		G.Log.Debug("| No 3Sec or PassphraseStream in PromptAndUnlock")
 	}
 
 	var desc string
@@ -451,7 +454,7 @@ func (p *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret Gen
 	}
 
 	return KeyUnlocker{
-		Tries:    5,
+		Tries:    4,
 		Reason:   reason,
 		KeyDesc:  desc,
 		Unlocker: unlocker,

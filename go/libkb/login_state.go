@@ -348,9 +348,14 @@ func (s *LoginState) Login(arg LoginArg) (err error) {
 		return
 	}
 
-	if loggedIn, err = s.tryPubkeyLogin(arg); err != nil || loggedIn {
-		return
+	// Only try a pubkey login if the user didn't specify a password
+	// as part of the arg.
+	if len(arg.Passphrase) == 0 {
+		if loggedIn, err = s.tryPubkeyLogin(arg); err != nil || loggedIn {
+			return
+		}
 	}
+
 	if err = s.tryPassphraseLogin(arg); err != nil {
 		return err
 	}
