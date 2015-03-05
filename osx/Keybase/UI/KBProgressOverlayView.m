@@ -39,25 +39,27 @@
 
   _indicatorView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_indicatorView];
+
+  YOSelf yself = self;
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat indicatorWidth = 84;
+
+    if (size.width == 0) size.width = 140;
+    if (size.height == 0) size.height = 140;
+
+    CGFloat x = size.width/2.0 - indicatorWidth/2.0;
+    CGFloat y = size.height/2.0 - indicatorWidth/2.0;
+
+    y += [layout setFrame:CGRectMake(x, y, indicatorWidth, indicatorWidth) view:yself.indicatorView].size.height;
+    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, 0) view:yself.label];
+    return CGSizeMake(size.width, size.height);
+  }];
 }
 
 //- (NSView *)hitTest:(NSPoint)point {
 //  if (self.hidden) return nil;
 //  return self;
 //}
-
-- (void)layout {
-  [super layout];
-
-  CGFloat indicatorWidth = 84;
-  CGFloat x = self.frame.size.width/2.0 - indicatorWidth/2.0;
-  CGFloat y = self.frame.size.height/2.0 - indicatorWidth/2.0;
-
-  _indicatorView.frame = CGRectMake(x, y, indicatorWidth, indicatorWidth);
-  _label.frame = CGRectMake(0, y - 40, self.bounds.size.width, 40);
-
-  //_overlay.frame = self.bounds;
-}
 
 - (void)setAnimating:(BOOL)animating {
   animating ? [self startAnimating] : [self stopAnimating];

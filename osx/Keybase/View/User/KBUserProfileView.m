@@ -20,6 +20,7 @@
 #import "KBProveView.h"
 #import "KBRPClient.h"
 #import "KBKeySelectView.h"
+#import "KBKeyGenView.h"
 
 @interface KBUserProfileView ()
 @property NSScrollView *scrollView;
@@ -247,7 +248,7 @@
 
       if (!gself.fokid.pgpFingerprint) {
         [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
-          [gself selectKey];
+          [gself addPGPKey];
         }];
       }
 
@@ -291,9 +292,42 @@
   [self setNeedsLayout];
 }
 
-#pragma mark Key Select
+#pragma mark Add PGP
 
-- (void)selectKey {
+- (void)addPGPKey {
+  KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
+  [request getConfig:^(NSError *error, KBRConfig *config) {
+    KBAlert *alert = [[KBAlert alloc] init];
+    [alert addButtonWithTitle:@"Import Manually" tag:1];
+    if (config.gpgExists) [alert addButtonWithTitle:@"Import from GPG" tag:2];
+    [alert addButtonWithTitle:@"Generate New Key" tag:3];
+    [alert addButtonWithTitle:@"Cancel" tag:5];
+    [alert setMessageText:@"Already have a PGP key?"];
+    [alert setInformativeText:@"Would you like to import a key, or generate a new one?"];
+    [alert setAlertStyle:NSInformationalAlertStyle];
+    [alert showInView:self completion:^(NSModalResponse response) {
+      if (response == 2) {
+        [self selectGPGKey];
+      } else if (response == 1) {
+        // TODO
+      } else if (response == 3) {
+        [self generateNewKey];
+      }
+    }];
+  }];
+}
+
+- (void)generateNewKey {
+  KBKeyGenView *view = [[KBKeyGenView alloc] init];
+  NSWindow *window = [KBWindow windowWithContentView:view size:CGSizeMake(600, 400) retain:NO];
+  view.completion = ^{
+    [self.window endSheet:window];
+  };
+  view.cancelButton.actionBlock = ^(id sender) { [self.window endSheet:window]; };
+  [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
+}
+
+- (void)selectGPGKey {
   KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
   [self.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
@@ -301,7 +335,7 @@
   }];
   [request selectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     if (error) [self setError:error];
-    [self reload];
+    //[self reload];
   }];
 }
 
@@ -318,13 +352,6 @@
 
   selectView.cancelButton.actionBlock = ^(id sender) { [self.window endSheet:window]; };
   [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
-}
-
-- (void)addPGPKey {
-  KBRGpgRequest *request = [[KBRGpgRequest alloc] initWithClient:self.client];
-  [request addGpgKey:^(NSError *error) {
-    [self reload];
-  }];
 }
 
 @end

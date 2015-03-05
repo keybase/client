@@ -223,6 +223,7 @@
   if (size.width == 0) size.width = CGFLOAT_MAX;
   NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
   NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:size];
+  [textContainer setLineFragmentPadding:0.0];
   NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
   [layoutManager addTextContainer:textContainer];
   [textStorage addLayoutManager:layoutManager];

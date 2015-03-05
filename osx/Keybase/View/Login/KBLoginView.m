@@ -20,9 +20,11 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
-//  self.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
-//  self.layer.borderWidth = 1.0;
-//  self.layer.cornerRadius = 6;
+  self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  self.contentView.backgroundColor = NSColor.whiteColor;
+  self.contentView.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
+  self.contentView.layer.borderWidth = 1.0;
+  self.contentView.layer.cornerRadius = 6;
 
   KBLabel *label = [[KBLabel alloc] init];
   [label setMarkup:@"<p>Welcome to <strong>Keybase</strong></p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
@@ -145,18 +147,17 @@
   [self.navigation setProgressEnabled:YES];
   [self.navigation.titleView setProgressEnabled:YES];
 
-  [login pubkeyLogin:^(NSError *error) {
-    [self.navigation setProgressEnabled:NO];
-    if (error) {
-      [AppDelegate setError:error sender:self];
-      return;
-    }
+//  [login pubkeyLogin:^(NSError *error) {
+//    [self.navigation setProgressEnabled:NO];
+//    if (error) {
+//      [AppDelegate setError:error sender:self];
+//      return;
+//    }
+//
+//    self.passwordField.text = nil;
+//    [self _checkStatusAfterLogin];
+//  }];
 
-    self.passwordField.text = nil;
-    [self _checkStatusAfterLogin];
-  }];
-
-  /*
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
@@ -167,7 +168,6 @@
     self.passwordField.text = nil;
     [self _checkStatusAfterLogin];
   }];
-   */
 
 //  [AppDelegate.APIClient logInWithEmailOrUserName:username password:passphrase success:^(KBSession *session) {
 //  } failure:^(NSError *error) {
@@ -207,7 +207,7 @@
 
   deviceSetupView.cancelButton.targetBlock = ^{
     KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
-    response.action = KBRSelectSignerActionLogout; // Will be renamed to cancel
+    response.action = KBRSelectSignerActionCancel;
     completion(nil, response);
   };
 

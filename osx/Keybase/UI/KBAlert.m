@@ -8,6 +8,8 @@
 
 #import "KBAlert.h"
 
+#import <ObjectiveSugar/ObjectiveSugar.h>
+
 @implementation KBAlert
 
 - (void)showInView:(NSView *)view completion:(KBAlertResponse)completion {
@@ -18,6 +20,11 @@
     NSModalResponse returnCode = [self runModal];
     completion(returnCode);
   }
+}
+
+- (void)addButtonWithTitle:(NSString *)title tag:(NSInteger)tag {
+  NSButton *button = [self addButtonWithTitle:title];
+  [button setTag:tag];
 }
 
 + (void)promptWithTitle:(NSString *)title description:(NSString *)description style:(NSAlertStyle)style buttonTitles:(NSArray *)buttonTitles view:(NSView *)view completion:(void (^)(NSModalResponse response))completion {
@@ -47,6 +54,10 @@
   [alert showInView:view completion:^(NSModalResponse returnCode) {
     completion(returnCode, input.stringValue);
   }];
+}
+
++ (void)yesNoWithTitle:(NSString *)title description:(NSString *)description yes:(NSString *)yes view:(NSView *)view completion:(void (^)(NSModalResponse response))completion {
+  [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[NSStringWithFormat(@"Yes, %@", yes), @"No"] view:view completion:completion];
 }
 
 @end

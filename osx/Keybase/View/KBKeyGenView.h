@@ -13,4 +13,8 @@
 
 @interface KBKeyGenView : KBContentView
 
+@property (copy) dispatch_block_t completion;
+
+@property KBButton *cancelButton;
+
 @end

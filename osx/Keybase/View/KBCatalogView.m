@@ -115,7 +115,7 @@
 
     }];
   } else if ([type isEqualTo:@"yes_no"]) {
-    [KBAlert promptWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Give me my Pabst", @"No"] view:self completion:^(NSModalResponse response) {
+    [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^(NSModalResponse response) {
 
     }];
   } else if ([type isEqualTo:@"input"]) {
@@ -154,7 +154,7 @@
 
 - (void)showStyleGuide {
   KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
-  [self openInWindow:testView size:CGSizeMake(600, 400) title:@"Keybase"];
+  [self openInWindow:testView size:CGSizeMake(300, 400) title:@"Keybase"];
 }
 
 - (void)showProveInstructions {

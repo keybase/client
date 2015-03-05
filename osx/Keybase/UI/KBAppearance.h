@@ -40,6 +40,8 @@
 - (NSFont *)boldLargeTextFont;
 - (NSFont *)buttonFont;
 
+- (NSColor *)secondaryBackgroundColor;
+
 @end
 
 @interface KBAppearance : NSObject

@@ -61,8 +61,12 @@ DEPENDENCIES:
   - MPMessagePack
   - ObjectiveSugar
   - Slash
-  - YOLayout
+  - YOLayout (from `~/Projects/YOLayout`)
   - ZXCVBN
+
+EXTERNAL SOURCES:
+  YOLayout:
+    :path: ~/Projects/YOLayout
 
 SPEC CHECKSUMS:
   AFNetworking: 8bee59492a6ff15d69130efa4d0dc67e0094a52a
@@ -77,7 +81,7 @@ SPEC CHECKSUMS:
   ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2
   Slash: d98d6ff27ece4297d8d65fb49fc1ce4307a75f46
   TSTripleSec: 7371672f757735ab696d8c0d0fc0d98b7a38059e
-  YOLayout: d082f2348d374bccab7f7c6b2d69b999c95e4c3a
+  YOLayout: f34d2f7ae963ac29c9b693e510ffe7559b31688a
   ZXCVBN: cc445c6207fc2f0b42276b7a4c2b2aee47624577
 
 COCOAPODS: 0.35.0

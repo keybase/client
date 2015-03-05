@@ -18,6 +18,8 @@
 @property KBLabel *usernameStatusLabel;
 @property KBStrengthLabel *strengthLabel;
 @property KBLabel *passwordConfirmLabel;
+@property KBPopoverView *popover;
+@property NSView *popoverTarget;
 @end
 
 @implementation KBSignupView
@@ -25,6 +27,11 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
+  self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  self.contentView.backgroundColor = NSColor.whiteColor;
+  self.contentView.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
+  self.contentView.layer.borderWidth = 1.0;
+  self.contentView.layer.cornerRadius = 6;
 
   //KBLabel *label = [[KBLabel alloc] init];
   //[label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
@@ -35,29 +42,46 @@
   _inviteField.text = @"202020202020202020202111"; // TODO: Hardcoded
   //[contentView addSubview:_inviteField];
 
+  _popover = [[KBPopoverView alloc] init];
+
   _emailField = [[KBTextField alloc] init];
   _emailField.placeholder = @"Email";
+  _emailField.attributes[@"title"] = @"Email Address";
+  _emailField.attributes[@"info"] = @"Your email address can be used to help recover your account.";
+  _emailField.flag = 1;
+  _emailField.focusDelegate = self;
   [self.contentView addSubview:_emailField];
 
   _usernameField = [[KBTextField alloc] init];
   _usernameField.placeholder = @"Username";
   _usernameField.textField.delegate = self;
+  _usernameField.attributes[@"title"] = @"Username";
+  _usernameField.attributes[@"info"] = @"This is a unique username that everyone will use to identify you. Choose wisely, this can't be changed.";
+  _usernameField.focusDelegate = self;
   [self.contentView addSubview:_usernameField];
 
   _deviceNameField = [[KBTextField alloc] init];
   _deviceNameField.placeholder = @"Computer Name";
   _deviceNameField.textField.delegate = self;
+  _deviceNameField.focusDelegate = self;
+  _deviceNameField.attributes[@"title"] = @"Computer Name";
+  _deviceNameField.attributes[@"info"] = @"We'll register this install with this name. It'll help you identify this install later.";
+
   //_deviceNameField.text = [[NSHost currentHost] localizedName];
   [self.contentView addSubview:_deviceNameField];
 
   _passwordField = [[KBSecureTextField alloc] init];
   _passwordField.placeholder = @"Passphrase";
   _passwordField.textField.delegate = self;
+  _passwordField.focusDelegate = self;
+  _passwordField.attributes[@"title"] = @"Passphrase";
+  _passwordField.attributes[@"info"] = @"You'll need a 12 character random password. This is never sent to Keybase's servers. It's salted & stretched with scrypt here.";
   [self.contentView addSubview:_passwordField];
 
   _passwordConfirmField = [[KBSecureTextField alloc] init];
   _passwordConfirmField.placeholder = @"Confirm Passphrase";
   _passwordConfirmField.textField.delegate = self;
+  _passwordConfirmField.focusDelegate = self;
   [self.contentView addSubview:_passwordConfirmField];
 
   _signupButton = [KBButton buttonWithText:@"Sign Up" style:KBButtonStylePrimary];
@@ -81,7 +105,7 @@
 
   YOSelf yself = self;
   self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 20;
+    CGFloat y = 40;
     CGFloat padding = 12;
 
     //y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
@@ -110,7 +134,10 @@
 
     y += [layout setFrame:CGRectMake(0, y, size.width, 30) view:yself.loginButton].size.height;
 
-    y += 20;
+    y += 30;
+
+    // TODO
+    [layout sizeToFitVerticalInFrame:CGRectMake(self.contentView.frame.origin.x + yself.popoverTarget.frame.origin.x + yself.popoverTarget.frame.size.width + 10, self.contentView.frame.origin.y + yself.popoverTarget.frame.origin.y - 20, (self.frame.size.width - size.width)/2.0, 0) view:yself.popover];
 
     return CGSizeMake(MIN(380, size.width), y);
   }];
@@ -127,6 +154,19 @@
 - (void)viewDidAppear:(BOOL)animated {
   [self.window recalculateKeyViewLoop];
   [self.window makeFirstResponder:_emailField];
+}
+
+- (void)textField:(KBTextField *)textField didChangeFocus:(BOOL)focused {
+  if (focused && textField.attributes[@"title"]) {
+    [_popover setText:textField.attributes[@"info"] title:textField.attributes[@"title"]];
+    _popoverTarget = textField;
+    [_popover removeFromSuperview];
+    [self addSubview:_popover positioned:NSWindowAbove relativeTo:nil];
+    [self setNeedsLayout];
+  } else {
+    [_popover removeFromSuperview];
+    _popoverTarget = nil;
+  }
 }
 
 - (void)controlTextDidChange:(NSNotification *)notification {

@@ -19,7 +19,7 @@
 @end
 
 
-@interface KBSignupView : KBContentView <NSTextFieldDelegate>
+@interface KBSignupView : KBContentView <NSTextFieldDelegate, KBTextFieldFocusDelegate>
 @property (weak) id<KBSignupViewDelegate> delegate;
 
 @property KBTextField *emailField;

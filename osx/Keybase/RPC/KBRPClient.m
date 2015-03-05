@@ -136,7 +136,7 @@
     if (error) {
       GHDebug(@"Error: %@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
-      error = KBMakeError(error.code, @"%@", errorInfo[@"desc"]);
+      error = KBMakeErrorWithRecovery(error.code, NSStringWithFormat(@"Oops, we had a problem (%@).", @(error.code)), @"%@: %@", errorInfo[@"name"], errorInfo[@"desc"]);
     }
     GHDebug(@"Result: %@", result);
     completion(error, result);

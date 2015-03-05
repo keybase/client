@@ -14,7 +14,6 @@
 @interface KBKeyGenView ()
 @property KBLabel *infoLabel;
 @property KBButton *button;
-@property KBButton *selectButton;
 @end
 
 @implementation KBKeyGenView
@@ -42,11 +41,15 @@
   };
   [self addSubview:_button];
 
-  _selectButton = [KBButton buttonWithText:@"I have a key already, let me select it." style:KBButtonStyleLink];
-  _selectButton.targetBlock = ^{
-    KBTODO();
-  };
-  [self addSubview:_selectButton];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleLink];
+  [self addSubview:_cancelButton];
+
+
+//  _selectButton = [KBButton buttonWithText:@"I have a key already, let me select it." style:KBButtonStyleLink];
+//  _selectButton.targetBlock = ^{
+//    KBTODO();
+//  };
+//  [self addSubview:_selectButton];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -57,7 +60,7 @@
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.button].size.height + 30;
 
-    y += [layout centerWithSize:CGSizeMake(0, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.selectButton].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(0, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.cancelButton].size.height + 30;
 
     return CGSizeMake(size.width, y);
   }];
@@ -82,7 +85,7 @@
       [AppDelegate setError:error sender:self];
       return;
     }
-
+    self.completion();
   }];
 }
 
