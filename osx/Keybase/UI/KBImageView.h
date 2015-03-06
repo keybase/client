@@ -14,6 +14,8 @@
 @property (nonatomic) NSString *URLString;
 @property float roundedRatio;
 
+- (void)viewInit;
+
 // Can be image named or http
 - (void)setImageSource:(NSString *)imageSource;
 

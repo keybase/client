@@ -22,6 +22,9 @@
 @property (readonly) KBBox *border;
 
 @property CGSize imageSize;
+@property BOOL tintImageForStyle;
+
+- (KBImageView *)loadImageView;
 
 - (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource;
 

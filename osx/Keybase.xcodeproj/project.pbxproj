@@ -167,6 +167,10 @@
 		00E531581A9E7955005A4185 /* KBRMockClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E531561A9E7955005A4185 /* KBRMockClient.m */; };
 		00E5315B1A9E7C50005A4185 /* KBRPCRegistration.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */; };
 		00E5315C1A9E7C50005A4185 /* KBRPCRegistration.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */; };
+		00FDC80F1AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */; };
+		00FDC8101AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */; };
+		00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
+		00FDC8181AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
 		00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
 		00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
 		2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC436D1A3A9EC7006118A9 /* KBRPC.m */; };
@@ -361,6 +365,10 @@
 		00E531591A9E7C50005A4185 /* KBRPCRegistration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPCRegistration.h; sourceTree = "<group>"; };
 		00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPCRegistration.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		00FDC80D1AAA5E3700D6C571 /* KBTrackEntryView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTrackEntryView.h; sourceTree = "<group>"; };
+		00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTrackEntryView.m; sourceTree = "<group>"; };
+		00FDC8151AAA605C00D6C571 /* KBUserImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserImageView.h; sourceTree = "<group>"; };
+		00FDC8161AAA605C00D6C571 /* KBUserImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserImageView.m; sourceTree = "<group>"; };
 		00FE16021A5C933F00CF3FA5 /* KBDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefines.m; sourceTree = "<group>"; };
 		03789C52C3DF0B9CD33BF3ED /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		611C5EDA1DAAF19EB60AD786 /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
@@ -442,6 +450,10 @@
 				0017124A1A951A9C00C7AD58 /* KBUsersAppView.m */,
 				00C7DD4F1AA6747B00F57AFC /* KBUserStatusView.h */,
 				00C7DD501AA6747B00F57AFC /* KBUserStatusView.m */,
+				00FDC80D1AAA5E3700D6C571 /* KBTrackEntryView.h */,
+				00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */,
+				00FDC8151AAA605C00D6C571 /* KBUserImageView.h */,
+				00FDC8161AAA605C00D6C571 /* KBUserImageView.m */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -953,6 +965,7 @@
 				00566A211A97DA1800CA236E /* KBScrollView.m in Sources */,
 				00B543F91A81990B0044CC5B /* KBPreferences.m in Sources */,
 				00C7DD6A1AA7966D00F57AFC /* KBRPCRecord.m in Sources */,
+				00FDC80F1AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */,
 				00C7DD4D1AA63A1100F57AFC /* KBLabelRow.m in Sources */,
 				00B544261A895A810044CC5B /* KBProofResult.m in Sources */,
 				00566A111A97DA1800CA236E /* KBImageTextView.m in Sources */,
@@ -961,6 +974,7 @@
 				00566A0D1A97DA1800CA236E /* KBBox.m in Sources */,
 				00B544301A895AB80044CC5B /* KBProveInstructionsView.m in Sources */,
 				003BAAB91A8042C700C309B9 /* KBStyleGuideView.m in Sources */,
+				00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */,
 				00566A1F1A97DA1800CA236E /* KBProgressOverlayView.m in Sources */,
 				00566A511A9BAA7500CA236E /* KBInstaller.m in Sources */,
 				00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */,
@@ -1043,6 +1057,7 @@
 				003BAABA1A8042C700C309B9 /* KBStyleGuideView.m in Sources */,
 				0017124F1A951A9C00C7AD58 /* KBUserView.m in Sources */,
 				00DD24611AA8E93100371CDA /* KBConnectView.m in Sources */,
+				00FDC8101AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */,
 				00566A1A1A97DA1800CA236E /* KBLayouts.m in Sources */,
 				001712671A951EE500C7AD58 /* KBKeySelectView.m in Sources */,
 				00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */,
@@ -1060,6 +1075,7 @@
 				00B544041A82F8B40044CC5B /* KBAppView.m in Sources */,
 				00C7DD4E1AA63A1100F57AFC /* KBLabelRow.m in Sources */,
 				001712291A94100500C7AD58 /* KBGPGKeysView.m in Sources */,
+				00FDC8181AAA605C00D6C571 /* KBUserImageView.m in Sources */,
 				00566A241A97DA1800CA236E /* KBSplitView.m in Sources */,
 				00566A341A97DA1800CA236E /* KBWindow.m in Sources */,
 				00566A1C1A97DA1800CA236E /* KBMenuBar.m in Sources */,

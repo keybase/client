@@ -25,6 +25,6 @@ typedef void (^KBWork)(KBCompletionBlock completion);
 
 - (void)openAndDoIt:(id)sender;
 
-- (void)close:(id)sender;
+//- (void)close:(id)sender;
 
 @end

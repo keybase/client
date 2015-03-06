@@ -8,9 +8,10 @@
 
 #import "KBUserStatusView.h"
 #import "AppDelegate.h"
+#import "KBUserImageView.h"
 
 @interface KBUserStatusView ()
-@property KBImageView *imageView;
+@property KBUserImageView *imageView;
 @property KBLabel *nameLabel;
 @property KBLabel *statusLabel;
 @end
@@ -25,8 +26,7 @@
   self.button = [KBButton buttonWithText:nil style:KBButtonStyleEmpty];
   [self addSubview:self.button];
 
-  _imageView = [[KBImageView alloc] init];
-  _imageView.roundedRatio = 1.0;
+  _imageView = [[KBUserImageView alloc] init];
   [self addSubview:_imageView];
 
   _nameLabel = [[KBLabel alloc] init];
@@ -57,7 +57,7 @@
 
   [_nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
-  [self.imageView setURLString:KBUserImageURLString(user.username) defaultURLString:@"https://keybase.io/images/no_photo.png"];
+  self.imageView.username = user.username;
 
   [self setNeedsLayout];
 }

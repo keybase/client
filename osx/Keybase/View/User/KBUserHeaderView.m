@@ -10,13 +10,14 @@
 
 #import "KBActivityIndicatorView.h"
 #import "AppDelegate.h"
+#import "KBUserImageView.h"
 
 @interface KBUserHeaderView ()
 @property KBLabel *name1Label;
 @property KBButton *name2View;
 @property KBLabel *locationLabel;
 @property KBLabel *bioLabel;
-@property KBImageView *imageView;
+@property KBUserImageView *imageView;
 
 @property KBActivityIndicatorView *progressView;
 @end
@@ -30,8 +31,7 @@
   _progressView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_progressView];
 
-  _imageView = [[KBImageView alloc] init];
-  _imageView.roundedRatio = 1.0;
+  _imageView = [[KBUserImageView alloc] init];
   _imageView.hidden = YES;
   [self addSubview:_imageView];
 
@@ -89,7 +89,7 @@
 
   //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];
 
-  [self.imageView setURLString:KBUserImageURLString(user.username) defaultURLString:@"https://keybase.io/images/no_photo.png"];
+  self.imageView.username = user.username;
 
   [self setNeedsLayout];
 }

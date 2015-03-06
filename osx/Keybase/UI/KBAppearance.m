@@ -111,8 +111,12 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   return [NSColor colorWithCalibratedWhite:193.0/255.0 alpha:1.0];
 }
 
-- (NSColor *)tableGridColor {
+- (NSColor *)secondaryLineColor {
   return [NSColor colorWithCalibratedWhite:213.0/255.0 alpha:1.0];
+}
+
+- (NSColor *)tableGridColor {
+  return [self secondaryLineColor];
 }
 
 - (NSColor *)highlightBackgroundColor {

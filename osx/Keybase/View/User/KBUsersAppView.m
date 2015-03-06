@@ -37,12 +37,11 @@
   [self addSubview:_searchField];
 
   _usersView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  _usersView.hidden = YES;
-  _usersView.cellSetBlock = ^(KBUserView *view, KBRUser *user, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
-    [view setUser:user];
+  _usersView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
+    [view setUserSummary:userSummary];
   };
-  _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
-    [yself selectUser:user];
+  _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+    [yself selectUser:userSummary.username];
   };
   [self addSubview:_usersView];
 
@@ -51,9 +50,9 @@
     [view setSearchResult:searchResult];
   };
   _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
-    [yself selectUser:KBRUserFromSearchResult(searchResult)];
+    [yself selectUser:searchResult.userName];
   };
-  [self addSubview:_searchResultsView];
+  [self addSubview:_searchResultsView positioned:NSWindowAbove relativeTo:_usersView];
 
   _userProfileView = [[KBUserProfileView alloc] init];
   [self addSubview:_userProfileView];
@@ -90,38 +89,65 @@
 
     return size;
   }];
+
+  [self hideSearch];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+  [self reload];
+}
+
+- (void)reload {
+  KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:self.client];
+  [request listTrackingWithFilter:nil completion:^(NSError *error, NSArray *items) {
+    [self loadUsernames:[items map:^(KBRTrackEntry *te) { return te.username; }] completion:^(NSError *error, NSArray *userSummaries) {
+      [self setUserSummaries:userSummaries];
+    }];
+  }];
+}
+
+- (void)loadUserIds:(NSArray *)userIds {
+  KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:self.client];
+  [request loadUncheckedUserSummariesWithUids:userIds completion:^(NSError *error, NSArray *items) {
+  }];
+}
+
+- (void)setUserSummaries:(NSArray *)userSummaries {
+  [_usersView setObjects:userSummaries];
+  [self hideSearch];
 }
 
 - (void)setUser:(KBRUser *)user {
   [_usersView removeAllObjects];
   [_userProfileView clear];
-  [self selectUser:user];
+  [self selectUser:user.username];
 }
 
-- (void)selectUser:(KBRUser *)user {
+- (void)selectUser:(NSString *)username {
+  KBRUser *user = [[KBRUser alloc] init];
+  user.username = username;
   BOOL editable = [AppDelegate.appView.user.username isEqual:user.username];
   [_userProfileView setUser:user editable:editable client:self.client];
 }
 
-- (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *users))completion {
+- (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *userSummaries))completion {
   //self.progressIndicatorEnabled = YES;
   [AppDelegate.sharedDelegate.APIClient usersForKey:@"usernames" value:[usernames join:@","] fields:nil success:^(NSArray *users) {
     //self.progressIndicatorEnabled = NO;
-    completion(nil, KBRUsersFromAPIUsers(users));
+    completion(nil, KBRUserSummariesFromAPIUsers(users));
   } failure:^(NSError *error) {
     completion(error, nil);
   }];
 }
 
-NSArray *KBRUsersFromAPIUsers(NSArray *APIUsers) {
+NSArray *KBRUserSummariesFromAPIUsers(NSArray *APIUsers) {
   return [APIUsers map:^id(KBUser *APIUser) {
-    KBRUser *user = [[KBRUser alloc] init];
+    KBRUserSummary *user = [[KBRUserSummary alloc] init];
     user.uid = (KBRUID *)[APIUser.identifier na_dataFromHexString];
     user.username = APIUser.userName;
-    user.image = [[KBRImage alloc] init];
-    user.image.url = APIUser.image.URLString;
-    user.image.width = APIUser.image.width;
-    user.image.height = APIUser.image.height;
+    user.proofs = [[KBRProofs alloc] init];
+    user.proofs.twitter = [[[APIUser proofsForType:KBProofTypeTwitter] firstObject] displayName];
+    user.proofs.github = [[[APIUser proofsForType:KBProofTypeGithub] firstObject] displayName];
     return user;
   }];
 }
@@ -130,19 +156,35 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   KBRUser *user = [[KBRUser alloc] init];
   user.uid = (KBRUID *)[searchResult.userId na_dataFromHexString];
   user.username = searchResult.userName;
-  user.image = [[KBRImage alloc] init];
-  user.image.url = searchResult.thumbnailURLString;
+  return user;
+}
+
+KBRUser *KBRUserFromTrackEntry(KBRTrackEntry *trackEntry) {
+  KBRUser *user = [[KBRUser alloc] init];
+  user.username = trackEntry.username;
   return user;
 }
 
 #pragma mark Search
 
+- (void)showSearch {
+  _usersView.hidden = YES;
+  _searchResultsView.hidden = NO;
+}
+
+- (void)hideSearch {
+  _usersView.hidden = NO;
+  _searchResultsView.hidden = YES;
+}
+
 - (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(NSArray *)searchResults {
   [_searchResultsView setObjects:searchResults];
+  [self showSearch];
 }
 
 - (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl {
   [_searchResultsView removeAllObjects];
+  [self hideSearch];
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {

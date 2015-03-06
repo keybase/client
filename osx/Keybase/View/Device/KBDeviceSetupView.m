@@ -35,6 +35,7 @@
   _deviceSignerView.layer.borderWidth = 1.0;
 
   _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
+    view.tintImageForStyle = YES;
     [view setTitle:option.title info:option.info imageSource:option.imageSource];
   };
   [self.contentView addSubview:_deviceSignerView];

@@ -33,6 +33,3 @@
 + (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error;
 
 @end
-
-NSString *KBUserImageURLString(NSString *username);
-

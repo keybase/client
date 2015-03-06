@@ -25,9 +25,8 @@
   self.wantsLayer = YES;
   [self.layer setBackgroundColor:NSColor.clearColor.CGColor];
 
-  _imageView = [[KBImageView alloc] init];
-  //_imageView.roundedRatio = 1.0;
-  [self addSubview:self.imageView];
+  _imageView = [self loadImageView];
+  [self addSubview:_imageView];
 
   _titleLabel = [[KBLabel alloc] init];
   [self addSubview:_titleLabel];
@@ -60,6 +59,10 @@
   }];
 }
 
+- (KBImageView *)loadImageView {
+  return [[KBImageView alloc] init];
+}
+
 - (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource {
   [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   [self.infoLabel setText:info style:KBLabelStyleSecondaryText appearance:KBAppearance.currentAppearance];
@@ -74,14 +77,15 @@
   [self.titleLabel setFont:appearance.boldTextFont color:appearance.textColor];
   [self.infoLabel setStyle:KBLabelStyleSecondaryText appearance:appearance];
 
-  if (backgroundStyle == NSBackgroundStyleDark && self.imageView.image) {
-    self.image = self.imageView.image;
-    self.imageTinted = [self.imageView imageTintedWithColor:NSColor.whiteColor];
-    self.imageView.image = self.imageTinted;
-  } else if (self.image) {
-    self.imageView.image = self.image;
+  if (self.tintImageForStyle) {
+    if (backgroundStyle == NSBackgroundStyleDark && self.imageView.image) {
+      self.image = self.imageView.image;
+      self.imageTinted = [self.imageView imageTintedWithColor:NSColor.whiteColor];
+      self.imageView.image = self.imageTinted;
+    } else if (self.image) {
+      self.imageView.image = self.image;
+    }
   }
-  
 }
 
 @end

@@ -13,23 +13,41 @@
 
 @implementation KBImageView
 
-//- (instancetype)initWithFrame:(NSRect)frame {
-//  if ((self = [super initWithFrame:frame])) {
-//    [self unregisterDraggedTypes];
-//  }
-//  return self;
-//}
+- (void)viewInit {
+  //[self unregisterDraggedTypes];
+}
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if ((self = [super initWithFrame:frame])) {
+    [self viewInit];
+  }
+  return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder {
+  if ((self = [super initWithCoder:coder])) {
+    [self viewInit];
+  }
+  return self;
+}
 
 - (BOOL)mouseDownCanMoveWindow {
   return YES;
 }
 
 - (void)setURLString:(NSString *)URLString defaultURLString:(NSString *)defaultURLString {
+
+  if (!URLString && defaultURLString) URLString = defaultURLString;
+
+  BOOL isSame = (URLString && [_URLString isEqualTo:URLString] && self.image); // Only clear if new image
+
   _URLString = URLString;
-  if (!URLString) {
+  if (!isSame) {
     self.image = nil;
     [self setNeedsDisplay:YES];
   }
+  if (!URLString) return;
+
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     NSImage *image = [[NSImage alloc] initWithContentsOfURL:[NSURL URLWithString:URLString]];
     dispatch_async(dispatch_get_main_queue(), ^{

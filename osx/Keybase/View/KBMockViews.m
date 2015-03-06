@@ -66,9 +66,6 @@
   [contentView addSubview:[KBButton linkWithText:@"Yes/No" actionBlock:^(id sender) { [self prompt:@"yes_no"]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  [contentView addSubview:[KBLabel labelWithText:@"Testing" style:KBLabelStyleHeader]];
-  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
-
   contentView.viewLayout = [YOLayout vertical:contentView.subviews margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:4];
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];

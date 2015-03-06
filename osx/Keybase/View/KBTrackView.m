@@ -134,6 +134,7 @@
 
   if (identifyOutcome.numTrackFailures > 0 || identifyOutcome.numDeleted > 0) {
     // Your tracking statement of _ is broken; fix it?
+    // TODO This label is confusing?
     [self enableTracking:@"Oops, your tracking statement is broken. Fix it?" color:[KBAppearance.currentAppearance warnColor] popup:popup update:YES];
     _trackPrompt = YES;
   } else if (identifyOutcome.numTrackChanges > 0) {

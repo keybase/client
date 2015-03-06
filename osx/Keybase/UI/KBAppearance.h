@@ -32,6 +32,8 @@
 - (NSColor *)greenColor;
 
 - (NSColor *)lineColor;
+- (NSColor *)secondaryLineColor;
+
 - (NSColor *)highlightBackgroundColor;
 
 - (NSFont *)textFont;

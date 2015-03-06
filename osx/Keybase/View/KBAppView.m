@@ -250,20 +250,18 @@
 
 - (void)logout {
   GHWeakSelf gself = self;
-  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^(NSModalResponse response) {
-    if (response == NSAlertFirstButtonReturn) {
-      [self setProgressEnabled:YES];
-      KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
-      [login logout:^(NSError *error) {
-        [self setProgressEnabled:NO];
-        if (error) {
-          [AppDelegate setError:error sender:self];
-          return;
-        }
+  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^() {
+    [self setProgressEnabled:YES];
+    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
+    [login logout:^(NSError *error) {
+      [self setProgressEnabled:NO];
+      if (error) {
+        [AppDelegate setError:error sender:self];
+        return;
+      }
 
-        [self checkStatus];
-      }];
-    }
+      [self checkStatus];
+    }];
   }];
 }
 
@@ -290,7 +288,10 @@
 }
 
 - (void)setConfig:(KBRConfig *)config {
-  AppDelegate.sharedDelegate.APIClient = [[KBAPIClient alloc] initWithAPIHost:config.serverURI];
+  NSString *host = config.serverURI;
+  // TODO API client should eventually go away (everything goes to daemon)
+  if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
+  AppDelegate.sharedDelegate.APIClient = [[KBAPIClient alloc] initWithAPIHost:host];
 }
 
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {

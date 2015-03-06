@@ -61,10 +61,6 @@
   [_preferences open];
 }
 
-NSString *KBUserImageURLString(NSString *username) {
-  return [AppDelegate.sharedDelegate.APIClient URLStringWithPath:NSStringWithFormat(@"%@/picture?format=square_200", username)];
-}
-
 - (void)quit:(id)sender {
   [NSApplication.sharedApplication terminate:sender];
 }

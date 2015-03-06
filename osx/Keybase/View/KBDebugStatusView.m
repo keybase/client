@@ -28,9 +28,9 @@
 
   KBBox *top = [KBBox line];
   [self addSubview:top];
-  KBBox *border = [KBBox line];
+  KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.secondaryLineColor];
   [self addSubview:border];
-  KBBox *right = [KBBox line];
+  KBBox *right = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.secondaryLineColor];
   [self addSubview:right];
 
   YOSelf yself = self;
