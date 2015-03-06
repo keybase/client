@@ -14,6 +14,9 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 	}
 
 	// then, check entire key family
+	if u.GetComputedKeyFamily() == nil {
+		return nil
+	}
 	ids := u.GetComputedKeyFamily().PGPKeyFOKIDs()
 	for _, fokid := range ids {
 		displayKey(&fokid, is)
