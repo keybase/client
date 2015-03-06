@@ -469,7 +469,7 @@ func (u *User) Export() *keybase_1.User {
 
 //=============================================================================
 
-func (a PGPGenArg) ExportTo(ret *keybase_1.KeyGenArg) {
+func (a PGPGenArg) ExportTo(ret *keybase_1.PgpKeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.CreateUids = keybase_1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
@@ -478,7 +478,7 @@ func (a PGPGenArg) ExportTo(ret *keybase_1.KeyGenArg) {
 
 //=============================================================================
 
-func ImportKeyGenArg(a keybase_1.KeyGenArg) (ret PGPGenArg) {
+func ImportKeyGenArg(a keybase_1.PgpKeyGenArg) (ret PGPGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.NoDefPGPUid = !a.CreateUids.UseDefault

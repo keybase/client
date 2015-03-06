@@ -322,9 +322,9 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRMykeyRequest : KBRRequest
-- (void)keyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion;
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion;
 
-- (void)keyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
 
 - (void)deletePrimary:(void (^)(NSError *error))completion;
 
@@ -591,14 +591,14 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRKeyGenRequestParams : KBRRequestParams
+@interface KBRPgpKeyGenRequestParams : KBRRequestParams
 @property NSInteger primaryBits;
 @property NSInteger subkeyBits;
 @property KBRPgpCreateUids *createUids;
 @property BOOL allowMulti;
 @property BOOL doExport;
 @end
-@interface KBRKeyGenDefaultRequestParams : KBRRequestParams
+@interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
 @property KBRPgpCreateUids *createUids;
 @end
 @interface KBRSelectRequestParams : KBRRequestParams

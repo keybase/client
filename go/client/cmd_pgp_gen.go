@@ -49,7 +49,7 @@ func (v *CmdPGPGen) RunClient() (err error) {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else if err = gen.CreatePgpIDs(); err != nil {
 	} else {
-		err = cli.KeyGen(v.arg.Export())
+		err = cli.PgpKeyGen(v.arg.Export())
 	}
 	PGPMultiWarn(err)
 	return

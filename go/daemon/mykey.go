@@ -15,7 +15,7 @@ func NewMykeyHandler(xp *rpc2.Transport) *MykeyHandler {
 	return &MykeyHandler{BaseHandler{xp: xp}}
 }
 
-func (h *MykeyHandler) KeyGen(arg keybase_1.KeyGenArg) (err error) {
+func (h *MykeyHandler) PgpKeyGen(arg keybase_1.PgpKeyGenArg) (err error) {
 	earg := engine.ImportPGPEngineArg(arg)
 	return h.keygen(earg, true)
 }
@@ -29,7 +29,7 @@ func (h *MykeyHandler) keygen(earg engine.PGPEngineArg, doInteractive bool) (err
 	return err
 }
 
-func (h *MykeyHandler) KeyGenDefault(arg keybase_1.PgpCreateUids) (err error) {
+func (h *MykeyHandler) PgpKeyGenDefault(arg keybase_1.PgpCreateUids) (err error) {
 	earg := engine.PGPEngineArg{
 		Gen: &libkb.PGPGenArg{
 			Ids:         libkb.ImportPgpIdentities(arg.Ids),

@@ -960,7 +960,7 @@ type PgpCreateUids struct {
 	Ids        []PgpIdentity `codec:"ids" json:"ids"`
 }
 
-type KeyGenArg struct {
+type PgpKeyGenArg struct {
 	PrimaryBits int           `codec:"primaryBits" json:"primaryBits"`
 	SubkeyBits  int           `codec:"subkeyBits" json:"subkeyBits"`
 	CreateUids  PgpCreateUids `codec:"createUids" json:"createUids"`
@@ -968,7 +968,7 @@ type KeyGenArg struct {
 	DoExport    bool          `codec:"doExport" json:"doExport"`
 }
 
-type KeyGenDefaultArg struct {
+type PgpKeyGenDefaultArg struct {
 	CreateUids PgpCreateUids `codec:"createUids" json:"createUids"`
 }
 
@@ -997,8 +997,8 @@ type SavePGPKeyArg struct {
 }
 
 type MykeyInterface interface {
-	KeyGen(KeyGenArg) error
-	KeyGenDefault(PgpCreateUids) error
+	PgpKeyGen(PgpKeyGenArg) error
+	PgpKeyGenDefault(PgpCreateUids) error
 	DeletePrimary() error
 	Show() error
 	Select(SelectArg) error
@@ -1010,17 +1010,17 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.mykey",
 		Methods: map[string]rpc2.ServeHook{
-			"keyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]KeyGenArg, 1)
+			"PgpKeyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpKeyGenArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.KeyGen(args[0])
+					err = i.PgpKeyGen(args[0])
 				}
 				return
 			},
-			"keyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]KeyGenDefaultArg, 1)
+			"PgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpKeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.KeyGenDefault(args[0].CreateUids)
+					err = i.PgpKeyGenDefault(args[0].CreateUids)
 				}
 				return
 			},
@@ -1068,14 +1068,14 @@ type MykeyClient struct {
 	Cli GenericClient
 }
 
-func (c MykeyClient) KeyGen(__arg KeyGenArg) (err error) {
-	err = c.Cli.Call("keybase.1.mykey.keyGen", []interface{}{__arg}, nil)
+func (c MykeyClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
+	err = c.Cli.Call("keybase.1.mykey.PgpKeyGen", []interface{}{__arg}, nil)
 	return
 }
 
-func (c MykeyClient) KeyGenDefault(createUids PgpCreateUids) (err error) {
-	__arg := KeyGenDefaultArg{CreateUids: createUids}
-	err = c.Cli.Call("keybase.1.mykey.keyGenDefault", []interface{}{__arg}, nil)
+func (c MykeyClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
+	__arg := PgpKeyGenDefaultArg{CreateUids: createUids}
+	err = c.Cli.Call("keybase.1.mykey.PgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 

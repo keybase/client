@@ -9,7 +9,7 @@ protocol mykey {
 		array<PgpIdentity> ids;
 	}
 
-	void keyGen(
+	void PgpKeyGen(
 		int primaryBits,
 		int subkeyBits,
 		PgpCreateUids createUids,
@@ -17,7 +17,7 @@ protocol mykey {
 		boolean doExport
 	);
 
-	void keyGenDefault(PgpCreateUids createUids);
+	void PgpKeyGenDefault(PgpCreateUids createUids);
 
 	void deletePrimary();
 
