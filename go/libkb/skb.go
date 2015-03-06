@@ -282,7 +282,7 @@ func (k *SKBKeyringFile) Index() (err error) {
 	return
 }
 
-func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily) *SKB {
+func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska SecretKeyArg) *SKB {
 	var kid KID
 	G.Log.Debug("+ SKBKeyringFile.SearchWithComputedKeyFamily")
 	defer func() {
@@ -301,7 +301,13 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily) *SKB
 			kid = key.GetKid()
 			active := ckf.GetKeyRole(kid)
 			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
-			if active == DLG_SIBKEY {
+			if len(ska.KeyQuery) > 0 && !KeyMatchesQuery(key, ska.KeyQuery) {
+				G.Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
+			} else if ska.PGPOnly && !IsPGP(key) {
+				G.Log.Debug("| Skipped, wasn't a PGP key but we required it")
+			} else if active != DLG_SIBKEY {
+				G.Log.Debug("| Skipped, active=%d", int(active))
+			} else {
 				return k.Blocks[i]
 			}
 		} else {

@@ -149,9 +149,33 @@ func (f FOKID) ToStrings() (ret []string) {
 	return
 }
 
+func (f FOKID) MatchQuery(s string) bool {
+	if f.Fp != nil && strings.HasSuffix(strings.ToLower(f.Fp.String()), strings.ToLower(s)) {
+		return true
+	}
+	if f.Kid != nil {
+		if strings.HasPrefix(f.Kid.String(), strings.ToLower(s)) {
+			return true
+		}
+		if strings.HasPrefix(f.Kid.ToShortIdString(), s) {
+			return true
+		}
+	}
+	return false
+}
+
 func GenericKeyToFOKID(key GenericKey) FOKID {
 	return FOKID{
 		Kid: key.GetKid(),
 		Fp:  key.GetFingerprintP(),
 	}
+}
+
+func KeyMatchesQuery(key GenericKey, q string) bool {
+	return GenericKeyToFOKID(key).MatchQuery(q)
+}
+
+func IsPGP(key GenericKey) bool {
+	_, ok := key.(*PgpKeyBundle)
+	return ok
 }

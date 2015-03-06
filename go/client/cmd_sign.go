@@ -27,7 +27,11 @@ func NewCmdSign(cl *libcmdline.CommandLine) cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "o, outfile",
-				Usage: "specify an outfile (stdout by default",
+				Usage: "specify an outfile (stdout by default)",
+			},
+			cli.StringFlag{
+				Name:  "k, key",
+				Usage: "specify a key to use for signing (otherwise most recent PGP key is used)",
 			},
 		},
 	}
@@ -35,8 +39,9 @@ func NewCmdSign(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdSign struct {
 	UnixFilter
-	binary bool
-	msg    string
+	binary   bool
+	msg      string
+	keyQuery string
 }
 
 func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
@@ -57,6 +62,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 	if err == nil {
 		err = s.FilterInit(msg, infile, outfile)
 	}
+	s.keyQuery = ctx.String("key")
 
 	return err
 }
@@ -81,7 +87,13 @@ func (s *CmdSign) Run() (err error) {
 		s.Close(err)
 	}()
 
-	key, err = G.Keyrings.GetSecretKey(libkb.SecretKeyArg{Reason: "command-line signature", All: true})
+	ska := libkb.SecretKeyArg{
+		Reason:   "command-line signature",
+		PGPOnly:  true,
+		KeyQuery: s.keyQuery,
+	}
+
+	key, err = G.Keyrings.GetSecretKey(ska)
 	if err != nil {
 		return
 	} else if pgp, ok = key.(*libkb.PgpKeyBundle); !ok {

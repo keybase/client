@@ -313,7 +313,7 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 
 	if ret == nil && ska.SearchForKey() {
 		k.G().Log.Debug("| Looking up secret key in local keychain")
-		ret = keyring.SearchWithComputedKeyFamily(ckf)
+		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
 	}
 	return ret
 }
@@ -325,14 +325,17 @@ type SecretKeyArg struct {
 	DeviceKey    bool // use the device key (on by default)
 	SyncedPGPKey bool // use the sync'ed PGP key if there is one
 	SearchKey    bool // search for any key that's active in the local keyring
+	PGPOnly      bool // only PGP, but use the first valid PGP key we find
 
 	Reason string   // why it's needed (for an Unlock)
 	Ui     SecretUI // for Unlocking secrets
 	Me     *User    // Whose keys
+
+	KeyQuery string // a String to match the key prefix on
 }
 
-func (s SecretKeyArg) UseDeviceKey() bool    { return s.All || s.DeviceKey }
-func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey }
+func (s SecretKeyArg) UseDeviceKey() bool    { return (s.All || s.DeviceKey) && !s.PGPOnly }
+func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey || s.PGPOnly }
 func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
 
 func (k *Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, err error) {
