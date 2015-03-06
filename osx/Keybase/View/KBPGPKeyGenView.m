@@ -1,17 +1,17 @@
 //
-//  KBKeyGenView.m
+//  KBPGPKeyGenView.m
 //  Keybase
 //
 //  Created by Gabriel on 1/12/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBKeyGenView.h"
+#import "KBPGPKeyGenView.h"
 #import "AppDelegate.h"
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBKeyGenView ()
+@interface KBPGPKeyGenView ()
 //@property KBProgressOverlayView *progressView;
 @property KBLabel *infoLabel;
 
@@ -20,14 +20,14 @@
 @property KBButton *button;
 @end
 
-@implementation KBKeyGenView
+@implementation KBPGPKeyGenView
 
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
 
   _infoLabel = [[KBLabel alloc] init];
-  [_infoLabel setText:@"You are about to discover a new key pair. Your computer will hunt for big prime numbers. It could take anywhere from a few seconds to many minutes." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_infoLabel setText:@"You are about to discover a new PGP key." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self addSubview:_infoLabel];
 
 //  _progressView = [[KBProgressOverlayView alloc] init];
@@ -44,8 +44,8 @@
 
   //_pushPublicCheckbox = [KBButton buttonWithText:@"Publish your new public key to Keybase.io (strongly recommended)?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment];
   //[self addSubview:_pushPublicCheckbox];
-  _pushPrivateCheckbox = [KBButton buttonWithText:@"Push an encrypted copy to Keybase.io?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [self addSubview:_pushPrivateCheckbox];
+  //_pushPrivateCheckbox = [KBButton buttonWithText:@"Push an encrypted copy to Keybase.io?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  //[self addSubview:_pushPrivateCheckbox];
 
   _button = [KBButton buttonWithText:@"Create Key" style:KBButtonStylePrimary];
   self.button.targetBlock = ^{
@@ -70,30 +70,24 @@
 
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.infoLabel].size.height + 20;
 
-    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.pushPrivateCheckbox].size.height + 20;
+    //y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.pushPrivateCheckbox].size.height + 20;
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.button].size.height + 30;
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.cancelButton].size.height + 30;
 
-    return CGSizeMake(size.width, y);
+    return CGSizeMake(MAX(400, size.width), y);
   }];
 }
 
 - (void)generateKey {
-  [KBAlert promptForInputWithTitle:@"Your key passphrase" description:@"We'll encrypt your secret key with this password." secure:YES style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
-    if (response == NSAlertFirstButtonReturn) [self _generateKey:password];
-  }];
-}
-
-- (void)_generateKey:(NSString *)password {
   KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
   uids.useDefault = YES;
 
   [self.navigation setProgressEnabled:YES];
   KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
-  BOOL pushSecret = _pushPrivateCheckbox.state == NSOnState;
-  [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:pushSecret passphrase:password completion:^(NSError *error) {
+  //BOOL pushSecret = _pushPrivateCheckbox.state == NSOnState;
+  [mykey pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];

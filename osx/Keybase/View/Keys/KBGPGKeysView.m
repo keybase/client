@@ -9,6 +9,7 @@
 #import "KBGPGKeysView.h"
 
 #import "KBGPGKeyView.h"
+#import "KBAppearance.h"
 
 @interface KBGPGKeysView ()
 @property NSMutableArray *dataSource;
@@ -25,6 +26,7 @@
   _tableView.delegate = self;
   _tableView.gridStyleMask = NSTableViewSolidHorizontalGridLineMask;
   _tableView.focusRingType = NSFocusRingTypeNone;
+  _tableView.gridColor = KBAppearance.currentAppearance.tableGridColor;
 
   NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@"algorithm"];
   column1.title = @"Algorithm";

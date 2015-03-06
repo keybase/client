@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBContentView.h"
 
-@interface KBKeyGenView : KBContentView
+@interface KBPGPKeyGenView : KBContentView
 
 @property (copy) dispatch_block_t completion;
 

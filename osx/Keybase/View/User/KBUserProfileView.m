@@ -13,14 +13,15 @@
 #import "AppDelegate.h"
 #import "KBRUtils.h"
 #import "KBProofResult.h"
-#import "KBErrorView.h"
+#import "KBFatalErrorView.h"
 #import "KBTrackView.h"
 //#import "KBWebView.h"
 #import "KBProgressOverlayView.h"
 #import "KBProveView.h"
 #import "KBRPClient.h"
 #import "KBKeySelectView.h"
-#import "KBKeyGenView.h"
+#import "KBPGPKeyGenView.h"
+#import "KBProgressView.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -121,10 +122,11 @@
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
     gself.fokid = requestParams.fokid;
     if (requestParams.fokid.pgpFingerprint) {
-      [gself.userInfoView addKey:requestParams.fokid];
+      [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *key) {
+
+      }];
       [gself setNeedsLayout];
     }
-
     completion(nil, nil);
   }];
 
@@ -147,7 +149,9 @@
 
   [client registerMethod:@"keybase.1.identifyUi.displayCryptocurrency" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayCryptocurrencyRequestParams *requestParams = [[KBRDisplayCryptocurrencyRequestParams alloc] initWithParams:params];
-    [gself.userInfoView addCryptocurrency:requestParams.c];
+    [gself.userInfoView addCryptocurrency:requestParams.c targetBlock:^(KBRCryptocurrency *cryptocurrency) {
+
+    }];
     [gself setNeedsLayout];
 
     [gself updateWindow];
@@ -238,8 +242,11 @@
       if (!gself.fokid.pgpFingerprint) {
         [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
           [gself addPGPKey];
+
         }];
       }
+      // TODO
+      //[gself removePGPKey];
 
       for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
         KBProveType proveType = [proveTypeNumber integerValue];
@@ -300,18 +307,44 @@
       } else if (response == 1) {
         // TODO
       } else if (response == 3) {
-        [self generateNewKey];
+        [self generatePGPKey];
       }
     }];
   }];
 }
 
-- (void)generateNewKey {
-  KBKeyGenView *view = [[KBKeyGenView alloc] init];
-  view.client = self.client;
-  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:view title:@"Generate a Key"] size:CGSizeMake(400, 400) sender:self];
-  view.completion = close;
-  view.cancelButton.actionBlock = ^(id sender) { close(); };
+- (void)removePGPKey {
+  [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^() {
+    KBProgressView *progressView = [[KBProgressView alloc] init];
+    [progressView setProgressTitle:@"Deleting"];
+    progressView.work = ^(KBCompletionBlock completion) {
+      KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
+      [mykey deletePrimary:^(NSError *error) {
+        completion(error);
+      }];
+    };
+    [progressView openAndDoIt:self];
+  }];
+}
+
+- (void)generatePGPKey {
+//  KBPGPKeyGenView *view = [[KBPGPKeyGenView alloc] init];
+//  view.client = self.client;
+//  dispatch_block_t close = [KBNavigationView openWindowWithView:view title:@"Generate PGP Key" sender:self];
+//  view.completion = close;
+//  view.cancelButton.actionBlock = ^(id sender) { close(); };
+
+  KBProgressView *progressView = [[KBProgressView alloc] init];
+  [progressView setProgressTitle:@"Generating"];
+  progressView.work = ^(KBCompletionBlock completion) {
+    KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
+    uids.useDefault = YES;
+    KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
+    [mykey pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
+      completion(error);
+    }];
+  };
+  [progressView openAndDoIt:self];
 }
 
 - (void)selectGPGKey {

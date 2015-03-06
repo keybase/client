@@ -16,9 +16,9 @@
 
 - (BOOL)updateProofResult:(KBProofResult *)proofResult;
 
-- (void)addKey:(KBRFOKID *)key;
+- (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(KBRFOKID *key))targetBlock;
 
-- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency;
+- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(KBRCryptocurrency *cryptocurrency))targetBlock;
 
 - (void)addProofs:(NSArray *)proofs editable:(BOOL)editable targetBlock:(void (^)(KBProofLabel *proofLabel))targetBlock;
 

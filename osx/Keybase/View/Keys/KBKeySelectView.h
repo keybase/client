@@ -18,7 +18,7 @@
 @property KBGPGKeysView *keysView;
 @property KBButton *selectButton;
 @property KBButton *cancelButton;
-@property KBButton *pushCheckbox;
+//@property KBButton *pushCheckbox;
 
 - (void)setGPGKeys:(NSArray *)GPGKeys completion:(MPRequestCompletion)completion;
 

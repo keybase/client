@@ -85,18 +85,19 @@
   [self addLabels:@[label]];
 }
 
-- (void)addKey:(KBRFOKID *)key {
+- (void)addKey:(KBRFOKID *)key targetBlock:(void (^)(KBRFOKID *key))targetBlock {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
   [label addKey:key targetBlock:^(id sender, KBRFOKID *key) {
-    GHDebug(@"Selected: %@", key);
+    targetBlock(key);
   }];
   [self addLabels:@[label]];
 }
 
-- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency {
+- (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(KBRCryptocurrency *cryptocurrency))targetBlock {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
   [label addCryptocurrency:cryptocurrency targetBlock:^(id sender, KBRCryptocurrency *proofResult) {
     GHDebug(@"Selected: %@", cryptocurrency);
+    targetBlock(cryptocurrency);
   }];
   [self addLabels:@[label]];
 }
