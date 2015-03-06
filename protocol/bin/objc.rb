@@ -33,11 +33,11 @@ def objc_for_type(type, enums, space)
   when "null" then ["void", false]
   else
     if type.start_with?("void")
-      type
+      [type, false]
     elsif enums.include?(type)
-      classname(type) + " "
+      [classname(type), false]
     else
-      classname("#{type} *")
+      [classname("#{type} *"), true]
     end
   end
 
