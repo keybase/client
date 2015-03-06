@@ -6,33 +6,30 @@ import (
 )
 
 func (u *User) IdentifyKey(is IdentifyState) error {
-	var diff TrackDiff
-
 	// first, check to see if the eldest is a pgp key
 	fokid := u.GetEldestFOKID()
 	if fokid.Fp != nil {
-
-		if mt := is.track; mt != nil {
-			diff = mt.ComputeKeyDiff(fokid)
-			is.res.KeyDiff = diff
-		}
-
-		is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
+		displayKey(fokid, is)
 		return nil
 	}
 
 	// then, check entire key family
 	ids := u.GetComputedKeyFamily().PGPKeyFOKIDs()
 	for _, fokid := range ids {
-		if mt := is.track; mt != nil {
-			diff = mt.ComputeKeyDiff(&fokid)
-			is.res.KeyDiff = diff
-		}
-
-		is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
+		displayKey(&fokid, is)
 	}
 
 	return nil
+}
+
+func displayKey(fokid *FOKID, is IdentifyState) {
+	var diff TrackDiff
+	if mt := is.track; mt != nil {
+		diff = mt.ComputeKeyDiff(fokid)
+		is.res.KeyDiff = diff
+	}
+
+	is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
 }
 
 type IdentifyArg struct {
