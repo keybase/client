@@ -464,6 +464,21 @@ func (kf KeyFamily) FindKey(kid KID) (ret GenericKey) {
 	return
 }
 
+func (ckf *ComputedKeyFamily) PGPKeyFOKIDs() []FOKID {
+	var res []FOKID
+	for _, k := range ckf.kf.Sibkeys {
+		if len(k.PgpFingerprint) > 0 {
+			res = append(res, FOKID{Kid: k.key.GetKid(), Fp: k.key.GetFingerprintP()})
+		}
+	}
+	for _, k := range ckf.kf.Subkeys {
+		if len(k.PgpFingerprint) > 0 {
+			res = append(res, FOKID{Kid: k.key.GetKid(), Fp: k.key.GetFingerprintP()})
+		}
+	}
+	return res
+}
+
 // FindKey finds any key in any list that matches the given KID.  No attention
 // is paid to whether or not the key is active.
 

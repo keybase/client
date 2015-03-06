@@ -8,14 +8,29 @@ import (
 func (u *User) IdentifyKey(is IdentifyState) error {
 	var diff TrackDiff
 
+	// first, check to see if the eldest is a pgp key
 	fokid := u.GetEldestFOKID()
+	if fokid.Fp != nil {
 
-	if mt := is.track; mt != nil {
-		diff = mt.ComputeKeyDiff(fokid)
-		is.res.KeyDiff = diff
+		if mt := is.track; mt != nil {
+			diff = mt.ComputeKeyDiff(fokid)
+			is.res.KeyDiff = diff
+		}
+
+		is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
+		return nil
 	}
 
-	is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
+	// then, check entire key family
+	ids := u.GetComputedKeyFamily().PGPKeyFOKIDs()
+	for _, fokid := range ids {
+		if mt := is.track; mt != nil {
+			diff = mt.ComputeKeyDiff(&fokid)
+			is.res.KeyDiff = diff
+		}
+
+		is.GetUI().DisplayKey(fokid.Export(), ExportTrackDiff(diff))
+	}
 
 	return nil
 }

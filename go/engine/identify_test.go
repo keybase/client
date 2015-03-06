@@ -64,6 +64,25 @@ func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdentifyRes, 
 	}
 }
 
+func checkDisplayKeys(t *testing.T, idUI *FakeIdentifyUI, callCount, keyCount int) {
+	if idUI.DisplayKeyCalls != callCount {
+		t.Errorf("DisplayKey calls: %d.  expected %d.", idUI.DisplayKeyCalls, callCount)
+	}
+
+	if len(idUI.Keys) != keyCount {
+		t.Errorf("keys: %d, expected %d.", len(idUI.Keys), keyCount)
+		for k, v := range idUI.Keys {
+			t.Logf("key: %+v, %+v", k, v)
+		}
+	}
+
+	for k := range idUI.Keys {
+		if k.PgpFingerprint == nil {
+			t.Errorf("key %v: not pgp.  only pgp keys should be displayed.", k)
+		}
+	}
+}
+
 func TestIdAlice(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
@@ -72,6 +91,7 @@ func TestIdAlice(t *testing.T) {
 		t.Fatal(err)
 	}
 	checkAliceProofs(t, idUI, result)
+	checkDisplayKeys(t, idUI, 1, 1)
 }
 
 func TestIdBob(t *testing.T) {
@@ -82,6 +102,7 @@ func TestIdBob(t *testing.T) {
 		t.Fatal(err)
 	}
 	checkBobProofs(t, idUI, result)
+	checkDisplayKeys(t, idUI, 1, 1)
 }
 
 func TestIdCharlie(t *testing.T) {
@@ -92,6 +113,7 @@ func TestIdCharlie(t *testing.T) {
 		t.Fatal(err)
 	}
 	checkCharlieProofs(t, idUI, result)
+	checkDisplayKeys(t, idUI, 1, 1)
 }
 
 func TestIdDoug(t *testing.T) {
@@ -102,23 +124,52 @@ func TestIdDoug(t *testing.T) {
 		t.Fatal(err)
 	}
 	checkDougProofs(t, idUI, result)
+	checkDisplayKeys(t, idUI, 1, 1)
 }
 
 func TestIdEllen(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
-	_, _, err := runIdentify("t_ellen")
+	idUI, _, err := runIdentify("t_ellen")
 	if err == nil {
 		t.Fatal("Expected no public key found error.")
 	} else if _, ok := err.(libkb.NoKeyError); !ok {
 		t.Fatal("Expected no public key found error. Got instead:", err)
 	}
+	checkDisplayKeys(t, idUI, 0, 0)
+}
+
+// TestIdPGPNotEldest creates a user with a pgp key that isn't
+// eldest key, then runs identify to make sure the pgp key is
+// still displayed.
+func TestIdPGPNotEldest(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+
+	// create new user, then add pgp key
+	u := CreateAndSignupFakeUser(t, "login")
+	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), SecretUI: secui}
+	key := armorKey(t, tc, u.Email)
+	e := NewPGPSaveArmored(key, true, true)
+	if err := RunEngine(e, ctx, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	idUI, _, err := runIdentify(u.Username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkDisplayKeys(t, idUI, 1, 1)
 }
 
 type FakeIdentifyUI struct {
-	Proofs map[string]string
-	User   *keybase_1.User
-	Fapr   keybase_1.FinishAndPromptRes
+	Proofs          map[string]string
+	User            *keybase_1.User
+	Fapr            keybase_1.FinishAndPromptRes
+	Keys            map[keybase_1.FOKID]*keybase_1.TrackDiff
+	DisplayKeyCalls int
 }
 
 func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase_1.RemoteProof, result keybase_1.LinkCheckResult) {
@@ -133,7 +184,12 @@ func (ui *FakeIdentifyUI) FinishAndPrompt(*keybase_1.IdentifyOutcome) (res keyba
 }
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase_1.Cryptocurrency) {
 }
-func (ui *FakeIdentifyUI) DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff) {
+func (ui *FakeIdentifyUI) DisplayKey(kid keybase_1.FOKID, td *keybase_1.TrackDiff) {
+	if ui.Keys == nil {
+		ui.Keys = make(map[keybase_1.FOKID]*keybase_1.TrackDiff)
+	}
+	ui.Keys[kid] = td
+	ui.DisplayKeyCalls++
 }
 func (ui *FakeIdentifyUI) ReportLastTrack(*keybase_1.TrackSummary) {
 }
