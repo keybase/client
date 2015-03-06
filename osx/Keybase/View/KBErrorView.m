@@ -2,105 +2,55 @@
 //  KBErrorView.m
 //  Keybase
 //
-//  Created by Gabriel on 1/26/15.
+//  Created by Gabriel on 3/6/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
 #import "KBErrorView.h"
-#import "KBAppKit.h"
 
 @interface KBErrorView ()
-@property KBLabel *titleLabel;
+@property KBLabel *header;
+@property KBLabel *label;
 @property KBLabel *descriptionLabel;
-@property KBScrollView *scrollView;
-@property KBButton *button;
+@property KBButton *closeButton;
 @end
 
 @implementation KBErrorView
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+  _header = [KBLabel labelWithText:@"Oops" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [self addSubview:_header];
 
-//  KBImageView *imageView = [[KBImageView alloc] init];
-//  [imageView setImageSource:@"General-Outline-Sad_Face-25"];
-//  [self addSubview:imageView];
+  _label = [KBLabel label];
+  [self addSubview:_label];
 
-  KBLabel *headerLabel = [[KBLabel alloc] init];
-  [headerLabel setText:@"Oops!" font:[NSFont boldSystemFontOfSize:32] color:NSColor.blackColor alignment:NSCenterTextAlignment];
-  [self addSubview:headerLabel];
-
-  _titleLabel = [[KBLabel alloc] init];
-  [self addSubview:_titleLabel];
-
-  _descriptionLabel = [[KBLabel alloc] init];
-  _descriptionLabel.selectable = YES;
+  _descriptionLabel = [KBLabel label];
   [self addSubview:_descriptionLabel];
 
-  _scrollView = [[KBScrollView alloc] init];
-  [_scrollView setDocumentView:_descriptionLabel];
-  _scrollView.scrollView.borderType = NSBezelBorder;
-  [self addSubview:_scrollView];
-
-  GHWeakSelf gself = self;
-  _button = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
-  self.button.targetBlock = ^{
-    [NSApplication.sharedApplication terminate:gself];
-  };
-  [self addSubview:_button];
+  _closeButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleLink];
+  [self addSubview:_closeButton];
 
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat width = MAX(size.width, 400);
     CGFloat y = 20;
-
-    //y += [layout setFrame:CGRectMake(20, 20, size.width, 50) view:imageView].size.height;
-
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:headerLabel].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.titleLabel].size.height + 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 150) view:yself.scrollView].size.height + 20;
-
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 200, y, 160, 0) view:yself.button].size.height + 20;
-
-    return CGSizeMake(size.width, y);
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, width - 40, 0) view:yself.header].size.height + 20;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, width - 80, 0) view:yself.label].size.height + 10;
+    if ([yself.descriptionLabel hasText]) {
+      y += 10;
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, width - 80, 0) view:yself.descriptionLabel].size.height + 20;
+    }
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(20, size.height - 40, size.width - 40, 0) view:yself.closeButton].size.height + 20;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, width - 40, 0) view:yself.closeButton].size.height + 20;
+    return CGSizeMake(width, y);
   }];
 }
 
 - (void)setError:(NSError *)error {
-  [_titleLabel setText:@"There was a problem and we couldn't recover. This usually means there is something wrong with your Keybase installation. This information might help you resolve this issue:" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-
-  NSMutableArray *info = [NSMutableArray array];
-
-  if (error.localizedDescription) [info addObject:error.localizedDescription];
-  if (error.localizedFailureReason) [info addObject:error.localizedFailureReason];
-  if (error.localizedRecoverySuggestion) [info addObject:error.localizedRecoverySuggestion];
-
-  NSMutableDictionary *other = [error.userInfo mutableCopy];
-  [other removeObjectForKey:NSLocalizedDescriptionKey];
-  [other removeObjectForKey:NSLocalizedFailureReasonErrorKey];
-  [other removeObjectForKey:NSLocalizedRecoverySuggestionErrorKey];
-  [other removeObjectForKey:NSLocalizedRecoveryOptionsErrorKey]; // Don't need options in error description
-
-  for (id key in other) {
-    [info addObject:NSStringWithFormat(@"%@: %@", key, error.userInfo[key])];
-  }
-
-  [_descriptionLabel setText:[info join:@"\n\n"] font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_label setText:error.localizedDescription style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_descriptionLabel setText:error.localizedRecoverySuggestion style:KBLabelStyleSecondaryText appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setNeedsLayout];
-}
-
-- (void)openInWindow {
-  if (self.window) {
-    [self.window makeKeyAndOrderFront:nil];
-    return;
-  }
-
-  [self removeFromSuperview];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:self title:@"Keybase"];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 410) retain:YES];
-  [window setLevel:NSFloatingWindowLevel];
-  [window center];
-  [window makeKeyAndOrderFront:nil];
 }
 
 @end
