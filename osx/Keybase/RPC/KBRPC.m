@@ -82,7 +82,7 @@
         completion(error, nil);
         return;
       }
-      KBRGetCurrentStatusRes *result = [MTLJSONAdapter modelOfClass:KBRGetCurrentStatusRes.class fromJSONDictionary:retval error:&error];
+      KBRGetCurrentStatusRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetCurrentStatusRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -94,7 +94,7 @@
         completion(error, nil);
         return;
       }
-      KBRConfig *result = [MTLJSONAdapter modelOfClass:KBRConfig.class fromJSONDictionary:retval error:&error];
+      KBRConfig *result = retval ? [MTLJSONAdapter modelOfClass:KBRConfig.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -110,7 +110,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:retval error:&error];
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }
@@ -139,7 +139,7 @@
         completion(error, nil);
         return;
       }
-      KBRSelectSignerRes *result = [MTLJSONAdapter modelOfClass:KBRSelectSignerRes.class fromJSONDictionary:retval error:&error];
+      KBRSelectSignerRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRSelectSignerRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -186,7 +186,7 @@
         completion(error, nil);
         return;
       }
-      KBRSelectKeyRes *result = [MTLJSONAdapter modelOfClass:KBRSelectKeyRes.class fromJSONDictionary:retval error:&error];
+      KBRSelectKeyRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRSelectKeyRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -222,7 +222,7 @@
         completion(error, nil);
         return;
       }
-      KBRIdentifyRes *result = [MTLJSONAdapter modelOfClass:KBRIdentifyRes.class fromJSONDictionary:retval error:&error];
+      KBRIdentifyRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRIdentifyRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -234,7 +234,7 @@
         completion(error, nil);
         return;
       }
-      KBRIdentifyRes *result = [MTLJSONAdapter modelOfClass:KBRIdentifyRes.class fromJSONDictionary:retval error:&error];
+      KBRIdentifyRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRIdentifyRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -283,7 +283,7 @@
         completion(error, nil);
         return;
       }
-      KBRFinishAndPromptRes *result = [MTLJSONAdapter modelOfClass:KBRFinishAndPromptRes.class fromJSONDictionary:retval error:&error];
+      KBRFinishAndPromptRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRFinishAndPromptRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -526,7 +526,7 @@
         completion(error, nil);
         return;
       }
-      KBRSessionToken *result = [MTLJSONAdapter modelOfClass:KBRSessionToken.class fromJSONDictionary:retval error:&error];
+      KBRSessionToken *result = retval ? [MTLJSONAdapter modelOfClass:KBRSessionToken.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -548,7 +548,7 @@
         completion(error, nil);
         return;
       }
-      KBRSecretEntryRes *result = [MTLJSONAdapter modelOfClass:KBRSecretEntryRes.class fromJSONDictionary:retval error:&error];
+      KBRSecretEntryRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRSecretEntryRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -581,7 +581,7 @@
         completion(error, nil);
         return;
       }
-      KBRSession *result = [MTLJSONAdapter modelOfClass:KBRSession.class fromJSONDictionary:retval error:&error];
+      KBRSession *result = retval ? [MTLJSONAdapter modelOfClass:KBRSession.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -618,7 +618,7 @@
         completion(error, nil);
         return;
       }
-      KBRSignupRes *result = [MTLJSONAdapter modelOfClass:KBRSignupRes.class fromJSONDictionary:retval error:&error];
+      KBRSignupRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRSignupRes.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
   }];
 }
@@ -650,7 +650,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRSig.class fromJSONArray:retval error:&error];
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRSig.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }
@@ -718,7 +718,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error];
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }
@@ -730,7 +730,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error];
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }
@@ -742,7 +742,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRTrackEntry.class fromJSONArray:retval error:&error];
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRTrackEntry.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }
@@ -761,7 +761,7 @@
         completion(error, nil);
         return;
       }
-      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error];
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
   }];
 }

@@ -217,7 +217,7 @@ paths.each do |path|
         completion(error, nil);
         return;
       }
-      NSArray *results = [MTLJSONAdapter modelsOfClass:#{item_clsname}.class fromJSONArray:retval error:&error];
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:#{item_clsname}.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);"
     else # Dictionary result
       clsname = classname(response_type)
@@ -225,7 +225,7 @@ paths.each do |path|
         completion(error, nil);
         return;
       }
-      #{clsname} *result = [MTLJSONAdapter modelOfClass:#{clsname}.class fromJSONDictionary:retval error:&error];
+      #{clsname} *result = retval ? [MTLJSONAdapter modelOfClass:#{clsname}.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);"
     end
 
