@@ -6,6 +6,11 @@
     <string>keybase.keybased</string>
     <key>Program</key>
     <string>/Applications/Keybase.app/Contents/MacOS/keybased</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>-s</string>
+      <string>http://localhost:3000</string>
+    </array>
     <key>KeepAlive</key>
     <true/>
 </dict>
