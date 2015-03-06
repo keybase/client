@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -184,8 +183,6 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 	G = g
 	tc.G = g
 
-	fmt.Printf("sc home: %s\n", G.Env.GetHome())
-
 	return
 }
 
@@ -197,7 +194,6 @@ func SetupTest(t *testing.T, nm string) (tc TestContext) {
 		t.Fatal(err)
 	}
 	tc.t = t
-	fmt.Printf("st home: %s\n", G.Env.GetHome())
 
 	return tc
 }
