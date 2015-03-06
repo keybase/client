@@ -31,7 +31,7 @@
     YONSView *generalView = [[YONSView alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
 
     YONSView *advancedView = [[YONSView alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
-    KBButton *recordCheckbox = [KBButton buttonWithText:@"Record RPC Calls" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment];
+    KBButton *recordCheckbox = [KBButton buttonWithText:@"Record RPC Calls" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     recordCheckbox.identifier = @"Preferences.Advanced.Record";
     recordCheckbox.state = [NSUserDefaults.standardUserDefaults boolForKey:recordCheckbox.identifier];
     [recordCheckbox.cell addObserver:self forKeyPath:@"state" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:NULL];

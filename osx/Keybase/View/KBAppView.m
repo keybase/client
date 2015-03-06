@@ -11,7 +11,6 @@
 #import "KBUsersAppView.h"
 #import "KBUserProfileView.h"
 #import "AppDelegate.h"
-#import "KBCatalogView.h"
 #import "KBLoginView.h"
 #import "KBSignupView.h"
 #import "KBInstaller.h"
@@ -112,6 +111,7 @@
   _client.delegate = self;
 
   _debugStatusView.client = client;
+  [_debugStatusView setRPCConnected:NO serverConnected:NO];
 
   GHWeakSelf gself = self;  
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -229,13 +229,14 @@
 
 - (void)showUsers {
   if (!_usersAppView) _usersAppView = [[KBUsersAppView alloc] init];
-  _usersAppView.client = self.client;
+  _usersAppView.client = _client;
   [self setContentView:_usersAppView showSourceView:YES];
 }
 
 - (void)showProfile {
   NSAssert(_user, @"No user");
   _userProfileView = [[KBUserProfileView alloc] init];
+  _userProfileView.client = _client;
   [_userProfileView setUser:_user editable:YES client:_client];
   [self setContentView:_userProfileView showSourceView:YES];
 }

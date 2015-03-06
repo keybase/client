@@ -28,13 +28,13 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 + (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
-+ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
++ (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 + (instancetype)linkWithText:(NSString *)text actionBlock:(KBButtonActionBlock)actionBlock;
 
 + (instancetype)buttonWithImage:(NSImage *)image;
 
-- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
+- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
@@ -50,7 +50,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 @property KBButtonStyle style;
 
-- (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment;
+- (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
 

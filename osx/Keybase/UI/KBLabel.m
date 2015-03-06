@@ -27,13 +27,14 @@
   _textView.backgroundColor = NSColor.clearColor;
   _textView.editable = NO;
   _textView.selectable = NO;
-  _textView.textContainerInset = NSMakeSize(0, 0);
+  _textView.textContainerInset = NSZeroSize;
   _textView.textContainer.lineFragmentPadding = 0;
   [self addSubview:_textView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
+    if (self.verticalAlignment != KBVerticalAlignmentNone) {
+      // TODO Top, bottom alignments
       CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
       [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, textSize.width, textSize.height)) view:yself.textView];
       [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
@@ -268,9 +269,9 @@
 
   // Force layout
   (void)[layoutManager glyphRangeForTextContainer:textContainer];
-
   NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
-  //rect.size.height += 1; // For descenders to not get clipped? TODO: Fixme
+
+  //NSRect rect = [attributedString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin];
 
   return CGRectIntegral(rect).size;
 }

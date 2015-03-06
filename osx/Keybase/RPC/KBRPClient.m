@@ -31,6 +31,19 @@
 
 @implementation KBRPClient
 
+- (instancetype)init {
+  if ((self = [super init])) {
+    NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
+    NSAssert(user, @"No user");
+    self.socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
+#ifdef DEBUG
+    self.socketPath = @"/tmp/keybase-debug.sock";
+#endif
+
+  }
+  return self;
+}
+
 - (void)open {
   [self open:nil];
 }
@@ -65,16 +78,8 @@
   };
 
   _client.coder = [[KBRPCCoder alloc] init];
-  
-  NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
-  NSAssert(user, @"No user");
 
-  self.socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
-#ifdef DEBUG
-  self.socketPath = @"/tmp/keybase-debug.sock";
-#endif
-  
-  GHDebug(@"Connecting to keybased (%@)...", user);
+  GHDebug(@"Connecting to keybased (%@)...", self.socketPath);
   _connectAttempt++;
   [_client openWithSocket:self.socketPath completion:^(NSError *error) {
     if (error) {
@@ -152,7 +157,7 @@
   //NSNumber *messageId = request[1];
   GHDebug(@"Sent request: %@(%@)", method, mparams);
   if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
-    [self.recorder recordRequest:method params:params sessionId:sessionId callback:NO];
+    [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
   }
 }
 
@@ -232,7 +237,7 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 @end
 
 @implementation KBRPCCoder
-- (NSDictionary *)encodeObject:(id)obj {
+- (id)encodeObject:(id)obj {
   return [obj conformsToProtocol:@protocol(MTLJSONSerializing)] ? [MTLJSONAdapter JSONDictionaryFromModel:obj] : obj;
 }
 @end

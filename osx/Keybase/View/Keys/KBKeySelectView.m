@@ -27,7 +27,7 @@
   [self addSubview:_keysView];
 
   YONSView *footerView = [[YONSView alloc] init];
-  _pushCheckbox = [KBButton buttonWithText:@"Save to keybase.io" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment];
+  _pushCheckbox = [KBButton buttonWithText:@"Push encrypted copy to Keybase.io?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [footerView addSubview:_pushCheckbox];
 
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
@@ -41,7 +41,7 @@
     [layout setFrame:CGRectMake(size.width - 300, 0, 130, footerSize.height) view:yself.selectButton];
     [layout setFrame:CGRectMake(size.width - 150, 0, 130, footerSize.height) view:yself.cancelButton];
 
-    [layout setFrame:CGRectMake(20, 0, size.width - 40, footerSize.height) view:yself.pushCheckbox];
+    [layout sizeToFitVerticalInFrame:CGRectMake(20, 0, size.width - 340, footerSize.height) view:yself.pushCheckbox];
     return CGSizeMake(size.width, footerSize.height);
   }];
   [self addSubview:footerView];
@@ -58,7 +58,7 @@
       [AppDelegate setError:KBMakeError(-1, @"You need to select a key.") sender:gself];
       return;
     }
-    BOOL pushSecret = gself.pushCheckbox.state == 1;
+    BOOL pushSecret = gself.pushCheckbox.state == NSOnState;
 
     KBRSelectKeyRes *response = [[KBRSelectKeyRes alloc] init];
     response.keyID = keyID;

@@ -11,10 +11,10 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 #import "KBTrackView.h"
+#import "KBContentView.h"
 
-@interface KBUserProfileView : YONSView
+@interface KBUserProfileView : KBContentView
 
-@property KBNavigationView *navigation;
 @property (getter=isPopup) BOOL popup;
 
 - (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(id<KBRPClient>)client;

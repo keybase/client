@@ -104,7 +104,7 @@
     completion(nil, YES, KBInstallTypeInstaller);
   }];
 
-  [self installDebugMocks];
+  //[self installDebugMocks];
 
 //  } else {
 //    // Already installed

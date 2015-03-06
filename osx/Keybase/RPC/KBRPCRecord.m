@@ -85,7 +85,7 @@
   [indexFormatter setFormatWidth:4];
   [indexFormatter setPaddingCharacter:@"0"];
 
-  NSString *file = NSStringWithFormat(@"%@--%@-%@.json", [indexFormatter stringFromNumber:@(index)], method, label);
+  NSString *file = NSStringWithFormat(@"%@--%@--%@.json", [indexFormatter stringFromNumber:@(index)], method, label);
   NSError *error = nil;
   NSData *JSONData = [NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:&error];
   NSString *JSONFile = [directory stringByAppendingPathComponent:file];

@@ -11,9 +11,9 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 #import "KBProveType.h"
+#import "KBContentView.h"
 
-@interface KBProveInstructionsView : YONSView
-@property KBNavigationView *navigation;
+@interface KBProveInstructionsView : KBContentView
 @property KBLabel *instructionsLabel;
 @property KBLabel *proofLabel;
 @property KBScrollView *scrollView;

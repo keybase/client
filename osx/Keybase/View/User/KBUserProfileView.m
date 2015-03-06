@@ -23,18 +23,15 @@
 #import "KBKeyGenView.h"
 
 @interface KBUserProfileView ()
-@property NSScrollView *scrollView;
+@property KBScrollView *scrollView;
 @property KBUserHeaderView *headerView;
 @property KBUserInfoView *userInfoView;
 @property KBTrackView *trackView;
 
 @property KBRUser *user;
 @property BOOL editable;
-@property id<KBRPClient> client;
 
 @property KBRFOKID *fokid;
-
-@property YONSView *contentView;
 @end
 
 @implementation KBUserProfileView
@@ -45,13 +42,13 @@
   _headerView = [[KBUserHeaderView alloc] init];
   _userInfoView = [[KBUserInfoView alloc] init];
   _trackView = [[KBTrackView alloc] init];
-  _contentView = [[YONSView alloc] init];
-  [_contentView addSubview:_headerView];
-  [_contentView addSubview:_userInfoView];
-  [_contentView addSubview:_trackView];
+  YONSView *contentView = [[YONSView alloc] init];
+  [contentView addSubview:_headerView];
+  [contentView addSubview:_userInfoView];
+  [contentView addSubview:_trackView];
 
   YOSelf yself = self;
-  _contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 10;
     //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
     //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
@@ -61,18 +58,11 @@
     return CGSizeMake(size.width, y);
   }];
 
-  _scrollView = [[NSScrollView alloc] init];
-  _scrollView.hasVerticalScroller = YES;
-  _scrollView.autohidesScrollers = YES;
-  [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
-  [_scrollView setDocumentView:_contentView];
+  _scrollView = [[KBScrollView alloc] init];
+  [_scrollView setDocumentView:contentView];
   [self addSubview:_scrollView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, CGFLOAT_MAX) view:yself.contentView];
-    [layout setSize:size view:yself.scrollView options:0];
-    return size;
-  }];
+  self.viewLayout = [YOLayout fill:_scrollView];
 }
 
 - (void)updateWindow {
@@ -80,7 +70,7 @@
 
   // If we are in a popup lets adjust our window so all the content is visible
   [self layoutView];
-  CGSize size = CGSizeMake(_contentView.frame.size.width, _contentView.frame.size.height + 40);
+  CGSize size = CGSizeMake(self.frame.size.width, self.frame.size.height + 40);
   // Only make it bigger (not smaller)
   if (size.height > self.window.frame.size.height) {
     CGRect frame = CGRectMake(self.window.frame.origin.x, self.window.frame.origin.y, size.width, size.height);
@@ -217,7 +207,6 @@
 
   _user = user;
   _editable = editable;
-  _client = client;
   
   [_headerView setUser:_user];
   _headerView.hidden = NO;
@@ -319,12 +308,10 @@
 
 - (void)generateNewKey {
   KBKeyGenView *view = [[KBKeyGenView alloc] init];
-  NSWindow *window = [KBWindow windowWithContentView:view size:CGSizeMake(600, 400) retain:NO];
-  view.completion = ^{
-    [self.window endSheet:window];
-  };
-  view.cancelButton.actionBlock = ^(id sender) { [self.window endSheet:window]; };
-  [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
+  view.client = self.client;
+  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:view title:@"Generate a Key"] size:CGSizeMake(400, 400) sender:self];
+  view.completion = close;
+  view.cancelButton.actionBlock = ^(id sender) { close(); };
 }
 
 - (void)selectGPGKey {
@@ -341,17 +328,13 @@
 
 - (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
-
-  NSWindow *window = [KBWindow windowWithContentView:selectView size:CGSizeMake(600, 400) retain:NO];
-
+  selectView.client = self.client;
+  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:selectView title:@"Select a Key"] size:CGSizeMake(600, 400) sender:self];
   [selectView setGPGKeys:handler.keys completion:^(NSError *error, id result) {
-    [self.window endSheet:window];
+    close();
     completion(error, result);
   }];
-  //[self.navigation setView:selectView transitionType:KBNavigationTransitionTypeFade];
-
-  selectView.cancelButton.actionBlock = ^(id sender) { [self.window endSheet:window]; };
-  [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
+  selectView.cancelButton.actionBlock = ^(id sender) { close(); };
 }
 
 @end

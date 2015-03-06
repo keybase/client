@@ -11,7 +11,7 @@
 #import "KBKeyGenView.h"
 #import "KBRPC.h"
 #import "KBUserProfileView.h"
-#import "KBCatalogView.h"
+#import "KBMockViews.h"
 #import "KBPreferences.h"
 #import "KBErrorView.h"
 #import "KBAppearance.h"
@@ -28,7 +28,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
-  NSWindow *catalogWindow = [KBCatalogView createWindow];
+  NSWindow *mockViews = [KBMockViews createWindow];
 
   _appView = [[KBAppView alloc] init];
   [_appView openWindow];
@@ -36,8 +36,8 @@
   KBRPClient *client = [[KBRPClient alloc] init];
   [_appView connect:client];
 
-  [catalogWindow setFrameOrigin:NSMakePoint(NSMaxX(_appView.window.frame) + 10, _appView.window.frame.origin.y)];
-  [_appView.window addChildWindow:catalogWindow ordered:NSWindowAbove];
+  [mockViews setFrameOrigin:NSMakePoint(NSMaxX(_appView.window.frame) + 10, _appView.window.frame.origin.y)];
+  [_appView.window addChildWindow:mockViews ordered:NSWindowAbove];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

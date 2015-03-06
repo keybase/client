@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBCatalogView.h"
+#import "KBMockViews.h"
 #import "AppDelegate.h"
 #import "KBUserProfileView.h"
 #import "KBWebView.h"
@@ -20,16 +20,19 @@
 #import "KBAppKit.h"
 #import "KBDevicePromptView.h"
 
-@interface KBCatalogView ()
+@interface KBMockViews ()
+@property KBRMockClient *mockClient;
 @property NSMutableArray *items;
 @end
 
-@implementation KBCatalogView
+@implementation KBMockViews
 
 - (void)viewInit {
   [super viewInit];
   self.wantsLayer = YES;
   self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+
+  _mockClient = [[KBRMockClient alloc] init];
 
   YONSView *contentView = [[YONSView alloc] init];
   [contentView addSubview:[KBLabel labelWithText:@"Style Guides" style:KBLabelStyleHeader]];
@@ -45,6 +48,7 @@
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" actionBlock:^(id sender) { [self showDeviceSetupView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" actionBlock:^(id sender) { [self showDevicePrompt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Key Gen" actionBlock:^(id sender) { [self showKeyGen]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" actionBlock:^(id sender) { [self showProveInstructions]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track" actionBlock:^(id sender) { [self showTrack]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
@@ -61,7 +65,6 @@
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBLabel labelWithText:@"Testing" style:KBLabelStyleHeader]];
-  [contentView addSubview:[KBButton linkWithText:@"Test RPC Client" actionBlock:^(id sender) { [self showTestClientView]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   contentView.viewLayout = [YOLayout vertical:contentView.subviews margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:4];
@@ -73,14 +76,9 @@
   self.viewLayout = [YOLayout fill:scrollView];
 }
 
-- (void)showTestClientView {
-  KBTestClientView *testClientView = [[KBTestClientView alloc] init];
-  [self openInWindow:testClientView size:CGSizeMake(360, 420) title:@"Test Client"];
-}
-
-- (void)showKeyGen:(BOOL)animated {
+- (void)showKeyGen {
   KBKeyGenView *keyGenView = [[KBKeyGenView alloc] init];
-  [self openInWindow:keyGenView size:CGSizeMake(360, 420) title:@"Keygen"];
+  [self openInWindow:keyGenView size:CGSizeMake(360, 420) title:@"KeyGen"];
 }
 
 - (void)showProve:(NSString *)type {
@@ -90,7 +88,7 @@
 }
 
 + (NSWindow *)createWindow {
-  KBCatalogView *catalogView = [[KBCatalogView alloc] init];
+  KBMockViews *catalogView = [[KBMockViews alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:catalogView title:@"Debug"];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(400, 400) retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
@@ -98,7 +96,8 @@
   return window;
 }
 
-- (NSWindow *)openInWindow:(NSView *)view size:(CGSize)size title:(NSString *)title {
+- (NSWindow *)openInWindow:(KBContentView *)view size:(CGSize)size title:(NSString *)title {
+  view.client = self.mockClient;
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
@@ -173,13 +172,11 @@
 
 - (void)showLogin {
   KBLoginView *loginView = [[KBLoginView alloc] init];
-  KBRMockClient *mockClient = [[KBRMockClient alloc] init];
-  loginView.client = mockClient;
   KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
-  mockClient.handler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    [loginView.navigation pushView:devicePromptView animated:YES];
-    completion(nil, @{});
-  };
+//  mockClient.handler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+//    [loginView.navigation pushView:devicePromptView animated:YES];
+//    completion(nil, @{});
+//  };
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
 //    KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:[KBRMockClient requestForMethod:@"keybase.1.doctorUi.selectSigner"]];
 //    [loginView selectSigner:requestParams completion:^(NSError *error, id result) {

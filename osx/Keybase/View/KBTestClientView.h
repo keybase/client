@@ -11,6 +11,6 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBTestClientView : YONSView <KBRPClientDelegate>
+@interface KBTestClientView : KBView <KBRPClientDelegate>
 
 @end

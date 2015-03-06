@@ -10,7 +10,7 @@
 
 #import "KBAppKit.h"
 
-@interface KBCatalogView : YONSView
+@interface KBMockViews : YONSView
 
 + (NSWindow *)createWindow;
 

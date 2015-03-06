@@ -56,7 +56,7 @@
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   GHWeakSelf gself = self;
-  [_connectButton setText:@"Disconnect" style:KBButtonStyleDefault alignment:NSCenterTextAlignment];
+  [_connectButton setText:@"Disconnect" style:KBButtonStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   _connectButton.targetBlock = ^{ [gself close]; };
   [_infoView addObjects:@[@"Connected"]];
 }
@@ -64,7 +64,7 @@
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
   [_infoView addObjects:@[@"Disconnected"]];
   GHWeakSelf gself = self;
-  [_connectButton setText:@"Connect" style:KBButtonStylePrimary alignment:NSCenterTextAlignment];
+  [_connectButton setText:@"Connect" style:KBButtonStylePrimary alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   _connectButton.targetBlock = ^{ [gself open]; };
 }
 

@@ -9,9 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
+#import "KBContentView.h"
 
-@interface KBStyleGuideView : YONSView
-
-@property KBNavigationView *navigation;
+@interface KBStyleGuideView : KBContentView
 
 @end

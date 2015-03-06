@@ -12,7 +12,11 @@
 #import "KBRPC.h"
 
 @interface KBKeyGenView ()
+//@property KBProgressOverlayView *progressView;
 @property KBLabel *infoLabel;
+
+//@property KBButton *pushPublicCheckbox;
+@property KBButton *pushPrivateCheckbox;
 @property KBButton *button;
 @end
 
@@ -23,8 +27,11 @@
   GHWeakSelf gself = self;
 
   _infoLabel = [[KBLabel alloc] init];
-  [_infoLabel setText:@" " font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
+  [_infoLabel setText:@"You are about to discover a new key pair. Your computer will hunt for big prime numbers. It could take anywhere from a few seconds to many minutes." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self addSubview:_infoLabel];
+
+//  _progressView = [[KBProgressOverlayView alloc] init];
+//  [self addSubview:_progressView];
 
   /*
    Publish your new public key to Keybase.io (strongly recommended)? [Y/n]
@@ -34,6 +41,11 @@
 
    Push an encrypted copy of your private key to Keybase.io? [Y/n]
    */
+
+  //_pushPublicCheckbox = [KBButton buttonWithText:@"Publish your new public key to Keybase.io (strongly recommended)?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment];
+  //[self addSubview:_pushPublicCheckbox];
+  _pushPrivateCheckbox = [KBButton buttonWithText:@"Push an encrypted copy to Keybase.io?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [self addSubview:_pushPrivateCheckbox];
 
   _button = [KBButton buttonWithText:@"Create Key" style:KBButtonStylePrimary];
   self.button.targetBlock = ^{
@@ -56,11 +68,13 @@
     CGFloat x = 20;
     CGFloat y = 20;
 
-    y += [layout centerWithSize:CGSizeMake(300, 48) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.infoLabel].size.height + 20;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.infoLabel].size.height + 20;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(x, y, size.width - x - 20, 48) view:yself.button].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.pushPrivateCheckbox].size.height + 20;
 
-    y += [layout centerWithSize:CGSizeMake(0, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.cancelButton].size.height + 30;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.button].size.height + 30;
+
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(x, y, size.width - x - 20, 0) view:yself.cancelButton].size.height + 30;
 
     return CGSizeMake(size.width, y);
   }];
@@ -76,10 +90,10 @@
   KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
   uids.useDefault = YES;
 
-  //[self setProgressIndicatorEnabled:YES];
   [self.navigation setProgressEnabled:YES];
   KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
-  [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:YES passphrase:password completion:^(NSError *error) {
+  BOOL pushSecret = _pushPrivateCheckbox.state == NSOnState;
+  [mykey keyGenDefaultWithCreateUids:uids pushPublic:YES pushSecret:pushSecret passphrase:password completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];

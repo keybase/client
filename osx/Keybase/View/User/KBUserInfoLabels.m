@@ -75,7 +75,7 @@
 
 - (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
   [_headerLabel setText:header font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-  KBButton *button = [KBButton buttonWithText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = targetBlock;
   [_labels addObject:button];
   [self addSubview:button];
@@ -92,7 +92,7 @@
 //  } else if (key.kid) {
 //    keyDescription = NSStringWithFormat(@"%@...", [[key.kid na_hexString] substringToIndex:16]);
 //  }
-  KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, key); };
   [_labels addObject:button];
   [self addSubview:button];
@@ -102,7 +102,7 @@
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(id sender, id object))targetBlock {
   _imageView.image = [NSImage imageNamed:@"24-Business-Finance-black-bitcoins-30"];
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-  KBButton *button = [KBButton buttonWithText:cryptocurrency.address style:KBButtonStyleLink alignment:NSLeftTextAlignment];
+  KBButton *button = [KBButton buttonWithText:cryptocurrency.address style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, cryptocurrency); };
   [_labels addObject:button];
   [self addSubview:button];

@@ -43,23 +43,29 @@
     x += [layout setFrame:CGRectMake(x, 0, 1, size.height) view:right].size.width + 10;
     return CGSizeMake(x, size.height);
   }];
-  [self setRPCConnected:NO serverConnected:NO];
 }
 
 - (void)setRPCConnected:(BOOL)RPCConnected serverConnected:(BOOL)serverConnected {
+
+  NSString *socketPath = _client.socketPath;
+
   if (RPCConnected) {
-    [_RPCStatusLabel setMarkup:NSStringWithFormat(@"keybased: <ok>%@</ok>", self.config.socketFile) style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [_RPCStatusLabel setMarkup:NSStringWithFormat(@"keybased: <ok>%@</ok>", socketPath) style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   } else {
-    [_RPCStatusLabel setMarkup:NSStringWithFormat(@"keybased: <error>%@</error>", self.config.socketFile ? self.config.socketFile : @"?") style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [_RPCStatusLabel setMarkup:NSStringWithFormat(@"keybased: <error>%@</error>", socketPath ? socketPath : @"?") style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   }
   NSString *host = @"?";
   if (_config.serverURI) {
     NSURL *URL = [NSURL URLWithString:_config.serverURI];
-    host = NSStringWithFormat(@"%@:%@", URL.host, URL.port);
+    host = NSStringWithFormat(@"%@://%@", URL.scheme, URL.host);
+    if (URL.port) {
+      host = NSStringWithFormat(@"%@:%@", host, URL.port);
+    }
   }
 
   [_serverStatusLabel setMarkup:NSStringWithFormat(@"API: %@", host) style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
+  [self setNeedsLayout];
 }
 
 

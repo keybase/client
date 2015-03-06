@@ -20,13 +20,19 @@
 
 @implementation KBRMockClient
 
+- (instancetype)init {
+  if ((self = [super init])) {
+    self.socketPath = @"/tmp/mock.sock";
+  }
+  return self;
+}
+
 - (NSInteger)nextSessionId {
   static NSInteger gSessionId = 0;
   return ++gSessionId;
 }
 
 - (void)open {
-  self.socketPath = @"RPCMock";
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
     [self.delegate RPClientDidConnect:self];
   });
@@ -44,7 +50,7 @@
   if (response) {
     completion(nil, response);
   } else {
-    completion(KBMakeError(-1, @"No mock for method: %@", method), nil);
+    [self replayMethod:method completion:completion];
   }
 }
 
@@ -62,13 +68,13 @@
   [self.registrations removeObjectForKey:@(sessionId)];
 }
 
-/*
-- (void)replayRecordId:(NSString *)recordId {
+- (void)replayMethod:(NSString *)requestMethod completion:(MPRequestCompletion)completion {
   GHWeakSelf gself = self;
-  NSString *directory = [AppDelegate applicationSupport:@[@"Record", recordId] create:NO error:nil];
+  NSString *directory = [AppDelegate applicationSupport:@[@"Record", @"default", requestMethod] create:NO error:nil];
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
 
   if (files.count == 0) {
+    completion(KBMakeError(-1, @"No mock for method: %@", requestMethod), nil);
     return;
   }
 
@@ -76,46 +82,61 @@
   NSInteger start = NSIntegerMax;
   NSInteger end = 0;
   for (NSString *file in files) {
-    NSArray *split = [file split:@"--"];
-    if (split.count != 2) continue;
+    NSArray *split = [[file substringToIndex:file.length-5] split:@"--"];
+    if (split.count != 3) continue;
     NSInteger index = [split[0] integerValue];
 
     if (index < start) start = index;
     if (index > end) end = index;
 
-    NSString *method = [split[1] substringToIndex:[split[1] length] - 5];
-    fileDict[@(index)] = @{@"file": file, @"method": method};
+    fileDict[@(index)] = @{@"file": file, @"method": split[1], @"label": split[2]};
   }
 
   for (NSInteger index = start; index <= end; index++) {
     NSString *file = fileDict[@(index)][@"file"];
     NSString *method = fileDict[@(index)][@"method"];
-    id params = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:NSStringWithFormat(@"%@/%@", directory, file)] options:NSJSONReadingMutableContainers error:nil];
-    KBConvertArrayFrom(params);
+    NSString *label = fileDict[@(index)][@"label"];
+    NSArray *request = nil;
+    if ([label isEqualTo:@"request"] && ![method isEqualTo:requestMethod]) { // Ignore self request
+      request = [self.class parseRequest:@[@"Record", @"default", requestMethod, file]];
+    } else if ([label isEqualTo:@"response"]) {
+      id response = [self.class parseResponse:@[@"Record", @"default", requestMethod, file]];
+      completion(nil, response);
+      break;
+    }
+    if (!request) continue;
     GHDebug(@"Replay %@", method);
     for (id key in gself.registrations) {
       KBRPCRegistration *registration = gself.registrations[key];
       MPRequestHandler completion = [registration requestHandlerForMethod:method];
-      if (completion) completion(nil, method, params, ^(NSError *error, id result) { });
+      if (completion) completion(nil, method, request, ^(NSError *error, id result) { });
     }
   }
 }
- */
 
 + (id)responseForMethod:(NSString *)method {
-  NSMutableDictionary *response = [[self parse:@"default" file:NSStringWithFormat(@"%@-response.json", method)] mutableCopy];
-  KBConvertDictFrom(response);
-  return response;
+  NSArray *paths = @[@"Record", @"default", NSStringWithFormat(@"%@-response.json", method)];
+  return [self parseResponse:paths];
 }
 
 + (NSArray *)requestForMethod:(NSString *)method {
-  NSMutableArray *request = [[self parse:@"default" file:NSStringWithFormat(@"%@-request.json", method)] mutableCopy];
+  NSArray *paths = @[@"Record", @"default", NSStringWithFormat(@"%@-request.json", method)];
+  return [self parseRequest:paths];
+}
+
++ (NSArray *)parseRequest:(NSArray *)paths {
+  NSMutableArray *request = [[self parse:paths] mutableCopy];
   KBConvertArrayFrom(request);
   return request;
 }
 
-+ (id)parse:(NSString *)dir file:(NSString *)file {
-  NSArray *paths = @[@"Record", dir, file];
++ (id)parseResponse:(NSArray *)paths {
+  NSMutableDictionary *response = [[self parse:paths] mutableCopy];
+  KBConvertDictFrom(response);
+  return response;
+}
+
++ (id)parse:(NSArray *)paths {
   NSString *path = [AppDelegate applicationSupport:paths create:NO error:nil];
   NSData *data = [NSData dataWithContentsOfFile:path];
   //NSAssert(data, @"No data found at %@", path);

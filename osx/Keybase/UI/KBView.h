@@ -11,6 +11,7 @@
 #import <YOLayout/YOLayout.h>
 
 typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
+  KBVerticalAlignmentNone,
   KBVerticalAlignmentTop,
   KBVerticalAlignmentMiddle,
   KBVerticalAlignmentBottom,

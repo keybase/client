@@ -57,4 +57,13 @@
   return window;
 }
 
++ (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender {
+  NSWindow *window = [KBWindow windowWithContentView:view size:size retain:NO];
+  dispatch_block_t endSheet = ^{
+    [[sender window] endSheet:window];
+  };
+  [[sender window] beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
+  return endSheet;
+}
+
 @end
