@@ -10,12 +10,23 @@ import (
 )
 
 type PGPGenArg struct {
-	PrimaryBits int
-	SubkeyBits  int
-	Ids         Identities
-	Config      *packet.Config
-	PGPUids     []string
-	NoDefPGPUid bool
+	PrimaryBits     int
+	SubkeyBits      int
+	Ids             Identities
+	Config          *packet.Config
+	PGPUids         []string
+	NoDefPGPUid     bool
+	PrimaryLifetime int
+	SubkeyLifetime  int
+}
+
+func ui32p(i int) *uint32 {
+	if i >= 0 {
+		tmp := uint32(i)
+		return &tmp
+	} else {
+		return nil
+	}
 }
 
 // NewEntity returns an Entity that contains a fresh RSA/RSA keypair with a
@@ -71,7 +82,7 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 		if i > 0 {
 			isPrimaryId = false
 		}
-		e.Identities[uid.Id] = &openpgp.Identity{
+		id := &openpgp.Identity{
 			Name:   uid.Name,
 			UserId: uid,
 			SelfSignature: &packet.Signature{
@@ -86,6 +97,8 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 				IssuerKeyId:  &e.PrimaryKey.KeyId,
 			},
 		}
+		id.SelfSignature.KeyLifetimeSecs = ui32p(arg.PrimaryLifetime)
+		e.Identities[uid.Id] = id
 	}
 
 	e.Subkeys = make([]openpgp.Subkey, 1)
@@ -105,6 +118,7 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 	}
 	e.Subkeys[0].PublicKey.IsSubkey = true
 	e.Subkeys[0].PrivateKey.IsSubkey = true
+	e.Subkeys[0].Sig.KeyLifetimeSecs = ui32p(arg.SubkeyLifetime)
 
 	return (*PgpKeyBundle)(e), nil
 }
@@ -160,6 +174,12 @@ func (a *PGPGenArg) Init() (err error) {
 	}
 	if a.SubkeyBits == 0 {
 		a.SubkeyBits = defBits
+	}
+	if a.PrimaryLifetime == 0 {
+		a.PrimaryLifetime = KEY_EXPIRE_IN
+	}
+	if a.SubkeyLifetime == 0 {
+		a.SubkeyLifetime = SUBKEY_EXPIRE_IN
 	}
 	return
 }
