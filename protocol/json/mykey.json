@@ -161,15 +161,6 @@
       "request" : [ {
         "name" : "createUids",
         "type" : "PgpCreateUids"
-      }, {
-        "name" : "pushPublic",
-        "type" : "boolean"
-      }, {
-        "name" : "pushSecret",
-        "type" : "boolean"
-      }, {
-        "name" : "passphrase",
-        "type" : "string"
       } ],
       "response" : "null"
     },

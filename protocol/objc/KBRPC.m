@@ -406,8 +406,8 @@
   }];
 }
 
-- (void)keyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids pushPublic:(BOOL )pushPublic pushSecret:(BOOL )pushSecret passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"createUids": KBRValue(createUids), @"pushPublic": @(pushPublic), @"pushSecret": @(pushSecret), @"passphrase": KBRValue(passphrase)}];
+- (void)keyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"createUids": KBRValue(createUids)}];
   [self.client sendRequestWithMethod:@"keybase.1.mykey.keyGenDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1036,9 +1036,6 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.pushPublic = [params[0][@"pushPublic"] boolValue];
-    self.pushSecret = [params[0][@"pushSecret"] boolValue];
-    self.passphrase = params[0][@"passphrase"];
   }
   return self;
 }

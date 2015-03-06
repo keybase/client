@@ -29,11 +29,11 @@ func (h *MykeyHandler) keygen(earg engine.PGPEngineArg, doInteractive bool) (err
 	return err
 }
 
-func (h *MykeyHandler) KeyGenDefault(arg keybase_1.KeyGenDefaultArg) (err error) {
+func (h *MykeyHandler) KeyGenDefault(arg keybase_1.PgpCreateUids) (err error) {
 	earg := engine.PGPEngineArg{
 		Gen: &libkb.PGPGenArg{
-			Ids:         libkb.ImportPgpIdentities(arg.CreateUids.Ids),
-			NoDefPGPUid: !arg.CreateUids.UseDefault,
+			Ids:         libkb.ImportPgpIdentities(arg.Ids),
+			NoDefPGPUid: !arg.UseDefault,
 		},
 	}
 	return h.keygen(earg, false)

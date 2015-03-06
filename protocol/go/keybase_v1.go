@@ -970,9 +970,6 @@ type KeyGenArg struct {
 
 type KeyGenDefaultArg struct {
 	CreateUids PgpCreateUids `codec:"createUids" json:"createUids"`
-	PushPublic bool          `codec:"pushPublic" json:"pushPublic"`
-	PushSecret bool          `codec:"pushSecret" json:"pushSecret"`
-	Passphrase string        `codec:"passphrase" json:"passphrase"`
 }
 
 type DeletePrimaryArg struct {
@@ -1001,7 +998,7 @@ type SavePGPKeyArg struct {
 
 type MykeyInterface interface {
 	KeyGen(KeyGenArg) error
-	KeyGenDefault(KeyGenDefaultArg) error
+	KeyGenDefault(PgpCreateUids) error
 	DeletePrimary() error
 	Show() error
 	Select(SelectArg) error
@@ -1023,7 +1020,7 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 			"keyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]KeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.KeyGenDefault(args[0])
+					err = i.KeyGenDefault(args[0].CreateUids)
 				}
 				return
 			},
@@ -1076,7 +1073,8 @@ func (c MykeyClient) KeyGen(__arg KeyGenArg) (err error) {
 	return
 }
 
-func (c MykeyClient) KeyGenDefault(__arg KeyGenDefaultArg) (err error) {
+func (c MykeyClient) KeyGenDefault(createUids PgpCreateUids) (err error) {
+	__arg := KeyGenDefaultArg{CreateUids: createUids}
 	err = c.Cli.Call("keybase.1.mykey.keyGenDefault", []interface{}{__arg}, nil)
 	return
 }

@@ -17,11 +17,7 @@ protocol mykey {
 		boolean doExport
 	);
 
-	void keyGenDefault(
-		PgpCreateUids createUids,
-		boolean pushPublic,
-		boolean pushSecret,
-		string passphrase);
+	void keyGenDefault(PgpCreateUids createUids);
 
 	void deletePrimary();
 
