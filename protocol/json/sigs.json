@@ -1,0 +1,215 @@
+{
+  "protocol" : "sigs",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "StringKVPair",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "StringKVPair"
+      }
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "UID",
+    "size" : 16
+  }, {
+    "type" : "record",
+    "name" : "LoadUserArg",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : [ "null", "UID" ]
+    }, {
+      "name" : "username",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FOKID",
+    "fields" : [ {
+      "name" : "pgpFingerprint",
+      "type" : [ "null", "bytes" ]
+    }, {
+      "name" : "kid",
+      "type" : [ "null", "bytes" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Image",
+    "fields" : [ {
+      "name" : "url",
+      "type" : "string"
+    }, {
+      "name" : "width",
+      "type" : "int"
+    }, {
+      "name" : "height",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "image",
+      "type" : [ "null", "Image" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Device",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "deviceID",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
+  }, {
+    "type" : "record",
+    "name" : "Sig",
+    "fields" : [ {
+      "name" : "seqno",
+      "type" : "int"
+    }, {
+      "name" : "sigIdDisplay",
+      "type" : "string"
+    }, {
+      "name" : "type",
+      "type" : "string"
+    }, {
+      "name" : "ctime",
+      "type" : "int"
+    }, {
+      "name" : "revoked",
+      "type" : "boolean"
+    }, {
+      "name" : "active",
+      "type" : "boolean"
+    }, {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "body",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SigTypes",
+    "fields" : [ {
+      "name" : "track",
+      "type" : "boolean"
+    }, {
+      "name" : "proof",
+      "type" : "boolean"
+    }, {
+      "name" : "cryptocurrency",
+      "type" : "boolean"
+    }, {
+      "name" : "self",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SigListArgs",
+    "fields" : [ {
+      "name" : "sessionID",
+      "type" : "int"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "allKeys",
+      "type" : "boolean"
+    }, {
+      "name" : "types",
+      "type" : [ "null", "SigTypes" ]
+    }, {
+      "name" : "filterx",
+      "type" : "string"
+    }, {
+      "name" : "verbose",
+      "type" : "boolean"
+    }, {
+      "name" : "revoked",
+      "type" : "boolean"
+    } ]
+  } ],
+  "messages" : {
+    "sigList" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "SigListArgs"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "Sig"
+      }
+    },
+    "sigListJSON" : {
+      "request" : [ {
+        "name" : "arg",
+        "type" : "SigListArgs"
+      } ],
+      "response" : "string"
+    }
+  }
+}

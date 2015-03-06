@@ -30,6 +30,7 @@ build-stamp: \
 	json/session.json \
 	json/sibkey.json \
 	json/signup.json \
+	json/sigs.json \
 	json/track.json \
 	json/ui.json \
 	json/user.json 

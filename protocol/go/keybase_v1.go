@@ -1572,6 +1572,86 @@ func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
 	return
 }
 
+type Sig struct {
+	Seqno        int    `codec:"seqno" json:"seqno"`
+	SigIdDisplay string `codec:"sigIdDisplay" json:"sigIdDisplay"`
+	Type         string `codec:"type" json:"type"`
+	Ctime        int    `codec:"ctime" json:"ctime"`
+	Revoked      bool   `codec:"revoked" json:"revoked"`
+	Active       bool   `codec:"active" json:"active"`
+	Key          string `codec:"key" json:"key"`
+	Body         string `codec:"body" json:"body"`
+}
+
+type SigTypes struct {
+	Track          bool `codec:"track" json:"track"`
+	Proof          bool `codec:"proof" json:"proof"`
+	Cryptocurrency bool `codec:"cryptocurrency" json:"cryptocurrency"`
+	Self           bool `codec:"self" json:"self"`
+}
+
+type SigListArgs struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Username  string    `codec:"username" json:"username"`
+	AllKeys   bool      `codec:"allKeys" json:"allKeys"`
+	Types     *SigTypes `codec:"types,omitempty" json:"types"`
+	Filterx   string    `codec:"filterx" json:"filterx"`
+	Verbose   bool      `codec:"verbose" json:"verbose"`
+	Revoked   bool      `codec:"revoked" json:"revoked"`
+}
+
+type SigListArg struct {
+	Arg SigListArgs `codec:"arg" json:"arg"`
+}
+
+type SigListJSONArg struct {
+	Arg SigListArgs `codec:"arg" json:"arg"`
+}
+
+type SigsInterface interface {
+	SigList(SigListArgs) ([]Sig, error)
+	SigListJSON(SigListArgs) (string, error)
+}
+
+func SigsProtocol(i SigsInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.sigs",
+		Methods: map[string]rpc2.ServeHook{
+			"sigList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SigListArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SigList(args[0].Arg)
+				}
+				return
+			},
+			"sigListJSON": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SigListJSONArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SigListJSON(args[0].Arg)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type SigsClient struct {
+	Cli GenericClient
+}
+
+func (c SigsClient) SigList(arg SigListArgs) (res []Sig, err error) {
+	__arg := SigListArg{Arg: arg}
+	err = c.Cli.Call("keybase.1.sigs.sigList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SigsClient) SigListJSON(arg SigListArgs) (res string, err error) {
+	__arg := SigListJSONArg{Arg: arg}
+	err = c.Cli.Call("keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res)
+	return
+}
+
 type TrackArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TheirName string `codec:"theirName" json:"theirName"`

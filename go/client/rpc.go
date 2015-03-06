@@ -112,3 +112,11 @@ func GetUserClient() (cli keybase_1.UserClient, err error) {
 	}
 	return
 }
+
+func GetSigsClient() (cli keybase_1.SigsClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.SigsClient{Cli: rcli}
+	}
+	return
+}

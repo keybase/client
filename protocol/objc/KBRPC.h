@@ -407,6 +407,41 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
+@interface KBRSig : KBRObject
+@property NSInteger seqno;
+@property NSString *sigIdDisplay;
+@property NSString *type;
+@property NSInteger ctime;
+@property BOOL revoked;
+@property BOOL active;
+@property NSString *key;
+@property NSString *body;
+@end
+
+@interface KBRSigTypes : KBRObject
+@property BOOL track;
+@property BOOL proof;
+@property BOOL cryptocurrency;
+@property BOOL self;
+@end
+
+@interface KBRSigListArgs : KBRObject
+@property NSInteger sessionID;
+@property NSString *username;
+@property BOOL allKeys;
+@property KBRSigTypes *types;
+@property NSString *filterx;
+@property BOOL verbose;
+@property BOOL revoked;
+@end
+
+@interface KBRSigsRequest : KBRRequest
+- (void)sigListWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSArray * items))completion;
+
+- (void)sigListJSONWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSString * str))completion;
+
+@end
+
 @interface KBRTrackRequest : KBRRequest
 - (void)trackWithSessionID:(NSInteger )sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
 
@@ -682,6 +717,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *email;
 @property NSString *fullname;
 @property NSString *notes;
+@end
+@interface KBRSigListRequestParams : KBRRequestParams
+@property KBRSigListArgs *arg;
+@end
+@interface KBRSigListJSONRequestParams : KBRRequestParams
+@property KBRSigListArgs *arg;
 @end
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;

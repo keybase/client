@@ -2,14 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/keybase/client/go/libcmdline"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-jsonw"
 	"io"
 	"os"
 	"regexp"
 	"strings"
+	"time"
+
+	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type CmdSigsList struct {
@@ -23,8 +27,9 @@ type CmdSigsList struct {
 
 	username string
 
-	user *libkb.User
-	sigs []libkb.TypedChainLink
+	user  *libkb.User
+	sigs  []libkb.TypedChainLink
+	ksigs []keybase_1.Sig
 }
 
 func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
@@ -198,6 +203,69 @@ func (s *CmdSigsList) DisplayTable() (err error) {
 	return
 }
 
+func (s *CmdSigsList) DisplayKTable(sigs []keybase_1.Sig) (err error) {
+	if sigs == nil {
+		return nil
+	}
+
+	var cols []string
+
+	if s.headers {
+		cols = []string{
+			"#",
+			"SigId",
+			"Type",
+			"Date",
+		}
+		if s.revoked {
+			cols = append(cols, "Revoked")
+		}
+		if s.allKeys {
+			cols = append(cols, "Active", "Key")
+		}
+		cols = append(cols, "Body")
+	}
+
+	i := 0
+
+	rowfunc := func() []string {
+		var row []string
+		for ; i < len(sigs) && row == nil; i++ {
+			link := sigs[i]
+			row = []string{
+				fmt.Sprintf("%d", link.Seqno),
+				link.SigIdDisplay,
+				link.Type,
+				libkb.FormatTime(time.Unix(int64(link.Ctime), 0)),
+			}
+			if s.revoked {
+				var ch string
+				if link.Revoked {
+					ch = "R"
+				} else {
+					ch = "."
+				}
+				row = append(row, ch)
+			}
+			if s.allKeys {
+				var ch string
+				if link.Active {
+					ch = "+"
+				} else {
+					ch = "-"
+				}
+				row = append(row, ch, link.Key)
+			}
+			row = append(row, link.Body)
+		}
+		return row
+	}
+
+	libkb.Tablify(os.Stdout, cols, rowfunc)
+
+	return
+}
+
 func (s *CmdSigsList) DisplayJson() (err error) {
 	tmp := make([]*jsonw.Wrapper, 0, len(s.sigs))
 	for _, link := range s.sigs {
@@ -235,9 +303,73 @@ func (s *CmdSigsList) Display() (err error) {
 	return
 }
 
-func (s *CmdSigsList) RunClient() error { return s.Run() }
+func (s *CmdSigsList) RunClient() error {
+	cli, err := GetSigsClient()
+	if err != nil {
+		return err
+	}
+	var t *keybase_1.SigTypes
+	if s.types != nil {
+		t = &keybase_1.SigTypes{
+			Track:          s.types["track"],
+			Proof:          s.types["proof"],
+			Cryptocurrency: s.types["cryptocurrency"],
+			Self:           s.types["self"],
+		}
+	}
+	args := keybase_1.SigListArgs{
+		Username: s.username,
+		AllKeys:  s.allKeys,
+		Filterx:  s.filter,
+		Verbose:  s.verbose,
+		Revoked:  s.revoked,
+		Types:    t,
+	}
 
-func (s *CmdSigsList) Run() (err error) {
+	if s.json {
+		json, err := cli.SigListJSON(args)
+		if err != nil {
+			return err
+		}
+		fmt.Println(json)
+		return nil
+	}
+
+	sigs, err := cli.SigList(args)
+	if err != nil {
+		return err
+	}
+	return s.DisplayKTable(sigs)
+}
+
+func (s *CmdSigsList) Run() error {
+	ctx := &engine.Context{}
+	args := engine.SigsListArgs{
+		Username: s.username,
+		AllKeys:  s.allKeys,
+		Types:    s.types,
+		Filterx:  s.filter,
+		Verbose:  s.verbose,
+		Revoked:  s.revoked,
+	}
+	eng := engine.NewSigsList(args)
+	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+		return err
+	}
+
+	if s.json {
+		j, err := eng.JSON()
+		if err != nil {
+			return err
+		}
+		fmt.Println(j)
+		return nil
+	} else {
+		return s.DisplayKTable(eng.Sigs())
+	}
+}
+
+func (s *CmdSigsList) RunOld() (err error) {
 
 	// XXX maybe do some sort of debug dump with the user that
 	// we loaded from the server (or storage).

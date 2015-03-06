@@ -575,6 +575,38 @@
 
 @end
 
+@implementation KBRSig
+@end
+
+@implementation KBRSigTypes
+@end
+
+@implementation KBRSigListArgs
+@end
+
+@implementation KBRSigsRequest
+
+- (void)sigListWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSArray * items))completion {
+  NSArray *params = @[@{@"arg": KBRValue(arg)}];
+  [self.client sendRequestWithMethod:@"keybase.1.sigs.sigList" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRSig.class fromJSONArray:retval error:&error];
+      completion(error, results);
+  }];
+}
+
+- (void)sigListJSONWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSString * str))completion {
+  NSArray *params = @[@{@"arg": KBRValue(arg)}];
+  [self.client sendRequestWithMethod:@"keybase.1.sigs.sigListJSON" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+@end
+
 @implementation KBRTrackRequest
 
 - (void)trackWithSessionID:(NSInteger )sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
@@ -1238,6 +1270,28 @@
     self.email = params[0][@"email"];
     self.fullname = params[0][@"fullname"];
     self.notes = params[0][@"notes"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSigListRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.arg = [MTLJSONAdapter modelOfClass:KBRSigListArgs.class fromJSONDictionary:params[0][@"arg"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSigListJSONRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.arg = [MTLJSONAdapter modelOfClass:KBRSigListArgs.class fromJSONDictionary:params[0][@"arg"] error:nil];
   }
   return self;
 }

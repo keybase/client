@@ -1,0 +1,35 @@
+@namespace("keybase.1")
+protocol sigs {
+	import idl "common.avdl";
+
+	record Sig {
+		int seqno;
+		string sigIdDisplay;
+		string type;
+		int ctime;
+		boolean revoked;
+		boolean active;
+		string key;
+		string body;
+	}
+
+	record SigTypes {
+		boolean track;
+		boolean proof;
+		boolean cryptocurrency;
+		boolean self;
+	}
+
+	record SigListArgs {
+		int sessionID;
+		string username;
+		boolean allKeys;
+		union { null, SigTypes } types;
+		string filterx;
+		boolean verbose;
+		boolean revoked;
+	}
+
+	array<Sig> sigList(SigListArgs arg);
+	string sigListJSON(SigListArgs arg);
+}
