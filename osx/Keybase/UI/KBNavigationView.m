@@ -11,6 +11,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "KBNavigationTitleView.h"
 #import <GHKit/GHKit.h>
+#import "KBWindow.h"
 
 @interface KBNavigationView ()
 @property NSMutableArray *views;
@@ -62,6 +63,12 @@
 
 - (BOOL)mouseDownCanMoveWindow {
   return YES;
+}
+
++ (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size title:(NSString *)title sender:(id)sender {
+  KBNavigationView *navigationView = [[KBNavigationView alloc] initWithView:view title:title];
+  //CGSize sizeThatFits = [navigationView sizeThatFits:size];
+  return [KBWindow openWindowWithView:navigationView size:size sender:sender];
 }
 
 - (void)pushView:(NSView *)view animated:(BOOL)animated {

@@ -250,7 +250,7 @@
 
 - (void)logout {
   GHWeakSelf gself = self;
-  [KBAlert promptWithTitle:@"Log Out" description:@"Are you sure you want to log out?" style:NSInformationalAlertStyle buttonTitles:@[@"Yes, Log Out", @"No"] view:self completion:^(NSModalResponse response) {
+  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^(NSModalResponse response) {
     if (response == NSAlertFirstButtonReturn) {
       [self setProgressEnabled:YES];
       KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];

@@ -8,12 +8,12 @@
 
 #import "AppDelegate.h"
 
-#import "KBKeyGenView.h"
+#import "KBPGPKeyGenView.h"
 #import "KBRPC.h"
 #import "KBUserProfileView.h"
 #import "KBMockViews.h"
 #import "KBPreferences.h"
-#import "KBErrorView.h"
+#import "KBFatalErrorView.h"
 #import "KBAppearance.h"
 #import "KBInstaller.h"
 
@@ -106,7 +106,7 @@ NSString *KBUserImageURLString(NSString *username) {
 #pragma mark Error
 
 - (void)setFatalError:(NSError *)error {
-  KBErrorView *fatalErrorView = [[KBErrorView alloc] init];
+  KBFatalErrorView *fatalErrorView = [[KBFatalErrorView alloc] init];
   [fatalErrorView setError:error];
   [fatalErrorView openInWindow];
 }

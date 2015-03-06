@@ -43,6 +43,8 @@
 - (NSColor *)backgroundColor;
 - (NSColor *)secondaryBackgroundColor;
 
+- (NSColor *)tableGridColor;
+
 @end
 
 @interface KBAppearance : NSObject

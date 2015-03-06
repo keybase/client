@@ -76,9 +76,11 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)selectColor {
-  return [NSColor colorWithRed:87.0/255.0 green:153.0/255.0 blue:220.0/255.0 alpha:1.0f];
+  //return [NSColor colorWithRed:87.0/255.0 green:153.0/255.0 blue:220.0/255.0 alpha:1.0f];
   //return [NSColor colorWithRed:0.0f green:0.49f blue:0.96f alpha:1.0f];
   //return GHNSColorFromRGB(0x286090);
+  //return [NSColor colorWithRed:9.0/255.0 green:80.0/255.0 blue:208.0/255.0 alpha:1.0f];
+  return [NSColor colorWithRed:50.0/255.0 green:132.0/255.0 blue:252.0/255.0 alpha:1.0f];
 }
 
 - (NSColor *)disabledTextColor {
@@ -107,6 +109,10 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 - (NSColor *)lineColor {
   return [NSColor colorWithCalibratedWhite:193.0/255.0 alpha:1.0];
+}
+
+- (NSColor *)tableGridColor {
+  return [NSColor colorWithCalibratedWhite:213.0/255.0 alpha:1.0];
 }
 
 - (NSColor *)highlightBackgroundColor {

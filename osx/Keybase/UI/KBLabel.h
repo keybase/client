@@ -25,7 +25,9 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property (nonatomic) BOOL selectable;
 @property KBVerticalAlignment verticalAlignment;
 
++ (instancetype)label;
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style;
++ (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setBackgroundColor:(NSColor *)backgroundColor;
 

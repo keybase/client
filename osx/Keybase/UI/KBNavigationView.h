@@ -44,4 +44,6 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 
 + (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews;
 
++ (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size title:(NSString *)title sender:(id)sender;
+
 @end

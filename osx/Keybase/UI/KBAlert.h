@@ -22,6 +22,6 @@ typedef void (^KBAlertResponse)(NSModalResponse returnCode);
 
 + (void)promptForInputWithTitle:(NSString *)title description:(NSString *)description secure:(BOOL)secure style:(NSAlertStyle)style buttonTitles:(NSArray *)buttonTitles view:(NSView *)view completion:(void (^)(NSModalResponse response, NSString *input))completion;
 
-+ (void)yesNoWithTitle:(NSString *)title description:(NSString *)description yes:(NSString *)yes view:(NSView *)view completion:(void (^)(NSModalResponse response))completion;
++ (void)yesNoWithTitle:(NSString *)title description:(NSString *)description yes:(NSString *)yes view:(NSView *)view completion:(dispatch_block_t)completion;
 
 @end

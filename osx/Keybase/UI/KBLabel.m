@@ -89,9 +89,19 @@
   return [NSString stringWithFormat:@"%@ %@", super.description, self.attributedText];
 }
 
++ (instancetype)label {
+  return [[KBLabel alloc] init];
+}
+
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style {
   KBLabel *label = [[KBLabel alloc] init];
   [label setText:text style:style appearance:KBAppearance.currentAppearance];
+  return label;
+}
+
++ (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  KBLabel *label = [[KBLabel alloc] init];
+  [label setText:text style:style appearance:KBAppearance.currentAppearance alignment:alignment lineBreakMode:lineBreakMode];
   return label;
 }
 
