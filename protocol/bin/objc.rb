@@ -18,17 +18,19 @@ def classname(n)
   "KBR#{n}"
 end
 
-def objc_for_type(type, enums)
+def objc_for_type(type, enums, space)
   type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
   type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
 
-  case type
-  when "string" then "NSString *"
-  when "int" then "NSInteger "
-  when "array" then "NSArray *"
-  when "boolean" then "BOOL "
-  when "bytes" then "NSData *"
-  when "null" then "void"
+  ptr = false
+  name, ptr = case type
+  when "string" then ["NSString *", true]
+  when "int" then ["NSInteger", false]
+  when "long" then ["long", false]
+  when "array" then ["NSArray *", true]
+  when "boolean" then ["BOOL", false]
+  when "bytes" then ["NSData *", true]
+  when "null" then ["void", false]
   else
     if type.start_with?("void")
       type
@@ -38,6 +40,9 @@ def objc_for_type(type, enums)
       classname("#{type} *")
     end
   end
+
+  name = "#{name} " if space and !ptr
+  name
 end
 
 def is_native_type(type)
@@ -46,7 +51,7 @@ end
 
 def is_primitive_type(type)
   type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
-  ["int", "boolean", "null"].include?(type)
+  ["int", "long", "boolean", "null"].include?(type)
 end
 
 def alias_name(name)
@@ -60,6 +65,7 @@ def default_name_for_type(type)
   case type
   when "string" then "str"
   when "int" then "n"
+  when "long" then "l"
   when "array" then "items"
   when "boolean" then "b"
   when "binary" then "data"
@@ -151,7 +157,7 @@ paths.each do |path|
             end
           end
         else
-          header << "@property #{objc_for_type(field["type"], enums)}#{field["name"]};"
+          header << "@property #{objc_for_type(field["type"], enums, true)}#{field["name"]};"
         end
       end
       header << "@end\n"
@@ -180,7 +186,7 @@ paths.each do |path|
     response_completion = if response_type == "null" then
       "void (^)(NSError *error)"
     else
-      "void (^)(NSError *error, #{objc_for_type(response_type, enums)} #{default_name_for_type(response_type)})"
+      "void (^)(NSError *error, #{objc_for_type(response_type, enums, true)}#{default_name_for_type(response_type)})"
     end
 
     request_params << {"name" => "completion", "type" => response_completion}
@@ -190,7 +196,7 @@ paths.each do |path|
       name = "With#{name.camelize}" if index == 0
       name = "" if request_params.length == 1
 
-      "#{name}:(#{objc_for_type(param["type"], enums)})#{alias_name(param["name"])}"
+      "#{name}:(#{objc_for_type(param["type"], enums, false)})#{alias_name(param["name"])}"
     end
 
     rpc_method = "#{namespace}.#{protocol}.#{method}"
@@ -235,7 +241,7 @@ paths.each do |path|
     if mparam["request"].length > 0
       header_handlers << "@interface KBR#{method.camelize}RequestParams : KBRRequestParams"
       mparam["request"].each do |param|
-        header_handlers << "@property #{objc_for_type(param["type"], enums)}#{param["name"]};"
+        header_handlers << "@property #{objc_for_type(param["type"], enums, true)}#{param["name"]};"
       end
       header_handlers << "@end"
 
