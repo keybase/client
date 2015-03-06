@@ -501,6 +501,9 @@ func (s *SibkeyChainLink) GetRole() KeyRole        { return DLG_SIBKEY }
 func (s *SibkeyChainLink) Type() string            { return SIBKEY_TYPE }
 func (r *SibkeyChainLink) ToDisplayString() string { return r.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device      { return s.device }
+func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
 
 //-------------------------------------
 
@@ -562,6 +565,9 @@ func (s *SubkeyChainLink) ToDisplayString() string { return s.kid.String() }
 func (s *SubkeyChainLink) GetRole() KeyRole        { return DLG_SUBKEY }
 func (s *SubkeyChainLink) GetDelegatedKid() KID    { return s.kid }
 func (s *SubkeyChainLink) GetParentKid() KID       { return s.parentKid }
+func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
 
 //
 //=========================================================================
@@ -582,6 +588,9 @@ func ParseDeviceChainLink(b GenericChainLink) (ret *DeviceChainLink, err error) 
 }
 
 func (s *DeviceChainLink) GetDevice() *Device { return s.device }
+func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
 
 //=========================================================================
 // UntrackChainLink
