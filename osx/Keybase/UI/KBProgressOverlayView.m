@@ -47,11 +47,12 @@
     if (size.width == 0) size.width = 140;
     if (size.height == 0) size.height = 140;
 
-    CGFloat x = size.width/2.0 - indicatorWidth/2.0;
-    CGFloat y = size.height/2.0 - indicatorWidth/2.0;
+    CGSize labelSize = [yself.label sizeThatFits:size];
+
+    CGFloat x = ceilf(size.width/2.0 - indicatorWidth/2.0);
+    CGFloat y = ceilf(size.height/2.0 - indicatorWidth/2.0 + labelSize.height/2.0 + 4);
 
     [layout setFrame:CGRectMake(x, y, indicatorWidth, indicatorWidth) view:yself.indicatorView];
-    CGSize labelSize = [yself.label sizeThatFits:size];
     [layout setFrame:CGRectMake(size.width/2.0 - labelSize.width/2.0, y - labelSize.height - 8, labelSize.width, labelSize.height) view:yself.label];
     return CGSizeMake(size.width, size.height);
   }];

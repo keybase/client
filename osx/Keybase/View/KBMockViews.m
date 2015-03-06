@@ -10,7 +10,7 @@
 #import "AppDelegate.h"
 #import "KBUserProfileView.h"
 #import "KBWebView.h"
-#import "KBKeyGenView.h"
+#import "KBPGPKeyGenView.h"
 #import "KBProveView.h"
 #import "KBStyleGuideView.h"
 #import "KBTestClientView.h"
@@ -19,6 +19,7 @@
 #import "KBRMockClient.h"
 #import "KBAppKit.h"
 #import "KBDevicePromptView.h"
+#import "KBProgressView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -48,7 +49,8 @@
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" actionBlock:^(id sender) { [self showDeviceSetupView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" actionBlock:^(id sender) { [self showDevicePrompt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Key Gen" actionBlock:^(id sender) { [self showKeyGen]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Progress" actionBlock:^(id sender) { [self showProgressView:1 error:NO]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Progress (error)" actionBlock:^(id sender) { [self showProgressView:0 error:YES]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" actionBlock:^(id sender) { [self showProveInstructions]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track" actionBlock:^(id sender) { [self showTrack]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
@@ -76,9 +78,15 @@
   self.viewLayout = [YOLayout fill:scrollView];
 }
 
-- (void)showKeyGen {
-  KBKeyGenView *keyGenView = [[KBKeyGenView alloc] init];
-  [self openInWindow:keyGenView size:CGSizeMake(360, 420) title:@"KeyGen"];
+- (void)showProgressView:(NSTimeInterval)delay error:(BOOL)error {
+  KBProgressView *progressView = [[KBProgressView alloc] init];
+  [progressView setProgressTitle:@"Working"];
+  progressView.work = ^(KBCompletionBlock completion) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      completion(error ? KBMakeErrorWithRecovery(-1, @"Some error happened", @"Intelligentsia ennui squid put a bird on it mixtape next level. Paleo Neutra banh mi fingerstache, small batch stumptown skateboard mustache asymmetrical vegan. Quinoa mustache mixtape literally occupy mlkshk..") : nil);
+    });
+  };
+  [progressView openAndDoIt:self];
 }
 
 - (void)showProve:(NSString *)type {
@@ -113,8 +121,8 @@
 
     }];
   } else if ([type isEqualTo:@"yes_no"]) {
-    [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^(NSModalResponse response) {
-
+    [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^() {
+      // Yes
     }];
   } else if ([type isEqualTo:@"input"]) {
     [KBAlert promptForInputWithTitle:@"What's my favorite color?" description:@"Cold-pressed aesthetic yr fap locavore American Apparel, bespoke fanny pack." secure:NO style:NSInformationalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:nil completion:^(NSModalResponse response, NSString *input) {
