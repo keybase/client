@@ -316,28 +316,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
-@interface KBRPgpCreateUids : KBRObject
-@property BOOL useDefault;
-@property NSArray *ids; /*of KBRPgpIdentity*/
-@end
-
-@interface KBRMykeyRequest : KBRRequest
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion;
-
-- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
-
-- (void)deletePrimary:(void (^)(NSError *error))completion;
-
-- (void)show:(void (^)(NSError *error))completion;
-
-- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL )allowMulti skipImport:(BOOL )skipImport completion:(void (^)(NSError *error))completion;
-
-- (void)saveArmoredPGPKeyWithKey:(NSString *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion;
-
-- (void)savePGPKeyWithKey:(NSData *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion;
-
-@end
-
 @interface KBRProveRequest : KBRRequest
 - (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion;
 
@@ -439,10 +417,46 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
+@interface KBRPgpCreateUids : KBRObject
+@property BOOL useDefault;
+@property NSArray *ids; /*of KBRPgpIdentity*/
+@end
+
+@interface KBRMykeyRequest : KBRRequest
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion;
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
+
+- (void)deletePrimary:(void (^)(NSError *error))completion;
+
+- (void)show:(void (^)(NSError *error))completion;
+
+- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL )allowMulti skipImport:(BOOL )skipImport completion:(void (^)(NSError *error))completion;
+
+- (void)saveArmoredPGPKeyWithKey:(NSString *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion;
+
+- (void)savePGPKeyWithKey:(NSData *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRTracker : KBRObject
 @property KBRUID *tracker;
 @property NSInteger status;
 @property NSInteger mtime;
+@end
+
+@interface KBRTrackProof : KBRObject
+@property NSString *proofType;
+@property NSString *proofName;
+@property NSString *idString;
+@end
+
+@interface KBRTrackEntry : KBRObject
+@property NSString *username;
+@property NSString *sigId;
+@property NSString *pgpFingerprint;
+@property KBRlong *trackTime;
+@property NSArray *proofs; /*of KBRTrackProof*/
 @end
 
 @interface KBRWebProof : KBRObject
@@ -480,6 +494,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 - (void)trackerListWithSessionID:(NSInteger )sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray * items))completion;
 
 - (void)trackerListByNameWithSessionID:(NSInteger )sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray * items))completion;
+
+- (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray * items))completion;
+
+- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL )verbose completion:(void (^)(NSError *error, NSString * str))completion;
 
 - (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray * items))completion;
 
@@ -591,31 +609,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRPgpKeyGenRequestParams : KBRRequestParams
-@property NSInteger primaryBits;
-@property NSInteger subkeyBits;
-@property KBRPgpCreateUids *createUids;
-@property BOOL allowMulti;
-@property BOOL doExport;
-@end
-@interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
-@property KBRPgpCreateUids *createUids;
-@end
-@interface KBRSelectRequestParams : KBRRequestParams
-@property NSString *query;
-@property BOOL allowMulti;
-@property BOOL skipImport;
-@end
-@interface KBRSaveArmoredPGPKeyRequestParams : KBRRequestParams
-@property NSString *key;
-@property BOOL pushPublic;
-@property BOOL pushPrivate;
-@end
-@interface KBRSavePGPKeyRequestParams : KBRRequestParams
-@property NSData *key;
-@property BOOL pushPublic;
-@property BOOL pushPrivate;
-@end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;
 @property NSString *username;
@@ -699,6 +692,31 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRText *text;
 @property BOOL def;
 @end
+@interface KBRPgpKeyGenRequestParams : KBRRequestParams
+@property NSInteger primaryBits;
+@property NSInteger subkeyBits;
+@property KBRPgpCreateUids *createUids;
+@property BOOL allowMulti;
+@property BOOL doExport;
+@end
+@interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
+@property KBRPgpCreateUids *createUids;
+@end
+@interface KBRSelectRequestParams : KBRRequestParams
+@property NSString *query;
+@property BOOL allowMulti;
+@property BOOL skipImport;
+@end
+@interface KBRSaveArmoredPGPKeyRequestParams : KBRRequestParams
+@property NSString *key;
+@property BOOL pushPublic;
+@property BOOL pushPrivate;
+@end
+@interface KBRSavePGPKeyRequestParams : KBRRequestParams
+@property NSData *key;
+@property BOOL pushPublic;
+@property BOOL pushPrivate;
+@end
 @interface KBRTrackerListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRUID *uid;
@@ -706,6 +724,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTrackerListByNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
+@end
+@interface KBRListTrackingRequestParams : KBRRequestParams
+@property NSString *filter;
+@end
+@interface KBRListTrackingJsonRequestParams : KBRRequestParams
+@property NSString *filter;
+@property BOOL verbose;
 @end
 @interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
 @property NSArray *uids;

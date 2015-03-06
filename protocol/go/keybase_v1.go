@@ -1647,6 +1647,20 @@ type Tracker struct {
 	Mtime   int `codec:"mtime" json:"mtime"`
 }
 
+type TrackProof struct {
+	ProofType string `codec:"proofType" json:"proofType"`
+	ProofName string `codec:"proofName" json:"proofName"`
+	IdString  string `codec:"idString" json:"idString"`
+}
+
+type TrackEntry struct {
+	Username       string       `codec:"username" json:"username"`
+	SigId          string       `codec:"sigId" json:"sigId"`
+	PgpFingerprint string       `codec:"pgpFingerprint" json:"pgpFingerprint"`
+	TrackTime      int64        `codec:"trackTime" json:"trackTime"`
+	Proofs         []TrackProof `codec:"proofs" json:"proofs"`
+}
+
 type WebProof struct {
 	Hostname  string   `codec:"hostname" json:"hostname"`
 	Protocols []string `codec:"protocols" json:"protocols"`
@@ -1688,6 +1702,15 @@ type TrackerListByNameArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type ListTrackingArg struct {
+	Filter string `codec:"filter" json:"filter"`
+}
+
+type ListTrackingJsonArg struct {
+	Filter  string `codec:"filter" json:"filter"`
+	Verbose bool   `codec:"verbose" json:"verbose"`
+}
+
 type LoadUncheckedUserSummariesArg struct {
 	Uids []UID `codec:"uids" json:"uids"`
 }
@@ -1695,6 +1718,8 @@ type LoadUncheckedUserSummariesArg struct {
 type UserInterface interface {
 	TrackerList(TrackerListArg) ([]Tracker, error)
 	TrackerListByName(TrackerListByNameArg) ([]Tracker, error)
+	ListTracking(string) ([]TrackEntry, error)
+	ListTrackingJson(ListTrackingJsonArg) (string, error)
 	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
 }
 
@@ -1713,6 +1738,20 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]TrackerListByNameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.TrackerListByName(args[0])
+				}
+				return
+			},
+			"listTracking": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ListTrackingArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.ListTracking(args[0].Filter)
+				}
+				return
+			},
+			"listTrackingJson": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ListTrackingJsonArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.ListTrackingJson(args[0])
 				}
 				return
 			},
@@ -1739,6 +1778,17 @@ func (c UserClient) TrackerList(__arg TrackerListArg) (res []Tracker, err error)
 
 func (c UserClient) TrackerListByName(__arg TrackerListByNameArg) (res []Tracker, err error) {
 	err = c.Cli.Call("keybase.1.user.trackerListByName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTracking(filter string) (res []TrackEntry, err error) {
+	__arg := ListTrackingArg{Filter: filter}
+	err = c.Cli.Call("keybase.1.user.listTracking", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTrackingJson(__arg ListTrackingJsonArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.user.listTrackingJson", []interface{}{__arg}, &res)
 	return
 }
 

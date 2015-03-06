@@ -138,6 +138,41 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "TrackProof",
+    "fields" : [ {
+      "name" : "proofType",
+      "type" : "string"
+    }, {
+      "name" : "proofName",
+      "type" : "string"
+    }, {
+      "name" : "idString",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "TrackEntry",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "sigId",
+      "type" : "string"
+    }, {
+      "name" : "pgpFingerprint",
+      "type" : "string"
+    }, {
+      "name" : "trackTime",
+      "type" : "long"
+    }, {
+      "name" : "proofs",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackProof"
+      }
+    } ]
+  }, {
+    "type" : "record",
     "name" : "WebProof",
     "fields" : [ {
       "name" : "hostname",
@@ -242,6 +277,26 @@
         "type" : "array",
         "items" : "Tracker"
       }
+    },
+    "listTracking" : {
+      "request" : [ {
+        "name" : "filter",
+        "type" : "string"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "TrackEntry"
+      }
+    },
+    "listTrackingJson" : {
+      "request" : [ {
+        "name" : "filter",
+        "type" : "string"
+      }, {
+        "name" : "verbose",
+        "type" : "boolean"
+      } ],
+      "response" : "string"
     },
     "loadUncheckedUserSummaries" : {
       "request" : [ {

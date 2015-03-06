@@ -393,63 +393,6 @@
 
 @end
 
-@implementation KBRPgpCreateUids
-+ (NSValueTransformer *)idsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
-@end
-
-@implementation KBRMykeyRequest
-
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"allowMulti": @(allowMulti), @"doExport": @(doExport)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.PgpKeyGen" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"createUids": KBRValue(createUids)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.PgpKeyGenDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)deletePrimary:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.deletePrimary" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)show:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.show" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL )allowMulti skipImport:(BOOL )skipImport completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"query": KBRValue(query), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.select" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)saveArmoredPGPKeyWithKey:(NSString *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"key": KBRValue(key), @"pushPublic": @(pushPublic), @"pushPrivate": @(pushPrivate)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.saveArmoredPGPKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)savePGPKeyWithKey:(NSData *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"key": KBRValue(key), @"pushPublic": @(pushPublic), @"pushPrivate": @(pushPrivate)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.savePGPKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-@end
-
 @implementation KBRProveRequest
 
 - (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL )force completion:(void (^)(NSError *error))completion {
@@ -654,7 +597,71 @@
 
 @end
 
+@implementation KBRPgpCreateUids
++ (NSValueTransformer *)idsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
+@end
+
+@implementation KBRMykeyRequest
+
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger )primaryBits subkeyBits:(NSInteger )subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL )allowMulti doExport:(BOOL )doExport completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"allowMulti": @(allowMulti), @"doExport": @(doExport)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.PgpKeyGen" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"createUids": KBRValue(createUids)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.PgpKeyGenDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)deletePrimary:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.deletePrimary" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)show:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.show" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL )allowMulti skipImport:(BOOL )skipImport completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"query": KBRValue(query), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.select" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)saveArmoredPGPKeyWithKey:(NSString *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"key": KBRValue(key), @"pushPublic": @(pushPublic), @"pushPrivate": @(pushPrivate)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.saveArmoredPGPKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)savePGPKeyWithKey:(NSData *)key pushPublic:(BOOL )pushPublic pushPrivate:(BOOL )pushPrivate completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"key": KBRValue(key), @"pushPublic": @(pushPublic), @"pushPrivate": @(pushPrivate)}];
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.savePGPKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRTracker
+@end
+
+@implementation KBRTrackProof
+@end
+
+@implementation KBRTrackEntry
++ (NSValueTransformer *)proofsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackProof.class]; }
 @end
 
 @implementation KBRWebProof
@@ -693,6 +700,25 @@
       }
       NSArray *results = [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error];
       completion(error, results);
+  }];
+}
+
+- (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray * items))completion {
+  NSArray *params = @[@{@"filter": KBRValue(filter)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTracking" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRTrackEntry.class fromJSONArray:retval error:&error];
+      completion(error, results);
+  }];
+}
+
+- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL )verbose completion:(void (^)(NSError *error, NSString * str))completion {
+  NSArray *params = @[@{@"filter": KBRValue(filter), @"verbose": @(verbose)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackingJson" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
   }];
 }
 
@@ -1016,71 +1042,6 @@
 
 @end
 
-@implementation KBRPgpKeyGenRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.primaryBits = [params[0][@"primaryBits"] integerValue];
-    self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
-    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.allowMulti = [params[0][@"allowMulti"] boolValue];
-    self.doExport = [params[0][@"doExport"] boolValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRPgpKeyGenDefaultRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRSelectRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.query = params[0][@"query"];
-    self.allowMulti = [params[0][@"allowMulti"] boolValue];
-    self.skipImport = [params[0][@"skipImport"] boolValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRSaveArmoredPGPKeyRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.key = params[0][@"key"];
-    self.pushPublic = [params[0][@"pushPublic"] boolValue];
-    self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRSavePGPKeyRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.key = params[0][@"key"];
-    self.pushPublic = [params[0][@"pushPublic"] boolValue];
-    self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
-  }
-  return self;
-}
-
-@end
-
 @implementation KBRProveRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1308,6 +1269,71 @@
 
 @end
 
+@implementation KBRPgpKeyGenRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.primaryBits = [params[0][@"primaryBits"] integerValue];
+    self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
+    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
+    self.allowMulti = [params[0][@"allowMulti"] boolValue];
+    self.doExport = [params[0][@"doExport"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpKeyGenDefaultRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSelectRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.query = params[0][@"query"];
+    self.allowMulti = [params[0][@"allowMulti"] boolValue];
+    self.skipImport = [params[0][@"skipImport"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSaveArmoredPGPKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.key = params[0][@"key"];
+    self.pushPublic = [params[0][@"pushPublic"] boolValue];
+    self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSavePGPKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.key = params[0][@"key"];
+    self.pushPublic = [params[0][@"pushPublic"] boolValue];
+    self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
+  }
+  return self;
+}
+
+@end
+
 @implementation KBRTrackerListRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1326,6 +1352,29 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRListTrackingRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.filter = params[0][@"filter"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRListTrackingJsonRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.filter = params[0][@"filter"];
+    self.verbose = [params[0][@"verbose"] boolValue];
   }
   return self;
 }
