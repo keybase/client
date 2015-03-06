@@ -17,12 +17,23 @@ func NewUserHandler(xp *rpc2.Transport) *UserHandler {
 	return &UserHandler{BaseHandler{xp: xp}}
 }
 
-// TrackerList gets the list of trackers for a user.
+// TrackerList gets the list of trackers for a user by uid.
 func (h *UserHandler) TrackerList(arg keybase_1.TrackerListArg) ([]keybase_1.Tracker, error) {
-	sessionID := nextSessionId()
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	uid := libkb.ImportUID(arg.Uid)
 	eng := engine.NewTrackerList(&uid)
+	return h.trackerList(eng)
+}
+
+// TrackerListByName gets the list of trackers for a user by
+// username.
+func (h *UserHandler) TrackerListByName(arg keybase_1.TrackerListByNameArg) ([]keybase_1.Tracker, error) {
+	eng := engine.NewTrackerListUsername(arg.Username)
+	return h.trackerList(eng)
+}
+
+func (h *UserHandler) trackerList(eng *engine.TrackerList) ([]keybase_1.Tracker, error) {
+	sessionID := nextSessionId()
+	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
 		return nil, err
 	}
@@ -38,21 +49,23 @@ func (h *UserHandler) TrackerList(arg keybase_1.TrackerListArg) ([]keybase_1.Tra
 	return res, nil
 }
 
-func (h *UserHandler) TrackerListByName(arg keybase_1.TrackerListByNameArg) ([]keybase_1.Tracker, error) {
-	sessionID := nextSessionId()
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
-	eng := engine.NewTrackerListUsername(arg.Username)
+func (h *UserHandler) LoadUncheckedUserSummaries(kuids []keybase_1.UID) ([]keybase_1.UserSummary, error) {
+	uids := make([]libkb.UID, len(kuids))
+	for i, k := range kuids {
+		uids[i] = libkb.ImportUID(k)
+	}
+	ctx := &engine.Context{}
+	eng := engine.NewUserSummary(uids)
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
 		return nil, err
 	}
-	tr := eng.List()
-	res := make([]keybase_1.Tracker, len(tr))
-	for i, t := range tr {
-		res[i] = keybase_1.Tracker{
-			Tracker: t.Tracker.Export(),
-			Status:  t.Status,
-			Mtime:   t.Mtime,
-		}
+	summaries := eng.SummariesList()
+
+	res := make([]keybase_1.UserSummary, len(summaries))
+
+	for i, s := range summaries {
+		res[i] = s.Export()
 	}
+
 	return res, nil
 }

@@ -11,9 +11,39 @@ protocol user {
 	array<Tracker> trackerList(int sessionID, UID uid);
 	array<Tracker> trackerListByName(int sessionID, string username);
 
-	// to be implemented:
-	// 1. UserSummary record 
-	//    similar to what's found in autocomplete results on web
-	// 2. array<UserSummary> loadUncheckedUserSummaries(array<UID> uids);
-	//    "Unchecked" == client taking server's word for any info in summary
+	record WebProof {
+		string hostname;
+		array<string> protocols;
+	}		
+
+	record PubKey {
+		string keyFingerprint;
+		int bits;
+		int algo;
+	}
+
+	record Proofs {
+		union { null, string } twitter;
+		union { null, string } github;
+		union { null, string } reddit;
+		union { null, string } hackernews;
+		union { null, string } coinbase;
+		array<WebProof> web;
+		PubKey publicKey;
+	}
+
+	record UserSummary {
+		UID uid;
+		string thumbnail;
+		string username;
+		int idVersion;
+		string fullName;
+		string bio;
+		Proofs proofs;
+	}
+
+	// load user summaries for the supplied uids.
+	// they are "unchecked" in that the client is not verifying the info from the server.
+	// if len(uids) > 500, the first 500 will be returned.
+	array<UserSummary> loadUncheckedUserSummaries(array<UID> uids);
 }

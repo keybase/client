@@ -657,6 +657,19 @@
 @implementation KBRTracker
 @end
 
+@implementation KBRWebProof
+@end
+
+@implementation KBRPubKey
+@end
+
+@implementation KBRProofs
++ (NSValueTransformer *)webJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRWebProof.class]; }
+@end
+
+@implementation KBRUserSummary
+@end
+
 @implementation KBRUserRequest
 
 - (void)trackerListWithSessionID:(NSInteger )sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray * items))completion {
@@ -679,6 +692,18 @@
         return;
       }
       NSArray *results = [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error];
+      completion(error, results);
+  }];
+}
+
+- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray * items))completion {
+  NSArray *params = @[@{@"uids": KBRValue(uids)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.loadUncheckedUserSummaries" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error];
       completion(error, results);
   }];
 }
@@ -1304,6 +1329,17 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRLoadUncheckedUserSummariesRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.uids = [MTLJSONAdapter modelsOfClass:KBRUID.class fromJSONArray:params[0][@"uids"] error:nil];
   }
   return self;
 }

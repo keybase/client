@@ -1649,6 +1649,37 @@ type Tracker struct {
 	Mtime   int `codec:"mtime" json:"mtime"`
 }
 
+type WebProof struct {
+	Hostname  string   `codec:"hostname" json:"hostname"`
+	Protocols []string `codec:"protocols" json:"protocols"`
+}
+
+type PubKey struct {
+	KeyFingerprint string `codec:"keyFingerprint" json:"keyFingerprint"`
+	Bits           int    `codec:"bits" json:"bits"`
+	Algo           int    `codec:"algo" json:"algo"`
+}
+
+type Proofs struct {
+	Twitter    *string    `codec:"twitter,omitempty" json:"twitter"`
+	Github     *string    `codec:"github,omitempty" json:"github"`
+	Reddit     *string    `codec:"reddit,omitempty" json:"reddit"`
+	Hackernews *string    `codec:"hackernews,omitempty" json:"hackernews"`
+	Coinbase   *string    `codec:"coinbase,omitempty" json:"coinbase"`
+	Web        []WebProof `codec:"web" json:"web"`
+	PublicKey  PubKey     `codec:"publicKey" json:"publicKey"`
+}
+
+type UserSummary struct {
+	Uid       UID    `codec:"uid" json:"uid"`
+	Thumbnail string `codec:"thumbnail" json:"thumbnail"`
+	Username  string `codec:"username" json:"username"`
+	IdVersion int    `codec:"idVersion" json:"idVersion"`
+	FullName  string `codec:"fullName" json:"fullName"`
+	Bio       string `codec:"bio" json:"bio"`
+	Proofs    Proofs `codec:"proofs" json:"proofs"`
+}
+
 type TrackerListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -1659,9 +1690,14 @@ type TrackerListByNameArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type LoadUncheckedUserSummariesArg struct {
+	Uids []UID `codec:"uids" json:"uids"`
+}
+
 type UserInterface interface {
 	TrackerList(TrackerListArg) ([]Tracker, error)
 	TrackerListByName(TrackerListByNameArg) ([]Tracker, error)
+	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
 }
 
 func UserProtocol(i UserInterface) rpc2.Protocol {
@@ -1682,6 +1718,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"loadUncheckedUserSummaries": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoadUncheckedUserSummariesArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.LoadUncheckedUserSummaries(args[0].Uids)
+				}
+				return
+			},
 		},
 	}
 
@@ -1698,5 +1741,11 @@ func (c UserClient) TrackerList(__arg TrackerListArg) (res []Tracker, err error)
 
 func (c UserClient) TrackerListByName(__arg TrackerListByNameArg) (res []Tracker, err error) {
 	err = c.Cli.Call("keybase.1.user.trackerListByName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadUncheckedUserSummaries(uids []UID) (res []UserSummary, err error) {
+	__arg := LoadUncheckedUserSummariesArg{Uids: uids}
+	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
 	return
 }

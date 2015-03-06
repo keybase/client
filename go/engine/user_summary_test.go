@@ -10,8 +10,8 @@ func TestUserSummary(t *testing.T) {
 	tc := SetupEngineTest(t, "usersummary")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "login")
-	_ = u
+	//	u := CreateAndSignupFakeUser(t, "login")
+	//	_ = u
 
 	uids := []libkb.UID{
 		libkb.UsernameToUID("t_alice"),

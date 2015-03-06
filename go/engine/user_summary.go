@@ -4,11 +4,12 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type UserSummary struct {
 	uids      []libkb.UID
-	summaries map[string]summary
+	summaries map[string]*Summary
 }
 
 func NewUserSummary(uids []libkb.UID) *UserSummary {
@@ -45,44 +46,108 @@ func (e *UserSummary) Run(ctx *Context, args, reply interface{}) error {
 	return nil
 }
 
-type webproof struct {
-	Hostname  string
-	Protocols []string
+type WebProof struct {
+	Hostname  string   `json:"hostname"`
+	Protocols []string `json:"protocols"`
 }
 
-type pubkey struct {
+func (w WebProof) Export() keybase_1.WebProof {
+	r := keybase_1.WebProof{Hostname: w.Hostname}
+	copy(r.Protocols, w.Protocols)
+	return r
+}
+
+type WebProofList []WebProof
+
+func (w WebProofList) Export() []keybase_1.WebProof {
+	r := make([]keybase_1.WebProof, len(w))
+	for i, p := range w {
+		r[i] = p.Export()
+	}
+	return r
+}
+
+type PubKey struct {
 	KeyFingerprint string `json:"key_fingerprint"`
 	Bits           int    `json:"bits"`
 	Algo           int    `json:"algo"`
 }
 
-type proofs struct {
-	Twitter    string     `json:"twitter,omitempty"`
-	Github     string     `json:"github,omitempty"`
-	Reddit     string     `json:"reddit,omitempty"`
-	Hackernews string     `json:"hackernews,omitempty"`
-	Coinbase   string     `json:"coinbase,omitempty"`
-	Web        []webproof `json:"web,omitempty"`
-	PublicKey  pubkey     `json:"public_key,omitempty"`
-}
-
-type summary struct {
-	Thumbnail string `json:"thumbnail"`
-	Username  string `json:"username"`
-	IDVersion int    `json:"id_version"`
-	FullName  string `json:"full_name"`
-	Bio       string `json:"bio"`
-	Proofs    proofs `json:"remote_proofs,omitempty"`
-}
-
-func (e *UserSummary) get() (map[string]summary, error) {
-	var j struct {
-		Users map[string]summary `json:"display"`
+func (p *PubKey) Export() keybase_1.PubKey {
+	return keybase_1.PubKey{
+		KeyFingerprint: p.KeyFingerprint,
+		Bits:           p.Bits,
+		Algo:           p.Algo,
 	}
-	j.Users = make(map[string]summary)
+}
+
+type Proofs struct {
+	Twitter    string       `json:"twitter,omitempty"`
+	Github     string       `json:"github,omitempty"`
+	Reddit     string       `json:"reddit,omitempty"`
+	Hackernews string       `json:"hackernews,omitempty"`
+	Coinbase   string       `json:"coinbase,omitempty"`
+	Web        WebProofList `json:"web,omitempty"`
+	PublicKey  *PubKey      `json:"public_key,omitempty"`
+}
+
+func (p *Proofs) Export() keybase_1.Proofs {
+	if p == nil {
+		return keybase_1.Proofs{}
+	}
+	r := keybase_1.Proofs{
+		Web: p.Web.Export(),
+	}
+	if p.PublicKey != nil {
+		r.PublicKey = p.PublicKey.Export()
+	}
+
+	if len(p.Twitter) > 0 {
+		r.Twitter = &p.Twitter
+	}
+	if len(p.Github) > 0 {
+		r.Github = &p.Github
+	}
+	if len(p.Reddit) > 0 {
+		r.Reddit = &p.Reddit
+	}
+	if len(p.Hackernews) > 0 {
+		r.Hackernews = &p.Hackernews
+	}
+	if len(p.Coinbase) > 0 {
+		r.Coinbase = &p.Coinbase
+	}
+	return r
+}
+
+type Summary struct {
+	UID       libkb.UID `json:"-"`
+	Thumbnail string    `json:"thumbnail"`
+	Username  string    `json:"username"`
+	IDVersion int       `json:"id_version"`
+	FullName  string    `json:"full_name"`
+	Bio       string    `json:"bio"`
+	Proofs    *Proofs   `json:"remote_proofs,omitempty"`
+}
+
+func (s Summary) Export() keybase_1.UserSummary {
+	return keybase_1.UserSummary{
+		Uid:       s.UID.Export(),
+		Thumbnail: s.Thumbnail,
+		Username:  s.Username,
+		IdVersion: s.IDVersion,
+		FullName:  s.FullName,
+		Bio:       s.Bio,
+		Proofs:    s.Proofs.Export(),
+	}
+}
+
+func (e *UserSummary) get() (map[string]*Summary, error) {
+	var j struct {
+		Users map[string]*Summary `json:"display"`
+	}
 	args := libkb.ApiArg{
-		Endpoint:    "user/display_info",
-		NeedSession: true,
+		Endpoint: "user/display_info",
 		Args: libkb.HttpArgs{
 			"uids": libkb.S{Val: e.uidlist()},
 		},
@@ -92,10 +157,20 @@ func (e *UserSummary) get() (map[string]summary, error) {
 		return nil, err
 	}
 
+	for k, v := range j.Users {
+		u, err := libkb.UidFromHex(k)
+		if err == nil {
+			v.UID = *u
+		}
+	}
+
 	return j.Users, nil
 }
 
 func (e *UserSummary) uidlist() string {
+	if len(e.uids) > libkb.USER_SUMMARY_LIMIT {
+		e.uids = e.uids[0:libkb.USER_SUMMARY_LIMIT]
+	}
 	s := make([]string, len(e.uids))
 	for i, u := range e.uids {
 		s[i] = u.String()
@@ -103,6 +178,21 @@ func (e *UserSummary) uidlist() string {
 	return strings.Join(s, ",")
 }
 
-func (e *UserSummary) Summaries() map[string]summary {
+func (e *UserSummary) Summaries() map[string]*Summary {
 	return e.summaries
+}
+
+func (e *UserSummary) SummariesList() []*Summary {
+	// using append in case e.summaries isn't complete
+	var res []*Summary
+
+	// but will still keep them ordered correctly
+	for _, u := range e.uids {
+		s, ok := e.summaries[u.String()]
+		if ok {
+			res = append(res, s)
+		}
+	}
+
+	return res
 }

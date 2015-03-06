@@ -445,10 +445,43 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger mtime;
 @end
 
+@interface KBRWebProof : KBRObject
+@property NSString *hostname;
+@property NSArray *protocols; /*of string*/
+@end
+
+@interface KBRPubKey : KBRObject
+@property NSString *keyFingerprint;
+@property NSInteger bits;
+@property NSInteger algo;
+@end
+
+@interface KBRProofs : KBRObject
+@property NSString *twitter;
+@property NSString *github;
+@property NSString *reddit;
+@property NSString *hackernews;
+@property NSString *coinbase;
+@property NSArray *web; /*of KBRWebProof*/
+@property KBRPubKey *publicKey;
+@end
+
+@interface KBRUserSummary : KBRObject
+@property KBRUID *uid;
+@property NSString *thumbnail;
+@property NSString *username;
+@property NSInteger idVersion;
+@property NSString *fullName;
+@property NSString *bio;
+@property KBRProofs *proofs;
+@end
+
 @interface KBRUserRequest : KBRRequest
 - (void)trackerListWithSessionID:(NSInteger )sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray * items))completion;
 
 - (void)trackerListByNameWithSessionID:(NSInteger )sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray * items))completion;
+
+- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray * items))completion;
 
 @end
 @interface KBRAnnounceSessionRequestParams : KBRRequestParams
@@ -676,4 +709,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTrackerListByNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
+@end
+@interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
+@property NSArray *uids;
 @end

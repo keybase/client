@@ -229,3 +229,5 @@ const (
 )
 
 const KEX_SESSION_ID_ENTROPY = 65 // kex doc specifies 65 bits of entropy
+
+const USER_SUMMARY_LIMIT = 500 // max number of user summaries in one request

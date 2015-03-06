@@ -136,6 +136,85 @@
       "name" : "mtime",
       "type" : "int"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "WebProof",
+    "fields" : [ {
+      "name" : "hostname",
+      "type" : "string"
+    }, {
+      "name" : "protocols",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PubKey",
+    "fields" : [ {
+      "name" : "keyFingerprint",
+      "type" : "string"
+    }, {
+      "name" : "bits",
+      "type" : "int"
+    }, {
+      "name" : "algo",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Proofs",
+    "fields" : [ {
+      "name" : "twitter",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "github",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "reddit",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "hackernews",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "coinbase",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "web",
+      "type" : {
+        "type" : "array",
+        "items" : "WebProof"
+      }
+    }, {
+      "name" : "publicKey",
+      "type" : "PubKey"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UserSummary",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "thumbnail",
+      "type" : "string"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "idVersion",
+      "type" : "int"
+    }, {
+      "name" : "fullName",
+      "type" : "string"
+    }, {
+      "name" : "bio",
+      "type" : "string"
+    }, {
+      "name" : "proofs",
+      "type" : "Proofs"
+    } ]
   } ],
   "messages" : {
     "trackerList" : {
@@ -162,6 +241,19 @@
       "response" : {
         "type" : "array",
         "items" : "Tracker"
+      }
+    },
+    "loadUncheckedUserSummaries" : {
+      "request" : [ {
+        "name" : "uids",
+        "type" : {
+          "type" : "array",
+          "items" : "UID"
+        }
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "UserSummary"
       }
     }
   }

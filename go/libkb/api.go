@@ -309,6 +309,8 @@ func (api *InternalApiEngine) PostDecode(arg ApiArg, v interface{}) error {
 	if err != nil {
 		return err
 	}
+	//	b, _ := ioutil.ReadAll(resp.Body)
+	// G.Log.Info(string(b))
 	dec := json.NewDecoder(resp.Body)
 	defer resp.Body.Close()
 	return dec.Decode(&v)
