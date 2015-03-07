@@ -23,6 +23,8 @@ echo "Version: $VERSION"
 echo "Copying to $DEST"
 cp $DAEMON_SRC/daemon $DEST/keybased
 
+echo "$VERSION" > keybased.version
+
 # echo "Packaging $TGZ"
 # tar -zcvf $TGZ keybased
 

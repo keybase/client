@@ -112,18 +112,31 @@
 //  }
 }
 
-- (void)checkLaunch:(NSString *)path completion:(void (^)(NSError *error))completion {
+- (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error))completion releaseOnly:(BOOL)releaseOnly {
   NSTask *task = [[NSTask alloc] init];
-  task.launchPath = @"/bin/launchctl";
-  task.arguments = @[@"load", path];
+  task.launchPath = command;
+  task.arguments = args;
   task.terminationHandler = ^(NSTask *t) {
-    GHDebug(@"Task (launchctl) %@ exited with status: %@", t, @(t.terminationStatus));
+    GHDebug(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
   };
   // Only do this for release versions
-#ifndef DEBUG
-  [task launch];
+  BOOL debug = NO;
+#ifdef DEBUG
+  debug = YES;
 #endif
+
+  if (releaseOnly && debug) {
+    // Its release only and we are in debug
+  } else {
+    [task launch];
+  }
+
   completion(nil);
+}
+
+- (void)checkLaunch:(NSString *)path completion:(void (^)(NSError *error))completion {
+  [self execute:@"/bin/launchctl" args:@[@"unload", path] completion:completion releaseOnly:YES];
+  [self execute:@"/bin/launchctl" args:@[@"load", path] completion:completion releaseOnly:YES];
 }
 
 //- (void)checkLaunch:(void (^)(NSError *error))completion {

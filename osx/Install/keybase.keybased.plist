@@ -4,10 +4,9 @@
 <dict>
     <key>Label</key>
     <string>keybase.keybased</string>
-    <key>Program</key>
-    <string>/Applications/Keybase.app/Contents/MacOS/keybased</string>
     <key>ProgramArguments</key>
     <array>
+      <string>/Applications/Keybase.app/Contents/MacOS/keybased</string>
       <string>-s</string>
       <string>http://localhost:3000</string>
     </array>
