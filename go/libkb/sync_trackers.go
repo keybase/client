@@ -2,6 +2,7 @@
 package libkb
 
 import (
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"sync"
 )
 
@@ -10,14 +11,12 @@ const (
 	TrackStatusTracking = 1
 )
 
-type Tracker struct {
-	Tracker UID `json:"tracker"`
-	Status  int `json:"status"`
-	Mtime   int `json:"mtime"`
-}
+type Tracker keybase_1.Tracker
+
+func (t Tracker) GetUID() UID { return UID(t.Tracker) }
 
 func (t Tracker) Eq(t2 Tracker) bool {
-	return t.Tracker.Eq(t2.Tracker) && t.Status == t2.Status && t.Mtime == t2.Mtime
+	return t.GetUID().Eq(t2.GetUID()) && t.Status == t2.Status && t.Mtime == t2.Mtime
 }
 
 type Trackers struct {
@@ -44,8 +43,8 @@ func (t Trackers) compact() (ret Trackers) {
 	ret.Trackers = make([]Tracker, 0, len(t.Trackers))
 
 	for _, el := range t.Trackers {
-		if _, found := index[el.Tracker]; !found {
-			index[el.Tracker] = el.Status
+		if _, found := index[el.GetUID()]; !found {
+			index[el.GetUID()] = el.Status
 			if el.Status == TrackStatusTracking {
 				ret.Trackers = append(ret.Trackers, el)
 			}

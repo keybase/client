@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"io"
 	"os"
 	"path"
@@ -223,9 +224,7 @@ func UnixToTimeMappingZero(unixTime int64) time.Time {
 	}
 }
 
-func Unquote(data []byte) string {
-	return strings.Trim(string(data), "\"")
-}
+func Unquote(data []byte) string { return keybase_1.Unquote(data) }
 
 func HexDecodeQuoted(data []byte) ([]byte, error) {
 	return hex.DecodeString(Unquote(data))

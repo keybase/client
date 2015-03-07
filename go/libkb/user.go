@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -12,17 +11,15 @@ import (
 )
 
 const (
-	UID_LEN      = 16
-	UID_SUFFIX   = 0x00
-	UID_SUFFIX_2 = 0x19
+	UID_LEN      = keybase_1.UID_LEN
+	UID_SUFFIX   = keybase_1.UID_SUFFIX
+	UID_SUFFIX_2 = keybase_1.UID_SUFFIX_2
 )
 
 type UID [UID_LEN]byte
 type UIDs []UID
 
-func (u UID) String() string {
-	return hex.EncodeToString(u[:])
-}
+func (u UID) String() string { return keybase_1.UID(u).String() }
 
 func (u UID) P() *UID { return &u }
 
@@ -35,38 +32,24 @@ func (u UID) IsZero() bool {
 	return true
 }
 
-func UidFromHex(s string) (u *UID, err error) {
-	var bv []byte
-	bv, err = hex.DecodeString(s)
-	if err != nil {
-		return
+func UidFromHex(s string) (ret *UID, err error) {
+	var tmp *keybase_1.UID
+	if tmp, err = keybase_1.UidFromHex(s); tmp != nil {
+		tmp2 := UID(*tmp)
+		ret = &tmp2
 	}
-	if len(bv) != UID_LEN {
-		err = fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
-		return
-	}
-	if bv[len(bv)-1] != UID_SUFFIX && bv[len(bv)-1] != UID_SUFFIX_2 {
-		err = fmt.Errorf("Bad UID '%s': must end in 0x%x or 0x%x", s, UID_SUFFIX, UID_SUFFIX_2)
-		return
-	}
-	out := UID{}
-	copy(out[:], bv[0:UID_LEN])
-	u = &out
 	return
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (u *UID) UnmarshalJSON(b []byte) error {
-	v, err := UidFromHex(Unquote(b))
-	if err != nil {
-		return err
-	}
-	*u = *v
-	return nil
+	p := (*keybase_1.UID)(u)
+	return p.UnmarshalJSON(b)
 }
 
 func (u *UID) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + u.String() + "\""), nil
+	p := (*keybase_1.UID)(u)
+	return p.MarshalJSON()
 }
 
 func GetUid(w *jsonw.Wrapper) (u *UID, err error) {

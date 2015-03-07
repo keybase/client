@@ -47,7 +47,7 @@ objc-build-stamp: build-stamp
 	date > $@
 
 clean:
-	rm -rf json/*.json go/*.go objc/*
+	rm -rf json/*.json go/keybase_v1.go objc/*
 
 build: build-stamp go/keybase_v1.go objc-build-stamp
 

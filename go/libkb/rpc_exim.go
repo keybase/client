@@ -504,12 +504,6 @@ func ImportKeyGenArg(a keybase_1.PgpKeyGenArg) (ret PGPGenArg) {
 
 //=============================================================================
 
-func (t Tracker) Export() keybase_1.Tracker {
-	return keybase_1.Tracker{
-		Tracker: t.Tracker.Export(),
-		Status:  t.Status,
-		Mtime:   t.Mtime,
-	}
-}
+func (t Tracker) Export() keybase_1.Tracker { return keybase_1.Tracker(t) }
 
 //=============================================================================
