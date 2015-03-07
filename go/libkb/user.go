@@ -16,7 +16,7 @@ const (
 	UID_SUFFIX_2 = keybase_1.UID_SUFFIX_2
 )
 
-type UID [UID_LEN]byte
+type UID keybase_1.UID
 type UIDs []UID
 
 func (u UID) String() string { return keybase_1.UID(u).String() }

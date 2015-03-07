@@ -37,15 +37,7 @@ func (h *UserHandler) listTrackers(eng *engine.ListTrackersEngine) ([]keybase_1.
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
 		return nil, err
 	}
-	tr := eng.List()
-	res := make([]keybase_1.Tracker, len(tr))
-	for i, t := range tr {
-		res[i] = keybase_1.Tracker{
-			Tracker: t.Tracker.Export(),
-			Status:  t.Status,
-			Mtime:   t.Mtime,
-		}
-	}
+	res := eng.ExportedList()
 	return res, nil
 }
 
@@ -59,14 +51,7 @@ func (h *UserHandler) LoadUncheckedUserSummaries(kuids []keybase_1.UID) ([]keyba
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
 		return nil, err
 	}
-	summaries := eng.SummariesList()
-
-	res := make([]keybase_1.UserSummary, len(summaries))
-
-	for i, s := range summaries {
-		res[i] = s.Export()
-	}
-
+	res := eng.ExportedSummariesList()
 	return res, nil
 }
 
