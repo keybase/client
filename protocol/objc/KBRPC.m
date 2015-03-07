@@ -703,6 +703,7 @@
 @end
 
 @implementation KBRProofs
++ (NSValueTransformer *)socialJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackProof.class]; }
 + (NSValueTransformer *)webJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRWebProof.class]; }
 @end
 

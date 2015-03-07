@@ -40,11 +40,7 @@ protocol user {
 	}
 
 	record Proofs {
-		union { null, string } twitter;
-		union { null, string } github;
-		union { null, string } reddit;
-		union { null, string } hackernews;
-		union { null, string } coinbase;
+		array<TrackProof> social;
 		array<WebProof> web;
 		PubKey publicKey;
 	}

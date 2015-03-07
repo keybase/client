@@ -51,6 +51,11 @@ type WebProof struct {
 	Protocols []string `json:"protocols"`
 }
 
+type SocialProof struct {
+	Service  string `json:"service"`
+	Username string `json:"username"`
+}
+
 func (w WebProof) Export() keybase_1.WebProof {
 	r := keybase_1.WebProof{Hostname: w.Hostname}
 	copy(r.Protocols, w.Protocols)
@@ -58,10 +63,27 @@ func (w WebProof) Export() keybase_1.WebProof {
 }
 
 type WebProofList []WebProof
+type SocialProofList []SocialProof
 
 func (w WebProofList) Export() []keybase_1.WebProof {
 	r := make([]keybase_1.WebProof, len(w))
 	for i, p := range w {
+		r[i] = p.Export()
+	}
+	return r
+}
+
+func (s SocialProof) Export() keybase_1.TrackProof {
+	return keybase_1.TrackProof{
+		ProofType: s.Service,
+		ProofName: s.Username,
+		IdString:  (s.Username + "@" + s.Service),
+	}
+}
+
+func (s SocialProofList) Export() []keybase_1.TrackProof {
+	r := make([]keybase_1.TrackProof, len(s))
+	for i, p := range s {
 		r[i] = p.Export()
 	}
 	return r
@@ -82,13 +104,9 @@ func (p *PubKey) Export() keybase_1.PubKey {
 }
 
 type Proofs struct {
-	Twitter    string       `json:"twitter,omitempty"`
-	Github     string       `json:"github,omitempty"`
-	Reddit     string       `json:"reddit,omitempty"`
-	Hackernews string       `json:"hackernews,omitempty"`
-	Coinbase   string       `json:"coinbase,omitempty"`
-	Web        WebProofList `json:"web,omitempty"`
-	PublicKey  *PubKey      `json:"public_key,omitempty"`
+	Social    SocialProofList `json:"social,omitempty"`
+	Web       WebProofList    `json:"web,omitempty"`
+	PublicKey *PubKey         `json:"public_key,omitempty"`
 }
 
 func (p *Proofs) Export() keybase_1.Proofs {
@@ -96,26 +114,11 @@ func (p *Proofs) Export() keybase_1.Proofs {
 		return keybase_1.Proofs{}
 	}
 	r := keybase_1.Proofs{
-		Web: p.Web.Export(),
+		Web:    p.Web.Export(),
+		Social: p.Social.Export(),
 	}
 	if p.PublicKey != nil {
 		r.PublicKey = p.PublicKey.Export()
-	}
-
-	if len(p.Twitter) > 0 {
-		r.Twitter = &p.Twitter
-	}
-	if len(p.Github) > 0 {
-		r.Github = &p.Github
-	}
-	if len(p.Reddit) > 0 {
-		r.Reddit = &p.Reddit
-	}
-	if len(p.Hackernews) > 0 {
-		r.Hackernews = &p.Hackernews
-	}
-	if len(p.Coinbase) > 0 {
-		r.Coinbase = &p.Coinbase
 	}
 	return r
 }

@@ -201,20 +201,11 @@
     "type" : "record",
     "name" : "Proofs",
     "fields" : [ {
-      "name" : "twitter",
-      "type" : [ "null", "string" ]
-    }, {
-      "name" : "github",
-      "type" : [ "null", "string" ]
-    }, {
-      "name" : "reddit",
-      "type" : [ "null", "string" ]
-    }, {
-      "name" : "hackernews",
-      "type" : [ "null", "string" ]
-    }, {
-      "name" : "coinbase",
-      "type" : [ "null", "string" ]
+      "name" : "social",
+      "type" : {
+        "type" : "array",
+        "items" : "TrackProof"
+      }
     }, {
       "name" : "web",
       "type" : {

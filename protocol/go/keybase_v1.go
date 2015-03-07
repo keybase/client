@@ -1753,13 +1753,9 @@ type PubKey struct {
 }
 
 type Proofs struct {
-	Twitter    *string    `codec:"twitter,omitempty" json:"twitter"`
-	Github     *string    `codec:"github,omitempty" json:"github"`
-	Reddit     *string    `codec:"reddit,omitempty" json:"reddit"`
-	Hackernews *string    `codec:"hackernews,omitempty" json:"hackernews"`
-	Coinbase   *string    `codec:"coinbase,omitempty" json:"coinbase"`
-	Web        []WebProof `codec:"web" json:"web"`
-	PublicKey  PubKey     `codec:"publicKey" json:"publicKey"`
+	Social    []TrackProof `codec:"social" json:"social"`
+	Web       []WebProof   `codec:"web" json:"web"`
+	PublicKey PubKey       `codec:"publicKey" json:"publicKey"`
 }
 
 type UserSummary struct {

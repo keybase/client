@@ -506,11 +506,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRProofs : KBRObject
-@property NSString *twitter;
-@property NSString *github;
-@property NSString *reddit;
-@property NSString *hackernews;
-@property NSString *coinbase;
+@property NSArray *social; /*of KBRTrackProof*/
 @property NSArray *web; /*of KBRWebProof*/
 @property KBRPubKey *publicKey;
 @end

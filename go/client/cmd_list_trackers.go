@@ -162,17 +162,9 @@ func (c *CmdListTrackers) output(trs []keybase_1.Tracker, summarizer batchfn) (e
 
 func (c *CmdListTrackers) proofSummary(p keybase_1.Proofs) string {
 	var ps []string
-	apnotnil := func(is *string, name string) {
-		if is != nil {
-			ps = append(ps, name+": "+*is)
-		}
+	for _, sp := range p.Social {
+		ps = append(ps, sp.IdString)
 	}
-	apnotnil(p.Twitter, "twitter")
-	apnotnil(p.Github, "github")
-	apnotnil(p.Reddit, "reddit")
-	apnotnil(p.Hackernews, "hn")
-	apnotnil(p.Coinbase, "coinbase")
-
 	for _, wp := range p.Web {
 		ps = append(ps, wp.Hostname)
 	}
