@@ -6,7 +6,7 @@ pod "ObjectiveSugar"
 pod "Slash"
 pod "MASPreferences"
 
-pod "MPMessagePack"
+pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 
 pod "KBKeybase"#, :path => "~/Projects/KBKeybase"
 
