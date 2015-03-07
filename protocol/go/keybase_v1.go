@@ -1772,12 +1772,12 @@ type UserSummary struct {
 	Proofs    Proofs `codec:"proofs" json:"proofs"`
 }
 
-type TrackerListArg struct {
+type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
 }
 
-type TrackerListByNameArg struct {
+type ListTrackersByNameArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
 }
@@ -1796,8 +1796,8 @@ type LoadUncheckedUserSummariesArg struct {
 }
 
 type UserInterface interface {
-	TrackerList(TrackerListArg) ([]Tracker, error)
-	TrackerListByName(TrackerListByNameArg) ([]Tracker, error)
+	ListTrackers(ListTrackersArg) ([]Tracker, error)
+	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
 	ListTracking(string) ([]TrackEntry, error)
 	ListTrackingJson(ListTrackingJsonArg) (string, error)
 	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
@@ -1807,17 +1807,17 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.user",
 		Methods: map[string]rpc2.ServeHook{
-			"trackerList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]TrackerListArg, 1)
+			"listTrackers": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ListTrackersArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.TrackerList(args[0])
+					ret, err = i.ListTrackers(args[0])
 				}
 				return
 			},
-			"trackerListByName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]TrackerListByNameArg, 1)
+			"listTrackersByName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ListTrackersByNameArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.TrackerListByName(args[0])
+					ret, err = i.ListTrackersByName(args[0])
 				}
 				return
 			},
@@ -1851,13 +1851,13 @@ type UserClient struct {
 	Cli GenericClient
 }
 
-func (c UserClient) TrackerList(__arg TrackerListArg) (res []Tracker, err error) {
-	err = c.Cli.Call("keybase.1.user.trackerList", []interface{}{__arg}, &res)
+func (c UserClient) ListTrackers(__arg ListTrackersArg) (res []Tracker, err error) {
+	err = c.Cli.Call("keybase.1.user.listTrackers", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) TrackerListByName(__arg TrackerListByNameArg) (res []Tracker, err error) {
-	err = c.Cli.Call("keybase.1.user.trackerListByName", []interface{}{__arg}, &res)
+func (c UserClient) ListTrackersByName(__arg ListTrackersByNameArg) (res []Tracker, err error) {
+	err = c.Cli.Call("keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
 	return
 }
 

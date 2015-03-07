@@ -455,8 +455,24 @@ func (u *UID) Export() keybase_1.UID {
 	return keybase_1.UID(*u)
 }
 
+func (v UIDs) Export() []keybase_1.UID {
+	ret := make([]keybase_1.UID, len(v))
+	for i, el := range v {
+		ret[i] = el.Export()
+	}
+	return ret
+}
+
 func ImportUID(u keybase_1.UID) UID {
 	return UID(u)
+}
+
+func ImportUIDs(v []keybase_1.UID) UIDs {
+	ret := make(UIDs, len(v))
+	for i, el := range v {
+		ret[i] = ImportUID(el)
+	}
+	return ret
 }
 
 func (u *User) Export() *keybase_1.User {
@@ -484,6 +500,16 @@ func ImportKeyGenArg(a keybase_1.PgpKeyGenArg) (ret PGPGenArg) {
 	ret.NoDefPGPUid = !a.CreateUids.UseDefault
 	ret.Ids = ImportPgpIdentities(a.CreateUids.Ids)
 	return
+}
+
+//=============================================================================
+
+func (t Tracker) Export() keybase_1.Tracker {
+	return keybase_1.Tracker{
+		Tracker: t.Tracker.Export(),
+		Status:  t.Status,
+		Mtime:   t.Mtime,
+	}
 }
 
 //=============================================================================

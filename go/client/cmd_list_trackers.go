@@ -39,14 +39,16 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
+type batchfn func([]keybase_1.UID) ([]keybase_1.UserSummary, error)
+
 // Run runs the command in standalone mode.
 func (c *CmdListTrackers) Run() error {
 	ctx := &engine.Context{LogUI: G.UI.GetLogUI()}
-	var eng *engine.TrackerList
+	var eng *engine.ListTrackersEngine
 	if c.uid != nil {
-		eng = engine.NewTrackerList(c.uid)
+		eng = engine.NewListTrackers(c.uid)
 	} else if len(c.username) > 0 {
-		eng = engine.NewTrackerListUsername(c.username)
+		eng = engine.NewListTrackersByName(c.username)
 	} else {
 		return fmt.Errorf("need uid or username")
 	}
@@ -54,29 +56,40 @@ func (c *CmdListTrackers) Run() error {
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
 		return err
 	}
+	trs := eng.ExportedList()
 
-	trs := eng.List()
-	var summaries []*engine.Summary
+	summarize := func(uids []keybase_1.UID) (res []keybase_1.UserSummary, err error) {
+		sumeng := engine.NewUserSummary(libkb.ImportUIDs(uids))
+		if err = engine.RunEngine(sumeng, ctx, nil, nil); err != nil {
+			return
+		}
+		res = sumeng.ExportedSummariesList()
+		return
+	}
+
+	c.output(trs, summarize)
+	return nil
+}
+
+func populateList(trs []keybase_1.Tracker, summarizer batchfn) (ret []keybase_1.UserSummary, err error) {
+
 	for i := 0; i < len(trs); i += libkb.USER_SUMMARY_LIMIT {
 		max := i + libkb.USER_SUMMARY_LIMIT
 		if max > len(trs) {
 			max = len(trs)
 		}
 		sub := trs[i:max]
-		uids := make([]libkb.UID, len(sub))
+		uids := make([]keybase_1.UID, len(sub))
 		for i, v := range sub {
 			uids[i] = v.Tracker
 		}
-		sumeng := engine.NewUserSummary(uids)
-		if err := engine.RunEngine(sumeng, ctx, nil, nil); err != nil {
-			return err
+		var tmp []keybase_1.UserSummary
+		if tmp, err = summarizer(uids); err != nil {
+			return
 		}
-		summaries = append(summaries, sumeng.SummariesList()...)
+		ret = append(ret, tmp...)
 	}
-
-	c.output(summaries)
-
-	return nil
+	return
 }
 
 // RunClient runs the command in client/server mode.
@@ -94,35 +107,19 @@ func (c *CmdListTrackers) RunClient() error {
 
 	var trs []keybase_1.Tracker
 	if c.uid != nil {
-		trs, err = cli.TrackerList(keybase_1.TrackerListArg{Uid: c.uid.Export()})
+		trs, err = cli.ListTrackers(keybase_1.ListTrackersArg{Uid: c.uid.Export()})
 	} else if len(c.username) > 0 {
-		trs, err = cli.TrackerListByName(keybase_1.TrackerListByNameArg{Username: c.username})
+		trs, err = cli.ListTrackersByName(keybase_1.ListTrackersByNameArg{Username: c.username})
 	}
 	if err != nil {
 		return err
 	}
 
-	var summaries []keybase_1.UserSummary
-	for i := 0; i < len(trs); i += libkb.USER_SUMMARY_LIMIT {
-		max := i + libkb.USER_SUMMARY_LIMIT
-		if max > len(trs) {
-			max = len(trs)
-		}
-		sub := trs[i:max]
-		uids := make([]keybase_1.UID, len(sub))
-		for i, v := range sub {
-			uids[i] = v.Tracker
-		}
-		sums, err := cli.LoadUncheckedUserSummaries(uids)
-		if err != nil {
-			return err
-		}
-		summaries = append(summaries, sums...)
+	summarize := func(uids []keybase_1.UID) (res []keybase_1.UserSummary, err error) {
+		return cli.LoadUncheckedUserSummaries(uids)
 	}
 
-	c.coutput(summaries)
-
-	return nil
+	return c.output(trs, summarize)
 }
 
 func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
@@ -144,28 +141,23 @@ func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
 	return w
 }
 
-func (c *CmdListTrackers) output(sums []*engine.Summary) {
-	w := c.headout(len(sums))
-	if w == nil {
-		return
+func (c *CmdListTrackers) output(trs []keybase_1.Tracker, summarizer batchfn) (err error) {
+	var sums []keybase_1.UserSummary
+	if sums, err = populateList(trs, summarizer); err != nil {
+		return err
 	}
-	for _, v := range sums {
-		p := c.proofSummary(v.Proofs.Export())
-		fmt.Fprintf(w, "%s\t%s\t%s\n", v.Username, v.FullName, p)
-	}
-	w.Flush()
-}
 
-func (c *CmdListTrackers) coutput(sums []keybase_1.UserSummary) {
 	w := c.headout(len(sums))
 	if w == nil {
-		return
+		return nil
 	}
 	for _, v := range sums {
 		p := c.proofSummary(v.Proofs)
 		fmt.Fprintf(w, "%s\t%s\t%s\n", v.Username, v.FullName, p)
 	}
 	w.Flush()
+
+	return nil
 }
 
 func (c *CmdListTrackers) proofSummary(p keybase_1.Proofs) string {
@@ -186,37 +178,6 @@ func (c *CmdListTrackers) proofSummary(p keybase_1.Proofs) string {
 	}
 
 	return strings.Join(ps, ", ")
-}
-
-/*
-func (c *CmdListTrackers) output(trs []libkb.Tracker) {
-	if len(trs) == 0 {
-		fmt.Printf("no trackers\n")
-		return
-	}
-
-	noun := "tracker"
-	if len(trs) > 1 {
-		noun = "trackers"
-	}
-	fmt.Printf("%d %s:\n\n", len(trs), noun)
-
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 5, 0, 3, ' ', 0)
-	fmt.Fprintf(w, "Tracker\tStatus\tMtime\n")
-	fmt.Fprintf(w, "==========\t==========\t==========\n")
-	for _, v := range trs {
-		fmt.Fprintf(w, "%s\t%d\t%d\n", v.Tracker, v.Status, v.Status)
-	}
-	w.Flush()
-}
-*/
-
-func (c *CmdListTrackers) summarize(trs []libkb.Tracker) {
-	uids := make([]libkb.UID, len(trs))
-	for i, v := range trs {
-		uids[i] = v.Tracker
-	}
 }
 
 // ParseArgv parses the command args.

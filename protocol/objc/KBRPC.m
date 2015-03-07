@@ -711,9 +711,9 @@
 
 @implementation KBRUserRequest
 
-- (void)trackerListWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
+- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray *items))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"uid": KBRValue(uid)}];
-  [self.client sendRequestWithMethod:@"keybase.1.user.trackerList" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackers" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
@@ -723,9 +723,9 @@
   }];
 }
 
-- (void)trackerListByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion {
+- (void)listTrackersByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];
-  [self.client sendRequestWithMethod:@"keybase.1.user.trackerListByName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackersByName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
@@ -1388,7 +1388,7 @@
 
 @end
 
-@implementation KBRTrackerListRequestParams
+@implementation KBRListTrackersRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1400,7 +1400,7 @@
 
 @end
 
-@implementation KBRTrackerListByNameRequestParams
+@implementation KBRListTrackersByNameRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {

@@ -10,7 +10,7 @@ import (
 // t_alice.  It then uses the TrackerList engine to get the
 // t_alice's trackers and makes sure that the new fake user is in
 // the list.
-func TestTrackerList(t *testing.T) {
+func TestListTrackers(t *testing.T) {
 	tc := SetupEngineTest(t, "trackerlist")
 	defer tc.Cleanup()
 
@@ -18,7 +18,7 @@ func TestTrackerList(t *testing.T) {
 	trackAlice(t, fu)
 
 	uid := libkb.UsernameToUID("t_alice")
-	e := NewTrackerList(&uid)
+	e := NewListTrackers(&uid)
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
 	if err := RunEngine(e, ctx, nil, nil); err != nil {
 		t.Fatal(err)

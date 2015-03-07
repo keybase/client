@@ -193,6 +193,13 @@ func (e *UserSummary) SummariesList() []*Summary {
 			res = append(res, s)
 		}
 	}
-
 	return res
+}
+
+func (e *UserSummary) ExportedSummariesList() (ret []keybase_1.UserSummary) {
+	lst := e.SummariesList()
+	for _, el := range lst {
+		ret = append(ret, el.Export())
+	}
+	return ret
 }

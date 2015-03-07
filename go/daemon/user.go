@@ -17,21 +17,21 @@ func NewUserHandler(xp *rpc2.Transport) *UserHandler {
 	return &UserHandler{BaseHandler{xp: xp}}
 }
 
-// TrackerList gets the list of trackers for a user by uid.
-func (h *UserHandler) TrackerList(arg keybase_1.TrackerListArg) ([]keybase_1.Tracker, error) {
+// ListTrackers gets the list of trackers for a user by uid.
+func (h *UserHandler) ListTrackers(arg keybase_1.ListTrackersArg) ([]keybase_1.Tracker, error) {
 	uid := libkb.ImportUID(arg.Uid)
-	eng := engine.NewTrackerList(&uid)
-	return h.trackerList(eng)
+	eng := engine.NewListTrackers(&uid)
+	return h.listTrackers(eng)
 }
 
 // TrackerListByName gets the list of trackers for a user by
 // username.
-func (h *UserHandler) TrackerListByName(arg keybase_1.TrackerListByNameArg) ([]keybase_1.Tracker, error) {
-	eng := engine.NewTrackerListUsername(arg.Username)
-	return h.trackerList(eng)
+func (h *UserHandler) ListTrackersByName(arg keybase_1.ListTrackersByNameArg) ([]keybase_1.Tracker, error) {
+	eng := engine.NewListTrackersByName(arg.Username)
+	return h.listTrackers(eng)
 }
 
-func (h *UserHandler) trackerList(eng *engine.TrackerList) ([]keybase_1.Tracker, error) {
+func (h *UserHandler) listTrackers(eng *engine.ListTrackersEngine) ([]keybase_1.Tracker, error) {
 	sessionID := nextSessionId()
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {

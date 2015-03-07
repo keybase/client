@@ -8,8 +8,8 @@ protocol user {
 		int mtime;
 	}	
 
-	array<Tracker> trackerList(int sessionID, UID uid);
-	array<Tracker> trackerListByName(int sessionID, string username);
+	array<Tracker> listTrackers(int sessionID, UID uid);
+	array<Tracker> listTrackersByName(int sessionID, string username);
 
 	record TrackProof {
 		string proofType;

@@ -18,6 +18,7 @@ const (
 )
 
 type UID [UID_LEN]byte
+type UIDs []UID
 
 func (u UID) String() string {
 	return hex.EncodeToString(u[:])
