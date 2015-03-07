@@ -90,20 +90,29 @@
     return size;
   }];
 
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(update) name:KBTrackingListDidChangeNotification object:nil];
   [self hideSearch];
 }
 
-- (void)viewDidAppear:(BOOL)animated {
-  [self reload];
+- (void)dealloc {
+  [NSNotificationCenter.defaultCenter removeObserver:self];
 }
 
-- (void)reload {
+- (void)viewDidAppear:(BOOL)animated {
+  [self reload:NO];
+}
+
+- (void)reload:(BOOL)update {
   KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:self.client];
   [request listTrackingWithFilter:nil completion:^(NSError *error, NSArray *items) {
     [self loadUsernames:[items map:^(KBRTrackEntry *te) { return te.username; }] completion:^(NSError *error, NSArray *userSummaries) {
-      [self setUserSummaries:userSummaries];
+      [self setUserSummaries:userSummaries update:NO];
     }];
   }];
+}
+
+- (void)update {
+  [self reload:YES];
 }
 
 - (void)loadUserIds:(NSArray *)userIds {
@@ -112,9 +121,8 @@
   }];
 }
 
-- (void)setUserSummaries:(NSArray *)userSummaries {
-  [_usersView setObjects:userSummaries];
-  [self hideSearch];
+- (void)setUserSummaries:(NSArray *)userSummaries update:(BOOL)update {
+  [_usersView setObjects:userSummaries animated:update];
 }
 
 - (void)setUser:(KBRUser *)user {
@@ -177,6 +185,14 @@ KBRUser *KBRUserFromTrackEntry(KBRTrackEntry *trackEntry) {
   _searchResultsView.hidden = YES;
 }
 
+- (void)searchControlShouldOpen:(KBSearchControl *)searchControl {
+  [self showSearch];
+}
+
+- (void)searchControlShouldClose:(KBSearchControl *)searchControl {
+  [self hideSearch];
+}
+
 - (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(NSArray *)searchResults {
   [_searchResultsView setObjects:searchResults];
   [self showSearch];
@@ -184,7 +200,6 @@ KBRUser *KBRUserFromTrackEntry(KBRTrackEntry *trackEntry) {
 
 - (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl {
   [_searchResultsView removeAllObjects];
-  [self hideSearch];
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {

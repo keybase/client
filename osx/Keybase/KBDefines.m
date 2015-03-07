@@ -8,3 +8,5 @@
 
 #import "KBDefines.h"
 
+
+NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";

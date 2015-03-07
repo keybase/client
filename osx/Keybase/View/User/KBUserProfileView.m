@@ -112,10 +112,6 @@
   }];
 }
 
-- (void)reload {
-  [self setUser:self.user editable:self.editable client:self.client];
-}
-
 - (void)registerClient:(id<KBRPClient>)client sessionId:(NSInteger)sessionId {
   GHWeakSelf gself = self;
   [client registerMethod:@"keybase.1.identifyUi.displayKey" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -191,6 +187,7 @@
     gself.trackView.hidden = NO;
     BOOL trackPrompt = [gself.trackView setUser:gself.user popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
       [KBNavigationView setProgressEnabled:YES subviews:gself.trackView.subviews];
+      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{}];
       completion(nil, response);
     }];
     [gself setNeedsLayout];
@@ -204,6 +201,10 @@
   [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     completion(nil, nil);
   }];
+}
+
+- (void)reload {
+  //[self setUser:self.user editable:self.editable client:self.client];
 }
 
 - (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(id<KBRPClient>)client {

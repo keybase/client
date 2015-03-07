@@ -10,11 +10,12 @@
 
 #import "KBAppearance.h"
 #import "KBScrollView.h"
+#import "KBCellDataSource.h"
 
 @interface KBListView ()
 @property KBScrollView *scrollView;
 @property NSTableView *tableView;
-@property NSMutableArray *dataSource;
+@property KBCellDataSource *dataSource;
 
 @property Class prototypeClass;
 @property YONSView *prototypeView;
@@ -29,7 +30,7 @@
 //  self.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
 //  self.layer.borderWidth = 1.0;
 
-  _dataSource = [NSMutableArray array];
+  _dataSource = [[KBCellDataSource alloc] init];
 
   _tableView = [[NSTableView alloc] init];
   _tableView.dataSource = self;
@@ -77,18 +78,58 @@
 }
 
 - (void)setObjects:(NSArray *)objects {
-  [_dataSource removeAllObjects];
-  if (objects) [_dataSource addObjectsFromArray:objects];
+  [_dataSource setObjects:objects];
   [_tableView reloadData];
 }
 
+- (void)setObjects:(NSArray *)objects animated:(BOOL)animated {
+  id selectedObject = [self selectedObject];
+
+  NSMutableArray *indexPathsToRemove = [NSMutableArray array];
+  NSMutableArray *indexPathsToUpdate = [NSMutableArray array];
+  NSMutableArray *indexPathsToAdd = [NSMutableArray array];
+  //if ([indexPathsToRemove count] == 0 && [indexPathsToAdd count] == 0) return;
+  [self.dataSource updateObjects:objects section:0 indexPathsToAdd:indexPathsToAdd indexPathsToUpdate:indexPathsToUpdate indexPathsToRemove:indexPathsToRemove];
+  if (animated) {
+    [_tableView beginUpdates];
+    if ([indexPathsToRemove count] > 0) [_tableView removeRowsAtIndexes:[self itemIndexSet:indexPathsToRemove] withAnimation:0];
+    if ([indexPathsToAdd count] > 0) [_tableView insertRowsAtIndexes:[self itemIndexSet:indexPathsToAdd] withAnimation:0];
+    if ([indexPathsToUpdate count] > 0) [_tableView reloadDataForRowIndexes:[self itemIndexSet:indexPathsToUpdate] columnIndexes:[self sectionIndexSet:indexPathsToUpdate]];
+    [_tableView endUpdates];
+  } else {
+    [_tableView reloadData];
+  }
+  
+  if (selectedObject) {
+    NSIndexPath *indexPath = [_dataSource indexPathOfObject:selectedObject section:0];
+    [_tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:indexPath.item] byExtendingSelection:NO];
+  }
+}
+
+- (NSIndexSet *)itemIndexSet:(NSArray *)indexPaths {
+  NSMutableIndexSet *indexSet = [[NSMutableIndexSet alloc] init];
+  for (NSIndexPath *indexPath in indexPaths) {
+    [indexSet addIndex:indexPath.item];
+  }
+  return indexSet;
+}
+
+- (NSIndexSet *)sectionIndexSet:(NSArray *)indexPaths {
+  NSMutableIndexSet *indexSet = [[NSMutableIndexSet alloc] init];
+  for (NSIndexPath *indexPath in indexPaths) {
+    [indexSet addIndex:indexPath.section];
+  }
+  return indexSet;
+}
+
+
 - (void)addObjects:(NSArray *)objects {
-  [_dataSource addObjectsFromArray:objects];
+  [_dataSource addObjects:objects];
   [_tableView reloadData];
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-  return [_dataSource count];
+  return [_dataSource countForSection:0];
 }
 
 - (void)deselectAll {
@@ -96,7 +137,7 @@
 }
 
 - (NSView *)viewForRow:(NSInteger)row {
-  id object = [_dataSource objectAtIndex:row];
+  id object = [_dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
   YONSView *view = [_tableView makeViewWithIdentifier:NSStringFromClass(_prototypeClass) owner:self];
   BOOL dequeued = NO;
   if (!view) {
@@ -117,15 +158,16 @@
 - (id)selectedObject {
   NSInteger selectedRow = [_tableView selectedRow];
   if (selectedRow < 0) return nil;
-  return _dataSource[selectedRow];
+  return [_dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:selectedRow inSection:0]];
 }
-
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
   NSInteger selectedRow = [_tableView selectedRow];
   if (selectedRow < 0) return;
-  id object = [_dataSource objectAtIndex:selectedRow];
-  if (self.selectBlock) self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+  id object = [self selectedObject];
+  if (object) {
+    if (self.selectBlock) self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+  }
 }
 
 - (void)removeAllTableColumns {
@@ -140,7 +182,7 @@
 
 - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
   if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
-  id object = [self.dataSource objectAtIndex:row];
+  id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
 
   self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], self.tableView, NO);
   [self.prototypeView.viewLayout setNeedsLayout];

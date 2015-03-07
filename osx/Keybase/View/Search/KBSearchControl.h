@@ -17,6 +17,8 @@
 - (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl;
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled;
 - (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *searchResults))completion;
+- (void)searchControlShouldOpen:(KBSearchControl *)searchControl;
+- (void)searchControlShouldClose:(KBSearchControl *)searchControl;
 @end
 
 @interface KBSearchControl : YONSView <NSTextFieldDelegate>

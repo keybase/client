@@ -11,6 +11,7 @@
 @interface KBSearchControl ()
 @property NSSearchField *searchField;
 @property NSString *searchText;
+@property BOOL open;
 @end
 
 @implementation KBSearchControl
@@ -32,6 +33,13 @@
   //[self.window makeFirstResponder:_searchField];
   NSString *searchText = [[_searchField stringValue] gh_strip];
   [self search:searchText];
+
+  if ([searchText isEqualTo:@""] && _open) {
+    [self.delegate searchControlShouldClose:self];
+    _open = NO;
+  } else {
+    [self checkOpen];
+  }
 }
 
 - (BOOL)control:(NSControl *)control textShouldBeginEditing:(NSText *)fieldEditor {
@@ -55,6 +63,13 @@
 - (void)search:(NSString *)searchText {
   _searchText = searchText;
   [self _searchRemoteDelay:searchText];
+}
+
+- (void)checkOpen {
+  if (!_open) {
+    [self.delegate searchControlShouldOpen:self];
+    _open = YES;
+  }
 }
 
 - (void)_searchRemoteDelay:(NSString *)searchText {

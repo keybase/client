@@ -29,6 +29,8 @@ typedef void (^KBCellSelectBlock)(id sender, NSIndexPath *indexPath, id object);
 - (void)addObjects:(NSArray *)objects;
 - (void)removeAllObjects;
 
+- (void)setObjects:(NSArray *)objects animated:(BOOL)animated;
+
 - (void)deselectAll;
 
 - (id)selectedObject;

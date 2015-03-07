@@ -52,7 +52,7 @@
   //  if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
   //    return CGSizeMake(textSize.width, size.height);
   //  }
-  return textSize;
+  return CGSizeMake(textSize.width, textSize.height);
 }
 
   /*
