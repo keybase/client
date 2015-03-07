@@ -27,6 +27,7 @@
 @property KBRPCRecord *recorder;
 
 @property NSInteger connectAttempt;
+@property KBRPClientStatus status;
 @end
 
 @implementation KBRPClient
@@ -49,6 +50,10 @@
 }
 
 - (void)open:(void (^)(NSError *error))completion {
+  NSAssert(self.status == KBRPClientStatusNone, @"Not closed");
+
+  _status = KBRPClientStatusOpening;
+
   _client = [[MPMessagePackClient alloc] initWithName:@"KBRPClient" options:MPMessagePackOptionsFramed];
   _client.delegate = self;
 
@@ -96,6 +101,7 @@
 
     GHDebug(@"Connected");
     gself.connectAttempt = 1;
+    gself.status = KBRPClientStatusOpen;
     [self.delegate RPClientDidConnect:self];
     if (completion) completion(nil);
   }];
@@ -120,6 +126,7 @@
 
 - (void)close {
   [_client close];
+  self.status = KBRPClientStatusNone;
   [self.delegate RPClientDidDisconnect:self];
 }
 

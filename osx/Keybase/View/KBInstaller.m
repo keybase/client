@@ -112,7 +112,7 @@
 //  }
 }
 
-- (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error))completion releaseOnly:(BOOL)releaseOnly {
+- (void)execute:(NSString *)command args:(NSArray *)args releaseOnly:(BOOL)releaseOnly {
   NSTask *task = [[NSTask alloc] init];
   task.launchPath = command;
   task.arguments = args;
@@ -130,13 +130,12 @@
   } else {
     [task launch];
   }
-
-  completion(nil);
 }
 
 - (void)checkLaunch:(NSString *)path completion:(void (^)(NSError *error))completion {
-  [self execute:@"/bin/launchctl" args:@[@"unload", path] completion:completion releaseOnly:YES];
-  [self execute:@"/bin/launchctl" args:@[@"load", path] completion:completion releaseOnly:YES];
+  [self execute:@"/bin/launchctl" args:@[@"unload", path] releaseOnly:YES];
+  [self execute:@"/bin/launchctl" args:@[@"load", path] releaseOnly:YES];
+  completion(nil);
 }
 
 //- (void)checkLaunch:(void (^)(NSError *error))completion {

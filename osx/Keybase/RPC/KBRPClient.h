@@ -13,6 +13,12 @@
 
 @protocol KBRPClient;
 
+typedef NS_ENUM (NSInteger, KBRPClientStatus) {
+  KBRPClientStatusNone,
+  KBRPClientStatusOpening,
+  KBRPClientStatusOpen
+};
+
 @protocol KBRPClientDelegate
 - (void)RPClientDidConnect:(id<KBRPClient>)RPClient;
 - (void)RPClientDidDisconnect:(id<KBRPClient>)RPClient;
