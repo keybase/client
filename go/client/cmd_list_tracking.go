@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"time"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
-	"io"
-	"os"
-	"time"
 )
 
 type CmdListTracking struct {
@@ -36,7 +37,7 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func DisplayTable(entries []keybase_1.TrackEntry, verbose bool, headers bool) (err error) {
+func DisplayTable(entries []keybase_1.UserSummary, verbose bool, headers bool) (err error) {
 	var cols []string
 
 	if headers && verbose {
@@ -64,10 +65,10 @@ func DisplayTable(entries []keybase_1.TrackEntry, verbose bool, headers bool) (e
 		row := []string{
 			entry.Username,
 			entry.SigId,
-			entry.PgpFingerprint,
+			entry.Proofs.PublicKey.KeyFingerprint,
 			libkb.FormatTime(time.Unix(entry.TrackTime, 0)),
 		}
-		for _, proof := range entry.Proofs {
+		for _, proof := range entry.Proofs.Social {
 			row = append(row, proof.IdString)
 		}
 		return row
@@ -82,31 +83,28 @@ func DisplayJson(jsonStr string) (err error) {
 	return
 }
 
-func (s *CmdListTracking) RunClient() (err error) {
+func (s *CmdListTracking) RunClient() error {
 	cli, err := GetUserClient()
 	if err != nil {
-		return
+		return err
 	}
 
 	if s.json {
-		var jsonStr string
-		jsonStr, err = cli.ListTrackingJson(keybase_1.ListTrackingJsonArg{
+		jsonStr, err := cli.ListTrackingJson(keybase_1.ListTrackingJsonArg{
 			Filter:  s.filter,
 			Verbose: s.verbose,
 		})
 		if err != nil {
-			return
+			return err
 		}
-		err = DisplayJson(jsonStr)
-	} else {
-		var table []keybase_1.TrackEntry
-		table, err = cli.ListTracking(s.filter)
-		if err != nil {
-			return
-		}
-		err = DisplayTable(table, s.verbose, s.headers)
+		return DisplayJson(jsonStr)
 	}
-	return
+
+	table, err := cli.ListTracking(s.filter)
+	if err != nil {
+		return err
+	}
+	return DisplayTable(table, s.verbose, s.headers)
 }
 
 func (s *CmdListTracking) Run() (err error) {

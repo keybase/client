@@ -269,6 +269,8 @@ type ServiceBlock struct {
 
 func (sb ServiceBlock) GetProofState() int { return sb.proofState }
 
+func (sb ServiceBlock) IsSocial() bool { return sb.social }
+
 func (sb ServiceBlock) ToIdString() string {
 	if sb.social {
 		return sb.id + "@" + sb.typ

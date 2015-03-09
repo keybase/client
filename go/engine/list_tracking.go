@@ -1,12 +1,13 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
-	"github.com/keybase/go-jsonw"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type TrackList []*libkb.TrackChainLink
@@ -31,7 +32,7 @@ type ListTrackingEngineArg struct {
 
 type ListTrackingEngine struct {
 	arg         *ListTrackingEngineArg
-	tableResult []keybase_1.TrackEntry
+	tableResult []keybase_1.UserSummary
 	jsonResult  string
 }
 
@@ -109,7 +110,6 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 }
 
 func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
-	e.tableResult = []keybase_1.TrackEntry{}
 	for _, link := range trackList {
 		var fp *libkb.PgpFingerprint
 		fp, err = link.GetTrackedPgpFingerprint()
@@ -117,20 +117,34 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 			G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err.Error())
 			continue
 		}
-		entry := keybase_1.TrackEntry{
-			Username:       link.ToDisplayString(),
-			SigId:          link.GetSigId().ToDisplayString(true),
-			PgpFingerprint: fp.String(),
-			TrackTime:      link.GetCTime().Unix(),
-			Proofs:         []keybase_1.TrackProof{},
+		entry := keybase_1.UserSummary{
+			Username:  link.ToDisplayString(),
+			SigId:     link.GetSigId().ToDisplayString(true),
+			TrackTime: link.GetCTime().Unix(),
 		}
+		entry.Proofs.PublicKey = keybase_1.PubKey{
+			KeyFingerprint: fp.String(),
+		}
+		webp := make(map[string]*keybase_1.WebProof)
 		for _, sb := range link.ToServiceBlocks() {
 			proofType, proofName := sb.ToKeyValuePair()
-			entry.Proofs = append(entry.Proofs, keybase_1.TrackProof{
-				ProofType: proofType,
-				ProofName: proofName,
-				IdString:  sb.ToIdString(),
-			})
+			if sb.IsSocial() {
+				entry.Proofs.Social = append(entry.Proofs.Social, keybase_1.TrackProof{
+					ProofType: proofType,
+					ProofName: proofName,
+					IdString:  sb.ToIdString(),
+				})
+			} else {
+				p, ok := webp[proofName]
+				if !ok {
+					p = &keybase_1.WebProof{Hostname: proofName}
+					webp[proofName] = p
+				}
+				p.Protocols = append(p.Protocols, proofType)
+			}
+		}
+		for _, v := range webp {
+			entry.Proofs.Web = append(entry.Proofs.Web, *v)
 		}
 		e.tableResult = append(e.tableResult, entry)
 	}
@@ -189,7 +203,7 @@ func condenseRecord(l *libkb.TrackChainLink) (out *jsonw.Wrapper, err error) {
 	return
 }
 
-func (e *ListTrackingEngine) TableResult() []keybase_1.TrackEntry {
+func (e *ListTrackingEngine) TableResult() []keybase_1.UserSummary {
 	return e.tableResult
 }
 

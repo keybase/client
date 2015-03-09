@@ -501,14 +501,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *idString;
 @end
 
-@interface KBRTrackEntry : KBRObject
-@property NSString *username;
-@property NSString *sigId;
-@property NSString *pgpFingerprint;
-@property long trackTime;
-@property NSArray *proofs; /*of KBRTrackProof*/
-@end
-
 @interface KBRWebProof : KBRObject
 @property NSString *hostname;
 @property NSArray *protocols; /*of string*/
@@ -534,6 +526,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *fullName;
 @property NSString *bio;
 @property KBRProofs *proofs;
+@property NSString *sigId;
+@property long trackTime;
 @end
 
 @interface KBRUserRequest : KBRRequest
@@ -541,11 +535,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)listTrackersByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion;
 
+- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
+
 - (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion;
-
-- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
 @interface KBRAnnounceSessionRequestParams : KBRRequestParams
@@ -791,13 +785,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *username;
 @end
+@interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
+@property NSArray *uids;
+@end
 @interface KBRListTrackingRequestParams : KBRRequestParams
 @property NSString *filter;
 @end
 @interface KBRListTrackingJsonRequestParams : KBRRequestParams
 @property NSString *filter;
 @property BOOL verbose;
-@end
-@interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
-@property NSArray *uids;
 @end

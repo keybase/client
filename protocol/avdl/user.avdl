@@ -6,7 +6,7 @@ protocol user {
 		UID tracker;
 		int status; // 0 == none, 1 == tracking
 		int mtime;
-	}	
+	}
 
 	array<Tracker> listTrackers(int sessionID, UID uid);
 	array<Tracker> listTrackersByName(int sessionID, string username);
@@ -16,17 +16,6 @@ protocol user {
 		string proofName;
 		string idString;
 	}
-
-	record TrackEntry {
-		string username;
-		string sigId;
-		string pgpFingerprint;
-		long trackTime;
-		array<TrackProof> proofs;
-	}
-
-	array<TrackEntry> listTracking(string filter);
-	string listTrackingJson(string filter, boolean verbose);
 
 	record WebProof {
 		string hostname;
@@ -53,10 +42,15 @@ protocol user {
 		string fullName;
 		string bio;
 		Proofs proofs;
+		string sigId;
+		long trackTime;
 	}
 
 	// load user summaries for the supplied uids.
 	// they are "unchecked" in that the client is not verifying the info from the server.
 	// if len(uids) > 500, the first 500 will be returned.
 	array<UserSummary> loadUncheckedUserSummaries(array<UID> uids);
+	
+	array<UserSummary> listTracking(string filter);
+	string listTrackingJson(string filter, boolean verbose);
 }

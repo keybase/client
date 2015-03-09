@@ -1825,14 +1825,6 @@ type TrackProof struct {
 	IdString  string `codec:"idString" json:"idString"`
 }
 
-type TrackEntry struct {
-	Username       string       `codec:"username" json:"username"`
-	SigId          string       `codec:"sigId" json:"sigId"`
-	PgpFingerprint string       `codec:"pgpFingerprint" json:"pgpFingerprint"`
-	TrackTime      int64        `codec:"trackTime" json:"trackTime"`
-	Proofs         []TrackProof `codec:"proofs" json:"proofs"`
-}
-
 type WebProof struct {
 	Hostname  string   `codec:"hostname" json:"hostname"`
 	Protocols []string `codec:"protocols" json:"protocols"`
@@ -1858,6 +1850,8 @@ type UserSummary struct {
 	FullName  string `codec:"fullName" json:"fullName"`
 	Bio       string `codec:"bio" json:"bio"`
 	Proofs    Proofs `codec:"proofs" json:"proofs"`
+	SigId     string `codec:"sigId" json:"sigId"`
+	TrackTime int64  `codec:"trackTime" json:"trackTime"`
 }
 
 type ListTrackersArg struct {
@@ -1870,6 +1864,10 @@ type ListTrackersByNameArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type LoadUncheckedUserSummariesArg struct {
+	Uids []UID `codec:"uids" json:"uids"`
+}
+
 type ListTrackingArg struct {
 	Filter string `codec:"filter" json:"filter"`
 }
@@ -1879,16 +1877,12 @@ type ListTrackingJsonArg struct {
 	Verbose bool   `codec:"verbose" json:"verbose"`
 }
 
-type LoadUncheckedUserSummariesArg struct {
-	Uids []UID `codec:"uids" json:"uids"`
-}
-
 type UserInterface interface {
 	ListTrackers(ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
-	ListTracking(string) ([]TrackEntry, error)
-	ListTrackingJson(ListTrackingJsonArg) (string, error)
 	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
+	ListTracking(string) ([]UserSummary, error)
+	ListTrackingJson(ListTrackingJsonArg) (string, error)
 }
 
 func UserProtocol(i UserInterface) rpc2.Protocol {
@@ -1909,6 +1903,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"loadUncheckedUserSummaries": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoadUncheckedUserSummariesArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.LoadUncheckedUserSummaries(args[0].Uids)
+				}
+				return
+			},
 			"listTracking": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackingArg, 1)
 				if err = nxt(&args); err == nil {
@@ -1920,13 +1921,6 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]ListTrackingJsonArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTrackingJson(args[0])
-				}
-				return
-			},
-			"loadUncheckedUserSummaries": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoadUncheckedUserSummariesArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.LoadUncheckedUserSummaries(args[0].Uids)
 				}
 				return
 			},
@@ -1949,7 +1943,13 @@ func (c UserClient) ListTrackersByName(__arg ListTrackersByNameArg) (res []Track
 	return
 }
 
-func (c UserClient) ListTracking(filter string) (res []TrackEntry, err error) {
+func (c UserClient) LoadUncheckedUserSummaries(uids []UID) (res []UserSummary, err error) {
+	__arg := LoadUncheckedUserSummariesArg{Uids: uids}
+	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTracking(filter string) (res []UserSummary, err error) {
 	__arg := ListTrackingArg{Filter: filter}
 	err = c.Cli.Call("keybase.1.user.listTracking", []interface{}{__arg}, &res)
 	return
@@ -1957,11 +1957,5 @@ func (c UserClient) ListTracking(filter string) (res []TrackEntry, err error) {
 
 func (c UserClient) ListTrackingJson(__arg ListTrackingJsonArg) (res string, err error) {
 	err = c.Cli.Call("keybase.1.user.listTrackingJson", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) LoadUncheckedUserSummaries(uids []UID) (res []UserSummary, err error) {
-	__arg := LoadUncheckedUserSummariesArg{Uids: uids}
-	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
 	return
 }

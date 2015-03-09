@@ -151,28 +151,6 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "TrackEntry",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "sigId",
-      "type" : "string"
-    }, {
-      "name" : "pgpFingerprint",
-      "type" : "string"
-    }, {
-      "name" : "trackTime",
-      "type" : "long"
-    }, {
-      "name" : "proofs",
-      "type" : {
-        "type" : "array",
-        "items" : "TrackProof"
-      }
-    } ]
-  }, {
-    "type" : "record",
     "name" : "WebProof",
     "fields" : [ {
       "name" : "hostname",
@@ -240,6 +218,12 @@
     }, {
       "name" : "proofs",
       "type" : "Proofs"
+    }, {
+      "name" : "sigId",
+      "type" : "string"
+    }, {
+      "name" : "trackTime",
+      "type" : "long"
     } ]
   } ],
   "messages" : {
@@ -269,26 +253,6 @@
         "items" : "Tracker"
       }
     },
-    "listTracking" : {
-      "request" : [ {
-        "name" : "filter",
-        "type" : "string"
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "TrackEntry"
-      }
-    },
-    "listTrackingJson" : {
-      "request" : [ {
-        "name" : "filter",
-        "type" : "string"
-      }, {
-        "name" : "verbose",
-        "type" : "boolean"
-      } ],
-      "response" : "string"
-    },
     "loadUncheckedUserSummaries" : {
       "request" : [ {
         "name" : "uids",
@@ -301,6 +265,26 @@
         "type" : "array",
         "items" : "UserSummary"
       }
+    },
+    "listTracking" : {
+      "request" : [ {
+        "name" : "filter",
+        "type" : "string"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "UserSummary"
+      }
+    },
+    "listTrackingJson" : {
+      "request" : [ {
+        "name" : "filter",
+        "type" : "string"
+      }, {
+        "name" : "verbose",
+        "type" : "boolean"
+      } ],
+      "response" : "string"
     }
   }
 }

@@ -55,7 +55,7 @@ func (h *UserHandler) LoadUncheckedUserSummaries(kuids []keybase_1.UID) ([]keyba
 	return res, nil
 }
 
-func (h *UserHandler) ListTracking(filter string) (res []keybase_1.TrackEntry, err error) {
+func (h *UserHandler) ListTracking(filter string) (res []keybase_1.UserSummary, err error) {
 	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
 		Filter: filter,
 		// Verbose has no effect on this call. At the engine level, it only

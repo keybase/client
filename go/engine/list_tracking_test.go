@@ -24,17 +24,18 @@ func TestListTracking(t *testing.T) {
 	}
 
 	entries := eng.TableResult()
-	if len(entries) == 0 {
-		t.Fatal("No tracks listed. Expected t_alice.")
+	if len(entries) != 1 {
+		t.Errorf("Num tracks: %d, exected 1.", len(entries))
 	}
-	if len(entries) > 1 {
-		t.Fatal("Too many tracks listed.", entries)
-	}
+
 	entry := entries[0]
 	if entry.Username != "t_alice" {
-		t.Fatal("Wrong user. Expected t_alice.", entry)
+		t.Errorf("Username: %q, Expected t_alice.", entry.Username)
 	}
-	if len(entry.Proofs) != 2 {
-		t.Fatal("Expected 2 proofs.", entry.Proofs)
+	if len(entry.Proofs.Social) != 2 {
+		t.Errorf("Num social proofs: %d, expected 2", len(entry.Proofs.Social))
+	}
+	if len(entry.Proofs.Web) != 0 {
+		t.Errorf("Num web proofs: %d, expected 0", len(entry.Proofs.Web))
 	}
 }
