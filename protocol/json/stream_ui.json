@@ -121,9 +121,9 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "AvdlFile",
+    "name" : "Stream",
     "fields" : [ {
-      "name" : "id",
+      "name" : "fd",
       "type" : "int"
     } ]
   }, {
@@ -134,24 +134,27 @@
   "messages" : {
     "close" : {
       "request" : [ {
-        "name" : "f",
-        "type" : "AvdlFile"
+        "name" : "s",
+        "type" : "Stream"
       } ],
       "response" : "null"
     },
     "read" : {
       "request" : [ {
-        "name" : "f",
-        "type" : "AvdlFile"
+        "name" : "s",
+        "type" : "Stream"
+      }, {
+        "name" : "sz",
+        "type" : "int"
       } ],
       "response" : "bytes"
     },
     "write" : {
       "request" : [ {
-        "name" : "f",
-        "type" : "AvdlFile"
+        "name" : "s",
+        "type" : "Stream"
       }, {
-        "name" : "buffer",
+        "name" : "buf",
         "type" : "bytes"
       } ],
       "response" : "int"

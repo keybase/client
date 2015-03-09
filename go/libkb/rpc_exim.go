@@ -181,6 +181,14 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 				fp, _ = PgpFingerprintFromHex(s.Desc)
 			}
 			return KeyExistsError{fp}
+		case SC_STREAM_EXISTS:
+			return StreamExistsError{}
+		case SC_STREAM_NOT_FOUND:
+			return StreamNotFoundError{}
+		case SC_STREAM_WRONG_KIND:
+			return StreamWrongKindError{}
+		case SC_STREAM_EOF:
+			return StreamEOF{}
 		default:
 			ase := AppStatusError{
 				Code:   s.Code,
@@ -505,5 +513,31 @@ func ImportKeyGenArg(a keybase_1.PgpKeyGenArg) (ret PGPGenArg) {
 //=============================================================================
 
 func (t Tracker) Export() keybase_1.Tracker { return keybase_1.Tracker(t) }
+
+//=============================================================================
+
+func (e StreamExistsError) ToStatus(s keybase_1.Status) {
+	s.Code = SC_STREAM_EXISTS
+	s.Name = "STREAM_EXISTS"
+	return
+}
+
+func (e StreamNotFoundError) ToStatus(s keybase_1.Status) {
+	s.Code = SC_STREAM_NOT_FOUND
+	s.Name = "SC_STREAM_NOT_FOUND"
+	return
+}
+
+func (e StreamWrongKindError) ToStatus(s keybase_1.Status) {
+	s.Code = SC_STREAM_WRONG_KIND
+	s.Name = "STREAM_WRONG_KIND"
+	return
+}
+
+func (e StreamEOF) ToStatus(s keybase_1.Status) {
+	s.Code = SC_STREAM_EOF
+	s.Name = "STREAM_EOF"
+	return
+}
 
 //=============================================================================

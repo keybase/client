@@ -6,8 +6,8 @@ package engine
 //
 
 import (
-	"io"
 	"github.com/keybase/client/go/libkb"
+	"io"
 )
 
 type PGPSignEngine struct {
@@ -15,8 +15,8 @@ type PGPSignEngine struct {
 }
 
 type PGPSignArg struct {
-	Sink io.WriteCloser
-	Source io.ReadCloser
+	Sink     io.WriteCloser
+	Source   io.ReadCloser
 	KeyQuery string
 }
 

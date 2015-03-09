@@ -320,6 +320,10 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
+@interface KBRStream : KBRObject
+@property NSInteger fd;
+@end
+
 @interface KBRPgpCreateUids : KBRObject
 @property BOOL useDefault;
 @property NSArray *ids; /*of KBRPgpIdentity*/
@@ -343,7 +347,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRPgpcmdsRequest : KBRRequest
-- (void)pgpSignWithSource:(KBRAvdlFile *)source sink:(KBRAvdlFile *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error))completion;
+- (void)pgpSignWithSource:(KBRStream *)source sink:(KBRStream *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -474,11 +478,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRStreamUiRequest : KBRRequest
-- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion;
+- (void)closeWithS:(KBRStream *)s completion:(void (^)(NSError *error))completion;
 
-- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)readWithS:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion;
+- (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
 
 @end
 
@@ -684,8 +688,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL pushPrivate;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
-@property KBRAvdlFile *source;
-@property KBRAvdlFile *sink;
+@property KBRStream *source;
+@property KBRStream *sink;
 @property NSString *keyQuery;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
@@ -769,14 +773,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRSigListArgs *arg;
 @end
 @interface KBRCloseRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
+@property KBRStream *s;
 @end
 @interface KBRReadRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
+@property KBRStream *s;
+@property NSInteger sz;
 @end
 @interface KBRWriteRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
-@property NSData *buffer;
+@property KBRStream *s;
+@property NSData *buf;
 @end
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;

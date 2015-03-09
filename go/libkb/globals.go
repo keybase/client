@@ -23,27 +23,28 @@ import (
 type ShutdownHook func() error
 
 type GlobalContext struct {
-	Log           *Logger        // Handles all logging
-	Session       *Session       // The user's session cookie, &c
-	SessionWriter SessionWriter  // To write the session back out
-	LoginState    *LoginState    // What phase of login the user's in
-	Env           *Env           // Env variables, cmdline args & config
-	Keyrings      *Keyrings      // Gpg Keychains holding keys
-	API           API            // How to make a REST call to the server
-	UserCache     *UserCache     // LRU cache of users in memory
-	LocalDb       *JsonLocalDb   // Local DB for cache
-	MerkleClient  *MerkleClient  // client for querying server's merkle sig tree
-	XAPI          ExternalAPI    // for contacting Twitter, Github, etc.
-	Output        io.Writer      // where 'Stdout'-style output goes
-	ProofCache    *ProofCache    // where to cache proof results
-	GpgClient     GpgClient      // A standard GPG-client (optional)
-	ShutdownHooks []ShutdownHook // on shutdown, fire these...
-	SocketInfo    SocketInfo     // which socket to bind/connect to
-	SocketWrapper *SocketWrapper // only need one connection per
-	SecretSyncer  *SecretSyncer  // For syncing secrets between the server and client
-	UI            UI             // Interact with the UI
-	Daemon        bool           // whether we're in daemon mode
-	shutdown      bool           // whether we've shut down or not
+	Log           *Logger          // Handles all logging
+	Session       *Session         // The user's session cookie, &c
+	SessionWriter SessionWriter    // To write the session back out
+	LoginState    *LoginState      // What phase of login the user's in
+	Env           *Env             // Env variables, cmdline args & config
+	Keyrings      *Keyrings        // Gpg Keychains holding keys
+	API           API              // How to make a REST call to the server
+	UserCache     *UserCache       // LRU cache of users in memory
+	LocalDb       *JsonLocalDb     // Local DB for cache
+	MerkleClient  *MerkleClient    // client for querying server's merkle sig tree
+	XAPI          ExternalAPI      // for contacting Twitter, Github, etc.
+	Output        io.Writer        // where 'Stdout'-style output goes
+	ProofCache    *ProofCache      // where to cache proof results
+	GpgClient     GpgClient        // A standard GPG-client (optional)
+	ShutdownHooks []ShutdownHook   // on shutdown, fire these...
+	SocketInfo    SocketInfo       // which socket to bind/connect to
+	SocketWrapper *SocketWrapper   // only need one connection per
+	SecretSyncer  *SecretSyncer    // For syncing secrets between the server and client
+	XStreams      *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
+	UI            UI               // Interact with the UI
+	Daemon        bool             // whether we're in daemon mode
+	shutdown      bool             // whether we've shut down or not
 }
 
 func NewGlobalContext() GlobalContext {

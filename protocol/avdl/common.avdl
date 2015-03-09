@@ -49,16 +49,16 @@ protocol Common {
 		string username;
 		union { null, Image } image;
 	}
-	
+
 	record Device {
 		string type;
 		string name;
 		string deviceID;
 	}
 
-	record AvdlFile {
-		int id;
+	record Stream {
+		int fd;
 	}
-	
+
 	fixed SIGID(32);
 }

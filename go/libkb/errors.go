@@ -790,3 +790,23 @@ var ErrTimeout = errors.New("Operation timed out")
 var ErrNilUser = errors.New("User is nil")
 var ErrReceiverDevice = errors.New("Device ID mismatch in message receiver")
 var ErrInvalidKexSession = errors.New("Invalid kex session ID")
+
+//=============================================================================
+
+type StreamExistsError struct{}
+
+func (s StreamExistsError) Error() string { return "stream already exists" }
+
+type StreamNotFoundError struct{}
+
+func (s StreamNotFoundError) Error() string { return "stream wasn't found" }
+
+type StreamWrongKindError struct{}
+
+func (s StreamWrongKindError) Error() string { return "found a stream but not of right kind" }
+
+type StreamEOF struct{}
+
+func (s StreamEOF) Error() string { return "EOF" }
+
+//=============================================================================

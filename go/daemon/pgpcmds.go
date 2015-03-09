@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -21,10 +20,9 @@ type WriteCloser struct {
 }
 
 func (w WriteClose) Write(data []byte) (n int, err error) {
-	
+
 }
 
 func (h *PGPCmdsHandler) PgpSign(arg keybase_1.PgpSignArg) (source keybase_1.AvdlFile, err error) {
 	return
 }
-

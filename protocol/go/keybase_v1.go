@@ -959,6 +959,10 @@ func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error)
 	return
 }
 
+type Stream struct {
+	Fd int `codec:"fd" json:"fd"`
+}
+
 type PgpCreateUids struct {
 	UseDefault bool          `codec:"useDefault" json:"useDefault"`
 	Ids        []PgpIdentity `codec:"ids" json:"ids"`
@@ -1021,7 +1025,7 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"PgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpKeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PgpKeyGenDefault(args[0].CreateUids)
@@ -1079,7 +1083,7 @@ func (c MykeyClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
 
 func (c MykeyClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
 	__arg := PgpKeyGenDefaultArg{CreateUids: createUids}
-	err = c.Cli.Call("keybase.1.mykey.PgpKeyGenDefault", []interface{}{__arg}, nil)
+	err = c.Cli.Call("keybase.1.mykey.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1109,9 +1113,9 @@ func (c MykeyClient) SavePGPKey(__arg SavePGPKeyArg) (err error) {
 }
 
 type PgpSignArg struct {
-	Source   AvdlFile `codec:"source" json:"source"`
-	Sink     AvdlFile `codec:"sink" json:"sink"`
-	KeyQuery string   `codec:"keyQuery" json:"keyQuery"`
+	Source   Stream `codec:"source" json:"source"`
+	Sink     Stream `codec:"sink" json:"sink"`
+	KeyQuery string `codec:"keyQuery" json:"keyQuery"`
 }
 
 type PgpcmdsInterface interface {
@@ -1692,21 +1696,22 @@ func (c SigsClient) SigListJSON(arg SigListArgs) (res string, err error) {
 }
 
 type CloseArg struct {
-	F AvdlFile `codec:"f" json:"f"`
+	S Stream `codec:"s" json:"s"`
 }
 
 type ReadArg struct {
-	F AvdlFile `codec:"f" json:"f"`
+	S  Stream `codec:"s" json:"s"`
+	Sz int    `codec:"sz" json:"sz"`
 }
 
 type WriteArg struct {
-	F      AvdlFile `codec:"f" json:"f"`
-	Buffer []byte   `codec:"buffer" json:"buffer"`
+	S   Stream `codec:"s" json:"s"`
+	Buf []byte `codec:"buf" json:"buf"`
 }
 
 type StreamUiInterface interface {
-	Close(AvdlFile) error
-	Read(AvdlFile) ([]byte, error)
+	Close(Stream) error
+	Read(ReadArg) ([]byte, error)
 	Write(WriteArg) (int, error)
 }
 
@@ -1717,14 +1722,14 @@ func StreamUiProtocol(i StreamUiInterface) rpc2.Protocol {
 			"close": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]CloseArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Close(args[0].F)
+					err = i.Close(args[0].S)
 				}
 				return
 			},
 			"read": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ReadArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.Read(args[0].F)
+					ret, err = i.Read(args[0])
 				}
 				return
 			},
@@ -1744,14 +1749,13 @@ type StreamUiClient struct {
 	Cli GenericClient
 }
 
-func (c StreamUiClient) Close(f AvdlFile) (err error) {
-	__arg := CloseArg{F: f}
+func (c StreamUiClient) Close(s Stream) (err error) {
+	__arg := CloseArg{S: s}
 	err = c.Cli.Call("keybase.1.streamUi.close", []interface{}{__arg}, nil)
 	return
 }
 
-func (c StreamUiClient) Read(f AvdlFile) (res []byte, err error) {
-	__arg := ReadArg{F: f}
+func (c StreamUiClient) Read(__arg ReadArg) (res []byte, err error) {
 	err = c.Cli.Call("keybase.1.streamUi.read", []interface{}{__arg}, &res)
 	return
 }

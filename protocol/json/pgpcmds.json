@@ -121,9 +121,9 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "AvdlFile",
+    "name" : "Stream",
     "fields" : [ {
-      "name" : "id",
+      "name" : "fd",
       "type" : "int"
     } ]
   }, {
@@ -135,10 +135,10 @@
     "pgpSign" : {
       "request" : [ {
         "name" : "source",
-        "type" : "AvdlFile"
+        "type" : "Stream"
       }, {
         "name" : "sink",
-        "type" : "AvdlFile"
+        "type" : "Stream"
       }, {
         "name" : "keyQuery",
         "type" : "string"
