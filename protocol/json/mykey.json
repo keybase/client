@@ -157,7 +157,7 @@
       } ],
       "response" : "null"
     },
-    "PgpKeyGenDefault" : {
+    "pgpKeyGenDefault" : {
       "request" : [ {
         "name" : "createUids",
         "type" : "PgpCreateUids"

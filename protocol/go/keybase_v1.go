@@ -1017,7 +1017,7 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"PgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpKeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PgpKeyGenDefault(args[0].CreateUids)
@@ -1075,7 +1075,7 @@ func (c MykeyClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
 
 func (c MykeyClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
 	__arg := PgpKeyGenDefaultArg{CreateUids: createUids}
-	err = c.Cli.Call("keybase.1.mykey.PgpKeyGenDefault", []interface{}{__arg}, nil)
+	err = c.Cli.Call("keybase.1.mykey.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1741,76 +1741,6 @@ func (c SigsClient) SigList(arg SigListArgs) (res []Sig, err error) {
 func (c SigsClient) SigListJSON(arg SigListArgs) (res string, err error) {
 	__arg := SigListJSONArg{Arg: arg}
 	err = c.Cli.Call("keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res)
-	return
-}
-
-type CloseArg struct {
-	F AvdlFile `codec:"f" json:"f"`
-}
-
-type ReadArg struct {
-	F AvdlFile `codec:"f" json:"f"`
-}
-
-type WriteArg struct {
-	F      AvdlFile `codec:"f" json:"f"`
-	Buffer []byte   `codec:"buffer" json:"buffer"`
-}
-
-type StreamInterface interface {
-	Close(AvdlFile) error
-	Read(AvdlFile) ([]byte, error)
-	Write(WriteArg) (int, error)
-}
-
-func StreamProtocol(i StreamInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.Stream",
-		Methods: map[string]rpc2.ServeHook{
-			"close": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]CloseArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Close(args[0].F)
-				}
-				return
-			},
-			"read": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]ReadArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Read(args[0].F)
-				}
-				return
-			},
-			"write": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]WriteArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Write(args[0])
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type StreamClient struct {
-	Cli GenericClient
-}
-
-func (c StreamClient) Close(f AvdlFile) (err error) {
-	__arg := CloseArg{F: f}
-	err = c.Cli.Call("keybase.1.Stream.close", []interface{}{__arg}, nil)
-	return
-}
-
-func (c StreamClient) Read(f AvdlFile) (res []byte, err error) {
-	__arg := ReadArg{F: f}
-	err = c.Cli.Call("keybase.1.Stream.read", []interface{}{__arg}, &res)
-	return
-}
-
-func (c StreamClient) Write(__arg WriteArg) (res int, err error) {
-	err = c.Cli.Call("keybase.1.Stream.write", []interface{}{__arg}, &res)
 	return
 }
 

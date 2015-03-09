@@ -6,19 +6,8 @@ import (
 )
 
 func (u *User) IdentifyKey(is IdentifyState) error {
-	// first, check to see if the eldest is a pgp key
-	fokid := u.GetEldestFOKID()
-	if fokid.Fp != nil {
-		displayKey(fokid, is)
-		return nil
-	}
-
-	// then, check entire key family
-	if u.GetComputedKeyFamily() == nil {
-		return nil
-	}
-	ids := u.GetComputedKeyFamily().PGPKeyFOKIDs()
-	for _, fokid := range ids {
+	for _, bundle := range u.GetActivePgpKeys(true) {
+		fokid := GenericKeyToFOKID(bundle)
 		displayKey(&fokid, is)
 	}
 

@@ -479,15 +479,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
-@interface KBRStreamRequest : KBRRequest
-- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion;
-
-- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion;
-
-- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion;
-
-@end
-
 @interface KBRTrackRequest : KBRRequest
 - (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
 
@@ -782,16 +773,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRSigListJSONRequestParams : KBRRequestParams
 @property KBRSigListArgs *arg;
-@end
-@interface KBRCloseRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
-@end
-@interface KBRReadRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
-@end
-@interface KBRWriteRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
-@property NSData *buffer;
 @end
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;
