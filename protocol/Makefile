@@ -32,6 +32,7 @@ build-stamp: \
 	json/sibkey.json \
 	json/signup.json \
 	json/sigs.json \
+	json/stream_ui.json \
 	json/track.json \
 	json/ui.json \
 	json/user.json 

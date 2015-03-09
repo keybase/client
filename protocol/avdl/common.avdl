@@ -56,5 +56,9 @@ protocol Common {
 		string deviceID;
 	}
 
+	record AvdlFile {
+		int id;
+	}
+	
 	fixed SIGID(32);
 }

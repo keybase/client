@@ -120,51 +120,30 @@
       "type" : "string"
     } ]
   }, {
-    "type" : "fixed",
-    "name" : "SIGID",
-    "size" : 32
-  }, {
     "type" : "record",
     "name" : "AvdlFile",
     "fields" : [ {
       "name" : "id",
       "type" : "int"
     } ]
+  }, {
+    "type" : "fixed",
+    "name" : "SIGID",
+    "size" : 32
   } ],
   "messages" : {
-    "close" : {
+    "pgpSign" : {
       "request" : [ {
-        "name" : "f",
-        "type" : "AvdlFile"
-      } ],
-      "response" : "null"
-    },
-    "read" : {
-      "request" : [ {
-        "name" : "f",
-        "type" : "AvdlFile"
-      } ],
-      "response" : "bytes"
-    },
-    "write" : {
-      "request" : [ {
-        "name" : "f",
+        "name" : "source",
         "type" : "AvdlFile"
       }, {
-        "name" : "buffer",
-        "type" : "bytes"
-      } ],
-      "response" : "int"
-    },
-    "sign" : {
-      "request" : [ {
         "name" : "sink",
         "type" : "AvdlFile"
       }, {
         "name" : "keyQuery",
         "type" : "string"
       } ],
-      "response" : "AvdlFile"
+      "response" : "null"
     }
   }
 }

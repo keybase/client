@@ -72,6 +72,10 @@
 
 @end
 
+@interface KBRAvdlFile : KBRObject
+@property NSInteger id;
+@end
+
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -338,18 +342,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
-@interface KBRAvdlFile : KBRObject
-@property NSInteger id;
-@end
-
 @interface KBRPgpcmdsRequest : KBRRequest
-- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion;
-
-- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion;
-
-- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion;
-
-- (void)signWithSink:(KBRAvdlFile *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error, KBRAvdlFile *avdlFile))completion;
+- (void)pgpSignWithSource:(KBRAvdlFile *)source sink:(KBRAvdlFile *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -479,6 +473,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
+@interface KBRStreamUiRequest : KBRRequest
+- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion;
+
+- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion;
+
+@end
+
 @interface KBRTrackRequest : KBRRequest
 - (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
 
@@ -501,6 +504,14 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *idString;
 @end
 
+@interface KBRTrackEntry : KBRObject
+@property NSString *username;
+@property NSString *sigId;
+@property NSString *pgpFingerprint;
+@property long trackTime;
+@property NSArray *proofs; /*of KBRTrackProof*/
+@end
+
 @interface KBRWebProof : KBRObject
 @property NSString *hostname;
 @property NSArray *protocols; /*of string*/
@@ -515,7 +526,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRProofs : KBRObject
 @property NSArray *social; /*of KBRTrackProof*/
 @property NSArray *web; /*of KBRWebProof*/
-@property NSArray *publicKeys; /*of KBRPubKey*/
+@property KBRPubKey *publicKey;
 @end
 
 @interface KBRUserSummary : KBRObject
@@ -526,8 +537,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *fullName;
 @property NSString *bio;
 @property KBRProofs *proofs;
-@property NSString *sigId;
-@property long trackTime;
 @end
 
 @interface KBRUserRequest : KBRRequest
@@ -535,11 +544,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)listTrackersByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
-
 - (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
 @interface KBRAnnounceSessionRequestParams : KBRRequestParams
@@ -674,17 +683,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL pushPublic;
 @property BOOL pushPrivate;
 @end
-@interface KBRCloseRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
-@end
-@interface KBRReadRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
-@end
-@interface KBRWriteRequestParams : KBRRequestParams
-@property KBRAvdlFile *f;
-@property NSData *buffer;
-@end
-@interface KBRSignRequestParams : KBRRequestParams
+@interface KBRPgpSignRequestParams : KBRRequestParams
+@property KBRAvdlFile *source;
 @property KBRAvdlFile *sink;
 @property NSString *keyQuery;
 @end
@@ -768,6 +768,16 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSigListJSONRequestParams : KBRRequestParams
 @property KBRSigListArgs *arg;
 @end
+@interface KBRCloseRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@end
+@interface KBRReadRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@end
+@interface KBRWriteRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@property NSData *buffer;
+@end
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *theirName;
@@ -785,13 +795,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *username;
 @end
-@interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
-@property NSArray *uids;
-@end
 @interface KBRListTrackingRequestParams : KBRRequestParams
 @property NSString *filter;
 @end
 @interface KBRListTrackingJsonRequestParams : KBRRequestParams
 @property NSString *filter;
 @property BOOL verbose;
+@end
+@interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
+@property NSArray *uids;
 @end

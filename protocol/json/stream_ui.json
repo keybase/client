@@ -1,5 +1,5 @@
 {
-  "protocol" : "config",
+  "protocol" : "streamUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -130,47 +130,31 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
-  }, {
-    "type" : "record",
-    "name" : "GetCurrentStatusRes",
-    "fields" : [ {
-      "name" : "configured",
-      "type" : "boolean"
-    }, {
-      "name" : "registered",
-      "type" : "boolean"
-    }, {
-      "name" : "loggedIn",
-      "type" : "boolean"
-    }, {
-      "name" : "user",
-      "type" : [ "null", "User" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Config",
-    "fields" : [ {
-      "name" : "serverURI",
-      "type" : "string"
-    }, {
-      "name" : "socketFile",
-      "type" : "string"
-    }, {
-      "name" : "gpgExists",
-      "type" : "boolean"
-    }, {
-      "name" : "gpgPath",
-      "type" : "string"
-    } ]
   } ],
   "messages" : {
-    "getCurrentStatus" : {
-      "request" : [ ],
-      "response" : "GetCurrentStatusRes"
+    "close" : {
+      "request" : [ {
+        "name" : "f",
+        "type" : "AvdlFile"
+      } ],
+      "response" : "null"
     },
-    "getConfig" : {
-      "request" : [ ],
-      "response" : "Config"
+    "read" : {
+      "request" : [ {
+        "name" : "f",
+        "type" : "AvdlFile"
+      } ],
+      "response" : "bytes"
+    },
+    "write" : {
+      "request" : [ {
+        "name" : "f",
+        "type" : "AvdlFile"
+      }, {
+        "name" : "buffer",
+        "type" : "bytes"
+      } ],
+      "response" : "int"
     }
   }
 }

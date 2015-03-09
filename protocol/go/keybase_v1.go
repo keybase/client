@@ -151,6 +151,10 @@ func (c BlockClient) Put(__arg PutArg) (err error) {
 	return
 }
 
+type AvdlFile struct {
+	Id int `codec:"id" json:"id"`
+}
+
 type GetCurrentStatusRes struct {
 	Configured bool  `codec:"configured" json:"configured"`
 	Registered bool  `codec:"registered" json:"registered"`
@@ -1017,7 +1021,7 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"PgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpKeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PgpKeyGenDefault(args[0].CreateUids)
@@ -1075,7 +1079,7 @@ func (c MykeyClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
 
 func (c MykeyClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
 	__arg := PgpKeyGenDefaultArg{CreateUids: createUids}
-	err = c.Cli.Call("keybase.1.mykey.pgpKeyGenDefault", []interface{}{__arg}, nil)
+	err = c.Cli.Call("keybase.1.mykey.PgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1104,64 +1108,24 @@ func (c MykeyClient) SavePGPKey(__arg SavePGPKeyArg) (err error) {
 	return
 }
 
-type AvdlFile struct {
-	Id int `codec:"id" json:"id"`
-}
-
-type CloseArg struct {
-	F AvdlFile `codec:"f" json:"f"`
-}
-
-type ReadArg struct {
-	F AvdlFile `codec:"f" json:"f"`
-}
-
-type WriteArg struct {
-	F      AvdlFile `codec:"f" json:"f"`
-	Buffer []byte   `codec:"buffer" json:"buffer"`
-}
-
-type SignArg struct {
+type PgpSignArg struct {
+	Source   AvdlFile `codec:"source" json:"source"`
 	Sink     AvdlFile `codec:"sink" json:"sink"`
 	KeyQuery string   `codec:"keyQuery" json:"keyQuery"`
 }
 
 type PgpcmdsInterface interface {
-	Close(AvdlFile) error
-	Read(AvdlFile) ([]byte, error)
-	Write(WriteArg) (int, error)
-	Sign(SignArg) (AvdlFile, error)
+	PgpSign(PgpSignArg) error
 }
 
 func PgpcmdsProtocol(i PgpcmdsInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.pgpcmds",
 		Methods: map[string]rpc2.ServeHook{
-			"close": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]CloseArg, 1)
+			"pgpSign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpSignArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Close(args[0].F)
-				}
-				return
-			},
-			"read": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]ReadArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Read(args[0].F)
-				}
-				return
-			},
-			"write": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]WriteArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Write(args[0])
-				}
-				return
-			},
-			"sign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SignArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Sign(args[0])
+					err = i.PgpSign(args[0])
 				}
 				return
 			},
@@ -1174,25 +1138,8 @@ type PgpcmdsClient struct {
 	Cli GenericClient
 }
 
-func (c PgpcmdsClient) Close(f AvdlFile) (err error) {
-	__arg := CloseArg{F: f}
-	err = c.Cli.Call("keybase.1.pgpcmds.close", []interface{}{__arg}, nil)
-	return
-}
-
-func (c PgpcmdsClient) Read(f AvdlFile) (res []byte, err error) {
-	__arg := ReadArg{F: f}
-	err = c.Cli.Call("keybase.1.pgpcmds.read", []interface{}{__arg}, &res)
-	return
-}
-
-func (c PgpcmdsClient) Write(__arg WriteArg) (res int, err error) {
-	err = c.Cli.Call("keybase.1.pgpcmds.write", []interface{}{__arg}, &res)
-	return
-}
-
-func (c PgpcmdsClient) Sign(__arg SignArg) (res AvdlFile, err error) {
-	err = c.Cli.Call("keybase.1.pgpcmds.sign", []interface{}{__arg}, &res)
+func (c PgpcmdsClient) PgpSign(__arg PgpSignArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgpcmds.pgpSign", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1744,6 +1691,76 @@ func (c SigsClient) SigListJSON(arg SigListArgs) (res string, err error) {
 	return
 }
 
+type CloseArg struct {
+	F AvdlFile `codec:"f" json:"f"`
+}
+
+type ReadArg struct {
+	F AvdlFile `codec:"f" json:"f"`
+}
+
+type WriteArg struct {
+	F      AvdlFile `codec:"f" json:"f"`
+	Buffer []byte   `codec:"buffer" json:"buffer"`
+}
+
+type StreamUiInterface interface {
+	Close(AvdlFile) error
+	Read(AvdlFile) ([]byte, error)
+	Write(WriteArg) (int, error)
+}
+
+func StreamUiProtocol(i StreamUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.streamUi",
+		Methods: map[string]rpc2.ServeHook{
+			"close": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CloseArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Close(args[0].F)
+				}
+				return
+			},
+			"read": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ReadArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Read(args[0].F)
+				}
+				return
+			},
+			"write": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]WriteArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Write(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type StreamUiClient struct {
+	Cli GenericClient
+}
+
+func (c StreamUiClient) Close(f AvdlFile) (err error) {
+	__arg := CloseArg{F: f}
+	err = c.Cli.Call("keybase.1.streamUi.close", []interface{}{__arg}, nil)
+	return
+}
+
+func (c StreamUiClient) Read(f AvdlFile) (res []byte, err error) {
+	__arg := ReadArg{F: f}
+	err = c.Cli.Call("keybase.1.streamUi.read", []interface{}{__arg}, &res)
+	return
+}
+
+func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
+	err = c.Cli.Call("keybase.1.streamUi.write", []interface{}{__arg}, &res)
+	return
+}
+
 type TrackArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TheirName string `codec:"theirName" json:"theirName"`
@@ -1825,6 +1842,14 @@ type TrackProof struct {
 	IdString  string `codec:"idString" json:"idString"`
 }
 
+type TrackEntry struct {
+	Username       string       `codec:"username" json:"username"`
+	SigId          string       `codec:"sigId" json:"sigId"`
+	PgpFingerprint string       `codec:"pgpFingerprint" json:"pgpFingerprint"`
+	TrackTime      int64        `codec:"trackTime" json:"trackTime"`
+	Proofs         []TrackProof `codec:"proofs" json:"proofs"`
+}
+
 type WebProof struct {
 	Hostname  string   `codec:"hostname" json:"hostname"`
 	Protocols []string `codec:"protocols" json:"protocols"`
@@ -1837,9 +1862,9 @@ type PubKey struct {
 }
 
 type Proofs struct {
-	Social     []TrackProof `codec:"social" json:"social"`
-	Web        []WebProof   `codec:"web" json:"web"`
-	PublicKeys []PubKey     `codec:"publicKeys" json:"publicKeys"`
+	Social    []TrackProof `codec:"social" json:"social"`
+	Web       []WebProof   `codec:"web" json:"web"`
+	PublicKey PubKey       `codec:"publicKey" json:"publicKey"`
 }
 
 type UserSummary struct {
@@ -1850,8 +1875,6 @@ type UserSummary struct {
 	FullName  string `codec:"fullName" json:"fullName"`
 	Bio       string `codec:"bio" json:"bio"`
 	Proofs    Proofs `codec:"proofs" json:"proofs"`
-	SigId     string `codec:"sigId" json:"sigId"`
-	TrackTime int64  `codec:"trackTime" json:"trackTime"`
 }
 
 type ListTrackersArg struct {
@@ -1864,10 +1887,6 @@ type ListTrackersByNameArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
-type LoadUncheckedUserSummariesArg struct {
-	Uids []UID `codec:"uids" json:"uids"`
-}
-
 type ListTrackingArg struct {
 	Filter string `codec:"filter" json:"filter"`
 }
@@ -1877,12 +1896,16 @@ type ListTrackingJsonArg struct {
 	Verbose bool   `codec:"verbose" json:"verbose"`
 }
 
+type LoadUncheckedUserSummariesArg struct {
+	Uids []UID `codec:"uids" json:"uids"`
+}
+
 type UserInterface interface {
 	ListTrackers(ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
-	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
-	ListTracking(string) ([]UserSummary, error)
+	ListTracking(string) ([]TrackEntry, error)
 	ListTrackingJson(ListTrackingJsonArg) (string, error)
+	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
 }
 
 func UserProtocol(i UserInterface) rpc2.Protocol {
@@ -1903,13 +1926,6 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"loadUncheckedUserSummaries": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoadUncheckedUserSummariesArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.LoadUncheckedUserSummaries(args[0].Uids)
-				}
-				return
-			},
 			"listTracking": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackingArg, 1)
 				if err = nxt(&args); err == nil {
@@ -1921,6 +1937,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]ListTrackingJsonArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTrackingJson(args[0])
+				}
+				return
+			},
+			"loadUncheckedUserSummaries": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoadUncheckedUserSummariesArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.LoadUncheckedUserSummaries(args[0].Uids)
 				}
 				return
 			},
@@ -1943,13 +1966,7 @@ func (c UserClient) ListTrackersByName(__arg ListTrackersByNameArg) (res []Track
 	return
 }
 
-func (c UserClient) LoadUncheckedUserSummaries(uids []UID) (res []UserSummary, err error) {
-	__arg := LoadUncheckedUserSummariesArg{Uids: uids}
-	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) ListTracking(filter string) (res []UserSummary, err error) {
+func (c UserClient) ListTracking(filter string) (res []TrackEntry, err error) {
 	__arg := ListTrackingArg{Filter: filter}
 	err = c.Cli.Call("keybase.1.user.listTracking", []interface{}{__arg}, &res)
 	return
@@ -1957,5 +1974,11 @@ func (c UserClient) ListTracking(filter string) (res []UserSummary, err error) {
 
 func (c UserClient) ListTrackingJson(__arg ListTrackingJsonArg) (res string, err error) {
 	err = c.Cli.Call("keybase.1.user.listTrackingJson", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadUncheckedUserSummaries(uids []UID) (res []UserSummary, err error) {
+	__arg := LoadUncheckedUserSummariesArg{Uids: uids}
+	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
 	return
 }

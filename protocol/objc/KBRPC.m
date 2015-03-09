@@ -67,6 +67,9 @@
 
 @end
 
+@implementation KBRAvdlFile
+@end
+
 @implementation KBRGetCurrentStatusRes
 @end
 
@@ -408,7 +411,7 @@
 
 - (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"createUids": KBRValue(createUids)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.pgpKeyGenDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.mykey.PgpKeyGenDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -450,41 +453,12 @@
 
 @end
 
-@implementation KBRAvdlFile
-@end
-
 @implementation KBRPgpcmdsRequest
 
-- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"f": KBRValue(f)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgpcmds.close" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)pgpSignWithSource:(KBRAvdlFile *)source sink:(KBRAvdlFile *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"source": KBRValue(source), @"sink": KBRValue(sink), @"keyQuery": KBRValue(keyQuery)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgpcmds.pgpSign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
-  }];
-}
-
-- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSArray *params = @[@{@"f": KBRValue(f)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgpcmds.read" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
-  }];
-}
-
-- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion {
-  NSArray *params = @[@{@"f": KBRValue(f), @"buffer": KBRValue(buffer)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgpcmds.write" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
-  }];
-}
-
-- (void)signWithSink:(KBRAvdlFile *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error, KBRAvdlFile *avdlFile))completion {
-  NSArray *params = @[@{@"sink": KBRValue(sink), @"keyQuery": KBRValue(keyQuery)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgpcmds.sign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-        completion(error, nil);
-        return;
-      }
-      KBRAvdlFile *result = retval ? [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:retval error:&error] : nil;
-      completion(error, result);
   }];
 }
 
@@ -704,6 +678,31 @@
 
 @end
 
+@implementation KBRStreamUiRequest
+
+- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"f": KBRValue(f)}];
+  [self.client sendRequestWithMethod:@"keybase.1.streamUi.close" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSArray *params = @[@{@"f": KBRValue(f)}];
+  [self.client sendRequestWithMethod:@"keybase.1.streamUi.read" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSArray *params = @[@{@"f": KBRValue(f), @"buffer": KBRValue(buffer)}];
+  [self.client sendRequestWithMethod:@"keybase.1.streamUi.write" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+@end
+
 @implementation KBRTrackRequest
 
 - (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
@@ -732,6 +731,10 @@
 @implementation KBRTrackProof
 @end
 
+@implementation KBRTrackEntry
++ (NSValueTransformer *)proofsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackProof.class]; }
+@end
+
 @implementation KBRWebProof
 @end
 
@@ -741,7 +744,6 @@
 @implementation KBRProofs
 + (NSValueTransformer *)socialJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackProof.class]; }
 + (NSValueTransformer *)webJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRWebProof.class]; }
-+ (NSValueTransformer *)publicKeysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPubKey.class]; }
 @end
 
 @implementation KBRUserSummary
@@ -773,6 +775,25 @@
   }];
 }
 
+- (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSArray *params = @[@{@"filter": KBRValue(filter)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTracking" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRTrackEntry.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
+
+- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion {
+  NSArray *params = @[@{@"filter": KBRValue(filter), @"verbose": @(verbose)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackingJson" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
 - (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion {
   NSArray *params = @[@{@"uids": KBRValue(uids)}];
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUncheckedUserSummaries" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -782,25 +803,6 @@
       }
       NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
-  }];
-}
-
-- (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion {
-  NSArray *params = @[@{@"filter": KBRValue(filter)}];
-  [self.client sendRequestWithMethod:@"keybase.1.user.listTracking" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-        completion(error, nil);
-        return;
-      }
-      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error] : nil;
-      completion(error, results);
-  }];
-}
-
-- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion {
-  NSArray *params = @[@{@"filter": KBRValue(filter), @"verbose": @(verbose)}];
-  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackingJson" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
   }];
 }
 
@@ -1177,44 +1179,11 @@
 
 @end
 
-@implementation KBRCloseRequestParams
+@implementation KBRPgpSignRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.f = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"f"] error:nil];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRReadRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.f = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"f"] error:nil];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRWriteRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.f = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"f"] error:nil];
-    self.buffer = params[0][@"buffer"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRSignRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
+    self.source = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"source"] error:nil];
     self.sink = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"sink"] error:nil];
     self.keyQuery = params[0][@"keyQuery"];
   }
@@ -1447,6 +1416,40 @@
 
 @end
 
+@implementation KBRCloseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.f = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"f"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRReadRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.f = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"f"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRWriteRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.f = [MTLJSONAdapter modelOfClass:KBRAvdlFile.class fromJSONDictionary:params[0][@"f"] error:nil];
+    self.buffer = params[0][@"buffer"];
+  }
+  return self;
+}
+
+@end
+
 @implementation KBRTrackRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1496,17 +1499,6 @@
 
 @end
 
-@implementation KBRLoadUncheckedUserSummariesRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.uids = [MTLJSONAdapter modelsOfClass:KBRUID.class fromJSONArray:params[0][@"uids"] error:nil];
-  }
-  return self;
-}
-
-@end
-
 @implementation KBRListTrackingRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1524,6 +1516,17 @@
   if ((self = [super initWithParams:params])) {
     self.filter = params[0][@"filter"];
     self.verbose = [params[0][@"verbose"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRLoadUncheckedUserSummariesRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.uids = [MTLJSONAdapter modelsOfClass:KBRUID.class fromJSONArray:params[0][@"uids"] error:nil];
   }
   return self;
 }
