@@ -5,7 +5,8 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"io"
+	keybase_1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 func NewCmdSign(cl *libcmdline.CommandLine) cli.Command {
@@ -59,62 +60,42 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 		err = fmt.Errorf("sign takes at most 1 arg, an infile")
 	}
 
+	s.keyQuery = ctx.String("key")
+
 	if err == nil {
 		err = s.FilterInit(msg, infile, outfile)
 	}
-	s.keyQuery = ctx.String("key")
 
 	return err
 }
 
-func (s *CmdSign) RunClient() (err error) { return s.Run() }
+func (s *CmdSign) RunClient() (err error) {
+	var cli keybase_1.PgpcmdsClient
+	var snk, src keybase_1.Stream
+	protocols := []rpc2.Protocol{NewStreamUiProtocol()}
+
+	if cli, err = GetPgpcmdsClient(); err != nil {
+	} else if err = RegisterProtocols(protocols); err != nil {
+	} else if snk, src, err = s.ClientFilterOpen(); err != nil {
+	} else {
+		arg := keybase_1.PgpSignArg{
+			Source:   src,
+			Sink:     snk,
+			KeyQuery: s.keyQuery,
+			Binary:   s.binary,
+		}
+		err = cli.PgpSign(arg)
+	}
+	s.Close(err)
+	return err
+}
 
 func (s *CmdSign) Run() (err error) {
-	var key libkb.GenericKey
-	var pgp *libkb.PgpKeyBundle
-	var ok bool
-	var dumpTo io.WriteCloser
-	var written int64
-
 	if err = s.FilterOpen(); err != nil {
 		return
 	}
-
-	defer func() {
-		if dumpTo != nil {
-			dumpTo.Close()
-		}
-		s.Close(err)
-	}()
-
-	ska := libkb.SecretKeyArg{
-		Reason:   "command-line signature",
-		PGPOnly:  true,
-		KeyQuery: s.keyQuery,
-	}
-
-	key, err = G.Keyrings.GetSecretKey(ska)
-	if err != nil {
-		return
-	} else if pgp, ok = key.(*libkb.PgpKeyBundle); !ok {
-		err = fmt.Errorf("Can only sign with PGP keys (for now)")
-		return
-	} else if key == nil {
-		err = fmt.Errorf("No secret key available")
-		return
-	}
-
-	dumpTo, err = libkb.AttachedSignWrapper(s.sink, *pgp, !s.binary)
-	if err != nil {
-		return
-	}
-
-	written, err = io.Copy(dumpTo, s.source)
-	if err == nil && written == 0 {
-		err = fmt.Errorf("Empty source file, nothing to sign")
-	}
-
-	return
+	s.Close(err)
+	return err
 }
 
 func (v *CmdSign) GetUsage() libkb.Usage {

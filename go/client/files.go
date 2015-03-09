@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"io"
 	"os"
 )
@@ -228,4 +229,13 @@ func (u *UnixFilter) Close(inerr error) error {
 	e2 := u.sink.Close()
 	e3 := u.sink.HitError(inerr)
 	return libkb.PickFirstError(e1, e2, e3)
+}
+
+func (u *UnixFilter) ClientFilterOpen() (snk, src keybase_1.Stream, err error) {
+	if err = u.FilterOpen(); err != nil {
+		return
+	}
+	snk = G.XStreams.ExportWriter(u.sink)
+	src = G.XStreams.ExportReader(u.source)
+	return
 }

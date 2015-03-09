@@ -64,6 +64,10 @@ func (h *BaseHandler) getLogUI(sessionId int) libkb.LogUI {
 	return &LogUI{sessionId, h.getLogUICli()}
 }
 
+func (h *BaseHandler) getStreamUICli() *keybase_1.StreamUiClient {
+	return &keybase_1.StreamUiClient{h.getRpcClient()}
+}
+
 func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionId int, username string) *RemoteSelfIdentifyUI {
 	c := h.getRpcClient()
 	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{

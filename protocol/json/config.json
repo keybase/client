@@ -121,9 +121,9 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "AvdlFile",
+    "name" : "Stream",
     "fields" : [ {
-      "name" : "id",
+      "name" : "fd",
       "type" : "int"
     } ]
   }, {

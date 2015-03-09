@@ -58,6 +58,10 @@
 @property NSString *deviceID;
 @end
 
+@interface KBRStream : KBRObject
+@property NSInteger fd;
+@end
+
 @interface KBRSIGID : NSData
 @end
 
@@ -70,10 +74,6 @@
 
 - (void)putWithBlockid:(NSData *)blockid uid:(KBRUID *)uid buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
 
-@end
-
-@interface KBRAvdlFile : KBRObject
-@property NSInteger id;
 @end
 
 @interface KBRGetCurrentStatusRes : KBRObject
@@ -320,10 +320,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
-@interface KBRStream : KBRObject
-@property NSInteger fd;
-@end
-
 @interface KBRPgpCreateUids : KBRObject
 @property BOOL useDefault;
 @property NSArray *ids; /*of KBRPgpIdentity*/
@@ -347,7 +343,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRPgpcmdsRequest : KBRRequest
-- (void)pgpSignWithSource:(KBRStream *)source sink:(KBRStream *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error))completion;
+- (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink keyQuery:(NSString *)keyQuery binary:(BOOL)binary completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -688,9 +684,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL pushPrivate;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property KBRStream *source;
 @property KBRStream *sink;
 @property NSString *keyQuery;
+@property BOOL binary;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;

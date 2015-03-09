@@ -61,6 +61,10 @@ type Device struct {
 	DeviceID string `codec:"deviceID" json:"deviceID"`
 }
 
+type Stream struct {
+	Fd int `codec:"fd" json:"fd"`
+}
+
 type SIGID [32]byte
 type AnnounceSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
@@ -149,10 +153,6 @@ func (c BlockClient) Delete(__arg DeleteArg) (err error) {
 func (c BlockClient) Put(__arg PutArg) (err error) {
 	err = c.Cli.Call("keybase.1.block.put", []interface{}{__arg}, nil)
 	return
-}
-
-type AvdlFile struct {
-	Id int `codec:"id" json:"id"`
 }
 
 type GetCurrentStatusRes struct {
@@ -959,10 +959,6 @@ func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error)
 	return
 }
 
-type Stream struct {
-	Fd int `codec:"fd" json:"fd"`
-}
-
 type PgpCreateUids struct {
 	UseDefault bool          `codec:"useDefault" json:"useDefault"`
 	Ids        []PgpIdentity `codec:"ids" json:"ids"`
@@ -1113,9 +1109,11 @@ func (c MykeyClient) SavePGPKey(__arg SavePGPKeyArg) (err error) {
 }
 
 type PgpSignArg struct {
-	Source   Stream `codec:"source" json:"source"`
-	Sink     Stream `codec:"sink" json:"sink"`
-	KeyQuery string `codec:"keyQuery" json:"keyQuery"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Source    Stream `codec:"source" json:"source"`
+	Sink      Stream `codec:"sink" json:"sink"`
+	KeyQuery  string `codec:"keyQuery" json:"keyQuery"`
+	Binary    bool   `codec:"binary" json:"binary"`
 }
 
 type PgpcmdsInterface interface {

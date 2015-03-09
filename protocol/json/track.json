@@ -120,6 +120,13 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "record",
+    "name" : "Stream",
+    "fields" : [ {
+      "name" : "fd",
+      "type" : "int"
+    } ]
+  }, {
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32

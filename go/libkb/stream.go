@@ -7,7 +7,7 @@ import (
 )
 
 type ReadCloser struct {
-	f keybase_1.AvdlFile
+	f keybase_1.Stream
 }
 
 type ExportedStream struct {
@@ -18,51 +18,41 @@ type ExportedStream struct {
 
 type ExportedStreams struct {
 	m map[int]*ExportedStream
+	i int
 	sync.Mutex
 }
 
 func NewExportedStreams() *ExportedStreams {
 	return &ExportedStreams{
 		m: make(map[int]*ExportedStream),
+		i: 0,
 	}
 }
 
-func (s *ExportedStreams) ExportWriter(i int, w io.WriteCloser) (ret *keybase_1.Stream, err error) {
-	s.Lock()
-	defer s.Unlock()
-	var es *ExportedStream
-	if es, err = s.alloc(i); err != nil {
-		return
-	}
+func (s *ExportedStreams) ExportWriter(w io.WriteCloser) keybase_1.Stream {
+	es := s.alloc()
 	es.w = w
-	ret = es.Export()
-	return
+	return es.Export()
 }
 
-func (s *ExportedStreams) ExportReader(i int, r io.ReadCloser) (ret *keybase_1.Stream, err error) {
+func (s *ExportedStreams) ExportReader(r io.ReadCloser) keybase_1.Stream {
+	es := s.alloc()
+	es.r = r
+	return es.Export()
+}
+
+func (s *ExportedStreams) alloc() (ret *ExportedStream) {
 	s.Lock()
 	defer s.Unlock()
-	var es *ExportedStream
-	if es, err = s.alloc(i); err != nil {
-		return
-	}
-	es.r = r
-	ret = es.Export()
-	return
-}
-
-func (s *ExportedStreams) alloc(i int) (ret *ExportedStream, err error) {
-	if _, found := s.m[i]; found {
-		err = StreamExistsError{}
-		return
-	}
+	s.i++
+	i := s.i
 	ret = &ExportedStream{i: i}
 	s.m[i] = ret
-	return
+	return ret
 }
 
-func (e *ExportedStream) Export() *keybase_1.Stream {
-	return &keybase_1.Stream{Fd: e.i}
+func (e *ExportedStream) Export() keybase_1.Stream {
+	return keybase_1.Stream{Fd: e.i}
 }
 
 func (e *ExportedStreams) GetWriter(s keybase_1.Stream) (ret io.WriteCloser, err error) {
@@ -143,21 +133,21 @@ func (e *ExportedStreams) Write(a keybase_1.WriteArg) (n int, err error) {
 }
 
 type RemoteStream struct {
-	stream keybase_1.Stream
-	cli    keybase_1.StreamUiClient
+	Stream keybase_1.Stream
+	Cli    *keybase_1.StreamUiClient
 }
 
 func (ewc RemoteStream) Write(buf []byte) (n int, err error) {
-	return ewc.cli.Write(keybase_1.WriteArg{S: ewc.stream, Buf: buf})
+	return ewc.Cli.Write(keybase_1.WriteArg{S: ewc.Stream, Buf: buf})
 }
 
 func (ewc RemoteStream) Close() (err error) {
-	return ewc.cli.Close(ewc.stream)
+	return ewc.Cli.Close(ewc.Stream)
 }
 
 func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 	var tmp []byte
-	if tmp, err = ewc.cli.Read(keybase_1.ReadArg{S: ewc.stream, Sz: len(buf)}); err == nil {
+	if tmp, err = ewc.Cli.Read(keybase_1.ReadArg{S: ewc.Stream, Sz: len(buf)}); err == nil {
 		copy(buf, tmp)
 	}
 	return

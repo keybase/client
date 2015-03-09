@@ -4,5 +4,5 @@ protocol pgpcmds {
 	import idl "common.avdl";
 
 	// Return a source that we should be writing to.
-	void pgpSign(Stream source, Stream sink, string keyQuery);
+	void pgpSign(int sessionID, Stream source, Stream sink, string keyQuery, boolean binary);
 }

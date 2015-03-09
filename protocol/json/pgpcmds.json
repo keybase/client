@@ -134,6 +134,9 @@
   "messages" : {
     "pgpSign" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "source",
         "type" : "Stream"
       }, {
@@ -142,6 +145,9 @@
       }, {
         "name" : "keyQuery",
         "type" : "string"
+      }, {
+        "name" : "binary",
+        "type" : "boolean"
       } ],
       "response" : "null"
     }
