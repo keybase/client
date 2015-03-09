@@ -1837,9 +1837,9 @@ type PubKey struct {
 }
 
 type Proofs struct {
-	Social    []TrackProof `codec:"social" json:"social"`
-	Web       []WebProof   `codec:"web" json:"web"`
-	PublicKey PubKey       `codec:"publicKey" json:"publicKey"`
+	Social     []TrackProof `codec:"social" json:"social"`
+	Web        []WebProof   `codec:"web" json:"web"`
+	PublicKeys []PubKey     `codec:"publicKeys" json:"publicKeys"`
 }
 
 type UserSummary struct {

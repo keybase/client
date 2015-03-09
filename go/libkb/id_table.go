@@ -410,6 +410,26 @@ func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
 	return
 }
 
+func (l *TrackChainLink) GetTrackedPgpKeys() ([]*PgpFingerprint, error) {
+	jw := l.payloadJson.AtPath("body.track.pgp_keys")
+	if jw.IsNil() {
+		// it's ok if this doesn't exist
+		return nil, nil
+	}
+	n, err := jw.Len()
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*PgpFingerprint, n)
+	for i := 0; i < n; i++ {
+		res[i], err = GetPgpFingerprint(jw.AtIndex(i))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (l *TrackChainLink) GetTrackedUid() (*UID, error) {
 	return GetUid(l.payloadJson.AtPath("body.track.id"))
 }

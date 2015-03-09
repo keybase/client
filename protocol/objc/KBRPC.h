@@ -515,7 +515,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRProofs : KBRObject
 @property NSArray *social; /*of KBRTrackProof*/
 @property NSArray *web; /*of KBRWebProof*/
-@property KBRPubKey *publicKey;
+@property NSArray *publicKeys; /*of KBRPubKey*/
 @end
 
 @interface KBRUserSummary : KBRObject

@@ -191,8 +191,11 @@
         "items" : "WebProof"
       }
     }, {
-      "name" : "publicKey",
-      "type" : "PubKey"
+      "name" : "publicKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PubKey"
+      }
     } ]
   }, {
     "type" : "record",

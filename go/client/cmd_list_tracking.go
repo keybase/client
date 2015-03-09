@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -44,7 +45,7 @@ func DisplayTable(entries []keybase_1.UserSummary, verbose bool, headers bool) (
 		cols = []string{
 			"Username",
 			"Sig ID",
-			"PGP fingerprint",
+			"PGP fingerprints",
 			"When Tracked",
 			"Proofs",
 		}
@@ -62,10 +63,15 @@ func DisplayTable(entries []keybase_1.UserSummary, verbose bool, headers bool) (
 			return []string{entry.Username}
 		}
 
+		fps := make([]string, len(entry.Proofs.PublicKeys))
+		for i, k := range entry.Proofs.PublicKeys {
+			fps[i] = k.KeyFingerprint
+		}
+
 		row := []string{
 			entry.Username,
 			entry.SigId,
-			entry.Proofs.PublicKey.KeyFingerprint,
+			strings.Join(fps, ", "),
 			libkb.FormatTime(time.Unix(entry.TrackTime, 0)),
 		}
 		for _, proof := range entry.Proofs.Social {

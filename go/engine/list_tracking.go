@@ -109,43 +109,71 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 	}), nil
 }
 
-func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
-	for _, link := range trackList {
+func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase_1.PubKey) {
+	keys, err := link.GetTrackedPgpKeys()
+	if len(keys) == 0 {
+		// older track statements won't have 'pgp_keys' section.
 		var fp *libkb.PgpFingerprint
 		fp, err = link.GetTrackedPgpFingerprint()
 		if err != nil {
 			G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err.Error())
+		}
+		res = append(res, keybase_1.PubKey{KeyFingerprint: fp.String()})
+	} else {
+		for _, key := range keys {
+			res = append(res, keybase_1.PubKey{KeyFingerprint: key.String()})
+		}
+	}
+
+	return res
+
+}
+
+func (e *ListTrackingEngine) linkSocialProofs(link *libkb.TrackChainLink) (res []keybase_1.TrackProof) {
+	for _, sb := range link.ToServiceBlocks() {
+		if !sb.IsSocial() {
 			continue
 		}
+		proofType, proofName := sb.ToKeyValuePair()
+		res = append(res, keybase_1.TrackProof{
+			ProofType: proofType,
+			ProofName: proofName,
+			IdString:  sb.ToIdString(),
+		})
+	}
+	return res
+}
+
+func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []keybase_1.WebProof) {
+	webp := make(map[string]*keybase_1.WebProof)
+	for _, sb := range link.ToServiceBlocks() {
+		if sb.IsSocial() {
+			continue
+		}
+		proofType, proofName := sb.ToKeyValuePair()
+		p, ok := webp[proofName]
+		if !ok {
+			p = &keybase_1.WebProof{Hostname: proofName}
+			webp[proofName] = p
+		}
+		p.Protocols = append(p.Protocols, proofType)
+	}
+	for _, v := range webp {
+		res = append(res, *v)
+	}
+	return res
+}
+
+func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
+	for _, link := range trackList {
 		entry := keybase_1.UserSummary{
 			Username:  link.ToDisplayString(),
 			SigId:     link.GetSigId().ToDisplayString(true),
 			TrackTime: link.GetCTime().Unix(),
 		}
-		entry.Proofs.PublicKey = keybase_1.PubKey{
-			KeyFingerprint: fp.String(),
-		}
-		webp := make(map[string]*keybase_1.WebProof)
-		for _, sb := range link.ToServiceBlocks() {
-			proofType, proofName := sb.ToKeyValuePair()
-			if sb.IsSocial() {
-				entry.Proofs.Social = append(entry.Proofs.Social, keybase_1.TrackProof{
-					ProofType: proofType,
-					ProofName: proofName,
-					IdString:  sb.ToIdString(),
-				})
-			} else {
-				p, ok := webp[proofName]
-				if !ok {
-					p = &keybase_1.WebProof{Hostname: proofName}
-					webp[proofName] = p
-				}
-				p.Protocols = append(p.Protocols, proofType)
-			}
-		}
-		for _, v := range webp {
-			entry.Proofs.Web = append(entry.Proofs.Web, *v)
-		}
+		entry.Proofs.PublicKeys = e.linkPGPKeys(link)
+		entry.Proofs.Social = e.linkSocialProofs(link)
+		entry.Proofs.Web = e.linkWebProofs(link)
 		e.tableResult = append(e.tableResult, entry)
 	}
 	return

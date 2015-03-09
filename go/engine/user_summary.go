@@ -118,7 +118,7 @@ func (p *Proofs) Export() keybase_1.Proofs {
 		Social: p.Social.Export(),
 	}
 	if p.PublicKey != nil {
-		r.PublicKey = p.PublicKey.Export()
+		r.PublicKeys = []keybase_1.PubKey{p.PublicKey.Export()}
 	}
 	return r
 }

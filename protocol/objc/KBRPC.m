@@ -741,6 +741,7 @@
 @implementation KBRProofs
 + (NSValueTransformer *)socialJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackProof.class]; }
 + (NSValueTransformer *)webJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRWebProof.class]; }
++ (NSValueTransformer *)publicKeysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPubKey.class]; }
 @end
 
 @implementation KBRUserSummary
