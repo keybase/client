@@ -97,7 +97,7 @@ func (pc *ProofCache) memGet(sid SigId) *CheckResult {
 	if tmp, found := pc.lru.Get(sid); !found {
 		// noop!
 	} else if cr, ok := tmp.(CheckResult); !ok {
-		G.Log.Error("Bad type assertion in ProofCache.Get")
+		G.Log.Errorf("Bad type assertion in ProofCache.Get")
 	} else if !cr.IsFresh() {
 		pc.lru.Remove(sid)
 	} else {
@@ -137,14 +137,14 @@ func (pc *ProofCache) dbGet(sid SigId) *CheckResult {
 	G.Log.Debug("+ ProofCache.dbGet(%s)", sidstr)
 
 	if err != nil {
-		G.Log.Error("Error lookup up proof check in DB: %s", err.Error())
+		G.Log.Errorf("Error lookup up proof check in DB: %s", err.Error())
 	} else if jw == nil {
 		G.Log.Debug("| Cached CheckResult for %s wasn't found ", sidstr)
 	} else if cr, err := NewCheckResult(jw); err != nil {
-		G.Log.Error("Bad cached CheckResult for %s", sidstr)
+		G.Log.Errorf("Bad cached CheckResult for %s", sidstr)
 	} else if !cr.IsFresh() {
 		if err := G.LocalDb.Delete(dbkey); err != nil {
-			G.Log.Error("Delete error: %s", err.Error())
+			G.Log.Errorf("Delete error: %s", err.Error())
 		}
 		G.Log.Debug("| Cached CheckResult for %s wasn't fresh", sidstr)
 	} else {

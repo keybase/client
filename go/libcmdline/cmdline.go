@@ -373,7 +373,7 @@ func (p *CommandLine) Parse(args []string) (cmd Command, err error) {
 
 	// If we failed to parse arguments properly, switch to the help command
 	if err = p.cmd.ParseArgv(p.ctx); err != nil {
-		libkb.G.Log.Error("In '%s': %s", p.name, err.Error())
+		libkb.G.Log.Errorf("In '%s': %s", p.name, err.Error())
 		cmd = &CmdSpecificHelp{CmdBaseHelp{p.ctx}, p.name}
 	}
 

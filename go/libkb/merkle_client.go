@@ -373,8 +373,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	}
 
 	if e2 := root.Store(); e2 != nil {
-		G.Log.Error("Cannot commit Merkle root to local DB: %s",
-			e2.Error())
+		G.Log.Errorf("Cannot commit Merkle root to local DB: %s", e2.Error())
 	}
 
 	mc.verified[root.seqno] = true

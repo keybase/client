@@ -378,23 +378,23 @@ func (f *SKBKeyringFile) Push(skb *SKB) error {
 
 func (f SKBKeyringFile) GetFilename() string { return f.filename }
 
-func (f SKBKeyringFile) WriteTo(w io.Writer) error {
+func (f SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	G.Log.Debug("+ WriteTo")
 	packets := make(KeybasePackets, len(f.Blocks))
 	var err error
 	for i, b := range f.Blocks {
 		if packets[i], err = b.ToPacket(); err != nil {
-			return err
+			return 0, err
 		}
 	}
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
 	if err = packets.EncodeTo(b64); err != nil {
 		G.Log.Warning("Encoding problem: %s", err.Error())
-		return err
+		return 0, err
 	}
 	G.Log.Debug("- WriteTo")
 	b64.Close()
-	return nil
+	return 0, nil
 }
 
 func (f *SKBKeyringFile) Save(lui LogUI) error {

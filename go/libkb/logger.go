@@ -28,6 +28,10 @@ func (log *Logger) Profile(fmts string, arg ...interface{}) {
 	log.Debug(fmts, arg...)
 }
 
+func (log *Logger) Errorf(fmt string, arg ...interface{}) {
+	log.Error(fmt, arg...)
+}
+
 func (log *Logger) PlainLogging() {
 	logging.SetFormatter(logging.MustStringFormatter(plain_format))
 }

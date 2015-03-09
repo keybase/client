@@ -138,7 +138,7 @@ func (pi *pinentryInstance) Init() (err error) {
 	pi.stdout, _ = pi.cmd.StdoutPipe()
 
 	if err = pi.cmd.Start(); err != nil {
-		G.Log.Error("unexpected error running pinentry (%s): %s",
+		G.Log.Errorf("unexpected error running pinentry (%s): %s",
 			parent.path, err.Error())
 		return
 	}

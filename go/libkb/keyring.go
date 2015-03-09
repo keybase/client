@@ -198,13 +198,13 @@ func (k *KeyringFile) Load() error {
 		G.Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
 		err = nil
 	} else if err != nil {
-		G.Log.Error(fmt.Sprintf("Cannot open keyring %s: %s\n", k.filename, err.Error()))
+		G.Log.Errorf("Cannot open keyring %s: %s\n", k.filename, err.Error())
 		return err
 	}
 	if file != nil {
 		k.Entities, err = openpgp.ReadKeyRing(file)
 		if err != nil {
-			G.Log.Error(fmt.Sprintf("Cannot parse keyring %s: %s\n", k.filename, err.Error()))
+			G.Log.Errorf("Cannot parse keyring %s: %s\n", k.filename, err.Error())
 			return err
 		}
 	}
@@ -212,13 +212,13 @@ func (k *KeyringFile) Load() error {
 	return nil
 }
 
-func (k KeyringFile) WriteTo(w io.Writer) error {
+func (k KeyringFile) WriteTo(w io.Writer) (int64, error) {
 	for _, e := range k.Entities {
 		if err := e.Serialize(w); err != nil {
-			return err
+			return 0, err
 		}
 	}
-	return nil
+	return 0, nil
 }
 
 func (k KeyringFile) GetFilename() string { return k.filename }

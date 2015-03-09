@@ -41,14 +41,14 @@ func MakeParentDirs(filename string) error {
 	dir, _ := path.Split(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
-		G.Log.Error("Can't see if parent dir %s exists", dir)
+		G.Log.Errorf("Can't see if parent dir %s exists", dir)
 		return err
 	}
 
 	if !exists {
 		err = os.MkdirAll(dir, PERM_DIR)
 		if err != nil {
-			G.Log.Error("Can't make parent dir %s", dir)
+			G.Log.Errorf("Can't make parent dir %s", dir)
 			return err
 		} else {
 			G.Log.Info("Created parent directory %s", dir)
@@ -132,7 +132,7 @@ func DrainPipe(rc io.Reader, sink func(string)) error {
 
 type SafeWriter interface {
 	GetFilename() string
-	WriteTo(io.Writer) error
+	WriteTo(io.Writer) (int64, error)
 }
 
 func SafeWriteToFile(t SafeWriter) error {
@@ -144,7 +144,7 @@ func SafeWriteToFile(t SafeWriter) error {
 		return err
 	}
 
-	err = t.WriteTo(tmp)
+	_, err = t.WriteTo(tmp)
 	if err == nil {
 		err = tmp.Close()
 		if err == nil {

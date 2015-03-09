@@ -422,24 +422,24 @@ func (s *CmdSignupState) HandlePostError(inerr error) (retry bool, err error) {
 		switch ase.Name {
 		case "BAD_SIGNUP_EMAIL_TAKEN":
 			v := s.fields.email.Clear()
-			G.Log.Error("Email address '%s' already taken", v)
+			G.Log.Errorf("Email address '%s' already taken", v)
 			retry = true
 			err = nil
 		case "BAD_SIGNUP_USERNAME_TAKEN":
 			v := s.fields.username.Clear()
-			G.Log.Error("Username '%s' already taken", v)
+			G.Log.Errorf("Username '%s' already taken", v)
 			retry = true
 			err = nil
 		case "INPUT_ERROR":
 			if ase.IsBadField("username") {
 				v := s.fields.username.Clear()
-				G.Log.Error("Username '%s' rejected by server", v)
+				G.Log.Errorf("Username '%s' rejected by server", v)
 				retry = true
 				err = nil
 			}
 		case "BAD_INVITATION_CODE":
 			v := s.fields.code.Clear()
-			G.Log.Error("Bad invitation code '%s' given", v)
+			G.Log.Errorf("Bad invitation code '%s' given", v)
 			retry = true
 			err = nil
 		}

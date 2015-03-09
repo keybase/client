@@ -52,8 +52,7 @@ func (f *JsonFile) Load(warnOnNotFound bool) error {
 	obj := make(map[string]interface{})
 	// Treat empty files like an empty dictionary
 	if err = decoder.Decode(&obj); err != nil && err != io.EOF {
-		G.Log.Error(fmt.Sprintf("Error decoding %s file %s",
-			f.which, f.filename))
+		G.Log.Errorf("Error decoding %s file %s", f.which, f.filename)
 		return err
 	}
 	f.jw = jsonw.NewWrapper(obj)
@@ -82,7 +81,7 @@ func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 
 	err = MakeParentDirs(f.filename)
 	if err != nil {
-		G.Log.Error("Failed to make parent dirs for %s", f.filename)
+		G.Log.Errorf("Failed to make parent dirs for %s", f.filename)
 		return err
 	}
 
@@ -96,7 +95,7 @@ func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 	} else {
 		dat, err = f.jw.GetData()
 		if err != nil {
-			G.Log.Error("Failed to encode data for %s file", f.which)
+			G.Log.Errorf("Failed to encode data for %s file", f.which)
 			return err
 		}
 	}
@@ -107,7 +106,7 @@ func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 	}
 	writer, err = os.OpenFile(f.filename, flags, mode)
 	if err != nil {
-		G.Log.Error("Failed to open %s file %s for writing: %s",
+		G.Log.Errorf("Failed to open %s file %s for writing: %s",
 			f.which, f.filename, err.Error())
 		return err
 	}
@@ -124,14 +123,14 @@ func (f *JsonFile) Save(pretty bool, mode os.FileMode) (err error) {
 	}
 
 	if err != nil {
-		G.Log.Error("Error encoding data to %s file %s: %s",
+		G.Log.Errorf("Error encoding data to %s file %s: %s",
 			f.which, f.filename, err.Error())
 		return err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		G.Log.Error("Error flushing %s file %s: %s",
+		G.Log.Errorf("Error flushing %s file %s: %s",
 			f.which, f.filename, err.Error())
 		return err
 	}
