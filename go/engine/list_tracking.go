@@ -111,22 +111,15 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 
 func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase_1.PubKey) {
 	keys, err := link.GetTrackedPgpKeys()
-	if len(keys) == 0 {
-		// older track statements won't have 'pgp_keys' section.
-		var fp *libkb.PgpFingerprint
-		fp, err = link.GetTrackedPgpFingerprint()
-		if err != nil {
-			G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err.Error())
-		}
-		res = append(res, keybase_1.PubKey{KeyFingerprint: fp.String()})
-	} else {
-		for _, key := range keys {
-			res = append(res, keybase_1.PubKey{KeyFingerprint: key.String()})
-		}
+	if err != nil {
+		G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
+		return res
 	}
 
+	for _, key := range keys {
+		res = append(res, keybase_1.PubKey{KeyFingerprint: key.String()})
+	}
 	return res
-
 }
 
 func (e *ListTrackingEngine) linkSocialProofs(link *libkb.TrackChainLink) (res []keybase_1.TrackProof) {
@@ -203,32 +196,36 @@ func (e *ListTrackingEngine) runJson(trackList TrackList, verbose bool) (err err
 	return
 }
 
-func condenseRecord(l *libkb.TrackChainLink) (out *jsonw.Wrapper, err error) {
-	var uid *libkb.UID
-	var fp *libkb.PgpFingerprint
-	var un string
-	out = jsonw.NewDictionary()
+func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
+	uid, err := l.GetTrackedUid()
+	if err != nil {
+		return nil, err
+	}
+
+	fps, err := l.GetTrackedPgpKeys()
+	if err != nil {
+		return nil, err
+	}
+	fpsDisplay := make([]string, len(fps))
+	for i, fp := range fps {
+		fpsDisplay[i] = strings.ToUpper(fp.String())
+	}
+
+	un, err := l.GetTrackedUsername()
+	if err != nil {
+		return nil, err
+	}
+
 	rp := l.RemoteKeyProofs()
 
-	if uid, err = l.GetTrackedUid(); err != nil {
-		return
-	}
-
-	if fp, err = l.GetTrackedPgpFingerprint(); err != nil {
-		return
-	}
-
-	if un, err = l.GetTrackedUsername(); err != nil {
-		return
-	}
-
+	out := jsonw.NewDictionary()
 	out.SetKey("uid", jsonw.NewString(uid.String()))
-	out.SetKey("key", jsonw.NewString(strings.ToUpper(fp.String())))
+	out.SetKey("keys", jsonw.NewString(strings.Join(fpsDisplay, ", ")))
 	out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
 	out.SetKey("username", jsonw.NewString(un))
 	out.SetKey("proofs", rp)
 
-	return
+	return out, nil
 }
 
 func (e *ListTrackingEngine) TableResult() []keybase_1.UserSummary {

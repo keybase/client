@@ -399,10 +399,6 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.tracks[l.whom] = list
 }
 
-func (l *TrackChainLink) GetTrackedPgpFingerprint() (*PgpFingerprint, error) {
-	return GetPgpFingerprint(l.payloadJson.AtPath("body.track.key.key_fingerprint"))
-}
-
 func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
 	jw := l.payloadJson.AtPath("body.track.key")
 	ret.Fp, _ = GetPgpFingerprint(jw.AtKey("key_fingerprint"))
@@ -411,20 +407,35 @@ func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
 }
 
 func (l *TrackChainLink) GetTrackedPgpKeys() ([]*PgpFingerprint, error) {
+	// presumably order is important, so we'll only use the map as a set
+	// to deduplicate keys.
+	set := make(map[PgpFingerprint]bool)
+
+	var res []*PgpFingerprint
+
+	fk := l.GetTrackedFOKID()
+	if fk.Fp != nil {
+		res = append(res, fk.Fp)
+		set[*fk.Fp] = true
+	}
+
 	jw := l.payloadJson.AtPath("body.track.pgp_keys")
 	if jw.IsNil() {
-		// it's ok if this doesn't exist
-		return nil, nil
+		return res, nil
 	}
+
 	n, err := jw.Len()
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*PgpFingerprint, n)
 	for i := 0; i < n; i++ {
-		res[i], err = GetPgpFingerprint(jw.AtIndex(i))
+		fp, err := GetPgpFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
 		if err != nil {
 			return nil, err
+		}
+		if !set[*fp] {
+			res = append(res, fp)
+			set[*fp] = true
 		}
 	}
 	return res, nil
