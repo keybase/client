@@ -98,15 +98,7 @@ func (e *ExportedStreams) Close(s keybase_1.Stream) (err error) {
 		}
 		delete(e.m, s.Fd)
 	}
-	err = fixErr(err)
 	return err
-}
-
-func fixErr(e error) error {
-	if e == io.EOF {
-		e = StreamEOF{}
-	}
-	return e
 }
 
 func (e *ExportedStreams) Read(a keybase_1.ReadArg) (buf []byte, err error) {
@@ -117,7 +109,6 @@ func (e *ExportedStreams) Read(a keybase_1.ReadArg) (buf []byte, err error) {
 	var n int
 	buf = make([]byte, a.Sz)
 	n, err = r.Read(buf)
-	err = fixErr(err)
 	buf = buf[0:n]
 	return
 }
@@ -128,7 +119,6 @@ func (e *ExportedStreams) Write(a keybase_1.WriteArg) (n int, err error) {
 		return
 	}
 	n, err = w.Write(a.Buf)
-	err = fixErr(err)
 	return
 }
 
@@ -148,6 +138,7 @@ func (ewc RemoteStream) Close() (err error) {
 func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 	var tmp []byte
 	if tmp, err = ewc.Cli.Read(keybase_1.ReadArg{S: ewc.Stream, Sz: len(buf)}); err == nil {
+		n = len(tmp)
 		copy(buf, tmp)
 	}
 	return

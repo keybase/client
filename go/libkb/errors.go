@@ -805,8 +805,4 @@ type StreamWrongKindError struct{}
 
 func (s StreamWrongKindError) Error() string { return "found a stream but not of right kind" }
 
-type StreamEOF struct{}
-
-func (s StreamEOF) Error() string { return "EOF" }
-
 //=============================================================================

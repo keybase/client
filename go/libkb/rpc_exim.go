@@ -4,6 +4,7 @@ package libkb
 
 import (
 	"fmt"
+	"io"
 	"sort"
 	"time"
 
@@ -129,6 +130,11 @@ func ImportProofError(e keybase_1.ProofStatus) ProofError {
 
 func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
 	if e == nil {
+	} else if e == io.EOF {
+		ret = &keybase_1.Status{
+			Code: SC_STREAM_EOF,
+			Name: "STREAM_EOF",
+		}
 	} else if ee, ok := e.(ExportableError); ok {
 		tmp := ee.ToStatus()
 		ret = &tmp
@@ -188,7 +194,7 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 		case SC_STREAM_WRONG_KIND:
 			return StreamWrongKindError{}
 		case SC_STREAM_EOF:
-			return StreamEOF{}
+			return io.EOF
 		default:
 			ase := AppStatusError{
 				Code:   s.Code,
@@ -531,12 +537,6 @@ func (e StreamNotFoundError) ToStatus(s keybase_1.Status) {
 func (e StreamWrongKindError) ToStatus(s keybase_1.Status) {
 	s.Code = SC_STREAM_WRONG_KIND
 	s.Name = "STREAM_WRONG_KIND"
-	return
-}
-
-func (e StreamEOF) ToStatus(s keybase_1.Status) {
-	s.Code = SC_STREAM_EOF
-	s.Name = "STREAM_EOF"
 	return
 }
 
