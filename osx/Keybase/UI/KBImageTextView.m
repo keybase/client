@@ -86,6 +86,9 @@
       self.imageView.image = self.image;
     }
   }
+
+  // Prevent lag on cell selection state change
+  [self display];
 }
 
 @end

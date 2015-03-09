@@ -46,6 +46,9 @@
 
   [self.titleLabel setStyle:KBLabelStyleDefault appearance:appearance];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:_searchResult appearance:appearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+
+  // Prevent lag on cell selection state change
+  [self display];
 }
 
 @end
