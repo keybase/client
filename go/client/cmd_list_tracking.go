@@ -41,13 +41,17 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 func DisplayTable(entries []keybase_1.UserSummary, verbose bool, headers bool) (err error) {
 	var cols []string
 
-	if headers && verbose {
-		cols = []string{
-			"Username",
-			"Sig ID",
-			"PGP fingerprints",
-			"When Tracked",
-			"Proofs",
+	if headers {
+		if verbose {
+			cols = []string{
+				"Username",
+				"Sig ID",
+				"PGP fingerprints",
+				"When Tracked",
+				"Proofs",
+			}
+		} else {
+			cols = []string{"Username"}
 		}
 	}
 
