@@ -664,6 +664,46 @@
 
 @end
 
+@implementation KBRReadResult
+@end
+
+@implementation KBRStreamRequest
+
+- (void)writeWithBuffer:(NSData *)buffer completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"buffer": KBRValue(buffer)}];
+  [self.client sendRequestWithMethod:@"keybase.1.Stream.write" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)flush:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.Stream.flush" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)close:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.Stream.close" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)read:(void (^)(NSError *error, KBRReadResult *readResult))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.Stream.read" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRReadResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRReadResult.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBRTrackRequest
 
 - (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion {
@@ -1358,6 +1398,17 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.arg = [MTLJSONAdapter modelOfClass:KBRSigListArgs.class fromJSONDictionary:params[0][@"arg"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRWriteRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.buffer = params[0][@"buffer"];
   }
   return self;
 }

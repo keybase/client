@@ -1652,6 +1652,93 @@ func (c SigsClient) SigListJSON(arg SigListArgs) (res string, err error) {
 	return
 }
 
+type ReadResult struct {
+	Buffer []byte `codec:"buffer" json:"buffer"`
+	Eof    bool   `codec:"eof" json:"eof"`
+}
+
+type WriteArg struct {
+	Buffer []byte `codec:"buffer" json:"buffer"`
+}
+
+type FlushArg struct {
+}
+
+type CloseArg struct {
+}
+
+type ReadArg struct {
+}
+
+type StreamInterface interface {
+	Write([]byte) error
+	Flush() error
+	Close() error
+	Read() (ReadResult, error)
+}
+
+func StreamProtocol(i StreamInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.Stream",
+		Methods: map[string]rpc2.ServeHook{
+			"write": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]WriteArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Write(args[0].Buffer)
+				}
+				return
+			},
+			"flush": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FlushArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Flush()
+				}
+				return
+			},
+			"close": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CloseArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Close()
+				}
+				return
+			},
+			"read": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ReadArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Read()
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type StreamClient struct {
+	Cli GenericClient
+}
+
+func (c StreamClient) Write(buffer []byte) (err error) {
+	__arg := WriteArg{Buffer: buffer}
+	err = c.Cli.Call("keybase.1.Stream.write", []interface{}{__arg}, nil)
+	return
+}
+
+func (c StreamClient) Flush() (err error) {
+	err = c.Cli.Call("keybase.1.Stream.flush", []interface{}{FlushArg{}}, nil)
+	return
+}
+
+func (c StreamClient) Close() (err error) {
+	err = c.Cli.Call("keybase.1.Stream.close", []interface{}{CloseArg{}}, nil)
+	return
+}
+
+func (c StreamClient) Read() (res ReadResult, err error) {
+	err = c.Cli.Call("keybase.1.Stream.read", []interface{}{ReadArg{}}, &res)
+	return
+}
+
 type TrackArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TheirName string `codec:"theirName" json:"theirName"`

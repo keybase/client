@@ -1,0 +1,16 @@
+
+@namespace("keybase.1")
+
+protocol Stream {
+
+	record ReadResult {
+		bytes buffer;
+		boolean eof;
+	}
+
+	void write(bytes buffer);
+	void flush();
+	void close();
+	ReadResult read();
+
+}
