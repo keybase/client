@@ -23,6 +23,7 @@ build-stamp: \
 	json/log_ui.json \
 	json/login.json \
 	json/login_ui.json \
+	json/pgpcmds.json \
 	json/prove.json \
 	json/prove_ui.json \
 	json/quota.json \
@@ -31,7 +32,6 @@ build-stamp: \
 	json/sibkey.json \
 	json/signup.json \
 	json/sigs.json \
-	json/stream.json \
 	json/track.json \
 	json/ui.json \
 	json/user.json 

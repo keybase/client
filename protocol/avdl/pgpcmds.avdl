@@ -1,0 +1,16 @@
+@namespace("keybase.1")
+
+protocol pgpcmds {
+	import idl "common.avdl";
+
+	record AvdlFile {
+		int id;
+	}
+
+	void close(AvdlFile f);
+	bytes read(AvdlFile f);
+	int write(AvdlFile f, bytes buffer);
+
+	// Return a source that we should be writing to.
+	AvdlFile sign(AvdlFile sink, string keyQuery);
+}

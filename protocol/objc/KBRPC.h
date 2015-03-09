@@ -338,6 +338,21 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
+@interface KBRAvdlFile : KBRObject
+@property NSInteger id;
+@end
+
+@interface KBRPgpcmdsRequest : KBRRequest
+- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion;
+
+- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion;
+
+- (void)signWithSink:(KBRAvdlFile *)sink keyQuery:(NSString *)keyQuery completion:(void (^)(NSError *error, KBRAvdlFile *avdlFile))completion;
+
+@end
+
 @interface KBRProveRequest : KBRRequest
 - (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion;
 
@@ -464,19 +479,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
-@interface KBRReadResult : KBRObject
-@property NSData *buffer;
-@property BOOL eof;
-@end
-
 @interface KBRStreamRequest : KBRRequest
-- (void)writeWithBuffer:(NSData *)buffer completion:(void (^)(NSError *error))completion;
+- (void)closeWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error))completion;
 
-- (void)flush:(void (^)(NSError *error))completion;
+- (void)readWithF:(KBRAvdlFile *)f completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)close:(void (^)(NSError *error))completion;
-
-- (void)read:(void (^)(NSError *error, KBRReadResult *readResult))completion;
+- (void)writeWithF:(KBRAvdlFile *)f buffer:(NSData *)buffer completion:(void (^)(NSError *error, NSInteger n))completion;
 
 @end
 
@@ -681,6 +689,20 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL pushPublic;
 @property BOOL pushPrivate;
 @end
+@interface KBRCloseRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@end
+@interface KBRReadRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@end
+@interface KBRWriteRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@property NSData *buffer;
+@end
+@interface KBRSignRequestParams : KBRRequestParams
+@property KBRAvdlFile *sink;
+@property NSString *keyQuery;
+@end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;
 @property NSString *username;
@@ -761,7 +783,14 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSigListJSONRequestParams : KBRRequestParams
 @property KBRSigListArgs *arg;
 @end
+@interface KBRCloseRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@end
+@interface KBRReadRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
+@end
 @interface KBRWriteRequestParams : KBRRequestParams
+@property KBRAvdlFile *f;
 @property NSData *buffer;
 @end
 @interface KBRTrackRequestParams : KBRRequestParams
