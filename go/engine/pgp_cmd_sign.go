@@ -11,13 +11,9 @@ type PGPCmdSignEngine struct {
 	libkb.Contextified
 }
 
-type PGPCmdBaseArg struct {
-	Sink   io.WriteCloser
-	Source io.ReadCloser
-}
-
 type PGPCmdSignArg struct {
-	PGPCmdBaseArg
+	Sink     io.WriteCloser
+	Source   io.ReadCloser
 	Binary   bool
 	KeyQuery string
 }
@@ -63,6 +59,7 @@ func (p *PGPCmdSignEngine) Run(ctx *Context, args interface{}, reply interface{}
 		Reason:   "command-line signature",
 		PGPOnly:  true,
 		KeyQuery: p.arg.KeyQuery,
+		Ui:       ctx.SecretUI,
 	}
 
 	key, err = p.G().Keyrings.GetSecretKey(ska)

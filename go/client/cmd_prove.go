@@ -5,7 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"io/ioutil"
 	"os"
@@ -45,16 +45,8 @@ type ProveUIServer struct {
 	eng libkb.ProveUI
 }
 
-type SecretUIServer struct {
-	eng libkb.SecretUI
-}
-
 func NewProveUIProtocol(ui ProveUI) rpc2.Protocol {
 	return keybase_1.ProveUiProtocol(&ProveUIServer{ui})
-}
-
-func NewSecretUIProtocol() rpc2.Protocol {
-	return keybase_1.SecretUiProtocol(&SecretUIServer{G_UI.GetSecretUI()})
 }
 
 func (p *ProveUIServer) PromptOverwrite(arg keybase_1.PromptOverwriteArg) (bool, error) {
@@ -79,20 +71,6 @@ func (p *ProveUIServer) OkToCheck(arg keybase_1.OkToCheckArg) (bool, error) {
 func (p *ProveUIServer) DisplayRecheckWarning(arg keybase_1.DisplayRecheckWarningArg) error {
 	p.eng.DisplayRecheckWarning(arg.Text)
 	return nil
-}
-func (s *SecretUIServer) GetSecret(arg keybase_1.GetSecretArg) (res keybase_1.SecretEntryRes, err error) {
-	var resp *keybase_1.SecretEntryRes
-	resp, err = s.eng.GetSecret(arg.Pinentry, arg.Terminal)
-	if resp != nil {
-		res = *resp
-	}
-	return
-}
-func (s *SecretUIServer) GetNewPassphrase(arg keybase_1.GetNewPassphraseArg) (string, error) {
-	return s.eng.GetNewPassphrase(arg)
-}
-func (s *SecretUIServer) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (string, error) {
-	return s.eng.GetKeybasePassphrase(arg)
 }
 
 func (v *CmdProve) RunClient() (err error) {

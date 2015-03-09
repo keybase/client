@@ -22,10 +22,8 @@ func (h *PGPCmdsHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 	sessionID := arg.SessionID
 
 	earg := engine.PGPCmdSignArg{
-		PGPCmdBaseArg: engine.PGPCmdBaseArg{
-			Sink:   snk,
-			Source: src,
-		},
+		Sink:     snk,
+		Source:   src,
 		Binary:   arg.Binary,
 		KeyQuery: arg.KeyQuery,
 	}

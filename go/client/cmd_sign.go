@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
@@ -72,7 +73,10 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 func (s *CmdSign) RunClient() (err error) {
 	var cli keybase_1.PgpcmdsClient
 	var snk, src keybase_1.Stream
-	protocols := []rpc2.Protocol{NewStreamUiProtocol()}
+	protocols := []rpc2.Protocol{
+		NewStreamUiProtocol(),
+		NewSecretUIProtocol(),
+	}
 
 	if cli, err = GetPgpcmdsClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
@@ -94,6 +98,17 @@ func (s *CmdSign) Run() (err error) {
 	if err = s.FilterOpen(); err != nil {
 		return
 	}
+	earg := engine.PGPCmdSignArg{
+		Sink:     s.sink,
+		Source:   s.source,
+		KeyQuery: s.keyQuery,
+		Binary:   s.binary,
+	}
+	ctx := engine.Context{
+		SecretUI: G_UI.GetSecretUI(),
+	}
+	eng := engine.NewPGPCmdSignEngine(&earg)
+	err = engine.RunEngine(eng, &ctx, nil, nil)
 	s.Close(err)
 	return err
 }

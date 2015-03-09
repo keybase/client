@@ -32,6 +32,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 	srv.Register(keybase_1.SigsProtocol(NewSigsHandler(xp)))
 	srv.Register(keybase_1.TrackProtocol(NewTrackHandler(xp)))
 	srv.Register(keybase_1.UserProtocol(NewUserHandler(xp)))
+	srv.Register(keybase_1.PgpcmdsProtocol(NewPGPCmdsHandler(xp)))
 }
 
 func (d *Daemon) Handle(c net.Conn) {
