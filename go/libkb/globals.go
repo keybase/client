@@ -153,6 +153,11 @@ func (g *GlobalContext) ConfigureSecretSyncer() error {
 	return nil
 }
 
+func (g *GlobalContext) ConfigureExportedStreams() error {
+	g.XStreams = NewExportedStreams()
+	return nil
+}
+
 func (g *GlobalContext) Shutdown() error {
 	if g.shutdown {
 		return nil
@@ -212,6 +217,10 @@ func (g *GlobalContext) ConfigureAll(line CommandLine, cmd Command) error {
 	}
 
 	if err = g.ConfigureSecretSyncer(); err != nil {
+		return err
+	}
+
+	if err = g.ConfigureExportedStreams(); err != nil {
 		return err
 	}
 

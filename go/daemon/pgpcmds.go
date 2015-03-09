@@ -15,14 +15,6 @@ func NewPGPCmdsHandler(xp *rpc2.Transport) *PGPCmdsHandler {
 	return &PGPCmdsHandler{BaseHandler{xp: xp}}
 }
 
-type WriteCloser struct {
-	f keybase_1.AvdlFile
-}
-
-func (w WriteClose) Write(data []byte) (n int, err error) {
-
-}
-
 func (h *PGPCmdsHandler) PgpSign(arg keybase_1.PgpSignArg) (source keybase_1.AvdlFile, err error) {
 	return
 }

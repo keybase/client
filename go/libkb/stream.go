@@ -21,6 +21,12 @@ type ExportedStreams struct {
 	sync.Mutex
 }
 
+func NewExportedStreams() *ExportedStreams {
+	return &ExportedStreams{
+		m: make(map[int]*ExportedStream),
+	}
+}
+
 func (s *ExportedStreams) ExportWriter(i int, w io.WriteCloser) (ret *keybase_1.Stream, err error) {
 	s.Lock()
 	defer s.Unlock()
