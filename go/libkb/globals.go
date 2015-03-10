@@ -251,7 +251,7 @@ func (g *GlobalContext) OutputBytes(b []byte) {
 
 func (g *GlobalContext) GetGpgClient() *GpgCLI {
 	if g.GpgClient == nil {
-		g.GpgClient = NewGpgCLI()
+		g.GpgClient = NewGpgCLI(GpgCLIArg{})
 	}
 	return g.GpgClient
 }

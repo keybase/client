@@ -352,6 +352,8 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @interface KBRPgpRequest : KBRRequest
 - (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion;
 
+- (void)pgpPullWithSessionID:(NSInteger)sessionID userAsserts:(NSArray *)userAsserts completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRProveRequest : KBRRequest
@@ -689,6 +691,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRStream *source;
 @property KBRStream *sink;
 @property KBRPgpSignOptions *opts;
+@end
+@interface KBRPgpPullRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *userAsserts;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;

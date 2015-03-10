@@ -19,10 +19,24 @@ type GpgCLI struct {
 	configError    error
 
 	mutex *sync.Mutex
+
+	logUI LogUI
 }
 
-func NewGpgCLI() *GpgCLI {
-	return &GpgCLI{configured: false, mutex: new(sync.Mutex)}
+type GpgCLIArg struct {
+	LogUI LogUI // If nil, use the global
+}
+
+func NewGpgCLI(arg GpgCLIArg) *GpgCLI {
+	logUI := arg.LogUI
+	if logUI == nil {
+		logUI = G.Log
+	}
+	return &GpgCLI{
+		configured: false,
+		mutex:      new(sync.Mutex),
+		logUI:      logUI,
+	}
 }
 
 func (g *GpgCLI) Configure() (configExplicit bool, err error) {
@@ -50,7 +64,7 @@ func (g *GpgCLI) Configure() (configExplicit bool, err error) {
 		}
 	}
 
-	G.Log.Debug("| configured GPG w/ path: %s", prog)
+	g.logUI.Debug("| configured GPG w/ path: %s", prog)
 
 	g.path = prog
 	g.options = opts
@@ -208,7 +222,7 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 	if !arg.Stdout {
 		out++
 		go func() {
-			ch <- DrainPipe(stdout, func(s string) { G.Log.Info(s) })
+			ch <- DrainPipe(stdout, func(s string) { g.logUI.Info(s) })
 		}()
 	} else {
 		res.Stdout = stdout
@@ -217,7 +231,7 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 	if !arg.Stderr {
 		out++
 		go func() {
-			ch <- DrainPipe(stderr, func(s string) { G.Log.Warning(s) })
+			ch <- DrainPipe(stderr, func(s string) { g.logUI.Warning(s) })
 		}()
 	} else {
 		res.Stderr = stderr
@@ -235,7 +249,7 @@ func (g *GpgCLI) MakeCmd(args []string) *exec.Cmd {
 	} else {
 		nargs = args
 	}
-	G.Log.Debug("| running Gpg: %s %v", g.path, nargs)
+	g.logUI.Debug("| running Gpg: %s %v", g.path, nargs)
 	return exec.Command(g.path, nargs...)
 }
 
@@ -283,13 +297,13 @@ func (g *GpgCLI) Run(arg RunGpgArg) (res RunGpgRes) {
 	if arg.Stdout != nil {
 		_, e1 = io.Copy(arg.Stdout, stdout)
 	} else {
-		e1 = DrainPipe(stdout, func(s string) { G.Log.Info(s) })
+		e1 = DrainPipe(stdout, func(s string) { g.logUI.Info(s) })
 	}
 
 	if arg.Stderr != nil {
 		_, e2 = io.Copy(arg.Stderr, stderr)
 	} else {
-		e2 = DrainPipe(stderr, func(s string) { G.Log.Warning(s) })
+		e2 = DrainPipe(stderr, func(s string) { g.logUI.Warning(s) })
 	}
 
 	if !arg.Stdin {

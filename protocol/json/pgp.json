@@ -167,6 +167,19 @@
         "type" : "PgpSignOptions"
       } ],
       "response" : "null"
+    },
+    "pgpPull" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "userAsserts",
+        "type" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      } ],
+      "response" : "null"
     }
   }
 }

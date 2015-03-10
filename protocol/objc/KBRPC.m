@@ -454,6 +454,13 @@
   }];
 }
 
+- (void)pgpPullWithSessionID:(NSInteger)sessionID userAsserts:(NSArray *)userAsserts completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"userAsserts": KBRValue(userAsserts)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpPull" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRProveRequest
@@ -1176,6 +1183,18 @@
     self.source = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"source"] error:nil];
     self.sink = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"sink"] error:nil];
     self.opts = [MTLJSONAdapter modelOfClass:KBRPgpSignOptions.class fromJSONDictionary:params[0][@"opts"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpPullRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.userAsserts = [MTLJSONAdapter modelsOfClass:KBRstring.class fromJSONArray:params[0][@"userAsserts"] error:nil];
   }
   return self;
 }

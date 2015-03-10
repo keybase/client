@@ -1098,8 +1098,14 @@ type PgpSignArg struct {
 	Opts      PgpSignOptions `codec:"opts" json:"opts"`
 }
 
+type PgpPullArg struct {
+	SessionID   int      `codec:"sessionID" json:"sessionID"`
+	UserAsserts []string `codec:"userAsserts" json:"userAsserts"`
+}
+
 type PgpInterface interface {
 	PgpSign(PgpSignArg) error
+	PgpPull(PgpPullArg) error
 }
 
 func PgpProtocol(i PgpInterface) rpc2.Protocol {
@@ -1110,6 +1116,13 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				args := make([]PgpSignArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PgpSign(args[0])
+				}
+				return
+			},
+			"pgpPull": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpPullArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpPull(args[0])
 				}
 				return
 			},
@@ -1124,6 +1137,11 @@ type PgpClient struct {
 
 func (c PgpClient) PgpSign(__arg PgpSignArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpSign", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpPull(__arg PgpPullArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpPull", []interface{}{__arg}, nil)
 	return
 }
 

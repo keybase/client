@@ -24,3 +24,14 @@ func (h *PGPHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 	eng := engine.NewPGPSignEngine(&earg)
 	return engine.RunEngine(eng, &ctx, nil, nil)
 }
+
+func (h *PGPHandler) PgpPull(arg keybase_1.PgpPullArg) error {
+	earg := engine.PGPPullEngineArg{
+		UserAsserts: arg.UserAsserts,
+	}
+	ctx := engine.Context{
+		LogUI: h.getLogUI(arg.SessionID),
+	}
+	eng := engine.NewPGPPullEngine(&earg)
+	return engine.RunEngine(eng, &ctx, nil, nil)
+}
