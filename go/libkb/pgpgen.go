@@ -1,12 +1,15 @@
 package libkb
 
 import (
+	"crypto"
 	"crypto/rsa"
 	"fmt"
+	"strings"
+
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/errors"
 	"golang.org/x/crypto/openpgp/packet"
-	"strings"
+	"golang.org/x/crypto/openpgp/s2k"
 )
 
 type PGPGenArg struct {
@@ -77,6 +80,7 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 		PrivateKey: packet.NewRSAPrivateKey(currentTime, masterPriv),
 		Identities: make(map[string]*openpgp.Identity),
 	}
+
 	for i, uid := range uids {
 		isPrimaryId := true
 		if i > 0 {
@@ -86,15 +90,18 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 			Name:   uid.Name,
 			UserId: uid,
 			SelfSignature: &packet.Signature{
-				CreationTime: currentTime,
-				SigType:      packet.SigTypePositiveCert,
-				PubKeyAlgo:   packet.PubKeyAlgoRSA,
-				Hash:         arg.Config.Hash(),
-				IsPrimaryId:  &isPrimaryId,
-				FlagsValid:   true,
-				FlagSign:     true,
-				FlagCertify:  true,
-				IssuerKeyId:  &e.PrimaryKey.KeyId,
+				CreationTime:         currentTime,
+				SigType:              packet.SigTypePositiveCert,
+				PubKeyAlgo:           packet.PubKeyAlgoRSA,
+				Hash:                 arg.Config.Hash(),
+				IsPrimaryId:          &isPrimaryId,
+				FlagsValid:           true,
+				FlagSign:             true,
+				FlagCertify:          true,
+				IssuerKeyId:          &e.PrimaryKey.KeyId,
+				PreferredSymmetric:   arg.PreferredSymmetric(),
+				PreferredHash:        arg.PreferredHash(),
+				PreferredCompression: arg.PreferredCompression(),
 			},
 		}
 		id.SelfSignature.KeyLifetimeSecs = ui32p(arg.PrimaryLifetime)
@@ -114,6 +121,9 @@ func NewPgpKeyBundle(arg PGPGenArg, logUI LogUI) (*PgpKeyBundle, error) {
 			FlagEncryptStorage:        true,
 			FlagEncryptCommunications: true,
 			IssuerKeyId:               &e.PrimaryKey.KeyId,
+			PreferredSymmetric:        arg.PreferredSymmetric(),
+			PreferredHash:             arg.PreferredHash(),
+			PreferredCompression:      arg.PreferredCompression(),
 		},
 	}
 	e.Subkeys[0].PublicKey.IsSubkey = true
@@ -182,4 +192,38 @@ func (a *PGPGenArg) Init() (err error) {
 		a.SubkeyLifetime = SUBKEY_EXPIRE_IN
 	}
 	return
+}
+
+func (a *PGPGenArg) PreferredSymmetric() []uint8 {
+	return []uint8{
+		uint8(packet.CipherAES128),
+		uint8(packet.CipherAES256),
+		uint8(packet.CipherCAST5),
+	}
+}
+
+func (a *PGPGenArg) PreferredHash() []uint8 {
+	gohash := []crypto.Hash{
+		crypto.SHA256,
+		crypto.SHA512,
+		crypto.SHA1,
+		crypto.RIPEMD160,
+	}
+	var res []uint8
+	for _, h := range gohash {
+		id, ok := s2k.HashToHashId(h)
+		if !ok {
+			continue
+		}
+		res = append(res, id)
+	}
+	return res
+}
+
+func (a *PGPGenArg) PreferredCompression() []uint8 {
+	return []uint8{
+		uint8(packet.CompressionNone),
+		uint8(packet.CompressionZIP),
+		uint8(packet.CompressionZLIB),
+	}
 }
