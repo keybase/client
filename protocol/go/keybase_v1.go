@@ -348,38 +348,6 @@ func (c DoctorUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err err
 	return
 }
 
-type AddGpgKeyArg struct {
-}
-
-type GpgInterface interface {
-	AddGpgKey() error
-}
-
-func GpgProtocol(i GpgInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.gpg",
-		Methods: map[string]rpc2.ServeHook{
-			"addGpgKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]AddGpgKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.AddGpgKey()
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type GpgClient struct {
-	Cli GenericClient
-}
-
-func (c GpgClient) AddGpgKey() (err error) {
-	err = c.Cli.Call("keybase.1.gpg.addGpgKey", []interface{}{AddGpgKeyArg{}}, nil)
-	return
-}
-
 type GPGKey struct {
 	Algorithm  string   `codec:"algorithm" json:"algorithm"`
 	KeyID      string   `codec:"keyID" json:"keyID"`

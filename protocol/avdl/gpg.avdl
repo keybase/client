@@ -1,7 +1,0 @@
-@namespace("keybase.1")
-
-protocol gpg {
-	import idl "common.avdl";
-
-	void addGpgKey();
-}
