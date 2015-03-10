@@ -1108,12 +1108,26 @@ func (c MykeyClient) SavePGPKey(__arg SavePGPKeyArg) (err error) {
 	return
 }
 
+type SignMode int
+
+const (
+	SignMode_ATTACHED = 0
+	SignMode_DETACHED = 1
+	SignMode_CLEAR    = 2
+)
+
+type PgpSignOptions struct {
+	KeyQuery  string   `codec:"keyQuery" json:"keyQuery"`
+	Mode      SignMode `codec:"mode" json:"mode"`
+	BinaryIn  bool     `codec:"binaryIn" json:"binaryIn"`
+	BinaryOut bool     `codec:"binaryOut" json:"binaryOut"`
+}
+
 type PgpSignArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Source    Stream `codec:"source" json:"source"`
-	Sink      Stream `codec:"sink" json:"sink"`
-	KeyQuery  string `codec:"keyQuery" json:"keyQuery"`
-	Binary    bool   `codec:"binary" json:"binary"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Source    Stream         `codec:"source" json:"source"`
+	Sink      Stream         `codec:"sink" json:"sink"`
+	Opts      PgpSignOptions `codec:"opts" json:"opts"`
 }
 
 type PgpcmdsInterface interface {

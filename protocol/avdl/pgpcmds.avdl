@@ -3,6 +3,19 @@
 protocol pgpcmds {
 	import idl "common.avdl";
 
+	enum SignMode {
+		ATTACHED,
+		DETACHED,
+		CLEAR
+	}
+
+	record PgpSignOptions {
+		string keyQuery;
+		SignMode mode;
+		boolean binaryIn;
+		boolean binaryOut;
+	}
+
 	// Return a source that we should be writing to.
-	void pgpSign(int sessionID, Stream source, Stream sink, string keyQuery, boolean binary);
+	void pgpSign(int sessionID, Stream source, Stream sink, PgpSignOptions opts);
 }

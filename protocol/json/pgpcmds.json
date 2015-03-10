@@ -130,6 +130,26 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
+  }, {
+    "type" : "enum",
+    "name" : "SignMode",
+    "symbols" : [ "ATTACHED", "DETACHED", "CLEAR" ]
+  }, {
+    "type" : "record",
+    "name" : "PgpSignOptions",
+    "fields" : [ {
+      "name" : "keyQuery",
+      "type" : "string"
+    }, {
+      "name" : "mode",
+      "type" : "SignMode"
+    }, {
+      "name" : "binaryIn",
+      "type" : "boolean"
+    }, {
+      "name" : "binaryOut",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "pgpSign" : {
@@ -143,11 +163,8 @@
         "name" : "sink",
         "type" : "Stream"
       }, {
-        "name" : "keyQuery",
-        "type" : "string"
-      }, {
-        "name" : "binary",
-        "type" : "boolean"
+        "name" : "opts",
+        "type" : "PgpSignOptions"
       } ],
       "response" : "null"
     }

@@ -21,7 +21,19 @@ func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "b, binary",
-				Usage: "output binary message (armored by default",
+				Usage: "output binary message (armored by default)",
+			},
+			cli.BoolFlag{
+				Name:  "t, text",
+				Usage: "treat input data as text and canonicalize",
+			},
+			cli.BoolFlag{
+				Name:  "d, detached",
+				Usage: "detached signature (we do attached by default)",
+			},
+			cli.BoolFlag{
+				Name:  "c, clearsign",
+				Usage: "generate a clearsigned text signature",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
@@ -41,16 +53,18 @@ func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPSign struct {
 	UnixFilter
-	binary   bool
-	msg      string
-	keyQuery string
+	msg  string
+	opts keybase_1.PgpSignOptions
+	arg  engine.PGPSignArg
 }
 
 func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	s.binary = ctx.Bool("binary")
+	s.opts.BinaryOut = ctx.Bool("binary")
+	s.opts.BinaryIn = !ctx.Bool("text")
+
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	var infile string
@@ -61,7 +75,20 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 		err = fmt.Errorf("sign takes at most 1 arg, an infile")
 	}
 
-	s.keyQuery = ctx.String("key")
+	clr := ctx.Bool("clearsign")
+	dtch := ctx.Bool("detached")
+
+	if clr && dtch {
+		err = fmt.Errorf("Can't specify both -c and -d")
+	} else if clr {
+		s.opts.Mode = keybase_1.SignMode_CLEAR
+	} else if dtch {
+		s.opts.Mode = keybase_1.SignMode_DETACHED
+	} else {
+		s.opts.Mode = keybase_1.SignMode_ATTACHED
+	}
+
+	s.opts.KeyQuery = ctx.String("key")
 
 	if err == nil {
 		err = s.FilterInit(msg, infile, outfile)
@@ -82,12 +109,7 @@ func (s *CmdPGPSign) RunClient() (err error) {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else if snk, src, err = s.ClientFilterOpen(); err != nil {
 	} else {
-		arg := keybase_1.PgpSignArg{
-			Source:   src,
-			Sink:     snk,
-			KeyQuery: s.keyQuery,
-			Binary:   s.binary,
-		}
+		arg := keybase_1.PgpSignArg{Source: src, Sink: snk, Opts: s.opts}
 		err = cli.PgpSign(arg)
 	}
 	s.Close(err)
@@ -98,12 +120,7 @@ func (s *CmdPGPSign) Run() (err error) {
 	if err = s.FilterOpen(); err != nil {
 		return
 	}
-	earg := engine.PGPSignArg{
-		Sink:     s.sink,
-		Source:   s.source,
-		KeyQuery: s.keyQuery,
-		Binary:   s.binary,
-	}
+	earg := engine.PGPSignArg{Sink: s.sink, Source: s.source, Opts: s.opts}
 	ctx := engine.Context{
 		SecretUI: G_UI.GetSecretUI(),
 	}

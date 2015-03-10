@@ -3,7 +3,11 @@ package engine
 import (
 	"fmt"
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"io"
+
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/clearsign"
 )
 
 type PGPSignEngine struct {
@@ -12,10 +16,9 @@ type PGPSignEngine struct {
 }
 
 type PGPSignArg struct {
-	Sink     io.WriteCloser
-	Source   io.ReadCloser
-	Binary   bool
-	KeyQuery string
+	Sink   io.WriteCloser
+	Source io.ReadCloser
+	Opts   keybase_1.PgpSignOptions
 }
 
 func (p *PGPSignEngine) GetPrereqs() EnginePrereqs {
@@ -60,7 +63,7 @@ func (p *PGPSignEngine) Run(ctx *Context, args interface{}, reply interface{}) (
 	ska := libkb.SecretKeyArg{
 		Reason:   "command-line signature",
 		PGPOnly:  true,
-		KeyQuery: p.arg.KeyQuery,
+		KeyQuery: p.arg.Opts.KeyQuery,
 		Ui:       ctx.SecretUI,
 	}
 
@@ -76,15 +79,39 @@ func (p *PGPSignEngine) Run(ctx *Context, args interface{}, reply interface{}) (
 		return
 	}
 
-	dumpTo, err = libkb.AttachedSignWrapper(p.arg.Sink, *pgp, !p.arg.Binary)
+	bo := p.arg.Opts.BinaryOut
+	bi := p.arg.Opts.BinaryIn
+	pgpe := (*openpgp.Entity)(pgp)
+	mode := p.arg.Opts.Mode
+
+	switch mode {
+	case keybase_1.SignMode_ATTACHED:
+		dumpTo, err = libkb.AttachedSignWrapper(p.arg.Sink, *pgp, !bo)
+	case keybase_1.SignMode_DETACHED:
+		if bi && bo {
+			err = openpgp.DetachSign(p.arg.Sink, pgpe, p.arg.Source, nil)
+		} else if bi && !bo {
+			err = openpgp.ArmoredDetachSign(p.arg.Sink, pgpe, p.arg.Source, nil)
+		} else if !bi && bo {
+			err = openpgp.DetachSignText(p.arg.Sink, pgpe, p.arg.Source, nil)
+		} else {
+			err = openpgp.ArmoredDetachSignText(p.arg.Sink, pgpe, p.arg.Source, nil)
+		}
+	case keybase_1.SignMode_CLEAR:
+		dumpTo, err = clearsign.Encode(p.arg.Sink, pgp.PrivateKey, nil)
+	default:
+		err = fmt.Errorf("unrecognized sign mode: %s", int(mode))
+	}
+
 	if err != nil {
 		return
 	}
 
-	written, err = io.Copy(dumpTo, p.arg.Source)
-
-	if err == nil && written == 0 {
-		err = fmt.Errorf("Empty source file, nothing to sign")
+	if dumpTo != nil {
+		written, err = io.Copy(dumpTo, p.arg.Source)
+		if err == nil && written == 0 {
+			err = fmt.Errorf("Empty source file, nothing to sign")
+		}
 	}
 
 	return

@@ -453,10 +453,13 @@
 
 @end
 
+@implementation KBRPgpSignOptions
+@end
+
 @implementation KBRPgpcmdsRequest
 
-- (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink keyQuery:(NSString *)keyQuery binary:(BOOL)binary completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"source": KBRValue(source), @"sink": KBRValue(sink), @"keyQuery": KBRValue(keyQuery), @"binary": @(binary)}];
+- (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"source": KBRValue(source), @"sink": KBRValue(sink), @"opts": KBRValue(opts)}];
   [self.client sendRequestWithMethod:@"keybase.1.pgpcmds.pgpSign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1183,8 +1186,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.source = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"source"] error:nil];
     self.sink = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"sink"] error:nil];
-    self.keyQuery = params[0][@"keyQuery"];
-    self.binary = [params[0][@"binary"] boolValue];
+    self.opts = [MTLJSONAdapter modelOfClass:KBRPgpSignOptions.class fromJSONDictionary:params[0][@"opts"] error:nil];
   }
   return self;
 }
