@@ -13,7 +13,7 @@
 
 typedef void (^KBWork)(KBCompletionBlock completion);
 
-@interface KBProgressView : KBView
+@interface KBProgressView : YONSView
 
 @property (copy) KBWork work;
 

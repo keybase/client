@@ -26,7 +26,7 @@
   [self addSubview:_splitView];
 
   _devicesView = [KBListView listViewWithPrototypeClass:KBDeviceView.class rowHeight:56];
-  _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
+  _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued) {
     [view setDevice:device];
   };
   _devicesView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
@@ -42,7 +42,7 @@
   self.viewLayout = [YOLayout fill:_splitView];
 }
 
-- (void)refresh {
+- (void)reload {
   KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:_client];
   GHWeakSelf gself = self;
   [request deviceListWithSessionID:request.sessionId completion:^(NSError *error, NSArray *items) {

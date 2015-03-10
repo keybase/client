@@ -17,10 +17,7 @@
 - (void)GPGKeysView:(KBGPGKeysView *)GPGKeysView didSelectGPGKey:(KBRGPGKey *)GPGKey;
 @end
 
-@interface KBGPGKeysView : YONSView <NSTableViewDelegate, NSTableViewDataSource>
-
-@property NSTableView *tableView;
-@property NSScrollView *scrollView;
+@interface KBGPGKeysView : KBTableView
 
 @property (weak) id<KBGPGKeysViewDelegate> delegate;
 

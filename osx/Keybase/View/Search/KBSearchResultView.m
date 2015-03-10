@@ -21,7 +21,7 @@
 
 - (void)setSearchResult:(KBSearchResult *)searchResult {
   _searchResult = searchResult;
-  [self.titleLabel setText:searchResult.userName style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [self.titleLabel setText:searchResult.userName style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:searchResult appearance:KBAppearance.currentAppearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [(KBUserImageView *)self.imageView setUsername:searchResult.userName];
   self.imageSize = CGSizeMake(40, 40);
@@ -47,8 +47,7 @@
   [self.titleLabel setStyle:KBLabelStyleDefault appearance:appearance];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:_searchResult appearance:appearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
-  // Prevent lag on cell selection state change
-  [self display];
+  [self setNeedsLayout];
 }
 
 @end

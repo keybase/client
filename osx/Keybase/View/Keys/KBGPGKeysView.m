@@ -8,64 +8,40 @@
 
 #import "KBGPGKeysView.h"
 
-#import "KBGPGKeyView.h"
 #import "KBAppearance.h"
+#import "KBCellDataSource.h"
 
 @interface KBGPGKeysView ()
-@property NSMutableArray *dataSource;
 @end
 
 @implementation KBGPGKeysView
 
 - (void)viewInit {
   [super viewInit];
-  _dataSource = [NSMutableArray array];
-
-  _tableView = [[NSTableView alloc] init];
-  _tableView.dataSource = self;
-  _tableView.delegate = self;
-  _tableView.gridStyleMask = NSTableViewSolidHorizontalGridLineMask;
-  _tableView.focusRingType = NSFocusRingTypeNone;
-  _tableView.gridColor = KBAppearance.currentAppearance.tableGridColor;
-
-  NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@"algorithm"];
-  column1.title = @"Algorithm";
-  [_tableView addTableColumn:column1];
-  NSTableColumn *column2 = [[NSTableColumn alloc] initWithIdentifier:@"keyID"];
-  column2.title = @"Key Id";
-  [_tableView addTableColumn:column2];
-  NSTableColumn *column3 = [[NSTableColumn alloc] initWithIdentifier:@"expiration"];
-  column3.title = @"Expiration";
-  [_tableView addTableColumn:column3];
-  NSTableColumn *column4 = [[NSTableColumn alloc] initWithIdentifier:@"identities"];
-  column4.title = @"Email";
-  [_tableView addTableColumn:column4];
-
-  _scrollView = [[NSScrollView alloc] init];
-  [_scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
-  _scrollView.hasVerticalScroller = YES;
-  _scrollView.autohidesScrollers = YES;
-  [_scrollView setDocumentView:_tableView];
-  [self addSubview:_scrollView];
-
   self.wantsLayer = YES;
   self.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
   self.layer.borderWidth = 1.0;
 
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    [layout setSize:size view:yself.scrollView options:0];
+  self.view.gridStyleMask = NSTableViewSolidHorizontalGridLineMask;
+  self.view.focusRingType = NSFocusRingTypeNone;
+  self.view.gridColor = KBAppearance.currentAppearance.tableGridColor;
 
-    // TODO: Move this into after first layout
-    if (![layout isSizing]) [yself.tableView scrollPoint:NSMakePoint(0, -yself.tableView.headerView.frame.size.height)];
-
-    return size;
-  }];
+  NSTableColumn *column1 = [[NSTableColumn alloc] initWithIdentifier:@"algorithm"];
+  column1.title = @"Algorithm";
+  [self.view addTableColumn:column1];
+  NSTableColumn *column2 = [[NSTableColumn alloc] initWithIdentifier:@"keyID"];
+  column2.title = @"Key Id";
+  [self.view addTableColumn:column2];
+  NSTableColumn *column3 = [[NSTableColumn alloc] initWithIdentifier:@"expiration"];
+  column3.title = @"Expiration";
+  [self.view addTableColumn:column3];
+  NSTableColumn *column4 = [[NSTableColumn alloc] initWithIdentifier:@"identities"];
+  column4.title = @"Email";
+  [self.view addTableColumn:column4];
 }
 
 - (void)setGPGKeys:(NSArray */*of KBRGPGKey*/)GPGKeys {
-  [_dataSource addObjectsFromArray:GPGKeys];
-  [_tableView reloadData];
+  [self setObjects:GPGKeys];
 }
 
 - (BOOL)tableView:(NSTableView *)aTableView shouldEditTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
@@ -73,26 +49,24 @@
 }
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+  KBRGPGKey *key = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
   if ([tableColumn.identifier isEqualTo:@"algorithm"]) {
-    return [_dataSource[row] algorithm];
+    return [key algorithm];
   } else if ([tableColumn.identifier isEqualTo:@"keyID"]) {
-    return [_dataSource[row] keyID];
+    return [key keyID];
   } else if ([tableColumn.identifier isEqualTo:@"expiration"]) {
-    return [_dataSource[row] expiration];
+    return [key expiration];
   } else if ([tableColumn.identifier isEqualTo:@"identities"]) {
-    return [[_dataSource[row] identities] join:@", "];
+    return [[key identities] join:@", "];
   }
   return nil;
 }
 
-- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-  return [_dataSource count];
-}
-
 - (KBRGPGKey *)selectedGPGKey {
-  NSInteger selectedRow = [_tableView selectedRow];
+  NSInteger selectedRow = [self.view selectedRow];
   if (selectedRow < 0) return nil;
-  return _dataSource[selectedRow];
+  KBRGPGKey *key = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:selectedRow inSection:0]];
+  return key;
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {

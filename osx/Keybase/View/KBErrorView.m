@@ -48,8 +48,8 @@
 }
 
 - (void)setError:(NSError *)error {
-  [_label setText:error.localizedDescription style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [_descriptionLabel setText:error.localizedRecoverySuggestion style:KBLabelStyleSecondaryText appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_label setText:error.localizedDescription style:KBLabelStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_descriptionLabel setText:error.localizedRecoverySuggestion style:KBLabelStyleSecondaryText alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setNeedsLayout];
 }
 

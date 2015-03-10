@@ -19,8 +19,8 @@
 
 - (void)setTrackEntry:(KBRTrackEntry *)trackEntry {
   self.imageSize = CGSizeMake(40, 40);
-  [self.titleLabel setText:trackEntry.username font:[NSFont boldSystemFontOfSize:16] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-  [self.infoLabel setText:@"" style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [self.titleLabel setText:trackEntry.username font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [self.infoLabel setText:@"" style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   ((KBUserImageView *)self.imageView).username = trackEntry.username;
   [self setNeedsLayout];
 }

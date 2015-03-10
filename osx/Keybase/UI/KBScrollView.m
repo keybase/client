@@ -25,7 +25,7 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, 0) view:yself.scrollView.documentView];
+    [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, size.height) view:yself.scrollView.documentView];
     [layout setSize:size view:yself.scrollView options:0];
     return size;
   }];

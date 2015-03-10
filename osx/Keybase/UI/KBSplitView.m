@@ -30,7 +30,16 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat col1 = yself.dividerPosition;
+    CGFloat col1 = 0;
+
+    if (yself.dividerPosition < 0) {
+      col1 = size.width + yself.dividerPosition;
+    } else {
+      col1 = yself.dividerPosition;
+    }
+    if (yself.dividerRatio > 0) {
+      col1 = size.width * yself.dividerRatio;
+    }
 
     CGFloat y = yself.insets.top + 1;
     y += [layout setFrame:CGRectMake(0, y, size.width, 1) view:borderTop].size.height;

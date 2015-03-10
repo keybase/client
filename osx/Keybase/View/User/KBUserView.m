@@ -18,13 +18,13 @@
 
 - (void)setUser:(KBRUser *)user {
   self.imageSize = CGSizeMake(40, 40);
-  [self.titleLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:user.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   ((KBUserImageView *)self.imageView).username = user.username;
 }
 
 - (void)setUserSummary:(KBRUserSummary *)userSummary {
   self.imageSize = CGSizeMake(40, 40);
-  [self.titleLabel setText:userSummary.username font:[NSFont boldSystemFontOfSize:16] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [self.titleLabel setText:userSummary.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   if (userSummary.proofs.twitter) {
     [self.infoLabel setText:NSStringWithFormat(@"%@@twitter", userSummary.proofs.twitter) style:KBLabelStyleDefault];
   } else {

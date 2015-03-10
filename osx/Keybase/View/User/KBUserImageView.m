@@ -20,7 +20,7 @@
 - (void)setUsername:(NSString *)username {
   _username = username;
   NSString *URLString = [AppDelegate.sharedDelegate.APIClient URLStringWithPath:NSStringWithFormat(@"%@/picture?format=square_200", username)];
-  [self setURLString:URLString defaultURLString:@"https://keybase.io/images/no_photo.png"];
+  [self.imageLoader setURLString:URLString defaultURLString:@"https://keybase.io/images/no_photo.png"];
 }
 
 @end

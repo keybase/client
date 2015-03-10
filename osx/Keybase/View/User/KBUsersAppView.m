@@ -37,7 +37,7 @@
   [self addSubview:_searchField];
 
   _usersView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  _usersView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
+  _usersView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
   _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
@@ -46,7 +46,7 @@
   [self addSubview:_usersView];
 
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
-  _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
+  _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setSearchResult:searchResult];
   };
   _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
@@ -103,8 +103,15 @@
 }
 
 - (void)reload:(BOOL)update {
+  GHWeakSelf gself = self;
   KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:self.client];
   [request listTrackingWithFilter:nil completion:^(NSError *error, NSArray *items) {
+    if (error) {
+      [AppDelegate setError:error sender:self];
+      [gself.usersView removeAllObjects];
+      return;
+    }
+
     [self loadUsernames:[items map:^(KBRTrackEntry *te) { return te.username; }] completion:^(NSError *error, NSArray *userSummaries) {
       [self setUserSummaries:userSummaries update:NO];
     }];

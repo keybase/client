@@ -55,7 +55,7 @@
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
   KBRUser *user = status.user;
 
-  [_nameLabel setText:user.username font:[NSFont boldSystemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [_nameLabel setText:user.username font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
   self.imageView.username = user.username;
 

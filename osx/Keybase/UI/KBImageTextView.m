@@ -63,10 +63,11 @@
   return [[KBImageView alloc] init];
 }
 
-- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource {
+- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource imageSize:(CGSize)imageSize {
   [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
-  [self.infoLabel setText:info style:KBLabelStyleSecondaryText appearance:KBAppearance.currentAppearance];
-  [self.imageView setImageSource:imageSource];
+  [self.infoLabel setText:info style:KBLabelStyleSecondaryText];
+  self.imageSize = imageSize;
+  [self.imageView.imageLoader setImageSource:imageSource];
   self.image = nil;
   self.imageTinted = nil;
   [self setNeedsLayout];
@@ -86,9 +87,7 @@
       self.imageView.image = self.image;
     }
   }
-
-  // Prevent lag on cell selection state change
-  [self display];
+  [self setNeedsLayout];
 }
 
 @end

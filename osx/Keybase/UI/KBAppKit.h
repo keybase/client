@@ -39,7 +39,8 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import "KBProgressOverlayView.h"
 #import "KBActivityIndicatorView.h"
 #import "KBScrollView.h"
-#import "KBListView.h"
+#import "KBTableView.h"
 #import "KBPopoverView.h"
 #import "KBView.h"
-
+#import "KBTableView.h"
+#import "KBListView.h"

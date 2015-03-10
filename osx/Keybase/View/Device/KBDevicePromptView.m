@@ -21,11 +21,11 @@
   GHWeakSelf gself = self;
 
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Set a Device Name" style:KBLabelStyleHeader appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:@"Set a Device Name" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self.contentView addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:@"This is the first time you've logged into this device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault appearance:KBAppearance.currentAppearance];
+  [label setText:@"This is the first time you've logged into this device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault];
   [self.contentView addSubview:label];
 
   _deviceNameField = [[KBTextField alloc] init];

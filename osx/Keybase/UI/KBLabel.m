@@ -95,13 +95,13 @@
 
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style {
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:text style:style appearance:KBAppearance.currentAppearance];
+  [label setText:text style:style];
   return label;
 }
 
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:text style:style appearance:KBAppearance.currentAppearance alignment:alignment lineBreakMode:lineBreakMode];
+  [label setText:text style:style alignment:alignment lineBreakMode:lineBreakMode];
   return label;
 }
 
@@ -137,14 +137,11 @@
 }
 
 - (void)setText:(NSString *)text style:(KBLabelStyle)style {
-  [self setText:text style:style appearance:KBAppearance.currentAppearance];
+  [self setText:text style:style alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 }
 
-- (void)setText:(NSString *)text style:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
-  [self setText:text style:style appearance:appearance alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-}
-
-- (void)setText:(NSString *)text style:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+- (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  id<KBAppearance> appearance = KBAppearance.currentAppearance;
   switch (style) {
     case KBLabelStyleDefault:
       [self setText:text font:appearance.textFont color:appearance.textColor alignment:alignment lineBreakMode:lineBreakMode];
@@ -233,10 +230,16 @@
 
 - (void)setFont:(NSFont *)font color:(NSColor *)color {
   NSMutableAttributedString *str = [_attributedText mutableCopy];
-  NSMutableDictionary *attr = [NSMutableDictionary dictionary];
-  if (color) attr[NSForegroundColorAttributeName] = color;
-  if (font) attr[NSFontAttributeName] = font;
-  [str setAttributes:attr range:NSMakeRange(0, str.length)];
+
+  if (font) {
+    [str removeAttribute:NSFontAttributeName range:NSMakeRange(0, str.length)];
+    [str addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, str.length)];
+  }
+  if (color) {
+    [str removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, str.length)];
+    [str addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, str.length)];
+  }
+
   [self setAttributedText:str];
 }
 
@@ -255,15 +258,11 @@
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
+  if (!attributedText) attributedText = [[NSAttributedString alloc] init];
   _attributedText = attributedText;
-  if (_attributedText) {
-    NSAssert(_textView.textStorage, @"No text storage");
-    [_textView.textStorage setAttributedString:attributedText];
-  } else {
-    if (_textView.textStorage.length > 0) {
-      [_textView.textStorage deleteCharactersInRange:NSMakeRange(0, _textView.textStorage.length)];
-    }
-  }
+  NSAssert(_textView.textStorage, @"No text storage");
+  [_textView.textStorage setAttributedString:_attributedText];
+  _textView.needsDisplay = YES;
   [self setNeedsLayout];
 }
 
@@ -304,5 +303,10 @@
   return text;
 }
 
+- (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
+  id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
+  [self setFont:nil color:appearance.textColor];
+  [self setNeedsLayout];
+}
 
 @end

@@ -14,6 +14,7 @@
 
 @property UIEdgeInsets insets;
 @property CGFloat dividerPosition;
+@property float dividerRatio;
 
 - (void)setSourceView:(NSView *)sourceView contentView:(NSView *)contentView;
 

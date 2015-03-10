@@ -22,7 +22,7 @@
   NSString *longText = @"Portland pug normcore, heirloom meggings small batch skateboard next level vinyl drinking vinegar 90's messenger bag iPhone DIY blog. Polaroid +1 chia, direct trade art party ennui fixie. Listicle readymade fashion axe ethical, scenester irony American Apparel DIY XOXO.";
 
   KBView *contentView = [[KBView alloc] init];
-  contentView.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+  contentView.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
 
   KBLabel *label1 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
   [label1 setMarkup:@"Text <strong>Strong</strong> <em>Emphasis</em>" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
@@ -36,7 +36,7 @@
 
   KBImageTextView *imageTextView = [[KBImageTextView alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
   imageTextView.imageSize = CGSizeMake(40, 40);
-  [imageTextView setTitle:title info:shortText imageSource:@"30-Hardware-black-computer-30"];
+  [imageTextView setTitle:title info:shortText imageSource:@"30-Hardware-black-computer-30" imageSize:CGSizeMake(30, 30)];
   [contentView addSubview:imageTextView];
 
   KBPopoverView *popover = [[KBPopoverView alloc] initWithFrame:CGRectMake(0, 0, 200, 0)];

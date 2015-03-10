@@ -23,16 +23,18 @@
 - (void)viewInit {
   [super viewInit];
   _outlineView = [[NSOutlineView alloc] init];
-  [self addSubview:_outlineView];
-
   _outlineView.delegate = self;
   _outlineView.dataSource = self;
   _data = [MPOrderedDictionary dictionary];
-  [_data setObject:@[@"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
   _outlineView.floatsGroupRows = NO;
   _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
-  [_outlineView reloadData];
-  [_outlineView expandItem:nil expandChildren:YES];
+  [self addSubview:_outlineView];
+  [self.data setObject:@[@"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
+
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.outlineView reloadItem:nil reloadChildren:YES];
+    [self.outlineView expandItem:nil expandChildren:YES];
+  });
 
   _progressView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_progressView];
@@ -110,16 +112,21 @@
   return NO;
 }
 
+- (BOOL)outlineView:(NSOutlineView *)outlineView shouldSelectItem:(id)item {
+  return !_data[item];
+}
+
 //- (void)outlineView:(NSOutlineView *)outlineView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
 //}
 
 - (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(id)item {
   if ([self outlineView:outlineView isGroupItem:item]) return nil;
+
   KBLabelRow *labelRow = [outlineView makeViewWithIdentifier:@"KBLabelRow" owner:self];
   if (!labelRow) labelRow = [[KBLabelRow alloc] init];
-  //labelRow.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
+  labelRow.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
   labelRow.label.verticalAlignment = KBVerticalAlignmentMiddle;
-  [labelRow.label setText:item font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [labelRow.label setText:item style:KBLabelStyleDefault];
   return labelRow;
 }
 
@@ -127,7 +134,7 @@
   KBLabel *label = [outlineView makeViewWithIdentifier:@"ColumnView" owner:self];
   if (!label) label = [[KBLabel alloc] init];
   label.verticalAlignment = KBVerticalAlignmentMiddle;
-  [label setText:[item uppercaseString] font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [label setText:[item uppercaseString] font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   return label;
 }
 

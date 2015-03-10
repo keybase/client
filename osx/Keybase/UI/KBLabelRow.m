@@ -28,9 +28,4 @@
   return _label;
 }
 
-//- (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
-//  id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-//  [_label setStyle:KBLabelStyleDefault appearance:appearance];
-//}
-
 @end

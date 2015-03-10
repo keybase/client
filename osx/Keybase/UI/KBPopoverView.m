@@ -26,7 +26,7 @@
   [super viewInit];
 
   self.wantsLayer = YES;
-  self.backgroundColor = NSColor.whiteColor;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
   self.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
   self.layer.borderWidth = 1.0;
   self.layer.cornerRadius = 4.0;

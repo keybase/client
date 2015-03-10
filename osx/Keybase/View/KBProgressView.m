@@ -23,6 +23,9 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.wantsLayer = YES;
+  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+
   _progressView = [[KBProgressOverlayView alloc] init];
   _progressView.animating = YES;
   [self addSubview:_progressView];

@@ -40,6 +40,7 @@
 - (NSFont *)smallTextFont;
 - (NSFont *)boldTextFont;
 - (NSFont *)boldLargeTextFont;
+- (NSFont *)boldLargerTextFont;
 - (NSFont *)buttonFont;
 
 - (NSColor *)backgroundColor;

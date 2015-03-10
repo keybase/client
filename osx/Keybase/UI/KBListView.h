@@ -2,42 +2,22 @@
 //  KBListView.h
 //  Keybase
 //
-//  Created by Gabriel on 2/2/15.
+//  Created by Gabriel on 3/9/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-#import <YOLayout/YOLayout.h>
+#import "KBTableView.h"
 
-typedef void (^KBCellSetBlock)(id cell, id object, NSIndexPath *indexPath, id containingView/*NSTableView*/, BOOL dequeued);
-typedef void (^KBCellSelectBlock)(id sender, NSIndexPath *indexPath, id object);
+typedef void (^KBCellSetBlock)(id cell, id object, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued);
 
-
-@interface KBListView : YONSView <NSTableViewDelegate, NSTableViewDataSource>
-
-@property (readonly) Class prototypeClass;
-@property (readonly) NSTableView *tableView;
+// Simple table view with 1 column
+@interface KBListView : KBTableView
 
 @property (copy) KBCellSetBlock cellSetBlock;
-@property (copy) KBCellSelectBlock selectBlock;
+@property (readonly) Class prototypeClass;
 
-// rowHeight of 0 means dynamic
-+ (KBListView *)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight;
++ (instancetype)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight;
 
-- (void)setObjects:(NSArray *)objects;
-- (void)addObjects:(NSArray *)objects;
-- (void)removeAllObjects;
-
-- (void)setObjects:(NSArray *)objects animated:(BOOL)animated;
-
-- (void)deselectAll;
-
-- (id)selectedObject;
-
-
-@end
-
-
-@interface KBListViewDynamicHeight : KBListView
 @end

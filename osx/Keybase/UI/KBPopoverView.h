@@ -11,7 +11,7 @@
 #import <YOLayout/YOLayout.h>
 #import "KBView.h"
 
-@interface KBPopoverView : KBView
+@interface KBPopoverView : YONSView
 
 - (void)setText:(NSString *)text title:(NSString *)title;
 

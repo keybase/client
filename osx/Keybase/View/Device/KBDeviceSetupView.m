@@ -22,7 +22,7 @@
   YONSView *topView = [[YONSView alloc] init];
   [self.contentView addSubview:topView];
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Device Setup" style:KBLabelStyleHeader appearance:KBAppearance.currentAppearance alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:@"Device Setup" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [topView addSubview:header];
 
   KBLabel *infoLabel = [[KBLabel alloc] init];
@@ -31,12 +31,13 @@
   topView.viewLayout = [YOLayout vertical:topView.subviews margin:UIEdgeInsetsZero padding:20];
 
   _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextView.class rowHeight:0];
+  _deviceSignerView.wantsLayer = YES;
   _deviceSignerView.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
   _deviceSignerView.layer.borderWidth = 1.0;
 
-  _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, id containingView, BOOL dequeued) {
+  _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued) {
     view.tintImageForStyle = YES;
-    [view setTitle:option.title info:option.info imageSource:option.imageSource];
+    [view setTitle:option.title info:option.info imageSource:option.imageSource imageSize:CGSizeMake(30, 30)];
   };
   [self.contentView addSubview:_deviceSignerView];
 

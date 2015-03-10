@@ -18,6 +18,7 @@
 #import "KBDevicesAppView.h"
 #import "KBConnectView.h"
 #import "KBDebugStatusView.h"
+#import "KBFoldersAppView.h"
 
 @interface KBAppView ()
 @property KBSourceOutlineView *sourceView;
@@ -25,6 +26,7 @@
 
 @property KBUsersAppView *usersAppView;
 @property KBDevicesAppView *devicesAppView;
+@property KBFoldersAppView *foldersAppView;
 
 @property KBUserProfileView *userProfileView;
 @property (nonatomic) KBConnectView *connectView;
@@ -70,8 +72,8 @@
 
     CGFloat x = 0;
     CGFloat y = 24;
+    [layout setFrame:CGRectMake(x, y, col1 - 1, size.height - y) view:yself.sourceView]; // NSOutlieView has trouble initializing to a bad size
     if (!yself.sourceView.hidden) {
-      [layout setFrame:CGRectMake(x, y, col1 - 1, size.height - y) view:yself.sourceView];
       x += col1;
     }
     y = 0;
@@ -244,8 +246,15 @@
 - (void)showDevices {
   if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
   _devicesAppView.client = _client;
-  [_devicesAppView refresh];
+  [_devicesAppView reload];
   [self setContentView:_devicesAppView showSourceView:YES];
+}
+
+- (void)showFolders {
+  if (!_foldersAppView) _foldersAppView = [[KBFoldersAppView alloc] init];
+  _foldersAppView.client = _client;
+  [_foldersAppView reload];
+  [self setContentView:_foldersAppView showSourceView:YES];
 }
 
 - (void)logout {
@@ -342,10 +351,10 @@
 - (void)sourceOutlineView:(KBSourceOutlineView *)sourceView didSelectItem:(KBSourceViewItem)item {
   switch (item) {
   case KBSourceViewItemDevices:
-      [self showDevices];
+    [self showDevices];
     break;
   case KBSourceViewItemFolders:
-    [self setContentView:nil showSourceView:YES];
+    [self showFolders];
     break;
   case KBSourceViewItemProfile:
     [self showProfile];
