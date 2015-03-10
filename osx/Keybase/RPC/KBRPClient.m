@@ -50,7 +50,7 @@
 }
 
 - (void)open:(void (^)(NSError *error))completion {
-  NSAssert(self.status == KBRPClientStatusNone, @"Not closed");
+  NSAssert(self.status == KBRPClientStatusClosed, @"Not closed");
 
   _status = KBRPClientStatusOpening;
 
@@ -88,6 +88,8 @@
   _connectAttempt++;
   [_client openWithSocket:self.socketPath completion:^(NSError *error) {
     if (error) {
+      gself.status = KBRPClientStatusClosed;
+
       GHDebug(@"Error connecting to keybased: %@", error);
       if (!gself.autoRetryDisabled) {
         // Retry
@@ -126,14 +128,20 @@
 
 - (void)close {
   [_client close];
-  self.status = KBRPClientStatusNone;
+  [self _didClose];
+}
+
+- (void)_didClose {
+  self.status = KBRPClientStatusClosed;
   [self.delegate RPClientDidDisconnect:self];
 }
 
 - (void)openAfterDelay:(NSTimeInterval)delay {
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-    [self open:nil];
-  });
+  if (_status != KBRPClientStatusOpening) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+      [self open:nil];
+    });
+  }
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
@@ -231,9 +239,10 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
   if (status == MPMessagePackClientStatusClosed) {
     // TODO: What if we have open requests?
+    [self _didClose];
     if (!_autoRetryDisabled) [self openAfterDelay:2];
   } else if (status == MPMessagePackClientStatusOpen) {
-    
+
   }
 }
 

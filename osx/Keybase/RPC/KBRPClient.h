@@ -14,7 +14,7 @@
 @protocol KBRPClient;
 
 typedef NS_ENUM (NSInteger, KBRPClientStatus) {
-  KBRPClientStatusNone,
+  KBRPClientStatusClosed,
   KBRPClientStatusOpening,
   KBRPClientStatusOpen
 };
