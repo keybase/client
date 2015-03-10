@@ -2,10 +2,12 @@ package engine
 
 import (
 	"bytes"
+	"io/ioutil"
 	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/crypto/openpgp"
 )
 
 // give a private key and a public key, test the encryption of a
@@ -35,8 +37,25 @@ func TestPGPEncrypt(t *testing.T) {
 	if err := RunEngine(eng, ctx, nil, nil); err != nil {
 		t.Fatal(err)
 	}
-	out := sink.String()
+	out := sink.Bytes()
 	if len(out) == 0 {
 		t.Fatal("no output")
+	}
+
+	// check that each recipient can read the message
+	for _, recip := range arg.Recipients {
+		kr := openpgp.EntityList{(*openpgp.Entity)(recip)}
+		emsg := bytes.NewBuffer(out)
+		md, err := openpgp.ReadMessage(emsg, kr, nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		text, err := ioutil.ReadAll(md.UnverifiedBody)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(text) != msg {
+			t.Errorf("message: %q, expected %q", string(text), msg)
+		}
 	}
 }

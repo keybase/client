@@ -2,9 +2,10 @@ package engine
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
-	"io"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
