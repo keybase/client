@@ -100,7 +100,7 @@ func (p *PGPSignEngine) Run(ctx *Context, args interface{}, reply interface{}) (
 	case keybase_1.SignMode_CLEAR:
 		dumpTo, err = clearsign.Encode(p.arg.Sink, pgp.PrivateKey, nil)
 	default:
-		err = fmt.Errorf("unrecognized sign mode: %s", int(mode))
+		err = fmt.Errorf("unrecognized sign mode: %d", int(mode))
 	}
 
 	if err != nil {
