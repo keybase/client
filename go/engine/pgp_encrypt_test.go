@@ -25,9 +25,9 @@ func TestPGPEncrypt(t *testing.T) {
 	msg := "59 seconds"
 	var sink bytes.Buffer
 	arg := &PGPEncryptArg{
-		Sink:   &sink,
-		Source: strings.NewReader(msg),
-		/*		Signer:     bundleSrc, */
+		Sink:       &sink,
+		Source:     strings.NewReader(msg),
+		Signer:     bundleSrc,
 		Recipients: []*libkb.PgpKeyBundle{bundleSrc, bundleDst},
 	}
 	eng := NewPGPEncrypt(arg)
