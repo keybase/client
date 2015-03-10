@@ -15,6 +15,7 @@ func NewCmdPGP(cl *libcmdline.CommandLine) cli.Command {
 			NewCmdPGPPull(cl),
 			NewCmdPGPSelect(cl),
 			NewCmdPGPSign(cl),
+			NewCmdPGPEncrypt(cl),
 		},
 	}
 }
