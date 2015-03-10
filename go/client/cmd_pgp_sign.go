@@ -10,13 +10,13 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-func NewCmdSign(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "sign",
-		Usage:       "keybase sign [-a] [-o <outfile>] [<infile>]",
+		Usage:       "keybase pgp sign [-a] [-o <outfile>] [<infile>]",
 		Description: "sign a clear document",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSign{}, "sign", c)
+			cl.ChooseCommand(&CmdPGPSign{}, "sign", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -39,14 +39,14 @@ func NewCmdSign(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-type CmdSign struct {
+type CmdPGPSign struct {
 	UnixFilter
 	binary   bool
 	msg      string
 	keyQuery string
 }
 
-func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
+func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
@@ -70,7 +70,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdSign) RunClient() (err error) {
+func (s *CmdPGPSign) RunClient() (err error) {
 	var cli keybase_1.PgpcmdsClient
 	var snk, src keybase_1.Stream
 	protocols := []rpc2.Protocol{
@@ -94,11 +94,11 @@ func (s *CmdSign) RunClient() (err error) {
 	return err
 }
 
-func (s *CmdSign) Run() (err error) {
+func (s *CmdPGPSign) Run() (err error) {
 	if err = s.FilterOpen(); err != nil {
 		return
 	}
-	earg := engine.PGPCmdSignArg{
+	earg := engine.PGPSignArg{
 		Sink:     s.sink,
 		Source:   s.source,
 		KeyQuery: s.keyQuery,
@@ -107,13 +107,13 @@ func (s *CmdSign) Run() (err error) {
 	ctx := engine.Context{
 		SecretUI: G_UI.GetSecretUI(),
 	}
-	eng := engine.NewPGPCmdSignEngine(&earg)
+	eng := engine.NewPGPSignEngine(&earg)
 	err = engine.RunEngine(eng, &ctx, nil, nil)
 	s.Close(err)
 	return err
 }
 
-func (v *CmdSign) GetUsage() libkb.Usage {
+func (v *CmdPGPSign) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

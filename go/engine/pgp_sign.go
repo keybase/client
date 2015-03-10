@@ -6,43 +6,43 @@ import (
 	"io"
 )
 
-type PGPCmdSignEngine struct {
-	arg *PGPCmdSignArg
+type PGPSignEngine struct {
+	arg *PGPSignArg
 	libkb.Contextified
 }
 
-type PGPCmdSignArg struct {
+type PGPSignArg struct {
 	Sink     io.WriteCloser
 	Source   io.ReadCloser
 	Binary   bool
 	KeyQuery string
 }
 
-func (p *PGPCmdSignEngine) GetPrereqs() EnginePrereqs {
+func (p *PGPSignEngine) GetPrereqs() EnginePrereqs {
 	return EnginePrereqs{
 		Session: true,
 	}
 }
 
-func (p *PGPCmdSignEngine) Name() string {
+func (p *PGPSignEngine) Name() string {
 	return "PGPSignEngine"
 }
 
-func (p *PGPCmdSignEngine) RequiredUIs() []libkb.UIKind {
+func (p *PGPSignEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
 	}
 }
 
-func (s *PGPCmdSignEngine) SubConsumers() []libkb.UIConsumer {
+func (s *PGPSignEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func NewPGPCmdSignEngine(arg *PGPCmdSignArg) *PGPCmdSignEngine {
-	return &PGPCmdSignEngine{arg: arg}
+func NewPGPSignEngine(arg *PGPSignArg) *PGPSignEngine {
+	return &PGPSignEngine{arg: arg}
 }
 
-func (p *PGPCmdSignEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+func (p *PGPSignEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
 	var key libkb.GenericKey
 	var pgp *libkb.PgpKeyBundle
 	var ok bool

@@ -21,7 +21,7 @@ func (h *PGPCmdsHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
 	sessionID := arg.SessionID
 
-	earg := engine.PGPCmdSignArg{
+	earg := engine.PGPSignArg{
 		Sink:     snk,
 		Source:   src,
 		Binary:   arg.Binary,
@@ -32,7 +32,7 @@ func (h *PGPCmdsHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 		SecretUI: h.getSecretUI(sessionID),
 	}
 
-	eng := engine.NewPGPCmdSignEngine(&earg)
+	eng := engine.NewPGPSignEngine(&earg)
 
 	return engine.RunEngine(eng, &ctx, nil, nil)
 }
