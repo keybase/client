@@ -305,9 +305,9 @@ func (f JsonConfigFile) GetGpgOptions() []string {
 	} else if l, e := v.Len(); e != nil || l == 0 {
 		// noop
 	} else {
-		ret := make([]string, 0, l)
+		ret = make([]string, 0, l)
 		for i := 0; i < l; i++ {
-			if s, e := v.AtIndex(i).GetString(); e != nil {
+			if s, e := v.AtIndex(i).GetString(); e == nil {
 				ret = append(ret, s)
 			}
 		}
