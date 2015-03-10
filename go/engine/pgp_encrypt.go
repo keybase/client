@@ -7,14 +7,20 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
+// PGPEncryptArg contains the arguments for the PGPEncrypt engine.
+// Source is the source reader, Sink is the destination writer.
+// Signer is optional.  If provided, it will be used to sign the
+// message.  Recipients is a list of PGP keys for the recipients
+// of this message.
 type PGPEncryptArg struct {
 	Source     io.Reader
 	Sink       io.Writer
 	Signer     *libkb.PgpKeyBundle
 	Recipients []*libkb.PgpKeyBundle
-	Sign       bool
 }
 
+// PGPEncrypt is an engine for pgp encrypting data to one or
+// multiple recipients, optionally signed.
 type PGPEncrypt struct {
 	arg *PGPEncryptArg
 }
