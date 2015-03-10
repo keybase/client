@@ -132,6 +132,7 @@ func (tc *TestContext) MakePGPKey(id string) (*PgpKeyBundle, error) {
 		SubkeyBits:  1024,
 		PGPUids:     []string{id},
 	}
+	arg.Init()
 	arg.CreatePgpIDs()
 	return NewPgpKeyBundle(arg, tc.G.UI.GetLogUI())
 }
