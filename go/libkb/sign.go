@@ -122,13 +122,13 @@ func getSigningKey(e *openpgp.Entity, now time.Time) (openpgp.Key, bool) {
 	return openpgp.Key{}, false
 }
 
-// SimpleSign signs the given data stream, outputs an armored string which is
+// 	SimpleSign signs the given data stream, outputs an armored string which is
 // the attached signature of the input data
 func SimpleSign(payload []byte, key PgpKeyBundle) (out string, id *SigId, err error) {
 	var outb bytes.Buffer
 	var in io.WriteCloser
 	var h HashSummer
-	if in, err, h = ArmoredAttachedSign(noOpCloser{&outb}, openpgp.Entity(key), nil, nil); err != nil {
+	if in, err, h = ArmoredAttachedSign(NopWriteCloser{&outb}, openpgp.Entity(key), nil, nil); err != nil {
 		return
 	}
 	if _, err = in.Write(payload); err != nil {
@@ -191,7 +191,7 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 	// We don't want the literal serializer to closer the output stream
 	// since we're going to need to write to it when we finish up the
 	// signature stuff.
-	in, err = packet.SerializeLiteral(noOpCloser{out}, hints.IsBinary, hints.FileName, epochSeconds)
+	in, err = packet.SerializeLiteral(NopWriteCloser{out}, hints.IsBinary, hints.FileName, epochSeconds)
 
 	if err != nil {
 		return
@@ -292,21 +292,21 @@ func (s signatureWriter) Close() error {
 	return s.signedData.Close()
 }
 
-// noOpCloser is like an ioutil.NopCloser, but for an io.Writer.
+// NopWriteCloser is like an ioutil.NopCloser, but for an io.Writer.
 // TODO: we have two of these in OpenPGP packages alone. This probably needs
 // to be promoted somewhere more common.
 //
 // From here:
 //     https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1#364
 //
-type noOpCloser struct {
-	w io.Writer
+type NopWriteCloser struct {
+	W io.Writer
 }
 
-func (c noOpCloser) Write(data []byte) (n int, err error) {
-	return c.w.Write(data)
+func (c NopWriteCloser) Write(data []byte) (n int, err error) {
+	return c.W.Write(data)
 }
 
-func (c noOpCloser) Close() error {
+func (c NopWriteCloser) Close() error {
 	return nil
 }

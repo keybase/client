@@ -252,7 +252,7 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 	}
 
 	if !ska.UseSyncedPGPKey() {
-		k.G().Log.Debug("| Skipped Synced PGP key (via prefs")
+		k.G().Log.Debug("| Skipped Synced PGP key (via prefs)")
 	} else if ret, err = ska.Me.GetSyncedSecretKey(); err != nil {
 		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
 		return

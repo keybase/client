@@ -165,7 +165,7 @@ func (k PgpKeyBundle) MatchesKey(key *openpgp.Key) bool {
 
 func (k *PgpKeyBundle) Encode() (ret string, err error) {
 	buf := bytes.Buffer{}
-	err = k.EncodeToStream(noOpCloser{&buf})
+	err = k.EncodeToStream(NopWriteCloser{&buf})
 	if err == nil {
 		ret = string(buf.Bytes())
 	}

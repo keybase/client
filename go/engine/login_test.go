@@ -225,6 +225,8 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		PushSecret: true,
 	})
 
+	fu.User = s.GetMe()
+
 	if err := RunEngine(peng, ctx, nil, nil); err != nil {
 		t.Fatal(err)
 	}
@@ -286,6 +288,8 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	if err := s.join(fu.Username, fu.Email, testInviteCode, true); err != nil {
 		t.Fatal(err)
 	}
+
+	fu.User = s.GetMe()
 
 	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)

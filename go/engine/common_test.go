@@ -21,6 +21,7 @@ type FakeUser struct {
 	Username   string
 	Email      string
 	Passphrase string
+	User       *libkb.User
 }
 
 func NewFakeUser(prefix string) (fu *FakeUser, err error) {
@@ -35,7 +36,7 @@ func NewFakeUser(prefix string) (fu *FakeUser, err error) {
 		return
 	}
 	passphrase := hex.EncodeToString(buf)
-	fu = &FakeUser{username, email, passphrase}
+	fu = &FakeUser{username, email, passphrase, nil}
 	return
 }
 

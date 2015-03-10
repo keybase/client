@@ -66,6 +66,10 @@ type SignupEngineRunArg struct {
 	SkipMail   bool
 }
 
+func (s *SignupEngine) GetMe() *libkb.User {
+	return s.me
+}
+
 // func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 func (s *SignupEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
 	arg, ok := args.(SignupEngineRunArg)
