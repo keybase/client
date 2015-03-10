@@ -17,7 +17,7 @@ func (n NullConfiguration) GetDbFilename() string              { return "" }
 func (n NullConfiguration) GetUsername() string                { return "" }
 func (n NullConfiguration) GetEmail() string                   { return "" }
 func (n NullConfiguration) GetProxy() string                   { return "" }
-func (n NullConfiguration) GetPgpDir() string                  { return "" }
+func (n NullConfiguration) GetGpgHome() string                 { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string       { return "" }
 func (n NullConfiguration) GetUserCacheSize() (int, bool)      { return 0, false }
 func (n NullConfiguration) GetProofCacheSize() (int, bool)     { return 0, false }
@@ -331,12 +331,12 @@ func (e Env) GetProxy() string {
 	)
 }
 
-func (e Env) GetPgpDir() string {
+func (e Env) GetGpgHome() string {
 	return e.GetString(
 		func() string { return e.Test.GPGHome },
-		func() string { return e.cmd.GetPgpDir() },
+		func() string { return e.cmd.GetGpgHome() },
 		func() string { return os.Getenv("GNUPGHOME") },
-		func() string { return e.config.GetPgpDir() },
+		func() string { return e.config.GetGpgHome() },
 		func() string { return filepath.Join(e.GetHome(), ".gnupg") },
 	)
 }
@@ -368,11 +368,11 @@ func (e Env) GetNoPinentry() bool {
 }
 
 func (e Env) GetPublicKeyrings() []string {
-	return []string{filepath.Join(e.GetPgpDir(), "pubring.gpg")}
+	return []string{filepath.Join(e.GetGpgHome(), "pubring.gpg")}
 }
 
 func (e Env) GetPgpSecretKeyrings() []string {
-	return []string{filepath.Join(e.GetPgpDir(), "secring.gpg")}
+	return []string{filepath.Join(e.GetGpgHome(), "secring.gpg")}
 }
 
 func (e Env) GetBundledCA(host string) string {

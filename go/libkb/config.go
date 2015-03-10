@@ -390,14 +390,8 @@ func (f JsonConfigFile) GetMerkleKeyFingerprints() []string {
 	}
 }
 
-func (f JsonConfigFile) GetPgpDir() (ret string) {
-	ret = f.GetTopLevelString("pgpdir")
-	if len(ret) == 0 {
-		ret = f.GetTopLevelString("gpgdir")
-	}
-	if len(ret) == 0 {
-		ret = f.GetTopLevelString("gnupgdir")
-	}
+func (f JsonConfigFile) GetGpgHome() (ret string) {
+	ret, _ = f.GetStringAtPath("gpg.home")
 	return ret
 }
 

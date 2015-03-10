@@ -57,8 +57,8 @@ func (p CommandLine) GetUsername() string {
 func (p CommandLine) GetPlainLogging() (bool, bool) {
 	return p.GetBool("plain-logging", true)
 }
-func (p CommandLine) GetPgpDir() string {
-	return p.GetGString("pgpdir")
+func (p CommandLine) GetGpgHome() string {
+	return p.GetGString("gpg-home")
 }
 func (p CommandLine) GetApiDump() (bool, bool) {
 	return p.GetBool("api-dump", true)

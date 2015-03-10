@@ -28,7 +28,7 @@ type CommandLine interface {
 	GetDebug() (bool, bool)
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
-	GetPgpDir() string
+	GetGpgHome() string
 	GetEmail() string
 	GetApiDump() (bool, bool)
 	GetUserCacheSize() (int, bool)
@@ -77,7 +77,7 @@ type ConfigReader interface {
 	GetUserConfigForUsername(s string) (*UserConfig, error)
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
-	GetPgpDir() string
+	GetGpgHome() string
 	GetBundledCA(host string) string
 	GetStringAtPath(string) (string, bool)
 	GetBoolAtPath(string) (bool, bool)
