@@ -53,6 +53,8 @@ func (p *PGPSignEngine) Run(ctx *Context, args interface{}, reply interface{}) (
 		if dumpTo != nil {
 			dumpTo.Close()
 		}
+		p.arg.Sink.Close()
+		p.arg.Source.Close()
 	}()
 
 	ska := libkb.SecretKeyArg{
