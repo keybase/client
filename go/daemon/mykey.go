@@ -52,8 +52,8 @@ func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 	sessionID := nextSessionId()
 	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
 	secretui := h.getSecretUI(sessionID)
-	arg := engine.GPGArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
-	gpg := engine.NewGPG(&arg)
+	arg := engine.GPGImportKeyArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
+	gpg := engine.NewGPGImportKeyEngine(&arg)
 	ctx := &engine.Context{
 		GPGUI:    gpgui,
 		SecretUI: secretui,

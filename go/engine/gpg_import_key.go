@@ -1,7 +1,7 @@
 package engine
 
 //
-// engine.GPG is a class that selects key from the GPG keyring via
+// engine.GPGImportKeyEngine is a class that selects key from the GPG keyring via
 // shell-out to the gpg command line client. It's useful in `client mykey select`
 // and other places in which the user picks existing PGP keys on the existing
 // system for use in Keybase tasks.
@@ -14,7 +14,7 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-type GPGArg struct {
+type GPGImportKeyArg struct {
 	Query      string
 	Signer     libkb.GenericKey
 	AllowMulti bool
@@ -22,39 +22,39 @@ type GPGArg struct {
 	Me         *libkb.User
 }
 
-type GPG struct {
+type GPGImportKeyEngine struct {
 	last *libkb.PgpKeyBundle
-	arg  *GPGArg
+	arg  *GPGImportKeyArg
 }
 
-func NewGPG(arg *GPGArg) *GPG {
-	return &GPG{arg: arg}
+func NewGPGImportKeyEngine(arg *GPGImportKeyArg) *GPGImportKeyEngine {
+	return &GPGImportKeyEngine{arg: arg}
 }
 
-func (e *GPG) GetPrereqs() EnginePrereqs {
+func (e *GPGImportKeyEngine) GetPrereqs() EnginePrereqs {
 	return EnginePrereqs{
 		Session: true,
 	}
 }
 
-func (g *GPG) Name() string {
-	return "GPG"
+func (g *GPGImportKeyEngine) Name() string {
+	return "GPGImportKeyEngine"
 }
 
-func (g *GPG) RequiredUIs() []libkb.UIKind {
+func (g *GPGImportKeyEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.GPGUIKind,
 		libkb.SecretUIKind,
 	}
 }
 
-func (g *GPG) SubConsumers() []libkb.UIConsumer {
+func (g *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewPGPEngine(PGPEngineArg{}),
 	}
 }
 
-func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
+func (g *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 	gpg := G.GetGpgClient()
 	canExec, err := gpg.CanExec()
 	if err != nil {
@@ -73,7 +73,7 @@ func (g *GPG) WantsGPG(ctx *Context) (bool, error) {
 	return res, nil
 }
 
-func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+func (g *GPGImportKeyEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
 
 	gpg := G.GetGpgClient()
 
@@ -162,6 +162,6 @@ func (g *GPG) Run(ctx *Context, args interface{}, reply interface{}) (err error)
 	return nil
 }
 
-func (g *GPG) LastKey() *libkb.PgpKeyBundle {
+func (g *GPGImportKeyEngine) LastKey() *libkb.PgpKeyBundle {
 	return g.last
 }

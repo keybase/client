@@ -33,7 +33,7 @@ func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewDeviceEngine(nil),
 		NewDetKeyEngine(nil, nil, nil),
-		NewGPG(nil),
+		NewGPGImportKeyEngine(nil),
 	}
 }
 
@@ -160,14 +160,14 @@ func (s *SignupEngine) genDetKeys(ctx *Context) error {
 }
 
 func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
-	eng := NewGPG(nil)
+	eng := NewGPGImportKeyEngine(nil)
 	return eng.WantsGPG(ctx)
 }
 
 func (s *SignupEngine) addGPG(ctx *Context, allowMulti bool) error {
-	fmt.Printf("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
-	arg := GPGArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me}
-	eng := NewGPG(&arg)
+	G.Log.Debug("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
+	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me}
+	eng := NewGPGImportKeyEngine(&arg)
 	if err := RunEngine(eng, ctx, nil, nil); err != nil {
 		return err
 	}
