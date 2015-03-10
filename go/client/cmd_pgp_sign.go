@@ -98,14 +98,14 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPSign) RunClient() (err error) {
-	var cli keybase_1.PgpcmdsClient
+	var cli keybase_1.PgpClient
 	var snk, src keybase_1.Stream
 	protocols := []rpc2.Protocol{
 		NewStreamUiProtocol(),
 		NewSecretUIProtocol(),
 	}
 
-	if cli, err = GetPgpcmdsClient(); err != nil {
+	if cli, err = GetPGPClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else if snk, src, err = s.ClientFilterOpen(); err != nil {
 	} else {

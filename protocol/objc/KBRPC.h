@@ -349,7 +349,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL binaryOut;
 @end
 
-@interface KBRPgpcmdsRequest : KBRRequest
+@interface KBRPgpRequest : KBRRequest
 - (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion;
 
 @end

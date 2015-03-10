@@ -7,15 +7,15 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-type PGPCmdsHandler struct {
+type PGPHandler struct {
 	BaseHandler
 }
 
-func NewPGPCmdsHandler(xp *rpc2.Transport) *PGPCmdsHandler {
-	return &PGPCmdsHandler{BaseHandler{xp: xp}}
+func NewPGPHandler(xp *rpc2.Transport) *PGPHandler {
+	return &PGPHandler{BaseHandler{xp: xp}}
 }
 
-func (h *PGPCmdsHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
+func (h *PGPHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 	cli := h.getStreamUICli()
 	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
 	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}

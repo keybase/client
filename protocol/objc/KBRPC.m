@@ -445,11 +445,11 @@
 @implementation KBRPgpSignOptions
 @end
 
-@implementation KBRPgpcmdsRequest
+@implementation KBRPgpRequest
 
 - (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"source": KBRValue(source), @"sink": KBRValue(sink), @"opts": KBRValue(opts)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgpcmds.pgpSign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpSign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }

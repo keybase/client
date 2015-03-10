@@ -1098,13 +1098,13 @@ type PgpSignArg struct {
 	Opts      PgpSignOptions `codec:"opts" json:"opts"`
 }
 
-type PgpcmdsInterface interface {
+type PgpInterface interface {
 	PgpSign(PgpSignArg) error
 }
 
-func PgpcmdsProtocol(i PgpcmdsInterface) rpc2.Protocol {
+func PgpProtocol(i PgpInterface) rpc2.Protocol {
 	return rpc2.Protocol{
-		Name: "keybase.1.pgpcmds",
+		Name: "keybase.1.pgp",
 		Methods: map[string]rpc2.ServeHook{
 			"pgpSign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpSignArg, 1)
@@ -1118,12 +1118,12 @@ func PgpcmdsProtocol(i PgpcmdsInterface) rpc2.Protocol {
 
 }
 
-type PgpcmdsClient struct {
+type PgpClient struct {
 	Cli GenericClient
 }
 
-func (c PgpcmdsClient) PgpSign(__arg PgpSignArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgpcmds.pgpSign", []interface{}{__arg}, nil)
+func (c PgpClient) PgpSign(__arg PgpSignArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpSign", []interface{}{__arg}, nil)
 	return
 }
 

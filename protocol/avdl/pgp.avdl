@@ -1,6 +1,6 @@
 @namespace("keybase.1")
 
-protocol pgpcmds {
+protocol pgp {
 	import idl "common.avdl";
 
 	enum SignMode {

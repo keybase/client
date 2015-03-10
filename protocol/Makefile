@@ -22,7 +22,7 @@ build-stamp: \
 	json/log_ui.json \
 	json/login.json \
 	json/login_ui.json \
-	json/pgpcmds.json \
+	json/pgp.json \
 	json/prove.json \
 	json/prove_ui.json \
 	json/quota.json \
