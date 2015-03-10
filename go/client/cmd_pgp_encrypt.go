@@ -10,7 +10,7 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "encrypt",
 		Usage:       "keybase pgp encrypt [-r] [-l] [--batch] [--prompt-remote] [-s] [-m MESSAGE] [-b] [-o OUTPUT] [-i file] them",
-		Description: "encrypt",
+		Description: "PGP encrypt messages or files for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPEncrypt{}, "encrypt", c)
 		},
@@ -32,12 +32,16 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "prompt for remote tracking",
 			},
 			cli.BoolFlag{
-				Name:  "b, binary",
-				Usage: "output in binary (rather than ASCII/armored)",
+				Name:  "s, sign",
+				Usage: "sign in addition to encrypting",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
 				Usage: "provide the message on the command line",
+			},
+			cli.BoolFlag{
+				Name:  "b, binary",
+				Usage: "output in binary (rather than ASCII/armored)",
 			},
 			cli.StringFlag{
 				Name:  "o, outfile",
