@@ -36,7 +36,7 @@ type GlobalContext struct {
 	XAPI          ExternalAPI      // for contacting Twitter, Github, etc.
 	Output        io.Writer        // where 'Stdout'-style output goes
 	ProofCache    *ProofCache      // where to cache proof results
-	GpgClient     GpgClient        // A standard GPG-client (optional)
+	GpgClient     *GpgCLI          // A standard GPG-client (optional)
 	ShutdownHooks []ShutdownHook   // on shutdown, fire these...
 	SocketInfo    SocketInfo       // which socket to bind/connect to
 	SocketWrapper *SocketWrapper   // only need one connection per
@@ -249,7 +249,7 @@ func (g *GlobalContext) OutputBytes(b []byte) {
 	g.Output.Write(b)
 }
 
-func (g *GlobalContext) GetGpgClient() GpgClient {
+func (g *GlobalContext) GetGpgClient() *GpgCLI {
 	if g.GpgClient == nil {
 		g.GpgClient = NewGpgCLI()
 	}
