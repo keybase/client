@@ -159,10 +159,12 @@ func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []ke
 
 func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 	for _, link := range trackList {
+		Uid, _ := link.GetTrackedUid()
 		entry := keybase_1.UserSummary{
 			Username:  link.ToDisplayString(),
 			SigId:     link.GetSigId().ToDisplayString(true),
 			TrackTime: link.GetCTime().Unix(),
+			Uid:       keybase_1.UID(*Uid),
 		}
 		entry.Proofs.PublicKeys = e.linkPGPKeys(link)
 		entry.Proofs.Social = e.linkSocialProofs(link)
