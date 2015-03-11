@@ -1,8 +1,3 @@
-// This is a template for an engine.
-//
-// It won't be built, but can be used as a starting point for new
-// engines.
-
 package engine
 
 import (
@@ -27,7 +22,7 @@ func (e *PGPKeyfinder) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *PGPKeyfinder) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+	return EnginePrereqs{Session: true}
 }
 
 // RequiredUIs returns the required UIs.
@@ -51,14 +46,19 @@ func (e *PGPKeyfinder) Run(ctx *Context, args, reply interface{}) error {
 }
 
 func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
-	// XXX withTracking -> true?  If so, add session to prereq
-	res := libkb.LoadUserByAssertions(user, false, ctx.IdentifyUI)
+	res := libkb.LoadUserByAssertions(user, true, ctx.IdentifyUI)
 	if res.Error != nil {
 		return res.Error
 	}
 
 	// XXX store user in engine
-	G.Log.Debug("loaded user %q => %q, %s", user, res.User.GetName(), res.User.GetUid())
+	G.Log.Info("loaded user %q => %q, %s", user, res.User.GetName(), res.User.GetUid())
+	if res.IdentifyRes != nil {
+		G.Log.Info("TrackUsed: %+v", res.IdentifyRes.TrackUsed)
+		G.Log.Info("IdentifyRes: %+v", res.IdentifyRes)
+	} else {
+		G.Log.Info("IdentifyRes is nil")
+	}
 
 	return nil
 }

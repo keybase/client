@@ -12,6 +12,12 @@ func TestPGPKeyfinder(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPKeyfinder")
 	defer tc.Cleanup()
 
+	u := CreateAndSignupFakeUser(t, "login")
+	_, _, err := runTrack(u, "t_alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ctx := &Context{IdentifyUI: &idLubaUI{}}
 	eng := NewPGPKeyfinder([]string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"})
 	if err := RunEngine(eng, ctx, nil, nil); err != nil {
