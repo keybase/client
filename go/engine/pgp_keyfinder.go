@@ -10,7 +10,7 @@ import (
 // assertions), possibly tracking them if necessary.
 type PGPKeyfinder struct {
 	users []string
-	uplus []*UserPlusKey
+	uplus []*UserPlusKeys
 }
 
 // NewPGPKeyfinder creates a PGPKeyfinder engine.
@@ -67,17 +67,15 @@ func (e *PGPKeyfinder) Run(ctx *Context, args, reply interface{}) error {
 		if len(keys) == 0 {
 			return fmt.Errorf("User %s doesn't have a pgp key", x.User.GetName())
 		}
-
-		// taking the first key
-		x.Key = keys[0]
+		x.Keys = keys
 	}
 
 	return nil
 }
 
-// UsersWithKeys returns the users found while running the engine,
+// UsersPlusKeys returns the users found while running the engine,
 // plus their pgp keys.
-func (e *PGPKeyfinder) UsersWithKeys() []*UserPlusKey {
+func (e *PGPKeyfinder) UsersPlusKeys() []*UserPlusKeys {
 	return e.uplus
 }
 
@@ -92,7 +90,7 @@ func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
 	if err != nil {
 		return err
 	}
-	e.uplus = append(e.uplus, &UserPlusKey{User: res.User, IsTracked: tracking})
+	e.uplus = append(e.uplus, &UserPlusKeys{User: res.User, IsTracked: tracking})
 
 	return nil
 }
@@ -113,8 +111,8 @@ func (e *PGPKeyfinder) isTracking(lr *libkb.LubaRes) (bool, error) {
 
 }
 
-type UserPlusKey struct {
+type UserPlusKeys struct {
 	User      *libkb.User
 	IsTracked bool
-	Key       *libkb.PgpKeyBundle
+	Keys      []*libkb.PgpKeyBundle
 }
