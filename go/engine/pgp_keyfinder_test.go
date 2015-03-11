@@ -13,12 +13,18 @@ func TestPGPKeyfinder(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(t, "login")
+	// track alice before starting so we have a user already tracked
 	_, _, err := runTrack(u, "t_alice")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ctx := &Context{IdentifyUI: &idLubaUI{}}
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+		Fapr:   keybase_1.FinishAndPromptRes{TrackRemote: true},
+	}
+
+	ctx := &Context{IdentifyUI: &idLubaUI{}, TrackUI: trackUI, SecretUI: u.NewSecretUI()}
 	eng := NewPGPKeyfinder([]string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"})
 	if err := RunEngine(eng, ctx, nil, nil); err != nil {
 		t.Fatal(err)

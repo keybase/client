@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -8,6 +10,7 @@ import (
 // assertions), possibly tracking them if necessary.
 type PGPKeyfinder struct {
 	users []string
+	uplus []*UserPlusKey
 }
 
 // NewPGPKeyfinder creates a PGPKeyfinder engine.
@@ -32,7 +35,9 @@ func (e *PGPKeyfinder) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		NewTrackEngine(nil),
+	}
 }
 
 // Run starts the engine.
@@ -42,7 +47,38 @@ func (e *PGPKeyfinder) Run(ctx *Context, args, reply interface{}) error {
 			return err
 		}
 	}
+
+	// need to track any users we aren't tracking
+	for _, x := range e.uplus {
+		if x.IsTracked {
+			continue
+		}
+
+		if err := e.trackUser(ctx, x.User); err != nil {
+			return err
+		}
+
+		x.IsTracked = true
+	}
+
+	// get the pgp keys for all the users
+	for _, x := range e.uplus {
+		keys := x.User.GetActivePgpKeys(true)
+		if len(keys) == 0 {
+			return fmt.Errorf("User %s doesn't have a pgp key", x.User.GetName())
+		}
+
+		// taking the first key
+		x.Key = keys[0]
+	}
+
 	return nil
+}
+
+// UsersWithKeys returns the users found while running the engine,
+// plus their pgp keys.
+func (e *PGPKeyfinder) UsersWithKeys() []*UserPlusKey {
+	return e.uplus
 }
 
 func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
@@ -51,14 +87,34 @@ func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
 		return res.Error
 	}
 
-	// XXX store user in engine
-	G.Log.Info("loaded user %q => %q, %s", user, res.User.GetName(), res.User.GetUid())
-	if res.IdentifyRes != nil {
-		G.Log.Info("TrackUsed: %+v", res.IdentifyRes.TrackUsed)
-		G.Log.Info("IdentifyRes: %+v", res.IdentifyRes)
-	} else {
-		G.Log.Info("IdentifyRes is nil")
+	G.Log.Debug("loaded user %q => %q, %s", user, res.User.GetName(), res.User.GetUid())
+	tracking, err := e.isTracking(&res)
+	if err != nil {
+		return err
 	}
+	e.uplus = append(e.uplus, &UserPlusKey{User: res.User, IsTracked: tracking})
 
 	return nil
+}
+
+func (e *PGPKeyfinder) trackUser(ctx *Context, user *libkb.User) error {
+	G.Log.Info("tracking user %q", user.GetName())
+	arg := &TrackEngineArg{TheirName: user.GetName()}
+	eng := NewTrackEngine(arg)
+	return RunEngine(eng, ctx, nil, nil)
+}
+
+func (e *PGPKeyfinder) isTracking(lr *libkb.LubaRes) (bool, error) {
+	if lr.IdentifyRes == nil {
+		return false, fmt.Errorf("user %s, no id result", lr.User.GetName())
+	}
+	tracking := lr.IdentifyRes.TrackUsed != nil
+	return tracking, nil
+
+}
+
+type UserPlusKey struct {
+	User      *libkb.User
+	IsTracked bool
+	Key       *libkb.PgpKeyBundle
 }
