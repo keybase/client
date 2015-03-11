@@ -32,13 +32,16 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui IdentifyTrackUI) Start() {
+func (ui IdentifyTrackUI) Start(username string) {
+	ui.username = username
 	G.Log.Info("Generating tracking statement for " + ColorString("bold", ui.username))
 }
-func (ui IdentifyLubaUI) Start() {
+func (ui IdentifyLubaUI) Start(username string) {
+	ui.username = username
 	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", ui.username))
 }
-func (ui IdentifyUI) Start() {
+func (ui IdentifyUI) Start(username string) {
+	ui.username = username
 	G.Log.Info("Identifying " + ColorString("bold", ui.username))
 }
 
@@ -56,10 +59,6 @@ func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret 
 
 func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase_1.Identity, u *keybase_1.User) {
 	return
-}
-
-func (ui BaseIdentifyUI) SetUsername(username string) {
-	ui.username = username
 }
 
 func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
@@ -88,6 +87,11 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 }
 
 func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
+
+	// for refactoring of username out of Get*(), make sure it has one here
+	if len(ui.username) == 0 {
+		G.Log.Warning("FinishAndPrompt: no username.  Was Start(username) not called?")
+	}
 
 	var prompt string
 	un := ui.username
@@ -377,16 +381,16 @@ func (ui BaseIdentifyUI) Warning(m string) {
 	G.Log.Warning(m)
 }
 
-func (ui *UI) GetIdentifyTrackUI(username string, strict bool) libkb.IdentifyUI {
-	return IdentifyTrackUI{BaseIdentifyUI{parent: ui, username: username}, strict}
+func (ui *UI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI {
+	return IdentifyTrackUI{BaseIdentifyUI{parent: ui}, strict}
 }
 
-func (ui *UI) GetIdentifyUI(username string) libkb.IdentifyUI {
-	return IdentifyUI{BaseIdentifyUI{parent: ui, username: username}}
+func (ui *UI) GetIdentifyUI() libkb.IdentifyUI {
+	return IdentifyUI{BaseIdentifyUI{parent: ui}}
 }
 
-func (ui *UI) GetIdentifyLubaUI(username string) libkb.IdentifyUI {
-	return IdentifyLubaUI{BaseIdentifyUI{parent: ui, username: username}}
+func (ui *UI) GetIdentifyLubaUI() libkb.IdentifyUI {
+	return IdentifyLubaUI{BaseIdentifyUI{parent: ui}}
 }
 
 func (ui *UI) GetLoginUI() libkb.LoginUI {

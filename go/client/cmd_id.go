@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -52,7 +53,7 @@ func (v *CmdId) RunClient() (err error) {
 	var cli keybase_1.IdentifyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		NewIdentifyUIProtocol(v.user),
+		NewIdentifyUIProtocol(),
 	}
 	if cli, err = GetIdentifyClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
@@ -67,7 +68,7 @@ func (v *CmdId) Run() error {
 	eng := engine.NewIdentifyEngine(v.makeArg())
 	ctx := engine.Context{
 		LogUI:      G_UI.GetLogUI(),
-		IdentifyUI: G.UI.GetIdentifyUI(v.user),
+		IdentifyUI: G.UI.GetIdentifyUI(),
 	}
 	err := engine.RunEngine(eng, &ctx, nil, nil)
 	return err

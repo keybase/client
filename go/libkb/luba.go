@@ -91,13 +91,10 @@ func (l *LubaRes) Load(a string, withTracking bool, ui IdentifyUI) {
 	}
 
 	if ui == nil {
-		ui = G.UI.GetIdentifyLubaUI(l.User.GetName())
+		ui = G.UI.GetIdentifyLubaUI()
 	}
 
-	_, _, l.Error = l.User.Identify(IdentifyArg{
-		Me: me,
-		Ui: ui,
-	})
+	_, _, l.Error = l.User.Identify(NewIdentifyArg(me, l.User.GetName(), ui))
 	if l.Error != nil {
 		return
 	}

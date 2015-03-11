@@ -110,11 +110,7 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 
 	var ti libkb.TrackInstructions
 	var io *libkb.IdentifyOutcome
-	io, ti, err = e.arg.Them.Identify(libkb.IdentifyArg{
-		Me: e.arg.Me,
-		Ui: ctx.TrackUI,
-	})
-
+	io, ti, err = e.arg.Them.Identify(libkb.NewIdentifyArg(e.arg.Me, e.arg.Them.GetName(), ctx.TrackUI))
 	if err != nil {
 		return
 	}

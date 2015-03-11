@@ -2,7 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type IdentifyEngineArg struct {
@@ -92,8 +92,7 @@ func (e *IdentifyEngine) runStandard(ctx *Context) (*IdentifyRes, error) {
 		return nil, err
 	}
 	ui := ctx.IdentifyUI
-	ui.SetUsername(u.GetName())
-	outcome, err := u.IdentifySimple(nil, ui)
+	outcome, err := u.IdentifySimple(nil, u.GetName(), ui)
 	if err != nil {
 		return nil, err
 	}

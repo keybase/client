@@ -193,15 +193,13 @@ func (ui *FakeIdentifyUI) DisplayKey(kid keybase_1.FOKID, td *keybase_1.TrackDif
 }
 func (ui *FakeIdentifyUI) ReportLastTrack(*keybase_1.TrackSummary) {
 }
-func (ui *FakeIdentifyUI) Start() {
+func (ui *FakeIdentifyUI) Start(username string) {
 }
 func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity, user *keybase_1.User) {
 	ui.User = user
 }
 func (ui *FakeIdentifyUI) DisplayTrackStatement(string) (err error) {
 	return
-}
-func (ui *FakeIdentifyUI) SetUsername(username string) {
 }
 func (ui *FakeIdentifyUI) SetStrict(b bool) {
 }

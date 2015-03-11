@@ -201,13 +201,13 @@ func SetupTest(t *testing.T, nm string) (tc TestContext) {
 
 type nullui struct{}
 
-func (n *nullui) GetIdentifyUI(username string) IdentifyUI {
+func (n *nullui) GetIdentifyUI() IdentifyUI {
 	return nil
 }
 func (n *nullui) GetIdentifySelfUI() IdentifyUI {
 	return nil
 }
-func (n *nullui) GetIdentifyTrackUI(username string, strict bool) IdentifyUI {
+func (n *nullui) GetIdentifyTrackUI(strict bool) IdentifyUI {
 	return nil
 }
 func (n *nullui) GetLoginUI() LoginUI {
@@ -231,7 +231,7 @@ func (n *nullui) GetDoctorUI() DoctorUI {
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {
 	return "", nil
 }
-func (n *nullui) GetIdentifyLubaUI(username string) IdentifyUI {
+func (n *nullui) GetIdentifyLubaUI() IdentifyUI {
 	return nil
 }
 func (n *nullui) Configure() error {

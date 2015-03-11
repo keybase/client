@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -10,12 +10,12 @@ type IdentifyUIServer struct {
 	eng libkb.IdentifyUI
 }
 
-func NewIdentifyUIProtocol(username string) rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI(username)})
+func NewIdentifyUIProtocol() rpc2.Protocol {
+	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{G_UI.GetIdentifyUI()})
 }
 
-func NewIdentifyTrackUIProtocol(username string) rpc2.Protocol {
-	ui := G_UI.GetIdentifyTrackUI(username, true)
+func NewIdentifyTrackUIProtocol() rpc2.Protocol {
+	ui := G_UI.GetIdentifyTrackUI(true)
 	return keybase_1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 

@@ -25,8 +25,17 @@ func displayKey(fokid *FOKID, is IdentifyState) {
 }
 
 type IdentifyArg struct {
-	Me *User // The user who's doing the tracking
-	Ui IdentifyUI
+	Me             *User // The user who's doing the tracking
+	Ui             IdentifyUI
+	TargetUsername string // The user being tracked
+}
+
+func NewIdentifyArg(me *User, targetUsername string, ui IdentifyUI) *IdentifyArg {
+	return &IdentifyArg{
+		Me:             me,
+		Ui:             ui,
+		TargetUsername: targetUsername,
+	}
 }
 
 func (i IdentifyArg) MeSet() bool {
@@ -207,9 +216,9 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 	}
 }
 
-func (u *User) _identify(arg IdentifyArg) (res *IdentifyOutcome) {
+func (u *User) _identify(arg *IdentifyArg) (res *IdentifyOutcome) {
 	res = NewIdentifyOutcome(arg.MeSet())
-	is := NewIdentifyState(&arg, res, u)
+	is := NewIdentifyState(arg, res, u)
 
 	if arg.Me == nil {
 		// noop
@@ -240,18 +249,15 @@ func (u *User) _identify(arg IdentifyArg) (res *IdentifyOutcome) {
 	return
 }
 
-func (u *User) Identify(arg IdentifyArg) (outcome *IdentifyOutcome, ti TrackInstructions, err error) {
-	arg.Ui.Start()
+func (u *User) Identify(arg *IdentifyArg) (outcome *IdentifyOutcome, ti TrackInstructions, err error) {
+	arg.Ui.Start(arg.TargetUsername)
 	outcome = u._identify(arg)
 	tmp, err := arg.Ui.FinishAndPrompt(outcome.Export())
 	fpr := ImportFinishAndPromptRes(tmp)
 	return outcome, fpr, err
 }
 
-func (u *User) IdentifySimple(me *User, ui IdentifyUI) (*IdentifyOutcome, error) {
-	outcome, _, err := u.Identify(IdentifyArg{
-		Me: me,
-		Ui: ui,
-	})
+func (u *User) IdentifySimple(me *User, targetUsername string, ui IdentifyUI) (*IdentifyOutcome, error) {
+	outcome, _, err := u.Identify(NewIdentifyArg(me, targetUsername, ui))
 	return outcome, err
 }

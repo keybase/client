@@ -121,13 +121,9 @@ type RemoteIdentifyUI struct {
 	RemoteBaseIdentifyUI
 }
 
-func (u *RemoteBaseIdentifyUI) Start() {
-	u.logUI.Info("Identifying " + u.username)
+func (u *RemoteBaseIdentifyUI) Start(username string) {
+	u.logUI.Info("Identifying " + username)
 	return
-}
-
-func (u *RemoteBaseIdentifyUI) SetUsername(username string) {
-	u.username = username
 }
 
 func (u *RemoteBaseIdentifyUI) SetStrict(b bool) {

@@ -197,10 +197,9 @@ type IdentifyUI interface {
 	DisplayCryptocurrency(keybase_1.Cryptocurrency)
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*keybase_1.TrackSummary)
-	Start()
+	Start(string)
 	LaunchNetworkChecks(*keybase_1.Identity, *keybase_1.User)
 	DisplayTrackStatement(string) error
-	SetUsername(username string)
 	SetStrict(b bool)
 }
 
@@ -256,9 +255,9 @@ type GPGUI interface {
 }
 
 type UI interface {
-	GetIdentifyUI(username string) IdentifyUI
-	GetIdentifyTrackUI(username string, strict bool) IdentifyUI
-	GetIdentifyLubaUI(username string) IdentifyUI
+	GetIdentifyUI() IdentifyUI
+	GetIdentifyTrackUI(strict bool) IdentifyUI
+	GetIdentifyLubaUI() IdentifyUI
 	GetLoginUI() LoginUI
 	GetSecretUI() SecretUI
 	GetProveUI() ProveUI

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -36,7 +37,7 @@ func (v *CmdTrack) RunClient() error {
 
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		NewIdentifyTrackUIProtocol(v.user),
+		NewIdentifyTrackUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
@@ -51,7 +52,7 @@ func (v *CmdTrack) Run() error {
 	eng := engine.NewTrackEngine(&arg)
 	ctx := engine.Context{
 		SecretUI: G_UI.GetSecretUI(),
-		TrackUI:  G_UI.GetIdentifyTrackUI(v.user, true),
+		TrackUI:  G_UI.GetIdentifyTrackUI(true),
 	}
 	return engine.RunEngine(eng, &ctx, nil, nil)
 }
