@@ -22,11 +22,21 @@
   ((KBUserImageView *)self.imageView).username = user.username;
 }
 
+KBRTrackProof *KBFindProof(KBRProofs *proofs, NSString *proofType) {
+  for (KBRTrackProof *proof in proofs.social) {
+    if ([proof.proofType isEqualToString:proofType]) return proof;
+  }
+  return nil;
+}
+
 - (void)setUserSummary:(KBRUserSummary *)userSummary {
   self.imageSize = CGSizeMake(40, 40);
   [self.titleLabel setText:userSummary.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-  if (userSummary.proofs.twitter) {
-    [self.infoLabel setText:NSStringWithFormat(@"%@@twitter", userSummary.proofs.twitter) style:KBLabelStyleDefault];
+
+  KBRTrackProof *proof = KBFindProof(userSummary.proofs, @"twitter");
+
+  if (proof) {
+    [self.infoLabel setText:NSStringWithFormat(@"%@@twitter", proof.proofName) style:KBLabelStyleDefault];
   } else {
     self.infoLabel.attributedText = nil;
   }

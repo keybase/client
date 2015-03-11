@@ -105,27 +105,18 @@
 - (void)reload:(BOOL)update {
   GHWeakSelf gself = self;
   KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:self.client];
-  [request listTrackingWithFilter:nil completion:^(NSError *error, NSArray *items) {
+  [request listTrackingWithFilter:nil completion:^(NSError *error, NSArray *userSummaries) {
     if (error) {
       [AppDelegate setError:error sender:self];
       [gself.usersView removeAllObjects];
       return;
     }
-
-    [self loadUsernames:[items map:^(KBRTrackEntry *te) { return te.username; }] completion:^(NSError *error, NSArray *userSummaries) {
-      [self setUserSummaries:userSummaries update:NO];
-    }];
+    [self setUserSummaries:userSummaries update:NO];
   }];
 }
 
 - (void)update {
   [self reload:YES];
-}
-
-- (void)loadUserIds:(NSArray *)userIds {
-  KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:self.client];
-  [request loadUncheckedUserSummariesWithUids:userIds completion:^(NSError *error, NSArray *items) {
-  }];
 }
 
 - (void)setUserSummaries:(NSArray *)userSummaries update:(BOOL)update {
@@ -145,38 +136,18 @@
   [_userProfileView setUser:user editable:editable client:self.client];
 }
 
-- (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *userSummaries))completion {
-  //self.progressIndicatorEnabled = YES;
-  [AppDelegate.sharedDelegate.APIClient usersForKey:@"usernames" value:[usernames join:@","] fields:nil success:^(NSArray *users) {
-    //self.progressIndicatorEnabled = NO;
-    completion(nil, KBRUserSummariesFromAPIUsers(users));
-  } failure:^(NSError *error) {
-    completion(error, nil);
-  }];
-}
-
-NSArray *KBRUserSummariesFromAPIUsers(NSArray *APIUsers) {
-  return [APIUsers map:^id(KBUser *APIUser) {
-    KBRUserSummary *user = [[KBRUserSummary alloc] init];
-    user.uid = (KBRUID *)[APIUser.identifier na_dataFromHexString];
-    user.username = APIUser.userName;
-    user.proofs = [[KBRProofs alloc] init];
-    user.proofs.twitter = [[[APIUser proofsForType:KBProofTypeTwitter] firstObject] displayName];
-    user.proofs.github = [[[APIUser proofsForType:KBProofTypeGithub] firstObject] displayName];
-    return user;
-  }];
-}
+//- (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *userSummaries))completion {
+//  [AppDelegate.sharedDelegate.APIClient usersForKey:@"usernames" value:[usernames join:@","] fields:nil success:^(NSArray *users) {
+//    completion(nil, KBRUserSummariesFromAPIUsers(users));
+//  } failure:^(NSError *error) {
+//    completion(error, nil);
+//  }];
+//}
 
 KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   KBRUser *user = [[KBRUser alloc] init];
   user.uid = (KBRUID *)[searchResult.userId na_dataFromHexString];
   user.username = searchResult.userName;
-  return user;
-}
-
-KBRUser *KBRUserFromTrackEntry(KBRTrackEntry *trackEntry) {
-  KBRUser *user = [[KBRUser alloc] init];
-  user.username = trackEntry.username;
   return user;
 }
 

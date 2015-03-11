@@ -174,8 +174,6 @@
 		00E531581A9E7955005A4185 /* KBRMockClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E531561A9E7955005A4185 /* KBRMockClient.m */; };
 		00E5315B1A9E7C50005A4185 /* KBRPCRegistration.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */; };
 		00E5315C1A9E7C50005A4185 /* KBRPCRegistration.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */; };
-		00FDC80F1AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */; };
-		00FDC8101AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */; };
 		00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
 		00FDC8181AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
 		00FDC81B1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC81A1AAA7D1800D6C571 /* KBCellDataSource.m */; };
@@ -383,8 +381,6 @@
 		00E531591A9E7C50005A4185 /* KBRPCRegistration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPCRegistration.h; sourceTree = "<group>"; };
 		00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPCRegistration.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		00FDC80D1AAA5E3700D6C571 /* KBTrackEntryView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTrackEntryView.h; sourceTree = "<group>"; };
-		00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTrackEntryView.m; sourceTree = "<group>"; };
 		00FDC8151AAA605C00D6C571 /* KBUserImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserImageView.h; sourceTree = "<group>"; };
 		00FDC8161AAA605C00D6C571 /* KBUserImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserImageView.m; sourceTree = "<group>"; };
 		00FDC8191AAA7D1800D6C571 /* KBCellDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCellDataSource.h; sourceTree = "<group>"; };
@@ -469,8 +465,6 @@
 				0017124A1A951A9C00C7AD58 /* KBUsersAppView.m */,
 				00C7DD4F1AA6747B00F57AFC /* KBUserStatusView.h */,
 				00C7DD501AA6747B00F57AFC /* KBUserStatusView.m */,
-				00FDC80D1AAA5E3700D6C571 /* KBTrackEntryView.h */,
-				00FDC80E1AAA5E3700D6C571 /* KBTrackEntryView.m */,
 				00FDC8151AAA605C00D6C571 /* KBUserImageView.h */,
 				00FDC8161AAA605C00D6C571 /* KBUserImageView.m */,
 			);
@@ -1009,7 +1003,6 @@
 				00B543F91A81990B0044CC5B /* KBPreferences.m in Sources */,
 				00C7DD6A1AA7966D00F57AFC /* KBRPCRecord.m in Sources */,
 				006D571B1AAE29EF00D16CB8 /* KBFolderView.m in Sources */,
-				00FDC80F1AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */,
 				00C7DD4D1AA63A1100F57AFC /* KBLabelRow.m in Sources */,
 				00B544261A895A810044CC5B /* KBProofResult.m in Sources */,
 				00566A111A97DA1800CA236E /* KBImageTextView.m in Sources */,
@@ -1105,7 +1098,6 @@
 				003BAABA1A8042C700C309B9 /* KBStyleGuideView.m in Sources */,
 				0017124F1A951A9C00C7AD58 /* KBUserView.m in Sources */,
 				00DD24611AA8E93100371CDA /* KBConnectView.m in Sources */,
-				00FDC8101AAA5E3700D6C571 /* KBTrackEntryView.m in Sources */,
 				00566A1A1A97DA1800CA236E /* KBLayouts.m in Sources */,
 				001712671A951EE500C7AD58 /* KBKeySelectView.m in Sources */,
 				00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */,
@@ -1252,12 +1244,14 @@
 			baseConfigurationReference = 81076E015931C23010D4DCF8 /* Pods.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Keybase/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -1266,12 +1260,14 @@
 			baseConfigurationReference = ABB373EAF6E0F6769BCC3874 /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Keybase/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
