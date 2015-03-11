@@ -27,6 +27,7 @@
 //  self.view.gridColor = KBAppearance.currentAppearance.tableGridColor;
 
   self.view.columnAutoresizingStyle = NSTableViewFirstColumnOnlyAutoresizingStyle;
+  self.view.intercellSpacing = CGSizeZero;
 
   NSTableColumn *nameColumn = [[NSTableColumn alloc] initWithIdentifier:@"name"];
   nameColumn.title = @"Name";
@@ -67,7 +68,8 @@
       label = [[KBLabel alloc] init];
       label.identifier = @"KBFolderView.dateLabel";
     }
-    [label setText:[_dateFormatter stringFromDate:folder.dateModified] style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    label.verticalAlignment = KBVerticalAlignmentMiddle;
+    [label setText:[_dateFormatter stringFromDate:folder.dateModified] style:KBLabelStyleSecondaryText alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     return label;
   }
 

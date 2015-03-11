@@ -124,28 +124,30 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   //return [NSColor colorWithCalibratedRed:231.0/255.0 green:239.0/255.0 blue:255.0/255.0 alpha:1.0];
 }
 
+#define BASE_FONT_SIZE (13)
+
 - (NSFont *)textFont {
-  return [NSFont systemFontOfSize:14];
+  return [NSFont systemFontOfSize:BASE_FONT_SIZE];
 }
 
 - (NSFont *)smallTextFont {
-  return [NSFont systemFontOfSize:13];
+  return [NSFont systemFontOfSize:BASE_FONT_SIZE-1];
 }
 
 - (NSFont *)boldTextFont {
-  return [NSFont boldSystemFontOfSize:14];
+  return [NSFont boldSystemFontOfSize:BASE_FONT_SIZE];
 }
 
 - (NSFont *)boldLargeTextFont {
-  return [NSFont boldSystemFontOfSize:16];
+  return [NSFont boldSystemFontOfSize:BASE_FONT_SIZE+2];
 }
 
 - (NSFont *)boldLargerTextFont {
-  return [NSFont boldSystemFontOfSize:20];
+  return [NSFont boldSystemFontOfSize:BASE_FONT_SIZE+4];
 }
 
 - (NSFont *)buttonFont {
-  return [NSFont systemFontOfSize:18];
+  return [NSFont systemFontOfSize:BASE_FONT_SIZE+4];
 }
 
 - (NSColor *)backgroundColor {

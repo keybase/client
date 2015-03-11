@@ -292,6 +292,7 @@
       [self setStatus:status];
       gself.debugStatusView.config = config;
       [gself.debugStatusView setRPCConnected:YES serverConnected:YES];
+      // TODO reload current view if coming back from disconnect?
     }];
   }];
 }

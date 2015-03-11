@@ -25,15 +25,12 @@
   _nameLabel = [[KBLabel alloc] init];
   [self addSubview:_nameLabel];
 
-  KBBox *border = [KBBox line];
-  [self addSubview:border];
-
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 0;
-    CGFloat y = 0;
+    CGFloat x = 6;
+    CGFloat y = 2;
 
-    x += [layout setFrame:CGRectMake(x, y, 16, 16) view:yself.imageView].size.width + 8;
+    x += [layout setFrame:CGRectMake(x, 2, 16, 16) view:yself.imageView].size.width + 7;
 
     [layout setFrame:CGRectMake(x, y, size.width - x, 20) view:yself.nameLabel];
 
@@ -51,7 +48,8 @@
 
 - (void)setFolder:(KBFolder *)folder {
   [self.nameLabel setText:folder.name style:KBLabelStyleDefault];
-  [self.imageView.imageLoader setImageSource:@"GenericFolderIcon.icns"];
+  //[self.imageView.imageLoader setImageSource:@"GenericFolderIcon.icns"];
+  self.imageView.image = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
   [self setNeedsLayout];
 }
 

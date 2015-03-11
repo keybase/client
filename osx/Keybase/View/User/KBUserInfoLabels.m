@@ -43,7 +43,7 @@
 
     if ([yself.headerLabel hasText]) {
       CGSize headerLabelSize = [yself.headerLabel sizeThatFits:size];
-      [layout setFrame:CGRectMake(x - headerLabelSize.width, 0, headerLabelSize.width, lineHeight + 1) view:yself.headerLabel];
+      [layout setFrame:CGRectMake(x - headerLabelSize.width - 5, 0, headerLabelSize.width, lineHeight + 1) view:yself.headerLabel];
     }
 
     if (yself.imageView.image) {

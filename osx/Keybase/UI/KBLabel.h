@@ -14,6 +14,7 @@
 #import "KBView.h"
 
 typedef NS_ENUM(NSInteger, KBLabelStyle) {
+  KBLabelStyleNone,
   KBLabelStyleDefault,
   KBLabelStyleSecondaryText,
   KBLabelStyleHeader,

@@ -37,12 +37,12 @@
 }
 
 - (void)reload {
-  /*
-  NSArray *folders = @[[KBFolder folderWithName:@"Test" dateModified:[NSDate date]],
-                       [KBFolder folderWithName:@"max,gabrielh" dateModified:[NSDate date]],
-                       [KBFolder folderWithName:@"chris,gabrielh" dateModified:[NSDate date]],];
+  NSArray *folders = @[[KBFolder folderWithName:@"patrick" dateModified:[[NSDate date] gh_addDays:-100]],
+                       [KBFolder folderWithName:@"max,gabrielh" dateModified:[[NSDate date] gh_addDays:-200]],
+                       [KBFolder folderWithName:@"chris,gabrielh" dateModified:[NSDate date]],
+                       [KBFolder folderWithName:@"Keybase" dateModified:[NSDate date]],];
+
   [_listView setObjects:folders];
-   */
 }
 
 @end
