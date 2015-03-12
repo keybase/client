@@ -14,6 +14,6 @@
 
 - (void)setError:(NSError *)error;
 
-- (void)openInWindow;
+- (void)openInWindow:(NSView *)sender;
 
 @end

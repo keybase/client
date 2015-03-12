@@ -11,10 +11,12 @@
 #import "KBFolderView.h"
 #import "KBFolder.h"
 #import "KBFolderListView.h"
+#import "KBFoldersView.h"
+#import "KBFolderPreviewView.h"
 
 @interface KBFoldersAppView ()
 @property KBSplitView *splitView;
-@property KBFolderListView *listView;
+@property KBFoldersView *foldersView;
 @end
 
 @implementation KBFoldersAppView
@@ -27,11 +29,18 @@
   _splitView.dividerPosition = -240;
   [self addSubview:_splitView];
 
-  _listView = [[KBFolderListView alloc] init];
+  _foldersView = [[KBFoldersView alloc] init];
 
-  KBView *contentView = [[KBView alloc] init];
+  KBFolderPreviewView *previewView = [[KBFolderPreviewView alloc] init];
 
-  [_splitView setSourceView:_listView contentView:contentView];
+  _foldersView.foldersView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFolder *folder) {
+    [previewView setFolder:folder];
+  };
+  _foldersView.favoritesView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFolder *folder) {
+    [previewView setFolder:folder];
+  };
+
+  [_splitView setSourceView:_foldersView contentView:previewView];
 
   self.viewLayout = [YOLayout fill:_splitView];
 }
@@ -41,8 +50,10 @@
                        [KBFolder folderWithName:@"max,gabrielh" dateModified:[[NSDate date] gh_addDays:-200]],
                        [KBFolder folderWithName:@"chris,gabrielh" dateModified:[NSDate date]],
                        [KBFolder folderWithName:@"Keybase" dateModified:[NSDate date]],];
+  [_foldersView.foldersView setObjects:folders];
 
-  [_listView setObjects:folders];
+  NSArray *favorites = [folders subarrayWithRange:NSMakeRange(1, 2)];
+  [_foldersView.favoritesView setObjects:favorites];
 }
 
 @end

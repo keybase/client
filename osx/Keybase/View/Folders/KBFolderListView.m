@@ -31,6 +31,7 @@
 
   NSTableColumn *nameColumn = [[NSTableColumn alloc] initWithIdentifier:@"name"];
   nameColumn.title = @"Name";
+  nameColumn.minWidth = 100;
   [self.view addTableColumn:nameColumn];
   NSTableColumn *dateColumn = [[NSTableColumn alloc] initWithIdentifier:@"dateModified"];
   dateColumn.title = @"Date Modified";
@@ -43,9 +44,8 @@
 
   GHWeakSelf gself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    //[layout setSize:size view:gself.scrollView options:0];
-    [layout setFrame:CGRectMake(0, -1, size.width + 1, size.height +1) view:gself.scrollView];
-
+    [layout setSize:size view:gself.scrollView options:0];
+    //[layout setFrame:CGRectMake(0, -1, size.width + 1, size.height +1) view:gself.scrollView];
     return size;
   }];
 }
@@ -74,10 +74,6 @@
   }
 
   return nil;
-}
-
-- (void)selectItem:(KBFolder *)item {
-
 }
 
 @end

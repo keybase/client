@@ -54,21 +54,40 @@
 }
 
 + (instancetype)buttonWithImage:(NSImage *)image {
+  return [self buttonWithImage:image style:KBButtonStyleEmpty];
+}
+
++ (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style {
   KBButton *button = [[KBButton alloc] init];
-  button.image = image;
-  button.bordered = NO;
+  KBButtonCell *cell = [button _setCellForStyle:style];
+  cell.image = image;
   return button;
 }
 
 - (CGSize)sizeThatFits:(NSSize)size {
   CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
-  if (self.style == KBButtonStyleText || self.style == KBButtonStyleLink || self.style == KBButtonStyleCheckbox) {
-    sizeThatFits.width += 2;
-    sizeThatFits.height += 2;
-  } else {
-    // Padding for non text style buttons
-    sizeThatFits.height += 20;
-    sizeThatFits.width += 40;
+  switch (self.style) {
+    case KBButtonStyleText:
+    case KBButtonStyleLink:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleEmpty:
+      sizeThatFits.width += 2;
+      sizeThatFits.height += 2;
+      break;
+
+    case KBButtonStyleToolbar:
+      // Padding for non text style buttons
+      sizeThatFits.height += 10;
+      sizeThatFits.width += 20;
+      break;
+
+    case KBButtonStyleDefault:
+    case KBButtonStylePrimary:
+      // Padding for non text style buttons
+      sizeThatFits.height += 20;
+      sizeThatFits.width += 40;
+      break;
+
   }
   return sizeThatFits;
 }
@@ -108,31 +127,31 @@
   return cell;
 }
 
-- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  self.style = style;
+- (KBButtonCell *)_setCellForStyle:(KBButtonStyle)style {
+  _style = style;
   KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
-  [cell setText:text alignment:alignment lineBreakMode:lineBreakMode];
   self.cell = cell;
-
   if (style == KBButtonStyleCheckbox) {
     [self setButtonType:NSSwitchButton];
   }
+  return cell;
+}
+
+- (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  KBButtonCell *cell = [self _setCellForStyle:style];
+  [cell setText:text alignment:alignment lineBreakMode:lineBreakMode];
   [self setNeedsDisplay];
 }
 
 - (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style {
-  self.style = style;
-  KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
+  KBButtonCell *cell = [self _setCellForStyle:style];
   [cell setAttributedTitle:attributedTitle];
-  self.cell = cell;
   [self setNeedsDisplay];
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
-  self.style = style;
-  KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
+  KBButtonCell *cell = [self _setCellForStyle:style];
   [cell setMarkup:markup style:style alignment:alignment];
-  self.cell = cell;
   [self setNeedsDisplay];
 }
 
@@ -144,11 +163,17 @@
 + (NSFont *)fontForStyle:(KBButtonStyle)style {
   switch (style) {
     case KBButtonStyleDefault:
-    case KBButtonStylePrimary: return [NSFont systemFontOfSize:18];
-    case KBButtonStyleLink: return [NSFont systemFontOfSize:14];
-    case KBButtonStyleText: return [NSFont systemFontOfSize:14];
-    case KBButtonStyleCheckbox: return [NSFont systemFontOfSize:14];
-    case KBButtonStyleEmpty: return nil;
+    case KBButtonStylePrimary:
+      return [KBAppearance.currentAppearance buttonFont];
+
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleToolbar:
+      return [KBAppearance.currentAppearance textFont];
+
+    case KBButtonStyleEmpty:
+      return nil;
   }
 }
 
@@ -175,8 +200,13 @@
 - (NSColor *)textColorForState {
   if (!self.enabled) return GHNSColorFromRGB(0x666666);
   switch (self.style) {
-    case KBButtonStyleDefault: return GHNSColorFromRGB(0x333333);
-    case KBButtonStylePrimary: return GHNSColorFromRGB(0xFFFFFF);
+    case KBButtonStyleDefault:
+    case KBButtonStyleToolbar:
+      return GHNSColorFromRGB(0x333333);
+
+    case KBButtonStylePrimary:
+      return GHNSColorFromRGB(0xFFFFFF);
+
     case KBButtonStyleLink: return self.highlighted ? GHNSColorFromRGB(0x000000) : [KBAppearance.currentAppearance selectColor];
     case KBButtonStyleText: NSAssert(NO, @"Text style shouldn't get here");
     case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
@@ -188,6 +218,7 @@
   switch (self.style) {
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
+    case KBButtonStyleToolbar:
       return GHNSColorFromRGB(0xEFEFEF);
     case KBButtonStyleLink: return nil;
     case KBButtonStyleText: return nil;
@@ -200,6 +231,7 @@
   switch (self.style) {
     case KBButtonStyleEmpty:
     case KBButtonStyleDefault:
+    case KBButtonStyleToolbar:
       return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStylePrimary: return GHNSColorFromRGB(0x286090);
     case KBButtonStyleLink: return nil;
@@ -212,8 +244,9 @@
   if (!self.enabled) return [self disabledFillColorForState];
   if (self.highlighted) return [self highlightedFillColorForState];
   switch (self.style) {
-    case KBButtonStyleEmpty:
     case KBButtonStyleDefault:
+    case KBButtonStyleEmpty:
+    case KBButtonStyleToolbar:
       return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : GHNSColorFromRGB(0xFFFFFF));
 
     case KBButtonStylePrimary: return self.highlighted ? GHNSColorFromRGB(0x286090) : KBAppearance.currentAppearance.selectColor; //GHNSColorFromRGB(0x337AB7);
@@ -231,18 +264,24 @@
     case KBButtonStyleText: return nil;
     case KBButtonStyleCheckbox: return nil;
     case KBButtonStyleEmpty: return nil;
+    case KBButtonStyleToolbar: return nil;
   }
 }
 
 - (NSColor *)strokeColorForState {
   if (!self.enabled) return [self disabledStrokeColorForState];
   switch (self.style) {
-    case KBButtonStyleDefault: return GHNSColorFromRGB(0xCCCCCC);
-    case KBButtonStylePrimary: return GHNSColorFromRGB(0x2e6da4);
-    case KBButtonStyleLink: return nil;
-    case KBButtonStyleText: return nil;
-    case KBButtonStyleCheckbox: return nil;
-    case KBButtonStyleEmpty: return nil;
+    case KBButtonStyleDefault:
+    case KBButtonStyleToolbar:
+      return GHNSColorFromRGB(0xCCCCCC);
+    case KBButtonStylePrimary:
+      return GHNSColorFromRGB(0x2e6da4);
+
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleEmpty:
+      return nil;
   }
 }
 

@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
 typedef NS_ENUM (NSInteger, KBFolderType) {
   KBFolderTypeDefault,
@@ -20,5 +21,7 @@ typedef NS_ENUM (NSInteger, KBFolderType) {
 @property NSDate *dateModified;
 
 + (instancetype)folderWithName:(NSString *)name dateModified:(NSDate *)dateModified;
+
+NSImage *KBImageForFolder(KBFolder *folder);
 
 @end

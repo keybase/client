@@ -8,6 +8,7 @@
 
 #import "KBFatalErrorView.h"
 #import "KBAppKit.h"
+#import <YOLayout/YOCGUtils.h>
 
 @interface KBFatalErrorView ()
 @property KBLabel *titleLabel;
@@ -42,12 +43,12 @@
   _scrollView.scrollView.borderType = NSBezelBorder;
   [self addSubview:_scrollView];
 
-  GHWeakSelf gself = self;
-  _button = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
-  self.button.targetBlock = ^{
-    [NSApplication.sharedApplication terminate:gself];
-  };
-  [self addSubview:_button];
+//  GHWeakSelf gself = self;
+//  _button = [KBButton buttonWithText:@"Quit" style:KBButtonStyleLink];
+//  self.button.targetBlock = ^{
+//    [NSApplication.sharedApplication terminate:gself];
+//  };
+//  [self addSubview:_button];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -57,9 +58,9 @@
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:headerLabel].size.height + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.titleLabel].size.height + 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 150) view:yself.scrollView].size.height + 20;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, size.height - y - 40) view:yself.scrollView].size.height;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 200, y, 160, 0) view:yself.button].size.height + 20;
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 200, y, 160, 0) view:yself.button].size.height + 20;
 
     return CGSizeMake(size.width, y);
   }];
@@ -88,7 +89,7 @@
   [self setNeedsLayout];
 }
 
-- (void)openInWindow {
+- (void)openInWindow:(NSView *)sender {
   if (self.window) {
     [self.window makeKeyAndOrderFront:nil];
     return;
@@ -97,9 +98,13 @@
   [self removeFromSuperview];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:self title:@"Keybase"];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 410) retain:YES];
-  [window setLevel:NSFloatingWindowLevel];
-  [window center];
-  [window makeKeyAndOrderFront:nil];
+
+  CGPoint p = sender.window.frame.origin;
+  p.x += YOCGPointToCenterX(window.frame.size, sender.window.frame.size).x;
+  p.y += YOCGPointToCenterY(window.frame.size, sender.window.frame.size).y;
+  [window setFrameOrigin:p];
+
+  [sender.window addChildWindow:window ordered:NSWindowAbove];
 }
 
 @end

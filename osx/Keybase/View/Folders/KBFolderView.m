@@ -47,9 +47,8 @@
 //
 
 - (void)setFolder:(KBFolder *)folder {
-  [self.nameLabel setText:folder.name style:KBLabelStyleDefault];
-  //[self.imageView.imageLoader setImageSource:@"GenericFolderIcon.icns"];
-  self.imageView.image = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
+  [self.nameLabel setText:folder.name style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  self.imageView.image = KBImageForFolder(folder);
   [self setNeedsLayout];
 }
 

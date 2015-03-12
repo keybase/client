@@ -95,7 +95,7 @@
   [self.delegate searchControl:self progressEnabled:YES];
 
   GHWeakSelf gself = self;
-  GHDebug(@"Search (API): %@", searchText);
+  GHDebug(@"Search: %@", searchText);
 
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     [self.delegate searchControl:self shouldSearchWithQuery:searchText completion:^(NSError *error, NSArray *searchResults) {

@@ -23,6 +23,7 @@
 
 @interface KBSearchControl : YONSView <NSTextFieldDelegate>
 
+@property (readonly) NSSearchField *searchField;
 @property (weak) id<KBSearchControlDelegate> delegate;
 
 @end

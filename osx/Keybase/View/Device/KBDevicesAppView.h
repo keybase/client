@@ -10,7 +10,6 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBSearchControl.h"
 
 @interface KBDevicesAppView : YONSView
 

@@ -12,8 +12,9 @@
 #import "KBCellDataSource.h"
 #import "KBScrollView.h"
 
-typedef void (^KBCellSelectBlock)(id sender, NSIndexPath *indexPath, id object);
+@class KBTableView;
 
+typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath, id object);
 
 @interface KBTableView : YONSView <NSTableViewDelegate, NSTableViewDataSource>
 

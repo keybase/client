@@ -28,7 +28,7 @@
   _data = [MPOrderedDictionary dictionary];
   _outlineView.floatsGroupRows = NO;
   _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
-  [self addSubview:_outlineView];
+  //[self addSubview:_outlineView];
   [self.data setObject:@[@"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
 
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -47,13 +47,23 @@
   _statusView.button.actionBlock = ^(id sender) { [gself selectItem:KBSourceViewItemProfile]; };
   [self addSubview:_statusView];
 
+//  KBScrollView *scrollView = [[KBScrollView alloc] init];
+//  [scrollView setDocumentView:_outlineView];
+//  [self addSubview:scrollView];
+  NSScrollView *scrollView = [[NSScrollView alloc] init];
+  [scrollView setDocumentView:_outlineView];
+  [scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+  [self addSubview:scrollView];
+
+  _outlineView.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor; // Have to set after in scrollview
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
 
     [layout setFrame:CGRectMake(self.frame.size.width - 24, 4, 20, 20) view:yself.progressView];
 
     CGSize statusViewSize = [yself.statusView sizeThatFits:size];
-    [layout setFrame:CGRectMake(0, 0, size.width, size.height - statusViewSize.height) view:yself.outlineView];
+    [layout setFrame:CGRectMake(0, -20, size.width, size.height - statusViewSize.height) view:scrollView];
     [layout setFrame:CGRectMake(0, size.height - statusViewSize.height - 1, size.width, 1) view:border];
     [layout setFrame:CGRectMake(0, size.height - statusViewSize.height, statusViewSize.width, statusViewSize.height) view:yself.statusView];
 

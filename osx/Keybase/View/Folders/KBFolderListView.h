@@ -11,5 +11,4 @@
 #import "KBAppKit.h"
 
 @interface KBFolderListView : KBTableView
-
 @end

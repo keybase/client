@@ -17,7 +17,8 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleLink,
   KBButtonStyleCheckbox,
   KBButtonStyleText,
-  KBButtonStyleEmpty
+  KBButtonStyleEmpty,
+  KBButtonStyleToolbar,
 };
 
 @interface KBButton : NSButton
@@ -30,9 +31,10 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-+ (instancetype)linkWithText:(NSString *)text actionBlock:(KBButtonActionBlock)actionBlock;
-
 + (instancetype)buttonWithImage:(NSImage *)image;
++ (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style;
+
++ (instancetype)linkWithText:(NSString *)text actionBlock:(KBButtonActionBlock)actionBlock;
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 

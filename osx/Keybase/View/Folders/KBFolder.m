@@ -17,4 +17,8 @@
   return folder;
 }
 
+NSImage *KBImageForFolder(KBFolder *folder) {
+  return [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
+}
+
 @end
