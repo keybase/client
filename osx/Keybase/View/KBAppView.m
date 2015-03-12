@@ -17,7 +17,6 @@
 #import "KBUserStatusView.h"
 #import "KBDevicesAppView.h"
 #import "KBConnectView.h"
-#import "KBDebugStatusView.h"
 #import "KBFoldersAppView.h"
 
 @interface KBAppView ()
@@ -36,8 +35,6 @@
 @property NSString *title;
 @property NSStatusItem *statusItem; // Menubar
 @property (nonatomic) KBRGetCurrentStatusRes *status;
-
-@property KBDebugStatusView *debugStatusView;
 @end
 
 @implementation KBAppView
@@ -60,9 +57,6 @@
   _sourceView.delegate = self;
   [self addSubview:_sourceView];
 
-  _debugStatusView = [[KBDebugStatusView alloc] init];
-  [self addSubview:_debugStatusView];
-
   KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
   [self addSubview:border];
 
@@ -79,8 +73,7 @@
     y = 0;
     [layout setFrame:CGRectMake(x - 1, y, 1, size.height - y) view:border];
 
-    [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y - 30) view:yself.contentView];
-    [layout setFrame:CGRectMake(x, size.height - y - 30, size.width - x, 30) view:yself.debugStatusView];
+    [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y) view:yself.contentView];
     return size;
   }];
 
@@ -112,8 +105,7 @@
   _client = client;
   _client.delegate = self;
 
-  _debugStatusView.client = client;
-  [_debugStatusView setRPCConnected:NO serverConnected:NO];
+  [self.delegate appView:self willConnectWithClient:_client];
 
   GHWeakSelf gself = self;  
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -145,6 +137,8 @@
   }];
 
   [_client registerMethod:@"keybase.1.logUi.log" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRLogRequestParams *requestParams = [[KBRLogRequestParams alloc] initWithParams:params];
+    [self.delegate appView:self didLogMessage:requestParams.text.data];
     completion(nil, nil);
   }];
 
@@ -290,8 +284,7 @@
       }
       [self setConfig:config];
       [self setStatus:status];
-      gself.debugStatusView.config = config;
-      [gself.debugStatusView setRPCConnected:YES serverConnected:YES];
+      [self.delegate appView:self didConnectWithClient:gself.client config:config];
       // TODO reload current view if coming back from disconnect?
     }];
   }];
@@ -346,7 +339,7 @@
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
   [self.sourceView.statusView setConnected:NO];
-  [self.debugStatusView setRPCConnected:NO serverConnected:NO];
+  [self.delegate appView:self didDisconnectWithClient:RPClient];
 }
 
 - (void)sourceOutlineView:(KBSourceOutlineView *)sourceView didSelectItem:(KBSourceViewItem)item {
@@ -366,9 +359,9 @@
   }
 }
 
-- (NSWindow *)createWindow {
+- (KBWindow *)createWindow {
   NSAssert(!self.superview, @"Already has superview");
-  NSWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 500) retain:YES];
+  KBWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 500) retain:YES];
   window.minSize = CGSizeMake(600, 400);
   //window.restorable = YES;
   window.delegate = self;
@@ -376,6 +369,7 @@
   window.titleVisibility = NO;
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
 
+  window.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
   window.restorable = YES;
   //window.restorationClass = self.class;
   //window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:window.navigation];
@@ -383,15 +377,12 @@
   return window;
 }
 
-- (void)openWindow {
-  if (self.window) {
-    [self.window makeKeyAndOrderFront:nil];
-    return;
-  }
-
-  NSWindow *window = [self createWindow];
+- (KBWindow *)openWindow {
+  NSAssert(!self.window, @"Already has window");
+  KBWindow *window = [self createWindow];
   [window center];
   [window makeKeyAndOrderFront:nil];
+  return window;
 }
 
 //- (void)encodeRestorableStateWithCoder:(NSCoder *)coder { }

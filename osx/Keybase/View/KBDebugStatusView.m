@@ -19,30 +19,12 @@
   [super viewInit];
   
   _RPCStatusLabel = [[KBLabel alloc] init];
-  _RPCStatusLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_RPCStatusLabel];
 
   _serverStatusLabel = [[KBLabel alloc] init];
-  _serverStatusLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_serverStatusLabel];
 
-  KBBox *top = [KBBox line];
-  [self addSubview:top];
-  KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.secondaryLineColor];
-  [self addSubview:border];
-  KBBox *right = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.secondaryLineColor];
-  [self addSubview:right];
-
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 10;
-    [layout setFrame:CGRectMake(0, 0, size.width, 1) view:top];
-    x += [layout setFrame:CGRectMake(x, 0, size.width, size.height) view:yself.RPCStatusLabel options:YOLayoutOptionsSizeToFitHorizontal].size.width + 10;
-    x += [layout setFrame:CGRectMake(x, 0, 1, size.height) view:border].size.width + 10;
-    x += [layout setFrame:CGRectMake(x, 0, size.width, size.height) view:yself.serverStatusLabel options:YOLayoutOptionsSizeToFitHorizontal].size.width + 10;
-    x += [layout setFrame:CGRectMake(x, 0, 1, size.height) view:right].size.width + 10;
-    return CGSizeMake(x, size.height);
-  }];
+  self.viewLayout = [YOLayout vertical:self.subviews margin:UIEdgeInsetsZero padding:8];
 }
 
 - (void)setRPCConnected:(BOOL)RPCConnected serverConnected:(BOOL)serverConnected {

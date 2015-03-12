@@ -1,5 +1,5 @@
 //
-//  KBDebugView.h
+//  KBConsoleView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/5/15.
@@ -9,7 +9,12 @@
 #import <Foundation/Foundation.h>
 
 #import "KBView.h"
+#import "KBDebugStatusView.h"
 
-@interface KBDebugView : KBView
+@interface KBConsoleView : KBView
+
+@property (readonly) KBDebugStatusView *debugStatusView;
+
+- (void)log:(NSString *)message;
 
 @end

@@ -12,6 +12,4 @@
 
 @interface KBMockViews : YONSView
 
-+ (NSWindow *)createWindow;
-
 @end

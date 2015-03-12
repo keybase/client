@@ -92,15 +92,6 @@
   [self openInWindow:view size:CGSizeMake(360, 420) title:@"Prove"];
 }
 
-+ (NSWindow *)createWindow {
-  KBMockViews *catalogView = [[KBMockViews alloc] init];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:catalogView title:@"Debug"];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(400, 400) retain:YES];
-  window.styleMask = window.styleMask | NSResizableWindowMask;
-  [window center];
-  return window;
-}
-
 - (NSWindow *)openInWindow:(KBContentView *)view size:(CGSize)size title:(NSString *)title {
   view.client = self.mockClient;
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];

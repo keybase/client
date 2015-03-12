@@ -7,6 +7,8 @@
 //
 
 #import "KBWindow.h"
+#import "KBNavigationView.h"
+#import <YOLayout/YOCGUtils.h>
 
 @implementation KBWindow
 
@@ -30,7 +32,7 @@
   [gRegisteredWindows addObject:window];
 }
 
-+ (NSWindow *)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain {
++ (KBWindow *)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain {
   KBWindow *window = [[KBWindow alloc] init];
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask;
   window.hasShadow = YES;
@@ -46,7 +48,7 @@
   return window;
 }
 
-+ (NSWindow *)windowWithContentView:(NSView *)contentView {
++ (KBWindow *)windowWithContentView:(NSView *)contentView {
   KBWindow *window = [[KBWindow alloc] init];
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask;
   window.hasShadow = YES;
@@ -55,6 +57,29 @@
   window.movableByWindowBackground = YES;
   [window setContentView:contentView];
   return window;
+}
+
+- (void)addChildWindowForView:(NSView *)view size:(CGSize)size position:(KBWindowPosition)position title:(NSString *)title {
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
+
+  CGPoint p = self.frame.origin;
+
+  switch (position) {
+    case KBWindowPositionCenter:
+      p.x += YOCGPointToCenterX(window.frame.size, self.frame.size).x;
+      p.y += YOCGPointToCenterY(window.frame.size, self.frame.size).y;
+      break;
+    case KBWindowPositionRight:
+      p.x += self.frame.size.width + 10;
+      for (NSWindow *window in self.childWindows) {
+        p.x += window.frame.size.width + 10;
+      }
+      break;
+  }
+  [window setFrameOrigin:p];
+
+  [self addChildWindow:window ordered:NSWindowAbove];
 }
 
 + (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender {
