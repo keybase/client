@@ -15,7 +15,7 @@ func SetupEngineTest(t *testing.T, name string) libkb.TestContext {
 	return tc
 }
 
-var testInviteCode string = "202020202020202020202020"
+var testInviteCode = "202020202020202020202020"
 
 type FakeUser struct {
 	Username   string

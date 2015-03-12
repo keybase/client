@@ -19,6 +19,7 @@ type PGPTrackEncryptArg struct {
 // for a set of users.  It will track them if necessary.
 type PGPTrackEncrypt struct {
 	arg *PGPTrackEncryptArg
+	libkb.Contextified
 }
 
 // NewPGPTrackEncrypt creates a PGPTrackEncrypt engine.
@@ -53,20 +54,26 @@ func (e *PGPTrackEncrypt) SubConsumers() []libkb.UIConsumer {
 func (e *PGPTrackEncrypt) Run(ctx *Context, args, reply interface{}) error {
 	var mykey *libkb.PgpKeyBundle
 	if !e.arg.NoSign || !e.arg.NoSelf {
-		// need our own key
-		me, err := libkb.LoadMe(libkb.LoadUserArg{})
+		// XXX need to handle key arg (put it in KeyQuery)
+		G.Log.Warning("key arg not handled yet")
+		ska := libkb.SecretKeyArg{
+			Reason:  "command-line signature",
+			PGPOnly: true,
+			Ui:      ctx.SecretUI,
+		}
+		key, err := e.G().Keyrings.GetSecretKey(ska)
 		if err != nil {
 			return err
 		}
-		keys := me.GetActivePgpKeys(true)
-		if len(keys) == 0 {
-			// XXX improve this
-			return fmt.Errorf("need a key (self or sign is on)")
+		if key == nil {
+			return fmt.Errorf("No secret key available")
 		}
 
-		// XXX need to handle key arg
-		G.Log.Warning("key arg not handled yet")
-		mykey = keys[0]
+		var ok bool
+		mykey, ok = key.(*libkb.PgpKeyBundle)
+		if !ok {
+			return fmt.Errorf("Can only sign with PGP keys")
+		}
 	}
 
 	kf := NewPGPKeyfinder(e.arg.Recips)

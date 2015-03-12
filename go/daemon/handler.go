@@ -68,21 +68,19 @@ func (h *BaseHandler) getStreamUICli() *keybase_1.StreamUiClient {
 	return &keybase_1.StreamUiClient{Cli: h.getRpcClient()}
 }
 
-func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionId int, username string) *RemoteSelfIdentifyUI {
+func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionId int) *RemoteSelfIdentifyUI {
 	c := h.getRpcClient()
 	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
-		username:  username,
 		uicli:     keybase_1.IdentifyUiClient{Cli: c},
 		logUI:     h.getLogUI(sessionId),
 	}}
 }
 
-func (h *BaseHandler) NewRemoteIdentifyUI(sessionId int, username string) *RemoteIdentifyUI {
+func (h *BaseHandler) NewRemoteIdentifyUI(sessionId int) *RemoteIdentifyUI {
 	c := h.getRpcClient()
 	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
 		sessionId: sessionId,
-		username:  username,
 		uicli:     keybase_1.IdentifyUiClient{Cli: c},
 		logUI:     h.getLogUI(sessionId),
 	}}

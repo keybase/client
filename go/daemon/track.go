@@ -22,7 +22,7 @@ func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
 	theirName := arg.TheirName
 	earg := engine.TrackEngineArg{TheirName: theirName}
 	ctx := engine.Context{
-		TrackUI:  h.NewRemoteIdentifyUI(sessionID, theirName),
+		TrackUI:  h.NewRemoteIdentifyUI(sessionID),
 		SecretUI: h.getSecretUI(sessionID),
 	}
 	eng := engine.NewTrackEngine(&earg)

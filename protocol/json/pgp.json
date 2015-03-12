@@ -150,6 +150,22 @@
       "name" : "binaryOut",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpEncryptOptions",
+    "fields" : [ {
+      "name" : "recipients",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "noSign",
+      "type" : "boolean"
+    }, {
+      "name" : "noSelf",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "pgpSign" : {
@@ -178,6 +194,22 @@
           "type" : "array",
           "items" : "string"
         }
+      } ],
+      "response" : "null"
+    },
+    "pgpEncrypt" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "source",
+        "type" : "Stream"
+      }, {
+        "name" : "sink",
+        "type" : "Stream"
+      }, {
+        "name" : "opts",
+        "type" : "PgpEncryptOptions"
       } ],
       "response" : "null"
     }

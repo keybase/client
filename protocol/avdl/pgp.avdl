@@ -22,4 +22,12 @@ protocol pgp {
 	// Download PGP keys for tracked users and update the local GPG keyring.
 	// If usernames is nonempty, update only those users.
 	void pgpPull(int sessionID, array<string> userAsserts);
+
+	record PgpEncryptOptions {
+		array<string> recipients; // user assertions
+		boolean noSign;
+		boolean noSelf;
+	}
+
+	void pgpEncrypt(int sessionID, Stream source, Stream sink, PgpEncryptOptions opts);
 }

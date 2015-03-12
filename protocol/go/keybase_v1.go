@@ -1091,6 +1091,12 @@ type PgpSignOptions struct {
 	BinaryOut bool     `codec:"binaryOut" json:"binaryOut"`
 }
 
+type PgpEncryptOptions struct {
+	Recipients []string `codec:"recipients" json:"recipients"`
+	NoSign     bool     `codec:"noSign" json:"noSign"`
+	NoSelf     bool     `codec:"noSelf" json:"noSelf"`
+}
+
 type PgpSignArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
 	Source    Stream         `codec:"source" json:"source"`
@@ -1103,9 +1109,17 @@ type PgpPullArg struct {
 	UserAsserts []string `codec:"userAsserts" json:"userAsserts"`
 }
 
+type PgpEncryptArg struct {
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	Source    Stream            `codec:"source" json:"source"`
+	Sink      Stream            `codec:"sink" json:"sink"`
+	Opts      PgpEncryptOptions `codec:"opts" json:"opts"`
+}
+
 type PgpInterface interface {
 	PgpSign(PgpSignArg) error
 	PgpPull(PgpPullArg) error
+	PgpEncrypt(PgpEncryptArg) error
 }
 
 func PgpProtocol(i PgpInterface) rpc2.Protocol {
@@ -1126,6 +1140,13 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"pgpEncrypt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpEncryptArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpEncrypt(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1142,6 +1163,11 @@ func (c PgpClient) PgpSign(__arg PgpSignArg) (err error) {
 
 func (c PgpClient) PgpPull(__arg PgpPullArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpPull", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpEncrypt(__arg PgpEncryptArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
 	return
 }
 

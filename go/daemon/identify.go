@@ -9,7 +9,6 @@ import (
 
 type RemoteBaseIdentifyUI struct {
 	sessionId int
-	username  string
 	uicli     keybase_1.IdentifyUiClient
 	logUI     libkb.LogUI
 	strict    bool
@@ -48,7 +47,7 @@ func (h *IdentifyHandler) IdentifyDefault(arg keybase_1.IdentifyDefaultArg) (key
 func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdentifyEngineArg, doInteractive bool) (res *engine.IdentifyRes, err error) {
 	ctx := engine.Context{
 		LogUI:      h.getLogUI(sessionId),
-		IdentifyUI: h.NewRemoteIdentifyUI(sessionId, iarg.User),
+		IdentifyUI: h.NewRemoteIdentifyUI(sessionId),
 	}
 	eng := engine.NewIdentifyEngine(&iarg)
 	err = engine.RunEngine(eng, &ctx, nil, nil)

@@ -35,3 +35,21 @@ func (h *PGPHandler) PgpPull(arg keybase_1.PgpPullArg) error {
 	eng := engine.NewPGPPullEngine(&earg)
 	return engine.RunEngine(eng, &ctx, nil, nil)
 }
+
+func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
+	cli := h.getStreamUICli()
+	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
+	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
+	earg := &engine.PGPTrackEncryptArg{
+		Recips: arg.Opts.Recipients,
+		Sink:   snk,
+		Source: src,
+	}
+	ctx := &engine.Context{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
+		TrackUI:    h.NewRemoteIdentifyUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewPGPTrackEncrypt(earg)
+	return engine.RunEngine(eng, ctx, nil, nil)
+}
