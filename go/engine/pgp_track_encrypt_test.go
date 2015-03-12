@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 
 	keybase_1 "github.com/keybase/client/protocol/go"
@@ -17,8 +19,23 @@ func TestPGPTrackEncrypt(t *testing.T) {
 	}
 	ctx := &Context{IdentifyUI: &idLubaUI{}, TrackUI: trackUI, SecretUI: u.NewSecretUI()}
 
-	eng := NewPGPTrackEncrypt()
+	var sink bytes.Buffer
+	arg := &PGPTrackEncryptArg{
+		Recips: []string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Source: strings.NewReader("track and encrypt, track and encrypt"),
+		Sink:   &sink,
+		NoSelf: true,
+		NoSign: true,
+	}
+
+	eng := NewPGPTrackEncrypt(arg)
 	if err := RunEngine(eng, ctx, nil, nil); err != nil {
 		t.Fatal(err)
 	}
+
+	out := sink.Bytes()
+	if len(out) == 0 {
+		t.Fatal("no output")
+	}
+
 }
