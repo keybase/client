@@ -11,6 +11,7 @@
 #import <YOLayout/YOLayout.h>
 #import "KBCellDataSource.h"
 #import "KBScrollView.h"
+#import "KBBorder.h"
 
 @class KBTableView;
 
@@ -20,11 +21,11 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 
 @property (readonly) KBScrollView *scrollView;
 @property (readonly) NSTableView *view;
+@property KBBorder *border;
 
 @property (copy) KBCellSelectBlock selectBlock;
 
 @property (readonly) KBCellDataSource *dataSource;
-
 
 - (void)setObjects:(NSArray *)objects;
 - (void)addObjects:(NSArray *)objects;
@@ -38,5 +39,7 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 
 // Subclasses can implement
 - (void)selectItem:(id)item;
+
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType;
 
 @end

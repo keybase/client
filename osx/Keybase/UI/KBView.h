@@ -10,20 +10,6 @@
 
 #import <YOLayout/YOLayout.h>
 
-typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
-  KBVerticalAlignmentNone,
-  KBVerticalAlignmentTop,
-  KBVerticalAlignmentMiddle,
-  KBVerticalAlignmentBottom,
-  KBVerticalAlignmentBaseline,
-};
-
-typedef NS_ENUM(NSInteger, KBHorizontalAlignment) {
-  KBHorizontalAlignmentLeft,
-  KBHorizontalAlignmentCenter,
-  KBHorizontalAlignmentRight
-};
-
 @interface KBView : YONSView
 
 @property BOOL clipToBounds; // Writable alias for wantsDefaultClipping

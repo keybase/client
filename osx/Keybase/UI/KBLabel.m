@@ -15,7 +15,6 @@
 
 @interface KBLabel ()
 @property NSTextView *textView;
-@property KBBox *border; // Optional
 @property KBLabelStyle style;
 @end
 
@@ -34,6 +33,8 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    UIEdgeInsets insets = yself.border.insets;
+    [layout setSize:size view:yself.border options:0];
     if (self.verticalAlignment != KBVerticalAlignmentNone) {
       // TODO Top, bottom alignments
       CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
@@ -41,7 +42,7 @@
       [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
       return CGSizeMake(textSize.width, size.height);
     } else {
-      [layout setSize:size view:yself.textView options:0]; // TODO: Inset
+      [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.textView];
       [layout setSize:size view:yself.border options:0];
       return size;
     }
@@ -49,11 +50,11 @@
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-  CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-  //  if (size.height > 0 && self.verticalAlignment == KBVerticalAlignmentMiddle) {
-  //    return CGSizeMake(textSize.width, size.height);
-  //  }
-  return CGSizeMake(textSize.width, textSize.height);
+  CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+  UIEdgeInsets insets = self.border.insets;
+  sizeThatFits.width += insets.left + insets.right;
+  sizeThatFits.height += insets.top + insets.bottom;
+  return CGSizeMake(sizeThatFits.width, sizeThatFits.height);
 }
 
   /*
@@ -106,8 +107,12 @@
   return label;
 }
 
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
-  _border = [KBBox roundedWithWidth:1.0 color:GHNSColorFromRGB(0xDDDDDD) cornerRadius:4.0];
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType {
+  [_border removeFromSuperview];
+  _border = [[KBBorder alloc] init];
+  _border.color = color;
+  _border.width = width;
+  _border.borderType = borderType;
   [self addSubview:_border];
   [self setNeedsLayout];
 }

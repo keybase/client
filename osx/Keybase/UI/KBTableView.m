@@ -11,6 +11,7 @@
 #import "KBAppearance.h"
 #import "KBScrollView.h"
 #import "KBCellDataSource.h"
+#import "KBLayouts.h"
 #import <GHKit/GHKit.h>
 
 @interface KBTableView ()
@@ -23,29 +24,38 @@
 
 - (void)viewInit {
   [super viewInit];
-//  self.wantsLayer = YES;
-//  self.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
-//  self.layer.borderWidth = 1.0;
-
   _dataSource = [[KBCellDataSource alloc] init];
 
   _view = [[NSTableView alloc] init];
   _view.dataSource = self;
   _view.delegate = self;
-  //_view.selectionHighlightStyle = NSTableViewSelectionHighlightStyleRegular;
-  //_view.gridStyleMask = NSTableViewSolidHorizontalGridLineMask;
 
   _scrollView = [[KBScrollView alloc] init];
   [_scrollView setDocumentView:_view];
   [self addSubview:_scrollView];
 
-  GHWeakSelf gself = self;
-  self.viewLayout = [YOLayout fill:_scrollView];
+  YOSelf yself = self;
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    UIEdgeInsets insets = yself.border.insets;
+    [layout setSize:size view:yself.border options:0];
+    [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.scrollView];
+    return size;
+  }];
 
   // Fix scroll position with header view
   dispatch_async(dispatch_get_main_queue(), ^{
-    [gself.view scrollPoint:NSMakePoint(0, -gself.view.headerView.frame.size.height)];
+    [yself.view scrollPoint:NSMakePoint(0, -yself.view.headerView.frame.size.height)];
   });
+}
+
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType {
+  [_border removeFromSuperview];
+  _border = [[KBBorder alloc] init];
+  _border.color = color;
+  _border.width = width;
+  _border.borderType = borderType;
+  [self addSubview:_border];
+  [self setNeedsLayout];
 }
 
 - (void)removeAllObjects {
@@ -97,7 +107,6 @@
   }
   return indexSet;
 }
-
 
 - (void)addObjects:(NSArray *)objects {
   [_dataSource addObjects:objects];

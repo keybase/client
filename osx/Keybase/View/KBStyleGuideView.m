@@ -26,6 +26,7 @@
 
   KBLabel *label1 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
   [label1 setMarkup:@"Text <strong>Strong</strong> <em>Emphasis</em>" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [label1 setBorderWithColor:NSColor.blueColor width:3.0 borderType:KBBorderTypeTop|KBBorderTypeBottom];
   [contentView addSubview:label1];
 
 //  KBLabel *label2 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 50)];
@@ -85,6 +86,12 @@
   [textFieldsView addSubview:secureTextField];
   textFieldsView.viewLayout = [YOLayout vertical:textFieldsView.subviews margin:UIEdgeInsetsMake(0, 40, 0, 40) padding:20];
   [contentView addSubview:textFieldsView];
+
+  KBBorder *border = [[KBBorder alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
+  border.width = 2.0;
+  border.borderType = KBBorderTypeTop | KBBorderTypeBottom;
+  border.color = NSColor.orangeColor;
+  [contentView addSubview:border];
 
   contentView.viewLayout = [YOLayout vertical:contentView.subviews margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:10];
 

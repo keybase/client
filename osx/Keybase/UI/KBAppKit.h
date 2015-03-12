@@ -45,3 +45,4 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import "KBTableView.h"
 #import "KBListView.h"
 #import "KBSegmentedControl.h"
+#import "KBBorder.h"

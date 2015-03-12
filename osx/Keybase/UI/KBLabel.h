@@ -11,7 +11,7 @@
 
 #import <YOLayout/YOLayout.h>
 #import "KBAppearance.h"
-#import "KBView.h"
+#import "KBBorder.h"
 
 typedef NS_ENUM(NSInteger, KBLabelStyle) {
   KBLabelStyleNone,
@@ -25,6 +25,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) BOOL selectable;
 @property KBVerticalAlignment verticalAlignment;
+@property KBBorder *border;
 
 + (instancetype)label;
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style;
@@ -32,7 +33,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 
 - (void)setBackgroundColor:(NSColor *)backgroundColor;
 
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType;
 
 - (void)setText:(NSString *)text style:(KBLabelStyle)style;
 - (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;

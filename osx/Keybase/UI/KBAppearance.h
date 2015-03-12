@@ -16,6 +16,19 @@
 
 #define KBTODO() ([[NSAlert alertWithError:[NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:@"TODO"}]] beginSheetModalForWindow:[NSApp mainWindow] completionHandler:nil])
 
+typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
+  KBVerticalAlignmentNone,
+  KBVerticalAlignmentTop,
+  KBVerticalAlignmentMiddle,
+  KBVerticalAlignmentBottom,
+  KBVerticalAlignmentBaseline,
+};
+
+typedef NS_ENUM(NSInteger, KBHorizontalAlignment) {
+  KBHorizontalAlignmentLeft,
+  KBHorizontalAlignmentCenter,
+  KBHorizontalAlignmentRight
+};
 
 @protocol KBAppearance
 

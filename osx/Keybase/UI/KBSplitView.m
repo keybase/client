@@ -22,9 +22,6 @@
 
   _dividerPosition = 240;
 
-  KBBox *borderTop = [KBBox line];
-  [self addSubview:borderTop];
-
   KBBox *borderMiddle = [KBBox line];
   [self addSubview:borderMiddle];
 
@@ -42,7 +39,6 @@
     }
 
     CGFloat y = yself.insets.top + 1;
-    y += [layout setFrame:CGRectMake(0, y, size.width, 1) view:borderTop].size.height;
     [layout setFrame:CGRectMake(col1 - 1, y, 1, size.height) view:borderMiddle];
 
     [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y - yself.insets.bottom) view:yself.sourceView];
