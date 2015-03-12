@@ -10,6 +10,7 @@
 
 #import "KBFolderListView.h"
 #import "KBSearchControl.h"
+#import "KBViews.h"
 
 @interface KBFoldersView ()
 @property KBSegmentedControl *segmentedControl;
@@ -52,16 +53,18 @@
   [self addSubview:_searchControl];
 
   _favoritesView = [[KBFolderListView alloc] init];
+  _favoritesView.identifier = @"Favorites";
   [self addSubview:_favoritesView];
 
   _foldersView = [[KBFolderListView alloc] init];
+  _foldersView.identifier = @"Folders";
   _foldersView.hidden = YES;
   [self addSubview:_foldersView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 10;
-    CGFloat y = 10;
+    CGFloat y = 24;
     CGSize segmentedSize = [yself.segmentedControl sizeThatFits:CGSizeMake(size.width, size.height)];
     segmentedSize.width += 2; // Fix for NSSegmentedControl drawing outsize itself
     segmentedSize.height += 2;
@@ -82,19 +85,9 @@
 }
 
 - (void)_segmentedChange:(id)sender {
-  NSInteger clickedSegment = [sender selectedSegment];
-  if (clickedSegment == 0) [self showFavorites];
-  else if (clickedSegment == 1) [self showFolders];
-}
-
-- (void)showFavorites {
-  _foldersView.hidden = YES;
-  _favoritesView.hidden = NO;
-}
-
-- (void)showFolders {
-  _foldersView.hidden = NO;
-  _favoritesView.hidden = YES;
+  NSInteger segment = [sender selectedSegment];
+  if (segment == 0) { _favoritesView.hidden = NO; _foldersView.hidden = YES; }
+  if (segment == 1) { _favoritesView.hidden = YES; _foldersView.hidden = NO; }
 }
 
 @end

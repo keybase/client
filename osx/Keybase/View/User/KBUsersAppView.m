@@ -14,12 +14,17 @@
 #import "KBUserView.h"
 #import "KBSearchResultView.h"
 #import "KBSearchControl.h"
+#import "KBViews.h"
 
 @interface KBUsersAppView ()
 @property KBSearchControl *searchField;
-@property KBListView *usersView;
+@property KBListView *trackingView;
+@property KBListView *trackersView;
 @property KBListView *searchResultsView;
 @property KBUserProfileView *userProfileView;
+
+@property NSPopUpButton *menuButton;
+@property KBViews *views;
 
 @property KBActivityIndicatorView *progressView;
 @property NSString *searchText;
@@ -36,23 +41,55 @@
   _searchField.delegate = self;
   [self addSubview:_searchField];
 
-  _usersView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  _usersView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
+  NSMenu *menu = [[NSMenu alloc] init];
+  [menu addItemWithTitle:@"" action:NULL keyEquivalent:@""];
+  NSMenuItem *item;
+  item = [menu addItemWithTitle:@"Tracking" action:@selector(showTracking:) keyEquivalent:@""];
+  item.target = self;
+  item = [menu addItemWithTitle:@"Trackers" action:@selector(showTrackers:) keyEquivalent:@""];
+  item.target = self;
+  _menuButton = [[NSPopUpButton alloc] initWithFrame:CGRectMake(0, 0, 320, 23) pullsDown:YES];
+  [_menuButton.cell setArrowPosition:NSPopUpArrowAtBottom];
+  _menuButton.bordered = NO;
+  [_menuButton setTarget:self];
+  [_menuButton setMenu:menu];
+  [self addSubview:_menuButton];
+
+  _trackingView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
+  [_trackingView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
+  _trackingView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
-  _usersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+  _trackingView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
     [yself selectUser:userSummary.username];
   };
-  [self addSubview:_usersView];
+  _trackingView.identifier = @"Tracking";
+
+  _trackersView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
+  [_trackersView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
+  _trackersView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
+    [view setUserSummary:userSummary];
+  };
+  _trackersView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+    [yself selectUser:userSummary.username];
+  };
+  _trackersView.identifier = @"Trackers";
+
+  _views = [[KBViews alloc] init];
+  [_views setViews:@[_trackingView, _trackersView]];
+  [self addSubview:_views];
+  [self showTracking:self];
 
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
+  [_searchResultsView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
   _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setSearchResult:searchResult];
   };
   _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
     [yself selectUser:searchResult.userName];
   };
-  [self addSubview:_searchResultsView positioned:NSWindowAbove relativeTo:_usersView];
+  _searchResultsView.hidden = YES;
+  [self addSubview:_searchResultsView positioned:NSWindowAbove relativeTo:_views];
 
   _userProfileView = [[KBUserProfileView alloc] init];
   [self addSubview:_userProfileView];
@@ -61,8 +98,6 @@
   _progressView.lineWidth = 1.0;
   [self addSubview:_progressView];
 
-  KBBox *borderLeftTop = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
-  [self addSubview:borderLeftTop];
   KBBox *borderMiddle = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
   [self addSubview:borderMiddle];
 
@@ -71,16 +106,19 @@
     CGFloat col1 = 240;
     // If this y is too small, the search field focus will conflict with the window title bar drag
     // and the search field will become really janky.
-    CGFloat col1y = 24;
+    CGFloat y = 24;
 
-    [layout setFrame:CGRectMake(col1 - 46, col1y + 4, 14, 14) view:yself.progressView];
+    [layout setFrame:CGRectMake(col1 - 46, y + 4, 14, 14) view:yself.progressView];
 
-    col1y += [layout setFrame:CGRectMake(10, col1y, col1 - 21, 22) view:yself.searchField].size.height + 9;
+    y += [layout setFrame:CGRectMake(10, y, col1 - 21, 22) view:yself.searchField].size.height + 9;
 
-    [layout setFrame:CGRectMake(0, col1y - 1, col1, 1) view:borderLeftTop];
+    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.searchResultsView];
 
-    [layout setFrame:CGRectMake(0, col1y, col1 - 1, size.height - col1y) view:yself.usersView];
-    [layout setFrame:CGRectMake(0, col1y, col1 - 1, size.height - col1y) view:yself.searchResultsView];
+    y += [layout setFrame:CGRectMake(9, y, col1 - 21, 23) view:yself.menuButton].size.height + 4;
+
+    //[layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.usersView];
+    //[layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.trackersView];
+    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.views];
 
     //[layout setFrame:CGRectMake(col1/2.0 - 16, col1y + 20, 32, 32) view:yself.progressView];
 
@@ -90,12 +128,28 @@
     return size;
   }];
 
+  [_menuButton selectItemAtIndex:0];
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(update) name:KBTrackingListDidChangeNotification object:nil];
-  [self hideSearch];
 }
 
 - (void)dealloc {
   [NSNotificationCenter.defaultCenter removeObserver:self];
+}
+
+- (void)showTracking:(id)sender {
+  [_views showViewWithIdentifier:@"Tracking"];
+  [_menuButton setTitle:@"Tracking"];
+}
+
+- (void)showTrackers:(id)sender {
+  [_views showViewWithIdentifier:@"Trackers"];
+  [_menuButton setTitle:@"Trackers"];
+}
+
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+  BOOL on = [[menuItem title] isEqualTo:_views.visibleIdentifier];
+  [menuItem setState:on ? NSOnState : NSOffState];
+  return YES;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -104,14 +158,24 @@
 
 - (void)reload:(BOOL)update {
   GHWeakSelf gself = self;
-  KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:self.client];
-  [request listTrackingWithFilter:nil completion:^(NSError *error, NSArray *userSummaries) {
+  KBRUserRequest *trackingRequest = [[KBRUserRequest alloc] initWithClient:self.client];
+  [trackingRequest listTrackingWithFilter:nil completion:^(NSError *error, NSArray *userSummaries) {
     if (error) {
       [AppDelegate setError:error sender:self];
-      [gself.usersView removeAllObjects];
+      [gself.trackingView removeAllObjects];
       return;
     }
-    [self setUserSummaries:userSummaries update:NO];
+    [self setTracking:userSummaries update:NO];
+  }];
+
+  KBRUserRequest *trackersRequest = [[KBRUserRequest alloc] initWithClient:self.client];
+  [trackersRequest listTrackersByNameWithSessionID:trackersRequest.sessionId username:AppDelegate.appView.user.username completion:^(NSError *error, NSArray *userSummaries) {
+    if (error) {
+      [AppDelegate setError:error sender:self];
+      [gself.trackersView removeAllObjects];
+      return;
+    }
+    [self setTrackers:userSummaries update:NO];
   }];
 }
 
@@ -119,12 +183,16 @@
   [self reload:YES];
 }
 
-- (void)setUserSummaries:(NSArray *)userSummaries update:(BOOL)update {
-  [_usersView setObjects:userSummaries animated:update];
+- (void)setTracking:(NSArray *)userSummaries update:(BOOL)update {
+  [_trackingView setObjects:userSummaries animated:update];
+}
+
+- (void)setTrackers:(NSArray *)userSummaries update:(BOOL)update {
+  [_trackersView setObjects:userSummaries animated:update];
 }
 
 - (void)setUser:(KBRUser *)user {
-  [_usersView removeAllObjects];
+  [_trackingView removeAllObjects];
   [_userProfileView clear];
   [self selectUser:user.username];
 }
@@ -154,12 +222,10 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 #pragma mark Search
 
 - (void)showSearch {
-  _usersView.hidden = YES;
   _searchResultsView.hidden = NO;
 }
 
 - (void)hideSearch {
-  _usersView.hidden = NO;
   _searchResultsView.hidden = YES;
 }
 

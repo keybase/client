@@ -26,6 +26,7 @@
   [self addSubview:_splitView];
 
   _devicesView = [KBListView listViewWithPrototypeClass:KBDeviceView.class rowHeight:56];
+  [_devicesView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
   _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued) {
     [view setDevice:device];
   };
