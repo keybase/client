@@ -175,9 +175,8 @@ func (k *PgpKeyBundle) Encode() (ret string, err error) {
 func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 
 	// See Issue #32
-	empty_headers := make(map[string]string)
 	var writer io.WriteCloser
-	writer, err = armor.Encode(wc, "PGP PUBLIC KEY BLOCK", empty_headers)
+	writer, err = armor.Encode(wc, "PGP PUBLIC KEY BLOCK", nil)
 
 	if err != nil {
 		return

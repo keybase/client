@@ -9,13 +9,19 @@ import (
 // PGPKeyfinder is an engine to find PGP Keys for users (loaded by
 // assertions), possibly tracking them if necessary.
 type PGPKeyfinder struct {
-	users []string
+	arg   *PGPKeyfinderArg
 	uplus []*UserPlusKeys
 }
 
+type PGPKeyfinderArg struct {
+	Users             []string
+	TrackRemote       bool
+	PromptTrackRemote bool
+}
+
 // NewPGPKeyfinder creates a PGPKeyfinder engine.
-func NewPGPKeyfinder(users []string) *PGPKeyfinder {
-	return &PGPKeyfinder{users: users}
+func NewPGPKeyfinder(arg *PGPKeyfinderArg) *PGPKeyfinder {
+	return &PGPKeyfinder{arg: arg}
 }
 
 // Name is the unique engine name.
@@ -42,7 +48,7 @@ func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPKeyfinder) Run(ctx *Context, args, reply interface{}) error {
-	for _, u := range e.users {
+	for _, u := range e.arg.Users {
 		if err := e.loadUser(ctx, u); err != nil {
 			return err
 		}
@@ -97,7 +103,12 @@ func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
 
 func (e *PGPKeyfinder) trackUser(ctx *Context, user *libkb.User) error {
 	G.Log.Info("tracking user %q", user.GetName())
-	arg := &TrackEngineArg{TheirName: user.GetName()}
+	arg := &TrackEngineArg{
+		TheirName:         user.GetName(),
+		Them:              user,
+		TrackRemote:       e.arg.TrackRemote,
+		PromptTrackRemote: e.arg.PromptTrackRemote,
+	}
 	eng := NewTrackEngine(arg)
 	return RunEngine(eng, ctx, nil, nil)
 }

@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
@@ -19,11 +19,11 @@ func TestPGPTrackEncrypt(t *testing.T) {
 	}
 	ctx := &Context{IdentifyUI: &idLubaUI{}, TrackUI: trackUI, SecretUI: u.NewSecretUI()}
 
-	var sink bytes.Buffer
+	sink := libkb.NewBufferCloser()
 	arg := &PGPTrackEncryptArg{
 		Recips: []string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
-		Sink:   &sink,
+		Sink:   sink,
 		NoSelf: true,
 		NoSign: true,
 	}

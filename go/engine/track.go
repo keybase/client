@@ -12,9 +12,10 @@ type TrackEngineArg struct {
 	Them      *libkb.User
 	Me        *libkb.User
 
-	NonInteractive bool
+	TrackRemote       bool
+	PromptTrackRemote bool
+
 	AllowTrackSelf bool
-	StrictProofs   bool
 	MeNotRequired  bool
 }
 

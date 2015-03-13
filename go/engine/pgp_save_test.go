@@ -52,7 +52,7 @@ func armorKey(t *testing.T, tc libkb.TestContext, email string) string {
 		t.Fatal(err)
 	}
 	var buf bytes.Buffer
-	writer, err := armor.Encode(&buf, "PGP PRIVATE KEY BLOCK", make(map[string]string))
+	writer, err := armor.Encode(&buf, "PGP PRIVATE KEY BLOCK", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,18 +1,23 @@
 package engine
 
 import (
-	"fmt"
+	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/crypto/openpgp/armor"
 )
 
 type PGPTrackEncryptArg struct {
-	Recips []string // user assertions
-	Source io.Reader
-	Sink   io.Writer
-	NoSign bool
-	NoSelf bool
+	Recips            []string // user assertions
+	Source            io.Reader
+	Sink              io.WriteCloser
+	NoSign            bool
+	NoSelf            bool
+	BinaryOutput      bool
+	KeyQuery          string
+	TrackRemote       bool
+	PromptTrackRemote bool
 }
 
 // PGPTrackEncrypt encrypts data read from a source into a sink
@@ -54,37 +59,53 @@ func (e *PGPTrackEncrypt) SubConsumers() []libkb.UIConsumer {
 func (e *PGPTrackEncrypt) Run(ctx *Context, args, reply interface{}) error {
 	var mykey *libkb.PgpKeyBundle
 	if !e.arg.NoSign || !e.arg.NoSelf {
-		// XXX need to handle key arg (put it in KeyQuery)
-		G.Log.Warning("key arg not handled yet")
 		ska := libkb.SecretKeyArg{
-			Reason:  "command-line signature",
-			PGPOnly: true,
-			Ui:      ctx.SecretUI,
+			Reason:   "command-line signature",
+			PGPOnly:  true,
+			KeyQuery: e.arg.KeyQuery,
+			Ui:       ctx.SecretUI,
 		}
 		key, err := e.G().Keyrings.GetSecretKey(ska)
 		if err != nil {
 			return err
 		}
 		if key == nil {
-			return fmt.Errorf("No secret key available")
+			return errors.New("No secret key available")
 		}
 
 		var ok bool
 		mykey, ok = key.(*libkb.PgpKeyBundle)
 		if !ok {
-			return fmt.Errorf("Can only sign with PGP keys")
+			return errors.New("Can only sign with PGP keys")
 		}
 	}
 
-	kf := NewPGPKeyfinder(e.arg.Recips)
+	kfarg := &PGPKeyfinderArg{
+		Users:             e.arg.Recips,
+		TrackRemote:       e.arg.TrackRemote,
+		PromptTrackRemote: e.arg.PromptTrackRemote,
+	}
+
+	kf := NewPGPKeyfinder(kfarg)
 	if err := RunEngine(kf, ctx, nil, nil); err != nil {
 		return err
 	}
 	uplus := kf.UsersPlusKeys()
 
+	var writer io.WriteCloser
+	if e.arg.BinaryOutput {
+		writer = e.arg.Sink
+	} else {
+		aw, err := armor.Encode(e.arg.Sink, "PGP MESSAGE", nil)
+		if err != nil {
+			return err
+		}
+		writer = aw
+	}
+
 	arg := &PGPEncryptArg{
 		Source: e.arg.Source,
-		Sink:   e.arg.Sink,
+		Sink:   writer,
 	}
 
 	if !e.arg.NoSign {
@@ -98,6 +119,7 @@ func (e *PGPTrackEncrypt) Run(ctx *Context, args, reply interface{}) error {
 	for _, up := range uplus {
 		arg.Recipients = append(arg.Recipients, up.Keys...)
 	}
+
 	encrypter := NewPGPEncrypt(arg)
 	return RunEngine(encrypter, ctx, nil, nil)
 }

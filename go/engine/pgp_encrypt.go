@@ -14,7 +14,7 @@ import (
 // of this message.
 type PGPEncryptArg struct {
 	Source     io.Reader
-	Sink       io.Writer
+	Sink       io.WriteCloser
 	Signer     *libkb.PgpKeyBundle
 	Recipients []*libkb.PgpKeyBundle
 }
@@ -65,5 +65,11 @@ func (e *PGPEncrypt) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 	G.Log.Debug("PGPEncrypt.Run: wrote %d bytes", n)
-	return w.Close()
+	if err := w.Close(); err != nil {
+		return err
+	}
+	if err := e.arg.Sink.Close(); err != nil {
+		return err
+	}
+	return nil
 }
