@@ -15,17 +15,9 @@
 
 @interface KBRMockClient ()
 @property NSMutableDictionary *registrations;
-@property NSString *socketPath;
 @end
 
 @implementation KBRMockClient
-
-- (instancetype)init {
-  if ((self = [super init])) {
-    self.socketPath = @"/tmp/mock.sock";
-  }
-  return self;
-}
 
 - (NSInteger)nextSessionId {
   static NSInteger gSessionId = 0;

@@ -112,7 +112,7 @@
   }];
 }
 
-- (void)registerClient:(id<KBRPClient>)client sessionId:(NSInteger)sessionId {
+- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId {
   GHWeakSelf gself = self;
   [client registerMethod:@"keybase.1.identifyUi.displayKey" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
@@ -207,7 +207,7 @@
   //[self setUser:self.user editable:self.editable client:self.client];
 }
 
-- (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(id<KBRPClient>)client {
+- (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(KBRPClient *)client {
   [self clear];
 
   _user = user;

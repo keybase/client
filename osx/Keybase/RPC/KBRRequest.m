@@ -15,7 +15,7 @@
   return nil;
 }
 
-- (instancetype)initWithClient:(id<KBRPClient>)client {
+- (instancetype)initWithClient:(KBRPClient *)client {
   NSParameterAssert(client);
   if ((self = [super init])) {
     _client = client;

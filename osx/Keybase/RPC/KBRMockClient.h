@@ -10,12 +10,10 @@
 
 #import "KBRPClient.h"
 
-@interface KBRMockClient : NSObject <KBRPClient>
+@interface KBRMockClient : KBRPClient
 
 @property (copy) MPRequestCompletion completion;
 @property (copy) MPRequestHandler handler;
-
-@property (weak) id<KBRPClientDelegate> delegate;
 
 + (NSArray *)requestForMethod:(NSString *)method;
 + (NSDictionary *)responseForMethod:(NSString *)method;

@@ -23,6 +23,7 @@
 @property MPMessagePackServer *server;
 @property MPOrderedDictionary *registrations;
 
+@property NSString *defaultSocketPath;
 @property NSString *socketPath;
 @property KBRPCRecord *recorder;
 
@@ -36,11 +37,13 @@
   if ((self = [super init])) {
     NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
     NSAssert(user, @"No user");
-    self.socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
+    self.defaultSocketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
+    self.socketPath = self.defaultSocketPath;
 #ifdef DEBUG
-    self.socketPath = @"/tmp/keybase-debug.sock";
+    //self.socketPath = @"/tmp/keybase-debug.sock";
 #endif
 
+    _installer = [[KBInstaller alloc] init];
   }
   return self;
 }
@@ -214,8 +217,7 @@
 }
 
 - (void)checkInstall:(KBCompletionBlock)completion {
-  KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
+  [_installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
     GHDebug(@"Installed? %@, Type: %@", @(installed), @(installType));
     completion(error);
   }];

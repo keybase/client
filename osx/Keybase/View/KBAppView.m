@@ -101,13 +101,13 @@
   _statusItem.menu = menu;
 }
 
-- (void)connect:(id<KBRPClient>)client {
+- (void)connect:(KBRPClient *)client {
   _client = client;
   _client.delegate = self;
 
-  [self.delegate appView:self willConnectWithClient:_client];
+  [self.delegate appView:self didLaunchWithClient:self.client];
 
-  GHWeakSelf gself = self;  
+  GHWeakSelf gself = self;
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     GHDebug(@"Password prompt: %@", params);
     KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
@@ -143,11 +143,14 @@
   }];
 
   [_client checkInstall:^(NSError *error) {
+    [self.delegate appView:self didCheckInstallWithClient:gself.client];
     // TODO Better error handling here
     if (error) {
       [AppDelegate.sharedDelegate setFatalError:error];
       return;
     }
+
+    [self.delegate appView:self willConnectWithClient:gself.client];
     [gself.client open];
   }];
 }
@@ -263,12 +266,12 @@
         return;
       }
 
-      [self checkStatus];
+      [self checkStatus:nil];
     }];
   }];
 }
 
-- (void)checkStatus {
+- (void)checkStatus:(dispatch_block_t)completion {
   GHWeakSelf gself = self;
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
@@ -284,8 +287,9 @@
       }
       [self setConfig:config];
       [self setStatus:status];
-      [self.delegate appView:self didConnectWithClient:gself.client config:config];
+      [self.delegate appView:self didCheckStatusWithClient:gself.client config:config status:status];
       // TODO reload current view if coming back from disconnect?
+      if (completion) completion();
     }];
   }];
 }
@@ -329,7 +333,8 @@
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   [self.sourceView.statusView setConnected:YES];
-  [self checkStatus];
+  [self.delegate appView:self didConnectWithClient:_client];
+  [self checkStatus:nil];
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {

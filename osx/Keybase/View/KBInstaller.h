@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "KBLaunchCtl.h"
+
 typedef NS_ENUM (NSInteger, KBInstallType) {
   KBInstallTypeNone,
   KBInstallTypeHomebrew,
@@ -15,6 +17,8 @@ typedef NS_ENUM (NSInteger, KBInstallType) {
 };
 
 @interface KBInstaller : NSObject
+
+@property (readonly) KBLaunchCtl *launchCtl;
 
 - (void)checkInstall:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion;
 

@@ -26,6 +26,6 @@ typedef void (^KBProveCompletion)(BOOL canceled);
 @property KBProveInputView *inputView;
 @property KBProveInstructionsView *instructionsView;
 
-+ (void)connectWithProveType:(KBProveType)proveType client:(id<KBRPClient>)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
++ (void)connectWithProveType:(KBProveType)proveType client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion;
 
 @end

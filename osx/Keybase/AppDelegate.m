@@ -34,18 +34,19 @@
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
   _appView = [[KBAppView alloc] init];
-  _appView.delegate = self;
   KBWindow *window = [_appView openWindow];
 
   _consoleView = [[KBConsoleView alloc] init];
   [window addChildWindowForView:_consoleView size:CGSizeMake(400, 400) position:KBWindowPositionRight title:@"Console"];
+  _appView.delegate = _consoleView;
 
+#ifdef DEBUG
   _mockViews = [[KBMockViews alloc] init];
   [window addChildWindowForView:_mockViews size:CGSizeMake(400, 300) position:KBWindowPositionRight title:@"Mocks"];
+#endif
 
   KBRPClient *client = [[KBRPClient alloc] init];
   [_appView connect:client];
-
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -54,27 +55,6 @@
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
   return NO;
-}
-
-- (void)appView:(KBAppView *)appView willConnectWithClient:(id<KBRPClient>)client {
-  _consoleView.debugStatusView.client = client;
-  [_consoleView.debugStatusView setRPCConnected:NO serverConnected:NO];
-  [_consoleView setNeedsLayout];
-}
-
-- (void)appView:(KBAppView *)appView didConnectWithClient:(id<KBRPClient>)client config:(KBRConfig *)config {
-  _consoleView.debugStatusView.config = config;
-  [_consoleView.debugStatusView setRPCConnected:YES serverConnected:YES]; // TODO server connected status
-  [_consoleView setNeedsLayout];
-}
-
-- (void)appView:(KBAppView *)appView didLogMessage:(NSString *)message {
-  [_consoleView log:message];
-}
-
-- (void)appView:(KBAppView *)appView didDisconnectWithClient:(id<KBRPClient>)client {
-  [_consoleView.debugStatusView setRPCConnected:NO serverConnected:NO];
-  [_consoleView setNeedsLayout];
 }
 
 + (KBAppView *)appView {
@@ -160,6 +140,7 @@
     }];
   } else {
     [[NSAlert alertWithError:error] runModal];
+    gself.alerting = NO;
   }
   [sender becomeFirstResponder];
 }

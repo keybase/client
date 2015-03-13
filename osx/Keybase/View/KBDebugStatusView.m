@@ -7,6 +7,7 @@
 //
 
 #import "KBDebugStatusView.h"
+#import "AppDelegate.h"
 
 @interface KBDebugStatusView ()
 @property KBLabel *RPCStatusLabel;

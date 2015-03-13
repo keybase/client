@@ -13,7 +13,7 @@
 
 @interface KBDebugStatusView : KBView
 
-@property id<KBRPClient> client;
+@property KBRPClient *client;
 @property KBRConfig *config;
 
 - (void)setRPCConnected:(BOOL)RPCConnected serverConnected:(BOOL)serverConnected;

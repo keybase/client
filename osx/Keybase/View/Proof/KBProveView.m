@@ -47,7 +47,7 @@
   }];
 }
 
-+ (void)connectWithProveType:(KBProveType)proveType client:(id<KBRPClient>)client sender:(NSView *)sender completion:(KBProveCompletion)completion {
++ (void)connectWithProveType:(KBProveType)proveType client:(KBRPClient *)client sender:(NSView *)sender completion:(KBProveCompletion)completion {
   KBProveView *proveView = [[KBProveView alloc] init];
   proveView.client = client;
   proveView.proveType = proveType;
@@ -96,7 +96,7 @@
 
   GHWeakSelf gself = self;
 
-  id<KBRPClient> client = self.client;
+  KBRPClient * client = self.client;
   KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:client];
 
   [client registerMethod:@"keybase.1.proveUi.promptUsername" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {

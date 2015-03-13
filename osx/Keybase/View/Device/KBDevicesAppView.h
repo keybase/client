@@ -13,7 +13,7 @@
 
 @interface KBDevicesAppView : YONSView
 
-@property id<KBRPClient> client;
+@property KBRPClient * client;
 
 - (void)reload;
 

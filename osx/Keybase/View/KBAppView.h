@@ -17,25 +17,30 @@
 @class KBAppView;
 
 @protocol KBAppViewDelegate
-- (void)appView:(KBAppView *)appView willConnectWithClient:(id<KBRPClient>)client;
-- (void)appView:(KBAppView *)appView didConnectWithClient:(id<KBRPClient>)client config:(KBRConfig *)config;
-- (void)appView:(KBAppView *)appView didDisconnectWithClient:(id<KBRPClient>)client;
+- (void)appView:(KBAppView *)appView didLaunchWithClient:(KBRPClient *)client;
+- (void)appView:(KBAppView *)appView didCheckInstallWithClient:(KBRPClient *)client;
+- (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client;
+- (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client;
+- (void)appView:(KBAppView *)appView didCheckStatusWithClient:(KBRPClient *)client config:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status;
+- (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client;
 - (void)appView:(KBAppView *)appView didLogMessage:(NSString *)message;
 @end
 
 @interface KBAppView : YONSView <NSWindowDelegate, KBSourceOutlineViewDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate> //, NSWindowRestoration>
 
-@property id<KBRPClient> client;
+@property KBRPClient * client;
 
 @property (weak) id<KBAppViewDelegate> delegate;
 
 @property (nonatomic) KBRUser *user;
 @property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 
-- (void)connect:(id<KBRPClient>)client;
+- (void)connect:(KBRPClient *)client;
 
 - (KBWindow *)openWindow;
 
 - (void)logout;
+
+- (void)checkStatus:(dispatch_block_t)completion;
 
 @end

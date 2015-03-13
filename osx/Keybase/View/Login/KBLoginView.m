@@ -124,7 +124,7 @@
   }
 
   NSAssert(self.client, @"No RPC client");
-  id<KBRPClient> client = self.client;
+  KBRPClient * client = self.client;
   KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:client];
 
   [client registerMethod:@"keybase.1.doctorUi.promptDeviceName" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {

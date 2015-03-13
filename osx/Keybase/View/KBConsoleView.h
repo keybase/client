@@ -10,8 +10,9 @@
 
 #import "KBView.h"
 #import "KBDebugStatusView.h"
+#import "KBAppView.h"
 
-@interface KBConsoleView : KBView
+@interface KBConsoleView : KBView <KBAppViewDelegate>
 
 @property (readonly) KBDebugStatusView *debugStatusView;
 

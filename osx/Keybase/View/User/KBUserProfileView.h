@@ -17,7 +17,7 @@
 
 @property (getter=isPopup) BOOL popup;
 
-- (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(id<KBRPClient>)client;
+- (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(KBRPClient *)client;
 
 - (void)clear;
 

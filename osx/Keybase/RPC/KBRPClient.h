@@ -10,6 +10,7 @@
 
 #import "KBDefines.h"
 #import <MPMessagePack/MPMessagePackClient.h>
+#import "KBInstaller.h"
 
 @protocol KBRPClient;
 
@@ -19,30 +20,28 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
   KBRPClientStatusOpen
 };
 
+@class KBRPClient;
+
 @protocol KBRPClientDelegate
-- (void)RPClientDidConnect:(id<KBRPClient>)RPClient;
-- (void)RPClientDidDisconnect:(id<KBRPClient>)RPClient;
-- (void)RPClient:(id<KBRPClient>)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;
+- (void)RPClientDidConnect:(KBRPClient *)RPClient;
+- (void)RPClientDidDisconnect:(KBRPClient *)RPClient;
+- (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;
 @end
 
-@protocol KBRPClient
-@property (readonly) NSString *socketPath;
-@property (weak) id<KBRPClientDelegate> delegate;
+@interface KBRPClient : NSObject <MPMessagePackClientDelegate>
 
-- (void)open;
-- (void)checkInstall:(KBCompletionBlock)completion;
+@property (weak) id<KBRPClientDelegate> delegate;
+@property (getter=isAutoRetryDisabled) BOOL autoRetryDisabled;
+
+@property (readonly) KBInstaller *installer;
+
+@property (readonly) NSString *defaultSocketPath;
+@property (readonly) NSString *socketPath;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler;
 - (void)unregister:(NSInteger)sessionId;
 - (NSInteger)nextSessionId;
-@end
-
-
-@interface KBRPClient : NSObject <KBRPClient, MPMessagePackClientDelegate>
-
-@property (weak) id<KBRPClientDelegate> delegate;
-@property (getter=isAutoRetryDisabled) BOOL autoRetryDisabled;
 
 - (void)open;
 
