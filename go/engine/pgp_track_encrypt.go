@@ -9,15 +9,14 @@ import (
 )
 
 type PGPTrackEncryptArg struct {
-	Recips            []string // user assertions
-	Source            io.Reader
-	Sink              io.WriteCloser
-	NoSign            bool
-	NoSelf            bool
-	BinaryOutput      bool
-	KeyQuery          string
-	TrackRemote       bool
-	PromptTrackRemote bool
+	Recips       []string // user assertions
+	Source       io.Reader
+	Sink         io.WriteCloser
+	NoSign       bool
+	NoSelf       bool
+	BinaryOutput bool
+	KeyQuery     string
+	TrackOptions
 }
 
 // PGPTrackEncrypt encrypts data read from a source into a sink
@@ -81,9 +80,8 @@ func (e *PGPTrackEncrypt) Run(ctx *Context, args, reply interface{}) error {
 	}
 
 	kfarg := &PGPKeyfinderArg{
-		Users:             e.arg.Recips,
-		TrackRemote:       e.arg.TrackRemote,
-		PromptTrackRemote: e.arg.PromptTrackRemote,
+		Users:        e.arg.Recips,
+		TrackOptions: e.arg.TrackOptions,
 	}
 
 	kf := NewPGPKeyfinder(kfarg)

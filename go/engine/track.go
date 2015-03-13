@@ -7,13 +7,17 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+type TrackOptions struct {
+	TrackLocalOnly bool // true: only track locally, false: track locally and remotely
+	TrackApprove   bool // true: don't ask for confirmation, false: ask for confirmation
+}
+
 type TrackEngineArg struct {
 	TheirName string
 	Them      *libkb.User
 	Me        *libkb.User
 
-	TrackRemote       bool
-	PromptTrackRemote bool
+	TrackOptions
 
 	AllowTrackSelf bool
 	MeNotRequired  bool

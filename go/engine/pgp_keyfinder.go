@@ -14,9 +14,8 @@ type PGPKeyfinder struct {
 }
 
 type PGPKeyfinderArg struct {
-	Users             []string
-	TrackRemote       bool
-	PromptTrackRemote bool
+	Users []string
+	TrackOptions
 }
 
 // NewPGPKeyfinder creates a PGPKeyfinder engine.
@@ -104,10 +103,9 @@ func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
 func (e *PGPKeyfinder) trackUser(ctx *Context, user *libkb.User) error {
 	G.Log.Info("tracking user %q", user.GetName())
 	arg := &TrackEngineArg{
-		TheirName:         user.GetName(),
-		Them:              user,
-		TrackRemote:       e.arg.TrackRemote,
-		PromptTrackRemote: e.arg.PromptTrackRemote,
+		TheirName:    user.GetName(),
+		Them:         user,
+		TrackOptions: e.arg.TrackOptions,
 	}
 	eng := NewTrackEngine(arg)
 	return RunEngine(eng, ctx, nil, nil)
