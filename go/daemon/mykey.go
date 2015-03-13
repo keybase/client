@@ -62,3 +62,11 @@ func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 	}
 	return engine.RunEngine(gpg, ctx)
 }
+
+func (h *MykeyHandler) Update(arg keybase_1.UpdateArg) error {
+	ctx := engine.Context{
+		LogUI: h.getLogUI(arg.SessionID),
+	}
+	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All)
+	return engine.RunEngine(eng, &ctx)
+}

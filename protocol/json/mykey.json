@@ -191,6 +191,22 @@
         "type" : "boolean"
       } ],
       "response" : "null"
+    },
+    "update" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "all",
+        "type" : "boolean"
+      }, {
+        "name" : "fingerprints",
+        "type" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      } ],
+      "response" : "null"
     }
   }
 }

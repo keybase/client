@@ -1055,12 +1055,19 @@ type SelectArg struct {
 	SkipImport bool   `codec:"skipImport" json:"skipImport"`
 }
 
+type UpdateArg struct {
+	SessionID    int      `codec:"sessionID" json:"sessionID"`
+	All          bool     `codec:"all" json:"all"`
+	Fingerprints []string `codec:"fingerprints" json:"fingerprints"`
+}
+
 type MykeyInterface interface {
 	PgpKeyGen(PgpKeyGenArg) error
 	PgpKeyGenDefault(PgpCreateUids) error
 	DeletePrimary() error
 	Show() error
 	Select(SelectArg) error
+	Update(UpdateArg) error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -1102,6 +1109,13 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"update": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]UpdateArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Update(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1134,6 +1148,11 @@ func (c MykeyClient) Show() (err error) {
 
 func (c MykeyClient) Select(__arg SelectArg) (err error) {
 	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MykeyClient) Update(__arg UpdateArg) (err error) {
+	err = c.Cli.Call("keybase.1.mykey.update", []interface{}{__arg}, nil)
 	return
 }
 

@@ -28,4 +28,7 @@ protocol mykey {
 
 	// select an existing key and add to kb
 	void select(string query, boolean allowMulti, boolean skipImport);
+
+	// push updated key(s) to the server
+	void update(int sessionID, boolean all, array<string> fingerprints);
 }

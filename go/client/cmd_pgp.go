@@ -13,6 +13,7 @@ func NewCmdPGP(cl *libcmdline.CommandLine) cli.Command {
 		Subcommands: []cli.Command{
 			NewCmdPGPGen(cl),
 			NewCmdPGPPull(cl),
+			NewCmdPGPUpdate(cl),
 			NewCmdPGPSelect(cl),
 			NewCmdPGPSign(cl),
 			NewCmdPGPEncrypt(cl),
