@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
@@ -153,7 +154,7 @@ func (e *PGPPullEngine) Run(ctx *Context, varg interface{}, vres interface{}) er
 		}
 		user, err := libkb.LoadUser(loadUserArg)
 		if err != nil {
-			ctx.LogUI.Error("Failed to load user %s: %s", userSummary.Username, err)
+			ctx.LogUI.Errorf("Failed to load user %s: %s", userSummary.Username, err)
 			continue
 		}
 

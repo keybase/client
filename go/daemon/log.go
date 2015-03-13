@@ -35,7 +35,7 @@ func (l *LogUI) Critical(format string, args ...interface{}) {
 func (l *LogUI) Warning(format string, args ...interface{}) {
 	l.log(keybase_1.LogLevel_WARN, format, args)
 }
-func (l *LogUI) Error(format string, args ...interface{}) {
+func (l *LogUI) Errorf(format string, args ...interface{}) {
 	l.log(keybase_1.LogLevel_ERROR, format, args)
 }
 func (l *LogUI) Notice(format string, args ...interface{}) {

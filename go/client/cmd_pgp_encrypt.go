@@ -99,7 +99,7 @@ func (c *CmdPGPEncrypt) Run() error {
 }
 
 func (c *CmdPGPEncrypt) RunClient() error {
-	cli, err := GetPgpcmdsClient()
+	cli, err := GetPGPClient()
 	if err != nil {
 		return err
 	}

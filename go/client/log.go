@@ -2,8 +2,9 @@ package main
 
 import (
 	"bytes"
+
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -27,7 +28,7 @@ func (s LogUIServer) Log(arg keybase_1.LogArg) error {
 	case keybase_1.LogLevel_WARN:
 		s.log.Warning(msg)
 	case keybase_1.LogLevel_ERROR:
-		s.log.Error(msg)
+		s.log.Errorf(msg)
 	case keybase_1.LogLevel_NOTICE:
 		s.log.Notice(msg)
 	case keybase_1.LogLevel_CRITICAL:
