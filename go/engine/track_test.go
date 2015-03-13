@@ -9,8 +9,7 @@ import (
 
 func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdentifyRes, err error) {
 	idUI = &FakeIdentifyUI{
-		Proofs: make(map[string]string),
-		Fapr:   keybase_1.FinishAndPromptRes{TrackRemote: true},
+		Fapr: keybase_1.FinishAndPromptRes{TrackRemote: true},
 	}
 	arg := TrackEngineArg{
 		TheirName: username,

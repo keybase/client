@@ -21,16 +21,15 @@ type TrackEngineArg struct {
 }
 
 type TrackEngine struct {
-	arg *TrackEngineArg
-	res *IdentifyRes
-
+	arg                 *TrackEngineArg
+	res                 *IdentifyRes
+	signingKeyPub       libkb.GenericKey
+	signingKeyPriv      libkb.GenericKey
 	trackStatementBytes []byte
 	trackStatement      *jsonw.Wrapper
-	signingKeyPriv      libkb.GenericKey
 	sig                 string
 	sigid               *libkb.SigId
 	lockedKey           *libkb.SKB
-	signingKeyPub       libkb.GenericKey
 }
 
 // NewTrackEngine creates a default TrackEngine for tracking theirName.
