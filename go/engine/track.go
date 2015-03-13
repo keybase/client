@@ -18,9 +18,6 @@ type TrackEngineArg struct {
 	Me        *libkb.User
 
 	TrackOptions
-
-	AllowTrackSelf bool
-	MeNotRequired  bool
 }
 
 type TrackEngine struct {
@@ -62,21 +59,20 @@ func (s *TrackEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err error) {
-	if err = e.loadThem(); err != nil {
-		return
-	} else if err = e.loadMe(); err != nil {
-		return
-	} else if !e.arg.AllowTrackSelf && e.arg.Me.Equal(*e.arg.Them) {
-		err = libkb.SelfTrackError{}
-		return
+func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) error {
+	if err := e.loadThem(); err != nil {
+		return err
+	}
+	if err := e.loadMe(); err != nil {
+		return err
+	}
+	if e.arg.Me.Equal(*e.arg.Them) {
+		return libkb.SelfTrackError{}
 	}
 
-	var ti libkb.TrackInstructions
-	var io *libkb.IdentifyOutcome
-	io, ti, err = e.arg.Them.Identify(libkb.NewIdentifyArg(e.arg.Me, e.arg.Them.GetName(), ctx.TrackUI))
+	io, ti, err := e.arg.Them.Identify(libkb.NewIdentifyArg(e.arg.Me, e.arg.Them.GetName(), ctx.TrackUI))
 	if err != nil {
-		return
+		return err
 	}
 
 	e.res = &IdentifyRes{Outcome: io, User: e.arg.Them}
@@ -87,11 +83,11 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 	}
 
 	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.arg.Them); err != nil {
-		return
+		return err
 	}
 
 	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
-		return
+		return err
 	}
 
 	G.Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
@@ -101,7 +97,7 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 	} else if ti.Local {
 		err = e.storeLocalTrack()
 	}
-	return
+	return err
 }
 
 func (e *TrackEngine) Result() *IdentifyRes {
@@ -127,13 +123,15 @@ func (e *TrackEngine) loadThem() error {
 }
 
 func (e *TrackEngine) loadMe() error {
-	if e.arg.Me == nil {
-		if me, err := libkb.LoadMe(libkb.LoadUserArg{}); err != nil && !e.arg.MeNotRequired {
-			return err
-		} else {
-			e.arg.Me = me
-		}
+	if e.arg.Me != nil {
+		return nil
 	}
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return err
+	}
+	e.arg.Me = me
 	return nil
 }
 
