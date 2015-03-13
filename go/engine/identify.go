@@ -112,7 +112,7 @@ func (e *IdentifyEngine) runStandard(ctx *Context) (*IdentifyRes, error) {
 		G.Log.Warning("error loading me: %s", err)
 		return nil, err
 	}
-	stmt, err := TrackStatementJSON(me, u)
+	stmt, err := me.TrackStatementJSON(u)
 	if err != nil {
 		G.Log.Warning("error getting track statement: %s", err)
 		return nil, err

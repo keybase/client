@@ -813,3 +813,34 @@ func (u *User) HasDeviceInCurrentInstall() bool {
 
 	return true
 }
+
+func (u *User) SigningKeyPub() (GenericKey, error) {
+	// Get out key that we're going to sign with.
+	arg := SecretKeyArg{Me: u, All: true}
+	lockedKey, _, err := G.Keyrings.GetSecretKeyLocked(arg)
+	if err != nil {
+		return nil, err
+	}
+	pubKey, err := lockedKey.GetPubKey()
+	if err != nil {
+		return nil, err
+	}
+	return pubKey, nil
+}
+
+func (u *User) TrackStatementJSON(them *User) (string, error) {
+	key, err := u.SigningKeyPub()
+	if err != nil {
+		return "", err
+	}
+
+	stmt, err := u.TrackingProofFor(key, them)
+	if err != nil {
+		return "", err
+	}
+	json, err := stmt.Marshal()
+	if err != nil {
+		return "", err
+	}
+	return string(json), nil
+}

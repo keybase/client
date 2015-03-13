@@ -62,51 +62,10 @@ func (s *TrackEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *TrackEngine) LoadThem() error {
-	if e.arg.Them == nil && len(e.arg.TheirName) == 0 {
-		return fmt.Errorf("No 'them' passed to TrackEngine")
-	}
-	if e.arg.Them == nil {
-		if u, err := libkb.LoadUser(libkb.LoadUserArg{
-			Name:        e.arg.TheirName,
-			Self:        false,
-			ForceReload: false,
-		}); err != nil {
-			return err
-		} else {
-			e.arg.Them = u
-		}
-	}
-	return nil
-}
-
-func (e *TrackEngine) LoadMe() error {
-	if e.arg.Me == nil {
-		if me, err := libkb.LoadMe(libkb.LoadUserArg{}); err != nil && !e.arg.MeNotRequired {
-			return err
-		} else {
-			e.arg.Me = me
-		}
-	}
-	return nil
-}
-
-func (e *TrackEngine) GetSigningKeyPub() (err error) {
-	// Get out key that we're going to sign with.
-	arg := libkb.SecretKeyArg{Me: e.arg.Me, All: true}
-	if e.lockedKey, _, err = G.Keyrings.GetSecretKeyLocked(arg); err != nil {
-		return
-	}
-	if e.signingKeyPub, err = e.lockedKey.GetPubKey(); err != nil {
-		return
-	}
-	return
-}
-
 func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err error) {
-	if err = e.LoadThem(); err != nil {
+	if err = e.loadThem(); err != nil {
 		return
-	} else if err = e.LoadMe(); err != nil {
+	} else if err = e.loadMe(); err != nil {
 		return
 	} else if !e.arg.AllowTrackSelf && e.arg.Me.Equal(*e.arg.Them) {
 		err = libkb.SelfTrackError{}
@@ -122,8 +81,9 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 
 	e.res = &IdentifyRes{Outcome: io, User: e.arg.Them}
 
-	if err = e.GetSigningKeyPub(); err != nil {
-		return
+	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
+	if err != nil {
+		return err
 	}
 
 	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.arg.Them); err != nil {
@@ -146,6 +106,35 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) (err
 
 func (e *TrackEngine) Result() *IdentifyRes {
 	return e.res
+}
+
+func (e *TrackEngine) loadThem() error {
+	if e.arg.Them == nil && len(e.arg.TheirName) == 0 {
+		return fmt.Errorf("No 'them' passed to TrackEngine")
+	}
+	if e.arg.Them == nil {
+		if u, err := libkb.LoadUser(libkb.LoadUserArg{
+			Name:        e.arg.TheirName,
+			Self:        false,
+			ForceReload: false,
+		}); err != nil {
+			return err
+		} else {
+			e.arg.Them = u
+		}
+	}
+	return nil
+}
+
+func (e *TrackEngine) loadMe() error {
+	if e.arg.Me == nil {
+		if me, err := libkb.LoadMe(libkb.LoadUserArg{}); err != nil && !e.arg.MeNotRequired {
+			return err
+		} else {
+			e.arg.Me = me
+		}
+	}
+	return nil
 }
 
 func (e *TrackEngine) storeLocalTrack() error {
@@ -182,22 +171,4 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 	})
 
 	return
-}
-
-// this requires an engine, so put it in this package
-func TrackStatementJSON(me, them *libkb.User) (string, error) {
-	eng := NewTrackEngine(&TrackEngineArg{Them: them})
-	if err := eng.GetSigningKeyPub(); err != nil {
-		return "", err
-	}
-
-	stmt, err := me.TrackingProofFor(eng.signingKeyPub, them)
-	if err != nil {
-		return "", err
-	}
-	json, err := stmt.Marshal()
-	if err != nil {
-		return "", err
-	}
-	return string(json), nil
 }
