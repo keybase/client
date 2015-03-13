@@ -100,10 +100,6 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) erro
 	return err
 }
 
-func (e *TrackEngine) Result() *IdentifyRes {
-	return e.res
-}
-
 func (e *TrackEngine) loadThem() error {
 	if e.arg.Them == nil && len(e.arg.TheirName) == 0 {
 		return fmt.Errorf("No 'them' passed to TrackEngine")
