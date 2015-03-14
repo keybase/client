@@ -173,9 +173,15 @@ type FakeIdentifyUI struct {
 }
 
 func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase_1.RemoteProof, result keybase_1.LinkCheckResult) {
+	if ui.Proofs == nil {
+		ui.Proofs = make(map[string]string)
+	}
 	ui.Proofs[proof.Key] = proof.Value
 }
 func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase_1.RemoteProof, result keybase_1.LinkCheckResult) {
+	if ui.Proofs == nil {
+		ui.Proofs = make(map[string]string)
+	}
 	ui.Proofs[proof.Key] = proof.Value
 }
 func (ui *FakeIdentifyUI) FinishAndPrompt(*keybase_1.IdentifyOutcome) (res keybase_1.FinishAndPromptRes, err error) {
