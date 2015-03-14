@@ -54,7 +54,7 @@
   UIEdgeInsets insets = self.border.insets;
   sizeThatFits.width += insets.left + insets.right;
   sizeThatFits.height += insets.top + insets.bottom;
-  return CGSizeMake(sizeThatFits.width, sizeThatFits.height);
+  return sizeThatFits;
 }
 
   /*
@@ -155,7 +155,7 @@
 
 - (NSFont *)fontForStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
   switch (style) {
-    case KBLabelStyleHeader: return appearance.boldLargeTextFont;
+    case KBLabelStyleHeader: return appearance.headerTextFont;
     default: return appearance.textFont;
   }
 }
@@ -199,6 +199,7 @@
                           @"a": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor},
                           @"ok": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.okColor},
                           @"error": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.errorColor},
+                          @"thin": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Thin" size:font.pointSize]},
                           @"color": @{},
                           };
   NSError *error = nil;
@@ -299,10 +300,6 @@
 
   return CGRectIntegral(rect).size;
 }
-
-//- (CGSize)sizeThatFits:(CGSize)size {
-//  return [KBLabel sizeThatFits:size attributedString:_textView.attributedString];
-//}
 
 + (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter {
   NSMutableAttributedString *text = [[NSMutableAttributedString alloc] init];

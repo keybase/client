@@ -9,7 +9,10 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-typedef void (^KBButtonActionBlock)(id sender);
+@class KBButton;
+
+typedef void (^KBButtonCompletion)(NSError *error);
+typedef void (^KBButtonDispatchBlock)(KBButton *button, KBButtonCompletion completion);
 
 typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleDefault,
@@ -23,9 +26,8 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 @interface KBButton : NSButton
 
-@property (nonatomic, copy) dispatch_block_t targetBlock; // Deprecated
-
-@property (nonatomic, copy) KBButtonActionBlock actionBlock;
+@property (nonatomic, copy) dispatch_block_t targetBlock;
+@property (nonatomic, copy) KBButtonDispatchBlock dispatchBlock;
 
 + (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;
@@ -34,7 +36,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 + (instancetype)buttonWithImage:(NSImage *)image;
 + (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style;
 
-+ (instancetype)linkWithText:(NSString *)text actionBlock:(KBButtonActionBlock)actionBlock;
++ (instancetype)linkWithText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 

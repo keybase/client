@@ -20,8 +20,11 @@
   return _clipToBounds;
 }
 
+@end
+
+@implementation NSView (KBView)
+
 - (void)setBackgroundColor:(NSColor *)backgroundColor {
-  _backgroundColor = backgroundColor;
   self.wantsLayer = YES;
   self.layer.backgroundColor = backgroundColor.CGColor;
 }

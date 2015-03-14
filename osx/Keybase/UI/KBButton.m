@@ -46,10 +46,10 @@
   return button;
 }
 
-+ (instancetype)linkWithText:(NSString *)text actionBlock:(KBButtonActionBlock)actionBlock {
++ (instancetype)linkWithText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
   KBButton *button = [[KBButton alloc] init];
   [button setText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  button.actionBlock = actionBlock;
+  button.targetBlock = targetBlock;
   return button;
 }
 
@@ -91,10 +91,6 @@
   }
   return sizeThatFits;
 }
-
-//- (CGSize)sizeThatFits:(CGSize)size {
-//  return [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
-//}
 
 + (NSMutableAttributedString *)attributedText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   if (!text) text = @"";
@@ -156,8 +152,13 @@
 }
 
 - (void)_performTargetBlock {
-  if (self.targetBlock) self.targetBlock(); // Deprecated
-  if (self.actionBlock) self.actionBlock(self);
+  if (self.targetBlock) self.targetBlock();
+  if (self.dispatchBlock) {
+    self.enabled = NO;
+    self.dispatchBlock(self, ^(NSError *error) {
+      self.enabled = YES;
+    });
+  }
 }
 
 + (NSFont *)fontForStyle:(KBButtonStyle)style {

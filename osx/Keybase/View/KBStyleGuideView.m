@@ -21,8 +21,8 @@
   NSString *shortText = @"Street art Vice Kickstarter Odd Future Tumblr, Brooklyn Carles cronut wolf umami meggings actually bespoke.";
   NSString *longText = @"Portland pug normcore, heirloom meggings small batch skateboard next level vinyl drinking vinegar 90's messenger bag iPhone DIY blog. Polaroid +1 chia, direct trade art party ennui fixie. Listicle readymade fashion axe ethical, scenester irony American Apparel DIY XOXO.";
 
-  KBView *contentView = [[KBView alloc] init];
-  contentView.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  YOBox *contentView = [YOBox box:@{@"spacing": @(10), @"insets": @(20)}];
+  [contentView setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   KBLabel *label1 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
   [label1 setMarkup:@"Text <strong>Strong</strong> <em>Emphasis</em>" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
@@ -56,7 +56,8 @@
   buttonView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts gridLayoutForViews:buttonView.subviews viewSize:CGSizeMake(200, 42) padding:10]];
   [contentView addSubview:buttonView];
 
-  YONSView *linkView = [[YONSView alloc] init];
+  YOBox *linkView = [YOBox box:@{@"spacing": @(10)}];
+  [contentView addSubview:linkView];
   KBButton *openSheetLink = [KBButton buttonWithText:@"Open Sheet" style:KBButtonStyleLink];
   openSheetLink.targetBlock = ^{ [self openSheet]; };
   [linkView addSubview:openSheetLink];
@@ -69,14 +70,12 @@
   activityToggleTitleLink.targetBlock = ^{ [self toggleActivityTitleBar]; };
   [linkView addSubview:activityToggleTitleLink];
 
-  linkView.viewLayout = [YOLayout vertical:linkView.subviews margin:UIEdgeInsetsMake(0, 0, 0, 0) padding:10];
-  [contentView addSubview:linkView];
-
   _progressView = [[KBProgressOverlayView alloc] init];
   [contentView addSubview:_progressView];
   _progressView.animating = YES;
 
-  YONSView *textFieldsView = [[YONSView alloc] init];
+  YOBox *textFieldsView = [YOBox box:@{@"spacing": @(20), @"insets": @(40)}];
+  [contentView addSubview:textFieldsView];
   KBTextField *textField = [[KBTextField alloc] init];
   textField.placeholder = @"Text Field";
   [textFieldsView addSubview:textField];
@@ -84,16 +83,13 @@
   KBSecureTextField *secureTextField = [[KBSecureTextField alloc] init];
   secureTextField.placeholder = @"Secure Text Field";
   [textFieldsView addSubview:secureTextField];
-  textFieldsView.viewLayout = [YOLayout vertical:textFieldsView.subviews margin:UIEdgeInsetsMake(0, 40, 0, 40) padding:20];
-  [contentView addSubview:textFieldsView];
+
 
   KBBorder *border = [[KBBorder alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
   border.width = 2.0;
   border.borderType = KBBorderTypeTop | KBBorderTypeBottom;
   border.color = NSColor.orangeColor;
   [contentView addSubview:border];
-
-  contentView.viewLayout = [YOLayout vertical:contentView.subviews margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:10];
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:contentView];

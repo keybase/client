@@ -22,6 +22,7 @@
 #import "KBKeySelectView.h"
 #import "KBPGPKeyGenView.h"
 #import "KBProgressView.h"
+#import "KBKeyView.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -119,7 +120,7 @@
     gself.fokid = requestParams.fokid;
     if (requestParams.fokid.pgpFingerprint) {
       [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *key) {
-
+        [self openKey:key];
       }];
       [gself setNeedsLayout];
     }
@@ -243,7 +244,6 @@
       if (!gself.fokid.pgpFingerprint) {
         [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
           [gself addPGPKey];
-
         }];
       }
       // TODO
@@ -315,7 +315,7 @@
 }
 
 - (void)removePGPKey {
-  [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^() {
+  [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^{
     KBProgressView *progressView = [[KBProgressView alloc] init];
     [progressView setProgressTitle:@"Deleting"];
     progressView.work = ^(KBCompletionBlock completion) {
@@ -328,12 +328,18 @@
   }];
 }
 
+- (void)openKey:(KBRFOKID *)key {
+  KBKeyView *keyView = [[KBKeyView alloc] init];
+  [keyView setKey:key];
+  [self.window addChildWindowForView:keyView size:CGSizeMake(500, 400) position:KBWindowPositionCenter title:@"Key"];
+}
+
 - (void)generatePGPKey {
 //  KBPGPKeyGenView *view = [[KBPGPKeyGenView alloc] init];
 //  view.client = self.client;
 //  dispatch_block_t close = [KBNavigationView openWindowWithView:view title:@"Generate PGP Key" sender:self];
 //  view.completion = close;
-//  view.cancelButton.actionBlock = ^(id sender) { close(); };
+//  view.cancelButton.targetBlock = ^{ close(); };
 
   KBProgressView *progressView = [[KBProgressView alloc] init];
   [progressView setProgressTitle:@"Generating"];
@@ -343,6 +349,7 @@
     KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
     [mykey pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
       completion(error);
+      [self reload];
     }];
   };
   [progressView openAndDoIt:self];
@@ -356,7 +363,7 @@
   }];
   [request selectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     if (error) [self setError:error];
-    //[self reload];
+    [self reload];
   }];
 }
 
@@ -368,7 +375,7 @@
     close();
     completion(error, result);
   }];
-  selectView.cancelButton.actionBlock = ^(id sender) { close(); };
+  selectView.cancelButton.targetBlock = ^{ close(); };
 }
 
 @end

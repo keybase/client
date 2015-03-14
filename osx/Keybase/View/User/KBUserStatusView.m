@@ -64,9 +64,9 @@
 
 - (void)setConnected:(BOOL)connected {
   if (connected) {
-    [_statusLabel setText:@"Connected" font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.okColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [_statusLabel setText:@"Connected" font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.okColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   } else {
-    [_statusLabel setText:@"Disconnected" font:[NSFont systemFontOfSize:14] color:KBAppearance.currentAppearance.errorColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [_statusLabel setText:@"Disconnected" font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.errorColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   }
 }
 

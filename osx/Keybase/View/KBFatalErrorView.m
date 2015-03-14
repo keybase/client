@@ -89,22 +89,4 @@
   [self setNeedsLayout];
 }
 
-- (void)openInWindow:(NSView *)sender {
-  if (self.window) {
-    [self.window makeKeyAndOrderFront:nil];
-    return;
-  }
-
-  [self removeFromSuperview];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:self title:@"Keybase"];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 410) retain:YES];
-
-  CGPoint p = sender.window.frame.origin;
-  p.x += YOCGPointToCenterX(window.frame.size, sender.window.frame.size).x;
-  p.y += YOCGPointToCenterY(window.frame.size, sender.window.frame.size).y;
-  [window setFrameOrigin:p];
-
-  [sender.window addChildWindow:window ordered:NSWindowAbove];
-}
-
 @end

@@ -150,7 +150,6 @@
       return;
     }
 
-    [self.delegate appView:self willConnectWithClient:gself.client];
     [gself.client open];
   }];
 }
@@ -238,6 +237,7 @@
   _userProfileView.client = _client;
   [_userProfileView setUser:_user editable:YES client:_client];
   [self setContentView:_userProfileView showSourceView:YES];
+  [_sourceView selectItem:KBSourceViewItemProfile];
 }
 
 - (void)showDevices {
@@ -256,7 +256,7 @@
 
 - (void)logout {
   GHWeakSelf gself = self;
-  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^() {
+  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^{
     [self setProgressEnabled:YES];
     KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
     [login logout:^(NSError *error) {
@@ -271,25 +271,28 @@
   }];
 }
 
-- (void)checkStatus:(dispatch_block_t)completion {
+- (void)checkStatus:(KBCompletionBlock)completion {
   GHWeakSelf gself = self;
+
+  if (!completion) completion = ^(NSError *error) { if (error) [AppDelegate.sharedDelegate setFatalError:error]; };
+
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
     if (error) {
-      [AppDelegate.sharedDelegate setFatalError:error];
+      completion(error);
       return;
     }
     KBRConfigRequest *request = [[KBRConfigRequest alloc] initWithClient:self.client];
     [request getConfig:^(NSError *error, KBRConfig *config) {
       if (error) {
-        [AppDelegate.sharedDelegate setFatalError:error];
+        if (completion) completion(error);
         return;
       }
       [self setConfig:config];
       [self setStatus:status];
       [self.delegate appView:self didCheckStatusWithClient:gself.client config:config status:status];
       // TODO reload current view if coming back from disconnect?
-      if (completion) completion();
+      if (completion) completion(nil);
     }];
   }];
 }
@@ -331,6 +334,10 @@
   self.status = status;
 }
 
+- (void)RPClientWillConnect:(KBRPClient *)RPClient {
+  [self.delegate appView:self willConnectWithClient:_client];
+}
+
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   [self.sourceView.statusView setConnected:YES];
   [self.delegate appView:self didConnectWithClient:_client];
@@ -339,6 +346,7 @@
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
   [self.sourceView.statusView setConnected:NO];
+  [self.delegate appView:self didDisconnectWithClient:_client];
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {

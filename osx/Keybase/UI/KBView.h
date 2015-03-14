@@ -13,6 +13,9 @@
 @interface KBView : YONSView
 
 @property BOOL clipToBounds; // Writable alias for wantsDefaultClipping
-@property (nonatomic) NSColor *backgroundColor;
 
+@end
+
+@interface NSView (KBView)
+- (void)setBackgroundColor:(NSColor *)backgroundColor;
 @end

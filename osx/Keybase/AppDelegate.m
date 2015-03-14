@@ -113,7 +113,7 @@
 - (void)setFatalError:(NSError *)error {
   KBFatalErrorView *fatalErrorView = [[KBFatalErrorView alloc] init];
   [fatalErrorView setError:error];
-  [fatalErrorView openInWindow:_appView];
+  [self.appView.window addChildWindowForView:fatalErrorView size:CGSizeMake(510, 400) position:KBWindowPositionCenter title:@"Keybase"];
 }
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {

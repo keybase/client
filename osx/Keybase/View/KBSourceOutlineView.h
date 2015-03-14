@@ -12,7 +12,7 @@
 #import "KBUserStatusView.h"
 
 typedef NS_ENUM (NSInteger, KBSourceViewItem) {
-  KBSourceViewItemProfile = 1,
+  KBSourceViewItemProfile = 1, // Should match row index
   KBSourceViewItemUsers,
   KBSourceViewItemDevices,
   KBSourceViewItemFolders,
@@ -30,5 +30,7 @@ typedef NS_ENUM (NSInteger, KBSourceViewItem) {
 @property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 
 @property (readonly) KBUserStatusView *statusView;
+
+- (void)selectItem:(KBSourceViewItem)item;
 
 @end

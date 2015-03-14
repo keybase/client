@@ -35,43 +35,42 @@
 
   _mockClient = [[KBRMockClient alloc] init];
 
-  YONSView *contentView = [[YONSView alloc] init];
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @(4), @"insets": @(20)}];
+  //YOVBox *contentView = [YOVBox box:@{@"spacing": @(4), @"insets": @[@(20), @(20), @(20), @(20)]}];
   [contentView addSubview:[KBLabel labelWithText:@"Style Guides" style:KBLabelStyleHeader]];
-  [contentView addSubview:[KBButton linkWithText:@"Style Guide" actionBlock:^(id sender) { [self showStyleGuide]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Style Guide" targetBlock:^{ [self showStyleGuide]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBLabelStyleDefault]];
 
-  [contentView addSubview:[KBButton linkWithText:@"App" actionBlock:^(id sender) { [self showAppView]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Login" actionBlock:^(id sender) { [self showLogin]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Signup" actionBlock:^(id sender) { [self showSignup]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Device Setup" actionBlock:^(id sender) { [self showDeviceSetupView]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Device Prompt" actionBlock:^(id sender) { [self showDevicePrompt]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" actionBlock:^(id sender) { [self showSelectKey]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Progress" actionBlock:^(id sender) { [self showProgressView:1 error:NO]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Progress (error)" actionBlock:^(id sender) { [self showProgressView:0 error:YES]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" actionBlock:^(id sender) { [self showProveInstructions]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Track" actionBlock:^(id sender) { [self showTrack]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"App" targetBlock:^{ [self showAppView]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Signup" targetBlock:^{ [self showSignup]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Setup" targetBlock:^{ [self showDeviceSetupView]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Prompt" targetBlock:^{ [self showDevicePrompt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Progress" targetBlock:^{ [self showProgressView:1 error:NO]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Progress (error)" targetBlock:^{ [self showProgressView:0 error:YES]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Track" targetBlock:^{ [self showTrack]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBLabel labelWithText:@"Error Handling" style:KBLabelStyleHeader]];
-  [contentView addSubview:[KBButton linkWithText:@"Error" actionBlock:^(id sender) { [self showError]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Fatal" actionBlock:^(id sender) { [self showFatalError]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Error" targetBlock:^{ [self showError]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Fatal" targetBlock:^{ [self showFatalError]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBLabel labelWithText:@"Prompts" style:KBLabelStyleHeader]];
-  [contentView addSubview:[KBButton linkWithText:@"Password (Input)" actionBlock:^(id sender) { [self prompt:@"password"]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Input" actionBlock:^(id sender) { [self prompt:@"input"]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Yes/No" actionBlock:^(id sender) { [self prompt:@"yes_no"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Password (Input)" targetBlock:^{ [self prompt:@"password"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Input" targetBlock:^{ [self prompt:@"input"]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Yes/No" targetBlock:^{ [self prompt:@"yes_no"]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
-
-  contentView.viewLayout = [YOLayout vertical:contentView.subviews margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:4];
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:contentView];
   [self addSubview:scrollView];
-
+  
   self.viewLayout = [YOLayout fill:scrollView];
 }
 
@@ -109,7 +108,7 @@
 
     }];
   } else if ([type isEqualTo:@"yes_no"]) {
-    [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^() {
+    [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^{
       // Yes
     }];
   } else if ([type isEqualTo:@"input"]) {
@@ -140,7 +139,8 @@
   selectView.selectButton.targetBlock = ^{
     GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
   };
-  selectView.cancelButton.actionBlock = ^(id sender) { [[sender window] close]; };
+  GHWeakSelf gself = self;
+  selectView.cancelButton.targetBlock = ^{ [[gself window] close]; };
   [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select PGP Key"];
 }
 
@@ -199,7 +199,8 @@
 
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
   [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
-  deviceSetupView.cancelButton.actionBlock = ^(id sender) { [[sender window] close]; };
+  GHWeakSelf gself = self;
+  deviceSetupView.cancelButton.targetBlock = ^{ [[gself window] close]; };
   [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
 }
 

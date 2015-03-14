@@ -41,6 +41,6 @@
 
 - (void)logout;
 
-- (void)checkStatus:(dispatch_block_t)completion;
+- (void)checkStatus:(KBCompletionBlock)completion;
 
 @end

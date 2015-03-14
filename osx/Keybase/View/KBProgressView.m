@@ -59,7 +59,7 @@
       /*
       gself.progressView.animating = NO;
       [self setError:error];
-      gself.errorView.closeButton.actionBlock = ^(id sender) {
+      gself.errorView.closeButton.targetBlock = ^{
         [self close:self];
         close();
       };

@@ -19,7 +19,7 @@
 - (void)viewInit {
   [super viewInit];
 
-  YONSView *topView = [[YONSView alloc] init];
+  YOVBox *topView = [YOVBox box:@{@"spacing":@(20)}];
   [self.contentView addSubview:topView];
   KBLabel *header = [[KBLabel alloc] init];
   [header setText:@"Device Setup" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
@@ -28,7 +28,6 @@
   KBLabel *infoLabel = [[KBLabel alloc] init];
   [infoLabel setText:@"This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment];
   [topView addSubview:infoLabel];
-  topView.viewLayout = [YOLayout vertical:topView.subviews margin:UIEdgeInsetsZero padding:20];
 
   _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextView.class rowHeight:0];
   _deviceSignerView.wantsLayer = YES;

@@ -30,7 +30,8 @@
   if (!_preferencesWindowController) {
     YONSView *generalView = [[YONSView alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
 
-    YONSView *advancedView = [[YONSView alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
+    YOVBox *advancedView = [[YOVBox alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
+    [advancedView setOptions:@{@"spacing": @(10), @"insets": @[@(20), @(40), @(20), @(40)]}];
     KBButton *recordCheckbox = [KBButton buttonWithText:@"Record RPC Calls" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     recordCheckbox.identifier = @"Preferences.Advanced.Record";
     recordCheckbox.state = [NSUserDefaults.standardUserDefaults boolForKey:recordCheckbox.identifier];
@@ -44,7 +45,6 @@
 //    catalog.targetBlock = ^{ [AppDelegate.sharedDelegate openCatalog]; };
 //    [advancedView addSubview:catalog];
 
-    advancedView.viewLayout = [YOLayout vertical:advancedView.subviews margin:UIEdgeInsetsMake(20, 40, 20, 40) padding:10];
     [advancedView layoutView];
 
     KBPreferencesViewController *generalViewController = [[KBPreferencesViewController alloc] init];

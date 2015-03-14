@@ -18,14 +18,13 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.spacing = 8;
   
   _RPCStatusLabel = [[KBLabel alloc] init];
   [self addSubview:_RPCStatusLabel];
 
   _serverStatusLabel = [[KBLabel alloc] init];
   [self addSubview:_serverStatusLabel];
-
-  self.viewLayout = [YOLayout vertical:self.subviews margin:UIEdgeInsetsZero padding:8];
 }
 
 - (void)setRPCConnected:(BOOL)RPCConnected serverConnected:(BOOL)serverConnected {

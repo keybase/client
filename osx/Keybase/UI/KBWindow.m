@@ -59,9 +59,23 @@
   return window;
 }
 
++ (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender {
+  NSWindow *window = [KBWindow windowWithContentView:view size:size retain:NO];
+  dispatch_block_t endSheet = ^{
+    [[sender window] endSheet:window];
+  };
+  [[sender window] beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
+  return endSheet;
+}
+
+@end
+
+@implementation NSWindow (KBWindow)
+
 - (void)addChildWindowForView:(NSView *)view size:(CGSize)size position:(KBWindowPosition)position title:(NSString *)title {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
   NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
+  window.styleMask = window.styleMask | NSResizableWindowMask;
 
   CGPoint p = self.frame.origin;
 
@@ -80,15 +94,6 @@
   [window setFrameOrigin:p];
 
   [self addChildWindow:window ordered:NSWindowAbove];
-}
-
-+ (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender {
-  NSWindow *window = [KBWindow windowWithContentView:view size:size retain:NO];
-  dispatch_block_t endSheet = ^{
-    [[sender window] endSheet:window];
-  };
-  [[sender window] beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
-  return endSheet;
 }
 
 @end

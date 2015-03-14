@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBDebugStatusView : KBView
+@interface KBDebugStatusView : YOVBox
 
 @property KBRPClient *client;
 @property KBRConfig *config;

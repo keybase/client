@@ -29,7 +29,7 @@
   _outlineView.floatsGroupRows = NO;
   _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
   //[self addSubview:_outlineView];
-  [self.data setObject:@[@"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
+  [self.data setObject:@[@"Me", @"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
 
   dispatch_async(dispatch_get_main_queue(), ^{
     [self.outlineView reloadItem:nil reloadChildren:YES];
@@ -44,15 +44,14 @@
 
   _statusView = [[KBUserStatusView alloc] init];
   GHWeakSelf gself = self;
-  _statusView.button.actionBlock = ^(id sender) { [gself selectItem:KBSourceViewItemProfile]; };
+  _statusView.button.targetBlock = ^{ [gself didSelectItem:KBSourceViewItemProfile]; };
   [self addSubview:_statusView];
 
 //  KBScrollView *scrollView = [[KBScrollView alloc] init];
 //  [scrollView setDocumentView:_outlineView];
 //  [self addSubview:scrollView];
-  NSScrollView *scrollView = [[NSScrollView alloc] init];
+  KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:_outlineView];
-  [scrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
   [self addSubview:scrollView];
 
   _outlineView.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor; // Have to set after in scrollview
@@ -79,22 +78,29 @@
   return _progressView.isAnimating;
 }
 
-- (void)selectItem:(KBSourceViewItem)item {
-  if (item == KBSourceViewItemProfile) {
-    [_outlineView deselectAll:self];
-  }
+- (void)notifyItemSelected:(KBSourceViewItem)item {
   [self.delegate sourceOutlineView:self didSelectItem:item];
+}
+
+- (void)didSelectItem:(KBSourceViewItem)item {
+  [self selectItem:item];
+  [self notifyItemSelected:item];
 }
 
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {
   if ([_outlineView selectedRow] != -1) {
     NSString *item = [_outlineView itemAtRow:[_outlineView selectedRow]];
     if ([_outlineView parentForItem:item] != nil) {
-      if ([item isEqualTo:@"Users"]) [self selectItem:KBSourceViewItemUsers];
-      if ([item isEqualTo:@"Devices"]) [self selectItem:KBSourceViewItemDevices];
-      if ([item isEqualTo:@"Folders"]) [self selectItem:KBSourceViewItemFolders];
+      if ([item isEqualTo:@"Me"]) [self notifyItemSelected:KBSourceViewItemProfile];
+      if ([item isEqualTo:@"Users"]) [self notifyItemSelected:KBSourceViewItemUsers];
+      if ([item isEqualTo:@"Devices"]) [self notifyItemSelected:KBSourceViewItemDevices];
+      if ([item isEqualTo:@"Folders"]) [self notifyItemSelected:KBSourceViewItemFolders];
     }
   }
+}
+
+- (void)selectItem:(KBSourceViewItem)item {
+  [_outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:item] byExtendingSelection:NO];
 }
 
 - (NSArray *)_childrenForItem:(id)item {

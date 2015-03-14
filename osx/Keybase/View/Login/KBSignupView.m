@@ -20,6 +20,7 @@
 @property KBLabel *passwordConfirmLabel;
 @property KBPopoverView *popover;
 @property NSView *popoverTarget;
+@property KBTextField *focusedField;
 @end
 
 @implementation KBSignupView
@@ -36,6 +37,10 @@
   //KBLabel *label = [[KBLabel alloc] init];
   //[label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   //[self addSubview:label];
+
+  KBLabel *label = [[KBLabel alloc] init];
+  [label setMarkup:@"<p><thin>Welcome to</thin> Keybase</p>" font:[NSFont systemFontOfSize:22] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [self.contentView addSubview:label];
 
   _inviteField = [[KBTextField alloc] init];
   _inviteField.placeholder = @"Invite Code";
@@ -64,7 +69,7 @@
   _deviceNameField.textField.delegate = self;
   _deviceNameField.focusDelegate = self;
   _deviceNameField.attributes[@"title"] = @"Computer Name";
-  _deviceNameField.attributes[@"info"] = @"We'll register this install with this name. It'll help you identify this install later.";
+  _deviceNameField.attributes[@"info"] = @"We'll register this install with this name. It'll help you identify it later if you have multiple installs. For example, \"Work\" or \"Home\" or \"Macbook\"";
 
   //_deviceNameField.text = [[NSHost currentHost] localizedName];
   [self.contentView addSubview:_deviceNameField];
@@ -104,10 +109,10 @@
 
   YOSelf yself = self;
   self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 40;
+    CGFloat y = 30;
     CGFloat padding = 12;
 
-    //y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 30;
 
     //y += [layout setFrame:CGRectMake(20, y, size.width - 40, 22) view:yself.inviteField].size.height + 10;
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.emailField].size.height + padding;
@@ -157,12 +162,13 @@
 
 - (void)textField:(KBTextField *)textField didChangeFocus:(BOOL)focused {
   if (focused && textField.attributes[@"title"]) {
+    _focusedField = textField;
     [_popover setText:textField.attributes[@"info"] title:textField.attributes[@"title"]];
     _popoverTarget = textField;
     [_popover removeFromSuperview];
     [self addSubview:_popover positioned:NSWindowAbove relativeTo:nil];
     [self setNeedsLayout];
-  } else {
+  } else if (textField == _focusedField) {
     [_popover removeFromSuperview];
     _popoverTarget = nil;
   }
