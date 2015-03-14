@@ -16,6 +16,7 @@
 @interface KBConsoleView ()
 @property KBDebugStatusView *debugStatusView;
 @property KBButton *checkButton;
+@property KBButton *restartButton;
 @property KBListView *logView;
 
 @property KBRPClient *client;
@@ -29,10 +30,31 @@
   _debugStatusView = [[KBDebugStatusView alloc] init];
   [self addSubview:_debugStatusView];
 
+  YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @[@(0), @(0), @(10), @(0)]}];
   GHWeakSelf gself = self;
   _checkButton = [KBButton buttonWithText:@"Check" style:KBButtonStyleToolbar];
-  _checkButton.actionBlock = ^(id sender) { [gself check]; };
-  [self addSubview:_checkButton];
+  _checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+    [AppDelegate.appView checkStatus:^(NSError *error) {
+      if (error) [gself logError:error];
+      [gself.client.installer.launchCtl status:^(NSError *error, NSString *output) {
+        [gself log:output];
+        completion(error);
+      }];
+    }];
+  };
+  [buttons addSubview:_checkButton];
+
+  _restartButton = [KBButton buttonWithText:@"Restart keybased" style:KBButtonStyleToolbar];
+  _restartButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+    [gself log:@"Restarting keybased..."];
+    [gself.client.installer.launchCtl reload:^(NSError *error, NSString *output) {
+      if (error) [gself logError:error];
+      [gself log:output];
+      completion(error);
+    }];
+  };
+  [buttons addSubview:_restartButton];
+  [self addSubview:buttons];
 
   // TODO logging grows forever
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
@@ -51,27 +73,19 @@
     CGFloat y = 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(10, y, size.width - 20, 0) view:yself.debugStatusView].size.height + 10;
 
-    x += [layout setFrame:CGRectMake(x, y, 80, 24) view:yself.checkButton].size.width + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width, 34) view:buttons].size.height;
 
-    y += 34;
     y += [layout setFrame:CGRectMake(10, y, size.width - 20, size.height - y - 10) view:yself.logView].size.height + 10;
     return size;
   }];
 }
 
-- (void)check {
-  _checkButton.enabled = NO;
-  GHWeakSelf gself = self;
-  [AppDelegate.appView checkStatus:^{
-    [gself.client.installer.launchCtl status:^(NSError *error, NSString *output) {
-      [self log:output];
-    }];
-    gself.checkButton.enabled = YES;
-  }];
-}
-
 - (void)log:(NSString *)message {
   if (message) [_logView addObjects:@[message]];
+}
+
+- (void)logError:(NSError *)error {
+  if (error) [_logView addObjects:@[error.localizedDescription]]; // TODO Better error display
 }
 
 - (void)appView:(KBAppView *)appView didLaunchWithClient:(KBRPClient *)client {

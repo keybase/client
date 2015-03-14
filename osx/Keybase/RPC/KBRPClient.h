@@ -23,6 +23,7 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
 @class KBRPClient;
 
 @protocol KBRPClientDelegate
+- (void)RPClientWillConnect:(KBRPClient *)RPClient;
 - (void)RPClientDidConnect:(KBRPClient *)RPClient;
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient;
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt;

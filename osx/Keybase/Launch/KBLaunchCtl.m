@@ -15,12 +15,17 @@
 
 - (void)reload:(KBLaunchExecution)completion {
   [self unload:^(NSError *unloadError, NSString *unloadOutput) {
-    [self load:^(NSError *loadError, NSString *loadOutput) {
-      // Give it a change to startup
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        completion(loadError, loadOutput);
-      });
-    }];
+    // Give it a chance to unload
+    // TODO Polling check for unloaded status
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      [self load:^(NSError *loadError, NSString *loadOutput) {
+        // Give it a chance to load
+        // TODO Polling check for loaded status
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+          completion(loadError, loadOutput);
+        });
+      }];
+    });
   }];
 }
 
@@ -40,6 +45,7 @@
 - (void)status:(KBLaunchExecution)completion {
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
+      // TODO better parsing
       if ([line containsString:@"keybase.keybased"]) {
         completion(nil, line);
         return;

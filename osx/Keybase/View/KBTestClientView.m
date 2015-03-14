@@ -54,6 +54,10 @@
   [_client close];
 }
 
+- (void)RPClientWillConnect:(KBRPClient *)RPClient {
+  [_infoView addObjects:@[@"Connecting..."]];
+}
+
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   GHWeakSelf gself = self;
   [_connectButton setText:@"Disconnect" style:KBButtonStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];

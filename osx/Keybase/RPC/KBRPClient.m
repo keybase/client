@@ -89,6 +89,7 @@
 
   GHDebug(@"Connecting to keybased (%@)...", self.socketPath);
   _connectAttempt++;
+  [self.delegate RPClientWillConnect:self];
   [_client openWithSocket:self.socketPath completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
@@ -140,11 +141,12 @@
 }
 
 - (void)openAfterDelay:(NSTimeInterval)delay {
-  if (_status != KBRPClientStatusOpening) {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+  GHWeakSelf gself = self;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    if (gself.status != KBRPClientStatusOpening) {
       [self open:nil];
-    });
-  }
+    }
+  });
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
