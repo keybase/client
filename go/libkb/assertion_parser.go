@@ -7,14 +7,14 @@ import (
 var empty_string []byte = []byte{}
 
 const (
-	NONE   = iota
-	OR     = iota
-	AND    = iota
-	LPAREN = iota
-	RPAREN = iota
-	URL    = iota
-	EOF    = iota
-	ERROR  = iota
+	NONE = iota
+	OR
+	AND
+	LPAREN
+	RPAREN
+	URL
+	EOF
+	ERROR
 )
 
 type Token struct {
