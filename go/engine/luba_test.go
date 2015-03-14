@@ -11,7 +11,7 @@ type lubatest struct {
 var lubatests = []lubatest{
 	{"t_alice", false, true},
 	{"t_bob", false, true},
-	{"tacovontaco@twitter", false, true},
+	{"t_alice+tacovontaco@twitter", false, true},
 }
 
 func TestLuba(t *testing.T) {
@@ -19,7 +19,7 @@ func TestLuba(t *testing.T) {
 	defer tc.Cleanup()
 
 	for _, lt := range lubatests {
-		idUI := &FakeIdentifyUI{}
+		idUI := &FakeIdentifyUI{Proofs: make(map[string]string)}
 		ctx := &Context{IdentifyUI: idUI}
 		arg := &LubaArg{
 			Assertion:    lt.assertion,

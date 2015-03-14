@@ -10,7 +10,7 @@ type IdentifyEngineArg struct {
 	User           string
 	TrackStatement bool
 	Luba           bool
-	LoadSelf       bool
+	LoadSelf       bool // this seems like a confusing name.  it maps to withTracking in luba.
 	LogUI          libkb.LogUI
 }
 
@@ -43,7 +43,9 @@ func (k *IdentifyEngine) RequiredUIs() []libkb.UIKind {
 }
 
 func (s *IdentifyEngine) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		NewLuba(nil),
+	}
 }
 
 func (e *IdentifyEngine) Run(ctx *Context, arg interface{}, res interface{}) error {
@@ -66,14 +68,19 @@ func (e *IdentifyEngine) Result() *IdentifyRes {
 }
 
 func (e *IdentifyEngine) runLuba(ctx *Context) (*IdentifyRes, error) {
-	r := libkb.LoadUserByAssertions(e.arg.User, e.arg.LoadSelf, ctx.IdentifyUI)
-	if r.Error != nil {
-		return nil, r.Error
+	arg := &LubaArg{
+		Assertion:    e.arg.User,
+		WithTracking: e.arg.LoadSelf,
 	}
-	G.Log.Info("Success; loaded %s", r.User.GetName())
+	eng := NewLuba(arg)
+	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+		return nil, err
+	}
+
+	G.Log.Info("Success; loaded %s", eng.User().GetName())
 	res := &IdentifyRes{
-		User:    r.User,
-		Outcome: r.IdentifyRes,
+		User:    eng.User(),
+		Outcome: eng.IdentifyRes(),
 	}
 	return res, nil
 }

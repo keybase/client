@@ -35,13 +35,14 @@ func (e *PGPKeyfinder) GetPrereqs() EnginePrereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PGPKeyfinder) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{libkb.IdentifyUIKind}
+	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewTrackEngine(nil),
+		NewLuba(nil),
 	}
 }
 
@@ -85,17 +86,21 @@ func (e *PGPKeyfinder) UsersPlusKeys() []*UserPlusKeys {
 }
 
 func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
-	res := libkb.LoadUserByAssertions(user, true, ctx.IdentifyUI)
-	if res.Error != nil {
-		return res.Error
+	arg := &LubaArg{
+		Assertion:    user,
+		WithTracking: true,
+	}
+	eng := NewLuba(arg)
+	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+		return err
 	}
 
-	G.Log.Debug("loaded user %q => %q, %s", user, res.User.GetName(), res.User.GetUid())
-	tracking, err := e.isTracking(&res)
+	G.Log.Debug("loaded user %q => %q, %s", user, eng.User().GetName(), eng.User().GetUid())
+	tracking, err := eng.IsTracking()
 	if err != nil {
 		return err
 	}
-	e.uplus = append(e.uplus, &UserPlusKeys{User: res.User, IsTracked: tracking})
+	e.uplus = append(e.uplus, &UserPlusKeys{User: eng.User(), IsTracked: tracking})
 
 	return nil
 }
@@ -109,15 +114,6 @@ func (e *PGPKeyfinder) trackUser(ctx *Context, user *libkb.User) error {
 	}
 	eng := NewTrackEngine(arg)
 	return RunEngine(eng, ctx, nil, nil)
-}
-
-func (e *PGPKeyfinder) isTracking(lr *libkb.LubaRes) (bool, error) {
-	if lr.IdentifyRes == nil {
-		return false, fmt.Errorf("user %s, no id result", lr.User.GetName())
-	}
-	tracking := lr.IdentifyRes.TrackUsed != nil
-	return tracking, nil
-
 }
 
 type UserPlusKeys struct {

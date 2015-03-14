@@ -16,7 +16,6 @@ type LubaRes struct {
 	User        *User
 	Error       error
 	AE          AssertionExpression
-	Warnings    []error
 	IdentifyRes *IdentifyOutcome
 }
 
