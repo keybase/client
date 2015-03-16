@@ -36,8 +36,8 @@
   _checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
       if (error) [gself logError:error];
-      [gself.client.installer.launchCtl status:^(NSError *error, NSString *output) {
-        [gself log:output];
+      [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
+        [gself log:NSStringWithFormat(@"keybased: %@", @(pid))];
         completion(error);
       }];
     }];
@@ -47,9 +47,9 @@
   _restartButton = [KBButton buttonWithText:@"Restart keybased" style:KBButtonStyleToolbar];
   _restartButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself log:@"Restarting keybased..."];
-    [gself.client.installer.launchCtl reload:^(NSError *error, NSString *output) {
+    [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
       if (error) [gself logError:error];
-      [gself log:output];
+      [gself log:NSStringWithFormat(@"keybased: %@", @(pid))];
       completion(error);
     }];
   };
@@ -82,6 +82,7 @@
 
 - (void)log:(NSString *)message {
   if (message) [_logView addObjects:@[message]];
+  if ([_logView isAtBottom]) [_logView scrollToBottom:YES];
 }
 
 - (void)logError:(NSError *)error {
@@ -112,7 +113,7 @@
 }
 
 - (void)appView:(KBAppView *)appView didCheckStatusWithClient:(KBRPClient *)client config:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
-  [self log:@"Checked status."];
+  [self log:NSStringWithFormat(@"Status ok")];
   _debugStatusView.config = config;
   [_debugStatusView setRPCConnected:YES serverConnected:YES]; // TODO server connected status
   [self setNeedsLayout];

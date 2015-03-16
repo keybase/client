@@ -13,19 +13,15 @@
 
 @implementation KBLaunchCtl
 
-- (void)reload:(KBLaunchExecution)completion {
+- (void)reload:(KBLaunchStatus)completion {
   [self unload:^(NSError *unloadError, NSString *unloadOutput) {
-    // Give it a chance to unload
-    // TODO Polling check for unloaded status
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    [self wait:NO attempt:4 completion:^(NSError *error, NSInteger pid) {
       [self load:^(NSError *loadError, NSString *loadOutput) {
-        // Give it a chance to load
-        // TODO Polling check for loaded status
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-          completion(loadError, loadOutput);
-        });
+        [self wait:YES attempt:4 completion:^(NSError *error, NSInteger pid) {
+          completion(loadError, pid);
+        }];
       }];
-    });
+    }];
   }];
 }
 
@@ -42,16 +38,35 @@
   [self execute:@"/bin/launchctl" args:@[@"unload", self.plist] completion:completion];
 }
 
-- (void)status:(KBLaunchExecution)completion {
+- (void)status:(KBLaunchStatus)completion {
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
       // TODO better parsing
       if ([line containsString:@"keybase.keybased"]) {
-        completion(nil, line);
+        NSInteger pid = [[[line componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]] firstObject] integerValue];
+        completion(nil, pid);
         return;
       }
     }
-    completion(nil, nil);
+    completion(nil, 0);
+  }];
+}
+
+- (void)wait:(BOOL)load attempt:(NSInteger)attempt completion:(KBLaunchStatus)completion {
+  [self status:^(NSError *error, NSInteger pid) {
+    if (load && pid != 0) {
+      GHDebug(@"Pid: %@", @(pid));
+      completion(nil, pid);
+    } else if (!load && pid == 0) {
+      completion(nil, pid);
+    } else {
+      if ((attempt + 1) >= 4) {
+        completion(KBMakeError(-1, @"launchctl wait timeout"), 0);
+      } else {
+        GHDebug(@"Attempt (%@) for load=%@", @(attempt+1), @(load));
+        [self wait:load attempt:attempt+1 completion:completion];
+      }
+    }
   }];
 }
 
@@ -139,7 +154,8 @@
 }
 
 - (void)checkLaunch:(NSString *)path completion:(void (^)(NSError *error))completion {
-  [self reload:^(NSError *error, NSString *output) {
+  [self reload:^(NSError *error, NSInteger pid) {
+    // TODO Handle error
     completion(nil);
   }];
 }

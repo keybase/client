@@ -12,6 +12,7 @@
 #import "KBDefines.h"
 
 typedef void (^KBLaunchExecution)(NSError *error, NSString *output);
+typedef void (^KBLaunchStatus)(NSError *error, NSInteger pid);
 
 @interface KBLaunchCtl : NSObject
 
@@ -20,9 +21,8 @@ typedef void (^KBLaunchExecution)(NSError *error, NSString *output);
 - (void)load:(KBLaunchExecution)completion;
 - (void)unload:(KBLaunchExecution)completion;
 
-- (void)reload:(KBLaunchExecution)completion;
-
-- (void)status:(KBLaunchExecution)completion;
+- (void)reload:(KBLaunchStatus)completion;
+- (void)status:(KBLaunchStatus)completion;
 
 - (void)installLaunchAgent:(void (^)(NSError *error))completion;
 
