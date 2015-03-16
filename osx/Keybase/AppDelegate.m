@@ -108,6 +108,12 @@
   [_preferences close];
 }
 
+- (void)openURLString:(NSString *)URLString sender:(NSView *)sender {
+  [KBAlert yesNoWithTitle:@"Open a Link" description:NSStringWithFormat(@"Do you want to open %@?", URLString) yes:@"Open" view:sender completion:^{
+    [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
+  }];
+}
+
 #pragma mark Error
 
 - (void)setFatalError:(NSError *)error {

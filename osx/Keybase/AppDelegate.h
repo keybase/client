@@ -32,4 +32,6 @@
 
 + (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error;
 
+- (void)openURLString:(NSString *)URLString sender:(NSView *)sender;
+
 @end

@@ -80,19 +80,6 @@
   }
 }
 
-- (void)openURLString:(NSString *)URLString {
-  NSAlert *alert = [[NSAlert alloc] init];
-  [alert addButtonWithTitle:@"Open"];
-  [alert addButtonWithTitle:@"Cancel"];
-  [alert setMessageText:@"Open a Link"];
-  [alert setInformativeText:NSStringWithFormat(@"Do you want to open %@?", URLString)];
-  [alert beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse returnCode) {
-    if (returnCode == NSAlertFirstButtonReturn) {
-      [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
-    }
-  }];
-}
-
 - (void)setError:(NSError *)error {
   [AppDelegate setError:error sender:self];
 }
@@ -135,7 +122,7 @@
         // Fix it?
         [self connectWithProveType:KBProveTypeFromAPI(proofLabel.proofResult.proof.proofType)];
       } else if (proofLabel.proofResult.result.hint.humanUrl) {
-        [gself openURLString:proofLabel.proofResult.result.hint.humanUrl];
+        [AppDelegate.sharedDelegate openURLString:proofLabel.proofResult.result.hint.humanUrl sender:self];
       }
     }];
     [gself setNeedsLayout];

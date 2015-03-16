@@ -19,7 +19,7 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 
 @interface KBTableView : YONSView <NSTableViewDelegate, NSTableViewDataSource>
 
-@property (readonly) KBScrollView *scrollView;
+@property (readonly) NSScrollView *scrollView;
 @property (readonly) NSTableView *view;
 @property KBBorder *border;
 
@@ -41,5 +41,8 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 - (void)selectItem:(id)item;
 
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType;
+
+- (void)scrollToBottom:(BOOL)animated;
+- (BOOL)isAtBottom;
 
 @end

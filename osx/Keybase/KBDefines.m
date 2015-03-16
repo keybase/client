@@ -11,16 +11,19 @@
 
 NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";
 
-
-@implementation NSData (KBUtils)
-
-- (NSString *)kb_hexString {
-  if ([self length] == 0) return nil;
-  NSMutableString *hexString = [NSMutableString stringWithCapacity:[self length] * 2];
-  for (NSUInteger i = 0; i < [self length]; ++i) {
-    [hexString appendFormat:@"%02X", *((uint8_t *)[self bytes] + i)];
+NSString *KBHexString(NSData *data) {
+  if ([data length] == 0) return nil;
+  NSMutableString *hexString = [NSMutableString stringWithCapacity:[data length] * 2];
+  for (NSUInteger i = 0; i < [data length]; ++i) {
+    [hexString appendFormat:@"%02X", *((uint8_t *)[data bytes] + i)];
   }
   return [hexString lowercaseString];
 }
 
-@end
+NSString *KBDisplayURLStringForUsername(NSString *username) {
+  return NSStringWithFormat(@"keybase.io/%@", username);
+}
+
+NSString *KBURLStringForUsername(NSString *username) {
+  return NSStringWithFormat(@"https://keybase.io/%@", username);
+}

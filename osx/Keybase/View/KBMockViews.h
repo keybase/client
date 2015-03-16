@@ -10,6 +10,6 @@
 
 #import "KBAppKit.h"
 
-@interface KBMockViews : YONSView
+@interface KBMockViews : KBScrollView
 
 @end

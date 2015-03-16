@@ -17,6 +17,7 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 // In this header, you should import all the public headers of your framework using statements like #import <KBAppKit/PublicHeader.h>
 
 #import <YOLayout/YOLayout.h>
+#import <YOLayout/YOBox.h>
 #import <GHKit/GHKit.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 

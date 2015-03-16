@@ -18,7 +18,6 @@ typedef void (^KBErrorBlock)(NSError *error);
 
 extern NSString *const KBTrackingListDidChangeNotification;
 
-
-@interface NSData (KBUtils)
-- (NSString *)kb_hexString;
-@end
+NSString *KBDisplayURLStringForUsername(NSString *username);
+NSString *KBURLStringForUsername(NSString *username);
+NSString *KBHexString(NSData *data);

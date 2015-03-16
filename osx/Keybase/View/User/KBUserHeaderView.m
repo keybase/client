@@ -20,6 +20,8 @@
 @property KBUserImageView *imageView;
 
 @property KBActivityIndicatorView *progressView;
+
+@property (nonatomic) KBRUser *user;
 @end
 
 
@@ -40,6 +42,10 @@
 
   _name2View = [KBButton button];
   _name2View.hidden = YES;
+  GHWeakSelf gself = self;
+  _name2View.targetBlock = ^ {
+    [AppDelegate.sharedDelegate openURLString:KBURLStringForUsername(gself.user.username) sender:gself];
+  };
   [self addSubview:_name2View];
 
   _locationLabel = [[KBLabel alloc] init];
@@ -73,6 +79,7 @@
 }
 
 - (void)setUser:(KBRUser *)user {
+  _user = user;
   if (!user) {
     _name1Label.attributedText = nil;
     _imageView.hidden = YES;
@@ -85,7 +92,7 @@
   [_name1Label setText:user.username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
   _name2View.hidden = NO;
-  [_name2View setText:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_name2View setText:KBDisplayURLStringForUsername(user.username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];
 

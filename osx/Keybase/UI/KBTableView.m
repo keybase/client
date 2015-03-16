@@ -15,7 +15,7 @@
 #import <GHKit/GHKit.h>
 
 @interface KBTableView ()
-@property KBScrollView *scrollView;
+@property NSScrollView *scrollView;
 @property NSTableView *view;
 @property KBCellDataSource *dataSource;
 @end
@@ -30,7 +30,10 @@
   _view.dataSource = self;
   _view.delegate = self;
 
-  _scrollView = [[KBScrollView alloc] init];
+  _scrollView = [[NSScrollView alloc] init];
+  _scrollView.hasVerticalScroller = YES;
+  _scrollView.verticalScrollElasticity = NSScrollElasticityAllowed;
+  _scrollView.autohidesScrollers = YES;
   [_scrollView setDocumentView:_view];
   [self addSubview:_scrollView];
 
@@ -123,6 +126,34 @@
 
 - (void)selectItem:(id)item {
 
+}
+
+- (void)scrollToBottom:(BOOL)animated {
+  NSInteger lastRowIndex = [_dataSource countForSection:0] - 1;
+  if (lastRowIndex < 0) return;
+
+  // TODO animated?
+  animated = NO;
+  if (animated) {
+    NSRect rowRect = [_view rectOfRow:lastRowIndex];
+    NSRect viewRect = [_scrollView frame];
+    NSPoint scrollOrigin = rowRect.origin;
+    scrollOrigin.y = scrollOrigin.y + (rowRect.size.height - viewRect.size.height);
+    if (scrollOrigin.y < 0) scrollOrigin.y = 0;
+    [[_scrollView animator] setBoundsOrigin:scrollOrigin];
+  } else {
+    [_view scrollRowToVisible:lastRowIndex];
+  }
+}
+
+- (BOOL)isAtBottom {
+  NSInteger lastRowIndex = [_dataSource countForSection:0] - 1;
+  if (lastRowIndex < 0) return YES;
+  NSRect lastRowRect = [_view rectOfRow:lastRowIndex];
+  //GHDebug(@"Last row rect: %@", YONSStringFromCGRect(lastRowRect));
+  //GHDebug(@"Doc visible rect: %@", YONSStringFromCGRect(_scrollView.documentVisibleRect));
+  CGFloat bottom = _scrollView.documentVisibleRect.origin.y + _scrollView.documentVisibleRect.size.height;
+  return (bottom >= lastRowRect.origin.y);
 }
 
 - (id)selectedObject {

@@ -48,12 +48,12 @@
 
   KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
   [pgpLabel setHeader:@"PGP Fingerprint"];
-  if (key.pgpFingerprint) [pgpLabel addText:[key.pgpFingerprint kb_hexString] targetBlock:nil];
+  if (key.pgpFingerprint) [pgpLabel addText:KBHexString(key.pgpFingerprint) targetBlock:nil];
   [_labels addSubview:pgpLabel];
 
   KBHeaderLabelView *keyLabel = [[KBHeaderLabelView alloc] init];
   [keyLabel setHeader:@"Key ID"];
-  if (key.kid) [keyLabel addText:[key.kid kb_hexString] targetBlock:nil];
+  if (key.kid) [keyLabel addText:KBHexString(key.kid) targetBlock:nil];
   [_labels addSubview:keyLabel];
 
   _textView.attributedText = nil;

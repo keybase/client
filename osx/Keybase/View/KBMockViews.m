@@ -67,11 +67,7 @@
   [contentView addSubview:[KBButton linkWithText:@"Yes/No" targetBlock:^{ [self prompt:@"yes_no"]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  KBScrollView *scrollView = [[KBScrollView alloc] init];
-  [scrollView setDocumentView:contentView];
-  [self addSubview:scrollView];
-  
-  self.viewLayout = [YOLayout fill:scrollView];
+  [self setDocumentView:contentView];
 }
 
 - (void)showProgressView:(NSTimeInterval)delay error:(BOOL)error {
