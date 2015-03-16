@@ -1112,9 +1112,13 @@ type PgpSignOptions struct {
 }
 
 type PgpEncryptOptions struct {
-	Recipients []string `codec:"recipients" json:"recipients"`
-	NoSign     bool     `codec:"noSign" json:"noSign"`
-	NoSelf     bool     `codec:"noSelf" json:"noSelf"`
+	Recipients    []string `codec:"recipients" json:"recipients"`
+	NoSign        bool     `codec:"noSign" json:"noSign"`
+	NoSelf        bool     `codec:"noSelf" json:"noSelf"`
+	BinaryOut     bool     `codec:"binaryOut" json:"binaryOut"`
+	KeyQuery      string   `codec:"keyQuery" json:"keyQuery"`
+	LocalOnly     bool     `codec:"localOnly" json:"localOnly"`
+	ApproveRemote bool     `codec:"approveRemote" json:"approveRemote"`
 }
 
 type PgpSignArg struct {

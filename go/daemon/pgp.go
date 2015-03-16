@@ -41,9 +41,17 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
 	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
 	earg := &engine.PGPTrackEncryptArg{
-		Recips: arg.Opts.Recipients,
-		Sink:   snk,
-		Source: src,
+		Recips:       arg.Opts.Recipients,
+		Sink:         snk,
+		Source:       src,
+		NoSign:       arg.Opts.NoSign,
+		NoSelf:       arg.Opts.NoSelf,
+		BinaryOutput: arg.Opts.BinaryOut,
+		KeyQuery:     arg.Opts.KeyQuery,
+		TrackOptions: engine.TrackOptions{
+			TrackLocalOnly: arg.Opts.LocalOnly,
+			TrackApprove:   arg.Opts.ApproveRemote,
+		},
 	}
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),

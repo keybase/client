@@ -27,6 +27,10 @@ protocol pgp {
 		array<string> recipients; // user assertions
 		boolean noSign;
 		boolean noSelf;
+		boolean binaryOut;
+		string keyQuery;
+		boolean localOnly; // store track locally only
+		boolean approveRemote;  // approve remote track without prompt
 	}
 
 	void pgpEncrypt(int sessionID, Stream source, Stream sink, PgpEncryptOptions opts);

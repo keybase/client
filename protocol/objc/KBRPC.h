@@ -357,6 +357,10 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property NSArray *recipients; /*of string*/
 @property BOOL noSign;
 @property BOOL noSelf;
+@property BOOL binaryOut;
+@property NSString *keyQuery;
+@property BOOL localOnly;
+@property BOOL approveRemote;
 @end
 
 @interface KBRPgpRequest : KBRRequest

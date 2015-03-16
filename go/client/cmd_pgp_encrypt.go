@@ -2,8 +2,6 @@ package main
 
 import (
 	"errors"
-	"io"
-	"os"
 
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
@@ -16,31 +14,23 @@ import (
 func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "encrypt",
-		Usage:       "keybase pgp encrypt [-r] [-l] [--no-self] [--batch] [--prompt-remote] [-s] [-m MESSAGE] [-k KEY] [-b] [-o OUTPUT] [-i file] them",
+		Usage:       "keybase pgp encrypt [-l] [-y] [--no-self] [-s] [-m MESSAGE] [-k KEY] [-b] [-o OUTPUT] [-i file] them",
 		Description: "PGP encrypt messages or files for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPEncrypt{}, "encrypt", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "r, track-remote",
-				Usage: "remotely track by default",
+				Name:  "l, local",
+				Usage: "only track locally, no statement sent to remote server",
 			},
 			cli.BoolFlag{
-				Name:  "l, track-local",
-				Usage: "don't prompt for remote tracking",
+				Name:  "y",
+				Usage: "approve remote tracking without prompting",
 			},
 			cli.BoolFlag{
 				Name:  "no-self",
 				Usage: "don't encrypt for self",
-			},
-			cli.BoolFlag{
-				Name:  "batch",
-				Usage: "batch-mode without interactivity",
-			},
-			cli.BoolFlag{
-				Name:  "prompt-remote",
-				Usage: "prompt for remote tracking",
 			},
 			cli.BoolFlag{
 				Name:  "s, sign",
@@ -68,12 +58,17 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 	}
-
 }
 
 type CmdPGPEncrypt struct {
 	UnixFilter
-	recipients []string
+	recipients    []string
+	localOnly     bool
+	approveRemote bool
+	sign          bool
+	noSelf        bool
+	keyQuery      string
+	binaryOut     bool
 }
 
 func (c *CmdPGPEncrypt) Run() error {
@@ -82,15 +77,21 @@ func (c *CmdPGPEncrypt) Run() error {
 	}
 
 	arg := &engine.PGPTrackEncryptArg{
-		Recips: c.recipients,
-		Source: c.source,
-		Sink:   c.sink,
+		Recips:       c.recipients,
+		Source:       c.source,
+		Sink:         c.sink,
+		NoSign:       !c.sign,
+		NoSelf:       c.noSelf,
+		BinaryOutput: c.binaryOut,
+		KeyQuery:     c.keyQuery,
+		TrackOptions: engine.TrackOptions{
+			TrackLocalOnly: c.localOnly,
+			TrackApprove:   c.approveRemote,
+		},
 	}
 	ctx := &engine.Context{
-		IdentifyUI: G.UI.GetIdentifyLubaUI(),
-		// XXX PC: check this
-		// TrackUI:    G.UI.GetIdentifyTrackUI(true), // XXX strict => true?
-		SecretUI: G.UI.GetSecretUI(),
+		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
+		SecretUI:   G.UI.GetSecretUI(),
 	}
 	eng := engine.NewPGPTrackEncrypt(arg)
 	err := engine.RunEngine(eng, ctx, nil, nil)
@@ -118,6 +119,10 @@ func (c *CmdPGPEncrypt) RunClient() error {
 	}
 	opts := keybase_1.PgpEncryptOptions{
 		Recipients: c.recipients,
+		NoSign:     !c.sign,
+		NoSelf:     c.noSelf,
+		BinaryOut:  c.binaryOut,
+		KeyQuery:   c.keyQuery,
 	}
 	arg := keybase_1.PgpEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.PgpEncrypt(arg)
@@ -137,6 +142,12 @@ func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	c.recipients = ctx.Args()
+	c.localOnly = ctx.Bool("local")
+	c.approveRemote = ctx.Bool("y")
+	c.sign = ctx.Bool("sign")
+	c.noSelf = ctx.Bool("no-self")
+	c.keyQuery = ctx.String("key")
+	c.binaryOut = ctx.Bool("binary")
 	return nil
 }
 
@@ -147,24 +158,4 @@ func (c *CmdPGPEncrypt) GetUsage() libkb.Usage {
 		Terminal:  true,
 		KbKeyring: true,
 	}
-}
-
-func (c *CmdPGPEncrypt) reader() io.Reader {
-	// if there's a message arg, use that
-
-	// if there's an infile, open it and use it
-
-	// else, use stdin
-
-	return os.Stdin
-}
-
-func (c *CmdPGPEncrypt) writer() io.Writer {
-	// if there's an outfile, use that
-
-	// otherwise use stdout
-
-	// if armored, add an armor wrapper around it
-
-	return nil
 }

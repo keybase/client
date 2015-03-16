@@ -165,6 +165,18 @@
     }, {
       "name" : "noSelf",
       "type" : "boolean"
+    }, {
+      "name" : "binaryOut",
+      "type" : "boolean"
+    }, {
+      "name" : "keyQuery",
+      "type" : "string"
+    }, {
+      "name" : "localOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "approveRemote",
+      "type" : "boolean"
     } ]
   } ],
   "messages" : {
