@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -88,13 +87,9 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 }
 
 func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
-
-	G.Log.Warning("FinishAndPrompt:  id outcome: %+v", o)
-
 	// for refactoring of username out of Get*(), make sure it has one here
 	if len(ui.username) == 0 {
 		G.Log.Warning("FinishAndPrompt: no username.  Was Start(username) not called?")
-		debug.PrintStack()
 	}
 
 	var prompt string

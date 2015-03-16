@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"runtime/debug"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -37,7 +36,6 @@ func runPrereqs(e Engine) (err error) {
 
 func RunEngine(e Engine, ctx *Context, args interface{}, reply interface{}) error {
 	if err := check(e, ctx); err != nil {
-		debug.PrintStack()
 		return err
 	}
 	if err := runPrereqs(e); err != nil {
