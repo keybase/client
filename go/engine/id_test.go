@@ -8,47 +8,47 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdentifyRes, err error) {
+func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
 	idUI = &FakeIdentifyUI{Proofs: make(map[string]string)}
-	arg := IdentifyEngineArg{
+	arg := IdEngineArg{
 		User: username,
 	}
 	ctx := Context{
 		LogUI:      G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 	}
-	eng := NewIdentifyEngine(&arg)
+	eng := NewIdEngine(&arg)
 	err = RunEngine(eng, &ctx, nil, nil)
 	res = eng.Result()
 	return
 }
 
-func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
 	checkKeyedProfile(t, idUI, res, "alice", true, map[string]string{
 		"github":  "kbtester2",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
 	checkKeyedProfile(t, idUI, res, "bob", true, map[string]string{
 		"github":  "kbtester1",
 		"twitter": "kbtester1",
 	})
 }
 
-func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
 	checkKeyedProfile(t, idUI, res, "charlie", true, map[string]string{
 		"github":  "tacoplusplus",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdentifyRes) {
+func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
 	checkKeyedProfile(t, idUI, res, "doug", false, map[string]string{})
 }
 
-func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdentifyRes, name string, hasImg bool, expectedProofs map[string]string) {
+func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdRes, name string, hasImg bool, expectedProofs map[string]string) {
 	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
 		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
 	}

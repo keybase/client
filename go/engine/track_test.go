@@ -7,7 +7,7 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdentifyRes, err error) {
+func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
 	idUI = &FakeIdentifyUI{
 		Fapr: keybase_1.FinishAndPromptRes{TrackRemote: true},
 	}

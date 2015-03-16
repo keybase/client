@@ -5,7 +5,7 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-type IdentifyEngineArg struct {
+type IdEngineArg struct {
 	Uid            *libkb.UID
 	User           string
 	TrackStatement bool
@@ -14,46 +14,46 @@ type IdentifyEngineArg struct {
 	LogUI          libkb.LogUI
 }
 
-type IdentifyRes struct {
+type IdRes struct {
 	Outcome *libkb.IdentifyOutcome
 	User    *libkb.User
 }
 
-// IdentifyEng is the type used by cmd_id Run, daemon id handler.
-type IdentifyEngine struct {
-	arg *IdentifyEngineArg
-	res *IdentifyRes
+// IdEng is the type used by cmd_id Run, daemon id handler.
+type IdEngine struct {
+	arg *IdEngineArg
+	res *IdRes
 }
 
-func NewIdentifyEngine(arg *IdentifyEngineArg) *IdentifyEngine {
-	return &IdentifyEngine{arg: arg}
+func NewIdEngine(arg *IdEngineArg) *IdEngine {
+	return &IdEngine{arg: arg}
 }
 
-func (s *IdentifyEngine) Name() string {
+func (s *IdEngine) Name() string {
 	return "Identify"
 }
 
-func (e *IdentifyEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (e *IdEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
-func (k *IdentifyEngine) RequiredUIs() []libkb.UIKind {
+func (k *IdEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.IdentifyUIKind,
 		libkb.LogUIKind,
 	}
 }
 
-func (s *IdentifyEngine) SubConsumers() []libkb.UIConsumer {
+func (s *IdEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewLuba(nil),
 	}
 }
 
-func (e *IdentifyEngine) Run(ctx *Context, arg interface{}, res interface{}) error {
+func (e *IdEngine) Run(ctx *Context, arg interface{}, res interface{}) error {
 	return e.run(ctx)
 }
 
-func (e *IdentifyEngine) run(ctx *Context) (err error) {
-	var res *IdentifyRes
+func (e *IdEngine) run(ctx *Context) (err error) {
+	var res *IdRes
 	if e.arg.Luba {
 		res, err = e.runLuba(ctx)
 	} else {
@@ -63,11 +63,11 @@ func (e *IdentifyEngine) run(ctx *Context) (err error) {
 	return err
 }
 
-func (e *IdentifyEngine) Result() *IdentifyRes {
+func (e *IdEngine) Result() *IdRes {
 	return e.res
 }
 
-func (e *IdentifyEngine) runLuba(ctx *Context) (*IdentifyRes, error) {
+func (e *IdEngine) runLuba(ctx *Context) (*IdRes, error) {
 	arg := &LubaArg{
 		Assertion:    e.arg.User,
 		WithTracking: e.arg.LoadSelf,
@@ -78,14 +78,14 @@ func (e *IdentifyEngine) runLuba(ctx *Context) (*IdentifyRes, error) {
 	}
 
 	G.Log.Info("Success; loaded %s", eng.User().GetName())
-	res := &IdentifyRes{
+	res := &IdRes{
 		User:    eng.User(),
 		Outcome: eng.IdentifyRes(),
 	}
 	return res, nil
 }
 
-func (e *IdentifyEngine) runStandard(ctx *Context) (*IdentifyRes, error) {
+func (e *IdEngine) runStandard(ctx *Context) (*IdRes, error) {
 	arg := libkb.LoadUserArg{
 		Self: (len(e.arg.User) == 0),
 	}
@@ -104,7 +104,7 @@ func (e *IdentifyEngine) runStandard(ctx *Context) (*IdentifyRes, error) {
 		return nil, err
 	}
 
-	res := &IdentifyRes{Outcome: outcome, User: u}
+	res := &IdRes{Outcome: outcome, User: u}
 
 	if !e.arg.TrackStatement {
 		return res, nil
@@ -133,7 +133,7 @@ func (e *IdentifyEngine) runStandard(ctx *Context) (*IdentifyRes, error) {
 	return res, nil
 }
 
-func (a IdentifyEngineArg) Export() (res keybase_1.IdentifyArg) {
+func (a IdEngineArg) Export() (res keybase_1.IdentifyArg) {
 	if a.Uid != nil {
 		res.Uid = a.Uid.Export()
 	}
@@ -144,7 +144,7 @@ func (a IdentifyEngineArg) Export() (res keybase_1.IdentifyArg) {
 	return res
 }
 
-func ImportIdentifyEngineArg(a keybase_1.IdentifyArg) (ret IdentifyEngineArg) {
+func ImportIdEngineArg(a keybase_1.IdentifyArg) (ret IdEngineArg) {
 	uid := libkb.ImportUID(a.Uid)
 	if !uid.IsZero() {
 		ret.Uid = &uid
@@ -156,7 +156,7 @@ func ImportIdentifyEngineArg(a keybase_1.IdentifyArg) (ret IdentifyEngineArg) {
 	return ret
 }
 
-func (ir *IdentifyRes) Export() *keybase_1.IdentifyRes {
+func (ir *IdRes) Export() *keybase_1.IdentifyRes {
 	return &keybase_1.IdentifyRes{
 		Outcome: *((*ir.Outcome).Export()),
 		User:    ir.User.Export(),

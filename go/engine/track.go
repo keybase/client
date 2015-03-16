@@ -22,7 +22,7 @@ type TrackEngineArg struct {
 
 type TrackEngine struct {
 	arg                 *TrackEngineArg
-	res                 *IdentifyRes
+	res                 *IdRes
 	signingKeyPub       libkb.GenericKey
 	signingKeyPriv      libkb.GenericKey
 	trackStatementBytes []byte
@@ -74,7 +74,7 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) erro
 		return err
 	}
 
-	e.res = &IdentifyRes{Outcome: io, User: e.arg.Them}
+	e.res = &IdRes{Outcome: io, User: e.arg.Them}
 
 	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
 	if err != nil {
