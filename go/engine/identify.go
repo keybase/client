@@ -4,7 +4,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// Identify is an engine.
+// Identify is an engine to identify a user.
 type Identify struct {
 	arg       *IdentifyArg
 	user      *libkb.User
@@ -13,7 +13,7 @@ type Identify struct {
 }
 
 type IdentifyArg struct {
-	TargetUsername string // The user being identified
+	TargetUsername string // The user being identified, leave blank to identify self
 	WithTracking   bool   // true if want tracking statement for logged in user on TargetUsername
 }
 
@@ -68,7 +68,7 @@ func (e *Identify) Run(ctx *Context, args, reply interface{}) error {
 	e.user = u
 
 	ctx.IdentifyUI.Start(e.user.GetName())
-	e.outcome, err = e._identify(ctx)
+	e.outcome, err = e.run(ctx)
 	if err != nil {
 		return err
 	}
@@ -77,11 +77,8 @@ func (e *Identify) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 	fpr := libkb.ImportFinishAndPromptRes(tmp)
-
-	// XXX
 	e.trackInst = &fpr
 
-	//	return outcome, fpr, err
 	return nil
 }
 
@@ -93,10 +90,9 @@ func (e *Identify) TrackInstructions() *libkb.TrackInstructions {
 	return e.trackInst
 }
 
-// XXX rename
-func (e *Identify) _identify(ctx *Context) (*libkb.IdentifyOutcome, error) {
+func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	res := libkb.NewIdentifyOutcome(e.arg.WithTracking)
-	is := libkb.NewIdentifyState(nil, res, e.user)
+	is := libkb.NewIdentifyState(res, e.user)
 
 	if e.arg.WithTracking {
 		me, err := libkb.LoadMe(libkb.LoadUserArg{})
@@ -117,11 +113,6 @@ func (e *Identify) _identify(ctx *Context) (*libkb.IdentifyOutcome, error) {
 
 	G.Log.Debug("+ Identify(%s)", e.user.GetName())
 
-	/*
-		if err := e.user.IdentifyKey(is); err != nil {
-			return nil, err
-		}
-	*/
 	for _, bundle := range e.user.GetActivePgpKeys(true) {
 		fokid := libkb.GenericKeyToFOKID(bundle)
 		var diff libkb.TrackDiff
