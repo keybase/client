@@ -20,10 +20,16 @@ func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
 func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
 	sessionID := arg.SessionID
 	theirName := arg.TheirName
-	earg := engine.TrackEngineArg{TheirName: theirName}
+	earg := engine.TrackEngineArg{
+		TheirName: theirName,
+		Options: engine.TrackOptions{
+			TrackLocalOnly: arg.LocalOnly,
+			TrackApprove:   arg.ApproveRemote,
+		},
+	}
 	ctx := engine.Context{
-		TrackUI:  h.NewRemoteIdentifyUI(sessionID),
-		SecretUI: h.getSecretUI(sessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(sessionID),
+		SecretUI:   h.getSecretUI(sessionID),
 	}
 	eng := engine.NewTrackEngine(&earg)
 	return engine.RunEngine(eng, &ctx, nil, nil)

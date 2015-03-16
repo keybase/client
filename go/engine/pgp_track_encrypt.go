@@ -16,7 +16,7 @@ type PGPTrackEncryptArg struct {
 	NoSelf       bool
 	BinaryOutput bool
 	KeyQuery     string
-	TrackOptions
+	TrackOptions TrackOptions
 }
 
 // PGPTrackEncrypt encrypts data read from a source into a sink

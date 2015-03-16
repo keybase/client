@@ -116,15 +116,16 @@ func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity, user 
 	return
 }
 
-type RemoteIdentifyUI struct {
-	RemoteBaseIdentifyUI
-}
-
 func (u *RemoteBaseIdentifyUI) Start(username string) {
 	u.logUI.Info("Identifying " + username)
+	u.uicli.Start(keybase_1.StartArg{SessionID: u.sessionId, Username: username})
 	return
 }
 
 func (u *RemoteBaseIdentifyUI) SetStrict(b bool) {
 	u.strict = b
+}
+
+type RemoteIdentifyUI struct {
+	RemoteBaseIdentifyUI
 }

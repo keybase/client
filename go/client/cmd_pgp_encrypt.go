@@ -88,8 +88,9 @@ func (c *CmdPGPEncrypt) Run() error {
 	}
 	ctx := &engine.Context{
 		IdentifyUI: G.UI.GetIdentifyLubaUI(),
-		TrackUI:    G.UI.GetIdentifyTrackUI(true), // XXX strict => true?
-		SecretUI:   G.UI.GetSecretUI(),
+		// XXX PC: check this
+		// TrackUI:    G.UI.GetIdentifyTrackUI(true), // XXX strict => true?
+		SecretUI: G.UI.GetSecretUI(),
 	}
 	eng := engine.NewPGPTrackEncrypt(arg)
 	err := engine.RunEngine(eng, ctx, nil, nil)

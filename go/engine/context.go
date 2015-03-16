@@ -12,7 +12,6 @@ type Context struct {
 	LogUI      libkb.LogUI
 	LoginUI    libkb.LoginUI
 	SecretUI   libkb.SecretUI
-	TrackUI    libkb.IdentifyUI
 	IdentifyUI libkb.IdentifyUI
 
 	// For everything else global...
@@ -31,8 +30,6 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.LoginUI != nil
 	case libkb.SecretUIKind:
 		return c.SecretUI != nil
-	case libkb.TrackUIKind:
-		return c.TrackUI != nil
 	case libkb.IdentifyUIKind:
 		return c.IdentifyUI != nil
 	}

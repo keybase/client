@@ -108,9 +108,9 @@ func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
 func (e *PGPKeyfinder) trackUser(ctx *Context, user *libkb.User) error {
 	G.Log.Info("tracking user %q", user.GetName())
 	arg := &TrackEngineArg{
-		TheirName:    user.GetName(),
-		Them:         user,
-		TrackOptions: e.arg.TrackOptions,
+		TheirName: user.GetName(),
+		Them:      user,
+		Options:   e.arg.TrackOptions,
 	}
 	eng := NewTrackEngine(arg)
 	return RunEngine(eng, ctx, nil, nil)

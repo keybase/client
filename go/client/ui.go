@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -32,15 +33,15 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui IdentifyTrackUI) Start(username string) {
+func (ui *IdentifyTrackUI) Start(username string) {
 	ui.username = username
 	G.Log.Info("Generating tracking statement for " + ColorString("bold", ui.username))
 }
-func (ui IdentifyLubaUI) Start(username string) {
+func (ui *IdentifyLubaUI) Start(username string) {
 	ui.username = username
 	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", ui.username))
 }
-func (ui IdentifyUI) Start(username string) {
+func (ui *IdentifyUI) Start(username string) {
 	ui.username = username
 	G.Log.Info("Identifying " + ColorString("bold", ui.username))
 }
@@ -88,9 +89,12 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 
 func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
 
+	G.Log.Warning("FinishAndPrompt:  id outcome: %+v", o)
+
 	// for refactoring of username out of Get*(), make sure it has one here
 	if len(ui.username) == 0 {
 		G.Log.Warning("FinishAndPrompt: no username.  Was Start(username) not called?")
+		debug.PrintStack()
 	}
 
 	var prompt string
@@ -163,6 +167,14 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 	}
 
 	if err == nil && (!isEqual || !isRemote) {
+		// check Outcome flags to see if we should show this statement
+		if o.LocalOnly {
+			return
+		}
+		if o.ApproveRemote {
+			ret.TrackRemote = true
+			return
+		}
 		prompt = "publicly write tracking statement to server?"
 		ret.TrackRemote, err = ui.parent.PromptYesNo(prompt, PromptDefaultYes)
 	}
@@ -382,15 +394,15 @@ func (ui BaseIdentifyUI) Warning(m string) {
 }
 
 func (ui *UI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI {
-	return IdentifyTrackUI{BaseIdentifyUI{parent: ui}, strict}
+	return &IdentifyTrackUI{BaseIdentifyUI{parent: ui}, strict}
 }
 
 func (ui *UI) GetIdentifyUI() libkb.IdentifyUI {
-	return IdentifyUI{BaseIdentifyUI{parent: ui}}
+	return &IdentifyUI{BaseIdentifyUI{parent: ui}}
 }
 
 func (ui *UI) GetIdentifyLubaUI() libkb.IdentifyUI {
-	return IdentifyLubaUI{BaseIdentifyUI{parent: ui}}
+	return &IdentifyLubaUI{BaseIdentifyUI{parent: ui}}
 }
 
 func (ui *UI) GetLoginUI() libkb.LoginUI {

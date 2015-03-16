@@ -17,7 +17,8 @@ func TestPGPTrackEncrypt(t *testing.T) {
 		Proofs: make(map[string]string),
 		Fapr:   keybase_1.FinishAndPromptRes{TrackRemote: true},
 	}
-	ctx := &Context{IdentifyUI: &idLubaUI{}, TrackUI: trackUI, SecretUI: u.NewSecretUI()}
+	// ctx := &Context{IdentifyUI: &idLubaUI{}, TrackUI: trackUI, SecretUI: u.NewSecretUI()}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPTrackEncryptArg{

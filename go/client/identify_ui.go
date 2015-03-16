@@ -7,7 +7,7 @@ import (
 )
 
 type IdentifyUIServer struct {
-	eng libkb.IdentifyUI
+	ui libkb.IdentifyUI
 }
 
 func NewIdentifyUIProtocol() rpc2.Protocol {
@@ -20,32 +20,32 @@ func NewIdentifyTrackUIProtocol() rpc2.Protocol {
 }
 
 func (i *IdentifyUIServer) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (res keybase_1.FinishAndPromptRes, err error) {
-	res, err = i.eng.FinishAndPrompt(&arg.Outcome)
+	res, err = i.ui.FinishAndPrompt(&arg.Outcome)
 	return
 }
 
 func (i *IdentifyUIServer) FinishWebProofCheck(arg keybase_1.FinishWebProofCheckArg) error {
-	i.eng.FinishWebProofCheck(arg.Rp, arg.Lcr)
+	i.ui.FinishWebProofCheck(arg.Rp, arg.Lcr)
 	return nil
 }
 
 func (i *IdentifyUIServer) FinishSocialProofCheck(arg keybase_1.FinishSocialProofCheckArg) error {
-	i.eng.FinishSocialProofCheck(arg.Rp, arg.Lcr)
+	i.ui.FinishSocialProofCheck(arg.Rp, arg.Lcr)
 	return nil
 }
 
 func (i *IdentifyUIServer) DisplayCryptocurrency(arg keybase_1.DisplayCryptocurrencyArg) error {
-	i.eng.DisplayCryptocurrency(arg.C)
+	i.ui.DisplayCryptocurrency(arg.C)
 	return nil
 }
 
 func (i *IdentifyUIServer) DisplayKey(arg keybase_1.DisplayKeyArg) error {
-	i.eng.DisplayKey(arg.Fokid, arg.Diff)
+	i.ui.DisplayKey(arg.Fokid, arg.Diff)
 	return nil
 }
 
 func (i *IdentifyUIServer) ReportLastTrack(arg keybase_1.ReportLastTrackArg) error {
-	i.eng.ReportLastTrack(arg.Track)
+	i.ui.ReportLastTrack(arg.Track)
 	return nil
 }
 
@@ -54,6 +54,12 @@ func (i *IdentifyUIServer) LaunchNetworkChecks(arg keybase_1.LaunchNetworkChecks
 }
 
 func (i *IdentifyUIServer) DisplayTrackStatement(arg keybase_1.DisplayTrackStatementArg) error {
-	i.eng.DisplayTrackStatement(arg.Stmt)
+	i.ui.DisplayTrackStatement(arg.Stmt)
+	return nil
+}
+
+func (i *IdentifyUIServer) Start(arg keybase_1.StartArg) error {
+	G.Log.Warning("IdentifyUIServer.Start(%+v)", arg)
+	i.ui.Start(arg.Username)
 	return nil
 }

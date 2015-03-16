@@ -12,21 +12,44 @@ import (
 )
 
 type CmdTrack struct {
-	user      string
-	assertion string
-	track     bool
+	user          string
+	localOnly     bool
+	approveRemote bool
+}
+
+func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
+	return cli.Command{
+		Name:        "track",
+		Usage:       "keybase track <username>",
+		Description: "verify a user's authenticity and optionally track them",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "assert, a",
+				Usage: "a boolean expression on this identity",
+			},
+			cli.BoolFlag{
+				Name:  "local, l",
+				Usage: "only track locally, no statement sent to remote server",
+			},
+			cli.BoolFlag{
+				Name:  "y",
+				Usage: "approve remote tracking without prompting",
+			},
+		},
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(&CmdTrack{}, "track", c)
+		},
+	}
 }
 
 func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
-	var err error
-	v.track = ctx.Bool("track-statement")
-	if nargs == 1 {
-		v.user = ctx.Args()[0]
-	} else {
-		err = fmt.Errorf("track takes one arg -- the user to track")
+	if len(ctx.Args()) != 1 {
+		return fmt.Errorf("track takes one arg -- the user to track")
 	}
-	return err
+	v.user = ctx.Args()[0]
+	v.localOnly = ctx.Bool("local")
+	v.approveRemote = ctx.Bool("y")
+	return nil
 }
 
 func (v *CmdTrack) RunClient() error {
@@ -44,34 +67,30 @@ func (v *CmdTrack) RunClient() error {
 		return err
 	}
 
-	return cli.Track(keybase_1.TrackArg{TheirName: v.user})
+	return cli.Track(keybase_1.TrackArg{
+		TheirName:     v.user,
+		LocalOnly:     v.localOnly,
+		ApproveRemote: v.approveRemote,
+	})
 }
 
 func (v *CmdTrack) Run() error {
-	arg := engine.TrackEngineArg{TheirName: v.user}
+	arg := engine.TrackEngineArg{
+		TheirName: v.user,
+		Options: engine.TrackOptions{
+			TrackLocalOnly: v.localOnly,
+			TrackApprove:   v.approveRemote,
+		},
+	}
 	eng := engine.NewTrackEngine(&arg)
+	ui := G_UI.GetIdentifyTrackUI(true)
 	ctx := engine.Context{
 		SecretUI: G_UI.GetSecretUI(),
-		TrackUI:  G_UI.GetIdentifyTrackUI(true),
+		// XXX PC check this
+		// TrackUI:    ui,
+		IdentifyUI: ui,
 	}
 	return engine.RunEngine(eng, &ctx, nil, nil)
-}
-
-func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:        "track",
-		Usage:       "keybase track <username>",
-		Description: "verify a user's authenticity and optionally track them",
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "assert, a",
-				Usage: "a boolean expression on this identity",
-			},
-		},
-		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdTrack{}, "track", c)
-		},
-	}
 }
 
 func (v *CmdTrack) GetUsage() libkb.Usage {

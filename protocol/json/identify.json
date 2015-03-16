@@ -190,6 +190,12 @@
         "type" : "array",
         "items" : "TrackDiff"
       }
+    }, {
+      "name" : "localOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "approveRemote",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",

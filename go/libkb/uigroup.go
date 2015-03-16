@@ -10,7 +10,6 @@ const (
 	LogUIKind
 	LoginUIKind
 	SecretUIKind
-	TrackUIKind
 	IdentifyUIKind
 )
 
@@ -26,8 +25,6 @@ func (u UIKind) String() string {
 		return "LoginUI"
 	case SecretUIKind:
 		return "SecretUI"
-	case TrackUIKind:
-		return "TrackUI"
 	case IdentifyUIKind:
 		return "IdentifyUI"
 	}

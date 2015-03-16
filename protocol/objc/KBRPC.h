@@ -183,6 +183,8 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @property NSInteger numDeleted;
 @property NSInteger numProofSuccesses;
 @property NSArray *deleted; /*of KBRTrackDiff*/
+@property BOOL localOnly;
+@property BOOL approveRemote;
 @end
 
 @interface KBRIdentifyRes : KBRObject
@@ -282,6 +284,8 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 - (void)launchNetworkChecksWithSessionID:(NSInteger)sessionID idn:(KBRIdentity *)idn user:(KBRUser *)user completion:(void (^)(NSError *error))completion;
 
 - (void)displayTrackStatementWithSessionID:(NSInteger)sessionID stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion;
+
+- (void)startWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -500,7 +504,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 
 @interface KBRTrackRequest : KBRRequest
-- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
+- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -653,6 +657,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *stmt;
 @end
+@interface KBRStartRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
 @interface KBRLogRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRLogLevel level;
@@ -804,6 +812,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *theirName;
+@property BOOL localOnly;
+@property BOOL approveRemote;
 @end
 @interface KBRPromptYesNoRequestParams : KBRRequestParams
 @property NSInteger sessionID;

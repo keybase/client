@@ -6,14 +6,16 @@ import (
 )
 
 type IdentifyOutcome struct {
-	Error       error
-	KeyDiff     TrackDiff
-	Deleted     []TrackDiffDeleted
-	ProofChecks []*LinkCheckResult
-	Warnings    []Warning
-	TrackUsed   *TrackLookup
-	TrackEqual  bool // Whether the track statement was equal to what we saw
-	MeSet       bool // whether me was set at the time
+	Error         error
+	KeyDiff       TrackDiff
+	Deleted       []TrackDiffDeleted
+	ProofChecks   []*LinkCheckResult
+	Warnings      []Warning
+	TrackUsed     *TrackLookup
+	TrackEqual    bool // Whether the track statement was equal to what we saw
+	MeSet         bool // whether me was set at the time
+	LocalOnly     bool
+	ApproveRemote bool
 }
 
 func (i IdentifyOutcome) NumDeleted() int {

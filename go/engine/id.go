@@ -45,6 +45,7 @@ func (k *IdEngine) RequiredUIs() []libkb.UIKind {
 func (s *IdEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewLuba(nil),
+		NewIdentify(nil),
 	}
 }
 
@@ -98,10 +99,7 @@ func (e *IdEngine) runStandard(ctx *Context) (*IdRes, error) {
 	if err != nil {
 		return nil, err
 	}
-	iarg := &IdentifyArg{
-		TargetUsername: u.GetName(),
-		WithTracking:   e.arg.TrackStatement,
-	}
+	iarg := NewIdentifyArg(u.GetName(), e.arg.TrackStatement)
 	ieng := NewIdentify(iarg)
 	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
 		return nil, err

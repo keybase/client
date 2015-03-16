@@ -318,6 +318,8 @@ func (ir *IdentifyOutcome) Export() *keybase_1.IdentifyOutcome {
 		NumDeleted:        ir.NumDeleted(),
 		NumProofSuccesses: ir.NumProofSuccesses(),
 		Deleted:           del,
+		LocalOnly:         ir.LocalOnly,
+		ApproveRemote:     ir.ApproveRemote,
 	}
 	return ret
 }

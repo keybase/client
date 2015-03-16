@@ -139,6 +139,12 @@
       }, {
         "name" : "theirName",
         "type" : "string"
+      }, {
+        "name" : "localOnly",
+        "type" : "boolean"
+      }, {
+        "name" : "approveRemote",
+        "type" : "boolean"
       } ],
       "response" : "null"
     }

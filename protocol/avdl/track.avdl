@@ -3,9 +3,6 @@
 protocol track {
 	import idl "common.avdl";
 
-	void track(
-		int sessionID,
-		string theirName
-	);
+	void track(int sessionID, string theirName, boolean localOnly, boolean approveRemote);
 }
 	

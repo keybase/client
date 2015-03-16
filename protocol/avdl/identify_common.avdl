@@ -35,6 +35,8 @@ protocol identifyCommon {
 		int numDeleted;
 		int numProofSuccesses;
 		array<TrackDiff> deleted;
+		boolean localOnly;
+		boolean approveRemote;
 	}
 
 	record IdentifyRes {

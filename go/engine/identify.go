@@ -15,12 +15,25 @@ type Identify struct {
 type IdentifyArg struct {
 	TargetUsername string // The user being identified, leave blank to identify self
 	WithTracking   bool   // true if want tracking statement for logged in user on TargetUsername
+
+	// When tracking is being performed, the identify engine is used with a tracking ui.
+	// These options are sent to the ui based on command line options.
+	// For normal identify, safe to leave these in their default zero state.
+	TrackOptions TrackOptions
 }
 
 func NewIdentifyArg(targetUsername string, withTracking bool) *IdentifyArg {
 	return &IdentifyArg{
 		TargetUsername: targetUsername,
 		WithTracking:   withTracking,
+	}
+}
+
+func NewIdentifyTrackArg(targetUsername string, withTracking bool, options TrackOptions) *IdentifyArg {
+	return &IdentifyArg{
+		TargetUsername: targetUsername,
+		WithTracking:   withTracking,
+		TrackOptions:   options,
 	}
 }
 
@@ -72,6 +85,14 @@ func (e *Identify) Run(ctx *Context, args, reply interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	// set the flags in the outcome with the track options to
+	// inform the ui what to do with the remote tracking prompt:
+	e.outcome.LocalOnly = e.arg.TrackOptions.TrackLocalOnly
+	e.outcome.ApproveRemote = e.arg.TrackOptions.TrackApprove
+
+	G.Log.Warning("outcome before FinishAndPrompt: %+v", e.outcome)
+
 	tmp, err := ctx.IdentifyUI.FinishAndPrompt(e.outcome.Export())
 	if err != nil {
 		return err

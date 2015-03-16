@@ -81,4 +81,5 @@ protocol identifyUi {
 	void reportLastTrack(int sessionID, union { null, TrackSummary } track);
 	void launchNetworkChecks(int sessionID, Identity id, User user);
 	void displayTrackStatement(int sessionID, string stmt);
+	void start(int sessionID, string username);
 }

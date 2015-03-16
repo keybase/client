@@ -16,8 +16,7 @@ type TrackEngineArg struct {
 	TheirName string
 	Them      *libkb.User
 	Me        *libkb.User
-
-	TrackOptions
+	Options   TrackOptions
 }
 
 type TrackEngine struct {
@@ -49,13 +48,14 @@ func (e *TrackEngine) GetPrereqs() EnginePrereqs {
 
 func (k *TrackEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
-		libkb.TrackUIKind,
 		libkb.SecretUIKind,
 	}
 }
 
 func (s *TrackEngine) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		NewIdentify(nil),
+	}
 }
 
 func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) error {
@@ -69,10 +69,7 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) erro
 		return libkb.SelfTrackError{}
 	}
 
-	iarg := &IdentifyArg{
-		TargetUsername: e.arg.Them.GetName(),
-		WithTracking:   true,
-	}
+	iarg := NewIdentifyTrackArg(e.arg.Them.GetName(), true, e.arg.Options)
 	ieng := NewIdentify(iarg)
 	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
 		return err

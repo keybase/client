@@ -465,6 +465,8 @@ type IdentifyOutcome struct {
 	NumDeleted        int           `codec:"numDeleted" json:"numDeleted"`
 	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
 	Deleted           []TrackDiff   `codec:"deleted" json:"deleted"`
+	LocalOnly         bool          `codec:"localOnly" json:"localOnly"`
+	ApproveRemote     bool          `codec:"approveRemote" json:"approveRemote"`
 }
 
 type IdentifyRes struct {
@@ -641,6 +643,11 @@ type DisplayTrackStatementArg struct {
 	Stmt      string `codec:"stmt" json:"stmt"`
 }
 
+type StartArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type IdentifyUiInterface interface {
 	FinishAndPrompt(FinishAndPromptArg) (FinishAndPromptRes, error)
 	FinishWebProofCheck(FinishWebProofCheckArg) error
@@ -650,6 +657,7 @@ type IdentifyUiInterface interface {
 	ReportLastTrack(ReportLastTrackArg) error
 	LaunchNetworkChecks(LaunchNetworkChecksArg) error
 	DisplayTrackStatement(DisplayTrackStatementArg) error
+	Start(StartArg) error
 }
 
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
@@ -712,6 +720,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"start": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]StartArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Start(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -758,6 +773,11 @@ func (c IdentifyUiClient) LaunchNetworkChecks(__arg LaunchNetworkChecksArg) (err
 
 func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) (err error) {
 	err = c.Cli.Call("keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) Start(__arg StartArg) (err error) {
+	err = c.Cli.Call("keybase.1.identifyUi.start", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1790,8 +1810,10 @@ func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
 }
 
 type TrackArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	TheirName string `codec:"theirName" json:"theirName"`
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	TheirName     string `codec:"theirName" json:"theirName"`
+	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
+	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 }
 
 type TrackInterface interface {

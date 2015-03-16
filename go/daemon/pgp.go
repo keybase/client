@@ -47,7 +47,6 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 	}
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
-		TrackUI:    h.NewRemoteIdentifyUI(arg.SessionID),
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
 	eng := engine.NewPGPTrackEncrypt(earg)

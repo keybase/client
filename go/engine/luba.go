@@ -51,7 +51,9 @@ func (e *Luba) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *Luba) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		NewIdentify(nil),
+	}
 }
 
 // Run starts the engine.
