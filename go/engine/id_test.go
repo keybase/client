@@ -9,7 +9,7 @@ import (
 )
 
 func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
-	idUI = &FakeIdentifyUI{Proofs: make(map[string]string)}
+	idUI = &FakeIdentifyUI{}
 	arg := IdEngineArg{
 		User: username,
 	}
@@ -45,7 +45,7 @@ func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
 }
 
 func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
-	checkKeyedProfile(t, idUI, res, "doug", false, map[string]string{})
+	checkKeyedProfile(t, idUI, res, "doug", false, nil)
 }
 
 func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdRes, name string, hasImg bool, expectedProofs map[string]string) {

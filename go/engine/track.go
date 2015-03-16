@@ -69,13 +69,19 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) erro
 		return libkb.SelfTrackError{}
 	}
 
-	io, ti, err := e.arg.Them.Identify(libkb.NewIdentifyArg(e.arg.Me, e.arg.Them.GetName(), ctx.TrackUI))
-	if err != nil {
+	iarg := &IdentifyArg{
+		TargetUsername: e.arg.Them.GetName(),
+		WithTracking:   true,
+	}
+	ieng := NewIdentify(iarg)
+	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
 		return err
 	}
+	ti := ieng.TrackInstructions()
 
-	e.res = &IdRes{Outcome: io, User: e.arg.Them}
+	e.res = &IdRes{Outcome: ieng.Outcome(), User: e.arg.Them}
 
+	var err error
 	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
 	if err != nil {
 		return err

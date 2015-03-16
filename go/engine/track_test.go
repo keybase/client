@@ -15,9 +15,10 @@ func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdRes, 
 		TheirName: username,
 	}
 	ctx := Context{
-		LogUI:    G.UI.GetLogUI(),
-		TrackUI:  idUI,
-		SecretUI: fu.NewSecretUI(),
+		LogUI:      G.UI.GetLogUI(),
+		TrackUI:    idUI,
+		IdentifyUI: idUI,
+		SecretUI:   fu.NewSecretUI(),
 	}
 	eng := NewTrackEngine(&arg)
 	err = RunEngine(eng, &ctx, nil, nil)

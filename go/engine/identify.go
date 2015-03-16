@@ -6,9 +6,10 @@ import (
 
 // Identify is an engine.
 type Identify struct {
-	arg     *IdentifyArg
-	user    *libkb.User
-	outcome *libkb.IdentifyOutcome
+	arg       *IdentifyArg
+	user      *libkb.User
+	outcome   *libkb.IdentifyOutcome
+	trackInst *libkb.TrackInstructions
 }
 
 type IdentifyArg struct {
@@ -78,7 +79,7 @@ func (e *Identify) Run(ctx *Context, args, reply interface{}) error {
 	fpr := libkb.ImportFinishAndPromptRes(tmp)
 
 	// XXX
-	_ = fpr
+	e.trackInst = &fpr
 
 	//	return outcome, fpr, err
 	return nil
@@ -86,6 +87,10 @@ func (e *Identify) Run(ctx *Context, args, reply interface{}) error {
 
 func (e *Identify) Outcome() *libkb.IdentifyOutcome {
 	return e.outcome
+}
+
+func (e *Identify) TrackInstructions() *libkb.TrackInstructions {
+	return e.trackInst
 }
 
 // XXX rename

@@ -98,13 +98,16 @@ func (e *IdEngine) runStandard(ctx *Context) (*IdRes, error) {
 	if err != nil {
 		return nil, err
 	}
-	ui := ctx.IdentifyUI
-	outcome, err := u.IdentifySimple(nil, u.GetName(), ui)
-	if err != nil {
+	iarg := &IdentifyArg{
+		TargetUsername: u.GetName(),
+		WithTracking:   e.arg.TrackStatement,
+	}
+	ieng := NewIdentify(iarg)
+	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
 		return nil, err
 	}
 
-	res := &IdRes{Outcome: outcome, User: u}
+	res := &IdRes{Outcome: ieng.Outcome(), User: u}
 
 	if !e.arg.TrackStatement {
 		return res, nil
@@ -126,7 +129,7 @@ func (e *IdEngine) runStandard(ctx *Context) (*IdRes, error) {
 	}
 
 	G.Log.Info("json track statement: %s", stmt)
-	if err = ui.DisplayTrackStatement(stmt); err != nil {
+	if err = ctx.IdentifyUI.DisplayTrackStatement(stmt); err != nil {
 		return nil, err
 	}
 
