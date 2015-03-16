@@ -30,7 +30,7 @@ func NewIdEngine(arg *IdEngineArg) *IdEngine {
 }
 
 func (s *IdEngine) Name() string {
-	return "Identify"
+	return "Id"
 }
 
 func (e *IdEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }

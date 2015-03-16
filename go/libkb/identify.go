@@ -16,7 +16,7 @@ func (u *User) IdentifyKey(is IdentifyState) error {
 
 func displayKey(fokid *FOKID, is IdentifyState) {
 	var diff TrackDiff
-	if mt := is.track; mt != nil {
+	if mt := is.Track; mt != nil {
 		diff = mt.ComputeKeyDiff(fokid)
 		is.res.KeyDiff = diff
 	}
@@ -166,7 +166,7 @@ type IdentifyState struct {
 	arg   *IdentifyArg
 	res   *IdentifyOutcome
 	u     *User
-	track *TrackLookup
+	Track *TrackLookup
 }
 
 func (s IdentifyState) GetUI() IdentifyUI {
@@ -178,11 +178,11 @@ func NewIdentifyState(arg *IdentifyArg, res *IdentifyOutcome, u *User) IdentifyS
 }
 
 func (s *IdentifyState) ComputeDeletedProofs() {
-	if s.track == nil {
+	if s.Track == nil {
 		return
 	}
 	found := s.u.IdTable.MakeTrackSet()
-	tracked := s.track.set
+	tracked := s.Track.set
 
 	// These are the proofs that we previously tracked that we
 	// didn't observe in the current profile
@@ -207,11 +207,11 @@ func (s *IdentifyState) InitResultList() {
 }
 
 func (s *IdentifyState) ComputeTrackDiffs() {
-	if s.track != nil {
-		G.Log.Debug("| with tracking %v", s.track.set)
+	if s.Track != nil {
+		G.Log.Debug("| with tracking %v", s.Track.set)
 		for _, c := range s.res.ProofChecks {
-			c.diff = c.link.ComputeTrackDiff(s.track)
-			c.trackedProofState = s.track.GetProofState(c.link)
+			c.diff = c.link.ComputeTrackDiff(s.Track)
+			c.trackedProofState = s.Track.GetProofState(c.link)
 		}
 	}
 }
@@ -226,11 +226,11 @@ func (u *User) _identify(arg *IdentifyArg) (res *IdentifyOutcome) {
 		res.Error = err
 		return
 	} else if tlink != nil {
-		is.track = NewTrackLookup(tlink)
-		res.TrackUsed = is.track
+		is.Track = NewTrackLookup(tlink)
+		res.TrackUsed = is.Track
 	}
 
-	is.GetUI().ReportLastTrack(ExportTrackSummary(is.track))
+	is.GetUI().ReportLastTrack(ExportTrackSummary(is.Track))
 
 	G.Log.Debug("+ Identify(%s)", u.name)
 
@@ -243,7 +243,7 @@ func (u *User) _identify(arg *IdentifyArg) (res *IdentifyOutcome) {
 	is.ComputeDeletedProofs()
 
 	is.GetUI().LaunchNetworkChecks(res.ExportToUncheckedIdentity(), u.Export())
-	u.IdTable.Identify(is)
+	u.IdTable.Identify(is, is.GetUI())
 
 	G.Log.Debug("- Identify(%s)", u.name)
 	return

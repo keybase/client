@@ -1040,14 +1040,14 @@ func (idt *IdentityTable) Len() int {
 	return len(idt.Order)
 }
 
-func (idt *IdentityTable) Identify(is IdentifyState) {
+func (idt *IdentityTable) Identify(is IdentifyState, ui IdentifyUI) {
 
 	var wg sync.WaitGroup
 	for _, lcr := range is.res.ProofChecks {
 		wg.Add(1)
 		go func(l *LinkCheckResult) {
 			defer wg.Done()
-			idt.IdentifyActiveProof(l, is)
+			idt.IdentifyActiveProof(l, is, ui)
 		}(lcr)
 	}
 
@@ -1055,15 +1055,15 @@ func (idt *IdentityTable) Identify(is IdentifyState) {
 	wg.Wait()
 
 	if acc := idt.ActiveCryptocurrency(); acc != nil {
-		acc.Display(is.GetUI())
+		acc.Display(ui)
 	}
 }
 
 //=========================================================================
 
-func (idt *IdentityTable) IdentifyActiveProof(lcr *LinkCheckResult, is IdentifyState) {
-	idt.ProofRemoteCheck(is.track, lcr)
-	lcr.link.DisplayCheck(is.GetUI(), *lcr)
+func (idt *IdentityTable) IdentifyActiveProof(lcr *LinkCheckResult, is IdentifyState, ui IdentifyUI) {
+	idt.ProofRemoteCheck(is.Track, lcr)
+	lcr.link.DisplayCheck(ui, *lcr)
 }
 
 type LinkCheckResult struct {

@@ -39,7 +39,7 @@ func (e *Luba) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *Luba) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+	return EnginePrereqs{Session: e.arg.WithTracking}
 }
 
 // RequiredUIs returns the required UIs.
@@ -63,18 +63,6 @@ func (e *Luba) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 
-	var me *libkb.User
-	if e.arg.WithTracking {
-		u, err := libkb.LoadMe(libkb.LoadUserArg{})
-		if err != nil {
-			return err
-		}
-		if u == nil {
-			return errors.New("no me user found")
-		}
-		me = u
-	}
-
 	// Next, pop off the 'best' assertion and load the user by it.
 	// That is, it might be the keybase assertion (if there), or otherwise,
 	// something that's unique like Twitter or Github, and lastly,
@@ -90,10 +78,12 @@ func (e *Luba) Run(ctx *Context, args, reply interface{}) error {
 		return err
 	}
 
-	e.idres, _, err = e.user.Identify(libkb.NewIdentifyArg(me, e.user.GetName(), ctx.IdentifyUI))
-	if err != nil {
+	iarg := NewIdentifyArg(e.user.GetName(), e.arg.WithTracking)
+	ieng := NewIdentify(iarg)
+	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
 		return err
 	}
+	e.idres = ieng.Outcome()
 
 	if !expr.MatchSet(*e.user.ToOkProofSet()) {
 		// TODO - Better debugging?
