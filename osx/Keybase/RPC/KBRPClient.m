@@ -162,7 +162,13 @@
     if (error) {
       GHDebug(@"Error: %@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
-      error = KBMakeErrorWithRecovery(error.code, NSStringWithFormat(@"Oops, we had a problem (%@).", @(error.code)), @"%@: %@", errorInfo[@"name"], errorInfo[@"desc"]);
+
+      error = [NSError errorWithDomain:@"Keybase" code:error.code userInfo:
+               @{NSLocalizedDescriptionKey: NSStringWithFormat(@"Oops, we had a problem (%@).", @(error.code)),
+                 NSLocalizedRecoveryOptionsErrorKey: @[@"OK"],
+                 NSLocalizedRecoverySuggestionErrorKey: NSStringWithFormat(@"%@: %@", errorInfo[@"name"], errorInfo[@"desc"]),
+                 MPErrorInfoKey: errorInfo,
+                 }];
     }
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];

@@ -33,6 +33,10 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
+  [KBButton setErrorHandler:^(KBButton *button, NSError *error) {
+    [AppDelegate setError:error sender:button];
+  }];
+
   _appView = [[KBAppView alloc] init];
   KBWindow *window = [_appView openWindow];
 
@@ -109,8 +113,8 @@
 }
 
 - (void)openURLString:(NSString *)URLString sender:(NSView *)sender {
-  [KBAlert yesNoWithTitle:@"Open a Link" description:NSStringWithFormat(@"Do you want to open %@?", URLString) yes:@"Open" view:sender completion:^{
-    [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
+  [KBAlert yesNoWithTitle:@"Open a Link" description:NSStringWithFormat(@"Do you want to open %@?", URLString) yes:@"Open" view:sender completion:^(BOOL yes) {
+    if (yes) [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
   }];
 }
 
@@ -123,6 +127,10 @@
 }
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {
+  if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"CANCELED"]) {
+    // Canceled, ok to ignore
+    return;
+  }
   [AppDelegate.sharedDelegate setError:error sender:sender];
 }
 

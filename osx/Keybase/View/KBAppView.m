@@ -256,18 +256,20 @@
 
 - (void)logout {
   GHWeakSelf gself = self;
-  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^{
-    [self setProgressEnabled:YES];
-    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
-    [login logout:^(NSError *error) {
-      [self setProgressEnabled:NO];
-      if (error) {
-        [AppDelegate setError:error sender:self];
-        return;
-      }
+  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^(BOOL yes) {
+    if (yes) {
+      [self setProgressEnabled:YES];
+      KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
+      [login logout:^(NSError *error) {
+        [self setProgressEnabled:NO];
+        if (error) {
+          [AppDelegate setError:error sender:self];
+          return;
+        }
 
-      [self checkStatus:nil];
-    }];
+        [self checkStatus:nil];
+      }];
+    }
   }];
 }
 

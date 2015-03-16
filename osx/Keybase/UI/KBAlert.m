@@ -56,11 +56,9 @@
   }];
 }
 
-+ (void)yesNoWithTitle:(NSString *)title description:(NSString *)description yes:(NSString *)yes view:(NSView *)view completion:(dispatch_block_t)completion {
++ (void)yesNoWithTitle:(NSString *)title description:(NSString *)description yes:(NSString *)yes view:(NSView *)view completion:(void (^)(BOOL yes))completion {
   [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[NSStringWithFormat(@"Yes, %@", yes), @"No"] view:view completion:^(NSModalResponse returnCode) {
-    if (returnCode == NSAlertFirstButtonReturn) {
-      completion();
-    }
+    completion((returnCode == NSAlertFirstButtonReturn));
   }];
 }
 
