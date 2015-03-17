@@ -100,7 +100,9 @@
 }
 
 - (void)selectItem:(KBSourceViewItem)item {
-  [_outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:item] byExtendingSelection:NO];
+  if ([_outlineView selectedRow] != item) {
+    [_outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:item] byExtendingSelection:NO];
+  }
 }
 
 - (NSArray *)_childrenForItem:(id)item {

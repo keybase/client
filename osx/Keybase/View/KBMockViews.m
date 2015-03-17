@@ -127,7 +127,8 @@
 
   KBRMockClient *mockClient = [[KBRMockClient alloc] init];
   KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": @"gabrielh"} error:nil];
-  [userProfileView setUser:user editable:NO client:mockClient];
+  userProfileView.client = mockClient;
+  [userProfileView setUser:user editable:NO];
 }
 
 - (void)showSelectKey {

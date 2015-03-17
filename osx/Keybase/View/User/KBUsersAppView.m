@@ -205,7 +205,8 @@
   KBRUser *user = [[KBRUser alloc] init];
   user.username = username;
   BOOL editable = [AppDelegate.appView.user.username isEqual:user.username];
-  [_userProfileView setUser:user editable:editable client:self.client];
+  _userProfileView.client = self.client;
+  [_userProfileView setUser:user editable:editable];
 }
 
 //- (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *userSummaries))completion {

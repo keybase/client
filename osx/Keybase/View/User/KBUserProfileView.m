@@ -86,7 +86,6 @@
 }
 
 - (void)clear {
-  _user = nil;
   _headerView.hidden = YES;
   [_userInfoView clear];
   [_trackView clear];
@@ -196,7 +195,9 @@
   //[self setUser:self.user editable:self.editable client:self.client];
 }
 
-- (void)setUser:(KBRUser *)user editable:(BOOL)editable client:(KBRPClient *)client {
+- (void)setUser:(KBRUser *)user editable:(BOOL)editable {
+  if ([_user.uid isEqualTo:user.uid]) return; // TODO what if user object is stale?
+
   [self clear];
 
   _user = user;
@@ -210,16 +211,16 @@
   if (!_editable) {
     // For others
     [self.headerView setProgressEnabled:YES];
-    KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:client];
-    [self registerClient:client sessionId:trackRequest.sessionId];
+    KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
+    [self registerClient:self.client sessionId:trackRequest.sessionId];
     [trackRequest trackWithSessionID:trackRequest.sessionId theirName:user.username localOnly:NO approveRemote:NO completion:^(NSError *error) {
       [gself setTrackCompleted:error];
     }];
   } else {
     // For ourself
     [self.headerView setProgressEnabled:YES];
-    KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:client];
-    [self registerClient:client sessionId:identifyRequest.sessionId];
+    KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
+    [self registerClient:self.client sessionId:identifyRequest.sessionId];
     [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId username:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
       [gself.headerView setProgressEnabled:NO];
       if (error) {

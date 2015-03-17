@@ -233,9 +233,9 @@
 
 - (void)showProfile {
   NSAssert(_user, @"No user");
-  _userProfileView = [[KBUserProfileView alloc] init];
+  if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
   _userProfileView.client = _client;
-  [_userProfileView setUser:_user editable:YES client:_client];
+  [_userProfileView setUser:_user editable:YES];
   [self setContentView:_userProfileView showSourceView:YES];
   [_sourceView selectItem:KBSourceViewItemProfile];
 }
@@ -301,7 +301,7 @@
 
 - (void)setConfig:(KBRConfig *)config {
   NSString *host = config.serverURI;
-  // TODO API client should eventually go away (everything goes to daemon)
+  // TODO Directly accessing API client should eventually go away (everything goes to daemon)
   if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
   AppDelegate.sharedDelegate.APIClient = [[KBAPIClient alloc] initWithAPIHost:host];
 }
