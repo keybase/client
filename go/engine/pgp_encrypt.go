@@ -7,6 +7,8 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
+// XXX this doesn't need to be an engine...
+
 // PGPEncryptArg contains the arguments for the PGPEncrypt engine.
 // Source is the source reader, Sink is the destination writer.
 // Signer is optional.  If provided, it will be used to sign the
