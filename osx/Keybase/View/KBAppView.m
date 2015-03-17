@@ -21,7 +21,7 @@
 
 @interface KBAppView ()
 @property KBSourceOutlineView *sourceView;
-@property (readonly) YONSView *contentView;
+@property (readonly) YOView *contentView;
 
 @property KBUsersAppView *usersAppView;
 @property KBDevicesAppView *devicesAppView;
@@ -154,7 +154,7 @@
   }];
 }
 
-- (void)setContentView:(YONSView *)contentView showSourceView:(BOOL)showSourceView {
+- (void)setContentView:(YOView *)contentView showSourceView:(BOOL)showSourceView {
   self.sourceView.hidden = !showSourceView;
   [_contentView removeFromSuperview];
   _contentView = contentView;

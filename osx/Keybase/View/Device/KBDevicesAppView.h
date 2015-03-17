@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBDevicesAppView : YONSView
+@interface KBDevicesAppView : YOView
 
 @property KBRPClient * client;
 

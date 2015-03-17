@@ -35,7 +35,7 @@
   pasteView.cornerRadius = 10;
   [self addSubview:pasteView];
 
-  YONSView *displayTextView = [[YONSView alloc] init];
+  YOView *displayTextView = [[YOView alloc] init];
   _textView = [[KBLabel alloc] initWithFrame:CGRectMake(20, 20, 2000, 2000)];
   [displayTextView addSubview:_textView];
   [self addSubview:displayTextView];
@@ -47,7 +47,7 @@
   _chooseFileButton.targetBlock = ^{ [yself chooseFile]; };
   [self addSubview:_chooseFileButton];
 
-  YONSView *footerView = [[YONSView alloc] init];
+  YOView *footerView = [[YOView alloc] init];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [footerView addSubview:_cancelButton];
 

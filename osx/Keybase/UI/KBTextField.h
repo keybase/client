@@ -22,7 +22,7 @@
 - (void)textField:(NSTextField *)textField didChangeEnabled:(BOOL)enabled;
 @end
 
-@interface KBTextField : YONSView <KBNSTextFieldFocusDelegate>
+@interface KBTextField : YOView <KBNSTextFieldFocusDelegate>
 
 @property (nonatomic) NSString *text;
 @property (nonatomic) NSString *placeholder;

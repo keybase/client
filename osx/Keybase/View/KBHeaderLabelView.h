@@ -10,7 +10,7 @@
 
 #import "KBAppKit.h"
 
-@interface KBHeaderLabelView : YONSView
+@interface KBHeaderLabelView : YOView
 
 - (void)setHeader:(NSString *)header;
 

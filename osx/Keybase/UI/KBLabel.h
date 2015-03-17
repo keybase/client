@@ -20,7 +20,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
   KBLabelStyleHeader,
 };;
 
-@interface KBLabel : YONSView
+@interface KBLabel : YOView
 
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) BOOL selectable;

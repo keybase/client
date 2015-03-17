@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBFolder.h"
 
-@interface KBFolderPreviewView : YONSView
+@interface KBFolderPreviewView : YOView
 
 - (void)setFolder:(KBFolder *)folder;
 

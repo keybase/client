@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBProveType.h"
 
-@interface KBProveInputView : YONSView
+@interface KBProveInputView : YOView
 @property (nonatomic) KBProveType proveType;
 @property KBLabel *label;
 @property KBTextField *inputField;

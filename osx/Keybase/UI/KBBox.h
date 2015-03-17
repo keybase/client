@@ -10,7 +10,7 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBBox : YONSView
+@interface KBBox : YOView
 
 @property UIEdgeInsets insets;
 

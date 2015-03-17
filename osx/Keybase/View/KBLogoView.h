@@ -10,7 +10,7 @@
 
 #import "KBAppKit.h"
 
-@interface KBLogoView : YONSView <KBNavigationTitleView>
+@interface KBLogoView : YOView <KBNavigationTitleView>
 
 @property KBButton *backView;
 @property (nonatomic) NSString *title;

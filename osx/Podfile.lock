@@ -49,9 +49,7 @@ PODS:
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout (0.1.4):
-    - YOLayout/Box (= 0.1.4)
-  - YOLayout/Box (0.1.4)
+  - YOLayout/Box (0.1.5)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -63,13 +61,8 @@ DEPENDENCIES:
   - MPMessagePack
   - ObjectiveSugar
   - Slash
-  - YOLayout (from `~/Projects/YOLayout`)
-  - YOLayout/Box (from `~/Projects/YOLayout`)
+  - YOLayout/Box
   - ZXCVBN
-
-EXTERNAL SOURCES:
-  YOLayout:
-    :path: ~/Projects/YOLayout
 
 SPEC CHECKSUMS:
   AFNetworking: 8bee59492a6ff15d69130efa4d0dc67e0094a52a
@@ -84,7 +77,7 @@ SPEC CHECKSUMS:
   ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2
   Slash: d98d6ff27ece4297d8d65fb49fc1ce4307a75f46
   TSTripleSec: 7371672f757735ab696d8c0d0fc0d98b7a38059e
-  YOLayout: e5154a0cbca26c01dd74898c59ca7a737d0b15fa
+  YOLayout: d92d2f581f67a2f5e49e58447433eed6ac6b134a
   ZXCVBN: cc445c6207fc2f0b42276b7a4c2b2aee47624577
 
 COCOAPODS: 0.35.0

@@ -11,7 +11,7 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBScrollView : YONSView
+@interface KBScrollView : YOView
 
 @property NSScrollView *scrollView;
 

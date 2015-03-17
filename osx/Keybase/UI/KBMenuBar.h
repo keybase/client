@@ -12,7 +12,7 @@
 
 #import "KBButton.h"
 
-@interface KBMenuBar : YONSView
+@interface KBMenuBar : YOView
 
 - (void)setBackTitle:(NSString *)backTitle targetBlock:(dispatch_block_t)targetBlock;
 

@@ -26,7 +26,7 @@
   _keysView = [[KBGPGKeysView alloc] init];
   [self addSubview:_keysView];
 
-  YONSView *footerView = [[YONSView alloc] init];
+  YOView *footerView = [[YOView alloc] init];
 //  _pushCheckbox = [KBButton buttonWithText:@"Push encrypted copy to Keybase.io?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 //  [footerView addSubview:_pushCheckbox];
 

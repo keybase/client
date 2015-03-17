@@ -10,7 +10,7 @@
 
 @interface KBListView ()
 @property Class prototypeClass;
-@property YONSView *prototypeView;
+@property YOView *prototypeView;
 @end
 
 @interface KBListViewDynamicHeight : KBListView
@@ -37,7 +37,7 @@
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
   id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
-  YONSView *view = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
+  YOView *view = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
   BOOL dequeued = NO;
   if (!view) {
     dequeued = YES;

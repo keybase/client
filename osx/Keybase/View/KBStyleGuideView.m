@@ -44,7 +44,7 @@
   [popover setText:longText title:title];
   [contentView addSubview:popover];
 
-  YONSView *buttonView = [[YONSView alloc] init];
+  YOView *buttonView = [[YOView alloc] init];
   KBButton *buttonPrimary = [KBButton buttonWithText:@"Primary" style:KBButtonStylePrimary];
   buttonPrimary.targetBlock = ^{ };
   [buttonView addSubview:buttonPrimary];
@@ -99,7 +99,7 @@
 }
 
 - (void)openSheet {
-  YONSView *view = [[YONSView alloc] init];
+  YOView *view = [[YOView alloc] init];
   view.wantsLayer = YES;
   view.layer.backgroundColor = NSColor.whiteColor.CGColor;
   KBButton *button = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];

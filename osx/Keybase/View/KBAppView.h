@@ -26,7 +26,7 @@
 - (void)appView:(KBAppView *)appView didLogMessage:(NSString *)message;
 @end
 
-@interface KBAppView : YONSView <NSWindowDelegate, KBSourceOutlineViewDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate> //, NSWindowRestoration>
+@interface KBAppView : YOView <NSWindowDelegate, KBSourceOutlineViewDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate> //, NSWindowRestoration>
 
 @property KBRPClient * client;
 

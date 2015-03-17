@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBFolder.h"
 
-@interface KBFolderView : YONSView // NSTableCellView
+@interface KBFolderView : YOView // NSTableCellView
 
 - (void)setFolder:(KBFolder *)folder;
 

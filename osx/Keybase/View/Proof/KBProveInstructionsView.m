@@ -28,7 +28,7 @@
   _scrollView.scrollView.borderType = NSBezelBorder;
   [self addSubview:_scrollView];
 
-  YONSView *bottomView = [[YONSView alloc] init];
+  YOView *bottomView = [[YOView alloc] init];
   [self addSubview:bottomView];
 
   GHWeakSelf gself = self;

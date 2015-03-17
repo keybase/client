@@ -45,7 +45,7 @@
   _headerView = [[KBUserHeaderView alloc] init];
   _userInfoView = [[KBUserInfoView alloc] init];
   _trackView = [[KBTrackView alloc] init];
-  YONSView *contentView = [[YONSView alloc] init];
+  YOView *contentView = [[YOView alloc] init];
   [contentView addSubview:_headerView];
   [contentView addSubview:_userInfoView];
   [contentView addSubview:_trackView];

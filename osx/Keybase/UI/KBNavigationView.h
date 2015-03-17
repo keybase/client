@@ -25,7 +25,7 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 - (void)navigationView:(KBNavigationView *)navigationView willTransitionView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType;
 @end
 
-@interface KBNavigationView : YONSView
+@interface KBNavigationView : YOView
 
 @property (nonatomic) NSView<KBNavigationTitleView> *titleView;
 @property (readonly) NSMutableArray *views; // Fix mutable

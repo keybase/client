@@ -17,7 +17,7 @@
 
 typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath, id object);
 
-@interface KBTableView : YONSView <NSTableViewDelegate, NSTableViewDataSource>
+@interface KBTableView : YOView <NSTableViewDelegate, NSTableViewDataSource>
 
 @property (readonly) NSScrollView *scrollView;
 @property (readonly) NSTableView *view;

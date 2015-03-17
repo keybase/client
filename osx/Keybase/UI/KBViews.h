@@ -10,7 +10,7 @@
 #import <AppKit/AppKit.h>
 #import <YOLayout/YOLayout.h>
 
-@interface KBViews : YONSView
+@interface KBViews : YOView
 
 - (void)setViews:(NSArray *)views;
 

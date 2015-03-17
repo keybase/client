@@ -11,7 +11,7 @@
 #import <YOLayout/YOLayout.h>
 #import <WebKit/WebKit.h>
 
-@interface KBWebView : YONSView
+@interface KBWebView : YOView
 
 - (void)openURLString:(NSString *)URLString;
 

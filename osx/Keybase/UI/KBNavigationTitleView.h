@@ -13,7 +13,7 @@
 #import "KBNavigationView.h"
 #import "KBMenuBar.h"
 
-@interface KBNavigationTitleView : YONSView <KBNavigationTitleView>
+@interface KBNavigationTitleView : YOView <KBNavigationTitleView>
 
 //@property KBButton *backView;
 @property (weak) KBNavigationView *navigation;

@@ -13,7 +13,7 @@
 
 typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response); // Response nil on cancel
 
-@interface KBTrackView : YONSView
+@interface KBTrackView : YOView
 
 - (void)clear;
 

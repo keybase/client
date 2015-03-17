@@ -40,7 +40,7 @@
   };
   [self.contentView addSubview:_deviceSignerView];
 
-  YONSView *bottomView = [[YONSView alloc] init];
+  YOView *bottomView = [[YOView alloc] init];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [bottomView addSubview:_cancelButton];
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];

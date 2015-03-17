@@ -14,7 +14,7 @@
 #import "KBProofLabel.h"
 #import "KBProveType.h"
 
-@interface KBUserInfoLabels : YONSView
+@interface KBUserInfoLabels : YOView
 
 @property (readonly) NSArray *proofResults;
 

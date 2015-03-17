@@ -10,7 +10,7 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBSplitView : YONSView
+@interface KBSplitView : YOView
 
 @property UIEdgeInsets insets;
 @property CGFloat dividerPosition;

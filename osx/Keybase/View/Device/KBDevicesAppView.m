@@ -34,7 +34,7 @@
     //[yself.userProfileView setUser:user editable:NO client:AppDelegate.client];
   };
 
-  YONSView *contentView = [[YONSView alloc] init];
+  YOView *contentView = [[YOView alloc] init];
   contentView.wantsLayer = YES;
   contentView.layer.backgroundColor = NSColor.whiteColor.CGColor;
 

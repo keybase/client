@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBUserStatusView : YONSView
+@interface KBUserStatusView : YOView
 
 @property KBButton *button;
 

@@ -10,7 +10,7 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBView : YONSView
+@interface KBView : YOView
 
 @property BOOL clipToBounds; // Writable alias for wantsDefaultClipping
 

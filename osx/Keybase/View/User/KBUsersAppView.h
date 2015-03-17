@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBSearchControl.h"
 
-@interface KBUsersAppView : YONSView <KBSearchControlDelegate>
+@interface KBUsersAppView : YOView <KBSearchControlDelegate>
 
 @property KBRPClient * client;
 

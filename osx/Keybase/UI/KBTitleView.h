@@ -13,7 +13,7 @@
 #import "KBNavigationView.h"
 #import "KBMenuBar.h"
 
-@interface KBTitleView : YONSView
+@interface KBTitleView : YOView
 
 @property (nonatomic) NSString *title;
 

@@ -14,7 +14,7 @@
 #import "KBBox.h"
 #import "KBAppearance.h"
 
-@interface KBImageTextView : YONSView
+@interface KBImageTextView : YOView
 
 @property (readonly) KBImageView *imageView;
 @property (readonly) KBLabel *titleLabel;

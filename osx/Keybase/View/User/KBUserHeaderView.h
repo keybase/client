@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBUser.h"
 
-@interface KBUserHeaderView : YONSView
+@interface KBUserHeaderView : YOView
 
 - (void)setUser:(KBRUser *)user;
 

@@ -12,7 +12,7 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBActivityIndicatorView : YONSView
+@interface KBActivityIndicatorView : YOView
 
 @property (nonatomic, getter=isAnimating) BOOL animating;
 @property BOOL hidesWhenStopped;

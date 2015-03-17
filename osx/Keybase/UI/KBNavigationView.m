@@ -15,7 +15,7 @@
 
 @interface KBNavigationView ()
 @property NSMutableArray *views;
-@property YONSView *contentView;
+@property YOView *contentView;
 @end
 
 @interface NSView (KBViews)
@@ -33,7 +33,7 @@
 
   _views = [NSMutableArray array];
 
-  _contentView = [[YONSView alloc] init];
+  _contentView = [[YOView alloc] init];
   [self addSubview:_contentView];
 
   YOSelf yself = self;
