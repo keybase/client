@@ -18,6 +18,7 @@
 @property NSScrollView *scrollView;
 @property NSTableView *view;
 @property KBCellDataSource *dataSource;
+@property BOOL reselecting;
 @end
 
 @implementation KBTableView
@@ -90,8 +91,10 @@
   }
   
   if (selectedObject) {
+    _reselecting = YES;
     NSIndexPath *indexPath = [_dataSource indexPathOfObject:selectedObject section:0];
     [_view selectRowIndexes:[NSIndexSet indexSetWithIndex:indexPath.item] byExtendingSelection:NO];
+    _reselecting = NO;
   }
 }
 
@@ -163,6 +166,7 @@
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
+  if (_reselecting) return; // If we are reselecting after a reload, don't notify
   NSInteger selectedRow = [_view selectedRow];
   if (selectedRow < 0) return;
   id object = [self selectedObject];
