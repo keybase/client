@@ -393,10 +393,11 @@ func ErrorToGpgIndexError(l int, e error) GpgIndexError {
 //=============================================================================
 
 type LoginRequiredError struct {
+	Context string
 }
 
 func (e LoginRequiredError) Error() string {
-	return "Login required"
+	return fmt.Sprintf("Login required. %s", e.Context)
 }
 
 //=============================================================================
