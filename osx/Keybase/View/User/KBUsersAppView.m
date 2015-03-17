@@ -169,13 +169,17 @@
   }];
 
   KBRUserRequest *trackersRequest = [[KBRUserRequest alloc] initWithClient:self.client];
-  [trackersRequest listTrackersByNameWithSessionID:trackersRequest.sessionId username:AppDelegate.appView.user.username completion:^(NSError *error, NSArray *userSummaries) {
+  [trackersRequest listTrackersSelfWithSessionID:trackersRequest.sessionId completion:^(NSError *error, NSArray *trackers) {
     if (error) {
       [AppDelegate setError:error sender:self];
       [gself.trackersView removeAllObjects];
       return;
     }
-    [self setTrackers:userSummaries update:NO];
+    NSArray *uids = [trackers map:^id(KBRTracker *t) { return t.tracker; }];
+    KBRUserRequest *trackersRequest = [[KBRUserRequest alloc] initWithClient:self.client];
+    [trackersRequest loadUncheckedUserSummariesWithUids:uids completion:^(NSError *error, NSArray *userSummaries) {
+      [self setTrackers:userSummaries update:NO];
+    }];
   }];
 }
 

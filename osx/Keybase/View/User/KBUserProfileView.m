@@ -212,7 +212,7 @@
     [self.headerView setProgressEnabled:YES];
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:client];
     [self registerClient:client sessionId:trackRequest.sessionId];
-    [trackRequest trackWithSessionID:trackRequest.sessionId theirName:user.username completion:^(NSError *error) {
+    [trackRequest trackWithSessionID:trackRequest.sessionId theirName:user.username localOnly:NO approveRemote:NO completion:^(NSError *error) {
       [gself setTrackCompleted:error];
     }];
   } else {
