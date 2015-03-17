@@ -3,26 +3,31 @@ package engine
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/box"
 )
 
+// SelfProof = true: runs the detkey engine and uses the eddsa key as
+// the signing key.  This is currently only used for testing to
+// generate a fake users who only has a detkey, but perhaps it
+// will be useful for something else...
 type DetKeyArgs struct {
-	Tsp       libkb.PassphraseStream
-	SelfProof bool
+	Tsp         libkb.PassphraseStream
+	SelfProof   bool
+	Me          *libkb.User
+	SigningKey  libkb.GenericKey
+	EldestKeyID libkb.KID
 }
 
 type DetKeyEngine struct {
-	me          *libkb.User
-	signingKey  libkb.GenericKey
-	eldestKeyID libkb.KID
+	arg         *DetKeyArgs
 	newEddsaKey libkb.GenericKey
-	selfProof   bool
 }
 
-func NewDetKeyEngine(me *libkb.User, signingKey libkb.GenericKey, eldestKeyID libkb.KID) *DetKeyEngine {
-	return &DetKeyEngine{me: me, signingKey: signingKey, eldestKeyID: eldestKeyID}
+func NewDetKeyEngine(arg *DetKeyArgs) *DetKeyEngine {
+	return &DetKeyEngine{arg: arg}
 }
 
 func (d *DetKeyEngine) Name() string {
@@ -41,29 +46,14 @@ func (e *DetKeyEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 // Run runs the detkey engine.
 func (d *DetKeyEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
-	da, ok := args.(DetKeyArgs)
-	if !ok {
-		return fmt.Errorf("invalid args type %T", args)
-	}
-
-	// d.selfProof = true: runs the detkey engine and uses the eddsa key as
-	// the signing key.  This is currently only used for testing to
-	// generate a fake users who only has a detkey, but perhaps it
-	// will be useful for something else...
-	d.selfProof = da.SelfProof
-
-	return d.run(da.Tsp)
-}
-
-func (d *DetKeyEngine) run(tpk libkb.PassphraseStream) error {
-	if err := d.eddsa(tpk); err != nil {
+	if err := d.eddsa(d.arg.Tsp); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)
 	}
 
 	// turn off self proof
-	d.selfProof = false
+	d.arg.SelfProof = false
 
-	if err := d.dh(tpk.DHSeed()); err != nil {
+	if err := d.dh(d.arg.Tsp.DHSeed()); err != nil {
 		return fmt.Errorf("dh error: %s", err)
 	}
 	return nil
@@ -81,8 +71,8 @@ func (d *DetKeyEngine) eddsa(tpk libkb.PassphraseStream) error {
 
 	var signingKey libkb.GenericKey
 
-	if !d.selfProof {
-		signingKey = d.signingKey
+	if !d.arg.SelfProof {
+		signingKey = d.arg.SigningKey
 	}
 	d.newEddsaKey = key
 
@@ -149,7 +139,7 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serv
 		Expire:      expire,
 		ExistingKey: signing,
 		ServerHalf:  serverHalf,
-		Me:          d.me,
+		Me:          d.arg.Me,
 	}
 	return g.Run()
 }

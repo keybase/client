@@ -32,7 +32,7 @@ func (e *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewDeviceEngine(nil),
-		NewDetKeyEngine(nil, nil, nil),
+		NewDetKeyEngine(nil),
 		NewGPGImportKeyEngine(nil),
 	}
 }
@@ -159,8 +159,14 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 }
 
 func (s *SignupEngine) genDetKeys(ctx *Context) error {
-	eng := NewDetKeyEngine(s.me, s.signingKey, s.signingKey.GetKid())
-	return RunEngine(eng, ctx, DetKeyArgs{Tsp: s.tspkey}, nil)
+	arg := &DetKeyArgs{
+		Tsp:         s.tspkey,
+		Me:          s.me,
+		SigningKey:  s.signingKey,
+		EldestKeyID: s.signingKey.GetKid(),
+	}
+	eng := NewDetKeyEngine(arg)
+	return RunEngine(eng, ctx, nil, nil)
 }
 
 func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {

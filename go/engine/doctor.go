@@ -37,7 +37,7 @@ func (d *Doctor) RequiredUIs() []libkb.UIKind {
 func (d *Doctor) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewDeviceEngine(nil),
-		NewDetKeyEngine(nil, nil, nil),
+		NewDetKeyEngine(nil),
 	}
 }
 
@@ -180,8 +180,14 @@ func (d *Doctor) addDetKey(ctx *Context, eldest libkb.KID) error {
 	if err != nil {
 		return err
 	}
-	eng := NewDetKeyEngine(d.user, d.signingKey, eldest)
-	return RunEngine(eng, ctx, DetKeyArgs{Tsp: tk}, nil)
+	arg := &DetKeyArgs{
+		Tsp:         tk,
+		Me:          d.user,
+		SigningKey:  d.signingKey,
+		EldestKeyID: eldest,
+	}
+	eng := NewDetKeyEngine(arg)
+	return RunEngine(eng, ctx, nil, nil)
 }
 
 var ErrNotYetImplemented = errors.New("not yet implemented")
