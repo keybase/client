@@ -58,11 +58,6 @@
   }];
 }
 
-//- (NSView *)hitTest:(NSPoint)point {
-//  if (self.hidden) return nil;
-//  return self;
-//}
-
 - (void)setAnimating:(BOOL)animating {
   animating ? [self startAnimating] : [self stopAnimating];
 }

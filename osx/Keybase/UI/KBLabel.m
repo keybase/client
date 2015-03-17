@@ -57,6 +57,12 @@
   return sizeThatFits;
 }
 
+// Don't capture mouse events unless we are selectable
+- (NSView *)hitTest:(NSPoint)p {
+  if (_textView.selectable) return _textView;
+  return nil;
+}
+
   /*
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     if ((self.autoresizingMask & NSViewHeightSizable) != 0 && (self.autoresizingMask & NSViewWidthSizable) != 0) {
