@@ -18,7 +18,7 @@
 @property KBButton *chooseFileButton;
 
 @property NSData *data;
-@property BOOL armored;
+@property NSString *armored;
 @end
 
 @implementation KBKeyImportView
@@ -74,6 +74,12 @@
     [layout setFrame:pasteRect view:pasteView];
     [layout setFrame:pasteRect view:displayTextView];
 
+    if (yself.armored) {
+      [layout setFrame:CGRectMake(20, 20, 2000, 2000) view:yself.textView];
+    } else {
+      [layout setFrame:CGRectMake(20, 20, pasteRect.size.width - 40, 2000) view:yself.textView];
+    }
+
     [layout centerWithSize:CGSizeZero frame:pasteRect view:yself.chooseFileButton];
     [layout setFrame:CGRectMake(0, size.height - footerSize.height - 20, size.width - 40, footerSize.height) view:footerView];
     return size;
@@ -112,15 +118,35 @@
   NSString *prefix = @"-----BEGIN";
   NSString *asciiPrefix = [[NSString alloc] initWithData:[_data subdataWithRange:NSMakeRange(0, MIN(10, _data.length))] encoding:NSASCIIStringEncoding];
   if ([asciiPrefix isEqualTo:prefix]) {
-    _armored = YES;
-    NSString *displayText = [[NSString alloc] initWithData:[_data subdataWithRange:NSMakeRange(0, MIN(2000, _data.length))] encoding:NSASCIIStringEncoding];
-    [self setDisplayText:displayText];
+    NSMutableArray *scanned = [NSMutableArray array];
+    NSString *str = [[NSString alloc] initWithData:_data encoding:NSASCIIStringEncoding];
+    [self scanWithBeginString:@"-----BEGIN PGP PRIVATE KEY BLOCK-----" endString:@"-----END PGP PRIVATE KEY BLOCK-----" text:str scanned:scanned skipped:nil];
+    _armored = [scanned firstObject];
+    //[_armored replaceOccurrencesOfString:@"\n" withString:@"\r\n" options:0 range:NSMakeRange(0, _armored.length)];
+    [self setDisplayText:_armored];
     _chooseFileButton.hidden = YES;
   } else {
-    _armored = NO;
+    _armored = nil;
     NSData *displayData = [_data subdataWithRange:NSMakeRange(0, MIN(1000, _data.length))];
     [self setDisplayText:KBHexString(displayData)];
     _chooseFileButton.hidden = YES;
+  }
+}
+
+- (void)scanWithBeginString:(NSString *)beginString endString:(NSString *)endString text:(NSString *)text scanned:(NSMutableArray *)scanned skipped:(NSMutableArray *)skipped {
+  if (!text) return;
+  NSScanner *scanner = [[NSScanner alloc] initWithString:text];
+  while (!scanner.atEnd) {
+    NSString *sBefore = nil;
+    [scanner scanUpToString:beginString intoString:&sBefore];
+    if (sBefore && skipped) [skipped addObject:sBefore];
+    if (scanner.atEnd) break;
+    NSString *sIn = nil;
+    [scanner scanUpToString:endString intoString:&sIn];
+    if (sIn) {
+      [scanner scanString:endString intoString:nil];
+      if (scanned) [scanned addObject:[sIn stringByAppendingString:endString]];
+    }
   }
 }
 
@@ -133,11 +159,11 @@
     }
   };
 
-  KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
   if (_armored) {
-    NSString *armored = [[NSString alloc] initWithData:_data encoding:NSASCIIStringEncoding];
-    [request saveArmoredPGPKeyWithKey:armored pushPublic:YES pushPrivate:NO completion:completion];
-  } else {
+    KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
+    [request saveArmoredPGPKeyWithKey:_armored pushPublic:YES pushPrivate:NO completion:completion];
+  } else if (_data) {
+    KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
     [request savePGPKeyWithKey:_data pushPublic:YES pushPrivate:NO completion:completion];
   }
 }
