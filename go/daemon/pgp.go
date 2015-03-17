@@ -40,7 +40,7 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
 	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
-	earg := &engine.PGPTrackEncryptArg{
+	earg := &engine.PGPEncryptArg{
 		Recips:       arg.Opts.Recipients,
 		Sink:         snk,
 		Source:       src,
@@ -57,6 +57,6 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewPGPTrackEncrypt(earg)
+	eng := engine.NewPGPEncrypt(earg)
 	return engine.RunEngine(eng, ctx, nil, nil)
 }

@@ -76,7 +76,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		return err
 	}
 
-	arg := &engine.PGPTrackEncryptArg{
+	arg := &engine.PGPEncryptArg{
 		Recips:       c.recipients,
 		Source:       c.source,
 		Sink:         c.sink,
@@ -93,7 +93,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
 		SecretUI:   G.UI.GetSecretUI(),
 	}
-	eng := engine.NewPGPTrackEncrypt(arg)
+	eng := engine.NewPGPEncrypt(arg)
 	err := engine.RunEngine(eng, ctx, nil, nil)
 
 	c.Close(err)

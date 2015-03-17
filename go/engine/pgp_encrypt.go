@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 )
 
-type PGPTrackEncryptArg struct {
+type PGPEncryptArg struct {
 	Recips       []string // user assertions
 	Source       io.Reader
 	Sink         io.WriteCloser
@@ -19,42 +19,42 @@ type PGPTrackEncryptArg struct {
 	TrackOptions TrackOptions
 }
 
-// PGPTrackEncrypt encrypts data read from a source into a sink
+// PGPEncrypt encrypts data read from a source into a sink
 // for a set of users.  It will track them if necessary.
-type PGPTrackEncrypt struct {
-	arg *PGPTrackEncryptArg
+type PGPEncrypt struct {
+	arg *PGPEncryptArg
 	libkb.Contextified
 }
 
-// NewPGPTrackEncrypt creates a PGPTrackEncrypt engine.
-func NewPGPTrackEncrypt(arg *PGPTrackEncryptArg) *PGPTrackEncrypt {
-	return &PGPTrackEncrypt{arg: arg}
+// NewPGPEncrypt creates a PGPEncrypt engine.
+func NewPGPEncrypt(arg *PGPEncryptArg) *PGPEncrypt {
+	return &PGPEncrypt{arg: arg}
 }
 
 // Name is the unique engine name.
-func (e *PGPTrackEncrypt) Name() string {
-	return "PGPTrackEncrypt"
+func (e *PGPEncrypt) Name() string {
+	return "PGPEncrypt"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *PGPTrackEncrypt) GetPrereqs() EnginePrereqs {
+func (e *PGPEncrypt) GetPrereqs() EnginePrereqs {
 	return EnginePrereqs{Session: true}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *PGPTrackEncrypt) RequiredUIs() []libkb.UIKind {
+func (e *PGPEncrypt) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *PGPTrackEncrypt) SubConsumers() []libkb.UIConsumer {
+func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewPGPKeyfinder(nil),
 	}
 }
 
 // Run starts the engine.
-func (e *PGPTrackEncrypt) Run(ctx *Context, args, reply interface{}) error {
+func (e *PGPEncrypt) Run(ctx *Context, args, reply interface{}) error {
 	var mykey *libkb.PgpKeyBundle
 	if !e.arg.NoSign || !e.arg.NoSelf {
 		ska := libkb.SecretKeyArg{

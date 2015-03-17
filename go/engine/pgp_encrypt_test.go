@@ -8,8 +8,8 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-func TestPGPTrackEncrypt(t *testing.T) {
-	tc := SetupEngineTest(t, "PGPTrackEncrypt")
+func TestPGPEncrypt(t *testing.T) {
+	tc := SetupEngineTest(t, "PGPEncrypt")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(t, "login")
@@ -21,7 +21,7 @@ func TestPGPTrackEncrypt(t *testing.T) {
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 
 	sink := libkb.NewBufferCloser()
-	arg := &PGPTrackEncryptArg{
+	arg := &PGPEncryptArg{
 		Recips: []string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
@@ -29,7 +29,7 @@ func TestPGPTrackEncrypt(t *testing.T) {
 		NoSign: true,
 	}
 
-	eng := NewPGPTrackEncrypt(arg)
+	eng := NewPGPEncrypt(arg)
 	if err := RunEngine(eng, ctx, nil, nil); err != nil {
 		t.Fatal(err)
 	}
