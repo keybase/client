@@ -72,12 +72,12 @@
 
 @implementation NSWindow (KBWindow)
 
-- (void)addChildWindowForView:(NSView *)view size:(CGSize)size position:(KBWindowPosition)position title:(NSString *)title {
+- (void)addChildWindowForView:(NSView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:rect.size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
 
-  CGPoint p = self.frame.origin;
+  CGPoint p = CGPointMake(self.frame.origin.x + rect.origin.x, self.frame.origin.y + rect.origin.y);
 
   switch (position) {
     case KBWindowPositionCenter:
@@ -86,9 +86,9 @@
       break;
     case KBWindowPositionRight:
       p.x += self.frame.size.width + 10;
-      for (NSWindow *window in self.childWindows) {
-        p.x += window.frame.size.width + 10;
-      }
+//      for (NSWindow *window in self.childWindows) {
+//        p.x += window.frame.size.width + 10;
+//      }
       break;
   }
   [window setFrameOrigin:p];

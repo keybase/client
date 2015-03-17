@@ -23,9 +23,14 @@
   [super viewInit];
   self.backgroundColor = NSColor.whiteColor;
 
+  KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleSmall];
+  removeButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+    [self removeKey:completion];
+  };
+  [self addSubview:removeButton];
+
   _textView = [[KBLabel alloc] init];
   _textView.selectable = YES;
-  [self addSubview:_textView];
 
   _scrollView = [[KBScrollView alloc] init];
   [_scrollView setDocumentView:_textView];
@@ -36,6 +41,7 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, 0) view:yself.labels].size.height + 20;
+    y += [layout setFrame:CGRectMake(20, y, size.width - 40, 0) view:removeButton options:YOLayoutOptionsSizeToFit].size.height + 20;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(20, y, size.width - 40, size.height - y - 40) view:yself.scrollView].size.height;
     return CGSizeMake(size.width, y);
   }];
@@ -61,5 +67,15 @@
   [self setNeedsLayout];
 }
 
+- (void)removeKey:(KBButtonCompletion)completion {
+  [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
+    if (yes) {
+      KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
+      [mykey deletePrimary:completion];
+    } else {
+      completion(nil);
+    }
+  }];
+}
 
 @end

@@ -11,6 +11,7 @@ pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 pod "KBKeybase"#, :path => "~/Projects/KBKeybase"
 
 pod "YOLayout", :path => "~/Projects/YOLayout"
+pod "YOLayout/Box", :path => "~/Projects/YOLayout"
 
 pod "ZXCVBN"
 

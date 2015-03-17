@@ -71,11 +71,12 @@
     case KBButtonStyleLink:
     case KBButtonStyleCheckbox:
     case KBButtonStyleEmpty:
-      sizeThatFits.width += 2;
+      sizeThatFits.width += 4;
       sizeThatFits.height += 2;
       break;
 
     case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
       // Padding for non text style buttons
       sizeThatFits.height += 10;
       sizeThatFits.width += 20;
@@ -145,20 +146,27 @@
   [self setNeedsDisplay];
 }
 
-- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment {
   KBButtonCell *cell = [self _setCellForStyle:style];
-  [cell setMarkup:markup style:style alignment:alignment];
+  [cell setMarkup:markup style:style font:font alignment:alignment];
   [self setNeedsDisplay];
 }
+
+static KBButtonErrorHandler gErrorHandler = nil;
 
 - (void)_performTargetBlock {
   if (self.targetBlock) self.targetBlock();
   if (self.dispatchBlock) {
     self.enabled = NO;
     self.dispatchBlock(self, ^(NSError *error) {
+      if (error && gErrorHandler) gErrorHandler(self, error);
       self.enabled = YES;
     });
   }
+}
+
++ (void)setErrorHandler:(KBButtonErrorHandler)errorHandler {
+  gErrorHandler = errorHandler;
 }
 
 + (NSFont *)fontForStyle:(KBButtonStyle)style {
@@ -171,6 +179,7 @@
     case KBButtonStyleText:
     case KBButtonStyleCheckbox:
     case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
       return [KBAppearance.currentAppearance textFont];
 
     case KBButtonStyleEmpty:
@@ -179,6 +188,7 @@
 }
 
 @end
+
 
 @implementation KBButtonCell
 
@@ -193,8 +203,8 @@
   [self setAttributedTitle:[KBButton attributedText:text font:[KBButton fontForStyle:self.style] color:[KBAppearance.currentAppearance textColor] alignment:alignment lineBreakMode:lineBreakMode]];
 }
 
-- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment {
-  NSAttributedString *str = [KBLabel parseMarkup:markup font:[KBButton fontForStyle:style] color:nil alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment {
+  NSAttributedString *str = [KBLabel parseMarkup:markup font:font ? font : [KBButton fontForStyle:style] color:nil alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setAttributedTitle:str];
 }
 
@@ -203,6 +213,7 @@
   switch (self.style) {
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
       return GHNSColorFromRGB(0x333333);
 
     case KBButtonStylePrimary:
@@ -220,11 +231,14 @@
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
     case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
       return GHNSColorFromRGB(0xEFEFEF);
-    case KBButtonStyleLink: return nil;
-    case KBButtonStyleText: return nil;
-    case KBButtonStyleCheckbox: return nil;
-    case KBButtonStyleEmpty: return nil;
+
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleEmpty:
+      return nil;
   }
 }
 
@@ -233,11 +247,16 @@
     case KBButtonStyleEmpty:
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
       return GHNSColorFromRGB(0xCCCCCC);
-    case KBButtonStylePrimary: return GHNSColorFromRGB(0x286090);
-    case KBButtonStyleLink: return nil;
-    case KBButtonStyleText: return nil;
-    case KBButtonStyleCheckbox: return nil;
+
+    case KBButtonStylePrimary:
+      return GHNSColorFromRGB(0x286090);
+
+    case KBButtonStyleCheckbox:
+      return nil;
   }
 }
 
@@ -248,12 +267,16 @@
     case KBButtonStyleDefault:
     case KBButtonStyleEmpty:
     case KBButtonStyleToolbar:
-      return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : GHNSColorFromRGB(0xFFFFFF));
+    case KBButtonStyleSmall:
+      return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : [NSColor colorWithCalibratedWhite:0.99 alpha:1.0]);
 
-    case KBButtonStylePrimary: return self.highlighted ? GHNSColorFromRGB(0x286090) : KBAppearance.currentAppearance.selectColor; //GHNSColorFromRGB(0x337AB7);
-    case KBButtonStyleLink: return nil;
-    case KBButtonStyleText: return nil;
-    case KBButtonStyleCheckbox: return nil;
+    case KBButtonStylePrimary:
+      return self.highlighted ? GHNSColorFromRGB(0x286090) : KBAppearance.currentAppearance.selectColor; //GHNSColorFromRGB(0x337AB7);
+
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+      return nil;
   }
 }
 
@@ -266,6 +289,7 @@
     case KBButtonStyleCheckbox: return nil;
     case KBButtonStyleEmpty: return nil;
     case KBButtonStyleToolbar: return nil;
+    case KBButtonStyleSmall: return nil;
   }
 }
 
@@ -274,6 +298,7 @@
   switch (self.style) {
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
       return GHNSColorFromRGB(0xCCCCCC);
     case KBButtonStylePrimary:
       return GHNSColorFromRGB(0x2e6da4);
@@ -287,12 +312,16 @@
 }
 
 - (NSRect)drawTitle:(NSAttributedString *)title withFrame:(NSRect)frame inView:(NSView*)controlView {
-  // Cache this?
-  NSMutableAttributedString *titleCopy = [title mutableCopy];
   if (self.style != KBButtonStyleText) {
-    [titleCopy addAttribute:NSForegroundColorAttributeName value:self.textColorForState range:NSMakeRange(0, titleCopy.length)];
+    // Cache this?
+    NSMutableAttributedString *titleCopy = [title mutableCopy];
+    NSColor *color = self.textColorForState;
+    if (color) {
+      [titleCopy addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, titleCopy.length)];
+      title = titleCopy;
+    }
   }
-  return [super drawTitle:titleCopy withFrame:frame inView:controlView];
+  return [super drawTitle:title withFrame:frame inView:controlView];
 }
 
 - (void)drawBezelWithFrame:(NSRect)frame inView:(NSView *)controlView {

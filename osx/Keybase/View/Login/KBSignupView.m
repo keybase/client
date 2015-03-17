@@ -69,7 +69,7 @@
   _deviceNameField.textField.delegate = self;
   _deviceNameField.focusDelegate = self;
   _deviceNameField.attributes[@"title"] = @"Computer Name";
-  _deviceNameField.attributes[@"info"] = @"We'll register this install with this name. It'll help you identify it later if you have multiple installs. For example, \"Work\" or \"Home\" or \"Macbook\"";
+  _deviceNameField.attributes[@"info"] = @"We'll register this install with this name. It'll help you identify it later. For example, \"Work\" or \"Home\" or \"Macbook\".";
 
   //_deviceNameField.text = [[NSHost currentHost] localizedName];
   [self.contentView addSubview:_deviceNameField];
@@ -141,7 +141,9 @@
     y += 30;
 
     // TODO
-    [layout sizeToFitVerticalInFrame:CGRectMake(self.contentView.frame.origin.x + yself.popoverTarget.frame.origin.x + yself.popoverTarget.frame.size.width + 10, self.contentView.frame.origin.y + yself.popoverTarget.frame.origin.y - 20, (self.frame.size.width - size.width)/2.0, 0) view:yself.popover];
+    if (yself.popoverTarget) {
+      [layout sizeToFitVerticalInFrame:CGRectMake(self.contentView.frame.origin.x + yself.popoverTarget.frame.origin.x + yself.popoverTarget.frame.size.width + 10, self.contentView.frame.origin.y + yself.popoverTarget.frame.origin.y - 20, (self.frame.size.width - size.width)/2.0, 0) view:yself.popover];
+    }
 
     return CGSizeMake(MIN(380, size.width), y);
   }];
@@ -166,8 +168,8 @@
     [_popover setText:textField.attributes[@"info"] title:textField.attributes[@"title"]];
     _popoverTarget = textField;
     [_popover removeFromSuperview];
+    [self layoutView]; // Force immediate layout
     [self addSubview:_popover positioned:NSWindowAbove relativeTo:nil];
-    [self setNeedsLayout];
   } else if (textField == _focusedField) {
     [_popover removeFromSuperview];
     _popoverTarget = nil;

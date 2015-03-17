@@ -8,8 +8,6 @@
 
 #import "KBBorder.h"
 
-#import <Quartz/Quartz.h>
-
 @interface KBBorder ()
 @property CAShapeLayer *shapeLayer;
 @property CGSize pathSize;
@@ -22,9 +20,13 @@
     _borderType = KBBorderTypeLeft | KBBorderTypeTop | KBBorderTypeRight | KBBorderTypeBottom;
     _shapeLayer = [[CAShapeLayer alloc] init];
     _shapeLayer.fillColor = nil;
-    _shapeLayer.lineJoin = kCALineJoinRound;
+    _shapeLayer.lineJoin = kCALineCapRound;
     _shapeLayer.needsDisplayOnBoundsChange = YES;
     self.layer = _shapeLayer;
+
+    // TODO: Support subviews
+    //self.wantsLayer = YES;
+    //[self.layer addSublayer:_shapeLayer];
 
     self.width = 1.0;
     self.color = NSColor.blackColor;
@@ -34,11 +36,11 @@
 
 - (BOOL)isFlipped { return YES; }
 
-- (void)_boundsChange {
+- (void)_updatePath {
   // TODO There must be a simpler way?
   BOOL dirty = (_pathSize.width == 0 || _pathSize.width != self.bounds.size.width || _pathSize.height != self.bounds.size.height);
   if (!dirty) return;
-  CGPathRef path = KBCreatePath(self.bounds, _borderType, self.width);
+  CGPathRef path = KBCreatePath(self.bounds, _borderType, self.width, self.shapeLayer.cornerRadius);
   [_shapeLayer setPath:path];
   _shapeLayer.bounds = self.bounds;
   CGPathRelease(path);
@@ -47,7 +49,7 @@
 
 - (void)setFrame:(NSRect)frame {
   [super setFrame:frame];
-  [self _boundsChange];
+  [self _updatePath];
 }
 
 - (UIEdgeInsets)insets {
@@ -77,6 +79,16 @@
   return [NSColor colorWithCGColor:_shapeLayer.strokeColor];
 }
 
+- (void)setCornerRadius:(CGFloat)cornerRadius {
+  _shapeLayer.cornerRadius = cornerRadius;
+  [self _updatePath];
+  [_shapeLayer setNeedsDisplay];
+}
+
+- (CGFloat)cornerRadius {
+  return _shapeLayer.cornerRadius;
+}
+
 - (CGSize)sizeThatFits:(CGSize)size { return size; }
 
 //- (void)drawRect:(NSRect)rect {
@@ -94,8 +106,14 @@
 @end
 
 
-CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth) {
-  //CGFloat cornerWidth = cornerRadius, cornerHeight = cornerRadius;
+CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth, CGFloat cornerRadius) {
+
+  if (cornerRadius > 0) {
+    NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:cornerRadius yRadius:cornerRadius];
+    [path setLineWidth:strokeWidth];
+    return [path quartzPath];
+  }
+
   CGFloat strokeInset = strokeWidth/2.0f;
 
   // Need to adjust path rect to inset (since the stroke is drawn from the middle of the path)
@@ -123,14 +141,8 @@ CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth
 
   CGAffineTransform transform = CGAffineTransformIdentity;
   transform = CGAffineTransformTranslate(transform, CGRectGetMinX(rect), CGRectGetMinY(rect));
-  CGFloat fw, fh;
-//  if (cornerWidth > 0 && cornerHeight > 0) {
-//    transform = CGAffineTransformScale(transform, cornerWidth, cornerHeight);
-//    fw = CGRectGetWidth(rect) / cornerWidth;
-//    fh = CGRectGetHeight(rect) / cornerHeight;
-//  } else {
-  fw = CGRectGetWidth(rect);
-  fh = CGRectGetHeight(rect);
+  CGFloat fw = CGRectGetWidth(rect);
+  CGFloat fh = CGRectGetHeight(rect);
 
   CGMutablePathRef path = CGPathCreateMutable();
 
@@ -159,32 +171,47 @@ CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth
     CGPathMoveToPoint(path, &transform, 0, fh);
   }
 
-  /*
-  BOOL started = NO;
-  if ((borderType & KBBorderTypeLeft) != 0) {
-    if (!started) CGPathMoveToPoint(path, &transform, 0, fh);
-    started = YES;
-    CGPathAddLineToPoint(path, &transform, 0, 0);
-  } else if (started) return path;
+  return path;
+}
 
-  if ((borderType & KBBorderTypeTop) != 0) {
-    if (!started) CGPathMoveToPoint(path, &transform, 0, 0);
-    started = YES;
-    CGPathAddLineToPoint(path, &transform, fw, 0);
-  } else if (started) return path;
+@implementation NSBezierPath (KBBorder)
 
-  if ((borderType & KBBorderTypeRight) != 0) {
-    if (!started) CGPathMoveToPoint(path, &transform, fw, 0);
-    started = YES;
-    CGPathAddLineToPoint(path, &transform, fw, fh);
-  } else if (started) return path;
+- (CGPathRef)quartzPath {
+  if (self.elementCount == 0) return NULL;
 
-  if ((borderType & KBBorderTypeBottom) != 0) {
-    if (!started) CGPathMoveToPoint(path, &transform, fw, fh);
-    started = YES;
-    CGPathAddLineToPoint(path, &transform, fw, 0);
-  } else if (started) return path;
-   */
+  CGMutablePathRef path = CGPathCreateMutable();
+  NSPoint points[3];
+  BOOL didClosePath = YES;
+
+  for (NSInteger i = 0; i < self.elementCount; i++) {
+    switch ([self elementAtIndex:i associatedPoints:points]) {
+      case NSMoveToBezierPathElement:
+        CGPathMoveToPoint(path, NULL, points[0].x, points[0].y);
+        break;
+
+      case NSLineToBezierPathElement:
+        CGPathAddLineToPoint(path, NULL, points[0].x, points[0].y);
+        didClosePath = NO;
+        break;
+
+      case NSCurveToBezierPathElement:
+        CGPathAddCurveToPoint(path, NULL, points[0].x, points[0].y,
+                              points[1].x, points[1].y,
+                              points[2].x, points[2].y);
+        didClosePath = NO;
+        break;
+
+      case NSClosePathBezierPathElement:
+        CGPathCloseSubpath(path);
+        didClosePath = YES;
+        break;
+    }
+  }
+
+  if (!didClosePath) {
+    CGPathCloseSubpath(path);
+  }
 
   return path;
 }
+@end

@@ -35,6 +35,8 @@
 		001FCDE91AB2035C004486D3 /* KBViews.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDE71AB2035C004486D3 /* KBViews.m */; };
 		001FCDEC1AB21F5E004486D3 /* KBBorder.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDEB1AB21F5E004486D3 /* KBBorder.m */; };
 		001FCDED1AB21F5E004486D3 /* KBBorder.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDEB1AB21F5E004486D3 /* KBBorder.m */; };
+		002535371AB77D2D00583913 /* KBKeyImportView.m in Sources */ = {isa = PBXBuildFile; fileRef = 002535361AB77D2D00583913 /* KBKeyImportView.m */; };
+		002535381AB77D2D00583913 /* KBKeyImportView.m in Sources */ = {isa = PBXBuildFile; fileRef = 002535361AB77D2D00583913 /* KBKeyImportView.m */; };
 		003BAAB91A8042C700C309B9 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003BAAB81A8042C700C309B9 /* KBStyleGuideView.m */; };
 		003BAABA1A8042C700C309B9 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003BAAB81A8042C700C309B9 /* KBStyleGuideView.m */; };
 		004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
@@ -248,6 +250,8 @@
 		001FCDE71AB2035C004486D3 /* KBViews.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBViews.m; sourceTree = "<group>"; };
 		001FCDEA1AB21F5E004486D3 /* KBBorder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBBorder.h; sourceTree = "<group>"; };
 		001FCDEB1AB21F5E004486D3 /* KBBorder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBBorder.m; sourceTree = "<group>"; };
+		002535351AB77D2D00583913 /* KBKeyImportView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyImportView.h; sourceTree = "<group>"; };
+		002535361AB77D2D00583913 /* KBKeyImportView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyImportView.m; sourceTree = "<group>"; };
 		003BAAB71A8042C700C309B9 /* KBStyleGuideView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStyleGuideView.h; sourceTree = "<group>"; };
 		003BAAB81A8042C700C309B9 /* KBStyleGuideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStyleGuideView.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
@@ -797,6 +801,8 @@
 				00DD246F1AAA4C0300371CDA /* KBErrorView.m */,
 				00A16C311AB38785003EF505 /* KBHeaderLabelView.h */,
 				00A16C321AB38785003EF505 /* KBHeaderLabelView.m */,
+				002535351AB77D2D00583913 /* KBKeyImportView.h */,
+				002535361AB77D2D00583913 /* KBKeyImportView.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1081,6 +1087,7 @@
 				00FDC8271AABB17D00D6C571 /* KBConsoleView.m in Sources */,
 				001FCDE81AB2035C004486D3 /* KBViews.m in Sources */,
 				00566A1F1A97DA1800CA236E /* KBProgressOverlayView.m in Sources */,
+				002535371AB77D2D00583913 /* KBKeyImportView.m in Sources */,
 				00566A511A9BAA7500CA236E /* KBInstaller.m in Sources */,
 				00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */,
 				00D52F631A6F4D1E00DEB5F5 /* KBRUtils.m in Sources */,
@@ -1201,6 +1208,7 @@
 				00D52F641A6F4D1E00DEB5F5 /* KBRUtils.m in Sources */,
 				00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */,
 				00566A201A97DA1800CA236E /* KBProgressOverlayView.m in Sources */,
+				002535381AB77D2D00583913 /* KBKeyImportView.m in Sources */,
 				006D57241AAE2D4900D16CB8 /* KBFolderListView.m in Sources */,
 				00C7DD521AA6747B00F57AFC /* KBUserStatusView.m in Sources */,
 				00D306A81AB0E3BF00F69B18 /* KBSegmentedControl.m in Sources */,

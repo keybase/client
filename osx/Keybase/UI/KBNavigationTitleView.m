@@ -10,6 +10,7 @@
 #import "KBLabel.h"
 #import "KBBox.h"
 #import "KBActivityIndicatorView.h"
+#import "KBAppearance.h"
 #import <GHKit/GHKit.h>
 
 @interface KBNavigationTitleView ()
@@ -102,7 +103,7 @@
 
 - (void)setTitle:(NSString *)title {
   _title = title;
-  [_label setText:title font:[NSFont systemFontOfSize:18] color:[NSColor colorWithWhite:0.2 alpha:1.0] alignment:NSCenterTextAlignment];
+  [_label setText:title font:KBAppearance.currentAppearance.headerTextFont color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment];
   [self setNeedsLayout];
 }
 

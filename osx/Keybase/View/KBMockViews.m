@@ -20,6 +20,7 @@
 #import "KBAppKit.h"
 #import "KBDevicePromptView.h"
 #import "KBProgressView.h"
+#import "KBKeyImportView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -47,9 +48,13 @@
   [contentView addSubview:[KBButton linkWithText:@"App" targetBlock:^{ [self showAppView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Signup" targetBlock:^{ [self showSignup]; }]];
+
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" targetBlock:^{ [self showDeviceSetupView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" targetBlock:^{ [self showDevicePrompt]; }]];
+
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
+
   [contentView addSubview:[KBButton linkWithText:@"Progress" targetBlock:^{ [self showProgressView:1 error:NO]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Progress (error)" targetBlock:^{ [self showProgressView:0 error:YES]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
@@ -104,7 +109,7 @@
 
     }];
   } else if ([type isEqualTo:@"yes_no"]) {
-    [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^{
+    [KBAlert yesNoWithTitle:@"Are you a hipster?" description:@"Flexitarian biodiesel locavore fingerstache. Craft beer brunch fashion axe bicycle rights, plaid messenger bag?" yes:@"Beer Me" view:self completion:^(BOOL yes) {
       // Yes
     }];
   } else if ([type isEqualTo:@"input"]) {
@@ -135,9 +140,14 @@
   selectView.selectButton.targetBlock = ^{
     GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
   };
-  GHWeakSelf gself = self;
-  selectView.cancelButton.targetBlock = ^{ [[gself window] close]; };
+  selectView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select PGP Key"];
+}
+
+- (void)showImportKey {
+  KBKeyImportView *keyImportView = [[KBKeyImportView alloc] init];
+  keyImportView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
+  [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:@"Import a Key"];
 }
 
 - (void)showStyleGuide {
@@ -195,8 +205,7 @@
 
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
   [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
-  GHWeakSelf gself = self;
-  deviceSetupView.cancelButton.targetBlock = ^{ [[gself window] close]; };
+  deviceSetupView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
 }
 

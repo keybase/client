@@ -10,8 +10,9 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
+#import "KBContentView.h"
 
-@interface KBKeyView : KBView
+@interface KBKeyView : KBContentView
 
 - (void)setKey:(KBRFOKID *)key;
 

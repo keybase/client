@@ -12,6 +12,7 @@
 @class KBButton;
 
 typedef void (^KBButtonCompletion)(NSError *error);
+typedef void (^KBButtonErrorHandler)(KBButton *button, NSError *error);
 typedef void (^KBButtonDispatchBlock)(KBButton *button, KBButtonCompletion completion);
 
 typedef NS_ENUM (NSInteger, KBButtonStyle) {
@@ -22,6 +23,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleText,
   KBButtonStyleEmpty,
   KBButtonStyleToolbar,
+  KBButtonStyleSmall,
 };
 
 @interface KBButton : NSButton
@@ -44,9 +46,11 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment;
 
 - (void)setAttributedTitle:(NSAttributedString *)attributedTitle style:(KBButtonStyle)style;
+
++ (void)setErrorHandler:(KBButtonErrorHandler)errorHandler;
 
 @end
 
@@ -56,7 +60,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 - (void)setText:(NSString *)text alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment;
+- (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment;
 
 @end
 

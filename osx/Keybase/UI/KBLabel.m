@@ -117,11 +117,6 @@
   [self setNeedsLayout];
 }
 
-- (NSView *)hitTest:(NSPoint)point {
-  // TODO call super if selectable?
-  return _textView.selectable ? _textView : nil;
-}
-
 - (void)setBackgroundColor:(NSColor *)backgroundColor {
   _textView.backgroundColor = backgroundColor;
 }
@@ -196,7 +191,10 @@
                           //@"h4": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 4]},
                           @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
                           @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
-                          @"a": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor},
+                          @"a": @{
+                              NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor,
+                              NSCursorAttributeName: NSCursor.pointingHandCursor
+                              },
                           @"ok": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.okColor},
                           @"error": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.errorColor},
                           @"thin": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Thin" size:font.pointSize]},

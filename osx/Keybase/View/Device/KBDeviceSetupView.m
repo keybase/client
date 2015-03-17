@@ -41,17 +41,17 @@
   [self.contentView addSubview:_deviceSignerView];
 
   YONSView *bottomView = [[YONSView alloc] init];
-  _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
-  [bottomView addSubview:_selectButton];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [bottomView addSubview:_cancelButton];
+  _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
+  [bottomView addSubview:_selectButton];
   [self.contentView addSubview:bottomView];
 
   YOSelf yself = self;
   bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 280, 0, 130, 0) view:yself.selectButton].size.height;
-    [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 130, 0, 130, 0) view:yself.cancelButton];
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 280, 0, 130, 0) view:yself.cancelButton].size.height;
+    [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 130, 0, 130, 0) view:yself.selectButton];
     return CGSizeMake(size.width, y);
   }];
 

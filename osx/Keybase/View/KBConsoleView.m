@@ -32,10 +32,9 @@
 
   YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @[@(0), @(0), @(10), @(0)]}];
   GHWeakSelf gself = self;
-  _checkButton = [KBButton buttonWithText:@"Check" style:KBButtonStyleToolbar];
+  _checkButton = [KBButton buttonWithText:@"Check" style:KBButtonStyleSmall];
   _checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
-      if (error) [gself logError:error];
       [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
         [gself log:NSStringWithFormat(@"keybased: %@", @(pid))];
         completion(error);
@@ -44,11 +43,10 @@
   };
   [buttons addSubview:_checkButton];
 
-  _restartButton = [KBButton buttonWithText:@"Restart keybased" style:KBButtonStyleToolbar];
+  _restartButton = [KBButton buttonWithText:@"Restart keybased" style:KBButtonStyleSmall];
   _restartButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself log:@"Restarting keybased..."];
     [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
-      if (error) [gself logError:error];
       [gself log:NSStringWithFormat(@"keybased: %@", @(pid))];
       completion(error);
     }];

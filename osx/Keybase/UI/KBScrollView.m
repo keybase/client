@@ -35,6 +35,7 @@
 
 - (void)setDocumentView:(NSView *)documentView {
   [_scrollView setDocumentView:documentView];
+  [self setNeedsLayout];
 }
 
 @end

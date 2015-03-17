@@ -23,6 +23,7 @@
 #import "KBPGPKeyGenView.h"
 #import "KBProgressView.h"
 #import "KBKeyView.h"
+#import "KBKeyImportView.h"
 
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
@@ -233,8 +234,6 @@
           [gself addPGPKey];
         }];
       }
-      // TODO
-      //[gself removePGPKey];
 
       for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
         KBProveType proveType = [proveTypeNumber integerValue];
@@ -293,7 +292,7 @@
       if (response == 2) {
         [self selectGPGKey];
       } else if (response == 1) {
-        // TODO
+        [self importKey];
       } else if (response == 3) {
         [self generatePGPKey];
       }
@@ -301,24 +300,12 @@
   }];
 }
 
-- (void)removePGPKey {
-  [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^{
-    KBProgressView *progressView = [[KBProgressView alloc] init];
-    [progressView setProgressTitle:@"Deleting"];
-    progressView.work = ^(KBCompletionBlock completion) {
-      KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
-      [mykey deletePrimary:^(NSError *error) {
-        completion(error);
-      }];
-    };
-    [progressView openAndDoIt:self];
-  }];
-}
-
 - (void)openKey:(KBRFOKID *)key {
   KBKeyView *keyView = [[KBKeyView alloc] init];
+  keyView.client = self.client;
   [keyView setKey:key];
-  [self.window addChildWindowForView:keyView size:CGSizeMake(500, 400) position:KBWindowPositionCenter title:@"Key"];
+  //[self.window addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key"];
+  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:keyView title:@"Select a Key"] size:CGSizeMake(500, 400) sender:self];
 }
 
 - (void)generatePGPKey {
@@ -363,6 +350,14 @@
     completion(error, result);
   }];
   selectView.cancelButton.targetBlock = ^{ close(); };
+}
+
+- (void)importKey {
+  KBKeyImportView *importView = [[KBKeyImportView alloc] init];
+  importView.client = self.client;
+
+  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:importView title:@"Import a Key"] size:CGSizeMake(600, 400) sender:self];
+  importView.cancelButton.targetBlock = ^{ close(); };
 }
 
 @end

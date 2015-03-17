@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import <YOLayout/YOLayout.h>
-#import <CoreGraphics/CoreGraphics.h>
+#import <Quartz/Quartz.h>
 
 typedef NS_ENUM (NSInteger, KBBorderType) {
   KBBorderTypeTop = 1 << 0,
@@ -21,11 +21,19 @@ typedef NS_ENUM (NSInteger, KBBorderType) {
 @interface KBBorder : NSView
 
 @property KBBorderType borderType;
-@property (nonatomic) NSColor *color;
-@property (nonatomic) CGFloat width;
+
+@property (nonatomic) NSColor *color; // Alias for shapeLayer.strokeColor
+@property (nonatomic) CGFloat width; // Alias for shapeLayer.lineWidth
+@property (nonatomic) CGFloat cornerRadius; // Alias for shapeLayer.cornerRadius
+
+@property (readonly) CAShapeLayer *shapeLayer;
 
 - (UIEdgeInsets)insets;
 
 @end
 
-CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth);
+CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth, CGFloat cornerRadius);
+
+@interface NSBezierPath (KBBorder)
+- (CGPathRef)quartzPath;
+@end

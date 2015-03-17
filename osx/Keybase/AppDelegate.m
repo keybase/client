@@ -41,13 +41,11 @@
   KBWindow *window = [_appView openWindow];
 
   _consoleView = [[KBConsoleView alloc] init];
-  [window addChildWindowForView:_consoleView size:CGSizeMake(400, 400) position:KBWindowPositionRight title:@"Console"];
+  [window addChildWindowForView:_consoleView rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionRight title:@"Console"];
   _appView.delegate = _consoleView;
 
-#ifdef DEBUG
   _mockViews = [[KBMockViews alloc] init];
-  [window addChildWindowForView:_mockViews size:CGSizeMake(400, 300) position:KBWindowPositionRight title:@"Mocks"];
-#endif
+  [window addChildWindowForView:_mockViews rect:CGRectMake(0, -510, 400, 500) position:KBWindowPositionRight title:@"Mocks"];
 
   KBRPClient *client = [[KBRPClient alloc] init];
   [_appView connect:client];
@@ -123,7 +121,7 @@
 - (void)setFatalError:(NSError *)error {
   KBFatalErrorView *fatalErrorView = [[KBFatalErrorView alloc] init];
   [fatalErrorView setError:error];
-  [self.appView.window addChildWindowForView:fatalErrorView size:CGSizeMake(510, 400) position:KBWindowPositionCenter title:@"Keybase"];
+  [self.appView.window addChildWindowForView:fatalErrorView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Keybase"];
 }
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {

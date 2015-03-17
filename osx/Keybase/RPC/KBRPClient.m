@@ -40,7 +40,7 @@
     self.defaultSocketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
     self.socketPath = self.defaultSocketPath;
 #ifdef DEBUG
-    //self.socketPath = @"/tmp/keybase-debug.sock";
+    self.socketPath = @"/tmp/keybase-debug.sock";
 #endif
 
     _installer = [[KBInstaller alloc] init];

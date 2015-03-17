@@ -25,6 +25,6 @@ typedef NS_ENUM (NSInteger, KBWindowPosition) {
 
 @interface NSWindow (KBWindow)
 
-- (void)addChildWindowForView:(NSView *)view size:(CGSize)size position:(KBWindowPosition)position title:(NSString *)title;
+- (void)addChildWindowForView:(NSView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title;
 
 @end

@@ -124,7 +124,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   //return [NSColor colorWithCalibratedRed:231.0/255.0 green:239.0/255.0 blue:255.0/255.0 alpha:1.0];
 }
 
-#define BASE_FONT_SIZE (13)
+#define BASE_FONT_SIZE (14)
 
 - (NSFont *)textFont {
   return [NSFont systemFontOfSize:BASE_FONT_SIZE];
@@ -143,7 +143,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSFont *)headerTextFont {
-  return [NSFont systemFontOfSize:BASE_FONT_SIZE+8];
+  return [NSFont systemFontOfSize:BASE_FONT_SIZE+5];
 }
 
 - (NSFont *)buttonFont {

@@ -30,11 +30,12 @@
 //  _pushCheckbox = [KBButton buttonWithText:@"Push encrypted copy to Keybase.io?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 //  [footerView addSubview:_pushCheckbox];
 
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+  [footerView addSubview:_cancelButton];
+
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
   [footerView addSubview:_selectButton];
 
-  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  [footerView addSubview:_cancelButton];
   YOSelf yself = self;
   footerView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGSize footerSize = [yself.selectButton sizeThatFits:size];
