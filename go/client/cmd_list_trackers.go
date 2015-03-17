@@ -50,7 +50,7 @@ func (c *CmdListTrackers) Run() error {
 	} else if len(c.username) > 0 {
 		eng = engine.NewListTrackersByName(c.username)
 	} else {
-		return fmt.Errorf("need uid or username")
+		eng = engine.NewListTrackersSelf()
 	}
 
 	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
@@ -110,6 +110,8 @@ func (c *CmdListTrackers) RunClient() error {
 		trs, err = cli.ListTrackers(keybase_1.ListTrackersArg{Uid: c.uid.Export()})
 	} else if len(c.username) > 0 {
 		trs, err = cli.ListTrackersByName(keybase_1.ListTrackersByNameArg{Username: c.username})
+	} else {
+		trs, err = cli.ListTrackersSelf(0)
 	}
 	if err != nil {
 		return err
@@ -187,13 +189,6 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 		}
 	}
 
-	if len(c.username) == 0 && c.uid == nil {
-		// nothing specified, so use current user
-		c.uid = G.GetMyUID()
-		if c.uid == nil {
-			return libkb.NoUserConfigError{}
-		}
-	}
 	return nil
 }
 

@@ -788,6 +788,18 @@
   }];
 }
 
+- (void)listTrackersSelfWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.listTrackersSelf" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRTracker.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
+
 - (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion {
   NSArray *params = @[@{@"uids": KBRValue(uids)}];
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUncheckedUserSummaries" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -1548,6 +1560,17 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRListTrackersSelfRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }

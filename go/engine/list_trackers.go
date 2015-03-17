@@ -14,15 +14,19 @@ type ListTrackersEngine struct {
 	libkb.Contextified
 }
 
-// NewTrackerList creates a TrackerList engine for uid.
+// NewListTrackers creates a TrackerList engine for uid.
 func NewListTrackers(uid *libkb.UID) *ListTrackersEngine {
 	return &ListTrackersEngine{uid: uid}
 }
 
-// NewTrackerListUsername creates a TrackerList engine that will
+// NewListTrackersByName creates a TrackerList engine that will
 // do a lookup by username.
 func NewListTrackersByName(username string) *ListTrackersEngine {
 	return &ListTrackersEngine{username: username}
+}
+
+func NewListTrackersSelf() *ListTrackersEngine {
+	return &ListTrackersEngine{}
 }
 
 // Name is the unique engine name.
@@ -32,7 +36,11 @@ func (e *ListTrackersEngine) Name() string {
 
 // GetPrereqs returns the engine prereqs (none).
 func (e *ListTrackersEngine) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+	session := false
+	if e.uid == nil && len(e.username) == 0 {
+		session = true
+	}
+	return EnginePrereqs{Session: session}
 }
 
 // RequiredUIs returns the required UIs.

@@ -563,6 +563,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 - (void)listTrackersByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion;
 
+- (void)listTrackersSelfWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
+
 - (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
@@ -831,6 +833,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRListTrackersByNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
+@end
+@interface KBRListTrackersSelfRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
 @property NSArray *uids;

@@ -1935,6 +1935,10 @@ type ListTrackersByNameArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type ListTrackersSelfArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LoadUncheckedUserSummariesArg struct {
 	Uids []UID `codec:"uids" json:"uids"`
 }
@@ -1951,6 +1955,7 @@ type ListTrackingJsonArg struct {
 type UserInterface interface {
 	ListTrackers(ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
+	ListTrackersSelf(int) ([]Tracker, error)
 	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
 	ListTracking(string) ([]UserSummary, error)
 	ListTrackingJson(ListTrackingJsonArg) (string, error)
@@ -1971,6 +1976,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]ListTrackersByNameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTrackersByName(args[0])
+				}
+				return
+			},
+			"listTrackersSelf": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ListTrackersSelfArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.ListTrackersSelf(args[0].SessionID)
 				}
 				return
 			},
@@ -2011,6 +2023,12 @@ func (c UserClient) ListTrackers(__arg ListTrackersArg) (res []Tracker, err erro
 
 func (c UserClient) ListTrackersByName(__arg ListTrackersByNameArg) (res []Tracker, err error) {
 	err = c.Cli.Call("keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTrackersSelf(sessionID int) (res []Tracker, err error) {
+	__arg := ListTrackersSelfArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.user.listTrackersSelf", []interface{}{__arg}, &res)
 	return
 }
 

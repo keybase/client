@@ -24,10 +24,17 @@ func (h *UserHandler) ListTrackers(arg keybase_1.ListTrackersArg) ([]keybase_1.T
 	return h.listTrackers(eng)
 }
 
-// TrackerListByName gets the list of trackers for a user by
+// ListTrackersByName gets the list of trackers for a user by
 // username.
 func (h *UserHandler) ListTrackersByName(arg keybase_1.ListTrackersByNameArg) ([]keybase_1.Tracker, error) {
 	eng := engine.NewListTrackersByName(arg.Username)
+	return h.listTrackers(eng)
+}
+
+// ListTrackersSelf gets the list of trackers for the logged in
+// user.
+func (h *UserHandler) ListTrackersSelf(sessionID int) ([]keybase_1.Tracker, error) {
+	eng := engine.NewListTrackersSelf()
 	return h.listTrackers(eng)
 }
 

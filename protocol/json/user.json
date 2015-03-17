@@ -263,6 +263,16 @@
         "items" : "Tracker"
       }
     },
+    "listTrackersSelf" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "Tracker"
+      }
+    },
     "loadUncheckedUserSummaries" : {
       "request" : [ {
         "name" : "uids",
