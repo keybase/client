@@ -114,7 +114,5 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		recipients = append(recipients, up.Keys...)
 	}
 
-	//	encrypter := NewPGPEncrypt(arg)
-	//	return RunEngine(encrypter, ctx, nil, nil)
 	return libkb.PGPEncrypt(e.arg.Source, writer, signer, recipients)
 }
