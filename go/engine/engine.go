@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -23,7 +24,12 @@ func runPrereqs(e Engine) (err error) {
 		var ok bool
 		ok, err = G.Session.LoadAndCheck()
 		if !ok {
-			err = libkb.LoginRequiredError{}
+			urlError, isUrlError := err.(*url.Error)
+			context := ""
+			if isUrlError {
+				context = fmt.Sprintf("Encountered a network error: %s", urlError.Err)
+			}
+			err = libkb.LoginRequiredError{Context: context}
 		}
 		if err != nil {
 			return err
