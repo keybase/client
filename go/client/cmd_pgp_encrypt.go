@@ -94,7 +94,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		SecretUI:   G.UI.GetSecretUI(),
 	}
 	eng := engine.NewPGPEncrypt(arg)
-	err := engine.RunEngine(eng, ctx, nil, nil)
+	err := engine.RunEngine(eng, ctx)
 
 	c.Close(err)
 	return err

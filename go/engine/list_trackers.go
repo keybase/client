@@ -54,7 +54,7 @@ func (e *ListTrackersEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *ListTrackersEngine) Run(ctx *Context, args, reply interface{}) error {
+func (e *ListTrackersEngine) Run(ctx *Context) error {
 	if err := e.ensureUID(); err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ func (d *DetKeyEngine) SubConsumers() []libkb.UIConsumer {
 func (e *DetKeyEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 // Run runs the detkey engine.
-func (d *DetKeyEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
+func (d *DetKeyEngine) Run(ctx *Context) error {
 	if err := d.eddsa(d.arg.Tsp); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)
 	}

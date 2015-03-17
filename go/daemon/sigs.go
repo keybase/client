@@ -57,7 +57,7 @@ func (h *SigsHandler) run(args keybase_1.SigListArgs) (*engine.SigsList, error) 
 		ea.Types = t
 	}
 	eng := engine.NewSigsList(ea)
-	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
 	return eng, nil

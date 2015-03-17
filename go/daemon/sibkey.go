@@ -20,5 +20,5 @@ func (h *SibkeyHandler) Add(phrase string) error {
 	sessionID := nextSessionId()
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID)}
 	eng := engine.NewKexSib(G, phrase)
-	return engine.RunEngine(eng, ctx, nil, nil)
+	return engine.RunEngine(eng, ctx)
 }

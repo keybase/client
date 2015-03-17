@@ -49,7 +49,7 @@ func (c *CmdSibkeyAdd) RunClient() error {
 func (c *CmdSibkeyAdd) Run() error {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI()}
 	eng := engine.NewKexSib(G, c.phrase)
-	return engine.RunEngine(eng, ctx, nil, nil)
+	return engine.RunEngine(eng, ctx)
 }
 
 // ParseArgv gets the secret phrase from the command args.

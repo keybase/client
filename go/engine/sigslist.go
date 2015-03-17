@@ -54,7 +54,7 @@ func (e *SigsList) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *SigsList) Run(ctx *Context, args, reply interface{}) error {
+func (e *SigsList) Run(ctx *Context) error {
 	arg := libkb.LoadUserArg{AllKeys: e.AllKeys}
 	if len(e.Username) > 0 {
 		arg.Name = e.Username

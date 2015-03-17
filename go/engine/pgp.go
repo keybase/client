@@ -98,7 +98,7 @@ func (s *PGPEngine) testExisting() (err error) {
 
 }
 
-func (s *PGPEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+func (s *PGPEngine) Run(ctx *Context) (err error) {
 	G.Log.Debug("+ PGPEngine::Run")
 	defer func() {
 		G.Log.Debug("- PGPEngine::Run -> %s", libkb.ErrToOk(err))

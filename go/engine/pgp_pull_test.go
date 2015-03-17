@@ -59,7 +59,7 @@ func runPgpPull(t *testing.T, arg PGPPullEngineArg) {
 	ctx := Context{
 		LogUI: G.UI.GetLogUI(),
 	}
-	err := RunEngine(eng, &ctx, nil, nil)
+	err := RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal("Error in PGPPullEngine:", err)
 	}
@@ -70,7 +70,7 @@ func runPgpPullExpectingError(t *testing.T, arg PGPPullEngineArg) {
 	ctx := Context{
 		LogUI: G.UI.GetLogUI(),
 	}
-	err := RunEngine(eng, &ctx, nil, nil)
+	err := RunEngine(eng, &ctx)
 	if err == nil {
 		t.Fatal("PGPPullEngine should have failed.")
 	}

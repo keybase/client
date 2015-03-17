@@ -87,7 +87,7 @@ func (v *CmdTrack) Run() error {
 		SecretUI:   G_UI.GetSecretUI(),
 		IdentifyUI: G_UI.GetIdentifyTrackUI(true),
 	}
-	return engine.RunEngine(eng, &ctx, nil, nil)
+	return engine.RunEngine(eng, &ctx)
 }
 
 func (v *CmdTrack) GetUsage() libkb.Usage {

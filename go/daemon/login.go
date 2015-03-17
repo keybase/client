@@ -47,7 +47,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		liarg.Login.SecretUI = h.getSecretUI(sessid)
 	}
 
-	li := engine.NewLoginEngine()
+	li := engine.NewLoginEngine(&liarg)
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessid),
 		DoctorUI: h.getDoctorUI(sessid),
@@ -55,7 +55,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		LoginUI:  h.getLoginUI(sessid),
 		GPGUI:    NewRemoteGPGUI(sessid, h.getRpcClient()),
 	}
-	return engine.RunEngine(li, ctx, liarg, nil)
+	return engine.RunEngine(li, ctx)
 }
 
 func (h *LoginHandler) PubkeyLogin() error {

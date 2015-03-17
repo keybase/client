@@ -34,7 +34,7 @@ func (d *DevList) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (d *DevList) Run(ctx *Context, args, reply interface{}) error {
+func (d *DevList) Run(ctx *Context) error {
 	u, err := libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return err

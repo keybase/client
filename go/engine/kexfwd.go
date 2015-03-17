@@ -56,7 +56,7 @@ func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (k *KexFwd) Run(ctx *Context, args, reply interface{}) error {
+func (k *KexFwd) Run(ctx *Context) error {
 	k.SetGlobalContext(ctx.GlobalContext)
 
 	k.G().Log.Debug("KexFwd: run starting")

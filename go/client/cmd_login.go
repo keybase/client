@@ -41,7 +41,6 @@ func (v *CmdLogin) RunClient() (err error) {
 }
 
 func (v *CmdLogin) Run() error {
-	li := engine.NewLoginEngine()
 	ctx := &engine.Context{
 		LogUI:         G.UI.GetLogUI(),
 		LoginUI:       G.UI.GetLoginUI(),
@@ -57,7 +56,8 @@ func (v *CmdLogin) Run() error {
 			Username: v.Username,
 		},
 	}
-	return engine.RunEngine(li, ctx, arg, nil)
+	li := engine.NewLoginEngine(&arg)
+	return engine.RunEngine(li, ctx)
 }
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {

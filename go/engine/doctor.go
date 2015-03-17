@@ -36,7 +36,7 @@ func (d *Doctor) RequiredUIs() []libkb.UIKind {
 
 func (d *Doctor) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewDeviceEngine(nil),
+		NewDeviceEngine(nil, nil),
 		NewDetKeyEngine(nil),
 	}
 }
@@ -137,12 +137,12 @@ func (d *Doctor) addDeviceKey(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	eng := NewDeviceEngine(d.user)
 	args := DeviceEngineArgs{
 		Name:          devname,
 		LksClientHalf: tk.LksClientHalf(),
 	}
-	if err := RunEngine(eng, ctx, args, nil); err != nil {
+	eng := NewDeviceEngine(d.user, &args)
+	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 
@@ -160,14 +160,14 @@ func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, e
 	if err != nil {
 		return err
 	}
-	eng := NewDeviceEngine(d.user)
 	args := DeviceEngineArgs{
 		Name:          devname,
 		LksClientHalf: tk.LksClientHalf(),
 		Signer:        signer,
 		EldestKID:     eldestKID,
 	}
-	if err := RunEngine(eng, ctx, args, nil); err != nil {
+	eng := NewDeviceEngine(d.user, &args)
+	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 
@@ -187,7 +187,7 @@ func (d *Doctor) addDetKey(ctx *Context, eldest libkb.KID) error {
 		EldestKeyID: eldest,
 	}
 	eng := NewDetKeyEngine(arg)
-	return RunEngine(eng, ctx, nil, nil)
+	return RunEngine(eng, ctx)
 }
 
 var ErrNotYetImplemented = errors.New("not yet implemented")
@@ -337,7 +337,7 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType str
 		DevDesc: devName,
 	}
 	k := NewKexFwd(tk.LksClientHalf(), kargs)
-	return RunEngine(k, ctx, nil, nil)
+	return RunEngine(k, ctx)
 }
 
 func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {

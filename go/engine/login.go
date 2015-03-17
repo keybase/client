@@ -1,10 +1,6 @@
 package engine
 
-import (
-	"fmt"
-
-	"github.com/keybase/client/go/libkb"
-)
+import "github.com/keybase/client/go/libkb"
 
 type LoginEngineArg struct {
 	Login libkb.LoginArg
@@ -12,10 +8,11 @@ type LoginEngineArg struct {
 
 type LoginEngine struct {
 	libkb.Contextified
+	arg *LoginEngineArg
 }
 
-func NewLoginEngine() *LoginEngine {
-	return &LoginEngine{}
+func NewLoginEngine(arg *LoginEngineArg) *LoginEngine {
+	return &LoginEngine{arg: arg}
 }
 
 func (e *LoginEngine) Name() string {
@@ -35,16 +32,12 @@ func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{NewDoctor()}
 }
 
-func (e *LoginEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+func (e *LoginEngine) Run(ctx *Context) (err error) {
 	e.SetGlobalContext(ctx.GlobalContext)
 
-	arg, ok := args.(LoginEngineArg)
-	if !ok {
-		return fmt.Errorf("LoginEngine.Run: invalid args type %T", args)
-	}
-	arg.Login.SecretUI = ctx.SecretUI
-	arg.Login.Ui = ctx.LoginUI
-	if err := e.G().LoginState.Login(arg.Login); err != nil {
+	e.arg.Login.SecretUI = ctx.SecretUI
+	e.arg.Login.Ui = ctx.LoginUI
+	if err := e.G().LoginState.Login(e.arg.Login); err != nil {
 		return err
 	}
 

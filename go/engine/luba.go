@@ -57,7 +57,7 @@ func (e *Luba) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Luba) Run(ctx *Context, args, reply interface{}) error {
+func (e *Luba) Run(ctx *Context) error {
 	// Parse assertion but don't allow OR operators, only
 	// AND operators
 	expr, err := libkb.AssertionParseAndOnly(e.arg.Assertion)
@@ -82,7 +82,7 @@ func (e *Luba) Run(ctx *Context, args, reply interface{}) error {
 
 	iarg := NewIdentifyArg(e.user.GetName(), e.arg.WithTracking)
 	ieng := NewIdentify(iarg)
-	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
+	if err := RunEngine(ieng, ctx); err != nil {
 		return err
 	}
 	e.idres = ieng.Outcome()

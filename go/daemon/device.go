@@ -19,7 +19,7 @@ func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
 func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	eng := engine.NewDevList()
-	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
 	return eng.List(), nil

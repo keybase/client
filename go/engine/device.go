@@ -9,6 +9,11 @@ import (
 
 var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
+// when device is the eldest key:
+//    use args Name, LksClientHalf
+// when you have a key that can sign already but need a device
+// key:
+//    use args Name, LksClientHalf, Signer, and EldestKID
 type DeviceEngineArgs struct {
 	Name          string
 	LksClientHalf []byte
@@ -24,10 +29,11 @@ type DeviceEngine struct {
 	lks           *libkb.LKSec
 	me            *libkb.User
 	eldestKey     libkb.NaclKeyPair
+	args          *DeviceEngineArgs
 }
 
-func NewDeviceEngine(me *libkb.User) *DeviceEngine {
-	return &DeviceEngine{me: me}
+func NewDeviceEngine(me *libkb.User, args *DeviceEngineArgs) *DeviceEngine {
+	return &DeviceEngine{me: me, args: args}
 }
 
 func (d *DeviceEngine) Name() string {
@@ -54,12 +60,8 @@ func (d *DeviceEngine) Init() error {
 // when you have a key that can sign already but need a device
 // key:
 //    use args Name, LksClientHalf, Signer, and EldestKID
-func (d *DeviceEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
-	da, ok := args.(DeviceEngineArgs)
-	if !ok {
-		return fmt.Errorf("invalid args type: %T", args)
-	}
-	return d.run(ctx, da.Name, da.LksClientHalf, da.Signer, da.EldestKID)
+func (d *DeviceEngine) Run(ctx *Context) error {
+	return d.run(ctx, d.args.Name, d.args.LksClientHalf, d.args.Signer, d.args.EldestKID)
 }
 
 func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte, signer libkb.GenericKey, eldestKID libkb.KID) (err error) {

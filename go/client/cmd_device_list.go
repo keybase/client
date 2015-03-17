@@ -33,7 +33,7 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 func (c *CmdDeviceList) Run() error {
 	ctx := &engine.Context{LogUI: G_UI.GetLogUI()}
 	eng := engine.NewDevList()
-	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := engine.RunEngine(eng, ctx); err != nil {
 		return err
 	}
 	devs := eng.List()

@@ -47,7 +47,7 @@ func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPKeyfinder) Run(ctx *Context, args, reply interface{}) error {
+func (e *PGPKeyfinder) Run(ctx *Context) error {
 	for _, u := range e.arg.Users {
 		if err := e.loadUser(ctx, u); err != nil {
 			return err
@@ -91,7 +91,7 @@ func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
 		WithTracking: true,
 	}
 	eng := NewLuba(arg)
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 
@@ -113,7 +113,7 @@ func (e *PGPKeyfinder) trackUser(ctx *Context, user *libkb.User) error {
 		Options:   e.arg.TrackOptions,
 	}
 	eng := NewTrackEngine(arg)
-	return RunEngine(eng, ctx, nil, nil)
+	return RunEngine(eng, ctx)
 }
 
 type UserPlusKeys struct {

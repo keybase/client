@@ -46,7 +46,7 @@ func NewPGPSignEngine(arg *PGPSignArg) *PGPSignEngine {
 	return &PGPSignEngine{arg: arg}
 }
 
-func (p *PGPSignEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	var key libkb.GenericKey
 	var pgp *libkb.PgpKeyBundle
 	var ok bool

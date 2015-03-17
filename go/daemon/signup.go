@@ -35,7 +35,7 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 		DeviceName: arg.DeviceName,
 	}
 	eng := engine.NewSignupEngine(&runarg)
-	err = engine.RunEngine(eng, ctx, nil, nil)
+	err = engine.RunEngine(eng, ctx)
 
 	if err == nil {
 		// everything succeeded

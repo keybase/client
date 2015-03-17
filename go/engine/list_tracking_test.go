@@ -20,7 +20,7 @@ func TestListTracking(t *testing.T) {
 	arg := ListTrackingEngineArg{}
 	eng := NewListTrackingEngine(&arg)
 	ctx := Context{}
-	err = RunEngine(eng, &ctx, nil, nil)
+	err = RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
@@ -64,7 +64,7 @@ func TestListTrackingJSON(t *testing.T) {
 	arg := ListTrackingEngineArg{Json: true, Verbose: true}
 	eng := NewListTrackingEngine(&arg)
 	ctx := Context{}
-	err = RunEngine(eng, &ctx, nil, nil)
+	err = RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}

@@ -12,7 +12,7 @@ type EnginePrereqs struct {
 }
 
 type Engine interface {
-	Run(ctx *Context, args interface{}, reply interface{}) error
+	Run(ctx *Context) error
 	GetPrereqs() EnginePrereqs
 	libkb.UIConsumer
 }
@@ -40,14 +40,14 @@ func runPrereqs(e Engine) (err error) {
 
 }
 
-func RunEngine(e Engine, ctx *Context, args interface{}, reply interface{}) error {
+func RunEngine(e Engine, ctx *Context) error {
 	if err := check(e, ctx); err != nil {
 		return err
 	}
 	if err := runPrereqs(e); err != nil {
 		return err
 	}
-	return e.Run(ctx, args, reply)
+	return e.Run(ctx)
 }
 
 func check(c libkb.UIConsumer, ctx *Context) error {

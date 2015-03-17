@@ -58,7 +58,7 @@ func (s *TrackEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) error {
+func (e *TrackEngine) Run(ctx *Context) error {
 	if err := e.loadThem(); err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (e *TrackEngine) Run(ctx *Context, varg interface{}, vres interface{}) erro
 
 	iarg := NewIdentifyTrackArg(e.arg.Them.GetName(), true, e.arg.Options)
 	ieng := NewIdentify(iarg)
-	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
+	if err := RunEngine(ieng, ctx); err != nil {
 		return err
 	}
 	ti := ieng.TrackInstructions()

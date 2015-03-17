@@ -20,7 +20,7 @@ func TestListTrackers(t *testing.T) {
 	uid := libkb.UsernameToUID("t_alice")
 	e := NewListTrackers(&uid)
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
-	if err := RunEngine(e, ctx, nil, nil); err != nil {
+	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
 	buid := libkb.UsernameToUID(fu.Username)

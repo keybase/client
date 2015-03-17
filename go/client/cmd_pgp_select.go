@@ -57,7 +57,7 @@ func (v *CmdPGPSelect) Run() error {
 	}
 	arg := engine.GPGImportKeyArg{Query: v.query, AllowMulti: v.multi, SkipImport: v.skipImport}
 	gpg := engine.NewGPGImportKeyEngine(&arg)
-	err := engine.RunEngine(gpg, ctx, nil, nil)
+	err := engine.RunEngine(gpg, ctx)
 	PGPMultiWarn(err)
 	return err
 }

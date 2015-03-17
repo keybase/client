@@ -23,25 +23,25 @@ func TestPGPSave(t *testing.T) {
 
 	key := armorKey(t, tc, u.Email)
 	e := NewPGPSaveArmored(key, false, false)
-	if err := RunEngine(e, ctx, nil, nil); err != nil {
+	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
 
 	key = armorKey(t, tc, u.Email)
 	e = NewPGPSaveArmored(key, false, true)
-	if err := RunEngine(e, ctx, nil, nil); err != nil {
+	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
 
 	key = armorKey(t, tc, u.Email)
 	e = NewPGPSaveArmored(key, true, false)
-	if err := RunEngine(e, ctx, nil, nil); err != nil {
+	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
 
 	key = armorKey(t, tc, u.Email)
 	e = NewPGPSaveArmored(key, true, true)
-	if err := RunEngine(e, ctx, nil, nil); err != nil {
+	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
 }

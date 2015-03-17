@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -125,7 +126,7 @@ func (s *CmdPGPSign) Run() (err error) {
 		SecretUI: G_UI.GetSecretUI(),
 	}
 	eng := engine.NewPGPSignEngine(&earg)
-	err = engine.RunEngine(eng, &ctx, nil, nil)
+	err = engine.RunEngine(eng, &ctx)
 	s.Close(err)
 	return err
 }

@@ -177,7 +177,7 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		SecretUI: G.UI.GetSecretUI(),
 		LoginUI:  G.UI.GetLoginUI(),
 	}
-	err = engine.RunEngine(s.engine, ctx, nil, nil)
+	err = engine.RunEngine(s.engine, ctx)
 	if err == nil {
 		return false, nil
 	}
@@ -383,7 +383,7 @@ func (e *ClientModeSignupEngine) SetArg(arg *engine.SignupEngineRunArg) {
 	e.arg = arg
 }
 
-func (e *ClientModeSignupEngine) Run(ctx *engine.Context, args interface{}, reply interface{}) error {
+func (e *ClientModeSignupEngine) Run(ctx *engine.Context) error {
 	rarg := keybase_1.SignupArg{
 		Username:   e.arg.Username,
 		Email:      e.arg.Email,

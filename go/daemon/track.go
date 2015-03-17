@@ -32,5 +32,5 @@ func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
 		SecretUI:   h.getSecretUI(sessionID),
 	}
 	eng := engine.NewTrackEngine(&earg)
-	return engine.RunEngine(eng, &ctx, nil, nil)
+	return engine.RunEngine(eng, &ctx)
 }

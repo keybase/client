@@ -37,7 +37,7 @@ func (e *UserSummary) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *UserSummary) Run(ctx *Context, args, reply interface{}) error {
+func (e *UserSummary) Run(ctx *Context) error {
 	sums, err := e.get()
 	if err != nil {
 		return err

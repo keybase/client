@@ -73,7 +73,7 @@ func (g *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 	return res, nil
 }
 
-func (g *GPGImportKeyEngine) Run(ctx *Context, args interface{}, reply interface{}) (err error) {
+func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	gpg := G.GetGpgClient()
 
@@ -144,7 +144,7 @@ func (g *GPGImportKeyEngine) Run(ctx *Context, args interface{}, reply interface
 		NoSave:     g.arg.SkipImport,
 	})
 
-	if err = RunEngine(eng, ctx, nil, nil); err != nil {
+	if err = RunEngine(eng, ctx); err != nil {
 
 		// It's important to propogate a CanceledError unmolested,
 		// since the UI needs to know that. See:

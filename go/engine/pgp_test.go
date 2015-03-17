@@ -23,7 +23,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 		SecretUI: secui,
 	}
 	eng := NewPGPEngine(arg)
-	err := RunEngine(eng, &ctx, nil, nil)
+	err := RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

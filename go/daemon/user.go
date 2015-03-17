@@ -41,7 +41,7 @@ func (h *UserHandler) ListTrackersSelf(sessionID int) ([]keybase_1.Tracker, erro
 func (h *UserHandler) listTrackers(eng *engine.ListTrackersEngine) ([]keybase_1.Tracker, error) {
 	sessionID := nextSessionId()
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
-	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
 	res := eng.ExportedList()
@@ -55,7 +55,7 @@ func (h *UserHandler) LoadUncheckedUserSummaries(kuids []keybase_1.UID) ([]keyba
 	}
 	ctx := &engine.Context{}
 	eng := engine.NewUserSummary(uids)
-	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
 	res := eng.ExportedSummariesList()
@@ -68,7 +68,7 @@ func (h *UserHandler) ListTracking(filter string) (res []keybase_1.UserSummary, 
 		// Verbose has no effect on this call. At the engine level, it only
 		// affects JSON output.
 	})
-	err = engine.RunEngine(eng, &engine.Context{}, nil, nil)
+	err = engine.RunEngine(eng, &engine.Context{})
 	res = eng.TableResult()
 	return
 }
@@ -79,7 +79,7 @@ func (h *UserHandler) ListTrackingJson(arg keybase_1.ListTrackingJsonArg) (res s
 		Filter:  arg.Filter,
 		Verbose: arg.Verbose,
 	})
-	err = engine.RunEngine(eng, &engine.Context{}, nil, nil)
+	err = engine.RunEngine(eng, &engine.Context{})
 	res = eng.JsonResult()
 	return
 }

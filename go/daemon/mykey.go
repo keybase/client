@@ -25,7 +25,7 @@ func (h *MykeyHandler) keygen(earg engine.PGPEngineArg, doInteractive bool) (err
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionId), SecretUI: h.getSecretUI(sessionId)}
 	earg.Gen.AddDefaultUid()
 	eng := engine.NewPGPEngine(earg)
-	err = engine.RunEngine(eng, ctx, nil, nil)
+	err = engine.RunEngine(eng, ctx)
 	return err
 }
 
@@ -60,7 +60,7 @@ func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 		LogUI:    h.getLogUI(sessionID),
 		LoginUI:  h.getLoginUI(sessionID),
 	}
-	return engine.RunEngine(gpg, ctx, nil, nil)
+	return engine.RunEngine(gpg, ctx)
 }
 
 func (h *MykeyHandler) SaveArmoredPGPKey(arg keybase_1.SaveArmoredPGPKeyArg) error {
@@ -70,7 +70,7 @@ func (h *MykeyHandler) SaveArmoredPGPKey(arg keybase_1.SaveArmoredPGPKeyArg) err
 		LogUI:    h.getLogUI(sessionID),
 	}
 	eng := engine.NewPGPSaveArmored(arg.Key, arg.PushPublic, arg.PushPrivate)
-	return engine.RunEngine(eng, ctx, nil, nil)
+	return engine.RunEngine(eng, ctx)
 }
 
 func (h *MykeyHandler) SavePGPKey(arg keybase_1.SavePGPKeyArg) error {
@@ -80,5 +80,5 @@ func (h *MykeyHandler) SavePGPKey(arg keybase_1.SavePGPKeyArg) error {
 		LogUI:    h.getLogUI(sessionID),
 	}
 	eng := engine.NewPGPSaveRaw(arg.Key, arg.PushPublic, arg.PushPrivate)
-	return engine.RunEngine(eng, ctx, nil, nil)
+	return engine.RunEngine(eng, ctx)
 }

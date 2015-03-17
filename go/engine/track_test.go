@@ -20,7 +20,7 @@ func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdRes, 
 		SecretUI:   fu.NewSecretUI(),
 	}
 	eng := NewTrackEngine(&arg)
-	err = RunEngine(eng, &ctx, nil, nil)
+	err = RunEngine(eng, &ctx)
 	res = eng.res
 	return
 }

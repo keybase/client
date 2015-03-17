@@ -53,14 +53,14 @@ func (c *CmdListTrackers) Run() error {
 		eng = engine.NewListTrackersSelf()
 	}
 
-	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := engine.RunEngine(eng, ctx); err != nil {
 		return err
 	}
 	trs := eng.ExportedList()
 
 	summarize := func(uids []keybase_1.UID) (res []keybase_1.UserSummary, err error) {
 		sumeng := engine.NewUserSummary(libkb.ImportUIDs(uids))
-		if err = engine.RunEngine(sumeng, ctx, nil, nil); err != nil {
+		if err = engine.RunEngine(sumeng, ctx); err != nil {
 			return
 		}
 		res = sumeng.ExportedSummariesList()

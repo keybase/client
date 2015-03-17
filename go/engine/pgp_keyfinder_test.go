@@ -30,7 +30,7 @@ func TestPGPKeyfinder(t *testing.T) {
 		Users: []string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 	}
 	eng := NewPGPKeyfinder(arg)
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 }

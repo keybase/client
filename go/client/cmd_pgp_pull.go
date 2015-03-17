@@ -44,7 +44,7 @@ func (v *CmdPGPPull) Run() error {
 	ctx := engine.Context{
 		LogUI: G_UI.GetLogUI(),
 	}
-	return engine.RunEngine(eng, &ctx, nil, nil)
+	return engine.RunEngine(eng, &ctx)
 }
 
 func NewCmdPGPPull(cl *libcmdline.CommandLine) cli.Command {

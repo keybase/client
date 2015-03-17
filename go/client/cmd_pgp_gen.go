@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -59,7 +60,7 @@ func (v *CmdPGPGen) Run() (err error) {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), LogUI: G_UI.GetLogUI()}
 	v.arg.Gen.MakeAllIds()
 	eng := engine.NewPGPEngine(v.arg)
-	err = engine.RunEngine(eng, ctx, nil, nil)
+	err = engine.RunEngine(eng, ctx)
 	PGPMultiWarn(err)
 	return
 }

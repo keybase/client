@@ -70,7 +70,7 @@ func (v *CmdId) Run() error {
 		LogUI:      G_UI.GetLogUI(),
 		IdentifyUI: G.UI.GetIdentifyUI(),
 	}
-	err := engine.RunEngine(eng, &ctx, nil, nil)
+	err := engine.RunEngine(eng, &ctx)
 	return err
 }
 

@@ -68,7 +68,7 @@ func proofSetFromUserSummary(summary keybase_1.UserSummary) *libkb.ProofSet {
 }
 
 func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase_1.UserSummary, error) {
-	err := RunEngine(e.listTrackingEngine, ctx, nil, nil)
+	err := RunEngine(e.listTrackingEngine, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase_1.UserS
 	return matchedList, nil
 }
 
-func (e *PGPPullEngine) Run(ctx *Context, varg interface{}, vres interface{}) error {
+func (e *PGPPullEngine) Run(ctx *Context) error {
 	summaries, err := e.getTrackedUserSummaries(ctx)
 	if err != nil {
 		return err

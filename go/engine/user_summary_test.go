@@ -18,7 +18,7 @@ func TestUserSummary(t *testing.T) {
 
 	eng := NewUserSummary(uids)
 	ctx := &Context{}
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 	sums := eng.Summaries()

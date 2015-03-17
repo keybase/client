@@ -49,7 +49,7 @@ func (s *IdEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *IdEngine) Run(ctx *Context, arg interface{}, res interface{}) error {
+func (e *IdEngine) Run(ctx *Context) error {
 	return e.run(ctx)
 }
 
@@ -74,7 +74,7 @@ func (e *IdEngine) runLuba(ctx *Context) (*IdRes, error) {
 		WithTracking: e.arg.LoadSelf,
 	}
 	eng := NewLuba(arg)
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
 
@@ -101,7 +101,7 @@ func (e *IdEngine) runStandard(ctx *Context) (*IdRes, error) {
 	}
 	iarg := NewIdentifyArg(u.GetName(), e.arg.TrackStatement)
 	ieng := NewIdentify(iarg)
-	if err := RunEngine(ieng, ctx, nil, nil); err != nil {
+	if err := RunEngine(ieng, ctx); err != nil {
 		return nil, err
 	}
 

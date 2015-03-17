@@ -9,7 +9,7 @@ func TestIdentify(t *testing.T) {
 
 	ctx := &Context{}
 	eng := NewIdentify(nil)
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 }

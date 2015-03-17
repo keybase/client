@@ -66,7 +66,7 @@ func (e *Identify) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Identify) Run(ctx *Context, args, reply interface{}) error {
+func (e *Identify) Run(ctx *Context) error {
 	var uarg libkb.LoadUserArg
 	if len(e.arg.TargetUsername) == 0 {
 		// loading self

@@ -50,7 +50,7 @@ func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdEngineArg, doInt
 		IdentifyUI: h.NewRemoteIdentifyUI(sessionId),
 	}
 	eng := engine.NewIdEngine(&iarg)
-	err = engine.RunEngine(eng, &ctx, nil, nil)
+	err = engine.RunEngine(eng, &ctx)
 	res = eng.Result()
 	return
 }

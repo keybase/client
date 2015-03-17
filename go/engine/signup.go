@@ -42,7 +42,7 @@ func (e *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewDeviceEngine(nil),
+		NewDeviceEngine(nil, nil),
 		NewDetKeyEngine(nil),
 		NewGPGImportKeyEngine(nil),
 	}
@@ -75,7 +75,7 @@ func (s *SignupEngine) GetMe() *libkb.User {
 	return s.me
 }
 
-func (s *SignupEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
+func (s *SignupEngine) Run(ctx *Context) error {
 	if err := s.genTSPassKey(s.arg.Passphrase); err != nil {
 		return err
 	}
@@ -143,17 +143,15 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 }
 
 func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
-	eng := NewDeviceEngine(s.me)
-
 	args := DeviceEngineArgs{
 		Name:          deviceName,
 		LksClientHalf: s.tspkey.LksClientHalf(),
 	}
-	if err := RunEngine(eng, ctx, args, nil); err != nil {
+	eng := NewDeviceEngine(s.me, &args)
+	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 
-	// XXX get from reply instead?
 	s.signingKey = eng.EldestKey()
 	return nil
 }
@@ -166,7 +164,7 @@ func (s *SignupEngine) genDetKeys(ctx *Context) error {
 		EldestKeyID: s.signingKey.GetKid(),
 	}
 	eng := NewDetKeyEngine(arg)
-	return RunEngine(eng, ctx, nil, nil)
+	return RunEngine(eng, ctx)
 }
 
 func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
@@ -178,7 +176,7 @@ func (s *SignupEngine) addGPG(ctx *Context, allowMulti bool) error {
 	G.Log.Debug("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
 	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me}
 	eng := NewGPGImportKeyEngine(&arg)
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 

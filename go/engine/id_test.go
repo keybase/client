@@ -18,7 +18,7 @@ func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdRes, err error) 
 		IdentifyUI: idUI,
 	}
 	eng := NewIdEngine(&arg)
-	err = RunEngine(eng, &ctx, nil, nil)
+	err = RunEngine(eng, &ctx)
 	res = eng.Result()
 	return
 }
@@ -152,7 +152,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 	ctx := &Context{LogUI: G.UI.GetLogUI(), SecretUI: secui}
 	key := armorKey(t, tc, u.Email)
 	e := NewPGPSaveArmored(key, true, true)
-	if err := RunEngine(e, ctx, nil, nil); err != nil {
+	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
 

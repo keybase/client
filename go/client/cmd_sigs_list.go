@@ -193,7 +193,7 @@ func (s *CmdSigsList) Run() error {
 		Revoked:  s.revoked,
 	}
 	eng := engine.NewSigsList(args)
-	if err := engine.RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := engine.RunEngine(eng, ctx); err != nil {
 		return err
 	}
 

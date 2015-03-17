@@ -22,7 +22,7 @@ func (h *PGPHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 	earg := engine.PGPSignArg{Sink: snk, Source: src, Opts: arg.Opts}
 	ctx := engine.Context{SecretUI: h.getSecretUI(arg.SessionID)}
 	eng := engine.NewPGPSignEngine(&earg)
-	return engine.RunEngine(eng, &ctx, nil, nil)
+	return engine.RunEngine(eng, &ctx)
 }
 
 func (h *PGPHandler) PgpPull(arg keybase_1.PgpPullArg) error {
@@ -33,7 +33,7 @@ func (h *PGPHandler) PgpPull(arg keybase_1.PgpPullArg) error {
 		LogUI: h.getLogUI(arg.SessionID),
 	}
 	eng := engine.NewPGPPullEngine(&earg)
-	return engine.RunEngine(eng, &ctx, nil, nil)
+	return engine.RunEngine(eng, &ctx)
 }
 
 func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
@@ -58,5 +58,5 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
 	eng := engine.NewPGPEncrypt(earg)
-	return engine.RunEngine(eng, ctx, nil, nil)
+	return engine.RunEngine(eng, ctx)
 }

@@ -54,7 +54,7 @@ func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPEncrypt) Run(ctx *Context, args, reply interface{}) error {
+func (e *PGPEncrypt) Run(ctx *Context) error {
 	var mykey *libkb.PgpKeyBundle
 	if !e.arg.NoSign || !e.arg.NoSelf {
 		ska := libkb.SecretKeyArg{
@@ -84,7 +84,7 @@ func (e *PGPEncrypt) Run(ctx *Context, args, reply interface{}) error {
 	}
 
 	kf := NewPGPKeyfinder(kfarg)
-	if err := RunEngine(kf, ctx, nil, nil); err != nil {
+	if err := RunEngine(kf, ctx); err != nil {
 		return err
 	}
 	uplus := kf.UsersPlusKeys()

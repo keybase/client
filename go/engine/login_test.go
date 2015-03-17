@@ -121,10 +121,10 @@ func TestLoginAddsKeys(t *testing.T) {
 			NoUi:       true,
 		},
 	}
-	li := NewLoginEngine()
+	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
-	if err := RunEngine(li, ctx, larg, nil); err != nil {
+	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -157,7 +157,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 	}
 	eng := NewDetKeyEngine(arg)
 	ctx := &Context{LogUI: G.UI.GetLogUI()}
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -181,10 +181,10 @@ func TestLoginDetKeyOnly(t *testing.T) {
 			NoUi:       true,
 		},
 	}
-	li := NewLoginEngine()
+	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
-	if err := RunEngine(li, ctx, larg, nil); err != nil {
+	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -232,7 +232,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 	fu.User = s.GetMe()
 
-	if err := RunEngine(peng, ctx, nil, nil); err != nil {
+	if err := RunEngine(peng, ctx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -342,7 +342,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 
 	before := docui.selectSignerCount
 
-	li := NewLoginEngine()
+	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
@@ -351,7 +351,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 		GPGUI:    &gpgtestui{},
 		LoginUI:  &libkb.TestLoginUI{},
 	}
-	if err := RunEngine(li, ctx, larg, nil); err != nil {
+	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -394,7 +394,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 
 	before := docui.selectSignerCount
 
-	li := NewLoginEngine()
+	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
@@ -403,7 +403,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 		GPGUI:    &gpgtestui{},
 		LoginUI:  &libkb.TestLoginUI{},
 	}
-	if err := RunEngine(li, ctx, larg, nil); err != nil {
+	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -444,7 +444,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 
 	before := docui.selectSignerCount
 
-	li := NewLoginEngine()
+	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
@@ -453,7 +453,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 		SecretUI: secui,
 		LoginUI:  &libkb.TestLoginUI{Username: u1.Username},
 	}
-	if err := RunEngine(li, ctx, larg, nil); err != nil {
+	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
 

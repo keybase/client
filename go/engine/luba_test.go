@@ -25,7 +25,7 @@ func TestLuba(t *testing.T) {
 			WithTracking: false,
 		}
 		eng := NewLuba(arg)
-		if err := RunEngine(eng, ctx, nil, nil); err != nil {
+		if err := RunEngine(eng, ctx); err != nil {
 			if lt.valid {
 				t.Errorf("%s generated error: %s", lt.assertion, err)
 			}
@@ -51,7 +51,7 @@ func TestLubaWithTracking(t *testing.T) {
 			WithTracking: true,
 		}
 		eng := NewLuba(arg)
-		if err := RunEngine(eng, ctx, nil, nil); err != nil {
+		if err := RunEngine(eng, ctx); err != nil {
 			if lt.valid {
 				t.Errorf("%s generated error: %s", lt.assertion, err)
 			}

@@ -57,7 +57,7 @@ func (p *PGPSave) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run executes the engine.
-func (p *PGPSave) Run(ctx *Context, args, reply interface{}) error {
+func (p *PGPSave) Run(ctx *Context) error {
 	if p.armored {
 		return p.runArmored(ctx)
 	}

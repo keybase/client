@@ -58,7 +58,7 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine(&arg)
-	err := RunEngine(s, ctx, nil, nil)
+	err := RunEngine(s, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,6 @@ func (fu *FakeUser) Login() error {
 		},
 	}
 	secui := fu.NewSecretUI()
-	li := NewLoginEngine()
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
 		DoctorUI: &ldocui{},
@@ -84,7 +83,8 @@ func (fu *FakeUser) Login() error {
 		SecretUI: secui,
 		LoginUI:  &libkb.TestLoginUI{},
 	}
-	return RunEngine(li, ctx, larg, nil)
+	li := NewLoginEngine(&larg)
+	return RunEngine(li, ctx)
 }
 
 func (fu *FakeUser) LoginOrBust(t *testing.T) {

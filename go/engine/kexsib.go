@@ -47,7 +47,7 @@ func (k *KexSib) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (k *KexSib) Run(ctx *Context, args, reply interface{}) error {
+func (k *KexSib) Run(ctx *Context) error {
 	k.engctx = ctx
 
 	var err error

@@ -60,7 +60,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		}
 
 		kx := NewKexSib(&tcX.G, docui.secretPhrase())
-		if err := RunEngine(kx, ctx, nil, nil); err != nil {
+		if err := RunEngine(kx, ctx); err != nil {
 			t.Fatal(err)
 		}
 		wg.Done()
@@ -82,9 +82,9 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		},
 	}
 
-	li := NewLoginEngine()
+	li := NewLoginEngine(&larg)
 	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
-	if err := RunEngine(li, ctx, larg, nil); err != nil {
+	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
 

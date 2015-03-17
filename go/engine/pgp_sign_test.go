@@ -2,10 +2,11 @@ package engine
 
 import (
 	"bytes"
-	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
 	"io/ioutil"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 // Test login switching between two different users.
@@ -42,7 +43,7 @@ func TestPgpSign(t *testing.T) {
 		SecretUI: fu.NewSecretUI(),
 	}
 
-	err = RunEngine(eng, &ctx, nil, nil)
+	err = RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
