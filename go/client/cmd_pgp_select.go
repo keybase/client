@@ -53,6 +53,7 @@ func (v *CmdPGPSelect) Run() error {
 	ctx := &engine.Context{
 		GPGUI:    G.UI.GetGPGUI(),
 		SecretUI: G.UI.GetSecretUI(),
+		LogUI:    G.UI.GetLogUI(),
 	}
 	arg := engine.GPGImportKeyArg{Query: v.query, AllowMulti: v.multi, SkipImport: v.skipImport}
 	gpg := engine.NewGPGImportKeyEngine(&arg)
