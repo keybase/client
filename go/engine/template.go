@@ -40,6 +40,6 @@ func (e *Template) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Template) Run(ctx *Context, args, reply interface{}) error {
+func (e *Template) Run(ctx *Context) error {
 	panic("Run not yet implemented")
 }
