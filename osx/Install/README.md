@@ -7,10 +7,27 @@
 
 ### Build
 
-To build and create the Keybase.dmg:
+Update the version in Info.plist:
 
 ```sh
-sh build.sh
+sh version.sh
 ```
 
-To build keybased, you can run `sh build_keybase.sh`. You might want to run `go get -u` from the daemon source tree to get the latest.
+#### Build and export the Keybase.app:
+
+1. From Xcode, run Product | Archive.
+1. From the Organizer (Window | Organizer), export the build you just created.
+1. Select Export a Developer-ID signed application (requires you to be Team Agent).
+1. Choose `osx/Install` as the directory to save Keybase.app.
+
+#### Build keybased
+
+```
+sh build_keybase.sh
+```
+
+#### Generate a Keybase.dmg
+
+```
+sh package.sh
+```
