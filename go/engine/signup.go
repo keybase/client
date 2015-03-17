@@ -13,10 +13,21 @@ type SignupEngine struct {
 	uid        libkb.UID
 	me         *libkb.User
 	signingKey libkb.GenericKey
+	arg        *SignupEngineRunArg
 }
 
-func NewSignupEngine() *SignupEngine {
-	return &SignupEngine{}
+type SignupEngineRunArg struct {
+	Username   string
+	Email      string
+	InviteCode string
+	Passphrase string
+	DeviceName string
+	SkipGPG    bool
+	SkipMail   bool
+}
+
+func NewSignupEngine(arg *SignupEngineRunArg) *SignupEngine {
+	return &SignupEngine{arg: arg}
 }
 
 func (s *SignupEngine) Name() string {
@@ -41,6 +52,10 @@ func (s *SignupEngine) Init() error {
 	return nil
 }
 
+func (s *SignupEngine) SetArg(arg *SignupEngineRunArg) {
+	s.arg = arg
+}
+
 func (s *SignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
 	if cr := G.Env.GetConfig(); cr == nil {
@@ -56,35 +71,20 @@ func (s *SignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {
 	return libkb.PostInviteRequest(arg)
 }
 
-type SignupEngineRunArg struct {
-	Username   string
-	Email      string
-	InviteCode string
-	Passphrase string
-	DeviceName string
-	SkipGPG    bool
-	SkipMail   bool
-}
-
 func (s *SignupEngine) GetMe() *libkb.User {
 	return s.me
 }
 
-// func (s *SignupEngine) Run(arg SignupEngineRunArg) error {
 func (s *SignupEngine) Run(ctx *Context, args interface{}, reply interface{}) error {
-	arg, ok := args.(SignupEngineRunArg)
-	if !ok {
-		return fmt.Errorf("invalid args type: %T", args)
-	}
-	if err := s.genTSPassKey(arg.Passphrase); err != nil {
+	if err := s.genTSPassKey(s.arg.Passphrase); err != nil {
 		return err
 	}
 
-	if err := s.join(arg.Username, arg.Email, arg.InviteCode, arg.SkipMail); err != nil {
+	if err := s.join(s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
 		return err
 	}
 
-	if err := s.registerDevice(ctx, arg.DeviceName); err != nil {
+	if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
 		return err
 	}
 
@@ -92,7 +92,7 @@ func (s *SignupEngine) Run(ctx *Context, args interface{}, reply interface{}) er
 		return err
 	}
 
-	if arg.SkipGPG {
+	if s.arg.SkipGPG {
 		return nil
 	}
 

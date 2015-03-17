@@ -57,8 +57,8 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine()
-	err := RunEngine(s, ctx, arg, nil)
+	s := NewSignupEngine(&arg)
+	err := RunEngine(s, ctx, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -21,7 +21,6 @@ func (h *SignupHandler) CheckUsernameAvailable(username string) error {
 
 func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes, err error) {
 	sessionID := nextSessionId()
-	eng := engine.NewSignupEngine()
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessionID),
 		GPGUI:    NewRemoteGPGUI(sessionID, h.getRpcClient()),
@@ -35,7 +34,8 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 		Passphrase: arg.Passphrase,
 		DeviceName: arg.DeviceName,
 	}
-	err = engine.RunEngine(eng, ctx, runarg, nil)
+	eng := engine.NewSignupEngine(&runarg)
+	err = engine.RunEngine(eng, ctx, nil, nil)
 
 	if err == nil {
 		// everything succeeded

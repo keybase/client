@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -41,6 +40,7 @@ type signupProcess interface {
 	CheckRegistered() error
 	PostInviteRequest(libkb.InviteRequestArg) error
 	Init() error
+	SetArg(*engine.SignupEngineRunArg)
 	engine.Engine
 }
 
@@ -88,7 +88,7 @@ func (s *CmdSignupState) RunClient() error {
 
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
-	s.engine = engine.NewSignupEngine()
+	s.engine = engine.NewSignupEngine(nil)
 	return s.run()
 }
 
@@ -170,13 +170,14 @@ func (s *CmdSignupState) runEngine() (retry bool, err error) {
 		Passphrase: s.passphrase,
 		DeviceName: s.fields.deviceName.GetValue(),
 	}
+	s.engine.SetArg(&arg)
 	ctx := &engine.Context{
 		LogUI:    G.UI.GetLogUI(),
 		GPGUI:    G.UI.GetGPGUI(),
 		SecretUI: G.UI.GetSecretUI(),
 		LoginUI:  G.UI.GetLoginUI(),
 	}
-	err = engine.RunEngine(s.engine, ctx, arg, nil)
+	err = engine.RunEngine(s.engine, ctx, nil, nil)
 	if err == nil {
 		return false, nil
 	}
@@ -323,6 +324,7 @@ func (v *CmdSignupState) GetUsage() libkb.Usage {
 type ClientModeSignupEngine struct {
 	scli keybase_1.SignupClient
 	ccli keybase_1.ConfigClient
+	arg  *engine.SignupEngineRunArg
 }
 
 func (e *ClientModeSignupEngine) Name() string {
@@ -377,17 +379,17 @@ func (e *ClientModeSignupEngine) Init() error {
 	return nil
 }
 
+func (e *ClientModeSignupEngine) SetArg(arg *engine.SignupEngineRunArg) {
+	e.arg = arg
+}
+
 func (e *ClientModeSignupEngine) Run(ctx *engine.Context, args interface{}, reply interface{}) error {
-	arg, ok := args.(engine.SignupEngineRunArg)
-	if !ok {
-		return fmt.Errorf("invalid run args type: %T", args)
-	}
 	rarg := keybase_1.SignupArg{
-		Username:   arg.Username,
-		Email:      arg.Email,
-		InviteCode: arg.InviteCode,
-		Passphrase: arg.Passphrase,
-		DeviceName: arg.DeviceName,
+		Username:   e.arg.Username,
+		Email:      e.arg.Email,
+		InviteCode: e.arg.InviteCode,
+		Passphrase: e.arg.Passphrase,
+		DeviceName: e.arg.DeviceName,
 	}
 	res, err := e.scli.Signup(rarg)
 	if err == nil {
