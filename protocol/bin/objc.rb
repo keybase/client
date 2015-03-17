@@ -80,7 +80,11 @@ def value_for_type(type, name, enums)
 
   if type.kind_of?(Hash) # (for arrays)
     array_class = type["items"]
-    return "[MTLJSONAdapter modelsOfClass:#{classname(array_class)}.class fromJSONArray:#{varname} error:nil]"
+    if is_native_type(array_class)
+      return varname
+    else
+      return "[MTLJSONAdapter modelsOfClass:#{classname(array_class)}.class fromJSONArray:#{varname} error:nil]"
+    end
   end
 
   if enums.include?(type)
