@@ -38,5 +38,4 @@ func TestPGPTrackEncrypt(t *testing.T) {
 	if len(out) == 0 {
 		t.Fatal("no output")
 	}
-
 }

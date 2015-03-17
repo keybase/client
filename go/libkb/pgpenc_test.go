@@ -1,4 +1,4 @@
-package engine
+package libkb
 
 import (
 	"bytes"
@@ -6,14 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/openpgp"
 )
 
 // give a private key and a public key, test the encryption of a
 // message
 func TestPGPEncrypt(t *testing.T) {
-	tc := SetupEngineTest(t, "pgp_encrypt")
+	tc := SetupTest(t, "pgp_encrypt")
 	defer tc.Cleanup()
 	bundleSrc, err := tc.MakePGPKey("src@keybase.io")
 	if err != nil {
@@ -25,16 +24,9 @@ func TestPGPEncrypt(t *testing.T) {
 	}
 
 	msg := "59 seconds"
-	sink := libkb.NewBufferCloser()
-	arg := &PGPEncryptArg{
-		Sink:       sink,
-		Source:     strings.NewReader(msg),
-		Signer:     bundleSrc,
-		Recipients: []*libkb.PgpKeyBundle{bundleSrc, bundleDst},
-	}
-	eng := NewPGPEncrypt(arg)
-	ctx := &Context{}
-	if err := RunEngine(eng, ctx, nil, nil); err != nil {
+	sink := NewBufferCloser()
+	recipients := []*PgpKeyBundle{bundleSrc, bundleDst}
+	if err := PGPEncrypt(strings.NewReader(msg), sink, bundleSrc, recipients); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.Bytes()
@@ -43,7 +35,7 @@ func TestPGPEncrypt(t *testing.T) {
 	}
 
 	// check that each recipient can read the message
-	for _, recip := range arg.Recipients {
+	for _, recip := range recipients {
 		kr := openpgp.EntityList{(*openpgp.Entity)(recip)}
 		emsg := bytes.NewBuffer(out)
 		md, err := openpgp.ReadMessage(emsg, kr, nil, nil)

@@ -49,7 +49,6 @@ func (e *PGPTrackEncrypt) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPTrackEncrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewPGPEncrypt(nil),
 		NewPGPKeyfinder(nil),
 	}
 }
@@ -101,23 +100,21 @@ func (e *PGPTrackEncrypt) Run(ctx *Context, args, reply interface{}) error {
 		writer = aw
 	}
 
-	arg := &PGPEncryptArg{
-		Source: e.arg.Source,
-		Sink:   writer,
-	}
-
+	var signer *libkb.PgpKeyBundle
 	if !e.arg.NoSign {
-		arg.Signer = mykey
+		signer = mykey
 	}
 
+	var recipients []*libkb.PgpKeyBundle
 	if !e.arg.NoSelf {
-		arg.Recipients = append(arg.Recipients, mykey)
+		recipients = append(recipients, mykey)
 	}
 
 	for _, up := range uplus {
-		arg.Recipients = append(arg.Recipients, up.Keys...)
+		recipients = append(recipients, up.Keys...)
 	}
 
-	encrypter := NewPGPEncrypt(arg)
-	return RunEngine(encrypter, ctx, nil, nil)
+	//	encrypter := NewPGPEncrypt(arg)
+	//	return RunEngine(encrypter, ctx, nil, nil)
+	return libkb.PGPEncrypt(e.arg.Source, writer, signer, recipients)
 }
