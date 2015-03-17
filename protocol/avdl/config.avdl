@@ -18,6 +18,7 @@ protocol config {
 		string socketFile;
 		boolean gpgExists;
 		string gpgPath;
+		string version;
 	}
 
 	Config getConfig();

@@ -161,6 +161,9 @@
     }, {
       "name" : "gpgPath",
       "type" : "string"
+    }, {
+      "name" : "version",
+      "type" : "string"
     } ]
   } ],
   "messages" : {

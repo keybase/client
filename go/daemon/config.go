@@ -35,6 +35,7 @@ func (h ConfigHandler) GetConfig() (keybase_1.Config, error) {
 	}
 	c.GpgExists = canExec
 	c.GpgPath = gpg.Path()
+	c.Version = libkb.CLIENT_VERSION;
 
 	return c, nil
 }

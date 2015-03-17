@@ -167,6 +167,7 @@ type Config struct {
 	SocketFile string `codec:"socketFile" json:"socketFile"`
 	GpgExists  bool   `codec:"gpgExists" json:"gpgExists"`
 	GpgPath    string `codec:"gpgPath" json:"gpgPath"`
+	Version    string `codec:"version" json:"version"`
 }
 
 type GetCurrentStatusArg struct {
