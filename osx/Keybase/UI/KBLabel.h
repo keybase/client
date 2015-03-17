@@ -18,6 +18,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
   KBLabelStyleDefault,
   KBLabelStyleSecondaryText,
   KBLabelStyleHeader,
+  KBLabelStyleHeaderLarge,
 };;
 
 @interface KBLabel : YOView
@@ -26,6 +27,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property (nonatomic) BOOL selectable;
 @property KBVerticalAlignment verticalAlignment;
 @property KBBorder *border;
+@property UIEdgeInsets insets;
 
 + (instancetype)label;
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style;

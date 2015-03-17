@@ -37,6 +37,8 @@
 		001FCDED1AB21F5E004486D3 /* KBBorder.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDEB1AB21F5E004486D3 /* KBBorder.m */; };
 		002535371AB77D2D00583913 /* KBKeyImportView.m in Sources */ = {isa = PBXBuildFile; fileRef = 002535361AB77D2D00583913 /* KBKeyImportView.m */; };
 		002535381AB77D2D00583913 /* KBKeyImportView.m in Sources */ = {isa = PBXBuildFile; fileRef = 002535361AB77D2D00583913 /* KBKeyImportView.m */; };
+		0025353B1AB8BC4D00583913 /* KBSecretWordsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0025353A1AB8BC4D00583913 /* KBSecretWordsView.m */; };
+		0025353C1AB8BC4D00583913 /* KBSecretWordsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0025353A1AB8BC4D00583913 /* KBSecretWordsView.m */; };
 		003BAAB91A8042C700C309B9 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003BAAB81A8042C700C309B9 /* KBStyleGuideView.m */; };
 		003BAABA1A8042C700C309B9 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003BAAB81A8042C700C309B9 /* KBStyleGuideView.m */; };
 		004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
@@ -252,6 +254,8 @@
 		001FCDEB1AB21F5E004486D3 /* KBBorder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBBorder.m; sourceTree = "<group>"; };
 		002535351AB77D2D00583913 /* KBKeyImportView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyImportView.h; sourceTree = "<group>"; };
 		002535361AB77D2D00583913 /* KBKeyImportView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyImportView.m; sourceTree = "<group>"; };
+		002535391AB8BC4D00583913 /* KBSecretWordsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSecretWordsView.h; sourceTree = "<group>"; };
+		0025353A1AB8BC4D00583913 /* KBSecretWordsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSecretWordsView.m; sourceTree = "<group>"; };
 		003BAAB71A8042C700C309B9 /* KBStyleGuideView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStyleGuideView.h; sourceTree = "<group>"; };
 		003BAAB81A8042C700C309B9 /* KBStyleGuideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStyleGuideView.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
@@ -482,6 +486,8 @@
 				00C7DD541AA67DDC00F57AFC /* KBDevicesAppView.m */,
 				00C7DD5B1AA6815400F57AFC /* KBDeviceView.h */,
 				00C7DD5C1AA6815400F57AFC /* KBDeviceView.m */,
+				002535391AB8BC4D00583913 /* KBSecretWordsView.h */,
+				0025353A1AB8BC4D00583913 /* KBSecretWordsView.m */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -1061,6 +1067,7 @@
 				006D57231AAE2D4900D16CB8 /* KBFolderListView.m in Sources */,
 				00DD24641AA8F4A700371CDA /* KBDebugStatusView.m in Sources */,
 				001712501A951A9C00C7AD58 /* KBUserProfileView.m in Sources */,
+				0025353B1AB8BC4D00583913 /* KBSecretWordsView.m in Sources */,
 				00B5442C1A895A910044CC5B /* KBProveInputView.m in Sources */,
 				006D57171AAE27D100D16CB8 /* KBFoldersAppView.m in Sources */,
 				00566A151A97DA1800CA236E /* KBLabel.m in Sources */,
@@ -1202,6 +1209,7 @@
 				00566A1C1A97DA1800CA236E /* KBMenuBar.m in Sources */,
 				00D52F831A76EDAE00DEB5F5 /* KBFatalErrorView.m in Sources */,
 				00566A321A97DA1800CA236E /* KBWebView.m in Sources */,
+				0025353C1AB8BC4D00583913 /* KBSecretWordsView.m in Sources */,
 				00C7DD621AA6839200F57AFC /* KBContentView.m in Sources */,
 				00C7DD5E1AA6815400F57AFC /* KBDeviceView.m in Sources */,
 				00DD24651AA8F4A700371CDA /* KBDebugStatusView.m in Sources */,

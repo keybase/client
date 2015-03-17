@@ -21,6 +21,7 @@
 #import "KBDevicePromptView.h"
 #import "KBProgressView.h"
 #import "KBKeyImportView.h"
+#import "KBSecretWordsView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -51,6 +52,7 @@
 
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" targetBlock:^{ [self showDeviceSetupView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" targetBlock:^{ [self showDevicePrompt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Secret Words" targetBlock:^{ [self showSecretWords]; }]];
 
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
@@ -142,18 +144,25 @@
     GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
   };
   selectView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
-  [self openInWindow:selectView size:CGSizeMake(600, 400) title:@"Select PGP Key"];
+  [self openInWindow:selectView size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showImportKey {
   KBKeyImportView *keyImportView = [[KBKeyImportView alloc] init];
   keyImportView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
-  [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:@"Import a Key"];
+  [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:nil];
+}
+
+- (void)showSecretWords {
+  KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
+  [secretWordsView setSecretWords:@"exotic element night course funny grain" deviceName:@"Macbook (Home)"];
+  secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
+  [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showStyleGuide {
   KBStyleGuideView *testView = [[KBStyleGuideView alloc] init];
-  [self openInWindow:testView size:CGSizeMake(300, 400) title:@"Keybase"];
+  [self openInWindow:testView size:CGSizeMake(300, 400) title:nil];
 }
 
 - (void)showProveInstructions {
@@ -207,7 +216,7 @@
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
   [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
   deviceSetupView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
-  [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:@"Device Setup"];
+  [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:nil];
 }
 
 - (void)showDevicePrompt {
@@ -215,7 +224,7 @@
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
     [[sender window] close];
   };
-  [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:@"Keybase"];
+  [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showError {

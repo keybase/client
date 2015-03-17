@@ -87,6 +87,7 @@
       // Padding for non text style buttons
       sizeThatFits.height += 20;
       sizeThatFits.width += 40;
+      sizeThatFits.width = MAX(sizeThatFits.width, 130); // Min width 120
       break;
 
   }

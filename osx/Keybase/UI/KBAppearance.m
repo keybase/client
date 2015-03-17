@@ -143,7 +143,11 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSFont *)headerTextFont {
-  return [NSFont systemFontOfSize:BASE_FONT_SIZE+5];
+  return [NSFont systemFontOfSize:BASE_FONT_SIZE+6];
+}
+
+- (NSFont *)headerLargeTextFont {
+  return [NSFont boldSystemFontOfSize:BASE_FONT_SIZE+10];
 }
 
 - (NSFont *)buttonFont {

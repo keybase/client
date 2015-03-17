@@ -16,6 +16,8 @@ typedef NS_ENUM (NSInteger, KBBorderType) {
   KBBorderTypeRight = 1 << 1,
   KBBorderTypeBottom = 1 << 2,
   KBBorderTypeLeft = 1 << 3,
+
+  KBBorderTypeAll = KBBorderTypeTop|KBBorderTypeRight|KBBorderTypeBottom|KBBorderTypeLeft,
 };
 
 @interface KBBorder : NSView

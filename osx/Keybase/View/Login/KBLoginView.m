@@ -10,6 +10,7 @@
 #import "AppDelegate.h"
 #import "KBDeviceSetupView.h"
 #import "KBDevicePromptView.h"
+#import "KBSecretWordsView.h"
 
 @interface KBLoginView ()
 @property KBSecureTextField *passwordField;
@@ -21,38 +22,42 @@
   [super viewInit];
   GHWeakSelf gself = self;
   self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
-  self.contentView.backgroundColor = NSColor.whiteColor;
-  self.contentView.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
-  self.contentView.layer.borderWidth = 1.0;
-  self.contentView.layer.cornerRadius = 6;
+
+  YOView *contentView = [[YOView alloc] init];
+  [self addSubview:contentView];
+
+  contentView.backgroundColor = NSColor.whiteColor;
+  contentView.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
+  contentView.layer.borderWidth = 1.0;
+  contentView.layer.cornerRadius = 6;
 
   KBLabel *label = [[KBLabel alloc] init];
   [label setMarkup:@"<p><thin>Welcome to</thin> Keybase</p>" font:[NSFont systemFontOfSize:22] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [self.contentView addSubview:label];
+  [contentView addSubview:label];
 
   _usernameField = [[KBTextField alloc] init];
   _usernameField.placeholder = @"Email or Username";
-  [self.contentView addSubview:_usernameField];
+  [contentView addSubview:_usernameField];
 
   _passwordField = [[KBSecureTextField alloc] init];
   _passwordField.placeholder = @"Passphrase";
-  [self.contentView addSubview:_passwordField];
+  [contentView addSubview:_passwordField];
 
   _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStylePrimary];
   _loginButton.targetBlock = ^{
     [gself login];
   };
   [_loginButton setKeyEquivalent:@"\r"];
-  [self.contentView addSubview:_loginButton];
+  [contentView addSubview:_loginButton];
 
   _signupButton = [KBButton buttonWithText:@"Don't have an account? Sign Up" style:KBButtonStyleLink];
-  [self.contentView addSubview:_signupButton];
+  [contentView addSubview:_signupButton];
 
 //  KBButton *forgotPasswordButton = [KBButton buttonWithText:@"Forgot my password" style:KBButtonStyleLink];
 //  [self addSubview:forgotPasswordButton];
 
   YOSelf yself = self;
-  self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 50;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
@@ -70,7 +75,9 @@
     y += 20;
 
     return CGSizeMake(MIN(380, size.width), y);
-  }];  
+  }];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -142,6 +149,19 @@
     KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     [self selectSigner:requestParams completion:completion];
+  }];
+
+  [self.client registerMethod:@"keybase.1.doctorUi.displaySecretWords" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRDisplaySecretWordsRequestParams *requestParams = [[KBRDisplaySecretWordsRequestParams alloc] initWithParams:params];
+
+    [self.navigation setProgressEnabled:NO];
+    KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
+    [secretWordsView setSecretWords:requestParams.secret deviceName:requestParams.xDevDescription];
+    secretWordsView.button.targetBlock = ^{
+      [self.navigation setProgressEnabled:YES];
+      completion(nil, nil);
+    };
+    [self.navigation pushView:secretWordsView animated:YES];
   }];
 
   [self.navigation setProgressEnabled:YES];

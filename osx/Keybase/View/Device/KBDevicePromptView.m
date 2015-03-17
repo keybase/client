@@ -20,27 +20,30 @@
   [super viewInit];
   GHWeakSelf gself = self;
 
+  YOView *contentView = [[YOView alloc] init];
+  [self addSubview:contentView];
+
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Set a Device Name" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [self.contentView addSubview:header];
+  [header setText:@"Set a Device Name" style:KBLabelStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [contentView addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
   [label setText:@"This is the first time you've logged into this device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault];
-  [self.contentView addSubview:label];
+  [contentView addSubview:label];
 
   _deviceNameField = [[KBTextField alloc] init];
   _deviceNameField.placeholder = @"e.g. Macbook";
-  [self.contentView addSubview:_deviceNameField];
+  [contentView addSubview:_deviceNameField];
 
   _saveButton = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
   _saveButton.targetBlock = ^{
     [gself save];
   };
   [_saveButton setKeyEquivalent:@"\r"];
-  [self.contentView addSubview:_saveButton];
+  [contentView addSubview:_saveButton];
 
   YOSelf yself = self;
-  self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:header].size.height + 20;
@@ -52,6 +55,8 @@
 
     return CGSizeMake(MIN(480, size.width), y);
   }];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }
 
 - (void)viewDidAppear:(BOOL)animated {

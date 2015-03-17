@@ -16,7 +16,4 @@
 @property KBNavigationView *navigation;
 @property KBRPClient * client;
 
-// Optional content view created on access
-@property (nonatomic, readonly) KBView *contentView;
-
 @end

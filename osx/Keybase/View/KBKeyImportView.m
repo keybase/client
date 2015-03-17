@@ -57,8 +57,8 @@
 
   footerView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGSize footerSize = [yself.importButton sizeThatFits:size];
-    [layout setFrame:CGRectMake(size.width - 280, 0, 130, footerSize.height) view:yself.cancelButton];
-    [layout setFrame:CGRectMake(size.width - 130, 0, 130, footerSize.height) view:yself.importButton];
+    [layout setFrame:CGRectMake(size.width - 280, 0, 130, footerSize.height) view:yself.importButton];
+    [layout setFrame:CGRectMake(size.width - 130, 0, 130, footerSize.height) view:yself.cancelButton];
     return CGSizeMake(size.width, footerSize.height);
   }];
   [self addSubview:footerView];

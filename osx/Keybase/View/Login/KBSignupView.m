@@ -29,10 +29,14 @@
   [super viewInit];
   GHWeakSelf gself = self;
   self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
-  self.contentView.backgroundColor = NSColor.whiteColor;
-  self.contentView.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
-  self.contentView.layer.borderWidth = 1.0;
-  self.contentView.layer.cornerRadius = 6;
+
+  YOView *contentView = [[YOView alloc] init];
+  [self addSubview:contentView];
+
+  contentView.backgroundColor = NSColor.whiteColor;
+  contentView.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
+  contentView.layer.borderWidth = 1.0;
+  contentView.layer.cornerRadius = 6;
 
   //KBLabel *label = [[KBLabel alloc] init];
   //[label setMarkup:@"<p>Welcome to Keybase.</p>" font:[NSFont systemFontOfSize:20] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
@@ -40,7 +44,7 @@
 
   KBLabel *label = [[KBLabel alloc] init];
   [label setMarkup:@"<p><thin>Welcome to</thin> Keybase</p>" font:[NSFont systemFontOfSize:22] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [self.contentView addSubview:label];
+  [contentView addSubview:label];
 
   _inviteField = [[KBTextField alloc] init];
   _inviteField.placeholder = @"Invite Code";
@@ -54,7 +58,7 @@
   _emailField.attributes[@"title"] = @"Email Address";
   _emailField.attributes[@"info"] = @"Your email address can be used to help recover your account.";
   _emailField.focusDelegate = self;
-  [self.contentView addSubview:_emailField];
+  [contentView addSubview:_emailField];
 
   _usernameField = [[KBTextField alloc] init];
   _usernameField.placeholder = @"Username";
@@ -62,7 +66,7 @@
   _usernameField.attributes[@"title"] = @"Username";
   _usernameField.attributes[@"info"] = @"This is a unique username that everyone will use to identify you. Choose wisely, this can't be changed.";
   _usernameField.focusDelegate = self;
-  [self.contentView addSubview:_usernameField];
+  [contentView addSubview:_usernameField];
 
   _deviceNameField = [[KBTextField alloc] init];
   _deviceNameField.placeholder = @"Computer Name";
@@ -72,7 +76,7 @@
   _deviceNameField.attributes[@"info"] = @"We'll register this install with this name. It'll help you identify it later. For example, \"Work\" or \"Home\" or \"Macbook\".";
 
   //_deviceNameField.text = [[NSHost currentHost] localizedName];
-  [self.contentView addSubview:_deviceNameField];
+  [contentView addSubview:_deviceNameField];
 
   _passwordField = [[KBSecureTextField alloc] init];
   _passwordField.placeholder = @"Passphrase";
@@ -80,35 +84,35 @@
   _passwordField.focusDelegate = self;
   _passwordField.attributes[@"title"] = @"Passphrase";
   _passwordField.attributes[@"info"] = @"You'll need a 12 character random password. This is never sent to Keybase's servers. It's salted & stretched with scrypt here.";
-  [self.contentView addSubview:_passwordField];
+  [contentView addSubview:_passwordField];
 
   _passwordConfirmField = [[KBSecureTextField alloc] init];
   _passwordConfirmField.placeholder = @"Confirm Passphrase";
   _passwordConfirmField.textField.delegate = self;
   _passwordConfirmField.focusDelegate = self;
-  [self.contentView addSubview:_passwordConfirmField];
+  [contentView addSubview:_passwordConfirmField];
 
   _signupButton = [KBButton buttonWithText:@"Sign Up" style:KBButtonStylePrimary];
   _signupButton.targetBlock = ^{
     [gself signup];
   };
-  [self.contentView addSubview:_signupButton];
+  [contentView addSubview:_signupButton];
 
   _loginButton = [KBButton buttonWithText:@"Already have an account? Log In." style:KBButtonStyleLink];
-  [self.contentView addSubview:_loginButton];
+  [contentView addSubview:_loginButton];
 
   _usernameStatusLabel = [[KBLabel alloc] init];
-  [self.contentView addSubview:_usernameStatusLabel];
+  [contentView addSubview:_usernameStatusLabel];
 
   _strengthLabel = [[KBStrengthLabel alloc] init];
   // TODO: Strength label interfers with caps lock view
-  [self.contentView addSubview:_strengthLabel];
+  [contentView addSubview:_strengthLabel];
 
   _passwordConfirmLabel = [[KBLabel alloc] init];
-  [self.contentView addSubview:_passwordConfirmLabel];
+  [contentView addSubview:_passwordConfirmLabel];
 
   YOSelf yself = self;
-  self.contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 30;
     CGFloat padding = 12;
 
@@ -142,11 +146,13 @@
 
     // TODO
     if (yself.popoverTarget) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(self.contentView.frame.origin.x + yself.popoverTarget.frame.origin.x + yself.popoverTarget.frame.size.width + 10, self.contentView.frame.origin.y + yself.popoverTarget.frame.origin.y - 20, (self.frame.size.width - size.width)/2.0, 0) view:yself.popover];
+      [layout sizeToFitVerticalInFrame:CGRectMake(contentView.frame.origin.x + yself.popoverTarget.frame.origin.x + yself.popoverTarget.frame.size.width + 10, contentView.frame.origin.y + yself.popoverTarget.frame.origin.y - 20, (self.frame.size.width - size.width)/2.0, 0) view:yself.popover];
     }
 
     return CGSizeMake(MIN(380, size.width), y);
   }];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 
 //#ifdef DEBUG
 //  self.emailField.text = @"gabrielh+gbrl38@gmail.com";

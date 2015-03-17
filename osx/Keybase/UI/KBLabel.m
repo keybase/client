@@ -33,7 +33,7 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    UIEdgeInsets insets = yself.border.insets;
+    UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, _insets);
     [layout setSize:size view:yself.border options:0];
     if (self.verticalAlignment != KBVerticalAlignmentNone) {
       // TODO Top, bottom alignments
@@ -52,8 +52,8 @@
 - (CGSize)sizeThatFits:(CGSize)size {
   CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
   UIEdgeInsets insets = self.border.insets;
-  sizeThatFits.width += insets.left + insets.right;
-  sizeThatFits.height += insets.top + insets.bottom;
+  sizeThatFits.width += insets.left + insets.right + _insets.left + _insets.right;
+  sizeThatFits.height += insets.top + insets.bottom  + _insets.top + _insets.bottom;
   return sizeThatFits;
 }
 
@@ -123,10 +123,6 @@
   [self setNeedsLayout];
 }
 
-- (void)setBackgroundColor:(NSColor *)backgroundColor {
-  _textView.backgroundColor = backgroundColor;
-}
-
 - (void)setSelectable:(BOOL)selectable {
   _textView.selectable = selectable;
 }
@@ -149,15 +145,26 @@
 
 - (NSColor *)colorForStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
   switch (style) {
-    case KBLabelStyleSecondaryText: return appearance.secondaryTextColor;
-    default: return appearance.textColor;
+    case KBLabelStyleNone:
+    case KBLabelStyleDefault:
+    case KBLabelStyleHeader:
+    case KBLabelStyleHeaderLarge:
+      return appearance.textColor;
+
+    case KBLabelStyleSecondaryText:
+      return appearance.secondaryTextColor;
   }
 }
 
 - (NSFont *)fontForStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
   switch (style) {
+    case KBLabelStyleNone:
+    case KBLabelStyleDefault:
+      return appearance.textFont;
+
+    case KBLabelStyleSecondaryText: return appearance.textFont;
     case KBLabelStyleHeader: return appearance.headerTextFont;
-    default: return appearance.textFont;
+    case KBLabelStyleHeaderLarge: return appearance.headerLargeTextFont;
   }
 }
 
@@ -189,7 +196,9 @@
 }
 
 + (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color {
-  NSDictionary *defaultStyle = @{NSFontAttributeName:font ? font : KBAppearance.currentAppearance.textFont, NSForegroundColorAttributeName:color ? color : KBAppearance.currentAppearance.textColor};
+  if (!font) font = KBAppearance.currentAppearance.textFont;
+  if (!color) color = KBAppearance.currentAppearance.textColor;
+  NSDictionary *defaultStyle = @{NSFontAttributeName:font, NSForegroundColorAttributeName:color};
 
   NSDictionary *style = @{@"$default": defaultStyle,
                           @"p": defaultStyle,
@@ -230,7 +239,8 @@
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  [self setMarkup:markup font:nil color:nil alignment:alignment lineBreakMode:lineBreakMode];
+  _style = style;
+  [self setMarkup:markup font:[self fontForStyle:_style appearance:KBAppearance.currentAppearance] color:[self colorForStyle:_style appearance:KBAppearance.currentAppearance] alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
@@ -263,18 +273,7 @@
 
 - (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
   _style = style;
-  switch (style) {
-    case KBLabelStyleNone:
-    case KBLabelStyleDefault:
-      [self setFont:appearance.textFont color:appearance.textColor];
-      break;
-    case KBLabelStyleSecondaryText:
-      [self setFont:appearance.textFont color:appearance.secondaryTextColor];
-      break;
-    case KBLabelStyleHeader:
-      [self setFont:appearance.boldLargeTextFont color:appearance.textColor];
-      break;
-  }
+  [self setFont:[self fontForStyle:_style appearance:KBAppearance.currentAppearance] color:[self colorForStyle:_style appearance:KBAppearance.currentAppearance]];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
