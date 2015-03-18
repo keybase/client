@@ -309,7 +309,7 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, lid Lin
 }
 
 // revSig is optional.  Added for kex scenario.
-func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig *ReverseSig) (ret *jsonw.Wrapper, err error) {
+func keyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig *ReverseSig, u *User) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 
 	if typ == SIBKEY_TYPE {
@@ -317,7 +317,12 @@ func KeyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig
 			ret.SetKey("reverse_sig", jsonw.NewWrapper(*revSig))
 		} else if newkey.CanSign() {
 			var rs ReverseSig
-			rsp := ReverseSigPayload{signingKey.GetKid().String()}
+			rsp := ReverseSigPayload{
+				Ctime:         time.Now().Unix(),
+				ReverseKeySig: signingKey.GetKid().String(),
+				Uid:           u.GetUid().P(),
+				Username:      u.GetName(),
+			}
 			if rs.Sig, _, _, err = SignJson(jsonw.NewWrapper(rsp), newkey); err != nil {
 				return
 			}
@@ -350,7 +355,7 @@ func (u *User) delegateKeyProof(newkey GenericKey, signingkey GenericKey, typ st
 	}
 
 	var kp *jsonw.Wrapper
-	if kp, err = KeyToProofJson(newkey, typ, signingkey, revSig); err != nil {
+	if kp, err = keyToProofJson(newkey, typ, signingkey, revSig, u); err != nil {
 		return
 	}
 

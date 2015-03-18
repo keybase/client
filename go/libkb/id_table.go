@@ -494,7 +494,10 @@ type ReverseSig struct {
 }
 
 type ReverseSigPayload struct {
+	Ctime         int64  `json:"ctime"`
 	ReverseKeySig string `json:"reverse_key_sig"`
+	Uid           *UID   `json:"uid"`
+	Username      string `json:"username"`
 }
 
 type SibkeyChainLink struct {

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"os"
+	"path/filepath"
 )
 
 type ConfigHandler struct {
@@ -37,7 +37,7 @@ func (h ConfigHandler) GetConfig() (keybase_1.Config, error) {
 		c.GpgPath = gpg.Path()
 	}
 
-	c.Version = libkb.CLIENT_VERSION;
+	c.Version = libkb.CLIENT_VERSION
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err == nil {
