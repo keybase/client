@@ -5,6 +5,7 @@ package engine
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
@@ -24,14 +25,42 @@ func TestPGPKeyfinder(t *testing.T) {
 		Fapr:   keybase_1.FinishAndPromptRes{TrackRemote: true},
 	}
 
-	// ctx := &Context{IdentifyUI: &idLubaUI{}, TrackUI: trackUI, SecretUI: u.NewSecretUI()}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 	arg := &PGPKeyfinderArg{
-		Users: []string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 	}
 	eng := NewPGPKeyfinder(arg)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
+	}
+
+	up := eng.UsersPlusKeys()
+	if len(up) != 3 {
+		t.Errorf("number of users found: %d, expected 3", len(up))
+	}
+}
+
+func TestPGPKeyfinderLoggedOut(t *testing.T) {
+	tc := SetupEngineTest(t, "PGPKeyfinder")
+	defer tc.Cleanup()
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+		Fapr:   keybase_1.FinishAndPromptRes{TrackRemote: true},
+	}
+
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: libkb.TestSecretUI{}}
+	arg := &PGPKeyfinderArg{
+		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+	}
+	eng := NewPGPKeyfinder(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	up := eng.UsersPlusKeys()
+	if len(up) != 3 {
+		t.Errorf("number of users found: %d, expected 3", len(up))
 	}
 }
 

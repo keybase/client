@@ -1,8 +1,6 @@
 package engine
 
-import (
-	"github.com/keybase/client/go/libkb"
-)
+import "github.com/keybase/client/go/libkb"
 
 // Identify is an engine to identify a user.
 type Identify struct {
@@ -90,8 +88,6 @@ func (e *Identify) Run(ctx *Context) error {
 	// inform the ui what to do with the remote tracking prompt:
 	e.outcome.LocalOnly = e.arg.TrackOptions.TrackLocalOnly
 	e.outcome.ApproveRemote = e.arg.TrackOptions.TrackApprove
-
-	G.Log.Warning("outcome before FinishAndPrompt: %+v", e.outcome)
 
 	tmp, err := ctx.IdentifyUI.FinishAndPrompt(e.outcome.Export())
 	if err != nil {

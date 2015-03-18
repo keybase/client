@@ -38,7 +38,7 @@ func (e *PGPEncrypt) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *PGPEncrypt) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: true}
+	return EnginePrereqs{}
 }
 
 // RequiredUIs returns the required UIs.
@@ -55,8 +55,25 @@ func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPEncrypt) Run(ctx *Context) error {
+	// verify valid options based on logged in state:
+	ok, err := G.Session.LoadAndCheck()
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		// not logged in.  this is fine, unless they requested signing the message.
+		if !e.arg.NoSign {
+			return libkb.LoginRequiredError{Context: "you must be logged in to sign"}
+		}
+
+		// turn this on automatically when not logged in
+		e.arg.NoSelf = true
+	}
+
 	var mykey *libkb.PgpKeyBundle
-	if !e.arg.NoSign || !e.arg.NoSelf {
+	var signer *libkb.PgpKeyBundle
+	if !e.arg.NoSign {
 		ska := libkb.SecretKeyArg{
 			Reason:   "command-line signature",
 			PGPOnly:  true,
@@ -76,6 +93,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		if !ok {
 			return errors.New("Can only sign with PGP keys")
 		}
+		signer = mykey
 	}
 
 	kfarg := &PGPKeyfinderArg{
@@ -100,14 +118,20 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		writer = aw
 	}
 
-	var signer *libkb.PgpKeyBundle
-	if !e.arg.NoSign {
-		signer = mykey
-	}
-
 	var recipients []*libkb.PgpKeyBundle
 	if !e.arg.NoSelf {
-		recipients = append(recipients, mykey)
+		if mykey == nil {
+			// need to load the public key for the logged in user
+			mykey, err = e.loadSelfKey()
+			if err != nil {
+				return err
+			}
+		}
+
+		// mykey could still be nil
+		if mykey != nil {
+			recipients = append(recipients, mykey)
+		}
 	}
 
 	for _, up := range uplus {
@@ -115,4 +139,16 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	}
 
 	return libkb.PGPEncrypt(e.arg.Source, writer, signer, recipients)
+}
+
+func (e *PGPEncrypt) loadSelfKey() (*libkb.PgpKeyBundle, error) {
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return nil, err
+	}
+	keys := me.FilterActivePgpKeys(true, e.arg.KeyQuery)
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	return keys[0], nil
 }

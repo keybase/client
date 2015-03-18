@@ -59,7 +59,6 @@ func (i *IdentifyUIServer) DisplayTrackStatement(arg keybase_1.DisplayTrackState
 }
 
 func (i *IdentifyUIServer) Start(arg keybase_1.StartArg) error {
-	G.Log.Warning("IdentifyUIServer.Start(%+v)", arg)
 	i.ui.Start(arg.Username)
 	return nil
 }

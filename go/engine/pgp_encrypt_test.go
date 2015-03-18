@@ -17,15 +17,14 @@ func TestPGPEncrypt(t *testing.T) {
 		Proofs: make(map[string]string),
 		Fapr:   keybase_1.FinishAndPromptRes{TrackRemote: true},
 	}
-	// ctx := &Context{IdentifyUI: &idLubaUI{}, TrackUI: trackUI, SecretUI: u.NewSecretUI()}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips: []string{"t_alice", "kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
-		NoSelf: true,
+		NoSelf: false,
 		NoSign: true,
 	}
 
