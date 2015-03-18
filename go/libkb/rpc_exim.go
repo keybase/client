@@ -183,6 +183,8 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 			return CanceledError{}
 		case SC_KEY_NO_SECRET:
 			return NoSecretKeyError{}
+		case SC_LOGIN_REQUIRED:
+			return LoginRequiredError{s.Desc}
 		case SC_KEY_IN_USE:
 			var fp *PgpFingerprint
 			if len(s.Desc) > 0 {
@@ -549,6 +551,15 @@ func (e StreamWrongKindError) ToStatus(s keybase_1.Status) {
 func (u NoSecretKeyError) ToStatus() (s keybase_1.Status) {
 	s.Code = SC_KEY_NO_SECRET
 	s.Name = "KEY_NO_SECRET"
+	return
+}
+
+//=============================================================================
+
+func (u LoginRequiredError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_LOGIN_REQUIRED
+	s.Name = "LOGIN_REQUIRED"
+	s.Desc = u.Context
 	return
 }
 

@@ -397,7 +397,11 @@ type LoginRequiredError struct {
 }
 
 func (e LoginRequiredError) Error() string {
-	return fmt.Sprintf("Login required. %s", e.Context)
+	msg := "Login required"
+	if len(e.Context) > 0 {
+		msg = fmt.Sprintf("%s: %s", msg, e.Context)
+	}
+	return msg
 }
 
 //=============================================================================
