@@ -164,6 +164,9 @@
     }, {
       "name" : "version",
       "type" : "string"
+    }, {
+      "name" : "path",
+      "type" : "string"
     } ]
   } ],
   "messages" : {

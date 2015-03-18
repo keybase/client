@@ -168,6 +168,7 @@ type Config struct {
 	GpgExists  bool   `codec:"gpgExists" json:"gpgExists"`
 	GpgPath    string `codec:"gpgPath" json:"gpgPath"`
 	Version    string `codec:"version" json:"version"`
+	Path       string `codec:"path" json:"path"`
 }
 
 type GetCurrentStatusArg struct {

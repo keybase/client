@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -30,12 +32,17 @@ func (h ConfigHandler) GetConfig() (keybase_1.Config, error) {
 
 	gpg := G.GetGpgClient()
 	canExec, err := gpg.CanExec()
-	if err != nil {
-		return c, err
+	if err == nil {
+		c.GpgExists = canExec
+		c.GpgPath = gpg.Path()
 	}
-	c.GpgExists = canExec
-	c.GpgPath = gpg.Path()
+
 	c.Version = libkb.CLIENT_VERSION;
+
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err == nil {
+		c.Path = dir
+	}
 
 	return c, nil
 }
