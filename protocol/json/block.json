@@ -132,40 +132,24 @@
     "size" : 32
   } ],
   "messages" : {
-    "announceSession" : {
+    "blockSession" : {
       "request" : [ {
         "name" : "sid",
         "type" : "string"
       } ],
       "response" : "null"
     },
-    "get" : {
+    "getBlock" : {
       "request" : [ {
         "name" : "blockid",
-        "type" : "bytes"
-      }, {
-        "name" : "uid",
-        "type" : "UID"
+        "type" : "string"
       } ],
       "response" : "bytes"
     },
-    "delete" : {
+    "putBlock" : {
       "request" : [ {
         "name" : "blockid",
-        "type" : "bytes"
-      }, {
-        "name" : "uid",
-        "type" : "UID"
-      } ],
-      "response" : "null"
-    },
-    "put" : {
-      "request" : [ {
-        "name" : "blockid",
-        "type" : "bytes"
-      }, {
-        "name" : "uid",
-        "type" : "UID"
+        "type" : "string"
       }, {
         "name" : "buf",
         "type" : "bytes"

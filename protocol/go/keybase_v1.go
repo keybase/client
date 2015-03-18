@@ -66,62 +66,143 @@ type Stream struct {
 }
 
 type SIGID [32]byte
-type AnnounceSessionArg struct {
+type BIndexInfo struct {
+	BlockId   string `codec:"blockId" json:"blockId"`
+	ChargedTo string `codec:"chargedTo" json:"chargedTo"`
+	Creator   string `codec:"creator" json:"creator"`
+	Folder    string `codec:"folder" json:"folder"`
+	BlockKey  string `codec:"blockKey" json:"blockKey"`
+}
+
+type BIndexSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }
 
-type GetArg struct {
-	Blockid []byte `codec:"blockid" json:"blockid"`
-	Uid     UID    `codec:"uid" json:"uid"`
+type GetBlockKeyArg struct {
+	Blockid string `codec:"blockid" json:"blockid"`
 }
 
-type DeleteArg struct {
-	Blockid []byte `codec:"blockid" json:"blockid"`
-	Uid     UID    `codec:"uid" json:"uid"`
+type DeleteBIndexArg struct {
+	Blockid string `codec:"blockid" json:"blockid"`
 }
 
-type PutArg struct {
-	Blockid []byte `codec:"blockid" json:"blockid"`
-	Uid     UID    `codec:"uid" json:"uid"`
+type PutBIndexArg struct {
+	Binfo BIndexInfo `codec:"binfo" json:"binfo"`
+}
+
+type BIndexInterface interface {
+	BIndexSession(string) error
+	GetBlockKey(string) ([]byte, error)
+	DeleteBIndex(string) error
+	PutBIndex(BIndexInfo) error
+}
+
+func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.bIndex",
+		Methods: map[string]rpc2.ServeHook{
+			"bIndexSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]BIndexSessionArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.BIndexSession(args[0].Sid)
+				}
+				return
+			},
+			"getBlockKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetBlockKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetBlockKey(args[0].Blockid)
+				}
+				return
+			},
+			"deleteBIndex": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeleteBIndexArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DeleteBIndex(args[0].Blockid)
+				}
+				return
+			},
+			"putBIndex": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PutBIndexArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PutBIndex(args[0].Binfo)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type BIndexClient struct {
+	Cli GenericClient
+}
+
+func (c BIndexClient) BIndexSession(sid string) (err error) {
+	__arg := BIndexSessionArg{Sid: sid}
+	err = c.Cli.Call("keybase.1.bIndex.bIndexSession", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BIndexClient) GetBlockKey(blockid string) (res []byte, err error) {
+	__arg := GetBlockKeyArg{Blockid: blockid}
+	err = c.Cli.Call("keybase.1.bIndex.getBlockKey", []interface{}{__arg}, &res)
+	return
+}
+
+func (c BIndexClient) DeleteBIndex(blockid string) (err error) {
+	__arg := DeleteBIndexArg{Blockid: blockid}
+	err = c.Cli.Call("keybase.1.bIndex.deleteBIndex", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BIndexClient) PutBIndex(binfo BIndexInfo) (err error) {
+	__arg := PutBIndexArg{Binfo: binfo}
+	err = c.Cli.Call("keybase.1.bIndex.putBIndex", []interface{}{__arg}, nil)
+	return
+}
+
+type BlockSessionArg struct {
+	Sid string `codec:"sid" json:"sid"`
+}
+
+type GetBlockArg struct {
+	Blockid string `codec:"blockid" json:"blockid"`
+}
+
+type PutBlockArg struct {
+	Blockid string `codec:"blockid" json:"blockid"`
 	Buf     []byte `codec:"buf" json:"buf"`
 }
 
 type BlockInterface interface {
-	AnnounceSession(string) error
-	Get(GetArg) ([]byte, error)
-	Delete(DeleteArg) error
-	Put(PutArg) error
+	BlockSession(string) error
+	GetBlock(string) ([]byte, error)
+	PutBlock(PutBlockArg) error
 }
 
 func BlockProtocol(i BlockInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.block",
 		Methods: map[string]rpc2.ServeHook{
-			"announceSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]AnnounceSessionArg, 1)
+			"blockSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]BlockSessionArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.AnnounceSession(args[0].Sid)
+					err = i.BlockSession(args[0].Sid)
 				}
 				return
 			},
-			"get": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetArg, 1)
+			"getBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetBlockArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.Get(args[0])
+					ret, err = i.GetBlock(args[0].Blockid)
 				}
 				return
 			},
-			"delete": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeleteArg, 1)
+			"putBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PutBlockArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Delete(args[0])
-				}
-				return
-			},
-			"put": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PutArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Put(args[0])
+					err = i.PutBlock(args[0])
 				}
 				return
 			},
@@ -134,24 +215,20 @@ type BlockClient struct {
 	Cli GenericClient
 }
 
-func (c BlockClient) AnnounceSession(sid string) (err error) {
-	__arg := AnnounceSessionArg{Sid: sid}
-	err = c.Cli.Call("keybase.1.block.announceSession", []interface{}{__arg}, nil)
+func (c BlockClient) BlockSession(sid string) (err error) {
+	__arg := BlockSessionArg{Sid: sid}
+	err = c.Cli.Call("keybase.1.block.blockSession", []interface{}{__arg}, nil)
 	return
 }
 
-func (c BlockClient) Get(__arg GetArg) (res []byte, err error) {
-	err = c.Cli.Call("keybase.1.block.get", []interface{}{__arg}, &res)
+func (c BlockClient) GetBlock(blockid string) (res []byte, err error) {
+	__arg := GetBlockArg{Blockid: blockid}
+	err = c.Cli.Call("keybase.1.block.getBlock", []interface{}{__arg}, &res)
 	return
 }
 
-func (c BlockClient) Delete(__arg DeleteArg) (err error) {
-	err = c.Cli.Call("keybase.1.block.delete", []interface{}{__arg}, nil)
-	return
-}
-
-func (c BlockClient) Put(__arg PutArg) (err error) {
-	err = c.Cli.Call("keybase.1.block.put", []interface{}{__arg}, nil)
+func (c BlockClient) PutBlock(__arg PutBlockArg) (err error) {
+	err = c.Cli.Call("keybase.1.block.putBlock", []interface{}{__arg}, nil)
 	return
 }
 

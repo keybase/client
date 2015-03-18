@@ -3,8 +3,7 @@
 protocol block {
 	import idl "common.avdl";
 
-	void announceSession(string sid);
-	bytes get(bytes blockid, UID uid);
-	void delete(bytes blockid, UID uid);
-	void put(bytes blockid, UID uid, bytes buf);
+	void blockSession(string sid);
+	bytes getBlock(string blockid);
+	void putBlock(string blockid, bytes buf);
 }
