@@ -494,10 +494,10 @@ type ReverseSig struct {
 }
 
 type ReverseSigPayload struct {
-	Ctime         int64  `json:"ctime"`
-	ReverseKeySig string `json:"reverse_key_sig"`
-	Uid           *UID   `json:"uid"`
-	Username      string `json:"username"`
+	Ctime       int64  `json:"ctime"`
+	DelegatedBy string `json:"delegated_by"`
+	Uid         *UID   `json:"uid"`
+	Username    string `json:"username"`
 }
 
 type SibkeyChainLink struct {
@@ -567,7 +567,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 		err = ReverseSigError{fmt.Sprintf("Failed to unpack: %s", err.Error())}
 		return
 	}
-	if a, b := reverseSigPayload.ReverseKeySig, s.GetKid().String(); a != b {
+	if a, b := reverseSigPayload.DelegatedBy, s.GetKid().String(); a != b {
 		err = ReverseSigError{fmt.Sprintf("KID mismatch in reverse sig: %s != %s", a, b)}
 		return
 	}

@@ -213,7 +213,7 @@ func (k *KexFwd) storeKeys(ctx *Context, keys *keyres) error {
 
 // revSig generates a reverse signature using X's device key id.
 func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (string, error) {
-	rsp := libkb.ReverseSigPayload{ReverseKeySig: k.xDevKeyID.String()}
+	rsp := libkb.NewReverseSigPayload(k.xDevKeyID, k.args.User)
 	sig, _, _, err := libkb.SignJson(jsonw.NewWrapper(rsp), eddsa)
 	if err != nil {
 		return "", err

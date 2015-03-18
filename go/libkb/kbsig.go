@@ -308,6 +308,15 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, lid Lin
 	return
 }
 
+func NewReverseSigPayload(kid KID, u *User) ReverseSigPayload {
+	return ReverseSigPayload{
+		Ctime:       time.Now().Unix(),
+		DelegatedBy: kid.String(),
+		Uid:         u.GetUid().P(),
+		Username:    u.GetName(),
+	}
+}
+
 // revSig is optional.  Added for kex scenario.
 func keyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig *ReverseSig, u *User) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
@@ -317,12 +326,7 @@ func keyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig
 			ret.SetKey("reverse_sig", jsonw.NewWrapper(*revSig))
 		} else if newkey.CanSign() {
 			var rs ReverseSig
-			rsp := ReverseSigPayload{
-				Ctime:         time.Now().Unix(),
-				ReverseKeySig: signingKey.GetKid().String(),
-				Uid:           u.GetUid().P(),
-				Username:      u.GetName(),
-			}
+			rsp := NewReverseSigPayload(signingKey.GetKid(), u)
 			if rs.Sig, _, _, err = SignJson(jsonw.NewWrapper(rsp), newkey); err != nil {
 				return
 			}
