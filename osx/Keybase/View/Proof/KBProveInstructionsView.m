@@ -59,11 +59,10 @@
 }
 
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText {
-  // TODO Check instructions.markup
-  self.instructionsLabel.attributedText = [KBLabel parseMarkup:instructions.data font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor]];
+  [self.instructionsLabel setMarkup:instructions.data];
 
   _proofText = proofText;
-  [self.proofLabel setText:proofText font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  [self.proofLabel setText:proofText style:KBLabelStyleDefault];
   [self setNeedsLayout];
 }
 

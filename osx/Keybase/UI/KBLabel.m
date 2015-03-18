@@ -33,28 +33,23 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, _insets);
-    [layout setSize:size view:yself.border options:0];
     if (self.verticalAlignment != KBVerticalAlignmentNone) {
       // TODO Top, bottom alignments
-      CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-      [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, textSize.width, textSize.height)) view:yself.textView];
-      [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
-      return CGSizeMake(textSize.width, size.height);
+      UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
+      CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+      CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
+      [layout setFrame:CGRectIntegral(CGRectMake(insets.left, size.height/2.0 - sizeThatFits.height/2.0, sizeThatFits.width, sizeThatFits.height)) view:yself.textView];
+      [layout setSize:CGSizeMake(sizeWithInsets.width, size.height) view:yself.border options:0];
+      return CGSizeMake(sizeWithInsets.width, size.height);
     } else {
-      [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.textView];
-      [layout setSize:size view:yself.border options:0];
-      return size;
+      UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
+      CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+      CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
+      [layout setFrame:CGRectIntegral(CGRectMake(insets.left, insets.top, sizeThatFits.width, sizeThatFits.height)) view:yself.textView];
+      [layout setSize:sizeWithInsets view:yself.border options:0];
+      return sizeWithInsets;
     }
   }];
-}
-
-- (CGSize)sizeThatFits:(CGSize)size {
-  CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-  UIEdgeInsets insets = self.border.insets;
-  sizeThatFits.width += insets.left + insets.right + _insets.left + _insets.right;
-  sizeThatFits.height += insets.top + insets.bottom  + _insets.top + _insets.bottom;
-  return sizeThatFits;
 }
 
 // Don't capture mouse events unless we are selectable
@@ -62,36 +57,6 @@
   if (_textView.selectable) return _textView;
   return nil;
 }
-
-  /*
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    if ((self.autoresizingMask & NSViewHeightSizable) != 0 && (self.autoresizingMask & NSViewWidthSizable) != 0) {
-      [layout setSize:size view:yself.textView options:0];
-      [layout setSize:size view:yself.border options:0];
-      return size;
-    } else if ((self.autoresizingMask & NSViewWidthSizable) != 0) {
-      CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-      textSize.width += 10;
-      switch (self.verticalAlignment) {
-        case YOVerticalAlignmentMiddle:
-          [layout setFrame:CGRectIntegral(CGRectMake(0, size.height/2.0 - textSize.height/2.0, textSize.width, textSize.height)) view:yself.textView];
-          break;
-        case YOVerticalAlignmentTop:
-          [layout setFrame:CGRectIntegral(CGRectMake(0, 0, textSize.width, textSize.height)) view:yself.textView];
-          break;
-        default:
-          NSAssert(NO, @"Unsupported");
-      }
-      [layout setSize:CGSizeMake(textSize.width, size.height) view:yself.border options:0];
-      return CGSizeMake(textSize.width, size.height);
-    } else {
-      CGSize textSize = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-      [layout setSize:textSize view:yself.textView options:0];
-      return textSize;
-    }
-  }];
-}
-   */
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"%@ %@", super.description, self.attributedText];
@@ -113,13 +78,13 @@
   return label;
 }
 
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType {
-  [_border removeFromSuperview];
-  _border = [[KBBorder alloc] init];
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
+  if (!_border) {
+    _border = [[KBBorder alloc] init];
+    [self addSubview:_border];
+  }
   _border.color = color;
   _border.width = width;
-  _border.borderType = borderType;
-  [self addSubview:_border];
   [self setNeedsLayout];
 }
 
@@ -185,20 +150,27 @@
   NSParameterAssert(color);
   if (!text) text = @"";
   NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
-  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font};
-  [str setAttributes:attributes range:NSMakeRange(0, str.length)];
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
   paragraphStyle.lineBreakMode = lineBreakMode;
-  [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
+
+  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
+  [str setAttributes:attributes range:NSMakeRange(0, str.length)];
+
   [self setAttributedText:str];
 }
 
-+ (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color {
++ (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   if (!font) font = KBAppearance.currentAppearance.textFont;
   if (!color) color = KBAppearance.currentAppearance.textColor;
-  NSDictionary *defaultStyle = @{NSFontAttributeName:font, NSForegroundColorAttributeName:color};
+
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = lineBreakMode;
+  paragraphStyle.lineSpacing = 10; // TODO
+
+  NSDictionary *defaultStyle = @{NSFontAttributeName:font, NSForegroundColorAttributeName:color, NSParagraphStyleAttributeName:paragraphStyle};
 
   NSDictionary *style = @{@"$default": defaultStyle,
                           @"p": defaultStyle,
@@ -216,21 +188,11 @@
                           @"color": @{},
                           };
   NSError *error = nil;
-  NSMutableAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:&error] mutableCopy];
+  NSAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:&error] mutableCopy];
   if (!str) {
     GHDebug(@"Unable to parse markup: %@; %@", markup, error);
-    str = [[NSMutableAttributedString alloc] initWithString:markup attributes:@{NSFontAttributeName: font}];
+    str = [[NSMutableAttributedString alloc] initWithString:markup attributes:defaultStyle];
   }
-  return str;
-}
-
-+ (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSMutableAttributedString *str = [KBLabel parseMarkup:markup font:font color:color];
-
-  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-  paragraphStyle.alignment = alignment;
-  paragraphStyle.lineBreakMode = lineBreakMode;
-  [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
   return str;
 }
 

@@ -14,7 +14,7 @@
 #import "KBLaunchCtl.h"
 
 @interface KBConsoleView ()
-@property KBDebugStatusView *debugStatusView;
+@property KBRuntimeStatusView *runtimeStatusView;
 @property KBButton *checkButton;
 @property KBButton *restartButton;
 @property KBListView *logView;
@@ -27,16 +27,16 @@
 - (void)viewInit {
   [super viewInit];
 
-  _debugStatusView = [[KBDebugStatusView alloc] init];
-  [self addSubview:_debugStatusView];
+  _runtimeStatusView = [[KBRuntimeStatusView alloc] init];
+  [self addSubview:_runtimeStatusView];
 
   YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @[@(0), @(0), @(10), @(0)]}];
   GHWeakSelf gself = self;
-  _checkButton = [KBButton buttonWithText:@"Check" style:KBButtonStyleSmall];
+  _checkButton = [KBButton buttonWithText:@"Check Status" style:KBButtonStyleSmall];
   _checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
       [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
-        [gself log:NSStringWithFormat(@"keybased: %@", @(pid))];
+        [gself log:NSStringWithFormat(@"keybased pid: %@", @(pid))];
         completion(error);
       }];
     }];
@@ -47,7 +47,7 @@
   _restartButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself log:@"Restarting keybased..."];
     [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
-      [gself log:NSStringWithFormat(@"keybased: %@", @(pid))];
+      [gself log:NSStringWithFormat(@"keybased pid:%@", @(pid))];
       completion(error);
     }];
   };
@@ -69,7 +69,7 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 10;
     CGFloat y = 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(10, y, size.width - 20, 0) view:yself.debugStatusView].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(10, y, size.width - 20, 0) view:yself.runtimeStatusView].size.height + 10;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width, 34) view:buttons].size.height;
 
@@ -88,10 +88,13 @@
 }
 
 - (void)appView:(KBAppView *)appView didLaunchWithClient:(KBRPClient *)client {
-  [self log:@"App started."];
+  NSString *version = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
+  [self log:NSStringWithFormat(@"Keybase.app started (%@).", version)];
+  [self log:NSStringWithFormat(@"Dir: %@", [NSFileManager.defaultManager currentDirectoryPath])];
   _client = client;
-  _debugStatusView.client = client;
-  [_debugStatusView setRPCConnected:NO serverConnected:NO];
+  _runtimeStatusView.client = client;
+  _runtimeStatusView.RPCConnected = NO;
+  [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 
@@ -101,19 +104,21 @@
 
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client {
   [self log:@"Connecting..."];
-  [self setNeedsLayout];
 }
 
 - (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client {
   [self log:@"Connected."];
-  [_debugStatusView setRPCConnected:YES serverConnected:NO];
+  _runtimeStatusView.RPCConnected = YES;
+  [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 
 - (void)appView:(KBAppView *)appView didCheckStatusWithClient:(KBRPClient *)client config:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
-  [self log:NSStringWithFormat(@"Status ok")];
-  _debugStatusView.config = config;
-  [_debugStatusView setRPCConnected:YES serverConnected:YES]; // TODO server connected status
+  [self log:NSStringWithFormat(@"keybased is at %@", config.path)];
+  [self log:NSStringWithFormat(@"keybased version: %@", config.version)];
+  [self log:NSStringWithFormat(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"")];
+  _runtimeStatusView.config = config;
+  [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 
@@ -123,7 +128,8 @@
 
 - (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client {
   [self log:@"Disconnected."];
-  [_debugStatusView setRPCConnected:NO serverConnected:NO];
+  _runtimeStatusView.RPCConnected = NO;
+  [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 

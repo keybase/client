@@ -33,10 +33,6 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style;
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-- (void)setBackgroundColor:(NSColor *)backgroundColor;
-
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType;
-
 - (void)setText:(NSString *)text style:(KBLabelStyle)style;
 - (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
@@ -50,6 +46,8 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 
 - (void)setFont:(NSFont *)font color:(NSColor *)color;
 
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
+
 - (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance;
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString;
@@ -57,8 +55,6 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 - (BOOL)hasText;
 
 + (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter;
-
-+ (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color;
 
 + (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 

@@ -182,8 +182,8 @@
 		00DD245D1AA8DAE300371CDA /* KBView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD245B1AA8DAE300371CDA /* KBView.m */; };
 		00DD24601AA8E93100371CDA /* KBConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD245F1AA8E93100371CDA /* KBConnectView.m */; };
 		00DD24611AA8E93100371CDA /* KBConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD245F1AA8E93100371CDA /* KBConnectView.m */; };
-		00DD24641AA8F4A700371CDA /* KBDebugStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD24631AA8F4A700371CDA /* KBDebugStatusView.m */; };
-		00DD24651AA8F4A700371CDA /* KBDebugStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD24631AA8F4A700371CDA /* KBDebugStatusView.m */; };
+		00DD24641AA8F4A700371CDA /* KBRuntimeStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD24631AA8F4A700371CDA /* KBRuntimeStatusView.m */; };
+		00DD24651AA8F4A700371CDA /* KBRuntimeStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD24631AA8F4A700371CDA /* KBRuntimeStatusView.m */; };
 		00DD246C1AAA436900371CDA /* KBProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD246B1AAA436900371CDA /* KBProgressView.m */; };
 		00DD246D1AAA436900371CDA /* KBProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD246B1AAA436900371CDA /* KBProgressView.m */; };
 		00DD24701AAA4C0300371CDA /* KBErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD246F1AAA4C0300371CDA /* KBErrorView.m */; };
@@ -408,8 +408,8 @@
 		00DD245B1AA8DAE300371CDA /* KBView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBView.m; sourceTree = "<group>"; };
 		00DD245E1AA8E93100371CDA /* KBConnectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConnectView.h; sourceTree = "<group>"; };
 		00DD245F1AA8E93100371CDA /* KBConnectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConnectView.m; sourceTree = "<group>"; };
-		00DD24621AA8F4A700371CDA /* KBDebugStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDebugStatusView.h; sourceTree = "<group>"; };
-		00DD24631AA8F4A700371CDA /* KBDebugStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDebugStatusView.m; sourceTree = "<group>"; };
+		00DD24621AA8F4A700371CDA /* KBRuntimeStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRuntimeStatusView.h; sourceTree = "<group>"; };
+		00DD24631AA8F4A700371CDA /* KBRuntimeStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRuntimeStatusView.m; sourceTree = "<group>"; };
 		00DD246A1AAA436900371CDA /* KBProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProgressView.h; sourceTree = "<group>"; };
 		00DD246B1AAA436900371CDA /* KBProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProgressView.m; sourceTree = "<group>"; };
 		00DD246E1AAA4C0300371CDA /* KBErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorView.h; sourceTree = "<group>"; };
@@ -799,8 +799,8 @@
 				00FDC8261AABB17D00D6C571 /* KBConsoleView.m */,
 				00566A4F1A9BAA7500CA236E /* KBInstaller.h */,
 				00566A501A9BAA7500CA236E /* KBInstaller.m */,
-				00DD24621AA8F4A700371CDA /* KBDebugStatusView.h */,
-				00DD24631AA8F4A700371CDA /* KBDebugStatusView.m */,
+				00DD24621AA8F4A700371CDA /* KBRuntimeStatusView.h */,
+				00DD24631AA8F4A700371CDA /* KBRuntimeStatusView.m */,
 				00DD246A1AAA436900371CDA /* KBProgressView.h */,
 				00DD246B1AAA436900371CDA /* KBProgressView.m */,
 				00DD246E1AAA4C0300371CDA /* KBErrorView.h */,
@@ -1065,7 +1065,7 @@
 				0017124E1A951A9C00C7AD58 /* KBUserView.m in Sources */,
 				001FCDEC1AB21F5E004486D3 /* KBBorder.m in Sources */,
 				006D57231AAE2D4900D16CB8 /* KBFolderListView.m in Sources */,
-				00DD24641AA8F4A700371CDA /* KBDebugStatusView.m in Sources */,
+				00DD24641AA8F4A700371CDA /* KBRuntimeStatusView.m in Sources */,
 				001712501A951A9C00C7AD58 /* KBUserProfileView.m in Sources */,
 				0025353B1AB8BC4D00583913 /* KBSecretWordsView.m in Sources */,
 				00B5442C1A895A910044CC5B /* KBProveInputView.m in Sources */,
@@ -1212,7 +1212,7 @@
 				0025353C1AB8BC4D00583913 /* KBSecretWordsView.m in Sources */,
 				00C7DD621AA6839200F57AFC /* KBContentView.m in Sources */,
 				00C7DD5E1AA6815400F57AFC /* KBDeviceView.m in Sources */,
-				00DD24651AA8F4A700371CDA /* KBDebugStatusView.m in Sources */,
+				00DD24651AA8F4A700371CDA /* KBRuntimeStatusView.m in Sources */,
 				00D52F641A6F4D1E00DEB5F5 /* KBRUtils.m in Sources */,
 				00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */,
 				00566A201A97DA1800CA236E /* KBProgressOverlayView.m in Sources */,

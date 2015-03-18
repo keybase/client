@@ -25,8 +25,9 @@
   [contentView setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   KBLabel *label1 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
-  [label1 setMarkup:@"Text <strong>Strong</strong> <em>Emphasis</em>" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [label1 setBorderWithColor:NSColor.blueColor width:3.0 borderType:KBBorderTypeTop|KBBorderTypeBottom];
+  [label1 setMarkup:@"Text <strong>Strong</strong> <em>Emphasis</em>\n<thin>Thin text</thin>" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  label1.insets = UIEdgeInsetsMake(4, 10, 4, 10);
+  [label1 setBorderWithColor:NSColor.blueColor width:0.5];
   [contentView addSubview:label1];
 
 //  KBLabel *label2 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 50)];

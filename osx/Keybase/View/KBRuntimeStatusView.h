@@ -1,5 +1,5 @@
 //
-//  KBDebugStatusView.h
+//  KBRuntimeStatusView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/5/15.
@@ -11,11 +11,12 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBDebugStatusView : YOVBox
+@interface KBRuntimeStatusView : KBLabel
 
 @property KBRPClient *client;
 @property KBRConfig *config;
+@property BOOL RPCConnected;
 
-- (void)setRPCConnected:(BOOL)RPCConnected serverConnected:(BOOL)serverConnected;
+- (void)update;
 
 @end

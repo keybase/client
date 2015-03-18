@@ -9,12 +9,12 @@
 #import <Foundation/Foundation.h>
 
 #import "KBView.h"
-#import "KBDebugStatusView.h"
+#import "KBRuntimeStatusView.h"
 #import "KBAppView.h"
 
 @interface KBConsoleView : KBView <KBAppViewDelegate>
 
-@property (readonly) KBDebugStatusView *debugStatusView;
+@property (readonly) KBRuntimeStatusView *runtimeStatusView;
 
 - (void)log:(NSString *)message;
 

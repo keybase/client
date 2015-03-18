@@ -88,6 +88,8 @@
 @property NSString *socketFile;
 @property BOOL gpgExists;
 @property NSString *gpgPath;
+@property NSString *version;
+@property NSString *path;
 @end
 
 @interface KBRConfigRequest : KBRRequest
