@@ -571,6 +571,14 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 		err = ReverseSigError{fmt.Sprintf("KID mismatch in reverse sig: %s != %s", a, b)}
 		return
 	}
+	if a, b := reverseSigPayload.Uid, s.GetUID(); a == nil || !a.Eq(b) {
+		err = ReverseSigError{fmt.Sprintf("UID mismatch in reverse sig: %v != %v", a, b)}
+		return
+	}
+	if a, b := reverseSigPayload.Username, s.GetUsername(); a != b {
+		err = ReverseSigError{fmt.Sprintf("Username mismatch in reverse sig: %v != %v", a, b)}
+		return
+	}
 	return
 }
 
