@@ -181,6 +181,8 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 			return LoggedInError{}
 		case SC_CANCELED:
 			return CanceledError{}
+		case SC_KEY_NO_SECRET:
+			return NoSecretKeyError{}
 		case SC_KEY_IN_USE:
 			var fp *PgpFingerprint
 			if len(s.Desc) > 0 {
@@ -539,6 +541,14 @@ func (e StreamNotFoundError) ToStatus(s keybase_1.Status) {
 func (e StreamWrongKindError) ToStatus(s keybase_1.Status) {
 	s.Code = SC_STREAM_WRONG_KIND
 	s.Name = "STREAM_WRONG_KIND"
+	return
+}
+
+//=============================================================================
+
+func (u NoSecretKeyError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_KEY_NO_SECRET
+	s.Name = "KEY_NO_SECRET"
 	return
 }
 

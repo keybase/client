@@ -273,7 +273,7 @@ func (k PgpKeyBundle) UsersDescription() []string {
 
 func (k *PgpKeyBundle) CheckSecretKey() (err error) {
 	if k.PrivateKey == nil {
-		err = NoKeyError{"no private key found"}
+		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
 		err = BadKeyError{"PGP key material should be unencrypted"}
 	}

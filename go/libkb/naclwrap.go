@@ -200,7 +200,7 @@ func (p NaclDHKeyPair) GetKid() (ret KID) {
 
 func (k NaclSigningKeyPair) CheckSecretKey() (err error) {
 	if k.Private == nil {
-		err = NoKeyError{"no private key found"}
+		err = NoSecretKeyError{}
 	}
 	return
 }
@@ -217,7 +217,7 @@ func (k NaclDHKeyPair) Encode() (s string, err error) {
 
 func (k NaclDHKeyPair) CheckSecretKey() (err error) {
 	if k.Private == nil {
-		err = NoKeyError{"no private key found"}
+		err = NoSecretKeyError{}
 	}
 	return
 }

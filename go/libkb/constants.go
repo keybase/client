@@ -58,6 +58,7 @@ const (
 	SC_BAD_SIGNUP_USERNAME_TAKEN = 701
 	SC_KEY_IN_USE                = 907
 	SC_KEY_BAD_GEN               = 913
+	SC_KEY_NO_SECRET             = 914
 	SC_BAD_TRACK_SESSION         = 1301
 	SC_STREAM_EXISTS             = 1501
 	SC_STREAM_NOT_FOUND          = 1502
