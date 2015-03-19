@@ -107,6 +107,10 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		gks = append(gks, gk)
 	}
 
+	if len(gks) == 0 {
+		return fmt.Errorf("No PGP keys available to choose from.")
+	}
+
 	res, err := ctx.GPGUI.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
