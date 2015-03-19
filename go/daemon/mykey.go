@@ -16,21 +16,21 @@ func NewMykeyHandler(xp *rpc2.Transport) *MykeyHandler {
 }
 
 func (h *MykeyHandler) PgpKeyGen(arg keybase_1.PgpKeyGenArg) (err error) {
-	earg := engine.ImportPGPEngineArg(arg)
+	earg := engine.ImportPGPKeyImportEngineArg(arg)
 	return h.keygen(earg, true)
 }
 
-func (h *MykeyHandler) keygen(earg engine.PGPEngineArg, doInteractive bool) (err error) {
+func (h *MykeyHandler) keygen(earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
 	sessionId := nextSessionId()
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionId), SecretUI: h.getSecretUI(sessionId)}
 	earg.Gen.AddDefaultUid()
-	eng := engine.NewPGPEngine(earg)
+	eng := engine.NewPGPKeyImportEngine(earg)
 	err = engine.RunEngine(eng, ctx)
 	return err
 }
 
 func (h *MykeyHandler) PgpKeyGenDefault(arg keybase_1.PgpCreateUids) (err error) {
-	earg := engine.PGPEngineArg{
+	earg := engine.PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
 			Ids:         libkb.ImportPgpIdentities(arg.Ids),
 			NoDefPGPUid: !arg.UseDefault,

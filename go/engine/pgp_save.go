@@ -59,13 +59,13 @@ func (p *PGPSave) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	arg := PGPEngineArg{
+	arg := PGPKeyImportEngineArg{
 		Pregen:     bundle,
 		PushSecret: p.pushPrivate,
 		AllowMulti: true,
 		DoExport:   false,
 	}
 
-	eng := NewPGPEngine(arg)
+	eng := NewPGPKeyImportEngine(arg)
 	return RunEngine(eng, ctx)
 }

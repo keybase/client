@@ -50,7 +50,7 @@ func (g *GPGImportKeyEngine) RequiredUIs() []libkb.UIKind {
 
 func (g *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewPGPEngine(PGPEngineArg{}),
+		NewPGPKeyImportEngine(PGPKeyImportEngineArg{}),
 	}
 }
 
@@ -136,7 +136,7 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	G.Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
 
-	eng := NewPGPEngine(PGPEngineArg{
+	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Pregen:     bundle,
 		SigningKey: g.arg.Signer,
 		Me:         me,
