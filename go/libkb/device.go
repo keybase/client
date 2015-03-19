@@ -77,7 +77,21 @@ type Device struct {
 
 // IsWeb returns true if the device is a Web pseudo-device
 func (d *Device) IsWeb() bool {
-	return d.Type == "web"
+	return d.Type == DEVICE_TYPE_WEB
+}
+
+func NewWebDevice() (ret *Device) {
+	if did, err := NewDeviceID(); err != nil {
+		G.Log.Errorf("In random new device ID: %s", err.Error())
+	} else {
+		s := DEVICE_STATUS_ACTIVE
+		ret = &Device{
+			Id:     did.String(),
+			Type:   DEVICE_TYPE_WEB,
+			Status: &s,
+		}
+	}
+	return
 }
 
 func ParseDevice(jw *jsonw.Wrapper) (ret *Device, err error) {

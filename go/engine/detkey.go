@@ -133,6 +133,10 @@ func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
 }
 
 func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
+	dev := libkb.NewWebDevice()
+	if dev == nil {
+		return libkb.ErrCannotGenerateDevice
+	}
 	g := libkb.Delegator{
 		NewKey:      key,
 		Sibkey:      sibkey,
@@ -140,6 +144,7 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serv
 		ExistingKey: signing,
 		ServerHalf:  serverHalf,
 		Me:          d.arg.Me,
+		Device:      dev,
 	}
 	return g.Run()
 }

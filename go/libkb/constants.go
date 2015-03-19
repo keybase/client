@@ -126,6 +126,7 @@ const (
 const (
 	DEVICE_TYPE_DESKTOP = "desktop"
 	DEVICE_TYPE_MOBILE  = "mobile"
+	DEVICE_TYPE_WEB     = "web"
 )
 
 var PGP_VERSION = "Keybase Go CLI " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
