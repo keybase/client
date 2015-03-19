@@ -224,6 +224,19 @@
         "type" : "PgpEncryptOptions"
       } ],
       "response" : "null"
+    },
+    "pgpImport" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "key",
+        "type" : "bytes"
+      }, {
+        "name" : "pushPrivate",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
     }
   }
 }

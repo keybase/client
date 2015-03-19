@@ -62,23 +62,3 @@ func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 	}
 	return engine.RunEngine(gpg, ctx)
 }
-
-func (h *MykeyHandler) SaveArmoredPGPKey(arg keybase_1.SaveArmoredPGPKeyArg) error {
-	sessionID := nextSessionId()
-	ctx := &engine.Context{
-		SecretUI: h.getSecretUI(sessionID),
-		LogUI:    h.getLogUI(sessionID),
-	}
-	eng := engine.NewPGPSaveArmored(arg.Key, arg.PushPublic, arg.PushPrivate)
-	return engine.RunEngine(eng, ctx)
-}
-
-func (h *MykeyHandler) SavePGPKey(arg keybase_1.SavePGPKeyArg) error {
-	sessionID := nextSessionId()
-	ctx := &engine.Context{
-		SecretUI: h.getSecretUI(sessionID),
-		LogUI:    h.getLogUI(sessionID),
-	}
-	eng := engine.NewPGPSaveRaw(arg.Key, arg.PushPublic, arg.PushPrivate)
-	return engine.RunEngine(eng, ctx)
-}

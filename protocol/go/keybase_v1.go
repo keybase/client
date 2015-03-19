@@ -66,102 +66,6 @@ type Stream struct {
 }
 
 type SIGID [32]byte
-type BIndexInfo struct {
-	BlockId   string `codec:"blockId" json:"blockId"`
-	ChargedTo string `codec:"chargedTo" json:"chargedTo"`
-	Creator   string `codec:"creator" json:"creator"`
-	Folder    string `codec:"folder" json:"folder"`
-	BlockKey  string `codec:"blockKey" json:"blockKey"`
-}
-
-type BIndexSessionArg struct {
-	Sid string `codec:"sid" json:"sid"`
-}
-
-type GetBlockKeyArg struct {
-	Blockid string `codec:"blockid" json:"blockid"`
-}
-
-type DeleteBIndexArg struct {
-	Blockid string `codec:"blockid" json:"blockid"`
-}
-
-type PutBIndexArg struct {
-	Binfo BIndexInfo `codec:"binfo" json:"binfo"`
-}
-
-type BIndexInterface interface {
-	BIndexSession(string) error
-	GetBlockKey(string) ([]byte, error)
-	DeleteBIndex(string) error
-	PutBIndex(BIndexInfo) error
-}
-
-func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.bIndex",
-		Methods: map[string]rpc2.ServeHook{
-			"bIndexSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]BIndexSessionArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.BIndexSession(args[0].Sid)
-				}
-				return
-			},
-			"getBlockKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetBlockKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetBlockKey(args[0].Blockid)
-				}
-				return
-			},
-			"deleteBIndex": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeleteBIndexArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DeleteBIndex(args[0].Blockid)
-				}
-				return
-			},
-			"putBIndex": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PutBIndexArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PutBIndex(args[0].Binfo)
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type BIndexClient struct {
-	Cli GenericClient
-}
-
-func (c BIndexClient) BIndexSession(sid string) (err error) {
-	__arg := BIndexSessionArg{Sid: sid}
-	err = c.Cli.Call("keybase.1.bIndex.bIndexSession", []interface{}{__arg}, nil)
-	return
-}
-
-func (c BIndexClient) GetBlockKey(blockid string) (res []byte, err error) {
-	__arg := GetBlockKeyArg{Blockid: blockid}
-	err = c.Cli.Call("keybase.1.bIndex.getBlockKey", []interface{}{__arg}, &res)
-	return
-}
-
-func (c BIndexClient) DeleteBIndex(blockid string) (err error) {
-	__arg := DeleteBIndexArg{Blockid: blockid}
-	err = c.Cli.Call("keybase.1.bIndex.deleteBIndex", []interface{}{__arg}, nil)
-	return
-}
-
-func (c BIndexClient) PutBIndex(binfo BIndexInfo) (err error) {
-	__arg := PutBIndexArg{Binfo: binfo}
-	err = c.Cli.Call("keybase.1.bIndex.putBIndex", []interface{}{__arg}, nil)
-	return
-}
-
 type BlockSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }
@@ -1055,26 +959,12 @@ type SelectArg struct {
 	SkipImport bool   `codec:"skipImport" json:"skipImport"`
 }
 
-type SaveArmoredPGPKeyArg struct {
-	Key         string `codec:"key" json:"key"`
-	PushPublic  bool   `codec:"pushPublic" json:"pushPublic"`
-	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
-}
-
-type SavePGPKeyArg struct {
-	Key         []byte `codec:"key" json:"key"`
-	PushPublic  bool   `codec:"pushPublic" json:"pushPublic"`
-	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
-}
-
 type MykeyInterface interface {
 	PgpKeyGen(PgpKeyGenArg) error
 	PgpKeyGenDefault(PgpCreateUids) error
 	DeletePrimary() error
 	Show() error
 	Select(SelectArg) error
-	SaveArmoredPGPKey(SaveArmoredPGPKeyArg) error
-	SavePGPKey(SavePGPKeyArg) error
 }
 
 func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
@@ -1116,20 +1006,6 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"saveArmoredPGPKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SaveArmoredPGPKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.SaveArmoredPGPKey(args[0])
-				}
-				return
-			},
-			"savePGPKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SavePGPKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.SavePGPKey(args[0])
-				}
-				return
-			},
 		},
 	}
 
@@ -1162,16 +1038,6 @@ func (c MykeyClient) Show() (err error) {
 
 func (c MykeyClient) Select(__arg SelectArg) (err error) {
 	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
-	return
-}
-
-func (c MykeyClient) SaveArmoredPGPKey(__arg SaveArmoredPGPKeyArg) (err error) {
-	err = c.Cli.Call("keybase.1.mykey.saveArmoredPGPKey", []interface{}{__arg}, nil)
-	return
-}
-
-func (c MykeyClient) SavePGPKey(__arg SavePGPKeyArg) (err error) {
-	err = c.Cli.Call("keybase.1.mykey.savePGPKey", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1219,10 +1085,17 @@ type PgpEncryptArg struct {
 	Opts      PgpEncryptOptions `codec:"opts" json:"opts"`
 }
 
+type PgpImportArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Key         []byte `codec:"key" json:"key"`
+	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
+}
+
 type PgpInterface interface {
 	PgpSign(PgpSignArg) error
 	PgpPull(PgpPullArg) error
 	PgpEncrypt(PgpEncryptArg) error
+	PgpImport(PgpImportArg) error
 }
 
 func PgpProtocol(i PgpInterface) rpc2.Protocol {
@@ -1250,6 +1123,13 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"pgpImport": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpImportArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpImport(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1271,6 +1151,11 @@ func (c PgpClient) PgpPull(__arg PgpPullArg) (err error) {
 
 func (c PgpClient) PgpEncrypt(__arg PgpEncryptArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpImport(__arg PgpImportArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpImport", []interface{}{__arg}, nil)
 	return
 }
 

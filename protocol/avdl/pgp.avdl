@@ -34,4 +34,6 @@ protocol pgp {
 	}
 
 	void pgpEncrypt(int sessionID, Stream source, Stream sink, PgpEncryptOptions opts);
+
+	void pgpImport(int sessionID, bytes key, boolean pushPrivate);
 }
