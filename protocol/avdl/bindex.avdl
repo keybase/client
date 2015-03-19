@@ -1,0 +1,18 @@
+@namespace("keybase.1")
+
+protocol bIndex {
+	import idl "common.avdl";
+
+	record BIndexInfo {
+		string blockId;
+		string chargedTo;
+		string folder;
+		string creator;
+		string blockKey; //to be filled in server
+	}
+
+	void bIndexSession(string sid);
+	string getBlockKey(string blockid);
+	void delete(string blockid);
+	void putBIndex(BIndexInfo info);
+}
