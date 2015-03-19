@@ -56,7 +56,7 @@
   [self addSubview:_menuButton];
 
   _trackingView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  [_trackingView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
+  [_trackingView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
   _trackingView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
@@ -66,7 +66,7 @@
   _trackingView.identifier = @"Tracking";
 
   _trackersView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  [_trackersView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
+  [_trackersView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
   _trackersView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
@@ -81,7 +81,7 @@
   [self showTracking:self];
 
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
-  [_searchResultsView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
+  [_searchResultsView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
   _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setSearchResult:searchResult];
   };
@@ -114,13 +114,13 @@
 
     y += [layout setFrame:CGRectMake(10, y, col1 - 21, 22) view:yself.searchField].size.height + 9;
 
-    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.searchResultsView];
+    [layout setFrame:CGRectMake(-1, y, col1 + 1, size.height - y) view:yself.searchResultsView];
 
     y += [layout setFrame:CGRectMake(9, y, col1 - 21, 23) view:yself.menuButton].size.height + 4;
 
     //[layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.usersView];
     //[layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.trackersView];
-    [layout setFrame:CGRectMake(0, y + 1, col1 - 1, size.height - y - 1) view:yself.views];
+    [layout setFrame:CGRectMake(-1, y + 1, col1 + 1, size.height - y) view:yself.views];
 
     //[layout setFrame:CGRectMake(col1/2.0 - 16, col1y + 20, 32, 32) view:yself.progressView];
 

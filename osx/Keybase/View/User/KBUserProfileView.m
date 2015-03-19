@@ -311,7 +311,7 @@
   keyView.client = self.client;
   [keyView setKey:key];
   //[self.window addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key"];
-  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:keyView title:@"Select a Key"] size:CGSizeMake(500, 400) sender:self];
+  dispatch_block_t close = [KBWindow openWindowWithView:keyView size:CGSizeMake(500, 400) sender:self];
 }
 
 - (void)generatePGPKey {
@@ -350,7 +350,7 @@
 - (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
   selectView.client = self.client;
-  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:selectView title:@"Select a Key"] size:CGSizeMake(600, 400) sender:self];
+  dispatch_block_t close = [KBWindow openWindowWithView:selectView size:CGSizeMake(600, 400) sender:self];
   [selectView setGPGKeys:handler.keys completion:^(NSError *error, id result) {
     close();
     completion(error, result);

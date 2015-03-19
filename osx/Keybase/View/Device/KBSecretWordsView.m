@@ -46,20 +46,30 @@
 
     y += [layout centerWithSize:CGSizeMake(400, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.label].size.height + 30;
 
-    y += [layout centerWithSize:CGSizeMake(400, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.secretWordsLabel].size.height + 40;
+    y += [layout centerWithSize:CGSizeMake(500, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.secretWordsLabel].size.height + 40;
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.button].size.height;
 
-    return CGSizeMake(MIN(480, size.width), y);
+    return CGSizeMake(MIN(580, size.width), y);
   }];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }
 
 - (void)setSecretWords:(NSString *)secretWords deviceNameToRegister:(NSString *)deviceNameToRegister {
+  /*
+   On your "CLI" computer, a window should have appeared. Type this in it:
+
+       term unfold yellow reflect spare now
+
+   Alternatively, if you're using the terminal at "CLI", type this:
+
+       keybase sibkey add "term unfold yellow reflect spare now"
+   */
+
   // NSStringWithFormat(@"In order to register this device you need to enter in these secret words on the device named: <strong>%@</strong>.", deviceName)
-  [_label setMarkup:@"In order to register this device you need to enter in these secret words on your device." style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [_secretWordsLabel setText:[secretWords uppercaseString] font:[NSFont boldSystemFontOfSize:20] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment];
+  [_label setMarkup:@"In order to register this device you need to enter in the secret phrase generated on an existing device." style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_secretWordsLabel setText:secretWords font:[NSFont boldSystemFontOfSize:20] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setNeedsLayout];
 }
 

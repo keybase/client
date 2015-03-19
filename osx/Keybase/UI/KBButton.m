@@ -28,8 +28,8 @@
 }
 
 - (void)viewInit {
-   self.target = self;
-   self.action = @selector(_performTargetBlock);
+  self.target = self;
+  self.action = @selector(_performTargetBlock);
 }
 
 + (instancetype)button {
@@ -65,7 +65,12 @@
 }
 
 - (CGSize)sizeThatFits:(NSSize)size {
-  CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
+  CGSize sizeThatFits;
+  if (self.image) {
+    sizeThatFits = self.image.size;
+  } else if (self.attributedTitle) {
+    sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
+  }
   switch (self.style) {
     case KBButtonStyleText:
     case KBButtonStyleLink:
@@ -76,13 +81,13 @@
       break;
 
     case KBButtonStyleToolbar:
-      sizeThatFits.height += 10;
-      sizeThatFits.width += 20;
+      sizeThatFits.height += 8;
+      sizeThatFits.width += 12;
       break;
 
     case KBButtonStyleSmall:
-      sizeThatFits.height += 10;
-      sizeThatFits.width += 20;
+      sizeThatFits.height += 0;
+      sizeThatFits.width += 0;
       break;
 
     case KBButtonStyleDefault:

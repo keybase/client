@@ -11,18 +11,7 @@
 #import <YOLayout/YOLayout.h>
 #import <Quartz/Quartz.h>
 
-typedef NS_OPTIONS (NSInteger, KBBorderType) {
-  KBBorderTypeTop,
-  KBBorderTypeRight,
-  KBBorderTypeBottom,
-  KBBorderTypeLeft,
-
-  KBBorderTypeAll = KBBorderTypeTop|KBBorderTypeRight|KBBorderTypeBottom|KBBorderTypeLeft,
-};
-
 @interface KBBorder : NSView
-
-@property KBBorderType borderType;
 
 @property (nonatomic) NSColor *color;
 @property (nonatomic) CGFloat width;
@@ -32,9 +21,11 @@ typedef NS_OPTIONS (NSInteger, KBBorderType) {
 
 - (UIEdgeInsets)insets;
 
+- (void)updatePath;
+
 @end
 
-CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth, CGFloat cornerRadius);
+CGPathRef KBCreatePath(CGRect rect, CGFloat strokeWidth, CGFloat cornerRadius);
 
 @interface NSBezierPath (KBBorder)
 - (CGPathRef)quartzPath;

@@ -50,7 +50,11 @@
 
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
-  _statusItem.image = [NSImage imageNamed:@"StatusIcon"];
+#ifdef DEBUG
+  _statusItem.image = [NSImage imageNamed:@"StatusIconDev"];
+#else
+  _statusItem.image = [NSImage imageNamed:@"StatusIconBW"];
+#endif
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
 
@@ -193,6 +197,9 @@
       [gself showSignup];
     };
   }
+
+  // TODO reset progress?
+  //[_loginView.navigation setProgressEnabled:NO];
   _loginView.client = _client;
   return _loginView;
 }

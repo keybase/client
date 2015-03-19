@@ -160,7 +160,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)secondaryBackgroundColor {
-  return [NSColor colorWithCalibratedWhite:0.966 alpha:1.0];
+  return [NSColor colorWithCalibratedWhite:0.956 alpha:1.0];
 }
 
 @end

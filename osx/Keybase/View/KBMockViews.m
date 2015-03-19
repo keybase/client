@@ -22,6 +22,7 @@
 #import "KBProgressView.h"
 #import "KBKeyImportView.h"
 #import "KBSecretWordsView.h"
+#import "KBSecretWordsInputView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -53,6 +54,7 @@
   [contentView addSubview:[KBButton linkWithText:@"Device Setup" targetBlock:^{ [self showDeviceSetupView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Device Prompt" targetBlock:^{ [self showDevicePrompt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Secret Words" targetBlock:^{ [self showSecretWords]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Secret Words (Input)" targetBlock:^{ [self showSecretWordsInput]; }]];
 
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
@@ -155,9 +157,18 @@
 
 - (void)showSecretWords {
   KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
-  [secretWordsView setSecretWords:@"exotic element night course funny grain" deviceNameToRegister:@"Macbook (Home)"];
+  [secretWordsView setSecretWords:@"exotic element night course funny grain pourover mustache lumbersexual" deviceNameToRegister:@"Macbook (Home)"];
   secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:nil];
+}
+
+- (void)showSecretWordsInput {
+  KBSecretWordsInputView *view = [[KBSecretWordsInputView alloc] init];
+  view.inputField.text = @"heirloom squid kitsch retro typewriter pbr pourover mustache lumbersexual";
+  view.completion = ^(NSString *words) {
+
+  };
+  [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showStyleGuide {

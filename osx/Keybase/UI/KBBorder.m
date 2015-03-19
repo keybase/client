@@ -17,7 +17,6 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if ((self = [super initWithFrame:frame])) {
-    _borderType = KBBorderTypeLeft | KBBorderTypeTop | KBBorderTypeRight | KBBorderTypeBottom;
     _shapeLayer = [[CAShapeLayer alloc] init];
     _shapeLayer.fillColor = nil;
     _shapeLayer.lineJoin = kCALineCapRound;
@@ -36,9 +35,9 @@
 
 - (BOOL)isFlipped { return YES; }
 
-- (void)_updatePath {
+- (void)updatePath {
   // TODO There must be a simpler way?
-  CGPathRef path = KBCreatePath(self.bounds, _borderType, self.width, self.shapeLayer.cornerRadius);
+  CGPathRef path = KBCreatePath(self.bounds, self.width, self.shapeLayer.cornerRadius);
   [_shapeLayer setPath:path];
   _shapeLayer.bounds = self.bounds;
   CGPathRelease(path);
@@ -49,23 +48,18 @@
 
   BOOL dirty = (_pathSize.width == 0 || _pathSize.width != self.bounds.size.width || _pathSize.height != self.bounds.size.height);
   if (!dirty) return;
-  [self _updatePath];
+  [self updatePath];
   _pathSize = self.bounds.size;
 }
 
 - (UIEdgeInsets)insets {
-  UIEdgeInsets insets = UIEdgeInsetsZero;
-  if ((_borderType & KBBorderTypeLeft) != 0) insets.left = self.width;
-  if ((_borderType & KBBorderTypeRight) != 0) insets.right += self.width;
-  if ((_borderType & KBBorderTypeTop) != 0) insets.top += self.width;
-  if ((_borderType & KBBorderTypeBottom) != 0) insets.bottom += self.width;
-  return insets;
+  return UIEdgeInsetsMake(self.width, self.width, self.width, self.width);
 }
 
 - (void)setWidth:(CGFloat)width {
   _width = width;
   _shapeLayer.lineWidth = width;
-  [self _updatePath];
+  [self updatePath];
   [_shapeLayer setNeedsDisplay];
 }
 
@@ -78,7 +72,7 @@
 - (void)setCornerRadius:(CGFloat)cornerRadius {
   _cornerRadius = cornerRadius;
   _shapeLayer.cornerRadius = cornerRadius;
-  [self _updatePath];
+  [self updatePath];
   [_shapeLayer setNeedsDisplay];
 }
 
@@ -87,77 +81,23 @@
 @end
 
 
-CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth, CGFloat cornerRadius) {
-
-  CGFloat strokeInset = strokeWidth/2.0f;
+CGPathRef KBCreatePath(CGRect rect, CGFloat strokeWidth, CGFloat cornerRadius) {
 
   if (rect.size.width == 0 || rect.size.height == 0) return NULL;
 
   // Need to adjust path rect to inset (since the stroke is drawn from the middle of the path)
+  CGFloat strokeInset = strokeWidth/2.0f;
   rect = CGRectInset(rect, strokeInset, strokeInset);
 
-  if ((borderType & KBBorderTypeAll) != 0) {
-    if (cornerRadius > 0) {
-      NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:cornerRadius yRadius:cornerRadius];
-      [path setLineWidth:strokeWidth];
-      return [path quartzPath];
-    } else {
-      NSBezierPath *path = [NSBezierPath bezierPathWithRect:rect];
-      [path setLineWidth:strokeWidth];
-      return [path quartzPath];
-    }
-  }
-
-  if ((borderType & KBBorderTypeLeft) != 0) {
-    rect.origin.x += strokeInset;
-    rect.size.width -= strokeInset;
-  }
-
-  if ((borderType & KBBorderTypeRight) != 0) {
-    rect.size.width -= strokeInset;
-  }
-
-  if ((borderType & KBBorderTypeTop) != 0) {
-    rect.origin.y += strokeInset;
-    rect.size.height -= strokeInset;
-  }
-
-  if ((borderType & KBBorderTypeBottom) != 0) {
-    rect.size.height -= strokeInset;
-  }
-
-  CGAffineTransform transform = CGAffineTransformTranslate(CGAffineTransformIdentity, CGRectGetMinX(rect), CGRectGetMinY(rect));
-  CGFloat fw = CGRectGetWidth(rect);
-  CGFloat fh = CGRectGetHeight(rect);
-
-  CGMutablePathRef path = CGPathCreateMutable();
-
-  CGPathMoveToPoint(path, &transform, 0, fh);
-  if ((borderType & KBBorderTypeLeft) != 0) {
-    CGPathAddLineToPoint(path, &transform, 0, 0);
+  if (cornerRadius > 0) {
+    NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:cornerRadius yRadius:cornerRadius];
+    [path setLineWidth:strokeWidth];
+    return [path quartzPath];
   } else {
-    CGPathMoveToPoint(path, &transform, 0, 0);
+    NSBezierPath *path = [NSBezierPath bezierPathWithRect:rect];
+    [path setLineWidth:strokeWidth];
+    return [path quartzPath];
   }
-
-  if ((borderType & KBBorderTypeTop) != 0) {
-    CGPathAddLineToPoint(path, &transform, fw, 0);
-  }  else {
-    CGPathMoveToPoint(path, &transform, fw, 0);
-  }
-
-  if ((borderType & KBBorderTypeRight) != 0) {
-    CGPathAddLineToPoint(path, &transform, fw, fh);
-  }  else {
-    CGPathMoveToPoint(path, &transform, fw, fh);
-  }
-
-  if ((borderType & KBBorderTypeBottom) != 0) {
-    CGPathAddLineToPoint(path, &transform, 0, fh);
-  }  else {
-    CGPathMoveToPoint(path, &transform, 0, fh);
-  }
-
-  return path;
 }
 
 @implementation NSBezierPath (KBBorder)

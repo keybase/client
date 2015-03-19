@@ -35,7 +35,7 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
     UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
-    CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+    CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) attributedString:self.textView.attributedString];
     CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
 
     if (self.verticalAlignment != KBVerticalAlignmentNone) {
@@ -51,7 +51,7 @@
     } else {
       [layout setFrame:CGRectIntegral(CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, sizeThatFits.height)) view:yself.textView];
       [layout setFrame:CGRectMake(0, 0, size.width, sizeWithInsets.height) view:yself.border options:0];
-      return CGSizeMake(size.width, sizeWithInsets.height);
+      return CGSizeMake(size.width, ceilf(sizeWithInsets.height));
     }
   }];
 }
@@ -152,7 +152,10 @@
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   NSParameterAssert(font);
   NSParameterAssert(color);
-  if (!text) text = @"";
+  if (!text) {
+    self.attributedText = nil;
+    return;
+  }
   NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
@@ -162,7 +165,7 @@
   NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
   [str setAttributes:attributes range:NSMakeRange(0, str.length)];
 
-  [self setAttributedText:str];
+  self.attributedText = str;
 }
 
 + (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
@@ -266,8 +269,8 @@
 }
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString {
-  if (size.height == 0) size.height = CGFLOAT_MAX;
-  if (size.width == 0) size.width = CGFLOAT_MAX;
+  if (size.height <= 0) size.height = CGFLOAT_MAX;
+  if (size.width <= 0) size.width = CGFLOAT_MAX;
   NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
   NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:size];
   [textContainer setLineFragmentPadding:0.0];
