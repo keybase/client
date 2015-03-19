@@ -42,6 +42,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 - (void)setMarkup:(NSString *)markup;
 - (void)setMarkup:(NSString *)markup style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+- (void)setMarkup:(NSString *)markup options:(NSDictionary *)options;
 
 - (void)setAttributedText:(NSMutableAttributedString *)attributedText alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
@@ -57,7 +58,8 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 
 + (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter;
 
-+ (NSMutableAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
++ (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options;
++ (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 @end
 

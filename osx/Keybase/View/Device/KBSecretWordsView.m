@@ -56,8 +56,9 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }
 
-- (void)setSecretWords:(NSString *)secretWords deviceName:(NSString *)deviceName {
-  [_label setMarkup:NSStringWithFormat(@"In order to register this device you need to enter in these secret words on the device named: <strong>%@</strong>.", deviceName) style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+- (void)setSecretWords:(NSString *)secretWords deviceNameToRegister:(NSString *)deviceNameToRegister {
+  // NSStringWithFormat(@"In order to register this device you need to enter in these secret words on the device named: <strong>%@</strong>.", deviceName)
+  [_label setMarkup:@"In order to register this device you need to enter in these secret words on your device." style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [_secretWordsLabel setText:[secretWords uppercaseString] font:[NSFont boldSystemFontOfSize:20] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment];
   [self setNeedsLayout];
 }

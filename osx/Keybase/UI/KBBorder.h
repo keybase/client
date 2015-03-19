@@ -24,9 +24,9 @@ typedef NS_OPTIONS (NSInteger, KBBorderType) {
 
 @property KBBorderType borderType;
 
-@property (nonatomic) NSColor *color; // Alias for shapeLayer.strokeColor
-@property (nonatomic) CGFloat width; // Alias for shapeLayer.lineWidth
-@property (nonatomic) CGFloat cornerRadius; // Alias for shapeLayer.cornerRadius
+@property (nonatomic) NSColor *color;
+@property (nonatomic) CGFloat width;
+@property (nonatomic) CGFloat cornerRadius;
 
 @property (readonly) CAShapeLayer *shapeLayer;
 

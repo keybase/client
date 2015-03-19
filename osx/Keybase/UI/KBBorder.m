@@ -38,18 +38,19 @@
 
 - (void)_updatePath {
   // TODO There must be a simpler way?
-  BOOL dirty = (_pathSize.width == 0 || _pathSize.width != self.bounds.size.width || _pathSize.height != self.bounds.size.height);
-  if (!dirty) return;
   CGPathRef path = KBCreatePath(self.bounds, _borderType, self.width, self.shapeLayer.cornerRadius);
   [_shapeLayer setPath:path];
   _shapeLayer.bounds = self.bounds;
   CGPathRelease(path);
-  _pathSize = self.bounds.size;
 }
 
 - (void)setFrame:(NSRect)frame {
   [super setFrame:frame];
+
+  BOOL dirty = (_pathSize.width == 0 || _pathSize.width != self.bounds.size.width || _pathSize.height != self.bounds.size.height);
+  if (!dirty) return;
   [self _updatePath];
+  _pathSize = self.bounds.size;
 }
 
 - (UIEdgeInsets)insets {
@@ -62,85 +63,70 @@
 }
 
 - (void)setWidth:(CGFloat)width {
+  _width = width;
   _shapeLayer.lineWidth = width;
+  [self _updatePath];
   [_shapeLayer setNeedsDisplay];
 }
 
-- (CGFloat)width {
-  return _shapeLayer.lineWidth;
-}
-
 - (void)setColor:(NSColor *)color {
+  _color = color;
   _shapeLayer.strokeColor = color.CGColor;
   [_shapeLayer setNeedsDisplay];
 }
 
-- (NSColor *)color {
-  return [NSColor colorWithCGColor:_shapeLayer.strokeColor];
-}
-
 - (void)setCornerRadius:(CGFloat)cornerRadius {
+  _cornerRadius = cornerRadius;
   _shapeLayer.cornerRadius = cornerRadius;
   [self _updatePath];
   [_shapeLayer setNeedsDisplay];
 }
 
-- (CGFloat)cornerRadius {
-  return _shapeLayer.cornerRadius;
-}
-
 - (CGSize)sizeThatFits:(CGSize)size { return size; }
-
-//- (void)drawRect:(NSRect)rect {
-//  CGContextRef context = [[NSGraphicsContext currentContext] graphicsPort];
-//
-//  CGPathRef path = KBCreatePath(self.frame, _borderType, _width, 0);
-//  CGContextAddPath(context, path);
-//  CGPathRelease(path);
-//
-//  CGContextSetStrokeColorWithColor(context, _color.CGColor);
-//  CGContextSetLineWidth(context, _width);
-//  CGContextDrawPath(context, kCGPathStroke);
-//}
 
 @end
 
 
 CGPathRef KBCreatePath(CGRect rect, KBBorderType borderType, CGFloat strokeWidth, CGFloat cornerRadius) {
 
-  if (cornerRadius > 0) {
-    NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:cornerRadius yRadius:cornerRadius];
-    [path setLineWidth:strokeWidth];
-    return [path quartzPath];
-  }
-
   CGFloat strokeInset = strokeWidth/2.0f;
 
+  if (rect.size.width == 0 || rect.size.height == 0) return NULL;
+
   // Need to adjust path rect to inset (since the stroke is drawn from the middle of the path)
-  CGRect insetBounds = CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+  rect = CGRectInset(rect, strokeInset, strokeInset);
+
+  if ((borderType & KBBorderTypeAll) != 0) {
+    if (cornerRadius > 0) {
+      NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:cornerRadius yRadius:cornerRadius];
+      [path setLineWidth:strokeWidth];
+      return [path quartzPath];
+    } else {
+      NSBezierPath *path = [NSBezierPath bezierPathWithRect:rect];
+      [path setLineWidth:strokeWidth];
+      return [path quartzPath];
+    }
+  }
 
   if ((borderType & KBBorderTypeLeft) != 0) {
-    insetBounds.origin.x += strokeInset;
-    insetBounds.size.width -= strokeInset;
+    rect.origin.x += strokeInset;
+    rect.size.width -= strokeInset;
   }
 
   if ((borderType & KBBorderTypeRight) != 0) {
-    insetBounds.size.width -= strokeInset;
+    rect.size.width -= strokeInset;
   }
 
   if ((borderType & KBBorderTypeTop) != 0) {
-    insetBounds.origin.y += strokeInset;
-    insetBounds.size.height -= strokeInset;
+    rect.origin.y += strokeInset;
+    rect.size.height -= strokeInset;
   }
 
   if ((borderType & KBBorderTypeBottom) != 0) {
-    insetBounds.size.height -= strokeInset;
+    rect.size.height -= strokeInset;
   }
 
-  rect = insetBounds;
-
-  CGAffineTransform transform = CGAffineTransformIdentity;
-  transform = CGAffineTransformTranslate(transform, CGRectGetMinX(rect), CGRectGetMinY(rect));
+  CGAffineTransform transform = CGAffineTransformTranslate(CGAffineTransformIdentity, CGRectGetMinX(rect), CGRectGetMinY(rect));
   CGFloat fw = CGRectGetWidth(rect);
   CGFloat fh = CGRectGetHeight(rect);
 

@@ -50,7 +50,7 @@
       return CGSizeMake(size.width, sizeWithInsets.height);
     } else {
       [layout setFrame:CGRectIntegral(CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, sizeThatFits.height)) view:yself.textView];
-      [layout setSize:sizeWithInsets view:yself.border options:0];
+      [layout setFrame:CGRectMake(0, 0, size.width, sizeWithInsets.height) view:yself.border options:0];
       return CGSizeMake(size.width, sizeWithInsets.height);
     }
   }];
@@ -166,13 +166,23 @@
 }
 
 + (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  return [self parseMarkup:markup options:@{@"font": font, @"color": color, @"alignment": @(alignment), @"lineBreakMode": @(lineBreakMode)}];
+}
+
++ (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options {
+  NSFont *font = options[@"font"];
+  NSColor *color = options[@"color"];
+  NSTextAlignment alignment = [options[@"alignment"] integerValue];
+  NSLineBreakMode lineBreakMode = [options[@"lineBreakMode"] integerValue];
+  CGFloat lineSpacing = [options[@"lineSpacing"] floatValue];
+
   if (!font) font = KBAppearance.currentAppearance.textFont;
   if (!color) color = KBAppearance.currentAppearance.textColor;
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
   paragraphStyle.lineBreakMode = lineBreakMode;
-  paragraphStyle.lineSpacing = 10; // TODO
+  paragraphStyle.lineSpacing = lineSpacing;
 
   NSDictionary *defaultStyle = @{NSFontAttributeName:font, NSForegroundColorAttributeName:color, NSParagraphStyleAttributeName:paragraphStyle};
 
@@ -204,13 +214,17 @@
   [self setMarkup:markup font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 }
 
+- (void)setMarkup:(NSString *)markup options:(NSDictionary *)options {
+  [self setAttributedText:[KBLabel parseMarkup:markup options:options]];
+}
+
 - (void)setMarkup:(NSString *)markup style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   _style = style;
   [self setMarkup:markup font:[self fontForStyle:_style appearance:KBAppearance.currentAppearance] color:[self colorForStyle:_style appearance:KBAppearance.currentAppearance] alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSMutableAttributedString *str = [KBLabel parseMarkup:markup font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
+  NSAttributedString *str = [KBLabel parseMarkup:markup font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
   [self setAttributedText:str];
 }
 
