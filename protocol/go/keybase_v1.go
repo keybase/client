@@ -66,6 +66,102 @@ type Stream struct {
 }
 
 type SIGID [32]byte
+type BIndexInfo struct {
+	BlockId   string `codec:"blockId" json:"blockId"`
+	ChargedTo string `codec:"chargedTo" json:"chargedTo"`
+	Folder    string `codec:"folder" json:"folder"`
+	Creator   string `codec:"creator" json:"creator"`
+	BlockKey  string `codec:"blockKey" json:"blockKey"`
+}
+
+type BIndexSessionArg struct {
+	Sid string `codec:"sid" json:"sid"`
+}
+
+type GetBlockKeyArg struct {
+	Blockid string `codec:"blockid" json:"blockid"`
+}
+
+type DeleteArg struct {
+	Blockid string `codec:"blockid" json:"blockid"`
+}
+
+type PutBIndexArg struct {
+	Info BIndexInfo `codec:"info" json:"info"`
+}
+
+type BIndexInterface interface {
+	BIndexSession(string) error
+	GetBlockKey(string) (string, error)
+	Delete(string) error
+	PutBIndex(BIndexInfo) error
+}
+
+func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.bIndex",
+		Methods: map[string]rpc2.ServeHook{
+			"bIndexSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]BIndexSessionArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.BIndexSession(args[0].Sid)
+				}
+				return
+			},
+			"getBlockKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetBlockKeyArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetBlockKey(args[0].Blockid)
+				}
+				return
+			},
+			"delete": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeleteArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Delete(args[0].Blockid)
+				}
+				return
+			},
+			"putBIndex": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PutBIndexArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PutBIndex(args[0].Info)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type BIndexClient struct {
+	Cli GenericClient
+}
+
+func (c BIndexClient) BIndexSession(sid string) (err error) {
+	__arg := BIndexSessionArg{Sid: sid}
+	err = c.Cli.Call("keybase.1.bIndex.bIndexSession", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BIndexClient) GetBlockKey(blockid string) (res string, err error) {
+	__arg := GetBlockKeyArg{Blockid: blockid}
+	err = c.Cli.Call("keybase.1.bIndex.getBlockKey", []interface{}{__arg}, &res)
+	return
+}
+
+func (c BIndexClient) Delete(blockid string) (err error) {
+	__arg := DeleteArg{Blockid: blockid}
+	err = c.Cli.Call("keybase.1.bIndex.delete", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BIndexClient) PutBIndex(info BIndexInfo) (err error) {
+	__arg := PutBIndexArg{Info: info}
+	err = c.Cli.Call("keybase.1.bIndex.putBIndex", []interface{}{__arg}, nil)
+	return
+}
+
 type BlockSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }

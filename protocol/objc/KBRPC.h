@@ -442,6 +442,25 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 
 @end
 
+@interface KBRBIndexInfo : KBRObject
+@property NSString *blockId;
+@property NSString *chargedTo;
+@property NSString *folder;
+@property NSString *creator;
+@property NSString *blockKey;
+@end
+
+@interface KBRBIndexRequest : KBRRequest
+- (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
+
+- (void)getBlockKeyWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)deleteWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error))completion;
+
+- (void)putBIndexWithInfo:(KBRBIndexInfo *)info completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRProofStatus : KBRObject
 @property NSInteger state;
 @property NSInteger status;
@@ -776,6 +795,18 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @interface KBRSelectKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSArray *keys;
+@end
+@interface KBRBIndexSessionRequestParams : KBRRequestParams
+@property NSString *sid;
+@end
+@interface KBRGetBlockKeyRequestParams : KBRRequestParams
+@property NSString *blockid;
+@end
+@interface KBRDeleteRequestParams : KBRRequestParams
+@property NSString *blockid;
+@end
+@interface KBRPutBIndexRequestParams : KBRRequestParams
+@property KBRBIndexInfo *info;
 @end
 @interface KBRFinishAndPromptRequestParams : KBRRequestParams
 @property NSInteger sessionID;

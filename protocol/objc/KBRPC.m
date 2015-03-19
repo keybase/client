@@ -633,6 +633,41 @@
 
 @end
 
+@implementation KBRBIndexInfo
+@end
+
+@implementation KBRBIndexRequest
+
+- (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sid": KBRValue(sid)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.bIndexSession" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)getBlockKeyWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error, NSString *str))completion {
+  NSArray *params = @[@{@"blockid": KBRValue(blockid)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBlockKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)deleteWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"blockid": KBRValue(blockid)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.delete" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)putBIndexWithInfo:(KBRBIndexInfo *)info completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"info": KBRValue(info)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.putBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRProofStatus
 @end
 
@@ -1403,6 +1438,50 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.keys = [MTLJSONAdapter modelsOfClass:KBRGPGKey.class fromJSONArray:params[0][@"keys"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRBIndexSessionRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sid = params[0][@"sid"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetBlockKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.blockid = params[0][@"blockid"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDeleteRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.blockid = params[0][@"blockid"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPutBIndexRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.info = [MTLJSONAdapter modelOfClass:KBRBIndexInfo.class fromJSONDictionary:params[0][@"info"] error:nil];
   }
   return self;
 }
