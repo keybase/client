@@ -130,7 +130,7 @@ type LoadUserArg struct {
 	PublicKeyOptional bool
 	NoCacheResult     bool // currently ignore
 	Self              bool
-	ForceReload       bool // currently ignored
+	ForceReload       bool
 	AllKeys           bool
 }
 
@@ -649,7 +649,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	G.Log.Debug("| Freshness: basics=%v; for %s", f1, uid_s)
 
-	if !load_remote {
+	if !load_remote && !arg.ForceReload {
 		ret = local
 	} else if remote, err = LoadUserFromServer(arg, rres.body); err != nil {
 		return
