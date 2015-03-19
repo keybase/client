@@ -11,7 +11,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(t, "pgp")
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	arg := PGPEngineArg{
+	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
 			PrimaryBits: 768,
 			SubkeyBits:  768,
@@ -22,7 +22,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 		LogUI:    G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
-	eng := NewPGPEngine(arg)
+	eng := NewPGPKeyImportEngine(arg)
 	err := RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal(err)
