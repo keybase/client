@@ -14,7 +14,7 @@ pod "YOLayout/Box"#, :path => "~/Projects/YOLayout"
 
 pod "ZXCVBN"
 
-#pod "Sparkle"
+pod "Sparkle"
 
 target :Tests do
   pod "GRUnit"
