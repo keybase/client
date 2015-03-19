@@ -52,11 +52,15 @@ func (k *KexCom) poll(m *kex.Meta, secret *kex.Secret) {
 func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex.Msg) error) error {
 	k.G().Log.Debug("%s: waiting for %s", k.debugName, name)
 	msg, err := k.rec.Next(name, timeout)
+	k.G().Log.Debug("%s: got message %s", k.debugName, name)
 	if err != nil {
+		k.G().Log.Warning("%s: receiving Kex message %s gave error: %s", k.debugName, name, err.Error())
 		return err
 	}
 	if err := k.verifyRequest(&msg.Meta); err != nil {
+		k.G().Log.Warning("%s: verifying Kex message %s gave error: %s", k.debugName, name, err.Error())
 		return err
 	}
+	k.G().Log.Debug("%s: dispatching message to handler: %s", k.debugName, name)
 	return handler(msg)
 }
