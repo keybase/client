@@ -67,7 +67,7 @@
   return (AppDelegate *)[[NSApplication sharedApplication] delegate];
 }
 
-- (void)preferences:(id)sender {
+- (IBAction)preferences:(id)sender {
   if (!_preferences) _preferences = [[KBPreferences alloc] init];
   [_preferences open];
 }

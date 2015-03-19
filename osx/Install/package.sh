@@ -16,6 +16,9 @@ fi
 # Clean up
 rm -rf Keybase.dmg
 
+VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Keybase.app/Contents/Info.plist`
+echo "Version: $VERSION"
+
 echo "Copying keybase binaries into Keybase.app..."
 chmod +x keybased
 cp keybased Keybase.app/Contents/MacOS/
@@ -27,4 +30,4 @@ codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc
 # Verify
 #codesign --verify --verbose=4 Keybase.app
 
-appdmg appdmg.json Keybase.dmg
+appdmg appdmg.json Keybase-$VERSION.dmg
