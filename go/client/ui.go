@@ -177,7 +177,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 }
 
 func (ui BaseIdentifyUI) ReportHook(s string) {
-	os.Stdout.Write([]byte(s + "\n"))
+	os.Stderr.Write([]byte(s + "\n"))
 }
 
 func (ui BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
