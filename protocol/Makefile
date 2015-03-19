@@ -11,7 +11,6 @@ config:
 	npm install -d
 
 build-stamp: \
-	json/bindex.json \
 	json/block.json \
 	json/config.json \
 	json/device.json \

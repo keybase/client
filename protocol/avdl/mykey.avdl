@@ -28,7 +28,4 @@ protocol mykey {
 
 	// select an existing key and add to kb
 	void select(string query, boolean allowMulti, boolean skipImport);
-
-	void saveArmoredPGPKey(string key, boolean pushPublic, boolean pushPrivate);
-	void savePGPKey(bytes key, boolean pushPublic, boolean pushPrivate);
 }

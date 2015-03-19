@@ -151,7 +151,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), SecretUI: secui}
 	key := armorKey(t, tc, u.Email)
-	e := NewPGPSaveArmored(key, true, true)
+	e := NewPGPSave([]byte(key), true)
 	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
