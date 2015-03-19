@@ -11,7 +11,7 @@ import (
 func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
 	idUI = &FakeIdentifyUI{}
 	arg := IdEngineArg{
-		User: username,
+		UserAssertion: username,
 	}
 	ctx := Context{
 		LogUI:      G.UI.GetLogUI(),
@@ -155,6 +155,8 @@ func TestIdPGPNotEldest(t *testing.T) {
 	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
+
+	G.LoginState.Logout()
 
 	idUI, _, err := runIdentify(u.Username)
 	if err != nil {
