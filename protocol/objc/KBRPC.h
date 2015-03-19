@@ -74,81 +74,39 @@
 
 @end
 
-@interface KBRGetCurrentStatusRes : KBRObject
-@property BOOL configured;
-@property BOOL registered;
-@property BOOL loggedIn;
-@property KBRUser *user;
+@interface KBRSignupRes : KBRObject
+@property BOOL passphraseOk;
+@property BOOL postOk;
+@property BOOL writeOk;
 @end
 
-@interface KBRConfig : KBRObject
-@property NSString *serverURI;
-@property NSString *socketFile;
-@property BOOL gpgExists;
-@property NSString *gpgPath;
-@property NSString *version;
-@property NSString *path;
-@end
+@interface KBRSignupRequest : KBRRequest
+- (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
-@interface KBRConfigRequest : KBRRequest
-- (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *getCurrentStatusRes))completion;
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
 
-- (void)getConfig:(void (^)(NSError *error, KBRConfig *config))completion;
+- (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error))completion;
 
 @end
 
-@interface KBRDeviceRequest : KBRRequest
-- (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
-
-@end
-
-typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
-	KBRDeviceSignerKindDevice,
-	KBRDeviceSignerKindPgp,
+typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
+	KBRPromptOverwriteTypeSocial,
+	KBRPromptOverwriteTypeSite,
 };
-typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
-	KBRSelectSignerActionSign,
-	KBRSelectSignerActionCancel,
-	KBRSelectSignerActionResetAccount,
-};
-@interface KBRDeviceSigner : KBRObject
-@property KBRDeviceSignerKind kind;
-@property NSString *deviceID;
-@end
+@interface KBRProveUiRequest : KBRRequest
+- (void)promptOverwriteWithSessionID:(NSInteger)sessionID account:(NSString *)account typ:(KBRPromptOverwriteType)typ completion:(void (^)(NSError *error, BOOL b))completion;
 
-@interface KBRSelectSignerRes : KBRObject
-@property KBRSelectSignerAction action;
-@property KBRDeviceSigner *signer;
-@end
+- (void)promptUsernameWithSessionID:(NSInteger)sessionID prompt:(NSString *)prompt prevError:(KBRStatus *)prevError completion:(void (^)(NSError *error, NSString *str))completion;
 
-@interface KBRDoctorUiRequest : KBRRequest
-- (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)outputPrechecksWithSessionID:(NSInteger)sessionID text:(KBRText *)text completion:(void (^)(NSError *error))completion;
 
-- (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
+- (void)preProofWarningWithSessionID:(NSInteger)sessionID text:(KBRText *)text completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret xDevDescription:(NSString *)xDevDescription completion:(void (^)(NSError *error))completion;
+- (void)outputInstructionsWithSessionID:(NSInteger)sessionID instructions:(KBRText *)instructions proof:(NSString *)proof completion:(void (^)(NSError *error))completion;
 
-@end
+- (void)okToCheckWithSessionID:(NSInteger)sessionID name:(NSString *)name attempt:(NSInteger)attempt completion:(void (^)(NSError *error, BOOL b))completion;
 
-@interface KBRGPGKey : KBRObject
-@property NSString *algorithm;
-@property NSString *keyID;
-@property NSString *creation;
-@property NSString *expiration;
-@property NSArray *identities; /*of string*/
-@end
-
-@interface KBRSelectKeyRes : KBRObject
-@property NSString *keyID;
-@property BOOL doSecretPush;
-@end
-
-@interface KBRGpgUiRequest : KBRRequest
-- (void)wantToAddGPGKeyWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, BOOL b))completion;
-
-- (void)selectKeyAndPushOptionWithSessionID:(NSInteger)sessionID keys:(NSArray *)keys completion:(void (^)(NSError *error, KBRSelectKeyRes *selectKeyRes))completion;
-
-- (void)selectKeyWithSessionID:(NSInteger)sessionID keys:(NSArray *)keys completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)displayRecheckWarningWithSessionID:(NSInteger)sessionID text:(KBRText *)text completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -196,6 +154,291 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 - (void)identifyWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL)trackStatement luba:(BOOL)luba loadSelf:(BOOL)loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
 - (void)identifyDefaultWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
+
+@end
+
+@interface KBRUiRequest : KBRRequest
+- (void)promptYesNoWithSessionID:(NSInteger)sessionID text:(KBRText *)text def:(BOOL)def completion:(void (^)(NSError *error, BOOL b))completion;
+
+@end
+
+@interface KBRTracker : KBRObject
+@property KBRUID *tracker;
+@property NSInteger status;
+@property NSInteger mtime;
+@end
+
+@interface KBRTrackProof : KBRObject
+@property NSString *proofType;
+@property NSString *proofName;
+@property NSString *idString;
+@end
+
+@interface KBRWebProof : KBRObject
+@property NSString *hostname;
+@property NSArray *protocols; /*of string*/
+@end
+
+@interface KBRPubKey : KBRObject
+@property NSString *keyFingerprint;
+@property NSInteger bits;
+@property NSInteger algo;
+@end
+
+@interface KBRProofs : KBRObject
+@property NSArray *social; /*of KBRTrackProof*/
+@property NSArray *web; /*of KBRWebProof*/
+@property NSArray *publicKeys; /*of KBRPubKey*/
+@end
+
+@interface KBRUserSummary : KBRObject
+@property KBRUID *uid;
+@property NSString *thumbnail;
+@property NSString *username;
+@property NSInteger idVersion;
+@property NSString *fullName;
+@property NSString *bio;
+@property KBRProofs *proofs;
+@property NSString *sigId;
+@property long trackTime;
+@end
+
+@interface KBRUserRequest : KBRRequest
+- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)listTrackersByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)listTrackersSelfWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion;
+
+@end
+
+@interface KBRSibkeyRequest : KBRRequest
+- (void)addWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
+
+@end
+
+typedef NS_ENUM (NSInteger, KBRLogLevel) {
+	KBRLogLevelNone,
+	KBRLogLevelDebug,
+	KBRLogLevelInfo,
+	KBRLogLevelNotice,
+	KBRLogLevelWarn,
+	KBRLogLevelError,
+	KBRLogLevelCritical,
+};
+@interface KBRLogUiRequest : KBRRequest
+- (void)logWithSessionID:(NSInteger)sessionID level:(KBRLogLevel)level text:(KBRText *)text completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRStreamUiRequest : KBRRequest
+- (void)closeWithS:(KBRStream *)s completion:(void (^)(NSError *error))completion;
+
+- (void)readWithS:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+- (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
+
+@end
+
+typedef NS_ENUM (NSInteger, KBRSignMode) {
+	KBRSignModeAttached,
+	KBRSignModeDetached,
+	KBRSignModeClear,
+};
+@interface KBRPgpSignOptions : KBRObject
+@property NSString *keyQuery;
+@property KBRSignMode mode;
+@property BOOL binaryIn;
+@property BOOL binaryOut;
+@end
+
+@interface KBRPgpEncryptOptions : KBRObject
+@property NSArray *recipients; /*of string*/
+@property BOOL noSign;
+@property BOOL noSelf;
+@property BOOL binaryOut;
+@property NSString *keyQuery;
+@property BOOL localOnly;
+@property BOOL approveRemote;
+@end
+
+@interface KBRPgpRequest : KBRRequest
+- (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion;
+
+- (void)pgpPullWithSessionID:(NSInteger)sessionID userAsserts:(NSArray *)userAsserts completion:(void (^)(NSError *error))completion;
+
+- (void)pgpEncryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpEncryptOptions *)opts completion:(void (^)(NSError *error))completion;
+
+- (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushPrivate:(BOOL)pushPrivate completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRProveRequest : KBRRequest
+- (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion;
+
+@end
+
+typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
+	KBRDeviceSignerKindDevice,
+	KBRDeviceSignerKindPgp,
+};
+typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
+	KBRSelectSignerActionSign,
+	KBRSelectSignerActionCancel,
+	KBRSelectSignerActionResetAccount,
+};
+@interface KBRDeviceSigner : KBRObject
+@property KBRDeviceSignerKind kind;
+@property NSString *deviceID;
+@end
+
+@interface KBRSelectSignerRes : KBRObject
+@property KBRSelectSignerAction action;
+@property KBRDeviceSigner *signer;
+@end
+
+@interface KBRDoctorUiRequest : KBRRequest
+- (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
+
+- (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret xDevDescription:(NSString *)xDevDescription completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRLoginUiRequest : KBRRequest
+- (void)getEmailOrUsernameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+
+@end
+
+@interface KBRDeviceRequest : KBRRequest
+- (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
+
+@end
+
+@interface KBRSig : KBRObject
+@property NSInteger seqno;
+@property NSString *sigIdDisplay;
+@property NSString *type;
+@property NSInteger ctime;
+@property BOOL revoked;
+@property BOOL active;
+@property NSString *key;
+@property NSString *body;
+@end
+
+@interface KBRSigTypes : KBRObject
+@property BOOL track;
+@property BOOL proof;
+@property BOOL cryptocurrency;
+@property BOOL self;
+@end
+
+@interface KBRSigListArgs : KBRObject
+@property NSInteger sessionID;
+@property NSString *username;
+@property BOOL allKeys;
+@property KBRSigTypes *types;
+@property NSString *filterx;
+@property BOOL verbose;
+@property BOOL revoked;
+@end
+
+@interface KBRSigsRequest : KBRRequest
+- (void)sigListWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)sigListJSONWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSString *str))completion;
+
+@end
+
+@interface KBRPgpCreateUids : KBRObject
+@property BOOL useDefault;
+@property NSArray *ids; /*of KBRPgpIdentity*/
+@end
+
+@interface KBRMykeyRequest : KBRRequest
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
+
+- (void)deletePrimary:(void (^)(NSError *error))completion;
+
+- (void)show:(void (^)(NSError *error))completion;
+
+- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRSecretEntryArg : KBRObject
+@property NSString *desc;
+@property NSString *prompt;
+@property NSString *err;
+@property NSString *cancel;
+@property NSString *ok;
+@end
+
+@interface KBRSecretEntryRes : KBRObject
+@property NSString *text;
+@property BOOL canceled;
+@end
+
+@interface KBRSecretUiRequest : KBRRequest
+- (void)getSecretWithSessionID:(NSInteger)sessionID pinentry:(KBRSecretEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRSecretEntryRes *secretEntryRes))completion;
+
+- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)getKeybasePassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion;
+
+@end
+
+@interface KBRGetCurrentStatusRes : KBRObject
+@property BOOL configured;
+@property BOOL registered;
+@property BOOL loggedIn;
+@property KBRUser *user;
+@end
+
+@interface KBRConfig : KBRObject
+@property NSString *serverURI;
+@property NSString *socketFile;
+@property BOOL gpgExists;
+@property NSString *gpgPath;
+@property NSString *version;
+@property NSString *path;
+@end
+
+@interface KBRConfigRequest : KBRRequest
+- (void)getCurrentStatus:(void (^)(NSError *error, KBRGetCurrentStatusRes *getCurrentStatusRes))completion;
+
+- (void)getConfig:(void (^)(NSError *error, KBRConfig *config))completion;
+
+@end
+
+@interface KBRGPGKey : KBRObject
+@property NSString *algorithm;
+@property NSString *keyID;
+@property NSString *creation;
+@property NSString *expiration;
+@property NSArray *identities; /*of string*/
+@end
+
+@interface KBRSelectKeyRes : KBRObject
+@property NSString *keyID;
+@property BOOL doSecretPush;
+@end
+
+@interface KBRGpgUiRequest : KBRRequest
+- (void)wantToAddGPGKeyWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, BOOL b))completion;
+
+- (void)selectKeyAndPushOptionWithSessionID:(NSInteger)sessionID keys:(NSArray *)keys completion:(void (^)(NSError *error, KBRSelectKeyRes *selectKeyRes))completion;
+
+- (void)selectKeyWithSessionID:(NSInteger)sessionID keys:(NSArray *)keys completion:(void (^)(NSError *error, NSString *str))completion;
 
 @end
 
@@ -289,20 +532,6 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @end
 
-typedef NS_ENUM (NSInteger, KBRLogLevel) {
-	KBRLogLevelNone,
-	KBRLogLevelDebug,
-	KBRLogLevelInfo,
-	KBRLogLevelNotice,
-	KBRLogLevelWarn,
-	KBRLogLevelError,
-	KBRLogLevelCritical,
-};
-@interface KBRLogUiRequest : KBRRequest
-- (void)logWithSessionID:(NSInteger)sessionID level:(KBRLogLevel)level text:(KBRText *)text completion:(void (^)(NSError *error))completion;
-
-@end
-
 @interface KBRLoginRequest : KBRRequest
 - (void)passphraseLoginWithIdentify:(BOOL)identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
 
@@ -311,88 +540,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 - (void)logout:(void (^)(NSError *error))completion;
 
 - (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRLoginUiRequest : KBRRequest
-- (void)getEmailOrUsernameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
-
-@end
-
-@interface KBRPgpCreateUids : KBRObject
-@property BOOL useDefault;
-@property NSArray *ids; /*of KBRPgpIdentity*/
-@end
-
-@interface KBRMykeyRequest : KBRRequest
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
-
-- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
-
-- (void)deletePrimary:(void (^)(NSError *error))completion;
-
-- (void)show:(void (^)(NSError *error))completion;
-
-- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
-
-@end
-
-typedef NS_ENUM (NSInteger, KBRSignMode) {
-	KBRSignModeAttached,
-	KBRSignModeDetached,
-	KBRSignModeClear,
-};
-@interface KBRPgpSignOptions : KBRObject
-@property NSString *keyQuery;
-@property KBRSignMode mode;
-@property BOOL binaryIn;
-@property BOOL binaryOut;
-@end
-
-@interface KBRPgpEncryptOptions : KBRObject
-@property NSArray *recipients; /*of string*/
-@property BOOL noSign;
-@property BOOL noSelf;
-@property BOOL binaryOut;
-@property NSString *keyQuery;
-@property BOOL localOnly;
-@property BOOL approveRemote;
-@end
-
-@interface KBRPgpRequest : KBRRequest
-- (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion;
-
-- (void)pgpPullWithSessionID:(NSInteger)sessionID userAsserts:(NSArray *)userAsserts completion:(void (^)(NSError *error))completion;
-
-- (void)pgpEncryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpEncryptOptions *)opts completion:(void (^)(NSError *error))completion;
-
-- (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushPrivate:(BOOL)pushPrivate completion:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRProveRequest : KBRRequest
-- (void)proveWithService:(NSString *)service username:(NSString *)username force:(BOOL)force completion:(void (^)(NSError *error))completion;
-
-@end
-
-typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
-	KBRPromptOverwriteTypeSocial,
-	KBRPromptOverwriteTypeSite,
-};
-@interface KBRProveUiRequest : KBRRequest
-- (void)promptOverwriteWithSessionID:(NSInteger)sessionID account:(NSString *)account typ:(KBRPromptOverwriteType)typ completion:(void (^)(NSError *error, BOOL b))completion;
-
-- (void)promptUsernameWithSessionID:(NSInteger)sessionID prompt:(NSString *)prompt prevError:(KBRStatus *)prevError completion:(void (^)(NSError *error, NSString *str))completion;
-
-- (void)outputPrechecksWithSessionID:(NSInteger)sessionID text:(KBRText *)text completion:(void (^)(NSError *error))completion;
-
-- (void)preProofWarningWithSessionID:(NSInteger)sessionID text:(KBRText *)text completion:(void (^)(NSError *error, BOOL b))completion;
-
-- (void)outputInstructionsWithSessionID:(NSInteger)sessionID instructions:(KBRText *)instructions proof:(NSString *)proof completion:(void (^)(NSError *error))completion;
-
-- (void)okToCheckWithSessionID:(NSInteger)sessionID name:(NSString *)name attempt:(NSInteger)attempt completion:(void (^)(NSError *error, BOOL b))completion;
-
-- (void)displayRecheckWarningWithSessionID:(NSInteger)sessionID text:(KBRText *)text completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -408,25 +555,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
-@interface KBRSecretEntryArg : KBRObject
-@property NSString *desc;
-@property NSString *prompt;
-@property NSString *err;
-@property NSString *cancel;
-@property NSString *ok;
-@end
-
-@interface KBRSecretEntryRes : KBRObject
-@property NSString *text;
-@property BOOL canceled;
-@end
-
-@interface KBRSecretUiRequest : KBRRequest
-- (void)getSecretWithSessionID:(NSInteger)sessionID pinentry:(KBRSecretEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRSecretEntryRes *secretEntryRes))completion;
-
-- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage completion:(void (^)(NSError *error, NSString *str))completion;
-
-- (void)getKeybasePassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion;
+@interface KBRTrackRequest : KBRRequest
+- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -440,136 +570,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 - (void)currentSession:(void (^)(NSError *error, KBRSession *session))completion;
 
 @end
-
-@interface KBRSibkeyRequest : KBRRequest
-- (void)addWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRSignupRes : KBRObject
-@property BOOL passphraseOk;
-@property BOOL postOk;
-@property BOOL writeOk;
-@end
-
-@interface KBRSignupRequest : KBRRequest
-- (void)checkUsernameAvailableWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
-
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
-
-- (void)inviteRequestWithEmail:(NSString *)email fullname:(NSString *)fullname notes:(NSString *)notes completion:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRSig : KBRObject
-@property NSInteger seqno;
-@property NSString *sigIdDisplay;
-@property NSString *type;
-@property NSInteger ctime;
-@property BOOL revoked;
-@property BOOL active;
-@property NSString *key;
-@property NSString *body;
-@end
-
-@interface KBRSigTypes : KBRObject
-@property BOOL track;
-@property BOOL proof;
-@property BOOL cryptocurrency;
-@property BOOL self;
-@end
-
-@interface KBRSigListArgs : KBRObject
-@property NSInteger sessionID;
-@property NSString *username;
-@property BOOL allKeys;
-@property KBRSigTypes *types;
-@property NSString *filterx;
-@property BOOL verbose;
-@property BOOL revoked;
-@end
-
-@interface KBRSigsRequest : KBRRequest
-- (void)sigListWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)sigListJSONWithArg:(KBRSigListArgs *)arg completion:(void (^)(NSError *error, NSString *str))completion;
-
-@end
-
-@interface KBRStreamUiRequest : KBRRequest
-- (void)closeWithS:(KBRStream *)s completion:(void (^)(NSError *error))completion;
-
-- (void)readWithS:(KBRStream *)s sz:(NSInteger)sz completion:(void (^)(NSError *error, NSData *bytes))completion;
-
-- (void)writeWithS:(KBRStream *)s buf:(NSData *)buf completion:(void (^)(NSError *error, NSInteger n))completion;
-
-@end
-
-@interface KBRTrackRequest : KBRRequest
-- (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRUiRequest : KBRRequest
-- (void)promptYesNoWithSessionID:(NSInteger)sessionID text:(KBRText *)text def:(BOOL)def completion:(void (^)(NSError *error, BOOL b))completion;
-
-@end
-
-@interface KBRTracker : KBRObject
-@property KBRUID *tracker;
-@property NSInteger status;
-@property NSInteger mtime;
-@end
-
-@interface KBRTrackProof : KBRObject
-@property NSString *proofType;
-@property NSString *proofName;
-@property NSString *idString;
-@end
-
-@interface KBRWebProof : KBRObject
-@property NSString *hostname;
-@property NSArray *protocols; /*of string*/
-@end
-
-@interface KBRPubKey : KBRObject
-@property NSString *keyFingerprint;
-@property NSInteger bits;
-@property NSInteger algo;
-@end
-
-@interface KBRProofs : KBRObject
-@property NSArray *social; /*of KBRTrackProof*/
-@property NSArray *web; /*of KBRWebProof*/
-@property NSArray *publicKeys; /*of KBRPubKey*/
-@end
-
-@interface KBRUserSummary : KBRObject
-@property KBRUID *uid;
-@property NSString *thumbnail;
-@property NSString *username;
-@property NSInteger idVersion;
-@property NSString *fullName;
-@property NSString *bio;
-@property KBRProofs *proofs;
-@property NSString *sigId;
-@property long trackTime;
-@end
-
-@interface KBRUserRequest : KBRRequest
-- (void)listTrackersWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)listTrackersByNameWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)listTrackersSelfWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
-
-- (void)listTrackingJsonWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion;
-
-@end
 @interface KBRBlockSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
@@ -580,8 +580,135 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *blockid;
 @property NSData *buf;
 @end
-@interface KBRDeviceListRequestParams : KBRRequestParams
+@interface KBRCheckUsernameAvailableRequestParams : KBRRequestParams
+@property NSString *username;
+@end
+@interface KBRSignupRequestParams : KBRRequestParams
+@property NSString *email;
+@property NSString *inviteCode;
+@property NSString *passphrase;
+@property NSString *username;
+@property NSString *deviceName;
+@end
+@interface KBRInviteRequestRequestParams : KBRRequestParams
+@property NSString *email;
+@property NSString *fullname;
+@property NSString *notes;
+@end
+@interface KBRPromptOverwriteRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@property NSString *account;
+@property KBRPromptOverwriteType typ;
+@end
+@interface KBRPromptUsernameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *prompt;
+@property KBRStatus *prevError;
+@end
+@interface KBROutputPrechecksRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRText *text;
+@end
+@interface KBRPreProofWarningRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRText *text;
+@end
+@interface KBROutputInstructionsRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRText *instructions;
+@property NSString *proof;
+@end
+@interface KBROkToCheckRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *name;
+@property NSInteger attempt;
+@end
+@interface KBRDisplayRecheckWarningRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRText *text;
+@end
+@interface KBRIdentifyRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRUID *uid;
+@property NSString *username;
+@property BOOL trackStatement;
+@property BOOL luba;
+@property BOOL loadSelf;
+@end
+@interface KBRIdentifyDefaultRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
+@interface KBRPromptYesNoRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRText *text;
+@property BOOL def;
+@end
+@interface KBRListTrackersRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRUID *uid;
+@end
+@interface KBRListTrackersByNameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
+@interface KBRListTrackersSelfRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
+@property NSArray *uids;
+@end
+@interface KBRListTrackingRequestParams : KBRRequestParams
+@property NSString *filter;
+@end
+@interface KBRListTrackingJsonRequestParams : KBRRequestParams
+@property NSString *filter;
+@property BOOL verbose;
+@end
+@interface KBRAddRequestParams : KBRRequestParams
+@property NSString *secretPhrase;
+@end
+@interface KBRLogRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRLogLevel level;
+@property KBRText *text;
+@end
+@interface KBRCloseRequestParams : KBRRequestParams
+@property KBRStream *s;
+@end
+@interface KBRReadRequestParams : KBRRequestParams
+@property KBRStream *s;
+@property NSInteger sz;
+@end
+@interface KBRWriteRequestParams : KBRRequestParams
+@property KBRStream *s;
+@property NSData *buf;
+@end
+@interface KBRPgpSignRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRStream *source;
+@property KBRStream *sink;
+@property KBRPgpSignOptions *opts;
+@end
+@interface KBRPgpPullRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *userAsserts;
+@end
+@interface KBRPgpEncryptRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRStream *source;
+@property KBRStream *sink;
+@property KBRPgpEncryptOptions *opts;
+@end
+@interface KBRPgpImportRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSData *key;
+@property BOOL pushPrivate;
+@end
+@interface KBRProveRequestParams : KBRRequestParams
+@property NSString *service;
+@property NSString *username;
+@property BOOL force;
 @end
 @interface KBRPromptDeviceNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -596,6 +723,49 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *secret;
 @property NSString *xDevDescription;
 @end
+@interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRDeviceListRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRSigListRequestParams : KBRRequestParams
+@property KBRSigListArgs *arg;
+@end
+@interface KBRSigListJSONRequestParams : KBRRequestParams
+@property KBRSigListArgs *arg;
+@end
+@interface KBRPgpKeyGenRequestParams : KBRRequestParams
+@property NSInteger primaryBits;
+@property NSInteger subkeyBits;
+@property KBRPgpCreateUids *createUids;
+@property BOOL allowMulti;
+@property BOOL doExport;
+@end
+@interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
+@property KBRPgpCreateUids *createUids;
+@end
+@interface KBRSelectRequestParams : KBRRequestParams
+@property NSString *query;
+@property BOOL allowMulti;
+@property BOOL skipImport;
+@end
+@interface KBRGetSecretRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRSecretEntryArg *pinentry;
+@property KBRSecretEntryArg *terminal;
+@end
+@interface KBRGetNewPassphraseRequestParams : KBRRequestParams
+@property NSString *terminalPrompt;
+@property NSString *pinentryDesc;
+@property NSString *pinentryPrompt;
+@property NSString *retryMessage;
+@end
+@interface KBRGetKeybasePassphraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@property NSString *retry;
+@end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -606,18 +776,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSelectKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSArray *keys;
-@end
-@interface KBRIdentifyRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRUID *uid;
-@property NSString *username;
-@property BOOL trackStatement;
-@property BOOL luba;
-@property BOOL loadSelf;
-@end
-@interface KBRIdentifyDefaultRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *username;
 @end
 @interface KBRFinishAndPromptRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -659,11 +817,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *username;
 @end
-@interface KBRLogRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRLogLevel level;
-@property KBRText *text;
-@end
 @interface KBRPassphraseLoginRequestParams : KBRRequestParams
 @property BOOL identify;
 @property NSString *username;
@@ -672,165 +825,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRSwitchUserRequestParams : KBRRequestParams
 @property NSString *username;
 @end
-@interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@end
-@interface KBRPgpKeyGenRequestParams : KBRRequestParams
-@property NSInteger primaryBits;
-@property NSInteger subkeyBits;
-@property KBRPgpCreateUids *createUids;
-@property BOOL allowMulti;
-@property BOOL doExport;
-@end
-@interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
-@property KBRPgpCreateUids *createUids;
-@end
-@interface KBRSelectRequestParams : KBRRequestParams
-@property NSString *query;
-@property BOOL allowMulti;
-@property BOOL skipImport;
-@end
-@interface KBRPgpSignRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRStream *source;
-@property KBRStream *sink;
-@property KBRPgpSignOptions *opts;
-@end
-@interface KBRPgpPullRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSArray *userAsserts;
-@end
-@interface KBRPgpEncryptRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRStream *source;
-@property KBRStream *sink;
-@property KBRPgpEncryptOptions *opts;
-@end
-@interface KBRPgpImportRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSData *key;
-@property BOOL pushPrivate;
-@end
-@interface KBRProveRequestParams : KBRRequestParams
-@property NSString *service;
-@property NSString *username;
-@property BOOL force;
-@end
-@interface KBRPromptOverwriteRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *account;
-@property KBRPromptOverwriteType typ;
-@end
-@interface KBRPromptUsernameRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *prompt;
-@property KBRStatus *prevError;
-@end
-@interface KBROutputPrechecksRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRText *text;
-@end
-@interface KBRPreProofWarningRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRText *text;
-@end
-@interface KBROutputInstructionsRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRText *instructions;
-@property NSString *proof;
-@end
-@interface KBROkToCheckRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *name;
-@property NSInteger attempt;
-@end
-@interface KBRDisplayRecheckWarningRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRText *text;
-@end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
-@end
-@interface KBRGetSecretRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRSecretEntryArg *pinentry;
-@property KBRSecretEntryArg *terminal;
-@end
-@interface KBRGetNewPassphraseRequestParams : KBRRequestParams
-@property NSString *terminalPrompt;
-@property NSString *pinentryDesc;
-@property NSString *pinentryPrompt;
-@property NSString *retryMessage;
-@end
-@interface KBRGetKeybasePassphraseRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *username;
-@property NSString *retry;
-@end
-@interface KBRAddRequestParams : KBRRequestParams
-@property NSString *secretPhrase;
-@end
-@interface KBRCheckUsernameAvailableRequestParams : KBRRequestParams
-@property NSString *username;
-@end
-@interface KBRSignupRequestParams : KBRRequestParams
-@property NSString *email;
-@property NSString *inviteCode;
-@property NSString *passphrase;
-@property NSString *username;
-@property NSString *deviceName;
-@end
-@interface KBRInviteRequestRequestParams : KBRRequestParams
-@property NSString *email;
-@property NSString *fullname;
-@property NSString *notes;
-@end
-@interface KBRSigListRequestParams : KBRRequestParams
-@property KBRSigListArgs *arg;
-@end
-@interface KBRSigListJSONRequestParams : KBRRequestParams
-@property KBRSigListArgs *arg;
-@end
-@interface KBRCloseRequestParams : KBRRequestParams
-@property KBRStream *s;
-@end
-@interface KBRReadRequestParams : KBRRequestParams
-@property KBRStream *s;
-@property NSInteger sz;
-@end
-@interface KBRWriteRequestParams : KBRRequestParams
-@property KBRStream *s;
-@property NSData *buf;
 @end
 @interface KBRTrackRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *theirName;
 @property BOOL localOnly;
 @property BOOL approveRemote;
-@end
-@interface KBRPromptYesNoRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRText *text;
-@property BOOL def;
-@end
-@interface KBRListTrackersRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRUID *uid;
-@end
-@interface KBRListTrackersByNameRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *username;
-@end
-@interface KBRListTrackersSelfRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@end
-@interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
-@property NSArray *uids;
-@end
-@interface KBRListTrackingRequestParams : KBRRequestParams
-@property NSString *filter;
-@end
-@interface KBRListTrackingJsonRequestParams : KBRRequestParams
-@property NSString *filter;
-@property BOOL verbose;
 @end
