@@ -476,8 +476,12 @@ func (l *ldocui) PromptDeviceName(dummy int) (string, error) {
 func (l *ldocui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	res.Action = keybase_1.SelectSignerAction_SIGN
-	devid := "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
-	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &devid}
+	devid, err := libkb.NewDeviceID()
+	if err != nil {
+		return
+	}
+	sdev := devid.String()
+	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &sdev}
 	return
 }
 

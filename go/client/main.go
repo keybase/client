@@ -33,6 +33,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 		NewCmdSibkey(cl),
 		NewCmdSigs(cl),
 		NewCmdSignup(cl),
+		NewCmdTest(cl),
 		NewCmdTrack(cl),
 		NewCmdVersion(cl),
 	}

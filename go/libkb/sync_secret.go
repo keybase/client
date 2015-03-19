@@ -197,7 +197,7 @@ func (ss *SecretSyncer) HasActiveDevice() bool {
 		return false
 	}
 	for _, v := range ss.keys.Devices {
-		if v.Status == DEVICE_STATUS_ACTIVE {
+		if v.Status == DEVICE_STATUS_ACTIVE && v.Type != DEVICE_TYPE_WEB {
 			return true
 		}
 	}
