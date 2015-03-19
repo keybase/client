@@ -23,10 +23,6 @@ func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase track <username>",
 		Description: "verify a user's authenticity and optionally track them",
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "assert, a",
-				Usage: "a boolean expression on this identity",
-			},
 			cli.BoolFlag{
 				Name:  "local, l",
 				Usage: "only track locally, no statement sent to remote server",
@@ -94,7 +90,6 @@ func (v *CmdTrack) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
-		Terminal:  true,
 		KbKeyring: true,
 	}
 }

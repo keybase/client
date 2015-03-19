@@ -555,16 +555,13 @@ type IdentifyRes struct {
 
 type IdentifyArg struct {
 	SessionID      int    `codec:"sessionID" json:"sessionID"`
-	Uid            UID    `codec:"uid" json:"uid"`
-	Username       string `codec:"username" json:"username"`
+	UserAssertion  string `codec:"userAssertion" json:"userAssertion"`
 	TrackStatement bool   `codec:"trackStatement" json:"trackStatement"`
-	Luba           bool   `codec:"luba" json:"luba"`
-	LoadSelf       bool   `codec:"loadSelf" json:"loadSelf"`
 }
 
 type IdentifyDefaultArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	UserAssertion string `codec:"userAssertion" json:"userAssertion"`
 }
 
 type IdentifyInterface interface {

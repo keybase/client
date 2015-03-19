@@ -36,7 +36,7 @@ func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) (keybase_1.Identif
 }
 
 func (h *IdentifyHandler) IdentifyDefault(arg keybase_1.IdentifyDefaultArg) (keybase_1.IdentifyRes, error) {
-	iarg := engine.IdEngineArg{User: arg.Username}
+	iarg := engine.IdEngineArg{UserAssertion: arg.UserAssertion}
 	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
 		return keybase_1.IdentifyRes{}, err
@@ -117,7 +117,6 @@ func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity, user 
 }
 
 func (u *RemoteBaseIdentifyUI) Start(username string) {
-	u.logUI.Info("Identifying " + username)
 	u.uicli.Start(keybase_1.StartArg{SessionID: u.sessionId, Username: username})
 	return
 }

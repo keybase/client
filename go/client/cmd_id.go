@@ -12,56 +12,47 @@ import (
 )
 
 type CmdId struct {
-	user      string
-	uid       *libkb.UID
-	assertion string
-	track     bool
-	luba      bool
-	loadSelf  bool
+	user  string
+	track bool
 }
 
 func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
-	var err error
-	v.track = ctx.Bool("track-statement")
-	v.luba = ctx.Bool("luba")
-	v.loadSelf = ctx.Bool("load-self")
-	byUid := ctx.Bool("uid")
-	if nargs == 1 {
-		if byUid {
-			v.uid, err = libkb.UidFromHex(ctx.Args()[0])
-		} else {
-			v.user = ctx.Args()[0]
-		}
-	} else if nargs != 0 || v.luba {
-		err = fmt.Errorf("id takes one arg -- the user to lookup")
+	if nargs > 1 {
+		return fmt.Errorf("id takes one arg -- the user to lookup")
 	}
-	return err
+
+	if nargs == 1 {
+		v.user = ctx.Args()[0]
+	}
+	v.track = ctx.Bool("track-statement")
+	return nil
 }
 
 func (v *CmdId) makeArg() *engine.IdEngineArg {
 	return &engine.IdEngineArg{
-		Uid:            v.uid,
-		User:           v.user,
+		UserAssertion:  v.user,
 		TrackStatement: v.track,
-		Luba:           v.luba,
-		LoadSelf:       v.loadSelf,
 	}
 }
 
-func (v *CmdId) RunClient() (err error) {
+func (v *CmdId) RunClient() error {
 	var cli keybase_1.IdentifyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewIdentifyUIProtocol(),
 	}
-	if cli, err = GetIdentifyClient(); err != nil {
-	} else if err = RegisterProtocols(protocols); err != nil {
-	} else {
-		arg := v.makeArg()
-		_, err = cli.Identify(arg.Export())
+	cli, err := GetIdentifyClient()
+	if err != nil {
+		return err
 	}
-	return
+	if err := RegisterProtocols(protocols); err != nil {
+		return err
+	}
+
+	arg := v.makeArg()
+	_, err = cli.Identify(arg.Export())
+	return err
 }
 
 func (v *CmdId) Run() error {
@@ -80,25 +71,9 @@ func NewCmdId(cl *libcmdline.CommandLine) cli.Command {
 		Usage:       "keybase id <username>",
 		Description: "identify a user and check their proofs",
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "assert, a",
-				Usage: "a boolean expression on this identity",
-			},
 			cli.BoolFlag{
 				Name:  "t, track-statement",
 				Usage: "output a JSON a track statement for this user",
-			},
-			cli.BoolFlag{
-				Name:  "l, luba",
-				Usage: "LookupUserByAssertion",
-			},
-			cli.BoolFlag{
-				Name:  "s, load-self",
-				Usage: "Load self for tracking statement",
-			},
-			cli.BoolFlag{
-				Name:  "i, uid",
-				Usage: "Load user by UID",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -109,10 +84,8 @@ func NewCmdId(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdId) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  true,
-		API:        true,
-		Terminal:   false,
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
 	}
 }

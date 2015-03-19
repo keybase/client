@@ -12,6 +12,7 @@ type PGPKeyfinder struct {
 	arg      *PGPKeyfinderArg
 	uplus    []*UserPlusKeys
 	loggedIn bool
+	me       *libkb.User
 	runerr   error
 }
 
@@ -45,14 +46,12 @@ func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewTrackEngine(nil),
 		NewIdentify(nil),
-		NewLuba(nil),
 	}
 }
 
 // Run starts the engine.
 func (e *PGPKeyfinder) Run(ctx *Context) error {
 	e.setup()
-	e.loadUsers(ctx)
 	e.verifyUsers(ctx)
 	e.loadKeys(ctx)
 	return e.runerr
@@ -69,25 +68,12 @@ func (e *PGPKeyfinder) setup() {
 		return
 	}
 
-	ok, err := G.Session.LoadAndCheck()
+	ok, err := IsLoggedIn()
 	if err != nil {
 		e.runerr = err
 		return
 	}
 	e.loggedIn = ok
-}
-
-func (e *PGPKeyfinder) loadUsers(ctx *Context) {
-	if e.runerr != nil {
-		return
-	}
-
-	for _, u := range e.arg.Users {
-		if err := e.loadUser(ctx, u); err != nil {
-			e.runerr = err
-			return
-		}
-	}
 }
 
 func (e *PGPKeyfinder) verifyUsers(ctx *Context) {
@@ -96,6 +82,7 @@ func (e *PGPKeyfinder) verifyUsers(ctx *Context) {
 	}
 
 	if e.loggedIn {
+		e.loadMe()
 		e.trackUsers(ctx)
 	} else {
 		e.identifyUsers(ctx)
@@ -103,24 +90,27 @@ func (e *PGPKeyfinder) verifyUsers(ctx *Context) {
 }
 
 func (e *PGPKeyfinder) trackUsers(ctx *Context) {
-	// need to track any users we aren't tracking
-	for _, x := range e.uplus {
-		if x.IsTracked {
-			continue
-		}
+	if e.runerr != nil {
+		return
+	}
 
-		if err := e.trackUser(ctx, x.User); err != nil {
+	// need to track any users we aren't tracking
+	for _, u := range e.arg.Users {
+		if err := e.trackUser(ctx, u); err != nil {
 			e.runerr = err
 			return
 		}
-		x.IsTracked = true
 	}
 }
 
 func (e *PGPKeyfinder) identifyUsers(ctx *Context) {
+	if e.runerr != nil {
+		return
+	}
+
 	// need to identify all the users
-	for _, x := range e.uplus {
-		if err := e.identifyUser(ctx, x.User); err != nil {
+	for _, u := range e.arg.Users {
+		if err := e.identifyUser(ctx, u); err != nil {
 			e.runerr = err
 			return
 		}
@@ -143,48 +133,52 @@ func (e *PGPKeyfinder) loadKeys(ctx *Context) {
 	}
 }
 
-func (e *PGPKeyfinder) loadUser(ctx *Context, user string) error {
-	arg := &LubaArg{
-		Assertion:    user,
-		WithTracking: e.loggedIn,
-	}
-	eng := NewLuba(arg)
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-
-	G.Log.Debug("loaded user %q => %q, %s", user, eng.User().GetName(), eng.User().GetUid())
-	tracking, err := eng.IsTracking()
-	if err != nil {
-		return err
-	}
-	e.uplus = append(e.uplus, &UserPlusKeys{User: eng.User(), IsTracked: tracking})
-
-	return nil
-}
-
-func (e *PGPKeyfinder) trackUser(ctx *Context, user *libkb.User) error {
-	G.Log.Info("tracking user %q", user.GetName())
+func (e *PGPKeyfinder) trackUser(ctx *Context, user string) error {
+	G.Log.Info("tracking user %q", user)
 	arg := &TrackEngineArg{
-		TheirName: user.GetName(),
-		Them:      user,
+		Me:        e.me,
+		TheirName: user,
 		Options:   e.arg.TrackOptions,
 	}
 	eng := NewTrackEngine(arg)
-	return RunEngine(eng, ctx)
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+	e.addUser(eng.User(), true)
+	return nil
 }
 
 // PC: maybe we need to bring the TrackUI back for the
 // context...so that this one can use an IdentifyUI and trackUser
 // can use a TrackUI...
-func (e *PGPKeyfinder) identifyUser(ctx *Context, user *libkb.User) error {
-	arg := NewIdentifyArg(user.GetName(), false)
+func (e *PGPKeyfinder) identifyUser(ctx *Context, user string) error {
+	arg := NewIdentifyArg(user, false)
 	eng := NewIdentify(arg)
-	return RunEngine(eng, ctx)
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+	e.addUser(eng.User(), false)
+	return nil
 }
 
 type UserPlusKeys struct {
 	User      *libkb.User
 	IsTracked bool
 	Keys      []*libkb.PgpKeyBundle
+}
+
+func (e *PGPKeyfinder) loadMe() error {
+	if e.me != nil {
+		return nil
+	}
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return err
+	}
+	e.me = me
+	return nil
+}
+
+func (e *PGPKeyfinder) addUser(user *libkb.User, tracked bool) {
+	e.uplus = append(e.uplus, &UserPlusKeys{User: user, IsTracked: tracked})
 }

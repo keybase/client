@@ -212,9 +212,9 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @end
 
 @interface KBRIdentifyRequest : KBRRequest
-- (void)identifyWithSessionID:(NSInteger)sessionID uid:(KBRUID *)uid username:(NSString *)username trackStatement:(BOOL)trackStatement luba:(BOOL)luba loadSelf:(BOOL)loadSelf completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
+- (void)identifyWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
-- (void)identifyDefaultWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
+- (void)identifyDefaultWithSessionID:(NSInteger)sessionID userAssertion:(NSString *)userAssertion completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
 @end
 
@@ -308,26 +308,6 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @end
 
-@interface KBRPgpCreateUids : KBRObject
-@property BOOL useDefault;
-@property NSArray *ids; /*of KBRPgpIdentity*/
-@end
-
-@interface KBRMykeyRequest : KBRRequest
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
-
-- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
-
-- (void)deletePrimary:(void (^)(NSError *error))completion;
-
-- (void)show:(void (^)(NSError *error))completion;
-
-- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
-
-- (void)updateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
-
-@end
-
 typedef NS_ENUM (NSInteger, KBRLogLevel) {
 	KBRLogLevelNone,
 	KBRLogLevelDebug,
@@ -355,6 +335,26 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @interface KBRLoginUiRequest : KBRRequest
 - (void)getEmailOrUsernameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+
+@end
+
+@interface KBRPgpCreateUids : KBRObject
+@property BOOL useDefault;
+@property NSArray *ids; /*of KBRPgpIdentity*/
+@end
+
+@interface KBRMykeyRequest : KBRRequest
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
+
+- (void)deletePrimary:(void (^)(NSError *error))completion;
+
+- (void)show:(void (^)(NSError *error))completion;
+
+- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
+
+- (void)updateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -642,15 +642,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRIdentifyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRUID *uid;
-@property NSString *username;
+@property NSString *userAssertion;
 @property BOOL trackStatement;
-@property BOOL luba;
-@property BOOL loadSelf;
 @end
 @interface KBRIdentifyDefaultRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *username;
+@property NSString *userAssertion;
 @end
 @interface KBRFinishAndPromptRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -692,6 +689,22 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *username;
 @end
+@interface KBRLogRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRLogLevel level;
+@property KBRText *text;
+@end
+@interface KBRPassphraseLoginRequestParams : KBRRequestParams
+@property BOOL identify;
+@property NSString *username;
+@property NSString *passphrase;
+@end
+@interface KBRSwitchUserRequestParams : KBRRequestParams
+@property NSString *username;
+@end
+@interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRPgpKeyGenRequestParams : KBRRequestParams
 @property NSInteger primaryBits;
 @property NSInteger subkeyBits;
@@ -711,22 +724,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property BOOL all;
 @property NSArray *fingerprints;
-@end
-@interface KBRLogRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRLogLevel level;
-@property KBRText *text;
-@end
-@interface KBRPassphraseLoginRequestParams : KBRRequestParams
-@property BOOL identify;
-@property NSString *username;
-@property NSString *passphrase;
-@end
-@interface KBRSwitchUserRequestParams : KBRRequestParams
-@property NSString *username;
-@end
-@interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
-@property NSInteger sessionID;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;

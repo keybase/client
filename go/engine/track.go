@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -14,7 +12,6 @@ type TrackOptions struct {
 
 type TrackEngineArg struct {
 	TheirName string
-	Them      *libkb.User
 	Me        *libkb.User
 	Options   TrackOptions
 }
@@ -22,6 +19,7 @@ type TrackEngineArg struct {
 type TrackEngine struct {
 	arg                 *TrackEngineArg
 	res                 *IdRes
+	them                *libkb.User
 	signingKeyPub       libkb.GenericKey
 	signingKeyPriv      libkb.GenericKey
 	trackStatementBytes []byte
@@ -59,24 +57,19 @@ func (s *TrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
-	if err := e.loadThem(); err != nil {
-		return err
-	}
 	if err := e.loadMe(); err != nil {
 		return err
 	}
-	if e.arg.Me.Equal(*e.arg.Them) {
-		return libkb.SelfTrackError{}
-	}
 
-	iarg := NewIdentifyTrackArg(e.arg.Them.GetName(), true, e.arg.Options)
+	iarg := NewIdentifyTrackArg(e.arg.TheirName, true, e.arg.Options)
 	ieng := NewIdentify(iarg)
 	if err := RunEngine(ieng, ctx); err != nil {
 		return err
 	}
 	ti := ieng.TrackInstructions()
+	e.them = ieng.User()
 
-	e.res = &IdRes{Outcome: ieng.Outcome(), User: e.arg.Them}
+	e.res = &IdRes{Outcome: ieng.Outcome(), User: e.them}
 
 	var err error
 	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
@@ -84,7 +77,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.arg.Them); err != nil {
+	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them); err != nil {
 		return err
 	}
 
@@ -102,6 +95,11 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	return err
 }
 
+func (e *TrackEngine) User() *libkb.User {
+	return e.them
+}
+
+/*
 func (e *TrackEngine) loadThem() error {
 	if e.arg.Them == nil && len(e.arg.TheirName) == 0 {
 		return fmt.Errorf("No 'them' passed to TrackEngine")
@@ -119,6 +117,7 @@ func (e *TrackEngine) loadThem() error {
 	}
 	return nil
 }
+*/
 
 func (e *TrackEngine) loadMe() error {
 	if e.arg.Me != nil {
@@ -134,7 +133,7 @@ func (e *TrackEngine) loadMe() error {
 }
 
 func (e *TrackEngine) storeLocalTrack() error {
-	return libkb.StoreLocalTrack(e.arg.Me.GetUid(), e.arg.Them.GetUid(), e.trackStatement)
+	return libkb.StoreLocalTrack(e.arg.Me.GetUid(), e.them.GetUid(), e.trackStatement)
 }
 
 func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
@@ -160,7 +159,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 			"sig_id_base":  libkb.S{Val: e.sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: e.sigid.ToShortId()},
 			"sig":          libkb.S{Val: e.sig},
-			"uid":          e.arg.Them.GetUid(),
+			"uid":          e.them.GetUid(),
 			"type":         libkb.S{Val: "track"},
 			"signing_kid":  e.signingKeyPub.GetKid(),
 		},

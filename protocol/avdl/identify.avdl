@@ -6,15 +6,12 @@ protocol identify {
 
 	IdentifyRes identify(
 		int sessionID,
-		UID uid,
-		string username,
-		boolean trackStatement,
-		boolean luba,
-		boolean loadSelf
+		string userAssertion,
+		boolean trackStatement
 	);
 
 	IdentifyRes identifyDefault(
 		int sessionID,
-		string username
+		string userAssertion
 	);
 }

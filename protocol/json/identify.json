@@ -214,19 +214,10 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "uid",
-        "type" : "UID"
-      }, {
-        "name" : "username",
+        "name" : "userAssertion",
         "type" : "string"
       }, {
         "name" : "trackStatement",
-        "type" : "boolean"
-      }, {
-        "name" : "luba",
-        "type" : "boolean"
-      }, {
-        "name" : "loadSelf",
         "type" : "boolean"
       } ],
       "response" : "IdentifyRes"
@@ -236,7 +227,7 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "username",
+        "name" : "userAssertion",
         "type" : "string"
       } ],
       "response" : "IdentifyRes"

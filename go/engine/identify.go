@@ -10,6 +10,7 @@ import (
 type Identify struct {
 	arg       *IdentifyArg
 	user      *libkb.User
+	userExpr  libkb.AssertionExpression
 	outcome   *libkb.IdentifyOutcome
 	trackInst *libkb.TrackInstructions
 }
@@ -69,13 +70,21 @@ func (e *Identify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Identify) Run(ctx *Context) error {
+	ok, err := IsLoggedIn()
+	if err != nil {
+		return err
+	}
+	if ok {
+		// logged in, so turn on WithTracking as there's no reason not to:
+		e.arg.WithTracking = true
+	}
+
 	if err := e.loadUser(); err != nil {
 		return err
 	}
 
 	ctx.IdentifyUI.Start(e.user.GetName())
 
-	var err error
 	e.outcome, err = e.run(ctx)
 	if err != nil {
 		return err
@@ -96,6 +105,10 @@ func (e *Identify) Run(ctx *Context) error {
 	return nil
 }
 
+func (e *Identify) User() *libkb.User {
+	return e.user
+}
+
 func (e *Identify) Outcome() *libkb.IdentifyOutcome {
 	return e.outcome
 }
@@ -113,6 +126,11 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if e.user.Equal(*me) {
+			return nil, libkb.SelfTrackError{}
+		}
+
 		tlink, err := me.GetTrackingStatementFor(e.user.GetName(), e.user.GetUid())
 		if err != nil {
 			return nil, err
@@ -144,6 +162,10 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
 	e.user.IdTable.Identify(is, ctx.IdentifyUI)
+
+	if !e.userExpr.MatchSet(*e.user.ToOkProofSet()) {
+		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())
+	}
 
 	G.Log.Debug("- Identify(%s)", e.user.GetName())
 
@@ -179,6 +201,7 @@ func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
 	if err != nil {
 		return nil, err
 	}
+	e.userExpr = expr
 
 	// Next, pop off the 'best' assertion and load the user by it.
 	// That is, it might be the keybase assertion (if there), or otherwise,
