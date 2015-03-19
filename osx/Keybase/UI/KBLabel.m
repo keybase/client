@@ -33,21 +33,25 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+
+    UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
+    CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+    CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
+
     if (self.verticalAlignment != KBVerticalAlignmentNone) {
       // TODO Top, bottom alignments
-      UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
-      CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-      CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
       [layout setFrame:CGRectIntegral(CGRectMake(insets.left, size.height/2.0 - sizeThatFits.height/2.0, sizeThatFits.width, sizeThatFits.height)) view:yself.textView];
       [layout setSize:CGSizeMake(sizeWithInsets.width, size.height) view:yself.border options:0];
       return CGSizeMake(sizeWithInsets.width, size.height);
+    } else if (self.horizontalAlignment != KBHorizontalAlignmentNone) {
+      // TODO Other alignments
+      [layout setFrame:CGRectIntegral(CGRectMake(size.width/2.0 - sizeThatFits.width/2.0, insets.top, sizeThatFits.width, sizeThatFits.height)) view:yself.textView];
+      [layout setSize:CGSizeMake(size.width, sizeWithInsets.height) view:yself.border options:0];
+      return CGSizeMake(size.width, sizeWithInsets.height);
     } else {
-      UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
-      CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
-      CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
-      [layout setFrame:CGRectIntegral(CGRectMake(insets.left, insets.top, sizeThatFits.width, sizeThatFits.height)) view:yself.textView];
+      [layout setFrame:CGRectIntegral(CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, sizeThatFits.height)) view:yself.textView];
       [layout setSize:sizeWithInsets view:yself.border options:0];
-      return sizeWithInsets;
+      return CGSizeMake(size.width, sizeWithInsets.height);
     }
   }];
 }
@@ -235,7 +239,7 @@
 
 - (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance {
   _style = style;
-  [self setFont:[self fontForStyle:_style appearance:KBAppearance.currentAppearance] color:[self colorForStyle:_style appearance:KBAppearance.currentAppearance]];
+  [self setFont:[self fontForStyle:_style appearance:appearance] color:[self colorForStyle:_style appearance:appearance]];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {

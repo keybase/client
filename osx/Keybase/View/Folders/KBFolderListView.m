@@ -69,7 +69,8 @@
       label.identifier = @"KBFolderView.dateLabel";
     }
     label.verticalAlignment = KBVerticalAlignmentMiddle;
-    [label setText:[_dateFormatter stringFromDate:folder.dateModified] style:KBLabelStyleSecondaryText alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [label setStyle:KBLabelStyleSecondaryText appearance:KBAppearance.currentAppearance];
+    [label setText:[_dateFormatter stringFromDate:folder.dateModified] font:[NSFont systemFontOfSize:13] color:KBAppearance.currentAppearance.secondaryTextColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     return label;
   }
 

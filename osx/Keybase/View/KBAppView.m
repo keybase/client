@@ -32,10 +32,14 @@
 @property (nonatomic) KBLoginView *loginView;
 @property (nonatomic) KBSignupView *signupView;
 
+@property KBNavigationTitleView *titleView;
+
 @property NSString *title;
 @property NSStatusItem *statusItem; // Menubar
 @property (nonatomic) KBRGetCurrentStatusRes *status;
 @end
+
+#define TITLE_HEIGHT (32)
 
 @implementation KBAppView
 
@@ -60,17 +64,25 @@
   KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
   [self addSubview:border];
 
+  _titleView = [KBNavigationTitleView titleViewWithTitle:@"Keybase" navigation:nil];
+  [self addSubview:_titleView];
+
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat col1 = 160;
 
     CGFloat x = 0;
-    CGFloat y = 24;
+    CGFloat y = 0;
+
+    if (!yself.titleView.hidden) {
+      y += [layout setFrame:CGRectMake(0, 0, size.width, TITLE_HEIGHT) view:yself.titleView].size.height;
+    }
+
     [layout setFrame:CGRectMake(x, y, col1 - 1, size.height - y) view:yself.sourceView]; // NSOutlieView has trouble initializing to a bad size
     if (!yself.sourceView.hidden) {
       x += col1;
     }
-    y = 0;
+
     [layout setFrame:CGRectMake(x - 1, y, 1, size.height - y) view:border];
 
     [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y) view:yself.contentView];
@@ -156,6 +168,7 @@
 
 - (void)setContentView:(YOView *)contentView showSourceView:(BOOL)showSourceView {
   self.sourceView.hidden = !showSourceView;
+  self.titleView.hidden = !showSourceView;
   [_contentView removeFromSuperview];
   _contentView = contentView;
   if (_contentView) [self addSubview:_contentView];
@@ -164,11 +177,11 @@
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {
-  [_sourceView setProgressEnabled:progressEnabled];
+  [_titleView setProgressEnabled:progressEnabled];
 }
 
 - (BOOL)isProgressEnabled {
-  return _sourceView.isProgressEnabled;
+  return _titleView.isProgressEnabled;
 }
 
 - (KBLoginView *)loginView {
@@ -397,7 +410,13 @@
   KBWindow *window = [self createWindow];
   [window center];
   [window makeKeyAndOrderFront:nil];
+  window.delegate = self;
   return window;
+}
+
+- (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
+  rect.origin.y += -TITLE_HEIGHT;
+  return rect;
 }
 
 //- (void)encodeRestorableStateWithCoder:(NSCoder *)coder { }

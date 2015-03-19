@@ -43,7 +43,7 @@
   //[self addSubview:label];
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setMarkup:@"<p><thin>Welcome to</thin> Keybase</p>" font:[NSFont systemFontOfSize:22] color:[KBAppearance.currentAppearance textColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [label setMarkup:@"<p><thin>Welcome to</thin> Keybase</p>" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [contentView addSubview:label];
 
   _inviteField = [[KBTextField alloc] init];

@@ -103,7 +103,7 @@
 
 - (void)setTitle:(NSString *)title {
   _title = title;
-  [_label setText:title font:KBAppearance.currentAppearance.headerTextFont color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment];
+  [_label setText:title font:[NSFont systemFontOfSize:18] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment];
   [self setNeedsLayout];
 }
 

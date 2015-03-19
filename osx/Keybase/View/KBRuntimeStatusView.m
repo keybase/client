@@ -16,7 +16,7 @@
 
   NSMutableString *status = [NSMutableString string];
   [status appendString:@"keybased: "];
-  [status appendString:_RPCConnected ? NSStringWithFormat(@"<ok>%@</ok>", socketPath) : socketPath];
+  [status appendString:_RPCConnected ? NSStringWithFormat(@"<ok>%@</ok>", socketPath) : NSStringWithFormat(@"%@ (disconnected)", socketPath)];
   //[status appendFormat:@" (%@)", _config.version];
   [status appendString:@"\n"];
 

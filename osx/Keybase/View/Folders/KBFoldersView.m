@@ -64,7 +64,7 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 10;
-    CGFloat y = 24;
+    CGFloat y = 10;
     CGSize segmentedSize = [yself.segmentedControl sizeThatFits:CGSizeMake(size.width, size.height)];
     segmentedSize.width += 2; // Fix for NSSegmentedControl drawing outsize itself
     segmentedSize.height += 2;

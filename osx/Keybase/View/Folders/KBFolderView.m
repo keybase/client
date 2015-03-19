@@ -47,14 +47,14 @@
 //
 
 - (void)setFolder:(KBFolder *)folder {
-  [self.nameLabel setText:folder.name style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [self.nameLabel setText:folder.name font:[NSFont systemFontOfSize:13] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   self.imageView.image = KBImageForFolder(folder);
   [self setNeedsLayout];
 }
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  [self.nameLabel setFont:appearance.textFont color:appearance.textColor];
+  [self.nameLabel setFont:[NSFont systemFontOfSize:13] color:appearance.textColor];
   [self setNeedsLayout];
 }
 

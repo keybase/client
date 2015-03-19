@@ -25,7 +25,6 @@
   [super viewInit];
 
   _splitView = [[KBSplitView alloc] init];
-  _splitView.insets = UIEdgeInsetsMake(0, 0, 0, 0);
   _splitView.dividerPosition = -240;
   [self addSubview:_splitView];
 

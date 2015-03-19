@@ -26,7 +26,7 @@
   _outlineView.delegate = self;
   _outlineView.dataSource = self;
   _data = [MPOrderedDictionary dictionary];
-  _outlineView.floatsGroupRows = NO;
+  //_outlineView.floatsGroupRows = NO;
   _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
   //[self addSubview:_outlineView];
   [self.data setObject:@[@"Me", @"Users", @"Devices", @"Folders"] forKey:@"Keybase"];
@@ -149,14 +149,18 @@
 }
 
 - (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+  return nil;
+  /*
   KBLabel *label = [outlineView makeViewWithIdentifier:@"ColumnView" owner:self];
   if (!label) label = [[KBLabel alloc] init];
   label.verticalAlignment = KBVerticalAlignmentMiddle;
   [label setText:[item uppercaseString] font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   return label;
+   */
 }
 
 - (CGFloat)outlineView:(NSOutlineView *)outlineView heightOfRowByItem:(id)item {
+  if ([item isEqualTo:@"Keybase"]) return 0;
   return 26;
 }
 

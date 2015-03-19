@@ -52,7 +52,7 @@
 
   YOSelf yself = self;
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 10;
+    CGFloat y = 0;
     //CGSize headerSize = [yself.headerView sizeThatFits:CGSizeMake(MIN(400, size.width) - 20, size.height)];
     //y += [layout centerWithSize:headerSize frame:CGRectMake(0, y, MIN(400, size.width), headerSize.height) view:yself.headerView].size.height;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width - 20, 0) view:yself.headerView].size.height;
@@ -102,6 +102,11 @@
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId {
   GHWeakSelf gself = self;
+
+  [client registerMethod:@"keybase.1.identifyUi.start" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    completion(nil, nil);
+  }];
+
   [client registerMethod:@"keybase.1.identifyUi.displayKey" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
     gself.fokid = requestParams.fokid;
@@ -357,7 +362,7 @@
   KBKeyImportView *importView = [[KBKeyImportView alloc] init];
   importView.client = self.client;
 
-  dispatch_block_t close = [KBWindow openWindowWithView:[[KBNavigationView alloc] initWithView:importView title:@"Import a Key"] size:CGSizeMake(600, 400) sender:self];
+  dispatch_block_t close = [KBWindow openWindowWithView:importView size:CGSizeMake(600, 400) sender:self];
   importView.cancelButton.targetBlock = ^{ close(); };
 }
 

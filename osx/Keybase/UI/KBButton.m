@@ -76,18 +76,20 @@
       break;
 
     case KBButtonStyleToolbar:
+      sizeThatFits.height += 10;
+      sizeThatFits.width += 20;
+      break;
+
     case KBButtonStyleSmall:
-      // Padding for non text style buttons
       sizeThatFits.height += 10;
       sizeThatFits.width += 20;
       break;
 
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
-      // Padding for non text style buttons
-      sizeThatFits.height += 20;
-      sizeThatFits.width += 40;
-      sizeThatFits.width = MAX(sizeThatFits.width, 130); // Min width 120
+      sizeThatFits.height += 14;
+      sizeThatFits.width += 28;
+      sizeThatFits.width = MAX(sizeThatFits.width, 100);
       break;
 
   }
@@ -284,13 +286,15 @@ static KBButtonErrorHandler gErrorHandler = nil;
 - (NSColor *)disabledStrokeColorForState {
   switch (self.style) {
     case KBButtonStyleDefault:
-    case KBButtonStylePrimary: return GHNSColorFromRGB(0xCCCCCC);
-    case KBButtonStyleLink: return nil;
-    case KBButtonStyleText: return nil;
-    case KBButtonStyleCheckbox: return nil;
-    case KBButtonStyleEmpty: return nil;
-    case KBButtonStyleToolbar: return nil;
-    case KBButtonStyleSmall: return nil;
+    case KBButtonStylePrimary:
+      return GHNSColorFromRGB(0xCCCCCC);
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleEmpty:
+    case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+      return nil;
   }
 }
 
@@ -301,6 +305,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
     case KBButtonStyleToolbar:
     case KBButtonStyleSmall:
       return GHNSColorFromRGB(0xCCCCCC);
+      
     case KBButtonStylePrimary:
       return GHNSColorFromRGB(0x2e6da4);
 

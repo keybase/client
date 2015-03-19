@@ -163,10 +163,13 @@
       GHDebug(@"Error: %@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
 
+      NSString *name = errorInfo[@"name"];
+      if ([name isEqualTo:@"GENERIC"]) name = nil;
+      NSString *desc = name ? NSStringWithFormat(@"%@ (%@)", errorInfo[@"desc"], name) : errorInfo[@"desc"];
       error = [NSError errorWithDomain:@"Keybase" code:error.code userInfo:
                @{NSLocalizedDescriptionKey: NSStringWithFormat(@"Oops, we had a problem (%@).", @(error.code)),
                  NSLocalizedRecoveryOptionsErrorKey: @[@"OK"],
-                 NSLocalizedRecoverySuggestionErrorKey: NSStringWithFormat(@"%@: %@", errorInfo[@"name"], errorInfo[@"desc"]),
+                 NSLocalizedRecoverySuggestionErrorKey: desc,
                  MPErrorInfoKey: errorInfo,
                  }];
     }

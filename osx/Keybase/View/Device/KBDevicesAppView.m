@@ -22,11 +22,9 @@
   [super viewInit];
 
   _splitView = [[KBSplitView alloc] init];
-  _splitView.insets = UIEdgeInsetsMake(24, 0, 0, 0);
   [self addSubview:_splitView];
 
   _devicesView = [KBListView listViewWithPrototypeClass:KBDeviceView.class rowHeight:56];
-  [_devicesView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0 borderType:KBBorderTypeTop];
   _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued) {
     [view setDevice:device];
   };
@@ -46,7 +44,9 @@
 - (void)reload {
   KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:_client];
   GHWeakSelf gself = self;
+  _devicesView.progressView.animating = YES;
   [request deviceListWithSessionID:request.sessionId completion:^(NSError *error, NSArray *items) {
+    gself.devicesView.progressView.animating = NO;
     if (error) {
       [gself.devicesView removeAllObjects];
       [AppDelegate setError:error sender:self];

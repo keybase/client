@@ -98,15 +98,17 @@
   _progressView.lineWidth = 1.0;
   [self addSubview:_progressView];
 
-  KBBox *borderMiddle = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
-  [self addSubview:borderMiddle];
+  KBBox *borderRight = [KBBox line];
+  [self addSubview:borderRight];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
     CGFloat col1 = 240;
     // If this y is too small, the search field focus will conflict with the window title bar drag
     // and the search field will become really janky.
-    CGFloat y = 24;
+    // This isn't an issue anymore after I added KBAppTitleView but it was such an annoying bug I am
+    // leaving this comment here.
+    CGFloat y = 10;
 
     [layout setFrame:CGRectMake(col1 - 46, y + 4, 14, 14) view:yself.progressView];
 
@@ -118,11 +120,11 @@
 
     //[layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.usersView];
     //[layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.trackersView];
-    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y) view:yself.views];
+    [layout setFrame:CGRectMake(0, y + 1, col1 - 1, size.height - y - 1) view:yself.views];
 
     //[layout setFrame:CGRectMake(col1/2.0 - 16, col1y + 20, 32, 32) view:yself.progressView];
 
-    [layout setFrame:CGRectMake(col1 - 1, 0, 1, size.height) view:borderMiddle];
+    [layout setFrame:CGRectMake(col1 - 1, 0, 1, size.height) view:borderRight];
     [layout setFrame:CGRectMake(col1, 0, size.width - col1, size.height) view:yself.userProfileView];
 
     return size;
@@ -158,8 +160,11 @@
 
 - (void)reload:(BOOL)update {
   GHWeakSelf gself = self;
+  
   KBRUserRequest *trackingRequest = [[KBRUserRequest alloc] initWithClient:self.client];
+  _trackingView.progressView.animating = YES;
   [trackingRequest listTrackingWithFilter:nil completion:^(NSError *error, NSArray *userSummaries) {
+    gself.trackingView.progressView.animating = NO;
     if (error) {
       [AppDelegate setError:error sender:self];
       [gself.trackingView removeAllObjects];
@@ -168,17 +173,32 @@
     [self setTracking:userSummaries update:NO];
   }];
 
-  KBRUserRequest *trackersRequest = [[KBRUserRequest alloc] initWithClient:self.client];
-  [trackersRequest listTrackersSelfWithSessionID:trackersRequest.sessionId completion:^(NSError *error, NSArray *trackers) {
+  [self trackersUsers:^(NSError *error, NSArray *userSummaries) {
+    gself.trackersView.progressView.animating = NO;
     if (error) {
       [AppDelegate setError:error sender:self];
       [gself.trackersView removeAllObjects];
       return;
     }
+    [self setTrackers:userSummaries update:NO];
+  }];
+}
+
+- (void)trackersUsers:(void (^)(NSError *error, NSArray *userSummaries))completion {
+  KBRUserRequest *trackersRequest = [[KBRUserRequest alloc] initWithClient:self.client];
+  [trackersRequest listTrackersSelfWithSessionID:trackersRequest.sessionId completion:^(NSError *error, NSArray *trackers) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
     NSArray *uids = [trackers map:^id(KBRTracker *t) { return t.tracker; }];
     KBRUserRequest *trackersRequest = [[KBRUserRequest alloc] initWithClient:self.client];
     [trackersRequest loadUncheckedUserSummariesWithUids:uids completion:^(NSError *error, NSArray *userSummaries) {
-      [self setTrackers:userSummaries update:NO];
+      if (error) {
+        completion(error, nil);
+        return;
+      }
+      completion(nil, userSummaries);
     }];
   }];
 }

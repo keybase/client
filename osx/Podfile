@@ -10,9 +10,11 @@ pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 
 pod "KBKeybase"#, :path => "~/Projects/KBKeybase"
 
-pod "YOLayout/Box"
+pod "YOLayout/Box"#, :path => "~/Projects/YOLayout"
 
 pod "ZXCVBN"
+
+#pod "Sparkle"
 
 target :Tests do
   pod "GRUnit"

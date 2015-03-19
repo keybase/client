@@ -11,11 +11,11 @@
 #import <YOLayout/YOLayout.h>
 #import <Quartz/Quartz.h>
 
-typedef NS_ENUM (NSInteger, KBBorderType) {
-  KBBorderTypeTop = 1 << 0,
-  KBBorderTypeRight = 1 << 1,
-  KBBorderTypeBottom = 1 << 2,
-  KBBorderTypeLeft = 1 << 3,
+typedef NS_OPTIONS (NSInteger, KBBorderType) {
+  KBBorderTypeTop,
+  KBBorderTypeRight,
+  KBBorderTypeBottom,
+  KBBorderTypeLeft,
 
   KBBorderTypeAll = KBBorderTypeTop|KBBorderTypeRight|KBBorderTypeBottom|KBBorderTypeLeft,
 };

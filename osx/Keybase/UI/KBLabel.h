@@ -26,6 +26,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) BOOL selectable;
 @property KBVerticalAlignment verticalAlignment;
+@property KBHorizontalAlignment horizontalAlignment;
 @property KBBorder *border;
 @property UIEdgeInsets insets;
 

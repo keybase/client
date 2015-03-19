@@ -11,12 +11,25 @@
 @interface KBListView ()
 @property Class prototypeClass;
 @property YOView *prototypeView;
+
+@property KBProgressOverlayView *progressView;
 @end
 
 @interface KBListViewDynamicHeight : KBListView
 @end
 
 @implementation KBListView
+
+- (void)viewInit {
+  [super viewInit];
+  _progressView = [[KBProgressOverlayView alloc] init];
+  [self addSubview:_progressView];
+}
+
+- (void)layout {
+  [super layout];
+  _progressView.frame = self.bounds;
+}
 
 + (instancetype)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight {
   Class tableViewClass = KBListView.class;

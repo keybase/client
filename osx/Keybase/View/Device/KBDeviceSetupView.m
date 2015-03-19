@@ -22,7 +22,7 @@
   YOView *contentView = [[YOView alloc] init];
   [self addSubview:contentView];
 
-  YOVBox *topView = [YOVBox box:@{@"spacing":@(20)}];
+  YOVBox *topView = [YOVBox box:@{@"spacing":@(10), @"insets": YOBoxInsets(0, 10, 0, 10)}];
   [contentView addSubview:topView];
   KBLabel *header = [[KBLabel alloc] init];
   [header setText:@"Device Setup" style:KBLabelStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];

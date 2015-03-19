@@ -25,6 +25,7 @@ typedef NS_ENUM(NSInteger, KBVerticalAlignment) {
 };
 
 typedef NS_ENUM(NSInteger, KBHorizontalAlignment) {
+  KBHorizontalAlignmentNone,
   KBHorizontalAlignmentLeft,
   KBHorizontalAlignmentCenter,
   KBHorizontalAlignmentRight
@@ -56,6 +57,7 @@ typedef NS_ENUM(NSInteger, KBHorizontalAlignment) {
 
 - (NSFont *)headerTextFont;
 - (NSFont *)headerLargeTextFont;
+
 - (NSFont *)buttonFont;
 
 - (NSColor *)backgroundColor;

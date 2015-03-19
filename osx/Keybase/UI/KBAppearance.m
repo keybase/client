@@ -147,11 +147,12 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSFont *)headerLargeTextFont {
-  return [NSFont boldSystemFontOfSize:BASE_FONT_SIZE+10];
+  return [NSFont fontWithName:@"Helvetica Neue Thin" size:BASE_FONT_SIZE+14];
+  //return [NSFont systemFontOfSize:BASE_FONT_SIZE+10];
 }
 
 - (NSFont *)buttonFont {
-  return [NSFont systemFontOfSize:BASE_FONT_SIZE+4];
+  return [NSFont systemFontOfSize:BASE_FONT_SIZE+2];
 }
 
 - (NSColor *)backgroundColor {
