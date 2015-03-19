@@ -99,26 +99,6 @@ func (e *TrackEngine) User() *libkb.User {
 	return e.them
 }
 
-/*
-func (e *TrackEngine) loadThem() error {
-	if e.arg.Them == nil && len(e.arg.TheirName) == 0 {
-		return fmt.Errorf("No 'them' passed to TrackEngine")
-	}
-	if e.arg.Them == nil {
-		if u, err := libkb.LoadUser(libkb.LoadUserArg{
-			Name:        e.arg.TheirName,
-			Self:        false,
-			ForceReload: false,
-		}); err != nil {
-			return err
-		} else {
-			e.arg.Them = u
-		}
-	}
-	return nil
-}
-*/
-
 func (e *TrackEngine) loadMe() error {
 	if e.arg.Me != nil {
 		return nil
