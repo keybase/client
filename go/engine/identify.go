@@ -1,6 +1,10 @@
 package engine
 
-import "github.com/keybase/client/go/libkb"
+import (
+	"fmt"
+
+	"github.com/keybase/client/go/libkb"
+)
 
 // Identify is an engine to identify a user.
 type Identify struct {
@@ -65,20 +69,13 @@ func (e *Identify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Identify) Run(ctx *Context) error {
-	var uarg libkb.LoadUserArg
-	if len(e.arg.TargetUsername) == 0 {
-		// loading self
-		uarg.Self = true
-	} else {
-		uarg.Name = e.arg.TargetUsername
-	}
-	u, err := libkb.LoadUser(uarg)
-	if err != nil {
+	if err := e.loadUser(); err != nil {
 		return err
 	}
-	e.user = u
 
 	ctx.IdentifyUI.Start(e.user.GetName())
+
+	var err error
 	e.outcome, err = e.run(ctx)
 	if err != nil {
 		return err
@@ -151,4 +148,77 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	G.Log.Debug("- Identify(%s)", e.user.GetName())
 
 	return res, nil
+}
+
+func (e *Identify) loadUser() error {
+	arg, err := e.loadUserArg()
+	if err != nil {
+		return err
+	}
+
+	u, err := libkb.LoadUser(*arg)
+	if err != nil {
+		return err
+	}
+	e.user = u
+
+	return nil
+}
+
+func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
+	if len(e.arg.TargetUsername) == 0 {
+		// loading self
+		return &libkb.LoadUserArg{Self: true}, nil
+	}
+
+	// Use assertions for everything:
+
+	// Parse assertion but don't allow OR operators, only
+	// AND operators
+	expr, err := libkb.AssertionParseAndOnly(e.arg.TargetUsername)
+	if err != nil {
+		return nil, err
+	}
+
+	// Next, pop off the 'best' assertion and load the user by it.
+	// That is, it might be the keybase assertion (if there), or otherwise,
+	// something that's unique like Twitter or Github, and lastly,
+	// something like DNS that is more likely ambiguous...
+	b := e.findBestComponent(expr)
+	if len(b) == 0 {
+		return nil, fmt.Errorf("Cannot lookup user with %q", e.arg.TargetUsername)
+	}
+
+	return &libkb.LoadUserArg{Name: b}, nil
+}
+
+func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
+	urls := make([]libkb.AssertionUrl, 0, 1)
+	urls = expr.CollectUrls(urls)
+	if len(urls) == 0 {
+		return ""
+	}
+
+	var uid, kb, soc, fp libkb.AssertionUrl
+
+	for _, u := range urls {
+		if u.IsUid() {
+			uid = u
+			break
+		} else if u.IsKeybase() {
+			kb = u
+		} else if u.IsFingerprint() && fp == nil {
+			fp = u
+		} else if u.IsSocial() && soc == nil {
+			soc = u
+		}
+	}
+
+	order := []libkb.AssertionUrl{uid, kb, fp, soc, urls[0]}
+	for _, p := range order {
+		if p != nil {
+			return p.String()
+		}
+	}
+	return ""
 }
