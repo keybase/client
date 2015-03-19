@@ -2,8 +2,9 @@ package engine
 
 import (
 	"fmt"
-	"github.com/keybase/client/go/libkb"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
 	// keybase_1 "github.com/keybase/client/protocol/go"
 )
 
@@ -93,8 +94,8 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 			Endpoint:    "key/add",
 			NeedSession: true,
 			Args: libkb.HttpArgs{
-				"public_key": libkb.S{keyBlob},
-				"is_update":  libkb.I{1},
+				"public_key": libkb.S{Val: keyBlob},
+				"is_update":  libkb.I{Val: 1},
 			},
 		})
 		if err != nil {

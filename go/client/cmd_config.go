@@ -3,12 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/keybase/client/go/libcmdline"
-	"github.com/keybase/client/go/libkb"
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
 type CmdConfig struct {
@@ -143,10 +144,6 @@ func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdConfig) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  false,
-		API:        false,
-		Terminal:   false,
+		Config: true,
 	}
 }

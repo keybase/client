@@ -59,10 +59,7 @@ func NewCmdDb(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdDbNuke) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  false,
-		API:        true,
-		Terminal:   true,
+		Config: true,
+		API:    true,
 	}
 }

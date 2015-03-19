@@ -155,7 +155,6 @@ func (c *CmdPGPEncrypt) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
-		Terminal:  true,
 		KbKeyring: true,
 	}
 }

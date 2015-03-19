@@ -195,8 +195,7 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 // GetUsage says what this command needs to operate.
 func (c *CmdListTrackers) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:   true,
-		API:      true,
-		Terminal: true,
+		Config: true,
+		API:    true,
 	}
 }

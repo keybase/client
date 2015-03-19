@@ -4,7 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -49,10 +49,8 @@ func NewCmdMykeyShow(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdMykeyShow) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  true,
-		API:        true,
-		Terminal:   true,
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
 	}
 }

@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"io/ioutil"
-	"os"
 )
 
 type CmdProve struct {
@@ -145,7 +146,6 @@ func (v *CmdProve) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
-		Terminal:  true,
 		KbKeyring: true,
 	}
 }

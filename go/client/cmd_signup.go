@@ -317,7 +317,6 @@ func (v *CmdSignupState) GetUsage() libkb.Usage {
 		GpgKeyring: true,
 		KbKeyring:  true,
 		API:        true,
-		Terminal:   true,
 	}
 }
 

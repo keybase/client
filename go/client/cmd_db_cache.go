@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -49,10 +50,7 @@ func NewCmdDbCache(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdDbCache) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  false,
-		API:        true,
-		Terminal:   false,
+		Config: true,
+		API:    true,
 	}
 }

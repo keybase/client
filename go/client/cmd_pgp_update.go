@@ -69,6 +69,5 @@ func (v *CmdPGPUpdate) GetUsage() libkb.Usage {
 		GpgKeyring: true,
 		KbKeyring:  true,
 		API:        true,
-		Terminal:   true,
 	}
 }

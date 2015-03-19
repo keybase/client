@@ -83,10 +83,8 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) (err error) {
 
 func (v *CmdLogin) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  true,
-		API:        true,
-		Terminal:   true,
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
 	}
 }

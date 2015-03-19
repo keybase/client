@@ -88,6 +88,5 @@ func (v *CmdPGPSelect) GetUsage() libkb.Usage {
 		Config:    true,
 		KbKeyring: true,
 		API:       true,
-		Terminal:  true,
 	}
 }

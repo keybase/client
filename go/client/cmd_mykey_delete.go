@@ -4,7 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 func (v *CmdMykeyDelete) RunClient() (err error) {
@@ -95,6 +95,5 @@ func (v *CmdMykeyDelete) GetUsage() libkb.Usage {
 		GpgKeyring: false,
 		KbKeyring:  true,
 		API:        true,
-		Terminal:   true,
 	}
 }

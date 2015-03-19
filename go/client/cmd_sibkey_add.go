@@ -64,10 +64,8 @@ func (c *CmdSibkeyAdd) ParseArgv(ctx *cli.Context) error {
 // GetUsage says what this command needs to operate.
 func (c *CmdSibkeyAdd) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  true,
-		API:        true,
-		Terminal:   true,
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
 	}
 }

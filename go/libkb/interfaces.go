@@ -133,7 +133,6 @@ type Usage struct {
 	GpgKeyring bool
 	KbKeyring  bool
 	API        bool
-	Terminal   bool
 	Socket     bool
 }
 

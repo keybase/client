@@ -81,10 +81,8 @@ func (c *CmdDeviceList) ParseArgv(ctx *cli.Context) error {
 // GetUsage says what this command needs to operate.
 func (c *CmdDeviceList) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  true,
-		API:        true,
-		Terminal:   true,
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
 	}
 }

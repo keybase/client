@@ -111,10 +111,8 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 
 func (v *CmdPGPGen) GetUsage() libkb.Usage {
 	return libkb.Usage{
-		Config:     true,
-		GpgKeyring: false,
-		KbKeyring:  true,
-		API:        true,
-		Terminal:   true,
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
 	}
 }
