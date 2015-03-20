@@ -367,14 +367,6 @@ func (e Env) GetNoPinentry() bool {
 	)
 }
 
-func (e Env) GetPublicKeyrings() []string {
-	return []string{filepath.Join(e.GetGpgHome(), "pubring.gpg")}
-}
-
-func (e Env) GetPgpSecretKeyrings() []string {
-	return []string{filepath.Join(e.GetGpgHome(), "secring.gpg")}
-}
-
 func (e Env) GetBundledCA(host string) string {
 	return e.GetString(
 		func() string { return e.config.GetBundledCA(host) },

@@ -20,8 +20,6 @@ type KeyringFile struct {
 }
 
 type Keyrings struct {
-	Public []*KeyringFile
-	Secret []*KeyringFile
 	skbMap map[string]*SKBKeyringFile
 	sync.Mutex
 	Contextified
@@ -40,90 +38,10 @@ func NewKeyrings(g *GlobalContext, usage Usage) *Keyrings {
 		skbMap:       make(map[string]*SKBKeyringFile),
 		Contextified: Contextified{g},
 	}
-	if usage.GpgKeyring {
-		ret.Public = ret.MakeKeyrings(g.Env.GetPublicKeyrings(), true)
-		ret.Secret = ret.MakeKeyrings(g.Env.GetPgpSecretKeyrings(), false)
-	}
 	return ret
 }
 
 //===================================================================
-//
-// Make our Keryings struct meet the openpgp.KeyRing
-// interface
-//
-
-func (k *Keyrings) KeysById(id uint64) []openpgp.Key {
-	out := make([]openpgp.Key, 10)
-	for _, ring := range k.Public {
-		out = append(out, ring.Entities.KeysById(id)...)
-	}
-	for _, ring := range k.Secret {
-		out = append(out, ring.Entities.KeysById(id)...)
-	}
-	return out
-}
-
-func (k *Keyrings) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
-	out := make([]openpgp.Key, 10)
-	for _, ring := range k.Public {
-		out = append(out, ring.Entities.KeysByIdUsage(id, usage)...)
-	}
-	for _, ring := range k.Secret {
-		out = append(out, ring.Entities.KeysByIdUsage(id, usage)...)
-	}
-	return out
-}
-
-func (k *Keyrings) DecryptionKeys() []openpgp.Key {
-	out := make([]openpgp.Key, 10)
-	for _, ring := range k.Secret {
-		out = append(out, ring.Entities.DecryptionKeys()...)
-	}
-	return out
-}
-
-//===================================================================
-
-func (k *Keyrings) FindKey(fp PgpFingerprint, secret bool) *openpgp.Entity {
-	var l []*KeyringFile
-	if secret {
-		l = k.Secret
-	} else {
-		l = k.Public
-	}
-	for _, file := range l {
-		key, found := file.indexFingerprint[fp]
-		if found && key != nil && (!secret || key.PrivateKey != nil) {
-			return key
-		}
-	}
-
-	return nil
-}
-
-//===================================================================
-
-func (k *Keyrings) Load() (err error) {
-	k.G().Log.Debug("+ Loading keyrings")
-	if k.Public != nil {
-		err = k.LoadKeyrings(k.Public)
-	}
-	if err == nil && k.Secret != nil {
-		k.LoadKeyrings(k.Secret)
-	}
-	k.G().Log.Debug("- Loaded keyrings")
-	return err
-}
-
-func (k *Keyrings) LoadKeyrings(v []*KeyringFile) (err error) {
-	for _, k := range v {
-		if err = k.LoadAndIndex(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func (g *GlobalContext) SKBFilenameForUser(un string) string {
 	tmp := g.Env.GetSecretKeyringTemplate()

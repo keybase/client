@@ -97,12 +97,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 }
 
 func (g *GlobalContext) ConfigureKeyring(usage Usage) error {
-	c := NewKeyrings(g, usage)
-	err := c.Load()
-	if err != nil {
-		return fmt.Errorf("Failed to configure keyrings: %s", err.Error())
-	}
-	g.Keyrings = c
+	g.Keyrings = NewKeyrings(g, usage)
 	return nil
 }
 
