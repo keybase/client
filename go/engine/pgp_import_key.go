@@ -33,6 +33,31 @@ type PGPKeyImportEngineArg struct {
 	DoExport   bool
 }
 
+func isArmored(key []byte) bool {
+	tmp := strings.TrimSpace(string(key))
+	return strings.HasPrefix(tmp, "-----")
+}
+
+func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool) (eng *PGPKeyImportEngine, err error) {
+	var bundle *libkb.PgpKeyBundle
+	if isArmored(key) {
+		bundle, err = libkb.ReadOneKeyFromString(string(key))
+	} else {
+		bundle, err = libkb.ReadOneKeyFromBytes(key)
+	}
+	if err != nil {
+		return
+	}
+	arg := PGPKeyImportEngineArg{
+		Pregen:     bundle,
+		PushSecret: pushPrivate,
+		AllowMulti: true,
+		DoExport:   false,
+	}
+	eng = NewPGPKeyImportEngine(arg)
+	return
+}
+
 func (s *PGPKeyImportEngine) loadMe() (err error) {
 	if s.me = s.arg.Me; s.me != nil {
 		return

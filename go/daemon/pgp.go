@@ -66,6 +66,10 @@ func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {
 		SecretUI: h.getSecretUI(arg.SessionID),
 		LogUI:    h.getLogUI(arg.SessionID),
 	}
-	eng := engine.NewPGPSave(arg.Key, arg.PushPrivate)
-	return engine.RunEngine(eng, ctx)
+	eng, err := engine.NewPGPKeyImportEngineFromBytes(arg.Key, arg.PushPrivate)
+	if err != nil {
+		return err
+	}
+	err = engine.RunEngine(eng, ctx)
+	return err
 }

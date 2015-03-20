@@ -22,14 +22,20 @@ func TestPGPSave(t *testing.T) {
 	// try all four permutations of push options:
 
 	key := armorKey(t, tc, u.Email)
-	e := NewPGPSave([]byte(key), false)
-	if err := RunEngine(e, ctx); err != nil {
+	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 
 	key = armorKey(t, tc, u.Email)
-	e = NewPGPSave([]byte(key), true)
-	if err := RunEngine(e, ctx); err != nil {
+	eng, err = NewPGPKeyImportEngineFromBytes([]byte(key), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 }
