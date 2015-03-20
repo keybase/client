@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -76,14 +77,38 @@ func (s *Session) SetCsrf(t string) {
 	}
 }
 
+func isConfigLoggedIn() bool {
+	reader := G.Env.GetConfig()
+	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && reader.GetUID() != nil
+}
+
+// The session file can be out of sync with the config file, particularly when
+// switching between the node and go clients.
+func nukeSessionFileIfOutOfSync() error {
+	sessionFile := G.Env.GetSessionFilename()
+	// Use stat to check existence.
+	_, statErr := os.Lstat(sessionFile)
+	if statErr == nil && !isConfigLoggedIn() {
+		G.Log.Warning("Session file found but user is not logged in. Deleting session file.")
+		return os.Remove(sessionFile)
+	}
+	return nil
+}
+
 func (s *Session) Load() error {
 	G.Log.Debug("+ Loading session")
 	if s.loaded {
 		G.Log.Debug("- Skipped; already loaded")
 		return nil
 	}
+
+	err := nukeSessionFileIfOutOfSync()
+	if err != nil {
+		return err
+	}
+
 	s.file = NewJsonFile(G.Env.GetSessionFilename(), "session")
-	err := s.file.Load(false)
+	err = s.file.Load(false)
 	s.loaded = true
 
 	if err != nil {
