@@ -6,9 +6,9 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-func PGPDecrypt(source io.Reader, sink io.Writer, keyring []*PgpKeyBundle) error {
-	opkr := make(openpgp.EntityList, len(keyring))
-	for i, k := range keyring {
+func PGPDecrypt(source io.Reader, sink io.Writer, keys []*PgpKeyBundle) error {
+	opkr := make(openpgp.EntityList, len(keys))
+	for i, k := range keys {
 		opkr[i] = (*openpgp.Entity)(k)
 	}
 
