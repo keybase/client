@@ -156,9 +156,8 @@
 
     [self.navigation setProgressEnabled:NO];
     KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
-    [secretWordsView setSecretWords:requestParams.secret deviceName:requestParams.xDevDescription];
+    [secretWordsView setSecretWords:requestParams.secret deviceNameToRegister:requestParams.xDevDescription];
     secretWordsView.button.targetBlock = ^{
-      [self.navigation setProgressEnabled:YES];
       completion(nil, nil);
     };
     [self.navigation pushView:secretWordsView animated:YES];

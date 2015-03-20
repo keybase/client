@@ -22,8 +22,8 @@
 
 + (AppDelegate *)sharedDelegate;
 
-- (void)preferences:(id)sender;
-- (void)quit:(id)sender;
+- (IBAction)preferences:(id)sender;
+- (IBAction)quit:(id)sender;
 
 + (void)setError:(NSError *)error sender:(NSView *)sender;
 - (void)setFatalError:(NSError *)error;

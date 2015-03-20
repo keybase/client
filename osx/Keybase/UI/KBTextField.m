@@ -45,6 +45,7 @@
   _textField.bordered = NO;
   _textField.focusRingType = NSFocusRingTypeNone;
   _textField.font = [NSFont systemFontOfSize:18];
+  _textField.lineBreakMode = NSLineBreakByTruncatingHead;
   [self addSubview:_textField];
 
   // This is fucking crazy but it's the only way
@@ -60,11 +61,18 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 0;
-    y += [layout setFrame:CGRectMake(0, 0, size.width, 26) view:yself.textField].size.height + 2;
-    [layout setFrame:CGRectMake(0, y - yself.box.frame.size.height + 0.5, size.width, yself.box.frame.size.height) view:yself.box];
-    y += 2;
-    return CGSizeMake(size.width, y);
+    if (self.verticalAlignment == KBVerticalAlignmentBottom) {
+      CGFloat y = 0;
+      y += [layout setFrame:CGRectMake(0, y, size.width, size.height - 6) view:yself.textField].size.height + 2;
+      [layout setFrame:CGRectMake(0, y - yself.box.frame.size.height + 0.5, size.width, yself.box.frame.size.height) view:yself.box];
+      return size;
+    } else {
+      CGFloat y = 0;
+      y += [layout setFrame:CGRectMake(0, 0, size.width, 26) view:yself.textField].size.height + 2;
+      [layout setFrame:CGRectMake(0, y - yself.box.frame.size.height + 0.5, size.width, yself.box.frame.size.height) view:yself.box];
+      y += 2;
+      return CGSizeMake(size.width, y);
+    }
   }];
 }
 

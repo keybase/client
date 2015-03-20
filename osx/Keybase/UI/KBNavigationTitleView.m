@@ -36,7 +36,7 @@
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
 
-  _border = [KBBox lineWithWidth:1.0 color:[NSColor colorWithWhite:225.0/255.0 alpha:1.0]];
+  _border = [KBBox line];
   [self addSubview:_border];
 
 //  GHWeakSelf gself = self;

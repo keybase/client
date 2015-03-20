@@ -52,13 +52,13 @@
   });
 }
 
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType {
-  [_border removeFromSuperview];
-  _border = [[KBBorder alloc] init];
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
+  if (!_border) {
+    _border = [[KBBorder alloc] init];
+    [self addSubview:_border];
+  }
   _border.color = color;
   _border.width = width;
-  _border.borderType = borderType;
-  [self addSubview:_border];
   [self setNeedsLayout];
 }
 

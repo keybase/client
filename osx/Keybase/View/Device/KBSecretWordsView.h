@@ -14,6 +14,6 @@
 
 @property KBButton *button;
 
-- (void)setSecretWords:(NSString *)secretWords deviceName:(NSString *)deviceName;
+- (void)setSecretWords:(NSString *)secretWords deviceNameToRegister:(NSString *)deviceNameToRegister;
 
 @end

@@ -110,7 +110,7 @@ func (d *Delegator) LoadSigningKey(ui SecretUI) (err error) {
 	}
 
 	if !d.Me.HasActiveKey() {
-		G.Log.Debug("| PGPEngine: no active key found, so assuming set of eldest key")
+		G.Log.Debug("| PGPKeyImportEngine: no active key found, so assuming set of eldest key")
 		return
 	}
 

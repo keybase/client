@@ -12,7 +12,7 @@ import (
 )
 
 type CmdPGPGen struct {
-	arg engine.PGPEngineArg
+	arg engine.PGPKeyImportEngineArg
 }
 
 var SmallKey int = 1024
@@ -59,7 +59,7 @@ func (v *CmdPGPGen) RunClient() (err error) {
 func (v *CmdPGPGen) Run() (err error) {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), LogUI: G_UI.GetLogUI()}
 	v.arg.Gen.MakeAllIds()
-	eng := engine.NewPGPEngine(v.arg)
+	eng := engine.NewPGPKeyImportEngine(v.arg)
 	err = engine.RunEngine(eng, ctx)
 	PGPMultiWarn(err)
 	return

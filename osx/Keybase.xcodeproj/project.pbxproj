@@ -96,6 +96,8 @@
 		006D57201AAE2A2100D16CB8 /* KBFolder.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571E1AAE2A2100D16CB8 /* KBFolder.m */; };
 		006D57231AAE2D4900D16CB8 /* KBFolderListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57221AAE2D4900D16CB8 /* KBFolderListView.m */; };
 		006D57241AAE2D4900D16CB8 /* KBFolderListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57221AAE2D4900D16CB8 /* KBFolderListView.m */; };
+		007908171ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = 007908161ABB718D00FBBD89 /* KBSecretWordsInputView.m */; };
+		007908181ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = 007908161ABB718D00FBBD89 /* KBSecretWordsInputView.m */; };
 		00A16B5B1AB26158003EF505 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16B5A1AB26158003EF505 /* KBLaunchCtl.m */; };
 		00A16B5C1AB26158003EF505 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16B5A1AB26158003EF505 /* KBLaunchCtl.m */; };
 		00A16B5F1AB383E0003EF505 /* KBKeyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16B5E1AB383E0003EF505 /* KBKeyView.m */; };
@@ -320,6 +322,8 @@
 		006D571E1AAE2A2100D16CB8 /* KBFolder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolder.m; sourceTree = "<group>"; };
 		006D57211AAE2D4900D16CB8 /* KBFolderListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderListView.h; sourceTree = "<group>"; };
 		006D57221AAE2D4900D16CB8 /* KBFolderListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderListView.m; sourceTree = "<group>"; };
+		007908151ABB718D00FBBD89 /* KBSecretWordsInputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSecretWordsInputView.h; sourceTree = "<group>"; };
+		007908161ABB718D00FBBD89 /* KBSecretWordsInputView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSecretWordsInputView.m; sourceTree = "<group>"; };
 		00A16B591AB26158003EF505 /* KBLaunchCtl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchCtl.h; sourceTree = "<group>"; };
 		00A16B5A1AB26158003EF505 /* KBLaunchCtl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchCtl.m; sourceTree = "<group>"; };
 		00A16B5D1AB383E0003EF505 /* KBKeyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyView.h; sourceTree = "<group>"; };
@@ -488,6 +492,8 @@
 				00C7DD5C1AA6815400F57AFC /* KBDeviceView.m */,
 				002535391AB8BC4D00583913 /* KBSecretWordsView.h */,
 				0025353A1AB8BC4D00583913 /* KBSecretWordsView.m */,
+				007908151ABB718D00FBBD89 /* KBSecretWordsInputView.h */,
+				007908161ABB718D00FBBD89 /* KBSecretWordsInputView.m */,
 			);
 			path = Device;
 			sourceTree = "<group>";
@@ -864,6 +870,7 @@
 				00CC43461A3A9E6C006118A9 /* Frameworks */,
 				00CC43471A3A9E6C006118A9 /* Resources */,
 				1C743BBCEFE0CE0A888B01D0 /* Copy Pods Resources */,
+				007908121ABB402600FBBD89 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -957,6 +964,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		007908121ABB402600FBBD89 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "LOCATION=\"${BUILT_PRODUCTS_DIR}\"/\"${FRAMEWORKS_FOLDER_PATH}\"\nIDENTITY=\"Developer ID Application: Keybase, Inc.\"\ncodesign --verbose --force --sign \"$IDENTITY\" \"$LOCATION/Sparkle.framework/Versions/A\"";
+		};
 		1C743BBCEFE0CE0A888B01D0 /* Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1100,6 +1120,7 @@
 				00D52F631A6F4D1E00DEB5F5 /* KBRUtils.m in Sources */,
 				00D52F8A1A77266A00DEB5F5 /* KBTrackView.m in Sources */,
 				00B544031A82F8B40044CC5B /* KBAppView.m in Sources */,
+				007908171ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */,
 				0004F0F11A8D859600CFCA23 /* KBRRequestParams.m in Sources */,
 				001712561A951A9C00C7AD58 /* KBUserInfoLabels.m in Sources */,
 				0017126A1A952B7D00C7AD58 /* KBDeviceSignerOption.m in Sources */,
@@ -1219,6 +1240,7 @@
 				002535381AB77D2D00583913 /* KBKeyImportView.m in Sources */,
 				006D57241AAE2D4900D16CB8 /* KBFolderListView.m in Sources */,
 				00C7DD521AA6747B00F57AFC /* KBUserStatusView.m in Sources */,
+				007908181ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */,
 				00D306A81AB0E3BF00F69B18 /* KBSegmentedControl.m in Sources */,
 				00B544311A895AB80044CC5B /* KBProveInstructionsView.m in Sources */,
 				00C7DD461AA506F500F57AFC /* KBDevicePromptView.m in Sources */,
@@ -1332,7 +1354,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 81076E015931C23010D4DCF8 /* Pods.debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Keybase/Info.plist;

@@ -10,6 +10,9 @@
 
 #import <YOLayout/YOLayout.h>
 
+#import "KBButton.h"
+#import "KBAppearance.h"
+
 @interface KBLayouts : NSObject
 
 + (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView margin:(UIEdgeInsets)margin padding:(CGFloat)padding maxSize:(CGSize)maxSize;
@@ -17,6 +20,8 @@
 + (YOLayoutBlock)gridLayoutForViews:(NSArray *)views viewSize:(CGSize)viewSize padding:(CGFloat)padding;
 
 + (YOLayoutBlock)center:(id)view;
+
++ (YOLayoutBlock)layoutForButton:(KBButton *)button cancelButton:(KBButton *)cancelButton horizontalAlignment:(KBHorizontalAlignment)horizontalAlignment;
 
 @end
 

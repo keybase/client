@@ -40,9 +40,9 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 // Subclasses can implement
 - (void)selectItem:(id)item;
 
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width borderType:(KBBorderType)borderType;
-
 - (void)scrollToBottom:(BOOL)animated;
 - (BOOL)isAtBottom;
+
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
 @end

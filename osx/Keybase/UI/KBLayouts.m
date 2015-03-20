@@ -71,6 +71,21 @@
   };
 }
 
++ (YOLayoutBlock)layoutForButton:(KBButton *)button cancelButton:(KBButton *)cancelButton horizontalAlignment:(KBHorizontalAlignment)horizontalAlignment {
+  return ^CGSize(id<YOLayout> layout, CGSize size) {
+    CGSize buttonSize = [button sizeThatFits:size];
+    if (horizontalAlignment == KBHorizontalAlignmentRight) {
+      [layout setFrame:CGRectMake(size.width - 280, 0, 130, buttonSize.height) view:button];
+      [layout setFrame:CGRectMake(size.width - 130, 0, 130, buttonSize.height) view:cancelButton];
+    } else if (horizontalAlignment == KBHorizontalAlignmentCenter) {
+      CGFloat x = size.width/2.0 - 270.0/2.0;
+      x += [layout setFrame:CGRectMake(x, 0, 130, buttonSize.height) view:button].size.width + 10;
+      x += [layout setFrame:CGRectMake(x, 0, 130, buttonSize.height) view:cancelButton].size.width;
+    }
+    return CGSizeMake(size.width, buttonSize.height);
+  };
+}
+
 /*
 + (YOLayoutBlock)layout:(id)subview options:(YOLayoutOptions)options verticalAlignment:(YOVerticalAlignment)verticalAlignment horizontalAlignment:(YOHorizontalAlignment)horizontalAlignment {
   return ^CGSize(id<YOLayout> layout, CGSize size) {

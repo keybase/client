@@ -10,6 +10,7 @@
 
 #import "KBDeviceView.h"
 #import "AppDelegate.h"
+#import "KBSecretWordsInputView.h"
 
 @interface KBDevicesAppView ()
 @property KBSplitView *splitView;
@@ -24,6 +25,17 @@
   _splitView = [[KBSplitView alloc] init];
   [self addSubview:_splitView];
 
+  YOSelf yself = self;
+
+  YOView *devicesView = [[YOView alloc] init];
+  NSImage *deviceAddImage = [NSImage imageNamed:@"19-Interface-black-add-1-24"];
+  deviceAddImage.size = CGSizeMake(14, 14);
+  KBButton *addButton = [KBButton buttonWithImage:deviceAddImage style:KBButtonStyleToolbar];
+  addButton.targetBlock = ^{
+    [yself addDevice];
+  };
+  [devicesView addSubview:addButton];
+
   _devicesView = [KBListView listViewWithPrototypeClass:KBDeviceView.class rowHeight:56];
   _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued) {
     [view setDevice:device];
@@ -31,12 +43,24 @@
   _devicesView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
     //[yself.userProfileView setUser:user editable:NO client:AppDelegate.client];
   };
+  [devicesView addSubview:_devicesView];
+
+  KBBox *line = [KBBox line];
+  [devicesView addSubview:line];
+
+  devicesView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 10;
+    y += [layout sizeToFitInFrame:CGRectMake(10, y, size.width, 0) view:addButton].size.height + 10;
+    [layout setFrame:CGRectMake(0, y-1, size.width, 1) view:line];
+    [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.devicesView];
+    return size;
+  }];
 
   YOView *contentView = [[YOView alloc] init];
   contentView.wantsLayer = YES;
   contentView.layer.backgroundColor = NSColor.whiteColor.CGColor;
 
-  [_splitView setSourceView:_devicesView contentView:contentView];
+  [_splitView setSourceView:devicesView contentView:contentView];
 
   self.viewLayout = [YOLayout fill:_splitView];
 }
@@ -54,6 +78,28 @@
     }
     [gself.devicesView setObjects:items];
   }];
+}
+
+- (void)addDevice {
+  KBSecretWordsInputView *view = [[KBSecretWordsInputView alloc] init];
+  view.client = self.client;
+  dispatch_block_t close = [KBWindow openWindowWithView:view size:CGSizeMake(500, 400) sender:self];
+  view.completion = ^(NSString *secretWords) {
+    if (!secretWords) {
+      close();
+      return;
+    }
+    AppDelegate.appView.progressEnabled = YES;
+    KBRSibkeyRequest *request = [[KBRSibkeyRequest alloc] initWithClient:self.client];
+    [request addWithSecretPhrase:secretWords completion:^(NSError *error) {
+      AppDelegate.appView.progressEnabled = NO;
+      if (error) {
+        [AppDelegate setError:error sender:self];
+        return;
+      }
+      close();
+    }];
+  };
 }
 
 @end

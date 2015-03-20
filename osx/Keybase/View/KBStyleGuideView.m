@@ -85,12 +85,12 @@
   secureTextField.placeholder = @"Secure Text Field";
   [textFieldsView addSubview:secureTextField];
 
-
   KBBorder *border = [[KBBorder alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
   border.width = 2.0;
-  border.color = NSColor.grayColor;
+  border.color = NSColor.blueColor;
   border.cornerRadius = 8.0;
   border.shapeLayer.fillColor = NSColor.whiteColor.CGColor;
+  [border updatePath];
   [contentView addSubview:border];
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];

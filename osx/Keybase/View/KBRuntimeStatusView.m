@@ -30,7 +30,7 @@
     [status appendString:host];
   }
 
-  [self setMarkup:status style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  [self setMarkup:status options:@{@"lineSpacing": @(10)}];
 
   [self setNeedsLayout];
 }

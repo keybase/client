@@ -10,6 +10,7 @@
 #import <AppKit/AppKit.h>
 
 #import <YOLayout/YOLayout.h>
+#import "KBAppearance.h"
 
 @class KBTextField;
 
@@ -27,6 +28,7 @@
 @property (nonatomic) NSString *text;
 @property (nonatomic) NSString *placeholder;
 @property (readonly) NSTextField *textField;
+@property KBVerticalAlignment verticalAlignment;
 
 @property (nonatomic) NSMutableDictionary *attributes;
 

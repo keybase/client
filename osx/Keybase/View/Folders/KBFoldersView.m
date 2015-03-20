@@ -39,9 +39,9 @@
   //[_segmentedControl setSegmentStyle:NSSegmentStyleCapsule];
   [self addSubview:_segmentedControl];
 
-  NSImage *addImage = [NSImage imageNamed:@"18-Folders-black-folder-add-24"];
-  addImage.size = CGSizeMake(16, 16);
-  _addButton = [KBButton buttonWithImage:addImage style:KBButtonStyleToolbar];
+  NSImage *folderAddImage = [NSImage imageNamed:@"19-Interface-black-add-1-24"];
+  folderAddImage.size = CGSizeMake(16, 16);
+  _addButton = [KBButton buttonWithImage:folderAddImage style:KBButtonStyleToolbar];
   [self addSubview:_addButton];
 
 //  NSImage *trashImage = [NSImage imageNamed:@"1-Edition-black-bin-2-24"];
@@ -71,7 +71,7 @@
     //y += [layout centerWithSize:segmentedSize frame:CGRectMake(0, y, size.width, 0) view:yself.segmentedControl].size.height + 9;
     x += [layout setFrame:CGRectMake(x, y + 2, segmentedSize.width, segmentedSize.height) view:yself.segmentedControl].size.width + 20;
 
-    x += [layout setFrame:CGRectMake(x, y, 32, 24) view:yself.addButton].size.width + 20;
+    x += [layout sizeToFitInFrame:CGRectMake(x, y, size.width, 0) view:yself.addButton].size.width + 20;
     //x += [layout setFrame:CGRectMake(x, y, 24, 24) view:yself.trashButton].size.width + 8;
 
     [layout setFrame:CGRectMake(x, y, size.width - x - 10, 24) view:yself.searchControl];

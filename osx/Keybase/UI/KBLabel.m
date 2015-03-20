@@ -35,7 +35,7 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
     UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
-    CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.textView.attributedString];
+    CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) attributedString:self.textView.attributedString];
     CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
 
     if (self.verticalAlignment != KBVerticalAlignmentNone) {
@@ -50,8 +50,8 @@
       return CGSizeMake(size.width, sizeWithInsets.height);
     } else {
       [layout setFrame:CGRectIntegral(CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, sizeThatFits.height)) view:yself.textView];
-      [layout setSize:sizeWithInsets view:yself.border options:0];
-      return CGSizeMake(size.width, sizeWithInsets.height);
+      [layout setFrame:CGRectMake(0, 0, size.width, sizeWithInsets.height) view:yself.border options:0];
+      return CGSizeMake(size.width, ceilf(sizeWithInsets.height));
     }
   }];
 }
@@ -152,7 +152,10 @@
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   NSParameterAssert(font);
   NSParameterAssert(color);
-  if (!text) text = @"";
+  if (!text) {
+    self.attributedText = nil;
+    return;
+  }
   NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
@@ -162,17 +165,27 @@
   NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
   [str setAttributes:attributes range:NSMakeRange(0, str.length)];
 
-  [self setAttributedText:str];
+  self.attributedText = str;
 }
 
 + (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  return [self parseMarkup:markup options:@{@"font": font, @"color": color, @"alignment": @(alignment), @"lineBreakMode": @(lineBreakMode)}];
+}
+
++ (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options {
+  NSFont *font = options[@"font"];
+  NSColor *color = options[@"color"];
+  NSTextAlignment alignment = [options[@"alignment"] integerValue];
+  NSLineBreakMode lineBreakMode = [options[@"lineBreakMode"] integerValue];
+  CGFloat lineSpacing = [options[@"lineSpacing"] floatValue];
+
   if (!font) font = KBAppearance.currentAppearance.textFont;
   if (!color) color = KBAppearance.currentAppearance.textColor;
 
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = alignment;
   paragraphStyle.lineBreakMode = lineBreakMode;
-  paragraphStyle.lineSpacing = 10; // TODO
+  paragraphStyle.lineSpacing = lineSpacing;
 
   NSDictionary *defaultStyle = @{NSFontAttributeName:font, NSForegroundColorAttributeName:color, NSParagraphStyleAttributeName:paragraphStyle};
 
@@ -204,13 +217,17 @@
   [self setMarkup:markup font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 }
 
+- (void)setMarkup:(NSString *)markup options:(NSDictionary *)options {
+  [self setAttributedText:[KBLabel parseMarkup:markup options:options]];
+}
+
 - (void)setMarkup:(NSString *)markup style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   _style = style;
   [self setMarkup:markup font:[self fontForStyle:_style appearance:KBAppearance.currentAppearance] color:[self colorForStyle:_style appearance:KBAppearance.currentAppearance] alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSMutableAttributedString *str = [KBLabel parseMarkup:markup font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
+  NSAttributedString *str = [KBLabel parseMarkup:markup font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
   [self setAttributedText:str];
 }
 
@@ -252,8 +269,8 @@
 }
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString {
-  if (size.height == 0) size.height = CGFLOAT_MAX;
-  if (size.width == 0) size.width = CGFLOAT_MAX;
+  if (size.height <= 0) size.height = CGFLOAT_MAX;
+  if (size.width <= 0) size.width = CGFLOAT_MAX;
   NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
   NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:size];
   [textContainer setLineFragmentPadding:0.0];

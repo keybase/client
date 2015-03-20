@@ -4,7 +4,7 @@ require 'json'
 dir = "/Users/gabe/Pictures/Streamline - PNG/PNG Outline"
 #style = "black"
 icons_dirname = "Streamline-Outline"
-includes = ["lock-4", "arrow-67", "arrow-65", "key-2", "bitcoins", "computer", "folder-add", "bin-2"]
+includes = ["lock-4", "arrow-67", "arrow-65", "key-2", "bitcoins", "computer", "folder-add", "bin-2", "add-1"]
 
 script_path = File.expand_path(File.dirname(__FILE__))
 assets_path = "#{script_path}/Images.xcassets/#{icons_dirname}"

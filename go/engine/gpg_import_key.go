@@ -50,7 +50,7 @@ func (g *GPGImportKeyEngine) RequiredUIs() []libkb.UIKind {
 
 func (g *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewPGPEngine(PGPEngineArg{}),
+		NewPGPKeyImportEngine(PGPKeyImportEngineArg{}),
 	}
 }
 
@@ -107,6 +107,10 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		gks = append(gks, gk)
 	}
 
+	if len(gks) == 0 {
+		return fmt.Errorf("No PGP keys available to choose from.")
+	}
+
 	res, err := ctx.GPGUI.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
@@ -136,7 +140,7 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	G.Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
 
-	eng := NewPGPEngine(PGPEngineArg{
+	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Pregen:     bundle,
 		SigningKey: g.arg.Signer,
 		Me:         me,
