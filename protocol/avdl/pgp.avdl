@@ -40,6 +40,7 @@ protocol pgp {
 	record FingerprintAndKey {
 		string fingerprint;
 		string key;
+		string desc;
 	}
 
 	// Exports all active PGP keys, public. Only allows armored export.

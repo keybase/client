@@ -1181,6 +1181,7 @@ type PgpEncryptOptions struct {
 type FingerprintAndKey struct {
 	Fingerprint string `codec:"fingerprint" json:"fingerprint"`
 	Key         string `codec:"key" json:"key"`
+	Desc        string `codec:"desc" json:"desc"`
 }
 
 type PgpSignArg struct {

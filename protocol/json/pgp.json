@@ -187,6 +187,9 @@
     }, {
       "name" : "key",
       "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
     } ]
   } ],
   "messages" : {

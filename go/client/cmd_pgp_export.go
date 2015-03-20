@@ -76,6 +76,9 @@ func (s *CmdPGPExport) finish(res []keybase_1.FingerprintAndKey, err error) erro
 	if err != nil {
 		return err
 	}
+	if len(res) > 1 {
+
+	}
 
 	return nil
 }

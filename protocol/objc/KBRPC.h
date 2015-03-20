@@ -383,6 +383,7 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @interface KBRFingerprintAndKey : KBRObject
 @property NSString *fingerprint;
 @property NSString *key;
+@property NSString *desc;
 @end
 
 @interface KBRPgpRequest : KBRRequest

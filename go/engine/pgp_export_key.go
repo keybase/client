@@ -45,10 +45,11 @@ func NewPGPKeyExportEngine(arg keybase_1.PgpExportArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{arg: arg}
 }
 
-func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string) {
+func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string, desc string) {
 	e.res = append(e.res, keybase_1.FingerprintAndKey{
 		Fingerprint: fp.String(),
 		Key:         key,
+		Desc:        desc,
 	})
 }
 
@@ -63,7 +64,7 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 		if len(e.arg.Query) > 0 && !libkb.KeyMatchesQuery(k, e.arg.Query) {
 			continue
 		}
-		e.pushRes(*fp, s)
+		e.pushRes(*fp, s, k.VerboseDescription())
 	}
 	return
 }
@@ -107,7 +108,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 		return
 	}
 
-	e.pushRes(*fp, ret)
+	e.pushRes(*fp, ret, "")
 
 	return
 }
