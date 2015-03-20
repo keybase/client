@@ -48,9 +48,9 @@ func (g *GlobalContext) SKBFilenameForUser(un string) string {
 	token := "%u"
 	if strings.Index(tmp, token) < 0 {
 		return tmp
-	} else {
-		return strings.Replace(tmp, token, un, -1)
 	}
+
+	return strings.Replace(tmp, token, un, -1)
 }
 
 func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
