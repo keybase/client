@@ -32,6 +32,13 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
+                            <menuItem title="Check for Updates..." id="e8t-Jg-KlZ">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="checkForUpdates:" target="lXh-Py-V3Y" id="48n-qS-9Fp"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="wg0-Lt-lRQ"/>
                             <menuItem title="Services" id="NMo-om-nkz">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
@@ -666,5 +673,6 @@
                 </menuItem>
             </items>
         </menu>
+        <customObject id="lXh-Py-V3Y" customClass="SUUpdater"/>
     </objects>
 </document>

@@ -18,6 +18,8 @@
 #import "KBInstaller.h"
 #import "KBConsoleView.h"
 
+#import <Sparkle/Sparkle.h>
+
 @interface AppDelegate ()
 @property KBAppView *appView;
 @property KBPreferences *preferences;
@@ -49,6 +51,11 @@
 
   KBRPClient *client = [[KBRPClient alloc] init];
   [_appView connect:client];
+
+  SUUpdater.sharedUpdater.feedURL = [NSURL URLWithString:@"https://keybase-app.s3.amazonaws.com/appcast.xml"];
+  SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
+  SUUpdater.sharedUpdater.updateCheckInterval = 60 * 60 * 24;
+  [SUUpdater.sharedUpdater checkForUpdatesInBackground];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

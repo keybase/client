@@ -23,7 +23,7 @@ sh version.sh
 #### Build keybased
 
 ```sh
-sh build_keybase.sh
+sh build.sh
 ```
 
 #### Generate a Keybase.dmg
