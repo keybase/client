@@ -73,3 +73,16 @@ func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {
 	err = engine.RunEngine(eng, ctx)
 	return err
 }
+
+func (h *PGPHandler) PgpExport(arg keybase_1.PgpExportArg) (ret []keybase_1.FingerprintAndKey, err error) {
+	ctx := &engine.Context{
+		SecretUI: h.getSecretUI(arg.SessionID),
+		LogUI:    h.getLogUI(arg.SessionID),
+	}
+	eng := engine.NewPGPKeyExportEngine(arg)
+	if err = engine.RunEngine(eng, ctx); err != nil {
+		return
+	}
+	ret = eng.Results()
+	return
+}

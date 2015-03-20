@@ -42,9 +42,7 @@ protocol pgp {
 		string key;
 	}
 
-	// Exports all active PGP keys, public. Only allows armored export
-	array<FingerprintAndKey> pgpExportPublic(int sessionID);
-
-	// Exports a one-off PGP secret key
-	FingerprintAndKey pgpExportSecret(int sessionID, string query);
+	// Exports all active PGP keys, public. Only allows armored export.
+	// If you ask for private, you can get at most one key back.
+	array<FingerprintAndKey> pgpExport(int sessionID, boolean secret, string query);
 }

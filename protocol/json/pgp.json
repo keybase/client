@@ -248,25 +248,21 @@
       } ],
       "response" : "null"
     },
-    "pgpExportPublic" : {
+    "pgpExport" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
+      }, {
+        "name" : "secret",
+        "type" : "boolean"
+      }, {
+        "name" : "query",
+        "type" : "string"
       } ],
       "response" : {
         "type" : "array",
         "items" : "FingerprintAndKey"
       }
-    },
-    "pgpExportSecret" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "query",
-        "type" : "string"
-      } ],
-      "response" : "FingerprintAndKey"
     }
   }
 }

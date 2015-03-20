@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 )
@@ -39,7 +40,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	arg := PGPKeyExportEngineArg{
+	arg := keybase_1.PgpExportArg{
 		Secret: true,
 		Query:  fp.String(),
 	}
@@ -53,7 +54,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatalf("Expected 1 key back out")
 	}
 
-	arg = PGPKeyExportEngineArg{
+	arg = keybase_1.PgpExportArg{
 		Secret: true,
 		Query:  fp.String()[0:10] + "aabb",
 	}
@@ -65,7 +66,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatalf("Expected a 'NoSecretKeyError; got %s", err.Error())
 	}
 
-	arg = PGPKeyExportEngineArg{
+	arg = keybase_1.PgpExportArg{
 		Secret: false,
 	}
 	xe = NewPGPKeyExportEngine(arg)

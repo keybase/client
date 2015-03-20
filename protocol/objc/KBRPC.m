@@ -509,27 +509,15 @@
   }];
 }
 
-- (void)pgpExportPublicWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportPublic" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)pgpExportWithSessionID:(NSInteger)sessionID secret:(BOOL)secret query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"secret": @(secret), @"query": KBRValue(query)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExport" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
       }
       NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRFingerprintAndKey.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
-  }];
-}
-
-- (void)pgpExportSecretWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, KBRFingerprintAndKey *fingerprintAndKey))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"query": KBRValue(query)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportSecret" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-        completion(error, nil);
-        return;
-      }
-      KBRFingerprintAndKey *result = retval ? [MTLJSONAdapter modelOfClass:KBRFingerprintAndKey.class fromJSONDictionary:retval error:&error] : nil;
-      completion(error, result);
   }];
 }
 
@@ -1338,22 +1326,12 @@
 
 @end
 
-@implementation KBRPgpExportPublicRequestParams
+@implementation KBRPgpExportRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRPgpExportSecretRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.secret = [params[0][@"secret"] boolValue];
     self.query = params[0][@"query"];
   }
   return self;

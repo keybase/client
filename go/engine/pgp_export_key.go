@@ -10,15 +10,10 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-type PGPKeyExportEngineArg struct {
-	Secret bool
-	Query  string
-}
-
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg PGPKeyExportEngineArg
-	res []*keybase_1.FingerprintAndKey
+	arg keybase_1.PgpExportArg
+	res []keybase_1.FingerprintAndKey
 	me  *libkb.User
 }
 
@@ -42,16 +37,16 @@ func (s *PGPKeyExportEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *PGPKeyExportEngine) Results() []*keybase_1.FingerprintAndKey {
+func (e *PGPKeyExportEngine) Results() []keybase_1.FingerprintAndKey {
 	return e.res
 }
 
-func NewPGPKeyExportEngine(arg PGPKeyExportEngineArg) *PGPKeyExportEngine {
+func NewPGPKeyExportEngine(arg keybase_1.PgpExportArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{arg: arg}
 }
 
 func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string) {
-	e.res = append(e.res, &keybase_1.FingerprintAndKey{
+	e.res = append(e.res, keybase_1.FingerprintAndKey{
 		Fingerprint: fp.String(),
 		Key:         key,
 	})
@@ -63,6 +58,9 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 		fp := k.GetFingerprintP()
 		s, err := k.Encode()
 		if fp == nil || err != nil {
+			continue
+		}
+		if len(e.arg.Query) > 0 && !libkb.KeyMatchesQuery(k, e.arg.Query) {
 			continue
 		}
 		e.pushRes(*fp, s)

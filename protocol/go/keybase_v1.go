@@ -1208,12 +1208,9 @@ type PgpImportArg struct {
 	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
 }
 
-type PgpExportPublicArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
-type PgpExportSecretArg struct {
+type PgpExportArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Secret    bool   `codec:"secret" json:"secret"`
 	Query     string `codec:"query" json:"query"`
 }
 
@@ -1222,8 +1219,7 @@ type PgpInterface interface {
 	PgpPull(PgpPullArg) error
 	PgpEncrypt(PgpEncryptArg) error
 	PgpImport(PgpImportArg) error
-	PgpExportPublic(int) ([]FingerprintAndKey, error)
-	PgpExportSecret(PgpExportSecretArg) (FingerprintAndKey, error)
+	PgpExport(PgpExportArg) ([]FingerprintAndKey, error)
 }
 
 func PgpProtocol(i PgpInterface) rpc2.Protocol {
@@ -1258,17 +1254,10 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"pgpExportPublic": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpExportPublicArg, 1)
+			"pgpExport": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpExportArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.PgpExportPublic(args[0].SessionID)
-				}
-				return
-			},
-			"pgpExportSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpExportSecretArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PgpExportSecret(args[0])
+					ret, err = i.PgpExport(args[0])
 				}
 				return
 			},
@@ -1301,14 +1290,8 @@ func (c PgpClient) PgpImport(__arg PgpImportArg) (err error) {
 	return
 }
 
-func (c PgpClient) PgpExportPublic(sessionID int) (res []FingerprintAndKey, err error) {
-	__arg := PgpExportPublicArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.pgp.pgpExportPublic", []interface{}{__arg}, &res)
-	return
-}
-
-func (c PgpClient) PgpExportSecret(__arg PgpExportSecretArg) (res FingerprintAndKey, err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpExportSecret", []interface{}{__arg}, &res)
+func (c PgpClient) PgpExport(__arg PgpExportArg) (res []FingerprintAndKey, err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
 	return
 }
 
