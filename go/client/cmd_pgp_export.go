@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"os"
 )
 
 func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
@@ -77,9 +78,21 @@ func (s *CmdPGPExport) finish(res []keybase_1.FingerprintAndKey, err error) erro
 		return err
 	}
 	if len(res) > 1 {
-
+		G.Log.Warning("Found several matches:")
+		for _, k := range res {
+			os.Stderr.Write([]byte(k.Desc + "\n"))
+		}
+		err = fmt.Errorf("Specify a key to export")
+	} else if len(res) == 0 {
+		err = fmt.Errorf("No matching keys found")
+	} else {
+		snk := initSink(s.outfile)
+		if err := snk.Open(); err != nil {
+			return err
+		}
+		snk.Write([]byte(res[0].Key))
+		snk.Close()
 	}
-
 	return nil
 }
 

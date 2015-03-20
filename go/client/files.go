@@ -196,6 +196,16 @@ type UnixFilter struct {
 	source Source
 }
 
+func initSink(fn string) Sink {
+	var ret Sink
+	if len(fn) == 0 || fn == "-" {
+		ret = &StdoutSink{}
+	} else {
+		ret = NewFileSink(fn)
+	}
+	return ret
+}
+
 func (u *UnixFilter) FilterInit(msg, infile, outfile string) error {
 	if len(msg) > 0 && len(infile) > 0 {
 		return fmt.Errorf("Can't handle both a passed message and an infile")
@@ -206,13 +216,7 @@ func (u *UnixFilter) FilterInit(msg, infile, outfile string) error {
 	} else {
 		u.source = NewFileSource(infile)
 	}
-
-	if len(outfile) == 0 || outfile == "-" {
-		u.sink = &StdoutSink{}
-	} else {
-		u.sink = NewFileSink(outfile)
-	}
-
+	u.sink = initSink(outfile)
 	return nil
 }
 
