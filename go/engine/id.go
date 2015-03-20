@@ -7,7 +7,7 @@ import (
 
 type IdEngineArg struct {
 	UserAssertion  string
-	TrackStatement bool
+	TrackStatement bool // output a track statement
 }
 
 type IdRes struct {
@@ -29,7 +29,9 @@ func (s *IdEngine) Name() string {
 	return "Id"
 }
 
-func (e *IdEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (e *IdEngine) GetPrereqs() EnginePrereqs {
+	return EnginePrereqs{Session: e.arg.TrackStatement}
+}
 
 func (k *IdEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{

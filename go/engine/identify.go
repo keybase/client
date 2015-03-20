@@ -10,6 +10,7 @@ import (
 type Identify struct {
 	arg       *IdentifyArg
 	user      *libkb.User
+	me        *libkb.User
 	userExpr  libkb.AssertionExpression
 	outcome   *libkb.IdentifyOutcome
 	trackInst *libkb.TrackInstructions
@@ -74,18 +75,25 @@ func (e *Identify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Identify) Run(ctx *Context) error {
+	if err := e.loadUser(); err != nil {
+		return err
+	}
+
 	ok, err := IsLoggedIn()
 	if err != nil {
 		return err
 	}
-	if ok && !e.arg.SelfID() {
-		// logged in, so turn on WithTracking as there's no reason not to,
-		// unless doing a self id:
-		e.arg.WithTracking = true
-	}
+	if ok {
+		e.me, err = libkb.LoadMe(libkb.LoadUserArg{})
+		if err != nil {
+			return err
+		}
 
-	if err := e.loadUser(); err != nil {
-		return err
+		if e.user.Equal(*e.me) {
+			e.arg.WithTracking = false
+		} else {
+			e.arg.WithTracking = true
+		}
 	}
 
 	ctx.IdentifyUI.Start(e.user.GetName())
@@ -127,16 +135,11 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is := libkb.NewIdentifyState(res, e.user)
 
 	if e.arg.WithTracking {
-		me, err := libkb.LoadMe(libkb.LoadUserArg{})
-		if err != nil {
-			return nil, err
-		}
-
-		if e.user.Equal(*me) {
+		if e.user.Equal(*e.me) {
 			return nil, libkb.SelfTrackError{}
 		}
 
-		tlink, err := me.GetTrackingStatementFor(e.user.GetName(), e.user.GetUid())
+		tlink, err := e.me.GetTrackingStatementFor(e.user.GetName(), e.user.GetUid())
 		if err != nil {
 			return nil, err
 		}

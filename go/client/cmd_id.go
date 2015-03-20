@@ -12,8 +12,8 @@ import (
 )
 
 type CmdId struct {
-	user  string
-	track bool
+	user           string
+	trackStatement bool
 }
 
 func (v *CmdId) ParseArgv(ctx *cli.Context) error {
@@ -25,14 +25,14 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		v.user = ctx.Args()[0]
 	}
-	v.track = ctx.Bool("track-statement")
+	v.trackStatement = ctx.Bool("track-statement")
 	return nil
 }
 
 func (v *CmdId) makeArg() *engine.IdEngineArg {
 	return &engine.IdEngineArg{
 		UserAssertion:  v.user,
-		TrackStatement: v.track,
+		TrackStatement: v.trackStatement,
 	}
 }
 
