@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"io"
+	"strings"
 
 	"golang.org/x/crypto/openpgp"
 )
@@ -27,4 +28,13 @@ func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PgpKeyBundle, rec
 		return err
 	}
 	return nil
+}
+
+func PGPEncryptString(input string, signer *PgpKeyBundle, recipients []*PgpKeyBundle) ([]byte, error) {
+	source := strings.NewReader(input)
+	sink := NewBufferCloser()
+	if err := PGPEncrypt(source, sink, signer, recipients); err != nil {
+		return nil, err
+	}
+	return sink.Bytes(), nil
 }
