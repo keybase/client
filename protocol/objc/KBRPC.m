@@ -506,6 +506,13 @@
   }];
 }
 
+- (void)pgpExportWithSessionID:(NSInteger)sessionID armored:(BOOL)armored private:(BOOL)private query:(NSString *)query completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"armored": @(armored), @"private": @(private), @"query": KBRValue(query)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExport" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
 @end
 
 @implementation KBRProveRequest
@@ -1305,6 +1312,20 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.key = params[0][@"key"];
     self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpExportRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.armored = [params[0][@"armored"] boolValue];
+    self.private = [params[0][@"private"] boolValue];
+    self.query = params[0][@"query"];
   }
   return self;
 }

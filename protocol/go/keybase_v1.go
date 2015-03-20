@@ -1203,11 +1203,19 @@ type PgpImportArg struct {
 	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
 }
 
+type PgpExportArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Armored   bool   `codec:"armored" json:"armored"`
+	Private   bool   `codec:"private" json:"private"`
+	Query     string `codec:"query" json:"query"`
+}
+
 type PgpInterface interface {
 	PgpSign(PgpSignArg) error
 	PgpPull(PgpPullArg) error
 	PgpEncrypt(PgpEncryptArg) error
 	PgpImport(PgpImportArg) error
+	PgpExport(PgpExportArg) ([]byte, error)
 }
 
 func PgpProtocol(i PgpInterface) rpc2.Protocol {
@@ -1242,6 +1250,13 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"pgpExport": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpExportArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.PgpExport(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1268,6 +1283,11 @@ func (c PgpClient) PgpEncrypt(__arg PgpEncryptArg) (err error) {
 
 func (c PgpClient) PgpImport(__arg PgpImportArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpImport", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpExport(__arg PgpExportArg) (res []byte, err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
 	return
 }
 

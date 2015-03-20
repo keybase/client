@@ -237,6 +237,22 @@
         "type" : "boolean"
       } ],
       "response" : "null"
+    },
+    "pgpExport" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "armored",
+        "type" : "boolean"
+      }, {
+        "name" : "private",
+        "type" : "boolean"
+      }, {
+        "name" : "query",
+        "type" : "string"
+      } ],
+      "response" : "bytes"
     }
   }
 }
