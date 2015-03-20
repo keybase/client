@@ -80,20 +80,19 @@ func (s *CmdPGPExport) finish(res []keybase_1.FingerprintAndKey, err error) erro
 	if len(res) > 1 {
 		G.Log.Warning("Found several matches:")
 		for _, k := range res {
-			os.Stderr.Write([]byte(k.Desc + "\n"))
+			os.Stderr.Write([]byte(k.Desc + "\n\n"))
 		}
 		err = fmt.Errorf("Specify a key to export")
 	} else if len(res) == 0 {
 		err = fmt.Errorf("No matching keys found")
 	} else {
 		snk := initSink(s.outfile)
-		if err := snk.Open(); err != nil {
-			return err
+		if err = snk.Open(); err == nil {
+			snk.Write([]byte(res[0].Key))
+			err = snk.Close()
 		}
-		snk.Write([]byte(res[0].Key))
-		snk.Close()
 	}
-	return nil
+	return err
 }
 
 func (s *CmdPGPExport) Run() (err error) {
