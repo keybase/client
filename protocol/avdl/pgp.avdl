@@ -37,5 +37,5 @@ protocol pgp {
 
 	void pgpImport(int sessionID, bytes key, boolean pushPrivate);
 
-	bytes pgpExport(int sessionID, boolean private, string query);
+	bytes pgpExport(int sessionID, boolean armored, boolean private, string query);
 }
