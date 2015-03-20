@@ -77,42 +77,42 @@ func (s *Session) SetCsrf(t string) {
 	}
 }
 
-func isConfigLoggedIn() bool {
-	reader := G.Env.GetConfig()
+func (s *Session) isConfigLoggedIn() bool {
+	reader := s.G().Env.GetConfig()
 	return reader.GetUsername() != "" && reader.GetDeviceID() != nil && reader.GetUID() != nil
 }
 
 // The session file can be out of sync with the config file, particularly when
 // switching between the node and go clients.
-func nukeSessionFileIfOutOfSync() error {
-	sessionFile := G.Env.GetSessionFilename()
+func (s *Session) nukeSessionFileIfOutOfSync() error {
+	sessionFile := s.G().Env.GetSessionFilename()
 	// Use stat to check existence.
 	_, statErr := os.Lstat(sessionFile)
-	if statErr == nil && !isConfigLoggedIn() {
-		G.Log.Warning("Session file found but user is not logged in. Deleting session file.")
+	if statErr == nil && !s.isConfigLoggedIn() {
+		s.G().Log.Warning("Session file found but user is not logged in. Deleting session file.")
 		return os.Remove(sessionFile)
 	}
 	return nil
 }
 
 func (s *Session) Load() error {
-	G.Log.Debug("+ Loading session")
+	s.G().Log.Debug("+ Loading session")
 	if s.loaded {
-		G.Log.Debug("- Skipped; already loaded")
+		s.G().Log.Debug("- Skipped; already loaded")
 		return nil
 	}
 
-	err := nukeSessionFileIfOutOfSync()
+	err := s.nukeSessionFileIfOutOfSync()
 	if err != nil {
 		return err
 	}
 
-	s.file = NewJsonFile(G.Env.GetSessionFilename(), "session")
+	s.file = NewJsonFile(s.G().Env.GetSessionFilename(), "session")
 	err = s.file.Load(false)
 	s.loaded = true
 
 	if err != nil {
-		G.Log.Error("Failed to load session file")
+		s.G().Log.Error("Failed to load session file")
 		return err
 	}
 
@@ -122,13 +122,13 @@ func (s *Session) Load() error {
 		ok := true
 		s.file.jw.AtKey("session").GetStringVoid(&token, &tmp)
 		if tmp != nil {
-			G.Log.Warning("Bad 'session' value in session file %s: %s",
+			s.G().Log.Warning("Bad 'session' value in session file %s: %s",
 				s.file.filename, tmp.Error())
 			ok = false
 		}
 		s.file.jw.AtKey("csrf").GetStringVoid(&csrf, &tmp)
 		if tmp != nil {
-			G.Log.Warning("Bad 'csrf' value in session file %s: %s",
+			s.G().Log.Warning("Bad 'csrf' value in session file %s: %s",
 				s.file.filename, tmp.Error())
 			ok = false
 		}
@@ -140,7 +140,7 @@ func (s *Session) Load() error {
 			s.mtime = mtime
 		}
 	}
-	G.Log.Debug("- Loaded session")
+	s.G().Log.Debug("- Loaded session")
 	return nil
 }
 
@@ -182,14 +182,14 @@ func (s *Session) AssertLoggedOut() (err error) {
 }
 
 func (s *Session) Check() error {
-	G.Log.Debug("+ Checking session")
+	s.G().Log.Debug("+ Checking session")
 	if s.checked {
-		G.Log.Debug("- already checked, short-circuting")
+		s.G().Log.Debug("- already checked, short-circuting")
 		return nil
 	}
 	s.checked = true
 
-	res, err := G.API.Get(ApiArg{
+	res, err := s.G().API.Get(ApiArg{
 		Endpoint:    "sesscheck",
 		NeedSession: true,
 		AppStatus:   []string{"OK", "BAD_SESSION"},
@@ -199,7 +199,7 @@ func (s *Session) Check() error {
 		return err
 	}
 	if res.AppStatus == "OK" {
-		G.Log.Debug("| Stored session checked out")
+		s.G().Log.Debug("| Stored session checked out")
 		var err error
 		var uid UID
 		var username, csrf string
@@ -218,11 +218,11 @@ func (s *Session) Check() error {
 			}
 		}
 	} else {
-		G.Log.Notice("Stored session expired")
+		s.G().Log.Notice("Stored session expired")
 		s.valid = false
 	}
 
-	G.Log.Debug("- Checked session")
+	s.G().Log.Debug("- Checked session")
 	return nil
 }
 
@@ -235,7 +235,7 @@ func (s Session) IsValid() bool {
 }
 
 func (s *Session) postLogout() error {
-	_, err := G.API.Post(ApiArg{
+	_, err := s.G().API.Post(ApiArg{
 		Endpoint:    "logout",
 		NeedSession: true,
 	})
@@ -255,7 +255,7 @@ func (s *Session) Logout() error {
 		e2 = s.postLogout()
 		if e3 := s.file.Nuke(); e3 != nil {
 			s.inFile = false
-			G.Log.Warning("Failed to remove session file: %s", e3.Error())
+			s.G().Log.Warning("Failed to remove session file: %s", e3.Error())
 		}
 	}
 	if err == nil && e2 != nil {
