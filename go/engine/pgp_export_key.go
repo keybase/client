@@ -58,8 +58,7 @@ func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string) {
 }
 
 func (e *PGPKeyExportEngine) exportPublic() (err error) {
-	var me *libkb.User
-	keys := me.GetActivePgpKeys(false)
+	keys := e.me.GetActivePgpKeys(false)
 	for _, k := range keys {
 		fp := k.GetFingerprintP()
 		s, err := k.Encode()
@@ -78,6 +77,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 		Reason:       "key export",
 		Ui:           ctx.SecretUI,
 		SyncedPGPKey: true,
+		Me:           e.me,
 	}
 	var key libkb.GenericKey
 	var skb *libkb.SKB

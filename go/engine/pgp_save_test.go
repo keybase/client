@@ -65,6 +65,17 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatalf("Expected a 'NoSecretKeyError; got %s", err.Error())
 	}
 
+	arg = PGPKeyExportEngineArg{
+		Secret: false,
+	}
+	xe = NewPGPKeyExportEngine(arg)
+	if err := RunEngine(xe, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(xe.Results()) != 2 {
+		t.Fatalf("Expected two keys back out; got %d", len(xe.Results()))
+	}
+
 	return
 }
 
