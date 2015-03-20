@@ -26,7 +26,7 @@ var memprofile = flag.String("memprofile", "", "write memory profile to file")
 var local = flag.Bool("local", false,
 	"use a fake local user DB instead of Keybase")
 var localUser = flag.String("localuser", "strib",
-	"fake local user (only valid when local=true")
+	"fake local user (only valid when local=true)")
 var client = flag.Bool("client", false, "use keybase daemon")
 var debug = flag.Bool("debug", false, "Print FUSE debug messages")
 
