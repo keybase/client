@@ -11,7 +11,7 @@ import (
 
 // TestPGPSavePublicPush runs the PGPSave engine, pushing the
 // public key to api server and checks that it runs without error.
-func TestPGPSave(t *testing.T) {
+func TestPGPImportAndExport(t *testing.T) {
 	tc := SetupEngineTest(t, "pgpsave")
 	defer tc.Cleanup()
 
@@ -38,9 +38,37 @@ func TestPGPSave(t *testing.T) {
 	if err = RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
+
+	arg := PGPKeyExportEngineArg{
+		Secret: true,
+		Query:  fp.String(),
+	}
+
+	xe := NewPGPKeyExportEngine(arg)
+	if err := RunEngine(xe, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(xe.Results()) != 1 {
+		t.Fatalf("Expected 1 key back out")
+	}
+
+	arg = PGPKeyExportEngineArg{
+		Secret: true,
+		Query:  fp.String()[0:10] + "aabb",
+	}
+
+	xe = NewPGPKeyExportEngine(arg)
+	if err := RunEngine(xe, ctx); err == nil {
+		t.Fatalf("Expected an error on fictious key")
+	} else if _, ok := err.(libkb.NoSecretKeyError); !ok {
+		t.Fatalf("Expected a 'NoSecretKeyError; got %s", err.Error())
+	}
+
+	return
 }
 
-func armorKey(t *testing.T, tc libkb.TestContext, email string) string {
+func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PgpFingerprint, string) {
 	bundle, err := tc.MakePGPKey(email)
 	if err != nil {
 		t.Fatal(err)
@@ -54,5 +82,6 @@ func armorKey(t *testing.T, tc libkb.TestContext, email string) string {
 		t.Fatal(err)
 	}
 	writer.Close()
-	return string(buf.Bytes())
+	fp := *bundle.GetFingerprintP()
+	return fp, string(buf.Bytes())
 }

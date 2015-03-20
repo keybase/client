@@ -121,7 +121,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 	defer G.Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 
 	arg := libkb.SecretKeyArg{Reason: "tracking signature", Ui: ctx.SecretUI, Me: e.arg.Me, All: true}
-	if e.signingKeyPriv, err = G.Keyrings.GetSecretKey(arg); err != nil {
+	if e.signingKeyPriv, _, err = G.Keyrings.GetSecretKey(arg); err != nil {
 		return
 	} else if e.signingKeyPriv == nil {
 		err = libkb.NoSecretKeyError{}

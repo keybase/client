@@ -85,7 +85,7 @@ func (k *KexSib) Run(ctx *Context) error {
 		Ui:        ctx.SecretUI,
 		Me:        k.user,
 	}
-	k.sigKey, err = k.G().Keyrings.GetSecretKey(arg)
+	k.sigKey, _, err = k.G().Keyrings.GetSecretKey(arg)
 	if err != nil {
 		k.G().Log.Warning("KexSib.Run: GetSecretKey error: %s", err)
 		return err
@@ -172,7 +172,7 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 			Ui:        k.engctx.SecretUI,
 			Me:        k.user,
 		}
-		k.sigKey, err = k.G().Keyrings.GetSecretKey(arg)
+		k.sigKey, _, err = k.G().Keyrings.GetSecretKey(arg)
 		if err != nil {
 			return err
 		}

@@ -26,6 +26,7 @@ type SKB struct {
 
 	decodedPub      GenericKey
 	decryptedSecret GenericKey
+	decryptedRaw    []byte // in case we need to reexport it
 }
 
 type SKBPriv struct {
@@ -134,6 +135,10 @@ func (p *SKB) VerboseDescription() (ret string, err error) {
 	return
 }
 
+func (p *SKB) RawUnlockedKey() []byte {
+	return p.decryptedRaw
+}
+
 func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps PassphraseStream) (key GenericKey, err error) {
 	if key = p.decryptedSecret; key != nil {
 		return
@@ -187,6 +192,7 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 	}
 
 	if err = key.CheckSecretKey(); err == nil {
+		s.decryptedRaw = unlocked
 		s.decryptedSecret = key
 	}
 	return

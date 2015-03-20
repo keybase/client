@@ -42,7 +42,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		Ui:        secui,
 		Me:        me,
 	}
-	_, err = G.Keyrings.GetSecretKey(arg)
+	_, _, err = G.Keyrings.GetSecretKey(arg)
 	if err != nil {
 		t.Fatal(err)
 	}

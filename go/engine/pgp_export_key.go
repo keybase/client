@@ -42,8 +42,19 @@ func (s *PGPKeyExportEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func NewPGPKexExportEngine(arg PGPKeyExportEngineArg) *PGPKeyExportEngine {
+func (e *PGPKeyExportEngine) Results() []*keybase_1.FingerprintAndKey {
+	return e.res
+}
+
+func NewPGPKeyExportEngine(arg PGPKeyExportEngineArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{arg: arg}
+}
+
+func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string) {
+	e.res = append(e.res, &keybase_1.FingerprintAndKey{
+		Fingerprint: fp.String(),
+		Key:         key,
+	})
 }
 
 func (e *PGPKeyExportEngine) exportPublic() (err error) {
@@ -55,10 +66,7 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 		if fp == nil || err != nil {
 			continue
 		}
-		e.res = append(e.res, &keybase_1.FingerprintAndKey{
-			Fingerprint: fp.String(),
-			Key:         s,
-		})
+		e.pushRes(*fp, s)
 	}
 	return
 }
@@ -72,17 +80,37 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 		SyncedPGPKey: true,
 	}
 	var key libkb.GenericKey
-	key, err = e.G().Keyrings.GetSecretKey(ska)
+	var skb *libkb.SKB
+	var ok bool
+	var ret string
+
+	key, skb, err = e.G().Keyrings.GetSecretKey(ska)
 	if err != nil {
 		return
 	}
 	fp := key.GetFingerprintP()
-	if fp != nil {
+	if fp == nil {
 		err = libkb.BadKeyError{Msg: "no fingerprint found"}
 		return
 	}
-	// XXX find a way to just dump the result from the SKB raw
-	// file.
+
+	if _, ok = key.(*libkb.PgpKeyBundle); !ok {
+		err = libkb.BadKeyError{Msg: "Expected a PGP key"}
+		return
+	}
+
+	raw := skb.RawUnlockedKey()
+	if raw == nil {
+		err = libkb.BadKeyError{Msg: "can't get raw representation of key"}
+		return
+	}
+
+	if ret, err = libkb.PgpKeyRawToArmored(raw, true); err != nil {
+		return
+	}
+
+	e.pushRes(*fp, ret)
+
 	return
 }
 

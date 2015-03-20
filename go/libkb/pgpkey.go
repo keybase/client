@@ -172,6 +172,32 @@ func (k *PgpKeyBundle) Encode() (ret string, err error) {
 	return
 }
 
+func PgpKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
+
+	var writer io.WriteCloser
+	var out bytes.Buffer
+	var which string
+
+	if priv {
+		which = "PRIVATE"
+	} else {
+		which = "PUBLIC"
+	}
+	hdr := fmt.Sprintf("PGP %s KEY BLOCK", which)
+
+	writer, err = armor.Encode(&out, hdr, nil)
+
+	if err != nil {
+		return
+	}
+	if _, err = writer.Write(raw); err != nil {
+		return
+	}
+	writer.Close()
+	ret = out.String()
+	return
+}
+
 func (k *PgpKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 
 	// See Issue #32

@@ -263,12 +263,11 @@ func (s SecretKeyArg) UseDeviceKey() bool    { return (s.All || s.DeviceKey) && 
 func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey || s.PGPOnly }
 func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
 
-func (k *Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, err error) {
+func (k *Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, skb *SKB, err error) {
 	k.G().Log.Debug("+ GetSecretKey(%s)", ska.Reason)
 	defer func() {
 		k.G().Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
 	}()
-	var skb *SKB
 	var which string
 	if skb, which, err = k.GetSecretKeyLocked(ska); err == nil && skb != nil {
 		k.G().Log.Debug("| Prompt/Unlock key")

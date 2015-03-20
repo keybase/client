@@ -302,7 +302,7 @@ func (s *LoginState) PubkeyLogin(name string, ui SecretUI) (err error) {
 		return
 	}
 
-	if key, err = G.Keyrings.GetSecretKey(SecretKeyArg{Reason: "login", Ui: ui, Me: me, All: true}); err != nil {
+	if key, _, err = G.Keyrings.GetSecretKey(SecretKeyArg{Reason: "login", Ui: ui, Me: me, All: true}); err != nil {
 		return
 	}
 

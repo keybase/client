@@ -80,7 +80,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			KeyQuery: e.arg.KeyQuery,
 			Ui:       ctx.SecretUI,
 		}
-		key, err := e.G().Keyrings.GetSecretKey(ska)
+		key, _, err := e.G().Keyrings.GetSecretKey(ska)
 		if err != nil {
 			return err
 		}

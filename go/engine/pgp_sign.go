@@ -69,7 +69,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		Ui:           ctx.SecretUI,
 	}
 
-	key, err = p.G().Keyrings.GetSecretKey(ska)
+	key, _, err = p.G().Keyrings.GetSecretKey(ska)
 
 	if err != nil {
 		return
