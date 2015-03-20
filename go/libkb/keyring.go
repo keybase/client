@@ -169,12 +169,19 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 		return
 	}
 
+	var pub GenericKey
+
 	if !ska.UseSyncedPGPKey() {
 		k.G().Log.Debug("| Skipped Synced PGP key (via prefs)")
 	} else if ret, err = ska.Me.GetSyncedSecretKey(); err != nil {
 		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
 		return
-	} else if ret != nil {
+	} else if ret == nil {
+	} else if pub, err = ret.GetPubKey(); err != nil {
+	} else if len(ska.KeyQuery) > 0 && !KeyMatchesQuery(pub, ska.KeyQuery) {
+		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
+		ret = nil
+	} else {
 		which = "your Keybase.io passphrase"
 	}
 

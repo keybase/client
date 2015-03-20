@@ -476,6 +476,9 @@
 @implementation KBRPgpEncryptOptions
 @end
 
+@implementation KBRFingerprintAndKey
+@end
+
 @implementation KBRPgpRequest
 
 - (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion {
@@ -506,10 +509,27 @@
   }];
 }
 
-- (void)pgpExportWithSessionID:(NSInteger)sessionID armored:(BOOL)armored private:(BOOL)private query:(NSString *)query completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"armored": @(armored), @"private": @(private), @"query": KBRValue(query)}];
-  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExport" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+- (void)pgpExportPublicWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportPublic" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRFingerprintAndKey.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
+
+- (void)pgpExportSecretWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, KBRFingerprintAndKey *fingerprintAndKey))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"query": KBRValue(query)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpExportSecret" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRFingerprintAndKey *result = retval ? [MTLJSONAdapter modelOfClass:KBRFingerprintAndKey.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
@@ -1318,13 +1338,22 @@
 
 @end
 
-@implementation KBRPgpExportRequestParams
+@implementation KBRPgpExportPublicRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.armored = [params[0][@"armored"] boolValue];
-    self.private = [params[0][@"private"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpExportSecretRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.query = params[0][@"query"];
   }
   return self;

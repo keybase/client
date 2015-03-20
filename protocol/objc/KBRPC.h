@@ -380,6 +380,11 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL approveRemote;
 @end
 
+@interface KBRFingerprintAndKey : KBRObject
+@property NSString *fingerprint;
+@property NSString *key;
+@end
+
 @interface KBRPgpRequest : KBRRequest
 - (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion;
 
@@ -389,7 +394,9 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushPrivate:(BOOL)pushPrivate completion:(void (^)(NSError *error))completion;
 
-- (void)pgpExportWithSessionID:(NSInteger)sessionID armored:(BOOL)armored private:(BOOL)private query:(NSString *)query completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)pgpExportPublicWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)pgpExportSecretWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, KBRFingerprintAndKey *fingerprintAndKey))completion;
 
 @end
 
@@ -748,10 +755,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSData *key;
 @property BOOL pushPrivate;
 @end
-@interface KBRPgpExportRequestParams : KBRRequestParams
+@interface KBRPgpExportPublicRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property BOOL armored;
-@property BOOL private;
+@end
+@interface KBRPgpExportSecretRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property NSString *query;
 @end
 @interface KBRProveRequestParams : KBRRequestParams

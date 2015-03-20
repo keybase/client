@@ -37,5 +37,14 @@ protocol pgp {
 
 	void pgpImport(int sessionID, bytes key, boolean pushPrivate);
 
-	bytes pgpExport(int sessionID, boolean armored, boolean private, string query);
+	record FingerprintAndKey {
+		string fingerprint;
+		string key;
+	}
+
+	// Exports all active PGP keys, public. Only allows armored export
+	array<FingerprintAndKey> pgpExportPublic(int sessionID);
+
+	// Exports a one-off PGP secret key
+	FingerprintAndKey pgpExportSecret(int sessionID, string query);
 }
