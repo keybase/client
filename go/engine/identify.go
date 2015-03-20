@@ -40,6 +40,10 @@ func NewIdentifyTrackArg(targetUsername string, withTracking bool, options Track
 	}
 }
 
+func (ia *IdentifyArg) SelfID() bool {
+	return len(ia.TargetUsername) == 0
+}
+
 // NewIdentify creates a Identify engine.
 func NewIdentify(arg *IdentifyArg) *Identify {
 	return &Identify{arg: arg}
@@ -74,8 +78,9 @@ func (e *Identify) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	if ok {
-		// logged in, so turn on WithTracking as there's no reason not to:
+	if ok && !e.arg.SelfID() {
+		// logged in, so turn on WithTracking as there's no reason not to,
+		// unless doing a self id:
 		e.arg.WithTracking = true
 	}
 
@@ -184,35 +189,48 @@ func (e *Identify) loadUser() error {
 	}
 	e.user = u
 
+	if arg.Self {
+		// if this was a self load, need to load an assertion expression
+		// now that we have the username
+		if err := e.loadExpr(e.user.GetName()); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
-	if len(e.arg.TargetUsername) == 0 {
+	if e.arg.SelfID() {
 		// loading self
 		return &libkb.LoadUserArg{Self: true}, nil
 	}
 
 	// Use assertions for everything:
-
-	// Parse assertion but don't allow OR operators, only
-	// AND operators
-	expr, err := libkb.AssertionParseAndOnly(e.arg.TargetUsername)
-	if err != nil {
+	if err := e.loadExpr(e.arg.TargetUsername); err != nil {
 		return nil, err
 	}
-	e.userExpr = expr
 
 	// Next, pop off the 'best' assertion and load the user by it.
 	// That is, it might be the keybase assertion (if there), or otherwise,
 	// something that's unique like Twitter or Github, and lastly,
 	// something like DNS that is more likely ambiguous...
-	b := e.findBestComponent(expr)
+	b := e.findBestComponent(e.userExpr)
 	if len(b) == 0 {
 		return nil, fmt.Errorf("Cannot lookup user with %q", e.arg.TargetUsername)
 	}
 
 	return &libkb.LoadUserArg{Name: b}, nil
+}
+
+func (e *Identify) loadExpr(assertion string) error {
+	// Parse assertion but don't allow OR operators, only AND operators
+	expr, err := libkb.AssertionParseAndOnly(assertion)
+	if err != nil {
+		return fmt.Errorf("assertion parse error: %s", err)
+	}
+	e.userExpr = expr
+	return nil
 }
 
 func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
