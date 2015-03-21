@@ -13,6 +13,7 @@ type LKSec struct {
 	serverHalf []byte
 	clientHalf []byte
 	secret     []byte
+	uid        *UID
 }
 
 func NewLKSec() *LKSec {
@@ -23,6 +24,10 @@ func NewLKSecClientHalf(clientHalf []byte) *LKSec {
 	s := NewLKSec()
 	s.clientHalf = clientHalf
 	return s
+}
+
+func (l *LKSec) SetUID(u *UID) {
+	l.uid = u
 }
 
 func NewLKSecSecret(secret []byte) *LKSec {
@@ -102,7 +107,7 @@ func (s *LKSec) fsecret() (res [32]byte) {
 
 func (s *LKSec) apiServerHalf(devid *DeviceID) error {
 	ss := G.SecretSyncer
-	if err := RunSyncer(ss, nil); err != nil {
+	if err := RunSyncer(ss, s.uid); err != nil {
 		return err
 	}
 	dev, err := ss.FindDevice(devid)

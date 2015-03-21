@@ -27,6 +27,8 @@ type SKB struct {
 	decodedPub      GenericKey
 	decryptedSecret GenericKey
 	decryptedRaw    []byte // in case we need to reexport it
+
+	uid *UID // UID that the key is for
 }
 
 type SKBPriv struct {
@@ -211,6 +213,7 @@ func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 
 func (p *SKB) lksUnlock(pps PassphraseStream) ([]byte, error) {
 	lks := NewLKSecClientHalf(pps.LksClientHalf())
+	lks.SetUID(p.uid)
 	unlocked, err := lks.Decrypt(p.Priv.Data)
 	if err != nil {
 		return nil, err

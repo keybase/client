@@ -502,7 +502,7 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 		G.Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
-	if err = RunSyncer(G.SecretSyncer, &u.id); err != nil {
+	if err = u.SyncSecrets(); err != nil {
 		return
 	}
 
@@ -514,6 +514,13 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 
 	ret, err = G.SecretSyncer.FindActiveKey(ckf)
 	return
+}
+
+func (u *User) SyncSecrets() (err error) {
+	if err = RunSyncer(G.SecretSyncer, &u.id); err != nil {
+		return
+	}
+	return err
 }
 
 func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
