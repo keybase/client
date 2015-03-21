@@ -31,6 +31,7 @@ type PGPKeyImportEngineArg struct {
 	PushSecret bool
 	AllowMulti bool
 	DoExport   bool
+	DoUnlock   bool
 }
 
 func isArmored(key []byte) bool {
@@ -53,6 +54,7 @@ func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool) (eng *PGPKeyIm
 		PushSecret: pushPrivate,
 		AllowMulti: true,
 		DoExport:   false,
+		DoUnlock:   true,
 	}
 	eng = NewPGPKeyImportEngine(arg)
 	return
@@ -76,6 +78,11 @@ func (s *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
 }
 
 func (s *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
+	G.Log.Debug("+ PGPKeyImportEngine::saveLKS")
+	defer func() {
+		G.Log.Debug("- PGPKeyImportEngine::saveLKS -> %v", libkb.ErrToOk(err))
+	}()
+
 	var lks *libkb.LKSec
 	if lks, err = libkb.NewLKSForEncrypt(ctx.SecretUI); err != nil {
 		return
@@ -133,6 +140,7 @@ func (s *PGPKeyImportEngine) Run(ctx *Context) (err error) {
 	} else if err = s.loadMe(); err != nil {
 	} else if err = s.testExisting(); err != nil {
 	} else if err = s.loadDelegator(ctx); err != nil {
+	} else if err = s.unlock(ctx); err != nil {
 	} else if err = s.generate(ctx); err != nil {
 	} else if err = s.push(ctx); err != nil {
 	} else if err = s.exportToGPG(ctx); err != nil {
@@ -160,6 +168,20 @@ func (s *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
 		ctx.LogUI.Info("Exported new key to the local GPG keychain")
 	}
 	return err
+}
+
+func (s *PGPKeyImportEngine) unlock(ctx *Context) (err error) {
+	G.Log.Debug("+ PGPKeyImportEngine::unlock")
+	defer func() {
+		G.Log.Debug("- PGPKeyImportEngine::unlock -> %s", libkb.ErrToOk(err))
+	}()
+	if s.arg.Pregen == nil || !s.arg.DoUnlock || !s.arg.Pregen.HasSecretKey() {
+		G.Log.Debug("| short circuit unlock function")
+	} else {
+		err = s.arg.Pregen.Unlock("import into private keychain", ctx.SecretUI)
+	}
+	return
+
 }
 
 func (s *PGPKeyImportEngine) loadDelegator(ctx *Context) (err error) {
@@ -191,7 +213,7 @@ func (s *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 		return
 	}
 
-	G.Log.Debug("| WriteKey")
+	G.Log.Debug("| WriteKey (hasSecret = %v)", s.bundle.HasSecretKey())
 	if s.arg.NoSave || !s.bundle.HasSecretKey() {
 	} else if err = s.saveLKS(ctx); err != nil {
 		return
