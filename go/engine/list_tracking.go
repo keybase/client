@@ -110,7 +110,7 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 }
 
 func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase_1.PubKey) {
-	keys, err := link.GetTrackedPgpKeys()
+	keys, err := link.GetTrackedPGPFingerprints()
 	if err != nil {
 		G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
 		return res
@@ -204,7 +204,7 @@ func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
 		return nil, err
 	}
 
-	fps, err := l.GetTrackedPgpKeys()
+	fps, err := l.GetTrackedPGPFingerprints()
 	if err != nil {
 		return nil, err
 	}

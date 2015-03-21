@@ -642,7 +642,7 @@ type Cryptocurrency struct {
 type Identity struct {
 	Status          *Status          `codec:"status,omitempty" json:"status"`
 	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
-	Key             IdentifyKey      `codec:"key" json:"key"`
+	Keys            []IdentifyKey    `codec:"keys" json:"keys"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Deleted         []TrackDiff      `codec:"deleted" json:"deleted"`

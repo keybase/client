@@ -254,7 +254,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @interface KBRIdentity : KBRObject
 @property KBRStatus *status;
 @property NSInteger whenLastTracked;
-@property KBRIdentifyKey *key;
+@property NSArray *keys; /*of KBRIdentifyKey*/
 @property NSArray *proofs; /*of KBRIdentifyRow*/
 @property NSArray *cryptocurrency; /*of KBRCryptocurrency*/
 @property NSArray *deleted; /*of KBRTrackDiff*/

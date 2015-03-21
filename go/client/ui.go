@@ -135,13 +135,13 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		prompt = "Your tracking statement of " + un +
 			"is still valid; update it to reflect new proofs?"
 		def = PromptDefaultYes
+	} else if tracked && ntc == 0 {
+		G.Log.Info("Your tracking statement is up-to-date")
+		isEqual = true
 	} else if nps == 0 {
 		prompt = "We found an account for " + un +
 			", but they haven't proven their identity. Still track them?"
 		def = PromptDefaultNo
-	} else if tracked && ntc == 0 {
-		G.Log.Info("Your tracking statement is up-to-date")
-		isEqual = true
 	} else if npf > 0 {
 		prompt = "Some proofs failed; still track " + un + "?"
 		def = PromptDefaultNo

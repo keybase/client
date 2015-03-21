@@ -157,17 +157,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 
 	G.Log.Debug("+ Identify(%s)", e.user.GetName())
 
-	for _, bundle := range e.user.GetActivePgpKeys(true) {
-		fokid := libkb.GenericKeyToFOKID(bundle)
-		var diff libkb.TrackDiff
-		if is.Track != nil {
-			diff = is.Track.ComputeKeyDiff(&fokid)
-			// XXX this is probably a bug now that there are multiple pgp keys
-			res.KeyDiff = diff
-		}
-		ctx.IdentifyUI.DisplayKey(fokid.Export(), libkb.ExportTrackDiff(diff))
-	}
-
+	is.ComputeKeyDiffs(ctx.IdentifyUI.DisplayKey)
 	is.InitResultList()
 	is.ComputeTrackDiffs()
 	is.ComputeDeletedProofs()

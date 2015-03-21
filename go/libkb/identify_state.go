@@ -1,5 +1,9 @@
 package libkb
 
+import (
+	keybase_1 "github.com/keybase/client/protocol/go"
+)
+
 type IdentifyState struct {
 	res   *IdentifyOutcome
 	u     *User
@@ -45,6 +49,49 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 		for _, c := range s.res.ProofChecks {
 			c.diff = c.link.ComputeTrackDiff(s.Track)
 			c.trackedProofState = s.Track.GetProofState(c.link)
+		}
+	}
+}
+
+func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase_1.FOKID, *keybase_1.TrackDiff)) {
+
+	mapify := func(v []PgpFingerprint) map[PgpFingerprint]bool {
+		ret := make(map[PgpFingerprint]bool)
+		for _, f := range v {
+			ret[f] = true
+		}
+		return ret
+	}
+
+	display := func(fp PgpFingerprint, diff TrackDiff) {
+		fokid := FOKID{Fp: &fp}
+		dhook(fokid.Export(), ExportTrackDiff(diff))
+	}
+
+	found := s.u.GetActivePgpFingerprints(true)
+	found_map := mapify(found)
+	var tracked []PgpFingerprint
+	if s.Track != nil {
+		tracked = s.Track.GetTrackedPGPFingerprints()
+	}
+	tracked_map := mapify(tracked)
+
+	for _, fp := range found {
+		var diff TrackDiff
+		if !tracked_map[fp] {
+			diff = TrackDiffNew{}
+			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
+		} else {
+			diff = TrackDiffNone{}
+		}
+		display(fp, diff)
+	}
+
+	for _, fp := range tracked {
+		if !found_map[fp] {
+			diff := TrackDiffDeleted{fp}
+			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
+			display(fp, diff)
 		}
 	}
 }

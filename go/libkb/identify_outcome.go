@@ -7,7 +7,7 @@ import (
 
 type IdentifyOutcome struct {
 	Error         error
-	KeyDiff       TrackDiff
+	KeyDiffs      []TrackDiff
 	Deleted       []TrackDiffDeleted
 	ProofChecks   []*LinkCheckResult
 	Warnings      []Warning
@@ -52,9 +52,13 @@ func (i IdentifyOutcome) NumTrackFailures() int {
 			ntf++
 		}
 	}
-	if check(i.KeyDiff) {
-		ntf++
+
+	for _, k := range i.KeyDiffs {
+		if check(k) {
+			ntf++
+		}
 	}
+
 	return ntf
 }
 
@@ -65,6 +69,11 @@ func (i IdentifyOutcome) NumTrackChanges() int {
 	}
 	for _, c := range i.ProofChecks {
 		if check(c.diff) || check(c.remoteDiff) {
+			ntc++
+		}
+	}
+	for _, k := range i.KeyDiffs {
+		if check(k) {
 			ntc++
 		}
 	}

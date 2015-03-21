@@ -44,12 +44,11 @@ func (u *User) ToTrackingStatementKey(errp *error) *jsonw.Wrapper {
 
 func (u *User) ToTrackingStatementPgpKeys(errp *error) *jsonw.Wrapper {
 	keys := u.GetActivePgpKeys(true)
-	ret := jsonw.NewArray(len(keys))
 	if len(keys) == 0 {
-		*errp = fmt.Errorf("User %s doesn't have any pgp keys", u.GetName())
-		return ret
+		return nil
 	}
 
+	ret := jsonw.NewArray(len(keys))
 	for i, k := range keys {
 		kd := jsonw.NewDictionary()
 		fokid := GenericKeyToFOKID(k)
@@ -82,7 +81,9 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 
 	track := jsonw.NewDictionary()
 	track.SetKey("key", u.ToTrackingStatementKey(&err))
-	track.SetKey("pgp_keys", u.ToTrackingStatementPgpKeys(&err))
+	if pgpkeys := u.ToTrackingStatementPgpKeys(&err); pgpkeys != nil {
+		track.SetKey("pgp_keys", pgpkeys)
+	}
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
 	track.SetKey("id", jsonw.NewString(u.id.String()))

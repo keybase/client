@@ -506,3 +506,25 @@ func (pgp *PgpKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, 
 	}
 	return
 }
+
+//===================================================
+
+// Fulfill the TrackIdComponent interface
+
+func (fp PgpFingerprint) ToIdString() string {
+	return fp.String()
+}
+
+func (fp PgpFingerprint) ToKeyValuePair() (string, string) {
+	return "fingerprint", fp.ToIdString()
+}
+
+func (fp PgpFingerprint) GetProofState() int {
+	return PROOF_STATE_OK
+}
+
+func (fp PgpFingerprint) LastWriterWins() bool {
+	return false
+}
+
+//===================================================

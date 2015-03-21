@@ -8,7 +8,7 @@ import (
 )
 
 // Can either be a RemoteProofChainLink or one of the identities
-// listed in a tracking statement
+// listed in a tracking statement, or a PGP Fingerprint!
 type TrackIdComponent interface {
 	ToIdString() string
 	ToKeyValuePair() (string, string)
@@ -108,16 +108,12 @@ func (l TrackLookup) GetProofState(tic TrackIdComponent) int {
 	return l.set.GetProofState(tic)
 }
 
-func (l *TrackLookup) ComputeKeyDiff(curr *FOKID) TrackDiff {
-	prev := l.link.GetTrackedFOKID()
-	if curr == nil {
-		curr = &FOKID{}
+func (l TrackLookup) GetTrackedPGPFingerprints() []PgpFingerprint {
+	ret, err := l.link.GetTrackedPGPFingerprints()
+	if err != nil {
+		G.Log.Warning("Error in lookup up tracked PGP fingerprints: %s", err.Error())
 	}
-	if prev.Eq(*curr) {
-		return TrackDiffNone{}
-	} else {
-		return TrackDiffClash{curr.String(), prev.String()}
-	}
+	return ret
 }
 
 func (l TrackLookup) IsRemote() bool {

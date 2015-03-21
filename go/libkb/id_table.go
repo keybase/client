@@ -406,16 +406,16 @@ func (l *TrackChainLink) GetTrackedFOKID() (ret FOKID) {
 	return
 }
 
-func (l *TrackChainLink) GetTrackedPgpKeys() ([]*PgpFingerprint, error) {
+func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PgpFingerprint, error) {
 	// presumably order is important, so we'll only use the map as a set
 	// to deduplicate keys.
 	set := make(map[PgpFingerprint]bool)
 
-	var res []*PgpFingerprint
+	var res []PgpFingerprint
 
 	fk := l.GetTrackedFOKID()
 	if fk.Fp != nil {
-		res = append(res, fk.Fp)
+		res = append(res, *fk.Fp)
 		set[*fk.Fp] = true
 	}
 
@@ -433,8 +433,8 @@ func (l *TrackChainLink) GetTrackedPgpKeys() ([]*PgpFingerprint, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !set[*fp] {
-			res = append(res, fp)
+		if fp != nil && !set[*fp] {
+			res = append(res, *fp)
 			set[*fp] = true
 		}
 	}

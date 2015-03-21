@@ -291,8 +291,11 @@
       "name" : "whenLastTracked",
       "type" : "int"
     }, {
-      "name" : "key",
-      "type" : "IdentifyKey"
+      "name" : "keys",
+      "type" : {
+        "type" : "array",
+        "items" : "IdentifyKey"
+      }
     }, {
       "name" : "proofs",
       "type" : {
