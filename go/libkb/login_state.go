@@ -279,7 +279,7 @@ func (s *LoginState) PubkeyLogin(name string, ui SecretUI) (err error) {
 
 	G.Log.Debug("+ PubkeyLogin()")
 	defer func() {
-		if err != nil || G.SecretSyncer != nil {
+		if err != nil && G.SecretSyncer != nil {
 			G.SecretSyncer.Clear()
 		}
 		G.Log.Debug("- PubkeyLogin() -> %s", ErrToOk(err))
