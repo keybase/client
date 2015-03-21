@@ -19,6 +19,7 @@ type Identify struct {
 type IdentifyArg struct {
 	TargetUsername string // The user being identified, leave blank to identify self
 	WithTracking   bool   // true if want tracking statement for logged in user on TargetUsername
+	AllowSelf      bool   // if we're allowed to id/track ourself
 
 	// When tracking is being performed, the identify engine is used with a tracking ui.
 	// These options are sent to the ui based on command line options.
@@ -30,6 +31,7 @@ func NewIdentifyArg(targetUsername string, withTracking bool) *IdentifyArg {
 	return &IdentifyArg{
 		TargetUsername: targetUsername,
 		WithTracking:   withTracking,
+		AllowSelf:      true,
 	}
 }
 
@@ -38,6 +40,7 @@ func NewIdentifyTrackArg(targetUsername string, withTracking bool, options Track
 		TargetUsername: targetUsername,
 		WithTracking:   withTracking,
 		TrackOptions:   options,
+		AllowSelf:      false,
 	}
 }
 
@@ -134,10 +137,11 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	res := libkb.NewIdentifyOutcome(e.arg.WithTracking)
 	is := libkb.NewIdentifyState(res, e.user)
 
+	if e.me != nil && e.user.Equal(*e.me) && !e.arg.AllowSelf {
+		return nil, libkb.SelfTrackError{}
+	}
+
 	if e.arg.WithTracking {
-		if e.user.Equal(*e.me) {
-			return nil, libkb.SelfTrackError{}
-		}
 
 		tlink, err := e.me.GetTrackingStatementFor(e.user.GetName(), e.user.GetUid())
 		if err != nil {
