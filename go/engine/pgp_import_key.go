@@ -192,7 +192,7 @@ func (s *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 	}
 
 	G.Log.Debug("| WriteKey")
-	if s.arg.NoSave {
+	if s.arg.NoSave || !s.bundle.HasSecretKey() {
 	} else if err = s.saveLKS(ctx); err != nil {
 		return
 	}

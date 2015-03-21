@@ -4,21 +4,21 @@ import (
 	"fmt"
 
 	"github.com/codegangsta/cli"
-	// "github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	// "os"
+	"io/ioutil"
 )
 
 func NewCmdPGPImport(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "export",
-		Usage:       "keybase pgp export [-o <file>] [-q <query>] [-s]",
-		Description: "export a PGP key from keybase",
+		Name:        "import",
+		Usage:       "keybase pgp import [-o <file>] [-q <query>] [-s]",
+		Description: "import a PGP key into keybase (and sign into key ring)",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPExport{}, "export", c)
+			cl.ChooseCommand(&CmdPGPImport{}, "import", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -54,21 +54,46 @@ func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPImport) RunClient() (err error) {
-	// var cli keybase_1.PgpClient
+	var cli keybase_1.PgpClient
+
+	if err = s.readKeyData(); err != nil {
+		return
+	}
+
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 
-	if _, err = GetPGPClient(); err != nil {
+	if cli, err = GetPGPClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
+		err = cli.PgpImport(s.arg)
 	}
 	return err
 }
 
 func (s *CmdPGPImport) Run() (err error) {
-	return err
+	ctx := engine.Context{
+		SecretUI: G_UI.GetSecretUI(),
+		LogUI:    G_UI.GetLogUI(),
+	}
+	if err = s.readKeyData(); err != nil {
+		return
+	}
+	eng := engine.NewPGPSave(s.arg.Key, s.arg.PushPrivate)
+	return engine.RunEngine(eng, &ctx)
+}
+
+func (s *CmdPGPImport) readKeyData() (err error) {
+	var src Source
+	if src, err = initSource("", s.infile); err != nil {
+	} else if err = src.Open(); err != nil {
+	} else {
+		s.arg.Key, err = ioutil.ReadAll(src)
+	}
+	src.Close()
+	return
 }
 
 func (v *CmdPGPImport) GetUsage() libkb.Usage {

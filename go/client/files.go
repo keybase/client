@@ -206,18 +206,25 @@ func initSink(fn string) Sink {
 	return ret
 }
 
-func (u *UnixFilter) FilterInit(msg, infile, outfile string) error {
+func initSource(msg, infile string) (src Source, err error) {
 	if len(msg) > 0 && len(infile) > 0 {
-		return fmt.Errorf("Can't handle both a passed message and an infile")
+		err = fmt.Errorf("Can't handle both a passed message and an infile")
 	} else if len(msg) > 0 {
-		u.source = NewBufferSource(msg)
+		src = NewBufferSource(msg)
 	} else if len(infile) == 0 || infile == "-" {
-		u.source = &StdinSource{}
+		src = &StdinSource{}
 	} else {
-		u.source = NewFileSource(infile)
+		src = NewFileSource(infile)
 	}
-	u.sink = initSink(outfile)
-	return nil
+	return
+}
+
+func (u *UnixFilter) FilterInit(msg, infile, outfile string) (err error) {
+	u.source, err = initSource(msg, infile)
+	if err == nil {
+		u.sink = initSink(outfile)
+	}
+	return err
 }
 
 func (u *UnixFilter) FilterOpen() error {

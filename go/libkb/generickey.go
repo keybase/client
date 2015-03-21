@@ -24,6 +24,7 @@ type GenericKey interface {
 	VerboseDescription() string
 	CheckSecretKey() error
 	CanSign() bool
+	HasSecretKey() bool
 	Encode() (string, error) // encode public key to string
 }
 

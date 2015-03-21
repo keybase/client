@@ -205,6 +205,10 @@ func (k NaclSigningKeyPair) CheckSecretKey() (err error) {
 	return
 }
 
+func (k NaclSigningKeyPair) HasSecretKey() bool {
+	return k.Private != nil
+}
+
 func (k NaclSigningKeyPair) Encode() (s string, err error) {
 	s = k.GetKid().String()
 	return
@@ -220,6 +224,10 @@ func (k NaclDHKeyPair) CheckSecretKey() (err error) {
 		err = NoSecretKeyError{}
 	}
 	return
+}
+
+func (k NaclDHKeyPair) HasSecretKey() bool {
+	return k.Private != nil
 }
 
 func (k NaclSigningKeyPair) CanSign() bool { return k.Private != nil }

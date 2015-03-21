@@ -297,6 +297,10 @@ func (k PgpKeyBundle) UsersDescription() []string {
 	return []string{"user: " + s}
 }
 
+func (k *PgpKeyBundle) HasSecretKey() bool {
+	return k.PrivateKey != nil
+}
+
 func (k *PgpKeyBundle) CheckSecretKey() (err error) {
 	if k.PrivateKey == nil {
 		err = NoSecretKeyError{}

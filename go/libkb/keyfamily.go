@@ -825,7 +825,11 @@ func (ckf ComputedKeyFamily) DumpToLog(ui LogUI) {
 	}
 
 	for k, v := range ckf.cki.Devices {
-		ui.Info("Device %s [%s] %q", k, v.Type, *v.Description)
+		var desc string
+		if v.Description != nil {
+			desc = " " + *v.Description
+		}
+		ui.Info("Device %s [%s]%s", k, v.Type, desc)
 		kid, err := ImportKID(*v.Kid)
 		if err != nil {
 			ui.Info("    error finding sibkey: %q", err)
