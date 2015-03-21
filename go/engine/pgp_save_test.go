@@ -22,7 +22,7 @@ func TestPGPImportAndExport(t *testing.T) {
 
 	// try all four permutations of push options:
 
-	key := armorKey(t, tc, u.Email)
+	fp, key := armorKey(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), false)
 	if err != nil {
 		t.Fatal(err)
@@ -31,7 +31,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	key = armorKey(t, tc, u.Email)
+	fp, key = armorKey(t, tc, u.Email)
 	eng, err = NewPGPKeyImportEngineFromBytes([]byte(key), true)
 	if err != nil {
 		t.Fatal(err)
