@@ -81,7 +81,10 @@ func (s *CmdPGPImport) Run() (err error) {
 	if err = s.readKeyData(); err != nil {
 		return
 	}
-	eng := engine.NewPGPSave(s.arg.Key, s.arg.PushPrivate)
+	var eng *engine.PGPKeyImportEngine
+	if eng, err = engine.NewPGPKeyImportEngineFromBytes(s.arg.Key, s.arg.PushPrivate); err != nil {
+		return
+	}
 	return engine.RunEngine(eng, &ctx)
 }
 
