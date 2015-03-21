@@ -135,7 +135,7 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	}
 
 	if err := bundle.Unlock("Import of key into keybase keyring", ctx.SecretUI); err != nil {
-		return fmt.Errorf("bundle Unlock error: %s", err)
+		return err
 	}
 
 	G.Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
