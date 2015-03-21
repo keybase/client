@@ -278,7 +278,12 @@ func (s *LoginState) PubkeyLogin(name string, ui SecretUI) (err error) {
 	var uc *UserConfig
 
 	G.Log.Debug("+ PubkeyLogin()")
-	defer func() { G.Log.Debug("- PubkeyLogin() -> %s", ErrToOk(err)) }()
+	defer func() {
+		if err != nil || G.SecretSyncer != nil {
+			G.SecretSyncer.Clear()
+		}
+		G.Log.Debug("- PubkeyLogin() -> %s", ErrToOk(err))
+	}()
 
 	if len(name) == 0 {
 		if uc, err = G.Env.GetConfig().GetUserConfig(); err != nil {

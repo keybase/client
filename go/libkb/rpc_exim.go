@@ -180,7 +180,7 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 		case SC_ALREADY_LOGGED_IN:
 			return LoggedInError{}
 		case SC_CANCELED:
-			return CanceledError{}
+			return CanceledError{s.Desc}
 		case SC_KEY_NO_SECRET:
 			return NoSecretKeyError{}
 		case SC_LOGIN_REQUIRED:
