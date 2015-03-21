@@ -246,7 +246,7 @@
         "name" : "key",
         "type" : "bytes"
       }, {
-        "name" : "pushPrivate",
+        "name" : "pushSecret",
         "type" : "boolean"
       } ],
       "response" : "null"

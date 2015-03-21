@@ -43,7 +43,7 @@ func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	s.arg.PushPrivate = ctx.Bool("push-secret")
+	s.arg.PushSecret = ctx.Bool("push-secret")
 	s.infile = ctx.String("infile")
 
 	if nargs > 0 {
@@ -82,7 +82,7 @@ func (s *CmdPGPImport) Run() (err error) {
 		return
 	}
 	var eng *engine.PGPKeyImportEngine
-	if eng, err = engine.NewPGPKeyImportEngineFromBytes(s.arg.Key, s.arg.PushPrivate); err != nil {
+	if eng, err = engine.NewPGPKeyImportEngineFromBytes(s.arg.Key, s.arg.PushSecret); err != nil {
 		return
 	}
 	return engine.RunEngine(eng, &ctx)

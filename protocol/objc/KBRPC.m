@@ -502,8 +502,8 @@
   }];
 }
 
-- (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushPrivate:(BOOL)pushPrivate completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"key": KBRValue(key), @"pushPrivate": @(pushPrivate)}];
+- (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"key": KBRValue(key), @"pushSecret": @(pushSecret)}];
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpImport" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1319,7 +1319,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.key = params[0][@"key"];
-    self.pushPrivate = [params[0][@"pushPrivate"] boolValue];
+    self.pushSecret = [params[0][@"pushSecret"] boolValue];
   }
   return self;
 }

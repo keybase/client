@@ -1204,9 +1204,9 @@ type PgpEncryptArg struct {
 }
 
 type PgpImportArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	Key         []byte `codec:"key" json:"key"`
-	PushPrivate bool   `codec:"pushPrivate" json:"pushPrivate"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Key        []byte `codec:"key" json:"key"`
+	PushSecret bool   `codec:"pushSecret" json:"pushSecret"`
 }
 
 type PgpExportArg struct {
