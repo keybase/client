@@ -16,12 +16,6 @@ protocol Common {
 
 	fixed UID(16);
 
-	record LoadUserArg {
-		union { null, UID } uid;
-		union { null, string} username;
-		boolean self;
-	}
-
 	record FOKID {
 		union { null, bytes } pgpFingerprint;
 		union { null, bytes } kid;
@@ -44,10 +38,19 @@ protocol Common {
 		int height;
 	}
 
+	record PublicKey {
+		FOKID fokid;
+		string role; // "sib" or "sub"
+		string deviceDescription;
+		long cTime;
+		long eTime;
+	}
+
 	record User {
 		UID uid;
 		string username;
 		union { null, Image } image;
+		array<PublicKey> publicKeys;
 	}
 
 	record Device {

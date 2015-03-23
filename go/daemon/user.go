@@ -83,3 +83,22 @@ func (h *UserHandler) ListTrackingJson(arg keybase_1.ListTrackingJsonArg) (res s
 	res = eng.JsonResult()
 	return
 }
+
+func (h *UserHandler) LoadUser(arg keybase_1.LoadUserArg) (user keybase_1.User, err error) {
+	var uid *libkb.UID = nil
+	if arg.Uid != nil {
+		uidVal := libkb.ImportUID(*arg.Uid)
+		uid = &uidVal
+	}
+	userObj, err := libkb.LoadUser(libkb.LoadUserArg{
+		Uid:  uid,
+		Name: arg.Username,
+		Self: arg.Self,
+	})
+	if err != nil {
+		return
+	}
+	exportedUser := userObj.Export()
+	user = *exportedUser
+	return
+}

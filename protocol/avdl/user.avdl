@@ -52,6 +52,12 @@ protocol user {
 	// if len(uids) > 500, the first 500 will be returned.
 	array<UserSummary> loadUncheckedUserSummaries(array<UID> uids);
 	
+	// Load a single user from the server, and verify key family data. This can
+	// be expensive, thus the single UID argument instead of an array.
+	User loadUser(union{null, UID} uid, string username, boolean self);
+
+	// The list-tracking function get verified data from the tracking statements
+	// in the user's own sigchain.
 	array<UserSummary> listTracking(string filter);
 	string listTrackingJson(string filter, boolean verbose);
 }

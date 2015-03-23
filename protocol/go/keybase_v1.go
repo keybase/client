@@ -21,12 +21,6 @@ type Status struct {
 }
 
 type UID [16]byte
-type LoadUserArg struct {
-	Uid      *UID    `codec:"uid,omitempty" json:"uid"`
-	Username *string `codec:"username,omitempty" json:"username"`
-	Self     bool    `codec:"self" json:"self"`
-}
-
 type FOKID struct {
 	PgpFingerprint *[]byte `codec:"pgpFingerprint,omitempty" json:"pgpFingerprint"`
 	Kid            *[]byte `codec:"kid,omitempty" json:"kid"`
@@ -49,10 +43,19 @@ type Image struct {
 	Height int    `codec:"height" json:"height"`
 }
 
+type PublicKey struct {
+	Fokid             FOKID  `codec:"fokid" json:"fokid"`
+	Role              string `codec:"role" json:"role"`
+	DeviceDescription string `codec:"deviceDescription" json:"deviceDescription"`
+	CTime             int64  `codec:"cTime" json:"cTime"`
+	ETime             int64  `codec:"eTime" json:"eTime"`
+}
+
 type User struct {
-	Uid      UID    `codec:"uid" json:"uid"`
-	Username string `codec:"username" json:"username"`
-	Image    *Image `codec:"image,omitempty" json:"image"`
+	Uid        UID         `codec:"uid" json:"uid"`
+	Username   string      `codec:"username" json:"username"`
+	Image      *Image      `codec:"image,omitempty" json:"image"`
+	PublicKeys []PublicKey `codec:"publicKeys" json:"publicKeys"`
 }
 
 type Device struct {
@@ -2070,6 +2073,12 @@ type LoadUncheckedUserSummariesArg struct {
 	Uids []UID `codec:"uids" json:"uids"`
 }
 
+type LoadUserArg struct {
+	Uid      *UID   `codec:"uid,omitempty" json:"uid"`
+	Username string `codec:"username" json:"username"`
+	Self     bool   `codec:"self" json:"self"`
+}
+
 type ListTrackingArg struct {
 	Filter string `codec:"filter" json:"filter"`
 }
@@ -2084,6 +2093,7 @@ type UserInterface interface {
 	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
 	ListTrackersSelf(int) ([]Tracker, error)
 	LoadUncheckedUserSummaries([]UID) ([]UserSummary, error)
+	LoadUser(LoadUserArg) (User, error)
 	ListTracking(string) ([]UserSummary, error)
 	ListTrackingJson(ListTrackingJsonArg) (string, error)
 }
@@ -2117,6 +2127,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]LoadUncheckedUserSummariesArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoadUncheckedUserSummaries(args[0].Uids)
+				}
+				return
+			},
+			"loadUser": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoadUserArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.LoadUser(args[0])
 				}
 				return
 			},
@@ -2162,6 +2179,11 @@ func (c UserClient) ListTrackersSelf(sessionID int) (res []Tracker, err error) {
 func (c UserClient) LoadUncheckedUserSummaries(uids []UID) (res []UserSummary, err error) {
 	__arg := LoadUncheckedUserSummariesArg{Uids: uids}
 	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadUser(__arg LoadUserArg) (res User, err error) {
+	err = c.Cli.Call("keybase.1.user.loadUser", []interface{}{__arg}, &res)
 	return
 }
 

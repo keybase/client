@@ -760,6 +760,15 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeysKIDs() (ret []KID) {
 	return
 }
 
+func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
+	for _, skr := range ckf.kf.Subkeys {
+		if ckf.getKeyRoleFromStr(skr.Kid) == DLG_SUBKEY && skr.key != nil {
+			ret = append(ret, skr.key)
+		}
+	}
+	return
+}
+
 // HasActiveKey returns if the given ComputeKeyFamily has any active keys.
 // The key has to be in the server-given KeyFamily and also in our ComputedKeyFamily.
 // The former check is so that we can handle the case nuked sigchains.

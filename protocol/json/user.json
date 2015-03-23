@@ -36,19 +36,6 @@
     "size" : 16
   }, {
     "type" : "record",
-    "name" : "LoadUserArg",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : [ "null", "UID" ]
-    }, {
-      "name" : "username",
-      "type" : [ "null", "string" ]
-    }, {
-      "name" : "self",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "FOKID",
     "fields" : [ {
       "name" : "pgpFingerprint",
@@ -95,6 +82,25 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "PublicKey",
+    "fields" : [ {
+      "name" : "fokid",
+      "type" : "FOKID"
+    }, {
+      "name" : "role",
+      "type" : "string"
+    }, {
+      "name" : "deviceDescription",
+      "type" : "string"
+    }, {
+      "name" : "cTime",
+      "type" : "long"
+    }, {
+      "name" : "eTime",
+      "type" : "long"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "User",
     "fields" : [ {
       "name" : "uid",
@@ -105,6 +111,12 @@
     }, {
       "name" : "image",
       "type" : [ "null", "Image" ]
+    }, {
+      "name" : "publicKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
     } ]
   }, {
     "type" : "record",
@@ -285,6 +297,19 @@
         "type" : "array",
         "items" : "UserSummary"
       }
+    },
+    "loadUser" : {
+      "request" : [ {
+        "name" : "uid",
+        "type" : [ "null", "UID" ]
+      }, {
+        "name" : "username",
+        "type" : "string"
+      }, {
+        "name" : "self",
+        "type" : "boolean"
+      } ],
+      "response" : "User"
     },
     "listTracking" : {
       "request" : [ {

@@ -3,6 +3,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 	"sort"
@@ -495,11 +496,66 @@ func ImportUIDs(v []keybase_1.UID) UIDs {
 	return ret
 }
 
+// Interface for sorting a list of PublicKeys
+
+type PublicKeyList []keybase_1.PublicKey
+
+func (l PublicKeyList) Len() int { return len(l) }
+func (l PublicKeyList) Less(i, j int) bool {
+	if l[i].CTime != l[j].CTime {
+		return l[i].CTime < l[j].CTime
+	}
+	leftKID := hex.EncodeToString(*l[i].Fokid.Kid)
+	rightKID := hex.EncodeToString(*l[j].Fokid.Kid)
+	return leftKID < rightKID
+}
+func (l PublicKeyList) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
+
+func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
+	exportedKeys := []keybase_1.PublicKey{}
+	addKey := func(key GenericKey) {
+		kid := key.GetKid().String()
+		cki := ckf.cki.Infos[kid]
+		role := "sub"
+		if cki.Sibkey {
+			role = "sib"
+		}
+		deviceID := ckf.cki.KidToDeviceId[kid]
+		deviceDescription := ""
+		if device := ckf.cki.Devices[deviceID]; device != nil {
+			if device.Description != nil {
+				deviceDescription = *device.Description
+			}
+		}
+		fokid := GenericKeyToFOKID(key)
+		exportedKeys = append(exportedKeys, keybase_1.PublicKey{
+			Fokid:             (&fokid).Export(),
+			Role:              role,
+			DeviceDescription: deviceDescription,
+			CTime:             cki.CTime,
+			ETime:             cki.ETime,
+		})
+	}
+	for _, sibkey := range ckf.GetAllActiveSibkeys() {
+		addKey(sibkey)
+	}
+	for _, subkey := range ckf.GetAllActiveSubkeys() {
+		addKey(subkey)
+	}
+	sort.Sort(PublicKeyList(exportedKeys))
+	return exportedKeys
+}
+
 func (u *User) Export() *keybase_1.User {
+	publicKeys := []keybase_1.PublicKey{}
+	if u.GetComputedKeyFamily() != nil {
+		publicKeys = u.GetComputedKeyFamily().Export()
+	}
 	return &keybase_1.User{
-		Uid:      keybase_1.UID(u.GetUid()),
-		Username: u.GetName(),
-		Image:    u.Image,
+		Uid:        keybase_1.UID(u.GetUid()),
+		Username:   u.GetName(),
+		Image:      u.Image,
+		PublicKeys: publicKeys,
 	}
 }
 
