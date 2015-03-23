@@ -78,7 +78,7 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase_1.FOKID, *keybase_1.T
 
 	for _, fp := range found {
 		var diff TrackDiff
-		if !tracked_map[fp] {
+		if s.Track != nil && !tracked_map[fp] {
 			diff = TrackDiffNew{}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 		} else {

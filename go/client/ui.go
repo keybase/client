@@ -131,7 +131,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 	if ntf > 0 || nd > 0 {
 		prompt = "Your tracking statement of " + un + " is broken; fix it?"
 		def = PromptDefaultNo
-	} else if ntc > 0 {
+	} else if tracked && ntc > 0 {
 		prompt = "Your tracking statement of " + un +
 			"is still valid; update it to reflect new proofs?"
 		def = PromptDefaultYes
