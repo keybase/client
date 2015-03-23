@@ -14,7 +14,7 @@
 
 @interface KBUserHeaderView : YOView
 
-- (void)setUser:(KBRUser *)user;
+- (void)setUsername:(NSString *)username;
 
 - (void)setProgressEnabled:(BOOL)progressEnabled;
 

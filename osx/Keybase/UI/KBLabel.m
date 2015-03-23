@@ -58,7 +58,7 @@
 
 // Don't capture mouse events unless we are selectable
 - (NSView *)hitTest:(NSPoint)p {
-  if (_textView.selectable) return _textView;
+  if (_textView.selectable) return [_textView hitTest:[self convertPoint:p fromView:self]];
   return nil;
 }
 

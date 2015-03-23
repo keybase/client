@@ -23,6 +23,7 @@
 #import "KBKeyImportView.h"
 #import "KBSecretWordsView.h"
 #import "KBSecretWordsInputView.h"
+#import "KBPGPEncryptView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -38,8 +39,7 @@
 
   _mockClient = [[KBRMockClient alloc] init];
 
-  YOVBox *contentView = [YOVBox box:@{@"spacing": @(4), @"insets": @(20)}];
-  //YOVBox *contentView = [YOVBox box:@{@"spacing": @(4), @"insets": @[@(20), @(20), @(20), @(20)]}];
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @"4", @"insets": @"20"}];
   [contentView addSubview:[KBLabel labelWithText:@"Style Guides" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBButton linkWithText:@"Style Guide" targetBlock:^{ [self showStyleGuide]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
@@ -56,24 +56,30 @@
   [contentView addSubview:[KBButton linkWithText:@"Secret Words" targetBlock:^{ [self showSecretWords]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Secret Words (Input)" targetBlock:^{ [self showSecretWordsInput]; }]];
 
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
+
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"Progress" targetBlock:^{ [self showProgressView:1 error:NO]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Progress (error)" targetBlock:^{ [self showProgressView:0 error:YES]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Encrypt" targetBlock:^{ [self showPGPEncrypt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track" targetBlock:^{ [self showTrack]; }]];
+
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
+  [contentView addSubview:[KBButton linkWithText:@"Progress" targetBlock:^{ [self showProgressView:1 error:NO]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Progress (error)" targetBlock:^{ [self showProgressView:0 error:YES]; }]];
   [contentView addSubview:[KBLabel labelWithText:@"Error Handling" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBButton linkWithText:@"Error" targetBlock:^{ [self showError]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Fatal" targetBlock:^{ [self showFatalError]; }]];
+
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBLabel labelWithText:@"Prompts" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBButton linkWithText:@"Password (Input)" targetBlock:^{ [self prompt:@"password"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Input" targetBlock:^{ [self prompt:@"input"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Yes/No" targetBlock:^{ [self prompt:@"yes_no"]; }]];
+
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [self setDocumentView:contentView];
@@ -96,15 +102,14 @@
   [self openInWindow:view size:CGSizeMake(360, 420) title:@"Prove"];
 }
 
+- (void)setError:(NSError *)error {
+  [[NSAlert alertWithError:error] beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse returnCode) {
+  }];
+}
+
 - (NSWindow *)openInWindow:(KBContentView *)view size:(CGSize)size title:(NSString *)title {
   view.client = self.mockClient;
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
-  window.styleMask = window.styleMask | NSResizableWindowMask;
-  [window center];
-  [window setFrameOrigin:self.window.frame.origin];
-  [window makeKeyAndOrderFront:nil];
-  return window;
+  return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
 }
 
 - (void)prompt:(NSString *)type {
@@ -130,9 +135,8 @@
   [window setLevel:NSFloatingWindowLevel];
 
   KBRMockClient *mockClient = [[KBRMockClient alloc] init];
-  KBRUser *user = [[KBRUser alloc] initWithDictionary:@{@"username": @"gabrielh"} error:nil];
   userProfileView.client = mockClient;
-  [userProfileView setUser:user editable:NO];
+  [userProfileView setUsername:@"test" editable:NO];
 }
 
 - (void)showSelectKey {
@@ -236,6 +240,11 @@
     [[sender window] close];
   };
   [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:nil];
+}
+
+- (void)showPGPEncrypt {
+  KBPGPEncryptView *encryptView = [[KBPGPEncryptView alloc] init];
+  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Encrypt"];
 }
 
 - (void)showError {

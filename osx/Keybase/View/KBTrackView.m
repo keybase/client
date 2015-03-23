@@ -11,10 +11,10 @@
 @interface KBTrackView ()
 @property KBLabel *label;
 //@property NSPopUpButton *trackOptionsView;
-//@property KBButton *skipButton;
 @property KBButton *button;
+@property KBButton *skipButton;
 
-@property KBRUser *user;
+@property NSString *username;
 @property (copy) KBTrackResponseBlock trackResponse;
 
 @property BOOL trackPrompt; // Whether we prompted to track
@@ -56,12 +56,12 @@
   [self addSubview:_button];
   _button.hidden = YES;
 
-//  _skipButton = [KBButton buttonWithText:@"No, Skip" style:KBButtonStyleLink];
-//  _skipButton.hidden = YES;
-//  _skipButton.targetBlock = ^{
-//    gself.trackResponse(nil);
-//  };
-//  [self addSubview:_skipButton];
+  _skipButton = [KBButton buttonWithText:@"No, Skip" style:KBButtonStyleDefault];
+  _skipButton.targetBlock = ^{
+    gself.trackResponse([[KBRFinishAndPromptRes alloc] init]);
+  };
+  [self addSubview:_skipButton];
+  _skipButton.hidden = YES;
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -76,9 +76,9 @@
       [layout sizeToFitVerticalInFrame:CGRectMake(50, y, 200, 0) view:yself.button];
     }
 
-//    if (!yself.skipButton.hidden) {
-//      [layout sizeToFitVerticalInFrame:CGRectMake(270, y + 12, 100, 0) view:yself.skipButton];
-//    }
+    if (!yself.skipButton.hidden) {
+      [layout sizeToFitVerticalInFrame:CGRectMake(270, y, 100, 0) view:yself.skipButton];
+    }
 
     y += 60;
 
@@ -109,18 +109,18 @@
     [_button setText:@"Yes, Track" style:KBButtonStylePrimary alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   }
 
-//  _skipButton.hidden = !popup;
+  _skipButton.hidden = !popup;
   _button.hidden = NO;
 }
 
-- (BOOL)setUser:(KBRUser *)user popup:(BOOL)popup identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse {
-  _user = user;
+- (BOOL)setUsername:(NSString *)username popup:(BOOL)popup identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse {
+  _username = username;
   _trackResponse = trackResponse;
 
 //  [_trackOptionsView removeAllItems];
 //  _trackOptionsView.hidden = YES;
   _button.hidden = YES;
-//  _skipButton.hidden = YES;
+  _skipButton.hidden = YES;
 
   _trackPrompt = NO;
 
@@ -147,13 +147,13 @@
   } else if (tracked && identifyOutcome.numTrackChanges == 0) {
     // Your tracking statement is up-to-date
     //NSDate *trackDate =  [NSDate gh_parseTimeSinceEpoch:@(identifyOutcome.trackUsed.time) withDefault:nil];
-    [_label setMarkup:NSStringWithFormat(@"Your tracking statement of %@ is up to date.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Your tracking statement of %@ is up to date.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else if (identifyOutcome.numProofFailures > 0) {
     // Some proofs failed
     [_label setMarkup:@"Oops, some proofs failed." font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance warnColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else {
     //[self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong> <em>This is recommended.</em>", _user.username) color:[KBAppearance.currentAppearance textColor] update:NO];
-    [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong>", _user.username) color:[KBAppearance.currentAppearance textColor] popup:popup update:NO];
+    [self enableTracking:NSStringWithFormat(@"<strong>Publicly track \"%@\"?</strong>", _username) color:[KBAppearance.currentAppearance textColor] popup:popup update:NO];
     _trackPrompt = YES;
   }
 
@@ -164,11 +164,11 @@
   if (!_trackPrompt) return NO;
 
   if (error) {
-    [_label setMarkup:NSStringWithFormat(@"There was an error tracking %@. (%@)", _user.username, error.localizedDescription) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance errorColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"There was an error tracking %@. (%@)", _username, error.localizedDescription) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance errorColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else if (!_trackOptions) {
-    [_label setMarkup:NSStringWithFormat(@"Ok, we skipped tracking %@.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Ok, we skipped tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else {
-    [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _user.username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+    [_label setMarkup:NSStringWithFormat(@"Success! You are now tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   }
   //_trackOptionsView.hidden = YES;
   _button.hidden = YES;

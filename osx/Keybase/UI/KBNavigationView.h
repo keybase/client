@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import <YOLayout/YOLayout.h>
+#import "KBAppKitDefines.h"
 
 typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
   KBNavigationTransitionTypeNone,
@@ -29,10 +30,10 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 
 @property (nonatomic) NSView<KBNavigationTitleView> *titleView;
 @property (readonly) NSMutableArray *views; // Fix mutable
+@property (getter=isProgressEnabled) BOOL progressEnabled;
+@property (copy) KBErrorHandler errorHandler;
 
 - (instancetype)initWithView:(NSView *)view title:(NSString *)title;
-
-- (void)setProgressEnabled:(BOOL)progressEnabled;
 
 - (void)pushView:(NSView *)view animated:(BOOL)animated;
 
@@ -45,5 +46,7 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 + (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews;
 
 + (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size title:(NSString *)title sender:(id)sender;
+
+- (BOOL)setError:(NSError *)error sender:(id)sender;
 
 @end

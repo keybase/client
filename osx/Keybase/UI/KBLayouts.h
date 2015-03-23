@@ -12,10 +12,11 @@
 
 #import "KBButton.h"
 #import "KBAppearance.h"
+#import "KBAppKitDefines.h"
 
 @interface KBLayouts : NSObject
 
-+ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView margin:(UIEdgeInsets)margin padding:(CGFloat)padding maxSize:(CGSize)maxSize;
++ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView insets:(UIEdgeInsets)insets spacing:(CGFloat)spacing maxSize:(CGSize)maxSize;
 
 + (YOLayoutBlock)gridLayoutForViews:(NSArray *)views viewSize:(CGSize)viewSize padding:(CGFloat)padding;
 
@@ -24,18 +25,3 @@
 + (YOLayoutBlock)layoutForButton:(KBButton *)button cancelButton:(KBButton *)cancelButton horizontalAlignment:(KBHorizontalAlignment)horizontalAlignment;
 
 @end
-
-/*
-typedef NS_OPTIONS(NSUInteger, YOViewAutoresizing) {
-  YOViewAutoresizingNone                 = 0,
-  YOViewAutoresizingFlexibleWidth        = 1 << 1,
-  YOViewAutoresizingFlexibleHeight       = 1 << 4,
-};
-
-static inline YOViewAutoresizing YOViewAutoresizingMask(NSAutoresizingMaskOptions options) {
-  YOViewAutoresizing mask = 0;
-  if ((options & NSViewWidthSizable) != 0) mask |= YOViewAutoresizingFlexibleWidth;
-  if ((options & NSViewHeightSizable) != 0) mask |= YOViewAutoresizingFlexibleHeight;
-  return mask;
-}
-*/

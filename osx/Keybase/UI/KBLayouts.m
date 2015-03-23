@@ -18,25 +18,27 @@
   };
 }
 
-+ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView margin:(UIEdgeInsets)margin padding:(CGFloat)padding maxSize:(CGSize)maxSize {
++ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView topView:(id)topView bottomView:(id)bottomView insets:(UIEdgeInsets)insets spacing:(CGFloat)spacing maxSize:(CGSize)maxSize {
   return ^CGSize(id<YOLayout> layout, CGSize size) {
 
-    CGSize sizeWithMargin = CGSizeMake(size.width - margin.left - margin.right, size.height - margin.top - margin.bottom);
+    CGSize sizeInset = CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
 
-    CGSize topSize = [topView sizeThatFits:sizeWithMargin];
-    CGSize bottomSize = [bottomView sizeThatFits:sizeWithMargin];
+    CGSize topSize = [topView sizeThatFits:CGSizeMake(sizeInset.width, 0)];
+    CGSize bottomSize = [bottomView sizeThatFits:CGSizeMake(sizeInset.width, 0)];
 
-    CGFloat centerHeight = sizeWithMargin.height - topSize.height - bottomSize.height - (padding * 2);
+    CGFloat centerHeight = sizeInset.height - topSize.height - bottomSize.height;
+    if (topView) centerHeight -= spacing;
+    if (bottomView) centerHeight -= spacing;
 
-    CGFloat y = margin.top;
+    CGFloat y = insets.top;
     if (topView) {
-      y += [layout setFrame:CGRectMake(margin.left, y, topSize.width, topSize.height) view:topView].size.height + padding;
+      y += [layout setFrame:CGRectMake(insets.left, y, topSize.width, topSize.height) view:topView].size.height + spacing;
     }
 
-    y += [layout setFrame:CGRectMake(margin.left, y, sizeWithMargin.width, centerHeight) view:centerView].size.height + padding;
+    y += [layout setFrame:CGRectMake(insets.left, y, sizeInset.width, centerHeight) view:centerView].size.height + spacing;
 
     if (bottomView) {
-      y += [layout setFrame:CGRectMake(margin.left, y, bottomSize.width, bottomSize.height) view:bottomView].size.height;
+      y += [layout setFrame:CGRectMake(insets.left, y, bottomSize.width, bottomSize.height) view:bottomView].size.height;
     }
     
     return CGSizeMake(MIN(size.width, maxSize.width), MIN(size.height, maxSize.height));

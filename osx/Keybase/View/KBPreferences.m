@@ -31,7 +31,7 @@
     YOView *generalView = [[YOView alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
 
     YOVBox *advancedView = [[YOVBox alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
-    [advancedView setOptions:@{@"spacing": @(10), @"insets": @[@(20), @(40), @(20), @(40)]}];
+    [advancedView setOptions:@{@"spacing": @"10", @"insets": @"20,40,20,40"}];
     KBButton *recordCheckbox = [KBButton buttonWithText:@"Record RPC Calls" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     recordCheckbox.identifier = @"Preferences.Advanced.Record";
     recordCheckbox.state = [NSUserDefaults.standardUserDefaults boolForKey:recordCheckbox.identifier];

@@ -17,8 +17,10 @@
 
 @property (getter=isPopup) BOOL popup;
 
-- (void)setUser:(KBRUser *)user editable:(BOOL)editable;
+- (void)setUsername:(NSString *)username editable:(BOOL)editable;
 
 - (void)clear;
+
+- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender;
 
 @end

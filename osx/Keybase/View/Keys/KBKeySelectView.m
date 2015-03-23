@@ -26,28 +26,14 @@
   _keysView = [[KBGPGKeysView alloc] init];
   [self addSubview:_keysView];
 
-  YOView *footerView = [[YOView alloc] init];
-//  _pushCheckbox = [KBButton buttonWithText:@"Push encrypted copy to Keybase.io?" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-//  [footerView addSubview:_pushCheckbox];
-
+  YOView *footerView = [YOHBox box:@{@"spacing": @"10", @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
   [footerView addSubview:_cancelButton];
-
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
   [footerView addSubview:_selectButton];
-
-  YOSelf yself = self;
-  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGSize footerSize = [yself.selectButton sizeThatFits:size];
-    [layout setFrame:CGRectMake(size.width - 280, 0, 130, footerSize.height) view:yself.selectButton];
-    [layout setFrame:CGRectMake(size.width - 130, 0, 130, footerSize.height) view:yself.cancelButton];
-
-    //[layout sizeToFitVerticalInFrame:CGRectMake(20, 0, size.width - 340, footerSize.height) view:yself.pushCheckbox];
-    return CGSizeMake(size.width, footerSize.height);
-  }];
   [self addSubview:footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_keysView topView:nil bottomView:footerView margin:UIEdgeInsetsMake(20, 20, 0, 20) padding:20 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_keysView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
 }
 
 - (void)setGPGKeys:(NSArray *)GPGKeys completion:(MPRequestCompletion)completion {

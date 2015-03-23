@@ -255,7 +255,7 @@
   NSAssert(_user, @"No user");
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
   _userProfileView.client = _client;
-  [_userProfileView setUser:_user editable:YES];
+  [_userProfileView setUsername:_user.username editable:YES];
   [self setContentView:_userProfileView showSourceView:YES];
   [_sourceView selectItem:KBSourceViewItemProfile];
 }
@@ -296,7 +296,9 @@
 - (void)checkStatus:(KBCompletionBlock)completion {
   GHWeakSelf gself = self;
 
-  if (!completion) completion = ^(NSError *error) { if (error) [AppDelegate.sharedDelegate setFatalError:error]; };
+  if (!completion) completion = ^(NSError *error) {
+    if (error) [AppDelegate setError:error sender:self];
+  };
 
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {

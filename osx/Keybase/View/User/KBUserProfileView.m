@@ -31,10 +31,12 @@
 @property KBUserInfoView *userInfoView;
 @property KBTrackView *trackView;
 
-@property KBRUser *user;
+@property NSString *username;
 @property BOOL editable;
 
 @property KBRFOKID *fokid;
+
+@property BOOL inProgress;
 @end
 
 @implementation KBUserProfileView
@@ -100,10 +102,20 @@
   }];
 }
 
-- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId {
+- (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
   GHWeakSelf gself = self;
 
   [client registerMethod:@"keybase.1.identifyUi.start" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+
+    KBRStartRequestParams *requestParams = [[KBRStartRequestParams alloc] initWithParams:params];
+    gself.username = requestParams.username;
+    [gself.headerView setUsername:requestParams.username];
+
+    if (!self.window && self.popup) {
+      [self removeFromSuperview];
+      [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
+    }
+
     completion(nil, nil);
   }];
 
@@ -121,7 +133,6 @@
 
   [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLaunchNetworkChecksRequestParams *requestParams = [[KBRLaunchNetworkChecksRequestParams alloc] initWithParams:params];
-    [gself.headerView setUser:requestParams.user];
     [gself.userInfoView addProofs:requestParams.id.proofs editable:gself.editable targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofStatus.status != 1) {
         // Fix it?
@@ -178,8 +189,8 @@
 
     KBRFinishAndPromptRequestParams *requestParams = [[KBRFinishAndPromptRequestParams alloc] initWithParams:params];
     gself.trackView.hidden = NO;
-    BOOL trackPrompt = [gself.trackView setUser:gself.user popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
-      [KBNavigationView setProgressEnabled:YES subviews:gself.trackView.subviews];
+    BOOL trackPrompt = [gself.trackView setUsername:gself.username popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
+      [KBNavigationView setProgressEnabled:NO subviews:gself.trackView.subviews];
       [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{}];
       completion(nil, response);
     }];
@@ -192,23 +203,25 @@
   }];
 
   [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    // TODO Show this?
     completion(nil, nil);
   }];
 }
 
 - (void)reload {
-  //[self setUser:self.user editable:self.editable client:self.client];
+  [self setUsername:self.username editable:self.editable];
 }
 
-- (void)setUser:(KBRUser *)user editable:(BOOL)editable {
-  if ([_user.uid isEqualTo:user.uid]) return; // TODO what if user object is stale?
+- (void)setUsername:(NSString *)username editable:(BOOL)editable {
+  if ([_username isEqualToString:username] && _inProgress) return;
+  NSAssert(!_inProgress, @"In progress");
 
   [self clear];
 
-  _user = user;
+  _username = username;
   _editable = editable;
-  
-  [_headerView setUser:_user];
+
+  [_headerView setUsername:_username];
   _headerView.hidden = NO;
 
   GHWeakSelf gself = self;
@@ -216,18 +229,22 @@
   if (!_editable) {
     // For others
     [self.headerView setProgressEnabled:YES];
+    _inProgress = YES;
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
-    [self registerClient:self.client sessionId:trackRequest.sessionId];
-    [trackRequest trackWithSessionID:trackRequest.sessionId theirName:user.username localOnly:NO approveRemote:NO completion:^(NSError *error) {
+    [self registerClient:self.client sessionId:trackRequest.sessionId sender:nil];
+    [trackRequest trackWithSessionID:trackRequest.sessionId theirName:_username localOnly:NO approveRemote:NO completion:^(NSError *error) {
       [gself setTrackCompleted:error];
+      gself.inProgress = NO;
     }];
   } else {
     // For ourself
     [self.headerView setProgressEnabled:YES];
+    _inProgress = YES;
     KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
-    [self registerClient:self.client sessionId:identifyRequest.sessionId];
-    [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId username:user.username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+    [self registerClient:self.client sessionId:identifyRequest.sessionId sender:nil];
+    [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
       [gself.headerView setProgressEnabled:NO];
+      gself.inProgress = NO;
       if (error) {
         [AppDelegate setError:error sender:nil];
         return;
@@ -310,7 +327,7 @@
   KBKeyView *keyView = [[KBKeyView alloc] init];
   keyView.client = self.client;
   [keyView setKey:key];
-  //[self.window addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key"];
+  //[self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key"];
   dispatch_block_t close = [KBWindow openWindowWithView:keyView size:CGSizeMake(500, 400) sender:self];
 }
 

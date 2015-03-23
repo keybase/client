@@ -30,7 +30,7 @@
   _runtimeStatusView = [[KBRuntimeStatusView alloc] init];
   [self addSubview:_runtimeStatusView];
 
-  YOHBox *buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @[@(0), @(0), @(10), @(0)]}];
+  YOHBox *buttons = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,0,10,0"}];
   GHWeakSelf gself = self;
   _checkButton = [KBButton buttonWithText:@"Check Status" style:KBButtonStyleToolbar];
   _checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {

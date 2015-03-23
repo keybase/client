@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
+#import "KBAppKitDefines.h"
+
 typedef NS_ENUM (NSInteger, KBWindowPosition) {
   KBWindowPositionCenter,
   KBWindowPositionRight,
@@ -25,6 +27,6 @@ typedef NS_ENUM (NSInteger, KBWindowPosition) {
 
 @interface NSWindow (KBWindow)
 
-- (void)addChildWindowForView:(NSView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title;
+- (NSWindow *)kb_addChildWindowForView:(NSView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title errorHandler:(KBErrorHandler)errorHandler;
 
 @end

@@ -17,6 +17,7 @@
 #import "KBAppearance.h"
 #import "KBInstaller.h"
 #import "KBConsoleView.h"
+#import "KBPGPEncryptView.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -28,6 +29,8 @@
 // Debug
 @property KBConsoleView *consoleView;
 @property KBMockViews *mockViews;
+
+@property (copy) KBErrorHandler errorHandler;
 @end
 
 @implementation AppDelegate
@@ -39,15 +42,19 @@
     [AppDelegate setError:error sender:button];
   }];
 
+  self.errorHandler = ^(NSError *error, id sender) {
+    [AppDelegate setError:error sender:sender];
+  };
+
   _appView = [[KBAppView alloc] init];
   KBWindow *window = [_appView openWindow];
 
   _consoleView = [[KBConsoleView alloc] init];
-  [window addChildWindowForView:_consoleView rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionRight title:@"Console"];
+  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionRight title:@"Console" errorHandler:_errorHandler];
   _appView.delegate = _consoleView;
 
   _mockViews = [[KBMockViews alloc] init];
-  [window addChildWindowForView:_mockViews rect:CGRectMake(0, -510, 400, 500) position:KBWindowPositionRight title:@"Mocks"];
+  [window kb_addChildWindowForView:_mockViews rect:CGRectMake(0, -510, 400, 500) position:KBWindowPositionRight title:@"Mocks" errorHandler:_errorHandler];
 
   KBRPClient *client = [[KBRPClient alloc] init];
   [_appView connect:client];
@@ -123,12 +130,18 @@
   }];
 }
 
+- (IBAction)encrypt:(id)sender {
+  KBPGPEncryptView *encryptView = [[KBPGPEncryptView alloc] init];
+  encryptView.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" errorHandler:_errorHandler];
+}
+
 #pragma mark Error
 
 - (void)setFatalError:(NSError *)error {
   KBFatalErrorView *fatalErrorView = [[KBFatalErrorView alloc] init];
   [fatalErrorView setError:error];
-  [self.appView.window addChildWindowForView:fatalErrorView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Keybase"];
+  [self.appView.window kb_addChildWindowForView:fatalErrorView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Keybase" errorHandler:_errorHandler];
 }
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {

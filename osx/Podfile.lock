@@ -63,8 +63,12 @@ DEPENDENCIES:
   - ObjectiveSugar
   - Slash
   - Sparkle
-  - YOLayout/Box
+  - YOLayout/Box (from `~/Projects/YOLayout`)
   - ZXCVBN
+
+EXTERNAL SOURCES:
+  YOLayout:
+    :path: ~/Projects/YOLayout
 
 SPEC CHECKSUMS:
   AFNetworking: 8bee59492a6ff15d69130efa4d0dc67e0094a52a

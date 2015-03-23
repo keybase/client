@@ -22,7 +22,7 @@
   YOView *contentView = [[YOView alloc] init];
   [self addSubview:contentView];
 
-  YOVBox *topView = [YOVBox box:@{@"spacing":@(10), @"insets": YOBoxInsets(0, 10, 0, 10)}];
+  YOVBox *topView = [YOVBox box:@{@"spacing":@"10", @"insets": @"0,10,0,10"}];
   [contentView addSubview:topView];
   KBLabel *header = [[KBLabel alloc] init];
   [header setText:@"Device Setup" style:KBLabelStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
@@ -58,7 +58,7 @@
     return CGSizeMake(size.width, y);
   }];
 
-  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView margin:UIEdgeInsetsMake(20, 20, 20, 20) padding:20 maxSize:CGSizeMake(600, 450)]];
+  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(600, 450)]];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }

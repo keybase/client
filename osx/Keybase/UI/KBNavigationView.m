@@ -206,6 +206,19 @@
   [self.titleView setProgressEnabled:progressEnabled];
 }
 
+- (BOOL)isProgressEnabled {
+  return self.titleView.progressEnabled;
+}
+
+- (BOOL)setError:(NSError *)error sender:(id)sender {
+  if (error) {
+    self.progressEnabled = NO;
+    self.errorHandler(error, sender);
+    return YES;
+  }
+  return NO;
+}
+
 + (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews {
   for (NSView *view in subviews) {
     if ([view isKindOfClass:NSControl.class]) {

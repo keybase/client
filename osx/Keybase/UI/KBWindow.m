@@ -72,8 +72,9 @@
 
 @implementation NSWindow (KBWindow)
 
-- (void)addChildWindowForView:(NSView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title {
+- (NSWindow *)kb_addChildWindowForView:(NSView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title errorHandler:(KBErrorHandler)errorHandler {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
+  navigation.errorHandler = errorHandler;
   NSWindow *window = [KBWindow windowWithContentView:navigation size:rect.size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
 
@@ -94,6 +95,7 @@
   [window setFrameOrigin:p];
 
   [self addChildWindow:window ordered:NSWindowAbove];
+  return window;
 }
 
 @end

@@ -8,8 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBLabel.h"
+#import <YOLayout/YOLayout.h>
 
-// Alias
-@interface KBTextView : KBLabel
+@interface KBTextView : YOView
+
+@property (nonatomic) NSAttributedString *attributedText;
+@property (nonatomic) NSString *text;
+
 @end

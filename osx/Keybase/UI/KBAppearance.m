@@ -7,6 +7,7 @@
 //
 
 #import "KBAppearance.h"
+#import "KBAppKitDefines.h"
 
 @implementation KBAppearance
 

@@ -12,6 +12,7 @@
 #import <YOLayout/YOLayout.h>
 #import "KBAppearance.h"
 #import "KBBorder.h"
+#import "KBAppKitDefines.h"
 
 typedef NS_ENUM(NSInteger, KBLabelStyle) {
   KBLabelStyleNone,
@@ -29,6 +30,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property KBHorizontalAlignment horizontalAlignment;
 @property KBBorder *border;
 @property UIEdgeInsets insets;
+@property (readonly) NSTextView *textView;
 
 + (instancetype)label;
 + (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style;

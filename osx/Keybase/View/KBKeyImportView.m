@@ -154,13 +154,8 @@
     }
   };
 
-  if (_armored) {
-    KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
-    [request saveArmoredPGPKeyWithKey:_armored pushPublic:YES pushPrivate:NO completion:completion];
-  } else if (_data) {
-    KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
-    [request savePGPKeyWithKey:_data pushPublic:YES pushPrivate:NO completion:completion];
-  }
+  KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
+  [request pgpImportWithSessionID:request.sessionId key:_data pushPrivate:NO completion:completion];
 }
 
 @end

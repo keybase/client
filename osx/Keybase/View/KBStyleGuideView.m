@@ -21,7 +21,7 @@
   NSString *shortText = @"Street art Vice Kickstarter Odd Future Tumblr, Brooklyn Carles cronut wolf umami meggings actually bespoke.";
   NSString *longText = @"Portland pug normcore, heirloom meggings small batch skateboard next level vinyl drinking vinegar 90's messenger bag iPhone DIY blog. Polaroid +1 chia, direct trade art party ennui fixie. Listicle readymade fashion axe ethical, scenester irony American Apparel DIY XOXO.";
 
-  YOBox *contentView = [YOVBox box:@{@"spacing": @(10), @"insets": @(20)}];
+  YOBox *contentView = [YOVBox box:@{@"spacing": @"10", @"insets": @"20"}];
   [contentView setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   KBLabel *label1 = [[KBLabel alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];

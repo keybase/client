@@ -21,7 +21,7 @@
 
 @property KBActivityIndicatorView *progressView;
 
-@property (nonatomic) KBRUser *user;
+@property (nonatomic) NSString *username;
 @end
 
 
@@ -44,7 +44,7 @@
   _name2View.hidden = YES;
   GHWeakSelf gself = self;
   _name2View.targetBlock = ^ {
-    [AppDelegate.sharedDelegate openURLString:KBURLStringForUsername(gself.user.username) sender:gself];
+    [AppDelegate.sharedDelegate openURLString:KBURLStringForUsername(gself.username) sender:gself];
   };
   [self addSubview:_name2View];
 
@@ -78,9 +78,10 @@
   [_progressView setAnimating:progressEnabled];
 }
 
-- (void)setUser:(KBRUser *)user {
-  _user = user;
-  if (!user) {
+- (void)setUsername:(NSString *)username {
+  if ([_username isEqualToString:username]) return;
+  _username = username;
+  if (!_username) {
     _name1Label.attributedText = nil;
     _imageView.hidden = YES;
     _imageView.URLString = nil;
@@ -89,14 +90,14 @@
   }
 
   _imageView.hidden = NO;
-  [_name1Label setText:user.username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_name1Label setText:_username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
   _name2View.hidden = NO;
-  [_name2View setText:KBDisplayURLStringForUsername(user.username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_name2View setText:KBDisplayURLStringForUsername(_username) style:KBButtonStyleLink font:[NSFont systemFontOfSize:16] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];
 
-  self.imageView.username = user.username;
+  self.imageView.username = _username;
 
   [self setNeedsLayout];
 }
