@@ -53,6 +53,8 @@ func (g *GlobalContext) SKBFilenameForUser(un string) string {
 	return strings.Replace(tmp, token, un, -1)
 }
 
+// Note:  you need to be logged in as 'un' for this function to
+// work.  Otherwise, it just silently returns nil, nil.
 func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
 	k.Lock()
 	defer k.Unlock()

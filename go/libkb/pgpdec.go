@@ -6,13 +6,16 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-func PGPDecrypt(source io.Reader, sink io.Writer, keys []*PgpKeyBundle) error {
+func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PgpKeyBundle) error {
 	opkr := make(openpgp.EntityList, len(keys))
 	for i, k := range keys {
 		opkr[i] = (*openpgp.Entity)(k)
 	}
+	return PGPDecrypt(source, sink, opkr)
+}
 
-	md, err := openpgp.ReadMessage(source, opkr, nil, nil)
+func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) error {
+	md, err := openpgp.ReadMessage(source, kr, nil, nil)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/go-jsonw"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 //==================================================================
@@ -59,6 +60,10 @@ func _resolveUid(au AssertionUrl) ResolveResult {
 	}
 
 	ck := au.CacheKey()
+
+	if G.UserCache == nil {
+		return ResolveResult{}
+	}
 
 	if p := G.UserCache.GetResolution(ck); p != nil {
 		return *p
