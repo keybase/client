@@ -133,7 +133,7 @@ func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret key
 		def = PromptDefaultNo
 	} else if tracked && ntc > 0 {
 		prompt = "Your tracking statement of " + un +
-			"is still valid; update it to reflect new proofs?"
+			" is still valid; update it to reflect new proofs?"
 		def = PromptDefaultYes
 	} else if tracked && ntc == 0 {
 		G.Log.Info("Your tracking statement is up-to-date")
