@@ -229,10 +229,13 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	config *packet.Config) (in io.WriteCloser, err error, h HashSummer) {
 
 	var aout io.WriteCloser
+
+	// Fixme as per #48
 	aout, err = armor.Encode(out, "PGP MESSAGE", PgpArmorHeaders())
 	if err != nil {
 		return
 	}
+
 	hwc := HashingWriteCloser{aout, sha256.New()}
 	in, err = AttachedSign(hwc, signed, hints, config)
 	h = func() []byte { return hwc.hasher.Sum(nil) }
