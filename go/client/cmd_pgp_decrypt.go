@@ -2,8 +2,11 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
@@ -51,11 +54,49 @@ type CmdPGPDecrypt struct {
 }
 
 func (c *CmdPGPDecrypt) Run() error {
-	return nil
+	if err := c.FilterOpen(); err != nil {
+		return err
+	}
+	arg := &engine.PGPDecryptArg{
+		Source: c.source,
+		Sink:   c.sink,
+	}
+	ctx := &engine.Context{
+		SecretUI: G.UI.GetSecretUI(),
+	}
+	eng := engine.NewPGPDecrypt(arg)
+	err := engine.RunEngine(eng, ctx)
+
+	c.Close(err)
+	return err
 }
 
 func (c *CmdPGPDecrypt) RunClient() error {
-	return nil
+	cli, err := GetPGPClient()
+	if err != nil {
+		return err
+	}
+	protocols := []rpc2.Protocol{
+		NewStreamUiProtocol(),
+		NewSecretUIProtocol(),
+	}
+	if err := RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	snk, src, err := c.ClientFilterOpen()
+	if err != nil {
+		return err
+	}
+	opts := keybase_1.PgpDecryptOptions{
+		AssertSigned:  c.signed,
+		LocalOnly:     c.localOnly,
+		ApproveRemote: c.approveRemote,
+	}
+	arg := keybase_1.PgpDecryptArg{Source: src, Sink: snk, Opts: opts}
+	err = cli.PgpDecrypt(arg)
+
+	c.Close(err)
+	return err
 }
 
 func (c *CmdPGPDecrypt) ParseArgv(ctx *cli.Context) error {

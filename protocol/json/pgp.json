@@ -180,6 +180,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "PgpDecryptOptions",
+    "fields" : [ {
+      "name" : "assertSigned",
+      "type" : "boolean"
+    }, {
+      "name" : "localOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "approveRemote",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "FingerprintAndKey",
     "fields" : [ {
       "name" : "fingerprint",
@@ -235,6 +248,22 @@
       }, {
         "name" : "opts",
         "type" : "PgpEncryptOptions"
+      } ],
+      "response" : "null"
+    },
+    "pgpDecrypt" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "source",
+        "type" : "Stream"
+      }, {
+        "name" : "sink",
+        "type" : "Stream"
+      }, {
+        "name" : "opts",
+        "type" : "PgpDecryptOptions"
       } ],
       "response" : "null"
     },

@@ -34,6 +34,14 @@ protocol pgp {
 	}
 
 	void pgpEncrypt(int sessionID, Stream source, Stream sink, PgpEncryptOptions opts);
+	
+	record PgpDecryptOptions {
+		boolean assertSigned;
+		boolean localOnly; // store track locally only
+		boolean approveRemote;  // approve remote track without prompt
+	}
+
+	void pgpDecrypt(int sessionID, Stream source, Stream sink, PgpDecryptOptions opts);
 
 	void pgpImport(int sessionID, bytes key, boolean pushSecret);
 

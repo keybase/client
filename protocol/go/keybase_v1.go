@@ -1178,6 +1178,12 @@ type PgpEncryptOptions struct {
 	ApproveRemote bool     `codec:"approveRemote" json:"approveRemote"`
 }
 
+type PgpDecryptOptions struct {
+	AssertSigned  bool `codec:"assertSigned" json:"assertSigned"`
+	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
+	ApproveRemote bool `codec:"approveRemote" json:"approveRemote"`
+}
+
 type FingerprintAndKey struct {
 	Fingerprint string `codec:"fingerprint" json:"fingerprint"`
 	Key         string `codec:"key" json:"key"`
@@ -1203,6 +1209,13 @@ type PgpEncryptArg struct {
 	Opts      PgpEncryptOptions `codec:"opts" json:"opts"`
 }
 
+type PgpDecryptArg struct {
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	Source    Stream            `codec:"source" json:"source"`
+	Sink      Stream            `codec:"sink" json:"sink"`
+	Opts      PgpDecryptOptions `codec:"opts" json:"opts"`
+}
+
 type PgpImportArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Key        []byte `codec:"key" json:"key"`
@@ -1219,6 +1232,7 @@ type PgpInterface interface {
 	PgpSign(PgpSignArg) error
 	PgpPull(PgpPullArg) error
 	PgpEncrypt(PgpEncryptArg) error
+	PgpDecrypt(PgpDecryptArg) error
 	PgpImport(PgpImportArg) error
 	PgpExport(PgpExportArg) ([]FingerprintAndKey, error)
 }
@@ -1245,6 +1259,13 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				args := make([]PgpEncryptArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PgpEncrypt(args[0])
+				}
+				return
+			},
+			"pgpDecrypt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpDecryptArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpDecrypt(args[0])
 				}
 				return
 			},
@@ -1283,6 +1304,11 @@ func (c PgpClient) PgpPull(__arg PgpPullArg) (err error) {
 
 func (c PgpClient) PgpEncrypt(__arg PgpEncryptArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpDecrypt(__arg PgpDecryptArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, nil)
 	return
 }
 

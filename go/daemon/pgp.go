@@ -61,6 +61,21 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) error {
+	cli := h.getStreamUICli()
+	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
+	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
+	earg := &engine.PGPDecryptArg{
+		Sink:   snk,
+		Source: src,
+	}
+	ctx := &engine.Context{
+		SecretUI: h.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewPGPDecrypt(earg)
+	return engine.RunEngine(eng, ctx)
+}
+
 func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {
 	ctx := &engine.Context{
 		SecretUI: h.getSecretUI(arg.SessionID),

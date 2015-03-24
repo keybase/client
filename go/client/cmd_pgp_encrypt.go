@@ -132,8 +132,9 @@ func (c *CmdPGPEncrypt) RunClient() error {
 }
 
 func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) == 0 {
-		return errors.New("encrypt needs at least one recipient")
+	c.noSelf = ctx.Bool("no-self")
+	if c.noSelf && len(ctx.Args()) == 0 {
+		return errors.New("encrypt needs at least one recipient, or --no-self=false")
 	}
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
@@ -145,7 +146,6 @@ func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 	c.localOnly = ctx.Bool("local")
 	c.approveRemote = ctx.Bool("y")
 	c.sign = ctx.Bool("sign")
-	c.noSelf = ctx.Bool("no-self")
 	c.keyQuery = ctx.String("key")
 	c.binaryOut = ctx.Bool("binary")
 	return nil
