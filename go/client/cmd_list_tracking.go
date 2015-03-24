@@ -69,7 +69,10 @@ func DisplayTable(entries []keybase_1.UserSummary, verbose bool, headers bool) (
 
 		fps := make([]string, len(entry.Proofs.PublicKeys))
 		for i, k := range entry.Proofs.PublicKeys {
-			fps[i] = k.KeyFingerprint
+			pgpFingerprint := libkb.ImportPgpFingerprint(k.Fokid)
+			if pgpFingerprint != nil {
+				fps[i] = pgpFingerprint.String()
+			}
 		}
 
 		row := []string{

@@ -109,15 +109,15 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 	}), nil
 }
 
-func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase_1.PubKey) {
-	keys, err := link.GetTrackedPGPFingerprints()
+func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase_1.PublicKey) {
+	fingerprints, err := link.GetTrackedPGPFingerprints()
 	if err != nil {
 		G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
 		return res
 	}
 
-	for _, key := range keys {
-		res = append(res, keybase_1.PubKey{KeyFingerprint: key.String()})
+	for _, fingerprint := range fingerprints {
+		res = append(res, keybase_1.PublicKey{Fokid: fingerprint.ExportToFOKID()})
 	}
 	return res
 }

@@ -23,16 +23,10 @@ protocol user {
 		array<string> protocols;
 	}
 
-	record PubKey {
-		string keyFingerprint;
-		int bits;
-		int algo;
-	}
-
 	record Proofs {
 		array<TrackProof> social;
 		array<WebProof> web;
-		array<PubKey> publicKeys;
+		array<PublicKey> publicKeys;
 	}
 
 	record UserSummary {

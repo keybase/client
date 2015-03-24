@@ -95,11 +95,14 @@ type PubKey struct {
 	Algo           int    `json:"algo"`
 }
 
-func (p *PubKey) Export() keybase_1.PubKey {
-	return keybase_1.PubKey{
-		KeyFingerprint: p.KeyFingerprint,
-		Bits:           p.Bits,
-		Algo:           p.Algo,
+func (p *PubKey) Export() keybase_1.PublicKey {
+	fokid := keybase_1.FOKID{}
+	pgpFingerprint := libkb.PgpFingerprintFromHexNoError(p.KeyFingerprint)
+	if pgpFingerprint != nil {
+		fokid = pgpFingerprint.ExportToFOKID()
+	}
+	return keybase_1.PublicKey{
+		Fokid: fokid,
 	}
 }
 
@@ -118,7 +121,7 @@ func (p *Proofs) Export() keybase_1.Proofs {
 		Social: p.Social.Export(),
 	}
 	if p.PublicKey != nil {
-		r.PublicKeys = []keybase_1.PubKey{p.PublicKey.Export()}
+		r.PublicKeys = []keybase_1.PublicKey{p.PublicKey.Export()}
 	}
 	return r
 }

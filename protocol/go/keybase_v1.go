@@ -2031,16 +2031,10 @@ type WebProof struct {
 	Protocols []string `codec:"protocols" json:"protocols"`
 }
 
-type PubKey struct {
-	KeyFingerprint string `codec:"keyFingerprint" json:"keyFingerprint"`
-	Bits           int    `codec:"bits" json:"bits"`
-	Algo           int    `codec:"algo" json:"algo"`
-}
-
 type Proofs struct {
 	Social     []TrackProof `codec:"social" json:"social"`
 	Web        []WebProof   `codec:"web" json:"web"`
-	PublicKeys []PubKey     `codec:"publicKeys" json:"publicKeys"`
+	PublicKeys []PublicKey  `codec:"publicKeys" json:"publicKeys"`
 }
 
 type UserSummary struct {

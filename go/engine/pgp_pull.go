@@ -145,7 +145,10 @@ func (e *PGPPullEngine) Run(ctx *Context) error {
 		// data from the server, and we will compare it against this.
 		trackedFingerprints := make(map[string]bool)
 		for _, pubKey := range userSummary.Proofs.PublicKeys {
-			trackedFingerprints[pubKey.KeyFingerprint] = true
+			fingerprint := libkb.ImportPgpFingerprint(pubKey.Fokid)
+			if fingerprint != nil {
+				trackedFingerprints[fingerprint.String()] = true
+			}
 		}
 
 		// Get user data from the server.

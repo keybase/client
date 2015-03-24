@@ -183,19 +183,6 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "PubKey",
-    "fields" : [ {
-      "name" : "keyFingerprint",
-      "type" : "string"
-    }, {
-      "name" : "bits",
-      "type" : "int"
-    }, {
-      "name" : "algo",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "Proofs",
     "fields" : [ {
       "name" : "social",
@@ -213,7 +200,7 @@
       "name" : "publicKeys",
       "type" : {
         "type" : "array",
-        "items" : "PubKey"
+        "items" : "PublicKey"
       }
     } ]
   }, {
