@@ -106,7 +106,7 @@ func (p *SKB) ToPacket() (ret *KeybasePacket, err error) {
 	return
 }
 
-func (p *SKB) ReadKey(priv bool) (g GenericKey, err error) {
+func (p *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
 	case IsPgpAlgo(p.Type) || p.Type == 0:
 		g, err = ReadOneKeyFromBytes(p.Pub)
@@ -122,7 +122,7 @@ func (p *SKB) ReadKey(priv bool) (g GenericKey, err error) {
 
 func (p *SKB) GetPubKey() (key GenericKey, err error) {
 	if key = p.decodedPub; key == nil {
-		key, err = p.ReadKey(false)
+		key, err = p.ReadKey()
 		p.decodedPub = key
 	}
 	return

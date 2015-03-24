@@ -43,7 +43,7 @@ func (e *PGPEncrypt) GetPrereqs() EnginePrereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PGPEncrypt) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return nil
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -147,6 +147,7 @@ func (e *PGPEncrypt) loadSelfKey() (*libkb.PgpKeyBundle, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	keys := me.FilterActivePgpKeys(true, e.arg.KeyQuery)
 	if len(keys) == 0 {
 		return nil, nil

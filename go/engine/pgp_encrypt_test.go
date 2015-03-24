@@ -24,7 +24,6 @@ func TestPGPEncrypt(t *testing.T) {
 		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
-		NoSelf: false,
 		NoSign: true,
 	}
 

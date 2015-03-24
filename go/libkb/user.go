@@ -315,8 +315,6 @@ func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
 		cki := u.sigChain.GetComputedKeyInfos()
 		if cki != nil {
 			ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily}
-		} else {
-			G.Log.Warning("cki is nil")
 		}
 	}
 	return

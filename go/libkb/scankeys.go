@@ -14,7 +14,7 @@ type ScanKeys struct {
 // enforce ScanKeys implements openpgp.KeyRing:
 var _ openpgp.KeyRing = &ScanKeys{}
 
-func NewScanKeys(u *User) (*ScanKeys, error) {
+func NewScanKeys(u *User, ui SecretUI) (*ScanKeys, error) {
 	if u == nil {
 		return nil, ErrNilUser
 	}
@@ -27,7 +27,7 @@ func NewScanKeys(u *User) (*ScanKeys, error) {
 		return nil, err
 	}
 	sk := &ScanKeys{}
-	if err := sk.extractKeys(ring, synced); err != nil {
+	if err := sk.extractKeys(ring, synced, ui); err != nil {
 		return nil, err
 	}
 	return sk, nil
@@ -56,32 +56,33 @@ func (s *ScanKeys) DecryptionKeys() []openpgp.Key {
 	return s.keys.DecryptionKeys()
 }
 
-func (s *ScanKeys) extractKeys(ring *SKBKeyringFile, synced *SKB) error {
-	if synced != nil {
-		k, err := synced.ReadKey(true)
-		if err != nil {
-			return err
-		}
-		bundle, ok := k.(*PgpKeyBundle)
-		if ok {
-			s.keys = append(s.keys, (*openpgp.Entity)(bundle))
-		} else {
-			G.Log.Debug("not pgp key: %T", k)
-		}
+func (s *ScanKeys) extractKeys(ring *SKBKeyringFile, synced *SKB, ui SecretUI) error {
+	if err := s.extractKey(synced, ui); err != nil {
+		return err
 	}
 
 	for _, b := range ring.Blocks {
-		k, err := b.ReadKey(true)
-		if err != nil {
+		if err := s.extractKey(b, ui); err != nil {
 			return err
-		}
-		bundle, ok := k.(*PgpKeyBundle)
-		if ok {
-			s.keys = append(s.keys, (*openpgp.Entity)(bundle))
-		} else {
-			G.Log.Debug("not pgp key: %T", k)
 		}
 	}
 
+	return nil
+}
+
+func (s *ScanKeys) extractKey(skb *SKB, ui SecretUI) error {
+	if skb == nil {
+		return nil
+	}
+	k, err := skb.PromptAndUnlock("", "", ui)
+	if err != nil {
+		return err
+	}
+	bundle, ok := k.(*PgpKeyBundle)
+	if ok {
+		s.keys = append(s.keys, (*openpgp.Entity)(bundle))
+	} else {
+		G.Log.Debug("not pgp key: %T", k)
+	}
 	return nil
 }
