@@ -27,7 +27,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) BOOL selectable;
 @property KBVerticalAlignment verticalAlignment;
-@property KBHorizontalAlignment horizontalAlignment;
+//@property KBHorizontalAlignment horizontalAlignment;
 @property KBBorder *border;
 @property UIEdgeInsets insets;
 @property (readonly) NSTextView *textView;
@@ -51,6 +51,8 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 - (void)setFont:(NSFont *)font color:(NSColor *)color;
 
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
+
+- (void)setBorderEnabled:(BOOL)borderEnabled;
 
 - (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance;
 

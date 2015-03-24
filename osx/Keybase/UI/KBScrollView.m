@@ -9,6 +9,7 @@
 #import "KBScrollView.h"
 
 @interface KBScrollView ()
+@property KBBorder *border;
 @end
 
 @implementation KBScrollView
@@ -25,10 +26,16 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
+    UIEdgeInsets insets = yself.border.insets;
+    [layout setSize:size view:yself.border options:0];
+
+    CGRect scrollRect = CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
+
     if ([yself.scrollView.documentView isKindOfClass:YOView.class]) {
-      [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, size.width, size.height) view:yself.scrollView.documentView];
+      [layout sizeToFitVerticalInFrame:CGRectMake(0, 0, scrollRect.size.width, scrollRect.size.height) view:yself.scrollView.documentView];
     }
-    [layout setSize:size view:yself.scrollView options:0];
+
+    [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.scrollView];
     return size;
   }];
 }
@@ -36,6 +43,16 @@
 - (void)setDocumentView:(NSView *)documentView {
   [_scrollView setDocumentView:documentView];
   [self setNeedsLayout];
+}
+
+- (void)setBorderEnabled:(BOOL)borderEnabled {
+  if (borderEnabled) {
+    _border = [[KBBorder alloc] init];
+    [self addSubview:_border];
+  } else {
+    [_border removeFromSuperview];
+    _border = nil;
+  }
 }
 
 @end

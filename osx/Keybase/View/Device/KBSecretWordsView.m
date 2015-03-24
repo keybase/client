@@ -31,7 +31,7 @@
   _secretWordsLabel = [[KBLabel alloc] init];
   _secretWordsLabel.selectable = YES;
   [_secretWordsLabel setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
-  [_secretWordsLabel setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0]; //cornerRadius:6
+  [_secretWordsLabel setBorderEnabled:YES];
   _secretWordsLabel.insets = UIEdgeInsetsMake(10, 20, 10, 20);
   [contentView addSubview:_secretWordsLabel];
 

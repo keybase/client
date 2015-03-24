@@ -102,6 +102,12 @@
   }];
 }
 
+- (void)openPopup:(id)sender {
+  NSAssert(self.popup, @"No configured as a popup");
+  NSAssert(!self.window, @"Already in window");
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
+}
+
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
   GHWeakSelf gself = self;
 
@@ -110,12 +116,6 @@
     KBRStartRequestParams *requestParams = [[KBRStartRequestParams alloc] initWithParams:params];
     gself.username = requestParams.username;
     [gself.headerView setUsername:requestParams.username];
-
-    if (!self.window && self.popup) {
-      [self removeFromSuperview];
-      [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
-    }
-
     completion(nil, nil);
   }];
 
@@ -191,10 +191,18 @@
     gself.trackView.hidden = NO;
     BOOL trackPrompt = [gself.trackView setUsername:gself.username popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
       [KBNavigationView setProgressEnabled:NO subviews:gself.trackView.subviews];
-      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{}];
       completion(nil, response);
+      if (self.popup) {
+        [[self window] close];
+      }
+      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{}];
+
     }];
     [gself setNeedsLayout];
+
+    if (self.popup && trackPrompt && !self.window) {
+      [self openPopup:sender];
+    }
 
     if (!trackPrompt) {
       GHDebug(@"No track prompt required");

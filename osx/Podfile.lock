@@ -37,7 +37,7 @@ PODS:
     - Mantle/extobjc (= 1.5.4)
   - Mantle/extobjc (1.5.4)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.5)
+  - MPMessagePack (1.1.7)
   - NAChloride (1.1.2):
     - libsodium
   - ObjectiveSugar (1.1.0)
@@ -50,7 +50,7 @@ PODS:
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout/Box (0.1.5)
+  - YOLayout (0.1.7)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -59,16 +59,16 @@ DEPENDENCIES:
   - KBKeybase
   - Mantle
   - MASPreferences
-  - MPMessagePack
+  - MPMessagePack (from `~/Projects/MPMessagePack`)
   - ObjectiveSugar
   - Slash
   - Sparkle
-  - YOLayout/Box (from `~/Projects/YOLayout`)
+  - YOLayout
   - ZXCVBN
 
 EXTERNAL SOURCES:
-  YOLayout:
-    :path: ~/Projects/YOLayout
+  MPMessagePack:
+    :path: ~/Projects/MPMessagePack
 
 SPEC CHECKSUMS:
   AFNetworking: 8bee59492a6ff15d69130efa4d0dc67e0094a52a
@@ -78,13 +78,13 @@ SPEC CHECKSUMS:
   libsodium: 16487c168b28aa4e55614d6364e6932ce73137d9
   Mantle: d5fbaf30fbc58031223af13812c060e15934a1fe
   MASPreferences: 48debf3a161039bb979e617b7416bc07bd879f75
-  MPMessagePack: c1acfe9aadc08b7b65f1c2a5fe8aae9d97990112
+  MPMessagePack: c1ff9abf0e9db7aeaab961212e0e28ae470c3ea6
   NAChloride: f5ec84c64efcdb5008f960d7d557dfac6c060a1d
   ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2
   Slash: d98d6ff27ece4297d8d65fb49fc1ce4307a75f46
   Sparkle: be4244aef7860f8d2abdc9c4e4d8e9629d27feb6
   TSTripleSec: 7371672f757735ab696d8c0d0fc0d98b7a38059e
-  YOLayout: d92d2f581f67a2f5e49e58447433eed6ac6b134a
+  YOLayout: cb3326c33aeb5906db04df3e7cb35154c27c8d41
   ZXCVBN: cc445c6207fc2f0b42276b7a4c2b2aee47624577
 
 COCOAPODS: 0.36.0

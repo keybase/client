@@ -10,6 +10,7 @@
 
 #import "KBAppearance.h"
 #import <GHKit/GHKit.h>
+#import "KBLabel.h"
 
 @interface KBNSTextField : NSTextField
 @property (weak) id<KBNSTextFieldFocusDelegate> focusDelegate;
@@ -68,7 +69,9 @@
       return size;
     } else {
       CGFloat y = 0;
-      y += [layout setFrame:CGRectMake(0, 0, size.width, 26) view:yself.textField].size.height + 2;
+      CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:[[NSAttributedString alloc] initWithString:@"Pg" attributes:@{NSFontAttributeName: yself.textField.font}]];
+      y += [layout setFrame:CGRectMake(0, 0, size.width, sizeThatFits.height + 4) view:yself.textField].size.height;
+      y += ceilf(sizeThatFits.height * 0.14);
       [layout setFrame:CGRectMake(0, y - yself.box.frame.size.height + 0.5, size.width, yself.box.frame.size.height) view:yself.box];
       y += 2;
       return CGSizeMake(size.width, y);

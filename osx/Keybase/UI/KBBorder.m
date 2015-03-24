@@ -7,6 +7,7 @@
 //
 
 #import "KBBorder.h"
+#import "KBAppearance.h"
 
 @interface KBBorder ()
 @property CAShapeLayer *shapeLayer;
@@ -28,7 +29,7 @@
     //[self.layer addSublayer:_shapeLayer];
 
     self.width = 1.0;
-    self.color = NSColor.blackColor;
+    self.color = KBAppearance.currentAppearance.lineColor;
   }
   return self;
 }

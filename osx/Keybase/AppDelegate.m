@@ -18,6 +18,7 @@
 #import "KBInstaller.h"
 #import "KBConsoleView.h"
 #import "KBPGPEncryptView.h"
+#import "KBPGPEncryptFileView.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -130,11 +131,18 @@
   }];
 }
 
-- (IBAction)encrypt:(id)sender {
+- (IBAction)encryptText:(id)sender {
   KBPGPEncryptView *encryptView = [[KBPGPEncryptView alloc] init];
   encryptView.client = self.appView.client;
   [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" errorHandler:_errorHandler];
 }
+
+- (IBAction)encryptFile:(id)sender {
+  KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
+  encryptView.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 100) position:KBWindowPositionCenter title:@"Encrypt File" errorHandler:_errorHandler];
+}
+
 
 #pragma mark Error
 

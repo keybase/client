@@ -13,7 +13,6 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate"/>
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
-        <menu id="Otw-Zq-pBC"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
                 <menuItem title="Keybase" id="1Xt-HY-uBw">
@@ -639,10 +638,16 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="PGP" systemMenu="font" id="h7H-nr-b12">
                         <items>
-                            <menuItem title="Encrypt" id="l8d-br-Xgs">
+                            <menuItem title="Encrypt Text..." id="l8d-br-Xgs" userLabel="Encrypt Text...">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="encrypt:" target="Voe-Tx-rLC" id="jY9-b9-a8N"/>
+                                    <action selector="encryptText:" target="Voe-Tx-rLC" id="gvq-7R-xbj"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Encrypt File..." id="DNF-pB-f8o" userLabel="Encrypt File...">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="encryptFile:" target="Voe-Tx-rLC" id="R3b-mi-CUD"/>
                                 </connections>
                             </menuItem>
                         </items>

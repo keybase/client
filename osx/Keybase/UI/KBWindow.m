@@ -39,6 +39,7 @@
   window.titleVisibility = NSWindowTitleHidden;
   window.titlebarAppearsTransparent = YES;
   window.movableByWindowBackground = YES;
+  window.delegate = window;
   contentView.frame = CGRectMake(0, 0, size.width, size.height);
   [window setContentSize:size];
   [window setContentView:contentView];
@@ -55,6 +56,7 @@
   window.titleVisibility = NSWindowTitleHidden;
   window.titlebarAppearsTransparent = YES;
   window.movableByWindowBackground = YES;
+  window.delegate = window;
   [window setContentView:contentView];
   return window;
 }
@@ -68,14 +70,23 @@
   return endSheet;
 }
 
+- (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
+  rect.origin.y += -32;
+  return rect;
+}
+
 @end
 
 @implementation NSWindow (KBWindow)
 
-- (NSWindow *)kb_addChildWindowForView:(NSView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title errorHandler:(KBErrorHandler)errorHandler {
+- (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title errorHandler:(KBErrorHandler)errorHandler {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
   navigation.errorHandler = errorHandler;
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:rect.size retain:YES];
+
+  CGSize size = [view sizeThatFits:rect.size];
+  size.height += 32; // TODO
+
+  NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
   window.styleMask = window.styleMask | NSResizableWindowMask;
 
   CGPoint p = CGPointMake(self.frame.origin.x + rect.origin.x, self.frame.origin.y + rect.origin.y);

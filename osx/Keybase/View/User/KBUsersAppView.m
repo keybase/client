@@ -56,7 +56,7 @@
   [self addSubview:_menuButton];
 
   _trackingView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  [_trackingView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
+  [_trackingView setBorderEnabled:YES];
   _trackingView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
@@ -66,7 +66,7 @@
   _trackingView.identifier = @"Tracking";
 
   _trackersView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  [_trackersView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
+  [_trackersView setBorderEnabled:YES];
   _trackersView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
@@ -81,7 +81,7 @@
   [self showTracking:self];
 
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
-  [_searchResultsView setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
+  [_searchResultsView setBorderEnabled:YES];
   _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
     [view setSearchResult:searchResult];
   };
@@ -226,7 +226,7 @@
   user.username = username;
   BOOL editable = [AppDelegate.appView.user.username isEqual:user.username];
   _userProfileView.client = self.client;
-  [_userProfileView setUser:user editable:editable];
+  [_userProfileView setUsername:user.username editable:editable];
 }
 
 //- (void)loadUsernames:(NSArray *)usernames completion:(void (^)(NSError *error, NSArray *userSummaries))completion {

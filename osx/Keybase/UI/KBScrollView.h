@@ -10,11 +10,15 @@
 #import <AppKit/AppKit.h>
 
 #import <YOLayout/YOLayout.h>
+#import "KBBorder.h"
 
 @interface KBScrollView : YOView
 
-@property NSScrollView *scrollView;
+@property (readonly) NSScrollView *scrollView;
+@property (readonly) KBBorder *border;
 
 - (void)setDocumentView:(NSView *)documentView;
+
+- (void)setBorderEnabled:(BOOL)borderEnabled;
 
 @end

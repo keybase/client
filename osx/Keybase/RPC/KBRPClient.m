@@ -65,7 +65,7 @@
   
   GHWeakSelf gself = self;
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
+    //GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
 
     id sessionId = [[params lastObject] objectForKey:@"sessionID"];
 

@@ -11,7 +11,6 @@
 
 @interface KBKeyImportView ()
 @property KBLabel *textView;
-@property KBScrollView *scrollView;
 
 @property KBButton *importButton;
 

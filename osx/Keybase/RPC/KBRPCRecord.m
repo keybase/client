@@ -142,7 +142,8 @@ id KBConvertObject(id item, Class clazz, KBCoverter converter) {
   if ([item isKindOfClass:NSMutableArray.class]) {
     KBConvertArray(item, clazz, converter);
   } else if ([item isKindOfClass:NSArray.class]) {
-    NSCAssert(NO, @"Not mutable array");
+    NSMutableArray *itemCopy = (NSMutableArray *)CFBridgingRelease(CFPropertyListCreateDeepCopy(kCFAllocatorDefault, (CFArrayRef)item, kCFPropertyListMutableContainers));
+    KBConvertArray(itemCopy, clazz, converter);
   } else if ([item isKindOfClass:NSMutableDictionary.class]) {
     KBConvertDict(item, clazz, converter);
   } else if ([item isKindOfClass:NSDictionary.class]) {

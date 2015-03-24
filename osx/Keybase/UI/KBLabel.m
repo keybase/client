@@ -36,24 +36,33 @@
 
     UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
     CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) attributedString:self.textView.attributedString];
-    CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
+//    CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
 
-    if (self.verticalAlignment != KBVerticalAlignmentNone) {
-      // TODO Top, bottom alignments
-      [layout setFrame:CGRectIntegral(CGRectMake(insets.left, size.height/2.0 - sizeThatFits.height/2.0, sizeThatFits.width, sizeThatFits.height)) view:yself.textView];
-      [layout setSize:CGSizeMake(sizeWithInsets.width, size.height) view:yself.border options:0];
-      return CGSizeMake(sizeWithInsets.width, size.height);
-    } else if (self.horizontalAlignment != KBHorizontalAlignmentNone) {
-      // TODO Other alignments
-      [layout setFrame:CGRectIntegral(CGRectMake(size.width/2.0 - sizeThatFits.width/2.0, insets.top, sizeThatFits.width, sizeThatFits.height)) view:yself.textView];
-      [layout setSize:CGSizeMake(size.width, sizeWithInsets.height) view:yself.border options:0];
-      return CGSizeMake(size.width, sizeWithInsets.height);
-    } else {
-      [layout setFrame:CGRectIntegral(CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, sizeThatFits.height)) view:yself.textView];
-      [layout setFrame:CGRectMake(0, 0, size.width, sizeWithInsets.height) view:yself.border options:0];
-      return CGSizeMake(size.width, ceilf(sizeWithInsets.height));
+    // TODO vertical and horizontal aligns
+
+    CGRect textFrame = CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
+    CGSize borderSize = size;
+
+    if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
+      textFrame.origin.y = ceilf(size.height/2.0 - sizeThatFits.height/2.0);
+      textFrame.size.height = MAX(sizeThatFits.height, textFrame.size.height);
+      borderSize.height = MAX(size.height, borderSize.height);
     }
+
+    [layout setFrame:textFrame view:yself.textView];
+    [layout setSize:borderSize view:yself.border options:0];
+    return size;
   }];
+}
+
+- (CGSize)sizeThatFits:(CGSize)size {
+  UIEdgeInsets insets = UIEdgeInsetsAdd(self.border.insets, self.insets);
+  CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) attributedString:self.textView.attributedString];
+  CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
+  if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
+    sizeWithInsets.height = MAX(size.height, sizeWithInsets.height);
+  }
+  return sizeWithInsets;
 }
 
 // Don't capture mouse events unless we are selectable
@@ -82,11 +91,18 @@
   return label;
 }
 
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
-  if (!_border) {
+- (void)setBorderEnabled:(BOOL)borderEnabled {
+  if (borderEnabled) {
     _border = [[KBBorder alloc] init];
     [self addSubview:_border];
+  } else {
+    [_border removeFromSuperview];
+    _border = nil;
   }
+}
+
+- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
+  [self setBorderEnabled:YES];
   _border.color = color;
   _border.width = width;
   [self setNeedsLayout];
@@ -169,12 +185,12 @@
 }
 
 + (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  return [self parseMarkup:markup options:@{@"font": font, @"color": color, @"alignment": @(alignment), @"lineBreakMode": @(lineBreakMode)}];
+  return [self parseMarkup:markup options:@{@"font": GHOrNull(font), @"color": GHOrNull(color), @"alignment": @(alignment), @"lineBreakMode": @(lineBreakMode)}];
 }
 
 + (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options {
-  NSFont *font = options[@"font"];
-  NSColor *color = options[@"color"];
+  NSFont *font = GHIfNull(options[@"font"], nil);
+  NSColor *color = GHIfNull(options[@"color"], nil);
   NSTextAlignment alignment = [options[@"alignment"] integerValue];
   NSLineBreakMode lineBreakMode = [options[@"lineBreakMode"] integerValue];
   CGFloat lineSpacing = [options[@"lineSpacing"] floatValue];

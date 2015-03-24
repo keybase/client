@@ -52,6 +52,16 @@
   });
 }
 
+- (void)setBorderEnabled:(BOOL)borderEnabled {
+  if (borderEnabled) {
+    _border = [[KBBorder alloc] init];
+    [self addSubview:_border];
+  } else {
+    [_border removeFromSuperview];
+    _border = nil;
+  }
+}
+
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
   if (!_border) {
     _border = [[KBBorder alloc] init];

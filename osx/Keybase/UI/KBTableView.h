@@ -43,6 +43,7 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 - (void)scrollToBottom:(BOOL)animated;
 - (BOOL)isAtBottom;
 
+- (void)setBorderEnabled:(BOOL)borderEnabled;
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
 @end

@@ -24,6 +24,8 @@
 #import "KBSecretWordsView.h"
 #import "KBSecretWordsInputView.h"
 #import "KBPGPEncryptView.h"
+#import "KBPGPOutputView.h"
+#import "KBPGPEncryptFileView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -61,7 +63,9 @@
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"Encrypt" targetBlock:^{ [self showPGPEncrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (File)" targetBlock:^{ [self showPGPEncryptFile]; }]];
+
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track" targetBlock:^{ [self showTrack]; }]];
 
@@ -69,13 +73,12 @@
 
   [contentView addSubview:[KBButton linkWithText:@"Progress" targetBlock:^{ [self showProgressView:1 error:NO]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Progress (error)" targetBlock:^{ [self showProgressView:0 error:YES]; }]];
-  [contentView addSubview:[KBLabel labelWithText:@"Error Handling" style:KBLabelStyleHeader]];
+
   [contentView addSubview:[KBButton linkWithText:@"Error" targetBlock:^{ [self showError]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Fatal" targetBlock:^{ [self showFatalError]; }]];
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  [contentView addSubview:[KBLabel labelWithText:@"Prompts" style:KBLabelStyleHeader]];
   [contentView addSubview:[KBButton linkWithText:@"Password (Input)" targetBlock:^{ [self prompt:@"password"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Input" targetBlock:^{ [self prompt:@"input"]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Yes/No" targetBlock:^{ [self prompt:@"yes_no"]; }]];
@@ -245,6 +248,11 @@
 - (void)showPGPEncrypt {
   KBPGPEncryptView *encryptView = [[KBPGPEncryptView alloc] init];
   [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Encrypt"];
+}
+
+- (void)showPGPEncryptFile {
+  KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
+  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showError {

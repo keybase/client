@@ -49,6 +49,7 @@
 //  _menuBarEnabled = NO;
 
   _progressView = [[KBActivityIndicatorView alloc] init];
+  _progressView.lineWidth = 1.0;
   [self addSubview:_progressView];
 
 //  GHWeakSelf gself = self;
