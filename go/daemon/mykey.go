@@ -43,11 +43,6 @@ func (h *MykeyHandler) DeletePrimary() (err error) {
 	return libkb.DeletePrimary()
 }
 
-func (h *MykeyHandler) Show() (err error) {
-	sessionId := nextSessionId()
-	return libkb.ShowKeys(h.getLogUI(sessionId))
-}
-
 func (h *MykeyHandler) Select(sarg keybase_1.SelectArg) error {
 	sessionID := nextSessionId()
 	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())

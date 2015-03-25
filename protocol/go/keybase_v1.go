@@ -1051,9 +1051,6 @@ type PgpKeyGenDefaultArg struct {
 type DeletePrimaryArg struct {
 }
 
-type ShowArg struct {
-}
-
 type SelectArg struct {
 	Query      string `codec:"query" json:"query"`
 	AllowMulti bool   `codec:"allowMulti" json:"allowMulti"`
@@ -1070,7 +1067,6 @@ type MykeyInterface interface {
 	PgpKeyGen(PgpKeyGenArg) error
 	PgpKeyGenDefault(PgpCreateUids) error
 	DeletePrimary() error
-	Show() error
 	Select(SelectArg) error
 	Update(UpdateArg) error
 }
@@ -1097,13 +1093,6 @@ func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
 				args := make([]DeletePrimaryArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DeletePrimary()
-				}
-				return
-			},
-			"show": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]ShowArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Show()
 				}
 				return
 			},
@@ -1143,11 +1132,6 @@ func (c MykeyClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
 
 func (c MykeyClient) DeletePrimary() (err error) {
 	err = c.Cli.Call("keybase.1.mykey.deletePrimary", []interface{}{DeletePrimaryArg{}}, nil)
-	return
-}
-
-func (c MykeyClient) Show() (err error) {
-	err = c.Cli.Call("keybase.1.mykey.show", []interface{}{ShowArg{}}, nil)
 	return
 }
 

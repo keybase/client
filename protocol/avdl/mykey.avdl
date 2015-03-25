@@ -21,11 +21,6 @@ protocol mykey {
 
 	void deletePrimary();
 
-	// Just show the keys that are currently active via
-	// loggingUI.  We might eventually opt for something
-	// more interesting here.
-	void show();
-
 	// select an existing key and add to kb
 	void select(string query, boolean allowMulti, boolean skipImport);
 

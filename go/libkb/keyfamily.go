@@ -805,50 +805,6 @@ func (ckf ComputedKeyFamily) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle)
 	return
 }
 
-// DumpToLog dumps info about the current KeyFamily to the given log UI
-func (ckf ComputedKeyFamily) DumpToLog(ui LogUI) {
-
-	server_dump := func(key GenericKey, sibOrSub string) {
-		ui.Info("▶ Server key: algo=%d, kid=%s; %s", key.GetAlgoType(),
-			key.GetKid().String(), sibOrSub)
-	}
-	cki_dump := func(kid string) {
-		if info, ok := ckf.cki.Infos[kid]; !ok {
-			ui.Warning(" • No key info available!")
-		} else {
-			ui.Info(" • Status=%d; Sibkey=%v; Eldest=%v",
-				info.Status, info.Sibkey, info.Eldest)
-			for k, v := range info.Delegations {
-				ui.Info(" • Delegation by KID=%s in Sig=%s", v, k)
-			}
-		}
-	}
-
-	for k, v := range ckf.kf.Sibkeys {
-		server_dump(v.key, "SIB")
-		cki_dump(k)
-	}
-	for k, v := range ckf.kf.Subkeys {
-		server_dump(v.key, "SUB")
-		cki_dump(k)
-	}
-
-	for k, v := range ckf.cki.Devices {
-		var desc string
-		if v.Description != nil {
-			desc = " " + *v.Description
-		}
-		ui.Info("Device %s [%s]%s", k, v.Type, desc)
-		kid, err := ImportKID(*v.Kid)
-		if err != nil {
-			ui.Info("    error finding sibkey: %q", err)
-		} else {
-			gk := ckf.kf.FindKey(kid)
-			server_dump(gk, "SIB")
-		}
-	}
-}
-
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {

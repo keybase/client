@@ -12,7 +12,6 @@ func NewCmdMykey(cl *libcmdline.CommandLine) cli.Command {
 		Description: "Manipulate your primary Keybase key",
 		Subcommands: []cli.Command{
 			NewCmdMykeyDelete(cl),
-			NewCmdMykeyShow(cl),
 		},
 	}
 }

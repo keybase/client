@@ -202,10 +202,6 @@
       "request" : [ ],
       "response" : "null"
     },
-    "show" : {
-      "request" : [ ],
-      "response" : "null"
-    },
     "select" : {
       "request" : [ {
         "name" : "query",
