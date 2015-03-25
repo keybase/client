@@ -501,8 +501,13 @@ type PublicKeyList []keybase_1.PublicKey
 
 func (l PublicKeyList) Len() int { return len(l) }
 func (l PublicKeyList) Less(i, j int) bool {
+	// Keys created first come first.
 	if l[i].CTime != l[j].CTime {
 		return l[i].CTime < l[j].CTime
+	}
+	// For keys created at the same time, if one of them's the eldest key, it comes first.
+	if l[i].IsEldest != l[j].IsEldest {
+		return l[i].IsEldest
 	}
 	// Otherwise just sort by KID.
 	return l[i].KID < l[j].KID
