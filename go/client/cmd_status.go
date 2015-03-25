@@ -3,12 +3,18 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
-	"time"
-	// "github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
+	"strings"
+	"time"
 )
+
+const SPACES_PER_INDENT = 4
+
+func indentSpace(level int) string {
+	return strings.Repeat(" ", level*SPACES_PER_INDENT)
+}
 
 type CmdStatus struct{}
 
@@ -62,6 +68,16 @@ func (v *CmdStatus) Run() error {
 	return err
 }
 
+func findSubkeys(parentID string, allKeys []keybase_1.PublicKey) []keybase_1.PublicKey {
+	ret := []keybase_1.PublicKey{}
+	for _, key := range allKeys {
+		if key.ParentID == parentID {
+			ret = append(ret, key)
+		}
+	}
+	return ret
+}
+
 func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
 	fmt.Printf("Username: %s\nID: %s\n", me.Username, me.Uid)
 	if len(me.PublicKeys) == 0 {
@@ -70,31 +86,49 @@ func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
 	}
 	fmt.Printf("Public keys:\n")
 	for _, key := range me.PublicKeys {
-		if key.KID == "" {
-			return fmt.Errorf("Found a key with an empty KID.")
+		if !key.IsSibkey {
+			// Subkeys will be printed under their respective sibkeys.
+			continue
 		}
-		role := "subkey"
-		if key.IsSibkey {
-			role = "sibkey"
+		subkeys := findSubkeys(key.KID, me.PublicKeys)
+		err := printKey(key, subkeys, 1)
+		if err != nil {
+			return err
 		}
-		eldestStr := ""
-		if key.IsEldest {
-			eldestStr = " (eldest)"
+	}
+	return nil
+}
+
+func printKey(key keybase_1.PublicKey, subkeys []keybase_1.PublicKey, indent int) error {
+	if key.KID == "" {
+		return fmt.Errorf("Found a key with an empty KID.")
+	}
+	eldestStr := ""
+	if key.IsEldest {
+		eldestStr = " (eldest)"
+	}
+	fmt.Printf("%s%s%s\n", indentSpace(indent), key.KID, eldestStr)
+	if key.PGPFingerprint != "" {
+		fmt.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PgpFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
+	}
+	webStr := ""
+	if key.IsWeb {
+		webStr = " (web)"
+	}
+	if key.DeviceID != "" {
+		fmt.Printf("%sDevice ID: %s%s\n", indentSpace(indent+1), key.DeviceID, webStr)
+	}
+	if key.DeviceDescription != "" {
+		fmt.Printf("%sDevice Description: %s\n", indentSpace(indent+1), key.DeviceDescription)
+	}
+	fmt.Printf("%sCreated: %s\n", indentSpace(indent+1), time.Unix(key.CTime, 0))
+	fmt.Printf("%sExpires: %s\n", indentSpace(indent+1), time.Unix(key.ETime, 0))
+
+	if subkeys != nil && len(subkeys) > 0 {
+		fmt.Printf("%sSubkeys:\n", indentSpace(indent+1))
+		for _, subkey := range subkeys {
+			printKey(subkey, nil, indent+2)
 		}
-		fmt.Printf("  %s (%s)%s\n", key.KID, role, eldestStr)
-		if key.PGPFingerprint != "" {
-			fmt.Printf("    PGP Fingerprint: %s\n", libkb.PgpFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
-		}
-		webStr := ""
-		if key.IsWeb {
-			webStr = " (web)"
-		}
-		fmt.Printf("    Device ID: %s%s\n", key.DeviceID, webStr)
-		if key.DeviceDescription != "" {
-			fmt.Printf("    Device Description: %s\n", key.DeviceDescription)
-		}
-		fmt.Printf("    Created: %s\n", time.Unix(key.CTime, 0))
-		fmt.Printf("    Expires: %s\n", time.Unix(key.ETime, 0))
 	}
 	return nil
 }
