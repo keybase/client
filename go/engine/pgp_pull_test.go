@@ -22,6 +22,14 @@ func createUserWhoTracks(t *testing.T, trackedUsers []string) *FakeUser {
 	return fu
 }
 
+func untrackUserList(t *testing.T, fu *FakeUser, trackedUsers []string) {
+	for _, trackedUser := range trackedUsers {
+		if err := runUntrack(fu, trackedUser); err != nil {
+			t.Fatal("Error while untracking", trackedUser, err)
+		}
+	}
+}
+
 func createGpgClient(t *testing.T) *libkb.GpgCLI {
 	gpgClient := libkb.NewGpgCLI(libkb.GpgCLIArg{
 		LogUI: G.UI.GetLogUI(),
@@ -80,7 +88,9 @@ func TestPGPPullAll(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
 
-	createUserWhoTracks(t, []string{"t_alice", "t_bob"})
+	users := []string{"t_alice", "t_bob"}
+	fu := createUserWhoTracks(t, users)
+	defer untrackUserList(t, fu, users)
 	gpgClient := createGpgClient(t)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
@@ -94,7 +104,9 @@ func TestPGPPullOne(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
 
-	createUserWhoTracks(t, []string{"t_alice", "t_bob"})
+	users := []string{"t_alice", "t_bob"}
+	fu := createUserWhoTracks(t, users)
+	defer untrackUserList(t, fu, users)
 	gpgClient := createGpgClient(t)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
@@ -112,7 +124,9 @@ func TestPGPPullBadIDs(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
 
-	createUserWhoTracks(t, []string{"t_alice", "t_bob"})
+	users := []string{"t_alice", "t_bob"}
+	fu := createUserWhoTracks(t, users)
+	defer untrackUserList(t, fu, users)
 	gpgClient := createGpgClient(t)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})

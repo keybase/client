@@ -85,6 +85,7 @@ func TestTrack(t *testing.T) {
 	fu := CreateAndSignupFakeUser(t, "track")
 
 	trackAlice(t, fu)
+	defer untrackAlice(t, fu)
 
 	// Assert that we gracefully handle the case of no login
 	G.LoginState.Logout()
@@ -96,5 +97,6 @@ func TestTrack(t *testing.T) {
 	}
 	fu.LoginOrBust(t)
 	trackBob(t, fu)
+	defer untrackBob(t, fu)
 	return
 }

@@ -54,6 +54,14 @@ func untrackAlice(t *testing.T, fu *FakeUser) {
 	return
 }
 
+func untrackBob(t *testing.T, fu *FakeUser) {
+	err := runUntrack(fu, "t_bob")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return
+}
+
 func TestUntrack(t *testing.T) {
 	tc := SetupEngineTest(t, "untrack")
 	defer tc.Cleanup()

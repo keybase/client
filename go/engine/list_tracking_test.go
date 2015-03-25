@@ -13,15 +13,13 @@ func TestListTracking(t *testing.T) {
 	fu := CreateAndSignupFakeUser(t, "track")
 	fu.LoginOrBust(t)
 
-	_, _, err := runTrack(fu, "t_alice")
-	if err != nil {
-		t.Fatal("Error while tracking t_alice:", err)
-	}
+	trackAlice(t, fu)
+	defer untrackAlice(t, fu)
 
 	arg := ListTrackingEngineArg{}
 	eng := NewListTrackingEngine(&arg)
 	ctx := Context{}
-	err = RunEngine(eng, &ctx)
+	err := RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
@@ -58,15 +56,13 @@ func TestListTrackingJSON(t *testing.T) {
 	fu := CreateAndSignupFakeUser(t, "track")
 	fu.LoginOrBust(t)
 
-	_, _, err := runTrack(fu, "t_alice")
-	if err != nil {
-		t.Fatal("Error while tracking t_alice:", err)
-	}
+	trackAlice(t, fu)
+	defer untrackAlice(t, fu)
 
 	arg := ListTrackingEngineArg{Json: true, Verbose: true}
 	eng := NewListTrackingEngine(&arg)
 	ctx := Context{}
-	err = RunEngine(eng, &ctx)
+	err := RunEngine(eng, &ctx)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
