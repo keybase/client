@@ -41,6 +41,10 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) error {
 		return err
 	}
 
+	if md.IsSigned {
+		G.Log.Debug("message is signed (SignedByKeyId: %+v) (have key? %v)", md.SignedByKeyId, md.SignedBy != nil)
+	}
+
 	n, err := io.Copy(sink, md.UnverifiedBody)
 	if err != nil {
 		return err

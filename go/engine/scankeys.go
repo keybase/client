@@ -1,12 +1,16 @@
-package libkb
+package engine
 
 import (
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/openpgp"
 )
 
 // ScanKeys finds pgp decryption keys in SKB and also if there is
 // one stored on the server.  It satisfies the openpgp.KeyRing
 // interface.
+//
+// It is not an engine, but uses an engine and is used by engines,
+// so has to be in the engine package.  It is a UIConsumer.
 type ScanKeys struct {
 	keys openpgp.EntityList
 }
@@ -14,9 +18,9 @@ type ScanKeys struct {
 // enforce ScanKeys implements openpgp.KeyRing:
 var _ openpgp.KeyRing = &ScanKeys{}
 
-func NewScanKeys(u *User, ui SecretUI) (*ScanKeys, error) {
+func NewScanKeys(u *libkb.User, ui libkb.SecretUI) (*ScanKeys, error) {
 	if u == nil {
-		return nil, ErrNilUser
+		return nil, libkb.ErrNilUser
 	}
 	ring, err := G.LoadSKBKeyring(u.GetName())
 	if err != nil {
@@ -33,6 +37,18 @@ func NewScanKeys(u *User, ui SecretUI) (*ScanKeys, error) {
 	return sk, nil
 }
 
+func (s *ScanKeys) Name() string {
+	return "ScanKeys"
+}
+
+func (s *ScanKeys) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{libkb.SecretUIKind}
+}
+
+func (s *ScanKeys) SubConsumers() []libkb.UIConsumer {
+	return nil
+}
+
 func (s *ScanKeys) Count() int {
 	return len(s.keys)
 }
@@ -47,7 +63,32 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 // The requiredUsage is expressed as the bitwise-OR of
 // packet.KeyFlag* values.
 func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
-	return s.keys.KeysByIdUsage(id, requiredUsage)
+	memres := s.keys.KeysByIdUsage(id, requiredUsage)
+	G.Log.Debug("ScanKeys:KeysByIdUsage(%d, %x) => %d keys match in memory", id, requiredUsage, len(memres))
+
+	if len(memres) > 0 {
+		return memres
+	}
+
+	var data struct {
+		Username string
+		UID      string
+	}
+
+	// lookup key on api server
+	args := libkb.ApiArg{
+		Endpoint: "key/basics",
+		Args: libkb.HttpArgs{
+			"pgp_key_id": libkb.UHex{Val: id},
+		},
+	}
+	if err := G.API.GetDecode(args, &data); err != nil {
+		G.Log.Warning("error looking up key: %s", err)
+		return []openpgp.Key{}
+	}
+	G.Log.Debug("response data: %+v", data)
+
+	return []openpgp.Key{}
 }
 
 // DecryptionKeys returns all private keys that are valid for
@@ -56,7 +97,7 @@ func (s *ScanKeys) DecryptionKeys() []openpgp.Key {
 	return s.keys.DecryptionKeys()
 }
 
-func (s *ScanKeys) extractKeys(ring *SKBKeyringFile, synced *SKB, ui SecretUI) error {
+func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI) error {
 	if err := s.extractKey(synced, ui); err != nil {
 		return err
 	}
@@ -70,7 +111,7 @@ func (s *ScanKeys) extractKeys(ring *SKBKeyringFile, synced *SKB, ui SecretUI) e
 	return nil
 }
 
-func (s *ScanKeys) extractKey(skb *SKB, ui SecretUI) error {
+func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI) error {
 	if skb == nil {
 		return nil
 	}
@@ -78,7 +119,7 @@ func (s *ScanKeys) extractKey(skb *SKB, ui SecretUI) error {
 	if err != nil {
 		return err
 	}
-	bundle, ok := k.(*PgpKeyBundle)
+	bundle, ok := k.(*libkb.PgpKeyBundle)
 	if ok {
 		s.keys = append(s.keys, (*openpgp.Entity)(bundle))
 	} else {

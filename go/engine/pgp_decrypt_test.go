@@ -185,47 +185,6 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	}
 }
 
-// TestScanKeys tests libkb.ScanKey, but needs to be an engine
-// test since it needs to have a logged in user to work.
-func TestScanKeys(t *testing.T) {
-	tc := SetupEngineTest(t, "ScanKeys")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(t, "login")
-	u, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sk, err := libkb.NewScanKeys(u, fu.NewSecretUI())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if sk.Count() != 0 {
-		t.Errorf("scankey count: %d, expected 0", sk.Count())
-	}
-}
-
-// TestScanKeysSync checks a user with a synced
-func TestScanKeysSync(t *testing.T) {
-	tc := SetupEngineTest(t, "PGPDecrypt")
-	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
-	u, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sk, err := libkb.NewScanKeys(u, fu.NewSecretUI())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if sk.Count() != 1 {
-		t.Errorf("scankey count: %d, expected 1", sk.Count())
-	}
-}
 func createFakeUserWithPGPSibkey(t *testing.T) *FakeUser {
 	fu := CreateAndSignupFakeUser(t, "pgp")
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}

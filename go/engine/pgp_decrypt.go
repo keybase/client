@@ -40,7 +40,9 @@ func (e *PGPDecrypt) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		&ScanKeys{},
+	}
 }
 
 // Run starts the engine.
@@ -49,7 +51,7 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	sk, err := libkb.NewScanKeys(me, ctx.SecretUI)
+	sk, err := NewScanKeys(me, ctx.SecretUI)
 	if err != nil {
 		return err
 	}

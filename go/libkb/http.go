@@ -1,8 +1,8 @@
 package libkb
 
 import (
-	"fmt"
 	"net/url"
+	"strconv"
 )
 
 type HttpValue interface {
@@ -19,6 +19,14 @@ type I struct {
 	Val int
 }
 
+type U struct {
+	Val uint64
+}
+
+type UHex struct {
+	Val uint64
+}
+
 type B struct {
 	Val bool
 }
@@ -31,14 +39,15 @@ func NewHttpArgs() HttpArgs {
 	return make(HttpArgs)
 }
 
-func (s S) String() string { return s.Val }
-func (i I) String() string { return fmt.Sprintf("%d", i.Val) }
+func (s S) String() string    { return s.Val }
+func (i I) String() string    { return strconv.Itoa(i.Val) }
+func (u U) String() string    { return strconv.FormatUint(u.Val, 10) }
+func (h UHex) String() string { return strconv.FormatUint(h.Val, 16) }
 func (b B) String() string {
-	i := 0
 	if b.Val {
-		i = 1
+		return "1"
 	}
-	return fmt.Sprintf("%d", i)
+	return "0"
 }
 
 func (a HttpArgs) ToValues() url.Values {
