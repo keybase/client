@@ -99,6 +99,22 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	return
 }
 
+func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("username", jsonw.NewString(u.name))
+	return ret
+}
+
+func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
+	untrack := jsonw.NewDictionary()
+	untrack.SetKey("basics", u.ToUntrackingStatementBasics())
+	untrack.SetKey("id", jsonw.NewString(u.GetUid().String()))
+	w.SetKey("type", jsonw.NewString("untrack"))
+	w.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	w.SetKey("untrack", untrack)
+	return
+}
+
 func (u *User) ToKeyStanza(sk GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 	ret.SetKey("uid", jsonw.NewString(u.id.String()))
@@ -243,6 +259,14 @@ func (u1 *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wr
 	ret, err = u1.ProofMetadata(0, signingKey, nil)
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"))
+	}
+	return
+}
+
+func (u1 *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
+	ret, err = u1.ProofMetadata(0, signingKey, nil)
+	if err == nil {
+		err = u2.ToUntrackingStatement(ret.AtKey("body"))
 	}
 	return
 }

@@ -812,3 +812,19 @@ type StreamWrongKindError struct{}
 func (s StreamWrongKindError) Error() string { return "found a stream but not of right kind" }
 
 //=============================================================================
+
+type UntrackError struct {
+	err string
+}
+
+func (e UntrackError) Error() string {
+	return fmt.Sprintf("Untrack error: %s", e.err)
+}
+
+func NewUntrackError(d string, a ...interface{}) UntrackError {
+	return UntrackError{
+		err: fmt.Sprintf(d, a...),
+	}
+}
+
+//=============================================================================

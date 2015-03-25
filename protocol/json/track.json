@@ -159,6 +159,16 @@
         "type" : "boolean"
       } ],
       "response" : "null"
+    },
+    "untrack" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "theirName",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

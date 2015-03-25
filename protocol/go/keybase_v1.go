@@ -1950,8 +1950,14 @@ type TrackArg struct {
 	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 }
 
+type UntrackArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	TheirName string `codec:"theirName" json:"theirName"`
+}
+
 type TrackInterface interface {
 	Track(TrackArg) error
+	Untrack(UntrackArg) error
 }
 
 func TrackProtocol(i TrackInterface) rpc2.Protocol {
@@ -1962,6 +1968,13 @@ func TrackProtocol(i TrackInterface) rpc2.Protocol {
 				args := make([]TrackArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Track(args[0])
+				}
+				return
+			},
+			"untrack": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]UntrackArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Untrack(args[0])
 				}
 				return
 			},
@@ -1976,6 +1989,11 @@ type TrackClient struct {
 
 func (c TrackClient) Track(__arg TrackArg) (err error) {
 	err = c.Cli.Call("keybase.1.track.track", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TrackClient) Untrack(__arg UntrackArg) (err error) {
+	err = c.Cli.Call("keybase.1.track.untrack", []interface{}{__arg}, nil)
 	return
 }
 

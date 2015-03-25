@@ -34,3 +34,17 @@ func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
 	eng := engine.NewTrackEngine(&earg)
 	return engine.RunEngine(eng, &ctx)
 }
+
+// Untrack creates an UntrackEngine and runs it.
+func (h *TrackHandler) Untrack(arg keybase_1.UntrackArg) error {
+	sessionID := arg.SessionID
+	theirName := arg.TheirName
+	earg := engine.UntrackEngineArg{
+		TheirName: theirName,
+	}
+	ctx := engine.Context{
+		SecretUI: h.getSecretUI(sessionID),
+	}
+	eng := engine.NewUntrackEngine(&earg)
+	return engine.RunEngine(eng, &ctx)
+}

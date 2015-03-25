@@ -311,26 +311,6 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @end
 
-@interface KBRPgpCreateUids : KBRObject
-@property BOOL useDefault;
-@property NSArray *ids; /*of KBRPgpIdentity*/
-@end
-
-@interface KBRMykeyRequest : KBRRequest
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
-
-- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
-
-- (void)deletePrimary:(void (^)(NSError *error))completion;
-
-- (void)show:(void (^)(NSError *error))completion;
-
-- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
-
-- (void)updateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
-
-@end
-
 typedef NS_ENUM (NSInteger, KBRLogLevel) {
 	KBRLogLevelNone,
 	KBRLogLevelDebug,
@@ -358,6 +338,26 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @interface KBRLoginUiRequest : KBRRequest
 - (void)getEmailOrUsernameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
+
+@end
+
+@interface KBRPgpCreateUids : KBRObject
+@property BOOL useDefault;
+@property NSArray *ids; /*of KBRPgpIdentity*/
+@end
+
+@interface KBRMykeyRequest : KBRRequest
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
+
+- (void)deletePrimary:(void (^)(NSError *error))completion;
+
+- (void)show:(void (^)(NSError *error))completion;
+
+- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
+
+- (void)updateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -548,6 +548,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTrackRequest : KBRRequest
 - (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion;
 
+- (void)untrackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRUiRequest : KBRRequest
@@ -704,6 +706,22 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *username;
 @end
+@interface KBRLogRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRLogLevel level;
+@property KBRText *text;
+@end
+@interface KBRPassphraseLoginRequestParams : KBRRequestParams
+@property BOOL identify;
+@property NSString *username;
+@property NSString *passphrase;
+@end
+@interface KBRSwitchUserRequestParams : KBRRequestParams
+@property NSString *username;
+@end
+@interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRPgpKeyGenRequestParams : KBRRequestParams
 @property NSInteger primaryBits;
 @property NSInteger subkeyBits;
@@ -723,22 +741,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property BOOL all;
 @property NSArray *fingerprints;
-@end
-@interface KBRLogRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRLogLevel level;
-@property KBRText *text;
-@end
-@interface KBRPassphraseLoginRequestParams : KBRRequestParams
-@property BOOL identify;
-@property NSString *username;
-@property NSString *passphrase;
-@end
-@interface KBRSwitchUserRequestParams : KBRRequestParams
-@property NSString *username;
-@end
-@interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
-@property NSInteger sessionID;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -868,6 +870,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *theirName;
 @property BOOL localOnly;
 @property BOOL approveRemote;
+@end
+@interface KBRUntrackRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *theirName;
 @end
 @interface KBRPromptYesNoRequestParams : KBRRequestParams
 @property NSInteger sessionID;

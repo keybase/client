@@ -8,11 +8,19 @@ import (
 )
 
 func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
+	return runTrackWithOptions(fu, username, TrackOptions{})
+}
+
+func runTrackWithOptions(fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, res *IdRes, err error) {
 	idUI = &FakeIdentifyUI{
-		Fapr: keybase_1.FinishAndPromptRes{TrackRemote: true},
+		Fapr: keybase_1.FinishAndPromptRes{
+			TrackLocal:  options.TrackLocalOnly,
+			TrackRemote: !options.TrackLocalOnly,
+		},
 	}
 	arg := TrackEngineArg{
 		TheirName: username,
+		Options:   options,
 	}
 	ctx := Context{
 		LogUI:      G.UI.GetLogUI(),
@@ -39,13 +47,16 @@ func assertTracked(t *testing.T, fu *FakeUser, theirName string) {
 		t.Fatal(err)
 	}
 	if s == nil {
-		t.Fatal("expeted a tracking statement; but didn't see one")
+		t.Fatal("expected a tracking statement; but didn't see one")
 	}
-
 }
 
 func trackAlice(t *testing.T, fu *FakeUser) {
-	idUI, res, err := runTrack(fu, "t_alice")
+	trackAliceWithOptions(t, fu, TrackOptions{})
+}
+
+func trackAliceWithOptions(t *testing.T, fu *FakeUser, options TrackOptions) {
+	idUI, res, err := runTrackWithOptions(fu, "t_alice", options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +66,11 @@ func trackAlice(t *testing.T, fu *FakeUser) {
 }
 
 func trackBob(t *testing.T, fu *FakeUser) {
-	idUI, res, err := runTrack(fu, "t_bob")
+	trackBobWithOptions(t, fu, TrackOptions{})
+}
+
+func trackBobWithOptions(t *testing.T, fu *FakeUser, options TrackOptions) {
+	idUI, res, err := runTrackWithOptions(fu, "t_bob", options)
 	if err != nil {
 		t.Fatal(err)
 	}

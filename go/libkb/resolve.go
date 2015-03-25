@@ -31,6 +31,14 @@ type ResolveResult struct {
 	kbUsername string
 }
 
+func (res *ResolveResult) GetUid() *UID {
+	return res.uid
+}
+
+func (res *ResolveResult) GetError() error {
+	return res.err
+}
+
 func ResolveUid(input string) (res ResolveResult) {
 	G.Log.Debug("+ Resolving username %s", input)
 	var au AssertionUrl

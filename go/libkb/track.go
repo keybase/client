@@ -372,3 +372,8 @@ func StoreLocalTrack(tracker UID, trackee UID, statement *jsonw.Wrapper) error {
 	G.Log.Debug("| StoreLocalTrack")
 	return G.LocalDb.Put(LocalTrackDBKey(tracker, trackee), nil, statement)
 }
+
+func RemoveLocalTrack(tracker UID, trackee UID) error {
+	G.Log.Debug("| RemoveLocalTrack")
+	return G.LocalDb.Delete(LocalTrackDBKey(tracker, trackee))
+}
