@@ -39,8 +39,13 @@ protocol Common {
 	}
 
 	record PublicKey {
-		FOKID fokid;
-		string role; // "sib" or "sub"
+		string KID;
+		string PGPFingerprint; // empty for non-PGP keys
+		boolean isSibkey;
+		boolean isEldest;
+		boolean isWeb;
+		string parentID;
+		string deviceID;
 		string deviceDescription;
 		long cTime;
 		long eTime;

@@ -3,7 +3,6 @@
 package libkb
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io"
 	"sort"
@@ -505,9 +504,8 @@ func (l PublicKeyList) Less(i, j int) bool {
 	if l[i].CTime != l[j].CTime {
 		return l[i].CTime < l[j].CTime
 	}
-	leftKID := hex.EncodeToString(*l[i].Fokid.Kid)
-	rightKID := hex.EncodeToString(*l[j].Fokid.Kid)
-	return leftKID < rightKID
+	// Otherwise just sort by KID.
+	return l[i].KID < l[j].KID
 }
 func (l PublicKeyList) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
 
@@ -515,22 +513,31 @@ func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
 	exportedKeys := []keybase_1.PublicKey{}
 	addKey := func(key GenericKey) {
 		kid := key.GetKid().String()
-		cki := ckf.cki.Infos[kid]
-		role := "sub"
-		if cki.Sibkey {
-			role = "sib"
+		fingerprintStr := ""
+		if key.GetFingerprintP() != nil {
+			fingerprintStr = (*key.GetFingerprintP()).String()
 		}
+		cki := ckf.cki.Infos[kid]
 		deviceID := ckf.cki.KidToDeviceId[kid]
+		device := ckf.cki.Devices[deviceID]
 		deviceDescription := ""
-		if device := ckf.cki.Devices[deviceID]; device != nil {
+		if device != nil {
 			if device.Description != nil {
 				deviceDescription = *device.Description
 			}
 		}
-		fokid := GenericKeyToFOKID(key)
+		parentID := ""
+		if cki.Parent != nil {
+			parentID = *cki.Parent
+		}
 		exportedKeys = append(exportedKeys, keybase_1.PublicKey{
-			Fokid:             (&fokid).Export(),
-			Role:              role,
+			KID:               kid,
+			PGPFingerprint:    fingerprintStr,
+			IsSibkey:          cki.Sibkey,
+			IsEldest:          cki.Eldest,
+			IsWeb:             (device != nil && device == ckf.cki.WebDevice),
+			ParentID:          parentID,
+			DeviceID:          deviceID,
 			DeviceDescription: deviceDescription,
 			CTime:             cki.CTime,
 			ETime:             cki.ETime,

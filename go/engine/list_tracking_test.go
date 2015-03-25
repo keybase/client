@@ -3,7 +3,6 @@ package engine
 import (
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -44,7 +43,7 @@ func TestListTracking(t *testing.T) {
 	}
 
 	expectedFp := "2373fd089f28f328916b88f99c7927c0bdfdadf9"
-	foundFp := libkb.ImportPgpFingerprint(entry.Proofs.PublicKeys[0].Fokid).String()
+	foundFp := entry.Proofs.PublicKeys[0].PGPFingerprint
 	if foundFp != expectedFp {
 		t.Errorf("fp: %q, expected %q", foundFp, expectedFp)
 	}

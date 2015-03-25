@@ -41,8 +41,13 @@
 @end
 
 @interface KBRPublicKey : KBRObject
-@property KBRFOKID *fokid;
-@property NSString *role;
+@property NSString *KID;
+@property NSString *PGPFingerprint;
+@property BOOL isSibkey;
+@property BOOL isEldest;
+@property BOOL isWeb;
+@property NSString *parentID;
+@property NSString *deviceID;
 @property NSString *deviceDescription;
 @property long cTime;
 @property long eTime;

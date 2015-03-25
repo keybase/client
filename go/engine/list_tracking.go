@@ -117,7 +117,7 @@ func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keyb
 	}
 
 	for _, fingerprint := range fingerprints {
-		res = append(res, keybase_1.PublicKey{Fokid: fingerprint.ExportToFOKID()})
+		res = append(res, keybase_1.PublicKey{PGPFingerprint: fingerprint.String()})
 	}
 	return res
 }

@@ -27,7 +27,7 @@ func TestExportUser(t *testing.T) {
 		t.Fatal("expected 1 public key", exportedAlice.PublicKeys)
 	}
 
-	if hex.EncodeToString(*exportedAlice.PublicKeys[0].Fokid.PgpFingerprint) != "2373fd089f28f328916b88f99c7927c0bdfdadf9" {
-		t.Fatal("wrong fingerprint", exportedAlice.PublicKeys[0].Fokid.PgpFingerprint)
+	if exportedAlice.PublicKeys[0].PGPFingerprint != "2373fd089f28f328916b88f99c7927c0bdfdadf9" {
+		t.Fatal("wrong fingerprint", exportedAlice.PublicKeys[0].PGPFingerprint)
 	}
 }

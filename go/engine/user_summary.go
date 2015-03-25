@@ -96,13 +96,8 @@ type PubKey struct {
 }
 
 func (p *PubKey) Export() keybase_1.PublicKey {
-	fokid := keybase_1.FOKID{}
-	pgpFingerprint := libkb.PgpFingerprintFromHexNoError(p.KeyFingerprint)
-	if pgpFingerprint != nil {
-		fokid = pgpFingerprint.ExportToFOKID()
-	}
 	return keybase_1.PublicKey{
-		Fokid: fokid,
+		PGPFingerprint: p.KeyFingerprint,
 	}
 }
 

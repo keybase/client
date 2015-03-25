@@ -70,17 +70,28 @@ func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
 	}
 	fmt.Printf("Public keys:\n")
 	for _, key := range me.PublicKeys {
-		if key.Fokid.Kid == nil {
-			return fmt.Errorf("Found a key with a null KID.")
+		if key.KID == "" {
+			return fmt.Errorf("Found a key with an empty KID.")
 		}
-		fmt.Printf("  %s (%s)\n", libkb.KID(*key.Fokid.Kid).String(), key.Role)
-		if key.Fokid.PgpFingerprint != nil {
-			fingerprint := libkb.PgpFingerprint{}
-			copy(fingerprint[:], *key.Fokid.PgpFingerprint)
-			fmt.Printf("    PGP Fingerprint: %s\n", fingerprint.ToQuads())
+		role := "subkey"
+		if key.IsSibkey {
+			role = "sibkey"
 		}
+		eldestStr := ""
+		if key.IsEldest {
+			eldestStr = " (eldest)"
+		}
+		fmt.Printf("  %s (%s)%s\n", key.KID, role, eldestStr)
+		if key.PGPFingerprint != "" {
+			fmt.Printf("    PGP Fingerprint: %s\n", libkb.PgpFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
+		}
+		webStr := ""
+		if key.IsWeb {
+			webStr = " (web)"
+		}
+		fmt.Printf("    Device ID: %s%s\n", key.DeviceID, webStr)
 		if key.DeviceDescription != "" {
-			fmt.Printf("    Device: %s\n", key.DeviceDescription)
+			fmt.Printf("    Device Description: %s\n", key.DeviceDescription)
 		}
 		fmt.Printf("    Created: %s\n", time.Unix(key.CTime, 0))
 		fmt.Printf("    Expires: %s\n", time.Unix(key.ETime, 0))
