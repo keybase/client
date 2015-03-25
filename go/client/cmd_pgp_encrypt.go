@@ -118,11 +118,13 @@ func (c *CmdPGPEncrypt) RunClient() error {
 		return err
 	}
 	opts := keybase_1.PgpEncryptOptions{
-		Recipients: c.recipients,
-		NoSign:     !c.sign,
-		NoSelf:     c.noSelf,
-		BinaryOut:  c.binaryOut,
-		KeyQuery:   c.keyQuery,
+		Recipients:    c.recipients,
+		NoSign:        !c.sign,
+		NoSelf:        c.noSelf,
+		BinaryOut:     c.binaryOut,
+		KeyQuery:      c.keyQuery,
+		LocalOnly:     c.localOnly,
+		ApproveRemote: c.approveRemote,
 	}
 	arg := keybase_1.PgpEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.PgpEncrypt(arg)

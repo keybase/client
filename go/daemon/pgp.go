@@ -66,11 +66,18 @@ func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) error {
 	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
 	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
 	earg := &engine.PGPDecryptArg{
-		Sink:   snk,
-		Source: src,
+		Sink:         snk,
+		Source:       src,
+		AssertSigned: arg.Opts.AssertSigned,
+		TrackOptions: engine.TrackOptions{
+			TrackLocalOnly: arg.Opts.LocalOnly,
+			TrackApprove:   arg.Opts.ApproveRemote,
+		},
 	}
 	ctx := &engine.Context{
-		SecretUI: h.getSecretUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
+		LogUI:      h.getLogUI(arg.SessionID),
 	}
 	eng := engine.NewPGPDecrypt(earg)
 	return engine.RunEngine(eng, ctx)

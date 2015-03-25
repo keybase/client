@@ -16,7 +16,7 @@ func TestScanKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sk, err := NewScanKeys(u, fu.NewSecretUI(), &FakeIdentifyUI{})
+	sk, err := NewScanKeys(u, fu.NewSecretUI(), &FakeIdentifyUI{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestScanKeysSync(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sk, err := NewScanKeys(u, fu.NewSecretUI(), &FakeIdentifyUI{})
+	sk, err := NewScanKeys(u, fu.NewSecretUI(), &FakeIdentifyUI{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

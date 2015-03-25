@@ -58,11 +58,18 @@ func (c *CmdPGPDecrypt) Run() error {
 		return err
 	}
 	arg := &engine.PGPDecryptArg{
-		Source: c.source,
-		Sink:   c.sink,
+		Source:       c.source,
+		Sink:         c.sink,
+		AssertSigned: c.signed,
+		TrackOptions: engine.TrackOptions{
+			TrackLocalOnly: c.localOnly,
+			TrackApprove:   c.approveRemote,
+		},
 	}
 	ctx := &engine.Context{
-		SecretUI: G.UI.GetSecretUI(),
+		SecretUI:   G.UI.GetSecretUI(),
+		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
+		LogUI:      G.UI.GetLogUI(),
 	}
 	eng := engine.NewPGPDecrypt(arg)
 	err := engine.RunEngine(eng, ctx)
@@ -79,6 +86,8 @@ func (c *CmdPGPDecrypt) RunClient() error {
 	protocols := []rpc2.Protocol{
 		NewStreamUiProtocol(),
 		NewSecretUIProtocol(),
+		NewIdentifyUIProtocol(),
+		NewLogUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err

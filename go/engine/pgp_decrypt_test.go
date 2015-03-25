@@ -98,7 +98,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."
 	trackUI := &FakeIdentifyUI{}
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: fu.NewSecretUI()}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: fu.NewSecretUI(), LogUI: G.UI.GetLogUI()}
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Source:       strings.NewReader(msg),
@@ -116,8 +116,9 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 	// decrypt it
 	var decoded bytes.Buffer
 	decarg := &PGPDecryptArg{
-		Source: bytes.NewReader(out),
-		Sink:   &decoded,
+		Source:       bytes.NewReader(out),
+		Sink:         &decoded,
+		AssertSigned: true,
 	}
 	dec := NewPGPDecrypt(decarg)
 	if err := RunEngine(dec, ctx); err != nil {
@@ -171,13 +172,14 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	rtrackUI := &FakeIdentifyUI{
 		Fapr: keybase_1.FinishAndPromptRes{TrackRemote: true},
 	}
-	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI()}
+	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: G.UI.GetLogUI()}
 
 	// decrypt it
 	var decoded bytes.Buffer
 	decarg := &PGPDecryptArg{
-		Source: bytes.NewReader(out),
-		Sink:   &decoded,
+		Source:       bytes.NewReader(out),
+		Sink:         &decoded,
+		AssertSigned: true,
 	}
 	dec := NewPGPDecrypt(decarg)
 	if err := RunEngine(dec, ctx); err != nil {

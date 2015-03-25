@@ -7,8 +7,10 @@ import (
 )
 
 type PGPDecryptArg struct {
-	Source io.Reader
-	Sink   io.Writer
+	Source       io.Reader
+	Sink         io.Writer
+	AssertSigned bool
+	TrackOptions TrackOptions
 }
 
 // PGPDecrypt decrypts data read from source into sink for the
@@ -35,7 +37,7 @@ func (e *PGPDecrypt) GetPrereqs() EnginePrereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PGPDecrypt) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{libkb.SecretUIKind}
+	return []libkb.UIKind{libkb.SecretUIKind, libkb.LogUIKind}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -51,9 +53,28 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	sk, err := NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI)
+	sk, err := NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
 	if err != nil {
 		return err
 	}
-	return libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
+	signStatus, err := libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
+	if err != nil {
+		return err
+	}
+
+	if !e.arg.AssertSigned {
+		G.Log.Debug("Not checking signature status (AssertSigned == false)")
+		return nil
+	}
+
+	if !signStatus.IsSigned {
+		return libkb.BadSigError{E: "no signature in message"}
+	}
+	if !signStatus.Verified {
+		return signStatus.SignatureError
+	}
+
+	ctx.LogUI.Notice("Signature verified")
+
+	return nil
 }

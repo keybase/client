@@ -193,11 +193,11 @@ func (e WrongSigError) Error() string {
 }
 
 type BadSigError struct {
-	e string
+	E string
 }
 
 func (e BadSigError) Error() string {
-	return e.e
+	return e.E
 }
 
 //=============================================================================
