@@ -540,7 +540,7 @@ func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
 			PGPFingerprint:    fingerprintStr,
 			IsSibkey:          cki.Sibkey,
 			IsEldest:          cki.Eldest,
-			IsWeb:             (device != nil && device == ckf.cki.WebDevice),
+			IsWeb:             (device != nil && device.Id == ckf.cki.WebDeviceID),
 			ParentID:          parentID,
 			DeviceID:          deviceID,
 			DeviceDescription: deviceDescription,

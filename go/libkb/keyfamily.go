@@ -97,7 +97,7 @@ type ComputedKeyInfos struct {
 	KidToDeviceId map[string]string
 
 	// The last-added Web device, to figure out where the DetKey is.
-	WebDevice *Device
+	WebDeviceID string
 }
 
 // As returned by user/lookup.json; these records are not to be trusted,
@@ -893,7 +893,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// Last-writer wins on the Web device
 	if dobj != nil && dobj.IsWeb() {
 		G.Log.Debug("| Set Web/DetKey Device")
-		ckf.cki.WebDevice = dobj
+		ckf.cki.WebDeviceID = dobj.Id
 	}
 
 	return
