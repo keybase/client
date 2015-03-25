@@ -9,6 +9,14 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
+func decengctx(fu *FakeUser) *Context {
+	return &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   fu.NewSecretUI(),
+		LogUI:      G.UI.GetLogUI(),
+	}
+}
+
 func TestPGPDecrypt(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
@@ -16,9 +24,8 @@ func TestPGPDecrypt(t *testing.T) {
 
 	// encrypt a message
 	msg := "10 days in Japan"
-	trackUI := &FakeIdentifyUI{}
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: fu.NewSecretUI()}
 	sink := libkb.NewBufferCloser()
+	ctx := decengctx(fu)
 	arg := &PGPEncryptArg{
 		Source:       strings.NewReader(msg),
 		Sink:         sink,
@@ -56,8 +63,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 
 	// encrypt a message
 	msg := "10 days in Japan"
-	trackUI := &FakeIdentifyUI{}
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: fu.NewSecretUI()}
+	ctx := decengctx(fu)
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Source: strings.NewReader(msg),
@@ -97,8 +103,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."
-	trackUI := &FakeIdentifyUI{}
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: fu.NewSecretUI(), LogUI: G.UI.GetLogUI()}
+	ctx := decengctx(fu)
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Source:       strings.NewReader(msg),
@@ -144,8 +149,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."
-	trackUI := &FakeIdentifyUI{}
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: signer.NewSecretUI()}
+	ctx := decengctx(signer)
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Recips:       []string{recipient.Username},
