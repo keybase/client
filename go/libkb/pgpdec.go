@@ -42,7 +42,7 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) error {
 	}
 
 	if md.IsSigned {
-		G.Log.Debug("message is signed (SignedByKeyId: %+v) (have key? %v)", md.SignedByKeyId, md.SignedBy != nil)
+		G.Log.Info("message is signed (SignedByKeyId: %+v) (have key? %v)", md.SignedByKeyId, md.SignedBy != nil)
 	}
 
 	n, err := io.Copy(sink, md.UnverifiedBody)
@@ -50,6 +50,13 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) error {
 		return err
 	}
 	G.Log.Debug("PGPDecrypt: copied %d bytes to writer", n)
+
+	if md.IsSigned {
+		if md.SignatureError != nil {
+			G.Log.Warning("signature error: %s", md.SignatureError)
+		}
+	}
+
 	return nil
 }
 

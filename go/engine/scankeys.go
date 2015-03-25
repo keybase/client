@@ -12,13 +12,15 @@ import (
 // It is not an engine, but uses an engine and is used by engines,
 // so has to be in the engine package.  It is a UIConsumer.
 type ScanKeys struct {
-	keys openpgp.EntityList
+	keys  openpgp.EntityList
+	secui libkb.SecretUI
+	idui  libkb.IdentifyUI
 }
 
 // enforce ScanKeys implements openpgp.KeyRing:
 var _ openpgp.KeyRing = &ScanKeys{}
 
-func NewScanKeys(u *libkb.User, ui libkb.SecretUI) (*ScanKeys, error) {
+func NewScanKeys(u *libkb.User, secui libkb.SecretUI, idui libkb.IdentifyUI) (*ScanKeys, error) {
 	if u == nil {
 		return nil, libkb.ErrNilUser
 	}
@@ -30,8 +32,8 @@ func NewScanKeys(u *libkb.User, ui libkb.SecretUI) (*ScanKeys, error) {
 	if err != nil {
 		return nil, err
 	}
-	sk := &ScanKeys{}
-	if err := sk.extractKeys(ring, synced, ui); err != nil {
+	sk := &ScanKeys{secui: secui, idui: idui}
+	if err := sk.extractKeys(ring, synced, secui); err != nil {
 		return nil, err
 	}
 	return sk, nil
@@ -70,25 +72,31 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 		return memres
 	}
 
-	var data struct {
-		Username string
-		UID      string
-	}
-
-	// lookup key on api server
-	args := libkb.ApiArg{
-		Endpoint: "key/basics",
-		Args: libkb.HttpArgs{
-			"pgp_key_id": libkb.UHex{Val: id},
-		},
-	}
-	if err := G.API.GetDecode(args, &data); err != nil {
+	username, uid, err := s.apiLookup(id)
+	if err != nil {
 		G.Log.Warning("error looking up key: %s", err)
 		return []openpgp.Key{}
 	}
-	G.Log.Debug("response data: %+v", data)
+	G.Log.Info("key id %d => (%s, %s)", id, username, uid)
 
-	return []openpgp.Key{}
+	arg := &PGPKeyfinderArg{Users: []string{"uid://" + uid}}
+	ctx := &Context{SecretUI: s.secui, IdentifyUI: s.idui}
+	eng := NewPGPKeyfinder(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		G.Log.Warning("error finding pgp key for %s: %s", username, err)
+		return []openpgp.Key{}
+	}
+	uplus := eng.UsersPlusKeys()
+	if len(uplus) != 1 {
+		G.Log.Warning("error getting user plus pgp key from %s", username)
+		return []openpgp.Key{}
+	}
+
+	var list openpgp.EntityList
+	for _, k := range uplus[0].Keys {
+		list = append(list, (*openpgp.Entity)(k))
+	}
+	return list.KeysByIdUsage(id, requiredUsage)
 }
 
 // DecryptionKeys returns all private keys that are valid for
@@ -126,4 +134,24 @@ func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI) error {
 		G.Log.Debug("not pgp key: %T", k)
 	}
 	return nil
+}
+
+func (s *ScanKeys) apiLookup(id uint64) (username, uid string, err error) {
+	var data struct {
+		Username string
+		UID      string
+	}
+
+	// lookup key on api server
+	args := libkb.ApiArg{
+		Endpoint: "key/basics",
+		Args: libkb.HttpArgs{
+			"pgp_key_id": libkb.UHex{Val: id},
+		},
+	}
+	if err = G.API.GetDecode(args, &data); err != nil {
+		return "", "", err
+	}
+	G.Log.Debug("response data: %+v", data)
+	return data.Username, data.UID, nil
 }

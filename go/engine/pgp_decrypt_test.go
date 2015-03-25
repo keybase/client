@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 func TestPGPDecrypt(t *testing.T) {
@@ -167,7 +168,10 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	t.Logf("recipient (%q) logging in", recipient.Username)
 	recipient.LoginOrBust(t)
 
-	ctx = &Context{SecretUI: recipient.NewSecretUI()}
+	rtrackUI := &FakeIdentifyUI{
+		Fapr: keybase_1.FinishAndPromptRes{TrackRemote: true},
+	}
+	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI()}
 
 	// decrypt it
 	var decoded bytes.Buffer

@@ -51,7 +51,7 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	sk, err := NewScanKeys(me, ctx.SecretUI)
+	sk, err := NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI)
 	if err != nil {
 		return err
 	}
