@@ -10,6 +10,7 @@ import (
 
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"golang.org/x/crypto/openpgp"
 )
 
 func (sh SigHint) Export() *keybase_1.SigHint {
@@ -514,13 +515,28 @@ func (l PublicKeyList) Less(i, j int) bool {
 }
 func (l PublicKeyList) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
 
+func ExportPgpIdentity(identity *openpgp.Identity) keybase_1.PgpIdentity {
+	if identity == nil || identity.UserId == nil {
+		return keybase_1.PgpIdentity{}
+	}
+	return keybase_1.PgpIdentity{
+		Username: identity.UserId.Name,
+		Email:    identity.UserId.Email,
+		Comment:  identity.UserId.Comment,
+	}
+}
+
 func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
 	exportedKeys := []keybase_1.PublicKey{}
 	addKey := func(key GenericKey) {
 		kid := key.GetKid().String()
 		fingerprintStr := ""
-		if key.GetFingerprintP() != nil {
-			fingerprintStr = (*key.GetFingerprintP()).String()
+		identities := []keybase_1.PgpIdentity{}
+		if pgpBundle, isPGP := key.(*PgpKeyBundle); isPGP {
+			fingerprintStr = pgpBundle.GetFingerprint().String()
+			for _, identity := range pgpBundle.Identities {
+				identities = append(identities, ExportPgpIdentity(identity))
+			}
 		}
 		cki := ckf.cki.Infos[kid]
 		deviceID := ckf.cki.KidToDeviceId[kid]
@@ -538,6 +554,7 @@ func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
 		exportedKeys = append(exportedKeys, keybase_1.PublicKey{
 			KID:               kid,
 			PGPFingerprint:    fingerprintStr,
+			PGPIdentities:     identities,
 			IsSibkey:          cki.Sibkey,
 			IsEldest:          cki.Eldest,
 			IsWeb:             (device != nil && device.Id == ckf.cki.WebDeviceID),

@@ -24,6 +24,7 @@
 @end
 
 @implementation KBRPublicKey
++ (NSValueTransformer *)PGPIdentitiesJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
 @end
 
 @implementation KBRUser

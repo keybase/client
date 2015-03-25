@@ -44,16 +44,17 @@ type Image struct {
 }
 
 type PublicKey struct {
-	KID               string `codec:"KID" json:"KID"`
-	PGPFingerprint    string `codec:"PGPFingerprint" json:"PGPFingerprint"`
-	IsSibkey          bool   `codec:"isSibkey" json:"isSibkey"`
-	IsEldest          bool   `codec:"isEldest" json:"isEldest"`
-	IsWeb             bool   `codec:"isWeb" json:"isWeb"`
-	ParentID          string `codec:"parentID" json:"parentID"`
-	DeviceID          string `codec:"deviceID" json:"deviceID"`
-	DeviceDescription string `codec:"deviceDescription" json:"deviceDescription"`
-	CTime             int64  `codec:"cTime" json:"cTime"`
-	ETime             int64  `codec:"eTime" json:"eTime"`
+	KID               string        `codec:"KID" json:"KID"`
+	PGPFingerprint    string        `codec:"PGPFingerprint" json:"PGPFingerprint"`
+	PGPIdentities     []PgpIdentity `codec:"PGPIdentities" json:"PGPIdentities"`
+	IsSibkey          bool          `codec:"isSibkey" json:"isSibkey"`
+	IsEldest          bool          `codec:"isEldest" json:"isEldest"`
+	IsWeb             bool          `codec:"isWeb" json:"isWeb"`
+	ParentID          string        `codec:"parentID" json:"parentID"`
+	DeviceID          string        `codec:"deviceID" json:"deviceID"`
+	DeviceDescription string        `codec:"deviceDescription" json:"deviceDescription"`
+	CTime             int64         `codec:"cTime" json:"cTime"`
+	ETime             int64         `codec:"eTime" json:"eTime"`
 }
 
 type User struct {

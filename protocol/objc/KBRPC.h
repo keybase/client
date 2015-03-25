@@ -43,6 +43,7 @@
 @interface KBRPublicKey : KBRObject
 @property NSString *KID;
 @property NSString *PGPFingerprint;
+@property NSArray *PGPIdentities; /*of KBRPgpIdentity*/
 @property BOOL isSibkey;
 @property BOOL isEldest;
 @property BOOL isWeb;

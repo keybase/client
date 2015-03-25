@@ -41,6 +41,7 @@ protocol Common {
 	record PublicKey {
 		string KID;
 		string PGPFingerprint; // empty for non-PGP keys
+		array<PgpIdentity> PGPIdentities; // same
 		boolean isSibkey;
 		boolean isEldest;
 		boolean isWeb;

@@ -90,6 +90,12 @@
       "name" : "PGPFingerprint",
       "type" : "string"
     }, {
+      "name" : "PGPIdentities",
+      "type" : {
+        "type" : "array",
+        "items" : "PgpIdentity"
+      }
+    }, {
       "name" : "isSibkey",
       "type" : "boolean"
     }, {
