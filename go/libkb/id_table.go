@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -488,23 +487,11 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 // SibkeyChainLink
 //
 
-type ReverseSig struct {
-	Type string `json:"type"`
-	Sig  string `json:"sig"`
-}
-
-type ReverseSigPayload struct {
-	Ctime       int64  `json:"ctime"`
-	DelegatedBy string `json:"delegated_by"`
-	Uid         *UID   `json:"uid"`
-	Username    string `json:"username"`
-}
-
 type SibkeyChainLink struct {
 	GenericChainLink
 	kid        KID
 	device     *Device
-	reverseSig ReverseSig
+	reverseSig string
 }
 
 func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) {
@@ -516,9 +503,10 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 		return
 	}
 
-	var rs ReverseSig
-	if err = b.payloadJson.AtPath("body.sibkey.reverse_sig").UnmarshalAgain(&rs); err != nil {
-		err = ChainLinkError{fmt.Sprintf("Bad reverse_sig in sibkey delegation @%s: %s", b.ToDebugString(), err.Error())}
+	var rs string
+	if rs, err = b.payloadJson.AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Missing reverse_sig in sibkey delegation: @%s: %s",
+			b.ToDebugString(), err.Error())}
 		return
 	}
 
@@ -546,7 +534,7 @@ func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 	var key GenericKey
 
-	if len(s.reverseSig.Sig) == 0 {
+	if len(s.reverseSig) == 0 {
 		G.Log.Warning("!! Sibkey delegations without reverse sigs are soon to be retired!!")
 		G.Log.Warning("!! We're leaving them on for now for testing purposes!!")
 		G.Log.Warning("!! SibkeyChainLink: %s (device: %+v)", s.ToDisplayString(), s.device)
@@ -557,26 +545,32 @@ func (s *SibkeyChainLink) VerifyReverseSig(kf *KeyFamily) (err error) {
 		err = ReverseSigError{fmt.Sprintf("Can't find a key for %s", s.GetDelegatedKid().String())}
 		return
 	}
-	var payload []byte
-	if payload, _, err = key.VerifyAndExtract(s.reverseSig.Sig); err != nil {
+
+	var p1, p2 []byte
+	if p1, _, err = key.VerifyAndExtract(s.reverseSig); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err.Error())}
 		return
 	}
-	var reverseSigPayload ReverseSigPayload
-	if err = json.Unmarshal(payload, &reverseSigPayload); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Failed to unpack: %s", err.Error())}
+
+	if p1, err = jsonw.Canonicalize(p1); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Failed to canonicalize json: %s", err.Error())}
 		return
 	}
-	if a, b := reverseSigPayload.DelegatedBy, s.GetKid().String(); a != b {
-		err = ReverseSigError{fmt.Sprintf("KID mismatch in reverse sig: %s != %s", a, b)}
+
+	// Null-out the reverse sig on the parent
+	path := "body.sibkey.reverse_sig"
+	s.payloadJson.SetValueAtPath(path, jsonw.NewNil())
+	if p2, err = s.payloadJson.Marshal(); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Can't remarshal JSON statement: %s", err.Error())}
 		return
 	}
-	if a, b := reverseSigPayload.Uid, s.GetUID(); a == nil || !a.Eq(b) {
-		err = ReverseSigError{fmt.Sprintf("UID mismatch in reverse sig: %v != %v", a, b)}
-		return
-	}
-	if a, b := reverseSigPayload.Username, s.GetUsername(); a != b {
-		err = ReverseSigError{fmt.Sprintf("Username mismatch in reverse sig: %v != %v", a, b)}
+
+	eq := FastByteArrayEq(p1, p2)
+	s.payloadJson.SetValueAtPath(path, jsonw.NewString(s.reverseSig))
+
+	if !eq {
+		err = ReverseSigError{fmt.Sprintf("JSON mismatch: %s != %s",
+			string(p1), string(p2))}
 		return
 	}
 	return

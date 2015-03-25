@@ -60,6 +60,14 @@ func GetKID(w *jsonw.Wrapper) (kid KID, err error) {
 	return
 }
 
+func (k KID) ToJsonw() *jsonw.Wrapper {
+	if k == nil {
+		return jsonw.NewNil()
+	} else {
+		return jsonw.NewString(k.String())
+	}
+}
+
 func CanEncrypt(key GenericKey) bool {
 	switch key.(type) {
 	case NaclDHKeyPair:
@@ -149,6 +157,8 @@ func (f FOKID) ToStrings() (ret []string) {
 	}
 	return
 }
+
+func (f FOKID) P() *FOKID { return &f }
 
 func (f FOKID) MatchQuery(s string) bool {
 	if f.Fp != nil && strings.HasSuffix(strings.ToLower(f.Fp.String()), strings.ToLower(s)) {

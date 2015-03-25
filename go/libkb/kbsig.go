@@ -115,7 +115,7 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	return
 }
 
-func (u *User) ToKeyStanza(sk GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
+func (u *User) ToKeyStanza(signing FOKID, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 	ret.SetKey("uid", jsonw.NewString(u.id.String()))
 	ret.SetKey("username", jsonw.NewString(u.name))
@@ -125,19 +125,11 @@ func (u *User) ToKeyStanza(sk GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, er
 		eldest = u.GetEldestFOKID()
 	}
 
-	var signingKid KID
-	if sk != nil {
-		signingKid = sk.GetKid()
-	} else {
-		err = NoSecretKeyError{}
-		return
-	}
+	signingKid := signing.Kid
 
-	if sk != nil {
-		if fp := sk.GetFingerprintP(); fp != nil {
-			ret.SetKey("fingerprint", jsonw.NewString(fp.String()))
-			ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))
-		}
+	if fp := signing.Fp; fp != nil {
+		ret.SetKey("fingerprint", jsonw.NewString(fp.String()))
+		ret.SetKey("key_id", jsonw.NewString(fp.ToKeyId()))
 	}
 
 	ret.SetKey("kid", jsonw.NewString(signingKid.String()))
@@ -210,7 +202,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	return nil
 }
 
-func (u *User) ProofMetadata(ei int, signingKey GenericKey, eldest *FOKID) (ret *jsonw.Wrapper, err error) {
+func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int64) (ret *jsonw.Wrapper, err error) {
 
 	var seqno int
 	var prev_s string
@@ -227,13 +219,17 @@ func (u *User) ProofMetadata(ei int, signingKey GenericKey, eldest *FOKID) (ret 
 		prev = jsonw.NewString(prev_s)
 	}
 
+	if ctime == 0 {
+		ctime = time.Now().Unix()
+	}
+
 	if ei == 0 {
 		ei = SIG_EXPIRE_IN
 	}
 
 	ret = jsonw.NewDictionary()
 	ret.SetKey("tag", jsonw.NewString("signature"))
-	ret.SetKey("ctime", jsonw.NewInt64(time.Now().Unix()))
+	ret.SetKey("ctime", jsonw.NewInt64(ctime))
 	ret.SetKey("expire_in", jsonw.NewInt(ei))
 	ret.SetKey("seqno", jsonw.NewInt(seqno))
 	ret.SetKey("prev", prev)
@@ -256,7 +252,7 @@ func (u *User) ProofMetadata(ei int, signingKey GenericKey, eldest *FOKID) (ret 
 }
 
 func (u1 *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = u1.ProofMetadata(0, signingKey, nil)
+	ret, err = u1.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"))
 	}
@@ -264,7 +260,7 @@ func (u1 *User) TrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wr
 }
 
 func (u1 *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = u1.ProofMetadata(0, signingKey, nil)
+	ret, err = u1.ProofMetadata(0, GenericKeyToFOKID(signingKey), nil, 0)
 	if err == nil {
 		err = u2.ToUntrackingStatement(ret.AtKey("body"))
 	}
@@ -278,7 +274,8 @@ func setDeviceOnBody(body *jsonw.Wrapper, key GenericKey, device Device) {
 }
 
 func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err error) {
-	if arg.ExistingKey == nil {
+	ekfokid := arg.GetExistingKeyFOKID()
+	if ekfokid == nil {
 		fokid := GenericKeyToFOKID(arg.NewKey)
 		ret, err = u.eldestKeyProof(arg.NewKey, &fokid, arg.Device)
 		pushType = ELDEST_TYPE
@@ -288,7 +285,7 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, pushType string, err
 		} else {
 			pushType = SUBKEY_TYPE
 		}
-		ret, err = u.delegateKeyProof(arg.NewKey, arg.ExistingKey, pushType, arg.Expire, arg.Device, arg.RevSig)
+		ret, err = u.delegateKeyProof(arg.NewKey, *ekfokid, pushType, arg.Expire, arg.Device, arg.RevSig, arg.Ctime)
 	}
 	return
 }
@@ -298,7 +295,7 @@ func (u *User) eldestKeyProof(signingKey GenericKey, eldest *FOKID, device *Devi
 }
 
 func (u *User) selfProof(signingKey GenericKey, eldest *FOKID, device *Device, typ string) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(0, signingKey, eldest)
+	ret, err = u.ProofMetadata(0, GenericKeyToFOKID(signingKey), eldest, 0)
 	if err != nil {
 		return
 	}
@@ -333,45 +330,30 @@ func SignJson(jw *jsonw.Wrapper, key GenericKey) (out string, id *SigId, lid Lin
 	return
 }
 
-func NewReverseSigPayload(kid KID, u *User) ReverseSigPayload {
-	return ReverseSigPayload{
-		Ctime:       time.Now().Unix(),
-		DelegatedBy: kid.String(),
-		Uid:         u.GetUid().P(),
-		Username:    u.GetName(),
-	}
-}
-
 // revSig is optional.  Added for kex scenario.
-func keyToProofJson(newkey GenericKey, typ string, signingKey GenericKey, revSig *ReverseSig, u *User) (ret *jsonw.Wrapper, err error) {
+func keyToProofJson(newkey GenericKey, typ string, signingKey FOKID, revSig string, u *User) (ret *jsonw.Wrapper, err error) {
 	ret = jsonw.NewDictionary()
 
 	if typ == SIBKEY_TYPE {
-		if revSig != nil {
-			ret.SetKey("reverse_sig", jsonw.NewWrapper(*revSig))
-		} else if newkey.CanSign() {
-			var rs ReverseSig
-			rsp := NewReverseSigPayload(signingKey.GetKid(), u)
-			if rs.Sig, _, _, err = SignJson(jsonw.NewWrapper(rsp), newkey); err != nil {
-				return
-			}
-			rs.Type = "kb"
-			ret.SetKey("reverse_sig", jsonw.NewWrapper(rs))
+		val := jsonw.NewNil()
+		if len(revSig) > 0 {
+			val = jsonw.NewString(revSig)
 		}
+		ret.SetKey("reverse_sig", val)
 	}
 
 	// For subkeys let's say who our parent is.  In this case it's the signing key,
 	// though that can change in the future.
-	if typ == SUBKEY_TYPE && signingKey != nil {
-		ret.SetKey("parent_kid", jsonw.NewString(signingKey.GetKid().String()))
+	if typ == SUBKEY_TYPE && signingKey.Kid != nil {
+		ret.SetKey("parent_kid", jsonw.NewString(signingKey.Kid.String()))
 	}
 
 	ret.SetKey("kid", jsonw.NewString(newkey.GetKid().String()))
 	return
 }
 
-func (u *User) delegateKeyProof(newkey GenericKey, signingkey GenericKey, typ string, ei int, device *Device, revSig *ReverseSig) (ret *jsonw.Wrapper, err error) {
-	ret, err = u.ProofMetadata(ei, signingkey, nil)
+func (u *User) delegateKeyProof(newkey GenericKey, signingkey FOKID, typ string, ei int, device *Device, revSig string, ctime int64) (ret *jsonw.Wrapper, err error) {
+	ret, err = u.ProofMetadata(ei, signingkey, nil, ctime)
 	if err != nil {
 		return
 	}
@@ -397,7 +379,7 @@ func (u *User) delegateKeyProof(newkey GenericKey, signingkey GenericKey, typ st
 // to prove a log-in to the system.  If successful, the server will return with
 // a session token.
 func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret *jsonw.Wrapper, err error) {
-	if ret, err = u.ProofMetadata(ei, key, nil); err != nil {
+	if ret, err = u.ProofMetadata(ei, GenericKeyToFOKID(key), nil, 0); err != nil {
 		return
 	}
 	body := ret.AtKey("body")

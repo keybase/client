@@ -75,6 +75,10 @@ func GetUidVoid(w *jsonw.Wrapper, u *UID, e *error) {
 	return
 }
 
+func (u UID) ToJsonw() *jsonw.Wrapper {
+	return jsonw.NewString(u.String())
+}
+
 //==================================================================
 
 // UsernameToUID works for users created after "Fri Feb  6 19:33:08 EST 2015"

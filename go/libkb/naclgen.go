@@ -12,7 +12,7 @@ type NaclKeyGenArg struct {
 	EldestKeyID KID // the eldest KID for this epoch
 	LogUI       LogUI
 	Device      *Device
-	RevSig      *ReverseSig // optional reverse sig.  set to nil for autogenerate.
+	RevSig      string // optional reverse sig.  set to nil for autogenerate.
 }
 
 type NaclKeyGen struct {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type KexSib struct {
@@ -93,7 +94,11 @@ func (k *KexSib) Run(ctx *Context) error {
 
 	G.Log.Debug("KexSib: starting receive loop")
 	m := kex.NewMeta(k.user.GetUid(), sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
-	return k.loopReceives(m, sec)
+	err = k.loopReceives(m, sec)
+	if err != nil {
+		G.Log.Warning("Error in KEX receive: %s", err.Error())
+	}
+	return err
 }
 
 func (k *KexSib) loopReceives(m *kex.Meta, sec *kex.Secret) error {
@@ -137,32 +142,28 @@ func (k *KexSib) handleStart(m *kex.Msg) error {
 	return nil
 }
 
+func (k *KexSib) verifyPleaseSign(jw *jsonw.Wrapper, newKID libkb.KID) (err error) {
+	jw.AssertEqAtPath("body.key.kid", k.sigKey.GetKid().ToJsonw(), &err)
+	jw.AssertEqAtPath("body.key.uid", k.user.GetUid().ToJsonw(), &err)
+	jw.AssertEqAtPath("body.key.eldest_kid", k.user.GetEldestFOKID().Kid.ToJsonw(), &err)
+	jw.AssertEqAtPath("body.key.username", jsonw.NewString(k.user.GetName()), &err)
+	jw.AssertEqAtPath("body.device.kid", newKID.ToJsonw(), &err)
+	jw.AssertEqAtPath("body.type", jsonw.NewString("sibkey"), &err)
+	return err
+}
+
 func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 	eddsa := m.Args().SigningKey
 	sig := m.Args().Sig
-	devType := m.Args().DevType
-	devDesc := m.Args().DevDesc
 
-	rs := &libkb.ReverseSig{Sig: sig, Type: "kb"}
-
-	// make device object for Y
-	s := libkb.DEVICE_STATUS_ACTIVE
-	devY := libkb.Device{
-		Id:          m.Sender.String(),
-		Type:        devType,
-		Description: &devDesc,
-		Status:      &s,
+	keypair := libkb.NaclSigningKeyPair{Public: eddsa}
+	sigPayload, _, err := keypair.VerifyAndExtract(sig)
+	if err != nil {
+		return err
 	}
 
-	// generator function that just copies the public eddsa key into a
-	// NaclKeyPair (which implements GenericKey).
-	g := func() (libkb.NaclKeyPair, error) {
-		var ret libkb.NaclSigningKeyPair
-		copy(ret.Public[:], eddsa[:])
-		return ret, nil
-	}
+	G.Log.Debug("Got PleaseSign() on verified JSON blob %s\n", string(sigPayload))
 
-	// need the private device sibkey
 	// k.deviceSibkey is public only
 	if k.sigKey == nil {
 		var err error
@@ -178,25 +179,44 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 		}
 	}
 
-	// use naclkeygen to sign eddsa with device X (this device) sibkey
-	// and push it to the server
-	arg := libkb.NaclKeyGenArg{
-		Signer:      k.sigKey,
-		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
-		Sibkey:      true,
-		Me:          k.user,
-		Device:      &devY,
-		EldestKeyID: k.user.GetEldestFOKID().Kid,
-		RevSig:      rs,
-		Generator:   g,
-	}
-	gen := libkb.NewNaclKeyGen(arg)
-	if err := gen.Generate(); err != nil {
-		return err
-	}
-	_, err := gen.Push()
+	jw, err := jsonw.Unmarshal(sigPayload)
 	if err != nil {
 		return err
 	}
+
+	var newKID libkb.KID
+	var newKey libkb.GenericKey
+
+	if newKID, err = libkb.GetKID(jw.AtPath("body.sibkey.kid")); err != nil {
+		return err
+	}
+
+	if newKey, err = libkb.ImportKeypairFromKID(newKID); err != nil {
+		return err
+	}
+
+	if k.verifyPleaseSign(jw, newKID); err != nil {
+		return err
+	}
+
+	jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(sig))
+
+	del := libkb.Delegator{
+		NewKey:      newKey,
+		ExistingKey: k.sigKey,
+		Me:          k.user,
+		Expire:      libkb.NACL_EDDSA_EXPIRE_IN,
+		PushType:    libkb.SIBKEY_TYPE,
+		EldestKID:   k.user.GetEldestFOKID().Kid,
+	}
+
+	if err = del.CheckArgs(); err != nil {
+		return err
+	}
+
+	if err = del.SignAndPost(jw); err != nil {
+		return err
+	}
+
 	return nil
 }

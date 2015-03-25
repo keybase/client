@@ -98,6 +98,40 @@ func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigning
 	return
 }
 
+func ImportKeypairFromKID(kid KID) (key GenericKey, err error) {
+	l := len(kid)
+	if l < 3 {
+		err = BadKeyError{"KID was way too short"}
+		return
+	}
+	if kid[0] != byte(KEYBASE_KID_V1) || kid[l-1] != byte(ID_SUFFIX_KID) {
+		err = BadKeyError{"bad header or trailer found"}
+		return
+	}
+	raw := kid[2:(l - 1)]
+	switch kid[1] {
+	case byte(KID_NACL_EDDSA):
+		if len(raw) != ed25519.PublicKeySize {
+			err = BadKeyError{"Bad EdDSA key size"}
+		} else {
+			tmp := NaclSigningKeyPair{}
+			copy(tmp.Public[:], raw)
+			key = tmp
+		}
+	case byte(KID_NACL_DH):
+		if len(raw) != NACL_DH_KEYSIZE {
+			err = BadKeyError{"Bad DH key size"}
+		} else {
+			tmp := NaclDHKeyPair{}
+			copy(tmp.Public[:], raw)
+			key = tmp
+		}
+	default:
+		err = BadKeyError{fmt.Sprintf("Bad key prefix: %d", kid[1])}
+	}
+	return
+}
+
 func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclHex(s, byte(KID_NACL_EDDSA), ed25519.PublicKeySize); err != nil {

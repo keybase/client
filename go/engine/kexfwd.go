@@ -212,25 +212,38 @@ func (k *KexFwd) storeKeys(ctx *Context, keys *keyres) error {
 }
 
 // revSig generates a reverse signature using X's device key id.
-func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (string, error) {
-	rsp := libkb.NewReverseSigPayload(k.xDevKeyID, k.args.User)
-	sig, _, _, err := libkb.SignJson(jsonw.NewWrapper(rsp), eddsa)
-	if err != nil {
-		return "", err
+func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
+	delg := libkb.Delegator{
+		ExistingFOKID: &libkb.FOKID{Kid: k.xDevKeyID},
+		NewKey:        eddsa,
+		Me:            k.args.User,
+		Sibkey:        true,
+		Expire:        libkb.NACL_EDDSA_EXPIRE_IN,
+		Device:        k.GetDevice(),
 	}
-	return sig, nil
+	var jw *jsonw.Wrapper
+	if jw, _, err = k.args.User.KeyProof(delg); err != nil {
+		return
+	}
+	sig, _, _, err = libkb.SignJson(jw, eddsa)
+	return
 }
 
-// pushSubkey pushes Y's subkey to the api server.
-func (k *KexFwd) pushSubkey(keys *keyres) error {
-	// Device y signs M_y into Alice's sigchain as a subkey.
+func (k *KexFwd) GetDevice() *libkb.Device {
 	s := libkb.DEVICE_STATUS_ACTIVE
-	devY := libkb.Device{
+	return &libkb.Device{
 		Id:          k.deviceID.String(),
 		Type:        k.args.DevType,
 		Description: &k.args.DevDesc,
 		Status:      &s,
 	}
+}
+
+// pushSubkey pushes Y's subkey to the api server.
+func (k *KexFwd) pushSubkey(keys *keyres) error {
+	// Device y signs M_y into Alice's sigchain as a subkey.
+	devY := k.GetDevice()
+
 	g := func() (libkb.NaclKeyPair, error) {
 		return keys.dh, nil
 	}
@@ -241,7 +254,7 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 		Me:          k.user,
 		EldestKeyID: k.user.GetEldestFOKID().Kid,
 		Generator:   g,
-		Device:      &devY,
+		Device:      devY,
 	}
 	gen := libkb.NewNaclKeyGen(arg)
 	if err := gen.Generate(); err != nil {

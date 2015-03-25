@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/hex"
+	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -16,17 +17,19 @@ type Delegator struct {
 	// Set these fields
 	NewKey            GenericKey
 	ExistingKey       GenericKey
+	ExistingFOKID     *FOKID
 	EldestKID         KID
 	Me                *User
 	Sibkey            bool
 	Expire            int
 	Device            *Device
-	RevSig            *ReverseSig
+	RevSig            string
 	ServerHalf        []byte
 	EncodedPrivateKey string
+	Ctime             int64
+	PushType          string
 
 	// Internal fields
-	pushType     string
 	isEldest     bool
 	signingKey   GenericKey
 	sig          string
@@ -44,6 +47,15 @@ func (d Delegator) getExistingKID() KID {
 	}
 }
 
+func (d Delegator) GetExistingKeyFOKID() (ret *FOKID) {
+	if d.ExistingKey != nil {
+		ret = GenericKeyToFOKID(d.ExistingKey).P()
+	} else {
+		ret = d.ExistingFOKID
+	}
+	return ret
+}
+
 // Sometime our callers don't set Sibkey=true for eldest keys, so
 // we workaround that here.
 func (d Delegator) IsSibkey() bool { return d.Sibkey || d.isEldest }
@@ -52,7 +64,7 @@ func (d Delegator) IsSibkey() bool { return d.Sibkey || d.isEldest }
 // of performing the key delegation.
 func (d Delegator) GetMerkleTriple() MerkleTriple { return d.merkleTriple }
 
-func (d *Delegator) checkArgs() (err error) {
+func (d *Delegator) CheckArgs() (err error) {
 
 	G.Log.Debug("+ Delegator::checkArgs()")
 
@@ -128,21 +140,45 @@ func (d *Delegator) LoadSigningKey(ui SecretUI) (err error) {
 // on failure and nil on success.
 func (d *Delegator) Run() (err error) {
 	var jw *jsonw.Wrapper
-	var linkid LinkId
 
 	G.Log.Debug("+ Delegator.Run()")
 	defer func() {
 		G.Log.Debug("- Delegator.Run() -> %s", ErrToOk(err))
 	}()
 
-	if err = d.checkArgs(); err != nil {
+	if err = d.CheckArgs(); err != nil {
 		return
 	}
 
-	if jw, d.pushType, err = d.Me.KeyProof(*d); err != nil {
+	// We'll need to generate two proofs, so set the Ctime
+	// so that we get the same time both times
+	d.Ctime = time.Now().Unix()
+
+	// For a sibkey signature, we first sign the blob with the
+	// sibkey, and then embed that signature for the delegating key
+	if d.Sibkey {
+
+		if jw, _, err = d.Me.KeyProof(*d); err != nil {
+			G.Log.Debug("| Failure in intermediate KeyProof()")
+		}
+
+		if d.RevSig, _, _, err = SignJson(jw, d.NewKey); err != nil {
+			G.Log.Debug("| Failure in intermediate SignJson()")
+			return err
+		}
+	}
+
+	if jw, d.PushType, err = d.Me.KeyProof(*d); err != nil {
 		G.Log.Debug("| Failure in KeyProof()")
 		return
 	}
+
+	return d.SignAndPost(jw)
+}
+
+func (d *Delegator) SignAndPost(jw *jsonw.Wrapper) (err error) {
+
+	var linkid LinkId
 
 	if d.sig, d.sigId, linkid, err = SignJson(jw, d.signingKey); err != nil {
 		G.Log.Debug("| Failure in SignJson()")
@@ -157,6 +193,7 @@ func (d *Delegator) Run() (err error) {
 	if err = d.updateLocalState(linkid); err != nil {
 		return
 	}
+
 	return nil
 }
 
@@ -177,7 +214,7 @@ func (d Delegator) post() (err error) {
 		"sig_id_base":     S{Val: d.sigId.ToString(false)},
 		"sig_id_short":    S{Val: d.sigId.ToShortId()},
 		"sig":             S{Val: d.sig},
-		"type":            S{Val: d.pushType},
+		"type":            S{Val: d.PushType},
 		"is_remote_proof": B{Val: false},
 		"public_key":      S{Val: pub},
 		"server_half":     S{Val: hex.EncodeToString(d.ServerHalf)},
