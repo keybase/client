@@ -138,3 +138,39 @@ func TestLocalKeySecurity(t *testing.T) {
 		t.Errorf("decrypt: %q, expected %q", string(dec), text)
 	}
 }
+
+func TestIssue280(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	// Initialize state with user U1
+	u1 := CreateAndSignupFakeUser(t, "login")
+	G.LoginState.Logout()
+	u1.LoginOrBust(t)
+	G.LoginState.Logout()
+
+	// Now try to sign in as user U2, and do something
+	// that needs access to a locked local secret key.
+	// Delegating to a new PGP key seems good enough.
+	u2 := CreateAndSignupFakeUser(t, "login")
+
+	secui := u2.NewSecretUI()
+	arg := PGPKeyImportEngineArg{
+		Gen: &libkb.PGPGenArg{
+			PrimaryBits: 768,
+			SubkeyBits:  768,
+		},
+	}
+	arg.Gen.MakeAllIds()
+	ctx := Context{
+		LogUI:    G.UI.GetLogUI(),
+		SecretUI: secui,
+	}
+	eng := NewPGPKeyImportEngine(arg)
+	err := RunEngine(eng, &ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return
+}

@@ -8,7 +8,7 @@ import (
 )
 
 // Test login switching between two different users.
-func TestLogin(t *testing.T) {
+func TestLoginAndSwitch(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 

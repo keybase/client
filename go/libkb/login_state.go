@@ -28,7 +28,6 @@ type LoginState struct {
 	loginSession     []byte
 	loginSessionB64  string
 	tsec             *triplesec.Cipher
-	tspkey           *PassphraseStream
 	sessionFor       string
 	passphraseStream PassphraseStream
 
@@ -224,6 +223,7 @@ func (s *LoginState) ClearPassphrase() {
 		s.tsec = nil
 	}
 	s.passphraseStream = nil
+	s.salt = nil
 }
 
 func (s *LoginState) Logout() error {

@@ -74,11 +74,11 @@ func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte
 	if d.deviceID, err = libkb.NewDeviceID(); err != nil {
 		return
 	}
-	d.lksEncKey, err = libkb.RandBytes(len(d.lksClientHalf))
-	if err != nil {
-		return
+
+	d.lks = libkb.NewLKSecClientHalf(lksClientHalf)
+	if d.lks.GenerateServerHalf(); err != nil {
+		return err
 	}
-	d.lks = libkb.NewLKSecSecret(d.lksEncKey)
 
 	G.Log.Debug("Device name:   %s", d.deviceName)
 	G.Log.Debug("Device ID:     %x", d.deviceID)
@@ -184,8 +184,10 @@ func (d *DeviceEngine) pushLocalKeySec() error {
 	}
 
 	// xor d.lksEncKey with LksClientHalf bytes from tspasskey
-	serverHalf := make([]byte, len(d.lksClientHalf))
-	libkb.XORBytes(serverHalf, d.lksEncKey, d.lksClientHalf)
+	serverHalf := d.lks.GetServerHalf()
+	if serverHalf == nil {
+		return fmt.Errorf("LKS server half is nil, and should not be")
+	}
 
 	// send it to api server
 	return libkb.PostDeviceLKS(d.deviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)

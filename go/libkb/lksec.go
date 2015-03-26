@@ -30,18 +30,32 @@ func (l *LKSec) SetUID(u *UID) {
 	l.uid = u
 }
 
-func NewLKSecSecret(secret []byte) *LKSec {
-	s := NewLKSec()
-	s.secret = secret
-	return s
-}
-
 func (s *LKSec) SetClientHalf(b []byte) {
 	s.clientHalf = b
 }
 
+func (s *LKSec) GenerateServerHalf() error {
+	if s.clientHalf == nil {
+		return fmt.Errorf("Can't generate server half without a client half")
+	}
+	var err error
+	s.serverHalf, err = RandBytes(len(s.clientHalf))
+	return err
+}
+
+func (s *LKSec) GetServerHalf() []byte {
+	return s.serverHalf
+}
+
 func (s *LKSec) Load() error {
+
+	G.Log.Debug("+ LKSec::load()")
+	defer func() {
+		G.Log.Debug("- LKSec::Load()")
+	}()
+
 	if s.secret != nil {
+		G.Log.Debug("| Short-circuit; we already know the full secret")
 		return nil
 	}
 
@@ -49,13 +63,18 @@ func (s *LKSec) Load() error {
 		return fmt.Errorf("client half not set")
 	}
 
-	devid := G.Env.GetDeviceID()
-	if devid == nil {
-		return fmt.Errorf("no device id set")
-	}
+	if s.serverHalf == nil {
+		G.Log.Debug("| Fetching secret key")
+		devid := G.Env.GetDeviceID()
+		if devid == nil {
+			return fmt.Errorf("no device id set")
+		}
 
-	if err := s.apiServerHalf(devid); err != nil {
-		return err
+		if err := s.apiServerHalf(devid); err != nil {
+			return err
+		}
+	} else {
+		G.Log.Debug("| ServerHalf already loaded")
 	}
 
 	if len(s.clientHalf) != len(s.serverHalf) {
@@ -64,11 +83,18 @@ func (s *LKSec) Load() error {
 
 	s.secret = make([]byte, len(s.serverHalf))
 	XORBytes(s.secret, s.serverHalf, s.clientHalf)
+	G.Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS): ServerHalf=%s; clientHalf=%s",
+		hex.EncodeToString(s.serverHalf), hex.EncodeToString(s.clientHalf))
 
 	return nil
 }
 
 func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
+	G.Log.Debug("+ LKsec:Encrypt()")
+	defer func() {
+		G.Log.Debug("- LKSec::Encrypt()")
+	}()
+
 	if err := s.Load(); err != nil {
 		return nil, err
 	}
@@ -85,6 +111,11 @@ func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
 }
 
 func (s *LKSec) Decrypt(src []byte) ([]byte, error) {
+	G.Log.Debug("+ LKsec:Decrypt()")
+	defer func() {
+		G.Log.Debug("- LKSec::Decrypt()")
+	}()
+
 	if err := s.Load(); err != nil {
 		return nil, err
 	}
