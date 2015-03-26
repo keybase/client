@@ -8,7 +8,6 @@
 
 #import "KBDefines.h"
 
-
 NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";
 
 NSString *KBHexString(NSData *data) {

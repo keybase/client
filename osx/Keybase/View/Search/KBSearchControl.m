@@ -9,45 +9,21 @@
 #import "KBSearchControl.h"
 
 @interface KBSearchControl ()
-@property NSSearchField *searchField;
 @property NSString *searchText;
 @property BOOL open;
 @end
 
 @implementation KBSearchControl
 
-- (void)viewInit {
-  [super viewInit];
+- (void)textDidChange:(NSString *)text {
+  [self search:text];
 
-  _searchField = [[NSSearchField alloc] init];
-  _searchField.delegate = self;
-  _searchField.placeholderString = @"Search";
-  _searchField.sendsWholeSearchString = YES;
-  [_searchField.cell setMaximumRecents:20];
-  [self addSubview:_searchField];
-
-  self.viewLayout = [YOLayout fill:_searchField];
-}
-
-- (void)controlTextDidChange:(NSNotification *)notification {
-  //[self.window makeFirstResponder:_searchField];
-  NSString *searchText = [[_searchField stringValue] gh_strip];
-  [self search:searchText];
-
-  if ([searchText isEqualTo:@""] && _open) {
+  if ([text isEqualTo:@""] && _open) {
     [self.delegate searchControlShouldClose:self];
     _open = NO;
   } else {
     [self checkOpen];
   }
-}
-
-- (BOOL)control:(NSControl *)control textShouldBeginEditing:(NSText *)fieldEditor {
-  return YES;
-}
-
-- (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor {
-  return YES;
 }
 
 - (void)setSearchResults:(NSArray *)searchResults {
@@ -76,7 +52,7 @@
   GHWeakSelf blockSelf = self;
   _searchText = searchText;
 
-  if (!searchText || [searchText length] < 2) {
+  if (!searchText || [searchText length] < 1) { // If you want to make min length for search change 1 here to N
     [self clearSearchResults];
     return;
   }

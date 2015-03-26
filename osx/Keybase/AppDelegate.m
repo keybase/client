@@ -140,9 +140,16 @@
 - (IBAction)encryptFile:(id)sender {
   KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
   encryptView.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 100) position:KBWindowPositionCenter title:@"Encrypt File" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 280) position:KBWindowPositionCenter title:@"Encrypt File" errorHandler:_errorHandler];
 }
 
++ (void)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {
+  NSWindow *window = [KBWindow windowWithContentView:view size:size retain:NO];
+  closeButton.targetBlock = ^{
+    [[sender window] endSheet:window];
+  };
+  [[sender window] beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
+}
 
 #pragma mark Error
 

@@ -10,13 +10,22 @@
 
 #import <YOLayout/YOLayout.h>
 
+typedef NS_ENUM(NSInteger, KBBoxType) {
+  KBBoxTypeDefault,
+  KBBoxTypeHorizontalLine,
+  KBBoxTypeVerticalLine,
+};
+
+
 @interface KBBox : YOView
 
 @property UIEdgeInsets insets;
+@property KBBoxType type;
 
++ (KBBox *)horizontalLine;
 + (KBBox *)line;
 
-+ (KBBox *)lineWithWidth:(CGFloat)width color:(NSColor *)color;
++ (KBBox *)lineWithWidth:(CGFloat)width color:(NSColor *)color type:(KBBoxType)type;
 
 + (KBBox *)lineWithInsets:(UIEdgeInsets)insets;
 

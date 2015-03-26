@@ -65,7 +65,7 @@
   _sourceView.delegate = self;
   [self addSubview:_sourceView];
 
-  KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
+  KBBox *border = [KBBox line];
   [self addSubview:border];
 
   _titleView = [KBNavigationTitleView titleViewWithTitle:@"Keybase" navigation:nil];

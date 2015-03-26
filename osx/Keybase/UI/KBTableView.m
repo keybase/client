@@ -18,7 +18,7 @@
 @property NSScrollView *scrollView;
 @property NSTableView *view;
 @property KBCellDataSource *dataSource;
-@property BOOL reselecting;
+@property BOOL selecting;
 @end
 
 @implementation KBTableView
@@ -101,10 +101,8 @@
   }
   
   if (selectedObject) {
-    _reselecting = YES;
     NSIndexPath *indexPath = [_dataSource indexPathOfObject:selectedObject section:0];
-    [_view selectRowIndexes:[NSIndexSet indexSetWithIndex:indexPath.item] byExtendingSelection:NO];
-    _reselecting = NO;
+    if (indexPath) [self setSelectedRow:indexPath.item];
   }
 }
 
@@ -137,8 +135,34 @@
   [_view deselectAll:nil];
 }
 
-- (void)selectItem:(id)item {
+- (BOOL)canMoveUp {
+  NSInteger selectedRow = [_view selectedRow];
+  if (selectedRow <= 0) return NO;
+  NSInteger count = [_dataSource countForSection:0];
+  if (count == 0) return NO;
+  return YES;
+}
 
+- (void)moveUp:(id)sender {
+  if ([self canMoveUp]) [self setSelectedRow:_view.selectedRow-1];
+}
+
+- (BOOL)canMoveDown {
+  NSInteger selectedRow = [_view selectedRow];
+  NSInteger count = [_dataSource countForSection:0];
+  if (count == 0 || selectedRow >= count-1) return NO;
+  return YES;
+}
+
+- (void)moveDown:(id)sender {
+  if ([self canMoveDown]) [self setSelectedRow:_view.selectedRow+1];
+}
+
+- (void)setSelectedRow:(NSInteger)selectedRow {
+  _selecting = YES;
+  [_view selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
+  [_view scrollRowToVisible:selectedRow];
+  _selecting = NO;
 }
 
 - (void)scrollToBottom:(BOOL)animated {
@@ -179,12 +203,11 @@
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
-  if (_reselecting) return; // If we are reselecting after a reload, don't notify
+  if (_selecting) return; // If we are selecting programatically ignore the notification
   NSInteger selectedRow = [_view selectedRow];
   if (selectedRow < 0) return;
   id object = [self selectedObject];
   if (object) {
-    [self selectItem:object];
     if (self.selectBlock) self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
   }
 }

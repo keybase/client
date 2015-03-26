@@ -12,12 +12,15 @@
 #import "KBActivityIndicatorView.h"
 #import "KBAppearance.h"
 #import <GHKit/GHKit.h>
+#import <YOLayout/YOBox.h>
 
 @interface KBNavigationTitleView ()
 @property KBLabel *label;
 @property KBBox *border;
 //@property BOOL menuBarEnabled;
 @property KBActivityIndicatorView *progressView;
+
+@property YOHBox *buttons;
 @end
 
 @implementation KBNavigationTitleView
@@ -32,6 +35,10 @@
   background1.wantsLayer = YES;
   background1.layer.backgroundColor = [NSColor colorWithWhite:245.0/255.0 alpha:1.0].CGColor;
   [self addSubview:background1];
+
+  _buttons = [YOHBox box:@{@"spacing": @(10), @"insets": @"0,10,10,10"}];
+  _buttons.hidden = YES;
+  [self addSubview:_buttons];
 
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
@@ -72,13 +79,17 @@
     [layout setFrame:CGRectMake(CGRectGetMaxX(labelRect) + 6, y + 7, 18, 18) view:yself.progressView];
     y += 32;
 
+    if (!yself.buttons.hidden) {
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y - 4, size.width, 0) view:yself.buttons].size.height - 4;
+    }
+
     [layout setFrame:CGRectMake(0, y - 1, size.width, 1) view:yself.border];
 
 //    if (yself.menuBarEnabled) {
 //      y += [layout setFrame:CGRectMake(0, y, size.width, 32) view:yself.menuBar].size.height;
 //    }
 
-    [layout setFrame:CGRectMake(0, 0, size.width, 32) view:background1];
+    [layout setFrame:CGRectMake(0, 0, size.width, y - 1) view:background1];
     return CGSizeMake(size.width, y);
   }];
 }
@@ -92,6 +103,12 @@
 
 - (BOOL)mouseDownCanMoveWindow {
   return YES;
+}
+
+- (void)addButton:(KBButton *)button {
+  [_buttons addSubview:button];
+  _buttons.hidden = NO;
+  [self setNeedsLayout];
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {

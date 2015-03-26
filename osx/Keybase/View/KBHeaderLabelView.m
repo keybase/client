@@ -36,6 +36,7 @@
 
     if ([yself.headerLabel hasText]) {
       CGSize headerLabelSize = [yself.headerLabel sizeThatFits:size];
+      col1 = MAX(headerLabelSize.width, 80);
       [layout setFrame:CGRectMake(x - headerLabelSize.width - 5, 0, headerLabelSize.width, lineHeight + 1) view:yself.headerLabel];
     }
 

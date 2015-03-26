@@ -13,7 +13,6 @@
 #import "KBLabel.h"
 
 @interface KBTextView ()
-@property KBBorder *border;
 @property NSTextView *textView;
 @end
 
@@ -29,24 +28,21 @@
   _textView.editable = YES;
   [self addSubview:_textView];
 
-  _border = [[KBBorder alloc] init];
-  _border.width = 1.0;
-  _border.color = KBAppearance.currentAppearance.lineColor;
-  [self addSubview:_border];
-
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     if (size.height == 0) size.height = 32;
-
-    [layout setSize:size view:yself.border options:0];
-    [layout setFrame:CGRectMake(yself.border.insets.left, yself.border.insets.top, size.width - yself.border.insets.left - yself.border.insets.right, size.height - yself.border.insets.top - yself.border.insets.bottom) view:yself.textView options:0];
+    [layout setSize:size view:yself.textView options:0];
     return size;
   }];
 }
 
-//- (NSView *)hitTest:(NSPoint)p {
-//  return [_textView hitTest:[self convertPoint:p fromView:self]];
-//}
+- (BOOL)becomeFirstResponder {
+  return [_textView becomeFirstResponder];
+}
+
+- (BOOL)resignFirstResponder {
+  return [_textView resignFirstResponder];
+}
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"%@ %@", super.description, self.attributedText];

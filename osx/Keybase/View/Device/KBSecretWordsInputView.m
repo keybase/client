@@ -27,7 +27,7 @@
   [contentView addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:@"You should have been presented with a list of words to add here." style:KBLabelStyleDefault];
+  [label setText:@"On another device, you should have been presented with a secret passphrase to type here." style:KBLabelStyleDefault];
   [contentView addSubview:label];
 
   _inputField = [[KBTextField alloc] init];
@@ -42,10 +42,10 @@
   button.targetBlock = ^{ [gself save]; };
   [button setKeyEquivalent:@"\r"];
   [footerView addSubview:button];
-  KBButton *cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  cancelButton.targetBlock = ^{ [gself cancel]; };
-  [footerView addSubview:cancelButton];
-  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:button cancelButton:cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+  _cancelButton.targetBlock = ^{ [gself cancel]; };
+  [footerView addSubview:_cancelButton];
+  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:button cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
   [contentView addSubview:footerView];
 
   YOSelf yself = self;

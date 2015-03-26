@@ -30,7 +30,7 @@
 //  _backView = [KBButton buttonWithImage:[NSImage imageNamed:@"46-Arrows-white-arrow-65-30"]];
 //  [self addSubview:_backView];
 
-  _border = [KBBox lineWithWidth:1.0 color:[NSColor colorWithWhite:225.0/255.0 alpha:1.0]];
+  _border = [KBBox lineWithWidth:1.0 color:[NSColor colorWithWhite:225.0/255.0 alpha:1.0] type:KBBoxTypeHorizontalLine];
   [self addSubview:_border];
 
   YOSelf yself = self;

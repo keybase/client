@@ -13,7 +13,7 @@
 #import "KBProgressOverlayView.h"
 #import "KBUserView.h"
 #import "KBSearchResultView.h"
-#import "KBSearchControl.h"
+#import "KBSearchField.h"
 #import "KBViews.h"
 
 @interface KBUsersAppView ()
@@ -37,7 +37,7 @@
 
   YOSelf yself = self;
 
-  _searchField = [[KBSearchControl alloc] init];
+  _searchField = [[KBSearchField alloc] init];
   _searchField.delegate = self;
   [self addSubview:_searchField];
 

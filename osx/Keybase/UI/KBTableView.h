@@ -37,13 +37,13 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 
 - (id)selectedObject;
 
-// Subclasses can implement
-- (void)selectItem:(id)item;
-
 - (void)scrollToBottom:(BOOL)animated;
 - (BOOL)isAtBottom;
 
 - (void)setBorderEnabled:(BOOL)borderEnabled;
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
+
+- (BOOL)canMoveUp;
+- (BOOL)canMoveDown;
 
 @end

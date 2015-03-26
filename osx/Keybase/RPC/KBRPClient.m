@@ -122,7 +122,7 @@
     MPRequestHandler requestHandler = [registration requestHandlerForMethod:method];
     if (requestHandler) [requestHandlers addObject:requestHandler];
   }
-  NSCAssert([requestHandlers count] < 2, @"More than 1 registered request handler");
+  NSAssert([requestHandlers count] < 2, @"More than 1 registered request handler");
   return [requestHandlers firstObject];
 }
 

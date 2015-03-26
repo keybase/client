@@ -63,9 +63,10 @@
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (File)" targetBlock:^{ [self showPGPEncryptFile]; }]];
+  //[contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
+  //[contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (File)" targetBlock:^{ [self showPGPEncryptFile]; }]];
 
+  [contentView addSubview:[KBButton linkWithText:@"Prove" targetBlock:^{ [self showProve:KBProveTypeTwitter]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Track" targetBlock:^{ [self showTrack]; }]];
 
@@ -99,10 +100,10 @@
   [progressView openAndDoIt:self];
 }
 
-- (void)showProve:(NSString *)type {
-  KBProveView *view = [[KBProveView alloc] init];
-  view.proveType = KBProveTypeForServiceName(type);
-  [self openInWindow:view size:CGSizeMake(360, 420) title:@"Prove"];
+- (void)showProve:(KBProveType)type {
+  [KBProveView connectWithProveType:type client:self.mockClient sender:self completion:^(BOOL canceled) {
+
+  }];
 }
 
 - (void)setError:(NSError *)error {
@@ -247,7 +248,7 @@
 
 - (void)showPGPEncrypt {
   KBPGPEncryptView *encryptView = [[KBPGPEncryptView alloc] init];
-  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Encrypt"];
+  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showPGPEncryptFile {

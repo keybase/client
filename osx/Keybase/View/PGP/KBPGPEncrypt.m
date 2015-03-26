@@ -43,7 +43,7 @@
       //NSAssert(requestParams.s.fd == -1, @"Invalid file descriptor");
       NSError *error = nil;
       NSData *data = [gself.reader read:requestParams.sz error:&error];
-      GHDebug(@"Read: %@, %@", @(requestParams.sz), @(data.length));
+      //GHDebug(@"Read: %@, %@", @(requestParams.sz), @(data.length));
       dispatch_async(dispatch_get_main_queue(), ^{
         if (error) {
           completion(error, nil);
@@ -61,7 +61,7 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
       KBRWriteRequestParams *requestParams = [[KBRWriteRequestParams alloc] initWithParams:params];
       //NSAssert(requestParams.s.fd == fileHandleOut.fileDescriptor, @"Invalid file descriptor");
-      GHDebug(@"Write (%@)", @(requestParams.buf.length));
+      //GHDebug(@"Write (%@)", @(requestParams.buf.length));
       //[fileHandleOut writeData:requestParams.buf];
       NSError *error = nil;
       NSInteger numBytes = [gself.writer write:requestParams.buf.bytes maxLength:requestParams.buf.length error:&error];

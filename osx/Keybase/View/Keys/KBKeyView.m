@@ -23,7 +23,7 @@
   [super viewInit];
   self.backgroundColor = NSColor.whiteColor;
 
-  KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleSmall];
+  KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleToolbar];
   removeButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [self removeKey:completion];
   };
@@ -53,7 +53,7 @@
   [self addSubview:_labels];
 
   KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
-  [pgpLabel setHeader:@"PGP Fingerprint"];
+  [pgpLabel setHeader:@"PGP"];
   if (key.pgpFingerprint) [pgpLabel addText:KBHexString(key.pgpFingerprint) targetBlock:nil];
   [_labels addSubview:pgpLabel];
 

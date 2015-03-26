@@ -19,7 +19,6 @@
 @property KBScrollView *scrollView;
 @property KBButton *button;
 @property KBButton *clipboardCopyButton;
-@property KBButton *cancelButton;
 @property NSString *proofText;
 
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText;

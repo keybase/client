@@ -8,6 +8,22 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBUserPickerView : NSObject
+#import "KBAppKit.h"
+#import "KBSearchControl.h"
+
+@class KBUserPickerView;
+
+@protocol KBUserPickerViewDelegate
+- (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView;
+@end
+
+@interface KBUserPickerView : YOView <NSTokenFieldDelegate, KBSearchControlDelegate>
+
+@property KBListView *searchResultsView;
+@property (weak) id<KBUserPickerViewDelegate> delegate;
+
+- (void)hideSearch;
+
+- (NSArray *)usernames;
 
 @end

@@ -11,6 +11,8 @@
 #import <YOLayout/YOLayout.h>
 #import "KBAppKitDefines.h"
 
+@class KBNavigationTitleView;
+
 typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
   KBNavigationTransitionTypeNone,
   KBNavigationTransitionTypePush,
@@ -28,7 +30,7 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 
 @interface KBNavigationView : YOView
 
-@property (nonatomic) NSView<KBNavigationTitleView> *titleView;
+@property (nonatomic) KBNavigationTitleView *titleView;
 @property (readonly) NSMutableArray *views; // Fix mutable
 @property (getter=isProgressEnabled) BOOL progressEnabled;
 @property (copy) KBErrorHandler errorHandler;
@@ -44,8 +46,6 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 - (void)setView:(NSView *)view transitionType:(KBNavigationTransitionType)transitionType;
 
 + (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews;
-
-+ (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size title:(NSString *)title sender:(id)sender;
 
 - (BOOL)setError:(NSError *)error sender:(id)sender;
 

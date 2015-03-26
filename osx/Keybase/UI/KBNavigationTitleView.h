@@ -23,4 +23,6 @@
 
 + (instancetype)titleViewWithTitle:(NSString *)title navigation:(KBNavigationView *)navigation;
 
+- (void)addButton:(KBButton *)button;
+
 @end

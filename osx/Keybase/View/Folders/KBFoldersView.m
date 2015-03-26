@@ -9,7 +9,7 @@
 #import "KBFoldersView.h"
 
 #import "KBFolderListView.h"
-#import "KBSearchControl.h"
+#import "KBSearchField.h"
 #import "KBViews.h"
 
 @interface KBFoldersView ()
@@ -18,7 +18,7 @@
 @property KBFolderListView *foldersView;
 @property KBButton *addButton;
 @property KBButton *trashButton;
-@property KBSearchControl *searchControl;
+@property KBSearchField *searchField;
 @end
 
 @implementation KBFoldersView
@@ -49,8 +49,8 @@
 //  _trashButton = [KBButton buttonWithImage:trashImage style:KBButtonStyleToolbar];
 //  [self addSubview:_trashButton];
 
-  _searchControl = [[KBSearchControl alloc] init];
-  [self addSubview:_searchControl];
+  _searchField = [[KBSearchField alloc] init];
+  [self addSubview:_searchField];
 
   _favoritesView = [[KBFolderListView alloc] init];
   _favoritesView.identifier = @"Favorites";
@@ -74,7 +74,7 @@
     x += [layout sizeToFitInFrame:CGRectMake(x, y, size.width, 0) view:yself.addButton].size.width + 20;
     //x += [layout setFrame:CGRectMake(x, y, 24, 24) view:yself.trashButton].size.width + 8;
 
-    [layout setFrame:CGRectMake(x, y, size.width - x - 10, 24) view:yself.searchControl];
+    [layout setFrame:CGRectMake(x, y, size.width - x - 10, 24) view:yself.searchField];
 
     y += 33;
 

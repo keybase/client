@@ -16,5 +16,6 @@ typedef void (^KBSecretWordsCompletion)(NSString *secretWords);
 
 @property (readonly) KBTextField *inputField;
 @property (copy) KBSecretWordsCompletion completion;
+@property KBButton *cancelButton;
 
 @end

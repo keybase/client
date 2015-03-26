@@ -10,7 +10,8 @@
 
 #import "KBAppKit.h"
 #import "KBContentView.h"
+#import "KBUserPickerView.h"
 
-@interface KBPGPEncryptView : KBContentView
+@interface KBPGPEncryptView : KBContentView <KBUserPickerViewDelegate>
 
 @end

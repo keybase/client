@@ -16,5 +16,4 @@
 @property KBLabel *label;
 @property KBTextField *inputField;
 @property KBButton *button;
-@property KBButton *cancelButton;
 @end

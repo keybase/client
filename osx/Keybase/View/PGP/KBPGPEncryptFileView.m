@@ -10,10 +10,13 @@
 #import "KBPGPEncrypt.h"
 #import "KBFileReader.h"
 #import "KBFileWriter.h"
+#import "KBPGPEncryptFooterView.h"
 
 @interface KBPGPEncryptFileView ()
+@property KBUserPickerView *userPickerView;
 @property KBTextField *inputFileView;
 @property KBTextField *outputFileView;
+@property KBPGPEncryptFooterView *footerView;
 
 @property KBPGPEncrypt *encrypter;
 @end
@@ -23,39 +26,47 @@
 - (void)viewInit {
   [super viewInit];
 
+  YOVBox *topView = [YOVBox box];
+  [self addSubview:topView];
+  _userPickerView = [[KBUserPickerView alloc] init];
+  _userPickerView.delegate = self;
+  [topView addSubview:_userPickerView];
+  [topView addSubview:[KBBox horizontalLine]];
+
+  YOView *contentView = [YOView view];
+
   KBLabel *inputLabel = [KBLabel labelWithText:@"Source" style:KBLabelStyleDefault alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
   inputLabel.verticalAlignment = KBVerticalAlignmentMiddle;
-  [self addSubview:inputLabel];
+  [contentView addSubview:inputLabel];
   _inputFileView = [[KBTextField alloc] init];
   _inputFileView.textField.lineBreakMode = NSLineBreakByTruncatingHead;
   _inputFileView.textField.font = [NSFont systemFontOfSize:14];
-  [self addSubview:_inputFileView];
+  [contentView addSubview:_inputFileView];
   KBButton *browseInput = [KBButton buttonWithText:@"Browse" style:KBButtonStyleToolbar];
   browseInput.targetBlock = ^{ [self chooseInput]; };
-  [self addSubview:browseInput];
+  [contentView addSubview:browseInput];
 
   KBLabel *outputLabel = [KBLabel labelWithText:@"Destination" style:KBLabelStyleDefault alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
   outputLabel.verticalAlignment = KBVerticalAlignmentMiddle;
-  [self addSubview:outputLabel];
+  [contentView addSubview:outputLabel];
   _outputFileView = [[KBTextField alloc] init];
   _outputFileView.textField.lineBreakMode = NSLineBreakByTruncatingHead;
   _outputFileView.textField.font = [NSFont systemFontOfSize:14];
-  [self addSubview:_outputFileView];
+  [contentView addSubview:_outputFileView];
   KBButton *browseOutput = [KBButton buttonWithText:@"Browse" style:KBButtonStyleToolbar];
   browseOutput.targetBlock = ^{ [self chooseOutput]; };
-  [self addSubview:browseOutput];
+  [contentView addSubview:browseOutput];
+  [self addSubview:contentView];
 
-  YOHBox *footerView = [YOHBox box:@{@"spacing": @(10), @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
-  KBButton *cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
-  cancelButton.targetBlock = ^{ [[self window] close]; };
-  [footerView addSubview:cancelButton];
-  KBButton *button = [KBButton buttonWithText:@"Encrypt" style:KBButtonStylePrimary];
-  button.targetBlock = ^{ [self encrypt]; };
-  [footerView addSubview:button];
-  [self addSubview:footerView];
+  GHWeakSelf gself = self;
+  _footerView = [[KBPGPEncryptFooterView alloc] init];
+  _footerView.encryptButton.targetBlock = ^{ [gself encrypt]; };
+  _footerView.signButton.state = NSOnState;
+  _footerView.includeSelfButton.state = NSOnState;
+  [self addSubview:_footerView];
 
   YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 20;
     CGFloat y = 20;
     CGFloat col1 = 100;
@@ -73,10 +84,13 @@
 
     y += 40;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width - 20, 0) view:footerView].size.height + 20;
-
     return CGSizeMake(size.width, y);
   }];
+
+  // Search results from picker view is here so we can float it
+  [self addSubview:_userPickerView.searchResultsView];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:contentView topView:topView bottomView:_footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
 }
 
 - (void)encrypt {
@@ -89,8 +103,10 @@
 
   _encrypter = [[KBPGPEncrypt alloc] init];
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
-  options.recipients = @[];
   options.binaryOut = YES;
+  options.recipients = _userPickerView.usernames;
+  options.noSelf = _footerView.includeSelfButton.state != NSOnState;
+  options.noSign = _footerView.signButton.state != NSOnState;
   self.navigation.progressEnabled = YES;
   [_encrypter encryptWithOptions:options reader:reader writer:writer client:self.client sender:self completion:^(NSError *error) {
     self.navigation.progressEnabled = NO;
@@ -144,6 +160,10 @@
       if ([URL isFileURL]) gself.outputFileView.text = URL.path;
     }
   }];
+}
+
+- (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {
+  
 }
 
 @end

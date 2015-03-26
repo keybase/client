@@ -14,10 +14,15 @@
 #import "KBPGPOutputView.h"
 #import "KBPGPEncrypt.h"
 #import "KBRPC.h"
+#import "KBPGPEncryptFooterView.h"
 
 @interface KBPGPEncryptView ()
-@property KBTextView *userPickerView;
+@property KBUserPickerView *userPickerView;
+
+@property KBScrollView *scrollView;
 @property KBTextView *textView;
+
+@property KBPGPEncryptFooterView *footerView;
 
 @property KBPGPEncrypt *encrypter;
 @end
@@ -27,22 +32,38 @@
 - (void)viewInit {
   [super viewInit];
 
-//  _userPickerView = [[KBTextView alloc] init];
-//  [self addSubview:_userPickerView];
+  YOVBox *topView = [YOVBox box];
+  [self addSubview:topView];
+  _userPickerView = [[KBUserPickerView alloc] init];
+  _userPickerView.delegate = self;
+  [topView addSubview:_userPickerView];
+  [topView addSubview:[KBBox horizontalLine]];
 
   _textView = [[KBTextView alloc] init];
-  [self addSubview:_textView];
+  _textView.textView.textContainerInset = CGSizeMake(20, 16);
 
-  YOView *footerView = [YOHBox box:@{@"spacing": @"10", @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
-  KBButton *cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  cancelButton.targetBlock = ^{ [[self window] close]; };
-  [footerView addSubview:cancelButton];
-  KBButton *button = [KBButton buttonWithText:@"Encrypt" style:KBButtonStylePrimary];
-  button.targetBlock = ^{ [self encrypt]; };
-  [footerView addSubview:button];
-  [self addSubview:footerView];
+  _scrollView = [[KBScrollView alloc] init];
+  [_scrollView setDocumentView:_textView];
+  [self addSubview:_scrollView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:_userPickerView bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
+  GHWeakSelf gself = self;
+  _footerView = [[KBPGPEncryptFooterView alloc] init];
+  _footerView.encryptButton.targetBlock = ^{ [gself encrypt]; };
+  _footerView.signButton.state = NSOnState;
+  _footerView.includeSelfButton.state = NSOnState;
+  [self addSubview:_footerView];
+
+  // Search results from picker view is here so we can float it
+  [self addSubview:_userPickerView.searchResultsView];
+
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_scrollView topView:topView bottomView:_footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
+}
+
+- (void)layout {
+  [super layout];
+  CGFloat y2 = CGRectGetMaxY(self.userPickerView.frame);
+  CGSize size = self.frame.size;
+  _userPickerView.searchResultsView.frame = CGRectMake(40, y2, size.width - 40, _scrollView.frame.size.height + 2);
 }
 
 - (void)encrypt {
@@ -54,6 +75,9 @@
 
   _encrypter = [[KBPGPEncrypt alloc] init];
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
+  options.recipients = _userPickerView.usernames;
+  options.noSelf = _footerView.includeSelfButton.state != NSOnState;
+  options.noSign = _footerView.signButton.state != NSOnState;
   self.navigation.progressEnabled = YES;
   //GHWeakSelf gself = self;
   [_encrypter encryptWithOptions:options reader:reader writer:writer client:self.client sender:self completion:^(NSError *error) {
@@ -67,7 +91,16 @@
 - (void)showOutput:(NSData *)data {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
   [outputView setArmoredData:data];
-  [self.navigation pushView:outputView animated:YES];
+  //[self.navigation pushView:outputView animated:YES];
+  
+}
+
+- (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {
+  CGSize size = userPickerView.frame.size;
+  CGSize sizeThatFits = [userPickerView sizeThatFits:self.frame.size];
+  if (sizeThatFits.height > size.height) {
+    [self layoutView];
+  }
 }
 
 @end

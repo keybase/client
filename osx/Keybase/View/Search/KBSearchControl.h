@@ -21,9 +21,10 @@
 - (void)searchControlShouldClose:(KBSearchControl *)searchControl;
 @end
 
-@interface KBSearchControl : YOView <NSTextFieldDelegate>
+@interface KBSearchControl : YOView
 
-@property (readonly) NSSearchField *searchField;
 @property (weak) id<KBSearchControlDelegate> delegate;
+
+- (void)textDidChange:(NSString *)text;
 
 @end

@@ -31,11 +31,11 @@
   _titleLabel = [[KBLabel alloc] init];
   [self addSubview:_titleLabel];
 
-  _border = [KBBox lineWithWidth:1.0 color:[KBAppearance.currentAppearance lineColor]];
-  [self addSubview:_border];
-
   _infoLabel = [[KBLabel alloc] init];
   [self addSubview:_infoLabel];
+
+  _border = [KBBox line];
+  [self addSubview:_border];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -54,7 +54,7 @@
 
     y = MAX(y, minY) + 8;
 
-    [layout setFrame:CGRectMake(0, y - 0.5, size.width, 1) view:yself.border];
+    [layout setFrame:CGRectMake(0, y - 1, size.width, 1) view:yself.border];
     return CGSizeMake(size.width, y);
   }];
 }

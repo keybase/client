@@ -50,7 +50,7 @@
 
   devicesView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 10;
-    y += [layout sizeToFitInFrame:CGRectMake(10, y, size.width, 0) view:addButton].size.height + 10;
+    y += [layout setFrame:CGRectMake(10, y, 26, 26) view:addButton].size.height + 10;
     [layout setFrame:CGRectMake(0, y-1, size.width, 1) view:line];
     [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.devicesView];
     return size;
@@ -83,10 +83,12 @@
 - (void)addDevice {
   KBSecretWordsInputView *view = [[KBSecretWordsInputView alloc] init];
   view.client = self.client;
-  dispatch_block_t close = [KBWindow openWindowWithView:view size:CGSizeMake(500, 400) sender:self];
+  KBButton *closeButton = view.cancelButton;
+  [AppDelegate openSheetWithView:view size:CGSizeMake(500, 400) sender:self closeButton:closeButton];
+
   view.completion = ^(NSString *secretWords) {
     if (!secretWords) {
-      close();
+      closeButton.targetBlock();
       return;
     }
     AppDelegate.appView.progressEnabled = YES;
@@ -97,7 +99,7 @@
         [AppDelegate setError:error sender:self];
         return;
       }
-      close();
+      closeButton.targetBlock();
     }];
   };
 }

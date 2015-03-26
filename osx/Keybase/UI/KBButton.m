@@ -67,14 +67,23 @@
 - (CGSize)sizeThatFits:(NSSize)size {
   CGSize sizeThatFits;
   if (self.image) {
-    sizeThatFits = self.image.size;
-  } else if (self.attributedTitle) {
-    sizeThatFits = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
+    CGSize imageSize = self.image.size;
+    if (!isnan(imageSize.width) && !isnan(imageSize.height)) {
+      sizeThatFits.width += imageSize.width;
+      sizeThatFits.height += imageSize.height;
+    }
+  }
+  if (self.attributedTitle) {
+    CGSize titleSize = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
+    sizeThatFits.width += titleSize.width;
+    sizeThatFits.height += titleSize.height;
   }
   switch (self.style) {
+    case KBButtonStyleCheckbox:
+      sizeThatFits.width += 2;
+      break;
     case KBButtonStyleText:
     case KBButtonStyleLink:
-    case KBButtonStyleCheckbox:
     case KBButtonStyleEmpty:
       sizeThatFits.width += 4;
       sizeThatFits.height += 2;
@@ -86,6 +95,7 @@
       break;
 
     case KBButtonStyleSmall:
+      NSAssert(NO, @"We should remove this?");
       sizeThatFits.height += 0;
       sizeThatFits.width += 0;
       break;
@@ -98,6 +108,8 @@
       break;
 
   }
+  //NSAssert(!isnan(sizeThatFits.width), @"Width is NaN");
+  //NSAssert(!isnan(sizeThatFits.height), @"Height is NaN");
   return sizeThatFits;
 }
 
@@ -256,7 +268,6 @@ static KBButtonErrorHandler gErrorHandler = nil;
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
     case KBButtonStyleSmall:
-    case KBButtonStyleLink:
     case KBButtonStyleText:
       return GHNSColorFromRGB(0xCCCCCC);
 
@@ -264,6 +275,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
       return GHNSColorFromRGB(0x286090);
 
     case KBButtonStyleCheckbox:
+    case KBButtonStyleLink:
       return nil;
   }
 }

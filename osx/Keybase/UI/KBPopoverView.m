@@ -31,7 +31,15 @@
   self.layer.borderWidth = 1.0;
   self.layer.cornerRadius = 4.0;
 
+  NSShadow *dropShadow = [[NSShadow alloc] init];
+  dropShadow.shadowColor = NSColor.lightGrayColor;
+  dropShadow.shadowOffset = CGSizeMake(2, 2);
+  dropShadow.shadowBlurRadius = 4;
+  self.shadow = dropShadow;
+
   _titleView = [[KBTitleView alloc] init];
+  _titleView.wantsLayer = YES;
+  _titleView.layer.cornerRadius = 4.0;
   [self addSubview:_titleView];
 
   _label = [[KBLabel alloc] init];

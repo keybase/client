@@ -10,8 +10,9 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBTextView : YOView
+@interface KBTextView : YOView <NSTextViewDelegate>
 
+@property (readonly) NSTextView *textView;
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) NSString *text;
 

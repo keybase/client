@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import "KBContentView.h"
+#import "KBUserPickerView.h"
 
-@interface KBPGPEncryptFileView : KBContentView
+@interface KBPGPEncryptFileView : KBContentView <KBUserPickerViewDelegate>
 
 @end

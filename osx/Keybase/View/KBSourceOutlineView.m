@@ -39,7 +39,7 @@
   _progressView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_progressView];
 
-  KBBox *border = [KBBox lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor];
+  KBBox *border = [KBBox horizontalLine];
   [self addSubview:border];
 
   _statusView = [[KBUserStatusView alloc] init];

@@ -43,15 +43,11 @@
   _button = [KBButton buttonWithText:@"OK, I posted it." style:KBButtonStylePrimary];
   [bottomView addSubview:_button];
 
-  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleLink];
-  [bottomView addSubview:_cancelButton];
-
   YOSelf yself = self;
   bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.clipboardCopyButton].size.height + 30;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.button].size.height + 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.cancelButton].size.height;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.button].size.height + 20;
     return CGSizeMake(size.width, y);
   }];
 

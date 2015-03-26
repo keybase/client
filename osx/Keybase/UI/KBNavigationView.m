@@ -65,12 +65,6 @@
   return YES;
 }
 
-+ (dispatch_block_t)openWindowWithView:(NSView *)view size:(CGSize)size title:(NSString *)title sender:(id)sender {
-  KBNavigationView *navigationView = [[KBNavigationView alloc] initWithView:view title:title];
-  //CGSize sizeThatFits = [navigationView sizeThatFits:size];
-  return [KBWindow openWindowWithView:navigationView size:size sender:sender];
-}
-
 - (void)pushView:(NSView *)view animated:(BOOL)animated {
   [self _setView:view transitionType:(animated ? KBNavigationTransitionTypePush : KBNavigationTransitionTypeNone)];
   [self addView:view];
@@ -112,7 +106,7 @@
   [[self currentView] viewDidAppear:animated];
 }
 
-- (void)setTitleView:(NSView<KBNavigationTitleView> *)titleView {
+- (void)setTitleView:(KBNavigationTitleView *)titleView {
   [_titleView removeFromSuperview];
   _titleView = titleView;
   [self addSubview:_titleView];

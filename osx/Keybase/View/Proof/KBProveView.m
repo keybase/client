@@ -27,22 +27,16 @@
   _inputView.button.targetBlock = ^{
     [gself generateProof];
   };
-  _inputView.cancelButton.targetBlock = ^{
-    gself.completion(YES);
-  };
   [self addSubview:_inputView];
 
   _instructionsView = [[KBProveInstructionsView alloc] init];
   _instructionsView.hidden = YES;
-  _instructionsView.cancelButton.targetBlock = ^{
-    gself.completion(YES);
-  };
   [self addSubview:_instructionsView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    [layout setFrame:CGRectMake(0, 40, size.width, size.height - 40) view:yself.inputView];
-    [layout setFrame:CGRectMake(0, 20, size.width, size.height - 20) view:yself.instructionsView];
+    [layout centerWithSize:CGSizeMake(size.width, 0) frame:CGRectMake(0, 0, size.width, size.height) view:yself.inputView];
+    [layout centerWithSize:CGSizeMake(size.width, size.height) frame:CGRectMake(0, 0, size.width, size.height) view:yself.instructionsView];
     return size;
   }];
 }
@@ -52,17 +46,7 @@
   proveView.client = client;
   proveView.proveType = proveType;
 
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:proveView title:NSStringWithFormat(@"Connect with %@", KBNameForProveType(proveType))];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(420, 420) retain:NO];
-
-  NSWindow *sourceWindow = sender.window ? sender.window : [NSApp mainWindow];
-  [sourceWindow beginSheet:window completionHandler:^(NSModalResponse returnCode) {
-    completion(returnCode == NSModalResponseCancel);
-  }];
-
-  proveView.completion = ^(BOOL canceled) {
-    [sourceWindow endSheet:window returnCode:canceled ? NSModalResponseCancel : NSModalResponseContinue];
-  };
+  [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 420, 420) position:KBWindowPositionCenter title:NSStringWithFormat(@"Connect with %@", KBNameForProveType(proveType)) errorHandler:AppDelegate.sharedDelegate.errorHandler];
 }
 
 - (void)setProveType:(KBProveType)proveType {
@@ -96,7 +80,7 @@
 
   GHWeakSelf gself = self;
 
-  KBRPClient * client = self.client;
+  KBRPClient *client = self.client;
   KBRProveRequest *prove = [[KBRProveRequest alloc] initWithClient:client];
 
   [client registerMethod:@"keybase.1.proveUi.promptUsername" sessionId:prove.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {

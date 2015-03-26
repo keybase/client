@@ -335,17 +335,10 @@
   KBKeyView *keyView = [[KBKeyView alloc] init];
   keyView.client = self.client;
   [keyView setKey:key];
-  //[self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key"];
-  dispatch_block_t close = [KBWindow openWindowWithView:keyView size:CGSizeMake(500, 400) sender:self];
+  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" errorHandler:AppDelegate.sharedDelegate.errorHandler];
 }
 
 - (void)generatePGPKey {
-//  KBPGPKeyGenView *view = [[KBPGPKeyGenView alloc] init];
-//  view.client = self.client;
-//  dispatch_block_t close = [KBNavigationView openWindowWithView:view title:@"Generate PGP Key" sender:self];
-//  view.completion = close;
-//  view.cancelButton.targetBlock = ^{ close(); };
-
   KBProgressView *progressView = [[KBProgressView alloc] init];
   [progressView setProgressTitle:@"Generating"];
   progressView.work = ^(KBCompletionBlock completion) {
@@ -375,20 +368,18 @@
 - (void)selectPGPKey:(KBRSelectKeyAndPushOptionRequestParams *)handler completion:(MPRequestCompletion)completion {
   KBKeySelectView *selectView = [[KBKeySelectView alloc] init];
   selectView.client = self.client;
-  dispatch_block_t close = [KBWindow openWindowWithView:selectView size:CGSizeMake(600, 400) sender:self];
+  [AppDelegate openSheetWithView:selectView size:CGSizeMake(600, 400) sender:self closeButton:selectView.cancelButton];
+  __weak KBKeySelectView *gselectView = selectView;
   [selectView setGPGKeys:handler.keys completion:^(NSError *error, id result) {
-    close();
+    gselectView.cancelButton.targetBlock();
     completion(error, result);
   }];
-  selectView.cancelButton.targetBlock = ^{ close(); };
 }
 
 - (void)importKey {
   KBKeyImportView *importView = [[KBKeyImportView alloc] init];
   importView.client = self.client;
-
-  dispatch_block_t close = [KBWindow openWindowWithView:importView size:CGSizeMake(600, 400) sender:self];
-  importView.cancelButton.targetBlock = ^{ close(); };
+  [AppDelegate openSheetWithView:importView size:CGSizeMake(600, 400) sender:self closeButton:importView.cancelButton];
 }
 
 @end

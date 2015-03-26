@@ -29,12 +29,9 @@
   [self addSubview:scrollView];
 
   YOView *footerView = [YOHBox box:@{@"spacing": @"10", @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
-  KBButton *saveButton = [KBButton buttonWithText:@"Save" style:KBButtonStyleDefault];
-  saveButton.targetBlock = ^{ [self save]; };
-  [self addSubview:saveButton];
-  KBButton *cancelButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
-  cancelButton.targetBlock = ^{ [[self window] close]; };
-  [footerView addSubview:cancelButton];
+  KBButton *closeButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
+  closeButton.targetBlock = ^{ [[self window] close]; };
+  [footerView addSubview:closeButton];
   [self addSubview:footerView];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:scrollView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
