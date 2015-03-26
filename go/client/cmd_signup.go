@@ -61,6 +61,10 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	s.code = ctx.String("invite-code")
+	if s.code == "" {
+		// For development convenience.
+		s.code = os.Getenv("KEYBASE_INVITATION_CODE")
+	}
 
 	if nargs != 0 {
 		err = BadArgsError{"signup doesn't take arguments"}
