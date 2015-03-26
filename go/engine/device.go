@@ -75,7 +75,7 @@ func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte
 		return
 	}
 
-	d.lks = libkb.NewLKSecClientHalf(lksClientHalf)
+	d.lks = libkb.NewLKSec(lksClientHalf)
 	if d.lks.GenerateServerHalf(); err != nil {
 		return err
 	}

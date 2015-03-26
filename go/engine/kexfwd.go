@@ -34,7 +34,7 @@ func NewKexFwd(lksClientHalf []byte, args *KexFwdArgs) *KexFwd {
 	kf := &KexFwd{KexCom: *kc, args: args}
 	kf.debugName = "KexFwd"
 	if lksClientHalf != nil {
-		kf.lks = libkb.NewLKSecClientHalf(lksClientHalf)
+		kf.lks = libkb.NewLKSec(lksClientHalf)
 	}
 	return kf
 }

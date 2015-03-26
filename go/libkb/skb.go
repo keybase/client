@@ -212,7 +212,7 @@ func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 }
 
 func (p *SKB) lksUnlock(pps PassphraseStream) ([]byte, error) {
-	lks := NewLKSecClientHalf(pps.LksClientHalf())
+	lks := NewLKSec(pps.LksClientHalf())
 	lks.SetUID(p.uid)
 	unlocked, err := lks.Decrypt(p.Priv.Data)
 	if err != nil {

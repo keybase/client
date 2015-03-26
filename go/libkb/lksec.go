@@ -16,14 +16,8 @@ type LKSec struct {
 	uid        *UID
 }
 
-func NewLKSec() *LKSec {
-	return &LKSec{}
-}
-
-func NewLKSecClientHalf(clientHalf []byte) *LKSec {
-	s := NewLKSec()
-	s.clientHalf = clientHalf
-	return s
+func NewLKSec(clientHalf []byte) *LKSec {
+	return &LKSec{clientHalf: clientHalf}
 }
 
 func (l *LKSec) SetUID(u *UID) {
@@ -156,6 +150,6 @@ func NewLKSForEncrypt(ui SecretUI) (ret *LKSec, err error) {
 	if pps, err = G.LoginState.GetPassphraseStream(ui); err != nil {
 		return
 	}
-	ret = NewLKSecClientHalf(pps.LksClientHalf())
+	ret = NewLKSec(pps.LksClientHalf())
 	return
 }
