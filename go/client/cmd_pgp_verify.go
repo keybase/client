@@ -57,22 +57,9 @@ func (c *CmdPGPVerify) Run() error {
 		return err
 	}
 
-	var err error
-	if c.isDetached() {
-		err = c.runDetached()
-	} else {
-		err = c.runDecrypt()
-	}
-
-	c.Close(err)
-	return err
-}
-
-func (c *CmdPGPVerify) runDecrypt() error {
-	arg := &engine.PGPDecryptArg{
-		Source:       c.source,
-		Sink:         c.sink,
-		AssertSigned: true,
+	arg := &engine.PGPVerifyArg{
+		Source:    c.source,
+		Signature: c.detachedData,
 		TrackOptions: engine.TrackOptions{
 			TrackLocalOnly: c.localOnly,
 			TrackApprove:   c.approveRemote,
@@ -83,22 +70,14 @@ func (c *CmdPGPVerify) runDecrypt() error {
 		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
 		LogUI:      G.UI.GetLogUI(),
 	}
-	eng := engine.NewPGPDecrypt(arg)
-	return engine.RunEngine(eng, ctx)
-}
+	eng := engine.NewPGPVerify(arg)
+	err := engine.RunEngine(eng, ctx)
 
-func (c *CmdPGPVerify) runDetached() error {
-	return nil
+	c.Close(err)
+	return err
 }
 
 func (c *CmdPGPVerify) RunClient() error {
-	if c.isDetached() {
-		return c.runClientDetached()
-	}
-	return c.runClientDecrypt()
-}
-
-func (c *CmdPGPVerify) runClientDecrypt() error {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err
@@ -112,24 +91,22 @@ func (c *CmdPGPVerify) runClientDecrypt() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	snk, src, err := c.ClientFilterOpen()
+	_, src, err := c.ClientFilterOpen()
 	if err != nil {
 		return err
 	}
-	opts := keybase_1.PgpDecryptOptions{
-		AssertSigned:  true,
-		LocalOnly:     c.localOnly,
-		ApproveRemote: c.approveRemote,
+	arg := keybase_1.PgpVerifyArg{
+		Source: src,
+		Opts: keybase_1.PgpVerifyOptions{
+			LocalOnly:     c.localOnly,
+			ApproveRemote: c.approveRemote,
+			Signature:     c.detachedData,
+		},
 	}
-	arg := keybase_1.PgpDecryptArg{Source: src, Sink: snk, Opts: opts}
-	err = cli.PgpDecrypt(arg)
+	err = cli.PgpVerify(arg)
 
 	c.Close(err)
 	return err
-}
-
-func (c *CmdPGPVerify) runClientDetached() error {
-	return nil
 }
 
 func (c *CmdPGPVerify) isDetached() bool {

@@ -83,6 +83,26 @@ func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) error {
+	cli := h.getStreamUICli()
+	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
+	earg := &engine.PGPVerifyArg{
+		Source:    src,
+		Signature: arg.Opts.Signature,
+		TrackOptions: engine.TrackOptions{
+			TrackLocalOnly: arg.Opts.LocalOnly,
+			TrackApprove:   arg.Opts.ApproveRemote,
+		},
+	}
+	ctx := &engine.Context{
+		SecretUI:   h.getSecretUI(arg.SessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
+		LogUI:      h.getLogUI(arg.SessionID),
+	}
+	eng := engine.NewPGPVerify(earg)
+	return engine.RunEngine(eng, ctx)
+}
+
 func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {
 	ctx := &engine.Context{
 		SecretUI: h.getSecretUI(arg.SessionID),

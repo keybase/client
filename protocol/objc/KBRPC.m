@@ -475,6 +475,9 @@
 @implementation KBRPgpDecryptOptions
 @end
 
+@implementation KBRPgpVerifyOptions
+@end
+
 @implementation KBRFingerprintAndKey
 @end
 
@@ -504,6 +507,13 @@
 - (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"source": KBRValue(source), @"sink": KBRValue(sink), @"opts": KBRValue(opts)}];
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpDecrypt" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"source": KBRValue(source), @"opts": KBRValue(opts)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpVerify" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1343,6 +1353,19 @@
     self.source = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"source"] error:nil];
     self.sink = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"sink"] error:nil];
     self.opts = [MTLJSONAdapter modelOfClass:KBRPgpDecryptOptions.class fromJSONDictionary:params[0][@"opts"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpVerifyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.source = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"source"] error:nil];
+    self.opts = [MTLJSONAdapter modelOfClass:KBRPgpVerifyOptions.class fromJSONDictionary:params[0][@"opts"] error:nil];
   }
   return self;
 }

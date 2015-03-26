@@ -1177,6 +1177,12 @@ type PgpDecryptOptions struct {
 	ApproveRemote bool `codec:"approveRemote" json:"approveRemote"`
 }
 
+type PgpVerifyOptions struct {
+	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
+	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
+	Signature     []byte `codec:"signature" json:"signature"`
+}
+
 type FingerprintAndKey struct {
 	Fingerprint string `codec:"fingerprint" json:"fingerprint"`
 	Key         string `codec:"key" json:"key"`
@@ -1209,6 +1215,12 @@ type PgpDecryptArg struct {
 	Opts      PgpDecryptOptions `codec:"opts" json:"opts"`
 }
 
+type PgpVerifyArg struct {
+	SessionID int              `codec:"sessionID" json:"sessionID"`
+	Source    Stream           `codec:"source" json:"source"`
+	Opts      PgpVerifyOptions `codec:"opts" json:"opts"`
+}
+
 type PgpImportArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Key        []byte `codec:"key" json:"key"`
@@ -1226,6 +1238,7 @@ type PgpInterface interface {
 	PgpPull(PgpPullArg) error
 	PgpEncrypt(PgpEncryptArg) error
 	PgpDecrypt(PgpDecryptArg) error
+	PgpVerify(PgpVerifyArg) error
 	PgpImport(PgpImportArg) error
 	PgpExport(PgpExportArg) ([]FingerprintAndKey, error)
 }
@@ -1259,6 +1272,13 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				args := make([]PgpDecryptArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PgpDecrypt(args[0])
+				}
+				return
+			},
+			"pgpVerify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpVerifyArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpVerify(args[0])
 				}
 				return
 			},
@@ -1302,6 +1322,11 @@ func (c PgpClient) PgpEncrypt(__arg PgpEncryptArg) (err error) {
 
 func (c PgpClient) PgpDecrypt(__arg PgpDecryptArg) (err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpVerify(__arg PgpVerifyArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpVerify", []interface{}{__arg}, nil)
 	return
 }
 
