@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"testing/quick"
 
 	"golang.org/x/crypto/openpgp"
 )
@@ -90,5 +91,52 @@ func TestPGPEncryptString(t *testing.T) {
 		if string(text) != msg {
 			t.Errorf("message: %q, expected %q", string(text), msg)
 		}
+	}
+}
+
+func TestPGPEncryptQuick(t *testing.T) {
+	tc := SetupTest(t, "pgp_encrypt")
+	defer tc.Cleanup()
+	bundleSrc, err := tc.MakePGPKey("src@keybase.io")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bundleDst, err := tc.MakePGPKey("dst@keybase.io")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f := func(msg []byte) bool {
+		sink := NewBufferCloser()
+		recipients := []*PgpKeyBundle{bundleSrc, bundleDst}
+		if err := PGPEncrypt(bytes.NewReader(msg), sink, bundleSrc, recipients); err != nil {
+			return false
+		}
+		out := sink.Bytes()
+		if len(out) == 0 {
+			return false
+		}
+
+		// check that each recipient can read the message
+		for _, recip := range recipients {
+			kr := openpgp.EntityList{(*openpgp.Entity)(recip)}
+			emsg := bytes.NewBuffer(out)
+			md, err := openpgp.ReadMessage(emsg, kr, nil, nil)
+			if err != nil {
+				return false
+			}
+			data, err := ioutil.ReadAll(md.UnverifiedBody)
+			if err != nil {
+				return false
+			}
+			if bytes.Compare(data, msg) != 0 {
+				return false
+			}
+		}
+		return true
+	}
+
+	if err := quick.Check(f, nil); err != nil {
+		t.Error(err)
 	}
 }

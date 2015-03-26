@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io/ioutil"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -12,7 +14,7 @@ import (
 func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "verify",
-		Usage:       "keybase pgp verify [-l] [-y] [-s] [-m MESSAGE] [-i file]",
+		Usage:       "keybase pgp verify [-l] [-y] [-s] [-m MESSAGE] [-d <detached signature file>] [-i <infile>]",
 		Description: "PGP verify message or file signatures for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPVerify{}, "verify", c)
@@ -34,20 +36,39 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "i, infile",
 				Usage: "specify an input file",
 			},
+			cli.StringFlag{
+				Name:  "d, detached",
+				Usage: "specify a detached signature file",
+			},
 		},
 	}
 }
 
 type CmdPGPVerify struct {
 	UnixFilter
-	localOnly     bool
-	approveRemote bool
+	localOnly        bool
+	approveRemote    bool
+	detachedFilename string
+	detachedData     []byte
 }
 
 func (c *CmdPGPVerify) Run() error {
 	if err := c.FilterOpen(); err != nil {
 		return err
 	}
+
+	var err error
+	if c.isDetached() {
+		err = c.runDetached()
+	} else {
+		err = c.runDecrypt()
+	}
+
+	c.Close(err)
+	return err
+}
+
+func (c *CmdPGPVerify) runDecrypt() error {
 	arg := &engine.PGPDecryptArg{
 		Source:       c.source,
 		Sink:         c.sink,
@@ -63,13 +84,21 @@ func (c *CmdPGPVerify) Run() error {
 		LogUI:      G.UI.GetLogUI(),
 	}
 	eng := engine.NewPGPDecrypt(arg)
-	err := engine.RunEngine(eng, ctx)
+	return engine.RunEngine(eng, ctx)
+}
 
-	c.Close(err)
-	return err
+func (c *CmdPGPVerify) runDetached() error {
+	return nil
 }
 
 func (c *CmdPGPVerify) RunClient() error {
+	if c.isDetached() {
+		return c.runClientDetached()
+	}
+	return c.runClientDecrypt()
+}
+
+func (c *CmdPGPVerify) runClientDecrypt() error {
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err
@@ -99,6 +128,14 @@ func (c *CmdPGPVerify) RunClient() error {
 	return err
 }
 
+func (c *CmdPGPVerify) runClientDetached() error {
+	return nil
+}
+
+func (c *CmdPGPVerify) isDetached() bool {
+	return len(c.detachedFilename) > 0
+}
+
 func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 	msg := ctx.String("message")
 	infile := ctx.String("infile")
@@ -107,6 +144,16 @@ func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 	}
 	c.localOnly = ctx.Bool("local")
 	c.approveRemote = ctx.Bool("y")
+	c.detachedFilename = ctx.String("detached")
+
+	if len(c.detachedFilename) > 0 {
+		data, err := ioutil.ReadFile(c.detachedFilename)
+		if err != nil {
+			return err
+		}
+		c.detachedData = data
+	}
+
 	return nil
 }
 
