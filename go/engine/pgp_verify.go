@@ -2,16 +2,20 @@ package engine
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/clearsign"
 )
 
 type PGPVerifyArg struct {
 	Source       io.Reader
 	Signature    []byte
+	Clearsign    bool // Source is a clearsign message
 	TrackOptions TrackOptions
 }
 
@@ -33,7 +37,7 @@ func (e *PGPVerify) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *PGPVerify) GetPrereqs() EnginePrereqs {
-	// XXX PC: don't think this should be necessary for detached
+	// XXX PC: don't think this should be necessary for detached, clearsign
 	return EnginePrereqs{Session: true}
 }
 
@@ -52,14 +56,17 @@ func (e *PGPVerify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPVerify) Run(ctx *Context) error {
+	if e.arg.Clearsign {
+		return e.runClearsign(ctx)
+	}
 	if len(e.arg.Signature) == 0 {
-		return e.runEmbed(ctx)
+		return e.runAttached(ctx)
 	}
 	return e.runDetach(ctx)
 }
 
-// runEmbed verifies an embedded signature
-func (e *PGPVerify) runEmbed(ctx *Context) error {
+// runAttached verifies an attached signature
+func (e *PGPVerify) runAttached(ctx *Context) error {
 	arg := &PGPDecryptArg{
 		Source:       e.arg.Source,
 		Sink:         ioutil.Discard,
@@ -72,17 +79,10 @@ func (e *PGPVerify) runEmbed(ctx *Context) error {
 
 // runDetach verifies a detached signature
 func (e *PGPVerify) runDetach(ctx *Context) error {
-	// XXX I imagine this should work logged out, so we might need a different version of
-	// scankeys.
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	sk, err := e.scanner(ctx)
 	if err != nil {
 		return err
 	}
-	sk, err := NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
-	if err != nil {
-		return err
-	}
-
 	checkfn := openpgp.CheckDetachedSignature
 	if libkb.IsArmored(e.arg.Signature) {
 		checkfn = openpgp.CheckArmoredDetachedSignature
@@ -92,8 +92,49 @@ func (e *PGPVerify) runDetach(ctx *Context) error {
 		return err
 	}
 	if signer != nil {
-		ctx.LogUI.Notice("Signature verified.")
+		e.outputSuccess(ctx)
 	}
 
 	return nil
+}
+
+// runClearsign verifies a clearsign signature
+func (e *PGPVerify) runClearsign(ctx *Context) error {
+	// clearsign decode only works with the whole data slice, not a reader
+	// so have to read it all here:
+	msg, err := ioutil.ReadAll(e.arg.Source)
+	if err != nil {
+		return err
+	}
+	b, _ := clearsign.Decode(msg)
+	if b == nil {
+		return errors.New("Unable to decode clearsigned message")
+	}
+
+	sk, err := e.scanner(ctx)
+	if err != nil {
+		return err
+	}
+	signer, err := openpgp.CheckDetachedSignature(sk, bytes.NewReader(b.Bytes), b.ArmoredSignature.Body)
+	if err != nil {
+		return fmt.Errorf("Check sig error: %s", err)
+	}
+	if signer != nil {
+		e.outputSuccess(ctx)
+	}
+	return nil
+}
+
+func (e *PGPVerify) scanner(ctx *Context) (*ScanKeys, error) {
+	// XXX I imagine this should work logged out, so we might need a different version of
+	// scankeys.
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return nil, err
+	}
+	return NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
+}
+
+func (e *PGPVerify) outputSuccess(ctx *Context) {
+	ctx.LogUI.Notice("Signature verified.")
 }

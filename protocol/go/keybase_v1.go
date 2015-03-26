@@ -1181,6 +1181,7 @@ type PgpVerifyOptions struct {
 	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
 	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 	Signature     []byte `codec:"signature" json:"signature"`
+	Clearsign     bool   `codec:"clearsign" json:"clearsign"`
 }
 
 type FingerprintAndKey struct {
