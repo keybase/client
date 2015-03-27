@@ -1,9 +1,7 @@
 package libkb
 
 import (
-	"bytes"
 	"io"
-	"io/ioutil"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
@@ -25,19 +23,15 @@ func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PgpKeyBundl
 }
 
 func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
-	// since we only have a reader, and we want to peek at the first 5 bytes
-	// before decrypting, need to read all the bytes, then give openpgp a
-	// new reader with those after armor check.
-	// (the other option is to change source to io.ReadSeeker, but the rpc stream
-	// interface doesn't support seek)
-	all, err := ioutil.ReadAll(source)
+	peeker := NewPeeker(source)
+	head := make([]byte, 5)
+	_, err := peeker.Peek(head)
 	if err != nil {
 		return nil, err
 	}
 
-	var r io.Reader
-	r = bytes.NewReader(all)
-	if IsArmored(all) {
+	var r io.Reader = peeker
+	if IsArmored(head) {
 		b, err := armor.Decode(r)
 		if err != nil {
 			return nil, err
