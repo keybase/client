@@ -161,6 +161,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	G.Log.Info("key id %d => (%s, %s)", id, username, uid)
 
 	// use PGPKeyfinder engine to get the pgp keys for the user
+	// PC: use username instead of uid?
 	arg := &PGPKeyfinderArg{Users: []string{"uid://" + uid}}
 	if s.opts != nil {
 		arg.TrackOptions = *s.opts
