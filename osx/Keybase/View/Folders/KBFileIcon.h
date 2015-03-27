@@ -9,17 +9,14 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
-#import "KBFolder.h"
+#import "KBFile.h"
 
-@interface KBFileIconLabel : YOView
+@interface KBFileIcon : YOView
 
 @property KBImageView *imageView;
 @property KBLabel *nameLabel;
 @property CGFloat iconHeight;
 
-@property (nonatomic) NSString *path;
-
-- (void)setPath:(NSString *)path;
-- (void)setFolder:(KBFolder *)folder;
+@property (nonatomic) KBFile *file;
 
 @end

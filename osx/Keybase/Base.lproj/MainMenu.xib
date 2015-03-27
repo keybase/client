@@ -638,10 +638,16 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="PGP" systemMenu="font" id="h7H-nr-b12">
                         <items>
-                            <menuItem title="Encrypt" id="l8d-br-Xgs" userLabel="Encrypt Text...">
+                            <menuItem title="Encrypt Text" id="l8d-br-Xgs">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="encrypt:" target="Voe-Tx-rLC" id="mGv-iD-uqA"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Encrypt Files" id="1JV-DW-i8f">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="encryptFile:" target="Voe-Tx-rLC" id="pzm-dk-d8o"/>
                                 </connections>
                             </menuItem>
                         </items>

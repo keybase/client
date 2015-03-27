@@ -6,15 +6,15 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBFolderView.h"
+#import "KBFileLabel.h"
 
-@interface KBFolderView ()
+@interface KBFileLabel ()
 @property KBImageView *imageView;
 @property KBLabel *nameLabel;
 @end
 
 
-@implementation KBFolderView
+@implementation KBFileLabel
 
 - (void)viewInit {
   [super viewInit];
@@ -28,33 +28,36 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat x = 6;
-    CGFloat y = 2;
 
-    x += [layout setFrame:CGRectMake(x, 2, 16, 16) view:yself.imageView].size.width + 7;
+    CGFloat iconWidth = size.height - roundf(size.height / 5.0);
+    x += [layout centerWithSize:CGSizeMake(iconWidth, iconWidth) frame:CGRectMake(x, 0, 16, size.height) view:yself.imageView].size.width + 7;
+    [layout centerWithSize:CGSizeMake(size.width - x, 0) frame:CGRectMake(x, 0, 0, size.height) view:yself.nameLabel];
 
-    [layout setFrame:CGRectMake(x, y, size.width - x, 20) view:yself.nameLabel];
-
-    y += 20;
-
-    return CGSizeMake(size.width, y);
+    return size;
   }];
 }
-
 
 //
 // Icons in:
 // /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/
 //
 
-- (void)setFolder:(KBFolder *)folder {
-  [self.nameLabel setText:folder.name font:[NSFont systemFontOfSize:13] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  self.imageView.image = KBImageForFolder(folder);
++ (NSFont *)fontForStyle:(KBFileLabelStyle)fileLabelStyle {
+  switch (fileLabelStyle) {
+    case KBFileLabelStyleDefault: return [NSFont systemFontOfSize:13];
+    case KBFileLabelStyleLarge: return [NSFont systemFontOfSize:14];
+  }
+}
+
+- (void)setFile:(KBFile *)file {
+  [self.nameLabel setText:file.name font:[self.class fontForStyle:_fileLabelStyle] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  self.imageView.image = file.icon;
   [self setNeedsLayout];
 }
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  [self.nameLabel setFont:[NSFont systemFontOfSize:13] color:appearance.textColor];
+  [self.nameLabel setFont:[self.class fontForStyle:_fileLabelStyle] color:appearance.textColor];
   [self setNeedsLayout];
 }
 

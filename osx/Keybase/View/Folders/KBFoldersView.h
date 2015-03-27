@@ -9,11 +9,11 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
-#import "KBFolderListView.h"
+#import "KBFileListView.h"
 
 @interface KBFoldersView : KBView
 
-@property (readonly) KBFolderListView *favoritesView;
-@property (readonly) KBFolderListView *foldersView;
+@property (readonly) KBFileListView *favoritesView;
+@property (readonly) KBFileListView *foldersView;
 
 @end

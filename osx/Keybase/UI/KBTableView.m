@@ -14,11 +14,16 @@
 #import "KBLayouts.h"
 #import <GHKit/GHKit.h>
 
+@interface KBNSTableView : NSTableView
+@property (weak) KBTableView *parent;
+@end
+
 @interface KBTableView ()
 @property NSScrollView *scrollView;
-@property NSTableView *view;
+@property KBNSTableView *view;
 @property KBCellDataSource *dataSource;
 @property BOOL selecting;
+@property NSIndexPath *menuIndexPath;
 @end
 
 @implementation KBTableView
@@ -27,7 +32,9 @@
   [super viewInit];
   _dataSource = [[KBCellDataSource alloc] init];
 
-  _view = [[NSTableView alloc] init];
+  KBNSTableView *view = [[KBNSTableView alloc] init];
+  view.parent = self;
+  _view = view;
   _view.dataSource = self;
   _view.delegate = self;
 
@@ -104,6 +111,10 @@
     NSIndexPath *indexPath = [_dataSource indexPathOfObject:selectedObject section:0];
     if (indexPath) [self setSelectedRow:indexPath.item];
   }
+}
+
+- (NSArray *)objects {
+  return [_dataSource objectsForSection:0];
 }
 
 - (NSIndexSet *)itemIndexSet:(NSArray *)indexPaths {
@@ -212,12 +223,37 @@
   }
 }
 
+- (void)reloadData {
+  [self.view reloadData];
+}
+
 - (void)removeAllTableColumns {
   for (NSTableColumn *tableColumn in [_view.tableColumns copy]) {
     [_view removeTableColumn:tableColumn];
   }
 }
 
+- (NSMenu *)menuForIndexPath:(NSIndexPath *)indexPath {
+  _menuIndexPath = indexPath;
+  if (self.menuSelectBlock) return self.menuSelectBlock(_menuIndexPath);
+  return nil;
+}
+
 @end
 
 
+@implementation KBNSTableView
+
+- (NSMenu *)menuForEvent:(NSEvent *)event {
+  if (event.type != NSRightMouseDown) return nil;
+
+  NSPoint point = [self convertPoint:[event locationInWindow] fromView:nil];
+  NSInteger row = [self rowAtPoint:point];
+  NSInteger column = [self columnAtPoint:point];
+  if (row == -1 || column == -1) return nil;
+
+  NSIndexPath *indexPath = [NSIndexPath indexPathForItem:row inSection:column];
+  return [_parent menuForIndexPath:indexPath];
+}
+
+@end

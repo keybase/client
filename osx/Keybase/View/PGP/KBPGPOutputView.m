@@ -7,7 +7,7 @@
 //
 
 #import "KBPGPOutputView.h"
-#import "KBFileIconLabel.h"
+#import "KBFileIcon.h"
 
 @interface KBPGPOutputView ()
 @property KBTextView *outputView;
@@ -20,17 +20,11 @@
 - (void)viewInit {
   [super viewInit];
 
-  YOVBox *contentView = [YOVBox box];
-  [self addSubview:contentView];
-
-  _outputView = [[KBTextView alloc] initWithFrame:CGRectMake(0, 0, 600, 200)];
+  _outputView = [[KBTextView alloc] init];
   _outputView.view.editable = NO;
   _outputView.borderType = NSBezelBorder;
   _outputView.layer.borderColor = NSColor.redColor.CGColor;
-  [contentView addSubview:_outputView];
-
-  _files = [YOBox box:@{@"spacing": @(4), @"insets": @(10)}];
-  [contentView addSubview:_files];
+  [self addSubview:_outputView];
 
   YOBox *footerView = [YOBox box:@{@"spacing": @"10", @"minSize": @"130,0"}];
   NSImage *backImage = [NSImage imageNamed:@"46-Arrows-black-arrow-67-24"];
@@ -52,7 +46,7 @@
   [footerView addSubview:footerRightView];
   [self addSubview:footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:contentView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_outputView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
 }
 
 - (void)setArmoredData:(NSData *)data {
@@ -65,17 +59,6 @@
 
   [_outputView setText:armored font:[NSFont fontWithName:@"Monaco" size:11] color:KBAppearance.currentAppearance.textColor];
   [self setNeedsLayout];
-}
-
-- (void)addFiles:(NSArray *)files {
-  for (NSString *file in files) {
-    KBFileIconLabel *icon = [[KBFileIconLabel alloc] init];
-    icon.iconHeight = 60;
-    [icon setPath:file];
-    [_files addSubview:icon];
-  }
-  [_files setNeedsLayout:NO];
-  [self layoutView];
 }
 
 //- (void)share {

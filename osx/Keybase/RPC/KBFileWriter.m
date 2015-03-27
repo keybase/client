@@ -11,13 +11,16 @@
 @interface KBFileWriter ()
 @property NSOutputStream *output;
 @property BOOL open;
+@property NSString *path;
 @end
 
 @implementation KBFileWriter
 
 + (instancetype)fileWriterWithPath:(NSString *)path {
-  NSOutputStream *outputStream = [NSOutputStream outputStreamToFileAtPath:path append:NO];
-  return [self writerWithOutputStream:outputStream];
+  KBFileWriter *writer = [[self alloc] init];
+  writer.output = [NSOutputStream outputStreamToFileAtPath:path append:NO];
+  writer.path = path;
+  return writer;
 }
 
 + (instancetype)writerWithOutputStream:(NSOutputStream *)outputStream {

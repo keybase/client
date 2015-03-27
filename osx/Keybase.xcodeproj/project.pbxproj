@@ -45,6 +45,8 @@
 		004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
 		0053B6C81AC4E305001AE392 /* KBStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6C71AC4E305001AE392 /* KBStream.m */; };
 		0053B6C91AC4E305001AE392 /* KBStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6C71AC4E305001AE392 /* KBStream.m */; };
+		0053B6D81AC5EE74001AE392 /* KBPGPOutputFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6D71AC5EE74001AE392 /* KBPGPOutputFileView.m */; };
+		0053B6D91AC5EE74001AE392 /* KBPGPOutputFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6D71AC5EE74001AE392 /* KBPGPOutputFileView.m */; };
 		00566A071A97DA1800CA236E /* KBActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669DA1A97DA1800CA236E /* KBActivityIndicatorView.m */; };
 		00566A081A97DA1800CA236E /* KBActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669DA1A97DA1800CA236E /* KBActivityIndicatorView.m */; };
 		00566A091A97DA1800CA236E /* KBAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = 005669DC1A97DA1800CA236E /* KBAlert.m */; };
@@ -92,12 +94,12 @@
 		00566A5C1A9BADC400CA236E /* keybase.keybased.plist in Resources */ = {isa = PBXBuildFile; fileRef = 00566A591A9BAD4800CA236E /* keybase.keybased.plist */; };
 		006D57171AAE27D100D16CB8 /* KBFoldersAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57161AAE27D100D16CB8 /* KBFoldersAppView.m */; };
 		006D57181AAE27D100D16CB8 /* KBFoldersAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57161AAE27D100D16CB8 /* KBFoldersAppView.m */; };
-		006D571B1AAE29EF00D16CB8 /* KBFolderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571A1AAE29EF00D16CB8 /* KBFolderView.m */; };
-		006D571C1AAE29EF00D16CB8 /* KBFolderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571A1AAE29EF00D16CB8 /* KBFolderView.m */; };
-		006D571F1AAE2A2100D16CB8 /* KBFolder.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571E1AAE2A2100D16CB8 /* KBFolder.m */; };
-		006D57201AAE2A2100D16CB8 /* KBFolder.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571E1AAE2A2100D16CB8 /* KBFolder.m */; };
-		006D57231AAE2D4900D16CB8 /* KBFolderListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57221AAE2D4900D16CB8 /* KBFolderListView.m */; };
-		006D57241AAE2D4900D16CB8 /* KBFolderListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57221AAE2D4900D16CB8 /* KBFolderListView.m */; };
+		006D571B1AAE29EF00D16CB8 /* KBFileLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571A1AAE29EF00D16CB8 /* KBFileLabel.m */; };
+		006D571C1AAE29EF00D16CB8 /* KBFileLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571A1AAE29EF00D16CB8 /* KBFileLabel.m */; };
+		006D571F1AAE2A2100D16CB8 /* KBFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571E1AAE2A2100D16CB8 /* KBFile.m */; };
+		006D57201AAE2A2100D16CB8 /* KBFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571E1AAE2A2100D16CB8 /* KBFile.m */; };
+		006D57231AAE2D4900D16CB8 /* KBFileListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57221AAE2D4900D16CB8 /* KBFileListView.m */; };
+		006D57241AAE2D4900D16CB8 /* KBFileListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57221AAE2D4900D16CB8 /* KBFileListView.m */; };
 		007908171ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = 007908161ABB718D00FBBD89 /* KBSecretWordsInputView.m */; };
 		007908181ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = 007908161ABB718D00FBBD89 /* KBSecretWordsInputView.m */; };
 		009E2BBF1ABCD9C700EBB035 /* KBAppKitDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E2BBE1ABCD9C700EBB035 /* KBAppKitDefines.m */; };
@@ -193,8 +195,8 @@
 		00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C61A41447800319401 /* KBRPClientTest.m */; };
 		00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
 		00D2E7CB1A41476E00319401 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E7C91A41476E00319401 /* KBRRequest.m */; };
-		00D3069F1AB0C2B600F69B18 /* KBFolderPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D3069E1AB0C2B600F69B18 /* KBFolderPreviewView.m */; };
-		00D306A01AB0C2B600F69B18 /* KBFolderPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D3069E1AB0C2B600F69B18 /* KBFolderPreviewView.m */; };
+		00D3069F1AB0C2B600F69B18 /* KBFilePreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D3069E1AB0C2B600F69B18 /* KBFilePreviewView.m */; };
+		00D306A01AB0C2B600F69B18 /* KBFilePreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D3069E1AB0C2B600F69B18 /* KBFilePreviewView.m */; };
 		00D306A31AB0DD8300F69B18 /* KBFoldersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D306A21AB0DD8300F69B18 /* KBFoldersView.m */; };
 		00D306A41AB0DD8300F69B18 /* KBFoldersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D306A21AB0DD8300F69B18 /* KBFoldersView.m */; };
 		00D306A71AB0E3BF00F69B18 /* KBSegmentedControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D306A61AB0E3BF00F69B18 /* KBSegmentedControl.m */; };
@@ -221,8 +223,8 @@
 		00E531581A9E7955005A4185 /* KBRMockClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E531561A9E7955005A4185 /* KBRMockClient.m */; };
 		00E5315B1A9E7C50005A4185 /* KBRPCRegistration.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */; };
 		00E5315C1A9E7C50005A4185 /* KBRPCRegistration.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */; };
-		00EC84271AC4B90600B2D429 /* KBFileIconLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EC84261AC4B90600B2D429 /* KBFileIconLabel.m */; };
-		00EC84281AC4B90600B2D429 /* KBFileIconLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EC84261AC4B90600B2D429 /* KBFileIconLabel.m */; };
+		00EC84271AC4B90600B2D429 /* KBFileIcon.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EC84261AC4B90600B2D429 /* KBFileIcon.m */; };
+		00EC84281AC4B90600B2D429 /* KBFileIcon.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EC84261AC4B90600B2D429 /* KBFileIcon.m */; };
 		00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
 		00FDC8181AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
 		00FDC81B1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC81A1AAA7D1800D6C571 /* KBCellDataSource.m */; };
@@ -290,6 +292,8 @@
 		004D14DC1A3FA64C0083888D /* KBRPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPClient.m; sourceTree = "<group>"; };
 		0053B6C61AC4E305001AE392 /* KBStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStream.h; sourceTree = "<group>"; };
 		0053B6C71AC4E305001AE392 /* KBStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStream.m; sourceTree = "<group>"; };
+		0053B6D61AC5EE74001AE392 /* KBPGPOutputFileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPOutputFileView.h; sourceTree = "<group>"; };
+		0053B6D71AC5EE74001AE392 /* KBPGPOutputFileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPOutputFileView.m; sourceTree = "<group>"; };
 		005669D91A97DA1800CA236E /* KBActivityIndicatorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBActivityIndicatorView.h; sourceTree = "<group>"; };
 		005669DA1A97DA1800CA236E /* KBActivityIndicatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBActivityIndicatorView.m; sourceTree = "<group>"; };
 		005669DB1A97DA1800CA236E /* KBAlert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAlert.h; sourceTree = "<group>"; };
@@ -343,12 +347,12 @@
 		0065CA3C1A7C2E46006E1772 /* assets_pl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_pl.rb; sourceTree = "<group>"; };
 		006D57151AAE27D100D16CB8 /* KBFoldersAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFoldersAppView.h; sourceTree = "<group>"; };
 		006D57161AAE27D100D16CB8 /* KBFoldersAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFoldersAppView.m; sourceTree = "<group>"; };
-		006D57191AAE29EF00D16CB8 /* KBFolderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderView.h; sourceTree = "<group>"; };
-		006D571A1AAE29EF00D16CB8 /* KBFolderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderView.m; sourceTree = "<group>"; };
-		006D571D1AAE2A2100D16CB8 /* KBFolder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolder.h; sourceTree = "<group>"; };
-		006D571E1AAE2A2100D16CB8 /* KBFolder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolder.m; sourceTree = "<group>"; };
-		006D57211AAE2D4900D16CB8 /* KBFolderListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderListView.h; sourceTree = "<group>"; };
-		006D57221AAE2D4900D16CB8 /* KBFolderListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderListView.m; sourceTree = "<group>"; };
+		006D57191AAE29EF00D16CB8 /* KBFileLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileLabel.h; sourceTree = "<group>"; };
+		006D571A1AAE29EF00D16CB8 /* KBFileLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileLabel.m; sourceTree = "<group>"; };
+		006D571D1AAE2A2100D16CB8 /* KBFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFile.h; sourceTree = "<group>"; };
+		006D571E1AAE2A2100D16CB8 /* KBFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFile.m; sourceTree = "<group>"; };
+		006D57211AAE2D4900D16CB8 /* KBFileListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileListView.h; sourceTree = "<group>"; };
+		006D57221AAE2D4900D16CB8 /* KBFileListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileListView.m; sourceTree = "<group>"; };
 		007908151ABB718D00FBBD89 /* KBSecretWordsInputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSecretWordsInputView.h; sourceTree = "<group>"; };
 		007908161ABB718D00FBBD89 /* KBSecretWordsInputView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSecretWordsInputView.m; sourceTree = "<group>"; };
 		009E2BBD1ABCD9C700EBB035 /* KBAppKitDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppKitDefines.h; sourceTree = "<group>"; };
@@ -449,8 +453,8 @@
 		00D2E7C61A41447800319401 /* KBRPClientTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KBRPClientTest.m; path = Tests/KBRPClientTest.m; sourceTree = "<group>"; };
 		00D2E7C81A41476E00319401 /* KBRRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRRequest.h; sourceTree = "<group>"; };
 		00D2E7C91A41476E00319401 /* KBRRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRRequest.m; sourceTree = "<group>"; };
-		00D3069D1AB0C2B600F69B18 /* KBFolderPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderPreviewView.h; sourceTree = "<group>"; };
-		00D3069E1AB0C2B600F69B18 /* KBFolderPreviewView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderPreviewView.m; sourceTree = "<group>"; };
+		00D3069D1AB0C2B600F69B18 /* KBFilePreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFilePreviewView.h; sourceTree = "<group>"; };
+		00D3069E1AB0C2B600F69B18 /* KBFilePreviewView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFilePreviewView.m; sourceTree = "<group>"; };
 		00D306A11AB0DD8300F69B18 /* KBFoldersView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFoldersView.h; sourceTree = "<group>"; };
 		00D306A21AB0DD8300F69B18 /* KBFoldersView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFoldersView.m; sourceTree = "<group>"; };
 		00D306A51AB0E3BF00F69B18 /* KBSegmentedControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSegmentedControl.h; sourceTree = "<group>"; };
@@ -477,8 +481,8 @@
 		00E531561A9E7955005A4185 /* KBRMockClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRMockClient.m; sourceTree = "<group>"; };
 		00E531591A9E7C50005A4185 /* KBRPCRegistration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPCRegistration.h; sourceTree = "<group>"; };
 		00E5315A1A9E7C50005A4185 /* KBRPCRegistration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPCRegistration.m; sourceTree = "<group>"; };
-		00EC84251AC4B90600B2D429 /* KBFileIconLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileIconLabel.h; sourceTree = "<group>"; };
-		00EC84261AC4B90600B2D429 /* KBFileIconLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileIconLabel.m; sourceTree = "<group>"; };
+		00EC84251AC4B90600B2D429 /* KBFileIcon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileIcon.h; sourceTree = "<group>"; };
+		00EC84261AC4B90600B2D429 /* KBFileIcon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileIcon.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		00FDC8151AAA605C00D6C571 /* KBUserImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserImageView.h; sourceTree = "<group>"; };
 		00FDC8161AAA605C00D6C571 /* KBUserImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserImageView.m; sourceTree = "<group>"; };
@@ -642,20 +646,20 @@
 			children = (
 				006D57151AAE27D100D16CB8 /* KBFoldersAppView.h */,
 				006D57161AAE27D100D16CB8 /* KBFoldersAppView.m */,
-				006D57191AAE29EF00D16CB8 /* KBFolderView.h */,
-				006D571A1AAE29EF00D16CB8 /* KBFolderView.m */,
-				006D571D1AAE2A2100D16CB8 /* KBFolder.h */,
-				006D571E1AAE2A2100D16CB8 /* KBFolder.m */,
-				006D57211AAE2D4900D16CB8 /* KBFolderListView.h */,
-				006D57221AAE2D4900D16CB8 /* KBFolderListView.m */,
-				00D3069D1AB0C2B600F69B18 /* KBFolderPreviewView.h */,
-				00D3069E1AB0C2B600F69B18 /* KBFolderPreviewView.m */,
+				006D57191AAE29EF00D16CB8 /* KBFileLabel.h */,
+				006D571A1AAE29EF00D16CB8 /* KBFileLabel.m */,
+				006D571D1AAE2A2100D16CB8 /* KBFile.h */,
+				006D571E1AAE2A2100D16CB8 /* KBFile.m */,
+				006D57211AAE2D4900D16CB8 /* KBFileListView.h */,
+				006D57221AAE2D4900D16CB8 /* KBFileListView.m */,
+				00D3069D1AB0C2B600F69B18 /* KBFilePreviewView.h */,
+				00D3069E1AB0C2B600F69B18 /* KBFilePreviewView.m */,
 				00D306A11AB0DD8300F69B18 /* KBFoldersView.h */,
 				00D306A21AB0DD8300F69B18 /* KBFoldersView.m */,
 				009E2BF81AC47B0B00EBB035 /* KBFileSelectView.h */,
 				009E2BF91AC47B0B00EBB035 /* KBFileSelectView.m */,
-				00EC84251AC4B90600B2D429 /* KBFileIconLabel.h */,
-				00EC84261AC4B90600B2D429 /* KBFileIconLabel.m */,
+				00EC84251AC4B90600B2D429 /* KBFileIcon.h */,
+				00EC84261AC4B90600B2D429 /* KBFileIcon.m */,
 			);
 			path = Folders;
 			sourceTree = "<group>";
@@ -711,6 +715,8 @@
 				009E2BCD1AC09AFC00EBB035 /* KBPGPOutputView.m */,
 				009E2BD41AC0A93B00EBB035 /* KBPGPEncryptFileView.h */,
 				009E2BD51AC0A93B00EBB035 /* KBPGPEncryptFileView.m */,
+				0053B6D61AC5EE74001AE392 /* KBPGPOutputFileView.h */,
+				0053B6D71AC5EE74001AE392 /* KBPGPOutputFileView.m */,
 				009E2BDC1AC0AD2F00EBB035 /* KBPGPEncrypt.h */,
 				009E2BDD1AC0AD2F00EBB035 /* KBPGPEncrypt.m */,
 				009E2BF41AC3A2F700EBB035 /* KBPGPEncryptFooterView.h */,
@@ -1134,7 +1140,7 @@
 				001712521A951A9C00C7AD58 /* KBUserHeaderView.m in Sources */,
 				001712621A951D0B00C7AD58 /* KBDeviceSetupView.m in Sources */,
 				001712661A951EE500C7AD58 /* KBKeySelectView.m in Sources */,
-				00D3069F1AB0C2B600F69B18 /* KBFolderPreviewView.m in Sources */,
+				00D3069F1AB0C2B600F69B18 /* KBFilePreviewView.m in Sources */,
 				00D52F821A76EDAE00DEB5F5 /* KBFatalErrorView.m in Sources */,
 				009E2BCB1AC08D0E00EBB035 /* KBPGPEncryptView.m in Sources */,
 				00C7DD451AA506F500F57AFC /* KBDevicePromptView.m in Sources */,
@@ -1172,8 +1178,8 @@
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
 				0017124E1A951A9C00C7AD58 /* KBUserView.m in Sources */,
 				001FCDEC1AB21F5E004486D3 /* KBBorder.m in Sources */,
-				006D57231AAE2D4900D16CB8 /* KBFolderListView.m in Sources */,
-				00EC84271AC4B90600B2D429 /* KBFileIconLabel.m in Sources */,
+				006D57231AAE2D4900D16CB8 /* KBFileListView.m in Sources */,
+				00EC84271AC4B90600B2D429 /* KBFileIcon.m in Sources */,
 				00DD24641AA8F4A700371CDA /* KBRuntimeStatusView.m in Sources */,
 				001712501A951A9C00C7AD58 /* KBUserProfileView.m in Sources */,
 				0025353B1AB8BC4D00583913 /* KBSecretWordsView.m in Sources */,
@@ -1188,12 +1194,13 @@
 				00B543F91A81990B0044CC5B /* KBPreferences.m in Sources */,
 				00A16C331AB38785003EF505 /* KBHeaderLabelView.m in Sources */,
 				00C7DD6A1AA7966D00F57AFC /* KBRPCRecord.m in Sources */,
-				006D571B1AAE29EF00D16CB8 /* KBFolderView.m in Sources */,
+				006D571B1AAE29EF00D16CB8 /* KBFileLabel.m in Sources */,
 				00A16B5B1AB26158003EF505 /* KBLaunchCtl.m in Sources */,
+				0053B6D81AC5EE74001AE392 /* KBPGPOutputFileView.m in Sources */,
 				00C7DD4D1AA63A1100F57AFC /* KBLabelRow.m in Sources */,
 				00B544261A895A810044CC5B /* KBProofResult.m in Sources */,
 				00566A111A97DA1800CA236E /* KBImageTextView.m in Sources */,
-				006D571F1AAE2A2100D16CB8 /* KBFolder.m in Sources */,
+				006D571F1AAE2A2100D16CB8 /* KBFile.m in Sources */,
 				00C7DD6E1AA7C1F600F57AFC /* KBPopoverView.m in Sources */,
 				00566A071A97DA1800CA236E /* KBActivityIndicatorView.m in Sources */,
 				0053B6C81AC4E305001AE392 /* KBStream.m in Sources */,
@@ -1291,13 +1298,13 @@
 				00DD245D1AA8DAE300371CDA /* KBView.m in Sources */,
 				00566A521A9BAA7500CA236E /* KBInstaller.m in Sources */,
 				00B544391A8960D30044CC5B /* KBProveType.m in Sources */,
-				00EC84281AC4B90600B2D429 /* KBFileIconLabel.m in Sources */,
+				00EC84281AC4B90600B2D429 /* KBFileIcon.m in Sources */,
 				00566A2C1A97DA1800CA236E /* KBTextField.m in Sources */,
 				00B543FA1A81990B0044CC5B /* KBPreferences.m in Sources */,
 				00566A0E1A97DA1800CA236E /* KBBox.m in Sources */,
 				00566A121A97DA1800CA236E /* KBImageTextView.m in Sources */,
 				009E2BD71AC0A93B00EBB035 /* KBPGPEncryptFileView.m in Sources */,
-				006D57201AAE2A2100D16CB8 /* KBFolder.m in Sources */,
+				006D57201AAE2A2100D16CB8 /* KBFile.m in Sources */,
 				00566A1E1A97DA1800CA236E /* KBNavigationView.m in Sources */,
 				009E2BFB1AC47B0B00EBB035 /* KBFileSelectView.m in Sources */,
 				00B5442D1A895A910044CC5B /* KBProveInputView.m in Sources */,
@@ -1308,6 +1315,7 @@
 				003BAABA1A8042C700C309B9 /* KBStyleGuideView.m in Sources */,
 				0017124F1A951A9C00C7AD58 /* KBUserView.m in Sources */,
 				00DD24611AA8E93100371CDA /* KBConnectView.m in Sources */,
+				0053B6D91AC5EE74001AE392 /* KBPGPOutputFileView.m in Sources */,
 				00566A1A1A97DA1800CA236E /* KBLayouts.m in Sources */,
 				001712671A951EE500C7AD58 /* KBKeySelectView.m in Sources */,
 				00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */,
@@ -1334,7 +1342,7 @@
 				001FCDE91AB2035C004486D3 /* KBViews.m in Sources */,
 				00566A241A97DA1800CA236E /* KBSplitView.m in Sources */,
 				00566A341A97DA1800CA236E /* KBWindow.m in Sources */,
-				006D571C1AAE29EF00D16CB8 /* KBFolderView.m in Sources */,
+				006D571C1AAE29EF00D16CB8 /* KBFileLabel.m in Sources */,
 				00566A1C1A97DA1800CA236E /* KBMenuBar.m in Sources */,
 				00D52F831A76EDAE00DEB5F5 /* KBFatalErrorView.m in Sources */,
 				00566A321A97DA1800CA236E /* KBWebView.m in Sources */,
@@ -1346,14 +1354,14 @@
 				00D2E7C71A41447800319401 /* KBRPClientTest.m in Sources */,
 				00566A201A97DA1800CA236E /* KBProgressOverlayView.m in Sources */,
 				002535381AB77D2D00583913 /* KBKeyImportView.m in Sources */,
-				006D57241AAE2D4900D16CB8 /* KBFolderListView.m in Sources */,
+				006D57241AAE2D4900D16CB8 /* KBFileListView.m in Sources */,
 				009E2BDB1AC0AB5B00EBB035 /* KBFileReader.m in Sources */,
 				00C7DD521AA6747B00F57AFC /* KBUserStatusView.m in Sources */,
 				007908181ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */,
 				00D306A81AB0E3BF00F69B18 /* KBSegmentedControl.m in Sources */,
 				00B544311A895AB80044CC5B /* KBProveInstructionsView.m in Sources */,
 				00C7DD461AA506F500F57AFC /* KBDevicePromptView.m in Sources */,
-				00D306A01AB0C2B600F69B18 /* KBFolderPreviewView.m in Sources */,
+				00D306A01AB0C2B600F69B18 /* KBFilePreviewView.m in Sources */,
 				00DD246D1AAA436900371CDA /* KBProgressView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

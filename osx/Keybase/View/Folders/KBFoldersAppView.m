@@ -8,11 +8,10 @@
 
 #import "KBFoldersAppView.h"
 
-#import "KBFolderView.h"
-#import "KBFolder.h"
-#import "KBFolderListView.h"
+#import "KBFileLabel.h"
+#import "KBFile.h"
 #import "KBFoldersView.h"
-#import "KBFolderPreviewView.h"
+#import "KBFilePreviewView.h"
 
 @interface KBFoldersAppView ()
 @property KBSplitView *splitView;
@@ -30,13 +29,13 @@
 
   _foldersView = [[KBFoldersView alloc] init];
 
-  KBFolderPreviewView *previewView = [[KBFolderPreviewView alloc] init];
+  KBFilePreviewView *previewView = [[KBFilePreviewView alloc] init];
 
-  _foldersView.foldersView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFolder *folder) {
-    [previewView setFolder:folder];
+  _foldersView.foldersView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
+    [previewView setFile:file];
   };
-  _foldersView.favoritesView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFolder *folder) {
-    [previewView setFolder:folder];
+  _foldersView.favoritesView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
+    [previewView setFile:file];
   };
 
   [_splitView setSourceView:_foldersView contentView:previewView];
@@ -46,10 +45,10 @@
 
 - (void)reload {
 #ifdef DEBUG
-  NSArray *folders = @[[KBFolder folderWithName:@"patrick" dateModified:[[NSDate date] gh_addDays:-100]],
-                       [KBFolder folderWithName:@"max,gabrielh" dateModified:[[NSDate date] gh_addDays:-200]],
-                       [KBFolder folderWithName:@"chris,gabrielh" dateModified:[NSDate date]],
-                       [KBFolder folderWithName:@"Keybase" dateModified:[NSDate date]],];
+  NSArray *folders = @[[KBFile folderWithName:@"patrick" dateModified:[[NSDate date] gh_addDays:-100]],
+                       [KBFile folderWithName:@"max,gabrielh" dateModified:[[NSDate date] gh_addDays:-200]],
+                       [KBFile folderWithName:@"chris,gabrielh" dateModified:[NSDate date]],
+                       [KBFile folderWithName:@"Keybase" dateModified:[NSDate date]],];
   [_foldersView.foldersView setObjects:folders];
 
   NSArray *favorites = [folders subarrayWithRange:NSMakeRange(1, 2)];

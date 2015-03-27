@@ -1,5 +1,5 @@
 //
-//  KBFolderPreviewView.h
+//  KBFilePreviewView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/11/15.
@@ -9,10 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
-#import "KBFolder.h"
+#import "KBFile.h"
 
-@interface KBFolderPreviewView : YOView
+@interface KBFilePreviewView : YOView
 
-- (void)setFolder:(KBFolder *)folder;
+- (void)setFile:(KBFile *)file;
 
 @end

@@ -10,7 +10,10 @@
 
 #import "KBContentView.h"
 #import "KBUserPickerView.h"
+#import "KBFile.h"
 
 @interface KBPGPEncryptFileView : KBContentView <KBUserPickerViewDelegate>
+
+- (void)addFile:(KBFile *)file;
 
 @end

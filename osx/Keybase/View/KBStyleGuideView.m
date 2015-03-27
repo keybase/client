@@ -8,7 +8,7 @@
 
 #import "KBStyleGuideView.h"
 
-#import "KBFileIconLabel.h"
+#import "KBFileIcon.h"
 
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
@@ -100,13 +100,13 @@
   [border updatePath];
   [contentView addSubview:border];
 
-  KBFileIconLabel *icon = [[KBFileIconLabel alloc] init];
-  [icon setPath:@"~/Temp/test-a-really-long-file-name.txt"];
+  KBFileIcon *icon = [[KBFileIcon alloc] init];
+  [icon setFile:[KBFile fileWithPath:@"~/Temp/test-a-really-long-file-name.txt"]];
   [contentView addSubview:icon];
 
-  KBFileIconLabel *icon2 = [[KBFileIconLabel alloc] init];
+  KBFileIcon *icon2 = [[KBFileIcon alloc] init];
   icon2.iconHeight = 60;
-  [icon2 setPath:@"~/Temp/test-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name.txt"];
+  [icon2 setFile:[KBFile fileWithPath:@"~/Temp/test-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name.txt"]];
   [contentView addSubview:icon2];
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];

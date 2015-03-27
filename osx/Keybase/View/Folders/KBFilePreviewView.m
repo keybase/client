@@ -1,20 +1,20 @@
 //
-//  KBFolderPreviewView.m
+//  KBFilePreviewView.m
 //  Keybase
 //
 //  Created by Gabriel on 3/11/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBFolderPreviewView.h"
+#import "KBFilePreviewView.h"
 
-@interface KBFolderPreviewView ()
+@interface KBFilePreviewView ()
 @property KBImageView *imageView;
 @property KBLabel *nameLabel;
 @property KBButton *openButton;
 @end
 
-@implementation KBFolderPreviewView
+@implementation KBFilePreviewView
 
 - (void)viewInit {
   [super viewInit];
@@ -43,11 +43,11 @@
   }];
 }
 
-- (void)setFolder:(KBFolder *)folder {
-  NSImage *image = KBImageForFolder(folder);
+- (void)setFile:(KBFile *)file {
+  NSImage *image = file.icon;
   image.size = CGSizeMake(120, 120);
   self.imageView.image = image;
-  [self.nameLabel setText:folder.name style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  [self.nameLabel setText:file.name style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   [self setNeedsLayout];
 }
 

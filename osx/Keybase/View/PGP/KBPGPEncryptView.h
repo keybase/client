@@ -18,6 +18,4 @@
 
 - (void)setText:(NSString *)text;
 
-- (void)addPath:(NSString *)path;
-
 @end

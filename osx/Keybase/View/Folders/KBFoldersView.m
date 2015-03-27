@@ -8,14 +8,14 @@
 
 #import "KBFoldersView.h"
 
-#import "KBFolderListView.h"
+#import "KBFileListView.h"
 #import "KBSearchField.h"
 #import "KBViews.h"
 
 @interface KBFoldersView ()
 @property KBSegmentedControl *segmentedControl;
-@property KBFolderListView *favoritesView;
-@property KBFolderListView *foldersView;
+@property KBFileListView *favoritesView;
+@property KBFileListView *foldersView;
 @property KBButton *addButton;
 @property KBButton *trashButton;
 @property KBSearchField *searchField;
@@ -52,11 +52,13 @@
   _searchField = [[KBSearchField alloc] init];
   [self addSubview:_searchField];
 
-  _favoritesView = [[KBFolderListView alloc] init];
+  _favoritesView = [[KBFileListView alloc] init];
+  [_favoritesView setFileColumnStyle:KBFileColumnStyleNameDate];
   _favoritesView.identifier = @"Favorites";
   [self addSubview:_favoritesView];
 
-  _foldersView = [[KBFolderListView alloc] init];
+  _foldersView = [[KBFileListView alloc] init];
+  [_foldersView setFileColumnStyle:KBFileColumnStyleNameDate];
   _foldersView.identifier = @"Folders";
   _foldersView.hidden = YES;
   [self addSubview:_foldersView];

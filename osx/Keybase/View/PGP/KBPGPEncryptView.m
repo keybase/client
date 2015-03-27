@@ -15,7 +15,7 @@
 #import "KBPGPEncrypt.h"
 #import "KBRPC.h"
 #import "KBPGPEncryptFooterView.h"
-#import "KBFileIconLabel.h"
+#import "KBFileIcon.h"
 #import "KBFileReader.h"
 #import "KBFileWriter.h"
 
@@ -42,21 +42,21 @@
   [topView addSubview:[KBBox horizontalLine]];
 
   _textView = [[KBTextView alloc] init];
-  _textView.view.textContainerInset = CGSizeMake(20, 16);
+  _textView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_textView];
 
   YOVBox *bottomView = [YOVBox box];
   [self addSubview:bottomView];
 
-  _files = [YOBox box:@{@"spacing": @(4), @"insets": @(10)}];
-  [bottomView addSubview:_files];
+  //_files = [YOBox box:@{@"spacing": @(4), @"insets": @(10)}];
+  //[bottomView addSubview:_files];
 
   GHWeakSelf gself = self;
   _footerView = [[KBPGPEncryptFooterView alloc] init];
   _footerView.encryptButton.targetBlock = ^{ [gself encrypt]; };
   _footerView.signButton.state = NSOnState;
   _footerView.includeSelfButton.state = NSOnState;
-  _footerView.attachmentButton.targetBlock = ^{ [gself chooseInput]; };
+  //_footerView.attachmentButton.targetBlock = ^{ [gself chooseInput]; };
   [bottomView addSubview:_footerView];
 
   // Search results from picker view is here so we can float it
@@ -72,11 +72,11 @@
   _userPickerView.searchResultsView.frame = CGRectMake(40, y2, size.width - 40, _textView.frame.size.height + 2);
 }
 
-- (void)mailShare {
-  NSSharingService *mailShare = [NSSharingService sharingServiceNamed:NSSharingServiceNameComposeEmail];
-  NSArray *shareItems = @[]; // @[textAttributedString, tempFileURL];
-  [mailShare performWithItems:shareItems];
-}
+//- (void)mailShare {
+//  NSSharingService *mailShare = [NSSharingService sharingServiceNamed:NSSharingServiceNameComposeEmail];
+//  NSArray *shareItems = @[]; // @[textAttributedString, tempFileURL];
+//  [mailShare performWithItems:shareItems];
+//}
 
 - (void)encrypt {
   NSString *text = _textView.text;
@@ -86,9 +86,9 @@
   KBWriter *writer = [KBWriter writer];
   [streams addObject:[KBStream streamWithReader:reader writer:writer binary:NO]];
 
-  for (KBFileIconLabel *file in [_files subviews]) {
-    KBFileReader *fileReader = [KBFileReader fileReaderWithPath:file.path];
-    NSString *outPath = [file.path stringByAppendingPathExtension:@"gpg"];
+  for (KBFileIcon *fileIcon in [_files subviews]) {
+    KBFileReader *fileReader = [KBFileReader fileReaderWithPath:fileIcon.file.path];
+    NSString *outPath = [fileIcon.file.path stringByAppendingPathExtension:@"gpg"];
     KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
     [streams addObject:[KBStream streamWithReader:fileReader writer:fileWriter binary:YES]];
   }
@@ -117,10 +117,10 @@
   _textView.text = text;
 }
 
-- (void)addPath:(NSString *)path {
-  KBFileIconLabel *icon = [[KBFileIconLabel alloc] init];
+- (void)addFile:(KBFile *)file {
+  KBFileIcon *icon = [[KBFileIcon alloc] init];
   icon.iconHeight = 60;
-  [icon setPath:path];
+  [icon setFile:file];
   [_files addSubview:icon];
   [_files setNeedsLayout:NO];
   [self layoutView];
@@ -146,7 +146,7 @@
 - (void)showOutput:(NSData *)data {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
   [outputView setArmoredData:data];
-  [outputView addFiles:[_files.subviews map:^(KBFileIconLabel *icon) { return icon.path; }]];
+  [outputView addFiles:[_files.subviews map:^(KBFileIcon *icon) { return icon.file; }]];
   [self.navigation pushView:outputView animated:YES];
 }
 

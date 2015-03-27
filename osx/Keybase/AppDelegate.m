@@ -140,8 +140,7 @@
 - (IBAction)encryptFile:(id)sender {
   KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
   encryptView.client = self.appView.client;
-  NSWindow *window = [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 300) position:KBWindowPositionCenter title:@"Encrypt File" errorHandler:_errorHandler];
-  window.maxSize = window.frame.size;
+  NSWindow *window = [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" errorHandler:_errorHandler];
 }
 
 + (void)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {

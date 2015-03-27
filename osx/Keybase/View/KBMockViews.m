@@ -26,6 +26,7 @@
 #import "KBPGPEncryptView.h"
 #import "KBPGPOutputView.h"
 #import "KBPGPEncryptFileView.h"
+#import "KBPGPOutputFileView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -63,9 +64,10 @@
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt" targetBlock:^{ [self showPGPEncrypt]; }]];
-  //[contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (File)" targetBlock:^{ [self showPGPEncryptFile]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Files)" targetBlock:^{ [self showPGPEncryptFile]; }]];
   [contentView addSubview:[KBButton linkWithText:@"PGP Output" targetBlock:^{ [self showPGPOutput]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Output (Files)" targetBlock:^{ [self showPGPFileOutput]; }]];
 
   [contentView addSubview:[KBButton linkWithText:@"Prove" targetBlock:^{ [self showProve:KBProveTypeTwitter]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
@@ -252,19 +254,26 @@
 
   [encryptView addUsername:@"t_alice"];
   [encryptView setText:@"This is a test"];
-  [encryptView addPath:@"/Users/gabe/Downloads/test4.mp4"];
-  [encryptView addPath:@"/Users/gabe/Downloads/test-a-really-long-file-name-what-happens?.txt"];
-
-  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Keybase"];
+  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Encrypt"];
 }
 
 - (void)showPGPEncryptFile {
   KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
-  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:nil];
+  [encryptView addFile:[KBFile fileWithPath:@"/Users/gabe/Downloads/test4.mp4"]];
+  [encryptView addFile:[KBFile fileWithPath:@"/Users/gabe/Downloads/test-a-really-long-file-name-what-happens?.txt"]];
+  [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Encrypt Files"];
 }
 
 - (void)showPGPOutput {
   KBPGPOutputView *view = [[KBPGPOutputView alloc] init];
+  [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
+}
+
+- (void)showPGPFileOutput {
+  KBPGPOutputFileView *view = [[KBPGPOutputFileView alloc] init];
+  [view setFiles:@[[KBFile fileWithPath:@"/Users/gabe/Downloads/test4.mp4.gpg"],
+                   [KBFile fileWithPath:@"/Users/gabe/Downloads/test-a-really-long-file-name-what-happens?.txt.gpg"]]];
+
   [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
 }
 

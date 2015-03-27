@@ -6,9 +6,9 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBFileIconLabel.h"
+#import "KBFileIcon.h"
 
-@implementation KBFileIconLabel
+@implementation KBFileIcon
 
 - (void)viewInit {
   [super viewInit];
@@ -44,19 +44,10 @@
   }];
 }
 
-- (void)setPath:(NSString *)path {
-  _path = path;
-  NSString *filename = [path lastPathComponent];
-  [_nameLabel setText:filename font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping]; // style:KBLabelStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  _imageView.image = [[NSWorkspace sharedWorkspace] iconForFile:path];
-  [self setNeedsLayout];
-}
-
-- (void)setFolder:(KBFolder *)folder {
-  NSImage *image = KBImageForFolder(folder);
-  image.size = CGSizeMake(120, 120);
-  self.imageView.image = image;
-  [self.nameLabel setText:folder.name style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+- (void)setFile:(KBFile *)file {
+  _file = file;
+  [_nameLabel setText:_file.name font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  _imageView.image = file.icon;
   [self setNeedsLayout];
 }
 

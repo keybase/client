@@ -12,32 +12,26 @@
 #import "KBSerialBox.h"
 
 @interface KBPGPEncrypt ()
-//@property NSArray *streams;
 @property KBUserProfileView *trackView;
 @end
 
 @implementation KBPGPEncrypt
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error))completion {
-  //_streams = streams;
-
-  //GHWeakSelf gself = self;
+- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, NSArray *streams))completion {
   KBSerialBox *sb = [[KBSerialBox alloc] init];
   sb.objects = streams;
   sb.runBlock = ^(KBStream *stream, BOOL finished, KBCompletionHandler runCompletion) {
-    [self encryptWithOptions:options stream:stream client:client sender:sender completion:^(NSError *error) {
+    [self encryptWithOptions:options stream:stream client:client sender:sender completion:^(NSError *error, KBStream *stream) {
       runCompletion(error);
     }];
   };
-  sb.completionBlock = ^(NSArray *objs) {
-    //gself.streams = nil;
-    completion(nil);
+  sb.completionBlock = ^(NSArray *streams) {
+    completion(nil, streams);
   };
   [sb run];
 }
 
-
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error))completion {
+- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:client];
 
   [self registerTrackView:request.sessionId client:client sender:sender];
@@ -97,7 +91,7 @@
   options.binaryOut = stream.binary;
 
   [request pgpEncryptWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error) {
-    completion(error);
+    completion(error, stream);
   }];
 }
 

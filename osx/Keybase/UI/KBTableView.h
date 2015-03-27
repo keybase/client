@@ -16,14 +16,17 @@
 @class KBTableView;
 
 typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath, id object);
+typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
 
 @interface KBTableView : YOView <NSTableViewDelegate, NSTableViewDataSource>
 
 @property (readonly) NSScrollView *scrollView;
 @property (readonly) NSTableView *view;
 @property KBBorder *border;
+@property (readonly) NSIndexPath *menuIndexPath;
 
 @property (copy) KBCellSelectBlock selectBlock;
+@property (copy) KBMenuSelectBlock menuSelectBlock;
 
 @property (readonly) KBCellDataSource *dataSource;
 
@@ -32,6 +35,10 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 - (void)removeAllObjects;
 
 - (void)setObjects:(NSArray *)objects animated:(BOOL)animated;
+
+- (NSArray *)objects;
+
+- (void)reloadData;
 
 - (void)deselectAll;
 
@@ -45,5 +52,7 @@ typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath
 
 - (BOOL)canMoveUp;
 - (BOOL)canMoveDown;
+
+- (void)removeAllTableColumns;
 
 @end
