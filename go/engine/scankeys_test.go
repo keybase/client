@@ -1,22 +1,14 @@
 package engine
 
-import (
-	"testing"
-
-	"github.com/keybase/client/go/libkb"
-)
+import "testing"
 
 func TestScanKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "ScanKeys")
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(t, "login")
-	u, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	sk, err := NewScanKeys(u, fu.NewSecretUI(), &FakeIdentifyUI{}, nil)
+	sk, err := NewScanKeys(fu.NewSecretUI(), &FakeIdentifyUI{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,12 +23,8 @@ func TestScanKeysSync(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
 	fu := createFakeUserWithPGPOnly(t, tc)
-	u, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	sk, err := NewScanKeys(u, fu.NewSecretUI(), &FakeIdentifyUI{}, nil)
+	sk, err := NewScanKeys(fu.NewSecretUI(), &FakeIdentifyUI{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -32,7 +32,7 @@ func (e *PGPDecrypt) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *PGPDecrypt) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{Session: true}
+	return EnginePrereqs{}
 }
 
 // RequiredUIs returns the required UIs.
@@ -49,11 +49,7 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPDecrypt) Run(ctx *Context) error {
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
-	if err != nil {
-		return err
-	}
-	sk, err := NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
+	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
 	if err != nil {
 		return err
 	}

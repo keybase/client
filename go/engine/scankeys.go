@@ -23,12 +23,23 @@ type ScanKeys struct {
 // enforce ScanKeys implements openpgp.KeyRing:
 var _ openpgp.KeyRing = &ScanKeys{}
 
-// NewScanKeys creates a ScanKeys type.  The user parameter is
-// optional.
-func NewScanKeys(u *libkb.User, secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions) (*ScanKeys, error) {
+// NewScanKeys creates a ScanKeys type.  If there is a login
+// session, it will load the pgp keys for that user.
+func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions) (*ScanKeys, error) {
 	sk := &ScanKeys{secui: secui, idui: idui, opts: opts}
-	if u == nil {
+	lin, err := IsLoggedIn()
+	if err != nil {
+		return nil, err
+	}
+	if !lin {
 		return sk, nil
+	}
+
+	// logged in:
+
+	u, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return nil, err
 	}
 
 	// if user provided, then load their local keys, and their synced secret key:
@@ -158,10 +169,15 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	if err != nil {
 		return nil, err
 	}
+	G.Log.Debug("key id %d => %s, %s", id, username, uid)
+	if len(username) == 0 || len(uid) == 0 {
+		return nil, libkb.NoKeyError{}
+	}
 
 	// use PGPKeyfinder engine to get the pgp keys for the user
-	// PC: use username instead of uid?
-	arg := &PGPKeyfinderArg{Users: []string{"uid://" + uid}}
+	// could use "uid://xxxxxxx" instead of username here, but the log output
+	// is more user-friendly with usernames.
+	arg := &PGPKeyfinderArg{Users: []string{username}}
 	if s.opts != nil {
 		arg.TrackOptions = *s.opts
 	}
@@ -204,6 +220,5 @@ func (s *ScanKeys) apiLookup(id uint64) (username, uid string, err error) {
 	if err = G.API.GetDecode(args, &data); err != nil {
 		return "", "", err
 	}
-	G.Log.Debug("response data: %+v", data)
 	return data.Username, data.UID, nil
 }

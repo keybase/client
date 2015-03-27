@@ -40,13 +40,13 @@ func TestPGPVerify(t *testing.T) {
 	verify(ctx, t, attached, "", "attached logged in", false, true)
 	verify(ctx, t, attachedEnc, "", "attached/encrypted logged in", false, true)
 
-	// log out, then
 	G.LoginState.Logout()
 
+	// these are all valid logged out
 	verify(ctx, t, msg, detached, "detached logged out", false, true)
 	verify(ctx, t, clearsign, "", "clearsign logged out", true, true)
-	// XXX this should be valid?
-	verify(ctx, t, attached, "", "attached logged out", false, false)
+	verify(ctx, t, attached, "", "attached logged out", false, true)
+	// attached encrypted is not valid logged out:
 	verify(ctx, t, attachedEnc, "", "attached/encrypted logged out", false, false)
 
 	// sign in as a different user

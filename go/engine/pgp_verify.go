@@ -125,18 +125,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 }
 
 func (e *PGPVerify) scanner(ctx *Context) (*ScanKeys, error) {
-	lin, err := IsLoggedIn()
-	if err != nil {
-		return nil, err
-	}
-	var me *libkb.User
-	if lin {
-		me, err = libkb.LoadMe(libkb.LoadUserArg{})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
+	return NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
 }
 
 func (e *PGPVerify) outputSuccess(ctx *Context) {
