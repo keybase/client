@@ -85,6 +85,9 @@ func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
 		return nil
 	}
 	fmt.Printf("Public keys:\n")
+	// Keep track of subkeys we print, so that if e.g. a subkey's parent is
+	// nonexistent, we can notice that we skipped it.
+	subkeysShown := make(map[string]bool)
 	for _, key := range me.PublicKeys {
 		if !key.IsSibkey {
 			// Subkeys will be printed under their respective sibkeys.
@@ -94,6 +97,16 @@ func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
 		err := printKey(key, subkeys, 1)
 		if err != nil {
 			return err
+		}
+		for _, subkey := range subkeys {
+			subkeysShown[subkey.KID] = true
+		}
+	}
+	// Print errors for any subkeys we failed to show.
+	for _, key := range me.PublicKeys {
+		if !key.IsSibkey && !subkeysShown[key.KID] {
+			errorStr := fmt.Sprintf("Dangling subkey: %s", key.KID)
+			G.Log.Error(errorStr) // %s in here angers `go vet`
 		}
 	}
 	return nil
