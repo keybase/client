@@ -62,11 +62,18 @@ func (d *Doctor) syncSecrets() (err error) {
 }
 
 func (d *Doctor) checkKeys(ctx *Context) error {
+	d.G().Log.Debug("+ Doctor::checkKeys()")
+	defer func() {
+		d.G().Log.Debug("- Doctor::checkKeys()")
+	}()
+
 	kf := d.user.GetKeyFamily()
 	if kf == nil {
+		d.G().Log.Debug("| User didn't have a key family")
 		return d.addBasicKeys(ctx)
 	}
 	if kf.GetEldest() == nil {
+		d.G().Log.Debug("| User didn't have an eldest key")
 		return d.addBasicKeys(ctx)
 	}
 
@@ -74,44 +81,55 @@ func (d *Doctor) checkKeys(ctx *Context) error {
 
 	if d.user.HasDeviceInCurrentInstall() {
 		// they have a device sibkey for this device
+		d.G().Log.Debug("| User has a device in the current install; all done")
 		return nil
 	}
 
 	// make sure secretsyncer loaded --- likely not needed since we
 	// already did this about
+	d.G().Log.Debug("| Syncing secrets")
 	d.syncSecrets()
 
 	hasPGP := len(d.user.GetActivePgpKeys(false)) > 0
 
 	if d.G().SecretSyncer.HasActiveDevice() {
 		// they have at least one device, just not this device...
+		d.G().Log.Debug("| User has an active device, just not this one")
 		return d.deviceSign(ctx, hasPGP)
 	}
 
 	// they don't have any devices.
+	d.G().Log.Debug("| the user doesn't have any devices")
 
 	dk, err := d.detkey(ctx)
-	if err != nil {
-		if _, ok := err.(libkb.NotFoundError); ok {
-			// they don't have a detkey.
-			//
-			// they can get to this point if they sign up on the web,
-			// add a pgp key.  With that situation, they have keys
-			// so the check above for a nil key family doesn't apply.
 
-			// make sure we have pgp
-			if !hasPGP {
-				return fmt.Errorf("unknown state:  no detkey, no pgpkey, no devices, but have some key(s).\nOne way to get here is to create a web user, create a pgp key via web but don't store private key on web.  Then login.  When issue #174 is done (fixes a bug with the user's computedkeyfamily, activepgpkeys), then that scenario should work fine.")
-			}
+	if err == nil {
 
-			// deviceSign will handle the rest...
-			return d.deviceSign(ctx, true)
+		d.G().Log.Debug("| The user has a detkey")
+		// use their detkey to sign this device
+		err = d.addDeviceKeyWithSigner(ctx, dk, dk.GetKid())
+
+	} else if _, ok := err.(libkb.NotFoundError); ok {
+
+		d.G().Log.Debug("| The user doesn't have a detkey")
+		// they don't have a detkey.
+		//
+		// they can get to this point if they sign up on the web,
+		// add a pgp key.  With that situation, they have keys
+		// so the check above for a nil key family doesn't apply.
+
+		// make sure we have pgp
+		if !hasPGP {
+			return fmt.Errorf("unknown state:  no detkey, no pgpkey, no devices, but have some key(s).\nOne way to get here is to create a web user, create a pgp key via web but don't store private key on web.  Then login.  When issue #174 is done (fixes a bug with the user's computedkeyfamily, activepgpkeys), then that scenario should work fine.")
 		}
-		return err
+
+		// deviceSign will handle the rest...
+		err = d.deviceSign(ctx, true)
+	} else {
+		d.G().Log.Debug("| The user doesn't have a detkey")
 	}
 
-	// use their detkey to sign this device
-	return d.addDeviceKeyWithSigner(ctx, dk, dk.GetKid())
+	return err
 }
 
 // addBasicKeys is used for accounts that have no device or det
