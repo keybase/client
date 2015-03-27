@@ -22,7 +22,7 @@
 
 @interface KBTextField ()
 @property NSTextField *textField;
-@property NSBox *box;
+@property NSBox *focusView;
 @property BOOL focused;
 @property NSTimer *timer;
 @end
@@ -52,28 +52,33 @@
   // This is fucking crazy but it's the only way
   _timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(_checkFocused) userInfo:nil repeats:YES];
 
-  _box = [[NSBox alloc] init];
-  _box.borderColor = [KBAppearance.currentAppearance lineColor];
-  _box.borderWidth = 1;
-  _box.frame = CGRectMake(0, 0, 0, 1);
-  _box.borderType = NSLineBorder;
-  _box.boxType = NSBoxCustom;
-  [self addSubview:_box];
+  _focusView = [[NSBox alloc] init];
+  _focusView.borderColor = [KBAppearance.currentAppearance lineColor];
+  _focusView.borderWidth = 1;
+  _focusView.frame = CGRectMake(0, 0, 0, 1);
+  _focusView.borderType = NSLineBorder;
+  _focusView.boxType = NSBoxCustom;
+  [self addSubview:_focusView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     if (self.verticalAlignment == KBVerticalAlignmentBottom) {
       CGFloat y = 0;
-      y += [layout setFrame:CGRectMake(0, y, size.width, size.height - 6) view:yself.textField].size.height + 2;
-      [layout setFrame:CGRectMake(0, y - yself.box.frame.size.height, size.width, yself.box.frame.size.height) view:yself.box];
+      y += [layout setFrame:CGRectMake(0, y, size.width, size.height - 6) view:yself.textField].size.height;
+      if (!yself.focusView.hidden) {
+        y += 2;
+        [layout setFrame:CGRectMake(0, y - yself.focusView.frame.size.height, size.width, yself.focusView.frame.size.height) view:yself.focusView];
+      }
       return size;
     } else {
       CGFloat y = 0;
       CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:[[NSAttributedString alloc] initWithString:@"Pg" attributes:@{NSFontAttributeName: yself.textField.font}]];
-      y += [layout setFrame:CGRectMake(0, 0, size.width, sizeThatFits.height + 4) view:yself.textField].size.height;
-      y += ceilf(sizeThatFits.height * 0.14);
-      [layout setFrame:CGRectMake(0, y - yself.box.frame.size.height, size.width, yself.box.frame.size.height) view:yself.box];
-      y += 2;
+      y += [layout setFrame:CGRectMake(0, y, size.width, sizeThatFits.height) view:yself.textField].size.height;
+      if (!yself.focusView.hidden) {
+        y += ceilf(sizeThatFits.height * 0.2);
+        [layout setFrame:CGRectMake(0, y - yself.focusView.frame.size.height, size.width, yself.focusView.frame.size.height) view:yself.focusView];
+        y += 2;
+      }
       return CGSizeMake(size.width, y);
     }
   }];
@@ -105,10 +110,10 @@
   _focused = focused;
   //GHDebug(@"Focused: %@ (%@)", @(_focused), self.placeholder);
 
-  _box.borderColor = focused ? KBAppearance.currentAppearance.selectColor : KBAppearance.currentAppearance.lineColor;
-  CGRect r = _box.frame;
-  r.size = CGSizeMake(_box.frame.size.width, focused ? 2.0 : 1.0);
-  _box.frame = r;
+  _focusView.borderColor = focused ? KBAppearance.currentAppearance.selectColor : KBAppearance.currentAppearance.lineColor;
+  CGRect r = _focusView.frame;
+  r.size = CGSizeMake(_focusView.frame.size.width, focused ? 2.0 : 1.0);
+  _focusView.frame = r;
   [self.focusDelegate textField:self didChangeFocus:focused];
 }
 
@@ -123,9 +128,9 @@
 
 - (void)textField:(NSTextField *)textField didChangeEnabled:(BOOL)enabled {
   if (enabled && _focused) {
-    _box.borderColor = KBAppearance.currentAppearance.selectColor;
+    _focusView.borderColor = KBAppearance.currentAppearance.selectColor;
   } else if (!enabled && _focused) {
-    _box.borderColor = KBAppearance.currentAppearance.lineColor;
+    _focusView.borderColor = KBAppearance.currentAppearance.lineColor;
   }
 }
 

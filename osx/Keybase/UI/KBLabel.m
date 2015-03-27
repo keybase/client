@@ -49,7 +49,7 @@
       borderSize.height = MAX(size.height, borderSize.height);
     }
 
-    [layout setFrame:textFrame view:yself.textView];
+    [layout setFrame:CGRectIntegral(textFrame) view:yself.textView];
     [layout setSize:borderSize view:yself.border options:0];
     return size;
   }];

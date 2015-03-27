@@ -14,9 +14,8 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
-
+  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+  
   _instructionsLabel = [[KBLabel alloc] init];
   [self addSubview:_instructionsLabel];
 

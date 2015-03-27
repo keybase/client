@@ -31,6 +31,8 @@
 @property (readonly) NSTextField *textField;
 @property KBVerticalAlignment verticalAlignment;
 
+@property (readonly) NSBox *focusView;
+
 @property (nonatomic) NSMutableDictionary *attributes;
 
 @property id<KBTextFieldFocusDelegate> focusDelegate;

@@ -1,22 +1,22 @@
 PODS:
-  - AFNetworking (2.5.1):
-    - AFNetworking/NSURLConnection (= 2.5.1)
-    - AFNetworking/NSURLSession (= 2.5.1)
-    - AFNetworking/Reachability (= 2.5.1)
-    - AFNetworking/Security (= 2.5.1)
-    - AFNetworking/Serialization (= 2.5.1)
-    - AFNetworking/UIKit (= 2.5.1)
-  - AFNetworking/NSURLConnection (2.5.1):
+  - AFNetworking (2.5.2):
+    - AFNetworking/NSURLConnection (= 2.5.2)
+    - AFNetworking/NSURLSession (= 2.5.2)
+    - AFNetworking/Reachability (= 2.5.2)
+    - AFNetworking/Security (= 2.5.2)
+    - AFNetworking/Serialization (= 2.5.2)
+    - AFNetworking/UIKit (= 2.5.2)
+  - AFNetworking/NSURLConnection (2.5.2):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/NSURLSession (2.5.1):
+  - AFNetworking/NSURLSession (2.5.2):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/Reachability (2.5.1)
-  - AFNetworking/Security (2.5.1)
-  - AFNetworking/Serialization (2.5.1)
+  - AFNetworking/Reachability (2.5.2)
+  - AFNetworking/Security (2.5.2)
+  - AFNetworking/Serialization (2.5.2)
   - GHKit (1.0.21)
   - GRUnit (1.1.3)
   - KBKeybase (0.1.11):
@@ -37,7 +37,7 @@ PODS:
     - Mantle/extobjc (= 1.5.4)
   - Mantle/extobjc (1.5.4)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.7)
+  - MPMessagePack (1.1.8)
   - NAChloride (1.1.2):
     - libsodium
   - ObjectiveSugar (1.1.0)
@@ -50,7 +50,7 @@ PODS:
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout (0.1.8)
+  - YOLayout (0.1.11)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -59,32 +59,28 @@ DEPENDENCIES:
   - KBKeybase
   - Mantle
   - MASPreferences
-  - MPMessagePack (from `~/Projects/MPMessagePack`)
+  - MPMessagePack
   - ObjectiveSugar
   - Slash
   - Sparkle
   - YOLayout
   - ZXCVBN
 
-EXTERNAL SOURCES:
-  MPMessagePack:
-    :path: ~/Projects/MPMessagePack
-
 SPEC CHECKSUMS:
-  AFNetworking: 8bee59492a6ff15d69130efa4d0dc67e0094a52a
+  AFNetworking: fefbce9660acb17f48ae0011292d4da0f457bf36
   GHKit: b6f2b698849faca1156a6e64d19efa4195147277
   GRUnit: e1e502af105d714fa0ac17e12955288ebff79831
   KBKeybase: 8b39fd54f4ad974bd283fe76b1ad9079b46987d9
   libsodium: 16487c168b28aa4e55614d6364e6932ce73137d9
   Mantle: d5fbaf30fbc58031223af13812c060e15934a1fe
   MASPreferences: 48debf3a161039bb979e617b7416bc07bd879f75
-  MPMessagePack: c1ff9abf0e9db7aeaab961212e0e28ae470c3ea6
+  MPMessagePack: 53c791f9d633c2786c932799bc2b627e34abc5af
   NAChloride: f5ec84c64efcdb5008f960d7d557dfac6c060a1d
   ObjectiveSugar: f48793f5902c77cfc02a4ce46d2e8ecddcad4dc2
   Slash: d98d6ff27ece4297d8d65fb49fc1ce4307a75f46
   Sparkle: be4244aef7860f8d2abdc9c4e4d8e9629d27feb6
   TSTripleSec: 7371672f757735ab696d8c0d0fc0d98b7a38059e
-  YOLayout: 50c758deb20a4f88ec19dca04c29b9e7f4fb2134
+  YOLayout: 7a21b8c03a2f6a86cd9304120c7ec6df970284af
   ZXCVBN: cc445c6207fc2f0b42276b7a4c2b2aee47624577
 
 COCOAPODS: 0.36.0

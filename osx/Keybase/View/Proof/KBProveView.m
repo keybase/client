@@ -18,9 +18,8 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
-  
+  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+
   GHWeakSelf gself = self;
 
   _inputView = [[KBProveInputView alloc] init];

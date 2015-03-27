@@ -29,7 +29,12 @@
   _includeSelfButton.state = NSOnState;
   [buttonsView addSubview:_includeSelfButton];
 
-  YOSelf yself =self;
+  NSImage *attachmentImage = [NSImage imageNamed:@"1-Edition-black-clip-1-24"];
+  attachmentImage.size = CGSizeMake(16, 16);
+  _attachmentButton = [KBButton buttonWithImage:attachmentImage style:KBButtonStyleToolbar];
+  [buttonsView addSubview:_attachmentButton];
+
+  YOSelf yself = self;
   buttonsView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
     CGSize buttonSize = [yself.encryptButton sizeThatFits:size];
@@ -38,6 +43,7 @@
     CGFloat x = 20;
     x += [layout sizeToFitHorizontalInFrame:CGRectMake(x, y, 0, buttonSize.height) view:yself.signButton].size.width + 20;
     x += [layout sizeToFitHorizontalInFrame:CGRectMake(x, y, 0, buttonSize.height) view:yself.includeSelfButton].size.width + 20;
+    x += [layout sizeToFitHorizontalInFrame:CGRectMake(x, y, 0, buttonSize.height) view:yself.attachmentButton].size.width + 20;
 
     y += buttonSize.height + 20;
     return CGSizeMake(size.width, y);

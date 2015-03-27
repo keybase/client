@@ -24,6 +24,8 @@
 
 - (void)viewInit {
   [super viewInit];
+  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+  
   GHWeakSelf gself = self;
 
   _infoLabel = [[KBLabel alloc] init];

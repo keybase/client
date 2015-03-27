@@ -28,6 +28,7 @@
 }
 
 - (void)viewInit {
+  self.title = @"";
   self.target = self;
   self.action = @selector(_performTargetBlock);
 }
@@ -64,6 +65,14 @@
   return button;
 }
 
++ (instancetype)buttonWithText:(NSString *)text image:(NSImage *)image style:(KBButtonStyle)style {
+  KBButton *button = [[KBButton alloc] init];
+  KBButtonCell *cell = [button _setCellForStyle:style];
+  cell.image = image;
+  [cell setText:text alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  return button;
+}
+
 - (CGSize)sizeThatFits:(NSSize)size {
   CGSize sizeThatFits;
   if (self.image) {
@@ -75,8 +84,10 @@
   }
   if (self.attributedTitle) {
     CGSize titleSize = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
-    sizeThatFits.width += titleSize.width;
-    sizeThatFits.height += titleSize.height;
+    if (titleSize.width > 0) {
+      sizeThatFits.width += titleSize.width;
+      sizeThatFits.height = MAX(titleSize.height, sizeThatFits.height);
+    }
   }
   switch (self.style) {
     case KBButtonStyleCheckbox:
@@ -91,7 +102,7 @@
 
     case KBButtonStyleToolbar:
       sizeThatFits.height += 8;
-      sizeThatFits.width += 12;
+      sizeThatFits.width += 20;
       break;
 
     case KBButtonStyleSmall:
@@ -215,6 +226,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
 - (instancetype)init {
   if ((self = [super init])) {
     self.bezelStyle = NSInlineBezelStyle;
+    self.title = @"";
   }
   return self;
 }
@@ -344,7 +356,29 @@ static KBButtonErrorHandler gErrorHandler = nil;
       title = titleCopy;
     }
   }
+
+  if (self.image && self.style != KBButtonStyleCheckbox) {
+    frame.origin.x += self.image.size.width/2.0;
+  }
+
   return [super drawTitle:title withFrame:frame inView:controlView];
+}
+
+- (void)drawImage:(NSImage *)image withFrame:(NSRect)frame inView:(NSView *)controlView {
+  if (self.style == KBButtonStyleCheckbox) {
+    return [super drawImage:image withFrame:frame inView:controlView];
+  }
+
+  CGSize titleSize = [KBLabel sizeThatFits:controlView.frame.size attributedString:self.attributedTitle];
+
+  CGRect imageFrame = frame;
+  if (titleSize.width > 0) {
+    CGPoint imagePosition = CGPointMake(ceilf(controlView.frame.size.width/2.0 - titleSize.width/2.0 - image.size.width/2.0) - 2,
+                                        ceilf(controlView.frame.size.height/2.0 - image.size.height/2.0));
+    imageFrame = CGRectMake(imagePosition.x, imagePosition.y, image.size.width, image.size.height);
+  }
+
+  [super drawImage:image withFrame:imageFrame inView:controlView];
 }
 
 - (void)drawBezelWithFrame:(NSRect)frame inView:(NSView *)controlView {

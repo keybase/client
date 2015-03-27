@@ -16,9 +16,6 @@
 @implementation KBFileReader
 
 + (instancetype)fileReaderWithPath:(NSString *)path {
-  if (![NSFileManager.defaultManager isReadableFileAtPath:path]) {
-    return nil;
-  }
   return [KBFileReader readerWithInputStream:[NSInputStream inputStreamWithFileAtPath:path]];
 }
 

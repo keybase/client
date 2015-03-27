@@ -18,7 +18,8 @@
 
 - (void)viewInit {
   [super viewInit];
-
+  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+  
   YOView *contentView = [[YOView alloc] init];
   [self addSubview:contentView];
 

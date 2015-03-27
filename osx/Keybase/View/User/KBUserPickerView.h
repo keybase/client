@@ -26,4 +26,6 @@
 
 - (NSArray *)usernames;
 
+- (void)addUsername:(NSString *)username;
+
 @end

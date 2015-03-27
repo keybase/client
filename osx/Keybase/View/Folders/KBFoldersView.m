@@ -71,7 +71,7 @@
     //y += [layout centerWithSize:segmentedSize frame:CGRectMake(0, y, size.width, 0) view:yself.segmentedControl].size.height + 9;
     x += [layout setFrame:CGRectMake(x, y + 2, segmentedSize.width, segmentedSize.height) view:yself.segmentedControl].size.width + 20;
 
-    x += [layout sizeToFitInFrame:CGRectMake(x, y, size.width, 0) view:yself.addButton].size.width + 20;
+    x += [layout setFrame:CGRectMake(x, y, 26, 26) view:yself.addButton].size.width + 20;
     //x += [layout setFrame:CGRectMake(x, y, 24, 24) view:yself.trashButton].size.width + 8;
 
     [layout setFrame:CGRectMake(x, y, size.width - x - 10, 24) view:yself.searchField];

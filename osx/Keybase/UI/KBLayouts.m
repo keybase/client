@@ -45,6 +45,35 @@
   };
 }
 
++ (YOLayoutBlock)borderLayoutWithCenterView:(id)centerView leftView:(id)leftView rightView:(id)rightView insets:(UIEdgeInsets)insets spacing:(CGFloat)spacing {
+  return ^CGSize(id<YOLayout> layout, CGSize size) {
+
+    CGSize sizeInset = CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
+
+    CGSize leftSize = [leftView sizeThatFits:CGSizeMake(sizeInset.width, 0)];
+    CGSize rightSize = [rightView sizeThatFits:CGSizeMake(sizeInset.width, 0)];
+
+    CGFloat centerWidth = sizeInset.width - leftSize.width - rightSize.width;
+    if (leftView) centerWidth -= spacing;
+    if (rightView) centerWidth -= spacing;
+    CGFloat contentHeight = MAX(leftSize.height, rightSize.height);
+    CGFloat height = contentHeight + insets.top + insets.bottom;
+
+    CGFloat x = insets.left;
+    if (leftView) {
+      x += [layout setFrame:CGRectMake(x, insets.top, leftSize.width, contentHeight) view:leftView].size.width + spacing;
+    }
+
+    x += [layout centerWithSize:CGSizeMake(centerWidth, 0) frame:CGRectMake(x, 0, centerWidth, height) view:centerView].size.width + spacing;
+
+    if (rightView) {
+      x += [layout setFrame:CGRectMake(x, insets.top, rightSize.width, contentHeight) view:rightView].size.width;
+    }
+
+    return CGSizeMake(size.width, height);
+  };
+}
+
 + (YOLayoutBlock)gridLayoutForViews:(NSArray *)views viewSize:(CGSize)viewSize padding:(CGFloat)padding {
   return ^CGSize(id<YOLayout> layout, CGSize size) {
     CGSize itemSize = viewSize;
@@ -85,6 +114,18 @@
       x += [layout setFrame:CGRectMake(x, 0, 130, buttonSize.height) view:button].size.width;
     }
     return CGSizeMake(size.width, buttonSize.height);
+  };
+}
+
++ (YOLayoutBlock)vertical:(NSArray *)subviews {
+  return ^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat y = 0;
+    for (id subview in subviews) {
+      CGRect frame = [subview frame];
+      CGRect inFrame = CGRectMake(0, y, size.width, frame.size.height);
+      y += [layout sizeToFitVerticalInFrame:inFrame view:subview].size.height;
+    }
+    return CGSizeMake(size.width, y);
   };
 }
 

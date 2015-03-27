@@ -18,7 +18,7 @@
 - (void)viewInit {
   [super viewInit];
   self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
+  self.layer.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor.CGColor;
 }
 
 @end

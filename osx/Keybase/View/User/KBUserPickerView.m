@@ -17,6 +17,8 @@
 @property NSMenu *tokenMenu;
 @property KBSearchControl *searchControl;
 @property NSString *previousValue;
+
+@property KBActivityIndicatorView *progressView;
 @end
 
 @interface KBUserToken : NSObject
@@ -43,7 +45,7 @@
   [super viewInit];
 
   _label = [[KBLabel alloc] init];
-  [_label setText:@"To:" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [_label setText:@"To" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   [self addSubview:_label];
 
   _tokensField = [[NSTokenField alloc] init];
@@ -53,6 +55,10 @@
   _tokensField.focusRingType = NSFocusRingTypeNone;
   _tokensField.bordered = NO;
   [self addSubview:_tokensField];
+
+  _progressView = [[KBActivityIndicatorView alloc] init];
+  _progressView.lineWidth = 1.0;
+  [self addSubview:_progressView];
 
   _tokenMenu = [[NSMenu alloc] initWithTitle:@""];
   [_tokenMenu insertItem:[[NSMenuItem alloc] initWithTitle:@"Edit" action:@selector(editToken:) keyEquivalent:@""] atIndex:0];
@@ -85,7 +91,9 @@
     CGFloat y = 10;
     x += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.label].size.width + 8;
 
-    CGSize tokenSize = [yself.tokensField sizeThatFits:CGSizeMake(size.width, CGFLOAT_MAX)];
+    [layout setFrame:CGRectMake(size.width - 24, y, 20, 20) view:yself.progressView];
+
+    CGSize tokenSize = [yself.tokensField sizeThatFits:CGSizeMake(size.width - x - 26, CGFLOAT_MAX)];
     y += [layout setFrame:CGRectMake(x, y, size.width - x, tokenSize.height + 2) view:yself.tokensField].size.height + 10;
     return CGSizeMake(size.width, y);
   }];
@@ -95,6 +103,12 @@
   [self.window makeFirstResponder:_tokensField];
   NSRange range = [[_tokensField currentEditor] selectedRange];
   [[_tokensField currentEditor] setSelectedRange:NSMakeRange(range.length, 0)];
+}
+
+- (void)addUsername:(NSString *)username {
+  NSMutableArray *tokens = [[_tokensField objectValue] mutableCopy];
+  [tokens addObject:[KBUserToken userTokenWithUsername:username]];
+  [_tokensField setObjectValue:tokens];
 }
 
 - (NSString *)editingToken:(NSString *)defaultValue {
@@ -244,7 +258,7 @@
 }
 
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl {
-  [self showSearch];
+  //[self showSearch];
 }
 
 - (void)searchControlShouldClose:(KBSearchControl *)searchControl {
@@ -254,7 +268,11 @@
 - (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(NSArray *)searchResults {
   GHDebug(@"Results: %@", @(searchResults.count));
   [_searchResultsView setObjects:searchResults];
-  [self showSearch];
+  if ([searchResults count] > 0) {
+    [self showSearch];
+  } else {
+    [self hideSearch];
+  }
 }
 
 - (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl {
@@ -262,7 +280,8 @@
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {
-
+  if (progressEnabled) [self hideSearch];
+  _progressView.animating = progressEnabled;
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *searchResults))completion {

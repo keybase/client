@@ -14,4 +14,10 @@
 
 @interface KBPGPEncryptView : KBContentView <KBUserPickerViewDelegate>
 
+- (void)addUsername:(NSString *)username;
+
+- (void)setText:(NSString *)text;
+
+- (void)addPath:(NSString *)path;
+
 @end

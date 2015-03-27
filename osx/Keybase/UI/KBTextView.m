@@ -13,35 +13,43 @@
 #import "KBLabel.h"
 
 @interface KBTextView ()
-@property NSTextView *textView;
+@property NSTextView *view;
 @end
 
 @implementation KBTextView
 
-- (void)viewInit {
-  [super viewInit];
-  self.identifier = self.className;
-  _textView = [[NSTextView alloc] init];
-  _textView.backgroundColor = NSColor.whiteColor;
-  _textView.font = KBAppearance.currentAppearance.textFont;
-  _textView.textColor = KBAppearance.currentAppearance.textColor;
-  _textView.editable = YES;
-  [self addSubview:_textView];
+- (instancetype)initWithFrame:(NSRect)frameRect {
+  if ((self = [super initWithFrame:frameRect])) {
+    [self viewInit];
+  }
+  return self;
+}
 
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    if (size.height == 0) size.height = 32;
-    [layout setSize:size view:yself.textView options:0];
-    return size;
-  }];
+- (void)viewInit {
+  self.identifier = self.className;
+  _view = [[NSTextView alloc] init];
+  _view.autoresizingMask = NSViewHeightSizable|NSViewWidthSizable;
+  _view.backgroundColor = NSColor.whiteColor;
+  _view.font = KBAppearance.currentAppearance.textFont;
+  _view.textColor = KBAppearance.currentAppearance.textColor;
+  _view.editable = YES;
+
+  [self setDocumentView:_view];
+  self.hasVerticalScroller = YES;
+  self.verticalScrollElasticity = NSScrollElasticityAllowed;
+  self.autohidesScrollers = YES;
+}
+
+- (CGSize)sizeThatFits:(CGSize)size {
+  return self.frame.size;
 }
 
 - (BOOL)becomeFirstResponder {
-  return [_textView becomeFirstResponder];
+  return [_view becomeFirstResponder];
 }
 
 - (BOOL)resignFirstResponder {
-  return [_textView resignFirstResponder];
+  return [_view resignFirstResponder];
 }
 
 - (NSString *)description {
@@ -49,20 +57,41 @@
 }
 
 - (NSString *)text {
-   return [_textView.textStorage string];
+   return [_view.textStorage string];
 }
 
 - (void)setText:(NSString *)text {
-  [self setAttributedText:[[NSAttributedString alloc] initWithString:text]];
+  _view.string = text;
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
   if (!attributedText) attributedText = [[NSAttributedString alloc] init];
-  _attributedText = attributedText;
-  NSAssert(_textView.textStorage, @"No text storage");
-  [_textView.textStorage setAttributedString:_attributedText];
-  _textView.needsDisplay = YES;
-  [self setNeedsLayout];
+  NSAssert(_view.textStorage, @"No text storage");
+  [_view.textStorage setAttributedString:attributedText];
+  _view.needsDisplay = YES;
+}
+
+- (NSAttributedString *)attributedText {
+  return _view.textStorage;
+}
+
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color {
+  NSParameterAssert(font);
+  NSParameterAssert(color);
+  if (!text) {
+    self.attributedText = nil;
+    return;
+  }
+  NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
+
+//  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+//  paragraphStyle.alignment = alignment;
+//  paragraphStyle.lineBreakMode = lineBreakMode;
+
+  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font}; //, NSParagraphStyleAttributeName:paragraphStyle};
+  [str setAttributes:attributes range:NSMakeRange(0, str.length)];
+
+  self.attributedText = str;
 }
 
 @end

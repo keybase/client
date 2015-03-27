@@ -11,12 +11,12 @@
 #import "KBReader.h"
 #import "KBWriter.h"
 #import "KBRPC.h"
+#import "KBStream.h"
 
 @interface KBPGPEncrypt : NSObject
 
-@property (readonly) id<KBReader> reader;
-@property (readonly) id<KBWriter> writer;
+- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error))completion;
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options reader:(id<KBReader>)reader writer:(id<KBWriter>)writer client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error))completion;
+- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error))completion;
 
 @end

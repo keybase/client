@@ -38,6 +38,8 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 + (instancetype)buttonWithImage:(NSImage *)image;
 + (instancetype)buttonWithImage:(NSImage *)image style:(KBButtonStyle)style;
 
++ (instancetype)buttonWithText:(NSString *)text image:(NSImage *)image style:(KBButtonStyle)style;
+
 + (instancetype)linkWithText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
 
 - (void)setText:(NSString *)text style:(KBButtonStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;

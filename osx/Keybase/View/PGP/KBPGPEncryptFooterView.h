@@ -14,6 +14,7 @@
 
 @property KBButton *signButton;
 @property KBButton *includeSelfButton;
+@property KBButton *attachmentButton;
 @property KBButton *encryptButton;
 
 

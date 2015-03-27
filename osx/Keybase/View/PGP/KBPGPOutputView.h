@@ -15,4 +15,6 @@
 
 - (void)setArmoredData:(NSData *)data;
 
+- (void)addFiles:(NSArray *)files;
+
 @end

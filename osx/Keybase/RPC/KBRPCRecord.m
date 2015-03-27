@@ -96,12 +96,14 @@
 
 void KBConvertArrayTo(NSMutableArray *array) {
   KBConvertArray(array, NSData.class, ^id(NSData *data) {
+    if (!data) return nil;
     return NSStringWithFormat(@"Binary-%@", [data na_hexString]);
   });
 }
 
 void KBConvertArrayFrom(NSMutableArray *array) {
   KBConvertArray(array, NSString.class, ^id(NSString *str) {
+    if ([str isEqualTo:@"Binary-(null)"]) return [NSData data];
     if (![str gh_startsWith:@"Binary-"]) return nil;
     return [[str substringFromIndex:6] na_dataFromHexString];
   });
@@ -109,12 +111,14 @@ void KBConvertArrayFrom(NSMutableArray *array) {
 
 void KBConvertDictTo(NSMutableDictionary *dict) {
   KBConvertDict(dict, NSData.class, ^id(NSData *data) {
+    if (!data) return nil;
     return NSStringWithFormat(@"Binary-%@", [data na_hexString]);
   });
 }
 
 void KBConvertDictFrom(NSMutableDictionary *dict) {
   KBConvertDict(dict, NSString.class, ^id(NSString *str) {
+    if ([str isEqualTo:@"Binary-(null)"]) return [NSData data];
     if (![str gh_startsWith:@"Binary-"]) return nil;
     return [[str substringFromIndex:6] na_dataFromHexString];
   });

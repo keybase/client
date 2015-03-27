@@ -63,8 +63,9 @@
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
 
-  //[contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt" targetBlock:^{ [self showPGPEncrypt]; }]];
   //[contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (File)" targetBlock:^{ [self showPGPEncryptFile]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Output" targetBlock:^{ [self showPGPOutput]; }]];
 
   [contentView addSubview:[KBButton linkWithText:@"Prove" targetBlock:^{ [self showProve:KBProveTypeTwitter]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
@@ -248,12 +249,23 @@
 
 - (void)showPGPEncrypt {
   KBPGPEncryptView *encryptView = [[KBPGPEncryptView alloc] init];
+
+  [encryptView addUsername:@"t_alice"];
+  [encryptView setText:@"This is a test"];
+  [encryptView addPath:@"/Users/gabe/Downloads/test4.mp4"];
+  [encryptView addPath:@"/Users/gabe/Downloads/test-a-really-long-file-name-what-happens?.txt"];
+
   [self openInWindow:encryptView size:CGSizeMake(600, 400) title:@"Keybase"];
 }
 
 - (void)showPGPEncryptFile {
   KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
   [self openInWindow:encryptView size:CGSizeMake(600, 400) title:nil];
+}
+
+- (void)showPGPOutput {
+  KBPGPOutputView *view = [[KBPGPOutputView alloc] init];
+  [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
 }
 
 - (void)showError {

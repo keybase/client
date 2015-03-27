@@ -10,10 +10,12 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBTextView : YOView <NSTextViewDelegate>
+@interface KBTextView : NSScrollView <NSTextViewDelegate>
 
-@property (readonly) NSTextView *textView;
+@property (readonly) NSTextView *view;
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) NSString *text;
+
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color;
 
 @end

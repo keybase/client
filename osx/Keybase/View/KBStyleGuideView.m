@@ -8,6 +8,8 @@
 
 #import "KBStyleGuideView.h"
 
+#import "KBFileIconLabel.h"
+
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
 @end
@@ -54,6 +56,11 @@
   buttonDefault.targetBlock = ^{ };
   [buttonView addSubview:buttonDefault];
 
+  NSImage *image = [NSImage imageNamed:@"46-Arrows-black-arrow-67-24"];
+  image.size = CGSizeMake(16, 16);
+  KBButton *buttonImageText = [KBButton buttonWithText:@"Back" image:image style:KBButtonStyleDefault];
+  [buttonView addSubview:buttonImageText];
+
   buttonView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts gridLayoutForViews:buttonView.subviews viewSize:CGSizeMake(200, 42) padding:10]];
   [contentView addSubview:buttonView];
 
@@ -75,7 +82,7 @@
   [contentView addSubview:_progressView];
   _progressView.animating = YES;
 
-  YOBox *textFieldsView = [YOBox box:@{@"spacing": @(20), @"insets": @(40)}];
+  YOVBox *textFieldsView = [YOVBox box:@{@"spacing": @(20), @"insets": @(40)}];
   [contentView addSubview:textFieldsView];
   KBTextField *textField = [[KBTextField alloc] init];
   textField.placeholder = @"Text Field";
@@ -86,12 +93,21 @@
   [textFieldsView addSubview:secureTextField];
 
   KBBorder *border = [[KBBorder alloc] initWithFrame:CGRectMake(0, 0, 100, 50)];
-  border.width = 2.0;
+  border.width = 1.0;
   border.color = NSColor.blueColor;
-  border.cornerRadius = 8.0;
+  border.cornerRadius = 6.0;
   border.shapeLayer.fillColor = NSColor.whiteColor.CGColor;
   [border updatePath];
   [contentView addSubview:border];
+
+  KBFileIconLabel *icon = [[KBFileIconLabel alloc] init];
+  [icon setPath:@"~/Temp/test-a-really-long-file-name.txt"];
+  [contentView addSubview:icon];
+
+  KBFileIconLabel *icon2 = [[KBFileIconLabel alloc] init];
+  icon2.iconHeight = 60;
+  [icon2 setPath:@"~/Temp/test-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name-a-really-long-file-name.txt"];
+  [contentView addSubview:icon2];
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:contentView];

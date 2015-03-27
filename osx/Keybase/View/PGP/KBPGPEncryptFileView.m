@@ -11,11 +11,12 @@
 #import "KBFileReader.h"
 #import "KBFileWriter.h"
 #import "KBPGPEncryptFooterView.h"
+#import "KBFileSelectView.h"
 
 @interface KBPGPEncryptFileView ()
 @property KBUserPickerView *userPickerView;
-@property KBTextField *inputFileView;
-@property KBTextField *outputFileView;
+@property KBFileSelectView *inputSelectView;
+@property KBFileSelectView *outputSelectView;
 @property KBPGPEncryptFooterView *footerView;
 
 @property KBPGPEncrypt *encrypter;
@@ -26,80 +27,54 @@
 - (void)viewInit {
   [super viewInit];
 
-  YOVBox *topView = [YOVBox box];
-  [self addSubview:topView];
+  YOVBox *contentView = [YOVBox box];
+  [self addSubview:contentView];
   _userPickerView = [[KBUserPickerView alloc] init];
   _userPickerView.delegate = self;
-  [topView addSubview:_userPickerView];
-  [topView addSubview:[KBBox horizontalLine]];
-
-  YOView *contentView = [YOView view];
-
-  KBLabel *inputLabel = [KBLabel labelWithText:@"Source" style:KBLabelStyleDefault alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
-  inputLabel.verticalAlignment = KBVerticalAlignmentMiddle;
-  [contentView addSubview:inputLabel];
-  _inputFileView = [[KBTextField alloc] init];
-  _inputFileView.textField.lineBreakMode = NSLineBreakByTruncatingHead;
-  _inputFileView.textField.font = [NSFont systemFontOfSize:14];
-  [contentView addSubview:_inputFileView];
-  KBButton *browseInput = [KBButton buttonWithText:@"Browse" style:KBButtonStyleToolbar];
-  browseInput.targetBlock = ^{ [self chooseInput]; };
-  [contentView addSubview:browseInput];
-
-  KBLabel *outputLabel = [KBLabel labelWithText:@"Destination" style:KBLabelStyleDefault alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
-  outputLabel.verticalAlignment = KBVerticalAlignmentMiddle;
-  [contentView addSubview:outputLabel];
-  _outputFileView = [[KBTextField alloc] init];
-  _outputFileView.textField.lineBreakMode = NSLineBreakByTruncatingHead;
-  _outputFileView.textField.font = [NSFont systemFontOfSize:14];
-  [contentView addSubview:_outputFileView];
-  KBButton *browseOutput = [KBButton buttonWithText:@"Browse" style:KBButtonStyleToolbar];
-  browseOutput.targetBlock = ^{ [self chooseOutput]; };
-  [contentView addSubview:browseOutput];
-  [self addSubview:contentView];
+  [contentView addSubview:_userPickerView];
+  [contentView addSubview:[KBBox horizontalLine]];
 
   GHWeakSelf gself = self;
+
+  _inputSelectView = [[KBFileSelectView alloc] init];
+  [_inputSelectView.label setText:@"File" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  _inputSelectView.browseButton.targetBlock = ^{ [gself chooseInput]; };
+  [contentView addSubview:_inputSelectView];
+  [contentView addSubview:[KBBox horizontalLine]];
+
+  _outputSelectView = [[KBFileSelectView alloc] init];
+  [_outputSelectView.label setText:@"Save as" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  _outputSelectView.browseButton.targetBlock = ^{ [gself chooseOutput]; };
+  [contentView addSubview:_outputSelectView];
+
   _footerView = [[KBPGPEncryptFooterView alloc] init];
   _footerView.encryptButton.targetBlock = ^{ [gself encrypt]; };
   _footerView.signButton.state = NSOnState;
   _footerView.includeSelfButton.state = NSOnState;
-  [self addSubview:_footerView];
+  [contentView addSubview:_footerView];
 
-  YOSelf yself = self;
-  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 20;
-    CGFloat y = 20;
-    CGFloat col1 = 100;
-    x += [layout setFrame:CGRectMake(x, y, col1, 32) view:inputLabel].size.width + 10;
-    x += [layout setFrame:CGRectMake(x, y + 7, size.width - x - 150, 25) view:yself.inputFileView].size.width + 20;
-    x += [layout setFrame:CGRectMake(x, y + 3, 100, 26) view:browseInput].size.width;
-
-    x = 10;
-    y += 32 + 10;
-
-    x += [layout setFrame:CGRectMake(x, y, col1, 32) view:outputLabel].size.width + 10;
-    x += [layout setFrame:CGRectMake(x, y + 7, size.width - x - 150, 25) view:yself.outputFileView].size.width + 20;
-    x += [layout setFrame:CGRectMake(x, y + 3, 100, 26) view:browseOutput].size.width;
-    y += 32;
-
-    y += 40;
-
-    return CGSizeMake(size.width, y);
-  }];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts vertical:self.subviews]];
 
   // Search results from picker view is here so we can float it
   [self addSubview:_userPickerView.searchResultsView];
+}
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:contentView topView:topView bottomView:_footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
+- (void)layout {
+  [super layout];
+  CGFloat y2 = CGRectGetMaxY(self.userPickerView.frame);
+  CGSize size = self.frame.size;
+  _userPickerView.searchResultsView.frame = CGRectMake(40, y2, size.width - 40, size.height - y2);
 }
 
 - (void)encrypt {
-  KBFileReader *reader = [KBFileReader fileReaderWithPath:_inputFileView.text];
+  NSString *inPath = _inputSelectView.textField.text;
+  NSString *outPath = _outputSelectView.textField.text;
+  KBFileReader *reader = [KBFileReader fileReaderWithPath:inPath];
   if (!reader) {
-    [self.navigation setError:KBMakeError(-1, @"Unable to open file: %@", _inputFileView.text) sender:self];
+    [self.navigation setError:KBMakeError(-1, @"Unable to open file: %@", inPath) sender:self];
     return;
   }
-  KBFileWriter *writer = [KBFileWriter fileWriterWithPath:_outputFileView.text];
+  KBFileWriter *writer = [KBFileWriter fileWriterWithPath:outPath];
 
   _encrypter = [[KBPGPEncrypt alloc] init];
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
@@ -132,9 +107,9 @@
 }
 
 - (void)setInputPath:(NSString *)inputPath updateOutputDefault:(BOOL)updateOutputDefault {
-  self.inputFileView.text = inputPath;
+  self.inputSelectView.textField.text = inputPath;
   if (updateOutputDefault) {
-    self.outputFileView.text = NSStringWithFormat(@"%@.gpg", inputPath);
+    self.outputSelectView.textField.text = NSStringWithFormat(@"%@.gpg", inputPath);
   }
 }
 
@@ -147,8 +122,8 @@
   panel.canCreateDirectories = YES;
   panel.canSelectHiddenExtension = YES;
 
-  if ([self.outputFileView.text gh_isPresent]) {
-    NSString *path = self.outputFileView.text;
+  if ([self.outputSelectView.textField.text gh_isPresent]) {
+    NSString *path = self.outputSelectView.textField.text;
     panel.nameFieldStringValue = [path lastPathComponent];
     panel.directoryURL = [NSURL fileURLWithPath:[path stringByDeletingLastPathComponent] isDirectory:YES];
   }
@@ -157,13 +132,17 @@
   [panel beginSheetModalForWindow:self.window completionHandler:^(NSInteger result) {
     if (result == NSFileHandlingPanelOKButton) {
       NSURL *URL = [panel URL];
-      if ([URL isFileURL]) gself.outputFileView.text = URL.path;
+      if ([URL isFileURL]) gself.outputSelectView.textField.text = URL.path;
     }
   }];
 }
 
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {
-  
+  CGSize size = userPickerView.frame.size;
+  CGSize sizeThatFits = [userPickerView sizeThatFits:self.frame.size];
+  if (sizeThatFits.height > size.height) {
+    [self layoutView];
+  }
 }
 
 @end
