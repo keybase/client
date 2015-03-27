@@ -32,20 +32,22 @@ func TestPGPVerify(t *testing.T) {
 	attached := sign(ctx, t, msg, keybase_1.SignMode_ATTACHED)
 
 	// create attached sig w/ encrypt
+	attachedEnc := signEnc(ctx, t, msg)
 
 	// still logged in as signer:
 	verify(ctx, t, msg, detached, "detached logged in", false, true)
 	verify(ctx, t, clearsign, "", "clearsign logged in", true, true)
 	verify(ctx, t, attached, "", "attached logged in", false, true)
-	// verify attached #2
+	verify(ctx, t, attachedEnc, "", "attached/encrypted logged in", false, true)
 
 	// log out, then
 	G.LoginState.Logout()
 
 	verify(ctx, t, msg, detached, "detached logged out", false, true)
 	verify(ctx, t, clearsign, "", "clearsign logged out", true, true)
+	// XXX this should be valid?
 	verify(ctx, t, attached, "", "attached logged out", false, false)
-	// verify attached #2 => err
+	verify(ctx, t, attachedEnc, "", "attached/encrypted logged out", false, false)
 
 	// sign in as a different user
 	tc2 := SetupEngineTest(t, "PGPVerify")
@@ -54,16 +56,15 @@ func TestPGPVerify(t *testing.T) {
 	ctx.SecretUI = fu2.NewSecretUI()
 	verify(ctx, t, msg, detached, "detached different user", false, true)
 	verify(ctx, t, clearsign, "", "clearsign different user", true, true)
-	t.Logf("fu username: %s", fu.Username)
-	t.Logf("fu2 username: %s", fu2.Username)
-	verify(ctx, t, attached, "", "attached different user", false, false)
+	verify(ctx, t, attached, "", "attached different user", false, true)
+	verify(ctx, t, attachedEnc, "", "attached/encrypted different user", false, false)
 
 	// extra credit:
 	// encrypt a message for another user and sign it
 	// verify that attached signature
 }
 
-func sign(ctx *Context, t *testing.T, msg string, mode int) string {
+func sign(ctx *Context, t *testing.T, msg string, mode keybase_1.SignMode) string {
 	sink := libkb.NewBufferCloser()
 	arg := &PGPSignArg{
 		Sink:   sink,
@@ -71,6 +72,19 @@ func sign(ctx *Context, t *testing.T, msg string, mode int) string {
 		Opts:   keybase_1.PgpSignOptions{Mode: keybase_1.SignMode(mode)},
 	}
 	eng := NewPGPSignEngine(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	return sink.String()
+}
+
+func signEnc(ctx *Context, t *testing.T, msg string) string {
+	sink := libkb.NewBufferCloser()
+	arg := &PGPEncryptArg{
+		Sink:   sink,
+		Source: strings.NewReader(msg),
+	}
+	eng := NewPGPEncrypt(arg)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

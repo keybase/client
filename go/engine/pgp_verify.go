@@ -59,13 +59,6 @@ func (e *PGPVerify) Run(ctx *Context) error {
 		return e.runClearsign(ctx)
 	}
 	if len(e.arg.Signature) == 0 {
-		lin, err := IsLoggedIn()
-		if err != nil {
-			return err
-		}
-		if !lin {
-			return libkb.LoginRequiredError{Context: "to verify attached signatures in encrypted messages"}
-		}
 		return e.runAttached(ctx)
 	}
 	return e.runDetach(ctx)
