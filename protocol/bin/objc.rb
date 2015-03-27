@@ -55,8 +55,12 @@ def is_primitive_type(type)
 end
 
 def alias_name(name)
-  return "idn" if name == "id"
-  name
+  case name
+  when "id" then "idKb"
+  when "self" then "selfKb"
+  else
+    name
+  end
 end
 
 def default_name_for_type(type)
@@ -181,7 +185,7 @@ paths.each do |path|
 
     request_params_items = request_params.map do |p|
       if is_primitive_type(p["type"]) || enums.include?(p["type"])
-        "@\"#{p["name"]}\": @(#{p["name"]})"
+        "@\"#{p["name"]}\": @(#{alias_name(p["name"])})"
       else
         "@\"#{p["name"]}\": KBRValue(#{alias_name(p["name"])})"
       end

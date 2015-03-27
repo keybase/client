@@ -18,12 +18,6 @@
 @interface KBRUID : NSData
 @end
 
-@interface KBRLoadUserArg : KBRObject
-@property KBRUID *uid;
-@property NSString *username;
-@property BOOL self;
-@end
-
 @interface KBRFOKID : KBRObject
 @property NSData *pgpFingerprint;
 @property NSData *kid;
@@ -46,10 +40,25 @@
 @property NSInteger height;
 @end
 
+@interface KBRPublicKey : KBRObject
+@property NSString *KID;
+@property NSString *PGPFingerprint;
+@property NSArray *PGPIdentities; /*of KBRPgpIdentity*/
+@property BOOL isSibkey;
+@property BOOL isEldest;
+@property BOOL isWeb;
+@property NSString *parentID;
+@property NSString *deviceID;
+@property NSString *deviceDescription;
+@property long cTime;
+@property long eTime;
+@end
+
 @interface KBRUser : KBRObject
 @property KBRUID *uid;
 @property NSString *username;
 @property KBRImage *image;
+@property NSArray *publicKeys; /*of KBRPublicKey*/
 @end
 
 @interface KBRDevice : KBRObject
@@ -254,7 +263,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 @interface KBRIdentity : KBRObject
 @property KBRStatus *status;
 @property NSInteger whenLastTracked;
-@property KBRIdentifyKey *key;
+@property NSArray *keys; /*of KBRIdentifyKey*/
 @property NSArray *proofs; /*of KBRIdentifyRow*/
 @property NSArray *cryptocurrency; /*of KBRCryptocurrency*/
 @property NSArray *deleted; /*of KBRTrackDiff*/
@@ -300,7 +309,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 - (void)reportLastTrackWithSessionID:(NSInteger)sessionID track:(KBRTrackSummary *)track completion:(void (^)(NSError *error))completion;
 
-- (void)launchNetworkChecksWithSessionID:(NSInteger)sessionID idn:(KBRIdentity *)idn user:(KBRUser *)user completion:(void (^)(NSError *error))completion;
+- (void)launchNetworkChecksWithSessionID:(NSInteger)sessionID idKb:(KBRIdentity *)idKb user:(KBRUser *)user completion:(void (^)(NSError *error))completion;
 
 - (void)displayTrackStatementWithSessionID:(NSInteger)sessionID stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion;
 
@@ -350,8 +359,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)deletePrimary:(void (^)(NSError *error))completion;
 
-- (void)show:(void (^)(NSError *error))completion;
-
 - (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
 
 - (void)updateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
@@ -380,6 +387,25 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL approveRemote;
 @end
 
+@interface KBRPgpDecryptOptions : KBRObject
+@property BOOL assertSigned;
+@property BOOL localOnly;
+@property BOOL approveRemote;
+@end
+
+@interface KBRPgpVerifyOptions : KBRObject
+@property BOOL localOnly;
+@property BOOL approveRemote;
+@property NSData *signature;
+@property BOOL clearsign;
+@end
+
+@interface KBRFingerprintAndKey : KBRObject
+@property NSString *fingerprint;
+@property NSString *key;
+@property NSString *desc;
+@end
+
 @interface KBRPgpRequest : KBRRequest
 - (void)pgpSignWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpSignOptions *)opts completion:(void (^)(NSError *error))completion;
 
@@ -387,7 +413,13 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)pgpEncryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpEncryptOptions *)opts completion:(void (^)(NSError *error))completion;
 
-- (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushPrivate:(BOOL)pushPrivate completion:(void (^)(NSError *error))completion;
+- (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error))completion;
+
+- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error))completion;
+
+- (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
+
+- (void)pgpExportWithSessionID:(NSInteger)sessionID secret:(BOOL)secret query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
 
@@ -529,6 +561,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRTrackRequest : KBRRequest
 - (void)trackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName localOnly:(BOOL)localOnly approveRemote:(BOOL)approveRemote completion:(void (^)(NSError *error))completion;
 
+- (void)untrackWithSessionID:(NSInteger)sessionID theirName:(NSString *)theirName completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRUiRequest : KBRRequest
@@ -553,16 +587,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSArray *protocols; /*of string*/
 @end
 
-@interface KBRPubKey : KBRObject
-@property NSString *keyFingerprint;
-@property NSInteger bits;
-@property NSInteger algo;
-@end
-
 @interface KBRProofs : KBRObject
 @property NSArray *social; /*of KBRTrackProof*/
 @property NSArray *web; /*of KBRWebProof*/
-@property NSArray *publicKeys; /*of KBRPubKey*/
+@property NSArray *publicKeys; /*of KBRPublicKey*/
 @end
 
 @interface KBRUserSummary : KBRObject
@@ -585,6 +613,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 - (void)listTrackersSelfWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)loadUserWithUid:(KBRUID *)uid username:(NSString *)username selfKb:(BOOL)selfKb completion:(void (^)(NSError *error, KBRUser *user))completion;
 
 - (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
 
@@ -741,10 +771,26 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRStream *sink;
 @property KBRPgpEncryptOptions *opts;
 @end
+@interface KBRPgpDecryptRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRStream *source;
+@property KBRStream *sink;
+@property KBRPgpDecryptOptions *opts;
+@end
+@interface KBRPgpVerifyRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRStream *source;
+@property KBRPgpVerifyOptions *opts;
+@end
 @interface KBRPgpImportRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSData *key;
-@property BOOL pushPrivate;
+@property BOOL pushSecret;
+@end
+@interface KBRPgpExportRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property BOOL secret;
+@property NSString *query;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;
@@ -843,6 +889,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL localOnly;
 @property BOOL approveRemote;
 @end
+@interface KBRUntrackRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *theirName;
+@end
 @interface KBRPromptYesNoRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRText *text;
@@ -861,6 +911,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRLoadUncheckedUserSummariesRequestParams : KBRRequestParams
 @property NSArray *uids;
+@end
+@interface KBRLoadUserRequestParams : KBRRequestParams
+@property KBRUID *uid;
+@property NSString *username;
+@property BOOL self;
 @end
 @interface KBRListTrackingRequestParams : KBRRequestParams
 @property NSString *filter;
