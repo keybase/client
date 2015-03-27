@@ -74,3 +74,7 @@ func (g *NaclKeyGen) RunLKS(lks *LKSec) (err error) {
 func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
 	return g.pair
 }
+
+func (g *NaclKeyGen) GetNewKeyPair() NaclKeyPair {
+	return g.pair
+}

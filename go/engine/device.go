@@ -91,7 +91,7 @@ func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte
 		signer = d.eldestKey
 		eldestKID = d.eldestKey.GetKid()
 	} else {
-		if err = d.pushSibKey(ctx, signer, eldestKID); err != nil {
+		if signer, err = d.pushSibKey(ctx, signer, eldestKID); err != nil {
 			return err
 		}
 	}
@@ -145,7 +145,7 @@ func (d *DeviceEngine) pushEldestKey(ctx *Context) error {
 	return nil
 }
 
-func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
+func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) (libkb.GenericKey, error) {
 	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Signer:      signer,
 		EldestKeyID: eldestKID,
@@ -158,9 +158,10 @@ func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestK
 	})
 	err := gen.RunLKS(d.lks)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	pair := gen.GetNewKeyPair()
+	return pair, nil
 }
 
 func (d *DeviceEngine) pushDHKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {

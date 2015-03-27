@@ -192,25 +192,29 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 	return
 }
 
-func (sc *SigChain) VerifyChain() error {
+func (sc *SigChain) VerifyChain() (err error) {
+	G.Log.Debug("+ SigChain::VerifyChain()")
+	defer func() {
+		G.Log.Debug("- SigChain::VerifyChain() -> %s", ErrToOk(err))
+	}()
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		if curr.chainVerified {
 			break
 		}
-		if err := curr.VerifyLink(); err != nil {
-			return err
+		if err = curr.VerifyLink(); err != nil {
+			return
 		}
 		if i > 0 && !sc.chainLinks[i-1].id.Eq(curr.GetPrev()) {
 			return fmt.Errorf("Chain mismatch at seqno=%d", curr.GetSeqno())
 		}
-		if err := curr.CheckNameAndId(sc.username, sc.uid); err != nil {
-			return err
+		if err = curr.CheckNameAndId(sc.username, sc.uid); err != nil {
+			return
 		}
 		curr.chainVerified = true
 	}
 
-	return nil
+	return
 }
 
 func (sc SigChain) GetCurrentTailTriple() (cli *MerkleTriple) {
@@ -321,6 +325,11 @@ func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
 // all keys found in the process, including those that are now retired.
 func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, cki *ComputedKeyInfos, err error) {
 
+	G.Log.Debug("+ verifySubchain")
+	defer func() {
+		G.Log.Debug("- verifySubchain -> %v, %s", cached, ErrToOk(err))
+	}()
+
 	if links == nil || len(links) == 0 {
 		err = InternalError{"verifySubchain should never get an empty chain."}
 		return
@@ -350,19 +359,26 @@ func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, c
 			w.Warn()
 		}
 
+		G.Log.Debug("| Verify link: %s", link.id)
+
 		if first {
 			if err = ckf.InsertEldestLink(tcl, un); err != nil {
 				return
 			}
 			first = false
-		} else if dlg := tcl.GetRole(); dlg == DLG_NONE {
+		}
+
+		if dlg := tcl.GetRole(); dlg == DLG_NONE {
 		} else if _, err = link.VerifySigWithKeyFamily(ckf); err != nil {
+			G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err.Error())
 			return
 		} else if err = ckf.Delegate(tcl); err != nil {
+			G.Log.Debug("| Failure in Delegate: %s", err.Error())
 			return
 		}
 
 		if err = tcl.VerifyReverseSig(&kf); err != nil {
+			G.Log.Debug("| Failure in VerifyReverseSig: %s", err.Error())
 			return
 		}
 
