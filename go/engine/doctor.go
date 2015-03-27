@@ -9,9 +9,10 @@ import (
 )
 
 type Doctor struct {
-	user       *libkb.User
-	signingKey libkb.GenericKey
-	devName    string
+	user            *libkb.User
+	signingKey      libkb.GenericKey
+	newDeviceSibkey libkb.GenericKey
+	devName         string
 	libkb.Contextified
 }
 
@@ -190,6 +191,7 @@ func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, e
 	}
 
 	d.signingKey = signer
+	d.newDeviceSibkey = eng.GetNewSibkey()
 	return nil
 }
 
@@ -198,10 +200,14 @@ func (d *Doctor) addDetKey(ctx *Context, eldest libkb.KID) error {
 	if err != nil {
 		return err
 	}
+	sk := d.newDeviceSibkey
+	if sk == nil {
+		sk = d.signingKey
+	}
 	arg := &DetKeyArgs{
 		Tsp:         tk,
 		Me:          d.user,
-		SigningKey:  d.signingKey,
+		SigningKey:  sk,
 		EldestKeyID: eldest,
 	}
 	eng := NewDetKeyEngine(arg)

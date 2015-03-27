@@ -30,6 +30,7 @@ type DeviceEngine struct {
 	me            *libkb.User
 	eldestKey     libkb.NaclKeyPair
 	args          *DeviceEngineArgs
+	newSibkey     libkb.NaclKeyPair
 }
 
 func NewDeviceEngine(me *libkb.User, args *DeviceEngineArgs) *DeviceEngine {
@@ -125,6 +126,10 @@ func (d *DeviceEngine) EldestKey() libkb.GenericKey {
 	return d.eldestKey
 }
 
+func (d *DeviceEngine) GetNewSibkey() libkb.GenericKey {
+	return d.newSibkey
+}
+
 func (d *DeviceEngine) LKSKey() []byte {
 	return d.lksEncKey
 }
@@ -160,8 +165,8 @@ func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestK
 	if err != nil {
 		return nil, err
 	}
-	pair := gen.GetNewKeyPair()
-	return pair, nil
+	d.newSibkey = gen.GetNewKeyPair()
+	return d.newSibkey, nil
 }
 
 func (d *DeviceEngine) pushDHKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
