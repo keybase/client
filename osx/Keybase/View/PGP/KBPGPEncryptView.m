@@ -100,7 +100,7 @@
   options.noSign = _footerView.signButton.state != NSOnState;
   self.navigation.progressEnabled = YES;
   //GHWeakSelf gself = self;
-  [_encrypter encryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSError *error) {
+  [_encrypter encryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
     self.navigation.progressEnabled = NO;
     if ([self.navigation setError:error sender:self]) return;
 
@@ -126,27 +126,9 @@
   [self layoutView];
 }
 
-- (void)chooseInput {
-  NSOpenPanel *panel = [NSOpenPanel openPanel];
-  panel.prompt = @"OK";
-  panel.title = @"Choose a file...";
-  panel.allowsMultipleSelection = YES;
-  //GHWeakSelf gself = self;
-  [panel beginSheetModalForWindow:self.window completionHandler:^(NSInteger result) {
-    if (result == NSFileHandlingPanelOKButton) {
-      for (NSURL *URL in [panel URLs]) {
-        if ([URL isFileURL]) {
-          [self addPath:URL.path];
-        }
-      }
-    }
-  }];
-}
-
 - (void)showOutput:(NSData *)data {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
   [outputView setArmoredData:data];
-  [outputView addFiles:[_files.subviews map:^(KBFileIcon *icon) { return icon.file; }]];
   [self.navigation pushView:outputView animated:YES];
 }
 
