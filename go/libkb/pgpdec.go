@@ -28,6 +28,8 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 	// since we only have a reader, and we want to peek at the first 5 bytes
 	// before decrypting, need to read all the bytes, then give openpgp a
 	// new reader with those after armor check.
+	// (the other option is to change source to io.ReadSeeker, but the rpc stream
+	// interface doesn't support seek)
 	all, err := ioutil.ReadAll(source)
 	if err != nil {
 		return nil, err
