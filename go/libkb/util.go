@@ -7,13 +7,14 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	keybase_1 "github.com/keybase/client/protocol/go"
 	"io"
 	"os"
 	"path"
 	"regexp"
 	"strings"
 	"time"
+
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 func ErrToOk(err error) string {
@@ -228,4 +229,8 @@ func Unquote(data []byte) string { return keybase_1.Unquote(data) }
 
 func HexDecodeQuoted(data []byte) ([]byte, error) {
 	return hex.DecodeString(Unquote(data))
+}
+
+func IsArmored(buf []byte) bool {
+	return bytes.HasPrefix(bytes.TrimSpace(buf), []byte("-----"))
 }

@@ -34,14 +34,9 @@ type PGPKeyImportEngineArg struct {
 	DoUnlock   bool
 }
 
-func isArmored(key []byte) bool {
-	tmp := strings.TrimSpace(string(key))
-	return strings.HasPrefix(tmp, "-----")
-}
-
 func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool) (eng *PGPKeyImportEngine, err error) {
 	var bundle *libkb.PgpKeyBundle
-	if isArmored(key) {
+	if libkb.IsArmored(key) {
 		bundle, err = libkb.ReadOneKeyFromString(string(key))
 	} else {
 		bundle, err = libkb.ReadOneKeyFromBytes(key)

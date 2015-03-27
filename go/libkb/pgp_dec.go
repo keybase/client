@@ -73,7 +73,3 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 
 	return &status, nil
 }
-
-func IsArmored(buf []byte) bool {
-	return bytes.HasPrefix(buf, []byte("-----"))
-}
