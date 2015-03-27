@@ -37,8 +37,7 @@ func (e *PGPVerify) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *PGPVerify) GetPrereqs() EnginePrereqs {
-	// XXX PC: don't think this should be necessary for detached, clearsign
-	return EnginePrereqs{Session: true}
+	return EnginePrereqs{}
 }
 
 // RequiredUIs returns the required UIs.
@@ -60,6 +59,13 @@ func (e *PGPVerify) Run(ctx *Context) error {
 		return e.runClearsign(ctx)
 	}
 	if len(e.arg.Signature) == 0 {
+		lin, err := IsLoggedIn()
+		if err != nil {
+			return err
+		}
+		if !lin {
+			return libkb.LoginRequiredError{Context: "to verify attached signatures in encrypted messages"}
+		}
 		return e.runAttached(ctx)
 	}
 	return e.runDetach(ctx)
@@ -126,11 +132,16 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 }
 
 func (e *PGPVerify) scanner(ctx *Context) (*ScanKeys, error) {
-	// XXX I imagine this should work logged out, so we might need a different version of
-	// scankeys.
-	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	lin, err := IsLoggedIn()
 	if err != nil {
 		return nil, err
+	}
+	var me *libkb.User
+	if lin {
+		me, err = libkb.LoadMe(libkb.LoadUserArg{})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return NewScanKeys(me, ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
 }

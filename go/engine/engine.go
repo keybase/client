@@ -72,7 +72,3 @@ func checkUI(c libkb.UIConsumer, ctx *Context) error {
 	}
 	return nil
 }
-
-func IsLoggedIn() (bool, error) {
-	return G.Session.LoadAndCheck()
-}

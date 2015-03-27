@@ -67,6 +67,9 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 		return nil
 	}
 
+	G.Log.Debug("PGPDecrypt: me = %s", me.GetName())
+	G.Log.Debug("PGPDecrypt: signStatus: %+v", signStatus)
+
 	if !signStatus.IsSigned {
 		return libkb.BadSigError{E: "no signature in message"}
 	}
