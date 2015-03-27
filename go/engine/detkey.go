@@ -24,6 +24,7 @@ type DetKeyArgs struct {
 type DetKeyEngine struct {
 	arg         *DetKeyArgs
 	newEddsaKey libkb.GenericKey
+	dev         *libkb.Device
 }
 
 func NewDetKeyEngine(arg *DetKeyArgs) *DetKeyEngine {
@@ -46,6 +47,9 @@ func (e *DetKeyEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 // Run runs the detkey engine.
 func (d *DetKeyEngine) Run(ctx *Context) error {
+
+	d.dev = libkb.NewWebDevice()
+
 	if err := d.eddsa(d.arg.Tsp); err != nil {
 		return fmt.Errorf("eddsa error: %s", err)
 	}
@@ -133,8 +137,7 @@ func serverSeed(seed, serverHalf []byte) (newseed []byte, err error) {
 }
 
 func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serverHalf []byte, expire int, sibkey bool) error {
-	dev := libkb.NewWebDevice()
-	if dev == nil {
+	if d.dev == nil {
 		return libkb.ErrCannotGenerateDevice
 	}
 	g := libkb.Delegator{
@@ -144,7 +147,7 @@ func (d *DetKeyEngine) push(key libkb.GenericKey, signing libkb.GenericKey, serv
 		ExistingKey: signing,
 		ServerHalf:  serverHalf,
 		Me:          d.arg.Me,
-		Device:      dev,
+		Device:      d.dev,
 	}
 	return g.Run()
 }
