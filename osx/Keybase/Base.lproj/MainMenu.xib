@@ -663,6 +663,19 @@
                                     <action selector="decryptFile:" target="Voe-Tx-rLC" id="4gD-l6-nUA"/>
                                 </connections>
                             </menuItem>
+                            <menuItem isSeparatorItem="YES" id="XZ7-Yo-hya"/>
+                            <menuItem title="Sign" id="haB-7X-NaD">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="sign:" target="Voe-Tx-rLC" id="hdU-Q1-XA0"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Verify" id="OiT-4T-sgp" userLabel="Verify">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="verify:" target="Voe-Tx-rLC" id="uVP-NU-MbJ"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>

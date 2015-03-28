@@ -1,25 +1,26 @@
 //
-//  KBPGPDecryptView.m
+//  KBPGPSignView.m
 //  Keybase
 //
 //  Created by Gabriel on 3/27/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBPGPDecryptView.h"
+#import "KBPGPSignView.h"
 
 #import "KBRPC.h"
 #import "KBStream.h"
 #import "KBPGPOutputView.h"
-#import "KBPGPDecrypt.h"
-#import "KBPGPDecryptFooterView.h"
+#import "KBPGPSigner.h"
+#import "KBPGPSignFooterView.h"
 
-@interface KBPGPDecryptView ()
+@interface KBPGPSignView ()
 @property KBTextView *textView;
-@property KBPGPDecrypt *decrypter;
+@property KBPGPSignFooterView *footerView;
+@property KBPGPSigner *signer;
 @end
 
-@implementation KBPGPDecryptView
+@implementation KBPGPSignView
 
 - (void)viewInit {
   [super viewInit];
@@ -29,20 +30,22 @@
   _textView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_textView];
 
-  KBPGPDecryptFooterView *footerView = [[KBPGPDecryptFooterView alloc] init];
-  footerView.decryptButton.targetBlock = ^{ [self decrypt]; };
-  [self addSubview:footerView];
+  GHWeakSelf gself = self;
+  _footerView = [[KBPGPSignFooterView alloc] init];
+  _footerView.signButton.targetBlock = ^{ [gself sign]; };
+  [self addSubview:_footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:nil bottomView:footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:nil bottomView:_footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
 }
 
 - (void)setASCIIData:(NSData *)data {
   [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleMonospace];
 }
 
-- (void)decrypt {
-  _decrypter = [[KBPGPDecrypt alloc] init];
-  KBRPgpDecryptOptions *options = [[KBRPgpDecryptOptions alloc] init];
+- (void)sign {
+  _signer = [[KBPGPSigner alloc] init];
+  KBRPgpSignOptions *options = [[KBRPgpSignOptions alloc] init];
+  options.mode = _footerView.clearSignButton.state == NSOnState ? KBRSignModeClear : KBRSignModeDetached;
 
   NSData *data = [_textView.text dataUsingEncoding:NSASCIIStringEncoding];
   KBReader *reader = [KBReader readerWithData:data];
@@ -50,7 +53,7 @@
   KBStream *stream = [KBStream streamWithReader:reader writer:writer binary:NO];
 
   self.navigation.progressEnabled = YES;
-  [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
+  [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
     self.navigation.progressEnabled = NO;
     if ([self.navigation setError:error sender:self]) return;
     KBWriter *writer = (KBWriter *)[streams[0] writer];
@@ -66,3 +69,4 @@
 }
 
 @end
+

@@ -8,9 +8,10 @@
 
 #import "KBPGPOutputView.h"
 #import "KBFileIcon.h"
+#import "KBPGPOutputFooterView.h"
 
 @interface KBPGPOutputView ()
-@property KBTextView *outputView;
+@property KBTextView *textView;
 @property YOBox *files;
 @property NSData *data;
 @end
@@ -20,36 +21,23 @@
 - (void)viewInit {
   [super viewInit];
 
-  _outputView = [[KBTextView alloc] init];
-  _outputView.view.editable = NO;
-  _outputView.borderType = NSBezelBorder;
-  [self addSubview:_outputView];
+  _textView = [[KBTextView alloc] init];
+  _textView.view.editable = NO;
+  _textView.view.textContainerInset = CGSizeMake(10, 10);
+  [self addSubview:_textView];
 
-  YOBox *footerView = [YOBox box:@{@"spacing": @"10", @"minSize": @"130,0"}];
-  NSImage *backImage = [NSImage imageNamed:@"46-Arrows-black-arrow-67-24"];
-  backImage.size = CGSizeMake(12, 12);
-  KBButton *editButton = [KBButton buttonWithText:@"Edit" image:backImage style:KBButtonStyleDefault];
-  editButton.targetBlock = ^{
+  KBPGPOutputFooterView *footerView = [[KBPGPOutputFooterView alloc] init];
+  footerView.editButton.targetBlock = ^{
     [self.navigation popViewAnimated:YES];
   };
-  [footerView addSubview:editButton];
-//  NSImage *shareImage = [NSImage imageNamed:NSImageNameShareTemplate];
-//  shareImage.size = CGSizeMake(16, 16);
-  KBButton *shareButton = [KBButton buttonWithText:@"Share" style:KBButtonStyleDefault];
-  [footerView addSubview:shareButton];
-
-  YOHBox *footerRightView = [YOHBox box:@{@"spacing": @"10", @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
-  KBButton *closeButton = [KBButton buttonWithText:@"Done" style:KBButtonStyleDefault];
-  closeButton.targetBlock = ^{ [[self window] close]; };
-  [footerRightView addSubview:closeButton];
-  [footerView addSubview:footerRightView];
+  footerView.closeButton.targetBlock = ^{ [[self window] close]; };
   [self addSubview:footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_outputView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:nil bottomView:footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
 }
 
 - (void)setText:(NSString *)text {
-  [_outputView setText:text font:[NSFont fontWithName:@"Monaco" size:11] color:KBAppearance.currentAppearance.textColor];
+  [_textView setText:text style:KBTextStyleMonospace];
   [self setNeedsLayout];
 }
 

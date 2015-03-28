@@ -29,6 +29,7 @@
 #import "KBPGPOutputFileView.h"
 #import "KBPGPDecryptView.h"
 #import "KBPGPDecryptFileView.h"
+#import "KBPGPSignView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -52,12 +53,16 @@
   [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBTextStyleHeader]];
   [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBTextStyleDefault]];
 
-  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Text)" targetBlock:^{ [self showPGPDecrypt]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Files)" targetBlock:^{ [self showPGPDecryptFile]; }]];
   [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
   [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Files)" targetBlock:^{ [self showPGPEncryptFile]; }]];
   [contentView addSubview:[KBButton linkWithText:@"PGP Output" targetBlock:^{ [self showPGPOutput]; }]];
   [contentView addSubview:[KBButton linkWithText:@"PGP Output (Files)" targetBlock:^{ [self showPGPFileOutput]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Text)" targetBlock:^{ [self showPGPDecrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Files)" targetBlock:^{ [self showPGPDecryptFile]; }]];
+  
+  [contentView addSubview:[KBButton linkWithText:@"PGP Sign" targetBlock:^{ [self showPGPSign]; }]];
+
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBButton linkWithText:@"App" targetBlock:^{ [self showAppView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
@@ -293,6 +298,11 @@
 - (void)showPGPDecryptFile {
   KBPGPDecryptFileView *decryptView = [[KBPGPDecryptFileView alloc] init];
   [self openInWindow:decryptView size:CGSizeMake(600, 400) title:@"Decrypt"];
+}
+
+- (void)showPGPSign {
+  KBPGPSignView *signView = [[KBPGPSignView alloc] init];
+  [self openInWindow:signView size:CGSizeMake(600, 400) title:@"Sign"];
 }
 
 - (void)showError {

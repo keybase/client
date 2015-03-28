@@ -12,8 +12,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor.CGColor;
+  [self setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   [self addSubview:[KBBox horizontalLine]];
 

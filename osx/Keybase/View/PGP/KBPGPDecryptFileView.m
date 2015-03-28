@@ -14,6 +14,7 @@
 #import "KBPGPDecrypt.h"
 #import "KBFileWriter.h"
 #import "KBPGPOutputFileView.h"
+#import "KBPGPDecryptFooterView.h"
 
 @interface KBPGPDecryptFileView ()
 @property KBFileListView *fileListView;
@@ -50,17 +51,11 @@
   };
   [self addSubview:_fileListView];
 
-  YOVBox *bottomView = [YOVBox box];
-  [self addSubview:bottomView];
-  [bottomView addSubview:[KBBox horizontalLine]];
-  YOHBox *footerView = [YOHBox box:@{@"insets": @(20), @"spacing": @"10", @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
-  [bottomView addSubview:footerView];
-  KBButton *closeButton = [KBButton buttonWithText:@"Decrypt" style:KBButtonStylePrimary];
-  closeButton.targetBlock = ^{ [self decrypt]; };
-  [footerView addSubview:closeButton];
+  KBPGPDecryptFooterView *footerView = [[KBPGPDecryptFooterView alloc] init];
+  footerView.decryptButton.targetBlock = ^{ [self decrypt]; };
+  [self addSubview:footerView];
 
-
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_fileListView topView:toolbarView bottomView:bottomView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_fileListView topView:toolbarView bottomView:footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
 }
 
 - (void)setFiles:(NSArray *)files {

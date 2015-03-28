@@ -21,6 +21,8 @@
 #import "KBPGPEncryptFileView.h"
 #import "KBPGPDecryptView.h"
 #import "KBPGPDecryptFileView.h"
+#import "KBPGPSignView.h"
+#import "KBPGPVerifyView.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -155,6 +157,19 @@
   KBPGPDecryptFileView *view = [[KBPGPDecryptFileView alloc] init];
   view.client = self.appView.client;
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" errorHandler:_errorHandler];
+}
+
+- (IBAction)sign:(id)sender {
+  KBPGPSignView *view = [[KBPGPSignView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" errorHandler:_errorHandler];
+}
+
+- (IBAction)verify:(id)sender {
+  KBPGPVerifyView *view = [[KBPGPVerifyView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Verify" errorHandler:_errorHandler];
+
 }
 
 + (void)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {
