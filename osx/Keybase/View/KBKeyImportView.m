@@ -154,7 +154,7 @@
   };
 
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-  [request pgpImportWithSessionID:request.sessionId key:_data pushPrivate:NO completion:completion];
+  [request pgpImportWithSessionID:request.sessionId key:_data pushSecret:NO completion:completion];
 }
 
 @end

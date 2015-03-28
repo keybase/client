@@ -153,14 +153,6 @@
   }];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
-
-//#ifdef DEBUG
-//  self.emailField.text = @"gabrielh+gbrl38@gmail.com";
-//  self.usernameField.text = @"gbrl38";
-//  self.passwordField.text = @"toomanysecrets";
-//  self.passwordConfirmField.text = @"toomanysecrets";
-//  self.deviceNameField.text = @"Test";
-//#endif
 }
 
 - (void)viewDidAppear:(BOOL)animated {
