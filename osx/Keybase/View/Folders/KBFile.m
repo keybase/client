@@ -7,6 +7,8 @@
 //
 
 #import "KBFile.h"
+#import "KBAlert.h"
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 @implementation KBFile
 
@@ -46,6 +48,23 @@ NSImage *KBImageForFile(KBFile *file) {
 - (NSImage *)icon {
   if (!_icon) _icon = KBImageForFile(self);
   return _icon;
+}
+
++ (void)promptOverwrite:(KBFile *)file view:(NSView *)view completion:(void (^)(KBFileResponse response))completion {
+  NSString *title = NSStringWithFormat(@"Overwrite %@", file.name);
+  NSString *description = NSStringWithFormat(@"Do you want to overwrite %@", file.path);
+  [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[@"Cancel", @"Skip", @"Overwrite", @"Overwrite All"] view:view completion:^(NSModalResponse returnCode) {
+    if (returnCode == NSAlertFirstButtonReturn) {
+      completion(KBFileResponseCancel);
+    } else if (returnCode == NSAlertFirstButtonReturn + 1) {
+      completion(KBFileResponseSkip);
+    } else if (returnCode == NSAlertFirstButtonReturn + 2) {
+      completion(KBFileResponseOverwrite);
+    } else if (returnCode == NSAlertFirstButtonReturn + 3) {
+      completion(KBFileResponseOverwriteAll);
+    }
+    
+   }];
 }
 
 @end

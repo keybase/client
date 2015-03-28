@@ -68,6 +68,35 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 @implementation KBAppearanceLight
 
+- (NSColor *)colorForStyle:(KBTextStyle)style {
+  switch (style) {
+    case KBTextStyleNone:
+    case KBTextStyleDefault:
+    case KBTextStyleHeader:
+    case KBTextStyleHeaderLarge:
+      return self.textColor;
+
+    case KBTextStyleSecondaryText:
+      return self.secondaryTextColor;
+
+    case KBTextStyleMonospace:
+      return self.secondaryTextColor;
+  }
+}
+
+- (NSFont *)fontForStyle:(KBTextStyle)style {
+  switch (style) {
+    case KBTextStyleNone:
+    case KBTextStyleDefault:
+      return self.textFont;
+
+    case KBTextStyleSecondaryText: return self.textFont;
+    case KBTextStyleHeader: return self.headerTextFont;
+    case KBTextStyleHeaderLarge: return self.headerLargeTextFont;
+    case KBTextStyleMonospace: return [NSFont fontWithName:@"Monaco" size:12];
+  }
+}
+
 - (NSColor *)textColor {
   return GHNSColorFromRGB(0x333333);
 }

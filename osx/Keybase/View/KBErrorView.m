@@ -19,7 +19,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  _header = [KBLabel labelWithText:@"Oops" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  _header = [KBLabel labelWithText:@"Oops" style:KBTextStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self addSubview:_header];
 
   _label = [KBLabel label];
@@ -48,8 +48,8 @@
 }
 
 - (void)setError:(NSError *)error {
-  [_label setText:error.localizedDescription style:KBLabelStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [_descriptionLabel setText:error.localizedRecoverySuggestion style:KBLabelStyleSecondaryText alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_label setText:error.localizedDescription style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_descriptionLabel setText:error.localizedRecoverySuggestion style:KBTextStyleSecondaryText alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setNeedsLayout];
 }
 

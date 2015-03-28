@@ -92,13 +92,14 @@
 
 - (void)encrypt {
   NSMutableArray *streams = [NSMutableArray array];
-  for (KBFile *file in [_fileListView objects]) {
-    KBFileReader *fileReader = [KBFileReader fileReaderWithPath:file.path];
-    NSString *outPath = [file.path stringByAppendingPathExtension:@"gpg"];
-    KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
-    [streams addObject:[KBStream streamWithReader:fileReader writer:fileWriter binary:YES]];
-  }
+  KBFileOutput output = ^(NSString *path) { return [path stringByAppendingPathExtension:@"gpg"]; };
+  [KBStream checkFiles:[_fileListView objects] index:0 output:output streams:streams skipCheck:NO view:self completion:^(NSError *error){
+    if ([self.navigation setError:error sender:self]) return;
+    if ([streams count] > 0) [self encryptStreams:streams];
+  }];
+}
 
+- (void)encryptStreams:(NSArray *)streams {
   _encrypter = [[KBPGPEncrypt alloc] init];
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
   options.recipients = _userPickerView.usernames;

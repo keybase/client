@@ -23,7 +23,6 @@
   _outputView = [[KBTextView alloc] init];
   _outputView.view.editable = NO;
   _outputView.borderType = NSBezelBorder;
-  _outputView.layer.borderColor = NSColor.redColor.CGColor;
   [self addSubview:_outputView];
 
   YOBox *footerView = [YOBox box:@{@"spacing": @"10", @"minSize": @"130,0"}];
@@ -49,7 +48,12 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_outputView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(800, 400)]];
 }
 
-- (void)setArmoredData:(NSData *)data {
+- (void)setText:(NSString *)text {
+  [_outputView setText:text font:[NSFont fontWithName:@"Monaco" size:11] color:KBAppearance.currentAppearance.textColor];
+  [self setNeedsLayout];
+}
+
+- (void)setASCIIData:(NSData *)data {
   NSParameterAssert(data);
   NSString *armored = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
 
@@ -57,8 +61,7 @@
     armored = [[NSString alloc] initWithBytes:data.bytes length:data.length encoding:NSStringEncodingConversionAllowLossy];
   }
 
-  [_outputView setText:armored font:[NSFont fontWithName:@"Monaco" size:11] color:KBAppearance.currentAppearance.textColor];
-  [self setNeedsLayout];
+  [self setText:armored];
 }
 
 //- (void)share {

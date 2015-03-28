@@ -19,6 +19,8 @@
 #import "KBConsoleView.h"
 #import "KBPGPEncryptView.h"
 #import "KBPGPEncryptFileView.h"
+#import "KBPGPDecryptView.h"
+#import "KBPGPDecryptFileView.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -132,15 +134,27 @@
 }
 
 - (IBAction)encrypt:(id)sender {
-  KBPGPEncryptView *encryptView = [[KBPGPEncryptView alloc] init];
-  encryptView.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" errorHandler:_errorHandler];
+  KBPGPEncryptView *view = [[KBPGPEncryptView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" errorHandler:_errorHandler];
 }
 
 - (IBAction)encryptFile:(id)sender {
-  KBPGPEncryptFileView *encryptView = [[KBPGPEncryptFileView alloc] init];
-  encryptView.client = self.appView.client;
-  NSWindow *window = [self.appView.window kb_addChildWindowForView:encryptView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" errorHandler:_errorHandler];
+  KBPGPEncryptFileView *view = [[KBPGPEncryptFileView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" errorHandler:_errorHandler];
+}
+
+- (IBAction)decrypt:(id)sender {
+  KBPGPDecryptView *view = [[KBPGPDecryptView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt" errorHandler:_errorHandler];
+}
+
+- (IBAction)decryptFile:(id)sender {
+  KBPGPDecryptFileView *view = [[KBPGPDecryptFileView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" errorHandler:_errorHandler];
 }
 
 + (void)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {

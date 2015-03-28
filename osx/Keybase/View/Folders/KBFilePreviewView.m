@@ -47,7 +47,7 @@
   NSImage *image = file.icon;
   image.size = CGSizeMake(120, 120);
   self.imageView.image = image;
-  [self.nameLabel setText:file.name style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  [self.nameLabel setText:file.name style:KBTextStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   [self setNeedsLayout];
 }
 

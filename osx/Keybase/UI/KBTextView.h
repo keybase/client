@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import <YOLayout/YOLayout.h>
+#import "KBAppearance.h"
 
 @interface KBTextView : NSScrollView <NSTextViewDelegate>
 
@@ -17,5 +18,6 @@
 @property (nonatomic) NSString *text;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color;
+- (void)setText:(NSString *)text style:(KBTextStyle)style;
 
 @end

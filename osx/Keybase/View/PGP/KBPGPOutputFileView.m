@@ -9,6 +9,7 @@
 #import "KBPGPOutputFileView.h"
 
 #import "KBFileListView.h"
+#import "KBPGPOutputFooterView.h"
 
 @interface KBPGPOutputFileView ()
 @property KBFileListView *fileListView;
@@ -21,7 +22,6 @@
   [self setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   _fileListView = [[KBFileListView alloc] init];
-  _fileListView.scrollView.borderType = NSBezelBorder;
   _fileListView.fileLabelStyle = KBFileLabelStyleLarge;
   _fileListView.menuSelectBlock  = ^(NSIndexPath *indexPath) {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
@@ -30,13 +30,14 @@
   };
   [self addSubview:_fileListView];
 
-  YOHBox *footerView = [YOHBox box:@{@"spacing": @"10", @"minSize": @"130,0", @"horizontalAlignment": @"right"}];
-  KBButton *closeButton = [KBButton buttonWithText:@"Done" style:KBButtonStyleDefault];
-  closeButton.targetBlock = ^{ [[self window] close]; };
-  [footerView addSubview:closeButton];
+  KBPGPOutputFooterView *footerView = [[KBPGPOutputFooterView alloc] init];
   [self addSubview:footerView];
+  footerView.editButton.targetBlock = ^{
+    [self.navigation popViewAnimated:YES];
+  };
+  footerView.closeButton.targetBlock = ^{ [[self window] close]; };
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_fileListView topView:nil bottomView:footerView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(600, 450)]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_fileListView topView:nil bottomView:footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
 }
 
 - (void)setFiles:(NSArray *)files {

@@ -25,11 +25,11 @@
   [self addSubview:contentView];
 
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Add a Device" style:KBLabelStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:@"Add a Device" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:@"On another device, you should have been presented with a secret passphrase to type here." style:KBLabelStyleDefault];
+  [label setText:@"On another device, you should have been presented with a secret passphrase to type here." style:KBTextStyleDefault];
   [contentView addSubview:label];
 
   _inputField = [[KBTextField alloc] init];

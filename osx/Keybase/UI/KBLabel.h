@@ -14,14 +14,6 @@
 #import "KBBorder.h"
 #import "KBAppKitDefines.h"
 
-typedef NS_ENUM(NSInteger, KBLabelStyle) {
-  KBLabelStyleNone,
-  KBLabelStyleDefault,
-  KBLabelStyleSecondaryText,
-  KBLabelStyleHeader,
-  KBLabelStyleHeaderLarge,
-};;
-
 @interface KBLabel : YOView
 
 @property (nonatomic) NSAttributedString *attributedText;
@@ -33,16 +25,16 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 @property (readonly) NSTextView *textView;
 
 + (instancetype)label;
-+ (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style;
-+ (instancetype)labelWithText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
++ (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style;
++ (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
-- (void)setText:(NSString *)text style:(KBLabelStyle)style;
-- (void)setText:(NSString *)text style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+- (void)setText:(NSString *)text style:(KBTextStyle)style;
+- (void)setText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 - (void)setMarkup:(NSString *)markup;
-- (void)setMarkup:(NSString *)markup style:(KBLabelStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+- (void)setMarkup:(NSString *)markup style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)setMarkup:(NSString *)markup options:(NSDictionary *)options;
 
@@ -54,7 +46,7 @@ typedef NS_ENUM(NSInteger, KBLabelStyle) {
 
 - (void)setBorderEnabled:(BOOL)borderEnabled;
 
-- (void)setStyle:(KBLabelStyle)style appearance:(id<KBAppearance>)appearance;
+- (void)setStyle:(KBTextStyle)style appearance:(id<KBAppearance>)appearance;
 
 + (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString;
 

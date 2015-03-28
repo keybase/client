@@ -76,7 +76,7 @@
 
 - (void)setTitle:(NSString *)title {
   _title = title;
-  [_label setText:title style:KBLabelStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [_label setText:title style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self setNeedsLayout];
 }
 

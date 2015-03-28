@@ -23,7 +23,7 @@
   [self addSubview:contentView];
 
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Register Device" style:KBLabelStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:@"Register Device" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
   _label = [[KBLabel alloc] init];
@@ -69,7 +69,7 @@
    */
 
   // NSStringWithFormat(@"In order to register this device you need to enter in these secret words on the device named: <strong>%@</strong>.", deviceName)
-  [_label setMarkup:@"In order to register this device you need to enter in the secret phrase generated on an existing device." style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_label setMarkup:@"In order to register this device you need to enter in the secret phrase generated on an existing device." style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [_secretWordsLabel setText:secretWords font:[NSFont boldSystemFontOfSize:20] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setNeedsLayout];
 }

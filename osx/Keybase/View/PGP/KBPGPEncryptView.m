@@ -81,17 +81,17 @@
 - (void)encrypt {
   NSString *text = _textView.text;
 
-  NSMutableArray *streams = [NSMutableArray array];
   KBReader *reader = [KBReader readerWithData:[text dataUsingEncoding:NSUTF8StringEncoding]];
   KBWriter *writer = [KBWriter writer];
-  [streams addObject:[KBStream streamWithReader:reader writer:writer binary:NO]];
-
-  for (KBFileIcon *fileIcon in [_files subviews]) {
-    KBFileReader *fileReader = [KBFileReader fileReaderWithPath:fileIcon.file.path];
-    NSString *outPath = [fileIcon.file.path stringByAppendingPathExtension:@"gpg"];
-    KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
-    [streams addObject:[KBStream streamWithReader:fileReader writer:fileWriter binary:YES]];
-  }
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer binary:NO];
+//  [streams addObject:[KBStream streamWithReader:reader writer:writer binary:NO]];
+//
+//  for (KBFileIcon *fileIcon in [_files subviews]) {
+//    KBFileReader *fileReader = [KBFileReader fileReaderWithPath:fileIcon.file.path];
+//    NSString *outPath = [fileIcon.file.path stringByAppendingPathExtension:@"gpg"];
+//    KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
+//    [streams addObject:[KBStream streamWithReader:fileReader writer:fileWriter binary:YES]];
+//  }
 
   _encrypter = [[KBPGPEncrypt alloc] init];
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
@@ -100,7 +100,7 @@
   options.noSign = _footerView.signButton.state != NSOnState;
   self.navigation.progressEnabled = YES;
   //GHWeakSelf gself = self;
-  [_encrypter encryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
+  [_encrypter encryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
     self.navigation.progressEnabled = NO;
     if ([self.navigation setError:error sender:self]) return;
 
@@ -128,7 +128,7 @@
 
 - (void)showOutput:(NSData *)data {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
-  [outputView setArmoredData:data];
+  [outputView setASCIIData:data];
   [self.navigation pushView:outputView animated:YES];
 }
 

@@ -16,6 +16,7 @@
 @implementation KBReader
 
 + (instancetype)readerWithData:(NSData *)data {
+  NSParameterAssert(data);
   return [KBReader readerWithInputStream:[NSInputStream inputStreamWithData:data]];
 }
 
@@ -31,6 +32,7 @@
     _open = YES;
   }
   if (length == 0) return [NSData data];
+  length = MIN(256 * 1024, length);
   uint8_t buffer[length];
   NSInteger numBytes = [_inputStream read:buffer maxLength:length];
   if (numBytes == 0) return nil; // EOF

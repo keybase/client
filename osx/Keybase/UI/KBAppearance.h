@@ -9,6 +9,15 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
+typedef NS_ENUM(NSInteger, KBTextStyle) {
+  KBTextStyleNone,
+  KBTextStyleDefault,
+  KBTextStyleSecondaryText,
+  KBTextStyleMonospace,
+  KBTextStyleHeader,
+  KBTextStyleHeaderLarge,
+};;
+
 @protocol KBAppearance
 
 - (NSColor *)textColor;
@@ -42,6 +51,10 @@
 - (NSColor *)secondaryBackgroundColor;
 
 - (NSColor *)tableGridColor;
+
+- (NSColor *)colorForStyle:(KBTextStyle)style;
+
+- (NSFont *)fontForStyle:(KBTextStyle)style;
 
 @end
 

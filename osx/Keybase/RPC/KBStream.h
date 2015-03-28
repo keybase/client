@@ -10,15 +10,25 @@
 
 #import "KBReader.h"
 #import "KBWriter.h"
+#import "KBRPC.h"
+
+typedef NSString *(^KBFileOutput)(NSString *path);
 
 @interface KBStream : NSObject
 
 @property id<KBReader> reader;
 @property id<KBWriter> writer;
 @property BOOL binary;
+@property (nonatomic) int label;
 
 + (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer binary:(BOOL)binary;
 
-@property (nonatomic) int label;
+- (void)close;
+
+
+
+- (void)registerWithClient:(KBRPClient *)client sessionId:(NSInteger)sessionId;
+
++ (void)checkFiles:(NSArray */*of KBFile*/)files index:(NSInteger)index output:(KBFileOutput)output streams:(NSMutableArray *)streams skipCheck:(BOOL)skipCheck view:(NSView *)view completion:(KBCompletionBlock)completion;
 
 @end

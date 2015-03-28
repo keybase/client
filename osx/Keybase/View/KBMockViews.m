@@ -27,6 +27,8 @@
 #import "KBPGPOutputView.h"
 #import "KBPGPEncryptFileView.h"
 #import "KBPGPOutputFileView.h"
+#import "KBPGPDecryptView.h"
+#import "KBPGPDecryptFileView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -43,12 +45,19 @@
   _mockClient = [[KBRMockClient alloc] init];
 
   YOVBox *contentView = [YOVBox box:@{@"spacing": @"4", @"insets": @"20"}];
-  [contentView addSubview:[KBLabel labelWithText:@"Style Guides" style:KBLabelStyleHeader]];
+  [contentView addSubview:[KBLabel labelWithText:@"Style Guides" style:KBTextStyleHeader]];
   [contentView addSubview:[KBButton linkWithText:@"Style Guide" targetBlock:^{ [self showStyleGuide]; }]];
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-  [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBLabelStyleHeader]];
-  [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBLabelStyleDefault]];
+  [contentView addSubview:[KBLabel labelWithText:@"Mocks" style:KBTextStyleHeader]];
+  [contentView addSubview:[KBLabel labelWithText:@"These views use mock data!" style:KBTextStyleDefault]];
+
+  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Text)" targetBlock:^{ [self showPGPDecrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Files)" targetBlock:^{ [self showPGPDecryptFile]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Files)" targetBlock:^{ [self showPGPEncryptFile]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Output" targetBlock:^{ [self showPGPOutput]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Output (Files)" targetBlock:^{ [self showPGPFileOutput]; }]];
 
   [contentView addSubview:[KBButton linkWithText:@"App" targetBlock:^{ [self showAppView]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
@@ -64,10 +73,7 @@
   [contentView addSubview:[KBButton linkWithText:@"Select GPG Key" targetBlock:^{ [self showSelectKey]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Import Key" targetBlock:^{ [self showImportKey]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Text)" targetBlock:^{ [self showPGPEncrypt]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Encrypt (Files)" targetBlock:^{ [self showPGPEncryptFile]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Output" targetBlock:^{ [self showPGPOutput]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"PGP Output (Files)" targetBlock:^{ [self showPGPFileOutput]; }]];
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
   [contentView addSubview:[KBButton linkWithText:@"Prove" targetBlock:^{ [self showProve:KBProveTypeTwitter]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Prove Instructions" targetBlock:^{ [self showProveInstructions]; }]];
@@ -275,6 +281,18 @@
                    [KBFile fileWithPath:@"/Users/gabe/Downloads/test-a-really-long-file-name-what-happens?.txt.gpg"]]];
 
   [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
+}
+
+- (void)showPGPDecrypt {
+  KBPGPDecryptView *decryptView = [[KBPGPDecryptView alloc] init];
+  NSData *data = [NSData dataWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"test" ofType:@"asc"]];
+  [decryptView setASCIIData:data];
+  [self openInWindow:decryptView size:CGSizeMake(600, 400) title:@"Decrypt"];
+}
+
+- (void)showPGPDecryptFile {
+  KBPGPDecryptFileView *decryptView = [[KBPGPDecryptFileView alloc] init];
+  [self openInWindow:decryptView size:CGSizeMake(600, 400) title:@"Decrypt"];
 }
 
 - (void)showError {

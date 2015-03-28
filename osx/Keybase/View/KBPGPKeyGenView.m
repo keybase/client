@@ -29,7 +29,7 @@
   GHWeakSelf gself = self;
 
   _infoLabel = [[KBLabel alloc] init];
-  [_infoLabel setText:@"You are about to discover a new PGP key." style:KBLabelStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_infoLabel setText:@"You are about to discover a new PGP key." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self addSubview:_infoLabel];
 
 //  _progressView = [[KBProgressOverlayView alloc] init];

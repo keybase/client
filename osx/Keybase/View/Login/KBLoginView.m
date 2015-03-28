@@ -32,7 +32,7 @@
   contentView.layer.cornerRadius = 6;
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setMarkup:@"<p><thin>Welcome to</thin> Keybase</p>" style:KBLabelStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [label setMarkup:@"<p><thin>Welcome to</thin> Keybase</p>" style:KBTextStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [contentView addSubview:label];
 
   _usernameField = [[KBTextField alloc] init];

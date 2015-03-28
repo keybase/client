@@ -144,7 +144,7 @@
   if (!labelRow) labelRow = [[KBLabelRow alloc] init];
   labelRow.selectionHighlightStyle = NSTableViewSelectionHighlightStyleSourceList;
   labelRow.label.verticalAlignment = KBVerticalAlignmentMiddle;
-  [labelRow.label setText:item style:KBLabelStyleDefault];
+  [labelRow.label setText:item style:KBTextStyleDefault];
   return labelRow;
 }
 

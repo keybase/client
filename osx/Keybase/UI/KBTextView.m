@@ -75,6 +75,13 @@
   return _view.textStorage;
 }
 
+- (void)setText:(NSString *)text style:(KBTextStyle)style {
+  id<KBAppearance> appearance = KBAppearance.currentAppearance;
+  NSColor *color = [appearance colorForStyle:style];
+  NSFont *font = [appearance fontForStyle:style];
+  [self setText:text font:font color:color];
+}
+
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color {
   NSParameterAssert(font);
   NSParameterAssert(color);

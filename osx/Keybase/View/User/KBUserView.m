@@ -36,7 +36,7 @@ KBRTrackProof *KBFindProof(KBRProofs *proofs, NSString *proofType) {
   KBRTrackProof *proof = KBFindProof(userSummary.proofs, @"twitter");
 
   if (proof) {
-    [self.infoLabel setText:NSStringWithFormat(@"%@@twitter", proof.proofName) style:KBLabelStyleDefault];
+    [self.infoLabel setText:NSStringWithFormat(@"%@@twitter", proof.proofName) style:KBTextStyleDefault];
   } else {
     self.infoLabel.attributedText = nil;
   }

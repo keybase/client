@@ -21,7 +21,7 @@
 
 - (void)setSearchResult:(KBSearchResult *)searchResult {
   _searchResult = searchResult;
-  [self.titleLabel setText:searchResult.userName style:KBLabelStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [self.titleLabel setText:searchResult.userName style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:searchResult appearance:KBAppearance.currentAppearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [(KBUserImageView *)self.imageView setUsername:searchResult.userName];
   self.imageSize = CGSizeMake(40, 40);
@@ -44,7 +44,7 @@
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
 
-  [self.titleLabel setStyle:KBLabelStyleDefault appearance:appearance];
+  [self.titleLabel setStyle:KBTextStyleDefault appearance:appearance];
   [self.infoLabel setAttributedText:[self attributedStringForSearchResult:_searchResult appearance:appearance] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
   [self setNeedsLayout];

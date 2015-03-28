@@ -63,7 +63,7 @@
     [_labels addObject:button];
     [self addSubview:button];
   } else {
-    KBLabel *label = [KBLabel labelWithText:text style:KBLabelStyleDefault];
+    KBLabel *label = [KBLabel labelWithText:text style:KBTextStyleDefault];
     [_labels addObject:label];
     [self addSubview:label];
   }

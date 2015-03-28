@@ -61,7 +61,7 @@
   _logView.layer.borderWidth = 1.0;
   _logView.view.intercellSpacing = CGSizeMake(10, 10);
   _logView.cellSetBlock = ^(KBLabel *label, NSString *text, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued) {
-    [label setText:text style:KBLabelStyleDefault];
+    [label setText:text style:KBTextStyleDefault];
   };
   [self addSubview:_logView];
 

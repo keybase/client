@@ -26,11 +26,11 @@
   [self addSubview:contentView];
 
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Set a Device Name" style:KBLabelStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:@"Set a Device Name" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
   KBLabel *label = [[KBLabel alloc] init];
-  [label setText:@"This is the first time you've logged into this device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBLabelStyleDefault];
+  [label setText:@"This is the first time you've logged into this device. You need to register this device by choosing a name. For example, Macbook or Desktop." style:KBTextStyleDefault];
   [contentView addSubview:label];
 
   _deviceNameField = [[KBTextField alloc] init];

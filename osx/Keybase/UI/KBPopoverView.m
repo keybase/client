@@ -57,7 +57,7 @@
 
 - (void)setText:(NSString *)text title:(NSString *)title {
   [_titleView setTitle:title];
-  [_label setText:text style:KBLabelStyleDefault];
+  [_label setText:text style:KBTextStyleDefault];
   [self setNeedsLayout];
 }
 

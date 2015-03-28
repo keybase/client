@@ -57,7 +57,7 @@
   [self.instructionsLabel setMarkup:instructions.data];
 
   _proofText = proofText;
-  [self.proofLabel setText:proofText style:KBLabelStyleDefault];
+  [self.proofLabel setText:proofText style:KBTextStyleDefault];
   [self setNeedsLayout];
 }
 

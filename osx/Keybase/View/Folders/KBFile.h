@@ -14,6 +14,13 @@ typedef NS_ENUM (NSInteger, KBFileType) {
   KBFileTypeFolder
 };
 
+typedef NS_ENUM(NSInteger, KBFileResponse) {
+  KBFileResponseCancel = 1,
+  KBFileResponseSkip,
+  KBFileResponseOverwrite,
+  KBFileResponseOverwriteAll,
+};
+
 @interface KBFile : NSObject
 
 @property NSString *name;
@@ -29,5 +36,7 @@ typedef NS_ENUM (NSInteger, KBFileType) {
 + (instancetype)folderWithName:(NSString *)name dateModified:(NSDate *)dateModified;
 
 NSImage *KBImageForFile(KBFile *file);
+
++ (void)promptOverwrite:(KBFile *)file view:(NSView *)view completion:(void (^)(KBFileResponse response))completion;
 
 @end

@@ -65,7 +65,7 @@
 
 - (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource imageSize:(CGSize)imageSize {
   [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
-  [self.infoLabel setText:info style:KBLabelStyleSecondaryText];
+  [self.infoLabel setText:info style:KBTextStyleSecondaryText];
   self.imageSize = imageSize;
   [self.imageView.imageLoader setImageSource:imageSource];
   self.image = nil;
@@ -76,7 +76,7 @@
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
   [self.titleLabel setFont:appearance.boldTextFont color:appearance.textColor];
-  [self.infoLabel setStyle:KBLabelStyleSecondaryText appearance:appearance];
+  [self.infoLabel setStyle:KBTextStyleSecondaryText appearance:appearance];
 
   if (self.tintImageForStyle) {
     if (backgroundStyle == NSBackgroundStyleDark && self.imageView.image) {
