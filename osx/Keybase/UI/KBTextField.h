@@ -29,7 +29,6 @@
 @property (nonatomic) NSString *text;
 @property (nonatomic) NSString *placeholder;
 @property (readonly) NSTextField *textField;
-@property KBVerticalAlignment verticalAlignment;
 
 @property (readonly) NSBox *focusView;
 

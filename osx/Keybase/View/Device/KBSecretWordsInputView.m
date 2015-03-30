@@ -10,7 +10,7 @@
 #import "AppDelegate.h"
 
 @interface KBSecretWordsInputView ()
-@property KBTextField *inputField;
+@property KBTextView *inputField;
 @end
 
 @implementation KBSecretWordsInputView
@@ -32,11 +32,9 @@
   [label setText:@"On another device, you should have been presented with a secret passphrase to type here." style:KBTextStyleDefault];
   [contentView addSubview:label];
 
-  _inputField = [[KBTextField alloc] init];
-  _inputField.textField.font = [NSFont systemFontOfSize:20];
-  _inputField.textField.usesSingleLineMode = NO;
-  _inputField.textField.lineBreakMode = NSLineBreakByWordWrapping;
-  _inputField.verticalAlignment = KBVerticalAlignmentBottom;
+  _inputField = [[KBTextView alloc] init];
+  _inputField.borderType = NSBezelBorder;
+  _inputField.view.font = [NSFont fontWithName:@"Monaco" size:20];
   [contentView addSubview:_inputField];
 
   YOView *footerView = [[YOView alloc] init];
@@ -55,9 +53,9 @@
     CGFloat y = 20;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:header].size.height + 20;
-    y += [layout centerWithSize:CGSizeMake(400, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
+    y += [layout centerWithSize:CGSizeMake(400, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 30;
 
-    y += [layout centerWithSize:CGSizeMake(400, 62) frame:CGRectMake(40, y, size.width - 80, 62) view:yself.inputField].size.height + 40;
+    y += [layout centerWithSize:CGSizeMake(400, 100) frame:CGRectMake(40, y, size.width - 80, 100) view:yself.inputField].size.height + 40;
 
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:footerView].size.height + 20;
 

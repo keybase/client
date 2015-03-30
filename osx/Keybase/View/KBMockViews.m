@@ -188,10 +188,7 @@
 
 - (void)showSecretWordsInput {
   KBSecretWordsInputView *view = [[KBSecretWordsInputView alloc] init];
-  view.inputField.text = @"heirloom squid kitsch retro typewriter pbr pourover mustache lumbersexual";
-  view.completion = ^(NSString *words) {
-
-  };
+  view.completion = ^(NSString *words) {};
   [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
 }
 

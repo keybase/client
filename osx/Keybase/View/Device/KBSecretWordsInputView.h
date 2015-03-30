@@ -14,7 +14,7 @@ typedef void (^KBSecretWordsCompletion)(NSString *secretWords);
 
 @interface KBSecretWordsInputView : KBContentView
 
-@property (readonly) KBTextField *inputField;
+@property (readonly) KBTextView *inputField;
 @property (copy) KBSecretWordsCompletion completion;
 @property KBButton *cancelButton;
 

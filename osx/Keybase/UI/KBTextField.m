@@ -62,25 +62,15 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    if (self.verticalAlignment == KBVerticalAlignmentBottom) {
-      CGFloat y = 0;
-      y += [layout setFrame:CGRectMake(0, y, size.width, size.height - 6) view:yself.textField].size.height;
-      if (!yself.focusView.hidden) {
-        y += 2;
-        [layout setFrame:CGRectMake(0, y - yself.focusView.frame.size.height, size.width, yself.focusView.frame.size.height) view:yself.focusView];
-      }
-      return size;
-    } else {
-      CGFloat y = 0;
-      CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:[[NSAttributedString alloc] initWithString:@"Pg" attributes:@{NSFontAttributeName: yself.textField.font}]];
-      y += [layout setFrame:CGRectMake(0, y, size.width, sizeThatFits.height + 2) view:yself.textField].size.height;
-      if (!yself.focusView.hidden) {
-        y += ceilf(sizeThatFits.height * 0.2);
-        [layout setFrame:CGRectMake(0, y - yself.focusView.frame.size.height, size.width, yself.focusView.frame.size.height) view:yself.focusView];
-        y += 2;
-      }
-      return CGSizeMake(size.width, y);
+    CGFloat y = 0;
+    CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:[[NSAttributedString alloc] initWithString:@"Pg" attributes:@{NSFontAttributeName: yself.textField.font}]];
+    y += [layout setFrame:CGRectMake(0, y, size.width, sizeThatFits.height + 2) view:yself.textField].size.height;
+    if (!yself.focusView.hidden) {
+      y += ceilf(sizeThatFits.height * 0.2);
+      [layout setFrame:CGRectMake(0, y - yself.focusView.frame.size.height, size.width, yself.focusView.frame.size.height) view:yself.focusView];
+      y += 2;
     }
+    return CGSizeMake(size.width, y);
   }];
 }
 
