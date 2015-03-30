@@ -526,6 +526,21 @@ func ExportPgpIdentity(identity *openpgp.Identity) keybase_1.PgpIdentity {
 	}
 }
 
+func (bundle *PgpKeyBundle) Export() keybase_1.PublicKey {
+	kid := bundle.GetKid().String()
+	fingerprintStr := ""
+	identities := []keybase_1.PgpIdentity{}
+	fingerprintStr = bundle.GetFingerprint().String()
+	for _, identity := range bundle.Identities {
+		identities = append(identities, ExportPgpIdentity(identity))
+	}
+	return keybase_1.PublicKey{
+		KID:            kid,
+		PGPFingerprint: fingerprintStr,
+		PGPIdentities:  identities,
+	}
+}
+
 func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
 	exportedKeys := []keybase_1.PublicKey{}
 	addKey := func(key GenericKey) {

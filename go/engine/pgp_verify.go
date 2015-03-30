@@ -20,8 +20,10 @@ type PGPVerifyArg struct {
 
 // PGPVerify is an engine.
 type PGPVerify struct {
-	arg  *PGPVerifyArg
-	peek *libkb.Peeker
+	arg        *PGPVerifyArg
+	peek       *libkb.Peeker
+	signStatus *libkb.SignatureStatus
+	owner      *libkb.User
 	libkb.Contextified
 }
 
@@ -62,7 +64,15 @@ func (e *PGPVerify) Run(ctx *Context) error {
 	if len(e.arg.Signature) == 0 {
 		return e.runAttached(ctx)
 	}
-	return e.runDetach(ctx)
+	return e.runDetached(ctx)
+}
+
+func (e *PGPVerify) SignatureStatus() *libkb.SignatureStatus {
+	return e.signStatus
+}
+
+func (e *PGPVerify) Owner() *libkb.User {
+	return e.owner
 }
 
 // runAttached verifies an attached signature
@@ -74,11 +84,16 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 		TrackOptions: e.arg.TrackOptions,
 	}
 	eng := NewPGPDecrypt(arg)
-	return RunEngine(eng, ctx)
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+	e.signStatus = eng.SignatureStatus()
+	e.owner = eng.Owner()
+	return nil
 }
 
-// runDetach verifies a detached signature
-func (e *PGPVerify) runDetach(ctx *Context) error {
+// runDetached verifies a detached signature
+func (e *PGPVerify) runDetached(ctx *Context) error {
 	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
 	if err != nil {
 		return err
@@ -91,8 +106,14 @@ func (e *PGPVerify) runDetach(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+
+	e.owner = sk.Owner()
+	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
+
 	if signer != nil {
-		e.outputSuccess(ctx)
+		e.signStatus.Verified = true
+		e.signStatus.Entity = signer
+		e.outputSuccess(ctx, signer, sk.Owner())
 	}
 
 	return nil
@@ -119,12 +140,19 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 	if err != nil {
 		return fmt.Errorf("Check sig error: %s", err)
 	}
+
+	e.owner = sk.Owner()
+	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
+
 	if signer != nil {
-		e.outputSuccess(ctx)
+		e.signStatus.Verified = true
+		e.signStatus.Entity = signer
+		e.outputSuccess(ctx, signer, sk.Owner())
 	}
 	return nil
 }
 
-func (e *PGPVerify) outputSuccess(ctx *Context) {
-	ctx.LogUI.Notice("Signature verified.")
+func (e *PGPVerify) outputSuccess(ctx *Context, signer *openpgp.Entity, owner *libkb.User) {
+	bundle := (*libkb.PgpKeyBundle)(signer)
+	ctx.LogUI.Notice("Signature verified.  Signed by %s.  PGP Fingerprint: %s", owner.GetName(), bundle.GetFingerprint())
 }

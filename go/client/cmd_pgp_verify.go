@@ -103,7 +103,7 @@ func (c *CmdPGPVerify) RunClient() error {
 			Signature:     c.detachedData,
 		},
 	}
-	err = cli.PgpVerify(arg)
+	_, err = cli.PgpVerify(arg)
 
 	c.Close(err)
 	return err

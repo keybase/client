@@ -16,8 +16,10 @@ type PGPDecryptArg struct {
 // PGPDecrypt decrypts data read from source into sink for the
 // logged in user.
 type PGPDecrypt struct {
-	arg *PGPDecryptArg
 	libkb.Contextified
+	arg        *PGPDecryptArg
+	signStatus *libkb.SignatureStatus
+	owner      *libkb.User
 }
 
 // NewPGPDecrypt creates a PGPDecrypt engine.
@@ -53,7 +55,7 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	signStatus, err := libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
+	e.signStatus, err = libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
 		return err
 	}
@@ -63,16 +65,27 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 		return nil
 	}
 
-	G.Log.Debug("PGPDecrypt: signStatus: %+v", signStatus)
+	G.Log.Debug("PGPDecrypt: signStatus: %+v", e.signStatus)
 
-	if !signStatus.IsSigned {
+	if !e.signStatus.IsSigned {
 		return libkb.BadSigError{E: "no signature in message"}
 	}
-	if !signStatus.Verified {
-		return signStatus.SignatureError
+	if !e.signStatus.Verified {
+		return e.signStatus.SignatureError
 	}
 
-	ctx.LogUI.Notice("Signature verified")
+	e.owner = sk.Owner()
+	bundle := (*libkb.PgpKeyBundle)(e.signStatus.Entity)
+
+	ctx.LogUI.Notice("Signature verified.  Signed by %s.  PGP Fingerprint: %s.", e.owner.GetName(), bundle.GetFingerprint())
 
 	return nil
+}
+
+func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {
+	return e.signStatus
+}
+
+func (e *PGPDecrypt) Owner() *libkb.User {
+	return e.owner
 }

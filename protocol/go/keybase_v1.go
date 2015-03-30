@@ -1171,6 +1171,13 @@ type PgpEncryptOptions struct {
 	ApproveRemote bool     `codec:"approveRemote" json:"approveRemote"`
 }
 
+type PgpSigVerification struct {
+	IsSigned bool      `codec:"isSigned" json:"isSigned"`
+	Verified bool      `codec:"verified" json:"verified"`
+	Signer   User      `codec:"signer" json:"signer"`
+	SignKey  PublicKey `codec:"signKey" json:"signKey"`
+}
+
 type PgpDecryptOptions struct {
 	AssertSigned  bool `codec:"assertSigned" json:"assertSigned"`
 	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
@@ -1237,8 +1244,8 @@ type PgpInterface interface {
 	PgpSign(PgpSignArg) error
 	PgpPull(PgpPullArg) error
 	PgpEncrypt(PgpEncryptArg) error
-	PgpDecrypt(PgpDecryptArg) error
-	PgpVerify(PgpVerifyArg) error
+	PgpDecrypt(PgpDecryptArg) (PgpSigVerification, error)
+	PgpVerify(PgpVerifyArg) (PgpSigVerification, error)
 	PgpImport(PgpImportArg) error
 	PgpExport(PgpExportArg) ([]FingerprintAndKey, error)
 }
@@ -1271,14 +1278,14 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 			"pgpDecrypt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpDecryptArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpDecrypt(args[0])
+					ret, err = i.PgpDecrypt(args[0])
 				}
 				return
 			},
 			"pgpVerify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PgpVerifyArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PgpVerify(args[0])
+					ret, err = i.PgpVerify(args[0])
 				}
 				return
 			},
@@ -1320,13 +1327,13 @@ func (c PgpClient) PgpEncrypt(__arg PgpEncryptArg) (err error) {
 	return
 }
 
-func (c PgpClient) PgpDecrypt(__arg PgpDecryptArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, nil)
+func (c PgpClient) PgpDecrypt(__arg PgpDecryptArg) (res PgpSigVerification, err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PgpClient) PgpVerify(__arg PgpVerifyArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpVerify", []interface{}{__arg}, nil)
+func (c PgpClient) PgpVerify(__arg PgpVerifyArg) (res PgpSigVerification, err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpVerify", []interface{}{__arg}, &res)
 	return
 }
 

@@ -213,6 +213,22 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "PgpSigVerification",
+    "fields" : [ {
+      "name" : "isSigned",
+      "type" : "boolean"
+    }, {
+      "name" : "verified",
+      "type" : "boolean"
+    }, {
+      "name" : "signer",
+      "type" : "User"
+    }, {
+      "name" : "signKey",
+      "type" : "PublicKey"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "PgpDecryptOptions",
     "fields" : [ {
       "name" : "assertSigned",
@@ -311,7 +327,7 @@
         "name" : "opts",
         "type" : "PgpDecryptOptions"
       } ],
-      "response" : "null"
+      "response" : "PgpSigVerification"
     },
     "pgpVerify" : {
       "request" : [ {
@@ -324,7 +340,7 @@
         "name" : "opts",
         "type" : "PgpVerifyOptions"
       } ],
-      "response" : "null"
+      "response" : "PgpSigVerification"
     },
     "pgpImport" : {
       "request" : [ {

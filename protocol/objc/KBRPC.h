@@ -387,6 +387,13 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL approveRemote;
 @end
 
+@interface KBRPgpSigVerification : KBRObject
+@property BOOL isSigned;
+@property BOOL verified;
+@property KBRUser *signer;
+@property KBRPublicKey *signKey;
+@end
+
 @interface KBRPgpDecryptOptions : KBRObject
 @property BOOL assertSigned;
 @property BOOL localOnly;
@@ -412,9 +419,9 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)pgpEncryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpEncryptOptions *)opts completion:(void (^)(NSError *error))completion;
 
-- (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error))completion;
+- (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error, KBRPgpSigVerification *pgpSigVerification))completion;
 
-- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error))completion;
+- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error, KBRPgpSigVerification *pgpSigVerification))completion;
 
 - (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
 

@@ -61,7 +61,7 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) error {
+func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) (keybase_1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
 	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
 	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
@@ -80,10 +80,15 @@ func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) error {
 		LogUI:      h.getLogUI(arg.SessionID),
 	}
 	eng := engine.NewPGPDecrypt(earg)
-	return engine.RunEngine(eng, ctx)
+	err := engine.RunEngine(eng, ctx)
+	if err != nil {
+		return keybase_1.PgpSigVerification{}, err
+	}
+
+	return sigVer(eng.SignatureStatus(), eng.Owner()), nil
 }
 
-func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) error {
+func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) (keybase_1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
 	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
 	earg := &engine.PGPVerifyArg{
@@ -100,7 +105,31 @@ func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) error {
 		LogUI:      h.getLogUI(arg.SessionID),
 	}
 	eng := engine.NewPGPVerify(earg)
-	return engine.RunEngine(eng, ctx)
+	err := engine.RunEngine(eng, ctx)
+	if err != nil {
+		return keybase_1.PgpSigVerification{}, err
+	}
+
+	return sigVer(eng.SignatureStatus(), eng.Owner()), nil
+}
+
+func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase_1.PgpSigVerification {
+	var res keybase_1.PgpSigVerification
+	if ss.IsSigned {
+		res.IsSigned = ss.IsSigned
+		res.Verified = ss.Verified
+		if owner != nil {
+			signer := owner.Export()
+			if signer != nil {
+				res.Signer = *signer
+			}
+		}
+		if ss.Entity != nil {
+			bundle := (*libkb.PgpKeyBundle)(ss.Entity)
+			res.SignKey = bundle.Export()
+		}
+	}
+	return res
 }
 
 func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {

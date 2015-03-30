@@ -34,6 +34,16 @@ protocol pgp {
 	}
 
 	void pgpEncrypt(int sessionID, Stream source, Stream sink, PgpEncryptOptions opts);
+
+	// PgpSigVerification is returned by pgpDecrypt and pgpVerify with information
+	// about a the signature verification.  If isSigned is false, there was no
+	// signature, and the rest of the fields should be ignored.
+	record PgpSigVerification {
+		boolean isSigned; // true if message was signed
+		boolean verified; // true if signature verified
+		User signer; // who signed it
+		PublicKey signKey; // the pub key that signed it
+	}
 	
 	record PgpDecryptOptions {
 		boolean assertSigned;
@@ -41,7 +51,7 @@ protocol pgp {
 		boolean approveRemote;  // approve remote track without prompt
 	}
 
-	void pgpDecrypt(int sessionID, Stream source, Stream sink, PgpDecryptOptions opts);
+	PgpSigVerification pgpDecrypt(int sessionID, Stream source, Stream sink, PgpDecryptOptions opts);
 	
 	record PgpVerifyOptions {
 		boolean localOnly; // store track locally only
@@ -49,7 +59,7 @@ protocol pgp {
 		bytes signature; // detached signature data (binary or armored), can be empty
 	}
 	
-	void pgpVerify(int sessionID, Stream source, PgpVerifyOptions opts);
+	PgpSigVerification pgpVerify(int sessionID, Stream source, PgpVerifyOptions opts);
 
 	void pgpImport(int sessionID, bytes key, boolean pushSecret);
 

@@ -102,7 +102,7 @@ func (c *CmdPGPDecrypt) RunClient() error {
 		ApproveRemote: c.approveRemote,
 	}
 	arg := keybase_1.PgpDecryptArg{Source: src, Sink: snk, Opts: opts}
-	err = cli.PgpDecrypt(arg)
+	_, err = cli.PgpDecrypt(arg)
 
 	c.Close(err)
 	return err

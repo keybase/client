@@ -472,6 +472,9 @@
 @implementation KBRPgpEncryptOptions
 @end
 
+@implementation KBRPgpSigVerification
+@end
+
 @implementation KBRPgpDecryptOptions
 @end
 
@@ -504,17 +507,27 @@
   }];
 }
 
-- (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error))completion {
+- (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error, KBRPgpSigVerification *pgpSigVerification))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"source": KBRValue(source), @"sink": KBRValue(sink), @"opts": KBRValue(opts)}];
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpDecrypt" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRPgpSigVerification *result = retval ? [MTLJSONAdapter modelOfClass:KBRPgpSigVerification.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 
-- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error))completion {
+- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error, KBRPgpSigVerification *pgpSigVerification))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"source": KBRValue(source), @"opts": KBRValue(opts)}];
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpVerify" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRPgpSigVerification *result = retval ? [MTLJSONAdapter modelOfClass:KBRPgpSigVerification.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
   }];
 }
 

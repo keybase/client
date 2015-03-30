@@ -18,6 +18,8 @@ type ScanKeys struct {
 	secui libkb.SecretUI
 	idui  libkb.IdentifyUI
 	opts  *TrackOptions
+	owner *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
+	me    *libkb.User
 }
 
 // enforce ScanKeys implements openpgp.KeyRing:
@@ -37,17 +39,17 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 
 	// logged in:
 
-	u, err := libkb.LoadMe(libkb.LoadUserArg{})
+	sk.me, err = libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
 		return nil, err
 	}
 
 	// if user provided, then load their local keys, and their synced secret key:
-	ring, err := G.LoadSKBKeyring(u.GetName())
+	ring, err := G.LoadSKBKeyring(sk.me.GetName())
 	if err != nil {
 		return nil, err
 	}
-	synced, err := u.GetSyncedSecretKey()
+	synced, err := sk.me.GetSyncedSecretKey()
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +83,7 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 	memres := s.keys.KeysById(id)
 	G.Log.Debug("ScanKeys:KeysById(%d) => %d keys match in memory", id, len(memres))
 	if len(memres) > 0 {
+		s.owner = s.me // `me` is the owner of all s.keys
 		return memres
 	}
 
@@ -103,6 +106,7 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	memres := s.keys.KeysByIdUsage(id, requiredUsage)
 	G.Log.Debug("ScanKeys:KeysByIdUsage(%d, %x) => %d keys match in memory", id, requiredUsage, len(memres))
 	if len(memres) > 0 {
+		s.owner = s.me // `me` is the owner of all s.keys
 		return memres
 	}
 
@@ -122,6 +126,12 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 func (s *ScanKeys) DecryptionKeys() []openpgp.Key {
 	G.Log.Debug("ScanKeys:DecryptionKeys() => %d keys available", len(s.keys))
 	return s.keys.DecryptionKeys()
+}
+
+// Owner returns the owner of the keys found by ScanKeys that were
+// used in KeysById or KeysByIdUsage.
+func (s *ScanKeys) Owner() *libkb.User {
+	return s.owner
 }
 
 // extractKeys gets all the private pgp keys out of the ring and
@@ -191,6 +201,8 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 		G.Log.Warning("error getting user plus pgp key from %s", username)
 		return nil, err
 	}
+	// user found is the owner of the keys
+	s.owner = uplus[0].User
 
 	// convert the bundles to an openpgp entity list
 	// (which implements the openpgp.KeyRing interface)
