@@ -53,6 +53,7 @@ func (e *PGPVerify) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&PGPDecrypt{},
 		&ScanKeys{},
+		&Identify{},
 	}
 }
 

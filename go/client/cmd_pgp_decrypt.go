@@ -26,11 +26,11 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "y",
 				Usage: "approve remote tracking without prompting",
 			},
-			cli.StringFlag{
+			cli.BoolFlag{
 				Name:  "s, signed",
 				Usage: "assert signed",
 			},
-			cli.BoolFlag{
+			cli.StringFlag{
 				Name:  "S, signed-by",
 				Usage: "assert signed by the given user (can use user assertion format)",
 			},

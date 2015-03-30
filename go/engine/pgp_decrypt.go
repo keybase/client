@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -47,6 +48,7 @@ func (e *PGPDecrypt) RequiredUIs() []libkb.UIKind {
 func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&ScanKeys{},
+		&Identify{},
 	}
 }
 
@@ -61,6 +63,9 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 		return err
 	}
 
+	if len(e.arg.SignedBy) > 0 {
+		e.arg.AssertSigned = true
+	}
 	if !e.arg.AssertSigned {
 		G.Log.Debug("Not checking signature status (AssertSigned == false)")
 		return nil
@@ -76,8 +81,12 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 	}
 
 	e.owner = sk.Owner()
-	bundle := (*libkb.PgpKeyBundle)(e.signStatus.Entity)
 
+	if err := e.checkSignedBy(ctx); err != nil {
+		return err
+	}
+
+	bundle := (*libkb.PgpKeyBundle)(e.signStatus.Entity)
 	ctx.LogUI.Notice("Signature verified.  Signed by %s.  PGP Fingerprint: %s.", e.owner.GetName(), bundle.GetFingerprint())
 
 	return nil
@@ -89,4 +98,35 @@ func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {
 
 func (e *PGPDecrypt) Owner() *libkb.User {
 	return e.owner
+}
+
+func (e *PGPDecrypt) checkSignedBy(ctx *Context) error {
+	if len(e.arg.SignedBy) == 0 {
+		// no assertion necessary
+		return nil
+	}
+
+	G.Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
+
+	// load the user in SignedBy
+	arg := NewIdentifyArg(e.arg.SignedBy, false)
+	eng := NewIdentify(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+	signByUser := eng.User()
+	if signByUser == nil {
+		// this shouldn't happen (engine should return an error in this state)
+		// but just in case:
+		return libkb.ErrNilUser
+	}
+
+	// check if it is equal to signature owner
+	if !e.owner.Equal(*signByUser) {
+		return libkb.BadSigError{
+			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.owner.GetName(), e.arg.SignedBy),
+		}
+	}
+
+	return nil
 }
