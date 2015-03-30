@@ -25,7 +25,7 @@
 
   KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleToolbar];
   removeButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    [self removeKey:completion];
+    [self removePGPKey:completion];
   };
   [self addSubview:removeButton];
 
@@ -67,11 +67,11 @@
   [self setNeedsLayout];
 }
 
-- (void)removeKey:(KBButtonCompletion)completion {
+- (void)removePGPKey:(KBButtonCompletion)completion {
   [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
     if (yes) {
-      KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
-      [mykey deletePrimary:completion];
+      KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
+      [request pgpDeletePrimary:completion];
     } else {
       completion(nil);
     }

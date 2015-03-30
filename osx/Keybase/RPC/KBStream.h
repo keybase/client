@@ -18,14 +18,13 @@ typedef NSString *(^KBFileOutput)(NSString *path);
 
 @property id<KBReader> reader;
 @property id<KBWriter> writer;
-@property BOOL binary;
 @property (nonatomic) int label;
 
-+ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer binary:(BOOL)binary;
++ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer;
 
 - (void)close;
 
-
+#pragma mark -
 
 - (void)registerWithClient:(KBRPClient *)client sessionId:(NSInteger)sessionId;
 

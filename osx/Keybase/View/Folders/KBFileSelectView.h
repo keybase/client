@@ -12,8 +12,8 @@
 
 @interface KBFileSelectView : YOView
 
-@property KBLabel *label;
-@property KBTextField *textField;
-@property KBButton *browseButton;
+- (void)setLabelText:(NSString *)labelText;
+
+- (NSString *)path;
 
 @end

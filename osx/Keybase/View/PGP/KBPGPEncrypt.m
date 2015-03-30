@@ -44,9 +44,6 @@
   KBRStream *sink = [[KBRStream alloc] init];
   sink.fd = stream.label;
 
-  // TODO: Should copy options first
-  options.binaryOut = stream.binary;
-
   [request pgpEncryptWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error) {
     completion(error, stream);
   }];

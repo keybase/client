@@ -50,9 +50,9 @@ NSImage *KBImageForFile(KBFile *file) {
   return _icon;
 }
 
-+ (void)promptOverwrite:(KBFile *)file view:(NSView *)view completion:(void (^)(KBFileResponse response))completion {
-  NSString *title = NSStringWithFormat(@"Overwrite %@", file.name);
-  NSString *description = NSStringWithFormat(@"Do you want to overwrite %@", file.path);
++ (void)promptOverwrite:(NSString *)path view:(NSView *)view completion:(void (^)(KBFileResponse response))completion {
+  NSString *title = NSStringWithFormat(@"Overwrite %@", [path lastPathComponent]);
+  NSString *description = NSStringWithFormat(@"Do you want to overwrite %@", path);
   [KBAlert promptWithTitle:title description:description style:NSInformationalAlertStyle buttonTitles:@[@"Cancel", @"Skip", @"Overwrite", @"Overwrite All"] view:view completion:^(NSModalResponse returnCode) {
     if (returnCode == NSAlertFirstButtonReturn) {
       completion(KBFileResponseCancel);

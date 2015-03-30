@@ -35,12 +35,13 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
     UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
-    CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) attributedString:self.textView.attributedString];
-//    CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
+    CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) attributedString:self.textView.attributedString];
+
+    CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
 
     // TODO vertical and horizontal aligns
 
-    CGRect textFrame = CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
+    CGRect textFrame = CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, sizeThatFits.height);
     CGSize borderSize = size;
 
     if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
@@ -51,17 +52,18 @@
 
     [layout setFrame:CGRectIntegral(textFrame) view:yself.textView];
     [layout setSize:borderSize view:yself.border options:0];
-    return size;
+    return CGSizeMake(size.width, MAX(size.height, sizeWithInsets.height));
   }];
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
   UIEdgeInsets insets = UIEdgeInsetsAdd(self.border.insets, self.insets);
-  CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) attributedString:self.textView.attributedString];
+  CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) attributedString:self.textView.attributedString];
   CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
   if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
     sizeWithInsets.height = MAX(size.height, sizeWithInsets.height);
   }
+  //GHDebug(@"sizeWithInsets=%@ ; %@ ; %@", YONSStringFromCGSize(sizeWithInsets), YONSStringFromCGSize(size), _textView.string.length > 4 ? [_textView.string substringToIndex:4] : @"");
   return sizeWithInsets;
 }
 

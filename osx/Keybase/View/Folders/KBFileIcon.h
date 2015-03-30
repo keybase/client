@@ -13,9 +13,8 @@
 
 @interface KBFileIcon : YOView
 
-@property KBImageView *imageView;
-@property KBLabel *nameLabel;
 @property CGFloat iconHeight;
+@property NSFont *font;
 
 @property (nonatomic) KBFile *file;
 

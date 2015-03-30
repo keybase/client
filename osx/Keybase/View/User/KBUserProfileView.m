@@ -344,8 +344,8 @@
   progressView.work = ^(KBCompletionBlock completion) {
     KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
     uids.useDefault = YES;
-    KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
-    [mykey pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
+    KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
+    [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
       completion(error);
       [self reload];
     }];
@@ -354,12 +354,12 @@
 }
 
 - (void)selectGPGKey {
-  KBRMykeyRequest *request = [[KBRMykeyRequest alloc] initWithClient:self.client];
+  KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   [self.client registerMethod:@"keybase.1.gpgUi.selectKeyAndPushOption" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectKeyAndPushOptionRequestParams *requestParams = [[KBRSelectKeyAndPushOptionRequestParams alloc] initWithParams:params];
     [self selectPGPKey:requestParams completion:completion];
   }];
-  [request selectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
+  [request pgpSelectWithQuery:nil allowMulti:NO skipImport:NO completion:^(NSError *error) {
     if (error) [self setError:error];
     [self reload];
   }];

@@ -12,7 +12,8 @@
 
 @interface KBPGPSignFooterView : YOVBox
 
-@property KBButton *clearSignButton;
+@property KBButton *detached;
+@property KBButton *clearSign;
 @property KBButton *signButton;
 
 @end

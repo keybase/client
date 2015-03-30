@@ -73,7 +73,7 @@
     } else {
       CGFloat y = 0;
       CGSize sizeThatFits = [KBLabel sizeThatFits:size attributedString:[[NSAttributedString alloc] initWithString:@"Pg" attributes:@{NSFontAttributeName: yself.textField.font}]];
-      y += [layout setFrame:CGRectMake(0, y, size.width, sizeThatFits.height) view:yself.textField].size.height;
+      y += [layout setFrame:CGRectMake(0, y, size.width, sizeThatFits.height + 2) view:yself.textField].size.height;
       if (!yself.focusView.hidden) {
         y += ceilf(sizeThatFits.height * 0.2);
         [layout setFrame:CGRectMake(0, y - yself.focusView.frame.size.height, size.width, yself.focusView.frame.size.height) view:yself.focusView];

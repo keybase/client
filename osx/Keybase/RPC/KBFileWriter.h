@@ -12,8 +12,6 @@
 
 @interface KBFileWriter : NSObject <KBWriter>
 
-@property (readonly) NSString *path;
-
 + (instancetype)fileWriterWithPath:(NSString *)path;
 
 @end

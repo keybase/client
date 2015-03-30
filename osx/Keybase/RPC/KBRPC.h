@@ -347,24 +347,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
-@interface KBRPgpCreateUids : KBRObject
-@property BOOL useDefault;
-@property NSArray *ids; /*of KBRPgpIdentity*/
-@end
-
-@interface KBRMykeyRequest : KBRRequest
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
-
-- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
-
-- (void)deletePrimary:(void (^)(NSError *error))completion;
-
-- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
-
-- (void)updateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
-
-@end
-
 typedef NS_ENUM (NSInteger, KBRSignMode) {
 	KBRSignModeAttached,
 	KBRSignModeDetached,
@@ -387,6 +369,13 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL approveRemote;
 @end
 
+@interface KBRPgpSigVerification : KBRObject
+@property BOOL isSigned;
+@property BOOL verified;
+@property KBRUser *signer;
+@property KBRPublicKey *signKey;
+@end
+
 @interface KBRPgpDecryptOptions : KBRObject
 @property BOOL assertSigned;
 @property BOOL localOnly;
@@ -397,13 +386,17 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL localOnly;
 @property BOOL approveRemote;
 @property NSData *signature;
-@property BOOL clearsign;
 @end
 
 @interface KBRFingerprintAndKey : KBRObject
 @property NSString *fingerprint;
 @property NSString *key;
 @property NSString *desc;
+@end
+
+@interface KBRPgpCreateUids : KBRObject
+@property BOOL useDefault;
+@property NSArray *ids; /*of KBRPgpIdentity*/
 @end
 
 @interface KBRPgpRequest : KBRRequest
@@ -413,13 +406,23 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 - (void)pgpEncryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpEncryptOptions *)opts completion:(void (^)(NSError *error))completion;
 
-- (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error))completion;
+- (void)pgpDecryptWithSessionID:(NSInteger)sessionID source:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPgpDecryptOptions *)opts completion:(void (^)(NSError *error, KBRPgpSigVerification *pgpSigVerification))completion;
 
-- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error))completion;
+- (void)pgpVerifyWithSessionID:(NSInteger)sessionID source:(KBRStream *)source opts:(KBRPgpVerifyOptions *)opts completion:(void (^)(NSError *error, KBRPgpSigVerification *pgpSigVerification))completion;
 
 - (void)pgpImportWithSessionID:(NSInteger)sessionID key:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
 
 - (void)pgpExportWithSessionID:(NSInteger)sessionID secret:(BOOL)secret query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion;
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion;
+
+- (void)pgpDeletePrimary:(void (^)(NSError *error))completion;
+
+- (void)pgpSelectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion;
+
+- (void)pgpUpdateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -735,26 +738,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRPgpKeyGenRequestParams : KBRRequestParams
-@property NSInteger primaryBits;
-@property NSInteger subkeyBits;
-@property KBRPgpCreateUids *createUids;
-@property BOOL allowMulti;
-@property BOOL doExport;
-@end
-@interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
-@property KBRPgpCreateUids *createUids;
-@end
-@interface KBRSelectRequestParams : KBRRequestParams
-@property NSString *query;
-@property BOOL allowMulti;
-@property BOOL skipImport;
-@end
-@interface KBRUpdateRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property BOOL all;
-@property NSArray *fingerprints;
-@end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRStream *source;
@@ -791,6 +774,26 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property BOOL secret;
 @property NSString *query;
+@end
+@interface KBRPgpKeyGenRequestParams : KBRRequestParams
+@property NSInteger primaryBits;
+@property NSInteger subkeyBits;
+@property KBRPgpCreateUids *createUids;
+@property BOOL allowMulti;
+@property BOOL doExport;
+@end
+@interface KBRPgpKeyGenDefaultRequestParams : KBRRequestParams
+@property KBRPgpCreateUids *createUids;
+@end
+@interface KBRPgpSelectRequestParams : KBRRequestParams
+@property NSString *query;
+@property BOOL allowMulti;
+@property BOOL skipImport;
+@end
+@interface KBRPgpUpdateRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property BOOL all;
+@property NSArray *fingerprints;
 @end
 @interface KBRProveRequestParams : KBRRequestParams
 @property NSString *service;

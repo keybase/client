@@ -83,28 +83,21 @@
 
   KBReader *reader = [KBReader readerWithData:[text dataUsingEncoding:NSUTF8StringEncoding]];
   KBWriter *writer = [KBWriter writer];
-  KBStream *stream = [KBStream streamWithReader:reader writer:writer binary:NO];
-//  [streams addObject:[KBStream streamWithReader:reader writer:writer binary:NO]];
-//
-//  for (KBFileIcon *fileIcon in [_files subviews]) {
-//    KBFileReader *fileReader = [KBFileReader fileReaderWithPath:fileIcon.file.path];
-//    NSString *outPath = [fileIcon.file.path stringByAppendingPathExtension:@"gpg"];
-//    KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
-//    [streams addObject:[KBStream streamWithReader:fileReader writer:fileWriter binary:YES]];
-//  }
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer];
 
   _encrypter = [[KBPGPEncrypt alloc] init];
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
   options.recipients = _userPickerView.usernames;
   options.noSelf = _footerView.includeSelfButton.state != NSOnState;
   options.noSign = _footerView.signButton.state != NSOnState;
+  options.binaryOut = NO;
   self.navigation.progressEnabled = YES;
   //GHWeakSelf gself = self;
   [_encrypter encryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
     self.navigation.progressEnabled = NO;
     if ([self.navigation setError:error sender:self]) return;
-
-    [self showOutput:writer.data];
+    
+    if (writer.data) [self showOutput:writer.data];
   }];
 }
 

@@ -9,20 +9,27 @@
 #import "KBWriter.h"
 
 @interface KBWriter ()
-@property NSMutableData *data;
+@property NSMutableData *mdata;
 @end
 
 @implementation KBWriter
 
 + (instancetype)writer {
-  KBWriter *writer = [[self alloc] init];
-  writer.data = [NSMutableData data]; // TODO capacity
-  return writer;
+  return [[self alloc] init];
 }
 
 - (NSInteger)write:(const uint8_t *)buffer maxLength:(NSUInteger)maxLength error:(NSError **)error {
-  [_data appendBytes:buffer length:maxLength];
+  if (!_mdata) _mdata = [NSMutableData data];
+  [_mdata appendBytes:buffer length:maxLength];
   return maxLength;
+}
+
+- (NSData *)data {
+  return _mdata;
+}
+
+- (NSString *)path {
+  return nil;
 }
 
 - (void)close {

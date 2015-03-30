@@ -664,16 +664,29 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="XZ7-Yo-hya"/>
-                            <menuItem title="Sign" id="haB-7X-NaD">
+                            <menuItem title="Sign (Text)" id="haB-7X-NaD">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="sign:" target="Voe-Tx-rLC" id="hdU-Q1-XA0"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Sign (File)" id="asn-dM-5tl">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="signFile:" target="Voe-Tx-rLC" id="J6p-fx-fmm"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="YkX-ax-9J9"/>
                             <menuItem title="Verify" id="OiT-4T-sgp" userLabel="Verify">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="verify:" target="Voe-Tx-rLC" id="uVP-NU-MbJ"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Verify (File)" id="AYr-WI-Hzf">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="verifyFile:" target="Voe-Tx-rLC" id="GR6-7w-pW2"/>
                                 </connections>
                             </menuItem>
                         </items>

@@ -87,9 +87,9 @@
   uids.useDefault = YES;
 
   [self.navigation setProgressEnabled:YES];
-  KBRMykeyRequest *mykey = [[KBRMykeyRequest alloc] initWithClient:self.client];
+  KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   //BOOL pushSecret = _pushPrivateCheckbox.state == NSOnState;
-  [mykey pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
+  [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];

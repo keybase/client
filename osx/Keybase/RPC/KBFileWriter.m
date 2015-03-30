@@ -48,4 +48,8 @@
   _open = NO;
 }
 
+- (NSData *)data {
+  return nil;
+}
+
 @end

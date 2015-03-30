@@ -47,7 +47,7 @@
   NSData *data = [_textView.text dataUsingEncoding:NSASCIIStringEncoding];
   KBReader *reader = [KBReader readerWithData:data];
   KBWriter *writer = [KBWriter writer];
-  KBStream *stream = [KBStream streamWithReader:reader writer:writer binary:NO];
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer];
 
   self.navigation.progressEnabled = YES;
   [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {

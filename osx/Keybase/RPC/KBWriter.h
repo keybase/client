@@ -9,13 +9,13 @@
 #import <Foundation/Foundation.h>
 
 @protocol KBWriter
+- (NSData *)data;
+- (NSString *)path;
 - (NSInteger)write:(const uint8_t *)buffer maxLength:(NSUInteger)maxLength error:(NSError **)error;
 - (void)close;
 @end
 
 @interface KBWriter : NSObject <KBWriter>
-
-@property (readonly) NSMutableData *data;
 
 + (instancetype)writer;
 

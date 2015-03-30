@@ -8,12 +8,18 @@
 
 #import "KBFileIcon.h"
 
+@interface KBFileIcon ()
+@property KBImageView *imageView;
+@property KBLabel *nameLabel;
+@end
+
 @implementation KBFileIcon
 
 - (void)viewInit {
   [super viewInit];
 
   _iconHeight = 120; // Default
+  _font = [NSFont systemFontOfSize:12];
 
   _imageView = [[KBImageView alloc] init];
   [self addSubview:_imageView];
@@ -24,29 +30,29 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
-    CGFloat iconHeight = self.iconHeight;
-    CGFloat width = iconHeight + 30;
+    CGSize labelSize = [yself.nameLabel sizeThatFits:CGSizeMake(size.width, 0)];
 
-    CGSize labelSize = [yself.nameLabel sizeThatFits:CGSizeMake(width, 40)];
-
-    CGFloat height = iconHeight + labelSize.height + 8;
-
-    [layout centerWithSize:CGSizeMake(iconHeight, iconHeight) frame:CGRectMake(0, 0, size.width, 0) view:yself.imageView];
+    CGFloat iconHeight = yself.iconHeight;
+    if (size.width > 0) iconHeight = MIN(iconHeight, size.width - labelSize.height - 10);
+    if (size.height > 0) iconHeight = MIN(iconHeight, size.height - labelSize.height - 10);
 
     if (![layout isSizing]) {
       // Force the image size to be the right height... Scaling only does downscale, not upscale :(
       yself.imageView.image.size = CGSizeMake(iconHeight, iconHeight);
     }
 
-    [layout centerWithSize:labelSize frame:CGRectMake(0, iconHeight + 8, size.width, labelSize.height) view:yself.nameLabel];
+    CGFloat y = CGRectGetMaxY([layout centerWithSize:CGSizeMake(iconHeight, iconHeight) frame:CGRectMake(0, 0, size.width, iconHeight) view:yself.imageView]);
 
-    return CGSizeMake(width, height);
+    y += 10;
+    y += [layout centerWithSize:labelSize frame:CGRectMake(0, y, size.width, labelSize.height) view:yself.nameLabel].size.height;
+
+    return CGSizeMake(size.width, y);
   }];
 }
 
 - (void)setFile:(KBFile *)file {
   _file = file;
-  [_nameLabel setText:_file.name font:[NSFont systemFontOfSize:12] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  [_nameLabel setText:_file.name font:_font color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   _imageView.image = file.icon;
   [self setNeedsLayout];
 }

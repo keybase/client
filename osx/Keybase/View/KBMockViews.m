@@ -30,6 +30,7 @@
 #import "KBPGPDecryptView.h"
 #import "KBPGPDecryptFileView.h"
 #import "KBPGPSignView.h"
+#import "KBPGPSignFileView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -61,6 +62,7 @@
   [contentView addSubview:[KBButton linkWithText:@"PGP Decrypt (Files)" targetBlock:^{ [self showPGPDecryptFile]; }]];
   
   [contentView addSubview:[KBButton linkWithText:@"PGP Sign" targetBlock:^{ [self showPGPSign]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"PGP Sign (File)" targetBlock:^{ [self showPGPSignFile]; }]];
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
@@ -303,6 +305,11 @@
 - (void)showPGPSign {
   KBPGPSignView *signView = [[KBPGPSignView alloc] init];
   [self openInWindow:signView size:CGSizeMake(600, 400) title:@"Sign"];
+}
+
+- (void)showPGPSignFile {
+  KBPGPSignFileView *signView = [[KBPGPSignFileView alloc] init];
+  [self openInWindow:signView size:CGSizeMake(400, 400) title:@"Sign File"];
 }
 
 - (void)showError {

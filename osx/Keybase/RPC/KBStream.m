@@ -20,11 +20,10 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   return _label;
 }
 
-+ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer binary:(BOOL)binary {
++ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer {
   KBStream *stream = [[KBStream alloc] init];
   stream.reader = reader;
   stream.writer = writer;
-  stream.binary = binary;
   return stream;
 }
 
@@ -94,7 +93,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   KBFileReader *fileReader = [KBFileReader fileReaderWithPath:file.path];
   NSString *outPath = output(file.path);
   KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
-  KBStream *stream = [KBStream streamWithReader:fileReader writer:fileWriter binary:YES];
+  KBStream *stream = [KBStream streamWithReader:fileReader writer:fileWriter];
 
   KBAddToStream addToStream = ^BOOL(NSString *outPath, NSMutableArray *streams, KBCompletionBlock completion) {
     NSError *error = nil;
@@ -109,7 +108,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   };
 
   if (!skipCheck && [NSFileManager.defaultManager fileExistsAtPath:outPath isDirectory:NO]) {
-    [KBFile promptOverwrite:file view:view completion:^(KBFileResponse response) {
+    [KBFile promptOverwrite:outPath view:view completion:^(KBFileResponse response) {
       BOOL bSkipCheck = skipCheck;
       switch (response) {
         case KBFileResponseSkip:

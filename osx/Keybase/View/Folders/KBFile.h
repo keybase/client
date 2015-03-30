@@ -37,6 +37,6 @@ typedef NS_ENUM(NSInteger, KBFileResponse) {
 
 NSImage *KBImageForFile(KBFile *file);
 
-+ (void)promptOverwrite:(KBFile *)file view:(NSView *)view completion:(void (^)(KBFileResponse response))completion;
++ (void)promptOverwrite:(NSString *)path view:(NSView *)view completion:(void (^)(KBFileResponse response))completion;
 
 @end

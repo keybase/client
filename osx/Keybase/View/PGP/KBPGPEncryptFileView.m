@@ -105,6 +105,7 @@
   options.recipients = _userPickerView.usernames;
   options.noSelf = _footerView.includeSelfButton.state != NSOnState;
   options.noSign = _footerView.signButton.state != NSOnState;
+  options.binaryOut = YES;
   self.navigation.progressEnabled = YES;
   //GHWeakSelf gself = self;
   [_encrypter encryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSError *error, NSArray *streams) {

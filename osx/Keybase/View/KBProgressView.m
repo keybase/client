@@ -84,7 +84,7 @@
 - (void)open:(id)sender {
   self.sender = sender;
   //KBNavigationView *navigationView = [[KBNavigationView alloc] initWithView:self title:_title];
-  [AppDelegate openSheetWithView:self size:CGSizeMake(200, 200) sender:sender closeButton:nil];
+  self.close = [AppDelegate openSheetWithView:self size:CGSizeMake(200, 200) sender:sender closeButton:nil];
 }
 
 - (void)close:(id)sender close:(dispatch_block_t)close {

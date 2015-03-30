@@ -32,6 +32,8 @@
 
   GHWeakSelf gself = self;
   _footerView = [[KBPGPSignFooterView alloc] init];
+  _footerView.detached.hidden = YES;
+  _footerView.clearSign.state = NSOnState;
   _footerView.signButton.targetBlock = ^{ [gself sign]; };
   [self addSubview:_footerView];
 
@@ -45,12 +47,14 @@
 - (void)sign {
   _signer = [[KBPGPSigner alloc] init];
   KBRPgpSignOptions *options = [[KBRPgpSignOptions alloc] init];
-  options.mode = _footerView.clearSignButton.state == NSOnState ? KBRSignModeClear : KBRSignModeDetached;
+  options.mode = _footerView.clearSign.state == NSOnState ? KBRSignModeClear : KBRSignModeAttached;
+  options.binaryIn = NO;
+  options.binaryOut = NO;
 
   NSData *data = [_textView.text dataUsingEncoding:NSASCIIStringEncoding];
   KBReader *reader = [KBReader readerWithData:data];
   KBWriter *writer = [KBWriter writer];
-  KBStream *stream = [KBStream streamWithReader:reader writer:writer binary:NO];
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer];
 
   self.navigation.progressEnabled = YES;
   [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {

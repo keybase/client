@@ -77,7 +77,6 @@
   [_fileListView addObjects:@[file]];
 }
 
-
 - (void)decrypt {
   NSMutableArray *streams = [NSMutableArray array];
   KBFileOutput output = ^(NSString *path) {
@@ -123,7 +122,6 @@
     }
   }];
 }
-
 
 @end
 

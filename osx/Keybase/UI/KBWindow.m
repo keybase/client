@@ -10,6 +10,10 @@
 #import "KBNavigationView.h"
 #import <YOLayout/YOCGUtils.h>
 
+@interface NSView (KBView)
+- (void)setupResponders;
+@end
+
 @implementation KBWindow
 
 - (BOOL)canBecomeKeyWindow {
@@ -97,6 +101,8 @@
   [window setFrameOrigin:p];
 
   [self addChildWindow:window ordered:NSWindowAbove];
+
+  if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
   return window;
 }
 

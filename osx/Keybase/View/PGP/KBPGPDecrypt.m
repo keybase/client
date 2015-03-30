@@ -40,7 +40,10 @@
   KBRStream *sink = [[KBRStream alloc] init];
   sink.fd = stream.label;
 
-  [request pgpDecryptWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error) {
+  [request pgpDecryptWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error, KBRPgpSigVerification *pgpSigVerification) {
+
+    // TODO sig verify
+
     completion(error, stream);
   }];
 }

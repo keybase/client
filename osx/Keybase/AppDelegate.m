@@ -22,7 +22,9 @@
 #import "KBPGPDecryptView.h"
 #import "KBPGPDecryptFileView.h"
 #import "KBPGPSignView.h"
+#import "KBPGPSignFileView.h"
 #import "KBPGPVerifyView.h"
+#import "KBPGPVerifyFileView.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -165,19 +167,32 @@
   [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" errorHandler:_errorHandler];
 }
 
+- (IBAction)signFile:(id)sender {
+  KBPGPSignFileView *view = [[KBPGPSignFileView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" errorHandler:_errorHandler];
+}
+
 - (IBAction)verify:(id)sender {
   KBPGPVerifyView *view = [[KBPGPVerifyView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Verify" errorHandler:_errorHandler];
-
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" errorHandler:_errorHandler];
 }
 
-+ (void)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {
+- (IBAction)verifyFile:(id)sender {
+  KBPGPVerifyFileView *view = [[KBPGPVerifyFileView alloc] init];
+  view.client = self.appView.client;
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" errorHandler:_errorHandler];
+}
+
++ (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {
   NSWindow *window = [KBWindow windowWithContentView:view size:size retain:NO];
-  closeButton.targetBlock = ^{
+  dispatch_block_t close = ^{
     [[sender window] endSheet:window];
   };
+  closeButton.targetBlock = close;
   [[sender window] beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
+  return close;
 }
 
 #pragma mark Error
