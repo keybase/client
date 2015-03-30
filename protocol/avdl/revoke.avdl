@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol revoke {
+	import idl "common.avdl";
+
+	void revoke(int sessionID, string id, boolean isDevice);
+}

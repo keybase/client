@@ -642,6 +642,17 @@
 
 @end
 
+@implementation KBRRevokeRequest
+
+- (void)revokeWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb isDevice:(BOOL)isDevice completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb), @"isDevice": @(isDevice)}];
+  [self.client sendRequestWithMethod:@"keybase.1.revoke.revoke" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRSecretEntryArg
 @end
 
@@ -1542,6 +1553,19 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.session = params[0][@"session"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRRevokeRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.id = params[0][@"id"];
+    self.isDevice = [params[0][@"isDevice"] boolValue];
   }
   return self;
 }

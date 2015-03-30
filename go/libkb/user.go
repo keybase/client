@@ -818,6 +818,17 @@ func (u *User) SigChainBumpMT(mt MerkleTriple) {
 	u.sigChain.Bump(mt)
 }
 
+func (u *User) GetDevice(id string) (*Device, error) {
+	if u.GetComputedKeyFamily() == nil {
+		return nil, fmt.Errorf("no computed key family")
+	}
+	device, exists := u.GetComputedKeyFamily().cki.Devices[id]
+	if !exists {
+		return nil, fmt.Errorf("device %s doesn't exist", id)
+	}
+	return device, nil
+}
+
 func (u *User) GetDeviceSibkey() (GenericKey, error) {
 	if u.GetComputedKeyFamily() == nil {
 		return nil, fmt.Errorf("no computed key family")

@@ -26,6 +26,7 @@ build-stamp: \
 	json/prove.json \
 	json/prove_ui.json \
 	json/quota.json \
+	json/revoke.json \
 	json/secret_ui.json \
 	json/session.json \
 	json/sibkey.json \

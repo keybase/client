@@ -1591,6 +1591,41 @@ func (c QuotaClient) VerifySession(session string) (res SessionToken, err error)
 	return
 }
 
+type RevokeArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        string `codec:"id" json:"id"`
+	IsDevice  bool   `codec:"isDevice" json:"isDevice"`
+}
+
+type RevokeInterface interface {
+	Revoke(RevokeArg) error
+}
+
+func RevokeProtocol(i RevokeInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.revoke",
+		Methods: map[string]rpc2.ServeHook{
+			"revoke": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]RevokeArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Revoke(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type RevokeClient struct {
+	Cli GenericClient
+}
+
+func (c RevokeClient) Revoke(__arg RevokeArg) (err error) {
+	err = c.Cli.Call("keybase.1.revoke.revoke", []interface{}{__arg}, nil)
+	return
+}
+
 type SecretEntryArg struct {
 	Desc           string `codec:"desc" json:"desc"`
 	Prompt         string `codec:"prompt" json:"prompt"`

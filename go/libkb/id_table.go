@@ -734,6 +734,18 @@ func (l CryptocurrencyChainLink) Display(ui IdentifyUI) {
 
 type RevokeChainLink struct {
 	GenericChainLink
+	device *Device
+}
+
+func ParseRevokeChainLink(b GenericChainLink) (ret *RevokeChainLink, err error) {
+	var device *Device
+	if jw := b.payloadJson.AtPath("body.device"); !jw.IsNil() {
+		if device, err = ParseDevice(jw); err != nil {
+			return
+		}
+	}
+	ret = &RevokeChainLink{b, device}
+	return
 }
 
 func (r *RevokeChainLink) Type() string { return "revoke" }
@@ -749,9 +761,11 @@ func (r *RevokeChainLink) ToDisplayString() string {
 
 func (r *RevokeChainLink) IsRevocationIsh() bool { return true }
 
-func (l *RevokeChainLink) insertIntoTable(tab *IdentityTable) {
-	tab.insertLink(l)
+func (r *RevokeChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(r)
 }
+
+func (r *RevokeChainLink) GetDevice() *Device { return r.device }
 
 //
 //=========================================================================
@@ -894,7 +908,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 		case "cryptocurrency":
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
-			ret = &RevokeChainLink{base}
+			ret, err = ParseRevokeChainLink(base)
 		case SIBKEY_TYPE:
 			ret, err = ParseSibkeyChainLink(base)
 		case SUBKEY_TYPE:

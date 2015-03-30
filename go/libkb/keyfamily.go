@@ -779,6 +779,29 @@ func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
 	return
 }
 
+func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]string, error) {
+	_, deviceExists := ckf.cki.Devices[deviceID]
+	if !deviceExists {
+		return nil, fmt.Errorf("Device %s does not exist.", deviceID)
+	}
+	ret := []string{}
+	// Find the sibkey(s) that belong to this device.
+	for _, sibkey := range ckf.GetAllActiveSibkeys() {
+		sibkeyKID := sibkey.GetKid().String()
+		if ckf.cki.KidToDeviceId[sibkeyKID] == deviceID {
+			ret = append(ret, sibkeyKID)
+			// For each sibkey we find, get all its subkeys too.
+			for _, subkey := range ckf.GetAllActiveSubkeys() {
+				subkeyKID := subkey.GetKid().String()
+				if *ckf.cki.Infos[subkeyKID].Parent == sibkeyKID {
+					ret = append(ret, subkeyKID)
+				}
+			}
+		}
+	}
+	return ret, nil
+}
+
 // HasActiveKey returns if the given ComputeKeyFamily has any active keys.
 // The key has to be in the server-given KeyFamily and also in our ComputedKeyFamily.
 // The former check is so that we can handle the case nuked sigchains.
@@ -822,7 +845,11 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	kid := dobj.Kid
 	var prevKid *string
 
-	G.Log.Debug("| Device ID=%s; KID=%s", did, *kid)
+	kidStr := ""
+	if kid != nil {
+		kidStr = *kid
+	}
+	G.Log.Debug("| Device ID=%s; KID=%s", did, kidStr)
 
 	if existing, found := ckf.cki.Devices[did]; found {
 		G.Log.Debug("| merge with existing")

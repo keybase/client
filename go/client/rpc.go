@@ -120,3 +120,11 @@ func GetPGPClient() (cli keybase_1.PgpClient, err error) {
 	}
 	return
 }
+
+func GetRevokeClient() (cli keybase_1.RevokeClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.RevokeClient{Cli: rcli}
+	}
+	return
+}
