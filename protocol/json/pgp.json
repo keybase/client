@@ -234,6 +234,9 @@
       "name" : "assertSigned",
       "type" : "boolean"
     }, {
+      "name" : "signedBy",
+      "type" : "string"
+    }, {
       "name" : "localOnly",
       "type" : "boolean"
     }, {
@@ -244,6 +247,9 @@
     "type" : "record",
     "name" : "PgpVerifyOptions",
     "fields" : [ {
+      "name" : "signedBy",
+      "type" : "string"
+    }, {
       "name" : "localOnly",
       "type" : "boolean"
     }, {

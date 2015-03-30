@@ -12,7 +12,7 @@ import (
 func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "decrypt",
-		Usage:       "keybase pgp decrypt [-l] [-y] [-s] [-m MESSAGE] [-o OUTPUT] [-i file]",
+		Usage:       "keybase pgp decrypt [-l] [-y] [-s] [-S <user assertion] [-m MESSAGE] [-o OUTPUT] [-i file]",
 		Description: "PGP decrypt messages or files for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPDecrypt{}, "decrypt", c)
@@ -26,9 +26,13 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "y",
 				Usage: "approve remote tracking without prompting",
 			},
-			cli.BoolFlag{
+			cli.StringFlag{
 				Name:  "s, signed",
 				Usage: "assert signed",
+			},
+			cli.BoolFlag{
+				Name:  "S, signed-by",
+				Usage: "assert signed by the given user (can use user assertion format)",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
@@ -51,6 +55,7 @@ type CmdPGPDecrypt struct {
 	localOnly     bool
 	approveRemote bool
 	signed        bool
+	signedBy      string
 }
 
 func (c *CmdPGPDecrypt) Run() error {
@@ -61,6 +66,7 @@ func (c *CmdPGPDecrypt) Run() error {
 		Source:       c.source,
 		Sink:         c.sink,
 		AssertSigned: c.signed,
+		SignedBy:     c.signedBy,
 		TrackOptions: engine.TrackOptions{
 			TrackLocalOnly: c.localOnly,
 			TrackApprove:   c.approveRemote,
@@ -98,6 +104,7 @@ func (c *CmdPGPDecrypt) RunClient() error {
 	}
 	opts := keybase_1.PgpDecryptOptions{
 		AssertSigned:  c.signed,
+		SignedBy:      c.signedBy,
 		LocalOnly:     c.localOnly,
 		ApproveRemote: c.approveRemote,
 	}
@@ -118,6 +125,7 @@ func (c *CmdPGPDecrypt) ParseArgv(ctx *cli.Context) error {
 	c.localOnly = ctx.Bool("local")
 	c.approveRemote = ctx.Bool("y")
 	c.signed = ctx.Bool("signed")
+	c.signedBy = ctx.String("signed-by")
 	return nil
 }
 

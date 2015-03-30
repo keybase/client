@@ -1065,12 +1065,14 @@ type PgpSigVerification struct {
 }
 
 type PgpDecryptOptions struct {
-	AssertSigned  bool `codec:"assertSigned" json:"assertSigned"`
-	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
-	ApproveRemote bool `codec:"approveRemote" json:"approveRemote"`
+	AssertSigned  bool   `codec:"assertSigned" json:"assertSigned"`
+	SignedBy      string `codec:"signedBy" json:"signedBy"`
+	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
+	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 }
 
 type PgpVerifyOptions struct {
+	SignedBy      string `codec:"signedBy" json:"signedBy"`
 	LocalOnly     bool   `codec:"localOnly" json:"localOnly"`
 	ApproveRemote bool   `codec:"approveRemote" json:"approveRemote"`
 	Signature     []byte `codec:"signature" json:"signature"`

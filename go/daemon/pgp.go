@@ -69,6 +69,7 @@ func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) (keybase_1.PgpSigVe
 		Sink:         snk,
 		Source:       src,
 		AssertSigned: arg.Opts.AssertSigned,
+		SignedBy:     arg.Opts.SignedBy,
 		TrackOptions: engine.TrackOptions{
 			TrackLocalOnly: arg.Opts.LocalOnly,
 			TrackApprove:   arg.Opts.ApproveRemote,
@@ -94,6 +95,7 @@ func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) (keybase_1.PgpSigVeri
 	earg := &engine.PGPVerifyArg{
 		Source:    src,
 		Signature: arg.Opts.Signature,
+		SignedBy:  arg.Opts.SignedBy,
 		TrackOptions: engine.TrackOptions{
 			TrackLocalOnly: arg.Opts.LocalOnly,
 			TrackApprove:   arg.Opts.ApproveRemote,

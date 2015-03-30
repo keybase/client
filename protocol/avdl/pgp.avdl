@@ -47,6 +47,7 @@ protocol pgp {
 	
 	record PgpDecryptOptions {
 		boolean assertSigned;
+		string signedBy; // assert that signature made by this user
 		boolean localOnly; // store track locally only
 		boolean approveRemote;  // approve remote track without prompt
 	}
@@ -54,6 +55,7 @@ protocol pgp {
 	PgpSigVerification pgpDecrypt(int sessionID, Stream source, Stream sink, PgpDecryptOptions opts);
 	
 	record PgpVerifyOptions {
+		string signedBy; // assert that signature made by this user
 		boolean localOnly; // store track locally only
 		boolean approveRemote;  // approve remote track without prompt
 		bytes signature; // detached signature data (binary or armored), can be empty

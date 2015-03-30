@@ -10,6 +10,7 @@ type PGPDecryptArg struct {
 	Source       io.Reader
 	Sink         io.Writer
 	AssertSigned bool
+	SignedBy     string
 	TrackOptions TrackOptions
 }
 

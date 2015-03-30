@@ -378,11 +378,13 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 
 @interface KBRPgpDecryptOptions : KBRObject
 @property BOOL assertSigned;
+@property NSString *signedBy;
 @property BOOL localOnly;
 @property BOOL approveRemote;
 @end
 
 @interface KBRPgpVerifyOptions : KBRObject
+@property NSString *signedBy;
 @property BOOL localOnly;
 @property BOOL approveRemote;
 @property NSData *signature;

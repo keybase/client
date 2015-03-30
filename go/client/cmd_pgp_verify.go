@@ -14,7 +14,7 @@ import (
 func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "verify",
-		Usage:       "keybase pgp verify [-l] [-y] [-s] [-m MESSAGE] [-d <detached signature file>] [-i <infile>]",
+		Usage:       "keybase pgp verify [-l] [-y] [-s] [-S <user assertion>] [-m MESSAGE] [-d <detached signature file>] [-i <infile>]",
 		Description: "PGP verify message or file signatures for keybase users.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPVerify{}, "verify", c)
@@ -40,6 +40,10 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "d, detached",
 				Usage: "specify a detached signature file",
 			},
+			cli.StringFlag{
+				Name:  "S, signed-by",
+				Usage: "assert signed by the given user (can use user assertion format)",
+			},
 		},
 	}
 }
@@ -50,6 +54,7 @@ type CmdPGPVerify struct {
 	approveRemote    bool
 	detachedFilename string
 	detachedData     []byte
+	signedBy         string
 }
 
 func (c *CmdPGPVerify) Run() error {
@@ -60,6 +65,7 @@ func (c *CmdPGPVerify) Run() error {
 	arg := &engine.PGPVerifyArg{
 		Source:    c.source,
 		Signature: c.detachedData,
+		SignedBy:  c.signedBy,
 		TrackOptions: engine.TrackOptions{
 			TrackLocalOnly: c.localOnly,
 			TrackApprove:   c.approveRemote,
@@ -101,6 +107,7 @@ func (c *CmdPGPVerify) RunClient() error {
 			LocalOnly:     c.localOnly,
 			ApproveRemote: c.approveRemote,
 			Signature:     c.detachedData,
+			SignedBy:      c.signedBy,
 		},
 	}
 	_, err = cli.PgpVerify(arg)
@@ -121,6 +128,7 @@ func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 	}
 	c.localOnly = ctx.Bool("local")
 	c.approveRemote = ctx.Bool("y")
+	c.signedBy = ctx.String("signed-by")
 	c.detachedFilename = ctx.String("detached")
 
 	if len(c.detachedFilename) > 0 {

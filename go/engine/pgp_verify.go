@@ -15,6 +15,7 @@ import (
 type PGPVerifyArg struct {
 	Source       io.Reader
 	Signature    []byte
+	SignedBy     string
 	TrackOptions TrackOptions
 }
 
@@ -89,6 +90,11 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 	}
 	e.signStatus = eng.SignatureStatus()
 	e.owner = eng.Owner()
+
+	if err := e.checkSignedBy(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -113,6 +119,9 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 	if signer != nil {
 		e.signStatus.Verified = true
 		e.signStatus.Entity = signer
+		if err := e.checkSignedBy(ctx); err != nil {
+			return err
+		}
 		e.outputSuccess(ctx, signer, sk.Owner())
 	}
 
@@ -147,8 +156,49 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 	if signer != nil {
 		e.signStatus.Verified = true
 		e.signStatus.Entity = signer
+		if err := e.checkSignedBy(ctx); err != nil {
+			return err
+		}
 		e.outputSuccess(ctx, signer, sk.Owner())
 	}
+
+	return nil
+}
+
+func (e *PGPVerify) checkSignedBy(ctx *Context) error {
+	if len(e.arg.SignedBy) == 0 {
+		// no assertion necessary
+		return nil
+	}
+	if !e.signStatus.Verified || e.signStatus.Entity == nil || e.owner == nil {
+		// signature not valid, so no need to assert
+		return nil
+	}
+
+	// have: a valid signature, the signature's owner, and a user assertion to
+	// match against
+	G.Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
+
+	// load the user in SignedBy
+	arg := NewIdentifyArg(e.arg.SignedBy, false)
+	eng := NewIdentify(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+	signByUser := eng.User()
+	if signByUser == nil {
+		// this shouldn't happen (engine should return an error in this state)
+		// but just in case:
+		return libkb.ErrNilUser
+	}
+
+	// check if it is equal to signature owner
+	if !e.owner.Equal(*signByUser) {
+		return libkb.BadSigError{
+			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.owner.GetName(), e.arg.SignedBy),
+		}
+	}
+
 	return nil
 }
 
