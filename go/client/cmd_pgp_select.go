@@ -31,7 +31,7 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (v *CmdPGPSelect) RunClient() error {
-	c, err := GetMykeyClient()
+	c, err := GetPGPClient()
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (v *CmdPGPSelect) RunClient() error {
 		return err
 	}
 
-	err = c.Select(keybase_1.SelectArg{Query: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
+	err = c.PgpSelect(keybase_1.PgpSelectArg{Query: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
 	PGPMultiWarn(err)
 	return err
 }

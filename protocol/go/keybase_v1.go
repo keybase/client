@@ -1032,120 +1032,6 @@ func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error)
 	return
 }
 
-type PgpCreateUids struct {
-	UseDefault bool          `codec:"useDefault" json:"useDefault"`
-	Ids        []PgpIdentity `codec:"ids" json:"ids"`
-}
-
-type PgpKeyGenArg struct {
-	PrimaryBits int           `codec:"primaryBits" json:"primaryBits"`
-	SubkeyBits  int           `codec:"subkeyBits" json:"subkeyBits"`
-	CreateUids  PgpCreateUids `codec:"createUids" json:"createUids"`
-	AllowMulti  bool          `codec:"allowMulti" json:"allowMulti"`
-	DoExport    bool          `codec:"doExport" json:"doExport"`
-}
-
-type PgpKeyGenDefaultArg struct {
-	CreateUids PgpCreateUids `codec:"createUids" json:"createUids"`
-}
-
-type DeletePrimaryArg struct {
-}
-
-type SelectArg struct {
-	Query      string `codec:"query" json:"query"`
-	AllowMulti bool   `codec:"allowMulti" json:"allowMulti"`
-	SkipImport bool   `codec:"skipImport" json:"skipImport"`
-}
-
-type UpdateArg struct {
-	SessionID    int      `codec:"sessionID" json:"sessionID"`
-	All          bool     `codec:"all" json:"all"`
-	Fingerprints []string `codec:"fingerprints" json:"fingerprints"`
-}
-
-type MykeyInterface interface {
-	PgpKeyGen(PgpKeyGenArg) error
-	PgpKeyGenDefault(PgpCreateUids) error
-	DeletePrimary() error
-	Select(SelectArg) error
-	Update(UpdateArg) error
-}
-
-func MykeyProtocol(i MykeyInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.mykey",
-		Methods: map[string]rpc2.ServeHook{
-			"PgpKeyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpKeyGenArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PgpKeyGen(args[0])
-				}
-				return
-			},
-			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PgpKeyGenDefaultArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PgpKeyGenDefault(args[0].CreateUids)
-				}
-				return
-			},
-			"deletePrimary": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeletePrimaryArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DeletePrimary()
-				}
-				return
-			},
-			"select": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SelectArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Select(args[0])
-				}
-				return
-			},
-			"update": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]UpdateArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Update(args[0])
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type MykeyClient struct {
-	Cli GenericClient
-}
-
-func (c MykeyClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
-	err = c.Cli.Call("keybase.1.mykey.PgpKeyGen", []interface{}{__arg}, nil)
-	return
-}
-
-func (c MykeyClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
-	__arg := PgpKeyGenDefaultArg{CreateUids: createUids}
-	err = c.Cli.Call("keybase.1.mykey.pgpKeyGenDefault", []interface{}{__arg}, nil)
-	return
-}
-
-func (c MykeyClient) DeletePrimary() (err error) {
-	err = c.Cli.Call("keybase.1.mykey.deletePrimary", []interface{}{DeletePrimaryArg{}}, nil)
-	return
-}
-
-func (c MykeyClient) Select(__arg SelectArg) (err error) {
-	err = c.Cli.Call("keybase.1.mykey.select", []interface{}{__arg}, nil)
-	return
-}
-
-func (c MykeyClient) Update(__arg UpdateArg) (err error) {
-	err = c.Cli.Call("keybase.1.mykey.update", []interface{}{__arg}, nil)
-	return
-}
-
 type SignMode int
 
 const (
@@ -1196,6 +1082,11 @@ type FingerprintAndKey struct {
 	Desc        string `codec:"desc" json:"desc"`
 }
 
+type PgpCreateUids struct {
+	UseDefault bool          `codec:"useDefault" json:"useDefault"`
+	Ids        []PgpIdentity `codec:"ids" json:"ids"`
+}
+
 type PgpSignArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
 	Source    Stream         `codec:"source" json:"source"`
@@ -1240,6 +1131,33 @@ type PgpExportArg struct {
 	Query     string `codec:"query" json:"query"`
 }
 
+type PgpKeyGenArg struct {
+	PrimaryBits int           `codec:"primaryBits" json:"primaryBits"`
+	SubkeyBits  int           `codec:"subkeyBits" json:"subkeyBits"`
+	CreateUids  PgpCreateUids `codec:"createUids" json:"createUids"`
+	AllowMulti  bool          `codec:"allowMulti" json:"allowMulti"`
+	DoExport    bool          `codec:"doExport" json:"doExport"`
+}
+
+type PgpKeyGenDefaultArg struct {
+	CreateUids PgpCreateUids `codec:"createUids" json:"createUids"`
+}
+
+type PgpDeletePrimaryArg struct {
+}
+
+type PgpSelectArg struct {
+	Query      string `codec:"query" json:"query"`
+	AllowMulti bool   `codec:"allowMulti" json:"allowMulti"`
+	SkipImport bool   `codec:"skipImport" json:"skipImport"`
+}
+
+type PgpUpdateArg struct {
+	SessionID    int      `codec:"sessionID" json:"sessionID"`
+	All          bool     `codec:"all" json:"all"`
+	Fingerprints []string `codec:"fingerprints" json:"fingerprints"`
+}
+
 type PgpInterface interface {
 	PgpSign(PgpSignArg) error
 	PgpPull(PgpPullArg) error
@@ -1248,6 +1166,11 @@ type PgpInterface interface {
 	PgpVerify(PgpVerifyArg) (PgpSigVerification, error)
 	PgpImport(PgpImportArg) error
 	PgpExport(PgpExportArg) ([]FingerprintAndKey, error)
+	PgpKeyGen(PgpKeyGenArg) error
+	PgpKeyGenDefault(PgpCreateUids) error
+	PgpDeletePrimary() error
+	PgpSelect(PgpSelectArg) error
+	PgpUpdate(PgpUpdateArg) error
 }
 
 func PgpProtocol(i PgpInterface) rpc2.Protocol {
@@ -1303,6 +1226,41 @@ func PgpProtocol(i PgpInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"PgpKeyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpKeyGenArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpKeyGen(args[0])
+				}
+				return
+			},
+			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpKeyGenDefaultArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpKeyGenDefault(args[0].CreateUids)
+				}
+				return
+			},
+			"pgpDeletePrimary": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpDeletePrimaryArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpDeletePrimary()
+				}
+				return
+			},
+			"pgpSelect": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpSelectArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpSelect(args[0])
+				}
+				return
+			},
+			"pgpUpdate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PgpUpdateArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.PgpUpdate(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1344,6 +1302,32 @@ func (c PgpClient) PgpImport(__arg PgpImportArg) (err error) {
 
 func (c PgpClient) PgpExport(__arg PgpExportArg) (res []FingerprintAndKey, err error) {
 	err = c.Cli.Call("keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
+	return
+}
+
+func (c PgpClient) PgpKeyGen(__arg PgpKeyGenArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.PgpKeyGen", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpKeyGenDefault(createUids PgpCreateUids) (err error) {
+	__arg := PgpKeyGenDefaultArg{CreateUids: createUids}
+	err = c.Cli.Call("keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpDeletePrimary() (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpDeletePrimary", []interface{}{PgpDeletePrimaryArg{}}, nil)
+	return
+}
+
+func (c PgpClient) PgpSelect(__arg PgpSelectArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpSelect", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PgpClient) PgpUpdate(__arg PgpUpdateArg) (err error) {
+	err = c.Cli.Call("keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
 	return
 }
 

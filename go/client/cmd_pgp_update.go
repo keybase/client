@@ -21,7 +21,7 @@ func (v *CmdPGPUpdate) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdPGPUpdate) RunClient() (err error) {
-	cli, err := GetMykeyClient()
+	cli, err := GetPGPClient()
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (v *CmdPGPUpdate) RunClient() (err error) {
 		return err
 	}
 
-	return cli.Update(keybase_1.UpdateArg{
+	return cli.PgpUpdate(keybase_1.PgpUpdateArg{
 		Fingerprints: v.fingerprints,
 		All:          v.all,
 	})

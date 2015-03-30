@@ -423,49 +423,6 @@
 
 @end
 
-@implementation KBRPgpCreateUids
-+ (NSValueTransformer *)idsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
-@end
-
-@implementation KBRMykeyRequest
-
-- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"allowMulti": @(allowMulti), @"doExport": @(doExport)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.PgpKeyGen" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"createUids": KBRValue(createUids)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.pgpKeyGenDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)deletePrimary:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.deletePrimary" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)selectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"query": KBRValue(query), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.select" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)updateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"all": @(all), @"fingerprints": KBRValue(fingerprints)}];
-  [self.client sendRequestWithMethod:@"keybase.1.mykey.update" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-@end
-
 @implementation KBRPgpSignOptions
 @end
 
@@ -482,6 +439,10 @@
 @end
 
 @implementation KBRFingerprintAndKey
+@end
+
+@implementation KBRPgpCreateUids
++ (NSValueTransformer *)idsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
 @end
 
 @implementation KBRPgpRequest
@@ -547,6 +508,41 @@
       }
       NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRFingerprintAndKey.class fromJSONArray:retval error:&error] : nil;
       completion(error, results);
+  }];
+}
+
+- (void)pgpKeyGenWithPrimaryBits:(NSInteger)primaryBits subkeyBits:(NSInteger)subkeyBits createUids:(KBRPgpCreateUids *)createUids allowMulti:(BOOL)allowMulti doExport:(BOOL)doExport completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"primaryBits": @(primaryBits), @"subkeyBits": @(subkeyBits), @"createUids": KBRValue(createUids), @"allowMulti": @(allowMulti), @"doExport": @(doExport)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.PgpKeyGen" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPgpCreateUids *)createUids completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"createUids": KBRValue(createUids)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpKeyGenDefault" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)pgpDeletePrimary:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpDeletePrimary" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)pgpSelectWithQuery:(NSString *)query allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"query": KBRValue(query), @"allowMulti": @(allowMulti), @"skipImport": @(skipImport)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpSelect" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)pgpUpdateWithSessionID:(NSInteger)sessionID all:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"all": @(all), @"fingerprints": KBRValue(fingerprints)}];
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpUpdate" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
   }];
 }
 
@@ -1266,58 +1262,6 @@
 
 @end
 
-@implementation KBRPgpKeyGenRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.primaryBits = [params[0][@"primaryBits"] integerValue];
-    self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
-    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-    self.allowMulti = [params[0][@"allowMulti"] boolValue];
-    self.doExport = [params[0][@"doExport"] boolValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRPgpKeyGenDefaultRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRSelectRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.query = params[0][@"query"];
-    self.allowMulti = [params[0][@"allowMulti"] boolValue];
-    self.skipImport = [params[0][@"skipImport"] boolValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRUpdateRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.all = [params[0][@"all"] boolValue];
-    self.fingerprints = params[0][@"fingerprints"];
-  }
-  return self;
-}
-
-@end
-
 @implementation KBRPgpSignRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1405,6 +1349,58 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.secret = [params[0][@"secret"] boolValue];
     self.query = params[0][@"query"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpKeyGenRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.primaryBits = [params[0][@"primaryBits"] integerValue];
+    self.subkeyBits = [params[0][@"subkeyBits"] integerValue];
+    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
+    self.allowMulti = [params[0][@"allowMulti"] boolValue];
+    self.doExport = [params[0][@"doExport"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpKeyGenDefaultRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.createUids = [MTLJSONAdapter modelOfClass:KBRPgpCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpSelectRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.query = params[0][@"query"];
+    self.allowMulti = [params[0][@"allowMulti"] boolValue];
+    self.skipImport = [params[0][@"skipImport"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPgpUpdateRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.all = [params[0][@"all"] boolValue];
+    self.fingerprints = params[0][@"fingerprints"];
   }
   return self;
 }

@@ -40,13 +40,13 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (v *CmdPGPGen) RunClient() (err error) {
-	var cli keybase_1.MykeyClient
+	var cli keybase_1.PgpClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 	gen := v.arg.Gen
-	if cli, err = GetMykeyClient(); err != nil {
+	if cli, err = GetPGPClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else if err = gen.CreatePgpIDs(); err != nil {
 	} else {

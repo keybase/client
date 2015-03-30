@@ -157,3 +157,54 @@ func (h *PGPHandler) PgpExport(arg keybase_1.PgpExportArg) (ret []keybase_1.Fing
 	ret = eng.Results()
 	return
 }
+
+func (h *PGPHandler) PgpKeyGen(arg keybase_1.PgpKeyGenArg) (err error) {
+	earg := engine.ImportPGPKeyImportEngineArg(arg)
+	return h.keygen(earg, true)
+}
+
+func (h *PGPHandler) keygen(earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
+	sessionId := nextSessionId()
+	ctx := &engine.Context{LogUI: h.getLogUI(sessionId), SecretUI: h.getSecretUI(sessionId)}
+	earg.Gen.AddDefaultUid()
+	eng := engine.NewPGPKeyImportEngine(earg)
+	err = engine.RunEngine(eng, ctx)
+	return err
+}
+
+func (h *PGPHandler) PgpKeyGenDefault(arg keybase_1.PgpCreateUids) (err error) {
+	earg := engine.PGPKeyImportEngineArg{
+		Gen: &libkb.PGPGenArg{
+			Ids:         libkb.ImportPgpIdentities(arg.Ids),
+			NoDefPGPUid: !arg.UseDefault,
+		},
+	}
+	return h.keygen(earg, false)
+}
+
+func (h *PGPHandler) PgpDeletePrimary() (err error) {
+	return libkb.DeletePrimary()
+}
+
+func (h *PGPHandler) PgpSelect(sarg keybase_1.PgpSelectArg) error {
+	sessionID := nextSessionId()
+	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
+	secretui := h.getSecretUI(sessionID)
+	arg := engine.GPGImportKeyArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
+	gpg := engine.NewGPGImportKeyEngine(&arg)
+	ctx := &engine.Context{
+		GPGUI:    gpgui,
+		SecretUI: secretui,
+		LogUI:    h.getLogUI(sessionID),
+		LoginUI:  h.getLoginUI(sessionID),
+	}
+	return engine.RunEngine(gpg, ctx)
+}
+
+func (h *PGPHandler) PgpUpdate(arg keybase_1.PgpUpdateArg) error {
+	ctx := engine.Context{
+		LogUI: h.getLogUI(arg.SessionID),
+	}
+	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All)
+	return engine.RunEngine(eng, &ctx)
+}

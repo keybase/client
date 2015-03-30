@@ -266,6 +266,19 @@
       "name" : "desc",
       "type" : "string"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "PgpCreateUids",
+    "fields" : [ {
+      "name" : "useDefault",
+      "type" : "boolean"
+    }, {
+      "name" : "ids",
+      "type" : {
+        "type" : "array",
+        "items" : "PgpIdentity"
+      }
+    } ]
   } ],
   "messages" : {
     "pgpSign" : {
@@ -370,6 +383,65 @@
         "type" : "array",
         "items" : "FingerprintAndKey"
       }
+    },
+    "PgpKeyGen" : {
+      "request" : [ {
+        "name" : "primaryBits",
+        "type" : "int"
+      }, {
+        "name" : "subkeyBits",
+        "type" : "int"
+      }, {
+        "name" : "createUids",
+        "type" : "PgpCreateUids"
+      }, {
+        "name" : "allowMulti",
+        "type" : "boolean"
+      }, {
+        "name" : "doExport",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
+    },
+    "pgpKeyGenDefault" : {
+      "request" : [ {
+        "name" : "createUids",
+        "type" : "PgpCreateUids"
+      } ],
+      "response" : "null"
+    },
+    "pgpDeletePrimary" : {
+      "request" : [ ],
+      "response" : "null"
+    },
+    "pgpSelect" : {
+      "request" : [ {
+        "name" : "query",
+        "type" : "string"
+      }, {
+        "name" : "allowMulti",
+        "type" : "boolean"
+      }, {
+        "name" : "skipImport",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
+    },
+    "pgpUpdate" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "all",
+        "type" : "boolean"
+      }, {
+        "name" : "fingerprints",
+        "type" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      } ],
+      "response" : "null"
     }
   }
 }

@@ -18,12 +18,12 @@ func (v *CmdMykeyDelete) RunClient() (err error) {
 }
 
 func (v *MykeyDeleteClient) Init() (err error) {
-	v.cli, err = GetMykeyClient()
+	v.cli, err = GetPGPClient()
 	return
 }
 
 func (v *MykeyDeleteClient) run() (err error) {
-	return v.cli.DeletePrimary()
+	return v.cli.PgpDeletePrimary()
 }
 
 func (v *CmdMykeyDelete) Run() (err error) {
@@ -51,7 +51,7 @@ func (v MykeyDeleteStandlone) run() (err error) {
 
 type MykeyDeleteStandlone struct{}
 type MykeyDeleteClient struct {
-	cli keybase_1.MykeyClient
+	cli keybase_1.PgpClient
 }
 
 type MykeyDeleteEngine interface {

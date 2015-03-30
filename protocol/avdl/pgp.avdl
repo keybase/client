@@ -72,4 +72,27 @@ protocol pgp {
 	// Exports all active PGP keys, public. Only allows armored export.
 	// If you ask for private, you can get at most one key back.
 	array<FingerprintAndKey> pgpExport(int sessionID, boolean secret, string query);
+	
+	record PgpCreateUids {
+		boolean useDefault;
+		array<PgpIdentity> ids;
+	}
+
+	void PgpKeyGen(
+		int primaryBits,
+		int subkeyBits,
+		PgpCreateUids createUids,
+		boolean allowMulti,
+		boolean doExport
+	);
+
+	void pgpKeyGenDefault(PgpCreateUids createUids);
+	
+	void pgpDeletePrimary();
+
+	// select an existing key and add to kb
+	void pgpSelect(string query, boolean allowMulti, boolean skipImport);
+
+	// push updated key(s) to the server
+	void pgpUpdate(int sessionID, boolean all, array<string> fingerprints);
 }
