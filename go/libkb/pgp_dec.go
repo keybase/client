@@ -24,7 +24,7 @@ func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PgpKeyBundl
 
 func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 	peeker := NewPeeker(source)
-	head := make([]byte, 5)
+	head := make([]byte, 10)
 	_, err := peeker.Peek(head)
 	if err != nil {
 		return nil, err

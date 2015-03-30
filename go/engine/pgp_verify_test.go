@@ -35,29 +35,29 @@ func TestPGPVerify(t *testing.T) {
 	attachedEnc := signEnc(ctx, t, msg)
 
 	// still logged in as signer:
-	verify(ctx, t, msg, detached, "detached logged in", false, true)
-	verify(ctx, t, clearsign, "", "clearsign logged in", true, true)
-	verify(ctx, t, attached, "", "attached logged in", false, true)
-	verify(ctx, t, attachedEnc, "", "attached/encrypted logged in", false, true)
+	verify(ctx, t, msg, detached, "detached logged in", true)
+	verify(ctx, t, clearsign, "", "clearsign logged in", true)
+	verify(ctx, t, attached, "", "attached logged in", true)
+	verify(ctx, t, attachedEnc, "", "attached/encrypted logged in", true)
 
 	G.LoginState.Logout()
 
 	// these are all valid logged out
-	verify(ctx, t, msg, detached, "detached logged out", false, true)
-	verify(ctx, t, clearsign, "", "clearsign logged out", true, true)
-	verify(ctx, t, attached, "", "attached logged out", false, true)
+	verify(ctx, t, msg, detached, "detached logged out", true)
+	verify(ctx, t, clearsign, "", "clearsign logged out", true)
+	verify(ctx, t, attached, "", "attached logged out", true)
 	// attached encrypted is not valid logged out:
-	verify(ctx, t, attachedEnc, "", "attached/encrypted logged out", false, false)
+	verify(ctx, t, attachedEnc, "", "attached/encrypted logged out", false)
 
 	// sign in as a different user
 	tc2 := SetupEngineTest(t, "PGPVerify")
 	defer tc2.Cleanup()
 	fu2 := CreateAndSignupFakeUser(t, "pgp")
 	ctx.SecretUI = fu2.NewSecretUI()
-	verify(ctx, t, msg, detached, "detached different user", false, true)
-	verify(ctx, t, clearsign, "", "clearsign different user", true, true)
-	verify(ctx, t, attached, "", "attached different user", false, true)
-	verify(ctx, t, attachedEnc, "", "attached/encrypted different user", false, false)
+	verify(ctx, t, msg, detached, "detached different user", true)
+	verify(ctx, t, clearsign, "", "clearsign different user", true)
+	verify(ctx, t, attached, "", "attached different user", true)
+	verify(ctx, t, attachedEnc, "", "attached/encrypted different user", false)
 
 	// extra credit:
 	// encrypt a message for another user and sign it
@@ -91,11 +91,10 @@ func signEnc(ctx *Context, t *testing.T, msg string) string {
 	return sink.String()
 }
 
-func verify(ctx *Context, t *testing.T, msg, sig, name string, clear, valid bool) {
+func verify(ctx *Context, t *testing.T, msg, sig, name string, valid bool) {
 	arg := &PGPVerifyArg{
 		Source:    strings.NewReader(msg),
 		Signature: []byte(sig),
-		Clearsign: clear,
 	}
 	eng := NewPGPVerify(arg)
 	if err := RunEngine(eng, ctx); err != nil {

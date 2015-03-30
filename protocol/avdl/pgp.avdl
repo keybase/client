@@ -47,7 +47,6 @@ protocol pgp {
 		boolean localOnly; // store track locally only
 		boolean approveRemote;  // approve remote track without prompt
 		bytes signature; // detached signature data (binary or armored), can be empty
-		boolean clearsign; // message in source is a clearsigned message
 	}
 	
 	void pgpVerify(int sessionID, Stream source, PgpVerifyOptions opts);

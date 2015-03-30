@@ -234,3 +234,16 @@ func HexDecodeQuoted(data []byte) ([]byte, error) {
 func IsArmored(buf []byte) bool {
 	return bytes.HasPrefix(bytes.TrimSpace(buf), []byte("-----"))
 }
+
+var clearStart = []byte("-----BEGIN PGP SIGNED MESSAGE-----")
+
+func IsClearsign(p *Peeker) bool {
+	// there should be a newline at the start, so add 1 to length.
+	// (but this will accept a message without the newline)
+	start := make([]byte, len(clearStart)+1)
+	_, err := p.Peek(start)
+	if err != nil {
+		return false
+	}
+	return bytes.HasPrefix(bytes.TrimSpace(start), clearStart)
+}

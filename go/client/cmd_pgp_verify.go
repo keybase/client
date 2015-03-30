@@ -40,10 +40,6 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "d, detached",
 				Usage: "specify a detached signature file",
 			},
-			cli.BoolFlag{
-				Name:  "c, clearsign",
-				Usage: "message/file is clearsigned",
-			},
 		},
 	}
 }
@@ -52,7 +48,6 @@ type CmdPGPVerify struct {
 	UnixFilter
 	localOnly        bool
 	approveRemote    bool
-	clearsign        bool
 	detachedFilename string
 	detachedData     []byte
 }
@@ -65,7 +60,6 @@ func (c *CmdPGPVerify) Run() error {
 	arg := &engine.PGPVerifyArg{
 		Source:    c.source,
 		Signature: c.detachedData,
-		Clearsign: c.clearsign,
 		TrackOptions: engine.TrackOptions{
 			TrackLocalOnly: c.localOnly,
 			TrackApprove:   c.approveRemote,
@@ -107,7 +101,6 @@ func (c *CmdPGPVerify) RunClient() error {
 			LocalOnly:     c.localOnly,
 			ApproveRemote: c.approveRemote,
 			Signature:     c.detachedData,
-			Clearsign:     c.clearsign,
 		},
 	}
 	err = cli.PgpVerify(arg)
@@ -129,7 +122,6 @@ func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 	c.localOnly = ctx.Bool("local")
 	c.approveRemote = ctx.Bool("y")
 	c.detachedFilename = ctx.String("detached")
-	c.clearsign = ctx.Bool("clearsign")
 
 	if len(c.detachedFilename) > 0 {
 		data, err := ioutil.ReadFile(c.detachedFilename)

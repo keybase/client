@@ -15,13 +15,13 @@ import (
 type PGPVerifyArg struct {
 	Source       io.Reader
 	Signature    []byte
-	Clearsign    bool // Source is a clearsign message
 	TrackOptions TrackOptions
 }
 
 // PGPVerify is an engine.
 type PGPVerify struct {
-	arg *PGPVerifyArg
+	arg  *PGPVerifyArg
+	peek *libkb.Peeker
 	libkb.Contextified
 }
 
@@ -55,7 +55,8 @@ func (e *PGPVerify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPVerify) Run(ctx *Context) error {
-	if e.arg.Clearsign {
+	e.peek = libkb.NewPeeker(e.arg.Source)
+	if libkb.IsClearsign(e.peek) {
 		return e.runClearsign(ctx)
 	}
 	if len(e.arg.Signature) == 0 {
@@ -67,7 +68,7 @@ func (e *PGPVerify) Run(ctx *Context) error {
 // runAttached verifies an attached signature
 func (e *PGPVerify) runAttached(ctx *Context) error {
 	arg := &PGPDecryptArg{
-		Source:       e.arg.Source,
+		Source:       e.peek,
 		Sink:         ioutil.Discard,
 		AssertSigned: true,
 		TrackOptions: e.arg.TrackOptions,
@@ -86,7 +87,7 @@ func (e *PGPVerify) runDetach(ctx *Context) error {
 	if libkb.IsArmored(e.arg.Signature) {
 		checkfn = openpgp.CheckArmoredDetachedSignature
 	}
-	signer, err := checkfn(sk, e.arg.Source, bytes.NewReader(e.arg.Signature))
+	signer, err := checkfn(sk, e.peek, bytes.NewReader(e.arg.Signature))
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func (e *PGPVerify) runDetach(ctx *Context) error {
 func (e *PGPVerify) runClearsign(ctx *Context) error {
 	// clearsign decode only works with the whole data slice, not a reader
 	// so have to read it all here:
-	msg, err := ioutil.ReadAll(e.arg.Source)
+	msg, err := ioutil.ReadAll(e.peek)
 	if err != nil {
 		return err
 	}

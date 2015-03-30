@@ -89,7 +89,6 @@ func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) error {
 	earg := &engine.PGPVerifyArg{
 		Source:    src,
 		Signature: arg.Opts.Signature,
-		Clearsign: arg.Opts.Clearsign,
 		TrackOptions: engine.TrackOptions{
 			TrackLocalOnly: arg.Opts.LocalOnly,
 			TrackApprove:   arg.Opts.ApproveRemote,

@@ -397,7 +397,6 @@ typedef NS_ENUM (NSInteger, KBRSignMode) {
 @property BOOL localOnly;
 @property BOOL approveRemote;
 @property NSData *signature;
-@property BOOL clearsign;
 @end
 
 @interface KBRFingerprintAndKey : KBRObject

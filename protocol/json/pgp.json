@@ -236,9 +236,6 @@
     }, {
       "name" : "signature",
       "type" : "bytes"
-    }, {
-      "name" : "clearsign",
-      "type" : "boolean"
     } ]
   }, {
     "type" : "record",
