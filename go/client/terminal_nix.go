@@ -69,6 +69,7 @@ func (t *TerminalEngine) Startup() error {
 	if t.terminal = terminal.NewTerminal(file, ""); t.terminal == nil {
 		return fmt.Errorf("failed to open terminal")
 	}
+	t.terminal.AutoCompleteCallback = t.autoComp
 
 	if err = t.terminal.SetSize(t.width, t.height); err != nil {
 		return err
@@ -112,4 +113,14 @@ func (t *TerminalEngine) Prompt(prompt string) (string, error) {
 		t.Write(prompt)
 	}
 	return t.terminal.ReadLine()
+}
+
+func (t *TerminalEngine) autoComp(line string, pos int, key rune) (newLine string, newPos int, ok bool) {
+	// this is a hack to handle ctrl-c
+	if key == 3 {
+		G.Shutdown()
+		G.Log.Error("interrupted")
+		os.Exit(3)
+	}
+	return line, pos, false
 }
