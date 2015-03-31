@@ -77,16 +77,17 @@
 @interface KBRBlockRequest : KBRRequest
 - (void)blockSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBlockWithBlockid:(NSData *)blockid size:(NSInteger)size completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)getBlockWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)putBlockWithBlockid:(NSData *)blockid buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
+- (void)putBlockWithBlockId:(NSString *)blockId buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
 
-- (void)delBlockWithBlockid:(NSData *)blockid size:(NSInteger)size completion:(void (^)(NSError *error))completion;
+- (void)delBlockWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion;
 
 @end
 
 @interface KBRBIndexInfo : KBRObject
 @property NSString *blockId;
+@property NSInteger size;
 @property NSString *chargedTo;
 @property NSString *folder;
 @property NSString *creator;
@@ -96,11 +97,11 @@
 @interface KBRBIndexRequest : KBRRequest
 - (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBlockKeyWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error, NSString *str))completion;
-
-- (void)deleteWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error))completion;
+- (void)getBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)putBIndexWithInfo:(KBRBIndexInfo *)info completion:(void (^)(NSError *error))completion;
+
+- (void)deleteWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -632,28 +633,30 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSString *sid;
 @end
 @interface KBRGetBlockRequestParams : KBRRequestParams
-@property NSData *blockid;
+@property NSString *blockId;
 @property NSInteger size;
 @end
 @interface KBRPutBlockRequestParams : KBRRequestParams
-@property NSData *blockid;
+@property NSString *blockId;
 @property NSData *buf;
 @end
 @interface KBRDelBlockRequestParams : KBRRequestParams
-@property NSData *blockid;
+@property NSString *blockId;
 @property NSInteger size;
 @end
 @interface KBRBIndexSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
-@interface KBRGetBlockKeyRequestParams : KBRRequestParams
-@property NSString *blockid;
-@end
-@interface KBRDeleteRequestParams : KBRRequestParams
-@property NSString *blockid;
+@interface KBRGetBIndexRequestParams : KBRRequestParams
+@property NSString *blockId;
+@property NSInteger size;
 @end
 @interface KBRPutBIndexRequestParams : KBRRequestParams
 @property KBRBIndexInfo *info;
+@end
+@interface KBRDeleteRequestParams : KBRRequestParams
+@property NSString *blockId;
+@property NSInteger size;
 @end
 @interface KBRPassphraseLoginRequestParams : KBRRequestParams
 @property BOOL identify;

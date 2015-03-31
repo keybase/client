@@ -170,6 +170,9 @@
       "name" : "blockId",
       "type" : "string"
     }, {
+      "name" : "size",
+      "type" : "int"
+    }, {
       "name" : "chargedTo",
       "type" : "string"
     }, {
@@ -191,24 +194,30 @@
       } ],
       "response" : "null"
     },
-    "getBlockKey" : {
+    "getBIndex" : {
       "request" : [ {
-        "name" : "blockid",
+        "name" : "blockId",
         "type" : "string"
+      }, {
+        "name" : "size",
+        "type" : "int"
       } ],
       "response" : "string"
-    },
-    "delete" : {
-      "request" : [ {
-        "name" : "blockid",
-        "type" : "string"
-      } ],
-      "response" : "null"
     },
     "putBIndex" : {
       "request" : [ {
         "name" : "info",
         "type" : "BIndexInfo"
+      } ],
+      "response" : "null"
+    },
+    "delete" : {
+      "request" : [ {
+        "name" : "blockId",
+        "type" : "string"
+      }, {
+        "name" : "size",
+        "type" : "int"
       } ],
       "response" : "null"
     }

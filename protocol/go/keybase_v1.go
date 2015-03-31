@@ -77,6 +77,7 @@ type Stream struct {
 type SIGID [32]byte
 type BIndexInfo struct {
 	BlockId   string `codec:"blockId" json:"blockId"`
+	Size      int    `codec:"size" json:"size"`
 	ChargedTo string `codec:"chargedTo" json:"chargedTo"`
 	Folder    string `codec:"folder" json:"folder"`
 	Creator   string `codec:"creator" json:"creator"`
@@ -87,23 +88,25 @@ type BIndexSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }
 
-type GetBlockKeyArg struct {
-	Blockid string `codec:"blockid" json:"blockid"`
-}
-
-type DeleteArg struct {
-	Blockid string `codec:"blockid" json:"blockid"`
+type GetBIndexArg struct {
+	BlockId string `codec:"blockId" json:"blockId"`
+	Size    int    `codec:"size" json:"size"`
 }
 
 type PutBIndexArg struct {
 	Info BIndexInfo `codec:"info" json:"info"`
 }
 
+type DeleteArg struct {
+	BlockId string `codec:"blockId" json:"blockId"`
+	Size    int    `codec:"size" json:"size"`
+}
+
 type BIndexInterface interface {
 	BIndexSession(string) error
-	GetBlockKey(string) (string, error)
-	Delete(string) error
+	GetBIndex(GetBIndexArg) (string, error)
 	PutBIndex(BIndexInfo) error
+	Delete(DeleteArg) error
 }
 
 func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
@@ -117,17 +120,10 @@ func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"getBlockKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetBlockKeyArg, 1)
+			"getBIndex": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetBIndexArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetBlockKey(args[0].Blockid)
-				}
-				return
-			},
-			"delete": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeleteArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Delete(args[0].Blockid)
+					ret, err = i.GetBIndex(args[0])
 				}
 				return
 			},
@@ -135,6 +131,13 @@ func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
 				args := make([]PutBIndexArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PutBIndex(args[0].Info)
+				}
+				return
+			},
+			"delete": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeleteArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Delete(args[0])
 				}
 				return
 			},
@@ -153,15 +156,8 @@ func (c BIndexClient) BIndexSession(sid string) (err error) {
 	return
 }
 
-func (c BIndexClient) GetBlockKey(blockid string) (res string, err error) {
-	__arg := GetBlockKeyArg{Blockid: blockid}
-	err = c.Cli.Call("keybase.1.bIndex.getBlockKey", []interface{}{__arg}, &res)
-	return
-}
-
-func (c BIndexClient) Delete(blockid string) (err error) {
-	__arg := DeleteArg{Blockid: blockid}
-	err = c.Cli.Call("keybase.1.bIndex.delete", []interface{}{__arg}, nil)
+func (c BIndexClient) GetBIndex(__arg GetBIndexArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.bIndex.getBIndex", []interface{}{__arg}, &res)
 	return
 }
 
@@ -171,22 +167,27 @@ func (c BIndexClient) PutBIndex(info BIndexInfo) (err error) {
 	return
 }
 
+func (c BIndexClient) Delete(__arg DeleteArg) (err error) {
+	err = c.Cli.Call("keybase.1.bIndex.delete", []interface{}{__arg}, nil)
+	return
+}
+
 type BlockSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }
 
 type GetBlockArg struct {
-	Blockid []byte `codec:"blockid" json:"blockid"`
+	BlockId string `codec:"blockId" json:"blockId"`
 	Size    int    `codec:"size" json:"size"`
 }
 
 type PutBlockArg struct {
-	Blockid []byte `codec:"blockid" json:"blockid"`
+	BlockId string `codec:"blockId" json:"blockId"`
 	Buf     []byte `codec:"buf" json:"buf"`
 }
 
 type DelBlockArg struct {
-	Blockid []byte `codec:"blockid" json:"blockid"`
+	BlockId string `codec:"blockId" json:"blockId"`
 	Size    int    `codec:"size" json:"size"`
 }
 
