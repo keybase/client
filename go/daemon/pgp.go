@@ -17,8 +17,8 @@ func NewPGPHandler(xp *rpc2.Transport) *PGPHandler {
 
 func (h *PGPHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 	cli := h.getStreamUICli()
-	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
-	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
 	earg := engine.PGPSignArg{Sink: snk, Source: src, Opts: arg.Opts}
 	ctx := engine.Context{SecretUI: h.getSecretUI(arg.SessionID)}
 	eng := engine.NewPGPSignEngine(&earg)
@@ -38,8 +38,8 @@ func (h *PGPHandler) PgpPull(arg keybase_1.PgpPullArg) error {
 
 func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 	cli := h.getStreamUICli()
-	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
-	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
 	earg := &engine.PGPEncryptArg{
 		Recips:       arg.Opts.Recipients,
 		Sink:         snk,
@@ -63,8 +63,8 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 
 func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) (keybase_1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
-	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
-	snk := libkb.RemoteStream{Stream: arg.Sink, Cli: cli}
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
 	earg := &engine.PGPDecryptArg{
 		Sink:         snk,
 		Source:       src,
@@ -91,7 +91,7 @@ func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) (keybase_1.PgpSigVe
 
 func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) (keybase_1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
-	src := libkb.RemoteStream{Stream: arg.Source, Cli: cli}
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
 	earg := &engine.PGPVerifyArg{
 		Source:    src,
 		Signature: arg.Opts.Signature,

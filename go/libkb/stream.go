@@ -1,9 +1,11 @@
 package libkb
 
 import (
-	keybase_1 "github.com/keybase/client/protocol/go"
+	"bufio"
 	"io"
 	"sync"
+
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type ReadCloser struct {
@@ -142,4 +144,32 @@ func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 		copy(buf, tmp)
 	}
 	return
+}
+
+type RemoteStreamBuffered struct {
+	rs *RemoteStream
+	r  *bufio.Reader
+	w  *bufio.Writer
+}
+
+func NewRemoteStreamBuffered(s keybase_1.Stream, c *keybase_1.StreamUiClient) *RemoteStreamBuffered {
+	x := &RemoteStreamBuffered{
+		rs: &RemoteStream{Stream: s, Cli: c},
+	}
+	x.r = bufio.NewReader(x.rs)
+	x.w = bufio.NewWriter(x.rs)
+	return x
+}
+
+func (x *RemoteStreamBuffered) Write(p []byte) (int, error) {
+	return x.w.Write(p)
+}
+
+func (x *RemoteStreamBuffered) Read(p []byte) (int, error) {
+	return x.r.Read(p)
+}
+
+func (x *RemoteStreamBuffered) Close() error {
+	x.w.Flush()
+	return x.rs.Close()
 }

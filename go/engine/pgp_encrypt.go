@@ -140,7 +140,13 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		recipients = append(recipients, up.Keys...)
 	}
 
-	return libkb.PGPEncrypt(e.arg.Source, writer, signer, recipients)
+	if err := libkb.PGPEncrypt(e.arg.Source, writer, signer, recipients); err != nil {
+		return err
+	}
+	if !e.arg.BinaryOutput {
+		return e.arg.Sink.Close()
+	}
+	return nil
 }
 
 func (e *PGPEncrypt) loadSelfKey() (*libkb.PgpKeyBundle, error) {
