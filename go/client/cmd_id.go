@@ -56,9 +56,13 @@ func (v *CmdId) RunClient() error {
 }
 
 func (v *CmdId) Run() error {
+	logui := G.UI.GetLogUI()
+	if v.trackStatement {
+		logui = libkb.NewNullLogger()
+	}
 	eng := engine.NewIdEngine(v.makeArg())
 	ctx := engine.Context{
-		LogUI:      G_UI.GetLogUI(),
+		LogUI:      logui,
 		IdentifyUI: G.UI.GetIdentifyUI(),
 	}
 	err := engine.RunEngine(eng, &ctx)
