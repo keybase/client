@@ -175,17 +175,30 @@
     "getBlock" : {
       "request" : [ {
         "name" : "blockid",
-        "type" : "string"
+        "type" : "bytes"
+      }, {
+        "name" : "size",
+        "type" : "int"
       } ],
       "response" : "bytes"
     },
     "putBlock" : {
       "request" : [ {
         "name" : "blockid",
-        "type" : "string"
+        "type" : "bytes"
       }, {
         "name" : "buf",
         "type" : "bytes"
+      } ],
+      "response" : "null"
+    },
+    "delBlock" : {
+      "request" : [ {
+        "name" : "blockid",
+        "type" : "bytes"
+      }, {
+        "name" : "size",
+        "type" : "int"
       } ],
       "response" : "null"
     }

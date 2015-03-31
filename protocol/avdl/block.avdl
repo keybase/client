@@ -4,6 +4,7 @@ protocol block {
 	import idl "common.avdl";
 
 	void blockSession(string sid);
-	bytes getBlock(string blockid);
-	void putBlock(string blockid, bytes buf);
+	bytes getBlock(bytes blockid, int size);
+	void putBlock(bytes blockid, bytes buf);
+	void delBlock(bytes blockid, int size);
 }

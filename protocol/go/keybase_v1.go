@@ -176,18 +176,25 @@ type BlockSessionArg struct {
 }
 
 type GetBlockArg struct {
-	Blockid string `codec:"blockid" json:"blockid"`
+	Blockid []byte `codec:"blockid" json:"blockid"`
+	Size    int    `codec:"size" json:"size"`
 }
 
 type PutBlockArg struct {
-	Blockid string `codec:"blockid" json:"blockid"`
+	Blockid []byte `codec:"blockid" json:"blockid"`
 	Buf     []byte `codec:"buf" json:"buf"`
+}
+
+type DelBlockArg struct {
+	Blockid []byte `codec:"blockid" json:"blockid"`
+	Size    int    `codec:"size" json:"size"`
 }
 
 type BlockInterface interface {
 	BlockSession(string) error
-	GetBlock(string) ([]byte, error)
+	GetBlock(GetBlockArg) ([]byte, error)
 	PutBlock(PutBlockArg) error
+	DelBlock(DelBlockArg) error
 }
 
 func BlockProtocol(i BlockInterface) rpc2.Protocol {
@@ -204,7 +211,7 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 			"getBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetBlockArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetBlock(args[0].Blockid)
+					ret, err = i.GetBlock(args[0])
 				}
 				return
 			},
@@ -212,6 +219,13 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 				args := make([]PutBlockArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PutBlock(args[0])
+				}
+				return
+			},
+			"delBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DelBlockArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DelBlock(args[0])
 				}
 				return
 			},
@@ -230,14 +244,18 @@ func (c BlockClient) BlockSession(sid string) (err error) {
 	return
 }
 
-func (c BlockClient) GetBlock(blockid string) (res []byte, err error) {
-	__arg := GetBlockArg{Blockid: blockid}
+func (c BlockClient) GetBlock(__arg GetBlockArg) (res []byte, err error) {
 	err = c.Cli.Call("keybase.1.block.getBlock", []interface{}{__arg}, &res)
 	return
 }
 
 func (c BlockClient) PutBlock(__arg PutBlockArg) (err error) {
 	err = c.Cli.Call("keybase.1.block.putBlock", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BlockClient) DelBlock(__arg DelBlockArg) (err error) {
+	err = c.Cli.Call("keybase.1.block.delBlock", []interface{}{__arg}, nil)
 	return
 }
 
