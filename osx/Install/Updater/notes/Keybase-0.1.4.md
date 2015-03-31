@@ -1,2 +1,0 @@
-* Updater
-* UI fixes
