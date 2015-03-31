@@ -129,7 +129,7 @@ const (
 	DEVICE_TYPE_WEB     = "web"
 )
 
-var PGP_VERSION = "Keybase Go CLI " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
+var PGP_VERSION = "Keybase Go " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
 
 func PgpArmorHeaders() map[string]string {
 	return map[string]string{
