@@ -216,18 +216,23 @@
 
 - (void)showLogin {
   KBLoginView *loginView = [[KBLoginView alloc] init];
-  KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
-//  mockClient.handler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-//    [loginView.navigation pushView:devicePromptView animated:YES];
-//    completion(nil, @{});
-//  };
-  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
-//    KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:[KBRMockClient requestForMethod:@"keybase.1.doctorUi.selectSigner"]];
-//    [loginView selectSigner:requestParams completion:^(NSError *error, id result) {
-//      [loginView.window close];
-//    }];
-  };
   [self openInWindow:loginView size:CGSizeMake(800, 600) title:@"Keybase"];
+
+  KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
+
+  KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
+  NSArray *params = [KBRMockClient requestForMethod:@"keybase.1.doctorUi.selectSigner"];
+  KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
+  [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
+
+  KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
+  [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameToRegister:@"Macbook (Home)"];
+
+  KBNavigationView *navigation = loginView.navigation;
+  loginView.loginButton.targetBlock = ^{ [navigation pushView:devicePromptView animated:YES]; };
+  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) { [navigation pushView:deviceSetupView animated:YES]; };
+  deviceSetupView.selectButton.targetBlock = ^{ [navigation pushView:secretWordsView animated:YES]; };
+  secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
 }
 
 - (void)showSignup {

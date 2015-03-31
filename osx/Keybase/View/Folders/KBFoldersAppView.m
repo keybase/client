@@ -30,12 +30,15 @@
   _foldersView = [[KBFoldersView alloc] init];
 
   KBFilePreviewView *previewView = [[KBFilePreviewView alloc] init];
+  previewView.hidden = YES;
 
   _foldersView.foldersView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
-    [previewView setFile:file];
+    previewView.hidden = !file;
+    if (file) [previewView setFile:file];
   };
   _foldersView.favoritesView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
-    [previewView setFile:file];
+    previewView.hidden = !file;
+    if (file) [previewView setFile:file];
   };
 
   [_splitView setSourceView:_foldersView contentView:previewView];
@@ -44,7 +47,7 @@
 }
 
 - (void)reload {
-
+  //[_foldersView.favoritesView addObjects:@[[KBFile folderWithName:@"test" dateModified:[NSDate date]]]];
 }
 
 @end

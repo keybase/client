@@ -52,6 +52,9 @@
   _searchField = [[KBSearchField alloc] init];
   [self addSubview:_searchField];
 
+  KBBox *border = [KBBox horizontalLine];
+  [self addSubview:border];
+
   _favoritesView = [[KBFileListView alloc] init];
   [_favoritesView setFileColumnStyle:KBFileColumnStyleNameDate];
   _favoritesView.identifier = @"Favorites";
@@ -79,6 +82,9 @@
     [layout setFrame:CGRectMake(x, y, size.width - x - 10, 24) view:yself.searchField];
 
     y += 33;
+
+    [layout setFrame:CGRectMake(0, y, size.width, 1) view:border];
+    y += 1;
 
     [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.favoritesView];
     [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.foldersView];

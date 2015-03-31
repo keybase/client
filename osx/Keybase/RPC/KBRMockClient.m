@@ -15,6 +15,7 @@
 
 @interface KBRMockClient ()
 @property NSMutableDictionary *registrations;
+
 @end
 
 @implementation KBRMockClient
@@ -36,13 +37,18 @@
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   self.completion = completion;
-  if (self.handler) self.handler(@(sessionId), method, params, completion);
+  if (self.handler) {
+    self.handler(@(sessionId), method, params, completion);
+    return;
+  }
 
   NSDictionary *response = [KBRMockClient responseForMethod:method];
   if (response) {
     completion(nil, response);
   } else {
-    [self replayMethod:method completion:completion];
+    if (![self replayMethod:method completion:completion]) {
+      completion(KBMakeError(-1, @"No mock for method: %@", method), nil);
+    }
   }
 }
 
@@ -60,14 +66,13 @@
   [self.registrations removeObjectForKey:@(sessionId)];
 }
 
-- (void)replayMethod:(NSString *)requestMethod completion:(MPRequestCompletion)completion {
+- (BOOL)replayMethod:(NSString *)requestMethod completion:(MPRequestCompletion)completion {
   GHWeakSelf gself = self;
   NSString *directory = [AppDelegate applicationSupport:@[@"Record", @"default", requestMethod] create:NO error:nil];
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:nil];
 
   if (files.count == 0) {
-    completion(KBMakeError(-1, @"No mock for method: %@", requestMethod), nil);
-    return;
+    return NO;
   }
 
   NSMutableDictionary *fileDict = [NSMutableDictionary dictionary];
@@ -104,6 +109,7 @@
       if (completion) completion(nil, method, request, ^(NSError *error, id result) { });
     }
   }
+  return YES;
 }
 
 + (id)responseForMethod:(NSString *)method {

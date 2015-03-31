@@ -62,6 +62,11 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  [self.window recalculateKeyViewLoop];
+  [self.window makeFirstResponder:_secretWordsLabel.textView];
+}
+
 - (void)setSecretWords:(NSString *)secretWords deviceNameToRegister:(NSString *)deviceNameToRegister {
   /*
    On your "CLI" computer, a window should have appeared. Type this in it:

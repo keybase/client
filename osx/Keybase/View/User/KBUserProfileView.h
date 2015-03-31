@@ -17,6 +17,9 @@
 
 @property (getter=isPopup) BOOL popup;
 
+@property (readonly, getter=isLoading) BOOL loading;
+
+- (BOOL)isLoadingUsername:(NSString *)username;
 - (void)setUsername:(NSString *)username editable:(BOOL)editable;
 
 - (void)clear;

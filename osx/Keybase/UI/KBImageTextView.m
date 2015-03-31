@@ -79,9 +79,11 @@
   [self.infoLabel setStyle:KBTextStyleSecondaryText appearance:appearance];
 
   if (self.tintImageForStyle) {
-    if (backgroundStyle == NSBackgroundStyleDark && self.imageView.image) {
+    if (!self.image) {
       self.image = self.imageView.image;
       self.imageTinted = [self.imageView imageTintedWithColor:NSColor.whiteColor];
+    }
+    if (backgroundStyle == NSBackgroundStyleDark) {
       self.imageView.image = self.imageTinted;
     } else if (self.image) {
       self.imageView.image = self.image;

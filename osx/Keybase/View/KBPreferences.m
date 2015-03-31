@@ -32,11 +32,14 @@
 
     YOVBox *advancedView = [[YOVBox alloc] initWithFrame:CGRectMake(0, 0, 400, 240)];
     [advancedView setOptions:@{@"spacing": @"10", @"insets": @"20,40,20,40"}];
+
+    /*
     KBButton *recordCheckbox = [KBButton buttonWithText:@"Record RPC Calls" style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     recordCheckbox.identifier = @"Preferences.Advanced.Record";
     recordCheckbox.state = [NSUserDefaults.standardUserDefaults boolForKey:recordCheckbox.identifier];
     [recordCheckbox.cell addObserver:self forKeyPath:@"state" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:NULL];
     [advancedView addSubview:recordCheckbox];
+     */
 
 //    KBButton *recordOpenButton = [KBButton buttonWithText:@"Open" style:KBButtonStyleDefault];
 //    [advancedView addSubview:recordOpenButton];

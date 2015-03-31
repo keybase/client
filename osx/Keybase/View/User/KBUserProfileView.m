@@ -36,7 +36,7 @@
 
 @property KBRFOKID *fokid;
 
-@property BOOL inProgress;
+@property (getter=isLoading) BOOL loading;
 @end
 
 @implementation KBUserProfileView
@@ -195,8 +195,9 @@
       if (self.popup) {
         [[self window] close];
       }
-      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{}];
-
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{}];
+      });
     }];
     [gself setNeedsLayout];
 
@@ -220,9 +221,13 @@
   [self setUsername:self.username editable:self.editable];
 }
 
+- (BOOL)isLoadingUsername:(NSString *)username {
+  return [_username isEqualToString:username] && _loading;
+}
+
 - (void)setUsername:(NSString *)username editable:(BOOL)editable {
-  if ([_username isEqualToString:username] && _inProgress) return;
-  NSAssert(!_inProgress, @"In progress");
+  if ([self isLoadingUsername:username]) return;
+  NSAssert(!_loading, @"In progress");
 
   [self clear];
 
@@ -237,22 +242,22 @@
   if (!_editable) {
     // For others
     [self.headerView setProgressEnabled:YES];
-    _inProgress = YES;
+    _loading = YES;
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
     [self registerClient:self.client sessionId:trackRequest.sessionId sender:nil];
     [trackRequest trackWithSessionID:trackRequest.sessionId theirName:_username localOnly:NO approveRemote:NO completion:^(NSError *error) {
       [gself setTrackCompleted:error];
-      gself.inProgress = NO;
+      gself.loading = NO;
     }];
   } else {
     // For ourself
     [self.headerView setProgressEnabled:YES];
-    _inProgress = YES;
+    _loading = YES;
     KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
     [self registerClient:self.client sessionId:identifyRequest.sessionId sender:nil];
     [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
       [gself.headerView setProgressEnabled:NO];
-      gself.inProgress = NO;
+      gself.loading = NO;
       if (error) {
         [AppDelegate setError:error sender:nil];
         return;

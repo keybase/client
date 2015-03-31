@@ -53,8 +53,8 @@
     CGFloat y = ceilf(size.height/2.0 - indicatorWidth/2.0 + labelSize.height/2.0 + 4);
 
     [layout setFrame:CGRectMake(x, y, indicatorWidth, indicatorWidth) view:yself.indicatorView];
-    [layout setFrame:CGRectMake(size.width/2.0 - labelSize.width/2.0, y - labelSize.height - 8, labelSize.width, labelSize.height) view:yself.label];
-    return CGSizeMake(size.width, size.height);
+    [layout setFrame:CGRectMake(ceilf(size.width/2.0 - labelSize.width/2.0), y - labelSize.height - 8, labelSize.width, labelSize.height) view:yself.label];
+    return size;
   }];
 }
 

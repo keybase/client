@@ -80,17 +80,6 @@
   [self addSubview:_views];
   [self showTracking:self];
 
-  _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
-  [_searchResultsView setBorderEnabled:YES];
-  _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
-    [view setSearchResult:searchResult];
-  };
-  _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
-    [yself selectUser:searchResult.userName];
-  };
-  _searchResultsView.hidden = YES;
-  [self addSubview:_searchResultsView positioned:NSWindowAbove relativeTo:_views];
-
   _userProfileView = [[KBUserProfileView alloc] init];
   [self addSubview:_userProfileView];
 
@@ -100,6 +89,18 @@
 
   KBBox *borderRight = [KBBox line];
   [self addSubview:borderRight];
+
+  _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
+  [_searchResultsView setBorderEnabled:YES];
+  _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
+    [view setSearchResult:searchResult];
+  };
+  _searchResultsView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBSearchResult *searchResult) {
+    GHDebug(@"Select: %@", searchResult.userName);
+    [yself selectUser:searchResult.userName];
+  };
+  _searchResultsView.hidden = YES;
+  [self addSubview:_searchResultsView positioned:NSWindowAbove relativeTo:_userProfileView];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
 
@@ -114,7 +115,7 @@
 
     y += [layout setFrame:CGRectMake(10, y, col1 - 21, 22) view:yself.searchField].size.height + 9;
 
-    [layout setFrame:CGRectMake(-1, y, col1 + 1, size.height - y) view:yself.searchResultsView];
+    [layout setFrame:CGRectMake(-1, y, col1 + 1, size.height - y - 20) view:yself.searchResultsView];
 
     y += [layout setFrame:CGRectMake(9, y, col1 - 21, 23) view:yself.menuButton].size.height + 4;
 
@@ -217,11 +218,25 @@
 
 - (void)setUser:(KBRUser *)user {
   [_trackingView removeAllObjects];
-  [_userProfileView clear];
   [self selectUser:user.username];
 }
 
 - (void)selectUser:(NSString *)username {
+  if (!username) {
+    [_userProfileView clear];
+    return;
+  }
+
+  if ([_userProfileView isLoadingUsername:username]) return;
+
+  // If loading a different user, lets make a new profile view
+  if ([_userProfileView isLoading]) {
+    [_userProfileView removeFromSuperview];
+    _userProfileView = [[KBUserProfileView alloc] init];
+    [self addSubview:_userProfileView];
+    [self setNeedsLayout];
+  }
+
   KBRUser *user = [[KBRUser alloc] init];
   user.username = username;
   BOOL editable = [AppDelegate.appView.user.username isEqual:user.username];
@@ -255,10 +270,12 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 }
 
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl {
+  [_userProfileView clear];
   [self showSearch];
 }
 
 - (void)searchControlShouldClose:(KBSearchControl *)searchControl {
+  [_userProfileView clear];
   [self hideSearch];
 }
 

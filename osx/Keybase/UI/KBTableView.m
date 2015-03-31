@@ -215,11 +215,15 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
   if (_selecting) return; // If we are selecting programatically ignore the notification
+  if (!self.selectBlock) return;
   NSInteger selectedRow = [_view selectedRow];
-  if (selectedRow < 0) return;
-  id object = [self selectedObject];
-  if (object) {
-    if (self.selectBlock) self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+  if (selectedRow < 0) {
+    self.selectBlock(self, nil, nil);
+  } else {
+    id object = [self selectedObject];
+    if (object) {
+      self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+    }
   }
 }
 
