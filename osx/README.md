@@ -20,7 +20,7 @@ When Keybase.app is run it will force the launch agent to run keybased (even if 
 
 `/bin/launchctl unload ~/Library/LaunchAgents/keybase.keybased.plist`
 
-Alternatively to load keybased after it has been loaded:
+Alternatively to load keybased after it has been unloaded:
 
 `/bin/launchctl load -w ~/Library/LaunchAgents/keybase.keybased.plist`
 
@@ -30,7 +30,9 @@ To check the status of keybased in launch services:
 
 Also `keybased` is run with the default configuration. When running keybased in development you should use an alternate home directory and socket/pid file location. For example,
 
-`./keybased -H ~/Projects/keybase/home --socket-file=/tmp/keybase-dev.sock --pid-file=/tmp/keybase-dev.pid -s http://localhost:3000 -d local-rpc-debug svc`
+```sh
+./keybased -H ~/Projects/keybase/home --socket-file=/tmp/keybase-dev.sock --pid-file=/tmp/keybase-dev.pid -s http://localhost:3000 -d local-rpc-debug svc`
+```
 
 
 ## Xcode
