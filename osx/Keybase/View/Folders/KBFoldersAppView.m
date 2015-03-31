@@ -44,16 +44,7 @@
 }
 
 - (void)reload {
-#ifdef DEBUG
-  NSArray *folders = @[[KBFile folderWithName:@"patrick" dateModified:[[NSDate date] gh_addDays:-100]],
-                       [KBFile folderWithName:@"max,gabrielh" dateModified:[[NSDate date] gh_addDays:-200]],
-                       [KBFile folderWithName:@"chris,gabrielh" dateModified:[NSDate date]],
-                       [KBFile folderWithName:@"Keybase" dateModified:[NSDate date]],];
-  [_foldersView.foldersView setObjects:folders];
 
-  NSArray *favorites = [folders subarrayWithRange:NSMakeRange(1, 2)];
-  [_foldersView.favoritesView setObjects:favorites];
-#endif
 }
 
 @end

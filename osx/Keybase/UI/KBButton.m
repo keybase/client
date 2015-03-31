@@ -9,7 +9,7 @@
 #import "KBButton.h"
 
 #import "KBAppearance.h"
-#import "KBLabel.h"
+#import "KBText.h"
 
 @interface KBButton ()
 @property KBButtonStyle style;
@@ -83,7 +83,7 @@
     }
   }
   if (self.attributedTitle) {
-    CGSize titleSize = [KBLabel sizeThatFits:size attributedString:self.attributedTitle];
+    CGSize titleSize = [KBText sizeThatFits:size attributedString:self.attributedTitle];
     if (titleSize.width > 0) {
       sizeThatFits.width += titleSize.width;
       sizeThatFits.height = MAX(titleSize.height, sizeThatFits.height);
@@ -236,7 +236,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBButtonStyle)style font:(NSFont *)font alignment:(NSTextAlignment)alignment {
-  NSAttributedString *str = [KBLabel parseMarkup:markup font:font ? font : [KBButton fontForStyle:style] color:nil alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
+  NSAttributedString *str = [KBText parseMarkup:markup font:font ? font : [KBButton fontForStyle:style] color:nil alignment:alignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setAttributedTitle:str];
 }
 
@@ -369,7 +369,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
     return [super drawImage:image withFrame:frame inView:controlView];
   }
 
-  CGSize titleSize = [KBLabel sizeThatFits:controlView.frame.size attributedString:self.attributedTitle];
+  CGSize titleSize = [KBText sizeThatFits:controlView.frame.size attributedString:self.attributedTitle];
 
   CGRect imageFrame = frame;
   if (titleSize.width > 0) {

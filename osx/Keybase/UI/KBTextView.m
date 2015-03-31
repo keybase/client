@@ -82,7 +82,11 @@
   [self setText:text font:font color:color];
 }
 
-- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color {
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color  {
+  [self setText:text font:font color:color alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+}
+
+- (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   NSParameterAssert(font);
   NSParameterAssert(color);
   if (!text) {
@@ -91,11 +95,11 @@
   }
   NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:text];
 
-//  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-//  paragraphStyle.alignment = alignment;
-//  paragraphStyle.lineBreakMode = lineBreakMode;
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = alignment;
+  paragraphStyle.lineBreakMode = lineBreakMode;
 
-  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font}; //, NSParagraphStyleAttributeName:paragraphStyle};
+  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:font, NSParagraphStyleAttributeName:paragraphStyle};
   [str setAttributes:attributes range:NSMakeRange(0, str.length)];
 
   self.attributedText = str;

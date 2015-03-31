@@ -8,10 +8,9 @@
 
 #import "KBLabel.h"
 
-#import <Slash/Slash.h>
 #import "KBBox.h"
 #import "KBAppearance.h"
-#import <GHKit/GHKit.h>
+#import "KBText.h"
 
 @interface KBLabel ()
 @property NSTextView *textView;
@@ -33,9 +32,9 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-
-    UIEdgeInsets insets = UIEdgeInsetsAdd(yself.border.insets, yself.insets);
-    CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) attributedString:self.textView.attributedString];
+    
+    UIEdgeInsets insets = self.allInsets;
+    CGSize sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:self.textView];
 
     CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
 
@@ -57,8 +56,8 @@
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-  UIEdgeInsets insets = UIEdgeInsetsAdd(self.border.insets, self.insets);
-  CGSize sizeThatFits = [KBLabel sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) attributedString:self.textView.attributedString];
+  UIEdgeInsets insets = self.allInsets;
+  CGSize sizeThatFits = [KBText sizeThatFits:CGSizeMake(size.width - insets.left - insets.right, 0) textView:self.textView];
   CGSize sizeWithInsets = CGSizeMake(sizeThatFits.width + insets.left + insets.right, sizeThatFits.height + insets.top + insets.bottom);
   if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
     sizeWithInsets.height = MAX(size.height, sizeWithInsets.height);
@@ -67,11 +66,15 @@
   return sizeWithInsets;
 }
 
-//// Don't capture mouse events unless we are selectable
-//- (NSView *)hitTest:(NSPoint)p {
-//  if (_textView.selectable) return [_textView hitTest:[self convertPoint:p fromView:self]];
-//  return nil;
-//}
+- (UIEdgeInsets)allInsets {
+  return UIEdgeInsetsAdd(self.border ? self.border.insets : UIEdgeInsetsZero, self.insets);
+}
+
+// Don't capture mouse events unless we are selectable
+- (NSView *)hitTest:(NSPoint)p {
+  if (_textView.selectable) return [super hitTest:p];
+  return nil;
+}
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"%@ %@", super.description, self.attributedText];
@@ -161,57 +164,12 @@
   self.attributedText = str;
 }
 
-+ (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  return [self parseMarkup:markup options:@{@"font": GHOrNull(font), @"color": GHOrNull(color), @"alignment": @(alignment), @"lineBreakMode": @(lineBreakMode)}];
-}
-
-+ (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options {
-  NSFont *font = GHIfNull(options[@"font"], nil);
-  NSColor *color = GHIfNull(options[@"color"], nil);
-  NSTextAlignment alignment = [options[@"alignment"] integerValue];
-  NSLineBreakMode lineBreakMode = [options[@"lineBreakMode"] integerValue];
-  CGFloat lineSpacing = [options[@"lineSpacing"] floatValue];
-
-  if (!font) font = KBAppearance.currentAppearance.textFont;
-  if (!color) color = KBAppearance.currentAppearance.textColor;
-
-  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-  paragraphStyle.alignment = alignment;
-  paragraphStyle.lineBreakMode = lineBreakMode;
-  paragraphStyle.lineSpacing = lineSpacing;
-
-  NSDictionary *defaultStyle = @{NSFontAttributeName:font, NSForegroundColorAttributeName:color, NSParagraphStyleAttributeName:paragraphStyle};
-
-  NSDictionary *style = @{@"$default": defaultStyle,
-                          @"p": defaultStyle,
-                          //@"h3": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 6]},
-                          //@"h4": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize + 4]},
-                          @"em": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Italic" size:font.pointSize]},
-                          @"strong": @{NSFontAttributeName: [NSFont boldSystemFontOfSize:font.pointSize]},
-                          @"a": @{
-                              NSForegroundColorAttributeName: KBAppearance.currentAppearance.selectColor,
-                              NSCursorAttributeName: NSCursor.pointingHandCursor
-                              },
-                          @"ok": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.okColor},
-                          @"error": @{NSForegroundColorAttributeName: KBAppearance.currentAppearance.errorColor},
-                          @"thin": @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Thin" size:font.pointSize]},
-                          @"color": @{},
-                          };
-  NSError *error = nil;
-  NSAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:&error] mutableCopy];
-  if (!str) {
-    GHDebug(@"Unable to parse markup: %@; %@", markup, error);
-    str = [[NSMutableAttributedString alloc] initWithString:markup attributes:defaultStyle];
-  }
-  return str;
-}
-
 - (void)setMarkup:(NSString *)markup {
   [self setMarkup:markup font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 }
 
 - (void)setMarkup:(NSString *)markup options:(NSDictionary *)options {
-  [self setAttributedText:[KBLabel parseMarkup:markup options:options]];
+  [self setAttributedText:[KBText parseMarkup:markup options:options]];
 }
 
 - (void)setMarkup:(NSString *)markup style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
@@ -220,7 +178,7 @@
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
-  NSAttributedString *str = [KBLabel parseMarkup:markup font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
+  NSAttributedString *str = [KBText parseMarkup:markup font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
   [self setAttributedText:str];
 }
 
@@ -259,41 +217,6 @@
   [_textView.textStorage setAttributedString:_attributedText];
   _textView.needsDisplay = YES;
   [self setNeedsLayout];
-}
-
-+ (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString {
-  if (size.height <= 0) size.height = CGFLOAT_MAX;
-  if (size.width <= 0) size.width = CGFLOAT_MAX;
-  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
-  NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:size];
-  [textContainer setLineFragmentPadding:0.0];
-  NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
-  //layoutManager.typesetterBehavior = NSTypesetterLatestBehavior;
-  [layoutManager addTextContainer:textContainer];
-  [textStorage addLayoutManager:layoutManager];
-
-  // Force layout
-  (void)[layoutManager glyphRangeForTextContainer:textContainer];
-  //NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
-
-  // This seems to be more accurate than usedRectForTextContainer:
-  NSRect rect = [attributedString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin];
-
-  return CGRectIntegral(rect).size;
-}
-
-+ (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter {
-  NSMutableAttributedString *text = [[NSMutableAttributedString alloc] init];
-  for (NSInteger index = 0; index < attributedStrings.count; index++) {
-    NSAttributedString *as = attributedStrings[index];
-    if (as.length > 0) {
-      [text appendAttributedString:as];
-      if (delimeter && index < attributedStrings.count - 1) {
-        [text appendAttributedString:delimeter];
-      }
-    }
-  }
-  return text;
 }
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {

@@ -48,14 +48,7 @@
 
 - (void)setStyle:(KBTextStyle)style appearance:(id<KBAppearance>)appearance;
 
-+ (CGSize)sizeThatFits:(CGSize)size attributedString:(NSAttributedString *)attributedString;
-
 - (BOOL)hasText;
-
-+ (NSMutableAttributedString *)join:(NSArray *)attributedStrings delimeter:(NSAttributedString *)delimeter;
-
-+ (NSAttributedString *)parseMarkup:(NSString *)markup options:(NSDictionary *)options;
-+ (NSAttributedString *)parseMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 @end
 

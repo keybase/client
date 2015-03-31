@@ -37,7 +37,7 @@
     [strings addObject:[[NSAttributedString alloc] initWithString:NSStringWithFormat(@"@%@", searchResult.twitter) attributes:@{NSForegroundColorAttributeName:appearance.secondaryTextColor, NSFontAttributeName:appearance.smallTextFont}]];
   }
 
-  return [KBLabel join:strings delimeter:[[NSAttributedString alloc] initWithString:@" • "]];
+  return [KBText join:strings delimeter:[[NSAttributedString alloc] initWithString:@" • "]];
 }
 
 // Override

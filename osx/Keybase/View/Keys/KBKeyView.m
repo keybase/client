@@ -25,7 +25,7 @@
 
   KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleToolbar];
   removeButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    [self removePGPKey:completion];
+    //[self removePGPKey:completion];
   };
   [self addSubview:removeButton];
 

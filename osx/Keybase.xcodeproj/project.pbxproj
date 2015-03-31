@@ -116,6 +116,8 @@
 		00566A511A9BAA7500CA236E /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A501A9BAA7500CA236E /* KBInstaller.m */; };
 		00566A521A9BAA7500CA236E /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A501A9BAA7500CA236E /* KBInstaller.m */; };
 		00566A5C1A9BADC400CA236E /* keybase.keybased.plist in Resources */ = {isa = PBXBuildFile; fileRef = 00566A591A9BAD4800CA236E /* keybase.keybased.plist */; };
+		006A32E11ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
+		006A32E21ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
 		006D57171AAE27D100D16CB8 /* KBFoldersAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57161AAE27D100D16CB8 /* KBFoldersAppView.m */; };
 		006D57181AAE27D100D16CB8 /* KBFoldersAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D57161AAE27D100D16CB8 /* KBFoldersAppView.m */; };
 		006D571B1AAE29EF00D16CB8 /* KBFileLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D571A1AAE29EF00D16CB8 /* KBFileLabel.m */; };
@@ -396,6 +398,8 @@
 		00566A5B1A9BAD4800CA236E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		0065CA3B1A7C2E46006E1772 /* assets_sl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_sl.rb; sourceTree = "<group>"; };
 		0065CA3C1A7C2E46006E1772 /* assets_pl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_pl.rb; sourceTree = "<group>"; };
+		006A32DF1ACB30380054457B /* KBText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBText.h; sourceTree = "<group>"; };
+		006A32E01ACB30380054457B /* KBText.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBText.m; sourceTree = "<group>"; };
 		006D57151AAE27D100D16CB8 /* KBFoldersAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFoldersAppView.h; sourceTree = "<group>"; };
 		006D57161AAE27D100D16CB8 /* KBFoldersAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFoldersAppView.m; sourceTree = "<group>"; };
 		006D57191AAE29EF00D16CB8 /* KBFileLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileLabel.h; sourceTree = "<group>"; };
@@ -890,6 +894,8 @@
 				00B9B4AC1AAE7C9F00AB0748 /* KBImageLoader.m */,
 				005669E71A97DA1800CA236E /* KBLabel.h */,
 				005669E81A97DA1800CA236E /* KBLabel.m */,
+				006A32DF1ACB30380054457B /* KBText.h */,
+				006A32E01ACB30380054457B /* KBText.m */,
 				005669EB1A97DA1800CA236E /* KBLayouts.h */,
 				005669EC1A97DA1800CA236E /* KBLayouts.m */,
 				005669ED1A97DA1800CA236E /* KBMenuBar.h */,
@@ -1315,6 +1321,7 @@
 				00D52F631A6F4D1E00DEB5F5 /* KBRUtils.m in Sources */,
 				00D52F8A1A77266A00DEB5F5 /* KBTrackView.m in Sources */,
 				00B544031A82F8B40044CC5B /* KBAppView.m in Sources */,
+				006A32E11ACB30380054457B /* KBText.m in Sources */,
 				007908171ABB718D00FBBD89 /* KBSecretWordsInputView.m in Sources */,
 				0004F0F11A8D859600CFCA23 /* KBRRequestParams.m in Sources */,
 				001712561A951A9C00C7AD58 /* KBUserInfoLabels.m in Sources */,
@@ -1447,6 +1454,7 @@
 				001712291A94100500C7AD58 /* KBGPGKeysView.m in Sources */,
 				009E2BC01ABCD9C700EBB035 /* KBAppKitDefines.m in Sources */,
 				00FDC8181AAA605C00D6C571 /* KBUserImageView.m in Sources */,
+				006A32E21ACB30380054457B /* KBText.m in Sources */,
 				001FCDE91AB2035C004486D3 /* KBViews.m in Sources */,
 				00566A241A97DA1800CA236E /* KBSplitView.m in Sources */,
 				00566A341A97DA1800CA236E /* KBWindow.m in Sources */,
