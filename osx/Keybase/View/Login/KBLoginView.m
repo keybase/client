@@ -160,6 +160,9 @@
     secretWordsView.button.targetBlock = ^{
       completion(nil, nil);
     };
+    secretWordsView.cancelButton.targetBlock = ^{
+      completion(KBMakeError(237, @"Canceled"), nil);
+    };
     [self.navigation pushView:secretWordsView animated:YES];
   }];
 

@@ -36,8 +36,13 @@
   _secretWordsLabel.insets = UIEdgeInsetsMake(10, 20, 10, 20);
   [contentView addSubview:_secretWordsLabel];
 
+  YOView *footerView = [YOView view];
   _button = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
-  [contentView addSubview:_button];
+  [footerView addSubview:_button];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+  [footerView addSubview:_cancelButton];
+  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_button cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
+  [contentView addSubview:footerView];
 
   YOSelf yself = self;
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -49,7 +54,7 @@
 
     y += [layout centerWithSize:CGSizeMake(500, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.secretWordsLabel].size.height + 40;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.button].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:footerView].size.height;
 
     return CGSizeMake(MIN(580, size.width), y);
   }];

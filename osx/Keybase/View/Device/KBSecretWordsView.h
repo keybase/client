@@ -13,6 +13,7 @@
 @interface KBSecretWordsView : KBContentView
 
 @property KBButton *button;
+@property KBButton *cancelButton;
 
 - (void)setSecretWords:(NSString *)secretWords deviceNameToRegister:(NSString *)deviceNameToRegister;
 

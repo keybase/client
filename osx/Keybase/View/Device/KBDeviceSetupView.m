@@ -50,14 +50,7 @@
   _selectButton = [KBButton buttonWithText:@"Select" style:KBButtonStylePrimary];
   [bottomView addSubview:_selectButton];
   [contentView addSubview:bottomView];
-
-  YOSelf yself = self;
-  bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 0;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 280, 0, 130, 0) view:yself.cancelButton].size.height;
-    [layout sizeToFitVerticalInFrame:CGRectMake(size.width - 130, 0, 130, 0) view:yself.selectButton];
-    return CGSizeMake(size.width, y);
-  }];
+  bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_selectButton cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
 
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(600, 450)]];
 
