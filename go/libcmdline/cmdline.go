@@ -1,12 +1,13 @@
 package libcmdline
 
 import (
-	"github.com/codegangsta/cli"
-	"github.com/keybase/client/go/libkb"
 	"regexp"
 	"strings"
 	"text/tabwriter"
 	"text/template"
+
+	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/libkb"
 )
 
 type Command interface {
@@ -162,10 +163,13 @@ func (c *CmdBaseHelp) MakeHelpPrinter() {
 	if cli.HelpPrinter != nil {
 		return
 	}
+	funcMap := template.FuncMap{
+		"join": strings.Join,
+	}
 
 	cli.HelpPrinter = func(templ string, data interface{}) {
 		w := tabwriter.NewWriter(c.ctx.App.Writer, 0, 8, 1, '\t', 0)
-		t := template.Must(template.New("help").Parse(templ))
+		t := template.Must(template.New("help").Funcs(funcMap).Parse(templ))
 		err := t.Execute(w, data)
 		if err != nil {
 			panic(err)
