@@ -7,6 +7,15 @@
     <pubDate>Tue, 31 Mar 2015 10:45:41 -0700</pubDate>
     <link>https://keybase-app.s3.amazonaws.com/appcast.xml</link>
     <atom:link rel='self' type='application/rss+xml' href='https://keybase-app.s3.amazonaws.com/appcast.xml'/>
+
+    <item>
+      <title> 0.1.8</title>
+      <sparkle:releaseNotesLink>https://keybase-app.s3.amazonaws.com/Keybase-0.1.8.html</sparkle:releaseNotesLink>
+      <pubDate>Tue, 31 Mar 2015 14:34:57 -0700</pubDate>
+      <guid isPermaLink='false'> 0.1.8</guid>
+      <enclosure type='application/dmg' sparkle:version='0.1.8' url='https://keybase-app.s3.amazonaws.com/Keybase-0.1.8.dmg'/>
+    </item>
+
     <item>
       <title>Keybase 0.1.7</title>
       <sparkle:releaseNotesLink>https://keybase-app.s3.amazonaws.com/Keybase-0.1.7.html</sparkle:releaseNotesLink>
