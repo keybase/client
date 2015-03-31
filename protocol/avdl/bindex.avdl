@@ -5,14 +5,19 @@ protocol bIndex {
 
 	record BIndexInfo {
 		string blockId;
+		int size;
 		string chargedTo;
 		string folder;
-		string creator;
-		string blockKey; //to be filled in server
+		string creator; //to be filled in by bindex server
+		string blockKey; //to be filled in by bindex server
 	}
 
 	void bIndexSession(string sid);
-	string getBlockKey(string blockid);
-	void delete(string blockid);
+	string getBIndex(string blockId, int size);
 	void putBIndex(BIndexInfo info);
+	void delete(string blockId, int size);
+
+	// future RPC from bserver to bindex 
+	// void notifySize(string blockId, int size); 
+
 }
