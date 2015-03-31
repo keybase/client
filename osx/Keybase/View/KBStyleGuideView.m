@@ -64,11 +64,8 @@
   buttonView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts gridLayoutForViews:buttonView.subviews viewSize:CGSizeMake(200, 42) padding:10]];
   [contentView addSubview:buttonView];
 
-  YOBox *linkView = [YOBox box:@{@"spacing": @(10)}];
+  YOBox *linkView = [YOBox box:@{@"spacing": @(10), @"minSize": @"200,40"}];
   [contentView addSubview:linkView];
-  KBButton *openSheetLink = [KBButton buttonWithText:@"Open Sheet" style:KBButtonStyleLink];
-  openSheetLink.targetBlock = ^{ [self openSheet]; };
-  [linkView addSubview:openSheetLink];
 
   KBButton *activityToggleLink = [KBButton buttonWithText:@"Toggle Activity" style:KBButtonStyleLink];
   activityToggleLink.targetBlock = ^{ [self toggleActivity]; };
@@ -113,22 +110,6 @@
   [scrollView setDocumentView:contentView];
   [self addSubview:scrollView];
   self.viewLayout = [YOLayout fill:scrollView];
-}
-
-- (void)openSheet {
-  YOView *view = [[YOView alloc] init];
-  view.wantsLayer = YES;
-  view.layer.backgroundColor = NSColor.whiteColor.CGColor;
-  KBButton *button = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
-  button.frame = CGRectMake(100, 20, 100, 42);
-  [view addSubview:button];
-
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:@"Sheet"];
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(300, 200) retain:YES];
-  
-  [self.window beginSheet:window completionHandler:^(NSModalResponse returnCode) {}];
-
-  button.targetBlock = ^{ [self.window endSheet:window]; };
 }
 
 - (void)toggleActivity {

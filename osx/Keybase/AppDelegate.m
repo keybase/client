@@ -57,7 +57,7 @@
   KBWindow *window = [_appView openWindow];
 
   _consoleView = [[KBConsoleView alloc] init];
-  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionRight title:@"Console" errorHandler:_errorHandler];
+  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" errorHandler:_errorHandler];
   _appView.delegate = _consoleView;
 
   _mockViews = [[KBMockViews alloc] init];

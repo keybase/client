@@ -268,14 +268,16 @@
   NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:size];
   [textContainer setLineFragmentPadding:0.0];
   NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
+  //layoutManager.typesetterBehavior = NSTypesetterLatestBehavior;
   [layoutManager addTextContainer:textContainer];
   [textStorage addLayoutManager:layoutManager];
 
   // Force layout
   (void)[layoutManager glyphRangeForTextContainer:textContainer];
-  NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
+  //NSRect rect = [layoutManager usedRectForTextContainer:textContainer];
 
-  //NSRect rect = [attributedString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin];
+  // This seems to be more accurate than usedRectForTextContainer:
+  NSRect rect = [attributedString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin];
 
   return CGRectIntegral(rect).size;
 }

@@ -74,7 +74,7 @@
 }
 
 - (CGSize)sizeThatFits:(NSSize)size {
-  CGSize sizeThatFits;
+  CGSize sizeThatFits = CGSizeZero;
   if (self.image) {
     CGSize imageSize = self.image.size;
     if (!isnan(imageSize.width) && !isnan(imageSize.height)) {
