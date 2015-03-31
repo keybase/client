@@ -181,7 +181,7 @@
 
 - (void)showSecretWords {
   KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
-  [secretWordsView setSecretWords:@"exotic element night course funny grain pourover mustache lumbersexual" deviceNameToRegister:@"Macbook (Home)"];
+  [secretWordsView setSecretWords:@"exotic element night course funny grain pourover mustache lumbersexual yolo" deviceNameToRegister:@"Macbook (Home)"];
   secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:nil];
 }

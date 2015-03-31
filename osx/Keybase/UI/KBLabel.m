@@ -67,11 +67,11 @@
   return sizeWithInsets;
 }
 
-// Don't capture mouse events unless we are selectable
-- (NSView *)hitTest:(NSPoint)p {
-  if (_textView.selectable) return [_textView hitTest:[self convertPoint:p fromView:self]];
-  return nil;
-}
+//// Don't capture mouse events unless we are selectable
+//- (NSView *)hitTest:(NSPoint)p {
+//  if (_textView.selectable) return [_textView hitTest:[self convertPoint:p fromView:self]];
+//  return nil;
+//}
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"%@ %@", super.description, self.attributedText];

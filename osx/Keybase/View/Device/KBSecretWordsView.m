@@ -70,7 +70,7 @@
 
   // NSStringWithFormat(@"In order to register this device you need to enter in these secret words on the device named: <strong>%@</strong>.", deviceName)
   [_label setMarkup:@"In order to register this device you need to enter in the secret phrase generated on an existing device." style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [_secretWordsLabel setText:secretWords font:[NSFont boldSystemFontOfSize:20] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_secretWordsLabel setText:secretWords font:[NSFont fontWithName:@"Monaco" size:20] color:KBAppearance.currentAppearance.textColor alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   [self setNeedsLayout];
 }
 
