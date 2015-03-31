@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:sparkle='http://www.andymatuschak.org/xml-namespaces/sparkle' xmlns:atom='http://www.andymatuschak.org/xml-namespaces/sparkle' version='2.0'>
+  <channel>
+    <title>Keybase</title>
+    <description>Keybase updates</description>
+    <language>en</language>
+    <pubDate>Tue, 31 Mar 2015 10:45:41 -0700</pubDate>
+    <link>https://keybase-app.s3.amazonaws.com/appcast.xml</link>
+    <atom:link rel='self' type='application/rss+xml' href='https://keybase-app.s3.amazonaws.com/appcast.xml'/>
+    <item>
+      <title>Keybase 0.1.7</title>
+      <sparkle:releaseNotesLink>https://keybase-app.s3.amazonaws.com/Keybase-0.1.7.html</sparkle:releaseNotesLink>
+      <pubDate>Mon, 30 Mar 2015 17:31:00 -0700</pubDate>
+      <guid isPermaLink='false'>Keybase 0.1.7</guid>
+      <enclosure type='application/dmg' sparkle:version='0.1.7' url='https://keybase-app.s3.amazonaws.com/Keybase-0.1.7.dmg'/>
+    </item>
+  </channel>
+</rss>

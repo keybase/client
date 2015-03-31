@@ -9,7 +9,7 @@ if [ ! -d "Keybase.app" ]; then
 fi
 
 if [ ! -f "keybased" ]; then
-	echo "You need to build the keybase binaries (build_keybase.sh)"
+	echo "You need to build the keybase binaries (build.sh)"
 	exit 1
 fi
 
