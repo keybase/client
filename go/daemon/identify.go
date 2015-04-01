@@ -45,8 +45,12 @@ func (h *IdentifyHandler) IdentifyDefault(arg keybase_1.IdentifyDefaultArg) (key
 }
 
 func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdEngineArg, doInteractive bool) (res *engine.IdRes, err error) {
+	logui := h.getLogUI(sessionId)
+	if iarg.TrackStatement {
+		logui = libkb.NewNullLogger()
+	}
 	ctx := engine.Context{
-		LogUI:      h.getLogUI(sessionId),
+		LogUI:      logui,
 		IdentifyUI: h.NewRemoteIdentifyUI(sessionId),
 	}
 	eng := engine.NewIdEngine(&iarg)
