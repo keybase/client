@@ -201,12 +201,6 @@
 
 #pragma mark Error
 
-- (void)setFatalError:(NSError *)error {
-  KBFatalErrorView *fatalErrorView = [[KBFatalErrorView alloc] init];
-  [fatalErrorView setError:error];
-  [self.appView.window kb_addChildWindowForView:fatalErrorView rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Keybase" errorHandler:_errorHandler];
-}
-
 + (void)setError:(NSError *)error sender:(NSView *)sender {
   [AppDelegate.sharedDelegate setError:error sender:sender];
 }

@@ -18,6 +18,7 @@ typedef void (^KBErrorBlock)(NSError *error);
 #define KBMakeErrorWithRecovery(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey:[NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]
 
 extern NSString *const KBTrackingListDidChangeNotification;
+extern NSString *const KBStatusDidChangeNotification;
 
 NSString *KBDisplayURLStringForUsername(NSString *username);
 NSString *KBURLStringForUsername(NSString *username);

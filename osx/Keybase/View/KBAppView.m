@@ -160,9 +160,8 @@
 
   [_client checkInstall:^(NSError *error) {
     [self.delegate appView:self didCheckInstallWithClient:gself.client];
-    // TODO Better error handling here
     if (error) {
-      [AppDelegate.sharedDelegate setFatalError:error];
+      [AppDelegate setError:error sender:self];
       return;
     }
 
@@ -316,6 +315,7 @@
       [self.delegate appView:self didCheckStatusWithClient:gself.client config:config status:status];
       // TODO reload current view if coming back from disconnect?
       if (completion) completion(nil);
+      [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
     }];
   }];
 }
@@ -370,12 +370,14 @@
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
   [self.sourceView.statusView setConnected:NO];
   [self.delegate appView:self didDisconnectWithClient:_client];
+  [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
   [self.sourceView.statusView setConnected:NO];
   [self.delegate appView:self didDisconnectWithClient:RPClient];
+  [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
 - (void)sourceOutlineView:(KBSourceOutlineView *)sourceView didSelectItem:(KBSourceViewItem)item {

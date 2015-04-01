@@ -28,43 +28,37 @@
 }
 
 - (void)checkInstall:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion {
-//  KBRPClient *checkClient = [[KBRPClient alloc] init];
-//  [checkClient openAndCheck:^(NSError *error) {
-//    if (error) {
-//      // There was an error (hopefully because keybased isn't installed)
-//      // so lets try to install.
-//      [self install:completion];
-//      return;
-//    }
-//
-//    // Its running ok
-//    completion(nil);
-//  }];
-
-  [self install:completion];
-}
-
-- (void)install:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion {
-  NSString *brewCheck = @"/usr/local/bin/keybased"; // Symlink to brew Cellar
-  if ([NSFileManager.defaultManager fileExistsAtPath:brewCheck]) {
-    // Don't install (it's installed by homebrew)
-    completion(nil, NO, KBInstallTypeHomebrew);
-  } else {
-    NSError *error = nil;
-    [AppDelegate applicationSupport:nil create:YES error:&error]; // Create application support dir
+  GHWeakSelf gself = self;
+  [_launchCtl status:^(NSError *error, NSInteger pid) {
     if (error) {
       completion(error, NO, KBInstallTypeNone);
       return;
     }
+    if (pid == 0) {
+      [self install:completion];
+    } else {
+      [gself.launchCtl reload:^(NSError *error, NSInteger pid) {
+        completion(nil, NO, KBInstallTypeInstaller);
+      }];
+    }
+  }];
+}
 
-    [_launchCtl installLaunchAgent:^(NSError *error) {
-      if (error) {
-        completion(error, NO, KBInstallTypeNone);
-        return;
-      }
-      completion(error, YES, KBInstallTypeInstaller);
-    }];
+- (void)install:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion {
+  NSError *error = nil;
+  [AppDelegate applicationSupport:nil create:YES error:&error]; // Create application support dir
+  if (error) {
+    completion(error, NO, KBInstallTypeNone);
+    return;
   }
+
+  [_launchCtl installLaunchAgent:^(NSError *error) {
+    if (error) {
+      completion(error, NO, KBInstallTypeNone);
+      return;
+    }
+    completion(error, YES, KBInstallTypeInstaller);
+  }];
 }
 
 - (void)removeDirectory:(NSString *)directory error:(NSError **)error {

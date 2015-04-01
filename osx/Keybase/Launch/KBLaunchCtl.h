@@ -18,8 +18,15 @@ typedef void (^KBLaunchStatus)(NSError *error, NSInteger pid);
 
 @property BOOL releaseOnly;
 
-- (void)load:(KBLaunchExecution)completion;
-- (void)unload:(KBLaunchExecution)completion;
+/*!
+ @param force Enables service even if it has been disabled (launchctl load -w)
+ */
+- (void)load:(BOOL)force completion:(KBLaunchExecution)completion;
+
+/*!
+ @param disable Disables service so it won't restart (launchctl unload -w)
+ */
+- (void)unload:(BOOL)disable completion:(KBLaunchExecution)completion;
 
 - (void)reload:(KBLaunchStatus)completion;
 - (void)status:(KBLaunchStatus)completion;

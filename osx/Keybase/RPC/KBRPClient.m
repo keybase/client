@@ -152,7 +152,7 @@
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
-    completion(KBMakeError(-400, @"We are unable to connect to the keybase daemon."), nil);
+    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to keybased.", @"You should make sure keybased is running in launch services (launchctl list | grep keybased)"), nil);
     return;
   }
 
@@ -191,10 +191,10 @@
   }
 }
 
-- (void)check:(void (^)(NSError *error))completion {
+- (void)check:(void (^)(NSError *error, NSString *version))completion {
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self];
-  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
-    completion(error);
+  [config getConfig:^(NSError *error, KBRConfig *config) {
+    completion(error, config.version);
   }];
 }
 
@@ -212,19 +212,13 @@
   [self.registrations removeObjectForKey:@(sessionId)];
 }
 
-- (void)openAndCheck:(void (^)(NSError *error))completion {
+- (void)openAndCheck:(void (^)(NSError *error, NSString *version))completion {
   [self open:^(NSError *error) {
     if (error) {
-      completion(error);
+      completion(error, nil);
       return;
     }
-    [self check:^(NSError *error) {
-      if (error) {
-        completion(error);
-        return;
-      }
-    }];
-    completion(nil);
+    [self check:completion];
   }];
 }
 

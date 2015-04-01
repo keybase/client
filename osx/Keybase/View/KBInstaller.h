@@ -12,7 +12,6 @@
 
 typedef NS_ENUM (NSInteger, KBInstallType) {
   KBInstallTypeNone,
-  KBInstallTypeHomebrew,
   KBInstallTypeInstaller,
 };
 
@@ -20,6 +19,10 @@ typedef NS_ENUM (NSInteger, KBInstallType) {
 
 @property (readonly) KBLaunchCtl *launchCtl;
 
+/*!
+  - installed: If YES, that means we did copied the launch services config and reloaded the service.
+  - installType: The type of install we detected.
+ */
 - (void)checkInstall:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion;
 
 @end

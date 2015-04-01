@@ -90,9 +90,7 @@
 
   [contentView addSubview:[KBButton linkWithText:@"Progress" targetBlock:^{ [self showProgressView:1 error:NO]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Progress (error)" targetBlock:^{ [self showProgressView:0 error:YES]; }]];
-
   [contentView addSubview:[KBButton linkWithText:@"Error" targetBlock:^{ [self showError]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Fatal" targetBlock:^{ [self showFatalError]; }]];
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
@@ -316,11 +314,6 @@
 - (void)showError {
   NSError *error = KBMakeErrorWithRecovery(-1, @"This is the error message.", @"This is the recovery suggestion.");
   [AppDelegate setError:error sender:self];
-}
-
-- (void)showFatalError {
-  NSError *error = KBMakeErrorWithRecovery(-1, @"This is the fatal error message.", @"This is the recovery suggestion.");
-  [AppDelegate.sharedDelegate setFatalError:error];
 }
 
 @end

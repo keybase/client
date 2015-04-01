@@ -9,6 +9,7 @@
 #import "KBDefines.h"
 
 NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";
+NSString *const KBStatusDidChangeNotification = @"KBStatusDidChangeNotification";
 
 NSString *KBHexString(NSData *data) {
   if ([data length] == 0) return nil;

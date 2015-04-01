@@ -17,7 +17,13 @@ fi
 rm -rf Keybase.dmg
 
 VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Keybase.app/Contents/Info.plist`
-echo "Version: $VERSION"
+echo "App Version: $VERSION"
+
+KB_BIN_VERSION=`./keybased --version`
+echo "Keybased Version: $KB_BIN_VERSION"
+
+KB_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBKeybasedVersion" Keybase.app/Contents/Info.plist`
+echo "Keybased Info Version : $KB_VERSION"
 
 echo "Copying keybase binaries into Keybase.app..."
 chmod +x keybased

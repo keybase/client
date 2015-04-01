@@ -11,6 +11,14 @@
 
 git tag -a x.y.z -m x.y.z
 
+#### Build keybased
+
+You should make sure the go/version.go has the right version set.
+
+```sh
+sh build.sh
+```
+
 #### Update the Info.plist version
 
 ```sh
@@ -23,12 +31,6 @@ sh version.sh
 1. From the Organizer (Window | Organizer), export the build you just created.
 1. Select Export a Developer-ID signed application (requires you to be Team Agent).
 1. Choose `osx/Install` as the directory to save Keybase.app.
-
-#### Build keybased
-
-```sh
-sh build.sh
-```
 
 #### Generate a Keybase.dmg
 

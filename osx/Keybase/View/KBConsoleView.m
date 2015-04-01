@@ -91,14 +91,14 @@
   if (status) {
     [_toggleButton setText:@"Stop keybased" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
     _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-      [gself.client.installer.launchCtl unload:^(NSError *error, NSString *output) {
+      [gself.client.installer.launchCtl unload:YES completion:^(NSError *error, NSString *output) {
         completion(error);
       }];
     };
   } else {
     [_toggleButton setText:@"Start keybased" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
     _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-      [gself.client.installer.launchCtl load:^(NSError *error, NSString *output) {
+      [gself.client.installer.launchCtl load:YES completion:^(NSError *error, NSString *output) {
         completion(error);
       }];
     };
@@ -150,6 +150,8 @@
 - (void)appView:(KBAppView *)appView didCheckStatusWithClient:(KBRPClient *)client config:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
   [self log:NSStringWithFormat(@"keybased is at %@", config.path)];
   [self log:NSStringWithFormat(@"keybased version: %@", config.version)];
+  NSString *KBKeybasedVersion = [[NSBundle mainBundle] infoDictionary][@"KBKeybasedVersion"];
+  [self log:NSStringWithFormat(@"KBKeybasedVersion: %@", KBKeybasedVersion)];
   [self log:NSStringWithFormat(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"")];
   _runtimeStatusView.config = config;
   [_runtimeStatusView update];

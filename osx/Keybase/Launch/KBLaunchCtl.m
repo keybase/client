@@ -8,16 +8,15 @@
 
 #import "KBLaunchCtl.h"
 
-
 #define PLIST_PATH (@"keybase.keybased.plist")
 
 @implementation KBLaunchCtl
 
 - (void)reload:(KBLaunchStatus)completion {
-  [self unload:^(NSError *unloadError, NSString *unloadOutput) {
-    [self wait:NO attempt:4 completion:^(NSError *error, NSInteger pid) {
-      [self load:^(NSError *loadError, NSString *loadOutput) {
-        [self wait:YES attempt:4 completion:^(NSError *error, NSInteger pid) {
+  [self unload:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
+    [self wait:NO attempt:1 completion:^(NSError *error, NSInteger pid) {
+      [self load:YES completion:^(NSError *loadError, NSString *loadOutput) {
+        [self wait:YES attempt:1 completion:^(NSError *error, NSInteger pid) {
           completion(loadError, pid);
         }];
       }];
@@ -30,12 +29,20 @@
   return [launchAgentDir stringByAppendingPathComponent:PLIST_PATH];
 }
 
-- (void)load:(KBLaunchExecution)completion {
-  [self execute:@"/bin/launchctl" args:@[@"load", @"-w", self.plist] completion:completion];
+- (void)load:(BOOL)force completion:(KBLaunchExecution)completion {
+  NSMutableArray *args = [NSMutableArray array];
+  [args addObject:@"load"];
+  if (force) [args addObject:@"-w"];
+  [args addObject:self.plist];
+  [self execute:@"/bin/launchctl" args:args completion:completion];
 }
 
-- (void)unload:(KBLaunchExecution)completion {
-  [self execute:@"/bin/launchctl" args:@[@"unload", self.plist] completion:completion];
+- (void)unload:(BOOL)disable completion:(KBLaunchExecution)completion {
+  NSMutableArray *args = [NSMutableArray array];
+  [args addObject:@"unload"];
+  if (disable) [args addObject:@"-w"];
+  [args addObject:self.plist];
+  [self execute:@"/bin/launchctl" args:args completion:completion];
 }
 
 - (void)status:(KBLaunchStatus)completion {
@@ -48,7 +55,7 @@
         return;
       }
     }
-    completion(nil, 0);
+    completion(nil, -1);
   }];
 }
 
@@ -63,7 +70,7 @@
       if ((attempt + 1) >= 4) {
         completion(KBMakeError(-1, @"launchctl wait timeout"), 0);
       } else {
-        GHDebug(@"Attempt (%@) for load=%@", @(attempt+1), @(load));
+        GHDebug(@"Watiting for %@ (%@)", load ? @"load" : @"unload", @(attempt));
         [self wait:load attempt:attempt+1 completion:completion];
       }
     }
@@ -141,22 +148,10 @@
   }
 
   // We installed the launch agent plist
-  GHDebug(@"Installed");
+  GHDebug(@"Installed launch agent plist");
 
-  [self checkLaunch:plist completion:^(NSError *error) {
-    if (error) {
-      completion(error);
-      return;
-    }
-    // Success
-    completion(nil);
-  }];
-}
-
-- (void)checkLaunch:(NSString *)path completion:(void (^)(NSError *error))completion {
   [self reload:^(NSError *error, NSInteger pid) {
-    // TODO Handle error
-    completion(nil);
+    completion(error);
   }];
 }
 

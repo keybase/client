@@ -8,11 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBView.h"
 #import "KBRuntimeStatusView.h"
 #import "KBAppView.h"
 
-@interface KBConsoleView : KBView <KBAppViewDelegate>
+@interface KBConsoleView : YOView <KBAppViewDelegate>
 
 @property (readonly) KBRuntimeStatusView *runtimeStatusView;
 

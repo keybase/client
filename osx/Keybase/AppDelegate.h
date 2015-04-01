@@ -13,6 +13,7 @@
 #import "KBRPC.h"
 #import "KBAppView.h"
 #import <GHKit/GHKit.h>
+#import "KBAppKit.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
@@ -28,7 +29,6 @@
 - (IBAction)logout:(id)sender;
 
 + (void)setError:(NSError *)error sender:(NSView *)sender;
-- (void)setFatalError:(NSError *)error;
 
 + (NSString *)bundleFile:(NSString *)file;
 

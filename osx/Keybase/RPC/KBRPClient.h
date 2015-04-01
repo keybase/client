@@ -50,8 +50,8 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
 
 - (void)close;
 
-- (void)check:(void (^)(NSError *error))completion;
-- (void)openAndCheck:(void (^)(NSError *error))completion;
+- (void)check:(void (^)(NSError *error, NSString *version))completion;
+- (void)openAndCheck:(void (^)(NSError *error, NSString *version))completion;
 
 - (void)checkInstall:(KBCompletionBlock)completion;
 
