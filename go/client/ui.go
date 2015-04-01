@@ -524,9 +524,12 @@ func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sel
 		optcount++
 	}
 
+	fmt.Fprintf(w, "(999) ...nevermind, I'll add this device later\t(logout)\n")
+	fmt.Fprintf(w, "(666) ...I have lost all those keys and need to reset my account\t\n")
+
 	w.Flush()
 
-	ret, err := d.parent.PromptSelectionOrCancel("Choose a signing option", 1, optcount)
+	ret, err := d.parent.PromptSelectionOrCancel("Choose a signing option", 1, 999)
 	if err != nil {
 		if err == ErrInputCanceled {
 			res.Action = keybase_1.SelectSignerAction_CANCEL
@@ -534,9 +537,26 @@ func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sel
 		}
 		return res, err
 	}
+
+	if ret == 999 {
+		res.Action = keybase_1.SelectSignerAction_CANCEL
+		return res, nil
+	}
+
+	if ret == 666 {
+		G.Log.Warning("account reset not yet implemented.")
+		res.Action = keybase_1.SelectSignerAction_CANCEL
+		return res, nil
+	}
+
+	if ret < 1 || ret > len(arg.Devices)+1 {
+		res.Action = keybase_1.SelectSignerAction_CANCEL
+		return res, nil
+	}
+
 	res.Action = keybase_1.SelectSignerAction_SIGN
 	res.Signer = &keybase_1.DeviceSigner{}
-	if ret > len(arg.Devices) {
+	if ret == len(arg.Devices)+1 {
 		res.Signer.Kind = keybase_1.DeviceSignerKind_PGP
 	} else {
 		res.Signer.Kind = keybase_1.DeviceSignerKind_DEVICE
