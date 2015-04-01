@@ -247,8 +247,9 @@ type TestSecretUI struct {
 
 func (t TestSecretUI) GetSecret(p keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
 	return &keybase_1.SecretEntryRes{
-		Text:     t.Passphrase,
-		Canceled: false,
+		Text:        t.Passphrase,
+		Canceled:    false,
+		StoreSecret: p.UseSecretStore,
 	}, nil
 }
 

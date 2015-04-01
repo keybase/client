@@ -273,11 +273,13 @@ func (k *Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, skb *SKB, err
 	var which string
 	if skb, which, err = k.GetSecretKeyLocked(ska); err == nil && skb != nil {
 		k.G().Log.Debug("| Prompt/Unlock key")
+		var secretStore SecretStore
 		if ska.Me != nil {
 			k.G().Log.Debug("| Setting UID on SKB to %s", ska.Me.GetUid())
 			skb.uid = ska.Me.GetUid().P()
+			secretStore = NewSecretStore(ska.Me)
 		}
-		key, err = skb.PromptAndUnlock(ska.Reason, which, ska.Ui)
+		key, err = skb.PromptAndUnlock(ska.Reason, which, secretStore, ska.Ui)
 	}
 	return
 }

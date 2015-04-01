@@ -148,7 +148,7 @@ func (v *ProofEngine) GenerateProof() (err error) {
 	if v.proof, err = v.me.ServiceProof(v.signingKey, v.st, v.usernameNormalized); err != nil {
 		return
 	}
-	if seckey, err = locked.PromptAndUnlock("proof signature", which, v.SecretUI); err != nil {
+	if seckey, err = locked.PromptAndUnlock("proof signature", which, nil, v.SecretUI); err != nil {
 		return
 	}
 	if v.sig, v.sigId, _, err = SignJson(v.proof, seckey); err != nil {

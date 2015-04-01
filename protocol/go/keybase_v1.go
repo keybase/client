@@ -1576,16 +1576,18 @@ func (c QuotaClient) VerifySession(session string) (res SessionToken, err error)
 }
 
 type SecretEntryArg struct {
-	Desc   string `codec:"desc" json:"desc"`
-	Prompt string `codec:"prompt" json:"prompt"`
-	Err    string `codec:"err" json:"err"`
-	Cancel string `codec:"cancel" json:"cancel"`
-	Ok     string `codec:"ok" json:"ok"`
+	Desc           string `codec:"desc" json:"desc"`
+	Prompt         string `codec:"prompt" json:"prompt"`
+	Err            string `codec:"err" json:"err"`
+	Cancel         string `codec:"cancel" json:"cancel"`
+	Ok             string `codec:"ok" json:"ok"`
+	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
 }
 
 type SecretEntryRes struct {
-	Text     string `codec:"text" json:"text"`
-	Canceled bool   `codec:"canceled" json:"canceled"`
+	Text        string `codec:"text" json:"text"`
+	Canceled    bool   `codec:"canceled" json:"canceled"`
+	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
 type GetSecretArg struct {

@@ -402,7 +402,7 @@ func (p *PgpKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 		return nil
 	}
 
-	unlocker := func(pw string) (ret GenericKey, err error) {
+	unlocker := func(pw string, _ bool) (ret GenericKey, err error) {
 
 		if err = p.PrivateKey.Decrypt([]byte(pw)); err == nil {
 

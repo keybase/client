@@ -30,6 +30,11 @@ type SKB struct {
 
 	uid *UID // UID that the key is for
 	Contextified
+
+	// TODO(akalin): Remove this in favor of making LKSec
+	// Contextified (see
+	// https://github.com/keybase/client/issues/329 ).
+	newLKSecForTest func(clientHalf []byte) *LKSec
 }
 
 type SKBPriv struct {
@@ -97,6 +102,13 @@ func (key *PgpKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	return ret, nil
 }
 
+func (s *SKB) newLKSec(clientHalf []byte) *LKSec {
+	if s.newLKSecForTest != nil {
+		return s.newLKSecForTest(clientHalf)
+	}
+	return NewLKSec(clientHalf)
+}
+
 func (p *SKB) ToPacket() (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{
 		Version: KEYBASE_PACKET_V1,
@@ -142,7 +154,28 @@ func (p *SKB) RawUnlockedKey() []byte {
 	return p.decryptedRaw
 }
 
-func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps PassphraseStream) (key GenericKey, err error) {
+func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever) (key GenericKey, err error) {
+	if key = s.decryptedSecret; key != nil {
+		return
+	}
+
+	var unlocked []byte
+	switch s.Priv.Encryption {
+	case 0:
+		unlocked = s.Priv.Data
+	case LKSecVersion:
+		unlocked, err = s.lksUnlockWithSecretRetriever(secretRetriever)
+	default:
+		err = BadKeyError{fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
+	}
+
+	if err == nil {
+		key, err = s.parseUnlocked(unlocked)
+	}
+	return
+}
+
+func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps PassphraseStream, secretStorer SecretStorer) (key GenericKey, err error) {
 	if key = s.decryptedSecret; key != nil {
 		return
 	}
@@ -155,7 +188,7 @@ func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 		if tsec == nil {
 			tsec, err = triplesec.NewCipher([]byte(passphrase), nil)
 			if err != nil {
-				return key, err
+				return nil, err
 			}
 		}
 		unlocked, err = s.tsecUnlock(tsec)
@@ -163,8 +196,11 @@ func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 		pps_in := pps
 		if pps == nil {
 			tsec, pps, err = s.G().LoginState.GetUnverifiedPassphraseStream(passphrase)
+			if err != nil {
+				return nil, err
+			}
 		}
-		if unlocked, err = s.lksUnlock(pps); err == nil && pps_in == nil {
+		if unlocked, err = s.lksUnlock(pps, secretStorer); err == nil && pps_in == nil {
 			s.G().LoginState.SetPassphraseStream(tsec, pps)
 		}
 	default:
@@ -212,14 +248,35 @@ func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 	return unlocked, nil
 }
 
-func (p *SKB) lksUnlock(pps PassphraseStream) ([]byte, error) {
-	lks := NewLKSec(pps.LksClientHalf())
+func (p *SKB) lksUnlock(pps PassphraseStream, secretStorer SecretStorer) (unlocked []byte, err error) {
+	lks := p.newLKSec(pps.LksClientHalf())
 	lks.SetUID(p.uid)
-	unlocked, err := lks.Decrypt(p.Priv.Data)
+	unlocked, err = lks.Decrypt(p.Priv.Data)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return unlocked, nil
+
+	if secretStorer != nil {
+		var secret []byte
+		secret, err = lks.GetSecret()
+		if err != nil {
+			unlocked = nil
+			return
+		}
+		// Ignore any errors storing the secret.
+		_ = secretStorer.StoreSecret(secret)
+	}
+
+	return
+}
+
+func (p *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unlocked []byte, err error) {
+	secret, err := secretRetriever.RetrieveSecret()
+	if err != nil {
+		return
+	}
+	lks := NewLKSecWithFullSecret(secret)
+	return lks.Decrypt(p.Priv.Data)
 }
 
 func (p *SKB) SetUID(uid *UID) {
@@ -437,8 +494,7 @@ func (p KeybasePackets) ToListOfSKBs() (ret []*SKB, err error) {
 	return
 }
 
-func (s *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret GenericKey, err error) {
-
+func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui SecretUI) (ret GenericKey, err error) {
 	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
 	defer func() {
 		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
@@ -448,12 +504,23 @@ func (s *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret Gen
 		return
 	}
 
+	if secretStore != nil {
+		ret, err = s.unlockSecretKeyFromSecretRetriever(secretStore)
+		s.G().Log.Debug("| unlockSecretKeyFromSecretRetriever -> %s", ErrToOk(err))
+		if err == nil {
+			return
+		}
+		// Just fall through if we failed to unlock with
+		// retrieved secret.
+		err = nil
+	}
+
 	tsec := s.G().LoginState.GetCachedTriplesec()
 	pps := s.G().LoginState.GetCachedPassphraseStream()
 	if tsec != nil || pps != nil {
-		ret, err = s.UnlockSecretKey("", tsec, pps)
+		ret, err = s.UnlockSecretKey("", tsec, pps, nil)
 		if err == nil {
-			G.Log.Debug("| Unlocked key with cached 3Sec and passphrase stream")
+			s.G().Log.Debug("| Unlocked key with cached 3Sec and passphrase stream")
 			return
 		}
 		if _, ok := err.(PassphraseError); !ok {
@@ -469,17 +536,22 @@ func (s *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret Gen
 		return
 	}
 
-	unlocker := func(pw string) (ret GenericKey, err error) {
-		return s.UnlockSecretKey(pw, nil, nil)
+	unlocker := func(pw string, storeSecret bool) (ret GenericKey, err error) {
+		var secretStorer SecretStorer
+		if storeSecret {
+			secretStorer = secretStore
+		}
+		return s.UnlockSecretKey(pw, nil, nil, secretStorer)
 	}
 
 	return KeyUnlocker{
-		Tries:    4,
-		Reason:   reason,
-		KeyDesc:  desc,
-		Unlocker: unlocker,
-		Which:    which,
-		Ui:       ui,
+		Tries:          4,
+		Reason:         reason,
+		KeyDesc:        desc,
+		Which:          which,
+		UseSecretStore: secretStore != nil,
+		Unlocker:       unlocker,
+		Ui:             ui,
 	}.Run()
 }
 

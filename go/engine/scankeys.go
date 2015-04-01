@@ -159,7 +159,7 @@ func (s *ScanKeys) extractKey(skb *libkb.SKB, ui libkb.SecretUI) error {
 	if skb == nil {
 		return nil
 	}
-	k, err := skb.PromptAndUnlock("pgp decrypt", "", ui)
+	k, err := skb.PromptAndUnlock("pgp decrypt", "", nil, ui)
 	if err != nil {
 		return err
 	}

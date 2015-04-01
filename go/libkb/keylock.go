@@ -7,16 +7,16 @@ import (
 )
 
 type KeyUnlocker struct {
-	Tries    int
-	Reason   string
-	KeyDesc  string
-	Which    string
-	Ui       SecretUI
-	Unlocker func(pw string) (ret GenericKey, err error)
+	Tries          int
+	Reason         string
+	KeyDesc        string
+	Which          string
+	UseSecretStore bool
+	Ui             SecretUI
+	Unlocker       func(pw string, storeSecret bool) (ret GenericKey, err error)
 }
 
 func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
-
 	var emsg string
 
 	which := arg.Which
@@ -43,16 +43,17 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
 		var res *keybase_1.SecretEntryRes
 		res, err = sui.GetSecret(keybase_1.SecretEntryArg{
-			Err:    emsg,
-			Desc:   desc,
-			Prompt: prompt,
+			Err:            emsg,
+			Desc:           desc,
+			Prompt:         prompt,
+			UseSecretStore: arg.UseSecretStore,
 		}, nil)
 
 		if err == nil && res.Canceled {
 			err = CanceledError{"Attempt to unlock secret key entry canceled"}
 		} else if err != nil {
 			// noop
-		} else if ret, err = arg.Unlocker(res.Text); err == nil {
+		} else if ret, err = arg.Unlocker(res.Text, res.StoreSecret); err == nil {
 			// noop
 		} else if _, ok := err.(PassphraseError); ok {
 			emsg = "Failed to unlock key; bad passphrase"

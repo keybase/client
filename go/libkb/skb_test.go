@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ugorji/go/codec"
+	"golang.org/x/crypto/openpgp"
 )
 
 type Foo struct {
@@ -57,5 +58,124 @@ func TestDecodeSKBSequence(t *testing.T) {
 	}
 	if !FastByteArrayEq(p3skbs[1].Pub, p3skbs[0].Pub) {
 		t.Errorf("Expected a repeat of the same key")
+	}
+}
+
+func makeTestLKSec(t *testing.T) *LKSec {
+	lks := NewLKSec([]byte("client half"))
+	if err := lks.GenerateServerHalf(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	return lks
+}
+
+func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
+	entity, err := openpgp.NewEntity("test name", "test comment", "test@example.com", nil)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	skb, err := ((*PgpKeyBundle)(entity)).ToLksSKB(lks)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	skb.newLKSecForTest = func(_ []byte) *LKSec {
+		return lks
+	}
+
+	g := G
+	g.LoginState = &LoginState{}
+	skb.SetGlobalContext(&g)
+
+	return skb
+}
+
+func testPromptAndUnlock(t *testing.T, skb *SKB, secretStore SecretStore) {
+	key, err := skb.PromptAndUnlock("test reason", "test which", secretStore, &TestSecretUI{"test passphrase"})
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if key == nil {
+		t.Errorf("PromptAndUnlock returned a nil key")
+	}
+}
+
+func TestBasicSecretStore(t *testing.T) {
+	tc := SetupTest(t, "skb_basic_secret_store")
+	defer tc.Cleanup()
+
+	lks := makeTestLKSec(t)
+	expectedSecret, err := lks.GetSecret()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	skb := makeTestSKB(t, lks)
+	testSecretStore := TestSecretStore{}
+	testPromptAndUnlock(t, skb, &testSecretStore)
+
+	if string(testSecretStore.Secret) != string(expectedSecret) {
+		t.Errorf("secret doesn't match expected value")
+	}
+
+	// Doing the prompt again should retrieve the secret from our
+	// store and not call skb.newLKSecForTest.
+
+	skb = makeTestSKB(t, lks)
+	skb.newLKSecForTest = func(_ []byte) *LKSec {
+		t.Errorf("newLKSecForTest unexpectedly called")
+		return lks
+	}
+	testPromptAndUnlock(t, skb, &testSecretStore)
+}
+
+func TestCorruptSecretStore(t *testing.T) {
+	tc := SetupTest(t, "skb_corrupt_secret_store")
+	defer tc.Cleanup()
+
+	lks := makeTestLKSec(t)
+	expectedSecret, err := lks.GetSecret()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	skb := makeTestSKB(t, lks)
+	testSecretStore := TestSecretStore{
+		Secret: []byte("corrupt"),
+	}
+	testPromptAndUnlock(t, skb, &testSecretStore)
+
+	// The corrupt secret value should be overwritten by the new
+	// correct one.
+	if string(testSecretStore.Secret) != string(expectedSecret) {
+		t.Errorf("secret doesn't match expected value")
+	}
+}
+
+func TestUnusedSecretStore(t *testing.T) {
+	tc := SetupTest(t, "skb_unused_secret_store")
+	defer tc.Cleanup()
+
+	lks := makeTestLKSec(t)
+
+	skb := makeTestSKB(t, lks)
+	// It doesn't matter what passphraseStream contains, as long
+	// as it's the right size.
+	g := G
+	g.LoginState = &LoginState{
+		passphraseStream: make([]byte, extraLen),
+	}
+	skb.SetGlobalContext(&g)
+	testSecretStore := TestSecretStore{}
+	testPromptAndUnlock(t, skb, &testSecretStore)
+
+	// Since there is a non-nil passphraseStream in the login
+	// state, nothing should be stored in the secret store (since
+	// no prompt was shown).
+	if len(testSecretStore.Secret) > 0 {
+		t.Errorf("secret unexpectedly non-empty")
 	}
 }

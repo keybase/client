@@ -450,11 +450,13 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @property NSString *err;
 @property NSString *cancel;
 @property NSString *ok;
+@property BOOL useSecretStore;
 @end
 
 @interface KBRSecretEntryRes : KBRObject
 @property NSString *text;
 @property BOOL canceled;
+@property BOOL storeSecret;
 @end
 
 @interface KBRSecretUiRequest : KBRRequest

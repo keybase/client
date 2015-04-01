@@ -20,6 +20,10 @@ func NewLKSec(clientHalf []byte) *LKSec {
 	return &LKSec{clientHalf: clientHalf}
 }
 
+func NewLKSecWithFullSecret(secret []byte) *LKSec {
+	return &LKSec{secret: secret}
+}
+
 func (l *LKSec) SetUID(u *UID) {
 	l.uid = u
 }
@@ -42,8 +46,7 @@ func (s *LKSec) GetServerHalf() []byte {
 }
 
 func (s *LKSec) Load() error {
-
-	G.Log.Debug("+ LKSec::load()")
+	G.Log.Debug("+ LKSec::Load()")
 	defer func() {
 		G.Log.Debug("- LKSec::Load()")
 	}()
@@ -81,6 +84,20 @@ func (s *LKSec) Load() error {
 		hex.EncodeToString(s.serverHalf), hex.EncodeToString(s.clientHalf))
 
 	return nil
+}
+
+func (s *LKSec) GetSecret() (secret []byte, err error) {
+	G.Log.Debug("+ LKsec:GetSecret()")
+	defer func() {
+		G.Log.Debug("- LKSec::GetSecret()")
+	}()
+
+	if err = s.Load(); err != nil {
+		return
+	}
+
+	secret = s.secret
+	return
 }
 
 func (s *LKSec) Encrypt(src []byte) ([]byte, error) {

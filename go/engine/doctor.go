@@ -294,7 +294,7 @@ func (d *Doctor) deviceSignPGP(ctx *Context) error {
 			return err
 		}
 
-		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", ctx.SecretUI)
+		pgpk, err := skb.PromptAndUnlock("pgp sign", "keybase", nil, ctx.SecretUI)
 		if err != nil {
 			return err
 		}
