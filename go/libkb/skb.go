@@ -221,6 +221,10 @@ func (p *SKB) lksUnlock(pps PassphraseStream) ([]byte, error) {
 	return unlocked, nil
 }
 
+func (p *SKB) SetUID(uid *UID) {
+	p.uid = uid
+}
+
 type SKBKeyringFile struct {
 	filename string
 	Blocks   []*SKB

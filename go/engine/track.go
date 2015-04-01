@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -27,6 +29,7 @@ type TrackEngine struct {
 	sig                 string
 	sigid               *libkb.SigId
 	lockedKey           *libkb.SKB
+	lockedWhich         string
 }
 
 // NewTrackEngine creates a default TrackEngine for tracking theirName.
@@ -72,7 +75,13 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	e.res = &IdRes{Outcome: ieng.Outcome(), User: e.them}
 
 	var err error
-	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
+	ska := libkb.SecretKeyArg{Me: e.arg.Me, All: true}
+	e.lockedKey, e.lockedWhich, err = G.Keyrings.GetSecretKeyLocked(ska)
+	if err != nil {
+		return err
+	}
+	e.lockedKey.SetUID(e.arg.Me.GetUid().P())
+	e.signingKeyPub, err = e.lockedKey.GetPubKey()
 	if err != nil {
 		return err
 	}
@@ -120,12 +129,16 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 	G.Log.Debug("+ StoreRemoteTrack")
 	defer G.Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 
-	arg := libkb.SecretKeyArg{Reason: "tracking signature", Ui: ctx.SecretUI, Me: e.arg.Me, All: true}
-	if e.signingKeyPriv, _, err = G.Keyrings.GetSecretKey(arg); err != nil {
-		return
-	} else if e.signingKeyPriv == nil {
-		err = libkb.NoSecretKeyError{}
-		return
+	// need to unlock private key
+	if e.lockedKey == nil {
+		return fmt.Errorf("nil locked key")
+	}
+	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock("tracking signature", e.lockedWhich, ctx.SecretUI)
+	if err != nil {
+		return err
+	}
+	if e.signingKeyPriv == nil {
+		return libkb.NoSecretKeyError{}
 	}
 
 	if e.sig, e.sigid, err = e.signingKeyPriv.SignToString(e.trackStatementBytes); err != nil {
