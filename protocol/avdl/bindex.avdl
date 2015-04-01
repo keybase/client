@@ -3,18 +3,9 @@
 protocol bIndex {
 	import idl "common.avdl";
 
-	record BIndexInfo {
-		string blockId;
-		int size;
-		string chargedTo;
-		string folder;
-		string creator; //to be filled in by bindex server
-		string blockKey; //to be filled in by bindex server
-	}
-
 	void bIndexSession(string sid);
 	string getBIndex(string blockId, int size);
-	void putBIndex(BIndexInfo info);
+	void putBIndex(array<StringKVPair> info);
 	void delete(string blockId, int size);
 
 	// future RPC from bserver to bindex 

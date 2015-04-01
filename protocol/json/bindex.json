@@ -163,28 +163,6 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
-  }, {
-    "type" : "record",
-    "name" : "BIndexInfo",
-    "fields" : [ {
-      "name" : "blockId",
-      "type" : "string"
-    }, {
-      "name" : "size",
-      "type" : "int"
-    }, {
-      "name" : "chargedTo",
-      "type" : "string"
-    }, {
-      "name" : "folder",
-      "type" : "string"
-    }, {
-      "name" : "creator",
-      "type" : "string"
-    }, {
-      "name" : "blockKey",
-      "type" : "string"
-    } ]
   } ],
   "messages" : {
     "bIndexSession" : {
@@ -207,7 +185,10 @@
     "putBIndex" : {
       "request" : [ {
         "name" : "info",
-        "type" : "BIndexInfo"
+        "type" : {
+          "type" : "array",
+          "items" : "StringKVPair"
+        }
       } ],
       "response" : "null"
     },

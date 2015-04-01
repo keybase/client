@@ -75,15 +75,6 @@ type Stream struct {
 }
 
 type SIGID [32]byte
-type BIndexInfo struct {
-	BlockId   string `codec:"blockId" json:"blockId"`
-	Size      int    `codec:"size" json:"size"`
-	ChargedTo string `codec:"chargedTo" json:"chargedTo"`
-	Folder    string `codec:"folder" json:"folder"`
-	Creator   string `codec:"creator" json:"creator"`
-	BlockKey  string `codec:"blockKey" json:"blockKey"`
-}
-
 type BIndexSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }
@@ -94,7 +85,7 @@ type GetBIndexArg struct {
 }
 
 type PutBIndexArg struct {
-	Info BIndexInfo `codec:"info" json:"info"`
+	Info []StringKVPair `codec:"info" json:"info"`
 }
 
 type DeleteArg struct {
@@ -105,7 +96,7 @@ type DeleteArg struct {
 type BIndexInterface interface {
 	BIndexSession(string) error
 	GetBIndex(GetBIndexArg) (string, error)
-	PutBIndex(BIndexInfo) error
+	PutBIndex([]StringKVPair) error
 	Delete(DeleteArg) error
 }
 
@@ -161,7 +152,7 @@ func (c BIndexClient) GetBIndex(__arg GetBIndexArg) (res string, err error) {
 	return
 }
 
-func (c BIndexClient) PutBIndex(info BIndexInfo) (err error) {
+func (c BIndexClient) PutBIndex(info []StringKVPair) (err error) {
 	__arg := PutBIndexArg{Info: info}
 	err = c.Cli.Call("keybase.1.bIndex.putBIndex", []interface{}{__arg}, nil)
 	return
