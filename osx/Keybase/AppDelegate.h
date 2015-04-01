@@ -25,6 +25,7 @@
 
 - (IBAction)preferences:(id)sender;
 - (IBAction)quit:(id)sender;
+- (IBAction)logout:(id)sender;
 
 + (void)setError:(NSError *)error sender:(NSView *)sender;
 - (void)setFatalError:(NSError *)error;

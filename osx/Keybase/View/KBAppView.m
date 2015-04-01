@@ -103,7 +103,7 @@
 
   if (_status) {
     if (_status.loggedIn && _status.user) {
-      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", _status.user.username) action:@selector(logout) keyEquivalent:@""];
+      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", _status.user.username) action:@selector(logout:) keyEquivalent:@""];
       [menu addItem:[NSMenuItem separatorItem]];
     } else {
       [menu addItemWithTitle:@"Log In" action:@selector(showLogin) keyEquivalent:@""];

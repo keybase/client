@@ -43,7 +43,7 @@
 
     x += [layout setFrame:CGRectMake(x, y, imageHeight, imageHeight) view:yself.imageView].size.width + 10;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.nameLabel].size.height + 3;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.nameLabel].size.height;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.statusLabel].size.height + 4;
 
     [layout setFrame:CGRectMake(0, 0, size.width, 60) view:yself.button];
@@ -64,7 +64,7 @@
 
 - (void)setConnected:(BOOL)connected {
   if (connected) {
-    [_statusLabel setText:@"Connected" font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.okColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [_statusLabel setText:@"Connected" font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.secondaryTextColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   } else {
     [_statusLabel setText:@"Disconnected" font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.errorColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   }

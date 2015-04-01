@@ -93,6 +93,10 @@
   [_preferences open];
 }
 
+- (IBAction)logout:(id)sender {
+  [self.appView logout];
+}
+
 - (void)quit:(id)sender {
   [NSApplication.sharedApplication terminate:sender];
 }
@@ -204,15 +208,22 @@
 }
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {
-  if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"CANCELED"]) {
-    // Canceled, ok to ignore
-    return;
-  }
   [AppDelegate.sharedDelegate setError:error sender:sender];
 }
 
 - (void)setError:(NSError *)error sender:(NSView *)sender {
   NSParameterAssert(error);
+
+  NSString *errorName = error.userInfo[@"MPErrorInfoKey"][@"name"];
+  if ([errorName isEqualToString:@"CANCELED"]) {
+    // Canceled, ok to ignore
+    return;
+  }
+
+  if ([errorName isEqualToString:@"LOGIN_REQUIRED"]) {
+    [self logout:nil];
+    return;
+  }
 
   GHErr(@"Error: %@", error);
 

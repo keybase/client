@@ -107,13 +107,6 @@
   }];
 }
 
-//- (void)loginWithKey {
-//  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:self.client];
-//  [login pubkeyLogin:^(NSError *error) {
-//    [self _checkStatusAfterLogin];
-//  }];
-//}
-
 - (void)login {
   NSString *username = self.usernameField.text;
   NSString *passphrase = self.passwordField.text;
@@ -169,20 +162,15 @@
   [self.navigation setProgressEnabled:YES];
   [self.navigation.titleView setProgressEnabled:YES];
 
-//  [login pubkeyLogin:^(NSError *error) {
-//    [self.navigation setProgressEnabled:NO];
-//    if (error) {
-//      [AppDelegate setError:error sender:self];
-//      return;
-//    }
-//
-//    self.passwordField.text = nil;
-//    [self _checkStatusAfterLogin];
-//  }];
-
   [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
+      if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {
+        [self.window makeFirstResponder:self.passwordField];
+        [AppDelegate setError:KBMakeErrorWithRecovery(-1, @"Bad Password", @"The username and password you entered was invalid.") sender:nil];
+        return;
+      }
+
       [AppDelegate setError:error sender:self];
       return;
     }
