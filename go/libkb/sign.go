@@ -230,8 +230,7 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 
 	var aout io.WriteCloser
 
-	// Fixme as per #48
-	aout, err = armor.Encode(out, "PGP MESSAGE", PgpArmorHeaders())
+	aout, err = armor.Encode(out, "PGP MESSAGE", PgpArmorHeaders)
 	if err != nil {
 		return
 	}

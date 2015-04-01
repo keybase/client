@@ -112,8 +112,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	if e.arg.BinaryOutput {
 		writer = e.arg.Sink
 	} else {
-		// Fixme as per #48.
-		aw, err := armor.Encode(e.arg.Sink, "PGP MESSAGE", nil)
+		aw, err := armor.Encode(e.arg.Sink, "PGP MESSAGE", libkb.PgpArmorHeaders)
 		if err != nil {
 			return err
 		}

@@ -129,12 +129,13 @@ const (
 	DEVICE_TYPE_WEB     = "web"
 )
 
+const DOWNLOAD_URL = "https://keybase.io/download"
+
 var PGP_VERSION = "Keybase Go " + CLIENT_VERSION + " (" + runtime.GOOS + ")"
 
-func PgpArmorHeaders() map[string]string {
-	return map[string]string{
-		"Version": PGP_VERSION,
-	}
+var PgpArmorHeaders = map[string]string{
+	"Version": PGP_VERSION,
+	"Comment": DOWNLOAD_URL,
 }
 
 var REMOTE_SERVICE_TYPES = map[string]int{
