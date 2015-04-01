@@ -25,6 +25,8 @@ type SigChain struct {
 
 	// When the local chain was updated.
 	localChainUpdateTime time.Time
+
+	Contextified
 }
 
 func (sc SigChain) Len() int {
@@ -323,7 +325,8 @@ func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
 // verifySubchain verifies the given subchain and outputs a yes/no answer
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
-func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, cki *ComputedKeyInfos, err error) {
+func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *ComputedKeyInfos, err error) {
+	un := sc.username
 
 	G.Log.Debug("+ verifySubchain")
 	defer func() {
@@ -343,7 +346,7 @@ func verifySubchain(kf KeyFamily, links []*ChainLink, un string) (cached bool, c
 	}
 
 	cki = NewComputedKeyInfos()
-	ckf := ComputedKeyFamily{&kf, cki}
+	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: sc.Contextified}
 
 	var prev *ChainLink
 	var prevFokid *FOKID
@@ -442,7 +445,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 		return
 	}
 
-	if cached, ckf.cki, err = verifySubchain(*ckf.kf, links, sc.username); err != nil {
+	if cached, ckf.cki, err = sc.verifySubchain(*ckf.kf, links); err != nil {
 		return
 	}
 
@@ -486,6 +489,8 @@ type SigChainLoader struct {
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
 	preload *SigChain
+
+	Contextified
 }
 
 //========================================================================
@@ -579,10 +584,11 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 func (l *SigChainLoader) MakeSigChain() error {
 	sc := &SigChain{
-		uid:        l.user.GetUid(),
-		username:   l.user.GetName(),
-		chainLinks: l.links,
-		allKeys:    l.allKeys,
+		uid:          l.user.GetUid(),
+		username:     l.user.GetName(),
+		chainLinks:   l.links,
+		allKeys:      l.allKeys,
+		Contextified: l.Contextified,
 	}
 	for _, l := range l.links {
 		l.parent = sc
@@ -800,8 +806,8 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 //========================================================================
 
-func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType, preload *SigChain) (ret *SigChain, err error) {
-	loader := SigChainLoader{user: u, allKeys: allKeys, leaf: f, chainType: t, preload: preload}
+func LoadSigChain(u *User, allKeys bool, f *MerkleUserLeaf, t *ChainType, preload *SigChain, gc *GlobalContext) (ret *SigChain, err error) {
+	loader := SigChainLoader{user: u, allKeys: allKeys, leaf: f, chainType: t, preload: preload, Contextified: NewContextified(gc)}
 	return loader.Load()
 }
 

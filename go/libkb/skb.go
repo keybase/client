@@ -29,6 +29,7 @@ type SKB struct {
 	decryptedRaw    []byte // in case we need to reexport it
 
 	uid *UID // UID that the key is for
+	Contextified
 }
 
 type SKBPriv struct {
@@ -111,9 +112,9 @@ func (p *SKB) ReadKey() (g GenericKey, err error) {
 	case IsPgpAlgo(p.Type) || p.Type == 0:
 		g, err = ReadOneKeyFromBytes(p.Pub)
 	case p.Type == KID_NACL_EDDSA:
-		g, err = ImportNaclSigningKeyPairFromBytes(p.Pub, nil)
+		g, err = ImportNaclSigningKeyPairFromBytes(p.Pub, nil, p.G())
 	case p.Type == KID_NACL_DH:
-		g, err = ImportNaclDHKeyPairFromBytes(p.Pub, nil)
+		g, err = ImportNaclDHKeyPairFromBytes(p.Pub, nil, p.G())
 	default:
 		err = UnknownKeyTypeError{p.Type}
 	}
@@ -181,9 +182,9 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 	case IsPgpAlgo(s.Type) || s.Type == 0:
 		key, err = ReadOneKeyFromBytes(unlocked)
 	case s.Type == KID_NACL_EDDSA:
-		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
+		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked, s.G())
 	case s.Type == KID_NACL_DH:
-		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked)
+		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked, s.G())
 	}
 
 	if key == nil {

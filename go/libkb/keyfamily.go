@@ -44,6 +44,8 @@ type ComputedKeyInfo struct {
 	Delegations map[string]string
 	DelegatedAt *KeybaseTime
 	RevokedAt   *KeybaseTime
+
+	Contextified
 }
 
 func (cki ComputedKeyInfo) GetCTime() time.Time {
@@ -73,6 +75,8 @@ type ServerKeyRecord struct {
 	KeyAlgo        int     `json:"key_algo"`
 
 	key GenericKey // not exported, so no json field tag necessary
+
+	Contextified
 }
 
 type KeyMap map[string]*ServerKeyRecord
@@ -113,6 +117,8 @@ type KeyFamily struct {
 
 	Sibkeys KeyMap `json:"sibkeys"`
 	Subkeys KeyMap `json:"subkeys"`
+
+	Contextified
 }
 
 // ComputedKeyFamily is a joining of two sets of data; the KeyFamily is
@@ -121,6 +127,7 @@ type KeyFamily struct {
 type ComputedKeyFamily struct {
 	kf  *KeyFamily
 	cki *ComputedKeyInfos
+	Contextified
 }
 
 func (cki ComputedKeyInfo) Copy() ComputedKeyInfo {
@@ -440,9 +447,9 @@ func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
 			skr.key = pgp
 		}
 	case skr.KeyAlgo == KID_NACL_EDDSA:
-		skr.key, err = ImportNaclSigningKeyPairFromHex(skr.Bundle)
+		skr.key, err = ImportNaclSigningKeyPairFromHex(skr.Bundle, skr.G())
 	case skr.KeyAlgo == KID_NACL_DH:
-		skr.key, err = ImportNaclDHKeyPairFromHex(skr.Bundle)
+		skr.key, err = ImportNaclDHKeyPairFromHex(skr.Bundle, skr.G())
 	default:
 		err = BadKeyError{fmt.Sprintf("algo=%d is unknown", skr.KeyAlgo)}
 	}
@@ -699,6 +706,8 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 	}
 	kidStr := key.GetKid().String()
 	skr := &ServerKeyRecord{key: key}
+	skr.SetGlobalContext(kf.G())
+
 	if isSibkey {
 		kf.Sibkeys[kidStr] = skr
 	} else {

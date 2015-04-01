@@ -191,7 +191,7 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 		return err
 	}
 
-	if newKey, err = libkb.ImportKeypairFromKID(newKID); err != nil {
+	if newKey, err = libkb.ImportKeypairFromKID(newKID, k.G()); err != nil {
 		return err
 	}
 

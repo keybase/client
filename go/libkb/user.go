@@ -124,6 +124,7 @@ type User struct {
 	loggedIn bool // if we were logged in when we loaded it
 
 	dirty bool
+	Contextified
 }
 
 //==================================================================
@@ -136,6 +137,7 @@ type LoadUserArg struct {
 	Self              bool
 	ForceReload       bool
 	AllKeys           bool
+	Contextified
 }
 
 //==================================================================
@@ -318,7 +320,7 @@ func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
 	if u.sigChain != nil && u.keyFamily != nil {
 		cki := u.sigChain.GetComputedKeyInfos()
 		if cki != nil {
-			ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily}
+			ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily, Contextified: u.Contextified}
 		}
 	}
 	return
@@ -443,7 +445,7 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
-	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain, u.sigChain)
+	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain, u.sigChain, u.G())
 
 	// Eventually load the others, but for now, this one is good enough
 	return err
@@ -583,6 +585,13 @@ func (u *User) VerifySelfSigByKey() (ret bool) {
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	var name string
+
+	// Whatever the reply is, pass along our desired global context
+	defer func() {
+		if ret != nil {
+			ret.SetGlobalContext(arg.G())
+		}
+	}()
 
 	if arg.Uid != nil {
 		// noop
