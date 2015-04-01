@@ -254,8 +254,7 @@
 - (void)showProfile {
   NSAssert(_user, @"No user");
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
-  _userProfileView.client = _client;
-  [_userProfileView setUsername:_user.username editable:YES];
+  [_userProfileView setUsername:_user.username client:_client];
   [self setContentView:_userProfileView showSourceView:YES];
   [_sourceView selectItem:KBSourceViewItemProfile];
 }

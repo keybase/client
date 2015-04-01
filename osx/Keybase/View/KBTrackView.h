@@ -15,6 +15,8 @@ typedef void (^KBTrackResponseBlock)(KBRFinishAndPromptRes *response); // Respon
 
 @interface KBTrackView : YOView
 
+@property (readonly) KBButton *untrackButton;
+
 - (void)clear;
 
 - (BOOL)setUsername:(NSString *)username popup:(BOOL)popup identifyOutcome:(KBRIdentifyOutcome *)identifyOutcome trackResponse:(KBTrackResponseBlock)trackResponse;

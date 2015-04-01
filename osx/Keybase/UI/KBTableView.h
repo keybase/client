@@ -30,6 +30,8 @@ typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
 
 @property (readonly) KBCellDataSource *dataSource;
 
+@property (nonatomic) NSInteger selectedRow;
+
 - (void)setObjects:(NSArray *)objects;
 - (void)addObjects:(NSArray *)objects;
 - (void)removeAllObjects;
@@ -43,6 +45,8 @@ typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
 - (void)deselectAll;
 
 - (id)selectedObject;
+
+- (void)deselectRow;
 
 - (void)scrollToBottom:(BOOL)animated;
 - (BOOL)isAtBottom;

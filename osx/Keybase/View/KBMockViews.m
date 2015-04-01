@@ -155,8 +155,7 @@
   [window setLevel:NSFloatingWindowLevel];
 
   KBRMockClient *mockClient = [[KBRMockClient alloc] init];
-  userProfileView.client = mockClient;
-  [userProfileView setUsername:@"test" editable:NO];
+  [userProfileView setUsername:@"test" client:mockClient];
 }
 
 - (void)showSelectKey {

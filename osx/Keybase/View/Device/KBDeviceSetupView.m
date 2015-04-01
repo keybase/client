@@ -38,7 +38,7 @@
   _deviceSignerView.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
   _deviceSignerView.layer.borderWidth = 1.0;
 
-  _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued) {
+  _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     view.tintImageForStyle = YES;
     [view setTitle:option.title info:option.info imageSource:option.imageSource imageSize:CGSizeMake(30, 30)];
   };

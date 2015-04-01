@@ -69,7 +69,7 @@
   GHWeakSelf gself = self;
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
   [_searchResultsView setBorderEnabled:YES];
-  _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, id containingView, BOOL dequeued) {
+  _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setSearchResult:searchResult];
   };
   _searchResultsView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBSearchResult *searchResult) {

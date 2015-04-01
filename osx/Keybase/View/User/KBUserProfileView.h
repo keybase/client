@@ -20,10 +20,19 @@
 @property (readonly, getter=isLoading) BOOL loading;
 
 - (BOOL)isLoadingUsername:(NSString *)username;
-- (void)setUsername:(NSString *)username editable:(BOOL)editable;
+
+- (void)setUsername:(NSString *)username client:(KBRPClient *)client;
 
 - (void)clear;
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender;
+
+@end
+
+
+// Handles concurrent user viewing (swaps in a new user view if existing view is loading)
+@interface KBUserProfileViewer : YOView
+
+- (void)setUsername:(NSString *)username client:(KBRPClient *)client;
 
 @end

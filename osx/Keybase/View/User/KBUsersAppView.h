@@ -16,6 +16,4 @@
 
 @property KBRPClient * client;
 
-- (void)setUser:(KBRUser *)user;
-
 @end

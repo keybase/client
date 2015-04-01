@@ -89,8 +89,13 @@
   [_view reloadData];
 }
 
+- (void)deselectRow {
+  if (_view.selectedRow >= 0) [_view deselectRow:_view.selectedRow];
+}
+
 - (void)setObjects:(NSArray *)objects animated:(BOOL)animated {
   id selectedObject = [self selectedObject];
+  [self deselectRow];
 
   NSMutableArray *indexPathsToRemove = [NSMutableArray array];
   NSMutableArray *indexPathsToUpdate = [NSMutableArray array];
@@ -169,8 +174,14 @@
   if ([self canMoveDown]) [self setSelectedRow:_view.selectedRow+1];
 }
 
+- (NSInteger)selectedRow {
+  return _view.selectedRow;
+}
+
 - (void)setSelectedRow:(NSInteger)selectedRow {
+  NSAssert(!_selecting, @"In selection?");
   _selecting = YES;
+  if (_view.selectedRow >= 0 && _view.selectedRow == selectedRow) [_view deselectRow:selectedRow];
   [_view selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
   [_view scrollRowToVisible:selectedRow];
   _selecting = NO;

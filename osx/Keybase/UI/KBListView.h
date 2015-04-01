@@ -12,7 +12,9 @@
 
 #import "KBProgressOverlayView.h"
 
-typedef void (^KBCellSetBlock)(id cell, id object, NSIndexPath *indexPath, NSTableColumn *tableColumn, NSTableView *tableView, BOOL dequeued);
+@class KBListView;
+
+typedef void (^KBCellSetBlock)(id cell, id object, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued);
 
 // Simple table view with 1 column
 @interface KBListView : KBTableView

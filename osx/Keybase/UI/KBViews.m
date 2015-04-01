@@ -22,12 +22,9 @@
 - (void)viewInit {
   [super viewInit];
   YOSelf yself = self;
-
-  KBBox *border = [KBBox line];
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    [layout setFrame:CGRectMake(0, 0, size.width, 1) view:border];
     for (NSView *view in yself.sviews) {
-      [layout setFrame:CGRectMake(0, 1, size.width, size.height - 1) view:view];
+      [layout setSize:size view:view options:0];
     }
     return size;
   }];

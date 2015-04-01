@@ -79,7 +79,6 @@
 }
 
 - (void)setUsername:(NSString *)username {
-  if ([_username isEqualToString:username]) return;
   _username = username;
   if (!_username) {
     _name1Label.attributedText = nil;
@@ -89,7 +88,6 @@
     return;
   }
 
-  _imageView.hidden = NO;
   [_name1Label setText:_username font:[NSFont boldSystemFontOfSize:36] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
   _name2View.hidden = NO;
@@ -97,6 +95,7 @@
 
   //[_name2View setMarkup:NSStringWithFormat(@"keybase.io/%@", user.username) style:KBButtonStyleLink alignment:NSLeftTextAlignment];
 
+  _imageView.hidden = NO;
   self.imageView.username = _username;
 
   [self setNeedsLayout];

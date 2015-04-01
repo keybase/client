@@ -58,7 +58,7 @@
     view.identifier = NSStringFromClass(_prototypeClass);
   }
 
-  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableColumn, self.view, dequeued);
+  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableColumn, self, dequeued);
   if ([view respondsToSelector:@selector(setNeedsLayout)]) [view setNeedsLayout];
   return view;
 }
@@ -71,7 +71,7 @@
   if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
   id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
 
-  self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], nil, self.view, NO);
+  self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], nil, self, NO);
   [self.prototypeView setNeedsLayout];
 
   CGFloat height = [self.prototypeView sizeThatFits:CGSizeMake(self.frame.size.width, CGFLOAT_MAX)].height;

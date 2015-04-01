@@ -32,7 +32,6 @@
 @property KBTrackView *trackView;
 
 @property NSString *username;
-@property BOOL editable;
 
 @property KBRFOKID *fokid;
 
@@ -47,6 +46,7 @@
   _headerView = [[KBUserHeaderView alloc] init];
   _userInfoView = [[KBUserInfoView alloc] init];
   _trackView = [[KBTrackView alloc] init];
+  _trackView.untrackButton.targetBlock = ^{ [self untrack]; };
   YOView *contentView = [[YOView alloc] init];
   [contentView addSubview:_headerView];
   [contentView addSubview:_userInfoView];
@@ -133,7 +133,8 @@
 
   [client registerMethod:@"keybase.1.identifyUi.launchNetworkChecks" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLaunchNetworkChecksRequestParams *requestParams = [[KBRLaunchNetworkChecksRequestParams alloc] initWithParams:params];
-    [gself.userInfoView addProofs:requestParams.id.proofs editable:gself.editable targetBlock:^(KBProofLabel *proofLabel) {
+    BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
+    [gself.userInfoView addProofs:requestParams.id.proofs editable:isSelf targetBlock:^(KBProofLabel *proofLabel) {
       if (proofLabel.proofResult.result.proofStatus.status != 1) {
         // Fix it?
         [self connectWithProveType:KBProveTypeFromAPI(proofLabel.proofResult.proof.proofType)];
@@ -181,8 +182,9 @@
     //[yself.navigation.titleView setProgressEnabled:NO];
     [gself.headerView setProgressEnabled:NO];
 
-    if (gself.editable) {
-      GHDebug(@"Editable (not tracking, identify)");
+    BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
+    if (isSelf) {
+      GHDebug(@"Viewing self (identify only)");
       completion(nil, nil);
       return;
     }
@@ -196,7 +198,7 @@
         [[self window] close];
       }
       dispatch_async(dispatch_get_main_queue(), ^{
-        [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{}];
+        [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
       });
     }];
     [gself setNeedsLayout];
@@ -218,36 +220,41 @@
 }
 
 - (void)reload {
-  [self setUsername:self.username editable:self.editable];
+  [self setUsername:self.username client:self.client];
 }
 
 - (BOOL)isLoadingUsername:(NSString *)username {
   return [_username isEqualToString:username] && _loading;
 }
 
-- (void)setUsername:(NSString *)username editable:(BOOL)editable {
+- (void)setUsername:(NSString *)username client:(KBRPClient *)client {
+  NSParameterAssert(client);
   if ([self isLoadingUsername:username]) return;
   NSAssert(!_loading, @"In progress");
 
   [self clear];
 
+  self.client = client;
   _username = username;
-  _editable = editable;
+
+  if (!_username) return;
+
+  BOOL isSelf = [AppDelegate.appView.user.username isEqual:username];
 
   [_headerView setUsername:_username];
   _headerView.hidden = NO;
 
   GHWeakSelf gself = self;
 
-  if (!_editable) {
+  if (!isSelf) {
     // For others
     [self.headerView setProgressEnabled:YES];
     _loading = YES;
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
     [self registerClient:self.client sessionId:trackRequest.sessionId sender:nil];
     [trackRequest trackWithSessionID:trackRequest.sessionId theirName:_username localOnly:NO approveRemote:NO completion:^(NSError *error) {
-      [gself setTrackCompleted:error];
       gself.loading = NO;
+      [gself setTrackCompleted:error];
     }];
   } else {
     // For ourself
@@ -300,6 +307,23 @@
   }
 
   [self setNeedsLayout];
+}
+
+- (void)untrack {
+  [self.headerView setProgressEnabled:YES];
+  KBRTrackRequest *request = [[KBRTrackRequest alloc] initWithClient:self.client];
+  GHWeakSelf gself = self;
+  [request untrackWithSessionID:request.sessionId theirName:_username completion:^(NSError *error) {
+    [self.headerView setProgressEnabled:NO];
+    if (error) {
+      [self setError:error];
+      return;
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
+    });
+  }];
 }
 
 - (void)setTrackCompleted:(NSError *)error {
@@ -385,6 +409,54 @@
   KBKeyImportView *importView = [[KBKeyImportView alloc] init];
   importView.client = self.client;
   [AppDelegate openSheetWithView:importView size:CGSizeMake(600, 400) sender:self closeButton:importView.cancelButton];
+}
+
+@end
+
+@interface KBUserProfileViewer ()
+@property KBUserProfileView *view;
+@end
+
+
+@implementation KBUserProfileViewer
+
+- (void)viewInit {
+  [super viewInit];
+  YOSelf yself = self;
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    [layout setSize:size view:yself.view options:0];
+    return size;
+  }];
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(update:) name:KBTrackingListDidChangeNotification object:nil];
+}
+
+- (void)dealloc {
+  [NSNotificationCenter.defaultCenter removeObserver:self];
+}
+
+- (void)update:(NSNotification *)notification {
+  if ([notification.userInfo[@"username"] isEqualToString:_view.username]) {
+    [_view reload];
+  }
+}
+
+- (void)setUsername:(NSString *)username client:(KBRPClient *)client {
+  if (!username) {
+    [_view removeFromSuperview];
+    return;
+  }
+
+  if ([_view isLoadingUsername:username]) return;
+
+  // Check if we need  a new view
+  if (!_view || [_view isLoading]) {
+    [_view removeFromSuperview];
+    _view = [[KBUserProfileView alloc] init];
+    [self setNeedsLayout];
+  }
+  if (![_view superview]) [self addSubview:_view];
+
+  [_view setUsername:username client:client];
 }
 
 @end
