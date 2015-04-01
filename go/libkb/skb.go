@@ -142,15 +142,15 @@ func (p *SKB) RawUnlockedKey() []byte {
 	return p.decryptedRaw
 }
 
-func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps PassphraseStream) (key GenericKey, err error) {
-	if key = p.decryptedSecret; key != nil {
+func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps PassphraseStream) (key GenericKey, err error) {
+	if key = s.decryptedSecret; key != nil {
 		return
 	}
 	var unlocked []byte
 
-	switch p.Priv.Encryption {
+	switch s.Priv.Encryption {
 	case 0:
-		unlocked = p.Priv.Data
+		unlocked = s.Priv.Data
 	case int(triplesec.Version):
 		if tsec == nil {
 			tsec, err = triplesec.NewCipher([]byte(passphrase), nil)
@@ -158,20 +158,20 @@ func (p *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 				return key, err
 			}
 		}
-		unlocked, err = p.tsecUnlock(tsec)
+		unlocked, err = s.tsecUnlock(tsec)
 	case LKSecVersion:
 		pps_in := pps
 		if pps == nil {
-			tsec, pps, err = G.LoginState.GetUnverifiedPassphraseStream(passphrase)
+			tsec, pps, err = s.G().LoginState.GetUnverifiedPassphraseStream(passphrase)
 		}
-		if unlocked, err = p.lksUnlock(pps); err == nil && pps_in == nil {
-			G.LoginState.SetPassphraseStream(tsec, pps)
+		if unlocked, err = s.lksUnlock(pps); err == nil && pps_in == nil {
+			s.G().LoginState.SetPassphraseStream(tsec, pps)
 		}
 	default:
-		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(p.Priv.Encryption))}
+		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
 	}
 	if err == nil {
-		key, err = p.parseUnlocked(unlocked)
+		key, err = s.parseUnlocked(unlocked)
 	}
 	return
 }
@@ -437,21 +437,21 @@ func (p KeybasePackets) ToListOfSKBs() (ret []*SKB, err error) {
 	return
 }
 
-func (p *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret GenericKey, err error) {
+func (s *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret GenericKey, err error) {
 
-	G.Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
+	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", reason, which)
 	defer func() {
-		G.Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
+		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
 	}()
 
-	if ret = p.decryptedSecret; ret != nil {
+	if ret = s.decryptedSecret; ret != nil {
 		return
 	}
 
-	tsec := G.LoginState.GetCachedTriplesec()
-	pps := G.LoginState.GetCachedPassphraseStream()
+	tsec := s.G().LoginState.GetCachedTriplesec()
+	pps := s.G().LoginState.GetCachedPassphraseStream()
 	if tsec != nil || pps != nil {
-		ret, err = p.UnlockSecretKey("", tsec, pps)
+		ret, err = s.UnlockSecretKey("", tsec, pps)
 		if err == nil {
 			G.Log.Debug("| Unlocked key with cached 3Sec and passphrase stream")
 			return
@@ -461,16 +461,16 @@ func (p *SKB) PromptAndUnlock(reason string, which string, ui SecretUI) (ret Gen
 		}
 		// if it's a passphrase error, fall through...
 	} else {
-		G.Log.Debug("| No 3Sec or PassphraseStream in PromptAndUnlock")
+		s.G().Log.Debug("| No 3Sec or PassphraseStream in PromptAndUnlock")
 	}
 
 	var desc string
-	if desc, err = p.VerboseDescription(); err != nil {
+	if desc, err = s.VerboseDescription(); err != nil {
 		return
 	}
 
 	unlocker := func(pw string) (ret GenericKey, err error) {
-		return p.UnlockSecretKey(pw, nil, nil)
+		return s.UnlockSecretKey(pw, nil, nil)
 	}
 
 	return KeyUnlocker{

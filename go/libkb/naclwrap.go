@@ -396,7 +396,7 @@ type NaclKeyPair interface {
 }
 
 func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
-	ret := &SKB{}
+	ret := &SKB{Contextified: k.Contextified}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_EDDSA
 	ret.Priv.Encryption = 0
@@ -405,7 +405,7 @@ func (k NaclSigningKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
 }
 
 func (k NaclDHKeyPair) ToSKB(t *triplesec.Cipher) (*SKB, error) {
-	ret := &SKB{}
+	ret := &SKB{Contextified: k.Contextified}
 	ret.Pub = k.GetKid()
 	ret.Type = KID_NACL_DH
 	ret.Priv.Encryption = 0
