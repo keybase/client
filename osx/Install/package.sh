@@ -28,6 +28,9 @@ echo "Keybased Info Version : $KB_VERSION"
 echo "Copying keybase binaries into Keybase.app..."
 chmod +x keybased
 cp keybased Keybase.app/Contents/MacOS/
+chmod +x keybase
+cp keybase Keybase.app/Contents/MacOS/
+
 
 echo "Resigning..."
 # Re-sign since we copied in keybased

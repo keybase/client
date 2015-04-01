@@ -24,5 +24,6 @@ Install/Applications
 Install/Keybase*.dmg
 Install/Keybase.app
 Install/keybased
+Install/keybase
 Install/Updater/site/*.html
 copyui.sh
