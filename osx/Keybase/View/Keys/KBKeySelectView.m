@@ -19,9 +19,7 @@
 
 - (void)viewInit {
   [super viewInit];
-
-  self.wantsLayer = YES;
-  self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   _keysView = [[KBGPGKeysView alloc] init];
   [self addSubview:_keysView];

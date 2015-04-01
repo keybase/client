@@ -12,28 +12,31 @@
 #import "KBTestClientView.h"
 #import "AppDelegate.h"
 #import "KBLaunchCtl.h"
+#import "KBAppKit.h"
 
 @interface KBConsoleView ()
 @property KBRuntimeStatusView *runtimeStatusView;
-@property KBButton *checkButton;
-@property KBButton *restartButton;
 @property KBListView *logView;
 
 @property KBRPClient *client;
+
+@property KBButton *toggleButton;
 @end
 
 @implementation KBConsoleView
 
 - (void)viewInit {
   [super viewInit];
+  [self kb_setBackgroundColor:NSColor.whiteColor];
 
   _runtimeStatusView = [[KBRuntimeStatusView alloc] init];
   [self addSubview:_runtimeStatusView];
 
   YOHBox *buttons = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,0,10,0"}];
+  [self addSubview:buttons];
   GHWeakSelf gself = self;
-  _checkButton = [KBButton buttonWithText:@"Check Status" style:KBButtonStyleToolbar];
-  _checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+  KBButton *checkButton = [KBButton buttonWithText:@"Check Status" style:KBButtonStyleToolbar];
+  checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
       [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
         [gself log:NSStringWithFormat(@"keybased pid: %@", @(pid))];
@@ -41,18 +44,16 @@
       }];
     }];
   };
-  [buttons addSubview:_checkButton];
+  [buttons addSubview:checkButton];
 
-  _restartButton = [KBButton buttonWithText:@"Restart keybased" style:KBButtonStyleToolbar];
-  _restartButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    [gself log:@"Restarting keybased..."];
+  _toggleButton = [KBButton buttonWithText:@"Start keybased" style:KBButtonStyleToolbar];
+  _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
       [gself log:NSStringWithFormat(@"keybased pid:%@", @(pid))];
       completion(error);
     }];
   };
-  [buttons addSubview:_restartButton];
-  [self addSubview:buttons];
+  [buttons addSubview:_toggleButton];
 
   // TODO logging grows forever
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
@@ -76,6 +77,39 @@
     y += [layout setFrame:CGRectMake(10, y, size.width - 20, size.height - y - 10) view:yself.logView].size.height + 10;
     return size;
   }];
+
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(update:) name:KBStatusDidChangeNotification object:nil];
+}
+
+- (void)dealloc {
+  [NSNotificationCenter.defaultCenter removeObserver:self];
+}
+
+- (void)update:(NSNotification *)notification {
+  KBRGetCurrentStatusRes *status = notification.userInfo[@"status"];
+  GHWeakSelf gself = self;
+  if (status) {
+    [_toggleButton setText:@"Stop keybased" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
+    _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+      [gself.client.installer.launchCtl unload:^(NSError *error, NSString *output) {
+        completion(error);
+      }];
+    };
+  } else {
+    [_toggleButton setText:@"Start keybased" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
+    _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+      [gself.client.installer.launchCtl load:^(NSError *error, NSString *output) {
+        completion(error);
+      }];
+    };
+  }
+
+#ifdef DEBUG
+  // In debug we aren't using launch services to run keybased
+  _toggleButton.targetBlock = ^{
+    KBDebugAlert(@"keybased isn't using launch services in DEBUG", gself.window);
+  };
+#endif
 }
 
 - (void)log:(NSString *)message {

@@ -8,17 +8,13 @@
 
 #import "KBContentView.h"
 
-#import "KBLayouts.h"
-
-@interface KBContentView ()
-@end
+#import "KBAppearance.h"
 
 @implementation KBContentView
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor.CGColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 }
 
 @end

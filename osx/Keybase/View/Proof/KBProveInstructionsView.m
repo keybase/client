@@ -14,7 +14,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   
   _instructionsLabel = [[KBLabel alloc] init];
   [self addSubview:_instructionsLabel];

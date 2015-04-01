@@ -21,7 +21,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.backgroundColor = NSColor.whiteColor;
+  [self kb_setBackgroundColor:NSColor.whiteColor];
 
 //  KBImageView *imageView = [[KBImageView alloc] init];
 //  [imageView setImageSource:@"General-Outline-Sad_Face-25"];

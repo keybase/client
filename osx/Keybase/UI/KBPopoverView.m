@@ -12,6 +12,7 @@
 #import "KBLabel.h"
 #import "KBAppearance.h"
 #import "KBWindow.h"
+#import "NSView+KBView.h"
 
 @interface KBPopoverView ()
 @property KBTitleView *titleView;
@@ -43,7 +44,7 @@
   [self addSubview:_titleView];
 
   _label = [[KBLabel alloc] init];
-  _label.backgroundColor = NSColor.whiteColor;
+  [_label kb_setBackgroundColor:NSColor.whiteColor];
   [self addSubview:_label];
 
   YOSelf yself = self;

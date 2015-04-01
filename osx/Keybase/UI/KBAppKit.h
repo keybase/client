@@ -23,6 +23,7 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 
 #import "KBAppKitDefines.h"
 #import "KBAppearance.h"
+#import "NSView+KBView.h"
 
 #import "KBImageView.h"
 #import "KBText.h"
@@ -44,7 +45,6 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import "KBScrollView.h"
 #import "KBTableView.h"
 #import "KBPopoverView.h"
-#import "KBView.h"
 #import "KBTableView.h"
 #import "KBListView.h"
 #import "KBSegmentedControl.h"

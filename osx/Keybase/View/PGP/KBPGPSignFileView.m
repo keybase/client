@@ -30,7 +30,7 @@
   [super viewInit];
 
   YOView *contentView = [YOView view];
-  [contentView setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
+  [contentView kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   [self addSubview:contentView];
 
   _fileIcon = [[KBFileIcon alloc] init];

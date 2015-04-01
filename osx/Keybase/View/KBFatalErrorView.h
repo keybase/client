@@ -10,7 +10,7 @@
 
 #import "KBAppKit.h"
 
-@interface KBFatalErrorView : KBView
+@interface KBFatalErrorView : YOView
 
 - (void)setError:(NSError *)error;
 

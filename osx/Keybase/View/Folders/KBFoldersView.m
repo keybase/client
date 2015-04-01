@@ -25,7 +25,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   _segmentedControl = [[KBSegmentedControl alloc] init];
   [_segmentedControl setSegmentCount:2];

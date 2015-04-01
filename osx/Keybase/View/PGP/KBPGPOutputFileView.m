@@ -19,7 +19,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  [self setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   _fileListView = [[KBFileListView alloc] init];
   _fileListView.fileLabelStyle = KBFileLabelStyleLarge;

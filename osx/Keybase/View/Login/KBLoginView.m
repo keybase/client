@@ -21,12 +21,12 @@
 - (void)viewInit {
   [super viewInit];
   GHWeakSelf gself = self;
-  self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   YOView *contentView = [[YOView alloc] init];
   [self addSubview:contentView];
 
-  contentView.backgroundColor = NSColor.whiteColor;
+  [contentView kb_setBackgroundColor:NSColor.whiteColor];
   contentView.layer.borderColor = KBAppearance.currentAppearance.lineColor.CGColor;
   contentView.layer.borderWidth = 1.0;
   contentView.layer.cornerRadius = 6;

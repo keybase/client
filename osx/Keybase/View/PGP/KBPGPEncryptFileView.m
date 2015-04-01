@@ -30,7 +30,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  [self setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
   YOVBox *topView = [YOVBox box];
   [self addSubview:topView];
@@ -44,7 +44,7 @@
   [self addSubview:contentView];
 
   YOVBox *toolbarView = [YOVBox box];
-  [toolbarView setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  [toolbarView kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
   [contentView addSubview:toolbarView];
 
   YOHBox *buttonsView = [YOHBox box:@{@"insets": @(10)}];

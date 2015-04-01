@@ -25,7 +25,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  [self setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   YOVBox *toolbarView = [YOVBox box];
   [self addSubview:toolbarView];

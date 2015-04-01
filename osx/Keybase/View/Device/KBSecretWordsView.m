@@ -17,7 +17,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
   YOView *contentView = [[YOView alloc] init];
   [self addSubview:contentView];
@@ -31,7 +31,7 @@
 
   _secretWordsLabel = [[KBLabel alloc] init];
   _secretWordsLabel.selectable = YES;
-  [_secretWordsLabel setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  [_secretWordsLabel kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
   [_secretWordsLabel setBorderEnabled:YES];
   _secretWordsLabel.insets = UIEdgeInsetsMake(10, 20, 10, 20);
   [contentView addSubview:_secretWordsLabel];

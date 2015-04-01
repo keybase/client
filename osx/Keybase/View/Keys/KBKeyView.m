@@ -21,7 +21,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.backgroundColor = KBAppearance.currentAppearance.backgroundColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
   KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleToolbar];
   removeButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {

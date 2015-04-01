@@ -15,8 +15,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  //GHWeakSelf gself = self;
-  self.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   _progressView = [[KBProgressOverlayView alloc] init];
   [self addSubview:_progressView];

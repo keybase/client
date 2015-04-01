@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 
 #import <YOLayout/YOLayout.h>
-#import "KBView.h"
 
 @interface KBPopoverView : YOView
 

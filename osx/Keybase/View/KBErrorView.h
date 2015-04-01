@@ -10,7 +10,7 @@
 
 #import "KBAppKit.h"
 
-@interface KBErrorView : KBView
+@interface KBErrorView : YOView
 
 @property (readonly) KBButton *closeButton;
 

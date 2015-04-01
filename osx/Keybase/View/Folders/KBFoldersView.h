@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBFileListView.h"
 
-@interface KBFoldersView : KBView
+@interface KBFoldersView : YOView
 
 @property (readonly) KBFileListView *favoritesView;
 @property (readonly) KBFileListView *foldersView;

@@ -11,9 +11,9 @@
 #import "KBAppKit.h"
 #import "KBRPC.h"
 
-@interface KBContentView : KBView
+@interface KBContentView : YOView
 
 @property KBNavigationView *navigation;
-@property KBRPClient * client;
+@property KBRPClient *client;
 
 @end

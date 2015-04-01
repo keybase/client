@@ -24,7 +24,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.backgroundColor = NSColor.whiteColor;
+  [self kb_setBackgroundColor:NSColor.whiteColor];
 
   KBBorder *pasteView = [[KBBorder alloc] init];
   pasteView.width = 2.0;

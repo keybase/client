@@ -19,6 +19,8 @@
 
 - (void)viewInit {
   [super viewInit];
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  
   _header = [KBLabel labelWithText:@"Oops" style:KBTextStyleHeader alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self addSubview:_header];
 

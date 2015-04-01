@@ -18,7 +18,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  [self setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
   _label = [KBLabel label];
   _label.verticalAlignment = KBVerticalAlignmentMiddle;
