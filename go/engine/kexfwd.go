@@ -24,6 +24,7 @@ type KexFwdArgs struct {
 	User    *libkb.User    // the user who owns device Y and device X
 	Src     libkb.DeviceID // device ID of this new device (device Y)
 	Dst     libkb.DeviceID // device ID of existing provisioned device (device X)
+	DstName string         // device name of the existing provisioned device (device X)
 	DevType string         // type of this new device (e.g. desktop, mobile)
 	DevDesc string         // description of this new device
 }
@@ -81,7 +82,12 @@ func (k *KexFwd) Run(ctx *Context) error {
 	// tell user the command to enter on existing device (X)
 	// note: this has to happen before StartKexSession call for tests to work.
 	k.G().Log.Debug("KexFwd: displaying sibkey command")
-	if err := ctx.DoctorUI.DisplaySecretWords(keybase_1.DisplaySecretWordsArg{XDevDescription: k.args.DevDesc, Secret: sec.Phrase()}); err != nil {
+	darg := keybase_1.DisplaySecretWordsArg{
+		DeviceNameToAdd:    k.args.DevDesc,
+		DeviceNameExisting: k.args.DstName,
+		Secret:             sec.Phrase(),
+	}
+	if err := ctx.DoctorUI.DisplaySecretWords(darg); err != nil {
 		return err
 	}
 

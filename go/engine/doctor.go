@@ -220,7 +220,7 @@ var ErrNotYetImplemented = errors.New("not yet implemented")
 // new device.  It happens when the user has keys already, either
 // a device key, pgp key, or both.
 func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
-	devname, err := d.deviceName(ctx)
+	newDeviceName, err := d.deviceName(ctx)
 	if err != nil {
 		return err
 	}
@@ -263,7 +263,7 @@ func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
 	}
 
 	if res.Signer.Kind == keybase_1.DeviceSignerKind_DEVICE {
-		return d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, devname, libkb.DEVICE_TYPE_DESKTOP)
+		return d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, *res.Signer.DeviceName, newDeviceName, libkb.DEVICE_TYPE_DESKTOP)
 	}
 
 	return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
@@ -337,15 +337,15 @@ func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 	return nil
 }
 
-func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType string) error {
-	d.G().Log.Info("device sign with existing device [%s]", id)
+func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName, newDevName, newDevType string) error {
+	d.G().Log.Info("device sign with existing device [%s]", existingID)
 
 	src, err := libkb.NewDeviceID()
 	if err != nil {
 		return err
 	}
 
-	dst, err := libkb.ImportDeviceID(id)
+	dst, err := libkb.ImportDeviceID(existingID)
 	if err != nil {
 		return err
 	}
@@ -359,8 +359,9 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, id, devName, devType str
 		User:    d.user,
 		Src:     src,
 		Dst:     *dst,
-		DevType: devType,
-		DevDesc: devName,
+		DstName: existingName,
+		DevType: newDevType,
+		DevDesc: newDevName,
 	}
 	k := NewKexFwd(tk.LksClientHalf(), kargs)
 	return RunEngine(k, ctx)

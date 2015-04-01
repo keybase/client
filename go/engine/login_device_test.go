@@ -112,7 +112,8 @@ func (l *ldocuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_
 	}
 	res.Action = keybase_1.SelectSignerAction_SIGN
 	devid := arg.Devices[0].DeviceID
-	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &devid}
+	devname := arg.Devices[0].Name
+	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &devid, DeviceName: &devname}
 	return
 }
 

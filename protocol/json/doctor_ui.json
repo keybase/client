@@ -180,6 +180,9 @@
     }, {
       "name" : "deviceID",
       "type" : [ "null", "string" ]
+    }, {
+      "name" : "deviceName",
+      "type" : [ "null", "string" ]
     } ]
   }, {
     "type" : "record",
@@ -224,7 +227,10 @@
         "name" : "secret",
         "type" : "string"
       }, {
-        "name" : "xDevDescription",
+        "name" : "deviceNameExisting",
+        "type" : "string"
+      }, {
+        "name" : "deviceNameToAdd",
         "type" : "string"
       } ],
       "response" : "null"

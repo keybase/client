@@ -546,9 +546,9 @@ func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sel
 }
 
 func (d DoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
-	d.parent.Printf("On your %q computer, a window should have appeared. Type this in it:\n\n", arg.XDevDescription)
+	d.parent.Printf("On your %q computer, a window should have appeared. Type this in it:\n\n", arg.DeviceNameExisting)
 	d.parent.Printf("\t%s\n\n", arg.Secret)
-	d.parent.Printf("Alternatively, if you're using the terminal at %q, type this:\n\n", arg.XDevDescription)
+	d.parent.Printf("Alternatively, if you're using the terminal at %q, type this:\n\n", arg.DeviceNameExisting)
 	d.parent.Printf("\tkeybase sibkey add \"%s\"\n\n", arg.Secret)
 	return nil
 }

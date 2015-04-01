@@ -374,8 +374,9 @@ const (
 )
 
 type DeviceSigner struct {
-	Kind     DeviceSignerKind `codec:"kind" json:"kind"`
-	DeviceID *string          `codec:"deviceID,omitempty" json:"deviceID"`
+	Kind       DeviceSignerKind `codec:"kind" json:"kind"`
+	DeviceID   *string          `codec:"deviceID,omitempty" json:"deviceID"`
+	DeviceName *string          `codec:"deviceName,omitempty" json:"deviceName"`
 }
 
 type SelectSignerRes struct {
@@ -394,9 +395,10 @@ type SelectSignerArg struct {
 }
 
 type DisplaySecretWordsArg struct {
-	SessionID       int    `codec:"sessionID" json:"sessionID"`
-	Secret          string `codec:"secret" json:"secret"`
-	XDevDescription string `codec:"xDevDescription" json:"xDevDescription"`
+	SessionID          int    `codec:"sessionID" json:"sessionID"`
+	Secret             string `codec:"secret" json:"secret"`
+	DeviceNameExisting string `codec:"deviceNameExisting" json:"deviceNameExisting"`
+	DeviceNameToAdd    string `codec:"deviceNameToAdd" json:"deviceNameToAdd"`
 }
 
 type DoctorUiInterface interface {

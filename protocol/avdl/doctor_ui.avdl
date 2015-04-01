@@ -21,6 +21,7 @@ protocol doctorUi {
 	record DeviceSigner {
 		DeviceSignerKind kind;
 		union { null, string } deviceID; // if kind == DEVICE, this will be used.
+		union { null, string } deviceName; // if kind == DEVICE, this will be used.
 	}
 
 	record SelectSignerRes {
@@ -36,5 +37,5 @@ protocol doctorUi {
 
 	// displaySecretWords is for device provisioning when device Y (new device) gives 
 	// instructions containing the secret words to enter on device X (existing device).
-	void displaySecretWords(int sessionID, string secret, string xDevDescription);
+	void displaySecretWords(int sessionID, string secret, string deviceNameExisting, string deviceNameToAdd);
 }
