@@ -348,12 +348,9 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	cki = NewComputedKeyInfos()
 	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: sc.Contextified}
 
-	var prev *ChainLink
-	var prevFokid *FOKID
-
 	first := true
 
-	for _, link := range links {
+	for linkIndex, link := range links {
 
 		newFokid := link.ToFOKID()
 
@@ -371,13 +368,29 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			first = false
 		}
 
-		if dlg := tcl.GetRole(); dlg == DLG_NONE {
-		} else if _, err = link.VerifySigWithKeyFamily(ckf); err != nil {
-			G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err.Error())
-			return
-		} else if err = ckf.Delegate(tcl); err != nil {
-			G.Log.Debug("| Failure in Delegate: %s", err.Error())
-			return
+		// Optimization: When several links in a row are signed by the same
+		// key, we only validate the signature of the last of that group.
+		// (Unless a link delegates new keys, in which case we always check.)
+		// Note that we do this *before* processing revocations in the key
+		// family. That's important because a chain link might revoke the same
+		// key that signed it.
+		isDelegating := (tcl.GetRole() != DLG_NONE)
+		isFinalLink := (linkIndex == len(links)-1)
+		isLastLinkInSameKeyRun := (isFinalLink || !newFokid.Eq(links[linkIndex+1].ToFOKID()))
+		if isDelegating || isFinalLink || isLastLinkInSameKeyRun {
+			_, err = link.VerifySigWithKeyFamily(ckf)
+			if err != nil {
+				G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err.Error())
+				return
+			}
+		}
+
+		if isDelegating {
+			err = ckf.Delegate(tcl)
+			if err != nil {
+				G.Log.Debug("| Failure in Delegate: %s", err.Error())
+				return
+			}
 		}
 
 		if err = tcl.VerifyReverseSig(&kf); err != nil {
@@ -393,23 +406,12 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			return
 		}
 
-		if prevFokid != nil && !prevFokid.Eq(newFokid) {
-			_, err = prev.VerifySigWithKeyFamily(ckf)
-		}
-
 		if err != nil {
 			return
 		}
-
-		prev = link
-		prevFokid = &newFokid
 	}
 
-	// Always verify the last...
-	if _, err = last.VerifySigWithKeyFamily(ckf); err == nil {
-		last.PutSigCheckCache(cki)
-	}
-
+	last.PutSigCheckCache(cki)
 	return
 }
 
