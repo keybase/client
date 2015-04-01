@@ -5,7 +5,7 @@ protocol bIndex {
 
 	void bIndexSession(string sid);
 	string getBIndex(string blockId, int size);
-	void putBIndex(array<StringKVPair> info);
+	void putBIndex(string blockId, int size, array<StringKVPair> info);
 	void delete(string blockId, int size);
 
 	// future RPC from bserver to bindex 

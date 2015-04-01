@@ -90,7 +90,7 @@
 
 - (void)getBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)putBIndexWithInfo:(NSArray *)info completion:(void (^)(NSError *error))completion;
+- (void)putBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size info:(NSArray *)info completion:(void (^)(NSError *error))completion;
 
 - (void)deleteWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion;
 
@@ -644,6 +644,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSInteger size;
 @end
 @interface KBRPutBIndexRequestParams : KBRRequestParams
+@property NSString *blockId;
+@property NSInteger size;
 @property NSArray *info;
 @end
 @interface KBRDeleteRequestParams : KBRRequestParams

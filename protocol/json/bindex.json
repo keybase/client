@@ -184,6 +184,12 @@
     },
     "putBIndex" : {
       "request" : [ {
+        "name" : "blockId",
+        "type" : "string"
+      }, {
+        "name" : "size",
+        "type" : "int"
+      }, {
         "name" : "info",
         "type" : {
           "type" : "array",

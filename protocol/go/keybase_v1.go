@@ -85,7 +85,9 @@ type GetBIndexArg struct {
 }
 
 type PutBIndexArg struct {
-	Info []StringKVPair `codec:"info" json:"info"`
+	BlockId string         `codec:"blockId" json:"blockId"`
+	Size    int            `codec:"size" json:"size"`
+	Info    []StringKVPair `codec:"info" json:"info"`
 }
 
 type DeleteArg struct {
@@ -96,7 +98,7 @@ type DeleteArg struct {
 type BIndexInterface interface {
 	BIndexSession(string) error
 	GetBIndex(GetBIndexArg) (string, error)
-	PutBIndex([]StringKVPair) error
+	PutBIndex(PutBIndexArg) error
 	Delete(DeleteArg) error
 }
 
@@ -121,7 +123,7 @@ func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
 			"putBIndex": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PutBIndexArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PutBIndex(args[0].Info)
+					err = i.PutBIndex(args[0])
 				}
 				return
 			},
@@ -152,8 +154,7 @@ func (c BIndexClient) GetBIndex(__arg GetBIndexArg) (res string, err error) {
 	return
 }
 
-func (c BIndexClient) PutBIndex(info []StringKVPair) (err error) {
-	__arg := PutBIndexArg{Info: info}
+func (c BIndexClient) PutBIndex(__arg PutBIndexArg) (err error) {
 	err = c.Cli.Call("keybase.1.bIndex.putBIndex", []interface{}{__arg}, nil)
 	return
 }

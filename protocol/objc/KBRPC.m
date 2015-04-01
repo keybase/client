@@ -88,8 +88,8 @@
   }];
 }
 
-- (void)putBIndexWithInfo:(NSArray *)info completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"info": KBRValue(info)}];
+- (void)putBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size info:(NSArray *)info completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size), @"info": KBRValue(info)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.putBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -994,6 +994,8 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.blockId = params[0][@"blockId"];
+    self.size = [params[0][@"size"] integerValue];
     self.info = [MTLJSONAdapter modelsOfClass:KBRStringKVPair.class fromJSONArray:params[0][@"info"] error:nil];
   }
   return self;
