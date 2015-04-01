@@ -23,9 +23,3 @@ extern NSString *const KBStatusDidChangeNotification;
 NSString *KBDisplayURLStringForUsername(NSString *username);
 NSString *KBURLStringForUsername(NSString *username);
 NSString *KBHexString(NSData *data);
-
-
-static inline CGRect KBCGRectInset(CGRect rect, UIEdgeInsets insets) {
-  CGSize size = rect.size;
-  return CGRectMake(insets.left, insets.top, size.width - insets.right - insets.left, size.height - insets.top - insets.bottom);
-}

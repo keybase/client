@@ -8,7 +8,7 @@
 
 #import "KBBox.h"
 #import "KBAppearance.h"
-#import "KBDefines.h"
+#import "KBAppKitDefines.h"
 
 @interface KBBox ()
 @property NSBox *box;
