@@ -466,15 +466,20 @@ func GenerateNaclDHKeyPair() (NaclKeyPair, error) {
 	return ret, nil
 }
 
+func KbOpenSig(armored string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(armored)
+}
+
 func SigAssertKbPayload(armored string, expected []byte) (sigId *SigId, err error) {
 	var byt []byte
 	var packet *KeybasePacket
 	var sig *NaclSig
 	var ok bool
 
-	if byt, err = base64.StdEncoding.DecodeString(armored); err != nil {
+	if byt, err = KbOpenSig(armored); err != nil {
 		return
 	}
+
 	if packet, err = DecodePacket(byt); err != nil {
 		return
 	}

@@ -20,6 +20,8 @@ const (
 
 type SigId [SIG_ID_LEN]byte
 
+func (s SigId) P() *SigId { return &s }
+
 func ComputeSigIdFromSigBody(body []byte) SigId {
 	return SigId(sha256.Sum256(body))
 }
@@ -105,7 +107,7 @@ func (k PgpKeyBundle) VerifyAndExtract(armored string) (msg []byte, sig_id *SigI
 	err error) {
 
 	var ps *ParsedSig
-	if ps, err = OpenSig(armored); err != nil {
+	if ps, err = PgpOpenSig(armored); err != nil {
 		return
 	} else if err = ps.Verify(k); err != nil {
 		return
@@ -134,7 +136,7 @@ type ParsedSig struct {
 	LiteralData []byte
 }
 
-func OpenSig(armored string) (ps *ParsedSig, err error) {
+func PgpOpenSig(armored string) (ps *ParsedSig, err error) {
 	pso := ParsedSig{}
 	pso.Block, err = armor.Decode(strings.NewReader(armored))
 	if err != nil {
@@ -148,8 +150,30 @@ func OpenSig(armored string) (ps *ParsedSig, err error) {
 	return
 }
 
+// OpenSig takes an armored PGP or Keybase signature and opens
+// the armor.  It will return the body of the signature, the
+// sigId of the body, or an error if it didn't work out.
+func OpenSig(armored string) (ret []byte, id *SigId, err error) {
+	if isPgp(armored) {
+		var ps *ParsedSig
+		if ps, err = PgpOpenSig(armored); err == nil {
+			ret = ps.SigBody
+			id = ps.ID().P()
+		}
+	} else {
+		if ret, err = KbOpenSig(armored); err == nil {
+			id = ComputeSigIdFromSigBody(ret).P()
+		}
+	}
+	return
+}
+
+func isPgp(armored string) bool {
+	return strings.HasPrefix(armored, "-----BEGIN PGP")
+}
+
 func SigAssertPayload(armored string, expected []byte) (sigId *SigId, err error) {
-	if strings.HasPrefix(armored, "-----BEGIN PGP") {
+	if isPgp(armored) {
 		return SigAssertPgpPayload(armored, expected)
 	} else {
 		return SigAssertKbPayload(armored, expected)
@@ -158,7 +182,7 @@ func SigAssertPayload(armored string, expected []byte) (sigId *SigId, err error)
 
 func SigAssertPgpPayload(armored string, expected []byte) (sigId *SigId, err error) {
 	var ps *ParsedSig
-	ps, err = OpenSig(armored)
+	ps, err = PgpOpenSig(armored)
 	if err != nil {
 		return
 	}

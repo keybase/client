@@ -53,10 +53,10 @@ func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
 	if html, err := div.Html(); err != nil {
 		ret = NewProofError(PROOF_CONTENT_MISSING,
 			"Missing proof HTML content: %s", err.Error())
-	} else if ps, err := OpenSig(rc.proof.GetArmoredSig()); err != nil {
+	} else if sigBody, _, err := OpenSig(rc.proof.GetArmoredSig()); err != nil {
 		ret = NewProofError(PROOF_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
-	} else if !FindBase64Block(html, ps.SigBody, false) {
+	} else if !FindBase64Block(html, sigBody, false) {
 		ret = NewProofError(PROOF_TEXT_NOT_FOUND, "signature not found in body")
 	}
 

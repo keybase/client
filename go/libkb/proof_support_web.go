@@ -50,8 +50,8 @@ func (rc *WebChecker) CheckStatus(h SigHint) ProofError {
 		return XapiError(err, h.apiUrl)
 	}
 
-	var ps *ParsedSig
-	ps, err = OpenSig(rc.proof.GetArmoredSig())
+	var sigBody []byte
+	sigBody, _, err = OpenSig(rc.proof.GetArmoredSig())
 	var ret ProofError
 
 	if err != nil {
@@ -59,7 +59,7 @@ func (rc *WebChecker) CheckStatus(h SigHint) ProofError {
 			"Bad signature: %s", err.Error())
 	}
 
-	if !FindBase64Block(res.Body, ps.SigBody, false) {
+	if !FindBase64Block(res.Body, sigBody, false) {
 		ret = NewProofError(PROOF_TEXT_NOT_FOUND, "signature not found in body")
 	}
 

@@ -20,14 +20,14 @@ func NewDnsChecker(p RemoteProofChainLink) (*DnsChecker, ProofError) {
 }
 
 func (rc *DnsChecker) CheckHint(h SigHint) ProofError {
-	ps, err := OpenSig(rc.proof.GetArmoredSig())
+	_, sigId, err := OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {
 		return NewProofError(PROOF_BAD_SIGNATURE,
 			"Bad signature: %s", err.Error())
 	}
 
-	wanted := ps.ID().ToMediumId()
+	wanted := sigId.ToMediumId()
 
 	if !strings.HasSuffix(h.checkText, wanted) {
 		return NewProofError(PROOF_BAD_HINT_TEXT,
