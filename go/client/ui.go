@@ -561,6 +561,7 @@ func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sel
 	} else {
 		res.Signer.Kind = keybase_1.DeviceSignerKind_DEVICE
 		res.Signer.DeviceID = &(arg.Devices[ret-1].DeviceID)
+		res.Signer.DeviceName = &(arg.Devices[ret-1].Name)
 	}
 	return res, nil
 }
