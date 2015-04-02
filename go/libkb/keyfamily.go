@@ -587,7 +587,7 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 // Delegate marks the given ComputedKeyInfos object that the given kidStr is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
 func (cki *ComputedKeyInfos) Delegate(kidStr string, fingerprintStr string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
-	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kidStr, signingKid, sigid)
+	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kidStr, signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kidStr]
 	if !found {
 		newInfo := NewComputedKeyInfo(false, false, KEY_UNCANCELLED, ctime.Unix(), etime.Unix())
