@@ -88,7 +88,8 @@ func (k KID) Eq(k2 KID) bool {
 }
 
 func WriteLksSKBToKeyring(username string, k GenericKey, lks *LKSec, lui LogUI) (skb *SKB, err error) {
-	if ring, err := G.LoadSKBKeyring(username); err != nil {
+	ring, err := G.LoadSKBKeyring(username)
+	if err != nil {
 	} else if skb, err = k.ToLksSKB(lks); err != nil {
 	} else {
 		err = ring.PushAndSave(skb, lui)
