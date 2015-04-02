@@ -57,11 +57,11 @@
   KBWindow *window = [_appView openWindow];
 
   _consoleView = [[KBConsoleView alloc] init];
-  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" errorHandler:_errorHandler];
+  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO errorHandler:_errorHandler];
   _appView.delegate = _consoleView;
 
   _mockViews = [[KBMockViews alloc] init];
-  [window kb_addChildWindowForView:_mockViews rect:CGRectMake(0, -510, 400, 500) position:KBWindowPositionRight title:@"Mocks" errorHandler:_errorHandler];
+  [window kb_addChildWindowForView:_mockViews rect:CGRectMake(0, -510, 400, 500) position:KBWindowPositionRight title:@"Mocks" fixed:NO errorHandler:_errorHandler];
 
   KBRPClient *client = [[KBRPClient alloc] init];
   [_appView connect:client];
@@ -94,7 +94,7 @@
 }
 
 - (IBAction)logout:(id)sender {
-  [self.appView logout];
+  [self.appView logout:YES];
 }
 
 - (void)quit:(id)sender {
@@ -144,49 +144,49 @@
 - (IBAction)encrypt:(id)sender {
   KBPGPEncryptView *view = [[KBPGPEncryptView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" fixed:NO errorHandler:_errorHandler];
 }
 
 - (IBAction)encryptFile:(id)sender {
   KBPGPEncryptFileView *view = [[KBPGPEncryptFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" fixed:NO errorHandler:_errorHandler];
 }
 
 - (IBAction)decrypt:(id)sender {
   KBPGPDecryptView *view = [[KBPGPDecryptView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt" fixed:NO errorHandler:_errorHandler];
 }
 
 - (IBAction)decryptFile:(id)sender {
   KBPGPDecryptFileView *view = [[KBPGPDecryptFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" fixed:NO errorHandler:_errorHandler];
 }
 
 - (IBAction)sign:(id)sender {
   KBPGPSignView *view = [[KBPGPSignView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" fixed:NO errorHandler:_errorHandler];
 }
 
 - (IBAction)signFile:(id)sender {
   KBPGPSignFileView *view = [[KBPGPSignFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO errorHandler:_errorHandler];
 }
 
 - (IBAction)verify:(id)sender {
   KBPGPVerifyView *view = [[KBPGPVerifyView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" fixed:NO errorHandler:_errorHandler];
 }
 
 - (IBAction)verifyFile:(id)sender {
   KBPGPVerifyFileView *view = [[KBPGPVerifyFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO errorHandler:_errorHandler];
 }
 
 + (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {
@@ -215,7 +215,7 @@
   }
 
   if ([errorName isEqualToString:@"LOGIN_REQUIRED"]) {
-    [self logout:nil];
+    [self.appView logout:NO];
     return;
   }
 

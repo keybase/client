@@ -115,7 +115,7 @@
   //_imageView.image = image;
 
   //if (!_imageView.image) {
-  [_headerLabel setText:KBNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:KBShortNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   //} else {
   //  _headerLabel.attributedText = nil;
   //}

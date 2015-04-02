@@ -13,6 +13,8 @@
 
 @interface KBProveInputView : YOView
 @property (nonatomic) KBProveType proveType;
+
+@property KBLabel *header;
 @property KBLabel *label;
 @property KBTextField *inputField;
 @property KBButton *button;

@@ -29,13 +29,16 @@
   [self addSubview:_inputView];
 
   _instructionsView = [[KBProveInstructionsView alloc] init];
+  _instructionsView.button.targetBlock = ^{
+    [gself check];
+  };
   _instructionsView.hidden = YES;
   [self addSubview:_instructionsView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     [layout centerWithSize:CGSizeMake(size.width, 0) frame:CGRectMake(0, 0, size.width, size.height) view:yself.inputView];
-    [layout centerWithSize:CGSizeMake(size.width, size.height) frame:CGRectMake(0, 0, size.width, size.height) view:yself.instructionsView];
+    [layout setSize:size view:yself.instructionsView options:0];
     return size;
   }];
 }
@@ -45,7 +48,7 @@
   proveView.client = client;
   proveView.proveType = proveType;
 
-  [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 420, 420) position:KBWindowPositionCenter title:NSStringWithFormat(@"Connect with %@", KBNameForProveType(proveType)) errorHandler:AppDelegate.sharedDelegate.errorHandler];
+  [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 420, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
 }
 
 - (void)setProveType:(KBProveType)proveType {
@@ -55,9 +58,8 @@
   [self.window makeFirstResponder:_inputView.inputField];
 }
 
-- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText targetBlock:(dispatch_block_t)targetBlock {
-  [_instructionsView setInstructions:instructions proofText:proofText];
-  _instructionsView.button.targetBlock = targetBlock;
+- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText {
+  [_instructionsView setInstructions:instructions proofText:proofText proveType:_proveType];
   [_instructionsView layoutView];
 
   // TODO Animate change
@@ -133,10 +135,8 @@
     NSString *proof = requestParams.proof;
 
     [self.navigation setProgressEnabled:NO];
-    [self setInstructions:instructions proofText:proof targetBlock:^{
-      [gself.navigation setProgressEnabled:YES];
-      completion(nil, @(YES));
-    }];
+    [self setInstructions:instructions proofText:proof];
+    completion(nil, nil);
   }];
 
   [self.navigation setProgressEnabled:YES];
@@ -148,6 +148,10 @@
     }
     self.completion(NO);
   }];
+}
+
+- (void)check {
+  KBDebugAlert(@"TODO", self.window);
 }
 
 @end

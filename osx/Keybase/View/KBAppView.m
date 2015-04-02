@@ -272,23 +272,29 @@
   [self setContentView:_foldersAppView showSourceView:YES];
 }
 
-- (void)logout {
+- (void)logout:(BOOL)prompt {
   GHWeakSelf gself = self;
-  [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^(BOOL yes) {
-    if (yes) {
-      [self setProgressEnabled:YES];
-      KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
-      [login logout:^(NSError *error) {
-        [self setProgressEnabled:NO];
-        if (error) {
-          [AppDelegate setError:error sender:self];
-          return;
-        }
+  dispatch_block_t logout = ^{
+    [self setProgressEnabled:YES];
+    KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
+    [login logout:^(NSError *error) {
+      [self setProgressEnabled:NO];
+      if (error) {
+        [AppDelegate setError:error sender:self];
+        return;
+      }
 
-        [self checkStatus:nil];
-      }];
-    }
-  }];
+      [self checkStatus:nil];
+    }];
+  };
+
+  if (prompt) {
+    [KBAlert yesNoWithTitle:@"Log Out" description:@"Are you sure you want to log out?" yes:@"Log Out" view:self completion:^(BOOL yes) {
+      if (yes) logout();
+    }];
+  } else {
+    logout();
+  }
 }
 
 - (void)checkStatus:(KBCompletionBlock)completion {

@@ -74,7 +74,7 @@
 
 @implementation NSWindow (KBWindow)
 
-- (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title errorHandler:(KBErrorHandler)errorHandler {
+- (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title fixed:(BOOL)fixed errorHandler:(KBErrorHandler)errorHandler {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
   navigation.errorHandler = errorHandler;
 
@@ -82,14 +82,18 @@
   size.height += 32; // TODO
 
   NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
-  window.styleMask = window.styleMask | NSResizableWindowMask;
+  if (fixed) {
+    [window setMovable:NO];
+  } else {
+    window.styleMask = window.styleMask | NSResizableWindowMask;
+  }
 
   CGPoint p = CGPointMake(self.frame.origin.x + rect.origin.x, self.frame.origin.y + rect.origin.y);
 
   switch (position) {
     case KBWindowPositionCenter:
       p.x += YOCGPointToCenterX(window.frame.size, self.frame.size).x;
-      p.y += YOCGPointToCenterY(window.frame.size, self.frame.size).y;
+      p.y += self.frame.size.height - window.frame.size.height;
       break;
     case KBWindowPositionRight:
       p.x += self.frame.size.width + 10;
@@ -101,6 +105,7 @@
   [window setFrameOrigin:p];
 
   [self addChildWindow:window ordered:NSWindowAbove];
+  [window makeKeyWindow];
 
   if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
   return window;

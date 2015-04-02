@@ -15,6 +15,9 @@
   _inputField = [[KBTextField alloc] init];
   [self addSubview:_inputField];
 
+  _header = [[KBLabel alloc] init];
+  [self addSubview:_header];
+
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
 
@@ -25,7 +28,9 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
 
-    y += [layout centerWithSize:CGSizeMake(240, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.label].size.height + 20;
+    y += [layout centerWithSize:CGSizeMake(240, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.header].size.height + 40;
+    
+    y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.label].size.height + 20;
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.inputField].size.height + 40;
 
@@ -40,38 +45,46 @@
   _inputField.placeholder = nil;
   _label.attributedText = nil;
 
+  NSString *headerText = KBNameForProveType(proveType);
+  NSString *labelText = @"";
+  NSString *placeholder = @"";
   switch (proveType) {
     case KBProveTypeTwitter:
-      [_label setText:@"What is your Twitter username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-      _inputField.placeholder = @"@username";
+      labelText = @"What is your Twitter username?";
+      placeholder = @"@username";
       break;
     case KBProveTypeGithub:
-      [_label setText:@"What is your Github username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-      _inputField.placeholder = @"username";
+      labelText = @"What is your Github username?";
+      placeholder = @"username";
       break;
     case KBProveTypeReddit:
-      [_label setText:@"What is your Reddit username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-      _inputField.placeholder = @"username";
+      labelText = @"What is your Reddit username?";
+      placeholder = @"username";
       break;
     case KBProveTypeCoinbase:
-      [_label setText:@"What is your Coinbase username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-      _inputField.placeholder = @"username";
+      labelText = @"What is your Coinbase username?";
+      placeholder = @"username";
       break;
     case KBProveTypeHackernews:
-      [_label setText:@"What is your Hackernews username?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-      _inputField.placeholder = @"username";
+      labelText = @"What is your HackerNews username?";
+      placeholder = @"username";
       break;
     case KBProveTypeDNS:
-      [_label setText:@"Do you want to connect your domain name?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-      _inputField.placeholder = @"yoursite.com";
+      labelText = @"What domain name do you want to add?";
+      placeholder = @"yoursite.com";
       break;
     case KBProveTypeHTTPS:
-      [_label setText:@"Do you want to connect your web site?" font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-      _inputField.placeholder = @"yoursite.com";
+      labelText = @"What website do you want to add?";
+      placeholder = @"yoursite.com";
       break;
     case KBProveTypeUnknown:
       break;
   }
+
+  [_header setText:headerText style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [_label setText:labelText font:[KBAppearance.currentAppearance textFont] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  _inputField.placeholder = placeholder;
+
   [self setNeedsLayout];
 }
 

@@ -43,7 +43,7 @@ NSString *KBImageNameForProveType(KBProveType proveType) {
   }
 }
 
-NSString *KBNameForProveType(KBProveType proveType) {
+NSString *KBShortNameForProveType(KBProveType proveType) {
   switch (proveType) {
     case KBProveTypeUnknown: return nil;
     case KBProveTypeTwitter: return @"Twitter";
@@ -56,14 +56,14 @@ NSString *KBNameForProveType(KBProveType proveType) {
   }
 }
 
-NSString *KBDescriptionForProveType(KBProveType proveType) {
+NSString *KBNameForProveType(KBProveType proveType) {
   switch (proveType) {
     case KBProveTypeUnknown: return nil;
     case KBProveTypeTwitter: return @"Twitter";
     case KBProveTypeGithub: return @"Github";
     case KBProveTypeReddit: return @"Reddit";
     case KBProveTypeCoinbase: return @"Coinbase";
-    case KBProveTypeHackernews: return @"Hackernews";
+    case KBProveTypeHackernews: return @"HackerNews";
     case KBProveTypeDNS: return @"Domain";
     case KBProveTypeHTTPS: return @"Website";
   }

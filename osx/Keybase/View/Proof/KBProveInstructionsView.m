@@ -19,13 +19,10 @@
   _instructionsLabel = [[KBLabel alloc] init];
   [self addSubview:_instructionsLabel];
 
-  _proofLabel = [[KBLabel alloc] init];
-  _proofLabel.selectable = YES;
-
-  _scrollView = [[KBScrollView alloc] init];
-  [_scrollView setDocumentView:_proofLabel];
-  _scrollView.scrollView.borderType = NSBezelBorder;
-  [self addSubview:_scrollView];
+  _proofView = [[KBTextView alloc] init];
+  _proofView.borderType = NSBezelBorder;
+  _proofView.view.editable = NO;
+  [self addSubview:_proofView];
 
   YOView *bottomView = [[YOView alloc] init];
   [self addSubview:bottomView];
@@ -50,14 +47,25 @@
     return CGSizeMake(size.width, y);
   }];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_scrollView topView:_instructionsLabel bottomView:bottomView insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20 maxSize:CGSizeMake(600, 600)]];
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_proofView topView:_instructionsLabel bottomView:bottomView insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20 maxSize:CGSizeMake(600, 600)]];
 }
 
-- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText {
-  [self.instructionsLabel setMarkup:instructions.data];
+- (NSString *)stringByStrippingHTML:(NSString *)str {
+  NSRange r;
+  while ((r = [str rangeOfString:@"<[^>]+>" options:NSRegularExpressionSearch]).location != NSNotFound)
+    str = [str stringByReplacingCharactersInRange:r withString:@""];
+  return str;
+}
+
+- (NSString *)instructionsForProveType:(KBProveType)proveType instructions:(KBRText *)instructions {
+  return NSStringWithFormat(@"%@:", [self stringByStrippingHTML:instructions.data]);
+}
+
+- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText proveType:(KBProveType)proveType {
+  [self.instructionsLabel setText:[self instructionsForProveType:proveType instructions:instructions] style:KBTextStyleDefault];
 
   _proofText = proofText;
-  [self.proofLabel setText:proofText style:KBTextStyleDefault];
+  [self.proofView setText:proofText style:KBTextStyleDefault];
   [self setNeedsLayout];
 }
 

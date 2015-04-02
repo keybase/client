@@ -15,13 +15,12 @@
 
 @interface KBProveInstructionsView : KBContentView
 @property KBLabel *instructionsLabel;
-@property KBLabel *proofLabel;
-@property KBScrollView *scrollView;
+@property KBTextView *proofView;
 @property KBButton *button;
 @property KBButton *clipboardCopyButton;
 @property NSString *proofText;
 
-- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText;
+- (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText proveType:(KBProveType)proveType;
 
 @end
 

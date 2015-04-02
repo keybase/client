@@ -39,7 +39,7 @@
 
 - (KBWindow *)openWindow;
 
-- (void)logout;
+- (void)logout:(BOOL)prompt;
 
 - (void)checkStatus:(KBCompletionBlock)completion;
 

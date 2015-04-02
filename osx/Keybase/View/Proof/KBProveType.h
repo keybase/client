@@ -23,6 +23,6 @@ KBProveType KBProveTypeForServiceName(NSString *serviceName);
 KBProveType KBProveTypeFromAPI(NSInteger proofType);
 
 NSString *KBImageNameForProveType(KBProveType proveType);
+NSString *KBShortNameForProveType(KBProveType proveType);
 NSString *KBNameForProveType(KBProveType proveType);
-NSString *KBDescriptionForProveType(KBProveType proveType);
 
