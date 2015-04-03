@@ -93,6 +93,9 @@ func (p CommandLine) GetGpgOptions() []string {
 	}
 	return ret
 }
+func (p CommandLine) GetGpgDisabled() (bool, bool) {
+	return p.GetBool("gpg-disabled", true)
+}
 func (p CommandLine) GetMerkleKeyFingerprints() []string {
 	s := p.GetGString("merkle-key-fingerprints")
 	if len(s) != 0 {
@@ -302,6 +305,10 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 		cli.StringFlag{
 			Name:  "gpg-options",
 			Usage: "Options to use when calling GPG",
+		},
+		cli.BoolFlag{
+			Name:  "gpg-disabled",
+			Usage: "Disable GPG support",
 		},
 		cli.IntFlag{
 			Name:  "daemon-port",
