@@ -93,7 +93,7 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 }
 
 func testPromptAndUnlock(t *testing.T, skb *SKB, secretStore SecretStore) {
-	key, err := skb.PromptAndUnlock("test reason", "test which", secretStore, &TestSecretUI{"test passphrase"})
+	key, err := skb.PromptAndUnlock("test reason", "test which", secretStore, &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true})
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
