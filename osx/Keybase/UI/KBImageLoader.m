@@ -34,13 +34,12 @@
   GHWeakSelf gself = self;
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     NSImage *image = [[NSImage alloc] initWithContentsOfURL:[NSURL URLWithString:URLString]];
-    dispatch_async(dispatch_get_main_queue(), ^{
-      gself.imageView.image = image;
-      if (!gself.imageView.image && defaultURLString) {
-        [self setURLString:defaultURLString defaultURLString:nil];
-      }
-      [gself.imageView setNeedsDisplay:YES];
-    });
+    if (image) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        gself.imageView.image = image;
+        [gself.imageView setNeedsDisplay:YES];
+      });
+    }
   });
 }
 
