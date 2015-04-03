@@ -791,16 +791,6 @@ func (ckf ComputedKeyFamily) HasActiveKey() bool {
 	return false
 }
 
-// HasActiveKey returns if the given ComputeKeyInfos has any active keys.
-func (cki ComputedKeyInfos) HasActiveKey() bool {
-	for _, v := range cki.Infos {
-		if v.Status == KEY_UNCANCELLED {
-			return true
-		}
-	}
-	return false
-}
-
 // GetActivePgpKeys gets the active PGP keys from the ComputedKeyFamily.
 // If sibkey is False it will return all active PGP keys. Otherwise, it
 // will return only the Sibkeys. Note the keys need to be non-canceled,
