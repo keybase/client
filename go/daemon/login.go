@@ -32,6 +32,12 @@ func (h *LoginHandler) Logout() error {
 	return G.LoginState.Logout()
 }
 
+func (h *LoginHandler) Reset() error {
+	eng := engine.NewResetEngine()
+	ctx := engine.Context{}
+	return engine.RunEngine(eng, &ctx)
+}
+
 func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	sessid := nextSessionId()
 

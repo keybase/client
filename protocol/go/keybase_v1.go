@@ -938,6 +938,9 @@ type PubkeyLoginArg struct {
 type LogoutArg struct {
 }
 
+type ResetArg struct {
+}
+
 type SwitchUserArg struct {
 	Username string `codec:"username" json:"username"`
 }
@@ -946,6 +949,7 @@ type LoginInterface interface {
 	PassphraseLogin(PassphraseLoginArg) error
 	PubkeyLogin() error
 	Logout() error
+	Reset() error
 	SwitchUser(string) error
 }
 
@@ -971,6 +975,13 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 				args := make([]LogoutArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Logout()
+				}
+				return
+			},
+			"reset": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ResetArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Reset()
 				}
 				return
 			},
@@ -1002,6 +1013,11 @@ func (c LoginClient) PubkeyLogin() (err error) {
 
 func (c LoginClient) Logout() (err error) {
 	err = c.Cli.Call("keybase.1.login.logout", []interface{}{LogoutArg{}}, nil)
+	return
+}
+
+func (c LoginClient) Reset() (err error) {
+	err = c.Cli.Call("keybase.1.login.reset", []interface{}{ResetArg{}}, nil)
 	return
 }
 

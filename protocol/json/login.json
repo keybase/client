@@ -186,6 +186,10 @@
       "request" : [ ],
       "response" : "null"
     },
+    "reset" : {
+      "request" : [ ],
+      "response" : "null"
+    },
     "switchUser" : {
       "request" : [ {
         "name" : "username",

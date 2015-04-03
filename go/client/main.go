@@ -29,6 +29,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 		NewCmdPGP(cl),
 		NewCmdPing(cl),
 		NewCmdProve(cl),
+		NewCmdReset(cl),
 		NewCmdResolve(cl),
 		NewCmdSibkey(cl),
 		NewCmdSigs(cl),

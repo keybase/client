@@ -7,5 +7,6 @@ protocol login {
 	void passphraseLogin(boolean identify, string username, string passphrase);
 	void pubkeyLogin();
 	void logout();
+	void reset();
 	void switchUser(string username);
 }
