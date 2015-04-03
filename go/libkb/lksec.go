@@ -37,6 +37,9 @@ func (s *LKSec) GenerateServerHalf() error {
 	if s.clientHalf == nil {
 		return fmt.Errorf("Can't generate server half without a client half")
 	}
+	if s.serverHalf != nil {
+		return nil
+	}
 	var err error
 	s.serverHalf, err = RandBytes(len(s.clientHalf))
 	return err

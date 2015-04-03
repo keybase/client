@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"strings"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -87,14 +88,20 @@ func (k KID) Eq(k2 KID) bool {
 	return SecureByteArrayEq([]byte(k), []byte(k2))
 }
 
-func WriteLksSKBToKeyring(username string, k GenericKey, lks *LKSec, lui LogUI) (skb *SKB, err error) {
+func WriteLksSKBToKeyring(username string, k GenericKey, lks *LKSec, lui LogUI) (*SKB, error) {
 	ring, err := G.LoadSKBKeyring(username)
 	if err != nil {
-	} else if skb, err = k.ToLksSKB(lks); err != nil {
-	} else {
-		err = ring.PushAndSave(skb, lui)
+		return nil, fmt.Errorf("G.LoadSKBKeyring error: %s", err)
 	}
-	return
+	skb, err := k.ToLksSKB(lks)
+	if err != nil {
+		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
+	}
+	err = ring.PushAndSave(skb, lui)
+	if err != nil {
+		return nil, fmt.Errorf("ring.PushAndSave error: %s", err)
+	}
+	return skb, nil
 }
 
 func WriteTsecSKBToKeyring(username string, k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *SKB, err error) {

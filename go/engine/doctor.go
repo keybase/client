@@ -339,11 +339,7 @@ func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 
 func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName, newDevName, newDevType string) error {
 	d.G().Log.Info("device sign with existing device [%s]", existingID)
-
-	src, err := libkb.NewDeviceID()
-	if err != nil {
-		return err
-	}
+	d.G().Log.Debug("new device name: %s", newDevName)
 
 	dst, err := libkb.ImportDeviceID(existingID)
 	if err != nil {
@@ -357,7 +353,6 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName
 
 	kargs := &KexFwdArgs{
 		User:    d.user,
-		Src:     src,
 		Dst:     *dst,
 		DstName: existingName,
 		DevType: newDevType,

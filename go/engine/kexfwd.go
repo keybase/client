@@ -22,11 +22,10 @@ type KexFwd struct {
 
 type KexFwdArgs struct {
 	User    *libkb.User    // the user who owns device Y and device X
-	Src     libkb.DeviceID // device ID of this new device (device Y)
+	DevType string         // type of this new device Y (e.g. desktop, mobile)
+	DevDesc string         // description of this new device Y
 	Dst     libkb.DeviceID // device ID of existing provisioned device (device X)
 	DstName string         // device name of the existing provisioned device (device X)
-	DevType string         // type of this new device (e.g. desktop, mobile)
-	DevDesc string         // description of this new device
 }
 
 // NewKexFwd creates a KexFwd engine.
@@ -63,7 +62,17 @@ func (k *KexFwd) Run(ctx *Context) error {
 	k.G().Log.Debug("KexFwd: run starting")
 	defer k.G().Log.Debug("KexFwd: run finished")
 	k.user = k.args.User
-	k.deviceID = k.args.Src
+
+	ndarg := &NDeviceEngineArgs{
+		Name: k.args.DevDesc,
+		Lks:  k.lks,
+	}
+	ndeveng := NewNDeviceEngine(k.user, ndarg)
+	if err := RunEngine(ndeveng, ctx); err != nil {
+		return err
+	}
+
+	k.deviceID = ndeveng.DeviceID()
 
 	// make random secret S, session id I
 	sec, err := kex.NewSecret(k.user.GetName())
@@ -74,7 +83,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 	k.server = kex.NewSender(kex.DirectionYtoX, k.secret.Secret())
 
 	// create the kex meta data
-	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.args.Src, k.args.Dst, kex.DirectionXtoY)
+	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
 
 	// start message receive loop
 	k.poll(m, sec)
@@ -132,7 +141,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 	}
 
 	// send PleaseSign message to X
-	m.Sender = k.args.Src
+	m.Sender = k.deviceID
 	m.Receiver = k.args.Dst
 	k.G().Log.Debug("KexFwd: sending PleaseSign to X")
 	if err := k.server.PleaseSign(m, signer, rsig, k.args.DevType, k.args.DevDesc); err != nil {
