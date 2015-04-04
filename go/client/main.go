@@ -17,6 +17,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 
 	cl := libcmdline.NewCommandLine(true)
 	cmds := []cli.Command{
+		NewCmdCert(cl),
 		NewCmdConfig(cl),
 		NewCmdDb(cl),
 		NewCmdDevice(cl),
