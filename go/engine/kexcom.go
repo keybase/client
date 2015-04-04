@@ -20,8 +20,8 @@ type KexCom struct {
 	libkb.Contextified
 }
 
-func newKexCom() *KexCom {
-	return &KexCom{}
+func newKexCom(gc *libkb.GlobalContext) *KexCom {
+	return &KexCom{Contextified: libkb.NewContextified(gc)}
 }
 
 func (k *KexCom) verifyReceiver(m *kex.Meta) error {

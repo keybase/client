@@ -139,7 +139,7 @@ func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {
 		SecretUI: h.getSecretUI(arg.SessionID),
 		LogUI:    h.getLogUI(arg.SessionID),
 	}
-	eng, err := engine.NewPGPKeyImportEngineFromBytes(arg.Key, arg.PushSecret)
+	eng, err := engine.NewPGPKeyImportEngineFromBytes(arg.Key, arg.PushSecret, nil)
 	if err != nil {
 		return err
 	}

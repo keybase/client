@@ -14,14 +14,15 @@ type LKSec struct {
 	clientHalf []byte
 	secret     []byte
 	uid        *UID
+	Contextified
 }
 
-func NewLKSec(clientHalf []byte) *LKSec {
-	return &LKSec{clientHalf: clientHalf}
+func NewLKSec(clientHalf []byte, gc *GlobalContext) *LKSec {
+	return &LKSec{clientHalf: clientHalf, Contextified: NewContextified(gc)}
 }
 
-func NewLKSecWithFullSecret(secret []byte) *LKSec {
-	return &LKSec{secret: secret}
+func NewLKSecWithFullSecret(secret []byte, gc *GlobalContext) *LKSec {
+	return &LKSec{secret: secret, Contextified: NewContextified(gc)}
 }
 
 func (l *LKSec) SetUID(u *UID) {
@@ -46,13 +47,13 @@ func (s *LKSec) GetServerHalf() []byte {
 }
 
 func (s *LKSec) Load() error {
-	G.Log.Debug("+ LKSec::Load()")
+	s.G().Log.Debug("+ LKSec::Load()")
 	defer func() {
-		G.Log.Debug("- LKSec::Load()")
+		s.G().Log.Debug("- LKSec::Load()")
 	}()
 
 	if s.secret != nil {
-		G.Log.Debug("| Short-circuit; we already know the full secret")
+		s.G().Log.Debug("| Short-circuit; we already know the full secret")
 		return nil
 	}
 
@@ -61,8 +62,8 @@ func (s *LKSec) Load() error {
 	}
 
 	if s.serverHalf == nil {
-		G.Log.Debug("| Fetching secret key")
-		devid := G.Env.GetDeviceID()
+		s.G().Log.Debug("| Fetching secret key")
+		devid := s.G().Env.GetDeviceID()
 		if devid == nil {
 			return fmt.Errorf("no device id set")
 		}
@@ -71,7 +72,7 @@ func (s *LKSec) Load() error {
 			return err
 		}
 	} else {
-		G.Log.Debug("| ServerHalf already loaded")
+		s.G().Log.Debug("| ServerHalf already loaded")
 	}
 
 	if len(s.clientHalf) != len(s.serverHalf) {
@@ -80,16 +81,16 @@ func (s *LKSec) Load() error {
 
 	s.secret = make([]byte, len(s.serverHalf))
 	XORBytes(s.secret, s.serverHalf, s.clientHalf)
-	G.Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS): ServerHalf=%s; clientHalf=%s",
+	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS): ServerHalf=%s; clientHalf=%s",
 		hex.EncodeToString(s.serverHalf), hex.EncodeToString(s.clientHalf))
 
 	return nil
 }
 
 func (s *LKSec) GetSecret() (secret []byte, err error) {
-	G.Log.Debug("+ LKsec:GetSecret()")
+	s.G().Log.Debug("+ LKsec:GetSecret()")
 	defer func() {
-		G.Log.Debug("- LKSec::GetSecret()")
+		s.G().Log.Debug("- LKSec::GetSecret()")
 	}()
 
 	if err = s.Load(); err != nil {
@@ -101,9 +102,9 @@ func (s *LKSec) GetSecret() (secret []byte, err error) {
 }
 
 func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
-	G.Log.Debug("+ LKsec:Encrypt()")
+	s.G().Log.Debug("+ LKsec:Encrypt()")
 	defer func() {
-		G.Log.Debug("- LKSec::Encrypt()")
+		s.G().Log.Debug("- LKSec::Encrypt()")
 	}()
 
 	if err := s.Load(); err != nil {
@@ -122,9 +123,9 @@ func (s *LKSec) Encrypt(src []byte) ([]byte, error) {
 }
 
 func (s *LKSec) Decrypt(src []byte) ([]byte, error) {
-	G.Log.Debug("+ LKsec:Decrypt()")
+	s.G().Log.Debug("+ LKsec:Decrypt()")
 	defer func() {
-		G.Log.Debug("- LKSec::Decrypt()")
+		s.G().Log.Debug("- LKSec::Decrypt()")
 	}()
 
 	if err := s.Load(); err != nil {
@@ -148,7 +149,7 @@ func (s *LKSec) fsecret() (res [32]byte) {
 }
 
 func (s *LKSec) apiServerHalf(devid *DeviceID) error {
-	ss := G.SecretSyncer
+	ss := s.G().SecretSyncer
 	if err := RunSyncer(ss, s.uid); err != nil {
 		return err
 	}
@@ -162,11 +163,11 @@ func (s *LKSec) apiServerHalf(devid *DeviceID) error {
 
 // GetLKSForEncrypt gets a verified passphrase stream, and returns
 // an LKS that works for encryption.
-func NewLKSForEncrypt(ui SecretUI) (ret *LKSec, err error) {
+func NewLKSForEncrypt(ui SecretUI, gc *GlobalContext) (ret *LKSec, err error) {
 	var pps PassphraseStream
-	if pps, err = G.LoginState.GetPassphraseStream(ui); err != nil {
+	if pps, err = gc.LoginState.GetPassphraseStream(ui); err != nil {
 		return
 	}
-	ret = NewLKSec(pps.LksClientHalf())
+	ret = NewLKSec(pps.LksClientHalf(), gc)
 	return
 }

@@ -14,6 +14,7 @@ type SignupEngine struct {
 	me         *libkb.User
 	signingKey libkb.GenericKey
 	arg        *SignupEngineRunArg
+	libkb.Contextified
 }
 
 type SignupEngineRunArg struct {
@@ -24,10 +25,15 @@ type SignupEngineRunArg struct {
 	DeviceName string
 	SkipGPG    bool
 	SkipMail   bool
+	Ctx        *libkb.GlobalContext
 }
 
 func NewSignupEngine(arg *SignupEngineRunArg) *SignupEngine {
-	return &SignupEngine{arg: arg}
+	ret := &SignupEngine{arg: arg}
+	if arg != nil {
+		ret.Contextified = libkb.NewContextified(arg.Ctx)
+	}
+	return ret
 }
 
 func (s *SignupEngine) Name() string {
@@ -42,7 +48,7 @@ func (e *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewDeviceEngine(nil, nil),
+		NewDeviceEngine(nil, nil, nil),
 		NewDetKeyEngine(nil),
 		NewGPGImportKeyEngine(nil),
 	}
@@ -57,13 +63,13 @@ func (s *SignupEngine) SetArg(arg *SignupEngineRunArg) {
 }
 
 func (s *SignupEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
-	if cr := G.Env.GetConfig(); cr == nil {
+	s.G().Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
+	if cr := s.G().Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUID(); u != nil {
 		err = libkb.AlreadyRegisteredError{Uid: *u}
 	}
-	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+	s.G().Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
 }
 
@@ -147,7 +153,7 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 		Name:          deviceName,
 		LksClientHalf: s.tspkey.LksClientHalf(),
 	}
-	eng := NewDeviceEngine(s.me, &args)
+	eng := NewDeviceEngine(s.me, &args, s.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -173,7 +179,7 @@ func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
 }
 
 func (s *SignupEngine) addGPG(ctx *Context, allowMulti bool) error {
-	G.Log.Debug("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
+	s.G().Log.Debug("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
 	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me}
 	eng := NewGPGImportKeyEngine(&arg)
 	if err := RunEngine(eng, ctx); err != nil {

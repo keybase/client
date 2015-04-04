@@ -30,12 +30,12 @@ type KexFwdArgs struct {
 }
 
 // NewKexFwd creates a KexFwd engine.
-func NewKexFwd(lksClientHalf []byte, args *KexFwdArgs) *KexFwd {
-	kc := newKexCom()
+func NewKexFwd(lksClientHalf []byte, args *KexFwdArgs, gc *libkb.GlobalContext) *KexFwd {
+	kc := newKexCom(gc)
 	kf := &KexFwd{KexCom: *kc, args: args}
 	kf.debugName = "KexFwd"
 	if lksClientHalf != nil {
-		kf.lks = libkb.NewLKSec(lksClientHalf)
+		kf.lks = libkb.NewLKSec(lksClientHalf, gc)
 	}
 	return kf
 }

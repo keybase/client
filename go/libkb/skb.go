@@ -106,7 +106,7 @@ func (s *SKB) newLKSec(clientHalf []byte) *LKSec {
 	if s.newLKSecForTest != nil {
 		return s.newLKSecForTest(clientHalf)
 	}
-	return NewLKSec(clientHalf)
+	return NewLKSec(clientHalf, s.G())
 }
 
 func (p *SKB) ToPacket() (ret *KeybasePacket, err error) {
@@ -270,13 +270,13 @@ func (p *SKB) lksUnlock(pps PassphraseStream, secretStorer SecretStorer) (unlock
 	return
 }
 
-func (p *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unlocked []byte, err error) {
+func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unlocked []byte, err error) {
 	secret, err := secretRetriever.RetrieveSecret()
 	if err != nil {
 		return
 	}
-	lks := NewLKSecWithFullSecret(secret)
-	return lks.Decrypt(p.Priv.Data)
+	lks := NewLKSecWithFullSecret(secret, s.G())
+	return lks.Decrypt(s.Priv.Data)
 }
 
 func (p *SKB) SetUID(uid *UID) {

@@ -31,10 +31,11 @@ type DeviceEngine struct {
 	eldestKey     libkb.NaclKeyPair
 	args          *DeviceEngineArgs
 	newSibkey     libkb.NaclKeyPair
+	libkb.Contextified
 }
 
-func NewDeviceEngine(me *libkb.User, args *DeviceEngineArgs) *DeviceEngine {
-	return &DeviceEngine{me: me, args: args}
+func NewDeviceEngine(me *libkb.User, args *DeviceEngineArgs, gc *libkb.GlobalContext) *DeviceEngine {
+	return &DeviceEngine{me: me, args: args, Contextified: libkb.NewContextified(gc)}
 }
 
 func (d *DeviceEngine) Name() string {
@@ -76,14 +77,14 @@ func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte
 		return
 	}
 
-	d.lks = libkb.NewLKSec(lksClientHalf)
+	d.lks = libkb.NewLKSec(lksClientHalf, d.G())
 	if d.lks.GenerateServerHalf(); err != nil {
 		return err
 	}
 
-	G.Log.Debug("Device name:   %s", d.deviceName)
-	G.Log.Debug("Device ID:     %x", d.deviceID)
-	G.Log.Debug("Eldest FOKID:  %s", eldestKID)
+	d.G().Log.Debug("Device name:   %s", d.deviceName)
+	d.G().Log.Debug("Device ID:     %x", d.deviceID)
+	d.G().Log.Debug("Eldest FOKID:  %s", eldestKID)
 
 	if signer == nil {
 		if err = d.pushEldestKey(ctx); err != nil {
@@ -97,13 +98,13 @@ func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte
 		}
 	}
 
-	if wr := G.Env.GetConfigWriter(); wr != nil {
+	if wr := d.G().Env.GetConfigWriter(); wr != nil {
 		if err := wr.SetDeviceID(&d.deviceID); err != nil {
 			return err
 		} else if err := wr.Write(); err != nil {
 			return err
 		} else {
-			G.Log.Info("Setting Device ID to %s", d.deviceID)
+			d.G().Log.Info("Setting Device ID to %s", d.deviceID)
 		}
 	}
 
@@ -117,7 +118,7 @@ func (d *DeviceEngine) run(ctx *Context, deviceName string, lksClientHalf []byte
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	err = libkb.RunSyncer(G.SecretSyncer, d.me.GetUid().P())
+	err = libkb.RunSyncer(d.G().SecretSyncer, d.me.GetUid().P())
 
 	return
 }

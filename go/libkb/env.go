@@ -26,7 +26,7 @@ func (n NullConfiguration) GetPinentry() string                { return "" }
 func (n NullConfiguration) GetUID() *UID                       { return nil }
 func (n NullConfiguration) GetGpg() string                     { return "" }
 func (n NullConfiguration) GetGpgOptions() []string            { return nil }
-func (n NullConfiguration) GetGpgDisabled() (bool, bool)        { return false, false }
+func (n NullConfiguration) GetGpgDisabled() (bool, bool)       { return false, false }
 func (n NullConfiguration) GetPgpFingerprint() *PgpFingerprint { return nil }
 func (n NullConfiguration) GetSecretKeyringTemplate() string   { return "" }
 func (n NullConfiguration) GetSalt() []byte                    { return nil }

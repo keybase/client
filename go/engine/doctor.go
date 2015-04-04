@@ -37,7 +37,7 @@ func (d *Doctor) RequiredUIs() []libkb.UIKind {
 
 func (d *Doctor) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewDeviceEngine(nil, nil),
+		NewDeviceEngine(nil, nil, nil),
 		NewDetKeyEngine(nil),
 	}
 }
@@ -160,7 +160,7 @@ func (d *Doctor) addDeviceKey(ctx *Context) error {
 		Name:          devname,
 		LksClientHalf: tk.LksClientHalf(),
 	}
-	eng := NewDeviceEngine(d.user, &args)
+	eng := NewDeviceEngine(d.user, &args, d.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, e
 		Signer:        signer,
 		EldestKID:     eldestKID,
 	}
-	eng := NewDeviceEngine(d.user, &args)
+	eng := NewDeviceEngine(d.user, &args, d.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -363,7 +363,7 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName
 		DevType: newDevType,
 		DevDesc: newDevName,
 	}
-	k := NewKexFwd(tk.LksClientHalf(), kargs)
+	k := NewKexFwd(tk.LksClientHalf(), kargs, d.G())
 	return RunEngine(k, ctx)
 }
 

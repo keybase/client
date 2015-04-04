@@ -15,7 +15,6 @@ type KexSib struct {
 	deviceSibkey libkb.GenericKey
 	sigKey       libkb.GenericKey
 	devidY       libkb.DeviceID
-	libkb.Contextified
 }
 
 // NewKexSib creates a sibkey add engine.
@@ -23,11 +22,10 @@ type KexSib struct {
 // The secretPhrase is needed before this engine can run because
 // the weak id used in receive() is based on it.
 func NewKexSib(g *libkb.GlobalContext, secretPhrase string) *KexSib {
-	kc := newKexCom()
+	kc := newKexCom(g)
 	return &KexSib{
 		KexCom:       *kc,
 		secretPhrase: secretPhrase,
-		Contextified: libkb.NewContextified(g),
 	}
 }
 
