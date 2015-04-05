@@ -62,7 +62,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 }
 
 func makeTestLKSec(t *testing.T) *LKSec {
-	lks := NewLKSec([]byte("client half"))
+	lks := NewLKSec([]byte("client half"), nil)
 	if err := lks.GenerateServerHalf(); err != nil {
 		t.Fatalf(err.Error())
 	}
