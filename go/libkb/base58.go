@@ -35,7 +35,7 @@ func Encode58(inp []byte) string {
 	quo := new(big.Int)
 
 	for num.Sign() != 0 {
-		quo.QuoRem(num, base, rem)
+		num, rem = quo.QuoRem(num, base, rem)
 		c := alphabet[rem.Uint64()]
 		buf = append(buf, c)
 	}
@@ -44,6 +44,9 @@ func Encode58(inp []byte) string {
 	for _, c := range inp {
 		if c == 0x0 {
 			buf = append(buf, alphabet[0])
+		} else {
+			// Stop adding padding after the first nonzero byte.
+			break
 		}
 	}
 	reverseBuf(buf)
