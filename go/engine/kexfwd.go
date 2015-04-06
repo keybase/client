@@ -115,6 +115,8 @@ func (k *KexFwd) Run(ctx *Context) error {
 		return err
 	}
 
+	// XXX this is where we'll use device_keygen engine
+
 	// make keys for device Y
 	k.G().Log.Debug("KexFwd: making keys for device Y")
 	keys, err := k.makeKeys()
