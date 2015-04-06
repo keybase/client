@@ -29,6 +29,7 @@ type PGPKeyImportEngineArg struct {
 	SigningKey libkb.GenericKey
 	Me         *libkb.User
 	Ctx        *libkb.GlobalContext
+	Lks        *libkb.LKSec
 	NoSave     bool
 	PushSecret bool
 	AllowMulti bool
@@ -81,9 +82,12 @@ func (s *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
 		s.G().Log.Debug("- PGPKeyImportEngine::saveLKS -> %v", libkb.ErrToOk(err))
 	}()
 
-	var lks *libkb.LKSec
-	if lks, err = libkb.NewLKSForEncrypt(ctx.SecretUI, s.G()); err != nil {
-		return
+	lks := s.arg.Lks
+	if lks == nil {
+		lks, err = libkb.NewLKSForEncrypt(ctx.SecretUI, s.G())
+		if err != nil {
+			return err
+		}
 	}
 	_, err = libkb.WriteLksSKBToKeyring(s.me.GetName(), s.bundle, lks, ctx.LogUI)
 	return

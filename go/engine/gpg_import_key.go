@@ -20,6 +20,7 @@ type GPGImportKeyArg struct {
 	AllowMulti bool
 	SkipImport bool
 	Me         *libkb.User
+	Lks        *libkb.LKSec
 }
 
 type GPGImportKeyEngine struct {
@@ -146,6 +147,7 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		Me:         me,
 		AllowMulti: g.arg.AllowMulti,
 		NoSave:     g.arg.SkipImport,
+		Lks:        g.arg.Lks,
 	})
 
 	if err = RunEngine(eng, ctx); err != nil {

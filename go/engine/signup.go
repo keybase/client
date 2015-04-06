@@ -14,6 +14,8 @@ type SignupEngine struct {
 	me         *libkb.User
 	signingKey libkb.GenericKey
 	arg        *SignupEngineRunArg
+	lks        *libkb.LKSec
+	deviceID   libkb.DeviceID
 	libkb.Contextified
 }
 
@@ -94,6 +96,10 @@ func (s *SignupEngine) Run(ctx *Context) error {
 		return err
 	}
 
+	if err := s.genDeviceKeys(ctx, s.arg.DeviceName); err != nil {
+		return err
+	}
+
 	if err := s.genDetKeys(ctx); err != nil {
 		return err
 	}
@@ -149,11 +155,23 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 }
 
 func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
-	args := DeviceEngineArgs{
-		Name:          deviceName,
-		LksClientHalf: s.tspkey.LksClientHalf(),
+	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.G())
+	args := &DeviceRegisterArgs{
+		Me:   s.me,
+		Name: deviceName,
+		Lks:  s.lks,
 	}
-	eng := NewDeviceEngine(s.me, &args, s.G())
+	eng := NewDeviceRegister(args)
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+	s.deviceID = eng.DeviceID()
+	return nil
+}
+
+func (s *SignupEngine) genDeviceKeys(ctx *Context, deviceName string) error {
+	args := NewDeviceKeygenArgsEldest(s.me, s.lks, s.deviceID, deviceName)
+	eng := NewDeviceKeygen(args)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -180,7 +198,7 @@ func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
 
 func (s *SignupEngine) addGPG(ctx *Context, allowMulti bool) error {
 	s.G().Log.Debug("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
-	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me}
+	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me, Lks: s.lks}
 	eng := NewGPGImportKeyEngine(&arg)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err

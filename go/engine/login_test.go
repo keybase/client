@@ -296,6 +296,16 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 	fu.User = s.GetMe()
 
+	// fake the lks:
+	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf())
+	s.lks.GenerateServerHalf()
+
+	/*
+		if err := s.registerDevice(ctx, "my root device"); err != nil {
+			t.Fatal(err)
+		}
+	*/
+
 	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)
 	}

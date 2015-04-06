@@ -52,7 +52,7 @@ func (k *KexFwd) RequiredUIs() []libkb.UIKind {
 }
 
 func (k *KexFwd) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{&DeviceRegister{}}
 }
 
 // Run starts the engine.
@@ -65,10 +65,11 @@ func (k *KexFwd) Run(ctx *Context) error {
 
 	// register a new device
 	ndarg := &DeviceRegisterArgs{
+		Me:   k.user,
 		Name: k.args.DevDesc,
 		Lks:  k.lks,
 	}
-	devreg := NewDeviceRegister(k.user, ndarg)
+	devreg := NewDeviceRegister(ndarg)
 	if err := RunEngine(devreg, ctx); err != nil {
 		return err
 	}
@@ -158,11 +159,6 @@ func (k *KexFwd) Run(ctx *Context) error {
 	// push the dh key as a subkey to the server
 	k.G().Log.Debug("KexFwd: pushing subkey")
 	if err := k.pushSubkey(keys); err != nil {
-		return err
-	}
-
-	// store the new device id
-	if err := k.storeDeviceID(); err != nil {
 		return err
 	}
 
@@ -283,20 +279,6 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 	}
 	if _, err := gen.Push(); err != nil {
 		return err
-	}
-	return nil
-}
-
-// storeDeviceID stores Y's new device id to config file.
-func (k *KexFwd) storeDeviceID() error {
-	if wr := k.G().Env.GetConfigWriter(); wr != nil {
-		if err := wr.SetDeviceID(&k.deviceID); err != nil {
-			return err
-		} else if err := wr.Write(); err != nil {
-			return err
-		} else {
-			k.G().Log.Info("Setting Device ID to %s", k.deviceID)
-		}
 	}
 	return nil
 }
