@@ -11,4 +11,6 @@
 
 @interface KBRObject : MTLModel <MTLJSONSerializing>
 
+- (NSString *)propertiesDescription:(NSString *)prefix;
+
 @end

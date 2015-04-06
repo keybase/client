@@ -178,7 +178,7 @@
 
 - (void)showSecretWords {
   KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
-  [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameToRegister:@"Macbook (Home)"];
+  [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameExisting:@"Macbook (Work)" deviceNameToAdd:@"Macbook (Home)"];
   secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:nil];
 }
@@ -223,7 +223,7 @@
   [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
 
   KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
-  [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameToRegister:@"Macbook (Home)"];
+  [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameExisting:@"Macbook (Work)" deviceNameToAdd:@"Macbook (Home)"];
 
   KBNavigationView *navigation = loginView.navigation;
   loginView.loginButton.targetBlock = ^{ [navigation pushView:devicePromptView animated:YES]; };

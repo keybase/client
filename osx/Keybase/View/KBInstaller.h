@@ -15,6 +15,8 @@ typedef NS_ENUM (NSInteger, KBInstallType) {
   KBInstallTypeInstaller,
 };
 
+typedef void (^KBInstallCheck)(NSError *error, BOOL installed, KBInstallType installType);
+
 @interface KBInstaller : NSObject
 
 @property (readonly) KBLaunchCtl *launchCtl;
@@ -23,6 +25,6 @@ typedef NS_ENUM (NSInteger, KBInstallType) {
   - installed: If YES, that means we did copied the launch services config and reloaded the service.
   - installType: The type of install we detected.
  */
-- (void)checkInstall:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion;
+- (void)checkInstall:(KBInstallCheck)completion;
 
 @end

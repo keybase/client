@@ -27,7 +27,7 @@
   return self;
 }
 
-- (void)checkInstall:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion {
+- (void)checkInstall:(KBInstallCheck)completion {
   GHWeakSelf gself = self;
   [_launchCtl status:^(NSError *error, NSInteger pid) {
     if (error) {

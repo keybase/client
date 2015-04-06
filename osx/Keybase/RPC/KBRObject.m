@@ -67,4 +67,17 @@
   return nil;
 }
 
+- (NSString *)propertiesDescription:(NSString *)prefix {
+  NSMutableString *desc = [NSMutableString string];
+  NSDictionary *properties = [MTLJSONAdapter JSONDictionaryFromModel:self];
+  for (NSString *propertyName in properties) {
+    id value = properties[propertyName];
+    [desc appendString:prefix];
+    [desc appendFormat:@"%@: %@", propertyName, value];
+  }
+
+  //NSString *configDescription = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject: options:NSJSONWritingPrettyPrinted error:nil] encoding:NSUTF8StringEncoding];
+  return desc;
+}
+
 @end

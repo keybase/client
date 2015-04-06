@@ -35,8 +35,8 @@
 @property KBNavigationTitleView *titleView;
 
 @property NSString *title;
-@property NSStatusItem *statusItem; // Menubar
 @property (nonatomic) KBRGetCurrentStatusRes *status;
+@property (nonatomic) KBRConfig *config;
 @end
 
 #define TITLE_HEIGHT (32)
@@ -48,17 +48,7 @@
 
   _title = @"Keybase";
 
-  _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-  //_statusItem.title = @"Keybase";
-#ifdef DEBUG
-  _statusItem.image = [NSImage imageNamed:@"StatusIconDev"];
-#else
-  _statusItem.image = [NSImage imageNamed:@"StatusIconBW"];
-#endif
-  //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
-  _statusItem.highlightMode = YES; // Blue background when selected
-
-  [self updateMenu];
+  _delegates = [NSHashTable weakObjectsHashTable];
 
   _sourceView = [[KBSourceOutlineView alloc] init];
   _sourceView.hidden = YES;
@@ -96,32 +86,11 @@
   [self showConnect];
 }
 
-- (void)updateMenu {
-  NSMenu *menu = [[NSMenu alloc] init];
-
-  [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
-
-  if (_status) {
-    if (_status.loggedIn && _status.user) {
-      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", _status.user.username) action:@selector(logout:) keyEquivalent:@""];
-      [menu addItem:[NSMenuItem separatorItem]];
-    } else {
-      [menu addItemWithTitle:@"Log In" action:@selector(showLogin) keyEquivalent:@""];
-      [menu addItem:[NSMenuItem separatorItem]];
-    }
-  }
-
-  [menu addItem:[NSMenuItem separatorItem]];
-  [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
-
-  _statusItem.menu = menu;
-}
-
 - (void)connect:(KBRPClient *)client {
   _client = client;
   _client.delegate = self;
 
-  [self.delegate appView:self didLaunchWithClient:self.client];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidLaunch:self];
 
   GHWeakSelf gself = self;
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -154,15 +123,17 @@
 
   [_client registerMethod:@"keybase.1.logUi.log" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRLogRequestParams *requestParams = [[KBRLogRequestParams alloc] initWithParams:params];
-    [self.delegate appView:self didLogMessage:requestParams.text.data];
+    for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didLogMessage:requestParams.text.data];
     completion(nil, nil);
   }];
 
-  [_client checkInstall:^(NSError *error) {
-    [self.delegate appView:self didCheckInstallWithClient:gself.client];
+  [_client checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
     if (error) {
+      for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didErrorOnInstall:error];
       [AppDelegate setError:error sender:self];
       return;
+    } else {
+      for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckInstall:installed installType:installType];
     }
 
     [gself.client open];
@@ -298,12 +269,11 @@
 }
 
 - (void)checkStatus:(KBCompletionBlock)completion {
-  GHWeakSelf gself = self;
-
   if (!completion) completion = ^(NSError *error) {
     if (error) [AppDelegate setError:error sender:self];
   };
 
+  GHWeakSelf gself = self;
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:_client];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
     if (error) {
@@ -316,9 +286,10 @@
         if (completion) completion(error);
         return;
       }
+      for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckStatusWithConfig:config status:status];
+
       [self setConfig:config];
       [self setStatus:status];
-      [self.delegate appView:self didCheckStatusWithClient:gself.client config:config status:status];
       // TODO reload current view if coming back from disconnect?
       if (completion) completion(nil);
       [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{@"config": config, @"status": status}];
@@ -327,6 +298,7 @@
 }
 
 - (void)setConfig:(KBRConfig *)config {
+  _config = config;
   NSString *host = config.serverURI;
   // TODO Directly accessing API client should eventually go away (everything goes to daemon)
   if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
@@ -339,8 +311,6 @@
 
   [self.sourceView.statusView setStatus:status];
 
-  [self updateMenu];
-
   if (_status.loggedIn && _status.user) {
     if (_sourceView.hidden) {
       [self showProfile];
@@ -348,6 +318,8 @@
   } else {
     [self showLogin];
   }
+
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appViewDidUpdateStatus:self];
 }
 
 - (void)setUser:(KBRUser *)user {
@@ -364,25 +336,25 @@
 }
 
 - (void)RPClientWillConnect:(KBRPClient *)RPClient {
-  [self.delegate appView:self willConnectWithClient:_client];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self willConnectWithClient:_client];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   [self.sourceView.statusView setConnected:YES];
-  [self.delegate appView:self didConnectWithClient:_client];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didConnectWithClient:_client];
   [self checkStatus:nil];
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
   [self.sourceView.statusView setConnected:NO];
-  [self.delegate appView:self didDisconnectWithClient:_client];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didDisconnectWithClient:_client];
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
   [self.sourceView.statusView setConnected:NO];
-  [self.delegate appView:self didDisconnectWithClient:RPClient];
+  for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didErrorOnConnect:error connectAttempt:connectAttempt];
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 

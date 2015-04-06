@@ -50,8 +50,8 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.titleView].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(10, y, size.width - 20, 0) view:yself.label].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, MAX(size.width, 70), 0) view:yself.titleView].size.height + 10;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(10, y, MAX(size.width, 90) - 20, 0) view:yself.label].size.height + 10;
     return CGSizeMake(size.width, y);
   }];
 }

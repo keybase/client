@@ -37,7 +37,7 @@ PODS:
     - Mantle/extobjc (= 1.5.4)
   - Mantle/extobjc (1.5.4)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.8)
+  - MPMessagePack (1.1.9)
   - NAChloride (1.1.2):
     - libsodium
   - ObjectiveSugar (1.1.0)
@@ -50,7 +50,7 @@ PODS:
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout (0.1.11)
+  - YOLayout (0.1.12)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -74,13 +74,13 @@ SPEC CHECKSUMS:
   libsodium: d1b482e7628e0298de350375a4ab981b5cc8c71b
   Mantle: 60acd0cd363e27d945bda0a6b8e90577112d28f3
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
-  MPMessagePack: 53c791f9d633c2786c932799bc2b627e34abc5af
+  MPMessagePack: 42d618d5f5e7dc9e5c8cd655bd997a84841fef39
   NAChloride: acfc82321c23b57d169b46c587c1d92147aafedf
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7
   TSTripleSec: dbc11769895c30eeb9eade59aee3ab902ac2b3ba
-  YOLayout: 7a21b8c03a2f6a86cd9304120c7ec6df970284af
+  YOLayout: 9d3ce9e9aa4dec3fa879adca343ba373d78b2078
   ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
 
-COCOAPODS: 0.36.1
+COCOAPODS: 0.36.3

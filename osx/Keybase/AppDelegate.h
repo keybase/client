@@ -15,7 +15,7 @@
 #import <GHKit/GHKit.h>
 #import "KBAppKit.h"
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, KBAppViewDelegate>
 
 @property KBAPIClient *APIClient;
 @property (readonly, copy) KBErrorHandler errorHandler;

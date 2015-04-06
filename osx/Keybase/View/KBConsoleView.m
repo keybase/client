@@ -39,7 +39,7 @@
   checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
       [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
-        [gself log:NSStringWithFormat(@"keybased pid: %@", @(pid))];
+        [gself log:NSStringWithFormat(@"keybased (launchctl) pid: %@", @(pid))];
         completion(error);
       }];
     }];
@@ -49,7 +49,7 @@
   _toggleButton = [KBButton buttonWithText:@"Start keybased" style:KBButtonStyleToolbar];
   _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
-      [gself log:NSStringWithFormat(@"keybased pid:%@", @(pid))];
+      [gself log:NSStringWithFormat(@"keybased (launchctl) pid: %@", @(pid))];
       completion(error);
     }];
   };
@@ -57,9 +57,7 @@
 
   // TODO logging grows forever
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
-  _logView.wantsLayer = YES;
-  _logView.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
-  _logView.layer.borderWidth = 1.0;
+  _logView.scrollView.borderType = NSBezelBorder;
   _logView.view.intercellSpacing = CGSizeMake(10, 10);
   _logView.cellSetBlock = ^(KBLabel *label, NSString *text, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [label setText:text style:KBTextStyleDefault];
@@ -121,19 +119,29 @@
   if (error) [_logView addObjects:@[error.localizedDescription]]; // TODO Better error display
 }
 
-- (void)appView:(KBAppView *)appView didLaunchWithClient:(KBRPClient *)client {
+- (void)appViewDidLaunch:(KBAppView *)appView {
   NSString *version = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
   [self log:NSStringWithFormat(@"Keybase.app started (%@).", version)];
   [self log:NSStringWithFormat(@"Dir: %@", [NSFileManager.defaultManager currentDirectoryPath])];
-  _client = client;
-  _runtimeStatusView.client = client;
+  NSString *KBKeybasedVersion = [[NSBundle mainBundle] infoDictionary][@"KBKeybasedVersion"];
+  [self log:NSStringWithFormat(@"Info (keybased): %@", KBKeybasedVersion)];
+  _client = appView.client;
+  _runtimeStatusView.client = appView.client;
   _runtimeStatusView.RPCConnected = NO;
   [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 
-- (void)appView:(KBAppView *)appView didCheckInstallWithClient:(KBRPClient *)client {
-  [self log:@"Install checked."];
+- (void)appView:(KBAppView *)appView didCheckInstall:(BOOL)installed installType:(KBInstallType)installType {
+  if (installed) {
+    [self log:@"Installed."];
+  } else {
+    [self log:@"Install checked."];
+  }
+}
+
+- (void)appView:(KBAppView *)appView didErrorOnInstall:(NSError *)error {
+  [self log:NSStringWithFormat(@"Install error: %@", error)];
 }
 
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client {
@@ -147,11 +155,9 @@
   [self setNeedsLayout];
 }
 
-- (void)appView:(KBAppView *)appView didCheckStatusWithClient:(KBRPClient *)client config:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
-  [self log:NSStringWithFormat(@"keybased is at %@", config.path)];
-  [self log:NSStringWithFormat(@"keybased version: %@", config.version)];
-  NSString *KBKeybasedVersion = [[NSBundle mainBundle] infoDictionary][@"KBKeybasedVersion"];
-  [self log:NSStringWithFormat(@"KBKeybasedVersion: %@", KBKeybasedVersion)];
+- (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
+  [self log:NSStringWithFormat(@"keybased config:%@", [config propertiesDescription:@"\n\t"])];
+
   [self log:NSStringWithFormat(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"")];
   _runtimeStatusView.config = config;
   [_runtimeStatusView update];
@@ -162,6 +168,10 @@
   [self log:message];
 }
 
+- (void)appView:(KBAppView *)appView didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
+  [self log:NSStringWithFormat(@"Failed to connect (%@): %@", @(connectAttempt), [error localizedDescription])];
+}
+
 - (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client {
   [self log:@"Disconnected."];
   _runtimeStatusView.RPCConnected = NO;
@@ -169,9 +179,8 @@
   [self setNeedsLayout];
 }
 
-//- (void)showTestClientView {
-//  KBTestClientView *testClientView = [[KBTestClientView alloc] init];
-//  [self openInWindow:testClientView size:CGSizeMake(360, 420) title:@"Test Client"];
-//}
+- (void)appViewDidUpdateStatus:(KBAppView *)appView {
+  //[self log:@"Updated status."];
+}
 
 @end

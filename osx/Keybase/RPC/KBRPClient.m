@@ -222,11 +222,8 @@
   }];
 }
 
-- (void)checkInstall:(KBCompletionBlock)completion {
-  [_installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
-    GHDebug(@"Installed? %@, Type: %@", @(installed), @(installType));
-    completion(error);
-  }];
+- (void)checkInstall:(KBInstallCheck)completion {
+  [_installer checkInstall:completion];
 }
 
 NSDictionary *KBScrubPassphrase(NSDictionary *dict) {

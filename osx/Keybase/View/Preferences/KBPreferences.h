@@ -10,8 +10,12 @@
 
 @interface KBPreferences : NSObject
 
-- (void)open;
+- (void)open:(NSString *)configPath sender:(id)sender;
 
 - (void)close;
+
+- (id)valueForIdentifier:(NSString *)identifier;
+
+- (void)setValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize;
 
 @end

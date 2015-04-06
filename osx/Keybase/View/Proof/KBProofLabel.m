@@ -64,7 +64,7 @@
       color = [KBAppearance.currentAppearance errorColor];
       errored = YES;
       errorMessage = _proofResult.result.proofStatus.desc;
-      info = NSStringWithFormat(@"error: %@", @(_proofResult.result.proofStatus.status));
+      info = NSStringWithFormat(@"error: %@ (%@)", _proofResult.result.proofStatus.description, @(_proofResult.result.proofStatus.status));
     } else if (!_proofResult.result.hint.humanUrl) {
       // No link
       color = [KBAppearance.currentAppearance textColor];

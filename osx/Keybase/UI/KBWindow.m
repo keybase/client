@@ -88,6 +88,20 @@
     window.styleMask = window.styleMask | NSResizableWindowMask;
   }
 
+  [self kb_addChildWindow:window rect:rect position:position fixed:fixed];
+
+  if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
+
+  return window;
+}
+
+- (void)kb_addChildWindow:(NSWindow *)window rect:(CGRect)rect position:(KBWindowPosition)position fixed:(BOOL)fixed {
+  if (fixed) {
+    [window setMovable:NO];
+  } else {
+    window.styleMask = window.styleMask | NSResizableWindowMask;
+  }
+
   CGPoint p = CGPointMake(self.frame.origin.x + rect.origin.x, self.frame.origin.y + rect.origin.y);
 
   switch (position) {
@@ -97,18 +111,17 @@
       break;
     case KBWindowPositionRight:
       p.x += self.frame.size.width + 10;
-//      for (NSWindow *window in self.childWindows) {
-//        p.x += window.frame.size.width + 10;
-//      }
+      //      for (NSWindow *window in self.childWindows) {
+      //        p.x += window.frame.size.width + 10;
+      //      }
       break;
   }
   [window setFrameOrigin:p];
+  [window setContentSize:rect.size];
 
   [self addChildWindow:window ordered:NSWindowAbove];
   [window makeKeyWindow];
-
-  if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
-  return window;
 }
+
 
 @end

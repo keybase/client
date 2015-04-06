@@ -74,31 +74,25 @@
 @interface KBRSIGID : NSData
 @end
 
-@interface KBRBIndexInfo : KBRObject
-@property NSString *blockId;
-@property NSString *chargedTo;
-@property NSString *folder;
-@property NSString *creator;
-@property NSString *blockKey;
-@end
-
 @interface KBRBIndexRequest : KBRRequest
 - (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBlockKeyWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)deleteWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error))completion;
+- (void)putBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size info:(NSArray *)info completion:(void (^)(NSError *error))completion;
 
-- (void)putBIndexWithInfo:(KBRBIndexInfo *)info completion:(void (^)(NSError *error))completion;
+- (void)deleteWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion;
 
 @end
 
 @interface KBRBlockRequest : KBRRequest
 - (void)blockSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBlockWithBlockid:(NSString *)blockid completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)getBlockWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)putBlockWithBlockid:(NSString *)blockid buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
+- (void)putBlockWithBlockId:(NSString *)blockId buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
+
+- (void)delBlockWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -116,6 +110,7 @@
 @property NSString *gpgPath;
 @property NSString *version;
 @property NSString *path;
+@property NSString *configPath;
 @end
 
 @interface KBRConfigRequest : KBRRequest
@@ -142,6 +137,7 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @interface KBRDeviceSigner : KBRObject
 @property KBRDeviceSignerKind kind;
 @property NSString *deviceID;
+@property NSString *deviceName;
 @end
 
 @interface KBRSelectSignerRes : KBRObject
@@ -154,7 +150,7 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
-- (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret xDevDescription:(NSString *)xDevDescription completion:(void (^)(NSError *error))completion;
+- (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -338,6 +334,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)logout:(void (^)(NSError *error))completion;
 
+- (void)reset:(void (^)(NSError *error))completion;
+
 - (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
@@ -472,11 +470,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *err;
 @property NSString *cancel;
 @property NSString *ok;
+@property BOOL useSecretStore;
 @end
 
 @interface KBRSecretEntryRes : KBRObject
 @property NSString *text;
 @property BOOL canceled;
+@property BOOL storeSecret;
 @end
 
 @interface KBRSecretUiRequest : KBRRequest
@@ -629,24 +629,33 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRBIndexSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
-@interface KBRGetBlockKeyRequestParams : KBRRequestParams
-@property NSString *blockid;
-@end
-@interface KBRDeleteRequestParams : KBRRequestParams
-@property NSString *blockid;
+@interface KBRGetBIndexRequestParams : KBRRequestParams
+@property NSString *blockId;
+@property NSInteger size;
 @end
 @interface KBRPutBIndexRequestParams : KBRRequestParams
-@property KBRBIndexInfo *info;
+@property NSString *blockId;
+@property NSInteger size;
+@property NSArray *info;
+@end
+@interface KBRDeleteRequestParams : KBRRequestParams
+@property NSString *blockId;
+@property NSInteger size;
 @end
 @interface KBRBlockSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
 @interface KBRGetBlockRequestParams : KBRRequestParams
-@property NSString *blockid;
+@property NSString *blockId;
+@property NSInteger size;
 @end
 @interface KBRPutBlockRequestParams : KBRRequestParams
-@property NSString *blockid;
+@property NSString *blockId;
 @property NSData *buf;
+@end
+@interface KBRDelBlockRequestParams : KBRRequestParams
+@property NSString *blockId;
+@property NSInteger size;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -662,7 +671,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRDisplaySecretWordsRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *secret;
-@property NSString *xDevDescription;
+@property NSString *deviceNameExisting;
+@property NSString *deviceNameToAdd;
 @end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;

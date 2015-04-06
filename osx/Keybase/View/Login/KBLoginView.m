@@ -14,6 +14,7 @@
 
 @interface KBLoginView ()
 @property KBSecureTextField *passwordField;
+@property KBButton *saveToKeychainButton;
 @end
 
 @implementation KBLoginView
@@ -43,6 +44,9 @@
   _passwordField.placeholder = @"Passphrase";
   [contentView addSubview:_passwordField];
 
+  //_saveToKeychainButton = [KBButton buttonWithText:@"Save to Keychain" style:KBButtonStyleCheckbox];
+  //[contentView addSubview:_saveToKeychainButton];
+
   _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStylePrimary];
   _loginButton.targetBlock = ^{
     [gself login];
@@ -64,6 +68,9 @@
 
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 12;
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 12;
+
+    //y += 6;
+    //y += [layout sizeToFitInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.saveToKeychainButton].size.height + 12;
 
     y += 30;
 
@@ -94,7 +101,11 @@
   }
 }
 
-- (void)_checkStatusAfterLogin {
+- (void)_didLogin:(NSString *)username {
+  if (_saveToKeychainButton.state == NSOnState) {
+    //[SSKeychain setPassword:@"" forService:@"keybase" account:username];
+  }
+
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
   [self.navigation.titleView setProgressEnabled:YES];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
@@ -149,7 +160,7 @@
 
     [self.navigation setProgressEnabled:NO];
     KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
-    [secretWordsView setSecretWords:requestParams.secret deviceNameToRegister:requestParams.xDevDescription];
+    [secretWordsView setSecretWords:requestParams.secret deviceNameExisting:requestParams.deviceNameExisting deviceNameToAdd:requestParams.deviceNameToAdd];
     secretWordsView.button.targetBlock = ^{
       completion(nil, nil);
     };
@@ -176,7 +187,7 @@
     }
 
     self.passwordField.text = nil;
-    [self _checkStatusAfterLogin];
+    [self _didLogin:username];
   }];
 }
 

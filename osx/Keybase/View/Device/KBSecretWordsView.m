@@ -67,7 +67,7 @@
   [self.window makeFirstResponder:_secretWordsLabel.textView];
 }
 
-- (void)setSecretWords:(NSString *)secretWords deviceNameToRegister:(NSString *)deviceNameToRegister {
+- (void)setSecretWords:(NSString *)secretWords deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd {
   /*
    On your "CLI" computer, a window should have appeared. Type this in it:
 

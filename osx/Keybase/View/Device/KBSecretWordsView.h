@@ -15,6 +15,6 @@
 @property KBButton *button;
 @property KBButton *cancelButton;
 
-- (void)setSecretWords:(NSString *)secretWords deviceNameToRegister:(NSString *)deviceNameToRegister;
+- (void)setSecretWords:(NSString *)secretWords deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd;
 
 @end
