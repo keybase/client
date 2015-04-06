@@ -79,7 +79,9 @@ func findSubkeys(parentID string, allKeys []keybase_1.PublicKey) []keybase_1.Pub
 }
 
 func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
-	fmt.Printf("Username: %s\nID: %s\n", me.Username, me.Uid)
+	fmt.Printf("Username: %s\n", me.Username)
+	fmt.Printf("User ID: %s\n", me.Uid)
+	fmt.Printf("Device ID: %s\n", G.Env.GetDeviceID())
 	if len(me.PublicKeys) == 0 {
 		fmt.Printf("No public keys.\n")
 		return nil
