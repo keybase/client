@@ -218,6 +218,8 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		t.Fatal(err)
 	}
 
+	s.fakeLKS()
+
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.
 	gen := libkb.PGPGenArg{
@@ -228,6 +230,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Gen:        &gen,
 		PushSecret: true,
+		Lks:        s.lks,
 	})
 
 	fu.User = s.GetMe()
@@ -263,6 +266,8 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		t.Fatal(err)
 	}
 
+	s.fakeLKS()
+
 	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)
 	}
@@ -297,14 +302,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu.User = s.GetMe()
 
 	// fake the lks:
-	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf())
-	s.lks.GenerateServerHalf()
-
-	/*
-		if err := s.registerDevice(ctx, "my root device"); err != nil {
-			t.Fatal(err)
-		}
-	*/
+	s.fakeLKS()
 
 	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)
@@ -508,4 +506,11 @@ func (l *ldocuiPGP) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.S
 	res.Action = keybase_1.SelectSignerAction_SIGN
 	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_PGP}
 	return
+}
+
+// fakeLKS is used to create a lks that has the server half when
+// creating a fake user that doesn't have a device.
+func (s *SignupEngine) fakeLKS() {
+	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf())
+	s.lks.GenerateServerHalf()
 }
