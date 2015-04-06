@@ -63,16 +63,16 @@ func (k *KexFwd) Run(ctx *Context) error {
 	defer k.G().Log.Debug("KexFwd: run finished")
 	k.user = k.args.User
 
-	ndarg := &NDeviceEngineArgs{
+	// register a new device
+	ndarg := &DeviceRegisterArgs{
 		Name: k.args.DevDesc,
 		Lks:  k.lks,
 	}
-	ndeveng := NewNDeviceEngine(k.user, ndarg)
-	if err := RunEngine(ndeveng, ctx); err != nil {
+	devreg := NewDeviceRegister(k.user, ndarg)
+	if err := RunEngine(devreg, ctx); err != nil {
 		return err
 	}
-
-	k.deviceID = ndeveng.DeviceID()
+	k.deviceID = devreg.DeviceID()
 
 	// make random secret S, session id I
 	sec, err := kex.NewSecret(k.user.GetName())

@@ -6,36 +6,36 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type NDeviceEngineArgs struct {
+type DeviceRegisterArgs struct {
 	Name string
 	Lks  *libkb.LKSec
 }
 
-type NDeviceEngine struct {
+type DeviceRegister struct {
 	deviceName string
 	deviceID   libkb.DeviceID
 	lks        *libkb.LKSec
 	me         *libkb.User
-	args       *NDeviceEngineArgs
+	args       *DeviceRegisterArgs
 }
 
-func NewNDeviceEngine(me *libkb.User, args *NDeviceEngineArgs) *NDeviceEngine {
-	return &NDeviceEngine{me: me, args: args}
+func NewDeviceRegister(me *libkb.User, args *DeviceRegisterArgs) *DeviceRegister {
+	return &DeviceRegister{me: me, args: args}
 }
 
-func (d *NDeviceEngine) Name() string {
+func (d *DeviceRegister) Name() string {
 	return "NDevice"
 }
 
-func (d *NDeviceEngine) RequiredUIs() []libkb.UIKind {
+func (d *DeviceRegister) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
-func (d *NDeviceEngine) SubConsumers() []libkb.UIConsumer {
+func (d *DeviceRegister) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (d *NDeviceEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (d *DeviceRegister) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 // Run
 // when device is the eldest key:
@@ -43,15 +43,15 @@ func (d *NDeviceEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 // when you have a key that can sign already but need a device
 // key:
 //    use args Name, LksClientHalf, Signer, and EldestKID
-func (d *NDeviceEngine) Run(ctx *Context) error {
+func (d *DeviceRegister) Run(ctx *Context) error {
 	return d.run(ctx, d.args.Name, d.args.Lks)
 }
 
-func (d *NDeviceEngine) DeviceID() libkb.DeviceID {
+func (d *DeviceRegister) DeviceID() libkb.DeviceID {
 	return d.deviceID
 }
 
-func (d *NDeviceEngine) run(ctx *Context, deviceName string, lks *libkb.LKSec) (err error) {
+func (d *DeviceRegister) run(ctx *Context, deviceName string, lks *libkb.LKSec) (err error) {
 	if d.me.HasDeviceInCurrentInstall() {
 		return ErrDeviceAlreadyRegistered
 	}
@@ -90,7 +90,7 @@ func (d *NDeviceEngine) run(ctx *Context, deviceName string, lks *libkb.LKSec) (
 	return
 }
 
-func (d *NDeviceEngine) pushLocalKeySec() error {
+func (d *DeviceRegister) pushLocalKeySec() error {
 	if d.lks == nil {
 		return fmt.Errorf("no local key security set")
 	}
@@ -104,7 +104,7 @@ func (d *NDeviceEngine) pushLocalKeySec() error {
 	return libkb.PostDeviceLKS(d.deviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }
 
-func (d *NDeviceEngine) device() *libkb.Device {
+func (d *DeviceRegister) device() *libkb.Device {
 	s := libkb.DEVICE_STATUS_ACTIVE
 	return &libkb.Device{
 		Id:          d.deviceID.String(),
