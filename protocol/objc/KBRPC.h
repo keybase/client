@@ -96,6 +96,11 @@
 
 @end
 
+@interface KBRBTCRequest : KBRRequest
+- (void)registerBTCWithSessionID:(NSInteger)sessionID address:(NSString *)address force:(BOOL)force completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -679,6 +684,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRDelBlockRequestParams : KBRRequestParams
 @property NSString *blockId;
 @property NSInteger size;
+@end
+@interface KBRRegisterBTCRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *address;
+@property BOOL force;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;

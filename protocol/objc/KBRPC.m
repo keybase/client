@@ -104,6 +104,17 @@
 
 @end
 
+@implementation KBRBTCRequest
+
+- (void)registerBTCWithSessionID:(NSInteger)sessionID address:(NSString *)address force:(BOOL)force completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"address": KBRValue(address), @"force": @(force)}];
+  [self.client sendRequestWithMethod:@"keybase.1.BTC.registerBTC" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRGetCurrentStatusRes
 @end
 
@@ -1044,6 +1055,19 @@
   if ((self = [super initWithParams:params])) {
     self.blockId = params[0][@"blockId"];
     self.size = [params[0][@"size"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRRegisterBTCRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.address = params[0][@"address"];
+    self.force = [params[0][@"force"] boolValue];
   }
   return self;
 }

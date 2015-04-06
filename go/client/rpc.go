@@ -120,3 +120,11 @@ func GetRevokeClient() (cli keybase_1.RevokeClient, err error) {
 	}
 	return
 }
+
+func GetBTCClient() (cli keybase_1.BTCClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.BTCClient{Cli: rcli}
+	}
+	return
+}

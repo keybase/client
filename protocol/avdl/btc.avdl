@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol BTC {
+	import idl "common.avdl";
+
+	void registerBTC(int sessionID, string address, boolean force);
+}

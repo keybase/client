@@ -13,6 +13,7 @@ config:
 build-stamp: \
 	json/bindex.json \
 	json/block.json \
+	json/btc.json \
 	json/config.json \
 	json/device.json \
 	json/doctor_ui.json \

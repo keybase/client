@@ -252,6 +252,41 @@ func (c BlockClient) DelBlock(__arg DelBlockArg) (err error) {
 	return
 }
 
+type RegisterBTCArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Address   string `codec:"address" json:"address"`
+	Force     bool   `codec:"force" json:"force"`
+}
+
+type BTCInterface interface {
+	RegisterBTC(RegisterBTCArg) error
+}
+
+func BTCProtocol(i BTCInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.BTC",
+		Methods: map[string]rpc2.ServeHook{
+			"registerBTC": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]RegisterBTCArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.RegisterBTC(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type BTCClient struct {
+	Cli GenericClient
+}
+
+func (c BTCClient) RegisterBTC(__arg RegisterBTCArg) (err error) {
+	err = c.Cli.Call("keybase.1.BTC.registerBTC", []interface{}{__arg}, nil)
+	return
+}
+
 type GetCurrentStatusRes struct {
 	Configured bool  `codec:"configured" json:"configured"`
 	Registered bool  `codec:"registered" json:"registered"`

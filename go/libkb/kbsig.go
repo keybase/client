@@ -426,3 +426,23 @@ func (u *User) RevocationProof(key GenericKey, kidsToRevoke []string, deviceToDi
 	}
 	return ret, nil
 }
+
+func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke *SigId) (*jsonw.Wrapper, error) {
+	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
+	if err != nil {
+		return nil, err
+	}
+	body := ret.AtKey("body")
+	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("type", jsonw.NewString("cryptocurrency"))
+	currencySection := jsonw.NewDictionary()
+	currencySection.SetKey("address", jsonw.NewString(address))
+	currencySection.SetKey("type", jsonw.NewString("bitcoin"))
+	body.SetKey("cryptocurrency", currencySection)
+	if sigToRevoke != nil {
+		revokeSection := jsonw.NewDictionary()
+		revokeSection.SetKey("sig_id", jsonw.NewString(sigToRevoke.ToString(true /* suffix */)))
+		body.SetKey("revoke", revokeSection)
+	}
+	return ret, nil
+}
