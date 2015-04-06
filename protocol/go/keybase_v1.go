@@ -266,6 +266,7 @@ type Config struct {
 	GpgPath    string `codec:"gpgPath" json:"gpgPath"`
 	Version    string `codec:"version" json:"version"`
 	Path       string `codec:"path" json:"path"`
+	ConfigPath string `codec:"configPath" json:"configPath"`
 }
 
 type GetCurrentStatusArg struct {

@@ -200,6 +200,9 @@
     }, {
       "name" : "path",
       "type" : "string"
+    }, {
+      "name" : "configPath",
+      "type" : "string"
     } ]
   } ],
   "messages" : {

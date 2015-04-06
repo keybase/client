@@ -44,5 +44,7 @@ func (h ConfigHandler) GetConfig() (keybase_1.Config, error) {
 		c.Path = dir
 	}
 
+	c.ConfigPath = G.Env.GetConfigFilename()
+
 	return c, nil
 }

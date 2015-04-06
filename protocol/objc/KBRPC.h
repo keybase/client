@@ -110,6 +110,7 @@
 @property NSString *gpgPath;
 @property NSString *version;
 @property NSString *path;
+@property NSString *configPath;
 @end
 
 @interface KBRConfigRequest : KBRRequest
