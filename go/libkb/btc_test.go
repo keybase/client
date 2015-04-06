@@ -31,3 +31,18 @@ func TestBase58(t *testing.T) {
 	doBase58Test(t, "01", "2")
 	doBase58Test(t, "00ff00", "1LQX")
 }
+
+func TestAddressValidation(t *testing.T) {
+	validAddr := "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
+	invalidAddr := "4J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" // changed first digit
+
+	_, _, err := BtcAddrCheck(validAddr, nil)
+	if err != nil {
+		t.Fatal("Failed to validate a good address.")
+	}
+
+	_, _, err = BtcAddrCheck(invalidAddr, nil)
+	if err == nil {
+		t.Fatal("Failed to catch a bad address.")
+	}
+}
