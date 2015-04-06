@@ -1,11 +1,11 @@
 package libkb
 
-import ()
+type NaclGenerator func() (NaclKeyPair, error)
 
 type NaclKeyGenArg struct {
 	Signer      GenericKey // who is going to sign us into the Chain
 	ExpiresIn   int
-	Generator   func() (NaclKeyPair, error)
+	Generator   NaclGenerator
 	Me          *User
 	Sibkey      bool
 	ExpireIn    int // how long it lasts
@@ -20,8 +20,8 @@ type NaclKeyGen struct {
 	pair NaclKeyPair
 }
 
-func NewNaclKeyGen(arg NaclKeyGenArg) *NaclKeyGen {
-	return &NaclKeyGen{arg: &arg}
+func NewNaclKeyGen(arg *NaclKeyGenArg) *NaclKeyGen {
+	return &NaclKeyGen{arg: arg}
 }
 
 func (g *NaclKeyGen) Generate() (err error) {
@@ -72,9 +72,5 @@ func (g *NaclKeyGen) RunLKS(lks *LKSec) (err error) {
 }
 
 func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
-	return g.pair
-}
-
-func (g *NaclKeyGen) GetNewKeyPair() NaclKeyPair {
 	return g.pair
 }

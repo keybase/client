@@ -105,6 +105,8 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 		return
 	}
 
+	G.Log.Info("res.Body: %s", res.Body)
+
 	var obj ServerPrivateKeys
 	if err = res.Body.UnmarshalAgain(&obj); err != nil {
 		return

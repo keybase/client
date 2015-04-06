@@ -64,7 +64,7 @@ func (s *LKSec) Load() error {
 		return fmt.Errorf("client half not set")
 	}
 
-	if s.serverHalf == nil {
+	if len(s.serverHalf) == 0 {
 		s.G().Log.Debug("| Fetching secret key")
 		devid := s.G().Env.GetDeviceID()
 		if devid == nil {
@@ -73,6 +73,9 @@ func (s *LKSec) Load() error {
 
 		if err := s.apiServerHalf(devid); err != nil {
 			return err
+		}
+		if len(s.serverHalf) == 0 {
+			return fmt.Errorf("after apiServerHalf(%s), serverHalf still empty", devid)
 		}
 	} else {
 		s.G().Log.Debug("| ServerHalf already loaded")
@@ -132,7 +135,7 @@ func (s *LKSec) Decrypt(src []byte) ([]byte, error) {
 	}()
 
 	if err := s.Load(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("lksec decrypt Load err: %s", err)
 	}
 	var nonce [24]byte
 	copy(nonce[:], src[0:24])
@@ -156,6 +159,7 @@ func (s *LKSec) apiServerHalf(devid *DeviceID) error {
 	if err := RunSyncer(ss, s.uid); err != nil {
 		return err
 	}
+	ss.DumpPrivateKeys()
 	dev, err := ss.FindDevice(devid)
 	if err != nil {
 		return err

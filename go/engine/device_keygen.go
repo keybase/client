@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -90,10 +92,14 @@ func (e *DeviceKeygen) Run(ctx *Context) error {
 		return err
 	}
 
+	if err := e.pushLocalKeySec(); err != nil {
+		return err
+	}
+
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
 	if err := libkb.RunSyncer(G.SecretSyncer, e.args.Me.GetUid().P()); err != nil {
-		return err
+		return fmt.Errorf("runsync err: %s", err)
 	}
 
 	return nil
@@ -104,7 +110,7 @@ func (d *DeviceKeygen) EldestKey() libkb.GenericKey {
 }
 
 func (e *DeviceKeygen) pushEldestKey(ctx *Context) error {
-	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
 		Generator: libkb.GenerateNaclSigningKeyPair,
 		Me:        e.args.Me,
 		ExpireIn:  libkb.NACL_EDDSA_EXPIRE_IN,
@@ -120,7 +126,7 @@ func (e *DeviceKeygen) pushEldestKey(ctx *Context) error {
 }
 
 func (e *DeviceKeygen) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) (libkb.GenericKey, error) {
-	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
 		Signer:      signer,
 		EldestKeyID: eldestKID,
 		Generator:   libkb.GenerateNaclSigningKeyPair,
@@ -134,12 +140,12 @@ func (e *DeviceKeygen) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestK
 	if err != nil {
 		return nil, err
 	}
-	e.newSibkey = gen.GetNewKeyPair()
+	e.newSibkey = gen.GetKeyPair()
 	return e.newSibkey, nil
 }
 
 func (e *DeviceKeygen) pushDHKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
-	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
 		Signer:      signer,
 		EldestKeyID: eldestKID,
 		Generator:   libkb.GenerateNaclDHKeyPair,
@@ -161,4 +167,21 @@ func (e *DeviceKeygen) device() *libkb.Device {
 		Type:        libkb.DEVICE_TYPE_DESKTOP,
 		Status:      &s,
 	}
+}
+
+func (d *DeviceKeygen) pushLocalKeySec() error {
+	if d.args.Lks == nil {
+		return fmt.Errorf("no local key security set")
+	}
+
+	serverHalf := d.args.Lks.GetServerHalf()
+	if serverHalf == nil {
+		return fmt.Errorf("LKS server half is nil, and should not be")
+	}
+	if len(serverHalf) == 0 {
+		return fmt.Errorf("LKS server half is empty, and should not be")
+	}
+
+	// send it to api server
+	return libkb.PostDeviceLKS(d.args.DeviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }

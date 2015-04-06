@@ -136,7 +136,7 @@ func (d *DeviceEngine) LKSKey() []byte {
 }
 
 func (d *DeviceEngine) pushEldestKey(ctx *Context) error {
-	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
 		Generator: libkb.GenerateNaclSigningKeyPair,
 		Me:        d.me,
 		ExpireIn:  libkb.NACL_EDDSA_EXPIRE_IN,
@@ -152,7 +152,7 @@ func (d *DeviceEngine) pushEldestKey(ctx *Context) error {
 }
 
 func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) (libkb.GenericKey, error) {
-	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
 		Signer:      signer,
 		EldestKeyID: eldestKID,
 		Generator:   libkb.GenerateNaclSigningKeyPair,
@@ -166,12 +166,12 @@ func (d *DeviceEngine) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestK
 	if err != nil {
 		return nil, err
 	}
-	d.newSibkey = gen.GetNewKeyPair()
+	d.newSibkey = gen.GetKeyPair()
 	return d.newSibkey, nil
 }
 
 func (d *DeviceEngine) pushDHKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
-	gen := libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
+	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
 		Signer:      signer,
 		EldestKeyID: eldestKID,
 		Generator:   libkb.GenerateNaclDHKeyPair,

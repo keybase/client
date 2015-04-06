@@ -116,29 +116,47 @@ func (k *KexFwd) Run(ctx *Context) error {
 		return err
 	}
 
-	// XXX this is where we'll use device_keygen engine
-
-	// make keys for device Y
-	k.G().Log.Debug("KexFwd: making keys for device Y")
-	keys, err := k.makeKeys()
-	if err != nil {
+	dkargs := &DevKeygenArgs{
+		Me:         k.user,
+		DeviceID:   k.deviceID,
+		DeviceName: k.args.DevDesc,
+		Lks:        k.lks,
+	}
+	dkeng := NewDevKeygen(dkargs)
+	if err := RunEngine(dkeng, ctx); err != nil {
 		return err
 	}
 
-	// store the keys in lks
-	k.G().Log.Debug("KexFwd: storing keys for device Y in LKS")
-	if err := k.storeKeys(ctx, keys); err != nil {
-		return err
-	}
+	/*
+		// make keys for device Y
+		k.G().Log.Debug("KexFwd: making keys for device Y")
+		keys, err := k.makeKeys()
+		if err != nil {
+			return err
+		}
+
+		// store the keys in lks
+		k.G().Log.Debug("KexFwd: storing keys for device Y in LKS")
+		if err := k.storeKeys(ctx, keys); err != nil {
+			return err
+		}
+	*/
 
 	// get the signing key
-	signer, err := keys.signer()
+	/*
+		signer, err := keys.signer()
+		if err != nil {
+			return err
+		}
+	*/
+	signerPub, err := dkeng.SigningKeyPublic()
 	if err != nil {
 		return err
 	}
 
 	// get reverse signature of X's device key
-	rsig, err := k.revSig(keys.eddsa)
+	//	rsig, err := k.revSig(keys.eddsa)
+	rsig, err := k.revSig(dkeng.SigningKey())
 	if err != nil {
 		return err
 	}
@@ -147,7 +165,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 	m.Sender = k.deviceID
 	m.Receiver = k.args.Dst
 	k.G().Log.Debug("KexFwd: sending PleaseSign to X")
-	if err := k.server.PleaseSign(m, signer, rsig, k.args.DevType, k.args.DevDesc); err != nil {
+	if err := k.server.PleaseSign(m, signerPub, rsig, k.args.DevType, k.args.DevDesc); err != nil {
 		return err
 	}
 
@@ -158,7 +176,22 @@ func (k *KexFwd) Run(ctx *Context) error {
 
 	// push the dh key as a subkey to the server
 	k.G().Log.Debug("KexFwd: pushing subkey")
-	if err := k.pushSubkey(keys); err != nil {
+	/*
+		if err := k.pushSubkey(keys); err != nil {
+			return err
+		}
+
+		// XXX temporary...use device_keygen instead.
+		if err := k.pushLocalKeySec(); err != nil {
+			return err
+		}
+	*/
+	pargs := &DevKeygenPushArgs{
+		SkipSignerPush: true,
+		Signer:         dkeng.SigningKey(),
+		EldestKID:      k.user.GetEldestFOKID().Kid,
+	}
+	if err := dkeng.Push(ctx, pargs); err != nil {
 		return err
 	}
 
@@ -264,7 +297,7 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 	g := func() (libkb.NaclKeyPair, error) {
 		return keys.dh, nil
 	}
-	arg := libkb.NaclKeyGenArg{
+	arg := &libkb.NaclKeyGenArg{
 		Signer:      keys.eddsa,
 		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
 		Sibkey:      false,
@@ -281,4 +314,21 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 		return err
 	}
 	return nil
+}
+
+func (k *KexFwd) pushLocalKeySec() error {
+	if k.lks == nil {
+		return fmt.Errorf("no local key security set")
+	}
+
+	serverHalf := k.lks.GetServerHalf()
+	if serverHalf == nil {
+		return fmt.Errorf("LKS server half is nil, and should not be")
+	}
+	if len(serverHalf) == 0 {
+		return fmt.Errorf("LKS server half is empty, and should not be")
+	}
+
+	// send it to api server
+	return libkb.PostDeviceLKS(k.deviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }

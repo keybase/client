@@ -1,10 +1,6 @@
 package engine
 
-import (
-	"fmt"
-
-	"github.com/keybase/client/go/libkb"
-)
+import "github.com/keybase/client/go/libkb"
 
 type DeviceRegisterArgs struct {
 	Me   *libkb.User
@@ -68,33 +64,9 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 		G.Log.Info("Setting Device ID to %s", d.deviceID)
 	}
 
-	if err = d.pushLocalKeySec(); err != nil {
-		return err
-	}
-
-	// Sync the LKS stuff back from the server, so that subsequent
-	// attempts to use public key login will work.
-	if err := libkb.RunSyncer(G.SecretSyncer, d.args.Me.GetUid().P()); err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (d *DeviceRegister) DeviceID() libkb.DeviceID {
 	return d.deviceID
-}
-
-func (d *DeviceRegister) pushLocalKeySec() error {
-	if d.args.Lks == nil {
-		return fmt.Errorf("no local key security set")
-	}
-
-	serverHalf := d.args.Lks.GetServerHalf()
-	if serverHalf == nil {
-		return fmt.Errorf("LKS server half is nil, and should not be")
-	}
-
-	// send it to api server
-	return libkb.PostDeviceLKS(d.deviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }

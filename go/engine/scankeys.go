@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/openpgp"
 )
@@ -41,20 +43,20 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 
 	sk.me, err = libkb.LoadMe(libkb.LoadUserArg{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("loadme error: %s", err)
 	}
 
 	// if user provided, then load their local keys, and their synced secret key:
 	ring, err := G.LoadSKBKeyring(sk.me.GetName())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("G.LoadSKBKeyring err: %s", err)
 	}
 	synced, err := sk.me.GetSyncedSecretKey()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getsyncedsecret err: %s", err)
 	}
 	if err := sk.extractKeys(ring, synced, secui); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("extract keys error: %s", err)
 	}
 	return sk, nil
 }
@@ -138,7 +140,7 @@ func (s *ScanKeys) Owner() *libkb.User {
 // the synced key.
 func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui libkb.SecretUI) error {
 	if err := s.extractKey(synced, ui); err != nil {
-		return err
+		return fmt.Errorf("extracting synced key error: %s", err)
 	}
 
 	for _, b := range ring.Blocks {
@@ -146,7 +148,7 @@ func (s *ScanKeys) extractKeys(ring *libkb.SKBKeyringFile, synced *libkb.SKB, ui
 			continue
 		}
 		if err := s.extractKey(b, ui); err != nil {
-			return err
+			return fmt.Errorf("extracting ring block error: %s", err)
 		}
 	}
 

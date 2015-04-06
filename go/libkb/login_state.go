@@ -307,6 +307,10 @@ func (s *LoginState) PubkeyLogin(name string, ui SecretUI) (err error) {
 		return
 	}
 
+	// XXX (from PC) this is failing in the engine/signup_test.go TestSignupEngine.
+	// It looks like the SecretSyncer is failing to get the serverHalf of the LKS
+	// because it actually isn't using the api server because it isn't logged in:
+	// "Won't sync with server since we're not logged in"
 	if key, _, err = G.Keyrings.GetSecretKey(SecretKeyArg{Reason: "login", Ui: ui, Me: me, All: true}); err != nil {
 		return
 	}

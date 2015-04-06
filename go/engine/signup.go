@@ -97,11 +97,11 @@ func (s *SignupEngine) Run(ctx *Context) error {
 	}
 
 	if err := s.genDeviceKeys(ctx, s.arg.DeviceName); err != nil {
-		return err
+		return fmt.Errorf("genDeviceKeys err: %s", err)
 	}
 
 	if err := s.genDetKeys(ctx); err != nil {
-		return err
+		return fmt.Errorf("detkeys error: %s", err)
 	}
 
 	if s.arg.SkipGPG {
@@ -112,7 +112,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 		return err
 	} else if wantsGPG {
 		if err := s.addGPG(ctx, true); err != nil {
-			return err
+			return fmt.Errorf("addGPG error: %s", err)
 		}
 	}
 
@@ -161,15 +161,18 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 		Name: deviceName,
 		Lks:  s.lks,
 	}
+	G.Log.Info("lks before run: %+v", s.lks)
 	eng := NewDeviceRegister(args)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
+	G.Log.Info("lks after run: %+v", s.lks)
 	s.deviceID = eng.DeviceID()
 	return nil
 }
 
 func (s *SignupEngine) genDeviceKeys(ctx *Context, deviceName string) error {
+	G.Log.Info("lks before kegen: %+v", s.lks)
 	args := NewDeviceKeygenArgsEldest(s.me, s.lks, s.deviceID, deviceName)
 	eng := NewDeviceKeygen(args)
 	if err := RunEngine(eng, ctx); err != nil {
