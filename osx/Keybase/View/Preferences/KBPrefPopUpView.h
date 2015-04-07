@@ -8,10 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBPrefView.h"
+#import "KBAppKit.h"
+#import "KBPreferences.h"
 
-@interface KBPrefPopUpView : KBPrefView
+@interface KBPrefPopUpView : YOView
 
-- (void)setLabelText:(NSString *)labelText options:(NSArray *)options identifier:(NSString *)identifier;
+@property CGFloat inset;
+@property CGFloat labelWidth;
+@property CGFloat fieldWidth;
+
+- (void)setLabelText:(NSString *)labelText options:(NSArray */*of KBPrefOption*/)options identifier:(NSString *)identifier preferences:(id<KBPreferences>)preferences;
 
 @end

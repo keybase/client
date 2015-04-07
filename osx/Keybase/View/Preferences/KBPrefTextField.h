@@ -8,10 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBPrefView.h"
+#import "KBAppKit.h"
+#import "KBPreferences.h"
 
-@interface KBPrefTextField : KBPrefView
+@interface KBPrefTextField : YOView
 
-- (void)setLabelText:(NSString *)labelText infoText:(NSString *)infoText identifier:(NSString *)identifier;
+@property CGFloat inset;
+@property CGFloat fieldWidth;
+
+- (void)setLabelText:(NSString *)labelText infoText:(NSString *)infoText identifier:(NSString *)identifier preferences:(id<KBPreferences>)preferences;
 
 @end

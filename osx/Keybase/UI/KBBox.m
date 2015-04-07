@@ -38,15 +38,24 @@
   return CGSizeMake(size.width, self.box.borderWidth + self.insets.top + self.insets.bottom);
 }
 
-+ (KBBox *)horizontalLine {
++ (instancetype)horizontalLine {
   return [self lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor type:KBBoxTypeHorizontalLine];
 }
 
-+ (KBBox *)line {
++ (instancetype)line {
   return [self lineWithWidth:1.0 color:KBAppearance.currentAppearance.lineColor type:KBBoxTypeDefault];
 }
 
-+ (KBBox *)lineWithWidth:(CGFloat)width color:(NSColor *)color type:(KBBoxType)type {
++ (instancetype)spacing:(CGFloat)spacing {
+  KBBox *box = [[KBBox alloc] init];
+  box.box.borderWidth = spacing;
+  box.box.borderType = NSNoBorder;
+  box.box.boxType = NSBoxCustom;
+  box.type = KBBoxTypeSpacing;
+  return box;
+}
+
++ (instancetype)lineWithWidth:(CGFloat)width color:(NSColor *)color type:(KBBoxType)type {
   KBBox *box = [[KBBox alloc] init];
   box.box.borderColor = color;
   box.box.borderWidth = width;
@@ -56,7 +65,7 @@
   return box;
 }
 
-+ (KBBox *)roundedWithWidth:(CGFloat)width color:(NSColor *)color cornerRadius:(CGFloat)cornerRadius {
++ (instancetype)roundedWithWidth:(CGFloat)width color:(NSColor *)color cornerRadius:(CGFloat)cornerRadius {
   KBBox *box = [[KBBox alloc] init];
   box.box.wantsLayer = YES;
   box.box.layer.backgroundColor = NSColor.clearColor.CGColor;
@@ -67,7 +76,7 @@
   return box;
 }
 
-+ (KBBox *)lineWithInsets:(UIEdgeInsets)insets {
++ (instancetype)lineWithInsets:(UIEdgeInsets)insets {
   KBBox *box = [KBBox line];
   box.insets = insets;
   return box;

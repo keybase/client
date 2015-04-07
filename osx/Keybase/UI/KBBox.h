@@ -14,6 +14,7 @@ typedef NS_ENUM(NSInteger, KBBoxType) {
   KBBoxTypeDefault,
   KBBoxTypeHorizontalLine,
   KBBoxTypeVerticalLine,
+  KBBoxTypeSpacing,
 };
 
 
@@ -22,13 +23,15 @@ typedef NS_ENUM(NSInteger, KBBoxType) {
 @property UIEdgeInsets insets;
 @property KBBoxType type;
 
-+ (KBBox *)horizontalLine;
-+ (KBBox *)line;
++ (instancetype)horizontalLine;
++ (instancetype)line;
 
-+ (KBBox *)lineWithWidth:(CGFloat)width color:(NSColor *)color type:(KBBoxType)type;
++ (instancetype)lineWithWidth:(CGFloat)width color:(NSColor *)color type:(KBBoxType)type;
 
-+ (KBBox *)lineWithInsets:(UIEdgeInsets)insets;
++ (instancetype)lineWithInsets:(UIEdgeInsets)insets;
 
-+ (KBBox *)roundedWithWidth:(CGFloat)width color:(NSColor *)color cornerRadius:(CGFloat)cornerRadius;
++ (instancetype)roundedWithWidth:(CGFloat)width color:(NSColor *)color cornerRadius:(CGFloat)cornerRadius;
+
++ (instancetype)spacing:(CGFloat)spacing;
 
 @end

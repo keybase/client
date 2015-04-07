@@ -100,6 +100,7 @@
 - (void)setValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize {
   NSAssert(_config, @"No config");
 
+  // Convert preferences
   if ([identifier isEqualTo:@"Preferences.GPGEnabled"]) {
     identifier = @"gpg-disabled";
     value = @(![value boolValue]);

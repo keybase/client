@@ -12,6 +12,7 @@
 @property KBLabel *label;
 @property NSTextField *textField;
 @property KBButton *browseButton;
+@property id<KBPreferences> preferences;
 @end
 
 @implementation KBPrefFileView
@@ -51,8 +52,9 @@
   }];
 }
 
-- (void)setLabelText:(NSString *)labelText identifier:(NSString *)identifier {
+- (void)setLabelText:(NSString *)labelText identifier:(NSString *)identifier preferences:(id<KBPreferences>)preferences {
   self.identifier = identifier;
+  self.preferences = preferences;
   [_label setText:labelText style:KBTextStyleDefault alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
   NSString *path = [self.preferences valueForIdentifier:self.identifier];
   _textField.stringValue = path ? path : @"";

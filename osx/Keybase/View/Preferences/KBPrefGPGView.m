@@ -21,17 +21,17 @@
   if ((self = [super init])) {
     _preferences = preferences;
 
-    [self setOptions:@{@"spacing": @"20", @"insets": @"40,40,40,40"}];
+    [self setOptions:@{@"spacing": @"10", @"insets": @"40,0,40,0"}];
 
+    /*
     KBPrefCheckbox *gpgEnabled = [[KBPrefCheckbox alloc] init];
-    gpgEnabled.preferences = preferences;
-    [gpgEnabled setLabelText:@"GPG Enabled" identifier:@"Preferences.GPGEnabled"];
+    [gpgEnabled setLabelText:@"GPG Enabled" identifier:@"Preferences.GPGEnabled" preferences:preferences];
     [self addSubview:gpgEnabled];
 
     KBPrefTextField *textField = [[KBPrefTextField alloc] init];
-    textField.preferences = preferences;
-    [textField setLabelText:@"GPG Options" infoText:@"Options to use when calling GPG" identifier:@"gpg-options"];
+    [textField setLabelText:@"GPG Options" infoText:@"Options to use when calling GPG" identifier:@"gpg-options" preferences:preferences];
     [self addSubview:textField];
+     */
   }
   return self;
 }

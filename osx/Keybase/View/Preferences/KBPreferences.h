@@ -8,14 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBPreferences : NSObject
+@protocol KBPreferences
+- (id)valueForIdentifier:(NSString *)identifier;
+- (void)setValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize;
+@end
+
+@interface KBPreferences : NSObject <KBPreferences>
 
 - (void)open:(NSString *)configPath sender:(id)sender;
 
 - (void)close;
-
-- (id)valueForIdentifier:(NSString *)identifier;
-
-- (void)setValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize;
 
 @end

@@ -121,6 +121,8 @@
   }
   //NSAssert(!isnan(sizeThatFits.width), @"Width is NaN");
   //NSAssert(!isnan(sizeThatFits.height), @"Height is NaN");
+  sizeThatFits.width += _padding.width;
+  sizeThatFits.height += _padding.height;
   return sizeThatFits;
 }
 

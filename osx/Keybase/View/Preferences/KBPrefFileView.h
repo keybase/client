@@ -8,10 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBPrefView.h"
+#import "KBAppKit.h"
+#import "KBPreferences.h"
 
-@interface KBPrefFileView : KBPrefView
+@interface KBPrefFileView : YOView
 
-- (void)setLabelText:(NSString *)labelText identifier:(NSString *)identifier;
+- (void)setLabelText:(NSString *)labelText identifier:(NSString *)identifier preferences:(id<KBPreferences>)preferences;
 
 @end

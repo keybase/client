@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBPreferences.h"
 
-@interface KBPrefGeneralView : YOVBox
+@interface KBPrefGeneralView : YOVBox <KBPreferences>
 
 - (instancetype)initWithPreferences:(KBPreferences *)preferences;
 

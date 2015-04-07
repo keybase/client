@@ -37,7 +37,6 @@
 
 // Debug
 @property KBConsoleView *consoleView;
-@property KBMockViews *mockViews;
 
 @property (copy) KBErrorHandler errorHandler;
 @end
@@ -72,9 +71,6 @@
   _consoleView = [[KBConsoleView alloc] init];
   [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO errorHandler:_errorHandler];
   [_appView.delegates addObject:_consoleView];
-
-  _mockViews = [[KBMockViews alloc] init];
-  [window kb_addChildWindowForView:_mockViews rect:CGRectMake(0, -510, 400, 500) position:KBWindowPositionRight title:@"Mocks" fixed:NO errorHandler:_errorHandler];
 
   KBRPClient *client = [[KBRPClient alloc] init];
   [_appView connect:client];

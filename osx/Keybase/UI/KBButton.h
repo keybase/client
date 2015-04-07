@@ -30,6 +30,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 @property (nonatomic, copy) dispatch_block_t targetBlock;
 @property (nonatomic, copy) KBButtonDispatchBlock dispatchBlock;
+@property CGSize padding;
 
 + (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;

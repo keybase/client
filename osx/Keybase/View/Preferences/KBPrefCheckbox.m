@@ -9,21 +9,30 @@
 #import "KBPrefCheckbox.h"
 
 @interface KBPrefCheckbox ()
+@property KBLabel *categoryLabel; // Optional
 @property KBButton *button;
+@property id<KBPreferences> preferences;
 @end
 
 @implementation KBPrefCheckbox
 
 - (void)viewInit {
   [super viewInit];
+  _inset = 140;
+
+  _categoryLabel = [[KBLabel alloc] init];
+  [self addSubview:_categoryLabel];
 
   _button = [KBButton button];
   [self addSubview:_button];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+    CGFloat x = 0;
     CGFloat y = 0;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(130, y, size.width - 150, 0) view:yself.button].size.height;
+    x += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, yself.inset, 0) view:yself.categoryLabel].size.width + 10;
+
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.button].size.height;
     return CGSizeMake(size.width, y);
   }];
 }
@@ -32,10 +41,15 @@
   [_button removeObserver:self forKeyPath:@"cell.state"];
 }
 
-- (void)setLabelText:(NSString *)labelText identifier:(NSString *)identifier {
+- (void)setCategory:(NSString *)category {
+  [_categoryLabel setText:category style:KBTextStyleDefault alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
+}
+
+- (void)setLabelText:(NSString *)labelText identifier:(NSString *)identifier preferences:(id<KBPreferences>)preferences {
+  self.identifier = identifier;
+  self.preferences = preferences;
   [_button setText:labelText style:KBButtonStyleCheckbox alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
 
-  self.identifier = identifier;
   _button.state = [[self.preferences valueForIdentifier:identifier] boolValue] ? NSOnState : NSOffState;
   [_button addObserver:self forKeyPath:@"cell.state" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:NULL];
 
@@ -44,7 +58,7 @@
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
   BOOL value = [object state] == NSOnState;
-  [self.preferences setValue:@(value) forKey:self.identifier];
+  [self.preferences setValue:@(value) forIdentifier:self.identifier synchronize:YES];
 }
 
 @end

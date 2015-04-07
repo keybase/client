@@ -55,6 +55,14 @@
   };
   [buttons addSubview:_toggleButton];
 
+  KBButton *mocks = [KBButton buttonWithText:@"Mocks" style:KBButtonStyleLink];
+  mocks.padding = CGSizeMake(0, 7);
+  mocks.targetBlock = ^{
+    KBMockViews *mockViews = [[KBMockViews alloc] init];
+    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Mocks" fixed:NO errorHandler:nil];
+  };
+  [buttons addSubview:mocks];
+
   // TODO logging grows forever
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
   _logView.scrollView.borderType = NSBezelBorder;
@@ -122,7 +130,8 @@
 - (void)appViewDidLaunch:(KBAppView *)appView {
   NSString *version = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
   [self log:NSStringWithFormat(@"Keybase.app started (%@).", version)];
-  [self log:NSStringWithFormat(@"Dir: %@", [NSFileManager.defaultManager currentDirectoryPath])];
+  //[self log:NSStringWithFormat(@"Dir: %@", [NSFileManager.defaultManager currentDirectoryPath])];
+  //[self log:NSStringWithFormat(@"Executable: %@", NSBundle.mainBundle.executablePath)];
   NSString *KBKeybasedVersion = [[NSBundle mainBundle] infoDictionary][@"KBKeybasedVersion"];
   [self log:NSStringWithFormat(@"Info (keybased): %@", KBKeybasedVersion)];
   _client = appView.client;
