@@ -143,7 +143,6 @@ func PostDeviceLKS(deviceID, deviceType string, serverHalf []byte) error {
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
-	G.Log.Warning("PostDeviceLKS: %s, %s, %x", deviceID, deviceType, serverHalf)
 	_, err := G.API.Post(ApiArg{
 		Endpoint:    "device/update",
 		NeedSession: true,

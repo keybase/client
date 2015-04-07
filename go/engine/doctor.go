@@ -156,18 +156,6 @@ func (d *Doctor) addDeviceKey(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	/*
-		args := DeviceEngineArgs{
-			Name:          devname,
-			LksClientHalf: tk.LksClientHalf(),
-		}
-		eng := NewDeviceEngine(d.user, &args)
-		if err := RunEngine(eng, ctx); err != nil {
-			return err
-		}
-
-		d.signingKey = eng.EldestKey()
-	*/
 
 	d.lks = libkb.NewLKSec(tk.LksClientHalf(), d.G())
 	args := &DeviceWrapArgs{
@@ -196,15 +184,6 @@ func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, e
 		return err
 	}
 	d.lks = libkb.NewLKSec(tk.LksClientHalf(), d.G())
-	/*
-		args := DeviceEngineArgs{
-			Name:          devname,
-			LksClientHalf: tk.LksClientHalf(),
-			Signer:        signer,
-			EldestKID:     eldestKID,
-		}
-		eng := NewDeviceEngine(d.user, &args)
-	*/
 	args := &DeviceWrapArgs{
 		Me:         d.user,
 		DeviceName: devname,
@@ -223,16 +202,13 @@ func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, e
 }
 
 func (d *Doctor) addDetKey(ctx *Context, eldest libkb.KID) error {
+	if d.signingKey == nil {
+		return fmt.Errorf("addDetKey called, but d.signingKey is nil")
+	}
 	tk, err := d.tspkey(ctx)
 	if err != nil {
 		return err
 	}
-	/*
-		sk := d.newDeviceSibkey
-		if sk == nil {
-			sk = d.signingKey
-		}
-	*/
 	arg := &DetKeyArgs{
 		Tsp:         tk,
 		Me:          d.user,

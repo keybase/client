@@ -127,35 +127,12 @@ func (k *KexFwd) Run(ctx *Context) error {
 		return err
 	}
 
-	/*
-		// make keys for device Y
-		k.G().Log.Debug("KexFwd: making keys for device Y")
-		keys, err := k.makeKeys()
-		if err != nil {
-			return err
-		}
-
-		// store the keys in lks
-		k.G().Log.Debug("KexFwd: storing keys for device Y in LKS")
-		if err := k.storeKeys(ctx, keys); err != nil {
-			return err
-		}
-	*/
-
-	// get the signing key
-	/*
-		signer, err := keys.signer()
-		if err != nil {
-			return err
-		}
-	*/
 	signerPub, err := dkeng.SigningKeyPublic()
 	if err != nil {
 		return err
 	}
 
 	// get reverse signature of X's device key
-	//	rsig, err := k.revSig(keys.eddsa)
 	rsig, err := k.revSig(dkeng.SigningKey())
 	if err != nil {
 		return err
@@ -176,16 +153,6 @@ func (k *KexFwd) Run(ctx *Context) error {
 
 	// push the dh key as a subkey to the server
 	k.G().Log.Debug("KexFwd: pushing subkey")
-	/*
-		if err := k.pushSubkey(keys); err != nil {
-			return err
-		}
-
-		// XXX temporary...use device_keygen instead.
-		if err := k.pushLocalKeySec(); err != nil {
-			return err
-		}
-	*/
 	pargs := &DevKeygenPushArgs{
 		SkipSignerPush: true,
 		Signer:         dkeng.SigningKey(),
@@ -314,21 +281,4 @@ func (k *KexFwd) pushSubkey(keys *keyres) error {
 		return err
 	}
 	return nil
-}
-
-func (k *KexFwd) pushLocalKeySec() error {
-	if k.lks == nil {
-		return fmt.Errorf("no local key security set")
-	}
-
-	serverHalf := k.lks.GetServerHalf()
-	if serverHalf == nil {
-		return fmt.Errorf("LKS server half is nil, and should not be")
-	}
-	if len(serverHalf) == 0 {
-		return fmt.Errorf("LKS server half is empty, and should not be")
-	}
-
-	// send it to api server
-	return libkb.PostDeviceLKS(k.deviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }

@@ -16,7 +16,6 @@ type SignupEngine struct {
 	arg        *SignupEngineRunArg
 	lks        *libkb.LKSec
 	libkb.Contextified
-	//	deviceID   libkb.DeviceID
 }
 
 type SignupEngineRunArg struct {
@@ -93,16 +92,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	/*
-		if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
-			return err
-		}
-
-		if err := s.genDeviceKeys(ctx, s.arg.DeviceName); err != nil {
-			return fmt.Errorf("genDeviceKeys err: %s", err)
-		}
-	*/
-	if err := s.registerDevicePrime(ctx, s.arg.DeviceName); err != nil {
+	if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
 		return err
 	}
 
@@ -160,7 +150,7 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 	return nil
 }
 
-func (s *SignupEngine) registerDevicePrime(ctx *Context, deviceName string) error {
+func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,

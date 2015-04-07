@@ -37,12 +37,6 @@ func (d *DeviceRegister) SubConsumers() []libkb.UIConsumer {
 
 func (d *DeviceRegister) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
-// Run
-// when device is the eldest key:
-//    use args Name, LksClientHalf
-// when you have a key that can sign already but need a device
-// key:
-//    use args Name, LksClientHalf, Signer, and EldestKID
 func (d *DeviceRegister) Run(ctx *Context) error {
 	if d.args.Me.HasDeviceInCurrentInstall() {
 		return ErrDeviceAlreadyRegistered

@@ -191,9 +191,6 @@ func (f JsonConfigFile) GetUserConfigForUsername(s string) (ret *UserConfig, err
 
 // SetDeviceID sets the device field of the UserConfig object
 func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
-
-	G.Log.Warning("setting device id to %s", did)
-
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
 
