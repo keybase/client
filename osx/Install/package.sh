@@ -29,7 +29,8 @@ echo "Copying keybase binaries into Keybase.app..."
 chmod +x keybased
 cp keybased Keybase.app/Contents/MacOS/
 chmod +x keybase
-cp keybase Keybase.app/Contents/MacOS/
+mkdir -p Keybase.app/Contents/SharedSupport/bin
+cp keybase Keybase.app/Contents/SharedSupport/bin
 
 
 echo "Resigning..."
