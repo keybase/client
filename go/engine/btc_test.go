@@ -80,4 +80,16 @@ func TestBTC(t *testing.T) {
 	if current != secondAddress {
 		t.Fatalf("Expected btc address '%s'. Found '%s'.", secondAddress, current)
 	}
+
+	// Make sure the previous link was revoked.
+	loadedUser, err := libkb.LoadUser(libkb.LoadUserArg{Name: u.Username})
+	if err != nil {
+		t.Fatalf("Failed to load user.")
+	}
+	revoked := loadedUser.IdTable.GetRevokedCryptocurrencyForTesting()
+	if len(revoked) != 1 {
+		t.Fatal("Expected 1 revoked link.")
+	} else if revoked[0].ToDisplayString() != firstAddress {
+		t.Fatal("Revoked link should correspond to the first address.")
+	}
 }

@@ -1026,6 +1026,16 @@ func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {
 	return ret
 }
 
+func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyChainLink {
+	ret := []CryptocurrencyChainLink{}
+	for _, link := range idt.cryptocurrency {
+		if link.IsRevoked() {
+			ret = append(ret, *link)
+		}
+	}
+	return ret
+}
+
 func (idt *IdentityTable) CollectAndDedupeActiveProofs() {
 	seen := make(map[string]bool)
 	tab := idt.activeProofs
