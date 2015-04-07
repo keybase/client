@@ -173,13 +173,8 @@ func (k *KexFwd) Run(ctx *Context) error {
 }
 
 func (k *KexFwd) Cancel() error {
-	if err := k.rec.Cancel(); err != nil {
-		return err
-	}
-
-	// send a Cancel message to X
 	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
-	return k.server.Cancel(m)
+	return k.cancel(m)
 }
 
 func (k *KexFwd) handleHello(m *kex.Msg) error {

@@ -16,6 +16,7 @@ type KexSib struct {
 	deviceSibkey libkb.GenericKey
 	sigKey       libkb.GenericKey
 	devidY       libkb.DeviceID
+	sec          *kex.Secret
 }
 
 // NewKexSib creates a sibkey add engine.
@@ -73,11 +74,11 @@ func (k *KexSib) Run(ctx *Context) error {
 		return err
 	}
 
-	sec, err := kex.SecretFromPhrase(k.user.GetName(), k.secretPhrase)
+	k.sec, err = kex.SecretFromPhrase(k.user.GetName(), k.secretPhrase)
 	if err != nil {
 		return err
 	}
-	k.server = kex.NewSender(kex.DirectionXtoY, sec.Secret())
+	k.server = kex.NewSender(kex.DirectionXtoY, k.sec.Secret())
 
 	arg := libkb.SecretKeyArg{
 		DeviceKey: true,
@@ -92,12 +93,17 @@ func (k *KexSib) Run(ctx *Context) error {
 	}
 
 	G.Log.Debug("KexSib: starting receive loop")
-	m := kex.NewMeta(k.user.GetUid(), sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
-	err = k.loopReceives(ctx, m, sec)
+	m := kex.NewMeta(k.user.GetUid(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	err = k.loopReceives(ctx, m, k.sec)
 	if err != nil {
 		G.Log.Warning("Error in KEX receive: %s", err.Error())
 	}
 	return err
+}
+
+func (k *KexSib) Cancel() error {
+	m := kex.NewMeta(k.user.GetUid(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
+	return k.cancel(m)
 }
 
 func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error {

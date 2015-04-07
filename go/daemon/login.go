@@ -62,7 +62,9 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		LoginUI:  h.getLoginUI(sessid),
 		GPGUI:    NewRemoteGPGUI(sessid, h.getRpcClient()),
 	}
-	return engine.RunEngine(h.loginEngine, ctx)
+	err := engine.RunEngine(h.loginEngine, ctx)
+	h.loginEngine = nil
+	return err
 }
 
 func (h *LoginHandler) PubkeyLogin() error {

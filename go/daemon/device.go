@@ -9,11 +9,12 @@ import (
 // DeviceHandler is the RPC handler for the device interface.
 type DeviceHandler struct {
 	BaseHandler
+	kexsibEng *engine.KexSib
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
 func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
-	return &DeviceHandler{BaseHandler{xp: xp}}
+	return &DeviceHandler{BaseHandler: BaseHandler{xp: xp}}
 }
 
 func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
@@ -29,6 +30,17 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 func (h *DeviceHandler) DeviceAdd(phrase string) error {
 	sessionID := nextSessionId()
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID)}
-	eng := engine.NewKexSib(G, phrase)
-	return engine.RunEngine(eng, ctx)
+	h.kexsibEng = engine.NewKexSib(G, phrase)
+	err := engine.RunEngine(h.kexsibEng, ctx)
+	h.kexsibEng = nil
+	return err
+}
+
+// DeviceAddCancel stops the device provisioning authorized with
+// DeviceAdd.
+func (h *DeviceHandler) DeviceAddCancel() error {
+	if h.kexsibEng == nil {
+		return nil
+	}
+	return h.kexsibEng.Cancel()
 }

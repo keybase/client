@@ -181,6 +181,10 @@
         "type" : "string"
       } ],
       "response" : "null"
+    },
+    "deviceAddCancel" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }

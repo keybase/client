@@ -6,4 +6,7 @@ protocol device {
 	array<Device> deviceList(int sessionID);
 	
 	void deviceAdd(string secretPhrase);
+
+	// deviceAddCancel cancels an in-progress deviceAdd(...)
+	void deviceAddCancel();
 }

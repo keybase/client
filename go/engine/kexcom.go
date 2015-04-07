@@ -72,3 +72,10 @@ func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCod
 		k.G().Log.Debug("send KexStatus error: %s", err)
 	}
 }
+
+func (k *KexCom) cancel(m *kex.Meta) error {
+	if err := k.rec.Cancel(); err != nil {
+		return err
+	}
+	return k.server.Cancel(m)
+}

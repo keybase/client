@@ -325,9 +325,13 @@ type DeviceAddArg struct {
 	SecretPhrase string `codec:"secretPhrase" json:"secretPhrase"`
 }
 
+type DeviceAddCancelArg struct {
+}
+
 type DeviceInterface interface {
 	DeviceList(int) ([]Device, error)
 	DeviceAdd(string) error
+	DeviceAddCancel() error
 }
 
 func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
@@ -345,6 +349,13 @@ func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
 				args := make([]DeviceAddArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DeviceAdd(args[0].SecretPhrase)
+				}
+				return
+			},
+			"deviceAddCancel": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeviceAddCancelArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DeviceAddCancel()
 				}
 				return
 			},
@@ -366,6 +377,11 @@ func (c DeviceClient) DeviceList(sessionID int) (res []Device, err error) {
 func (c DeviceClient) DeviceAdd(secretPhrase string) (err error) {
 	__arg := DeviceAddArg{SecretPhrase: secretPhrase}
 	err = c.Cli.Call("keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
+	return
+}
+
+func (c DeviceClient) DeviceAddCancel() (err error) {
+	err = c.Cli.Call("keybase.1.device.deviceAddCancel", []interface{}{DeviceAddCancelArg{}}, nil)
 	return
 }
 

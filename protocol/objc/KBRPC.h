@@ -125,6 +125,8 @@
 
 - (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
 
+- (void)deviceAddCancel:(void (^)(NSError *error))completion;
+
 @end
 
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
