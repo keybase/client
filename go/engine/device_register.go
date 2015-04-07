@@ -1,6 +1,10 @@
 package engine
 
-import "github.com/keybase/client/go/libkb"
+import (
+	"errors"
+
+	"github.com/keybase/client/go/libkb"
+)
 
 type DeviceRegisterArgs struct {
 	Me   *libkb.User
@@ -12,6 +16,8 @@ type DeviceRegister struct {
 	args     *DeviceRegisterArgs
 	deviceID libkb.DeviceID
 }
+
+var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
 func NewDeviceRegister(args *DeviceRegisterArgs) *DeviceRegister {
 	return &DeviceRegister{args: args}

@@ -15,8 +15,8 @@ type SignupEngine struct {
 	signingKey libkb.GenericKey
 	arg        *SignupEngineRunArg
 	lks        *libkb.LKSec
-	deviceID   libkb.DeviceID
 	libkb.Contextified
+	//	deviceID   libkb.DeviceID
 }
 
 type SignupEngineRunArg struct {
@@ -50,9 +50,10 @@ func (e *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewDeviceEngine(nil, nil, nil),
-		NewDetKeyEngine(nil),
-		NewGPGImportKeyEngine(nil),
+		&DetKeyEngine{},
+		&GPGImportKeyEngine{},
+		&DeviceRegister{},
+		&DevKeygen{},
 	}
 }
 
@@ -92,12 +93,17 @@ func (s *SignupEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
-		return err
-	}
+	/*
+		if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
+			return err
+		}
 
-	if err := s.genDeviceKeys(ctx, s.arg.DeviceName); err != nil {
-		return fmt.Errorf("genDeviceKeys err: %s", err)
+		if err := s.genDeviceKeys(ctx, s.arg.DeviceName); err != nil {
+			return fmt.Errorf("genDeviceKeys err: %s", err)
+		}
+	*/
+	if err := s.registerDevicePrime(ctx, s.arg.DeviceName); err != nil {
+		return err
 	}
 
 	if err := s.genDetKeys(ctx); err != nil {
@@ -154,6 +160,24 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 	return nil
 }
 
+func (s *SignupEngine) registerDevicePrime(ctx *Context, deviceName string) error {
+	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.G())
+	args := &DeviceWrapArgs{
+		Me:         s.me,
+		DeviceName: deviceName,
+		Lks:        s.lks,
+		IsEldest:   true,
+	}
+	eng := NewDeviceWrap(args)
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+	s.signingKey = eng.SigningKey()
+
+	return nil
+}
+
+/*
 func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.G())
 	args := &DeviceRegisterArgs{
@@ -161,27 +185,36 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 		Name: deviceName,
 		Lks:  s.lks,
 	}
-	G.Log.Info("lks before run: %+v", s.lks)
 	eng := NewDeviceRegister(args)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
-	G.Log.Info("lks after run: %+v", s.lks)
 	s.deviceID = eng.DeviceID()
 	return nil
 }
 
 func (s *SignupEngine) genDeviceKeys(ctx *Context, deviceName string) error {
-	G.Log.Info("lks before kegen: %+v", s.lks)
-	args := NewDeviceKeygenArgsEldest(s.me, s.lks, s.deviceID, deviceName)
-	eng := NewDeviceKeygen(args)
+	args := &DevKeygenArgs{
+		Me:         s.me,
+		DeviceID:   s.deviceID,
+		DeviceName: deviceName,
+		Lks:        s.lks,
+	}
+	eng := NewDevKeygen(args)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 
-	s.signingKey = eng.EldestKey()
+	// normal signup, so push the device keys right away.  This is the
+	// eldest device.
+	if err := eng.Push(ctx, &DevKeygenPushArgs{IsEldest: true}); err != nil {
+		return err
+	}
+
+	s.signingKey = eng.SigningKey()
 	return nil
 }
+*/
 
 func (s *SignupEngine) genDetKeys(ctx *Context) error {
 	arg := &DetKeyArgs{

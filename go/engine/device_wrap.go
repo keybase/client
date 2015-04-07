@@ -1,0 +1,94 @@
+package engine
+
+import (
+	"github.com/keybase/client/go/libkb"
+)
+
+// DeviceWrap is an engine that wraps DeviceRegister and
+// DeviceKeygen.
+type DeviceWrap struct {
+	args *DeviceWrapArgs
+
+	signingKey libkb.GenericKey
+}
+
+type DeviceWrapArgs struct {
+	Me         *libkb.User
+	DeviceName string
+	Lks        *libkb.LKSec
+	IsEldest   bool
+	Signer     libkb.GenericKey
+	EldestKID  libkb.KID
+}
+
+// NewDeviceWrap creates a DeviceWrap engine.
+func NewDeviceWrap(args *DeviceWrapArgs) *DeviceWrap {
+	return &DeviceWrap{args: args}
+}
+
+// Name is the unique engine name.
+func (e *DeviceWrap) Name() string {
+	return "DeviceWrap"
+}
+
+// GetPrereqs returns the engine prereqs.
+func (e *DeviceWrap) GetPrereqs() EnginePrereqs {
+	return EnginePrereqs{}
+}
+
+// RequiredUIs returns the required UIs.
+func (e *DeviceWrap) RequiredUIs() []libkb.UIKind {
+	return []libkb.UIKind{}
+}
+
+// SubConsumers returns the other UI consumers for this engine.
+func (e *DeviceWrap) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{
+		&DeviceRegister{},
+		&DevKeygen{},
+	}
+}
+
+// Run starts the engine.
+func (e *DeviceWrap) Run(ctx *Context) error {
+	regArgs := &DeviceRegisterArgs{
+		Me:   e.args.Me,
+		Name: e.args.DeviceName,
+		Lks:  e.args.Lks,
+	}
+	regEng := NewDeviceRegister(regArgs)
+	if err := RunEngine(regEng, ctx); err != nil {
+		return err
+	}
+
+	deviceID := regEng.DeviceID()
+
+	kgArgs := &DevKeygenArgs{
+		Me:         e.args.Me,
+		DeviceID:   deviceID,
+		DeviceName: e.args.DeviceName,
+		Lks:        e.args.Lks,
+	}
+
+	kgEng := NewDevKeygen(kgArgs)
+	if err := RunEngine(kgEng, ctx); err != nil {
+		return err
+	}
+
+	pargs := &DevKeygenPushArgs{
+		IsEldest:  e.args.IsEldest,
+		Signer:    e.args.Signer,
+		EldestKID: e.args.EldestKID,
+	}
+	if err := kgEng.Push(ctx, pargs); err != nil {
+		return err
+	}
+
+	e.signingKey = kgEng.SigningKey()
+
+	return nil
+}
+
+func (e *DeviceWrap) SigningKey() libkb.GenericKey {
+	return e.signingKey
+}

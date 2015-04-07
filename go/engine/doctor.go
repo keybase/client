@@ -9,10 +9,10 @@ import (
 )
 
 type Doctor struct {
-	user            *libkb.User
-	signingKey      libkb.GenericKey
-	newDeviceSibkey libkb.GenericKey
-	devName         string
+	user       *libkb.User
+	signingKey libkb.GenericKey
+	devName    string
+	lks        *libkb.LKSec
 	libkb.Contextified
 }
 
@@ -156,17 +156,33 @@ func (d *Doctor) addDeviceKey(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	args := DeviceEngineArgs{
-		Name:          devname,
-		LksClientHalf: tk.LksClientHalf(),
+	/*
+		args := DeviceEngineArgs{
+			Name:          devname,
+			LksClientHalf: tk.LksClientHalf(),
+		}
+		eng := NewDeviceEngine(d.user, &args)
+		if err := RunEngine(eng, ctx); err != nil {
+			return err
+		}
+
+		d.signingKey = eng.EldestKey()
+	*/
+
+	d.lks = libkb.NewLKSec(tk.LksClientHalf(), d.G())
+	args := &DeviceWrapArgs{
+		Me:         d.user,
+		DeviceName: devname,
+		Lks:        d.lks,
+		IsEldest:   true,
 	}
-	eng := NewDeviceEngine(d.user, &args, d.G())
+	eng := NewDeviceWrap(args)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 
-	// XXX get this from reply?
-	d.signingKey = eng.EldestKey()
+	d.signingKey = eng.SigningKey()
+
 	return nil
 }
 
@@ -179,19 +195,30 @@ func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, e
 	if err != nil {
 		return err
 	}
-	args := DeviceEngineArgs{
-		Name:          devname,
-		LksClientHalf: tk.LksClientHalf(),
-		Signer:        signer,
-		EldestKID:     eldestKID,
+	d.lks = libkb.NewLKSec(tk.LksClientHalf(), d.G())
+	/*
+		args := DeviceEngineArgs{
+			Name:          devname,
+			LksClientHalf: tk.LksClientHalf(),
+			Signer:        signer,
+			EldestKID:     eldestKID,
+		}
+		eng := NewDeviceEngine(d.user, &args)
+	*/
+	args := &DeviceWrapArgs{
+		Me:         d.user,
+		DeviceName: devname,
+		Lks:        d.lks,
+		IsEldest:   false,
+		Signer:     signer,
+		EldestKID:  eldestKID,
 	}
-	eng := NewDeviceEngine(d.user, &args, d.G())
+	eng := NewDeviceWrap(args)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
 
-	d.signingKey = signer
-	d.newDeviceSibkey = eng.GetNewSibkey()
+	d.signingKey = eng.SigningKey()
 	return nil
 }
 
@@ -200,14 +227,16 @@ func (d *Doctor) addDetKey(ctx *Context, eldest libkb.KID) error {
 	if err != nil {
 		return err
 	}
-	sk := d.newDeviceSibkey
-	if sk == nil {
-		sk = d.signingKey
-	}
+	/*
+		sk := d.newDeviceSibkey
+		if sk == nil {
+			sk = d.signingKey
+		}
+	*/
 	arg := &DetKeyArgs{
 		Tsp:         tk,
 		Me:          d.user,
-		SigningKey:  sk,
+		SigningKey:  d.signingKey,
 		EldestKeyID: eldest,
 	}
 	eng := NewDetKeyEngine(arg)

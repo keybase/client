@@ -1,13 +1,10 @@
 package engine
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 )
-
-var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
 // when device is the eldest key:
 //    use args Name, LksClientHalf

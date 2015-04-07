@@ -76,7 +76,8 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		t.Fatal(err)
 	}
 
-	s.registerDevice(ctx, "pgp device")
+	// s.registerDevice(ctx, "pgp device")
+	s.fakeLKS()
 
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.

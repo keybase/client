@@ -159,7 +159,6 @@ func (s *LKSec) apiServerHalf(devid *DeviceID) error {
 	if err := RunSyncer(ss, s.uid); err != nil {
 		return err
 	}
-	ss.DumpPrivateKeys()
 	dev, err := ss.FindDevice(devid)
 	if err != nil {
 		return err
