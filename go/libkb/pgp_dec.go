@@ -59,7 +59,9 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 	if md.IsSigned {
 		status.IsSigned = true
 		status.KeyID = md.SignedByKeyId
-		status.Entity = md.SignedBy.Entity
+		if md.SignedBy != nil {
+			status.Entity = md.SignedBy.Entity
+		}
 		if md.SignatureError != nil {
 			status.SignatureError = md.SignatureError
 		} else {

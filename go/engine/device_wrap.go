@@ -45,7 +45,7 @@ func (e *DeviceWrap) RequiredUIs() []libkb.UIKind {
 func (e *DeviceWrap) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceRegister{},
-		&DevKeygen{},
+		&DeviceKeygen{},
 	}
 }
 
@@ -63,19 +63,19 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 
 	deviceID := regEng.DeviceID()
 
-	kgArgs := &DevKeygenArgs{
+	kgArgs := &DeviceKeygenArgs{
 		Me:         e.args.Me,
 		DeviceID:   deviceID,
 		DeviceName: e.args.DeviceName,
 		Lks:        e.args.Lks,
 	}
 
-	kgEng := NewDevKeygen(kgArgs)
+	kgEng := NewDeviceKeygen(kgArgs)
 	if err := RunEngine(kgEng, ctx); err != nil {
 		return err
 	}
 
-	pargs := &DevKeygenPushArgs{
+	pargs := &DeviceKeygenPushArgs{
 		IsEldest:  e.args.IsEldest,
 		Signer:    e.args.Signer,
 		EldestKID: e.args.EldestKID,

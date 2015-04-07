@@ -51,8 +51,7 @@ func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DetKeyEngine{},
 		&GPGImportKeyEngine{},
-		&DeviceRegister{},
-		&DevKeygen{},
+		&DeviceWrap{},
 	}
 }
 

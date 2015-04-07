@@ -11,37 +11,41 @@ type DeviceKeygenArgs struct {
 	DeviceID   libkb.DeviceID
 	DeviceName string
 	Lks        *libkb.LKSec
-	NeedEldest bool
-	Signer     libkb.GenericKey
-	EldestKID  libkb.KID
 }
 
-// NewDeviceKeygenArgsEldest creates the args for the engine when
-// it is generating keys for the eldest device in the chain.
-func NewDeviceKeygenArgsEldest(me *libkb.User, lks *libkb.LKSec, devid libkb.DeviceID, devname string) *DeviceKeygenArgs {
-	args := newDeviceKeygenArgs(me, lks, devid, devname)
-	args.NeedEldest = true
-	return args
+// DeviceKeygenPushArgs determines how the push will run.  There are
+// currently three different paths it can take:
+//
+// 1. this device is the eldest device:  pushes eldest signing
+// key, encryption subkey. (IsEldest => true)
+//
+// 2. this device is a sibling (but we're not in a key exchange
+// scenario):  pushes sibkey signing key, encryption subkey.
+// (IsEldest => False, SkipSignerPush => false, Signer != nil,
+// EldestKID != nil)
+//
+// 3. this device is a sibling, but another device pushed
+// the signing key, so skip that part.
+// (IsEldest => False, SkipSignerPush => true, Signer != nil,
+// EldestKID != nil)
+//
+type DeviceKeygenPushArgs struct {
+	IsEldest       bool
+	SkipSignerPush bool
+	Signer         libkb.GenericKey
+	EldestKID      libkb.KID
 }
 
-// NewDeviceKeygenArgsSibkey creates the args for the engine when
-// it is generating keys for a sibling device in the chain.
-func NewDeviceKeygenArgsSibling(me *libkb.User, lks *libkb.LKSec, devid libkb.DeviceID, devname string, signer libkb.GenericKey, eldestKID libkb.KID) *DeviceKeygenArgs {
-	args := newDeviceKeygenArgs(me, lks, devid, devname)
-	args.Signer = signer
-	args.EldestKID = eldestKID
-	return args
-}
-
-func newDeviceKeygenArgs(me *libkb.User, lks *libkb.LKSec, devid libkb.DeviceID, devname string) *DeviceKeygenArgs {
-	return &DeviceKeygenArgs{Me: me, Lks: lks, DeviceID: devid, DeviceName: devname}
-}
-
-// DeviceKeygen is an engine.
 type DeviceKeygen struct {
-	args      *DeviceKeygenArgs
-	eldestKey libkb.NaclKeyPair
-	newSibkey libkb.NaclKeyPair
+	args *DeviceKeygenArgs
+
+	runErr  error
+	pushErr error
+
+	naclSignArg *libkb.NaclKeyGenArg
+	naclSignGen *libkb.NaclKeyGen
+	naclEncArg  *libkb.NaclKeyGenArg
+	naclEncGen  *libkb.NaclKeyGen
 }
 
 // NewDeviceKeygen creates a DeviceKeygen engine.
@@ -73,90 +77,146 @@ func (e *DeviceKeygen) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeygen) Run(ctx *Context) error {
-	var signer libkb.GenericKey
-	eldestKID := e.args.EldestKID
-	if e.args.NeedEldest {
-		if err := e.pushEldestKey(ctx); err != nil {
-			return err
-		}
-		signer = e.eldestKey
-		eldestKID = e.eldestKey.GetKid()
+	e.setup(ctx)
+	e.generate()
+	e.localSave()
+	return e.runErr
+}
+
+func (e *DeviceKeygen) SigningKeyPublic() (libkb.NaclSigningKeyPublic, error) {
+	s, ok := e.naclSignGen.GetKeyPair().(libkb.NaclSigningKeyPair)
+	if !ok {
+		return libkb.NaclSigningKeyPublic{}, libkb.BadKeyError{Msg: fmt.Sprintf("invalid key type %T", e.naclSignGen.GetKeyPair())}
+	}
+	return s.Public, nil
+
+}
+
+func (e *DeviceKeygen) SigningKey() libkb.NaclKeyPair {
+	return e.naclSignGen.GetKeyPair()
+}
+
+// Push pushes the generated keys to the api server and stores the
+// local key security server half on the api server as well.
+func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
+	var encSigner libkb.GenericKey
+	eldestKID := pargs.EldestKID
+
+	// push the signing key
+	if pargs.IsEldest {
+		e.pushEldest(pargs)
+		encSigner = e.naclSignGen.GetKeyPair()
+		eldestKID = encSigner.GetKid()
+	} else if !pargs.SkipSignerPush {
+		e.pushSibkey(pargs)
+		encSigner = e.naclSignGen.GetKeyPair()
 	} else {
-		var err error
-		if signer, err = e.pushSibKey(ctx, e.args.Signer, e.args.EldestKID); err != nil {
-			return err
-		}
+		encSigner = pargs.Signer
 	}
 
-	if err := e.pushDHKey(ctx, signer, eldestKID); err != nil {
-		return err
-	}
+	// push the encryption key
+	e.pushEncKey(encSigner, eldestKID)
 
-	if err := e.pushLocalKeySec(); err != nil {
-		return err
-	}
+	// push the LKS server half
+	e.pushLKS()
 
-	// Sync the LKS stuff back from the server, so that subsequent
-	// attempts to use public key login will work.
-	if err := libkb.RunSyncer(G.SecretSyncer, e.args.Me.GetUid().P()); err != nil {
-		return fmt.Errorf("runsync err: %s", err)
-	}
-
-	return nil
+	return e.pushErr
 }
 
-func (d *DeviceKeygen) EldestKey() libkb.GenericKey {
-	return d.eldestKey
+func (e *DeviceKeygen) setup(ctx *Context) {
+	if e.runErr != nil {
+		return
+	}
+
+	e.naclSignArg = e.newNaclArg(ctx, libkb.GenerateNaclSigningKeyPair, libkb.NACL_EDDSA_EXPIRE_IN)
+	e.naclSignGen = libkb.NewNaclKeyGen(e.naclSignArg)
+
+	e.naclEncArg = e.newNaclArg(ctx, libkb.GenerateNaclDHKeyPair, libkb.NACL_DH_EXPIRE_IN)
+	e.naclEncGen = libkb.NewNaclKeyGen(e.naclEncArg)
 }
 
-func (e *DeviceKeygen) pushEldestKey(ctx *Context) error {
-	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
-		Generator: libkb.GenerateNaclSigningKeyPair,
-		Me:        e.args.Me,
-		ExpireIn:  libkb.NACL_EDDSA_EXPIRE_IN,
+func (e *DeviceKeygen) generate() {
+	if e.runErr != nil {
+		return
+	}
+
+	if e.runErr = e.naclSignGen.Generate(); e.runErr != nil {
+		return
+	}
+
+	if e.runErr = e.naclEncGen.Generate(); e.runErr != nil {
+		return
+	}
+}
+
+func (e *DeviceKeygen) localSave() {
+	if e.runErr != nil {
+		return
+	}
+
+	if e.runErr = e.naclSignGen.SaveLKS(e.args.Lks); e.runErr != nil {
+		return
+	}
+	if e.runErr = e.naclEncGen.SaveLKS(e.args.Lks); e.runErr != nil {
+		return
+	}
+}
+
+func (e *DeviceKeygen) pushEldest(pargs *DeviceKeygenPushArgs) {
+	if e.pushErr != nil {
+		return
+	}
+	_, e.pushErr = e.naclSignGen.Push()
+}
+
+func (e *DeviceKeygen) pushSibkey(pargs *DeviceKeygenPushArgs) {
+	if e.pushErr != nil {
+		return
+	}
+
+	e.naclSignArg.Signer = pargs.Signer
+	e.naclSignArg.EldestKeyID = pargs.EldestKID
+	e.naclSignArg.Sibkey = true
+	_, e.pushErr = e.naclSignGen.Push()
+}
+
+func (e *DeviceKeygen) pushEncKey(signer libkb.GenericKey, eldestKID libkb.KID) {
+	if e.pushErr != nil {
+		return
+	}
+	e.naclEncArg.Signer = signer
+	e.naclEncArg.EldestKeyID = eldestKID
+	_, e.pushErr = e.naclEncGen.Push()
+}
+
+func (e *DeviceKeygen) pushLKS() {
+	if e.pushErr != nil {
+		return
+	}
+
+	if e.args.Lks == nil {
+		e.pushErr = fmt.Errorf("no local key security set")
+		return
+	}
+
+	serverHalf := e.args.Lks.GetServerHalf()
+	if len(serverHalf) == 0 {
+		e.pushErr = fmt.Errorf("LKS server half is empty, and should not be")
+		return
+	}
+
+	// send it to api server
+	e.pushErr = libkb.PostDeviceLKS(e.args.DeviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
+}
+
+func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) *libkb.NaclKeyGenArg {
+	return &libkb.NaclKeyGenArg{
+		Generator: gen,
 		Device:    e.device(),
+		Me:        e.args.Me,
+		ExpireIn:  expire,
 		LogUI:     ctx.LogUI,
-	})
-	err := gen.RunLKS(e.args.Lks)
-	if err != nil {
-		return err
 	}
-	e.eldestKey = gen.GetKeyPair()
-	return nil
-}
-
-func (e *DeviceKeygen) pushSibKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) (libkb.GenericKey, error) {
-	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
-		Signer:      signer,
-		EldestKeyID: eldestKID,
-		Generator:   libkb.GenerateNaclSigningKeyPair,
-		Sibkey:      true,
-		Me:          e.args.Me,
-		ExpireIn:    libkb.NACL_EDDSA_EXPIRE_IN,
-		Device:      e.device(),
-		LogUI:       ctx.LogUI,
-	})
-	err := gen.RunLKS(e.args.Lks)
-	if err != nil {
-		return nil, err
-	}
-	e.newSibkey = gen.GetKeyPair()
-	return e.newSibkey, nil
-}
-
-func (e *DeviceKeygen) pushDHKey(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
-	gen := libkb.NewNaclKeyGen(&libkb.NaclKeyGenArg{
-		Signer:      signer,
-		EldestKeyID: eldestKID,
-		Generator:   libkb.GenerateNaclDHKeyPair,
-		Sibkey:      false,
-		Me:          e.args.Me,
-		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
-		Device:      e.device(),
-		LogUI:       ctx.LogUI,
-	})
-
-	return gen.RunLKS(e.args.Lks)
 }
 
 func (e *DeviceKeygen) device() *libkb.Device {
@@ -167,21 +227,4 @@ func (e *DeviceKeygen) device() *libkb.Device {
 		Type:        libkb.DEVICE_TYPE_DESKTOP,
 		Status:      &s,
 	}
-}
-
-func (d *DeviceKeygen) pushLocalKeySec() error {
-	if d.args.Lks == nil {
-		return fmt.Errorf("no local key security set")
-	}
-
-	serverHalf := d.args.Lks.GetServerHalf()
-	if serverHalf == nil {
-		return fmt.Errorf("LKS server half is nil, and should not be")
-	}
-	if len(serverHalf) == 0 {
-		return fmt.Errorf("LKS server half is empty, and should not be")
-	}
-
-	// send it to api server
-	return libkb.PostDeviceLKS(d.args.DeviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }

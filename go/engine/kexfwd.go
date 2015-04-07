@@ -116,13 +116,13 @@ func (k *KexFwd) Run(ctx *Context) error {
 		return err
 	}
 
-	dkargs := &DevKeygenArgs{
+	dkargs := &DeviceKeygenArgs{
 		Me:         k.user,
 		DeviceID:   k.deviceID,
 		DeviceName: k.args.DevDesc,
 		Lks:        k.lks,
 	}
-	dkeng := NewDevKeygen(dkargs)
+	dkeng := NewDeviceKeygen(dkargs)
 	if err := RunEngine(dkeng, ctx); err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 
 	// push the dh key as a subkey to the server
 	k.G().Log.Debug("KexFwd: pushing subkey")
-	pargs := &DevKeygenPushArgs{
+	pargs := &DeviceKeygenPushArgs{
 		SkipSignerPush: true,
 		Signer:         dkeng.SigningKey(),
 		EldestKID:      k.user.GetEldestFOKID().Kid,

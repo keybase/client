@@ -37,8 +37,8 @@ func (d *Doctor) RequiredUIs() []libkb.UIKind {
 
 func (d *Doctor) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewDeviceEngine(nil, nil, nil),
-		NewDetKeyEngine(nil),
+		&DeviceWrap{},
+		&DetKeyEngine{},
 	}
 }
 
