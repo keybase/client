@@ -50,7 +50,7 @@ func (k *KexCom) poll(m *kex.Meta, secret *kex.Secret) {
 }
 
 func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex.Msg) error) error {
-	k.G().Log.Debug("%s: waiting for %s", k.debugName, name)
+	k.G().Log.Debug("%s: waiting for %s (%s)", k.debugName, name, timeout)
 	msg, err := k.rec.Next(name, timeout)
 	k.G().Log.Debug("%s: got message %s", k.debugName, name)
 	if err != nil {

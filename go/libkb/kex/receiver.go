@@ -28,6 +28,7 @@ type Receiver struct {
 	seen      map[string]bool
 	secret    *Secret
 	Msgs      chan *Msg
+	done      bool
 }
 
 // NewReceiver creates a Receiver that will route messages to the
@@ -44,6 +45,11 @@ func (r *Receiver) Poll(m *Meta) {
 	for {
 		_, err := r.Receive(m)
 		if err == ErrProtocolEOF {
+			G.Log.Debug("polling stopping due to EOF")
+			return
+		}
+		if r.done {
+			G.Log.Debug("polling stopping due to done flag")
 			return
 		}
 	}
@@ -54,17 +60,23 @@ func (r *Receiver) Poll(m *Meta) {
 // timeout, it will return libkb.ErrTimeout.  If the channel is
 // closed, it will return ErrProtocolEOF.
 func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
-	start := time.Now()
-	for m := range r.Msgs {
-		if m.Name() == name {
-			return m, nil
-		}
-		G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name, name)
-		if time.Since(start) > timeout {
+	for {
+		select {
+		case m, ok := <-r.Msgs:
+			if !ok {
+				r.done = true
+				return nil, ErrProtocolEOF
+			}
+			if m.Name() == name {
+				return m, nil
+			}
+			G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name, name)
+		case <-time.After(timeout):
+			G.Log.Info("timed out waiting for message %s", name)
+			r.done = true
 			return nil, libkb.ErrTimeout
 		}
 	}
-	return nil, ErrProtocolEOF
 }
 
 // Receive gets the next set of messages from the server and

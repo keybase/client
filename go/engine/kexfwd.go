@@ -147,7 +147,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 	}
 
 	// wait for Done() from X
-	if err := k.next(kex.DoneMsg, kex.StartTimeout, k.handleDone); err != nil {
+	if err := k.next(kex.DoneMsg, kex.IntraTimeout, k.handleDone); err != nil {
 		return err
 	}
 
