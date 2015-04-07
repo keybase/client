@@ -395,6 +395,24 @@ type SelectSignerRes struct {
 	Signer *DeviceSigner      `codec:"signer,omitempty" json:"signer"`
 }
 
+type KexStatusCode int
+
+const (
+	KexStatusCode_START_SEND           = 0
+	KexStatusCode_HELLO_WAIT           = 1
+	KexStatusCode_HELLO_RECEIVED       = 2
+	KexStatusCode_PLEASE_SIGN_SEND     = 3
+	KexStatusCode_DONE_WAIT            = 4
+	KexStatusCode_DONE_RECEIVED        = 5
+	KexStatusCode_START_WAIT           = 6
+	KexStatusCode_START_RECEIVED       = 7
+	KexStatusCode_HELLO_SEND           = 8
+	KexStatusCode_PLEASE_SIGN_WAIT     = 9
+	KexStatusCode_PLEASE_SIGN_RECEIVED = 10
+	KexStatusCode_DONE_SEND            = 11
+	KexStatusCode_END                  = 12
+)
+
 type PromptDeviceNameArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -412,10 +430,17 @@ type DisplaySecretWordsArg struct {
 	DeviceNameToAdd    string `codec:"deviceNameToAdd" json:"deviceNameToAdd"`
 }
 
+type KexStatusArg struct {
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	Msg       string        `codec:"msg" json:"msg"`
+	Code      KexStatusCode `codec:"code" json:"code"`
+}
+
 type DoctorUiInterface interface {
 	PromptDeviceName(int) (string, error)
 	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
 	DisplaySecretWords(DisplaySecretWordsArg) error
+	KexStatus(KexStatusArg) error
 }
 
 func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
@@ -443,6 +468,13 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"kexStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]KexStatusArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.KexStatus(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -465,6 +497,11 @@ func (c DoctorUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes
 
 func (c DoctorUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
 	err = c.Cli.Call("keybase.1.doctorUi.displaySecretWords", []interface{}{__arg}, nil)
+	return
+}
+
+func (c DoctorUiClient) KexStatus(__arg KexStatusArg) (err error) {
+	err = c.Cli.Call("keybase.1.doctorUi.kexStatus", []interface{}{__arg}, nil)
 	return
 }
 

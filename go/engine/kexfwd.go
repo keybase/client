@@ -102,17 +102,19 @@ func (k *KexFwd) Run(ctx *Context) error {
 	if err := ctx.DoctorUI.DisplaySecretWords(darg); err != nil {
 		return err
 	}
-
 	// start the kex session with X
 	k.G().Log.Debug("KexFwd: sending StartKexSession to X")
+	k.kexStatus(ctx, "sending StartKexSession to X", keybase_1.KexStatusCode_START_SEND)
 	if err := k.server.StartKexSession(m, k.secret.StrongID()); err != nil {
 		return err
 	}
 
 	// wait for Hello() from X
+	k.kexStatus(ctx, "waiting for Hello from X", keybase_1.KexStatusCode_HELLO_WAIT)
 	if err := k.next(kex.HelloMsg, kex.StartTimeout, k.handleHello); err != nil {
 		return err
 	}
+	k.kexStatus(ctx, "received Hello from X", keybase_1.KexStatusCode_HELLO_RECEIVED)
 
 	dkargs := &DeviceKeygenArgs{
 		Me:         k.user,
@@ -140,14 +142,17 @@ func (k *KexFwd) Run(ctx *Context) error {
 	m.Sender = k.deviceID
 	m.Receiver = k.args.Dst
 	k.G().Log.Debug("KexFwd: sending PleaseSign to X")
+	k.kexStatus(ctx, "sending PleaseSign to X", keybase_1.KexStatusCode_PLEASE_SIGN_SEND)
 	if err := k.server.PleaseSign(m, signerPub, rsig, k.args.DevType, k.args.DevDesc); err != nil {
 		return err
 	}
 
 	// wait for Done() from X
+	k.kexStatus(ctx, "waiting for Done from X", keybase_1.KexStatusCode_DONE_WAIT)
 	if err := k.next(kex.DoneMsg, kex.IntraTimeout, k.handleDone); err != nil {
 		return err
 	}
+	k.kexStatus(ctx, "received Done from X", keybase_1.KexStatusCode_DONE_RECEIVED)
 
 	// push the dh key as a subkey to the server
 	k.G().Log.Debug("KexFwd: pushing subkey")
@@ -161,6 +166,9 @@ func (k *KexFwd) Run(ctx *Context) error {
 	}
 
 	k.wg.Wait()
+
+	k.kexStatus(ctx, "kexfwd complete on new device Y", keybase_1.KexStatusCode_END)
+
 	return nil
 }
 

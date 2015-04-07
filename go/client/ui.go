@@ -574,6 +574,11 @@ func (d DoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error 
 	return nil
 }
 
+func (d DoctorUI) KexStatus(arg keybase_1.KexStatusArg) error {
+	G.Log.Debug("kex status: %s (%d)", arg.Msg, arg.Code)
+	return nil
+}
+
 //============================================================
 
 type LoginUI struct {

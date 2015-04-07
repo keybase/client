@@ -326,6 +326,10 @@ func (l *ldocui) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
 	return nil
 }
 
+func (l *ldocui) KexStatus(arg keybase_1.KexStatusArg) error {
+	return nil
+}
+
 type ldocuiPGP struct {
 	*ldocui
 }

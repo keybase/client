@@ -38,4 +38,25 @@ protocol doctorUi {
 	// displaySecretWords is for device provisioning when device Y (new device) gives 
 	// instructions containing the secret words to enter on device X (existing device).
 	void displaySecretWords(int sessionID, string secret, string deviceNameExisting, string deviceNameToAdd);
+
+	enum KexStatusCode {
+		// Device Y (new device) statuses:
+		START_SEND,
+		HELLO_WAIT,
+		HELLO_RECEIVED,
+		PLEASE_SIGN_SEND,
+		DONE_WAIT,
+		DONE_RECEIVED,
+		// Device X (existing device) statuses:
+		START_WAIT,
+		START_RECEIVED,
+		HELLO_SEND,
+		PLEASE_SIGN_WAIT,
+		PLEASE_SIGN_RECEIVED,
+		DONE_SEND,
+		// Common:
+		END
+	}
+
+	void kexStatus(int sessionID, string msg, KexStatusCode code);
 }

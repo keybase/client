@@ -97,3 +97,8 @@ func (r *RemoteDoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg)
 	arg.SessionID = r.sessionId
 	return r.uicli.DisplaySecretWords(arg)
 }
+
+func (r *RemoteDoctorUI) KexStatus(arg keybase_1.KexStatusArg) error {
+	arg.SessionID = r.sessionId
+	return r.uicli.KexStatus(arg)
+}

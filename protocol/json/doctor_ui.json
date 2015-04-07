@@ -194,6 +194,10 @@
       "name" : "signer",
       "type" : [ "null", "DeviceSigner" ]
     } ]
+  }, {
+    "type" : "enum",
+    "name" : "KexStatusCode",
+    "symbols" : [ "START_SEND", "HELLO_WAIT", "HELLO_RECEIVED", "PLEASE_SIGN_SEND", "DONE_WAIT", "DONE_RECEIVED", "START_WAIT", "START_RECEIVED", "HELLO_SEND", "PLEASE_SIGN_WAIT", "PLEASE_SIGN_RECEIVED", "DONE_SEND", "END" ]
   } ],
   "messages" : {
     "promptDeviceName" : {
@@ -232,6 +236,19 @@
       }, {
         "name" : "deviceNameToAdd",
         "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "kexStatus" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "msg",
+        "type" : "string"
+      }, {
+        "name" : "code",
+        "type" : "KexStatusCode"
       } ],
       "response" : "null"
     }

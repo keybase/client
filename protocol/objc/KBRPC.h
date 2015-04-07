@@ -147,12 +147,29 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @property KBRDeviceSigner *signer;
 @end
 
+typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
+	KBRKexStatusCodeStartSend,
+	KBRKexStatusCodeHelloWait,
+	KBRKexStatusCodeHelloReceived,
+	KBRKexStatusCodePleaseSignSend,
+	KBRKexStatusCodeDoneWait,
+	KBRKexStatusCodeDoneReceived,
+	KBRKexStatusCodeStartWait,
+	KBRKexStatusCodeStartReceived,
+	KBRKexStatusCodeHelloSend,
+	KBRKexStatusCodePleaseSignWait,
+	KBRKexStatusCodePleaseSignReceived,
+	KBRKexStatusCodeDoneSend,
+	KBRKexStatusCodeEnd,
+};
 @interface KBRDoctorUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
 - (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion;
+
+- (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -678,6 +695,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *secret;
 @property NSString *deviceNameExisting;
 @property NSString *deviceNameToAdd;
+@end
+@interface KBRKexStatusRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *msg;
+@property KBRKexStatusCode code;
 @end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;

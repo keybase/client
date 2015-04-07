@@ -195,6 +195,13 @@
   }];
 }
 
+- (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"code": @(code)}];
+  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.kexStatus" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRGPGKey
@@ -1083,6 +1090,19 @@
     self.secret = params[0][@"secret"];
     self.deviceNameExisting = params[0][@"deviceNameExisting"];
     self.deviceNameToAdd = params[0][@"deviceNameToAdd"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRKexStatusRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.code = [params[0][@"code"] integerValue];
   }
   return self;
 }

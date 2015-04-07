@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 // KexCom contains common functions for all kex engines.  It
@@ -63,4 +64,11 @@ func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex
 	}
 	k.G().Log.Debug("%s: dispatching message to handler: %s", k.debugName, name)
 	return handler(msg)
+}
+
+func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCode) {
+	if err := ctx.DoctorUI.KexStatus(keybase_1.KexStatusArg{Msg: msg, Code: code}); err != nil {
+		// an error here isn't critical
+		k.G().Log.Debug("send KexStatus error: %s", err)
+	}
 }
