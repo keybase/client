@@ -50,6 +50,12 @@ func (s *Sender) Done(m *Meta) error {
 	return s.send(m, mb)
 }
 
+// Cancel sends the Cancel message to the server.
+func (s *Sender) Cancel(m *Meta) error {
+	mb := &Body{Name: CancelMsg, EOF: true}
+	return s.send(m, mb)
+}
+
 // CorruptStartKexSession sends a startkex message with a
 // corrupted MAC.  This is for testing, clearly.  It's an exposed
 // function since only an engine test can test this.

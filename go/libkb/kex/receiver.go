@@ -70,7 +70,13 @@ func (r *Receiver) Next(name MsgName, timeout time.Duration) (*Msg, error) {
 			if m.Name() == name {
 				return m, nil
 			}
+			if m.Name() == CancelMsg {
+				r.done = true
+				return nil, libkb.CanceledError{}
+			}
+
 			G.Log.Info("message name: %s, expecting %s.  Ignoring this message.", m.Name, name)
+
 		case <-time.After(timeout):
 			G.Log.Info("timed out waiting for message %s", name)
 			r.done = true

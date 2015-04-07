@@ -177,9 +177,9 @@ func (k *KexFwd) Cancel() error {
 		return err
 	}
 
-	// XXX send a Cancel message to X
-
-	return nil
+	// send a Cancel message to X
+	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)
+	return k.server.Cancel(m)
 }
 
 func (k *KexFwd) handleHello(m *kex.Msg) error {

@@ -96,6 +96,7 @@ type Handler interface {
 	Hello(m *Meta, devID libkb.DeviceID, devKeyID libkb.KID) error
 	PleaseSign(m *Meta, eddsa libkb.NaclSigningKeyPublic, sig, devType, devDesc string) error
 	Done(m *Meta) error
+	Cancel(m *Meta) error
 }
 
 // ErrProtocolEOF is returned by Receive when the message body has

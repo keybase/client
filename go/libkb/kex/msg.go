@@ -22,6 +22,7 @@ const (
 	HelloMsg               = "hello"
 	PleaseSignMsg          = "pleasesign"
 	DoneMsg                = "done"
+	CancelMsg              = "cancel"
 )
 
 // ErrMACMismatch is returned when a MAC fails.
