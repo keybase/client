@@ -8,7 +8,8 @@ type LoginEngineArg struct {
 
 type LoginEngine struct {
 	libkb.Contextified
-	arg *LoginEngineArg
+	arg    *LoginEngineArg
+	doctor *Doctor
 }
 
 func NewLoginEngine(arg *LoginEngineArg) *LoginEngine {
@@ -52,6 +53,15 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 	}
 
 	// create a doctor engine to check the account
-	doctor := NewDoctor()
-	return doctor.LoginCheckup(ctx, u)
+	e.doctor = NewDoctor()
+	return e.doctor.LoginCheckup(ctx, u)
+}
+
+func (e *LoginEngine) Cancel() error {
+	if e.doctor == nil {
+		e.G().Log.Debug("LoginEngine Cancel called but doctor is nil")
+		return nil
+	}
+
+	return e.doctor.Cancel()
 }

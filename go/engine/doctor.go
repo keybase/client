@@ -13,6 +13,7 @@ type Doctor struct {
 	signingKey libkb.GenericKey
 	devName    string
 	lks        *libkb.LKSec
+	kex        *KexFwd
 	libkb.Contextified
 }
 
@@ -53,6 +54,14 @@ func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
 		return err
 	}
 	return nil
+}
+
+func (d *Doctor) Cancel() error {
+	if d.kex == nil {
+		d.G().Log.Debug("Doctor Cancel called, but kex is nil")
+		return nil
+	}
+	return d.kex.Cancel()
 }
 
 func (d *Doctor) syncSecrets() (err error) {
@@ -367,8 +376,10 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName
 		DevType: newDevType,
 		DevDesc: newDevName,
 	}
-	k := NewKexFwd(tk.LksClientHalf(), kargs, d.G())
-	return RunEngine(k, ctx)
+	d.kex = NewKexFwd(tk.LksClientHalf(), kargs, d.G())
+	err = RunEngine(d.kex, ctx)
+	d.kex = nil
+	return err
 }
 
 func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {

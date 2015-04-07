@@ -9,8 +9,9 @@ import (
 
 type LoginHandler struct {
 	BaseHandler
-	identifyUi libkb.IdentifyUI
-	doctorUI   libkb.DoctorUI
+	identifyUi  libkb.IdentifyUI
+	doctorUI    libkb.DoctorUI
+	loginEngine *engine.LoginEngine
 }
 
 func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
@@ -53,7 +54,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		liarg.Login.SecretUI = h.getSecretUI(sessid)
 	}
 
-	li := engine.NewLoginEngine(&liarg)
+	h.loginEngine = engine.NewLoginEngine(&liarg)
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessid),
 		DoctorUI: h.getDoctorUI(sessid),
@@ -61,7 +62,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		LoginUI:  h.getLoginUI(sessid),
 		GPGUI:    NewRemoteGPGUI(sessid, h.getRpcClient()),
 	}
-	return engine.RunEngine(li, ctx)
+	return engine.RunEngine(h.loginEngine, ctx)
 }
 
 func (h *LoginHandler) PubkeyLogin() error {
@@ -70,6 +71,14 @@ func (h *LoginHandler) PubkeyLogin() error {
 
 func (h *LoginHandler) SwitchUser(username string) error {
 	return nil
+}
+
+func (h *LoginHandler) CancelLogin() error {
+	if h.loginEngine == nil {
+		G.Log.Debug("CancelLogin called and there's no login engine")
+		return nil
+	}
+	return h.loginEngine.Cancel()
 }
 
 type RemoteDoctorUI struct {

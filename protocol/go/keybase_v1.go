@@ -1001,12 +1001,16 @@ type SwitchUserArg struct {
 	Username string `codec:"username" json:"username"`
 }
 
+type CancelLoginArg struct {
+}
+
 type LoginInterface interface {
 	PassphraseLogin(PassphraseLoginArg) error
 	PubkeyLogin() error
 	Logout() error
 	Reset() error
 	SwitchUser(string) error
+	CancelLogin() error
 }
 
 func LoginProtocol(i LoginInterface) rpc2.Protocol {
@@ -1048,6 +1052,13 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"cancelLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CancelLoginArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.CancelLogin()
+				}
+				return
+			},
 		},
 	}
 
@@ -1080,6 +1091,11 @@ func (c LoginClient) Reset() (err error) {
 func (c LoginClient) SwitchUser(username string) (err error) {
 	__arg := SwitchUserArg{Username: username}
 	err = c.Cli.Call("keybase.1.login.switchUser", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) CancelLogin() (err error) {
+	err = c.Cli.Call("keybase.1.login.cancelLogin", []interface{}{CancelLoginArg{}}, nil)
 	return
 }
 

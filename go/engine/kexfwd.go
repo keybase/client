@@ -172,6 +172,16 @@ func (k *KexFwd) Run(ctx *Context) error {
 	return nil
 }
 
+func (k *KexFwd) Cancel() error {
+	if err := k.rec.Cancel(); err != nil {
+		return err
+	}
+
+	// XXX send a Cancel message to X
+
+	return nil
+}
+
 func (k *KexFwd) handleHello(m *kex.Msg) error {
 	k.xDevKeyID = m.Args().DevKeyID
 	return nil

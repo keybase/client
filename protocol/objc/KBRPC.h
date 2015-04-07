@@ -357,6 +357,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
+- (void)cancelLogin:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRLoginUiRequest : KBRRequest

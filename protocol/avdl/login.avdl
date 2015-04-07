@@ -9,4 +9,5 @@ protocol login {
 	void logout();
 	void reset();
 	void switchUser(string username);
+	void cancelLogin();
 }

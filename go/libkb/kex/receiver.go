@@ -128,6 +128,12 @@ func (r *Receiver) Receive(m *Meta) (int, error) {
 	return count, nil
 }
 
+// Cancel stops the reciever.
+func (r *Receiver) Cancel() error {
+	close(r.Msgs)
+	return nil
+}
+
 // check verifies the validity of the message.  It checks the
 // HMAC, the StrongID (I), and the WeakID (w).
 func (r *Receiver) check(msg *Msg) error {
