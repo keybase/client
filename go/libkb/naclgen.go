@@ -20,8 +20,8 @@ type NaclKeyGen struct {
 	pair NaclKeyPair
 }
 
-func NewNaclKeyGen(arg *NaclKeyGenArg) *NaclKeyGen {
-	return &NaclKeyGen{arg: arg}
+func NewNaclKeyGen(arg NaclKeyGenArg) *NaclKeyGen {
+	return &NaclKeyGen{arg: &arg}
 }
 
 func (g *NaclKeyGen) Generate() (err error) {
@@ -73,4 +73,10 @@ func (g *NaclKeyGen) RunLKS(lks *LKSec) (err error) {
 
 func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
 	return g.pair
+}
+
+func (g *NaclKeyGen) UpdateArg(signer GenericKey, eldestKID KID, sibkey bool) {
+	g.arg.Signer = signer
+	g.arg.EldestKeyID = eldestKID
+	g.arg.Sibkey = sibkey
 }

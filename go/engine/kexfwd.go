@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
 	keybase_1 "github.com/keybase/client/protocol/go"
@@ -181,53 +179,6 @@ func (k *KexFwd) handleDone(m *kex.Msg) error {
 	return nil
 }
 
-type keyres struct {
-	eddsa libkb.NaclKeyPair
-	dh    libkb.NaclKeyPair
-}
-
-// signer returns the public signing key.
-func (k keyres) signer() (pub libkb.NaclSigningKeyPublic, err error) {
-	s, ok := k.eddsa.(libkb.NaclSigningKeyPair)
-	if !ok {
-		return pub, libkb.BadKeyError{Msg: fmt.Sprintf("invalid key type %T", k.eddsa)}
-	}
-	return s.Public, nil
-}
-
-// makeKeys generates E_y, M_y for this device.  It returns
-// keyres, which contains the eddsa signing key and the dh encryption
-// key.
-func (k *KexFwd) makeKeys() (*keyres, error) {
-	res := &keyres{}
-
-	// E_y
-	eddsa, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		return nil, err
-	}
-	res.eddsa = eddsa
-
-	// M_y
-	dh, err := libkb.GenerateNaclDHKeyPair()
-	if err != nil {
-		return nil, err
-	}
-	res.dh = dh
-	return res, nil
-}
-
-// storeKeys stores E_y, M_y in lks.
-func (k *KexFwd) storeKeys(ctx *Context, keys *keyres) error {
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), keys.eddsa, k.lks, ctx.LogUI); err != nil {
-		return err
-	}
-	if _, err := libkb.WriteLksSKBToKeyring(k.user.GetName(), keys.dh, k.lks, ctx.LogUI); err != nil {
-		return err
-	}
-	return nil
-}
-
 // revSig generates a reverse signature using X's device key id.
 func (k *KexFwd) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 	delg := libkb.Delegator{
@@ -254,31 +205,4 @@ func (k *KexFwd) GetDevice() *libkb.Device {
 		Description: &k.args.DevDesc,
 		Status:      &s,
 	}
-}
-
-// pushSubkey pushes Y's subkey to the api server.
-func (k *KexFwd) pushSubkey(keys *keyres) error {
-	// Device y signs M_y into Alice's sigchain as a subkey.
-	devY := k.GetDevice()
-
-	g := func() (libkb.NaclKeyPair, error) {
-		return keys.dh, nil
-	}
-	arg := &libkb.NaclKeyGenArg{
-		Signer:      keys.eddsa,
-		ExpireIn:    libkb.NACL_DH_EXPIRE_IN,
-		Sibkey:      false,
-		Me:          k.user,
-		EldestKeyID: k.user.GetEldestFOKID().Kid,
-		Generator:   g,
-		Device:      devY,
-	}
-	gen := libkb.NewNaclKeyGen(arg)
-	if err := gen.Generate(); err != nil {
-		return err
-	}
-	if _, err := gen.Push(); err != nil {
-		return err
-	}
-	return nil
 }

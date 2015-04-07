@@ -42,9 +42,7 @@ type DeviceKeygen struct {
 	runErr  error
 	pushErr error
 
-	naclSignArg *libkb.NaclKeyGenArg
 	naclSignGen *libkb.NaclKeyGen
-	naclEncArg  *libkb.NaclKeyGenArg
 	naclEncGen  *libkb.NaclKeyGen
 }
 
@@ -128,11 +126,11 @@ func (e *DeviceKeygen) setup(ctx *Context) {
 		return
 	}
 
-	e.naclSignArg = e.newNaclArg(ctx, libkb.GenerateNaclSigningKeyPair, libkb.NACL_EDDSA_EXPIRE_IN)
-	e.naclSignGen = libkb.NewNaclKeyGen(e.naclSignArg)
+	signArg := e.newNaclArg(ctx, libkb.GenerateNaclSigningKeyPair, libkb.NACL_EDDSA_EXPIRE_IN)
+	e.naclSignGen = libkb.NewNaclKeyGen(signArg)
 
-	e.naclEncArg = e.newNaclArg(ctx, libkb.GenerateNaclDHKeyPair, libkb.NACL_DH_EXPIRE_IN)
-	e.naclEncGen = libkb.NewNaclKeyGen(e.naclEncArg)
+	encArg := e.newNaclArg(ctx, libkb.GenerateNaclDHKeyPair, libkb.NACL_DH_EXPIRE_IN)
+	e.naclEncGen = libkb.NewNaclKeyGen(encArg)
 }
 
 func (e *DeviceKeygen) generate() {
@@ -174,9 +172,7 @@ func (e *DeviceKeygen) pushSibkey(pargs *DeviceKeygenPushArgs) {
 		return
 	}
 
-	e.naclSignArg.Signer = pargs.Signer
-	e.naclSignArg.EldestKeyID = pargs.EldestKID
-	e.naclSignArg.Sibkey = true
+	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true)
 	_, e.pushErr = e.naclSignGen.Push()
 }
 
@@ -184,8 +180,7 @@ func (e *DeviceKeygen) pushEncKey(signer libkb.GenericKey, eldestKID libkb.KID) 
 	if e.pushErr != nil {
 		return
 	}
-	e.naclEncArg.Signer = signer
-	e.naclEncArg.EldestKeyID = eldestKID
+	e.naclEncGen.UpdateArg(signer, eldestKID, false)
 	_, e.pushErr = e.naclEncGen.Push()
 }
 
@@ -209,8 +204,8 @@ func (e *DeviceKeygen) pushLKS() {
 	e.pushErr = libkb.PostDeviceLKS(e.args.DeviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
 }
 
-func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) *libkb.NaclKeyGenArg {
-	return &libkb.NaclKeyGenArg{
+func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) libkb.NaclKeyGenArg {
+	return libkb.NaclKeyGenArg{
 		Generator: gen,
 		Device:    e.device(),
 		Me:        e.args.Me,
