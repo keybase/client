@@ -194,25 +194,3 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}
 }
-
-func createFakeUserWithPGPSibkey(t *testing.T) *FakeUser {
-	fu := CreateAndSignupFakeUser(t, "pgp")
-	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	arg := PGPKeyImportEngineArg{
-		Gen: &libkb.PGPGenArg{
-			PrimaryBits: 768,
-			SubkeyBits:  768,
-		},
-	}
-	arg.Gen.MakeAllIds()
-	ctx := Context{
-		LogUI:    G.UI.GetLogUI(),
-		SecretUI: secui,
-	}
-	eng := NewPGPKeyImportEngine(arg)
-	err := RunEngine(eng, &ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return fu
-}

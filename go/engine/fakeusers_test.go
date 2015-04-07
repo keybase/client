@@ -178,6 +178,28 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
+func createFakeUserWithPGPSibkey(t *testing.T) *FakeUser {
+	fu := CreateAndSignupFakeUser(t, "pgp")
+	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	arg := PGPKeyImportEngineArg{
+		Gen: &libkb.PGPGenArg{
+			PrimaryBits: 768,
+			SubkeyBits:  768,
+		},
+	}
+	arg.Gen.MakeAllIds()
+	ctx := Context{
+		LogUI:    G.UI.GetLogUI(),
+		SecretUI: secui,
+	}
+	eng := NewPGPKeyImportEngine(arg)
+	err := RunEngine(eng, &ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fu
+}
+
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
 func (s *SignupEngine) fakeLKS() {
