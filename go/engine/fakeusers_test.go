@@ -76,7 +76,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		t.Fatal(err)
 	}
 
-	s.fakeLKS(G)
+	s.fakeLKS()
 
 	// Generate a new test PGP key for the user, and specify the PushSecret
 	// flag so that their triplesec'ed key is pushed to the server.
@@ -125,7 +125,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 		t.Fatal(err)
 	}
 
-	s.fakeLKS(G)
+	s.fakeLKS()
 
 	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)
@@ -161,7 +161,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu.User = s.GetMe()
 
 	// fake the lks:
-	s.fakeLKS(G)
+	s.fakeLKS()
 
 	if err := s.addGPG(ctx, false); err != nil {
 		t.Fatal(err)
