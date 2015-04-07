@@ -302,6 +302,19 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	testUserHasDeviceKey(t)
 }
 
+// Create a new user with client signup
+/*
+Add a PGP key with client pgp gen
+Grab the output of client pgp export --secret
+Create a clean test user home dir. (I don't know how other folks do this, but I like to mktemp -d and then export HOME=....)
+Paste the output from #3 into gpg --import for this new user.
+client login and select the PGP option.
+Take a look at http://localhost:3000/_/api/1.0/user/lookup.json?username=TESTER_YOU_MADE
+*/
+func TestLoginIssue321(t *testing.T) {
+
+}
+
 type ldocui struct {
 	selectSignerCount int
 }
