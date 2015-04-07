@@ -335,8 +335,12 @@ func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 		return err
 	}
 
-	if err := d.addDetKey(ctx, eldest); err != nil {
-		return err
+	dk, err := d.detkey(ctx)
+	if err != nil || dk == nil {
+		G.Log.Debug("no detkey found, adding one")
+		if err := d.addDetKey(ctx, eldest); err != nil {
+			return err
+		}
 	}
 
 	return nil
