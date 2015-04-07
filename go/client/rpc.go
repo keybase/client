@@ -81,14 +81,6 @@ func GetTrackClient() (cli keybase_1.TrackClient, err error) {
 	return
 }
 
-func GetSibkeyClient() (cli keybase_1.SibkeyClient, err error) {
-	var rcli *rpc2.Client
-	if rcli, _, err = GetRpcClient(); err == nil {
-		cli = keybase_1.SibkeyClient{Cli: rcli}
-	}
-	return
-}
-
 func GetDeviceClient() (cli keybase_1.DeviceClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {

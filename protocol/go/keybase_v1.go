@@ -321,8 +321,13 @@ type DeviceListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DeviceAddArg struct {
+	SecretPhrase string `codec:"secretPhrase" json:"secretPhrase"`
+}
+
 type DeviceInterface interface {
 	DeviceList(int) ([]Device, error)
+	DeviceAdd(string) error
 }
 
 func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
@@ -333,6 +338,13 @@ func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
 				args := make([]DeviceListArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.DeviceList(args[0].SessionID)
+				}
+				return
+			},
+			"deviceAdd": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DeviceAddArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DeviceAdd(args[0].SecretPhrase)
 				}
 				return
 			},
@@ -348,6 +360,12 @@ type DeviceClient struct {
 func (c DeviceClient) DeviceList(sessionID int) (res []Device, err error) {
 	__arg := DeviceListArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.device.deviceList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DeviceClient) DeviceAdd(secretPhrase string) (err error) {
+	__arg := DeviceAddArg{SecretPhrase: secretPhrase}
+	err = c.Cli.Call("keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1751,40 +1769,6 @@ type SessionClient struct {
 
 func (c SessionClient) CurrentSession() (res Session, err error) {
 	err = c.Cli.Call("keybase.1.session.currentSession", []interface{}{CurrentSessionArg{}}, &res)
-	return
-}
-
-type AddArg struct {
-	SecretPhrase string `codec:"secretPhrase" json:"secretPhrase"`
-}
-
-type SibkeyInterface interface {
-	Add(string) error
-}
-
-func SibkeyProtocol(i SibkeyInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.sibkey",
-		Methods: map[string]rpc2.ServeHook{
-			"add": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]AddArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Add(args[0].SecretPhrase)
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type SibkeyClient struct {
-	Cli GenericClient
-}
-
-func (c SibkeyClient) Add(secretPhrase string) (err error) {
-	__arg := AddArg{SecretPhrase: secretPhrase}
-	err = c.Cli.Call("keybase.1.sibkey.add", []interface{}{__arg}, nil)
 	return
 }
 

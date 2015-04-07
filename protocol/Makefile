@@ -29,7 +29,6 @@ build-stamp: \
 	json/revoke.json \
 	json/secret_ui.json \
 	json/session.json \
-	json/sibkey.json \
 	json/signup.json \
 	json/sigs.json \
 	json/stream_ui.json \

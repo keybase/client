@@ -24,3 +24,11 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 	}
 	return eng.List(), nil
 }
+
+// DeviceAdd adds a sibkey using a SibkeyEngine.
+func (h *DeviceHandler) DeviceAdd(phrase string) error {
+	sessionID := nextSessionId()
+	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID)}
+	eng := engine.NewKexSib(G, phrase)
+	return engine.RunEngine(eng, ctx)
+}

@@ -14,6 +14,7 @@ func NewCmdDevice(cl *libcmdline.CommandLine) cli.Command {
 		Description: "Manage your devices",
 		Subcommands: []cli.Command{
 			NewCmdDeviceList(cl),
+			NewCmdDeviceAdd(cl),
 		},
 	}
 }

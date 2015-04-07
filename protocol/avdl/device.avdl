@@ -4,4 +4,6 @@ protocol device {
 	import idl "common.avdl";
 
 	array<Device> deviceList(int sessionID);
+	
+	void deviceAdd(string secretPhrase);
 }

@@ -1,6 +1,0 @@
-@namespace("keybase.1")
-protocol sibkey {
-	import idl "common.avdl";
-
-	void add(string secretPhrase);
-}

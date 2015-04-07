@@ -152,6 +152,13 @@
   }];
 }
 
+- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"secretPhrase": KBRValue(secretPhrase)}];
+  [self.client sendRequestWithMethod:@"keybase.1.device.deviceAdd" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRDeviceSigner
@@ -708,17 +715,6 @@
 
 @end
 
-@implementation KBRSibkeyRequest
-
-- (void)addWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"secretPhrase": KBRValue(secretPhrase)}];
-  [self.client sendRequestWithMethod:@"keybase.1.sibkey.add" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-@end
-
 @implementation KBRSignupRes
 @end
 
@@ -1038,6 +1034,17 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDeviceAddRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.secretPhrase = params[0][@"secretPhrase"];
   }
   return self;
 }
@@ -1606,17 +1613,6 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
     self.retry = params[0][@"retry"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRAddRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.secretPhrase = params[0][@"secretPhrase"];
   }
   return self;
 }

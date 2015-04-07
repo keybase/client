@@ -10,28 +10,28 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-// CmdSibkeyAdd is the 'sibkey add' command.  It is used for
+// CmdDeviceAdd is the 'device add' command.  It is used for
 // device provisioning to enter a secret phrase on an existing
 // device.
-type CmdSibkeyAdd struct {
+type CmdDeviceAdd struct {
 	phrase string
 }
 
-// NewCmdSibkeyAdd creates a new cli.Command.
-func NewCmdSibkeyAdd(cl *libcmdline.CommandLine) cli.Command {
+// NewCmdDeviceAdd creates a new cli.Command.
+func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "add",
-		Usage:       "keybase sibkey add \"secret phrase\"",
-		Description: "Add a new device sibkey",
+		Usage:       "keybase device add \"secret phrase\"",
+		Description: "Authorize a new device",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSibkeyAdd{}, "add", c)
+			cl.ChooseCommand(&CmdDeviceAdd{}, "add", c)
 		},
 	}
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdSibkeyAdd) RunClient() error {
-	cli, err := GetSibkeyClient()
+func (c *CmdDeviceAdd) RunClient() error {
+	cli, err := GetDeviceClient()
 	if err != nil {
 		return err
 	}
@@ -42,27 +42,27 @@ func (c *CmdSibkeyAdd) RunClient() error {
 		return err
 	}
 
-	return cli.Add(c.phrase)
+	return cli.DeviceAdd(c.phrase)
 }
 
 // Run runs the command in standalone mode.
-func (c *CmdSibkeyAdd) Run() error {
+func (c *CmdDeviceAdd) Run() error {
 	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI()}
 	eng := engine.NewKexSib(G, c.phrase)
 	return engine.RunEngine(eng, ctx)
 }
 
 // ParseArgv gets the secret phrase from the command args.
-func (c *CmdSibkeyAdd) ParseArgv(ctx *cli.Context) error {
+func (c *CmdDeviceAdd) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("sibkey add takes one arg: the secret phrase")
+		return fmt.Errorf("device add takes one arg: the secret phrase")
 	}
 	c.phrase = ctx.Args()[0]
 	return nil
 }
 
 // GetUsage says what this command needs to operate.
-func (c *CmdSibkeyAdd) GetUsage() libkb.Usage {
+func (c *CmdDeviceAdd) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,
