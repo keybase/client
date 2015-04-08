@@ -29,6 +29,7 @@
 - (IBAction)logout:(id)sender;
 
 + (void)setError:(NSError *)error sender:(NSView *)sender;
++ (void)setError:(NSError *)error sender:(NSView *)sender completion:(dispatch_block_t)completion;
 
 + (NSString *)bundleFile:(NSString *)file;
 

@@ -47,11 +47,11 @@
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
   [KBButton setErrorHandler:^(KBButton *button, NSError *error) {
-    [AppDelegate setError:error sender:button];
+    [AppDelegate setError:error sender:button completion:^{}];
   }];
 
   self.errorHandler = ^(NSError *error, id sender) {
-    [AppDelegate setError:error sender:sender];
+    [AppDelegate setError:error sender:sender completion:^{}];
   };
 
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
@@ -72,15 +72,20 @@
   [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO errorHandler:_errorHandler];
   [_appView.delegates addObject:_consoleView];
 
-  KBRPClient *client = [[KBRPClient alloc] init];
-  [_appView connect:client];
+  GHWeakSelf gself = self;
 
-  SUUpdater.sharedUpdater.feedURL = [NSURL URLWithString:@"https://keybase-app.s3.amazonaws.com/appcast.xml"];
-  SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
-  SUUpdater.sharedUpdater.updateCheckInterval = 60 * 60 * 24;
-  [SUUpdater.sharedUpdater checkForUpdatesInBackground];
+  // Network reachability is a diagnostic tool that can be used to understand why a request might have failed.
+  // It should not be used to determine whether or not to make a request.
+  [AFNetworkReachabilityManager.sharedManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+    GHDebug(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
+    [gself.consoleView log:NSStringWithFormat(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status))];
+  }];
+  [AFNetworkReachabilityManager.sharedManager startMonitoring];
 
   [self updateMenu];
+
+  KBRPClient *client = [[KBRPClient alloc] init];
+  [_appView connect:client];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -236,13 +241,17 @@
   return close;
 }
 
-#pragma mark Error
+#pragma mark Error Handling
 
 + (void)setError:(NSError *)error sender:(NSView *)sender {
-  [AppDelegate.sharedDelegate setError:error sender:sender];
+  [AppDelegate.sharedDelegate setError:error sender:sender completion:nil];
 }
 
-- (void)setError:(NSError *)error sender:(NSView *)sender {
++ (void)setError:(NSError *)error sender:(NSView *)sender completion:(dispatch_block_t)completion {
+  [AppDelegate.sharedDelegate setError:error sender:sender completion:completion];
+}
+
+- (void)setError:(NSError *)error sender:(NSView *)sender completion:(dispatch_block_t)completion {
   NSParameterAssert(error);
 
   NSString *errorName = error.userInfo[@"MPErrorInfoKey"][@"name"];
@@ -267,15 +276,13 @@
   if (!window) window = [NSApp mainWindow];
   _alerting = YES;
   GHWeakSelf gself = self;
-  if (window) {
-    [[NSAlert alertWithError:error] beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
-      gself.alerting = NO;
-    }];
-  } else {
-    [[NSAlert alertWithError:error] runModal];
+
+  NSAssert(window, @"No window to show alert");
+
+  [[NSAlert alertWithError:error] beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
     gself.alerting = NO;
-  }
-  [sender becomeFirstResponder];
+    if (completion) completion();
+  }];
 }
 
 #pragma mark KBAppViewDelegate

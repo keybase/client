@@ -19,6 +19,13 @@
 #import "KBConnectView.h"
 #import "KBFoldersAppView.h"
 
+typedef NS_ENUM (NSInteger, KBAppViewStatus) {
+  KBAppViewStatusConnecting = 1,
+  KBAppViewStatusLogin,
+  KBAppViewStatusSignup,
+  KBAppViewStatusMain
+};
+
 @interface KBAppView ()
 @property KBSourceOutlineView *sourceView;
 @property (readonly) YOView *contentView;
@@ -28,7 +35,6 @@
 @property KBFoldersAppView *foldersAppView;
 
 @property KBUserProfileView *userProfileView;
-@property (nonatomic) KBConnectView *connectView;
 @property (nonatomic) KBLoginView *loginView;
 @property (nonatomic) KBSignupView *signupView;
 
@@ -37,6 +43,7 @@
 @property NSString *title;
 @property (nonatomic) KBRGetCurrentStatusRes *status;
 @property (nonatomic) KBRConfig *config;
+@property KBAppViewStatus appViewStatus;
 @end
 
 #define TITLE_HEIGHT (32)
@@ -130,8 +137,9 @@
   [_client checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
     if (error) {
       for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didErrorOnInstall:error];
+      // TODO: We're continuing on in case it's recoverable. We should do something better though.
       [AppDelegate setError:error sender:self];
-      return;
+      // return;
     } else {
       for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckInstall:installed installType:installType];
     }
@@ -140,7 +148,21 @@
   }];
 }
 
-- (void)setContentView:(YOView *)contentView showSourceView:(BOOL)showSourceView {
+// If we errored while checking status
+- (void)setStatusError:(NSError *)error {
+  GHWeakSelf gself = self;
+  [AppDelegate setError:error sender:self completion:^{
+    // Retry if we are trying to get status for the first time
+    if (gself.appViewStatus == KBAppViewStatusConnecting) {
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self checkStatus:nil];
+      });
+    }
+  }];
+}
+
+- (void)setContentView:(YOView *)contentView showSourceView:(BOOL)showSourceView appViewStatus:(KBAppViewStatus)appViewStatus {
+  _appViewStatus = appViewStatus;
   self.sourceView.hidden = !showSourceView;
   self.titleView.hidden = !showSourceView;
   [_contentView removeFromSuperview];
@@ -187,45 +209,38 @@
   return _signupView;
 }
 
-- (KBConnectView *)connectView {
-  if (!_connectView) {
-    _connectView = [[KBConnectView alloc] init];
-  }
-  return _connectView;
-}
-
 - (void)showConnect {
-  KBConnectView *connectView = [self connectView];
+  KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.progressView.animating = YES;
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView title:_title];
-  [self setContentView:navigation showSourceView:NO];
+  [self setContentView:navigation showSourceView:NO appViewStatus:KBAppViewStatusConnecting];
 }
 
 - (void)showLogin {
   KBLoginView *view = [self loginView];
   [view removeFromSuperview];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
-  [self setContentView:navigation showSourceView:NO];
+  [self setContentView:navigation showSourceView:NO appViewStatus:KBAppViewStatusLogin];
 }
 
 - (void)showSignup {
   KBSignupView *view = [self signupView];
   [view removeFromSuperview];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
-  [self setContentView:navigation showSourceView:NO];
+  [self setContentView:navigation showSourceView:NO appViewStatus:KBAppViewStatusSignup];
 }
 
 - (void)showUsers {
   if (!_usersAppView) _usersAppView = [[KBUsersAppView alloc] init];
   _usersAppView.client = _client;
-  [self setContentView:_usersAppView showSourceView:YES];
+  [self setContentView:_usersAppView showSourceView:YES appViewStatus:KBAppViewStatusMain];
 }
 
 - (void)showProfile {
   NSAssert(_user, @"No user");
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
   [_userProfileView setUsername:_user.username client:_client];
-  [self setContentView:_userProfileView showSourceView:YES];
+  [self setContentView:_userProfileView showSourceView:YES appViewStatus:KBAppViewStatusMain];
   [_sourceView selectItem:KBSourceViewItemProfile];
 }
 
@@ -233,14 +248,14 @@
   if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
   _devicesAppView.client = _client;
   [_devicesAppView reload];
-  [self setContentView:_devicesAppView showSourceView:YES];
+  [self setContentView:_devicesAppView showSourceView:YES appViewStatus:KBAppViewStatusMain];
 }
 
 - (void)showFolders {
   if (!_foldersAppView) _foldersAppView = [[KBFoldersAppView alloc] init];
   _foldersAppView.client = _client;
   [_foldersAppView reload];
-  [self setContentView:_foldersAppView showSourceView:YES];
+  [self setContentView:_foldersAppView showSourceView:YES appViewStatus:KBAppViewStatusMain];
 }
 
 - (void)logout:(BOOL)prompt {
@@ -270,7 +285,7 @@
 
 - (void)checkStatus:(KBCompletionBlock)completion {
   if (!completion) completion = ^(NSError *error) {
-    if (error) [AppDelegate setError:error sender:self];
+    if (error) [self setStatusError:error];
   };
 
   GHWeakSelf gself = self;
