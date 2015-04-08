@@ -104,6 +104,17 @@
 
 @end
 
+@implementation KBRBTCRequest
+
+- (void)registerBTCWithSessionID:(NSInteger)sessionID address:(NSString *)address force:(BOOL)force completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"address": KBRValue(address), @"force": @(force)}];
+  [self.client sendRequestWithMethod:@"keybase.1.BTC.registerBTC" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRGetCurrentStatusRes
 @end
 
@@ -152,6 +163,20 @@
   }];
 }
 
+- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"secretPhrase": KBRValue(secretPhrase)}];
+  [self.client sendRequestWithMethod:@"keybase.1.device.deviceAdd" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)deviceAddCancel:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.device.deviceAddCancel" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRDeviceSigner
@@ -184,6 +209,13 @@
 - (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"secret": KBRValue(secret), @"deviceNameExisting": KBRValue(deviceNameExisting), @"deviceNameToAdd": KBRValue(deviceNameToAdd)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.displaySecretWords" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"code": @(code)}];
+  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.kexStatus" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -421,6 +453,13 @@
   }];
 }
 
+- (void)cancelLogin:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.cancelLogin" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRLoginUiRequest
@@ -642,6 +681,17 @@
 
 @end
 
+@implementation KBRRevokeRequest
+
+- (void)revokeWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb isDevice:(BOOL)isDevice completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb), @"isDevice": @(isDevice)}];
+  [self.client sendRequestWithMethod:@"keybase.1.revoke.revoke" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRSecretEntryArg
 @end
 
@@ -692,17 +742,6 @@
       }
       KBRSession *result = retval ? [MTLJSONAdapter modelOfClass:KBRSession.class fromJSONDictionary:retval error:&error] : nil;
       completion(error, result);
-  }];
-}
-
-@end
-
-@implementation KBRSibkeyRequest
-
-- (void)addWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"secretPhrase": KBRValue(secretPhrase)}];
-  [self.client sendRequestWithMethod:@"keybase.1.sibkey.add" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
   }];
 }
 
@@ -1022,11 +1061,35 @@
 
 @end
 
+@implementation KBRRegisterBTCRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.address = params[0][@"address"];
+    self.force = [params[0][@"force"] boolValue];
+  }
+  return self;
+}
+
+@end
+
 @implementation KBRDeviceListRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDeviceAddRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.secretPhrase = params[0][@"secretPhrase"];
   }
   return self;
 }
@@ -1065,6 +1128,19 @@
     self.secret = params[0][@"secret"];
     self.deviceNameExisting = params[0][@"deviceNameExisting"];
     self.deviceNameToAdd = params[0][@"deviceNameToAdd"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRKexStatusRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.code = [params[0][@"code"] integerValue];
   }
   return self;
 }
@@ -1548,6 +1624,19 @@
 
 @end
 
+@implementation KBRRevokeRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.id = params[0][@"id"];
+    self.isDevice = [params[0][@"isDevice"] boolValue];
+  }
+  return self;
+}
+
+@end
+
 @implementation KBRGetSecretRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1582,17 +1671,6 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
     self.retry = params[0][@"retry"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRAddRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.secretPhrase = params[0][@"secretPhrase"];
   }
   return self;
 }

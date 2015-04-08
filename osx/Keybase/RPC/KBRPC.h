@@ -96,6 +96,11 @@
 
 @end
 
+@interface KBRBTCRequest : KBRRequest
+- (void)registerBTCWithSessionID:(NSInteger)sessionID address:(NSString *)address force:(BOOL)force completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -123,6 +128,10 @@
 @interface KBRDeviceRequest : KBRRequest
 - (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
 
+- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
+
+- (void)deviceAddCancel:(void (^)(NSError *error))completion;
+
 @end
 
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
@@ -145,12 +154,29 @@ typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
 @property KBRDeviceSigner *signer;
 @end
 
+typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
+	KBRKexStatusCodeStartSend,
+	KBRKexStatusCodeHelloWait,
+	KBRKexStatusCodeHelloReceived,
+	KBRKexStatusCodePleaseSignSend,
+	KBRKexStatusCodeDoneWait,
+	KBRKexStatusCodeDoneReceived,
+	KBRKexStatusCodeStartWait,
+	KBRKexStatusCodeStartReceived,
+	KBRKexStatusCodeHelloSend,
+	KBRKexStatusCodePleaseSignWait,
+	KBRKexStatusCodePleaseSignReceived,
+	KBRKexStatusCodeDoneSend,
+	KBRKexStatusCodeEnd,
+};
 @interface KBRDoctorUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
 - (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion;
+
+- (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -338,6 +364,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
+- (void)cancelLogin:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRLoginUiRequest : KBRRequest
@@ -464,6 +492,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @end
 
+@interface KBRRevokeRequest : KBRRequest
+- (void)revokeWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb isDevice:(BOOL)isDevice completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRSecretEntryArg : KBRObject
 @property NSString *desc;
 @property NSString *prompt;
@@ -496,11 +529,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @interface KBRSessionRequest : KBRRequest
 - (void)currentSession:(void (^)(NSError *error, KBRSession *session))completion;
-
-@end
-
-@interface KBRSibkeyRequest : KBRRequest
-- (void)addWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -657,8 +685,16 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *blockId;
 @property NSInteger size;
 @end
+@interface KBRRegisterBTCRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *address;
+@property BOOL force;
+@end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@end
+@interface KBRDeviceAddRequestParams : KBRRequestParams
+@property NSString *secretPhrase;
 @end
 @interface KBRPromptDeviceNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -673,6 +709,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *secret;
 @property NSString *deviceNameExisting;
 @property NSString *deviceNameToAdd;
+@end
+@interface KBRKexStatusRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *msg;
+@property KBRKexStatusCode code;
 @end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -847,6 +888,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
 @end
+@interface KBRRevokeRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *id;
+@property BOOL isDevice;
+@end
 @interface KBRGetSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRSecretEntryArg *pinentry;
@@ -862,9 +908,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *username;
 @property NSString *retry;
-@end
-@interface KBRAddRequestParams : KBRRequestParams
-@property NSString *secretPhrase;
 @end
 @interface KBRCheckUsernameAvailableRequestParams : KBRRequestParams
 @property NSString *username;

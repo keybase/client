@@ -92,8 +92,8 @@
       return;
     }
     AppDelegate.appView.progressEnabled = YES;
-    KBRSibkeyRequest *request = [[KBRSibkeyRequest alloc] initWithClient:self.client];
-    [request addWithSecretPhrase:secretWords completion:^(NSError *error) {
+    KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
+    [request deviceAddWithSecretPhrase:secretWords completion:^(NSError *error) {
       AppDelegate.appView.progressEnabled = NO;
       if (error) {
         [AppDelegate setError:error sender:self];
