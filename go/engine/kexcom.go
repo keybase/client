@@ -67,6 +67,11 @@ func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex
 }
 
 func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCode) {
+	// just to be sure...
+	if ctx.DoctorUI == nil {
+		k.G().Log.Warning("KexCom kexStatus(), ctx.DoctorUI is nil")
+		return
+	}
 
 	if err := ctx.DoctorUI.KexStatus(keybase_1.KexStatusArg{Msg: msg, Code: code}); err != nil {
 		// an error here isn't critical
@@ -75,8 +80,15 @@ func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCod
 }
 
 func (k *KexCom) cancel(m *kex.Meta) error {
-	if err := k.rec.Cancel(); err != nil {
-		return err
+	if k.rec != nil {
+		if err := k.rec.Cancel(); err != nil {
+			return err
+		}
 	}
-	return k.server.Cancel(m)
+	if k.server != nil {
+		if err := k.server.Cancel(m); err != nil {
+			return err
+		}
+	}
+	return nil
 }
