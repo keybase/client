@@ -206,6 +206,7 @@
 }
 
 - (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor {
+  [self hideSearch];
   return YES;
 }
 
