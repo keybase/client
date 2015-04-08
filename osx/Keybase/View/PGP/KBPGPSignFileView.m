@@ -102,9 +102,9 @@
 - (void)signStream:(KBStream *)stream options:(KBRPgpSignOptions *)options {
   _signer = [[KBPGPSigner alloc] init];
   self.navigation.progressEnabled = YES;
-  [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
+  [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *streams) {
     self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:error sender:self]) return;
+    if ([self.navigation setError:[streams[0] error] sender:self]) return;
     [self showOutput:stream.writer];
   }];
 }
