@@ -67,6 +67,7 @@ func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex
 }
 
 func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCode) {
+
 	if err := ctx.DoctorUI.KexStatus(keybase_1.KexStatusArg{Msg: msg, Code: code}); err != nil {
 		// an error here isn't critical
 		k.G().Log.Debug("send KexStatus error: %s", err)

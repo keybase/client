@@ -29,7 +29,8 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 // DeviceAdd adds a sibkey using a SibkeyEngine.
 func (h *DeviceHandler) DeviceAdd(phrase string) error {
 	sessionID := nextSessionId()
-	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID)}
+	doctorUI := NewRemoteDoctorUI(sessionID, h.getRpcClient())
+	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), DoctorUI: doctorUI}
 	h.kexsibEng = engine.NewKexSib(G, phrase)
 	err := engine.RunEngine(h.kexsibEng, ctx)
 	h.kexsibEng = nil
