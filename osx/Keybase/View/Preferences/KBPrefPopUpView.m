@@ -12,7 +12,7 @@
 
 @interface KBPrefPopUpView ()
 @property KBLabel *label;
-@property NSButton *button;
+@property NSPopUpButton *button;
 @property KBLabel *infoLabel;
 @property id<KBPreferences> preferences;
 @end
@@ -28,7 +28,8 @@
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
 
-  _button = [[NSPopUpButton alloc] initWithFrame:CGRectMake(0, 0, 320, 23) pullsDown:YES];
+  _button = [[NSPopUpButton alloc] init];
+  _button.pullsDown = YES;
   _button.font = [NSFont systemFontOfSize:14];
   [self addSubview:_button];
 

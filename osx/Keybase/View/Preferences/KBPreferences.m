@@ -39,6 +39,8 @@
     _config = [NSJSONSerialization JSONObjectWithData:configData options:NSJSONReadingMutableContainers error:nil];
   }
 
+  [_preferencesWindowController.window close];
+
   KBPreferencesViewController *generalViewController = [[KBPreferencesViewController alloc] init];
   generalViewController.view = [[KBPrefGeneralView alloc] initWithPreferences:self];
   generalViewController.view.frame = CGRectMake(0, 0, 600, 400);
@@ -61,14 +63,14 @@
   advancedViewController.toolbarItemLabel = @"Advanced";
 
   NSArray *controllers = @[generalViewController, gpgViewController, advancedViewController];
-  _preferencesWindowController = [[MASPreferencesWindowController alloc] initWithViewControllers:controllers title:@"Preferences"];
 
   for (NSViewController *viewController in controllers) {
     [(YOView *)[viewController view] layoutView];
   }
 
-  NSWindow *window = _preferencesWindowController.window;
-  [[sender window] kb_addChildWindow:window rect:CGRectMake(0, 0, 600, 400) position:KBWindowPositionCenter fixed:NO];
+  _preferencesWindowController = [[MASPreferencesWindowController alloc] initWithViewControllers:controllers title:@"Preferences"];
+
+  [[sender window] kb_addChildWindow:_preferencesWindowController.window rect:CGRectMake(0, 0, 600, 400) position:KBWindowPositionCenter fixed:NO];
 }
 
 - (void)close {
