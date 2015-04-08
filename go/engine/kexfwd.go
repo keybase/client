@@ -79,7 +79,9 @@ func (k *KexFwd) Run(ctx *Context) error {
 		return err
 	}
 	k.secret = sec
+	k.serverMu.Lock()
 	k.server = kex.NewSender(kex.DirectionYtoX, k.secret.Secret())
+	k.serverMu.Unlock()
 
 	// create the kex meta data
 	m := kex.NewMeta(k.args.User.GetUid(), k.secret.StrongID(), k.deviceID, k.args.Dst, kex.DirectionXtoY)

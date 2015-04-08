@@ -1,6 +1,8 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/engine"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -9,7 +11,8 @@ import (
 // DeviceHandler is the RPC handler for the device interface.
 type DeviceHandler struct {
 	BaseHandler
-	kexsibEng *engine.KexSib
+	kexsibEngMu sync.Mutex
+	kexsibEng   *engine.KexSib
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
@@ -31,15 +34,24 @@ func (h *DeviceHandler) DeviceAdd(phrase string) error {
 	sessionID := nextSessionId()
 	doctorUI := NewRemoteDoctorUI(sessionID, h.getRpcClient())
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), DoctorUI: doctorUI}
+	h.kexsibEngMu.Lock()
 	h.kexsibEng = engine.NewKexSib(G, phrase)
+	h.kexsibEngMu.Unlock()
+
 	err := engine.RunEngine(h.kexsibEng, ctx)
+
+	h.kexsibEngMu.Lock()
 	h.kexsibEng = nil
+	h.kexsibEngMu.Unlock()
+
 	return err
 }
 
 // DeviceAddCancel stops the device provisioning authorized with
 // DeviceAdd.
 func (h *DeviceHandler) DeviceAddCancel() error {
+	h.kexsibEngMu.Lock()
+	defer h.kexsibEngMu.Unlock()
 	if h.kexsibEng == nil {
 		return nil
 	}

@@ -78,7 +78,9 @@ func (k *KexSib) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+	k.serverMu.Lock()
 	k.server = kex.NewSender(kex.DirectionXtoY, k.sec.Secret())
+	k.serverMu.Unlock()
 
 	arg := libkb.SecretKeyArg{
 		DeviceKey: true,

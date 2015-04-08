@@ -1,6 +1,8 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
@@ -9,9 +11,10 @@ import (
 
 type LoginHandler struct {
 	BaseHandler
-	identifyUi  libkb.IdentifyUI
-	doctorUI    libkb.DoctorUI
-	loginEngine *engine.LoginEngine
+	identifyUi    libkb.IdentifyUI
+	doctorUI      libkb.DoctorUI
+	loginEngineMu sync.Mutex
+	loginEngine   *engine.LoginEngine
 }
 
 func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
@@ -54,7 +57,10 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		liarg.Login.SecretUI = h.getSecretUI(sessid)
 	}
 
+	h.loginEngineMu.Lock()
 	h.loginEngine = engine.NewLoginEngine(&liarg)
+	h.loginEngineMu.Unlock()
+
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessid),
 		DoctorUI: h.getDoctorUI(sessid),
@@ -63,7 +69,11 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 		GPGUI:    NewRemoteGPGUI(sessid, h.getRpcClient()),
 	}
 	err := engine.RunEngine(h.loginEngine, ctx)
+
+	h.loginEngineMu.Lock()
 	h.loginEngine = nil
+	h.loginEngineMu.Unlock()
+
 	return err
 }
 
@@ -76,6 +86,8 @@ func (h *LoginHandler) SwitchUser(username string) error {
 }
 
 func (h *LoginHandler) CancelLogin() error {
+	h.loginEngineMu.Lock()
+	defer h.loginEngineMu.Unlock()
 	if h.loginEngine == nil {
 		G.Log.Debug("CancelLogin called and there's no login engine")
 		return nil

@@ -1,6 +1,10 @@
 package engine
 
-import "github.com/keybase/client/go/libkb"
+import (
+	"sync"
+
+	"github.com/keybase/client/go/libkb"
+)
 
 type LoginEngineArg struct {
 	Login libkb.LoginArg
@@ -8,8 +12,9 @@ type LoginEngineArg struct {
 
 type LoginEngine struct {
 	libkb.Contextified
-	arg    *LoginEngineArg
-	doctor *Doctor
+	arg      *LoginEngineArg
+	doctorMu sync.Mutex
+	doctor   *Doctor
 }
 
 func NewLoginEngine(arg *LoginEngineArg) *LoginEngine {
@@ -53,11 +58,15 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 	}
 
 	// create a doctor engine to check the account
+	e.doctorMu.Lock()
 	e.doctor = NewDoctor()
+	e.doctorMu.Unlock()
 	return e.doctor.LoginCheckup(ctx, u)
 }
 
 func (e *LoginEngine) Cancel() error {
+	e.doctorMu.Lock()
+	defer e.doctorMu.Unlock()
 	if e.doctor == nil {
 		e.G().Log.Debug("LoginEngine Cancel called but doctor is nil")
 		return nil

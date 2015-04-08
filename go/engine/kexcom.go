@@ -12,13 +12,15 @@ import (
 // KexCom contains common functions for all kex engines.  It
 // should be embedded in the kex engines.
 type KexCom struct {
-	server    kex.Handler
+	libkb.Contextified
 	user      *libkb.User
 	deviceID  libkb.DeviceID
 	debugName string
 	wg        sync.WaitGroup
+	recMu     sync.Mutex
 	rec       *kex.Receiver
-	libkb.Contextified
+	serverMu  sync.Mutex
+	server    kex.Handler
 }
 
 func newKexCom(gc *libkb.GlobalContext) *KexCom {
@@ -42,7 +44,9 @@ func (k *KexCom) verifyRequest(m *kex.Meta) error {
 }
 
 func (k *KexCom) poll(m *kex.Meta, secret *kex.Secret) {
+	k.recMu.Lock()
 	k.rec = kex.NewReceiver(m.Direction, secret)
+	k.recMu.Unlock()
 	k.wg.Add(1)
 	go func() {
 		k.rec.Poll(m)
@@ -80,11 +84,15 @@ func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCod
 }
 
 func (k *KexCom) cancel(m *kex.Meta) error {
+	k.recMu.Lock()
+	defer k.recMu.Unlock()
 	if k.rec != nil {
 		if err := k.rec.Cancel(); err != nil {
 			return err
 		}
 	}
+	k.serverMu.Lock()
+	defer k.serverMu.Unlock()
 	if k.server != nil {
 		if err := k.server.Cancel(m); err != nil {
 			return err

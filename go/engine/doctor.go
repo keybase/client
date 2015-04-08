@@ -3,18 +3,20 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type Doctor struct {
+	libkb.Contextified
 	user       *libkb.User
 	signingKey libkb.GenericKey
 	devName    string
 	lks        *libkb.LKSec
+	kexMu      sync.Mutex
 	kex        *KexFwd
-	libkb.Contextified
 }
 
 func NewDoctor() *Doctor {
@@ -57,6 +59,8 @@ func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
 }
 
 func (d *Doctor) Cancel() error {
+	d.kexMu.Lock()
+	defer d.kexMu.Unlock()
 	if d.kex == nil {
 		d.G().Log.Debug("Doctor Cancel called, but kex is nil")
 		return nil
@@ -376,9 +380,17 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName
 		DevType: newDevType,
 		DevDesc: newDevName,
 	}
+
+	d.kexMu.Lock()
 	d.kex = NewKexFwd(tk.LksClientHalf(), kargs, d.G())
+	d.kexMu.Unlock()
+
 	err = RunEngine(d.kex, ctx)
+
+	d.kexMu.Lock()
 	d.kex = nil
+	d.kexMu.Unlock()
+
 	return err
 }
 
