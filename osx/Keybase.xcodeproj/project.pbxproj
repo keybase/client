@@ -183,6 +183,8 @@
 		00ABED521AD44EC700DA66FC /* KBPrefOption.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED501AD44EC700DA66FC /* KBPrefOption.m */; };
 		00ABED551AD477EE00DA66FC /* KBPrefButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED541AD477EE00DA66FC /* KBPrefButton.m */; };
 		00ABED561AD477EE00DA66FC /* KBPrefButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED541AD477EE00DA66FC /* KBPrefButton.m */; };
+		00ABED591AD4B26900DA66FC /* KBRunBlocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED581AD4B26900DA66FC /* KBRunBlocks.m */; };
+		00ABED5A1AD4B26900DA66FC /* KBRunBlocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED581AD4B26900DA66FC /* KBRunBlocks.m */; };
 		00B543F11A8178E30044CC5B /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B543F01A8178E30044CC5B /* KBStrengthLabel.m */; };
 		00B543F21A8178E30044CC5B /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B543F01A8178E30044CC5B /* KBStrengthLabel.m */; };
 		00B543FD1A81CCF00044CC5B /* record.zip in Resources */ = {isa = PBXBuildFile; fileRef = 00B543FC1A81CCF00044CC5B /* record.zip */; };
@@ -502,6 +504,8 @@
 		00ABED501AD44EC700DA66FC /* KBPrefOption.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefOption.m; sourceTree = "<group>"; };
 		00ABED531AD477EE00DA66FC /* KBPrefButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefButton.h; sourceTree = "<group>"; };
 		00ABED541AD477EE00DA66FC /* KBPrefButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefButton.m; sourceTree = "<group>"; };
+		00ABED571AD4B26900DA66FC /* KBRunBlocks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRunBlocks.h; sourceTree = "<group>"; };
+		00ABED581AD4B26900DA66FC /* KBRunBlocks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRunBlocks.m; sourceTree = "<group>"; };
 		00B543EF1A8178E30044CC5B /* KBStrengthLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStrengthLabel.h; sourceTree = "<group>"; };
 		00B543F01A8178E30044CC5B /* KBStrengthLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStrengthLabel.m; sourceTree = "<group>"; };
 		00B543FC1A81CCF00044CC5B /* record.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; name = record.zip; path = ../record.zip; sourceTree = "<group>"; };
@@ -950,10 +954,12 @@
 				00E3E3CA1A64BA9F00CCB8F4 /* UI */,
 				00F807D51A48D3300038BC63 /* View */,
 				004D14971A3BD25A0083888D /* RPC */,
-				00ABEC801ACF3B8000DA66FC /* Resources */,
+				00ABED571AD4B26900DA66FC /* KBRunBlocks.h */,
+				00ABED581AD4B26900DA66FC /* KBRunBlocks.m */,
 				00CC43531A3A9E6C006118A9 /* Images.xcassets */,
 				0065CA3B1A7C2E46006E1772 /* assets_sl.rb */,
 				0065CA3C1A7C2E46006E1772 /* assets_pl.rb */,
+				00ABEC801ACF3B8000DA66FC /* Resources */,
 				00B543FC1A81CCF00044CC5B /* record.zip */,
 				00CC43551A3A9E6C006118A9 /* MainMenu.xib */,
 				00CC434C1A3A9E6C006118A9 /* Supporting Files */,
@@ -1380,6 +1386,7 @@
 				00C7DD511AA6747B00F57AFC /* KBUserStatusView.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
 				0017124E1A951A9C00C7AD58 /* KBUserView.m in Sources */,
+				00ABED591AD4B26900DA66FC /* KBRunBlocks.m in Sources */,
 				001FCDEC1AB21F5E004486D3 /* KBBorder.m in Sources */,
 				006D57231AAE2D4900D16CB8 /* KBFileListView.m in Sources */,
 				00EC84271AC4B90600B2D429 /* KBFileIcon.m in Sources */,
@@ -1524,6 +1531,7 @@
 				009E2BF31AC1CDE900EBB035 /* KBSearchField.m in Sources */,
 				3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */,
 				00DD245D1AA8DAE300371CDA /* NSView+KBView.m in Sources */,
+				00ABED5A1AD4B26900DA66FC /* KBRunBlocks.m in Sources */,
 				00566A521A9BAA7500CA236E /* KBInstaller.m in Sources */,
 				00B544391A8960D30044CC5B /* KBProveType.m in Sources */,
 				00EC84281AC4B90600B2D429 /* KBFileIcon.m in Sources */,

@@ -8,8 +8,6 @@
 
 #import "KBPGPVerify.h"
 
-#import "KBSerialBox.h"
-
 @implementation KBPGPVerify
 
 - (void)verifyWithOptions:(KBRPgpVerifyOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification))completion {

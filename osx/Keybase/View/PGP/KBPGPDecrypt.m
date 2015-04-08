@@ -8,23 +8,23 @@
 
 #import "KBPGPDecrypt.h"
 
-#import "KBSerialBox.h"
+#import "KBRunBlocks.h"
 
 @interface KBPGPDecrypt ()
 @end
 
 @implementation KBPGPDecrypt
 
-- (void)decryptWithOptions:(KBRPgpDecryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, NSArray *streams))completion {
-  KBSerialBox *sb = [[KBSerialBox alloc] init];
+- (void)decryptWithOptions:(KBRPgpDecryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *streams))completion {
+  KBRunBlocks *sb = [[KBRunBlocks alloc] init];
   sb.objects = streams;
   sb.runBlock = ^(KBStream *stream, BOOL finished, KBCompletionHandler runCompletion) {
     [self decryptWithOptions:options stream:stream client:client sender:sender completion:^(NSError *error, KBStream *stream) {
       runCompletion(error);
     }];
   };
-  sb.completionBlock = ^(NSArray *streams) {
-    completion(nil, streams);
+  sb.completionBlock = ^(NSArray *errors, NSArray *streams) {
+    completion(streams);
   };
   [sb run];
 }
@@ -43,6 +43,7 @@
   [request pgpDecryptWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error, KBRPgpSigVerification *pgpSigVerification) {
 
     // TODO sig verify
+    stream.error = error;
 
     completion(error, stream);
   }];

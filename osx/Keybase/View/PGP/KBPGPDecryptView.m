@@ -50,9 +50,9 @@
   KBStream *stream = [KBStream streamWithReader:reader writer:writer];
 
   self.navigation.progressEnabled = YES;
-  [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSError *error, NSArray *streams) {
+  [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *streams) {
     self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:error sender:self]) return;
+    if ([self.navigation setError:[streams[0] error] sender:self]) return;
     KBWriter *writer = (KBWriter *)[streams[0] writer];
     [self showOutput:writer.data];
   }];

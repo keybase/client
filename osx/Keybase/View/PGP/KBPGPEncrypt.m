@@ -9,7 +9,7 @@
 #import "KBPGPEncrypt.h"
 
 #import "KBUserProfileView.h"
-#import "KBSerialBox.h"
+#import "KBRunBlocks.h"
 
 @interface KBPGPEncrypt ()
 @property KBUserProfileView *trackView;
@@ -17,16 +17,16 @@
 
 @implementation KBPGPEncrypt
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, NSArray *streams))completion {
-  KBSerialBox *sb = [[KBSerialBox alloc] init];
+- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *streams))completion {
+  KBRunBlocks *sb = [[KBRunBlocks alloc] init];
   sb.objects = streams;
   sb.runBlock = ^(KBStream *stream, BOOL finished, KBCompletionHandler runCompletion) {
     [self encryptWithOptions:options stream:stream client:client sender:sender completion:^(NSError *error, KBStream *stream) {
       runCompletion(error);
     }];
   };
-  sb.completionBlock = ^(NSArray *streams) {
-    completion(nil, streams);
+  sb.completionBlock = ^(NSArray *errors, NSArray *streams) {
+    completion(streams);
   };
   [sb run];
 }
@@ -45,6 +45,7 @@
   sink.fd = stream.label;
 
   [request pgpEncryptWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error) {
+    stream.error = error;
     completion(error, stream);
   }];
 }

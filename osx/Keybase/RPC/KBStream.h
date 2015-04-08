@@ -19,6 +19,7 @@ typedef NSString *(^KBFileOutput)(NSString *path);
 @property id<KBReader> reader;
 @property id<KBWriter> writer;
 @property (nonatomic) int label;
+@property NSError *error;
 
 + (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer;
 
