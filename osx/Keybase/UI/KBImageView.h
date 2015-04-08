@@ -8,17 +8,16 @@
 
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
-#import "KBImageLoader.h"
+#import "NSImageView+AFNetworking.h"
 
 @interface KBImageView : NSImageView
 
-@property (nonatomic) NSString *URLString;
 @property float roundedRatio;
-
-@property (readonly) KBImageLoader *imageLoader;
 
 - (void)viewInit;
 
 - (NSImage *)imageTintedWithColor:(NSColor *)tint;
+
+- (void)setImageNamed:(NSString *)imageNamed;
 
 @end

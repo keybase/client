@@ -33,9 +33,9 @@ PODS:
     - ObjectiveSugar
     - TSTripleSec
   - libsodium (1.0.2)
-  - Mantle (1.5.4):
-    - Mantle/extobjc (= 1.5.4)
-  - Mantle/extobjc (1.5.4)
+  - Mantle (2.0):
+    - Mantle/extobjc (= 2.0)
+  - Mantle/extobjc (2.0)
   - MASPreferences (1.1.2)
   - MPMessagePack (1.1.9)
   - NAChloride (1.1.2):
@@ -54,6 +54,7 @@ PODS:
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
+  - AFNetworking
   - GHKit
   - GRUnit
   - KBKeybase
@@ -72,7 +73,7 @@ SPEC CHECKSUMS:
   GRUnit: 3a60546a0d42bc0edb83c4e755f9620517cd7af7
   KBKeybase: 4de64ab1f918343bb6a9cf66b0faa65b02d165f7
   libsodium: d1b482e7628e0298de350375a4ab981b5cc8c71b
-  Mantle: 60acd0cd363e27d945bda0a6b8e90577112d28f3
+  Mantle: 17de73ef929db2234d76fde2aacfb89ab11c61e8
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MPMessagePack: 42d618d5f5e7dc9e5c8cd655bd997a84841fef39
   NAChloride: acfc82321c23b57d169b46c587c1d92147aafedf

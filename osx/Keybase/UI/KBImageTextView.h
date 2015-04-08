@@ -26,6 +26,6 @@
 
 - (KBImageView *)loadImageView;
 
-- (void)setTitle:(NSString *)title info:(NSString *)info imageSource:(NSString *)imageSource imageSize:(CGSize)imageSize;
+- (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize;
 
 @end

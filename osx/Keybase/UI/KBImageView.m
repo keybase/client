@@ -12,16 +12,12 @@
 #import "KBAppearance.h"
 
 @interface KBImageView ()
-@property KBImageLoader *imageLoader;
+@property NSString *source;
 @end
 
 @implementation KBImageView
 
-- (void)viewInit {
-  //[self unregisterDraggedTypes];
-  _imageLoader = [[KBImageLoader alloc] init];
-  _imageLoader.imageView = self;
-}
+- (void)viewInit { }
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if ((self = [super initWithFrame:frame])) {
@@ -65,6 +61,26 @@
   NSRectFillUsingOperation(imageRect, NSCompositeSourceAtop);
   [image unlockFocus];
   return image;
+}
+
+- (void)setImageNamed:(NSString *)imageNamed {
+  BOOL isSame = (imageNamed && _source && [_source isEqualTo:imageNamed] && self.image);
+  _source = imageNamed;
+
+  if (!isSame) { // Only clear if new image
+    self.image = nil;
+    [self setNeedsDisplay:YES];
+  }
+  if (!imageNamed) return;
+
+  GHWeakSelf gself = self;
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    NSImage *image = [NSImage imageNamed:imageNamed];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      gself.image = image;
+      [gself setNeedsDisplay:YES];
+    });
+  });
 }
 
 @end

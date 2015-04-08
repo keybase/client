@@ -259,6 +259,6 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 
 @implementation KBRPCCoder
 - (id)encodeObject:(id)obj {
-  return [obj conformsToProtocol:@protocol(MTLJSONSerializing)] ? [MTLJSONAdapter JSONDictionaryFromModel:obj] : obj;
+  return [obj conformsToProtocol:@protocol(MTLJSONSerializing)] ? [MTLJSONAdapter JSONDictionaryFromModel:obj error:nil] : obj; // TODO: Handle model error
 }
 @end

@@ -54,6 +54,7 @@
   _tokensField.font = [NSFont systemFontOfSize:16];
   _tokensField.focusRingType = NSFocusRingTypeNone;
   _tokensField.bordered = NO;
+  _tokensField.textColor = KBAppearance.currentAppearance.textColor;
   [self addSubview:_tokensField];
 
   _progressView = [[KBActivityIndicatorView alloc] init];

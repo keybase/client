@@ -61,7 +61,7 @@
   if (className) {
     Class clazz = NSClassFromString(className);
     if ([clazz isSubclassOfClass:MTLModel.class]) {
-      return [NSValueTransformer mtl_JSONDictionaryTransformerWithModelClass:clazz];
+      return [MTLJSONAdapter dictionaryTransformerWithModelClass:clazz];
     }
   }
   return nil;
@@ -69,7 +69,7 @@
 
 - (NSString *)propertiesDescription:(NSString *)prefix {
   NSMutableString *desc = [NSMutableString string];
-  NSDictionary *properties = [MTLJSONAdapter JSONDictionaryFromModel:self];
+  NSDictionary *properties = [MTLJSONAdapter JSONDictionaryFromModel:self error:nil]; // TODO: Handle error
   for (NSString *propertyName in properties) {
     id value = properties[propertyName];
     [desc appendString:prefix];

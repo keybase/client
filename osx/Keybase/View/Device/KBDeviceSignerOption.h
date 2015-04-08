@@ -21,7 +21,7 @@ typedef NS_ENUM (NSInteger, KBDeviceSignerType) {
 @property NSString *identifier;
 @property NSString *title;
 @property NSString *info;
-@property NSString *imageSource;
+@property NSString *imageURLString;
 
 + (instancetype)deviceWithIdentifier:(NSString *)identifier name:(NSString *)name;
 

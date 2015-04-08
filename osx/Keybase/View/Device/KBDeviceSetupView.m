@@ -40,7 +40,7 @@
 
   _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     view.tintImageForStyle = YES;
-    [view setTitle:option.title info:option.info imageSource:option.imageSource imageSize:CGSizeMake(30, 30)];
+    [view setTitle:option.title info:option.info imageURLString:option.imageURLString imageSize:CGSizeMake(30, 30)];
   };
   [contentView addSubview:_deviceSignerView];
 

@@ -20,7 +20,19 @@
 - (void)setUsername:(NSString *)username {
   _username = username;
   NSString *URLString = [AppDelegate.sharedDelegate.APIClient URLStringWithPath:NSStringWithFormat(@"%@/picture?format=square_200", username)];
-  [self.imageLoader setURLString:URLString defaultURLString:@"https://keybase.io/images/no_photo.png"];
+
+  NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:URLString]];
+  [request addValue:@"image/*" forHTTPHeaderField:@"Accept"];
+
+  GHWeakSelf gself = self;
+  [self setImageWithURLRequest:request placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, NSImage *image) {
+    gself.image = image;
+  } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
+    if (response.statusCode == 404) {
+      [gself setImageWithURL:[NSURL URLWithString:@"https://keybase.io/images/no_photo.png"]];
+    }
+  }];
+
 }
 
 @end

@@ -16,7 +16,7 @@
   option.identifier = identifier;
   option.title = name;
   option.info = @"Use this computer to get an authentication token.";
-  option.imageSource = @"30-Hardware-black-computer-30";
+  option.imageURLString = @"bundle://30-Hardware-black-computer-30";
   return option;
 }
 
@@ -25,7 +25,7 @@
   option.signerType = KBDeviceSignerTypePGP;
   option.title = @"PGP Key";
   option.info = @"Use your PGP key.";
-  option.imageSource = @"1-Edition-black-key-2-30";
+  option.imageURLString = @"bundle://1-Edition-black-key-2-30";
   return option;
 }
 

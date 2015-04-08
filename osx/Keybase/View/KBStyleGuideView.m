@@ -40,7 +40,7 @@
 
   KBImageTextView *imageTextView = [[KBImageTextView alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
   imageTextView.imageSize = CGSizeMake(40, 40);
-  [imageTextView setTitle:title info:shortText imageSource:@"30-Hardware-black-computer-30" imageSize:CGSizeMake(30, 30)];
+  [imageTextView setTitle:title info:shortText imageURLString:@"bundle://30-Hardware-black-computer-30" imageSize:CGSizeMake(30, 30)];
   [contentView addSubview:imageTextView];
 
   KBPopoverView *popover = [[KBPopoverView alloc] initWithFrame:CGRectMake(0, 0, 200, 0)];
