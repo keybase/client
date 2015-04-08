@@ -991,3 +991,11 @@ func (ckf *ComputedKeyFamily) isDetKeyHelper(hexKid string) (ret bool, err error
 	ret = dev.IsWeb()
 	return
 }
+
+func (ckf *ComputedKeyFamily) GetAllDevices() []*Device {
+	devices := []*Device{}
+	for _, device := range ckf.cki.Devices {
+		devices = append(devices, device)
+	}
+	return devices
+}
