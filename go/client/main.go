@@ -34,6 +34,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 		NewCmdReset(cl),
 		NewCmdResolve(cl),
 		NewCmdRevoke(cl),
+		NewCmdSearch(cl),
 		NewCmdSigs(cl),
 		NewCmdSignup(cl),
 		NewCmdStatus(cl),

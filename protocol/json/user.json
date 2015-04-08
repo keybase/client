@@ -338,6 +338,19 @@
         "type" : "boolean"
       } ],
       "response" : "string"
+    },
+    "search" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "query",
+        "type" : "string"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "UserSummary"
+      }
     }
   }
 }

@@ -2263,6 +2263,11 @@ type ListTrackingJsonArg struct {
 	Verbose bool   `codec:"verbose" json:"verbose"`
 }
 
+type SearchArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Query     string `codec:"query" json:"query"`
+}
+
 type UserInterface interface {
 	ListTrackers(ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
@@ -2271,6 +2276,7 @@ type UserInterface interface {
 	LoadUser(LoadUserArg) (User, error)
 	ListTracking(string) ([]UserSummary, error)
 	ListTrackingJson(ListTrackingJsonArg) (string, error)
+	Search(SearchArg) ([]UserSummary, error)
 }
 
 func UserProtocol(i UserInterface) rpc2.Protocol {
@@ -2326,6 +2332,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"search": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SearchArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.Search(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -2370,5 +2383,10 @@ func (c UserClient) ListTracking(filter string) (res []UserSummary, err error) {
 
 func (c UserClient) ListTrackingJson(__arg ListTrackingJsonArg) (res string, err error) {
 	err = c.Cli.Call("keybase.1.user.listTrackingJson", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) Search(__arg SearchArg) (res []UserSummary, err error) {
+	err = c.Cli.Call("keybase.1.user.search", []interface{}{__arg}, &res)
 	return
 }

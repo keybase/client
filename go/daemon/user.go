@@ -102,3 +102,13 @@ func (h *UserHandler) LoadUser(arg keybase_1.LoadUserArg) (user keybase_1.User, 
 	user = *exportedUser
 	return
 }
+
+func (h *UserHandler) Search(arg keybase_1.SearchArg) (results []keybase_1.UserSummary, err error) {
+	eng := engine.NewSearchEngine(arg.Query)
+	ctx := &engine.Context{LogUI: h.getLogUI(arg.SessionID)}
+	err = engine.RunEngine(eng, ctx)
+	if err == nil {
+		results = eng.GetResults()
+	}
+	return
+}

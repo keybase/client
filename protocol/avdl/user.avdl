@@ -54,4 +54,7 @@ protocol user {
 	// in the user's own sigchain.
 	array<UserSummary> listTracking(string filter);
 	string listTrackingJson(string filter, boolean verbose);
+
+	// Search for users who match a given query
+	array<UserSummary> search(int sessionID, string query);
 }
