@@ -81,6 +81,7 @@ func (c *CmdPGPDecrypt) Run() error {
 	err := engine.RunEngine(eng, ctx)
 
 	c.Close(err)
+
 	return err
 }
 
@@ -112,6 +113,7 @@ func (c *CmdPGPDecrypt) RunClient() error {
 	_, err = cli.PgpDecrypt(arg)
 
 	c.Close(err)
+
 	return err
 }
 

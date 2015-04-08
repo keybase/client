@@ -41,10 +41,10 @@ func TestPGPDecrypt(t *testing.T) {
 	t.Logf("encrypted data: %x", out)
 
 	// decrypt it
-	var decoded bytes.Buffer
+	decoded := libkb.NewBufferCloser()
 	decarg := &PGPDecryptArg{
 		Source: bytes.NewReader(out),
-		Sink:   &decoded,
+		Sink:   decoded,
 	}
 	dec := NewPGPDecrypt(decarg)
 	if err := RunEngine(dec, ctx); err != nil {
@@ -79,10 +79,10 @@ func TestPGPDecryptArmored(t *testing.T) {
 	t.Logf("encrypted data: %x", out)
 
 	// decrypt it
-	var decoded bytes.Buffer
+	decoded := libkb.NewBufferCloser()
 	decarg := &PGPDecryptArg{
 		Source: bytes.NewReader(out),
-		Sink:   &decoded,
+		Sink:   decoded,
 	}
 	dec := NewPGPDecrypt(decarg)
 	if err := RunEngine(dec, ctx); err != nil {
@@ -119,10 +119,10 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 	t.Logf("encrypted data: %x", out)
 
 	// decrypt it
-	var decoded bytes.Buffer
+	decoded := libkb.NewBufferCloser()
 	decarg := &PGPDecryptArg{
 		Source:       bytes.NewReader(out),
-		Sink:         &decoded,
+		Sink:         decoded,
 		AssertSigned: true,
 	}
 	dec := NewPGPDecrypt(decarg)
@@ -179,10 +179,10 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: G.UI.GetLogUI()}
 
 	// decrypt it
-	var decoded bytes.Buffer
+	decoded := libkb.NewBufferCloser()
 	decarg := &PGPDecryptArg{
 		Source:       bytes.NewReader(out),
-		Sink:         &decoded,
+		Sink:         decoded,
 		AssertSigned: true,
 	}
 	dec := NewPGPDecrypt(decarg)

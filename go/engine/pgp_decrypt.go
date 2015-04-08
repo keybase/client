@@ -9,7 +9,7 @@ import (
 
 type PGPDecryptArg struct {
 	Source       io.Reader
-	Sink         io.Writer
+	Sink         io.WriteCloser
 	AssertSigned bool
 	SignedBy     string
 	TrackOptions TrackOptions
@@ -60,6 +60,10 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 	}
 	e.signStatus, err = libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
+		return err
+	}
+
+	if err := e.arg.Sink.Close(); err != nil {
 		return err
 	}
 

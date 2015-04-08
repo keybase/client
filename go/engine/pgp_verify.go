@@ -81,7 +81,7 @@ func (e *PGPVerify) Owner() *libkb.User {
 func (e *PGPVerify) runAttached(ctx *Context) error {
 	arg := &PGPDecryptArg{
 		Source:       e.peek,
-		Sink:         ioutil.Discard,
+		Sink:         libkb.NopWriteCloser{W: ioutil.Discard},
 		AssertSigned: true,
 		TrackOptions: e.arg.TrackOptions,
 	}
