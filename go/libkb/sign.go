@@ -161,10 +161,17 @@ func AttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.File
 
 	var signer *packet.PrivateKey
 
-	if signKey, ok := getSigningKey(&signed, config.Now()); !ok {
+	signKey, ok := getSigningKey(&signed, config.Now())
+	if !ok {
 		err = errors.InvalidArgumentError("no valid signing keys")
 		return
-	} else if signer = signKey.PrivateKey; signer.Encrypted {
+	}
+	signer = signKey.PrivateKey
+	if signer == nil {
+		err = errors.InvalidArgumentError("no valid signing keys")
+		return
+	}
+	if signer.Encrypted {
 		err = errors.InvalidArgumentError("signing key must be decrypted")
 		return
 	}
