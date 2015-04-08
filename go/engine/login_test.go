@@ -302,6 +302,135 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	testUserHasDeviceKey(t)
 }
 
+// TestLoginInterrupt* tries to simulate what would happen if the
+// doctor login checkup gets interrupted.  See Issue #287.
+
+// TestLoginInterruptDeviceRegister interrupts after registering a
+// device and then tests that login corrects the situation on the
+// next attempt.
+func TestLoginInterruptDeviceRegister(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	username, passphrase := createFakeUserWithNoKeys(t)
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	secui := libkb.TestSecretUI{Passphrase: passphrase}
+	tk, err := G.LoginState.GetPassphraseStream(secui)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lks := libkb.NewLKSec(tk.LksClientHalf(), G)
+
+	G.LoginState.Logout()
+
+	// going to register a device only, not generating the device keys.
+	dregArgs := &DeviceRegisterArgs{
+		Me:   me,
+		Name: "my new device",
+		Lks:  lks,
+	}
+	dreg := NewDeviceRegister(dregArgs)
+	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	if err := RunEngine(dreg, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// now login and see if it correctly generates needed keys
+	//
+	larg := LoginEngineArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   username,
+			Passphrase: passphrase,
+			NoUi:       true,
+		},
+	}
+	li := NewLoginEngine(&larg)
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := G.Session.AssertLoggedIn(); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any keys, login should have fixed that:
+	testUserHasDeviceKey(t)
+}
+
+// TestLoginInterruptDevicePush interrupts before pushing device
+// keys and then tests that login corrects the situation on the
+// next attempt.
+func TestLoginInterruptDevicePush(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	username, passphrase := createFakeUserWithNoKeys(t)
+
+	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	secui := libkb.TestSecretUI{Passphrase: passphrase}
+	tk, err := G.LoginState.GetPassphraseStream(secui)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lks := libkb.NewLKSec(tk.LksClientHalf(), G)
+
+	G.LoginState.Logout()
+
+	// going to register a device only, not generating the device keys.
+	dregArgs := &DeviceRegisterArgs{
+		Me:   me,
+		Name: "my new device",
+		Lks:  lks,
+	}
+	dreg := NewDeviceRegister(dregArgs)
+	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	if err := RunEngine(dreg, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// now generate device keys but don't push them.
+	dkeyArgs := &DeviceKeygenArgs{
+		Me:         me,
+		DeviceID:   dreg.DeviceID(),
+		DeviceName: dregArgs.Name,
+		Lks:        lks,
+	}
+	dkey := NewDeviceKeygen(dkeyArgs)
+	if err := RunEngine(dkey, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// now login and see if it correctly generates needed keys
+	//
+	larg := LoginEngineArg{
+		Login: libkb.LoginArg{
+			Force:      true,
+			Prompt:     false,
+			Username:   username,
+			Passphrase: passphrase,
+			NoUi:       true,
+		},
+	}
+	li := NewLoginEngine(&larg)
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := G.Session.AssertLoggedIn(); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any keys, login should have fixed that:
+	testUserHasDeviceKey(t)
+}
+
 type ldocui struct {
 	selectSignerCount int
 }

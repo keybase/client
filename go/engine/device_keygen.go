@@ -202,6 +202,13 @@ func (e *DeviceKeygen) pushLKS() {
 
 	// send it to api server
 	e.pushErr = libkb.PostDeviceLKS(e.args.DeviceID.String(), libkb.DEVICE_TYPE_DESKTOP, serverHalf)
+	if e.pushErr != nil {
+		return
+	}
+
+	// Sync the LKS stuff back from the server, so that subsequent
+	// attempts to use public key login will work.
+	e.pushErr = libkb.RunSyncer(G.SecretSyncer, e.args.Me.GetUid().P())
 }
 
 func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) libkb.NaclKeyGenArg {
