@@ -21,6 +21,10 @@ func TestSignupEngine(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(t, "se")
 
+	if err = G.Session.AssertLoggedIn(); err != nil {
+		t.Fatal(err)
+	}
+
 	if err = AssertDeviceID(); err != nil {
 		t.Fatal(err)
 	}
