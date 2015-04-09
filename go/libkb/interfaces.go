@@ -247,8 +247,8 @@ type LogUI interface {
 	Critical(format string, args ...interface{})
 }
 
-type DoctorUI interface {
-	keybase_1.DoctorUiInterface
+type LocksmithUI interface {
+	keybase_1.LocksmithUiInterface
 }
 
 type GPGUI interface {
@@ -264,7 +264,7 @@ type UI interface {
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
-	GetDoctorUI() DoctorUI
+	GetLocksmithUI() LocksmithUI
 	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error

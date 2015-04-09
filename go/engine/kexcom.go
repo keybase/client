@@ -72,12 +72,12 @@ func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex
 
 func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCode) {
 	// just to be sure...
-	if ctx.DoctorUI == nil {
+	if ctx.LocksmithUI == nil {
 		k.G().Log.Warning("KexCom kexStatus(), ctx.DoctorUI is nil")
 		return
 	}
 
-	if err := ctx.DoctorUI.KexStatus(keybase_1.KexStatusArg{Msg: msg, Code: code}); err != nil {
+	if err := ctx.LocksmithUI.KexStatus(keybase_1.KexStatusArg{Msg: msg, Code: code}); err != nil {
 		// an error here isn't critical
 		k.G().Log.Debug("send KexStatus error: %s", err)
 	}

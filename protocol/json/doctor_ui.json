@@ -1,5 +1,5 @@
 {
-  "protocol" : "doctorUi",
+  "protocol" : "locksmithUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",

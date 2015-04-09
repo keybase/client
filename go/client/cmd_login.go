@@ -20,7 +20,7 @@ func NewLoginUIProtocol() rpc2.Protocol {
 }
 
 func NewDoctorUIProtocol() rpc2.Protocol {
-	return keybase_1.DoctorUiProtocol(G_UI.GetDoctorUI())
+	return keybase_1.LocksmithUiProtocol(G_UI.GetLocksmithUI())
 }
 
 func (v *CmdLogin) RunClient() (err error) {
@@ -44,7 +44,7 @@ func (v *CmdLogin) Run() error {
 	ctx := &engine.Context{
 		LogUI:         G.UI.GetLogUI(),
 		LoginUI:       G.UI.GetLoginUI(),
-		DoctorUI:      G.UI.GetDoctorUI(),
+		LocksmithUI:   G.UI.GetLocksmithUI(),
 		GPGUI:         G.UI.GetGPGUI(),
 		SecretUI:      G.UI.GetSecretUI(),
 		GlobalContext: G,

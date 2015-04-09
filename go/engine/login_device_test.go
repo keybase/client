@@ -52,7 +52,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		// authorize on device X
-		ctx := &Context{LogUI: tcX.G.UI.GetLogUI(), DoctorUI: docui, SecretUI: secui}
+		ctx := &Context{LogUI: tcX.G.UI.GetLogUI(), LocksmithUI: docui, SecretUI: secui}
 
 		// wait for docui to know the secret
 		for len(docui.secretPhrase()) == 0 {
@@ -83,7 +83,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	}
 
 	li := NewLoginEngine(&larg)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}

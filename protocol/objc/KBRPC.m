@@ -185,18 +185,18 @@
 @implementation KBRSelectSignerRes
 @end
 
-@implementation KBRDoctorUiRequest
+@implementation KBRLocksmithUiRequest
 
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID)}];
-  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.promptDeviceName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.promptDeviceName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
 
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"devices": KBRValue(devices), @"hasPGP": @(hasPGP)}];
-  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.selectSigner" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.selectSigner" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
         completion(error, nil);
         return;
@@ -208,14 +208,14 @@
 
 - (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"secret": KBRValue(secret), @"deviceNameExisting": KBRValue(deviceNameExisting), @"deviceNameToAdd": KBRValue(deviceNameToAdd)}];
-  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.displaySecretWords" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.displaySecretWords" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
 - (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"code": @(code)}];
-  [self.client sendRequestWithMethod:@"keybase.1.doctorUi.kexStatus" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.kexStatus" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }

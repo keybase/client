@@ -7,12 +7,12 @@ import (
 )
 
 type Context struct {
-	DoctorUI   libkb.DoctorUI
-	GPGUI      libkb.GPGUI
-	LogUI      libkb.LogUI
-	LoginUI    libkb.LoginUI
-	SecretUI   libkb.SecretUI
-	IdentifyUI libkb.IdentifyUI
+	LocksmithUI libkb.LocksmithUI
+	GPGUI       libkb.GPGUI
+	LogUI       libkb.LogUI
+	LoginUI     libkb.LoginUI
+	SecretUI    libkb.SecretUI
+	IdentifyUI  libkb.IdentifyUI
 
 	// For everything else global...
 	GlobalContext *libkb.GlobalContext
@@ -21,7 +21,7 @@ type Context struct {
 func (c *Context) HasUI(kind libkb.UIKind) bool {
 	switch kind {
 	case libkb.DoctorUIKind:
-		return c.DoctorUI != nil
+		return c.LocksmithUI != nil
 	case libkb.GPGUIKind:
 		return c.GPGUI != nil
 	case libkb.LogUIKind:

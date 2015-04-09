@@ -420,8 +420,8 @@ func (ui *UI) GetGPGUI() libkb.GPGUI {
 	return GPGUI{ui}
 }
 
-func (ui *UI) GetDoctorUI() libkb.DoctorUI {
-	return DoctorUI{ui}
+func (ui *UI) GetLocksmithUI() libkb.LocksmithUI {
+	return LocksmithUI{ui}
 }
 
 //============================================================
@@ -489,16 +489,16 @@ func (p ProveUI) DisplayRecheckWarning(txt keybase_1.Text) {
 
 //============================================================
 
-type DoctorUI struct {
+type LocksmithUI struct {
 	parent *UI
 }
 
-func (d DoctorUI) PromptDeviceName(dummy int) (string, error) {
+func (d LocksmithUI) PromptDeviceName(dummy int) (string, error) {
 	return d.parent.Prompt("Enter a name for this device", false,
 		libkb.CheckNotEmpty)
 }
 
-func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (d LocksmithUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
 	d.parent.Output("How would you like to sign this install of Keybase?\n\n")
 	w := new(tabwriter.Writer)
 	w.Init(d.parent.OutputWriter(), 5, 0, 3, ' ', 0)
@@ -566,7 +566,7 @@ func (d DoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sel
 	return res, nil
 }
 
-func (d DoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (d LocksmithUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
 	d.parent.Printf("On your %q computer, a window should have appeared. Type this in it:\n\n", arg.DeviceNameExisting)
 	d.parent.Printf("\t%s\n\n", arg.Secret)
 	d.parent.Printf("Alternatively, if you're using the terminal at %q, type this:\n\n", arg.DeviceNameExisting)
@@ -574,7 +574,7 @@ func (d DoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error 
 	return nil
 }
 
-func (d DoctorUI) KexStatus(arg keybase_1.KexStatusArg) error {
+func (d LocksmithUI) KexStatus(arg keybase_1.KexStatusArg) error {
 	G.Log.Debug("kex status: %s (%d)", arg.Msg, arg.Code)
 	return nil
 }

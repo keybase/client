@@ -256,7 +256,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	}
 	arg.HasPGP = withPGPOption
 
-	res, err := ctx.DoctorUI.SelectSigner(arg)
+	res, err := ctx.LocksmithUI.SelectSigner(arg)
 	if err != nil {
 		return err
 	}
@@ -450,7 +450,7 @@ func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {
 
 func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 	if len(d.devName) == 0 {
-		name, err := ctx.DoctorUI.PromptDeviceName(0)
+		name, err := ctx.LocksmithUI.PromptDeviceName(0)
 		if err != nil {
 			return "", err
 		}

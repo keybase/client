@@ -101,7 +101,7 @@ func (k *KexFwd) Run(ctx *Context) error {
 		DeviceNameExisting: k.args.DstName,
 		Secret:             sec.Phrase(),
 	}
-	if err := ctx.DoctorUI.DisplaySecretWords(darg); err != nil {
+	if err := ctx.LocksmithUI.DisplaySecretWords(darg); err != nil {
 		return err
 	}
 	// start the kex session with X

@@ -33,7 +33,7 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 func (h *DeviceHandler) DeviceAdd(phrase string) error {
 	sessionID := nextSessionId()
 	doctorUI := NewRemoteDoctorUI(sessionID, h.getRpcClient())
-	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), DoctorUI: doctorUI}
+	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), LocksmithUI: doctorUI}
 	h.kexsibEngMu.Lock()
 	h.kexsibEng = engine.NewKexSib(G, phrase)
 	h.kexsibEngMu.Unlock()

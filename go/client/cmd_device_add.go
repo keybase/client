@@ -48,7 +48,7 @@ func (c *CmdDeviceAdd) RunClient() error {
 
 // Run runs the command in standalone mode.
 func (c *CmdDeviceAdd) Run() error {
-	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), DoctorUI: G_UI.GetDoctorUI()}
+	ctx := &engine.Context{SecretUI: G_UI.GetSecretUI(), LocksmithUI: G_UI.GetLocksmithUI()}
 	eng := engine.NewKexSib(G, c.phrase)
 	return engine.RunEngine(eng, ctx)
 }

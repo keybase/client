@@ -169,7 +169,7 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 	KBRKexStatusCodeDoneSend,
 	KBRKexStatusCodeEnd,
 };
-@interface KBRDoctorUiRequest : KBRRequest
+@interface KBRLocksmithUiRequest : KBRRequest
 - (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;

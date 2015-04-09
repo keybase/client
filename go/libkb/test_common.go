@@ -225,7 +225,7 @@ func (n *nullui) GetGPGUI() GPGUI {
 func (n *nullui) GetLogUI() LogUI {
 	return G.Log
 }
-func (n *nullui) GetDoctorUI() DoctorUI {
+func (n *nullui) GetLocksmithUI() LocksmithUI {
 	return nil
 }
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {

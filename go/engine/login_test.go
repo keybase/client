@@ -105,7 +105,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	}
 	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +136,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	}
 	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -182,11 +182,11 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
-		SecretUI: secui,
-		GPGUI:    &gpgtestui{},
-		LoginUI:  &libkb.TestLoginUI{},
+		LogUI:       G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
 	}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -234,11 +234,11 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
-		SecretUI: secui,
-		GPGUI:    &gpgtestui{},
-		LoginUI:  &libkb.TestLoginUI{},
+		LogUI:       G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+		LoginUI:     &libkb.TestLoginUI{},
 	}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -284,11 +284,11 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	li := NewLoginEngine(&larg)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: docui,
-		GPGUI:    &gpgtestui{1},
-		SecretUI: secui,
-		LoginUI:  &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:       G.UI.GetLogUI(),
+		LocksmithUI: docui,
+		GPGUI:       &gpgtestui{1},
+		SecretUI:    secui,
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 	}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
@@ -334,7 +334,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 		Lks:  lks,
 	}
 	dreg := NewDeviceRegister(dregArgs)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -391,7 +391,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		Lks:  lks,
 	}
 	dreg := NewDeviceRegister(dregArgs)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), DoctorUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
 	}

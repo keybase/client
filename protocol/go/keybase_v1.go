@@ -487,16 +487,16 @@ type KexStatusArg struct {
 	Code      KexStatusCode `codec:"code" json:"code"`
 }
 
-type DoctorUiInterface interface {
+type LocksmithUiInterface interface {
 	PromptDeviceName(int) (string, error)
 	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
 	DisplaySecretWords(DisplaySecretWordsArg) error
 	KexStatus(KexStatusArg) error
 }
 
-func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
+func LocksmithUiProtocol(i LocksmithUiInterface) rpc2.Protocol {
 	return rpc2.Protocol{
-		Name: "keybase.1.doctorUi",
+		Name: "keybase.1.locksmithUi",
 		Methods: map[string]rpc2.ServeHook{
 			"promptDeviceName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]PromptDeviceNameArg, 1)
@@ -531,28 +531,28 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
 
 }
 
-type DoctorUiClient struct {
+type LocksmithUiClient struct {
 	Cli GenericClient
 }
 
-func (c DoctorUiClient) PromptDeviceName(sessionID int) (res string, err error) {
+func (c LocksmithUiClient) PromptDeviceName(sessionID int) (res string, err error) {
 	__arg := PromptDeviceNameArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.doctorUi.promptDeviceName", []interface{}{__arg}, &res)
+	err = c.Cli.Call("keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DoctorUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
-	err = c.Cli.Call("keybase.1.doctorUi.selectSigner", []interface{}{__arg}, &res)
+func (c LocksmithUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DoctorUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
-	err = c.Cli.Call("keybase.1.doctorUi.displaySecretWords", []interface{}{__arg}, nil)
+func (c LocksmithUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.displaySecretWords", []interface{}{__arg}, nil)
 	return
 }
 
-func (c DoctorUiClient) KexStatus(__arg KexStatusArg) (err error) {
-	err = c.Cli.Call("keybase.1.doctorUi.kexStatus", []interface{}{__arg}, nil)
+func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
 	return
 }
 

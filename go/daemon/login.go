@@ -12,7 +12,7 @@ import (
 type LoginHandler struct {
 	BaseHandler
 	identifyUi    libkb.IdentifyUI
-	doctorUI      libkb.DoctorUI
+	doctorUI      libkb.LocksmithUI
 	loginEngineMu sync.Mutex
 	loginEngine   *engine.LoginEngine
 }
@@ -21,7 +21,7 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 	return &LoginHandler{BaseHandler: BaseHandler{xp: xp}}
 }
 
-func (h *LoginHandler) getDoctorUI(sessionId int) libkb.DoctorUI {
+func (h *LoginHandler) getDoctorUI(sessionId int) libkb.LocksmithUI {
 	if h.doctorUI == nil {
 		h.doctorUI = NewRemoteDoctorUI(sessionId, h.getRpcClient())
 	}
@@ -62,11 +62,11 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 	h.loginEngineMu.Unlock()
 
 	ctx := &engine.Context{
-		LogUI:    h.getLogUI(sessid),
-		DoctorUI: h.getDoctorUI(sessid),
-		SecretUI: h.getSecretUI(sessid),
-		LoginUI:  h.getLoginUI(sessid),
-		GPGUI:    NewRemoteGPGUI(sessid, h.getRpcClient()),
+		LogUI:       h.getLogUI(sessid),
+		LocksmithUI: h.getDoctorUI(sessid),
+		SecretUI:    h.getSecretUI(sessid),
+		LoginUI:     h.getLoginUI(sessid),
+		GPGUI:       NewRemoteGPGUI(sessid, h.getRpcClient()),
 	}
 	err := engine.RunEngine(h.loginEngine, ctx)
 
@@ -97,13 +97,13 @@ func (h *LoginHandler) CancelLogin() error {
 
 type RemoteDoctorUI struct {
 	sessionId int
-	uicli     keybase_1.DoctorUiClient
+	uicli     keybase_1.LocksmithUiClient
 }
 
 func NewRemoteDoctorUI(sessionId int, c *rpc2.Client) *RemoteDoctorUI {
 	return &RemoteDoctorUI{
 		sessionId: sessionId,
-		uicli:     keybase_1.DoctorUiClient{Cli: c},
+		uicli:     keybase_1.LocksmithUiClient{Cli: c},
 	}
 }
 

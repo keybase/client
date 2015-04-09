@@ -1,10 +1,6 @@
 @namespace("keybase.1")
 
-// PC:  although this is currently only used by login, 
-// I think it will be used by a future 'doctor' command
-// that will do automatic fixes on your account, setup, etc.
-
-protocol doctorUi {
+protocol locksmithUi {
 	import idl "common.avdl";
 
 	enum DeviceSignerKind {

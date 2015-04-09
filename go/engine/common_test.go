@@ -77,11 +77,11 @@ func (fu *FakeUser) Login() error {
 	}
 	secui := fu.NewSecretUI()
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
-		DoctorUI: &ldocui{},
-		GPGUI:    &gpgtestui{},
-		SecretUI: secui,
-		LoginUI:  &libkb.TestLoginUI{},
+		LogUI:       G.UI.GetLogUI(),
+		LocksmithUI: &ldocui{},
+		GPGUI:       &gpgtestui{},
+		SecretUI:    secui,
+		LoginUI:     &libkb.TestLoginUI{},
 	}
 	li := NewLoginEngine(&larg)
 	return RunEngine(li, ctx)
