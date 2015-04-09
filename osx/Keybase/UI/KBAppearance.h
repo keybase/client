@@ -16,7 +16,18 @@ typedef NS_ENUM(NSInteger, KBTextStyle) {
   KBTextStyleMonospace,
   KBTextStyleHeader,
   KBTextStyleHeaderLarge,
-};;
+};
+
+typedef NS_ENUM (NSInteger, KBButtonStyle) {
+  KBButtonStyleDefault,
+  KBButtonStylePrimary,
+  KBButtonStyleLink,
+  KBButtonStyleCheckbox,
+  KBButtonStyleText,
+  KBButtonStyleEmpty,
+  KBButtonStyleToolbar,
+  KBButtonStyleSmall,
+};
 
 @protocol KBAppearance
 
@@ -55,6 +66,10 @@ typedef NS_ENUM(NSInteger, KBTextStyle) {
 - (NSColor *)colorForStyle:(KBTextStyle)style;
 
 - (NSFont *)fontForStyle:(KBTextStyle)style;
+
+- (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
+- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
+- (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
 
 @end
 

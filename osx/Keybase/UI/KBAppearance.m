@@ -86,7 +86,8 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   //return [NSColor colorWithRed:0.0f green:0.49f blue:0.96f alpha:1.0f];
   //return GHNSColorFromRGB(0x286090);
   //return [NSColor colorWithRed:9.0/255.0 green:80.0/255.0 blue:208.0/255.0 alpha:1.0f];
-  return [NSColor colorWithRed:50.0/255.0 green:132.0/255.0 blue:252.0/255.0 alpha:1.0f];
+  //return [NSColor colorWithRed:50.0/255.0 green:132.0/255.0 blue:252.0/255.0 alpha:1.0f];
+  return GHNSColorFromRGB(0x0084FF);
 }
 
 - (NSColor *)disabledTextColor {
@@ -167,6 +168,112 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 - (NSColor *)secondaryBackgroundColor {
   return [NSColor colorWithCalibratedWhite:0.966 alpha:1.0];
+}
+
+- (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
+  if (!enabled) return GHNSColorFromRGB(0x666666);
+  switch (style) {
+    case KBButtonStyleDefault:
+    case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+      return GHNSColorFromRGB(0x333333);
+
+    case KBButtonStylePrimary:
+      return GHNSColorFromRGB(0xFFFFFF);
+
+    case KBButtonStyleLink: return highlighted ? GHNSColorFromRGB(0x000000) : [KBAppearance.currentAppearance selectColor];
+    case KBButtonStyleText: NSAssert(NO, @"Text style shouldn't get here");
+    case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
+    case KBButtonStyleEmpty: return nil;
+  }
+}
+
+- (NSColor *)buttonDisabledFillColorForStyle:(KBButtonStyle)style {
+  switch (style) {
+    case KBButtonStyleDefault:
+    case KBButtonStylePrimary:
+    case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+      return GHNSColorFromRGB(0xEFEFEF);
+
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleEmpty:
+      return nil;
+  }
+}
+
+- (NSColor *)buttonHighlightedFillColorForStyle:(KBButtonStyle)style {
+  switch (style) {
+    case KBButtonStyleEmpty:
+    case KBButtonStyleDefault:
+    case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+    case KBButtonStyleText:
+      return GHNSColorFromRGB(0xCCCCCC);
+
+    case KBButtonStylePrimary:
+      return [NSColor colorWithCalibratedRed:192.0/255.0 green:221.0/255.0 blue:250.0/255.0 alpha:1.0];
+
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleLink:
+      return nil;
+  }
+}
+
+- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
+  if (!enabled) return [self buttonDisabledFillColorForStyle:style];
+  if (highlighted) return [self buttonHighlightedFillColorForStyle:style];
+  switch (style) {
+    case KBButtonStyleDefault:
+    case KBButtonStyleEmpty:
+    case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+      return [NSColor colorWithCalibratedWhite:0.99 alpha:1.0];
+
+    case KBButtonStylePrimary:
+      return KBAppearance.currentAppearance.selectColor;
+
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+      return nil;
+  }
+}
+
+- (NSColor *)buttonDisabledStrokeColorForStyle:(KBButtonStyle)style {
+  switch (style) {
+    case KBButtonStyleDefault:
+    case KBButtonStylePrimary:
+      return GHNSColorFromRGB(0xCCCCCC);
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleEmpty:
+    case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+      return nil;
+  }
+}
+
+- (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
+  if (!enabled) return [self buttonDisabledStrokeColorForStyle:style];
+  switch (style) {
+    case KBButtonStyleDefault:
+    case KBButtonStyleToolbar:
+    case KBButtonStyleSmall:
+      return GHNSColorFromRGB(0xCCCCCC);
+
+    case KBButtonStylePrimary:
+      return nil;
+
+    case KBButtonStyleLink:
+    case KBButtonStyleText:
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleEmpty:
+      return nil;
+  }
 }
 
 @end

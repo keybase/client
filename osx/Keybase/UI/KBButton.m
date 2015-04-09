@@ -113,9 +113,9 @@
 
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
-      sizeThatFits.height += 14;
-      sizeThatFits.width += 28;
-      sizeThatFits.width = MAX(sizeThatFits.width, 100);
+      sizeThatFits.height += 16;
+      sizeThatFits.width += 24;
+      sizeThatFits.width = MAX(sizeThatFits.width, 120);
       break;
 
   }
@@ -242,117 +242,11 @@ static KBButtonErrorHandler gErrorHandler = nil;
   [self setAttributedTitle:str];
 }
 
-- (NSColor *)textColorForState {
-  if (!self.enabled) return GHNSColorFromRGB(0x666666);
-  switch (self.style) {
-    case KBButtonStyleDefault:
-    case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
-      return GHNSColorFromRGB(0x333333);
-
-    case KBButtonStylePrimary:
-      return GHNSColorFromRGB(0xFFFFFF);
-
-    case KBButtonStyleLink: return self.highlighted ? GHNSColorFromRGB(0x000000) : [KBAppearance.currentAppearance selectColor];
-    case KBButtonStyleText: NSAssert(NO, @"Text style shouldn't get here");
-    case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
-    case KBButtonStyleEmpty: return nil;
-  }
-}
-
-- (NSColor *)disabledFillColorForState {
-  switch (self.style) {
-    case KBButtonStyleDefault:
-    case KBButtonStylePrimary:
-    case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
-      return GHNSColorFromRGB(0xEFEFEF);
-
-    case KBButtonStyleLink:
-    case KBButtonStyleText:
-    case KBButtonStyleCheckbox:
-    case KBButtonStyleEmpty:
-      return nil;
-  }
-}
-
-- (NSColor *)highlightedFillColorForState {
-  switch (self.style) {
-    case KBButtonStyleEmpty:
-    case KBButtonStyleDefault:
-    case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
-    case KBButtonStyleText:
-      return GHNSColorFromRGB(0xCCCCCC);
-
-    case KBButtonStylePrimary:
-      return GHNSColorFromRGB(0x286090);
-
-    case KBButtonStyleCheckbox:
-    case KBButtonStyleLink:
-      return nil;
-  }
-}
-
-- (NSColor *)fillColorForState {
-  if (!self.enabled) return [self disabledFillColorForState];
-  if (self.highlighted) return [self highlightedFillColorForState];
-  switch (self.style) {
-    case KBButtonStyleDefault:
-    case KBButtonStyleEmpty:
-    case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
-      return !self.enabled ? GHNSColorFromRGB(0xCCCCCC) : (self.highlighted ? GHNSColorFromRGB(0xCCCCCC) : [NSColor colorWithCalibratedWhite:0.99 alpha:1.0]);
-
-    case KBButtonStylePrimary:
-      return self.highlighted ? GHNSColorFromRGB(0x286090) : KBAppearance.currentAppearance.selectColor; //GHNSColorFromRGB(0x337AB7);
-
-    case KBButtonStyleLink:
-    case KBButtonStyleText:
-    case KBButtonStyleCheckbox:
-      return nil;
-  }
-}
-
-- (NSColor *)disabledStrokeColorForState {
-  switch (self.style) {
-    case KBButtonStyleDefault:
-    case KBButtonStylePrimary:
-      return GHNSColorFromRGB(0xCCCCCC);
-    case KBButtonStyleLink:
-    case KBButtonStyleText:
-    case KBButtonStyleCheckbox:
-    case KBButtonStyleEmpty:
-    case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
-      return nil;
-  }
-}
-
-- (NSColor *)strokeColorForState {
-  if (!self.enabled) return [self disabledStrokeColorForState];
-  switch (self.style) {
-    case KBButtonStyleDefault:
-    case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
-      return GHNSColorFromRGB(0xCCCCCC);
-      
-    case KBButtonStylePrimary:
-      return GHNSColorFromRGB(0x2e6da4);
-
-    case KBButtonStyleLink:
-    case KBButtonStyleText:
-    case KBButtonStyleCheckbox:
-    case KBButtonStyleEmpty:
-      return nil;
-  }
-}
-
 - (NSRect)drawTitle:(NSAttributedString *)title withFrame:(NSRect)frame inView:(NSView*)controlView {
   if (self.style != KBButtonStyleText) {
     // Cache this?
     NSMutableAttributedString *titleCopy = [title mutableCopy];
-    NSColor *color = self.textColorForState;
+    NSColor *color = [KBAppearance.currentAppearance buttonTextColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted];
     if (color) {
       [titleCopy addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, titleCopy.length)];
       title = titleCopy;
@@ -384,14 +278,17 @@ static KBButtonErrorHandler gErrorHandler = nil;
 }
 
 - (void)drawBezelWithFrame:(NSRect)frame inView:(NSView *)controlView {
-  NSColor *strokeColor = [self strokeColorForState];
-  NSColor *fillColor = [self fillColorForState];
+  NSColor *strokeColor = [KBAppearance.currentAppearance buttonStrokeColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted];
+  NSColor *fillColor = [KBAppearance.currentAppearance buttonFillColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted];
 
-  NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:CGRectInset(frame, 0.5, 0.5) xRadius:4.0 yRadius:4.0];
+  NSBezierPath *path;
   if (strokeColor) {
+    path = [NSBezierPath bezierPathWithRoundedRect:CGRectInset(frame, 0.5, 0.5) xRadius:4.0 yRadius:4.0];
     path.lineWidth = 1.0;
-    //path.flatness = 0;
+  } else {
+    path = [NSBezierPath bezierPathWithRoundedRect:frame xRadius:4.0 yRadius:4.0];
   }
+
   if (fillColor) {
     [fillColor setFill];
     [path fill];

@@ -9,22 +9,13 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
+#import "KBAppearance.h"
+
 @class KBButton;
 
 typedef void (^KBButtonCompletion)(NSError *error);
 typedef void (^KBButtonErrorHandler)(KBButton *button, NSError *error);
 typedef void (^KBButtonDispatchBlock)(KBButton *button, KBButtonCompletion completion);
-
-typedef NS_ENUM (NSInteger, KBButtonStyle) {
-  KBButtonStyleDefault,
-  KBButtonStylePrimary,
-  KBButtonStyleLink,
-  KBButtonStyleCheckbox,
-  KBButtonStyleText,
-  KBButtonStyleEmpty,
-  KBButtonStyleToolbar,
-  KBButtonStyleSmall,
-};
 
 @interface KBButton : NSButton
 

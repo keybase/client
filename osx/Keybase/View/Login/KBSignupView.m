@@ -73,7 +73,7 @@
   _deviceNameField.textField.delegate = self;
   _deviceNameField.focusDelegate = self;
   _deviceNameField.attributes[@"title"] = @"Computer Name";
-  _deviceNameField.attributes[@"info"] = @"We'll register this install with this name. It'll help you identify it later. For example, \"Work\" or \"Home\" or \"Macbook\".";
+  _deviceNameField.attributes[@"info"] = @"We'll register the app with this name. It'll help you identify it later. For example, \"Work\" or \"Home\" or \"Macbook\".";
 
   //_deviceNameField.text = [[NSHost currentHost] localizedName];
   [contentView addSubview:_deviceNameField];
