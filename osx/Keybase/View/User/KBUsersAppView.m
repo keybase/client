@@ -247,7 +247,7 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(KBSearchResults *)searchResults {
-  NSSet *usernames = [NSSet setWithArray:[[_searchView.listView objects] map:^(KBRUserSummary *us) { return us.username; }]];
+  NSSet *usernames = [NSSet setWithArray:[[_searchView.listView objectsWithoutHeaders] map:^(KBRUserSummary *us) { return us.username; }]];
   NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
   NSMutableArray *results = [filtered mutableCopy];
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];

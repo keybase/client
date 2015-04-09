@@ -13,6 +13,7 @@
 #import "KBRUtils.h"
 #import "KBRunBlocks.h"
 #import "KBSearcher.h"
+#import "KBUserView.h"
 
 @interface KBUserPickerView ()
 @property KBLabel *label;
@@ -72,10 +73,10 @@
   _searchControl.delegate = self;
 
   GHWeakSelf gself = self;
-  _searchResultsView = [KBListView listViewWithPrototypeClass:KBSearchResultView.class rowHeight:56];
+  _searchResultsView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
   [_searchResultsView setBorderEnabled:YES];
-  _searchResultsView.cellSetBlock = ^(KBSearchResultView *view, KBSearchResult *searchResult, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [view setSearchResult:searchResult];
+  _searchResultsView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+    [view setUserSummary:userSummary];
   };
   _searchResultsView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBSearchResult *searchResult) {
     [gself commitToken:[KBUserToken userTokenWithUsername:searchResult.userName]];
@@ -272,10 +273,11 @@
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(KBSearchResults *)searchResults {
-  NSSet *usernames = [NSSet setWithArray:[[_searchResultsView objects] map:^(KBRUserSummary *us) { return us.username; }]];
+  NSSet *usernames = [NSSet setWithArray:[[_searchResultsView objectsWithoutHeaders] map:^(KBRUserSummary *us) { return us.username; }]];
   NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
   NSMutableArray *results = [filtered mutableCopy];
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
+  [_searchResultsView addObjects:results];
 
   if ([_searchResultsView rowCount] > 0) {
     [self showSearch];
@@ -294,6 +296,7 @@
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query delay:(BOOL)delay completion:(void (^)(NSError *error, KBSearchResults *searchResults))completion {
+  if (!_search) _search = [[KBSearcher alloc] init];
   [_search search:query client:self.client remote:delay completion:completion];
 }
 

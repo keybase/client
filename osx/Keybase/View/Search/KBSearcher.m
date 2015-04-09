@@ -37,6 +37,7 @@ KBRUserSummary *KBUserSummaryFromSearchResult(KBSearchResult *searchResult) {
     [request listTrackingWithFilter:query completion:^(NSError *error, NSArray *userSummaries) {
       KBSearchResults *searchResults = [[KBSearchResults alloc] init];
       searchResults.results = userSummaries;
+      searchResults.header = @"Tracking";
       searchResults.section = 0;
       completion(error, searchResults);
     }];

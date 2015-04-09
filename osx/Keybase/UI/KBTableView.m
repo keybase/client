@@ -13,6 +13,7 @@
 #import "KBCellDataSource.h"
 #import "KBLayouts.h"
 #import <GHKit/GHKit.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 @interface KBNSTableView : NSTableView
 @property (weak) KBTableView *parent;
@@ -120,6 +121,12 @@
 
 - (NSArray *)objects {
   return [_dataSource objectsForSection:0];
+}
+
+- (NSArray *)objectsWithoutHeaders {
+  return [[_dataSource objectsForSection:0] reject:^BOOL(id object) {
+    return [object isKindOfClass:KBTableViewHeader.class];
+  }];
 }
 
 - (NSIndexSet *)itemIndexSet:(NSArray *)indexPaths {

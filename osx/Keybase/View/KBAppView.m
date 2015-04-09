@@ -400,8 +400,8 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 
 - (KBWindow *)createWindow {
   NSAssert(!self.superview, @"Already has superview");
-  KBWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 500) retain:YES];
-  window.minSize = CGSizeMake(600, 400);
+  KBWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 600) retain:YES];
+  window.minSize = CGSizeMake(600, 600);
   //window.restorable = YES;
   window.delegate = self;
   //window.maxSize = CGSizeMake(600, 900);

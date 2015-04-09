@@ -52,7 +52,7 @@
   // Header
   if ([object isKindOfClass:KBTableViewHeader.class]) {
     KBTitleView *titleView = [[KBTitleView alloc] init];
-    [titleView.label setText:[object title] style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [titleView.label setText:[[object title] uppercaseString] style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     titleView.height = 24;
     return titleView;
   }

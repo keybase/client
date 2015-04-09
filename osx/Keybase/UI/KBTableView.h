@@ -39,6 +39,7 @@ typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
 - (void)setObjects:(NSArray *)objects animated:(BOOL)animated;
 
 - (NSArray *)objects;
+- (NSArray *)objectsWithoutHeaders;
 
 - (void)reloadData;
 

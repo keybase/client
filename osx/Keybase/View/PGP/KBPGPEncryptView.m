@@ -72,6 +72,11 @@
   _userPickerView.searchResultsView.frame = CGRectMake(40, y2, size.width - 40, _textView.frame.size.height + 2);
 }
 
+- (void)setClient:(KBRPClient *)client {
+  [super setClient:client];
+  _userPickerView.client = client;
+}
+
 //- (void)mailShare {
 //  NSSharingService *mailShare = [NSSharingService sharingServiceNamed:NSSharingServiceNameComposeEmail];
 //  NSArray *shareItems = @[]; // @[textAttributedString, tempFileURL];

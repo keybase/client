@@ -90,6 +90,11 @@
   _userPickerView.searchResultsView.frame = CGRectMake(40, y2, size.width - 40, size.height - y2);
 }
 
+- (void)setClient:(KBRPClient *)client {
+  [super setClient:client];
+  _userPickerView.client = client;
+}
+
 - (void)encrypt {
   NSMutableArray *streams = [NSMutableArray array];
   KBFileOutput output = ^(NSString *path) { return [path stringByAppendingPathExtension:@"gpg"]; };
