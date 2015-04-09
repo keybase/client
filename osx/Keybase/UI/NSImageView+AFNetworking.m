@@ -113,6 +113,11 @@
 - (void)setImageWithURL:(NSURL *)url
        placeholderImage:(NSImage *)placeholderImage
 {
+  if ([url.scheme isEqualTo:@"bundle"]) {
+    self.image = [NSImage imageNamed:url.host];
+    return;
+  }
+
   NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
   [request addValue:@"image/*" forHTTPHeaderField:@"Accept"];
 
