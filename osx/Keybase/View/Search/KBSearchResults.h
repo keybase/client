@@ -9,5 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @interface KBSearchResults : NSObject
-
+@property NSString *header;
+@property NSArray *results;
+@property NSInteger section;
 @end

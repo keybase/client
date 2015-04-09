@@ -83,7 +83,7 @@
   if (!_username) {
     _name1Label.attributedText = nil;
     _imageView.hidden = YES;
-    _imageView.URLString = nil;
+    _imageView.image = nil;
     _name2View.hidden = YES;
     return;
   }
