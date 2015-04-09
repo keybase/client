@@ -303,7 +303,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 }
 
 // TestLoginInterrupt* tries to simulate what would happen if the
-// doctor login checkup gets interrupted.  See Issue #287.
+// locksmith login checkup gets interrupted.  See Issue #287.
 
 // TestLoginInterruptDeviceRegister interrupts after registering a
 // device and then tests that login corrects the situation on the

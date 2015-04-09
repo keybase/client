@@ -26,13 +26,13 @@ func NewLocksmith() *Locksmith {
 func (d *Locksmith) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 func (d *Locksmith) Name() string {
-	return "Doctor"
+	return "Locksmith"
 }
 
 func (d *Locksmith) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
-		libkb.DoctorUIKind,
+		libkb.LocksmithUIKind,
 		libkb.GPGUIKind,
 		libkb.SecretUIKind,
 	}
@@ -62,7 +62,7 @@ func (d *Locksmith) Cancel() error {
 	d.kexMu.Lock()
 	defer d.kexMu.Unlock()
 	if d.kex == nil {
-		d.G().Log.Debug("Doctor Cancel called, but kex is nil")
+		d.G().Log.Debug("Locksmith Cancel called, but kex is nil")
 		return nil
 	}
 	return d.kex.Cancel()
@@ -76,9 +76,9 @@ func (d *Locksmith) syncSecrets() (err error) {
 }
 
 func (d *Locksmith) checkKeys(ctx *Context) error {
-	d.G().Log.Debug("+ Doctor::checkKeys()")
+	d.G().Log.Debug("+ Locksmith::checkKeys()")
 	defer func() {
-		d.G().Log.Debug("- Doctor::checkKeys()")
+		d.G().Log.Debug("- Locksmith::checkKeys()")
 	}()
 
 	kf := d.user.GetKeyFamily()

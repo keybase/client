@@ -73,7 +73,7 @@ func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex
 func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCode) {
 	// just to be sure...
 	if ctx.LocksmithUI == nil {
-		k.G().Log.Warning("KexCom kexStatus(), ctx.DoctorUI is nil")
+		k.G().Log.Warning("KexCom kexStatus(), ctx.LocksmithUI is nil")
 		return
 	}
 

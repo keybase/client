@@ -19,7 +19,7 @@ func NewLoginUIProtocol() rpc2.Protocol {
 	return keybase_1.LoginUiProtocol(G_UI.GetLoginUI())
 }
 
-func NewDoctorUIProtocol() rpc2.Protocol {
+func NewLocksmithUIProtocol() rpc2.Protocol {
 	return keybase_1.LocksmithUiProtocol(G_UI.GetLocksmithUI())
 }
 
@@ -29,7 +29,7 @@ func (v *CmdLogin) RunClient() (err error) {
 		NewLoginUIProtocol(),
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
-		NewDoctorUIProtocol(),
+		NewLocksmithUIProtocol(),
 	}
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {

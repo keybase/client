@@ -37,7 +37,7 @@ func (c *CmdDeviceAdd) RunClient() error {
 	}
 	protocols := []rpc2.Protocol{
 		NewSecretUIProtocol(),
-		NewDoctorUIProtocol(),
+		NewLocksmithUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err

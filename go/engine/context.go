@@ -20,7 +20,7 @@ type Context struct {
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {
 	switch kind {
-	case libkb.DoctorUIKind:
+	case libkb.LocksmithUIKind:
 		return c.LocksmithUI != nil
 	case libkb.GPGUIKind:
 		return c.GPGUI != nil

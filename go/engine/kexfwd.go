@@ -46,7 +46,7 @@ func (k *KexFwd) GetPrereqs() EnginePrereqs {
 }
 
 func (k *KexFwd) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{libkb.DoctorUIKind, libkb.LogUIKind}
+	return []libkb.UIKind{libkb.LocksmithUIKind, libkb.LogUIKind}
 }
 
 func (k *KexFwd) SubConsumers() []libkb.UIConsumer {

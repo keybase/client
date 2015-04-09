@@ -12,9 +12,9 @@ type LoginEngineArg struct {
 
 type LoginEngine struct {
 	libkb.Contextified
-	arg       *LoginEngineArg
-	doctorMu  sync.Mutex
-	locksmith *Locksmith
+	arg         *LoginEngineArg
+	locksmithMu sync.Mutex
+	locksmith   *Locksmith
 }
 
 func NewLoginEngine(arg *LoginEngineArg) *LoginEngine {
@@ -57,18 +57,18 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	// create a doctor engine to check the account
-	e.doctorMu.Lock()
+	// create a locksmith engine to check the account
+	e.locksmithMu.Lock()
 	e.locksmith = NewLocksmith()
-	e.doctorMu.Unlock()
+	e.locksmithMu.Unlock()
 	return e.locksmith.LoginCheckup(ctx, u)
 }
 
 func (e *LoginEngine) Cancel() error {
-	e.doctorMu.Lock()
-	defer e.doctorMu.Unlock()
+	e.locksmithMu.Lock()
+	defer e.locksmithMu.Unlock()
 	if e.locksmith == nil {
-		e.G().Log.Debug("LoginEngine Cancel called but doctor is nil")
+		e.G().Log.Debug("LoginEngine Cancel called but locksmith is nil")
 		return nil
 	}
 

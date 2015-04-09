@@ -40,7 +40,7 @@ func (k *KexSib) GetPrereqs() EnginePrereqs {
 }
 
 func (k *KexSib) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{libkb.SecretUIKind, libkb.DoctorUIKind}
+	return []libkb.UIKind{libkb.SecretUIKind, libkb.LocksmithUIKind}
 }
 
 func (k *KexSib) SubConsumers() []libkb.UIConsumer {

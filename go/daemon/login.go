@@ -12,7 +12,7 @@ import (
 type LoginHandler struct {
 	BaseHandler
 	identifyUi    libkb.IdentifyUI
-	doctorUI      libkb.LocksmithUI
+	locksmithUI   libkb.LocksmithUI
 	loginEngineMu sync.Mutex
 	loginEngine   *engine.LoginEngine
 }
@@ -21,11 +21,11 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 	return &LoginHandler{BaseHandler: BaseHandler{xp: xp}}
 }
 
-func (h *LoginHandler) getDoctorUI(sessionId int) libkb.LocksmithUI {
-	if h.doctorUI == nil {
-		h.doctorUI = NewRemoteDoctorUI(sessionId, h.getRpcClient())
+func (h *LoginHandler) getLocksmithUI(sessionId int) libkb.LocksmithUI {
+	if h.locksmithUI == nil {
+		h.locksmithUI = NewRemoteLocksmithUI(sessionId, h.getRpcClient())
 	}
-	return h.doctorUI
+	return h.locksmithUI
 }
 
 func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
@@ -63,7 +63,7 @@ func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
 
 	ctx := &engine.Context{
 		LogUI:       h.getLogUI(sessid),
-		LocksmithUI: h.getDoctorUI(sessid),
+		LocksmithUI: h.getLocksmithUI(sessid),
 		SecretUI:    h.getSecretUI(sessid),
 		LoginUI:     h.getLoginUI(sessid),
 		GPGUI:       NewRemoteGPGUI(sessid, h.getRpcClient()),
@@ -95,33 +95,33 @@ func (h *LoginHandler) CancelLogin() error {
 	return h.loginEngine.Cancel()
 }
 
-type RemoteDoctorUI struct {
+type RemoteLocksmithUI struct {
 	sessionId int
 	uicli     keybase_1.LocksmithUiClient
 }
 
-func NewRemoteDoctorUI(sessionId int, c *rpc2.Client) *RemoteDoctorUI {
-	return &RemoteDoctorUI{
+func NewRemoteLocksmithUI(sessionId int, c *rpc2.Client) *RemoteLocksmithUI {
+	return &RemoteLocksmithUI{
 		sessionId: sessionId,
 		uicli:     keybase_1.LocksmithUiClient{Cli: c},
 	}
 }
 
-func (r *RemoteDoctorUI) PromptDeviceName(dummy int) (string, error) {
+func (r *RemoteLocksmithUI) PromptDeviceName(dummy int) (string, error) {
 	return r.uicli.PromptDeviceName(r.sessionId)
 }
 
-func (r *RemoteDoctorUI) SelectSigner(arg keybase_1.SelectSignerArg) (keybase_1.SelectSignerRes, error) {
+func (r *RemoteLocksmithUI) SelectSigner(arg keybase_1.SelectSignerArg) (keybase_1.SelectSignerRes, error) {
 	arg.SessionID = r.sessionId
 	return r.uicli.SelectSigner(arg)
 }
 
-func (r *RemoteDoctorUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (r *RemoteLocksmithUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
 	arg.SessionID = r.sessionId
 	return r.uicli.DisplaySecretWords(arg)
 }
 
-func (r *RemoteDoctorUI) KexStatus(arg keybase_1.KexStatusArg) error {
+func (r *RemoteLocksmithUI) KexStatus(arg keybase_1.KexStatusArg) error {
 	arg.SessionID = r.sessionId
 	return r.uicli.KexStatus(arg)
 }
