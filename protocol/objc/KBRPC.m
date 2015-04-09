@@ -5,7 +5,7 @@
 @end
 
 @implementation KBRStatus
-+ (NSValueTransformer *)fieldsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRStringKVPair.class]; }
++ (NSValueTransformer *)fieldsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRStringKVPair.class]; }
 @end
 
 @implementation KBRUID
@@ -24,11 +24,11 @@
 @end
 
 @implementation KBRPublicKey
-+ (NSValueTransformer *)PGPIdentitiesJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
++ (NSValueTransformer *)PGPIdentitiesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPgpIdentity.class]; }
 @end
 
 @implementation KBRUser
-+ (NSValueTransformer *)publicKeysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPublicKey.class]; }
++ (NSValueTransformer *)publicKeysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPublicKey.class]; }
 @end
 
 @implementation KBRDevice
@@ -222,7 +222,7 @@
 @end
 
 @implementation KBRIdentifyOutcome
-+ (NSValueTransformer *)deletedJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackDiff.class]; }
++ (NSValueTransformer *)deletedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRIdentifyRes
@@ -272,10 +272,10 @@
 @end
 
 @implementation KBRIdentity
-+ (NSValueTransformer *)keysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRIdentifyKey.class]; }
-+ (NSValueTransformer *)proofsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRIdentifyRow.class]; }
-+ (NSValueTransformer *)cryptocurrencyJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRCryptocurrency.class]; }
-+ (NSValueTransformer *)deletedJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackDiff.class]; }
++ (NSValueTransformer *)keysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyKey.class]; }
++ (NSValueTransformer *)proofsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyRow.class]; }
++ (NSValueTransformer *)cryptocurrencyJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRCryptocurrency.class]; }
++ (NSValueTransformer *)deletedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackDiff.class]; }
 @end
 
 @implementation KBRSigHint
@@ -492,7 +492,7 @@
 @end
 
 @implementation KBRPgpCreateUids
-+ (NSValueTransformer *)idsJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPgpIdentity.class]; }
++ (NSValueTransformer *)idsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPgpIdentity.class]; }
 @end
 
 @implementation KBRPgpRequest
@@ -876,9 +876,9 @@
 @end
 
 @implementation KBRProofs
-+ (NSValueTransformer *)socialJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRTrackProof.class]; }
-+ (NSValueTransformer *)webJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRWebProof.class]; }
-+ (NSValueTransformer *)publicKeysJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRPublicKey.class]; }
++ (NSValueTransformer *)socialJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTrackProof.class]; }
++ (NSValueTransformer *)webJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRWebProof.class]; }
++ (NSValueTransformer *)publicKeysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPublicKey.class]; }
 @end
 
 @implementation KBRUserSummary

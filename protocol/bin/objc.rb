@@ -126,10 +126,15 @@ paths.each do |path|
 
   protocol = h["protocol"]
   namespace = h["namespace"]
+  #puts "\nProtocol: #{protocol}"
 
   h["types"].each do |type|
-    next if (defined_types.include?(type["name"]))
+    if (defined_types.include?(type["name"]))
+      #puts "Skipping: #{type["name"]}. Already defined."
+      next
+    end
     defined_types << type["name"]
+    #puts "Type: #{type["name"]}"
 
     if type["type"] == "enum"
       enums << type["name"]
@@ -139,18 +144,13 @@ paths.each do |path|
         header << "\t#{enum_name}#{sym.capitalize.camelize},"
       end
       header << "};"
-    end
-
-
-    if type["type"] == "fixed"
+    elsif type["type"] == "fixed"
       header << "@interface #{classname(type["name"])} : NSData"
       header << "@end\n"
       impl << "@implementation #{classname(type["name"])}"
       impl << "@end\n"
-    end
-
-    transformers = []
-    if type["type"] == "record"
+    elsif type["type"] == "record"
+      transformers = []
       header << "@interface #{classname(type["name"])} : KBRObject"
       type["fields"].each do |field|
         if field["type"].kind_of?(Hash)
@@ -161,7 +161,7 @@ paths.each do |path|
               header << "@property NSArray *#{field["name"]}; /*of #{subtype["items"]}*/"
             else
               header << "@property NSArray *#{field["name"]}; /*of #{classname(subtype["items"])}*/"
-              transformers << "+ (NSValueTransformer *)#{field["name"]}JSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:#{classname(subtype["items"])}.class]; }"
+              transformers << "+ (NSValueTransformer *)#{field["name"]}JSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:#{classname(subtype["items"])}.class]; }"
             end
           end
         else
@@ -172,6 +172,8 @@ paths.each do |path|
       impl << "@implementation #{classname(type["name"])}"
       impl += transformers if transformers
       impl << "@end\n"
+    else
+      puts "Undefined type: #{type["type"]}"
     end
   end
 
@@ -211,6 +213,7 @@ paths.each do |path|
     dc_method = method.camelize(:lower)
     objc_method = "- (void)#{dc_method}#{params_str.join(" ")}"
 
+    #puts "Method: #{objc_method}"
     header << "#{objc_method};\n"
     impl << "#{objc_method} {"
 
@@ -273,12 +276,14 @@ paths.each do |path|
 
 end
 
-File.open("#{script_path}/../objc/KBRPC.h", "w") { |file|
-  file.write(header.join("\n"))
-  file.write(header_handlers.join("\n"))
+
+File.open("#{script_path}/../objc/KBRPC.h", "w") { |f|
+  f.write(header.join("\n"))
+  f.write(header_handlers.join("\n"))
 }
-File.open("#{script_path}/../objc/KBRPC.m", "w") { |file|
-  file.write(impl.join("\n"))
-  file.write(impl_handlers.join("\n"))
+
+File.open("#{script_path}/../objc/KBRPC.m", "w") { |f|
+  f.write(impl.join("\n"))
+  f.write(impl_handlers.join("\n"))
 }
 
