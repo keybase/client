@@ -28,8 +28,10 @@
 - (IBAction)quit:(id)sender;
 - (IBAction)logout:(id)sender;
 
+- (void)quitWithPrompt:(BOOL)prompt sender:(id)sender;
+
 + (void)setError:(NSError *)error sender:(NSView *)sender;
-+ (void)setError:(NSError *)error sender:(NSView *)sender completion:(dispatch_block_t)completion;
++ (void)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion;
 
 + (NSString *)bundleFile:(NSString *)file;
 

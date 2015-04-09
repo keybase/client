@@ -10,7 +10,7 @@
 
 #import <KBKeybase/KBKeybase.h>
 
-typedef void (^KBRunBlock)(id obj, BOOL finished, KBCompletionHandler completion);
+typedef void (^KBRunBlock)(id obj, KBCompletionHandler completion);
 typedef void (^KBRunCompletionBlock)(NSArray *errors, NSArray *objs);
 
 @interface KBRunBlocks : NSObject
@@ -20,5 +20,7 @@ typedef void (^KBRunCompletionBlock)(NSArray *errors, NSArray *objs);
 @property (copy) KBRunCompletionBlock completionBlock;
 
 - (void)run;
+
+- (void)run:(dispatch_queue_t)queue;
 
 @end

@@ -233,7 +233,11 @@
   } else {
     id object = [self selectedObject];
     if (object) {
-      self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+      if ([object isKindOfClass:KBTableViewHeader.class]) {
+        // Selected header?
+      } else {
+        self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+      }
     }
   }
 }
@@ -254,6 +258,10 @@
   return nil;
 }
 
+- (NSInteger)rowCount {
+  return [_dataSource countForSection:0];
+}
+
 @end
 
 
@@ -269,6 +277,17 @@
 
   NSIndexPath *indexPath = [NSIndexPath indexPathForItem:row inSection:column];
   return [_parent menuForIndexPath:indexPath];
+}
+
+@end
+
+
+@implementation KBTableViewHeader
+
++ (instancetype)tableViewHeaderWithTitle:(NSString *)title {
+  KBTableViewHeader *header = [[KBTableViewHeader alloc] init];
+  header.title = title;
+  return header;
 }
 
 @end

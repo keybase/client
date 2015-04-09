@@ -26,19 +26,17 @@
   }
 }
 
-- (void)setSearchResults:(NSArray *)searchResults {
-  [self.delegate searchControl:self progressEnabled:NO];
+- (void)setSearchResults:(KBSearchResults *)searchResults {
   [self.delegate searchControl:self shouldDisplaySearchResults:searchResults];
 }
 
 - (void)clearSearchResults {
-  [self.delegate searchControl:self progressEnabled:NO];
   [self.delegate searchControlShouldClearSearchResults:self];
 }
 
 - (void)search:(NSString *)searchText {
   _searchText = searchText;
-  [self _searchRemoteDelay:searchText];
+  [self _search:searchText];
 }
 
 - (void)checkOpen {
@@ -48,7 +46,7 @@
   }
 }
 
-- (void)_searchRemoteDelay:(NSString *)searchText {
+- (void)_search:(NSString *)searchText {
   GHWeakSelf blockSelf = self;
   _searchText = searchText;
 
@@ -58,30 +56,34 @@
   }
 
   [self.delegate searchControl:self progressEnabled:YES];
+
+  [self clearSearchResults];
+  [blockSelf _search:searchText delay:NO];
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 700 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
     if ([blockSelf.searchText isEqual:searchText]) {
-      [blockSelf _searchRemote:searchText];
+      [blockSelf _search:searchText delay:YES];
     }
   });
 }
 
-- (void)_searchRemote:(NSString *)searchText {
+- (void)_search:(NSString *)searchText delay:(BOOL)delay {
   _searchText = searchText;
 
   [self.delegate searchControl:self progressEnabled:YES];
 
   GHWeakSelf gself = self;
-  GHDebug(@"Search: %@", searchText);
+  GHDebug(@"Search (delay=%@): %@", @(delay), searchText);
 
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    [self.delegate searchControl:self shouldSearchWithQuery:searchText completion:^(NSError *error, NSArray *searchResults) {
+    [self.delegate searchControl:self shouldSearchWithQuery:searchText delay:delay completion:^(NSError *error, KBSearchResults *searchResults) {
       dispatch_async(dispatch_get_main_queue(), ^{
         if ([gself.searchText isEqual:searchText]) {
           if (error) {
-            [gself clearSearchResults];
+            // TODO: Handle error, retry button
             return;
           }
           [gself setSearchResults:searchResults];
+          if (delay) [self.delegate searchControl:self progressEnabled:NO];
         }
       });
     }];

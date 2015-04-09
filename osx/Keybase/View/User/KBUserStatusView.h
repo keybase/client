@@ -15,7 +15,8 @@
 
 @property KBButton *button;
 
-- (void)setStatus:(KBRGetCurrentStatusRes *)status;
+@property (nonatomic) KBRGetCurrentStatusRes *status;
+
 - (void)setConnected:(BOOL)connected;
 
 @end

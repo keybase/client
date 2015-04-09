@@ -187,6 +187,10 @@
 		00ABED5A1AD4B26900DA66FC /* KBRunBlocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED581AD4B26900DA66FC /* KBRunBlocks.m */; };
 		00ABED5D1AD5A9D100DA66FC /* NSImageView+AFNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED5C1AD5A9D000DA66FC /* NSImageView+AFNetworking.m */; };
 		00ABED5E1AD5A9D100DA66FC /* NSImageView+AFNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED5C1AD5A9D000DA66FC /* NSImageView+AFNetworking.m */; };
+		00ABED611AD5D8F300DA66FC /* KBSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED601AD5D8F300DA66FC /* KBSearcher.m */; };
+		00ABED621AD5D8F300DA66FC /* KBSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED601AD5D8F300DA66FC /* KBSearcher.m */; };
+		00ABED651AD5E03900DA66FC /* KBSearchResults.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED641AD5E03900DA66FC /* KBSearchResults.m */; };
+		00ABED661AD5E03900DA66FC /* KBSearchResults.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED641AD5E03900DA66FC /* KBSearchResults.m */; };
 		00B543F11A8178E30044CC5B /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B543F01A8178E30044CC5B /* KBStrengthLabel.m */; };
 		00B543F21A8178E30044CC5B /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B543F01A8178E30044CC5B /* KBStrengthLabel.m */; };
 		00B543FD1A81CCF00044CC5B /* record.zip in Resources */ = {isa = PBXBuildFile; fileRef = 00B543FC1A81CCF00044CC5B /* record.zip */; };
@@ -508,6 +512,10 @@
 		00ABED581AD4B26900DA66FC /* KBRunBlocks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRunBlocks.m; sourceTree = "<group>"; };
 		00ABED5B1AD5A9D000DA66FC /* NSImageView+AFNetworking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSImageView+AFNetworking.h"; sourceTree = "<group>"; };
 		00ABED5C1AD5A9D000DA66FC /* NSImageView+AFNetworking.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSImageView+AFNetworking.m"; sourceTree = "<group>"; };
+		00ABED5F1AD5D8F300DA66FC /* KBSearcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearcher.h; sourceTree = "<group>"; };
+		00ABED601AD5D8F300DA66FC /* KBSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearcher.m; sourceTree = "<group>"; };
+		00ABED631AD5E03900DA66FC /* KBSearchResults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResults.h; sourceTree = "<group>"; };
+		00ABED641AD5E03900DA66FC /* KBSearchResults.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResults.m; sourceTree = "<group>"; };
 		00B543EF1A8178E30044CC5B /* KBStrengthLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStrengthLabel.h; sourceTree = "<group>"; };
 		00B543F01A8178E30044CC5B /* KBStrengthLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStrengthLabel.m; sourceTree = "<group>"; };
 		00B543FC1A81CCF00044CC5B /* record.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; name = record.zip; path = ../record.zip; sourceTree = "<group>"; };
@@ -753,6 +761,10 @@
 				00C7DD581AA67E8900F57AFC /* KBSearchControl.m */,
 				009E2BF01AC1CDE900EBB035 /* KBSearchField.h */,
 				009E2BF11AC1CDE900EBB035 /* KBSearchField.m */,
+				00ABED5F1AD5D8F300DA66FC /* KBSearcher.h */,
+				00ABED601AD5D8F300DA66FC /* KBSearcher.m */,
+				00ABED631AD5E03900DA66FC /* KBSearchResults.h */,
+				00ABED641AD5E03900DA66FC /* KBSearchResults.m */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -1381,6 +1393,7 @@
 				00ABEC761ACF327500DA66FC /* KBPrefGPGView.m in Sources */,
 				0053B6FB1AC62E80001AE392 /* KBPGPDecryptFooterView.m in Sources */,
 				009E2BDE1AC0AD2F00EBB035 /* KBPGPEncrypt.m in Sources */,
+				00ABED611AD5D8F300DA66FC /* KBSearcher.m in Sources */,
 				009E2BF21AC1CDE900EBB035 /* KBSearchField.m in Sources */,
 				00C7DD511AA6747B00F57AFC /* KBUserStatusView.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
@@ -1426,6 +1439,7 @@
 				009E2BEA1AC0AF0700EBB035 /* KBFileWriter.m in Sources */,
 				00FDC8271AABB17D00D6C571 /* KBConsoleView.m in Sources */,
 				001FCDE81AB2035C004486D3 /* KBViews.m in Sources */,
+				00ABED651AD5E03900DA66FC /* KBSearchResults.m in Sources */,
 				006A32E51ACC5D940054457B /* KBUserListView.m in Sources */,
 				00E2BC701AC9BBFB0061F0B2 /* KBPGPSignFileView.m in Sources */,
 				00566A1F1A97DA1800CA236E /* KBProgressOverlayView.m in Sources */,
@@ -1526,6 +1540,7 @@
 				00ABEC771ACF327500DA66FC /* KBPrefGPGView.m in Sources */,
 				0053B6FC1AC62E80001AE392 /* KBPGPDecryptFooterView.m in Sources */,
 				001712511A951A9C00C7AD58 /* KBUserProfileView.m in Sources */,
+				00ABED621AD5D8F300DA66FC /* KBSearcher.m in Sources */,
 				009E2BDF1AC0AD2F00EBB035 /* KBPGPEncrypt.m in Sources */,
 				009E2BF31AC1CDE900EBB035 /* KBSearchField.m in Sources */,
 				3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */,
@@ -1571,6 +1586,7 @@
 				009E2BEB1AC0AF0700EBB035 /* KBFileWriter.m in Sources */,
 				00D52F8B1A77266A00DEB5F5 /* KBTrackView.m in Sources */,
 				00C7DD5A1AA67E8900F57AFC /* KBSearchControl.m in Sources */,
+				00ABED661AD5E03900DA66FC /* KBSearchResults.m in Sources */,
 				006A32E61ACC5D940054457B /* KBUserListView.m in Sources */,
 				00E2BC711AC9BBFB0061F0B2 /* KBPGPSignFileView.m in Sources */,
 				00FDC81C1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */,

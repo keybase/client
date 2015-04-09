@@ -53,6 +53,7 @@
 }
 
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {
+  _status = status;
   KBRUser *user = status.user;
 
   [_nameLabel setText:user.username font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];

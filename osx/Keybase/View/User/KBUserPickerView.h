@@ -10,6 +10,7 @@
 
 #import "KBAppKit.h"
 #import "KBSearchControl.h"
+#import "KBRPC.h"
 
 @class KBUserPickerView;
 
@@ -19,6 +20,7 @@
 
 @interface KBUserPickerView : YOView <NSTokenFieldDelegate, KBSearchControlDelegate>
 
+@property KBRPClient *client;
 @property KBListView *searchResultsView;
 @property (weak) id<KBUserPickerViewDelegate> delegate;
 

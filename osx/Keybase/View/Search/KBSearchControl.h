@@ -9,14 +9,15 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
+#import "KBSearchResults.h"
 
 @class KBSearchControl;
 
 @protocol KBSearchControlDelegate
-- (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(NSArray *)searchResults;
+- (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(KBSearchResults *)searchResults;
 - (void)searchControlShouldClearSearchResults:(KBSearchControl *)searchControl;
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled;
-- (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *searchResults))completion;
+- (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query delay:(BOOL)delay completion:(void (^)(NSError *error, KBSearchResults *results))completion;
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl;
 - (void)searchControlShouldClose:(KBSearchControl *)searchControl;
 @end

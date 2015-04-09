@@ -12,6 +12,7 @@
 #import "KBBox.h"
 #import "KBActivityIndicatorView.h"
 #import <GHKit/GHKit.h>
+#import "NSView+KBView.h"
 
 @interface KBTitleView ()
 @property KBLabel *label;
@@ -24,18 +25,13 @@
 - (void)viewInit {
   [super viewInit];
 
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = [NSColor whiteColor].CGColor;
-
-  NSView *background1 = [[NSView alloc] init];
-  background1.wantsLayer = YES;
-  background1.layer.backgroundColor = [NSColor colorWithWhite:251.0/255.0 alpha:1.0].CGColor;
-  [self addSubview:background1];
+  _height = 32;
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
 
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
 
-  _border = [KBBox lineWithWidth:1.0 color:[NSColor colorWithWhite:225.0/255.0 alpha:1.0] type:KBBoxTypeHorizontalLine];
+  _border = [KBBox horizontalLine];
   [self addSubview:_border];
 
   _progressView = [[KBActivityIndicatorView alloc] init];
@@ -45,13 +41,12 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     CGFloat y = 0;
 
-    CGSize labelSize = [yself.label sizeThatFits:CGSizeMake(size.width, 32)];
-    CGRect labelRect = [layout centerWithSize:labelSize frame:CGRectMake(0, y, size.width, 32) view:yself.label];
+    CGSize labelSize = [yself.label sizeThatFits:CGSizeMake(size.width, yself.height)];
+    CGRect labelRect = [layout centerWithSize:CGSizeMake(size.width - 10, labelSize.height) frame:CGRectMake(10, y, size.width - 10, yself.height) view:yself.label];
     [layout setFrame:CGRectMake(CGRectGetMaxX(labelRect), y + 7, 18, 18) view:yself.progressView];
-    y += 32;
+    y += yself.height;
 
     [layout setFrame:CGRectMake(0, y - 1, size.width, 1) view:yself.border];
-    [layout setFrame:CGRectMake(0, 0, size.width, 32) view:background1];
     return CGSizeMake(size.width, y);
   }];
 }
@@ -75,7 +70,6 @@
 }
 
 - (void)setTitle:(NSString *)title {
-  _title = title;
   [_label setText:title style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [self setNeedsLayout];
 }

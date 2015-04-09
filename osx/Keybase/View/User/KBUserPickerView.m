@@ -10,6 +10,9 @@
 
 #import "KBSearchResultView.h"
 #import "AppDelegate.h"
+#import "KBRUtils.h"
+#import "KBRunBlocks.h"
+#import "KBSearcher.h"
 
 @interface KBUserPickerView ()
 @property KBLabel *label;
@@ -19,6 +22,7 @@
 @property NSString *previousValue;
 
 @property KBActivityIndicatorView *progressView;
+@property KBSearcher *search;
 @end
 
 @interface KBUserToken : NSObject
@@ -267,10 +271,13 @@
   [self hideSearch];
 }
 
-- (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(NSArray *)searchResults {
-  GHDebug(@"Results: %@", @(searchResults.count));
-  [_searchResultsView setObjects:searchResults];
-  if ([searchResults count] > 0) {
+- (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(KBSearchResults *)searchResults {
+  NSSet *usernames = [NSSet setWithArray:[[_searchResultsView objects] map:^(KBRUserSummary *us) { return us.username; }]];
+  NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
+  NSMutableArray *results = [filtered mutableCopy];
+  if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
+
+  if ([_searchResultsView rowCount] > 0) {
     [self showSearch];
   } else {
     [self hideSearch];
@@ -286,12 +293,8 @@
   _progressView.animating = progressEnabled;
 }
 
-- (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *searchResults))completion {
-  [AppDelegate.sharedDelegate.APIClient searchUsersWithQuery:query success:^(NSArray *searchResults) {
-    completion(nil, searchResults);
-  } failure:^(NSError *error) {
-    completion(error, nil);
-  }];
+- (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query delay:(BOOL)delay completion:(void (^)(NSError *error, KBSearchResults *searchResults))completion {
+  [_search search:query client:self.client remote:delay completion:completion];
 }
 
 

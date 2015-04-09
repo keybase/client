@@ -11,12 +11,15 @@
 #import <YOLayout/YOLayout.h>
 #import "KBButton.h"
 #import "KBNavigationView.h"
-#import "KBMenuBar.h"
+#import "KBLabel.h"
 
 @interface KBTitleView : YOView
 
-@property (nonatomic) NSString *title;
+@property (readonly) KBLabel *label;
+@property CGFloat height;
 
 + (instancetype)titleViewWithTitle:(NSString *)title;
+
+- (void)setTitle:(NSString *)title;
 
 @end

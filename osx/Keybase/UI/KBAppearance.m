@@ -42,30 +42,6 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 @end
 
-@implementation KBAppearanceDark
-
-- (NSColor *)textColor {
-  return GHNSColorFromRGB(0xFFFFFF);
-}
-
-- (NSColor *)secondaryTextColor {
-  return GHNSColorFromRGB(0xEEEEEE);
-}
-
-- (NSColor *)disabledTextColor {
-  return GHNSColorFromRGB(0x666666);
-}
-
-- (NSColor *)backgroundColor {
-  return NSColor.blackColor;
-}
-
-- (NSColor *)secondaryBackgroundColor {
-  return [NSColor colorWithCalibratedWhite:0.05 alpha:1.0];
-}
-
-@end
-
 @implementation KBAppearanceLight
 
 - (NSColor *)colorForStyle:(KBTextStyle)style {
@@ -190,7 +166,31 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)secondaryBackgroundColor {
-  return [NSColor colorWithCalibratedWhite:0.956 alpha:1.0];
+  return [NSColor colorWithCalibratedWhite:0.966 alpha:1.0];
+}
+
+@end
+
+@implementation KBAppearanceDark
+
+- (NSColor *)textColor {
+  return GHNSColorFromRGB(0xFFFFFF);
+}
+
+- (NSColor *)secondaryTextColor {
+  return GHNSColorFromRGB(0xEEEEEE);
+}
+
+- (NSColor *)disabledTextColor {
+  return GHNSColorFromRGB(0x666666);
+}
+
+- (NSColor *)backgroundColor {
+  return NSColor.blackColor;
+}
+
+- (NSColor *)secondaryBackgroundColor {
+  return [NSColor colorWithCalibratedWhite:0.05 alpha:1.0];
 }
 
 @end

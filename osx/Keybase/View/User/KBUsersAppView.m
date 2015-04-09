@@ -17,6 +17,7 @@
 #import "KBViews.h"
 #import "KBUserListView.h"
 #import "KBSearchListView.h"
+#import "KBSearcher.h"
 
 @interface KBUsersAppView ()
 @property KBSearchControl *searchField;
@@ -24,7 +25,7 @@
 
 @property KBUserListView *trackingView;
 @property KBUserListView *trackersView;
-@property KBSearchListView *searchView;
+@property KBUserListView *searchView;
 @property KBViews *views;
 
 @property KBUserProfileViewer *trackingUserView;
@@ -34,6 +35,7 @@
 
 @property KBActivityIndicatorView *searchProgressView;
 @property NSString *searchText;
+@property KBSearcher *search;
 @end
 
 @implementation KBUsersAppView
@@ -90,9 +92,9 @@
   _searchProgressView.lineWidth = 1.0;
   [self addSubview:_searchProgressView];
 
-  _searchView = [[KBSearchListView alloc] init];
-  _searchView.listView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBSearchResult *searchResult) {
-    [gself.searchUserView setUsername:searchResult.userName client:gself.client];
+  _searchView = [[KBUserListView alloc] init];
+  _searchView.listView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+    [gself.searchUserView setUsername:userSummary.username client:gself.client];
   };
   _searchUserView = [[KBUserProfileViewer alloc] init];
 
@@ -244,8 +246,12 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   [self hideSearch];
 }
 
-- (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(NSArray *)searchResults {
-  [_searchView.listView setObjects:searchResults];
+- (void)searchControl:(KBSearchControl *)searchControl shouldDisplaySearchResults:(KBSearchResults *)searchResults {
+  NSSet *usernames = [NSSet setWithArray:[[_searchView.listView objects] map:^(KBRUserSummary *us) { return us.username; }]];
+  NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
+  NSMutableArray *results = [filtered mutableCopy];
+  if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
+  [_searchView.listView addObjects:results];
   [self showSearch];
 }
 
@@ -257,12 +263,9 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   _searchProgressView.animating = progressEnabled;
 }
 
-- (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *searchResults))completion {
-  [AppDelegate.sharedDelegate.APIClient searchUsersWithQuery:query success:^(NSArray *searchResults) {
-    completion(nil, searchResults);
-  } failure:^(NSError *error) {
-    completion(error, nil);
-  }];
+- (void)searchControl:(KBSearchControl *)searchControl shouldSearchWithQuery:(NSString *)query delay:(BOOL)delay completion:(void (^)(NSError *error, KBSearchResults *searchResults))completion {
+  if (!_search) _search = [[KBSearcher alloc] init];
+  [_search search:query client:self.client remote:delay completion:completion];
 }
 
 @end

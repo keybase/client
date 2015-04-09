@@ -47,11 +47,11 @@
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
   [KBButton setErrorHandler:^(KBButton *button, NSError *error) {
-    [AppDelegate setError:error sender:button completion:^{}];
+    [AppDelegate setError:error sender:button];
   }];
 
   self.errorHandler = ^(NSError *error, id sender) {
-    [AppDelegate setError:error sender:sender completion:^{}];
+    [AppDelegate setError:error sender:sender];
   };
 
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
@@ -140,7 +140,17 @@
 }
 
 - (IBAction)quit:(id)sender {
-  [NSApplication.sharedApplication terminate:sender];
+  [self quitWithPrompt:YES sender:sender];
+}
+
+- (void)quitWithPrompt:(BOOL)prompt sender:(id)sender {
+  if (prompt) {
+    [KBAlert yesNoWithTitle:@"Quit" description:@"Are you sure you want to quit?" yes:@"Quit" view:_appView completion:^(BOOL yes) {
+      if (yes) [NSApplication.sharedApplication terminate:sender];
+    }];
+  } else {
+    [NSApplication.sharedApplication terminate:sender];
+  }
 }
 
 + (NSString *)bundleFile:(NSString *)file {
@@ -247,11 +257,11 @@
   [AppDelegate.sharedDelegate setError:error sender:sender completion:nil];
 }
 
-+ (void)setError:(NSError *)error sender:(NSView *)sender completion:(dispatch_block_t)completion {
++ (void)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
   [AppDelegate.sharedDelegate setError:error sender:sender completion:completion];
 }
 
-- (void)setError:(NSError *)error sender:(NSView *)sender completion:(dispatch_block_t)completion {
+- (void)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
   NSParameterAssert(error);
 
   NSString *errorName = error.userInfo[@"MPErrorInfoKey"][@"name"];
@@ -281,7 +291,7 @@
 
   [[NSAlert alertWithError:error] beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
     gself.alerting = NO;
-    if (completion) completion();
+    if (completion) completion(returnCode);
   }];
 }
 

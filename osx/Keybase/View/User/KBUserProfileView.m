@@ -251,7 +251,7 @@
     [self.headerView setProgressEnabled:YES];
     _loading = YES;
     KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
-    [self registerClient:self.client sessionId:trackRequest.sessionId sender:nil];
+    [self registerClient:self.client sessionId:trackRequest.sessionId sender:self];
     [trackRequest trackWithSessionID:trackRequest.sessionId theirName:_username localOnly:NO approveRemote:NO completion:^(NSError *error) {
       gself.loading = NO;
       [gself setTrackCompleted:error];
@@ -261,12 +261,12 @@
     [self.headerView setProgressEnabled:YES];
     _loading = YES;
     KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
-    [self registerClient:self.client sessionId:identifyRequest.sessionId sender:nil];
+    [self registerClient:self.client sessionId:identifyRequest.sessionId sender:self];
     [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
       [gself.headerView setProgressEnabled:NO];
       gself.loading = NO;
       if (error) {
-        [AppDelegate setError:error sender:nil];
+        [AppDelegate setError:error sender:self];
         return;
       }
 

@@ -8,14 +8,15 @@
 
 #import "KBListView.h"
 
+#import "NSView+KBView.h"
+#import "KBTitleView.h"
+
 @interface KBListView ()
 @property Class prototypeClass;
 @property YOView *prototypeView;
 
 @property KBProgressOverlayView *progressView;
-@end
-
-@interface KBListViewDynamicHeight : KBListView
+@property CGFloat rowHeight;
 @end
 
 @implementation KBListView
@@ -32,10 +33,7 @@
 }
 
 + (instancetype)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight {
-  Class tableViewClass = KBListView.class;
-  if (rowHeight == 0) tableViewClass = KBListViewDynamicHeight.class;
-
-  KBListView *listView = [[tableViewClass alloc] init];
+  KBListView *listView = [[KBListView alloc] init];
 
   listView.view.intercellSpacing = CGSizeZero;
 
@@ -44,12 +42,21 @@
   [listView.view setHeaderView:nil];
 
   listView.prototypeClass = prototypeClass;
-  if (rowHeight > 0) listView.view.rowHeight = rowHeight;
+  listView.rowHeight = rowHeight;
   return listView;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
   id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
+
+  // Header
+  if ([object isKindOfClass:KBTableViewHeader.class]) {
+    KBTitleView *titleView = [[KBTitleView alloc] init];
+    [titleView.label setText:[object title] style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    titleView.height = 24;
+    return titleView;
+  }
+
   YOView *view = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
   BOOL dequeued = NO;
   if (!view) {
@@ -63,22 +70,32 @@
   return view;
 }
 
-@end
-
-@implementation KBListViewDynamicHeight
+- (BOOL)tableView:(NSTableView *)tableView isGroupRow:(NSInteger)row {
+  id obj = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
+  return ([obj isKindOfClass:KBTableViewHeader.class]);
+}
 
 - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
-  if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
-  id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
+  if (_rowHeight > 0) {
+    id obj = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
+    if ([obj isKindOfClass:KBTableViewHeader.class]) {
+      return 24;
+    } else {
+      return _rowHeight;
+    }
+  } else {
+    if (!self.prototypeView) self.prototypeView = [[self.prototypeClass alloc] init];
+    id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
 
-  self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], nil, self, NO);
-  [self.prototypeView setNeedsLayout];
+    self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], nil, self, NO);
+    [self.prototypeView setNeedsLayout];
 
-  CGFloat verticalScrollWidth = [NSScroller scrollerWidthForControlSize:self.scrollView.verticalScroller.controlSize scrollerStyle:self.scrollView.verticalScroller.scrollerStyle];
-  CGFloat width = tableView.frame.size.width - verticalScrollWidth;
-  CGFloat height = [self.prototypeView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)].height;
-  //GHDebug(@"Row: %@, height: %@, width: %@", @(row), @(height), @(self.frame.size.width));
-  return height;
+    CGFloat verticalScrollWidth = [NSScroller scrollerWidthForControlSize:self.scrollView.verticalScroller.controlSize scrollerStyle:self.scrollView.verticalScroller.scrollerStyle];
+    CGFloat width = tableView.frame.size.width - verticalScrollWidth;
+    CGFloat height = [self.prototypeView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)].height;
+    //GHDebug(@"Row: %@, height: %@, width: %@", @(row), @(height), @(self.frame.size.width));
+    return height;
+  }
 }
 
 @end

@@ -59,4 +59,11 @@ typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
 
 - (void)removeAllTableColumns;
 
+- (NSInteger)rowCount;
+
+@end
+
+@interface KBTableViewHeader : NSObject
+@property NSString *title;
++ (instancetype)tableViewHeaderWithTitle:(NSString *)title;
 @end
