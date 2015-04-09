@@ -420,142 +420,6 @@ func (c DeviceClient) DeviceAddCancel() (err error) {
 	return
 }
 
-type DeviceSignerKind int
-
-const (
-	DeviceSignerKind_DEVICE = 0
-	DeviceSignerKind_PGP    = 1
-)
-
-type SelectSignerAction int
-
-const (
-	SelectSignerAction_SIGN          = 0
-	SelectSignerAction_CANCEL        = 1
-	SelectSignerAction_RESET_ACCOUNT = 2
-)
-
-type DeviceSigner struct {
-	Kind       DeviceSignerKind `codec:"kind" json:"kind"`
-	DeviceID   *string          `codec:"deviceID,omitempty" json:"deviceID"`
-	DeviceName *string          `codec:"deviceName,omitempty" json:"deviceName"`
-}
-
-type SelectSignerRes struct {
-	Action SelectSignerAction `codec:"action" json:"action"`
-	Signer *DeviceSigner      `codec:"signer,omitempty" json:"signer"`
-}
-
-type KexStatusCode int
-
-const (
-	KexStatusCode_START_SEND           = 0
-	KexStatusCode_HELLO_WAIT           = 1
-	KexStatusCode_HELLO_RECEIVED       = 2
-	KexStatusCode_PLEASE_SIGN_SEND     = 3
-	KexStatusCode_DONE_WAIT            = 4
-	KexStatusCode_DONE_RECEIVED        = 5
-	KexStatusCode_START_WAIT           = 6
-	KexStatusCode_START_RECEIVED       = 7
-	KexStatusCode_HELLO_SEND           = 8
-	KexStatusCode_PLEASE_SIGN_WAIT     = 9
-	KexStatusCode_PLEASE_SIGN_RECEIVED = 10
-	KexStatusCode_DONE_SEND            = 11
-	KexStatusCode_END                  = 12
-)
-
-type PromptDeviceNameArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
-type SelectSignerArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Devices   []Device `codec:"devices" json:"devices"`
-	HasPGP    bool     `codec:"hasPGP" json:"hasPGP"`
-}
-
-type DisplaySecretWordsArg struct {
-	SessionID          int    `codec:"sessionID" json:"sessionID"`
-	Secret             string `codec:"secret" json:"secret"`
-	DeviceNameExisting string `codec:"deviceNameExisting" json:"deviceNameExisting"`
-	DeviceNameToAdd    string `codec:"deviceNameToAdd" json:"deviceNameToAdd"`
-}
-
-type KexStatusArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	Msg       string        `codec:"msg" json:"msg"`
-	Code      KexStatusCode `codec:"code" json:"code"`
-}
-
-type LocksmithUiInterface interface {
-	PromptDeviceName(int) (string, error)
-	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
-	DisplaySecretWords(DisplaySecretWordsArg) error
-	KexStatus(KexStatusArg) error
-}
-
-func LocksmithUiProtocol(i LocksmithUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
-		Name: "keybase.1.locksmithUi",
-		Methods: map[string]rpc2.ServeHook{
-			"promptDeviceName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptDeviceNameArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PromptDeviceName(args[0].SessionID)
-				}
-				return
-			},
-			"selectSigner": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SelectSignerArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SelectSigner(args[0])
-				}
-				return
-			},
-			"displaySecretWords": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplaySecretWordsArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplaySecretWords(args[0])
-				}
-				return
-			},
-			"kexStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]KexStatusArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.KexStatus(args[0])
-				}
-				return
-			},
-		},
-	}
-
-}
-
-type LocksmithUiClient struct {
-	Cli GenericClient
-}
-
-func (c LocksmithUiClient) PromptDeviceName(sessionID int) (res string, err error) {
-	__arg := PromptDeviceNameArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LocksmithUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LocksmithUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.displaySecretWords", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
-	return
-}
-
 type GPGKey struct {
 	Algorithm  string   `codec:"algorithm" json:"algorithm"`
 	KeyID      string   `codec:"keyID" json:"keyID"`
@@ -983,6 +847,142 @@ func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) 
 
 func (c IdentifyUiClient) Start(__arg StartArg) (err error) {
 	err = c.Cli.Call("keybase.1.identifyUi.start", []interface{}{__arg}, nil)
+	return
+}
+
+type DeviceSignerKind int
+
+const (
+	DeviceSignerKind_DEVICE = 0
+	DeviceSignerKind_PGP    = 1
+)
+
+type SelectSignerAction int
+
+const (
+	SelectSignerAction_SIGN          = 0
+	SelectSignerAction_CANCEL        = 1
+	SelectSignerAction_RESET_ACCOUNT = 2
+)
+
+type DeviceSigner struct {
+	Kind       DeviceSignerKind `codec:"kind" json:"kind"`
+	DeviceID   *string          `codec:"deviceID,omitempty" json:"deviceID"`
+	DeviceName *string          `codec:"deviceName,omitempty" json:"deviceName"`
+}
+
+type SelectSignerRes struct {
+	Action SelectSignerAction `codec:"action" json:"action"`
+	Signer *DeviceSigner      `codec:"signer,omitempty" json:"signer"`
+}
+
+type KexStatusCode int
+
+const (
+	KexStatusCode_START_SEND           = 0
+	KexStatusCode_HELLO_WAIT           = 1
+	KexStatusCode_HELLO_RECEIVED       = 2
+	KexStatusCode_PLEASE_SIGN_SEND     = 3
+	KexStatusCode_DONE_WAIT            = 4
+	KexStatusCode_DONE_RECEIVED        = 5
+	KexStatusCode_START_WAIT           = 6
+	KexStatusCode_START_RECEIVED       = 7
+	KexStatusCode_HELLO_SEND           = 8
+	KexStatusCode_PLEASE_SIGN_WAIT     = 9
+	KexStatusCode_PLEASE_SIGN_RECEIVED = 10
+	KexStatusCode_DONE_SEND            = 11
+	KexStatusCode_END                  = 12
+)
+
+type PromptDeviceNameArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type SelectSignerArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Devices   []Device `codec:"devices" json:"devices"`
+	HasPGP    bool     `codec:"hasPGP" json:"hasPGP"`
+}
+
+type DisplaySecretWordsArg struct {
+	SessionID          int    `codec:"sessionID" json:"sessionID"`
+	Secret             string `codec:"secret" json:"secret"`
+	DeviceNameExisting string `codec:"deviceNameExisting" json:"deviceNameExisting"`
+	DeviceNameToAdd    string `codec:"deviceNameToAdd" json:"deviceNameToAdd"`
+}
+
+type KexStatusArg struct {
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	Msg       string        `codec:"msg" json:"msg"`
+	Code      KexStatusCode `codec:"code" json:"code"`
+}
+
+type LocksmithUiInterface interface {
+	PromptDeviceName(int) (string, error)
+	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
+	DisplaySecretWords(DisplaySecretWordsArg) error
+	KexStatus(KexStatusArg) error
+}
+
+func LocksmithUiProtocol(i LocksmithUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.locksmithUi",
+		Methods: map[string]rpc2.ServeHook{
+			"promptDeviceName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]PromptDeviceNameArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.PromptDeviceName(args[0].SessionID)
+				}
+				return
+			},
+			"selectSigner": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]SelectSignerArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.SelectSigner(args[0])
+				}
+				return
+			},
+			"displaySecretWords": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplaySecretWordsArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplaySecretWords(args[0])
+				}
+				return
+			},
+			"kexStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]KexStatusArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.KexStatus(args[0])
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type LocksmithUiClient struct {
+	Cli GenericClient
+}
+
+func (c LocksmithUiClient) PromptDeviceName(sessionID int) (res string, err error) {
+	__arg := PromptDeviceNameArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocksmithUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocksmithUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.displaySecretWords", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
 	return
 }
 

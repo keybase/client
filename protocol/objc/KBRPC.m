@@ -179,49 +179,6 @@
 
 @end
 
-@implementation KBRDeviceSigner
-@end
-
-@implementation KBRSelectSignerRes
-@end
-
-@implementation KBRLocksmithUiRequest
-
-- (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID)}];
-  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.promptDeviceName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
-  }];
-}
-
-- (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"devices": KBRValue(devices), @"hasPGP": @(hasPGP)}];
-  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.selectSigner" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-        completion(error, nil);
-        return;
-      }
-      KBRSelectSignerRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRSelectSignerRes.class fromJSONDictionary:retval error:&error] : nil;
-      completion(error, result);
-  }];
-}
-
-- (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"secret": KBRValue(secret), @"deviceNameExisting": KBRValue(deviceNameExisting), @"deviceNameToAdd": KBRValue(deviceNameToAdd)}];
-  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.displaySecretWords" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"code": @(code)}];
-  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.kexStatus" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-@end
-
 @implementation KBRGPGKey
 @end
 
@@ -399,6 +356,49 @@
 - (void)startWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.start" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRDeviceSigner
+@end
+
+@implementation KBRSelectSignerRes
+@end
+
+@implementation KBRLocksmithUiRequest
+
+- (void)promptDeviceNameWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSString *str))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.promptDeviceName" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)selectSignerWithSessionID:(NSInteger)sessionID devices:(NSArray *)devices hasPGP:(BOOL)hasPGP completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"devices": KBRValue(devices), @"hasPGP": @(hasPGP)}];
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.selectSigner" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      KBRSelectSignerRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRSelectSignerRes.class fromJSONDictionary:retval error:&error] : nil;
+      completion(error, result);
+  }];
+}
+
+- (void)displaySecretWordsWithSessionID:(NSInteger)sessionID secret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"secret": KBRValue(secret), @"deviceNameExisting": KBRValue(deviceNameExisting), @"deviceNameToAdd": KBRValue(deviceNameToAdd)}];
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.displaySecretWords" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)kexStatusWithSessionID:(NSInteger)sessionID msg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"code": @(code)}];
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.kexStatus" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1096,57 +1096,6 @@
 
 @end
 
-@implementation KBRPromptDeviceNameRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRSelectSignerRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.devices = [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:params[0][@"devices"] error:nil];
-    self.hasPGP = [params[0][@"hasPGP"] boolValue];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRDisplaySecretWordsRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.secret = params[0][@"secret"];
-    self.deviceNameExisting = params[0][@"deviceNameExisting"];
-    self.deviceNameToAdd = params[0][@"deviceNameToAdd"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRKexStatusRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.msg = params[0][@"msg"];
-    self.code = [params[0][@"code"] integerValue];
-  }
-  return self;
-}
-
-@end
-
 @implementation KBRWantToAddGPGKeyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -1313,6 +1262,57 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRPromptDeviceNameRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSelectSignerRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.devices = [MTLJSONAdapter modelsOfClass:KBRDevice.class fromJSONArray:params[0][@"devices"] error:nil];
+    self.hasPGP = [params[0][@"hasPGP"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDisplaySecretWordsRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.secret = params[0][@"secret"];
+    self.deviceNameExisting = params[0][@"deviceNameExisting"];
+    self.deviceNameToAdd = params[0][@"deviceNameToAdd"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRKexStatusRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.code = [params[0][@"code"] integerValue];
   }
   return self;
 }
