@@ -9,7 +9,7 @@ import (
 	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
-type Doctor struct {
+type Locksmith struct {
 	libkb.Contextified
 	user       *libkb.User
 	signingKey libkb.GenericKey
@@ -19,17 +19,17 @@ type Doctor struct {
 	kex        *KexFwd
 }
 
-func NewDoctor() *Doctor {
-	return &Doctor{}
+func NewLocksmith() *Locksmith {
+	return &Locksmith{}
 }
 
-func (d *Doctor) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (d *Locksmith) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
-func (d *Doctor) Name() string {
+func (d *Locksmith) Name() string {
 	return "Doctor"
 }
 
-func (d *Doctor) RequiredUIs() []libkb.UIKind {
+func (d *Locksmith) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
 		libkb.DoctorUIKind,
@@ -38,14 +38,14 @@ func (d *Doctor) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (d *Doctor) SubConsumers() []libkb.UIConsumer {
+func (d *Locksmith) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceWrap{},
 		&DetKeyEngine{},
 	}
 }
 
-func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
+func (d *Locksmith) LoginCheckup(ctx *Context, u *libkb.User) error {
 	d.user = u
 	d.SetGlobalContext(ctx.GlobalContext)
 
@@ -58,7 +58,7 @@ func (d *Doctor) LoginCheckup(ctx *Context, u *libkb.User) error {
 	return nil
 }
 
-func (d *Doctor) Cancel() error {
+func (d *Locksmith) Cancel() error {
 	d.kexMu.Lock()
 	defer d.kexMu.Unlock()
 	if d.kex == nil {
@@ -68,14 +68,14 @@ func (d *Doctor) Cancel() error {
 	return d.kex.Cancel()
 }
 
-func (d *Doctor) syncSecrets() (err error) {
+func (d *Locksmith) syncSecrets() (err error) {
 	if err = libkb.RunSyncer(d.G().SecretSyncer, d.user.GetUid().P()); err != nil {
 		d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 	}
 	return err
 }
 
-func (d *Doctor) checkKeys(ctx *Context) error {
+func (d *Locksmith) checkKeys(ctx *Context) error {
 	d.G().Log.Debug("+ Doctor::checkKeys()")
 	defer func() {
 		d.G().Log.Debug("- Doctor::checkKeys()")
@@ -148,7 +148,7 @@ func (d *Doctor) checkKeys(ctx *Context) error {
 
 // addBasicKeys is used for accounts that have no device or det
 // keys.
-func (d *Doctor) addBasicKeys(ctx *Context) error {
+func (d *Locksmith) addBasicKeys(ctx *Context) error {
 	if err := d.addDeviceKey(ctx); err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (d *Doctor) addBasicKeys(ctx *Context) error {
 	return nil
 }
 
-func (d *Doctor) addDeviceKey(ctx *Context) error {
+func (d *Locksmith) addDeviceKey(ctx *Context) error {
 	devname, err := d.deviceName(ctx)
 	if err != nil {
 		return err
@@ -187,7 +187,7 @@ func (d *Doctor) addDeviceKey(ctx *Context) error {
 	return nil
 }
 
-func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
+func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, eldestKID libkb.KID) error {
 	devname, err := d.deviceName(ctx)
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func (d *Doctor) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey, e
 	return nil
 }
 
-func (d *Doctor) addDetKey(ctx *Context, eldest libkb.KID) error {
+func (d *Locksmith) addDetKey(ctx *Context, eldest libkb.KID) error {
 	if d.signingKey == nil {
 		return fmt.Errorf("addDetKey called, but d.signingKey is nil")
 	}
@@ -237,7 +237,7 @@ var ErrNotYetImplemented = errors.New("not yet implemented")
 // deviceSign is used to sign a new installation of keybase on a
 // new device.  It happens when the user has keys already, either
 // a device key, pgp key, or both.
-func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
+func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	newDeviceName, err := d.deviceName(ctx)
 	if err != nil {
 		return err
@@ -287,7 +287,7 @@ func (d *Doctor) deviceSign(ctx *Context, withPGPOption bool) error {
 	return fmt.Errorf("unknown signer kind: %d", res.Signer.Kind)
 }
 
-func (d *Doctor) deviceSignPGP(ctx *Context) error {
+func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 	pgpKeys := d.user.GetActivePgpKeys(false)
 	var selected *libkb.PgpKeyBundle
 	if len(pgpKeys) > 1 {
@@ -337,7 +337,7 @@ func (d *Doctor) deviceSignPGP(ctx *Context) error {
 	return d.deviceSignPGPNext(ctx, bundle)
 }
 
-func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
+func (d *Locksmith) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 	if pgpk.CanSign() == false {
 		return fmt.Errorf("pgp key can't sign")
 	}
@@ -359,7 +359,7 @@ func (d *Doctor) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error {
 	return nil
 }
 
-func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName, newDevName, newDevType string) error {
+func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingName, newDevName, newDevType string) error {
 	d.G().Log.Info("device sign with existing device [%s]", existingID)
 	d.G().Log.Debug("new device name: %s", newDevName)
 
@@ -394,7 +394,7 @@ func (d *Doctor) deviceSignExistingDevice(ctx *Context, existingID, existingName
 	return err
 }
 
-func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {
+func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {
 	var gks []keybase_1.GPGKey
 	for _, key := range keys {
 		algo, kid, creation := key.KeyInfo()
@@ -424,11 +424,11 @@ func (d *Doctor) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.
 	return selected, nil
 }
 
-func (d *Doctor) tspkey(ctx *Context) (libkb.PassphraseStream, error) {
+func (d *Locksmith) tspkey(ctx *Context) (libkb.PassphraseStream, error) {
 	return d.G().LoginState.GetPassphraseStream(ctx.SecretUI)
 }
 
-func (d *Doctor) detkey(ctx *Context) (libkb.GenericKey, error) {
+func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {
 	// get server half of detkey via ss
 	half, err := d.G().SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
 	if err != nil {
@@ -448,7 +448,7 @@ func (d *Doctor) detkey(ctx *Context) (libkb.GenericKey, error) {
 	return detkey, nil
 }
 
-func (d *Doctor) deviceName(ctx *Context) (string, error) {
+func (d *Locksmith) deviceName(ctx *Context) (string, error) {
 	if len(d.devName) == 0 {
 		name, err := ctx.DoctorUI.PromptDeviceName(0)
 		if err != nil {
