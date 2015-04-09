@@ -12,7 +12,7 @@ import (
 
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	libkb "github.com/keybase/client/go/libkb"
-	libkbfs "github.com/keybase/go-libkbfs-priv"
+	libkbfs "github.com/keybase/kbfs"
 )
 
 func GetUI() libkb.UI {
