@@ -255,7 +255,14 @@ type GPGUI interface {
 	keybase_1.GpgUiInterface
 }
 
+type DoctorUI interface {
+	LoginSelect(currentUser string, otherUsers []string) (string, error)
+	DisplayStatus() error
+	DisplayResult() error
+}
+
 type UI interface {
+	GetDoctorUI() DoctorUI
 	GetIdentifyUI() IdentifyUI
 	GetIdentifyTrackUI(strict bool) IdentifyUI
 	GetIdentifyLubaUI() IdentifyUI

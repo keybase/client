@@ -7,8 +7,9 @@ import (
 )
 
 type Context struct {
-	LocksmithUI libkb.LocksmithUI
+	DoctorUI    libkb.DoctorUI
 	GPGUI       libkb.GPGUI
+	LocksmithUI libkb.LocksmithUI
 	LogUI       libkb.LogUI
 	LoginUI     libkb.LoginUI
 	SecretUI    libkb.SecretUI

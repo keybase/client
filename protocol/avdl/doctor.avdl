@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol doctor {
+	import idl "common.avdl";
+
+	void doctor(int sessionID);
+}

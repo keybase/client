@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 func NewCmdDoctor(cl *libcmdline.CommandLine) cli.Command {
@@ -20,61 +22,29 @@ func NewCmdDoctor(cl *libcmdline.CommandLine) cli.Command {
 type CmdDoctor struct{}
 
 func (c *CmdDoctor) Run() error {
-	/*
-		arg := &engine.DoctorArg{
-			Source:       c.source,
-			Sink:         c.sink,
-			AssertSigned: c.signed,
-			SignedBy:     c.signedBy,
-			TrackOptions: engine.TrackOptions{
-				TrackLocalOnly: c.localOnly,
-				TrackApprove:   c.approveRemote,
-			},
-		}
-		ctx := &engine.Context{
-			SecretUI:   G.UI.GetSecretUI(),
-			IdentifyUI: G.UI.GetIdentifyTrackUI(true),
-			LogUI:      G.UI.GetLogUI(),
-		}
-		eng := engine.NewDoctor(arg)
-		err := engine.RunEngine(eng, ctx)
-	*/
-
-	return nil
+	ctx := &engine.Context{
+		DoctorUI: G.UI.GetDoctorUI(),
+		SecretUI: G.UI.GetSecretUI(),
+		LogUI:    G.UI.GetLogUI(),
+	}
+	eng := engine.NewDoctor()
+	return engine.RunEngine(eng, ctx)
 }
 
 func (c *CmdDoctor) RunClient() error {
-	/*
-		cli, err := GetPGPClient()
-		if err != nil {
-			return err
-		}
-		protocols := []rpc2.Protocol{
-			NewStreamUiProtocol(),
-			NewSecretUIProtocol(),
-			NewIdentifyUIProtocol(),
-			NewLogUIProtocol(),
-		}
-		if err := RegisterProtocols(protocols); err != nil {
-			return err
-		}
-		snk, src, err := c.ClientFilterOpen()
-		if err != nil {
-			return err
-		}
-		opts := keybase_1.DoctorOptions{
-			AssertSigned:  c.signed,
-			SignedBy:      c.signedBy,
-			LocalOnly:     c.localOnly,
-			ApproveRemote: c.approveRemote,
-		}
-		arg := keybase_1.DoctorArg{Source: src, Sink: snk, Opts: opts}
-		_, err = cli.Doctor(arg)
-
-		c.Close(err)
-	*/
-
-	return c.Run()
+	cli, err := GetDoctorClient()
+	if err != nil {
+		return err
+	}
+	protocols := []rpc2.Protocol{
+		NewDoctorUIProtocol(),
+		NewSecretUIProtocol(),
+		NewLogUIProtocol(),
+	}
+	if err := RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	return cli.Doctor(0)
 }
 
 func (c *CmdDoctor) ParseArgv(ctx *cli.Context) error {

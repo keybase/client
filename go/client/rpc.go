@@ -128,3 +128,11 @@ func GetBTCClient() (cli keybase_1.BTCClient, err error) {
 	}
 	return
 }
+
+func GetDoctorClient() (cli keybase_1.DoctorClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.DoctorClient{Cli: rcli}
+	}
+	return
+}

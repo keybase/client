@@ -201,6 +201,9 @@ func SetupTest(t *testing.T, nm string) (tc TestContext) {
 
 type nullui struct{}
 
+func (n *nullui) GetDoctorUI() DoctorUI {
+	return nil
+}
 func (n *nullui) GetIdentifyUI() IdentifyUI {
 	return nil
 }

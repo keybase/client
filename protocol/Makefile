@@ -16,6 +16,8 @@ build-stamp: \
 	json/btc.json \
 	json/config.json \
 	json/device.json \
+	json/doctor.json \
+	json/doctor_ui.json \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \

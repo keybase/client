@@ -420,6 +420,111 @@ func (c DeviceClient) DeviceAddCancel() (err error) {
 	return
 }
 
+type DoctorArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type DoctorInterface interface {
+	Doctor(int) error
+}
+
+func DoctorProtocol(i DoctorInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.doctor",
+		Methods: map[string]rpc2.ServeHook{
+			"doctor": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DoctorArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Doctor(args[0].SessionID)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type DoctorClient struct {
+	Cli GenericClient
+}
+
+func (c DoctorClient) Doctor(sessionID int) (err error) {
+	__arg := DoctorArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.doctor.doctor", []interface{}{__arg}, nil)
+	return
+}
+
+type LoginSelectArg struct {
+	SessionID   int      `codec:"sessionID" json:"sessionID"`
+	CurrentUser string   `codec:"currentUser" json:"currentUser"`
+	OtherUsers  []string `codec:"otherUsers" json:"otherUsers"`
+}
+
+type DisplayStatusArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type DisplayResultArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type DoctorUiInterface interface {
+	LoginSelect(LoginSelectArg) (string, error)
+	DisplayStatus(int) error
+	DisplayResult(int) error
+}
+
+func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.doctorUi",
+		Methods: map[string]rpc2.ServeHook{
+			"loginSelect": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoginSelectArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.LoginSelect(args[0])
+				}
+				return
+			},
+			"displayStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayStatusArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayStatus(args[0].SessionID)
+				}
+				return
+			},
+			"displayResult": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayResultArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayResult(args[0].SessionID)
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type DoctorUiClient struct {
+	Cli GenericClient
+}
+
+func (c DoctorUiClient) LoginSelect(__arg LoginSelectArg) (res string, err error) {
+	err = c.Cli.Call("keybase.1.doctorUi.loginSelect", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DoctorUiClient) DisplayStatus(sessionID int) (err error) {
+	__arg := DisplayStatusArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.doctorUi.displayStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c DoctorUiClient) DisplayResult(sessionID int) (err error) {
+	__arg := DisplayResultArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.doctorUi.displayResult", []interface{}{__arg}, nil)
+	return
+}
+
 type GPGKey struct {
 	Algorithm  string   `codec:"algorithm" json:"algorithm"`
 	KeyID      string   `codec:"keyID" json:"keyID"`
