@@ -22,6 +22,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 		NewCmdConfig(cl),
 		NewCmdDb(cl),
 		NewCmdDevice(cl),
+		NewCmdDoctor(cl),
 		NewCmdId(cl),
 		NewCmdListTrackers(cl),
 		NewCmdListTracking(cl),
