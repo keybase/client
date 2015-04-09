@@ -11,8 +11,8 @@ import (
 	"runtime/pprof"
 
 	"github.com/hanwen/go-fuse/fuse/nodefs"
-	libkb "github.com/keybase/client/go/libkb"
-	libkbfs "github.com/keybase/kbfs"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 func GetUI() libkb.UI {
@@ -103,7 +103,7 @@ func main() {
 		}
 	}
 
-	root := libkbfs.NewFuseRoot(config)
+	root := NewFuseRoot(config)
 
 	server, _, err := nodefs.MountRoot(flag.Arg(0), root, nil)
 	if err != nil {
