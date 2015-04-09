@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var SERVER_URL = "https://api.keybase.io:443"
+var SERVER_URL = "http://localhost:3000"
 var CONFIG_FILE = "config.json"
 var SESSION_FILE = "session.json"
 var SECRET_KEYRING_TEMPLATE = "secretkeys.%u.mpack"

@@ -1,6 +1,7 @@
 package libcmdline
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"text/tabwriter"
@@ -218,8 +219,7 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 		},
 		cli.StringFlag{
 			Name: "server, s",
-			Usage: "specify server API " +
-				"(default: https://api.keybase.io:443/)",
+			Usage: fmt.Sprintf("specify server API (default: %s)", libkb.SERVER_URL),
 		},
 		cli.StringFlag{
 			Name:  "config, c",
