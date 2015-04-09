@@ -14,7 +14,6 @@
 #import "KBLoginView.h"
 #import "KBSignupView.h"
 #import "KBInstaller.h"
-#import "KBUserStatusView.h"
 #import "KBDevicesAppView.h"
 #import "KBConnectView.h"
 #import "KBFoldersAppView.h"
@@ -151,14 +150,23 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 // If we errored while checking status
 - (void)setStatusError:(NSError *)error {
   GHWeakSelf gself = self;
-  [AppDelegate setError:error sender:self completion:^{
-    // Retry if we are trying to get status for the first time
-    if (gself.appViewStatus == KBAppViewStatusConnecting) {
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+
+  if (gself.appViewStatus == KBAppViewStatusConnecting) {
+    NSMutableDictionary *errorInfo = [error.userInfo mutableCopy];
+    errorInfo[NSLocalizedRecoveryOptionsErrorKey] = @[@"Retry", @"Quit"];
+    error = [NSError errorWithDomain:error.domain code:error.code userInfo:errorInfo];
+
+    [AppDelegate setError:error sender:self completion:^(NSModalResponse res) {
+      // Option to retry or quit if we are trying to get status for the first time
+      if (res == NSAlertFirstButtonReturn) {
         [self checkStatus:nil];
-      });
-    }
-  }];
+      } else {
+        [AppDelegate.sharedDelegate quitWithPrompt:YES sender:self];
+      }
+    }];
+  } else {
+    [AppDelegate setError:error sender:self];
+  }
 }
 
 - (void)setContentView:(YOView *)contentView showSourceView:(BOOL)showSourceView appViewStatus:(KBAppViewStatus)appViewStatus {

@@ -178,7 +178,7 @@
     if (error) {
       if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {
         [self.window makeFirstResponder:self.passwordField];
-        [AppDelegate setError:KBMakeErrorWithRecovery(-1, @"Bad Password", @"The username and password you entered was invalid.") sender:nil];
+        [AppDelegate setError:KBMakeErrorWithRecovery(-1, @"Bad Password", @"The username and password you entered was invalid.") sender:self];
         return;
       }
 
