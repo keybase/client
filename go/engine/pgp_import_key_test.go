@@ -80,10 +80,8 @@ func TestPGPImportAndExport(t *testing.T) {
 	return
 }
 
-// Test for issue 325.  Skipping it now because it doesn't work
-// with reverse sigs.
+// Test for issue 325.
 func TestPGPImportPublicKey(t *testing.T) {
-	t.Skip()
 	tc := SetupEngineTest(t, "pgpsave")
 	defer tc.Cleanup()
 
@@ -94,8 +92,13 @@ func TestPGPImportPublicKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
+	err = RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("import of public key didn't generate error")
+	}
+	if _, ok := err.(libkb.NoSecretKeyError); !ok {
+		t.Error(err)
+		t.Errorf("error returned for import of public key: %T, expected libkb.NoSecretKeyError", err)
 	}
 }
 

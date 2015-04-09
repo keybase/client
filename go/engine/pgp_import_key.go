@@ -132,23 +132,61 @@ func (s *PGPKeyImportEngine) testExisting() (err error) {
 
 }
 
-func (s *PGPKeyImportEngine) Run(ctx *Context) (err error) {
+// checkPregenPrivate makes sure that the pregenerated key is a
+// private key.
+func (s *PGPKeyImportEngine) checkPregenPrivate() error {
+	if s.arg.Pregen == nil {
+		return nil
+	}
+	if s.arg.Pregen.HasSecretKey() {
+		return nil
+	}
+	return libkb.NoSecretKeyError{}
+}
+
+func (s *PGPKeyImportEngine) Run(ctx *Context) error {
 	s.G().Log.Debug("+ PGPKeyImportEngine::Run")
 	defer func() {
-		s.G().Log.Debug("- PGPKeyImportEngine::Run -> %s", libkb.ErrToOk(err))
+		s.G().Log.Debug("- PGPKeyImportEngine::Run")
 	}()
 
-	if err = s.init(); err != nil {
-	} else if err = s.loadMe(); err != nil {
-	} else if err = s.testExisting(); err != nil {
-	} else if err = s.loadDelegator(ctx); err != nil {
-	} else if err = s.unlock(ctx); err != nil {
-	} else if err = s.generate(ctx); err != nil {
-	} else if err = s.push(ctx); err != nil {
-	} else if err = s.exportToGPG(ctx); err != nil {
+	if err := s.init(); err != nil {
+		return err
 	}
 
-	return
+	if err := s.loadMe(); err != nil {
+		return err
+	}
+
+	if err := s.checkPregenPrivate(); err != nil {
+		return err
+	}
+
+	if err := s.testExisting(); err != nil {
+		return err
+	}
+
+	if err := s.loadDelegator(ctx); err != nil {
+		return err
+	}
+
+	if err := s.unlock(ctx); err != nil {
+		return err
+	}
+
+	if err := s.generate(ctx); err != nil {
+		return err
+	}
+
+	if err := s.push(ctx); err != nil {
+		return err
+	}
+
+	if err := s.exportToGPG(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
