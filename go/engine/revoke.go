@@ -103,7 +103,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	if e.isDevice {
 		deviceID = e.id
 	}
-	proof, err := me.RevocationProof(sigKey, kidsToRevoke, deviceID)
+	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)
 	if err != nil {
 		return err
 	}

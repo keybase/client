@@ -402,7 +402,7 @@ func kidsList(kids []string) *jsonw.Wrapper {
 	return ret
 }
 
-func (u *User) RevocationProof(key GenericKey, kidsToRevoke []string, deviceToDisable string) (*jsonw.Wrapper, error) {
+func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []string, deviceToDisable string) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
 		return nil, err
@@ -424,6 +424,24 @@ func (u *User) RevocationProof(key GenericKey, kidsToRevoke []string, deviceToDi
 		deviceSection.SetKey("status", jsonw.NewInt(DEVICE_STATUS_DEFUNCT))
 		body.SetKey("device", deviceSection)
 	}
+	return ret, nil
+}
+
+func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []string) (*jsonw.Wrapper, error) {
+	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
+	if err != nil {
+		return nil, err
+	}
+	body := ret.AtKey("body")
+	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
+	body.SetKey("type", jsonw.NewString("revoke"))
+	revokeSection := jsonw.NewDictionary()
+	idsArray := jsonw.NewArray(len(sigIDsToRevoke))
+	for i, id := range sigIDsToRevoke {
+		idsArray.SetIndex(i, jsonw.NewString(id))
+	}
+	revokeSection.SetKey("sig_ids", idsArray)
+	body.SetKey("revoke", revokeSection)
 	return ret, nil
 }
 

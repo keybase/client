@@ -1720,8 +1720,15 @@ type RevokeArg struct {
 	IsDevice  bool   `codec:"isDevice" json:"isDevice"`
 }
 
+type RevokeSigsArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Ids       []string `codec:"ids" json:"ids"`
+	Seqnos    []int    `codec:"seqnos" json:"seqnos"`
+}
+
 type RevokeInterface interface {
 	Revoke(RevokeArg) error
+	RevokeSigs(RevokeSigsArg) error
 }
 
 func RevokeProtocol(i RevokeInterface) rpc2.Protocol {
@@ -1732,6 +1739,13 @@ func RevokeProtocol(i RevokeInterface) rpc2.Protocol {
 				args := make([]RevokeArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Revoke(args[0])
+				}
+				return
+			},
+			"revokeSigs": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]RevokeSigsArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.RevokeSigs(args[0])
 				}
 				return
 			},
@@ -1746,6 +1760,11 @@ type RevokeClient struct {
 
 func (c RevokeClient) Revoke(__arg RevokeArg) (err error) {
 	err = c.Cli.Call("keybase.1.revoke.revoke", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RevokeClient) RevokeSigs(__arg RevokeSigsArg) (err error) {
+	err = c.Cli.Call("keybase.1.revoke.revokeSigs", []interface{}{__arg}, nil)
 	return
 }
 

@@ -886,3 +886,39 @@ func (u *User) TrackStatementJSON(them *User) (string, error) {
 	}
 	return string(json), nil
 }
+
+func (u *User) GetSigIDFromSeqno(seqno int) *string {
+	if u.sigChain == nil {
+		return nil
+	}
+	link := u.sigChain.GetLinkFromSeqno(seqno)
+	if link == nil {
+		return nil
+	}
+	sigID := link.GetSigId()
+	if sigID == nil {
+		return nil
+	}
+	sigIDStr := sigID.ToString(true /* suffix */)
+	return &sigIDStr
+}
+
+func (u *User) IsSigIDActive(sigIDStr string) (bool, error) {
+	if u.sigChain == nil {
+		return false, fmt.Errorf("User's sig chain is nil.")
+	}
+
+	sigID, err := SigIdFromHex(sigIDStr, true /* suffix */)
+	if err != nil {
+		return false, err
+	}
+
+	link := u.sigChain.GetLinkFromSigId(*sigID)
+	if link == nil {
+		return false, fmt.Errorf("Signature with ID '%s' does not exist.", sigIDStr)
+	}
+	if link.revoked {
+		return false, fmt.Errorf("Signature ID '%s' is already revoked.", sigIDStr)
+	}
+	return true, nil
+}

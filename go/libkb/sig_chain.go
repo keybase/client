@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -458,6 +459,25 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 	// https://github.com/keybase/go/issues/43
 
 	return
+}
+
+func (sc *SigChain) GetLinkFromSeqno(seqno int) *ChainLink {
+	for _, link := range sc.chainLinks {
+		if link.GetSeqno() == Seqno(seqno) {
+			return link
+		}
+	}
+	return nil
+}
+
+func (sc *SigChain) GetLinkFromSigId(id SigId) *ChainLink {
+	for _, link := range sc.chainLinks {
+		knownID := link.GetSigId()
+		if knownID != nil && bytes.Equal(knownID[:], id[:]) {
+			return link
+		}
+	}
+	return nil
 }
 
 //========================================================================

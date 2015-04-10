@@ -257,6 +257,7 @@ func NewCmdSigs(cl *libcmdline.CommandLine) cli.Command {
 		Description: "List, revoke signatures",
 		Subcommands: []cli.Command{
 			NewCmdSigsList(cl),
+			NewCmdSigsRevoke(cl),
 		},
 	}
 }

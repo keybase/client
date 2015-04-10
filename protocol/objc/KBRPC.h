@@ -495,6 +495,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRRevokeRequest : KBRRequest
 - (void)revokeWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb isDevice:(BOOL)isDevice completion:(void (^)(NSError *error))completion;
 
+- (void)revokeSigsWithSessionID:(NSInteger)sessionID ids:(NSArray *)ids seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRSecretEntryArg : KBRObject
@@ -894,6 +896,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *id;
 @property BOOL isDevice;
+@end
+@interface KBRRevokeSigsRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *ids;
+@property NSArray *seqnos;
 @end
 @interface KBRGetSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;

@@ -177,6 +177,25 @@
         "type" : "boolean"
       } ],
       "response" : "null"
+    },
+    "revokeSigs" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "ids",
+        "type" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      }, {
+        "name" : "seqnos",
+        "type" : {
+          "type" : "array",
+          "items" : "int"
+        }
+      } ],
+      "response" : "null"
     }
   }
 }

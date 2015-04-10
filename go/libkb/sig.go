@@ -47,11 +47,14 @@ func SigIdFromSlice(s []byte) (*SigId, error) {
 
 func SigIdFromHex(s string, suffix bool) (*SigId, error) {
 	bv, err := hex.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
 	totlen := SIG_ID_LEN
 	if suffix {
 		totlen += 1
 	}
-	if err == nil && len(bv) != totlen {
+	if len(bv) != totlen {
 		err = fmt.Errorf("Bad sigId wrong length: %d", len(bv))
 		return nil, err
 	}

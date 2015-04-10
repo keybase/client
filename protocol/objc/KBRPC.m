@@ -690,6 +690,13 @@
   }];
 }
 
+- (void)revokeSigsWithSessionID:(NSInteger)sessionID ids:(NSArray *)ids seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"ids": KBRValue(ids), @"seqnos": KBRValue(seqnos)}];
+  [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeSigs" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRSecretEntryArg
@@ -1643,6 +1650,19 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.id = params[0][@"id"];
     self.isDevice = [params[0][@"isDevice"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRRevokeSigsRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.ids = params[0][@"ids"];
+    self.seqnos = params[0][@"seqnos"];
   }
   return self;
 }
