@@ -77,7 +77,7 @@ func (ui UI) GetLogUI() libkb.LogUI {
 func (ui UI) GetGPGUI() libkb.GPGUI {
 	return nil
 }
-func (ui UI) GetDoctorUI() libkb.DoctorUI {
+func (ui UI) GetLocksmithUI() libkb.LocksmithUI {
 	return nil
 }
 func (ui UI) Prompt(string, bool, libkb.Checker) (s string, err error) {
