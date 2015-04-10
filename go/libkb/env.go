@@ -41,6 +41,10 @@ func (n NullConfiguration) GetProxyCACerts() ([]string, error) { return nil, nil
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error)                    { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s string) (*UserConfig, error) { return nil, nil }
 
+func (n NullConfiguration) GetAllUsernames() (string, []string, error) {
+	return "", nil, nil
+}
+
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
 }

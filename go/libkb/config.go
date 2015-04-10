@@ -189,6 +189,34 @@ func (f JsonConfigFile) GetUserConfigForUsername(s string) (ret *UserConfig, err
 	return ImportUserConfigFromJsonWrapper(f.jw.AtKey("users").AtKey(s))
 }
 
+func (f JsonConfigFile) GetAllUsernames() (current string, others []string, err error) {
+	current = f.getCurrentUser()
+	uw := f.jw.AtKey("users")
+	if uw.IsNil() {
+		return
+	}
+	keys, e := uw.Keys()
+	if e != nil {
+		err = e
+		return
+	}
+	for _, k := range keys {
+		u := uw.AtKey(k)
+		if u == nil {
+			continue
+		}
+		name, e := u.AtKey("name").GetString()
+		if e != nil {
+			err = e
+			return
+		}
+		if name != current {
+			others = append(others, name)
+		}
+	}
+	return
+}
+
 // SetDeviceID sets the device field of the UserConfig object
 func (f *JsonConfigFile) SetDeviceID(did *DeviceID) (err error) {
 	f.userConfigWrapper.Lock()

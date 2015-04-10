@@ -101,6 +101,7 @@ type ConfigReader interface {
 	GetLocalRpcDebug() string
 	GetDeviceID() *DeviceID
 	GetUsername() string
+	GetAllUsernames() (current string, others []string, err error)
 	GetUID() *UID
 	GetProxyCACerts() ([]string, error)
 }
