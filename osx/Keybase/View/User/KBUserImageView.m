@@ -19,7 +19,7 @@
 
 - (void)setUsername:(NSString *)username {
   _username = username;
-  NSString *URLString = [AppDelegate.sharedDelegate.APIClient URLStringWithPath:NSStringWithFormat(@"%@/picture?format=square_200", username)];
+  NSString *URLString = [AppDelegate.appView APIURLString:NSStringWithFormat(@"%@/picture?format=square_200", username)];
 
   NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:URLString]];
   [request addValue:@"image/*" forHTTPHeaderField:@"Accept"];

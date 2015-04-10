@@ -965,6 +965,18 @@
   }];
 }
 
+- (void)searchWithSessionID:(NSInteger)sessionID query:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"query": KBRValue(query)}];
+  [self.client sendRequestWithMethod:@"keybase.1.user.search" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRUserSummary.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
+
 @end
 @implementation KBRBIndexSessionRequestParams
 
@@ -1888,6 +1900,18 @@
   if ((self = [super initWithParams:params])) {
     self.filter = params[0][@"filter"];
     self.verbose = [params[0][@"verbose"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRSearchRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.query = params[0][@"query"];
   }
   return self;
 }

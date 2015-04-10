@@ -110,13 +110,8 @@
 }
 
 - (void)updatePickerResults {
-  //CGSize size = self.superview.frame.size;
-  CGFloat y = CGRectGetMaxY(self.frame);
-  CGFloat contentHeight = [_searchResultsView contentHeight:self.window.frame.size.height - y - 20];
-
-  //_popover.contentSize = CGSizeMake(300, contentHeight);
-
-  //_searchResultsView.frame = CGRectMake(0, 0, _popover.contentSize.width, _popover.contentSize.height);
+  CGFloat contentHeight = [_searchResultsView contentHeight:600];
+  _popover.contentSize = CGSizeMake(300, contentHeight);
 }
 
 - (void)focusTokensField {

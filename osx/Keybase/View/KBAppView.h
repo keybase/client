@@ -52,4 +52,6 @@
 
 - (void)checkStatus:(KBCompletionBlock)completion;
 
+- (NSString *)APIURLString:(NSString *)path;
+
 @end

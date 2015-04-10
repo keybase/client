@@ -10,27 +10,15 @@
 
 @implementation KBSearcher
 
-KBRUserSummary *KBUserSummaryFromSearchResult(KBSearchResult *searchResult) {
-  KBRUserSummary *userSummary = [[KBRUserSummary alloc] init];
-  userSummary.username = searchResult.userName;
-  userSummary.uid = [KBRUtils UIDFromHexString:searchResult.userId];
-  userSummary.fullName = searchResult.fullName;
-  return userSummary;
-}
-
 - (void)search:(NSString *)query client:(KBRPClient *)client remote:(BOOL)remote completion:(void (^)(NSError *error, KBSearchResults *searchResults))completion {
   if (remote) {
-    [AppDelegate.sharedDelegate.APIClient searchUsersWithQuery:query success:^(NSArray *results) {
-      NSArray *userSummaries = [results map:^(KBSearchResult *sr) { return KBUserSummaryFromSearchResult(sr); }];
-
+    KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:client];
+    [request searchWithSessionID:request.sessionId query:query completion:^(NSError *error, NSArray *userSummaries) {
       KBSearchResults *searchResults = [[KBSearchResults alloc] init];
       searchResults.results = userSummaries;
       searchResults.header = @"keybase.io";
       searchResults.section = 1;
-
-      completion(nil, searchResults);
-    } failure:^(NSError *error) {
-      completion(error, nil);
+      completion(error, searchResults);
     }];
   } else {
     KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:client];

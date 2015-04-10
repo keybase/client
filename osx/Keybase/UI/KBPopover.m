@@ -34,7 +34,8 @@
   [window setContentView:_contentView];
   [window setMovable:NO];
 
-  self.window = window;
+  _window = window;
+  _sender = sender;
 
   CGRect rect = [sender convertRect:sender.bounds toView: nil];
   [window setFrameOrigin:CGPointMake(sender.window.frame.origin.x + rect.origin.x, sender.window.frame.origin.y + rect.origin.y - _contentSize.height)];
@@ -49,6 +50,17 @@
 
 - (BOOL)isShowing {
   return _window.isVisible;
+}
+
+- (void)setContentSize:(CGSize)contentSize {
+  _contentSize = contentSize;
+
+  _contentView.frame = CGRectMake(0, 0, _contentSize.width, _contentSize.height);
+  [_window setContentSize:_contentSize];
+
+  NSWindow *parentWindow = _window.parentWindow;
+  CGRect rect = [_sender convertRect:_sender.bounds toView: nil];
+  [_window setFrameOrigin:CGPointMake(parentWindow.frame.origin.x + rect.origin.x, parentWindow.frame.origin.y + rect.origin.y - _contentSize.height)];
 }
 
 @end

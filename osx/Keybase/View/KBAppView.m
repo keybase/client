@@ -322,10 +322,16 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 
 - (void)setConfig:(KBRConfig *)config {
   _config = config;
-  NSString *host = config.serverURI;
+  NSString *host = _config.serverURI;
   // TODO Directly accessing API client should eventually go away (everything goes to daemon)
   if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
   AppDelegate.sharedDelegate.APIClient = [[KBAPIClient alloc] initWithAPIHost:host];
+}
+
+- (NSString *)APIURLString:(NSString *)path {
+  NSString *host = _config.serverURI;
+  if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
+  return [NSString stringWithFormat:@"%@/%@", host, path];
 }
 
 - (void)setStatus:(KBRGetCurrentStatusRes *)status {

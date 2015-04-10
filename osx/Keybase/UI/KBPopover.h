@@ -13,7 +13,7 @@
 @interface KBPopover : NSObject <NSWindowDelegate>
 
 @property YOView *contentView;
-@property CGSize contentSize;
+@property (nonatomic) CGSize contentSize;
 
 - (void)show:(NSView *)sender;
 
