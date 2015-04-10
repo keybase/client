@@ -88,10 +88,10 @@
     id object = [self.dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:row inSection:0]];
 
     self.cellSetBlock(self.prototypeView, object, [NSIndexPath indexPathWithIndex:row], nil, self, NO);
-    [self.prototypeView setNeedsLayout];
+    [self.prototypeView setNeedsLayout:NO];
 
     CGFloat verticalScrollWidth = [NSScroller scrollerWidthForControlSize:self.scrollView.verticalScroller.controlSize scrollerStyle:self.scrollView.verticalScroller.scrollerStyle];
-    CGFloat width = tableView.frame.size.width - verticalScrollWidth;
+    CGFloat width = self.frame.size.width - verticalScrollWidth;
     CGFloat height = [self.prototypeView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)].height;
     //GHDebug(@"Row: %@, height: %@, width: %@", @(row), @(height), @(self.frame.size.width));
     return height;

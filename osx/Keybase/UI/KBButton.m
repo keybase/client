@@ -285,8 +285,10 @@ static KBButtonErrorHandler gErrorHandler = nil;
   if (strokeColor) {
     path = [NSBezierPath bezierPathWithRoundedRect:CGRectInset(frame, 0.5, 0.5) xRadius:4.0 yRadius:4.0];
     path.lineWidth = 1.0;
-  } else {
+  } else if (_style != KBButtonStyleEmpty) {
     path = [NSBezierPath bezierPathWithRoundedRect:frame xRadius:4.0 yRadius:4.0];
+  } else {
+    path = [NSBezierPath bezierPathWithRect:frame];
   }
 
   if (fillColor) {

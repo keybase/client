@@ -34,7 +34,7 @@
   _infoLabel = [[KBLabel alloc] init];
   [self addSubview:_infoLabel];
 
-  _border = [KBBox line];
+  _border = [KBBox horizontalLine];
   [self addSubview:_border];
 
   YOSelf yself = self;

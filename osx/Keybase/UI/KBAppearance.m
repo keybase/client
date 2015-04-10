@@ -115,11 +115,11 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)lineColor {
-  return [NSColor colorWithCalibratedWhite:193.0/255.0 alpha:1.0];
+  return [NSColor colorWithWhite:193.0/255.0 alpha:1.0];
 }
 
 - (NSColor *)secondaryLineColor {
-  return [NSColor colorWithCalibratedWhite:213.0/255.0 alpha:1.0];
+  return [NSColor colorWithWhite:213.0/255.0 alpha:1.0];
 }
 
 - (NSColor *)tableGridColor {
@@ -127,8 +127,8 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)highlightBackgroundColor {
-  return [NSColor colorWithCalibratedRed:8.0/255.0 green:80.0/255.0 blue:208.0/255.0 alpha:1.0];
-  //return [NSColor colorWithCalibratedRed:231.0/255.0 green:239.0/255.0 blue:255.0/255.0 alpha:1.0];
+  return [NSColor colorWithRed:8.0/255.0 green:80.0/255.0 blue:208.0/255.0 alpha:1.0];
+  //return [NSColor colorWithRed:231.0/255.0 green:239.0/255.0 blue:255.0/255.0 alpha:1.0];
 }
 
 #define BASE_FONT_SIZE (14)
@@ -167,7 +167,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)secondaryBackgroundColor {
-  return [NSColor colorWithCalibratedWhite:0.966 alpha:1.0];
+  return [NSColor colorWithWhite:0.966 alpha:1.0];
 }
 
 - (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
@@ -214,7 +214,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
       return GHNSColorFromRGB(0xCCCCCC);
 
     case KBButtonStylePrimary:
-      return [NSColor colorWithCalibratedRed:192.0/255.0 green:221.0/255.0 blue:250.0/255.0 alpha:1.0];
+      return [NSColor colorWithRed:192.0/255.0 green:221.0/255.0 blue:250.0/255.0 alpha:1.0];
 
     case KBButtonStyleCheckbox:
     case KBButtonStyleLink:
@@ -230,7 +230,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleEmpty:
     case KBButtonStyleToolbar:
     case KBButtonStyleSmall:
-      return [NSColor colorWithCalibratedWhite:0.99 alpha:1.0];
+      return [NSColor colorWithWhite:0.99 alpha:1.0];
 
     case KBButtonStylePrimary:
       return KBAppearance.currentAppearance.selectColor;
@@ -297,7 +297,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 }
 
 - (NSColor *)secondaryBackgroundColor {
-  return [NSColor colorWithCalibratedWhite:0.05 alpha:1.0];
+  return [NSColor colorWithWhite:0.05 alpha:1.0];
 }
 
 @end

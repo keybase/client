@@ -50,7 +50,7 @@ PODS:
   - TSTripleSec (1.0.0):
     - MPMessagePack
     - NAChloride
-  - YOLayout (0.1.12)
+  - YOLayout (0.1.13)
   - ZXCVBN (1.0.4)
 
 DEPENDENCIES:
@@ -81,7 +81,7 @@ SPEC CHECKSUMS:
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7
   TSTripleSec: dbc11769895c30eeb9eade59aee3ab902ac2b3ba
-  YOLayout: 9d3ce9e9aa4dec3fa879adca343ba373d78b2078
+  YOLayout: 58f48d203c24571274dd03c7e640672e1f107821
   ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
 
 COCOAPODS: 0.36.3

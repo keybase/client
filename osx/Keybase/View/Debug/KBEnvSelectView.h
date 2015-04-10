@@ -8,6 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBEnvSelectView : NSObject
+#import "KBAppKit.h"
+#import "KBRPC.h"
+#import "KBContentView.h"
+
+typedef void (^KBEnvSelect)(KBRPClientEnv env);
+
+@interface KBEnvSelectView : KBContentView
+
+@property (copy) KBEnvSelect onSelect;
 
 @end
