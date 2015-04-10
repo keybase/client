@@ -1,6 +1,10 @@
 package engine
 
-import "github.com/keybase/client/go/libkb"
+import (
+	"errors"
+
+	"github.com/keybase/client/go/libkb"
+)
 
 // Doctor is an engine.
 type Doctor struct {
@@ -72,8 +76,23 @@ func (e *Doctor) login(ctx *Context) {
 		e.runErr = err
 		return
 	}
-	e.G().Log.Info("current: %s", current)
-	e.G().Log.Info("others: %v", other)
+	e.G().Log.Debug("current: %s", current)
+	e.G().Log.Debug("others: %v", other)
+	if len(current) == 0 && len(other) == 0 {
+		e.G().Log.Debug("no user accounts found on this device")
+		e.runErr = errors.New("No user accounts were found on this device.  Run 'keybase signup' if you need an account or 'keybase login' if you already have one.")
+		return
+	}
+	selected, err := ctx.DoctorUI.LoginSelect(current, other)
+	if err != nil {
+		e.runErr = err
+		return
+	}
+	if len(selected) == 0 {
+		e.runErr = errors.New("no user selected for login")
+		return
+	}
+	e.G().Log.Debug("selected account %q for login", selected)
 }
 
 func (e *Doctor) status(ctx *Context) {

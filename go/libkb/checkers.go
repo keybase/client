@@ -89,3 +89,21 @@ var CheckNotEmpty = Checker{
 	},
 	Hint: "cannot be empty",
 }
+
+type CheckMember struct {
+	Set []string
+}
+
+func (c CheckMember) Checker() Checker {
+	return Checker{
+		F: func(s string) bool {
+			for _, v := range c.Set {
+				if v == s {
+					return true
+				}
+			}
+			return false
+		},
+		Hint: strings.Join(c.Set, ", "),
+	}
+}
