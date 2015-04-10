@@ -57,6 +57,10 @@ From kbfs/:
     go test -i ./...
     go test ./...
 
+Run integration tests (TODO(jinyang): update with daemon commands):
+
+    go test -tags=integration ./...
+
 If you change anything in interfaces.go, you will have to regenerate
 the mock interfaces used by the tests:
 
