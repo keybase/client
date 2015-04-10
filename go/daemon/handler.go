@@ -38,8 +38,16 @@ func (h *BaseHandler) getLoginUICli() *keybase_1.LoginUiClient {
 	return h.loginCli
 }
 
-func (h *BaseHandler) getLoginUI(sessionId int) libkb.LoginUI {
-	return &LoginUI{sessionId, h.getLoginUICli()}
+func (h *BaseHandler) getLoginUI(sessionID int) libkb.LoginUI {
+	return &LoginUI{sessionID, h.getLoginUICli()}
+}
+
+func (h *BaseHandler) getLocksmithUI(sessionID int) libkb.LocksmithUI {
+	return NewRemoteLocksmithUI(sessionID, h.getRpcClient())
+}
+
+func (h *BaseHandler) getGPGUI(sessionID int) libkb.GPGUI {
+	return NewRemoteGPGUI(sessionID, h.getRpcClient())
 }
 
 func (h *BaseHandler) getSecretUICli() *keybase_1.SecretUiClient {

@@ -8,10 +8,11 @@ import (
 
 type LoginEngine struct {
 	libkb.Contextified
-	requiredUIs []libkb.UIKind
-	runFn       func(*libkb.LoginState, *Context) error
-	locksmithMu sync.Mutex
-	locksmith   *Locksmith
+	requiredUIs   []libkb.UIKind
+	runFn         func(*libkb.LoginState, *Context) error
+	SkipLocksmith bool
+	locksmithMu   sync.Mutex
+	locksmith     *Locksmith
 }
 
 func NewLoginWithPromptEngine(username string) *LoginEngine {
@@ -24,6 +25,12 @@ func NewLoginWithPromptEngine(username string) *LoginEngine {
 			return loginState.LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI)
 		},
 	}
+}
+
+func NewLoginWithPromptEngineSkipLocksmith(username string) *LoginEngine {
+	eng := NewLoginWithPromptEngine(username)
+	eng.SkipLocksmith = true
+	return eng
 }
 
 func NewLoginWithStoredSecretEngine(username string) *LoginEngine {
@@ -63,14 +70,18 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	var u *libkb.User
-
 	// We might need to ID ourselves, to load us in here
-	if u, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true}); err == nil {
-	} else if _, not_found := err.(libkb.NoKeyError); not_found {
-		err = nil
-	} else {
-		return err
+	u, err := libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+	if err != nil {
+		_, ok := err.(libkb.NoKeyError)
+		if !ok {
+			return err
+		}
+	}
+
+	if e.SkipLocksmith {
+		e.G().Log.Debug("skipping locksmith as requested by LoginArg")
+		return nil
 	}
 
 	// create a locksmith engine to check the account

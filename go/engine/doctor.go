@@ -31,12 +31,14 @@ func (e *Doctor) GetPrereqs() EnginePrereqs {
 func (e *Doctor) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.DoctorUIKind,
+		libkb.LoginUIKind,
+		libkb.SecretUIKind,
 	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *Doctor) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{&LoginEngine{}}
 }
 
 // Run starts the engine.
@@ -93,6 +95,14 @@ func (e *Doctor) login(ctx *Context) {
 		return
 	}
 	e.G().Log.Debug("selected account %q for login", selected)
+
+	eng := NewLoginWithPromptEngineSkipLocksmith(selected)
+	if err := RunEngine(eng, ctx); err != nil {
+		e.runErr = err
+		return
+	}
+
+	e.G().Log.Debug("login as %q successful.", selected)
 }
 
 func (e *Doctor) status(ctx *Context) {

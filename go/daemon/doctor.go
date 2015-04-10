@@ -17,9 +17,12 @@ func NewDoctorHandler(xp *rpc2.Transport) *DoctorHandler {
 
 func (h *DoctorHandler) Doctor(sessionID int) error {
 	ctx := &engine.Context{
-		DoctorUI: h.ui(sessionID),
-		LogUI:    h.getLogUI(sessionID),
-		SecretUI: h.getSecretUI(sessionID),
+		DoctorUI:    h.ui(sessionID),
+		LogUI:       h.getLogUI(sessionID),
+		SecretUI:    h.getSecretUI(sessionID),
+		LoginUI:     h.getLoginUI(sessionID),
+		LocksmithUI: h.getLocksmithUI(sessionID),
+		GPGUI:       h.getGPGUI(sessionID),
 	}
 	eng := engine.NewDoctor()
 	return engine.RunEngine(eng, ctx)

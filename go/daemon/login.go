@@ -21,13 +21,6 @@ func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
 	return &LoginHandler{BaseHandler: BaseHandler{xp: xp}}
 }
 
-func (h *LoginHandler) getLocksmithUI(sessionId int) libkb.LocksmithUI {
-	if h.locksmithUI == nil {
-		h.locksmithUI = NewRemoteLocksmithUI(sessionId, h.getRpcClient())
-	}
-	return h.locksmithUI
-}
-
 func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
 	return u.cli.GetEmailOrUsername(u.sessionId)
 }
@@ -72,7 +65,7 @@ func (h *LoginHandler) LoginWithPassphrase(arg keybase_1.LoginWithPassphraseArg)
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
+		GPGUI:       h.getGPGUI(arg.SessionID),
 	}
 
 	loginEngine := engine.NewLoginWithPassphraseEngine(arg.Username, arg.Passphrase, arg.StoreSecret)
