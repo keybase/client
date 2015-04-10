@@ -37,7 +37,7 @@ PODS:
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.9)
+  - MPMessagePack (1.1.10)
   - NAChloride (1.1.2):
     - libsodium
   - ObjectiveSugar (1.1.0)
@@ -75,7 +75,7 @@ SPEC CHECKSUMS:
   libsodium: d1b482e7628e0298de350375a4ab981b5cc8c71b
   Mantle: 17de73ef929db2234d76fde2aacfb89ab11c61e8
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
-  MPMessagePack: 42d618d5f5e7dc9e5c8cd655bd997a84841fef39
+  MPMessagePack: 40405ad7d5264a96a48ea72022dc8027db28dc7f
   NAChloride: acfc82321c23b57d169b46c587c1d92147aafedf
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8

@@ -97,28 +97,41 @@
 }
 
 - (void)setObjects:(NSArray *)objects animated:(BOOL)animated {
+  [self update:^(KBTableView *tableView) {
+    NSMutableArray *indexPathsToRemove = [NSMutableArray array];
+    NSMutableArray *indexPathsToUpdate = [NSMutableArray array];
+    NSMutableArray *indexPathsToAdd = [NSMutableArray array];
+    //if ([indexPathsToRemove count] == 0 && [indexPathsToAdd count] == 0) return;
+    [tableView.dataSource updateObjects:objects section:0 indexPathsToAdd:indexPathsToAdd indexPathsToUpdate:indexPathsToUpdate indexPathsToRemove:indexPathsToRemove];
+    if (animated) {
+      [tableView.view beginUpdates];
+      if ([indexPathsToRemove count] > 0) [tableView.view removeRowsAtIndexes:[self itemIndexSet:indexPathsToRemove] withAnimation:0];
+      if ([indexPathsToAdd count] > 0) [tableView.view insertRowsAtIndexes:[self itemIndexSet:indexPathsToAdd] withAnimation:0];
+      if ([indexPathsToUpdate count] > 0) [tableView.view reloadDataForRowIndexes:[self itemIndexSet:indexPathsToUpdate] columnIndexes:[self sectionIndexSet:indexPathsToUpdate]];
+      [tableView.view endUpdates];
+    } else {
+      [tableView reloadData];
+    }
+  }];
+}
+
+- (void)update:(void (^)(KBTableView *tableView))block {
   id selectedObject = [self selectedObject];
   [self deselectRow];
 
-  NSMutableArray *indexPathsToRemove = [NSMutableArray array];
-  NSMutableArray *indexPathsToUpdate = [NSMutableArray array];
-  NSMutableArray *indexPathsToAdd = [NSMutableArray array];
-  //if ([indexPathsToRemove count] == 0 && [indexPathsToAdd count] == 0) return;
-  [self.dataSource updateObjects:objects section:0 indexPathsToAdd:indexPathsToAdd indexPathsToUpdate:indexPathsToUpdate indexPathsToRemove:indexPathsToRemove];
-  if (animated) {
-    [_view beginUpdates];
-    if ([indexPathsToRemove count] > 0) [_view removeRowsAtIndexes:[self itemIndexSet:indexPathsToRemove] withAnimation:0];
-    if ([indexPathsToAdd count] > 0) [_view insertRowsAtIndexes:[self itemIndexSet:indexPathsToAdd] withAnimation:0];
-    if ([indexPathsToUpdate count] > 0) [_view reloadDataForRowIndexes:[self itemIndexSet:indexPathsToUpdate] columnIndexes:[self sectionIndexSet:indexPathsToUpdate]];
-    [_view endUpdates];
-  } else {
-    [_view reloadData];
-  }
-  
+  block(self);
+
   if (selectedObject) {
     NSIndexPath *indexPath = [_dataSource indexPathOfObject:selectedObject section:0];
     if (indexPath) [self setSelectedRow:indexPath.item];
   }
+}
+
+- (void)addObjects:(NSArray *)objects {
+  [self update:^(KBTableView *tableView) {
+    [tableView.dataSource addObjects:objects];
+    [tableView reloadData];
+  }];
 }
 
 - (NSArray *)objects {
@@ -145,11 +158,6 @@
     [indexSet addIndex:indexPath.section];
   }
   return indexSet;
-}
-
-- (void)addObjects:(NSArray *)objects {
-  [_dataSource addObjects:objects];
-  [_view reloadData];
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {

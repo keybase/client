@@ -35,7 +35,12 @@
 
 @implementation KBUserToken
 
-+ (instancetype)userTokenWithUsername:(NSString *)username { KBUserToken *t = [[KBUserToken alloc] init]; t.username = username; return t; }
++ (instancetype)userTokenWithUsername:(NSString *)username {
+  NSParameterAssert(username);
+  KBUserToken *t = [[KBUserToken alloc] init];
+  t.username = username;
+  return t;
+}
 
 - (NSString *)description { return NSStringWithFormat(@"%@: %@", [super description], self.username); }
 
@@ -82,6 +87,7 @@
     [view setUserSummary:userSummary];
   };
   _searchResultsView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+    if (!userSummary) return;
     [gself commitToken:[KBUserToken userTokenWithUsername:userSummary.username]];
     [gself.searchControl textDidChange:@""];
     [gself focusTokensField];
@@ -107,6 +113,10 @@
     y += [layout setFrame:CGRectMake(x, y, size.width - x, tokenSize.height + 2) view:yself.tokensField].size.height + 10;
     return CGSizeMake(size.width, y);
   }];
+}
+
+- (void)cancelOperation:(id)sender {
+  [self hideSearch];
 }
 
 - (void)updatePickerResults {
@@ -196,7 +206,7 @@
     if ([_searchResultsView nextRowUp] != NSNotFound) {
       [_searchResultsView moveUp:self];
       KBRUserSummary *searchResult = _searchResultsView.selectedObject;
-      [textView setString:searchResult.username];
+      [self setEditingToken:searchResult.username];
     }
     return YES;
   } else if (commandSelector == @selector(moveDown:)) {
@@ -247,19 +257,13 @@
   return _tokenMenu;
 }
 
-//- (NSArray *)tokenField:(NSTokenField *)tokenField completionsForSubstring:(NSString *)substring indexOfToken:(NSInteger)tokenIndex indexOfSelectedItem:(NSInteger *)selectedIndex {
-////  GHDebug(@"Substring: %@", substring);
-////  [_searchControl textDidChange:substring];
-//  return nil;
-//}
-
 - (id)tokenField:(NSTokenField *)tokenField representedObjectForEditingString:(NSString *)editingString {
   return editingString;
 }
 
 - (NSString *)tokenField:(NSTokenField *)tokenField displayStringForRepresentedObject:(id)representedObject {
   if ([representedObject isKindOfClass:KBUserToken.class]) {
-    return [representedObject username];
+    return [representedObject username] ? [representedObject username] : @"";
   } else {
     return representedObject;
   }
