@@ -43,7 +43,7 @@
 
   _fileListView = [[KBFileListView alloc] init];
   _fileListView.fileLabelStyle = KBFileLabelStyleLarge;
-  _fileListView.menuSelectBlock  = ^(NSIndexPath *indexPath) {
+  _fileListView.onMenuSelect  = ^(NSIndexPath *indexPath) {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
     [menu addItemWithTitle:@"Show In Finder" action:@selector(showInFinder:) keyEquivalent:@""];
     [menu addItemWithTitle:@"Remove" action:@selector(removeFile:) keyEquivalent:@""];

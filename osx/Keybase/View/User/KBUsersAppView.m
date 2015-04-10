@@ -66,13 +66,13 @@
   GHWeakSelf gself = self;
   _trackingView = [[KBUserListView alloc] init];
   _trackingView.identifier = @"Tracking";
-  _trackingView.listView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+  _trackingView.listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
     [gself.trackingUserView setUsername:userSummary.username client:gself.client];
   };
 
   _trackersView = [[KBUserListView alloc] init];
   _trackersView.identifier = @"Trackers";
-  _trackersView.listView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+  _trackersView.listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
     [gself.trackersUserView setUsername:userSummary.username client:gself.client];
   };
 
@@ -93,7 +93,7 @@
   [self addSubview:_searchProgressView];
 
   _searchView = [[KBUserListView alloc] init];
-  _searchView.listView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+  _searchView.listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
     [gself.searchUserView setUsername:userSummary.username client:gself.client];
   };
   _searchUserView = [[KBUserProfileViewer alloc] init];

@@ -88,7 +88,7 @@
     window.styleMask = window.styleMask | NSResizableWindowMask;
   }
 
-  [self kb_addChildWindow:window rect:rect position:position fixed:fixed];
+  [self kb_addChildWindow:window rect:CGRectMake(0, 0, size.width, size.height) position:position fixed:fixed];
 
   if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
 
@@ -107,7 +107,7 @@
   switch (position) {
     case KBWindowPositionCenter:
       p.x += YOCGPointToCenterX(window.frame.size, self.frame.size).x;
-      p.y += self.frame.size.height - window.frame.size.height;
+      p.y = self.frame.origin.y + self.frame.size.height - window.frame.size.height;
       break;
     case KBWindowPositionRight:
       p.x += self.frame.size.width + 10;

@@ -51,10 +51,8 @@
 }
 
 - (void)registerTrackView:(NSInteger)sessionId client:(KBRPClient *)client sender:(id)sender {
-  if (!_trackView) {
-    _trackView = [[KBUserProfileView alloc] init];
-    _trackView.popup = YES;
-  }
+  _trackView = [[KBUserProfileView alloc] init];
+  _trackView.popup = YES;
   [_trackView registerClient:client sessionId:sessionId sender:sender];
 }
 

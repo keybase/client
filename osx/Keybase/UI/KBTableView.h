@@ -15,8 +15,9 @@
 
 @class KBTableView;
 
-typedef void (^KBCellSelectBlock)(KBTableView *tableView, NSIndexPath *indexPath, id object);
-typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
+typedef void (^KBCellSelect)(KBTableView *tableView, NSIndexPath *indexPath, id object);
+typedef NSMenu *(^KBMenuSelect)(NSIndexPath *indexPath);
+typedef void (^KBTableViewUpdate)(KBTableView *tableView);
 
 @interface KBTableView : YOView <NSTableViewDelegate, NSTableViewDataSource>
 
@@ -25,8 +26,9 @@ typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
 @property KBBorder *border;
 @property (readonly) NSIndexPath *menuIndexPath;
 
-@property (copy) KBCellSelectBlock selectBlock;
-@property (copy) KBMenuSelectBlock menuSelectBlock;
+@property (copy) KBCellSelect onSelect;
+@property (copy) KBMenuSelect onMenuSelect;
+@property (copy) KBTableViewUpdate onUpdate;
 
 @property (readonly) KBCellDataSource *dataSource;
 
@@ -55,12 +57,14 @@ typedef NSMenu *(^KBMenuSelectBlock)(NSIndexPath *indexPath);
 - (void)setBorderEnabled:(BOOL)borderEnabled;
 - (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
-- (BOOL)canMoveUp;
-- (BOOL)canMoveDown;
+- (NSInteger)nextRowUp;
+- (NSInteger)nextRowDown;
 
 - (void)removeAllTableColumns;
 
 - (NSInteger)rowCount;
+
+- (CGFloat)contentHeight:(CGFloat)max;
 
 @end
 

@@ -177,7 +177,7 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    GHDebug(@"Result: %@", result);
+    //GHDebug(@"Result: %@", result);
     completion(error, result);
   }];
 
@@ -185,7 +185,7 @@
   mparams[0] = KBScrubPassphrase(params[0]);
 
   //NSNumber *messageId = request[1];
-  GHDebug(@"Sent request: %@(%@)", method, mparams);
+  GHDebug(@"Sent request: %@", method); //mparams
   if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
     [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
   }

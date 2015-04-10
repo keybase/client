@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBPopoverView.h"
+#import "KBHoverView.h"
 
 #import "KBTitleView.h"
 #import "KBLabel.h"
@@ -14,14 +14,14 @@
 #import "KBWindow.h"
 #import "NSView+KBView.h"
 
-@interface KBPopoverView ()
+@interface KBHoverView ()
 @property KBTitleView *titleView;
 @property KBLabel *label;
 
 @property NSWindow *popoverWindow;
 @end
 
-@implementation KBPopoverView
+@implementation KBHoverView
 
 - (void)viewInit {
   [super viewInit];

@@ -11,6 +11,7 @@
 #import "KBAppearance.h"
 #import <GHKit/GHKit.h>
 #import "KBText.h"
+#import "NSView+KBView.h"
 
 @interface KBNSTextField : NSTextField
 @property (weak) id<KBNSTextFieldFocusDelegate> focusDelegate;
@@ -34,6 +35,15 @@
 }
 
 - (void)viewInit:(BOOL)secure {
+  _focusView = [[NSBox alloc] init];
+  _focusView.fillColor = NSColor.whiteColor;
+  _focusView.borderColor = KBAppearance.currentAppearance.lineColor;
+  _focusView.borderWidth = 1;
+  _focusView.borderType = NSLineBorder;
+  _focusView.boxType = NSBoxCustom;
+  _focusView.cornerRadius = 4;
+  [self addSubview:_focusView];
+
   if (secure) {
     KBNSSecureTextField *textField = [[KBNSSecureTextField alloc] init];
     textField.focusDelegate = self;
@@ -52,27 +62,14 @@
   // This is fucking crazy but it's the only way
   _timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(_checkFocused) userInfo:nil repeats:YES];
 
-  _focusView = [[NSBox alloc] init];
-  _focusView.borderColor = KBAppearance.currentAppearance.lineColor;
-  _focusView.borderWidth = 1;
-  //_focusView.frame = CGRectMake(0, 0, 0, 1);
-  _focusView.borderType = NSLineBorder;
-  _focusView.boxType = NSBoxCustom;
-  _focusView.cornerRadius = 4;
-  [self addSubview:_focusView];
-
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 16;
+    CGFloat x = 15;
     CGFloat y = 12;
     CGSize sizeThatFits = [KBText sizeThatFits:size attributedString:[[NSAttributedString alloc] initWithString:@"Pg" attributes:@{NSFontAttributeName: yself.textField.font}]];
-    y += [layout setFrame:CGRectMake(x, y, size.width - x, sizeThatFits.height + 2) view:yself.textField].size.height;
+    y += [layout setFrame:CGRectMake(x + 1, y, size.width - x - 2, sizeThatFits.height + 2) view:yself.textField].size.height;
     y += 10;
     if (!yself.focusView.hidden) {
-      //y += ceilf(sizeThatFits.height * 0.2);
-      //[layout setFrame:CGRectMake(0, y - yself.focusView.frame.size.height, size.width, yself.focusView.frame.size.height) view:yself.focusView];
-      //y += 2;
-
       [layout setFrame:CGRectMake(0, 0, size.width, y) view:yself.focusView];
     }
     return CGSizeMake(size.width, y);
@@ -106,9 +103,6 @@
   //GHDebug(@"Focused: %@ (%@)", @(_focused), self.placeholder);
 
   _focusView.borderColor = focused ? KBAppearance.currentAppearance.selectColor : KBAppearance.currentAppearance.lineColor;
-  //CGRect r = _focusView.frame;
-  //r.size = CGSizeMake(_focusView.frame.size.width, focused ? 2.0 : 1.0);
-  //_focusView.frame = r;
   [self.focusDelegate textField:self didChangeFocus:focused];
 }
 

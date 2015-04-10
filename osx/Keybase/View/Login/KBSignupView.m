@@ -18,7 +18,7 @@
 @property KBLabel *usernameStatusLabel;
 @property KBStrengthLabel *strengthLabel;
 @property KBLabel *passwordConfirmLabel;
-@property KBPopoverView *popover;
+@property KBHoverView *popover;
 @property NSView *popoverTarget;
 @property KBTextField *focusedField;
 @end
@@ -51,7 +51,7 @@
   _inviteField.text = @"202020202020202020202111"; // TODO: Hardcoded
   //[contentView addSubview:_inviteField];
 
-  _popover = [[KBPopoverView alloc] init];
+  _popover = [[KBHoverView alloc] init];
 
   _emailField = [[KBTextField alloc] init];
   _emailField.placeholder = @"Email";

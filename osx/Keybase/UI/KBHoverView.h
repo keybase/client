@@ -10,7 +10,7 @@
 
 #import <YOLayout/YOLayout.h>
 
-@interface KBPopoverView : YOView
+@interface KBHoverView : YOView
 
 - (void)setText:(NSString *)text title:(NSString *)title;
 

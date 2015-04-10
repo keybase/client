@@ -32,11 +32,11 @@
   KBFilePreviewView *previewView = [[KBFilePreviewView alloc] init];
   previewView.hidden = YES;
 
-  _foldersView.foldersView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
+  _foldersView.foldersView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
     previewView.hidden = !file;
     if (file) [previewView setFile:file];
   };
-  _foldersView.favoritesView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
+  _foldersView.favoritesView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBFile *file) {
     previewView.hidden = !file;
     if (file) [previewView setFile:file];
   };

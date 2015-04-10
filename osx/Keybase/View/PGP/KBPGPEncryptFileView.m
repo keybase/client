@@ -62,7 +62,7 @@
 
   _fileListView = [[KBFileListView alloc] init];
   _fileListView.fileLabelStyle = KBFileLabelStyleLarge;
-  _fileListView.menuSelectBlock  = ^(NSIndexPath *indexPath) {
+  _fileListView.onMenuSelect  = ^(NSIndexPath *indexPath) {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
     [menu addItemWithTitle:@"Remove" action:@selector(removeFile:) keyEquivalent:@""];
     return menu;
@@ -78,16 +78,6 @@
   [self addSubview:_footerView];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:contentView topView:topView bottomView:_footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
-
-  // Search results from picker view is here so we can float it
-  [self addSubview:_userPickerView.searchResultsView];
-}
-
-- (void)layout {
-  [super layout];
-  CGFloat y2 = CGRectGetMaxY(self.userPickerView.frame);
-  CGSize size = self.frame.size;
-  _userPickerView.searchResultsView.frame = CGRectMake(40, y2, size.width - 40, size.height - y2);
 }
 
 - (void)setClient:(KBRPClient *)client {

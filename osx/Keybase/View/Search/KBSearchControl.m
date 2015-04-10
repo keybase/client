@@ -59,6 +59,7 @@
 
   [self clearSearchResults];
   [blockSelf _search:searchText delay:NO];
+  // TODO: We assume local search will never take > 700ms
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 700 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
     if ([blockSelf.searchText isEqual:searchText]) {
       [blockSelf _search:searchText delay:YES];
@@ -72,8 +73,9 @@
   [self.delegate searchControl:self progressEnabled:YES];
 
   GHWeakSelf gself = self;
-  GHDebug(@"Search (delay=%@): %@", @(delay), searchText);
+  GHDebug(@"Search (delay=%@): q=%@", @(delay), searchText);
 
+  BOOL disableProgressWhenFinished = delay;
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     [self.delegate searchControl:self shouldSearchWithQuery:searchText delay:delay completion:^(NSError *error, KBSearchResults *searchResults) {
       dispatch_async(dispatch_get_main_queue(), ^{
@@ -83,7 +85,7 @@
             return;
           }
           [gself setSearchResults:searchResults];
-          if (delay) [self.delegate searchControl:self progressEnabled:NO];
+          if (disableProgressWhenFinished) [self.delegate searchControl:self progressEnabled:NO];
         }
       });
     }];

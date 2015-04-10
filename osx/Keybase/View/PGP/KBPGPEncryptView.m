@@ -34,6 +34,7 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
+  GHWeakSelf gself = self;
   YOVBox *topView = [YOVBox box];
   [self addSubview:topView];
   _userPickerView = [[KBUserPickerView alloc] init];
@@ -48,28 +49,13 @@
   YOVBox *bottomView = [YOVBox box];
   [self addSubview:bottomView];
 
-  //_files = [YOBox box:@{@"spacing": @(4), @"insets": @(10)}];
-  //[bottomView addSubview:_files];
-
-  GHWeakSelf gself = self;
   _footerView = [[KBPGPEncryptFooterView alloc] init];
   _footerView.encryptButton.targetBlock = ^{ [gself encrypt]; };
   _footerView.signButton.state = NSOnState;
   _footerView.includeSelfButton.state = NSOnState;
-  //_footerView.attachmentButton.targetBlock = ^{ [gself chooseInput]; };
   [bottomView addSubview:_footerView];
 
-  // Search results from picker view is here so we can float it
-  [self addSubview:_userPickerView.searchResultsView];
-
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:topView bottomView:bottomView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(600, 450)]];
-}
-
-- (void)layout {
-  [super layout];
-  CGFloat y2 = CGRectGetMaxY(self.userPickerView.frame);
-  CGSize size = self.frame.size;
-  _userPickerView.searchResultsView.frame = CGRectMake(40, y2, size.width - 40, _textView.frame.size.height + 2);
 }
 
 - (void)setClient:(KBRPClient *)client {

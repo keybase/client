@@ -14,6 +14,7 @@
 #import "KBRunBlocks.h"
 #import "KBSearcher.h"
 #import "KBUserView.h"
+#import "KBPopover.h"
 
 @interface KBUserPickerView ()
 @property KBLabel *label;
@@ -24,6 +25,8 @@
 
 @property KBActivityIndicatorView *progressView;
 @property KBSearcher *search;
+
+@property KBPopover *popover;
 @end
 
 @interface KBUserToken : NSObject
@@ -74,22 +77,23 @@
 
   GHWeakSelf gself = self;
   _searchResultsView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
-  [_searchResultsView setBorderEnabled:YES];
+  //[_searchResultsView setBorderEnabled:YES];
   _searchResultsView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setUserSummary:userSummary];
   };
-  _searchResultsView.selectBlock = ^(KBTableView *tableView, NSIndexPath *indexPath, KBSearchResult *searchResult) {
-    [gself commitToken:[KBUserToken userTokenWithUsername:searchResult.userName]];
+  _searchResultsView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBRUserSummary *userSummary) {
+    [gself commitToken:[KBUserToken userTokenWithUsername:userSummary.username]];
     [gself.searchControl textDidChange:@""];
     [gself focusTokensField];
   };
-  NSShadow *dropShadow = [[NSShadow alloc] init];
-  dropShadow.shadowColor = NSColor.grayColor;
-  dropShadow.shadowOffset = CGSizeMake(6, 6);
-  dropShadow.shadowBlurRadius = 6;
-  _searchResultsView.wantsLayer = YES;
-  _searchResultsView.shadow = dropShadow;
-  _searchResultsView.hidden = YES;
+
+  _searchResultsView.onUpdate = ^(KBTableView *tableView) {
+    [gself updatePickerResults];
+  };
+
+  _popover = [[KBPopover alloc] init];
+  _popover.contentView = _searchResultsView;
+  _popover.contentSize = CGSizeMake(300, 300);
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
@@ -103,6 +107,16 @@
     y += [layout setFrame:CGRectMake(x, y, size.width - x, tokenSize.height + 2) view:yself.tokensField].size.height + 10;
     return CGSizeMake(size.width, y);
   }];
+}
+
+- (void)updatePickerResults {
+  //CGSize size = self.superview.frame.size;
+  CGFloat y = CGRectGetMaxY(self.frame);
+  CGFloat contentHeight = [_searchResultsView contentHeight:self.window.frame.size.height - y - 20];
+
+  //_popover.contentSize = CGSizeMake(300, contentHeight);
+
+  //_searchResultsView.frame = CGRectMake(0, 0, _popover.contentSize.width, _popover.contentSize.height);
 }
 
 - (void)focusTokensField {
@@ -184,22 +198,22 @@
       return YES;
     }
 
-    if ([_searchResultsView canMoveUp]) {
+    if ([_searchResultsView nextRowUp] != NSNotFound) {
       [_searchResultsView moveUp:self];
-      KBSearchResult *searchResult = _searchResultsView.selectedObject;
-      [textView setString:searchResult.userName];
+      KBRUserSummary *searchResult = _searchResultsView.selectedObject;
+      [textView setString:searchResult.username];
     }
     return YES;
   } else if (commandSelector == @selector(moveDown:)) {
-    if ([_searchResultsView canMoveDown]) {
+    if ([_searchResultsView nextRowDown] != NSNotFound) {
       if (_searchResultsView.view.selectedRow < 0) {
         _previousValue = [self editingToken:nil];
         GHDebug(@"Previous value: %@", _previousValue);
       }
       [_searchResultsView moveDown:self];
-      KBSearchResult *searchResult = _searchResultsView.selectedObject;
+      KBRUserSummary *searchResult = _searchResultsView.selectedObject;
       if (searchResult) {
-        [self setEditingToken:searchResult.userName];
+        [self setEditingToken:searchResult.username];
       }
     }
     return YES;
@@ -219,6 +233,8 @@
 - (void)editToken:(id)sender {
 
 }
+
+#pragma mark NSTokenField
 
 - (NSArray *)tokenField:(NSTokenField *)tokenField shouldAddObjects:(NSArray *)tokens atIndex:(NSUInteger)index {
   return [tokens map:^(NSString *s) {
@@ -257,15 +273,17 @@
 #pragma mark Search
 
 - (void)showSearch {
-  _searchResultsView.hidden = NO;
+  if (!self.popover.isShowing) {
+    [self.popover show:_tokensField];
+  }
 }
 
 - (void)hideSearch {
-  _searchResultsView.hidden = YES;
+  [self.popover close];
 }
 
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl {
-  //[self showSearch];
+
 }
 
 - (void)searchControlShouldClose:(KBSearchControl *)searchControl {
@@ -291,7 +309,6 @@
 }
 
 - (void)searchControl:(KBSearchControl *)searchControl progressEnabled:(BOOL)progressEnabled {
-  if (progressEnabled) [self hideSearch];
   _progressView.animating = progressEnabled;
 }
 

@@ -19,8 +19,12 @@
 @property (weak) KBTableView *parent;
 @end
 
+@interface KBTableScrollView : NSScrollView
+@property (weak) KBTableView *parent;
+@end
+
 @interface KBTableView ()
-@property NSScrollView *scrollView;
+@property KBTableScrollView *scrollView;
 @property KBNSTableView *view;
 @property KBCellDataSource *dataSource;
 @property BOOL selecting;
@@ -39,10 +43,13 @@
   _view.dataSource = self;
   _view.delegate = self;
 
-  _scrollView = [[NSScrollView alloc] init];
+  KBTableScrollView *scrollView = [[KBTableScrollView alloc] init];
+  scrollView.parent = self;
+  _scrollView = scrollView;
   _scrollView.hasVerticalScroller = YES;
   _scrollView.verticalScrollElasticity = NSScrollElasticityAllowed;
   _scrollView.autohidesScrollers = YES;
+  _scrollView.automaticallyAdjustsContentInsets = YES;
   [_scrollView setDocumentView:_view];
   [self addSubview:_scrollView];
 
@@ -53,11 +60,6 @@
     [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.scrollView];
     return size;
   }];
-
-  // Fix scroll position with header view
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [yself.view scrollPoint:NSMakePoint(0, -yself.view.headerView.frame.size.height)];
-  });
 }
 
 - (void)setBorderEnabled:(BOOL)borderEnabled {
@@ -158,27 +160,47 @@
   [_view deselectAll:nil];
 }
 
-- (BOOL)canMoveUp {
+- (NSInteger)nextRowUp {
   NSInteger selectedRow = [_view selectedRow];
-  if (selectedRow <= 0) return NO;
+  if (selectedRow <= 0) return NSNotFound;
   NSInteger count = [_dataSource countForSection:0];
-  if (count == 0) return NO;
-  return YES;
+  if (count == 0) return NSNotFound;
+
+  NSInteger nextRow = NSNotFound;
+  for (NSInteger i = selectedRow - 1; i >= 0; i--) {
+    id obj = [_dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:i inSection:0]];
+    if (![obj isKindOfClass:KBTableViewHeader.class]) {
+      nextRow = i;
+      break;
+    }
+  }
+  return nextRow;
 }
 
 - (void)moveUp:(id)sender {
-  if ([self canMoveUp]) [self setSelectedRow:_view.selectedRow-1];
+  NSInteger row = [self nextRowUp];
+  if (row != NSNotFound) [self setSelectedRow:row];
 }
 
-- (BOOL)canMoveDown {
+- (NSInteger)nextRowDown {
   NSInteger selectedRow = [_view selectedRow];
   NSInteger count = [_dataSource countForSection:0];
-  if (count == 0 || selectedRow >= count-1) return NO;
-  return YES;
+  if (count == 0 || selectedRow >= count-1) return NSNotFound;
+
+  NSInteger nextRow = NSNotFound;
+  for (NSInteger i = selectedRow + 1; i < self.rowCount; i++) {
+    id obj = [_dataSource objectAtIndexPath:[NSIndexPath indexPathForItem:i inSection:0]];
+    if (![obj isKindOfClass:KBTableViewHeader.class]) {
+      nextRow = i;
+      break;
+    }
+  }
+  return nextRow;
 }
 
 - (void)moveDown:(id)sender {
-  if ([self canMoveDown]) [self setSelectedRow:_view.selectedRow+1];
+  NSInteger row = [self nextRowDown];
+  if (row != NSNotFound) [self setSelectedRow:row];
 }
 
 - (NSInteger)selectedRow {
@@ -233,17 +255,17 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
   if (_selecting) return; // If we are selecting programatically ignore the notification
-  if (!self.selectBlock) return;
+  if (!self.onSelect) return;
   NSInteger selectedRow = [_view selectedRow];
   if (selectedRow < 0) {
-    self.selectBlock(self, nil, nil);
+    self.onSelect(self, nil, nil);
   } else {
     id object = [self selectedObject];
     if (object) {
       if ([object isKindOfClass:KBTableViewHeader.class]) {
         // Selected header?
       } else {
-        self.selectBlock(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
+        self.onSelect(self, [NSIndexPath indexPathWithIndex:selectedRow], object);
       }
     }
   }
@@ -261,12 +283,29 @@
 
 - (NSMenu *)menuForIndexPath:(NSIndexPath *)indexPath {
   _menuIndexPath = indexPath;
-  if (self.menuSelectBlock) return self.menuSelectBlock(_menuIndexPath);
+  if (self.onMenuSelect) return self.onMenuSelect(_menuIndexPath);
   return nil;
 }
 
 - (NSInteger)rowCount {
   return [_dataSource countForSection:0];
+}
+
+- (CGFloat)contentHeight:(CGFloat)max {
+  CGFloat height = _view.intercellSpacing.height * 2;
+  for (NSInteger row = 0, count = [self rowCount]; row < count; row++) {
+    height += [self tableView:_view heightOfRow:row] + _view.intercellSpacing.height;
+    if (height > max) return max;
+  }
+  return height;
+}
+
+@end
+
+@implementation KBTableScrollView
+
+- (void)reflectScrolledClipView:(NSClipView *)clipView {
+  if (self.parent.onUpdate) self.parent.onUpdate(self.parent);
 }
 
 @end

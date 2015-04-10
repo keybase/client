@@ -40,7 +40,7 @@
   _devicesView.cellSetBlock = ^(KBDeviceView *view, KBRDevice *device, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setDevice:device];
   };
-  _devicesView.selectBlock = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
+  _devicesView.onSelect = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
     //[yself.userProfileView setUser:user editable:NO client:AppDelegate.client];
   };
   [devicesView addSubview:_devicesView];
