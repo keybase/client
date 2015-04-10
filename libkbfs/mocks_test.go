@@ -4,10 +4,10 @@
 package libkbfs
 
 import (
+	fmt "fmt"
 	gomock "code.google.com/p/gomock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	time "time"
-	fmt "fmt"
 )
 
 // Mock of Block interface
