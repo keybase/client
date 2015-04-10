@@ -11,6 +11,9 @@ import (
 
 type Locksmith struct {
 	libkb.Contextified
+	arg *LocksmithArg
+
+	status     LocksmithStatus
 	user       *libkb.User
 	signingKey libkb.GenericKey
 	devName    string
@@ -19,8 +22,21 @@ type Locksmith struct {
 	kex        *KexFwd
 }
 
-func NewLocksmith() *Locksmith {
-	return &Locksmith{}
+type LocksmithArg struct {
+	User      *libkb.User
+	CheckOnly bool
+}
+
+type LocksmithStatus struct {
+	CurrentDeviceOk  bool
+	NoKeys           bool
+	HavePGP          bool
+	HaveActiveDevice bool
+	HaveDetKey       bool
+}
+
+func NewLocksmith(arg *LocksmithArg) *Locksmith {
+	return &Locksmith{arg: arg}
 }
 
 func (d *Locksmith) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
@@ -43,6 +59,56 @@ func (d *Locksmith) SubConsumers() []libkb.UIConsumer {
 		&DeviceWrap{},
 		&DetKeyEngine{},
 	}
+}
+
+func (d *Locksmith) Run(ctx *Context) error {
+	// setup
+	d.SetGlobalContext(ctx.GlobalContext)
+	// This can fail, but we'll warn if it does.
+	d.syncSecrets()
+
+	// check the user, fill in d.status
+	if err := d.check(ctx); err != nil {
+		return err
+	}
+	if d.arg.CheckOnly {
+		return nil
+	}
+
+	// fix the user if necessary
+	return d.fix(ctx)
+}
+
+func (d *Locksmith) Status() LocksmithStatus {
+	return d.status
+}
+
+func (d *Locksmith) check(ctx *Context) error {
+	d.status.NoKeys = !d.hasKeyFamily()
+	d.status.CurrentDeviceOk = d.arg.User.HasDeviceInCurrentInstall()
+	d.status.HavePGP = d.hasPGP()
+	d.status.HaveActiveDevice = d.G().SecretSyncer.HasActiveDevice()
+	d.status.HaveDetKey = d.hasDetKey()
+	return nil
+}
+
+func (d *Locksmith) hasKeyFamily() bool {
+	kf := d.arg.User.GetKeyFamily()
+	if kf == nil {
+		return false
+	}
+	if kf.GetEldest() == nil {
+		return false
+	}
+	return true
+}
+
+func (d *Locksmith) hasPGP() bool {
+	return len(d.arg.User.GetActivePgpKeys(false)) > 0
+}
+
+func (d *Locksmith) fix(ctx *Context) error {
+	return nil
 }
 
 func (d *Locksmith) LoginCheckup(ctx *Context, u *libkb.User) error {
@@ -69,7 +135,7 @@ func (d *Locksmith) Cancel() error {
 }
 
 func (d *Locksmith) syncSecrets() (err error) {
-	if err = libkb.RunSyncer(d.G().SecretSyncer, d.user.GetUid().P()); err != nil {
+	if err = libkb.RunSyncer(d.G().SecretSyncer, d.arg.User.GetUid().P()); err != nil {
 		d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 	}
 	return err
@@ -100,7 +166,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 	}
 
 	// make sure secretsyncer loaded --- likely not needed since we
-	// already did this about
+	// already did this above
 	d.G().Log.Debug("| Syncing secrets")
 	d.syncSecrets()
 
@@ -426,6 +492,17 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*lib
 
 func (d *Locksmith) tspkey(ctx *Context) (libkb.PassphraseStream, error) {
 	return d.G().LoginState.GetPassphraseStream(ctx.SecretUI)
+}
+
+func (d *Locksmith) hasDetKey() bool {
+	half, err := d.G().SecretSyncer.FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	if err != nil {
+		return false
+	}
+	if len(half) == 0 {
+		return false
+	}
+	return true
 }
 
 func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {

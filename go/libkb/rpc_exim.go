@@ -415,7 +415,7 @@ func (e KeyGenError) ToStatus() (s keybase_1.Status) {
 func (c CanceledError) ToStatus() (s keybase_1.Status) {
 	s.Code = SC_CANCELED
 	s.Name = "CANCELED"
-	s.Desc = c.m
+	s.Desc = c.M
 	return
 }
 

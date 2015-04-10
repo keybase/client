@@ -49,10 +49,16 @@ func (r *RemoteDoctorUI) LoginSelect(currentUser string, otherUsers []string) (s
 	})
 }
 
-func (r *RemoteDoctorUI) DisplayStatus() error {
-	return r.uicli.DisplayStatus(r.sessionID)
+func (r *RemoteDoctorUI) DisplayStatus(status keybase_1.DoctorStatus) (bool, error) {
+	return r.uicli.DisplayStatus(keybase_1.DisplayStatusArg{
+		SessionID: r.sessionID,
+		Status:    status,
+	})
 }
 
-func (r *RemoteDoctorUI) DisplayResult() error {
-	return r.uicli.DisplayResult(r.sessionID)
+func (r *RemoteDoctorUI) DisplayResult(msg string) error {
+	return r.uicli.DisplayResult(keybase_1.DisplayResultArg{
+		SessionID: r.sessionID,
+		Message:   msg,
+	})
 }

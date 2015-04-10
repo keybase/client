@@ -10,6 +10,7 @@ type LoginEngine struct {
 	libkb.Contextified
 	requiredUIs   []libkb.UIKind
 	runFn         func(*libkb.LoginState, *Context) error
+	user          *libkb.User
 	SkipLocksmith bool
 	locksmithMu   sync.Mutex
 	locksmith     *Locksmith
@@ -60,7 +61,9 @@ func (e *LoginEngine) RequiredUIs() []libkb.UIKind {
 }
 
 func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{NewLocksmith()}
+	return []libkb.UIConsumer{
+		&Locksmith{},
+	}
 }
 
 func (e *LoginEngine) Run(ctx *Context) (err error) {
@@ -71,7 +74,7 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 	}
 
 	// We might need to ID ourselves, to load us in here
-	u, err := libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+	e.user, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
 	if err != nil {
 		_, ok := err.(libkb.NoKeyError)
 		if !ok {
@@ -85,10 +88,17 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 	}
 
 	// create a locksmith engine to check the account
+	larg := &LocksmithArg{
+		User: e.user,
+	}
 	e.locksmithMu.Lock()
-	e.locksmith = NewLocksmith()
+	e.locksmith = NewLocksmith(larg)
 	e.locksmithMu.Unlock()
-	return e.locksmith.LoginCheckup(ctx, u)
+	return e.locksmith.LoginCheckup(ctx, e.user)
+}
+
+func (e *LoginEngine) User() *libkb.User {
+	return e.user
 }
 
 func (e *LoginEngine) Cancel() error {

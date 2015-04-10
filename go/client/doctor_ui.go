@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -24,12 +25,12 @@ func (d *DoctorUIServer) LoginSelect(arg keybase_1.LoginSelectArg) (string, erro
 	return d.ui.LoginSelect(arg.CurrentUser, arg.OtherUsers)
 }
 
-func (d *DoctorUIServer) DisplayStatus(int) error {
-	return d.ui.DisplayStatus()
+func (d *DoctorUIServer) DisplayStatus(arg keybase_1.DisplayStatusArg) (bool, error) {
+	return d.ui.DisplayStatus(arg.Status)
 }
 
-func (d *DoctorUIServer) DisplayResult(int) error {
-	return d.ui.DisplayResult()
+func (d *DoctorUIServer) DisplayResult(arg keybase_1.DisplayResultArg) error {
+	return d.ui.DisplayResult(arg.Message)
 }
 
 // the actual ui
@@ -58,11 +59,55 @@ func (d DoctorUI) LoginSelect(currentUser string, otherUsers []string) (string, 
 	return selection, nil
 }
 
-func (d DoctorUI) DisplayStatus() error {
-	d.parent.Output("\n\nhello from DisplayStatus\n\n")
-	return nil
+func (d DoctorUI) DisplayStatus(status keybase_1.DoctorStatus) (bool, error) {
+	if status.WebDevice != nil || len(status.Devices) > 0 {
+		d.parent.Output("All devices:\n")
+		if status.WebDevice != nil {
+			d.parent.Printf("web device:\t\t[%s]\n", status.WebDevice.DeviceID)
+		}
+		for _, dev := range status.Devices {
+			d.parent.Printf("%s\t%s\t[%s]\n", dev.Name, dev.Type, dev.DeviceID)
+		}
+	}
+	if status.CurrentDevice != nil {
+		dev := status.CurrentDevice
+		d.parent.Printf("current device: %s\t%s\t[%s]\n", dev.Name, dev.Type, dev.DeviceID)
+	}
+
+	if status.Fix == keybase_1.DoctorFixType_NONE {
+		d.parent.Output("\nNo fix necessary.  This account looks fine.\n\n")
+		return true, nil
+	}
+	if status.Fix == keybase_1.DoctorFixType_ADD_ELDEST_DEVICE {
+		d.parent.Output("\nThere are no devices associated with this user.\n")
+		d.parent.Output("If you proceed, we'll add this device to your account.\n")
+	} else if status.Fix == keybase_1.DoctorFixType_ADD_SIBLING_DEVICE {
+		d.parent.Output("\nWe need to add this device to your account.\n")
+	} else {
+		return false, fmt.Errorf("unhandled DoctorFixType: %v", status.Fix)
+	}
+
+	if !status.SignerOpts.Internal {
+		var signout string
+		if status.SignerOpts.OtherDevice {
+			signout = "You can authorize this device with an existing device"
+			if status.SignerOpts.Pgp {
+				signout += " or a PGP key."
+			} else {
+				signout += "."
+			}
+		} else if status.SignerOpts.Pgp {
+			signout = "You can authorize this device with a PGP key."
+		} else {
+			return false, fmt.Errorf("no signers available")
+		}
+		d.parent.Output(signout + "\n")
+	}
+
+	return d.parent.PromptYesNo("Proceed?", PromptDefaultYes)
 }
 
-func (d DoctorUI) DisplayResult() error {
+func (d DoctorUI) DisplayResult(msg string) error {
+	d.parent.Output(msg + "\n")
 	return nil
 }

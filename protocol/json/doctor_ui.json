@@ -163,6 +163,45 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
+  }, {
+    "type" : "enum",
+    "name" : "DoctorFixType",
+    "symbols" : [ "NONE", "ADD_ELDEST_DEVICE", "ADD_SIBLING_DEVICE" ]
+  }, {
+    "type" : "record",
+    "name" : "DoctorSignerOpts",
+    "fields" : [ {
+      "name" : "otherDevice",
+      "type" : "boolean"
+    }, {
+      "name" : "pgp",
+      "type" : "boolean"
+    }, {
+      "name" : "internal",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "DoctorStatus",
+    "fields" : [ {
+      "name" : "fix",
+      "type" : "DoctorFixType"
+    }, {
+      "name" : "signerOpts",
+      "type" : "DoctorSignerOpts"
+    }, {
+      "name" : "devices",
+      "type" : {
+        "type" : "array",
+        "items" : "Device"
+      }
+    }, {
+      "name" : "webDevice",
+      "type" : [ "null", "Device" ]
+    }, {
+      "name" : "currentDevice",
+      "type" : [ "null", "Device" ]
+    } ]
   } ],
   "messages" : {
     "loginSelect" : {
@@ -185,13 +224,19 @@
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
+      }, {
+        "name" : "status",
+        "type" : "DoctorStatus"
       } ],
-      "response" : "null"
+      "response" : "boolean"
     },
     "displayResult" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
+      }, {
+        "name" : "message",
+        "type" : "string"
       } ],
       "response" : "null"
     }

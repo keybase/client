@@ -139,12 +139,31 @@
 
 @end
 
+typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
+	KBRDoctorFixTypeNone,
+	KBRDoctorFixTypeAddEldestDevice,
+	KBRDoctorFixTypeAddSiblingDevice,
+};
+@interface KBRDoctorSignerOpts : KBRObject
+@property BOOL otherDevice;
+@property BOOL pgp;
+@property BOOL internal;
+@end
+
+@interface KBRDoctorStatus : KBRObject
+@property KBRDoctorFixType fix;
+@property KBRDoctorSignerOpts *signerOpts;
+@property NSArray *devices; /*of KBRDevice*/
+@property KBRDevice *webDevice;
+@property KBRDevice *currentDevice;
+@end
+
 @interface KBRDoctorUiRequest : KBRRequest
 - (void)loginSelectWithSessionID:(NSInteger)sessionID currentUser:(NSString *)currentUser otherUsers:(NSArray *)otherUsers completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)displayStatusWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
+- (void)displayStatusWithSessionID:(NSInteger)sessionID status:(KBRDoctorStatus *)status completion:(void (^)(NSError *error, BOOL b))completion;
 
-- (void)displayResultWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
+- (void)displayResultWithSessionID:(NSInteger)sessionID message:(NSString *)message completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -724,9 +743,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRDisplayStatusRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@property KBRDoctorStatus *status;
 @end
 @interface KBRDisplayResultRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@property NSString *message;
 @end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;

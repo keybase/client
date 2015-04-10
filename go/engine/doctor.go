@@ -4,12 +4,14 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 // Doctor is an engine.
 type Doctor struct {
 	libkb.Contextified
 	runErr error
+	user   *libkb.User
 }
 
 // NewDoctor creates a Doctor engine.
@@ -38,7 +40,10 @@ func (e *Doctor) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *Doctor) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{&LoginEngine{}}
+	return []libkb.UIConsumer{
+		&LoginEngine{},
+		&Locksmith{},
+	}
 }
 
 // Run starts the engine.
@@ -62,6 +67,11 @@ func (e *Doctor) login(ctx *Context) {
 	}
 
 	if ok {
+		e.G().Log.Debug("logged in already")
+		e.user, err = libkb.LoadMe(libkb.LoadUserArg{ForceReload: true})
+		if err != nil {
+			e.runErr = err
+		}
 		return
 	}
 
@@ -103,17 +113,96 @@ func (e *Doctor) login(ctx *Context) {
 	}
 
 	e.G().Log.Debug("login as %q successful.", selected)
+	e.user = eng.User()
 }
 
+// What should be in status:
+// user
+// key status
+//
 func (e *Doctor) status(ctx *Context) {
 	if e.runErr != nil {
 		return
 	}
-	e.runErr = ctx.DoctorUI.DisplayStatus()
+
+	e.G().Log.Debug("logged in as %q", e.user.GetName())
+
+	arg := &LocksmithArg{
+		User:      e.user,
+		CheckOnly: true,
+	}
+	eng := NewLocksmith(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		e.runErr = err
+		return
+	}
+	status := eng.Status()
+	e.G().Log.Debug("locksmith status: %+v", status)
+
+	signopts := keybase_1.DoctorSignerOpts{
+		OtherDevice: status.HaveActiveDevice,
+		Pgp:         status.HavePGP,
+		Internal:    status.NoKeys || status.HaveDetKey,
+	}
+	if signopts.OtherDevice {
+		// if they have another active device, internal signing not an option
+		signopts.Internal = false
+	}
+	uistatus := keybase_1.DoctorStatus{
+		SignerOpts: signopts,
+	}
+	if status.CurrentDeviceOk {
+		uistatus.Fix = keybase_1.DoctorFixType_NONE
+	} else if status.HaveActiveDevice {
+		uistatus.Fix = keybase_1.DoctorFixType_ADD_SIBLING_DEVICE
+	} else {
+		uistatus.Fix = keybase_1.DoctorFixType_ADD_ELDEST_DEVICE
+	}
+
+	// get list of active devices
+	devs, err := e.G().SecretSyncer.ActiveDevices()
+	if err != nil {
+		e.runErr = err
+		return
+	}
+	for k, v := range devs {
+		dev := keybase_1.Device{Type: v.Type, Name: v.Description, DeviceID: k}
+		if v.Type != libkb.DEVICE_TYPE_WEB {
+			uistatus.Devices = append(uistatus.Devices, dev)
+		} else {
+			uistatus.WebDevice = &dev
+		}
+	}
+
+	// get list of pgp keys
+
+	// get det key
+
+	proceed, err := ctx.DoctorUI.DisplayStatus(uistatus)
+	if err != nil {
+		e.runErr = err
+		return
+	}
+	if !proceed {
+		e.runErr = libkb.CanceledError{M: "doctor cancelled"}
+		return
+	}
 }
 
 func (e *Doctor) fix(ctx *Context) {
 	if e.runErr != nil {
+		return
+	}
+
+	// just in case it's been a while from the DisplayStatus prompt until
+	// we get here, just run the whole locksmith engine from scratch.
+	// (state could have changed significantly)
+	arg := &LocksmithArg{
+		User: e.user,
+	}
+	eng := NewLocksmith(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		e.runErr = err
 		return
 	}
 }
@@ -122,4 +211,5 @@ func (e *Doctor) done(ctx *Context) {
 	if e.runErr != nil {
 		return
 	}
+	e.runErr = ctx.DoctorUI.DisplayResult("done")
 }

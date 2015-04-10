@@ -190,6 +190,13 @@
 
 @end
 
+@implementation KBRDoctorSignerOpts
+@end
+
+@implementation KBRDoctorStatus
++ (NSValueTransformer *)devicesJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRDevice.class]; }
+@end
+
 @implementation KBRDoctorUiRequest
 
 - (void)loginSelectWithSessionID:(NSInteger)sessionID currentUser:(NSString *)currentUser otherUsers:(NSArray *)otherUsers completion:(void (^)(NSError *error, NSString *str))completion {
@@ -199,15 +206,15 @@
   }];
 }
 
-- (void)displayStatusWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+- (void)displayStatusWithSessionID:(NSInteger)sessionID status:(KBRDoctorStatus *)status completion:(void (^)(NSError *error, BOOL b))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"status": KBRValue(status)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.displayStatus" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
+    completion(error, 0);
   }];
 }
 
-- (void)displayResultWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID)}];
+- (void)displayResultWithSessionID:(NSInteger)sessionID message:(NSString *)message completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"message": KBRValue(message)}];
   [self.client sendRequestWithMethod:@"keybase.1.doctorUi.displayResult" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1180,6 +1187,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.status = [MTLJSONAdapter modelOfClass:KBRDoctorStatus.class fromJSONDictionary:params[0][@"status"] error:nil];
   }
   return self;
 }
@@ -1191,6 +1199,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.message = params[0][@"message"];
   }
   return self;
 }

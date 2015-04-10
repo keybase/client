@@ -781,11 +781,11 @@ func (m MerkleClashError) Error() string {
 //=============================================================================
 
 type CanceledError struct {
-	m string
+	M string
 }
 
 func (c CanceledError) Error() string {
-	return c.m
+	return c.M
 }
 
 //=============================================================================

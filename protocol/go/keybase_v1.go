@@ -454,6 +454,28 @@ func (c DoctorClient) Doctor(sessionID int) (err error) {
 	return
 }
 
+type DoctorFixType int
+
+const (
+	DoctorFixType_NONE               = 0
+	DoctorFixType_ADD_ELDEST_DEVICE  = 1
+	DoctorFixType_ADD_SIBLING_DEVICE = 2
+)
+
+type DoctorSignerOpts struct {
+	OtherDevice bool `codec:"otherDevice" json:"otherDevice"`
+	Pgp         bool `codec:"pgp" json:"pgp"`
+	Internal    bool `codec:"internal" json:"internal"`
+}
+
+type DoctorStatus struct {
+	Fix           DoctorFixType    `codec:"fix" json:"fix"`
+	SignerOpts    DoctorSignerOpts `codec:"signerOpts" json:"signerOpts"`
+	Devices       []Device         `codec:"devices" json:"devices"`
+	WebDevice     *Device          `codec:"webDevice,omitempty" json:"webDevice"`
+	CurrentDevice *Device          `codec:"currentDevice,omitempty" json:"currentDevice"`
+}
+
 type LoginSelectArg struct {
 	SessionID   int      `codec:"sessionID" json:"sessionID"`
 	CurrentUser string   `codec:"currentUser" json:"currentUser"`
@@ -461,17 +483,19 @@ type LoginSelectArg struct {
 }
 
 type DisplayStatusArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Status    DoctorStatus `codec:"status" json:"status"`
 }
 
 type DisplayResultArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Message   string `codec:"message" json:"message"`
 }
 
 type DoctorUiInterface interface {
 	LoginSelect(LoginSelectArg) (string, error)
-	DisplayStatus(int) error
-	DisplayResult(int) error
+	DisplayStatus(DisplayStatusArg) (bool, error)
+	DisplayResult(DisplayResultArg) error
 }
 
 func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
@@ -488,14 +512,14 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
 			"displayStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayStatusArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.DisplayStatus(args[0].SessionID)
+					ret, err = i.DisplayStatus(args[0])
 				}
 				return
 			},
 			"displayResult": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayResultArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.DisplayResult(args[0].SessionID)
+					err = i.DisplayResult(args[0])
 				}
 				return
 			},
@@ -513,14 +537,12 @@ func (c DoctorUiClient) LoginSelect(__arg LoginSelectArg) (res string, err error
 	return
 }
 
-func (c DoctorUiClient) DisplayStatus(sessionID int) (err error) {
-	__arg := DisplayStatusArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.doctorUi.displayStatus", []interface{}{__arg}, nil)
+func (c DoctorUiClient) DisplayStatus(__arg DisplayStatusArg) (res bool, err error) {
+	err = c.Cli.Call("keybase.1.doctorUi.displayStatus", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DoctorUiClient) DisplayResult(sessionID int) (err error) {
-	__arg := DisplayResultArg{SessionID: sessionID}
+func (c DoctorUiClient) DisplayResult(__arg DisplayResultArg) (err error) {
 	err = c.Cli.Call("keybase.1.doctorUi.displayResult", []interface{}{__arg}, nil)
 	return
 }

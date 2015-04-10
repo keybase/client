@@ -9,11 +9,34 @@ protocol doctorUi {
 	// keys immediately.
 	string loginSelect(int sessionID, string currentUser, array<string> otherUsers);
 
+
+	enum DoctorFixType {
+		NONE,
+		ADD_ELDEST_DEVICE,
+		ADD_SIBLING_DEVICE
+	}
+
+	// any of these can be set
+	record DoctorSignerOpts {
+		boolean otherDevice;  // an existing device can be used to sign new device
+		boolean pgp;          // pgp can be used to sign new device
+		boolean internal;     // if they have no keys, or if this is the eldest device and they have a detkey
+	}
+
+	record DoctorStatus {
+		DoctorFixType fix;
+		DoctorSignerOpts signerOpts;
+		array<Device> devices;
+		union { null, Device } webDevice;
+		union { null, Device } currentDevice;
+	}
+
 	// once the user is logged in, the status of their account will
 	// be evaluated and displayStatus() will be called with info about it.
-	void displayStatus(int sessionID);
+	// Return true to proceed and do any necessary fixes.  Return false to cancel.
+	boolean displayStatus(int sessionID, DoctorStatus status);
 
 	// if a fix is performed, displayResult() will be called after the
 	// fix is done.
-	void displayResult(int sessionID);
+	void displayResult(int sessionID, string message);
 }

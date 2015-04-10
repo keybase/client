@@ -258,8 +258,8 @@ type GPGUI interface {
 
 type DoctorUI interface {
 	LoginSelect(currentUser string, otherUsers []string) (string, error)
-	DisplayStatus() error
-	DisplayResult() error
+	DisplayStatus(status keybase_1.DoctorStatus) (bool, error)
+	DisplayResult(msg string) error
 }
 
 type UI interface {
