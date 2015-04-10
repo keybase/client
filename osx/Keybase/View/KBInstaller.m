@@ -19,28 +19,35 @@
 
 @implementation KBInstaller
 
-- (instancetype)init {
+- (instancetype)initWithLaunchCtl:(KBLaunchCtl *)launchCtl {
   if ((self = [super init])) {
-    _launchCtl = [[KBLaunchCtl alloc] init];
-    _launchCtl.releaseOnly = YES;
+    _launchCtl = launchCtl;
   }
   return self;
 }
 
 - (void)checkInstall:(KBInstallCheck)completion {
+  if (!_launchCtl) {
+    completion(nil, NO, KBInstallTypeNone);
+    return;
+  }
+
   GHWeakSelf gself = self;
   [_launchCtl status:^(NSError *error, NSInteger pid) {
     if (error) {
       completion(error, NO, KBInstallTypeNone);
       return;
     }
-    if (pid == 0) {
+    /*
+    if (pid == -1) {
       [self install:completion];
     } else {
       [gself.launchCtl reload:^(NSError *error, NSInteger pid) {
         completion(nil, NO, KBInstallTypeInstaller);
       }];
     }
+     */
+    [self install:completion];
   }];
 }
 

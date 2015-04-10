@@ -4,7 +4,13 @@ set -e # Fail on error
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $DIR
 
-VERSION=`git describe --abbrev=0`
+if [ "$1" = "" ]; then
+  echo "Specify a version."
+  exit 1
+fi
+
+VERSION="$1"
+
 echo "Version: $VERSION"
 
 KB_BIN_VERSION=`./keybased --version`

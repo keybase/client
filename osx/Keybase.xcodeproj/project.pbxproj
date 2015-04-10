@@ -111,7 +111,6 @@
 		00566A421A97EA9F00CA236E /* KBSearchResultView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A401A97EA9F00CA236E /* KBSearchResultView.m */; };
 		00566A511A9BAA7500CA236E /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A501A9BAA7500CA236E /* KBInstaller.m */; };
 		00566A521A9BAA7500CA236E /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A501A9BAA7500CA236E /* KBInstaller.m */; };
-		00566A5C1A9BADC400CA236E /* keybase.keybased.plist in Resources */ = {isa = PBXBuildFile; fileRef = 00566A591A9BAD4800CA236E /* keybase.keybased.plist */; };
 		006A32E11ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
 		006A32E21ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
 		006A32E51ACC5D940054457B /* KBUserListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E41ACC5D940054457B /* KBUserListView.m */; };
@@ -171,6 +170,10 @@
 		00A48FBB1AD84C3100723435 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A48FB11AD84C3100723435 /* KBStyleGuideView.m */; };
 		00A48FBC1AD84C3100723435 /* KBTestClientView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A48FB31AD84C3100723435 /* KBTestClientView.m */; };
 		00A48FBD1AD84C3100723435 /* KBTestClientView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A48FB31AD84C3100723435 /* KBTestClientView.m */; };
+		00A48FC61AD8536E00723435 /* KBEnvSelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A48FC51AD8536E00723435 /* KBEnvSelectView.m */; };
+		00A48FC71AD8536E00723435 /* KBEnvSelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A48FC51AD8536E00723435 /* KBEnvSelectView.m */; };
+		00A48FCA1AD8693700723435 /* KBButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A48FC91AD8693700723435 /* KBButtonView.m */; };
+		00A48FCB1AD8693700723435 /* KBButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A48FC91AD8693700723435 /* KBButtonView.m */; };
 		00ABEC721ACF2BEC00DA66FC /* KBPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABEC711ACF2BEC00DA66FC /* KBPreferences.m */; };
 		00ABEC731ACF2BEC00DA66FC /* KBPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABEC711ACF2BEC00DA66FC /* KBPreferences.m */; };
 		00ABEC761ACF327500DA66FC /* KBPrefGPGView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABEC751ACF327500DA66FC /* KBPrefGPGView.m */; };
@@ -435,7 +438,6 @@
 		00566A501A9BAA7500CA236E /* KBInstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstaller.m; sourceTree = "<group>"; };
 		00566A541A9BAD4800CA236E /* appdmg.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = appdmg.json; sourceTree = "<group>"; };
 		00566A581A9BAD4800CA236E /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
-		00566A591A9BAD4800CA236E /* keybase.keybased.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = keybase.keybased.plist; sourceTree = "<group>"; };
 		00566A5B1A9BAD4800CA236E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		0065CA3B1A7C2E46006E1772 /* assets_sl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_sl.rb; sourceTree = "<group>"; };
 		0065CA3C1A7C2E46006E1772 /* assets_pl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_pl.rb; sourceTree = "<group>"; };
@@ -499,6 +501,10 @@
 		00A48FB11AD84C3100723435 /* KBStyleGuideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStyleGuideView.m; sourceTree = "<group>"; };
 		00A48FB21AD84C3100723435 /* KBTestClientView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTestClientView.h; sourceTree = "<group>"; };
 		00A48FB31AD84C3100723435 /* KBTestClientView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTestClientView.m; sourceTree = "<group>"; };
+		00A48FC41AD8536E00723435 /* KBEnvSelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBEnvSelectView.h; sourceTree = "<group>"; };
+		00A48FC51AD8536E00723435 /* KBEnvSelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvSelectView.m; sourceTree = "<group>"; };
+		00A48FC81AD8693700723435 /* KBButtonView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBButtonView.h; sourceTree = "<group>"; };
+		00A48FC91AD8693700723435 /* KBButtonView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBButtonView.m; sourceTree = "<group>"; };
 		00ABEC701ACF2BEC00DA66FC /* KBPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPreferences.h; sourceTree = "<group>"; };
 		00ABEC711ACF2BEC00DA66FC /* KBPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPreferences.m; sourceTree = "<group>"; };
 		00ABEC741ACF327500DA66FC /* KBPrefGPGView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefGPGView.h; sourceTree = "<group>"; };
@@ -780,7 +786,6 @@
 			children = (
 				00566A541A9BAD4800CA236E /* appdmg.json */,
 				00566A581A9BAD4800CA236E /* build.sh */,
-				00566A591A9BAD4800CA236E /* keybase.keybased.plist */,
 				00566A5B1A9BAD4800CA236E /* README.md */,
 			);
 			path = Install;
@@ -832,6 +837,8 @@
 				00A48FB11AD84C3100723435 /* KBStyleGuideView.m */,
 				00A48FB21AD84C3100723435 /* KBTestClientView.h */,
 				00A48FB31AD84C3100723435 /* KBTestClientView.m */,
+				00A48FC41AD8536E00723435 /* KBEnvSelectView.h */,
+				00A48FC51AD8536E00723435 /* KBEnvSelectView.m */,
 			);
 			path = Debug;
 			sourceTree = "<group>";
@@ -1083,6 +1090,8 @@
 				00ABED5C1AD5A9D000DA66FC /* NSImageView+AFNetworking.m */,
 				000530431AD75CBE0061C6E5 /* KBPopover.h */,
 				000530441AD75CBE0061C6E5 /* KBPopover.m */,
+				00A48FC81AD8693700723435 /* KBButtonView.h */,
+				00A48FC91AD8693700723435 /* KBButtonView.m */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -1254,7 +1263,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */,
-				00566A5C1A9BADC400CA236E /* keybase.keybased.plist in Resources */,
 				00B543FD1A81CCF00044CC5B /* record.zip in Resources */,
 				0053B6E31AC60191001AE392 /* test.asc in Resources */,
 				00CC43571A3A9E6C006118A9 /* MainMenu.xib in Resources */,
@@ -1359,6 +1367,7 @@
 				00566A1B1A97DA1800CA236E /* KBMenuBar.m in Sources */,
 				00D306A31AB0DD8300F69B18 /* KBFoldersView.m in Sources */,
 				00566A0B1A97DA1800CA236E /* KBAppearance.m in Sources */,
+				00A48FCA1AD8693700723435 /* KBButtonView.m in Sources */,
 				009E2BE21AC0ADD600EBB035 /* KBWriter.m in Sources */,
 				00566A091A97DA1800CA236E /* KBAlert.m in Sources */,
 				001712521A951A9C00C7AD58 /* KBUserHeaderView.m in Sources */,
@@ -1453,6 +1462,7 @@
 				00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */,
 				009E2BEA1AC0AF0700EBB035 /* KBFileWriter.m in Sources */,
 				001FCDE81AB2035C004486D3 /* KBViews.m in Sources */,
+				00A48FC61AD8536E00723435 /* KBEnvSelectView.m in Sources */,
 				00ABED651AD5E03900DA66FC /* KBSearchResults.m in Sources */,
 				006A32E51ACC5D940054457B /* KBUserListView.m in Sources */,
 				00A48F9E1AD84A0E00723435 /* KBKeyImportView.m in Sources */,
@@ -1507,6 +1517,7 @@
 				00566A141A97DA1800CA236E /* KBImageView.m in Sources */,
 				00B544421A896BA80044CC5B /* KBLoginView.m in Sources */,
 				00C7DD731AA7C24B00F57AFC /* KBTitleView.m in Sources */,
+				00A48FCB1AD8693700723435 /* KBButtonView.m in Sources */,
 				009E2BE31AC0ADD600EBB035 /* KBWriter.m in Sources */,
 				00B5440C1A842DE40044CC5B /* KBSourceOutlineView.m in Sources */,
 				001712591A951A9C00C7AD58 /* KBUserInfoView.m in Sources */,
@@ -1601,6 +1612,7 @@
 				009E2BEB1AC0AF0700EBB035 /* KBFileWriter.m in Sources */,
 				00D52F8B1A77266A00DEB5F5 /* KBTrackView.m in Sources */,
 				00C7DD5A1AA67E8900F57AFC /* KBSearchControl.m in Sources */,
+				00A48FC71AD8536E00723435 /* KBEnvSelectView.m in Sources */,
 				00ABED661AD5E03900DA66FC /* KBSearchResults.m in Sources */,
 				006A32E61ACC5D940054457B /* KBUserListView.m in Sources */,
 				00A48F9F1AD84A0E00723435 /* KBKeyImportView.m in Sources */,

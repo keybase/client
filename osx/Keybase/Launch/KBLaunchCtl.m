@@ -8,9 +8,43 @@
 
 #import "KBLaunchCtl.h"
 
-#define PLIST_PATH (@"keybase.keybased.plist")
+@interface KBLaunchCtl ()
+@property NSString *label;
+@property NSDictionary *plistDict;
+@end
 
 @implementation KBLaunchCtl
+
+- (instancetype)initWithHost:(NSString *)host home:(NSString *)home sockFile:(NSString *)sockFile pidFile:(NSString *)pidFile label:(NSString *)label {
+  if ((self = [super init])) {
+    _label = label;
+
+    NSMutableArray *args = [NSMutableArray array];
+    [args addObject:@"/Applications/Keybase.app/Contents/MacOS/keybased"];
+    if (home) {
+      [args addObjectsFromArray:@[@"-H", home]];
+    }
+
+    if (pidFile) {
+      [args addObject:NSStringWithFormat(@"--pid-file=%@", pidFile)];
+    }
+
+    if (sockFile) {
+      [args addObject:NSStringWithFormat(@"--socket-file=%@", sockFile)];
+    }
+
+    if (host) {
+      [args addObjectsFromArray:@[@"-s", host]];
+    }
+
+    _plistDict = @{
+      @"Label": _label,
+      @"ProgramArguments": args,
+      @"KeepAlive": @YES
+    };
+  }
+  return self;
+}
 
 - (void)reload:(KBLaunchStatus)completion {
   [self unload:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
@@ -26,7 +60,7 @@
 
 - (NSString *)plist {
   NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
-  return [launchAgentDir stringByAppendingPathComponent:PLIST_PATH];
+  return [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _label)];
 }
 
 - (void)load:(BOOL)force completion:(KBLaunchExecution)completion {
@@ -46,10 +80,11 @@
 }
 
 - (void)status:(KBLaunchStatus)completion {
+  NSString *label = _label;
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
       // TODO better parsing
-      if ([line containsString:@"keybase.keybased"]) {
+      if ([line containsString:label]) {
         NSInteger pid = [[[line componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]] firstObject] integerValue];
         completion(nil, pid);
         return;
@@ -93,25 +128,13 @@
       completion(nil, output);
     });
   };
-  // Only do this for release versions?
-  BOOL debug = NO;
-#ifdef DEBUG
-  debug = YES;
-#endif
-
-  _releaseOnly = NO;
-  if (_releaseOnly && debug) {
-    // Its release only and we are in debug
-    completion(nil, nil);
-  } else {
-    [task launch];
-  }
+  [task launch];
 }
 
 - (void)installLaunchAgent:(KBCompletionBlock)completion {
   // Install launch agent (if not installed)
-  NSString *plist = self.plist;
-  if (!plist) {
+  NSString *plistDest = self.plist;
+  if (!plistDest) {
     NSError *error = KBMakeErrorWithRecovery(-1, @"Install Error", @"No launch agent destination.", nil);
     completion(error);
     return;
@@ -122,27 +145,26 @@
   // Only install if not exists or upgrade. We are currently always installing/updating the plist.
   //
   //if (![NSFileManager.defaultManager fileExistsAtPath:launchAgentPlistDest]) {
-  NSString *launchAgentPlistSource = [[NSBundle mainBundle] pathForResource:PLIST_PATH.stringByDeletingPathExtension ofType:PLIST_PATH.pathExtension];
-
-  if (!launchAgentPlistSource) {
-    NSError *error = KBMakeErrorWithRecovery(-1, @"Install Error", @"No launch agent plist found in bundle.", nil);
-    completion(error);
-    return;
-  }
-
   NSError *error = nil;
 
   // Remove if exists
-  if ([NSFileManager.defaultManager fileExistsAtPath:plist]) {
-    if (![NSFileManager.defaultManager removeItemAtPath:plist error:&error]) {
+  if ([NSFileManager.defaultManager fileExistsAtPath:plistDest]) {
+    if (![NSFileManager.defaultManager removeItemAtPath:plistDest error:&error]) {
       if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to remove existing luanch agent plist for upgrade.", nil);
       completion(error);
       return;
     }
   }
 
-  if (![NSFileManager.defaultManager copyItemAtPath:launchAgentPlistSource toPath:plist error:&error]) {
-    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to transfer launch agent plist.", nil);
+  NSData *data = [NSPropertyListSerialization dataWithPropertyList:_plistDict format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
+  if (!data) {
+    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create plist data.", nil);
+    completion(error);
+    return;
+  }
+
+  if (![data writeToFile:plistDest atomically:YES]) {
+    if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create launch agent plist.", nil);
     completion(error);
     return;
   }

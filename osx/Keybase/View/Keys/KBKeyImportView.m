@@ -28,8 +28,8 @@
 
   KBBorder *pasteView = [[KBBorder alloc] init];
   pasteView.width = 2.0;
-  pasteView.color = [NSColor colorWithCalibratedWhite:0.5 alpha:1.0];
-  pasteView.shapeLayer.backgroundColor = [NSColor colorWithCalibratedWhite:0.94 alpha:1.0].CGColor;
+  pasteView.color = [NSColor colorWithWhite:0.5 alpha:1.0];
+  pasteView.shapeLayer.backgroundColor = [NSColor colorWithWhite:0.94 alpha:1.0].CGColor;
   [pasteView.shapeLayer setLineDashPattern:@[@(8), @(8)]];
   pasteView.cornerRadius = 10;
   [self addSubview:pasteView];
@@ -92,7 +92,7 @@
 }
 
 - (void)setDisplayText:(NSString *)displayText {
-  [_textView setText:displayText font:[NSFont systemFontOfSize:10] color:[NSColor colorWithCalibratedWhite:0.5 alpha:1.0] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  [_textView setText:displayText font:[NSFont systemFontOfSize:10] color:[NSColor colorWithWhite:0.5 alpha:1.0] alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
   [self setNeedsLayout];
 }
 

@@ -44,7 +44,7 @@
 }
 
 - (void)open {
-  _client = [[KBRPClient alloc] init];
+  _client = [[KBRPClient alloc] initWithEnv:KBRPClientEnvManual];
   _client.autoRetryDisabled = YES;
   _client.delegate = self;
   [_client open];

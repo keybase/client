@@ -23,7 +23,6 @@
 @property MPMessagePackServer *server;
 @property MPOrderedDictionary *registrations;
 
-@property NSString *defaultSocketPath;
 @property NSString *socketPath;
 @property KBRPCRecord *recorder;
 
@@ -33,18 +32,31 @@
 
 @implementation KBRPClient
 
-- (instancetype)init {
+- (instancetype)initWithEnv:(KBRPClientEnv)env {
   if ((self = [super init])) {
-    NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
-    NSAssert(user, @"No user");
-    self.defaultSocketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
-    self.socketPath = self.defaultSocketPath;
-#ifdef DEBUG
-    self.socketPath = @"/tmp/keybase-dev.sock";
-    //self.socketPath = @"/tmp/keybase-local2.sock";
-#endif
 
-    _installer = [[KBInstaller alloc] init];
+    KBLaunchCtl *launchCtl = nil;
+    switch (env) {
+      case KBRPClientEnvKeybaseIO: {
+        launchCtl = [[KBLaunchCtl alloc] initWithHost:@"https://api.keybase.io:443" home:nil sockFile:nil pidFile:nil label:@"keybase.keybased"];
+        NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
+        NSAssert(user, @"No user");
+        self.socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
+        break;
+      }
+      case KBRPClientEnvLocalhost: {
+        NSString *home = [@"~/Library/Application Support/Keybase/Debug" stringByExpandingTildeInPath];
+        launchCtl = [[KBLaunchCtl alloc] initWithHost:@"http://localhost:3000" home:home sockFile:@"/tmp/keybase-debug.sock" pidFile:@"/tmp/keybase-pid" label:@"keybase-debug.keybased"];
+        self.socketPath = @"/tmp/keybase-debug.sock";
+        break;
+      }
+      case KBRPClientEnvManual: {
+        self.socketPath = @"/tmp/keybase-dev.sock";
+        break;
+      }
+    }
+
+    _installer = [[KBInstaller alloc] initWithLaunchCtl:launchCtl];
   }
   return self;
 }

@@ -13,8 +13,6 @@
 
 @interface KBUserStatusView : YOView
 
-@property KBButton *button;
-
 @property (nonatomic) KBRGetCurrentStatusRes *status;
 
 - (void)setConnected:(BOOL)connected;

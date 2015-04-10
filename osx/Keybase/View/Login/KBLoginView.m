@@ -138,7 +138,7 @@
   KBRPClient * client = self.client;
   KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:client];
 
-  [client registerMethod:@"keybase.1.doctorUi.promptDeviceName" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.locksmithUi.promptDeviceName" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //KBRPromptDeviceNameRequestParams *requestParams = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
@@ -149,13 +149,13 @@
     [self.navigation pushView:devicePromptView animated:YES];
   }];
 
-  [client registerMethod:@"keybase.1.doctorUi.selectSigner" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.locksmithUi.selectSigner" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     [self selectSigner:requestParams completion:completion];
   }];
 
-  [self.client registerMethod:@"keybase.1.doctorUi.displaySecretWords" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.locksmithUi.displaySecretWords" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplaySecretWordsRequestParams *requestParams = [[KBRDisplaySecretWordsRequestParams alloc] initWithParams:params];
 
     [self.navigation setProgressEnabled:NO];

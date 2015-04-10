@@ -20,6 +20,12 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
   KBRPClientStatusOpen
 };
 
+typedef NS_ENUM (NSInteger, KBRPClientEnv) {
+  KBRPClientEnvManual = 1,
+  KBRPClientEnvLocalhost,
+  KBRPClientEnvKeybaseIO,
+};
+
 @class KBRPClient;
 
 @protocol KBRPClientDelegate
@@ -36,8 +42,9 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
 
 @property (readonly) KBInstaller *installer;
 
-@property (readonly) NSString *defaultSocketPath;
 @property (readonly) NSString *socketPath;
+
+- (instancetype)initWithEnv:(KBRPClientEnv)env;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler;

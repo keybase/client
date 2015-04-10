@@ -11,5 +11,9 @@
 #import <AppKit/AppKit.h>
 
 @interface NSView (KBView)
+
 - (void)kb_setBackgroundColor:(NSColor *)backgroundColor;
+
+- (void)kb_setBorderWithColor:(NSColor *)color width:(CGFloat)width;
+
 @end

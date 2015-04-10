@@ -20,11 +20,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.whiteColor.CGColor;
-
-  self.button = [KBButton buttonWithText:nil style:KBButtonStyleEmpty];
-  [self addSubview:self.button];
+  [self kb_setBackgroundColor:NSColor.clearColor];
 
   _imageView = [[KBUserImageView alloc] init];
   [self addSubview:_imageView];
@@ -45,8 +41,6 @@
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.nameLabel].size.height;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.statusLabel].size.height + 4;
-
-    [layout setFrame:CGRectMake(0, 0, size.width, 60) view:yself.button];
 
     return CGSizeMake(size.width, 60);
   }];

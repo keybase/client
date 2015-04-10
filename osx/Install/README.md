@@ -7,22 +7,18 @@
 
 ### Build
 
-#### Tag the repo
-
-git tag -a x.y.z -m x.y.z
-
 #### Build keybased
 
-You should make sure the go/version.go has the right version set.
+You should make sure the go/libkb/version.go has the right version set.
 
 ```sh
 sh build.sh
 ```
 
-#### Update the Info.plist version
+#### Update the app version (Info.plist)
 
 ```sh
-sh version.sh
+sh version.sh 1.2.3
 ```
 
 #### Build and export the Keybase.app
@@ -37,10 +33,6 @@ sh version.sh
 ```sh
 sh package.sh
 ```
-
-#### Push tags
-
-If the build works ok, push the tag `git push --tags`
 
 #### Package the update
 

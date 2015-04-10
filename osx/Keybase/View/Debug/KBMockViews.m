@@ -217,16 +217,12 @@
 
   KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
 
-  KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
-  NSArray *params = [KBRMockClient requestForMethod:@"keybase.1.doctorUi.selectSigner"];
-  KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
-  [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
-
   KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
   [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameExisting:@"Macbook (Work)" deviceNameToAdd:@"Macbook (Home)"];
 
   KBNavigationView *navigation = loginView.navigation;
   loginView.loginButton.targetBlock = ^{ [navigation pushView:devicePromptView animated:YES]; };
+  KBDeviceSetupView *deviceSetupView = [self deviceSetupView];
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) { [navigation pushView:deviceSetupView animated:YES]; };
   deviceSetupView.selectButton.targetBlock = ^{ [navigation pushView:secretWordsView animated:YES]; };
   secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
@@ -242,15 +238,23 @@
   [self openInWindow:signUpView size:CGSizeMake(800, 600) title:@"Keybase"];
 }
 
-- (void)showDeviceSetupView {
-  NSArray *params = [KBRMockClient requestForMethod:@"keybase.1.doctorUi.selectSigner"];
+- (KBDeviceSetupView *)deviceSetupView {
+  KBRDevice *device1 = [[KBRDevice alloc] init];
+  device1.name = @"Macbook";
+  device1.type = @"desktop";
 
-  KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
+  KBRDevice *device2 = [[KBRDevice alloc] init];
+  device2.name = @"Macbook (Work)";
+  device2.type = @"desktop";
 
   KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
-  [deviceSetupView setDevices:requestParams.devices hasPGP:requestParams.hasPGP];
+  [deviceSetupView setDevices:@[device1, device2] hasPGP:YES];
   deviceSetupView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
-  [self openInWindow:deviceSetupView size:CGSizeMake(560, 420) title:nil];
+  return deviceSetupView;
+}
+
+- (void)showDeviceSetupView {
+  [self openInWindow:[self deviceSetupView] size:CGSizeMake(560, 420) title:nil];
 }
 
 - (void)showDevicePrompt {

@@ -25,6 +25,7 @@
 #import "KBPGPSignFileView.h"
 #import "KBPGPVerifyView.h"
 #import "KBPGPVerifyFileView.h"
+#import "KBEnvSelectView.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -54,6 +55,31 @@
     [AppDelegate setError:error sender:sender];
   };
 
+  GHWeakSelf gself = self;
+
+  // Network reachability is a diagnostic tool that can be used to understand why a request might have failed.
+  // It should not be used to determine whether or not to make a request.
+  [AFNetworkReachabilityManager.sharedManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+    GHDebug(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
+    [gself.consoleView log:NSStringWithFormat(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status))];
+  }];
+  [AFNetworkReachabilityManager.sharedManager startMonitoring];
+
+  KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
+  KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 380) retain:YES];
+  envSelectView.onSelect = ^(KBRPClientEnv env) {
+    [window close];
+    [self openWithEnv:env];
+  };
+  window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
+  [window center];
+  [window makeKeyAndOrderFront:nil];
+}
+
+- (void)openWithEnv:(KBRPClientEnv)env {
+  [self updateMenu];
+
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
 #ifdef DEBUG
@@ -72,20 +98,9 @@
   [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO errorHandler:_errorHandler];
   [_appView.delegates addObject:_consoleView];
 
-  GHWeakSelf gself = self;
-
-  // Network reachability is a diagnostic tool that can be used to understand why a request might have failed.
-  // It should not be used to determine whether or not to make a request.
-  [AFNetworkReachabilityManager.sharedManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-    GHDebug(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
-    [gself.consoleView log:NSStringWithFormat(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status))];
-  }];
-  [AFNetworkReachabilityManager.sharedManager startMonitoring];
-
-  [self updateMenu];
-
-  KBRPClient *client = [[KBRPClient alloc] init];
+  KBRPClient *client = [[KBRPClient alloc] initWithEnv:env];
   [_appView connect:client];
+
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

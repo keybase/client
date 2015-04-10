@@ -11,9 +11,6 @@
 #import "KBRPC.h"
 #import "KBDeviceSignerOption.h"
 
-@interface KBDeviceSetupView ()
-@end
-
 @implementation KBDeviceSetupView
 
 - (void)viewInit {
@@ -30,13 +27,11 @@
   [topView addSubview:header];
 
   KBLabel *infoLabel = [[KBLabel alloc] init];
-  [infoLabel setText:@"This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?" font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [infoLabel setText:@"This is the first time you've logged into this computer. You need to setup and verify this installation of Keybase. Which method do you want to use?" style:KBTextStyleDefault];
   [topView addSubview:infoLabel];
 
   _deviceSignerView = [KBListView listViewWithPrototypeClass:KBImageTextView.class rowHeight:0];
-  _deviceSignerView.wantsLayer = YES;
-  _deviceSignerView.layer.borderColor = [KBAppearance.currentAppearance lineColor].CGColor;
-  _deviceSignerView.layer.borderWidth = 1.0;
+  _deviceSignerView.scrollView.borderType = NSBezelBorder;
 
   _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     view.tintImageForStyle = YES;

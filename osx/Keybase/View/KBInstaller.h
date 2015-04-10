@@ -21,6 +21,8 @@ typedef void (^KBInstallCheck)(NSError *error, BOOL installed, KBInstallType ins
 
 @property (readonly) KBLaunchCtl *launchCtl;
 
+- (instancetype)initWithLaunchCtl:(KBLaunchCtl *)launchCtl;
+
 /*!
   - installed: If YES, that means we did copied the launch services config and reloaded the service.
   - installType: The type of install we detected.

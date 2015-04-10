@@ -16,4 +16,10 @@
   self.layer.backgroundColor = backgroundColor.CGColor;
 }
 
+- (void)kb_setBorderWithColor:(NSColor *)color width:(CGFloat)width {
+  self.wantsLayer = YES;
+  self.layer.borderColor = color.CGColor;
+  self.layer.borderWidth = width;
+}
+
 @end

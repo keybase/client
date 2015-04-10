@@ -8,6 +8,7 @@
 
 #import "KBSourceOutlineView.h"
 #import "KBUserStatusView.h"
+#import "KBButtonView.h"
 
 #import <MPMessagePack/MPOrderedDictionary.h>
 
@@ -44,12 +45,9 @@
 
   _statusView = [[KBUserStatusView alloc] init];
   GHWeakSelf gself = self;
-  _statusView.button.targetBlock = ^{ [gself didSelectItem:KBSourceViewItemProfile]; };
-  [self addSubview:_statusView];
+  KBButtonView *button = [KBButtonView buttonViewWithView:_statusView targetBlock:^{ [gself didSelectItem:KBSourceViewItemProfile]; }];
+  [self addSubview:button];
 
-//  KBScrollView *scrollView = [[KBScrollView alloc] init];
-//  [scrollView setDocumentView:_outlineView];
-//  [self addSubview:scrollView];
   KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:_outlineView];
   [self addSubview:scrollView];
@@ -64,7 +62,7 @@
     CGSize statusViewSize = [yself.statusView sizeThatFits:size];
     [layout setFrame:CGRectMake(0, -20, size.width, size.height - statusViewSize.height) view:scrollView];
     [layout setFrame:CGRectMake(0, size.height - statusViewSize.height - 1, size.width, 1) view:border];
-    [layout setFrame:CGRectMake(0, size.height - statusViewSize.height, statusViewSize.width, statusViewSize.height) view:yself.statusView];
+    [layout setFrame:CGRectMake(0, size.height - statusViewSize.height, statusViewSize.width, statusViewSize.height) view:button];
 
     return size;
   }];

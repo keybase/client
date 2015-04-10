@@ -66,9 +66,9 @@
     x += [layout setFrame:CGRectMake(20, y, imageHeight, imageHeight) view:yself.imageView].size.width + 20;
 
     y += 16;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.name1Label].size.height + 4;
+    y += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.name1Label].size.height + 4;
 
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name2View].size.height;
+    y += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x, 30) view:yself.name2View].size.height;
 
     return CGSizeMake(size.width, imageHeight + 30);
   }];
