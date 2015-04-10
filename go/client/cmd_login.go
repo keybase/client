@@ -34,8 +34,9 @@ func (v *CmdLogin) RunClient() (err error) {
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
-		arg := keybase_1.PassphraseLoginArg{Username: v.Username}
-		err = cli.PassphraseLogin(arg)
+		err = cli.LoginWithPrompt(keybase_1.LoginWithPromptArg{
+			Username:  v.Username,
+		})
 	}
 	return
 }
@@ -49,14 +50,7 @@ func (v *CmdLogin) Run() error {
 		SecretUI:      G.UI.GetSecretUI(),
 		GlobalContext: G,
 	}
-	arg := engine.LoginEngineArg{
-		Login: libkb.LoginArg{
-			Prompt:   true,
-			Retry:    3,
-			Username: v.Username,
-		},
-	}
-	li := engine.NewLoginEngine(&arg)
+	li := engine.NewLoginWithPromptEngine(v.Username)
 	return engine.RunEngine(li, ctx)
 }
 

@@ -418,16 +418,30 @@
 
 @implementation KBRLoginRequest
 
-- (void)passphraseLoginWithIdentify:(BOOL)identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"identify": @(identify), @"username": KBRValue(username), @"passphrase": KBRValue(passphrase)}];
-  [self.client sendRequestWithMethod:@"keybase.1.login.passphraseLogin" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)loginWithPromptWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.loginWithPrompt" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)pubkeyLogin:(void (^)(NSError *error))completion {
+- (void)loginWithStoredSecretWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.loginWithStoredSecret" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)loginWithPassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username passphrase:(NSString *)passphrase storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username), @"passphrase": KBRValue(passphrase), @"storeSecret": @(storeSecret)}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.loginWithPassphrase" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)cancelLogin:(void (^)(NSError *error))completion {
   NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.login.pubkeyLogin" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.login.cancelLogin" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -442,20 +456,6 @@
 - (void)reset:(void (^)(NSError *error))completion {
   NSArray *params = @[@{}];
   [self.client sendRequestWithMethod:@"keybase.1.login.reset" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"username": KBRValue(username)}];
-  [self.client sendRequestWithMethod:@"keybase.1.login.switchUser" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)cancelLogin:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{}];
-  [self.client sendRequestWithMethod:@"keybase.1.login.cancelLogin" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1351,24 +1351,38 @@
 
 @end
 
-@implementation KBRPassphraseLoginRequestParams
+@implementation KBRLoginWithPromptRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.identify = [params[0][@"identify"] boolValue];
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
-    self.passphrase = params[0][@"passphrase"];
   }
   return self;
 }
 
 @end
 
-@implementation KBRSwitchUserRequestParams
+@implementation KBRLoginWithStoredSecretRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.username = params[0][@"username"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRLoginWithPassphraseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
+    self.passphrase = params[0][@"passphrase"];
+    self.storeSecret = [params[0][@"storeSecret"] boolValue];
   }
   return self;
 }

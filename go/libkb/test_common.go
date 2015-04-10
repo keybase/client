@@ -176,7 +176,7 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 	if err = g.UI.Configure(); err != nil {
 		return
 	}
-	if err = g.ConfigureKeyring(Usage{KbKeyring: true}); err != nil {
+	if err = g.ConfigureKeyring(); err != nil {
 		return
 	}
 

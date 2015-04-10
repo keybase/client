@@ -13,4 +13,7 @@ type SecretStore interface {
 	SecretStorer
 }
 
-// NewSecretStore(user *User) is defined in platform-specific files.
+// NewSecretStore(user *User) and HasSecretStore() are defined in
+// platform-specific files.
+
+// TODO: NewSecretStore should probably return an error.

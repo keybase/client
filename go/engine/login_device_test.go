@@ -38,11 +38,9 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	}
 	arg := libkb.SecretKeyArg{
 		DeviceKey: true,
-		Reason:    "new device install",
-		Ui:        secui,
 		Me:        me,
 	}
-	_, _, err = G.Keyrings.GetSecretKey(arg)
+	_, _, err = G.Keyrings.GetSecretKeyWithPrompt(arg, secui, "new device install")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,17 +70,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 
 	// log in with device Y
 	G = &tcY.G
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   u.Username,
-			Passphrase: u.Passphrase,
-			NoUi:       true,
-		},
-	}
-
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPromptEngine(u.Username)
 	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)

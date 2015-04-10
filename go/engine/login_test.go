@@ -94,16 +94,7 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   username,
-			Passphrase: passphrase,
-			NoUi:       true,
-		},
-	}
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPromptEngine(username)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
@@ -125,16 +116,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   username,
-			Passphrase: passphrase,
-			NoUi:       true,
-		},
-	}
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPromptEngine(username)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
 	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
@@ -167,19 +149,9 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 
 	docui := &ldocuiPGP{&ldocui{}}
 
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   u1.Username,
-			Passphrase: u1.Passphrase,
-			NoUi:       true,
-		},
-	}
-
 	before := docui.selectSignerCount
 
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPromptEngine(u1.Username)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:       G.UI.GetLogUI(),
@@ -219,19 +191,9 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 
 	docui := &ldocuiPGP{&ldocui{}}
 
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   u1.Username,
-			Passphrase: u1.Passphrase,
-			NoUi:       true,
-		},
-	}
-
 	before := docui.selectSignerCount
 
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPromptEngine(u1.Username)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:       G.UI.GetLogUI(),
@@ -269,19 +231,9 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 
 	docui := &ldocuiPGP{&ldocui{}}
 
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   u1.Username,
-			Passphrase: u1.Passphrase,
-			NoUi:       true,
-		},
-	}
-
 	before := docui.selectSignerCount
 
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPromptEngine(u1.Username)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
 		LogUI:       G.UI.GetLogUI(),
@@ -340,17 +292,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	}
 
 	// now login and see if it correctly generates needed keys
-	//
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   username,
-			Passphrase: passphrase,
-			NoUi:       true,
-		},
-	}
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPassphraseEngine(username, passphrase, false)
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -409,17 +351,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	}
 
 	// now login and see if it correctly generates needed keys
-	//
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   username,
-			Passphrase: passphrase,
-			NoUi:       true,
-		},
-	}
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPassphraseEngine(username, passphrase, false)
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}

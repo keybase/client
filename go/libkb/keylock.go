@@ -29,11 +29,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		desc = desc + "\nReason: " + arg.Reason
 	}
 
-	sui := arg.Ui
-	if sui == nil && G.UI != nil {
-		sui = G.UI.GetSecretUI()
-	}
-	if sui == nil {
+	if arg.Ui == nil {
 		err = NoUiError{"secret"}
 		return
 	}
@@ -42,7 +38,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 
 	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
 		var res *keybase_1.SecretEntryRes
-		res, err = sui.GetSecret(keybase_1.SecretEntryArg{
+		res, err = arg.Ui.GetSecret(keybase_1.SecretEntryArg{
 			Err:            emsg,
 			Desc:           desc,
 			Prompt:         prompt,

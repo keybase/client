@@ -280,6 +280,7 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 }
 
 func (p *SKB) SetUID(uid *UID) {
+	G.Log.Debug("| Setting UID on SKB to %s", uid)
 	p.uid = uid
 }
 
@@ -492,6 +493,19 @@ func (p KeybasePackets) ToListOfSKBs() (ret []*SKB, err error) {
 		}
 	}
 	return
+}
+
+func (s *SKB) UnlockWithStoredSecret(secretRetriever SecretRetriever) (ret GenericKey, err error) {
+	s.G().Log.Debug("+ UnlockWithStoredSecret()")
+	defer func() {
+		s.G().Log.Debug("- UnlockWithStoredSecret -> %s", ErrToOk(err))
+	}()
+
+	if ret = s.decryptedSecret; ret != nil {
+		return
+	}
+
+	return s.unlockSecretKeyFromSecretRetriever(secretRetriever)
 }
 
 func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui SecretUI) (ret GenericKey, err error) {

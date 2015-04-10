@@ -96,8 +96,8 @@ func (g *GlobalContext) ConfigureConfig() error {
 	return nil
 }
 
-func (g *GlobalContext) ConfigureKeyring(usage Usage) error {
-	g.Keyrings = NewKeyrings(g, usage)
+func (g *GlobalContext) ConfigureKeyring() error {
+	g.Keyrings = NewKeyrings(g)
 	return nil
 }
 
@@ -196,7 +196,7 @@ func (g *GlobalContext) ConfigureAll(line CommandLine, cmd Command) error {
 		}
 	}
 	if usage.UseKeyring() {
-		if err = g.ConfigureKeyring(usage); err != nil {
+		if err = g.ConfigureKeyring(); err != nil {
 			return err
 		}
 	}

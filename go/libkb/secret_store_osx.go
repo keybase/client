@@ -61,3 +61,7 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 func NewSecretStore(user *User) SecretStore {
 	return &KeychainSecretStore{user.GetName()}
 }
+
+func HasSecretStore() bool {
+	return true
+}

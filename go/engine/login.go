@@ -6,19 +6,40 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type LoginEngineArg struct {
-	Login libkb.LoginArg
-}
-
 type LoginEngine struct {
 	libkb.Contextified
-	arg         *LoginEngineArg
+	requiredUIs []libkb.UIKind
+	runFn       func(*libkb.LoginState, *Context) error
 	locksmithMu sync.Mutex
 	locksmith   *Locksmith
 }
 
-func NewLoginEngine(arg *LoginEngineArg) *LoginEngine {
-	return &LoginEngine{arg: arg}
+func NewLoginWithPromptEngine(username string) *LoginEngine {
+	return &LoginEngine{
+		requiredUIs: []libkb.UIKind{
+			libkb.LoginUIKind,
+			libkb.SecretUIKind,
+		},
+		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
+			return loginState.LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI)
+		},
+	}
+}
+
+func NewLoginWithStoredSecretEngine(username string) *LoginEngine {
+	return &LoginEngine{
+		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
+			return loginState.LoginWithStoredSecret(username)
+		},
+	}
+}
+
+func NewLoginWithPassphraseEngine(username, passphrase string, storeSecret bool) *LoginEngine {
+	return &LoginEngine{
+		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
+			return loginState.LoginWithPassphrase(username, passphrase, storeSecret)
+		},
+	}
 }
 
 func (e *LoginEngine) Name() string {
@@ -28,10 +49,7 @@ func (e *LoginEngine) Name() string {
 func (e *LoginEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 func (e *LoginEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.LoginUIKind,
-		libkb.SecretUIKind,
-	}
+	return e.requiredUIs
 }
 
 func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
@@ -41,10 +59,8 @@ func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
 func (e *LoginEngine) Run(ctx *Context) (err error) {
 	e.SetGlobalContext(ctx.GlobalContext)
 
-	e.arg.Login.SecretUI = ctx.SecretUI
-	e.arg.Login.Ui = ctx.LoginUI
-	if err := e.G().LoginState.Login(e.arg.Login); err != nil {
-		return err
+	if err = e.runFn(e.G().LoginState, ctx); err != nil {
+		return
 	}
 
 	var u *libkb.User

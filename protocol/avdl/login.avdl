@@ -4,10 +4,22 @@ protocol login {
 
 	import idl "common.avdl";
 
-	void passphraseLogin(boolean identify, string username, string passphrase);
-	void pubkeyLogin();
+	// username may be empty. Tries to log in, prompting for username
+	// and passphrase if necessary.
+	void loginWithPrompt(int sessionID, string username);
+
+	// Tries to log in with the given username and its associated
+	// stored secret.
+	void loginWithStoredSecret(int sessionID, string username);
+
+	// Tries to log in with the given username and passphrase. If
+	// pubkey login is successful and storeSecret is set, stores
+	// the derived secret in the platform's secret store (e.g.,
+	// the keychain on OS X).
+	void loginWithPassphrase(int sessionID, string username, string passphrase, boolean storeSecret);
+
+	void cancelLogin();
+
 	void logout();
 	void reset();
-	void switchUser(string username);
-	void cancelLogin();
 }

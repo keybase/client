@@ -65,17 +65,7 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 	return fu
 }
 
-func (fu *FakeUser) Login() error {
-	larg := LoginEngineArg{
-		Login: libkb.LoginArg{
-			Force:      true,
-			Prompt:     false,
-			Username:   fu.Username,
-			Passphrase: fu.Passphrase,
-			NoUi:       true,
-		},
-	}
-	secui := fu.NewSecretUI()
+func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI) error {
 	ctx := &Context{
 		LogUI:       G.UI.GetLogUI(),
 		LocksmithUI: &ldocui{},
@@ -83,8 +73,12 @@ func (fu *FakeUser) Login() error {
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{},
 	}
-	li := NewLoginEngine(&larg)
+	li := NewLoginWithPromptEngine(fu.Username)
 	return RunEngine(li, ctx)
+}
+
+func (fu *FakeUser) Login() error {
+	return fu.LoginWithSecretUI(fu.NewSecretUI())
 }
 
 func (fu *FakeUser) LoginOrBust(t *testing.T) {

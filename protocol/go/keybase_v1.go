@@ -1033,13 +1033,24 @@ func (c LogUiClient) Log(__arg LogArg) (err error) {
 	return
 }
 
-type PassphraseLoginArg struct {
-	Identify   bool   `codec:"identify" json:"identify"`
-	Username   string `codec:"username" json:"username"`
-	Passphrase string `codec:"passphrase" json:"passphrase"`
+type LoginWithPromptArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
-type PubkeyLoginArg struct {
+type LoginWithStoredSecretArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
+type LoginWithPassphraseArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Username    string `codec:"username" json:"username"`
+	Passphrase  string `codec:"passphrase" json:"passphrase"`
+	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
+}
+
+type CancelLoginArg struct {
 }
 
 type LogoutArg struct {
@@ -1048,37 +1059,44 @@ type LogoutArg struct {
 type ResetArg struct {
 }
 
-type SwitchUserArg struct {
-	Username string `codec:"username" json:"username"`
-}
-
-type CancelLoginArg struct {
-}
-
 type LoginInterface interface {
-	PassphraseLogin(PassphraseLoginArg) error
-	PubkeyLogin() error
+	LoginWithPrompt(LoginWithPromptArg) error
+	LoginWithStoredSecret(LoginWithStoredSecretArg) error
+	LoginWithPassphrase(LoginWithPassphraseArg) error
+	CancelLogin() error
 	Logout() error
 	Reset() error
-	SwitchUser(string) error
-	CancelLogin() error
 }
 
 func LoginProtocol(i LoginInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.login",
 		Methods: map[string]rpc2.ServeHook{
-			"passphraseLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PassphraseLoginArg, 1)
+			"loginWithPrompt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoginWithPromptArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PassphraseLogin(args[0])
+					err = i.LoginWithPrompt(args[0])
 				}
 				return
 			},
-			"pubkeyLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]PubkeyLoginArg, 1)
+			"loginWithStoredSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoginWithStoredSecretArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.PubkeyLogin()
+					err = i.LoginWithStoredSecret(args[0])
+				}
+				return
+			},
+			"loginWithPassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoginWithPassphraseArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.LoginWithPassphrase(args[0])
+				}
+				return
+			},
+			"cancelLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CancelLoginArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.CancelLogin()
 				}
 				return
 			},
@@ -1096,20 +1114,6 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"switchUser": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]SwitchUserArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.SwitchUser(args[0].Username)
-				}
-				return
-			},
-			"cancelLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]CancelLoginArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.CancelLogin()
-				}
-				return
-			},
 		},
 	}
 
@@ -1119,13 +1123,23 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) PassphraseLogin(__arg PassphraseLoginArg) (err error) {
-	err = c.Cli.Call("keybase.1.login.passphraseLogin", []interface{}{__arg}, nil)
+func (c LoginClient) LoginWithPrompt(__arg LoginWithPromptArg) (err error) {
+	err = c.Cli.Call("keybase.1.login.loginWithPrompt", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) PubkeyLogin() (err error) {
-	err = c.Cli.Call("keybase.1.login.pubkeyLogin", []interface{}{PubkeyLoginArg{}}, nil)
+func (c LoginClient) LoginWithStoredSecret(__arg LoginWithStoredSecretArg) (err error) {
+	err = c.Cli.Call("keybase.1.login.loginWithStoredSecret", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) LoginWithPassphrase(__arg LoginWithPassphraseArg) (err error) {
+	err = c.Cli.Call("keybase.1.login.loginWithPassphrase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) CancelLogin() (err error) {
+	err = c.Cli.Call("keybase.1.login.cancelLogin", []interface{}{CancelLoginArg{}}, nil)
 	return
 }
 
@@ -1136,17 +1150,6 @@ func (c LoginClient) Logout() (err error) {
 
 func (c LoginClient) Reset() (err error) {
 	err = c.Cli.Call("keybase.1.login.reset", []interface{}{ResetArg{}}, nil)
-	return
-}
-
-func (c LoginClient) SwitchUser(username string) (err error) {
-	__arg := SwitchUserArg{Username: username}
-	err = c.Cli.Call("keybase.1.login.switchUser", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LoginClient) CancelLogin() (err error) {
-	err = c.Cli.Call("keybase.1.login.cancelLogin", []interface{}{CancelLoginArg{}}, nil)
 	return
 }
 

@@ -73,8 +73,6 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 	ska := libkb.SecretKeyArg{
 		PGPOnly:      true,
 		KeyQuery:     e.arg.Query,
-		Reason:       "key export",
-		Ui:           ctx.SecretUI,
 		SyncedPGPKey: true,
 		Me:           e.me,
 	}
@@ -83,7 +81,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) (err error) {
 	var ok bool
 	var ret string
 
-	key, skb, err = e.G().Keyrings.GetSecretKey(ska)
+	key, skb, err = e.G().Keyrings.GetSecretKeyWithPrompt(ska, ctx.SecretUI, "key export")
 	if err != nil {
 		return
 	}

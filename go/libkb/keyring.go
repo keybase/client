@@ -33,7 +33,7 @@ func (k *Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFil
 	return v
 }
 
-func NewKeyrings(g *GlobalContext, usage Usage) *Keyrings {
+func NewKeyrings(g *GlobalContext) *Keyrings {
 	ret := &Keyrings{
 		skbMap:       make(map[string]*SKBKeyringFile),
 		Contextified: Contextified{g},
@@ -254,9 +254,7 @@ type SecretKeyArg struct {
 	SearchKey    bool // search for any key that's active in the local keyring
 	PGPOnly      bool // only PGP, but use the first valid PGP key we find
 
-	Reason string   // why it's needed (for an Unlock)
-	Ui     SecretUI // for Unlocking secrets
-	Me     *User    // Whose keys
+	Me *User // Whose keys
 
 	KeyQuery string // a String to match the key prefix on
 }
@@ -265,23 +263,66 @@ func (s SecretKeyArg) UseDeviceKey() bool    { return (s.All || s.DeviceKey) && 
 func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey || s.PGPOnly }
 func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
 
-func (k *Keyrings) GetSecretKey(ska SecretKeyArg) (key GenericKey, skb *SKB, err error) {
-	k.G().Log.Debug("+ GetSecretKey(%s)", ska.Reason)
+// TODO: Figure out whether and how to dep-inject the SecretStore.
+func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
+	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", reason)
 	defer func() {
-		k.G().Log.Debug("- GetSecretKey() -> %s", ErrToOk(err))
+		k.G().Log.Debug("- GetSecretKeyWithPrompt() -> %s", ErrToOk(err))
 	}()
 	var which string
-	if skb, which, err = k.GetSecretKeyLocked(ska); err == nil && skb != nil {
-		k.G().Log.Debug("| Prompt/Unlock key")
-		var secretStore SecretStore
-		if ska.Me != nil {
-			k.G().Log.Debug("| Setting UID on SKB to %s", ska.Me.GetUid())
-			skb.uid = ska.Me.GetUid().P()
-			secretStore = NewSecretStore(ska.Me)
-		}
-		key, err = skb.PromptAndUnlock(ska.Reason, which, secretStore, ska.Ui)
+	if skb, which, err = k.GetSecretKeyLocked(ska); err != nil {
+		skb = nil
+		return
+	}
+	var secretStore SecretStore
+	if ska.Me != nil {
+		skb.SetUID(ska.Me.GetUid().P())
+		secretStore = NewSecretStore(ska.Me)
+	}
+	if key, err = skb.PromptAndUnlock(reason, which, secretStore, secretUI); err != nil {
+		key = nil
+		skb = nil
+		return
 	}
 	return
+}
+
+func (k *Keyrings) GetSecretKeyWithStoredSecret(me *User, secretRetriever SecretRetriever) (key GenericKey, err error) {
+	k.G().Log.Debug("+ GetSecretKeyWithStoredSecret()")
+	defer func() {
+		k.G().Log.Debug("- GetSecretKeyWithStoredSecret() -> %s", ErrToOk(err))
+	}()
+	ska := SecretKeyArg{
+		All: true,
+		Me:  me,
+	}
+	var skb *SKB
+	skb, _, err = k.GetSecretKeyLocked(ska)
+	if err != nil {
+		return
+	}
+	skb.SetUID(me.GetUid().P())
+	return skb.UnlockWithStoredSecret(secretRetriever)
+}
+
+func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secretStorer SecretStorer) (key GenericKey, err error) {
+	k.G().Log.Debug("+ GetSecretKeyWithPassphrase()")
+	defer func() {
+		k.G().Log.Debug("- GetSecretKeyWithPassphrase() -> %s", ErrToOk(err))
+	}()
+	ska := SecretKeyArg{
+		All: true,
+		Me:  me,
+	}
+	var skb *SKB
+	skb, _, err = k.GetSecretKeyLocked(ska)
+	if err != nil {
+		return
+	}
+	skb.SetUID(me.GetUid().P())
+	tsec := k.G().LoginState.GetCachedTriplesec()
+	pps := k.G().LoginState.GetCachedPassphraseStream()
+	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer)
 }
 
 type EmptyKeyRing struct{}

@@ -354,17 +354,17 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRLoginRequest : KBRRequest
-- (void)passphraseLoginWithIdentify:(BOOL)identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
+- (void)loginWithPromptWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;
 
-- (void)pubkeyLogin:(void (^)(NSError *error))completion;
+- (void)loginWithStoredSecretWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;
+
+- (void)loginWithPassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username passphrase:(NSString *)passphrase storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error))completion;
+
+- (void)cancelLogin:(void (^)(NSError *error))completion;
 
 - (void)logout:(void (^)(NSError *error))completion;
 
 - (void)reset:(void (^)(NSError *error))completion;
-
-- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
-
-- (void)cancelLogin:(void (^)(NSError *error))completion;
 
 @end
 
@@ -784,13 +784,19 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRLogLevel level;
 @property KBRText *text;
 @end
-@interface KBRPassphraseLoginRequestParams : KBRRequestParams
-@property BOOL identify;
+@interface KBRLoginWithPromptRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
+@interface KBRLoginWithStoredSecretRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
+@interface KBRLoginWithPassphraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property NSString *username;
 @property NSString *passphrase;
-@end
-@interface KBRSwitchUserRequestParams : KBRRequestParams
-@property NSString *username;
+@property BOOL storeSecret;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;

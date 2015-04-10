@@ -42,47 +42,55 @@ func (h *LoginHandler) Reset() error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *LoginHandler) PassphraseLogin(arg keybase_1.PassphraseLoginArg) error {
-	sessid := nextSessionId()
+func (h *LoginHandler) LoginWithPrompt(arg keybase_1.LoginWithPromptArg) error {
+	ctx := &engine.Context{
+		LogUI:       h.getLogUI(arg.SessionID),
+		LocksmithUI: h.getLocksmithUI(arg.SessionID),
+		SecretUI:    h.getSecretUI(arg.SessionID),
+		LoginUI:     h.getLoginUI(arg.SessionID),
+		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
+	}
+	loginEngine := engine.NewLoginWithPromptEngine(arg.Username)
+	return h.loginWithEngine(loginEngine, ctx)
+}
 
-	var liarg engine.LoginEngineArg
-	liarg.Login.Username = arg.Username
-	liarg.Login.Passphrase = arg.Passphrase
-	if len(arg.Username) > 0 && len(arg.Passphrase) > 0 {
-		liarg.Login.NoUi = true
-	} else {
-		liarg.Login.Prompt = true
-		liarg.Login.Retry = 3
-		liarg.Login.Ui = h.getLoginUI(sessid)
-		liarg.Login.SecretUI = h.getSecretUI(sessid)
+func (h *LoginHandler) LoginWithStoredSecret(arg keybase_1.LoginWithStoredSecretArg) error {
+	ctx := &engine.Context{
+		LogUI:       h.getLogUI(arg.SessionID),
+		LocksmithUI: h.getLocksmithUI(arg.SessionID),
+		SecretUI:    h.getSecretUI(arg.SessionID),
+		LoginUI:     h.getLoginUI(arg.SessionID),
+		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
+	}
+	loginEngine := engine.NewLoginWithStoredSecretEngine(arg.Username)
+	return h.loginWithEngine(loginEngine, ctx)
+}
+
+func (h *LoginHandler) LoginWithPassphrase(arg keybase_1.LoginWithPassphraseArg) error {
+	ctx := &engine.Context{
+		LogUI:       h.getLogUI(arg.SessionID),
+		LocksmithUI: h.getLocksmithUI(arg.SessionID),
+		SecretUI:    h.getSecretUI(arg.SessionID),
+		LoginUI:     h.getLoginUI(arg.SessionID),
+		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
 	}
 
+	loginEngine := engine.NewLoginWithPassphraseEngine(arg.Username, arg.Passphrase, arg.StoreSecret)
+	return h.loginWithEngine(loginEngine, ctx)
+}
+
+func (h *LoginHandler) loginWithEngine(loginEngine *engine.LoginEngine, ctx *engine.Context) (err error) {
 	h.loginEngineMu.Lock()
-	h.loginEngine = engine.NewLoginEngine(&liarg)
+	h.loginEngine = loginEngine
 	h.loginEngineMu.Unlock()
 
-	ctx := &engine.Context{
-		LogUI:       h.getLogUI(sessid),
-		LocksmithUI: h.getLocksmithUI(sessid),
-		SecretUI:    h.getSecretUI(sessid),
-		LoginUI:     h.getLoginUI(sessid),
-		GPGUI:       NewRemoteGPGUI(sessid, h.getRpcClient()),
-	}
-	err := engine.RunEngine(h.loginEngine, ctx)
+	err = engine.RunEngine(loginEngine, ctx)
 
 	h.loginEngineMu.Lock()
 	h.loginEngine = nil
 	h.loginEngineMu.Unlock()
 
-	return err
-}
-
-func (h *LoginHandler) PubkeyLogin() error {
-	return nil
-}
-
-func (h *LoginHandler) SwitchUser(username string) error {
-	return nil
+	return
 }
 
 func (h *LoginHandler) CancelLogin() error {

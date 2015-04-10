@@ -126,12 +126,10 @@ func (d *Delegator) LoadSigningKey(ui SecretUI) (err error) {
 		return
 	}
 
-	d.ExistingKey, _, err = G.Keyrings.GetSecretKey(SecretKeyArg{
-		All:    true,
-		Me:     d.Me,
-		Ui:     ui,
-		Reason: "sign new key",
-	})
+	d.ExistingKey, _, err = G.Keyrings.GetSecretKeyWithPrompt(SecretKeyArg{
+		All: true,
+		Me:  d.Me,
+	}, ui, "sign new key")
 
 	return err
 }

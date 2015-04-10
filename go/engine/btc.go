@@ -59,12 +59,10 @@ func (e *BTCEngine) Run(ctx *Context) error {
 		sigIDToRevoke = &id
 	}
 
-	sigKey, _, err := e.G().Keyrings.GetSecretKey(libkb.SecretKeyArg{
+	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
 		DeviceKey: true,
-		Reason:    "to register a cryptocurrency address",
-		Ui:        ctx.SecretUI,
 		Me:        me,
-	})
+	}, ctx.SecretUI, "to register a cryptocurrency address")
 	if sigKey == nil {
 		return fmt.Errorf("Signing key is nil.")
 	}

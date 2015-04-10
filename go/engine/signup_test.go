@@ -53,13 +53,25 @@ func TestSignupEngine(t *testing.T) {
 	// Now try to logout and log back in w/ PublicKey Auth
 	G.LoginState.Logout()
 
+	// Clear out the key stored in the keyring.
+	if err := G.ConfigureKeyring(); err != nil {
+		t.Error(err)
+	}
+
 	if err := G.Session.AssertLoggedOut(); err != nil {
 		t.Fatal(err)
 	}
 
-	sui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	if err = G.LoginState.PubkeyLogin("", sui); err != nil {
+	mockGetSecret := &GetSecretMock{
+		Passphrase: fu.Passphrase,
+		T:          t,
+	}
+	if err = G.LoginState.LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
 		t.Fatal(err)
+	}
+
+	if !mockGetSecret.Called {
+		t.Errorf("secretUI.GetSecret() unexpectedly not called")
 	}
 
 	if err = AssertDeviceID(); err != nil {
