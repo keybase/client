@@ -37,9 +37,20 @@
       [args addObjectsFromArray:@[@"-s", host]];
     }
 
+    [args addObject:@"-d"]; // Debug
+
+    // Need to create logging dir here because otherwise it will be created as root by launchctl
+    NSString *logDir = [@"~/Library/Logs/Keybase" stringByExpandingTildeInPath];
+    [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
+
+    NSString *stdOutPath = NSStringWithFormat(@"%@/%@.log", logDir, label);
+    NSString *stdErrPath = NSStringWithFormat(@"%@/%@.err", logDir, label);
+
     _plistDict = @{
       @"Label": _label,
       @"ProgramArguments": args,
+      @"StandardOutPath": stdOutPath,
+      @"StandardErrorPath": stdErrPath,
       @"KeepAlive": @YES
     };
   }
