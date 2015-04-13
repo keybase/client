@@ -68,7 +68,7 @@ func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI) error {
 	ctx := &Context{
 		LogUI:       G.UI.GetLogUI(),
-		LocksmithUI: &ldocui{},
+		LocksmithUI: &lockui{},
 		GPGUI:       &gpgtestui{},
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{},

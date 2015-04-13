@@ -27,7 +27,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	// sign up with device X
 	G = &tcX.G
 	u := CreateAndSignupFakeUser(t, "login")
-	docui := &ldocuiDevice{ldocui: &ldocui{}}
+	docui := &lockuiDevice{lockui: &lockui{}}
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	// test that we can get the secret key:
@@ -80,20 +80,20 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	wg.Wait()
 }
 
-type ldocuiDevice struct {
-	*ldocui
+type lockuiDevice struct {
+	*lockui
 	secret string
 	sync.Mutex
 }
 
-func (l *ldocuiDevice) secretPhrase() string {
+func (l *lockuiDevice) secretPhrase() string {
 	l.Lock()
 	defer l.Unlock()
 	return l.secret
 }
 
 // select the first device
-func (l *ldocuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (l *lockuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	if len(arg.Devices) == 0 {
 		return res, fmt.Errorf("expected len(devices) > 0")
@@ -105,7 +105,7 @@ func (l *ldocuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_
 	return
 }
 
-func (l *ldocuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (l *lockuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
 	l.Lock()
 	l.secret = arg.Secret
 	l.Unlock()

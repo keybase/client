@@ -96,7 +96,7 @@ func TestLoginAddsKeys(t *testing.T) {
 
 	li := NewLoginWithPromptEngine(username)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 
 	li := NewLoginWithPromptEngine(username)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +147,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
-	docui := &ldocuiPGP{&ldocui{}}
+	docui := &lockuiPGP{&lockui{}}
 
 	before := docui.selectSignerCount
 
@@ -189,7 +189,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	// now safe to cleanup first home
 	tc.Cleanup()
 
-	docui := &ldocuiPGP{&ldocui{}}
+	docui := &lockuiPGP{&lockui{}}
 
 	before := docui.selectSignerCount
 
@@ -229,7 +229,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docui := &ldocuiPGP{&ldocui{}}
+	docui := &lockuiPGP{&lockui{}}
 
 	before := docui.selectSignerCount
 
@@ -286,7 +286,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 		Lks:  lks,
 	}
 	dreg := NewDeviceRegister(dregArgs)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -333,7 +333,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		Lks:  lks,
 	}
 	dreg := NewDeviceRegister(dregArgs)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &ldocui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -363,15 +363,15 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	testUserHasDeviceKey(t)
 }
 
-type ldocui struct {
+type lockui struct {
 	selectSignerCount int
 }
 
-func (l *ldocui) PromptDeviceName(dummy int) (string, error) {
+func (l *lockui) PromptDeviceName(dummy int) (string, error) {
 	return "my test device", nil
 }
 
-func (l *ldocui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (l *lockui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	res.Action = keybase_1.SelectSignerAction_SIGN
 	devid, err := libkb.NewDeviceID()
@@ -383,19 +383,19 @@ func (l *ldocui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.Sele
 	return
 }
 
-func (l *ldocui) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (l *lockui) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
 	return nil
 }
 
-func (l *ldocui) KexStatus(arg keybase_1.KexStatusArg) error {
+func (l *lockui) KexStatus(arg keybase_1.KexStatusArg) error {
 	return nil
 }
 
-type ldocuiPGP struct {
-	*ldocui
+type lockuiPGP struct {
+	*lockui
 }
 
-func (l *ldocuiPGP) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (l *lockuiPGP) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	res.Action = keybase_1.SelectSignerAction_SIGN
 	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_PGP}
