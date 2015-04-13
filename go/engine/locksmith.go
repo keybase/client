@@ -347,6 +347,12 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 	}
 
 	if res.Signer.Kind == keybase_1.DeviceSignerKind_DEVICE {
+		if res.Signer.DeviceID == nil {
+			return fmt.Errorf("selected device for signing, but DeviceID is nil")
+		}
+		if res.Signer.DeviceName == nil {
+			return fmt.Errorf("selected device for signing, but DeviceName is nil")
+		}
 		return d.deviceSignExistingDevice(ctx, *res.Signer.DeviceID, *res.Signer.DeviceName, newDeviceName, libkb.DEVICE_TYPE_DESKTOP)
 	}
 
