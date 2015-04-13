@@ -4,6 +4,8 @@
 
 To run the KBFS FUSE client:
 
+* Install FUSE.
+  - For OS X, https://osxfuse.github.io/.
 * Check out https://github.com/keybase/keybase, and follow its
   README.md to install and run a local copy of the Keybase webserver
   on port 3000.
