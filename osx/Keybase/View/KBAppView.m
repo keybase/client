@@ -100,7 +100,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 
   GHWeakSelf gself = self;
   [_client registerMethod:@"keybase.1.secretUi.getSecret" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"Password prompt: %@", params);
+    DDLogDebug(@"Password prompt: %@", params);
     KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:requestParams.pinentry.prompt description:requestParams.pinentry.desc secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
       KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
@@ -119,7 +119,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
   }];
 
   [_client registerMethod:@"keybase.1.secretUi.getKeybasePassphrase" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    GHDebug(@"Password prompt: %@", params);
+    DDLogDebug(@"Password prompt: %@", params);
     KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
     [KBAlert promptForInputWithTitle:@"Passphrase" description:NSStringWithFormat(@"What's your passphrase (for user %@)?", requestParams.username) secure:YES style:NSCriticalAlertStyle buttonTitles:@[@"OK", @"Cancel"] view:self completion:^(NSModalResponse response, NSString *password) {
       NSString *text = response == NSAlertFirstButtonReturn ? password : nil;

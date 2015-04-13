@@ -141,6 +141,7 @@
   if (!_trackPrompt) return NO;
 
   if (error) {
+    DDLogError(@"Error tracking: %@", error);
     [_label setMarkup:NSStringWithFormat(@"There was an error tracking %@. (%@)", _username, error.localizedDescription) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance errorColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
   } else if (!_trackOptions) {
     [_label setMarkup:NSStringWithFormat(@"Ok, we skipped tracking %@.", _username) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance okColor] alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];

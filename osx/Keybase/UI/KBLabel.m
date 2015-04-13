@@ -62,7 +62,6 @@
   if (self.verticalAlignment == KBVerticalAlignmentMiddle) {
     sizeWithInsets.height = MAX(size.height, sizeWithInsets.height);
   }
-  //GHDebug(@"sizeWithInsets=%@ ; %@ ; %@", YONSStringFromCGSize(sizeWithInsets), YONSStringFromCGSize(size), _textView.string.length > 4 ? [_textView.string substringToIndex:4] : @"");
   return sizeWithInsets;
 }
 

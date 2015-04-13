@@ -108,7 +108,7 @@
 - (void)wait:(BOOL)load attempt:(NSInteger)attempt completion:(KBLaunchStatus)completion {
   [self status:^(NSError *error, NSInteger pid) {
     if (load && pid != 0) {
-      GHDebug(@"Pid: %@", @(pid));
+      DDLogDebug(@"Pid: %@", @(pid));
       completion(nil, pid);
     } else if (!load && pid == 0) {
       completion(nil, pid);
@@ -116,7 +116,7 @@
       if ((attempt + 1) >= 4) {
         completion(KBMakeError(-1, @"launchctl wait timeout"), 0);
       } else {
-        GHDebug(@"Watiting for %@ (%@)", load ? @"load" : @"unload", @(attempt));
+        DDLogDebug(@"Watiting for %@ (%@)", load ? @"load" : @"unload", @(attempt));
         [self wait:load attempt:attempt+1 completion:completion];
       }
     }
@@ -130,7 +130,7 @@
   NSPipe *outpipe = [NSPipe pipe];
   [task setStandardOutput:outpipe];
   task.terminationHandler = ^(NSTask *t) {
-    GHDebug(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
+    DDLogDebug(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
     NSFileHandle *read = [outpipe fileHandleForReading];
     NSData *data = [read readDataToEndOfFile];
     NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
@@ -181,7 +181,7 @@
   }
 
   // We installed the launch agent plist
-  GHDebug(@"Installed launch agent plist");
+  DDLogDebug(@"Installed launch agent plist");
 
   [self reload:^(NSError *error, NSInteger pid) {
     completion(error);

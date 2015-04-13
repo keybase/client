@@ -9,6 +9,7 @@
 #import <GHKit/GHKit.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <YOLayout/YOLayout.h>
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 typedef void (^KBCompletionBlock)(NSError *error);
 typedef void (^KBErrorBlock)(NSError *error);

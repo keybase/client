@@ -102,7 +102,7 @@
       break;
     }
     if (!request) continue;
-    GHDebug(@"Replay %@", method);
+    DDLogDebug(@"Replay %@", method);
     for (id key in gself.registrations) {
       KBRPCRegistration *registration = gself.registrations[key];
       MPRequestHandler completion = [registration requestHandlerForMethod:method];

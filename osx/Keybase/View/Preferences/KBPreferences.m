@@ -86,8 +86,6 @@
 }
 
 - (id)valueForIdentifier:(NSString *)identifier {
-  NSAssert(_config, @"No config");
-
   if ([identifier isEqualTo:@"Preferences.GPGEnabled"]) {
     return @(![_config[@"gpg-disabled"] boolValue]);
   }
@@ -95,6 +93,7 @@
   if ([identifier gh_startsWith:@"Preferences."]) {
     return [NSUserDefaults.standardUserDefaults objectForKey:identifier];
   } else {
+    NSAssert(_config, @"No config");
     return _config[identifier];
   }
 }
@@ -109,11 +108,11 @@
   }
 
   if ([identifier gh_startsWith:@"Preferences."]) {
-    GHDebug(@"Setting (local) %@=%@", identifier, value);
+    DDLogDebug(@"Setting (local) %@=%@", identifier, value);
     [NSUserDefaults.standardUserDefaults setObject:value forKey:identifier];
     if (synchronize) [NSUserDefaults.standardUserDefaults synchronize];
   } else {
-    GHDebug(@"Setting %@=%@", identifier, value);
+    DDLogDebug(@"Setting %@=%@", identifier, value);
     _config[identifier] = value;
     if (synchronize) [self saveConfig];
   }

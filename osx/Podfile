@@ -16,6 +16,7 @@ pod "ZXCVBN"
 pod "AFNetworking"
 
 pod "Sparkle"
+pod "CocoaLumberjack"
 
 target :Tests do
   pod "GRUnit"

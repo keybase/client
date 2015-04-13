@@ -184,7 +184,7 @@
 
     BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
     if (isSelf) {
-      GHDebug(@"Viewing self (identify only)");
+      DDLogDebug(@"Viewing self (identify only)");
       completion(nil, nil);
       return;
     }
@@ -208,7 +208,7 @@
     }
 
     if (!trackPrompt) {
-      GHDebug(@"No track prompt required");
+      DDLogDebug(@"No track prompt required");
       completion(nil, nil);
     }
   }];

@@ -100,7 +100,7 @@
 - (void)textField:(NSTextField *)textField didChangeFocus:(BOOL)focused {
   if (_focused == focused) return;
   _focused = focused;
-  //GHDebug(@"Focused: %@ (%@)", @(_focused), self.placeholder);
+  //DDLogDebug(@"Focused: %@ (%@)", @(_focused), self.placeholder);
 
   _focusView.borderColor = focused ? KBAppearance.currentAppearance.selectColor : KBAppearance.currentAppearance.lineColor;
   [self.focusDelegate textField:self didChangeFocus:focused];
@@ -147,7 +147,7 @@
 
 + (BOOL)isFocused:(NSTextField *)textField {
   BOOL isFocused = [(NSTextField *)[textField.cell controlView] currentEditor] != nil && [textField.window isKeyWindow];
-  //GHDebug(@"Check focused: %@, %@", textField.placeholderString, @(isFocused));
+  //DDLogDebug(@"Check focused: %@, %@", textField.placeholderString, @(isFocused));
   return isFocused;
 
   /*
@@ -160,7 +160,7 @@
    BOOL isSelf = (firstResponder == self);
    NSString *description = [firstResponder description];
    if ([firstResponder respondsToSelector:@selector(placeholderString)]) description = [firstResponder placeholderString];
-   //GHDebug(@"[%@] First responder: %@ (%@); %@", reason, firstResponder, description, @(isSelf));
+   //DDLogDebug(@"[%@] First responder: %@ (%@); %@", reason, firstResponder, description, @(isSelf));
    return isSelf;
    */
 }

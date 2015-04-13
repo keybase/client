@@ -32,7 +32,7 @@
   _clipboardCopyButton.targetBlock = ^{
     [NSPasteboard.generalPasteboard clearContents];
     BOOL pasted = [NSPasteboard.generalPasteboard writeObjects:@[gself.proofText]];
-    GHDebug(@"Pasted? %@", @(pasted));
+    DDLogDebug(@"Pasted? %@", @(pasted));
   };
   [bottomView addSubview:_clipboardCopyButton];
 

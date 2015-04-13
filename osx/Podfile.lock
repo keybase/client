@@ -17,6 +17,14 @@ PODS:
   - AFNetworking/Reachability (2.5.2)
   - AFNetworking/Security (2.5.2)
   - AFNetworking/Serialization (2.5.2)
+  - CocoaLumberjack (2.0.0):
+    - CocoaLumberjack/Default (= 2.0.0)
+    - CocoaLumberjack/Extensions (= 2.0.0)
+  - CocoaLumberjack/Core (2.0.0)
+  - CocoaLumberjack/Default (2.0.0):
+    - CocoaLumberjack/Core
+  - CocoaLumberjack/Extensions (2.0.0):
+    - CocoaLumberjack/Default
   - GHKit (1.0.21)
   - GRUnit (1.1.3)
   - KBKeybase (0.1.11):
@@ -55,6 +63,7 @@ PODS:
 
 DEPENDENCIES:
   - AFNetworking
+  - CocoaLumberjack
   - GHKit
   - GRUnit
   - KBKeybase
@@ -69,6 +78,7 @@ DEPENDENCIES:
 
 SPEC CHECKSUMS:
   AFNetworking: fefbce9660acb17f48ae0011292d4da0f457bf36
+  CocoaLumberjack: a6f77d987d65dc7ba86b0f84db7d0b9084f77bcb
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
   GRUnit: 3a60546a0d42bc0edb83c4e755f9620517cd7af7
   KBKeybase: 4de64ab1f918343bb6a9cf66b0faa65b02d165f7

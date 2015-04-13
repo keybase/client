@@ -48,7 +48,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
     NSAssert(requestParams.s.fd == self.label, @"Invalid file descriptor");
     NSError *error = nil;
     NSData *data = [self.reader read:requestParams.sz error:&error];
-    //GHDebug(@"Read: %@, %@", @(requestParams.sz), @(data.length));
+    //DDLogDebug(@"Read: %@, %@", @(requestParams.sz), @(data.length));
     dispatch_async(dispatch_get_main_queue(), ^{
       if (error) {
         completion(error, nil);
@@ -65,7 +65,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     KBRWriteRequestParams *requestParams = [[KBRWriteRequestParams alloc] initWithParams:params];
     NSAssert(requestParams.s.fd == self.label, @"Invalid file descriptor");
-    //GHDebug(@"Write (%@)", @(requestParams.buf.length));
+    //DDLogDebug(@"Write (%@)", @(requestParams.buf.length));
     //[fileHandleOut writeData:requestParams.buf];
     NSError *error = nil;
     NSInteger numBytes = requestParams.buf.length > 0 ? [self.writer write:requestParams.buf.bytes maxLength:requestParams.buf.length error:&error] : 0;

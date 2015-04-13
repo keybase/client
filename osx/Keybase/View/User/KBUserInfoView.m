@@ -59,7 +59,7 @@
     }
   }
   if (!updated) {
-    GHDebug(@"Proof result not found: %@", proofResult);
+    DDLogDebug(@"Proof result not found: %@", proofResult);
   }
   return updated;
 }
@@ -96,7 +96,7 @@
 - (void)addCryptocurrency:(KBRCryptocurrency *)cryptocurrency targetBlock:(void (^)(KBRCryptocurrency *cryptocurrency))targetBlock {
   KBUserInfoLabels *label = [[KBUserInfoLabels alloc] init];
   [label addCryptocurrency:cryptocurrency targetBlock:^(id sender, KBRCryptocurrency *proofResult) {
-    GHDebug(@"Selected: %@", cryptocurrency);
+    DDLogDebug(@"Selected: %@", cryptocurrency);
     targetBlock(cryptocurrency);
   }];
   [self addLabels:@[label]];

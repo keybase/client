@@ -73,7 +73,7 @@
   [self.delegate searchControl:self progressEnabled:YES];
 
   GHWeakSelf gself = self;
-  GHDebug(@"Search (delay=%@): q=%@", @(delay), searchText);
+  DDLogDebug(@"Search (delay=%@): q=%@", @(delay), searchText);
 
   BOOL disableProgressWhenFinished = delay;
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

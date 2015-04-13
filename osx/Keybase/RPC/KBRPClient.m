@@ -77,7 +77,7 @@
   
   GHWeakSelf gself = self;
   _client.requestHandler = ^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    //GHDebug(@"Received request: %@(%@)", method, [params join:@", "]);
+    //DDLogDebug(@"Received request: %@(%@)", method, [params join:@", "]);
 
     id sessionId = [[params lastObject] objectForKey:@"sessionID"];
 
@@ -93,21 +93,21 @@
     if (requestHandler) {
       requestHandler(messageId, method, params, completion);
     } else {
-      GHDebug(@"No handler for request: %@", method);
+      DDLogDebug(@"No handler for request: %@", method);
       completion(KBMakeError(-1, @"Method not found: %@", method), nil);
     }
   };
 
   _client.coder = [[KBRPCCoder alloc] init];
 
-  GHDebug(@"Connecting to keybased (%@)...", self.socketPath);
+  DDLogDebug(@"Connecting to keybased (%@)...", self.socketPath);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
   [_client openWithSocket:self.socketPath completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
-      GHDebug(@"Error connecting to keybased: %@", error);
+      DDLogDebug(@"Error connecting to keybased: %@", error);
       if (!gself.autoRetryDisabled) {
         // Retry
         [self openAfterDelay:2];
@@ -118,7 +118,7 @@
       return;
     }
 
-    GHDebug(@"Connected");
+    DDLogDebug(@"Connected");
     gself.connectAttempt = 1;
     gself.status = KBRPClientStatusOpen;
     [self.delegate RPClientDidConnect:self];
@@ -173,7 +173,7 @@
   [_client sendRequestWithMethod:method params:params messageId:sessionId completion:^(NSError *error, id result) {
     [self unregister:sessionId];
     if (error) {
-      GHDebug(@"Error: %@", error);
+      DDLogDebug(@"Error: %@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
 
       NSString *name = errorInfo[@"name"];
@@ -189,7 +189,7 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    //GHDebug(@"Result: %@", result);
+    //DDLogDebug(@"Result: %@", result);
     completion(error, result);
   }];
 
@@ -197,7 +197,7 @@
   mparams[0] = KBScrubPassphrase(params[0]);
 
   //NSNumber *messageId = request[1];
-  GHDebug(@"Sent request: %@", method); //mparams
+  DDLogDebug(@"Sent request: %@", method); //mparams
   if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
     [self.recorder recordRequest:method params:[_client encodeObject:params] sessionId:sessionId callback:NO];
   }
@@ -250,7 +250,7 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 #pragma mark -
 
 - (void)client:(MPMessagePackClient *)client didError:(NSError *)error fatal:(BOOL)fatal {
-  GHDebug(@"Error (fatal=%d): %@", fatal, error);
+  DDLogDebug(@"Error (fatal=%d): %@", fatal, error);
 }
 
 - (void)client:(MPMessagePackClient *)client didChangeStatus:(MPMessagePackClientStatus)status {
@@ -264,7 +264,7 @@ NSDictionary *KBScrubPassphrase(NSDictionary *dict) {
 }
 
 - (void)client:(MPMessagePackClient *)client didReceiveNotificationWithMethod:(NSString *)method params:(id)params {
-  GHDebug(@"Notification: %@(%@)", method, [params join:@","]);
+  DDLogDebug(@"Notification: %@(%@)", method, [params join:@","]);
 }
 
 @end

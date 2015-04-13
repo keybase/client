@@ -177,7 +177,7 @@
 }
 
 - (void)controlTextDidChange:(NSNotification *)notification {
-  //GHDebug(@"Change: %@", [[self editingToken:@""] gh_strip]);
+  //DDLogDebug(@"Change: %@", [[self editingToken:@""] gh_strip]);
   [_searchControl textDidChange:[[self editingToken:@""] gh_strip]];
   [self.viewLayout setNeedsLayout];
   [self.delegate userPickerViewDidUpdate:self];
@@ -192,7 +192,7 @@
 }
 
 - (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
-  //GHDebug(@"Command: %@, (%@)", NSStringFromSelector(commandSelector), [_tokensField objectValue]);
+  //DDLogDebug(@"Command: %@, (%@)", NSStringFromSelector(commandSelector), [_tokensField objectValue]);
 
   if (commandSelector == @selector(insertNewline:)) {
     return NO; // No means let the token field handle it
@@ -213,7 +213,7 @@
     if ([_searchResultsView nextRowDown] != NSNotFound) {
       if (_searchResultsView.view.selectedRow < 0) {
         _previousValue = [self editingToken:nil];
-        GHDebug(@"Previous value: %@", _previousValue);
+        DDLogDebug(@"Previous value: %@", _previousValue);
       }
       [_searchResultsView moveDown:self];
       KBRUserSummary *searchResult = _searchResultsView.selectedObject;

@@ -26,6 +26,7 @@
 #import "KBPGPVerifyView.h"
 #import "KBPGPVerifyFileView.h"
 #import "KBEnvSelectView.h"
+#import "KBLogFormatter.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -45,6 +46,17 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  DDTTYLogger.sharedInstance.logFormatter = [[KBLogFormatter alloc] init];
+  [DDLog addLogger:DDTTYLogger.sharedInstance withLevel:DDLogLevelDebug]; // Xcode output
+
+  [NSUserDefaults.standardUserDefaults registerDefaults:
+   @{
+     @"Preferences.Log.Level": @(DDLogLevelError),
+    }];
+
+  _preferences = [[KBPreferences alloc] init];
+  [self configureConsoleLog];
+
   [KBAppearance setCurrentAppearance:KBAppearance.lightAppearance];
 
   [KBButton setErrorHandler:^(KBButton *button, NSError *error) {
@@ -60,7 +72,7 @@
   // Network reachability is a diagnostic tool that can be used to understand why a request might have failed.
   // It should not be used to determine whether or not to make a request.
   [AFNetworkReachabilityManager.sharedManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-    GHDebug(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
+    DDLogDebug(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status));
     [gself.consoleView log:NSStringWithFormat(@"Reachability: %@", AFStringFromNetworkReachabilityStatus(status))];
   }];
   [AFNetworkReachabilityManager.sharedManager startMonitoring];
@@ -69,12 +81,23 @@
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
   KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 380) retain:YES];
   envSelectView.onSelect = ^(KBRPClientEnv env) {
+#ifdef DEBUG
+    if (env != KBRPClientEnvManual) {
+      KBDebugAlertModal(@"Running in debug mode, you should select Manual.");
+      return;
+    }
+#endif
     [window close];
     [self openWithEnv:env];
   };
   window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
   [window center];
   [window makeKeyAndOrderFront:nil];
+}
+
+- (void)configureConsoleLog {
+  [DDLog removeLogger:DDASLLogger.sharedInstance];
+  [DDLog addLogger:DDASLLogger.sharedInstance withLevel:[[_preferences valueForIdentifier:@"Preferences.Log.Level"] unsignedIntegerValue]]; // Console log
 }
 
 - (void)openWithEnv:(KBRPClientEnv)env {
@@ -100,7 +123,6 @@
 
   KBRPClient *client = [[KBRPClient alloc] initWithEnv:env];
   [_appView connect:client];
-
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -142,7 +164,6 @@
 }
 
 - (IBAction)preferences:(id)sender {
-  if (!_preferences) _preferences = [[KBPreferences alloc] init];
   [_preferences open:_appView.config.configPath sender:_appView];
 }
 
@@ -290,10 +311,10 @@
     return;
   }
 
-  GHErr(@"Error: %@", error);
+  DDLogError(@"Error: %@", error);
 
   if (_alerting) {
-    GHDebug(@"Already showing error (%@)", error);
+    DDLogDebug(@"Already showing error (%@)", error);
     return;
   }
 

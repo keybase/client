@@ -128,8 +128,6 @@
   [_views addObject:view];
   if ([view respondsToSelector:@selector(setNavigation:)]) {
     [view setNavigation:self];
-  } else {
-    GHDebug(@"View (%@) doesn't have a navigation property", NSStringFromClass(view.class));
   }
 }
 

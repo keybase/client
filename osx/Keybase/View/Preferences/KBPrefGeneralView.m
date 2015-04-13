@@ -35,12 +35,12 @@
     KBPrefPopUpView *updateCheckInterval = [[KBPrefPopUpView alloc] init];
     updateCheckInterval.inset = 170;
     updateCheckInterval.fieldWidth = 150;
-    NSArray *options = @[[KBPrefOption prefOptionWithLabel:@"Hour" value:@(3600)],
-                         [KBPrefOption prefOptionWithLabel:@"Day" value:@(86400)],
-                         [KBPrefOption prefOptionWithLabel:@"Week" value:@(604800)],
-                         [KBPrefOption prefOptionWithLabel:@"Month" value:@(2629800)],
-                         ];
-    [updateCheckInterval setLabelText:@"Check Every" options:options identifier:@"Preferences.Sparkle.CheckInterval" preferences:self];
+    NSArray *udpateCheckOptions = @[[KBPrefOption prefOptionWithLabel:@"Hour" value:@(3600)],
+                                    [KBPrefOption prefOptionWithLabel:@"Day" value:@(86400)],
+                                    [KBPrefOption prefOptionWithLabel:@"Week" value:@(604800)],
+                                    [KBPrefOption prefOptionWithLabel:@"Month" value:@(2629800)],
+                                    ];
+    [updateCheckInterval setLabelText:@"Check Every" options:udpateCheckOptions identifier:@"Preferences.Sparkle.CheckInterval" preferences:self];
     [self addSubview:updateCheckInterval];
 
     KBPrefCheckbox *autoDownload = [[KBPrefCheckbox alloc] init];
@@ -50,6 +50,22 @@
     KBPrefCheckbox *sendsProfile = [[KBPrefCheckbox alloc] init];
     [sendsProfile setLabelText:@"Sends system profile" identifier:@"Preferences.Sparkle.SendsProfile" preferences:self];
     [self addSubview:sendsProfile];
+
+    [self addSubview:[KBBox spacing:10]];
+
+    KBPrefPopUpView *logLevel = [[KBPrefPopUpView alloc] init];
+    logLevel.inset = 0;
+    logLevel.labelWidth = 140;
+    logLevel.fieldWidth = 150;
+    NSArray *logLevelOptions = @[[KBPrefOption prefOptionWithLabel:@"Verbose" value:@(DDLogLevelVerbose)],
+                                 [KBPrefOption prefOptionWithLabel:@"Debug" value:@(DDLogLevelDebug)],
+                                 [KBPrefOption prefOptionWithLabel:@"Info" value:@(DDLogLevelInfo)],
+                                 [KBPrefOption prefOptionWithLabel:@"Warn" value:@(DDLogLevelWarning)],
+                                 [KBPrefOption prefOptionWithLabel:@"Error" value:@(DDLogLevelError)],
+                                 [KBPrefOption prefOptionWithLabel:@"Off" value:@(DDLogLevelOff)],
+                                 ];
+    [logLevel setLabelText:@"Logging" options:logLevelOptions identifier:@"Preferences.Log.Level" preferences:preferences];
+    [self addSubview:logLevel];
   }
   return self;
 }
@@ -146,7 +162,7 @@
     } else if (!loginEnabled && itemRef) {
       OSStatus status = LSSharedFileListItemRemove(loginItems, itemRef);
       if (status != noErr) {
-        GHErr(@"Error removing item: %@", @(status));
+        DDLogError(@"Error removing login item: %@", @(status));
       }
     }
   }];

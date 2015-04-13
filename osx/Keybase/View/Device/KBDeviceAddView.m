@@ -86,7 +86,7 @@
 
   [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRKexStatusRequestParams *requestParams = [[KBRKexStatusRequestParams alloc] initWithParams:params];
-    GHDebug(@"Kex status: %@", requestParams.msg);
+    DDLogDebug(@"Kex status: %@", requestParams.msg);
     completion(nil, nil);
   }];
 

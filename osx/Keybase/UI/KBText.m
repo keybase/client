@@ -9,6 +9,7 @@
 #import "KBText.h"
 
 #import <Slash/Slash.h>
+#import <CocoaLumberjack/CocoaLumberjack.h>
 #import "KBAppearance.h"
 
 @implementation KBText
@@ -90,7 +91,7 @@
   NSError *error = nil;
   NSAttributedString *str = [[SLSMarkupParser attributedStringWithMarkup:markup style:style error:&error] mutableCopy];
   if (!str) {
-    GHDebug(@"Unable to parse markup: %@; %@", markup, error);
+    DDLogError(@"Unable to parse markup: %@; %@", markup, error);
     str = [[NSMutableAttributedString alloc] initWithString:markup attributes:defaultStyle];
   }
   return str;

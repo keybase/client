@@ -100,6 +100,12 @@
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
+
+  [contentView addSubview:[KBLabel labelWithText:@"Logging" style:KBTextStyleHeader]];
+
+  [contentView addSubview:[KBButton linkWithText:@"Error" targetBlock:^{ DDLogError(@"Error!"); }]];
+  [contentView addSubview:[KBButton linkWithText:@"Debug" targetBlock:^{ DDLogDebug(@"Debug!"); }]];
+
   [self setDocumentView:contentView];
 }
 
@@ -164,7 +170,7 @@
   [selectView.keysView setGPGKeys:requestParams.keys];
   __weak KBKeySelectView *gselectView = selectView;
   selectView.selectButton.targetBlock = ^{
-    GHDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
+    DDLogDebug(@"Selected key: %@", gselectView.keysView.selectedGPGKey.keyID);
   };
   selectView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:selectView size:CGSizeMake(600, 400) title:nil];

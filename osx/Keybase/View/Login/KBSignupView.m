@@ -222,7 +222,7 @@
     if (error.code == 701) {
       [gself.usernameStatusLabel setText:@"Already taken" font:[NSFont systemFontOfSize:12] color:[KBAppearance.currentAppearance errorColor] alignment:NSRightTextAlignment];
     } else if (error) {
-      GHErr(@"Error: %@", error);
+      DDLogError(@"Error checking username: %@", error);
       gself.usernameStatusLabel.attributedText = nil;
       [self setNeedsLayout];
       return;

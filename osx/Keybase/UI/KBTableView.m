@@ -225,9 +225,7 @@
   NSInteger lastRowIndex = [_dataSource countForSection:0] - 1;
   if (lastRowIndex < 0) return YES;
   NSRect lastRowRect = [_view rectOfRow:lastRowIndex];
-  //GHDebug(@"Last row rect: %@", YONSStringFromCGRect(lastRowRect));
-  //GHDebug(@"Doc visible rect: %@", YONSStringFromCGRect(_scrollView.documentVisibleRect));
-
+  
   if (_scrollView.contentSize.height <= _scrollView.frame.size.height) return YES;
 
   CGFloat bottom = _scrollView.documentVisibleRect.origin.y + _scrollView.documentVisibleRect.size.height;

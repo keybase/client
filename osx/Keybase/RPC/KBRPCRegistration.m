@@ -23,7 +23,6 @@
 - (void)registerMethod:(NSString *)method requestHandler:(MPRequestHandler)requestHandler {
   if (!_registrations) _registrations = [NSMapTable strongToStrongObjectsMapTable];
 
-  //GHDebug(@"Registering %@", method);
   NSAssert(![_registrations objectForKey:method], @"Method already registered");
 
   NSMapTable *registration = [NSMapTable strongToStrongObjectsMapTable];

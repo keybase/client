@@ -55,11 +55,11 @@
   };
   [buttons addSubview:_toggleButton];
 
-  KBButton *mocks = [KBButton buttonWithText:@"Mocks" style:KBButtonStyleLink];
+  KBButton *mocks = [KBButton buttonWithText:@"Debug" style:KBButtonStyleLink];
   mocks.padding = CGSizeMake(0, 7);
   mocks.targetBlock = ^{
     KBMockViews *mockViews = [[KBMockViews alloc] init];
-    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Mocks" fixed:NO errorHandler:nil];
+    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO errorHandler:nil];
   };
   [buttons addSubview:mocks];
 

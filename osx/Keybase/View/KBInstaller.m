@@ -89,7 +89,7 @@
   task.standardOutput = nil;
   task.standardError = nil;
   task.terminationHandler = ^(NSTask *t) {
-    GHDebug(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
+    DDLogDebug(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
   };
   [task launch];
 }
