@@ -1141,7 +1141,9 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 						rId, rblock, true); err != nil {
 						return Path{}, err
 					}
-					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
+					fblock.IPtrs[i].Size = uint32(len(block.Contents))
+					fblock.IPtrs[i+1].Off = ptr.Off + int64(fblock.IPtrs[i].Size)
+					fblock.IPtrs[i+1].Size = uint32(len(rblock.Contents))
 				case splitAt < 0:
 					if !more {
 						// end of the line
@@ -1158,13 +1160,14 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 					nCopied := bsplit.CopyUntilSplit(block, false,
 						rblock.Contents, int64(len(block.Contents)))
 					rblock.Contents = rblock.Contents[nCopied:]
+					fblock.IPtrs[i].Size = uint32(len(block.Contents))
 					if len(rblock.Contents) > 0 {
 						if err := fs.config.BlockCache().Put(
 							rId, rblock, true); err != nil {
 							return Path{}, err
 						}
-						fblock.IPtrs[i+1].Off =
-							ptr.Off + int64(len(block.Contents))
+						fblock.IPtrs[i+1].Off = ptr.Off + int64(fblock.IPtrs[i].Size)
+						fblock.IPtrs[i+1].Size = uint32(len(rblock.Contents))
 					} else {
 						// TODO: delete the block, and if we're down to just
 						// one indirect block, remove the layer of indirection
