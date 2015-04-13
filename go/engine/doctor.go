@@ -173,6 +173,19 @@ func (e *Doctor) status(ctx *Context) {
 			uistatus.WebDevice = &dev
 		}
 	}
+	kf := e.user.GetComputedKeyFamily()
+	if kf != nil {
+		cd, err := kf.GetCurrentDevice(e.G())
+		if err == nil {
+			uistatus.CurrentDevice = &keybase_1.Device{
+				DeviceID: cd.Id,
+				Type:     cd.Type,
+			}
+			if cd.Description != nil {
+				uistatus.CurrentDevice.Name = *cd.Description
+			}
+		}
+	}
 
 	// get list of pgp keys
 

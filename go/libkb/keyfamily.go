@@ -926,6 +926,24 @@ func (ckf *ComputedKeyFamily) GetActiveSibkeyKidForCurrentDevice(g *GlobalContex
 	return kid, err
 }
 
+// GetCurrentDevice returns the current device.
+func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error) {
+	if g == nil {
+		g = &G
+	}
+	did := g.Env.GetDeviceID()
+	if did == nil {
+		return nil, NotProvisionedError{}
+	}
+
+	dev, ok := ckf.cki.Devices[did.String()]
+	if !ok {
+		return nil, NotFoundError{}
+	}
+
+	return dev, nil
+}
+
 // GetEncryptionSubkeyForDevice gets the current encryption subkey for the given
 // device.  Note that many devices might share an encryption public key but
 // might have different secret keys.

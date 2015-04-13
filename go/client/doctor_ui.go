@@ -70,8 +70,7 @@ func (d DoctorUI) DisplayStatus(status keybase_1.DoctorStatus) (bool, error) {
 		}
 	}
 	if status.CurrentDevice != nil {
-		dev := status.CurrentDevice
-		d.parent.Printf("current device: %s\t%s\t[%s]\n", dev.Name, dev.Type, dev.DeviceID)
+		d.parent.Printf("current device: %s\t%s\t[%s]\n", status.CurrentDevice.Name, status.CurrentDevice.Type, status.CurrentDevice.DeviceID)
 	}
 
 	if status.Fix == keybase_1.DoctorFixType_NONE {
