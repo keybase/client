@@ -136,9 +136,9 @@
 
   NSAssert(self.client, @"No RPC client");
   KBRPClient * client = self.client;
-  KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:client];
+  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:client];
 
-  [client registerMethod:@"keybase.1.locksmithUi.promptDeviceName" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.locksmithUi.promptDeviceName" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //KBRPromptDeviceNameRequestParams *requestParams = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
@@ -149,13 +149,13 @@
     [self.navigation pushView:devicePromptView animated:YES];
   }];
 
-  [client registerMethod:@"keybase.1.locksmithUi.selectSigner" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.locksmithUi.selectSigner" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     [self selectSigner:requestParams completion:completion];
   }];
 
-  [self.client registerMethod:@"keybase.1.locksmithUi.displaySecretWords" sessionId:login.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.locksmithUi.displaySecretWords" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplaySecretWordsRequestParams *requestParams = [[KBRDisplaySecretWordsRequestParams alloc] initWithParams:params];
 
     [self.navigation setProgressEnabled:NO];
@@ -173,7 +173,7 @@
   [self.navigation setProgressEnabled:YES];
   [self.navigation.titleView setProgressEnabled:YES];
 
-  [login passphraseLoginWithIdentify:false username:username passphrase:passphrase completion:^(NSError *error) {
+  [request loginWithPassphraseWithSessionID:request.sessionId username:username passphrase:passphrase storeSecret:NO completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {

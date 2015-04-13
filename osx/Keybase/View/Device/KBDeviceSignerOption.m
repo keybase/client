@@ -15,7 +15,7 @@
   option.signerType = KBDeviceSignerTypeDevice;
   option.identifier = identifier;
   option.title = name;
-  option.info = @"Use this computer to get an authentication token.";
+  option.info = NSStringWithFormat(@"Use the device named %@ to authorize this installation.", name);
   option.imageURLString = @"bundle://30-Hardware-black-computer-30";
   return option;
 }

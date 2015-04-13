@@ -134,6 +134,39 @@
 
 @end
 
+@interface KBRDoctorRequest : KBRRequest
+- (void)doctorWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
+
+@end
+
+typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
+	KBRDoctorFixTypeNone,
+	KBRDoctorFixTypeAddEldestDevice,
+	KBRDoctorFixTypeAddSiblingDevice,
+};
+@interface KBRDoctorSignerOpts : KBRObject
+@property BOOL otherDevice;
+@property BOOL pgp;
+@property BOOL internal;
+@end
+
+@interface KBRDoctorStatus : KBRObject
+@property KBRDoctorFixType fix;
+@property KBRDoctorSignerOpts *signerOpts;
+@property NSArray *devices; /*of KBRDevice*/
+@property KBRDevice *webDevice;
+@property KBRDevice *currentDevice;
+@end
+
+@interface KBRDoctorUiRequest : KBRRequest
+- (void)loginSelectWithSessionID:(NSInteger)sessionID currentUser:(NSString *)currentUser otherUsers:(NSArray *)otherUsers completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)displayStatusWithSessionID:(NSInteger)sessionID status:(KBRDoctorStatus *)status completion:(void (^)(NSError *error, BOOL b))completion;
+
+- (void)displayResultWithSessionID:(NSInteger)sessionID message:(NSString *)message completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRGPGKey : KBRObject
 @property NSString *algorithm;
 @property NSString *keyID;
@@ -354,17 +387,17 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @end
 
 @interface KBRLoginRequest : KBRRequest
-- (void)passphraseLoginWithIdentify:(BOOL)identify username:(NSString *)username passphrase:(NSString *)passphrase completion:(void (^)(NSError *error))completion;
+- (void)loginWithPromptWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;
 
-- (void)pubkeyLogin:(void (^)(NSError *error))completion;
+- (void)loginWithStoredSecretWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;
+
+- (void)loginWithPassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username passphrase:(NSString *)passphrase storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error))completion;
+
+- (void)cancelLogin:(void (^)(NSError *error))completion;
 
 - (void)logout:(void (^)(NSError *error))completion;
 
 - (void)reset:(void (^)(NSError *error))completion;
-
-- (void)switchUserWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
-
-- (void)cancelLogin:(void (^)(NSError *error))completion;
 
 @end
 
@@ -494,6 +527,8 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 @interface KBRRevokeRequest : KBRRequest
 - (void)revokeWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb isDevice:(BOOL)isDevice completion:(void (^)(NSError *error))completion;
+
+- (void)revokeSigsWithSessionID:(NSInteger)sessionID ids:(NSArray *)ids seqnos:(NSArray *)seqnos completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -698,6 +733,22 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRDeviceAddRequestParams : KBRRequestParams
 @property NSString *secretPhrase;
 @end
+@interface KBRDoctorRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRLoginSelectRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *currentUser;
+@property NSArray *otherUsers;
+@end
+@interface KBRDisplayStatusRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property KBRDoctorStatus *status;
+@end
+@interface KBRDisplayResultRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *message;
+@end
 @interface KBRWantToAddGPGKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -782,13 +833,19 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRLogLevel level;
 @property KBRText *text;
 @end
-@interface KBRPassphraseLoginRequestParams : KBRRequestParams
-@property BOOL identify;
+@interface KBRLoginWithPromptRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
+@interface KBRLoginWithStoredSecretRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
+@interface KBRLoginWithPassphraseRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property NSString *username;
 @property NSString *passphrase;
-@end
-@interface KBRSwitchUserRequestParams : KBRRequestParams
-@property NSString *username;
+@property BOOL storeSecret;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -894,6 +951,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @property NSString *id;
 @property BOOL isDevice;
+@end
+@interface KBRRevokeSigsRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *ids;
+@property NSArray *seqnos;
 @end
 @interface KBRGetSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;

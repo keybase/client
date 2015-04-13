@@ -194,7 +194,7 @@
 @end
 
 @implementation KBRDoctorStatus
-+ (NSValueTransformer *)devicesJSONTransformer { return [NSValueTransformer mtl_JSONArrayTransformerWithModelClass:KBRDevice.class]; }
++ (NSValueTransformer *)devicesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRDevice.class]; }
 @end
 
 @implementation KBRDoctorUiRequest
