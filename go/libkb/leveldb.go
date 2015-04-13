@@ -2,19 +2,20 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/syndtr/goleveldb/leveldb"
 	"os"
 	"sync"
+
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 type LevelDb struct {
 	db       *leveldb.DB
 	filename string
-	mutex    *sync.Mutex
+	mutex    sync.Mutex
 }
 
 func NewLevelDb() *LevelDb {
-	return &LevelDb{nil, "", new(sync.Mutex)}
+	return &LevelDb{}
 }
 
 // Explicit open does nothing we'll wait for a lazy open
@@ -31,6 +32,13 @@ func (l *LevelDb) open() error {
 		l.db, err = leveldb.OpenFile(fn, nil)
 	}
 	return err
+}
+
+// ForceOpen opens the leveldb file.  This is used in situations
+// where we want to get around the lazy open and make sure we can
+// use it later.
+func (l *LevelDb) ForceOpen() error {
+	return l.open()
 }
 
 func (l *LevelDb) GetFilename() string {

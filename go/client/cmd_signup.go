@@ -92,6 +92,10 @@ func (s *CmdSignupState) RunClient() error {
 
 func (s *CmdSignupState) Run() error {
 	G.Log.Debug("| Standalone mode")
+	// try to use the localdb right now instead of failing to use it later...
+	if err := G.LocalDb.ForceOpen(); err != nil {
+		return err
+	}
 	s.engine = engine.NewSignupEngine(nil)
 	return s.run()
 }

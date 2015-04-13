@@ -38,6 +38,7 @@ type JsonLocalDb struct {
 
 func NewJsonLocalDb(e LocalDb) *JsonLocalDb { return &JsonLocalDb{e} }
 func (j *JsonLocalDb) Open() error          { return j.engine.Open() }
+func (j *JsonLocalDb) ForceOpen() error     { return j.engine.ForceOpen() }
 func (j *JsonLocalDb) Close() error         { return j.engine.Close() }
 func (j *JsonLocalDb) Nuke() error          { return j.engine.Nuke() }
 
