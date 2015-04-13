@@ -304,19 +304,35 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 			node = rNode.Inode().NewChild(name, true, fNode)
 		} else {
 			md, err := f.config.KBFSOps().GetRootMDForHandle(dirHandle)
-			if err != nil {
+			var fNode *FuseNode
+			if _, ok :=
+				err.(*libkbfs.ReadAccessError); ok && dirHandle.HasPublic() {
+				// This user cannot get the metadata for the directory.
+				// But, if it has a public directory, we should still be
+				// able to list that public directory, right?  Make a fake
+				// node for it.
+				fNode = &FuseNode{
+					Node:      nodefs.NewDefaultNode(),
+					DirHandle: dirHandle,
+					PathNode: &libkbfs.PathNode{
+						libkbfs.BlockPointer{}, dirString},
+					Entry: &libkbfs.DirEntry{IsDir: true},
+					Ops:   f,
+				}
+			} else if err != nil {
 				return nil, f.TranslateError(err)
-			}
-			fNode := &FuseNode{
-				Node:      nodefs.NewDefaultNode(),
-				Dir:       md.Id,
-				DirHandle: dirHandle,
-				Entry:     &md.Data().Dir,
-				PathNode: &libkbfs.PathNode{
-					md.Data().Dir.BlockPointer,
-					dirString,
-				},
-				Ops: f,
+			} else {
+				fNode = &FuseNode{
+					Node:      nodefs.NewDefaultNode(),
+					Dir:       md.Id,
+					DirHandle: dirHandle,
+					Entry:     &md.Data().Dir,
+					PathNode: &libkbfs.PathNode{
+						md.Data().Dir.BlockPointer,
+						dirString,
+					},
+					Ops: f,
+				}
 			}
 
 			node = rNode.Inode().NewChild(name, true, fNode)

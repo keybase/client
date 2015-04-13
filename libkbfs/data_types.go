@@ -146,7 +146,7 @@ func (d *DirHandle) IsWriter(user libkb.UID) bool {
 }
 
 func (d *DirHandle) IsReader(user libkb.UID) bool {
-	return d.findUserInList(user, d.Readers) || d.IsWriter(user)
+	return d.IsPublic() || d.findUserInList(user, d.Readers) || d.IsWriter(user)
 }
 
 func resolveUids(config Config, uids UIDList) string {
