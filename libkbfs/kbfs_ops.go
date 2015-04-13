@@ -871,7 +871,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 					IPtrs: []IndirectFilePtr{
 						IndirectFilePtr{
 							BlockPointer{newId, md.LatestKeyId(),
-								fs.config.DataVersion(), user, 0}, 0},
+								fs.config.DataVersion(), user, uint32(len(block.Contents))}, 0},
 					},
 				}
 				if err := bcache.Put(
