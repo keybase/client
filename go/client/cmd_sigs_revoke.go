@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -16,6 +17,9 @@ type CmdSigsRevoke struct {
 }
 
 func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) == 0 {
+		return fmt.Errorf("No arguments given to sigs revoke.")
+	}
 	if ctx.Bool("seqno") {
 		for _, arg := range ctx.Args() {
 			num, err := strconv.ParseUint(arg, 10 /* base */, 32 /* size */)
