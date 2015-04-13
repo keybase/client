@@ -10,7 +10,7 @@
 
 #import "KBDeviceView.h"
 #import "AppDelegate.h"
-#import "KBSecretWordsInputView.h"
+#import "KBDeviceAddView.h"
 
 @interface KBDevicesAppView ()
 @property KBSplitView *splitView;
@@ -41,7 +41,12 @@
     [view setDevice:device];
   };
   _devicesView.onSelect = ^(id sender, NSIndexPath *indexPath, KBRUser *user) {
-    //[yself.userProfileView setUser:user editable:NO client:AppDelegate.client];
+
+  };
+  _devicesView.onMenuSelect  = ^(NSIndexPath *indexPath) {
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+    [menu addItemWithTitle:@"Remove" action:@selector(removeDevice:) keyEquivalent:@""];
+    return menu;
   };
   [devicesView addSubview:_devicesView];
 
@@ -80,27 +85,31 @@
   }];
 }
 
-- (void)addDevice {
-  KBSecretWordsInputView *view = [[KBSecretWordsInputView alloc] init];
-  view.client = self.client;
-  KBButton *closeButton = view.cancelButton;
-  [AppDelegate openSheetWithView:view size:CGSizeMake(500, 400) sender:self closeButton:closeButton];
+- (void)removeDevice:(id)sender {
+  NSIndexPath *indexPathToRemove = _devicesView.menuIndexPath;
+  if (!indexPathToRemove) return;
 
-  view.completion = ^(NSString *secretWords) {
-    if (!secretWords) {
-      closeButton.targetBlock();
+  KBRDevice *device = [_devicesView.dataSource objectAtIndexPath:indexPathToRemove];
+  if (!device) return;
+
+  KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
+  GHWeakSelf gself = self;
+  [request revokeWithSessionID:request.sessionId idKb:device.deviceID isDevice:YES completion:^(NSError *error) {
+    if (error) {
+      [AppDelegate setError:error sender:self];
       return;
     }
-    AppDelegate.appView.progressEnabled = YES;
-    KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
-    [request deviceAddWithSecretPhrase:secretWords completion:^(NSError *error) {
-      AppDelegate.appView.progressEnabled = NO;
-      if (error) {
-        [AppDelegate setError:error sender:self];
-        return;
-      }
-      closeButton.targetBlock();
-    }];
+
+    [gself.devicesView.dataSource removeObjectAtIndexPath:indexPathToRemove];
+    [gself.devicesView reloadData];
+  }];
+}
+- (void)addDevice {
+  KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
+  view.client = self.client;
+  dispatch_block_t close = [AppDelegate openSheetWithView:view size:CGSizeMake(500, 400) sender:self closeButton:view.cancelButton];
+  view.completion = ^(BOOL ok) {
+    close();
   };
 }
 

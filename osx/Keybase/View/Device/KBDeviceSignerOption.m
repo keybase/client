@@ -10,12 +10,12 @@
 
 @implementation KBDeviceSignerOption
 
-+ (instancetype)deviceWithIdentifier:(NSString *)identifier name:(NSString *)name {
++ (instancetype)deviceWithDevice:(KBRDevice *)device {
   KBDeviceSignerOption *option = [[KBDeviceSignerOption alloc] init];
   option.signerType = KBDeviceSignerTypeDevice;
-  option.identifier = identifier;
-  option.title = name;
-  option.info = NSStringWithFormat(@"Use the device named %@ to authorize this installation.", name);
+  option.device = device;
+  option.title = device.name;
+  option.info = NSStringWithFormat(@"Use the device named %@ to authorize this installation.", device.name);
   option.imageURLString = @"bundle://30-Hardware-black-computer-30";
   return option;
 }

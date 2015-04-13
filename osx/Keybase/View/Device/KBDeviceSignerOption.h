@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBDefines.h"
+#import "KBRPC.h"
 
 typedef NS_ENUM (NSInteger, KBDeviceSignerType) {
   KBDeviceSignerTypeDevice,
@@ -18,12 +19,14 @@ typedef NS_ENUM (NSInteger, KBDeviceSignerType) {
 @interface KBDeviceSignerOption : NSObject
 
 @property KBDeviceSignerType signerType;
-@property NSString *identifier;
+
+@property KBRDevice *device;
+
 @property NSString *title;
 @property NSString *info;
 @property NSString *imageURLString;
 
-+ (instancetype)deviceWithIdentifier:(NSString *)identifier name:(NSString *)name;
++ (instancetype)deviceWithDevice:(KBRDevice *)device;
 
 + (instancetype)PGP;
 

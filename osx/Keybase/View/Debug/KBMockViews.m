@@ -15,14 +15,14 @@
 #import "KBStyleGuideView.h"
 #import "KBTestClientView.h"
 #import "KBKeySelectView.h"
-#import "KBDeviceSetupView.h"
+#import "KBDeviceSetupChooseView.h"
 #import "KBRMockClient.h"
 #import "KBAppKit.h"
-#import "KBDevicePromptView.h"
+#import "KBDeviceSetupPromptView.h"
 #import "KBProgressView.h"
 #import "KBKeyImportView.h"
-#import "KBSecretWordsView.h"
-#import "KBSecretWordsInputView.h"
+#import "KBDeviceSetupDisplayView.h"
+#import "KBDeviceAddView.h"
 #import "KBPGPEncryptView.h"
 #import "KBPGPOutputView.h"
 #import "KBPGPEncryptFileView.h"
@@ -70,10 +70,10 @@
   [contentView addSubview:[KBButton linkWithText:@"Login" targetBlock:^{ [self showLogin]; }]];
   [contentView addSubview:[KBButton linkWithText:@"Signup" targetBlock:^{ [self showSignup]; }]];
 
-  [contentView addSubview:[KBButton linkWithText:@"Device Setup" targetBlock:^{ [self showDeviceSetupView]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Device Prompt" targetBlock:^{ [self showDevicePrompt]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Secret Words" targetBlock:^{ [self showSecretWords]; }]];
-  [contentView addSubview:[KBButton linkWithText:@"Secret Words (Input)" targetBlock:^{ [self showSecretWordsInput]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Setup (Prompt)" targetBlock:^{ [self showDeviceSetupPrompt]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Setup (Choose)" targetBlock:^{ [self showDeviceSetupChoose]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Setup (Display)" targetBlock:^{ [self showDeviceSetupDisplay]; }]];
+  [contentView addSubview:[KBButton linkWithText:@"Device Add" targetBlock:^{ [self showDeviceAdd]; }]];
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
@@ -176,16 +176,16 @@
   [self openInWindow:keyImportView size:CGSizeMake(600, 400) title:nil];
 }
 
-- (void)showSecretWords {
-  KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
+- (void)showDeviceSetupDisplay {
+  KBDeviceSetupDisplayView *secretWordsView = [[KBDeviceSetupDisplayView alloc] init];
   [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameExisting:@"Macbook (Work)" deviceNameToAdd:@"Macbook (Home)"];
   secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   [self openInWindow:secretWordsView size:CGSizeMake(600, 400) title:nil];
 }
 
-- (void)showSecretWordsInput {
-  KBSecretWordsInputView *view = [[KBSecretWordsInputView alloc] init];
-  view.completion = ^(NSString *words) {};
+- (void)showDeviceAdd {
+  KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
+  view.completion = ^(BOOL ok) {};
   [self openInWindow:view size:CGSizeMake(600, 400) title:nil];
 }
 
@@ -215,14 +215,14 @@
   KBLoginView *loginView = [[KBLoginView alloc] init];
   [self openInWindow:loginView size:CGSizeMake(800, 600) title:@"Keybase"];
 
-  KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
+  KBDeviceSetupPromptView *devicePromptView = [[KBDeviceSetupPromptView alloc] init];
 
-  KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
+  KBDeviceSetupDisplayView *secretWordsView = [[KBDeviceSetupDisplayView alloc] init];
   [secretWordsView setSecretWords:@"profit tiny dumb cherry explain poet" deviceNameExisting:@"Macbook (Work)" deviceNameToAdd:@"Macbook (Home)"];
 
   KBNavigationView *navigation = loginView.navigation;
   loginView.loginButton.targetBlock = ^{ [navigation pushView:devicePromptView animated:YES]; };
-  KBDeviceSetupView *deviceSetupView = [self deviceSetupView];
+  KBDeviceSetupChooseView *deviceSetupView = [self deviceSetupChooseView];
   devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) { [navigation pushView:deviceSetupView animated:YES]; };
   deviceSetupView.selectButton.targetBlock = ^{ [navigation pushView:secretWordsView animated:YES]; };
   secretWordsView.button.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
@@ -238,7 +238,15 @@
   [self openInWindow:signUpView size:CGSizeMake(800, 600) title:@"Keybase"];
 }
 
-- (KBDeviceSetupView *)deviceSetupView {
+- (void)showDeviceSetupPrompt {
+  KBDeviceSetupPromptView *devicePromptView = [[KBDeviceSetupPromptView alloc] init];
+  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
+    [[sender window] close];
+  };
+  [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:nil];
+}
+
+- (KBDeviceSetupChooseView *)deviceSetupChooseView {
   KBRDevice *device1 = [[KBRDevice alloc] init];
   device1.name = @"Macbook";
   device1.type = @"desktop";
@@ -247,22 +255,14 @@
   device2.name = @"Macbook (Work)";
   device2.type = @"desktop";
 
-  KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
+  KBDeviceSetupChooseView *deviceSetupView = [[KBDeviceSetupChooseView alloc] init];
   [deviceSetupView setDevices:@[device1, device2] hasPGP:YES];
   deviceSetupView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   return deviceSetupView;
 }
 
-- (void)showDeviceSetupView {
-  [self openInWindow:[self deviceSetupView] size:CGSizeMake(560, 420) title:nil];
-}
-
-- (void)showDevicePrompt {
-  KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
-  devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
-    [[sender window] close];
-  };
-  [self openInWindow:devicePromptView size:CGSizeMake(600, 400) title:nil];
+- (void)showDeviceSetupChoose {
+  [self openInWindow:[self deviceSetupChooseView] size:CGSizeMake(560, 420) title:nil];
 }
 
 - (void)showPGPEncrypt {

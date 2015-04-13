@@ -40,6 +40,7 @@ typedef NS_ENUM (NSInteger, KBNavigationTransitionType) {
 - (void)pushView:(NSView *)view animated:(BOOL)animated;
 
 - (void)popViewAnimated:(BOOL)animated;
+- (void)popToRootViewAnimated:(BOOL)animated;
 
 - (void)swapView:(NSView *)view animated:(BOOL)animated;
 

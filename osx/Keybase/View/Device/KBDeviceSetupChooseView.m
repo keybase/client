@@ -1,17 +1,17 @@
 //
-//  KBDeviceSetupView.m
+//  KBDeviceSetupChooseView.m
 //  Keybase
 //
 //  Created by Gabriel on 2/18/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBDeviceSetupView.h"
+#import "KBDeviceSetupChooseView.h"
 
 #import "KBRPC.h"
 #import "KBDeviceSignerOption.h"
 
-@implementation KBDeviceSetupView
+@implementation KBDeviceSetupChooseView
 
 - (void)viewInit {
   [super viewInit];
@@ -55,7 +55,7 @@
 - (void)setDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP {
   NSMutableArray *deviceSignerOptions = [NSMutableArray array];
   for (KBRDevice *device in devices) {
-    [deviceSignerOptions addObject:[KBDeviceSignerOption deviceWithIdentifier:device.deviceID name:device.name]];
+    [deviceSignerOptions addObject:[KBDeviceSignerOption deviceWithDevice:device]];
   }
   if (hasPGP) [deviceSignerOptions addObject:[KBDeviceSignerOption PGP]];
 

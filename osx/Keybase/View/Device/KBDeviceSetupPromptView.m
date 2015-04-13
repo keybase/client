@@ -1,27 +1,25 @@
 //
-//  KBDevicePromptView.m
+//  KBDeviceSetupPromptView.m
 //  Keybase
 //
 //  Created by Gabriel on 3/2/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBDevicePromptView.h"
+#import "KBDeviceSetupPromptView.h"
 #import "AppDelegate.h"
 
-@interface KBDevicePromptView ()
+@interface KBDeviceSetupPromptView ()
 @property KBTextField *deviceNameField;
 @property KBButton *saveButton;
 @end
 
-@implementation KBDevicePromptView
+@implementation KBDeviceSetupPromptView
 
 - (void)viewInit {
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   
-  GHWeakSelf gself = self;
-
   YOView *contentView = [[YOView alloc] init];
   [self addSubview:contentView];
 
@@ -37,12 +35,14 @@
   _deviceNameField.placeholder = @"e.g. Macbook";
   [contentView addSubview:_deviceNameField];
 
+
+  YOView *bottomView = [[YOView alloc] init];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
+  [bottomView addSubview:_cancelButton];
   _saveButton = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
-  _saveButton.targetBlock = ^{
-    [gself save];
-  };
-  [_saveButton setKeyEquivalent:@"\r"];
-  [contentView addSubview:_saveButton];
+  [bottomView addSubview:_saveButton];
+  [contentView addSubview:bottomView];
+  bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_saveButton cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
 
   YOSelf yself = self;
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {

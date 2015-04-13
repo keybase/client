@@ -10,12 +10,12 @@
 #import "KBAppKit.h"
 #import "KBContentView.h"
 
-typedef void (^KBSecretWordsCompletion)(NSString *secretWords);
+typedef void (^KBDeviceAddCompletion)(BOOL ok);
 
-@interface KBSecretWordsInputView : KBContentView
+@interface KBDeviceAddView : KBContentView
 
 @property (readonly) KBTextView *inputField;
-@property (copy) KBSecretWordsCompletion completion;
+@property (copy) KBDeviceAddCompletion completion;
 @property KBButton *cancelButton;
 
 @end

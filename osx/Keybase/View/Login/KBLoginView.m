@@ -8,9 +8,9 @@
 
 #import "KBLoginView.h"
 #import "AppDelegate.h"
-#import "KBDeviceSetupView.h"
-#import "KBDevicePromptView.h"
-#import "KBSecretWordsView.h"
+#import "KBDeviceSetupChooseView.h"
+#import "KBDeviceSetupPromptView.h"
+#import "KBDeviceSetupDisplayView.h"
 
 @interface KBLoginView ()
 @property KBSecureTextField *passwordField;
@@ -141,7 +141,10 @@
   [client registerMethod:@"keybase.1.locksmithUi.promptDeviceName" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //KBRPromptDeviceNameRequestParams *requestParams = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
-    KBDevicePromptView *devicePromptView = [[KBDevicePromptView alloc] init];
+    KBDeviceSetupPromptView *devicePromptView = [[KBDeviceSetupPromptView alloc] init];
+    devicePromptView.cancelButton.targetBlock = ^{
+      [self deviceAddCancel];
+    };
     devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
       [self.navigation setProgressEnabled:YES];
       completion(error, deviceName);
@@ -159,15 +162,15 @@
     KBRDisplaySecretWordsRequestParams *requestParams = [[KBRDisplaySecretWordsRequestParams alloc] initWithParams:params];
 
     [self.navigation setProgressEnabled:NO];
-    KBSecretWordsView *secretWordsView = [[KBSecretWordsView alloc] init];
-    [secretWordsView setSecretWords:requestParams.secret deviceNameExisting:requestParams.deviceNameExisting deviceNameToAdd:requestParams.deviceNameToAdd];
-    secretWordsView.button.targetBlock = ^{
+    KBDeviceSetupDisplayView *deviceSetupDisplayView = [[KBDeviceSetupDisplayView alloc] init];
+    [deviceSetupDisplayView setSecretWords:requestParams.secret deviceNameExisting:requestParams.deviceNameExisting deviceNameToAdd:requestParams.deviceNameToAdd];
+    deviceSetupDisplayView.button.targetBlock = ^{
       completion(nil, nil);
     };
-    secretWordsView.cancelButton.targetBlock = ^{
-      completion(KBMakeError(237, @"Canceled"), nil);
+    deviceSetupDisplayView.cancelButton.targetBlock = ^{
+      [self deviceAddCancel];
     };
-    [self.navigation pushView:secretWordsView animated:YES];
+    [self.navigation pushView:deviceSetupDisplayView animated:YES];
   }];
 
   [self.navigation setProgressEnabled:YES];
@@ -191,11 +194,23 @@
   }];
 }
 
+- (void)reset {
+  [self.navigation popToRootViewAnimated:YES];
+}
+
+- (void)deviceAddCancel {
+  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] init];
+  [request deviceAddCancel:^(NSError *error) {
+    if (error) [AppDelegate setError:error sender:self];
+    [self reset];
+  }];
+}
+
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion {
-  KBDeviceSetupView *deviceSetupView = [[KBDeviceSetupView alloc] init];
+  KBDeviceSetupChooseView *deviceSetupView = [[KBDeviceSetupChooseView alloc] init];
   [deviceSetupView setDevices:params.devices hasPGP:params.hasPGP];
 
-  __weak KBDeviceSetupView *gdeviceSetupView = deviceSetupView;
+  __weak KBDeviceSetupChooseView *gdeviceSetupView = deviceSetupView;
   deviceSetupView.selectButton.targetBlock = ^{
     KBDeviceSignerOption *option = [gdeviceSetupView.deviceSignerView selectedObject];
     if (!option) {
@@ -213,7 +228,8 @@
       }
       case KBDeviceSignerTypeDevice: {
         signer.kind = KBRDeviceSignerKindDevice;
-        signer.deviceID = option.identifier;
+        signer.deviceID = option.device.deviceID;
+        signer.deviceName = option.device.name;
         break;
       }
     }

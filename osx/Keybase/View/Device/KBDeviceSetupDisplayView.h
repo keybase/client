@@ -1,5 +1,5 @@
 //
-//  KBSecretWordsView.h
+//  KBDeviceSetupDisplayView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/17/15.
@@ -10,7 +10,7 @@
 
 #import "KBContentView.h"
 
-@interface KBSecretWordsView : KBContentView
+@interface KBDeviceSetupDisplayView : KBContentView
 
 @property KBButton *button;
 @property KBButton *cancelButton;

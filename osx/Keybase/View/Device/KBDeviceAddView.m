@@ -6,14 +6,14 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBSecretWordsInputView.h"
+#import "KBDeviceAddView.h"
 #import "AppDelegate.h"
 
-@interface KBSecretWordsInputView ()
+@interface KBDeviceAddView ()
 @property KBTextView *inputField;
 @end
 
-@implementation KBSecretWordsInputView
+@implementation KBDeviceAddView
 
 - (void)viewInit {
   [super viewInit];
@@ -71,7 +71,7 @@
 }
 
 - (void)cancel {
-  self.completion(nil);
+  self.completion(NO);
 }
 
 - (void)save {
@@ -82,7 +82,24 @@
     return;
   }
 
-  self.completion(secretWords);
+  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
+
+  [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    KBRKexStatusRequestParams *requestParams = [[KBRKexStatusRequestParams alloc] initWithParams:params];
+    GHDebug(@"Kex status: %@", requestParams.msg);
+    completion(nil, nil);
+  }];
+
+  AppDelegate.appView.progressEnabled = YES;
+  [request deviceAddWithSecretPhrase:secretWords completion:^(NSError *error) {
+    AppDelegate.appView.progressEnabled = NO;
+    if (error) {
+      [AppDelegate setError:error sender:self];
+      return;
+    }
+
+    self.completion(YES);
+  }];
 }
 
 @end

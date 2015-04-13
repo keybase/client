@@ -1,5 +1,5 @@
 //
-//  KBDeviceSetupView.h
+//  KBDeviceSetupChooseView.h
 //  Keybase
 //
 //  Created by Gabriel on 2/18/15.
@@ -12,7 +12,7 @@
 #import "KBDeviceSignerOption.h"
 #import "KBContentView.h"
 
-@interface KBDeviceSetupView : KBContentView
+@interface KBDeviceSetupChooseView : KBContentView
 
 @property KBListView *deviceSignerView;
 @property KBButton *selectButton;

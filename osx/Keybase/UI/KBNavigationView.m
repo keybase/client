@@ -98,6 +98,17 @@
   [self removeView:currentView];
 }
 
+- (void)popToRootViewAnimated:(BOOL)animated {
+  NSView *rootView = _views[0];
+
+  [self _setView:rootView transitionType:KBNavigationTransitionTypePop];
+
+  for (NSInteger i = [_views count] - 1; i > 0; i--) {
+    NSView *view = _views[i];
+    [self removeView:view];
+  }
+}
+
 - (void)viewWillAppearInView:(NSView *)view animated:(BOOL)animated {
   //[[self currentView] viewWillAppearInView:view animated:animated];
 }

@@ -1,5 +1,5 @@
 //
-//  KBDevicePromptView.h
+//  KBDeviceSetupPromptView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/2/15.
@@ -12,8 +12,10 @@
 
 typedef void (^KBDevicePromptCompletion)(id sender, NSError *error, NSString *deviceName);
 
-@interface KBDevicePromptView : KBContentView
+@interface KBDeviceSetupPromptView : KBContentView
 
 @property (copy) KBDevicePromptCompletion completion;
+
+@property KBButton *cancelButton;
 
 @end
