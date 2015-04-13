@@ -143,10 +143,10 @@ func (md *MDOpsStandard) Get(id DirId) (*RootMetadata, error) {
 	}
 }
 
-func (md *MDOpsStandard) GetAtId(id DirId, rootId BlockId) (
+func (md *MDOpsStandard) GetAtId(id DirId, mdId MDId) (
 	*RootMetadata, error) {
 	// TODO: implement a cache for non-current MD
-	if rmds, err := md.config.MDServer().GetAtId(id, rootId); err == nil {
+	if rmds, err := md.config.MDServer().GetAtId(id, mdId); err == nil {
 		// TODO: validate and process MD
 		return &rmds.MD, err
 	} else {
@@ -241,7 +241,11 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 		rmds.Sig = sig
 	}
 
-	return md.config.MDServer().Put(id, rmds)
+	mdId, err := rmd.MetadataId(md.config)
+	if err != nil {
+		return err
+	}
+	return md.config.MDServer().Put(id, mdId, rmds)
 }
 
 func (md *MDOpsStandard) GetFavorites() ([]DirId, error) {

@@ -100,8 +100,8 @@ type Reporter interface {
 
 // MDCache gets and puts plaintext top-level metadata into the cache.
 type MDCache interface {
-	Get(id DirId) (*RootMetadata, error)
-	Put(id DirId, md *RootMetadata) error
+	Get(id MDId) (*RootMetadata, error)
+	Put(id MDId, md *RootMetadata) error
 }
 
 // KeyCache gets the full block keys from a cache, as well as
@@ -171,7 +171,7 @@ type Codec interface {
 type MDOps interface {
 	GetAtHandle(handle *DirHandle) (*RootMetadata, error)
 	Get(id DirId) (*RootMetadata, error)
-	GetAtId(id DirId, rootId BlockId) (*RootMetadata, error)
+	GetAtId(id DirId, mdId MDId) (*RootMetadata, error)
 	Put(id DirId, md *RootMetadata) error
 
 	GetFavorites() ([]DirId, error)
@@ -223,8 +223,8 @@ type BlockOps interface {
 type MDServer interface {
 	GetAtHandle(handle *DirHandle) (*RootMetadataSigned, error)
 	Get(id DirId) (*RootMetadataSigned, error)
-	GetAtId(id DirId, rootId BlockId) (*RootMetadataSigned, error)
-	Put(id DirId, md *RootMetadataSigned) error
+	GetAtId(id DirId, mdId MDId) (*RootMetadataSigned, error)
+	Put(id DirId, mdId MDId, md *RootMetadataSigned) error
 	GetFavorites() ([]DirId, error)
 }
 

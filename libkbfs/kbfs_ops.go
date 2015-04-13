@@ -10,12 +10,14 @@ import (
 type KBFSOpsStandard struct {
 	config   Config
 	dirLocks *DirLocks
+	heads    map[DirId]MDId // temporary until state machine is ready
 }
 
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	return &KBFSOpsStandard{
 		config:   config,
 		dirLocks: NewDirLocks(config),
+		heads:    make(map[DirId]MDId),
 	}
 }
 
@@ -31,14 +33,21 @@ func (fs *KBFSOpsStandard) getMDLocked(dir Path) (*RootMetadata, error) {
 	}
 
 	mdcache := fs.config.MDCache()
-	if md, err := mdcache.Get(dir.TopDir); err == nil {
-		return md, nil
+	if mdId, ok := fs.heads[dir.TopDir]; ok {
+		if md, err := mdcache.Get(mdId); err == nil {
+			return md, nil
+		}
 	}
 
 	// not in cache, fetch from server and add to cache
 	mdops := fs.config.MDOps()
 	if md, err := mdops.Get(dir.TopDir); err == nil {
-		return md, mdcache.Put(dir.TopDir, md)
+		mdId, err := md.MetadataId(fs.config)
+		if err != nil {
+			return nil, err
+		}
+		fs.heads[dir.TopDir] = mdId
+		return md, mdcache.Put(mdId, md)
 	} else {
 		return nil, err
 	}
@@ -132,8 +141,12 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	if err = fs.config.MDOps().Put(md.Id, md); err != nil {
 		return err
 	}
-	if err = fs.config.MDCache().Put(md.Id, md); err != nil {
+	if mdId, err := md.MetadataId(fs.config); err != nil {
 		return err
+	} else if err = fs.config.MDCache().Put(mdId, md); err != nil {
+		return err
+	} else {
+		fs.heads[md.Id] = mdId
 	}
 	return nil
 }
@@ -341,7 +354,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 		if prevIdx < 0 {
 			// root dir, update the MD instead
 			de = &(md.data.Dir)
-			md.PrevRoot = de.Id
+			md.PrevRoot = fs.heads[dir.TopDir]
 		} else {
 			prevDir := Path{dir.TopDir, dir.Path[:prevIdx+1]}
 			prevDblock, err := fs.getDirLocked(prevDir, true)
@@ -409,8 +422,12 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 		if err = fs.config.MDOps().Put(dir.TopDir, md); err != nil {
 			return Path{}, nil, err
 		}
-		if err = fs.config.MDCache().Put(dir.TopDir, md); err != nil {
+		if mdId, err := md.MetadataId(fs.config); err != nil {
 			return Path{}, nil, err
+		} else if err = fs.config.MDCache().Put(mdId, md); err != nil {
+			return Path{}, nil, err
+		} else {
+			fs.heads[md.Id] = mdId
 		}
 	}
 

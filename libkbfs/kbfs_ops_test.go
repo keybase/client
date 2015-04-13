@@ -51,6 +51,13 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
 	config.SetKBFSOps(kbfsops)
+
+	// these are used when computing metadata IDs.  No need to check
+	// in this test.
+	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
+		Return([]byte{0}, nil)
+	config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
+		Return(libkb.NodeHashShort{0}, nil)
 	return
 }
 
@@ -99,7 +106,8 @@ func makeIdAndRMD(config *ConfigMock) (
 	userId, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
 	rmd.AddNewKeys(DirKeys{})
-	config.mockMdcache.EXPECT().Get(id).AnyTimes().Return(rmd, nil)
+	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
+	config.mockMdcache.EXPECT().Get(rmd.mdId).AnyTimes().Return(rmd, nil)
 	return userId, id, rmd
 }
 
@@ -128,11 +136,9 @@ func TestKBFSOpsGetRootMDCacheSuccess2ndTry(t *testing.T) {
 
 	// send back new, uncached MD on first try, but succeed after
 	// getting the lock
-	err := &NoSuchMDError{id.String()}
-	config.mockMdcache.EXPECT().Get(id).Return(nil, err)
 	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
-	config.mockMdcache.EXPECT().Put(id, rmd).Return(nil)
-	config.mockMdcache.EXPECT().Get(id).Return(rmdGood, nil)
+	config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
+	config.mockMdcache.EXPECT().Get(rmd.mdId).Return(rmdGood, nil)
 
 	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
@@ -165,11 +171,9 @@ func expectBlock(config *ConfigMock, id BlockId, block Block,
 }
 
 func createNewMD(config *ConfigMock, rmd *RootMetadata, id DirId) {
-	err := &NoSuchMDError{id.String()}
-	config.mockMdcache.EXPECT().Get(id).Return(nil, err)
 	config.mockMdops.EXPECT().Get(id).Return(rmd, nil)
-	config.mockMdcache.EXPECT().Put(id, rmd).Return(nil)
-	config.mockMdcache.EXPECT().Get(id).Return(rmd, nil)
+	config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
+	config.mockMdcache.EXPECT().Get(rmd.mdId).Return(rmd, nil)
 }
 
 func expectGetSecretKey(config *ConfigMock, rmd *RootMetadata) {
@@ -209,7 +213,7 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 	config.mockBops.EXPECT().Put(rootId, gomock.Any(), block).Return(nil)
 	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), false).Return(nil)
 	config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
-	config.mockMdcache.EXPECT().Put(id, rmd).Return(nil)
+	config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
 
 	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
@@ -336,7 +340,8 @@ func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
 	p := Path{id, []*PathNode{node}}
 
 	// won't even try getting the block if the user isn't a reader
-	config.mockMdcache.EXPECT().Get(id).Return(rmd, nil)
+	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
+	config.mockMdcache.EXPECT().Get(rmd.mdId).Return(rmd, nil)
 	config.mockKbpki.EXPECT().GetLoggedInUser().AnyTimes().Return(userId, nil)
 	expectUserCall(userId, config)
 	expectedErr := &ReadAccessError{
@@ -408,7 +413,8 @@ func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
 
 	u, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	config.mockMdcache.EXPECT().Get(id).AnyTimes().Return(rmd, nil)
+	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
+	config.mockMdcache.EXPECT().Get(rmd.mdId).AnyTimes().Return(rmd, nil)
 
 	rootId := BlockId{42}
 	aId := BlockId{43}
@@ -470,7 +476,7 @@ func expectSyncBlock(
 	if skipSync == 0 {
 		// sign the MD and put it
 		config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
-		config.mockMdcache.EXPECT().Put(id, rmd).Return(nil)
+		config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
 	}
 	return newPath, lastCall
 }

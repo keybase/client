@@ -11,8 +11,8 @@ import (
 type MDServerLocal struct {
 	config   Config
 	handleDb *leveldb.DB // dir handle -> dirId
-	idDb     *leveldb.DB // dirId -> root block ID
-	mdDb     *leveldb.DB // root block ID -> root metadata (signed)
+	idDb     *leveldb.DB // dirId -> MD ID
+	mdDb     *leveldb.DB // MD ID -> root metadata (signed)
 }
 
 func NewMDServerLocal(config Config, handleDbfile string, idDbfile string,
@@ -79,18 +79,18 @@ func (md *MDServerLocal) GetAtHandle(handle *DirHandle) (
 
 func (md *MDServerLocal) Get(id DirId) (*RootMetadataSigned, error) {
 	buf, err := md.idDb.Get(id[:], nil)
-	var rootId BlockId
+	var mdId MDId
 	if err != leveldb.ErrNotFound {
-		copy(rootId[:], buf[:len(rootId)])
-		return md.GetAtId(id, rootId)
+		copy(mdId[:], buf[:len(mdId)])
+		return md.GetAtId(id, mdId)
 	} else {
 		return nil, err
 	}
 }
 
-func (md *MDServerLocal) GetAtId(id DirId, rootId BlockId) (
+func (md *MDServerLocal) GetAtId(id DirId, mdId MDId) (
 	*RootMetadataSigned, error) {
-	buf, err := md.mdDb.Get(append(rootId[:], id[:]...), nil)
+	buf, err := md.mdDb.Get(append(mdId[:], id[:]...), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -99,19 +99,19 @@ func (md *MDServerLocal) GetAtId(id DirId, rootId BlockId) (
 	return rmds, err
 }
 
-func (md *MDServerLocal) Put(id DirId, rmds *RootMetadataSigned) error {
+func (md *MDServerLocal) Put(id DirId, mdId MDId,
+	rmds *RootMetadataSigned) error {
 	if buf, err := md.config.Codec().Encode(rmds); err == nil {
-		// The dir ID points to the current root block ID, and the
-		// dir ID + block ID points to the buffer
-		rootId := rmds.MD.data.Dir.Id
-		rootBytes := rootId[:]
+		// The dir ID points to the current MD block ID, and the
+		// dir ID + MD ID points to the buffer
+		mdIdBytes := mdId[:]
 		dirIdBytes := id[:]
 		handleBytes := rmds.MD.GetDirHandle().ToBytes(md.config)
-		err = md.mdDb.Put(append(rootBytes, dirIdBytes...), buf, nil)
+		err = md.mdDb.Put(append(mdIdBytes, dirIdBytes...), buf, nil)
 		if err != nil {
 			return err
 		}
-		err = md.idDb.Put(dirIdBytes, rootBytes, nil)
+		err = md.idDb.Put(dirIdBytes, mdIdBytes, nil)
 		if err != nil {
 			return err
 		}

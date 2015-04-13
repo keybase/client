@@ -86,7 +86,15 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 		Times(2).Return(NullKey, nil)
 	config.mockCrypto.EXPECT().HMAC(NullKey, packedData).
 		Times(2).Return(packedData, nil)
-	config.mockMdserv.EXPECT().Put(id, gomock.Any()).Return(nil)
+
+	// get the MD id, and test that it actually gets set in the metadata
+	mdId := MDId{42}
+	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
+		Return([]byte{0}, nil)
+	config.mockCrypto.EXPECT().Hash(gomock.Any()).AnyTimes().
+		Return(libkb.NodeHashShort(mdId), nil)
+
+	config.mockMdserv.EXPECT().Put(id, mdId, gomock.Any()).Return(nil)
 }
 
 func TestMDOpsGetAtHandleSuccess(t *testing.T) {
@@ -224,11 +232,11 @@ func TestMDOpsGetAtIdSuccess(t *testing.T) {
 
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds := newDir(config, 1, true, false)
-	blockId := BlockId{0}
+	mdId := MDId{0}
 
-	config.mockMdserv.EXPECT().GetAtId(id, blockId).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetAtId(id, mdId).Return(rmds, nil)
 
-	if rmd2, err := config.MDOps().GetAtId(id, blockId); err != nil {
+	if rmd2, err := config.MDOps().GetAtId(id, mdId); err != nil {
 		t.Errorf("Got error on getAtId: %v", err)
 	} else if rmd2 != &rmds.MD {
 		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
@@ -241,14 +249,14 @@ func TestMDOpsGetAtIdFail(t *testing.T) {
 
 	// expect one call to fetch MD, and fail it
 	id, _, _ := newDir(config, 1, true, false)
-	blockId := BlockId{0}
+	mdId := MDId{0}
 
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetAtId(id, blockId).Return(nil, err)
+	config.mockMdserv.EXPECT().GetAtId(id, mdId).Return(nil, err)
 
-	if _, err2 := config.MDOps().GetAtId(id, blockId); err2 != err {
+	if _, err2 := config.MDOps().GetAtId(id, mdId); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
 	}
 }

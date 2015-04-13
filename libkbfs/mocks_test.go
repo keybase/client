@@ -504,7 +504,7 @@ func (_m *MockMDCache) EXPECT() *_MockMDCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDCache) Get(id DirId) (*RootMetadata, error) {
+func (_m *MockMDCache) Get(id MDId) (*RootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "Get", id)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
@@ -515,7 +515,7 @@ func (_mr *_MockMDCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDCache) Put(id DirId, md *RootMetadata) error {
+func (_m *MockMDCache) Put(id MDId, md *RootMetadata) error {
 	ret := _m.ctrl.Call(_m, "Put", id, md)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -916,8 +916,8 @@ func (_mr *_MockMDOpsRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDOps) GetAtId(id DirId, rootId BlockId) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetAtId", id, rootId)
+func (_m *MockMDOps) GetAtId(id DirId, mdId MDId) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetAtId", id, mdId)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1149,8 +1149,8 @@ func (_mr *_MockMDServerRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockMDServer) GetAtId(id DirId, rootId BlockId) (*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetAtId", id, rootId)
+func (_m *MockMDServer) GetAtId(id DirId, mdId MDId) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetAtId", id, mdId)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1160,14 +1160,14 @@ func (_mr *_MockMDServerRecorder) GetAtId(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAtId", arg0, arg1)
 }
 
-func (_m *MockMDServer) Put(id DirId, md *RootMetadataSigned) error {
-	ret := _m.ctrl.Call(_m, "Put", id, md)
+func (_m *MockMDServer) Put(id DirId, mdId MDId, md *RootMetadataSigned) error {
+	ret := _m.ctrl.Call(_m, "Put", id, mdId, md)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMDServerRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
+func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
 func (_m *MockMDServer) GetFavorites() ([]DirId, error) {

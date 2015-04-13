@@ -156,12 +156,20 @@ func (e *BadCryptoError) Error() string {
 	return fmt.Sprintf("Bad crypto for block %v", e.Id)
 }
 
+type BadCryptoMDError struct {
+	Id DirId
+}
+
+func (e *BadCryptoMDError) Error() string {
+	return fmt.Sprintf("Bad crypto for the metadata of directory %v", e.Id)
+}
+
 type BadMDError struct {
-	Dir string
+	Id MDId
 }
 
 func (e *BadMDError) Error() string {
-	return fmt.Sprintf("Wrong format for metadata for directory %s", e.Dir)
+	return fmt.Sprintf("Wrong format for metadata for directory %v", e.Id)
 }
 
 type MDMismatchError struct {
@@ -175,11 +183,11 @@ func (e *MDMismatchError) Error() string {
 }
 
 type NoSuchMDError struct {
-	Dir string
+	Id MDId
 }
 
 func (e *NoSuchMDError) Error() string {
-	return fmt.Sprintf("Couldn't get metadata for %s", e.Dir)
+	return fmt.Sprintf("Couldn't get metadata for %v", e.Id)
 }
 
 type NewVersionError struct {

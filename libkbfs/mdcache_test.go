@@ -36,7 +36,7 @@ func expectUserCalls(handle *DirHandle, config *ConfigMock) {
 	}
 }
 
-func testMdcachePut(t *testing.T, id DirId, h *DirHandle, config *ConfigMock) {
+func testMdcachePut(t *testing.T, id MDId, h *DirHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		Keys: make([]DirKeys, 1, 1),
 	}
@@ -61,23 +61,26 @@ func TestMdcachePut(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 100)
 	defer mockCtrl.Finish()
 
-	id, h, _ := newDir(config, 1, true, false)
+	_, h, _ := newDir(config, 1, true, false)
 	h.Writers = append(h.Writers, libkb.UID{0})
 
-	testMdcachePut(t, id, h, config)
+	testMdcachePut(t, MDId{1}, h, config)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
 	mockCtrl, config := mdCacheInit(t, 2)
 	defer mockCtrl.Finish()
 
-	id0, h0, _ := newDir(config, 1, true, false)
+	_, h0, _ := newDir(config, 1, true, false)
+	id0 := MDId{0}
 	h0.Writers = append(h0.Writers, libkb.UID{0})
 
-	id1, h1, _ := newDir(config, 2, true, false)
+	_, h1, _ := newDir(config, 2, true, false)
+	id1 := MDId{1}
 	h1.Writers = append(h1.Writers, libkb.UID{1})
 
-	id2, h2, _ := newDir(config, 3, true, false)
+	_, h2, _ := newDir(config, 3, true, false)
+	id2 := MDId{2}
 	h2.Writers = append(h2.Writers, libkb.UID{2})
 
 	testMdcachePut(t, id0, h0, config)
@@ -87,7 +90,7 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	// id 0 should no longer be in the cache
 	// make sure we can get it successfully
 	expectUserCalls(h0, config)
-	expectedErr := &NoSuchMDError{id0.String()}
+	expectedErr := &NoSuchMDError{id0}
 	if _, err := config.MDCache().Get(id0); err == nil {
 		t.Errorf("No expected error on get")
 	} else if err.Error() != expectedErr.Error() {

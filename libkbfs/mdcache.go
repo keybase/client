@@ -16,18 +16,18 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 	return &MDCacheStandard{tmp}
 }
 
-func (md *MDCacheStandard) Get(id DirId) (*RootMetadata, error) {
+func (md *MDCacheStandard) Get(id MDId) (*RootMetadata, error) {
 	if tmp, ok := md.lru.Get(id); ok {
 		if rmd, ok := tmp.(*RootMetadata); ok {
 			return rmd, nil
 		} else {
-			return nil, &BadMDError{id.String()}
+			return nil, &BadMDError{id}
 		}
 	}
-	return nil, &NoSuchMDError{id.String()}
+	return nil, &NoSuchMDError{id}
 }
 
-func (md *MDCacheStandard) Put(id DirId, rmd *RootMetadata) error {
+func (md *MDCacheStandard) Put(id MDId, rmd *RootMetadata) error {
 	md.lru.Add(id, rmd)
 	return nil
 }

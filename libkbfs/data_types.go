@@ -61,6 +61,11 @@ func NewKey() Key {
 // type of hash key for each data block
 type BlockId libkb.NodeHashShort
 
+// type of hash key for each metadata block
+type MDId libkb.NodeHashShort
+
+var NullMDId MDId = MDId{0}
+
 func RandBlockId() BlockId {
 	var id BlockId
 	// TODO: deal with errors?
@@ -296,7 +301,7 @@ type RootMetadata struct {
 	// the array.
 	Keys []DirKeys
 	// Pointer to the previous root block ID
-	PrevRoot BlockId
+	PrevRoot MDId
 	// The directory ID, signed over to make verification easier
 	Id DirId
 
@@ -304,6 +309,8 @@ type RootMetadata struct {
 	data PrivateMetadata
 	// A cached copy of the directory handle calculated for this MD
 	cachedDirHandle *DirHandle
+	// The cached ID for this MD structure (hash)
+	mdId MDId
 }
 
 // PrivateMetadata contains the portion of metadata that's secret for private
@@ -390,6 +397,26 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 func (md *RootMetadata) IsInitialized() bool {
 	// The data is only initialized once we have at least one set of keys
 	return md.LatestKeyId() >= 0
+}
+
+func (md *RootMetadata) MetadataId(config Config) (MDId, error) {
+	if md.mdId != NullMDId {
+		return md.mdId, nil
+	}
+	if buf, err := config.Codec().Encode(md); err != nil {
+		return NullMDId, err
+	} else if h, err := config.Crypto().Hash(buf); err != nil {
+		return NullMDId, err
+	} else if nhs, ok := h.(libkb.NodeHashShort); !ok {
+		return NullMDId, &BadCryptoMDError{md.Id}
+	} else {
+		md.mdId = MDId(nhs)
+		return md.mdId, nil
+	}
+}
+
+func (md *RootMetadata) ClearMetadataId() {
+	md.mdId = NullMDId
 }
 
 // DirEntry is the MD for each child in a directory
