@@ -88,6 +88,10 @@ func (p BlockPointer) GetWriter() libkb.UID {
 	return p.Writer
 }
 
+func (p BlockPointer) GetSize() uint32 {
+	return p.Size
+}
+
 type UIDList []libkb.UID
 
 func (u UIDList) Len() int {

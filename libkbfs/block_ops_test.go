@@ -12,7 +12,7 @@ type TestBlock struct {
 	A int
 }
 
-var NullCtxt BlockContext = &BlockPointer{}
+var NullCtxt BlockContext = &BlockPointer{Size: 4}
 
 func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock) {

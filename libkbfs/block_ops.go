@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
 )
 
@@ -16,6 +17,9 @@ func (b *BlockOpsStandard) Get(
 	// secret key
 	var buf []byte
 	if buf, err = bserv.Get(id, context); err == nil {
+		if context.GetSize() != uint32(len(buf)) {
+			panic(fmt.Sprintf("expected %d bytes, got %d bytes", context.GetSize(), len(buf)))
+		}
 		// decrypt the block and unmarshal it
 		crypto := b.config.Crypto()
 		var debuf []byte
@@ -55,6 +59,9 @@ func (b *BlockOpsStandard) Ready(
 
 func (b *BlockOpsStandard) Put(
 	id BlockId, context BlockContext, buf []byte) (err error) {
+	if context.GetSize() != uint32(len(buf)) {
+		panic(fmt.Sprintf("expected %d bytes, got %d bytes", context.GetSize(), len(buf)))
+	}
 	bserv := b.config.BlockServer()
 	err = bserv.Put(id, context, buf)
 	return

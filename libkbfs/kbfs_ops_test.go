@@ -2170,22 +2170,32 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
 	} else if fileBlock.IPtrs[0].Id != id1 {
 		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
+	} else if fileBlock.IPtrs[0].Size != 5 {
+		t.Errorf("Indirect pointer size1 wrong: %d", fileBlock.IPtrs[0].Size)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId2 {
 		t.Errorf("Indirect pointer id2 wrong: %v", fileBlock.IPtrs[1].Id)
+	} else if fileBlock.IPtrs[1].Size != 3 {
+		t.Errorf("Indirect pointer size2 wrong: %d", fileBlock.IPtrs[1].Size)
 	} else if fileBlock.IPtrs[1].Off != 5 {
 		t.Errorf("Indirect pointer off2 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[2].Id)
+	} else if fileBlock.IPtrs[2].Size != 7 {
+		t.Errorf("Indirect pointer size3 wrong: %d", fileBlock.IPtrs[2].Size)
 	} else if fileBlock.IPtrs[2].Off != 8 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[2].Off)
 	} else if fileBlock.IPtrs[3].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[3].Id)
+	} else if fileBlock.IPtrs[3].Size != 3 {
+		t.Errorf("Indirect pointer size4 wrong: %d", fileBlock.IPtrs[3].Size)
 	} else if fileBlock.IPtrs[3].Off != 15 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[3].Off)
 	} else if fileBlock.IPtrs[4].Id != (BlockId{newId5[0] + 100}) {
 		t.Errorf("Indirect pointer id5 wrong: %v", fileBlock.IPtrs[4].Id)
+	} else if fileBlock.IPtrs[4].Size != 2 {
+		t.Errorf("Indirect pointer size5 wrong: %d", fileBlock.IPtrs[4].Size)
 	} else if fileBlock.IPtrs[4].Off != 18 {
 		t.Errorf("Indirect pointer off5 wrong: %d", fileBlock.IPtrs[4].Off)
 	} else if !bytesEqual([]byte{10, 9, 8}, block2.Contents) {
@@ -2299,14 +2309,20 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
 	} else if fileBlock.IPtrs[0].Id != newId1 {
 		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
+	} else if fileBlock.IPtrs[0].Size != 10 {
+		t.Errorf("Indirect pointer size1 wrong: %d", fileBlock.IPtrs[0].Size)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[1].Id)
+	} else if fileBlock.IPtrs[1].Size != 8 {
+		t.Errorf("Indirect pointer size3 wrong: %d", fileBlock.IPtrs[1].Size)
 	} else if fileBlock.IPtrs[1].Off != 10 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[2].Id)
+	} else if fileBlock.IPtrs[2].Size != 2 {
+		t.Errorf("Indirect pointer size4 wrong: %d", fileBlock.IPtrs[2].Size)
 	} else if fileBlock.IPtrs[2].Off != 18 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[2].Off)
 	} else if !bytesEqual([]byte{5, 4, 3, 2, 1, 10, 9, 8, 7, 6},
