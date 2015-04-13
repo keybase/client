@@ -15,19 +15,18 @@
 
 @class KBTableView;
 
-typedef void (^KBCellSelect)(KBTableView *tableView, NSIndexPath *indexPath, id object);
-typedef NSMenu *(^KBMenuSelect)(NSIndexPath *indexPath);
+typedef void (^KBTableViewCellSelect)(KBTableView *tableView, NSIndexPath *indexPath, id object);
+typedef NSMenu *(^KBTableViewMenuSelect)(NSIndexPath *indexPath);
 typedef void (^KBTableViewUpdate)(KBTableView *tableView);
 
 @interface KBTableView : YOView <NSTableViewDelegate, NSTableViewDataSource>
 
 @property (readonly) NSScrollView *scrollView;
 @property (readonly) NSTableView *view;
-@property KBBorder *border;
 @property (readonly) NSIndexPath *menuIndexPath;
 
-@property (copy) KBCellSelect onSelect;
-@property (copy) KBMenuSelect onMenuSelect;
+@property (copy) KBTableViewCellSelect onSelect;
+@property (copy) KBTableViewMenuSelect onMenuSelect;
 @property (copy) KBTableViewUpdate onUpdate;
 
 @property (readonly) KBCellDataSource *dataSource;
@@ -53,9 +52,6 @@ typedef void (^KBTableViewUpdate)(KBTableView *tableView);
 
 - (void)scrollToBottom:(BOOL)animated;
 - (BOOL)isAtBottom;
-
-- (void)setBorderEnabled:(BOOL)borderEnabled;
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width;
 
 - (NSInteger)nextRowUp;
 - (NSInteger)nextRowDown;

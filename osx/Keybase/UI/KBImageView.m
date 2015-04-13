@@ -54,13 +54,20 @@
 
 - (NSImage *)imageTintedWithColor:(NSColor *)tint {
   NSParameterAssert(tint);
+  return [self.image copy];
+
+  // TODO Tint image with valid graphics context
+  /*
   NSImage *image = [self.image copy];
   [image lockFocus];
+  [[NSGraphicsContext currentContext] saveGraphicsState];
   [tint set];
   NSRect imageRect = {NSZeroPoint, [image size]};
   NSRectFillUsingOperation(imageRect, NSCompositeSourceAtop);
+  [[NSGraphicsContext currentContext] restoreGraphicsState];
   [image unlockFocus];
   return image;
+   */
 }
 
 - (void)setImageNamed:(NSString *)imageNamed {

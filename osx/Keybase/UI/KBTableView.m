@@ -55,31 +55,10 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    UIEdgeInsets insets = yself.border.insets;
-    [layout setSize:size view:yself.border options:0];
+    UIEdgeInsets insets = UIEdgeInsetsZero;
     [layout setFrame:CGRectMake(insets.left, insets.top, size.width - insets.left - insets.right, size.height - insets.top - insets.bottom) view:yself.scrollView];
     return size;
   }];
-}
-
-- (void)setBorderEnabled:(BOOL)borderEnabled {
-  if (borderEnabled) {
-    _border = [[KBBorder alloc] init];
-    [self addSubview:_border];
-  } else {
-    [_border removeFromSuperview];
-    _border = nil;
-  }
-}
-
-- (void)setBorderWithColor:(NSColor *)color width:(CGFloat)width {
-  if (!_border) {
-    _border = [[KBBorder alloc] init];
-    [self addSubview:_border];
-  }
-  _border.color = color;
-  _border.width = width;
-  [self setNeedsLayout];
 }
 
 - (void)removeAllObjects {
