@@ -246,7 +246,7 @@ func TestKBFSOpsGetBaseDirCacheSuccess(t *testing.T) {
 
 	rootId := BlockId{42}
 	dirBlock := NewDirBlock()
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	p := Path{id, []*PathNode{node}}
 
 	config.mockBcache.EXPECT().Get(rootId).Return(dirBlock, nil)
@@ -266,7 +266,7 @@ func TestKBFSOpsGetBaseDirUncachedSuccess(t *testing.T) {
 
 	rootId := BlockId{42}
 	dirBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	p := Path{id, []*PathNode{node}}
 
 	// cache miss means fetching metadata and getting read key
@@ -297,7 +297,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
 	rmdGood.data.Dir.IsDir = true
 
 	rootId := BlockId{42}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
 	p := Path{id, []*PathNode{node}}
 
 	// won't even try getting the block if the user isn't a reader
@@ -322,7 +322,7 @@ func TestKBFSOpsGetBaseDirUncachedFailMissingBlock(t *testing.T) {
 
 	rootId := BlockId{42}
 	dirBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	p := Path{id, []*PathNode{node}}
 
 	// cache miss means fetching metadata and getting read key, then
@@ -354,7 +354,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
 	rmd.data.Dir.Ver = 1
 
 	rootId := BlockId{42}
-	node := &PathNode{BlockPointer{rootId, 0, 1, userId}, ""}
+	node := &PathNode{BlockPointer{rootId, 0, 1, userId, 0}, ""}
 	p := Path{id, []*PathNode{node}}
 
 	// we won't even need to check the cache before failing
@@ -379,9 +379,9 @@ func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
 	aId := BlockId{43}
 	bId := BlockId{44}
 	dirBlock := NewDirBlock()
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, u}, "a"}
-	bNode := &PathNode{BlockPointer{bId, 0, 0, u}, "b"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
+	bNode := &PathNode{BlockPointer{bId, 0, 0, u, 0}, "b"}
 	p := Path{id, []*PathNode{node, aNode, bNode}}
 
 	config.mockBcache.EXPECT().Get(bId).Return(dirBlock, nil)
@@ -535,8 +535,8 @@ func testCreateEntrySuccess(t *testing.T, isDir bool, isEx bool, isLink bool) {
 		IsDir:        true,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// creating "a/b"
@@ -602,7 +602,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 		BlockPointer: BlockPointer{Id: aId},
 		IsDir:        true,
 	}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	p := Path{id, []*PathNode{node}}
 
 	// creating "a", which already exists in the root block
@@ -647,9 +647,9 @@ func testRemoveEntrySuccess(t *testing.T, isDir bool) {
 	aBlock.Children["b"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: aId}, IsDir: isDir}
 	bBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
-	bNode := &PathNode{BlockPointer{bId, 0, 0, userId}, "b"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	bNode := &PathNode{BlockPointer{bId, 0, 0, userId, 0}, "b"}
 	p := Path{id, []*PathNode{node, aNode, bNode}}
 
 	// deleting "a/b"
@@ -704,9 +704,9 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	bBlock := NewDirBlock().(*DirBlock)
 	bBlock.Children["c"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: bId}, IsDir: false}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, u}, "a"}
-	bNode := &PathNode{BlockPointer{bId, 0, 0, u}, "b"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
+	bNode := &PathNode{BlockPointer{bId, 0, 0, u, 0}, "b"}
 	p := Path{id, []*PathNode{node, aNode, bNode}}
 
 	expectGetBlock(config, bId, bBlock)
@@ -733,9 +733,9 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
 	aBlock := NewDirBlock().(*DirBlock)
 	bBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, u}, "a"}
-	bNode := &PathNode{BlockPointer{bId, 0, 0, u}, "b"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
+	bNode := &PathNode{BlockPointer{bId, 0, 0, u, 0}, "b"}
 	p := Path{id, []*PathNode{node, aNode, bNode}}
 
 	expectGetBlock(config, bId, bBlock)
@@ -763,8 +763,8 @@ func TestRenameInDirSuccess(t *testing.T) {
 		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{BlockPointer: BlockPointer{Id: bId}}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// renaming "a/b" to "a/c"
@@ -806,15 +806,15 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{BlockPointer: BlockPointer{Id: bId}}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p1 := Path{id, []*PathNode{node, aNode}}
 
 	dId := BlockId{40}
 	rootBlock.Children["d"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: dId}, IsDir: true}
 	dBlock := NewDirBlock().(*DirBlock)
-	dNode := &PathNode{BlockPointer{dId, 0, 0, userId}, "d"}
+	dNode := &PathNode{BlockPointer{dId, 0, 0, userId, 0}, "d"}
 	p2 := Path{id, []*PathNode{node, dNode}}
 
 	// renaming "a/b" to "d/c"
@@ -862,9 +862,9 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	aBlock.Children["b"] = &DirEntry{BlockPointer: BlockPointer{Id: bId}}
 	aBlock.Children["d"] = &DirEntry{BlockPointer: BlockPointer{Id: dId}}
 	dBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
-	dNode := &PathNode{BlockPointer{dId, 0, 0, userId}, "d"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	dNode := &PathNode{BlockPointer{dId, 0, 0, userId, 0}, "d"}
 	p1 := Path{id, []*PathNode{node, aNode}}
 	p2 := Path{id, []*PathNode{node, aNode, dNode}}
 
@@ -922,9 +922,9 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	aBlock.Children["d"] = &DirEntry{BlockPointer: BlockPointer{Id: dId}}
 	dBlock := NewDirBlock().(*DirBlock)
 	dBlock.Children["b"] = &DirEntry{BlockPointer: BlockPointer{Id: bId}}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
-	dNode := &PathNode{BlockPointer{dId, 0, 0, userId}, "d"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	dNode := &PathNode{BlockPointer{dId, 0, 0, userId, 0}, "d"}
 	p1 := Path{id, []*PathNode{node, aNode, dNode}}
 	p2 := Path{id, []*PathNode{node, aNode}}
 
@@ -982,14 +982,14 @@ func TestRenameFailAcrossTopDirs(t *testing.T) {
 
 	rootId1 := BlockId{41}
 	aId1 := BlockId{42}
-	node1 := &PathNode{BlockPointer{rootId1, 0, 0, userId1}, ""}
-	aNode1 := &PathNode{BlockPointer{aId1, 0, 0, userId1}, "a"}
+	node1 := &PathNode{BlockPointer{rootId1, 0, 0, userId1, 0}, ""}
+	aNode1 := &PathNode{BlockPointer{aId1, 0, 0, userId1, 0}, "a"}
 	p1 := Path{id1, []*PathNode{node1, aNode1}}
 
 	rootId2 := BlockId{38}
 	aId2 := BlockId{39}
-	node2 := &PathNode{BlockPointer{rootId2, 0, 0, userId2}, ""}
-	aNode2 := &PathNode{BlockPointer{aId2, 0, 0, userId2}, "a"}
+	node2 := &PathNode{BlockPointer{rootId2, 0, 0, userId2, 0}, ""}
+	aNode2 := &PathNode{BlockPointer{aId2, 0, 0, userId2, 0}, "a"}
 	p2 := Path{id2, []*PathNode{node2, aNode2}}
 
 	expectedErr := &RenameAcrossDirsError{}
@@ -1024,8 +1024,8 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, fileId, fileBlock)
@@ -1051,8 +1051,8 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, fileId, fileBlock)
@@ -1080,15 +1080,16 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, u}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, u}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, u}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, u}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, u, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, u, 0}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, u, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, u, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -1098,8 +1099,8 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, fileId, fileBlock)
@@ -1135,15 +1136,16 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, u}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, u}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, u}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, u}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, u, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, u, 0}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, u, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, u, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -1153,8 +1155,8 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, fileId, fileBlock)
@@ -1185,8 +1187,8 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, fileId, fileBlock)
@@ -1209,8 +1211,8 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
@@ -1241,8 +1243,8 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
@@ -1271,8 +1273,8 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
@@ -1318,8 +1320,8 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -1357,8 +1359,8 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 	data := []byte{6, 7, 8, 9, 10}
 	expectedFullData := []byte{1, 2, 3, 4, 5, 0, 0, 6, 7, 8, 9, 10}
@@ -1396,8 +1398,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 	newData := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	expectedFullData := append([]byte{0}, newData...)
@@ -1496,20 +1498,21 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	id1 := BlockId{44}
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Writer: userId}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId, Writer: userId, Size: 10}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId}, 5},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 0}, 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{10, 9, 8, 7, 6}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 	data := []byte{1, 2, 3, 4, 5}
 	expectedFullData := []byte{5, 4, 1, 2, 3, 4, 5, 8, 7, 6}
@@ -1574,8 +1577,8 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, rootId, rootBlock)
@@ -1616,8 +1619,8 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, rootId, rootBlock)
@@ -1643,8 +1646,8 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, rootId, rootBlock)
@@ -1675,20 +1678,21 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	id1 := BlockId{44}
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId}, 5},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 0}, 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{10, 9, 8, 7, 6}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, rootId, rootBlock)
@@ -1728,8 +1732,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	rootBlock.Children["f"] = &DirEntry{BlockPointer: BlockPointer{Id: fileId}}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "f"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	expectGetBlock(config, rootId, rootBlock)
@@ -1766,8 +1770,8 @@ func testSetExSuccess(t *testing.T, ex bool) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: aId}, IsExec: false}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// chmod a+x a
@@ -1809,8 +1813,8 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	rootId := BlockId{42}
 	aId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, u}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// chmod a+x a
@@ -1837,8 +1841,8 @@ func TestSetMtimeSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: aId}, IsExec: false}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// chmod a+x a
@@ -1873,8 +1877,8 @@ func TestSetMtimeNull(t *testing.T) {
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: aId}, IsExec: false, Mtime: oldMtime}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, u}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	if newP, err := config.KBFSOps().SetMtime(p, nil); err != nil {
@@ -1895,8 +1899,8 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	rootId := BlockId{42}
 	aId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, u}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// chmod a+x a
@@ -1924,8 +1928,8 @@ func TestSyncDirtySuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{BlockPointer: BlockPointer{Id: aId}}
 	aBlock := NewFileBlock().(*FileBlock)
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// fsync a
@@ -1960,8 +1964,8 @@ func TestSyncCleanSuccess(t *testing.T) {
 
 	rootId := BlockId{42}
 	aId := BlockId{43}
-	node := &PathNode{BlockPointer{rootId, 0, 0, u}, ""}
-	aNode := &PathNode{BlockPointer{aId, 0, 0, u}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
 	// fsync a
@@ -2017,15 +2021,16 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual size.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, libkb.UID{0}}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, libkb.UID{0}, 0}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2035,8 +2040,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	block3.Contents = []byte{10, 9, 8, 7, 6}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{10, 9, 8, 7, 6}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
@@ -2085,15 +2090,16 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 0}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2103,8 +2109,8 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty
@@ -2211,15 +2217,16 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual Size value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId}, 15},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 0}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2229,8 +2236,8 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	block3.Contents = []byte{15, 14, 13, 12, 11}
 	block4 := NewFileBlock().(*FileBlock)
 	block4.Contents = []byte{20, 19, 18, 17, 16}
-	node := &PathNode{BlockPointer{rootId, 0, 0, userId}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId}, "a"}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	// fsync a, only block 2 is dirty

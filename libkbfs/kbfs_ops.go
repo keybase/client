@@ -96,7 +96,7 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	}
 
 	path := Path{md.Id, []*PathNode{&PathNode{
-		BlockPointer{BlockId{}, 0, fs.config.DataVersion(), user},
+		BlockPointer{BlockId{}, 0, fs.config.DataVersion(), user, 0},
 		md.GetDirHandle().ToString(fs.config),
 	}}}
 	encryptKey, err := fs.config.KeyManager().GetSecretKey(path, md)
@@ -331,7 +331,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 
 		// prepend to path and setup next one
 		newPath.Path = append([]*PathNode{&PathNode{
-			BlockPointer{id, keyId, fs.config.DataVersion(), user}, currName}},
+			BlockPointer{id, keyId, fs.config.DataVersion(), user, 0}, currName}},
 			newPath.Path...)
 
 		// get the parent block
@@ -515,6 +515,9 @@ func (fs *KBFSOpsStandard) CreateLink(
 
 	// Create a direntry for the link, and then sync
 	de := &DirEntry{
+		BlockPointer: BlockPointer{
+			Size: uint32(len(toPath)),
+		},
 		IsDir:     false,
 		IsExec:    false,
 		TotalSize: uint64(len(toPath)),
@@ -801,7 +804,7 @@ func (fs *KBFSOpsStandard) newRightBlockLocked(
 	}
 
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockPointer{newRId, md.LatestKeyId(), fs.config.DataVersion(), user},
+		BlockPointer{newRId, md.LatestKeyId(), fs.config.DataVersion(), user, 0},
 		off})
 	if err := fs.config.BlockCache().Put(id, pblock, true); err != nil {
 		return err
@@ -868,7 +871,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 					IPtrs: []IndirectFilePtr{
 						IndirectFilePtr{
 							BlockPointer{newId, md.LatestKeyId(),
-								fs.config.DataVersion(), user}, 0},
+								fs.config.DataVersion(), user, 0}, 0},
 					},
 				}
 				if err := bcache.Put(
