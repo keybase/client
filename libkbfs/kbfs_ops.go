@@ -330,9 +330,8 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 		}
 
 		// prepend to path and setup next one
-		newPath.Path = append([]*PathNode{&PathNode{
-			BlockPointer{id, keyId, fs.config.DataVersion(), user, 0}, currName}},
-			newPath.Path...)
+		blockPtr := BlockPointer{id, keyId, fs.config.DataVersion(), user, uint32(len(buf))}
+		newPath.Path = append([]*PathNode{&PathNode{blockPtr, currName}}, newPath.Path...)
 
 		// get the parent block
 		var de *DirEntry
@@ -353,8 +352,9 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			if de, ok = prevDblock.Children[currName]; !ok {
 				// TODO: deal with large directories and files
 				de = &DirEntry{
-					IsDir:  isDir,
-					IsExec: isExec,
+					BlockPointer: blockPtr,
+					IsDir:        isDir,
+					IsExec:       isExec,
 				}
 				prevDblock.Children[currName] = de
 			}
