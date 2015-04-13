@@ -80,6 +80,9 @@ func (ui UI) GetGPGUI() libkb.GPGUI {
 func (ui UI) GetLocksmithUI() libkb.LocksmithUI {
 	return nil
 }
+func (ui UI) GetDoctorUI() libkb.DoctorUI {
+	return nil
+}
 func (ui UI) Prompt(string, bool, libkb.Checker) (s string, err error) {
 	err = fmt.Errorf("No UI available")
 	return
