@@ -162,8 +162,11 @@ func (k *KexFwd) Run(ctx *Context) error {
 		SkipSignerPush: true,
 		Signer:         dkeng.SigningKey(),
 		EldestKID:      k.user.GetEldestFOKID().Kid,
+		User:           k.user,
 	}
 	if err := dkeng.Push(ctx, pargs); err != nil {
+		k.G().Log.Debug("error running dkeng.Push(): %s", err)
+		k.G().Log.Debug("push args: %+v", pargs)
 		return err
 	}
 

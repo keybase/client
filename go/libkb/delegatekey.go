@@ -155,9 +155,9 @@ func (d *Delegator) Run() (err error) {
 	// For a sibkey signature, we first sign the blob with the
 	// sibkey, and then embed that signature for the delegating key
 	if d.Sibkey {
-
 		if jw, _, err = d.Me.KeyProof(*d); err != nil {
 			G.Log.Debug("| Failure in intermediate KeyProof()")
+			return err
 		}
 
 		if d.RevSig, _, _, err = SignJson(jw, d.NewKey); err != nil {

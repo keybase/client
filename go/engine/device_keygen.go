@@ -29,11 +29,15 @@ type DeviceKeygenArgs struct {
 // (IsEldest => False, SkipSignerPush => true, Signer != nil,
 // EldestKID != nil)
 //
+// The User argument is optional, but it is necessary if the
+// user's sigchain changes between key generation and key push.
+//
 type DeviceKeygenPushArgs struct {
 	IsEldest       bool
 	SkipSignerPush bool
 	Signer         libkb.GenericKey
 	EldestKID      libkb.KID
+	User           *libkb.User // optional
 }
 
 type DeviceKeygen struct {
@@ -113,7 +117,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	}
 
 	// push the encryption key
-	e.pushEncKey(encSigner, eldestKID)
+	e.pushEncKey(encSigner, eldestKID, pargs.User)
 
 	// push the LKS server half
 	e.pushLKS()
@@ -172,15 +176,15 @@ func (e *DeviceKeygen) pushSibkey(pargs *DeviceKeygenPushArgs) {
 		return
 	}
 
-	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true)
+	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true, pargs.User)
 	_, e.pushErr = e.naclSignGen.Push()
 }
 
-func (e *DeviceKeygen) pushEncKey(signer libkb.GenericKey, eldestKID libkb.KID) {
+func (e *DeviceKeygen) pushEncKey(signer libkb.GenericKey, eldestKID libkb.KID, user *libkb.User) {
 	if e.pushErr != nil {
 		return
 	}
-	e.naclEncGen.UpdateArg(signer, eldestKID, false)
+	e.naclEncGen.UpdateArg(signer, eldestKID, false, user)
 	_, e.pushErr = e.naclEncGen.Push()
 }
 

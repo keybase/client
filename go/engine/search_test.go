@@ -1,8 +1,9 @@
 package engine
 
 import (
-	keybase_1 "github.com/keybase/client/protocol/go"
 	"testing"
+
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 func TestSearch(t *testing.T) {
@@ -33,7 +34,7 @@ func TestSearch(t *testing.T) {
 		} else if summary.Username == "t_charlie" {
 			t_charlie = summary
 		} else {
-			t.Fatal("Unexpected search result: %s", summary.Username)
+			t.Fatalf("Unexpected search result: %s", summary.Username)
 		}
 	}
 

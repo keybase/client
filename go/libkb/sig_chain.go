@@ -3,6 +3,7 @@ package libkb
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -323,6 +324,16 @@ func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
 	return
 }
 
+// Dump prints the sigchain to the writer arg.
+func (sc *SigChain) Dump(w io.Writer) {
+	fmt.Fprintf(w, "sigchain dump\n")
+	for i, l := range sc.chainLinks {
+		fmt.Fprintf(w, "link %d: %+v\n", i, l)
+	}
+	fmt.Fprintf(w, "last known seqno: %d\n", sc.GetLastKnownSeqno())
+	fmt.Fprintf(w, "last known id: %s\n", sc.GetLastKnownId())
+}
+
 // verifySubchain verifies the given subchain and outputs a yes/no answer
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
@@ -530,7 +541,7 @@ func (l *SigChainLoader) LoadLastLinkIdFromStorage() (ls *LinkSummary, err error
 		G.Log.Debug("| LastLinkId was null")
 	} else {
 		if ls, err = GetLinkSummary(w); err == nil {
-			G.Log.Debug("| LastLinkID loaded as %v", *ls)
+			G.Log.Debug("| LastLinkID loaded as %x", *ls)
 		}
 	}
 	return
@@ -728,7 +739,7 @@ func (l *SigChainLoader) StoreTail() (err error) {
 		nil,
 		l.dirtyTail.ToJson(),
 	)
-	G.Log.Debug("| Storing dirtyTail @ %d", l.dirtyTail.seqno)
+	G.Log.Debug("| Storing dirtyTail @ %d (%v)", l.dirtyTail.seqno, l.dirtyTail)
 	if err == nil {
 		l.dirtyTail = nil
 	}

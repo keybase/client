@@ -75,8 +75,13 @@ func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
 	return g.pair
 }
 
-func (g *NaclKeyGen) UpdateArg(signer GenericKey, eldestKID KID, sibkey bool) {
+func (g *NaclKeyGen) UpdateArg(signer GenericKey, eldestKID KID, sibkey bool, user *User) {
 	g.arg.Signer = signer
 	g.arg.EldestKeyID = eldestKID
 	g.arg.Sibkey = sibkey
+	// if a user is passed in, then update the user pointer
+	// this is necessary if the sigchain changed between generation and push.
+	if user != nil {
+		g.arg.Me = user
+	}
 }

@@ -3,6 +3,7 @@ package libkb
 import (
 	"crypto/sha256"
 	"fmt"
+	"io"
 	"strings"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -921,4 +922,8 @@ func (u *User) IsSigIDActive(sigIDStr string) (bool, error) {
 		return false, fmt.Errorf("Signature ID '%s' is already revoked.", sigIDStr)
 	}
 	return true, nil
+}
+
+func (u *User) SigChainDump(w io.Writer) {
+	u.sigChain.Dump(w)
 }

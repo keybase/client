@@ -55,7 +55,7 @@ func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]string, error) {
 			return nil, err
 		}
 		if !valid {
-			return nil, fmt.Errorf("Signature '%s' does not exist.")
+			return nil, fmt.Errorf("Signature '%s' does not exist.", sigID)
 		}
 	}
 	return ret, nil
