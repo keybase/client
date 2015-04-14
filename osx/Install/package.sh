@@ -1,3 +1,5 @@
+#!/bin/sh
+
 set -e # Fail on error
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
@@ -32,12 +34,20 @@ chmod +x keybase
 mkdir -p Keybase.app/Contents/SharedSupport/bin
 cp keybase Keybase.app/Contents/SharedSupport/bin
 
+# Verify
+#codesign --verify --verbose=4 Keybase.app
 
 echo "Resigning..."
 # Re-sign since we copied in keybased
 codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app
 
-# Verify
-#codesign --verify --verbose=4 Keybase.app
+rm -rf Keybase-$VERSION.dmg
 
 appdmg appdmg.json Keybase-$VERSION.dmg
+
+#open Keybase-$VERSION.dmg
+
+echo "Installing to /Applications"
+rm -rf /Applications/Keybase.app
+cp -R Keybase.app /Applications
+
