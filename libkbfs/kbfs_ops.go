@@ -112,6 +112,8 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	md.data.Dir.Writer = user
 	md.data.Dir.KeyId = 0
 	md.data.Dir.Ver = fs.config.DataVersion()
+	md.data.Dir.Size = uint32(len(buf))
+	// TODO: What about TotalSize?
 
 	// make sure we're a writer before putting any blocks
 	if !md.GetDirHandle().IsWriter(user) {
@@ -352,7 +354,6 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			if de, ok = prevDblock.Children[currName]; !ok {
 				// TODO: deal with large directories and files
 				de = &DirEntry{
-					BlockPointer: blockPtr,
 					IsDir:        isDir,
 					IsExec:       isExec,
 				}
@@ -363,10 +364,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			currName = prevDir.TailName()
 		}
 
-		de.Id = id
-		de.Writer = user
-		de.KeyId = keyId
-		de.Ver = fs.config.DataVersion()
+		de.BlockPointer = blockPtr
 
 		if newDe == nil {
 			if mtime {
