@@ -2018,7 +2018,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2086,7 +2086,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2212,7 +2212,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
