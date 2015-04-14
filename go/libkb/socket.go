@@ -4,9 +4,10 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"net"
 	"runtime"
+
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 type SocketInfo interface {
@@ -81,7 +82,16 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 }
 
 func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
+	needWrapper := false
 	if g.SocketWrapper == nil {
+		needWrapper = true
+	} else if g.SocketWrapper.xp != nil && !g.SocketWrapper.xp.IsConnected() {
+		// need reconnect
+		G.Log.Info("rpc transport disconnected, reconnecting...")
+		needWrapper = true
+	}
+
+	if needWrapper {
 		sw := SocketWrapper{}
 		if g.SocketInfo == nil {
 			sw.err = fmt.Errorf("Cannot get socket in standalone mode")

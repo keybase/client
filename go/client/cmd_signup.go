@@ -391,6 +391,12 @@ func (e *ClientModeSignupEngine) SetArg(arg *engine.SignupEngineRunArg) {
 }
 
 func (e *ClientModeSignupEngine) Run(ctx *engine.Context) error {
+	// in case daemon restarted before the last time the connections
+	// were established:
+	if err := e.Init(); err != nil {
+		return err
+	}
+
 	rarg := keybase_1.SignupArg{
 		Username:   e.arg.Username,
 		Email:      e.arg.Email,
@@ -402,6 +408,7 @@ func (e *ClientModeSignupEngine) Run(ctx *engine.Context) error {
 	if err == nil {
 		return nil
 	}
+	G.Log.Debug("error: %q, type: %T", err, err)
 	if !res.PassphraseOk || !res.PostOk || !res.WriteOk {
 		// problem with the join phase
 		return engine.SignupJoinEngineRunRes{
