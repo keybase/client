@@ -51,7 +51,10 @@ func RegisterProtocols(prots []rpc2.Protocol) (err error) {
 	}
 	for _, p := range prots {
 		if err = srv.Register(p); err != nil {
-			return
+			if _, ok := err.(rpc2.AlreadyRegisteredError); !ok {
+				return err
+			}
+			err = nil
 		}
 	}
 	return
