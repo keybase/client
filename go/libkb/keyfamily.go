@@ -118,6 +118,9 @@ type KeyFamily struct {
 	Sibkeys KeyMap `json:"sibkeys"`
 	Subkeys KeyMap `json:"subkeys"`
 
+	Families map[string][]*ServerKeyRecord `json:"families"`
+	AllKeys  KeyMap
+
 	Contextified
 }
 
@@ -356,6 +359,22 @@ func (kf *KeyFamily) Import() (err error) {
 	if kf.pgps, err = kf.Subkeys.Import(kf.pgps); err != nil {
 		return
 	}
+
+	// The AllKeys map is not deserialized straight from the server response.
+	// We populate it here using the Families lists (which did come from the
+	// server), and then we import the keys into it. We throw away the
+	// PgpKeyBundles return value, since the ones we need were collected above.
+	kf.AllKeys = make(KeyMap)
+	for _, serverKeyRecords := range kf.Families {
+		for _, record := range serverKeyRecords {
+			kf.AllKeys[record.Kid] = record
+		}
+	}
+	_, err = kf.AllKeys.Import(kf.pgps)
+	if err != nil {
+		return err
+	}
+
 	for _, p := range kf.pgps {
 		fp := p.GetFingerprint().String()
 		kid := p.GetKid()
@@ -463,9 +482,7 @@ func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
 // is paid to whether or not the key is active.
 func (kf KeyFamily) FindKey(kid KID) (ret GenericKey) {
 	kidStr := kid.String()
-	if skr, found := kf.Sibkeys[kidStr]; found {
-		ret = skr.key
-	} else if skr, found = kf.Subkeys[kidStr]; found {
+	if skr, found := kf.AllKeys[kidStr]; found {
 		ret = skr.key
 	}
 	return
