@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	jsonw "github.com/keybase/go-jsonw"
 	libkb "github.com/keybase/client/go/libkb"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // KBPKILocal just serves users from a static map in memory
@@ -71,6 +71,7 @@ func (k *KBPKILocal) GetDeviceSibKeys(user *libkb.User) (
 	keys map[DeviceId]Key, err error) {
 	keys = make(map[DeviceId]Key)
 	// TODO: iterate through sibling keys
+	keys[0] = NullKey
 	err = nil
 	return
 }
