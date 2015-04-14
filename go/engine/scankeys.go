@@ -92,7 +92,7 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 	// no match, so use api server to find keys for this id
 	list, err := s.scan(id)
 	if err != nil {
-		G.Log.Warning("error finding keys for %16x: %s", id, err)
+		G.Log.Warning("error finding keys for %016x: %s", id, err)
 		return nil
 	}
 	G.Log.Debug("ScanKeys:KeysById(%d) => %d keys found via api scan", id, len(list))
@@ -115,7 +115,7 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	// no match, so now lookup the user on the api server by the key id.
 	list, err := s.scan(id)
 	if err != nil {
-		G.Log.Warning("error finding keys: %s", err)
+		G.Log.Warning("error finding keyss for %016x: %s", err)
 		return nil
 	}
 	// use the list to find the keys correctly
@@ -181,8 +181,9 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	if err != nil {
 		return nil, err
 	}
-	G.Log.Debug("key id %d => %s, %s", id, username, uid)
+	G.Log.Debug("key id %d (%16x) => %s, %s", id, id, username, uid)
 	if len(username) == 0 || len(uid) == 0 {
+		G.Log.Warning("key id %d (%16x) => %s, %s", id, id, username, uid)
 		return nil, libkb.NoKeyError{}
 	}
 
