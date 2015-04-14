@@ -10,10 +10,39 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 )
 
+type CheckBlockOps struct {
+	delegate BlockOps
+	t        *testing.T
+}
+
+func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, block Block) error {
+	return cbo.delegate.Get(id, context, decryptKey, block)
+}
+
+func (cbo *CheckBlockOps) Ready(block Block, encryptKey Key) (BlockId, []byte, error) {
+	return cbo.delegate.Ready(block, encryptKey)
+}
+
+func (cbo *CheckBlockOps) Put(id BlockId, context BlockContext, buf []byte) error {
+	if err := cbo.delegate.Put(id, context, buf); err != nil {
+		return err
+	}
+	if context.GetSize() != uint32(len(buf)) {
+		cbo.t.Errorf("expected %d bytes, got %d bytes", context.GetSize(), len(buf))
+	}
+	return nil
+}
+
+func (cbo *CheckBlockOps) Delete(id BlockId, context BlockContext) error {
+	return cbo.delegate.Delete(id, context)
+}
+
 func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock) {
 	mockCtrl = gomock.NewController(t)
 	config = NewConfigMock(mockCtrl)
+	blockops := &CheckBlockOps{config.mockBops, t}
+	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
 	config.SetKBFSOps(kbfsops)
 	return
