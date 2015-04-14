@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -42,7 +43,7 @@ func NewHttpArgs() HttpArgs {
 func (s S) String() string    { return s.Val }
 func (i I) String() string    { return strconv.Itoa(i.Val) }
 func (u U) String() string    { return strconv.FormatUint(u.Val, 10) }
-func (h UHex) String() string { return strconv.FormatUint(h.Val, 16) }
+func (h UHex) String() string { return fmt.Sprintf("%16x", h.Val) }
 func (b B) String() string {
 	if b.Val {
 		return "1"

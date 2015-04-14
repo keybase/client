@@ -92,7 +92,7 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 	// no match, so use api server to find keys for this id
 	list, err := s.scan(id)
 	if err != nil {
-		G.Log.Warning("error finding keys: %s", err)
+		G.Log.Warning("error finding keys for %16x: %s", id, err)
 		return nil
 	}
 	G.Log.Debug("ScanKeys:KeysById(%d) => %d keys found via api scan", id, len(list))
