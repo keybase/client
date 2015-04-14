@@ -825,7 +825,7 @@ func (n *FuseNode) GetAttr(
 			n.NeedUpdate = false
 		}
 
-		out.Size = n.Entry.Size
+		out.Size = n.Entry.TotalSize
 		out.Mode = fuseModeFromEntry(p.TopDir, n.Entry)
 		mtime := time.Unix(0, n.Entry.Mtime)
 		ctime := time.Unix(0, n.Entry.Ctime)

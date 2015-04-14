@@ -515,13 +515,13 @@ func (fs *KBFSOpsStandard) CreateLink(
 
 	// Create a direntry for the link, and then sync
 	de := &DirEntry{
-		IsDir:   false,
-		IsExec:  false,
-		Size:    uint64(len(toPath)),
-		IsSym:   true,
-		SymPath: toPath,
-		Mtime:   time.Now().UnixNano(),
-		Ctime:   time.Now().UnixNano(),
+		IsDir:     false,
+		IsExec:    false,
+		TotalSize: uint64(len(toPath)),
+		IsSym:     true,
+		SymPath:   toPath,
+		Mtime:     time.Now().UnixNano(),
+		Ctime:     time.Now().UnixNano(),
 	}
 
 	dblock.Children[fromPath] = de
@@ -889,7 +889,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 		if dblock, de, err := fs.getEntryLocked(file); err == nil {
 			if oldLen != len(block.Contents) || de.Writer != user {
 				// update the file info
-				de.Size += uint64(len(block.Contents) - oldLen)
+				de.TotalSize += uint64(len(block.Contents) - oldLen)
 				de.Writer = user
 				// the copy will be dirty, so put it in the cache
 				bcache.Put(
@@ -985,7 +985,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 
 	// update the local entry size
 	if dblock, de, err := fs.getEntryLocked(file); err == nil {
-		de.Size = size
+		de.TotalSize = size
 		de.Writer = user
 		// the copy will be dirty, so put it in the cache
 		fs.config.BlockCache().Put(

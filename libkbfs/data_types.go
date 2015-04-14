@@ -387,13 +387,13 @@ func (md *RootMetadata) IsInitialized() bool {
 // DirEntry is the MD for each child in a directory
 type DirEntry struct {
 	BlockPointer
-	Size    uint64
-	IsSym   bool
-	SymPath string `codec:",omitempty"` // must be within the same root dir
-	IsDir   bool
-	IsExec  bool
-	Mtime   int64
-	Ctime   int64
+	TotalSize uint64
+	IsSym     bool
+	SymPath   string `codec:",omitempty"` // must be within the same root dir
+	IsDir     bool
+	IsExec    bool
+	Mtime     int64
+	Ctime     int64
 }
 
 // IndirectDirPtr pairs an indirect dir block with the start of that

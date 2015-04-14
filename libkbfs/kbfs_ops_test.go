@@ -1081,7 +1081,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1136,7 +1136,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1300,9 +1300,9 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", data)
 	} else if newRootBlock.Children["f"].Writer != userId {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
-	} else if newRootBlock.Children["f"].Size != uint64(len(data)) {
+	} else if newRootBlock.Children["f"].TotalSize != uint64(len(data)) {
 		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+			newRootBlock.Children["f"].TotalSize)
 	}
 }
 
@@ -1479,9 +1479,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	} else if pblock.IPtrs[1].Off != 6 {
 		t.Errorf("Parent block has wrong offset for block 5: %d",
 			pblock.IPtrs[1].Off)
-	} else if newRootBlock.Children["f"].Size != uint64(11) {
+	} else if newRootBlock.Children["f"].TotalSize != uint64(11) {
 		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+			newRootBlock.Children["f"].TotalSize)
 	}
 }
 
@@ -1497,7 +1497,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Writer: userId}, Size: 10}
+		BlockPointer: BlockPointer{Id: fileId, Writer: userId}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1598,9 +1598,9 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
 	} else if newRootBlock.Children["f"].Writer != userId {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
-	} else if newRootBlock.Children["f"].Size != 0 {
+	} else if newRootBlock.Children["f"].TotalSize != 0 {
 		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].Size)
+			newRootBlock.Children["f"].TotalSize)
 	}
 }
 
@@ -1676,7 +1676,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 10}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2018,7 +2018,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 10}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2086,7 +2086,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 10}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2212,7 +2212,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId}, Size: 10}
+		BlockPointer: BlockPointer{Id: fileId}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
