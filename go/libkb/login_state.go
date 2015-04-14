@@ -70,15 +70,6 @@ func (s *LoginState) getSalt() (salt []byte, err error) {
 	return
 }
 
-func (s *LoginState) generateNewSalt() error {
-	var err error
-	s.salt, err = RandBytes(triplesec.SaltLen)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *LoginState) getSaltAndLoginSession(email_or_username string) error {
 
 	if s.salt != nil && s.loginSession != nil && s.sessionFor == email_or_username {
@@ -581,8 +572,8 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 		}
 		key, _, err := keyrings.GetSecretKeyWithPrompt(ska, secretUI, "Login")
 		return key, err
-}
-	
+	}
+
 	if loggedIn, err = s.tryPubkeyLoginHelper(username, getSecretKeyFn); err != nil || loggedIn {
 		return
 	}
