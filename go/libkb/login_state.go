@@ -45,8 +45,6 @@ func NewLoginState(g *GlobalContext) *LoginState {
 	}
 }
 
-func (s *LoginState) Session() *Session { return s.session }
-
 func (s *LoginState) SessionArgs() (token, csrf string, err error) {
 	if s.session == nil {
 		return token, csrf, ErrNilSession
@@ -68,6 +66,20 @@ func (s *LoginState) UserInfo() (uid UID, username, token string, err error) {
 	}
 	token = s.session.GetToken()
 	return
+}
+
+func (s *LoginState) UID() *UID {
+	if s.session == nil {
+		return nil
+	}
+	return s.session.GetUID()
+}
+
+func (s *LoginState) SessionLoad() error {
+	if s.session == nil {
+		return ErrNilSession
+	}
+	return s.session.Load()
 }
 
 // IsLoggedIn returns true if the user is logged in.  It does not
@@ -572,7 +584,14 @@ func (s *LoginState) getEmailOrUsername(username *string, loginUI LoginUI) (err 
 	if len(*username) == 0 {
 		err = NoUsernameError{}
 	}
-	return
+
+	if err != nil {
+		return err
+	}
+
+	// username set, so redo config
+	G.ConfigureConfig()
+	return s.switchUser(*username)
 }
 
 func (s *LoginState) passphraseLogin(username, passphrase string, secretUI SecretUI, retryMsg string) (err error) {

@@ -87,7 +87,7 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 	hargs := HttpArgs{}
 
 	// Load the session for the following API request.
-	if err = ss.G().LoginState.Session().Load(); err != nil {
+	if err = ss.G().LoginState.SessionLoad(); err != nil {
 		return
 	}
 

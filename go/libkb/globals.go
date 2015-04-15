@@ -248,7 +248,7 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 }
 
 func (g *GlobalContext) GetMyUID() (ret *UID) {
-	ret = g.LoginState.Session().GetUID()
+	ret = g.LoginState.UID()
 	if ret == nil {
 		ret = g.Env.GetUID()
 	}
