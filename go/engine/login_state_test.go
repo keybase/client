@@ -30,7 +30,7 @@ func TestLoginLogout(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(t, "login")
 
-	if err := G.Session.AssertLoggedIn(); err != nil {
+	if err := G.LoginState.Session().AssertLoggedIn(); err != nil {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
@@ -38,7 +38,7 @@ func TestLoginLogout(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	if err := G.Session.AssertLoggedOut(); err != nil {
+	if err := G.LoginState.Session().AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
@@ -62,7 +62,7 @@ func TestLoginLogout(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := G.Session.AssertLoggedIn(); err != nil {
+	if err := G.LoginState.Session().AssertLoggedIn(); err != nil {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 

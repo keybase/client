@@ -133,7 +133,7 @@ func (s *SignupJoinEngine) WriteConfig(salt []byte) (err error) {
 func (s *SignupJoinEngine) WriteSession() error {
 
 	// First load up the Session file...
-	if err := G.Session.Load(); err != nil {
+	if err := G.LoginState.Session().Load(); err != nil {
 		return err
 	}
 
@@ -143,7 +143,7 @@ func (s *SignupJoinEngine) WriteSession() error {
 		Uid:       s.uid,
 		Username:  s.username,
 	}
-	sw := G.SessionWriter
+	sw := G.LoginState.SessionWriter()
 	if sw == nil {
 		return fmt.Errorf("No session writer available")
 	}

@@ -2,7 +2,8 @@ package main
 
 import (
 	"errors"
-	"github.com/keybase/client/protocol/go"
+
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -21,7 +22,7 @@ func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
 // CurrentSession uses the global session to find the session.  If
 // the user isn't logged in, it returns ErrNoSession.
 func (h *SessionHandler) CurrentSession() (keybase_1.Session, error) {
-	current := G.Session
+	current := G.LoginState.Session()
 	var s keybase_1.Session
 	if !current.IsLoggedIn() {
 		return s, ErrNoSession

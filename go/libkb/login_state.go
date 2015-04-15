@@ -20,6 +20,7 @@ type LoggedInResult struct {
 }
 
 type LoginState struct {
+	Contextified
 	Configured      bool
 	LoggedIn        bool
 	SessionVerified bool
@@ -32,34 +33,161 @@ type LoginState struct {
 	passphraseStream PassphraseStream
 
 	loggedInRes *LoggedInResult
+
+	// session is contained in LoginState
+	session       *Session      // The user's session cookie, &c
+	sessionWriter SessionWriter // to write the session back out
 }
 
-const (
-	pwhIndex   = 0
-	pwhLen     = 32
-	eddsaIndex = pwhIndex + pwhLen
-	eddsaLen   = 32
-	dhIndex    = eddsaIndex + eddsaLen
-	dhLen      = 32
-	lksIndex   = dhIndex + dhLen
-	lksLen     = 32
-	extraLen   = pwhLen + eddsaLen + dhLen + lksLen
-)
-
-func NewLoginState() *LoginState {
-	return &LoginState{}
+func NewLoginState(g *GlobalContext) *LoginState {
+	s := NewSession(g)
+	return &LoginState{
+		Contextified:  Contextified{g},
+		session:       s,
+		sessionWriter: s,
+	}
 }
 
-func (s LoginState) getCachedSharedSecret() []byte {
-	return s.passphraseStream[pwhIndex:eddsaIndex]
+func (s *LoginState) Session() *Session            { return s.session }
+func (s *LoginState) SessionWriter() SessionWriter { return s.sessionWriter }
+
+func (s LoginState) IsLoggedIn() bool {
+	return s.LoggedIn
+}
+
+func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
+	G.Log.Debug("+ LoginWithPrompt(%s) called", username)
+	defer func() { G.Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
+	return s.loginWithPromptHelper(username, loginUI, secretUI, false)
+}
+
+func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
+	G.Log.Debug("+ LoginWithStoredSecret(%s) called", username)
+	defer func() { G.Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
+
+	var loggedIn bool
+	if loggedIn, err = s.checkLoggedIn(username, false); err != nil || loggedIn {
+		return
+	}
+
+	if err = s.switchUser(username); err != nil {
+		return
+	}
+
+	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
+		secretRetriever := NewSecretStore(me)
+		return keyrings.GetSecretKeyWithStoredSecret(me, secretRetriever)
+	}
+	return s.pubkeyLoginHelper(username, getSecretKeyFn)
+}
+
+func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecret bool) (err error) {
+	G.Log.Debug("+ LoginWithPassphrase(%s) called", username)
+	defer func() { G.Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
+
+	var loggedIn bool
+	if loggedIn, err = s.checkLoggedIn(username, false); err != nil || loggedIn {
+		return
+	}
+
+	if err = s.switchUser(username); err != nil {
+		return
+	}
+
+	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
+		var secretStorer SecretStorer
+		if storeSecret {
+			secretStorer = NewSecretStore(me)
+		}
+		return keyrings.GetSecretKeyWithPassphrase(me, passphrase, secretStorer)
+	}
+	if loggedIn, err = s.tryPubkeyLoginHelper(username, getSecretKeyFn); err != nil || loggedIn {
+		return
+	}
+
+	return s.passphraseLogin(username, passphrase, nil, "")
+}
+
+func (s *LoginState) Logout() error {
+	G.Log.Debug("+ Logout called")
+	username := s.session.GetUsername()
+	err := s.session.Logout()
+	if err == nil {
+		s.LoggedIn = false
+		s.SessionVerified = false
+		s.clearPassphrase()
+	}
+	if G.SecretSyncer != nil {
+		G.SecretSyncer.Clear()
+	}
+	if username != nil {
+		G.Keyrings.ClearSecretKeys(*username)
+	}
+	G.Log.Debug("- Logout called")
+	return err
+}
+
+func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
+	return s.tsec
 }
 
 func (s LoginState) GetCachedPassphraseStream() PassphraseStream {
 	return s.passphraseStream
 }
 
-func (s LoginState) IsLoggedIn() bool {
-	return s.LoggedIn
+// GetPassphraseStream either returns a cached, verified passphrase stream
+// (maybe from a previous login) or generates a new one via Login. It will
+// return the current Passphrase stream on success or an error on failure.
+func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
+	if ret = s.GetCachedPassphraseStream(); ret != nil {
+		return
+	}
+	if err = s.verifyPassphrase(ui); err != nil {
+		return
+	}
+	if ret = s.GetCachedPassphraseStream(); ret == nil {
+		err = InternalError{"No cached keystream data after login attempt"}
+	}
+	return
+}
+
+// GetVerifiedTripleSec either returns a cached, verified Triplesec
+// or generates a new one that's verified via Login.
+func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
+	if ret = s.GetCachedTriplesec(); ret != nil {
+		return
+	}
+	if err = s.verifyPassphrase(ui); err != nil {
+		return
+	}
+	if ret = s.GetCachedTriplesec(); ret == nil {
+		err = InternalError{"No cached keystream data after login attempt"}
+	}
+	return
+}
+
+// GetUnverifiedPassphraseStream takes a passphrase as a parameter and
+// also the salt from the LoginState and computes a Triplesec and
+// a passphrase stream.  It's not verified through a Login.
+func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
+	var salt []byte
+	if salt, err = s.getSalt(); err != nil {
+		return
+	}
+	return StretchPassphrase(passphrase, salt)
+}
+
+// SetPassphraseStream takes the Triplesec and PassphraseStream returned from
+// GetUnverifiedPassphraseStream and commits it to the current LoginState.
+// Do this after we've verified a PassphraseStream via successful LKS
+// decryption.
+func (s *LoginState) SetPassphraseStream(tsec *triplesec.Cipher, pps PassphraseStream) {
+	s.tsec = tsec
+	s.passphraseStream = pps
+}
+
+func (s LoginState) getCachedSharedSecret() []byte {
+	return s.passphraseStream.PWHash()
 }
 
 func (s *LoginState) getSalt() (salt []byte, err error) {
@@ -112,18 +240,6 @@ func (s *LoginState) getSaltAndLoginSession(email_or_username string) error {
 	s.sessionFor = email_or_username
 
 	return nil
-}
-
-func StretchPassphrase(passphrase string, salt []byte) (tsec *triplesec.Cipher, pps PassphraseStream, err error) {
-	var tmp []byte
-	if tsec, err = triplesec.NewCipher([]byte(passphrase), salt); err != nil {
-		return
-	}
-	if _, tmp, err = tsec.DeriveKey(extraLen); err != nil {
-		return
-	}
-	pps = PassphraseStream(tmp)
-	return
 }
 
 func (s *LoginState) stretchPassphrase(passphrase string) (err error) {
@@ -198,9 +314,9 @@ func (s *LoginState) saveLoginState() (err error) {
 		}
 	}
 
-	if sw := G.SessionWriter; sw != nil {
-		sw.SetLoggedIn(*s.loggedInRes)
-		if err = sw.Write(); err != nil {
+	if s.sessionWriter != nil {
+		s.sessionWriter.SetLoggedIn(*s.loggedInRes)
+		if err = s.sessionWriter.Write(); err != nil {
 			return err
 		}
 	}
@@ -223,25 +339,6 @@ func (s *LoginState) ClearStoredSecret(username string) error {
 		return nil
 	}
 	return secretStore.ClearSecret()
-}
-
-func (s *LoginState) Logout() error {
-	G.Log.Debug("+ Logout called")
-	username := G.Session.GetUsername()
-	err := G.Session.Logout()
-	if err == nil {
-		s.LoggedIn = false
-		s.SessionVerified = false
-		s.clearPassphrase()
-	}
-	if G.SecretSyncer != nil {
-		G.SecretSyncer.Clear()
-	}
-	if username != nil {
-		G.Keyrings.ClearSecretKeys(*username)
-	}
-	G.Log.Debug("- Logout called")
-	return err
 }
 
 func (r PostAuthProofRes) toLoggedInResult() (ret *LoggedInResult, err error) {
@@ -322,71 +419,18 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 	return
 }
 
-func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
-	G.Log.Debug("+ LoginWithPrompt(%s) called", username)
-	defer func() { G.Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
-	return s.loginWithPromptHelper(username, loginUI, secretUI, false)
-}
-
-func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
-	G.Log.Debug("+ LoginWithStoredSecret(%s) called", username)
-	defer func() { G.Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
-
-	var loggedIn bool
-	if loggedIn, err = s.checkLoggedIn(username, false); err != nil || loggedIn {
-		return
-	}
-
-	if err = s.switchUser(username); err != nil {
-		return
-	}
-
-	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		secretRetriever := NewSecretStore(me)
-		return keyrings.GetSecretKeyWithStoredSecret(me, secretRetriever)
-	}
-	return s.pubkeyLoginHelper(username, getSecretKeyFn)
-}
-
-func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecret bool) (err error) {
-	G.Log.Debug("+ LoginWithPassphrase(%s) called", username)
-	defer func() { G.Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
-
-	var loggedIn bool
-	if loggedIn, err = s.checkLoggedIn(username, false); err != nil || loggedIn {
-		return
-	}
-
-	if err = s.switchUser(username); err != nil {
-		return
-	}
-
-	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		var secretStorer SecretStorer
-		if storeSecret {
-			secretStorer = NewSecretStore(me)
-		}
-		return keyrings.GetSecretKeyWithPassphrase(me, passphrase, secretStorer)
-	}
-	if loggedIn, err = s.tryPubkeyLoginHelper(username, getSecretKeyFn); err != nil || loggedIn {
-		return
-	}
-
-	return s.passphraseLogin(username, passphrase, nil, "")
-}
-
 func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, err error) {
 
 	G.Log.Debug("+ checkedLoggedIn()")
 	defer func() { G.Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
 
 	var loggedInTmp bool
-	if loggedInTmp, err = G.Session.LoadAndCheck(); err != nil {
+	if loggedInTmp, err = s.session.LoadAndCheck(); err != nil {
 		G.Log.Debug("| Session failed to load")
 		return
 	}
 
-	un := G.Session.GetUsername()
+	un := s.session.GetUsername()
 	if loggedInTmp && len(username) > 0 && un != nil && username != *un {
 		err = LoggedInError{}
 		return
@@ -539,14 +583,6 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 	return
 }
 
-//==================================================
-
-func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
-	return s.tsec
-}
-
-//==================================================
-
 func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
 	return s.loginWithPromptHelper(G.Env.GetUsername(), nil, ui, true)
 }
@@ -580,84 +616,3 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 
 	return s.tryPassphrasePromptLogin(username, secretUI)
 }
-
-// GetPassphraseStream either returns a cached, verified passphrase stream
-// (maybe from a previous login) or generates a new one via Login. It will
-// return the current Passphrase stream on success or an error on failure.
-func (s *LoginState) GetPassphraseStream(ui SecretUI) (ret PassphraseStream, err error) {
-	if ret = s.GetCachedPassphraseStream(); ret != nil {
-		return
-	}
-	if err = s.verifyPassphrase(ui); err != nil {
-		return
-	}
-	if ret = s.GetCachedPassphraseStream(); ret == nil {
-		err = InternalError{"No cached keystream data after login attempt"}
-	}
-	return
-}
-
-//==================================================
-
-// GetVerifiedTripleSec either returns a cached, verified Triplesec
-// or generates a new one that's verified via Login.
-func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, err error) {
-	if ret = s.GetCachedTriplesec(); ret != nil {
-		return
-	}
-	if err = s.verifyPassphrase(ui); err != nil {
-		return
-	}
-	if ret = s.GetCachedTriplesec(); ret == nil {
-		err = InternalError{"No cached keystream data after login attempt"}
-	}
-	return
-}
-
-//==================================================
-
-// GetUnverifiedPassphraseStream takes a passphrase as a parameter and
-// also the salt from the LoginState and computes a Triplesec and
-// a passphrase stream.  It's not verified through a Login.
-func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
-	var salt []byte
-	if salt, err = s.getSalt(); err != nil {
-		return
-	}
-	return StretchPassphrase(passphrase, salt)
-}
-
-// SetPassphraseStream takes the Triplesec and PassphraseStream returned from
-// GetUnverifiedPassphraseStream and commits it to the current LoginState.
-// Do this after we've verified a PassphraseStream via successful LKS
-// decryption.
-func (s *LoginState) SetPassphraseStream(tsec *triplesec.Cipher, pps PassphraseStream) {
-	s.tsec = tsec
-	s.passphraseStream = pps
-}
-
-//==================================================
-
-type PassphraseStream []byte
-
-func (d PassphraseStream) PWHash() []byte {
-	return d[pwhIndex:eddsaIndex]
-}
-
-func (d PassphraseStream) EdDSASeed() []byte {
-	return d[eddsaIndex:dhIndex]
-}
-
-func (d PassphraseStream) DHSeed() []byte {
-	return d[dhIndex:lksIndex]
-}
-
-func (d PassphraseStream) LksClientHalf() []byte {
-	return d[lksIndex:]
-}
-
-func (d PassphraseStream) String() string {
-	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x", d.PWHash(), d.EdDSASeed(), d.DHSeed(), d.LksClientHalf())
-}
-
-//==================================================

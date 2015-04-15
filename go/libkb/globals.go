@@ -24,8 +24,6 @@ type ShutdownHook func() error
 
 type GlobalContext struct {
 	Log           *Logger          // Handles all logging
-	Session       *Session         // The user's session cookie, &c
-	SessionWriter SessionWriter    // To write the session back out
 	LoginState    *LoginState      // What phase of login the user's in
 	Env           *Env             // Env variables, cmdline args & config
 	Keyrings      *Keyrings        // Gpg Keychains holding keys
@@ -66,9 +64,7 @@ func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
-	g.LoginState = NewLoginState()
-	g.Session = NewSession(g)
-	g.SessionWriter = g.Session
+	g.LoginState = NewLoginState(g)
 	g.Daemon = false
 }
 
@@ -166,8 +162,8 @@ func (g *GlobalContext) Shutdown() error {
 	if g.LocalDb != nil {
 		epick.Push(g.LocalDb.Close())
 	}
-	if g.SessionWriter != nil {
-		epick.Push(g.SessionWriter.Write())
+	if g.LoginState.SessionWriter() != nil {
+		epick.Push(g.LoginState.SessionWriter().Write())
 	}
 
 	for _, hook := range g.ShutdownHooks {
@@ -252,7 +248,7 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 }
 
 func (g *GlobalContext) GetMyUID() (ret *UID) {
-	ret = g.Session.GetUID()
+	ret = g.LoginState.Session().GetUID()
 	if ret == nil {
 		ret = g.Env.GetUID()
 	}

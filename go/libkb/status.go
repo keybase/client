@@ -20,7 +20,7 @@ func GetCurrentStatus() (res CurrentStatus, err error) {
 			res.Registered = true
 			res.User = NewUserThin(cr.GetUsername(), *u)
 		}
-		res.LoggedIn, err = G.Session.LoadAndCheck()
+		res.LoggedIn, err = G.LoginState.Session().LoadAndCheck()
 	}
 	return
 }
