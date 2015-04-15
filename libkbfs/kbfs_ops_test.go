@@ -26,7 +26,11 @@ func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, 
 }
 
 func (cbo *CheckBlockOps) Ready(block Block, encryptKey Key) (BlockId, []byte, error) {
-	return cbo.delegate.Ready(block, encryptKey)
+	id, buf, err := cbo.delegate.Ready(block, encryptKey)
+	if err != nil {
+		return id, buf, err
+	}
+	return id, buf, err
 }
 
 func (cbo *CheckBlockOps) Put(id BlockId, context BlockContext, buf []byte) error {
@@ -2022,17 +2026,13 @@ func TestSyncCleanSuccess(t *testing.T) {
 }
 
 func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
-	splitAt int64) *gomock.Call {
+	splitAt int64, size int) *gomock.Call {
 	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
-	if splitAt > 0 {
-
-	}
-
 	newId := BlockId{id[0] + 100}
-	newBuf := []byte{6, 7, 8, 9, 10}
+	newBuf := make([]byte, size)
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 	c2 := config.mockBops.EXPECT().Ready(block, NullKey).
@@ -2090,8 +2090,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	// the split is good
 	expectGetSecretKey(config, rmd)
-	expectSyncDirtyBlock(config, id2, block2, int64(0))
-	expectSyncDirtyBlock(config, id4, block4, int64(0))
+	expectSyncDirtyBlock(config, id2, block2, int64(0), len(block2.Contents))
+	expectSyncDirtyBlock(config, id4, block4, int64(0), len(block4.Contents))
 
 	// sync block
 	expectedPath, _ :=
@@ -2160,18 +2160,18 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	expectGetSecretKey(config, rmd)
 
 	// the split is in the middle
-	expectSyncDirtyBlock(config, id2, block2, int64(3))
+	expectSyncDirtyBlock(config, id2, block2, int64(3), 3)
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
 	config.mockBcache.EXPECT().Put(id3, gomock.Any(), true).
 		Do(func(id BlockId, block Block, dirty bool) {
 		newBlock3 = block.(*FileBlock)
 		// id3 syncs just fine
-		expectSyncDirtyBlock(config, id3, newBlock3, int64(0))
+		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), 7)
 	}).Return(nil)
 
 	// id4 is the final block, and the split causes a new block to be made
-	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3))
+	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), 3)
 	var newId5 BlockId
 	var newBlock5 *FileBlock
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
@@ -2179,7 +2179,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		newId5 = id
 		newBlock5 = block.(*FileBlock)
 		// id5 syncs just fine
-		expectSyncDirtyBlock(config, id, newBlock5, int64(0))
+		expectSyncDirtyBlock(config, id, newBlock5, int64(0), 2)
 		// it's put one more time
 		config.mockBcache.EXPECT().Put(id, gomock.Any(), true).Return(nil)
 	}).Return(nil)
@@ -2298,7 +2298,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	expectGetSecretKey(config, rmd)
 
 	// the split is in the middle
-	expectSyncDirtyBlock(config, id1, block1, int64(-1))
+	expectSyncDirtyBlock(config, id1, block1, int64(-1), 10)
 	// this causes block 2 to be copied from (copy whole block)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block2.Contents, int64(5)).
@@ -2308,7 +2308,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	// now block 2 is empty, and should be deleted
 
 	// block 3 is dirty too, just copy part of block 4
-	expectSyncDirtyBlock(config, id3, block3, int64(-1))
+	expectSyncDirtyBlock(config, id3, block3, int64(-1), 8)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block4.Contents, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -2320,7 +2320,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		newBlock4 = block.(*FileBlock)
 		// now block 4 is dirty, but it's the end of the line,
 		// so nothing else to do
-		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1))
+		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1), len(newBlock4.Contents))
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed

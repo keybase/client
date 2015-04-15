@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -721,6 +722,9 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		if block, err = fs.getFileLocked(newPath, asWrite); err != nil {
 			return
 		}
+		if nextPtr.Size != uint32(len(block.Contents)) {
+			panic(fmt.Sprintf("expected %d bytes, got %d bytes", nextPtr.Size, len(block.Contents)))
+		}
 	}
 
 	return
@@ -1198,6 +1202,9 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 
 				// ready/finalize/put the block
 				id, buf, err := bops.Ready(block, blockKey)
+				if ptr.Size != uint32(len(buf)) {
+					panic(fmt.Sprintf("expected %d bytes, got %d bytes", ptr.Size, len(buf)))
+				}
 				if err != nil {
 					return Path{}, err
 				}
