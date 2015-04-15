@@ -137,17 +137,11 @@ func (s *SignupJoinEngine) WriteSession() error {
 		return err
 	}
 
-	lir := libkb.LoggedInResult{
-		SessionId: s.session,
-		CsrfToken: s.csrf,
-		Uid:       s.uid,
-		Username:  s.username,
-	}
 	sw := G.LoginState.SessionWriter()
 	if sw == nil {
 		return fmt.Errorf("No session writer available")
 	}
-	sw.SetLoggedIn(lir)
+	sw.SetLoggedIn(s.session, s.csrf, s.username, s.uid)
 	return sw.Write()
 }
 

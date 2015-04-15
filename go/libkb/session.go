@@ -51,13 +51,13 @@ func (s Session) GetToken() string {
 	return s.token
 }
 
-func (s *Session) SetLoggedIn(lir LoggedInResult) {
+func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
 	s.valid = true
-	s.uid = &lir.Uid
-	s.username = &lir.Username
-	s.token = lir.SessionId
-	s.GetDictionary().SetKey("session", jsonw.NewString(lir.SessionId))
-	s.SetCsrf(lir.CsrfToken)
+	s.uid = &uid
+	s.username = &username
+	s.token = sessionID
+	s.GetDictionary().SetKey("session", jsonw.NewString(sessionID))
+	s.SetCsrf(csrfToken)
 	s.SetDirty()
 
 	// Set up our SecretSyncer to work on the logged in user from here on

@@ -12,13 +12,6 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-type LoggedInResult struct {
-	SessionId string
-	CsrfToken string
-	Uid       UID
-	Username  string
-}
-
 type LoginState struct {
 	Contextified
 	Configured      bool
@@ -31,11 +24,16 @@ type LoginState struct {
 	sessionFor       string
 	passphraseStream PassphraseStream
 
-	loggedInRes *LoggedInResult
-
 	// session is contained in LoginState
 	session       *Session      // The user's session cookie, &c
 	sessionWriter SessionWriter // to write the session back out
+}
+
+type loginAPIResult struct {
+	sessionID string
+	csrfToken string
+	uid       UID
+	username  string
 }
 
 func NewLoginState(g *GlobalContext) *LoginState {
@@ -287,7 +285,7 @@ func (s *LoginState) computeLoginPw() ([]byte, error) {
 	return mac.Sum(nil), nil
 }
 
-func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) error {
+func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult, error) {
 	res, err := G.API.Post(ApiArg{
 		Endpoint:    "login",
 		NeedSession: false,
@@ -299,44 +297,42 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) error {
 		AppStatus: []string{"OK", "BAD_LOGIN_PASSWORD"},
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if res.AppStatus == "BAD_LOGIN_PASSWORD" {
 		err = PassphraseError{"server rejected login attempt"}
-		return err
+		return nil, err
 	}
 
 	b := res.Body
 	sessionId, err := b.AtKey("session").GetString()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	csrfToken, err := b.AtKey("csrf_token").GetString()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	uid, err := GetUid(b.AtKey("uid"))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	uname, err := b.AtKey("me").AtKey("basics").AtKey("username").GetString()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	s.loggedInRes = &LoggedInResult{sessionId, csrfToken, *uid, uname}
-	return nil
+	return &loginAPIResult{sessionId, csrfToken, *uid, uname}, nil
 }
 
-func (s *LoginState) saveLoginState() (err error) {
+func (s *LoginState) saveLoginState(res *loginAPIResult) (err error) {
 	s.SessionVerified = true
 	s.loginSession = nil
 	s.loginSessionB64 = ""
 
 	if cfg := G.Env.GetConfigWriter(); cfg != nil {
 
-		if err = cfg.SetUserConfig(NewUserConfig(s.loggedInRes.Uid, s.loggedInRes.Username,
-			s.salt, nil), false); err != nil {
+		if err = cfg.SetUserConfig(NewUserConfig(res.uid, res.username, s.salt, nil), false); err != nil {
 			return err
 		}
 
@@ -346,7 +342,7 @@ func (s *LoginState) saveLoginState() (err error) {
 	}
 
 	if s.sessionWriter != nil {
-		s.sessionWriter.SetLoggedIn(*s.loggedInRes)
+		s.sessionWriter.SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
 		if err = s.sessionWriter.Write(); err != nil {
 			return err
 		}
@@ -372,16 +368,16 @@ func (s *LoginState) ClearStoredSecret(username string) error {
 	return secretStore.ClearSecret()
 }
 
-func (r PostAuthProofRes) toLoggedInResult() (ret *LoggedInResult, err error) {
+func (r PostAuthProofRes) loginResult() (ret *loginAPIResult, err error) {
 	var uid *UID
 	if uid, err = UidFromHex(r.UidHex); err != nil {
 		return
 	}
-	ret = &LoggedInResult{
-		SessionId: r.SessionId,
-		CsrfToken: r.CsrfToken,
-		Uid:       *uid,
-		Username:  r.Username,
+	ret = &loginAPIResult{
+		sessionID: r.SessionId,
+		csrfToken: r.CsrfToken,
+		uid:       *uid,
+		username:  r.Username,
 	}
 	return
 }
@@ -442,12 +438,12 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 		return
 	}
 
-	if s.loggedInRes, err = pres.toLoggedInResult(); err != nil {
-		return
+	res, err := pres.loginResult()
+	if err != nil {
+		return err
 	}
 
-	err = s.saveLoginState()
-	return
+	return s.saveLoginState(res)
 }
 
 func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, err error) {
@@ -559,26 +555,23 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 		return
 	}
 
-	var lgpw []byte
-	lgpw, err = s.computeLoginPw()
-
+	lgpw, err := s.computeLoginPw()
 	if err != nil {
 		return
 	}
 
-	err = s.postLoginToServer(username, lgpw)
+	res, err := s.postLoginToServer(username, lgpw)
 	if err != nil {
 		s.tsec = nil
 		s.passphraseStream = nil
 		return err
 	}
 
-	err = s.saveLoginState()
-	if err != nil {
+	if err := s.saveLoginState(res); err != nil {
 		return err
 	}
 
-	return
+	return nil
 }
 
 func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry string) (ret *triplesec.Cipher, err error) {

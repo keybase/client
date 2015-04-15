@@ -121,7 +121,7 @@ type ConfigWriter interface {
 }
 
 type SessionWriter interface {
-	SetLoggedIn(LoggedInResult)
+	SetLoggedIn(sessionID, csrfToken, username string, uid UID)
 	Write() error
 }
 
