@@ -51,7 +51,23 @@ func (s *LoginState) SessionArgs() (token, csrf string, err error) {
 	if s.session == nil {
 		return token, csrf, ErrNilSession
 	}
-	return s.session.token, s.session.csrf, nil
+	return s.session.GetToken(), s.session.csrf, nil
+}
+
+func (s *LoginState) UserInfo() (uid UID, username, token string, err error) {
+	if s.session == nil {
+		return uid, username, token, ErrNilSession
+	}
+	uidp := s.session.GetUID()
+	if uidp != nil {
+		uid = *uidp
+	}
+	unp := s.session.GetUsername()
+	if unp != nil {
+		username = *unp
+	}
+	token = s.session.GetToken()
+	return
 }
 
 // IsLoggedIn returns true if the user is logged in.  It does not
