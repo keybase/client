@@ -22,12 +22,13 @@ type Session struct {
 	mtime    int64
 }
 
-func NewSession(g *GlobalContext) *Session {
+func newSession(g *GlobalContext) *Session {
 	return &Session{Contextified: Contextified{g}}
 }
 
 // NewSessionThin creates a minimal (thin) session of just the uid and username.
 // Clients of the daemon that use the session protocol need this.
+// (kbfs uses this...probably incorrectly)
 func NewSessionThin(uid UID, username string, token string) *Session {
 	// XXX should this set valid to true?  daemon won't return a
 	// session unless valid is true, so...

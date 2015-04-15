@@ -22,7 +22,6 @@ type LoggedInResult struct {
 type LoginState struct {
 	Contextified
 	Configured      bool
-	LoggedIn        bool
 	SessionVerified bool
 
 	salt             []byte
@@ -40,7 +39,7 @@ type LoginState struct {
 }
 
 func NewLoginState(g *GlobalContext) *LoginState {
-	s := NewSession(g)
+	s := newSession(g)
 	return &LoginState{
 		Contextified:  Contextified{g},
 		session:       s,
@@ -52,7 +51,7 @@ func (s *LoginState) Session() *Session            { return s.session }
 func (s *LoginState) SessionWriter() SessionWriter { return s.sessionWriter }
 
 func (s LoginState) IsLoggedIn() bool {
-	return s.LoggedIn
+	return s.session.IsLoggedIn()
 }
 
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
@@ -113,7 +112,6 @@ func (s *LoginState) Logout() error {
 	username := s.session.GetUsername()
 	err := s.session.Logout()
 	if err == nil {
-		s.LoggedIn = false
 		s.SessionVerified = false
 		s.clearPassphrase()
 	}
@@ -297,7 +295,6 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) error {
 }
 
 func (s *LoginState) saveLoginState() (err error) {
-	s.LoggedIn = true
 	s.SessionVerified = true
 	s.loginSession = nil
 	s.loginSessionB64 = ""
@@ -437,7 +434,6 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 	}
 
 	if !force && loggedInTmp {
-		s.LoggedIn = true
 		s.SessionVerified = true
 		G.Log.Debug("| Our session token is still valid; we're logged in")
 		loggedIn = true
