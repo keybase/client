@@ -16,7 +16,13 @@ type CheckBlockOps struct {
 }
 
 func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, block Block) error {
-	return cbo.delegate.Get(id, context, decryptKey, block)
+	if err := cbo.delegate.Get(id, context, decryptKey, block); err != nil {
+		return err
+	}
+	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && context.GetSize() != uint32(len(fBlock.Contents)) {
+		cbo.t.Errorf("expected %d bytes, got %d bytes", context.GetSize(), len(fBlock.Contents))
+	}
+	return nil
 }
 
 func (cbo *CheckBlockOps) Ready(block Block, encryptKey Key) (BlockId, []byte, error) {
@@ -1240,8 +1246,9 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	// TODO: Fill in size.
 	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 0}, "f"}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 10}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
