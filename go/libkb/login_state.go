@@ -50,6 +50,13 @@ func NewLoginState(g *GlobalContext) *LoginState {
 func (s *LoginState) Session() *Session            { return s.session }
 func (s *LoginState) SessionWriter() SessionWriter { return s.sessionWriter }
 
+func (s *LoginState) SessionArgs() (token, csrf string, err error) {
+	if s.session == nil {
+		return token, csrf, ErrNilSession
+	}
+	return s.session.token, s.session.csrf, nil
+}
+
 // IsLoggedIn returns true if the user is logged in.  It does not
 // try to load the session.
 func (s *LoginState) IsLoggedIn() bool {

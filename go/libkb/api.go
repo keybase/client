@@ -206,15 +206,18 @@ func (a InternalApiEngine) getUrl(arg ApiArg) url.URL {
 }
 
 func (a InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
-	if arg.NeedSession && G.LoginState.Session() != nil {
-		if tok := G.LoginState.Session().token; len(tok) > 0 {
-			req.Header.Add("X-Keybase-Session", tok)
+	if arg.NeedSession {
+		tok, csrf, err := G.LoginState.SessionArgs()
+		if err != nil {
+			G.Log.Warning("fixHeaders: Need session, but got error getting session args: %s", err)
+		} else {
+			if len(tok) > 0 {
+				req.Header.Add("X-Keybase-Session", tok)
+			}
+			if len(csrf) > 0 {
+				req.Header.Add("X-CSRF-Token", csrf)
+			}
 		}
-		if csrf := G.LoginState.Session().csrf; len(csrf) > 0 {
-			req.Header.Add("X-CSRF-Token", csrf)
-		}
-	} else if arg.NeedSession && G.LoginState.Session() == nil {
-		G.Log.Warning("In API headers: Need Session but our session is NIL")
 	}
 	req.Header.Set("User-Agent", USER_AGENT)
 	req.Header.Set("X-Keybase-Client", IDENTIFY_AS)
