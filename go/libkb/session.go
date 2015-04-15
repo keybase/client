@@ -161,27 +161,6 @@ func (s *Session) IsRecent() bool {
 	return time.Since(t) < time.Hour
 }
 
-func (s *Session) AssertLoggedIn() (err error) {
-	if err = s.Check(); err != nil {
-		return
-	}
-	if !s.IsLoggedIn() {
-		err = LoginRequiredError{}
-	}
-	return
-}
-
-func (s *Session) AssertLoggedOut() (err error) {
-	if err = s.Check(); err != nil {
-		return
-	}
-	if s.IsLoggedIn() {
-		err = LogoutError{}
-	}
-	return
-
-}
-
 func (s *Session) Check() error {
 	s.G().Log.Debug("+ Checking session")
 	if s.checked {
@@ -265,7 +244,7 @@ func (s *Session) Logout() error {
 	return err
 }
 
-func (s *Session) LoadAndCheck() (bool, error) {
+func (s *Session) loadAndCheck() (bool, error) {
 	err := s.Load()
 	if err != nil {
 		return false, err

@@ -21,7 +21,7 @@ func TestSignupEngine(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(t, "se")
 
-	if err = G.LoginState.Session().AssertLoggedIn(); err != nil {
+	if err = G.LoginState.AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -42,7 +42,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = G.LoginState.Session().AssertLoggedIn(); err != nil {
+	if err = G.LoginState.AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -58,7 +58,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := G.LoginState.Session().AssertLoggedOut(); err != nil {
+	if err := G.LoginState.AssertLoggedOut(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -78,7 +78,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = G.LoginState.Session().AssertLoggedIn(); err != nil {
+	if err = G.LoginState.AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -89,7 +89,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = G.LoginState.Session().AssertLoggedOut(); err != nil {
+	if err = G.LoginState.AssertLoggedOut(); err != nil {
 		t.Fatal(err)
 	}
 }

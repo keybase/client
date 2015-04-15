@@ -7,5 +7,5 @@ import (
 var G = &libkb.G
 
 func IsLoggedIn() (bool, error) {
-	return G.LoginState.Session().LoadAndCheck()
+	return G.LoginState.IsLoggedInLoad()
 }

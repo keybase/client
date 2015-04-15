@@ -60,7 +60,7 @@ func (e *Doctor) login(ctx *Context) {
 		return
 	}
 
-	ok, err := e.G().LoginState.Session().LoadAndCheck()
+	ok, err := e.G().LoginState.IsLoggedInLoad()
 	if err != nil {
 		e.runErr = err
 		return

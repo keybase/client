@@ -50,8 +50,35 @@ func NewLoginState(g *GlobalContext) *LoginState {
 func (s *LoginState) Session() *Session            { return s.session }
 func (s *LoginState) SessionWriter() SessionWriter { return s.sessionWriter }
 
-func (s LoginState) IsLoggedIn() bool {
+// IsLoggedIn returns true if the user is logged in.  It does not
+// try to load the session.
+func (s *LoginState) IsLoggedIn() bool {
 	return s.session.IsLoggedIn()
+}
+
+// IsLoggedInLoad will load and check the session of necessary.
+func (s *LoginState) IsLoggedInLoad() (bool, error) {
+	return s.session.loadAndCheck()
+}
+
+func (s *LoginState) AssertLoggedIn() error {
+	if err := s.session.Check(); err != nil {
+		return err
+	}
+	if !s.IsLoggedIn() {
+		return LoginRequiredError{}
+	}
+	return nil
+}
+
+func (s *LoginState) AssertLoggedOut() error {
+	if err := s.session.Check(); err != nil {
+		return err
+	}
+	if s.IsLoggedIn() {
+		return LogoutError{}
+	}
+	return nil
 }
 
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
@@ -422,7 +449,7 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 	defer func() { G.Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
 
 	var loggedInTmp bool
-	if loggedInTmp, err = s.session.LoadAndCheck(); err != nil {
+	if loggedInTmp, err = s.IsLoggedInLoad(); err != nil {
 		G.Log.Debug("| Session failed to load")
 		return
 	}
