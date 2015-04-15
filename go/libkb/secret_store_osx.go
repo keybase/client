@@ -58,6 +58,25 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 	return
 }
 
+func (kss *KeychainSecretStore) ClearSecret() (err error) {
+	G.Log.Debug("+ ClearSecret(%s)", kss.accountName)
+	defer func() {
+		G.Log.Debug("- ClearSecret -> %s", ErrToOk(err))
+	}()
+
+	attributes := kc.GenericPasswordAttributes{
+		ServiceName: keychainServiceName,
+		AccountName: kss.accountName,
+	}
+
+	err = kc.FindAndRemoveGenericPassword(&attributes)
+	// Don't count the item not being found as an error.
+	if err == kc.ErrItemNotFound {
+		err = nil
+	}
+	return
+}
+
 func NewSecretStore(user *User) SecretStore {
 	return &KeychainSecretStore{user.GetName()}
 }

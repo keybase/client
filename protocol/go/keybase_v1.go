@@ -1177,6 +1177,10 @@ type LoginWithPassphraseArg struct {
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
+type ClearStoredSecretArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
 type CancelLoginArg struct {
 }
 
@@ -1190,6 +1194,7 @@ type LoginInterface interface {
 	LoginWithPrompt(LoginWithPromptArg) error
 	LoginWithStoredSecret(LoginWithStoredSecretArg) error
 	LoginWithPassphrase(LoginWithPassphraseArg) error
+	ClearStoredSecret(string) error
 	CancelLogin() error
 	Logout() error
 	Reset() error
@@ -1217,6 +1222,13 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 				args := make([]LoginWithPassphraseArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.LoginWithPassphrase(args[0])
+				}
+				return
+			},
+			"clearStoredSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ClearStoredSecretArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.ClearStoredSecret(args[0].Username)
 				}
 				return
 			},
@@ -1262,6 +1274,12 @@ func (c LoginClient) LoginWithStoredSecret(__arg LoginWithStoredSecretArg) (err 
 
 func (c LoginClient) LoginWithPassphrase(__arg LoginWithPassphraseArg) (err error) {
 	err = c.Cli.Call("keybase.1.login.loginWithPassphrase", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) ClearStoredSecret(username string) (err error) {
+	__arg := ClearStoredSecretArg{Username: username}
+	err = c.Cli.Call("keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
 	return
 }
 

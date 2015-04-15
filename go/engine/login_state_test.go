@@ -311,6 +311,12 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	G.LoginState.Logout()
 
+	G.LoginState.ClearStoredSecret(fu.Username)
+
+	if err := G.LoginState.LoginWithStoredSecret(fu.Username); err == nil {
+		t.Error("Did not get expected error")
+	}
+
 	if err := G.LoginState.LoginWithStoredSecret(""); err == nil {
 		t.Error("Did not get expected error")
 	}
@@ -395,6 +401,8 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 	if err := G.LoginState.LoginWithStoredSecret(fu.Username); err != nil {
 		t.Error(err)
 	}
+
+	G.LoginState.ClearStoredSecret(fu.Username)
 }
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.

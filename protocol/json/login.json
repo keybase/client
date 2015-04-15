@@ -201,6 +201,13 @@
       } ],
       "response" : "null"
     },
+    "clearStoredSecret" : {
+      "request" : [ {
+        "name" : "username",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "cancelLogin" : {
       "request" : [ ],
       "response" : "null"

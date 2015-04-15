@@ -11,6 +11,7 @@ type SecretStorer interface {
 type SecretStore interface {
 	SecretRetriever
 	SecretStorer
+	ClearSecret() error
 }
 
 // NewSecretStore(user *User) and HasSecretStore() are defined in

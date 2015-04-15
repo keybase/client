@@ -482,6 +482,13 @@
   }];
 }
 
+- (void)clearStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"username": KBRValue(username)}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.clearStoredSecret" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)cancelLogin:(void (^)(NSError *error))completion {
   NSArray *params = @[@{}];
   [self.client sendRequestWithMethod:@"keybase.1.login.cancelLogin" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -1474,6 +1481,17 @@
     self.username = params[0][@"username"];
     self.passphrase = params[0][@"passphrase"];
     self.storeSecret = [params[0][@"storeSecret"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRClearStoredSecretRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.username = params[0][@"username"];
   }
   return self;
 }

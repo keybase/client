@@ -393,6 +393,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 - (void)loginWithPassphraseWithSessionID:(NSInteger)sessionID username:(NSString *)username passphrase:(NSString *)passphrase storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error))completion;
 
+- (void)clearStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
+
 - (void)cancelLogin:(void (^)(NSError *error))completion;
 
 - (void)logout:(void (^)(NSError *error))completion;
@@ -846,6 +848,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSString *username;
 @property NSString *passphrase;
 @property BOOL storeSecret;
+@end
+@interface KBRClearStoredSecretRequestParams : KBRRequestParams
+@property NSString *username;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;

@@ -18,6 +18,11 @@ protocol login {
 	// the keychain on OS X).
 	void loginWithPassphrase(int sessionID, string username, string passphrase, boolean storeSecret);
 
+	// Removes any existing stored secret for the given username;
+	// i.e., loginWithStoredSecret(_, username) will fail after
+	// this is called.
+	void clearStoredSecret(string username);
+
 	void cancelLogin();
 
 	void logout();

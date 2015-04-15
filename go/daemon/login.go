@@ -72,6 +72,10 @@ func (h *LoginHandler) LoginWithPassphrase(arg keybase_1.LoginWithPassphraseArg)
 	return h.loginWithEngine(loginEngine, ctx)
 }
 
+func (h *LoginHandler) ClearStoredSecret(username string) error {
+	return G.LoginState.ClearStoredSecret(username)
+}
+
 func (h *LoginHandler) loginWithEngine(loginEngine *engine.LoginEngine, ctx *engine.Context) (err error) {
 	h.loginEngineMu.Lock()
 	h.loginEngine = loginEngine

@@ -226,6 +226,14 @@ func (s *LoginState) clearPassphrase() {
 	s.salt = nil
 }
 
+func (s *LoginState) ClearStoredSecret(username string) error {
+	secretStore := NewSecretStore(NewUserThin(username, UID{}))
+	if secretStore == nil {
+		return nil
+	}
+	return secretStore.ClearSecret()
+}
+
 func (s *LoginState) Logout() error {
 	G.Log.Debug("+ Logout called")
 	username := G.Session.GetUsername()
