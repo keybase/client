@@ -118,39 +118,8 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 	return
 }
 
-func (s *SignupJoinEngine) WriteConfig(salt []byte) (err error) {
-	cw := G.Env.GetConfigWriter()
-	if cw == nil {
-		return libkb.NoConfigWriterError{}
-	}
-	if err = cw.SetUserConfig(libkb.NewUserConfig(s.uid, s.username, salt, nil), false); err != nil {
-		return err
-	}
-	err = cw.Write()
-	return
-}
-
-func (s *SignupJoinEngine) WriteSession() error {
-
-	// First load up the Session file...
-	if err := G.LoginState.Session().Load(); err != nil {
-		return err
-	}
-
-	sw := G.LoginState.SessionWriter()
-	if sw == nil {
-		return fmt.Errorf("No session writer available")
-	}
-	sw.SetLoggedIn(s.session, s.csrf, s.username, s.uid)
-	return sw.Write()
-}
-
-func (s *SignupJoinEngine) WriteOut(salt []byte) (err error) {
-	err = s.WriteConfig(salt)
-	if err == nil {
-		err = s.WriteSession()
-	}
-	return err
+func (s *SignupJoinEngine) WriteOut(salt []byte) error {
+	return G.LoginState.SetSignupRes(s.session, s.csrf, s.username, s.uid, salt)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {

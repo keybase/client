@@ -584,6 +584,14 @@ func (e NoConfigWriterError) Error() string {
 
 //=============================================================================
 
+type NoSessionWriterError struct{}
+
+func (e NoSessionWriterError) Error() string {
+	return "Can't write; no SessionWriter available"
+}
+
+//=============================================================================
+
 type BadServiceError struct {
 	n string
 }

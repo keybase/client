@@ -162,8 +162,8 @@ func (g *GlobalContext) Shutdown() error {
 	if g.LocalDb != nil {
 		epick.Push(g.LocalDb.Close())
 	}
-	if g.LoginState.SessionWriter() != nil {
-		epick.Push(g.LoginState.SessionWriter().Write())
+	if g.LoginState != nil {
+		epick.Push(g.LoginState.Shutdown())
 	}
 
 	for _, hook := range g.ShutdownHooks {
