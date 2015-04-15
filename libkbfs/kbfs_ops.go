@@ -357,6 +357,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 				de = &DirEntry{
 					IsDir:        isDir,
 					IsExec:       isExec,
+					// TODO: What about TotalSize?
 				}
 				prevDblock.Children[currName] = de
 			}
