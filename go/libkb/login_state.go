@@ -228,6 +228,7 @@ func (s *LoginState) clearPassphrase() {
 
 func (s *LoginState) Logout() error {
 	G.Log.Debug("+ Logout called")
+	username := G.Session.GetUsername()
 	err := G.Session.Logout()
 	if err == nil {
 		s.LoggedIn = false
@@ -236,6 +237,9 @@ func (s *LoginState) Logout() error {
 	}
 	if G.SecretSyncer != nil {
 		G.SecretSyncer.Clear()
+	}
+	if username != nil {
+		G.Keyrings.ClearSecretKeys(*username)
 	}
 	G.Log.Debug("- Logout called")
 	return err

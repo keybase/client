@@ -17,6 +17,17 @@ func TestLoginLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login logout")
 	defer tc.Cleanup()
 
+	if err := G.Session.AssertLoggedOut(); err != nil {
+		t.Error("Unexpectedly logged in (Session)")
+	}
+
+	if G.LoginState.IsLoggedIn() {
+		t.Error("Unexpectedly logged in (LoginState)")
+	}
+
+	// Logging out when not logged in should still work.
+	G.LoginState.Logout()
+
 	fu := CreateAndSignupFakeUser(t, "login")
 
 	if err := G.Session.AssertLoggedIn(); err != nil {
@@ -25,6 +36,17 @@ func TestLoginLogout(t *testing.T) {
 
 	// TODO: LoginState still thinks we're logged out here. Fix this?
 
+	G.LoginState.Logout()
+
+	if err := G.Session.AssertLoggedOut(); err != nil {
+		t.Error("Unexpectedly logged in (Session)")
+	}
+
+	if G.LoginState.IsLoggedIn() {
+		t.Error("Unexpectedly logged in (LoginState)")
+	}
+
+	// Logging out twice should still work.
 	G.LoginState.Logout()
 
 	if err := G.Session.AssertLoggedOut(); err != nil {
@@ -144,11 +166,6 @@ func TestLoginWithPromptPubkey(t *testing.T) {
 	}
 
 	G.LoginState.Logout()
-
-	// Clear out the key stored in the keyring.
-	if err := G.ConfigureKeyring(); err != nil {
-		t.Error(err)
-	}
 
 	mockGetSecret.Called = false
 	if err := G.LoginState.LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
@@ -286,11 +303,6 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	// Clear out the key stored in the keyring.
-	if err := G.ConfigureKeyring(); err != nil {
-		t.Error(err)
-	}
-
 	// TODO: Mock out the SecretStore and make sure that it's
 	// actually consulted.
 	if err := G.LoginState.LoginWithStoredSecret(fu.Username); err != nil {
@@ -352,11 +364,6 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 
 	G.LoginState.Logout()
 
-	// Clear out the key stored in the keyring.
-	if err := G.ConfigureKeyring(); err != nil {
-		t.Error(err)
-	}
-
 	if err := G.LoginState.LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
 	}
@@ -382,11 +389,6 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 	}
 
 	G.LoginState.Logout()
-
-	// Clear out the key stored in the keyring.
-	if err := G.ConfigureKeyring(); err != nil {
-		t.Error(err)
-	}
 
 	// TODO: Mock out the SecretStore and make sure that it's
 	// actually consulted.

@@ -325,6 +325,13 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer)
 }
 
+func (k *Keyrings) ClearSecretKeys(username string) {
+	k.Lock()
+	defer k.Unlock()
+
+	delete(k.skbMap, username)
+}
+
 type EmptyKeyRing struct{}
 
 func (k EmptyKeyRing) KeysById(id uint64) []openpgp.Key {
