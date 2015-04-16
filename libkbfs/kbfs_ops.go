@@ -1178,6 +1178,9 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 					} else {
 						// TODO: delete the block, and if we're down to just
 						// one indirect block, remove the layer of indirection
+						// TODO: When we implement more than one level of indirection,
+						// make sure that the pointer to the parent block in the
+						// grandparent block has QuotaSize 0.
 						fblock.IPtrs =
 							append(fblock.IPtrs[:i+1], fblock.IPtrs[i+2:]...)
 					}
