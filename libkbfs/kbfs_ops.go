@@ -357,7 +357,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 				de = &DirEntry{
 					IsDir:  isDir,
 					IsExec: isExec,
-					// TODO: What about Size?
+					// TODO: Fill in Size.
 				}
 				prevDblock.Children[currName] = de
 			}
@@ -515,9 +515,6 @@ func (fs *KBFSOpsStandard) CreateLink(
 
 	// Create a direntry for the link, and then sync
 	de := &DirEntry{
-		BlockPointer: BlockPointer{
-			QuotaSize: uint32(len(toPath)),
-		},
 		IsDir:   false,
 		IsExec:  false,
 		Size:    uint64(len(toPath)),
