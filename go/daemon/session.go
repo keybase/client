@@ -27,10 +27,7 @@ func (h *SessionHandler) CurrentSession() (keybase_1.Session, error) {
 		return s, ErrNoSession
 	}
 
-	uid, username, token, err := G.LoginState.UserInfo()
-	if err != nil {
-		return s, err
-	}
+	uid, username, token := G.LoginState.UserInfo()
 	s.Uid = uid.Export()
 	s.Username = username
 	s.Token = token

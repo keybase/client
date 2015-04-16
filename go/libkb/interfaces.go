@@ -120,11 +120,6 @@ type ConfigWriter interface {
 	Write() error
 }
 
-type SessionWriter interface {
-	SetLoggedIn(sessionID, csrfToken, username string, uid UID)
-	Write() error
-}
-
 type HttpRequest interface {
 	SetEnvironment(env Env)
 }

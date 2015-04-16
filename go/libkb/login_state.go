@@ -24,9 +24,7 @@ type LoginState struct {
 	sessionFor       string
 	passphraseStream PassphraseStream
 
-	// session is contained in LoginState
-	session       *Session      // The user's session cookie, &c
-	sessionWriter SessionWriter // to write the session back out
+	session *Session // The user's session cookie, &c
 }
 
 type loginAPIResult struct {
@@ -39,23 +37,16 @@ type loginAPIResult struct {
 func NewLoginState(g *GlobalContext) *LoginState {
 	s := newSession(g)
 	return &LoginState{
-		Contextified:  Contextified{g},
-		session:       s,
-		sessionWriter: s,
+		Contextified: Contextified{g},
+		session:      s,
 	}
 }
 
-func (s *LoginState) SessionArgs() (token, csrf string, err error) {
-	if s.session == nil {
-		return token, csrf, ErrNilSession
-	}
-	return s.session.GetToken(), s.session.csrf, nil
+func (s *LoginState) SessionArgs() (token, csrf string) {
+	return s.session.GetToken(), s.session.csrf
 }
 
-func (s *LoginState) UserInfo() (uid UID, username, token string, err error) {
-	if s.session == nil {
-		return uid, username, token, ErrNilSession
-	}
+func (s *LoginState) UserInfo() (uid UID, username, token string) {
 	uidp := s.session.GetUID()
 	if uidp != nil {
 		uid = *uidp
@@ -69,16 +60,10 @@ func (s *LoginState) UserInfo() (uid UID, username, token string, err error) {
 }
 
 func (s *LoginState) UID() *UID {
-	if s.session == nil {
-		return nil
-	}
 	return s.session.GetUID()
 }
 
 func (s *LoginState) SessionLoad() error {
-	if s.session == nil {
-		return ErrNilSession
-	}
 	return s.session.Load()
 }
 
@@ -198,7 +183,7 @@ func (s *LoginState) Logout() error {
 }
 
 func (s *LoginState) Shutdown() error {
-	return s.sessionWriter.Write()
+	return s.session.Write()
 }
 
 func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
@@ -385,12 +370,8 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 		return err
 	}
 
-	if s.sessionWriter == nil {
-		return NoSessionWriterError{}
-	}
-
-	s.sessionWriter.SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
-	if err := s.sessionWriter.Write(); err != nil {
+	s.session.SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
+	if err := s.session.Write(); err != nil {
 		return err
 	}
 

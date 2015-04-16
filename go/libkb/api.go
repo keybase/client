@@ -207,16 +207,16 @@ func (a InternalApiEngine) getUrl(arg ApiArg) url.URL {
 
 func (a InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	if arg.NeedSession {
-		tok, csrf, err := G.LoginState.SessionArgs()
-		if err != nil {
-			G.Log.Warning("fixHeaders: Need session, but got error getting session args: %s", err)
+		tok, csrf := G.LoginState.SessionArgs()
+		if len(tok) > 0 {
+			req.Header.Add("X-Keybase-Session", tok)
 		} else {
-			if len(tok) > 0 {
-				req.Header.Add("X-Keybase-Session", tok)
-			}
-			if len(csrf) > 0 {
-				req.Header.Add("X-CSRF-Token", csrf)
-			}
+			G.Log.Warning("fixHeaders:  need session, but session token empty")
+		}
+		if len(csrf) > 0 {
+			req.Header.Add("X-CSRF-Token", csrf)
+		} else {
+			G.Log.Warning("fixHeaders:  need session, but session csrf empty")
 		}
 	}
 	req.Header.Set("User-Agent", USER_AGENT)

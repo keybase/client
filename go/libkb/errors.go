@@ -805,8 +805,6 @@ var ErrReceiverDevice = errors.New("Device ID mismatch in message receiver")
 var ErrInvalidKexSession = errors.New("Invalid kex session ID")
 var ErrCannotGenerateDevice = errors.New("Cannot generate new device ID")
 
-var ErrNilSession = errors.New("Session is nil")
-
 //=============================================================================
 
 type StreamExistsError struct{}
