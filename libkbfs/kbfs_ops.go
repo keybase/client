@@ -113,7 +113,7 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	md.data.Dir.Writer = user
 	md.data.Dir.KeyId = 0
 	md.data.Dir.Ver = fs.config.DataVersion()
-	md.data.Dir.Size = uint32(len(buf))
+	md.data.Dir.QuotaSize = uint32(len(buf))
 	// TODO: What about TotalSize?
 
 	// make sure we're a writer before putting any blocks
@@ -355,8 +355,8 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			if de, ok = prevDblock.Children[currName]; !ok {
 				// TODO: deal with large directories and files
 				de = &DirEntry{
-					IsDir:        isDir,
-					IsExec:       isExec,
+					IsDir:  isDir,
+					IsExec: isExec,
 					// TODO: What about TotalSize?
 				}
 				prevDblock.Children[currName] = de
@@ -516,7 +516,7 @@ func (fs *KBFSOpsStandard) CreateLink(
 	// Create a direntry for the link, and then sync
 	de := &DirEntry{
 		BlockPointer: BlockPointer{
-			Size: uint32(len(toPath)),
+			QuotaSize: uint32(len(toPath)),
 		},
 		IsDir:     false,
 		IsExec:    false,
@@ -723,8 +723,8 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		if block, err = fs.getFileLocked(newPath, asWrite); err != nil {
 			return
 		}
-		if nextPtr.Size != uint32(len(block.Contents)) {
-			panic(fmt.Sprintf("expected %d bytes, got %d bytes", nextPtr.Size, len(block.Contents)))
+		if nextPtr.QuotaSize != uint32(len(block.Contents)) {
+			panic(fmt.Sprintf("expected %d bytes, got %d bytes", nextPtr.QuotaSize, len(block.Contents)))
 		}
 	}
 
@@ -1140,9 +1140,9 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 						rId, rblock, true); err != nil {
 						return Path{}, err
 					}
-					fblock.IPtrs[i].Size = uint32(len(block.Contents))
-					fblock.IPtrs[i+1].Off = ptr.Off + int64(fblock.IPtrs[i].Size)
-					fblock.IPtrs[i+1].Size = uint32(len(rblock.Contents))
+					fblock.IPtrs[i].QuotaSize = uint32(len(block.Contents))
+					fblock.IPtrs[i+1].Off = ptr.Off + int64(fblock.IPtrs[i].QuotaSize)
+					fblock.IPtrs[i+1].QuotaSize = uint32(len(rblock.Contents))
 				case splitAt < 0:
 					if !more {
 						// end of the line
@@ -1159,14 +1159,14 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 					nCopied := bsplit.CopyUntilSplit(block, false,
 						rblock.Contents, int64(len(block.Contents)))
 					rblock.Contents = rblock.Contents[nCopied:]
-					fblock.IPtrs[i].Size = uint32(len(block.Contents))
+					fblock.IPtrs[i].QuotaSize = uint32(len(block.Contents))
 					if len(rblock.Contents) > 0 {
 						if err := fs.config.BlockCache().Put(
 							rId, rblock, true); err != nil {
 							return Path{}, err
 						}
-						fblock.IPtrs[i+1].Off = ptr.Off + int64(fblock.IPtrs[i].Size)
-						fblock.IPtrs[i+1].Size = uint32(len(rblock.Contents))
+						fblock.IPtrs[i+1].Off = ptr.Off + int64(fblock.IPtrs[i].QuotaSize)
+						fblock.IPtrs[i+1].QuotaSize = uint32(len(rblock.Contents))
 					} else {
 						// TODO: delete the block, and if we're down to just
 						// one indirect block, remove the layer of indirection
@@ -1203,8 +1203,8 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 
 				// ready/finalize/put the block
 				id, buf, err := bops.Ready(block, blockKey)
-				if ptr.Size != uint32(len(buf)) {
-					panic(fmt.Sprintf("expected %d bytes, got %d bytes", ptr.Size, len(buf)))
+				if ptr.QuotaSize != uint32(len(buf)) {
+					panic(fmt.Sprintf("expected %d bytes, got %d bytes", ptr.QuotaSize, len(buf)))
 				}
 				if err != nil {
 					return Path{}, err

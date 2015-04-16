@@ -19,8 +19,8 @@ func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, 
 	if err := cbo.delegate.Get(id, context, decryptKey, block); err != nil {
 		return err
 	}
-	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && context.GetSize() != uint32(len(fBlock.Contents)) {
-		cbo.t.Errorf("expected %d bytes, got %d bytes", context.GetSize(), len(fBlock.Contents))
+	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && context.GetQuotaSize() != uint32(len(fBlock.Contents)) {
+		cbo.t.Errorf("expected %d bytes, got %d bytes", context.GetQuotaSize(), len(fBlock.Contents))
 	}
 	return nil
 }
@@ -37,8 +37,8 @@ func (cbo *CheckBlockOps) Put(id BlockId, context BlockContext, buf []byte) erro
 	if err := cbo.delegate.Put(id, context, buf); err != nil {
 		return err
 	}
-	if context.GetSize() != uint32(len(buf)) {
-		cbo.t.Errorf("expected %d bytes, got %d bytes", context.GetSize(), len(buf))
+	if context.GetQuotaSize() != uint32(len(buf)) {
+		cbo.t.Errorf("expected %d bytes, got %d bytes", context.GetQuotaSize(), len(buf))
 	}
 	return nil
 }
@@ -1119,9 +1119,9 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual Size value.
+	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1175,9 +1175,9 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual Size value.
+	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1250,7 +1250,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	// TODO: Fill in size.
+	// TODO: Fill in quota size.
 	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 10}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
@@ -1538,9 +1538,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	id1 := BlockId{44}
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual Size value.
+	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Writer: userId, Size: 10}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId, Writer: userId, QuotaSize: 10}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1718,9 +1718,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	id1 := BlockId{44}
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual Size value.
+	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2057,9 +2057,9 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual size.
+	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2126,9 +2126,9 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual Size value.
+	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2206,32 +2206,32 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
 	} else if fileBlock.IPtrs[0].Id != id1 {
 		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
-	} else if fileBlock.IPtrs[0].Size != 5 {
-		t.Errorf("Indirect pointer size1 wrong: %d", fileBlock.IPtrs[0].Size)
+	} else if fileBlock.IPtrs[0].QuotaSize != 5 {
+		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId2 {
 		t.Errorf("Indirect pointer id2 wrong: %v", fileBlock.IPtrs[1].Id)
-	} else if fileBlock.IPtrs[1].Size != 3 {
-		t.Errorf("Indirect pointer size2 wrong: %d", fileBlock.IPtrs[1].Size)
+	} else if fileBlock.IPtrs[1].QuotaSize != 3 {
+		t.Errorf("Indirect pointer quota size2 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 5 {
 		t.Errorf("Indirect pointer off2 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[2].Id)
-	} else if fileBlock.IPtrs[2].Size != 7 {
-		t.Errorf("Indirect pointer size3 wrong: %d", fileBlock.IPtrs[2].Size)
+	} else if fileBlock.IPtrs[2].QuotaSize != 7 {
+		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 8 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[2].Off)
 	} else if fileBlock.IPtrs[3].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[3].Id)
-	} else if fileBlock.IPtrs[3].Size != 3 {
-		t.Errorf("Indirect pointer size4 wrong: %d", fileBlock.IPtrs[3].Size)
+	} else if fileBlock.IPtrs[3].QuotaSize != 3 {
+		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[3].QuotaSize)
 	} else if fileBlock.IPtrs[3].Off != 15 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[3].Off)
 	} else if fileBlock.IPtrs[4].Id != (BlockId{newId5[0] + 100}) {
 		t.Errorf("Indirect pointer id5 wrong: %v", fileBlock.IPtrs[4].Id)
-	} else if fileBlock.IPtrs[4].Size != 2 {
-		t.Errorf("Indirect pointer size5 wrong: %d", fileBlock.IPtrs[4].Size)
+	} else if fileBlock.IPtrs[4].QuotaSize != 2 {
+		t.Errorf("Indirect pointer quota size5 wrong: %d", fileBlock.IPtrs[4].QuotaSize)
 	} else if fileBlock.IPtrs[4].Off != 18 {
 		t.Errorf("Indirect pointer off5 wrong: %d", fileBlock.IPtrs[4].Off)
 	} else if !bytesEqual([]byte{10, 9, 8}, block2.Contents) {
@@ -2263,9 +2263,9 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual Size value.
+	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Size: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2345,20 +2345,20 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
 	} else if fileBlock.IPtrs[0].Id != newId1 {
 		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
-	} else if fileBlock.IPtrs[0].Size != 10 {
-		t.Errorf("Indirect pointer size1 wrong: %d", fileBlock.IPtrs[0].Size)
+	} else if fileBlock.IPtrs[0].QuotaSize != 10 {
+		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[1].Id)
-	} else if fileBlock.IPtrs[1].Size != 8 {
-		t.Errorf("Indirect pointer size3 wrong: %d", fileBlock.IPtrs[1].Size)
+	} else if fileBlock.IPtrs[1].QuotaSize != 8 {
+		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 10 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[2].Id)
-	} else if fileBlock.IPtrs[2].Size != 2 {
-		t.Errorf("Indirect pointer size4 wrong: %d", fileBlock.IPtrs[2].Size)
+	} else if fileBlock.IPtrs[2].QuotaSize != 2 {
+		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 18 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[2].Off)
 	} else if !bytesEqual([]byte{5, 4, 3, 2, 1, 10, 9, 8, 7, 6},

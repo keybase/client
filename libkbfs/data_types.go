@@ -73,7 +73,10 @@ type BlockPointer struct {
 	KeyId  int // which version of the DirKeys to use
 	Ver    int // which version of the KBFS data structures is pointed to
 	Writer libkb.UID
-	Size   uint32 // the size of the data contained in the block
+	// The size of the (possibly encrypted) data contained in the
+	// block. Always at least the size of the plaintext data
+	// contained in the block.
+	QuotaSize uint32
 }
 
 func (p BlockPointer) GetKeyId() int {
@@ -88,8 +91,8 @@ func (p BlockPointer) GetWriter() libkb.UID {
 	return p.Writer
 }
 
-func (p BlockPointer) GetSize() uint32 {
-	return p.Size
+func (p BlockPointer) GetQuotaSize() uint32 {
+	return p.QuotaSize
 }
 
 type UIDList []libkb.UID

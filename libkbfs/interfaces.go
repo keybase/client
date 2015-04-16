@@ -15,7 +15,7 @@ type BlockContext interface {
 	GetKeyId() int
 	GetVer() int
 	GetWriter() libkb.UID
-	GetSize() uint32
+	GetQuotaSize() uint32
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
