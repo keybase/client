@@ -686,9 +686,10 @@ func (fs *KBFSOpsStandard) Rename(
 
 func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 	file Path, topBlock *FileBlock, off int64, asWrite bool) (
-	id BlockId, block *FileBlock, more bool, startOff int64, err error) {
+	id BlockId, indirectIndex int, block *FileBlock, more bool, startOff int64, err error) {
 	// find the block matching the offset, if it exists
 	id = file.TailPointer().Id
+	indirectIndex = -1
 	block = topBlock
 	more = false
 	startOff = 0
@@ -707,6 +708,7 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 				break
 			}
 		}
+		indirectIndex = nextIndex
 		nextPtr := block.IPtrs[nextIndex]
 		startOff = nextPtr.Off
 		newPath := file
@@ -746,7 +748,7 @@ func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
 	for nRead < n {
 		nextByte := nRead + off
 		toRead := n - nRead
-		_, block, _, startOff, err :=
+		_, _, block, _, startOff, err :=
 			fs.getFileBlockAtOffset(file, fblock, nextByte, false)
 		if err != nil {
 			return 0, err
@@ -836,7 +838,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 	}
 
 	for nCopied < n {
-		id, block, more, startOff, err :=
+		id, indirectIndex, block, more, startOff, err :=
 			fs.getFileBlockAtOffset(file, fblock, off+nCopied, true)
 		if err != nil {
 			return err
@@ -872,7 +874,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 					IPtrs: []IndirectFilePtr{
 						IndirectFilePtr{
 							BlockPointer{newId, md.LatestKeyId(),
-								fs.config.DataVersion(), user, uint32(len(block.Contents))}, 0},
+								fs.config.DataVersion(), user, 0}, 0},
 					},
 				}
 				if err := bcache.Put(
@@ -892,6 +894,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 
 		if dblock, de, err := fs.getEntryLocked(file); err == nil {
 			if oldLen != len(block.Contents) || de.Writer != user {
+				de.QuotaSize = 0
 				// update the file info
 				de.Size += uint64(len(block.Contents) - oldLen)
 				de.Writer = user
@@ -903,6 +906,9 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 			return err
 		}
 
+		if indirectIndex >= 0 {
+			fblock.IPtrs[indirectIndex].QuotaSize = 0
+		}
 		// keep the old block ID while it's dirty
 		if err := bcache.Put(id, block, true); err != nil {
 			return err
@@ -948,7 +954,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
-	id, block, more, startOff, err :=
+	id, indirectIndex, block, more, startOff, err :=
 		fs.getFileBlockAtOffset(file, fblock, iSize, true)
 
 	currLen := int64(startOff) + int64(len(block.Contents))
@@ -969,17 +975,12 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	// otherwise, we need to delete some data (and possibly entire blocks)
 	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
 	if more {
-		// the parent block must be indirect
-		indIndex := 0
-		for i, ptr := range fblock.IPtrs {
-			if ptr.Id == id {
-				indIndex = i
-				break
-			}
+		if indirectIndex < 0 {
+			panic("indirectIndex must be valid")
 		}
 		// TODO: delete the blocks we're truncating off
 		// TODO: if indIndex == 0, we can remove the level of indirection
-		fblock.IPtrs = fblock.IPtrs[:indIndex+1]
+		fblock.IPtrs = fblock.IPtrs[:indirectIndex+1]
 		// always make the parent block dirty, so we will sync it
 		if err := fs.config.BlockCache().Put(
 			file.TailPointer().Id, fblock, true); err != nil {
@@ -989,6 +990,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 
 	// update the local entry size
 	if dblock, de, err := fs.getEntryLocked(file); err == nil {
+		de.QuotaSize = 0
 		de.Size = size
 		de.Writer = user
 		// the copy will be dirty, so put it in the cache
@@ -1104,8 +1106,12 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 	if fblock.IsInd {
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
-			if bcache.IsDirty(ptr.Id) {
-				_, block, more, _, err :=
+			isDirty := bcache.IsDirty(ptr.Id)
+			if isDirty != (ptr.QuotaSize == 0) {
+				panic(fmt.Sprintf("is dirty: %t, quota size: %d, id=%v", isDirty, ptr.QuotaSize, ptr.Id))
+			}
+			if isDirty {
+				_, _, block, more, _, err :=
 					fs.getFileBlockAtOffset(file, fblock, ptr.Off, true)
 				if err != nil {
 					return Path{}, err
@@ -1128,7 +1134,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 							return Path{}, err
 						}
 					}
-					rId, rblock, _, _, err :=
+					rId, _, rblock, _, _, err :=
 						fs.getFileBlockAtOffset(file, fblock, endOfBlock, true)
 					if err != nil {
 						return Path{}, err
@@ -1138,7 +1144,6 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 						rId, rblock, true); err != nil {
 						return Path{}, err
 					}
-					fblock.IPtrs[i].QuotaSize = 0
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
 					fblock.IPtrs[i+1].QuotaSize = 0
 				case splitAt < 0:
@@ -1148,7 +1153,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 					}
 
 					endOfBlock := ptr.Off + int64(len(block.Contents))
-					rId, rblock, _, _, err :=
+					rId, _, rblock, _, _, err :=
 						fs.getFileBlockAtOffset(file, fblock, endOfBlock, true)
 					if err != nil {
 						return Path{}, err
@@ -1157,7 +1162,6 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 					nCopied := bsplit.CopyUntilSplit(block, false,
 						rblock.Contents, int64(len(block.Contents)))
 					rblock.Contents = rblock.Contents[nCopied:]
-					fblock.IPtrs[i].QuotaSize = 0
 					if len(rblock.Contents) > 0 {
 						if err := fs.config.BlockCache().Put(
 							rId, rblock, true); err != nil {
@@ -1186,8 +1190,12 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 		kcache := fs.config.KeyCache()
 		for i, ptr := range fblock.IPtrs {
 			// TODO: parallelize these?
-			if bcache.IsDirty(ptr.Id) {
-				_, block, _, _, err :=
+			isDirty := bcache.IsDirty(ptr.Id)
+			if isDirty != (ptr.QuotaSize == 0) {
+				panic(fmt.Sprintf("is dirty: %t, quota size: %d", isDirty, ptr.QuotaSize))
+			}
+			if isDirty {
+				_, _, block, _, _, err :=
 					fs.getFileBlockAtOffset(file, fblock, ptr.Off, true)
 				if err != nil {
 					return Path{}, err

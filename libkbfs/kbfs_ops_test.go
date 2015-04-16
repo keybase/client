@@ -2064,9 +2064,9 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, libkb.UID{0}, 5}, 5},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, libkb.UID{0}, 0}, 5},
 		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 5}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 5}, 15},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2133,9 +2133,9 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 5}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 5}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 5}, 15},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 0}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2269,9 +2269,9 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
 		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 5}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 5}, 10},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
 		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 5}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
