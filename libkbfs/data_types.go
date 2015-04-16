@@ -407,7 +407,7 @@ type DirEntry struct {
 // IndirectDirPtr pairs an indirect dir block with the start of that
 // block's range of directory entries (inclusive)
 type IndirectDirPtr struct {
-	// TODO: Make sure that the QuotaSize field is zeor exactly when the block is dirty.
+	// TODO: Make sure that the QuotaSize field is zero exactly when the block is dirty.
 	BlockPointer
 	Off string
 }
