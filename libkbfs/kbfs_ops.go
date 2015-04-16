@@ -984,6 +984,10 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 		}
 	}
 
+	if parentBlock != nil {
+		parentBlock.IPtrs[indexInParent].QuotaSize = 0
+	}
+
 	// update the local entry size
 	if dblock, de, err := fs.getEntryLocked(file); err == nil {
 		de.QuotaSize = 0
