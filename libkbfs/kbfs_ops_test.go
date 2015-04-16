@@ -435,9 +435,9 @@ func TestKBFSOpsGetNestedDirCacheSuccess(t *testing.T) {
 }
 
 func expectSyncBlock(
-	config *ConfigMock, lastCall *gomock.Call, userId libkb.UID, id DirId,
-	name string, path Path, rmd *RootMetadata, newEntry bool, skipSync int) (
-	Path, *gomock.Call) {
+	t *testing.T, config *ConfigMock, lastCall *gomock.Call, userId libkb.UID,
+	id DirId, name string, path Path, rmd *RootMetadata, newEntry bool,
+	skipSync int, refBytes uint64, unrefBytes uint64) (Path, *gomock.Call) {
 	expectGetSecretKey(config, rmd)
 
 	// construct new path
@@ -458,6 +458,10 @@ func expectSyncBlock(
 		node := newPath.Path[i]
 		newId := BlockId{lastId}
 		newBuf := []byte{lastId}
+		refBytes += uint64(len(newBuf))
+		if i < len(path.Path) {
+			unrefBytes += uint64(path.Path[i].QuotaSize)
+		}
 		lastId++
 		config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 		config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
@@ -476,7 +480,19 @@ func expectSyncBlock(
 	if skipSync == 0 {
 		// sign the MD and put it
 		config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
-		config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).Return(nil)
+		config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).
+			Do(func(id MDId, rmd *RootMetadata) {
+			// Check that the ref/unref bytes are correct.
+			// Should have
+			if rmd.RefBytes != refBytes {
+				t.Errorf("Unexpected refbytes: %d vs %d",
+					rmd.RefBytes, refBytes)
+			}
+			if rmd.UnrefBytes != unrefBytes {
+				t.Errorf("Unexpected unrefbytes: %d vs %d",
+					rmd.UnrefBytes, unrefBytes)
+			}
+		}).Return(nil)
 	}
 	return newPath, lastCall
 }
@@ -585,7 +601,8 @@ func testCreateEntrySuccess(t *testing.T, isDir bool, isEx bool, isLink bool) {
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
 	expectedPath, _ :=
-		expectSyncBlock(config, nil, userId, id, "b", p, rmd, !isLink, 0)
+		expectSyncBlock(t, config, nil, userId, id, "b", p, rmd, !isLink, 0,
+			0, 0)
 
 	var newP Path
 	var err error
@@ -698,8 +715,8 @@ func testRemoveEntrySuccess(t *testing.T, isDir bool) {
 	expectGetBlock(config, aId, aBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
-	expectedPath, _ := expectSyncBlock(config, nil, userId, id, "",
-		*p.ParentPath(), rmd, false, 0)
+	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
+		*p.ParentPath(), rmd, false, 0, 0, 0)
 
 	var newP Path
 	var err error
@@ -813,7 +830,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
 	expectedPath, _ :=
-		expectSyncBlock(config, nil, userId, id, "", p, rmd, false, 0)
+		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0, 0, 0)
 
 	var newP1 Path
 	var newP2 Path
@@ -864,9 +881,10 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
 	expectedPath1, lastCall :=
-		expectSyncBlock(config, nil, userId, id, "", p1, rmd, false, 1)
+		expectSyncBlock(t, config, nil, userId, id, "", p1, rmd, false, 1, 0, 0)
 	expectedPath2, _ :=
-		expectSyncBlock(config, lastCall, userId, id, "", p2, rmd, false, 0)
+		expectSyncBlock(t, config, lastCall, userId, id, "", p2, rmd, false, 0,
+			1, 0)
 	// fix up old expected path's common ancestor
 	expectedPath1.Path[0].Id = expectedPath2.Path[0].Id
 
@@ -915,7 +933,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
 	expectedPath2, _ :=
-		expectSyncBlock(config, nil, userId, id, "", p2, rmd, false, 0)
+		expectSyncBlock(t, config, nil, userId, id, "", p2, rmd, false, 0, 0, 0)
 
 	newP1, newP2, err := config.KBFSOps().Rename(p1, "b", p2, "c")
 	if err != nil {
@@ -975,9 +993,10 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
 	expectedPath1, lastCall :=
-		expectSyncBlock(config, nil, userId, id, "", p1, rmd, false, 2)
+		expectSyncBlock(t, config, nil, userId, id, "", p1, rmd, false, 2, 0, 0)
 	expectedPath2, _ :=
-		expectSyncBlock(config, lastCall, userId, id, "", p2, rmd, false, 0)
+		expectSyncBlock(t, config, lastCall, userId, id, "", p2, rmd, false, 0,
+			1, 0)
 	// the new path is a prefix of the old path
 	expectedPath1.Path[0].Id = expectedPath2.Path[0].Id
 	expectedPath1.Path[1].Id = expectedPath2.Path[1].Id
@@ -1808,8 +1827,8 @@ func testSetExSuccess(t *testing.T, ex bool) {
 	// chmod a+x a
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
-	expectedPath, _ := expectSyncBlock(config, nil, userId, id, "",
-		*p.ParentPath(), rmd, false, 0)
+	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
+		*p.ParentPath(), rmd, false, 0, 0, 0)
 	expectedPath.Path = append(expectedPath.Path, aNode)
 
 	if newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
@@ -1879,8 +1898,8 @@ func TestSetMtimeSuccess(t *testing.T) {
 	// chmod a+x a
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
-	expectedPath, _ := expectSyncBlock(config, nil, userId, id, "",
-		*p.ParentPath(), rmd, false, 0)
+	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
+		*p.ParentPath(), rmd, false, 0, 0, 0)
 	expectedPath.Path = append(expectedPath.Path, aNode)
 
 	newMtime := time.Now()
@@ -1971,7 +1990,7 @@ func TestSyncDirtySuccess(t *testing.T) {
 
 	// sync block
 	expectedPath, _ :=
-		expectSyncBlock(config, nil, userId, id, "", p, rmd, false, 0)
+		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0, 0, 0)
 	config.mockBcache.EXPECT().Finalize(
 		aId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2087,8 +2106,12 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	expectSyncDirtyBlock(config, id4, block4, int64(0), 8)
 
 	// sync block
+	refBytes := uint64(len(block2.Contents) + len(block4.Contents))
+	// 2 blocks being unreferenced without cleared QuotaSizes
+	unrefBytes := uint64(2 * 5)
 	expectedPath, _ :=
-		expectSyncBlock(config, nil, userId, id, "", p, rmd, false, 0)
+		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
+			refBytes, unrefBytes)
 	config.mockBcache.EXPECT().Finalize(
 		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2189,8 +2212,11 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		AnyTimes().Return(nil)
 
 	// sync block
+	refBytes := uint64(3 + 7 + 3 + 2) // expectDirtyBlock sizes
+	unrefBytes := uint64(10)          // file ID is changed, but not cleared
 	expectedPath, _ :=
-		expectSyncBlock(config, c4, userId, id, "", p, rmd, false, 0)
+		expectSyncBlock(t, config, c4, userId, id, "", p, rmd, false, 0,
+			refBytes, unrefBytes)
 	config.mockBcache.EXPECT().Finalize(
 		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(
@@ -2327,8 +2353,11 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		AnyTimes().Return(nil)
 
 	// sync block
+	refBytes := uint64(10 + 8 + 2)   // expected dirty block sizes
+	unrefBytes := uint64(10 + 5 + 5) // fileId, id2 and id4
 	expectedPath, _ :=
-		expectSyncBlock(config, nil, userId, id, "", p, rmd, false, 0)
+		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
+			refBytes, unrefBytes)
 	config.mockBcache.EXPECT().Finalize(
 		fileId, expectedPath.Path[len(expectedPath.Path)-1].Id)
 	config.mockBcache.EXPECT().Finalize(

@@ -305,6 +305,11 @@ type RootMetadata struct {
 	// The directory ID, signed over to make verification easier
 	Id DirId
 
+	// The total number of bytes in new blocks
+	RefBytes uint64
+	// The total number of bytes in unreferenced blocks
+	UnrefBytes uint64
+
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
 	// A cached copy of the directory handle calculated for this MD
@@ -324,6 +329,10 @@ type PrivateMetadata struct {
 	// new device needs to be provisioned.  Once the folder is
 	// rekeyed, this can be overwritten.
 	PrivKey Key
+
+	// TODO: Track the block pointers added and freed by the update
+	// that created this metadata structure, to enable asynchronous
+	// history truncation
 }
 
 func NewRootMetadata(d *DirHandle, id DirId) *RootMetadata {
