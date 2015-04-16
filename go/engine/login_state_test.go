@@ -17,7 +17,7 @@ func TestLoginLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login logout")
 	defer tc.Cleanup()
 
-	if err := G.Session.AssertLoggedOut(); err != nil {
+	if err := G.LoginState.AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
@@ -34,8 +34,6 @@ func TestLoginLogout(t *testing.T) {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
-	// TODO: LoginState still thinks we're logged out here. Fix this?
-
 	G.LoginState.Logout()
 
 	if err := G.LoginState.AssertLoggedOut(); err != nil {
@@ -49,7 +47,7 @@ func TestLoginLogout(t *testing.T) {
 	// Logging out twice should still work.
 	G.LoginState.Logout()
 
-	if err := G.Session.AssertLoggedOut(); err != nil {
+	if err := G.LoginState.AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
