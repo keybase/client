@@ -19,8 +19,8 @@ func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, 
 	if err := cbo.delegate.Get(id, context, decryptKey, block); err != nil {
 		return err
 	}
-	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && context.GetQuotaSize() != uint32(len(fBlock.Contents)) {
-		cbo.t.Errorf("expected %d bytes, got %d bytes", context.GetQuotaSize(), len(fBlock.Contents))
+	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd && context.GetQuotaSize() < uint32(len(fBlock.Contents)) {
+		cbo.t.Errorf("expected at most %d bytes, got %d bytes", context.GetQuotaSize(), len(fBlock.Contents))
 	}
 	return nil
 }
