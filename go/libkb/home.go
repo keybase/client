@@ -3,7 +3,6 @@ package libkb
 import (
 	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -71,11 +70,9 @@ func (x XdgPosix) DataDir() string   { return x.dirHelper("XDG_DATA_HOME", ".loc
 
 func (x XdgPosix) RuntimeDir() (ret string, err error) {
 	ret = os.Getenv("XDG_RUNTIME_DIR")
-	var u *user.User
 	if len(ret) != 0 {
-	} else if u, err = user.Current(); err != nil {
 	} else {
-		ret = x.Join("/tmp", "keybase-"+u.Username)
+		ret = x.ConfigDir()
 	}
 	return
 }
