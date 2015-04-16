@@ -997,6 +997,8 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 		de.Size = size
 		de.Writer = user
 		// the copy will be dirty, so put it in the cache
+		// TODO: Once we implement indirect dir blocks, make sure that
+		// the pointer to dblock in its parent block has QuotaSize 0.
 		fs.config.BlockCache().Put(
 			file.ParentPath().TailPointer().Id, dblock, true)
 	} else {
