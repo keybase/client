@@ -805,7 +805,6 @@ func (fs *KBFSOpsStandard) newRightBlockLocked(
 		return err
 	}
 
-	// The QuotaSize field of BlockPointer will be filled in at sync time.
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
 		BlockPointer{newRId, md.LatestKeyId(), fs.config.DataVersion(), user, 0},
 		off})
