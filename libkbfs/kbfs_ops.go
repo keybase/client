@@ -711,7 +711,7 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		startOff = nextPtr.Off
 		newPath := file
 		// there is more to read if we ever took a path through a
-		// ptr that wasn't the final ptr in its respectve list
+		// ptr that wasn't the final ptr in its respective list
 		more = more || (nextIndex != len(block.IPtrs)-1)
 		id = nextPtr.Id
 		newPath.Path = append(newPath.Path, &PathNode{
@@ -720,8 +720,8 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		if block, err = fs.getFileLocked(newPath, asWrite); err != nil {
 			return
 		}
-		if nextPtr.QuotaSize != uint32(len(block.Contents)) {
-			panic(fmt.Sprintf("expected %d bytes, got %d bytes", nextPtr.QuotaSize, len(block.Contents)))
+		if nextPtr.QuotaSize < uint32(len(block.Contents)) {
+			panic(fmt.Sprintf("expected at most %d bytes, got %d bytes", nextPtr.QuotaSize, len(block.Contents)))
 		}
 	}
 
