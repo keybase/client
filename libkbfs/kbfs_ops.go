@@ -114,7 +114,7 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	md.data.Dir.KeyId = 0
 	md.data.Dir.Ver = fs.config.DataVersion()
 	md.data.Dir.QuotaSize = uint32(len(buf))
-	// TODO: What about Size?
+	// TODO: Fill in Size.
 
 	// make sure we're a writer before putting any blocks
 	if !md.GetDirHandle().IsWriter(user) {
