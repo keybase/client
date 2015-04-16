@@ -73,9 +73,9 @@ type BlockPointer struct {
 	KeyId  int // which version of the DirKeys to use
 	Ver    int // which version of the KBFS data structures is pointed to
 	Writer libkb.UID
-	// The size of the (possibly encrypted) data contained in the
-	// block. Always at least the size of the plaintext data
-	// contained in the block.
+	// When non-zero, the size of the (possibly encrypted) data
+	// contained in the block. When non-zero, always at least the
+	// size of the plaintext data contained in the block.
 	QuotaSize uint32
 }
 
@@ -407,6 +407,7 @@ type DirEntry struct {
 // IndirectDirPtr pairs an indirect dir block with the start of that
 // block's range of directory entries (inclusive)
 type IndirectDirPtr struct {
+	// TODO: Make sure that the QuotaSize field is zeor exactly when the block is dirty.
 	BlockPointer
 	Off string
 }
@@ -414,6 +415,7 @@ type IndirectDirPtr struct {
 // IndirectFilePtr pairs an indirect file block with the start of that
 // block's range of bytes (inclusive)
 type IndirectFilePtr struct {
+	// The QuotaSize field is zero exactly when the block is dirty.
 	BlockPointer
 	Off int64
 }
