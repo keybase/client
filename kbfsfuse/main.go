@@ -98,8 +98,11 @@ func main() {
 		config.SetKBPKI(k)
 	} else {
 		libkb.G.ConfigureAPI()
-		if ok, err := libkb.G.LoginState.LoadAndCheck(); !ok || err != nil {
+		if err := libkb.G.LoginState.SessionLoad(); err != nil {
 			log.Fatalf("Couldn't load session: %v\n", err)
+		}
+		if err := libkb.G.LoginState.AssertLoggedIn(); err != nil {
+			log.Fatalf("Couldn't check session: %v\n", err)
 		}
 	}
 

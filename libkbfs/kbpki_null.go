@@ -40,7 +40,7 @@ func (k *KBPKINull) GetSession() (*libkb.Session, error) {
 }
 
 func (k *KBPKINull) GetLoggedInUser() (libkb.UID, error) {
-	p := libkb.G.Session.GetUID()
+	p := libkb.G.LoginState.UID()
 	if p == nil {
 		// TODO: something more intelligent; maybe just shut down
 		// unless we want anonymous browsing of public data
