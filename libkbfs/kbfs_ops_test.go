@@ -1121,7 +1121,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1177,7 +1177,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1342,9 +1342,9 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", data)
 	} else if newRootBlock.Children["f"].Writer != userId {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
-	} else if newRootBlock.Children["f"].TotalSize != uint64(len(data)) {
+	} else if newRootBlock.Children["f"].Size != uint64(len(data)) {
 		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].TotalSize)
+			newRootBlock.Children["f"].Size)
 	}
 }
 
@@ -1521,9 +1521,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	} else if pblock.IPtrs[1].Off != 6 {
 		t.Errorf("Parent block has wrong offset for block 5: %d",
 			pblock.IPtrs[1].Off)
-	} else if newRootBlock.Children["f"].TotalSize != uint64(11) {
+	} else if newRootBlock.Children["f"].Size != uint64(11) {
 		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].TotalSize)
+			newRootBlock.Children["f"].Size)
 	}
 }
 
@@ -1540,7 +1540,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Writer: userId, QuotaSize: 10}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId, Writer: userId, QuotaSize: 10}, Size: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -1641,9 +1641,9 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
 	} else if newRootBlock.Children["f"].Writer != userId {
 		t.Errorf("Wrong last writer: %v", newRootBlock.Children["f"].Writer)
-	} else if newRootBlock.Children["f"].TotalSize != 0 {
+	} else if newRootBlock.Children["f"].Size != 0 {
 		t.Errorf("Wrong size for written file: %d",
-			newRootBlock.Children["f"].TotalSize)
+			newRootBlock.Children["f"].Size)
 	}
 }
 
@@ -1720,7 +1720,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 10}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2059,7 +2059,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2128,7 +2128,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
@@ -2265,7 +2265,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, TotalSize: 20}
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{

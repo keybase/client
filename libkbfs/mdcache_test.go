@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"code.google.com/p/gomock/gomock"
-	"github.com/keybase/go-jsonw"
 	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-jsonw"
 )
 
 func mdCacheInit(t *testing.T, cap int) (

@@ -114,7 +114,7 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	md.data.Dir.KeyId = 0
 	md.data.Dir.Ver = fs.config.DataVersion()
 	md.data.Dir.QuotaSize = uint32(len(buf))
-	// TODO: What about TotalSize?
+	// TODO: What about Size?
 
 	// make sure we're a writer before putting any blocks
 	if !md.GetDirHandle().IsWriter(user) {
@@ -357,7 +357,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 				de = &DirEntry{
 					IsDir:  isDir,
 					IsExec: isExec,
-					// TODO: What about TotalSize?
+					// TODO: What about Size?
 				}
 				prevDblock.Children[currName] = de
 			}
@@ -518,13 +518,13 @@ func (fs *KBFSOpsStandard) CreateLink(
 		BlockPointer: BlockPointer{
 			QuotaSize: uint32(len(toPath)),
 		},
-		IsDir:     false,
-		IsExec:    false,
-		TotalSize: uint64(len(toPath)),
-		IsSym:     true,
-		SymPath:   toPath,
-		Mtime:     time.Now().UnixNano(),
-		Ctime:     time.Now().UnixNano(),
+		IsDir:   false,
+		IsExec:  false,
+		Size:    uint64(len(toPath)),
+		IsSym:   true,
+		SymPath: toPath,
+		Mtime:   time.Now().UnixNano(),
+		Ctime:   time.Now().UnixNano(),
 	}
 
 	dblock.Children[fromPath] = de
@@ -895,7 +895,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 		if dblock, de, err := fs.getEntryLocked(file); err == nil {
 			if oldLen != len(block.Contents) || de.Writer != user {
 				// update the file info
-				de.TotalSize += uint64(len(block.Contents) - oldLen)
+				de.Size += uint64(len(block.Contents) - oldLen)
 				de.Writer = user
 				// the copy will be dirty, so put it in the cache
 				bcache.Put(
@@ -991,7 +991,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 
 	// update the local entry size
 	if dblock, de, err := fs.getEntryLocked(file); err == nil {
-		de.TotalSize = size
+		de.Size = size
 		de.Writer = user
 		// the copy will be dirty, so put it in the cache
 		fs.config.BlockCache().Put(
