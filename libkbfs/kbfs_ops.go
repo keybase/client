@@ -978,6 +978,9 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
+		// TODO: When we implement more than one level of indirection,
+		// make sure that the pointer to parentBlock in the grandparent block
+		// has QuotaSize 0.
 		if err := fs.config.BlockCache().Put(
 			file.TailPointer().Id, parentBlock, true); err != nil {
 			return err
