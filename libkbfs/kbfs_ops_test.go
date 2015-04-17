@@ -2020,7 +2020,7 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
 	// Ideally, we'd use the size of block.Contents at the time
 	// that Ready() is called, but GoMock isn't expressive enough
 	// for that.
-	newEncBuf := make([]byte, len(block.Contents) + padSize)
+	newEncBuf := make([]byte, len(block.Contents)+padSize)
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 	c2 := config.mockBops.EXPECT().Ready(block, NullKey).
