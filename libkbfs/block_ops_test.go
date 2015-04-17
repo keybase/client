@@ -179,6 +179,25 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	}
 }
 
+func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
+	mockCtrl, config := blockOpsInit(t)
+	defer mockCtrl.Finish()
+
+	// expect just one call to encrypt a block
+	decData := TestBlock{42}
+	packedData := []byte{4, 3, 2, 1}
+	encData := []byte{1, 2, 3}
+	key := NullKey
+
+	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)
+	config.mockCrypto.EXPECT().Encrypt(packedData, key).Return(encData, nil)
+
+	_, _, err := config.BlockOps().Ready(decData, key)
+	if _, ok := err.(*TooLowByteCountError); !ok {
+		t.Errorf("Unexpectedly did not get TooLowByteCountError; instead got %v", err)
+	}
+}
+
 func TestBlockOpsReadyFailEncode(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
 	defer mockCtrl.Finish()
