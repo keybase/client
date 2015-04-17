@@ -244,3 +244,11 @@ type TooLowByteCountError struct {
 func (e *TooLowByteCountError) Error() string {
 	return fmt.Sprintf("Expected at least %d bytes, got %d bytes", e.ExpectedMinByteCount, e.ByteCount)
 }
+
+type InconsistentBlockPointerError struct {
+	Ptr BlockPointer
+}
+
+func (e *InconsistentBlockPointerError) Error() string {
+	return fmt.Sprintf("Block pointer to dirty block %v with non-zero quota size = %d bytes", e.Ptr.Id, e.Ptr.QuotaSize)
+}

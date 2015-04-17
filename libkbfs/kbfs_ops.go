@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -723,7 +722,10 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 			return
 		}
 		if nextPtr.QuotaSize > 0 && nextPtr.QuotaSize < uint32(len(block.Contents)) {
-			panic(fmt.Sprintf("expected at most %d bytes, got %d bytes", nextPtr.QuotaSize, len(block.Contents)))
+			err = &TooHighByteCountError{
+				ExpectedMaxByteCount: int(nextPtr.QuotaSize),
+				ByteCount:            len(block.Contents),
+			}
 		}
 	}
 
@@ -1113,7 +1115,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 			ptr := fblock.IPtrs[i]
 			isDirty := bcache.IsDirty(ptr.Id)
 			if (ptr.QuotaSize > 0) && isDirty {
-				panic(fmt.Sprintf("is dirty: %t, quota size: %d, id=%v", isDirty, ptr.QuotaSize, ptr.Id))
+				return Path{}, &InconsistentBlockPointerError{ptr.BlockPointer}
 			}
 			if isDirty {
 				_, _, _, block, more, _, err :=
@@ -1200,7 +1202,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 			// TODO: parallelize these?
 			isDirty := bcache.IsDirty(ptr.Id)
 			if (ptr.QuotaSize > 0) && isDirty {
-				panic(fmt.Sprintf("is dirty: %t, quota size: %d", isDirty, ptr.QuotaSize))
+				return Path{}, &InconsistentBlockPointerError{ptr.BlockPointer}
 			}
 			if isDirty {
 				_, _, _, block, _, _, err :=
