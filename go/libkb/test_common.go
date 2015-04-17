@@ -74,6 +74,7 @@ type TestContext struct {
 func (tc *TestContext) Cleanup() {
 	if len(tc.Tp.Home) > 0 {
 		G.Log.Debug("cleaning up %s", tc.Tp.Home)
+		tc.G.Shutdown()
 		os.RemoveAll(tc.Tp.Home)
 	}
 }
