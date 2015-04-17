@@ -1112,7 +1112,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
 			isDirty := bcache.IsDirty(ptr.Id)
-			if isDirty != (ptr.QuotaSize == 0) {
+			if (ptr.QuotaSize > 0) && isDirty {
 				panic(fmt.Sprintf("is dirty: %t, quota size: %d, id=%v", isDirty, ptr.QuotaSize, ptr.Id))
 			}
 			if isDirty {
@@ -1199,7 +1199,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 		for i, ptr := range fblock.IPtrs {
 			// TODO: parallelize these?
 			isDirty := bcache.IsDirty(ptr.Id)
-			if isDirty != (ptr.QuotaSize == 0) {
+			if (ptr.QuotaSize > 0) && isDirty {
 				panic(fmt.Sprintf("is dirty: %t, quota size: %d", isDirty, ptr.QuotaSize))
 			}
 			if isDirty {
