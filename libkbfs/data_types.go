@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
 )
 
 const (
@@ -247,6 +247,12 @@ func (p *Path) ParentPath() *Path {
 	return &Path{TopDir: p.TopDir, Path: p.Path[:len(p.Path)-1]}
 }
 
+func (p *Path) ChildPathNoPtr(name string) *Path {
+	child := &Path{p.TopDir, p.Path[:]}
+	child.Path = append(child.Path, &PathNode{Name: name})
+	return child
+}
+
 func (p *Path) HasPublic() bool {
 	// This directory has a corresponding public subdirectory if the
 	// path has only one node and the top-level directory is not
@@ -316,6 +322,47 @@ type RootMetadata struct {
 	mdId MDId
 }
 
+// BlockChangeNode tracks the blocks that have changed at a particular
+// path in a folder's namespace, and includes pointers to the
+// BlockChangeNode of the children of this path
+type BlockChangeNode struct {
+	Blocks   []BlockPointer              `codec:"b,omitempty"`
+	Children map[string]*BlockChangeNode `codec:"c,omitempty"`
+}
+
+func NewBlockChangeNode() *BlockChangeNode {
+	return &BlockChangeNode{
+		make([]BlockPointer, 0, 0),
+		make(map[string]*BlockChangeNode),
+	}
+}
+
+func (bcn *BlockChangeNode) AddBlock(path Path, index int, ptr BlockPointer) {
+	if index == len(path.Path)-1 {
+		bcn.Blocks = append(bcn.Blocks, ptr)
+	} else {
+		name := path.Path[index+1].Name
+		child, ok := bcn.Children[name]
+		if !ok {
+			child = NewBlockChangeNode()
+			bcn.Children[name] = child
+		}
+		child.AddBlock(path, index+1, ptr)
+	}
+}
+
+// BlockChanges tracks the set of blocks that changed in a commit.
+// Could either be used referenced or dereferenced blocks.  Might
+// consist of just a BlockPointer if the list is too big to embed in
+// the MD structure directly.
+type BlockChanges struct {
+	// If this is set, the actual changes are stored in a block (where
+	// the block contains a serialized version of BlockChanges)
+	Pointer BlockPointer `codec:",omitempty"`
+	// The top node of the block change tree
+	Changes *BlockChangeNode `codec:",omitempty"`
+}
+
 // PrivateMetadata contains the portion of metadata that's secret for private
 // directories
 type PrivateMetadata struct {
@@ -327,10 +374,10 @@ type PrivateMetadata struct {
 	// new device needs to be provisioned.  Once the folder is
 	// rekeyed, this can be overwritten.
 	PrivKey Key
-
-	// TODO: Track the block pointers added and freed by the update
-	// that created this metadata structure, to enable asynchronous
-	// history truncation
+	// The blocks that were added during the update that created this MD
+	RefBlocks BlockChanges
+	// The blocks that were unref'd during the update that created this MD
+	UnrefBlocks BlockChanges
 }
 
 func NewRootMetadata(d *DirHandle, id DirId) *RootMetadata {
@@ -341,6 +388,8 @@ func NewRootMetadata(d *DirHandle, id DirId) *RootMetadata {
 	// need to keep the dir handle around long enough to rekey the metadata for
 	// the first time
 	md.cachedDirHandle = d
+	md.data.RefBlocks.Changes = NewBlockChangeNode()
+	md.data.UnrefBlocks.Changes = NewBlockChangeNode()
 	return &md
 }
 
@@ -424,6 +473,18 @@ func (md *RootMetadata) MetadataId(config Config) (MDId, error) {
 
 func (md *RootMetadata) ClearMetadataId() {
 	md.mdId = NullMDId
+}
+
+func (md *RootMetadata) AddRefBlock(path Path, ptr BlockPointer) {
+	md.RefBytes += uint64(ptr.QuotaSize)
+	md.data.RefBlocks.Changes.AddBlock(path, 0, ptr)
+}
+
+func (md *RootMetadata) AddUnrefBlock(path Path, ptr BlockPointer) {
+	if ptr.QuotaSize > 0 {
+		md.UnrefBytes += uint64(ptr.QuotaSize)
+		md.data.UnrefBlocks.Changes.AddBlock(path, 0, ptr)
+	}
 }
 
 // DirEntry is the MD for each child in a directory

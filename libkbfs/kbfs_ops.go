@@ -123,7 +123,7 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	md.data.Dir.Ver = fs.config.DataVersion()
 	md.data.Dir.QuotaSize = uint32(len(buf))
 	md.data.Dir.Size = 0
-	md.RefBytes = uint64(len(buf))
+	md.AddRefBlock(path, md.data.Dir.BlockPointer)
 	md.UnrefBytes = 0
 	// TODO: What about TotalSize?
 
@@ -322,6 +322,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 	crypto := fs.config.Crypto()
 	kops := fs.config.KeyOps()
 	kcache := fs.config.KeyCache()
+	refPath := *dir.ChildPathNoPtr(name)
 	var newDe *DirEntry
 	for len(newPath.Path) < len(dir.Path)+1 {
 		// new key for the block
@@ -381,9 +382,11 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			currName = prevDir.TailName()
 		}
 
-		// Use the old block pointer to fix up the unref'd byte count
-		md.UnrefBytes += uint64(de.BlockPointer.GetQuotaSize())
-		md.RefBytes += uint64(blockPtr.GetQuotaSize())
+		md.AddUnrefBlock(refPath, de.BlockPointer)
+		md.AddRefBlock(refPath, blockPtr)
+		if len(refPath.Path) > 1 {
+			refPath = *refPath.ParentPath()
+		}
 		de.BlockPointer = blockPtr
 
 		if newDe == nil {
@@ -419,8 +422,6 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 		}
 	}
 
-	// TODO: delete old blocks
-
 	// finally, write out the new metadata if we were not supposed to stop
 	// early
 	if stopAt == zeroId {
@@ -434,10 +435,12 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			return Path{}, nil, err
 		} else {
 			fs.heads[md.Id] = mdId
-			// Clear the byte counters. TODO: use clean copies of the MD
-			// when the folder is next modified
+			// Clear the byte counters and blocks. TODO: use clean
+			// copies of the MD when the folder is next modified
 			md.RefBytes = 0
 			md.UnrefBytes = 0
+			md.data.RefBlocks.Changes = NewBlockChangeNode()
+			md.data.UnrefBlocks.Changes = NewBlockChangeNode()
 		}
 	}
 
@@ -558,9 +561,9 @@ func (fs *KBFSOpsStandard) CreateLink(
 	return newPath, de, err
 }
 
-func (fs *KBFSOpsStandard) removeEntryLocked(path Path, name string) (
-	Path, error) {
+func (fs *KBFSOpsStandard) removeEntryLocked(path Path) (Path, error) {
 	parentPath := *path.ParentPath()
+	name := path.TailName()
 	// verify we have permission to write
 	md, err := fs.getMDForWriteLocked(parentPath)
 	if err != nil {
@@ -578,7 +581,7 @@ func (fs *KBFSOpsStandard) removeEntryLocked(path Path, name string) (
 		return Path{}, &NoSuchNameError{name}
 	}
 
-	md.UnrefBytes += uint64(de.QuotaSize)
+	md.AddUnrefBlock(path, de.BlockPointer)
 	// If this is an indirect block, we need to delete all of its
 	// children as well. (TODO: handle multiple levels of
 	// indirection.)  NOTE: non-empty directories can't be removed, so
@@ -594,7 +597,7 @@ func (fs *KBFSOpsStandard) removeEntryLocked(path Path, name string) (
 		}
 		if fBlock.IsInd {
 			for _, ptr := range fBlock.IPtrs {
-				md.UnrefBytes += uint64(ptr.QuotaSize)
+				md.AddUnrefBlock(path, ptr.BlockPointer)
 			}
 		}
 	}
@@ -619,12 +622,10 @@ func (fs *KBFSOpsStandard) RemoveDir(dir Path) (Path, error) {
 	if err == nil {
 		if len(dblock.Children) > 0 {
 			return Path{}, &DirNotEmptyError{dir.TailName()}
-		} else {
-			// TODO: delete the target directory block
 		}
 	}
 
-	return fs.removeEntryLocked(dir, dir.TailName())
+	return fs.removeEntryLocked(dir)
 }
 
 func (fs *KBFSOpsStandard) RemoveEntry(file Path) (Path, error) {
@@ -632,7 +633,7 @@ func (fs *KBFSOpsStandard) RemoveEntry(file Path) (Path, error) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	return fs.removeEntryLocked(file, file.TailName())
+	return fs.removeEntryLocked(file)
 }
 
 func (fs *KBFSOpsStandard) Rename(
@@ -948,7 +949,7 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 		if dblock, de, err := fs.getEntryLocked(file); err == nil {
 			if oldLen != len(block.Contents) || de.Writer != user {
 				// remember how many bytes it was
-				md.UnrefBytes += uint64(de.QuotaSize)
+				md.AddUnrefBlock(file, de.BlockPointer)
 				de.QuotaSize = 0
 				// update the file info
 				de.Size += uint64(len(block.Contents) - oldLen)
@@ -963,7 +964,8 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 
 		if parentBlock != nil {
 			// remember how many bytes it was
-			md.UnrefBytes += uint64(parentBlock.IPtrs[indexInParent].QuotaSize)
+			md.AddUnrefBlock(file,
+				parentBlock.IPtrs[indexInParent].BlockPointer)
 			parentBlock.IPtrs[indexInParent].QuotaSize = 0
 		}
 		// keep the old block ID while it's dirty
@@ -1035,7 +1037,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	if more {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
 		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
-			md.UnrefBytes += uint64(ptr.QuotaSize)
+			md.AddUnrefBlock(file, ptr.BlockPointer)
 		}
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
@@ -1049,13 +1051,13 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	}
 
 	if parentBlock != nil {
-		md.UnrefBytes += uint64(parentBlock.IPtrs[indexInParent].QuotaSize)
+		md.AddUnrefBlock(file, parentBlock.IPtrs[indexInParent].BlockPointer)
 		parentBlock.IPtrs[indexInParent].QuotaSize = 0
 	}
 
 	// update the local entry size
 	if dblock, de, err := fs.getEntryLocked(file); err == nil {
-		md.UnrefBytes += uint64(de.QuotaSize)
+		md.AddUnrefBlock(file, de.BlockPointer)
 		de.QuotaSize = 0
 		de.Size = size
 		de.Writer = user
@@ -1213,7 +1215,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 						return Path{}, err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
-					md.UnrefBytes += uint64(fblock.IPtrs[i+1].QuotaSize)
+					md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer)
 					fblock.IPtrs[i+1].QuotaSize = 0
 				case splitAt < 0:
 					if !more {
@@ -1238,7 +1240,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 						}
 						fblock.IPtrs[i+1].Off =
 							ptr.Off + int64(len(block.Contents))
-						md.UnrefBytes += uint64(fblock.IPtrs[i+1].QuotaSize)
+						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer)
 						fblock.IPtrs[i+1].QuotaSize = 0
 					} else {
 						// TODO: delete the block, and if we're down to just
@@ -1246,7 +1248,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 						// TODO: When we implement more than one level of indirection,
 						// make sure that the pointer to the parent block in the
 						// grandparent block has QuotaSize 0.
-						md.UnrefBytes += uint64(fblock.IPtrs[i+1].QuotaSize)
+						md.AddUnrefBlock(file, fblock.IPtrs[i+1].BlockPointer)
 						fblock.IPtrs =
 							append(fblock.IPtrs[:i+1], fblock.IPtrs[i+2:]...)
 					}
@@ -1289,9 +1291,9 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 				}
 				bcache.Finalize(ptr.Id, id)
 				fblock.IPtrs[i].QuotaSize = uint32(len(buf))
-				md.RefBytes += uint64(fblock.IPtrs[i].QuotaSize)
 				fblock.IPtrs[i].Id = id
 				fblock.IPtrs[i].Writer = user
+				md.AddRefBlock(file, fblock.IPtrs[i].BlockPointer)
 				if err := bops.Put(id, &fblock.IPtrs[i], buf); err != nil {
 					return Path{}, err
 				}
