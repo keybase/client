@@ -26,6 +26,9 @@ func (b *BlockOpsStandard) Get(
 		// TODO: use server-side block key half along with directory
 		// secret key
 		if debuf, err = crypto.Decrypt(buf, decryptKey); err == nil {
+			if len(debuf) > len(buf) {
+				panic(fmt.Sprintf("expected at most %d bytes, got %d bytes", len(buf), len(debuf)))
+			}
 			err = b.config.Codec().Decode(debuf, block)
 		}
 	}
@@ -44,6 +47,9 @@ func (b *BlockOpsStandard) Ready(
 		// secret key
 		var enbuf []byte
 		if enbuf, err = crypto.Encrypt(plainbuf, encryptKey); err == nil {
+			if len(enbuf) < len(plainbuf) {
+				panic(fmt.Sprintf("expected at lease %d bytes, got %d bytes", len(plainbuf), len(enbuf)))
+			}
 			// now get the block ID for the buffer
 			if h, err2 := crypto.Hash(enbuf); err2 != nil {
 				return id, buf, err2
