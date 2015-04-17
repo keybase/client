@@ -26,11 +26,7 @@ func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, 
 }
 
 func (cbo *CheckBlockOps) Ready(block Block, encryptKey Key) (BlockId, []byte, error) {
-	id, buf, err := cbo.delegate.Ready(block, encryptKey)
-	if err != nil {
-		return id, buf, err
-	}
-	return id, buf, err
+	return cbo.delegate.Ready(block, encryptKey)
 }
 
 func (cbo *CheckBlockOps) Put(id BlockId, context BlockContext, buf []byte) error {
