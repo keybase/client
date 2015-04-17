@@ -11,8 +11,8 @@ import (
 // DeviceHandler is the RPC handler for the device interface.
 type DeviceHandler struct {
 	BaseHandler
-	kexsibEngMu sync.Mutex
-	kexsibEng   *engine.KexSib
+	kexEngsMu sync.RWMutex
+	kexEngs   map[int]*engine.KexSib
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
@@ -30,30 +30,37 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 }
 
 // DeviceAdd adds a sibkey using a SibkeyEngine.
-func (h *DeviceHandler) DeviceAdd(phrase string) error {
+func (h *DeviceHandler) DeviceAdd(arg keybase_1.DeviceAddArg) error {
 	sessionID := nextSessionID()
 	locksmithUI := NewRemoteLocksmithUI(sessionID, h.getRpcClient())
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), LocksmithUI: locksmithUI}
-	h.kexsibEngMu.Lock()
-	h.kexsibEng = engine.NewKexSib(G, phrase)
-	h.kexsibEngMu.Unlock()
+	eng := engine.NewKexSib(G, arg.SecretPhrase)
 
-	err := engine.RunEngine(h.kexsibEng, ctx)
+	// use sessionID in arg for map key, so clients can cancel
+	h.kexEngsMu.Lock()
+	h.kexEngs[arg.SessionID] = eng
+	h.kexEngsMu.Unlock()
 
-	h.kexsibEngMu.Lock()
-	h.kexsibEng = nil
-	h.kexsibEngMu.Unlock()
+	err := engine.RunEngine(eng, ctx)
+
+	h.kexEngsMu.Lock()
+	delete(h.kexEngs, arg.SessionID)
+	h.kexEngsMu.Unlock()
 
 	return err
 }
 
 // DeviceAddCancel stops the device provisioning authorized with
 // DeviceAdd.
-func (h *DeviceHandler) DeviceAddCancel() error {
-	h.kexsibEngMu.Lock()
-	defer h.kexsibEngMu.Unlock()
-	if h.kexsibEng == nil {
+func (h *DeviceHandler) DeviceAddCancel(sessionID int) error {
+	h.kexEngsMu.RLock()
+	eng, ok := h.kexEngs[sessionID]
+	h.kexEngsMu.RUnlock()
+	if !ok {
 		return nil
 	}
-	return h.kexsibEng.Cancel()
+	if eng == nil {
+		return nil
+	}
+	return eng.Cancel()
 }

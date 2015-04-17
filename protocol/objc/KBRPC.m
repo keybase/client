@@ -163,15 +163,15 @@
   }];
 }
 
-- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"secretPhrase": KBRValue(secretPhrase)}];
+- (void)deviceAddWithSessionID:(NSInteger)sessionID secretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"secretPhrase": KBRValue(secretPhrase)}];
   [self.client sendRequestWithMethod:@"keybase.1.device.deviceAdd" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)deviceAddCancel:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{}];
+- (void)deviceAddCancelWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
   [self.client sendRequestWithMethod:@"keybase.1.device.deviceAddCancel" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1158,7 +1158,19 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.secretPhrase = params[0][@"secretPhrase"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDeviceAddCancelRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }

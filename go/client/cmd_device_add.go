@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -14,7 +15,8 @@ import (
 // device provisioning to enter a secret phrase on an existing
 // device.
 type CmdDeviceAdd struct {
-	phrase string
+	phrase    string
+	sessionID int
 }
 
 // NewCmdDeviceAdd creates a new cli.Command.
@@ -31,6 +33,11 @@ func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceAdd) RunClient() error {
+	var err error
+	c.sessionID, err = libkb.RandInt()
+	if err != nil {
+		return err
+	}
 	cli, err := GetDeviceClient()
 	if err != nil {
 		return err
@@ -43,7 +50,7 @@ func (c *CmdDeviceAdd) RunClient() error {
 		return err
 	}
 
-	return cli.DeviceAdd(c.phrase)
+	return cli.DeviceAdd(keybase_1.DeviceAddArg{SecretPhrase: c.phrase, SessionID: c.sessionID})
 }
 
 // Run runs the command in standalone mode.

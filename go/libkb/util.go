@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"math"
+	"math/big"
 	"os"
 	"path"
 	"regexp"
@@ -246,4 +248,21 @@ func IsClearsign(p *Peeker) bool {
 		return false
 	}
 	return bytes.HasPrefix(bytes.TrimSpace(start), clearStart)
+}
+
+func RandInt64() (int64, error) {
+	max := big.NewInt(math.MaxInt64)
+	x, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return 0, err
+	}
+	return x.Int64(), nil
+}
+
+func RandInt() (int, error) {
+	x, err := RandInt64()
+	if err != nil {
+		return 0, err
+	}
+	return int(x), nil
 }

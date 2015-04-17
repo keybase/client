@@ -177,13 +177,19 @@
     },
     "deviceAdd" : {
       "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
         "name" : "secretPhrase",
         "type" : "string"
       } ],
       "response" : "null"
     },
     "deviceAddCancel" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "null"
     }
   }

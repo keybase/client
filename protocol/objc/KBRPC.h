@@ -128,9 +128,9 @@
 @interface KBRDeviceRequest : KBRRequest
 - (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
 
-- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
+- (void)deviceAddWithSessionID:(NSInteger)sessionID secretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
 
-- (void)deviceAddCancel:(void (^)(NSError *error))completion;
+- (void)deviceAddCancelWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -733,7 +733,11 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property NSInteger sessionID;
 @end
 @interface KBRDeviceAddRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @property NSString *secretPhrase;
+@end
+@interface KBRDeviceAddCancelRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRDoctorRequestParams : KBRRequestParams
 @property NSInteger sessionID;
