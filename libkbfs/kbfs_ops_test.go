@@ -1118,17 +1118,13 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	id2 := BlockId{45}
 	id3 := BlockId{46}
 	id4 := BlockId{47}
-	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual QuotaSize value.
-	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, u, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, u, 5}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, u, 5}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, u, 5}, 15},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, u, 6}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, u, 7}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, u, 8}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -1174,17 +1170,13 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	id2 := BlockId{45}
 	id3 := BlockId{46}
 	id4 := BlockId{47}
-	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual QuotaSize value.
-	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, u, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, u, 5}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, u, 5}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, u, 5}, 15},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, u, 6}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, u, 7}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, u, 8}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -1250,9 +1242,8 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	fileId := BlockId{43}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	// TODO: Fill in quota size.
 	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
-	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 10}, "f"}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, u, 15}, "f"}
 	p := Path{id, []*PathNode{node, fileNode}}
 
 	// cache miss means fetching metadata and getting read key
@@ -1538,14 +1529,13 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	id1 := BlockId{44}
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, Writer: userId, QuotaSize: 10}, Size: 10}
+		BlockPointer: BlockPointer{Id: fileId, Writer: userId}, Size: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 5}, 5},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 6}, 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -1718,14 +1708,13 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	id1 := BlockId{44}
 	id2 := BlockId{45}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["f"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 10}
+		BlockPointer: BlockPointer{Id: fileId}, Size: 10}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 5}, 5},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 6}, 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2026,19 +2015,19 @@ func TestSyncCleanSuccess(t *testing.T) {
 }
 
 func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
-	splitAt int64, size int) *gomock.Call {
+	splitAt int64, encSize int) *gomock.Call {
 	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
 	newId := BlockId{id[0] + 100}
-	newBuf := make([]byte, size)
+	newEncBuf := make([]byte, encSize)
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 	c2 := config.mockBops.EXPECT().Ready(block, NullKey).
-		After(c1).Return(newId, newBuf, nil)
+		After(c1).Return(newId, newEncBuf, nil)
 	config.mockBcache.EXPECT().Finalize(id, newId).After(c2).Return(nil)
-	config.mockBops.EXPECT().Put(newId, gomock.Any(), newBuf).Return(nil)
+	config.mockBops.EXPECT().Put(newId, gomock.Any(), newEncBuf).Return(nil)
 	config.mockKops.EXPECT().PutBlockKey(newId, NullKey).Return(nil)
 	config.mockKcache.EXPECT().PutBlockKey(newId, NullKey).Return(nil)
 	return c2
@@ -2057,15 +2046,14 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
+		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
 		IndirectFilePtr{BlockPointer{id2, 0, 0, libkb.UID{0}, 0}, 5},
-		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 5}, 10},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 7}, 10},
 		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
@@ -2090,8 +2078,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	// the split is good
 	expectGetSecretKey(config, rmd)
-	expectSyncDirtyBlock(config, id2, block2, int64(0), len(block2.Contents))
-	expectSyncDirtyBlock(config, id4, block4, int64(0), len(block4.Contents))
+	expectSyncDirtyBlock(config, id2, block2, int64(0), 5)
+	expectSyncDirtyBlock(config, id4, block4, int64(0), 8)
 
 	// sync block
 	expectedPath, _ :=
@@ -2126,13 +2114,12 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
+		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 10}, 0},
 		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 0}, 5},
 		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
 		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 0}, 15},
@@ -2160,18 +2147,18 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	expectGetSecretKey(config, rmd)
 
 	// the split is in the middle
-	expectSyncDirtyBlock(config, id2, block2, int64(3), 3)
+	expectSyncDirtyBlock(config, id2, block2, int64(3), 6)
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
 	config.mockBcache.EXPECT().Put(id3, gomock.Any(), true).
 		Do(func(id BlockId, block Block, dirty bool) {
 		newBlock3 = block.(*FileBlock)
 		// id3 syncs just fine
-		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), 7)
+		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), 14)
 	}).Return(nil)
 
 	// id4 is the final block, and the split causes a new block to be made
-	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), 3)
+	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), 9)
 	var newId5 BlockId
 	var newBlock5 *FileBlock
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
@@ -2179,7 +2166,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		newId5 = id
 		newBlock5 = block.(*FileBlock)
 		// id5 syncs just fine
-		expectSyncDirtyBlock(config, id, newBlock5, int64(0), 2)
+		expectSyncDirtyBlock(config, id, newBlock5, int64(0), 1)
 		// it's put one more time
 		config.mockBcache.EXPECT().Put(id, gomock.Any(), true).Return(nil)
 	}).Return(nil)
@@ -2206,31 +2193,31 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
 	} else if fileBlock.IPtrs[0].Id != id1 {
 		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
-	} else if fileBlock.IPtrs[0].QuotaSize != 5 {
+	} else if fileBlock.IPtrs[0].QuotaSize != 10 {
 		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId2 {
 		t.Errorf("Indirect pointer id2 wrong: %v", fileBlock.IPtrs[1].Id)
-	} else if fileBlock.IPtrs[1].QuotaSize != 3 {
+	} else if fileBlock.IPtrs[1].QuotaSize != 6 {
 		t.Errorf("Indirect pointer quota size2 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 5 {
 		t.Errorf("Indirect pointer off2 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[2].Id)
-	} else if fileBlock.IPtrs[2].QuotaSize != 7 {
+	} else if fileBlock.IPtrs[2].QuotaSize != 14 {
 		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 8 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[2].Off)
 	} else if fileBlock.IPtrs[3].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[3].Id)
-	} else if fileBlock.IPtrs[3].QuotaSize != 3 {
+	} else if fileBlock.IPtrs[3].QuotaSize != 9 {
 		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[3].QuotaSize)
 	} else if fileBlock.IPtrs[3].Off != 15 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[3].Off)
 	} else if fileBlock.IPtrs[4].Id != (BlockId{newId5[0] + 100}) {
 		t.Errorf("Indirect pointer id5 wrong: %v", fileBlock.IPtrs[4].Id)
-	} else if fileBlock.IPtrs[4].QuotaSize != 2 {
+	} else if fileBlock.IPtrs[4].QuotaSize != 1 {
 		t.Errorf("Indirect pointer quota size5 wrong: %d", fileBlock.IPtrs[4].QuotaSize)
 	} else if fileBlock.IPtrs[4].Off != 18 {
 		t.Errorf("Indirect pointer off5 wrong: %d", fileBlock.IPtrs[4].Off)
@@ -2263,16 +2250,15 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	id3 := BlockId{46}
 	id4 := BlockId{47}
 	rootBlock := NewDirBlock().(*DirBlock)
-	// TODO(akalin): Figure out actual QuotaSize value.
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
+		BlockPointer: BlockPointer{Id: fileId}, Size: 20}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
 		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 0}, 0},
-		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 5}, 5},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 10}, 5},
 		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 0}, 10},
-		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 5}, 15},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 15}, 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2298,7 +2284,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	expectGetSecretKey(config, rmd)
 
 	// the split is in the middle
-	expectSyncDirtyBlock(config, id1, block1, int64(-1), 10)
+	expectSyncDirtyBlock(config, id1, block1, int64(-1), 14)
 	// this causes block 2 to be copied from (copy whole block)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block2.Contents, int64(5)).
@@ -2308,7 +2294,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	// now block 2 is empty, and should be deleted
 
 	// block 3 is dirty too, just copy part of block 4
-	expectSyncDirtyBlock(config, id3, block3, int64(-1), 8)
+	expectSyncDirtyBlock(config, id3, block3, int64(-1), 10)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block4.Contents, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
@@ -2320,7 +2306,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		newBlock4 = block.(*FileBlock)
 		// now block 4 is dirty, but it's the end of the line,
 		// so nothing else to do
-		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1), len(newBlock4.Contents))
+		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1), 15)
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
@@ -2345,19 +2331,19 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
 	} else if fileBlock.IPtrs[0].Id != newId1 {
 		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
-	} else if fileBlock.IPtrs[0].QuotaSize != 10 {
+	} else if fileBlock.IPtrs[0].QuotaSize != 14 {
 		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[1].Id)
-	} else if fileBlock.IPtrs[1].QuotaSize != 8 {
+	} else if fileBlock.IPtrs[1].QuotaSize != 10 {
 		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 10 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[2].Id)
-	} else if fileBlock.IPtrs[2].QuotaSize != 2 {
+	} else if fileBlock.IPtrs[2].QuotaSize != 15 {
 		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 18 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[2].Off)
