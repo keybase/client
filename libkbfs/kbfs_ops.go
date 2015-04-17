@@ -558,10 +558,12 @@ func (fs *KBFSOpsStandard) CreateLink(
 	return newPath, de, err
 }
 
-func (fs *KBFSOpsStandard) removeEntryLocked(parentPath Path, name string) (
+func (fs *KBFSOpsStandard) removeEntryLocked(path Path, name string) (
 	Path, error) {
+	parentPath := *path.ParentPath()
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteLocked(parentPath); err != nil {
+	md, err := fs.getMDForWriteLocked(parentPath)
+	if err != nil {
 		return Path{}, err
 	}
 
@@ -571,10 +573,33 @@ func (fs *KBFSOpsStandard) removeEntryLocked(parentPath Path, name string) (
 	}
 
 	// make sure the entry exists
-	if _, ok := pblock.Children[name]; !ok {
+	de, ok := pblock.Children[name]
+	if !ok {
 		return Path{}, &NoSuchNameError{name}
 	}
 
+	md.UnrefBytes += uint64(de.QuotaSize)
+	// If this is an indirect block, we need to delete all of its
+	// children as well. (TODO: handle multiple levels of
+	// indirection.)  NOTE: non-empty directories can't be removed, so
+	// no need to check for indirect directory blocks here
+	if !de.IsDir {
+		block, err := fs.getBlockLocked(path, de.Id, NewFileBlock)
+		if err != nil {
+			return Path{}, &NoSuchBlockError{de.Id}
+		}
+		fBlock, ok := block.(*FileBlock)
+		if !ok {
+			return Path{}, &NotFileError{path.ToString(fs.config)}
+		}
+		if fBlock.IsInd {
+			for _, ptr := range fBlock.IPtrs {
+				md.UnrefBytes += uint64(ptr.QuotaSize)
+			}
+		}
+	}
+
+	// the actual unlink
 	delete(pblock.Children, name)
 
 	// sync the parent directory
@@ -599,7 +624,7 @@ func (fs *KBFSOpsStandard) RemoveDir(dir Path) (Path, error) {
 		}
 	}
 
-	return fs.removeEntryLocked(*dir.ParentPath(), dir.TailName())
+	return fs.removeEntryLocked(dir, dir.TailName())
 }
 
 func (fs *KBFSOpsStandard) RemoveEntry(file Path) (Path, error) {
@@ -607,7 +632,7 @@ func (fs *KBFSOpsStandard) RemoveEntry(file Path) (Path, error) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	return fs.removeEntryLocked(*file.ParentPath(), file.TailName())
+	return fs.removeEntryLocked(file, file.TailName())
 }
 
 func (fs *KBFSOpsStandard) Rename(
@@ -1008,8 +1033,10 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	// otherwise, we need to delete some data (and possibly entire blocks)
 	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
 	if more {
-		// TODO: delete the blocks we're truncating off
 		// TODO: if indexInParent == 0, we can remove the level of indirection
+		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
+			md.UnrefBytes += uint64(ptr.QuotaSize)
+		}
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
 		// TODO: When we implement more than one level of indirection,

@@ -703,8 +703,11 @@ func testRemoveEntrySuccess(t *testing.T, isDir bool) {
 		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: isDir}
-	bBlock := NewDirBlock().(*DirBlock)
+		BlockPointer: BlockPointer{Id: bId}, IsDir: isDir}
+	bBlock := NewFileBlock()
+	if isDir {
+		bBlock = NewDirBlock()
+	}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
 	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	bNode := &PathNode{BlockPointer{bId, 0, 0, userId, 0}, "b"}
@@ -742,6 +745,66 @@ func TestKBFSOpsRemoveDirSuccess(t *testing.T) {
 
 func TestKBFSOpsRemoveFileSuccess(t *testing.T) {
 	testRemoveEntrySuccess(t, false)
+}
+
+func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
+	mockCtrl, config := kbfsOpsInit(t)
+	defer mockCtrl.Finish()
+
+	userId, id, rmd := makeIdAndRMD(config)
+
+	rootId := BlockId{42}
+	fileId := BlockId{43}
+	id1 := BlockId{44}
+	id2 := BlockId{45}
+	id3 := BlockId{46}
+	id4 := BlockId{47}
+	rootBlock := NewDirBlock().(*DirBlock)
+	// TODO(akalin): Figure out actual Size value.
+	rootBlock.Children["a"] = &DirEntry{
+		BlockPointer: BlockPointer{Id: fileId, QuotaSize: 10}, Size: 20}
+	fileBlock := NewFileBlock().(*FileBlock)
+	fileBlock.IsInd = true
+	fileBlock.IPtrs = []IndirectFilePtr{
+		IndirectFilePtr{BlockPointer{id1, 0, 0, userId, 5}, 0},
+		IndirectFilePtr{BlockPointer{id2, 0, 0, userId, 5}, 5},
+		IndirectFilePtr{BlockPointer{id3, 0, 0, userId, 5}, 10},
+		IndirectFilePtr{BlockPointer{id4, 0, 0, userId, 5}, 15},
+	}
+	block1 := NewFileBlock().(*FileBlock)
+	block1.Contents = []byte{5, 4, 3, 2, 1}
+	block2 := NewFileBlock().(*FileBlock)
+	block2.Contents = []byte{10, 9, 8, 7, 6}
+	block3 := NewFileBlock().(*FileBlock)
+	block3.Contents = []byte{15, 14, 13, 12, 11}
+	block4 := NewFileBlock().(*FileBlock)
+	block4.Contents = []byte{20, 19, 18, 17, 16}
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	fileNode := &PathNode{BlockPointer{fileId, 0, 0, userId, 0}, "a"}
+	p := Path{id, []*PathNode{node, fileNode}}
+
+	expectGetBlock(config, rootId, rootBlock)
+	expectGetBlock(config, fileId, fileBlock)
+	expectGetBlock(config, id1, block1)
+	expectGetBlock(config, id2, block2)
+	expectGetBlock(config, id3, block3)
+	expectGetBlock(config, id4, block4)
+
+	// sync block
+	unrefBytes := uint64(10 + 4*5) // fileBlock + 4 indirect blocks
+	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
+		*p.ParentPath(), rmd, false, 0, 0, unrefBytes)
+
+	newP, err := config.KBFSOps().RemoveEntry(p)
+	if err != nil {
+		t.Errorf("Got error on removal: %v", err)
+	}
+	blocks := []*DirBlock{rootBlock}
+	checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+		false, false, "", false)
+	if _, ok := rootBlock.Children["a"]; ok {
+		t.Errorf("entry for a is still around after removal")
+	}
 }
 
 func TestRemoveDirFailNonEmpty(t *testing.T) {
@@ -1722,7 +1785,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	mockCtrl, config := kbfsOpsInit(t)
 	defer mockCtrl.Finish()
 
-	userId, id, _ := makeIdAndRMD(config)
+	userId, id, rmd := makeIdAndRMD(config)
 
 	rootId := BlockId{42}
 	fileId := BlockId{43}
@@ -1767,6 +1830,10 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
 	} else if len(newPBlock.IPtrs) != 1 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
+	} else if rmd.UnrefBytes != 0+5+6 {
+		// The fileid and both blocks were all modified and marked dirty
+		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
+			rmd.UnrefBytes)
 	}
 }
 
@@ -2102,13 +2169,17 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	// the split is good
 	expectGetSecretKey(config, rmd)
-	expectSyncDirtyBlock(config, id2, block2, int64(0), 5)
-	expectSyncDirtyBlock(config, id4, block4, int64(0), 8)
+	pad2 := 5
+	pad4 := 8
+	expectSyncDirtyBlock(config, id2, block2, int64(0), pad2)
+	expectSyncDirtyBlock(config, id4, block4, int64(0), pad4)
 
-	// sync block
-	refBytes := uint64(len(block2.Contents) + len(block4.Contents))
-	// 2 blocks being unreferenced without cleared QuotaSizes
-	unrefBytes := uint64(2 * 5)
+	// sync 2 blocks, plus their pad sizes
+	refBytes := uint64((len(block2.Contents) + pad2) +
+		(len(block4.Contents) + pad4))
+	// Nothing will be unref'd here (the write/truncate would
+	// have taken care of it)
+	unrefBytes := uint64(0)
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes)
@@ -2183,18 +2254,24 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	expectGetSecretKey(config, rmd)
 
 	// the split is in the middle
-	expectSyncDirtyBlock(config, id2, block2, int64(3), 0)
+	pad2 := 0
+	pad3 := 14
+	extraBytesFor3 := 2
+	expectSyncDirtyBlock(config, id2, block2,
+		int64(len(block2.Contents)-extraBytesFor3), pad2)
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
 	config.mockBcache.EXPECT().Put(id3, gomock.Any(), true).
 		Do(func(id BlockId, block Block, dirty bool) {
 		newBlock3 = block.(*FileBlock)
 		// id3 syncs just fine
-		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), 14)
+		expectSyncDirtyBlock(config, id3, newBlock3, int64(0), pad3)
 	}).Return(nil)
 
 	// id4 is the final block, and the split causes a new block to be made
-	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), 9)
+	pad4 := 9
+	pad5 := 1
+	c4 := expectSyncDirtyBlock(config, id4, block4, int64(3), pad4)
 	var newId5 BlockId
 	var newBlock5 *FileBlock
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), true).
@@ -2202,7 +2279,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		newId5 = id
 		newBlock5 = block.(*FileBlock)
 		// id5 syncs just fine
-		expectSyncDirtyBlock(config, id, newBlock5, int64(0), 1)
+		expectSyncDirtyBlock(config, id, newBlock5, int64(0), pad5)
 		// it's put one more time
 		config.mockBcache.EXPECT().Put(id, gomock.Any(), true).Return(nil)
 	}).Return(nil)
@@ -2211,9 +2288,11 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().Put(fileId, gomock.Any(), true).
 		AnyTimes().Return(nil)
 
-	// sync block
-	refBytes := uint64(3 + 7 + 3 + 2) // expectDirtyBlock sizes
-	unrefBytes := uint64(10)          // file ID is changed, but not cleared
+	// sync block contents and their padding sizes
+	refBytes := uint64((len(block2.Contents) + pad2) +
+		(len(block3.Contents) + extraBytesFor3 + pad3) +
+		(len(block4.Contents) + pad4) + pad5)
+	unrefBytes := uint64(0) // no quota sizes on dirty blocks
 	expectedPath, _ :=
 		expectSyncBlock(t, config, c4, userId, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes)
@@ -2323,7 +2402,8 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	expectGetSecretKey(config, rmd)
 
 	// the split is in the middle
-	expectSyncDirtyBlock(config, id1, block1, int64(-1), 14)
+	pad1 := 14
+	expectSyncDirtyBlock(config, id1, block1, int64(-1), pad1)
 	// this causes block 2 to be copied from (copy whole block)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block2.Contents, int64(5)).
@@ -2333,19 +2413,22 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	// now block 2 is empty, and should be deleted
 
 	// block 3 is dirty too, just copy part of block 4
-	expectSyncDirtyBlock(config, id3, block3, int64(-1), 10)
+	pad3 := 10
+	split4At := int64(3)
+	pad4 := 15
+	expectSyncDirtyBlock(config, id3, block3, int64(-1), pad3)
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block4.Contents, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 		block.Contents = append(block.Contents, data[:3]...)
-	}).Return(int64(3))
+	}).Return(split4At)
 	var newBlock4 *FileBlock
 	config.mockBcache.EXPECT().Put(id4, gomock.Any(), true).
 		Do(func(id BlockId, block Block, dirty bool) {
 		newBlock4 = block.(*FileBlock)
 		// now block 4 is dirty, but it's the end of the line,
 		// so nothing else to do
-		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1), 15)
+		expectSyncDirtyBlock(config, id4, newBlock4, int64(-1), pad4)
 	}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
@@ -2353,8 +2436,10 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		AnyTimes().Return(nil)
 
 	// sync block
-	refBytes := uint64(10 + 8 + 2)   // expected dirty block sizes
-	unrefBytes := uint64(10 + 5 + 5) // fileId, id2 and id4
+	refBytes := uint64((len(block1.Contents) + pad1) +
+		(len(block3.Contents) + pad3) +
+		(len(block4.Contents) - int(split4At) + pad4))
+	unrefBytes := uint64(10 + 15) // id2 and id4
 	expectedPath, _ :=
 		expectSyncBlock(t, config, nil, userId, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes)
