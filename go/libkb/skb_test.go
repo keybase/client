@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"testing"
 
+	triplesec "github.com/keybase/go-triplesec"
 	"github.com/ugorji/go/codec"
 	"golang.org/x/crypto/openpgp"
 )
@@ -86,7 +87,11 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 	}
 
 	g := G
-	g.LoginState = &LoginState{}
+	salt, err := RandBytes(triplesec.SaltLen)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.LoginState = &LoginState{salt: salt}
 	skb.SetGlobalContext(&g)
 
 	return skb
