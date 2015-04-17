@@ -2021,6 +2021,9 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
 	newId := BlockId{id[0] + 100}
+	// Ideally, we'd use the size of block.Contents at the time
+	// that Ready() is called, but GoMock isn't expressive enough
+	// for that.
 	newEncBuf := make([]byte, len(block.Contents) + padSize)
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
@@ -2155,7 +2158,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	expectGetSecretKey(config, rmd)
 
 	// the split is in the middle
-	expectSyncDirtyBlock(config, id2, block2, int64(3), 6)
+	expectSyncDirtyBlock(config, id2, block2, int64(3), 0)
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
 	config.mockBcache.EXPECT().Put(id3, gomock.Any(), true).
@@ -2207,7 +2210,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId2 {
 		t.Errorf("Indirect pointer id2 wrong: %v", fileBlock.IPtrs[1].Id)
-	} else if fileBlock.IPtrs[1].QuotaSize != 11 {
+	} else if fileBlock.IPtrs[1].QuotaSize != 5 {
 		t.Errorf("Indirect pointer quota size2 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 5 {
 		t.Errorf("Indirect pointer off2 wrong: %d", fileBlock.IPtrs[1].Off)
