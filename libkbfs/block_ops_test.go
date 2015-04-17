@@ -74,6 +74,25 @@ func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
 	}
 }
 
+func TestBlockOpsGetFailTooHighByteCount(t *testing.T) {
+	mockCtrl, config := blockOpsInit(t)
+	defer mockCtrl.Finish()
+
+	// expect one call to fetch a block, and one to decrypt it
+	id := BlockId{1}
+	encData := []byte{1, 2, 3, 4}
+	ctxt := makeContext(encData)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
+	packedData := []byte{4, 3, 2, 1, 0}
+	key := NullKey
+	config.mockCrypto.EXPECT().Decrypt(encData, key).Return(packedData, nil)
+
+	err := config.BlockOps().Get(id, ctxt, NullKey, nil)
+	if _, ok := err.(*TooHighByteCountError); !ok {
+		t.Errorf("Unexpectedly did not get TooHighByteCountError; instead got %v", err)
+	}
+}
+
 func TestBlockOpsGetFailGet(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
 	defer mockCtrl.Finish()
