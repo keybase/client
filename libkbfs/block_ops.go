@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
 )
 
@@ -18,7 +17,11 @@ func (b *BlockOpsStandard) Get(
 	var buf []byte
 	if buf, err = bserv.Get(id, context); err == nil {
 		if context.GetQuotaSize() != uint32(len(buf)) {
-			panic(fmt.Sprintf("expected %d bytes, got %d bytes", context.GetQuotaSize(), len(buf)))
+			err = &InconsistentByteCountError{
+				ExpectedByteCount: int(context.GetQuotaSize()),
+				ByteCount:         len(buf),
+			}
+			return
 		}
 		// decrypt the block and unmarshal it
 		crypto := b.config.Crypto()
@@ -27,7 +30,11 @@ func (b *BlockOpsStandard) Get(
 		// secret key
 		if debuf, err = crypto.Decrypt(buf, decryptKey); err == nil {
 			if len(debuf) > len(buf) {
-				panic(fmt.Sprintf("expected at most %d bytes, got %d bytes", len(buf), len(debuf)))
+				err = &TooHighByteCountError{
+					ExpectedMaxByteCount: len(buf),
+					ByteCount:            len(debuf),
+				}
+				return
 			}
 			err = b.config.Codec().Decode(debuf, block)
 		}
@@ -48,7 +55,11 @@ func (b *BlockOpsStandard) Ready(
 		var enbuf []byte
 		if enbuf, err = crypto.Encrypt(plainbuf, encryptKey); err == nil {
 			if len(enbuf) < len(plainbuf) {
-				panic(fmt.Sprintf("expected at lease %d bytes, got %d bytes", len(plainbuf), len(enbuf)))
+				err = &TooLowByteCountError{
+					ExpectedMinByteCount: len(plainbuf),
+					ByteCount:            len(enbuf),
+				}
+				return
 			}
 			// now get the block ID for the buffer
 			if h, err2 := crypto.Hash(enbuf); err2 != nil {
@@ -66,7 +77,11 @@ func (b *BlockOpsStandard) Ready(
 func (b *BlockOpsStandard) Put(
 	id BlockId, context BlockContext, buf []byte) (err error) {
 	if context.GetQuotaSize() != uint32(len(buf)) {
-		panic(fmt.Sprintf("expected %d bytes, got %d bytes", context.GetQuotaSize(), len(buf)))
+		err = &InconsistentByteCountError{
+			ExpectedByteCount: int(context.GetQuotaSize()),
+			ByteCount:         len(buf),
+		}
+		return
 	}
 	bserv := b.config.BlockServer()
 	err = bserv.Put(id, context, buf)

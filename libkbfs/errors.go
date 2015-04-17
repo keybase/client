@@ -217,3 +217,30 @@ type LoggedInUserError struct {
 func (e *LoggedInUserError) Error() string {
 	return "No UID for logged-in user"
 }
+
+type InconsistentByteCountError struct {
+	ExpectedByteCount int
+	ByteCount         int
+}
+
+func (e *InconsistentByteCountError) Error() string {
+	return fmt.Sprintf("Expected %d bytes, got %d bytes", e.ExpectedByteCount, e.ByteCount)
+}
+
+type TooHighByteCountError struct {
+	ExpectedMaxByteCount int
+	ByteCount            int
+}
+
+func (e *TooHighByteCountError) Error() string {
+	return fmt.Sprintf("Expected at most %d bytes, got %d bytes", e.ExpectedMaxByteCount, e.ByteCount)
+}
+
+type TooLowByteCountError struct {
+	ExpectedMinByteCount int
+	ByteCount            int
+}
+
+func (e *TooLowByteCountError) Error() string {
+	return fmt.Sprintf("Expected at least %d bytes, got %d bytes", e.ExpectedMinByteCount, e.ByteCount)
+}
