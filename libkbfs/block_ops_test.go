@@ -289,6 +289,20 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 	}
 }
 
+func TestBlockOpsPutFailInconsistentByteCountError(t *testing.T) {
+	mockCtrl, config := blockOpsInit(t)
+	defer mockCtrl.Finish()
+
+	// expect one call to put a block
+	id := BlockId{1}
+	encData := []byte{1, 2, 3, 4}
+	ctxt := makeContext(encData[:3])
+	err := config.BlockOps().Put(id, ctxt, encData)
+	if _, ok := err.(*InconsistentByteCountError); !ok {
+		t.Errorf("Unexpectedly did not get InconsistentByteCountError; instead got %v", err)
+	}
+}
+
 func TestBlockOpsPutFail(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
 	defer mockCtrl.Finish()
