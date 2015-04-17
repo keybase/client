@@ -15,15 +15,40 @@ import (
 type LoginState struct {
 	Contextified
 
-	session *Session // The user's session cookie, &c
+	requests chan *loginReq
+	session  *Session // The user's session cookie, &c
 
-	mu               sync.RWMutex // protects these variables
+	mu               sync.RWMutex // protects the following variables:
 	salt             []byte
 	loginSession     []byte
 	loginSessionB64  string
 	tsec             *triplesec.Cipher
 	sessionFor       string
 	passphraseStream PassphraseStream
+}
+
+type loginKind int
+
+const (
+	loginKindPrompt loginKind = iota
+	loginKindStoredSecret
+	loginKindPassphrase
+	loginKindLogout
+)
+
+type loginArg struct {
+	kind        loginKind
+	username    string
+	passphrase  string
+	storeSecret bool
+	loginUI     LoginUI
+	secretUI    SecretUI
+}
+
+type loginReq struct {
+	arg *loginArg
+	f   func(*loginArg) error
+	res chan error
 }
 
 type loginAPIResult struct {
@@ -35,10 +60,13 @@ type loginAPIResult struct {
 
 func NewLoginState(g *GlobalContext) *LoginState {
 	s := newSession(g)
-	return &LoginState{
+	res := &LoginState{
 		Contextified: Contextified{g},
 		session:      s,
+		requests:     make(chan *loginReq),
 	}
+	go res.handleRequests()
+	return res
 }
 
 func (s *LoginState) SessionArgs() (token, csrf string) {
@@ -119,74 +147,46 @@ func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
 	G.Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
-	return s.loginWithPromptHelper(username, loginUI, secretUI, false)
+
+	err = s.handle(&loginArg{
+		kind:     loginKindPrompt,
+		username: username,
+		loginUI:  loginUI,
+		secretUI: secretUI,
+	}, s.loginWithPrompt)
+	return
 }
 
 func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
 	G.Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
-	var loggedIn bool
-	if loggedIn, err = s.checkLoggedIn(username, false); err != nil || loggedIn {
-		return
-	}
-
-	if err = s.switchUser(username); err != nil {
-		return
-	}
-
-	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		secretRetriever := NewSecretStore(me)
-		return keyrings.GetSecretKeyWithStoredSecret(me, secretRetriever)
-	}
-	return s.pubkeyLoginHelper(username, getSecretKeyFn)
+	err = s.handle(&loginArg{
+		kind:     loginKindStoredSecret,
+		username: username,
+	}, s.loginWithStoredSecret)
+	return
 }
 
 func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecret bool) (err error) {
 	G.Log.Debug("+ LoginWithPassphrase(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
 
-	var loggedIn bool
-	if loggedIn, err = s.checkLoggedIn(username, false); err != nil || loggedIn {
-		return
-	}
-
-	if err = s.switchUser(username); err != nil {
-		return
-	}
-
-	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		var secretStorer SecretStorer
-		if storeSecret {
-			secretStorer = NewSecretStore(me)
-		}
-		return keyrings.GetSecretKeyWithPassphrase(me, passphrase, secretStorer)
-	}
-	if loggedIn, err = s.tryPubkeyLoginHelper(username, getSecretKeyFn); err != nil || loggedIn {
-		return
-	}
-
-	return s.passphraseLogin(username, passphrase, nil, "")
+	err = s.handle(&loginArg{
+		kind:        loginKindPassphrase,
+		username:    username,
+		passphrase:  passphrase,
+		storeSecret: storeSecret,
+	}, s.loginWithPassphrase)
+	return
 }
 
 func (s *LoginState) Logout() error {
-	G.Log.Debug("+ Logout called")
-	username := s.session.GetUsername()
-	err := s.session.Logout()
-	if err == nil {
-		s.clearPassphrase()
-	}
-	if G.SecretSyncer != nil {
-		G.SecretSyncer.Clear()
-	}
-	if username != nil {
-		G.Keyrings.ClearSecretKeys(*username)
-	}
-	G.Log.Debug("- Logout called")
-	return err
+	return s.handle(&loginArg{kind: loginKindLogout}, s.logout)
 }
 
 func (s *LoginState) Shutdown() error {
+	close(s.requests)
 	return s.session.Write()
 }
 
@@ -661,6 +661,89 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 	}
 
 	return s.tryPassphrasePromptLogin(username, secretUI)
+}
+
+func (s *LoginState) handle(arg *loginArg, f func(*loginArg) error) error {
+	req := &loginReq{
+		arg: arg,
+		f:   f,
+		res: make(chan error),
+	}
+	s.requests <- req
+
+	return <-req.res
+}
+
+func (s *LoginState) handleRequests() {
+	for x := range s.requests {
+		x.res <- x.f(x.arg)
+	}
+}
+
+func (s *LoginState) loginWithPrompt(arg *loginArg) error {
+	return s.loginWithPromptHelper(arg.username, arg.loginUI, arg.secretUI, false)
+}
+
+func (s *LoginState) loginWithStoredSecret(arg *loginArg) error {
+	if loggedIn, err := s.checkLoggedIn(arg.username, false); err != nil {
+		return err
+	} else if loggedIn {
+		return nil
+	}
+
+	if err := s.switchUser(arg.username); err != nil {
+		return err
+	}
+
+	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
+		secretRetriever := NewSecretStore(me)
+		return keyrings.GetSecretKeyWithStoredSecret(me, secretRetriever)
+	}
+	return s.pubkeyLoginHelper(arg.username, getSecretKeyFn)
+}
+
+func (s *LoginState) loginWithPassphrase(arg *loginArg) error {
+	if loggedIn, err := s.checkLoggedIn(arg.username, false); err != nil {
+		return err
+	} else if loggedIn {
+		return nil
+	}
+
+	if err := s.switchUser(arg.username); err != nil {
+		return err
+	}
+
+	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
+		var secretStorer SecretStorer
+		if arg.storeSecret {
+			secretStorer = NewSecretStore(me)
+		}
+		return keyrings.GetSecretKeyWithPassphrase(me, arg.passphrase, secretStorer)
+	}
+	if loggedIn, err := s.tryPubkeyLoginHelper(arg.username, getSecretKeyFn); err != nil {
+		return err
+	} else if loggedIn {
+		return nil
+	}
+
+	return s.passphraseLogin(arg.username, arg.passphrase, nil, "")
+}
+
+func (s *LoginState) logout(arg *loginArg) error {
+	G.Log.Debug("+ Logout called")
+	username := s.session.GetUsername()
+	err := s.session.Logout()
+	if err == nil {
+		s.clearPassphrase()
+	}
+	if G.SecretSyncer != nil {
+		G.SecretSyncer.Clear()
+	}
+	if username != nil {
+		G.Keyrings.ClearSecretKeys(*username)
+	}
+	G.Log.Debug("- Logout called")
+	return err
 }
 
 func (s *LoginState) setSalt(salt []byte) {
