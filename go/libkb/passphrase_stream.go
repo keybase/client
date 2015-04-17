@@ -7,6 +7,10 @@ import (
 )
 
 func StretchPassphrase(passphrase string, salt []byte) (tsec *triplesec.Cipher, pps PassphraseStream, err error) {
+	if salt == nil {
+		err = fmt.Errorf("no salt provided to StretchPassphrase")
+		return
+	}
 	var tmp []byte
 	if tsec, err = triplesec.NewCipher([]byte(passphrase), salt); err != nil {
 		return

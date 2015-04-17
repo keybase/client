@@ -5,7 +5,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
+	"sync"
 
 	keybase_1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -14,17 +14,16 @@ import (
 
 type LoginState struct {
 	Contextified
-	Configured      bool
-	SessionVerified bool
 
+	session *Session // The user's session cookie, &c
+
+	mu               sync.RWMutex // protects these variables
 	salt             []byte
 	loginSession     []byte
 	loginSessionB64  string
 	tsec             *triplesec.Cipher
 	sessionFor       string
 	passphraseStream PassphraseStream
-
-	session *Session // The user's session cookie, &c
 }
 
 type loginAPIResult struct {
@@ -43,7 +42,7 @@ func NewLoginState(g *GlobalContext) *LoginState {
 }
 
 func (s *LoginState) SessionArgs() (token, csrf string) {
-	return s.session.GetToken(), s.session.csrf
+	return s.session.GetToken(), s.session.GetCsrf()
 }
 
 func (s *LoginState) UserInfo() (uid UID, username, token string) {
@@ -79,7 +78,7 @@ func (s *LoginState) IsLoggedInLoad() (bool, error) {
 }
 
 func (s *LoginState) AssertLoggedIn() error {
-	if err := s.session.Check(); err != nil {
+	if err := s.checkSession(); err != nil {
 		return err
 	}
 	if !s.IsLoggedIn() {
@@ -89,7 +88,7 @@ func (s *LoginState) AssertLoggedIn() error {
 }
 
 func (s *LoginState) AssertLoggedOut() error {
-	if err := s.session.Check(); err != nil {
+	if err := s.checkSession(); err != nil {
 		return err
 	}
 	if s.IsLoggedIn() {
@@ -98,11 +97,17 @@ func (s *LoginState) AssertLoggedOut() error {
 	return nil
 }
 
+func (s *LoginState) checkSession() error {
+	return s.session.Check()
+}
+
 func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID, salt []byte) error {
 	if err := s.session.Load(); err != nil {
 		return err
 	}
-	s.salt = salt
+
+	s.setSalt(salt)
+
 	return s.saveLoginState(&loginAPIResult{
 		sessionID: sessionID,
 		csrfToken: csrfToken,
@@ -169,7 +174,6 @@ func (s *LoginState) Logout() error {
 	username := s.session.GetUsername()
 	err := s.session.Logout()
 	if err == nil {
-		s.SessionVerified = false
 		s.clearPassphrase()
 	}
 	if G.SecretSyncer != nil {
@@ -187,11 +191,11 @@ func (s *LoginState) Shutdown() error {
 }
 
 func (s *LoginState) GetCachedTriplesec() *triplesec.Cipher {
-	return s.tsec
+	return s.getTsec()
 }
 
-func (s LoginState) GetCachedPassphraseStream() PassphraseStream {
-	return s.passphraseStream
+func (s *LoginState) GetCachedPassphraseStream() PassphraseStream {
+	return s.getPassphraseStream()
 }
 
 // GetPassphraseStream either returns a cached, verified passphrase stream
@@ -229,11 +233,7 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 // also the salt from the LoginState and computes a Triplesec and
 // a passphrase stream.  It's not verified through a Login.
 func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
-	var salt []byte
-	if salt, err = s.getSalt(); err != nil {
-		return
-	}
-	return StretchPassphrase(passphrase, salt)
+	return StretchPassphrase(passphrase, s.getSalt())
 }
 
 // SetPassphraseStream takes the Triplesec and PassphraseStream returned from
@@ -241,34 +241,26 @@ func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *tri
 // Do this after we've verified a PassphraseStream via successful LKS
 // decryption.
 func (s *LoginState) SetPassphraseStream(tsec *triplesec.Cipher, pps PassphraseStream) {
-	s.tsec = tsec
-	s.passphraseStream = pps
+	s.setTsec(tsec)
+	s.setPassphraseStream(pps)
 }
 
-func (s LoginState) getCachedSharedSecret() []byte {
-	return s.passphraseStream.PWHash()
+func (s *LoginState) getCachedSharedSecret() []byte {
+	return s.getPassphraseStream().PWHash()
 }
 
-func (s *LoginState) getSalt() (salt []byte, err error) {
-	if s.salt == nil {
-		s.salt = G.Env.GetSalt()
-	}
-	salt = s.salt
-	return
-}
-
-func (s *LoginState) getSaltAndLoginSession(email_or_username string) error {
-
-	if s.salt != nil && s.loginSession != nil && s.sessionFor == email_or_username {
+func (s *LoginState) getSaltAndLoginSession(emailOrUsername string) error {
+	if s.getSalt() != nil && s.getLoginSession() != nil && s.getSessionFor() == emailOrUsername {
 		return nil
 	}
-	s.sessionFor = ""
+
+	s.setSessionFor("")
 
 	res, err := G.API.Get(ApiArg{
 		Endpoint:    "getsalt",
 		NeedSession: false,
 		Args: HttpArgs{
-			"email_or_username": S{email_or_username},
+			"email_or_username": S{emailOrUsername},
 		},
 	})
 	if err != nil {
@@ -280,37 +272,44 @@ func (s *LoginState) getSaltAndLoginSession(email_or_username string) error {
 		return err
 	}
 
-	s.salt, err = hex.DecodeString(shex)
+	salt, err := hex.DecodeString(shex)
+	if err != nil {
+		return err
+	}
+	s.setSalt(salt)
+
+	b64, err := res.Body.AtKey("login_session").GetString()
 	if err != nil {
 		return err
 	}
 
-	ls_b64, err := res.Body.AtKey("login_session").GetString()
-	if err != nil {
+	if err := s.setLoginSession(b64); err != nil {
 		return err
 	}
 
-	s.loginSession, err = base64.StdEncoding.DecodeString(ls_b64)
-	if err != nil {
-		return err
-	}
-
-	s.loginSessionB64 = ls_b64
-	s.sessionFor = email_or_username
+	s.setSessionFor(emailOrUsername)
 
 	return nil
 }
 
-func (s *LoginState) stretchPassphrase(passphrase string) (err error) {
-	if s.tsec == nil {
-		s.tsec, s.passphraseStream, err = StretchPassphrase(passphrase, s.salt)
+func (s *LoginState) stretchPassphrase(passphrase string) error {
+	if s.getTsec() != nil && s.getPassphraseStream() != nil {
+		return nil
 	}
-	return err
+
+	tsec, passphraseStream, err := StretchPassphrase(passphrase, s.getSalt())
+	if err != nil {
+		return err
+	}
+	s.setTsec(tsec)
+	s.setPassphraseStream(passphraseStream)
+
+	return nil
 }
 
 func (s *LoginState) computeLoginPw() ([]byte, error) {
 	mac := hmac.New(sha512.New, s.getCachedSharedSecret())
-	mac.Write(s.loginSession)
+	mac.Write(s.getLoginSession())
 	return mac.Sum(nil), nil
 }
 
@@ -321,7 +320,7 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult
 		Args: HttpArgs{
 			"email_or_username": S{eOu},
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
-			"login_session":     S{s.loginSessionB64},
+			"login_session":     S{s.getLoginSessionEncoded()},
 		},
 		AppStatus: []string{"OK", "BAD_LOGIN_PASSWORD"},
 	})
@@ -355,17 +354,17 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult
 }
 
 func (s *LoginState) saveLoginState(res *loginAPIResult) error {
-	s.SessionVerified = true
-	s.loginSession = nil
-	s.loginSessionB64 = ""
+	s.clearLoginSession()
 
 	cw := G.Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
-	if err := cw.SetUserConfig(NewUserConfig(res.uid, res.username, s.salt, nil), false); err != nil {
+
+	if err := cw.SetUserConfig(NewUserConfig(res.uid, res.username, s.getSalt(), nil), false); err != nil {
 		return err
 	}
+
 	if err := cw.Write(); err != nil {
 		return err
 	}
@@ -379,12 +378,9 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 }
 
 func (s *LoginState) clearPassphrase() {
-	if s.tsec != nil {
-		s.tsec.Scrub()
-		s.tsec = nil
-	}
-	s.passphraseStream = nil
-	s.salt = nil
+	s.clearTsec()
+	s.setPassphraseStream(nil)
+	s.setSalt(nil)
 }
 
 func (s *LoginState) ClearStoredSecret(username string) error {
@@ -448,7 +444,7 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 		return err
 	}
 
-	if proof, err = me.AuthenticationProof(key, s.loginSessionB64, AUTH_EXPIRE_IN); err != nil {
+	if proof, err = me.AuthenticationProof(key, s.getLoginSessionEncoded(), AUTH_EXPIRE_IN); err != nil {
 		return
 	}
 
@@ -474,7 +470,6 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 }
 
 func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, err error) {
-
 	G.Log.Debug("+ checkedLoggedIn()")
 	defer func() { G.Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
 
@@ -491,7 +486,6 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 	}
 
 	if !force && loggedInTmp {
-		s.SessionVerified = true
 		G.Log.Debug("| Our session token is still valid; we're logged in")
 		loggedIn = true
 	}
@@ -596,8 +590,8 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 
 	res, err := s.postLoginToServer(username, lgpw)
 	if err != nil {
-		s.tsec = nil
-		s.passphraseStream = nil
+		s.clearTsec()
+		s.setPassphraseStream(nil)
 		return err
 	}
 
@@ -609,15 +603,9 @@ func (s *LoginState) passphraseLogin(username, passphrase string, secretUI Secre
 }
 
 func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry string) (ret *triplesec.Cipher, err error) {
-	if s.tsec != nil {
-		ret = s.tsec
+	ret = s.getTsec()
+	if ret != nil {
 		return
-	}
-	var salt []byte
-	if salt, err = s.getSalt(); err != nil {
-		return
-	} else if salt == nil {
-		err = fmt.Errorf("Cannot encrypt; no salt found")
 	}
 
 	arg := keybase_1.GetKeybasePassphraseArg{
@@ -636,7 +624,8 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 		return
 	}
 
-	ret = s.tsec
+	ret = s.getTsec()
+
 	return
 }
 
@@ -672,4 +661,97 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 	}
 
 	return s.tryPassphrasePromptLogin(username, secretUI)
+}
+
+func (s *LoginState) setSalt(salt []byte) {
+	s.mu.Lock()
+	s.salt = salt
+	s.mu.Unlock()
+}
+
+func (s *LoginState) getSalt() []byte {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.salt == nil {
+		s.salt = G.Env.GetSalt()
+	}
+	return s.salt
+}
+
+func (s *LoginState) setLoginSession(b64 string) error {
+	ls, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	s.loginSession = ls
+	s.loginSessionB64 = b64
+	s.mu.Unlock()
+
+	return nil
+}
+
+func (s *LoginState) clearLoginSession() {
+	s.mu.Lock()
+	s.loginSession = nil
+	s.loginSessionB64 = ""
+	s.mu.Unlock()
+}
+
+func (s *LoginState) getLoginSession() []byte {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.loginSession
+}
+
+func (s *LoginState) getLoginSessionEncoded() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.loginSessionB64
+}
+
+func (s *LoginState) setSessionFor(name string) {
+	s.mu.Lock()
+	s.sessionFor = name
+	s.mu.Unlock()
+}
+
+func (s *LoginState) getSessionFor() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.sessionFor
+}
+
+func (s *LoginState) setTsec(ts *triplesec.Cipher) {
+	s.mu.Lock()
+	s.tsec = ts
+	s.mu.Unlock()
+}
+
+func (s *LoginState) clearTsec() {
+	s.mu.Lock()
+	if s.tsec != nil {
+		s.tsec.Scrub()
+		s.tsec = nil
+	}
+	s.mu.Unlock()
+}
+
+func (s *LoginState) getTsec() *triplesec.Cipher {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.tsec
+}
+
+func (s *LoginState) setPassphraseStream(p PassphraseStream) {
+	s.mu.Lock()
+	s.passphraseStream = p
+	s.mu.Unlock()
+}
+
+func (s *LoginState) getPassphraseStream() PassphraseStream {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.passphraseStream
 }

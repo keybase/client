@@ -15,38 +15,48 @@ func TestConcurrentLogin(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(t, "login")
 
-	var wg sync.WaitGroup
+	var lwg sync.WaitGroup
+	var mwg sync.WaitGroup
+
+	done := make(chan bool)
 
 	for i := 0; i < 10; i++ {
-		wg.Add(1)
+		lwg.Add(1)
 		go func(index int) {
-			for j := 0; j < 10; j++ {
+			defer lwg.Done()
+			for j := 0; j < 4; j++ {
 				G.LoginState.Logout()
 				u.LoginOrBust(t)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
-			wg.Done()
 		}(i)
 
-		wg.Add(1)
+		mwg.Add(1)
 		go func(index int) {
-			for j := 0; j < 10; j++ {
-				G.LoginState.SessionArgs()
-				G.LoginState.UserInfo()
-				G.LoginState.UID()
-				G.LoginState.SessionLoad()
-				G.LoginState.IsLoggedIn()
-				G.LoginState.IsLoggedInLoad()
-				G.LoginState.AssertLoggedIn()
-				G.LoginState.AssertLoggedOut()
-				G.LoginState.Shutdown()
-				G.LoginState.GetCachedTriplesec()
-				G.LoginState.GetCachedPassphraseStream()
+			defer mwg.Done()
+			for {
+				select {
+				case <-done:
+					fmt.Printf("func caller %d done\n", index)
+					return
+				default:
+					G.LoginState.SessionArgs()
+					G.LoginState.UserInfo()
+					G.LoginState.UID()
+					G.LoginState.SessionLoad()
+					G.LoginState.IsLoggedIn()
+					G.LoginState.IsLoggedInLoad()
+					G.LoginState.AssertLoggedIn()
+					G.LoginState.AssertLoggedOut()
+					G.LoginState.Shutdown()
+					G.LoginState.GetCachedTriplesec()
+					G.LoginState.GetCachedPassphraseStream()
+				}
 			}
-			wg.Done()
-			fmt.Printf("func caller %d done\n", index)
 		}(i)
 	}
 
-	wg.Wait()
+	lwg.Wait()
+	close(done)
+	mwg.Wait()
 }

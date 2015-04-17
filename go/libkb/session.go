@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -20,6 +21,7 @@ type Session struct {
 	uid      *UID
 	username *string
 	mtime    int64
+	sync.RWMutex
 }
 
 func newSession(g *GlobalContext) *Session {
@@ -34,28 +36,45 @@ func NewSessionThin(uid UID, username string, token string) *Session {
 	return &Session{uid: &uid, username: &username, token: token, valid: true}
 }
 
-func (s Session) IsLoggedIn() bool {
+func (s *Session) IsLoggedIn() bool {
+	s.RLock()
+	defer s.RUnlock()
 	return s.valid
 }
 
-func (s Session) GetUsername() *string {
+func (s *Session) GetUsername() *string {
+	s.RLock()
+	defer s.RUnlock()
 	return s.username
 }
 
-func (s Session) GetUID() *UID {
+func (s *Session) GetUID() *UID {
+	s.RLock()
+	defer s.RUnlock()
 	return s.uid
 }
 
-func (s Session) GetToken() string {
+func (s *Session) GetToken() string {
+	s.RLock()
+	defer s.RUnlock()
 	return s.token
 }
 
+func (s *Session) GetCsrf() string {
+	s.RLock()
+	defer s.RUnlock()
+	return s.csrf
+}
+
 func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
+	s.Lock()
 	s.valid = true
 	s.uid = &uid
 	s.username = &username
 	s.token = sessionID
 	s.GetDictionary().SetKey("session", jsonw.NewString(sessionID))
+	s.Unlock()
+
 	s.SetCsrf(csrfToken)
 	s.SetDirty()
 
@@ -65,16 +84,22 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
 }
 
 func (s *Session) SetDirty() {
+	s.Lock()
+	defer s.Unlock()
 	s.file.dirty = true
 	s.GetDictionary().SetKey("mtime", jsonw.NewInt64(time.Now().Unix()))
 }
 
 func (s *Session) SetCsrf(t string) {
+	s.Lock()
 	s.csrf = t
-	if s.file != nil {
-		s.GetDictionary().SetKey("csrf", jsonw.NewString(t))
-		s.SetDirty()
+	if s.file == nil {
+		s.Unlock()
+		return
 	}
+	s.GetDictionary().SetKey("csrf", jsonw.NewString(t))
+	s.Unlock()
+	s.SetDirty()
 }
 
 func (s *Session) isConfigLoggedIn() bool {
@@ -96,11 +121,17 @@ func (s *Session) nukeSessionFileIfOutOfSync() error {
 }
 
 func (s *Session) Load() error {
+	s.RLock()
 	s.G().Log.Debug("+ Loading session")
 	if s.loaded {
 		s.G().Log.Debug("- Skipped; already loaded")
+		s.RUnlock()
 		return nil
 	}
+	s.RUnlock()
+
+	s.Lock()
+	defer s.Unlock()
 
 	err := s.nukeSessionFileIfOutOfSync()
 	if err != nil {
@@ -149,10 +180,14 @@ func (s *Session) GetDictionary() *jsonw.Wrapper {
 }
 
 func (s *Session) Write() error {
+	s.Lock()
+	defer s.Unlock()
 	return s.file.MaybeSave(true, 0)
 }
 
 func (s *Session) IsRecent() bool {
+	s.RLock()
+	defer s.RUnlock()
 	if s.mtime == 0 {
 		return false
 	}
@@ -161,12 +196,17 @@ func (s *Session) IsRecent() bool {
 }
 
 func (s *Session) Check() error {
+	s.RLock()
 	s.G().Log.Debug("+ Checking session")
 	if s.checked {
 		s.G().Log.Debug("- already checked, short-circuting")
+		s.RUnlock()
 		return nil
 	}
+	s.RUnlock()
+	s.Lock()
 	s.checked = true
+	s.Unlock()
 
 	res, err := s.G().API.Get(ApiArg{
 		Endpoint:    "sesscheck",
@@ -189,27 +229,35 @@ func (s *Session) Check() error {
 			err = fmt.Errorf("Server replied with unrecognized response: %s", err.Error())
 			return err
 		} else {
+			s.Lock()
 			s.valid = true
 			s.uid = &uid
 			s.username = &username
+			s.Unlock()
 			if !s.IsRecent() {
 				s.SetCsrf(csrf)
 			}
 		}
 	} else {
 		s.G().Log.Notice("Stored session expired")
+		s.Lock()
 		s.valid = false
+		s.Unlock()
 	}
 
 	s.G().Log.Debug("- Checked session")
 	return nil
 }
 
-func (s Session) HasSessionToken() bool {
+func (s *Session) HasSessionToken() bool {
+	s.RLock()
+	defer s.RUnlock()
 	return len(s.token) > 0
 }
 
-func (s Session) IsValid() bool {
+func (s *Session) IsValid() bool {
+	s.RLock()
+	defer s.RUnlock()
 	return s.valid
 }
 
@@ -219,10 +267,12 @@ func (s *Session) postLogout() error {
 		NeedSession: true,
 	})
 	if err == nil {
+		s.Lock()
 		s.valid = false
 		s.checked = false
 		s.token = ""
 		s.csrf = ""
+		s.Unlock()
 	}
 	return err
 }
@@ -232,10 +282,12 @@ func (s *Session) Logout() error {
 	var e2 error
 	if err == nil && s.HasSessionToken() {
 		e2 = s.postLogout()
+		s.Lock()
 		if e3 := s.file.Nuke(); e3 != nil {
 			s.inFile = false
 			s.G().Log.Warning("Failed to remove session file: %s", e3.Error())
 		}
+		s.Unlock()
 	}
 	if err == nil && e2 != nil {
 		err = e2
@@ -251,5 +303,5 @@ func (s *Session) loadAndCheck() (bool, error) {
 	if s.HasSessionToken() {
 		err = s.Check()
 	}
-	return s.valid, err
+	return s.IsValid(), err
 }
