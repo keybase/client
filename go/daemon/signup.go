@@ -20,7 +20,7 @@ func (h *SignupHandler) CheckUsernameAvailable(username string) error {
 }
 
 func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes, err error) {
-	sessionID := nextSessionId()
+	sessionID := nextSessionID()
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessionID),
 		GPGUI:    NewRemoteGPGUI(sessionID, h.getRpcClient()),

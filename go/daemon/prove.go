@@ -64,7 +64,7 @@ func (h *ProveHandler) getProveUI(sessionId int) libkb.ProveUI {
 }
 
 func (ph *ProveHandler) Prove(arg keybase_1.ProveArg) (err error) {
-	sessionId := nextSessionId()
+	sessionId := nextSessionID()
 	eng := &libkb.ProofEngine{
 		Username: arg.Username,
 		Service:  arg.Service,

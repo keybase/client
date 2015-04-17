@@ -31,7 +31,7 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 
 // DeviceAdd adds a sibkey using a SibkeyEngine.
 func (h *DeviceHandler) DeviceAdd(phrase string) error {
-	sessionID := nextSessionId()
+	sessionID := nextSessionID()
 	locksmithUI := NewRemoteLocksmithUI(sessionID, h.getRpcClient())
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), LocksmithUI: locksmithUI}
 	h.kexsibEngMu.Lock()

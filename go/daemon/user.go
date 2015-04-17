@@ -39,7 +39,7 @@ func (h *UserHandler) ListTrackersSelf(sessionID int) ([]keybase_1.Tracker, erro
 }
 
 func (h *UserHandler) listTrackers(eng *engine.ListTrackersEngine) ([]keybase_1.Tracker, error) {
-	sessionID := nextSessionId()
+	sessionID := nextSessionID()
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err

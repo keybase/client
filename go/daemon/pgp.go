@@ -166,8 +166,8 @@ func (h *PGPHandler) PgpKeyGen(arg keybase_1.PgpKeyGenArg) (err error) {
 }
 
 func (h *PGPHandler) keygen(earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
-	sessionId := nextSessionId()
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionId), SecretUI: h.getSecretUI(sessionId)}
+	sessionID := nextSessionID()
+	ctx := &engine.Context{LogUI: h.getLogUI(sessionID), SecretUI: h.getSecretUI(sessionID)}
 	earg.Gen.AddDefaultUid()
 	eng := engine.NewPGPKeyImportEngine(earg)
 	err = engine.RunEngine(eng, ctx)
@@ -189,7 +189,7 @@ func (h *PGPHandler) PgpDeletePrimary() (err error) {
 }
 
 func (h *PGPHandler) PgpSelect(sarg keybase_1.PgpSelectArg) error {
-	sessionID := nextSessionId()
+	sessionID := nextSessionID()
 	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
 	secretui := h.getSecretUI(sessionID)
 	arg := engine.GPGImportKeyArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}

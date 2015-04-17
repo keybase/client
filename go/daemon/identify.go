@@ -59,16 +59,6 @@ func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdEngineArg, doInt
 	return
 }
 
-var (
-	__sessionId = 0
-)
-
-func nextSessionId() int {
-	ret := __sessionId
-	__sessionId++
-	return ret
-}
-
 func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, lcr keybase_1.LinkCheckResult) {
 	u.uicli.FinishWebProofCheck(keybase_1.FinishWebProofCheckArg{
 		SessionID: u.sessionId,

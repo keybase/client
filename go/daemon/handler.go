@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -22,6 +24,24 @@ type LoginUI struct {
 type SecretUI struct {
 	sessionId int
 	cli       *keybase_1.SecretUiClient
+}
+
+var sessionIDch chan int
+
+func init() {
+	sessionIDch = make(chan int)
+	go func() {
+		for {
+			// wrap after MaxInt32 to be safe
+			for i := 0; i < math.MaxInt32; i++ {
+				sessionIDch <- i
+			}
+		}
+	}()
+}
+
+func nextSessionID() int {
+	return <-sessionIDch
 }
 
 func (h *BaseHandler) getRpcClient() *rpc2.Client {
