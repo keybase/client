@@ -2015,13 +2015,13 @@ func TestSyncCleanSuccess(t *testing.T) {
 }
 
 func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
-	splitAt int64, encSize int) *gomock.Call {
+	splitAt int64, padSize int) *gomock.Call {
 	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(true)
 	config.mockBcache.EXPECT().Get(id).AnyTimes().Return(block, nil)
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
 	newId := BlockId{id[0] + 100}
-	newEncBuf := make([]byte, encSize)
+	newEncBuf := make([]byte, len(block.Contents) + padSize)
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 	c2 := config.mockBops.EXPECT().Ready(block, NullKey).
@@ -2091,8 +2091,16 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
+	} else if fileBlock.IPtrs[0].QuotaSize != 5 {
+		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[1].Writer != userId {
 		t.Errorf("Got unexpected writer: %s", fileBlock.IPtrs[1].Writer)
+	} else if fileBlock.IPtrs[1].QuotaSize != 10 {
+		t.Errorf("Indirect pointer quota size2 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
+	} else if fileBlock.IPtrs[2].QuotaSize != 7 {
+		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
+	} else if fileBlock.IPtrs[3].QuotaSize != 13 {
+		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[3].QuotaSize)
 	} else {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
@@ -2199,19 +2207,19 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId2 {
 		t.Errorf("Indirect pointer id2 wrong: %v", fileBlock.IPtrs[1].Id)
-	} else if fileBlock.IPtrs[1].QuotaSize != 6 {
+	} else if fileBlock.IPtrs[1].QuotaSize != 11 {
 		t.Errorf("Indirect pointer quota size2 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 5 {
 		t.Errorf("Indirect pointer off2 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[2].Id)
-	} else if fileBlock.IPtrs[2].QuotaSize != 14 {
+	} else if fileBlock.IPtrs[2].QuotaSize != 21 {
 		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 8 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[2].Off)
 	} else if fileBlock.IPtrs[3].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[3].Id)
-	} else if fileBlock.IPtrs[3].QuotaSize != 9 {
+	} else if fileBlock.IPtrs[3].QuotaSize != 14 {
 		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[3].QuotaSize)
 	} else if fileBlock.IPtrs[3].Off != 15 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[3].Off)
@@ -2331,19 +2339,19 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		t.Errorf("Wrong number of indirect pointers: %d", len(fileBlock.IPtrs))
 	} else if fileBlock.IPtrs[0].Id != newId1 {
 		t.Errorf("Indirect pointer id1 wrong: %v", fileBlock.IPtrs[0].Id)
-	} else if fileBlock.IPtrs[0].QuotaSize != 14 {
+	} else if fileBlock.IPtrs[0].QuotaSize != 19 {
 		t.Errorf("Indirect pointer quota size1 wrong: %d", fileBlock.IPtrs[0].QuotaSize)
 	} else if fileBlock.IPtrs[0].Off != 0 {
 		t.Errorf("Indirect pointer off1 wrong: %d", fileBlock.IPtrs[0].Off)
 	} else if fileBlock.IPtrs[1].Id != newId3 {
 		t.Errorf("Indirect pointer id3 wrong: %v", fileBlock.IPtrs[1].Id)
-	} else if fileBlock.IPtrs[1].QuotaSize != 10 {
+	} else if fileBlock.IPtrs[1].QuotaSize != 15 {
 		t.Errorf("Indirect pointer quota size3 wrong: %d", fileBlock.IPtrs[1].QuotaSize)
 	} else if fileBlock.IPtrs[1].Off != 10 {
 		t.Errorf("Indirect pointer off3 wrong: %d", fileBlock.IPtrs[1].Off)
 	} else if fileBlock.IPtrs[2].Id != newId4 {
 		t.Errorf("Indirect pointer id4 wrong: %v", fileBlock.IPtrs[2].Id)
-	} else if fileBlock.IPtrs[2].QuotaSize != 15 {
+	} else if fileBlock.IPtrs[2].QuotaSize != 17 {
 		t.Errorf("Indirect pointer quota size4 wrong: %d", fileBlock.IPtrs[2].QuotaSize)
 	} else if fileBlock.IPtrs[2].Off != 18 {
 		t.Errorf("Indirect pointer off4 wrong: %d", fileBlock.IPtrs[2].Off)
