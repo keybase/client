@@ -58,6 +58,22 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	}
 }
 
+func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
+	mockCtrl, config := blockOpsInit(t)
+	defer mockCtrl.Finish()
+
+	// expect just one call to fetch a block
+	id := BlockId{1}
+	encData := []byte{1, 2, 3, 4}
+	ctxt := makeContext(encData[:3])
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
+
+	err := config.BlockOps().Get(id, ctxt, NullKey, nil)
+	if _, ok := err.(*InconsistentByteCountError); !ok {
+		t.Errorf("Unexpectedly did not get InconsistentByteCountError; instead got %v", err)
+	}
+}
+
 func TestBlockOpsGetFailGet(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
 	defer mockCtrl.Finish()
