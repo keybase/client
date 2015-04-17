@@ -12,8 +12,6 @@ type TestBlock struct {
 	A int
 }
 
-var NullCtxt BlockContext = &BlockPointer{QuotaSize: 4}
-
 func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock) {
 	mockCtrl = gomock.NewController(t)
@@ -32,6 +30,10 @@ func expectBlockDecode(config *ConfigMock, packedData []byte,
 	}).Return(err)
 }
 
+func makeContext(encData []byte) BlockContext {
+	return &BlockPointer{QuotaSize: uint32(len(encData))}
+}
+
 func TestBlockOpsGetSuccess(t *testing.T) {
 	mockCtrl, config := blockOpsInit(t)
 	defer mockCtrl.Finish()
@@ -39,7 +41,8 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	// expect one call to fetch a block, and one to decrypt it
 	id := BlockId{1}
 	encData := []byte{1, 2, 3, 4}
-	config.mockBserv.EXPECT().Get(id, NullCtxt).Return(encData, nil)
+	ctxt := makeContext(encData)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
 	key := NullKey
@@ -48,7 +51,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	expectBlockDecode(config, packedData, &gotData, decData, nil)
 
 	if err := config.BlockOps().Get(
-		id, NullCtxt, NullKey, &gotData); err != nil {
+		id, ctxt, NullKey, &gotData); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	} else if gotData != decData {
 		t.Errorf("Got back wrong data on get: %v", gotData)
@@ -62,11 +65,12 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	// fail the fetch call
 	id := BlockId{1}
 	err := errors.New("Fake fail")
-	config.mockBserv.EXPECT().Get(id, NullCtxt).Return(nil, err)
+	ctxt := makeContext(nil)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(nil, err)
 
 	var gotData TestBlock
 	if err2 := config.BlockOps().Get(
-		id, NullCtxt, NullKey, &gotData); err2 != err {
+		id, ctxt, NullKey, &gotData); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -78,14 +82,15 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	// expect one call to fetch a block, then fail to decrypt i
 	id := BlockId{1}
 	encData := []byte{1, 2, 3, 4}
-	config.mockBserv.EXPECT().Get(id, NullCtxt).Return(encData, nil)
+	ctxt := makeContext(encData)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 	err := errors.New("Fake fail")
 	key := NullKey
 	config.mockCrypto.EXPECT().Decrypt(encData, key).Return(nil, err)
 
 	var gotData TestBlock
 	if err2 := config.BlockOps().Get(
-		id, NullCtxt, NullKey, &gotData); err2 != err {
+		id, ctxt, NullKey, &gotData); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -97,7 +102,8 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	// expect one call to fetch a block, and one to decrypt it
 	id := BlockId{1}
 	encData := []byte{1, 2, 3, 4}
-	config.mockBserv.EXPECT().Get(id, NullCtxt).Return(encData, nil)
+	ctxt := makeContext(encData)
+	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
 	key := NullKey
@@ -107,7 +113,7 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	expectBlockDecode(config, packedData, &gotData, decData, err)
 
 	if err2 := config.BlockOps().Get(
-		id, NullCtxt, NullKey, &gotData); err2 != err {
+		id, ctxt, NullKey, &gotData); err2 != err {
 		t.Errorf("Got unexpected error on get: %v", err2)
 	}
 }
@@ -221,9 +227,10 @@ func TestBlockOpsPutSuccess(t *testing.T) {
 	// expect one call to put a block
 	id := BlockId{1}
 	encData := []byte{1, 2, 3, 4}
-	config.mockBserv.EXPECT().Put(id, NullCtxt, encData).Return(nil)
+	ctxt := makeContext(encData)
+	config.mockBserv.EXPECT().Put(id, ctxt, encData).Return(nil)
 
-	if err := config.BlockOps().Put(id, NullCtxt, encData); err != nil {
+	if err := config.BlockOps().Put(id, ctxt, encData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -235,10 +242,11 @@ func TestBlockOpsPutFail(t *testing.T) {
 	// fail the put call
 	id := BlockId{1}
 	encData := []byte{1, 2, 3, 4}
+	ctxt := makeContext(encData)
 	err := errors.New("Fake fail")
-	config.mockBserv.EXPECT().Put(id, NullCtxt, encData).Return(err)
+	config.mockBserv.EXPECT().Put(id, ctxt, encData).Return(err)
 
-	if err2 := config.BlockOps().Put(id, NullCtxt, encData); err2 != err {
+	if err2 := config.BlockOps().Put(id, ctxt, encData); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
@@ -249,9 +257,10 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 
 	// expect one call to delete a block
 	id := BlockId{1}
-	config.mockBserv.EXPECT().Delete(id, NullCtxt).Return(nil)
+	ctxt := makeContext(nil)
+	config.mockBserv.EXPECT().Delete(id, ctxt).Return(nil)
 
-	if err := config.BlockOps().Delete(id, NullCtxt); err != nil {
+	if err := config.BlockOps().Delete(id, ctxt); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -263,9 +272,10 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	// fail the delete call
 	id := BlockId{1}
 	err := errors.New("Fake fail")
-	config.mockBserv.EXPECT().Delete(id, NullCtxt).Return(err)
+	ctxt := makeContext(nil)
+	config.mockBserv.EXPECT().Delete(id, ctxt).Return(err)
 
-	if err2 := config.BlockOps().Delete(id, NullCtxt); err2 != err {
+	if err2 := config.BlockOps().Delete(id, ctxt); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
