@@ -29,7 +29,7 @@ func (fs *KBFSOpsStandard) GetFavDirs() ([]DirId, error) {
 func (fs *KBFSOpsStandard) getMDLocked(dir Path) (*RootMetadata, error) {
 	ver := dir.TailPointer().GetVer()
 	if ver > fs.config.DataVersion() {
-		return nil, &NewVersionError{dir.ToString(fs.config), ver}
+		return nil, &NewVersionError{dir, ver}
 	}
 
 	mdcache := fs.config.MDCache()
@@ -207,7 +207,7 @@ func (fs *KBFSOpsStandard) getBlockLocked(
 	Block, error) {
 	ver := dir.TailPointer().GetVer()
 	if ver > fs.config.DataVersion() {
-		return nil, &NewVersionError{dir.ToString(fs.config), ver}
+		return nil, &NewVersionError{dir, ver}
 	}
 
 	bcache := fs.config.BlockCache()
@@ -251,7 +251,7 @@ func (fs *KBFSOpsStandard) getDirLocked(dir Path, forWriting bool) (
 			}
 			return dblock, nil
 		} else {
-			return nil, &NotDirError{dir.ToString(fs.config)}
+			return nil, &NotDirError{dir}
 		}
 	} else {
 		return nil, err
@@ -276,7 +276,7 @@ func (fs *KBFSOpsStandard) getFileLocked(dir Path, forWriting bool) (
 			}
 			return fblock, nil
 		} else {
-			return nil, &NotFileError{dir.ToString(fs.config)}
+			return nil, &NotFileError{dir}
 		}
 	} else {
 		return nil, err
@@ -590,7 +590,7 @@ func (fs *KBFSOpsStandard) removeEntryLocked(path Path, name string) (
 		}
 		fBlock, ok := block.(*FileBlock)
 		if !ok {
-			return Path{}, &NotFileError{path.ToString(fs.config)}
+			return Path{}, &NotFileError{path}
 		}
 		if fBlock.IsInd {
 			for _, ptr := range fBlock.IPtrs {

@@ -398,7 +398,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
 	p := Path{id, []*PathNode{node}}
 
 	// we won't even need to check the cache before failing
-	expectedErr := &NewVersionError{p.ToString(config), 1}
+	expectedErr := &NewVersionError{p, 1}
 
 	if _, err := config.KBFSOps().GetDir(p); err == nil {
 		t.Errorf("Got no expected error on getdir")

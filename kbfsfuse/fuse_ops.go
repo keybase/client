@@ -668,8 +668,7 @@ func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 	// Can't remove public directories
 	if name == libkbfs.PublicName {
 		if parentPath := n.GetPath(1); parentPath.HasPublic() {
-			return f.TranslateError(&libkbfs.TopDirAccessError{
-				p.ToString(f.config)})
+			return f.TranslateError(&libkbfs.TopDirAccessError{p})
 		}
 	}
 

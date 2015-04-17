@@ -49,11 +49,11 @@ func (e *DirNotEmptyError) Error() string {
 }
 
 type TopDirAccessError struct {
-	Name string
+	Name Path
 }
 
 func (e *TopDirAccessError) Error() string {
-	return fmt.Sprintf("Operation not permitted on folder %s", e.Name)
+	return fmt.Sprintf("Operation not permitted on folder %s", e.Name.TopDir)
 }
 
 type RenameAcrossDirsError struct {
@@ -109,19 +109,20 @@ func writeAccessError(config Config, md *RootMetadata, uid libkb.UID) error {
 }
 
 type NotDirError struct {
-	Path string
+	Path Path
 }
 
 func (e *NotDirError) Error() string {
-	return fmt.Sprintf("%s is not a directory", e.Path)
+	return fmt.Sprintf("%s is not a directory (in folder %s)",
+		e.Path, e.Path.TopDir)
 }
 
 type NotFileError struct {
-	Path string
+	Path Path
 }
 
 func (e *NotFileError) Error() string {
-	return fmt.Sprintf("%s is not a file", e.Path)
+	return fmt.Sprintf("%s is not a file (folder %s", e.Path, e.Path.TopDir)
 }
 
 type BadDataError struct {
@@ -191,14 +192,15 @@ func (e *NoSuchMDError) Error() string {
 }
 
 type NewVersionError struct {
-	Path string
+	Path Path
 	Ver  int
 }
 
 func (e *NewVersionError) Error() string {
 	return fmt.Sprintf(
-		"The data at path %s is of a version (%d) that we can't read",
-		e.Path, e.Ver)
+		"The data at path %s is of a version (%d) that we can't read "+
+			"(in folder %s)",
+		e.Path, e.Ver, e.Path.TopDir)
 }
 
 type NewKeyError struct {

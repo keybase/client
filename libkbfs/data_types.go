@@ -235,14 +235,12 @@ func (p *Path) TailPointer() *BlockPointer {
 	}
 }
 
-func (p *Path) ToString(config Config) string {
-	out := "/"
+func (p *Path) String() string {
 	names := make([]string, 0, len(p.Path))
-	for _, n := range p.Path {
-		names = append(names, n.Name)
+	for _, node := range p.Path {
+		names = append(names, node.Name)
 	}
-	out += strings.Join(names, "/")
-	return out
+	return strings.Join(names, "/")
 }
 
 func (p *Path) ParentPath() *Path {
