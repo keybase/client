@@ -115,11 +115,16 @@ type KeyFamily struct {
 	pgp2kid map[string]KID
 	kid2pgp map[string]string
 
-	Sibkeys KeyMap `json:"sibkeys"`
-	Subkeys KeyMap `json:"subkeys"`
+	// All the fields parsed directly from the server's JSON response. Note
+	// that SibkeysList and SubkeysList are only used to build Sibkeys and
+	// Subkeys, respectively.
+	SibkeysList []string            `json:"sibkeys"`
+	SubkeysList []string            `json:"subkeys"`
+	Families    map[string][]string `json:"families"`
+	AllKeys     KeyMap              `json:"all"`
 
-	Families map[string][]*ServerKeyRecord `json:"families"`
-	AllKeys  KeyMap
+	Sibkeys KeyMap
+	Subkeys KeyMap
 
 	Contextified
 }
@@ -353,24 +358,8 @@ func (kf *KeyFamily) Import() (err error) {
 	defer func() {
 		G.Log.Debug("- KeyFamily.Import -> %s", ErrToOk(err))
 	}()
-	if kf.pgps, err = kf.Sibkeys.Import(kf.pgps); err != nil {
-		return
-	}
-	if kf.pgps, err = kf.Subkeys.Import(kf.pgps); err != nil {
-		return
-	}
 
-	// The AllKeys map is not deserialized straight from the server response.
-	// We populate it here using the Families lists (which did come from the
-	// server), and then we import the keys into it. We throw away the
-	// PgpKeyBundles return value, since the ones we need were collected above.
-	kf.AllKeys = make(KeyMap)
-	for _, serverKeyRecords := range kf.Families {
-		for _, record := range serverKeyRecords {
-			kf.AllKeys[record.Kid] = record
-		}
-	}
-	_, err = kf.AllKeys.Import(kf.pgps)
+	kf.pgps, err = kf.AllKeys.Import(kf.pgps)
 	if err != nil {
 		return err
 	}
@@ -381,6 +370,16 @@ func (kf *KeyFamily) Import() (err error) {
 		kf.pgp2kid[fp] = kid
 		kf.kid2pgp[kid.String()] = fp
 	}
+
+	kf.Sibkeys = make(KeyMap)
+	for _, sibkeyKID := range kf.SibkeysList {
+		kf.Sibkeys[sibkeyKID] = kf.AllKeys[sibkeyKID]
+	}
+	kf.Subkeys = make(KeyMap)
+	for _, subkeyKID := range kf.SubkeysList {
+		kf.Subkeys[subkeyKID] = kf.AllKeys[subkeyKID]
+	}
+
 	err = kf.findEldest()
 	return
 }
