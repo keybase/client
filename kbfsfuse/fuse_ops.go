@@ -85,7 +85,7 @@ func (n *ErrorNode) Read(
 
 	copy(dest, data[off:off+size])
 
-	return fuse.ReadResultData(dest), fuse.OK
+	return fuse.ReadResultData(dest[:size]), fuse.OK
 }
 
 func (n *FuseNode) GetLock() *sync.RWMutex {
