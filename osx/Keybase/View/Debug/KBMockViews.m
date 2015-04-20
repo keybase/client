@@ -110,9 +110,6 @@
 
   [contentView addSubview:[KBLabel labelWithText:@"Testing " style:KBTextStyleHeader]];
 
-  [contentView addSubview:[KBButton linkWithText:@"Execute Privileged Task" targetBlock:^{ [self executePrivilegedTask]; }]];
-
-
   [self setDocumentView:contentView];
 }
 
@@ -331,18 +328,6 @@
 - (void)showError {
   NSError *error = KBMakeErrorWithRecovery(-1, @"This is the error message.", @"This is the recovery suggestion.");
   [AppDelegate setError:error sender:self];
-}
-
-- (void)executePrivilegedTask {
-  KBPriviledgedTask *task = [[KBPriviledgedTask alloc] init];
-  NSError *error = nil;
-  [task execute:@"/bin/cp" args:@[@"/Users/gabe/test-private.asc", @"/var/test/"] error:&error];
-  if (error) [AppDelegate setError:error sender:self];
-
-  // Test Error
-  //[task execute:@"/bin/blah" args:@[] error:&error];
-  //if (error) [AppDelegate setError:error sender:self];
-
 }
 
 @end
