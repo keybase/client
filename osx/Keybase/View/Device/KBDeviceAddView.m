@@ -84,14 +84,14 @@
 
   KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
 
-  [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:0 requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRKexStatusRequestParams *requestParams = [[KBRKexStatusRequestParams alloc] initWithParams:params];
     DDLogDebug(@"Kex status: %@", requestParams.msg);
     completion(nil, nil);
   }];
 
   AppDelegate.appView.progressEnabled = YES;
-  [request deviceAddWithSecretPhrase:secretWords completion:^(NSError *error) {
+  [request deviceAddWithSessionID:request.sessionId secretPhrase:secretWords completion:^(NSError *error) {
     AppDelegate.appView.progressEnabled = NO;
     if (error) {
       [AppDelegate setError:error sender:self];

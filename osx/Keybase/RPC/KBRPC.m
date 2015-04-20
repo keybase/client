@@ -163,15 +163,15 @@
   }];
 }
 
-- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"secretPhrase": KBRValue(secretPhrase)}];
+- (void)deviceAddWithSessionID:(NSInteger)sessionID secretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"secretPhrase": KBRValue(secretPhrase)}];
   [self.client sendRequestWithMethod:@"keybase.1.device.deviceAdd" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)deviceAddCancel:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{}];
+- (void)deviceAddCancelWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
   [self.client sendRequestWithMethod:@"keybase.1.device.deviceAddCancel" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -459,7 +459,22 @@
 
 @end
 
+@implementation KBRConfiguredAccount
+@end
+
 @implementation KBRLoginRequest
+
+- (void)getConfiguredAccounts:(void (^)(NSError *error, NSArray *items))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.getConfiguredAccounts" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRConfiguredAccount.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
 
 - (void)loginWithPromptWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];
@@ -482,8 +497,15 @@
   }];
 }
 
-- (void)cancelLogin:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{}];
+- (void)clearStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"username": KBRValue(username)}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.clearStoredSecret" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)cancelLoginWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID)}];
   [self.client sendRequestWithMethod:@"keybase.1.login.cancelLogin" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1151,7 +1173,19 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
     self.secretPhrase = params[0][@"secretPhrase"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRDeviceAddCancelRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }
@@ -1474,6 +1508,28 @@
     self.username = params[0][@"username"];
     self.passphrase = params[0][@"passphrase"];
     self.storeSecret = [params[0][@"storeSecret"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRClearStoredSecretRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.username = params[0][@"username"];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRCancelLoginRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
   }
   return self;
 }

@@ -15,6 +15,8 @@
 @interface KBLoginView ()
 @property KBSecureTextField *passwordField;
 @property KBButton *saveToKeychainButton;
+
+@property KBRLoginRequest *request;
 @end
 
 @implementation KBLoginView
@@ -44,8 +46,8 @@
   _passwordField.placeholder = @"Passphrase";
   [contentView addSubview:_passwordField];
 
-  //_saveToKeychainButton = [KBButton buttonWithText:@"Save to Keychain" style:KBButtonStyleCheckbox];
-  //[contentView addSubview:_saveToKeychainButton];
+  _saveToKeychainButton = [KBButton buttonWithText:@"Save to Keychain" style:KBButtonStyleCheckbox];
+  [contentView addSubview:_saveToKeychainButton];
 
   _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStylePrimary];
   _loginButton.targetBlock = ^{
@@ -69,8 +71,8 @@
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.usernameField].size.height + 12;
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 12;
 
-    //y += 6;
-    //y += [layout sizeToFitInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.saveToKeychainButton].size.height + 12;
+    y += 6;
+    y += [layout sizeToFitInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.saveToKeychainButton].size.height + 12;
 
     y += 30;
 
@@ -136,9 +138,9 @@
 
   NSAssert(self.client, @"No RPC client");
   KBRPClient * client = self.client;
-  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:client];
+  _request = [[KBRLoginRequest alloc] initWithClient:client];
 
-  [client registerMethod:@"keybase.1.locksmithUi.promptDeviceName" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.locksmithUi.promptDeviceName" sessionId:_request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     //KBRPromptDeviceNameRequestParams *requestParams = [[KBRPromptDeviceNameRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     KBDeviceSetupPromptView *devicePromptView = [[KBDeviceSetupPromptView alloc] init];
@@ -152,13 +154,13 @@
     [self.navigation pushView:devicePromptView animated:YES];
   }];
 
-  [client registerMethod:@"keybase.1.locksmithUi.selectSigner" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [client registerMethod:@"keybase.1.locksmithUi.selectSigner" sessionId:_request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRSelectSignerRequestParams *requestParams = [[KBRSelectSignerRequestParams alloc] initWithParams:params];
     [self.navigation setProgressEnabled:NO];
     [self selectSigner:requestParams completion:completion];
   }];
 
-  [self.client registerMethod:@"keybase.1.locksmithUi.displaySecretWords" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.locksmithUi.displaySecretWords" sessionId:_request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplaySecretWordsRequestParams *requestParams = [[KBRDisplaySecretWordsRequestParams alloc] initWithParams:params];
 
     [self.navigation setProgressEnabled:NO];
@@ -176,7 +178,7 @@
   [self.navigation setProgressEnabled:YES];
   [self.navigation.titleView setProgressEnabled:YES];
 
-  [request loginWithPassphraseWithSessionID:request.sessionId username:username passphrase:passphrase storeSecret:NO completion:^(NSError *error) {
+  [_request loginWithPassphraseWithSessionID:_request.sessionId username:username passphrase:passphrase storeSecret:NO completion:^(NSError *error) {
     [self.navigation setProgressEnabled:NO];
     if (error) {
       if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {
@@ -199,8 +201,12 @@
 }
 
 - (void)deviceAddCancel {
+  if (!_request) {
+    [self reset];
+    return;
+  }
   KBRDeviceRequest *request = [[KBRDeviceRequest alloc] init];
-  [request deviceAddCancel:^(NSError *error) {
+  [request deviceAddCancelWithSessionID:_request.sessionId completion:^(NSError *error) {
     if (error) [AppDelegate setError:error sender:self];
     [self reset];
   }];
