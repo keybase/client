@@ -14,6 +14,7 @@
 #import "KBRPCRegistration.h"
 #import "KBInstaller.h"
 #import "KBRPCRecord.h"
+#import "KBInstaller.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
 #import <NAChloride/NAChloride.h>
@@ -232,10 +233,6 @@
     }
     [self check:completion];
   }];
-}
-
-- (void)checkInstall:(KBInstallCheck)completion {
-  [_installer checkInstall:completion];
 }
 
 NSDictionary *KBScrubPassphrase(NSDictionary *dict) {

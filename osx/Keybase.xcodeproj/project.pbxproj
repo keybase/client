@@ -37,6 +37,10 @@
 		001FCDED1AB21F5E004486D3 /* KBBorder.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDEB1AB21F5E004486D3 /* KBBorder.m */; };
 		0025353B1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0025353A1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m */; };
 		0025353C1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0025353A1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m */; };
+		003C454A1AE5890900431829 /* KBTestHelperView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C45491AE5890900431829 /* KBTestHelperView.m */; };
+		004524821AE57DE0003A8D91 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CD1AE57B1900BFB0E7 /* KBLaunchCtl.m */; };
+		004524841AE57DE6003A8D91 /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CB1AE57B1900BFB0E7 /* KBInstaller.m */; };
+		004524851AE57DEC003A8D91 /* KBHelperClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C91AE57B1900BFB0E7 /* KBHelperClient.m */; };
 		004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
 		004D14DE1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
 		0053B6C81AC4E305001AE392 /* KBStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6C71AC4E305001AE392 /* KBStream.m */; };
@@ -47,7 +51,6 @@
 		0053B6DD1AC6004E001AE392 /* KBPGPDecryptView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6DB1AC6004E001AE392 /* KBPGPDecryptView.m */; };
 		0053B6E01AC6010E001AE392 /* KBPGPDecryptFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6DF1AC6010E001AE392 /* KBPGPDecryptFileView.m */; };
 		0053B6E11AC6010E001AE392 /* KBPGPDecryptFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6DF1AC6010E001AE392 /* KBPGPDecryptFileView.m */; };
-		0053B6E31AC60191001AE392 /* test.asc in Resources */ = {isa = PBXBuildFile; fileRef = 0053B6E21AC60191001AE392 /* test.asc */; };
 		0053B6E41AC60191001AE392 /* test.asc in Resources */ = {isa = PBXBuildFile; fileRef = 0053B6E21AC60191001AE392 /* test.asc */; };
 		0053B6E71AC61894001AE392 /* KBPGPDecrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6E61AC61894001AE392 /* KBPGPDecrypt.m */; };
 		0053B6E81AC61894001AE392 /* KBPGPDecrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6E61AC61894001AE392 /* KBPGPDecrypt.m */; };
@@ -109,8 +112,11 @@
 		00566A341A97DA1800CA236E /* KBWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A061A97DA1800CA236E /* KBWindow.m */; };
 		00566A411A97EA9F00CA236E /* KBSearchResultView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A401A97EA9F00CA236E /* KBSearchResultView.m */; };
 		00566A421A97EA9F00CA236E /* KBSearchResultView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A401A97EA9F00CA236E /* KBSearchResultView.m */; };
-		00566A511A9BAA7500CA236E /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A501A9BAA7500CA236E /* KBInstaller.m */; };
-		00566A521A9BAA7500CA236E /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00566A501A9BAA7500CA236E /* KBInstaller.m */; };
+		0057B0C51AE57A7A00BFB0E7 /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
+		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
+		0057B0D61AE57B1900BFB0E7 /* KBPriviledgedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */; };
+		0057B0D71AE57B1900BFB0E7 /* KBPriviledgedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */; };
+		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; };
 		006A32E11ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
 		006A32E21ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
 		006A32E51ACC5D940054457B /* KBUserListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E41ACC5D940054457B /* KBUserListView.m */; };
@@ -150,8 +156,6 @@
 		009E2BF71AC3A2F700EBB035 /* KBPGPEncryptFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E2BF51AC3A2F700EBB035 /* KBPGPEncryptFooterView.m */; };
 		009E2BFA1AC47B0B00EBB035 /* KBFileSelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E2BF91AC47B0B00EBB035 /* KBFileSelectView.m */; };
 		009E2BFB1AC47B0B00EBB035 /* KBFileSelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E2BF91AC47B0B00EBB035 /* KBFileSelectView.m */; };
-		00A16B5B1AB26158003EF505 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16B5A1AB26158003EF505 /* KBLaunchCtl.m */; };
-		00A16B5C1AB26158003EF505 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16B5A1AB26158003EF505 /* KBLaunchCtl.m */; };
 		00A16B5F1AB383E0003EF505 /* KBKeyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16B5E1AB383E0003EF505 /* KBKeyView.m */; };
 		00A16B601AB383E0003EF505 /* KBKeyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16B5E1AB383E0003EF505 /* KBKeyView.m */; };
 		00A16C331AB38785003EF505 /* KBHeaderLabelView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A16C321AB38785003EF505 /* KBHeaderLabelView.m */; };
@@ -208,7 +212,6 @@
 		00ABED661AD5E03900DA66FC /* KBSearchResults.m in Sources */ = {isa = PBXBuildFile; fileRef = 00ABED641AD5E03900DA66FC /* KBSearchResults.m */; };
 		00B543F11A8178E30044CC5B /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B543F01A8178E30044CC5B /* KBStrengthLabel.m */; };
 		00B543F21A8178E30044CC5B /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B543F01A8178E30044CC5B /* KBStrengthLabel.m */; };
-		00B543FD1A81CCF00044CC5B /* record.zip in Resources */ = {isa = PBXBuildFile; fileRef = 00B543FC1A81CCF00044CC5B /* record.zip */; };
 		00B543FE1A81CCF00044CC5B /* record.zip in Resources */ = {isa = PBXBuildFile; fileRef = 00B543FC1A81CCF00044CC5B /* record.zip */; };
 		00B544031A82F8B40044CC5B /* KBAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544021A82F8B40044CC5B /* KBAppView.m */; };
 		00B544041A82F8B40044CC5B /* KBAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B544021A82F8B40044CC5B /* KBAppView.m */; };
@@ -300,16 +303,25 @@
 		00FDC81C1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC81A1AAA7D1800D6C571 /* KBCellDataSource.m */; };
 		00FE16031A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
 		00FE16041A5C933F00CF3FA5 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FE16021A5C933F00CF3FA5 /* KBDefines.m */; };
+		1089ED27A3F148117A6F0357 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C68FCE9588EFB3C52CA0765F /* libPods-Keybase.a */; };
 		2E402F296535F4DFA7E26874 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC436D1A3A9EC7006118A9 /* KBRPC.m */; };
 		3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC434F1A3A9E6C006118A9 /* AppDelegate.m */; };
 		AB6462168F9FDCF3B14CF810 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D2E3EA46FD4983BE27801D1E /* main.m */; };
-		ECE971A16A1F3E8AC3D9571B /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 03789C52C3DF0B9CD33BF3ED /* libPods.a */; };
+		DD257AF0100977DE4A5C8CA3 /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 273788F3774C2621430755FD /* libPods-keybase.Helper.a */; };
+		E5D99EE5C2EA677C2017A9EC /* libPods-Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F25702C0642AB98B1212D245 /* libPods-Helper.a */; };
+		ECB87DD8B03BBF4D42D64FB6 /* libPods-Keybase-Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6698086095602CC6078FB92 /* libPods-Keybase-Tests.a */; };
 		EDDC07383FDE0A2BDAA2BD1E /* KBRObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43701A3A9EDF006118A9 /* KBRObject.m */; };
 		EEFB9A30FCDB6914DB229B2C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 642DDDE533327326FD4C949D /* Foundation.framework */; };
-		FE95166D842B0D4C3D9F7367 /* libPods-Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6390DE2CB3F2D33C7BA77399 /* libPods-Tests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0057B0D81AE57B4800BFB0E7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0057B0B31AE57A4900BFB0E7;
+			remoteInfo = Helper;
+		};
 		A07B44F87FE6CB6002A4246E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
@@ -320,6 +332,25 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		0057B0B21AE57A4900BFB0E7 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		0057B0DA1AE57B4C00BFB0E7 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchServices;
+			dstSubfolderSpec = 1;
+			files = (
+				0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00ABEC6E1ACDE0F000DA66FC /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -363,6 +394,8 @@
 		001FCDEB1AB21F5E004486D3 /* KBBorder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBBorder.m; sourceTree = "<group>"; };
 		002535391AB8BC4D00583913 /* KBDeviceSetupDisplayView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceSetupDisplayView.h; sourceTree = "<group>"; };
 		0025353A1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceSetupDisplayView.m; sourceTree = "<group>"; };
+		003C45481AE5890900431829 /* KBTestHelperView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTestHelperView.h; sourceTree = "<group>"; };
+		003C45491AE5890900431829 /* KBTestHelperView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTestHelperView.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		004D14DB1A3FA64C0083888D /* KBRPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPClient.h; sourceTree = "<group>"; };
 		004D14DC1A3FA64C0083888D /* KBRPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPClient.m; sourceTree = "<group>"; };
@@ -436,11 +469,24 @@
 		00566A351A97DA5900CA236E /* KBAppKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppKit.h; sourceTree = "<group>"; };
 		00566A3F1A97EA9F00CA236E /* KBSearchResultView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResultView.h; sourceTree = "<group>"; };
 		00566A401A97EA9F00CA236E /* KBSearchResultView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResultView.m; sourceTree = "<group>"; };
-		00566A4F1A9BAA7500CA236E /* KBInstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstaller.h; sourceTree = "<group>"; };
-		00566A501A9BAA7500CA236E /* KBInstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstaller.m; sourceTree = "<group>"; };
 		00566A541A9BAD4800CA236E /* appdmg.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = appdmg.json; sourceTree = "<group>"; };
 		00566A581A9BAD4800CA236E /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
 		00566A5B1A9BAD4800CA236E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		0057B0B41AE57A4900BFB0E7 /* keybase.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = keybase.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		0057B0BE1AE57A7A00BFB0E7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0057B0BF1AE57A7A00BFB0E7 /* KBHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelper.h; sourceTree = "<group>"; };
+		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
+		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
+		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0057B0C31AE57A7A00BFB0E7 /* uninstall.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = uninstall.sh; sourceTree = "<group>"; };
+		0057B0C81AE57B1900BFB0E7 /* KBHelperClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperClient.h; sourceTree = "<group>"; };
+		0057B0C91AE57B1900BFB0E7 /* KBHelperClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperClient.m; sourceTree = "<group>"; };
+		0057B0CA1AE57B1900BFB0E7 /* KBInstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstaller.h; sourceTree = "<group>"; };
+		0057B0CB1AE57B1900BFB0E7 /* KBInstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstaller.m; sourceTree = "<group>"; };
+		0057B0CC1AE57B1900BFB0E7 /* KBLaunchCtl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchCtl.h; sourceTree = "<group>"; };
+		0057B0CD1AE57B1900BFB0E7 /* KBLaunchCtl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchCtl.m; sourceTree = "<group>"; };
+		0057B0CE1AE57B1900BFB0E7 /* KBPriviledgedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPriviledgedTask.h; sourceTree = "<group>"; };
+		0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPriviledgedTask.m; sourceTree = "<group>"; };
 		0065CA3B1A7C2E46006E1772 /* assets_sl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_sl.rb; sourceTree = "<group>"; };
 		0065CA3C1A7C2E46006E1772 /* assets_pl.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = assets_pl.rb; sourceTree = "<group>"; };
 		006A32DF1ACB30380054457B /* KBText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBText.h; sourceTree = "<group>"; };
@@ -483,8 +529,6 @@
 		009E2BF51AC3A2F700EBB035 /* KBPGPEncryptFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPEncryptFooterView.m; sourceTree = "<group>"; };
 		009E2BF81AC47B0B00EBB035 /* KBFileSelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileSelectView.h; sourceTree = "<group>"; };
 		009E2BF91AC47B0B00EBB035 /* KBFileSelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileSelectView.m; sourceTree = "<group>"; };
-		00A16B591AB26158003EF505 /* KBLaunchCtl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchCtl.h; sourceTree = "<group>"; };
-		00A16B5A1AB26158003EF505 /* KBLaunchCtl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchCtl.m; sourceTree = "<group>"; };
 		00A16B5D1AB383E0003EF505 /* KBKeyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyView.h; sourceTree = "<group>"; };
 		00A16B5E1AB383E0003EF505 /* KBKeyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyView.m; sourceTree = "<group>"; };
 		00A16C311AB38785003EF505 /* KBHeaderLabelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHeaderLabelView.h; sourceTree = "<group>"; };
@@ -637,22 +681,43 @@
 		00FDC81A1AAA7D1800D6C571 /* KBCellDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCellDataSource.m; sourceTree = "<group>"; };
 		00FE16021A5C933F00CF3FA5 /* KBDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefines.m; sourceTree = "<group>"; };
 		03789C52C3DF0B9CD33BF3ED /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		273788F3774C2621430755FD /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3A8981EA3DCB023D545AD353 /* Pods-Keybase-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-Tests/Pods-Keybase-Tests.release.xcconfig"; sourceTree = "<group>"; };
+		568E4804BEC0AC4424F5D195 /* Pods-Keybase-Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-Tests/Pods-Keybase-Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		611C5EDA1DAAF19EB60AD786 /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
 		6390DE2CB3F2D33C7BA77399 /* libPods-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		642DDDE533327326FD4C949D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		81076E015931C23010D4DCF8 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		8AA1D50E1402D6FFD486E4DB /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
+		8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
+		983901F2D87D8CC6E1CF4BE3 /* Pods-Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Helper/Pods-Helper.debug.xcconfig"; sourceTree = "<group>"; };
 		A9F88500F09DC21058460123 /* Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABB373EAF6E0F6769BCC3874 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
+		C68FCE9588EFB3C52CA0765F /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.debug.xcconfig"; sourceTree = "<group>"; };
 		CDF165EA01125A063D1B87B6 /* Pods-Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		D2E3EA46FD4983BE27801D1E /* main.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Tests/main.m; sourceTree = "<group>"; };
+		EB7F54E3418272686779C351 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
+		F25702C0642AB98B1212D245 /* libPods-Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6698086095602CC6078FB92 /* libPods-Keybase-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FBC4C9D010D51A6198184C1C /* Pods-Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-Helper/Pods-Helper.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0057B0B11AE57A4900BFB0E7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E5D99EE5C2EA677C2017A9EC /* libPods-Helper.a in Frameworks */,
+				DD257AF0100977DE4A5C8CA3 /* libPods-keybase.Helper.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00CC43461A3A9E6C006118A9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ECE971A16A1F3E8AC3D9571B /* libPods.a in Frameworks */,
+				1089ED27A3F148117A6F0357 /* libPods-Keybase.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -661,7 +726,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EEFB9A30FCDB6914DB229B2C /* Foundation.framework in Frameworks */,
-				FE95166D842B0D4C3D9F7367 /* libPods-Tests.a in Frameworks */,
+				ECB87DD8B03BBF4D42D64FB6 /* libPods-Keybase-Tests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -795,6 +860,34 @@
 			path = Install;
 			sourceTree = SOURCE_ROOT;
 		};
+		0057B0BB1AE57A7A00BFB0E7 /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				0057B0BE1AE57A7A00BFB0E7 /* Info.plist */,
+				0057B0BF1AE57A7A00BFB0E7 /* KBHelper.h */,
+				0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */,
+				0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */,
+				0057B0C21AE57A7A00BFB0E7 /* main.m */,
+				0057B0C31AE57A7A00BFB0E7 /* uninstall.sh */,
+			);
+			path = Helper;
+			sourceTree = "<group>";
+		};
+		0057B0C71AE57B1900BFB0E7 /* System */ = {
+			isa = PBXGroup;
+			children = (
+				0057B0C81AE57B1900BFB0E7 /* KBHelperClient.h */,
+				0057B0C91AE57B1900BFB0E7 /* KBHelperClient.m */,
+				0057B0CA1AE57B1900BFB0E7 /* KBInstaller.h */,
+				0057B0CB1AE57B1900BFB0E7 /* KBInstaller.m */,
+				0057B0CC1AE57B1900BFB0E7 /* KBLaunchCtl.h */,
+				0057B0CD1AE57B1900BFB0E7 /* KBLaunchCtl.m */,
+				0057B0CE1AE57B1900BFB0E7 /* KBPriviledgedTask.h */,
+				0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */,
+			);
+			path = System;
+			sourceTree = "<group>";
+		};
 		006D57141AAE27C700D16CB8 /* Folders */ = {
 			isa = PBXGroup;
 			children = (
@@ -818,19 +911,11 @@
 			path = Folders;
 			sourceTree = "<group>";
 		};
-		00A16B581AB2614C003EF505 /* Launch */ = {
-			isa = PBXGroup;
-			children = (
-				00A16B591AB26158003EF505 /* KBLaunchCtl.h */,
-				00A16B5A1AB26158003EF505 /* KBLaunchCtl.m */,
-			);
-			name = Launch;
-			path = Keybase/Launch;
-			sourceTree = SOURCE_ROOT;
-		};
 		00A48FA91AD84C3100723435 /* Debug */ = {
 			isa = PBXGroup;
 			children = (
+				003C45481AE5890900431829 /* KBTestHelperView.h */,
+				003C45491AE5890900431829 /* KBTestHelperView.m */,
 				00A48FAA1AD84C3100723435 /* KBConsoleView.h */,
 				00A48FAB1AD84C3100723435 /* KBConsoleView.m */,
 				00A48FAC1AD84C3100723435 /* KBMockViews.h */,
@@ -975,6 +1060,7 @@
 				00F808061A4A5F600038BC63 /* README.md */,
 				004D14961A3BCF1F0083888D /* Podfile */,
 				00CC434B1A3A9E6C006118A9 /* Keybase */,
+				0057B0BB1AE57A7A00BFB0E7 /* Helper */,
 				00566A531A9BAD4800CA236E /* Install */,
 				4A1398D8A1B7A96F0CD7F917 /* Tests */,
 				00CC434A1A3A9E6C006118A9 /* Products */,
@@ -988,6 +1074,7 @@
 			children = (
 				00CC43491A3A9E6C006118A9 /* Keybase.app */,
 				A9F88500F09DC21058460123 /* Tests.app */,
+				0057B0B41AE57A4900BFB0E7 /* keybase.Helper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1001,6 +1088,7 @@
 				00CC434F1A3A9E6C006118A9 /* AppDelegate.m */,
 				00E3E3CA1A64BA9F00CCB8F4 /* UI */,
 				00F807D51A48D3300038BC63 /* View */,
+				0057B0C71AE57B1900BFB0E7 /* System */,
 				004D14971A3BD25A0083888D /* RPC */,
 				00ABED571AD4B26900DA66FC /* KBRunBlocks.h */,
 				00ABED581AD4B26900DA66FC /* KBRunBlocks.m */,
@@ -1115,7 +1203,6 @@
 				001712361A9519C500C7AD58 /* Device */,
 				001712251A940FF900C7AD58 /* Keys */,
 				00B5443A1A896BA00044CC5B /* Login */,
-				00A16B581AB2614C003EF505 /* Launch */,
 				00B5441D1A895A810044CC5B /* Proof */,
 				00C7DD5F1AA6839200F57AFC /* KBContentView.h */,
 				00C7DD601AA6839200F57AFC /* KBContentView.m */,
@@ -1129,8 +1216,6 @@
 				00D52F891A77266A00DEB5F5 /* KBTrackView.m */,
 				00B543EF1A8178E30044CC5B /* KBStrengthLabel.h */,
 				00B543F01A8178E30044CC5B /* KBStrengthLabel.m */,
-				00566A4F1A9BAA7500CA236E /* KBInstaller.h */,
-				00566A501A9BAA7500CA236E /* KBInstaller.m */,
 				00DD246A1AAA436900371CDA /* KBProgressView.h */,
 				00DD246B1AAA436900371CDA /* KBProgressView.m */,
 				00DD246E1AAA4C0300371CDA /* KBErrorView.h */,
@@ -1147,6 +1232,10 @@
 				03789C52C3DF0B9CD33BF3ED /* libPods.a */,
 				F58BA129DEDB61DE3EB65AD8 /* iOS */,
 				6390DE2CB3F2D33C7BA77399 /* libPods-Tests.a */,
+				C68FCE9588EFB3C52CA0765F /* libPods-Keybase.a */,
+				F6698086095602CC6078FB92 /* libPods-Keybase-Tests.a */,
+				F25702C0642AB98B1212D245 /* libPods-Helper.a */,
+				273788F3774C2621430755FD /* libPods-keybase.Helper.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1168,6 +1257,14 @@
 				ABB373EAF6E0F6769BCC3874 /* Pods.release.xcconfig */,
 				611C5EDA1DAAF19EB60AD786 /* Pods-Tests.release.xcconfig */,
 				CDF165EA01125A063D1B87B6 /* Pods-Tests.debug.xcconfig */,
+				EB7F54E3418272686779C351 /* Pods-Keybase.debug.xcconfig */,
+				8AA1D50E1402D6FFD486E4DB /* Pods-Keybase.release.xcconfig */,
+				3A8981EA3DCB023D545AD353 /* Pods-Keybase-Tests.release.xcconfig */,
+				568E4804BEC0AC4424F5D195 /* Pods-Keybase-Tests.debug.xcconfig */,
+				983901F2D87D8CC6E1CF4BE3 /* Pods-Helper.debug.xcconfig */,
+				FBC4C9D010D51A6198184C1C /* Pods-Helper.release.xcconfig */,
+				C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */,
+				8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -1183,6 +1280,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0057B0B31AE57A4900BFB0E7 /* keybase.Helper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0057B0BA1AE57A4900BFB0E7 /* Build configuration list for PBXNativeTarget "keybase.Helper" */;
+			buildPhases = (
+				FBDF55E8F17764E964C43B95 /* Check Pods Manifest.lock */,
+				0057B0B01AE57A4900BFB0E7 /* Sources */,
+				0057B0B11AE57A4900BFB0E7 /* Frameworks */,
+				0057B0B21AE57A4900BFB0E7 /* CopyFiles */,
+				8E85ABC6702578E3E0E355F5 /* Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = keybase.Helper;
+			productName = Helper;
+			productReference = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */;
+			productType = "com.apple.product-type.tool";
+		};
 		00CC43481A3A9E6C006118A9 /* Keybase */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00CC43661A3A9E6C006118A9 /* Build configuration list for PBXNativeTarget "Keybase" */;
@@ -1191,6 +1307,7 @@
 				00CC43451A3A9E6C006118A9 /* Sources */,
 				00CC43461A3A9E6C006118A9 /* Frameworks */,
 				00CC43471A3A9E6C006118A9 /* Resources */,
+				0057B0DA1AE57B4C00BFB0E7 /* CopyFiles */,
 				1C743BBCEFE0CE0A888B01D0 /* Copy Pods Resources */,
 				007908121ABB402600FBBD89 /* ShellScript */,
 				00ABEC6E1ACDE0F000DA66FC /* Embed App Extensions */,
@@ -1198,6 +1315,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				0057B0D91AE57B4800BFB0E7 /* PBXTargetDependency */,
 			);
 			name = Keybase;
 			productName = Keybase;
@@ -1233,6 +1351,9 @@
 				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = "Gabriel Handford";
 				TargetAttributes = {
+					0057B0B31AE57A4900BFB0E7 = {
+						CreatedOnToolsVersion = 6.3;
+					};
 					00CC43481A3A9E6C006118A9 = {
 						CreatedOnToolsVersion = 6.1.1;
 						DevelopmentTeam = 99229SGT5K;
@@ -1259,6 +1380,7 @@
 			targets = (
 				00CC43481A3A9E6C006118A9 /* Keybase */,
 				6975340CB6FB777AB0BED823 /* Tests */,
+				0057B0B31AE57A4900BFB0E7 /* keybase.Helper */,
 			);
 		};
 /* End PBXProject section */
@@ -1269,8 +1391,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */,
-				00B543FD1A81CCF00044CC5B /* record.zip in Resources */,
-				0053B6E31AC60191001AE392 /* test.asc in Resources */,
 				00CC43571A3A9E6C006118A9 /* MainMenu.xib in Resources */,
 				00ABEC821ACF3B8000DA66FC /* gpgtools.icns in Resources */,
 			);
@@ -1315,7 +1435,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase/Pods-Keybase-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8E85ABC6702578E3E0E355F5 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		93986692E7A9C9AA3C2411C0 /* Copy Pods Resources */ = {
@@ -1330,7 +1465,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Tests/Pods-Tests-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase-Tests/Pods-Keybase-Tests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		A296FD8921B9AC5A0B1937F6 /* Check Pods Manifest.lock */ = {
@@ -1363,9 +1498,33 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
+		FBDF55E8F17764E964C43B95 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0057B0B01AE57A4900BFB0E7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0057B0C51AE57A7A00BFB0E7 /* KBHelper.m in Sources */,
+				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		00CC43451A3A9E6C006118A9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1389,6 +1548,7 @@
 				00B543F11A8178E30044CC5B /* KBStrengthLabel.m in Sources */,
 				00CC43711A3A9EDF006118A9 /* KBRObject.m in Sources */,
 				00566A131A97DA1800CA236E /* KBImageView.m in Sources */,
+				004524821AE57DE0003A8D91 /* KBLaunchCtl.m in Sources */,
 				00C7DD611AA6839200F57AFC /* KBContentView.m in Sources */,
 				009E2BCE1AC09AFC00EBB035 /* KBPGPOutputView.m in Sources */,
 				00566A2B1A97DA1800CA236E /* KBTextField.m in Sources */,
@@ -1404,6 +1564,7 @@
 				00A48FB61AD84C3100723435 /* KBMockViews.m in Sources */,
 				000530451AD75CBE0061C6E5 /* KBPopover.m in Sources */,
 				00C7DD721AA7C24B00F57AFC /* KBTitleView.m in Sources */,
+				003C454A1AE5890900431829 /* KBTestHelperView.m in Sources */,
 				00566A311A97DA1800CA236E /* KBWebView.m in Sources */,
 				00A48F9A1AD849FC00723435 /* KBPGPKeyGenView.m in Sources */,
 				00B9B4A91AAE5B7700AB0748 /* KBListView.m in Sources */,
@@ -1448,7 +1609,6 @@
 				00A16C331AB38785003EF505 /* KBHeaderLabelView.m in Sources */,
 				00C7DD6A1AA7966D00F57AFC /* KBRPCRecord.m in Sources */,
 				006D571B1AAE29EF00D16CB8 /* KBFileLabel.m in Sources */,
-				00A16B5B1AB26158003EF505 /* KBLaunchCtl.m in Sources */,
 				006A32E91ACC636E0054457B /* KBSearchListView.m in Sources */,
 				0053B6D81AC5EE74001AE392 /* KBPGPOutputFileView.m in Sources */,
 				00C7DD4D1AA63A1100F57AFC /* KBLabelRow.m in Sources */,
@@ -1456,6 +1616,7 @@
 				00B544261A895A810044CC5B /* KBProofResult.m in Sources */,
 				00566A111A97DA1800CA236E /* KBImageTextView.m in Sources */,
 				006D571F1AAE2A2100D16CB8 /* KBFile.m in Sources */,
+				004524851AE57DEC003A8D91 /* KBHelperClient.m in Sources */,
 				00ABEC7A1ACF39BF00DA66FC /* KBPrefAdvancedView.m in Sources */,
 				00C7DD6E1AA7C1F600F57AFC /* KBHoverView.m in Sources */,
 				00566A071A97DA1800CA236E /* KBActivityIndicatorView.m in Sources */,
@@ -1465,6 +1626,7 @@
 				00566A0D1A97DA1800CA236E /* KBBox.m in Sources */,
 				00D306A71AB0E3BF00F69B18 /* KBSegmentedControl.m in Sources */,
 				00B544301A895AB80044CC5B /* KBProveInstructionsView.m in Sources */,
+				0057B0D61AE57B1900BFB0E7 /* KBPriviledgedTask.m in Sources */,
 				00FDC81B1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */,
 				00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */,
 				009E2BEA1AC0AF0700EBB035 /* KBFileWriter.m in Sources */,
@@ -1475,9 +1637,9 @@
 				00A48F9E1AD84A0E00723435 /* KBKeyImportView.m in Sources */,
 				00E2BC701AC9BBFB0061F0B2 /* KBPGPSignFileView.m in Sources */,
 				00566A1F1A97DA1800CA236E /* KBProgressOverlayView.m in Sources */,
-				00566A511A9BAA7500CA236E /* KBInstaller.m in Sources */,
 				00CC43501A3A9E6C006118A9 /* AppDelegate.m in Sources */,
 				0053B7071AC63271001AE392 /* KBPGPVerify.m in Sources */,
+				004524841AE57DE6003A8D91 /* KBInstaller.m in Sources */,
 				00D52F631A6F4D1E00DEB5F5 /* KBRUtils.m in Sources */,
 				00D52F8A1A77266A00DEB5F5 /* KBTrackView.m in Sources */,
 				00B544031A82F8B40044CC5B /* KBAppView.m in Sources */,
@@ -1563,7 +1725,6 @@
 				0053B7041AC63269001AE392 /* KBPGPVerifyFooterView.m in Sources */,
 				00E531581A9E7955005A4185 /* KBRMockClient.m in Sources */,
 				00B544251A895A810044CC5B /* KBProofLabel.m in Sources */,
-				00A16B5C1AB26158003EF505 /* KBLaunchCtl.m in Sources */,
 				0017126B1A952B7D00C7AD58 /* KBDeviceSignerOption.m in Sources */,
 				00ABED4E1AD44BDC00DA66FC /* KBPrefFileView.m in Sources */,
 				0053B7001AC6325B001AE392 /* KBPGPVerifyView.m in Sources */,
@@ -1581,7 +1742,6 @@
 				3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */,
 				00DD245D1AA8DAE300371CDA /* NSView+KBView.m in Sources */,
 				00ABED5A1AD4B26900DA66FC /* KBRunBlocks.m in Sources */,
-				00566A521A9BAA7500CA236E /* KBInstaller.m in Sources */,
 				00B544391A8960D30044CC5B /* KBProveType.m in Sources */,
 				00EC84281AC4B90600B2D429 /* KBFileIcon.m in Sources */,
 				00566A2C1A97DA1800CA236E /* KBTextField.m in Sources */,
@@ -1616,6 +1776,7 @@
 				00566A421A97EA9F00CA236E /* KBSearchResultView.m in Sources */,
 				00C7DD6B1AA7966D00F57AFC /* KBRPCRecord.m in Sources */,
 				001712631A951D0B00C7AD58 /* KBDeviceSetupChooseView.m in Sources */,
+				0057B0D71AE57B1900BFB0E7 /* KBPriviledgedTask.m in Sources */,
 				00566A2E1A97DA1800CA236E /* KBTextView.m in Sources */,
 				009E2BEB1AC0AF0700EBB035 /* KBFileWriter.m in Sources */,
 				00D52F8B1A77266A00DEB5F5 /* KBTrackView.m in Sources */,
@@ -1671,6 +1832,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0057B0D91AE57B4800BFB0E7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0057B0B31AE57A4900BFB0E7 /* keybase.Helper */;
+			targetProxy = 0057B0D81AE57B4800BFB0E7 /* PBXContainerItemProxy */;
+		};
 		061D88BE5028BE2CC8A4A215 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Keybase;
@@ -1691,6 +1857,56 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		0057B0B81AE57A4900BFB0E7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-sectcreate",
+					__TEXT,
+					__info_plist,
+					Helper/Info.plist,
+					"-sectcreate",
+					__TEXT,
+					__launchd_plist,
+					Helper/keybase.Helper.plist,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		0057B0B91AE57A4900BFB0E7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				COPY_PHASE_STRIP = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-sectcreate",
+					__TEXT,
+					__info_plist,
+					Helper/Info.plist,
+					"-sectcreate",
+					__TEXT,
+					__launchd_plist,
+					Helper/keybase.Helper.plist,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 		00CC43641A3A9E6C006118A9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1771,7 +1987,7 @@
 		};
 		00CC43671A3A9E6C006118A9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 81076E015931C23010D4DCF8 /* Pods.debug.xcconfig */;
+			baseConfigurationReference = EB7F54E3418272686779C351 /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
@@ -1786,7 +2002,7 @@
 		};
 		00CC43681A3A9E6C006118A9 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = ABB373EAF6E0F6769BCC3874 /* Pods.release.xcconfig */;
+			baseConfigurationReference = 8AA1D50E1402D6FFD486E4DB /* Pods-Keybase.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
@@ -1801,7 +2017,7 @@
 		};
 		9846C7781FEDA126B0EBF2B8 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 611C5EDA1DAAF19EB60AD786 /* Pods-Tests.release.xcconfig */;
+			baseConfigurationReference = 3A8981EA3DCB023D545AD353 /* Pods-Keybase-Tests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1829,7 +2045,7 @@
 		};
 		EEF860653FBFCB8BDE92129C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CDF165EA01125A063D1B87B6 /* Pods-Tests.debug.xcconfig */;
+			baseConfigurationReference = 568E4804BEC0AC4424F5D195 /* Pods-Keybase-Tests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1856,6 +2072,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0057B0BA1AE57A4900BFB0E7 /* Build configuration list for PBXNativeTarget "keybase.Helper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0057B0B81AE57A4900BFB0E7 /* Debug */,
+				0057B0B91AE57A4900BFB0E7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		00CC43441A3A9E6C006118A9 /* Build configuration list for PBXProject "Keybase" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

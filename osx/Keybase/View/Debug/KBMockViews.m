@@ -31,6 +31,7 @@
 #import "KBPGPDecryptFileView.h"
 #import "KBPGPSignView.h"
 #import "KBPGPSignFileView.h"
+#import "KBPriviledgedTask.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;
@@ -100,11 +101,17 @@
 
   [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
 
-
   [contentView addSubview:[KBLabel labelWithText:@"Logging" style:KBTextStyleHeader]];
 
   [contentView addSubview:[KBButton linkWithText:@"Error" targetBlock:^{ DDLogError(@"Error!"); }]];
   [contentView addSubview:[KBButton linkWithText:@"Debug" targetBlock:^{ DDLogDebug(@"Debug!"); }]];
+
+  [contentView addSubview:[KBBox lineWithInsets:UIEdgeInsetsMake(10, 10, 10, 10)]];
+
+  [contentView addSubview:[KBLabel labelWithText:@"Testing " style:KBTextStyleHeader]];
+
+  [contentView addSubview:[KBButton linkWithText:@"Execute Privileged Task" targetBlock:^{ [self executePrivilegedTask]; }]];
+
 
   [self setDocumentView:contentView];
 }
@@ -324,6 +331,18 @@
 - (void)showError {
   NSError *error = KBMakeErrorWithRecovery(-1, @"This is the error message.", @"This is the recovery suggestion.");
   [AppDelegate setError:error sender:self];
+}
+
+- (void)executePrivilegedTask {
+  KBPriviledgedTask *task = [[KBPriviledgedTask alloc] init];
+  NSError *error = nil;
+  [task execute:@"/bin/cp" args:@[@"/Users/gabe/test-private.asc", @"/var/test/"] error:&error];
+  if (error) [AppDelegate setError:error sender:self];
+
+  // Test Error
+  //[task execute:@"/bin/blah" args:@[] error:&error];
+  //if (error) [AppDelegate setError:error sender:self];
+
 }
 
 @end

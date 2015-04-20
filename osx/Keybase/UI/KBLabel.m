@@ -51,6 +51,7 @@
 
     [layout setFrame:CGRectIntegral(textFrame) view:yself.textView];
     [layout setSize:borderSize view:yself.border options:0];
+
     return CGSizeMake(size.width, MAX(size.height, sizeWithInsets.height));
   }];
 }

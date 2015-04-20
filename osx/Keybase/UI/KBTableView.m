@@ -61,6 +61,11 @@
   }];
 }
 
+- (void)layout {
+  [super layout];
+  [self.view reloadData];
+}
+
 - (void)removeAllObjects {
   [_dataSource removeAllObjects];
   [_view reloadData];

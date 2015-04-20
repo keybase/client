@@ -27,6 +27,7 @@
 #import "KBPGPVerifyFileView.h"
 #import "KBEnvSelectView.h"
 #import "KBLogFormatter.h"
+#import "KBHelperClient.h"
 
 #import <Sparkle/Sparkle.h>
 
@@ -34,6 +35,8 @@
 @property KBAppView *appView;
 @property KBPreferences *preferences;
 @property BOOL alerting;
+
+@property KBHelperClient *helper;
 
 @property NSStatusItem *statusItem; // Menubar
 
@@ -120,6 +123,8 @@
   _consoleView = [[KBConsoleView alloc] init];
   [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO errorHandler:_errorHandler];
   [_appView.delegates addObject:_consoleView];
+
+  _helper = [[KBHelperClient alloc] init];
 
   KBRPClient *client = [[KBRPClient alloc] initWithEnv:env];
   [_appView connect:client];
@@ -221,6 +226,10 @@
 - (void)closeAllWindows {
   [_appView.window close];
   [_preferences close];
+}
+
++ (void)consoleLog:(NSString *)message {
+  [AppDelegate.sharedDelegate.consoleView log:message];
 }
 
 - (void)openURLString:(NSString *)URLString sender:(NSView *)sender {

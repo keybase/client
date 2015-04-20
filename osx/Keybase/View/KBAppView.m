@@ -133,7 +133,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
     completion(nil, nil);
   }];
 
-  [_client checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
+  [_client.installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
     if (error) {
       for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didErrorOnInstall:error];
       // TODO: We're continuing on in case it's recoverable. We should do something better though.

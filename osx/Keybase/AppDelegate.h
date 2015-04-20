@@ -14,11 +14,16 @@
 #import "KBAppView.h"
 #import <GHKit/GHKit.h>
 #import "KBAppKit.h"
+#import "KBHelperClient.h"
+
+#define KBConsoleLog(fmt, ...) [AppDelegate consoleLog:[NSString stringWithFormat:fmt, ##__VA_ARGS__]]
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, KBAppViewDelegate>
 
 @property KBAPIClient *APIClient;
 @property (readonly, copy) KBErrorHandler errorHandler;
+
+@property (readonly) KBHelperClient *helper;
 
 + (KBAppView *)appView;
 
@@ -40,5 +45,7 @@
 - (void)openURLString:(NSString *)URLString sender:(NSView *)sender;
 
 + (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton;
+
++ (void)consoleLog:(NSString *)message;
 
 @end

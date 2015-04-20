@@ -60,8 +60,6 @@ typedef NS_ENUM (NSInteger, KBRPClientEnv) {
 - (void)check:(void (^)(NSError *error, NSString *version))completion;
 - (void)openAndCheck:(void (^)(NSError *error, NSString *version))completion;
 
-- (void)checkInstall:(KBInstallCheck)completion;
-
 @end
 
 @interface KBRPCCoder : NSObject <MPMessagePackCoder>

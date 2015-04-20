@@ -8,11 +8,13 @@
 
 #import "KBConsoleView.h"
 
-#import "KBMockViews.h"
-#import "KBTestClientView.h"
 #import "AppDelegate.h"
 #import "KBLaunchCtl.h"
 #import "KBAppKit.h"
+
+#import "KBMockViews.h"
+#import "KBTestClientView.h"
+#import "KBTestHelperView.h"
 
 @interface KBConsoleView ()
 @property KBRuntimeStatusView *runtimeStatusView;
@@ -35,7 +37,7 @@
   YOHBox *buttons = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,0,10,0"}];
   [self addSubview:buttons];
   GHWeakSelf gself = self;
-  KBButton *checkButton = [KBButton buttonWithText:@"Check Status" style:KBButtonStyleToolbar];
+  KBButton *checkButton = [KBButton buttonWithText:@"Status" style:KBButtonStyleToolbar];
   checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
       [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
@@ -55,13 +57,19 @@
   };
   [buttons addSubview:_toggleButton];
 
-  KBButton *mocks = [KBButton buttonWithText:@"Debug" style:KBButtonStyleLink];
-  mocks.padding = CGSizeMake(0, 7);
-  mocks.targetBlock = ^{
+  KBButton *debugButton = [KBButton buttonWithText:@"Debug" style:KBButtonStyleToolbar];
+  debugButton.targetBlock = ^{
     KBMockViews *mockViews = [[KBMockViews alloc] init];
     [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO errorHandler:nil];
   };
-  [buttons addSubview:mocks];
+  [buttons addSubview:debugButton];
+
+  KBButton *helperButton = [KBButton buttonWithText:@"Helper" style:KBButtonStyleToolbar];
+  helperButton.targetBlock = ^{
+    KBTestHelperView *view = [[KBTestHelperView alloc] init];
+    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Helper" fixed:NO errorHandler:nil];
+  };
+  [buttons addSubview:helperButton];
 
   // TODO logging grows forever
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];

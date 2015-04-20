@@ -1,23 +1,29 @@
 platform :osx, "10.8"
 
-pod "Mantle"
-pod "GHKit"
-pod "ObjectiveSugar"
-pod "Slash"
-pod "MASPreferences"
+target :Keybase do
+  pod "Mantle"
+  pod "GHKit"
+  pod "ObjectiveSugar"
+  pod "Slash"
+  pod "MASPreferences"
 
-pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
+  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 
-pod "KBKeybase"#, :path => "~/Projects/KBKeybase"
+  pod "KBKeybase"#, :path => "~/Projects/KBKeybase"
 
-pod "YOLayout"#, :path => "~/Projects/YOLayout"
+  pod "YOLayout"#, :path => "~/Projects/YOLayout"
 
-pod "ZXCVBN"
-pod "AFNetworking"
+  pod "ZXCVBN"
+  pod "AFNetworking"
 
-pod "Sparkle"
-pod "CocoaLumberjack"
+  pod "Sparkle"
+  pod "CocoaLumberjack"
 
-target :Tests do
-  pod "GRUnit"
+  target :Tests do
+    pod "GRUnit"
+  end
+end
+
+target "keybase.Helper" do
+  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 end
