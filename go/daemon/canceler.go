@@ -6,10 +6,17 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
+// Cancelers are types with a Cancel method.  This is currently
+// being used for engines whose Run() can be canceled.
 type Canceler interface {
 	Cancel() error
 }
 
+// CancelHandler embeds BaseHandler but also maintains a map of
+// sessionIDs to Cancelers.  This is used by handlers that allow a
+// long-running operation to be cancelled by a cancel rpc.
+// CancelHandler is safe for use by multiple concurrent
+// goroutines.
 type CancelHandler struct {
 	BaseHandler
 	mapMu     sync.RWMutex
