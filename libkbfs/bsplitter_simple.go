@@ -1,7 +1,8 @@
 package libkbfs
 
 type BlockSplitterSimple struct {
-	maxSize int64
+	maxSize                 int64
+	blockChangeEmbedMaxSize uint64
 }
 
 func (b *BlockSplitterSimple) CopyUntilSplit(
@@ -41,4 +42,9 @@ func (b *BlockSplitterSimple) CopyUntilSplit(
 func (b *BlockSplitterSimple) CheckSplit(block *FileBlock) int64 {
 	// The split will always be right
 	return 0
+}
+
+func (b *BlockSplitterSimple) ShouldEmbedBlockChanges(
+	bc *BlockChanges) bool {
+	return bc.sizeEstimate <= b.blockChangeEmbedMaxSize
 }

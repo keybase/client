@@ -470,6 +470,10 @@ func expectSyncBlock(
 		newPath.Path = append(newPath.Path, &PathNode{Name: name})
 	}
 
+	// all MD is embedded for now
+	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
+		AnyTimes().Return(true)
+
 	lastId := byte(path.TailPointer().Id[0] * 2)
 	for i := len(newPath.Path) - 1; i >= skipSync; i-- {
 		node := newPath.Path[i]
@@ -497,6 +501,8 @@ func expectSyncBlock(
 	if skipSync == 0 {
 		// sign the MD and put it
 		config.mockMdops.EXPECT().Put(id, rmd).Return(nil)
+		refBlocks := rmd.data.RefBlocks.Changes
+		unrefBlocks := rmd.data.UnrefBlocks.Changes
 		config.mockMdcache.EXPECT().Put(rmd.mdId, rmd).
 			Do(func(id MDId, rmd *RootMetadata) {
 			// Check that the ref/unref bytes are correct.
@@ -513,16 +519,14 @@ func expectSyncBlock(
 			// blocks
 			for i, node := range path.Path {
 				if node.QuotaSize > 0 {
-					checkBlockChange(t, rmd.data.UnrefBlocks.Changes, path,
-						i, 0, node.Id)
+					checkBlockChange(t, unrefBlocks, path, i, 0, node.Id)
 				}
 			}
 			for i, node := range newPath.Path {
 				if i == len(newPath.Path)-1 {
 					break
 				}
-				checkBlockChange(t, rmd.data.RefBlocks.Changes, newPath,
-					i, 0, node.Id)
+				checkBlockChange(t, refBlocks, newPath, i, 0, node.Id)
 			}
 			if checkMD != nil {
 				checkMD(rmd)
@@ -2564,6 +2568,81 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	} else if !bytesEqual([]byte{17, 16}, newBlock4.Contents) {
 		t.Errorf("Block 4 has the wrong data: %v", newBlock4.Contents)
 	} else {
+		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
+		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+			false, true, "", false)
+	}
+}
+
+func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
+	mockCtrl, config := kbfsOpsInit(t)
+	defer mockCtrl.Finish()
+
+	userId, id, rmd := makeIdAndRMD(config)
+
+	rootId := BlockId{42}
+	aId := BlockId{43}
+	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.Children["a"] = &DirEntry{BlockPointer: BlockPointer{Id: aId}}
+	aBlock := NewFileBlock().(*FileBlock)
+	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
+	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
+	p := Path{id, []*PathNode{node, aNode}}
+
+	// fsync a
+	config.mockBcache.EXPECT().IsDirty(aId).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().IsDirty(rootId).AnyTimes().Return(true)
+	config.mockBcache.EXPECT().Get(rootId).AnyTimes().Return(rootBlock, nil)
+	config.mockBcache.EXPECT().Get(aId).AnyTimes().Return(aBlock, nil)
+
+	// override the AnyTimes expect call done by default in expectSyncBlock()
+	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
+		AnyTimes().Return(false)
+
+	// sync block
+	refBytes := uint64(1 + 1) // 2 ref/unref blocks of 1 byte each
+	expectedPath, lastCall := expectSyncBlock(t, config, nil, userId, id, "", p,
+		rmd, false, 0, refBytes, 0, nil)
+	config.mockBcache.EXPECT().Finalize(
+		aId, expectedPath.Path[len(expectedPath.Path)-1].Id)
+	config.mockBcache.EXPECT().Finalize(
+		rootId, expectedPath.Path[len(expectedPath.Path)-2].Id)
+
+	// expected calls for ref block changes blocks
+	refBlockId := BlockId{253}
+	refBuf := []byte{253}
+	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
+	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
+	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
+		refBlockId, refBuf, nil).After(lastCall)
+	config.mockBops.EXPECT().Put(refBlockId, gomock.Any(), refBuf).Return(nil)
+	config.mockBcache.EXPECT().Put(refBlockId, gomock.Any(), false).Return(nil)
+	config.mockKops.EXPECT().PutBlockKey(refBlockId, NullKey).Return(nil)
+	config.mockKcache.EXPECT().PutBlockKey(refBlockId, NullKey).Return(nil)
+
+	unrefBlockId := BlockId{254}
+	unrefBuf := []byte{254}
+	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
+	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
+	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
+		unrefBlockId, unrefBuf, nil).After(lastCall)
+	config.mockBops.EXPECT().Put(unrefBlockId, gomock.Any(), unrefBuf).
+		Return(nil)
+	config.mockBcache.EXPECT().Put(unrefBlockId, gomock.Any(), false).
+		Return(nil)
+	config.mockKops.EXPECT().PutBlockKey(unrefBlockId, NullKey).Return(nil)
+	config.mockKcache.EXPECT().PutBlockKey(unrefBlockId, NullKey).Return(nil)
+
+	if newP, err := config.KBFSOps().Sync(p); err != nil {
+		t.Errorf("Got unexpected error on sync: %v", err)
+	} else if rmd.data.RefBlocks.Pointer.Id != refBlockId {
+		t.Errorf("Got unexpected refBlocks pointer: %v vs %v",
+			rmd.data.RefBlocks.Pointer.Id, refBlockId)
+	} else if rmd.data.UnrefBlocks.Pointer.Id != unrefBlockId {
+		t.Errorf("Got unexpected unrefBlocks pointer: %v vs %v",
+			rmd.data.UnrefBlocks.Pointer.Id, unrefBlockId)
+	} else {
+		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
 			false, true, "", false)

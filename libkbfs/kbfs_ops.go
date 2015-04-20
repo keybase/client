@@ -3,6 +3,8 @@ package libkbfs
 import (
 	"math/rand"
 	"time"
+
+	libkb "github.com/keybase/client/go/libkb"
 )
 
 // KBFSOpsStandard implements the KBFS interface, and is go-routine
@@ -293,6 +295,83 @@ func (fs *KBFSOpsStandard) GetDir(dir Path) (*DirBlock, error) {
 
 var zeroId BlockId
 
+// blockPutState is an internal structure to track data when putting blocks
+type blockPutState struct {
+	ids      []BlockId
+	blocks   []Block
+	contexts []BlockContext
+	bufs     [][]byte
+}
+
+func newBlockPutState(length int) *blockPutState {
+	bps := &blockPutState{}
+	bps.ids = make([]BlockId, 0, length)
+	bps.blocks = make([]Block, 0, length)
+	bps.contexts = make([]BlockContext, 0, length)
+	bps.bufs = make([][]byte, 0, length)
+	return bps
+}
+
+func (bps *blockPutState) addBlock(id BlockId, ptr BlockPointer,
+	block Block, buf []byte) {
+	bps.ids = append(bps.ids, id)
+	bps.contexts = append(bps.contexts, ptr)
+	bps.blocks = append(bps.blocks, block)
+	bps.bufs = append(bps.bufs, buf)
+}
+
+func (fs *KBFSOpsStandard) readyBlock(currBlock Block, bps *blockPutState,
+	md *RootMetadata, encryptKey Key, user libkb.UID) (
+	blockPtr BlockPointer, err error) {
+	err = nil
+
+	// new key for the block
+	crypto := fs.config.Crypto()
+	blockServKey := crypto.GenRandomSecretKey()
+	blockKey, err := crypto.XOR(blockServKey, encryptKey)
+	if err != nil {
+		return
+	}
+
+	id, buf, err := fs.config.BlockOps().Ready(currBlock, blockKey)
+	if err != nil {
+		return
+	}
+
+	// store the keys
+	if err = fs.config.KeyOps().PutBlockKey(id, blockServKey); err != nil {
+		return
+	} else if err = fs.config.KeyCache().PutBlockKey(id, blockKey); err != nil {
+		return
+	}
+
+	blockPtr = BlockPointer{id, md.LatestKeyId(), fs.config.DataVersion(),
+		user, uint32(len(buf))}
+	bps.addBlock(id, blockPtr, currBlock, buf)
+
+	return
+}
+
+func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
+	md *RootMetadata, changes *BlockChanges, encryptKey Key,
+	user libkb.UID) (err error) {
+	buf, err := fs.config.Codec().Encode(changes.Changes)
+	if err != nil {
+		return
+	}
+	block := NewFileBlock().(*FileBlock)
+	block.Contents = buf
+	var blockPtr BlockPointer
+	blockPtr, err = fs.readyBlock(block, bps, md, encryptKey, user)
+	if err != nil {
+		return
+	}
+	changes.Pointer = blockPtr
+	changes.Changes = nil
+	md.RefBytes += uint64(blockPtr.QuotaSize)
+	return
+}
+
 // TODO: deal with multiple nodes for indirect blocks
 func (fs *KBFSOpsStandard) syncBlockLocked(
 	newBlock Block, dir Path, name string, isDir bool, isExec bool,
@@ -315,42 +394,17 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 	currBlock := newBlock
 	currName := name
 	newPath := Path{dir.TopDir, make([]*PathNode, 0, len(dir.Path))}
-	blockIdsToPut := make([]BlockId, 0, len(dir.Path))
-	blocksToPut := make([]Block, 0, len(dir.Path))
-	blockContextsToPut := make([]BlockContext, 0, len(dir.Path))
-	bufsToPut := make([][]byte, 0, len(dir.Path))
-	crypto := fs.config.Crypto()
-	kops := fs.config.KeyOps()
-	kcache := fs.config.KeyCache()
+	bps := newBlockPutState(len(dir.Path))
 	refPath := *dir.ChildPathNoPtr(name)
 	var newDe *DirEntry
 	for len(newPath.Path) < len(dir.Path)+1 {
-		// new key for the block
-		blockServKey := crypto.GenRandomSecretKey()
-		blockKey, err := crypto.XOR(blockServKey, encryptKey)
+		blockPtr, err := fs.readyBlock(currBlock, bps, md, encryptKey, user)
 		if err != nil {
 			return Path{}, nil, err
 		}
-
-		id, buf, err := fs.config.BlockOps().Ready(currBlock, blockKey)
-		if err != nil {
-			return Path{}, nil, err
-		}
-		blockIdsToPut = append(blockIdsToPut, id)
-		blocksToPut = append(blocksToPut, currBlock)
-		bufsToPut = append(bufsToPut, buf)
-		keyId := md.LatestKeyId()
-
-		// store the keys
-		if err := kops.PutBlockKey(id, blockServKey); err != nil {
-			return Path{}, nil, err
-		} else if err := kcache.PutBlockKey(id, blockKey); err != nil {
-			return Path{}, nil, err
-		}
-
 		// prepend to path and setup next one
-		blockPtr := BlockPointer{id, keyId, fs.config.DataVersion(), user, uint32(len(buf))}
-		newPath.Path = append([]*PathNode{&PathNode{blockPtr, currName}}, newPath.Path...)
+		newPath.Path = append([]*PathNode{&PathNode{blockPtr, currName}},
+			newPath.Path...)
 
 		// get the parent block
 		var de *DirEntry
@@ -399,10 +453,25 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			newDe = de
 		}
 
-		blockContextsToPut = append(blockContextsToPut, de)
-
 		if prevIdx >= 0 && dir.Path[prevIdx].Id == stopAt {
 			break
+		}
+	}
+
+	// do the block changes need their own blocks?
+	bsplit := fs.config.BlockSplitter()
+	if !bsplit.ShouldEmbedBlockChanges(&md.data.RefBlocks) {
+		err = fs.unembedBlockChanges(bps, md, &md.data.RefBlocks,
+			encryptKey, user)
+		if err != nil {
+			return Path{}, nil, err
+		}
+	}
+	if !bsplit.ShouldEmbedBlockChanges(&md.data.UnrefBlocks) {
+		err = fs.unembedBlockChanges(bps, md, &md.data.UnrefBlocks,
+			encryptKey, user)
+		if err != nil {
+			return Path{}, nil, err
 		}
 	}
 
@@ -410,13 +479,13 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 	// TODO: parallelize me
 	bcache := fs.config.BlockCache()
 	bops := fs.config.BlockOps()
-	for i, id := range blockIdsToPut {
-		buf := bufsToPut[i]
-		ctxt := blockContextsToPut[i]
+	for i, id := range bps.ids {
+		buf := bps.bufs[i]
+		ctxt := bps.contexts[i]
 		if err = bops.Put(id, ctxt, buf); err != nil {
 			return Path{}, nil, err
 		}
-		block := blocksToPut[i]
+		block := bps.blocks[i]
 		if err = bcache.Put(id, block, false); err != nil {
 			return Path{}, nil, err
 		}
@@ -437,10 +506,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			fs.heads[md.Id] = mdId
 			// Clear the byte counters and blocks. TODO: use clean
 			// copies of the MD when the folder is next modified
-			md.RefBytes = 0
-			md.UnrefBytes = 0
-			md.data.RefBlocks.Changes = NewBlockChangeNode()
-			md.data.UnrefBlocks.Changes = NewBlockChangeNode()
+			md.ClearBlockChanges()
 		}
 	}
 

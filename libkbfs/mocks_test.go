@@ -4,10 +4,10 @@
 package libkbfs
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
-	fmt "fmt"
-	libkb "github.com/keybase/client/go/libkb"
 	time "time"
+	fmt "fmt"
+	gomock "code.google.com/p/gomock/gomock"
+	libkb "github.com/keybase/client/go/libkb"
 )
 
 // Mock of Block interface
@@ -80,6 +80,16 @@ func (_m *MockBlockContext) GetWriter() libkb.UID {
 
 func (_mr *_MockBlockContextRecorder) GetWriter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWriter")
+}
+
+func (_m *MockBlockContext) GetQuotaSize() uint32 {
+	ret := _m.ctrl.Call(_m, "GetQuotaSize")
+	ret0, _ := ret[0].(uint32)
+	return ret0
+}
+
+func (_mr *_MockBlockContextRecorder) GetQuotaSize() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetQuotaSize")
 }
 
 // Mock of KBFSOps interface
@@ -1324,6 +1334,16 @@ func (_m *MockBlockSplitter) CheckSplit(block *FileBlock) int64 {
 
 func (_mr *_MockBlockSplitterRecorder) CheckSplit(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckSplit", arg0)
+}
+
+func (_m *MockBlockSplitter) ShouldEmbedBlockChanges(bc *BlockChanges) bool {
+	ret := _m.ctrl.Call(_m, "ShouldEmbedBlockChanges", bc)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBlockSplitterRecorder) ShouldEmbedBlockChanges(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ShouldEmbedBlockChanges", arg0)
 }
 
 // Mock of Notifiee interface

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 const (
@@ -361,6 +362,17 @@ type BlockChanges struct {
 	Pointer BlockPointer `codec:",omitempty"`
 	// The top node of the block change tree
 	Changes *BlockChangeNode `codec:",omitempty"`
+	// Estimate the number of bytes that this set of changes will take to encode
+	sizeEstimate uint64
+}
+
+func (bc *BlockChanges) AddBlock(path Path, ptr BlockPointer) {
+	bc.Changes.AddBlock(path, 0, ptr)
+	// estimate size of BlockPointer as 2 UIDs and 3 64-bit ints
+	// XXX: use unsafe.SizeOf here instead?  It's not crucial that
+	// it's right.
+	bc.sizeEstimate += uint64(len(path.String()) +
+		libkb.NODE_HASH_LEN_SHORT + keybase_1.UID_LEN + 3*8)
 }
 
 // PrivateMetadata contains the portion of metadata that's secret for private
@@ -477,14 +489,23 @@ func (md *RootMetadata) ClearMetadataId() {
 
 func (md *RootMetadata) AddRefBlock(path Path, ptr BlockPointer) {
 	md.RefBytes += uint64(ptr.QuotaSize)
-	md.data.RefBlocks.Changes.AddBlock(path, 0, ptr)
+	md.data.RefBlocks.AddBlock(path, ptr)
 }
 
 func (md *RootMetadata) AddUnrefBlock(path Path, ptr BlockPointer) {
 	if ptr.QuotaSize > 0 {
 		md.UnrefBytes += uint64(ptr.QuotaSize)
-		md.data.UnrefBlocks.Changes.AddBlock(path, 0, ptr)
+		md.data.UnrefBlocks.AddBlock(path, ptr)
 	}
+}
+
+func (md *RootMetadata) ClearBlockChanges() {
+	md.RefBytes = 0
+	md.UnrefBytes = 0
+	md.data.RefBlocks.sizeEstimate = 0
+	md.data.UnrefBlocks.sizeEstimate = 0
+	md.data.RefBlocks.Changes = NewBlockChangeNode()
+	md.data.UnrefBlocks.Changes = NewBlockChangeNode()
 }
 
 // DirEntry is the MD for each child in a directory

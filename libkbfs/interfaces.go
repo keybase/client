@@ -262,6 +262,9 @@ type BlockSplitter interface {
 	// where it should be split, or -1 if more bytes from the next block
 	// should be appended.
 	CheckSplit(block *FileBlock) int64
+
+	// Should we keep the block changes embedded in the MD or not?
+	ShouldEmbedBlockChanges(bc *BlockChanges) bool
 }
 
 // Notifiee can be notified that there is an available update for a

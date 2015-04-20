@@ -38,8 +38,8 @@ func NewConfigLocal() *ConfigLocal {
 		config, "kbfs_handles", "kbfs_dirs", "kbfs_md"))
 	//config.SetKeyServer
 	config.SetBlockServer(NewBlockServerLocal("kbfs_block"))
-	// 1M blocks by default
-	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024})
+	// 64K blocks by default, block changes embedded max == 8K
+	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	//config.SetNotifier
 	return config
 }
