@@ -199,9 +199,11 @@ func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
 	for i := 0; i < l; i++ {
 		obj := vec.AtIndex(i)
 		if !obj.IsNil() {
-			if u, err := NewUser(obj); err != nil {
-				c.Put(u)
+			u, err := NewUser(obj)
+			if err != nil {
+				return err
 			}
+			c.Put(u)
 		}
 	}
 	return nil
