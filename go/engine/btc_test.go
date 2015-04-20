@@ -11,7 +11,7 @@ import (
 func getCurrentBTCAddr(t *testing.T, username string) string {
 	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: username})
 	if err != nil {
-		t.Fatalf("Failed to load user %s", username)
+		t.Fatal(err)
 	}
 	cryptoLink := u.IdTable.ActiveCryptocurrency()
 	if cryptoLink == nil {

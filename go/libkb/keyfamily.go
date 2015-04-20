@@ -60,19 +60,11 @@ func (cki ComputedKeyInfo) GetETime() time.Time {
 // we need to Verify this data against the sigchain as we play the sigchain
 // forward.
 type ServerKeyRecord struct {
-	Kid            string  `json:"kid"`
-	KeyType        int     `json:"key_type"`
-	Bundle         string  `json:"bundle"`
-	Mtime          int     `json:"mtime"`
-	Ctime          int     `json:"ctime"`
-	Etime          int     `json:"etime"`
-	PgpFingerprint string  `json:"key_fingerprint"`
-	SigningKid     *string `json:"signing_kid"`
-	EldestKid      *string `json:"eldest_kid"`
-	KeyLevel       int     `json:"key_level"`
-	Status         int     `json:"status"`
-	KeyBits        int     `json:"key_bits"`
-	KeyAlgo        int     `json:"key_algo"`
+	Bundle    string  `json:"bundle"`
+	EldestKid *string `json:"eldest_kid"`
+	KeyAlgo   int     `json:"key_algo"`
+	// There are many more fields in the server's response, but we ignore them
+	// to avoid trusting the server, and instead compute them ourselves.
 
 	key GenericKey // not exported, so no json field tag necessary
 
@@ -122,9 +114,6 @@ type KeyFamily struct {
 	SubkeysList []string            `json:"subkeys"`
 	Families    map[string][]string `json:"families"`
 	AllKeys     KeyMap              `json:"all"`
-
-	Sibkeys KeyMap
-	Subkeys KeyMap
 
 	Contextified
 }
@@ -229,7 +218,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	fokid := tcl.GetFOKID()
 
 	var key GenericKey
-	if key, err = ckf.kf.FindActiveSibkey(fokid); err != nil {
+	if key, err = ckf.kf.FindKeyWithFOKID(fokid); err != nil {
 		return
 	}
 
@@ -284,44 +273,6 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	return nil
 }
 
-// FindSibkey finds a sibkey in our KeyFamily, by either PGP fingerprint or
-// KID. It returns the GenericKey object that's useful for actually performing
-// PGP ops.
-func (kf KeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, err error) {
-
-	var found bool
-	var i string
-	kid := f.Kid
-	if kid == nil && f.Fp != nil {
-		i = f.Fp.String()
-		if kid, found = kf.pgp2kid[i]; !found {
-			err = KeyFamilyError{fmt.Sprintf("No KID for PGP fingerprint %s found", i)}
-			return
-		}
-	}
-	if kid == nil {
-		err = KeyFamilyError{"Can't lookup sibkey without a KID"}
-		return
-	}
-
-	i = kid.String()
-	if sk, ok := kf.Sibkeys[i]; !ok {
-		err = KeyFamilyError{fmt.Sprintf("No sibkey found for %s", i)}
-	} else {
-		key = sk.key
-	}
-	return
-}
-
-// FindActiveEncryptionSubkey finds a subkey in our KeyFamily that is both a subkey
-// and for encryption.  It doesn't check that it's still valid.
-func (kf KeyFamily) FindActiveEncryptionSubkey(k KID) (key GenericKey, err error) {
-	if subkey, ok := kf.Subkeys[k.String()]; ok && subkey.key != nil && CanEncrypt(subkey.key) {
-		key = subkey.key
-	}
-	return
-}
-
 // Import takes all ServerKeyRecords in this KeyMap and imports the
 // key bundle into a GenericKey object that can perform crypto ops. It
 // also collects all PgpKeyBundles along the way.
@@ -371,15 +322,6 @@ func (kf *KeyFamily) Import() (err error) {
 		kf.kid2pgp[kid.String()] = fp
 	}
 
-	kf.Sibkeys = make(KeyMap)
-	for _, sibkeyKID := range kf.SibkeysList {
-		kf.Sibkeys[sibkeyKID] = kf.AllKeys[sibkeyKID]
-	}
-	kf.Subkeys = make(KeyMap)
-	for _, subkeyKID := range kf.SubkeysList {
-		kf.Subkeys[subkeyKID] = kf.AllKeys[subkeyKID]
-	}
-
 	err = kf.findEldest()
 	return
 }
@@ -411,12 +353,12 @@ func (kf *KeyFamily) GetEldest() *FOKID {
 // object to capture both the KID and the (optional) PgpFingerprint
 // of the eldest key in the family.
 func (kf *KeyFamily) findEldest() (err error) {
-	G.Log.Debug("| KeyFamily.findEldest w/ %d sibkeys", len(kf.Sibkeys))
-	for _, v := range kf.Sibkeys {
-		if v.EldestKid == nil {
-			err = kf.setEldest(v.Kid)
+	G.Log.Debug("| KeyFamily.findEldest w/ %d sibkeys", len(kf.SibkeysList))
+	for kid, skr := range kf.AllKeys {
+		if skr.EldestKid == nil {
+			err = kf.setEldest(kid)
 		} else {
-			err = kf.setEldest(*v.EldestKid)
+			err = kf.setEldest(*skr.EldestKid)
 		}
 		if err != nil {
 			return
@@ -424,11 +366,11 @@ func (kf *KeyFamily) findEldest() (err error) {
 	}
 	if kf.eldest != nil {
 		x := kf.eldest.Kid.String()
-		if key, found := kf.Sibkeys[x]; !found {
-			err = KeyFamilyError{fmt.Sprintf("Eldest KID %s disappeared", x)}
-		} else if len(key.PgpFingerprint) > 0 {
-			kf.eldest.Fp, err = PgpFingerprintFromHex(key.PgpFingerprint)
+		skr, found := kf.AllKeys[x]
+		if !found {
+			return KeyFamilyError{fmt.Sprintf("Eldest KID %s disappeared", x)}
 		}
+		kf.eldest.Fp = skr.key.GetFingerprintP()
 	}
 	return
 }
@@ -477,33 +419,52 @@ func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
 	return
 }
 
-// FindKey finds any key in any list that matches the given KID.  No attention
-// is paid to whether or not the key is active.
-func (kf KeyFamily) FindKey(kid KID) (ret GenericKey) {
-	kidStr := kid.String()
-	if skr, found := kf.AllKeys[kidStr]; found {
-		ret = skr.key
+func (kf KeyFamily) FindKeyWithFOKID(f FOKID) (key GenericKey, err error) {
+	var found bool
+	var i string
+	kid := f.Kid
+	if kid == nil && f.Fp != nil {
+		i = f.Fp.String()
+		if kid, found = kf.pgp2kid[i]; !found {
+			err = KeyFamilyError{fmt.Sprintf("No KID for PGP fingerprint %s found", i)}
+			return
+		}
+	}
+	if kid == nil {
+		err = KeyFamilyError{"Can't lookup key without a KID"}
+		return
+	}
+
+	i = kid.String()
+	if skr, ok := kf.AllKeys[i]; !ok {
+		err = KeyFamilyError{fmt.Sprintf("No key found for %s", i)}
+	} else {
+		key = skr.key
 	}
 	return
 }
 
+func (kf KeyFamily) FindKeyWithKID(kid KID) (GenericKey, error) {
+	s := kid.String()
+	if skr, ok := kf.AllKeys[s]; !ok {
+		return nil, KeyFamilyError{fmt.Sprintf("No server key record found for %s", s)}
+	} else if skr.key == nil {
+		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", s)}
+	} else {
+		return skr.key, nil
+	}
+}
+
 func (ckf *ComputedKeyFamily) PGPKeyFOKIDs() []FOKID {
 	var res []FOKID
-	for _, k := range ckf.kf.Sibkeys {
-		if len(k.PgpFingerprint) > 0 {
-			res = append(res, FOKID{Kid: k.key.GetKid(), Fp: k.key.GetFingerprintP()})
-		}
-	}
-	for _, k := range ckf.kf.Subkeys {
-		if len(k.PgpFingerprint) > 0 {
-			res = append(res, FOKID{Kid: k.key.GetKid(), Fp: k.key.GetFingerprintP()})
+	for _, k := range ckf.kf.AllKeys {
+		fingerprint := k.key.GetFingerprintP()
+		if fingerprint != nil {
+			res = append(res, FOKID{Kid: k.key.GetKid(), Fp: fingerprint})
 		}
 	}
 	return res
 }
-
-// FindKey finds any key in any list that matches the given KID.  No attention
-// is paid to whether or not the key is active.
 
 func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(s string, t time.Time) (ret *ComputedKeyInfo, err error) {
 	unixTime := t.Unix()
@@ -545,7 +506,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(f FOKID, t time.Time) (key G
 	} else if !liveCki.Sibkey {
 		err = BadKeyError{fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", s)}
 	} else {
-		key, err = ckf.kf.FindActiveSibkey(f)
+		key, err = ckf.kf.FindKeyWithFOKID(f)
 		cki = *liveCki
 	}
 	return
@@ -555,18 +516,23 @@ func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(f FOKID, t time.Time) (key G
 // and finds the corresponding active encryption subkey in the current key family.  If for any reason
 // it cannot find the key, it will return an error saying why.  Otherwise, it will return
 // the key.  In this case either key is non-nil, or err is non-nil.
-func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (key GenericKey, err error) {
+func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (GenericKey, error) {
 	s := kid.String()
 	ki, err := ckf.getCkiIfActiveNow(s)
-	if ki == nil || err != nil {
-		// err gets returned.
-	} else if ki.Sibkey {
-		err = BadKeyError{fmt.Sprintf("The key '%s' was delegated as a sibkey", s)}
-	} else {
-		key, err = ckf.kf.FindActiveEncryptionSubkey(kid)
+	if err != nil {
+		return nil, err
 	}
-	return
-
+	if ki.Sibkey {
+		return nil, BadKeyError{fmt.Sprintf("The key '%s' was delegated as a sibkey", s)}
+	}
+	key, err := ckf.kf.FindKeyWithKID(kid)
+	if err != nil {
+		return nil, err
+	}
+	if !CanEncrypt(key) {
+		return nil, BadKeyError{fmt.Sprintf("The key '%s' cannot encrypt", s)}
+	}
+	return key, nil
 }
 
 // TclToKeybaseTime turns a TypedChainLink into a KeybaseTime tuple, looking
@@ -724,11 +690,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 	skr := &ServerKeyRecord{key: key}
 	skr.SetGlobalContext(kf.G())
 
-	if isSibkey {
-		kf.Sibkeys[kidStr] = skr
-	} else {
-		kf.Subkeys[kidStr] = skr
-	}
+	kf.AllKeys[kidStr] = skr
 
 	fokid := GenericKeyToFOKID(key)
 
@@ -769,26 +731,17 @@ func (ckf ComputedKeyFamily) getKeyRoleFromStr(s string) (ret KeyRole) {
 // GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily,
 // sorted from oldest to newest.
 func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
-	for _, skr := range ckf.kf.Sibkeys {
-		if ckf.getKeyRoleFromStr(skr.Kid) == DLG_SIBKEY && skr.key != nil {
+	for kid, skr := range ckf.kf.AllKeys {
+		if ckf.getKeyRoleFromStr(kid) == DLG_SIBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
 	return
 }
 
-// GetAllActiveSibkeyKIDs gets all active Sibkeys from given ComputedKeyFamily,
-// sorted from oldest to newest, and returns their KIDs
-func (ckf ComputedKeyFamily) GetAllActiveSibkeysKIDs() (ret []KID) {
-	for _, key := range ckf.GetAllActiveSibkeys() {
-		ret = append(ret, key.GetKid())
-	}
-	return
-}
-
 func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
-	for _, skr := range ckf.kf.Subkeys {
-		if ckf.getKeyRoleFromStr(skr.Kid) == DLG_SUBKEY && skr.key != nil {
+	for kid, skr := range ckf.kf.AllKeys {
+		if ckf.getKeyRoleFromStr(kid) == DLG_SUBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -822,7 +775,7 @@ func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]strin
 // The key has to be in the server-given KeyFamily and also in our ComputedKeyFamily.
 // The former check is so that we can handle the case nuked sigchains.
 func (ckf ComputedKeyFamily) HasActiveKey() bool {
-	for k := range ckf.kf.Sibkeys {
+	for k := range ckf.kf.AllKeys {
 		if ckf.getKeyRoleFromStr(k) == DLG_SIBKEY {
 			return true
 		}

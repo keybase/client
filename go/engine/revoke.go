@@ -55,9 +55,9 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		key := me.GetKeyFamily().FindKey(kid)
-		if key == nil {
-			return nil, fmt.Errorf("Key %s does not exist.", e.id)
+		key, err := me.GetKeyFamily().FindKeyWithKID(kid)
+		if err != nil {
+			return nil, err
 		}
 		if !libkb.IsPGP(key) {
 			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use --device.", e.id)

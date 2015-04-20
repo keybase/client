@@ -450,7 +450,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 	if links == nil || len(links) == 0 {
 		G.Log.Debug("| Empty chain after we limited to KeyFamily %v", *ckf.kf)
 		if ckf.kf.eldest != nil {
-			eldestKey := ckf.kf.Sibkeys[ckf.kf.eldest.String()].key
+			eldestKey := ckf.kf.AllKeys[ckf.kf.eldest.String()].key
 			sc.localCki = NewComputedKeyInfos()
 			sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		} else {
