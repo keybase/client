@@ -4,6 +4,17 @@ protocol login {
 
 	import idl "common.avdl";
 
+	record ConfiguredAccount {
+	       string username;
+	       boolean hasStoredSecret;
+	}
+
+	// Returns an array of information about accounts configured
+	// on the local machine. Currently configured accounts are
+	// defined as those that have stored secrets, but this definition
+	// may be expanded in the future.
+	array<ConfiguredAccount> getConfiguredAccounts();
+
 	// username may be empty. Tries to log in, prompting for username
 	// and passphrase if necessary.
 	void loginWithPrompt(int sessionID, string username);

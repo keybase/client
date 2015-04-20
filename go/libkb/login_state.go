@@ -144,6 +144,23 @@ func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID
 	})
 }
 
+func (s *LoginState) GetConfiguredAccounts() ([]keybase_1.ConfiguredAccount, error) {
+	usernames, err := GetUsersWithStoredSecrets()
+	if err != nil {
+		return nil, err
+	}
+	configuredAccounts := make([]keybase_1.ConfiguredAccount, len(usernames))
+
+	for i, username := range usernames {
+		configuredAccounts[i] = keybase_1.ConfiguredAccount{
+			Username:        username,
+			HasStoredSecret: true,
+		}
+	}
+
+	return configuredAccounts, nil
+}
+
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
 	G.Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
@@ -384,7 +401,7 @@ func (s *LoginState) clearPassphrase() {
 }
 
 func (s *LoginState) ClearStoredSecret(username string) error {
-	secretStore := NewSecretStore(NewUserThin(username, UID{}))
+	secretStore := NewSecretStore(username)
 	if secretStore == nil {
 		return nil
 	}
@@ -696,7 +713,7 @@ func (s *LoginState) loginWithStoredSecret(arg *loginArg) error {
 	}
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		secretRetriever := NewSecretStore(me)
+		secretRetriever := NewSecretStore(me.GetName())
 		return keyrings.GetSecretKeyWithStoredSecret(me, secretRetriever)
 	}
 	return s.pubkeyLoginHelper(arg.username, getSecretKeyFn)
@@ -716,7 +733,7 @@ func (s *LoginState) loginWithPassphrase(arg *loginArg) error {
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		var secretStorer SecretStorer
 		if arg.storeSecret {
-			secretStorer = NewSecretStore(me)
+			secretStorer = NewSecretStore(me.GetName())
 		}
 		return keyrings.GetSecretKeyWithPassphrase(me, arg.passphrase, secretStorer)
 	}

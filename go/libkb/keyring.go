@@ -277,7 +277,7 @@ func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, r
 	var secretStore SecretStore
 	if ska.Me != nil {
 		skb.SetUID(ska.Me.GetUid().P())
-		secretStore = NewSecretStore(ska.Me)
+		secretStore = NewSecretStore(ska.Me.GetName())
 	}
 	if key, err = skb.PromptAndUnlock(reason, which, secretStore, secretUI); err != nil {
 		key = nil

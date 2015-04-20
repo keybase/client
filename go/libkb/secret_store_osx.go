@@ -77,10 +77,14 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	return
 }
 
-func NewSecretStore(user *User) SecretStore {
-	return &KeychainSecretStore{user.GetName()}
+func NewSecretStore(username string) SecretStore {
+	return &KeychainSecretStore{username}
 }
 
 func HasSecretStore() bool {
 	return true
+}
+
+func GetUsersWithStoredSecrets() ([]string, error) {
+	return kc.GetAllAccountNames(keychainServiceName)
 }

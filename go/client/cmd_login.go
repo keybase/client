@@ -35,7 +35,7 @@ func (v *CmdLogin) RunClient() (err error) {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
 		err = cli.LoginWithPrompt(keybase_1.LoginWithPromptArg{
-			Username:  v.Username,
+			Username: v.Username,
 		})
 	}
 	return

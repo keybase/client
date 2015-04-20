@@ -25,6 +25,10 @@ func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
 	return u.cli.GetEmailOrUsername(u.sessionId)
 }
 
+func (h *LoginHandler) GetConfiguredAccounts() ([]keybase_1.ConfiguredAccount, error) {
+	return G.LoginState.GetConfiguredAccounts()
+}
+
 func (h *LoginHandler) Logout() error {
 	return G.LoginState.Logout()
 }

@@ -68,7 +68,7 @@ type TestContext struct {
 	G          GlobalContext
 	PrevGlobal GlobalContext
 	Tp         TestParameters
-	t          *testing.T
+	T          *testing.T
 }
 
 func (tc *TestContext) Cleanup() {
@@ -95,7 +95,7 @@ func (src TestContext) MoveGpgKeyringTo(dst TestContext) error {
 }
 
 func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
-	tc.t.Logf("generating gpg keyring in %s", tc.Tp.GPGHome)
+	tc.T.Logf("generating gpg keyring in %s", tc.Tp.GPGHome)
 	fsk, err := os.Create(path.Join(tc.Tp.GPGHome, "secring.gpg"))
 	if err != nil {
 		return err
@@ -195,7 +195,7 @@ func SetupTest(t *testing.T, nm string) (tc TestContext) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tc.t = t
+	tc.T = t
 
 	return tc
 }

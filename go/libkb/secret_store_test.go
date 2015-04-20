@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -43,7 +44,7 @@ func TestSecretStoreOps(t *testing.T) {
 	expectedSecret1 := []byte("test secret 1")
 	expectedSecret2 := []byte("test secret 2")
 
-	secretStore := NewSecretStore(NewUserThin(username, UID{}))
+	secretStore := NewSecretStore(username)
 
 	var err error
 
@@ -88,5 +89,59 @@ func TestSecretStoreOps(t *testing.T) {
 
 	if err = secretStore.ClearSecret(); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestGetUsersWithStoredSecrets(t *testing.T) {
+	if !HasSecretStore() {
+		t.Skip("Skipping test since there is no secret store")
+	}
+
+	usernames, err := GetUsersWithStoredSecrets()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(usernames) != 0 {
+		t.Errorf("Expected no usernames, got %d", len(usernames))
+	}
+
+	expectedUsernames := make([]string, 10)
+	for i := 0; i < len(expectedUsernames); i++ {
+		expectedUsernames[i] = fmt.Sprintf("test account with unicode テスト %d", i)
+		secretStore := NewSecretStore(expectedUsernames[i])
+		if err := secretStore.StoreSecret([]byte{}); err != nil {
+			t.Error(err)
+		}
+	}
+
+	usernames, err = GetUsersWithStoredSecrets()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(usernames) != len(expectedUsernames) {
+		t.Errorf("Expected %d usernames, got %d", len(expectedUsernames), len(usernames))
+	}
+
+	for i := 0; i < len(usernames); i++ {
+		if usernames[i] != expectedUsernames[i] {
+			t.Errorf("Expected username %s, got %s", expectedUsernames[i], usernames[i])
+		}
+	}
+
+	for i := 0; i < len(expectedUsernames); i++ {
+		secretStore := NewSecretStore(expectedUsernames[i])
+		err = secretStore.ClearSecret()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+	usernames, err = GetUsersWithStoredSecrets()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(usernames) != 0 {
+		t.Errorf("Expected no usernames, got %d", len(usernames))
 	}
 }

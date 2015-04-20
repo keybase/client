@@ -218,7 +218,7 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 			Usage: "specify an (alternate) home directory",
 		},
 		cli.StringFlag{
-			Name: "server, s",
+			Name:  "server, s",
 			Usage: fmt.Sprintf("specify server API (default: %s)", libkb.SERVER_URL),
 		},
 		cli.StringFlag{

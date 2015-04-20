@@ -386,7 +386,14 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 
 @end
 
+@interface KBRConfiguredAccount : KBRObject
+@property NSString *username;
+@property BOOL hasStoredSecret;
+@end
+
 @interface KBRLoginRequest : KBRRequest
+- (void)getConfiguredAccounts:(void (^)(NSError *error, NSArray *items))completion;
+
 - (void)loginWithPromptWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 - (void)loginWithStoredSecretWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;

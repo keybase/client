@@ -1162,6 +1162,14 @@ func (c LogUiClient) Log(__arg LogArg) (err error) {
 	return
 }
 
+type ConfiguredAccount struct {
+	Username        string `codec:"username" json:"username"`
+	HasStoredSecret bool   `codec:"hasStoredSecret" json:"hasStoredSecret"`
+}
+
+type GetConfiguredAccountsArg struct {
+}
+
 type LoginWithPromptArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -1194,6 +1202,7 @@ type ResetArg struct {
 }
 
 type LoginInterface interface {
+	GetConfiguredAccounts() ([]ConfiguredAccount, error)
 	LoginWithPrompt(LoginWithPromptArg) error
 	LoginWithStoredSecret(LoginWithStoredSecretArg) error
 	LoginWithPassphrase(LoginWithPassphraseArg) error
@@ -1207,6 +1216,13 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.login",
 		Methods: map[string]rpc2.ServeHook{
+			"getConfiguredAccounts": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetConfiguredAccountsArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetConfiguredAccounts()
+				}
+				return
+			},
 			"loginWithPrompt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoginWithPromptArg, 1)
 				if err = nxt(&args); err == nil {
@@ -1263,6 +1279,11 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 
 type LoginClient struct {
 	Cli GenericClient
+}
+
+func (c LoginClient) GetConfiguredAccounts() (res []ConfiguredAccount, err error) {
+	err = c.Cli.Call("keybase.1.login.getConfiguredAccounts", []interface{}{GetConfiguredAccountsArg{}}, &res)
+	return
 }
 
 func (c LoginClient) LoginWithPrompt(__arg LoginWithPromptArg) (err error) {

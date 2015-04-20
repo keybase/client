@@ -14,7 +14,6 @@ type SecretStore interface {
 	ClearSecret() error
 }
 
-// NewSecretStore(user *User) and HasSecretStore() are defined in
+// NewSecretStore(username string), HasSecretStore(), and
+// GetUsersWithStoredSecrets() ([]string, error) are defined in
 // platform-specific files.
-
-// TODO: NewSecretStore should probably return an error.

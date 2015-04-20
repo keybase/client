@@ -163,8 +163,25 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
+  }, {
+    "type" : "record",
+    "name" : "ConfiguredAccount",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "hasStoredSecret",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
+    "getConfiguredAccounts" : {
+      "request" : [ ],
+      "response" : {
+        "type" : "array",
+        "items" : "ConfiguredAccount"
+      }
+    },
     "loginWithPrompt" : {
       "request" : [ {
         "name" : "sessionID",

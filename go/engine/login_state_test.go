@@ -272,6 +272,42 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	}
 }
 
+func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username string) bool {
+	configuredAccounts, err := tc.G.LoginState.GetConfiguredAccounts()
+	if err != nil {
+		tc.T.Error(err)
+		return false
+	}
+
+	for _, configuredAccount := range configuredAccounts {
+		if configuredAccount.Username == username {
+			return configuredAccount.HasStoredSecret
+		}
+	}
+	return false
+}
+
+func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
+	secretStore := libkb.NewSecretStore(username)
+	if secretStore == nil {
+		tc.T.Errorf("SecretStore for %s unexpectedly nil", username)
+		return false
+	}
+	_, err := secretStore.RetrieveSecret()
+	// TODO: Have RetrieveSecret return platform-independent errors
+	// so that we can make sure we got the right one.
+	return (err == nil)
+}
+
+func userHasStoredSecret(tc *libkb.TestContext, username string) bool {
+	hasStoredSecret1 := userHasStoredSecretViaConfiguredAccounts(tc, username)
+	hasStoredSecret2 := userHasStoredSecretViaSecretStore(tc, username)
+	if hasStoredSecret1 != hasStoredSecret2 {
+		tc.T.Errorf("user %s has stored secret via configured accounts = %t, but via secret store = %t", username, hasStoredSecret1, hasStoredSecret2)
+	}
+	return hasStoredSecret1
+}
+
 // Test that the login flow using the secret store works.
 func TestLoginWithStoredSecret(t *testing.T) {
 	// TODO: Get this working on non-OS X platforms (by mocking
@@ -285,6 +321,10 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(t, "lwss")
 	G.LoginState.Logout()
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
 
 	mockGetSecret := &GetSecretMock{
 		Passphrase:  fu.Passphrase,
@@ -301,6 +341,10 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	G.LoginState.Logout()
 
+	if !userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
+	}
+
 	// TODO: Mock out the SecretStore and make sure that it's
 	// actually consulted.
 	if err := G.LoginState.LoginWithStoredSecret(fu.Username); err != nil {
@@ -310,6 +354,10 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	G.LoginState.Logout()
 
 	G.LoginState.ClearStoredSecret(fu.Username)
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
 
 	if err := G.LoginState.LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
@@ -371,6 +419,10 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 	if err := G.LoginState.LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
 	}
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
 }
 
 // Test that the login flow with passphrase and with saving the secret
@@ -388,11 +440,19 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 	fu := CreateAndSignupFakeUser(t, "lwpws")
 	G.LoginState.Logout()
 
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+
 	if err := G.LoginState.LoginWithPassphrase(fu.Username, fu.Passphrase, true); err != nil {
 		t.Error(err)
 	}
 
 	G.LoginState.Logout()
+
+	if !userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
+	}
 
 	// TODO: Mock out the SecretStore and make sure that it's
 	// actually consulted.
@@ -401,6 +461,10 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 	}
 
 	G.LoginState.ClearStoredSecret(fu.Username)
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
 }
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.

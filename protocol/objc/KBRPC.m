@@ -459,7 +459,22 @@
 
 @end
 
+@implementation KBRConfiguredAccount
+@end
+
 @implementation KBRLoginRequest
+
+- (void)getConfiguredAccounts:(void (^)(NSError *error, NSArray *items))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.login.getConfiguredAccounts" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRConfiguredAccount.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
+  }];
+}
 
 - (void)loginWithPromptWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"sessionID": @(sessionID), @"username": KBRValue(username)}];

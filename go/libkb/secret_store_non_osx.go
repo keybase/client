@@ -2,10 +2,14 @@
 
 package libkb
 
-func NewSecretStore(user *User) SecretStore {
+func NewSecretStore(username string) SecretStore {
 	return nil
 }
 
 func HasSecretStore() bool {
 	return false
+}
+
+func GetUsersWithStoredSecrets() ([]string, error) {
+	return nil, nil
 }
