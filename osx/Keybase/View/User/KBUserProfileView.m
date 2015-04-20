@@ -105,7 +105,7 @@
 - (void)openPopup:(id)sender {
   NSAssert(self.popup, @"No configured as a popup");
   NSAssert(!self.window, @"Already in window");
-  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO makeKey:YES errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
 }
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
@@ -364,7 +364,7 @@
   KBKeyView *keyView = [[KBKeyView alloc] init];
   keyView.client = self.client;
   [keyView setKey:key];
-  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO errorHandler:AppDelegate.sharedDelegate.errorHandler];
+  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
 }
 
 - (void)generatePGPKey {

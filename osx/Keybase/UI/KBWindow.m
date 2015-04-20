@@ -74,7 +74,7 @@
 
 @implementation NSWindow (KBWindow)
 
-- (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title fixed:(BOOL)fixed errorHandler:(KBErrorHandler)errorHandler {
+- (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title fixed:(BOOL)fixed makeKey:(BOOL)makeKey errorHandler:(KBErrorHandler)errorHandler {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
   navigation.errorHandler = errorHandler;
 
@@ -92,6 +92,9 @@
 
   if ([view respondsToSelector:@selector(setupResponders)]) [view setupResponders];
 
+  if (makeKey) {
+    [window makeKeyAndOrderFront:nil];
+  }
   return window;
 }
 
@@ -120,7 +123,6 @@
   [window setContentSize:rect.size];
 
   [self addChildWindow:window ordered:NSWindowAbove];
-  [window makeKeyWindow];
 }
 
 

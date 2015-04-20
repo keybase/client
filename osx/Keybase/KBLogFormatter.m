@@ -26,14 +26,13 @@
 - (NSString *)formatLogMessage:(DDLogMessage *)logMessage {
   NSString *level;
   switch (logMessage.flag) {
-    case DDLogFlagError : level = @"ERR  "; break;
-    case DDLogFlagWarning : level = @"WARN "; break;
-    case DDLogFlagInfo : level = @"INFO "; break;
+    case DDLogFlagError : level = @" [ERROR]"; break;
+    case DDLogFlagWarning : level = @" [WARN]"; break;
     default : level = @""; break;
   }
 
   NSString *dateAndTime = [_dateFormatter stringFromDate:logMessage.timestamp];
-  return [NSString stringWithFormat:@"%@%@ %@:%@ %@", level, dateAndTime, logMessage.fileName, @(logMessage.line), logMessage.message];
+  return [NSString stringWithFormat:@"%@ %@/%@:%@ %@", dateAndTime, logMessage.fileName, @(logMessage.line), level, logMessage.message];
 }
 
 

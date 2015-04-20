@@ -11,6 +11,7 @@
 
 @interface KBDeviceAddView ()
 @property KBTextView *inputField;
+@property KBRDeviceRequest *request;
 @end
 
 @implementation KBDeviceAddView
@@ -43,7 +44,7 @@
   [button setKeyEquivalent:@"\r"];
   [footerView addSubview:button];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  _cancelButton.targetBlock = ^{ [gself cancel]; };
+  _cancelButton.targetBlock = ^{ [gself cancelDeviceAdd]; };
   [footerView addSubview:_cancelButton];
   footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:button cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
   [contentView addSubview:footerView];
@@ -70,8 +71,16 @@
   [self.window makeFirstResponder:_inputField];
 }
 
-- (void)cancel {
-  self.completion(NO);
+- (void)cancelDeviceAdd {
+  if (!_request) {
+    self.completion(NO);
+    return;
+  }
+  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] init];
+  [request deviceAddCancelWithSessionID:_request.sessionId completion:^(NSError *error) {
+    if (error) [AppDelegate setError:error sender:self];
+    self.completion(NO);
+  }];
 }
 
 - (void)save {
@@ -82,16 +91,16 @@
     return;
   }
 
-  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] initWithClient:self.client];
+  _request = [[KBRDeviceRequest alloc] initWithClient:self.client];
 
-  [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+  [self.client registerMethod:@"keybase.1.locksmithUi.kexStatus" sessionId:_request.sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRKexStatusRequestParams *requestParams = [[KBRKexStatusRequestParams alloc] initWithParams:params];
     DDLogDebug(@"Kex status: %@", requestParams.msg);
     completion(nil, nil);
   }];
 
   AppDelegate.appView.progressEnabled = YES;
-  [request deviceAddWithSessionID:request.sessionId secretPhrase:secretWords completion:^(NSError *error) {
+  [_request deviceAddWithSessionID:_request.sessionId secretPhrase:secretWords completion:^(NSError *error) {
     AppDelegate.appView.progressEnabled = NO;
     if (error) {
       [AppDelegate setError:error sender:self];

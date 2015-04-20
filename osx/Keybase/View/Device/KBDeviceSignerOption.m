@@ -16,7 +16,7 @@
   option.device = device;
   option.title = device.name;
   option.info = NSStringWithFormat(@"Use the device named %@ to authorize this installation.", device.name);
-  option.imageURLString = @"bundle://30-Hardware-black-computer-30";
+  option.image = KBImageForDeviceType(device.type);
   return option;
 }
 
@@ -25,8 +25,16 @@
   option.signerType = KBDeviceSignerTypePGP;
   option.title = @"PGP Key";
   option.info = @"Use your PGP key.";
-  option.imageURLString = @"bundle://1-Edition-black-key-2-30";
+  option.image = KBImageForDeviceType(@"pgp");
   return option;
 }
 
 @end
+
+
+NSImage *KBImageForDeviceType(NSString *type) {
+  if ([type isEqualTo:@"desktop"]) return [NSImage imageNamed:NSImageNameComputer];
+  else if ([type isEqualTo:@"web"]) return [NSImage imageNamed:NSImageNameNetwork];
+  else if ([type isEqualTo:@"pgp"]) return [NSImage imageNamed:NSImageNameUser];
+  else return nil;
+}

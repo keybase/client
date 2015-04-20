@@ -24,10 +24,13 @@ typedef NS_ENUM (NSInteger, KBDeviceSignerType) {
 
 @property NSString *title;
 @property NSString *info;
-@property NSString *imageURLString;
+@property NSImage *image;
 
 + (instancetype)deviceWithDevice:(KBRDevice *)device;
 
 + (instancetype)PGP;
 
 @end
+
+
+NSImage *KBImageForDeviceType(NSString *type);

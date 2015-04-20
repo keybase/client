@@ -12,11 +12,13 @@
 #import "KBDeviceSetupPromptView.h"
 #import "KBDeviceSetupDisplayView.h"
 
+#define PASSWORD_PLACEHOLDER (@"-----------")
+
 @interface KBLoginView ()
 @property KBSecureTextField *passwordField;
 @property KBButton *saveToKeychainButton;
-
 @property KBRLoginRequest *request;
+@property (nonatomic) NSString *username;
 @end
 
 @implementation KBLoginView
@@ -72,7 +74,7 @@
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height + 12;
 
     y += 6;
-    y += [layout sizeToFitInFrame:CGRectMake(40, y, size.width - 80, 0) view:yself.saveToKeychainButton].size.height + 12;
+    y += [layout sizeToFitInFrame:CGRectMake(56, y, size.width - 80, 0) view:yself.saveToKeychainButton].size.height + 12;
 
     y += 30;
 
@@ -91,23 +93,37 @@
 
 - (void)viewDidAppear:(BOOL)animated {
   [self.window recalculateKeyViewLoop];
-  [self.window makeFirstResponder:_usernameField];
+  if ([_usernameField.text gh_present]) {
+    [self.window makeFirstResponder:_passwordField];
+  } else {
+    [self.window makeFirstResponder:_usernameField];
+  }
 }
 
-- (void)setUser:(KBRUser *)user {
-  if ([user.username gh_present]) {
-    self.usernameField.text = user.username;
+- (void)checkForKeychain {
+  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
+  GHWeakSelf gself = self;
+  [request loginWithStoredSecretWithSessionID:request.sessionId username:_username completion:^(NSError *error) {
+    if (error) {
+      gself.saveToKeychainButton.state = NSOffState;
+      if ([gself.passwordField.text isEqualToString:PASSWORD_PLACEHOLDER]) gself.passwordField.text = @"";
+    } else {
+      gself.saveToKeychainButton.state = NSOnState;
+      gself.passwordField.text = PASSWORD_PLACEHOLDER; // 11 character placehold (since passwords must be 12)
+    }
+  }];
+}
+
+- (void)setUsername:(NSString *)username {
+  _username = username;
+  if ([_username gh_present]) {
+    self.usernameField.text = _username;
     //self.usernameField.textField.editable = NO;
-  } else {
-    //self.usernameField.textField.editable = YES;
   }
+  [self checkForKeychain];
 }
 
 - (void)_didLogin:(NSString *)username {
-  if (_saveToKeychainButton.state == NSOnState) {
-    //[SSKeychain setPassword:@"" forService:@"keybase" account:username];
-  }
-
   KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
   [self.navigation.titleView setProgressEnabled:YES];
   [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
@@ -145,7 +161,7 @@
     [self.navigation setProgressEnabled:NO];
     KBDeviceSetupPromptView *devicePromptView = [[KBDeviceSetupPromptView alloc] init];
     devicePromptView.cancelButton.targetBlock = ^{
-      [self deviceAddCancel];
+      [self cancelLogin];
     };
     devicePromptView.completion = ^(id sender, NSError *error, NSString *deviceName) {
       [self.navigation setProgressEnabled:YES];
@@ -170,45 +186,54 @@
       completion(nil, nil);
     };
     deviceSetupDisplayView.cancelButton.targetBlock = ^{
-      [self deviceAddCancel];
+      [self cancelLogin];
     };
     [self.navigation pushView:deviceSetupDisplayView animated:YES];
   }];
 
-  [self.navigation setProgressEnabled:YES];
-  [self.navigation.titleView setProgressEnabled:YES];
+  BOOL storeSecret = _saveToKeychainButton.state == NSOnState;
 
-  [_request loginWithPassphraseWithSessionID:_request.sessionId username:username passphrase:passphrase storeSecret:NO completion:^(NSError *error) {
-    [self.navigation setProgressEnabled:NO];
-    if (error) {
-      if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {
-        [self.window makeFirstResponder:self.passwordField];
-        [AppDelegate setError:KBMakeErrorWithRecovery(-1, @"Bad Password", @"The username and password you entered was invalid.") sender:self];
+  if ([passphrase isEqualToString:PASSWORD_PLACEHOLDER]) {
+    [self.navigation setProgressEnabled:YES];
+    [_request loginWithStoredSecretWithSessionID:_request.sessionId username:username completion:^(NSError *error) {
+      [self.navigation setProgressEnabled:NO];
+      if (error) {
+        [self handleError:error];
         return;
       }
-
-      [AppDelegate setError:error sender:self];
-      return;
-    }
-
-    self.passwordField.text = nil;
-    [self _didLogin:username];
-  }];
+      [self _didLogin:username];
+    }];
+  } else {
+    [self.navigation setProgressEnabled:YES];
+    [_request loginWithPassphraseWithSessionID:_request.sessionId username:username passphrase:passphrase storeSecret:storeSecret completion:^(NSError *error) {
+      [self.navigation setProgressEnabled:NO];
+      if (error) {
+        [self handleError:error];
+        return;
+      }
+      [self _didLogin:username];
+    }];
+  }
 }
 
-- (void)reset {
+- (void)handleError:(NSError *)error {
+  if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {
+    [self.window makeFirstResponder:self.passwordField];
+    error = KBMakeErrorWithRecovery(error.code, @"Bad Password", @"The username and password you entered was invalid.");
+  }
+
+  [AppDelegate setError:error sender:self];
+}
+
+- (void)goBackToLogin {
   [self.navigation popToRootViewAnimated:YES];
 }
 
-- (void)deviceAddCancel {
-  if (!_request) {
-    [self reset];
-    return;
-  }
-  KBRDeviceRequest *request = [[KBRDeviceRequest alloc] init];
-  [request deviceAddCancelWithSessionID:_request.sessionId completion:^(NSError *error) {
+- (void)cancelLogin {
+  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
+  [request cancelLoginWithSessionID:request.sessionId completion:^(NSError *error) {
     if (error) [AppDelegate setError:error sender:self];
-    [self reset];
+    [self goBackToLogin];
   }];
 }
 

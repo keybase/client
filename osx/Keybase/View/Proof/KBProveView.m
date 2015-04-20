@@ -48,7 +48,7 @@
   proveView.client = client;
   proveView.proveType = proveType;
 
-  [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 420, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
+  [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 420, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES makeKey:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
 }
 
 - (void)setProveType:(KBProveType)proveType {

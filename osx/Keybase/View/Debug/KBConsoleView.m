@@ -60,14 +60,14 @@
   KBButton *debugButton = [KBButton buttonWithText:@"Debug" style:KBButtonStyleToolbar];
   debugButton.targetBlock = ^{
     KBMockViews *mockViews = [[KBMockViews alloc] init];
-    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO errorHandler:nil];
+    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO makeKey:YES errorHandler:nil];
   };
   [buttons addSubview:debugButton];
 
   KBButton *helperButton = [KBButton buttonWithText:@"Helper" style:KBButtonStyleToolbar];
   helperButton.targetBlock = ^{
     KBTestHelperView *view = [[KBTestHelperView alloc] init];
-    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Helper" fixed:NO errorHandler:nil];
+    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Helper" fixed:NO makeKey:YES errorHandler:nil];
   };
   [buttons addSubview:helperButton];
 

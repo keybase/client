@@ -11,7 +11,7 @@
 
 @interface KBDeviceSetupPromptView ()
 @property KBTextField *deviceNameField;
-@property KBButton *saveButton;
+@property KBButton *button;
 @end
 
 @implementation KBDeviceSetupPromptView
@@ -35,25 +35,26 @@
   _deviceNameField.placeholder = @"e.g. Macbook";
   [contentView addSubview:_deviceNameField];
 
-
-  YOView *bottomView = [[YOView alloc] init];
+  GHWeakSelf gself = self;
+  YOView *footerView = [YOView view];
+  _button = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
+  _button.targetBlock = ^{ [gself save]; };
+  [footerView addSubview:_button];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  [bottomView addSubview:_cancelButton];
-  _saveButton = [KBButton buttonWithText:@"Save" style:KBButtonStylePrimary];
-  [bottomView addSubview:_saveButton];
-  [contentView addSubview:bottomView];
-  bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_saveButton cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
+  [footerView addSubview:_cancelButton];
+  footerView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_button cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
+  [contentView addSubview:footerView];
 
   YOSelf yself = self;
   contentView.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 20;
+    CGFloat y = 0;
 
     y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:header].size.height + 20;
     y += [layout centerWithSize:CGSizeMake(400, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:label].size.height + 40;
 
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.deviceNameField].size.height + 40;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.saveButton].size.height + 20;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(40, y, size.width - 80, 0) view:footerView].size.height;
 
     return CGSizeMake(MIN(480, size.width), y);
   }];

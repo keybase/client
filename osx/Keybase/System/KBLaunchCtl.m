@@ -93,6 +93,10 @@
 - (void)status:(KBLaunchStatus)completion {
   NSString *label = _label;
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
+    if (error) {
+      completion(error, -1);
+      return;
+    }
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
       // TODO better parsing
       if ([line containsString:label]) {

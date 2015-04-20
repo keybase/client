@@ -137,7 +137,7 @@
 
 - (NSWindow *)openInWindow:(KBContentView *)view size:(CGSize)size title:(NSString *)title {
   view.client = self.mockClient;
-  return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title fixed:NO errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
+  return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title fixed:NO makeKey:YES errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
 }
 
 - (void)prompt:(NSString *)type {
@@ -265,14 +265,18 @@
   device2.name = @"Macbook (Work)";
   device2.type = @"desktop";
 
+  KBRDevice *device3 = [[KBRDevice alloc] init];
+  device3.name = @"Web";
+  device3.type = @"web";
+
   KBDeviceSetupChooseView *deviceSetupView = [[KBDeviceSetupChooseView alloc] init];
-  [deviceSetupView setDevices:@[device1, device2] hasPGP:YES];
+  [deviceSetupView setDevices:@[device1, device2, device3] hasPGP:YES];
   deviceSetupView.cancelButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) { [[button window] close]; };
   return deviceSetupView;
 }
 
 - (void)showDeviceSetupChoose {
-  [self openInWindow:[self deviceSetupChooseView] size:CGSizeMake(560, 420) title:nil];
+  [self openInWindow:[self deviceSetupChooseView] size:CGSizeMake(700, 500) title:nil];
 }
 
 - (void)showPGPEncrypt {

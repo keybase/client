@@ -7,18 +7,20 @@
 //
 
 #import "KBDeviceView.h"
+#import "KBDeviceSignerOption.h"
 
 @implementation KBDeviceView
 
 - (void)setDevice:(KBRDevice *)device {
-  [self.titleLabel setText:device.name font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  NSString *deviceName = [device.name gh_present];
+  if ([NSString gh_isBlank:deviceName]) deviceName = [device.type capitalizedString];
+
+  [self.titleLabel setText:deviceName font:KBAppearance.currentAppearance.boldLargeTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   [self.infoLabel setText:device.type font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.secondaryTextColor alignment:NSLeftTextAlignment];
-  if ([device.type isEqualTo:@"desktop"]) {
-    [self.imageView setImageWithURL:[NSURL URLWithString:@"bundle://30-Hardware-black-computer-30"]];
-  } else {
-    self.imageView.image = nil;
-  }
-  self.imageSize = CGSizeMake(40, 40);
+
+  self.imageView.image = KBImageForDeviceType(device.type);
+
+  //self.imageSize = CGSizeMake(40, 40);
   self.tintImageForStyle = YES;
   [self setNeedsLayout];
 }

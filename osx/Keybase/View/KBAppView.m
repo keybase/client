@@ -353,7 +353,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 
 - (void)setUser:(KBRUser *)user {
   _user = user;
-  [self.loginView setUser:user];
+  [self.loginView setUsername:user.username];
 }
 
 - (void)signupView:(KBSignupView *)signupView didSignupWithStatus:(KBRGetCurrentStatusRes *)status {

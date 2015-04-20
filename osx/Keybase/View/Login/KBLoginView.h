@@ -27,7 +27,7 @@
 
 - (void)viewDidAppear:(BOOL)animated;
 
-- (void)setUser:(KBRUser *)user;
+- (void)setUsername:(NSString *)username;
 
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion;
 

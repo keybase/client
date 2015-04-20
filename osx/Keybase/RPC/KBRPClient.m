@@ -174,7 +174,7 @@
   [_client sendRequestWithMethod:method params:params messageId:sessionId completion:^(NSError *error, id result) {
     [self unregister:sessionId];
     if (error) {
-      DDLogDebug(@"Error: %@", error);
+      DDLogError(@"%@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];
 
       NSString *name = errorInfo[@"name"];

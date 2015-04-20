@@ -62,8 +62,7 @@
   }];
 
   YOView *contentView = [[YOView alloc] init];
-  contentView.wantsLayer = YES;
-  contentView.layer.backgroundColor = NSColor.whiteColor.CGColor;
+  [contentView kb_setBackgroundColor:NSColor.whiteColor];
 
   [_splitView setSourceView:devicesView contentView:contentView];
 
@@ -104,6 +103,7 @@
     [gself.devicesView reloadData];
   }];
 }
+
 - (void)addDevice {
   KBDeviceAddView *view = [[KBDeviceAddView alloc] init];
   view.client = self.client;

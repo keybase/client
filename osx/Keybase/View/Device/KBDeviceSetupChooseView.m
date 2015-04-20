@@ -35,7 +35,7 @@
 
   _deviceSignerView.cellSetBlock = ^(KBImageTextView *view, KBDeviceSignerOption *option, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     view.tintImageForStyle = YES;
-    [view setTitle:option.title info:option.info imageURLString:option.imageURLString imageSize:CGSizeMake(30, 30)];
+    [view setTitle:option.title info:option.info image:option.image];
   };
   [contentView addSubview:_deviceSignerView];
 
@@ -47,7 +47,7 @@
   [contentView addSubview:bottomView];
   bottomView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts layoutForButton:_selectButton cancelButton:_cancelButton horizontalAlignment:KBHorizontalAlignmentCenter]];
 
-  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView insets:UIEdgeInsetsMake(20, 20, 20, 20) spacing:20 maxSize:CGSizeMake(600, 450)]];
+  contentView.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_deviceSignerView topView:topView bottomView:bottomView insets:UIEdgeInsetsZero spacing:20 maxSize:CGSizeMake(600, 450)]];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
 }

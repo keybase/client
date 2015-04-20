@@ -63,6 +63,13 @@
   return [[KBImageView alloc] init];
 }
 
+- (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image {
+  [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [self.infoLabel setText:info style:KBTextStyleSecondaryText];
+  self.imageView.image = image;
+  [self setNeedsLayout];
+}
+
 - (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize {
   [self.titleLabel setText:title font:KBAppearance.currentAppearance.boldTextFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   [self.infoLabel setText:info style:KBTextStyleSecondaryText];
