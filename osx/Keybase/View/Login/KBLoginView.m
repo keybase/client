@@ -14,7 +14,7 @@
 
 #define PASSWORD_PLACEHOLDER (@"-----------")
 
-@interface KBLoginView ()
+@interface KBLoginView () <KBTextFieldFocusDelegate>
 @property KBSecureTextField *passwordField;
 @property KBButton *saveToKeychainButton;
 @property KBRLoginRequest *request;
@@ -41,6 +41,7 @@
   [contentView addSubview:label];
 
   _usernameField = [[KBTextField alloc] init];
+  _usernameField.focusDelegate = self;
   _usernameField.placeholder = @"Email or Username";
   [contentView addSubview:_usernameField];
 
@@ -49,6 +50,10 @@
   [contentView addSubview:_passwordField];
 
   _saveToKeychainButton = [KBButton buttonWithText:@"Save to Keychain" style:KBButtonStyleCheckbox];
+  _saveToKeychainButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
+    [gself keychainChanged:button.state == NSOnState];
+    completion(nil);
+  };
   [contentView addSubview:_saveToKeychainButton];
 
   _loginButton = [KBButton buttonWithText:@"Log In" style:KBButtonStylePrimary];
@@ -100,27 +105,13 @@
   }
 }
 
-- (void)checkForKeychain {
-  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
-  GHWeakSelf gself = self;
-  [request loginWithStoredSecretWithSessionID:request.sessionId username:_username completion:^(NSError *error) {
-    if (error) {
-      gself.saveToKeychainButton.state = NSOffState;
-      if ([gself.passwordField.text isEqualToString:PASSWORD_PLACEHOLDER]) gself.passwordField.text = @"";
-    } else {
-      gself.saveToKeychainButton.state = NSOnState;
-      gself.passwordField.text = PASSWORD_PLACEHOLDER; // 11 character placehold (since passwords must be 12)
-    }
-  }];
-}
-
 - (void)setUsername:(NSString *)username {
   _username = username;
   if ([_username gh_present]) {
     self.usernameField.text = _username;
     //self.usernameField.textField.editable = NO;
   }
-  [self checkForKeychain];
+  [self checkForKeychain:username];
 }
 
 - (void)_didLogin:(NSString *)username {
@@ -214,6 +205,46 @@
       [self _didLogin:username];
     }];
   }
+}
+
+- (void)textField:(KBTextField *)textField didChangeFocus:(BOOL)focused {
+  if (textField == _usernameField) {
+    [self checkForKeychain:_usernameField.text];
+  }
+}
+
+- (void)checkForKeychain:(NSString *)username {
+  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
+  GHWeakSelf gself = self;
+  _saveToKeychainButton.enabled = NO;
+  [request loginWithStoredSecretWithSessionID:request.sessionId username:username completion:^(NSError *error) {
+    if (error) {
+      gself.saveToKeychainButton.state = NSOffState;
+      if ([gself.passwordField.text isEqualToString:PASSWORD_PLACEHOLDER]) gself.passwordField.text = @"";
+    } else {
+      gself.saveToKeychainButton.state = NSOnState;
+      gself.passwordField.text = PASSWORD_PLACEHOLDER; // 11 character placehold (since passwords must be 12); TODO: Don't use magic value
+    }
+    gself.saveToKeychainButton.enabled = YES;
+  }];
+}
+
+- (void)keychainChanged:(BOOL)enabled {
+  NSString *username = self.usernameField.text;
+  NSString *passphrase = self.passwordField.text;
+  if (!enabled && [passphrase isEqualToString:PASSWORD_PLACEHOLDER]) {
+    [self clearKeychain:username completion:^(NSError *error) {
+      if (!error) {
+        self.passwordField.text = @"";
+      }
+    }];
+  }
+}
+
+- (void)clearKeychain:(NSString *)username completion:(MPCompletion)completion {
+  DDLogDebug(@"Clearing cached secret for %@", username);
+  KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
+  [request clearStoredSecretWithUsername:username completion:completion];
 }
 
 - (void)handleError:(NSError *)error {
