@@ -23,7 +23,7 @@ protocol login {
 	// this is called.
 	void clearStoredSecret(string username);
 
-	void cancelLogin();
+	void cancelLogin(int sessionID);
 
 	void logout();
 	void reset();

@@ -1184,6 +1184,7 @@ type ClearStoredSecretArg struct {
 }
 
 type CancelLoginArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type LogoutArg struct {
@@ -1197,7 +1198,7 @@ type LoginInterface interface {
 	LoginWithStoredSecret(LoginWithStoredSecretArg) error
 	LoginWithPassphrase(LoginWithPassphraseArg) error
 	ClearStoredSecret(string) error
-	CancelLogin() error
+	CancelLogin(int) error
 	Logout() error
 	Reset() error
 }
@@ -1237,7 +1238,7 @@ func LoginProtocol(i LoginInterface) rpc2.Protocol {
 			"cancelLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]CancelLoginArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.CancelLogin()
+					err = i.CancelLogin(args[0].SessionID)
 				}
 				return
 			},
@@ -1285,8 +1286,9 @@ func (c LoginClient) ClearStoredSecret(username string) (err error) {
 	return
 }
 
-func (c LoginClient) CancelLogin() (err error) {
-	err = c.Cli.Call("keybase.1.login.cancelLogin", []interface{}{CancelLoginArg{}}, nil)
+func (c LoginClient) CancelLogin(sessionID int) (err error) {
+	__arg := CancelLoginArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.login.cancelLogin", []interface{}{__arg}, nil)
 	return
 }
 

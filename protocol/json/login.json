@@ -209,7 +209,10 @@
       "response" : "null"
     },
     "cancelLogin" : {
-      "request" : [ ],
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
       "response" : "null"
     },
     "logout" : {

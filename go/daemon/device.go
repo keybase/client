@@ -1,8 +1,6 @@
 package main
 
 import (
-	"sync"
-
 	"github.com/keybase/client/go/engine"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -10,14 +8,12 @@ import (
 
 // DeviceHandler is the RPC handler for the device interface.
 type DeviceHandler struct {
-	BaseHandler
-	kexEngsMu sync.RWMutex
-	kexEngs   map[int]*engine.KexSib
+	*CancelHandler
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
 func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
-	return &DeviceHandler{BaseHandler: BaseHandler{xp: xp}}
+	return &DeviceHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
 func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
@@ -36,31 +32,18 @@ func (h *DeviceHandler) DeviceAdd(arg keybase_1.DeviceAddArg) error {
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), LocksmithUI: locksmithUI}
 	eng := engine.NewKexSib(G, arg.SecretPhrase)
 
-	// use sessionID in arg for map key, so clients can cancel
-	h.kexEngsMu.Lock()
-	h.kexEngs[arg.SessionID] = eng
-	h.kexEngsMu.Unlock()
+	h.setCanceler(arg.SessionID, eng)
+	defer h.removeCanceler(arg.SessionID)
 
-	err := engine.RunEngine(eng, ctx)
-
-	h.kexEngsMu.Lock()
-	delete(h.kexEngs, arg.SessionID)
-	h.kexEngsMu.Unlock()
-
-	return err
+	return engine.RunEngine(eng, ctx)
 }
 
 // DeviceAddCancel stops the device provisioning authorized with
 // DeviceAdd.
 func (h *DeviceHandler) DeviceAddCancel(sessionID int) error {
-	h.kexEngsMu.RLock()
-	eng, ok := h.kexEngs[sessionID]
-	h.kexEngsMu.RUnlock()
-	if !ok {
+	c := h.canceler(sessionID)
+	if c == nil {
 		return nil
 	}
-	if eng == nil {
-		return nil
-	}
-	return eng.Cancel()
+	return c.Cancel()
 }

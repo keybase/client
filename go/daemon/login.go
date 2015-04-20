@@ -10,7 +10,7 @@ import (
 )
 
 type LoginHandler struct {
-	BaseHandler
+	*CancelHandler
 	identifyUi    libkb.IdentifyUI
 	locksmithUI   libkb.LocksmithUI
 	loginEngineMu sync.Mutex
@@ -18,7 +18,7 @@ type LoginHandler struct {
 }
 
 func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
-	return &LoginHandler{BaseHandler: BaseHandler{xp: xp}}
+	return &LoginHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
 func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
@@ -43,8 +43,9 @@ func (h *LoginHandler) LoginWithPrompt(arg keybase_1.LoginWithPromptArg) error {
 		LoginUI:     h.getLoginUI(arg.SessionID),
 		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
 	}
-	loginEngine := engine.NewLoginWithPromptEngine(arg.Username)
-	return h.loginWithEngine(loginEngine, ctx)
+	eng := engine.NewLoginWithPromptEngine(arg.Username)
+
+	return h.loginWithEngine(eng, ctx, arg.SessionID)
 }
 
 func (h *LoginHandler) LoginWithStoredSecret(arg keybase_1.LoginWithStoredSecretArg) error {
@@ -56,7 +57,7 @@ func (h *LoginHandler) LoginWithStoredSecret(arg keybase_1.LoginWithStoredSecret
 		GPGUI:       NewRemoteGPGUI(arg.SessionID, h.getRpcClient()),
 	}
 	loginEngine := engine.NewLoginWithStoredSecretEngine(arg.Username)
-	return h.loginWithEngine(loginEngine, ctx)
+	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
 }
 
 func (h *LoginHandler) LoginWithPassphrase(arg keybase_1.LoginWithPassphraseArg) error {
@@ -69,35 +70,26 @@ func (h *LoginHandler) LoginWithPassphrase(arg keybase_1.LoginWithPassphraseArg)
 	}
 
 	loginEngine := engine.NewLoginWithPassphraseEngine(arg.Username, arg.Passphrase, arg.StoreSecret)
-	return h.loginWithEngine(loginEngine, ctx)
+	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
 }
 
 func (h *LoginHandler) ClearStoredSecret(username string) error {
 	return G.LoginState.ClearStoredSecret(username)
 }
 
-func (h *LoginHandler) loginWithEngine(loginEngine *engine.LoginEngine, ctx *engine.Context) (err error) {
-	h.loginEngineMu.Lock()
-	h.loginEngine = loginEngine
-	h.loginEngineMu.Unlock()
-
-	err = engine.RunEngine(loginEngine, ctx)
-
-	h.loginEngineMu.Lock()
-	h.loginEngine = nil
-	h.loginEngineMu.Unlock()
-
-	return
+func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Context, sessionID int) error {
+	h.setCanceler(sessionID, eng)
+	defer h.removeCanceler(sessionID)
+	return engine.RunEngine(eng, ctx)
 }
 
-func (h *LoginHandler) CancelLogin() error {
-	h.loginEngineMu.Lock()
-	defer h.loginEngineMu.Unlock()
-	if h.loginEngine == nil {
-		G.Log.Debug("CancelLogin called and there's no login engine")
+func (h *LoginHandler) CancelLogin(sessionID int) error {
+	c := h.canceler(sessionID)
+	if c == nil {
+		G.Log.Debug("CancelLogin called and there's no login engine for sessionID %d", sessionID)
 		return nil
 	}
-	return h.loginEngine.Cancel()
+	return c.Cancel()
 }
 
 type RemoteLocksmithUI struct {
