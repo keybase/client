@@ -55,7 +55,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		key, err := me.GetKeyFamily().FindKeyWithKID(kid)
+		key, err := me.GetKeyFamily().FindKeyWithKIDUsafe(kid)
 		if err != nil {
 			return nil, err
 		}
