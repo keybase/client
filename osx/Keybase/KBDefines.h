@@ -24,4 +24,5 @@ extern NSString *const KBStatusDidChangeNotification;
 NSString *KBDisplayURLStringForUsername(NSString *username);
 NSString *KBURLStringForUsername(NSString *username);
 NSString *KBHexString(NSData *data);
-
+NSString *KBDictionaryDescription(NSDictionary *d);
+NSString *KBArrayDescription(NSArray *a);

@@ -27,3 +27,12 @@ NSString *KBDisplayURLStringForUsername(NSString *username) {
 NSString *KBURLStringForUsername(NSString *username) {
   return NSStringWithFormat(@"https://keybase.io/%@", username);
 }
+
+NSString *KBArrayDescription(NSArray *a) {
+  if ([a count] == 0) return @"[]";
+  return [a join:@", "];
+}
+
+NSString *KBDictionaryDescription(NSDictionary *d) {
+  return [[d map:^id(id key, id value) { return NSStringWithFormat(@"%@: %@", key, value); }] join:@", "];
+}

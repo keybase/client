@@ -19,6 +19,7 @@
 @property KBButton *saveToKeychainButton;
 @property KBRLoginRequest *request;
 @property (nonatomic) NSString *username;
+@property NSArray *accounts;
 @end
 
 @implementation KBLoginView
@@ -49,7 +50,7 @@
   _passwordField.placeholder = @"Passphrase";
   [contentView addSubview:_passwordField];
 
-  _saveToKeychainButton = [KBButton buttonWithText:@"Save to Keychain" style:KBButtonStyleCheckbox];
+  _saveToKeychainButton = [KBButton buttonWithText:@"Remember Me" style:KBButtonStyleCheckbox];
   _saveToKeychainButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself keychainChanged:button.state == NSOnState];
     completion(nil);
@@ -111,20 +112,7 @@
     self.usernameField.text = _username;
     //self.usernameField.textField.editable = NO;
   }
-  [self checkForKeychain:username];
-}
-
-- (void)_didLogin:(NSString *)username {
-  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
-  [self.navigation.titleView setProgressEnabled:YES];
-  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
-    [self.navigation.titleView setProgressEnabled:NO];
-    if (error) {
-      [AppDelegate setError:error sender:self];
-      return;
-    }
-    [self.delegate loginView:self didLoginWithStatus:status];
-  }];
+  [self loadAccounts];
 }
 
 - (void)login {
@@ -207,37 +195,62 @@
   }
 }
 
-- (void)textField:(KBTextField *)textField didChangeFocus:(BOOL)focused {
-  if (textField == _usernameField) {
-    [self checkForKeychain:_usernameField.text];
+- (void)_didLogin:(NSString *)username {
+  self.passwordField.text = @""; // Clear password field after login
+
+  if (_saveToKeychainButton.state != NSOnState) {
+    [self clearKeychain:username completion:^(NSError *error) {
+      [self loadAccounts];
+    }];
   }
+
+  KBRConfigRequest *config = [[KBRConfigRequest alloc] initWithClient:self.client];
+  [self.navigation.titleView setProgressEnabled:YES];
+  [config getCurrentStatus:^(NSError *error, KBRGetCurrentStatusRes *status) {
+    [self.navigation.titleView setProgressEnabled:NO];
+    if (error) {
+      [AppDelegate setError:error sender:self];
+      return;
+    }
+    [self.delegate loginView:self didLoginWithStatus:status];
+  }];
 }
 
-- (void)checkForKeychain:(NSString *)username {
+- (void)textField:(KBTextField *)textField didChangeFocus:(BOOL)focused {
+  [self updateForAccounts];
+}
+
+- (void)loadAccounts {
   KBRLoginRequest *request = [[KBRLoginRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
-  _saveToKeychainButton.enabled = NO;
-  [request loginWithStoredSecretWithSessionID:request.sessionId username:username completion:^(NSError *error) {
-    if (error) {
-      gself.saveToKeychainButton.state = NSOffState;
-      if ([gself.passwordField.text isEqualToString:PASSWORD_PLACEHOLDER]) gself.passwordField.text = @"";
-    } else {
-      gself.saveToKeychainButton.state = NSOnState;
-      gself.passwordField.text = PASSWORD_PLACEHOLDER; // 11 character placehold (since passwords must be 12); TODO: Don't use magic value
-    }
-    gself.saveToKeychainButton.enabled = YES;
+  [request getConfiguredAccounts:^(NSError *error, NSArray *accounts) {
+    gself.accounts = accounts;
+    DDLogDebug(@"Accounts: %@", KBArrayDescription(accounts));
+    [self updateForAccounts];
   }];
+}
+
+- (void)updateForAccounts {
+  NSString *username = self.usernameField.text;
+  KBRConfiguredAccount *account = [_accounts detect:^(KBRConfiguredAccount *account) { return [account.username isEqualToString:username]; }];
+  if (!account.hasStoredSecret) {
+    self.saveToKeychainButton.state = NSOffState;
+    if ([self.passwordField.text isEqualToString:PASSWORD_PLACEHOLDER]) self.passwordField.text = @"";
+  } else {
+    self.saveToKeychainButton.state = NSOnState;
+    self.passwordField.text = PASSWORD_PLACEHOLDER; // 11 character placehold (since passwords must be 12); TODO: Don't use magic value
+  }
 }
 
 - (void)keychainChanged:(BOOL)enabled {
   NSString *username = self.usernameField.text;
   NSString *passphrase = self.passwordField.text;
+  KBRConfiguredAccount *account = [_accounts detect:^(KBRConfiguredAccount *account) { return [account.username isEqualToString:username]; }];
+
   if (!enabled && [passphrase isEqualToString:PASSWORD_PLACEHOLDER]) {
-    [self clearKeychain:username completion:^(NSError *error) {
-      if (!error) {
-        self.passwordField.text = @"";
-      }
-    }];
+    self.passwordField.text = @"";
+  } else if (enabled && account.hasStoredSecret && [NSString gh_isBlank:passphrase]) {
+    self.passwordField.text = PASSWORD_PLACEHOLDER;
   }
 }
 

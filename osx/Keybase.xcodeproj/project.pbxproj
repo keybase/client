@@ -308,7 +308,6 @@
 		3A71F1034FCD1B4E716CC67E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC434F1A3A9E6C006118A9 /* AppDelegate.m */; };
 		AB6462168F9FDCF3B14CF810 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D2E3EA46FD4983BE27801D1E /* main.m */; };
 		DD257AF0100977DE4A5C8CA3 /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 273788F3774C2621430755FD /* libPods-keybase.Helper.a */; };
-		E5D99EE5C2EA677C2017A9EC /* libPods-Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F25702C0642AB98B1212D245 /* libPods-Helper.a */; };
 		ECB87DD8B03BBF4D42D64FB6 /* libPods-Keybase-Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6698086095602CC6078FB92 /* libPods-Keybase-Tests.a */; };
 		EDDC07383FDE0A2BDAA2BD1E /* KBRObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43701A3A9EDF006118A9 /* KBRObject.m */; };
 		EEFB9A30FCDB6914DB229B2C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 642DDDE533327326FD4C949D /* Foundation.framework */; };
@@ -708,7 +707,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E5D99EE5C2EA677C2017A9EC /* libPods-Helper.a in Frameworks */,
 				DD257AF0100977DE4A5C8CA3 /* libPods-keybase.Helper.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
