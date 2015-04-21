@@ -23,8 +23,8 @@ func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libk
 	return activeDevices, append(sibkeys, subkeys...)
 }
 
-func doRevoke(t *testing.T, u *FakeUser, id string, isDevice bool) {
-	revokeEngine := NewRevokeEngine(id, isDevice)
+func doRevoke(t *testing.T, u *FakeUser, id string, mode RevokeMode) {
+	revokeEngine := NewRevokeEngine(id, mode)
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),
@@ -66,7 +66,7 @@ func TestRevokeDevice(t *testing.T) {
 		t.Fatal("Expected to find a web device.")
 	}
 
-	doRevoke(t, u, webDevice.Id, true /* isDevice */)
+	doRevoke(t, u, webDevice.Id, REVOKE_DEVICE)
 
 	assertNumDevicesAndKeys(t, u, 1, 2)
 }
@@ -93,7 +93,7 @@ func TestRevokeKey(t *testing.T) {
 		t.Fatal("Expected to find PGP key")
 	}
 
-	doRevoke(t, u, (*pgpKey).GetKid().String(), false /* isDevice */)
+	doRevoke(t, u, (*pgpKey).GetKid().String(), REVOKE_KEY)
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 }

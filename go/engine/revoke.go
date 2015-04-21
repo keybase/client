@@ -7,14 +7,21 @@ import (
 	// keybase_1 "github.com/keybase/client/protocol/go"
 )
 
+type RevokeMode int
+
+const (
+	REVOKE_KEY RevokeMode = iota
+	REVOKE_DEVICE
+)
+
 type RevokeEngine struct {
 	libkb.Contextified
-	id       string
-	isDevice bool
+	id   string
+	mode RevokeMode
 }
 
-func NewRevokeEngine(id string, isDevice bool) *RevokeEngine {
-	eng := RevokeEngine{id: id, isDevice: isDevice}
+func NewRevokeEngine(id string, mode RevokeMode) *RevokeEngine {
+	eng := RevokeEngine{id: id, mode: mode}
 	return &eng
 }
 
@@ -40,7 +47,7 @@ func (e *RevokeEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
-	if e.isDevice {
+	if e.mode == REVOKE_DEVICE {
 		currentDevice := e.G().Env.GetDeviceID().String()
 		if e.id == currentDevice {
 			return nil, fmt.Errorf("Can't revoke the current device.")
@@ -50,7 +57,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 			return nil, err
 		}
 		return deviceKeys, nil
-	} else {
+	} else if e.mode == REVOKE_KEY {
 		kid, err := libkb.ImportKID(e.id)
 		if err != nil {
 			return nil, err
@@ -60,7 +67,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 			return nil, err
 		}
 		if !libkb.IsPGP(key) {
-			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use --device.", e.id)
+			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use the `device remove` command.", e.id)
 		}
 		for _, activePGPKey := range me.GetComputedKeyFamily().GetActivePgpKeys(false /* sibkeys only */) {
 			if activePGPKey.GetKid().String() == e.id {
@@ -68,6 +75,8 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 			}
 		}
 		return nil, fmt.Errorf("PGP key %s is not active.", e.id)
+	} else {
+		return nil, fmt.Errorf("Unknown revoke mode: %d", e.mode)
 	}
 }
 
@@ -98,7 +107,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	}
 
 	deviceID := ""
-	if e.isDevice {
+	if e.mode == REVOKE_DEVICE {
 		deviceID = e.id
 	}
 	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)

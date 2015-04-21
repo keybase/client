@@ -1887,10 +1887,14 @@ func (c QuotaClient) VerifySession(session string) (res SessionToken, err error)
 	return
 }
 
-type RevokeArg struct {
+type RevokeKeyArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Id        string `codec:"id" json:"id"`
-	IsDevice  bool   `codec:"isDevice" json:"isDevice"`
+}
+
+type RevokeDeviceArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        string `codec:"id" json:"id"`
 }
 
 type RevokeSigsArg struct {
@@ -1900,7 +1904,8 @@ type RevokeSigsArg struct {
 }
 
 type RevokeInterface interface {
-	Revoke(RevokeArg) error
+	RevokeKey(RevokeKeyArg) error
+	RevokeDevice(RevokeDeviceArg) error
 	RevokeSigs(RevokeSigsArg) error
 }
 
@@ -1908,10 +1913,17 @@ func RevokeProtocol(i RevokeInterface) rpc2.Protocol {
 	return rpc2.Protocol{
 		Name: "keybase.1.revoke",
 		Methods: map[string]rpc2.ServeHook{
-			"revoke": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]RevokeArg, 1)
+			"revokeKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]RevokeKeyArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.Revoke(args[0])
+					err = i.RevokeKey(args[0])
+				}
+				return
+			},
+			"revokeDevice": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]RevokeDeviceArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.RevokeDevice(args[0])
 				}
 				return
 			},
@@ -1931,8 +1943,13 @@ type RevokeClient struct {
 	Cli GenericClient
 }
 
-func (c RevokeClient) Revoke(__arg RevokeArg) (err error) {
-	err = c.Cli.Call("keybase.1.revoke.revoke", []interface{}{__arg}, nil)
+func (c RevokeClient) RevokeKey(__arg RevokeKeyArg) (err error) {
+	err = c.Cli.Call("keybase.1.revoke.revokeKey", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RevokeClient) RevokeDevice(__arg RevokeDeviceArg) (err error) {
+	err = c.Cli.Call("keybase.1.revoke.revokeDevice", []interface{}{__arg}, nil)
 	return
 }
 

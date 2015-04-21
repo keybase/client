@@ -165,16 +165,23 @@
     "size" : 32
   } ],
   "messages" : {
-    "revoke" : {
+    "revokeKey" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "id",
         "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "revokeDevice" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
       }, {
-        "name" : "isDevice",
-        "type" : "boolean"
+        "name" : "id",
+        "type" : "string"
       } ],
       "response" : "null"
     },

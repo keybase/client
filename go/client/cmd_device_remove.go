@@ -10,19 +10,19 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-type CmdRevoke struct {
+type CmdDeviceRemove struct {
 	id string
 }
 
-func (c *CmdRevoke) ParseArgv(ctx *cli.Context) error {
+func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("revoke takes exactly one key or device ID")
+		return fmt.Errorf("device remove takes exactly one key or device ID")
 	}
 	c.id = ctx.Args()[0]
 	return nil
 }
 
-func (c *CmdRevoke) RunClient() (err error) {
+func (c *CmdDeviceRemove) RunClient() (err error) {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err
@@ -36,13 +36,13 @@ func (c *CmdRevoke) RunClient() (err error) {
 		return err
 	}
 
-	return cli.RevokeKey(keybase_1.RevokeKeyArg{
+	return cli.RevokeDevice(keybase_1.RevokeDeviceArg{
 		Id: c.id,
 	})
 }
 
-func (c *CmdRevoke) Run() error {
-	eng := engine.NewRevokeEngine(c.id, engine.REVOKE_KEY)
+func (c *CmdDeviceRemove) Run() error {
+	eng := engine.NewRevokeEngine(c.id, engine.REVOKE_DEVICE)
 	ctx := engine.Context{
 		LogUI:    G_UI.GetLogUI(),
 		SecretUI: G_UI.GetSecretUI(),
@@ -50,19 +50,19 @@ func (c *CmdRevoke) Run() error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func NewCmdRevoke(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDeviceRemove(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "revoke",
-		Usage:       "keybase revoke",
-		Description: "revoke a key",
+		Name:        "remove",
+		Usage:       "keybase device remove <id>",
+		Description: "remove a device from your account, and revoke its keys",
 		Flags:       []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdRevoke{}, "revoke", c)
+			cl.ChooseCommand(&CmdDeviceRemove{}, "remove", c)
 		},
 	}
 }
 
-func (c *CmdRevoke) GetUsage() libkb.Usage {
+func (c *CmdDeviceRemove) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,

@@ -748,9 +748,16 @@
 
 @implementation KBRRevokeRequest
 
-- (void)revokeWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb isDevice:(BOOL)isDevice completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb), @"isDevice": @(isDevice)}];
-  [self.client sendRequestWithMethod:@"keybase.1.revoke.revoke" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)revokeKeyWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb)}];
+  [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)revokeDeviceWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb)}];
+  [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeDevice" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1804,13 +1811,24 @@
 
 @end
 
-@implementation KBRRevokeRequestParams
+@implementation KBRRevokeKeyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.id = params[0][@"id"];
-    self.isDevice = [params[0][@"isDevice"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRRevokeDeviceRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.id = params[0][@"id"];
   }
   return self;
 }
