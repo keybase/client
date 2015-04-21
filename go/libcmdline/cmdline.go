@@ -322,14 +322,6 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 			Name:  "local-rpc-debug",
 			Usage: "use to debug local RPC",
 		},
-		cli.StringFlag{
-			Name:  "device-kid",
-			Usage: "specify per-device KID",
-		},
-		cli.StringFlag{
-			Name:  "device-id",
-			Usage: "specify the device ID",
-		},
 	}
 
 	// Finally, add help if we asked for it
