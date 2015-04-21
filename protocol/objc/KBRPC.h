@@ -93,11 +93,13 @@
 @interface KBRBIndexRequest : KBRRequest
 - (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getBIndexWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)putBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size info:(NSArray *)info completion:(void (^)(NSError *error))completion;
+- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(NSArray *)info completion:(void (^)(NSError *error))completion;
 
-- (void)deleteWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion;
+- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
+
+- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -724,17 +726,19 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSString *sid;
 @end
 @interface KBRGetBIndexRequestParams : KBRRequestParams
-@property NSString *blockId;
-@property NSInteger size;
+@property KBRBlockIdCombo *bid;
 @end
 @interface KBRPutBIndexRequestParams : KBRRequestParams
-@property NSString *blockId;
-@property NSInteger size;
+@property KBRBlockIdCombo *bid;
 @property NSArray *info;
 @end
-@interface KBRDeleteRequestParams : KBRRequestParams
-@property NSString *blockId;
-@property NSInteger size;
+@interface KBRDecBIndexReferenceRequestParams : KBRRequestParams
+@property KBRBlockIdCombo *bid;
+@property KBRUID *chargedTo;
+@end
+@interface KBRIncBIndexReferenceRequestParams : KBRRequestParams
+@property KBRBlockIdCombo *bid;
+@property KBRUID *chargedTo;
 @end
 @interface KBRLoginWithPromptRequestParams : KBRRequestParams
 @property NSInteger sessionID;

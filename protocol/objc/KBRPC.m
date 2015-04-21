@@ -84,23 +84,30 @@
   }];
 }
 
-- (void)getBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSString *str))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size)}];
+- (void)getBIndexWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSString *str))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
 
-- (void)putBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size info:(NSArray *)info completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size), @"info": KBRValue(info)}];
+- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(NSArray *)info completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"info": KBRValue(info)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.putBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)deleteWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size)}];
-  [self.client sendRequestWithMethod:@"keybase.1.bIndex.delete" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"chargedTo": KBRValue(chargedTo)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.decBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"chargedTo": KBRValue(chargedTo)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.incBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1120,8 +1127,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
   }
   return self;
 }
@@ -1132,8 +1138,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
     self.info = [MTLJSONAdapter modelsOfClass:KBRStringKVPair.class fromJSONArray:params[0][@"info"] error:nil];
   }
   return self;
@@ -1141,12 +1146,24 @@
 
 @end
 
-@implementation KBRDeleteRequestParams
+@implementation KBRDecBIndexReferenceRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
+    self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRIncBIndexReferenceRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
+    self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
   }
   return self;
 }

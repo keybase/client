@@ -1,14 +1,16 @@
 @namespace("keybase.1")
 
 protocol bIndex {
-	import idl "common.avdl";
+	import idl "backend_common.avdl";
 
 	void bIndexSession(string sid);
-	string getBIndex(string blockId, int size);
-	void putBIndex(string blockId, int size, array<StringKVPair> info);
-	void delete(string blockId, int size);
+	string getBIndex(BlockIdCombo bid);
+	void putBIndex(BlockIdCombo bid, array<StringKVPair> info);
+
+	void decBIndexReference(BlockIdCombo bid, UID chargedTo);
+	void incBIndexReference(BlockIdCombo bid, UID chargedTo);
 
 	// future RPC from bserver to bindex 
-	// void notifySize(string blockId, int size); 
+	// void notifySize(array<BlockIdCombo> bids); 
 
 }

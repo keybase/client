@@ -163,6 +163,16 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
+  }, {
+    "type" : "record",
+    "name" : "BlockIdCombo",
+    "fields" : [ {
+      "name" : "blockId",
+      "type" : "string"
+    }, {
+      "name" : "size",
+      "type" : "int"
+    } ]
   } ],
   "messages" : {
     "bIndexSession" : {
@@ -174,21 +184,15 @@
     },
     "getBIndex" : {
       "request" : [ {
-        "name" : "blockId",
-        "type" : "string"
-      }, {
-        "name" : "size",
-        "type" : "int"
+        "name" : "bid",
+        "type" : "BlockIdCombo"
       } ],
       "response" : "string"
     },
     "putBIndex" : {
       "request" : [ {
-        "name" : "blockId",
-        "type" : "string"
-      }, {
-        "name" : "size",
-        "type" : "int"
+        "name" : "bid",
+        "type" : "BlockIdCombo"
       }, {
         "name" : "info",
         "type" : {
@@ -198,13 +202,23 @@
       } ],
       "response" : "null"
     },
-    "delete" : {
+    "decBIndexReference" : {
       "request" : [ {
-        "name" : "blockId",
-        "type" : "string"
+        "name" : "bid",
+        "type" : "BlockIdCombo"
       }, {
-        "name" : "size",
-        "type" : "int"
+        "name" : "chargedTo",
+        "type" : "UID"
+      } ],
+      "response" : "null"
+    },
+    "incBIndexReference" : {
+      "request" : [ {
+        "name" : "bid",
+        "type" : "BlockIdCombo"
+      }, {
+        "name" : "chargedTo",
+        "type" : "UID"
       } ],
       "response" : "null"
     }
