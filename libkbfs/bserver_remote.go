@@ -185,11 +185,12 @@ func (b *BlockServerRemote) Get(id BlockId, context BlockContext) ([]byte, error
 		}
 	}
 	//XXX: if fails due to connection problem, should reconnect
-	arg := keybase_1.GetBlockArg{
+	bid := keybase_1.BlockIdCombo{
 		BlockId: base64.StdEncoding.EncodeToString(id[:]),
 		Size:    0,
 	}
-	if buf, err := b.blockly.clt.GetBlock(arg); err != nil {
+
+	if buf, err := b.blockly.clt.GetBlock(bid); err != nil {
 		return nil, err
 	} else {
 		return buf, err
@@ -210,8 +211,8 @@ func (b *BlockServerRemote) Put(id BlockId, context BlockContext, buf []byte) er
 	}
 
 	arg := keybase_1.PutBlockArg{
-		BlockId: base64.StdEncoding.EncodeToString(id[:]),
-		Buf:     buf,
+		Bid: keybase_1.BlockIdCombo{BlockId: base64.StdEncoding.EncodeToString(id[:]), Size: len(buf)},
+		Buf: buf,
 	}
 	if err := b.blockly.clt.PutBlock(arg); err != nil {
 		fmt.Printf("PUT err is %v\n", err)
