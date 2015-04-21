@@ -77,10 +77,6 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
 
 	s.SetCsrf(csrfToken)
 	s.SetDirty()
-
-	// Set up our SecretSyncer to work on the logged in user from here on
-	// out.
-	s.G().SecretSyncer.setUID(s.uid)
 }
 
 func (s *Session) SetDirty() {

@@ -2,8 +2,9 @@
 package libkb
 
 import (
-	keybase_1 "github.com/keybase/client/protocol/go"
 	"sync"
+
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 const (

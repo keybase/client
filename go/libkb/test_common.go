@@ -164,9 +164,6 @@ func setupTestContext(nm string) (tc TestContext, err error) {
 	if err = g.ConfigureConfig(); err != nil {
 		return
 	}
-	if err = g.ConfigureSecretSyncer(); err != nil {
-		return
-	}
 	if err = g.ConfigureCaches(); err != nil {
 		return
 	}

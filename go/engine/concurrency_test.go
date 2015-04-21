@@ -7,8 +7,8 @@ import (
 )
 
 // TestConcurrentLogin tries calling logout, login, and many of
-// the exposed methods in LoginState concurrently.  It is mainly
-// useful when used with the -race flag.
+// the exposed methods in LoginState concurrently.  Use the
+// -race flag to test it.
 func TestConcurrentLogin(t *testing.T) {
 	// making it skip by default since it is slow...
 	t.Skip("Skipping ConcurrentLogin test")
@@ -53,6 +53,56 @@ func TestConcurrentLogin(t *testing.T) {
 					// G.LoginState.Shutdown()
 					G.LoginState.GetCachedTriplesec()
 					G.LoginState.GetCachedPassphraseStream()
+				}
+			}
+		}(i)
+	}
+
+	lwg.Wait()
+	close(done)
+	mwg.Wait()
+}
+
+// TestConcurrentGetPassphraseStream tries calling logout, login,
+// and GetPassphraseStream to check for race conditions.
+// Use the -race flag to test it.
+func TestConcurrentGetPassphraseStream(t *testing.T) {
+	// making it skip by default since it is slow...
+	t.Skip("Skipping ConcurrentGetPassphraseStream test")
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(t, "login")
+
+	var lwg sync.WaitGroup
+	var mwg sync.WaitGroup
+
+	done := make(chan bool)
+
+	for i := 0; i < 10; i++ {
+		lwg.Add(1)
+		go func(index int) {
+			defer lwg.Done()
+			for j := 0; j < 4; j++ {
+				G.LoginState.Logout()
+				u.LoginOrBust(t)
+			}
+			fmt.Printf("logout/login #%d done\n", index)
+		}(i)
+
+		mwg.Add(1)
+		go func(index int) {
+			defer mwg.Done()
+			for {
+				select {
+				case <-done:
+					fmt.Printf("func caller %d done\n", index)
+					return
+				default:
+					_, err := G.LoginState.GetPassphraseStream(u.NewSecretUI())
+					if err != nil {
+						G.Log.Warning("GetPassphraseStream err: %s", err)
+					}
 				}
 			}
 		}(i)

@@ -18,6 +18,9 @@ type LoginState struct {
 	requests chan *loginReq
 	session  *Session // The user's session cookie, &c
 
+	secretSyncer *SecretSyncer // For syncing secrets between the server and client
+	me           *User
+
 	mu               sync.RWMutex // protects the following variables:
 	salt             []byte
 	loginSession     []byte
@@ -41,6 +44,7 @@ type loginArg struct {
 	username    string
 	passphrase  string
 	storeSecret bool
+	force       bool
 	loginUI     LoginUI
 	secretUI    SecretUI
 }
@@ -390,6 +394,9 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 	if err := s.session.Write(); err != nil {
 		return err
 	}
+	// Set up our SecretSyncer to work on the logged in user from here on
+	// out.
+	s.SecretSyncer().SetUID(&res.uid)
 
 	return nil
 }
@@ -437,8 +444,8 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 
 	G.Log.Debug("+ pubkeyLoginHelper()")
 	defer func() {
-		if err != nil && G.SecretSyncer != nil {
-			G.SecretSyncer.Clear()
+		if err != nil && s.secretSyncer != nil {
+			s.secretSyncer.Clear()
 		}
 		G.Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
 	}()
@@ -647,7 +654,12 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 }
 
 func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
-	return s.loginWithPromptHelper(G.Env.GetUsername(), nil, ui, true)
+	return s.handle(&loginArg{
+		kind:     loginKindPrompt,
+		username: G.Env.GetUsername(),
+		secretUI: ui,
+		force:    true,
+	}, s.loginWithPrompt)
 }
 
 func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
@@ -698,7 +710,7 @@ func (s *LoginState) handleRequests() {
 }
 
 func (s *LoginState) loginWithPrompt(arg *loginArg) error {
-	return s.loginWithPromptHelper(arg.username, arg.loginUI, arg.secretUI, false)
+	return s.loginWithPromptHelper(arg.username, arg.loginUI, arg.secretUI, arg.force)
 }
 
 func (s *LoginState) loginWithStoredSecret(arg *loginArg) error {
@@ -753,12 +765,13 @@ func (s *LoginState) logout(arg *loginArg) error {
 	if err == nil {
 		s.clearPassphrase()
 	}
-	if G.SecretSyncer != nil {
-		G.SecretSyncer.Clear()
+	if s.secretSyncer != nil {
+		s.secretSyncer.Clear()
 	}
 	if username != nil {
 		G.Keyrings.ClearSecretKeys(*username)
 	}
+	s.me = nil
 	G.Log.Debug("- Logout called")
 	return err
 }
@@ -855,3 +868,40 @@ func (s *LoginState) getPassphraseStream() PassphraseStream {
 	defer s.mu.RUnlock()
 	return s.passphraseStream
 }
+
+func (s *LoginState) SecretSyncer() *SecretSyncer {
+	if s.secretSyncer == nil {
+		s.secretSyncer = &SecretSyncer{Contextified: Contextified{s.g}}
+	}
+	return s.secretSyncer
+}
+
+func (s *LoginState) RunSecretSyncer() error {
+	return RunSyncer(s.SecretSyncer(), s.UID())
+}
+
+/*
+ hold off on this for a moment...
+ can't hold onto this user pointer forever.
+ needs to be refreshed.
+
+func (s *LoginState) LoadMe(arg LoadUserArg) (*User, error) {
+	if s.IsLoggedIn() == false {
+		return nil, LoginRequiredError{}
+	}
+	if s.me != nil && !arg.ForceReload {
+		return s.me, nil
+	}
+	arg.Uid = s.UID()
+	u, err := LoadUser(arg)
+	if err != nil {
+		return nil, err
+	}
+	s.me = u
+	return s.me, nil
+}
+
+func (s *LoginState) LoadMeDefault() (*User, error) {
+	return s.LoadMe(LoadUserArg{})
+}
+*/

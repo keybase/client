@@ -59,14 +59,25 @@ func (ss *SecretSyncer) Clear() error {
 	return err
 }
 
+// SetUID sets the UID and acquires the lock.  It should be called
+// by everything outside Syncer, SecretSyncer.
+func (ss *SecretSyncer) SetUID(u *UID) {
+	ss.Lock()
+	ss.setUID(u)
+	ss.Unlock()
+}
+
+// lock required before calling this.
 func (ss *SecretSyncer) setUID(u *UID) {
 	ss.Uid = u
 }
 
+// lock required before calling this.
 func (ss *SecretSyncer) getUID() *UID {
 	return ss.Uid
 }
 
+// Syncer locks before calling this.
 func (ss *SecretSyncer) loadFromStorage() (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
@@ -83,6 +94,7 @@ func (ss *SecretSyncer) loadFromStorage() (err error) {
 	return
 }
 
+// Syncer locks before calling this.
 func (ss *SecretSyncer) syncFromServer() (err error) {
 	hargs := HttpArgs{}
 
@@ -119,10 +131,12 @@ func (ss *SecretSyncer) syncFromServer() (err error) {
 	return
 }
 
+// lock required before calling this.
 func (ss *SecretSyncer) dbKey() DbKey {
 	return DbKey{Typ: DB_USER_SECRET_KEYS, Key: ss.Uid.String()}
 }
 
+// Syncer locks before calling this.
 func (ss *SecretSyncer) store() (err error) {
 	if !ss.dirty {
 		return
@@ -171,6 +185,8 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 }
 
 func (ss *SecretSyncer) FindDevice(id *DeviceID) (DeviceKey, error) {
+	ss.RLock()
+	defer ss.RUnlock()
 	dev, ok := ss.keys.Devices[id.String()]
 	if !ok {
 		return DeviceKey{}, fmt.Errorf("No device found for ID = %s", id)
@@ -179,6 +195,8 @@ func (ss *SecretSyncer) FindDevice(id *DeviceID) (DeviceKey, error) {
 }
 
 func (ss *SecretSyncer) HasDevices() bool {
+	ss.RLock()
+	defer ss.RUnlock()
 	if ss.keys == nil {
 		return false
 	}
@@ -186,6 +204,8 @@ func (ss *SecretSyncer) HasDevices() bool {
 }
 
 func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
+	ss.RLock()
+	defer ss.RUnlock()
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
 	}
@@ -193,6 +213,8 @@ func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 }
 
 func (ss *SecretSyncer) HasActiveDevice() bool {
+	ss.RLock()
+	defer ss.RUnlock()
 	if ss.keys == nil {
 		return false
 	}
@@ -205,6 +227,8 @@ func (ss *SecretSyncer) HasActiveDevice() bool {
 }
 
 func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
+	ss.RLock()
+	defer ss.RUnlock()
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
 	}
@@ -221,6 +245,8 @@ func (ss *SecretSyncer) ActiveDevices() (DeviceKeyMap, error) {
 // FindDetKeySrvHalf locates the detkey matching kt and returns
 // the bundle, which is the server half of the detkey.
 func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
+	ss.RLock()
+	defer ss.RUnlock()
 	if kt != KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF && kt != KEY_TYPE_KB_NACL_DH_SERVER_HALF {
 		return nil, fmt.Errorf("invalid key type")
 	}
@@ -237,6 +263,8 @@ func (ss *SecretSyncer) FindDetKeySrvHalf(kt KeyType) ([]byte, error) {
 }
 
 func (ss *SecretSyncer) DumpPrivateKeys() {
+	ss.RLock()
+	defer ss.RUnlock()
 	for s, key := range ss.keys.PrivateKeys {
 		ss.G().Log.Info("Private key: %s", s)
 		ss.G().Log.Info("  -- kid: %s, keytype: %d, bits: %d, algo: %d", key.Kid, key.KeyType, key.KeyBits, key.KeyAlgo)

@@ -2,16 +2,12 @@ package libkb
 
 import (
 	"fmt"
+	"sync"
 )
-
-type Locker interface {
-	Lock()
-	Unlock()
-}
 
 type Syncer interface {
 	Contexitifier
-	Locker
+	sync.Locker
 	loadFromStorage() error
 	syncFromServer() error
 	store() error

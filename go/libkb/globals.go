@@ -38,7 +38,6 @@ type GlobalContext struct {
 	ShutdownHooks []ShutdownHook   // on shutdown, fire these...
 	SocketInfo    SocketInfo       // which socket to bind/connect to
 	SocketWrapper *SocketWrapper   // only need one connection per
-	SecretSyncer  *SecretSyncer    // For syncing secrets between the server and client
 	XStreams      *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
 	UI            UI               // Interact with the UI
 	Daemon        bool             // whether we're in daemon mode
@@ -139,11 +138,6 @@ func (g *GlobalContext) ConfigureMerkleClient() error {
 	return nil
 }
 
-func (g *GlobalContext) ConfigureSecretSyncer() error {
-	g.SecretSyncer = &SecretSyncer{Contextified: Contextified{g}}
-	return nil
-}
-
 func (g *GlobalContext) ConfigureExportedStreams() error {
 	g.XStreams = NewExportedStreams()
 	return nil
@@ -205,10 +199,6 @@ func (g *GlobalContext) ConfigureAll(line CommandLine, cmd Command) error {
 		if err = g.ConfigureSocketInfo(); err != nil {
 			return err
 		}
-	}
-
-	if err = g.ConfigureSecretSyncer(); err != nil {
-		return err
 	}
 
 	if err = g.ConfigureExportedStreams(); err != nil {

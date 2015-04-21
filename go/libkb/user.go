@@ -281,7 +281,7 @@ func NewUserFromLocalStorage(o *jsonw.Wrapper) (*User, error) {
 	return u, err
 }
 
-func LoadUserFromLocalStorage(uid UID, allKeys bool) (u *User, err error) {
+func LoadUserFromLocalStorage(uid UID) (u *User, err error) {
 
 	uid_s := uid.String()
 	G.Log.Debug("+ LoadUserFromLocalStorage(%s)", uid_s)
@@ -519,12 +519,12 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 		return
 	}
 
-	ret, err = G.SecretSyncer.FindActiveKey(ckf)
+	ret, err = G.LoginState.SecretSyncer().FindActiveKey(ckf)
 	return
 }
 
 func (u *User) SyncSecrets() (err error) {
-	if err = RunSyncer(G.SecretSyncer, &u.id); err != nil {
+	if err = RunSyncer(G.LoginState.SecretSyncer(), &u.id); err != nil {
 		return
 	}
 	return err
@@ -647,7 +647,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if local = G.UserCache.Get(uid); local != nil {
 		G.Log.Debug("| Found user in user cache: %s", uid_s)
-	} else if local, err = LoadUserFromLocalStorage(uid, arg.AllKeys); err != nil {
+	} else if local, err = LoadUserFromLocalStorage(uid); err != nil {
 		G.Log.Warning("Failed to load %s from storage: %s",
 			uid_s, err.Error())
 	}
@@ -727,8 +727,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	// We can still return a user with an Error, but never will we
 	// put such a user into the Cache.
-	G.Log.Debug("| Caching %s", uid_s)
-	G.UserCache.Put(ret)
+	if err == nil {
+		G.Log.Debug("| Caching %s", uid_s)
+		G.UserCache.Put(ret)
+	}
 
 	return
 }

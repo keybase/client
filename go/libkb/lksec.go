@@ -155,7 +155,7 @@ func (s *LKSec) fsecret() (res [32]byte) {
 }
 
 func (s *LKSec) apiServerHalf(devid *DeviceID) error {
-	ss := s.G().SecretSyncer
+	ss := s.G().LoginState.SecretSyncer()
 	if err := RunSyncer(ss, s.uid); err != nil {
 		return err
 	}

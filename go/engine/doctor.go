@@ -160,7 +160,7 @@ func (e *Doctor) status(ctx *Context) {
 	}
 
 	// get list of active devices
-	devs, err := e.G().SecretSyncer.ActiveDevices()
+	devs, err := e.G().LoginState.SecretSyncer().ActiveDevices()
 	if err != nil {
 		e.runErr = err
 		return
