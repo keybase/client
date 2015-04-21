@@ -18,10 +18,6 @@ target :Keybase do
 
   pod "Sparkle"
   pod "CocoaLumberjack"
-
-  target :Tests do
-    pod "GRUnit"
-  end
 end
 
 target "keybase.Helper" do

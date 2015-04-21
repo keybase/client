@@ -55,11 +55,16 @@ KB_BIN_VERSION=`./keybased --version`
 KB_VERSION="${KB_BIN_VERSION##* }"
 echo "Keybased Version: $KB_VERSION"
 
+HELPER_PLIST=$DIR/../Helper/Info.plist
+KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
+echo "keybase.Helper Version: $KB_HELPER_VERSION"
+
 PLIST=$DIR/../Keybase/Info.plist
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString '${VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KBKeybasedVersion '${KB_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBHelperVersion '${KB_HELPER_VERSION}'" $PLIST
 
 #
 # Keybase.app

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BuildFlavor</key>
+	<string></string>
+	<key>BuildMachineOSBuild</key>
+	<string>14D131</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>osxfusefs</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.github.osxfuse.filesystems.osxfusefs</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>OSXFUSE (Filesystem in Userspace)</string>
+	<key>CFBundlePackageType</key>
+	<string>KEXT</string>
+	<key>CFBundleSignature</key>
+	<string>FUSE</string>
+	<key>CFBundleVersion</key>
+	<string>2.7.5</string>
+	<key>DTCompiler</key>
+	<string>com.apple.compilers.llvm.clang.1_0</string>
+	<key>DTPlatformBuild</key>
+	<string>6D570</string>
+	<key>DTPlatformVersion</key>
+	<string>GM</string>
+	<key>DTSDKBuild</key>
+	<string>13F34</string>
+	<key>DTSDKName</key>
+	<string>macosx10.9</string>
+	<key>DTXcode</key>
+	<string>0630</string>
+	<key>DTXcodeBuild</key>
+	<string>6D570</string>
+	<key>OSBundleLibraries</key>
+	<dict>
+		<key>com.apple.kpi.bsd</key>
+		<string>13.0.0</string>
+		<key>com.apple.kpi.iokit</key>
+		<string>13.0.0</string>
+		<key>com.apple.kpi.libkern</key>
+		<string>13.0.0</string>
+		<key>com.apple.kpi.mach</key>
+		<string>13.0.0</string>
+		<key>com.apple.kpi.unsupported</key>
+		<string>13.0.0</string>
+	</dict>
+</dict>
+</plist>

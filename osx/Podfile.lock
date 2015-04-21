@@ -26,7 +26,6 @@ PODS:
   - CocoaLumberjack/Extensions (2.0.0):
     - CocoaLumberjack/Default
   - GHKit (1.0.21)
-  - GRUnit (1.1.3)
   - KBKeybase (0.1.11):
     - AFNetworking
     - GHKit
@@ -45,7 +44,7 @@ PODS:
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.12)
+  - MPMessagePack (1.1.14)
   - NAChloride (1.1.2):
     - libsodium
   - ObjectiveSugar (1.1.0)
@@ -65,7 +64,6 @@ DEPENDENCIES:
   - AFNetworking
   - CocoaLumberjack
   - GHKit
-  - GRUnit
   - KBKeybase
   - Mantle
   - MASPreferences
@@ -80,12 +78,11 @@ SPEC CHECKSUMS:
   AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe
   CocoaLumberjack: a6f77d987d65dc7ba86b0f84db7d0b9084f77bcb
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
-  GRUnit: 3a60546a0d42bc0edb83c4e755f9620517cd7af7
   KBKeybase: 4de64ab1f918343bb6a9cf66b0faa65b02d165f7
   libsodium: d1b482e7628e0298de350375a4ab981b5cc8c71b
   Mantle: 17de73ef929db2234d76fde2aacfb89ab11c61e8
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
-  MPMessagePack: b052d7d5ed34374c8252a2cd398c8f5f77113533
+  MPMessagePack: ea5bc2165f17cf7e60c73f45ef3d0224df5db613
   NAChloride: acfc82321c23b57d169b46c587c1d92147aafedf
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8

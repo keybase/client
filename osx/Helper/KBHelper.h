@@ -12,4 +12,6 @@
 
 - (void)listen:(xpc_connection_t)service;
 
+- (void)handleEvent:(xpc_object_t)event completion:(void (^)(NSError* error, NSData *data))completion;
+
 @end

@@ -10,6 +10,8 @@
 
 #import "AppDelegate.h"
 
+#import "KBHelper.h"
+
 @interface KBTestHelperView ()
 @property KBButton *installButton;
 @property KBListView *logView;
@@ -93,16 +95,25 @@
 
 - (void)check {
   NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
-  NSDictionary *request = @{@"ping": @"pong"};
-  [AppDelegate.sharedDelegate.helper sendRequest:request completion:^(NSError *error, NSDictionary *response) {
+  [AppDelegate.sharedDelegate.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSArray *response) {
     if (error) {
       [self logError:error];
     } else {
       [self log:NSStringWithFormat(@"Response: %@", response)];
     }
-
   }];
+}
 
+- (void)test {
+  KBHelperClient *helperClient = [[KBHelperClient alloc] init];
+  KBHelper *helper = [[KBHelper alloc] init];
+
+  xpc_object_t event = [helperClient XPCObjectForRequestWithMethod:@"version" params:nil error:nil];
+  [helper handleEvent:event completion:^(NSError *error, NSData *data) {
+    NSArray *response = [helperClient responseForData:data error:nil];
+    DDLogDebug(@"Response: %@", response);
+    NSAssert(response, @"No response");
+  }];
 }
 
 @end

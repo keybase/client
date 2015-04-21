@@ -14,6 +14,7 @@
 
 @interface KBHelperClient ()
 @property xpc_connection_t connection;
+@property NSInteger messageId;
 @end
 
 @implementation KBHelperClient
@@ -26,17 +27,15 @@
     return NO;
   }
 
+  GHWeakSelf gself = self;
   xpc_connection_set_event_handler(_connection, ^(xpc_object_t event) {
-
     GHDebug(@"Handle event: %@", event);
-
     xpc_type_t type = xpc_get_type(event);
-
     if (type == XPC_TYPE_ERROR) {
       if (event == XPC_ERROR_CONNECTION_INTERRUPTED) {
         // Interrupted
       } else if (event == XPC_ERROR_CONNECTION_INVALID) {
-        // Invalid connection
+        gself.connection = nil;
       } else {
         // Unknown error
       }
@@ -49,24 +48,43 @@
   return YES;
 }
 
-- (void)sendRequest:(NSDictionary *)request completion:(void (^)(NSError *error, NSDictionary *response))completion {
+- (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, NSArray *response))completion {
   NSAssert(_connection, @"No connection");
-  xpc_object_t message = xpc_dictionary_create(NULL, NULL, 0);
-
-  NSData *dataRequest = [request mp_messagePack];
-  xpc_dictionary_set_data(message, "data", [dataRequest bytes], [dataRequest length]);
+  NSError *error = nil;
+  xpc_object_t message = [self XPCObjectForRequestWithMethod:method params:params error:&error];
+  if (!message) {
+    completion(error, nil);
+    return;
+  }
 
   xpc_connection_send_message_with_reply(_connection, message, dispatch_get_main_queue(), ^(xpc_object_t event) {
-
     GHDebug(@"Reply: %@", event);
-
+    NSError *error = nil;
     size_t length = 0;
     const void *buffer = xpc_dictionary_get_data(event, "data", &length);
     NSData *dataResponse = [NSData dataWithBytes:buffer length:length];
-
-    NSDictionary *response = [dataResponse mp_dict:nil];
-    completion(nil, response);
+    NSArray *response = [self responseForData:dataResponse error:&error];
+    completion(error, response);
   });
+}
+
+- (xpc_object_t)XPCObjectForRequestWithMethod:(NSString *)method params:(NSArray *)params error:(NSError **)error {
+  // Uses msgpack-rpc for request/response.
+  // Could use remote objects but want to avoid reflection and magic especially if its source.
+  NSArray *request = @[@(0), @(++_messageId), method, (params ? params : NSNull.null)];
+  NSData *dataRequest = [request mp_messagePack:0 error:error];
+  if (!dataRequest) {
+    return nil;
+  }
+
+  // XPC request object must be dictionary so put data in {"data": data} dictionary.
+  xpc_object_t message = xpc_dictionary_create(NULL, NULL, 0);
+  xpc_dictionary_set_data(message, "data", [dataRequest bytes], [dataRequest length]);
+  return message;
+}
+
+- (NSArray *)responseForData:(NSData *)data error:(NSError **)error {
+  return [data mp_array:error];
 }
 
 - (BOOL)install:(NSError **)error {

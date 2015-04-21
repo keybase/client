@@ -16,6 +16,11 @@
 
 - (BOOL)install:(NSError **)error;
 
-- (void)sendRequest:(NSDictionary *)request completion:(void (^)(NSError *error, NSDictionary *response))completion;
+- (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, NSArray *response))completion;
+
+
+- (xpc_object_t)XPCObjectForRequestWithMethod:(NSString *)method params:(NSArray *)params error:(NSError **)error;
+
+- (NSArray *)responseForData:(NSData *)data error:(NSError **)error;
 
 @end
