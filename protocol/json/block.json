@@ -163,6 +163,16 @@
     "type" : "fixed",
     "name" : "SIGID",
     "size" : 32
+  }, {
+    "type" : "record",
+    "name" : "BlockIdCombo",
+    "fields" : [ {
+      "name" : "blockId",
+      "type" : "string"
+    }, {
+      "name" : "size",
+      "type" : "int"
+    } ]
   } ],
   "messages" : {
     "blockSession" : {
@@ -174,18 +184,15 @@
     },
     "getBlock" : {
       "request" : [ {
-        "name" : "blockId",
-        "type" : "string"
-      }, {
-        "name" : "size",
-        "type" : "int"
+        "name" : "bid",
+        "type" : "BlockIdCombo"
       } ],
       "response" : "bytes"
     },
     "putBlock" : {
       "request" : [ {
-        "name" : "blockId",
-        "type" : "string"
+        "name" : "bid",
+        "type" : "BlockIdCombo"
       }, {
         "name" : "buf",
         "type" : "bytes"
@@ -194,11 +201,8 @@
     },
     "delBlock" : {
       "request" : [ {
-        "name" : "blockId",
-        "type" : "string"
-      }, {
-        "name" : "size",
-        "type" : "int"
+        "name" : "bid",
+        "type" : "BlockIdCombo"
       } ],
       "response" : "null"
     }

@@ -1,12 +1,12 @@
 @namespace("keybase.1")
 
 protocol block {
-	import idl "common.avdl";
+	import idl "backend_common.avdl";
 
 	void blockSession(string sid);
-	bytes getBlock(string blockId, int size);
-	void putBlock(string blockId, bytes buf);
+	bytes getBlock(BlockIdCombo bid);
+	void putBlock(BlockIdCombo bid, bytes buf);
 
 	//future RPC from bindex to bserver
-	void delBlock(string blockId, int size);
+	void delBlock(BlockIdCombo bid);
 }

@@ -164,30 +164,33 @@ func (c BIndexClient) Delete(__arg DeleteArg) (err error) {
 	return
 }
 
+type BlockIdCombo struct {
+	BlockId string `codec:"blockId" json:"blockId"`
+	Size    int    `codec:"size" json:"size"`
+}
+
 type BlockSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }
 
 type GetBlockArg struct {
-	BlockId string `codec:"blockId" json:"blockId"`
-	Size    int    `codec:"size" json:"size"`
+	Bid BlockIdCombo `codec:"bid" json:"bid"`
 }
 
 type PutBlockArg struct {
-	BlockId string `codec:"blockId" json:"blockId"`
-	Buf     []byte `codec:"buf" json:"buf"`
+	Bid BlockIdCombo `codec:"bid" json:"bid"`
+	Buf []byte       `codec:"buf" json:"buf"`
 }
 
 type DelBlockArg struct {
-	BlockId string `codec:"blockId" json:"blockId"`
-	Size    int    `codec:"size" json:"size"`
+	Bid BlockIdCombo `codec:"bid" json:"bid"`
 }
 
 type BlockInterface interface {
 	BlockSession(string) error
-	GetBlock(GetBlockArg) ([]byte, error)
+	GetBlock(BlockIdCombo) ([]byte, error)
 	PutBlock(PutBlockArg) error
-	DelBlock(DelBlockArg) error
+	DelBlock(BlockIdCombo) error
 }
 
 func BlockProtocol(i BlockInterface) rpc2.Protocol {
@@ -204,7 +207,7 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 			"getBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetBlockArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetBlock(args[0])
+					ret, err = i.GetBlock(args[0].Bid)
 				}
 				return
 			},
@@ -218,7 +221,7 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 			"delBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]DelBlockArg, 1)
 				if err = nxt(&args); err == nil {
-					err = i.DelBlock(args[0])
+					err = i.DelBlock(args[0].Bid)
 				}
 				return
 			},
@@ -237,7 +240,8 @@ func (c BlockClient) BlockSession(sid string) (err error) {
 	return
 }
 
-func (c BlockClient) GetBlock(__arg GetBlockArg) (res []byte, err error) {
+func (c BlockClient) GetBlock(bid BlockIdCombo) (res []byte, err error) {
+	__arg := GetBlockArg{Bid: bid}
 	err = c.Cli.Call("keybase.1.block.getBlock", []interface{}{__arg}, &res)
 	return
 }
@@ -247,7 +251,8 @@ func (c BlockClient) PutBlock(__arg PutBlockArg) (err error) {
 	return
 }
 
-func (c BlockClient) DelBlock(__arg DelBlockArg) (err error) {
+func (c BlockClient) DelBlock(bid BlockIdCombo) (err error) {
+	__arg := DelBlockArg{Bid: bid}
 	err = c.Cli.Call("keybase.1.block.delBlock", []interface{}{__arg}, nil)
 	return
 }
