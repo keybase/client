@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.github.osxfuse.filesystems.osxfusefs</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>osxfusefs</string>
+	<key>CFBundlePackageType</key>
+	<string>fs</string>
+	<key>CFBundleShortVersionString</key>
+	<string>2.7.5</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>2.7.5</string>
+	<key>BuildFlavor</key>
+	<string></string>
+	<key>FSPersonalities</key>
+	<dict>
+		<key>dead</key>
+		<dict>
+			<key>FSName</key>
+			<string>Dead File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>-1</integer>
+		</dict>
+		<key>Generic</key>
+		<dict>
+			<key>FSName</key>
+			<string>Generic File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>0</integer>
+		</dict>
+		<key>xmp</key>
+		<dict>
+			<key>FSName</key>
+			<string>PassThrough File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>1</integer>
+		</dict>
+		<key>SSH</key>
+		<dict>
+			<key>FSName</key>
+			<string>SSH File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>2</integer>
+		</dict>
+		<key>FTP</key>
+		<dict>
+			<key>FSName</key>
+			<string>FTP File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>3</integer>
+		</dict>
+		<key>WebDAV</key>
+		<dict>
+			<key>FSName</key>
+			<string>WebDAV File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>4</integer>
+		</dict>
+		<key>Spotlight</key>
+		<dict>
+			<key>FSName</key>
+			<string>Spotlight File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>5</integer>
+		</dict>
+		<key>Picasa</key>
+		<dict>
+			<key>FSName</key>
+			<string>Picasa File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>6</integer>
+		</dict>
+		<key>proc</key>
+		<dict>
+			<key>FSName</key>
+			<string>Process File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>7</integer>
+		</dict>
+		<key>NTFS-3g</key>
+		<dict>
+			<key>FSName</key>
+			<string>NTFS-3g (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>8</integer>
+		</dict>
+		<key>Beagle</key>
+		<dict>
+			<key>FSName</key>
+			<string>Beagle File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>9</integer>
+		</dict>
+		<key>Crypto</key>
+		<dict>
+			<key>FSName</key>
+			<string>Crypto File System (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>10</integer>
+		</dict>
+		<key>BraveFS</key>
+		<dict>
+			<key>FSName</key>
+			<string>BraveFS (OSXFUSE)</string>
+			<key>FSSubType</key>
+			<integer>42</integer>
+		</dict>
+	</dict>
+</dict>
+</plist>

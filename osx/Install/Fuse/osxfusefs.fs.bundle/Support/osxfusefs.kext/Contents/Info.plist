@@ -5,7 +5,7 @@
 	<key>BuildFlavor</key>
 	<string></string>
 	<key>BuildMachineOSBuild</key>
-	<string>14D131</string>
+	<string>13F34</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
@@ -25,17 +25,17 @@
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>6D570</string>
+	<string>6A2008a</string>
 	<key>DTPlatformVersion</key>
 	<string>GM</string>
 	<key>DTSDKBuild</key>
-	<string>13F34</string>
+	<string>13F26</string>
 	<key>DTSDKName</key>
 	<string>macosx10.9</string>
 	<key>DTXcode</key>
-	<string>0630</string>
+	<string>0611</string>
 	<key>DTXcodeBuild</key>
-	<string>6D570</string>
+	<string>6A2008a</string>
 	<key>OSBundleLibraries</key>
 	<dict>
 		<key>com.apple.kpi.bsd</key>

@@ -1,5 +1,5 @@
 //
-//  KBFSInstaller.h
+//  KBHLog.h
 //  Keybase
 //
 //  Created by Gabriel on 4/21/15.
@@ -8,8 +8,4 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBFSInstaller : NSObject
-
-- (BOOL)install:(NSString *)path error:(NSError **)error;
-
-@end
+void KBLog(NSString *msg, ...);

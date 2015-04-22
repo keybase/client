@@ -11,13 +11,15 @@
 #include <syslog.h>
 #include <xpc/xpc.h>
 #import <MPMessagePack/MPMessagePack.h>
+#import <MPMessagePack/MPMessagePackClient.h>
 #import "KBFSInstaller.h"
 #import "KBHelperDefines.h"
+#import "KBHLog.h"
 
 @interface KBHelper () <NSXPCListenerDelegate>
 @property xpc_connection_t connection;
 
-@property KBFSInstaller *kbfsInstaller;
+@property KBFSInstaller *KBFSInstaller;
 @end
 
 @implementation KBHelper
@@ -25,14 +27,12 @@
 - (void)listen:(xpc_connection_t)service {
   xpc_connection_set_event_handler(service, ^(xpc_object_t connection) {
 
-    [self log:@"Setting connection event handler."];
     xpc_connection_set_event_handler(connection, ^(xpc_object_t event) {
-
-      [self log:[NSString stringWithFormat:@"Received event: %@", event]];
 
       xpc_type_t type = xpc_get_type(event);
 
       if (type == XPC_TYPE_ERROR) {
+        KBLog(@"Error: %@", event);
         if (event == XPC_ERROR_CONNECTION_INVALID) {
           // The client process on the other end of the connection has either
           // crashed or cancelled the connection. After receiving this error,
@@ -74,7 +74,8 @@
   // See msgpack-rpc spec for request/response format
   NSArray *request = [dataRequest mp_array:&error];
 
-  if (error) {
+  if (!request || error) {
+    KBLog(@"Request error: %@", error);
     completion(error, nil);
   } else {
     [self handleRequest:request completion:^(NSArray *response) {
@@ -93,37 +94,40 @@
   completion(@[@(1), messageId, errorDict, NSNull.null]);
 }
 
-- (void)handleRequest:(NSArray *)request completion:(void (^)(NSArray *response))completion {
-  if ([request count] != 4) {
-    [self respondWithError:KBMakeError(-1, @"Invalid request (should follow msgpack-rpc spec") messageId:@(0) completion:completion];
+- (void)handleRequest:(id)request completion:(void (^)(NSArray *response))completion {
+  NSError *error = nil;
+  if (!MPVerifyRequest(request, &error)) {
+    [self respondWithError:KBMakeError(KBErrorCodeXPCInvalidRequest, @"%@", error.localizedDescription) messageId:@(0) completion:completion];
     return;
   }
 
-  id messageId = request[1];
+  NSNumber *messageId = request[1];
   NSString *method = request[2];
+  NSArray *params = request[3];
+
+  KBLog(@"Request: %@(%@)", method, params ? params : @"");
+
   if ([method isEqualToString:@"version"]) {
     NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
     [self respondWithObject:version messageId:messageId completion:completion];
   } else if ([method isEqualToString:@"installKBFS"]) {
-    if (!_kbfsInstaller) _kbfsInstaller = [[KBFSInstaller alloc] init];
+
+    NSString *path = params[0][@"path"];
+
+    if (!_KBFSInstaller) _KBFSInstaller = [[KBFSInstaller alloc] init];
     NSError *error = nil;
-    if (![_kbfsInstaller install:&error]) {
+    if (![_KBFSInstaller install:path error:&error]) {
       if (error) {
         [self respondWithError:error messageId:messageId completion:completion];
       } else {
-        [self respondWithError:KBMakeError(-1000, @"Failed with unknown error") messageId:messageId completion:completion];
+        [self respondWithError:KBMakeError(KBErrorCodeInstaller, @"Failed with unknown error") messageId:messageId completion:completion];
       }
     } else {
       [self respondWithObject:@(YES) messageId:messageId completion:completion];
     }
   } else {
-    [self respondWithError:KBMakeError(-2, @"Unknown request method") messageId:messageId completion:completion];
+    [self respondWithError:KBMakeError(KBErrorCodeXPCUnknownRequest, @"Unknown request method") messageId:messageId completion:completion];
   }
-}
-
-- (void)log:(NSString *)message {
-  NSLog(@"%@", message);
-  syslog(LOG_NOTICE, "%s", [message UTF8String]);
 }
 
 @end

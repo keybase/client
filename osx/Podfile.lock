@@ -67,12 +67,16 @@ DEPENDENCIES:
   - KBKeybase
   - Mantle
   - MASPreferences
-  - MPMessagePack
+  - MPMessagePack (from `~/Projects/MPMessagePack`)
   - ObjectiveSugar
   - Slash
   - Sparkle
   - YOLayout
   - ZXCVBN
+
+EXTERNAL SOURCES:
+  MPMessagePack:
+    :path: "~/Projects/MPMessagePack"
 
 SPEC CHECKSUMS:
   AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe

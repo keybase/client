@@ -11,6 +11,7 @@
 
 #import <ServiceManagement/ServiceManagement.h>
 #import "AppDelegate.h"
+#import <MPMessagePack/MPMessagePackClient.h>
 
 @interface KBHelperClient ()
 @property xpc_connection_t connection;
@@ -48,8 +49,15 @@
   return YES;
 }
 
-- (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, NSArray *response))completion {
-  NSAssert(_connection, @"No connection");
+- (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, id value))completion {
+  if (!_connection) {
+    NSError *error = nil;
+    if (![self connect:&error]) {
+      completion(error, nil);
+      return;
+    }
+  }
+
   NSError *error = nil;
   xpc_object_t message = [self XPCObjectForRequestWithMethod:method params:params error:&error];
   if (!message) {
@@ -58,13 +66,27 @@
   }
 
   xpc_connection_send_message_with_reply(_connection, message, dispatch_get_main_queue(), ^(xpc_object_t event) {
-    GHDebug(@"Reply: %@", event);
+    //DDLogDebug(@"Reply: %@", event);
     NSError *error = nil;
     size_t length = 0;
     const void *buffer = xpc_dictionary_get_data(event, "data", &length);
     NSData *dataResponse = [NSData dataWithBytes:buffer length:length];
-    NSArray *response = [self responseForData:dataResponse error:&error];
-    completion(error, response);
+    id response = [self responseForData:dataResponse error:&error];
+    if (!response) {
+      completion(error, nil);
+      return;
+    }
+    if (!MPVerifyResponse(response, &error)) {
+      completion(error, nil);
+      return;
+    }
+    NSDictionary *errorDict = MPIfNull(response[2], nil);
+    if (errorDict) {
+      error = MPErrorFromErrorDict(@"KBHelper", errorDict);
+      completion(error, nil);
+    } else {
+      completion(nil, MPIfNull(response[3], nil));
+    }
   });
 }
 

@@ -10,8 +10,6 @@
 
 #import "AppDelegate.h"
 
-#import "KBHelper.h"
-
 @interface KBTestHelperView ()
 @property KBButton *installButton;
 @property KBListView *logView;
@@ -33,9 +31,13 @@
   connectButton.targetBlock = ^{ [gself connect]; };
   [buttons addSubview:connectButton];
 
-  KBButton *checkButton = [KBButton buttonWithText:@"Check" style:KBButtonStyleToolbar];
-  checkButton.targetBlock = ^{ [gself check]; };
+  KBButton *checkButton = [KBButton buttonWithText:@"Version" style:KBButtonStyleToolbar];
+  checkButton.targetBlock = ^{ [gself checkVersion]; };
   [buttons addSubview:checkButton];
+
+  KBButton *installKBFSButton = [KBButton buttonWithText:@"Install KBFS" style:KBButtonStyleToolbar];
+  installKBFSButton.targetBlock = ^{ [gself installKBFS]; };
+  [buttons addSubview:installKBFSButton];
 
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
   _logView.scrollView.borderType = NSBezelBorder;
@@ -93,17 +95,32 @@
   }
 }
 
-- (void)check {
+- (void)checkVersion {
   NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
-  [AppDelegate.sharedDelegate.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSArray *response) {
+  [AppDelegate.sharedDelegate.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSString *version) {
     if (error) {
       [self logError:error];
     } else {
-      [self log:NSStringWithFormat(@"Response: %@", response)];
+      [self log:NSStringWithFormat(@"Version: %@", version)];
     }
   }];
 }
 
+- (void)installKBFS {
+  NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
+
+  NSString *path = [NSBundle.mainBundle pathForResource:@"osxfusefs.fs" ofType:@"bundle"];
+  NSAssert(path, @"Missing osxfusefs");
+  [AppDelegate.sharedDelegate.helper sendRequest:@"installKBFS" params:@[@{@"path": path}] completion:^(NSError *error, id value) {
+    if (error) {
+      [self logError:error];
+    } else {
+      [self log:NSStringWithFormat(@"Install KBFS: %@", value)];
+    }
+  }];
+}
+
+/*
 - (void)test {
   KBHelperClient *helperClient = [[KBHelperClient alloc] init];
   KBHelper *helper = [[KBHelper alloc] init];
@@ -115,6 +132,7 @@
     NSAssert(response, @"No response");
   }];
 }
+ */
 
 @end
 
