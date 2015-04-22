@@ -101,6 +101,12 @@ func (md *MDOpsStandard) processMetadata(
 				return err
 			}
 		}
+
+		// Since we don't do conflict resolution yet, we don't care
+		// about block changes when we're reading in the MD from the
+		// server.  TODO: remove this once KBFSOps starts properly
+		// doing copy-on-write for metadata.
+		rmds.MD.ClearBlockChanges()
 	}
 	return nil
 }
