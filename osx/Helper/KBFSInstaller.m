@@ -24,20 +24,16 @@
     return NO;
   }
 
-  // Remove bundle (which was for packaging only)
-  if ([[path lastPathComponent] isEqualToString:@"bundle"]) {
-    path = [path stringByDeletingLastPathComponent];
+  NSString *source = path;
+  if ([[path pathExtension] isEqualToString:@"bundle"]) {
+    path = [path stringByDeletingPathExtension]; // Remove .bundle (which was for packaging only)
   }
+  NSString *destination = [@"/Library/Filesystems/" stringByAppendingPathComponent:[path lastPathComponent]];
 
-  KBLog(@"Install: %@", path);
+  KBLog(@"Install: %@ to %@", source, destination);
 
-  NSString *filename = [path lastPathComponent];
-  NSString *destination = [@"/Library/Filesystems/" stringByAppendingPathComponent:filename];
-
-  if ([NSFileManager.defaultManager isReadableFileAtPath:path]) {
-    if (![NSFileManager.defaultManager copyItemAtPath:path toPath:destination error:error]) {
-      return NO;
-    }
+  if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:error]) {
+    return NO;
   }
 
   NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:destination error:NULL];
