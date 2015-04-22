@@ -13,6 +13,14 @@ lint:
 cover:
 	go test -covermode=count ./...
 
+test:
+	test/check_or_start_kbweb.sh
+	go test ./...
+	test/pause_kbweb.sh
+
+testclean:
+	test/nuke_kbweb.sh
+
 coverclient:
 	$(COVERTEST) ./client
 	$(COVERWEB)
@@ -35,3 +43,5 @@ coverlibkb:
 
 coverclean:
 	rm /tmp/count.out
+
+.PHONY: test
