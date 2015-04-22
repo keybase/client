@@ -16,7 +16,7 @@ typedef void (^KBLaunchStatus)(NSError *error, NSInteger pid);
 
 @interface KBLaunchCtl : NSObject
 
-- (instancetype)initWithHost:(NSString *)host home:(NSString *)home sockFile:(NSString *)sockFile pidFile:(NSString *)pidFile label:(NSString *)label;
+- (instancetype)initWithHost:(NSString *)host home:(NSString *)home label:(NSString *)label debug:(BOOL)debug;
 
 /*!
  @param force Enables service even if it has been disabled (launchctl load -w)

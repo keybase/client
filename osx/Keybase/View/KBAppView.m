@@ -133,6 +133,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
     completion(nil, nil);
   }];
 
+  NSAssert(_client.installer, @"No installer");
   [_client.installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
     if (error) {
       for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didErrorOnInstall:error];

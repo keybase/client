@@ -83,15 +83,15 @@
   KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
   KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 380) retain:YES];
-  envSelectView.onSelect = ^(KBRPClientEnv env) {
+  envSelectView.onSelect = ^(KBEnvironment *environment) {
 #ifdef DEBUG
-    if (env != KBRPClientEnvManual) {
+    if (!environment.canRunFromXCode) {
       KBDebugAlertModal(@"Running in debug mode, you should select Manual.");
       return;
     }
 #endif
     [window close];
-    [self openWithEnv:env];
+    [self openWithEnvironment:environment];
   };
   window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
   [window center];
@@ -103,7 +103,7 @@
   [DDLog addLogger:DDASLLogger.sharedInstance withLevel:[[_preferences valueForIdentifier:@"Preferences.Log.Level"] unsignedIntegerValue]]; // Console log
 }
 
-- (void)openWithEnv:(KBRPClientEnv)env {
+- (void)openWithEnvironment:(KBEnvironment *)environment {
   [self updateMenu];
 
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
@@ -126,7 +126,7 @@
 
   _helper = [[KBHelperClient alloc] init];
 
-  KBRPClient *client = [[KBRPClient alloc] initWithEnv:env];
+  KBRPClient *client = [[KBRPClient alloc] initWithEnvironment:environment];
   [_appView connect:client];
 }
 

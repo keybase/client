@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBContentView.h"
 
-typedef void (^KBEnvSelect)(KBRPClientEnv env);
+typedef void (^KBEnvSelect)(KBEnvironment *environment);
 
 @interface KBEnvSelectView : KBContentView
 

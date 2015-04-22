@@ -9,6 +9,7 @@
 #import "KBEnvSelectView.h"
 
 #import "KBButtonView.h"
+#import "KBEnvironment.h"
 
 @implementation KBEnvSelectView
 
@@ -25,23 +26,17 @@
 
   [contentView addSubview:[KBBox spacing:20]];
 
-  YOVBox *envs = [YOVBox box];
-  [envs kb_setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
-  [contentView addSubview:envs];
+  YOVBox *envsView = [YOVBox box];
+  [envsView kb_setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
+  [contentView addSubview:envsView];
 
-//#ifndef DEBUG
-  KBImageTextView *viewKeybaseIO = [[KBImageTextView alloc] init];
-  [viewKeybaseIO setTitle:@"Keybase.io" info:@"Connects to api.keybase.io" imageURLString:nil imageSize:CGSizeZero];
-  [envs addSubview:[KBButtonView buttonViewWithView:viewKeybaseIO targetBlock:^{ self.onSelect(KBRPClientEnvKeybaseIO); }]];
+  NSArray *envs = @[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], [KBEnvironment env:KBEnvManual]];
 
-  KBImageTextView *viewLocalhost = [[KBImageTextView alloc] init];
-  [viewLocalhost setTitle:@"Localhost" info:@"Connects to localhost:3000" imageURLString:nil imageSize:CGSizeZero];
-  [envs addSubview:[KBButtonView buttonViewWithView:viewLocalhost targetBlock:^{ self.onSelect(KBRPClientEnvLocalhost); }]];
-//#endif
-
-  KBImageTextView *viewManual = [[KBImageTextView alloc] init];
-  [viewManual setTitle:@"Manual" info:@"Manually connect /tmp/keybase-dev.sock" imageURLString:nil imageSize:CGSizeZero];
-  [envs addSubview:[KBButtonView buttonViewWithView:viewManual targetBlock:^{ self.onSelect(KBRPClientEnvManual); }]];
+  for (KBEnvironment *env in envs) {
+    KBImageTextView *view = [[KBImageTextView alloc] init];
+    [view setTitle:env.title info:[env.home stringByAbbreviatingWithTildeInPath] imageURLString:nil imageSize:CGSizeZero];
+    [envsView addSubview:[KBButtonView buttonViewWithView:view targetBlock:^{ self.onSelect(env); }]];
+  }
 
   [contentView addSubview:[KBBox spacing:20]];
 

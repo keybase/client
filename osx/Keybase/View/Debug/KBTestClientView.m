@@ -8,6 +8,8 @@
 
 #import "KBTestClientView.h"
 
+#import "AppDelegate.h"
+
 @interface KBTestClientView ()
 @property KBRPClient *client;
 @property KBButton *connectButton;
@@ -44,7 +46,7 @@
 }
 
 - (void)open {
-  _client = [[KBRPClient alloc] initWithEnv:KBRPClientEnvManual];
+  _client = [[KBRPClient alloc] initWithEnvironment:AppDelegate.appView.client.environment];
   _client.autoRetryDisabled = YES;
   _client.delegate = self;
   [_client open];

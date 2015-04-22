@@ -11,6 +11,7 @@
 #import "KBDefines.h"
 #import <MPMessagePack/MPMessagePackClient.h>
 #import "KBInstaller.h"
+#import "KBEnvironment.h"
 
 @protocol KBRPClient;
 
@@ -18,12 +19,6 @@ typedef NS_ENUM (NSInteger, KBRPClientStatus) {
   KBRPClientStatusClosed,
   KBRPClientStatusOpening,
   KBRPClientStatusOpen
-};
-
-typedef NS_ENUM (NSInteger, KBRPClientEnv) {
-  KBRPClientEnvManual = 1,
-  KBRPClientEnvLocalhost,
-  KBRPClientEnvKeybaseIO,
 };
 
 @class KBRPClient;
@@ -40,11 +35,10 @@ typedef NS_ENUM (NSInteger, KBRPClientEnv) {
 @property (weak) id<KBRPClientDelegate> delegate;
 @property (getter=isAutoRetryDisabled) BOOL autoRetryDisabled;
 
+@property (readonly) KBEnvironment *environment;
 @property (readonly) KBInstaller *installer;
 
-@property (readonly) NSString *socketPath;
-
-- (instancetype)initWithEnv:(KBRPClientEnv)env;
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 
 - (void)sendRequestWithMethod:(NSString *)method params:(id)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method sessionId:(NSInteger)sessionId requestHandler:(MPRequestHandler)requestHandler;

@@ -15,29 +15,22 @@
 
 @implementation KBLaunchCtl
 
-- (instancetype)initWithHost:(NSString *)host home:(NSString *)home sockFile:(NSString *)sockFile pidFile:(NSString *)pidFile label:(NSString *)label {
+- (instancetype)initWithHost:(NSString *)host home:(NSString *)home label:(NSString *)label debug:(BOOL)debug {
   if ((self = [super init])) {
+    NSParameterAssert(home);
     _label = label;
 
     NSMutableArray *args = [NSMutableArray array];
     [args addObject:@"/Applications/Keybase.app/Contents/MacOS/keybased"];
-    if (home) {
-      [args addObjectsFromArray:@[@"-H", home]];
-    }
-
-    if (pidFile) {
-      [args addObject:NSStringWithFormat(@"--pid-file=%@", pidFile)];
-    }
-
-    if (sockFile) {
-      [args addObject:NSStringWithFormat(@"--socket-file=%@", sockFile)];
-    }
+    [args addObjectsFromArray:@[@"-H", home]];
 
     if (host) {
       [args addObjectsFromArray:@[@"-s", host]];
     }
 
-    [args addObject:@"-d"]; // Debug
+    if (debug) {
+      [args addObject:@"-d"];
+    }
 
     // Need to create logging dir here because otherwise it will be created as root by launchctl
     NSString *logDir = [@"~/Library/Logs/Keybase" stringByExpandingTildeInPath];

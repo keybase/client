@@ -32,7 +32,6 @@
     return;
   }
 
-  GHWeakSelf gself = self;
   [_launchCtl status:^(NSError *error, NSInteger pid) {
     if (error) {
       completion(error, NO, KBInstallTypeNone);

@@ -15,7 +15,7 @@ launchctl unload -w ~/Library/LaunchAgents/keybase.keybased.plist
 launchctl unload -w ~/Library/LaunchAgents/keybase-debug.keybased.plist
 
 echo "Nuking state"
-rm -rf ~/Library/Application\ Support/Keybase/Debug/
+rm -rf ~/Library/Application\ Support/Keybase
 rm -rf ~/.config/keybase
 rm -rf ~/.cache/keybase
 rm -rf ~/.local/share/keybase

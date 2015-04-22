@@ -12,7 +12,7 @@
 @implementation KBRuntimeStatusView
 
 - (void)update {
-  NSString *socketPath = _client.socketPath;
+  NSString *socketPath = _client.environment.sockFile;
 
   NSMutableString *status = [NSMutableString string];
   [status appendString:@"keybased: "];

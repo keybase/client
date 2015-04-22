@@ -24,42 +24,35 @@
 @property MPMessagePackServer *server;
 @property MPOrderedDictionary *registrations;
 
-@property NSString *socketPath;
 @property KBRPCRecord *recorder;
 
 @property NSInteger connectAttempt;
 @property KBRPClientStatus status;
+
+@property KBEnvironment *environment;
+@property KBLaunchCtl *launchCtl; // Optional
 @end
 
 @implementation KBRPClient
 
-- (instancetype)initWithEnv:(KBRPClientEnv)env {
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   if ((self = [super init])) {
-
-    KBLaunchCtl *launchCtl = nil;
-    switch (env) {
-      case KBRPClientEnvKeybaseIO: {
-        launchCtl = [[KBLaunchCtl alloc] initWithHost:@"https://api.keybase.io:443" home:nil sockFile:nil pidFile:nil label:@"keybase.keybased"];
-        NSString *user = [NSProcessInfo.processInfo.environment objectForKey:@"USER"];
-        NSAssert(user, @"No user");
-        self.socketPath = NSStringWithFormat(@"/tmp/keybase-%@/keybased.sock", user);
-        break;
-      }
-      case KBRPClientEnvLocalhost: {
-        NSString *home = [@"~/Library/Application Support/Keybase/Debug" stringByExpandingTildeInPath];
-        launchCtl = [[KBLaunchCtl alloc] initWithHost:@"http://localhost:3000" home:home sockFile:@"/tmp/keybase-debug.sock" pidFile:@"/tmp/keybase-pid" label:@"keybase-debug.keybased"];
-        self.socketPath = @"/tmp/keybase-debug.sock";
-        break;
-      }
-      case KBRPClientEnvManual: {
-        self.socketPath = @"/tmp/keybase-dev.sock";
-        break;
-      }
+    _environment = environment;
+    if (_environment.launchDLabel) {
+      _launchCtl = [[KBLaunchCtl alloc] initWithHost:environment.host home:environment.home label:environment.launchDLabel debug:environment.isDebugEnabled];
     }
 
-    _installer = [[KBInstaller alloc] initWithLaunchCtl:launchCtl];
+    _installer = [[KBInstaller alloc] initWithLaunchCtl:_launchCtl];
   }
   return self;
+}
+
+- (void)uninstall {
+  // TODO: These are old installed files to cleanup
+  /*
+  NSArray *plistsToRemove = @[@"~/Library/LaunchAgents/keybase.keybased.plist", @"~/Library/LaunchAgents/keybase-debug.keybased.plist"];
+  NSArray *dirsToRemove = @[@"~/Library/Application\ Support/Keybase/Debug"];
+   */
 }
 
 - (void)open {
@@ -101,10 +94,10 @@
 
   _client.coder = [[KBRPCCoder alloc] init];
 
-  DDLogDebug(@"Connecting to keybased (%@)...", self.socketPath);
+  DDLogDebug(@"Connecting to keybased (%@)...", self.environment.sockFile);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
-  [_client openWithSocket:self.socketPath completion:^(NSError *error) {
+  [_client openWithSocket:self.environment.sockFile completion:^(NSError *error) {
     if (error) {
       gself.status = KBRPClientStatusClosed;
 
