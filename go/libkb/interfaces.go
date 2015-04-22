@@ -29,7 +29,6 @@ type CommandLine interface {
 	GetProxy() string
 	GetPlainLogging() (bool, bool)
 	GetGpgHome() string
-	GetEmail() string
 	GetApiDump() (bool, bool)
 	GetUserCacheSize() (int, bool)
 	GetProofCacheSize() (int, bool)

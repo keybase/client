@@ -322,7 +322,6 @@ func (e Env) GetDaemonPort() int {
 
 func (e Env) GetEmail() string {
 	return e.GetString(
-		func() string { return e.cmd.GetEmail() },
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
 	)
 }

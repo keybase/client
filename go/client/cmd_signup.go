@@ -24,6 +24,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "c, invite-code",
 				Usage: "Specify an invite code",
 			},
+			cli.StringFlag{
+				Name:  "email",
+				Usage: "Specify an account email",
+			},
 		},
 	}
 }
@@ -54,6 +58,7 @@ type CmdSignupState struct {
 	fullname        string
 	notes           string
 	passphrase      string
+	defaultEmail    string
 }
 
 func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
@@ -64,6 +69,12 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	if s.code == "" {
 		// For development convenience.
 		s.code = os.Getenv("KEYBASE_INVITATION_CODE")
+	}
+
+	s.defaultEmail = ctx.String("email")
+	if s.defaultEmail == "" {
+		// For development convenience.
+		s.defaultEmail = os.Getenv("KEYBASE_SIGNUP_EMAIL")
 	}
 
 	if nargs != 0 {
@@ -288,7 +299,7 @@ func (s *CmdSignupState) MakePrompter() {
 	}
 
 	email := &Field{
-		Defval:  cl.GetEmail(),
+		Defval:  s.defaultEmail,
 		Name:    "email",
 		Prompt:  "Your email address",
 		Checker: &libkb.CheckEmail,

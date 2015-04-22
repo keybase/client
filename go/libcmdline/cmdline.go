@@ -47,9 +47,6 @@ func (p CommandLine) GetDebug() (bool, bool) {
 func (p CommandLine) GetPgpFingerprint() *libkb.PgpFingerprint {
 	return libkb.PgpFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
-func (p CommandLine) GetEmail() string {
-	return p.GetGString("email")
-}
 func (p CommandLine) GetProxy() string {
 	return p.GetGString("proxy")
 }
@@ -269,10 +266,6 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "enable debugging mode",
-		},
-		cli.StringFlag{
-			Name:  "email",
-			Usage: "specify your email address for login/signup purposes",
 		},
 		cli.BoolFlag{
 			Name:  "plain-logging, L",
