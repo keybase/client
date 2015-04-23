@@ -8,22 +8,6 @@ import (
 
 //==================================================================
 
-func (c *UserCache) GetResolution(key string) *ResolveResult {
-	res, found := c.resolveCache[key]
-	if found {
-		return &res
-	} else {
-		return nil
-	}
-}
-
-func (c *UserCache) PutResolution(key string, res ResolveResult) {
-	res.body = nil
-	c.resolveCache[key] = res
-}
-
-//==================================================================
-
 type ResolveResult struct {
 	uid        *UID
 	body       *jsonw.Wrapper

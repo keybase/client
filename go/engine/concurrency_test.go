@@ -2,8 +2,11 @@ package engine
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 // TestConcurrentLogin tries calling logout, login, and many of
@@ -111,4 +114,39 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 	lwg.Wait()
 	close(done)
 	mwg.Wait()
+}
+
+// TestConcurrentGlobals tries to find race conditions in
+// everything in GlobalContext.
+func TestConcurrentGlobals(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	fns := []func(){
+		genv,
+	}
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(index int) {
+			for j := 0; j < 10; j++ {
+				f := fns[rand.Intn(len(fns))]
+				f()
+			}
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+}
+
+func genv() {
+	G.Env.GetConfig()
+	G.Env.GetConfigWriter()
+	G.Env.GetCommandLine()
+	G.Env.SetConfig(libkb.NewJsonConfigFile(""))
+	G.Env.SetConfigWriter(libkb.NewJsonConfigFile(""))
+}
+
+func gkeyring() {
+
 }

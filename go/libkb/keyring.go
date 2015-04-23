@@ -20,7 +20,7 @@ type KeyringFile struct {
 }
 
 type Keyrings struct {
-	skbMap map[string]*SKBKeyringFile
+	skbMap map[string]*SKBKeyringFile // map of usernames to keyring files
 	sync.Mutex
 	Contextified
 }

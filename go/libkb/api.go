@@ -36,7 +36,7 @@ type Requester interface {
 
 // Make a new InternalApiEngine and a new ExternalApiEngine, which share the
 // same network config (i.e., TOR and Proxy parameters)
-func NewApiEngines(e Env) (*InternalApiEngine, *ExternalApiEngine, error) {
+func NewApiEngines(e *Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 	config, err := e.GenClientConfig()
 	if err != nil {
 		return nil, nil, err

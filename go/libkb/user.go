@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	lru "github.com/hashicorp/golang-lru"
 	keybase_1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -139,74 +138,6 @@ type LoadUserArg struct {
 	ForceReload       bool
 	AllKeys           bool
 	Contextified
-}
-
-//==================================================================
-// Thin wrapper around hashicorp's LRU to store users locally
-
-type UserCache struct {
-	lru          *lru.Cache
-	resolveCache map[string]ResolveResult
-	uidMap       map[string]UID
-	lockTable    *LockTable
-}
-
-func NewUserCache(c int) (ret *UserCache, err error) {
-	G.Log.Debug("Making new UserCache; size=%d", c)
-	tmp, err := lru.New(c)
-	if err == nil {
-		ret = &UserCache{
-			tmp,
-			make(map[string]ResolveResult),
-			make(map[string]UID),
-			NewLockTable(),
-		}
-	}
-	return ret, err
-}
-
-func (c *UserCache) Put(u *User) {
-	c.lru.Add(u.id, u)
-	c.uidMap[u.GetName()] = u.GetUid()
-}
-
-func (c *UserCache) Get(id UID) *User {
-	tmp, ok := c.lru.Get(id)
-	var ret *User
-	if ok {
-		ret, ok = tmp.(*User)
-		if !ok {
-			G.Log.Error("Unexpected type assertion failure in UserCache")
-			ret = nil
-		}
-	}
-	return ret
-}
-
-func (c *UserCache) GetByName(s string) *User {
-	if uid, ok := c.uidMap[s]; !ok {
-		return nil
-	} else {
-		return c.Get(uid)
-	}
-}
-
-func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
-	l, err := vec.Len()
-	if err != nil {
-		return err
-	}
-	for i := 0; i < l; i++ {
-		obj := vec.AtIndex(i)
-		if !obj.IsNil() {
-			u, err := NewUser(obj)
-			if err != nil {
-				return err
-			}
-			c.Put(u)
-		}
-	}
-	return nil
 }
 
 //==================================================================
@@ -640,7 +571,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	uid_s := uid.String()
 	G.Log.Debug("| resolved to %s", uid_s)
 
-	nlock := G.UserCache.lockTable.Lock(uid_s)
+	nlock := G.UserCache.LockUID(uid_s)
 	defer nlock.Unlock()
 
 	var local, remote *User

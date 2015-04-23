@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type NullConfiguration struct{}
@@ -91,6 +92,7 @@ func (tp TestParameters) GetDebug() (bool, bool) {
 }
 
 type Env struct {
+	sync.RWMutex
 	cmd        CommandLine
 	config     ConfigReader
 	homeFinder HomeFinder
@@ -98,13 +100,39 @@ type Env struct {
 	Test       TestParameters
 }
 
-func (e *Env) GetConfig() ConfigReader       { return e.config }
-func (e *Env) GetConfigWriter() ConfigWriter { return e.writer }
+func (e *Env) GetConfig() ConfigReader {
+	e.RLock()
+	defer e.RUnlock()
+	return e.config
+}
 
-func (e *Env) SetCommandLine(cmd CommandLine) { e.cmd = cmd }
-func (e *Env) GetCommandLine() CommandLine    { return e.cmd }
-func (e *Env) SetConfig(config ConfigReader)  { e.config = config }
+func (e *Env) GetConfigWriter() ConfigWriter {
+	e.RLock()
+	defer e.RUnlock()
+	return e.writer
+}
+
+func (e *Env) SetCommandLine(cmd CommandLine) {
+	e.Lock()
+	defer e.Unlock()
+	e.cmd = cmd
+}
+
+func (e *Env) GetCommandLine() CommandLine {
+	e.RLock()
+	defer e.RUnlock()
+	return e.cmd
+}
+
+func (e *Env) SetConfig(config ConfigReader) {
+	e.Lock()
+	defer e.Unlock()
+	e.config = config
+}
+
 func (e *Env) SetConfigWriter(writer ConfigWriter) {
+	e.Lock()
+	defer e.Unlock()
 	e.writer = writer
 }
 
@@ -115,13 +143,13 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 	if config == nil {
 		config = NullConfiguration{}
 	}
-	e := Env{cmd, config, nil, nil, TestParameters{}}
+	e := Env{cmd: cmd, config: config}
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() })
 	return &e
 }
 
-func (e Env) getHomeFromCmdOrConfig() string {
+func (e *Env) getHomeFromCmdOrConfig() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
 		func() string { return e.cmd.GetHome() },
@@ -129,13 +157,13 @@ func (e Env) getHomeFromCmdOrConfig() string {
 	)
 }
 
-func (e Env) GetHome() string                { return e.homeFinder.Home(false) }
-func (e Env) GetConfigDir() string           { return e.homeFinder.ConfigDir() }
-func (e Env) GetCacheDir() string            { return e.homeFinder.CacheDir() }
-func (e Env) GetDataDir() string             { return e.homeFinder.DataDir() }
-func (e Env) GetRuntimeDir() (string, error) { return e.homeFinder.RuntimeDir() }
+func (e *Env) GetHome() string                { return e.homeFinder.Home(false) }
+func (e *Env) GetConfigDir() string           { return e.homeFinder.ConfigDir() }
+func (e *Env) GetCacheDir() string            { return e.homeFinder.CacheDir() }
+func (e *Env) GetDataDir() string             { return e.homeFinder.DataDir() }
+func (e *Env) GetRuntimeDir() (string, error) { return e.homeFinder.RuntimeDir() }
 
-func (e Env) getEnvInt(s string) (int, bool) {
+func (e *Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
 	if len(v) > 0 {
 		tmp, err := strconv.ParseInt(v, 0, 64)
@@ -146,7 +174,7 @@ func (e Env) getEnvInt(s string) (int, bool) {
 	return 0, false
 }
 
-func (e Env) getEnvPath(s string) []string {
+func (e *Env) getEnvPath(s string) []string {
 	if tmp := os.Getenv(s); len(tmp) == 0 {
 		return nil
 	} else {
@@ -154,7 +182,7 @@ func (e Env) getEnvPath(s string) []string {
 	}
 }
 
-func (e Env) getEnvBool(s string) (bool, bool) {
+func (e *Env) getEnvBool(s string) (bool, bool) {
 	tmp := os.Getenv(s)
 	if len(tmp) == 0 {
 		return false, false
@@ -168,7 +196,7 @@ func (e Env) getEnvBool(s string) (bool, bool) {
 	}
 }
 
-func (e Env) GetString(flist ...(func() string)) string {
+func (e *Env) GetString(flist ...(func() string)) string {
 	var ret string
 	for _, f := range flist {
 		ret = f()
@@ -179,7 +207,7 @@ func (e Env) GetString(flist ...(func() string)) string {
 	return ret
 }
 
-func (e Env) getPgpFingerprint(flist ...(func() *PgpFingerprint)) *PgpFingerprint {
+func (e *Env) getPgpFingerprint(flist ...(func() *PgpFingerprint)) *PgpFingerprint {
 	for _, f := range flist {
 		if ret := f(); ret != nil {
 			return ret
@@ -188,7 +216,7 @@ func (e Env) getPgpFingerprint(flist ...(func() *PgpFingerprint)) *PgpFingerprin
 	return nil
 }
 
-func (e Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
+func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
 	for _, f := range flist {
 		if val, is_set := f(); is_set {
 			return val
@@ -197,7 +225,7 @@ func (e Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
 	return def
 }
 
-func (e Env) GetInt(def int, flist ...func() (int, bool)) int {
+func (e *Env) GetInt(def int, flist ...func() (int, bool)) int {
 	for _, f := range flist {
 		if val, is_set := f(); is_set {
 			return val
@@ -206,7 +234,7 @@ func (e Env) GetInt(def int, flist ...func() (int, bool)) int {
 	return def
 }
 
-func (e Env) GetServerUri() string {
+func (e *Env) GetServerUri() string {
 	return e.GetString(
 		func() string { return e.Test.ServerUri },
 		func() string { return e.cmd.GetServerUri() },
@@ -216,7 +244,7 @@ func (e Env) GetServerUri() string {
 	)
 }
 
-func (e Env) GetConfigFilename() string {
+func (e *Env) GetConfigFilename() string {
 	return e.GetString(
 		func() string { return e.Test.ConfigFilename },
 		func() string { return e.cmd.GetConfigFilename() },
@@ -226,7 +254,7 @@ func (e Env) GetConfigFilename() string {
 	)
 }
 
-func (e Env) GetSessionFilename() string {
+func (e *Env) GetSessionFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetSessionFilename() },
 		func() string { return os.Getenv("KEYBASE_SESSION_FILE") },
@@ -235,7 +263,7 @@ func (e Env) GetSessionFilename() string {
 	)
 }
 
-func (e Env) GetDbFilename() string {
+func (e *Env) GetDbFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetDbFilename() },
 		func() string { return os.Getenv("KEYBASE_DB_FILE") },
@@ -244,7 +272,7 @@ func (e Env) GetDbFilename() string {
 	)
 }
 
-func (e Env) GetDebug() bool {
+func (e *Env) GetDebug() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.GetDebug() },
 		func() (bool, bool) { return e.cmd.GetDebug() },
@@ -253,7 +281,7 @@ func (e Env) GetDebug() bool {
 	)
 }
 
-func (e Env) GetStandalone() bool {
+func (e *Env) GetStandalone() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetStandalone() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_STANDALONE") },
@@ -261,7 +289,7 @@ func (e Env) GetStandalone() bool {
 	)
 }
 
-func (e Env) GetPlainLogging() bool {
+func (e *Env) GetPlainLogging() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetPlainLogging() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_PLAIN_LOGGING") },
@@ -269,18 +297,18 @@ func (e Env) GetPlainLogging() bool {
 	)
 }
 
-func (e Env) GetApiDump() bool {
+func (e *Env) GetApiDump() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetApiDump() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_API_DUMP") },
 	)
 }
 
-func (e Env) GetUsername() string {
+func (e *Env) GetUsername() string {
 	return e.config.GetUsername()
 }
 
-func (e Env) GetSocketFile() (ret string, err error) {
+func (e *Env) GetSocketFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetSocketFile() },
 		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
@@ -296,7 +324,7 @@ func (e Env) GetSocketFile() (ret string, err error) {
 	return
 }
 
-func (e Env) GetPidFile() (ret string, err error) {
+func (e *Env) GetPidFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetPidFile() },
 		func() string { return os.Getenv("KEYBASE_PID_FILE") },
@@ -312,7 +340,7 @@ func (e Env) GetPidFile() (ret string, err error) {
 	return
 }
 
-func (e Env) GetDaemonPort() int {
+func (e *Env) GetDaemonPort() int {
 	return e.GetInt(0,
 		func() (int, bool) { return e.cmd.GetDaemonPort() },
 		func() (int, bool) { return e.getEnvInt("KEYBASE_DAEMON_PORT") },
@@ -320,13 +348,13 @@ func (e Env) GetDaemonPort() int {
 	)
 }
 
-func (e Env) GetEmail() string {
+func (e *Env) GetEmail() string {
 	return e.GetString(
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
 	)
 }
 
-func (e Env) GetProxy() string {
+func (e *Env) GetProxy() string {
 	return e.GetString(
 		func() string { return e.cmd.GetProxy() },
 		func() string { return os.Getenv("https_proxy") },
@@ -335,7 +363,7 @@ func (e Env) GetProxy() string {
 	)
 }
 
-func (e Env) GetGpgHome() string {
+func (e *Env) GetGpgHome() string {
 	return e.GetString(
 		func() string { return e.Test.GPGHome },
 		func() string { return e.cmd.GetGpgHome() },
@@ -345,7 +373,7 @@ func (e Env) GetGpgHome() string {
 	)
 }
 
-func (e Env) GetPinentry() string {
+func (e *Env) GetPinentry() string {
 	return e.GetString(
 		func() string { return e.cmd.GetPinentry() },
 		func() string { return os.Getenv("KEYBASE_PINENTRY") },
@@ -353,7 +381,7 @@ func (e Env) GetPinentry() string {
 	)
 }
 
-func (e Env) GetNoPinentry() bool {
+func (e *Env) GetNoPinentry() bool {
 
 	isno := func(s string) (bool, bool) {
 		s = strings.ToLower(s)
@@ -371,7 +399,7 @@ func (e Env) GetNoPinentry() bool {
 	)
 }
 
-func (e Env) GetBundledCA(host string) string {
+func (e *Env) GetBundledCA(host string) string {
 	return e.GetString(
 		func() string { return e.config.GetBundledCA(host) },
 		func() string {
@@ -384,7 +412,7 @@ func (e Env) GetBundledCA(host string) string {
 	)
 }
 
-func (e Env) GetUserCacheSize() int {
+func (e *Env) GetUserCacheSize() int {
 	return e.GetInt(USER_CACHE_SIZE,
 		func() (int, bool) { return e.cmd.GetUserCacheSize() },
 		func() (int, bool) { return e.getEnvInt("KEYBASE_USER_CACHE_SIZE") },
@@ -392,7 +420,7 @@ func (e Env) GetUserCacheSize() int {
 	)
 }
 
-func (e Env) GetProofCacheSize() int {
+func (e *Env) GetProofCacheSize() int {
 	return e.GetInt(PROOF_CACHE_SIZE,
 		func() (int, bool) { return e.cmd.GetProofCacheSize() },
 		func() (int, bool) { return e.getEnvInt("KEYBASE_PROOF_CACHE_SIZE") },
@@ -400,7 +428,7 @@ func (e Env) GetProofCacheSize() int {
 	)
 }
 
-func (e Env) GetEmailOrUsername() string {
+func (e *Env) GetEmailOrUsername() string {
 	un := e.GetUsername()
 	if len(un) > 0 {
 		return un
@@ -410,13 +438,13 @@ func (e Env) GetEmailOrUsername() string {
 }
 
 // XXX implement me
-func (e Env) GetTestMode() bool {
+func (e *Env) GetTestMode() bool {
 	return false
 }
 
-func (e Env) GetUID() *UID { return e.config.GetUID() }
+func (e *Env) GetUID() *UID { return e.config.GetUID() }
 
-func (e Env) GetStringList(list ...(func() []string)) []string {
+func (e *Env) GetStringList(list ...(func() []string)) []string {
 	for _, f := range list {
 		if res := f(); res != nil {
 			return res
@@ -425,7 +453,7 @@ func (e Env) GetStringList(list ...(func() []string)) []string {
 	return []string{}
 }
 
-func (e Env) GetMerkleKeyFingerprints() []PgpFingerprint {
+func (e *Env) GetMerkleKeyFingerprints() []PgpFingerprint {
 	slist := e.GetStringList(
 		func() []string { return e.cmd.GetMerkleKeyFingerprints() },
 		func() []string { return e.getEnvPath("KEYBASE_MERKLE_KEY_FINGERPRINTS") },
@@ -455,7 +483,7 @@ func (e Env) GetMerkleKeyFingerprints() []PgpFingerprint {
 	return ret
 }
 
-func (e Env) GetGpg() string {
+func (e *Env) GetGpg() string {
 	return e.GetString(
 		func() string { return e.cmd.GetGpg() },
 		func() string { return os.Getenv("GPG") },
@@ -463,7 +491,7 @@ func (e Env) GetGpg() string {
 	)
 }
 
-func (e Env) GetGpgOptions() []string {
+func (e *Env) GetGpgOptions() []string {
 	return e.GetStringList(
 		func() []string { return e.Test.GPGOptions },
 		func() []string { return e.cmd.GetGpgOptions() },
@@ -471,7 +499,7 @@ func (e Env) GetGpgOptions() []string {
 	)
 }
 
-func (e Env) GetGpgDisabled() bool {
+func (e *Env) GetGpgDisabled() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetGpgDisabled() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_GPG_DISABLED") },
@@ -479,7 +507,7 @@ func (e Env) GetGpgDisabled() bool {
 	)
 }
 
-func (e Env) GetSecretKeyringTemplate() string {
+func (e *Env) GetSecretKeyringTemplate() string {
 	return e.GetString(
 		func() string { return e.cmd.GetSecretKeyringTemplate() },
 		func() string { return os.Getenv("KEYBASE_SECRET_KEYRING_TEMPLATE") },
@@ -488,11 +516,11 @@ func (e Env) GetSecretKeyringTemplate() string {
 	)
 }
 
-func (e Env) GetSalt() []byte {
+func (e *Env) GetSalt() []byte {
 	return e.config.GetSalt()
 }
 
-func (e Env) GetLocalRpcDebug() string {
+func (e *Env) GetLocalRpcDebug() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLocalRpcDebug() },
 		func() string { return os.Getenv("KEYBASE_LOCAL_RPC_DEBUG") },
@@ -500,6 +528,6 @@ func (e Env) GetLocalRpcDebug() string {
 	)
 }
 
-func (e Env) GetDeviceID() (ret *DeviceID) {
+func (e *Env) GetDeviceID() (ret *DeviceID) {
 	return e.config.GetDeviceID()
 }
