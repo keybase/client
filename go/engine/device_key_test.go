@@ -29,7 +29,7 @@ func TestDeviceKey(t *testing.T) {
 	}
 	check()
 
-	G.LoginState.Logout()
+	G.Logout()
 	fu.LoginOrBust(t)
 	check()
 }

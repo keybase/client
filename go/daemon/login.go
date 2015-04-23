@@ -30,7 +30,7 @@ func (h *LoginHandler) GetConfiguredAccounts() ([]keybase_1.ConfiguredAccount, e
 }
 
 func (h *LoginHandler) Logout() error {
-	return G.LoginState.Logout()
+	return G.Logout()
 }
 
 func (h *LoginHandler) Reset() error {

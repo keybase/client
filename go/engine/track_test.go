@@ -88,7 +88,7 @@ func TestTrack(t *testing.T) {
 	defer untrackAlice(t, fu)
 
 	// Assert that we gracefully handle the case of no login
-	G.LoginState.Logout()
+	G.Logout()
 	_, _, err := runTrack(fu, "t_bob")
 	if err == nil {
 		t.Fatal("expected logout error; got no error")

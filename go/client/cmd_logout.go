@@ -4,7 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase_1 "github.com/keybase/client/protocol/go"
 )
 
 type CmdLogout struct{}
@@ -19,8 +19,7 @@ func (v *CmdLogout) RunClient() (err error) {
 }
 
 func (v *CmdLogout) Run() (err error) {
-	err = libkb.G.LoginState.Logout()
-	return
+	return libkb.G.Logout()
 }
 
 func NewCmdLogout(cl *libcmdline.CommandLine) cli.Command {

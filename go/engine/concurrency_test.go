@@ -30,7 +30,7 @@ func TestConcurrentLogin(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				G.LoginState.Logout()
+				G.Logout()
 				u.LoginOrBust(t)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
@@ -87,7 +87,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				G.LoginState.Logout()
+				G.Logout()
 				u.LoginOrBust(t)
 			}
 			fmt.Printf("logout/login #%d done\n", index)

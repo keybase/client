@@ -141,7 +141,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	tcRecipient := SetupEngineTest(t, "PGPDecrypt - Recipient")
 	defer tcRecipient.Cleanup()
 	recipient := createFakeUserWithPGPSibkey(t)
-	G.LoginState.Logout()
+	G.Logout()
 
 	tcSigner := SetupEngineTest(t, "PGPDecrypt - Signer")
 	defer tcSigner.Cleanup()
@@ -167,7 +167,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 
 	// signer logs out, recipient logs in:
 	t.Logf("signer (%q) logging out", signer.Username)
-	tcSigner.G.LoginState.Logout()
+	tcSigner.G.Logout()
 	libkb.G = tcRecipient.G
 	G = &libkb.G
 	t.Logf("recipient (%q) logging in", recipient.Username)

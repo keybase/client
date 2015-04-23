@@ -67,6 +67,17 @@ func (g *GlobalContext) Init() {
 	g.Daemon = false
 }
 
+func (g *GlobalContext) Logout() error {
+	if err := g.LoginState.Logout(); err != nil {
+		return err
+	}
+
+	// get a clean LoginState:
+	g.LoginState = NewLoginState(g)
+
+	return nil
+}
+
 func (g *GlobalContext) ConfigureLogging() error {
 	g.Log.Configure(g.Env)
 	g.Output = os.Stdout
