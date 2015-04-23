@@ -30,6 +30,7 @@
 #import "KBHelperClient.h"
 
 #import <Sparkle/Sparkle.h>
+#import <AFNetworking/AFNetworking.h>
 
 @interface AppDelegate ()
 @property KBAppView *appView;

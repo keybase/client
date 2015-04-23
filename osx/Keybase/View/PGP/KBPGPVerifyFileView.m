@@ -16,7 +16,6 @@
 #import "KBPGPOutputFileView.h"
 #import "KBPGPVerifyFooterView.h"
 #import "KBPGPVerify.h"
-#import <KBKeybase/KBKeybase.h>
 
 @interface KBPGPVerifyFileView ()
 @property KBButton *chooseButton;

@@ -26,27 +26,11 @@ PODS:
   - CocoaLumberjack/Extensions (2.0.0):
     - CocoaLumberjack/Default
   - GHKit (1.0.21)
-  - KBKeybase (0.1.11):
-    - AFNetworking
-    - GHKit
-    - KBKeybase/Core (= 0.1.11)
-    - Mantle
-    - ObjectiveSugar
-    - TSTripleSec
-  - KBKeybase/Core (0.1.11):
-    - AFNetworking
-    - GHKit
-    - Mantle
-    - ObjectiveSugar
-    - TSTripleSec
-  - libsodium (1.0.2)
   - Mantle (2.0):
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
   - MASPreferences (1.1.2)
   - MPMessagePack (1.1.14)
-  - NAChloride (1.1.2):
-    - libsodium
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
     - Slash/arc (= 0.1.2)
@@ -54,9 +38,6 @@ PODS:
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
   - Sparkle (1.9.0)
-  - TSTripleSec (1.0.0):
-    - MPMessagePack
-    - NAChloride
   - YOLayout (0.1.13)
   - ZXCVBN (1.0.4)
 
@@ -64,7 +45,6 @@ DEPENDENCIES:
   - AFNetworking
   - CocoaLumberjack
   - GHKit
-  - KBKeybase
   - Mantle
   - MASPreferences
   - MPMessagePack (from `~/Projects/MPMessagePack`)
@@ -82,17 +62,13 @@ SPEC CHECKSUMS:
   AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe
   CocoaLumberjack: a6f77d987d65dc7ba86b0f84db7d0b9084f77bcb
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
-  KBKeybase: 4de64ab1f918343bb6a9cf66b0faa65b02d165f7
-  libsodium: d1b482e7628e0298de350375a4ab981b5cc8c71b
   Mantle: 17de73ef929db2234d76fde2aacfb89ab11c61e8
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MPMessagePack: ea5bc2165f17cf7e60c73f45ef3d0224df5db613
-  NAChloride: acfc82321c23b57d169b46c587c1d92147aafedf
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7
-  TSTripleSec: dbc11769895c30eeb9eade59aee3ab902ac2b3ba
   YOLayout: 58f48d203c24571274dd03c7e640672e1f107821
   ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
 
-COCOAPODS: 0.36.3
+COCOAPODS: 0.36.4

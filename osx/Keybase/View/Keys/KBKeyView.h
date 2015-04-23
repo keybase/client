@@ -14,6 +14,6 @@
 
 @interface KBKeyView : KBContentView
 
-- (void)setKey:(KBRFOKID *)key;
+- (void)setKey:(KBRFOKID *)key editable:(BOOL)editable;
 
 @end

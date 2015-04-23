@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
-#import <KBKeybase/KBSearchResult.h>
+#import "KBSearchResult.h"
 
 @interface KBSearchResultView : KBImageTextView
 

@@ -96,10 +96,14 @@
 }
 
 - (void)connectWithProveType:(KBProveType)proveType {
+  KBDebugAlert(@"Waiting on prove RPC fixes", self.window);
+  // TODO Fix
+  /*
   GHWeakSelf gself = self;
   [KBProveView connectWithProveType:proveType client:self.client sender:self completion:^(BOOL canceled) {
     if (!canceled) [gself reload];
   }];
+   */
 }
 
 - (void)openPopup:(id)sender {
@@ -363,7 +367,8 @@
 - (void)openKey:(KBRFOKID *)key {
   KBKeyView *keyView = [[KBKeyView alloc] init];
   keyView.client = self.client;
-  [keyView setKey:key];
+  BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
+  [keyView setKey:key editable:isSelf];
   [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
 }
 

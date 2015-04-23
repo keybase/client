@@ -8,9 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import <KBKeybase/KBKeybase.h>
+#import "KBDefines.h"
 
-typedef void (^KBRunBlock)(id obj, KBCompletionHandler completion);
+typedef void (^KBRunBlock)(id obj, KBCompletionBlock completion);
 typedef void (^KBRunCompletionBlock)(NSArray *errors, NSArray *objs);
 
 @interface KBRunBlocks : NSObject

@@ -58,7 +58,7 @@
 }
 
 - (NSString *)instructionsForProveType:(KBProveType)proveType instructions:(KBRText *)instructions {
-  return NSStringWithFormat(@"%@:", [self stringByStrippingHTML:instructions.data]);
+  return NSStringWithFormat(@"%@", [self stringByStrippingHTML:instructions.data]);
 }
 
 - (void)setInstructions:(KBRText *)instructions proofText:(NSString *)proofText proveType:(KBProveType)proveType {

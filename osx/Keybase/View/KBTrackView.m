@@ -39,7 +39,7 @@
   [self addSubview:_trackButton];
   _trackButton.hidden = YES;
 
-  _untrackButton = [KBButton buttonWithText:@"Remove Track" style:KBButtonStyleDefault];
+  _untrackButton = [KBButton buttonWithText:@"Remove Tracking" style:KBButtonStyleDefault];
   [self addSubview:_untrackButton];
   _untrackButton.hidden = YES;
 

@@ -76,10 +76,14 @@
 }
 
 - (void)setText:(NSString *)text style:(KBTextStyle)style {
+  [self setText:text style:style alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+}
+
+- (void)setText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   id<KBAppearance> appearance = KBAppearance.currentAppearance;
   NSColor *color = [appearance colorForStyle:style];
   NSFont *font = [appearance fontForStyle:style];
-  [self setText:text font:font color:color];
+  [self setText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color  {

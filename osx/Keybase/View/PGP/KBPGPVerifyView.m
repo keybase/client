@@ -15,7 +15,6 @@
 #import "KBPGPVerify.h"
 #import "KBPGPVerifyFooterView.h"
 #import "KBFileSelectView.h"
-#import <KBKeybase/KBKeybase.h>
 
 @interface KBPGPVerifyView ()
 @property KBTextView *textView;

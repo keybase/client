@@ -217,7 +217,7 @@
 
 KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   KBRUser *user = [[KBRUser alloc] init];
-  user.uid = (KBRUID *)[searchResult.userId na_dataFromHexString];
+  user.uid = (KBRUID *)KBHexData(searchResult.userId);
   user.username = searchResult.userName;
   return user;
 }

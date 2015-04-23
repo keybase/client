@@ -18,7 +18,9 @@ typedef NS_ENUM (NSInteger, KBWindowPosition) {
 };
 
 
-@interface KBWindow : NSWindow <NSWindowDelegate>
+@interface KBWindow : NSWindow
+
+@property CGFloat sheetPosition;
 
 + (KBWindow *)windowWithContentView:(NSView *)contentView size:(CGSize)size retain:(BOOL)retain;
 

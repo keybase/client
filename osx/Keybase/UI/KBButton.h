@@ -22,6 +22,7 @@ typedef void (^KBButtonDispatchBlock)(KBButton *button, KBButtonCompletion compl
 @property (nonatomic, copy) dispatch_block_t targetBlock;
 @property (nonatomic, copy) KBButtonDispatchBlock dispatchBlock;
 @property CGSize padding;
+@property (getter=isToggleEnabled) BOOL toggleEnabled;
 
 + (instancetype)button;
 + (instancetype)buttonWithText:(NSString *)text style:(KBButtonStyle)style;

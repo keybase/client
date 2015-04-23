@@ -40,17 +40,20 @@
   _progressView = [[KBActivityIndicatorView alloc] init];
   [self addSubview:_progressView];
 
-  KBBox *border = [KBBox horizontalLine];
-  [self addSubview:border];
-
   _statusView = [[KBUserStatusView alloc] init];
   GHWeakSelf gself = self;
-  KBButtonView *button = [KBButtonView buttonViewWithView:_statusView targetBlock:^{ [gself didSelectItem:KBSourceViewItemProfile]; }];
+  KBButtonView *button = [KBButtonView buttonViewWithView:_statusView targetBlock:^{ [gself didSelectItem:KBAppViewItemProfile]; }];
   [self addSubview:button];
 
   KBScrollView *scrollView = [[KBScrollView alloc] init];
   [scrollView setDocumentView:_outlineView];
   [self addSubview:scrollView];
+
+  KBBox *border = [KBBox horizontalLine];
+  [self addSubview:border];
+
+  KBBox *rightBorder = [KBBox line];
+  [self addSubview:rightBorder];
 
   _outlineView.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor; // Have to set after in scrollview
 
@@ -63,7 +66,7 @@
     [layout setFrame:CGRectMake(0, -20, size.width, size.height - statusViewSize.height) view:scrollView];
     [layout setFrame:CGRectMake(0, size.height - statusViewSize.height - 1, size.width, 1) view:border];
     [layout setFrame:CGRectMake(0, size.height - statusViewSize.height, statusViewSize.width, statusViewSize.height) view:button];
-
+    [layout setFrame:CGRectMake(size.width - 1, 0, 1, size.height) view:rightBorder];
     return size;
   }];
 }
@@ -76,11 +79,11 @@
   return _progressView.isAnimating;
 }
 
-- (void)notifyItemSelected:(KBSourceViewItem)item {
+- (void)notifyItemSelected:(KBAppViewItem)item {
   [self.delegate sourceOutlineView:self didSelectItem:item];
 }
 
-- (void)didSelectItem:(KBSourceViewItem)item {
+- (void)didSelectItem:(KBAppViewItem)item {
   [self selectItem:item];
   [self notifyItemSelected:item];
 }
@@ -89,15 +92,15 @@
   if ([_outlineView selectedRow] != -1) {
     NSString *item = [_outlineView itemAtRow:[_outlineView selectedRow]];
     if ([_outlineView parentForItem:item] != nil) {
-      if ([item isEqualTo:@"Me"]) [self notifyItemSelected:KBSourceViewItemProfile];
-      if ([item isEqualTo:@"Users"]) [self notifyItemSelected:KBSourceViewItemUsers];
-      if ([item isEqualTo:@"Devices"]) [self notifyItemSelected:KBSourceViewItemDevices];
-      if ([item isEqualTo:@"Folders"]) [self notifyItemSelected:KBSourceViewItemFolders];
+      if ([item isEqualTo:@"Me"]) [self notifyItemSelected:KBAppViewItemProfile];
+      if ([item isEqualTo:@"Users"]) [self notifyItemSelected:KBAppViewItemUsers];
+      if ([item isEqualTo:@"Devices"]) [self notifyItemSelected:KBAppViewItemDevices];
+      if ([item isEqualTo:@"Folders"]) [self notifyItemSelected:KBAppViewItemFolders];
     }
   }
 }
 
-- (void)selectItem:(KBSourceViewItem)item {
+- (void)selectItem:(KBAppViewItem)item {
   if ([_outlineView selectedRow] != item) {
     [_outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:item] byExtendingSelection:NO];
   }

@@ -37,11 +37,6 @@
   }];
 }
 
-//
-// Icons in:
-// /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/
-//
-
 + (NSFont *)fontForStyle:(KBFileLabelStyle)fileLabelStyle {
   switch (fileLabelStyle) {
     case KBFileLabelStyleDefault: return [NSFont systemFontOfSize:13];

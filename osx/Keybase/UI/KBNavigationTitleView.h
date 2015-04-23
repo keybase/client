@@ -12,17 +12,16 @@
 #import "KBButton.h"
 #import "KBNavigationView.h"
 #import "KBMenuBar.h"
+#import "KBBox.h"
 
 @interface KBNavigationTitleView : YOView <KBNavigationTitleView>
 
-//@property KBButton *backView;
 @property (weak) KBNavigationView *navigation;
 
-//@property KBMenuBar *menuBar;
 @property (nonatomic) NSString *title;
 
-+ (instancetype)titleViewWithTitle:(NSString *)title navigation:(KBNavigationView *)navigation;
+@property (readonly) KBBox *border;
 
-- (void)addButton:(KBButton *)button;
++ (instancetype)titleViewWithTitle:(NSString *)title navigation:(KBNavigationView *)navigation;
 
 @end

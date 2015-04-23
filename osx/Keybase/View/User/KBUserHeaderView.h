@@ -10,7 +10,6 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBUser.h"
 
 @interface KBUserHeaderView : YOView
 

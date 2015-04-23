@@ -14,6 +14,9 @@
 - (void)setupResponders;
 @end
 
+@interface KBWindow () <NSWindowDelegate>
+@end
+
 @implementation KBWindow
 
 - (BOOL)canBecomeKeyWindow {
@@ -66,7 +69,7 @@
 }
 
 - (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
-  rect.origin.y += -32;
+  rect.origin.y += -_sheetPosition;
   return rect;
 }
 
@@ -81,7 +84,8 @@
   CGSize size = [view sizeThatFits:rect.size];
   size.height += 32; // TODO
 
-  NSWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
+  KBWindow *window = [KBWindow windowWithContentView:navigation size:size retain:YES];
+  window.sheetPosition = 33;
   if (fixed) {
     [window setMovable:NO];
   } else {

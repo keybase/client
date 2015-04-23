@@ -17,7 +17,6 @@
 #import "KBInstaller.h"
 
 #import <MPMessagePack/MPMessagePackServer.h>
-#import <NAChloride/NAChloride.h>
 
 @interface KBRPClient ()
 @property MPMessagePackClient *client;

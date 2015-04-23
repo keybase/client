@@ -31,7 +31,7 @@
       }
       case KBEnvManual: {
         self.title = @"Manual";
-        self.home = [@"~/Keybase/Home" stringByExpandingTildeInPath];
+        self.home = [@"~/Library/Application Support/Keybase/Debug" stringByExpandingTildeInPath];
         self.host = @"http://localhost:3000";
         self.launchDLabel = nil;
         self.canRunFromXCode = YES;

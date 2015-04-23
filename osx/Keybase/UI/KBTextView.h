@@ -19,6 +19,8 @@
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
+
 - (void)setText:(NSString *)text style:(KBTextStyle)style;
+- (void)setText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 @end

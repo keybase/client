@@ -10,18 +10,12 @@
 
 #import "KBAppKit.h"
 #import "KBUserStatusView.h"
-
-typedef NS_ENUM (NSInteger, KBSourceViewItem) {
-  KBSourceViewItemProfile = 1, // Should match row index
-  KBSourceViewItemUsers,
-  KBSourceViewItemDevices,
-  KBSourceViewItemFolders,
-};
+#import "KBDefines.h"
 
 @class KBSourceOutlineView;
 
 @protocol KBSourceOutlineViewDelegate
-- (void)sourceOutlineView:(KBSourceOutlineView *)sourceOutlineView didSelectItem:(KBSourceViewItem)item;
+- (void)sourceOutlineView:(KBSourceOutlineView *)sourceOutlineView didSelectItem:(KBAppViewItem)item;
 @end
 
 @interface KBSourceOutlineView : YOView <NSOutlineViewDataSource, NSOutlineViewDelegate>
@@ -31,6 +25,6 @@ typedef NS_ENUM (NSInteger, KBSourceViewItem) {
 
 @property (readonly) KBUserStatusView *statusView;
 
-- (void)selectItem:(KBSourceViewItem)item;
+- (void)selectItem:(KBAppViewItem)item;
 
 @end

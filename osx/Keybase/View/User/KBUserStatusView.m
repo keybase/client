@@ -26,6 +26,7 @@
   [self addSubview:_imageView];
 
   _nameLabel = [[KBLabel alloc] init];
+  [_nameLabel kb_setBackgroundColor:NSColor.clearColor];
   [self addSubview:_nameLabel];
 
   _statusLabel = [[KBLabel alloc] init];

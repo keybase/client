@@ -15,9 +15,9 @@
 #import "KBMockViews.h"
 #import "KBTestClientView.h"
 #import "KBTestHelperView.h"
+#import "KBAppView.h"
 
-@interface KBConsoleView ()
-@property KBRuntimeStatusView *runtimeStatusView;
+@interface KBConsoleView () <KBAppViewDelegate>
 @property KBListView *logView;
 
 @property KBRPClient *client;
@@ -31,19 +31,20 @@
   [super viewInit];
   [self kb_setBackgroundColor:NSColor.whiteColor];
 
-  _runtimeStatusView = [[KBRuntimeStatusView alloc] init];
-  [self addSubview:_runtimeStatusView];
-
   YOHBox *buttons = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,0,10,0"}];
   [self addSubview:buttons];
   GHWeakSelf gself = self;
   KBButton *checkButton = [KBButton buttonWithText:@"Status" style:KBButtonStyleToolbar];
   checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
-      [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
-        [gself log:NSStringWithFormat(@"keybased (launchctl) pid: %@", @(pid))];
+      if (gself.client.installer.launchCtl) {
+        [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
+          [gself log:NSStringWithFormat(@"keybased (launchctl) pid: %@", @(pid))];
+          completion(error);
+        }];
+      } else {
         completion(error);
-      }];
+      }
     }];
   };
   [buttons addSubview:checkButton];
@@ -57,7 +58,7 @@
   };
   [buttons addSubview:_toggleButton];
 
-  KBButton *debugButton = [KBButton buttonWithText:@"Debug" style:KBButtonStyleToolbar];
+  KBButton *debugButton = [KBButton buttonWithText:@"Views" style:KBButtonStyleToolbar];
   debugButton.targetBlock = ^{
     KBMockViews *mockViews = [[KBMockViews alloc] init];
     [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO makeKey:YES errorHandler:nil];
@@ -84,8 +85,6 @@
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 10;
     CGFloat y = 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(10, y, size.width - 20, 0) view:yself.runtimeStatusView].size.height + 10;
-
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width, 34) view:buttons].size.height;
 
     y += [layout setFrame:CGRectMake(10, y, size.width - 20, size.height - y - 10) view:yself.logView].size.height + 10;
@@ -120,8 +119,9 @@
 
 #ifdef DEBUG
   // In debug we aren't using launch services to run keybased
-  _toggleButton.targetBlock = ^{
+  _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     KBDebugAlert(@"keybased isn't using launch services in DEBUG", gself.window);
+    completion(nil);
   };
 #endif
 }
@@ -143,9 +143,6 @@
   NSString *KBKeybasedVersion = [[NSBundle mainBundle] infoDictionary][@"KBKeybasedVersion"];
   [self log:NSStringWithFormat(@"Info (keybased): %@", KBKeybasedVersion)];
   _client = appView.client;
-  _runtimeStatusView.client = appView.client;
-  _runtimeStatusView.RPCConnected = NO;
-  [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 
@@ -167,17 +164,11 @@
 
 - (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client {
   [self log:@"Connected."];
-  _runtimeStatusView.RPCConnected = YES;
-  [_runtimeStatusView update];
-  [self setNeedsLayout];
 }
 
 - (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
   [self log:NSStringWithFormat(@"keybased config:%@", [config propertiesDescription:@"\n\t"])];
-
   [self log:NSStringWithFormat(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"")];
-  _runtimeStatusView.config = config;
-  [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 
@@ -191,8 +182,6 @@
 
 - (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client {
   [self log:@"Disconnected."];
-  _runtimeStatusView.RPCConnected = NO;
-  [_runtimeStatusView update];
   [self setNeedsLayout];
 }
 

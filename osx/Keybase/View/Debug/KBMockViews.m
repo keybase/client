@@ -32,6 +32,8 @@
 #import "KBPGPSignView.h"
 #import "KBPGPSignFileView.h"
 #import "KBPriviledgedTask.h"
+#import "KBLoginView.h"
+#import "KBSignupView.h"
 
 @interface KBMockViews ()
 @property KBRMockClient *mockClient;

@@ -8,12 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBRuntimeStatusView.h"
-#import "KBAppView.h"
+#import "KBAppKit.h"
 
-@interface KBConsoleView : YOView <KBAppViewDelegate>
-
-@property (readonly) KBRuntimeStatusView *runtimeStatusView;
+@interface KBConsoleView : YOView
 
 - (void)log:(NSString *)message;
 

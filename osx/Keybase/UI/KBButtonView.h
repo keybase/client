@@ -10,8 +10,16 @@
 
 #import <YOLayout/YOLayout.h>
 
+#import "KBButton.h"
+
 @interface KBButtonView : YOView
 
+@property (readonly) KBButton *button;
+
 + (instancetype)buttonViewWithView:(YOView *)view targetBlock:(dispatch_block_t)targetBlock;
+
+- (void)setView:(YOView *)view;
+
+- (void)setButtonStyle:(KBButtonStyle)buttonStyle;
 
 @end

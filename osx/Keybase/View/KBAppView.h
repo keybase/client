@@ -10,9 +10,7 @@
 
 #import "KBAppKit.h"
 #import "KBRPC.h"
-#import "KBSourceOutlineView.h"
-#import "KBSignupView.h"
-#import "KBLoginView.h"
+
 
 @class KBAppView;
 
@@ -32,7 +30,7 @@
 - (void)appViewDidUpdateStatus:(KBAppView *)appView;
 @end
 
-@interface KBAppView : YOView <NSWindowDelegate, KBSourceOutlineViewDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate> //, NSWindowRestoration>
+@interface KBAppView : YOView
 
 @property KBRPClient *client;
 

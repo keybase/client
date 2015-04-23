@@ -264,6 +264,10 @@
   if ([error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualToString:@"BAD_LOGIN_PASSWORD"]) {
     [self.window makeFirstResponder:self.passwordField];
     error = KBMakeErrorWithRecovery(error.code, @"Bad Password", @"The username and password you entered was invalid.");
+
+    if ([self.passwordField.text isEqualToString:PASSWORD_PLACEHOLDER]) {
+      self.passwordField.text = @"";
+    }
   }
 
   [AppDelegate setError:error sender:self];

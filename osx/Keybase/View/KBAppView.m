@@ -17,15 +17,19 @@
 #import "KBDevicesAppView.h"
 #import "KBConnectView.h"
 #import "KBFoldersAppView.h"
+#import "KBAppToolbar.h"
+#import "KBSourceOutlineView.h"
 
-typedef NS_ENUM (NSInteger, KBAppViewStatus) {
-  KBAppViewStatusConnecting = 1,
-  KBAppViewStatusLogin,
-  KBAppViewStatusSignup,
-  KBAppViewStatusMain
+
+typedef NS_ENUM (NSInteger, KBAppViewMode) {
+  KBAppViewModeConnecting = 1,
+  KBAppViewModeLogin,
+  KBAppViewModeSignup,
+  KBAppViewModeMain
 };
 
-@interface KBAppView ()
+@interface KBAppView () <KBAppToolbarDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate>
+@property KBAppToolbar *toolbar;
 @property KBSourceOutlineView *sourceView;
 @property (readonly) YOView *contentView;
 
@@ -42,7 +46,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 @property NSString *title;
 @property (nonatomic) KBRGetCurrentStatusRes *status;
 @property (nonatomic) KBRConfig *config;
-@property KBAppViewStatus appViewStatus;
+@property KBAppViewMode mode;
 @end
 
 #define TITLE_HEIGHT (32)
@@ -56,36 +60,32 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 
   _delegates = [NSHashTable weakObjectsHashTable];
 
+  _toolbar = [[KBAppToolbar alloc] init];
+  _toolbar.hidden = YES;
+  _toolbar.delegate = self;
+  [self addSubview:_toolbar];
+
   _sourceView = [[KBSourceOutlineView alloc] init];
   _sourceView.hidden = YES;
-  _sourceView.delegate = self;
-  [self addSubview:_sourceView];
-
-  KBBox *border = [KBBox line];
-  [self addSubview:border];
-
-  _titleView = [KBNavigationTitleView titleViewWithTitle:@"Keybase" navigation:nil];
-  [self addSubview:_titleView];
+  //_sourceView.delegate = self;
+  //[self addSubview:_sourceView];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat col1 = 160;
-
     CGFloat x = 0;
     CGFloat y = 0;
 
-    if (!yself.titleView.hidden) {
-      y += [layout setFrame:CGRectMake(0, 0, size.width, TITLE_HEIGHT) view:yself.titleView].size.height;
+    if (!yself.toolbar.hidden) {
+      y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 0) view:yself.toolbar].size.height;
     }
 
-    [layout setFrame:CGRectMake(x, y, col1 - 1, size.height - y) view:yself.sourceView]; // NSOutlieView has trouble initializing to a bad size
-    if (!yself.sourceView.hidden) {
-      x += col1;
+    if (!yself.sourceView.hidden && yself.sourceView.superview) {
+      [layout setFrame:CGRectMake(x, y, 160 - 1, size.height - y) view:yself.sourceView]; // NSOutlineView has trouble initializing to a bad size
+      x += 160;
     }
-
-    [layout setFrame:CGRectMake(x - 1, y, 1, size.height - y) view:border];
 
     [layout setFrame:CGRectMake(x, y, size.width - x, size.height - y) view:yself.contentView];
+
     return size;
   }];
 
@@ -152,7 +152,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 - (void)setStatusError:(NSError *)error {
   GHWeakSelf gself = self;
 
-  if (gself.appViewStatus == KBAppViewStatusConnecting) {
+  if (gself.mode == KBAppViewModeConnecting) {
     NSMutableDictionary *errorInfo = [error.userInfo mutableCopy];
     errorInfo[NSLocalizedRecoveryOptionsErrorKey] = @[@"Retry", @"Quit"];
     error = [NSError errorWithDomain:error.domain code:error.code userInfo:errorInfo];
@@ -170,10 +170,9 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
   }
 }
 
-- (void)setContentView:(YOView *)contentView showSourceView:(BOOL)showSourceView appViewStatus:(KBAppViewStatus)appViewStatus {
-  _appViewStatus = appViewStatus;
-  self.sourceView.hidden = !showSourceView;
-  self.titleView.hidden = !showSourceView;
+- (void)setContentView:(YOView *)contentView mode:(KBAppViewMode)mode {
+  _mode = mode;
+  _toolbar.hidden = (mode != KBAppViewModeMain);
   [_contentView removeFromSuperview];
   _contentView = contentView;
   if (_contentView) [self addSubview:_contentView];
@@ -222,49 +221,49 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
   KBConnectView *connectView = [[KBConnectView alloc] init];
   connectView.progressView.animating = YES;
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView title:_title];
-  [self setContentView:navigation showSourceView:NO appViewStatus:KBAppViewStatusConnecting];
+  [self setContentView:navigation mode:KBAppViewModeConnecting];
 }
 
 - (void)showLogin {
   KBLoginView *view = [self loginView];
   [view removeFromSuperview];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
-  [self setContentView:navigation showSourceView:NO appViewStatus:KBAppViewStatusLogin];
+  [self setContentView:navigation mode:KBAppViewModeLogin];
 }
 
 - (void)showSignup {
   KBSignupView *view = [self signupView];
   [view removeFromSuperview];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
-  [self setContentView:navigation showSourceView:NO appViewStatus:KBAppViewStatusSignup];
+  [self setContentView:navigation mode:KBAppViewModeSignup];
 }
 
 - (void)showUsers {
   if (!_usersAppView) _usersAppView = [[KBUsersAppView alloc] init];
   _usersAppView.client = _client;
-  [self setContentView:_usersAppView showSourceView:YES appViewStatus:KBAppViewStatusMain];
+  [self setContentView:_usersAppView mode:KBAppViewModeMain];
 }
 
 - (void)showProfile {
   NSAssert(_user, @"No user");
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
   [_userProfileView setUsername:_user.username client:_client];
-  [self setContentView:_userProfileView showSourceView:YES appViewStatus:KBAppViewStatusMain];
-  [_sourceView selectItem:KBSourceViewItemProfile];
+  [self setContentView:_userProfileView mode:KBAppViewModeMain];
+  [_toolbar selectItem:KBAppViewItemProfile];
 }
 
 - (void)showDevices {
   if (!_devicesAppView) _devicesAppView = [[KBDevicesAppView alloc] init];
   _devicesAppView.client = _client;
   [_devicesAppView reload];
-  [self setContentView:_devicesAppView showSourceView:YES appViewStatus:KBAppViewStatusMain];
+  [self setContentView:_devicesAppView mode:KBAppViewModeMain];
 }
 
 - (void)showFolders {
   if (!_foldersAppView) _foldersAppView = [[KBFoldersAppView alloc] init];
   _foldersAppView.client = _client;
   [_foldersAppView reload];
-  [self setContentView:_foldersAppView showSourceView:YES appViewStatus:KBAppViewStatusMain];
+  [self setContentView:_foldersAppView mode:KBAppViewModeMain];
 }
 
 - (void)logout:(BOOL)prompt {
@@ -325,8 +324,8 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
   _config = config;
   NSString *host = _config.serverURI;
   // TODO Directly accessing API client should eventually go away (everything goes to daemon)
-  if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
-  AppDelegate.sharedDelegate.APIClient = [[KBAPIClient alloc] initWithAPIHost:host];
+  //if ([host isEqualTo:@"https://api.keybase.io:443"]) host = @"https://keybase.io";
+  //AppDelegate.sharedDelegate.APIClient = [[KBAPIClient alloc] initWithAPIHost:host];
 }
 
 - (NSString *)APIURLString:(NSString *)path {
@@ -340,6 +339,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
   self.user = status.user;
 
   [self.sourceView.statusView setStatus:status];
+  [self.toolbar setUser:status.user];
 
   if (_status.loggedIn && _status.user) {
     if (_sourceView.hidden) {
@@ -370,36 +370,33 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
-  [self.sourceView.statusView setConnected:YES];
   for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didConnectWithClient:_client];
   [self checkStatus:nil];
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
-  [self.sourceView.statusView setConnected:NO];
   for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didDisconnectWithClient:_client];
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
   //if (connectAttempt == 1) [AppDelegate.sharedDelegate setFatalError:error]; // Show error on first error attempt
-  [self.sourceView.statusView setConnected:NO];
   for (id<KBAppViewDelegate> delegate in _delegates) [delegate appView:self didErrorOnConnect:error connectAttempt:connectAttempt];
   [NSNotificationCenter.defaultCenter postNotificationName:KBStatusDidChangeNotification object:nil userInfo:@{}];
 }
 
-- (void)sourceOutlineView:(KBSourceOutlineView *)sourceView didSelectItem:(KBSourceViewItem)item {
+- (void)appToolbar:(KBAppToolbar *)appToolbar didSelectItem:(KBAppViewItem)item {
   switch (item) {
-  case KBSourceViewItemDevices:
+  case KBAppViewItemDevices:
     [self showDevices];
     break;
-  case KBSourceViewItemFolders:
+  case KBAppViewItemFolders:
     [self showFolders];
     break;
-  case KBSourceViewItemProfile:
+  case KBAppViewItemProfile:
     [self showProfile];
     break;
-  case KBSourceViewItemUsers:
+  case KBAppViewItemUsers:
     [self showUsers];
     break;
   }
@@ -408,9 +405,9 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
 - (KBWindow *)createWindow {
   NSAssert(!self.superview, @"Already has superview");
   KBWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 600) retain:YES];
+  window.sheetPosition = 74;
   window.minSize = CGSizeMake(600, 600);
   //window.restorable = YES;
-  window.delegate = self;
   //window.maxSize = CGSizeMake(600, 900);
   window.titleVisibility = NO;
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
@@ -428,13 +425,7 @@ typedef NS_ENUM (NSInteger, KBAppViewStatus) {
   KBWindow *window = [self createWindow];
   [window center];
   [window makeKeyAndOrderFront:nil];
-  window.delegate = self;
   return window;
-}
-
-- (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
-  rect.origin.y += -TITLE_HEIGHT;
-  return rect;
 }
 
 //- (void)encodeRestorableStateWithCoder:(NSCoder *)coder { }

@@ -10,9 +10,6 @@
 
 #import "KBProofLabel.h"
 
-#import <NAChloride/NAChloride.h>
-#import <KBKeybase/KBKeybase.h>
-
 
 @interface KBUserInfoLabels ()
 @property KBLabel *headerLabel;
@@ -36,7 +33,7 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
     //CGFloat x = (size.width/2.0) - 25;
-    CGFloat col1 = 80;
+    CGFloat col1 = 120;
     CGFloat x = col1;
     CGFloat y = 0;
     CGFloat lineHeight = 18;
@@ -88,9 +85,9 @@
 
   NSString *keyDescription;
   //if (key.pgpFingerprint) {
-  keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint([key.pgpFingerprint na_hexString]), 0);
+  keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint)), 0);
 //  } else if (key.kid) {
-//    keyDescription = NSStringWithFormat(@"%@...", [[key.kid na_hexString] substringToIndex:16]);
+//    keyDescription = NSStringWithFormat(@"%@...", [KBHexString(key.kid) substringToIndex:16]);
 //  }
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, key); };

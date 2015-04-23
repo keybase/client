@@ -68,7 +68,7 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 - (NSFont *)fontForStyle:(KBTextStyle)style;
 
 - (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
-- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
+- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled;
 - (NSColor *)buttonStrokeColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
 
 @end

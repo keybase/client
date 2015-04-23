@@ -48,7 +48,11 @@
   proveView.client = client;
   proveView.proveType = proveType;
 
-  [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 420, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES makeKey:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
+  NSWindow *window = [sender.window kb_addChildWindowForView:proveView rect:CGRectMake(0, 0, 420, 420) position:KBWindowPositionCenter title:@"Keybase" fixed:YES makeKey:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
+
+  proveView.inputView.cancelButton.targetBlock = ^{
+    [window close];
+  };
 }
 
 - (void)setProveType:(KBProveType)proveType {

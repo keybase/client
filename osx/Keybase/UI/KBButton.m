@@ -15,6 +15,10 @@
 @property KBButtonStyle style;
 @end
 
+@interface KBButtonCell ()
+@property (weak) KBButton *parent;
+@end
+
 @implementation KBButton
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
@@ -149,17 +153,18 @@
   [self setAttributedTitle:[KBButton attributedText:text font:font color:nil alignment:alignment lineBreakMode:lineBreakMode] style:style];
 }
 
-+ (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style sender:(id)sender {
++ (KBButtonCell *)buttonCellWithStyle:(KBButtonStyle)style button:(KBButton *)button {
   KBButtonCell *cell = [[KBButtonCell alloc] init];
   cell.style = style;
-  cell.target = sender;
+  cell.parent = button;
+  cell.target = button;
   cell.action = @selector(_performTargetBlock);
   return cell;
 }
 
 - (KBButtonCell *)_setCellForStyle:(KBButtonStyle)style {
   _style = style;
-  KBButtonCell *cell = [KBButton buttonCellWithStyle:style sender:self];
+  KBButtonCell *cell = [KBButton buttonCellWithStyle:style button:self];
   self.cell = cell;
   if (style == KBButtonStyleCheckbox) {
     [self setButtonType:NSSwitchButton];
@@ -253,7 +258,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
     }
   }
 
-  if (self.image && self.style != KBButtonStyleCheckbox) {
+  if (self.imagePosition != NSImageAbove && self.image && self.style != KBButtonStyleCheckbox) {
     frame.origin.x += self.image.size.width/2.0;
   }
 
@@ -265,13 +270,15 @@ static KBButtonErrorHandler gErrorHandler = nil;
     return [super drawImage:image withFrame:frame inView:controlView];
   }
 
-  CGSize titleSize = [KBText sizeThatFits:controlView.frame.size attributedString:self.attributedTitle];
-
   CGRect imageFrame = frame;
-  if (titleSize.width > 0) {
-    CGPoint imagePosition = CGPointMake(ceilf(controlView.frame.size.width/2.0 - titleSize.width/2.0 - image.size.width/2.0) - 2,
-                                        ceilf(controlView.frame.size.height/2.0 - image.size.height/2.0));
-    imageFrame = CGRectMake(imagePosition.x, imagePosition.y, image.size.width, image.size.height);
+  if (self.imagePosition != NSImageAbove) {
+    CGSize titleSize = [KBText sizeThatFits:controlView.frame.size attributedString:self.attributedTitle];
+
+    if (titleSize.width > 0) {
+      CGPoint imagePosition = CGPointMake(ceilf(controlView.frame.size.width/2.0 - titleSize.width/2.0 - image.size.width/2.0) - 2,
+                                          ceilf(controlView.frame.size.height/2.0 - image.size.height/2.0));
+      imageFrame = CGRectMake(imagePosition.x, imagePosition.y, image.size.width, image.size.height);
+    }
   }
 
   [super drawImage:image withFrame:imageFrame inView:controlView];
@@ -279,7 +286,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
 
 - (void)drawBezelWithFrame:(NSRect)frame inView:(NSView *)controlView {
   NSColor *strokeColor = [KBAppearance.currentAppearance buttonStrokeColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted];
-  NSColor *fillColor = [KBAppearance.currentAppearance buttonFillColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted];
+  NSColor *fillColor = [KBAppearance.currentAppearance buttonFillColorForStyle:self.style enabled:self.enabled highlighted:self.highlighted toggled:(self.parent.toggleEnabled ? self.state : NSOffState)];
 
   NSBezierPath *path;
   if (strokeColor) {
@@ -288,7 +295,7 @@ static KBButtonErrorHandler gErrorHandler = nil;
   } else if (_style != KBButtonStyleEmpty) {
     path = [NSBezierPath bezierPathWithRoundedRect:frame xRadius:4.0 yRadius:4.0];
   } else {
-    path = [NSBezierPath bezierPathWithRect:frame];
+    path = [NSBezierPath bezierPathWithRoundedRect:frame xRadius:4.0 yRadius:4.0];
   }
 
   if (fillColor) {

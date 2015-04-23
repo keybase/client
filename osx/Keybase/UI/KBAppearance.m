@@ -211,7 +211,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleToolbar:
     case KBButtonStyleSmall:
     case KBButtonStyleText:
-      return GHNSColorFromRGB(0xCCCCCC);
+      return GHNSColorFromRGB(0xDEDEDE);
 
     case KBButtonStylePrimary:
       return [NSColor colorWithRed:192.0/255.0 green:221.0/255.0 blue:250.0/255.0 alpha:1.0];
@@ -222,12 +222,12 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   }
 }
 
-- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted {
+- (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled {
+  if (toggled) return [self buttonHighlightedFillColorForStyle:style];
   if (!enabled) return [self buttonDisabledFillColorForStyle:style];
   if (highlighted) return [self buttonHighlightedFillColorForStyle:style];
   switch (style) {
     case KBButtonStyleDefault:
-    case KBButtonStyleEmpty:
     case KBButtonStyleToolbar:
     case KBButtonStyleSmall:
       return [NSColor colorWithWhite:0.99 alpha:1.0];
@@ -235,6 +235,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStylePrimary:
       return KBAppearance.currentAppearance.selectColor;
 
+    case KBButtonStyleEmpty:
     case KBButtonStyleLink:
     case KBButtonStyleText:
     case KBButtonStyleCheckbox:

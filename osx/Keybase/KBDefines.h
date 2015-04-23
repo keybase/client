@@ -23,6 +23,22 @@ extern NSString *const KBStatusDidChangeNotification;
 
 NSString *KBDisplayURLStringForUsername(NSString *username);
 NSString *KBURLStringForUsername(NSString *username);
+
 NSString *KBHexString(NSData *data);
+NSData *KBHexData(NSString *s);
+
 NSString *KBDictionaryDescription(NSDictionary *d);
 NSString *KBArrayDescription(NSArray *a);
+
+NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint);
+NSString *NSStringFromKBKeyFingerprint(NSString *fingerprint, NSInteger indexForLineBreak);
+
+typedef NS_ENUM (NSInteger, KBAppViewItem) {
+  KBAppViewItemProfile = 1,
+  KBAppViewItemUsers,
+  KBAppViewItemDevices,
+  KBAppViewItemFolders,
+};
+
+
+#define KBErrorAlert(fmt, ...) [NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:fmt, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey:@[@"OK"]}]

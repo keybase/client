@@ -12,8 +12,6 @@
 
 - (void)viewInit {
   [super viewInit];
-  _inputField = [[KBTextField alloc] init];
-  [self addSubview:_inputField];
 
   _header = [[KBLabel alloc] init];
   [self addSubview:_header];
@@ -21,8 +19,13 @@
   _label = [[KBLabel alloc] init];
   [self addSubview:_label];
 
+  _inputField = [[KBTextField alloc] init];
+  [self addSubview:_inputField];
+
   _button = [KBButton buttonWithText:@"Connect" style:KBButtonStylePrimary];
   [self addSubview:_button];
+  _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleLink];
+  [self addSubview:_cancelButton];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -34,7 +37,9 @@
 
     y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.inputField].size.height + 40;
 
-    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.button].size.height;
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.button].size.height + 20;
+    
+    y += [layout centerWithSize:CGSizeMake(200, 0) frame:CGRectMake(0, y, size.width, 0) view:yself.cancelButton].size.height;
 
     return CGSizeMake(size.width, y);
   }];

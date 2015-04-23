@@ -18,7 +18,7 @@
 - (void)decryptWithOptions:(KBRPgpDecryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *streams))completion {
   KBRunBlocks *sb = [[KBRunBlocks alloc] init];
   sb.objects = streams;
-  sb.runBlock = ^(KBStream *stream, KBCompletionHandler runCompletion) {
+  sb.runBlock = ^(KBStream *stream, KBCompletionBlock runCompletion) {
     [self decryptWithOptions:options stream:stream client:client sender:sender completion:^(NSError *error, KBStream *stream) {
       runCompletion(error);
     }];

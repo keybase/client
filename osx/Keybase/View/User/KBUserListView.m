@@ -21,7 +21,6 @@
 - (void)viewInit {
   [super viewInit];
 
-  GHWeakSelf gself = self;
   _listView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
   _listView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setUserSummary:userSummary];

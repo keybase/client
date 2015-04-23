@@ -9,7 +9,6 @@
 #import <Cocoa/Cocoa.h>
 
 #import "KBRPClient.h"
-#import <KBKeybase/KBKeybase.h>
 #import "KBRPC.h"
 #import "KBAppView.h"
 #import <GHKit/GHKit.h>
@@ -20,7 +19,6 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, KBAppViewDelegate>
 
-@property KBAPIClient *APIClient;
 @property (readonly, copy) KBErrorHandler errorHandler;
 
 @property (readonly) KBHelperClient *helper;

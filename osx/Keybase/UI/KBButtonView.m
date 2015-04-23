@@ -8,8 +8,6 @@
 
 #import "KBButtonView.h"
 
-#import "KBButton.h"
-
 @interface KBButtonView ()
 @property KBButton *button;
 @property (nonatomic) YOView *view;
@@ -20,14 +18,14 @@
 - (void)viewInit {
   [super viewInit];
 
-  _button = [KBButton buttonWithText:nil style:KBButtonStyleEmpty];
+  _button = [KBButton button];
   [self addSubview:_button];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat y = [layout sizeToFitInFrame:CGRectMake(0, 0, size.width, size.height) view:yself.view].size.height;
-    [layout setFrame:CGRectMake(0, 0, size.width, y) view:yself.button];
-    return CGSizeMake(size.width, y);
+    CGSize viewSize = [layout sizeToFitInFrame:CGRectMake(0, 0, size.width, size.height) view:yself.view].size;
+    [layout setSize:viewSize view:yself.button options:0];
+    return viewSize;
   }];
 }
 
@@ -43,6 +41,10 @@
   _view = view;
   [self addSubview:_view];
   [self setNeedsLayout];
+}
+
+- (void)setButtonStyle:(KBButtonStyle)buttonStyle {
+  [_button setText:nil style:buttonStyle alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
 }
 
 @end
