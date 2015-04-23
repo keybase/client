@@ -7,14 +7,15 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// Thin wrapper around hashicorp's LRU to store users locally
+// UserCache is a thin wrapper around hashicorp's LRU to store
+// users locally.  It is safe for concurrent use by multiple
+// goroutines.
 
 type UserCache struct {
-	lru          *lru.Cache
-	lockTable    *LockTable
-	resolveCache map[string]ResolveResult
-	uidMapMu     sync.RWMutex
-	uidMap       map[string]UID
+	lru            *lru.Cache
+	lockTable      *LockTable
+	resolveCacheMu sync.RWMutex
+	resolveCache   map[string]ResolveResult
 }
 
 type Unlocker interface {
@@ -30,16 +31,12 @@ func NewUserCache(c int) (*UserCache, error) {
 	return &UserCache{
 		lru:          tmp,
 		resolveCache: make(map[string]ResolveResult),
-		uidMap:       make(map[string]UID),
 		lockTable:    NewLockTable(),
 	}, nil
 }
 
 func (c *UserCache) Put(u *User) {
 	c.lru.Add(u.id, u)
-	c.uidMapMu.Lock()
-	c.uidMap[u.GetName()] = u.GetUid()
-	c.uidMapMu.Unlock()
 }
 
 func (c *UserCache) Get(id UID) *User {
@@ -53,16 +50,6 @@ func (c *UserCache) Get(id UID) *User {
 		return nil
 	}
 	return ret
-}
-
-func (c *UserCache) GetByName(s string) *User {
-	c.uidMapMu.RLock()
-	uid, ok := c.uidMap[s]
-	c.uidMapMu.RUnlock()
-	if !ok {
-		return nil
-	}
-	return c.Get(uid)
 }
 
 func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
@@ -84,7 +71,9 @@ func (c *UserCache) CacheServerGetVector(vec *jsonw.Wrapper) error {
 }
 
 func (c *UserCache) GetResolution(key string) *ResolveResult {
+	c.resolveCacheMu.RLock()
 	res, found := c.resolveCache[key]
+	c.resolveCacheMu.RUnlock()
 	if found {
 		return &res
 	} else {
@@ -94,7 +83,9 @@ func (c *UserCache) GetResolution(key string) *ResolveResult {
 
 func (c *UserCache) PutResolution(key string, res ResolveResult) {
 	res.body = nil
+	c.resolveCacheMu.Lock()
 	c.resolveCache[key] = res
+	c.resolveCacheMu.Unlock()
 }
 
 func (c *UserCache) LockUID(uid string) Unlocker {

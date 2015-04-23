@@ -18,6 +18,9 @@ func TestConcurrentUserCache(t *testing.T) {
 			for j := 0; j < 100; j++ {
 				uid := UsernameToUID(randomString())
 				u := &User{id: uid}
+				// nlock doesn't really matter in this situation, but
+				// code using usercache holds it during Put(), so
+				// putting it here too.
 				nlock := uc.LockUID(uid.String())
 				uc.Put(u)
 				nlock.Unlock()
@@ -33,6 +36,8 @@ func TestConcurrentUserCache(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
+				// nlock doesn't really matter, but code using
+				// usercache holds it during Get(), so putting it here too.
 				nlock := uc.LockUID(u.String())
 				uc.Get(u)
 				nlock.Unlock()
