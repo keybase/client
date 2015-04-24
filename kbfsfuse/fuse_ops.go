@@ -47,7 +47,7 @@ type FuseFile struct {
 type FuseNode struct {
 	nodefs.Node
 
-	PathNode   *libkbfs.PathNode
+	PathNode   libkbfs.PathNode
 	PrevNode   *FuseNode
 	Entry      libkbfs.DirEntry
 	NeedUpdate bool
@@ -99,7 +99,7 @@ func (n *FuseNode) GetLock() *sync.RWMutex {
 func (n *FuseNode) GetPath(depth int) libkbfs.Path {
 	var p libkbfs.Path
 	if n.PrevNode == nil {
-		p = libkbfs.Path{n.Dir, make([]*libkbfs.PathNode, 0, depth)}
+		p = libkbfs.Path{n.Dir, make([]libkbfs.PathNode, 0, depth)}
 	} else {
 		p = n.PrevNode.GetPath(depth + 1)
 	}
@@ -140,7 +140,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				Dir:       md.Id,
 				DirHandle: dirHandle,
 				Entry:     md.Data().Dir,
-				PathNode: &libkbfs.PathNode{
+				PathNode: libkbfs.PathNode{
 					md.Data().Dir.BlockPointer,
 					dirHandle.ToString(f.config),
 				},
@@ -161,12 +161,12 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			return nil, f.TranslateError(&libkbfs.NoSuchNameError{name})
 		}
 
-		var pathNode *libkbfs.PathNode = nil
+		var pathNode libkbfs.PathNode
 		if de.Type == libkbfs.Sym {
 			// use a null block pointer for symlinks
-			pathNode = &libkbfs.PathNode{Name: name}
+			pathNode = libkbfs.PathNode{Name: name}
 		} else {
-			pathNode = &libkbfs.PathNode{de.BlockPointer, name}
+			pathNode = libkbfs.PathNode{de.BlockPointer, name}
 		}
 		fNode := &FuseNode{
 			Node:     nodefs.NewDefaultNode(),
@@ -314,7 +314,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 				fNode = &FuseNode{
 					Node:      nodefs.NewDefaultNode(),
 					DirHandle: dirHandle,
-					PathNode: &libkbfs.PathNode{
+					PathNode: libkbfs.PathNode{
 						libkbfs.BlockPointer{}, dirString},
 					Entry: libkbfs.DirEntry{Type: libkbfs.Dir},
 					Ops:   f,
@@ -327,7 +327,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					Dir:       md.Id,
 					DirHandle: dirHandle,
 					Entry:     md.Data().Dir,
-					PathNode: &libkbfs.PathNode{
+					PathNode: libkbfs.PathNode{
 						md.Data().Dir.BlockPointer,
 						dirString,
 					},
@@ -364,7 +364,7 @@ func (f *FuseOps) LookupInRootById(rNode *FuseNode, id libkbfs.DirId) (
 				Dir:       id,
 				DirHandle: dirHandle,
 				Entry:     md.Data().Dir,
-				PathNode: &libkbfs.PathNode{
+				PathNode: libkbfs.PathNode{
 					md.Data().Dir.BlockPointer,
 					name,
 				},
@@ -453,7 +453,7 @@ func (f *FuseOps) ListRoot() (stream []fuse.DirEntry, code fuse.Status) {
 }
 
 func (f *FuseOps) updatePaths(topDir libkbfs.DirId, n *FuseNode,
-	newPath []*libkbfs.PathNode) {
+	newPath []libkbfs.PathNode) {
 	// update all the paths back to the root
 	index := len(newPath) - 1
 	currNode := n
@@ -633,7 +633,7 @@ func (f *FuseOps) Symlink(n *FuseNode, name string, content string) (
 	lNode := &FuseNode{
 		Node:     nodefs.NewDefaultNode(),
 		PrevNode: n,
-		PathNode: &libkbfs.PathNode{Name: name},
+		PathNode: libkbfs.PathNode{Name: name},
 		Entry:    de,
 		Ops:      f,
 	}
@@ -665,7 +665,7 @@ func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 	if child == nil {
 		p = n.GetPath(1)
 		// make a fake pathnode for this name
-		p.Path = append(p.Path, &libkbfs.PathNode{Name: name})
+		p.Path = append(p.Path, libkbfs.PathNode{Name: name})
 	} else {
 		p = child.Node().(*FuseNode).GetPath(1)
 	}
@@ -947,7 +947,7 @@ func (n *FuseNode) Symlink(name string, content string, context *fuse.Context) (
 }
 
 func (n *FuseNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
-	if n.PathNode == nil && n.PrevNode != nil {
+	if !n.PathNode.IsInitialized() && n.PrevNode != nil {
 		return n.Ops.Readlink(n)
 	} else {
 		return nil, fuse.EINVAL

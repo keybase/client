@@ -77,7 +77,7 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata, userId libkb.UID) {
 }
 
 func pathFromRMD(config *ConfigMock, rmd *RootMetadata) Path {
-	return Path{rmd.Id, []*PathNode{&PathNode{
+	return Path{rmd.Id, []PathNode{PathNode{
 		BlockPointer{BlockId{}, rmd.data.Dir.KeyId, 0, libkb.UID{0}, 0},
 		rmd.GetDirHandle().ToString(config),
 	}}}
@@ -144,8 +144,8 @@ func TestKeyManagerGetUncachedBlockKeyFailNewKey(t *testing.T) {
 	rmd.data.Dir.KeyId = 1
 
 	rootId := BlockId{42}
-	node := &PathNode{BlockPointer{rootId, 1, 0, u, 0}, ""}
-	p := Path{id, []*PathNode{node}}
+	node := PathNode{BlockPointer{rootId, 1, 0, u, 0}, ""}
+	p := Path{id, []PathNode{node}}
 
 	// we'll check the cache, but then fail before getting the read key
 	expectedErr := &NewKeyError{rmd.GetDirHandle().ToString(config), 1}

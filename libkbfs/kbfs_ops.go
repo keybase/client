@@ -106,7 +106,7 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 		return nil
 	}
 
-	path := Path{md.Id, []*PathNode{&PathNode{
+	path := Path{md.Id, []PathNode{PathNode{
 		BlockPointer{BlockId{}, 0, fs.config.DataVersion(), user, 0},
 		md.GetDirHandle().ToString(fs.config),
 	}}}
@@ -395,7 +395,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 	// in the path
 	currBlock := newBlock
 	currName := name
-	newPath := Path{dir.TopDir, make([]*PathNode, 0, len(dir.Path))}
+	newPath := Path{dir.TopDir, make([]PathNode, 0, len(dir.Path))}
 	bps := newBlockPutState(len(dir.Path))
 	refPath := *dir.ChildPathNoPtr(name)
 	var newDe DirEntry
@@ -405,7 +405,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			return Path{}, DirEntry{}, err
 		}
 		// prepend to path and setup next one
-		newPath.Path = append([]*PathNode{&PathNode{blockPtr, currName}},
+		newPath.Path = append([]PathNode{PathNode{blockPtr, currName}},
 			newPath.Path...)
 
 		// get the parent block
@@ -815,7 +815,7 @@ func (fs *KBFSOpsStandard) Rename(
 
 	// newOldPath is really just a prefix now.  A copy is necessary as an
 	// append could cause the new path to contain nodes from the old path.
-	newOldPath.Path = append(make([]*PathNode, i+1, i+1), newOldPath.Path...)
+	newOldPath.Path = append(make([]PathNode, i+1, i+1), newOldPath.Path...)
 	copy(newOldPath.Path[:i+1], newNewPath.Path[:i+1])
 
 	return newOldPath, newNewPath, nil
@@ -853,7 +853,7 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		// ptr that wasn't the final ptr in its respective list
 		more = more || (nextIndex != len(block.IPtrs)-1)
 		id = nextPtr.Id
-		newPath.Path = append(newPath.Path, &PathNode{
+		newPath.Path = append(newPath.Path, PathNode{
 			nextPtr.BlockPointer, file.TailName(),
 		})
 		if block, err = fs.getFileLocked(newPath, asWrite); err != nil {

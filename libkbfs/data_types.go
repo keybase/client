@@ -104,6 +104,10 @@ func (p BlockPointer) GetQuotaSize() uint32 {
 	return p.QuotaSize
 }
 
+func (p BlockPointer) IsInitialized() bool {
+	return p.Id != NullBlockId
+}
+
 type UIDList []libkb.UID
 
 func (u UIDList) Len() int {
@@ -229,18 +233,18 @@ type PathNode struct {
 // can traverse backwards and fix up ids along the way
 type Path struct {
 	TopDir DirId
-	Path   []*PathNode
+	Path   []PathNode
 }
 
 func (p *Path) TailName() string {
 	return p.Path[len(p.Path)-1].Name
 }
 
-func (p *Path) TailPointer() *BlockPointer {
+func (p *Path) TailPointer() BlockPointer {
 	if len(p.Path) > 0 {
-		return &p.Path[len(p.Path)-1].BlockPointer
+		return p.Path[len(p.Path)-1].BlockPointer
 	} else {
-		return &BlockPointer{}
+		return BlockPointer{}
 	}
 }
 
@@ -257,9 +261,9 @@ func (p *Path) ParentPath() *Path {
 }
 
 func (p *Path) ChildPathNoPtr(name string) *Path {
-	child := &Path{p.TopDir, make([]*PathNode, len(p.Path), len(p.Path)+1)}
+	child := &Path{p.TopDir, make([]PathNode, len(p.Path), len(p.Path)+1)}
 	copy(child.Path, p.Path)
-	child.Path = append(child.Path, &PathNode{Name: name})
+	child.Path = append(child.Path, PathNode{Name: name})
 	return child
 }
 
@@ -551,7 +555,7 @@ type DirEntry struct {
 }
 
 func (de *DirEntry) IsInitialized() bool {
-	return de.Id != NullBlockId
+	return de.BlockPointer.IsInitialized()
 }
 
 // IndirectDirPtr pairs an indirect dir block with the start of that

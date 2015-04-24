@@ -19,7 +19,7 @@ func (md *MDOpsStandard) processMetadata(
 	if rmds.IsInitialized() {
 		// decrypt the root data for non-public directories
 		if !handle.IsPublic() {
-			path := Path{rmds.MD.Id, []*PathNode{}}
+			path := Path{rmds.MD.Id, []PathNode{}}
 			k, err := md.config.KeyManager().GetSecretKey(path, &rmds.MD)
 			if err != nil {
 				return err
@@ -177,7 +177,7 @@ func (md *MDOpsStandard) Put(id DirId, rmd *RootMetadata) error {
 	if !id.IsPublic() {
 		// TODO: do we need a server-side key half for the encrypted
 		// metadata?
-		path := Path{rmd.Id, []*PathNode{}}
+		path := Path{rmd.Id, []PathNode{}}
 		rk, err := md.config.KeyManager().GetSecretKey(path, rmd)
 		if err != nil {
 			return err
