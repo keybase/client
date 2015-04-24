@@ -9,12 +9,12 @@ import (
 
 // UserHandler is the RPC handler for the user interface.
 type UserHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 // NewUserHandler creates a UserHandler for the xp transport.
 func NewUserHandler(xp *rpc2.Transport) *UserHandler {
-	return &UserHandler{BaseHandler{xp: xp}}
+	return &UserHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 // ListTrackers gets the list of trackers for a user by uid.

@@ -7,11 +7,11 @@ import (
 )
 
 type BTCHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 func NewBTCHandler(xp *rpc2.Transport) *BTCHandler {
-	return &BTCHandler{BaseHandler{xp: xp}}
+	return &BTCHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 // BTC creates a BTCEngine and runs it.

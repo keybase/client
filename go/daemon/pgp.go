@@ -8,11 +8,11 @@ import (
 )
 
 type PGPHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 func NewPGPHandler(xp *rpc2.Transport) *PGPHandler {
-	return &PGPHandler{BaseHandler{xp: xp}}
+	return &PGPHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (h *PGPHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {

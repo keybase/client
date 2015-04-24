@@ -8,12 +8,12 @@ import (
 
 // SigsHandler is the RPC handler for the sigs interface.
 type SigsHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 // NewSigsHandler creates a SigsHandler for the xp transport.
 func NewSigsHandler(xp *rpc2.Transport) *SigsHandler {
-	return &SigsHandler{BaseHandler{xp: xp}}
+	return &SigsHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (h *SigsHandler) SigList(args keybase_1.SigListArgs) ([]keybase_1.Sig, error) {

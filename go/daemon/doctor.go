@@ -8,11 +8,11 @@ import (
 
 // DoctorHandler implements the keybase_1.Doctor protocol
 type DoctorHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 func NewDoctorHandler(xp *rpc2.Transport) *DoctorHandler {
-	return &DoctorHandler{BaseHandler{xp: xp}}
+	return &DoctorHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (h *DoctorHandler) Doctor(sessionID int) error {

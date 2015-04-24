@@ -8,11 +8,11 @@ import (
 )
 
 type SignupHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 func NewSignupHandler(xp *rpc2.Transport) *SignupHandler {
-	return &SignupHandler{BaseHandler: BaseHandler{xp: xp}}
+	return &SignupHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (h *SignupHandler) CheckUsernameAvailable(username string) error {

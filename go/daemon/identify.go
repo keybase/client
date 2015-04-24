@@ -19,11 +19,11 @@ type RemoteSelfIdentifyUI struct {
 }
 
 type IdentifyHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
-	return &IdentifyHandler{BaseHandler{xp: xp}}
+	return &IdentifyHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (h *IdentifyHandler) Identify(arg keybase_1.IdentifyArg) (keybase_1.IdentifyRes, error) {

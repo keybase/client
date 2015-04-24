@@ -8,12 +8,12 @@ import (
 
 // TrackHandler is the RPC handler for the track interface.
 type TrackHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 // NewTrackHandler creates a TrackHandler for the xp transport.
 func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
-	return &TrackHandler{BaseHandler{xp: xp}}
+	return &TrackHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 // Track creates a TrackEngine and runs it.

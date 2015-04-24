@@ -7,7 +7,7 @@ import (
 )
 
 type ProveHandler struct {
-	BaseHandler
+	*BaseHandler
 	proveUI libkb.ProveUI
 }
 
@@ -17,7 +17,7 @@ type ProveUI struct {
 }
 
 func NewProveHandler(xp *rpc2.Transport) *ProveHandler {
-	return &ProveHandler{BaseHandler{xp: xp}, nil}
+	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (p *ProveUI) PromptOverwrite(prompt string, typ keybase_1.PromptOverwriteType) (b bool, err error) {

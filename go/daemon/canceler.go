@@ -18,13 +18,13 @@ type Canceler interface {
 // CancelHandler is safe for use by multiple concurrent
 // goroutines.
 type CancelHandler struct {
-	BaseHandler
+	*BaseHandler
 	mapMu     sync.RWMutex
 	cancelers map[int]Canceler
 }
 
 func NewCancelHandler(xp *rpc2.Transport) *CancelHandler {
-	return &CancelHandler{BaseHandler: BaseHandler{xp: xp}}
+	return &CancelHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (h *CancelHandler) setCanceler(sessionID int, c Canceler) {

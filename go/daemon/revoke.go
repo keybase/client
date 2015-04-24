@@ -7,11 +7,11 @@ import (
 )
 
 type RevokeHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 func NewRevokeHandler(xp *rpc2.Transport) *RevokeHandler {
-	return &RevokeHandler{BaseHandler{xp: xp}}
+	return &RevokeHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 func (h *RevokeHandler) RevokeKey(arg keybase_1.RevokeKeyArg) error {

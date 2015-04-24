@@ -11,12 +11,12 @@ var ErrNoSession = errors.New("no current session")
 
 // SessionHandler is the RPC handler for the session interface.
 type SessionHandler struct {
-	BaseHandler
+	*BaseHandler
 }
 
 // NewSessionHandler creates a SessionHandler for the xp transport.
 func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
-	return &SessionHandler{BaseHandler{xp: xp}}
+	return &SessionHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
 // CurrentSession uses the global session to find the session.  If

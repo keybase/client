@@ -16,6 +16,16 @@ type BaseHandler struct {
 	logCli    *keybase_1.LogUiClient
 }
 
+func NewBaseHandler(xp *rpc2.Transport) *BaseHandler {
+	h := &BaseHandler{xp: xp}
+	h.cli = rpc2.NewClient(h.xp, libkb.UnwrapError)
+	h.loginCli = &keybase_1.LoginUiClient{Cli: h.cli}
+	h.secretCli = &keybase_1.SecretUiClient{Cli: h.cli}
+	h.logCli = &keybase_1.LogUiClient{Cli: h.cli}
+
+	return h
+}
+
 type LoginUI struct {
 	sessionId int
 	cli       *keybase_1.LoginUiClient
@@ -45,16 +55,10 @@ func nextSessionID() int {
 }
 
 func (h *BaseHandler) getRpcClient() *rpc2.Client {
-	if h.cli == nil {
-		h.cli = rpc2.NewClient(h.xp, libkb.UnwrapError)
-	}
 	return h.cli
 }
 
 func (h *BaseHandler) getLoginUICli() *keybase_1.LoginUiClient {
-	if h.loginCli == nil {
-		h.loginCli = &keybase_1.LoginUiClient{Cli: h.getRpcClient()}
-	}
 	return h.loginCli
 }
 
@@ -71,9 +75,6 @@ func (h *BaseHandler) getGPGUI(sessionID int) libkb.GPGUI {
 }
 
 func (h *BaseHandler) getSecretUICli() *keybase_1.SecretUiClient {
-	if h.secretCli == nil {
-		h.secretCli = &keybase_1.SecretUiClient{Cli: h.getRpcClient()}
-	}
 	return h.secretCli
 }
 
@@ -82,9 +83,6 @@ func (h *BaseHandler) getSecretUI(sessionId int) libkb.SecretUI {
 }
 
 func (h *BaseHandler) getLogUICli() *keybase_1.LogUiClient {
-	if h.logCli == nil {
-		h.logCli = &keybase_1.LogUiClient{Cli: h.getRpcClient()}
-	}
 	return h.logCli
 }
 
