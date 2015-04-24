@@ -83,35 +83,38 @@ func (s *SignupEngine) GetMe() *libkb.User {
 }
 
 func (s *SignupEngine) Run(ctx *Context) error {
-	if err := s.genTSPassKey(s.arg.Passphrase); err != nil {
-		return err
-	}
+	f := func(dummy *libkb.LoginArg) error {
+		if err := s.genTSPassKey(s.arg.Passphrase); err != nil {
+			return err
+		}
 
-	if err := s.join(s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
-		return err
-	}
+		if err := s.join(s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+			return err
+		}
 
-	if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
-		return err
-	}
+		if err := s.registerDevice(ctx, s.arg.DeviceName); err != nil {
+			return err
+		}
 
-	if err := s.genDetKeys(ctx); err != nil {
-		return fmt.Errorf("detkeys error: %s", err)
-	}
+		if err := s.genDetKeys(ctx); err != nil {
+			return fmt.Errorf("detkeys error: %s", err)
+		}
 
-	if s.arg.SkipGPG {
+		if s.arg.SkipGPG {
+			return nil
+		}
+
+		if wantsGPG, err := s.checkGPG(ctx); err != nil {
+			return err
+		} else if wantsGPG {
+			if err := s.addGPG(ctx, true); err != nil {
+				return fmt.Errorf("addGPG error: %s", err)
+			}
+		}
+
 		return nil
 	}
-
-	if wantsGPG, err := s.checkGPG(ctx); err != nil {
-		return err
-	} else if wantsGPG {
-		if err := s.addGPG(ctx, true); err != nil {
-			return fmt.Errorf("addGPG error: %s", err)
-		}
-	}
-
-	return nil
+	return s.G().LoginState().ExternalFunc(f)
 }
 
 func (s *SignupEngine) genTSPassKey(passphrase string) error {

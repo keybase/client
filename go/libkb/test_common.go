@@ -65,8 +65,8 @@ func (to TestOutput) Write(p []byte) (n int, err error) {
 }
 
 type TestContext struct {
-	G          GlobalContext
-	PrevGlobal GlobalContext
+	G          *GlobalContext
+	PrevGlobal *GlobalContext
 	Tp         TestParameters
 	T          *testing.T
 }

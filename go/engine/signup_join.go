@@ -119,7 +119,7 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 }
 
 func (s *SignupJoinEngine) WriteOut(salt []byte) error {
-	return G.LoginState.SetSignupRes(s.session, s.csrf, s.username, s.uid, salt)
+	return G.LoginState().SetSignupRes(s.session, s.csrf, s.username, s.uid, salt)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {

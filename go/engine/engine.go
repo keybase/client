@@ -22,7 +22,7 @@ func runPrereqs(e Engine) (err error) {
 
 	if prq.Session {
 		var ok bool
-		ok, err = G.LoginState.IsLoggedInLoad()
+		ok, err = G.LoginState().IsLoggedInLoad()
 		if !ok {
 			urlError, isUrlError := err.(*url.Error)
 			context := ""

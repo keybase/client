@@ -45,17 +45,17 @@ func TestConcurrentLogin(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					G.LoginState.SessionArgs()
-					G.LoginState.UserInfo()
-					G.LoginState.UID()
-					G.LoginState.SessionLoad()
-					G.LoginState.IsLoggedIn()
-					G.LoginState.IsLoggedInLoad()
-					G.LoginState.AssertLoggedIn()
-					G.LoginState.AssertLoggedOut()
+					G.LoginState().SessionArgs()
+					G.LoginState().UserInfo()
+					G.LoginState().UID()
+					G.LoginState().SessionLoad()
+					G.LoginState().IsLoggedIn()
+					G.LoginState().IsLoggedInLoad()
+					G.LoginState().AssertLoggedIn()
+					G.LoginState().AssertLoggedOut()
 					// G.LoginState.Shutdown()
-					G.LoginState.GetCachedTriplesec()
-					G.LoginState.GetCachedPassphraseStream()
+					G.LoginState().GetCachedTriplesec()
+					G.LoginState().GetCachedPassphraseStream()
 				}
 			}
 		}(i)
@@ -102,7 +102,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					_, err := G.LoginState.GetPassphraseStream(u.NewSecretUI())
+					_, err := G.LoginState().GetPassphraseStream(u.NewSecretUI())
 					if err != nil {
 						G.Log.Warning("GetPassphraseStream err: %s", err)
 					}
@@ -116,9 +116,52 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 	mwg.Wait()
 }
 
+// TestConcurrentLogin tries calling logout, login, and many of
+// the exposed methods in LoginState concurrently.  Use the
+// -race flag to test it.
+func TestConcurrentSignup(t *testing.T) {
+	// making it skip by default since it is slow...
+	// t.Skip("Skipping ConcurrentSignup test")
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(t, "login")
+
+	var lwg sync.WaitGroup
+	var mwg sync.WaitGroup
+
+	done := make(chan bool)
+
+	for i := 0; i < 10; i++ {
+		lwg.Add(1)
+		go func(index int) {
+			defer lwg.Done()
+			for j := 0; j < 4; j++ {
+				G.Logout()
+				u.Login()
+				G.Logout()
+			}
+			fmt.Printf("logout/login #%d done\n", index)
+		}(i)
+
+		mwg.Add(1)
+		go func(index int) {
+			defer mwg.Done()
+			CreateAndSignupFakeUser(t, "login")
+			G.Logout()
+			fmt.Printf("func caller %d done\n", index)
+		}(i)
+	}
+
+	lwg.Wait()
+	close(done)
+	mwg.Wait()
+}
+
 // TestConcurrentGlobals tries to find race conditions in
 // everything in GlobalContext.
 func TestConcurrentGlobals(t *testing.T) {
+	t.Skip("Skipping ConcurrentGlobals")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 

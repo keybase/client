@@ -212,7 +212,7 @@ func (e *DeviceKeygen) pushLKS() {
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	e.pushErr = libkb.RunSyncer(G.LoginState.SecretSyncer(), e.args.Me.GetUid().P())
+	e.pushErr = libkb.RunSyncer(G.LoginState().SecretSyncer(), e.args.Me.GetUid().P())
 }
 
 func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) libkb.NaclKeyGenArg {

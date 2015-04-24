@@ -89,7 +89,7 @@ func (k KID) Eq(k2 KID) bool {
 }
 
 func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (*SKB, error) {
-	ring, err := G.LoginState.LoadSKBKeyring()
+	ring, err := G.LoginState().LoadSKBKeyring()
 	if err != nil {
 		return nil, fmt.Errorf("G.LoginState.LoadSKBKeyring error: %s", err)
 	}
@@ -104,7 +104,7 @@ func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (*SKB, error) {
 }
 
 func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (*SKB, error) {
-	ring, err := G.LoginState.LoadSKBKeyring()
+	ring, err := G.LoginState().LoadSKBKeyring()
 	if err != nil {
 		return nil, err
 	}

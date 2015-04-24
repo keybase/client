@@ -69,7 +69,7 @@ func (e *LoginEngine) SubConsumers() []libkb.UIConsumer {
 func (e *LoginEngine) Run(ctx *Context) (err error) {
 	e.SetGlobalContext(ctx.GlobalContext)
 
-	if err = e.runFn(e.G().LoginState, ctx); err != nil {
+	if err = e.runFn(e.G().LoginState(), ctx); err != nil {
 		return
 	}
 

@@ -194,7 +194,7 @@ func (u User) GetIdVersion() (int64, error) {
 func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
 	if e == nil {
-		u.loggedIn = G.LoginState.IsLoggedIn()
+		u.loggedIn = G.LoginState().IsLoggedIn()
 		u.dirty = true
 	}
 	return u, e
@@ -450,12 +450,12 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 		return
 	}
 
-	ret, err = G.LoginState.SecretSyncer().FindActiveKey(ckf)
+	ret, err = G.LoginState().SecretSyncer().FindActiveKey(ckf)
 	return
 }
 
 func (u *User) SyncSecrets() (err error) {
-	if err = RunSyncer(G.LoginState.SecretSyncer(), &u.id); err != nil {
+	if err = RunSyncer(G.LoginState().SecretSyncer(), &u.id); err != nil {
 		return
 	}
 	return err

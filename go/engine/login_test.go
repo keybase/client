@@ -100,7 +100,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState.AssertLoggedIn(); err != nil {
+	if err := G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -122,7 +122,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState.AssertLoggedIn(); err != nil {
+	if err := G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -271,7 +271,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 		t.Fatal(err)
 	}
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	tk, err := G.LoginState.GetPassphraseStream(secui)
+	tk, err := G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState.AssertLoggedIn(); err != nil {
+	if err := G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -318,7 +318,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		t.Fatal(err)
 	}
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	tk, err := G.LoginState.GetPassphraseStream(secui)
+	tk, err := G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -355,7 +355,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState.AssertLoggedIn(); err != nil {
+	if err := G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 

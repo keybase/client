@@ -155,7 +155,7 @@ func (s *LKSec) fsecret() (res [32]byte) {
 }
 
 func (s *LKSec) apiServerHalf(devid *DeviceID) error {
-	ss := s.G().LoginState.SecretSyncer()
+	ss := s.G().LoginState().SecretSyncer()
 	if err := RunSyncer(ss, s.uid); err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func (s *LKSec) apiServerHalf(devid *DeviceID) error {
 // an LKS that works for encryption.
 func NewLKSForEncrypt(ui SecretUI, gc *GlobalContext) (ret *LKSec, err error) {
 	var pps PassphraseStream
-	if pps, err = gc.LoginState.GetPassphraseStream(ui); err != nil {
+	if pps, err = gc.LoginState().GetPassphraseStream(ui); err != nil {
 		return
 	}
 	ret = NewLKSec(pps.LksClientHalf(), gc)

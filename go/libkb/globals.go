@@ -3,7 +3,7 @@
 //
 //   All of the global objects in the libkb namespace that are shared
 //   and mutated across various source files are here.  They are
-//   accessed like `G.Session` or `G.LoginState`.  They're kept
+//   accessed like `G.Log` or `G.Env`.  They're kept
 //   under the `G` namespace to better keep track of them all.
 //
 //   The globals are built up gradually as the process comes up.
@@ -18,13 +18,13 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"sync"
 )
 
 type ShutdownHook func() error
 
 type GlobalContext struct {
 	Log           *Logger          // Handles all logging
-	LoginState    *LoginState      // What phase of login the user's in
 	Env           *Env             // Env variables, cmdline args & config
 	Keyrings      *Keyrings        // Gpg Keychains holding keys
 	API           API              // How to make a REST call to the server
@@ -42,16 +42,18 @@ type GlobalContext struct {
 	UI            UI               // Interact with the UI
 	Daemon        bool             // whether we're in daemon mode
 	shutdown      bool             // whether we've shut down or not
+	loginStateMu  sync.RWMutex     // protects loginState pointer, which gets destroyed on logout
+	loginState    *LoginState      // What phase of login the user's in
 }
 
-func NewGlobalContext() GlobalContext {
-	return GlobalContext{
+func NewGlobalContext() *GlobalContext {
+	return &GlobalContext{
 		Log:           NewDefaultLogger(),
 		ShutdownHooks: make([]ShutdownHook, 0, 0),
 	}
 }
 
-var G GlobalContext = NewGlobalContext()
+var G *GlobalContext = NewGlobalContext()
 
 func init() {
 	G = NewGlobalContext()
@@ -63,17 +65,30 @@ func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
-	g.LoginState = NewLoginState(g)
 	g.Daemon = false
+	g.createLoginState()
+}
+
+func (g *GlobalContext) createLoginState() {
+	g.loginStateMu.Lock()
+	g.loginState = NewLoginState(g)
+	g.loginStateMu.Unlock()
+
+}
+
+func (g *GlobalContext) LoginState() *LoginState {
+	g.loginStateMu.RLock()
+	defer g.loginStateMu.RUnlock()
+	return g.loginState
 }
 
 func (g *GlobalContext) Logout() error {
-	if err := g.LoginState.Logout(); err != nil {
+	if err := g.LoginState().Logout(); err != nil {
 		return err
 	}
 
 	// get a clean LoginState:
-	g.LoginState = NewLoginState(g)
+	g.createLoginState()
 
 	return nil
 }
@@ -113,7 +128,7 @@ func VersionMessage(linefn func(string)) {
 	linefn("- Visit https://keybase.io for more details")
 }
 
-func (g GlobalContext) StartupMessage() {
+func (g *GlobalContext) StartupMessage() {
 	VersionMessage(func(s string) { g.Log.Debug(s) })
 }
 
@@ -167,8 +182,8 @@ func (g *GlobalContext) Shutdown() error {
 	if g.LocalDb != nil {
 		epick.Push(g.LocalDb.Close())
 	}
-	if g.LoginState != nil {
-		epick.Push(g.LoginState.Shutdown())
+	if g.LoginState() != nil {
+		epick.Push(g.LoginState().Shutdown())
 	}
 
 	for _, hook := range g.ShutdownHooks {
@@ -249,7 +264,7 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 }
 
 func (g *GlobalContext) GetMyUID() (ret *UID) {
-	ret = g.LoginState.UID()
+	ret = g.LoginState().UID()
 	if ret == nil {
 		ret = g.Env.GetUID()
 	}

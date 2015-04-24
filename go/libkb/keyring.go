@@ -322,8 +322,8 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 		return
 	}
 	skb.SetUID(me.GetUid().P())
-	tsec := k.G().LoginState.GetCachedTriplesec()
-	pps := k.G().LoginState.GetCachedPassphraseStream()
+	tsec := k.G().LoginState().GetCachedTriplesec()
+	pps := k.G().LoginState().GetCachedPassphraseStream()
 	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer)
 }
 

@@ -29,17 +29,7 @@ type LoginState struct {
 	passphraseStream PassphraseStream
 }
 
-type loginKind int
-
-const (
-	loginKindPrompt loginKind = iota
-	loginKindStoredSecret
-	loginKindPassphrase
-	loginKindLogout
-)
-
-type loginArg struct {
-	kind        loginKind
+type LoginArg struct {
 	username    string
 	passphrase  string
 	storeSecret bool
@@ -49,8 +39,8 @@ type loginArg struct {
 }
 
 type loginReq struct {
-	arg *loginArg
-	f   func(*loginArg) error
+	arg *LoginArg
+	f   func(*LoginArg) error
 	res chan error
 }
 
@@ -132,6 +122,8 @@ func (s *LoginState) checkSession() error {
 	return s.session.Check()
 }
 
+// SetSignupRes should only be called by the signup engine, and
+// within an ExternalFunc handler.
 func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID, salt []byte) error {
 	if err := s.session.Load(); err != nil {
 		return err
@@ -168,8 +160,7 @@ func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI 
 	G.Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
-	err = s.handle(&loginArg{
-		kind:     loginKindPrompt,
+	err = s.handle(&LoginArg{
 		username: username,
 		loginUI:  loginUI,
 		secretUI: secretUI,
@@ -181,8 +172,7 @@ func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
 	G.Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
-	err = s.handle(&loginArg{
-		kind:     loginKindStoredSecret,
+	err = s.handle(&LoginArg{
 		username: username,
 	}, s.loginWithStoredSecret)
 	return
@@ -192,8 +182,7 @@ func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecre
 	G.Log.Debug("+ LoginWithPassphrase(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
 
-	err = s.handle(&loginArg{
-		kind:        loginKindPassphrase,
+	err = s.handle(&LoginArg{
 		username:    username,
 		passphrase:  passphrase,
 		storeSecret: storeSecret,
@@ -202,7 +191,15 @@ func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecre
 }
 
 func (s *LoginState) Logout() error {
-	return s.handle(&loginArg{kind: loginKindLogout}, s.logout)
+	return s.handle(&LoginArg{}, s.logout)
+}
+
+// ExternalFunc is for having the LoginState handler call a
+// function outside of LoginState.  The current use case is
+// for signup, so that no logins/logouts happen while a signup is
+// happening.
+func (s *LoginState) ExternalFunc(f func(*LoginArg) error) error {
+	return s.handle(&LoginArg{}, f)
 }
 
 func (s *LoginState) Shutdown() error {
@@ -653,8 +650,7 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 }
 
 func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
-	return s.handle(&loginArg{
-		kind:     loginKindPrompt,
+	return s.handle(&LoginArg{
 		username: G.Env.GetUsername(),
 		secretUI: ui,
 		force:    true,
@@ -691,7 +687,7 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 	return s.tryPassphrasePromptLogin(username, secretUI)
 }
 
-func (s *LoginState) handle(arg *loginArg, f func(*loginArg) error) error {
+func (s *LoginState) handle(arg *LoginArg, f func(*LoginArg) error) error {
 	req := &loginReq{
 		arg: arg,
 		f:   f,
@@ -708,11 +704,11 @@ func (s *LoginState) handleRequests() {
 	}
 }
 
-func (s *LoginState) loginWithPrompt(arg *loginArg) error {
+func (s *LoginState) loginWithPrompt(arg *LoginArg) error {
 	return s.loginWithPromptHelper(arg.username, arg.loginUI, arg.secretUI, arg.force)
 }
 
-func (s *LoginState) loginWithStoredSecret(arg *loginArg) error {
+func (s *LoginState) loginWithStoredSecret(arg *LoginArg) error {
 	if loggedIn, err := s.checkLoggedIn(arg.username, false); err != nil {
 		return err
 	} else if loggedIn {
@@ -730,7 +726,7 @@ func (s *LoginState) loginWithStoredSecret(arg *loginArg) error {
 	return s.pubkeyLoginHelper(arg.username, getSecretKeyFn)
 }
 
-func (s *LoginState) loginWithPassphrase(arg *loginArg) error {
+func (s *LoginState) loginWithPassphrase(arg *LoginArg) error {
 	if loggedIn, err := s.checkLoggedIn(arg.username, false); err != nil {
 		return err
 	} else if loggedIn {
@@ -757,7 +753,7 @@ func (s *LoginState) loginWithPassphrase(arg *loginArg) error {
 	return s.passphraseLogin(arg.username, arg.passphrase, nil, "")
 }
 
-func (s *LoginState) logout(arg *loginArg) error {
+func (s *LoginState) logout(arg *LoginArg) error {
 	G.Log.Debug("+ Logout called")
 	username := s.session.GetUsername()
 	err := s.session.Logout()

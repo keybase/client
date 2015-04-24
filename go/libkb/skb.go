@@ -195,13 +195,13 @@ func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 	case LKSecVersion:
 		pps_in := pps
 		if pps == nil {
-			tsec, pps, err = s.G().LoginState.GetUnverifiedPassphraseStream(passphrase)
+			tsec, pps, err = s.G().LoginState().GetUnverifiedPassphraseStream(passphrase)
 			if err != nil {
 				return nil, err
 			}
 		}
 		if unlocked, err = s.lksUnlock(pps, secretStorer); err == nil && pps_in == nil {
-			s.G().LoginState.SetPassphraseStream(tsec, pps)
+			s.G().LoginState().SetPassphraseStream(tsec, pps)
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
@@ -529,8 +529,8 @@ func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui 
 		err = nil
 	}
 
-	tsec := s.G().LoginState.GetCachedTriplesec()
-	pps := s.G().LoginState.GetCachedPassphraseStream()
+	tsec := s.G().LoginState().GetCachedTriplesec()
+	pps := s.G().LoginState().GetCachedPassphraseStream()
 	if tsec != nil || pps != nil {
 		ret, err = s.UnlockSecretKey("", tsec, pps, nil)
 		if err == nil {

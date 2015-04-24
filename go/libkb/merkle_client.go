@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -51,6 +52,9 @@ type MerkleClient struct {
 
 	// The most recently-available root
 	lastRoot *MerkleRoot
+
+	// protects whole object
+	sync.RWMutex
 }
 
 type MerkleRoot struct {
@@ -165,8 +169,10 @@ func (mc *MerkleClient) LoadRoot() error {
 	if err != nil {
 		return err
 	}
+	mc.Lock()
 	mc.lastRoot = mr
 	G.Log.Debug("- MerkleClient.LoadRoot() -> %d", mc.lastRoot.seqno)
+	mc.Unlock()
 	return nil
 }
 
@@ -332,6 +338,8 @@ func pathStepFromJson(jw *jsonw.Wrapper) (ps *PathStep, err error) {
 }
 
 func (mc *MerkleClient) LastSeqno() Seqno {
+	mc.RLock()
+	defer mc.RUnlock()
 	if mc.lastRoot != nil {
 		return mc.lastRoot.seqno
 	} else {
@@ -349,6 +357,9 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	}
 
 	G.Log.Debug("| Merkle root: got back %d, >= cached %d", int(root.seqno), int(q))
+
+	mc.Lock()
+	defer mc.Unlock()
 
 	// Maybe we've already verified it before.
 	verified, found := mc.verified[root.seqno]
@@ -661,7 +672,9 @@ func (mr *MerkleRoot) ToSigJson() (ret *jsonw.Wrapper) {
 func (mc *MerkleClient) LastRootToSigJson() (ret *jsonw.Wrapper, err error) {
 	// Lazy-init, only when needed.
 	if err = mc.Init(); err == nil {
+		mc.RLock()
 		ret = mc.lastRoot.ToSigJson()
+		mc.RUnlock()
 	}
 	return
 }

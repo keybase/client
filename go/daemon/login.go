@@ -26,7 +26,7 @@ func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
 }
 
 func (h *LoginHandler) GetConfiguredAccounts() ([]keybase_1.ConfiguredAccount, error) {
-	return G.LoginState.GetConfiguredAccounts()
+	return G.LoginState().GetConfiguredAccounts()
 }
 
 func (h *LoginHandler) Logout() error {
@@ -78,7 +78,7 @@ func (h *LoginHandler) LoginWithPassphrase(arg keybase_1.LoginWithPassphraseArg)
 }
 
 func (h *LoginHandler) ClearStoredSecret(username string) error {
-	return G.LoginState.ClearStoredSecret(username)
+	return G.LoginState().ClearStoredSecret(username)
 }
 
 func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Context, sessionID int) error {

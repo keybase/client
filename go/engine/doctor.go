@@ -60,7 +60,7 @@ func (e *Doctor) login(ctx *Context) {
 		return
 	}
 
-	ok, err := e.G().LoginState.IsLoggedInLoad()
+	ok, err := e.G().LoginState().IsLoggedInLoad()
 	if err != nil {
 		e.runErr = err
 		return
@@ -160,7 +160,7 @@ func (e *Doctor) status(ctx *Context) {
 	}
 
 	// get list of active devices
-	devs, err := e.G().LoginState.SecretSyncer().ActiveDevices()
+	devs, err := e.G().LoginState().SecretSyncer().ActiveDevices()
 	if err != nil {
 		e.runErr = err
 		return

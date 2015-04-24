@@ -20,7 +20,7 @@ func (sp *SelfProvisioner) CheckKeyProvisioned() (err error) {
 	var ring *SKBKeyringFile
 	if did := G.Env.GetDeviceID(); did == nil {
 		err = NotProvisionedError{}
-	} else if ring, err = G.LoginState.LoadSKBKeyring(); err != nil {
+	} else if ring, err = G.LoginState().LoadSKBKeyring(); err != nil {
 	} else if key, err = sp.me.GetComputedKeyFamily().GetSibkeyForDevice(*did); err != nil {
 	} else if sp.secretKey = ring.LookupByKid(key.GetKid()); sp.secretKey == nil {
 		err = NoSecretKeyError{}
@@ -44,7 +44,7 @@ func (sp *SelfProvisioner) FindBestReprovisionKey() (ret GenericKey, err error) 
 	}
 
 	var ring *SKBKeyringFile
-	if ring, err = G.LoginState.LoadSKBKeyring(); err != nil {
+	if ring, err = G.LoginState().LoadSKBKeyring(); err != nil {
 		return
 	}
 

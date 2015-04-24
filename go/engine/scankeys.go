@@ -47,7 +47,7 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 	}
 
 	// if user provided, then load their local keys, and their synced secret key:
-	ring, err := G.LoginState.LoadSKBKeyring()
+	ring, err := G.LoginState().LoadSKBKeyring()
 	if err != nil {
 		return nil, fmt.Errorf("G.LoginState.LoadSKBKeyring err: %s", err)
 	}
