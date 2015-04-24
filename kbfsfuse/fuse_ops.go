@@ -465,24 +465,23 @@ func (f *FuseOps) updatePaths(topDir libkbfs.DirId, n *FuseNode,
 }
 
 func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
-	doSetEx := perms&0100 != 0
+	ex := perms&0100 != 0
 
 	lock := n.GetLock()
 	lock.Lock()
 	defer lock.Unlock()
 
-	if (doSetEx && (n.Entry.Type == libkbfs.File)) || (!doSetEx && (n.Entry.Type == libkbfs.Exec)) {
-		p := n.GetPath(1)
-		changed, newPath, err := f.config.KBFSOps().SetEx(p, doSetEx)
-		if err != nil {
-			return f.TranslateError(err)
-		}
-
-		if changed {
-			f.updatePaths(p.TopDir, n, newPath.Path)
-			n.NeedUpdate = true
-		}
+	p := n.GetPath(1)
+	changed, newPath, err := f.config.KBFSOps().SetEx(p, ex)
+	if err != nil {
+		return f.TranslateError(err)
 	}
+
+	if changed {
+		f.updatePaths(p.TopDir, n, newPath.Path)
+		n.NeedUpdate = true
+	}
+
 	return fuse.OK
 }
 
