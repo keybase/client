@@ -14,7 +14,13 @@ func TestSearch(t *testing.T) {
 		LogUI: G.UI.GetLogUI(),
 	}
 	// This twitter handle is used by t_alice and t_charlie.
-	e := NewSearchEngine("tacovontaco")
+	e := NewSearchEngine(SearchEngineArgs{
+		Query: "tacovontaco",
+		// Asking for a lot of results hacks around the case where so many test
+		// users have been created with these identities that the search reply
+		// leaves out the ones we wanted.
+		NumWanted: 100,
+	})
 	err := RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)

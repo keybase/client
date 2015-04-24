@@ -9,12 +9,18 @@ import (
 
 type SearchEngine struct {
 	libkb.Contextified
-	query   string
-	results []keybase_1.UserSummary
+	query     string
+	numWanted int
+	results   []keybase_1.UserSummary
 }
 
-func NewSearchEngine(query string) *SearchEngine {
-	eng := SearchEngine{query: query}
+type SearchEngineArgs struct {
+	Query     string
+	NumWanted int
+}
+
+func NewSearchEngine(args SearchEngineArgs) *SearchEngine {
+	eng := SearchEngine{query: args.Query, numWanted: args.NumWanted}
 	return &eng
 }
 
@@ -37,11 +43,15 @@ func (e *SearchEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SearchEngine) Run(ctx *Context) error {
+	APIArgs := libkb.HttpArgs{
+		"q": libkb.S{Val: e.query},
+	}
+	if e.numWanted > 0 {
+		APIArgs["num_wanted"] = libkb.I{Val: e.numWanted}
+	}
 	res, err := e.G().API.Get(libkb.ApiArg{
 		Endpoint: "user/autocomplete",
-		Args: libkb.HttpArgs{
-			"q": libkb.S{Val: e.query},
-		},
+		Args:     APIArgs,
 	})
 	if err != nil {
 		return err
