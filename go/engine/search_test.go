@@ -21,9 +21,9 @@ func TestSearch(t *testing.T) {
 	}
 	results := e.GetResults()
 
-	if len(results) != 2 {
-		// The test DB could contain other random test user
-		t.Fatalf("Expected 2 search results for 'tacovontaco'. Got %d. If you've added other test users with this account name, that could be causing this failure.", len(results))
+	if len(results) < 2 {
+		// The test DB could contain other random test users, namely Max's ;)
+		t.Fatalf("Expected at least 2 search results for 'tacovontaco'. Got %d.", len(results))
 	}
 
 	var t_alice keybase_1.UserSummary
@@ -33,8 +33,6 @@ func TestSearch(t *testing.T) {
 			t_alice = summary
 		} else if summary.Username == "t_charlie" {
 			t_charlie = summary
-		} else {
-			t.Fatalf("Unexpected search result: %s", summary.Username)
 		}
 	}
 
