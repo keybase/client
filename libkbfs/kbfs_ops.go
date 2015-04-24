@@ -1151,13 +1151,19 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (Path, error) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	// verify we have permission to write
-	if _, err := fs.getMDForWriteLocked(file); err != nil {
+	dblock, de, err := fs.getEntryLocked(file)
+	if err != nil {
 		return Path{}, err
 	}
 
-	dblock, de, err := fs.getEntryLocked(file)
-	if err != nil {
+	// If the file is a symlink, do nothing (to match ext4
+	// behavior).
+	if de.Type == Sym {
+		return file, nil
+	}
+
+	// verify we have permission to write
+	if _, err := fs.getMDForWriteLocked(file); err != nil {
 		return Path{}, err
 	}
 
@@ -1166,6 +1172,8 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (Path, error) {
 	} else if !ex && (de.Type == Exec) {
 		de.Type = File
 	}
+	// If the type isn't File or Exec, there's nothing to do, but
+	// change the ctime anyway (to match ext4 behavior).
 	de.Ctime = time.Now().UnixNano()
 	parentPath := file.ParentPath()
 	newParentPath, _, err := fs.syncBlockLocked(

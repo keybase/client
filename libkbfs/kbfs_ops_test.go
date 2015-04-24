@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -539,7 +540,6 @@ func expectSyncBlock(
 func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 	rmd *RootMetadata, blocks []*DirBlock, entryType EntryType,
 	newName string, rename bool) {
-	// make sure the new path looks right
 	if len(newPath.Path) != len(expectedPath.Path) {
 		t.Errorf("Unexpected new path length: %d", len(newPath.Path))
 		return
@@ -1931,7 +1931,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}
 }
 
-func testSetExSuccess(t *testing.T, ex bool) {
+func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	mockCtrl, config := kbfsOpsInit(t)
 	defer mockCtrl.Finish()
 
@@ -1941,45 +1941,86 @@ func testSetExSuccess(t *testing.T, ex bool) {
 	aId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: File}
+		BlockPointer: BlockPointer{Id: aId}, Type: entryType}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
 	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
-	// chmod a+x a
 	expectGetBlock(config, rootId, rootBlock)
-	// sync block
-	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
-		*p.ParentPath(), rmd, false, 0, 0, 0, nil)
-	expectedPath.Path = append(expectedPath.Path, aNode)
 
-	var expectedType EntryType
-	if ex {
-		expectedType = Exec
+	var expectedPath Path
+	// SetEx() should do nothing for symlinks.
+	if entryType == Sym {
+		expectedPath = p
 	} else {
-		expectedType = File
+		// sync block
+		expectedPath, _ = expectSyncBlock(t, config, nil, userId, id, "",
+			*p.ParentPath(), rmd, false, 0, 0, 0, nil)
+		expectedPath.Path = append(expectedPath.Path, aNode)
 	}
+
+	// SetEx() should only change the type of File and Exec.
+	var expectedType EntryType
+	if entryType == File && ex {
+		expectedType = Exec
+	} else if entryType == Exec && !ex {
+		expectedType = File
+	} else {
+		expectedType = entryType
+	}
+
+	// chmod a+x a
 	if newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
 		t.Errorf("Got unexpected error on setex: %v", err)
 	} else if rootBlock.Children["a"].Type != expectedType {
 		t.Errorf("a has type %s, expected %s", rootBlock.Children["a"].Type, expectedType)
 	} else {
-		// append a fake block so checkNewPath does the right thing
-		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-		// pretend it's a rename so only ctime gets checked
-		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			expectedType, "", true)
+		if entryType == Sym {
+			if !reflect.DeepEqual(newP, expectedPath) {
+				t.Errorf("newP=%s unexpectedly not equal to expectedPath=%s", newP, expectedPath)
+			}
+		} else {
+			// SetEx() should always change the ctime of
+			// non-symlinks.  append a fake block so
+			// checkNewPath does the right thing
+			blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
+			// pretend it's a rename so only ctime gets checked
+			checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+				expectedType, "", true)
+		}
 	}
 }
 
-func TestSetExChangedSuccess(t *testing.T) {
-	testSetExSuccess(t, true)
+func TestSetExFileSuccess(t *testing.T) {
+	testSetExSuccess(t, File, true)
 }
 
-func TestSetExNoChangeSuccess(t *testing.T) {
-	// even no change should cause the ctime to change, leading to a
-	// whole new path
-	testSetExSuccess(t, false)
+func TestSetNoExFileSuccess(t *testing.T) {
+	testSetExSuccess(t, File, false)
+}
+
+func TestSetExExecSuccess(t *testing.T) {
+	testSetExSuccess(t, Exec, true)
+}
+
+func TestSetNoExExecSuccess(t *testing.T) {
+	testSetExSuccess(t, Exec, false)
+}
+
+func TestSetExDirSuccess(t *testing.T) {
+	testSetExSuccess(t, Dir, true)
+}
+
+func TestSetNoExDirSuccess(t *testing.T) {
+	testSetExSuccess(t, Dir, false)
+}
+
+func TestSetExSymSuccess(t *testing.T) {
+	testSetExSuccess(t, Sym, true)
+}
+
+func TestSetNoExSymSuccess(t *testing.T) {
+	testSetExSuccess(t, Sym, false)
 }
 
 func TestSetExFailNoSuchName(t *testing.T) {
@@ -1995,10 +2036,10 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
-	// chmod a+x a
 	expectGetBlock(config, rootId, rootBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
+	// chmod a+x a
 	if _, err := config.KBFSOps().SetEx(p, true); err == nil {
 		t.Errorf("Got no expected error on setex")
 	} else if err.Error() != expectedErr.Error() {
@@ -2023,7 +2064,6 @@ func TestSetMtimeSuccess(t *testing.T) {
 	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
-	// chmod a+x a
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
 	expectedPath, _ := expectSyncBlock(t, config, nil, userId, id, "",
@@ -2081,7 +2121,6 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
 
-	// chmod a+x a
 	expectGetBlock(config, rootId, rootBlock)
 	expectedErr := &NoSuchNameError{p.TailName()}
 
