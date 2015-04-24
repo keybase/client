@@ -518,6 +518,20 @@ const (
 	Sym            = iota // A symbolic link.
 )
 
+func (et EntryType) String() string {
+	switch et {
+	case File:
+		return "FILE"
+	case Exec:
+		return "EXEC"
+	case Dir:
+		return "DIR"
+	case Sym:
+		return "SYM"
+	}
+	return "<invalid EntryType>"
+}
+
 // DirEntry is the MD for each child in a directory
 type DirEntry struct {
 	BlockPointer
