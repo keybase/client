@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
@@ -119,13 +120,14 @@ func (u UIDList) Swap(i, j int) {
 	u[j] = tmp
 }
 
-// DirHandle uniquely identifies top-level directories by readers and writers
+// DirHandle uniquely identifies top-level directories by readers and
+// writers.  It is go-routine-safe.
 type DirHandle struct {
 	Readers     UIDList `codec:"r,omitempty"`
 	Writers     UIDList `codec:"w,omitempty"`
 	cachedName  string
 	cachedBytes []byte
-	clearCache  bool
+	cacheMutex  sync.Mutex // control access to the "cached" values
 }
 
 func NewDirHandle() *DirHandle {
@@ -184,6 +186,8 @@ func resolveUids(config Config, uids UIDList) string {
 }
 
 func (d *DirHandle) ToString(config Config) string {
+	d.cacheMutex.Lock()
+	defer d.cacheMutex.Unlock()
 	if d.cachedName != "" {
 		// TODO: we should expire this cache periodically
 		return d.cachedName
@@ -202,6 +206,8 @@ func (d *DirHandle) ToString(config Config) string {
 }
 
 func (d *DirHandle) ToBytes(config Config) (out []byte) {
+	d.cacheMutex.Lock()
+	defer d.cacheMutex.Unlock()
 	if len(d.cachedBytes) > 0 {
 		return d.cachedBytes
 	}
@@ -320,7 +326,7 @@ type RootMetadata struct {
 
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
-	// A cached copy of the directory handle calculated for this MD
+	// A cached copy of the directory handle calculated for this MD.
 	cachedDirHandle *DirHandle
 	// The cached ID for this MD structure (hash)
 	mdId MDId
