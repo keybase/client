@@ -72,10 +72,6 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	}
 
 	s.defaultEmail = ctx.String("email")
-	if s.defaultEmail == "" {
-		// For development convenience.
-		s.defaultEmail = os.Getenv("KEYBASE_SIGNUP_EMAIL")
-	}
 
 	if nargs != 0 {
 		err = BadArgsError{"signup doesn't take arguments"}
