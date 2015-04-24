@@ -173,6 +173,16 @@
       "name" : "size",
       "type" : "int"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "BlockCharge",
+    "fields" : [ {
+      "name" : "bid",
+      "type" : "BlockIdCombo"
+    }, {
+      "name" : "uid",
+      "type" : "UID"
+    } ]
   } ],
   "messages" : {
     "blockSession" : {
@@ -196,13 +206,6 @@
       }, {
         "name" : "buf",
         "type" : "bytes"
-      } ],
-      "response" : "null"
-    },
-    "delBlock" : {
-      "request" : [ {
-        "name" : "bid",
-        "type" : "BlockIdCombo"
       } ],
       "response" : "null"
     }

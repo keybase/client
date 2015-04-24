@@ -186,6 +186,11 @@ func (c BIndexClient) IncBIndexReference(__arg IncBIndexReferenceArg) (err error
 	return
 }
 
+type BlockCharge struct {
+	Bid BlockIdCombo `codec:"bid" json:"bid"`
+	Uid UID          `codec:"uid" json:"uid"`
+}
+
 type BlockSessionArg struct {
 	Sid string `codec:"sid" json:"sid"`
 }
@@ -199,15 +204,10 @@ type PutBlockArg struct {
 	Buf []byte       `codec:"buf" json:"buf"`
 }
 
-type DelBlockArg struct {
-	Bid BlockIdCombo `codec:"bid" json:"bid"`
-}
-
 type BlockInterface interface {
 	BlockSession(string) error
 	GetBlock(BlockIdCombo) ([]byte, error)
 	PutBlock(PutBlockArg) error
-	DelBlock(BlockIdCombo) error
 }
 
 func BlockProtocol(i BlockInterface) rpc2.Protocol {
@@ -235,13 +235,6 @@ func BlockProtocol(i BlockInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"delBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]DelBlockArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DelBlock(args[0].Bid)
-				}
-				return
-			},
 		},
 	}
 
@@ -265,12 +258,6 @@ func (c BlockClient) GetBlock(bid BlockIdCombo) (res []byte, err error) {
 
 func (c BlockClient) PutBlock(__arg PutBlockArg) (err error) {
 	err = c.Cli.Call("keybase.1.block.putBlock", []interface{}{__arg}, nil)
-	return
-}
-
-func (c BlockClient) DelBlock(bid BlockIdCombo) (err error) {
-	__arg := DelBlockArg{Bid: bid}
-	err = c.Cli.Call("keybase.1.block.delBlock", []interface{}{__arg}, nil)
 	return
 }
 

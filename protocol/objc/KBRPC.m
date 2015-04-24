@@ -43,6 +43,9 @@
 @implementation KBRBlockIdCombo
 @end
 
+@implementation KBRBlockCharge
+@end
+
 @implementation KBRBlockRequest
 
 - (void)blockSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion {
@@ -62,13 +65,6 @@
 - (void)putBlockWithBid:(KBRBlockIdCombo *)bid buf:(NSData *)buf completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid), @"buf": KBRValue(buf)}];
   [self.client sendRequestWithMethod:@"keybase.1.block.putBlock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)delBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"bid": KBRValue(bid)}];
-  [self.client sendRequestWithMethod:@"keybase.1.block.delBlock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1095,17 +1091,6 @@
   if ((self = [super initWithParams:params])) {
     self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
     self.buf = params[0][@"buf"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRDelBlockRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
   }
   return self;
 }

@@ -79,14 +79,17 @@
 @property NSInteger size;
 @end
 
+@interface KBRBlockCharge : KBRObject
+@property KBRBlockIdCombo *bid;
+@property KBRUID *uid;
+@end
+
 @interface KBRBlockRequest : KBRRequest
 - (void)blockSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
 - (void)getBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSData *bytes))completion;
 
 - (void)putBlockWithBid:(KBRBlockIdCombo *)bid buf:(NSData *)buf completion:(void (^)(NSError *error))completion;
-
-- (void)delBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -718,9 +721,6 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @interface KBRPutBlockRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @property NSData *buf;
-@end
-@interface KBRDelBlockRequestParams : KBRRequestParams
-@property KBRBlockIdCombo *bid;
 @end
 @interface KBRBIndexSessionRequestParams : KBRRequestParams
 @property NSString *sid;
