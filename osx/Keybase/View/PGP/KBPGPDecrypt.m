@@ -9,8 +9,10 @@
 #import "KBPGPDecrypt.h"
 
 #import "KBRunBlocks.h"
+#import "KBUserProfileView.h"
 
 @interface KBPGPDecrypt ()
+@property KBUserProfileView *trackView;
 @end
 
 @implementation KBPGPDecrypt
@@ -32,6 +34,8 @@
 - (void)decryptWithOptions:(KBRPgpDecryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream))completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:client];
 
+  [self registerTrackView:request.sessionId client:client sender:sender];
+
   [stream registerWithClient:client sessionId:request.sessionId];
 
   KBRStream *source = [[KBRStream alloc] init];
@@ -47,6 +51,12 @@
 
     completion(error, stream);
   }];
+}
+
+- (void)registerTrackView:(NSInteger)sessionId client:(KBRPClient *)client sender:(id)sender {
+  _trackView = [[KBUserProfileView alloc] init];
+  _trackView.popup = YES;
+  [_trackView registerClient:client sessionId:sessionId sender:sender];
 }
 
 @end

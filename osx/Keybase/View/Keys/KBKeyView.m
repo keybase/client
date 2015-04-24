@@ -68,6 +68,7 @@
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   [request pgpExportWithSessionID:request.sessionId secret:NO query:query completion:^(NSError *error, NSArray *keys) {
+    // TODO: this only works for self
     KBRFingerprintAndKey *keyInfo = [keys firstObject];
     [gself.textView setText:keyInfo.key style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   }];

@@ -11,11 +11,17 @@
 #import <YOLayout/YOLayout.h>
 #import "KBAppearance.h"
 
+@class KBTextView;
+
+typedef BOOL (^KBTextViewPaste)(KBTextView *textView);
+
 @interface KBTextView : NSScrollView <NSTextViewDelegate>
 
 @property (readonly) NSTextView *view;
 @property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) NSString *text;
+
+@property (copy) KBTextViewPaste onPaste;
 
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color;
 - (void)setText:(NSString *)text font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;

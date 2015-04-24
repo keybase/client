@@ -27,6 +27,14 @@
   _textView = [[KBTextView alloc] init];
   _textView.view.editable = YES;
   _textView.view.textContainerInset = CGSizeMake(10, 10);
+  _textView.view.textColor = KBAppearance.currentAppearance.textColor;
+  _textView.view.font = [KBAppearance.currentAppearance fontForStyle:KBTextStyleMonospace];
+  _textView.onPaste = ^BOOL(KBTextView *textView) {
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSString *str = [pasteboard stringForType:NSPasteboardTypeString];
+    [textView setText:str style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    return NO;
+  };
   [self addSubview:_textView];
 
   KBPGPDecryptFooterView *footerView = [[KBPGPDecryptFooterView alloc] init];
@@ -37,7 +45,7 @@
 }
 
 - (void)setASCIIData:(NSData *)data {
-  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleMonospace];
+  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 }
 
 - (void)decrypt {

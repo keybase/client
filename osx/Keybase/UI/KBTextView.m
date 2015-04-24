@@ -12,8 +12,12 @@
 #import "KBBorder.h"
 #import "KBLabel.h"
 
+@interface KBNSTextView : NSTextView
+@property (weak) KBTextView *parent;
+@end
+
 @interface KBTextView ()
-@property NSTextView *view;
+@property KBNSTextView *view;
 @end
 
 @implementation KBTextView
@@ -27,7 +31,9 @@
 
 - (void)viewInit {
   self.identifier = self.className;
-  _view = [[NSTextView alloc] init];
+  KBNSTextView *view = [[KBNSTextView alloc] init];
+  view.parent = self;
+  _view = view;
   _view.autoresizingMask = NSViewHeightSizable|NSViewWidthSizable;
   _view.backgroundColor = NSColor.whiteColor;
   _view.font = KBAppearance.currentAppearance.textFont;
@@ -107,6 +113,19 @@
   [str setAttributes:attributes range:NSMakeRange(0, str.length)];
 
   self.attributedText = str;
+}
+
+@end
+
+
+@implementation KBNSTextView
+
+- (void)paste:(id)sender {
+  if (self.parent.onPaste) {
+    if (self.parent.onPaste(self.parent)) [super paste:sender];
+  } else {
+    [super paste:sender];
+  }
 }
 
 @end
