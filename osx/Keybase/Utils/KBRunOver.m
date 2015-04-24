@@ -1,31 +1,33 @@
 //
-//  KBRunBlocks.m
+//  KBRunOver.m
 //  Keybase
 //
 //  Created by Gabriel on 4/7/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBRunBlocks.h"
+#import "KBRunOver.h"
 
 #import <GHKit/GHKit.h>
 
-@interface KBRunBlocks ()
+@interface KBRunOver ()
 @property NSInteger index;
-@property NSMutableArray *errors;
+
+@property NSMutableArray *outputs;
 @end
 
-@implementation KBRunBlocks
+@implementation KBRunOver
 
 - (void)next {
   GHWeakSelf gself = self;
-  self.runBlock(_objects[_index++], ^(NSError *error) {
-    if (error) [gself.errors addObject:error];
+  id input = _objects[_index++];
+  self.work(input, ^(KBWork *ouput) {
+    [gself.outputs addObject:ouput];
     if (gself.index < [gself.objects count]) {
       // Maybe dispatch_async so we don't blow the stack? But how do we know the current queue so..
       [self next];
     } else {
-      self.completionBlock(gself.errors, gself.objects);
+      self.completion(self.outputs);
     }
   });
 }
@@ -33,16 +35,16 @@
 // Untested
 - (void)run:(dispatch_queue_t)queue {
   GHWeakSelf gself = self;
-  _errors = [NSMutableArray array];
+  _outputs = [NSMutableArray array];
   __block NSInteger count = 0;
   NSInteger objectCount = [_objects count];
   for (NSInteger i = 0; i < [_objects count]; i++) {
-    id obj = _objects[i];
+    id input = _objects[i];
     dispatch_async(queue, ^{
-      self.runBlock(obj, ^(NSError *error) {
-        if (error) [gself.errors addObject:error];
+      self.work(input, ^(KBWork *output) {
+        [gself.outputs addObject:output];
         if (++count == objectCount) {
-          self.completionBlock(gself.errors, gself.objects);
+          self.completion(gself.outputs);
         }
       });
     });
@@ -52,11 +54,11 @@
 
 - (void)run {
   if ([_objects count] == 0) {
-    self.completionBlock(@[], @[]);
+    self.completion(@[]);
     return;
   }
 
-  _errors = [NSMutableArray array];
+  _outputs = [NSMutableArray array];
   [self next];
 }
 

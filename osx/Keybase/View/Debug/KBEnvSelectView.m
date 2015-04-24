@@ -33,7 +33,7 @@
   NSArray *envs = @[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], [KBEnvironment env:KBEnvManual]];
 
   for (KBEnvironment *env in envs) {
-    KBImageTextView *view = [[KBImageTextView alloc] init];
+    KBImageTextCell *view = [[KBImageTextCell alloc] init];
     [view setTitle:env.title info:[env.home stringByAbbreviatingWithTildeInPath] imageURLString:nil imageSize:CGSizeZero];
     [envsView addSubview:[KBButtonView buttonViewWithView:view targetBlock:^{ self.onSelect(env); }]];
   }

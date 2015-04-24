@@ -68,11 +68,17 @@ NSString *KBURLStringForUsername(NSString *username) {
   return NSStringWithFormat(@"https://keybase.io/%@", username);
 }
 
+NSString *KBDescription(id obj) {
+  if ([obj isKindOfClass:NSArray.class]) return KBArrayDescription(obj);
+  else if ([obj isKindOfClass:NSDictionary.class]) return KBDictionaryDescription(obj);
+  else return [obj description];
+}
+
 NSString *KBArrayDescription(NSArray *a) {
   if ([a count] == 0) return @"[]";
-  return [a join:@", "];
+  return NSStringWithFormat(@"[%@]", [[a map:^(id obj) { return KBDescription(obj); }] join:@", "]);
 }
 
 NSString *KBDictionaryDescription(NSDictionary *d) {
-  return [[d map:^id(id key, id value) { return NSStringWithFormat(@"%@: %@", key, value); }] join:@", "];
+  return NSStringWithFormat(@"{%@}", [[d map:^id(id key, id value) { return NSStringWithFormat(@"%@: %@", key, KBDescription(value)); }] join:@", "]);
 }

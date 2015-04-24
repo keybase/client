@@ -18,3 +18,7 @@
 - (void)setUserSummary:(KBRUserSummary *)userSummary;
 
 @end
+
+
+@interface KBUserCell : KBUserView
+@end

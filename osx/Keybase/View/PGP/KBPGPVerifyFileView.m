@@ -86,7 +86,7 @@
   }
 
   KBFileReader *fileReader = [KBFileReader fileReaderWithPath:_fileIcon.file.path];
-  KBStream *stream = [KBStream streamWithReader:fileReader writer:nil];
+  KBStream *stream = [KBStream streamWithReader:fileReader writer:nil label:arc4random()];
 
   KBRPgpVerifyOptions *options = [[KBRPgpVerifyOptions alloc] init];
 

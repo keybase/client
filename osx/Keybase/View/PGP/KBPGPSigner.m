@@ -7,25 +7,21 @@
 //
 
 #import "KBPGPSigner.h"
-#import "KBRunBlocks.h"
+#import "KBRunOver.h"
 
 @implementation KBPGPSigner
 
-- (void)signWithOptions:(KBRPgpSignOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *streams))completion {
-  KBRunBlocks *sb = [[KBRunBlocks alloc] init];
+- (void)signWithOptions:(KBRPgpSignOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
+  KBRunOver *sb = [[KBRunOver alloc] init];
   sb.objects = streams;
-  sb.runBlock = ^(KBStream *stream, KBCompletionBlock runCompletion) {
-    [self signWithOptions:options stream:stream client:client sender:sender completion:^(NSError *error, KBStream *stream) {
-      runCompletion(error);
-    }];
+  sb.work = ^(KBStream *stream, KBWorkCompletion workCompletion) {
+    [self signWithOptions:options stream:stream client:client sender:sender completion:workCompletion];
   };
-  sb.completionBlock = ^(NSArray *errors, NSArray *streams) {
-    completion(streams);
-  };
+  sb.completion = completion;
   [sb run];
 }
 
-- (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSError *error, KBStream *stream))completion {
+- (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBWorkCompletion)completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:client];
 
   [stream registerWithClient:client sessionId:request.sessionId];
@@ -37,8 +33,7 @@
   sink.fd = stream.label;
 
   [request pgpSignWithSessionID:request.sessionId source:source sink:sink opts:options completion:^(NSError *error) {
-    stream.error = error;
-    completion(error, stream);
+    completion([KBWork workWithInput:stream output:stream error:error]);
   }];
 }
 

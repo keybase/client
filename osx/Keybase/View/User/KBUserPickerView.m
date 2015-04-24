@@ -11,7 +11,7 @@
 #import "KBSearchResultView.h"
 #import "AppDelegate.h"
 #import "KBRUtils.h"
-#import "KBRunBlocks.h"
+#import "KBRunOver.h"
 #import "KBSearcher.h"
 #import "KBUserView.h"
 #import "KBPopover.h"
@@ -81,7 +81,7 @@
   _searchControl.delegate = self;
 
   GHWeakSelf gself = self;
-  _searchResultsView = [KBListView listViewWithPrototypeClass:KBUserView.class rowHeight:56];
+  _searchResultsView = [KBListView listViewWithPrototypeClass:KBUserCell.class rowHeight:56];
   //[_searchResultsView setBorderEnabled:YES];
   _searchResultsView.cellSetBlock = ^(KBUserView *view, KBRUserSummary *userSummary, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
     [view setUserSummary:userSummary];
@@ -272,13 +272,14 @@
 #pragma mark Search
 
 - (void)showSearch {
-  if (!self.popover.isShowing) {
+  if (!self.popover.isShowing && [KBTextField isFocused:_tokensField]) {
     [self.popover show:_tokensField];
   }
 }
 
 - (void)hideSearch {
   [self.popover close];
+  _progressView.animating = NO;
 }
 
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl {

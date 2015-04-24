@@ -13,17 +13,19 @@
 
 typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBCompletionBlock completion);
 
+@interface KBStream ()
+@property id<KBReader> reader;
+@property id<KBWriter> writer;
+@property u_int32_t label;
+@end
+
 @implementation KBStream
 
-- (int)label {
-  if (!_label) _label = arc4random_uniform(INT_MAX);
-  return _label;
-}
-
-+ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer {
++ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer label:(int)label {
   KBStream *stream = [[KBStream alloc] init];
   stream.reader = reader;
   stream.writer = writer;
+  stream.label = label;
   return stream;
 }
 
@@ -93,7 +95,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   KBFileReader *fileReader = [KBFileReader fileReaderWithPath:file.path];
   NSString *outPath = output(file.path);
   KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
-  KBStream *stream = [KBStream streamWithReader:fileReader writer:fileWriter];
+  KBStream *stream = [KBStream streamWithReader:fileReader writer:fileWriter label:arc4random()];
 
   KBAddToStream addToStream = ^BOOL(NSString *outPath, NSMutableArray *streams, KBCompletionBlock completion) {
     NSError *error = nil;

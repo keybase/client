@@ -27,6 +27,7 @@ NSString *KBURLStringForUsername(NSString *username);
 NSString *KBHexString(NSData *data);
 NSData *KBHexData(NSString *s);
 
+NSString *KBDescription(id obj);
 NSString *KBDictionaryDescription(NSDictionary *d);
 NSString *KBArrayDescription(NSArray *a);
 
@@ -42,3 +43,6 @@ typedef NS_ENUM (NSInteger, KBAppViewItem) {
 
 
 #define KBErrorAlert(fmt, ...) [NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:fmt, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey:@[@"OK"]}]
+
+
+#define KBMap(ARRAY, PROPERTY) [ARRAY map:^(id obj) { return [obj PROPERTY]; }]

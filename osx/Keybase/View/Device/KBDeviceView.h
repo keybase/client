@@ -16,3 +16,7 @@
 - (void)setDevice:(KBRDevice *)device;
 
 @end
+
+
+@interface KBDeviceCell : KBDeviceView
+@end

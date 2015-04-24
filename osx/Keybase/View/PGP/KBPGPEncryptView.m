@@ -74,7 +74,7 @@
 
   KBReader *reader = [KBReader readerWithData:[text dataUsingEncoding:NSUTF8StringEncoding]];
   KBWriter *writer = [KBWriter writer];
-  KBStream *stream = [KBStream streamWithReader:reader writer:writer];
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
   _encrypter = [[KBPGPEncrypt alloc] init];
   KBRPgpEncryptOptions *options = [[KBRPgpEncryptOptions alloc] init];
@@ -84,11 +84,14 @@
   options.binaryOut = NO;
   self.navigation.progressEnabled = YES;
   //GHWeakSelf gself = self;
-  [_encrypter encryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *streams) {
+  [_encrypter encryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
     self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:[streams[0] error] sender:self]) return;
+    NSError *error = [works[0] error];
+    KBStream *stream = [works[0] output];
+
+    if ([self.navigation setError:error sender:self]) return;
     
-    if (writer.data) [self showOutput:writer.data];
+    if (stream.writer.data) [self showOutput:stream.writer.data];
   }];
 }
 

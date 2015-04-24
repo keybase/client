@@ -103,14 +103,14 @@
   options.binaryOut = YES;
   self.navigation.progressEnabled = YES;
   //GHWeakSelf gself = self;
-  [_encrypter encryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSArray *streams) {
+  [_encrypter encryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSArray *works) {
     self.navigation.progressEnabled = NO;
 
     // TODO: Show errors in output, not just first error
-    NSArray *errors = [streams map:^(KBStream *s) { return s.error; }];
+    NSArray *errors = [works map:^(KBWork *w) { return w.error; }];
     if ([self.navigation setError:[errors firstObject] sender:self]) return;
 
-    [self showOutput:streams];
+    [self showOutput:KBMap(works, output)];
   }];
 }
 

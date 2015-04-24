@@ -182,7 +182,7 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    //DDLogDebug(@"Result: %@", result);
+    DDLogDebug(@"Result: %@", KBDictionaryDescription(result));
     completion(error, result);
   }];
 

@@ -82,4 +82,14 @@
   return box;
 }
 
+- (CGRect)layoutForPositionWithLayout:(id<YOLayout>)layout size:(CGSize)size {
+  switch (self.position) {
+    case KBBoxPositionNone: return [layout setFrame:CGRectZero view:self];
+    case KBBoxPositionBottom: return [layout setFrame:CGRectMake(0, size.height - 1, size.width, 1) view:self];
+    case KBBoxPositionTop: return [layout setFrame:CGRectMake(0, 0, size.width, 1) view:self];
+    case KBBoxPositionLeft: return [layout setFrame:CGRectMake(0, 0, 1, size.height) view:self];
+    case KBBoxPositionRight: return [layout setFrame:CGRectMake(size.width - 1, 0, size.width - 1, size.height) view:self];
+  }
+}
+
 @end

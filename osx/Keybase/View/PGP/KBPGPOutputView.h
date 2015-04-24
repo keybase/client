@@ -17,4 +17,6 @@
 
 - (void)setText:(NSString *)text;
 
+- (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification;
+
 @end

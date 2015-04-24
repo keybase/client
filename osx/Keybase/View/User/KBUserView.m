@@ -20,6 +20,7 @@
   self.imageSize = CGSizeMake(40, 40);
   [self.titleLabel setText:user.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   ((KBUserImageView *)self.imageView).username = user.username;
+  [self setNeedsLayout];
 }
 
 KBRTrackProof *KBFindProof(KBRProofs *proofs, NSString *proofType) {
@@ -41,6 +42,17 @@ KBRTrackProof *KBFindProof(KBRProofs *proofs, NSString *proofType) {
     self.infoLabel.attributedText = nil;
   }
   ((KBUserImageView *)self.imageView).username = userSummary.username;
+  [self setNeedsLayout];
+}
+
+@end
+
+
+@implementation KBUserCell
+
+- (void)viewInit {
+  [super viewInit];
+  self.border.position = KBBoxPositionBottom;
 }
 
 @end

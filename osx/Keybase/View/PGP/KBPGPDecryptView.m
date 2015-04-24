@@ -13,6 +13,8 @@
 #import "KBPGPOutputView.h"
 #import "KBPGPDecrypt.h"
 #import "KBPGPDecryptFooterView.h"
+#import "KBPGPDecrypted.h"
+#import <YOLayout/YOBorderLayout.h>
 
 @interface KBPGPDecryptView ()
 @property KBTextView *textView;
@@ -24,6 +26,8 @@
 - (void)viewInit {
   [super viewInit];
 
+  YOView *contentView = [YOView view];
+  [self addSubview:contentView];
   _textView = [[KBTextView alloc] init];
   _textView.view.editable = YES;
   _textView.view.textContainerInset = CGSizeMake(10, 10);
@@ -41,7 +45,7 @@
   footerView.decryptButton.targetBlock = ^{ [self decrypt]; };
   [self addSubview:footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:nil bottomView:footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)setASCIIData:(NSData *)data {
@@ -55,22 +59,25 @@
   NSData *data = [_textView.text dataUsingEncoding:NSASCIIStringEncoding];
   KBReader *reader = [KBReader readerWithData:data];
   KBWriter *writer = [KBWriter writer];
-  KBStream *stream = [KBStream streamWithReader:reader writer:writer];
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
   self.navigation.progressEnabled = YES;
-  [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *streams) {
+  [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
     self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:[streams[0] error] sender:self]) return;
-    KBWriter *writer = (KBWriter *)[streams[0] writer];
-    [self showOutput:writer.data];
+    NSError *error = [works[0] error];
+    KBPGPDecrypted *decrypted = [works[0] output];
+    if ([self.navigation setError:error sender:self]) return;
+    [self showOutput:decrypted];
   }];
 }
 
-- (void)showOutput:(NSData *)data {
+- (void)showOutput:(KBPGPDecrypted *)decrypted {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
-  NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+  NSString *text = [[NSString alloc] initWithData:decrypted.stream.writer.data encoding:NSUTF8StringEncoding];
   [outputView setText:text];
+  [outputView setPgpSigVerification:decrypted.pgpSigVerification];
   [self.navigation pushView:outputView animated:YES];
+  [self setNeedsLayout];
 }
 
 @end

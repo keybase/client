@@ -54,14 +54,16 @@
   NSData *data = [_textView.text dataUsingEncoding:NSASCIIStringEncoding];
   KBReader *reader = [KBReader readerWithData:data];
   KBWriter *writer = [KBWriter writer];
-  KBStream *stream = [KBStream streamWithReader:reader writer:writer];
+  KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
   self.navigation.progressEnabled = YES;
-  [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *streams) {
+  [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
     self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:[streams[0] error] sender:self]) return;
-    KBWriter *writer = (KBWriter *)[streams[0] writer];
-    [self showOutput:writer.data];
+    NSError *error = [works[0] error];
+    KBStream *stream = [works[0] output];
+
+    if ([self.navigation setError:error sender:self]) return;
+    [self showOutput:stream.writer.data];
   }];
 }
 

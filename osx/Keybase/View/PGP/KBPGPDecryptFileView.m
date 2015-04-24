@@ -15,6 +15,7 @@
 #import "KBFileWriter.h"
 #import "KBPGPOutputFileView.h"
 #import "KBPGPDecryptFooterView.h"
+#import "KBPGPDecrypted.h"
 
 @interface KBPGPDecryptFileView ()
 @property KBFileListView *fileListView;
@@ -93,19 +94,23 @@
   KBRPgpDecryptOptions *options = [[KBRPgpDecryptOptions alloc] init];
 
   self.navigation.progressEnabled = YES;
-  [_decrypter decryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSArray *streams) {
+  [_decrypter decryptWithOptions:options streams:streams client:self.client sender:self completion:^(NSArray *works) {
     self.navigation.progressEnabled = NO;
 
     // TODO: Show errors in output, not just first error
-    NSArray *errors = [streams map:^(KBStream *s) { return s.error; }];
+    NSArray *errors = KBMap(works, error);
     if ([self.navigation setError:[errors firstObject] sender:self]) return;
 
-    [self showOutput:streams];
+    NSArray *decrypted = KBMap(works, output);
+    [self showOutput:decrypted];
   }];
 }
 
-- (void)showOutput:(NSArray *)streams {
+- (void)showOutput:(NSArray *)decrypted {
   KBPGPOutputFileView *outputView = [[KBPGPOutputFileView alloc] init];
+
+  NSArray *streams = KBMap(decrypted, stream);
+
   [outputView setFiles:[streams map:^(KBStream *stream) { return [KBFile fileWithPath:((KBFileWriter *)stream.writer).path]; }]];
   [self.navigation pushView:outputView animated:YES];
 }

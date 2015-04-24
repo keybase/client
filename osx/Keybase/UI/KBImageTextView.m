@@ -7,6 +7,7 @@
 //
 
 #import "KBImageTextView.h"
+#import "NSView+KBView.h"
 
 @interface KBImageTextView ()
 @property KBImageView *imageView;
@@ -22,8 +23,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  self.wantsLayer = YES;
-  [self.layer setBackgroundColor:NSColor.clearColor.CGColor];
+  [self kb_setBackgroundColor:NSColor.clearColor];
 
   _imageView = [self loadImageView];
   [self addSubview:_imageView];
@@ -34,7 +34,8 @@
   _infoLabel = [[KBLabel alloc] init];
   [self addSubview:_infoLabel];
 
-  _border = [KBBox horizontalLine];
+  _border = [KBBox line];
+  _border.position = KBBoxPositionNone;
   [self addSubview:_border];
 
   YOSelf yself = self;
@@ -54,7 +55,7 @@
 
     y = MAX(y, minY) + 8;
 
-    [layout setFrame:CGRectMake(0, y - 1, size.width, 1) view:yself.border];
+    [yself.border layoutForPositionWithLayout:layout size:size];
     return CGSizeMake(size.width, y);
   }];
 }
@@ -97,6 +98,16 @@
     }
   }
   [self setNeedsLayout];
+}
+
+@end
+
+
+@implementation KBImageTextCell
+
+- (void)viewInit {
+  [super viewInit];
+  self.border.position = KBBoxPositionBottom;
 }
 
 @end

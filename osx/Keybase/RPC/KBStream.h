@@ -16,12 +16,11 @@ typedef NSString *(^KBFileOutput)(NSString *path);
 
 @interface KBStream : NSObject
 
-@property id<KBReader> reader;
-@property id<KBWriter> writer;
-@property (nonatomic) int label;
-@property NSError *error;
+@property (readonly) id<KBReader> reader;
+@property (readonly)id<KBWriter> writer;
+@property (readonly) u_int32_t label;
 
-+ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer;
++ (instancetype)streamWithReader:(id<KBReader>)reader writer:(id<KBWriter>)writer label:(int)label;
 
 - (void)close;
 

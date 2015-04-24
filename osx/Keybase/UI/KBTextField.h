@@ -36,6 +36,8 @@
 
 @property id<KBTextFieldFocusDelegate> focusDelegate;
 
++ (BOOL)isFocused:(NSTextField *)textField;
+
 @end
 
 @interface KBSecureTextField : KBTextField

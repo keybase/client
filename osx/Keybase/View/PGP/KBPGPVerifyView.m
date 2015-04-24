@@ -79,11 +79,11 @@
   KBStream *stream = nil;
   if (filePath) {
     KBFileReader *fileReader = [KBFileReader fileReaderWithPath:filePath];
-    stream = [KBStream streamWithReader:fileReader writer:nil];
+    stream = [KBStream streamWithReader:fileReader writer:nil label:arc4random()];
     options.signature = signatureData;
   } else {
     KBReader *reader = [KBReader readerWithData:signatureData];
-    stream = [KBStream streamWithReader:reader writer:nil];
+    stream = [KBStream streamWithReader:reader writer:nil label:arc4random()];
     //options.signature = signatureData;
   }
 

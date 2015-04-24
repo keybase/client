@@ -10,12 +10,9 @@
 #import <Mantle/Mantle.h>
 #import <objc/objc-runtime.h>
 #import <GHKit/GHKit.h>
+#import "KBDefines.h"
 
 @implementation KBRObject
-
-//- (NSString *)description {
-//  return [[MTLJSONAdapter JSONDictionaryFromModel:self] gh_toJSON:NSJSONWritingPrettyPrinted error:nil];
-//}
 
 + (NSString *)classNameOfPropertyNamed:(NSString *)propertyName {
   objc_property_t property = class_getProperty(self, propertyName.UTF8String);
@@ -73,11 +70,14 @@
   for (NSString *propertyName in properties) {
     id value = properties[propertyName];
     [desc appendString:prefix];
-    [desc appendFormat:@"%@: %@", propertyName, value];
+    [desc appendFormat:@"%@: %@", propertyName, KBDescription(value)];
   }
-
-  //NSString *configDescription = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject: options:NSJSONWritingPrettyPrinted error:nil] encoding:NSUTF8StringEncoding];
   return desc;
+}
+
+- (NSString *)description {
+  NSDictionary *properties = [MTLJSONAdapter JSONDictionaryFromModel:self error:nil]; // TODO: Handle error
+  return KBDictionaryDescription(properties);
 }
 
 @end

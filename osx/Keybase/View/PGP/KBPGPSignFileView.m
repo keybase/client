@@ -79,7 +79,7 @@
 
   KBFileReader *fileReader = [KBFileReader fileReaderWithPath:_fileIcon.file.path];
   KBWriter *writer = [KBWriter writer];
-  KBStream *stream = [KBStream streamWithReader:fileReader writer:writer];
+  KBStream *stream = [KBStream streamWithReader:fileReader writer:writer label:arc4random()];
   [self signStream:stream options:options];
 }
 
@@ -102,9 +102,11 @@
 - (void)signStream:(KBStream *)stream options:(KBRPgpSignOptions *)options {
   _signer = [[KBPGPSigner alloc] init];
   self.navigation.progressEnabled = YES;
-  [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *streams) {
+  [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
     self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:[streams[0] error] sender:self]) return;
+    NSError *error = [works[0] error];
+    KBStream *stream = [works[0] output];
+    if ([self.navigation setError:error sender:self]) return;
     [self showOutput:stream.writer];
   }];
 }

@@ -32,7 +32,7 @@
   }
 
   NSString *dateAndTime = [_dateFormatter stringFromDate:logMessage.timestamp];
-  return [NSString stringWithFormat:@"%@ %@/%@:%@ %@", dateAndTime, logMessage.fileName, @(logMessage.line), level, logMessage.message];
+  return [NSString stringWithFormat:@"%@ %@:%@ %@ %@", dateAndTime, logMessage.fileName, @(logMessage.line), level, logMessage.message];
 }
 
 

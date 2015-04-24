@@ -8,10 +8,13 @@
 
 #import "KBPGPOutputView.h"
 #import "KBFileIcon.h"
+#import "KBPGPVerifiedView.h"
 #import "KBPGPOutputFooterView.h"
+#import <YOLayout/YOBorderLayout.h>
 
 @interface KBPGPOutputView ()
 @property KBTextView *textView;
+@property KBPGPVerifiedView *verifiedView;
 @property YOBox *files;
 @property NSData *data;
 @end
@@ -26,6 +29,9 @@
   _textView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_textView];
 
+  _verifiedView = [[KBPGPVerifiedView alloc] init];
+  [self addSubview:_verifiedView];
+
   KBPGPOutputFooterView *footerView = [[KBPGPOutputFooterView alloc] init];
   footerView.editButton.targetBlock = ^{
     [self.navigation popViewAnimated:YES];
@@ -33,7 +39,7 @@
   footerView.closeButton.targetBlock = ^{ [[self window] close]; };
   [self addSubview:footerView];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textView topView:nil bottomView:footerView insets:UIEdgeInsetsZero spacing:0 maxSize:CGSizeMake(800, 400)]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_verifiedView, footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)setText:(NSString *)text {
@@ -58,6 +64,12 @@
 //
 //  [sharingServicePicker showRelativeToRect:[sender bounds] ofView:sender preferredEdge:NSMinYEdge];
 //}
+
+- (void)setPgpSigVerification:(KBRPgpSigVerification *)pgpSigVerification {
+  _verifiedView.pgpSigVerification = pgpSigVerification;
+  [self setNeedsLayout];
+}
+
 
 - (void)save {
   NSSavePanel *panel = [NSSavePanel savePanel];

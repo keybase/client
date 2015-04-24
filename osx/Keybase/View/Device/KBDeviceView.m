@@ -26,3 +26,12 @@
 }
 
 @end
+
+@implementation KBDeviceCell
+
+- (void)viewInit {
+  [super viewInit];
+  self.border.position = KBBoxPositionBottom;
+}
+
+@end
