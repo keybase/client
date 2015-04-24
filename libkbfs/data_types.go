@@ -249,7 +249,8 @@ func (p *Path) ParentPath() *Path {
 }
 
 func (p *Path) ChildPathNoPtr(name string) *Path {
-	child := &Path{p.TopDir, p.Path[:]}
+	child := &Path{p.TopDir, make([]*PathNode, len(p.Path), len(p.Path)+1)}
+	copy(child.Path, p.Path)
 	child.Path = append(child.Path, &PathNode{Name: name})
 	return child
 }
