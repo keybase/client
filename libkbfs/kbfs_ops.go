@@ -373,6 +373,8 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 }
 
 // TODO: deal with multiple nodes for indirect blocks
+//
+// entryType must not by Sym.
 func (fs *KBFSOpsStandard) syncBlockLocked(
 	newBlock Block, dir Path, name string, entryType EntryType,
 	mtime bool, ctime bool, stopAt BlockId) (Path, *DirEntry, error) {
@@ -512,6 +514,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 	return newPath, newDe, nil
 }
 
+// entryType must not by Sym.
 func (fs *KBFSOpsStandard) createEntry(
 	dir Path, name string, entryType EntryType) (
 	Path, *DirEntry, error) {
@@ -1158,9 +1161,9 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (Path, error) {
 		return Path{}, err
 	}
 
-	if ex {
+	if ex && (de.Type == File) {
 		de.Type = Exec
-	} else {
+	} else if !ex && (de.Type == Exec) {
 		de.Type = File
 	}
 	de.Ctime = time.Now().UnixNano()
