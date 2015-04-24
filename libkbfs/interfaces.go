@@ -27,10 +27,10 @@ type KBFSOps interface {
 	GetRootMDForHandle(dirHandle *DirHandle) (*RootMetadata, error)
 	GetRootMD(dirId DirId) (*RootMetadata, error)
 	GetDir(dir Path) (*DirBlock, error)
-	CreateDir(dir Path, path string) (Path, *DirEntry, error)
-	CreateFile(dir Path, path string, isEx bool) (Path, *DirEntry, error)
+	CreateDir(dir Path, path string) (Path, DirEntry, error)
+	CreateFile(dir Path, path string, isEx bool) (Path, DirEntry, error)
 	CreateLink(dir Path, fromPath string, toPath string) (
-		Path, *DirEntry, error)
+		Path, DirEntry, error)
 	RemoveDir(dir Path) (Path, error)    // checks for directory empty
 	RemoveEntry(file Path) (Path, error) // remove any entry
 	// only works within a top-level directory

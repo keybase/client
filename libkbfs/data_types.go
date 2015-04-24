@@ -62,6 +62,8 @@ func NewKey() Key {
 // type of hash key for each data block
 type BlockId libkb.NodeHashShort
 
+var NullBlockId BlockId = BlockId{0}
+
 // type of hash key for each metadata block
 type MDId libkb.NodeHashShort
 
@@ -542,6 +544,10 @@ type DirEntry struct {
 	Ctime   int64
 }
 
+func (de *DirEntry) IsInitialized() bool {
+	return de.Id != NullBlockId
+}
+
 // IndirectDirPtr pairs an indirect dir block with the start of that
 // block's range of directory entries (inclusive)
 type IndirectDirPtr struct {
@@ -572,7 +578,7 @@ type CommonBlock struct {
 type DirBlock struct {
 	CommonBlock
 	// if not indirect, a map of path name to directory entry
-	Children map[string]*DirEntry `codec:",omitempty"`
+	Children map[string]DirEntry `codec:",omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
 	IPtrs   []IndirectDirPtr `codec:",omitempty"`
 	Padding []byte
@@ -580,7 +586,7 @@ type DirBlock struct {
 
 func NewDirBlock() Block {
 	return &DirBlock{
-		Children: make(map[string]*DirEntry),
+		Children: make(map[string]DirEntry),
 	}
 }
 

@@ -4,10 +4,10 @@
 package libkbfs
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
-	fmt "fmt"
-	libkb "github.com/keybase/client/go/libkb"
 	time "time"
+	fmt "fmt"
+	gomock "code.google.com/p/gomock/gomock"
+	libkb "github.com/keybase/client/go/libkb"
 )
 
 // Mock of Block interface
@@ -157,10 +157,10 @@ func (_mr *_MockKBFSOpsRecorder) GetDir(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDir", arg0)
 }
 
-func (_m *MockKBFSOps) CreateDir(dir Path, path string) (Path, *DirEntry, error) {
+func (_m *MockKBFSOps) CreateDir(dir Path, path string) (Path, DirEntry, error) {
 	ret := _m.ctrl.Call(_m, "CreateDir", dir, path)
 	ret0, _ := ret[0].(Path)
-	ret1, _ := ret[1].(*DirEntry)
+	ret1, _ := ret[1].(DirEntry)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -169,10 +169,10 @@ func (_mr *_MockKBFSOpsRecorder) CreateDir(arg0, arg1 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateDir", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) CreateFile(dir Path, path string, isEx bool) (Path, *DirEntry, error) {
+func (_m *MockKBFSOps) CreateFile(dir Path, path string, isEx bool) (Path, DirEntry, error) {
 	ret := _m.ctrl.Call(_m, "CreateFile", dir, path, isEx)
 	ret0, _ := ret[0].(Path)
-	ret1, _ := ret[1].(*DirEntry)
+	ret1, _ := ret[1].(DirEntry)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -181,10 +181,10 @@ func (_mr *_MockKBFSOpsRecorder) CreateFile(arg0, arg1, arg2 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateFile", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) CreateLink(dir Path, fromPath string, toPath string) (Path, *DirEntry, error) {
+func (_m *MockKBFSOps) CreateLink(dir Path, fromPath string, toPath string) (Path, DirEntry, error) {
 	ret := _m.ctrl.Call(_m, "CreateLink", dir, fromPath, toPath)
 	ret0, _ := ret[0].(Path)
-	ret1, _ := ret[1].(*DirEntry)
+	ret1, _ := ret[1].(DirEntry)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }

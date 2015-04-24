@@ -49,7 +49,7 @@ type FuseNode struct {
 
 	PathNode   *libkbfs.PathNode
 	PrevNode   *FuseNode
-	Entry      *libkbfs.DirEntry // assumes no hard links
+	Entry      libkbfs.DirEntry
 	NeedUpdate bool
 	Dir        libkbfs.DirId      // only set if this is a root node
 	DirHandle  *libkbfs.DirHandle // only set if this is a root node
@@ -139,7 +139,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 				Node:      nodefs.NewDefaultNode(),
 				Dir:       md.Id,
 				DirHandle: dirHandle,
-				Entry:     &md.Data().Dir,
+				Entry:     md.Data().Dir,
 				PathNode: &libkbfs.PathNode{
 					md.Data().Dir.BlockPointer,
 					dirHandle.ToString(f.config),
@@ -316,7 +316,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					DirHandle: dirHandle,
 					PathNode: &libkbfs.PathNode{
 						libkbfs.BlockPointer{}, dirString},
-					Entry: &libkbfs.DirEntry{Type: libkbfs.Dir},
+					Entry: libkbfs.DirEntry{Type: libkbfs.Dir},
 					Ops:   f,
 				}
 			} else if err != nil {
@@ -326,7 +326,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					Node:      nodefs.NewDefaultNode(),
 					Dir:       md.Id,
 					DirHandle: dirHandle,
-					Entry:     &md.Data().Dir,
+					Entry:     md.Data().Dir,
 					PathNode: &libkbfs.PathNode{
 						md.Data().Dir.BlockPointer,
 						dirString,
@@ -363,7 +363,7 @@ func (f *FuseOps) LookupInRootById(rNode *FuseNode, id libkbfs.DirId) (
 				Node:      nodefs.NewDefaultNode(),
 				Dir:       id,
 				DirHandle: dirHandle,
-				Entry:     &md.Data().Dir,
+				Entry:     md.Data().Dir,
 				PathNode: &libkbfs.PathNode{
 					md.Data().Dir.BlockPointer,
 					name,
@@ -378,7 +378,7 @@ func (f *FuseOps) LookupInRootById(rNode *FuseNode, id libkbfs.DirId) (
 	return node, fuse.OK
 }
 
-func fuseModeFromEntry(dir libkbfs.DirId, de *libkbfs.DirEntry) uint32 {
+func fuseModeFromEntry(dir libkbfs.DirId, de libkbfs.DirEntry) uint32 {
 	var pubModeFile, pubModeExec, pubModeDir, pubModeSym uint32
 	if dir.IsPublic() {
 		pubModeFile = 0044
@@ -844,7 +844,7 @@ func (n *FuseNode) GetAttr(
 
 func (n *FuseNode) Chmod(
 	file nodefs.File, perms uint32, context *fuse.Context) (code fuse.Status) {
-	if n.Entry != nil {
+	if n.Entry.IsInitialized() {
 		return n.Ops.Chmod(n, perms)
 	} else {
 		return fuse.EINVAL
@@ -853,7 +853,7 @@ func (n *FuseNode) Chmod(
 
 func (n *FuseNode) Utimens(file nodefs.File, atime *time.Time,
 	mtime *time.Time, context *fuse.Context) (code fuse.Status) {
-	if n.Entry != nil {
+	if n.Entry.IsInitialized() {
 		return n.Ops.Utimens(n, mtime)
 	} else {
 		return fuse.EINVAL
@@ -956,7 +956,7 @@ func (n *FuseNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
 
 func (n *FuseNode) Rmdir(name string, context *fuse.Context) (
 	code fuse.Status) {
-	if n.File == nil && n.Entry != nil {
+	if n.File == nil && n.Entry.IsInitialized() {
 		return n.Ops.RmEntry(n, name, true)
 	} else {
 		return fuse.EINVAL
@@ -965,7 +965,7 @@ func (n *FuseNode) Rmdir(name string, context *fuse.Context) (
 
 func (n *FuseNode) Unlink(name string, context *fuse.Context) (
 	code fuse.Status) {
-	if n.File == nil && n.Entry != nil {
+	if n.File == nil && n.Entry.IsInitialized() {
 		return n.Ops.RmEntry(n, name, false)
 	} else {
 		return fuse.EINVAL
@@ -975,8 +975,8 @@ func (n *FuseNode) Unlink(name string, context *fuse.Context) (
 func (n *FuseNode) Rename(oldName string, newParent nodefs.Node,
 	newName string, context *fuse.Context) (code fuse.Status) {
 	newFuseParent := newParent.(*FuseNode)
-	if n.File == nil && n.Entry != nil &&
-		newFuseParent.File == nil && newFuseParent.Entry != nil {
+	if n.File == nil && n.Entry.IsInitialized() &&
+		newFuseParent.File == nil && newFuseParent.Entry.IsInitialized() {
 		return n.Ops.Rename(n, oldName, newFuseParent, newName)
 	} else {
 		return fuse.EINVAL
