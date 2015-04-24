@@ -75,8 +75,8 @@ type GpgBaseKey struct {
 	Bits        int
 	Algo        int
 	Id64        string
-	Created     int
-	Expires     int
+	Created     int64
+	Expires     int64
 	fingerprint *PgpFingerprint
 }
 
@@ -112,18 +112,27 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	k.Trust = line.At(1)
 	k.Id64 = line.At(4)
 
-	flexiAtoi := func(s string) (int, error) {
+	parseTimeStamp := func(s string) (ret int64, err error) {
+		// No date was specified
 		if len(s) == 0 {
-			return 0, nil
-		} else {
-			return strconv.Atoi(s)
+			return
 		}
+		// GPG 2.0+ format
+		if ret, err = strconv.ParseInt(s, 10, 0); err == nil {
+			return
+		}
+		var tmp time.Time
+		if tmp, err = time.Parse("2006-01-02", s); err != nil {
+			return
+		}
+		ret = tmp.Unix()
+		return
 	}
 
 	if k.Bits, err = strconv.Atoi(line.At(2)); err != nil {
 	} else if k.Algo, err = strconv.Atoi(line.At(3)); err != nil {
-	} else if k.Created, err = strconv.Atoi(line.At(5)); err != nil {
-	} else if k.Expires, err = flexiAtoi(line.At(6)); err != nil {
+	} else if k.Created, err = parseTimeStamp(line.At(5)); err != nil {
+	} else if k.Expires, err = parseTimeStamp(line.At(6)); err != nil {
 	}
 
 	return
