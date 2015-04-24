@@ -473,13 +473,15 @@ func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 
 	if (doSetEx && (n.Entry.Type == libkbfs.File)) || (!doSetEx && (n.Entry.Type == libkbfs.Exec)) {
 		p := n.GetPath(1)
-		newPath, err := f.config.KBFSOps().SetEx(p, doSetEx)
+		changed, newPath, err := f.config.KBFSOps().SetEx(p, doSetEx)
 		if err != nil {
 			return f.TranslateError(err)
 		}
 
-		f.updatePaths(p.TopDir, n, newPath.Path)
-		n.NeedUpdate = true
+		if changed {
+			f.updatePaths(p.TopDir, n, newPath.Path)
+			n.NeedUpdate = true
+		}
 	}
 	return fuse.OK
 }

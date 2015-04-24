@@ -39,7 +39,7 @@ type KBFSOps interface {
 	Read(file Path, dest []byte, off int64) (int64, error)
 	Write(file Path, data []byte, off int64) error
 	Truncate(file Path, size uint64) error
-	SetEx(file Path, ex bool) (Path, error)
+	SetEx(file Path, ex bool) (changed bool, newPath Path, err error)
 	SetMtime(file Path, mtime *time.Time) (Path, error)
 	Sync(file Path) (Path, error)
 }

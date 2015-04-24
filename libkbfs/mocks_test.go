@@ -258,11 +258,12 @@ func (_mr *_MockKBFSOpsRecorder) Truncate(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Truncate", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) SetEx(file Path, ex bool) (Path, error) {
+func (_m *MockKBFSOps) SetEx(file Path, ex bool) (bool, Path, error) {
 	ret := _m.ctrl.Call(_m, "SetEx", file, ex)
-	ret0, _ := ret[0].(Path)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(Path)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 func (_mr *_MockKBFSOpsRecorder) SetEx(arg0, arg1 interface{}) *gomock.Call {

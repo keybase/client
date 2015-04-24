@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
@@ -1948,11 +1947,11 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 
 	expectGetBlock(config, rootId, rootBlock)
 
-	var expectedPath Path
 	// SetEx() should do nothing for symlinks.
-	if entryType == Sym {
-		expectedPath = p
-	} else {
+	expectedChanged := (entryType != Sym)
+
+	var expectedPath Path
+	if entryType != Sym {
 		// sync block
 		expectedPath, _ = expectSyncBlock(t, config, nil, userId, id, "",
 			*p.ParentPath(), rmd, false, 0, 0, 0, nil)
@@ -1970,24 +1969,20 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	}
 
 	// chmod a+x a
-	if newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
+	if changed, newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
 		t.Errorf("Got unexpected error on setex: %v", err)
+	} else if changed != expectedChanged {
+		t.Errorf("got changed=%t, expected %t", changed, expectedChanged)
 	} else if rootBlock.Children["a"].Type != expectedType {
 		t.Errorf("a has type %s, expected %s", rootBlock.Children["a"].Type, expectedType)
-	} else {
-		if entryType == Sym {
-			if !reflect.DeepEqual(newP, expectedPath) {
-				t.Errorf("newP=%s unexpectedly not equal to expectedPath=%s", newP, expectedPath)
-			}
-		} else {
-			// SetEx() should always change the ctime of
-			// non-symlinks.  append a fake block so
-			// checkNewPath does the right thing
-			blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
-			// pretend it's a rename so only ctime gets checked
-			checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-				expectedType, "", true)
-		}
+	} else if entryType != Sym {
+		// SetEx() should always change the ctime of
+		// non-symlinks.  append a fake block so checkNewPath
+		// does the right thing
+		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
+		// pretend it's a rename so only ctime gets checked
+		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
+			expectedType, "", true)
 	}
 }
 
@@ -2040,7 +2035,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	// chmod a+x a
-	if _, err := config.KBFSOps().SetEx(p, true); err == nil {
+	if _, _, err := config.KBFSOps().SetEx(p, true); err == nil {
 		t.Errorf("Got no expected error on setex")
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on setex: %v", err)

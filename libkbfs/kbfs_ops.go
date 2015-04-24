@@ -1146,25 +1146,25 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	return fs.config.BlockCache().Put(id, block, true)
 }
 
-func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (Path, error) {
+func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (bool, Path, error) {
 	lock := fs.dirLocks.GetDirLock(file.TopDir)
 	lock.Lock()
 	defer lock.Unlock()
 
 	dblock, de, err := fs.getEntryLocked(file)
 	if err != nil {
-		return Path{}, err
+		return false, Path{}, err
 	}
 
 	// If the file is a symlink, do nothing (to match ext4
 	// behavior).
 	if de.Type == Sym {
-		return file, nil
+		return false, Path{}, nil
 	}
 
 	// verify we have permission to write
 	if _, err := fs.getMDForWriteLocked(file); err != nil {
-		return Path{}, err
+		return false, Path{}, err
 	}
 
 	if ex && (de.Type == File) {
@@ -1181,7 +1181,7 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (Path, error) {
 		Dir, false, false, zeroId)
 	newPath := Path{file.TopDir,
 		append(newParentPath.Path, file.Path[len(file.Path)-1])}
-	return newPath, err
+	return true, newPath, err
 }
 
 func (fs *KBFSOpsStandard) SetMtime(file Path, mtime *time.Time) (Path, error) {
