@@ -166,45 +166,6 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 	return nil
 }
 
-/*
-func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
-	s.lks = libkb.NewLKSec(s.tspkey.LksClientHalf(), s.G())
-	args := &DeviceRegisterArgs{
-		Me:   s.me,
-		Name: deviceName,
-		Lks:  s.lks,
-	}
-	eng := NewDeviceRegister(args)
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-	s.deviceID = eng.DeviceID()
-	return nil
-}
-
-func (s *SignupEngine) genDeviceKeys(ctx *Context, deviceName string) error {
-	args := &DevKeygenArgs{
-		Me:         s.me,
-		DeviceID:   s.deviceID,
-		DeviceName: deviceName,
-		Lks:        s.lks,
-	}
-	eng := NewDevKeygen(args)
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-
-	// normal signup, so push the device keys right away.  This is the
-	// eldest device.
-	if err := eng.Push(ctx, &DevKeygenPushArgs{IsEldest: true}); err != nil {
-		return err
-	}
-
-	s.signingKey = eng.SigningKey()
-	return nil
-}
-*/
-
 func (s *SignupEngine) genDetKeys(ctx *Context) error {
 	arg := &DetKeyArgs{
 		Tsp:         s.tspkey,

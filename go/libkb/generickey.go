@@ -88,28 +88,34 @@ func (k KID) Eq(k2 KID) bool {
 	return SecureByteArrayEq([]byte(k), []byte(k2))
 }
 
-func WriteLksSKBToKeyring(username string, k GenericKey, lks *LKSec, lui LogUI) (*SKB, error) {
-	ring, err := G.LoadSKBKeyring(username)
+func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lui LogUI) (*SKB, error) {
+	ring, err := G.LoginState.LoadSKBKeyring()
 	if err != nil {
-		return nil, fmt.Errorf("G.LoadSKBKeyring error: %s", err)
+		return nil, fmt.Errorf("G.LoginState.LoadSKBKeyring error: %s", err)
 	}
 	skb, err := k.ToLksSKB(lks)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
 	}
-	err = ring.PushAndSave(skb, lui)
-	if err != nil {
+	if err = ring.PushAndSave(skb, lui); err != nil {
 		return nil, fmt.Errorf("ring.PushAndSave error: %s", err)
 	}
 	return skb, nil
 }
 
-func WriteTsecSKBToKeyring(username string, k GenericKey, tsec *triplesec.Cipher, lui LogUI) (p3skb *SKB, err error) {
-	if ring, err := G.LoadSKBKeyring(username); err != nil {
-	} else if p3skb, err = k.ToSKB(tsec); err != nil {
-		err = ring.PushAndSave(p3skb, lui)
+func WriteTsecSKBToKeyring(k GenericKey, tsec *triplesec.Cipher, lui LogUI) (*SKB, error) {
+	ring, err := G.LoginState.LoadSKBKeyring()
+	if err != nil {
+		return nil, err
 	}
-	return
+	p3skb, err := k.ToSKB(tsec)
+	if err != nil {
+		return nil, err
+	}
+	if err = ring.PushAndSave(p3skb, lui); err != nil {
+		return nil, err
+	}
+	return p3skb, nil
 }
 
 // FOKID is a "Fingerprint Or a KID" or both, or neither.

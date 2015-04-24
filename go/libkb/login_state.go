@@ -19,7 +19,6 @@ type LoginState struct {
 	session  *Session // The user's session cookie, &c
 
 	secretSyncer *SecretSyncer // For syncing secrets between the server and client
-	me           *User
 
 	mu               sync.RWMutex // protects the following variables:
 	salt             []byte
@@ -771,7 +770,6 @@ func (s *LoginState) logout(arg *loginArg) error {
 	if username != nil {
 		G.Keyrings.ClearSecretKeys(*username)
 	}
-	s.me = nil
 	G.Log.Debug("- Logout called")
 	return err
 }
@@ -880,28 +878,15 @@ func (s *LoginState) RunSecretSyncer() error {
 	return RunSyncer(s.SecretSyncer(), s.UID())
 }
 
-/*
- hold off on this for a moment...
- can't hold onto this user pointer forever.
- needs to be refreshed.
-
-func (s *LoginState) LoadMe(arg LoadUserArg) (*User, error) {
-	if s.IsLoggedIn() == false {
+func (s *LoginState) LoadSKBKeyring() (*SKBKeyringFile, error) {
+	if !s.IsLoggedIn() {
 		return nil, LoginRequiredError{}
 	}
-	if s.me != nil && !arg.ForceReload {
-		return s.me, nil
+	unp := s.session.GetUsername()
+	// not sure how this could happen, but just in case:
+	if unp == nil {
+		return nil, NoUsernameError{}
 	}
-	arg.Uid = s.UID()
-	u, err := LoadUser(arg)
-	if err != nil {
-		return nil, err
-	}
-	s.me = u
-	return s.me, nil
-}
 
-func (s *LoginState) LoadMeDefault() (*User, error) {
-	return s.LoadMe(LoadUserArg{})
+	return G.Keyrings.LoadSKBKeyring(*unp)
 }
-*/

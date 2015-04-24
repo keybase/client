@@ -324,8 +324,6 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	}
 	lks := libkb.NewLKSec(tk.LksClientHalf(), G)
 
-	G.Logout()
-
 	// going to register a device only, not generating the device keys.
 	dregArgs := &DeviceRegisterArgs{
 		Me:   me,
@@ -349,6 +347,8 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	if err := RunEngine(dkey, ctx); err != nil {
 		t.Fatal(err)
 	}
+
+	G.Logout()
 
 	// now login and see if it correctly generates needed keys
 	li := NewLoginWithPassphraseEngine(username, passphrase, false)

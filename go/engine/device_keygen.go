@@ -62,7 +62,7 @@ func (e *DeviceKeygen) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *DeviceKeygen) GetPrereqs() EnginePrereqs {
-	return EnginePrereqs{}
+	return EnginePrereqs{Session: true}
 }
 
 // RequiredUIs returns the required UIs.

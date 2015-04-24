@@ -22,6 +22,7 @@ type KeyringFile struct {
 type Keyrings struct {
 	skbMap map[string]*SKBKeyringFile // map of usernames to keyring files
 	sync.Mutex
+	skbfile *SKBKeyringFile
 	Contextified
 }
 
@@ -59,17 +60,18 @@ func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
 	k.Lock()
 	defer k.Unlock()
 
-	if f = k.skbMap[un]; f != nil {
-	} else if len(un) == 0 {
-		err = NoUsernameError{}
-	} else {
-		f = NewSKBKeyringFile(k.G().SKBFilenameForUser(un))
-		if err = f.LoadAndIndex(); err == nil || os.IsNotExist(err) {
-			err = nil
-			k.skbMap[un] = f
+	if k.skbfile == nil {
+		if len(un) == 0 {
+			return nil, NoUsernameError{}
+		}
+
+		k.skbfile = NewSKBKeyringFile(k.G().SKBFilenameForUser(un))
+		err := k.skbfile.LoadAndIndex()
+		if err != nil && !os.IsNotExist(err) {
+			return nil, err
 		}
 	}
-	return
+	return k.skbfile, nil
 }
 
 func (k *KeyringFile) LoadAndIndex() error {
@@ -329,7 +331,7 @@ func (k *Keyrings) ClearSecretKeys(username string) {
 	k.Lock()
 	defer k.Unlock()
 
-	delete(k.skbMap, username)
+	k.skbfile = nil
 }
 
 type EmptyKeyRing struct{}
@@ -342,13 +344,4 @@ func (k EmptyKeyRing) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
 }
 func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
 	return []openpgp.Key{}
-}
-
-func (g *GlobalContext) LoadSKBKeyring(name string) (f *SKBKeyringFile, err error) {
-	if g.Keyrings == nil {
-		err = NoKeyringsError{}
-	} else {
-		f, err = g.Keyrings.LoadSKBKeyring(name)
-	}
-	return
 }

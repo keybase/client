@@ -89,7 +89,7 @@ func (s *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
 			return err
 		}
 	}
-	_, err = libkb.WriteLksSKBToKeyring(s.me.GetName(), s.bundle, lks, ctx.LogUI)
+	_, err = libkb.WriteLksSKBToKeyring(s.bundle, lks, ctx.LogUI)
 	return
 }
 
@@ -129,7 +129,6 @@ func (s *PGPKeyImportEngine) init() (err error) {
 
 func (s *PGPKeyImportEngine) testExisting() (err error) {
 	return PGPCheckMulti(s.me, s.arg.AllowMulti)
-
 }
 
 // checkPregenPrivate makes sure that the pregenerated key is a
