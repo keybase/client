@@ -1,12 +1,16 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase_1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -44,8 +48,15 @@ func (c *CmdStress) RunClient() error {
 		NewStreamUiProtocol(),
 		NewSecretUIProtocol(),
 		NewIdentifyUIProtocol(),
+		c.gpgUIProtocol(),
+		NewLogUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
+		return err
+	}
+
+	username, passphrase, err := c.signup(cli)
+	if err != nil {
 		return err
 	}
 
@@ -53,7 +64,7 @@ func (c *CmdStress) RunClient() error {
 	for i := 0; i < c.numUsers; i++ {
 		wg.Add(1)
 		go func() {
-			c.simulate(cli)
+			c.simulate(cli, username, passphrase)
 			wg.Done()
 		}()
 	}
@@ -78,6 +89,58 @@ func (c *CmdStress) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdStress) simulate(cli *rpc2.Client) {
+func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err error) {
+	buf := make([]byte, 5)
+	if _, err = rand.Read(buf); err != nil {
+		return
+	}
+	username = fmt.Sprintf("login_%s", hex.EncodeToString(buf))
+	email := fmt.Sprintf("%s@email.com", username)
+	buf = make([]byte, 12)
+	if _, err = rand.Read(buf); err != nil {
+		return
+	}
+	passphrase = hex.EncodeToString(buf)
 
+	G.Log.Info("username: %q, email: %q, passphrase: %q", username, email, passphrase)
+
+	scli := keybase_1.SignupClient{Cli: cli}
+	res, err := scli.Signup(keybase_1.SignupArg{
+		Email:      email,
+		InviteCode: "202020202020202020202020",
+		Passphrase: passphrase,
+		Username:   username,
+		DeviceName: "signup test device",
+	})
+	if err != nil {
+		return "", "", err
+	}
+	G.Log.Info("signup res: %+v", res)
+	return
+}
+
+func (c *CmdStress) simulate(cli *rpc2.Client, username, passphrase string) {
+	c.idSelf(cli)
+}
+
+func (c *CmdStress) idSelf(cli *rpc2.Client) {
+	icli := keybase_1.IdentifyClient{Cli: cli}
+	_, err := icli.Identify(keybase_1.IdentifyArg{})
+	if err != nil {
+		G.Log.Warning("id self error: %s", err)
+	}
+}
+
+func (c *CmdStress) gpgUIProtocol() rpc2.Protocol {
+	return keybase_1.GpgUiProtocol(c)
+}
+
+func (c *CmdStress) SelectKey(arg keybase_1.SelectKeyArg) (string, error) {
+	return "", nil
+}
+func (c *CmdStress) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (res keybase_1.SelectKeyRes, err error) {
+	return
+}
+func (c *CmdStress) WantToAddGPGKey(dummy int) (bool, error) {
+	return false, nil
 }

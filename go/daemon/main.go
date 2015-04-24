@@ -13,7 +13,7 @@ import (
 )
 
 // Keep this around to simplify things
-var G = &libkb.G
+var G = libkb.G
 
 type Daemon struct {
 	lockPid *libkb.LockPIDFile

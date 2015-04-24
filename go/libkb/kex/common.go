@@ -5,4 +5,4 @@ import (
 )
 
 // For convenience, store libkb's G here...
-var G = &libkb.G
+var G = libkb.G

@@ -140,7 +140,7 @@ func (tc *TestContext) MakePGPKey(id string) (*PgpKeyBundle, error) {
 
 func setupTestContext(nm string) (tc TestContext, err error) {
 
-	var g GlobalContext = NewGlobalContext()
+	g := NewGlobalContext()
 	g.Init()
 
 	// Set up our testing parameters.  We might add others later on

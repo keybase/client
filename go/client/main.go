@@ -10,7 +10,7 @@ import (
 )
 
 // Keep this around to simplify things
-var G = &libkb.G
+var G = libkb.G
 var G_UI *UI
 
 func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
@@ -39,6 +39,7 @@ func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
 		NewCmdSigs(cl),
 		NewCmdSignup(cl),
 		NewCmdStatus(cl),
+		NewCmdStress(cl),
 		NewCmdTrack(cl),
 		NewCmdUntrack(cl),
 		NewCmdVersion(cl),

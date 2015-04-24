@@ -287,7 +287,7 @@ func (c Contextified) G() *GlobalContext {
 	if c.g != nil {
 		return c.g
 	} else {
-		return &G
+		return G
 	}
 }
 

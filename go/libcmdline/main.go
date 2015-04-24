@@ -1,13 +1,14 @@
 package libcmdline
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"os"
 	"os/signal"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 // Keep this around to simplify things
-var G = &libkb.G
+var G = libkb.G
 
 type parseArgHook func() (libkb.CommandLine, Command, error)
 
