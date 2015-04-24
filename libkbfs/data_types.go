@@ -211,7 +211,7 @@ func (d *DirHandle) ToBytes(config Config) (out []byte) {
 	return
 }
 
-// PathName is a single node along an FS path
+// PathNode is a single node along an FS path
 type PathNode struct {
 	BlockPointer
 	Name string
