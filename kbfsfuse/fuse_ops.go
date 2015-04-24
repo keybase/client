@@ -162,7 +162,7 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 		}
 
 		var pathNode *libkbfs.PathNode = nil
-		if !de.IsSym {
+		if de.Type != libkbfs.Sym {
 			pathNode = &libkbfs.PathNode{de.BlockPointer, name}
 		} else {
 			// use a null block pointer for symlinks
@@ -175,13 +175,13 @@ func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 			Ops:      f,
 			Entry:    de,
 		}
-		if !de.IsDir {
+		if de.Type != libkbfs.Dir {
 			fNode.File = &FuseFile{
 				File: nodefs.NewDefaultFile(),
 				Node: fNode,
 			}
 		}
-		node = dNode.Inode().NewChild(name, de.IsDir, fNode)
+		node = dNode.Inode().NewChild(name, de.Type == libkbfs.Dir, fNode)
 	}
 
 	return node, fuse.OK
@@ -316,7 +316,7 @@ func (f *FuseOps) LookupInRootByName(rNode *FuseNode, name string) (
 					DirHandle: dirHandle,
 					PathNode: &libkbfs.PathNode{
 						libkbfs.BlockPointer{}, dirString},
-					Entry: &libkbfs.DirEntry{IsDir: true},
+					Entry: &libkbfs.DirEntry{Type: libkbfs.Dir},
 					Ops:   f,
 				}
 			} else if err != nil {
@@ -386,13 +386,16 @@ func fuseModeFromEntry(dir libkbfs.DirId, de *libkbfs.DirEntry) uint32 {
 		pubModeDir = 0055
 	}
 
-	if de.IsDir {
+	switch de.Type {
+	case libkbfs.Dir:
 		return fuse.S_IFDIR | 0750 | pubModeDir
-	} else if de.IsSym {
+	case libkbfs.Sym:
 		return fuse.S_IFLNK | 0640 | pubModeFile
-	} else if de.IsExec {
+	case libkbfs.Exec:
 		return fuse.S_IFREG | 0750 | pubModeDir
-	} else {
+	case libkbfs.File:
+		fallthrough
+	default:
 		return fuse.S_IFREG | 0640 | pubModeFile
 	}
 }
@@ -467,7 +470,7 @@ func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	if doSetEx != n.Entry.IsExec {
+	if doSetEx != (n.Entry.Type == libkbfs.Exec) {
 		p := n.GetPath(1)
 		newPath, err := f.config.KBFSOps().SetEx(p, doSetEx)
 		if err != nil {

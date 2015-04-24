@@ -139,7 +139,7 @@ func TestKeyManagerGetUncachedBlockKeyFailNewKey(t *testing.T) {
 	u, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
 
-	rmd.data.Dir.IsDir = true
+	rmd.data.Dir.Type = Dir
 	// Set the key id in the future.
 	rmd.data.Dir.KeyId = 1
 

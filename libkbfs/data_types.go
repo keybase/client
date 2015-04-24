@@ -509,14 +509,21 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.data.UnrefBlocks.Changes = NewBlockChangeNode()
 }
 
+type EntryType int
+
+const (
+	File EntryType = iota // A regular file.
+	Exec           = iota // An executable file.
+	Dir            = iota // A directory.
+	Sym            = iota // A symbolic link.
+)
+
 // DirEntry is the MD for each child in a directory
 type DirEntry struct {
 	BlockPointer
+	Type    EntryType
 	Size    uint64
-	IsSym   bool
 	SymPath string `codec:",omitempty"` // must be within the same root dir
-	IsDir   bool
-	IsExec  bool
 	Mtime   int64
 	Ctime   int64
 }

@@ -116,7 +116,7 @@ func TestKBFSOpsGetRootMDCacheSuccess(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	_, id, rmd := makeIdAndRMD(config)
-	rmd.data.Dir.IsDir = true
+	rmd.data.Dir.Type = Dir
 
 	if rmd2, err := config.KBFSOps().GetRootMD(id); err != nil {
 		t.Errorf("Got error on root MD: %v", err)
@@ -132,7 +132,7 @@ func TestKBFSOpsGetRootMDCacheSuccess2ndTry(t *testing.T) {
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
 	rmdGood := NewRootMetadata(h, id)
-	rmdGood.data.Dir.IsDir = true
+	rmdGood.data.Dir.Type = Dir
 
 	// send back new, uncached MD on first try, but succeed after
 	// getting the lock
@@ -221,7 +221,7 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 		t.Error("Got bad MD back: %v", rmd2)
 	} else if rmd2.data.Dir.Id != rootId {
 		t.Error("Got bad MD rootId back: %v", rmd2.data.Dir.Id)
-	} else if !rmd2.data.Dir.IsDir {
+	} else if rmd2.data.Dir.Type != Dir {
 		t.Error("Got bad MD non-dir rootId back")
 	}
 }
@@ -262,7 +262,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	rmd.data.Dir.IsDir = true
+	rmd.data.Dir.Type = Dir
 
 	config.mockMdops.EXPECT().GetAtHandle(h).Return(rmd, nil)
 
@@ -270,7 +270,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		t.Errorf("Got error on root MD for handle: %v", err)
 	} else if rmd2 != rmd {
 		t.Error("Got bad MD back: %v", rmd2)
-	} else if !rmd2.data.Dir.IsDir {
+	} else if rmd2.data.Dir.Type != Dir {
 		t.Error("Got bad MD non-dir rootId back")
 	} else if rmd2.Id != id {
 		t.Error("Got bad dir id back: %v", rmd2.Id)
@@ -333,7 +333,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNonReader(t *testing.T) {
 
 	rmd := NewRootMetadata(h, id)
 	rmdGood := NewRootMetadata(h, id)
-	rmdGood.data.Dir.IsDir = true
+	rmdGood.data.Dir.Type = Dir
 
 	rootId := BlockId{42}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -389,7 +389,7 @@ func TestKBFSOpsGetBaseDirUncachedFailNewVersion(t *testing.T) {
 	expectUserCalls(h, config)
 
 	rmd := NewRootMetadata(h, id)
-	rmd.data.Dir.IsDir = true
+	rmd.data.Dir.Type = Dir
 	// Set the version in the future.
 	rmd.data.Dir.Ver = 1
 
@@ -537,7 +537,7 @@ func expectSyncBlock(
 }
 
 func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
-	rmd *RootMetadata, blocks []*DirBlock, isDir bool, isEx bool,
+	rmd *RootMetadata, blocks []*DirBlock, entryType EntryType,
 	newName string, rename bool) {
 	// make sure the new path looks right
 	if len(newPath.Path) != len(expectedPath.Path) {
@@ -600,13 +600,9 @@ func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 			}
 			currDe = nextDe
 		} else if newName != "" {
-			if currDe.IsDir != isDir {
-				t.Errorf("New entry has wrong type (%d), isDir=%s",
-					i, currDe.IsDir)
-			}
-			if currDe.IsExec != isEx {
-				t.Errorf("New entry has wrong exec (%d), isEx=%s",
-					i, currDe.IsExec)
+			if currDe.Type != entryType {
+				t.Errorf("New entry has wrong type %s, expected %s",
+					currDe.Type, entryType)
 			}
 		}
 	}
@@ -617,7 +613,7 @@ func expectGetBlock(config *ConfigMock, id BlockId, block Block) {
 	config.mockBcache.EXPECT().IsDirty(id).AnyTimes().Return(false)
 }
 
-func testCreateEntrySuccess(t *testing.T, isDir bool, isEx bool, isLink bool) {
+func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config := kbfsOpsInit(t)
 	defer mockCtrl.Finish()
 
@@ -628,7 +624,7 @@ func testCreateEntrySuccess(t *testing.T, isDir bool, isEx bool, isLink bool) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: aId},
-		IsDir:        true,
+		Type:         Dir,
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -640,17 +636,20 @@ func testCreateEntrySuccess(t *testing.T, isDir bool, isEx bool, isLink bool) {
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
 	expectedPath, _ :=
-		expectSyncBlock(t, config, nil, userId, id, "b", p, rmd, !isLink, 0,
+		expectSyncBlock(t, config, nil, userId, id, "b", p, rmd, entryType != Sym, 0,
 			0, 0, nil)
 
 	var newP Path
 	var err error
-	if isDir {
+	switch entryType {
+	case File:
+		newP, _, err = config.KBFSOps().CreateFile(p, "b", false)
+	case Exec:
+		newP, _, err = config.KBFSOps().CreateFile(p, "b", true)
+	case Dir:
 		newP, _, err = config.KBFSOps().CreateDir(p, "b")
-	} else if isLink {
+	case Sym:
 		newP, _, err = config.KBFSOps().CreateLink(p, "b", "c")
-	} else {
-		newP, _, err = config.KBFSOps().CreateFile(p, "b", isEx)
 	}
 	if err != nil {
 		t.Errorf("Got error on create: %v", err)
@@ -658,10 +657,10 @@ func testCreateEntrySuccess(t *testing.T, isDir bool, isEx bool, isLink bool) {
 	// Append a fake block representing the new entry.  It won't be examined
 	blocks := []*DirBlock{rootBlock, aBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-		isDir, isEx, "b", false)
-	if isLink {
+		entryType, "b", false)
+	if entryType == Sym {
 		de := aBlock.Children["b"]
-		if !de.IsSym {
+		if de.Type != Sym {
 			t.Errorf("Entry is not a symbolic link")
 		}
 		if de.SymPath != "c" {
@@ -671,19 +670,19 @@ func testCreateEntrySuccess(t *testing.T, isDir bool, isEx bool, isLink bool) {
 }
 
 func TestKBFSOpsCreateDirSuccess(t *testing.T) {
-	testCreateEntrySuccess(t, true, false, false)
+	testCreateEntrySuccess(t, Dir)
 }
 
 func TestKBFSOpsCreateFileSuccess(t *testing.T) {
-	testCreateEntrySuccess(t, false, false, false)
+	testCreateEntrySuccess(t, File)
 }
 
 func TestKBFSOpsCreateExecFileSuccess(t *testing.T) {
-	testCreateEntrySuccess(t, false, true, false)
+	testCreateEntrySuccess(t, Exec)
 }
 
 func TestKBFSOpsCreateLinkSuccess(t *testing.T) {
-	testCreateEntrySuccess(t, false, false, true)
+	testCreateEntrySuccess(t, Sym)
 }
 
 func testCreateEntryFailDupName(t *testing.T, isDir bool) {
@@ -697,7 +696,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
 		BlockPointer: BlockPointer{Id: aId},
-		IsDir:        true,
+		Type:         Dir,
 	}
 	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	p := Path{id, []*PathNode{node}}
@@ -728,7 +727,7 @@ func TestCreateLinkFailDupName(t *testing.T) {
 	testCreateEntryFailDupName(t, false)
 }
 
-func testRemoveEntrySuccess(t *testing.T, isDir bool) {
+func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config := kbfsOpsInit(t)
 	defer mockCtrl.Finish()
 
@@ -739,12 +738,12 @@ func testRemoveEntrySuccess(t *testing.T, isDir bool) {
 	bId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: bId}, IsDir: isDir}
+		BlockPointer: BlockPointer{Id: bId}, Type: entryType}
 	bBlock := NewFileBlock()
-	if isDir {
+	if entryType == Dir {
 		bBlock = NewDirBlock()
 	}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -762,7 +761,7 @@ func testRemoveEntrySuccess(t *testing.T, isDir bool) {
 
 	var newP Path
 	var err error
-	if isDir {
+	if entryType == Dir {
 		newP, err = config.KBFSOps().RemoveDir(p)
 	} else {
 		newP, err = config.KBFSOps().RemoveEntry(p)
@@ -772,18 +771,18 @@ func testRemoveEntrySuccess(t *testing.T, isDir bool) {
 	}
 	blocks := []*DirBlock{rootBlock, aBlock}
 	checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-		isDir, false, "", false)
+		entryType, "", false)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after removal")
 	}
 }
 
 func TestKBFSOpsRemoveDirSuccess(t *testing.T) {
-	testRemoveEntrySuccess(t, true)
+	testRemoveEntrySuccess(t, Dir)
 }
 
 func TestKBFSOpsRemoveFileSuccess(t *testing.T) {
-	testRemoveEntrySuccess(t, false)
+	testRemoveEntrySuccess(t, File)
 }
 
 func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
@@ -848,7 +847,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	}
 	blocks := []*DirBlock{rootBlock}
 	checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-		false, false, "", false)
+		File, "", false)
 	if _, ok := rootBlock.Children["a"]; ok {
 		t.Errorf("entry for a is still around after removal")
 	}
@@ -865,13 +864,13 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	bId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	bBlock := NewDirBlock().(*DirBlock)
 	bBlock.Children["c"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: bId}, IsDir: false}
+		BlockPointer: BlockPointer{Id: bId}, Type: File}
 	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	bNode := &PathNode{BlockPointer{bId, 0, 0, u, 0}, "b"}
@@ -898,7 +897,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	bId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	bBlock := NewDirBlock().(*DirBlock)
 	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
@@ -928,7 +927,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 	bId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{BlockPointer: BlockPointer{Id: bId}}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -953,9 +952,9 @@ func TestRenameInDirSuccess(t *testing.T) {
 	// append a fake block at the end for the renamed file
 	blocks := []*DirBlock{rootBlock, aBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP1, expectedPath, rmd, blocks,
-		false, false, "c", true)
+		File, "c", true)
 	checkNewPath(t, config, newP2, expectedPath, rmd, blocks,
-		false, false, "c", true)
+		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	}
@@ -972,7 +971,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	bId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{BlockPointer: BlockPointer{Id: bId}}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
@@ -981,7 +980,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 
 	dId := BlockId{40}
 	rootBlock.Children["d"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: dId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: dId}, Type: Dir}
 	dBlock := NewDirBlock().(*DirBlock)
 	dNode := &PathNode{BlockPointer{dId, 0, 0, userId, 0}, "d"}
 	p2 := Path{id, []*PathNode{node, dNode}}
@@ -1006,11 +1005,11 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	}
 	blocks := []*DirBlock{rootBlock, aBlock}
 	checkNewPath(t, config, newP1, expectedPath1, rmd, blocks,
-		false, false, "", true)
+		File, "", true)
 	// append a fake block at the end for the renamed file
 	blocks = []*DirBlock{rootBlock, dBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP2, expectedPath2, rmd, blocks,
-		false, false, "c", true)
+		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	}
@@ -1028,7 +1027,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	dId := BlockId{40}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = &DirEntry{BlockPointer: BlockPointer{Id: bId}}
 	aBlock.Children["d"] = &DirEntry{BlockPointer: BlockPointer{Id: dId}}
@@ -1071,7 +1070,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	// append a fake block at the end for the renamed file
 	blocks := []*DirBlock{rootBlock, aBlock, dBlock, NewDirBlock().(*DirBlock)}
 	checkNewPath(t, config, newP2, expectedPath2, rmd, blocks,
-		false, false, "c", true)
+		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	}
@@ -1089,7 +1088,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	dId := BlockId{40}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsDir: true}
+		BlockPointer: BlockPointer{Id: aId}, Type: Dir}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["d"] = &DirEntry{BlockPointer: BlockPointer{Id: dId}}
 	dBlock := NewDirBlock().(*DirBlock)
@@ -1134,7 +1133,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 
 	blocks := []*DirBlock{rootBlock, aBlock, dBlock}
 	checkNewPath(t, config, newP1, expectedPath1, rmd, blocks,
-		false, false, "c", true)
+		File, "c", true)
 	if _, ok := dBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
 	}
@@ -1942,7 +1941,7 @@ func testSetExSuccess(t *testing.T, ex bool) {
 	aId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsExec: false}
+		BlockPointer: BlockPointer{Id: aId}, Type: File}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
 	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
@@ -1954,16 +1953,22 @@ func testSetExSuccess(t *testing.T, ex bool) {
 		*p.ParentPath(), rmd, false, 0, 0, 0, nil)
 	expectedPath.Path = append(expectedPath.Path, aNode)
 
+	var expectedType EntryType
+	if ex {
+		expectedType = Exec
+	} else {
+		expectedType = File
+	}
 	if newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
 		t.Errorf("Got unexpected error on setex: %v", err)
-	} else if rootBlock.Children["a"].IsExec != ex {
-		t.Errorf("a is not executable, as expected")
+	} else if rootBlock.Children["a"].Type != expectedType {
+		t.Errorf("a has type %s, expected %s", rootBlock.Children["a"].Type, expectedType)
 	} else {
 		// append a fake block so checkNewPath does the right thing
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		// pretend it's a rename so only ctime gets checked
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			false, true, "", true)
+			expectedType, "", true)
 	}
 }
 
@@ -2013,7 +2018,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	aId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsExec: false}
+		BlockPointer: BlockPointer{Id: aId}, Type: File}
 	node := &PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
 	aNode := &PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
@@ -2034,7 +2039,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 		// append a fake block so checkNewPath does the right thing
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			false, true, "", false)
+			Exec, "", false)
 	}
 }
 
@@ -2049,7 +2054,7 @@ func TestSetMtimeNull(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = &DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, IsExec: false, Mtime: oldMtime}
+		BlockPointer: BlockPointer{Id: aId}, Type: File, Mtime: oldMtime}
 	node := &PathNode{BlockPointer{rootId, 0, 0, u, 0}, ""}
 	aNode := &PathNode{BlockPointer{aId, 0, 0, u, 0}, "a"}
 	p := Path{id, []*PathNode{node, aNode}}
@@ -2125,7 +2130,7 @@ func TestSyncDirtySuccess(t *testing.T) {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			false, true, "", false)
+			Exec, "", false)
 	}
 }
 
@@ -2267,7 +2272,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			false, true, "", false)
+			Exec, "", false)
 	}
 }
 
@@ -2425,7 +2430,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	} else {
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			false, true, "", false)
+			Exec, "", false)
 	}
 }
 
@@ -2570,7 +2575,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	} else {
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			false, true, "", false)
+			Exec, "", false)
 	}
 }
 
@@ -2645,6 +2650,6 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		// pretend that aBlock is a dirblock -- doesn't matter for this check
 		blocks := []*DirBlock{rootBlock, NewDirBlock().(*DirBlock)}
 		checkNewPath(t, config, newP, expectedPath, rmd, blocks,
-			false, true, "", false)
+			Exec, "", false)
 	}
 }

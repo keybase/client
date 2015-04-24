@@ -119,7 +119,7 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 		return err
 	}
 	md.data.Dir.Id = id
-	md.data.Dir.IsDir = true
+	md.data.Dir.Type = Dir
 	md.data.Dir.Writer = user
 	md.data.Dir.KeyId = 0
 	md.data.Dir.Ver = fs.config.DataVersion()
@@ -163,7 +163,7 @@ func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 	if md, err := mdops.GetAtHandle(dirHandle); err == nil {
 		// IsDir defaults to false, so if it was set to true then MD
 		// already exists
-		if !md.data.Dir.IsDir {
+		if md.data.Dir.Type != Dir {
 			lock := fs.dirLocks.GetDirLock(md.Id)
 			lock.Lock()
 			defer lock.Unlock()
@@ -182,8 +182,8 @@ func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (*RootMetadata, error) {
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
 	md, err := fs.getMDLocked(Path{TopDir: dir})
-	// IsDir defaults to false, so if it was set to true then MD already exists
-	if err != nil || md.data.Dir.IsDir {
+	// Type defaults to File, so if it was set to Dir then MD already exists
+	if err != nil || md.data.Dir.Type == Dir {
 		lock.RUnlock()
 		return md, err
 	}
@@ -195,7 +195,7 @@ func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (*RootMetadata, error) {
 
 	// refetch just in case
 	md, err = fs.getMDForWriteLocked(Path{TopDir: dir})
-	if err != nil || md.data.Dir.IsDir {
+	if err != nil || md.data.Dir.Type == Dir {
 		return md, err
 	}
 
@@ -374,7 +374,7 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 
 // TODO: deal with multiple nodes for indirect blocks
 func (fs *KBFSOpsStandard) syncBlockLocked(
-	newBlock Block, dir Path, name string, isDir bool, isExec bool,
+	newBlock Block, dir Path, name string, entryType EntryType,
 	mtime bool, ctime bool, stopAt BlockId) (Path, *DirEntry, error) {
 	user, err := fs.config.KBPKI().GetLoggedInUser()
 	if err != nil {
@@ -425,8 +425,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			if de, ok = prevDblock.Children[currName]; !ok {
 				// TODO: deal with large directories and files
 				de = &DirEntry{
-					IsDir:  isDir,
-					IsExec: isExec,
+					Type: entryType,
 					// TODO: Fill in Size.
 				}
 				prevDblock.Children[currName] = de
@@ -514,7 +513,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 }
 
 func (fs *KBFSOpsStandard) createEntry(
-	dir Path, name string, isDir bool, isExec bool) (
+	dir Path, name string, entryType EntryType) (
 	Path, *DirEntry, error) {
 	lock := fs.dirLocks.GetDirLock(dir.TopDir)
 	lock.Lock()
@@ -539,7 +538,7 @@ func (fs *KBFSOpsStandard) createEntry(
 	var newBlock Block
 	// XXX: for now, put a unique ID in every new block, to make sure it
 	// has a unique block ID. This may not be needed once we have encryption.
-	if isDir {
+	if entryType == Dir {
 		newBlock = &DirBlock{
 			CommonBlock: CommonBlock{
 				Seed: rand.Int63(),
@@ -571,18 +570,24 @@ func (fs *KBFSOpsStandard) createEntry(
 		parentDe.Ctime = time.Now().UnixNano()
 	}
 
-	return fs.syncBlockLocked(newBlock, dir, name, isDir, isExec,
+	return fs.syncBlockLocked(newBlock, dir, name, entryType,
 		true, true, zeroId)
 }
 
 func (fs *KBFSOpsStandard) CreateDir(dir Path, path string) (
 	Path, *DirEntry, error) {
-	return fs.createEntry(dir, path, true, false)
+	return fs.createEntry(dir, path, Dir)
 }
 
 func (fs *KBFSOpsStandard) CreateFile(dir Path, path string, isExec bool) (
 	Path, *DirEntry, error) {
-	return fs.createEntry(dir, path, false, isExec)
+	var entryType EntryType
+	if isExec {
+		entryType = Exec
+	} else {
+		entryType = File
+	}
+	return fs.createEntry(dir, path, entryType)
 }
 
 func (fs *KBFSOpsStandard) CreateLink(
@@ -610,10 +615,8 @@ func (fs *KBFSOpsStandard) CreateLink(
 
 	// Create a direntry for the link, and then sync
 	de := &DirEntry{
-		IsDir:   false,
-		IsExec:  false,
+		Type:    Sym,
 		Size:    uint64(len(toPath)),
-		IsSym:   true,
 		SymPath: toPath,
 		Mtime:   time.Now().UnixNano(),
 		Ctime:   time.Now().UnixNano(),
@@ -622,7 +625,7 @@ func (fs *KBFSOpsStandard) CreateLink(
 	dblock.Children[fromPath] = de
 
 	newPath, _, err := fs.syncBlockLocked(
-		dblock, *dir.ParentPath(), dir.TailName(), true, false,
+		dblock, *dir.ParentPath(), dir.TailName(), Dir,
 		true, true, zeroId)
 	return newPath, de, err
 }
@@ -652,7 +655,7 @@ func (fs *KBFSOpsStandard) removeEntryLocked(path Path) (Path, error) {
 	// children as well. (TODO: handle multiple levels of
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here
-	if !de.IsDir {
+	if de.Type != Dir {
 		block, err := fs.getBlockLocked(path, de.Id, NewFileBlock)
 		if err != nil {
 			return Path{}, &NoSuchBlockError{de.Id}
@@ -674,7 +677,7 @@ func (fs *KBFSOpsStandard) removeEntryLocked(path Path) (Path, error) {
 	// sync the parent directory
 	newPath, _, err := fs.syncBlockLocked(
 		pblock, *parentPath.ParentPath(), parentPath.TailName(),
-		true, false, true, true, zeroId)
+		Dir, true, true, zeroId)
 	return newPath, err
 }
 
@@ -772,7 +775,7 @@ func (fs *KBFSOpsStandard) Rename(
 		// TODO: optimize by pushing blocks from both paths in parallel
 		newOldPath, _, err = fs.syncBlockLocked(
 			oldPBlock, *oldParent.ParentPath(), oldParent.TailName(),
-			true, false, true, true, commonAncestor)
+			Dir, true, true, commonAncestor)
 		if err != nil {
 			return Path{}, Path{}, err
 		}
@@ -789,7 +792,7 @@ func (fs *KBFSOpsStandard) Rename(
 
 	newNewPath, _, err := fs.syncBlockLocked(
 		newPBlock, *newParent.ParentPath(), newParent.TailName(),
-		true, false, true, true, zeroId)
+		Dir, true, true, zeroId)
 	if err != nil {
 		return Path{}, Path{}, err
 	}
@@ -1155,12 +1158,16 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (Path, error) {
 		return Path{}, err
 	}
 
-	de.IsExec = ex
+	if ex {
+		de.Type = Exec
+	} else {
+		de.Type = File
+	}
 	de.Ctime = time.Now().UnixNano()
 	parentPath := file.ParentPath()
 	newParentPath, _, err := fs.syncBlockLocked(
 		dblock, *parentPath.ParentPath(), parentPath.TailName(),
-		true, false, false, false, zeroId)
+		Dir, false, false, zeroId)
 	newPath := Path{file.TopDir,
 		append(newParentPath.Path, file.Path[len(file.Path)-1])}
 	return newPath, err
@@ -1192,7 +1199,7 @@ func (fs *KBFSOpsStandard) SetMtime(file Path, mtime *time.Time) (Path, error) {
 	parentPath := file.ParentPath()
 	newParentPath, _, err := fs.syncBlockLocked(
 		dblock, *parentPath.ParentPath(), parentPath.TailName(),
-		true, false, false, false, zeroId)
+		Dir, false, false, zeroId)
 	newPath := Path{file.TopDir,
 		append(newParentPath.Path, file.Path[len(file.Path)-1])}
 	return newPath, err
@@ -1376,7 +1383,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 	parentPath := file.ParentPath()
 	newPath, _, err :=
 		fs.syncBlockLocked(fblock, *parentPath, file.TailName(),
-			false, false, true, true, zeroId)
+			File, true, true, zeroId)
 	if err != nil {
 		return Path{}, err
 	}
