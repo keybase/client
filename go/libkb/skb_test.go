@@ -91,8 +91,9 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.LoginState = &LoginState{salt: salt}
-	skb.SetGlobalContext(&g)
+	g.createLoginState()
+	g.loginState.salt = salt
+	skb.SetGlobalContext(g)
 
 	return skb
 }
@@ -170,10 +171,9 @@ func TestUnusedSecretStore(t *testing.T) {
 	// It doesn't matter what passphraseStream contains, as long
 	// as it's the right size.
 	g := G
-	g.LoginState = &LoginState{
-		passphraseStream: make([]byte, extraLen),
-	}
-	skb.SetGlobalContext(&g)
+	g.createLoginState()
+	g.loginState.passphraseStream = make([]byte, extraLen)
+	skb.SetGlobalContext(g)
 	testSecretStore := TestSecretStore{}
 	testPromptAndUnlock(t, skb, &testSecretStore)
 

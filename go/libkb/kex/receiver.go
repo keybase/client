@@ -165,7 +165,7 @@ func (r *Receiver) check(msg *Msg) error {
 
 // get performs a Get request to long poll for a set of messages.
 func (r *Receiver) get() (MsgList, error) {
-	G.Log.Debug("get: {dir: %d, seqno: %d, w = %x, uid = %x}", r.direction, r.seqno, r.secret.WeakID(), G.GetMyUID())
+	libkb.G.Log.Debug("get: {dir: %d, seqno: %d, w = %x, uid = %x}", r.direction, r.seqno, r.secret.WeakID(), libkb.G.GetMyUID())
 
 	var j struct {
 		Msgs MsgList `json:"msgs"`
@@ -180,7 +180,7 @@ func (r *Receiver) get() (MsgList, error) {
 			"poll": libkb.I{Val: int(PollDuration / time.Second)},
 		},
 	}
-	if err := G.API.GetDecode(args, &j); err != nil {
+	if err := libkb.G.API.GetDecode(args, &j); err != nil {
 		return nil, err
 	}
 

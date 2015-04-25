@@ -169,7 +169,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	t.Logf("signer (%q) logging out", signer.Username)
 	tcSigner.G.Logout()
 	libkb.G = tcRecipient.G
-	G = &libkb.G
+	G = libkb.G
 	t.Logf("recipient (%q) logging in", recipient.Username)
 	recipient.LoginOrBust(t)
 

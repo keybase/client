@@ -121,7 +121,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 // -race flag to test it.
 func TestConcurrentSignup(t *testing.T) {
 	// making it skip by default since it is slow...
-	// t.Skip("Skipping ConcurrentSignup test")
+	t.Skip("Skipping ConcurrentSignup test")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 

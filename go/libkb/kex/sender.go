@@ -97,9 +97,9 @@ func (s *Sender) post(msg *Msg) error {
 		return err
 	}
 
-	G.Log.Debug("posting message %s {dir: %d, seqno: %d, w: %x, uid: %x}", msg.Name(), msg.Direction, msg.Seqno, msg.WeakID, G.GetMyUID())
+	libkb.G.Log.Debug("posting message %s {dir: %d, seqno: %d, w: %x, uid: %x}", msg.Name(), msg.Direction, msg.Seqno, msg.WeakID, libkb.G.GetMyUID())
 
-	_, err = G.API.Post(libkb.ApiArg{
+	_, err = libkb.G.API.Post(libkb.ApiArg{
 		Endpoint:    "kex/send",
 		NeedSession: true,
 		Args: libkb.HttpArgs{

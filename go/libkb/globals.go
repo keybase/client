@@ -53,7 +53,7 @@ func NewGlobalContext() *GlobalContext {
 	}
 }
 
-var G *GlobalContext = NewGlobalContext()
+var G *GlobalContext
 
 func init() {
 	G = NewGlobalContext()
@@ -79,6 +79,7 @@ func (g *GlobalContext) createLoginState() {
 func (g *GlobalContext) LoginState() *LoginState {
 	g.loginStateMu.RLock()
 	defer g.loginStateMu.RUnlock()
+
 	return g.loginState
 }
 

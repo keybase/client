@@ -25,7 +25,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	defer tcX.Cleanup()
 
 	// sign up with device X
-	G = &tcX.G
+	G = tcX.G
 	u := CreateAndSignupFakeUser(t, "login")
 	docui := &lockuiDevice{lockui: &lockui{}}
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
@@ -57,7 +57,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 
-		kx := NewKexSib(&tcX.G, docui.secretPhrase())
+		kx := NewKexSib(tcX.G, docui.secretPhrase())
 		if err := RunEngine(kx, ctx); err != nil {
 			t.Fatal(err)
 		}
@@ -69,7 +69,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// log in with device Y
-	G = &tcY.G
+	G = tcY.G
 	li := NewLoginWithPromptEngine(u.Username)
 	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
