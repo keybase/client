@@ -29,7 +29,10 @@ func (fs *KBFSOpsStandard) GetFavDirs() ([]DirId, error) {
 }
 
 func (fs *KBFSOpsStandard) getMDLocked(dir Path) (*RootMetadata, error) {
-	ver := dir.TailPointer().GetVer()
+	ver := fs.config.DataVersion()
+	if len(dir.Path) > 0 {
+		ver = dir.TailPointer().GetVer()
+	}
 	if ver > fs.config.DataVersion() {
 		return nil, &NewVersionError{dir, ver}
 	}

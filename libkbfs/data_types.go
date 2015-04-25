@@ -241,11 +241,7 @@ func (p *Path) TailName() string {
 }
 
 func (p *Path) TailPointer() BlockPointer {
-	if len(p.Path) > 0 {
-		return p.Path[len(p.Path)-1].BlockPointer
-	} else {
-		return BlockPointer{}
-	}
+	return p.Path[len(p.Path)-1].BlockPointer
 }
 
 func (p *Path) String() string {
