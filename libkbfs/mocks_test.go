@@ -4,10 +4,10 @@
 package libkbfs
 
 import (
-	time "time"
-	fmt "fmt"
 	gomock "code.google.com/p/gomock/gomock"
+	fmt "fmt"
 	libkb "github.com/keybase/client/go/libkb"
+	time "time"
 )
 
 // Mock of Block interface
@@ -1085,12 +1085,13 @@ func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Ready(block Block, encryptKey Key) (BlockId, []byte, error) {
+func (_m *MockBlockOps) Ready(block Block, encryptKey Key) (BlockId, int, []byte, error) {
 	ret := _m.ctrl.Call(_m, "Ready", block, encryptKey)
 	ret0, _ := ret[0].(BlockId)
-	ret1, _ := ret[1].([]byte)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(int)
+	ret2, _ := ret[2].([]byte)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1 interface{}) *gomock.Call {

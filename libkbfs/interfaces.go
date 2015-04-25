@@ -202,9 +202,11 @@ type KeyOps interface {
 // the necessary crypto operations on each block.
 type BlockOps interface {
 	Get(id BlockId, context BlockContext, decryptKey Key, block Block) error
-	// ready blocks by calculating their IDs and contents, so that we
+	// Ready blocks by calculating their IDs and contents, so that we
 	// can do a bunch of block puts in parallel for every write.
-	Ready(block Block, encryptKey Key) (BlockId, []byte, error)
+	// Ready() must guarantee that plainSize <= len(buf).
+	Ready(block Block, encryptKey Key) (
+		id BlockId, plainSize int, buf []byte, err error)
 	Put(id BlockId, context BlockContext, buf []byte) error
 	Delete(id BlockId, context BlockContext) error
 }

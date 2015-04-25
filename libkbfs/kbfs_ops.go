@@ -117,20 +117,26 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	if err != nil {
 		return err
 	}
-	id, buf, err := fs.config.BlockOps().Ready(newDblock, encryptKey)
+	id, plainSize, buf, err := fs.config.BlockOps().Ready(newDblock, encryptKey)
 	if err != nil {
 		return err
 	}
-	md.data.Dir.Id = id
-	md.data.Dir.Type = Dir
-	md.data.Dir.Writer = user
-	md.data.Dir.KeyId = 0
-	md.data.Dir.Ver = fs.config.DataVersion()
-	md.data.Dir.QuotaSize = uint32(len(buf))
-	md.data.Dir.Size = 0
+
+	md.data.Dir = DirEntry{
+		BlockPointer: BlockPointer{
+			Id:        id,
+			KeyId:     0,
+			Ver:       fs.config.DataVersion(),
+			Writer:    user,
+			QuotaSize: uint32(len(buf)),
+		},
+		Type:  Dir,
+		Size:  uint64(plainSize),
+		Mtime: time.Now().UnixNano(),
+		Ctime: time.Now().UnixNano(),
+	}
 	md.AddRefBlock(path, md.data.Dir.BlockPointer)
 	md.UnrefBytes = 0
-	// TODO: What about TotalSize?
 
 	// make sure we're a writer before putting any blocks
 	if !md.GetDirHandle().IsWriter(user) {
@@ -250,6 +256,10 @@ func (fs *KBFSOpsStandard) getDirLocked(dir Path, forWriting bool) (
 		if dblock, ok := block.(*DirBlock); ok {
 			if forWriting && !fs.config.BlockCache().IsDirty(id) {
 				// copy the block if it's for writing
+				//
+				// TODO: We should make a deep copy,
+				// i.e. copy the Children and IPtr
+				// slices.
 				dblockCopy := NewDirBlock().(*DirBlock)
 				*dblockCopy = *dblock
 				dblock = dblockCopy
@@ -325,7 +335,7 @@ func (bps *blockPutState) addBlock(id BlockId, ptr BlockPointer,
 
 func (fs *KBFSOpsStandard) readyBlock(currBlock Block, bps *blockPutState,
 	md *RootMetadata, encryptKey Key, user libkb.UID) (
-	blockPtr BlockPointer, err error) {
+	plainSize int, blockPtr BlockPointer, err error) {
 	err = nil
 
 	// new key for the block
@@ -336,7 +346,7 @@ func (fs *KBFSOpsStandard) readyBlock(currBlock Block, bps *blockPutState,
 		return
 	}
 
-	id, buf, err := fs.config.BlockOps().Ready(currBlock, blockKey)
+	id, plainSize, buf, err := fs.config.BlockOps().Ready(currBlock, blockKey)
 	if err != nil {
 		return
 	}
@@ -365,7 +375,7 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = buf
 	var blockPtr BlockPointer
-	blockPtr, err = fs.readyBlock(block, bps, md, encryptKey, user)
+	_, blockPtr, err = fs.readyBlock(block, bps, md, encryptKey, user)
 	if err != nil {
 		return
 	}
@@ -403,7 +413,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 	refPath := *dir.ChildPathNoPtr(name)
 	var newDe DirEntry
 	for len(newPath.Path) < len(dir.Path)+1 {
-		blockPtr, err := fs.readyBlock(currBlock, bps, md, encryptKey, user)
+		plainSize, blockPtr, err := fs.readyBlock(currBlock, bps, md, encryptKey, user)
 		if err != nil {
 			return Path{}, DirEntry{}, err
 		}
@@ -427,19 +437,41 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 				return Path{}, DirEntry{}, err
 			}
 
-			// modify the direntry for name; make one if it doesn't exist
+			// modify the direntry for currName; make one
+			// if it doesn't exist (which should only
+			// happen the first time around).
+			//
+			// TODO: Pull the creation out of here and
+			// into createEntry().
 			var ok bool
 			if de, ok = prevDblock.Children[currName]; !ok {
-				// TODO: deal with large directories and files
-				de = DirEntry{
-					Type: entryType,
-					// TODO: Fill in Size.
+				// If this isn't the first time
+				// around, we have an error.
+				if len(newPath.Path) > 1 {
+					return Path{}, DirEntry{}, &NoSuchNameError{currName}
 				}
-				prevDblock.Children[currName] = de
+
+				// If this is a file, the size should
+				// be 0. (TODO: Ensure this.) If this
+				// is a directory, the size will be
+				// filled in below.
+				de = DirEntry{
+					Type:  entryType,
+					Mtime: time.Now().UnixNano(),
+					Ctime: time.Now().UnixNano(),
+					Size:  0,
+				}
 			}
 
 			currBlock = prevDblock
 			nextName = prevDir.TailName()
+		}
+
+		if de.Type == Dir {
+			// TODO: When we use indirect dir blocks,
+			// we'll have to calculate the size some other
+			// way.
+			de.Size = uint64(plainSize)
 		}
 
 		if prevIdx < 0 {
@@ -769,7 +801,7 @@ func (fs *KBFSOpsStandard) Rename(
 	// find the common ancestor
 	var i int
 	found := false
-	// the root block will always be there same, so start at number 1
+	// the root block will always be the same, so start at number 1
 	for i = 1; i < len(oldParent.Path) && i < len(newParent.Path); i++ {
 		if oldParent.Path[i].Id != newParent.Path[i].Id {
 			found = true
@@ -1391,7 +1423,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 				}
 
 				// ready/finalize/put the block
-				id, buf, err := bops.Ready(block, blockKey)
+				id, _, buf, err := bops.Ready(block, blockKey)
 				if err != nil {
 					return Path{}, err
 				}

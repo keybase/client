@@ -169,13 +169,15 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	config.mockCrypto.EXPECT().Hash(encData).Return(
 		libkb.NodeHashShort(id), nil)
 
-	//var data []byte
-	if id2, _, err := config.BlockOps().Ready(decData, key); err != nil {
+	id2, plainSize, data, err := config.BlockOps().Ready(decData, key)
+	if err != nil {
 		t.Errorf("Got error on ready: %v", err)
 	} else if id2 != id {
 		t.Errorf("Got back wrong id on ready: %v", id)
-		//	} else if data != encData {
-		//		t.Errorf("Got back wrong data on get: %v", data)
+	} else if plainSize != len(packedData) {
+		t.Errorf("Expected plainSize %d, got %d", len(packedData), plainSize)
+	} else if string(data) != string(encData) {
+		t.Errorf("Got back wrong data on get: %v", data)
 	}
 }
 
@@ -192,7 +194,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)
 	config.mockCrypto.EXPECT().Encrypt(packedData, key).Return(encData, nil)
 
-	_, _, err := config.BlockOps().Ready(decData, key)
+	_, _, _, err := config.BlockOps().Ready(decData, key)
 	if _, ok := err.(*TooLowByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get TooLowByteCountError; instead got %v", err)
 	}
@@ -209,7 +211,7 @@ func TestBlockOpsReadyFailEncode(t *testing.T) {
 
 	config.mockCodec.EXPECT().Encode(decData).Return(nil, err)
 
-	if _, _, err2 := config.BlockOps().Ready(decData, key); err2 != err {
+	if _, _, _, err2 := config.BlockOps().Ready(decData, key); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
@@ -227,7 +229,7 @@ func TestBlockOpsReadyFailEncrypt(t *testing.T) {
 	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)
 	config.mockCrypto.EXPECT().Encrypt(packedData, key).Return(nil, err)
 
-	if _, _, err2 := config.BlockOps().Ready(decData, key); err2 != err {
+	if _, _, _, err2 := config.BlockOps().Ready(decData, key); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
@@ -247,7 +249,7 @@ func TestBlockOpsReadyFailHash(t *testing.T) {
 	config.mockCrypto.EXPECT().Encrypt(packedData, key).Return(encData, nil)
 	config.mockCrypto.EXPECT().Hash(encData).Return(nil, err)
 
-	if _, _, err2 := config.BlockOps().Ready(decData, key); err2 != err {
+	if _, _, _, err2 := config.BlockOps().Ready(decData, key); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
@@ -268,7 +270,7 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 	config.mockCrypto.EXPECT().Hash(encData).Return(badId, nil)
 
 	err := &BadCryptoError{BlockId{0}}
-	if _, _, err2 :=
+	if _, _, _, err2 :=
 		config.BlockOps().Ready(decData, key); err2.Error() != err.Error() {
 		t.Errorf("Got bad error on ready: %v (expected %v)", err2, err)
 	}

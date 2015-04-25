@@ -25,8 +25,12 @@ func (cbo *CheckBlockOps) Get(id BlockId, context BlockContext, decryptKey Key, 
 	return nil
 }
 
-func (cbo *CheckBlockOps) Ready(block Block, encryptKey Key) (BlockId, []byte, error) {
-	return cbo.delegate.Ready(block, encryptKey)
+func (cbo *CheckBlockOps) Ready(block Block, encryptKey Key) (id BlockId, plainSize int, buf []byte, err error) {
+	id, plainSize, buf, err = cbo.delegate.Ready(block, encryptKey)
+	if plainSize > len(buf) {
+		cbo.t.Errorf("expected plainSize <= len(buf), got plainSize = %d, len(buf) = %d", plainSize, len(buf))
+	}
+	return
 }
 
 func (cbo *CheckBlockOps) Put(id BlockId, context BlockContext, buf []byte) error {
@@ -188,13 +192,14 @@ func expectGetSecretBlockKey(
 }
 
 func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
-	rootId BlockId, block []byte) {
+	rootId BlockId, plainSize int, block []byte) {
 	config.mockKeyman.EXPECT().Rekey(rmd).Return(nil)
 	expectGetSecretKey(config, rmd)
 	rootId = BlockId{42}
+	plainSize = 3
 	block = []byte{1, 2, 3, 4}
 	config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
-		rootId, block, nil)
+		rootId, plainSize, block, nil)
 	return
 }
 
@@ -208,7 +213,7 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 	// create a new MD
 	createNewMD(config, rmd, id)
 	// now KBFS will fill it in:
-	rootId, block := fillInNewMD(config, rmd)
+	rootId, plainSize, block := fillInNewMD(config, rmd)
 	// now cache and put everything
 	config.mockBops.EXPECT().Put(rootId, gomock.Any(), block).Return(nil)
 	config.mockBcache.EXPECT().Put(rootId, gomock.Any(), false).Return(nil)
@@ -223,6 +228,14 @@ func TestKBFSOpsGetRootMDCreateNewSuccess(t *testing.T) {
 		t.Error("Got bad MD rootId back: %v", rmd2.data.Dir.Id)
 	} else if rmd2.data.Dir.Type != Dir {
 		t.Error("Got bad MD non-dir rootId back")
+	} else if rmd2.data.Dir.QuotaSize != uint32(len(block)) {
+		t.Error("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
+	} else if rmd2.data.Dir.Size != uint64(plainSize) {
+		t.Error("Got bad MD Size back: %d", rmd2.data.Dir.Size)
+	} else if rmd2.data.Dir.Mtime == 0 {
+		t.Error("Got zero MD MTime back")
+	} else if rmd2.data.Dir.Ctime == 0 {
+		t.Error("Got zero MD CTime back")
 	}
 }
 
@@ -262,7 +275,15 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	rmd.data.Dir.Type = Dir
+	rmd.data.Dir = DirEntry{
+		BlockPointer: BlockPointer{
+			QuotaSize: 15,
+		},
+		Type:  Dir,
+		Size:  10,
+		Mtime: 1,
+		Ctime: 2,
+	}
 
 	config.mockMdops.EXPECT().GetAtHandle(h).Return(rmd, nil)
 
@@ -270,10 +291,18 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		t.Errorf("Got error on root MD for handle: %v", err)
 	} else if rmd2 != rmd {
 		t.Error("Got bad MD back: %v", rmd2)
-	} else if rmd2.data.Dir.Type != Dir {
-		t.Error("Got bad MD non-dir rootId back")
 	} else if rmd2.Id != id {
 		t.Error("Got bad dir id back: %v", rmd2.Id)
+	} else if rmd2.data.Dir.QuotaSize != 15 {
+		t.Error("Got bad MD QuotaSize back: %d", rmd2.data.Dir.QuotaSize)
+	} else if rmd2.data.Dir.Type != Dir {
+		t.Error("Got bad MD non-dir rootId back")
+	} else if rmd2.data.Dir.Size != 10 {
+		t.Error("Got bad MD Size back: %d", rmd2.data.Dir.Size)
+	} else if rmd2.data.Dir.Mtime != 1 {
+		t.Error("Got bad MD MTime back: %d", rmd2.data.Dir.Mtime)
+	} else if rmd2.data.Dir.Ctime != 2 {
+		t.Error("Got bad MD CTime back: %d", rmd2.data.Dir.Ctime)
 	}
 }
 
@@ -486,7 +515,7 @@ func expectSyncBlock(
 		config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 		config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 		call := config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
-			newId, newBuf, nil)
+			newId, len(newBuf), newBuf, nil)
 		if lastCall != nil {
 			call = call.After(lastCall)
 		}
@@ -603,6 +632,10 @@ func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 					currDe.Type, entryType)
 			}
 		}
+
+		if (currDe.Type != File && currDe.Type != Exec) && currDe.Size == 0 {
+			t.Errorf("Type %s unexpectedly has 0 size", currDe.Type)
+		}
 	}
 }
 
@@ -659,10 +692,15 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	if entryType == Sym {
 		de := aBlock.Children["b"]
 		if de.Type != Sym {
-			t.Errorf("Entry is not a symbolic link")
+			t.Error("Entry is not a symbolic link")
 		}
 		if de.SymPath != "c" {
 			t.Errorf("Symbolic path points to the wrong thing: %s", de.SymPath)
+		}
+	} else if entryType != Dir {
+		de := aBlock.Children["b"]
+		if de.Size != 0 {
+			t.Errorf("New file has non-zero size: %d", de.Size)
 		}
 	}
 }
@@ -1941,7 +1979,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	aId := BlockId{43}
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockPointer: BlockPointer{Id: aId}, Type: entryType}
+		BlockPointer: BlockPointer{Id: aId}, Size: 1, Type: entryType}
 	node := PathNode{BlockPointer{rootId, 0, 0, userId, 0}, ""}
 	aNode := PathNode{BlockPointer{aId, 0, 0, userId, 0}, "a"}
 	p := Path{id, []PathNode{node, aNode}}
@@ -2212,7 +2250,7 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 	c2 := config.mockBops.EXPECT().Ready(block, NullKey).
-		After(c1).Return(newId, newEncBuf, nil)
+		After(c1).Return(newId, len(block.Contents), newEncBuf, nil)
 	config.mockBcache.EXPECT().Finalize(id, newId).After(c2).Return(nil)
 	config.mockBops.EXPECT().Put(newId, gomock.Any(), newEncBuf).Return(nil)
 	config.mockKops.EXPECT().PutBlockKey(newId, NullKey).Return(nil)
@@ -2650,22 +2688,24 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 
 	// expected calls for ref block changes blocks
 	refBlockId := BlockId{253}
+	refPlainSize := 1
 	refBuf := []byte{253}
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
-		refBlockId, refBuf, nil).After(lastCall)
+		refBlockId, refPlainSize, refBuf, nil).After(lastCall)
 	config.mockBops.EXPECT().Put(refBlockId, gomock.Any(), refBuf).Return(nil)
 	config.mockBcache.EXPECT().Put(refBlockId, gomock.Any(), false).Return(nil)
 	config.mockKops.EXPECT().PutBlockKey(refBlockId, NullKey).Return(nil)
 	config.mockKcache.EXPECT().PutBlockKey(refBlockId, NullKey).Return(nil)
 
 	unrefBlockId := BlockId{254}
+	unrefPlainSize := 0
 	unrefBuf := []byte{254}
 	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
 	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
-		unrefBlockId, unrefBuf, nil).After(lastCall)
+		unrefBlockId, unrefPlainSize, unrefBuf, nil).After(lastCall)
 	config.mockBops.EXPECT().Put(unrefBlockId, gomock.Any(), unrefBuf).
 		Return(nil)
 	config.mockBcache.EXPECT().Put(unrefBlockId, gomock.Any(), false).

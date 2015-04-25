@@ -43,34 +43,47 @@ func (b *BlockOpsStandard) Get(
 }
 
 func (b *BlockOpsStandard) Ready(
-	block Block, encryptKey Key) (id BlockId, buf []byte, err error) {
+	block Block, encryptKey Key) (id BlockId, plainSize int, buf []byte, err error) {
 	// TODO: add padding
 	// first marshal the block
 	var plainbuf []byte
-	if plainbuf, err = b.config.Codec().Encode(block); err == nil {
-		// then encrypt it
-		crypto := b.config.Crypto()
-		// TODO: use server-side block key half along with directory
-		// secret key
-		var enbuf []byte
-		if enbuf, err = crypto.Encrypt(plainbuf, encryptKey); err == nil {
-			if len(enbuf) < len(plainbuf) {
-				err = &TooLowByteCountError{
-					ExpectedMinByteCount: len(plainbuf),
-					ByteCount:            len(enbuf),
-				}
-				return
-			}
-			// now get the block ID for the buffer
-			if h, err2 := crypto.Hash(enbuf); err2 != nil {
-				return id, buf, err2
-			} else if nhs, ok := h.(libkb.NodeHashShort); !ok {
-				return id, buf, &BadCryptoError{id}
-			} else {
-				return BlockId(nhs), enbuf, nil
-			}
-		}
+	if plainbuf, err = b.config.Codec().Encode(block); err != nil {
+		return
 	}
+
+	// then encrypt it
+	crypto := b.config.Crypto()
+	// TODO: use server-side block key half along with directory
+	// secret key
+	var enbuf []byte
+	if enbuf, err = crypto.Encrypt(plainbuf, encryptKey); err != nil {
+		return
+	}
+
+	if len(enbuf) < len(plainbuf) {
+		err = &TooLowByteCountError{
+			ExpectedMinByteCount: len(plainbuf),
+			ByteCount:            len(enbuf),
+		}
+		return
+	}
+
+	// now get the block ID for the buffer
+	var h libkb.NodeHash
+	if h, err = crypto.Hash(enbuf); err != nil {
+		return
+	}
+
+	var nhs libkb.NodeHashShort
+	var ok bool
+	if nhs, ok = h.(libkb.NodeHashShort); !ok {
+		err = &BadCryptoError{id}
+		return
+	}
+
+	id = BlockId(nhs)
+	plainSize = len(plainbuf)
+	buf = enbuf
 	return
 }
 
