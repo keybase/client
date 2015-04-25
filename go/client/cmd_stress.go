@@ -31,6 +31,8 @@ func NewCmdStress(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
+// CmdStress is used for testing concurrency in the daemon.
+// Build the daemon with `-race`, then run this command.
 type CmdStress struct {
 	numUsers int
 }
@@ -120,7 +122,10 @@ func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err e
 }
 
 func (c *CmdStress) simulate(cli *rpc2.Client, username, passphrase string) {
-	c.idSelf(cli)
+	for i := 0; i < 10; i++ {
+		c.idSelf(cli)
+		c.idAlice(cli)
+	}
 }
 
 func (c *CmdStress) idSelf(cli *rpc2.Client) {
@@ -128,6 +133,14 @@ func (c *CmdStress) idSelf(cli *rpc2.Client) {
 	_, err := icli.Identify(keybase_1.IdentifyArg{})
 	if err != nil {
 		G.Log.Warning("id self error: %s", err)
+	}
+}
+
+func (c *CmdStress) idAlice(cli *rpc2.Client) {
+	icli := keybase_1.IdentifyClient{Cli: cli}
+	_, err := icli.Identify(keybase_1.IdentifyArg{UserAssertion: "t_alice"})
+	if err != nil {
+		G.Log.Warning("id t_alice error: %s", err)
 	}
 }
 

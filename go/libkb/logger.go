@@ -3,6 +3,7 @@ package libkb
 import (
 	"net"
 	"os"
+	"sync"
 
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	logging "github.com/op/go-logging"
@@ -104,14 +105,15 @@ func (r *RpcLogOptions) ClientTrace() bool    { return r.clientTrace }
 func (r *RpcLogOptions) ServerTrace() bool    { return r.serverTrace }
 func (r *RpcLogOptions) TransportStart() bool { return r.connectionInfo || G.Daemon }
 
-var __rpcLogOptions *RpcLogOptions
+var rpcLogOptions *RpcLogOptions
+var rpcLogOptionsOnce sync.Once
 
 func getRpcLogOptions() *RpcLogOptions {
-	if __rpcLogOptions == nil {
-		__rpcLogOptions = &RpcLogOptions{}
-		__rpcLogOptions.Reload()
-	}
-	return __rpcLogOptions
+	rpcLogOptionsOnce.Do(func() {
+		rpcLogOptions = &RpcLogOptions{}
+		rpcLogOptions.Reload()
+	})
+	return rpcLogOptions
 }
 
 type RpcLogFactory struct{}

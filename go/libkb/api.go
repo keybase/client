@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
@@ -15,8 +16,9 @@ import (
 
 // Shared code across Internal and External APIs
 type BaseApiEngine struct {
-	config  *ClientConfig
-	clients map[int]*Client
+	config    *ClientConfig
+	clientsMu sync.RWMutex
+	clients   map[int]*Client
 }
 
 type InternalApiEngine struct {
@@ -42,8 +44,8 @@ func NewApiEngines(e *Env) (*InternalApiEngine, *ExternalApiEngine, error) {
 		return nil, nil, err
 	}
 
-	i := &InternalApiEngine{BaseApiEngine{config, make(map[int]*Client)}}
-	x := &ExternalApiEngine{BaseApiEngine{nil, make(map[int]*Client)}}
+	i := &InternalApiEngine{BaseApiEngine{config: config, clients: make(map[int]*Client)}}
+	x := &ExternalApiEngine{BaseApiEngine{clients: make(map[int]*Client)}}
 	return i, x, nil
 }
 
@@ -89,11 +91,15 @@ func (api *BaseApiEngine) getCli(cookied bool) (ret *Client) {
 	if cookied {
 		key |= 1
 	}
+	api.clientsMu.RLock()
 	client, found := api.clients[key]
+	api.clientsMu.RUnlock()
 	if !found {
 		G.Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
 		client = NewClient(api.config, cookied)
+		api.clientsMu.Lock()
 		api.clients[key] = client
+		api.clientsMu.Unlock()
 	}
 	return client
 }
@@ -193,7 +199,7 @@ func (arg ApiArg) getHttpArgs() url.Values {
 //============================================================================
 // InternalApiEngine
 
-func (a InternalApiEngine) getUrl(arg ApiArg) url.URL {
+func (a *InternalApiEngine) getUrl(arg ApiArg) url.URL {
 	u := *a.config.Url
 	var path string
 	if len(a.config.Prefix) > 0 {
@@ -205,7 +211,7 @@ func (a InternalApiEngine) getUrl(arg ApiArg) url.URL {
 	return u
 }
 
-func (a InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
+func (a *InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	if arg.NeedSession {
 		tok, csrf := G.LoginState().SessionArgs()
 		if len(tok) > 0 {
@@ -357,7 +363,7 @@ const (
 	XAPI_RES_TEXT = iota
 )
 
-func (a ExternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
+func (a *ExternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	// noop for now
 }
 
