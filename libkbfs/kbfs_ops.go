@@ -572,7 +572,8 @@ func (fs *KBFSOpsStandard) createEntry(
 	defer lock.Unlock()
 
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteLocked(dir); err != nil {
+	md, err := fs.getMDForWriteLocked(dir)
+	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
 
@@ -612,13 +613,13 @@ func (fs *KBFSOpsStandard) createEntry(
 			parentDe.Mtime = time.Now().UnixNano()
 			parentDe.Ctime = time.Now().UnixNano()
 			pblock.Children[dir.TailName()] = parentDe
+		} else {
+			return Path{}, DirEntry{},
+				&NoSuchBlockError{dir.ParentPath().TailPointer().Id}
 		}
 	} else {
-		// this is the metadata
-		if md, err := fs.getMDLocked(dir); err == nil {
-			md.data.Dir.Mtime = time.Now().UnixNano()
-			md.data.Dir.Ctime = time.Now().UnixNano()
-		}
+		md.data.Dir.Mtime = time.Now().UnixNano()
+		md.data.Dir.Ctime = time.Now().UnixNano()
 	}
 
 	return fs.syncBlockLocked(newBlock, dir, name, entryType,
