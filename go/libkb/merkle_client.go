@@ -80,6 +80,7 @@ type MerkleUserLeaf struct {
 	idVersion int64
 	username  string
 	uid       UID
+	eldest    *KID
 }
 
 type PathSteps []*PathStep
@@ -436,28 +437,38 @@ func parseV1(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
 	}
 	return
 }
-func parseV2(jw *jsonw.Wrapper) (userp *MerkleUserLeaf, err error) {
-	var l int
+func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 	user := MerkleUserLeaf{}
 
-	if l, err = jw.Len(); err != nil {
-		return
+	l, err := jw.Len()
+	if err != nil {
+		return nil, err
 	}
 	if l < 2 {
-		err = fmt.Errorf("No public chain")
-	} else if user.public, err = parseTriple(jw.AtIndex(1)); err != nil {
-		// noop
-	} else if l == 2 {
-		// noop
-	} else {
+		return nil, fmt.Errorf("No public chain.")
+	}
+
+	user.public, err = parseTriple(jw.AtIndex(1))
+	if err != nil {
+		return nil, err
+	}
+
+	if l >= 3 {
 		user.private, err = parseTriple(jw.AtIndex(2))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if err == nil {
-		userp = &user
+	if l >= 4 && !jw.AtIndex(3).IsNil() {
+		eldest, err := GetKID(jw.AtIndex(3))
+		if err != nil {
+			return nil, err
+		}
+		user.eldest = &eldest
 	}
-	return
 
+	return &user, nil
 }
 
 func ParseMerkleUserLeaf(jw *jsonw.Wrapper) (user *MerkleUserLeaf, err error) {
