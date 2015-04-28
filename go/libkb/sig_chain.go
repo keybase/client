@@ -289,17 +289,6 @@ func (sc *SigChain) Store() (err error) {
 	return nil
 }
 
-// LimitToKeyFamily takes the given sigchain and walks backwards,
-// stopping at either the chain beginning or the first link that's
-// not a member of the current KeyFamily
-func (sc *SigChain) LimitToKeyFamily(kf *KeyFamily) (links []*ChainLink) {
-	var fokid *FOKID
-	if fokid = kf.GetEldest(); fokid == nil {
-		return
-	}
-	return sc.LimitToEldestFOKID(*fokid)
-}
-
 // LimitToEldestFOKID takes the given sigchain and walks backward,
 // stopping once it scrolls of the current FOKID.
 func (sc *SigChain) LimitToEldestFOKID(fokid FOKID) (links []*ChainLink) {
@@ -426,7 +415,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	return
 }
 
-func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached bool, err error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
 	uid_s := sc.uid.String()
@@ -439,22 +428,23 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ckf *ComputedKeyFamily) (cached boo
 		return
 	}
 
-	if ckf.kf == nil {
+	if ckf.kf == nil || eldest == nil {
 		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
 
-	links := sc.LimitToKeyFamily(ckf.kf)
+	fingerprintHex := ckf.kf.kid2pgp[eldest.String()]
+	eldestFOKID := FOKID{
+		Kid: *eldest,
+		Fp:  PgpFingerprintFromHexNoError(fingerprintHex),
+	}
+	links := sc.LimitToEldestFOKID(eldestFOKID)
 
 	if links == nil || len(links) == 0 {
-		G.Log.Debug("| Empty chain after we limited to KeyFamily %v", *ckf.kf)
-		if ckf.kf.eldest != nil {
-			eldestKey := ckf.kf.AllKeys[ckf.kf.eldest.String()].key
-			sc.localCki = NewComputedKeyInfos()
-			sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
-		} else {
-			G.Log.Debug("| No keys found after we limited to KeyFamily %v", *ckf.kf)
-		}
+		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest.String())
+		eldestKey := ckf.kf.AllKeys[eldest.String()].key
+		sc.localCki = NewComputedKeyInfos()
+		sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		return
 	}
 
@@ -722,7 +712,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 
 	if l.ckf.kf != nil {
-		_, err = l.chain.VerifySigsAndComputeKeys(&l.ckf)
+		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf)
 	}
 	return
 }
