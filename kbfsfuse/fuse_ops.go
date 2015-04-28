@@ -50,7 +50,7 @@ type FuseNode struct {
 	PathNode   libkbfs.PathNode
 	PrevNode   *FuseNode
 	Entry      libkbfs.DirEntry
-	NeedUpdate bool
+	NeedUpdate bool               // Whether Entry needs to be updated.
 	Dir        libkbfs.DirId      // only set if this is a root node
 	DirHandle  *libkbfs.DirHandle // only set if this is a root node
 	File       *FuseFile
@@ -452,12 +452,28 @@ func (f *FuseOps) ListRoot() (stream []fuse.DirEntry, code fuse.Status) {
 	return
 }
 
-func (f *FuseOps) updatePaths(topDir libkbfs.DirId, n *FuseNode,
-	newPath []libkbfs.PathNode) {
-	// update all the paths back to the root
+// TODO: In the two functions below, we set NeedUpdate to true all the
+// way to the root because the BlockPointer and Size fields are
+// changed for the whole path. However, GetAttr() doesn't use
+// BlockPointer, and it may be possible to assume that the Size field
+// doesn't change for all but the leaf node and its parent. In that
+// case, we'd only need to set NeedUpdate for those two nodes.
+
+func (f *FuseOps) setPathNeedUpdate(n *FuseNode) {
+	for n != nil {
+		n.NeedUpdate = true
+		n = n.PrevNode
+	}
+}
+
+func (f *FuseOps) updatePaths(n *FuseNode, newPath []libkbfs.PathNode) {
+	// Update all the paths back to the root.
+	//
+	// TODO: Make sure len(newPath) == length of path from n to root.
 	index := len(newPath) - 1
 	currNode := n
 	for index >= 0 && currNode != nil {
+		currNode.NeedUpdate = true
 		currNode.PathNode = newPath[index]
 		index -= 1
 		currNode = currNode.PrevNode
@@ -478,8 +494,7 @@ func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 	}
 
 	if changed {
-		f.updatePaths(p.TopDir, n, newPath.Path)
-		n.NeedUpdate = true
+		f.updatePaths(n, newPath.Path)
 	}
 
 	return fuse.OK
@@ -496,8 +511,7 @@ func (f *FuseOps) Utimens(n *FuseNode, mtime *time.Time) (code fuse.Status) {
 		return f.TranslateError(err)
 	}
 
-	f.updatePaths(p.TopDir, n, newPath.Path)
-	n.NeedUpdate = true
+	f.updatePaths(n, newPath.Path)
 	return fuse.OK
 }
 
@@ -528,7 +542,7 @@ func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 	newNode = n.Inode().NewChild(name, true, fNode)
 
 	// update the parent directories
-	f.updatePaths(p.TopDir, n, newPath.Path[:len(newPath.Path)-1])
+	f.updatePaths(n, newPath.Path[:len(newPath.Path)-1])
 
 	code = fuse.OK
 	return
@@ -563,7 +577,7 @@ func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 	newNode = n.Inode().NewChild(name, true, fNode)
 
 	// update the parent directories
-	f.updatePaths(p.TopDir, n, newPath.Path[:len(newPath.Path)-1])
+	f.updatePaths(n, newPath.Path[:len(newPath.Path)-1])
 
 	code = fuse.OK
 	return
@@ -594,7 +608,7 @@ func (f *FuseOps) Write(n *FuseNode, data []byte, off int64) (
 	if err != nil {
 		return 0, f.TranslateError(err)
 	}
-	n.NeedUpdate = true
+	f.setPathNeedUpdate(n)
 	return uint32(len(data)), fuse.OK
 }
 
@@ -608,7 +622,7 @@ func (f *FuseOps) Truncate(n *FuseNode, size uint64) (code fuse.Status) {
 	if err != nil {
 		return f.TranslateError(err)
 	} else {
-		n.NeedUpdate = true
+		f.setPathNeedUpdate(n)
 		return fuse.OK
 	}
 }
@@ -640,7 +654,7 @@ func (f *FuseOps) Symlink(n *FuseNode, name string, content string) (
 	newNode = n.Inode().NewChild(name, false, lNode)
 
 	// update the parent directories
-	f.updatePaths(p.TopDir, n, newPath.Path)
+	f.updatePaths(n, newPath.Path)
 
 	code = fuse.OK
 	return
@@ -688,7 +702,7 @@ func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 		return f.TranslateError(err)
 	}
 
-	f.updatePaths(p.TopDir, n, newPath.Path)
+	f.updatePaths(n, newPath.Path)
 
 	// clear out the inode if it exists
 	n.Inode().RmChild(name)
@@ -720,8 +734,8 @@ func (f *FuseOps) Rename(
 		return f.TranslateError(err)
 	}
 
-	f.updatePaths(oldPath.TopDir, oldParent, newOldPath.Path)
-	f.updatePaths(newPath.TopDir, newParent, newNewPath.Path)
+	f.updatePaths(oldParent, newOldPath.Path)
+	f.updatePaths(newParent, newNewPath.Path)
 
 	childNode := oldParent.Inode().RmChild(oldName)
 	childNode.Node().(*FuseNode).PathNode.Name = newName
@@ -744,8 +758,7 @@ func (f *FuseOps) Flush(n *FuseNode) fuse.Status {
 		return f.TranslateError(err)
 	}
 
-	f.updatePaths(p.TopDir, n, newPath.Path)
-	n.NeedUpdate = true
+	f.updatePaths(n, newPath.Path)
 	return fuse.OK
 }
 
@@ -813,16 +826,26 @@ func (n *FuseNode) GetAttr(
 
 		p := n.GetPath(1)
 		if n.NeedUpdate {
-			// need to fetch the entry anew
-			dBlock, err := n.Ops.config.KBFSOps().GetDir(*p.ParentPath())
-			if err != nil {
-				return n.Ops.TranslateError(err)
-			}
+			var de libkbfs.DirEntry
+			if len(p.Path) > 1 {
+				// need to fetch the entry anew
+				dBlock, err := n.Ops.config.KBFSOps().GetDir(*p.ParentPath())
+				if err != nil {
+					return n.Ops.TranslateError(err)
+				}
 
-			name := p.TailName()
-			de, ok := dBlock.Children[name]
-			if !ok {
-				return n.Ops.TranslateError(&libkbfs.NoSuchNameError{name})
+				name := p.TailName()
+				var ok bool
+				de, ok = dBlock.Children[name]
+				if !ok {
+					return n.Ops.TranslateError(&libkbfs.NoSuchNameError{name})
+				}
+			} else {
+				md, err := n.Ops.config.KBFSOps().GetRootMDForHandle(n.DirHandle)
+				if err != nil {
+					return n.Ops.TranslateError(err)
+				}
+				de = md.Data().Dir
 			}
 
 			n.Entry = de
