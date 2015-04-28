@@ -97,7 +97,7 @@ func (d *Locksmith) hasKeyFamily() bool {
 	if kf == nil {
 		return false
 	}
-	if kf.GetEldest() == nil {
+	if d.arg.User.GetEldestFOKID() == nil {
 		return false
 	}
 	return true
@@ -152,7 +152,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 		d.G().Log.Debug("| User didn't have a key family")
 		return d.addBasicKeys(ctx)
 	}
-	if kf.GetEldest() == nil {
+	if d.user.GetEldestFOKID() == nil {
 		d.G().Log.Debug("| User didn't have an eldest key")
 		return d.addBasicKeys(ctx)
 	}

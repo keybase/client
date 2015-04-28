@@ -118,6 +118,8 @@ type User struct {
 	sigHints    *SigHints
 	Image       *keybase_1.Image
 
+	leaf MerkleUserLeaf
+
 	// Loaded from publicKeys
 	keyFamily *KeyFamily
 
@@ -491,7 +493,11 @@ func LookupMerkleLeaf(uid UID, local *User) (f *MerkleUserLeaf, err error) {
 }
 
 func (u *User) GetEldestFOKID() (ret *FOKID) {
-	return u.keyFamily.eldest
+	if u.leaf.eldest == nil {
+		return nil
+	}
+	fingerprint := PgpFingerprintFromHexNoError(u.keyFamily.kid2pgp[u.leaf.eldest.String()])
+	return &FOKID{Kid: *u.leaf.eldest, Fp: fingerprint}
 }
 
 func (u *User) IdTable() *IdentityTable {
@@ -642,6 +648,8 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
+	ret.leaf = *leaf
+
 	// If the user was looked-up via a keybase username, then
 	// we should go ahead and check that the username matches the UID
 	if len(rres.kbUsername) > 0 {
@@ -752,7 +760,7 @@ func (u *User) ToOkProofSet() *ProofSet {
 // localDelegateKey takes the given GenericKey and provisions it locally so that
 // we can use the key without needing a refresh from the server.  The eventual
 // refresh we do get from the server will clobber our work here.
-func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey bool) (err error) {
+func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey bool, isEldest bool) (err error) {
 	if err = u.keyFamily.LocalDelegate(key, isSibkey, kid == nil); err != nil {
 		return
 	}
@@ -761,6 +769,10 @@ func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey 
 		return
 	}
 	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigId, kid, isSibkey)
+	if isEldest {
+		eldestKID := key.GetKid()
+		u.leaf.eldest = &eldestKID
+	}
 	return
 }
 

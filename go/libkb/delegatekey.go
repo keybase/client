@@ -199,7 +199,7 @@ func (d *Delegator) updateLocalState(linkid LinkId) (err error) {
 	d.Me.SigChainBump(linkid, d.sigId)
 	d.merkleTriple = MerkleTriple{LinkId: linkid, SigId: d.sigId}
 
-	return d.Me.localDelegateKey(d.NewKey, d.sigId, d.getExistingKID(), d.IsSibkey())
+	return d.Me.localDelegateKey(d.NewKey, d.sigId, d.getExistingKID(), d.IsSibkey(), d.isEldest)
 }
 
 func (d Delegator) post() (err error) {

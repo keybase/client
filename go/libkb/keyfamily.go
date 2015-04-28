@@ -60,9 +60,8 @@ func (cki ComputedKeyInfo) GetETime() time.Time {
 // we need to Verify this data against the sigchain as we play the sigchain
 // forward.
 type ServerKeyRecord struct {
-	Bundle    string  `json:"bundle"`
-	EldestKid *string `json:"eldest_kid"`
-	KeyAlgo   int     `json:"key_algo"`
+	Bundle  string `json:"bundle"`
+	KeyAlgo int    `json:"key_algo"`
 	// There are many more fields in the server's response, but we ignore them
 	// to avoid trusting the server, and instead compute them ourselves.
 
@@ -100,8 +99,7 @@ type ComputedKeyInfos struct {
 // we need to Verify this data against the sigchain as we play the sigchain
 // forward.
 type KeyFamily struct {
-	eldest *FOKID
-	pgps   []*PgpKeyBundle
+	pgps []*PgpKeyBundle
 
 	// These fields are computed on the client side, so they can be trusted.
 	pgp2kid map[string]KID
@@ -322,56 +320,6 @@ func (kf *KeyFamily) Import() (err error) {
 		kf.kid2pgp[kid.String()] = fp
 	}
 
-	err = kf.findEldest()
-	return
-}
-
-// setEldest sets this keyFamily's eldest KID to the given KID (specified in hex).
-// It is strict that there can only be one eldest KID in the family.
-func (kf *KeyFamily) setEldest(hx string) (err error) {
-	G.Log.Debug("| KeyFamily.setEldest(%s)", hx)
-	var kid KID
-	if kid, err = ImportKID(hx); err != nil {
-		return
-	}
-	if kf.eldest == nil {
-		kf.eldest = &FOKID{Kid: kid}
-	} else if !kf.eldest.EqKid(kid) {
-		err = KeyFamilyError{fmt.Sprintf("Kid mismatch: %s != %s",
-			kf.eldest.Kid.String(), hx)}
-	}
-	return
-}
-
-// GetEldest gets the KID of the eldest key in the family.
-func (kf *KeyFamily) GetEldest() *FOKID {
-	return kf.eldest
-}
-
-// findEldest finds the eldest key in the given Key family, and sanity
-// checks that the eldest key is unique.  If tests pass, it sets a "FOKID"
-// object to capture both the KID and the (optional) PgpFingerprint
-// of the eldest key in the family.
-func (kf *KeyFamily) findEldest() (err error) {
-	G.Log.Debug("| KeyFamily.findEldest w/ %d sibkeys", len(kf.SibkeysList))
-	for kid, skr := range kf.AllKeys {
-		if skr.EldestKid == nil {
-			err = kf.setEldest(kid)
-		} else {
-			err = kf.setEldest(*skr.EldestKid)
-		}
-		if err != nil {
-			return
-		}
-	}
-	if kf.eldest != nil {
-		x := kf.eldest.Kid.String()
-		skr, found := kf.AllKeys[x]
-		if !found {
-			return KeyFamilyError{fmt.Sprintf("Eldest KID %s disappeared", x)}
-		}
-		kf.eldest.Fp = skr.key.GetFingerprintP()
-	}
 	return
 }
 
@@ -677,9 +625,7 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 }
 
 // LocalDelegate performs a local key delegation, without the server's permissions.
-// We'll need to do this when a key is locally generated.  If it's the eldest,
-// we'll try to mark the keyFamily as having an eldest, and will fail if there's
-// a clash.
+// We'll need to do this when a key is locally generated.
 func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (err error) {
 	if pgp, ok := key.(*PgpKeyBundle); ok {
 		kf.pgp2kid[pgp.GetFingerprint().String()] = pgp.GetKid()
@@ -690,16 +636,6 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 	skr.SetGlobalContext(kf.G())
 
 	kf.AllKeys[kidStr] = skr
-
-	fokid := GenericKeyToFOKID(key)
-
-	if !eldest || !isSibkey {
-	} else if kf.eldest != nil && !kf.eldest.Eq(fokid) {
-		err = KeyFamilyError{fmt.Sprintf("Fokid mismatch on eldest key: %s != %s",
-			fokid.String(), kf.eldest.String())}
-	} else if kf.eldest == nil {
-		kf.eldest = &fokid
-	}
 
 	return
 }
