@@ -7,47 +7,54 @@
 //
 
 #import "KBLaunchCtl.h"
+#import "KBEnvironment.h"
 
 @interface KBLaunchCtl ()
-@property NSString *label;
-@property NSDictionary *plistDict;
+@property KBEnvironment *environment;
 @end
 
 @implementation KBLaunchCtl
 
-- (instancetype)initWithHost:(NSString *)host home:(NSString *)home label:(NSString *)label debug:(BOOL)debug {
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   if ((self = [super init])) {
-    NSParameterAssert(home);
-    _label = label;
-
-    NSMutableArray *args = [NSMutableArray array];
-    [args addObject:@"/Applications/Keybase.app/Contents/MacOS/keybased"];
-    [args addObjectsFromArray:@[@"-H", home]];
-
-    if (host) {
-      [args addObjectsFromArray:@[@"-s", host]];
-    }
-
-    if (debug) {
-      [args addObject:@"-d"];
-    }
-
-    // Need to create logging dir here because otherwise it will be created as root by launchctl
-    NSString *logDir = [@"~/Library/Logs/Keybase" stringByExpandingTildeInPath];
-    [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
-
-    NSString *stdOutPath = NSStringWithFormat(@"%@/%@.log", logDir, label);
-    NSString *stdErrPath = NSStringWithFormat(@"%@/%@.err", logDir, label);
-
-    _plistDict = @{
-      @"Label": _label,
-      @"ProgramArguments": args,
-      @"StandardOutPath": stdOutPath,
-      @"StandardErrorPath": stdErrPath,
-      @"KeepAlive": @YES
-    };
+    _environment = environment;
   }
   return self;
+}
+
++ (NSDictionary *)launchdPlistDictionaryForEnvironment:(KBEnvironment *)environment {
+  NSMutableArray *args = [NSMutableArray array];
+  [args addObject:@"/Applications/Keybase.app/Contents/MacOS/keybased"];
+  [args addObjectsFromArray:@[@"-H", environment.home]];
+
+  if (environment.host) {
+    [args addObjectsFromArray:@[@"-s", environment.host]];
+  }
+
+  if (environment.isDebugEnabled) {
+    [args addObject:@"-d"];
+  }
+
+  // Need to create logging dir here because otherwise it will be created as root by launchctl
+  NSString *logDir = [@"~/Library/Logs/Keybase" stringByExpandingTildeInPath];
+  [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
+
+  NSString *stdOutPath = NSStringWithFormat(@"%@/%@.log", logDir, environment.launchdLabel);
+  NSString *stdErrPath = NSStringWithFormat(@"%@/%@.err", logDir, environment.launchdLabel);
+
+  NSDictionary *plist = @{
+                 @"Label": environment.launchdLabel,
+                 @"ProgramArguments": args,
+                 @"StandardOutPath": stdOutPath,
+                 @"StandardErrorPath": stdErrPath,
+                 @"KeepAlive": @YES
+                 };
+  return plist;
+}
+
++ (NSString *)launchdPlistForEnvironment:(KBEnvironment *)environment error:(NSError **)error {
+  NSData *data = [NSPropertyListSerialization dataWithPropertyList:[self launchdPlistDictionaryForEnvironment:environment] format:NSPropertyListXMLFormat_v1_0 options:0 error:error];
+  return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 }
 
 - (void)reload:(KBLaunchStatus)completion {
@@ -64,7 +71,7 @@
 
 - (NSString *)plist {
   NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
-  return [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _label)];
+  return [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _environment.launchdLabel)];
 }
 
 - (void)load:(BOOL)force completion:(KBLaunchExecution)completion {
@@ -84,7 +91,7 @@
 }
 
 - (void)status:(KBLaunchStatus)completion {
-  NSString *label = _label;
+  NSString *label = _environment.launchdLabel;
   [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
     if (error) {
       completion(error, -1);
@@ -164,7 +171,8 @@
     }
   }
 
-  NSData *data = [NSPropertyListSerialization dataWithPropertyList:_plistDict format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
+  NSDictionary *plistDict = [self.class launchdPlistDictionaryForEnvironment:_environment];
+  NSData *data = [NSPropertyListSerialization dataWithPropertyList:plistDict format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
   if (!data) {
     if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create plist data.", nil);
     completion(error);

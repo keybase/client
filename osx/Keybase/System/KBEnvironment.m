@@ -7,6 +7,7 @@
 //
 
 #import "KBEnvironment.h"
+#import "KBAppKit.h"
 
 @implementation KBEnvironment
 
@@ -15,17 +16,17 @@
     switch (env) {
       case KBEnvKeybaseIO: {
         self.title = @"Keybase.io";
-        self.home = [@"~/Library/Application Support/Keybase/keybase.io" stringByExpandingTildeInPath];
+        self.launchdLabel = @"keybase.io.keybased";
+        self.home = [NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.launchdLabel) stringByExpandingTildeInPath];
         self.host = @"https://api.keybase.io:443";
-        self.launchDLabel = @"keybase.io.keybased";
         self.debugEnabled = YES;
         break;
       }
       case KBEnvLocalhost: {
         self.title = @"Localhost";
-        self.home = [@"~/Library/Application Support/Keybase/localhost" stringByExpandingTildeInPath];
+        self.launchdLabel = @"keybase.localhost.keybased";
+        self.home = [NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.launchdLabel) stringByExpandingTildeInPath];
         self.host = @"http://localhost:3000";
-        self.launchDLabel = @"keybase.localhost.keybased";
         self.debugEnabled = YES;
         break;
       }
@@ -33,7 +34,7 @@
         self.title = @"Manual";
         self.home = [@"~/Library/Application Support/Keybase/Debug" stringByExpandingTildeInPath];
         self.host = @"http://localhost:3000";
-        self.launchDLabel = nil;
+        self.launchdLabel = nil;
         self.canRunFromXCode = YES;
       }
     }

@@ -18,7 +18,7 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 @property NSString *home;
 @property NSString *host;
-@property NSString *launchDLabel;
+@property NSString *launchdLabel;
 @property (getter=isDebugEnabled) BOOL debugEnabled;
 
 @property NSString *sockFile;

@@ -10,13 +10,19 @@
 
 #import <GHKit/GHKit.h>
 #import "KBDefines.h"
+#import "KBEnvironment.h"
 
 typedef void (^KBLaunchExecution)(NSError *error, NSString *output);
 typedef void (^KBLaunchStatus)(NSError *error, NSInteger pid);
 
 @interface KBLaunchCtl : NSObject
 
-- (instancetype)initWithHost:(NSString *)host home:(NSString *)home label:(NSString *)label debug:(BOOL)debug;
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
+
+/*!
+ Launchd plist for environment.
+ */
++ (NSString *)launchdPlistForEnvironment:(KBEnvironment *)environment error:(NSError **)error;
 
 /*!
  @param force Enables service even if it has been disabled (launchctl load -w)

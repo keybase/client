@@ -37,8 +37,8 @@
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   if ((self = [super init])) {
     _environment = environment;
-    if (_environment.launchDLabel) {
-      _launchCtl = [[KBLaunchCtl alloc] initWithHost:environment.host home:environment.home label:environment.launchDLabel debug:environment.isDebugEnabled];
+    if (_environment.launchdLabel) {
+      _launchCtl = [[KBLaunchCtl alloc] initWithEnvironment:environment];
     }
 
     _installer = [[KBInstaller alloc] initWithLaunchCtl:_launchCtl];
@@ -156,8 +156,22 @@
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
+  NSTimeInterval delay = 0;
+#ifdef DEBUG
+  delay = 0.5;
+#endif
+  if (delay > 0) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      [self _sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
+    });
+  } else {
+    [self sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
+  }
+}
+
+- (void)_sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
-    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to keybased.", @"You should make sure keybased is running in launch services (launchctl list | grep keybased)"), nil);
+    completion(KBMakeErrorWithRecovery(-400, @"We are unable to connect to keybased.", @"You should make sure keybased is running in launch services."), nil);
     return;
   }
 
@@ -182,7 +196,7 @@
     if ([NSUserDefaults.standardUserDefaults boolForKey:@"Preferences.Advanced.Record"]) {
       if (result) [self.recorder recordResponse:method response:result sessionId:sessionId];
     }
-    DDLogDebug(@"Result: %@", KBDictionaryDescription(result));
+    DDLogDebug(@"Result: %@", KBDescription(result));
     completion(error, result);
   }];
 
