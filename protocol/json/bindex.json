@@ -231,6 +231,13 @@
         "type" : "UID"
       } ],
       "response" : "null"
+    },
+    "getBIndexReference" : {
+      "request" : [ {
+        "name" : "bid",
+        "type" : "BlockIdCombo"
+      } ],
+      "response" : "int"
     }
   }
 }

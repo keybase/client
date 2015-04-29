@@ -110,6 +110,8 @@
 
 - (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
 
+- (void)getBIndexReferenceWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSInteger n))completion;
+
 @end
 
 @interface KBRConfiguredAccount : KBRObject
@@ -745,6 +747,9 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @interface KBRIncBIndexReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @property KBRUID *chargedTo;
+@end
+@interface KBRGetBIndexReferenceRequestParams : KBRRequestParams
+@property KBRBlockIdCombo *bid;
 @end
 @interface KBRLoginWithPromptRequestParams : KBRRequestParams
 @property NSInteger sessionID;

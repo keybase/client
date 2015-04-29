@@ -111,6 +111,13 @@
   }];
 }
 
+- (void)getBIndexReferenceWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSInteger n))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
 @end
 
 @implementation KBRConfiguredAccount
@@ -1152,6 +1159,17 @@
   if ((self = [super initWithParams:params])) {
     self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
     self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRGetBIndexReferenceRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
   }
   return self;
 }

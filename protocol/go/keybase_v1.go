@@ -109,12 +109,17 @@ type IncBIndexReferenceArg struct {
 	ChargedTo UID          `codec:"chargedTo" json:"chargedTo"`
 }
 
+type GetBIndexReferenceArg struct {
+	Bid BlockIdCombo `codec:"bid" json:"bid"`
+}
+
 type BIndexInterface interface {
 	BIndexSession(string) error
 	GetBIndexSKey(BlockIdCombo) ([]byte, error)
 	PutBIndex(PutBIndexArg) error
 	DecBIndexReference(DecBIndexReferenceArg) error
 	IncBIndexReference(IncBIndexReferenceArg) error
+	GetBIndexReference(BlockIdCombo) (int, error)
 }
 
 func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
@@ -156,6 +161,13 @@ func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"getBIndexReference": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetBIndexReferenceArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.GetBIndexReference(args[0].Bid)
+				}
+				return
+			},
 		},
 	}
 
@@ -189,6 +201,12 @@ func (c BIndexClient) DecBIndexReference(__arg DecBIndexReferenceArg) (err error
 
 func (c BIndexClient) IncBIndexReference(__arg IncBIndexReferenceArg) (err error) {
 	err = c.Cli.Call("keybase.1.bIndex.incBIndexReference", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BIndexClient) GetBIndexReference(bid BlockIdCombo) (res int, err error) {
+	__arg := GetBIndexReferenceArg{Bid: bid}
+	err = c.Cli.Call("keybase.1.bIndex.getBIndexReference", []interface{}{__arg}, &res)
 	return
 }
 

@@ -10,6 +10,7 @@ protocol bIndex {
 	void decBIndexReference(BlockIdCombo bid, UID chargedTo);
 	void incBIndexReference(BlockIdCombo bid, UID chargedTo);
 
+	int getBIndexReference(BlockIdCombo bid); 
 	// future RPC from bserver to bindex 
 	// void notifySize(array<BlockIdCombo> bids); 
 
