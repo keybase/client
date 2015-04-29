@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
@@ -186,7 +185,7 @@ func (b *BlockServerRemote) Get(id BlockId, context BlockContext) ([]byte, error
 	}
 	//XXX: if fails due to connection problem, should reconnect
 	bid := keybase_1.BlockIdCombo{
-		BlockId: base64.StdEncoding.EncodeToString(id[:]),
+		BlockId: id[:],
 		Size:    0,
 	}
 
@@ -211,7 +210,7 @@ func (b *BlockServerRemote) Put(id BlockId, context BlockContext, buf []byte) er
 	}
 
 	arg := keybase_1.PutBlockArg{
-		Bid: keybase_1.BlockIdCombo{BlockId: base64.StdEncoding.EncodeToString(id[:]), Size: len(buf)},
+		Bid: keybase_1.BlockIdCombo{BlockId: id[:], Size: len(buf)},
 		Buf: buf,
 	}
 	if err := b.blockly.clt.PutBlock(arg); err != nil {
