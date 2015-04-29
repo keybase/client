@@ -71,3 +71,11 @@ the mock interfaces used by the tests:
 
 (Right now the mocks are checked into the repo; this isn't ideal and
 we should probably change it.)
+
+
+# Test backend only
+From bserver/:
+	make test
+
+	Caveats: One needs to have a local KB webserver running (backend need to connect to localhost:44003 to verify user session)
+        One also need to have logged into a KB daemon (from whom I obtain the client session token and send to the backend server)
