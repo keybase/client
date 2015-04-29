@@ -63,7 +63,6 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 }
 
 func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
-
 	cki = sc.localCki
 	if cki == nil {
 		if l := sc.GetLastLink(); l != nil {
@@ -623,8 +622,8 @@ func (l *SigChainLoader) MakeSigChain() error {
 		allKeys:      l.allKeys,
 		Contextified: l.Contextified,
 	}
-	for _, l := range l.links {
-		l.parent = sc
+	for _, link := range l.links {
+		link.SetParent(sc)
 	}
 	l.chain = sc
 	return nil

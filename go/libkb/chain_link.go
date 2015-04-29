@@ -99,7 +99,18 @@ type ChainLink struct {
 	typed TypedChainLink
 }
 
-func (c ChainLink) GetPrev() LinkId {
+func (c *ChainLink) Parent() *SigChain {
+	return c.parent
+}
+
+func (c *ChainLink) SetParent(parent *SigChain) {
+	if c.parent != nil {
+		G.Log.Warning("changing ChainLink parent")
+	}
+	c.parent = parent
+}
+
+func (c *ChainLink) GetPrev() LinkId {
 	return c.unpacked.prev
 }
 
@@ -152,7 +163,7 @@ func (c *ChainLink) Pack() error {
 	return nil
 }
 
-func (c ChainLink) GetMerkleSeqno() int {
+func (c *ChainLink) GetMerkleSeqno() int {
 	i, err := c.payloadJson.AtPath("body.merkle_root.seqno").GetInt()
 	if err != nil {
 		i = 0
@@ -160,7 +171,7 @@ func (c ChainLink) GetMerkleSeqno() int {
 	return i
 }
 
-func (c ChainLink) GetRevocations() []*SigId {
+func (c *ChainLink) GetRevocations() []*SigId {
 	ret := make([]*SigId, 0, 0)
 	jw := c.payloadJson.AtKey("body").AtKey("revoke")
 	s, err := GetSigId(jw.AtKey("sig_id"), true)
@@ -180,7 +191,7 @@ func (c ChainLink) GetRevocations() []*SigId {
 	return ret
 }
 
-func (c ChainLink) GetRevokeKids() []KID {
+func (c *ChainLink) GetRevokeKids() []KID {
 	ret := make([]KID, 0, 0)
 	jw := c.payloadJson.AtKey("body").AtKey("revoke")
 	if jw.IsNil() {
@@ -203,7 +214,7 @@ func (c ChainLink) GetRevokeKids() []KID {
 	return ret
 }
 
-func (c ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err error) {
+func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err error) {
 	found = false
 	if t != nil && c.GetSeqno() == t.Seqno {
 		G.Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.Seqno))
@@ -362,7 +373,7 @@ func (c *ChainLink) VerifyPayload() error {
 	return nil
 }
 
-func (c ChainLink) GetSeqno() Seqno {
+func (c *ChainLink) GetSeqno() Seqno {
 	if c.unpacked != nil {
 		return c.unpacked.seqno
 	} else {
@@ -370,7 +381,7 @@ func (c ChainLink) GetSeqno() Seqno {
 	}
 }
 
-func (c ChainLink) GetSigId() *SigId {
+func (c *ChainLink) GetSigId() *SigId {
 	if c.unpacked != nil {
 		return &c.unpacked.sigId
 	} else {
@@ -558,11 +569,11 @@ func (c *ChainLink) GetFOKID() FOKID {
 	return FOKID{Kid: c.GetKid(), Fp: c.GetPgpFingerprint()}
 }
 
-func (c ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
+func (c *ChainLink) MatchFingerprint(fp PgpFingerprint) bool {
 	return c.unpacked.pgpFingerprint != nil && fp.Eq(*c.unpacked.pgpFingerprint)
 }
 
-func (c ChainLink) MatchUidAndUsername(uid UID, username string) bool {
+func (c *ChainLink) MatchUidAndUsername(uid UID, username string) bool {
 	return uid == c.unpacked.uid && username == c.unpacked.username
 }
 
@@ -599,14 +610,14 @@ func GetLinkSummary(j *jsonw.Wrapper) (ret *LinkSummary, err error) {
 	return
 }
 
-func (l ChainLink) ToLinkSummary() *LinkSummary {
+func (l *ChainLink) ToLinkSummary() *LinkSummary {
 	return &LinkSummary{
 		id:    l.id,
 		seqno: l.GetSeqno(),
 	}
 }
 
-func (l ChainLink) ToMerkleTriple() (ret MerkleTriple) {
+func (l *ChainLink) ToMerkleTriple() (ret MerkleTriple) {
 	return MerkleTriple{
 		LinkId: l.id,
 		Seqno:  l.GetSeqno(),

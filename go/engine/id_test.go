@@ -54,9 +54,10 @@ func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdRes, name s
 	}
 
 	if hasImg && result.User.Image == nil {
-		t.Fatal("Missing user image.")
+		t.Logf("result user: %+v", result.User)
+		t.Fatalf("%s: Missing user image.", name)
 	} else if !hasImg && result.User.Image != nil {
-		t.Fatal("User has an image but shouldn't")
+		t.Fatalf("%s: User has an image but shouldn't", name)
 	}
 
 	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {

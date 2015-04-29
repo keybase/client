@@ -61,7 +61,7 @@ func (b *GenericChainLink) markRevoked(r TypedChainLink) {
 }
 func (b *GenericChainLink) ToDebugString() string {
 	return fmt.Sprintf("uid=%s, seq=%d, link=%s",
-		string(b.parent.uid.String()), b.unpacked.seqno, b.id.String())
+		string(b.Parent().uid.String()), b.unpacked.seqno, b.id.String())
 }
 
 func (g *GenericChainLink) GetDelegatedKid() KID                 { return nil }

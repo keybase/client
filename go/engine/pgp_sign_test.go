@@ -20,6 +20,10 @@ func TestPgpSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if skb == nil {
+		t.Fatalf("skb is nil")
+	}
+
 	key, err := skb.GetPubKey()
 	if err != nil {
 		t.Fatal(err)

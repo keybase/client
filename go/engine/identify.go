@@ -92,7 +92,7 @@ func (e *Identify) Run(ctx *Context) error {
 			return err
 		}
 
-		if e.user.Equal(*e.me) {
+		if e.user.Equal(e.me) {
 			e.arg.WithTracking = false
 		} else {
 			e.arg.WithTracking = true
@@ -137,7 +137,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	res := libkb.NewIdentifyOutcome(e.arg.WithTracking)
 	is := libkb.NewIdentifyState(res, e.user)
 
-	if e.me != nil && e.user.Equal(*e.me) && !e.arg.AllowSelf {
+	if e.me != nil && e.user.Equal(e.me) && !e.arg.AllowSelf {
 		return nil, libkb.SelfTrackError{}
 	}
 
@@ -163,7 +163,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is.ComputeDeletedProofs()
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
-	e.user.IdTable.Identify(is, ctx.IdentifyUI)
+	e.user.IdTable().Identify(is, ctx.IdentifyUI)
 
 	if !e.userExpr.MatchSet(*e.user.ToOkProofSet()) {
 		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())

@@ -61,12 +61,14 @@ func (s *TrackEngine) SubConsumers() []libkb.UIConsumer {
 
 func (e *TrackEngine) Run(ctx *Context) error {
 	if err := e.loadMe(); err != nil {
+		G.Log.Info("loadme err: %s", err)
 		return err
 	}
 
 	iarg := NewIdentifyTrackArg(e.arg.TheirName, true, e.arg.Options)
 	ieng := NewIdentify(iarg)
 	if err := RunEngine(ieng, ctx); err != nil {
+		G.Log.Info("identify run err: %s", err)
 		return err
 	}
 	ti := ieng.TrackInstructions()
@@ -78,15 +80,18 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	ska := libkb.SecretKeyArg{Me: e.arg.Me, All: true}
 	e.lockedKey, e.lockedWhich, err = G.Keyrings.GetSecretKeyLocked(ska)
 	if err != nil {
+		G.Log.Info("secretkey err: %s", err)
 		return err
 	}
 	e.lockedKey.SetUID(e.arg.Me.GetUid().P())
 	e.signingKeyPub, err = e.lockedKey.GetPubKey()
 	if err != nil {
+		G.Log.Info("getpubkey err: %s", err)
 		return err
 	}
 
 	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them); err != nil {
+		G.Log.Info("tracking proof err: %s", err)
 		return err
 	}
 
@@ -142,7 +147,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 	}
 
 	if e.sig, e.sigid, err = e.signingKeyPriv.SignToString(e.trackStatementBytes); err != nil {
-		return
+		return err
 	}
 
 	_, err = G.API.Post(libkb.ApiArg{
@@ -158,5 +163,13 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 		},
 	})
 
-	return
+	if err != nil {
+		G.Log.Info("api error: %s", err)
+		return err
+	}
+
+	linkid := libkb.ComputeLinkId(e.trackStatementBytes)
+	e.arg.Me.SigChainBump(linkid, e.sigid)
+
+	return err
 }

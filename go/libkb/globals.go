@@ -28,7 +28,7 @@ type GlobalContext struct {
 	Env           *Env             // Env variables, cmdline args & config
 	Keyrings      *Keyrings        // Gpg Keychains holding keys
 	API           API              // How to make a REST call to the server
-	UserCache     *UserCache       // LRU cache of users in memory
+	ResolveCache  *ResolveCache    // cache of resolve results
 	LocalDb       *JsonLocalDb     // Local DB for cache
 	MerkleClient  *MerkleClient    // client for querying server's merkle sig tree
 	XAPI          ExternalAPI      // for contacting Twitter, Github, etc.
@@ -143,21 +143,20 @@ func (g *GlobalContext) ConfigureAPI() error {
 	return nil
 }
 
-func (g *GlobalContext) ConfigureCaches() (err error) {
-	g.UserCache, err = NewUserCache(g.Env.GetUserCacheSize())
+func (g *GlobalContext) ConfigureCaches() error {
+	g.ResolveCache = NewResolveCache()
 
-	if err == nil {
-		g.ProofCache, err = NewProofCache(g.Env.GetProofCacheSize())
+	var err error
+	g.ProofCache, err = NewProofCache(g.Env.GetProofCacheSize())
+	if err != nil {
+		return err
 	}
 
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
-	if err == nil {
-		g.LocalDb = NewJsonLocalDb(NewLevelDb())
-		err = g.LocalDb.Open()
-	}
-	return
+	g.LocalDb = NewJsonLocalDb(NewLevelDb())
+	return g.LocalDb.Open()
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {

@@ -87,7 +87,7 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper) (err error) {
 	track.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	track.SetKey("basics", u.ToTrackingStatementBasics(&err))
 	track.SetKey("id", jsonw.NewString(u.id.String()))
-	track.SetKey("remote_proofs", u.IdTable.ToTrackingStatement())
+	track.SetKey("remote_proofs", u.IdTable().ToTrackingStatement())
 
 	if err != nil {
 		return
@@ -208,8 +208,8 @@ func (u *User) ProofMetadata(ei int, signingKey FOKID, eldest *FOKID, ctime int6
 	var prev_s string
 	var key, prev *jsonw.Wrapper
 
-	last_seqno := u.sigChain.GetLastKnownSeqno()
-	last_link := u.sigChain.GetLastKnownId()
+	last_seqno := u.sigChain().GetLastKnownSeqno()
+	last_link := u.sigChain().GetLastKnownId()
 	if last_link == nil {
 		seqno = 1
 		prev = jsonw.NewNil()

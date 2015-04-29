@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 
 	keybase_1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
@@ -106,14 +107,16 @@ type User struct {
 	basics     *jsonw.Wrapper
 	publicKeys *jsonw.Wrapper
 	sigs       *jsonw.Wrapper
+	pictures   *jsonw.Wrapper
 
 	// Processed fields
-	id       UID
-	name     string
-	sigChain *SigChain
-	IdTable  *IdentityTable
-	sigHints *SigHints
-	Image    *keybase_1.Image
+	fieldMu     sync.RWMutex
+	id          UID
+	name        string
+	sigChainMem *SigChain
+	idTable     *IdentityTable
+	sigHints    *SigHints
+	Image       *keybase_1.Image
 
 	// Loaded from publicKeys
 	keyFamily *KeyFamily
@@ -175,6 +178,7 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		basics:     o.AtKey("basics"),
 		publicKeys: o.AtKey("public_keys"),
 		sigs:       o.AtKey("sigs"),
+		pictures:   o.AtKey("pictures"),
 		keyFamily:  kf,
 		id:         *uid,
 		name:       name,
@@ -184,10 +188,10 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 	}, nil
 }
 
-func (u User) GetName() string { return u.name }
-func (u User) GetUid() UID     { return u.id }
+func (u *User) GetName() string { return u.name }
+func (u *User) GetUid() UID     { return u.id }
 
-func (u User) GetIdVersion() (int64, error) {
+func (u *User) GetIdVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()
 }
 
@@ -200,7 +204,7 @@ func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	return u, e
 }
 
-func (u User) GetSeqno() Seqno {
+func (u *User) GetSeqno() Seqno {
 	var ret int64 = -1
 	var err error
 	u.sigs.AtKey("last").AtKey("seqno").GetInt64Void(&ret, &err)
@@ -248,14 +252,17 @@ func (u *User) GetKeyFamily() *KeyFamily {
 }
 
 func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
-	if u.sigChain == nil {
+	if u.sigChain() == nil {
 		G.Log.Warning("sig chain is nil")
 	}
-	if u.sigChain != nil && u.keyFamily != nil {
-		cki := u.sigChain.GetComputedKeyInfos()
-		if cki != nil {
-			ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily, Contextified: u.Contextified}
+	if u.sigChain() != nil && u.keyFamily != nil {
+		cki := u.sigChain().GetComputedKeyInfos()
+		if cki == nil {
+			return nil
 		}
+		u.fieldMu.RLock()
+		ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily, Contextified: u.Contextified}
+		u.fieldMu.RUnlock()
 	}
 	return
 }
@@ -263,7 +270,7 @@ func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
 // GetActivePgpKeys looks into the user's ComputedKeyFamily and
 // returns only the active PGP keys.  If you want only sibkeys, then
 // specify sibkey=true.
-func (u User) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
+func (u *User) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
 	if ckf := u.GetComputedKeyFamily(); ckf != nil {
 		ret = ckf.GetActivePgpKeys(sibkey)
 	}
@@ -272,7 +279,7 @@ func (u User) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
 
 // FilterActivePgpKeys returns the active pgp keys that match
 // query.
-func (u User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
+func (u *User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
 	keys := u.GetActivePgpKeys(sibkey)
 	var res []*PgpKeyBundle
 	for _, k := range keys {
@@ -286,14 +293,14 @@ func (u User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
 // GetActivePgpKeys looks into the user's ComputedKeyFamily and
 // returns only the fingerprint of the active PGP keys.
 // If you want only sibkeys, then // specify sibkey=true.
-func (u User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
+func (u *User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
 	for _, pgp := range u.GetActivePgpKeys(sibkey) {
 		ret = append(ret, pgp.GetFingerprint())
 	}
 	return
 }
 
-func (u User) GetDeviceKID() (kid KID, err error) {
+func (u *User) GetDeviceKID() (kid KID, err error) {
 	if ckf := u.GetComputedKeyFamily(); ckf == nil {
 		err = KeyFamilyError{"no key family available"}
 	} else {
@@ -372,14 +379,17 @@ func (local *User) CheckBasicsFreshness(server int64) (current bool, err error) 
 
 func (u *User) StoreSigChain() error {
 	var err error
-	if u.sigChain != nil {
-		err = u.sigChain.Store()
+	if u.sigChain() != nil {
+		err = u.sigChain().Store()
 	}
 	return err
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf) (err error) {
-	u.sigChain, err = LoadSigChain(u, allKeys, f, PublicChain, u.sigChain, u.G())
+	sc := u.sigChain()
+	u.fieldMu.Lock()
+	u.sigChainMem, err = LoadSigChain(u, allKeys, f, PublicChain, sc, u.G())
+	u.fieldMu.Unlock()
 
 	// Eventually load the others, but for now, this one is good enough
 	return err
@@ -424,6 +434,7 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
 	jw.SetKey("sigs", u.sigs)
+	jw.SetKey("pictures", u.pictures)
 
 	err := G.LocalDb.Put(
 		DbKey{Typ: DB_USER, Key: uid_s},
@@ -476,11 +487,26 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 	return u.keyFamily.eldest
 }
 
+func (u *User) IdTable() *IdentityTable {
+	u.fieldMu.RLock()
+	defer u.fieldMu.RUnlock()
+	return u.idTable
+}
+
+func (u *User) sigChain() *SigChain {
+	u.fieldMu.RLock()
+	defer u.fieldMu.RUnlock()
+	return u.sigChainMem
+}
+
 func (u *User) MakeIdTable() (err error) {
 	if fokid := u.GetEldestFOKID(); fokid == nil {
 		err = NoKeyError{"Expected a key but didn't find one"}
 	} else {
-		u.IdTable = NewIdentityTable(*fokid, u.sigChain, u.sigHints)
+		idt := NewIdentityTable(*fokid, u.sigChain(), u.sigHints)
+		u.fieldMu.Lock()
+		u.idTable = idt
+		u.fieldMu.Unlock()
 	}
 	return
 }
@@ -494,7 +520,7 @@ func (u *User) VerifySelfSig() error {
 
 	G.Log.Debug("+ VerifySelfSig for user %s", u.name)
 
-	if u.IdTable.VerifySelfSig(u.name, u.id) {
+	if u.IdTable().VerifySelfSig(u.name, u.id) {
 		G.Log.Debug("- VerifySelfSig via SigChain")
 		return nil
 	}
@@ -518,12 +544,14 @@ func (u *User) VerifySelfSigByKey() (ret bool) {
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
-	var name string
+	G.Log.Debug("LoadUser: %+v", arg)
 
 	// Whatever the reply is, pass along our desired global context
 	defer func() {
 		if ret != nil {
+			ret.fieldMu.Lock()
 			ret.SetGlobalContext(arg.G())
+			ret.fieldMu.Unlock()
 		}
 	}()
 
@@ -571,16 +599,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	uid_s := uid.String()
 	G.Log.Debug("| resolved to %s", uid_s)
 
-	nlock := G.UserCache.LockUID(uid_s)
-	defer nlock.Unlock()
-
 	var local, remote *User
 
-	if local = G.UserCache.Get(uid); local != nil {
-		G.Log.Debug("| Found user in user cache: %s", uid_s)
-	} else if local, err = LoadUserFromLocalStorage(uid); err != nil {
-		G.Log.Warning("Failed to load %s from storage: %s",
-			uid_s, err.Error())
+	if local, err = LoadUserFromLocalStorage(uid); err != nil {
+		G.Log.Warning("Failed to load %s from storage: %s", uid_s, err.Error())
 	}
 
 	leaf, err := LookupMerkleLeaf(uid, local)
@@ -631,12 +653,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	// Proactively cache fetches from remote server to local storage
 	if e2 := ret.Store(); e2 != nil {
-		G.Log.Warning("Problem storing user %s: %s",
-			name, e2.Error())
+		G.Log.Warning("Problem storing user %s: %s", ret.GetName(), e2.Error())
 	}
 
 	if ret.HasActiveKey() {
-
 		if err = ret.MakeIdTable(); err != nil {
 			return
 		}
@@ -656,17 +676,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		err = NoKeyError{emsg}
 	}
 
-	// We can still return a user with an Error, but never will we
-	// put such a user into the Cache.
-	if err == nil {
-		G.Log.Debug("| Caching %s", uid_s)
-		G.UserCache.Put(ret)
-	}
-
 	return
 }
 
-func (u User) HasActiveKey() bool {
+func (u *User) HasActiveKey() bool {
 	if ckf := u.GetComputedKeyFamily(); ckf == nil {
 		return false
 	} else {
@@ -674,7 +687,7 @@ func (u User) HasActiveKey() bool {
 	}
 }
 
-func (u1 User) Equal(u2 User) bool {
+func (u1 *User) Equal(u2 *User) bool {
 	return u1.id.Eq(u2.id)
 }
 
@@ -707,14 +720,14 @@ func (u *User) GetTrackingStatementFor(s string, i UID) (link *TrackChainLink, e
 }
 
 func (u *User) GetRemoteTrackingStatementFor(s string, i UID) (link *TrackChainLink, err error) {
-	if u.IdTable == nil {
+	if u.IdTable() == nil {
 		return nil, nil
-	} else {
-		return u.IdTable.GetTrackingStatementFor(s, i)
 	}
+
+	return u.IdTable().GetTrackingStatementFor(s, i)
 }
 
-func (u User) ToOkProofSet() *ProofSet {
+func (u *User) ToOkProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
 		{Key: "uid", Value: u.id.String()},
@@ -722,8 +735,8 @@ func (u User) ToOkProofSet() *ProofSet {
 	for _, fp := range u.GetActivePgpFingerprints(true) {
 		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})
 	}
-	if u.IdTable != nil {
-		proofs = u.IdTable.ToOkProofs(proofs)
+	if u.IdTable() != nil {
+		proofs = u.IdTable().ToOkProofs(proofs)
 	}
 
 	return NewProofSet(proofs)
@@ -736,11 +749,11 @@ func (u *User) localDelegateKey(key GenericKey, sigId *SigId, kid KID, isSibkey 
 	if err = u.keyFamily.LocalDelegate(key, isSibkey, kid == nil); err != nil {
 		return
 	}
-	if u.sigChain == nil {
+	if u.sigChain() == nil {
 		err = NoSigChainError{}
 		return
 	}
-	err = u.sigChain.LocalDelegate(u.keyFamily, key, sigId, kid, isSibkey)
+	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigId, kid, isSibkey)
 	return
 }
 
@@ -751,7 +764,7 @@ func (u *User) SigChainBump(linkID LinkId, sigID *SigId) {
 }
 
 func (u *User) SigChainBumpMT(mt MerkleTriple) {
-	u.sigChain.Bump(mt)
+	u.sigChain().Bump(mt)
 }
 
 func (u *User) GetDevice(id string) (*Device, error) {
@@ -824,10 +837,10 @@ func (u *User) TrackStatementJSON(them *User) (string, error) {
 }
 
 func (u *User) GetSigIDFromSeqno(seqno int) *string {
-	if u.sigChain == nil {
+	if u.sigChain() == nil {
 		return nil
 	}
-	link := u.sigChain.GetLinkFromSeqno(seqno)
+	link := u.sigChain().GetLinkFromSeqno(seqno)
 	if link == nil {
 		return nil
 	}
@@ -840,7 +853,7 @@ func (u *User) GetSigIDFromSeqno(seqno int) *string {
 }
 
 func (u *User) IsSigIDActive(sigIDStr string) (bool, error) {
-	if u.sigChain == nil {
+	if u.sigChain() == nil {
 		return false, fmt.Errorf("User's sig chain is nil.")
 	}
 
@@ -849,7 +862,7 @@ func (u *User) IsSigIDActive(sigIDStr string) (bool, error) {
 		return false, err
 	}
 
-	link := u.sigChain.GetLinkFromSigId(*sigID)
+	link := u.sigChain().GetLinkFromSigId(*sigID)
 	if link == nil {
 		return false, fmt.Errorf("Signature with ID '%s' does not exist.", sigIDStr)
 	}
@@ -860,5 +873,5 @@ func (u *User) IsSigIDActive(sigIDStr string) (bool, error) {
 }
 
 func (u *User) SigChainDump(w io.Writer) {
-	u.sigChain.Dump(w)
+	u.sigChain().Dump(w)
 }

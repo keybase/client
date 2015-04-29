@@ -75,7 +75,7 @@ func (e *IdEngine) run(ctx *Context) (*IdRes, error) {
 	if err != nil {
 		return nil, err
 	}
-	if me.Equal(*user) {
+	if me.Equal(user) {
 		G.Log.Warning("can't generate track statement on yourself")
 		// but let's not call this an error...they'll see the warning.
 		return res, nil

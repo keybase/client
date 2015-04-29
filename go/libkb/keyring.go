@@ -29,7 +29,7 @@ type Keyrings struct {
 func (k *Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
 	v := make([]*KeyringFile, len(filenames), len(filenames))
 	for i, filename := range filenames {
-		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil, Contextified{k.g}}
+		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil, Contextified{g: k.G()}}
 	}
 	return v
 }
@@ -37,7 +37,7 @@ func (k *Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFil
 func NewKeyrings(g *GlobalContext) *Keyrings {
 	ret := &Keyrings{
 		skbMap:       make(map[string]*SKBKeyringFile),
-		Contextified: Contextified{g},
+		Contextified: Contextified{g: g},
 	}
 	return ret
 }

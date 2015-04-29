@@ -41,10 +41,10 @@ func (c *CmdStress) Run() error {
 	return errors.New("stress command only designed for client/daemon mode")
 }
 
-func (c *CmdStress) RunClient() error {
+func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 	cli, _, err := GetRpcClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	protocols := []rpc2.Protocol{
 		NewStreamUiProtocol(),
@@ -54,6 +54,14 @@ func (c *CmdStress) RunClient() error {
 		NewLogUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
+		return nil, err
+	}
+	return cli, nil
+}
+
+func (c *CmdStress) RunClient() error {
+	cli, err := c.rpcClient()
+	if err != nil {
 		return err
 	}
 
@@ -66,7 +74,7 @@ func (c *CmdStress) RunClient() error {
 	for i := 0; i < c.numUsers; i++ {
 		wg.Add(1)
 		go func() {
-			c.simulate(cli, username, passphrase)
+			c.simulate(username, passphrase)
 			wg.Done()
 		}()
 	}
@@ -121,10 +129,16 @@ func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err e
 	return
 }
 
-func (c *CmdStress) simulate(cli *rpc2.Client, username, passphrase string) {
+func (c *CmdStress) simulate(username, passphrase string) {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("error getting rpc client: %s", err)
+		return
+	}
 	for i := 0; i < 10; i++ {
 		c.idSelf(cli)
 		c.idAlice(cli)
+		c.listTrackers(cli)
 	}
 }
 
@@ -141,6 +155,14 @@ func (c *CmdStress) idAlice(cli *rpc2.Client) {
 	_, err := icli.Identify(keybase_1.IdentifyArg{UserAssertion: "t_alice"})
 	if err != nil {
 		G.Log.Warning("id t_alice error: %s", err)
+	}
+}
+
+func (c *CmdStress) listTrackers(cli *rpc2.Client) {
+	ucli := keybase_1.UserClient{Cli: cli}
+	_, err := ucli.ListTrackersSelf(0)
+	if err != nil {
+		G.Log.Warning("list trackers error: %s", err)
 	}
 }
 

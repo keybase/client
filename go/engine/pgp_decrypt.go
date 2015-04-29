@@ -130,7 +130,7 @@ func (e *PGPDecrypt) checkSignedBy(ctx *Context) error {
 	}
 
 	// check if it is equal to signature owner
-	if !e.owner.Equal(*signByUser) {
+	if !e.owner.Equal(signByUser) {
 		return libkb.BadSigError{
 			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.owner.GetName(), e.arg.SignedBy),
 		}

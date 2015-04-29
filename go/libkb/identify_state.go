@@ -18,7 +18,7 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 	if s.Track == nil {
 		return
 	}
-	found := s.u.IdTable.MakeTrackSet()
+	found := s.u.IdTable().MakeTrackSet()
 	tracked := s.Track.set
 
 	// These are the proofs that we previously tracked that we
@@ -35,7 +35,7 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 }
 
 func (s *IdentifyState) InitResultList() {
-	idt := s.u.IdTable
+	idt := s.u.IdTable()
 	l := len(idt.activeProofs)
 	s.res.ProofChecks = make([]*LinkCheckResult, l)
 	for i, p := range idt.activeProofs {

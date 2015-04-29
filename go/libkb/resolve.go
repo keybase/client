@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -53,16 +54,16 @@ func _resolveUid(au AssertionUrl) ResolveResult {
 
 	ck := au.CacheKey()
 
-	if G.UserCache == nil {
+	if G.ResolveCache == nil {
 		return ResolveResult{}
 	}
 
-	if p := G.UserCache.GetResolution(ck); p != nil {
+	if p := G.ResolveCache.Get(ck); p != nil {
 		return *p
 	}
 
 	r := __resolveUsername(au)
-	G.UserCache.PutResolution(ck, r)
+	G.ResolveCache.Put(ck, r)
 
 	return r
 }
@@ -102,9 +103,6 @@ func __resolveUsername(au AssertionUrl) (res ResolveResult) {
 		return
 	}
 
-	// Aggressive caching of incidental data...
-	G.UserCache.CacheServerGetVector(them)
-
 	if l == 0 {
 		res.err = fmt.Errorf("No resolution found for %s", au)
 	} else if l > 1 {
@@ -115,4 +113,30 @@ func __resolveUsername(au AssertionUrl) (res ResolveResult) {
 	}
 
 	return
+}
+
+type ResolveCache struct {
+	results map[string]ResolveResult
+	sync.RWMutex
+}
+
+func NewResolveCache() *ResolveCache {
+	return &ResolveCache{results: make(map[string]ResolveResult)}
+}
+
+func (c *ResolveCache) Get(key string) *ResolveResult {
+	c.RLock()
+	res, found := c.results[key]
+	c.RUnlock()
+	if found {
+		return &res
+	}
+	return nil
+}
+
+func (c *ResolveCache) Put(key string, res ResolveResult) {
+	res.body = nil
+	c.Lock()
+	c.results[key] = res
+	c.Unlock()
 }

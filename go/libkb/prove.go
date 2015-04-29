@@ -49,7 +49,7 @@ func (v *ProofEngine) LoadMe() (err error) {
 }
 
 func (v *ProofEngine) CheckExists1() (err error) {
-	proofs := v.me.IdTable.GetActiveProofsFor(v.st)
+	proofs := v.me.IdTable().GetActiveProofsFor(v.st)
 	if len(proofs) != 0 && !v.Force && v.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
 		var redo bool
@@ -94,7 +94,7 @@ func (v *ProofEngine) CheckExists2() (err error) {
 	defer func() { G.Log.Debug("- CheckExists2 -> %s", ErrToOk(err)) }()
 	if !v.st.LastWriterWins() {
 		var found RemoteProofChainLink
-		for _, p := range v.me.IdTable.GetActiveProofsFor(v.st) {
+		for _, p := range v.me.IdTable().GetActiveProofsFor(v.st) {
 			_, name := p.ToKeyValuePair()
 			if Cicmp(name, v.usernameNormalized) {
 				found = p

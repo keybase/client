@@ -134,7 +134,7 @@ func (e *PGPKeyfinder) loadKeys(ctx *Context) {
 }
 
 func (e *PGPKeyfinder) trackUser(ctx *Context, user string) error {
-	G.Log.Info("tracking user %q", user)
+	G.Log.Debug("tracking user %q", user)
 	arg := &TrackEngineArg{
 		Me:        e.me,
 		TheirName: user,
