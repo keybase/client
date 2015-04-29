@@ -43,6 +43,9 @@
 @implementation KBRBlockIdCombo
 @end
 
+@implementation KBRBlockInfo
+@end
+
 @implementation KBRBlockCharge
 @end
 
@@ -80,14 +83,14 @@
   }];
 }
 
-- (void)getBIndexWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSString *str))completion {
+- (void)getBIndexSKeyWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSData *bytes))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid)}];
-  [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBIndexSKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
 
-- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(NSArray *)info completion:(void (^)(NSError *error))completion {
+- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(KBRBlockInfo *)info completion:(void (^)(NSError *error))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid), @"info": KBRValue(info)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.putBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -1108,7 +1111,7 @@
 
 @end
 
-@implementation KBRGetBIndexRequestParams
+@implementation KBRGetBIndexSKeyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -1124,7 +1127,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
-    self.info = [MTLJSONAdapter modelsOfClass:KBRStringKVPair.class fromJSONArray:params[0][@"info"] error:nil];
+    self.info = [MTLJSONAdapter modelOfClass:KBRBlockInfo.class fromJSONDictionary:params[0][@"info"] error:nil];
   }
   return self;
 }

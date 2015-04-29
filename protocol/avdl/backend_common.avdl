@@ -4,8 +4,14 @@ protocol backendCommon {
 	import idl "common.avdl";
 
 	record BlockIdCombo{
-		string blockId;
+		bytes blockId;
 		int size;	
+	}
+
+	record BlockInfo{
+		UID chargedTo; // The user this block should be charged to
+		bytes folder; // The folder this block belongs to
+		bytes sKey;  // The secret block key
 	}
 }
 

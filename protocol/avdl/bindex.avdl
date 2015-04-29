@@ -4,8 +4,8 @@ protocol bIndex {
 	import idl "backend_common.avdl";
 
 	void bIndexSession(string sid);
-	string getBIndex(BlockIdCombo bid);
-	void putBIndex(BlockIdCombo bid, array<StringKVPair> info);
+	bytes getBIndexSKey(BlockIdCombo bid);
+	void putBIndex(BlockIdCombo bid, BlockInfo info);
 
 	void decBIndexReference(BlockIdCombo bid, UID chargedTo);
 	void incBIndexReference(BlockIdCombo bid, UID chargedTo);

@@ -168,10 +168,23 @@
     "name" : "BlockIdCombo",
     "fields" : [ {
       "name" : "blockId",
-      "type" : "string"
+      "type" : "bytes"
     }, {
       "name" : "size",
       "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "BlockInfo",
+    "fields" : [ {
+      "name" : "chargedTo",
+      "type" : "UID"
+    }, {
+      "name" : "folder",
+      "type" : "bytes"
+    }, {
+      "name" : "sKey",
+      "type" : "bytes"
     } ]
   } ],
   "messages" : {
@@ -182,12 +195,12 @@
       } ],
       "response" : "null"
     },
-    "getBIndex" : {
+    "getBIndexSKey" : {
       "request" : [ {
         "name" : "bid",
         "type" : "BlockIdCombo"
       } ],
-      "response" : "string"
+      "response" : "bytes"
     },
     "putBIndex" : {
       "request" : [ {
@@ -195,10 +208,7 @@
         "type" : "BlockIdCombo"
       }, {
         "name" : "info",
-        "type" : {
-          "type" : "array",
-          "items" : "StringKVPair"
-        }
+        "type" : "BlockInfo"
       } ],
       "response" : "null"
     },

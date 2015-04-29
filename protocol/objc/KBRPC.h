@@ -75,8 +75,14 @@
 @end
 
 @interface KBRBlockIdCombo : KBRObject
-@property NSString *blockId;
+@property NSData *blockId;
 @property NSInteger size;
+@end
+
+@interface KBRBlockInfo : KBRObject
+@property KBRUID *chargedTo;
+@property NSData *folder;
+@property NSData *sKey;
 @end
 
 @interface KBRBlockCharge : KBRObject
@@ -96,9 +102,9 @@
 @interface KBRBIndexRequest : KBRRequest
 - (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBIndexWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getBIndexSKeyWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(NSArray *)info completion:(void (^)(NSError *error))completion;
+- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(KBRBlockInfo *)info completion:(void (^)(NSError *error))completion;
 
 - (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
 
@@ -725,12 +731,12 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @interface KBRBIndexSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
-@interface KBRGetBIndexRequestParams : KBRRequestParams
+@interface KBRGetBIndexSKeyRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @end
 @interface KBRPutBIndexRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
-@property NSArray *info;
+@property KBRBlockInfo *info;
 @end
 @interface KBRDecBIndexReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
