@@ -46,10 +46,10 @@ type BlockServerRemote struct {
 	bindexly BIndexClt
 }
 
-func TLSConnect(srv_addr string) (conn net.Conn, err error) {
+func TLSConnect(cert_file string, srv_addr string) (conn net.Conn, err error) {
 	CA_Pool := x509.NewCertPool()
 	var cacert []byte
-	cacert, err = ioutil.ReadFile("./cacert.pem")
+	cacert, err = ioutil.ReadFile(cert_file)
 	if err != nil {
 		return
 	}
@@ -68,7 +68,7 @@ func TCPConnect(srvaddr string) (net.Conn, error) {
 }
 
 func (c *Connectable) ConnectOnce() (err error) {
-	c.conn, err = TLSConnect(c.srv_addr)
+	c.conn, err = TLSConnect(c.srv_addr, "./cacert.pem")
 	return
 }
 
