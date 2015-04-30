@@ -79,3 +79,53 @@ From bserver/:
 
 	Caveats: One needs to have a local KB webserver running (backend need to connect to localhost:44003 to verify user session)
         One also need to have logged into a KB daemon (from whom I obtain the client session token and send to the backend server)
+
+# Testing with docker
+
+For testing, it is often useful to bring up the Keybase daemon in a
+clean environment, potentially multiple copies of it at once for
+different users.  To do this, first build docker images for both
+keybase and keybase/client if you haven't already:
+
+    cd <keybase repo root>
+    docker build -t kbweb .
+    cd $GOPATH/src/github.com/keybase/client/go
+    go install ./...
+    docker build -t kbdaemon .
+
+Now you can set up your test environment.  Let's say you want to be
+logged in as two users:
+
+    cd $GOPATH/src/github.com/keybase/kbfs/
+    go build ./...
+    ./setup_multiuser_test.sh 2
+
+Now you have a webserver running, and two logged-in users.  To act as user1:
+
+    ./switch_to_user_env.sh 1
+    . /tmp/user1.env
+
+Now you have KBFS mounted at /tmp/kbfs, acting as user 1.  This user's
+Keybase user name is $KBUSER, and you can access the usernames of the
+other user via $KBUSER2.
+
+    ls /tmp/kbfs/$KBUSER
+    echo "private" > /tmp/kbfs/$KBUSER/private
+    echo "shared" > /tmp/kbfs/$KBUSER1,$KBUSER2/shared
+
+Now you can switch to user2 and read the shared file you just created,
+but not the private file
+
+    ./switch_to_user_env.sh 2
+    . /tmp/user2.env
+    cat /tmp/kbfs/$KBUSER1,$KBUSER2/shared  # succeeds
+    cat /tmp/kbfs/$KBUSER1/private  # fails!
+
+NOTE: Until the backend server integration is ready, we can only have
+one user running at a time (because the local backend uses leveldb,
+which only supports one user at a time).
+
+When you are done testing, you can nuke your environment:
+
+    ./nuke_multiuser_test.sh 2
+
