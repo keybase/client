@@ -19,6 +19,10 @@ func (n *nullUI) Start(arg keybase_1.StartArg) error {
 	return nil
 }
 
+func (n *nullUI) Finish(int) error {
+	return nil
+}
+
 func (n *nullUI) Log(arg keybase_1.LogArg) error {
 	return nil
 }

@@ -34,6 +34,9 @@ func (i IdentifyUI) ReportLastTrack(*keybase_1.TrackSummary) {
 func (i IdentifyUI) Start(username string) {
 
 }
+func (i IdentifyUI) Finish() {
+
+}
 func (i IdentifyUI) LaunchNetworkChecks(*keybase_1.Identity, *keybase_1.User) {
 
 }
