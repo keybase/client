@@ -22,15 +22,21 @@ func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
 // CurrentSession uses the global session to find the session.  If
 // the user isn't logged in, it returns ErrNoSession.
 func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
+	// TODO: Bah, this is so racy. Fix this.
 	var s keybase1.Session
 	if !G.LoginState().IsLoggedIn() {
 		return s, ErrNoSession
 	}
 
-	uid, username, token := G.LoginState().UserInfo()
+	uid, username, token, deviceKid, err := G.LoginState().UserInfo()
+	if err != nil {
+		return s, err
+	}
+
 	s.Uid = uid.Export()
 	s.Username = username
 	s.Token = token
+	s.DeviceKID = deviceKid.String()
 
 	return s, nil
 }

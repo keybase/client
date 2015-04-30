@@ -599,6 +599,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRUID *uid;
 @property NSString *username;
 @property NSString *token;
+@property NSString *deviceKID;
 @end
 
 @interface KBRSessionRequest : KBRRequest
