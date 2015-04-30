@@ -178,7 +178,6 @@
 		00F1D5241AF2C15200DE23F1 /* KBFolderUsersListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5231AF2C15200DE23F1 /* KBFolderUsersListView.m */; };
 		00F1D5271AF2C1BF00DE23F1 /* KBUserPermission.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5261AF2C1BF00DE23F1 /* KBUserPermission.m */; };
 		00F1D52A1AF2C23100DE23F1 /* KBImageLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */; };
-		00FBF6B71AF1494300CA7639 /* Keybase_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FBF6B61AF1494300CA7639 /* Keybase_Tests.m */; };
 		00FBF6BD1AF149BC00CA7639 /* KBLaunchCtlTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */; };
 		00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
 		00FDC81B1AAA7D1800D6C571 /* KBCellDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC81A1AAA7D1800D6C571 /* KBCellDataSource.m */; };
@@ -591,8 +590,6 @@
 		00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBImageLabel.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		00FBF6B21AF1494300CA7639 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		00FBF6B51AF1494300CA7639 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00FBF6B61AF1494300CA7639 /* Keybase_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Keybase_Tests.m; sourceTree = "<group>"; };
 		00FDC8151AAA605C00D6C571 /* KBUserImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserImageView.h; sourceTree = "<group>"; };
 		00FDC8161AAA605C00D6C571 /* KBUserImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserImageView.m; sourceTree = "<group>"; };
 		00FDC8191AAA7D1800D6C571 /* KBCellDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCellDataSource.h; sourceTree = "<group>"; };
@@ -1015,7 +1012,6 @@
 				0057B0BB1AE57A7A00BFB0E7 /* Helper */,
 				00566A531A9BAD4800CA236E /* Install */,
 				4A1398D8A1B7A96F0CD7F917 /* Tests */,
-				00FBF6B31AF1494300CA7639 /* Keybase Tests */,
 				00CC434A1A3A9E6C006118A9 /* Products */,
 				D28313B93FED2BB6CA992160 /* Pods */,
 				468C135BF6D934E5DFBB8513 /* Frameworks */,
@@ -1204,23 +1200,6 @@
 				00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */,
 			);
 			path = View;
-			sourceTree = "<group>";
-		};
-		00FBF6B31AF1494300CA7639 /* Keybase Tests */ = {
-			isa = PBXGroup;
-			children = (
-				00FBF6B61AF1494300CA7639 /* Keybase_Tests.m */,
-				00FBF6B41AF1494300CA7639 /* Supporting Files */,
-			);
-			path = "Keybase Tests";
-			sourceTree = "<group>";
-		};
-		00FBF6B41AF1494300CA7639 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				00FBF6B51AF1494300CA7639 /* Info.plist */,
-			);
-			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
@@ -1671,7 +1650,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00FBF6B71AF1494300CA7639 /* Keybase_Tests.m in Sources */,
 				00FBF6BD1AF149BC00CA7639 /* KBLaunchCtlTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1877,7 +1855,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = "Keybase Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Contents/MacOS/Keybase";
@@ -1896,7 +1874,7 @@
 					"$(inherited)",
 				);
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "Keybase Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Contents/MacOS/Keybase";
