@@ -50,6 +50,7 @@ func (e *TrackEngine) GetPrereqs() EnginePrereqs {
 func (k *TrackEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
+		libkb.IdentifyUIKind,
 	}
 }
 
@@ -106,6 +107,9 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	} else if ti.Local {
 		err = e.storeLocalTrack()
 	}
+
+	ctx.IdentifyUI.Finish()
+
 	return err
 }
 

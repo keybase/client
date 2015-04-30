@@ -49,6 +49,9 @@ func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 	return ui.parent.Output(stmt)
 }
 
+func (ui BaseIdentifyUI) Finish() {
+}
+
 func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {

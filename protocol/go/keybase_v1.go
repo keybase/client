@@ -879,6 +879,10 @@ type StartArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type FinishArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type IdentifyUiInterface interface {
 	FinishAndPrompt(FinishAndPromptArg) (FinishAndPromptRes, error)
 	FinishWebProofCheck(FinishWebProofCheckArg) error
@@ -889,6 +893,7 @@ type IdentifyUiInterface interface {
 	LaunchNetworkChecks(LaunchNetworkChecksArg) error
 	DisplayTrackStatement(DisplayTrackStatementArg) error
 	Start(StartArg) error
+	Finish(int) error
 }
 
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
@@ -958,6 +963,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
 				}
 				return
 			},
+			"finish": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]FinishArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Finish(args[0].SessionID)
+				}
+				return
+			},
 		},
 	}
 
@@ -1009,6 +1021,12 @@ func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) 
 
 func (c IdentifyUiClient) Start(__arg StartArg) (err error) {
 	err = c.Cli.Call("keybase.1.identifyUi.start", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) Finish(sessionID int) (err error) {
+	__arg := FinishArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
 	return
 }
 

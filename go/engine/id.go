@@ -65,6 +65,7 @@ func (e *IdEngine) run(ctx *Context) (*IdRes, error) {
 	res := &IdRes{Outcome: ieng.Outcome(), User: user}
 
 	if !e.arg.TrackStatement {
+		ctx.IdentifyUI.Finish()
 		return res, nil
 	}
 
@@ -78,6 +79,7 @@ func (e *IdEngine) run(ctx *Context) (*IdRes, error) {
 	if me.Equal(user) {
 		G.Log.Warning("can't generate track statement on yourself")
 		// but let's not call this an error...they'll see the warning.
+		ctx.IdentifyUI.Finish()
 		return res, nil
 	}
 
@@ -90,6 +92,8 @@ func (e *IdEngine) run(ctx *Context) (*IdRes, error) {
 	if err = ctx.IdentifyUI.DisplayTrackStatement(stmt); err != nil {
 		return nil, err
 	}
+
+	ctx.IdentifyUI.Finish()
 
 	return res, nil
 }

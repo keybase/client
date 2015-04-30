@@ -112,7 +112,10 @@ func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity, user 
 
 func (u *RemoteBaseIdentifyUI) Start(username string) {
 	u.uicli.Start(keybase_1.StartArg{SessionID: u.sessionId, Username: username})
-	return
+}
+
+func (u *RemoteBaseIdentifyUI) Finish() {
+	u.uicli.Finish(u.sessionId)
 }
 
 func (u *RemoteBaseIdentifyUI) SetStrict(b bool) {

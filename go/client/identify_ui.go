@@ -62,3 +62,8 @@ func (i *IdentifyUIServer) Start(arg keybase_1.StartArg) error {
 	i.ui.Start(arg.Username)
 	return nil
 }
+
+func (i *IdentifyUIServer) Finish(sessionID int) error {
+	i.ui.Finish()
+	return nil
+}

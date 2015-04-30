@@ -188,16 +188,17 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
+	Start(string)
 	FinishWebProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
 	FinishAndPrompt(*keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error)
 	DisplayCryptocurrency(keybase_1.Cryptocurrency)
 	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
 	ReportLastTrack(*keybase_1.TrackSummary)
-	Start(string)
 	LaunchNetworkChecks(*keybase_1.Identity, *keybase_1.User)
 	DisplayTrackStatement(string) error
 	SetStrict(b bool)
+	Finish()
 }
 
 type Checker struct {

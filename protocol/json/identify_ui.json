@@ -512,6 +512,13 @@
         "type" : "string"
       } ],
       "response" : "null"
+    },
+    "finish" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
     }
   }
 }

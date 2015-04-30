@@ -82,4 +82,5 @@ protocol identifyUi {
 	void launchNetworkChecks(int sessionID, Identity id, User user);
 	void displayTrackStatement(int sessionID, string stmt);
 	void start(int sessionID, string username);
+	void finish(int sessionID);
 }
