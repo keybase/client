@@ -71,7 +71,7 @@ func (s *LoginState) UserInfo() (uid UID, username, token string, deviceSibKid, 
 	if err != nil {
 		return UID{}, "", "", KID{}, KID{}, err
 	}
-	deviceSibKid, deviceSubKid, err = user.GetDeviceKIDs()
+	deviceSibKid, deviceSubKid, err = user.GetDeviceKIDs(s.G())
 	if err != nil {
 		return UID{}, "", "", KID{}, KID{}, err
 	}

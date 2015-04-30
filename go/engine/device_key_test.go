@@ -21,7 +21,7 @@ func TestDeviceKey(t *testing.T) {
 			t.Fatalf("Can't load current user")
 		}
 
-		if sibKid, subKid, err := u.GetDeviceKIDs(); err != nil {
+		if sibKid, subKid, err := u.GetDeviceKIDs(G); err != nil {
 			t.Fatal(err)
 		} else if sibKid == nil || subKid == nil {
 			t.Fatalf("Failed to load device key right after signup")

@@ -817,9 +817,6 @@ func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceID) (key GenericKey, 
 // GetActiveSibkeyKidForCurrentDevice looks up the current Device ID and, if found, tries to
 // get the corresponding KID, and if that's found, we check that it's active.
 func (ckf *ComputedKeyFamily) GetActiveSibkeyKidForCurrentDevice(g *GlobalContext) (kid KID, err error) {
-	if g == nil {
-		g = G
-	}
 	if did := g.Env.GetDeviceID(); did == nil {
 		err = NotProvisionedError{}
 	} else if kid, err = ckf.getSibkeyKidForDevice(*did); err != nil {
