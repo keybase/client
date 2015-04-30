@@ -200,9 +200,6 @@ func (s *Session) Check() error {
 		return nil
 	}
 	s.RUnlock()
-	s.Lock()
-	s.checked = true
-	s.Unlock()
 
 	res, err := s.G().API.Get(ApiArg{
 		Endpoint:    "sesscheck",
@@ -213,6 +210,11 @@ func (s *Session) Check() error {
 	if err != nil {
 		return err
 	}
+
+	s.Lock()
+	s.checked = true
+	s.Unlock()
+
 	if res.AppStatus == "OK" {
 		s.G().Log.Debug("| Stored session checked out")
 		var err error
