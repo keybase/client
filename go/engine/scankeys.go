@@ -85,6 +85,7 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 	memres := s.keys.KeysById(id)
 	G.Log.Debug("ScanKeys:KeysById(%d) => %d keys match in memory", id, len(memres))
 	if len(memres) > 0 {
+		G.Log.Debug("ScanKeys:KeysById(%d) => owner == me (%s)", id, s.me.GetName())
 		s.owner = s.me // `me` is the owner of all s.keys
 		return memres
 	}
@@ -108,6 +109,7 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	memres := s.keys.KeysByIdUsage(id, requiredUsage)
 	G.Log.Debug("ScanKeys:KeysByIdUsage(%d, %x) => %d keys match in memory", id, requiredUsage, len(memres))
 	if len(memres) > 0 {
+		G.Log.Debug("ScanKeys:KeysByIdUsage(%d) => owner == me (%s)", id, s.me.GetName())
 		s.owner = s.me // `me` is the owner of all s.keys
 		return memres
 	}
@@ -205,6 +207,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 		return nil, err
 	}
 	// user found is the owner of the keys
+	G.Log.Debug("scan(%d) => owner of key = (%s)", id, uplus[0].User.GetName())
 	s.owner = uplus[0].User
 
 	// convert the bundles to an openpgp entity list

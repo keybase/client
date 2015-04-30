@@ -67,6 +67,8 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 		return err
 	}
 
+	e.owner = sk.Owner()
+
 	if len(e.arg.SignedBy) > 0 {
 		e.arg.AssertSigned = true
 	}
@@ -83,8 +85,6 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 	if !e.signStatus.Verified {
 		return e.signStatus.SignatureError
 	}
-
-	e.owner = sk.Owner()
 
 	if err := e.checkSignedBy(ctx); err != nil {
 		return err

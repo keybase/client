@@ -54,6 +54,11 @@ func TestPGPDecrypt(t *testing.T) {
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}
+
+	owner := dec.Owner()
+	if owner == nil {
+		t.Errorf("owner is nil")
+	}
 }
 
 func TestPGPDecryptArmored(t *testing.T) {
