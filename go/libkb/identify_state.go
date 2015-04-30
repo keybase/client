@@ -57,31 +57,29 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 }
 
 func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase_1.FOKID, *keybase_1.TrackDiff)) {
-
-	mapify := func(v []PgpFingerprint) map[PgpFingerprint]bool {
+	mapify := func(v []FOKID) map[PgpFingerprint]bool {
 		ret := make(map[PgpFingerprint]bool)
 		for _, f := range v {
-			ret[f] = true
+			ret[*f.Fp] = true
 		}
 		return ret
 	}
 
-	display := func(fp PgpFingerprint, diff TrackDiff) {
-		fokid := FOKID{Fp: &fp}
+	display := func(fokid FOKID, diff TrackDiff) {
 		dhook(fokid.Export(), ExportTrackDiff(diff))
 	}
 
-	found := s.u.GetActivePgpFingerprints(true)
+	found := s.u.GetActivePgpFOKIDs(true)
 	found_map := mapify(found)
-	var tracked []PgpFingerprint
+	var tracked []FOKID
 	if s.Track != nil {
-		tracked = s.Track.GetTrackedPGPFingerprints()
+		tracked = s.Track.GetTrackedPGPFOKIDs()
 	}
 	tracked_map := mapify(tracked)
 
 	for _, fp := range found {
 		var diff TrackDiff
-		if s.Track != nil && !tracked_map[fp] {
+		if s.Track != nil && !tracked_map[*fp.Fp] {
 			diff = TrackDiffNew{}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 		} else {
@@ -91,8 +89,8 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase_1.FOKID, *keybase_1.T
 	}
 
 	for _, fp := range tracked {
-		if !found_map[fp] {
-			diff := TrackDiffDeleted{fp}
+		if !found_map[*fp.Fp] {
+			diff := TrackDiffDeleted{fp.Fp}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(fp, diff)
 		}

@@ -440,6 +440,43 @@ func (l *TrackChainLink) GetTrackedPGPFingerprints() ([]PgpFingerprint, error) {
 	return res, nil
 }
 
+func (l *TrackChainLink) GetTrackedPGPFOKIDs() ([]FOKID, error) {
+	// presumably order is important, so we'll only use the map as a set
+	// to deduplicate keys.
+	set := make(map[PgpFingerprint]bool)
+
+	var res []FOKID
+
+	fk := l.GetTrackedFOKID()
+	if fk.Fp != nil {
+		res = append(res, fk)
+		set[*fk.Fp] = true
+	}
+
+	jw := l.payloadJson.AtPath("body.track.pgp_keys")
+	if jw.IsNil() {
+		return res, nil
+	}
+
+	n, err := jw.Len()
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < n; i++ {
+		fp, err := GetPgpFingerprint(jw.AtIndex(i).AtKey("key_fingerprint"))
+		if err != nil {
+			return nil, err
+		}
+		// it might not exist:
+		kid, _ := GetKID(jw.AtIndex(i).AtKey("kid"))
+		if fp != nil && !set[*fp] {
+			res = append(res, FOKID{Fp: fp, Kid: kid})
+			set[*fp] = true
+		}
+	}
+	return res, nil
+}
+
 func (l *TrackChainLink) GetTrackedUid() (*UID, error) {
 	return GetUid(l.payloadJson.AtPath("body.track.id"))
 }

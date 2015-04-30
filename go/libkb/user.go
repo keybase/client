@@ -290,12 +290,19 @@ func (u *User) FilterActivePgpKeys(sibkey bool, query string) []*PgpKeyBundle {
 	return res
 }
 
-// GetActivePgpKeys looks into the user's ComputedKeyFamily and
+// GetActivePgpFingerprints looks into the user's ComputedKeyFamily and
 // returns only the fingerprint of the active PGP keys.
 // If you want only sibkeys, then // specify sibkey=true.
 func (u *User) GetActivePgpFingerprints(sibkey bool) (ret []PgpFingerprint) {
 	for _, pgp := range u.GetActivePgpKeys(sibkey) {
 		ret = append(ret, pgp.GetFingerprint())
+	}
+	return
+}
+
+func (u *User) GetActivePgpFOKIDs(sibkey bool) (ret []FOKID) {
+	for _, pgp := range u.GetActivePgpKeys(sibkey) {
+		ret = append(ret, GenericKeyToFOKID(pgp))
 	}
 	return
 }

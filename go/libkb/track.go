@@ -2,9 +2,10 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/client/protocol/go"
-	"github.com/keybase/go-jsonw"
 	"time"
+
+	keybase_1 "github.com/keybase/client/protocol/go"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // Can either be a RemoteProofChainLink or one of the identities
@@ -111,7 +112,15 @@ func (l TrackLookup) GetProofState(tic TrackIdComponent) int {
 func (l TrackLookup) GetTrackedPGPFingerprints() []PgpFingerprint {
 	ret, err := l.link.GetTrackedPGPFingerprints()
 	if err != nil {
-		G.Log.Warning("Error in lookup up tracked PGP fingerprints: %s", err.Error())
+		G.Log.Warning("Error in lookup up tracked PGP fingerprints: %s", err)
+	}
+	return ret
+}
+
+func (l TrackLookup) GetTrackedPGPFOKIDs() []FOKID {
+	ret, err := l.link.GetTrackedPGPFOKIDs()
+	if err != nil {
+		G.Log.Warning("Error in lookup up tracked PGP FOKIDs: %s", err)
 	}
 	return ret
 }
