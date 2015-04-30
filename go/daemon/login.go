@@ -1,8 +1,6 @@
 package main
 
 import (
-	"sync"
-
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase_1 "github.com/keybase/client/protocol/go"
@@ -11,10 +9,8 @@ import (
 
 type LoginHandler struct {
 	*CancelHandler
-	identifyUi    libkb.IdentifyUI
-	locksmithUI   libkb.LocksmithUI
-	loginEngineMu sync.Mutex
-	loginEngine   *engine.LoginEngine
+	identifyUi  libkb.IdentifyUI
+	locksmithUI libkb.LocksmithUI
 }
 
 func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
