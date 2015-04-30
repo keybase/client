@@ -83,6 +83,7 @@
 @property KBRUID *chargedTo;
 @property NSData *folder;
 @property NSData *sKey;
+@property NSData *nonce;
 @end
 
 @interface KBRBIndexRequest : KBRRequest
@@ -92,11 +93,11 @@
 
 - (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(KBRBlockInfo *)info completion:(void (^)(NSError *error))completion;
 
-- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
 
-- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
 
-- (void)getBIndexReferenceWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSInteger n))completion;
+- (void)getBIndexAllWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
 
@@ -734,13 +735,15 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @end
 @interface KBRDecBIndexReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
+@property NSData *nonce;
 @property KBRUID *chargedTo;
 @end
 @interface KBRIncBIndexReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
+@property NSData *nonce;
 @property KBRUID *chargedTo;
 @end
-@interface KBRGetBIndexReferenceRequestParams : KBRRequestParams
+@interface KBRGetBIndexAllRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @end
 @interface KBRBlockSessionRequestParams : KBRRequestParams

@@ -69,24 +69,29 @@
   }];
 }
 
-- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"bid": KBRValue(bid), @"chargedTo": KBRValue(chargedTo)}];
+- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"nonce": KBRValue(nonce), @"chargedTo": KBRValue(chargedTo)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.decBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"bid": KBRValue(bid), @"chargedTo": KBRValue(chargedTo)}];
+- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"nonce": KBRValue(nonce), @"chargedTo": KBRValue(chargedTo)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.incBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)getBIndexReferenceWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSInteger n))completion {
+- (void)getBIndexAllWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSArray *items))completion {
   NSArray *params = @[@{@"bid": KBRValue(bid)}];
-  [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBIndexAll" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+        completion(error, nil);
+        return;
+      }
+      NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRStringKVPair.class fromJSONArray:retval error:&error] : nil;
+      completion(error, results);
   }];
 }
 
@@ -1119,6 +1124,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
+    self.nonce = params[0][@"nonce"];
     self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
   }
   return self;
@@ -1131,6 +1137,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
+    self.nonce = params[0][@"nonce"];
     self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
   }
   return self;
@@ -1138,7 +1145,7 @@
 
 @end
 
-@implementation KBRGetBIndexReferenceRequestParams
+@implementation KBRGetBIndexAllRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
