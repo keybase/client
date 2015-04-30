@@ -207,6 +207,7 @@ func (ui *FakeIdentifyUI) ReportLastTrack(*keybase_1.TrackSummary) {
 }
 func (ui *FakeIdentifyUI) Start(username string) {
 }
+func (ui *FakeIdentifyUI) Finish() {}
 func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity, user *keybase_1.User) {
 	ui.User = user
 }
