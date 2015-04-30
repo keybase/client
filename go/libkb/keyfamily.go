@@ -60,8 +60,8 @@ func (cki ComputedKeyInfo) GetETime() time.Time {
 // we need to Verify this data against the sigchain as we play the sigchain
 // forward.
 type ServerKeyRecord struct {
-	Bundle  string `json:"bundle"`
-	KeyAlgo int    `json:"key_algo"`
+	Bundle  string   `json:"bundle"`
+	KeyAlgo AlgoType `json:"key_algo"`
 	// There are many more fields in the server's response, but we ignore them
 	// to avoid trusting the server, and instead compute them ourselves.
 

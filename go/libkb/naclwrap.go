@@ -191,11 +191,11 @@ func (k NaclDHKeyPair) GetFingerprintP() *PgpFingerprint {
 	return nil
 }
 
-func (k NaclDHKeyPair) GetAlgoType() int {
+func (k NaclDHKeyPair) GetAlgoType() AlgoType {
 	return KID_NACL_DH
 }
 
-func (k NaclSigningKeyPair) GetAlgoType() int {
+func (k NaclSigningKeyPair) GetAlgoType() AlgoType {
 	return KID_NACL_EDDSA
 }
 

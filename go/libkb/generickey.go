@@ -14,11 +14,12 @@ type KID []byte
 type KID2 []byte
 
 type KIDMapKey string
+type AlgoType int
 
 type GenericKey interface {
 	GetKid() KID
 	GetFingerprintP() *PgpFingerprint
-	GetAlgoType() int
+	GetAlgoType() AlgoType
 	SignToString([]byte) (string, *SigId, error)
 	Verify(string, []byte) (*SigId, error)
 	VerifyAndExtract(string) ([]byte, *SigId, error)

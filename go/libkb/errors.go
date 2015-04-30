@@ -703,7 +703,7 @@ func (r KeyExpiredError) Error() string {
 //=============================================================================
 
 type UnknownKeyTypeError struct {
-	typ int
+	typ AlgoType
 }
 
 func (e UnknownKeyTypeError) Error() string {

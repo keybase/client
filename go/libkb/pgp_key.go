@@ -361,8 +361,8 @@ func (k PgpKeyBundle) GetKid2() KID2 {
 	return KID2(out)
 }
 
-func (k PgpKeyBundle) GetAlgoType() int {
-	return int(k.PrimaryKey.PubKeyAlgo)
+func (k PgpKeyBundle) GetAlgoType() AlgoType {
+	return AlgoType(k.PrimaryKey.PubKeyAlgo)
 }
 
 func (k PgpKeyBundle) KeyDescription() string {
@@ -461,9 +461,9 @@ func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {
 	return
 }
 
-func IsPgpAlgo(algo int) bool {
+func IsPgpAlgo(algo AlgoType) bool {
 	switch algo {
-	case KID_PGP_RSA, KID_PGP_RSA, KID_PGP_ELGAMAL,
+	case KID_PGP_RSA, KID_PGP_ELGAMAL,
 		KID_PGP_DSA, KID_PGP_ECDH, KID_PGP_ECDSA:
 		return true
 	}

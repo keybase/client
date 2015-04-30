@@ -21,9 +21,9 @@ import (
 )
 
 type SKB struct {
-	Priv SKBPriv `codec:"priv"`
-	Pub  []byte  `codec:"pub"`
-	Type int     `codec:"type,omitempty"`
+	Priv SKBPriv  `codec:"priv"`
+	Pub  []byte   `codec:"pub"`
+	Type AlgoType `codec:"type,omitempty"`
 
 	decodedPub      GenericKey
 	decryptedSecret GenericKey
