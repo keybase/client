@@ -231,6 +231,14 @@ func (e NoEldestKeyError) Error() string {
 	return "No Eldest key found"
 }
 
+type NoActiveKeyError struct {
+	Username string
+}
+
+func (e NoActiveKeyError) Error() string {
+	return fmt.Sprintf("user %s has no active keys", e.Username)
+}
+
 //=============================================================================
 
 type NoSecretKeyError struct {

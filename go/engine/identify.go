@@ -154,7 +154,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	}
 
 	if !e.user.HasActiveKey() {
-		return nil, fmt.Errorf("user %s doesn't have an active key", e.user.GetName())
+		return nil, libkb.NoActiveKeyError{Username: e.user.GetName()}
 	}
 
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(is.Track))

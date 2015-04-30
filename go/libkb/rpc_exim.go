@@ -432,6 +432,15 @@ func (c KeyExistsError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
+func (c NoActiveKeyError) ToStatus() (s keybase_1.Status) {
+	s.Code = SC_KEY_NO_ACTIVE
+	s.Name = "KEY_NO_ACTIVE"
+	s.Desc = c.Error()
+	return
+}
+
+//=============================================================================
+
 func (ids Identities) Export() (res []keybase_1.PgpIdentity) {
 	var n int
 	if ids == nil {
