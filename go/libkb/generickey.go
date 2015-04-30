@@ -13,6 +13,8 @@ import (
 type KID []byte
 type KID2 []byte
 
+type KIDMapKey string
+
 type GenericKey interface {
 	GetKid() KID
 	GetFingerprintP() *PgpFingerprint
@@ -29,8 +31,8 @@ type GenericKey interface {
 	Encode() (string, error) // encode public key to string
 }
 
-func (k KID) ToMapKey() string {
-	return k.String()
+func (k KID) ToMapKey() KIDMapKey {
+	return KIDMapKey(k.String())
 }
 
 func (k KID) ToShortIdString() string {
