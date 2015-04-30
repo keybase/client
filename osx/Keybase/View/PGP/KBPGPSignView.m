@@ -56,18 +56,24 @@
   KBWriter *writer = [KBWriter writer];
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
-  self.navigation.progressEnabled = YES;
+  [KBActivity setProgressEnabled:YES sender:self];
   [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
-    self.navigation.progressEnabled = NO;
+    [KBActivity setProgressEnabled:NO sender:self];
     NSError *error = [works[0] error];
+    if ([KBActivity setError:error sender:self]) return;
     KBStream *stream = [works[0] output];
 
     if ([self.navigation setError:error sender:self]) return;
-    [self showOutput:stream.writer.data];
+
+    if (self.onSign) {
+      self.onSign(self, stream.writer.data, options.mode);
+    } else {
+      [self _sign:stream.writer.data];
+    }
   }];
 }
 
-- (void)showOutput:(NSData *)data {
+- (void)_sign:(NSData *)data {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
   NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
   [outputView setText:text];

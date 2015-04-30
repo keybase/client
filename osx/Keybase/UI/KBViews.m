@@ -10,10 +10,7 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
-#import "KBBox.h"
-
 @interface KBViews ()
-@property KBBox *border;
 @property (nonatomic) NSMutableArray *sviews;
 @end
 

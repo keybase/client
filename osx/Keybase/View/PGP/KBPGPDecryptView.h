@@ -10,8 +10,15 @@
 
 #import "KBAppKit.h"
 #import "KBContentView.h"
+#import "KBPGPDecrypted.h"
+
+@class KBPGPDecryptView;
+
+typedef void (^KBPGPOnDecrypt)(KBPGPDecryptView *view, KBPGPDecrypted *decrypted);
 
 @interface KBPGPDecryptView : KBContentView
+
+@property (copy) KBPGPOnDecrypt onDecrypt;
 
 - (void)setASCIIData:(NSData *)data;
 

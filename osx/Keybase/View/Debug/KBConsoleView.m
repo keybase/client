@@ -14,7 +14,7 @@
 
 #import "KBMockViews.h"
 #import "KBTestClientView.h"
-#import "KBTestHelperView.h"
+#import "KBTestInstallView.h"
 #import "KBAppView.h"
 
 @interface KBConsoleView () <KBAppViewDelegate>
@@ -61,14 +61,14 @@
   KBButton *debugButton = [KBButton buttonWithText:@"Views" style:KBButtonStyleToolbar];
   debugButton.targetBlock = ^{
     KBMockViews *mockViews = [[KBMockViews alloc] init];
-    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO makeKey:YES errorHandler:nil];
+    [self.window kb_addChildWindowForView:mockViews rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Debug" fixed:NO makeKey:YES];
   };
   [buttons addSubview:debugButton];
 
-  KBButton *helperButton = [KBButton buttonWithText:@"Helper" style:KBButtonStyleToolbar];
+  KBButton *helperButton = [KBButton buttonWithText:@"Installer" style:KBButtonStyleToolbar];
   helperButton.targetBlock = ^{
-    KBTestHelperView *view = [[KBTestHelperView alloc] init];
-    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Helper" fixed:NO makeKey:YES errorHandler:nil];
+    KBTestInstallView *view = [[KBTestInstallView alloc] init];
+    [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 500) position:KBWindowPositionCenter title:@"Helper" fixed:NO makeKey:YES];
   };
   [buttons addSubview:helperButton];
 

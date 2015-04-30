@@ -27,6 +27,8 @@
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender;
 
+- (void)openPopup:(id)sender;
+
 @end
 
 

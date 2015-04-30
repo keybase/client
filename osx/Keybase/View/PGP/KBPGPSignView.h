@@ -10,6 +10,12 @@
 
 #import "KBContentView.h"
 
+@class KBPGPSignView;
+
+typedef void (^KBPGPOnSign)(KBPGPSignView *view, NSData *signedData, KBRSignMode mode);
+
 @interface KBPGPSignView : KBContentView
+
+@property (copy) KBPGPOnSign onSign;
 
 @end

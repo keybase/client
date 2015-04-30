@@ -18,6 +18,7 @@
 #import "KBConnectView.h"
 #import "KBFoldersAppView.h"
 #import "KBAppToolbar.h"
+#import "KBPGPAppView.h"
 #import "KBSourceOutlineView.h"
 
 
@@ -28,7 +29,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBAppViewModeMain
 };
 
-@interface KBAppView () <KBAppToolbarDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate>
+@interface KBAppView () <KBAppToolbarDelegate, KBSignupViewDelegate, KBLoginViewDelegate, KBRPClientDelegate, NSWindowDelegate>
 @property KBAppToolbar *toolbar;
 @property KBSourceOutlineView *sourceView;
 @property (readonly) YOView *contentView;
@@ -36,6 +37,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property KBUsersAppView *usersAppView;
 @property KBDevicesAppView *devicesAppView;
 @property KBFoldersAppView *foldersAppView;
+@property KBPGPAppView *PGPAppView;
 
 @property KBUserProfileView *userProfileView;
 @property (nonatomic) KBLoginView *loginView;
@@ -266,6 +268,12 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self setContentView:_foldersAppView mode:KBAppViewModeMain];
 }
 
+- (void)showPGP {
+  if (!_PGPAppView) _PGPAppView = [[KBPGPAppView alloc] init];
+  _PGPAppView.client = _client;
+  [self setContentView:_PGPAppView mode:KBAppViewModeMain];
+}
+
 - (void)logout:(BOOL)prompt {
   GHWeakSelf gself = self;
   dispatch_block_t logout = ^{
@@ -401,16 +409,19 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   case KBAppViewItemUsers:
     [self showUsers];
     break;
+  case KBAppViewItemPGP:
+    [self showPGP];
+    break;
   }
 }
 
 - (KBWindow *)createWindow {
   NSAssert(!self.superview, @"Already has superview");
   KBWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 600) retain:YES];
-  window.sheetPosition = 74;
   window.minSize = CGSizeMake(600, 600);
   //window.restorable = YES;
   //window.maxSize = CGSizeMake(600, 900);
+  window.delegate = self; // Overrides default delegate
   window.titleVisibility = NO;
   window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
 
@@ -420,6 +431,14 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   //window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:window.navigation];
   //[window setLevel:NSStatusWindowLevel];
   return window;
+}
+
+- (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
+  CGFloat sheetPosition = 0;
+  if (_mode == KBAppViewModeMain) sheetPosition = 74;
+  else sheetPosition = 33;
+  rect.origin.y += -sheetPosition;
+  return rect;
 }
 
 - (KBWindow *)openWindow {

@@ -315,12 +315,18 @@
     response.signer = signer;
     [self.navigation setProgressEnabled:YES];
     completion(nil, response);
+
+    // TODO Select signer is changing from callback to request, this is temporary
+    [AppDelegate.appView checkStatus:nil];
   };
 
   deviceSetupView.cancelButton.targetBlock = ^{
+    [self cancelLogin];
+    /*
     KBRSelectSignerRes *response = [[KBRSelectSignerRes alloc] init];
     response.action = KBRSelectSignerActionCancel;
     completion(nil, response);
+     */
   };
 
   [self.navigation pushView:deviceSetupView animated:YES];

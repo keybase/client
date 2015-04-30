@@ -7,6 +7,7 @@
 //
 
 #import "KBDefines.h"
+#import <Mantle/Mantle.h>
 
 NSString *const KBTrackingListDidChangeNotification = @"KBTrackingListDidChangeNotification";
 NSString *const KBStatusDidChangeNotification = @"KBStatusDidChangeNotification";
@@ -69,9 +70,16 @@ NSString *KBURLStringForUsername(NSString *username) {
 }
 
 NSString *KBDescription(id obj) {
-  if ([obj isKindOfClass:NSArray.class]) return KBArrayDescription(obj);
-  else if ([obj isKindOfClass:NSDictionary.class]) return KBDictionaryDescription(obj);
-  else return [obj description];
+  if ([obj isKindOfClass:NSArray.class]) {
+    return KBArrayDescription(obj);
+  } else if ([obj isKindOfClass:NSDictionary.class]) {
+    return KBDictionaryDescription(obj);
+  } else if ([obj conformsToProtocol:@protocol(MTLJSONSerializing)]) {
+    NSDictionary *properties = [MTLJSONAdapter JSONDictionaryFromModel:obj error:nil]; // TODO: Handle error
+    return properties ? KBDictionaryDescription(properties) : [obj description];
+  } else {
+    return [obj description];
+  }
 }
 
 NSString *KBArrayDescription(NSArray *a) {
@@ -80,5 +88,7 @@ NSString *KBArrayDescription(NSArray *a) {
 }
 
 NSString *KBDictionaryDescription(NSDictionary *d) {
-  return NSStringWithFormat(@"{%@}", [[d map:^id(id key, id value) { return NSStringWithFormat(@"%@: %@", key, KBDescription(value)); }] join:@", "]);
+  return NSStringWithFormat(@"{%@}", [[d map:^id(id key, id value) {
+    return NSStringWithFormat(@"%@: %@", key, KBDescription(value));
+  }] join:@", "]);
 }

@@ -10,6 +10,12 @@
 
 #import "KBContentView.h"
 
+@class KBPGPVerifyView;
+
+typedef void (^KBPGPOnVerify)(KBPGPVerifyView *view);
+
 @interface KBPGPVerifyView : KBContentView
+
+@property (copy) KBPGPOnVerify onVerify;
 
 @end

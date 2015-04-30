@@ -63,6 +63,7 @@
 
 - (void)layout {
   [super layout];
+  //[self.view noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.view.numberOfRows)]];
   [self.view reloadData];
 }
 
@@ -295,6 +296,7 @@
 @implementation KBTableScrollView
 
 - (void)reflectScrolledClipView:(NSClipView *)clipView {
+  [super reflectScrolledClipView:clipView];
   if (self.parent.onUpdate) self.parent.onUpdate(self.parent);
 }
 

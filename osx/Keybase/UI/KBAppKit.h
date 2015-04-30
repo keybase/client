@@ -54,3 +54,4 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 #import "KBPopover.h"
 #import "KBIcons.h"
 #import "KBButtonView.h"
+#import "KBActivity.h"

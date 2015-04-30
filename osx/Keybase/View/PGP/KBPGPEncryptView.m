@@ -18,6 +18,7 @@
 #import "KBFileIcon.h"
 #import "KBFileReader.h"
 #import "KBFileWriter.h"
+#import "AppDelegate.h"
 
 @interface KBPGPEncryptView ()
 @property KBUserPickerView *userPickerView;
@@ -45,6 +46,8 @@
   _textView = [[KBTextView alloc] init];
   _textView.view.textContainerInset = CGSizeMake(10, 10);
   [self addSubview:_textView];
+
+  _userPickerView.nextKeyView = _textView.view;
 
   YOVBox *bottomView = [YOVBox box];
   [self addSubview:bottomView];
@@ -81,18 +84,30 @@
   options.recipients = _userPickerView.usernames;
   options.noSelf = _footerView.includeSelfButton.state != NSOnState;
   options.noSign = _footerView.signButton.state != NSOnState;
-  options.binaryOut = NO;
-  self.navigation.progressEnabled = YES;
+  options.binaryOut = NO;  
+  [KBActivity setProgressEnabled:YES sender:self];
   //GHWeakSelf gself = self;
   [_encrypter encryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
-    self.navigation.progressEnabled = NO;
     NSError *error = [works[0] error];
-    KBStream *stream = [works[0] output];
-
-    if ([self.navigation setError:error sender:self]) return;
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
     
-    if (stream.writer.data) [self showOutput:stream.writer.data];
+    KBStream *stream = [works[0] output];
+    
+    if (stream.writer.data) {
+      if (self.onEncrypt) {
+        self.onEncrypt(self, stream.writer.data);
+      } else {
+        [self _encrypt:stream.writer.data];
+      }
+    }
   }];
+}
+
+- (void)_encrypt:(NSData *)data {
+  KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
+  [outputView setASCIIData:data];
+  [self.navigation pushView:outputView animated:YES];
 }
 
 - (void)addUsername:(NSString *)username {
@@ -111,12 +126,6 @@
   [_files addSubview:icon];
   [_files setNeedsLayout:NO];
   [self layoutView];
-}
-
-- (void)showOutput:(NSData *)data {
-  KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
-  [outputView setASCIIData:data];
-  [self.navigation pushView:outputView animated:YES];
 }
 
 - (void)userPickerViewDidUpdate:(KBUserPickerView *)userPickerView {

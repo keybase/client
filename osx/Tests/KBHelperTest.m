@@ -6,24 +6,34 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
+#import <Foundation/Foundation.h>
+#import <XCTest/XCTest.h>
+
 #import "KBHelper.h"
 #import "KBHelperClient.h"
 
-@interface KBHelperTest : NSObject
+@interface KBHelperTest : XCTestCase
 @end
 
 @implementation KBHelperTest
 
-- (void)test:(dispatch_block_t)completion {
+- (void)testXPC {
+  XCTestExpectation *expectation = [self expectationWithDescription:@"Handle event"];
+
+
   KBHelperClient *helperClient = [[KBHelperClient alloc] init];
   KBHelper *helper = [[KBHelper alloc] init];
 
   xpc_object_t event = [helperClient XPCObjectForRequestWithMethod:@"version" params:nil error:nil];
-  GRAssertNotNil(event);
+  XTCAssertNotNil(event);
   [helper handleEvent:event completion:^(xpc_object_t reply) {
     NSArray *response = [helperClient responseForXPCObject:reply error:nil];
-    GRTestLog(@"Response: %@", response);
-    completion();
+    DDLogDebug(@"Response: %@", response);
+    [expectation fulfill];
+  }];
+
+  [self waitForExpectationsWithTimeout:1.0 handler:^(NSError *error) {
+
   }];
 }
 

@@ -16,6 +16,6 @@
 @property CGFloat dividerPosition;
 @property float dividerRatio;
 
-- (void)setSourceView:(NSView *)sourceView contentView:(NSView *)contentView;
+- (void)setLeftView:(NSView *)leftView rightView:(NSView *)rightView;
 
 @end

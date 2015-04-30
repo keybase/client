@@ -139,7 +139,7 @@
 
 - (NSWindow *)openInWindow:(KBContentView *)view size:(CGSize)size title:(NSString *)title {
   view.client = self.mockClient;
-  return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title fixed:NO makeKey:YES errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
+  return [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, size.width, size.height) position:KBWindowPositionCenter title:title fixed:NO makeKey:YES];
 }
 
 - (void)prompt:(NSString *)type {

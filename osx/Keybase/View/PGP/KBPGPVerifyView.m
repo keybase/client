@@ -87,16 +87,20 @@
     //options.signature = signatureData;
   }
 
-  self.navigation.progressEnabled = YES;
+  [KBActivity setProgressEnabled:YES sender:self];
   [_verifier verifyWithOptions:options stream:stream client:self.client sender:self completion:^(NSError *error, KBStream *stream, KBRPgpSigVerification *pgpSigVerification) {
-    self.navigation.progressEnabled = NO;
-    if ([self.navigation setError:error sender:self]) return;
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
 
-    [self showVerification:pgpSigVerification];
+    if (self.onVerify) {
+      self.onVerify(self);
+    } else {
+      [self _verified:pgpSigVerification];
+    }
   }];
 }
 
-- (void)showVerification:(KBRPgpSigVerification *)pgpSigVerification {
+- (void)_verified:(KBRPgpSigVerification *)pgpSigVerification {
   if (pgpSigVerification.verified) {
     NSString *title = NSStringWithFormat(@"Verified from %@", pgpSigVerification.signer.username);
     NSString *description = NSStringWithFormat(@"Verified from %@ with PGP key fingerprint %@", pgpSigVerification.signer.username, pgpSigVerification.signKey.PGPFingerprint);

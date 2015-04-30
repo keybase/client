@@ -16,6 +16,8 @@ typedef NS_ENUM(NSInteger, KBIcon) {
   KBIconGroupFolder,
   KBIconHomeFolder,
   KBIconMacbook,
+
+  KBIconPGP,
 };
 
 @interface KBIcons : NSObject

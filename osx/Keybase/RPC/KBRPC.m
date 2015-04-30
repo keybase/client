@@ -40,6 +40,9 @@
 @implementation KBRSIGID
 @end
 
+@implementation KBRBlockIdCombo
+@end
+
 @implementation KBRBIndexRequest
 
 - (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion {
@@ -49,27 +52,37 @@
   }];
 }
 
-- (void)getBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSString *str))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size)}];
+- (void)getBIndexWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSString *str))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.getBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
 
-- (void)putBIndexWithBlockId:(NSString *)blockId size:(NSInteger)size info:(NSArray *)info completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size), @"info": KBRValue(info)}];
+- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(NSArray *)info completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"info": KBRValue(info)}];
   [self.client sendRequestWithMethod:@"keybase.1.bIndex.putBIndex" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)deleteWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size)}];
-  [self.client sendRequestWithMethod:@"keybase.1.bIndex.delete" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"chargedTo": KBRValue(chargedTo)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.decBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
+- (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"chargedTo": KBRValue(chargedTo)}];
+  [self.client sendRequestWithMethod:@"keybase.1.bIndex.incBIndexReference" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRBlockCharge
 @end
 
 @implementation KBRBlockRequest
@@ -81,23 +94,16 @@
   }];
 }
 
-- (void)getBlockWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size)}];
+- (void)getBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid)}];
   [self.client sendRequestWithMethod:@"keybase.1.block.getBlock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
 
-- (void)putBlockWithBlockId:(NSString *)blockId buf:(NSData *)buf completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"buf": KBRValue(buf)}];
+- (void)putBlockWithBid:(KBRBlockIdCombo *)bid buf:(NSData *)buf completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"bid": KBRValue(bid), @"buf": KBRValue(buf)}];
   [self.client sendRequestWithMethod:@"keybase.1.block.putBlock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)delBlockWithBlockId:(NSString *)blockId size:(NSInteger)size completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"blockId": KBRValue(blockId), @"size": @(size)}];
-  [self.client sendRequestWithMethod:@"keybase.1.block.delBlock" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -748,9 +754,16 @@
 
 @implementation KBRRevokeRequest
 
-- (void)revokeWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb isDevice:(BOOL)isDevice completion:(void (^)(NSError *error))completion {
-  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb), @"isDevice": @(isDevice)}];
-  [self.client sendRequestWithMethod:@"keybase.1.revoke.revoke" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)revokeKeyWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb)}];
+  [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeKey" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)revokeDeviceWithSessionID:(NSInteger)sessionID idKb:(NSString *)idKb completion:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"id": KBRValue(idKb)}];
+  [self.client sendRequestWithMethod:@"keybase.1.revoke.revokeDevice" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1065,8 +1078,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
   }
   return self;
 }
@@ -1077,8 +1089,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
     self.info = [MTLJSONAdapter modelsOfClass:KBRStringKVPair.class fromJSONArray:params[0][@"info"] error:nil];
   }
   return self;
@@ -1086,12 +1097,24 @@
 
 @end
 
-@implementation KBRDeleteRequestParams
+@implementation KBRDecBIndexReferenceRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
+    self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRIncBIndexReferenceRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
+    self.chargedTo = [MTLJSONAdapter modelOfClass:KBRUID.class fromJSONDictionary:params[0][@"chargedTo"] error:nil];
   }
   return self;
 }
@@ -1113,8 +1136,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
   }
   return self;
 }
@@ -1125,20 +1147,8 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
+    self.bid = [MTLJSONAdapter modelOfClass:KBRBlockIdCombo.class fromJSONDictionary:params[0][@"bid"] error:nil];
     self.buf = params[0][@"buf"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRDelBlockRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.blockId = params[0][@"blockId"];
-    self.size = [params[0][@"size"] integerValue];
   }
   return self;
 }
@@ -1804,13 +1814,24 @@
 
 @end
 
-@implementation KBRRevokeRequestParams
+@implementation KBRRevokeKeyRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.id = params[0][@"id"];
-    self.isDevice = [params[0][@"isDevice"] boolValue];
+  }
+  return self;
+}
+
+@end
+
+@implementation KBRRevokeDeviceRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.id = params[0][@"id"];
   }
   return self;
 }

@@ -11,8 +11,8 @@
 #import "KBBox.h"
 
 @interface KBSplitView ()
-@property NSView *sourceView;
-@property NSView *contentView;
+@property NSView *leftView;
+@property NSView *rightView;
 @end
 
 @implementation KBSplitView
@@ -38,20 +38,20 @@
       col1 = size.width * yself.dividerRatio;
     }
 
-    CGFloat y = yself.insets.top + 1;
+    CGFloat y = yself.insets.top;
     [layout setFrame:CGRectMake(col1 - 1, y, 1, size.height) view:borderMiddle];
 
-    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y - yself.insets.bottom) view:yself.sourceView];
-    [layout setFrame:CGRectMake(col1, y, size.width - col1, size.height - y - yself.insets.bottom) view:yself.contentView];
+    [layout setFrame:CGRectMake(0, y, col1 - 1, size.height - y - yself.insets.bottom) view:yself.leftView];
+    [layout setFrame:CGRectMake(col1, y, size.width - col1, size.height - y - yself.insets.bottom) view:yself.rightView];
     return size;
   }];
 }
 
-- (void)setSourceView:(NSView *)sourceView contentView:(NSView *)contentView {
-  _sourceView = sourceView;
-  [self addSubview:sourceView];
-  _contentView = contentView;
-  [self addSubview:contentView];
+- (void)setLeftView:(NSView *)leftView rightView:(NSView *)rightView {
+  _leftView = leftView;
+  [self addSubview:_leftView];
+  _rightView = rightView;
+  [self addSubview:_rightView];
   [self setNeedsLayout];
 }
 

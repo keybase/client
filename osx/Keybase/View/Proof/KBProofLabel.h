@@ -12,7 +12,7 @@
 #import "KBProofResult.h"
 #import "KBRPC.h"
 
-@interface KBProofLabel : KBButton
+@interface KBProofLabel : KBLabel
 
 @property (nonatomic) KBProofResult *proofResult;
 @property BOOL editable;

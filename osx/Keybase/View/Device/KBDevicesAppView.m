@@ -64,7 +64,7 @@
   YOView *contentView = [[YOView alloc] init];
   [contentView kb_setBackgroundColor:NSColor.whiteColor];
 
-  [_splitView setSourceView:devicesView contentView:contentView];
+  [_splitView setLeftView:devicesView rightView:contentView];
 
   self.viewLayout = [YOLayout fill:_splitView];
 }
@@ -93,7 +93,7 @@
 
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
   GHWeakSelf gself = self;
-  [request revokeWithSessionID:request.sessionId idKb:device.deviceID isDevice:YES completion:^(NSError *error) {
+  [request revokeDeviceWithSessionID:request.sessionId idKb:device.deviceID completion:^(NSError *error) {
     if (error) {
       [AppDelegate setError:error sender:self];
       return;

@@ -77,9 +77,8 @@
 
 @implementation NSWindow (KBWindow)
 
-- (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title fixed:(BOOL)fixed makeKey:(BOOL)makeKey errorHandler:(KBErrorHandler)errorHandler {
+- (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title fixed:(BOOL)fixed makeKey:(BOOL)makeKey {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
-  navigation.errorHandler = errorHandler;
 
   CGSize size = [view sizeThatFits:rect.size];
   size.height += 32; // TODO

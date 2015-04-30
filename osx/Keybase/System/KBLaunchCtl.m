@@ -23,6 +23,8 @@
 }
 
 + (NSDictionary *)launchdPlistDictionaryForEnvironment:(KBEnvironment *)environment {
+  if (!environment.launchdLabel) return nil;
+
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"/Applications/Keybase.app/Contents/MacOS/keybased"];
   [args addObjectsFromArray:@[@"-H", environment.home]];

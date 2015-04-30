@@ -12,6 +12,7 @@
 #import "KBNavigationTitleView.h"
 #import <GHKit/GHKit.h>
 #import "KBWindow.h"
+#import "KBActivity.h"
 
 @interface KBNavigationView ()
 @property NSMutableArray *views;
@@ -205,7 +206,7 @@
 }
 
 - (void)setProgressEnabled:(BOOL)progressEnabled {
-  [self.class setProgressEnabled:progressEnabled subviews:self.views];
+  [KBActivity setProgressEnabled:progressEnabled subviews:self.views];
   [self.titleView setProgressEnabled:progressEnabled];
 }
 
@@ -216,20 +217,10 @@
 - (BOOL)setError:(NSError *)error sender:(id)sender {
   if (error) {
     self.progressEnabled = NO;
-    self.errorHandler(error, sender);
+    [[NSApp delegate] setError:error sender:sender];
     return YES;
   }
   return NO;
-}
-
-+ (void)setProgressEnabled:(BOOL)progressEnabled subviews:(NSArray *)subviews {
-  for (NSView *view in subviews) {
-    if ([view isKindOfClass:NSControl.class]) {
-      ((NSControl *)view).enabled = !progressEnabled;
-    } else {
-      [self setProgressEnabled:progressEnabled subviews:view.subviews];
-    }
-  }
 }
 
 @end

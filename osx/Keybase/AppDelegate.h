@@ -17,9 +17,7 @@
 
 #define KBConsoleLog(fmt, ...) [AppDelegate consoleLog:[NSString stringWithFormat:fmt, ##__VA_ARGS__]]
 
-@interface AppDelegate : NSObject <NSApplicationDelegate, KBAppViewDelegate>
-
-@property (readonly, copy) KBErrorHandler errorHandler;
+@interface AppDelegate : NSObject <NSApplicationDelegate>
 
 @property (readonly) KBHelperClient *helper;
 
@@ -33,8 +31,8 @@
 
 - (void)quitWithPrompt:(BOOL)prompt sender:(id)sender;
 
-+ (void)setError:(NSError *)error sender:(NSView *)sender;
-+ (void)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion;
++ (BOOL)setError:(NSError *)error sender:(NSView *)sender;
++ (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion;
 
 + (NSString *)bundleFile:(NSString *)file;
 

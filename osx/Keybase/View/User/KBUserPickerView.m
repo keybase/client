@@ -15,11 +15,11 @@
 #import "KBSearcher.h"
 #import "KBUserView.h"
 #import "KBPopover.h"
+#import "KBUserProfileView.h"
 
 @interface KBUserPickerView ()
 @property KBLabel *label;
 @property NSTokenField *tokensField;
-@property NSMenu *tokenMenu;
 @property KBSearchControl *searchControl;
 @property NSString *previousValue;
 
@@ -73,9 +73,6 @@
   _progressView = [[KBActivityIndicatorView alloc] init];
   _progressView.lineWidth = 1.0;
   [self addSubview:_progressView];
-
-  _tokenMenu = [[NSMenu alloc] initWithTitle:@""];
-  [_tokenMenu insertItem:[[NSMenuItem alloc] initWithTitle:@"Edit" action:@selector(editToken:) keyEquivalent:@""] atIndex:0];
 
   _searchControl = [[KBSearchControl alloc] init];
   _searchControl.delegate = self;
@@ -160,6 +157,16 @@
   [_tokensField setObjectValue:tokens];
 }
 
+- (void)commitEditingToken {
+  NSString *editingToken = [self editingToken:nil];
+  if (!editingToken) return;
+
+  NSMutableArray *tokens = [[_tokensField objectValue] mutableCopy];
+  [tokens removeObject:editingToken];
+  [tokens addObject:[KBUserToken userTokenWithUsername:editingToken]];
+  [_tokensField setObjectValue:tokens];
+}
+
 - (void)commitToken:(KBUserToken *)userToken {
   NSMutableArray *tokens = [[_tokensField objectValue] mutableCopy];
   NSString *editingToken = [self editingToken:nil];
@@ -222,6 +229,9 @@
       }
     }
     return YES;
+  } else if (commandSelector == @selector(insertTab:)) {
+    [self commitEditingToken];
+    [self.window makeFirstResponder:[self nextKeyView]];
   }
   return NO; // No means let the token field handle it
 }
@@ -235,8 +245,21 @@
   return YES;
 }
 
-- (void)editToken:(id)sender {
+- (void)viewToken:(id)sender {
+  id obj = [sender representedObject];
+  if ([obj isKindOfClass:KBUserToken.class]) {
+    NSString *username = [obj username];
+    KBUserProfileView *trackView = [[KBUserProfileView alloc] init];
+    [trackView setUsername:username client:self.client];
+    [trackView openPopup:self];
+  }
+}
 
+- (void)removeToken:(id)sender {
+  id obj = [sender representedObject];
+  NSArray *tokens = [_tokensField objectValue];
+  tokens = [tokens reject:^(id token) { return [token isEqualTo:obj]; }];
+  [_tokensField setObjectValue:tokens];
 }
 
 #pragma mark NSTokenField
@@ -254,7 +277,14 @@
 }
 
 - (NSMenu *)tokenField:(NSTokenField *)tokenField menuForRepresentedObject:(id)representedObject {
-  return _tokenMenu;
+  NSMenu *tokenMenu = [[NSMenu alloc] initWithTitle:@""];
+  NSMenuItem *viewItem = [[NSMenuItem alloc] initWithTitle:@"View" action:@selector(viewToken:) keyEquivalent:@""];
+  viewItem.representedObject = representedObject;
+  [tokenMenu addItem:viewItem];
+  NSMenuItem *removeItem = [[NSMenuItem alloc] initWithTitle:@"Remove" action:@selector(removeToken:) keyEquivalent:@""];
+  removeItem.representedObject = representedObject;
+  [tokenMenu addItem:removeItem];
+  return tokenMenu;
 }
 
 - (id)tokenField:(NSTokenField *)tokenField representedObjectForEditingString:(NSString *)editingString {

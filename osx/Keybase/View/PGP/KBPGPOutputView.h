@@ -10,8 +10,11 @@
 
 #import "KBAppKit.h"
 #import "KBContentView.h"
+#import "KBPGPOutputFooterView.h"
 
 @interface KBPGPOutputView : KBContentView
+
+@property (readonly) KBPGPOutputFooterView *footerView;
 
 - (void)setASCIIData:(NSData *)data;
 

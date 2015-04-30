@@ -14,6 +14,8 @@
 @interface KBKeyView ()
 @property YOVBox *labels;
 @property KBTextView *textView;
+
+@property KBRFOKID *keyId;
 @end
 
 @implementation KBKeyView
@@ -28,15 +30,11 @@
   _textView.borderType = NSBezelBorder;
   [self addSubview:_textView];
 
-  /*
   KBButton *removeButton = [KBButton buttonWithText:@"Remove" style:KBButtonStyleToolbar];
   removeButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    KBDebugAlert(@"Waiting for RPC method to remove pgp key by id", self.window);
-    completion(nil);
-    //[self removePGPKey:completion];
+    [self removePGPKey:completion];
   };
   [self addSubview:removeButton];
-   */
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -47,23 +45,24 @@
   }];
 }
 
-- (void)setKey:(KBRFOKID *)key editable:(BOOL)editable {
+- (void)setKeyId:(KBRFOKID *)keyId editable:(BOOL)editable {
+  _keyId = keyId;
   [_labels removeFromSuperview];
   _labels = [YOVBox box];
   [self addSubview:_labels];
 
   KBHeaderLabelView *keyLabel = [[KBHeaderLabelView alloc] init];
   [keyLabel setHeader:@"Key ID"];
-  if (key.kid) [keyLabel addText:KBHexString(key.kid) targetBlock:nil];
+  if (_keyId.kid) [keyLabel addText:KBHexString(_keyId.kid) targetBlock:nil];
   [_labels addSubview:keyLabel];
 
   KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
   [pgpLabel setHeader:@"PGP"];
-  if (key.pgpFingerprint) [pgpLabel addText:KBHexString(key.pgpFingerprint) targetBlock:nil];
+  if (_keyId.pgpFingerprint) [pgpLabel addText:KBHexString(_keyId.pgpFingerprint) targetBlock:nil];
   [_labels addSubview:pgpLabel];
 
-  NSString *query = KBHexString(key.pgpFingerprint);
-  if (key.kid) query = KBHexString(key.kid);
+  NSString *query = KBHexString(_keyId.pgpFingerprint);
+  if (_keyId.kid) query = KBHexString(_keyId.kid);
 
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
@@ -79,10 +78,18 @@
 }
 
 - (void)removePGPKey:(KBButtonCompletion)completion {
+  if (_keyId.kid) {
+    [self removePGPKey:KBHexString(_keyId.kid) completion:completion];
+  } else {
+    completion(KBMakeErrorWithRecovery(-1, @"Oops, can't delete this key.", @"It doesn't have a kid."));
+  }
+}
+
+- (void)removePGPKey:(NSString *)identifier completion:(KBButtonCompletion)completion {
   [KBAlert yesNoWithTitle:@"Delete PGP Key" description:@"Are you sure you want to remove this PGP Key?" yes:@"Delete" view:self completion:^(BOOL yes) {
     if (yes) {
-      KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-      [request pgpDeletePrimary:completion];
+      KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
+      [request revokeKeyWithSessionID:request.sessionId idKb:identifier completion:completion];
     } else {
       completion(nil);
     }

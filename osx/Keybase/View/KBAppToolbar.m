@@ -43,13 +43,19 @@
   [foldersButton.cell setImagePosition:NSImageAbove];
   [self addSubview:foldersButton];
 
-  //KBButton *devicesButton = [KBButton buttonWithImage:[KBIcons.icons imageForIcon:KBIconMacbook size:CGSizeMake(ImageWidth, ImageWidth)]];
   KBButton *devicesButton = [KBButton buttonWithText:@"Devices" image:[KBIcons.icons imageForIcon:KBIconMacbook size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty];
   devicesButton.tag = KBAppViewItemDevices;
   devicesButton.toggleEnabled = YES;
   devicesButton.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemDevices]; };
   [devicesButton.cell setImagePosition:NSImageAbove];
   [self addSubview:devicesButton];
+
+  KBButton *pgpButton = [KBButton buttonWithText:@"PGP" image:[KBIcons.icons imageForIcon:KBIconPGP size:CGSizeMake(ImageWidth, ImageWidth)] style:KBButtonStyleEmpty];
+  pgpButton.tag = KBAppViewItemPGP;
+  pgpButton.toggleEnabled = YES;
+  pgpButton.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemPGP]; };
+  [pgpButton.cell setImagePosition:NSImageAbove];
+  [self addSubview:pgpButton];
 
   KBBox *border = [KBBox horizontalLine];
   [self addSubview:border];
@@ -62,7 +68,7 @@
   _userProfileButton.button.targetBlock = ^{ [self notifyItemSelected:KBAppViewItemProfile]; };
   [self addSubview:_userProfileButton];
 
-  _buttons = @[usersButton, foldersButton, devicesButton, _userProfileButton.button];
+  _buttons = @[usersButton, foldersButton, devicesButton, pgpButton, _userProfileButton.button];
 
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 8;
@@ -74,6 +80,7 @@
     x += [layout setFrame:CGRectMake(x, y, ImageWidth + 20, ImageWidth + 20) view:usersButton].size.width + 5;
     x += [layout setFrame:CGRectMake(x, y, ImageWidth + 20, ImageWidth + 20) view:foldersButton].size.width + 5;
     x += [layout setFrame:CGRectMake(x, y, ImageWidth + 20, ImageWidth + 20) view:devicesButton].size.width + 5;
+    x += [layout setFrame:CGRectMake(x, y, ImageWidth + 20, ImageWidth + 20) view:pgpButton].size.width + 5;
     y += 54;
 
     CGSize userButtonSize = [gself.userProfileButton sizeThatFits:CGSizeMake(size.width - x, 44)];
@@ -98,7 +105,6 @@
   for (KBButton *button in _buttons) {
     if (button.state == NSOnState && button.tag != item) {
       button.state = NSOffState;
-      //[button setNeedsDisplay];
     }
   }
 }
@@ -109,7 +115,14 @@
 }
 
 - (void)notifyItemSelected:(KBAppViewItem)item {
+  KBButton *button = [self buttonWithTag:item];
+  NSAssert(button, @"Need to put buttons in self.buttons?");
+
   [self setStateOffExcept:item];
+
+  // Keep from toggling off (if selecting while already selected)
+  if (button.state == NSOffState) button.state = NSOnState;
+
   [self.delegate appToolbar:self didSelectItem:item];
 }
 

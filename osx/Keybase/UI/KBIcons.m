@@ -32,18 +32,30 @@
 }
 
 
-- (NSString *)nameForIcon:(KBIcon)icon {
+- (NSImage *)imageForIcon:(KBIcon)icon {
+  NSString *coreBundleName = nil;
+  NSString *localBundleName = nil;
   switch (icon) {
-    case KBIconUserIcon: return @"UserIcon.icns"; // Single head
-    case KBIconUsers: return @"GroupIcon.icns"; // Two heads
-    case KBIconGroupFolder: return @"GroupFolder.icns"; // Folder with heads
-    case KBIconHomeFolder: return @"HomeFolderIcon.icns"; // House
-    case KBIconMacbook: return @"com.apple.macbookpro-15-retina-display.icns";
+    case KBIconUserIcon: coreBundleName = @"UserIcon.icns"; break; // Single head
+    case KBIconUsers: coreBundleName = @"GroupIcon.icns"; break; // Two heads
+    case KBIconGroupFolder: coreBundleName = @"GroupFolder.icns"; break; // Folder with heads
+    case KBIconHomeFolder: coreBundleName = @"HomeFolderIcon.icns"; break; // House
+    case KBIconMacbook: coreBundleName = @"com.apple.macbookpro-15-retina-display.icns"; break;
+
+    case KBIconPGP: localBundleName = @"gpgtools.icns"; break;
+  }
+
+  if (coreBundleName) {
+    return [[NSImage alloc] initWithContentsOfFile:[_bundle pathForImageResource:coreBundleName]];
+  } else if (localBundleName) {
+    return [NSImage imageNamed:localBundleName];
+  } else {
+    return nil;
   }
 }
 
 - (NSImage *)imageForIcon:(KBIcon)icon size:(CGSize)size {
-  NSImage *image = [[NSImage alloc] initWithContentsOfFile:[_bundle pathForImageResource:[self nameForIcon:icon]]];
+  NSImage *image = [self imageForIcon:icon];
   image.size = size;
   return image;
 }

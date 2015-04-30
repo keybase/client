@@ -39,6 +39,7 @@ typedef NS_ENUM (NSInteger, KBAppViewItem) {
   KBAppViewItemUsers,
   KBAppViewItemDevices,
   KBAppViewItemFolders,
+  KBAppViewItemPGP,
 };
 
 

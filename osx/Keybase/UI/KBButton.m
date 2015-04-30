@@ -100,8 +100,8 @@
     case KBButtonStyleText:
     case KBButtonStyleLink:
     case KBButtonStyleEmpty:
-      sizeThatFits.width += 4;
-      sizeThatFits.height += 2;
+      sizeThatFits.width += 2;
+      //sizeThatFits.height += 2;
       break;
 
     case KBButtonStyleToolbar:

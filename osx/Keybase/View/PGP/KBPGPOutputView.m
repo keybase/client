@@ -15,6 +15,8 @@
 @interface KBPGPOutputView ()
 @property KBTextView *textView;
 @property KBPGPVerifiedView *verifiedView;
+@property KBPGPOutputFooterView *footerView;
+
 @property YOBox *files;
 @property NSData *data;
 @end
@@ -32,14 +34,15 @@
   _verifiedView = [[KBPGPVerifiedView alloc] init];
   [self addSubview:_verifiedView];
 
-  KBPGPOutputFooterView *footerView = [[KBPGPOutputFooterView alloc] init];
-  footerView.editButton.targetBlock = ^{
-    [self.navigation popViewAnimated:YES];
+  GHWeakSelf gself =self;
+  _footerView = [[KBPGPOutputFooterView alloc] init];
+  _footerView.editButton.targetBlock = ^{
+    [gself.navigation popViewAnimated:YES];
   };
-  footerView.closeButton.targetBlock = ^{ [[self window] close]; };
-  [self addSubview:footerView];
+  _footerView.closeButton.targetBlock = ^{ [[gself window] close]; };
+  [self addSubview:_footerView];
 
-  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_verifiedView, footerView] insets:UIEdgeInsetsZero spacing:0];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:_textView top:nil bottom:@[_verifiedView, _footerView] insets:UIEdgeInsetsZero spacing:0];
 }
 
 - (void)setText:(NSString *)text {

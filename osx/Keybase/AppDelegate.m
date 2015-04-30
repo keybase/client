@@ -28,11 +28,12 @@
 #import "KBEnvSelectView.h"
 #import "KBLogFormatter.h"
 #import "KBHelperClient.h"
+#import "KBPGPOutputView.h"
 
 #import <Sparkle/Sparkle.h>
 #import <AFNetworking/AFNetworking.h>
 
-@interface AppDelegate ()
+@interface AppDelegate () <KBAppViewDelegate>
 @property KBAppView *appView;
 @property KBPreferences *preferences;
 @property BOOL alerting;
@@ -122,7 +123,7 @@
   KBWindow *window = [_appView openWindow];
 
   _consoleView = [[KBConsoleView alloc] init];
-  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO makeKey:NO errorHandler:_errorHandler];
+  [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO makeKey:NO];
   [_appView.delegates addObject:_consoleView];
 
   _helper = [[KBHelperClient alloc] init];
@@ -242,49 +243,49 @@
 - (IBAction)encrypt:(id)sender {
   KBPGPEncryptView *view = [[KBPGPEncryptView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt" fixed:NO makeKey:YES];
 }
 
 - (IBAction)encryptFile:(id)sender {
   KBPGPEncryptFileView *view = [[KBPGPEncryptFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Encrypt Files" fixed:NO makeKey:YES];
 }
 
 - (IBAction)decrypt:(id)sender {
   KBPGPDecryptView *view = [[KBPGPDecryptView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt" fixed:NO makeKey:YES];
 }
 
 - (IBAction)decryptFile:(id)sender {
   KBPGPDecryptFileView *view = [[KBPGPDecryptFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Decrypt Files" fixed:NO makeKey:YES];
 }
 
 - (IBAction)sign:(id)sender {
   KBPGPSignView *view = [[KBPGPSignView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 510, 400) position:KBWindowPositionCenter title:@"Sign" fixed:NO makeKey:YES];
 }
 
 - (IBAction)signFile:(id)sender {
   KBPGPSignFileView *view = [[KBPGPSignFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Sign File" fixed:NO makeKey:YES];
 }
 
 - (IBAction)verify:(id)sender {
   KBPGPVerifyView *view = [[KBPGPVerifyView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify" fixed:NO makeKey:YES];
 }
 
 - (IBAction)verifyFile:(id)sender {
   KBPGPVerifyFileView *view = [[KBPGPVerifyFileView alloc] init];
   view.client = self.appView.client;
-  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES errorHandler:_errorHandler];
+  [self.appView.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Verify File" fixed:NO makeKey:YES];
 }
 
 + (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton {
@@ -299,46 +300,53 @@
 
 #pragma mark Error Handling
 
-+ (void)setError:(NSError *)error sender:(NSView *)sender {
-  [AppDelegate.sharedDelegate setError:error sender:sender completion:nil];
++ (BOOL)setError:(NSError *)error sender:(NSView *)sender {
+  return [AppDelegate.sharedDelegate setError:error sender:sender completion:nil];
 }
 
-+ (void)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
-  [AppDelegate.sharedDelegate setError:error sender:sender completion:completion];
++ (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
+  return [AppDelegate.sharedDelegate setError:error sender:sender completion:completion];
 }
 
-- (void)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
-  NSParameterAssert(error);
+- (BOOL)setError:(NSError *)error sender:(NSView *)sender {
+  return [self setError:error sender:sender completion:nil];
+}
+
+- (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
+  if (!error) return NO;
 
   NSString *errorName = error.userInfo[@"MPErrorInfoKey"][@"name"];
   if ([errorName isEqualToString:@"CANCELED"]) {
     // Canceled, ok to ignore
-    return;
+    return NO;
   }
 
   if ([errorName isEqualToString:@"LOGIN_REQUIRED"]) {
     [self.appView logout:NO];
-    return;
+    return YES;
   }
 
   DDLogError(@"%@", error);
 
   if (_alerting) {
     DDLogDebug(@"Already showing error (%@)", error);
-    return;
+    return YES;
   }
 
   NSWindow *window = sender.window;
   if (!window) window = [NSApp mainWindow];
-  _alerting = YES;
-  GHWeakSelf gself = self;
+  if (!window) window = [NSApp keyWindow];
+  if (!window) window = [[NSApp windows] firstObject];
 
   NSAssert(window, @"No window to show alert");
 
+  _alerting = YES;
+  GHWeakSelf gself = self;
   [[NSAlert alertWithError:error] beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
     gself.alerting = NO;
     if (completion) completion(returnCode);
   }];
+  return YES;
 }
 
 #pragma mark KBAppViewDelegate

@@ -6,16 +6,16 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBTestHelperView.h"
+#import "KBTestInstallView.h"
 
 #import "AppDelegate.h"
 
-@interface KBTestHelperView ()
+@interface KBTestInstallView ()
 @property KBButton *installButton;
 @property KBListView *logView;
 @end
 
-@implementation KBTestHelperView
+@implementation KBTestInstallView
 
 - (void)viewInit {
   [super viewInit];
@@ -23,21 +23,23 @@
   GHWeakSelf gself = self;
   YOHBox *buttons = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,20,10,0"}];
   [self addSubview:buttons];
-  KBButton *installButton = [KBButton buttonWithText:@"Install" style:KBButtonStyleToolbar];
+  KBButton *installButton = [KBButton buttonWithText:@"Install Tool" style:KBButtonStyleToolbar];
   installButton.targetBlock = ^{ [gself install]; };
   [buttons addSubview:installButton];
 
+  YOHBox *buttons2 = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,20,10,0"}];
+  [self addSubview:buttons2];
   KBButton *connectButton = [KBButton buttonWithText:@"Connect" style:KBButtonStyleToolbar];
   connectButton.targetBlock = ^{ [gself connect]; };
-  [buttons addSubview:connectButton];
+  [buttons2 addSubview:connectButton];
 
   KBButton *checkButton = [KBButton buttonWithText:@"Version" style:KBButtonStyleToolbar];
   checkButton.targetBlock = ^{ [gself checkVersion]; };
-  [buttons addSubview:checkButton];
+  [buttons2 addSubview:checkButton];
 
   KBButton *installKBFSButton = [KBButton buttonWithText:@"Install KBFS" style:KBButtonStyleToolbar];
   installKBFSButton.targetBlock = ^{ [gself installKBFS]; };
-  [buttons addSubview:installKBFSButton];
+  [buttons2 addSubview:installKBFSButton];
 
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
   _logView.scrollView.borderType = NSBezelBorder;
@@ -50,7 +52,8 @@
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat y = 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 34) view:buttons].size.height;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 34) view:buttons].size.height + 5;
+    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 34) view:buttons2].size.height;
 
     [layout setFrame:CGRectMake(20, y, size.width - 40, size.height - y - 20) view:yself.logView];
 

@@ -15,6 +15,7 @@
 @property KBLabel *headerLabel;
 @property KBImageView *imageView;
 @property NSMutableArray *labels;
+@property NSMutableArray *buttons;
 @end
 
 @implementation KBUserInfoLabels
@@ -22,13 +23,13 @@
 - (void)viewInit {
   [super viewInit];
   _headerLabel = [[KBLabel alloc] init];
-  _headerLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_headerLabel];
 
   _imageView = [[KBImageView alloc] init];
   [self addSubview:_imageView];
 
   _labels = [NSMutableArray array];
+  _buttons = [NSMutableArray array];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
@@ -47,8 +48,8 @@
       [layout setFrame:CGRectMake(x - 35, y, lineHeight, lineHeight) view:yself.imageView];
     }
 
-    for (NSView *view in yself.labels) {
-      y += [layout setFrame:CGRectMake(col1, y, size.width - x - 5, lineHeight) view:view options:YOLayoutOptionsSizeToFitHorizontal].size.height;
+    for (NSView *view in yself.buttons) {
+      y += [layout sizeToFitInFrame:CGRectMake(col1, y, size.width - x - 5, lineHeight) view:view].size.height;
     }
 
     return CGSizeMake(size.width, y);
@@ -71,10 +72,10 @@
 }
 
 - (void)addHeader:(NSString *)header text:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
-  [_headerLabel setText:header font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:header style:KBTextStyleDefault];
   KBButton *button = [KBButton buttonWithText:text style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = targetBlock;
-  [_labels addObject:button];
+  [_buttons addObject:button];
   [self addSubview:button];
   [self setNeedsLayout];
 }
@@ -112,7 +113,7 @@
   //_imageView.image = image;
 
   //if (!_imageView.image) {
-  [_headerLabel setText:KBShortNameForProveType(proveType) font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:KBShortNameForProveType(proveType) font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   //} else {
   //  _headerLabel.attributedText = nil;
   //}
@@ -122,10 +123,12 @@
   } else {
     for (NSInteger index = 0; index < [proofResults count]; index++) {
       KBProofLabel *proofLabel = [KBProofLabel labelWithProofResult:proofResults[index] editable:editable];
-      __weak KBProofLabel *selectLabel = proofLabel;
-      proofLabel.targetBlock = ^{ targetBlock(selectLabel); };
+      KBButtonView *button = [KBButtonView buttonViewWithView:proofLabel targetBlock:^{
+        targetBlock(proofLabel);
+      }];
       [_labels addObject:proofLabel];
-      [self addSubview:proofLabel];
+      [_buttons addObject:button];
+      [self addSubview:button];
     }
   }
 

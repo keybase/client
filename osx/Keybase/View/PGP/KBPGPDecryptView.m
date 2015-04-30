@@ -14,7 +14,6 @@
 #import "KBPGPDecrypt.h"
 #import "KBPGPDecryptFooterView.h"
 #import "KBPGPDecrypted.h"
-#import <YOLayout/YOBorderLayout.h>
 
 @interface KBPGPDecryptView ()
 @property KBTextView *textView;
@@ -61,17 +60,22 @@
   KBWriter *writer = [KBWriter writer];
   KBStream *stream = [KBStream streamWithReader:reader writer:writer label:arc4random()];
 
-  self.navigation.progressEnabled = YES;
+  [KBActivity setProgressEnabled:YES sender:self];
   [_decrypter decryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
-    self.navigation.progressEnabled = NO;
     NSError *error = [works[0] error];
+    [KBActivity setProgressEnabled:NO sender:self];
+    if ([KBActivity setError:error sender:self]) return;
     KBPGPDecrypted *decrypted = [works[0] output];
-    if ([self.navigation setError:error sender:self]) return;
-    [self showOutput:decrypted];
+
+    if (self.onDecrypt) {
+      self.onDecrypt(self, decrypted);
+    } else {
+      [self _decrypted:decrypted];
+    }
   }];
 }
 
-- (void)showOutput:(KBPGPDecrypted *)decrypted {
+- (void)_decrypted:(KBPGPDecrypted *)decrypted {
   KBPGPOutputView *outputView = [[KBPGPOutputView alloc] init];
   NSString *text = [[NSString alloc] initWithData:decrypted.stream.writer.data encoding:NSUTF8StringEncoding];
   [outputView setText:text];

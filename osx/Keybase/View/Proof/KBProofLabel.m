@@ -20,10 +20,12 @@
 - (void)setProofResult:(KBProofResult *)proofResult {
   _proofResult = proofResult;
 
-  BOOL errored = NO;
-  NSColor *color = [KBAppearance.currentAppearance selectColor];
-  NSString *info = nil;
-  NSString *errorMessage = nil;
+  BOOL erroredHard = NO;
+  BOOL erroredTrack = NO;
+
+  NSColor *color = (self.editable ? KBAppearance.currentAppearance.selectColor : KBAppearance.currentAppearance.textColor);
+  NSString *label = nil;
+  NSString *message = nil;
 
   if (!_proofResult.result) {
     // Loading the result
@@ -37,61 +39,70 @@
         case KBRTrackDiffTypeError:
         case KBRTrackDiffTypeClash:
         case KBRTrackDiffTypeDeleted:
-          info = diff.displayMarkup;
+          label = diff.displayMarkup;
           color = [KBAppearance.currentAppearance errorColor];
-          errored = YES;
+          erroredTrack = YES;
           break;
 
         case KBRTrackDiffTypeUpgraded:
         case KBRTrackDiffTypeNew:
           color = [KBAppearance.currentAppearance greenColor];
-          info = diff.displayMarkup;
+          label = diff.displayMarkup;
           break;
 
         case KBRTrackDiffTypeRemoteFail:
         case KBRTrackDiffTypeRemoteChanged:
-          info = diff.displayMarkup;
+          label = diff.displayMarkup;
           color = [KBAppearance.currentAppearance warnColor];
           break;
 
         case KBRTrackDiffTypeRemoteWorking:
-          info = diff.displayMarkup;
+          label = diff.displayMarkup;
           break;
       }
     }
 
     if (_proofResult.result.proofStatus.status != 1) {
-      color = [KBAppearance.currentAppearance errorColor];
-      errored = YES;
-      errorMessage = _proofResult.result.proofStatus.desc;
-      info = NSStringWithFormat(@"error: %@", @(_proofResult.result.proofStatus.status)); // _proofResult.result.proofStatus.desc
+      message = NSStringWithFormat(@"%@ (%@)", _proofResult.result.proofStatus.desc, @(_proofResult.result.proofStatus.status));
+      if (_proofResult.result.proofStatus.status < 200) {
+        color = KBAppearance.currentAppearance.warnColor;
+      } else {
+        color = KBAppearance.currentAppearance.errorColor;
+        erroredHard = YES;
+      }
     } else if (!_proofResult.result.hint.humanUrl) {
       // No link
       color = [KBAppearance.currentAppearance textColor];
     }
   }
 
-  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:[NSFont systemFontOfSize:14]};
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.alignment = NSLeftTextAlignment;
+  paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:[KBAppearance.currentAppearance fontForStyle:KBTextStyleDefault], NSParagraphStyleAttributeName:paragraphStyle};
+
   NSMutableAttributedString *value = [[NSMutableAttributedString alloc] initWithString:proofResult.proof.value];
   [value setAttributes:attributes range:NSMakeRange(0, value.length)];
 
-  if (errored) {
+  if (erroredHard || erroredTrack) {
     [value addAttribute:NSStrikethroughStyleAttributeName value:@(YES) range:NSMakeRange(0, value.length)];
   }
 
   NSMutableAttributedString *result = [[NSMutableAttributedString alloc] init];
   [result appendAttributedString:value];
 
-  if (info) {
-    NSMutableAttributedString *infoStr = [[NSMutableAttributedString alloc] initWithString:info];
+  if (label) {
+    NSMutableAttributedString *infoStr = [[NSMutableAttributedString alloc] initWithString:NSStringWithFormat(@" (%@)", label)];
     [infoStr setAttributes:attributes range:NSMakeRange(0, infoStr.length)];
-
-    [result appendAttributedString:[[NSAttributedString alloc] initWithString:@" (" attributes:attributes]];
     [result appendAttributedString:infoStr];
-    [result appendAttributedString:[[NSAttributedString alloc] initWithString:@")" attributes:attributes]];
   }
 
-  [self setAttributedTitle:result style:KBButtonStyleText];
+  if (message) {
+    NSAttributedString *errorStr = [[NSAttributedString alloc] initWithString:NSStringWithFormat(@"\n(%@)", message) attributes:attributes];
+    [result appendAttributedString:errorStr];
+  }
+
+  self.attributedText = result;
 }
 
 @end

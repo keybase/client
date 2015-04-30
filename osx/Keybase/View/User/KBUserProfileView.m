@@ -107,9 +107,9 @@
 }
 
 - (void)openPopup:(id)sender {
-  NSAssert(self.popup, @"No configured as a popup");
+  //NSAssert(self.popup, @"No configured as a popup");
   NSAssert(!self.window, @"Already in window");
-  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO makeKey:YES errorHandler:^(NSError *error, id sender) { [self setError:error]; }];
+  [[sender window] kb_addChildWindowForView:self rect:CGRectMake(0, 0, 400, 400) position:KBWindowPositionCenter title:@"Keybase" fixed:NO makeKey:NO];
 }
 
 - (void)registerClient:(KBRPClient *)client sessionId:(NSInteger)sessionId sender:(id)sender {
@@ -127,8 +127,8 @@
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
     gself.fokid = requestParams.fokid;
     if (requestParams.fokid.pgpFingerprint) {
-      [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *key) {
-        [self openKey:key];
+      [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *keyId) {
+        [self openKeyWithKeyId:keyId];
       }];
       [gself setNeedsLayout];
     }
@@ -196,7 +196,7 @@
     KBRFinishAndPromptRequestParams *requestParams = [[KBRFinishAndPromptRequestParams alloc] initWithParams:params];
     gself.trackView.hidden = NO;
     BOOL trackPrompt = [gself.trackView setUsername:gself.username popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
-      [KBNavigationView setProgressEnabled:NO subviews:gself.trackView.subviews];
+      [KBActivity setProgressEnabled:NO subviews:gself.trackView.subviews];
       completion(nil, response);
       if (self.popup) {
         [[self window] close];
@@ -332,7 +332,7 @@
 
 - (void)setTrackCompleted:(NSError *)error {
   [_headerView setProgressEnabled:NO];
-  [KBNavigationView setProgressEnabled:NO subviews:_trackView.subviews];
+  [KBActivity setProgressEnabled:NO subviews:_trackView.subviews];
   if (![_trackView setTrackCompleted:error]) {
     if (error) [self setError:error];
   }
@@ -364,12 +364,12 @@
   }];
 }
 
-- (void)openKey:(KBRFOKID *)key {
+- (void)openKeyWithKeyId:(KBRFOKID *)keyId {
   KBKeyView *keyView = [[KBKeyView alloc] init];
   keyView.client = self.client;
   BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
-  [keyView setKey:key editable:isSelf];
-  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES errorHandler:AppDelegate.sharedDelegate.errorHandler];
+  [keyView setKeyId:keyId editable:isSelf];
+  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
 }
 
 - (void)generatePGPKey {
