@@ -12,6 +12,7 @@ protocol backendCommon {
 		UID chargedTo; // The user this block should be charged to
 		bytes folder; // The folder this block belongs to
 		bytes sKey;  // The secret block key
+		bytes nonce;
 	}
 }
 

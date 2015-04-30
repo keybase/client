@@ -7,10 +7,12 @@ protocol bIndex {
 	bytes getBIndexSKey(BlockIdCombo bid);
 	void putBIndex(BlockIdCombo bid, BlockInfo info);
 
-	void decBIndexReference(BlockIdCombo bid, UID chargedTo);
-	void incBIndexReference(BlockIdCombo bid, UID chargedTo);
+	//nonce should be 64-bit (8-byte)
+	void decBIndexReference(BlockIdCombo bid, bytes nonce, UID chargedTo);
+	void incBIndexReference(BlockIdCombo bid, bytes nonce, UID chargedTo);
 
-	int getBIndexReference(BlockIdCombo bid); 
+	array<StringKVPair> getBIndexAll(BlockIdCombo bid); 
+
 	// future RPC from bserver to bindex 
 	// void notifySize(array<BlockIdCombo> bids); 
 

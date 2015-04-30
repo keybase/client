@@ -84,6 +84,7 @@ type BlockInfo struct {
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
 	Folder    []byte `codec:"folder" json:"folder"`
 	SKey      []byte `codec:"sKey" json:"sKey"`
+	Nonce     []byte `codec:"nonce" json:"nonce"`
 }
 
 type BIndexSessionArg struct {
@@ -101,15 +102,17 @@ type PutBIndexArg struct {
 
 type DecBIndexReferenceArg struct {
 	Bid       BlockIdCombo `codec:"bid" json:"bid"`
+	Nonce     []byte       `codec:"nonce" json:"nonce"`
 	ChargedTo UID          `codec:"chargedTo" json:"chargedTo"`
 }
 
 type IncBIndexReferenceArg struct {
 	Bid       BlockIdCombo `codec:"bid" json:"bid"`
+	Nonce     []byte       `codec:"nonce" json:"nonce"`
 	ChargedTo UID          `codec:"chargedTo" json:"chargedTo"`
 }
 
-type GetBIndexReferenceArg struct {
+type GetBIndexAllArg struct {
 	Bid BlockIdCombo `codec:"bid" json:"bid"`
 }
 
@@ -119,7 +122,7 @@ type BIndexInterface interface {
 	PutBIndex(PutBIndexArg) error
 	DecBIndexReference(DecBIndexReferenceArg) error
 	IncBIndexReference(IncBIndexReferenceArg) error
-	GetBIndexReference(BlockIdCombo) (int, error)
+	GetBIndexAll(BlockIdCombo) ([]StringKVPair, error)
 }
 
 func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
@@ -161,10 +164,10 @@ func BIndexProtocol(i BIndexInterface) rpc2.Protocol {
 				}
 				return
 			},
-			"getBIndexReference": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetBIndexReferenceArg, 1)
+			"getBIndexAll": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]GetBIndexAllArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.GetBIndexReference(args[0].Bid)
+					ret, err = i.GetBIndexAll(args[0].Bid)
 				}
 				return
 			},
@@ -204,9 +207,9 @@ func (c BIndexClient) IncBIndexReference(__arg IncBIndexReferenceArg) (err error
 	return
 }
 
-func (c BIndexClient) GetBIndexReference(bid BlockIdCombo) (res int, err error) {
-	__arg := GetBIndexReferenceArg{Bid: bid}
-	err = c.Cli.Call("keybase.1.bIndex.getBIndexReference", []interface{}{__arg}, &res)
+func (c BIndexClient) GetBIndexAll(bid BlockIdCombo) (res []StringKVPair, err error) {
+	__arg := GetBIndexAllArg{Bid: bid}
+	err = c.Cli.Call("keybase.1.bIndex.getBIndexAll", []interface{}{__arg}, &res)
 	return
 }
 

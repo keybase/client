@@ -185,6 +185,9 @@
     }, {
       "name" : "sKey",
       "type" : "bytes"
+    }, {
+      "name" : "nonce",
+      "type" : "bytes"
     } ]
   }, {
     "type" : "record",

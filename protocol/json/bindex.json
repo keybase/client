@@ -185,6 +185,9 @@
     }, {
       "name" : "sKey",
       "type" : "bytes"
+    }, {
+      "name" : "nonce",
+      "type" : "bytes"
     } ]
   } ],
   "messages" : {
@@ -217,6 +220,9 @@
         "name" : "bid",
         "type" : "BlockIdCombo"
       }, {
+        "name" : "nonce",
+        "type" : "bytes"
+      }, {
         "name" : "chargedTo",
         "type" : "UID"
       } ],
@@ -227,17 +233,23 @@
         "name" : "bid",
         "type" : "BlockIdCombo"
       }, {
+        "name" : "nonce",
+        "type" : "bytes"
+      }, {
         "name" : "chargedTo",
         "type" : "UID"
       } ],
       "response" : "null"
     },
-    "getBIndexReference" : {
+    "getBIndexAll" : {
       "request" : [ {
         "name" : "bid",
         "type" : "BlockIdCombo"
       } ],
-      "response" : "int"
+      "response" : {
+        "type" : "array",
+        "items" : "StringKVPair"
+      }
     }
   }
 }
