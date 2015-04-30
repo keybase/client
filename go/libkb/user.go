@@ -312,10 +312,6 @@ func (u *User) GetDeviceKIDs(g *GlobalContext) (sibKid, subKid KID, err error) {
 		err = KeyFamilyError{"no key family available"}
 		return
 	}
-	sibKid, err = ckf.GetActiveSibkeyKidForCurrentDevice(g)
-	if err != nil {
-		return
-	}
 	did := g.Env.GetDeviceID()
 	if did == nil {
 		err = NotProvisionedError{}

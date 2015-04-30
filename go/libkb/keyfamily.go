@@ -814,19 +814,6 @@ func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did DeviceID) (key GenericKey, 
 	return
 }
 
-// GetActiveSibkeyKidForCurrentDevice looks up the current Device ID and, if found, tries to
-// get the corresponding KID, and if that's found, we check that it's active.
-func (ckf *ComputedKeyFamily) GetActiveSibkeyKidForCurrentDevice(g *GlobalContext) (kid KID, err error) {
-	if did := g.Env.GetDeviceID(); did == nil {
-		err = NotProvisionedError{}
-	} else if kid, err = ckf.getSibkeyKidForDevice(*did); err != nil {
-	} else if ckf.GetKeyRole(kid) != DLG_SIBKEY {
-		err = InactiveKeyError{kid}
-		kid = nil
-	}
-	return kid, err
-}
-
 // GetCurrentDevice returns the current device.
 func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error) {
 	if g == nil {
