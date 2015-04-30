@@ -98,5 +98,25 @@ func TestTrack(t *testing.T) {
 	fu.LoginOrBust(t)
 	trackBob(t, fu)
 	defer untrackBob(t, fu)
+
+	// try tracking a user with no keys
+	_, _, err = runTrack(fu, "t_ellen")
+	if err == nil {
+		t.Errorf("expected error tracking t_ellen, got nil")
+	}
 	return
+}
+
+// tests tracking a user that doesn't have a public key (#386)
+func TestTrackNoPubKey(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(t, "track")
+	G.Logout()
+
+	tracker := CreateAndSignupFakeUser(t, "track")
+	_, _, err := runTrack(tracker, fu.Username)
+	if err != nil {
+		t.Fatalf("error tracking user w/ no pgp key: %s", err)
+	}
 }

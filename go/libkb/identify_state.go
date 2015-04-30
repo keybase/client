@@ -36,6 +36,9 @@ func (s *IdentifyState) ComputeDeletedProofs() {
 
 func (s *IdentifyState) InitResultList() {
 	idt := s.u.IdTable()
+	if idt == nil {
+		return
+	}
 	l := len(idt.activeProofs)
 	s.res.ProofChecks = make([]*LinkCheckResult, l)
 	for i, p := range idt.activeProofs {

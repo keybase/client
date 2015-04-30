@@ -58,8 +58,6 @@ func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
 	k.Lock()
 	defer k.Unlock()
 
-	G.Log.Warning("LoadSKBKeyring for user: %s", un)
-
 	if k.skbfile == nil {
 		if len(un) == 0 {
 			return nil, NoUsernameError{}

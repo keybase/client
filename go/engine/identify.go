@@ -153,6 +153,10 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		}
 	}
 
+	if !e.user.HasActiveKey() {
+		return nil, fmt.Errorf("user %s doesn't have an active key", e.user.GetName())
+	}
+
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(is.Track))
 
 	G.Log.Debug("+ Identify(%s)", e.user.GetName())
@@ -217,7 +221,7 @@ func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
 		return nil, fmt.Errorf("Cannot lookup user with %q", e.arg.TargetUsername)
 	}
 
-	return &libkb.LoadUserArg{Name: b}, nil
+	return &libkb.LoadUserArg{Name: b, PublicKeyOptional: true}, nil
 }
 
 func (e *Identify) loadExpr(assertion string) error {
