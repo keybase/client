@@ -21,10 +21,9 @@
 
 @interface KBAppToolbar : YOView
 
+@property KBAppViewItem selectedItem;
 @property (weak) id<KBAppToolbarDelegate> delegate;
 
 - (void)setUser:(KBRUser *)user;
-
-- (void)selectItem:(KBAppViewItem)item;
 
 @end

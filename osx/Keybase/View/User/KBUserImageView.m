@@ -19,6 +19,19 @@
 
 - (void)setUsername:(NSString *)username {
   _username = username;
+  [self kb_setUsername:_username];
+}
+
+@end
+
+
+@implementation KBImageView (KBUserImageView)
+
+- (void)kb_setUsername:(NSString *)username {
+  if (!username) {
+    self.image = nil;
+    return;
+  }
   NSString *URLString = [AppDelegate.appView APIURLString:NSStringWithFormat(@"%@/picture?format=square_200", username)];
 
   NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:URLString]];
@@ -32,7 +45,6 @@
       [gself setImageWithURL:[NSURL URLWithString:@"https://keybase.io/images/no_photo.png"]];
     }
   }];
-
 }
 
 @end

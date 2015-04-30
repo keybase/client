@@ -41,7 +41,7 @@
     if (file) [previewView setFile:file];
   };
 
-  [_splitView setSourceView:_foldersView contentView:previewView];
+  [_splitView setLeftView:_foldersView rightView:previewView];
 
   self.viewLayout = [YOLayout fill:_splitView];
 }

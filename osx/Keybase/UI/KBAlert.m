@@ -9,6 +9,7 @@
 #import "KBAlert.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
+#import "KBWindow.h"
 
 @implementation KBAlert
 

@@ -58,13 +58,13 @@
   [super viewInit];
 
   _label = [[KBLabel alloc] init];
-  [_label setText:@"To" font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [_label setText:@"To" font:KBAppearance.currentAppearance.textFont color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
   [self addSubview:_label];
 
   _tokensField = [[NSTokenField alloc] init];
   _tokensField.tokenStyle = NSRoundedTokenStyle;
   _tokensField.delegate = self;
-  _tokensField.font = [NSFont systemFontOfSize:16];
+  _tokensField.font = KBAppearance.currentAppearance.textFont;
   _tokensField.focusRingType = NSFocusRingTypeNone;
   _tokensField.bordered = NO;
   _tokensField.textColor = KBAppearance.currentAppearance.textColor;
@@ -100,14 +100,14 @@
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 10;
-    CGFloat y = 10;
+    CGFloat x = 8;
+    CGFloat y = 8;
     x += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x, 0) view:yself.label].size.width + 8;
 
     [layout setFrame:CGRectMake(size.width - 24, y, 20, 20) view:yself.progressView];
 
     CGSize tokenSize = [yself.tokensField sizeThatFits:CGSizeMake(size.width - x - 26, CGFLOAT_MAX)];
-    y += [layout setFrame:CGRectMake(x, y, size.width - x, tokenSize.height + 2) view:yself.tokensField].size.height + 10;
+    y += [layout setFrame:CGRectMake(x, y, size.width - x, tokenSize.height + 2) view:yself.tokensField].size.height + 8;
     return CGSizeMake(size.width, y);
   }];
 }

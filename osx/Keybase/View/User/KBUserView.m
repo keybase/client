@@ -12,8 +12,9 @@
 
 @implementation KBUserView
 
-- (KBImageView *)loadImageView {
-  return [[KBUserImageView alloc] init];
+- (void)viewInit {
+  [super viewInit];
+  self.imageView.roundedRatio = 1.0;
 }
 
 - (void)setUser:(KBRUser *)user {
@@ -41,7 +42,7 @@ KBRTrackProof *KBFindProof(KBRProofs *proofs, NSString *proofType) {
   } else {
     self.infoLabel.attributedText = nil;
   }
-  ((KBUserImageView *)self.imageView).username = userSummary.username;
+  [self.imageView kb_setUsername:userSummary.username];
   [self setNeedsLayout];
 }
 

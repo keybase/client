@@ -8,8 +8,6 @@
 
 ### Build
 
-You should make sure the go/libkb/version.go has the right version set for keybased and keybase client.
-
 ```sh
 sh build.sh x.y.z   # Version
 ```

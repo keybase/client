@@ -109,9 +109,16 @@
   }
 }
 
-- (void)selectItem:(KBAppViewItem)item {
-  [self setStateOffExcept:item];
-  [self buttonWithTag:item].state = NSOnState;
+- (void)setSelectedItem:(KBAppViewItem)selectedItem {
+  NSAssert(selectedItem != KBAppViewItemNone, @"Can't set to none");
+  [self setStateOffExcept:selectedItem];
+  [self buttonWithTag:selectedItem].state = NSOnState;
+}
+
+- (KBAppViewItem)selectedItem {
+  KBButton *selectedButton = [_buttons detect:^BOOL(KBButton *b) { return b.state == NSOnState; }];
+  if (selectedButton) return selectedButton.tag;
+  return KBAppViewItemNone;
 }
 
 - (void)notifyItemSelected:(KBAppViewItem)item {

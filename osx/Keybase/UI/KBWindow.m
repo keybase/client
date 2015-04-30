@@ -12,6 +12,7 @@
 
 @interface NSView (KBView)
 - (void)setupResponders;
+- (void)setNavigation:(KBNavigationView *)navigation;
 @end
 
 @interface KBWindow () <NSWindowDelegate>
@@ -79,6 +80,9 @@
 
 - (NSWindow *)kb_addChildWindowForView:(YOView *)view rect:(CGRect)rect position:(KBWindowPosition)position title:(NSString *)title fixed:(BOOL)fixed makeKey:(BOOL)makeKey {
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:title];
+  if ([view respondsToSelector:@selector(setNavigation:)]) {
+    [view setNavigation:navigation];
+  }
 
   CGSize size = [view sizeThatFits:rect.size];
   size.height += 32; // TODO

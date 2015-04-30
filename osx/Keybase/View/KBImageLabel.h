@@ -8,6 +8,20 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBImageLabel : NSObject
+#import "KBAppKit.h"
+
+typedef NS_ENUM (NSInteger, KBImageLabelStyle) {
+  KBImageLabelStyleDefault,
+  KBImageLabelStyleLarge,
+};
+
+
+@interface KBImageLabel : YOView
+
+@property (readonly) KBImageView *imageView;
+@property (readonly) KBLabel *nameLabel;
+@property KBImageLabelStyle style;
+
++ (NSFont *)fontForStyle:(KBImageLabelStyle)style;
 
 @end

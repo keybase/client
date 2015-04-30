@@ -10,7 +10,6 @@
 
 @interface KBHeaderLabelView ()
 @property KBLabel *headerLabel;
-@property KBImageView *imageView;
 @property NSMutableArray *labels;
 @end
 
@@ -22,30 +21,23 @@
   _headerLabel.verticalAlignment = KBVerticalAlignmentMiddle;
   [self addSubview:_headerLabel];
 
-  _imageView = [[KBImageView alloc] init];
-  [self addSubview:_imageView];
-
   _labels = [NSMutableArray array];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat col1 = 80;
-    CGFloat x = col1;
+    CGFloat col = 120;
+    CGFloat x = col;
     CGFloat y = 0;
-    CGFloat lineHeight = 18;
 
+    CGFloat headerHeight = y;
     if ([yself.headerLabel hasText]) {
       CGSize headerLabelSize = [yself.headerLabel sizeThatFits:size];
-      col1 = MAX(headerLabelSize.width, 80);
-      [layout setFrame:CGRectMake(x - headerLabelSize.width - 5, 0, headerLabelSize.width, lineHeight + 1) view:yself.headerLabel];
-    }
-
-    if (yself.imageView.image) {
-      [layout setFrame:CGRectMake(x - 35, y, lineHeight, lineHeight) view:yself.imageView];
+      col = MAX(headerLabelSize.width, col);
+      headerHeight = [layout sizeToFitHorizontalInFrame:CGRectMake(x - headerLabelSize.width - 5, 0, headerLabelSize.width, headerLabelSize.height) view:yself.headerLabel].size.height;
     }
 
     for (NSView *view in yself.labels) {
-      y += [layout setFrame:CGRectMake(col1, y, size.width - x - 5, lineHeight) view:view options:YOLayoutOptionsSizeToFitHorizontal].size.height;
+      y += [layout sizeToFitHorizontalInFrame:CGRectMake(col, y, size.width - col - 5, headerHeight) view:view].size.height;
     }
 
     return CGSizeMake(size.width, y);
@@ -53,17 +45,16 @@
 }
 
 - (void)setHeader:(NSString *)header {
-  [_headerLabel setText:header font:KBAppearance.currentAppearance.boldTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
+  [_headerLabel setText:header style:KBTextStyleStrong];
 }
 
-- (void)addText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock {
+- (void)addText:(NSString *)text style:(KBTextStyle)style targetBlock:(dispatch_block_t)targetBlock {
+  KBLabel *label = [KBLabel labelWithText:text style:style alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingMiddle];
+  label.verticalAlignment = KBVerticalAlignmentMiddle;
+
   if (targetBlock) {
-    KBButton *button = [KBButton buttonWithText:text style:KBButtonStyleLink];
-    button.targetBlock = targetBlock;
-    [_labels addObject:button];
-    [self addSubview:button];
+    NSAssert(NO, @"Not implemented"); // TODO Wrap in KBButtonView if selectable
   } else {
-    KBLabel *label = [KBLabel labelWithText:text style:KBTextStyleDefault];
     [_labels addObject:label];
     [self addSubview:label];
   }

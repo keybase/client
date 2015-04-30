@@ -14,7 +14,7 @@
 @interface KBUserInfoLabels ()
 @property KBLabel *headerLabel;
 @property KBImageView *imageView;
-@property NSMutableArray *labels;
+@property NSMutableArray *proofLabels;
 @property NSMutableArray *buttons;
 @end
 
@@ -28,7 +28,7 @@
   _imageView = [[KBImageView alloc] init];
   [self addSubview:_imageView];
 
-  _labels = [NSMutableArray array];
+  _proofLabels = [NSMutableArray array];
   _buttons = [NSMutableArray array];
 
   YOSelf yself = self;
@@ -63,10 +63,8 @@
 }
 
 - (KBProofLabel *)findLabelForSigId:(KBRSIGID *)sigId {
-  for (id label in _labels) {
-    if ([label respondsToSelector:@selector(proofResult)]) {
-      if ([[label proofResult].proof.sigId isEqual:sigId]) return label;
-    }
+  for (KBProofLabel *label in _proofLabels) {
+    if ([[label proofResult].proof.sigId isEqual:sigId]) return label;
   }
   return nil;
 }
@@ -85,14 +83,14 @@
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
 
   NSString *keyDescription;
-  //if (key.pgpFingerprint) {
-  keyDescription = NSStringFromKBKeyFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint)), 0);
-//  } else if (key.kid) {
-//    keyDescription = NSStringWithFormat(@"%@...", [KBHexString(key.kid) substringToIndex:16]);
-//  }
+  if (key.kid) {
+    keyDescription = KBDescriptionForKID(key.kid);
+  } else if (key.pgpFingerprint) {
+    keyDescription = KBDescriptionForFingerprint(KBPGPKeyIdFromFingerprint(KBHexString(key.pgpFingerprint)), 0);
+  }
   KBButton *button = [KBButton buttonWithText:keyDescription style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, key); };
-  [_labels addObject:button];
+  [_buttons addObject:button];
   [self addSubview:button];
   [self setNeedsLayout];
 }
@@ -102,7 +100,7 @@
   [_headerLabel setText:nil font:[NSFont systemFontOfSize:14] color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
   KBButton *button = [KBButton buttonWithText:cryptocurrency.address style:KBButtonStyleLink alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   button.targetBlock = ^{ targetBlock(self, cryptocurrency); };
-  [_labels addObject:button];
+  [_buttons addObject:button];
   [self addSubview:button];
   [self setNeedsLayout];
 }
@@ -126,7 +124,7 @@
       KBButtonView *button = [KBButtonView buttonViewWithView:proofLabel targetBlock:^{
         targetBlock(proofLabel);
       }];
-      [_labels addObject:proofLabel];
+      [_proofLabels addObject:proofLabel];
       [_buttons addObject:button];
       [self addSubview:button];
     }

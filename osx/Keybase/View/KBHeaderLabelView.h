@@ -14,6 +14,6 @@
 
 - (void)setHeader:(NSString *)header;
 
-- (void)addText:(NSString *)text targetBlock:(dispatch_block_t)targetBlock;
+- (void)addText:(NSString *)text style:(KBTextStyle)style targetBlock:(dispatch_block_t)targetBlock;
 
 @end

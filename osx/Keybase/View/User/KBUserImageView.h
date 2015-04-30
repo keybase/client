@@ -15,3 +15,10 @@
 @property (nonatomic) NSString *username;
 
 @end
+
+
+@interface KBImageView (KBUserImageView)
+
+- (void)kb_setUsername:(NSString *)username;
+
+@end

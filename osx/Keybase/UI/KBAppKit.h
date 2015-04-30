@@ -18,6 +18,7 @@ FOUNDATION_EXPORT const unsigned char KBAppKitVersionString[];
 
 #import <YOLayout/YOLayout.h>
 #import <YOLayout/YOBox.h>
+#import <YOLayout/YOBorderLayout.h>
 #import <GHKit/GHKit.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>

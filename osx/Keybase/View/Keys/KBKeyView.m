@@ -46,6 +46,8 @@
 }
 
 - (void)setKeyId:(KBRFOKID *)keyId editable:(BOOL)editable {
+  NSAssert(self.window, @"No in a window");
+
   _keyId = keyId;
   [_labels removeFromSuperview];
   _labels = [YOVBox box];
@@ -53,28 +55,30 @@
 
   KBHeaderLabelView *keyLabel = [[KBHeaderLabelView alloc] init];
   [keyLabel setHeader:@"Key ID"];
-  if (_keyId.kid) [keyLabel addText:KBHexString(_keyId.kid) targetBlock:nil];
+  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid) uppercaseString] style:KBTextStyleMonospace targetBlock:nil];
   [_labels addSubview:keyLabel];
 
   KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
-  [pgpLabel setHeader:@"PGP"];
-  if (_keyId.pgpFingerprint) [pgpLabel addText:KBHexString(_keyId.pgpFingerprint) targetBlock:nil];
+  [pgpLabel setHeader:@"PGP Fingerprint"];
+  if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint) uppercaseString] style:KBTextStyleMonospace targetBlock:nil];
   [_labels addSubview:pgpLabel];
 
   NSString *query = KBHexString(_keyId.pgpFingerprint);
   if (_keyId.kid) query = KBHexString(_keyId.kid);
 
+  _textView.attributedText = nil;
+  [self setNeedsLayout];
+
+  [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   [request pgpExportWithSessionID:request.sessionId secret:NO query:query completion:^(NSError *error, NSArray *keys) {
-    // TODO: this only works for self
+    [KBActivity setProgressEnabled:NO sender:self];
+    // TODO This only works when we are the user being key exported
     KBRFingerprintAndKey *keyInfo = [keys firstObject];
     [gself.textView setText:keyInfo.key style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    [self setNeedsLayout];
   }];
-
-  _textView.attributedText = nil;
-
-  [self setNeedsLayout];
 }
 
 - (void)removePGPKey:(KBButtonCompletion)completion {

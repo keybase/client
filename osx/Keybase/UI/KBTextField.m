@@ -59,16 +59,18 @@
   _textField.lineBreakMode = NSLineBreakByTruncatingHead;
   [self addSubview:_textField];
 
+  _insets = UIEdgeInsetsMake(12, 15, 10, 0);
+
   // This is fucking crazy but it's the only way
   _timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(_checkFocused) userInfo:nil repeats:YES];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^(id<YOLayout> layout, CGSize size) {
-    CGFloat x = 15;
-    CGFloat y = 12;
+    CGFloat x = yself.insets.left;
+    CGFloat y = yself.insets.top;
     CGSize sizeThatFits = [KBText sizeThatFits:size attributedString:[[NSAttributedString alloc] initWithString:@"Pg" attributes:@{NSFontAttributeName: yself.textField.font}]];
     y += [layout setFrame:CGRectMake(x + 1, y, size.width - x - 2, sizeThatFits.height + 2) view:yself.textField].size.height;
-    y += 10;
+    y += yself.insets.bottom;
     if (!yself.focusView.hidden) {
       [layout setFrame:CGRectMake(0, 0, size.width, y) view:yself.focusView];
     }

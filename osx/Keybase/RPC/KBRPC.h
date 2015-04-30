@@ -75,20 +75,28 @@
 @end
 
 @interface KBRBlockIdCombo : KBRObject
-@property NSString *blockId;
+@property NSData *blockId;
 @property NSInteger size;
+@end
+
+@interface KBRBlockInfo : KBRObject
+@property KBRUID *chargedTo;
+@property NSData *folder;
+@property NSData *sKey;
 @end
 
 @interface KBRBIndexRequest : KBRRequest
 - (void)bIndexSessionWithSid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
-- (void)getBIndexWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getBIndexSKeyWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(NSArray *)info completion:(void (^)(NSError *error))completion;
+- (void)putBIndexWithBid:(KBRBlockIdCombo *)bid info:(KBRBlockInfo *)info completion:(void (^)(NSError *error))completion;
 
 - (void)decBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
 
 - (void)incBIndexReferenceWithBid:(KBRBlockIdCombo *)bid chargedTo:(KBRUID *)chargedTo completion:(void (^)(NSError *error))completion;
+
+- (void)getBIndexReferenceWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, NSInteger n))completion;
 
 @end
 
@@ -333,6 +341,8 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 - (void)displayTrackStatementWithSessionID:(NSInteger)sessionID stmt:(NSString *)stmt completion:(void (^)(NSError *error))completion;
 
 - (void)startWithSessionID:(NSInteger)sessionID username:(NSString *)username completion:(void (^)(NSError *error))completion;
+
+- (void)finishWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -715,12 +725,12 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRBIndexSessionRequestParams : KBRRequestParams
 @property NSString *sid;
 @end
-@interface KBRGetBIndexRequestParams : KBRRequestParams
+@interface KBRGetBIndexSKeyRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @end
 @interface KBRPutBIndexRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
-@property NSArray *info;
+@property KBRBlockInfo *info;
 @end
 @interface KBRDecBIndexReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
@@ -729,6 +739,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRIncBIndexReferenceRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @property KBRUID *chargedTo;
+@end
+@interface KBRGetBIndexReferenceRequestParams : KBRRequestParams
+@property KBRBlockIdCombo *bid;
 @end
 @interface KBRBlockSessionRequestParams : KBRRequestParams
 @property NSString *sid;
@@ -830,6 +843,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @interface KBRStartRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
+@end
+@interface KBRFinishRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRPromptDeviceNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;

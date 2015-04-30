@@ -13,6 +13,7 @@ typedef NS_ENUM(NSInteger, KBTextStyle) {
   KBTextStyleNone,
   KBTextStyleDefault,
   KBTextStyleSecondaryText,
+  KBTextStyleStrong,
   KBTextStyleMonospace,
   KBTextStyleHeader,
   KBTextStyleHeaderLarge,
@@ -26,7 +27,6 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
   KBButtonStyleText,
   KBButtonStyleEmpty,
   KBButtonStyleToolbar,
-  KBButtonStyleSmall,
 };
 
 @protocol KBAppearance

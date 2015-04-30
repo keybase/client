@@ -126,7 +126,7 @@
   [client registerMethod:@"keybase.1.identifyUi.displayKey" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
     gself.fokid = requestParams.fokid;
-    if (requestParams.fokid.pgpFingerprint) {
+    if (requestParams.fokid) {
       [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *keyId) {
         [self openKeyWithKeyId:keyId];
       }];
@@ -201,9 +201,6 @@
       if (self.popup) {
         [[self window] close];
       }
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
-      });
     }];
     [gself setNeedsLayout];
 
@@ -215,6 +212,13 @@
       DDLogDebug(@"No track prompt required");
       completion(nil, nil);
     }
+  }];
+
+  [client registerMethod:@"keybase.1.identifyUi.finish" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
+    });
+    completion(nil, nil);
   }];
 
   [client registerMethod:@"keybase.1.identifyUi.reportLastTrack" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
@@ -276,7 +280,7 @@
 
       [gself.userInfoView addHeader:@" " text:@" " targetBlock:^{}];
 
-      if (!gself.fokid.pgpFingerprint) {
+      if (!gself.fokid) {
         [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
           [gself addPGPKey];
         }];
@@ -366,10 +370,10 @@
 
 - (void)openKeyWithKeyId:(KBRFOKID *)keyId {
   KBKeyView *keyView = [[KBKeyView alloc] init];
+  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
   keyView.client = self.client;
   BOOL isSelf = [AppDelegate.appView.user.username isEqual:self.username];
   [keyView setKeyId:keyId editable:isSelf];
-  [self.window kb_addChildWindowForView:keyView rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Key" fixed:NO makeKey:YES];
 }
 
 - (void)generatePGPKey {

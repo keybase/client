@@ -42,13 +42,19 @@ NSData *KBHexData(NSString *s) {
   return data;
 }
 
+NSString *KBDescriptionForKID(NSData *kid) {
+  if (!kid) return nil;
+  if ([kid length] < 16) return [KBHexString(kid) uppercaseString];
+  return [KBHexString([kid subdataWithRange:NSMakeRange(kid.length-16, 16)]) uppercaseString];
+}
+
 NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint) {
   if (!fingerprint) return nil;
   if ([fingerprint length] < 16) return fingerprint;
   return [[fingerprint substringFromIndex:[fingerprint length] - 16] lowercaseString];
 }
 
-NSString *NSStringFromKBKeyFingerprint(NSString *fingerprint, NSInteger indexForLineBreak) {
+NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForLineBreak) {
   NSMutableString *s = [[NSMutableString alloc] init];
   for (NSInteger i = 1; i <= fingerprint.length; i++) {
     [s appendString:[NSString stringWithFormat:@"%c", [fingerprint characterAtIndex:i-1]]];

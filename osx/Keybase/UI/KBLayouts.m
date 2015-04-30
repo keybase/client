@@ -106,7 +106,7 @@
   return ^CGSize(id<YOLayout> layout, CGSize size) {
     CGSize buttonSize = [button sizeThatFits:size];
     if (horizontalAlignment == KBHorizontalAlignmentRight) {
-      [layout setFrame:CGRectMake(size.width - 280, 0, 130, buttonSize.height) view:cancelButton];
+      if (cancelButton) [layout setFrame:CGRectMake(size.width - 280, 0, 130, buttonSize.height) view:cancelButton];
       [layout setFrame:CGRectMake(size.width - 130, 0, 130, buttonSize.height) view:button];
     } else if (horizontalAlignment == KBHorizontalAlignmentCenter) {
       CGFloat x = size.width/2.0 - 270.0/2.0;

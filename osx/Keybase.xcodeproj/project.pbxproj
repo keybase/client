@@ -23,7 +23,7 @@
 		001FCDEC1AB21F5E004486D3 /* KBBorder.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDEB1AB21F5E004486D3 /* KBBorder.m */; };
 		0025353B1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0025353A1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m */; };
 		0032AFA01AEB363600AF4532 /* KBPGPAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0032AF9F1AEB363600AF4532 /* KBPGPAppView.m */; };
-		003C454A1AE5890900431829 /* KBTestHelperView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C45491AE5890900431829 /* KBTestHelperView.m */; };
+		003C454A1AE5890900431829 /* KBTestInstallView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C45491AE5890900431829 /* KBTestInstallView.m */; };
 		003C454D1AE6CECD00431829 /* KBFSInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBFSInstaller.m */; };
 		003C45501AE6D1CA00431829 /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
 		0043928D1AEFFCB600D764F0 /* KBActivity.m in Sources */ = {isa = PBXBuildFile; fileRef = 0043928C1AEFFCB600D764F0 /* KBActivity.m */; };
@@ -174,6 +174,10 @@
 		00F0CDF01AEABFA7005F738A /* KBPGPDecrypted.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F0CDEF1AEABFA7005F738A /* KBPGPDecrypted.m */; };
 		00F0CDF41AEAC37A005F738A /* KBRunOver.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F0CDF31AEAC37A005F738A /* KBRunOver.m */; };
 		00F0CDF71AEAC389005F738A /* KBWork.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F0CDF61AEAC389005F738A /* KBWork.m */; };
+		00F1D5211AF2C09400DE23F1 /* KBFolderUsersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5201AF2C09400DE23F1 /* KBFolderUsersView.m */; };
+		00F1D5241AF2C15200DE23F1 /* KBFolderUsersListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5231AF2C15200DE23F1 /* KBFolderUsersListView.m */; };
+		00F1D5271AF2C1BF00DE23F1 /* KBUserPermission.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5261AF2C1BF00DE23F1 /* KBUserPermission.m */; };
+		00F1D52A1AF2C23100DE23F1 /* KBImageLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */; };
 		00FBF6B71AF1494300CA7639 /* Keybase_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FBF6B61AF1494300CA7639 /* Keybase_Tests.m */; };
 		00FBF6BD1AF149BC00CA7639 /* KBLaunchCtlTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */; };
 		00FDC8171AAA605C00D6C571 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FDC8161AAA605C00D6C571 /* KBUserImageView.m */; };
@@ -265,8 +269,8 @@
 		0025353A1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceSetupDisplayView.m; sourceTree = "<group>"; };
 		0032AF9E1AEB363600AF4532 /* KBPGPAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPAppView.h; sourceTree = "<group>"; };
 		0032AF9F1AEB363600AF4532 /* KBPGPAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPAppView.m; sourceTree = "<group>"; };
-		003C45481AE5890900431829 /* KBTestHelperView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTestHelperView.h; sourceTree = "<group>"; };
-		003C45491AE5890900431829 /* KBTestHelperView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTestHelperView.m; sourceTree = "<group>"; };
+		003C45481AE5890900431829 /* KBTestInstallView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTestInstallView.h; sourceTree = "<group>"; };
+		003C45491AE5890900431829 /* KBTestInstallView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTestInstallView.m; sourceTree = "<group>"; };
 		003C454B1AE6CECD00431829 /* KBFSInstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSInstaller.h; sourceTree = "<group>"; };
 		003C454C1AE6CECD00431829 /* KBFSInstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSInstaller.m; sourceTree = "<group>"; };
 		003C454E1AE6D1CA00431829 /* KBHelperDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperDefines.h; sourceTree = "<group>"; };
@@ -577,8 +581,16 @@
 		00F0CDF31AEAC37A005F738A /* KBRunOver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRunOver.m; sourceTree = "<group>"; };
 		00F0CDF51AEAC389005F738A /* KBWork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWork.h; sourceTree = "<group>"; };
 		00F0CDF61AEAC389005F738A /* KBWork.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWork.m; sourceTree = "<group>"; };
+		00F1D51F1AF2C09400DE23F1 /* KBFolderUsersView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderUsersView.h; sourceTree = "<group>"; };
+		00F1D5201AF2C09400DE23F1 /* KBFolderUsersView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderUsersView.m; sourceTree = "<group>"; };
+		00F1D5221AF2C15200DE23F1 /* KBFolderUsersListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderUsersListView.h; sourceTree = "<group>"; };
+		00F1D5231AF2C15200DE23F1 /* KBFolderUsersListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderUsersListView.m; sourceTree = "<group>"; };
+		00F1D5251AF2C1BF00DE23F1 /* KBUserPermission.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserPermission.h; sourceTree = "<group>"; };
+		00F1D5261AF2C1BF00DE23F1 /* KBUserPermission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserPermission.m; sourceTree = "<group>"; };
+		00F1D5281AF2C23100DE23F1 /* KBImageLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBImageLabel.h; sourceTree = "<group>"; };
+		00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBImageLabel.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		00FBF6B21AF1494300CA7639 /* Keybase Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Keybase Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		00FBF6B21AF1494300CA7639 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00FBF6B51AF1494300CA7639 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00FBF6B61AF1494300CA7639 /* Keybase_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Keybase_Tests.m; sourceTree = "<group>"; };
 		00FDC8151AAA605C00D6C571 /* KBUserImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserImageView.h; sourceTree = "<group>"; };
@@ -821,6 +833,12 @@
 				009E2BF91AC47B0B00EBB035 /* KBFileSelectView.m */,
 				00EC84251AC4B90600B2D429 /* KBFileIcon.h */,
 				00EC84261AC4B90600B2D429 /* KBFileIcon.m */,
+				00F1D51F1AF2C09400DE23F1 /* KBFolderUsersView.h */,
+				00F1D5201AF2C09400DE23F1 /* KBFolderUsersView.m */,
+				00F1D5221AF2C15200DE23F1 /* KBFolderUsersListView.h */,
+				00F1D5231AF2C15200DE23F1 /* KBFolderUsersListView.m */,
+				00F1D5251AF2C1BF00DE23F1 /* KBUserPermission.h */,
+				00F1D5261AF2C1BF00DE23F1 /* KBUserPermission.m */,
 			);
 			path = Folders;
 			sourceTree = "<group>";
@@ -836,8 +854,8 @@
 		00A48FA91AD84C3100723435 /* Debug */ = {
 			isa = PBXGroup;
 			children = (
-				003C45481AE5890900431829 /* KBTestHelperView.h */,
-				003C45491AE5890900431829 /* KBTestHelperView.m */,
+				003C45481AE5890900431829 /* KBTestInstallView.h */,
+				003C45491AE5890900431829 /* KBTestInstallView.m */,
 				00A48FAA1AD84C3100723435 /* KBConsoleView.h */,
 				00A48FAB1AD84C3100723435 /* KBConsoleView.m */,
 				00A48FAC1AD84C3100723435 /* KBMockViews.h */,
@@ -1009,7 +1027,7 @@
 			children = (
 				00CC43491A3A9E6C006118A9 /* Keybase.app */,
 				0057B0B41AE57A4900BFB0E7 /* keybase.Helper */,
-				00FBF6B21AF1494300CA7639 /* Keybase Tests.xctest */,
+				00FBF6B21AF1494300CA7639 /* Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1182,6 +1200,8 @@
 				00A16C321AB38785003EF505 /* KBHeaderLabelView.m */,
 				00F0CDCC1AE86A5E005F738A /* KBAppToolbar.h */,
 				00F0CDCD1AE86A5E005F738A /* KBAppToolbar.m */,
+				00F1D5281AF2C23100DE23F1 /* KBImageLabel.h */,
+				00F1D5291AF2C23100DE23F1 /* KBImageLabel.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1313,7 +1333,7 @@
 			);
 			name = Tests;
 			productName = "Keybase Tests";
-			productReference = 00FBF6B21AF1494300CA7639 /* Keybase Tests.xctest */;
+			productReference = 00FBF6B21AF1494300CA7639 /* Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -1517,7 +1537,7 @@
 				00A48FB61AD84C3100723435 /* KBMockViews.m in Sources */,
 				000530451AD75CBE0061C6E5 /* KBPopover.m in Sources */,
 				00C7DD721AA7C24B00F57AFC /* KBTitleView.m in Sources */,
-				003C454A1AE5890900431829 /* KBTestHelperView.m in Sources */,
+				003C454A1AE5890900431829 /* KBTestInstallView.m in Sources */,
 				0032AFA01AEB363600AF4532 /* KBPGPAppView.m in Sources */,
 				00566A311A97DA1800CA236E /* KBWebView.m in Sources */,
 				00A48F9A1AD849FC00723435 /* KBPGPKeyGenView.m in Sources */,
@@ -1529,6 +1549,7 @@
 				00B544281A895A810044CC5B /* KBProveView.m in Sources */,
 				00566A1D1A97DA1800CA236E /* KBNavigationView.m in Sources */,
 				00ABED4D1AD44BDC00DA66FC /* KBPrefFileView.m in Sources */,
+				00F1D52A1AF2C23100DE23F1 /* KBImageLabel.m in Sources */,
 				0053B6FF1AC6325B001AE392 /* KBPGPVerifyView.m in Sources */,
 				00ABEC721ACF2BEC00DA66FC /* KBPreferences.m in Sources */,
 				0053B6EF1AC627F8001AE392 /* KBPGPSignView.m in Sources */,
@@ -1559,6 +1580,7 @@
 				00566A151A97DA1800CA236E /* KBLabel.m in Sources */,
 				009E2BFA1AC47B0B00EBB035 /* KBFileSelectView.m in Sources */,
 				00566A411A97EA9F00CA236E /* KBSearchResultView.m in Sources */,
+				00F1D5271AF2C1BF00DE23F1 /* KBUserPermission.m in Sources */,
 				00C7DD591AA67E8900F57AFC /* KBSearchControl.m in Sources */,
 				00566A211A97DA1800CA236E /* KBScrollView.m in Sources */,
 				00A16C331AB38785003EF505 /* KBHeaderLabelView.m in Sources */,
@@ -1631,12 +1653,14 @@
 				00B544241A895A810044CC5B /* KBProofLabel.m in Sources */,
 				00F0CDE41AE98591005F738A /* KBUserButtonView.m in Sources */,
 				00ABED5D1AD5A9D100DA66FC /* NSImageView+AFNetworking.m in Sources */,
+				00F1D5211AF2C09400DE23F1 /* KBFolderUsersView.m in Sources */,
 				009E2BDA1AC0AB5B00EBB035 /* KBFileReader.m in Sources */,
 				00566A331A97DA1800CA236E /* KBWindow.m in Sources */,
 				009E2BC31ABCFE5500EBB035 /* KBReader.m in Sources */,
 				00566A191A97DA1800CA236E /* KBLayouts.m in Sources */,
 				00566A231A97DA1800CA236E /* KBSplitView.m in Sources */,
 				00E531571A9E7955005A4185 /* KBRMockClient.m in Sources */,
+				00F1D5241AF2C15200DE23F1 /* KBFolderUsersListView.m in Sources */,
 				00DD246C1AAA436900371CDA /* KBProgressView.m in Sources */,
 				00F0CDED1AEABE31005F738A /* KBPGPVerifiedView.m in Sources */,
 				00D2E7CA1A41476E00319401 /* KBRRequest.m in Sources */,
@@ -1916,6 +1940,7 @@
 				00FBF6BC1AF1494300CA7639 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

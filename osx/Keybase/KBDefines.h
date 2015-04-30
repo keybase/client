@@ -32,9 +32,12 @@ NSString *KBDictionaryDescription(NSDictionary *d);
 NSString *KBArrayDescription(NSArray *a);
 
 NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint);
-NSString *NSStringFromKBKeyFingerprint(NSString *fingerprint, NSInteger indexForLineBreak);
+
+NSString *KBDescriptionForKID(NSData *kid);
+NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForLineBreak);
 
 typedef NS_ENUM (NSInteger, KBAppViewItem) {
+  KBAppViewItemNone,
   KBAppViewItemProfile = 1,
   KBAppViewItemUsers,
   KBAppViewItemDevices,

@@ -18,7 +18,7 @@ typedef NS_ENUM(NSInteger, KBFileColumnStyle) {
 
 @interface KBFileListView : KBTableView
 
-@property (nonatomic) KBFileLabelStyle fileLabelStyle;
+@property (nonatomic) KBImageLabelStyle imageLabelStyle;
 
 - (void)setFileColumnStyle:(KBFileColumnStyle)fileColumnStyle;
 

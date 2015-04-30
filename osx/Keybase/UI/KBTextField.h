@@ -31,6 +31,7 @@
 @property (readonly) NSTextField *textField;
 
 @property (readonly) NSBox *focusView;
+@property UIEdgeInsets insets;
 
 @property (nonatomic) NSMutableDictionary *attributes;
 

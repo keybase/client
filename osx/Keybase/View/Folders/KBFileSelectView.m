@@ -26,8 +26,9 @@
 
   _textField = [[KBTextField alloc] init];
   _textField.textField.lineBreakMode = NSLineBreakByTruncatingHead;
-  _textField.textField.font = [NSFont systemFontOfSize:16];
+  _textField.textField.font = KBAppearance.currentAppearance.textFont;
   _textField.focusView.hidden = YES;
+  _textField.insets = UIEdgeInsetsZero;
   [self addSubview:_textField];
 
   GHWeakSelf gself = self;
@@ -35,7 +36,22 @@
   _browseButton.targetBlock = ^{ [gself chooseInput]; };
   [self addSubview:_browseButton];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts borderLayoutWithCenterView:_textField leftView:_label rightView:_browseButton insets:UIEdgeInsetsMake(10, 10, 10, 10) spacing:10]];
+  YOSelf yself = self;
+  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
+
+    if (size.height == 0) size.height = 40;
+
+    CGSize labelSize = [KBText sizeThatFits:size attributedString:yself.label.attributedText];
+    CGSize buttonSize = [yself.browseButton sizeThatFits:size];
+    CGSize fieldSize = CGSizeMake(size.width - 40 - labelSize.width - buttonSize.width, size.height);
+
+    CGFloat x = 10;
+    x += [layout setFrame:CGRectMake(x, 0, labelSize.width, size.height) view:yself.label].size.width + 10;
+    x += [layout centerWithSize:fieldSize frame:CGRectMake(x, 10, fieldSize.width, size.height) view:yself.textField].size.width + 10;
+    x += [layout centerWithSize:buttonSize frame:CGRectMake(x, 0, buttonSize.width, size.height) view:yself.browseButton].size.width;
+
+    return size;
+  }];
 }
 
 - (NSString *)path {
@@ -43,7 +59,7 @@
 }
 
 - (void)setLabelText:(NSString *)labelText {
-  [_label setText:labelText font:[NSFont systemFontOfSize:16] color:KBAppearance.currentAppearance.textColor alignment:NSLeftTextAlignment];
+  [_label setText:labelText style:KBTextStyleDefault];
   [self setNeedsLayout];
 }
 

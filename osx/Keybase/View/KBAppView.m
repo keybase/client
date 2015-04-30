@@ -251,7 +251,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   if (!_userProfileView) _userProfileView = [[KBUserProfileView alloc] init];
   [_userProfileView setUsername:_user.username client:_client];
   [self setContentView:_userProfileView mode:KBAppViewModeMain];
-  [_toolbar selectItem:KBAppViewItemProfile];
+  _toolbar.selectedItem = KBAppViewItemProfile;
 }
 
 - (void)showDevices {
@@ -352,7 +352,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   [self.toolbar setUser:status.user];
 
   if (_status.loggedIn && _status.user) {
-    if (_sourceView.hidden) {
+    // Show profile if logging in or we are already showing profile, refresh it
+    if (_mode != KBAppViewModeMain || _toolbar.selectedItem == KBAppViewItemProfile) {
       [self showProfile];
     }
   } else {
@@ -397,21 +398,24 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
 - (void)appToolbar:(KBAppToolbar *)appToolbar didSelectItem:(KBAppViewItem)item {
   switch (item) {
-  case KBAppViewItemDevices:
-    [self showDevices];
-    break;
-  case KBAppViewItemFolders:
-    [self showFolders];
-    break;
-  case KBAppViewItemProfile:
-    [self showProfile];
-    break;
-  case KBAppViewItemUsers:
-    [self showUsers];
-    break;
-  case KBAppViewItemPGP:
-    [self showPGP];
-    break;
+    case KBAppViewItemNone:
+      NSAssert(NO, @"Can't select none");
+      break;
+    case KBAppViewItemDevices:
+      [self showDevices];
+      break;
+    case KBAppViewItemFolders:
+      [self showFolders];
+      break;
+    case KBAppViewItemProfile:
+      [self showProfile];
+      break;
+    case KBAppViewItemUsers:
+      [self showUsers];
+      break;
+    case KBAppViewItemPGP:
+      [self showPGP];
+      break;
   }
 }
 

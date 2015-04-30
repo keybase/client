@@ -11,6 +11,7 @@
 #import "KBFileListView.h"
 #import "KBSearchField.h"
 #import "KBViews.h"
+#import "KBFolderUsersView.h"
 
 @interface KBFoldersView ()
 @property KBSegmentedControl *segmentedControl;
@@ -39,9 +40,13 @@
   //[_segmentedControl setSegmentStyle:NSSegmentStyleCapsule];
   [self addSubview:_segmentedControl];
 
+  GHWeakSelf gself = self;
   NSImage *folderAddImage = [NSImage imageNamed:@"19-Interface-black-add-1-24"];
-  folderAddImage.size = CGSizeMake(16, 16);
+  folderAddImage.size = CGSizeMake(14, 14);
   _addButton = [KBButton buttonWithImage:folderAddImage style:KBButtonStyleToolbar];
+  _addButton.targetBlock = ^{
+    [gself addFolder];
+  };
   [self addSubview:_addButton];
 
 //  NSImage *trashImage = [NSImage imageNamed:@"1-Edition-black-bin-2-24"];
@@ -76,7 +81,7 @@
     //y += [layout centerWithSize:segmentedSize frame:CGRectMake(0, y, size.width, 0) view:yself.segmentedControl].size.height + 9;
     x += [layout setFrame:CGRectMake(x, y + 2, segmentedSize.width, segmentedSize.height) view:yself.segmentedControl].size.width + 20;
 
-    x += [layout setFrame:CGRectMake(x, y, 26, 26) view:yself.addButton].size.width + 20;
+    x += [layout setFrame:CGRectMake(x, y, 24, 24) view:yself.addButton].size.width + 20;
     //x += [layout setFrame:CGRectMake(x, y, 24, 24) view:yself.trashButton].size.width + 8;
 
     [layout setFrame:CGRectMake(x, y, size.width - x - 10, 24) view:yself.searchField];
@@ -90,6 +95,11 @@
     [layout setFrame:CGRectMake(0, y, size.width, size.height - y) view:yself.foldersView];
     return size;
   }];
+}
+
+- (void)addFolder {
+  KBFolderUsersView *view = [[KBFolderUsersView alloc] init];
+  [self.window kb_addChildWindowForView:view rect:CGRectMake(0, 0, 500, 400) position:KBWindowPositionCenter title:@"Add Folder" fixed:NO makeKey:YES];
 }
 
 - (void)_segmentedChange:(id)sender {

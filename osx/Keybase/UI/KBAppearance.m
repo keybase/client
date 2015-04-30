@@ -48,6 +48,7 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   switch (style) {
     case KBTextStyleNone:
     case KBTextStyleDefault:
+    case KBTextStyleStrong:
     case KBTextStyleHeader:
     case KBTextStyleHeaderLarge:
       return self.textColor;
@@ -64,12 +65,20 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   switch (style) {
     case KBTextStyleNone:
     case KBTextStyleDefault:
+    case KBTextStyleSecondaryText:
       return self.textFont;
 
-    case KBTextStyleSecondaryText: return self.textFont;
-    case KBTextStyleHeader: return self.headerTextFont;
-    case KBTextStyleHeaderLarge: return self.headerLargeTextFont;
-    case KBTextStyleMonospace: return [NSFont fontWithName:@"Monaco" size:12];
+    case KBTextStyleStrong:
+      return self.boldTextFont;
+
+    case KBTextStyleHeader:
+      return self.headerTextFont;
+
+    case KBTextStyleHeaderLarge:
+      return self.headerLargeTextFont;
+
+    case KBTextStyleMonospace:
+      return [NSFont fontWithName:@"Monaco" size:12];
   }
 }
 
@@ -175,16 +184,22 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
       return GHNSColorFromRGB(0x333333);
 
     case KBButtonStylePrimary:
       return GHNSColorFromRGB(0xFFFFFF);
 
-    case KBButtonStyleLink: return highlighted ? GHNSColorFromRGB(0x000000) : [KBAppearance.currentAppearance selectColor];
-    case KBButtonStyleText: NSAssert(NO, @"Text style shouldn't get here");
-    case KBButtonStyleCheckbox: return GHNSColorFromRGB(0x333333);
-    case KBButtonStyleEmpty: return nil;
+    case KBButtonStyleLink:
+      return highlighted ? GHNSColorFromRGB(0x000000) : [KBAppearance.currentAppearance selectColor];
+
+    case KBButtonStyleText:
+      NSAssert(NO, @"Text style shouldn't get here");
+
+    case KBButtonStyleCheckbox:
+      return GHNSColorFromRGB(0x333333);
+
+    case KBButtonStyleEmpty:
+      return nil;
   }
 }
 
@@ -193,7 +208,6 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
     case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
       return GHNSColorFromRGB(0xEFEFEF);
 
     case KBButtonStyleLink:
@@ -209,7 +223,6 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleEmpty:
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
     case KBButtonStyleText:
       return GHNSColorFromRGB(0xDEDEDE);
 
@@ -229,7 +242,6 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
       return [NSColor colorWithWhite:0.99 alpha:1.0];
 
     case KBButtonStylePrimary:
@@ -248,12 +260,12 @@ static id<KBAppearance> gCurrentAppearance = NULL;
     case KBButtonStyleDefault:
     case KBButtonStylePrimary:
       return GHNSColorFromRGB(0xCCCCCC);
+
     case KBButtonStyleLink:
     case KBButtonStyleText:
     case KBButtonStyleCheckbox:
     case KBButtonStyleEmpty:
     case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
       return nil;
   }
 }
@@ -263,7 +275,6 @@ static id<KBAppearance> gCurrentAppearance = NULL;
   switch (style) {
     case KBButtonStyleDefault:
     case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
       return GHNSColorFromRGB(0xCCCCCC);
 
     case KBButtonStylePrimary:

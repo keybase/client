@@ -9,21 +9,12 @@
 #import <Foundation/Foundation.h>
 
 #import "KBAppKit.h"
+#import "KBImageLabel.h"
 #import "KBRPC.h"
 #import "KBFile.h"
 
-typedef NS_ENUM (NSInteger, KBFileLabelStyle) {
-  KBFileLabelStyleDefault,
-  KBFileLabelStyleLarge,
-};
-
-
-@interface KBFileLabel : YOView
-
-@property KBFileLabelStyle fileLabelStyle;
+@interface KBFileLabel : KBImageLabel
 
 - (void)setFile:(KBFile *)file;
-
-+ (NSFont *)fontForStyle:(KBFileLabelStyle)fileLabelStyle;
 
 @end

@@ -29,7 +29,7 @@
   [self.view setHeaderView:nil];
 
   [self setFileColumnStyle:KBFileColumnStyleName];
-  [self setFileLabelStyle:KBFileLabelStyleDefault];
+  [self setImageLabelStyle:KBImageLabelStyleDefault];
 
   _dateFormatter = [[NSDateFormatter alloc] init];
   [_dateFormatter setDateStyle:NSDateFormatterMediumStyle];
@@ -59,14 +59,14 @@
   }
 }
 
-- (void)setFileLabelStyle:(KBFileLabelStyle)fileLabelStyle {
-  _fileLabelStyle = fileLabelStyle;
-  switch (fileLabelStyle) {
-    case KBFileLabelStyleDefault:
+- (void)setImageLabelStyle:(KBImageLabelStyle)imageLabelStyle {
+  _imageLabelStyle = imageLabelStyle;
+  switch (_imageLabelStyle) {
+    case KBImageLabelStyleDefault:
       self.view.rowHeight = 20;
       break;
 
-    case KBFileLabelStyleLarge:
+    case KBImageLabelStyleLarge:
       self.view.rowHeight = 32;
       break;
   }
@@ -81,7 +81,7 @@
     if (!fileView) {
       fileView = [[KBFileLabel alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, 40)];
       fileView.identifier = @"KBFileListView.name";
-      fileView.fileLabelStyle = _fileLabelStyle;
+      fileView.style = _imageLabelStyle;
     }
     [fileView setFile:file];
     return fileView;
@@ -93,7 +93,7 @@
     }
     label.verticalAlignment = KBVerticalAlignmentMiddle;
     [label setStyle:KBTextStyleSecondaryText appearance:KBAppearance.currentAppearance];
-    [label setText:[_dateFormatter stringFromDate:file.dateModified] font:[KBFileLabel fontForStyle:_fileLabelStyle] color:KBAppearance.currentAppearance.secondaryTextColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+    [label setText:[_dateFormatter stringFromDate:file.dateModified] font:[KBFileLabel fontForStyle:self.imageLabelStyle] color:KBAppearance.currentAppearance.secondaryTextColor alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
     return label;
   } else {
     NSAssert(NO, @"Unhandled table column");

@@ -25,7 +25,7 @@
   [super viewInit];
   [self kb_setBackgroundColor:NSColor.clearColor];
 
-  _imageView = [self loadImageView];
+  _imageView = [[KBImageView alloc] init];
   [self addSubview:_imageView];
 
   _titleLabel = [[KBLabel alloc] init];
@@ -58,10 +58,6 @@
     [yself.border layoutForPositionWithLayout:layout size:size];
     return CGSizeMake(size.width, y);
   }];
-}
-
-- (KBImageView *)loadImageView {
-  return [[KBImageView alloc] init];
 }
 
 - (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image {

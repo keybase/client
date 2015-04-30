@@ -61,7 +61,7 @@
 //  [contentView addSubview:_files];
 
   _fileListView = [[KBFileListView alloc] init];
-  _fileListView.fileLabelStyle = KBFileLabelStyleLarge;
+  _fileListView.imageLabelStyle = KBImageLabelStyleLarge;
   _fileListView.onMenuSelect  = ^(NSIndexPath *indexPath) {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
     [menu addItemWithTitle:@"Remove" action:@selector(removeFile:) keyEquivalent:@""];

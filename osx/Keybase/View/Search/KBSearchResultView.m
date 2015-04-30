@@ -15,10 +15,6 @@
 
 @implementation KBSearchResultView
 
-- (KBImageView *)loadImageView {
-  return [[KBUserImageView alloc] init];
-}
-
 - (void)setSearchResult:(KBSearchResult *)searchResult {
   _searchResult = searchResult;
   [self.titleLabel setText:searchResult.userName style:KBTextStyleDefault alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];

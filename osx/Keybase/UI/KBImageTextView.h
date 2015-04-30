@@ -24,8 +24,6 @@
 @property CGSize imageSize;
 @property BOOL tintImageForStyle;
 
-- (KBImageView *)loadImageView;
-
 - (void)setTitle:(NSString *)title info:(NSString *)info image:(NSImage *)image;
 - (void)setTitle:(NSString *)title info:(NSString *)info imageURLString:(NSString *)imageURLString imageSize:(CGSize)imageSize;
 

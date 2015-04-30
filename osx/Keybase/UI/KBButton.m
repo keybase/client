@@ -77,6 +77,23 @@
   return button;
 }
 
+- (CGSize)paddingForStyle:(KBButtonStyle)style {
+  switch (self.style) {
+    case KBButtonStyleCheckbox:
+    case KBButtonStyleText:
+    case KBButtonStyleLink:
+    case KBButtonStyleEmpty:
+      return CGSizeMake(2, 0);
+
+    case KBButtonStyleToolbar:
+      return CGSizeMake(16, 0);//CGSizeMake(20, 8);
+
+    case KBButtonStyleDefault:
+    case KBButtonStylePrimary:
+      return CGSizeMake(24, 16);
+  }
+}
+
 - (CGSize)sizeThatFits:(NSSize)size {
   CGSize sizeThatFits = CGSizeZero;
   if (self.image) {
@@ -93,36 +110,17 @@
       sizeThatFits.height = MAX(titleSize.height, sizeThatFits.height);
     }
   }
-  switch (self.style) {
-    case KBButtonStyleCheckbox:
-      sizeThatFits.width += 2;
-      break;
-    case KBButtonStyleText:
-    case KBButtonStyleLink:
-    case KBButtonStyleEmpty:
-      sizeThatFits.width += 2;
-      //sizeThatFits.height += 2;
-      break;
+  CGSize padding = [self paddingForStyle:self.style];
+  sizeThatFits.width += padding.width;
+  sizeThatFits.height += padding.height;
 
-    case KBButtonStyleToolbar:
-      sizeThatFits.height += 8;
-      sizeThatFits.width += 20;
-      break;
-
-    case KBButtonStyleSmall:
-      NSAssert(NO, @"We should remove this?");
-      sizeThatFits.height += 0;
-      sizeThatFits.width += 0;
-      break;
-
-    case KBButtonStyleDefault:
-    case KBButtonStylePrimary:
-      sizeThatFits.height += 16;
-      sizeThatFits.width += 24;
-      sizeThatFits.width = MAX(sizeThatFits.width, 120);
-      break;
-
+  // Min size for default buttons
+  if (self.style == KBButtonStyleDefault || self.style == KBButtonStylePrimary) {
+    sizeThatFits.width = MAX(sizeThatFits.width, 120);
+  } else if (self.style == KBButtonStyleToolbar) {
+    sizeThatFits.height = MAX(sizeThatFits.height, 26);
   }
+
   //NSAssert(!isnan(sizeThatFits.width), @"Width is NaN");
   //NSAssert(!isnan(sizeThatFits.height), @"Height is NaN");
   sizeThatFits.width += _padding.width;
@@ -217,7 +215,6 @@ static KBButtonErrorHandler gErrorHandler = nil;
     case KBButtonStyleText:
     case KBButtonStyleCheckbox:
     case KBButtonStyleToolbar:
-    case KBButtonStyleSmall:
       return [KBAppearance.currentAppearance textFont];
 
     case KBButtonStyleEmpty:
@@ -262,6 +259,10 @@ static KBButtonErrorHandler gErrorHandler = nil;
     frame.origin.x += self.image.size.width/2.0;
   }
 
+  if (self.style == KBButtonStyleToolbar) {
+    frame.origin.y -= 1;
+  }
+
   return [super drawTitle:title withFrame:frame inView:controlView];
 }
 
@@ -275,8 +276,14 @@ static KBButtonErrorHandler gErrorHandler = nil;
     CGSize titleSize = [KBText sizeThatFits:controlView.frame.size attributedString:self.attributedTitle];
 
     if (titleSize.width > 0) {
-      CGPoint imagePosition = CGPointMake(ceilf(controlView.frame.size.width/2.0 - titleSize.width/2.0 - image.size.width/2.0) - 2,
-                                          ceilf(controlView.frame.size.height/2.0 - image.size.height/2.0));
+      CGSize controlSize = controlView.frame.size;
+      CGPoint imagePosition = CGPointMake(ceilf(controlSize.width/2.0 - titleSize.width/2.0 - image.size.width/2.0) - 2, ceilf(controlSize.height/2.0 - image.size.height/2.0));
+      imageFrame = CGRectMake(imagePosition.x, imagePosition.y, image.size.width, image.size.height);
+    } else {
+      CGSize controlSize = controlView.frame.size;
+      controlSize.width += 1;
+      controlSize.height += 1;
+      CGPoint imagePosition = CGPointMake(floorf(controlSize.width/2.0 - titleSize.width/2.0 - image.size.width/2.0), floorf(controlSize.height/2.0 - image.size.height/2.0));
       imageFrame = CGRectMake(imagePosition.x, imagePosition.y, image.size.width, image.size.height);
     }
   }
