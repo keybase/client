@@ -28,7 +28,7 @@ func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 		return s, ErrNoSession
 	}
 
-	uid, username, token, deviceKid, err := G.LoginState().UserInfo()
+	uid, username, token, deviceSibKid, deviceSubKid, err := G.LoginState().UserInfo()
 	if err != nil {
 		return s, err
 	}
@@ -36,7 +36,8 @@ func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 	s.Uid = uid.Export()
 	s.Username = username
 	s.Token = token
-	s.DeviceKID = deviceKid.String()
+	s.DeviceSibKid = deviceSibKid.String()
+	s.DeviceSubKid = deviceSubKid.String()
 
 	return s, nil
 }

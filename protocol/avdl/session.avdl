@@ -7,7 +7,8 @@ protocol session {
 		UID uid;
 		string username;
 		string token;
-		string deviceKID;
+		string deviceSibKid;
+		string deviceSubKid;
 	}
 
 	Session currentSession();

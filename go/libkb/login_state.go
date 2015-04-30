@@ -66,14 +66,14 @@ func (s *LoginState) SessionArgs() (token, csrf string) {
 	return s.session.GetToken(), s.session.GetCsrf()
 }
 
-func (s *LoginState) UserInfo() (uid UID, username, token string, deviceKid KID, err error) {
+func (s *LoginState) UserInfo() (uid UID, username, token string, deviceSibKid, deviceSubKid KID, err error) {
 	user, err := LoadMe(LoadUserArg{})
 	if err != nil {
-		return UID{}, "", "", KID{}, err
+		return UID{}, "", "", KID{}, KID{}, err
 	}
-	deviceKid, err = user.GetDeviceKID()
+	deviceSibKid, deviceSubKid, err = user.GetDeviceKIDs()
 	if err != nil {
-		return UID{}, "", "", KID{}, err
+		return UID{}, "", "", KID{}, KID{}, err
 	}
 
 	uid = user.GetUid()
