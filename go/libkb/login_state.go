@@ -755,7 +755,6 @@ func (s *LoginState) loginWithPassphrase(arg *LoginArg) error {
 
 func (s *LoginState) logout(arg *LoginArg) error {
 	G.Log.Debug("+ Logout called")
-	username := s.session.GetUsername()
 	err := s.session.Logout()
 	if err == nil {
 		s.clearPassphrase()
@@ -763,9 +762,7 @@ func (s *LoginState) logout(arg *LoginArg) error {
 	if s.secretSyncer != nil {
 		s.secretSyncer.Clear()
 	}
-	if username != nil {
-		G.Keyrings.ClearSecretKeys(*username)
-	}
+	G.Keyrings.ClearSecretKeys()
 	G.Log.Debug("- Logout called")
 	return err
 }

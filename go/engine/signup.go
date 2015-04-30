@@ -83,6 +83,9 @@ func (s *SignupEngine) GetMe() *libkb.User {
 }
 
 func (s *SignupEngine) Run(ctx *Context) error {
+	// make sure we're starting with a clear login state:
+	s.G().Logout()
+
 	f := func(dummy *libkb.LoginArg) error {
 		if err := s.genTSPassKey(s.arg.Passphrase); err != nil {
 			return err

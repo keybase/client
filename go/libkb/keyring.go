@@ -20,7 +20,6 @@ type KeyringFile struct {
 }
 
 type Keyrings struct {
-	skbMap map[string]*SKBKeyringFile // map of usernames to keyring files
 	sync.Mutex
 	skbfile *SKBKeyringFile
 	Contextified
@@ -36,7 +35,6 @@ func (k *Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFil
 
 func NewKeyrings(g *GlobalContext) *Keyrings {
 	ret := &Keyrings{
-		skbMap:       make(map[string]*SKBKeyringFile),
 		Contextified: Contextified{g: g},
 	}
 	return ret
@@ -59,6 +57,8 @@ func (g *GlobalContext) SKBFilenameForUser(un string) string {
 func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
 	k.Lock()
 	defer k.Unlock()
+
+	G.Log.Warning("LoadSKBKeyring for user: %s", un)
 
 	if k.skbfile == nil {
 		if len(un) == 0 {
@@ -327,7 +327,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer)
 }
 
-func (k *Keyrings) ClearSecretKeys(username string) {
+func (k *Keyrings) ClearSecretKeys() {
 	k.Lock()
 	defer k.Unlock()
 
