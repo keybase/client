@@ -176,10 +176,7 @@
       "name" : "token",
       "type" : "string"
     }, {
-      "name" : "deviceSibKid",
-      "type" : "string"
-    }, {
-      "name" : "deviceSubKid",
+      "name" : "deviceSubkeyKid",
       "type" : "string"
     } ]
   } ],
