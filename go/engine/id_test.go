@@ -134,7 +134,7 @@ func TestIdEllen(t *testing.T) {
 	idUI, _, err := runIdentify("t_ellen")
 	if err == nil {
 		t.Fatal("Expected no public key found error.")
-	} else if _, ok := err.(libkb.NoKeyError); !ok {
+	} else if _, ok := err.(libkb.NoActiveKeyError); !ok {
 		t.Fatal("Expected no public key found error. Got instead:", err)
 	}
 	checkDisplayKeys(t, idUI, 0, 0)
