@@ -32,7 +32,7 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	s.filter = ctx.String("filter")
 
 	if nargs > 0 {
-		err = fmt.Errorf("list-tracking takes no args")
+		err = fmt.Errorf("list tracking takes no args")
 	}
 
 	return err
@@ -142,11 +142,11 @@ func (s *CmdListTracking) Run() (err error) {
 
 func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "list-tracking",
-		Usage:       "keybase list-tracking",
+		Name:        "tracking",
+		Usage:       "keybase list tracking",
 		Description: "list who you're tracking",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdListTracking{}, "list-tracking", c)
+			cl.ChooseCommand(&CmdListTracking{}, "tracking", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
