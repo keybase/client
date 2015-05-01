@@ -661,22 +661,22 @@ func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
 	return
 }
 
-func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]string, error) {
+func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]KID, error) {
 	_, deviceExists := ckf.cki.Devices[deviceID]
 	if !deviceExists {
 		return nil, fmt.Errorf("Device %s does not exist.", deviceID)
 	}
-	ret := []string{}
+	ret := []KID{}
 	// Find the sibkey(s) that belong to this device.
 	for _, sibkey := range ckf.GetAllActiveSibkeys() {
 		sibkeyKID := sibkey.GetKid()
 		if ckf.cki.KidToDeviceId[sibkeyKID.ToMapKey()] == deviceID {
-			ret = append(ret, sibkeyKID.String())
+			ret = append(ret, sibkeyKID)
 			// For each sibkey we find, get all its subkeys too.
 			for _, subkey := range ckf.GetAllActiveSubkeys() {
 				subkeyKID := subkey.GetKid()
 				if ckf.cki.Infos[subkeyKID.ToFOKIDMapKey()].Parent.Eq(sibkeyKID) {
-					ret = append(ret, subkeyKID.String())
+					ret = append(ret, subkeyKID)
 				}
 			}
 		}

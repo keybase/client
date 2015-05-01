@@ -394,15 +394,15 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 	return
 }
 
-func kidsList(kids []string) *jsonw.Wrapper {
+func kidsList(kids []KID) *jsonw.Wrapper {
 	ret := jsonw.NewArray(len(kids))
 	for i, kid := range kids {
-		ret.SetIndex(i, jsonw.NewString(kid))
+		ret.SetIndex(i, jsonw.NewString(kid.String()))
 	}
 	return ret
 }
 
-func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []string, deviceToDisable string) (*jsonw.Wrapper, error) {
+func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisable string) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
 		return nil, err

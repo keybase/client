@@ -46,7 +46,7 @@ func (e *RevokeEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
+func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]libkb.KID, error) {
 	if e.mode == RevokeDevice {
 		currentDevice := e.G().Env.GetDeviceID().String()
 		if e.id == currentDevice {
@@ -71,7 +71,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 		}
 		for _, activePGPKey := range me.GetComputedKeyFamily().GetActivePgpKeys(false /* sibkeys only */) {
 			if activePGPKey.GetKid().String() == e.id {
-				return []string{e.id}, nil
+				return []libkb.KID{kid}, nil
 			}
 		}
 		return nil, fmt.Errorf("PGP key %s is not active", e.id)
