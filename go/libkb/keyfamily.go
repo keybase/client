@@ -384,17 +384,6 @@ func (kf KeyFamily) FindKeyWithKIDUsafe(kid KID) (GenericKey, error) {
 	}
 }
 
-func (ckf *ComputedKeyFamily) PGPKeyFOKIDs() []FOKID {
-	var res []FOKID
-	for _, k := range ckf.kf.AllKeys {
-		fingerprint := k.key.GetFingerprintP()
-		if fingerprint != nil {
-			res = append(res, FOKID{Kid: k.key.GetKid(), Fp: fingerprint})
-		}
-	}
-	return res
-}
-
 func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(f FOKID, t time.Time) (ret *ComputedKeyInfo, err error) {
 	unixTime := t.Unix()
 	if ki := ckf.cki.Infos[f.ToFirstMapKey()]; ki == nil {
