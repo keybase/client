@@ -1,4 +1,3 @@
-// A KeyFamily is a group of sibling keys that have equal power for a user.
 // A family can consist of 1 PGP keys, and arbitrarily many NaCl Sibkeys.
 // There also can be some subkeys dangling off for ECDH.
 package libkb
@@ -102,8 +101,8 @@ type KeyFamily struct {
 	pgps []*PgpKeyBundle
 
 	// These fields are computed on the client side, so they can be trusted.
-	pgp2kid map[string]KID
-	kid2pgp map[KIDMapKey]string
+	pgp2kid map[PgpFingerprintMapKey]KID
+	kid2pgp map[KIDMapKey]PgpFingerprint
 
 	// All the fields parsed directly from the server's JSON response. Note
 	// that SibkeysList and SubkeysList are only used to build Sibkeys and
@@ -314,9 +313,9 @@ func (kf *KeyFamily) Import() (err error) {
 	}
 
 	for _, p := range kf.pgps {
-		fp := p.GetFingerprint().String()
+		fp := p.GetFingerprint()
 		kid := p.GetKid()
-		kf.pgp2kid[fp] = kid
+		kf.pgp2kid[fp.ToMapKey()] = kid
 		kf.kid2pgp[kid.ToMapKey()] = fp
 	}
 
@@ -338,8 +337,8 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	}
 
 	// Initialize this before the import step.
-	obj.pgp2kid = make(map[string]KID)
-	obj.kid2pgp = make(map[KIDMapKey]string)
+	obj.pgp2kid = make(map[PgpFingerprintMapKey]KID)
+	obj.kid2pgp = make(map[KIDMapKey]PgpFingerprint)
 
 	if err = obj.Import(); err != nil {
 		return
@@ -372,12 +371,10 @@ func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
 // methods on the ComputedKeyFamily.
 func (kf KeyFamily) FindKeyWithFOKIDUsafe(f FOKID) (key GenericKey, err error) {
 	var found bool
-	var i string
 	kid := f.Kid
 	if kid == nil && f.Fp != nil {
-		i = f.Fp.String()
-		if kid, found = kf.pgp2kid[i]; !found {
-			err = KeyFamilyError{fmt.Sprintf("No KID for PGP fingerprint %s found", i)}
+		if kid, found = kf.pgp2kid[f.Fp.ToMapKey()]; !found {
+			err = KeyFamilyError{fmt.Sprintf("No KID for PGP fingerprint %s found", f.Fp.String())}
 			return
 		}
 	}
@@ -508,13 +505,13 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	tm := TclToKeybaseTime(tcl)
 	fp := ckf.kf.kid2pgp[kid.ToMapKey()]
 
-	err = ckf.cki.Delegate(kid, fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
+	err = ckf.cki.Delegate(kid, &fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
 	return
 }
 
 // Delegate marks the given ComputedKeyInfos object that the given kidStr is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprintStr string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
+func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
 	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid.String()]
 	if !found {
@@ -522,8 +519,8 @@ func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprintStr string, tm *Keybas
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kid.String()] = info
-		if len(fingerprintStr) > 0 {
-			cki.Infos[fingerprintStr] = info
+		if fingerprint != nil {
+			cki.Infos[fingerprint.String()] = info
 		}
 	} else {
 		info.Status = KEY_UNCANCELLED
@@ -628,7 +625,7 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 // We'll need to do this when a key is locally generated.
 func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (err error) {
 	if pgp, ok := key.(*PgpKeyBundle); ok {
-		kf.pgp2kid[pgp.GetFingerprint().String()] = pgp.GetKid()
+		kf.pgp2kid[pgp.GetFingerprint().ToMapKey()] = pgp.GetKid()
 		kf.pgps = append(kf.pgps, pgp)
 	}
 	kidStr := key.GetKid().String()

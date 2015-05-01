@@ -25,6 +25,8 @@ const (
 
 type PgpFingerprint [PGP_FINGERPRINT_LEN]byte
 
+type PgpFingerprintMapKey string
+
 func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
 	var fp PgpFingerprint
 	n, err := hex.Decode([]byte(fp[:]), []byte(s))
@@ -51,6 +53,10 @@ func PgpFingerprintFromHexNoError(s string) *PgpFingerprint {
 
 func (p PgpFingerprint) String() string {
 	return hex.EncodeToString(p[:])
+}
+
+func (p PgpFingerprint) ToMapKey() PgpFingerprintMapKey {
+	return PgpFingerprintMapKey(p.String())
 }
 
 func (p PgpFingerprint) ToQuads() string {

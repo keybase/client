@@ -52,11 +52,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 
 	if sigId != nil {
 		var zeroTime time.Time
-		var fpStr string
-		if fpp := key.GetFingerprintP(); fpp != nil {
-			fpStr = fpp.String()
-		}
-		err = cki.Delegate(key.GetKid(), fpStr, NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKid(), key.GetFingerprintP(), NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
@@ -433,10 +429,14 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily
 		return
 	}
 
-	fingerprintHex := ckf.kf.kid2pgp[eldest.ToMapKey()]
+	var fp *PgpFingerprint
+	fingerprint, ok := ckf.kf.kid2pgp[eldest.ToMapKey()]
+	if ok {
+		fp = &fingerprint
+	}
 	eldestFOKID := FOKID{
 		Kid: *eldest,
-		Fp:  PgpFingerprintFromHexNoError(fingerprintHex),
+		Fp:  fp,
 	}
 	links := sc.LimitToEldestFOKID(eldestFOKID)
 
