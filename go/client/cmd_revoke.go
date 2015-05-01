@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -42,7 +43,7 @@ func (c *CmdRevoke) RunClient() (err error) {
 }
 
 func (c *CmdRevoke) Run() error {
-	eng := engine.NewRevokeEngine(c.id, engine.REVOKE_KEY)
+	eng := engine.NewRevokeEngine(c.id, engine.RevokeKey)
 	ctx := engine.Context{
 		LogUI:    G_UI.GetLogUI(),
 		SecretUI: G_UI.GetSecretUI(),

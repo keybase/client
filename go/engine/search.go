@@ -60,13 +60,13 @@ func (e *SearchEngine) Run(ctx *Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to get completions from server.")
 	}
-	all_completions := res.Body.AtKey("completions")
+	allCompletions := res.Body.AtKey("completions")
 	for i := 0; i < length; i++ {
-		componentKeys, err := all_completions.AtIndex(i).AtKey("components").Keys()
+		componentKeys, err := allCompletions.AtIndex(i).AtKey("components").Keys()
 		if err != nil {
 			return fmt.Errorf("Failed to get completion components from server.")
 		}
-		completion := all_completions.AtIndex(i)
+		completion := allCompletions.AtIndex(i)
 		components := completion.AtKey("components")
 		socialProofs := []keybase_1.TrackProof{}
 		for _, proofTypeName := range componentKeys {

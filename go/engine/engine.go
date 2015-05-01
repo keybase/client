@@ -24,9 +24,9 @@ func runPrereqs(e Engine) (err error) {
 		var ok bool
 		ok, err = G.LoginState().IsLoggedInLoad()
 		if !ok {
-			urlError, isUrlError := err.(*url.Error)
+			urlError, isURLError := err.(*url.Error)
 			context := ""
-			if isUrlError {
+			if isURLError {
 				context = fmt.Sprintf("Encountered a network error: %s", urlError.Err)
 			}
 			err = libkb.LoginRequiredError{Context: context}

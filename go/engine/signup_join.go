@@ -94,7 +94,7 @@ type SignupJoinEngineRunRes struct {
 	PassphraseOk bool
 	PostOk       bool
 	WriteOk      bool
-	Uid          *libkb.UID
+	UID          *libkb.UID
 	User         *libkb.User
 	Err          error
 }
@@ -114,7 +114,7 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 		return
 	}
 	res.WriteOk = true
-	res.Uid = &s.uid
+	res.UID = &s.uid
 	return
 }
 

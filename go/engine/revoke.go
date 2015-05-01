@@ -10,8 +10,8 @@ import (
 type RevokeMode int
 
 const (
-	REVOKE_KEY RevokeMode = iota
-	REVOKE_DEVICE
+	RevokeKey RevokeMode = iota
+	RevokeDevice
 )
 
 type RevokeEngine struct {
@@ -47,7 +47,7 @@ func (e *RevokeEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
-	if e.mode == REVOKE_DEVICE {
+	if e.mode == RevokeDevice {
 		currentDevice := e.G().Env.GetDeviceID().String()
 		if e.id == currentDevice {
 			return nil, fmt.Errorf("Can't revoke the current device.")
@@ -57,7 +57,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 			return nil, err
 		}
 		return deviceKeys, nil
-	} else if e.mode == REVOKE_KEY {
+	} else if e.mode == RevokeKey {
 		kid, err := libkb.ImportKID(e.id)
 		if err != nil {
 			return nil, err
@@ -74,7 +74,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 				return []string{e.id}, nil
 			}
 		}
-		return nil, fmt.Errorf("PGP key %s is not active.", e.id)
+		return nil, fmt.Errorf("PGP key %s is not active", e.id)
 	} else {
 		return nil, fmt.Errorf("Unknown revoke mode: %d", e.mode)
 	}
@@ -107,7 +107,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	}
 
 	deviceID := ""
-	if e.mode == REVOKE_DEVICE {
+	if e.mode == RevokeDevice {
 		deviceID = e.id
 	}
 	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)

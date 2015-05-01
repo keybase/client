@@ -53,7 +53,7 @@ func (e *BTCEngine) Run(ctx *Context) error {
 	if cryptocurrencyLink != nil && !e.force {
 		return fmt.Errorf("User already has a cryptocurrency address. To overwrite, use --force.")
 	}
-	var sigIDToRevoke *libkb.SigId = nil
+	var sigIDToRevoke *libkb.SigId
 	if cryptocurrencyLink != nil {
 		id := cryptocurrencyLink.GetSigId()
 		sigIDToRevoke = &id

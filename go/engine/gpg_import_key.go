@@ -38,24 +38,24 @@ func (e *GPGImportKeyEngine) GetPrereqs() EnginePrereqs {
 	}
 }
 
-func (g *GPGImportKeyEngine) Name() string {
+func (e *GPGImportKeyEngine) Name() string {
 	return "GPGImportKeyEngine"
 }
 
-func (g *GPGImportKeyEngine) RequiredUIs() []libkb.UIKind {
+func (e *GPGImportKeyEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.GPGUIKind,
 		libkb.SecretUIKind,
 	}
 }
 
-func (g *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
+func (e *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewPGPKeyImportEngine(PGPKeyImportEngineArg{}),
 	}
 }
 
-func (g *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
+func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 	gpg := G.GetGpgClient()
 	canExec, err := gpg.CanExec()
 	if err != nil {
@@ -74,24 +74,23 @@ func (g *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 	return res, nil
 }
 
-func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
-
+func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	gpg := G.GetGpgClient()
 
-	me := g.arg.Me
+	me := e.arg.Me
 	if me != nil {
 	} else if me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true}); err != nil {
 		return err
 	}
 
-	if err = PGPCheckMulti(me, g.arg.AllowMulti); err != nil {
+	if err = PGPCheckMulti(me, e.arg.AllowMulti); err != nil {
 		return err
 	}
 
 	if _, err = gpg.Configure(); err != nil {
 		return err
 	}
-	index, err, warns := gpg.Index(true, g.arg.Query)
+	index, err, warns := gpg.Index(true, e.arg.Query)
 	if err != nil {
 		return err
 	}
@@ -143,11 +142,11 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Pregen:     bundle,
-		SigningKey: g.arg.Signer,
+		SigningKey: e.arg.Signer,
 		Me:         me,
-		AllowMulti: g.arg.AllowMulti,
-		NoSave:     g.arg.SkipImport,
-		Lks:        g.arg.Lks,
+		AllowMulti: e.arg.AllowMulti,
+		NoSave:     e.arg.SkipImport,
+		Lks:        e.arg.Lks,
 	})
 
 	if err = RunEngine(eng, ctx); err != nil {
@@ -163,11 +162,11 @@ func (g *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	G.Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
 
-	g.last = bundle
+	e.last = bundle
 
 	return nil
 }
 
-func (g *GPGImportKeyEngine) LastKey() *libkb.PgpKeyBundle {
-	return g.last
+func (e *GPGImportKeyEngine) LastKey() *libkb.PgpKeyBundle {
+	return e.last
 }

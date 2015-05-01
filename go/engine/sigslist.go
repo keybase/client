@@ -98,7 +98,7 @@ func (e *SigsList) Sigs() []keybase_1.Sig {
 // ugh
 type sigexp struct {
 	Seqno   int64  `json:"seqno"`
-	SigId   string `json:"sig_id"`
+	SigID   string `json:"sig_id"`
 	Type    string `json:"type"`
 	CTime   int64  `json:"ctime"`
 	Revoked bool   `json:"revoked"`
@@ -117,7 +117,7 @@ func (e *SigsList) JSON() (string, error) {
 		}
 		exp[i] = sigexp{
 			Seqno:   int64(s.GetSeqno()),
-			SigId:   s.GetSigId().ToDisplayString(e.Verbose),
+			SigID:   s.GetSigId().ToDisplayString(e.Verbose),
 			Type:    s.Type(),
 			CTime:   s.GetCTime().Unix(),
 			Revoked: s.IsRevoked(),

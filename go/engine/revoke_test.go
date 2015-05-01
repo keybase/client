@@ -66,7 +66,7 @@ func TestRevokeDevice(t *testing.T) {
 		t.Fatal("Expected to find a web device.")
 	}
 
-	doRevoke(t, u, webDevice.Id, REVOKE_DEVICE)
+	doRevoke(t, u, webDevice.Id, RevokeDevice)
 
 	assertNumDevicesAndKeys(t, u, 1, 2)
 }
@@ -93,7 +93,7 @@ func TestRevokeKey(t *testing.T) {
 		t.Fatal("Expected to find PGP key")
 	}
 
-	doRevoke(t, u, (*pgpKey).GetKid().String(), REVOKE_KEY)
+	doRevoke(t, u, (*pgpKey).GetKid().String(), RevokeKey)
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -42,7 +43,7 @@ func (c *CmdDeviceRemove) RunClient() (err error) {
 }
 
 func (c *CmdDeviceRemove) Run() error {
-	eng := engine.NewRevokeEngine(c.id, engine.REVOKE_DEVICE)
+	eng := engine.NewRevokeEngine(c.id, engine.RevokeDevice)
 	ctx := engine.Context{
 		LogUI:    G_UI.GetLogUI(),
 		SecretUI: G_UI.GetSecretUI(),

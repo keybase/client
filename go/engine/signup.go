@@ -41,13 +41,13 @@ func (s *SignupEngine) Name() string {
 	return "Signup"
 }
 
-func (e *SignupEngine) RequiredUIs() []libkb.UIKind {
+func (s *SignupEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
-func (e *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
+func (s *SignupEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
-func (e *SignupEngine) SubConsumers() []libkb.UIConsumer {
+func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DetKeyEngine{},
 		&GPGImportKeyEngine{},
@@ -146,8 +146,8 @@ func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) e
 		return res
 	}
 
-	s.uid = *res.Uid
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Uid: res.Uid, PublicKeyOptional: true})
+	s.uid = *res.UID
+	user, err := libkb.LoadUser(libkb.LoadUserArg{Uid: res.UID, PublicKeyOptional: true})
 	if err != nil {
 		return err
 	}
