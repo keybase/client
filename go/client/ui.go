@@ -420,7 +420,7 @@ func (ui *UI) GetLogUI() libkb.LogUI {
 }
 
 func (ui *UI) GetGPGUI() libkb.GPGUI {
-	return GPGUI{ui}
+	return GPGUI{ui, false}
 }
 
 func (ui *UI) GetLocksmithUI() libkb.LocksmithUI {

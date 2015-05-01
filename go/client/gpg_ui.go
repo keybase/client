@@ -13,7 +13,8 @@ func NewGPGUIProtocol() rpc2.Protocol {
 }
 
 type GPGUI struct {
-	parent *UI
+	parent   *UI
+	noPrompt bool
 }
 
 func (g GPGUI) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (res keybase_1.SelectKeyRes, err error) {
@@ -61,5 +62,8 @@ func (g GPGUI) SelectKey(arg keybase_1.SelectKeyArg) (string, error) {
 }
 
 func (g GPGUI) WantToAddGPGKey(dummy int) (bool, error) {
+	if g.noPrompt {
+		return false, nil
+	}
 	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
 }

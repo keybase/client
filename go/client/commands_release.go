@@ -41,3 +41,5 @@ func cmdline() *libcmdline.CommandLine {
 
 	return cl
 }
+
+var extraSignupFlags = []cli.Flag{}
