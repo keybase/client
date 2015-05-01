@@ -37,7 +37,7 @@ func NewTrackEngine(arg *TrackEngineArg) *TrackEngine {
 	return &TrackEngine{arg: arg}
 }
 
-func (s *TrackEngine) Name() string {
+func (e *TrackEngine) Name() string {
 	return "Track"
 }
 
@@ -47,14 +47,14 @@ func (e *TrackEngine) GetPrereqs() EnginePrereqs {
 	}
 }
 
-func (k *TrackEngine) RequiredUIs() []libkb.UIKind {
+func (e *TrackEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
 		libkb.IdentifyUIKind,
 	}
 }
 
-func (s *TrackEngine) SubConsumers() []libkb.UIConsumer {
+func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewIdentify(nil),
 	}
