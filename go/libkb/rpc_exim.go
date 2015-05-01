@@ -572,8 +572,8 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 			}
 		}
 		parentID := ""
-		if cki.Parent != nil {
-			parentID = string(*cki.Parent)
+		if cki.Parent.IsValid() {
+			parentID = cki.Parent.String()
 		}
 		exportedKeys = append(exportedKeys, keybase1.PublicKey{
 			KID:               kid.String(),

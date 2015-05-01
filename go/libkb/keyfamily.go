@@ -33,8 +33,8 @@ type ComputedKeyInfo struct {
 	CTime int64 // In Seconds since the Epoch
 	ETime int64 // In Seconds since the Epoch or 0 if none
 
-	// For subkeys, a pointer back to our parent
-	Parent *KIDMapKey
+	// For subkeys, the ID of our parent (if valid)
+	Parent KID
 
 	// For Sibkeys, a pointer to the last-added subkey
 	Subkey *KIDMapKey
@@ -518,8 +518,7 @@ func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *
 	// If it's a subkey, make a pointer from it to its parent,
 	// and also from its parent to it.
 	if parentKid != nil {
-		s := parentKid.ToMapKey()
-		info.Parent = &s
+		info.Parent = parentKid
 		if parent, found := cki.Infos[parentKid.ToFOKIDMapKey()]; found {
 			kidStr := kid.ToMapKey()
 			parent.Subkey = &kidStr
@@ -677,7 +676,7 @@ func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]strin
 			// For each sibkey we find, get all its subkeys too.
 			for _, subkey := range ckf.GetAllActiveSubkeys() {
 				subkeyKID := subkey.GetKid()
-				if *ckf.cki.Infos[subkeyKID.ToFOKIDMapKey()].Parent == sibkeyKID.ToMapKey() {
+				if ckf.cki.Infos[subkeyKID.ToFOKIDMapKey()].Parent.Eq(sibkeyKID) {
 					ret = append(ret, subkeyKID.String())
 				}
 			}
@@ -836,11 +835,11 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceID) (key Ge
 
 // GetDeviceForKey gets the device that this key is bound to, if any.
 func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err error) {
-	return ckf.getDeviceForKid(key.GetKid().ToMapKey())
+	return ckf.getDeviceForKid(key.GetKid())
 }
 
-func (ckf *ComputedKeyFamily) getDeviceForKid(mapKey KIDMapKey) (ret *Device, err error) {
-	if didString, found := ckf.cki.KidToDeviceId[mapKey]; found {
+func (ckf *ComputedKeyFamily) getDeviceForKid(kid KID) (ret *Device, err error) {
+	if didString, found := ckf.cki.KidToDeviceId[kid.ToMapKey()]; found {
 		ret = ckf.cki.Devices[didString]
 	}
 	return
@@ -851,13 +850,13 @@ func (ckf *ComputedKeyFamily) getDeviceForKid(mapKey KIDMapKey) (ret *Device, er
 func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
 
 	// First try to see if the key itself is a detkey
-	if ret, err = ckf.isDetKeyHelper(key.GetKid().ToMapKey()); ret || err != nil {
+	if ret, err = ckf.isDetKeyHelper(key.GetKid()); ret || err != nil {
 		return
 	}
 
 	// Then see if the parent is a detkey and we're a subkey of it.
-	if info, found := ckf.cki.Infos[key.GetKid().ToFOKIDMapKey()]; found && info.Parent != nil && !info.Sibkey {
-		ret, err = ckf.isDetKeyHelper(*info.Parent)
+	if info, found := ckf.cki.Infos[key.GetKid().ToFOKIDMapKey()]; found && info.Parent.IsValid() && !info.Sibkey {
+		ret, err = ckf.isDetKeyHelper(info.Parent)
 	}
 	return
 }
@@ -865,9 +864,9 @@ func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
 // isDetKeyHelper looks at the given KID (in hex) and sees if it is marked as a
 // deterministic Key (if the IsWeb() flag is on).  It won't look up or down the
 // key graph.
-func (ckf *ComputedKeyFamily) isDetKeyHelper(mapKey KIDMapKey) (ret bool, err error) {
+func (ckf *ComputedKeyFamily) isDetKeyHelper(kid KID) (ret bool, err error) {
 	var dev *Device
-	if dev, err = ckf.getDeviceForKid(mapKey); err != nil {
+	if dev, err = ckf.getDeviceForKid(kid); err != nil {
 		return
 	}
 	if dev == nil {
