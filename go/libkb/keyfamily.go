@@ -725,18 +725,25 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	}
 
 	did := dobj.Id
-	kid := dobj.Kid
-	var prevKid *string
-
-	kidStr := ""
-	if kid != nil {
-		kidStr = *kid
+	var kid KID
+	if dobj.Kid != nil {
+		kid, err = ImportKID(*dobj.Kid)
+		if err != nil {
+			return
+		}
 	}
-	G.Log.Debug("| Device ID=%s; KID=%s", did, kidStr)
 
+	G.Log.Debug("| Device ID=%s; KID=%s", did, kid.String())
+
+	var prevKid KID
 	if existing, found := ckf.cki.Devices[did]; found {
 		G.Log.Debug("| merge with existing")
-		prevKid = existing.Kid
+		if existing.Kid != nil {
+			prevKid, err = ImportKID(*existing.Kid)
+			if err != nil {
+				return
+			}
+		}
 		existing.Merge(dobj)
 		dobj = existing
 	} else {
@@ -747,13 +754,13 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// Clear out the old Key that this device used to refer to.
 	// We might wind up just clobbering it with the same thing, but
 	// that's fine for now.
-	if prevKid != nil && len(*prevKid) > 0 {
+	if prevKid.IsValid() {
 		G.Log.Debug("| Clear out old key")
-		delete(ckf.cki.KidToDeviceId, KIDMapKey(*prevKid))
+		delete(ckf.cki.KidToDeviceId, prevKid.ToMapKey())
 	}
 
-	if kid != nil && len(*kid) > 0 {
-		ckf.cki.KidToDeviceId[KIDMapKey(*kid)] = did
+	if kid.IsValid() {
+		ckf.cki.KidToDeviceId[kid.ToMapKey()] = did
 	}
 
 	// Last-writer wins on the Web device
