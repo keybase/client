@@ -69,8 +69,6 @@ type ServerKeyRecord struct {
 	Contextified
 }
 
-type KeyMap map[KIDMapKey]*ServerKeyRecord
-
 // When we play a sigchain forward, it yields ComputedKeyInfos (CKIs). We're going to
 // store CKIs separately from the keys, since the server can clobber the
 // former.  We should rewrite CKIs every time we (re)check a user's SigChain
@@ -104,7 +102,7 @@ type KeyFamily struct {
 	pgp2kid map[PgpFingerprintMapKey]KID
 	kid2pgp map[KIDMapKey]PgpFingerprint
 
-	AllKeys KeyMap `json:"all"`
+	AllKeys map[KIDMapKey]*ServerKeyRecord
 
 	Contextified
 }
@@ -256,47 +254,73 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	return nil
 }
 
-// Import takes all ServerKeyRecords in this KeyMap and imports the
-// key bundle into a GenericKey object that can perform crypto ops. It
-// also collects all PgpKeyBundles along the way.
-func (km KeyMap) Import(pgps_i []*PgpKeyBundle) (pgps_o []*PgpKeyBundle, err error) {
-	pgps_o = pgps_i
-	var server_given_kid, computed_kid KID
-	for k, v := range km {
+// ParseKeyFamily takes as input a dictionary from a JSON file and returns
+// a parsed version for manipulation in the program.
+func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
+	G.Log.Debug("+ ParseKeyFamily")
+	defer func() {
+		G.Log.Debug("- ParseKeyFamily -> %s", ErrToOk(err))
+	}()
+
+	if jw == nil || jw.IsNil() {
+		err = KeyFamilyError{"nil record from server"}
+		return
+	}
+
+	// Somewhat wasteful but probably faster than using Jsonw wrappers,
+	// and less error-prone
+	var obj struct {
+		// The keys are stringified KIDs.
+		AllKeys map[string]*ServerKeyRecord `json:"all"`
+	}
+	if err = jw.UnmarshalAgain(&obj); err != nil {
+		return
+	}
+
+	kf := KeyFamily{
+		pgp2kid:      make(map[PgpFingerprintMapKey]KID),
+		kid2pgp:      make(map[KIDMapKey]PgpFingerprint),
+		AllKeys:      make(map[KIDMapKey]*ServerKeyRecord),
+		Contextified: NewContextified(G),
+	}
+
+	// Convert the stringified KID keys into KIDMapKeys.
+	for k, v := range obj.AllKeys {
+		var kid KID
+		kid, err = ImportKID(k)
+		if err != nil {
+			return
+		}
+		kf.AllKeys[kid.ToMapKey()] = v
+	}
+
+	// Take all ServerKeyRecords in this KeyMap and import the key
+	// bundle into a GenericKey object that can perform crypto
+	// ops. Also collects all PgpKeyBundles along the way.
+	for k, v := range kf.AllKeys {
 		var pgp *PgpKeyBundle
 		if pgp, err = v.Import(); err != nil {
 			return
 		}
 
+		var server_given_kid KID
 		if server_given_kid, err = k.ToKID(); err != nil {
 			return
 		}
 
-		computed_kid = v.key.GetKid()
+		computed_kid := v.key.GetKid()
 		if !server_given_kid.Eq(computed_kid) {
 			err = WrongKidError{server_given_kid, computed_kid}
 			return
 		}
 
 		if pgp != nil {
-			pgps_o = append(pgps_o, pgp)
+			kf.pgps = append(kf.pgps, pgp)
 		}
 	}
-	return
-}
 
-// Import takes all Subkeys and Subkeys and imports them and indexes them.
-// It indexes them both by KID and by PgpFingerprint, if available.
-func (kf *KeyFamily) Import() (err error) {
-	G.Log.Debug("+ KeyFamily.Import")
-	defer func() {
-		G.Log.Debug("- KeyFamily.Import -> %s", ErrToOk(err))
-	}()
-
-	kf.pgps, err = kf.AllKeys.Import(kf.pgps)
-	if err != nil {
-		return err
-	}
+	// Index all Sibkeys and Subkeys both by KID and by
+	// PgpFingerprint, if available.
 
 	for _, p := range kf.pgps {
 		fp := p.GetFingerprint()
@@ -305,31 +329,7 @@ func (kf *KeyFamily) Import() (err error) {
 		kf.kid2pgp[kid.ToMapKey()] = fp
 	}
 
-	return
-}
-
-// ParseKeyFamily takes as input a dictionary from a JSON file and returns
-// a parsed version for manipulation in the program.
-func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
-	if jw == nil && jw.IsNil() {
-		err = KeyFamilyError{"nil record from server"}
-	}
-
-	// Somewhat wasteful but probably faster than using Jsonw wrappers,
-	// and less error-prone
-	var obj KeyFamily
-	if err = jw.UnmarshalAgain(&obj); err != nil {
-		return
-	}
-
-	// Initialize this before the import step.
-	obj.pgp2kid = make(map[PgpFingerprintMapKey]KID)
-	obj.kid2pgp = make(map[KIDMapKey]PgpFingerprint)
-
-	if err = obj.Import(); err != nil {
-		return
-	}
-	ret = &obj
+	ret = &kf
 	return
 }
 
