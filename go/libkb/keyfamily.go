@@ -122,9 +122,9 @@ type ComputedKeyFamily struct {
 // depending on if a KID or PgpFingerprint or both are available.
 func (cki *ComputedKeyInfos) Insert(f *FOKID, i *ComputedKeyInfo) {
 	if f != nil {
-		v := f.ToMapKeys()
-		for _, s := range v {
-			cki.Infos[s] = i
+		keys := f.ToMapKeys()
+		for _, k := range keys {
+			cki.Infos[k] = i
 		}
 		cki.dirty = true
 	}
