@@ -40,7 +40,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 	cki := sc.localCki
 	l := sc.GetLastLink()
 	if cki == nil && l != nil && l.cki != nil {
-		cki = l.cki.Copy()
+		cki = l.cki.ShallowCopy()
 	}
 	if cki == nil {
 		cki = NewComputedKeyInfos()

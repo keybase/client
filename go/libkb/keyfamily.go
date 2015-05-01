@@ -128,21 +128,30 @@ func (cki *ComputedKeyInfos) Insert(f *FOKID, i *ComputedKeyInfo) {
 	}
 }
 
-func (cki ComputedKeyInfos) Copy() *ComputedKeyInfos {
+func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	ret := &ComputedKeyInfos{
 		dirty:         cki.dirty,
-		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo),
-		Sigs:          make(map[string]*ComputedKeyInfo),
-		Devices:       make(map[string]*Device),
-		KidToDeviceId: make(map[KIDMapKey]string),
+		Infos:         make(map[FOKIDMapKey]*ComputedKeyInfo, len(cki.Infos)),
+		Sigs:          make(map[string]*ComputedKeyInfo, len(cki.Sigs)),
+		Devices:       make(map[string]*Device, len(cki.Devices)),
+		KidToDeviceId: make(map[KIDMapKey]string, len(cki.KidToDeviceId)),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
 	}
+
 	for k, v := range cki.Sigs {
 		ret.Sigs[k] = v
 	}
-	// TODO: What about the other fields?
+
+	for k, v := range cki.Devices {
+		ret.Devices[k] = v
+	}
+
+	for k, v := range cki.KidToDeviceId {
+		ret.KidToDeviceId[k] = v
+	}
+
 	return ret
 }
 
