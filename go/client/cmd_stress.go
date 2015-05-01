@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -238,6 +239,13 @@ func (c *CmdStress) deviceAdd() {
 	if err != nil {
 		G.Log.Warning("device add error: %s", err)
 	}
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		err := dcli.DeviceAddCancel(sessionID)
+		if err != nil {
+			G.Log.Warning("device add cancel error: %s", err)
+		}
+	}()
 }
 
 func (c *CmdStress) gpgUIProtocol() rpc2.Protocol {
