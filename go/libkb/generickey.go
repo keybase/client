@@ -37,6 +37,10 @@ func (k KID) ToMapKey() KIDMapKey {
 	return KIDMapKey(k.String())
 }
 
+func (k KID) ToFOKIDMapKey() FOKIDMapKey {
+	return FOKIDMapKey(k.ToMapKey())
+}
+
 func (k KID) ToShortIdString() string {
 	return strings.TrimRight(base64.URLEncoding.EncodeToString(k[0:12]), "=")
 }
@@ -147,6 +151,9 @@ type FOKID struct {
 	Fp  *PgpFingerprint
 }
 
+// Can be either a KIDMapKey or PgpFingerprintMapKey, or empty.
+type FOKIDMapKey string
+
 // EqKid checks if the KID portion of the FOKID is equal
 // to the given KID
 func (f FOKID) EqKid(k2 KID) bool {
@@ -183,12 +190,22 @@ func (f FOKID) String() string {
 	}
 }
 
-func (f FOKID) ToStrings() (ret []string) {
+func (f FOKID) ToMapKey() FOKIDMapKey {
 	if f.Kid != nil {
-		ret = append(ret, f.Kid.String())
+		return f.Kid.ToFOKIDMapKey()
+	} else if f.Fp != nil {
+		return f.Fp.ToFOKIDMapKey()
+	} else {
+		return ""
+	}
+}
+
+func (f FOKID) ToMapKeys() (ret []FOKIDMapKey) {
+	if f.Kid != nil {
+		ret = append(ret, f.Kid.ToFOKIDMapKey())
 	}
 	if f.Fp != nil {
-		ret = append(ret, f.Fp.String())
+		ret = append(ret, f.Fp.ToFOKIDMapKey())
 	}
 	return
 }

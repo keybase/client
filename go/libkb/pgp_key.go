@@ -59,6 +59,10 @@ func (p PgpFingerprint) ToMapKey() PgpFingerprintMapKey {
 	return PgpFingerprintMapKey(p.String())
 }
 
+func (p PgpFingerprint) ToFOKIDMapKey() FOKIDMapKey {
+	return FOKIDMapKey(p.ToMapKey())
+}
+
 func (p PgpFingerprint) ToQuads() string {
 	x := []byte(strings.ToUpper(p.String()))
 	totlen := len(x)*5/4 - 1
