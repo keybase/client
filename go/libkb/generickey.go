@@ -198,7 +198,7 @@ func (f FOKID) String() string {
 	}
 }
 
-func (f FOKID) ToMapKey() FOKIDMapKey {
+func (f FOKID) ToFirstMapKey() FOKIDMapKey {
 	if f.Kid != nil {
 		return f.Kid.ToFOKIDMapKey()
 	} else if f.Fp != nil {

@@ -397,7 +397,7 @@ func (ckf *ComputedKeyFamily) PGPKeyFOKIDs() []FOKID {
 
 func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(f FOKID, t time.Time) (ret *ComputedKeyInfo, err error) {
 	unixTime := t.Unix()
-	if ki := ckf.cki.Infos[f.ToMapKey()]; ki == nil {
+	if ki := ckf.cki.Infos[f.ToFirstMapKey()]; ki == nil {
 		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", f.String())}
 	} else if ki.Status != KEY_UNCANCELLED {
 		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", f.String())}
