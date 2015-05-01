@@ -37,4 +37,6 @@
 
 - (void)setUsername:(NSString *)username client:(KBRPClient *)client;
 
+- (void)clear;
+
 @end

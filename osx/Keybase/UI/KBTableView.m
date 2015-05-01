@@ -27,7 +27,7 @@
 @property KBTableScrollView *scrollView;
 @property KBNSTableView *view;
 @property KBCellDataSource *dataSource;
-@property BOOL selecting;
+//@property BOOL selecting;
 @property NSIndexPath *menuIndexPath;
 @end
 
@@ -113,10 +113,11 @@
 }
 
 - (void)addObjects:(NSArray *)objects {
-  [self update:^(KBTableView *tableView) {
-    [tableView.dataSource addObjects:objects];
-    [tableView reloadData];
-  }];
+  NSMutableArray *indexPaths = [NSMutableArray array];
+  [self.dataSource addObjects:objects section:0 indexPaths:indexPaths];
+  [self.view beginUpdates];
+  if ([indexPaths count] > 0) [self.view insertRowsAtIndexes:[self itemIndexSet:indexPaths] withAnimation:NSTableViewAnimationSlideUp];
+  [self.view endUpdates];
 }
 
 - (NSArray *)objects {
@@ -201,12 +202,12 @@
 }
 
 - (void)setSelectedRow:(NSInteger)selectedRow {
-  NSAssert(!_selecting, @"In selection?");
-  _selecting = YES;
+  //NSAssert(!_selecting, @"In selection?");
+  //_selecting = YES;
   if (_view.selectedRow >= 0 && _view.selectedRow == selectedRow) [_view deselectRow:selectedRow];
   [_view selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
   [_view scrollRowToVisible:selectedRow];
-  _selecting = NO;
+  //_selecting = NO;
 }
 
 - (void)scrollToBottom:(BOOL)animated {
@@ -245,7 +246,7 @@
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
-  if (_selecting) return; // If we are selecting programatically ignore the notification
+  //if (_selecting) return; // If we are selecting programatically ignore the notification
   if (!self.onSelect) return;
   NSInteger selectedRow = [_view selectedRow];
   if (selectedRow < 0) {

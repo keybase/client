@@ -52,6 +52,7 @@
 
   if (!searchText || [searchText length] < 1) { // If you want to make min length for search change 1 here to N
     [self clearSearchResults];
+    [self.delegate searchControl:self progressEnabled:NO];
     return;
   }
 

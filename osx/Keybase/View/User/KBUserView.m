@@ -20,7 +20,7 @@
 - (void)setUser:(KBRUser *)user {
   self.imageSize = CGSizeMake(40, 40);
   [self.titleLabel setText:user.username font:KBAppearance.currentAppearance.boldLargeTextFont color:[KBAppearance.currentAppearance textColor] alignment:NSLeftTextAlignment];
-  ((KBUserImageView *)self.imageView).username = user.username;
+  [self.imageView kb_setUsername:user.username];
   [self setNeedsLayout];
 }
 

@@ -151,7 +151,7 @@
 		00D52F821A76EDAE00DEB5F5 /* KBFatalErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D52F811A76EDAE00DEB5F5 /* KBFatalErrorView.m */; };
 		00D52F8A1A77266A00DEB5F5 /* KBTrackView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00D52F891A77266A00DEB5F5 /* KBTrackView.m */; };
 		00DD245C1AA8DAE300371CDA /* NSView+KBView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD245B1AA8DAE300371CDA /* NSView+KBView.m */; };
-		00DD24601AA8E93100371CDA /* KBConnectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD245F1AA8E93100371CDA /* KBConnectView.m */; };
+		00DD24601AA8E93100371CDA /* KBAppProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD245F1AA8E93100371CDA /* KBAppProgressView.m */; };
 		00DD246C1AAA436900371CDA /* KBProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD246B1AAA436900371CDA /* KBProgressView.m */; };
 		00DD24701AAA4C0300371CDA /* KBErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD246F1AAA4C0300371CDA /* KBErrorView.m */; };
 		00DD38341AEE76B100691648 /* KBPGPEncryptAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DD38331AEE76B100691648 /* KBPGPEncryptAppView.m */; };
@@ -535,8 +535,8 @@
 		00D52F891A77266A00DEB5F5 /* KBTrackView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTrackView.m; sourceTree = "<group>"; };
 		00DD245A1AA8DAE300371CDA /* NSView+KBView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSView+KBView.h"; sourceTree = "<group>"; };
 		00DD245B1AA8DAE300371CDA /* NSView+KBView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSView+KBView.m"; sourceTree = "<group>"; };
-		00DD245E1AA8E93100371CDA /* KBConnectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConnectView.h; sourceTree = "<group>"; };
-		00DD245F1AA8E93100371CDA /* KBConnectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConnectView.m; sourceTree = "<group>"; };
+		00DD245E1AA8E93100371CDA /* KBAppProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppProgressView.h; sourceTree = "<group>"; };
+		00DD245F1AA8E93100371CDA /* KBAppProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppProgressView.m; sourceTree = "<group>"; };
 		00DD246A1AAA436900371CDA /* KBProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProgressView.h; sourceTree = "<group>"; };
 		00DD246B1AAA436900371CDA /* KBProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProgressView.m; sourceTree = "<group>"; };
 		00DD246E1AAA4C0300371CDA /* KBErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorView.h; sourceTree = "<group>"; };
@@ -928,8 +928,8 @@
 				00B544401A896BA80044CC5B /* KBLoginView.m */,
 				00B544431A896BC60044CC5B /* KBSignupView.h */,
 				00B544441A896BC60044CC5B /* KBSignupView.m */,
-				00DD245E1AA8E93100371CDA /* KBConnectView.h */,
-				00DD245F1AA8E93100371CDA /* KBConnectView.m */,
+				00DD245E1AA8E93100371CDA /* KBAppProgressView.h */,
+				00DD245F1AA8E93100371CDA /* KBAppProgressView.m */,
 			);
 			path = Login;
 			sourceTree = "<group>";
@@ -1627,7 +1627,7 @@
 				00B544381A8960D30044CC5B /* KBProveType.m in Sources */,
 				00DD383A1AEE86A200691648 /* KBPGPVerifyAppView.m in Sources */,
 				00ABEC8E1AD3138200DA66FC /* KBPrefTextField.m in Sources */,
-				00DD24601AA8E93100371CDA /* KBConnectView.m in Sources */,
+				00DD24601AA8E93100371CDA /* KBAppProgressView.m in Sources */,
 				0053B6E01AC6010E001AE392 /* KBPGPDecryptFileView.m in Sources */,
 				00B544241A895A810044CC5B /* KBProofLabel.m in Sources */,
 				00F0CDE41AE98591005F738A /* KBUserButtonView.m in Sources */,

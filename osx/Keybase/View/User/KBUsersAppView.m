@@ -140,12 +140,14 @@
   [_views showViewWithIdentifier:@"Tracking"];
   [_userViews showViewWithIdentifier:@"Tracking"];
   [_menuButton setTitle:@"Tracking"];
+  if (!_trackingView.listView.selectedObject) [_trackingUserView clear];
 }
 
 - (void)showTrackers:(id)sender {
   [_views showViewWithIdentifier:@"Trackers"];
   [_userViews showViewWithIdentifier:@"Trackers"];
   [_menuButton setTitle:@"Trackers"];
+  if (!_trackersView.listView.selectedObject) [_trackersUserView clear];
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
@@ -225,6 +227,7 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 #pragma mark Search
 
 - (void)showSearch {
+  KBConsoleLog(@"Show search");
   if (![_searchView superview]) {
     [self addSubview:_searchView positioned:NSWindowAbove relativeTo:_views];
   }
@@ -234,12 +237,17 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
 }
 
 - (void)hideSearch {
+  KBConsoleLog(@"Hide search");
   [_searchView removeFromSuperview];
   [_searchUserView removeFromSuperview];
 }
 
 - (void)searchControlShouldOpen:(KBSearchControl *)searchControl {
   [self showSearch];
+  if (!_searchView.listView.selectedObject) {
+    KBConsoleLog(@"Clearing search view");
+    [_searchUserView clear];
+  }
 }
 
 - (void)searchControlShouldClose:(KBSearchControl *)searchControl {

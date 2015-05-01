@@ -45,7 +45,7 @@
 
   _skipButton = [KBButton buttonWithText:@"No, Skip" style:KBButtonStyleDefault];
   _skipButton.targetBlock = ^{
-    gself.trackResponse([[KBRFinishAndPromptRes alloc] init]);
+    gself.trackResponse(nil);
   };
   [self addSubview:_skipButton];
   _skipButton.hidden = YES;

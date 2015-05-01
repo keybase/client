@@ -107,7 +107,7 @@
     [layout setFrame:CGRectMake(size.width - 24, y, 20, 20) view:yself.progressView];
 
     CGSize tokenSize = [yself.tokensField sizeThatFits:CGSizeMake(size.width - x - 26, CGFLOAT_MAX)];
-    y += [layout setFrame:CGRectMake(x, y, size.width - x, tokenSize.height + 2) view:yself.tokensField].size.height + 8;
+    y += [layout setFrame:CGRectMake(x, y, size.width - x, tokenSize.height + 2) view:yself.tokensField].size.height + 6;
     return CGSizeMake(size.width, y);
   }];
 }

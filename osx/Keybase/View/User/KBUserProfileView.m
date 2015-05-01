@@ -15,7 +15,6 @@
 #import "KBProofResult.h"
 #import "KBFatalErrorView.h"
 #import "KBTrackView.h"
-//#import "KBWebView.h"
 #import "KBProgressOverlayView.h"
 #import "KBProveView.h"
 #import "KBRPClient.h"
@@ -32,8 +31,8 @@
 @property KBTrackView *trackView;
 
 @property NSString *username;
-
-@property KBRFOKID *fokid;
+@property NSMutableArray *fokids;
+@property BOOL changed;
 
 @property (getter=isLoading) BOOL loading;
 @end
@@ -88,6 +87,9 @@
 }
 
 - (void)clear {
+  _username = nil;
+  _fokids = nil;
+  _changed = NO;
   _headerView.hidden = YES;
   [_userInfoView clear];
   [_trackView clear];
@@ -125,13 +127,12 @@
 
   [client registerMethod:@"keybase.1.identifyUi.displayKey" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
     KBRDisplayKeyRequestParams *requestParams = [[KBRDisplayKeyRequestParams alloc] initWithParams:params];
-    gself.fokid = requestParams.fokid;
-    if (requestParams.fokid) {
-      [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *keyId) {
-        [self openKeyWithKeyId:keyId];
-      }];
-      [gself setNeedsLayout];
-    }
+    if (!gself.fokids) gself.fokids = [NSMutableArray array];
+    [gself.fokids addObject:requestParams.fokid];
+    [gself.userInfoView addKey:requestParams.fokid targetBlock:^(KBRFOKID *keyId) {
+      [self openKeyWithKeyId:keyId];
+    }];
+    [gself setNeedsLayout];
     completion(nil, nil);
   }];
 
@@ -197,6 +198,11 @@
     gself.trackView.hidden = NO;
     BOOL trackPrompt = [gself.trackView setUsername:gself.username popup:gself.popup identifyOutcome:requestParams.outcome trackResponse:^(KBRFinishAndPromptRes *response) {
       [KBActivity setProgressEnabled:NO subviews:gself.trackView.subviews];
+
+      if (response) gself.changed = YES;
+
+      if (!response) response = [[KBRFinishAndPromptRes alloc] init];
+
       completion(nil, response);
       if (self.popup) {
         [[self window] close];
@@ -215,9 +221,11 @@
   }];
 
   [client registerMethod:@"keybase.1.identifyUi.finish" sessionId:sessionId requestHandler:^(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
-    });
+    if (gself.changed) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
+      });
+    }
     completion(nil, nil);
   }];
 
@@ -235,6 +243,95 @@
   return [_username isEqualToString:username] && _loading;
 }
 
+- (void)identify {
+  [self.headerView setProgressEnabled:YES];
+  _loading = YES;
+  GHWeakSelf gself = self;
+  KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
+  [self registerClient:self.client sessionId:identifyRequest.sessionId sender:self];
+  [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+    [gself.headerView setProgressEnabled:NO];
+    gself.loading = NO;
+    if (error) {
+      [AppDelegate setError:error sender:self];
+      return;
+    }
+  }];
+}
+
+- (void)track {
+  [self.headerView setProgressEnabled:YES];
+  _loading = YES;
+  GHWeakSelf gself = self;
+  KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
+  [self registerClient:self.client sessionId:trackRequest.sessionId sender:self];
+  [trackRequest trackWithSessionID:trackRequest.sessionId theirName:_username localOnly:NO approveRemote:NO completion:^(NSError *error) {
+    gself.loading = NO;
+    [gself.headerView setProgressEnabled:NO];
+
+    if (KBIsErrorName(error, @"KEY_NO_ACTIVE")) {
+      [self identify];
+      return;
+    }
+
+    [KBActivity setProgressEnabled:NO subviews:gself.trackView.subviews];
+    if (![gself.trackView setTrackCompleted:error]) {
+      if (error) [self setError:error];
+    }
+    [self setNeedsLayout];
+  }];
+}
+
+- (void)identifySelf {
+  [self.headerView setProgressEnabled:YES];
+  _loading = YES;
+  GHWeakSelf gself = self;
+  KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
+  [self registerClient:self.client sessionId:identifyRequest.sessionId sender:self];
+  [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
+    [gself.headerView setProgressEnabled:NO];
+    gself.loading = NO;
+    if (error) {
+      [AppDelegate setError:error sender:self];
+      return;
+    }
+
+    [gself.userInfoView addHeader:@" " text:@" " targetBlock:^{}];
+
+    if ([gself.fokids count] == 0) {
+      [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
+        [gself addPGPKey];
+      }];
+    }
+
+    for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
+      KBProveType proveType = [proveTypeNumber integerValue];
+
+      switch (proveType) {
+        case KBProveTypeDNS: {
+          [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProveType:proveType]; }];
+          break;
+        }
+        case KBProveTypeHTTPS: {
+          [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProveType:proveType]; }];
+          break;
+        }
+        case KBProveTypeTwitter:
+        case KBProveTypeGithub:
+        case KBProveTypeReddit:
+        case KBProveTypeCoinbase:
+        case KBProveTypeHackernews: {
+          [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProveType(proveType)) targetBlock:^{ [gself connectWithProveType:proveType]; }];
+          break;
+        }
+        case KBProveTypeUnknown:
+          break;
+      }
+    }
+    [self setNeedsLayout];
+  }];
+}
+
 - (void)setUsername:(NSString *)username client:(KBRPClient *)client {
   NSParameterAssert(client);
   if ([self isLoadingUsername:username]) return;
@@ -244,6 +341,8 @@
 
   self.client = client;
   _username = username;
+  _fokids = nil;
+  _changed = NO;
 
   if (!_username) return;
 
@@ -252,66 +351,10 @@
   [_headerView setUsername:_username];
   _headerView.hidden = NO;
 
-  GHWeakSelf gself = self;
-
   if (!isSelf) {
-    // For others
-    [self.headerView setProgressEnabled:YES];
-    _loading = YES;
-    KBRTrackRequest *trackRequest = [[KBRTrackRequest alloc] initWithClient:self.client];
-    [self registerClient:self.client sessionId:trackRequest.sessionId sender:self];
-    [trackRequest trackWithSessionID:trackRequest.sessionId theirName:_username localOnly:NO approveRemote:NO completion:^(NSError *error) {
-      gself.loading = NO;
-      [gself setTrackCompleted:error];
-    }];
+    [self track];
   } else {
-    // For ourself
-    [self.headerView setProgressEnabled:YES];
-    _loading = YES;
-    KBRIdentifyRequest *identifyRequest = [[KBRIdentifyRequest alloc] initWithClient:self.client];
-    [self registerClient:self.client sessionId:identifyRequest.sessionId sender:self];
-    [identifyRequest identifyDefaultWithSessionID:identifyRequest.sessionId userAssertion:_username completion:^(NSError *error, KBRIdentifyRes *identifyRes) {
-      [gself.headerView setProgressEnabled:NO];
-      gself.loading = NO;
-      if (error) {
-        [AppDelegate setError:error sender:self];
-        return;
-      }
-
-      [gself.userInfoView addHeader:@" " text:@" " targetBlock:^{}];
-
-      if (!gself.fokid) {
-        [gself.userInfoView addHeader:@" " text:@"Add a PGP Key" targetBlock:^{
-          [gself addPGPKey];
-        }];
-      }
-
-      for (NSNumber *proveTypeNumber in [gself.userInfoView missingProveTypes]) {
-        KBProveType proveType = [proveTypeNumber integerValue];
-
-        switch (proveType) {
-          case KBProveTypeDNS: {
-            [gself.userInfoView addHeader:@" " text:@"Add Domain" targetBlock:^{ [gself connectWithProveType:proveType]; }];
-            break;
-          }
-          case KBProveTypeHTTPS: {
-            [gself.userInfoView addHeader:@" " text:@"Add Website" targetBlock:^{ [gself connectWithProveType:proveType]; }];
-            break;
-          }
-          case KBProveTypeTwitter:
-          case KBProveTypeGithub:
-          case KBProveTypeReddit:
-          case KBProveTypeCoinbase:
-          case KBProveTypeHackernews: {
-            [gself.userInfoView addHeader:@" " text:NSStringWithFormat(@"Connect to %@", KBNameForProveType(proveType)) targetBlock:^{ [gself connectWithProveType:proveType]; }];
-            break;
-          }
-          case KBProveTypeUnknown:
-            break;
-        }
-      }
-      [self setNeedsLayout];
-    }];
+    [self identifySelf];
   }
 
   [self setNeedsLayout];
@@ -332,15 +375,6 @@
       [NSNotificationCenter.defaultCenter postNotificationName:KBTrackingListDidChangeNotification object:nil userInfo:@{@"username": gself.username}];
     });
   }];
-}
-
-- (void)setTrackCompleted:(NSError *)error {
-  [_headerView setProgressEnabled:NO];
-  [KBActivity setProgressEnabled:NO subviews:_trackView.subviews];
-  if (![_trackView setTrackCompleted:error]) {
-    if (error) [self setError:error];
-  }
-  [self setNeedsLayout];
 }
 
 #pragma mark Add PGP
@@ -448,9 +482,15 @@
   }
 }
 
+- (void)clear {
+  [_view clear];
+}
+
 - (void)setUsername:(NSString *)username client:(KBRPClient *)client {
+  KBConsoleLog(@"Setting username: %@", username);
   if (!username) {
     [_view removeFromSuperview];
+    _view = nil;
     return;
   }
 
