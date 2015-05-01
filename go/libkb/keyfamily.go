@@ -395,22 +395,22 @@ func (ckf *ComputedKeyFamily) PGPKeyFOKIDs() []FOKID {
 	return res
 }
 
-func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(key FOKIDMapKey, t time.Time) (ret *ComputedKeyInfo, err error) {
+func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(f FOKID, t time.Time) (ret *ComputedKeyInfo, err error) {
 	unixTime := t.Unix()
-	if ki := ckf.cki.Infos[key]; ki == nil {
-		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", string(key))}
+	if ki := ckf.cki.Infos[f.ToMapKey()]; ki == nil {
+		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", f.String())}
 	} else if ki.Status != KEY_UNCANCELLED {
-		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", string(key))}
+		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", f.String())}
 	} else if unixTime < ki.CTime || (ki.ETime > 0 && unixTime > ki.ETime) {
-		err = KeyExpiredError{fmt.Sprintf("The key '%s' expired at %s", string(key), time.Unix(ki.ETime, 0))}
+		err = KeyExpiredError{fmt.Sprintf("The key '%s' expired at %s", f.String(), time.Unix(ki.ETime, 0))}
 	} else {
 		ret = ki
 	}
 	return
 }
 
-func (ckf ComputedKeyFamily) getCkiIfActiveNow(key FOKIDMapKey) (ret *ComputedKeyInfo, err error) {
-	return ckf.getCkiIfActiveAtTime(key, time.Now())
+func (ckf ComputedKeyFamily) getCkiIfActiveNow(f FOKID) (ret *ComputedKeyInfo, err error) {
+	return ckf.getCkiIfActiveAtTime(f, time.Now())
 }
 
 // FindActiveSibkey takes a given PGP Fingerprint OR KID (in the form of a
@@ -428,7 +428,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkey(f FOKID) (key GenericKey, cki Comp
 // for validating the sigchain, when each delegation and revocation is getting
 // replayed in order.
 func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(f FOKID, t time.Time) (key GenericKey, cki ComputedKeyInfo, err error) {
-	liveCki, err := ckf.getCkiIfActiveAtTime(f.ToMapKey(), t)
+	liveCki, err := ckf.getCkiIfActiveAtTime(f, t)
 	if liveCki == nil || err != nil {
 		// err gets returned.
 	} else if !liveCki.Sibkey {
@@ -445,7 +445,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(f FOKID, t time.Time) (key G
 // it cannot find the key, it will return an error saying why.  Otherwise, it will return
 // the key.  In this case either key is non-nil, or err is non-nil.
 func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (GenericKey, error) {
-	ki, err := ckf.getCkiIfActiveNow(kid.ToFOKIDMapKey())
+	ki, err := ckf.getCkiIfActiveNow(kid.ToFOKID())
 	if err != nil {
 		return nil, err
 	}
@@ -621,17 +621,17 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 // GetKeyRole returns the KeyRole (sibkey/subkey/none), taking into account
 // whether the key has been cancelled.
 func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
-	return ckf.getKeyRole(kid.ToFOKIDMapKey())
+	return ckf.getKeyRole(kid.ToFOKID())
 }
 
 // GetFOKIDRole returns the KeyRole (sibkey/subkey/none), taking into account
 // whether the key has been cancelled.
 func (ckf ComputedKeyFamily) GetFOKIDRole(f FOKID) (ret KeyRole) {
-	return ckf.getKeyRole(f.ToMapKey())
+	return ckf.getKeyRole(f)
 }
 
-func (ckf ComputedKeyFamily) getKeyRole(key FOKIDMapKey) (ret KeyRole) {
-	if info, err := ckf.getCkiIfActiveNow(key); err != nil {
+func (ckf ComputedKeyFamily) getKeyRole(f FOKID) (ret KeyRole) {
+	if info, err := ckf.getCkiIfActiveNow(f); err != nil {
 		ret = DLG_NONE
 	} else if info.Sibkey {
 		ret = DLG_SIBKEY
@@ -641,11 +641,14 @@ func (ckf ComputedKeyFamily) getKeyRole(key FOKIDMapKey) (ret KeyRole) {
 	return
 }
 
-// GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily,
-// sorted from oldest to newest.
+// GetAllActiveSibkeys gets all active Sibkeys from given ComputedKeyFamily.
 func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 	for mapKey, skr := range ckf.kf.AllKeys {
-		if ckf.getKeyRole(FOKIDMapKey(mapKey)) == DLG_SIBKEY && skr.key != nil {
+		kid, err := mapKey.ToKID()
+		if err != nil {
+			continue
+		}
+		if ckf.getKeyRole(kid.ToFOKID()) == DLG_SIBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -654,7 +657,11 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 
 func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
 	for mapKey, skr := range ckf.kf.AllKeys {
-		if ckf.getKeyRole(FOKIDMapKey(mapKey)) == DLG_SUBKEY && skr.key != nil {
+		kid, err := mapKey.ToKID()
+		if err != nil {
+			continue
+		}
+		if ckf.getKeyRole(kid.ToFOKID()) == DLG_SUBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -689,7 +696,11 @@ func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]KID, 
 // The former check is so that we can handle the case nuked sigchains.
 func (ckf ComputedKeyFamily) HasActiveKey() bool {
 	for k := range ckf.kf.AllKeys {
-		if ckf.getKeyRole(FOKIDMapKey(k)) == DLG_SIBKEY {
+		kid, err := k.ToKID()
+		if err != nil {
+			continue
+		}
+		if ckf.getKeyRole(kid.ToFOKID()) == DLG_SIBKEY {
 			return true
 		}
 	}
@@ -702,7 +713,7 @@ func (ckf ComputedKeyFamily) HasActiveKey() bool {
 // and non-expired.
 func (ckf ComputedKeyFamily) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
 	for _, pgp := range ckf.kf.pgps {
-		role := ckf.getKeyRole(pgp.GetKid().ToFOKIDMapKey())
+		role := ckf.getKeyRole(pgp.GetKid().ToFOKID())
 		if (sibkey && role == DLG_SIBKEY) || role != DLG_NONE {
 			ret = append(ret, pgp)
 		}

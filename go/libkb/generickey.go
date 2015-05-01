@@ -37,6 +37,10 @@ type GenericKey interface {
 	Encode() (string, error) // encode public key to string
 }
 
+func (k KID) ToFOKID() FOKID {
+	return FOKID{Kid: k}
+}
+
 func (k KID) ToMapKey() KIDMapKey {
 	return KIDMapKey(k.String())
 }
