@@ -37,6 +37,10 @@
     [args addObject:@"-d"];
   }
 
+  // This is because there is a hard limit of 104 characters for the unix socket file length and if
+  // we the default there is a chance it will be too long (if username is long).
+  [args addObject:NSStringWithFormat(@"--socket-file=%@", environment.sockFile)];
+
   // Need to create logging dir here because otherwise it will be created as root by launchctl
   NSString *logDir = [@"~/Library/Logs/Keybase" stringByExpandingTildeInPath];
   [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];

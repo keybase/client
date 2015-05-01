@@ -39,7 +39,12 @@
       }
     }
 
-    self.sockFile = [self.home stringByAppendingPathComponent:@".config/keybase/keybased.sock"];
+    // This is because there is a hard limit of 104 characters for the unix socket file length and if
+    // we the default there is a chance it will be too long (if username is long).
+    self.sockFile = [self.home stringByAppendingPathComponent:@".config/kb.sock"];
+    if ([[self.sockFile stringByExpandingTildeInPath] length] > 103) {
+      [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters."];
+    }
   }
   return self;
 }
