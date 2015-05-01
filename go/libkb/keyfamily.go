@@ -1,3 +1,4 @@
+// A KeyFamily is a group of sibling keys that have equal power for a user.
 // A family can consist of 1 PGP keys, and arbitrarily many NaCl Sibkeys.
 // There also can be some subkeys dangling off for ECDH.
 package libkb
