@@ -68,8 +68,11 @@ type DeviceStatus struct {
 }
 
 type Device struct {
-	Id          string  `json:"id"`
-	Type        string  `json:"type"`
+	Id   string `json:"id"`
+	Type string `json:"type"`
+	// TODO: Store this as a KID object instead. This necessitates
+	// redoing the parsing for ComputedKeyInfos (which has a
+	// map[string]*Device), though.
 	Kid         *string `json:"kid,omitempty"`
 	Description *string `json:"description,omitempty"`
 	Status      *int    `json:"status,omitempty"`
