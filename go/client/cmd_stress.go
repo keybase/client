@@ -57,6 +57,7 @@ func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 		NewIdentifyUIProtocol(),
 		c.gpgUIProtocol(),
 		NewLogUIProtocol(),
+		NewDoctorUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return nil, err
@@ -138,9 +139,12 @@ func (c *CmdStress) simulate(username, passphrase string) {
 	funcs := []func(){
 		c.deviceAdd,
 		c.deviceList,
+		c.doctor,
 		c.idAlice,
 		c.idSelf,
 		c.listTrackers,
+		c.listTracking,
+		c.status,
 		c.trackSomeone,
 	}
 	for i := 0; i < 10; i++ {
@@ -190,6 +194,14 @@ func (c *CmdStress) trackSomeone() {
 	if err != nil {
 		G.Log.Warning("track %s error: %s", user, err)
 	}
+
+	if libkb.RandIntn(2) == 0 {
+		return
+	}
+	err = tcli.Untrack(keybase_1.UntrackArg{TheirName: user})
+	if err != nil {
+		G.Log.Warning("untrack %s error: %s", user, err)
+	}
 }
 
 func (c *CmdStress) listTrackers() {
@@ -202,6 +214,19 @@ func (c *CmdStress) listTrackers() {
 	_, err = ucli.ListTrackersSelf(0)
 	if err != nil {
 		G.Log.Warning("list trackers error: %s", err)
+	}
+}
+
+func (c *CmdStress) listTracking() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
+	ucli := keybase_1.UserClient{Cli: cli}
+	_, err = ucli.ListTracking("")
+	if err != nil {
+		G.Log.Warning("list tracking error: %s", err)
 	}
 }
 
@@ -246,6 +271,45 @@ func (c *CmdStress) deviceAdd() {
 			G.Log.Warning("device add cancel error: %s", err)
 		}
 	}()
+}
+
+func (c *CmdStress) doctor() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
+	dcli := keybase_1.DoctorClient{Cli: cli}
+	err = dcli.Doctor(0)
+	if err != nil {
+		G.Log.Warning("doctor error: %s", err)
+	}
+}
+
+func (c *CmdStress) status() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
+	ccli := keybase_1.ConfigClient{Cli: cli}
+	currentStatus, err := ccli.GetCurrentStatus()
+	if err != nil {
+		G.Log.Warning("status error: %s", err)
+		return
+	}
+	if !currentStatus.LoggedIn {
+		G.Log.Warning("Not logged in.")
+		return
+	}
+	myUid := currentStatus.User.Uid
+
+	ucli := keybase_1.UserClient{Cli: cli}
+	_, err = ucli.LoadUser(keybase_1.LoadUserArg{Uid: &myUid})
+	if err != nil {
+		G.Log.Warning("load user error: %s", err)
+	}
+
 }
 
 func (c *CmdStress) gpgUIProtocol() rpc2.Protocol {
