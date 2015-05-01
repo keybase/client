@@ -267,7 +267,7 @@ func (km KeyMap) Import(pgps_i []*PgpKeyBundle) (pgps_o []*PgpKeyBundle, err err
 			return
 		}
 
-		if server_given_kid, err = ImportKID(string(k)); err != nil {
+		if server_given_kid, err = k.ToKID(); err != nil {
 			return
 		}
 
@@ -826,7 +826,7 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceID) (key Ge
 		return
 	} else if cki.Subkey == nil {
 		return
-	} else if kid, err = ImportKID(string(*cki.Subkey)); err != nil {
+	} else if kid, err = cki.Subkey.ToKID(); err != nil {
 	} else {
 		key, err = ckf.FindActiveEncryptionSubkey(kid)
 	}

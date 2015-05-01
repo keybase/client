@@ -17,6 +17,10 @@ type KID2 []byte
 type KIDMapKey string
 type AlgoType int
 
+func (key KIDMapKey) ToKID() (KID, error) {
+	return ImportKID(string(key))
+}
+
 type GenericKey interface {
 	GetKid() KID
 	GetFingerprintP() *PgpFingerprint
