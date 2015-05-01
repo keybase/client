@@ -33,10 +33,10 @@ type ComputedKeyInfo struct {
 	ETime int64 // In Seconds since the Epoch or 0 if none
 
 	// For subkeys, a pointer back to our parent
-	Parent *string
+	Parent *KIDMapKey
 
 	// For Sibkeys, a pointer to the last-added subkey
-	Subkey *string
+	Subkey *KIDMapKey
 
 	// Map of SigId (as hex) -> KID
 	Delegations map[string]KID
@@ -531,10 +531,10 @@ func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *
 	// If it's a subkey, make a pointer from it to its parent,
 	// and also from its parent to it.
 	if parentKid != nil {
-		s := parentKid.String()
+		s := parentKid.ToMapKey()
 		info.Parent = &s
 		if parent, found := cki.Infos[parentKid.ToFOKIDMapKey()]; found {
-			kidStr := kid.String()
+			kidStr := kid.ToMapKey()
 			parent.Subkey = &kidStr
 		}
 	}
@@ -690,7 +690,7 @@ func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]strin
 			// For each sibkey we find, get all its subkeys too.
 			for _, subkey := range ckf.GetAllActiveSubkeys() {
 				subkeyKID := subkey.GetKid()
-				if *ckf.cki.Infos[subkeyKID.ToFOKIDMapKey()].Parent == sibkeyKID.String() {
+				if *ckf.cki.Infos[subkeyKID.ToFOKIDMapKey()].Parent == sibkeyKID.ToMapKey() {
 					ret = append(ret, subkeyKID.String())
 				}
 			}
@@ -840,7 +840,7 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceID) (key Ge
 		return
 	} else if cki.Subkey == nil {
 		return
-	} else if kid, err = ImportKID(*cki.Subkey); err != nil {
+	} else if kid, err = ImportKID(string(*cki.Subkey)); err != nil {
 	} else {
 		key, err = ckf.FindActiveEncryptionSubkey(kid)
 	}
@@ -870,7 +870,7 @@ func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
 
 	// Then see if the parent is a detkey and we're a subkey of it.
 	if info, found := ckf.cki.Infos[key.GetKid().ToFOKIDMapKey()]; found && info.Parent != nil && !info.Sibkey {
-		ret, err = ckf.isDetKeyHelper(*info.Parent)
+		ret, err = ckf.isDetKeyHelper(string(*info.Parent))
 	}
 	return
 }
