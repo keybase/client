@@ -103,13 +103,7 @@ type KeyFamily struct {
 	pgp2kid map[PgpFingerprintMapKey]KID
 	kid2pgp map[KIDMapKey]PgpFingerprint
 
-	// All the fields parsed directly from the server's JSON response. Note
-	// that SibkeysList and SubkeysList are only used to build Sibkeys and
-	// Subkeys, respectively.
-	SibkeysList []string            `json:"sibkeys"`
-	SubkeysList []string            `json:"subkeys"`
-	Families    map[string][]string `json:"families"`
-	AllKeys     KeyMap              `json:"all"`
+	AllKeys KeyMap `json:"all"`
 
 	Contextified
 }
