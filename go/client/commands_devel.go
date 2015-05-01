@@ -42,3 +42,22 @@ func cmdline() *libcmdline.CommandLine {
 
 	return cl
 }
+
+var extraSignupFlags = []cli.Flag{
+	cli.StringFlag{
+		Name:  "u, username",
+		Usage: "Specify a username",
+	},
+	cli.StringFlag{
+		Name:  "p, passphrase",
+		Usage: "Specify a passphrase",
+	},
+	cli.StringFlag{
+		Name:  "d, device",
+		Usage: "Specify a device name",
+	},
+	cli.BoolFlag{
+		Name:  "b, batch",
+		Usage: "Batch mode (don't prompt, use all defaults)",
+	},
+}

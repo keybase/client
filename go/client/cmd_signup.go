@@ -12,7 +12,7 @@ import (
 )
 
 func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
+	cmd := cli.Command{
 		Name:        "signup",
 		Usage:       "keybase signup [-c <code>]",
 		Description: "signup for a new account",
@@ -30,6 +30,8 @@ func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 	}
+	cmd.Flags = append(cmd.Flags, extraSignupFlags...)
+	return cmd
 }
 
 type PromptFields struct {
@@ -53,12 +55,16 @@ type CmdSignupState struct {
 	fields   *PromptFields
 	prompter *Prompter
 
-	code            string
-	requestedInvite bool
-	fullname        string
-	notes           string
-	passphrase      string
-	defaultEmail    string
+	code              string
+	requestedInvite   bool
+	fullname          string
+	notes             string
+	passphrase        string
+	defaultEmail      string
+	defaultUsername   string
+	defaultPassphrase string
+	defaultDevice     string
+	doPrompt          bool
 }
 
 func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
@@ -72,6 +78,38 @@ func (s *CmdSignupState) ParseArgv(ctx *cli.Context) error {
 	}
 
 	s.defaultEmail = ctx.String("email")
+
+	s.defaultUsername = ctx.String("username")
+	if s.defaultUsername == "" {
+		cl := G.Env.GetCommandLine()
+		s.defaultUsername = cl.GetUsername()
+	}
+
+	s.defaultPassphrase = ctx.String("passphase")
+	if s.defaultPassphrase == "" {
+		s.defaultPassphrase = "home computer"
+	}
+
+	s.defaultDevice = ctx.String("device")
+	if s.defaultDevice == "" {
+		s.defaultDevice = "home computer"
+	}
+
+	if ctx.Bool("batch") {
+		s.fields = &PromptFields{
+			email:           &Field{Value: &s.defaultEmail},
+			code:            &Field{Value: &s.code},
+			username:        &Field{Value: &s.defaultUsername},
+			deviceName:      &Field{Value: &s.defaultDevice},
+			passphraseRetry: &Field{},
+		}
+
+		s.passphrase = s.defaultPassphrase
+		s.prompter = NewPrompter(s.fields.ToList())
+		s.doPrompt = false
+	} else {
+		s.doPrompt = true
+	}
 
 	if nargs != 0 {
 		err = BadArgsError{"signup doesn't take arguments"}
@@ -93,7 +131,7 @@ Enjoy!
 
 func (s *CmdSignupState) RunClient() error {
 	G.Log.Debug("| Client mode")
-	s.engine = &ClientModeSignupEngine{}
+	s.engine = &ClientModeSignupEngine{doPrompt: s.doPrompt}
 	return s.run()
 }
 
@@ -140,6 +178,9 @@ func (s *CmdSignupState) CheckRegistered() (err error) {
 }
 
 func (s *CmdSignupState) Prompt() (err error) {
+	if !s.doPrompt {
+		return nil
+	}
 	if s.prompter == nil {
 		s.MakePrompter()
 	}
@@ -284,8 +325,6 @@ func (s *CmdSignupState) MakePrompter() {
 		}
 	}
 
-	cl := G.Env.GetCommandLine()
-
 	passphraseRetry := &Field{
 		Defval:   "n",
 		Disabled: true,
@@ -302,14 +341,14 @@ func (s *CmdSignupState) MakePrompter() {
 	}
 
 	username := &Field{
-		Defval:  cl.GetUsername(),
+		Defval:  s.defaultUsername,
 		Name:    "username",
 		Prompt:  "Your desired username",
 		Checker: &libkb.CheckUsername,
 	}
 
 	deviceName := &Field{
-		Defval:  "home computer",
+		Defval:  s.defaultDevice,
 		Name:    "devname",
 		Prompt:  "A public name for this device",
 		Checker: &libkb.CheckNotEmpty,
@@ -336,9 +375,10 @@ func (v *CmdSignupState) GetUsage() libkb.Usage {
 }
 
 type ClientModeSignupEngine struct {
-	scli keybase_1.SignupClient
-	ccli keybase_1.ConfigClient
-	arg  *engine.SignupEngineRunArg
+	scli     keybase_1.SignupClient
+	ccli     keybase_1.ConfigClient
+	arg      *engine.SignupEngineRunArg
+	doPrompt bool
 }
 
 func (e *ClientModeSignupEngine) Name() string {
@@ -384,8 +424,14 @@ func (e *ClientModeSignupEngine) Init() error {
 
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
-		NewGPGUIProtocol(),
 		NewSecretUIProtocol(),
+	}
+	if e.doPrompt {
+		protocols = append(protocols, NewGPGUIProtocol())
+	} else {
+		ui := G_UI.GetGPGUI().(GPGUI)
+		ui.noPrompt = true
+		protocols = append(protocols, keybase_1.GpgUiProtocol(ui))
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
