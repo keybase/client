@@ -151,6 +151,13 @@ func (c *CmdStress) simulate(username, passphrase string) {
 		f := funcs[libkb.RandIntn(len(funcs))]
 		f()
 	}
+
+	// now add logout to the mix
+	funcs = append(funcs, c.logout)
+	for i := 0; i < 10; i++ {
+		f := funcs[libkb.RandIntn(len(funcs))]
+		f()
+	}
 }
 
 func (c *CmdStress) idSelf() {
@@ -309,7 +316,19 @@ func (c *CmdStress) status() {
 	if err != nil {
 		G.Log.Warning("load user error: %s", err)
 	}
+}
 
+func (c *CmdStress) logout() {
+	cli, err := GetLoginClient()
+	if err != nil {
+		G.Log.Warning("GetLoginClient error: %s", err)
+		return
+	}
+	err = cli.Logout()
+	if err != nil {
+		G.Log.Warning("Logout error: %s", err)
+		return
+	}
 }
 
 func (c *CmdStress) gpgUIProtocol() rpc2.Protocol {
