@@ -69,7 +69,7 @@ type ServerKeyRecord struct {
 	Contextified
 }
 
-type KeyMap map[string]*ServerKeyRecord
+type KeyMap map[KIDMapKey]*ServerKeyRecord
 
 // When we play a sigchain forward, it yields ComputedKeyInfos (CKIs). We're going to
 // store CKIs separately from the keys, since the server can clobber the
@@ -282,7 +282,7 @@ func (km KeyMap) Import(pgps_i []*PgpKeyBundle) (pgps_o []*PgpKeyBundle, err err
 			return
 		}
 
-		if server_given_kid, err = ImportKID(k); err != nil {
+		if server_given_kid, err = ImportKID(string(k)); err != nil {
 			return
 		}
 
@@ -389,11 +389,10 @@ func (kf KeyFamily) FindKeyWithFOKIDUsafe(f FOKID) (key GenericKey, err error) {
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.
 func (kf KeyFamily) FindKeyWithKIDUsafe(kid KID) (GenericKey, error) {
-	s := kid.String()
-	if skr, ok := kf.AllKeys[s]; !ok {
-		return nil, KeyFamilyError{fmt.Sprintf("No server key record found for %s", s)}
+	if skr, ok := kf.AllKeys[kid.ToMapKey()]; !ok {
+		return nil, KeyFamilyError{fmt.Sprintf("No server key record found for %s", kid.String())}
 	} else if skr.key == nil {
-		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", s)}
+		return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid.String())}
 	} else {
 		return skr.key, nil
 	}
@@ -628,11 +627,10 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 		kf.pgp2kid[pgp.GetFingerprint().ToMapKey()] = pgp.GetKid()
 		kf.pgps = append(kf.pgps, pgp)
 	}
-	kidStr := key.GetKid().String()
 	skr := &ServerKeyRecord{key: key}
 	skr.SetGlobalContext(kf.G())
 
-	kf.AllKeys[kidStr] = skr
+	kf.AllKeys[key.GetKid().ToMapKey()] = skr
 
 	return
 }
@@ -664,7 +662,7 @@ func (ckf ComputedKeyFamily) getKeyRoleFromStr(s string) (ret KeyRole) {
 // sorted from oldest to newest.
 func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 	for kid, skr := range ckf.kf.AllKeys {
-		if ckf.getKeyRoleFromStr(kid) == DLG_SIBKEY && skr.key != nil {
+		if ckf.getKeyRoleFromStr(string(kid)) == DLG_SIBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -673,7 +671,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 
 func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
 	for kid, skr := range ckf.kf.AllKeys {
-		if ckf.getKeyRoleFromStr(kid) == DLG_SUBKEY && skr.key != nil {
+		if ckf.getKeyRoleFromStr(string(kid)) == DLG_SUBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -708,7 +706,7 @@ func (ckf ComputedKeyFamily) GetAllActiveKeysForDevice(deviceID string) ([]strin
 // The former check is so that we can handle the case nuked sigchains.
 func (ckf ComputedKeyFamily) HasActiveKey() bool {
 	for k := range ckf.kf.AllKeys {
-		if ckf.getKeyRoleFromStr(k) == DLG_SIBKEY {
+		if ckf.getKeyRoleFromStr(string(k)) == DLG_SIBKEY {
 			return true
 		}
 	}
