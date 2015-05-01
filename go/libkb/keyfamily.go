@@ -38,9 +38,8 @@ type ComputedKeyInfo struct {
 	// For Sibkeys, a pointer to the last-added subkey
 	Subkey *string
 
-	// Map of SigId -> KID, both as hex strings
-	// (since we can't unmarhsal into KIDs)
-	Delegations map[string]string
+	// Map of SigId (as hex) -> KID
+	Delegations map[string]KID
 	DelegatedAt *KeybaseTime
 	RevokedAt   *KeybaseTime
 
@@ -126,7 +125,7 @@ type ComputedKeyFamily struct {
 
 func (cki ComputedKeyInfo) Copy() ComputedKeyInfo {
 	ret := cki
-	ret.Delegations = make(map[string]string)
+	ret.Delegations = make(map[string]KID)
 	for k, v := range cki.Delegations {
 		ret.Delegations[k] = v
 	}
@@ -178,7 +177,7 @@ func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int6
 		Status:      status,
 		CTime:       ctime,
 		ETime:       etime,
-		Delegations: make(map[string]string),
+		Delegations: make(map[string]KID),
 	}
 }
 
@@ -526,7 +525,7 @@ func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *
 		info.CTime = ctime.Unix()
 		info.ETime = etime.Unix()
 	}
-	info.Delegations[sigid.ToString(true)] = signingKid.String()
+	info.Delegations[sigid.ToString(true)] = signingKid
 	info.Sibkey = isSibkey
 	cki.Sigs[sigid.ToString(true)] = info
 
