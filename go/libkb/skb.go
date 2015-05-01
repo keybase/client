@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 
 	triplesec "github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/openpgp"
@@ -35,6 +36,8 @@ type SKB struct {
 	// Contextified (see
 	// https://github.com/keybase/client/issues/329 ).
 	newLKSecForTest func(clientHalf []byte) *LKSec
+
+	sync.Mutex // currently only for uid
 }
 
 type SKBPriv struct {
@@ -250,7 +253,9 @@ func (p *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
 
 func (p *SKB) lksUnlock(pps PassphraseStream, secretStorer SecretStorer) (unlocked []byte, err error) {
 	lks := p.newLKSec(pps.LksClientHalf())
+	p.Lock()
 	lks.SetUID(p.uid)
+	p.Unlock()
 	unlocked, err = lks.Decrypt(p.Priv.Data)
 	if err != nil {
 		return
@@ -281,7 +286,9 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 
 func (p *SKB) SetUID(uid *UID) {
 	G.Log.Debug("| Setting UID on SKB to %s", uid)
+	p.Lock()
 	p.uid = uid
+	p.Unlock()
 }
 
 type SKBKeyringFile struct {

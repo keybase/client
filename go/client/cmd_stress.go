@@ -37,7 +37,8 @@ func NewCmdStress(cl *libcmdline.CommandLine) cli.Command {
 // CmdStress is used for testing concurrency in the daemon.
 // Build the daemon with `-race`, then run this command.
 type CmdStress struct {
-	numUsers int
+	numUsers   int
+	passphrase string
 }
 
 func (c *CmdStress) Run() error {
@@ -51,7 +52,7 @@ func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 	}
 	protocols := []rpc2.Protocol{
 		NewStreamUiProtocol(),
-		NewSecretUIProtocol(),
+		c.secretUIProtocol(),
 		NewIdentifyUIProtocol(),
 		c.gpgUIProtocol(),
 		NewLogUIProtocol(),
@@ -113,15 +114,15 @@ func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err e
 	if _, err = rand.Read(buf); err != nil {
 		return
 	}
-	passphrase = hex.EncodeToString(buf)
+	c.passphrase = hex.EncodeToString(buf)
 
-	G.Log.Info("username: %q, email: %q, passphrase: %q", username, email, passphrase)
+	G.Log.Info("username: %q, email: %q, passphrase: %q", username, email, c.passphrase)
 
 	scli := keybase_1.SignupClient{Cli: cli}
 	res, err := scli.Signup(keybase_1.SignupArg{
 		Email:      email,
 		InviteCode: "202020202020202020202020",
-		Passphrase: passphrase,
+		Passphrase: c.passphrase,
 		Username:   username,
 		DeviceName: "signup test device",
 	})
@@ -134,9 +135,12 @@ func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err e
 
 func (c *CmdStress) simulate(username, passphrase string) {
 	funcs := []func(){
-		c.idSelf,
+		c.deviceAdd,
+		c.deviceList,
 		c.idAlice,
+		c.idSelf,
 		c.listTrackers,
+		c.trackSomeone,
 	}
 	for i := 0; i < 10; i++ {
 		f := funcs[libkb.RandIntn(len(funcs))]
@@ -170,6 +174,23 @@ func (c *CmdStress) idAlice() {
 	}
 }
 
+func (c *CmdStress) trackSomeone() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
+
+	users := []string{"t_alice", "t_bob", "t_charlie", "t_doug"}
+	user := users[libkb.RandIntn(len(users))]
+
+	tcli := keybase_1.TrackClient{Cli: cli}
+	err = tcli.Track(keybase_1.TrackArg{TheirName: user, ApproveRemote: true})
+	if err != nil {
+		G.Log.Warning("track %s error: %s", user, err)
+	}
+}
+
 func (c *CmdStress) listTrackers() {
 	cli, err := c.rpcClient()
 	if err != nil {
@@ -180,6 +201,42 @@ func (c *CmdStress) listTrackers() {
 	_, err = ucli.ListTrackersSelf(0)
 	if err != nil {
 		G.Log.Warning("list trackers error: %s", err)
+	}
+}
+
+func (c *CmdStress) deviceList() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
+	dcli := keybase_1.DeviceClient{Cli: cli}
+	_, err = dcli.DeviceList(0)
+	if err != nil {
+		G.Log.Warning("device list error: %s", err)
+	}
+}
+
+func (c *CmdStress) deviceAdd() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
+	dcli := keybase_1.DeviceClient{Cli: cli}
+	sessionID, err := libkb.RandInt()
+	if err != nil {
+		G.Log.Warning("RandInt error: %s", err)
+		return
+	}
+	phrase, err := libkb.RandBytes(50)
+	if err != nil {
+		G.Log.Warning("RandBytes error: %s", err)
+		return
+	}
+	err = dcli.DeviceAdd(keybase_1.DeviceAddArg{SecretPhrase: string(phrase), SessionID: sessionID})
+	if err != nil {
+		G.Log.Warning("device add error: %s", err)
 	}
 }
 
@@ -195,4 +252,20 @@ func (c *CmdStress) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionA
 }
 func (c *CmdStress) WantToAddGPGKey(dummy int) (bool, error) {
 	return false, nil
+}
+
+func (c *CmdStress) secretUIProtocol() rpc2.Protocol {
+	return keybase_1.SecretUiProtocol(c)
+}
+
+func (c *CmdStress) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (string, error) {
+	return c.passphrase, nil
+}
+
+func (c *CmdStress) GetNewPassphrase(arg keybase_1.GetNewPassphraseArg) (string, error) {
+	return c.passphrase, nil
+}
+
+func (c *CmdStress) GetSecret(arg keybase_1.GetSecretArg) (res keybase_1.SecretEntryRes, err error) {
+	return
 }
