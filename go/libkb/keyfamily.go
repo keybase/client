@@ -33,10 +33,10 @@ type ComputedKeyInfo struct {
 	CTime int64 // In Seconds since the Epoch
 	ETime int64 // In Seconds since the Epoch or 0 if none
 
-	// For subkeys, the ID of our parent (if valid)
+	// For subkeys, the KID of our parent (if valid)
 	Parent KID
 
-	// For sibkeys, the last-added subkey (if valid)
+	// For sibkeys, the KID of last-added subkey (if valid)
 	Subkey KID
 
 	// Map of SigId (as hex) -> KID
