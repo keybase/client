@@ -78,6 +78,8 @@ func (s *LoginState) UserInfo() (uid UID, username, token string, deviceSubkeyKi
 
 	uid = user.GetUid()
 	username = user.GetName()
+	// TODO: Make sure token is consistent with other return
+	// values (i.e., make this not racy).
 	token = s.session.GetToken()
 	return
 }
