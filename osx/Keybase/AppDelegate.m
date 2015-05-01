@@ -315,13 +315,12 @@
 - (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse returnCode))completion {
   if (!error) return NO;
 
-  NSString *errorName = error.userInfo[@"MPErrorInfoKey"][@"name"];
-  if ([errorName isEqualToString:@"CANCELED"]) {
+  if (KBIsErrorName(error, @"CANCELED")) {
     // Canceled, ok to ignore
     return NO;
   }
 
-  if ([errorName isEqualToString:@"LOGIN_REQUIRED"]) {
+  if (KBIsErrorName(error, @"LOGIN_REQUIRED")) {
     [self.appView logout:NO];
     return YES;
   }

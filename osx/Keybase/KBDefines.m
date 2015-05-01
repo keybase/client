@@ -98,3 +98,7 @@ NSString *KBDictionaryDescription(NSDictionary *d) {
     return NSStringWithFormat(@"%@: %@", key, KBDescription(value));
   }] join:@", "]);
 }
+
+BOOL KBIsErrorName(NSError *error, NSString *name) {
+  return [error.userInfo[@"MPErrorInfoKey"][@"name"] isEqualTo:name];
+}

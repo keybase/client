@@ -25,7 +25,7 @@
   view.dividerRatio = .50;
   [self addSubview:view];
 
-  GHWeakSelf gself = self;
+  //GHWeakSelf gself = self;
   _verifyView = [[KBPGPVerifyView alloc] init];
   _verifyView.onVerify = ^(KBPGPVerifyView *view) {
   };

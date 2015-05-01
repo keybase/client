@@ -1,17 +1,18 @@
 //
-//  KBConnectView.m
+//  KBAppProgressView.m
 //  Keybase
 //
 //  Created by Gabriel on 3/5/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBConnectView.h"
+#import "KBAppProgressView.h"
 
-@interface KBConnectView ()
+@interface KBAppProgressView ()
+@property KBProgressOverlayView *progressView;
 @end
 
-@implementation KBConnectView
+@implementation KBAppProgressView
 
 - (void)viewInit {
   [super viewInit];
@@ -24,5 +25,14 @@
 }
 
 - (void)viewDidAppear:(BOOL)animated { }
+
+- (void)enableProgressWithTitle:(NSString *)title {
+  _progressView.title = title;
+  _progressView.animating = YES;
+}
+
+- (void)disableProgress {
+  _progressView.animating = NO;
+}
 
 @end

@@ -72,6 +72,12 @@
   };
   [buttons addSubview:helperButton];
 
+  KBButton *clearButton = [KBButton buttonWithText:@"Clear" style:KBButtonStyleToolbar];
+  clearButton.targetBlock = ^{
+    [gself.logView removeAllObjects];
+  };
+  [buttons addSubview:clearButton];
+
   // TODO logging grows forever
   _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
   _logView.scrollView.borderType = NSBezelBorder;

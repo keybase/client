@@ -1,5 +1,5 @@
 //
-//  KBConnectView.h
+//  KBAppProgressView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/5/15.
@@ -10,8 +10,9 @@
 
 #import "KBContentView.h"
 
-@interface KBConnectView : KBContentView
+@interface KBAppProgressView : KBContentView
 
-@property KBProgressOverlayView *progressView;
+- (void)enableProgressWithTitle:(NSString *)title;
+- (void)disableProgress;
 
 @end

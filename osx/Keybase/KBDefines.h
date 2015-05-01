@@ -36,6 +36,8 @@ NSString *KBPGPKeyIdFromFingerprint(NSString *fingerprint);
 NSString *KBDescriptionForKID(NSData *kid);
 NSString *KBDescriptionForFingerprint(NSString *fingerprint, NSInteger indexForLineBreak);
 
+BOOL KBIsErrorName(NSError *error, NSString *name);
+
 typedef NS_ENUM (NSInteger, KBAppViewItem) {
   KBAppViewItemNone,
   KBAppViewItemProfile = 1,

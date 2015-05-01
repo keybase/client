@@ -15,7 +15,7 @@
 #import "KBSignupView.h"
 #import "KBInstaller.h"
 #import "KBDevicesAppView.h"
-#import "KBConnectView.h"
+#import "KBAppProgressView.h"
 #import "KBFoldersAppView.h"
 #import "KBAppToolbar.h"
 #import "KBPGPAppView.h"
@@ -23,7 +23,7 @@
 
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
-  KBAppViewModeConnecting = 1,
+  KBAppViewModeInProgress = 1,
   KBAppViewModeLogin,
   KBAppViewModeSignup,
   KBAppViewModeMain
@@ -91,7 +91,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     return size;
   }];
 
-  [self showConnect];
+  [self showInProgress:@"Loading"];
 }
 
 - (void)connect:(KBRPClient *)client {
@@ -154,7 +154,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)setStatusError:(NSError *)error {
   GHWeakSelf gself = self;
 
-  if (gself.mode == KBAppViewModeConnecting) {
+  if (gself.mode == KBAppViewModeInProgress) {
     NSMutableDictionary *errorInfo = [error.userInfo mutableCopy];
     errorInfo[NSLocalizedRecoveryOptionsErrorKey] = @[@"Retry", @"Quit"];
     error = [NSError errorWithDomain:error.domain code:error.code userInfo:errorInfo];
@@ -180,14 +180,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   if (_contentView) [self addSubview:_contentView];
   if ([_contentView respondsToSelector:@selector(viewDidAppear:)]) [(id)_contentView viewDidAppear:NO];
   [self setNeedsLayout];
-}
-
-- (void)setProgressEnabled:(BOOL)progressEnabled {
-  [_titleView setProgressEnabled:progressEnabled];
-}
-
-- (BOOL)isProgressEnabled {
-  return _titleView.isProgressEnabled;
 }
 
 - (KBLoginView *)loginView {
@@ -219,11 +211,11 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   return _signupView;
 }
 
-- (void)showConnect {
-  KBConnectView *connectView = [[KBConnectView alloc] init];
-  connectView.progressView.animating = YES;
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:connectView title:_title];
-  [self setContentView:navigation mode:KBAppViewModeConnecting];
+- (void)showInProgress:(NSString *)title {
+  KBAppProgressView *view = [[KBAppProgressView alloc] init];
+  [view enableProgressWithTitle:title];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
+  [self setContentView:navigation mode:KBAppViewModeInProgress];
 }
 
 - (void)showLogin {
@@ -277,13 +269,11 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)logout:(BOOL)prompt {
   GHWeakSelf gself = self;
   dispatch_block_t logout = ^{
-    [self setProgressEnabled:YES];
+    [self showInProgress:@"Logging out"];
     KBRLoginRequest *login = [[KBRLoginRequest alloc] initWithClient:gself.client];
     [login logout:^(NSError *error) {
-      [self setProgressEnabled:NO];
       if (error) {
         [AppDelegate setError:error sender:self];
-        return;
       }
 
       [self checkStatus:nil];
@@ -443,6 +433,11 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   else sheetPosition = 33;
   rect.origin.y += -sheetPosition;
   return rect;
+}
+
+- (BOOL)windowShouldClose:(id)sender {
+  [AppDelegate.sharedDelegate quitWithPrompt:YES sender:self];
+  return NO;
 }
 
 - (KBWindow *)openWindow {

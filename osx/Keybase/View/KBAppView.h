@@ -37,7 +37,6 @@
 @property (readonly) NSHashTable *delegates;
 
 @property (nonatomic) KBRUser *user;
-@property (nonatomic, getter=isProgressEnabled) BOOL progressEnabled;
 @property (readonly, nonatomic) KBRGetCurrentStatusRes *status;
 @property (readonly, nonatomic) KBRConfig *config;
 

@@ -16,6 +16,7 @@
 //
 
 #import "KBActivityIndicatorView.h"
+#import "KBAppearance.h"
 
 @interface KBActivityIndicatorView ()
 @property (nonatomic, weak) CAShapeLayer *shapeLayer;
@@ -36,7 +37,7 @@
   CAShapeLayer *shapeLayer = [CAShapeLayer new];
   shapeLayer.borderWidth = 0;
   shapeLayer.fillColor = NSColor.clearColor.CGColor;
-  shapeLayer.strokeColor = [NSColor colorWithRed:10.0/255.0 green:96.0/255.0 blue:254.0/255.0 alpha:1].CGColor;
+  shapeLayer.strokeColor = KBAppearance.currentAppearance.selectColor.CGColor;// [NSColor colorWithRed:10.0/255.0 green:96.0/255.0 blue:254.0/255.0 alpha:1].CGColor;
   shapeLayer.lineWidth = 2;
   self.wantsLayer = YES;
   [self.layer addSublayer:shapeLayer];

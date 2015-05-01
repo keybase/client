@@ -99,11 +99,11 @@
     completion(nil, nil);
   }];
 
-  AppDelegate.appView.progressEnabled = YES;
+  [KBActivity setProgressEnabled:YES sender:self];
   [_request deviceAddWithSessionID:_request.sessionId secretPhrase:secretWords completion:^(NSError *error) {
-    AppDelegate.appView.progressEnabled = NO;
+    [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
-      [AppDelegate setError:error sender:self];
+      [KBActivity setError:error sender:self];
       return;
     }
 
