@@ -621,17 +621,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey, isSibkey bool, eldest bool) (
 // GetKeyRole returns the KeyRole (sibkey/subkey/none), taking into account
 // whether the key has been cancelled.
 func (ckf ComputedKeyFamily) GetKeyRole(kid KID) (ret KeyRole) {
-	return ckf.getKeyRole(kid.ToFOKID())
-}
-
-// GetFOKIDRole returns the KeyRole (sibkey/subkey/none), taking into account
-// whether the key has been cancelled.
-func (ckf ComputedKeyFamily) GetFOKIDRole(f FOKID) (ret KeyRole) {
-	return ckf.getKeyRole(f)
-}
-
-func (ckf ComputedKeyFamily) getKeyRole(f FOKID) (ret KeyRole) {
-	if info, err := ckf.getCkiIfActiveNow(f); err != nil {
+	if info, err := ckf.getCkiIfActiveNow(kid.ToFOKID()); err != nil {
 		ret = DLG_NONE
 	} else if info.Sibkey {
 		ret = DLG_SIBKEY
@@ -648,7 +638,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSibkeys() (ret []GenericKey) {
 		if err != nil {
 			continue
 		}
-		if ckf.getKeyRole(kid.ToFOKID()) == DLG_SIBKEY && skr.key != nil {
+		if ckf.GetKeyRole(kid) == DLG_SIBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -661,7 +651,7 @@ func (ckf ComputedKeyFamily) GetAllActiveSubkeys() (ret []GenericKey) {
 		if err != nil {
 			continue
 		}
-		if ckf.getKeyRole(kid.ToFOKID()) == DLG_SUBKEY && skr.key != nil {
+		if ckf.GetKeyRole(kid) == DLG_SUBKEY && skr.key != nil {
 			ret = append(ret, skr.key)
 		}
 	}
@@ -700,7 +690,7 @@ func (ckf ComputedKeyFamily) HasActiveKey() bool {
 		if err != nil {
 			continue
 		}
-		if ckf.getKeyRole(kid.ToFOKID()) == DLG_SIBKEY {
+		if ckf.GetKeyRole(kid) == DLG_SIBKEY {
 			return true
 		}
 	}
@@ -713,7 +703,7 @@ func (ckf ComputedKeyFamily) HasActiveKey() bool {
 // and non-expired.
 func (ckf ComputedKeyFamily) GetActivePgpKeys(sibkey bool) (ret []*PgpKeyBundle) {
 	for _, pgp := range ckf.kf.pgps {
-		role := ckf.getKeyRole(pgp.GetKid().ToFOKID())
+		role := ckf.GetKeyRole(pgp.GetKid())
 		if (sibkey && role == DLG_SIBKEY) || role != DLG_NONE {
 			ret = append(ret, pgp)
 		}
