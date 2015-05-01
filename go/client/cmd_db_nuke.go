@@ -52,7 +52,6 @@ func NewCmdDb(cl *libcmdline.CommandLine) cli.Command {
 		Description: "Manipulate the local Keybase DB",
 		Subcommands: []cli.Command{
 			NewCmdDbNuke(cl),
-			NewCmdDbCache(cl),
 		},
 	}
 }
