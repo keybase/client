@@ -508,20 +508,20 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	tm := TclToKeybaseTime(tcl)
 	fp := ckf.kf.kid2pgp[kid.ToMapKey()]
 
-	err = ckf.cki.Delegate(kid.String(), fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
+	err = ckf.cki.Delegate(kid, fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
 	return
 }
 
 // Delegate marks the given ComputedKeyInfos object that the given kidStr is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
-func (cki *ComputedKeyInfos) Delegate(kidStr string, fingerprintStr string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
-	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kidStr, signingKid, sigid.ToDisplayString(true))
-	info, found := cki.Infos[kidStr]
+func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprintStr string, tm *KeybaseTime, sigid SigId, signingKid KID, parentKid KID, isSibkey bool, ctime time.Time, etime time.Time) (err error) {
+	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
+	info, found := cki.Infos[kid.String()]
 	if !found {
 		newInfo := NewComputedKeyInfo(false, false, KEY_UNCANCELLED, ctime.Unix(), etime.Unix())
 		newInfo.DelegatedAt = tm
 		info = &newInfo
-		cki.Infos[kidStr] = info
+		cki.Infos[kid.String()] = info
 		if len(fingerprintStr) > 0 {
 			cki.Infos[fingerprintStr] = info
 		}
@@ -540,6 +540,7 @@ func (cki *ComputedKeyInfos) Delegate(kidStr string, fingerprintStr string, tm *
 		s := parentKid.String()
 		info.Parent = &s
 		if parent, found := cki.Infos[s]; found {
+			kidStr := kid.String()
 			parent.Subkey = &kidStr
 		}
 	}

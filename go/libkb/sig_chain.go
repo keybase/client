@@ -56,7 +56,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 		if fpp := key.GetFingerprintP(); fpp != nil {
 			fpStr = fpp.String()
 		}
-		err = cki.Delegate(key.GetKid().String(), fpStr, NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKid(), fpStr, NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
