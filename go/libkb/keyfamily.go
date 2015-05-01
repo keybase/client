@@ -117,15 +117,6 @@ type ComputedKeyFamily struct {
 	Contextified
 }
 
-func (cki ComputedKeyInfo) Copy() ComputedKeyInfo {
-	ret := cki
-	ret.Delegations = make(map[string]KID)
-	for k, v := range cki.Delegations {
-		ret.Delegations[k] = v
-	}
-	return ret
-}
-
 // Insert inserts the given ComputedKeyInfo object 1 or 2 times,
 // depending on if a KID or PgpFingerprint or both are available.
 func (cki *ComputedKeyInfos) Insert(f *FOKID, i *ComputedKeyInfo) {
@@ -152,6 +143,7 @@ func (cki ComputedKeyInfos) Copy() *ComputedKeyInfos {
 	for k, v := range cki.Sigs {
 		ret.Sigs[k] = v
 	}
+	// TODO: What about the other fields?
 	return ret
 }
 
