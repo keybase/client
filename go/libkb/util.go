@@ -266,3 +266,12 @@ func RandInt() (int, error) {
 	}
 	return int(x), nil
 }
+
+func RandIntn(n int) int {
+	x, err := RandInt()
+	if err != nil {
+		G.Log.Warning("RandInt error: %s", err)
+		return 0
+	}
+	return x % n
+}

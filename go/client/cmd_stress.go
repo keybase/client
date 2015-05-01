@@ -133,37 +133,51 @@ func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err e
 }
 
 func (c *CmdStress) simulate(username, passphrase string) {
-	cli, err := c.rpcClient()
-	if err != nil {
-		G.Log.Warning("error getting rpc client: %s", err)
-		return
+	funcs := []func(){
+		c.idSelf,
+		c.idAlice,
+		c.listTrackers,
 	}
 	for i := 0; i < 10; i++ {
-		c.idSelf(cli)
-		c.idAlice(cli)
-		c.listTrackers(cli)
+		f := funcs[libkb.RandIntn(len(funcs))]
+		f()
 	}
 }
 
-func (c *CmdStress) idSelf(cli *rpc2.Client) {
+func (c *CmdStress) idSelf() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
 	icli := keybase_1.IdentifyClient{Cli: cli}
-	_, err := icli.Identify(keybase_1.IdentifyArg{})
+	_, err = icli.Identify(keybase_1.IdentifyArg{})
 	if err != nil {
 		G.Log.Warning("id self error: %s", err)
 	}
 }
 
-func (c *CmdStress) idAlice(cli *rpc2.Client) {
+func (c *CmdStress) idAlice() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
 	icli := keybase_1.IdentifyClient{Cli: cli}
-	_, err := icli.Identify(keybase_1.IdentifyArg{UserAssertion: "t_alice"})
+	_, err = icli.Identify(keybase_1.IdentifyArg{UserAssertion: "t_alice"})
 	if err != nil {
 		G.Log.Warning("id t_alice error: %s", err)
 	}
 }
 
-func (c *CmdStress) listTrackers(cli *rpc2.Client) {
+func (c *CmdStress) listTrackers() {
+	cli, err := c.rpcClient()
+	if err != nil {
+		G.Log.Warning("rpcClient error: %s", err)
+		return
+	}
 	ucli := keybase_1.UserClient{Cli: cli}
-	_, err := ucli.ListTrackersSelf(0)
+	_, err = ucli.ListTrackersSelf(0)
 	if err != nil {
 		G.Log.Warning("list trackers error: %s", err)
 	}
