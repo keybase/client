@@ -103,7 +103,7 @@ type KeyFamily struct {
 
 	// These fields are computed on the client side, so they can be trusted.
 	pgp2kid map[string]KID
-	kid2pgp map[string]string
+	kid2pgp map[KIDMapKey]string
 
 	// All the fields parsed directly from the server's JSON response. Note
 	// that SibkeysList and SubkeysList are only used to build Sibkeys and
@@ -317,7 +317,7 @@ func (kf *KeyFamily) Import() (err error) {
 		fp := p.GetFingerprint().String()
 		kid := p.GetKid()
 		kf.pgp2kid[fp] = kid
-		kf.kid2pgp[kid.String()] = fp
+		kf.kid2pgp[kid.ToMapKey()] = fp
 	}
 
 	return
@@ -339,7 +339,7 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 
 	// Initialize this before the import step.
 	obj.pgp2kid = make(map[string]KID)
-	obj.kid2pgp = make(map[string]string)
+	obj.kid2pgp = make(map[KIDMapKey]string)
 
 	if err = obj.Import(); err != nil {
 		return
@@ -504,12 +504,11 @@ func NowAsKeybaseTime(seqno int) *KeybaseTime {
 // This maybe be a sub- or sibkey delegation.
 func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	kid := tcl.GetDelegatedKid()
-	kidStr := kid.String()
 	sigid := tcl.GetSigId()
 	tm := TclToKeybaseTime(tcl)
-	fp := ckf.kf.kid2pgp[kidStr]
+	fp := ckf.kf.kid2pgp[kid.ToMapKey()]
 
-	err = ckf.cki.Delegate(kidStr, fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
+	err = ckf.cki.Delegate(kid.String(), fp, tm, sigid, tcl.GetKid(), tcl.GetParentKid(), (tcl.GetRole() == DLG_SIBKEY), tcl.GetCTime(), tcl.GetETime())
 	return
 }
 

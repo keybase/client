@@ -433,7 +433,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily
 		return
 	}
 
-	fingerprintHex := ckf.kf.kid2pgp[eldest.String()]
+	fingerprintHex := ckf.kf.kid2pgp[eldest.ToMapKey()]
 	eldestFOKID := FOKID{
 		Kid: *eldest,
 		Fp:  PgpFingerprintFromHexNoError(fingerprintHex),

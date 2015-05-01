@@ -503,7 +503,7 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 	if u.leaf.eldest == nil {
 		return nil
 	}
-	fingerprint := PgpFingerprintFromHexNoError(u.keyFamily.kid2pgp[u.leaf.eldest.String()])
+	fingerprint := PgpFingerprintFromHexNoError(u.keyFamily.kid2pgp[u.leaf.eldest.ToMapKey()])
 	return &FOKID{Kid: *u.leaf.eldest, Fp: fingerprint}
 }
 
