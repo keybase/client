@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -14,37 +13,7 @@ var G = libkb.G
 var G_UI *UI
 
 func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
-
-	cl := libcmdline.NewCommandLine(true)
-	cmds := []cli.Command{
-		NewCmdBTC(cl),
-		NewCmdCert(cl),
-		NewCmdConfig(cl),
-		NewCmdDb(cl),
-		NewCmdDevice(cl),
-		NewCmdDoctor(cl),
-		NewCmdId(cl),
-		NewCmdList(cl),
-		NewCmdLogin(cl),
-		NewCmdLogout(cl),
-		NewCmdMykey(cl),
-		NewCmdPGP(cl),
-		NewCmdPing(cl),
-		NewCmdProve(cl),
-		NewCmdReset(cl),
-		NewCmdResolve(cl),
-		NewCmdRevoke(cl),
-		NewCmdSearch(cl),
-		NewCmdSigs(cl),
-		NewCmdSignup(cl),
-		NewCmdStatus(cl),
-		NewCmdStress(cl),
-		NewCmdTrack(cl),
-		NewCmdUntrack(cl),
-		NewCmdVersion(cl),
-	}
-	cl.AddCommands(cmds)
-
+	cl := cmdline()
 	cmd, err := cl.Parse(os.Args)
 	if err != nil {
 		err = fmt.Errorf("Error parsing command line arguments: %s\n", err.Error())

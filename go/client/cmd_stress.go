@@ -1,3 +1,6 @@
+// +build !release
+
+// this command is only for testing purposes
 package main
 
 import (
