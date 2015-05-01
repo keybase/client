@@ -849,11 +849,11 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceID) (key Ge
 
 // GetDeviceForKey gets the device that this key is bound to, if any.
 func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (ret *Device, err error) {
-	return ckf.getDeviceForHexKid(key.GetKid().String())
+	return ckf.getDeviceForKid(key.GetKid().ToMapKey())
 }
 
-func (ckf *ComputedKeyFamily) getDeviceForHexKid(s string) (ret *Device, err error) {
-	if didString, found := ckf.cki.KidToDeviceId[KIDMapKey(s)]; found {
+func (ckf *ComputedKeyFamily) getDeviceForKid(mapKey KIDMapKey) (ret *Device, err error) {
+	if didString, found := ckf.cki.KidToDeviceId[mapKey]; found {
 		ret = ckf.cki.Devices[didString]
 	}
 	return
@@ -864,13 +864,13 @@ func (ckf *ComputedKeyFamily) getDeviceForHexKid(s string) (ret *Device, err err
 func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
 
 	// First try to see if the key itself is a detkey
-	if ret, err = ckf.isDetKeyHelper(key.GetKid().String()); ret || err != nil {
+	if ret, err = ckf.isDetKeyHelper(key.GetKid().ToMapKey()); ret || err != nil {
 		return
 	}
 
 	// Then see if the parent is a detkey and we're a subkey of it.
 	if info, found := ckf.cki.Infos[key.GetKid().ToFOKIDMapKey()]; found && info.Parent != nil && !info.Sibkey {
-		ret, err = ckf.isDetKeyHelper(string(*info.Parent))
+		ret, err = ckf.isDetKeyHelper(*info.Parent)
 	}
 	return
 }
@@ -878,9 +878,9 @@ func (ckf *ComputedKeyFamily) IsDetKey(key GenericKey) (ret bool, err error) {
 // isDetKeyHelper looks at the given KID (in hex) and sees if it is marked as a
 // deterministic Key (if the IsWeb() flag is on).  It won't look up or down the
 // key graph.
-func (ckf *ComputedKeyFamily) isDetKeyHelper(hexKid string) (ret bool, err error) {
+func (ckf *ComputedKeyFamily) isDetKeyHelper(mapKey KIDMapKey) (ret bool, err error) {
 	var dev *Device
-	if dev, err = ckf.getDeviceForHexKid(hexKid); err != nil {
+	if dev, err = ckf.getDeviceForKid(mapKey); err != nil {
 		return
 	}
 	if dev == nil {
