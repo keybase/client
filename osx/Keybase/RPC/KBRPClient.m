@@ -165,7 +165,7 @@
       [self _sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
     });
   } else {
-    [self sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
+    [self _sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
   }
 }
 
