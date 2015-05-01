@@ -36,8 +36,8 @@ type ComputedKeyInfo struct {
 	// For subkeys, the ID of our parent (if valid)
 	Parent KID
 
-	// For Sibkeys, a pointer to the last-added subkey
-	Subkey *KIDMapKey
+	// For sibkeys, the last-added subkey (if valid)
+	Subkey KID
 
 	// Map of SigId (as hex) -> KID
 	Delegations map[string]KID
@@ -520,8 +520,7 @@ func (cki *ComputedKeyInfos) Delegate(kid KID, fingerprint *PgpFingerprint, tm *
 	if parentKid != nil {
 		info.Parent = parentKid
 		if parent, found := cki.Infos[parentKid.ToFOKIDMapKey()]; found {
-			kidStr := kid.ToMapKey()
-			parent.Subkey = &kidStr
+			parent.Subkey = kid
 		}
 	}
 
@@ -824,11 +823,10 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did DeviceID) (key Ge
 	}
 	if cki, found := ckf.cki.Infos[kid.ToFOKIDMapKey()]; !found {
 		return
-	} else if cki.Subkey == nil {
+	} else if !cki.Subkey.IsValid() {
 		return
-	} else if kid, err = cki.Subkey.ToKID(); err != nil {
 	} else {
-		key, err = ckf.FindActiveEncryptionSubkey(kid)
+		key, err = ckf.FindActiveEncryptionSubkey(cki.Subkey)
 	}
 	return
 }
