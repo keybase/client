@@ -69,6 +69,9 @@ func TestLoginLogout(t *testing.T) {
 	}
 }
 
+// TODO(akalin): Make the mocks below safe to use from multiple
+// goroutines.
+
 type GetSecretMock struct {
 	Passphrase  string
 	StoreSecret bool
