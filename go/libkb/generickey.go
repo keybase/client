@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -62,6 +63,23 @@ func GetKID(w *jsonw.Wrapper) (kid KID, err error) {
 		kid, err = ImportKID(s)
 	}
 	return
+}
+
+func (k KID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(k.String())
+}
+
+func (k *KID) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	kid, err := ImportKID(s)
+	if err != nil {
+		return err
+	}
+	*k = kid
+	return nil
 }
 
 func (k KID) ToJsonw() *jsonw.Wrapper {
