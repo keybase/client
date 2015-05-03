@@ -4,6 +4,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"syscall"
 
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	logging "github.com/op/go-logging"
@@ -17,6 +18,7 @@ var (
 
 type Logger struct {
 	logging.Logger
+	rotateMutex *sync.Mutex
 }
 
 func (log *Logger) InitLogging() {
@@ -39,7 +41,7 @@ func (log *Logger) PlainLogging() {
 
 func NewDefaultLogger() *Logger {
 	log := logging.MustGetLogger("keybase")
-	ret := &Logger{*log}
+	ret := &Logger{*log, &sync.Mutex{}}
 	ret.InitLogging()
 	return ret
 }
@@ -103,7 +105,7 @@ func (r *RpcLogOptions) ShowResult() bool     { return r.verboseTrace }
 func (r *RpcLogOptions) Profile() bool        { return r.profile }
 func (r *RpcLogOptions) ClientTrace() bool    { return r.clientTrace }
 func (r *RpcLogOptions) ServerTrace() bool    { return r.serverTrace }
-func (r *RpcLogOptions) TransportStart() bool { return r.connectionInfo || G.Daemon }
+func (r *RpcLogOptions) TransportStart() bool { return r.connectionInfo || G.Service }
 
 var rpcLogOptions *RpcLogOptions
 var rpcLogOptionsOnce sync.Once
@@ -126,4 +128,23 @@ func (r *RpcLogFactory) NewLog(a net.Addr) rpc2.LogInterface {
 	ret := rpc2.SimpleLog{Addr: a, Out: G.Log, Opts: getRpcLogOptions()}
 	ret.TransportStart()
 	return ret
+}
+
+func (r *Logger) RotateLogFile() error {
+	r.rotateMutex.Lock()
+	defer r.rotateMutex.Unlock()
+	G.Log.Info("Rotating log file; closing down old file")
+	_, file, err := OpenLogFile()
+	if err != nil {
+		return err
+	}
+	err = PickFirstError(
+		syscall.Close(1),
+		syscall.Close(2),
+		syscall.Dup2(int(file.Fd()), 1),
+		syscall.Dup2(int(file.Fd()), 2),
+		file.Close(),
+	)
+	G.Log.Info("Rotated log file; opening up new file")
+	return err
 }

@@ -81,6 +81,10 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return BindToSocket(g.SocketInfo)
 }
 
+func (g *GlobalContext) ClearSocketError() {
+	g.SocketWrapper = nil
+}
+
 func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
 	needWrapper := false
 	if g.SocketWrapper == nil {

@@ -18,14 +18,41 @@ type Command interface {
 	RunClient() error             // Run in client mode
 }
 
+type ForkCmd int
+
+const (
+	NormalFork ForkCmd = iota
+	NoFork
+	ForceFork
+)
+
 type CommandLine struct {
 	app        *cli.App
 	ctx        *cli.Context
 	cmd        Command
-	name       string // the name of the chosen command
+	name       string  // the name of the chosen command
+	service    bool    // The server is a special command
+	fork       ForkCmd // If the command is to stop (then don't start the server)
 	defaultCmd string
 }
 
+func (cl CommandLine) IsService() bool       { return cl.service }
+func (cl *CommandLine) SetService()          { cl.service = true }
+func (cl CommandLine) GetForkCmd() ForkCmd   { return cl.fork }
+func (cl *CommandLine) SetForkCmd(v ForkCmd) { cl.fork = v }
+
+func (p CommandLine) GetSplitLogOutput() (bool, bool) {
+	return p.GetBool("split-log-output", true)
+}
+func (p CommandLine) GetLogFile() string {
+	return p.GetGString("log-file")
+}
+func (p CommandLine) GetNoAutoFork() (bool, bool) {
+	return p.GetBool("no-auto-fork", true)
+}
+func (p CommandLine) GetAutoFork() (bool, bool) {
+	return p.GetBool("auto-fork", true)
+}
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
@@ -195,14 +222,14 @@ func (c CmdSpecificHelp) Run() error {
 	return nil
 }
 
-func NewCommandLine(addHelp bool) *CommandLine {
+func NewCommandLine(addHelp bool, extraFlags []cli.Flag) *CommandLine {
 	app := cli.NewApp()
-	ret := &CommandLine{app: app}
-	ret.PopulateApp(addHelp)
+	ret := &CommandLine{app: app, fork: NormalFork}
+	ret.PopulateApp(addHelp, extraFlags)
 	return ret
 }
 
-func (cl *CommandLine) PopulateApp(addHelp bool) {
+func (cl *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := cl.app
 	app.Name = "keybase"
 	app.Version = libkb.CLIENT_VERSION
@@ -315,6 +342,17 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 			Name:  "local-rpc-debug",
 			Usage: "use to debug local RPC",
 		},
+		cli.StringFlag{
+			Name:  "log-file",
+			Usage: "specify a log file for the keybase service",
+		},
+		cli.BoolFlag{
+			Name:  "split-log-output",
+			Usage: "output service log messages to current terminal",
+		},
+	}
+	if extraFlags != nil {
+		app.Flags = append(app.Flags, extraFlags...)
 	}
 
 	// Finally, add help if we asked for it
@@ -325,10 +363,11 @@ func (cl *CommandLine) PopulateApp(addHelp bool) {
 			cl.name = "help"
 		}
 	}
+	app.Commands = []cli.Command{}
 }
 
 func (cl *CommandLine) AddCommands(cmds []cli.Command) {
-	cl.app.Commands = cmds
+	cl.app.Commands = append(cl.app.Commands, cmds...)
 }
 
 func (cl *CommandLine) SetDefaultCommand(name string, cmd Command) {

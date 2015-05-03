@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	keybase_1 "github.com/keybase/client/protocol/go"

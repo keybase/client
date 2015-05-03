@@ -380,6 +380,9 @@ func (f JsonConfigFile) GetProxy() (ret string) {
 func (f JsonConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }
+func (f JsonConfigFile) GetAutoFork() (bool, bool) {
+	return f.GetTopLevelBool("auto_fork")
+}
 func (f JsonConfigFile) GetPlainLogging() (bool, bool) {
 	return f.GetTopLevelBool("plain_logging")
 }
@@ -463,4 +466,11 @@ func (f JsonConfigFile) GetProxyCACerts() (ret []string, err error) {
 		err = ConfigError{f.filename, fmt.Sprintf("Can't read Proxy CA certs: %s", e.Error())}
 	}
 	return
+}
+
+func (f JsonConfigFile) GetLogFile() string {
+	return f.GetTopLevelString("log_file")
+}
+func (f JsonConfigFile) GetSplitLogOutput() (bool, bool) {
+	return f.GetTopLevelBool("split_log_output")
 }

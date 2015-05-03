@@ -1,4 +1,4 @@
-package main
+package client
 
 type NoTerminalError struct{}
 

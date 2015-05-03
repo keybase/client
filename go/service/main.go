@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"fmt"
@@ -15,13 +15,19 @@ import (
 // Keep this around to simplify things
 var G = libkb.G
 
-type Daemon struct {
+type Service struct {
+	chdirTo string
 	lockPid *libkb.LockPIDFile
+}
+
+func NewService(d bool) *Service {
+	return &Service{}
 }
 
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 	srv.Register(keybase_1.BTCProtocol(NewBTCHandler(xp)))
 	srv.Register(keybase_1.ConfigProtocol(ConfigHandler{xp}))
+	srv.Register(keybase_1.CtlProtocol(CtlHandler{}))
 	srv.Register(keybase_1.DeviceProtocol(NewDeviceHandler(xp)))
 	srv.Register(keybase_1.DoctorProtocol(NewDoctorHandler(xp)))
 	srv.Register(keybase_1.IdentifyProtocol(NewIdentifyHandler(xp)))
@@ -36,20 +42,34 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
 	srv.Register(keybase_1.UserProtocol(NewUserHandler(xp)))
 }
 
-func (d *Daemon) Handle(c net.Conn) {
+func (d *Service) Handle(c net.Conn) {
 	xp := rpc2.NewTransport(c, libkb.NewRpcLogFactory(), libkb.WrapError)
 	server := rpc2.NewServer(xp, libkb.WrapError)
 	RegisterProtocols(server, xp)
 	server.Run(true)
 }
 
-func (d *Daemon) RunClient() (err error) {
-	return fmt.Errorf("can't run daemon in client mode")
+func (d *Service) RunClient() (err error) {
+	return fmt.Errorf("can't run service in client mode")
 }
 
-func (d *Daemon) Run() (err error) {
-	G.Daemon = true
-	if err = d.setupRun(); err != nil {
+func (d *Service) Run() (err error) {
+	G.Service = true
+
+	if len(d.chdirTo) != 0 {
+		e_tmp := os.Chdir(d.chdirTo)
+		if e_tmp != nil {
+			G.Log.Warning("Could not change directory to %s: %s",
+				d.chdirTo, e_tmp.Error())
+		} else {
+			G.Log.Info("Changing runtime dir to %s", d.chdirTo)
+		}
+	}
+
+	if err = d.GetExclusiveLock(); err != nil {
+		return
+	}
+	if err = d.OpenSocket(); err != nil {
 		return
 	}
 	if err = d.ConfigRpcServer(); err != nil {
@@ -61,7 +81,11 @@ func (d *Daemon) Run() (err error) {
 	return
 }
 
-func (d *Daemon) setupRun() error {
+func (d *Service) ReleaseLock() error {
+	return d.lockPid.Close()
+}
+
+func (d *Service) GetExclusiveLock() error {
 	dir, err := G.Env.GetRuntimeDir()
 	if err != nil {
 		return err
@@ -72,11 +96,14 @@ func (d *Daemon) setupRun() error {
 	if err := d.lockPIDFile(); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (d *Service) OpenSocket() error {
 	sf, err := G.Env.GetSocketFile()
 	if err != nil {
 		return err
 	}
-
 	if exists, err := libkb.FileExists(sf); err != nil {
 		return err
 	} else if exists {
@@ -89,24 +116,24 @@ func (d *Daemon) setupRun() error {
 	return nil
 }
 
-func (d *Daemon) lockPIDFile() (err error) {
+func (d *Service) lockPIDFile() (err error) {
 	var fn string
 	if fn, err = G.Env.GetPidFile(); err != nil {
 		return
 	}
 	d.lockPid = libkb.NewLockPIDFile(fn)
 	if err = d.lockPid.Lock(); err != nil {
-		return fmt.Errorf("error locking %s: daemon already running", fn)
+		return fmt.Errorf("error locking %s: server already running", fn)
 	}
 	G.Log.Debug("Locking pidfile %s\n", fn)
 	return nil
 }
 
-func (d *Daemon) ConfigRpcServer() (err error) {
+func (d *Service) ConfigRpcServer() (err error) {
 	return nil
 }
 
-func (d *Daemon) ListenLoop() (err error) {
+func (d *Service) ListenLoop() (err error) {
 
 	var l net.Listener
 	if l, err = G.BindToSocket(); err != nil {
@@ -127,11 +154,30 @@ func (d *Daemon) ListenLoop() (err error) {
 	}
 }
 
-func (d *Daemon) ParseArgv(ctx *cli.Context) error {
+func (d *Service) ParseArgv(ctx *cli.Context) error {
+	d.chdirTo = ctx.String("chdir")
 	return nil
 }
 
-func (d *Daemon) GetUsage() libkb.Usage {
+func NewCmdService(cl *libcmdline.CommandLine) cli.Command {
+	return cli.Command{
+		Name:        "service",
+		Usage:       "keybase service [--chdir <dir>]",
+		Description: "run the keybase local service",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "chdir",
+				Usage: "specify where to run as a daemon (via chdir)",
+			},
+		},
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(&Service{}, "service", c)
+			cl.SetService()
+		},
+	}
+}
+
+func (d *Service) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		KbKeyring:  true,
@@ -141,19 +187,8 @@ func (d *Daemon) GetUsage() libkb.Usage {
 	}
 }
 
-func parseArgs() (libkb.CommandLine, libcmdline.Command, error) {
-
-	cl := libcmdline.NewCommandLine(false)
-	cl.SetDefaultCommand("daemon", &Daemon{})
-
-	cmd, err := cl.Parse(os.Args)
-	if err != nil {
-		err = fmt.Errorf("Error parsing command line arguments: %s\n", err.Error())
-		return nil, nil, err
+func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
+	return []cli.Command{
+		NewCmdService(cl),
 	}
-	return cl, cmd, nil
-}
-
-func main() {
-	libcmdline.Main(parseArgs, nil, false)
 }

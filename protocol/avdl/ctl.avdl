@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol ctl {
+
+	void stop();
+	void logRotate();
+}

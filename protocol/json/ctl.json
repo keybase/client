@@ -1,0 +1,15 @@
+{
+  "protocol" : "ctl",
+  "namespace" : "keybase.1",
+  "types" : [ ],
+  "messages" : {
+    "stop" : {
+      "request" : [ ],
+      "response" : "null"
+    },
+    "logRotate" : {
+      "request" : [ ],
+      "response" : "null"
+    }
+  }
+}

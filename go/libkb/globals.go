@@ -40,7 +40,7 @@ type GlobalContext struct {
 	SocketWrapper *SocketWrapper   // only need one connection per
 	XStreams      *ExportedStreams // a table of streams we've exported to the daemon (or vice-versa)
 	UI            UI               // Interact with the UI
-	Daemon        bool             // whether we're in daemon mode
+	Service       bool             // whether we're in server mode
 	shutdown      bool             // whether we've shut down or not
 	loginStateMu  sync.RWMutex     // protects loginState pointer, which gets destroyed on logout
 	loginState    *LoginState      // What phase of login the user's in
@@ -65,7 +65,7 @@ func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
-	g.Daemon = false
+	g.Service = false
 	g.createLoginState()
 }
 

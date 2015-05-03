@@ -15,6 +15,7 @@ build-stamp: \
 	json/block.json \
 	json/btc.json \
 	json/config.json \
+	json/ctl.json \
 	json/device.json \
 	json/doctor.json \
 	json/doctor_ui.json \

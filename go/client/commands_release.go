@@ -2,19 +2,19 @@
 
 // this is the list of commands for the release version of the
 // client.
-package main
+package client
 
 import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 )
 
-func cmdline() *libcmdline.CommandLine {
-	cl := libcmdline.NewCommandLine(true)
-	cmds := []cli.Command{
+func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
+	return []cli.Command{
 		NewCmdBTC(cl),
 		NewCmdCert(cl),
 		NewCmdConfig(cl),
+		NewCmdCtl(cl),
 		NewCmdDb(cl),
 		NewCmdDevice(cl),
 		NewCmdDoctor(cl),
@@ -37,9 +37,6 @@ func cmdline() *libcmdline.CommandLine {
 		NewCmdUntrack(cl),
 		NewCmdVersion(cl),
 	}
-	cl.AddCommands(cmds)
-
-	return cl
 }
 
 var extraSignupFlags = []cli.Flag{}

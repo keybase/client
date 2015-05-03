@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"github.com/keybase/client/go/libkb"
@@ -136,6 +136,14 @@ func GetDoctorClient() (cli keybase_1.DoctorClient, err error) {
 	var rcli *rpc2.Client
 	if rcli, _, err = GetRpcClient(); err == nil {
 		cli = keybase_1.DoctorClient{Cli: rcli}
+	}
+	return
+}
+
+func GetCtlClient() (cli keybase_1.CtlClient, err error) {
+	var rcli *rpc2.Client
+	if rcli, _, err = GetRpcClient(); err == nil {
+		cli = keybase_1.CtlClient{Cli: rcli}
 	}
 	return
 }

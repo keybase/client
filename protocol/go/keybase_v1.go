@@ -388,6 +388,54 @@ func (c ConfigClient) GetConfig() (res Config, err error) {
 	return
 }
 
+type StopArg struct {
+}
+
+type LogRotateArg struct {
+}
+
+type CtlInterface interface {
+	Stop() error
+	LogRotate() error
+}
+
+func CtlProtocol(i CtlInterface) rpc2.Protocol {
+	return rpc2.Protocol{
+		Name: "keybase.1.ctl",
+		Methods: map[string]rpc2.ServeHook{
+			"stop": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]StopArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.Stop()
+				}
+				return
+			},
+			"logRotate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LogRotateArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.LogRotate()
+				}
+				return
+			},
+		},
+	}
+
+}
+
+type CtlClient struct {
+	Cli GenericClient
+}
+
+func (c CtlClient) Stop() (err error) {
+	err = c.Cli.Call("keybase.1.ctl.stop", []interface{}{StopArg{}}, nil)
+	return
+}
+
+func (c CtlClient) LogRotate() (err error) {
+	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{LogRotateArg{}}, nil)
+	return
+}
+
 type DeviceListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }

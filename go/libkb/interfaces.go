@@ -43,7 +43,15 @@ type CommandLine interface {
 	GetPidFile() string
 	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
+	GetAutoFork() (bool, bool)
+	GetNoAutoFork() (bool, bool)
 	GetLocalRpcDebug() string
+	GetSplitLogOutput() (bool, bool)
+	GetLogFile() string
+
+	// Lower-level functions
+	GetGString(string) string
+	GetBool(string, bool) (bool, bool)
 }
 
 type Server interface {
@@ -74,6 +82,7 @@ type ConfigReader interface {
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetAutoFork() (bool, bool)
 	GetUserConfig() (*UserConfig, error)
 	GetUserConfigForUsername(s string) (*UserConfig, error)
 	GetProxy() string
@@ -104,6 +113,8 @@ type ConfigReader interface {
 	GetAllUsernames() (current string, others []string, err error)
 	GetUID() *UID
 	GetProxyCACerts() ([]string, error)
+	GetSplitLogOutput() (bool, bool)
+	GetLogFile() string
 }
 
 type ConfigWriter interface {

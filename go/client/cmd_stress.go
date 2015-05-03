@@ -1,7 +1,7 @@
 // +build !release
 
 // this command is only for testing purposes
-package main
+package client
 
 import (
 	"crypto/rand"

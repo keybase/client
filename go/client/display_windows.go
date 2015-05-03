@@ -1,4 +1,4 @@
-package main
+package client
 
 var CHECK = "OK"
 var BADX = "BAD"

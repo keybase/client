@@ -3,6 +3,7 @@ package libkb
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -38,9 +39,15 @@ func (n NullConfiguration) GetStandalone() (bool, bool)        { return false, f
 func (n NullConfiguration) GetLocalRpcDebug() string           { return "" }
 func (n NullConfiguration) GetDeviceID() *DeviceID             { return nil }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error) { return nil, nil }
+func (n NullConfiguration) GetAutoFork() (bool, bool)          { return false, false }
+func (n NullConfiguration) GetNoAutoFork() (bool, bool)        { return false, false }
+func (n NullConfiguration) GetSplitLogOutput() (bool, bool)    { return false, false }
+func (n NullConfiguration) GetLogFile() string                 { return "" }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error)                    { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s string) (*UserConfig, error) { return nil, nil }
+func (n NullConfiguration) GetGString(string) string                               { return "" }
+func (n NullConfiguration) GetBool(string, bool) (bool, bool)                      { return false, false }
 
 func (n NullConfiguration) GetAllUsernames() (string, []string, error) {
 	return "", nil, nil
@@ -162,6 +169,8 @@ func (e *Env) GetConfigDir() string           { return e.homeFinder.ConfigDir() 
 func (e *Env) GetCacheDir() string            { return e.homeFinder.CacheDir() }
 func (e *Env) GetDataDir() string             { return e.homeFinder.DataDir() }
 func (e *Env) GetRuntimeDir() (string, error) { return e.homeFinder.RuntimeDir() }
+func (e *Env) GetChdirDir() (string, error)   { return e.homeFinder.ChdirDir() }
+func (e *Env) GetLogDir() string              { return e.homeFinder.LogDir() }
 
 func (e *Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
@@ -225,6 +234,22 @@ func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
 	return def
 }
 
+type NegBoolFunc struct {
+	neg bool
+	f   func() (bool, bool)
+}
+
+// GetNegBool gets a negatable bool.  You can give it a list of functions,
+// and also possible negations for those functions.
+func (e *Env) GetNegBool(def bool, flist []NegBoolFunc) bool {
+	for _, f := range flist {
+		if val, is_set := f.f(); is_set {
+			return (val != f.neg)
+		}
+	}
+	return def
+}
+
 func (e *Env) GetInt(def int, flist ...func() (int, bool)) int {
 	for _, f := range flist {
 		if val, is_set := f(); is_set {
@@ -278,6 +303,35 @@ func (e *Env) GetDebug() bool {
 		func() (bool, bool) { return e.cmd.GetDebug() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG") },
 		func() (bool, bool) { return e.config.GetDebug() },
+	)
+}
+
+func (e *Env) GetAutoFork() bool {
+	// On !Darwin, we auto-fork by default
+	def := (runtime.GOOS != "darwin")
+	return e.GetNegBool(def,
+		[]NegBoolFunc{
+			NegBoolFunc{
+				neg: false,
+				f:   func() (bool, bool) { return e.cmd.GetAutoFork() },
+			},
+			NegBoolFunc{
+				neg: true,
+				f:   func() (bool, bool) { return e.cmd.GetNoAutoFork() },
+			},
+			NegBoolFunc{
+				neg: false,
+				f:   func() (bool, bool) { return e.getEnvBool("KEYBASE_AUTO_FORK") },
+			},
+			NegBoolFunc{
+				neg: true,
+				f:   func() (bool, bool) { return e.getEnvBool("KEYBASE_NO_AUTO_FORK") },
+			},
+			NegBoolFunc{
+				neg: false,
+				f:   func() (bool, bool) { return e.config.GetAutoFork() },
+			},
+		},
 	)
 }
 
@@ -530,4 +584,21 @@ func (e *Env) GetLocalRpcDebug() string {
 
 func (e *Env) GetDeviceID() (ret *DeviceID) {
 	return e.config.GetDeviceID()
+}
+
+func (e *Env) GetSplitLogOutput() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetSplitLogOutput() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_SPLIT_LOG_OUTPUT") },
+		func() (bool, bool) { return e.config.GetSplitLogOutput() },
+	)
+}
+
+func (e *Env) GetLogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetLogFile() },
+		func() string { return os.Getenv("KEYBASE_LOG_FILE") },
+		func() string { return e.config.GetLogFile() },
+		func() string { return filepath.Join(e.GetLogDir(), "keybase.log") },
+	)
 }
