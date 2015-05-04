@@ -2150,9 +2150,10 @@ func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res
 }
 
 type Session struct {
-	Uid      UID    `codec:"uid" json:"uid"`
-	Username string `codec:"username" json:"username"`
-	Token    string `codec:"token" json:"token"`
+	Uid             UID    `codec:"uid" json:"uid"`
+	Username        string `codec:"username" json:"username"`
+	Token           string `codec:"token" json:"token"`
+	DeviceSubkeyKid []byte `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
 }
 
 type CurrentSessionArg struct {

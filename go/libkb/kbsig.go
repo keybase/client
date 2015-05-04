@@ -268,8 +268,7 @@ func (u1 *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.
 }
 
 func setDeviceOnBody(body *jsonw.Wrapper, key GenericKey, device Device) {
-	kid := key.GetKid().String()
-	device.Kid = &kid
+	device.Kid = key.GetKid()
 	body.SetKey("device", device.Export())
 }
 
@@ -394,15 +393,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 	return
 }
 
-func kidsList(kids []string) *jsonw.Wrapper {
-	ret := jsonw.NewArray(len(kids))
-	for i, kid := range kids {
-		ret.SetIndex(i, jsonw.NewString(kid))
-	}
-	return ret
-}
-
-func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []string, deviceToDisable string) (*jsonw.Wrapper, error) {
+func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisable string) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
 		return nil, err
@@ -411,7 +402,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []string, deviceToDi
 	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	body.SetKey("type", jsonw.NewString("revoke"))
 	revokeSection := jsonw.NewDictionary()
-	revokeSection.SetKey("kids", kidsList(kidsToRevoke))
+	revokeSection.SetKey("kids", jsonw.NewWrapper(kidsToRevoke))
 	body.SetKey("revoke", revokeSection)
 	if deviceToDisable != "" {
 		device, err := u.GetDevice(deviceToDisable)

@@ -552,7 +552,7 @@ func (bundle *PgpKeyBundle) Export() keybase1.PublicKey {
 func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	exportedKeys := []keybase1.PublicKey{}
 	addKey := func(key GenericKey) {
-		kid := key.GetKid().String()
+		kid := key.GetKid()
 		fingerprintStr := ""
 		identities := []keybase1.PgpIdentity{}
 		if pgpBundle, isPGP := key.(*PgpKeyBundle); isPGP {
@@ -561,8 +561,8 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 				identities = append(identities, ExportPgpIdentity(identity))
 			}
 		}
-		cki := ckf.cki.Infos[kid]
-		deviceID := ckf.cki.KidToDeviceId[kid]
+		cki := ckf.cki.Infos[kid.ToFOKIDMapKey()]
+		deviceID := ckf.cki.KidToDeviceId[kid.ToMapKey()]
 		device := ckf.cki.Devices[deviceID]
 		deviceDescription := ""
 		if device != nil {
@@ -571,11 +571,11 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 			}
 		}
 		parentID := ""
-		if cki.Parent != nil {
-			parentID = *cki.Parent
+		if cki.Parent.IsValid() {
+			parentID = cki.Parent.String()
 		}
 		exportedKeys = append(exportedKeys, keybase1.PublicKey{
-			KID:               kid,
+			KID:               kid.String(),
 			PGPFingerprint:    fingerprintStr,
 			PGPIdentities:     identities,
 			IsSibkey:          cki.Sibkey,

@@ -346,7 +346,7 @@ func (api *InternalApiEngine) DoRequest(
 	}
 
 	body := jw
-	G.Log.Debug(fmt.Sprintf("- succesful API call"))
+	G.Log.Debug(fmt.Sprintf("- successful API call"))
 	return &ApiRes{status, body, resp.StatusCode, appStatus}, err
 }
 

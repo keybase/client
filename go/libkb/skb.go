@@ -21,9 +21,9 @@ import (
 )
 
 type SKB struct {
-	Priv SKBPriv `codec:"priv"`
-	Pub  []byte  `codec:"pub"`
-	Type int     `codec:"type,omitempty"`
+	Priv SKBPriv  `codec:"priv"`
+	Pub  []byte   `codec:"pub"`
+	Type AlgoType `codec:"type,omitempty"`
 
 	decodedPub      GenericKey
 	decryptedSecret GenericKey
@@ -295,7 +295,7 @@ type SKBKeyringFile struct {
 	filename string
 	Blocks   []*SKB
 	fpIndex  map[PgpFingerprint]*SKB
-	kidIndex map[string]*SKB
+	kidIndex map[KIDMapKey]*SKB
 	dirty    bool
 }
 
@@ -304,7 +304,7 @@ func NewSKBKeyringFile(n string) *SKBKeyringFile {
 		filename: n,
 		Blocks:   make([]*SKB, 0, 1),
 		fpIndex:  make(map[PgpFingerprint]*SKB),
-		kidIndex: make(map[string]*SKB),
+		kidIndex: make(map[KIDMapKey]*SKB),
 		dirty:    false,
 	}
 }

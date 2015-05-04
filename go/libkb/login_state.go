@@ -66,15 +66,21 @@ func (s *LoginState) SessionArgs() (token, csrf string) {
 	return s.session.GetToken(), s.session.GetCsrf()
 }
 
-func (s *LoginState) UserInfo() (uid UID, username, token string) {
-	uidp := s.session.GetUID()
-	if uidp != nil {
-		uid = *uidp
+func (s *LoginState) UserInfo() (uid UID, username, token string, deviceSubkeyKid KID, err error) {
+	user, err := LoadMe(LoadUserArg{})
+	if err != nil {
+		return
 	}
-	unp := s.session.GetUsername()
-	if unp != nil {
-		username = *unp
+	deviceSubkeyKid, err = user.GetDeviceSubkeyKid(s.G())
+	if err != nil {
+		deviceSubkeyKid = KID{}
+		return
 	}
+
+	uid = user.GetUid()
+	username = user.GetName()
+	// TODO: Make sure token is consistent with other return
+	// values (i.e., make this not racy).
 	token = s.session.GetToken()
 	return
 }

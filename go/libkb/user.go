@@ -306,12 +306,22 @@ func (u *User) GetActivePgpFOKIDs(sibkey bool) (ret []FOKID) {
 	return
 }
 
-func (u *User) GetDeviceKID() (kid KID, err error) {
-	if ckf := u.GetComputedKeyFamily(); ckf == nil {
+func (u *User) GetDeviceSubkeyKid(g *GlobalContext) (kid KID, err error) {
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
 		err = KeyFamilyError{"no key family available"}
-	} else {
-		kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(nil)
+		return
 	}
+	did := g.Env.GetDeviceID()
+	if did == nil {
+		err = NotProvisionedError{}
+		return
+	}
+	subKey, err := ckf.GetEncryptionSubkeyForDevice(*did)
+	if err != nil {
+		return
+	}
+	kid = subKey.GetKid()
 	return
 }
 
@@ -492,8 +502,11 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 	if u.leaf.eldest == nil {
 		return nil
 	}
-	fingerprint := PgpFingerprintFromHexNoError(u.keyFamily.kid2pgp[u.leaf.eldest.String()])
-	return &FOKID{Kid: *u.leaf.eldest, Fp: fingerprint}
+	var fp *PgpFingerprint
+	if fingerprint, ok := u.keyFamily.kid2pgp[u.leaf.eldest.ToMapKey()]; ok {
+		fp = &fingerprint
+	}
+	return &FOKID{Kid: *u.leaf.eldest, Fp: fp}
 }
 
 func (u *User) IdTable() *IdentityTable {

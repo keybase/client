@@ -69,6 +69,9 @@ func TestLoginLogout(t *testing.T) {
 	}
 }
 
+// TODO(akalin): Make the mocks below safe to use from non-main
+// goroutines; see https://github.com/keybase/client/issues/412 .
+
 type GetSecretMock struct {
 	Passphrase  string
 	StoreSecret bool
