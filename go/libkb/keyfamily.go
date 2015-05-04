@@ -104,7 +104,7 @@ type KeyFamily struct {
 
 	// There are many more fields in the server's response, but we ignore them
 	// to avoid trusting the server, and instead compute them ourselves.
-	AllKeys map[KIDMapKey]*ServerKeyRecord
+	AllKeys map[KIDMapKey]*ServerKeyRecord `json:"all"`
 
 	Contextified
 }
@@ -278,31 +278,16 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 		return
 	}
 
-	// Somewhat wasteful but probably faster than using Jsonw wrappers,
-	// and less error-prone
-	var obj struct {
-		// The keys are stringified KIDs.
-		AllKeys map[string]*ServerKeyRecord `json:"all"`
-	}
-	if err = jw.UnmarshalAgain(&obj); err != nil {
-		return
-	}
-
 	kf := KeyFamily{
 		pgp2kid:      make(map[PgpFingerprintMapKey]KID),
 		kid2pgp:      make(map[KIDMapKey]PgpFingerprint),
-		AllKeys:      make(map[KIDMapKey]*ServerKeyRecord),
 		Contextified: NewContextified(G),
 	}
 
-	// Convert the stringified KID keys into KIDMapKeys.
-	for k, v := range obj.AllKeys {
-		var kid KID
-		kid, err = ImportKID(k)
-		if err != nil {
-			return
-		}
-		kf.AllKeys[kid.ToMapKey()] = v
+	// Fill in AllKeys. Somewhat wasteful but probably faster than
+	// using Jsonw wrappers, and less error-prone.
+	if err = jw.UnmarshalAgain(&kf); err != nil {
+		return
 	}
 
 	// Take all ServerKeyRecords in this KeyMap and import the key
