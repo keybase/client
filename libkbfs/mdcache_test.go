@@ -6,7 +6,6 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-jsonw"
 )
 
 func mdCacheInit(t *testing.T, cap int) (
@@ -19,11 +18,7 @@ func mdCacheInit(t *testing.T, cap int) (
 }
 
 func expectUserCall(u libkb.UID, config *ConfigMock) {
-	userString :=
-		fmt.Sprintf(`{"basics" : {"username" : "user_%s"}, "id" : "%s"}`,
-			u, u)
-	jsonU, _ := jsonw.Unmarshal([]byte(userString))
-	user, _ := libkb.NewUser(jsonU)
+	user := libkb.NewUserThin(fmt.Sprintf("user_%s", u), u)
 	config.mockKbpki.EXPECT().GetUser(u).AnyTimes().Return(user, nil)
 }
 
