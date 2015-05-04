@@ -25,13 +25,13 @@ func NewKBPKIClient() *KBPKIClient {
 // ResolveAssertion finds a user via assertion.
 // TODO: fix me to call LUBA
 func (k *KBPKIClient) ResolveAssertion(username string) (*libkb.User, error) {
-	arg := &engine.IdEngineArg{UserAssertion: username}
+	arg := &engine.IDEngineArg{UserAssertion: username}
 	return k.identify(arg)
 }
 
 // GetUser finds a user via UID.
 func (k *KBPKIClient) GetUser(uid libkb.UID) (user *libkb.User, err error) {
-	arg := &engine.IdEngineArg{UserAssertion: fmt.Sprintf("uid:%s", uid)}
+	arg := &engine.IDEngineArg{UserAssertion: fmt.Sprintf("uid:%s", uid)}
 	return k.identify(arg)
 }
 
@@ -86,7 +86,7 @@ func (k *KBPKIClient) GetActiveDeviceId() (DeviceId, error) {
 	return 0, nil
 }
 
-func (k *KBPKIClient) identify(arg *engine.IdEngineArg) (*libkb.User, error) {
+func (k *KBPKIClient) identify(arg *engine.IDEngineArg) (*libkb.User, error) {
 	k.once.Do(k.client)
 	c := keybase1.IdentifyClient{k.rpc}
 
