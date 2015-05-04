@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
-	"os"
-	"os/signal"
 )
 
 // Keep this around to simplify things
@@ -19,7 +20,7 @@ func main() {
 	g.Init()
 
 	go HandleSignals()
-	err := main_inner(g)
+	err := mainInner(g)
 	e2 := g.Shutdown()
 	if err == nil {
 		err = e2
@@ -30,7 +31,7 @@ func main() {
 	}
 }
 
-func main_inner(g *libkb.GlobalContext) error {
+func mainInner(g *libkb.GlobalContext) error {
 
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl))
