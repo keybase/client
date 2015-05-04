@@ -69,11 +69,12 @@ func (s *LoginState) SessionArgs() (token, csrf string) {
 func (s *LoginState) UserInfo() (uid UID, username, token string, deviceSubkeyKid KID, err error) {
 	user, err := LoadMe(LoadUserArg{})
 	if err != nil {
-		return UID{}, "", "", KID{}, err
+		return
 	}
 	deviceSubkeyKid, err = user.GetDeviceSubkeyKid(s.G())
 	if err != nil {
-		return UID{}, "", "", KID{}, err
+		deviceSubkeyKid = KID{}
+		return
 	}
 
 	uid = user.GetUid()
