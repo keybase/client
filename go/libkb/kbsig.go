@@ -393,14 +393,6 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 	return
 }
 
-func kidsList(kids []KID) *jsonw.Wrapper {
-	ret := jsonw.NewArray(len(kids))
-	for i, kid := range kids {
-		ret.SetIndex(i, jsonw.NewWrapper(kid))
-	}
-	return ret
-}
-
 func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisable string) (*jsonw.Wrapper, error) {
 	ret, err := u.ProofMetadata(0 /* ei */, GenericKeyToFOKID(key), nil, 0)
 	if err != nil {
@@ -410,7 +402,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []KID, deviceToDisab
 	body.SetKey("version", jsonw.NewInt(KEYBASE_SIGNATURE_V1))
 	body.SetKey("type", jsonw.NewString("revoke"))
 	revokeSection := jsonw.NewDictionary()
-	revokeSection.SetKey("kids", kidsList(kidsToRevoke))
+	revokeSection.SetKey("kids", jsonw.NewWrapper(kidsToRevoke))
 	body.SetKey("revoke", revokeSection)
 	if deviceToDisable != "" {
 		device, err := u.GetDevice(deviceToDisable)
