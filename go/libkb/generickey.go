@@ -14,6 +14,8 @@ import (
 type KID []byte
 type KID2 []byte
 
+// Remove the need for the KIDMapKey type. See
+// https://github.com/keybase/client/issues/413 .
 type KIDMapKey string
 
 func (key KIDMapKey) ToKID() (KID, error) {

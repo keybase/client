@@ -25,6 +25,8 @@ const (
 
 type PgpFingerprint [PGP_FINGERPRINT_LEN]byte
 
+// Remove the need for the PgpFingerprintMapKey type. See
+// https://github.com/keybase/client/issues/413 .
 type PgpFingerprintMapKey string
 
 func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
