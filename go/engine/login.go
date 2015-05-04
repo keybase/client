@@ -21,6 +21,7 @@ func NewLoginWithPromptEngine(username string) *LoginEngine {
 		requiredUIs: []libkb.UIKind{
 			libkb.LoginUIKind,
 			libkb.SecretUIKind,
+			libkb.LogUIKind,
 		},
 		runFn: func(loginState *libkb.LoginState, ctx *Context) error {
 			return loginState.LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI)
@@ -83,7 +84,7 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 	}
 
 	if e.SkipLocksmith {
-		e.G().Log.Debug("skipping locksmith as requested by LoginArg")
+		ctx.LogUI.Debug("skipping locksmith as requested by LoginArg")
 		return nil
 	}
 

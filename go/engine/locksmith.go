@@ -332,7 +332,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		return fmt.Errorf("cancel requested by user")
 	}
 	if res.Action == keybase1.SelectSignerAction_RESET_ACCOUNT {
-		d.G().Log.Info("reset account action not yet implemented")
+		ctx.LogUI.Info("reset account action not yet implemented")
 		return ErrNotYetImplemented
 	}
 
@@ -376,8 +376,8 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 		selected = pgpKeys[0]
 	}
 
-	d.G().Log.Info("selected pgp key: %s", selected.VerboseDescription())
-	d.G().Log.Info("selected pgp key kid: %s", selected.GetKid())
+	ctx.LogUI.Debug("selected pgp key: %s", selected.VerboseDescription())
+	ctx.LogUI.Debug("selected pgp key kid: %s", selected.GetKid())
 	if pk, ok := d.G().LoginState().SecretSyncer().FindPrivateKey(selected.GetKid().String()); ok {
 		skb, err := pk.ToSKB()
 		if err != nil {
@@ -415,14 +415,14 @@ func (d *Locksmith) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error
 	}
 
 	eldest := d.user.GetEldestFOKID().Kid
-	d.G().Log.Info("eldest kid from user: %s", eldest)
+	ctx.LogUI.Debug("eldest kid from user: %s", eldest)
 	if err := d.addDeviceKeyWithSigner(ctx, pgpk, eldest); err != nil {
 		return err
 	}
 
 	dk, err := d.detkey(ctx)
 	if err != nil || dk == nil {
-		G.Log.Debug("no detkey found, adding one")
+		ctx.LogUI.Debug("no detkey found, adding one")
 		if err := d.addDetKey(ctx, eldest); err != nil {
 			return err
 		}
@@ -432,8 +432,8 @@ func (d *Locksmith) deviceSignPGPNext(ctx *Context, pgpk libkb.GenericKey) error
 }
 
 func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingName, newDevName, newDevType string) error {
-	d.G().Log.Info("device sign with existing device [%s]", existingID)
-	d.G().Log.Debug("new device name: %s", newDevName)
+	ctx.LogUI.Debug("device sign with existing device [%s]", existingID)
+	ctx.LogUI.Debug("new device name: %s", newDevName)
 
 	dst, err := libkb.ImportDeviceID(existingID)
 	if err != nil {
@@ -483,7 +483,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*lib
 	if err != nil {
 		return nil, err
 	}
-	d.G().Log.Info("SelectKey result: %+v", keyid)
+	ctx.LogUI.Debug("SelectKey result: %+v", keyid)
 
 	var selected *libkb.PgpKeyBundle
 	for _, key := range keys {

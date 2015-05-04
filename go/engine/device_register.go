@@ -61,7 +61,7 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 		if err := wr.Write(); err != nil {
 			return err
 		}
-		G.Log.Info("Setting Device ID to %s", d.deviceID)
+		ctx.LogUI.Debug("Setting Device ID to %s", d.deviceID)
 	}
 
 	return nil
