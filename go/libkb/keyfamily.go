@@ -102,6 +102,8 @@ type KeyFamily struct {
 	pgp2kid map[PgpFingerprintMapKey]KID
 	kid2pgp map[KIDMapKey]PgpFingerprint
 
+	// There are many more fields in the server's response, but we ignore them
+	// to avoid trusting the server, and instead compute them ourselves.
 	AllKeys map[KIDMapKey]*ServerKeyRecord
 
 	Contextified
