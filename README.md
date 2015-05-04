@@ -27,6 +27,7 @@ To run the KBFS FUSE client:
 Now, in kbfs/:
 
     go get -u ./...
+    ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit .git/pre-commit
     cd kbfsfuse
     go build
     mkdir /tmp/kbfs  # or whatever you prefer
