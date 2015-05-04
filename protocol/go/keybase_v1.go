@@ -2153,7 +2153,7 @@ type Session struct {
 	Uid             UID    `codec:"uid" json:"uid"`
 	Username        string `codec:"username" json:"username"`
 	Token           string `codec:"token" json:"token"`
-	DeviceSubkeyKid string `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
+	DeviceSubkeyKid []byte `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
 }
 
 type CurrentSessionArg struct {

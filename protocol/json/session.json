@@ -177,7 +177,7 @@
       "type" : "string"
     }, {
       "name" : "deviceSubkeyKid",
-      "type" : "string"
+      "type" : "bytes"
     } ]
   } ],
   "messages" : {

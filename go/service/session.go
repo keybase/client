@@ -37,7 +37,7 @@ func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 	s.Uid = uid.Export()
 	s.Username = username
 	s.Token = token
-	s.DeviceSubkeyKid = deviceSubkeyKid.String()
+	s.DeviceSubkeyKid = []byte(deviceSubkeyKid)
 
 	return s, nil
 }
