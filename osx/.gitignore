@@ -20,11 +20,6 @@ DerivedData
 #CocoaPods
 Pods
 
-Install/Applications
-Install/Keybase*.dmg
-Install/Keybase.app
-Install/keybased
-Install/keybase
+Install/build/*
 Install/Updater/site/*.html
-Install/Keybase.xcarchive
 copyui.sh

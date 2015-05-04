@@ -16,7 +16,7 @@
     switch (env) {
       case KBEnvKeybaseIO: {
         self.title = @"Keybase.io";
-        self.launchdLabel = @"keybase.io.keybased";
+        self.launchdLabel = @"keybase.Service";
         self.home = [NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.launchdLabel) stringByExpandingTildeInPath];
         self.host = @"https://api.keybase.io:443";
         self.debugEnabled = YES;
@@ -24,7 +24,7 @@
       }
       case KBEnvLocalhost: {
         self.title = @"Localhost";
-        self.launchdLabel = @"keybase.localhost.keybased";
+        self.launchdLabel = @"keybase.Service.localhost";
         self.home = [NSStringWithFormat(@"~/Library/Application Support/Keybase/%@", self.launchdLabel) stringByExpandingTildeInPath];
         self.host = @"http://localhost:3000";
         self.debugEnabled = YES;

@@ -10,15 +10,11 @@ if ! [ "$WEB_PID" = "" ]; then
   kill $WEB_PID
 fi
 
-echo "Unloading keybased"
-launchctl unload -w ~/Library/LaunchAgents/keybase.localhost.keybased.plist
-launchctl unload -w ~/Library/LaunchAgents/keybase.io.keybased.plist
+# Unload launch agents
+sh unload.sh
 
-echo "Nuking state"
+echo "Nuking state (Application Support)"
 rm -rf ~/Library/Application\ Support/Keybase
-rm -rf ~/.config/keybase
-rm -rf ~/.cache/keybase
-rm -rf ~/.local/share/keybase
 
 echo "Recreating DB"
 # TODO This is hard coded for my setup

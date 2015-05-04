@@ -144,6 +144,13 @@
 
 @end
 
+@interface KBRCtlRequest : KBRRequest
+- (void)stop:(void (^)(NSError *error))completion;
+
+- (void)logRotate:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRDeviceRequest : KBRRequest
 - (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
 
@@ -592,6 +599,7 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property KBRUID *uid;
 @property NSString *username;
 @property NSString *token;
+@property NSData *deviceSubkeyKid;
 @end
 
 @interface KBRSessionRequest : KBRRequest

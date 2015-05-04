@@ -26,7 +26,7 @@
   if (!environment.launchdLabel) return nil;
 
   NSMutableArray *args = [NSMutableArray array];
-  [args addObject:@"/Applications/Keybase.app/Contents/MacOS/keybased"];
+  [args addObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase"];
   [args addObjectsFromArray:@[@"-H", environment.home]];
 
   if (environment.host) {
@@ -41,21 +41,21 @@
   // we the default there is a chance it will be too long (if username is long).
   [args addObject:NSStringWithFormat(@"--socket-file=%@", environment.sockFile)];
 
-  // Need to create logging dir here because otherwise it will be created as root by launchctl
+  // Run service (this should be the last arg)
+  [args addObject:@"service"];
+
+  // Logging
   NSString *logDir = [@"~/Library/Logs/Keybase" stringByExpandingTildeInPath];
+  // Need to create logging dir here because otherwise it might be created as root by launchctl.
   [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
 
-  NSString *stdOutPath = NSStringWithFormat(@"%@/%@.log", logDir, environment.launchdLabel);
-  NSString *stdErrPath = NSStringWithFormat(@"%@/%@.err", logDir, environment.launchdLabel);
-
-  NSDictionary *plist = @{
-                 @"Label": environment.launchdLabel,
-                 @"ProgramArguments": args,
-                 @"StandardOutPath": stdOutPath,
-                 @"StandardErrorPath": stdErrPath,
-                 @"KeepAlive": @YES
-                 };
-  return plist;
+  return @{
+           @"Label": environment.launchdLabel,
+           @"ProgramArguments": args,
+           @"KeepAlive": @YES,
+           @"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, environment.launchdLabel),
+           @"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, environment.launchdLabel),
+           };
 }
 
 + (NSString *)launchdPlistForEnvironment:(KBEnvironment *)environment error:(NSError **)error {

@@ -39,7 +39,7 @@
     [AppDelegate.appView checkStatus:^(NSError *error) {
       if (gself.client.installer.launchCtl) {
         [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
-          [gself log:NSStringWithFormat(@"keybased (launchctl) pid: %@", @(pid))];
+          [gself log:NSStringWithFormat(@"Keybase (launchctl) pid: %@", @(pid))];
           completion(error);
         }];
       } else {
@@ -49,10 +49,10 @@
   };
   [buttons addSubview:checkButton];
 
-  _toggleButton = [KBButton buttonWithText:@"Start keybased" style:KBButtonStyleToolbar];
+  _toggleButton = [KBButton buttonWithText:@"Start service" style:KBButtonStyleToolbar];
   _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
-      [gself log:NSStringWithFormat(@"keybased (launchctl) pid: %@", @(pid))];
+      [gself log:NSStringWithFormat(@"Keybase (launchctl) pid: %@", @(pid))];
       completion(error);
     }];
   };
@@ -108,14 +108,14 @@
   KBRGetCurrentStatusRes *status = notification.userInfo[@"status"];
   GHWeakSelf gself = self;
   if (status) {
-    [_toggleButton setText:@"Stop keybased" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
+    [_toggleButton setText:@"Stop service" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
     _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
       [gself.client.installer.launchCtl unload:YES completion:^(NSError *error, NSString *output) {
         completion(error);
       }];
     };
   } else {
-    [_toggleButton setText:@"Start keybased" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
+    [_toggleButton setText:@"Start service" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
     _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
       [gself.client.installer.launchCtl load:YES completion:^(NSError *error, NSString *output) {
         completion(error);
@@ -126,7 +126,7 @@
 #ifdef DEBUG
   // In debug we aren't using launch services to run keybased
   _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    KBDebugAlert(@"keybased isn't using launch services in DEBUG", gself.window);
+    KBDebugAlert(@"Keybase isn't using launch services in DEBUG", gself.window);
     completion(nil);
   };
 #endif
@@ -146,8 +146,8 @@
   [self log:NSStringWithFormat(@"Keybase.app started (%@).", version)];
   //[self log:NSStringWithFormat(@"Dir: %@", [NSFileManager.defaultManager currentDirectoryPath])];
   //[self log:NSStringWithFormat(@"Executable: %@", NSBundle.mainBundle.executablePath)];
-  NSString *KBKeybasedVersion = [[NSBundle mainBundle] infoDictionary][@"KBKeybasedVersion"];
-  [self log:NSStringWithFormat(@"Info (keybased): %@", KBKeybasedVersion)];
+  NSString *KeybasedServiceVersion = [[NSBundle mainBundle] infoDictionary][@"KeybaseServiceVersion"];
+  [self log:NSStringWithFormat(@"Info (keybased): %@", KeybasedServiceVersion)];
   _client = appView.client;
   [self setNeedsLayout];
 }
@@ -173,7 +173,7 @@
 }
 
 - (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
-  [self log:NSStringWithFormat(@"keybased config:%@", [config propertiesDescription:@"\n\t"])];
+  [self log:NSStringWithFormat(@"Keybase config:%@", [config propertiesDescription:@"\n\t"])];
   [self log:NSStringWithFormat(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"")];
   [self setNeedsLayout];
 }
