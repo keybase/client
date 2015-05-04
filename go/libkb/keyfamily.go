@@ -717,9 +717,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	var prevKid KID
 	if existing, found := ckf.cki.Devices[did]; found {
 		G.Log.Debug("| merge with existing")
-		if existing.Kid.IsValid() {
-			prevKid = existing.Kid
-		}
+		prevKid = existing.Kid
 		existing.Merge(dobj)
 		dobj = existing
 	} else {
