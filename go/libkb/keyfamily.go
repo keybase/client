@@ -723,24 +723,15 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	}
 
 	did := dobj.Id
-	var kid KID
-	if dobj.Kid != nil {
-		kid, err = ImportKID(*dobj.Kid)
-		if err != nil {
-			return
-		}
-	}
+	kid := dobj.Kid
 
 	G.Log.Debug("| Device ID=%s; KID=%s", did, kid.String())
 
 	var prevKid KID
 	if existing, found := ckf.cki.Devices[did]; found {
 		G.Log.Debug("| merge with existing")
-		if existing.Kid != nil {
-			prevKid, err = ImportKID(*existing.Kid)
-			if err != nil {
-				return
-			}
+		if existing.Kid.IsValid() {
+			prevKid = existing.Kid
 		}
 		existing.Merge(dobj)
 		dobj = existing
@@ -776,11 +767,11 @@ func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did DeviceID) (kid KID, err 
 
 	if device, found := ckf.cki.Devices[did.String()]; !found {
 		G.Log.Debug("device %s not found in cki.Devices", did)
-	} else if device.Kid == nil || len(*device.Kid) == 0 {
-		G.Log.Debug("device found, but Kid empty")
+	} else if !device.Kid.IsValid() {
+		G.Log.Debug("device found, but Kid invalid")
 	} else {
-		G.Log.Debug("device found, kid: %s", *device.Kid)
-		kid, err = ImportKID(*device.Kid)
+		G.Log.Debug("device found, kid: %s", device.Kid.String())
+		kid = device.Kid
 	}
 	G.Log.Debug("- Result -> (%v,%s)", kid, ErrToOk(err))
 	return

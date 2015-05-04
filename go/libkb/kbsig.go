@@ -268,8 +268,7 @@ func (u1 *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.
 }
 
 func setDeviceOnBody(body *jsonw.Wrapper, key GenericKey, device Device) {
-	kid := key.GetKid().String()
-	device.Kid = &kid
+	device.Kid = key.GetKid()
 	body.SetKey("device", device.Export())
 }
 
