@@ -7,7 +7,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -88,7 +88,7 @@ func (k *KBPKIClient) GetActiveDeviceId() (DeviceId, error) {
 
 func (k *KBPKIClient) identify(arg *engine.IdEngineArg) (*libkb.User, error) {
 	k.once.Do(k.client)
-	c := keybase_1.IdentifyClient{k.rpc}
+	c := keybase1.IdentifyClient{k.rpc}
 
 	res, err := c.Identify(arg.Export())
 	if err != nil {
@@ -100,7 +100,7 @@ func (k *KBPKIClient) identify(arg *engine.IdEngineArg) (*libkb.User, error) {
 
 func (k *KBPKIClient) session() (*libkb.Session, error) {
 	k.once.Do(k.client)
-	c := keybase_1.SessionClient{k.rpc}
+	c := keybase1.SessionClient{k.rpc}
 	res, err := c.CurrentSession()
 	if err != nil {
 		return nil, err

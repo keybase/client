@@ -32,12 +32,12 @@ type Connectable struct {
 }
 
 type BlockClt struct {
-	clt keybase_1.BlockClient
+	clt keybase1.BlockClient
 	Connectable
 }
 
 type BIndexClt struct {
-	clt keybase_1.BIndexClient
+	clt keybase1.BIndexClient
 	Connectable
 }
 
@@ -77,7 +77,7 @@ func (c *BlockClt) ConnectOnce() error {
 	if err != nil {
 		return err
 	}
-	c.clt = keybase_1.BlockClient{rpc2.NewClient(
+	c.clt = keybase1.BlockClient{rpc2.NewClient(
 		rpc2.NewTransport(c.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
 	session, err := c.kbpki.GetSession()
@@ -97,7 +97,7 @@ func (c *BIndexClt) ConnectOnce() error {
 	if err != nil {
 		return err
 	}
-	c.clt = keybase_1.BIndexClient{rpc2.NewClient(
+	c.clt = keybase1.BIndexClient{rpc2.NewClient(
 		rpc2.NewTransport(c.conn, libkb.NewRpcLogFactory(), libkb.WrapError), libkb.UnwrapError)}
 
 	session, err := c.kbpki.GetSession()
@@ -184,7 +184,7 @@ func (b *BlockServerRemote) Get(id BlockId, context BlockContext) ([]byte, error
 		}
 	}
 	//XXX: if fails due to connection problem, should reconnect
-	bid := keybase_1.BlockIdCombo{
+	bid := keybase1.BlockIdCombo{
 		BlockId: id[:],
 		Size:    0,
 	}
@@ -209,8 +209,8 @@ func (b *BlockServerRemote) Put(id BlockId, context BlockContext, buf []byte) er
 		}
 	}
 
-	arg := keybase_1.PutBlockArg{
-		Bid: keybase_1.BlockIdCombo{BlockId: id[:], Size: len(buf)},
+	arg := keybase1.PutBlockArg{
+		Bid: keybase1.BlockIdCombo{BlockId: id[:], Size: len(buf)},
 		Buf: buf,
 	}
 	if err := b.blockly.clt.PutBlock(arg); err != nil {

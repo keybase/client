@@ -4,31 +4,31 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type IdentifyUI struct {
 }
 
-func (i IdentifyUI) FinishWebProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult) {
+func (i IdentifyUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {
 
 }
 
-func (i IdentifyUI) FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult) {
+func (i IdentifyUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {
 
 }
-func (i IdentifyUI) FinishAndPrompt(ires *keybase_1.IdentifyOutcome) (ti keybase_1.FinishAndPromptRes, err error) {
+func (i IdentifyUI) FinishAndPrompt(ires *keybase1.IdentifyOutcome) (ti keybase1.FinishAndPromptRes, err error) {
 	err = libkb.ImportStatusAsError(ires.Status)
 	return
 }
 
-func (i IdentifyUI) DisplayCryptocurrency(keybase_1.Cryptocurrency) {
+func (i IdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {
 
 }
-func (i IdentifyUI) DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff) {
+func (i IdentifyUI) DisplayKey(keybase1.FOKID, *keybase1.TrackDiff) {
 
 }
-func (i IdentifyUI) ReportLastTrack(*keybase_1.TrackSummary) {
+func (i IdentifyUI) ReportLastTrack(*keybase1.TrackSummary) {
 
 }
 func (i IdentifyUI) Start(username string) {
@@ -37,7 +37,7 @@ func (i IdentifyUI) Start(username string) {
 func (i IdentifyUI) Finish() {
 
 }
-func (i IdentifyUI) LaunchNetworkChecks(*keybase_1.Identity, *keybase_1.User) {
+func (i IdentifyUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) {
 
 }
 func (i IdentifyUI) DisplayTrackStatement(string) error {

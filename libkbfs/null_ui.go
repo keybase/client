@@ -6,16 +6,16 @@ import (
 )
 
 func newLogUIProtocol() rpc2.Protocol {
-	return keybase_1.LogUiProtocol(&nullUI{})
+	return keybase1.LogUiProtocol(&nullUI{})
 }
 
 func newIdentifyUIProtocol() rpc2.Protocol {
-	return keybase_1.IdentifyUiProtocol(&nullUI{})
+	return keybase1.IdentifyUiProtocol(&nullUI{})
 }
 
 type nullUI struct{}
 
-func (n *nullUI) Start(arg keybase_1.StartArg) error {
+func (n *nullUI) Start(arg keybase1.StartArg) error {
 	return nil
 }
 
@@ -23,38 +23,38 @@ func (n *nullUI) Finish(int) error {
 	return nil
 }
 
-func (n *nullUI) Log(arg keybase_1.LogArg) error {
+func (n *nullUI) Log(arg keybase1.LogArg) error {
 	return nil
 }
 
-func (n *nullUI) FinishAndPrompt(arg keybase_1.FinishAndPromptArg) (keybase_1.FinishAndPromptRes, error) {
-	return keybase_1.FinishAndPromptRes{}, nil
+func (n *nullUI) FinishAndPrompt(arg keybase1.FinishAndPromptArg) (keybase1.FinishAndPromptRes, error) {
+	return keybase1.FinishAndPromptRes{}, nil
 }
 
-func (n *nullUI) FinishWebProofCheck(arg keybase_1.FinishWebProofCheckArg) error {
+func (n *nullUI) FinishWebProofCheck(arg keybase1.FinishWebProofCheckArg) error {
 	return nil
 }
 
-func (n *nullUI) FinishSocialProofCheck(arg keybase_1.FinishSocialProofCheckArg) error {
+func (n *nullUI) FinishSocialProofCheck(arg keybase1.FinishSocialProofCheckArg) error {
 	return nil
 }
 
-func (n *nullUI) DisplayCryptocurrency(arg keybase_1.DisplayCryptocurrencyArg) error {
+func (n *nullUI) DisplayCryptocurrency(arg keybase1.DisplayCryptocurrencyArg) error {
 	return nil
 }
 
-func (n *nullUI) DisplayKey(arg keybase_1.DisplayKeyArg) error {
+func (n *nullUI) DisplayKey(arg keybase1.DisplayKeyArg) error {
 	return nil
 }
 
-func (n *nullUI) ReportLastTrack(arg keybase_1.ReportLastTrackArg) error {
+func (n *nullUI) ReportLastTrack(arg keybase1.ReportLastTrackArg) error {
 	return nil
 }
 
-func (n *nullUI) LaunchNetworkChecks(arg keybase_1.LaunchNetworkChecksArg) error {
+func (n *nullUI) LaunchNetworkChecks(arg keybase1.LaunchNetworkChecksArg) error {
 	return nil
 }
 
-func (n *nullUI) DisplayTrackStatement(arg keybase_1.DisplayTrackStatementArg) error {
+func (n *nullUI) DisplayTrackStatement(arg keybase1.DisplayTrackStatementArg) error {
 	return nil
 }

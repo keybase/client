@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 const (
@@ -381,7 +381,7 @@ func (bc *BlockChanges) AddBlock(path Path, ptr BlockPointer) {
 	// XXX: use unsafe.SizeOf here instead?  It's not crucial that
 	// it's right.
 	bc.sizeEstimate += uint64(len(path.String()) +
-		libkb.NODE_HASH_LEN_SHORT + keybase_1.UID_LEN + 3*8)
+		libkb.NODE_HASH_LEN_SHORT + keybase1.UID_LEN + 3*8)
 }
 
 // PrivateMetadata contains the portion of metadata that's secret for private
