@@ -47,12 +47,12 @@ func (c *CmdStress) Run() error {
 }
 
 func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
-	cli, _, err := GetRpcClient()
+	cli, _, err := GetRPCClient()
 	if err != nil {
 		return nil, err
 	}
 	protocols := []rpc2.Protocol{
-		NewStreamUiProtocol(),
+		NewStreamUIProtocol(),
 		c.secretUIProtocol(),
 		NewIdentifyUIProtocol(),
 		c.gpgUIProtocol(),
@@ -309,10 +309,10 @@ func (c *CmdStress) status() {
 		G.Log.Warning("Not logged in.")
 		return
 	}
-	myUid := currentStatus.User.Uid
+	myUID := currentStatus.User.Uid
 
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.LoadUser(keybase1.LoadUserArg{Uid: &myUid})
+	_, err = ucli.LoadUser(keybase1.LoadUserArg{Uid: &myUID})
 	if err != nil {
 		G.Log.Warning("load user error: %s", err)
 	}

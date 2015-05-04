@@ -89,7 +89,7 @@ func (c *CmdPGPVerify) RunClient() error {
 		return err
 	}
 	protocols := []rpc2.Protocol{
-		NewStreamUiProtocol(),
+		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),
 		NewIdentifyUIProtocol(),
 		NewLogUIProtocol(),

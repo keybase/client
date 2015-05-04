@@ -11,12 +11,12 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-type CmdId struct {
+type CmdID struct {
 	user           string
 	trackStatement bool
 }
 
-func (v *CmdId) ParseArgv(ctx *cli.Context) error {
+func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	if nargs > 1 {
 		return fmt.Errorf("id takes one arg -- the user to lookup")
@@ -29,14 +29,14 @@ func (v *CmdId) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdId) makeArg() *engine.IdEngineArg {
+func (v *CmdID) makeArg() *engine.IdEngineArg {
 	return &engine.IdEngineArg{
 		UserAssertion:  v.user,
 		TrackStatement: v.trackStatement,
 	}
 }
 
-func (v *CmdId) RunClient() error {
+func (v *CmdID) RunClient() error {
 	var cli keybase1.IdentifyClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
@@ -55,7 +55,7 @@ func (v *CmdId) RunClient() error {
 	return err
 }
 
-func (v *CmdId) Run() error {
+func (v *CmdID) Run() error {
 	logui := G.UI.GetLogUI()
 	if v.trackStatement {
 		logui = libkb.NewNullLogger()
@@ -69,7 +69,7 @@ func (v *CmdId) Run() error {
 	return err
 }
 
-func NewCmdId(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdID(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:        "id",
 		Usage:       "keybase id <username>",
@@ -81,12 +81,12 @@ func NewCmdId(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdId{}, "id", c)
+			cl.ChooseCommand(&CmdID{}, "id", c)
 		},
 	}
 }
 
-func (v *CmdId) GetUsage() libkb.Usage {
+func (v *CmdID) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,

@@ -2,8 +2,9 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type SecretEntry struct {
@@ -51,7 +52,7 @@ func (se *SecretEntry) Init() (err error) {
 	return err
 }
 
-func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, term_arg *keybase1.SecretEntryArg) (
+func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.SecretEntryArg) (
 	res *keybase1.SecretEntryRes, err error) {
 
 	if err = se.Init(); err != nil {
@@ -63,10 +64,10 @@ func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, term_arg *keybase1.Secre
 	} else if se.terminal == nil {
 		err = NoTerminalError{}
 	} else {
-		if term_arg == nil {
-			term_arg = &arg
+		if termArg == nil {
+			termArg = &arg
 		}
-		res, err = se.terminal.GetSecret(term_arg)
+		res, err = se.terminal.GetSecret(termArg)
 	}
 
 	return

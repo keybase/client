@@ -364,7 +364,7 @@ func (s *CmdSignupState) MakePrompter() {
 	s.prompter = NewPrompter(s.fields.ToList())
 }
 
-func (v *CmdSignupState) GetUsage() libkb.Usage {
+func (s *CmdSignupState) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,

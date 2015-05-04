@@ -260,7 +260,7 @@ func NewCmdSigs(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdSigsList) GetUsage() libkb.Usage {
+func (s *CmdSigsList) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

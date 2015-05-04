@@ -2,13 +2,14 @@ package client
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"strconv"
 )
 
 type CmdSigsRevoke struct {
@@ -82,7 +83,7 @@ func NewCmdSigsRevoke(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdSigsRevoke) GetUsage() libkb.Usage {
+func (c *CmdSigsRevoke) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,

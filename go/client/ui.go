@@ -221,7 +221,7 @@ type SigHintWrapper struct {
 	hint *keybase1.SigHint
 }
 
-func (shw SigHintWrapper) GetHumanUrl() (ret string) {
+func (shw SigHintWrapper) GetHumanURL() (ret string) {
 	if shw.hint == nil {
 		ret = "nil"
 	} else {
@@ -272,7 +272,7 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 	if err := lcr.GetError(); err == nil {
 		msg += (CHECK + " " + lcrs + `"` +
 			ColorString("green", run) + `" on ` + s.GetService() +
-			": " + lcr.GetHint().GetHumanUrl())
+			": " + lcr.GetHint().GetHumanURL())
 	} else {
 		msg += (BADX + " " + lcrs +
 			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
@@ -340,7 +340,7 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(color, s.GetHostname()) + " via " +
 				ColorString(color, strings.ToUpper(s.GetProtocol())) +
-				": " + lcr.GetHint().GetHumanUrl())
+				": " + lcr.GetHint().GetHumanURL())
 		}
 	} else {
 		msg = (BADX + " " + lcrs +

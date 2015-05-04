@@ -90,7 +90,7 @@ func DisplayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 	return
 }
 
-func DisplayJson(jsonStr string) (err error) {
+func DisplayJSON(jsonStr string) (err error) {
 	_, err = io.WriteString(os.Stdout, jsonStr+"\n")
 	return
 }
@@ -109,7 +109,7 @@ func (s *CmdListTracking) RunClient() error {
 		if err != nil {
 			return err
 		}
-		return DisplayJson(jsonStr)
+		return DisplayJSON(jsonStr)
 	}
 
 	table, err := cli.ListTracking(s.filter)
@@ -133,7 +133,7 @@ func (s *CmdListTracking) Run() (err error) {
 	}
 
 	if s.json {
-		err = DisplayJson(eng.JsonResult())
+		err = DisplayJSON(eng.JsonResult())
 	} else {
 		err = DisplayTable(eng.TableResult(), s.verbose, s.headers)
 	}
@@ -169,7 +169,7 @@ func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdListTracking) GetUsage() libkb.Usage {
+func (s *CmdListTracking) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

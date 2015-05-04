@@ -65,12 +65,12 @@ func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdLogin) ParseArgv(ctx *cli.Context) (err error) {
+func (v *CmdLogin) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if nargs > 1 {
 		err = errors.New("login takes 0 or 1 argument: [<username>]")
 	} else if nargs == 1 {
-		c.Username = ctx.Args()[0]
+		v.Username = ctx.Args()[0]
 	}
 	return err
 }

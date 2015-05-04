@@ -36,14 +36,14 @@ func (v *CmdStatus) RunClient() (err error) {
 	if !currentStatus.LoggedIn {
 		return fmt.Errorf("Not logged in.")
 	}
-	myUid := currentStatus.User.Uid
+	myUID := currentStatus.User.Uid
 
 	userCli, err := GetUserClient()
 	if err != nil {
 		return err
 	}
 
-	me, err := userCli.LoadUser(keybase1.LoadUserArg{Uid: &myUid})
+	me, err := userCli.LoadUser(keybase1.LoadUserArg{Uid: &myUID})
 	if err != nil {
 		return err
 	}

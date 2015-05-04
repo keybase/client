@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -25,7 +26,7 @@ func NewCmdVersion(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdVersion) ParseArgv(*cli.Context) error { return nil }
+func (v *CmdVersion) ParseArgv(*cli.Context) error { return nil }
 
 func (v *CmdVersion) GetUsage() libkb.Usage {
 	return libkb.Usage{

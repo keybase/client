@@ -3,13 +3,14 @@ package client
 import (
 	"fmt"
 
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"os"
 )
 
 func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
@@ -106,7 +107,7 @@ func (s *CmdPGPExport) Run() (err error) {
 	return err
 }
 
-func (v *CmdPGPExport) GetUsage() libkb.Usage {
+func (s *CmdPGPExport) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

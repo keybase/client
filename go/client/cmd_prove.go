@@ -77,11 +77,11 @@ func (p *ProveUIServer) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarning
 func (v *CmdProve) RunClient() (err error) {
 	var cli keybase1.ProveClient
 
-	prove_ui := ProveUI{parent: G_UI}
-	v.installOutputHook(&prove_ui)
+	proveUI := ProveUI{parent: G_UI}
+	v.installOutputHook(&proveUI)
 
 	protocols := []rpc2.Protocol{
-		NewProveUIProtocol(prove_ui),
+		NewProveUIProtocol(proveUI),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLogUIProtocol(),

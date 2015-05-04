@@ -42,7 +42,7 @@ func NewCmdPing(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (c *CmdPing) ParseArgv(*cli.Context) error { return nil }
+func (v *CmdPing) ParseArgv(*cli.Context) error { return nil }
 
 func (v *CmdPing) GetUsage() libkb.Usage {
 	return libkb.Usage{

@@ -12,7 +12,7 @@ import (
 type TerminalEngine struct {
 	tty           *os.File
 	fd            int
-	old_terminal  *terminal.State
+	oldTerminal   *terminal.State
 	terminal      *terminal.Terminal
 	started       bool
 	width, height int
@@ -26,7 +26,7 @@ func NewTerminalEngine() *TerminalEngine {
 	return &TerminalEngine{fd: -1}
 }
 
-var global_is_started = false
+var globalIsStarted = false
 
 func (t *TerminalEngine) GetSize() (int, int) {
 	if err := t.Startup(); err != nil {
@@ -43,11 +43,11 @@ func (t *TerminalEngine) Startup() error {
 
 	t.started = true
 
-	if global_is_started {
+	if globalIsStarted {
 		return fmt.Errorf("Can only instantiate one terminal wrapper per proc")
 	}
 
-	global_is_started = true
+	globalIsStarted = true
 
 	G.Log.Debug("+ Opening up /dev/tty terminal on Linux and OSX")
 	file, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
@@ -61,7 +61,7 @@ func (t *TerminalEngine) Startup() error {
 		return err
 	}
 
-	t.old_terminal, err = terminal.MakeRaw(t.fd)
+	t.oldTerminal, err = terminal.MakeRaw(t.fd)
 	if err != nil {
 		return err
 	}
@@ -80,12 +80,12 @@ func (t *TerminalEngine) Startup() error {
 }
 
 func (t *TerminalEngine) Shutdown() error {
-	if t.old_terminal != nil {
+	if t.oldTerminal != nil {
 		G.Log.Debug("Restoring terminal settings")
 
 		// XXX bug in ssh/terminal. On success, we were getting an error
 		// "errno 0"; so let's ignore it for now.
-		terminal.Restore(t.fd, t.old_terminal)
+		terminal.Restore(t.fd, t.oldTerminal)
 	}
 	return nil
 }

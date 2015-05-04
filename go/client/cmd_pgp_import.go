@@ -3,13 +3,14 @@ package client
 import (
 	"fmt"
 
+	"io/ioutil"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"io/ioutil"
 )
 
 func NewCmdPGPImport(cl *libcmdline.CommandLine) cli.Command {
@@ -99,7 +100,7 @@ func (s *CmdPGPImport) readKeyData() (err error) {
 	return
 }
 
-func (v *CmdPGPImport) GetUsage() libkb.Usage {
+func (s *CmdPGPImport) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

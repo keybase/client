@@ -5,6 +5,6 @@ import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
-func NewStreamUiProtocol() rpc2.Protocol {
+func NewStreamUIProtocol() rpc2.Protocol {
 	return keybase1.StreamUiProtocol(G.XStreams)
 }

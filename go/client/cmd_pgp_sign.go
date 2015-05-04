@@ -102,7 +102,7 @@ func (s *CmdPGPSign) RunClient() (err error) {
 	var cli keybase1.PgpClient
 	var snk, src keybase1.Stream
 	protocols := []rpc2.Protocol{
-		NewStreamUiProtocol(),
+		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 
@@ -131,7 +131,7 @@ func (s *CmdPGPSign) Run() (err error) {
 	return err
 }
 
-func (v *CmdPGPSign) GetUsage() libkb.Usage {
+func (s *CmdPGPSign) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

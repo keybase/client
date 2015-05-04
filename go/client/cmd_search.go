@@ -66,7 +66,7 @@ func (c *CmdSearch) Run() error {
 
 func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {
 	if c.json {
-		return c.showJsonResults(results)
+		return c.showJSONResults(results)
 	}
 	return c.showRegularResults(results)
 }
@@ -87,7 +87,7 @@ func (c *CmdSearch) showRegularResults(results []keybase1.UserSummary) error {
 	return nil
 }
 
-func (c *CmdSearch) showJsonResults(results []keybase1.UserSummary) error {
+func (c *CmdSearch) showJSONResults(results []keybase1.UserSummary) error {
 	output := jsonw.NewArray(len(results))
 	for userIndex, user := range results {
 		userBlob := jsonw.NewDictionary()

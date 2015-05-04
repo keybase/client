@@ -61,4 +61,4 @@ func (v *CmdReset) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdReset) ParseArgv(*cli.Context) error { return nil }
+func (v *CmdReset) ParseArgv(*cli.Context) error { return nil }

@@ -63,9 +63,9 @@ type CmdMykeyDelete struct {
 	force bool
 }
 
-func (d *CmdMykeyDelete) ParseArgv(ctx *cli.Context) (err error) {
+func (v *CmdMykeyDelete) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	d.force = ctx.Bool("force")
+	v.force = ctx.Bool("force")
 	if nargs != 0 {
 		err = BadArgsError{"delete doesn't take arguments"}
 	}
