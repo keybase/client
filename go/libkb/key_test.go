@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-var gabrielSecret string = `
+var gabrielSecret = `
 -----BEGIN PGP PRIVATE KEY BLOCK-----
 Comment: GPGTools - http://gpgtools.org
 
@@ -114,7 +114,7 @@ X9hDV3GQRvCC7vMZoXKp25WwoU9F0HRzB6ipfLYbmW1Mj6Vh76qnyAxyRTzyGHEt
 -----END PGP PRIVATE KEY BLOCK-----
 `
 
-var allKeys []string = []string{
+var allKeys = []string{
 	gabrielSecret,
 }
 

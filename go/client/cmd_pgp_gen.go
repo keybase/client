@@ -15,7 +15,7 @@ type CmdPGPGen struct {
 	arg engine.PGPKeyImportEngineArg
 }
 
-var SmallKey int = 1024
+var SmallKey = 1024
 
 func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
@@ -28,7 +28,7 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 		v.arg.AllowMulti = ctx.Bool("multi")
 		v.arg.DoExport = !ctx.Bool("no-export")
 		if g.NoDefPGPUid && len(g.PGPUids) == 0 {
-			err = fmt.Errorf("if you don't want the default PGP uid, you must supply a PGP uid with the --pgp-uid option.")
+			err = fmt.Errorf("if you don't want the default PGP uid, you must supply a PGP uid with the --pgp-uid option")
 		}
 		if ctx.Bool("debug") {
 			g.PrimaryBits = SmallKey

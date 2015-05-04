@@ -2,18 +2,19 @@ package client
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"strings"
-	"time"
 )
 
-const SPACES_PER_INDENT = 4
+const spacesPerIndent = 4
 
 func indentSpace(level int) string {
-	return strings.Repeat(" ", level*SPACES_PER_INDENT)
+	return strings.Repeat(" ", level*spacesPerIndent)
 }
 
 type CmdStatus struct{}

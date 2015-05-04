@@ -95,17 +95,16 @@ func (p PgpFingerprint) LoadFromLocalDb() (*PgpKeyBundle, error) {
 }
 
 func (p *PgpKeyBundle) StoreToLocalDb() error {
-	if s, err := p.Encode(); err != nil {
-		return err
-	} else {
-		val := jsonw.NewString(s)
-		G.Log.Debug("| Storing Key (fp=%s) to Local DB", p.GetFingerprint())
-		err = G.LocalDb.Put(DbKey{
-			Typ: DB_PGP_KEY,
-			Key: p.GetFingerprint().String(),
-		}, []DbKey{}, val)
+	s, err := p.Encode()
+	if err != nil {
 		return err
 	}
+	val := jsonw.NewString(s)
+	G.Log.Debug("| Storing Key (fp=%s) to Local DB", p.GetFingerprint())
+	return G.LocalDb.Put(DbKey{
+		Typ: DB_PGP_KEY,
+		Key: p.GetFingerprint().String(),
+	}, []DbKey{}, val)
 }
 
 func (p1 PgpFingerprint) Eq(p2 PgpFingerprint) bool {
@@ -117,8 +116,7 @@ func GetPgpFingerprint(w *jsonw.Wrapper) (*PgpFingerprint, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret, err := PgpFingerprintFromHex(s)
-	return ret, err
+	return PgpFingerprintFromHex(s)
 }
 
 func GetPgpFingerprintVoid(w *jsonw.Wrapper, p *PgpFingerprint, e *error) {

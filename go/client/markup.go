@@ -3,19 +3,20 @@ package client
 import (
 	"bytes"
 	"fmt"
-	Q "github.com/PuerkitoBio/goquery"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/protocol/go"
-	"github.com/kr/text"
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 	"io"
 	"os"
 	"regexp"
 	"strings"
+
+	Q "github.com/PuerkitoBio/goquery"
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/kr/text"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
-var INDENT int = 3
+var INDENT = 3
 
 type Paragraph struct {
 	data   []byte

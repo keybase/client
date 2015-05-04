@@ -22,7 +22,7 @@ func CodecHandle() *codec.MsgpackHandle {
 	return &mh
 }
 
-var SHA256_CODE int = 8
+var SHA256_CODE = 8
 
 type KeybasePacketHash struct {
 	Type  int    `codec:"type"`

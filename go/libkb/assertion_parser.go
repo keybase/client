@@ -4,8 +4,6 @@ import (
 	"regexp"
 )
 
-var empty_string []byte = []byte{}
-
 const (
 	NONE = iota
 	OR
@@ -52,7 +50,7 @@ func (t Token) Eq(t2 Token) bool {
 }
 
 func NewToken(typ int) *Token {
-	return &Token{typ, empty_string}
+	return &Token{Typ: typ}
 }
 
 type Lexer struct {
@@ -68,7 +66,7 @@ func NewLexer(s string) *Lexer {
 	// We're allowing '&&' or '+' for conjunction
 	re := regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+)`)
 	wss := regexp.MustCompile(`^([\n\t ]+)`)
-	l := &Lexer{[]byte(s), nil, false, re, wss}
+	l := &Lexer{buffer: []byte(s), re: re, wss: wss}
 	l.stripBuffer()
 	return l
 }
@@ -107,7 +105,7 @@ func (lx *Lexer) Get() *Token {
 			}
 		}
 	} else {
-		lx.buffer = empty_string
+		lx.buffer = nil
 		ret = NewToken(ERROR)
 	}
 	lx.last = ret

@@ -51,7 +51,7 @@ func SigIdFromHex(s string, suffix bool) (*SigId, error) {
 	}
 	totlen := SIG_ID_LEN
 	if suffix {
-		totlen += 1
+		totlen++
 	}
 	if len(bv) != totlen {
 		err = fmt.Errorf("Bad sigId wrong length: %d", len(bv))
