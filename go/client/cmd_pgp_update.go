@@ -5,7 +5,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -33,7 +33,7 @@ func (v *CmdPGPUpdate) RunClient() (err error) {
 		return err
 	}
 
-	return cli.PgpUpdate(keybase_1.PgpUpdateArg{
+	return cli.PgpUpdate(keybase1.PgpUpdateArg{
 		Fingerprints: v.fingerprints,
 		All:          v.all,
 	})

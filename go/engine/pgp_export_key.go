@@ -7,13 +7,13 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg keybase_1.PgpExportArg
-	res []keybase_1.FingerprintAndKey
+	arg keybase1.PgpExportArg
+	res []keybase1.FingerprintAndKey
 	me  *libkb.User
 }
 
@@ -37,16 +37,16 @@ func (s *PGPKeyExportEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *PGPKeyExportEngine) Results() []keybase_1.FingerprintAndKey {
+func (e *PGPKeyExportEngine) Results() []keybase1.FingerprintAndKey {
 	return e.res
 }
 
-func NewPGPKeyExportEngine(arg keybase_1.PgpExportArg) *PGPKeyExportEngine {
+func NewPGPKeyExportEngine(arg keybase1.PgpExportArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{arg: arg}
 }
 
 func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string, desc string) {
-	e.res = append(e.res, keybase_1.FingerprintAndKey{
+	e.res = append(e.res, keybase1.FingerprintAndKey{
 		Fingerprint: fp.String(),
 		Key:         key,
 		Desc:        desc,

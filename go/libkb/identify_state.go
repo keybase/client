@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type IdentifyState struct {
@@ -56,7 +56,7 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 	}
 }
 
-func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase_1.FOKID, *keybase_1.TrackDiff)) {
+func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.FOKID, *keybase1.TrackDiff)) {
 	mapify := func(v []FOKID) map[PgpFingerprint]bool {
 		ret := make(map[PgpFingerprint]bool)
 		for _, f := range v {

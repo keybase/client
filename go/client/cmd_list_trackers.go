@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -39,7 +39,7 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-type batchfn func([]keybase_1.UID) ([]keybase_1.UserSummary, error)
+type batchfn func([]keybase1.UID) ([]keybase1.UserSummary, error)
 
 // Run runs the command in standalone mode.
 func (c *CmdListTrackers) Run() error {
@@ -58,7 +58,7 @@ func (c *CmdListTrackers) Run() error {
 	}
 	trs := eng.ExportedList()
 
-	summarize := func(uids []keybase_1.UID) (res []keybase_1.UserSummary, err error) {
+	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
 		sumeng := engine.NewUserSummary(libkb.ImportUIDs(uids))
 		if err = engine.RunEngine(sumeng, ctx); err != nil {
 			return
@@ -71,7 +71,7 @@ func (c *CmdListTrackers) Run() error {
 	return nil
 }
 
-func populateList(trs []keybase_1.Tracker, summarizer batchfn) (ret []keybase_1.UserSummary, err error) {
+func populateList(trs []keybase1.Tracker, summarizer batchfn) (ret []keybase1.UserSummary, err error) {
 
 	for i := 0; i < len(trs); i += libkb.USER_SUMMARY_LIMIT {
 		max := i + libkb.USER_SUMMARY_LIMIT
@@ -79,11 +79,11 @@ func populateList(trs []keybase_1.Tracker, summarizer batchfn) (ret []keybase_1.
 			max = len(trs)
 		}
 		sub := trs[i:max]
-		uids := make([]keybase_1.UID, len(sub))
+		uids := make([]keybase1.UID, len(sub))
 		for i, v := range sub {
 			uids[i] = v.Tracker
 		}
-		var tmp []keybase_1.UserSummary
+		var tmp []keybase1.UserSummary
 		if tmp, err = summarizer(uids); err != nil {
 			return
 		}
@@ -105,11 +105,11 @@ func (c *CmdListTrackers) RunClient() error {
 		return err
 	}
 
-	var trs []keybase_1.Tracker
+	var trs []keybase1.Tracker
 	if c.uid != nil {
-		trs, err = cli.ListTrackers(keybase_1.ListTrackersArg{Uid: c.uid.Export()})
+		trs, err = cli.ListTrackers(keybase1.ListTrackersArg{Uid: c.uid.Export()})
 	} else if len(c.username) > 0 {
-		trs, err = cli.ListTrackersByName(keybase_1.ListTrackersByNameArg{Username: c.username})
+		trs, err = cli.ListTrackersByName(keybase1.ListTrackersByNameArg{Username: c.username})
 	} else {
 		trs, err = cli.ListTrackersSelf(0)
 	}
@@ -117,7 +117,7 @@ func (c *CmdListTrackers) RunClient() error {
 		return err
 	}
 
-	summarize := func(uids []keybase_1.UID) (res []keybase_1.UserSummary, err error) {
+	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
 		return cli.LoadUncheckedUserSummaries(uids)
 	}
 
@@ -143,8 +143,8 @@ func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
 	return w
 }
 
-func (c *CmdListTrackers) output(trs []keybase_1.Tracker, summarizer batchfn) (err error) {
-	var sums []keybase_1.UserSummary
+func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (err error) {
+	var sums []keybase1.UserSummary
 	if sums, err = populateList(trs, summarizer); err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func (c *CmdListTrackers) output(trs []keybase_1.Tracker, summarizer batchfn) (e
 	return nil
 }
 
-func (c *CmdListTrackers) proofSummary(p keybase_1.Proofs) string {
+func (c *CmdListTrackers) proofSummary(p keybase1.Proofs) string {
 	var ps []string
 	for _, sp := range p.Social {
 		ps = append(ps, sp.IdString)

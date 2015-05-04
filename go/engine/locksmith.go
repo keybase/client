@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type Locksmith struct {
@@ -314,10 +314,10 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
-	var arg keybase_1.SelectSignerArg
+	var arg keybase1.SelectSignerArg
 	for k, v := range devs {
 		if v.Type != libkb.DEVICE_TYPE_WEB {
-			arg.Devices = append(arg.Devices, keybase_1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
+			arg.Devices = append(arg.Devices, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 		}
 	}
 	arg.HasPGP = withPGPOption
@@ -327,26 +327,26 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
-	if res.Action == keybase_1.SelectSignerAction_CANCEL {
+	if res.Action == keybase1.SelectSignerAction_CANCEL {
 		// XXX another way to bail besides returning an error?
 		return fmt.Errorf("cancel requested by user")
 	}
-	if res.Action == keybase_1.SelectSignerAction_RESET_ACCOUNT {
+	if res.Action == keybase1.SelectSignerAction_RESET_ACCOUNT {
 		d.G().Log.Info("reset account action not yet implemented")
 		return ErrNotYetImplemented
 	}
 
-	if res.Action != keybase_1.SelectSignerAction_SIGN {
+	if res.Action != keybase1.SelectSignerAction_SIGN {
 		return fmt.Errorf("unknown action value: %d", res.Action)
 	}
 
 	// sign action:
 
-	if res.Signer.Kind == keybase_1.DeviceSignerKind_PGP {
+	if res.Signer.Kind == keybase1.DeviceSignerKind_PGP {
 		return d.deviceSignPGP(ctx)
 	}
 
-	if res.Signer.Kind == keybase_1.DeviceSignerKind_DEVICE {
+	if res.Signer.Kind == keybase1.DeviceSignerKind_DEVICE {
 		if res.Signer.DeviceID == nil {
 			return fmt.Errorf("selected device for signing, but DeviceID is nil")
 		}
@@ -467,10 +467,10 @@ func (d *Locksmith) deviceSignExistingDevice(ctx *Context, existingID, existingN
 }
 
 func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*libkb.PgpKeyBundle, error) {
-	var gks []keybase_1.GPGKey
+	var gks []keybase1.GPGKey
 	for _, key := range keys {
 		algo, kid, creation := key.KeyInfo()
-		gk := keybase_1.GPGKey{
+		gk := keybase1.GPGKey{
 			Algorithm:  algo,
 			KeyID:      kid,
 			Creation:   creation,
@@ -479,7 +479,7 @@ func (d *Locksmith) selectPGPKey(ctx *Context, keys []*libkb.PgpKeyBundle) (*lib
 		gks = append(gks, gk)
 	}
 
-	keyid, err := ctx.GPGUI.SelectKey(keybase_1.SelectKeyArg{Keys: gks})
+	keyid, err := ctx.GPGUI.SelectKey(keybase1.SelectKeyArg{Keys: gks})
 	if err != nil {
 		return nil, err
 	}

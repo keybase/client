@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -38,7 +38,7 @@ func (c *CmdBTC) RunClient() (err error) {
 		return err
 	}
 
-	return cli.RegisterBTC(keybase_1.RegisterBTCArg{
+	return cli.RegisterBTC(keybase1.RegisterBTCArg{
 		Address: c.address,
 		Force:   c.force,
 	})

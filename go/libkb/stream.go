@@ -5,11 +5,11 @@ import (
 	"io"
 	"sync"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type ReadCloser struct {
-	f keybase_1.Stream
+	f keybase1.Stream
 }
 
 type ExportedStream struct {
@@ -31,13 +31,13 @@ func NewExportedStreams() *ExportedStreams {
 	}
 }
 
-func (s *ExportedStreams) ExportWriter(w io.WriteCloser) keybase_1.Stream {
+func (s *ExportedStreams) ExportWriter(w io.WriteCloser) keybase1.Stream {
 	es := s.alloc()
 	es.w = w
 	return es.Export()
 }
 
-func (s *ExportedStreams) ExportReader(r io.ReadCloser) keybase_1.Stream {
+func (s *ExportedStreams) ExportReader(r io.ReadCloser) keybase1.Stream {
 	es := s.alloc()
 	es.r = r
 	return es.Export()
@@ -53,11 +53,11 @@ func (s *ExportedStreams) alloc() (ret *ExportedStream) {
 	return ret
 }
 
-func (e *ExportedStream) Export() keybase_1.Stream {
-	return keybase_1.Stream{Fd: e.i}
+func (e *ExportedStream) Export() keybase1.Stream {
+	return keybase1.Stream{Fd: e.i}
 }
 
-func (e *ExportedStreams) GetWriter(s keybase_1.Stream) (ret io.WriteCloser, err error) {
+func (e *ExportedStreams) GetWriter(s keybase1.Stream) (ret io.WriteCloser, err error) {
 	e.Lock()
 	defer e.Unlock()
 	if obj, found := e.m[s.Fd]; !found {
@@ -70,7 +70,7 @@ func (e *ExportedStreams) GetWriter(s keybase_1.Stream) (ret io.WriteCloser, err
 	return
 }
 
-func (e *ExportedStreams) GetReader(s keybase_1.Stream) (ret io.ReadCloser, err error) {
+func (e *ExportedStreams) GetReader(s keybase1.Stream) (ret io.ReadCloser, err error) {
 	e.Lock()
 	defer e.Unlock()
 	if obj, found := e.m[s.Fd]; !found {
@@ -83,7 +83,7 @@ func (e *ExportedStreams) GetReader(s keybase_1.Stream) (ret io.ReadCloser, err 
 	return
 }
 
-func (e *ExportedStreams) Close(s keybase_1.Stream) (err error) {
+func (e *ExportedStreams) Close(s keybase1.Stream) (err error) {
 	e.Lock()
 	defer e.Unlock()
 	if obj, found := e.m[s.Fd]; !found {
@@ -103,7 +103,7 @@ func (e *ExportedStreams) Close(s keybase_1.Stream) (err error) {
 	return err
 }
 
-func (e *ExportedStreams) Read(a keybase_1.ReadArg) (buf []byte, err error) {
+func (e *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
 	var r io.ReadCloser
 	if r, err = e.GetReader(a.S); err != nil {
 		return
@@ -115,7 +115,7 @@ func (e *ExportedStreams) Read(a keybase_1.ReadArg) (buf []byte, err error) {
 	return
 }
 
-func (e *ExportedStreams) Write(a keybase_1.WriteArg) (n int, err error) {
+func (e *ExportedStreams) Write(a keybase1.WriteArg) (n int, err error) {
 	var w io.WriteCloser
 	if w, err = e.GetWriter(a.S); err != nil {
 		return
@@ -125,12 +125,12 @@ func (e *ExportedStreams) Write(a keybase_1.WriteArg) (n int, err error) {
 }
 
 type RemoteStream struct {
-	Stream keybase_1.Stream
-	Cli    *keybase_1.StreamUiClient
+	Stream keybase1.Stream
+	Cli    *keybase1.StreamUiClient
 }
 
 func (ewc RemoteStream) Write(buf []byte) (n int, err error) {
-	return ewc.Cli.Write(keybase_1.WriteArg{S: ewc.Stream, Buf: buf})
+	return ewc.Cli.Write(keybase1.WriteArg{S: ewc.Stream, Buf: buf})
 }
 
 func (ewc RemoteStream) Close() (err error) {
@@ -139,7 +139,7 @@ func (ewc RemoteStream) Close() (err error) {
 
 func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 	var tmp []byte
-	if tmp, err = ewc.Cli.Read(keybase_1.ReadArg{S: ewc.Stream, Sz: len(buf)}); err == nil {
+	if tmp, err = ewc.Cli.Read(keybase1.ReadArg{S: ewc.Stream, Sz: len(buf)}); err == nil {
 		n = len(tmp)
 		copy(buf, tmp)
 	}
@@ -152,7 +152,7 @@ type RemoteStreamBuffered struct {
 	w  *bufio.Writer
 }
 
-func NewRemoteStreamBuffered(s keybase_1.Stream, c *keybase_1.StreamUiClient) *RemoteStreamBuffered {
+func NewRemoteStreamBuffered(s keybase1.Stream, c *keybase1.StreamUiClient) *RemoteStreamBuffered {
 	x := &RemoteStreamBuffered{
 		rs: &RemoteStream{Stream: s, Cli: c},
 	}

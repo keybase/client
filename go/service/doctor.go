@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -32,32 +32,32 @@ func (h *DoctorHandler) ui(sessionID int) *RemoteDoctorUI {
 	c := h.getRpcClient()
 	return &RemoteDoctorUI{
 		sessionID: sessionID,
-		uicli:     keybase_1.DoctorUiClient{Cli: c},
+		uicli:     keybase1.DoctorUiClient{Cli: c},
 	}
 }
 
 type RemoteDoctorUI struct {
 	sessionID int
-	uicli     keybase_1.DoctorUiClient
+	uicli     keybase1.DoctorUiClient
 }
 
 func (r *RemoteDoctorUI) LoginSelect(currentUser string, otherUsers []string) (string, error) {
-	return r.uicli.LoginSelect(keybase_1.LoginSelectArg{
+	return r.uicli.LoginSelect(keybase1.LoginSelectArg{
 		SessionID:   r.sessionID,
 		CurrentUser: currentUser,
 		OtherUsers:  otherUsers,
 	})
 }
 
-func (r *RemoteDoctorUI) DisplayStatus(status keybase_1.DoctorStatus) (bool, error) {
-	return r.uicli.DisplayStatus(keybase_1.DisplayStatusArg{
+func (r *RemoteDoctorUI) DisplayStatus(status keybase1.DoctorStatus) (bool, error) {
+	return r.uicli.DisplayStatus(keybase1.DisplayStatusArg{
 		SessionID: r.sessionID,
 		Status:    status,
 	})
 }
 
 func (r *RemoteDoctorUI) DisplayResult(msg string) error {
-	return r.uicli.DisplayResult(keybase_1.DisplayResultArg{
+	return r.uicli.DisplayResult(keybase1.DisplayResultArg{
 		SessionID: r.sessionID,
 		Message:   msg,
 	})

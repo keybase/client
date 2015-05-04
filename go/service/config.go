@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"os"
 	"path/filepath"
@@ -12,7 +12,7 @@ type ConfigHandler struct {
 	xp *rpc2.Transport
 }
 
-func (h ConfigHandler) GetCurrentStatus() (res keybase_1.GetCurrentStatusRes, err error) {
+func (h ConfigHandler) GetCurrentStatus() (res keybase1.GetCurrentStatusRes, err error) {
 	var cs libkb.CurrentStatus
 	if cs, err = libkb.GetCurrentStatus(); err == nil {
 		res = cs.Export()
@@ -20,8 +20,8 @@ func (h ConfigHandler) GetCurrentStatus() (res keybase_1.GetCurrentStatusRes, er
 	return
 }
 
-func (h ConfigHandler) GetConfig() (keybase_1.Config, error) {
-	var c keybase_1.Config
+func (h ConfigHandler) GetConfig() (keybase1.Config, error) {
+	var c keybase1.Config
 
 	c.ServerURI = G.Env.GetServerUri()
 	var err error

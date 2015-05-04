@@ -4,7 +4,7 @@ package libkb
 import (
 	"sync"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	TrackStatusTracking = 1
 )
 
-type Tracker keybase_1.Tracker
+type Tracker keybase1.Tracker
 
 func (t Tracker) GetUID() UID { return UID(t.Tracker) }
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -154,7 +154,7 @@ func (t TrackDiffError) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffError) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_ERROR
+	return keybase1.TrackDiffType_ERROR
 }
 
 type TrackDiffUpgraded struct {
@@ -177,7 +177,7 @@ func (t TrackDiffUpgraded) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffUpgraded) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_UPGRADED
+	return keybase1.TrackDiffType_UPGRADED
 }
 
 type TrackDiffNone struct{}
@@ -196,7 +196,7 @@ func (t TrackDiffNone) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffNone) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_NONE
+	return keybase1.TrackDiffType_NONE
 }
 
 type TrackDiffNew struct{}
@@ -219,7 +219,7 @@ func (t TrackDiffNew) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffNew) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_NEW
+	return keybase1.TrackDiffType_NEW
 }
 
 func (t TrackDiffClash) BreaksTracking() bool {
@@ -236,7 +236,7 @@ func (t TrackDiffClash) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffClash) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_CLASH
+	return keybase1.TrackDiffType_CLASH
 }
 
 type TrackDiffDeleted struct {
@@ -256,7 +256,7 @@ func (t TrackDiffDeleted) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffDeleted) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_DELETED
+	return keybase1.TrackDiffType_DELETED
 }
 
 type TrackDiffRemoteFail struct {
@@ -273,7 +273,7 @@ func (t TrackDiffRemoteFail) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffRemoteFail) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_REMOTE_FAIL
+	return keybase1.TrackDiffType_REMOTE_FAIL
 }
 func (t TrackDiffRemoteFail) IsSameAsTracked() bool {
 	return false
@@ -293,7 +293,7 @@ func (t TrackDiffRemoteWorking) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffRemoteWorking) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_REMOTE_WORKING
+	return keybase1.TrackDiffType_REMOTE_WORKING
 }
 func (t TrackDiffRemoteWorking) IsSameAsTracked() bool {
 	return false
@@ -313,7 +313,7 @@ func (t TrackDiffRemoteChanged) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 func (t TrackDiffRemoteChanged) GetTrackDiffType() int {
-	return keybase_1.TrackDiffType_REMOTE_CHANGED
+	return keybase1.TrackDiffType_REMOTE_CHANGED
 }
 func (t TrackDiffRemoteChanged) IsSameAsTracked() bool {
 	return false

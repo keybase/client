@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Doctor is an engine.
@@ -139,7 +139,7 @@ func (e *Doctor) status(ctx *Context) {
 	status := eng.Status()
 	e.G().Log.Debug("locksmith status: %+v", status)
 
-	signopts := keybase_1.DoctorSignerOpts{
+	signopts := keybase1.DoctorSignerOpts{
 		OtherDevice: status.HaveActiveDevice,
 		Pgp:         status.HavePGP,
 		Internal:    status.NoKeys || status.HaveDetKey,
@@ -148,15 +148,15 @@ func (e *Doctor) status(ctx *Context) {
 		// if they have another active device, internal signing not an option
 		signopts.Internal = false
 	}
-	uistatus := keybase_1.DoctorStatus{
+	uistatus := keybase1.DoctorStatus{
 		SignerOpts: signopts,
 	}
 	if status.CurrentDeviceOk {
-		uistatus.Fix = keybase_1.DoctorFixType_NONE
+		uistatus.Fix = keybase1.DoctorFixType_NONE
 	} else if status.HaveActiveDevice {
-		uistatus.Fix = keybase_1.DoctorFixType_ADD_SIBLING_DEVICE
+		uistatus.Fix = keybase1.DoctorFixType_ADD_SIBLING_DEVICE
 	} else {
-		uistatus.Fix = keybase_1.DoctorFixType_ADD_ELDEST_DEVICE
+		uistatus.Fix = keybase1.DoctorFixType_ADD_ELDEST_DEVICE
 	}
 
 	// get list of active devices
@@ -166,7 +166,7 @@ func (e *Doctor) status(ctx *Context) {
 		return
 	}
 	for k, v := range devs {
-		dev := keybase_1.Device{Type: v.Type, Name: v.Description, DeviceID: k}
+		dev := keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k}
 		if v.Type != libkb.DEVICE_TYPE_WEB {
 			uistatus.Devices = append(uistatus.Devices, dev)
 		} else {
@@ -177,7 +177,7 @@ func (e *Doctor) status(ctx *Context) {
 	if kf != nil {
 		cd, err := kf.GetCurrentDevice(e.G())
 		if err == nil {
-			uistatus.CurrentDevice = &keybase_1.Device{
+			uistatus.CurrentDevice = &keybase1.Device{
 				DeviceID: cd.Id,
 				Type:     cd.Type,
 			}

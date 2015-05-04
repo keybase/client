@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -101,9 +101,9 @@ func (c *CmdPGPVerify) RunClient() error {
 	if err != nil {
 		return err
 	}
-	arg := keybase_1.PgpVerifyArg{
+	arg := keybase1.PgpVerifyArg{
 		Source: src,
-		Opts: keybase_1.PgpVerifyOptions{
+		Opts: keybase1.PgpVerifyOptions{
 			LocalOnly:     c.localOnly,
 			ApproveRemote: c.approveRemote,
 			Signature:     c.detachedData,

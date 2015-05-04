@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -40,7 +40,7 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (v *CmdPGPGen) RunClient() (err error) {
-	var cli keybase_1.PgpClient
+	var cli keybase1.PgpClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),

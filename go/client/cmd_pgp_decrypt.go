@@ -5,7 +5,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -103,13 +103,13 @@ func (c *CmdPGPDecrypt) RunClient() error {
 	if err != nil {
 		return err
 	}
-	opts := keybase_1.PgpDecryptOptions{
+	opts := keybase1.PgpDecryptOptions{
 		AssertSigned:  c.signed,
 		SignedBy:      c.signedBy,
 		LocalOnly:     c.localOnly,
 		ApproveRemote: c.approveRemote,
 	}
-	arg := keybase_1.PgpDecryptArg{Source: src, Sink: snk, Opts: opts}
+	arg := keybase1.PgpDecryptArg{Source: src, Sink: snk, Opts: opts}
 	_, err = cli.PgpDecrypt(arg)
 
 	c.Close(err)

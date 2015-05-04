@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"strconv"
 )
@@ -51,7 +51,7 @@ func (c *CmdSigsRevoke) RunClient() error {
 		return err
 	}
 
-	return cli.RevokeSigs(keybase_1.RevokeSigsArg{
+	return cli.RevokeSigs(keybase1.RevokeSigsArg{
 		Ids:    c.sigIDs,
 		Seqnos: c.seqnos,
 	})

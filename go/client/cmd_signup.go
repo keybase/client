@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -188,7 +188,7 @@ func (s *CmdSignupState) Prompt() (err error) {
 	if err = s.prompter.Run(); err != nil {
 		return
 	}
-	arg := keybase_1.GetNewPassphraseArg{
+	arg := keybase1.GetNewPassphraseArg{
 		TerminalPrompt: "Pick a strong passphrase",
 		PinentryDesc:   "Pick a strong passphrase (12+ characters)",
 		PinentryPrompt: "Passphrase",
@@ -375,8 +375,8 @@ func (v *CmdSignupState) GetUsage() libkb.Usage {
 }
 
 type ClientModeSignupEngine struct {
-	scli     keybase_1.SignupClient
-	ccli     keybase_1.ConfigClient
+	scli     keybase1.SignupClient
+	ccli     keybase1.ConfigClient
 	arg      *engine.SignupEngineRunArg
 	doPrompt bool
 }
@@ -403,7 +403,7 @@ func (e *ClientModeSignupEngine) GetPrereqs() (ret engine.EnginePrereqs) { retur
 
 func (e *ClientModeSignupEngine) CheckRegistered() (err error) {
 	G.Log.Debug("+ ClientModeSignupEngine::CheckRegistered")
-	var rres keybase_1.GetCurrentStatusRes
+	var rres keybase1.GetCurrentStatusRes
 	if rres, err = e.ccli.GetCurrentStatus(); err != nil {
 	} else if rres.Registered {
 		err = libkb.AlreadyRegisteredError{}
@@ -431,7 +431,7 @@ func (e *ClientModeSignupEngine) Init() error {
 	} else {
 		ui := G_UI.GetGPGUI().(GPGUI)
 		ui.noPrompt = true
-		protocols = append(protocols, keybase_1.GpgUiProtocol(ui))
+		protocols = append(protocols, keybase1.GpgUiProtocol(ui))
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
@@ -450,7 +450,7 @@ func (e *ClientModeSignupEngine) Run(ctx *engine.Context) error {
 		return err
 	}
 
-	rarg := keybase_1.SignupArg{
+	rarg := keybase1.SignupArg{
 		Username:   e.arg.Username,
 		Email:      e.arg.Email,
 		InviteCode: e.arg.InviteCode,
@@ -475,7 +475,7 @@ func (e *ClientModeSignupEngine) Run(ctx *engine.Context) error {
 }
 
 func (e *ClientModeSignupEngine) PostInviteRequest(arg libkb.InviteRequestArg) (err error) {
-	rarg := keybase_1.InviteRequestArg{
+	rarg := keybase1.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,

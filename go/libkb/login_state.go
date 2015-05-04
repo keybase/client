@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"sync"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -139,15 +139,15 @@ func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID
 	})
 }
 
-func (s *LoginState) GetConfiguredAccounts() ([]keybase_1.ConfiguredAccount, error) {
+func (s *LoginState) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
 	usernames, err := GetUsersWithStoredSecrets()
 	if err != nil {
 		return nil, err
 	}
-	configuredAccounts := make([]keybase_1.ConfiguredAccount, len(usernames))
+	configuredAccounts := make([]keybase1.ConfiguredAccount, len(usernames))
 
 	for i, username := range usernames {
-		configuredAccounts[i] = keybase_1.ConfiguredAccount{
+		configuredAccounts[i] = keybase1.ConfiguredAccount{
 			Username:        username,
 			HasStoredSecret: true,
 		}
@@ -628,7 +628,7 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 		return
 	}
 
-	arg := keybase_1.GetKeybasePassphraseArg{
+	arg := keybase1.GetKeybasePassphraseArg{
 		Username: un,
 		Retry:    retry,
 	}

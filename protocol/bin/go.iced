@@ -12,7 +12,7 @@ path = require 'path'
 class GoEmitter
 
   go_export_case : (n) -> n[0].toUpperCase() + n[1...]
-  go_package : (n) -> n.replace(/[.-]/g, "_")
+  go_package : (n) -> n.replace(/[.-]/g, "")
 
   go_primitive_type : (m) ->
     map =

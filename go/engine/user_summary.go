@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type UserSummary struct {
@@ -56,8 +56,8 @@ type SocialProof struct {
 	Username string `json:"username"`
 }
 
-func (w WebProof) Export() keybase_1.WebProof {
-	r := keybase_1.WebProof{Hostname: w.Hostname}
+func (w WebProof) Export() keybase1.WebProof {
+	r := keybase1.WebProof{Hostname: w.Hostname}
 	copy(r.Protocols, w.Protocols)
 	return r
 }
@@ -65,24 +65,24 @@ func (w WebProof) Export() keybase_1.WebProof {
 type WebProofList []WebProof
 type SocialProofList []SocialProof
 
-func (w WebProofList) Export() []keybase_1.WebProof {
-	r := make([]keybase_1.WebProof, len(w))
+func (w WebProofList) Export() []keybase1.WebProof {
+	r := make([]keybase1.WebProof, len(w))
 	for i, p := range w {
 		r[i] = p.Export()
 	}
 	return r
 }
 
-func (s SocialProof) Export() keybase_1.TrackProof {
-	return keybase_1.TrackProof{
+func (s SocialProof) Export() keybase1.TrackProof {
+	return keybase1.TrackProof{
 		ProofType: s.Service,
 		ProofName: s.Username,
 		IdString:  (s.Username + "@" + s.Service),
 	}
 }
 
-func (s SocialProofList) Export() []keybase_1.TrackProof {
-	r := make([]keybase_1.TrackProof, len(s))
+func (s SocialProofList) Export() []keybase1.TrackProof {
+	r := make([]keybase1.TrackProof, len(s))
 	for i, p := range s {
 		r[i] = p.Export()
 	}
@@ -95,8 +95,8 @@ type PubKey struct {
 	Algo           int    `json:"algo"`
 }
 
-func (p *PubKey) Export() keybase_1.PublicKey {
-	return keybase_1.PublicKey{
+func (p *PubKey) Export() keybase1.PublicKey {
+	return keybase1.PublicKey{
 		PGPFingerprint: p.KeyFingerprint,
 	}
 }
@@ -107,16 +107,16 @@ type Proofs struct {
 	PublicKey *PubKey         `json:"public_key,omitempty"`
 }
 
-func (p *Proofs) Export() keybase_1.Proofs {
+func (p *Proofs) Export() keybase1.Proofs {
 	if p == nil {
-		return keybase_1.Proofs{}
+		return keybase1.Proofs{}
 	}
-	r := keybase_1.Proofs{
+	r := keybase1.Proofs{
 		Web:    p.Web.Export(),
 		Social: p.Social.Export(),
 	}
 	if p.PublicKey != nil {
-		r.PublicKeys = []keybase_1.PublicKey{p.PublicKey.Export()}
+		r.PublicKeys = []keybase1.PublicKey{p.PublicKey.Export()}
 	}
 	return r
 }
@@ -131,8 +131,8 @@ type Summary struct {
 	Proofs    *Proofs   `json:"remote_proofs,omitempty"`
 }
 
-func (s Summary) Export() keybase_1.UserSummary {
-	return keybase_1.UserSummary{
+func (s Summary) Export() keybase1.UserSummary {
+	return keybase1.UserSummary{
 		Uid:       s.UID.Export(),
 		Thumbnail: s.Thumbnail,
 		Username:  s.Username,
@@ -197,7 +197,7 @@ func (e *UserSummary) SummariesList() []*Summary {
 	return res
 }
 
-func (e *UserSummary) ExportedSummariesList() (ret []keybase_1.UserSummary) {
+func (e *UserSummary) ExportedSummariesList() (ret []keybase1.UserSummary) {
 	lst := e.SummariesList()
 	for _, el := range lst {
 		ret = append(ret, el.Export())

@@ -2,7 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type IdEngineArg struct {
@@ -98,22 +98,22 @@ func (e *IdEngine) run(ctx *Context) (*IdRes, error) {
 	return res, nil
 }
 
-func (a IdEngineArg) Export() (res keybase_1.IdentifyArg) {
-	return keybase_1.IdentifyArg{
+func (a IdEngineArg) Export() (res keybase1.IdentifyArg) {
+	return keybase1.IdentifyArg{
 		UserAssertion:  a.UserAssertion,
 		TrackStatement: a.TrackStatement,
 	}
 }
 
-func ImportIdEngineArg(a keybase_1.IdentifyArg) (ret IdEngineArg) {
+func ImportIdEngineArg(a keybase1.IdentifyArg) (ret IdEngineArg) {
 	return IdEngineArg{
 		UserAssertion:  a.UserAssertion,
 		TrackStatement: a.TrackStatement,
 	}
 }
 
-func (ir *IdRes) Export() *keybase_1.IdentifyRes {
-	return &keybase_1.IdentifyRes{
+func (ir *IdRes) Export() *keybase1.IdentifyRes {
+	return &keybase1.IdentifyRes{
 		Outcome: *((*ir.Outcome).Export()),
 		User:    ir.User.Export(),
 	}

@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type GPGImportKeyArg struct {
@@ -96,9 +96,9 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	}
 	warns.Warn()
 
-	var gks []keybase_1.GPGKey
+	var gks []keybase1.GPGKey
 	for _, key := range index.Keys {
-		gk := keybase_1.GPGKey{
+		gk := keybase1.GPGKey{
 			Algorithm:  fmt.Sprintf("%d%s", key.Bits, key.AlgoString()),
 			KeyID:      key.GetFingerprint().ToKeyId(),
 			Expiration: key.ExpirationString(),
@@ -111,7 +111,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("No PGP keys available to choose from.")
 	}
 
-	res, err := ctx.GPGUI.SelectKeyAndPushOption(keybase_1.SelectKeyAndPushOptionArg{Keys: gks})
+	res, err := ctx.GPGUI.SelectKeyAndPushOption(keybase1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
 	}

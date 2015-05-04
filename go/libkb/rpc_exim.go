@@ -8,13 +8,13 @@ import (
 	"sort"
 	"time"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/crypto/openpgp"
 )
 
-func (sh SigHint) Export() *keybase_1.SigHint {
-	return &keybase_1.SigHint{
+func (sh SigHint) Export() *keybase1.SigHint {
+	return &keybase1.SigHint{
 		RemoteId:  sh.remoteId,
 		ApiUrl:    sh.apiUrl,
 		HumanUrl:  sh.humanUrl,
@@ -22,16 +22,16 @@ func (sh SigHint) Export() *keybase_1.SigHint {
 	}
 }
 
-func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase_1.IdentifyRow {
-	return keybase_1.IdentifyRow{
+func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase1.IdentifyRow {
+	return keybase1.IdentifyRow{
 		RowId:     i,
 		Proof:     ExportRemoteProof(l.link),
 		TrackDiff: ExportTrackDiff(l.diff),
 	}
 }
 
-func (l LinkCheckResult) Export() keybase_1.LinkCheckResult {
-	ret := keybase_1.LinkCheckResult{
+func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
+	ret := keybase1.LinkCheckResult{
 		ProofId:     l.position,
 		ProofStatus: ExportProofError(l.err),
 	}
@@ -50,27 +50,27 @@ func (l LinkCheckResult) Export() keybase_1.LinkCheckResult {
 	return ret
 }
 
-func (cr CheckResult) Export() *keybase_1.CheckResult {
-	return &keybase_1.CheckResult{
+func (cr CheckResult) Export() *keybase1.CheckResult {
+	return &keybase1.CheckResult{
 		ProofStatus:   ExportProofError(cr.Status),
 		Timestamp:     int(cr.Time.Unix()),
 		DisplayMarkup: cr.ToDisplayString(),
 	}
 }
 
-func ExportRemoteProof(p RemoteProofChainLink) keybase_1.RemoteProof {
+func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	k, v := p.ToKeyValuePair()
-	return keybase_1.RemoteProof{
+	return keybase1.RemoteProof{
 		ProofType:     p.GetIntType(),
 		Key:           k,
 		Value:         v,
 		DisplayMarkup: v,
-		SigId:         keybase_1.SIGID(p.GetSigId()),
+		SigId:         keybase1.SIGID(p.GetSigId()),
 		Mtime:         int(p.GetCTime().Unix()),
 	}
 }
 
-type ByMtime []keybase_1.IdentifyRow
+type ByMtime []keybase1.IdentifyRow
 
 func (x ByMtime) Len() int {
 	return len(x)
@@ -84,19 +84,19 @@ func (x ByMtime) Swap(a, b int) {
 	x[a], x[b] = x[b], x[a]
 }
 
-func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase_1.Identity {
-	tmp := keybase_1.Identity{
+func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
+	tmp := keybase1.Identity{
 		Status: ExportErrorAsStatus(ir.Error),
 	}
 	if ir.TrackUsed != nil {
 		tmp.WhenLastTracked = int(ir.TrackUsed.GetCTime().Unix())
 	}
-	tmp.Proofs = make([]keybase_1.IdentifyRow, len(ir.ProofChecks))
+	tmp.Proofs = make([]keybase1.IdentifyRow, len(ir.ProofChecks))
 	for j, p := range ir.ProofChecks {
 		tmp.Proofs[j] = p.ExportToIdentifyRow(j)
 	}
 	sort.Sort(ByMtime(tmp.Proofs))
-	tmp.Deleted = make([]keybase_1.TrackDiff, len(ir.Deleted))
+	tmp.Deleted = make([]keybase1.TrackDiff, len(ir.Deleted))
 	for j, d := range ir.Deleted {
 		// Should have all non-nil elements...
 		tmp.Deleted[j] = *ExportTrackDiff(d)
@@ -106,10 +106,10 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase_1.Identity {
 
 type ExportableError interface {
 	error
-	ToStatus() keybase_1.Status
+	ToStatus() keybase1.Status
 }
 
-func ExportProofError(pe ProofError) (ret keybase_1.ProofStatus) {
+func ExportProofError(pe ProofError) (ret keybase1.ProofStatus) {
 	if pe == nil {
 		ret.State = PROOF_STATE_OK
 		ret.Status = PROOF_OK
@@ -121,7 +121,7 @@ func ExportProofError(pe ProofError) (ret keybase_1.ProofStatus) {
 	return
 }
 
-func ImportProofError(e keybase_1.ProofStatus) ProofError {
+func ImportProofError(e keybase1.ProofStatus) ProofError {
 	ps := ProofStatus(e.Status)
 	if ps == PROOF_STATE_OK {
 		return nil
@@ -129,10 +129,10 @@ func ImportProofError(e keybase_1.ProofStatus) ProofError {
 	return NewProofError(ps, e.Desc)
 }
 
-func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
+func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 	if e == nil {
 	} else if e == io.EOF {
-		ret = &keybase_1.Status{
+		ret = &keybase1.Status{
 			Code: SC_STREAM_EOF,
 			Name: "STREAM_EOF",
 		}
@@ -140,7 +140,7 @@ func ExportErrorAsStatus(e error) (ret *keybase_1.Status) {
 		tmp := ee.ToStatus()
 		ret = &tmp
 	} else {
-		ret = &keybase_1.Status{
+		ret = &keybase1.Status{
 			Name: "GENERIC",
 			Code: SC_GENERIC,
 			Desc: e.Error(),
@@ -156,7 +156,7 @@ func WrapError(e error) interface{} {
 }
 
 func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
-	var s *keybase_1.Status
+	var s *keybase1.Status
 	if dispatch = nxt(&s); dispatch == nil {
 		app = ImportStatusAsError(s)
 	}
@@ -165,7 +165,7 @@ func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
 
 //=============================================================================
 
-func ImportStatusAsError(s *keybase_1.Status) error {
+func ImportStatusAsError(s *keybase1.Status) error {
 	if s == nil {
 		return nil
 	} else {
@@ -217,13 +217,13 @@ func ImportStatusAsError(s *keybase_1.Status) error {
 
 //=============================================================================
 
-func (a AppStatusError) ToStatus() keybase_1.Status {
-	var fields []keybase_1.StringKVPair
+func (a AppStatusError) ToStatus() keybase1.Status {
+	var fields []keybase1.StringKVPair
 	for k, v := range a.Fields {
-		fields = append(fields, keybase_1.StringKVPair{Key: k, Value: v})
+		fields = append(fields, keybase1.StringKVPair{Key: k, Value: v})
 	}
 
-	return keybase_1.Status{
+	return keybase1.Status{
 		Code:   a.Code,
 		Name:   a.Name,
 		Desc:   a.Desc,
@@ -233,10 +233,10 @@ func (a AppStatusError) ToStatus() keybase_1.Status {
 
 //=============================================================================
 
-func ExportTrackDiff(d TrackDiff) (res *keybase_1.TrackDiff) {
+func ExportTrackDiff(d TrackDiff) (res *keybase1.TrackDiff) {
 	if d != nil {
-		res = &keybase_1.TrackDiff{
-			Type:          keybase_1.TrackDiffType(d.GetTrackDiffType()),
+		res = &keybase1.TrackDiff{
+			Type:          keybase1.TrackDiffType(d.GetTrackDiffType()),
 			DisplayMarkup: d.ToDisplayString(),
 		}
 	}
@@ -245,7 +245,7 @@ func ExportTrackDiff(d TrackDiff) (res *keybase_1.TrackDiff) {
 
 //=============================================================================
 
-func ImportPgpFingerprint(f keybase_1.FOKID) (ret *PgpFingerprint) {
+func ImportPgpFingerprint(f keybase1.FOKID) (ret *PgpFingerprint) {
 	if f.PgpFingerprint != nil && len(*f.PgpFingerprint) == PGP_FINGERPRINT_LEN {
 		var tmp PgpFingerprint
 		copy(tmp[:], (*f.PgpFingerprint)[:])
@@ -254,7 +254,7 @@ func ImportPgpFingerprint(f keybase_1.FOKID) (ret *PgpFingerprint) {
 	return
 }
 
-func (f *PgpFingerprint) ExportToFOKID() (ret keybase_1.FOKID) {
+func (f *PgpFingerprint) ExportToFOKID() (ret keybase1.FOKID) {
 	slc := (*f)[:]
 	ret.PgpFingerprint = &slc
 	return
@@ -262,7 +262,7 @@ func (f *PgpFingerprint) ExportToFOKID() (ret keybase_1.FOKID) {
 
 //=============================================================================
 
-func (f *FOKID) Export() (ret keybase_1.FOKID) {
+func (f *FOKID) Export() (ret keybase1.FOKID) {
 	if f != nil && f.Fp != nil {
 		slc := (*f.Fp)[:]
 		ret.PgpFingerprint = &slc
@@ -276,13 +276,13 @@ func (f *FOKID) Export() (ret keybase_1.FOKID) {
 
 //=============================================================================
 
-func (s TrackSummary) Export() (ret keybase_1.TrackSummary) {
+func (s TrackSummary) Export() (ret keybase1.TrackSummary) {
 	ret.Time = int(s.time.Unix())
 	ret.IsRemote = s.isRemote
 	return
 }
 
-func ImportTrackSummary(s *keybase_1.TrackSummary) *TrackSummary {
+func ImportTrackSummary(s *keybase1.TrackSummary) *TrackSummary {
 	if s == nil {
 		return nil
 	}
@@ -293,7 +293,7 @@ func ImportTrackSummary(s *keybase_1.TrackSummary) *TrackSummary {
 	}
 }
 
-func ExportTrackSummary(l *TrackLookup) *keybase_1.TrackSummary {
+func ExportTrackSummary(l *TrackLookup) *keybase1.TrackSummary {
 	if l == nil {
 		return nil
 	}
@@ -304,16 +304,16 @@ func ExportTrackSummary(l *TrackLookup) *keybase_1.TrackSummary {
 
 //=============================================================================
 
-func (ir *IdentifyOutcome) Export() *keybase_1.IdentifyOutcome {
+func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 	v := make([]string, len(ir.Warnings))
 	for i, w := range ir.Warnings {
 		v[i] = w.Warning()
 	}
-	del := make([]keybase_1.TrackDiff, 0, len(ir.Deleted))
+	del := make([]keybase1.TrackDiff, 0, len(ir.Deleted))
 	for i, d := range ir.Deleted {
 		del[i] = *ExportTrackDiff(d)
 	}
-	ret := &keybase_1.IdentifyOutcome{
+	ret := &keybase1.IdentifyOutcome{
 		Status:            ExportErrorAsStatus(ir.Error),
 		Warnings:          v,
 		TrackUsed:         ExportTrackSummary(ir.TrackUsed),
@@ -331,8 +331,8 @@ func (ir *IdentifyOutcome) Export() *keybase_1.IdentifyOutcome {
 
 //=============================================================================
 
-func DisplayTrackArg(sessionID int, stmt string) *keybase_1.DisplayTrackStatementArg {
-	return &keybase_1.DisplayTrackStatementArg{
+func DisplayTrackArg(sessionID int, stmt string) *keybase1.DisplayTrackStatementArg {
+	return &keybase1.DisplayTrackStatementArg{
 		SessionID: sessionID,
 		Stmt:      stmt,
 	}
@@ -340,7 +340,7 @@ func DisplayTrackArg(sessionID int, stmt string) *keybase_1.DisplayTrackStatemen
 
 //=============================================================================
 
-func ImportFinishAndPromptRes(f keybase_1.FinishAndPromptRes) (ti TrackInstructions) {
+func ImportFinishAndPromptRes(f keybase1.FinishAndPromptRes) (ti TrackInstructions) {
 	ti.Local = f.TrackLocal
 	ti.Remote = f.TrackRemote
 	return
@@ -358,7 +358,7 @@ func ImportWarnings(v []string) Warnings {
 
 //=============================================================================
 
-func (c CryptocurrencyChainLink) Export() (ret keybase_1.Cryptocurrency) {
+func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 	ret.Pkhash = c.pkhash
 	ret.Address = c.address
 	return
@@ -366,7 +366,7 @@ func (c CryptocurrencyChainLink) Export() (ret keybase_1.Cryptocurrency) {
 
 //=============================================================================
 
-func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
+func (c CurrentStatus) Export() (ret keybase1.GetCurrentStatusRes) {
 	ret.Configured = c.Configured
 	ret.Registered = c.Registered
 	ret.LoggedIn = c.LoggedIn
@@ -379,14 +379,14 @@ func (c CurrentStatus) Export() (ret keybase_1.GetCurrentStatusRes) {
 
 //=============================================================================
 
-func (p PassphraseError) ToStatus() (s keybase_1.Status) {
+func (p PassphraseError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_BAD_LOGIN_PASSWORD
 	s.Name = "BAD_LOGIN_PASSWORD"
 	s.Desc = p.msg
 	return
 }
 
-func (m Markup) Export() (ret keybase_1.Text) {
+func (m Markup) Export() (ret keybase1.Text) {
 	ret.Data = m.data
 	ret.Markup = true
 	return
@@ -394,7 +394,7 @@ func (m Markup) Export() (ret keybase_1.Text) {
 
 //=============================================================================
 
-func (e LoggedInError) ToStatus() (s keybase_1.Status) {
+func (e LoggedInError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_ALREADY_LOGGED_IN
 	s.Name = "ALREADY_LOGGED_IN"
 	s.Desc = "Already logged in as a different user"
@@ -403,7 +403,7 @@ func (e LoggedInError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
-func (e KeyGenError) ToStatus() (s keybase_1.Status) {
+func (e KeyGenError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_KEY_BAD_GEN
 	s.Name = "KEY_BAD_GEN"
 	s.Desc = e.Msg
@@ -412,7 +412,7 @@ func (e KeyGenError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
-func (c CanceledError) ToStatus() (s keybase_1.Status) {
+func (c CanceledError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_CANCELED
 	s.Name = "CANCELED"
 	s.Desc = c.M
@@ -421,7 +421,7 @@ func (c CanceledError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
-func (c KeyExistsError) ToStatus() (s keybase_1.Status) {
+func (c KeyExistsError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_KEY_IN_USE
 	s.Name = "KEY_IN_USE"
 	if c.Key != nil {
@@ -432,7 +432,7 @@ func (c KeyExistsError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
-func (c NoActiveKeyError) ToStatus() (s keybase_1.Status) {
+func (c NoActiveKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_KEY_NO_ACTIVE
 	s.Name = "KEY_NO_ACTIVE"
 	s.Desc = c.Error()
@@ -441,21 +441,21 @@ func (c NoActiveKeyError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
-func (ids Identities) Export() (res []keybase_1.PgpIdentity) {
+func (ids Identities) Export() (res []keybase1.PgpIdentity) {
 	var n int
 	if ids == nil {
 		n = 0
 	} else {
 		n = len(ids)
 	}
-	res = make([]keybase_1.PgpIdentity, n)
+	res = make([]keybase1.PgpIdentity, n)
 	for i, id := range ids {
 		res[i] = id.Export()
 	}
 	return
 }
 
-func ImportPgpIdentities(ids []keybase_1.PgpIdentity) (ret Identities) {
+func ImportPgpIdentities(ids []keybase1.PgpIdentity) (ret Identities) {
 	ret = Identities(make([]Identity, len(ids)))
 	for i, id := range ids {
 		ret[i] = ImportPgpIdentity(id)
@@ -465,14 +465,14 @@ func ImportPgpIdentities(ids []keybase_1.PgpIdentity) (ret Identities) {
 
 //=============================================================================
 
-func (id Identity) Export() (ret keybase_1.PgpIdentity) {
+func (id Identity) Export() (ret keybase1.PgpIdentity) {
 	ret.Username = id.Username
 	ret.Email = id.Email
 	ret.Comment = id.Comment
 	return
 }
 
-func ImportPgpIdentity(arg keybase_1.PgpIdentity) (ret Identity) {
+func ImportPgpIdentity(arg keybase1.PgpIdentity) (ret Identity) {
 	ret.Username = arg.Username
 	ret.Email = arg.Email
 	ret.Comment = arg.Comment
@@ -481,23 +481,23 @@ func ImportPgpIdentity(arg keybase_1.PgpIdentity) (ret Identity) {
 
 //=============================================================================
 
-func (u *UID) Export() keybase_1.UID {
-	return keybase_1.UID(*u)
+func (u *UID) Export() keybase1.UID {
+	return keybase1.UID(*u)
 }
 
-func (v UIDs) Export() []keybase_1.UID {
-	ret := make([]keybase_1.UID, len(v))
+func (v UIDs) Export() []keybase1.UID {
+	ret := make([]keybase1.UID, len(v))
 	for i, el := range v {
 		ret[i] = el.Export()
 	}
 	return ret
 }
 
-func ImportUID(u keybase_1.UID) UID {
+func ImportUID(u keybase1.UID) UID {
 	return UID(u)
 }
 
-func ImportUIDs(v []keybase_1.UID) UIDs {
+func ImportUIDs(v []keybase1.UID) UIDs {
 	ret := make(UIDs, len(v))
 	for i, el := range v {
 		ret[i] = ImportUID(el)
@@ -507,7 +507,7 @@ func ImportUIDs(v []keybase_1.UID) UIDs {
 
 // Interface for sorting a list of PublicKeys
 
-type PublicKeyList []keybase_1.PublicKey
+type PublicKeyList []keybase1.PublicKey
 
 func (l PublicKeyList) Len() int { return len(l) }
 func (l PublicKeyList) Less(i, j int) bool {
@@ -524,38 +524,38 @@ func (l PublicKeyList) Less(i, j int) bool {
 }
 func (l PublicKeyList) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
 
-func ExportPgpIdentity(identity *openpgp.Identity) keybase_1.PgpIdentity {
+func ExportPgpIdentity(identity *openpgp.Identity) keybase1.PgpIdentity {
 	if identity == nil || identity.UserId == nil {
-		return keybase_1.PgpIdentity{}
+		return keybase1.PgpIdentity{}
 	}
-	return keybase_1.PgpIdentity{
+	return keybase1.PgpIdentity{
 		Username: identity.UserId.Name,
 		Email:    identity.UserId.Email,
 		Comment:  identity.UserId.Comment,
 	}
 }
 
-func (bundle *PgpKeyBundle) Export() keybase_1.PublicKey {
+func (bundle *PgpKeyBundle) Export() keybase1.PublicKey {
 	kid := bundle.GetKid().String()
 	fingerprintStr := ""
-	identities := []keybase_1.PgpIdentity{}
+	identities := []keybase1.PgpIdentity{}
 	fingerprintStr = bundle.GetFingerprint().String()
 	for _, identity := range bundle.Identities {
 		identities = append(identities, ExportPgpIdentity(identity))
 	}
-	return keybase_1.PublicKey{
+	return keybase1.PublicKey{
 		KID:            kid,
 		PGPFingerprint: fingerprintStr,
 		PGPIdentities:  identities,
 	}
 }
 
-func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
-	exportedKeys := []keybase_1.PublicKey{}
+func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
+	exportedKeys := []keybase1.PublicKey{}
 	addKey := func(key GenericKey) {
 		kid := key.GetKid().String()
 		fingerprintStr := ""
-		identities := []keybase_1.PgpIdentity{}
+		identities := []keybase1.PgpIdentity{}
 		if pgpBundle, isPGP := key.(*PgpKeyBundle); isPGP {
 			fingerprintStr = pgpBundle.GetFingerprint().String()
 			for _, identity := range pgpBundle.Identities {
@@ -575,7 +575,7 @@ func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
 		if cki.Parent != nil {
 			parentID = *cki.Parent
 		}
-		exportedKeys = append(exportedKeys, keybase_1.PublicKey{
+		exportedKeys = append(exportedKeys, keybase1.PublicKey{
 			KID:               kid,
 			PGPFingerprint:    fingerprintStr,
 			PGPIdentities:     identities,
@@ -599,13 +599,13 @@ func (ckf ComputedKeyFamily) Export() []keybase_1.PublicKey {
 	return exportedKeys
 }
 
-func (u *User) Export() *keybase_1.User {
-	publicKeys := []keybase_1.PublicKey{}
+func (u *User) Export() *keybase1.User {
+	publicKeys := []keybase1.PublicKey{}
 	if u.GetComputedKeyFamily() != nil {
 		publicKeys = u.GetComputedKeyFamily().Export()
 	}
-	return &keybase_1.User{
-		Uid:        keybase_1.UID(u.GetUid()),
+	return &keybase1.User{
+		Uid:        keybase1.UID(u.GetUid()),
 		Username:   u.GetName(),
 		Image:      u.Image,
 		PublicKeys: publicKeys,
@@ -614,16 +614,16 @@ func (u *User) Export() *keybase_1.User {
 
 //=============================================================================
 
-func (a PGPGenArg) ExportTo(ret *keybase_1.PgpKeyGenArg) {
+func (a PGPGenArg) ExportTo(ret *keybase1.PgpKeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.CreateUids = keybase_1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
+	ret.CreateUids = keybase1.PgpCreateUids{UseDefault: !a.NoDefPGPUid, Ids: a.Ids.Export()}
 	return
 }
 
 //=============================================================================
 
-func ImportKeyGenArg(a keybase_1.PgpKeyGenArg) (ret PGPGenArg) {
+func ImportKeyGenArg(a keybase1.PgpKeyGenArg) (ret PGPGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.NoDefPGPUid = !a.CreateUids.UseDefault
@@ -633,23 +633,23 @@ func ImportKeyGenArg(a keybase_1.PgpKeyGenArg) (ret PGPGenArg) {
 
 //=============================================================================
 
-func (t Tracker) Export() keybase_1.Tracker { return keybase_1.Tracker(t) }
+func (t Tracker) Export() keybase1.Tracker { return keybase1.Tracker(t) }
 
 //=============================================================================
 
-func (e StreamExistsError) ToStatus(s keybase_1.Status) {
+func (e StreamExistsError) ToStatus(s keybase1.Status) {
 	s.Code = SC_STREAM_EXISTS
 	s.Name = "STREAM_EXISTS"
 	return
 }
 
-func (e StreamNotFoundError) ToStatus(s keybase_1.Status) {
+func (e StreamNotFoundError) ToStatus(s keybase1.Status) {
 	s.Code = SC_STREAM_NOT_FOUND
 	s.Name = "SC_STREAM_NOT_FOUND"
 	return
 }
 
-func (e StreamWrongKindError) ToStatus(s keybase_1.Status) {
+func (e StreamWrongKindError) ToStatus(s keybase1.Status) {
 	s.Code = SC_STREAM_WRONG_KIND
 	s.Name = "STREAM_WRONG_KIND"
 	return
@@ -657,7 +657,7 @@ func (e StreamWrongKindError) ToStatus(s keybase_1.Status) {
 
 //=============================================================================
 
-func (u NoSecretKeyError) ToStatus() (s keybase_1.Status) {
+func (u NoSecretKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_KEY_NO_SECRET
 	s.Name = "KEY_NO_SECRET"
 	return
@@ -665,7 +665,7 @@ func (u NoSecretKeyError) ToStatus() (s keybase_1.Status) {
 
 //=============================================================================
 
-func (u LoginRequiredError) ToStatus() (s keybase_1.Status) {
+func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 	s.Code = SC_LOGIN_REQUIRED
 	s.Name = "LOGIN_REQUIRED"
 	s.Desc = u.Context

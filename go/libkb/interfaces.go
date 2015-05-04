@@ -14,7 +14,7 @@ import (
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -200,13 +200,13 @@ type ExternalAPI interface {
 
 type IdentifyUI interface {
 	Start(string)
-	FinishWebProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
-	FinishSocialProofCheck(keybase_1.RemoteProof, keybase_1.LinkCheckResult)
-	FinishAndPrompt(*keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error)
-	DisplayCryptocurrency(keybase_1.Cryptocurrency)
-	DisplayKey(keybase_1.FOKID, *keybase_1.TrackDiff)
-	ReportLastTrack(*keybase_1.TrackSummary)
-	LaunchNetworkChecks(*keybase_1.Identity, *keybase_1.User)
+	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
+	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
+	FinishAndPrompt(*keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error)
+	DisplayCryptocurrency(keybase1.Cryptocurrency)
+	DisplayKey(keybase1.FOKID, *keybase1.TrackDiff)
+	ReportLastTrack(*keybase1.TrackSummary)
+	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User)
 	DisplayTrackStatement(string) error
 	SetStrict(b bool)
 	Finish()
@@ -227,23 +227,23 @@ type PromptArg struct {
 }
 
 type LoginUI interface {
-	keybase_1.LoginUiInterface
+	keybase1.LoginUiInterface
 }
 
 type ProveUI interface {
-	PromptOverwrite(string, keybase_1.PromptOverwriteType) (bool, error)
+	PromptOverwrite(string, keybase1.PromptOverwriteType) (bool, error)
 	PromptUsername(prompt string, prevError error) (string, error)
-	OutputPrechecks(keybase_1.Text)
-	PreProofWarning(keybase_1.Text) (bool, error)
-	OutputInstructions(instructions keybase_1.Text, proof string) error
+	OutputPrechecks(keybase1.Text)
+	PreProofWarning(keybase1.Text) (bool, error)
+	OutputInstructions(instructions keybase1.Text, proof string) error
 	OkToCheck(name string, attempt int) (bool, error)
-	DisplayRecheckWarning(keybase_1.Text)
+	DisplayRecheckWarning(keybase1.Text)
 }
 
 type SecretUI interface {
-	GetSecret(pinentry keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error)
-	GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error)
-	GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error)
+	GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error)
+	GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error)
+	GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error)
 }
 
 type LogUI interface {
@@ -256,16 +256,16 @@ type LogUI interface {
 }
 
 type LocksmithUI interface {
-	keybase_1.LocksmithUiInterface
+	keybase1.LocksmithUiInterface
 }
 
 type GPGUI interface {
-	keybase_1.GpgUiInterface
+	keybase1.GpgUiInterface
 }
 
 type DoctorUI interface {
 	LoginSelect(currentUser string, otherUsers []string) (string, error)
-	DisplayStatus(status keybase_1.DoctorStatus) (bool, error)
+	DisplayStatus(status keybase1.DoctorStatus) (bool, error)
 	DisplayResult(msg string) error
 }
 

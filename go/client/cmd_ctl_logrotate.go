@@ -5,7 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func NewCmdCtlLogRotate(cl *libcmdline.CommandLine) cli.Command {
@@ -27,7 +27,7 @@ func (s *CmdCtlLogRotate) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlLogRotate) RunClient() (err error) {
-	var cli keybase_1.CtlClient
+	var cli keybase1.CtlClient
 	if cli, err = GetCtlClient(); err != nil {
 	} else {
 		err = cli.LogRotate()

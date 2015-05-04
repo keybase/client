@@ -7,20 +7,20 @@ import (
 	"strings"
 	"sync"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
 const (
-	UID_LEN      = keybase_1.UID_LEN
-	UID_SUFFIX   = keybase_1.UID_SUFFIX
-	UID_SUFFIX_2 = keybase_1.UID_SUFFIX_2
+	UID_LEN      = keybase1.UID_LEN
+	UID_SUFFIX   = keybase1.UID_SUFFIX
+	UID_SUFFIX_2 = keybase1.UID_SUFFIX_2
 )
 
-type UID keybase_1.UID
+type UID keybase1.UID
 type UIDs []UID
 
-func (u UID) String() string { return keybase_1.UID(u).String() }
+func (u UID) String() string { return keybase1.UID(u).String() }
 
 func (u UID) P() *UID { return &u }
 
@@ -34,8 +34,8 @@ func (u UID) IsZero() bool {
 }
 
 func UidFromHex(s string) (ret *UID, err error) {
-	var tmp *keybase_1.UID
-	if tmp, err = keybase_1.UidFromHex(s); tmp != nil {
+	var tmp *keybase1.UID
+	if tmp, err = keybase1.UidFromHex(s); tmp != nil {
 		tmp2 := UID(*tmp)
 		ret = &tmp2
 	}
@@ -44,12 +44,12 @@ func UidFromHex(s string) (ret *UID, err error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (u *UID) UnmarshalJSON(b []byte) error {
-	p := (*keybase_1.UID)(u)
+	p := (*keybase1.UID)(u)
 	return p.UnmarshalJSON(b)
 }
 
 func (u *UID) MarshalJSON() ([]byte, error) {
-	p := (*keybase_1.UID)(u)
+	p := (*keybase1.UID)(u)
 	return p.MarshalJSON()
 }
 
@@ -116,7 +116,7 @@ type User struct {
 	sigChainMem *SigChain
 	idTable     *IdentityTable
 	sigHints    *SigHints
-	Image       *keybase_1.Image
+	Image       *keybase1.Image
 
 	leaf MerkleUserLeaf
 
@@ -161,10 +161,10 @@ func NewUser(o *jsonw.Wrapper) (*User, error) {
 		return nil, fmt.Errorf("user object for %s lacks a name", uid)
 	}
 
-	var imagePtr *keybase_1.Image
+	var imagePtr *keybase1.Image
 	pictureBlob := o.AtKey("pictures").AtKey("primary")
 	if !pictureBlob.IsNil() && pictureBlob.Error() == nil {
-		var image keybase_1.Image
+		var image keybase1.Image
 		err = pictureBlob.UnmarshalAgain(&image)
 		if err == nil {
 			imagePtr = &image

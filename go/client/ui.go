@@ -9,7 +9,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type UI struct {
@@ -52,7 +52,7 @@ func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 func (ui BaseIdentifyUI) Finish() {
 }
 
-func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
+func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keybase1.FinishAndPromptRes, err error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
@@ -60,14 +60,14 @@ func (ui BaseIdentifyUI) baseFinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret 
 	return
 }
 
-func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase_1.Identity, u *keybase_1.User) {
+func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) {
 	return
 }
 
-func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
+func (ui IdentifyLubaUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error) {
 	return ui.baseFinishAndPrompt(o)
 }
-func (ui IdentifyUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (keybase_1.FinishAndPromptRes, error) {
+func (ui IdentifyUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (keybase1.FinishAndPromptRes, error) {
 	return ui.baseFinishAndPrompt(o)
 }
 
@@ -80,7 +80,7 @@ func (ui IdentifyTrackUI) SetStrict(b bool) {
 	ui.strict = b
 }
 
-func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
+func (ui IdentifyTrackUI) ReportDeleted(del []keybase1.TrackDiff) {
 	if len(del) > 0 {
 		G.Log.Warning("Some proofs you previously tracked were deleted:")
 		for _, d := range del {
@@ -89,7 +89,7 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase_1.TrackDiff) {
 	}
 }
 
-func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase_1.IdentifyOutcome) (ret keybase_1.FinishAndPromptRes, err error) {
+func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keybase1.FinishAndPromptRes, err error) {
 	// for refactoring of username out of Get*(), make sure it has one here
 	if len(ui.username) == 0 {
 		G.Log.Warning("FinishAndPrompt: no username.  Was Start(username) not called?")
@@ -192,7 +192,7 @@ func (ui BaseIdentifyUI) PromptForConfirmation(s string) error {
 }
 
 type RemoteProofWrapper struct {
-	p keybase_1.RemoteProof
+	p keybase1.RemoteProof
 }
 
 func (w RemoteProofWrapper) GetRemoteUsername() string { return w.p.Value }
@@ -206,10 +206,10 @@ func (w RemoteProofWrapper) ToDisplayString() string {
 }
 
 type LinkCheckResultWrapper struct {
-	lcr keybase_1.LinkCheckResult
+	lcr keybase1.LinkCheckResult
 }
 
-func (w LinkCheckResultWrapper) GetDiff() *keybase_1.TrackDiff {
+func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
 	return w.lcr.Diff
 }
 
@@ -218,7 +218,7 @@ func (w LinkCheckResultWrapper) GetError() error {
 }
 
 type SigHintWrapper struct {
-	hint *keybase_1.SigHint
+	hint *keybase1.SigHint
 }
 
 func (shw SigHintWrapper) GetHumanUrl() (ret string) {
@@ -244,7 +244,7 @@ func (w LinkCheckResultWrapper) GetHint() SigHintWrapper {
 }
 
 type CheckResultWrapper struct {
-	cr *keybase_1.CheckResult
+	cr *keybase1.CheckResult
 }
 
 func (crw CheckResultWrapper) ToDisplayString() string {
@@ -258,7 +258,7 @@ func (w LinkCheckResultWrapper) GetCached() *CheckResultWrapper {
 	return nil
 }
 
-func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
+func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -285,17 +285,17 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase_1.RemoteProof, l keyba
 	ui.ReportHook(msg)
 }
 
-func TrackDiffToColoredString(t keybase_1.TrackDiff) string {
+func TrackDiffToColoredString(t keybase1.TrackDiff) string {
 	s := "<" + t.DisplayMarkup + ">"
 	var color string
 	switch t.Type {
-	case keybase_1.TrackDiffType_ERROR, keybase_1.TrackDiffType_CLASH, keybase_1.TrackDiffType_DELETED:
+	case keybase1.TrackDiffType_ERROR, keybase1.TrackDiffType_CLASH, keybase1.TrackDiffType_DELETED:
 		color = "red"
-	case keybase_1.TrackDiffType_UPGRADED:
+	case keybase1.TrackDiffType_UPGRADED:
 		color = "orange"
-	case keybase_1.TrackDiffType_NEW:
+	case keybase1.TrackDiffType_NEW:
 		color = "blue"
-	case keybase_1.TrackDiffType_NONE:
+	case keybase1.TrackDiffType_NONE:
 		color = "green"
 	}
 	if len(color) > 0 {
@@ -311,7 +311,7 @@ func (ui BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) st
 	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_1.LinkCheckResult) {
+func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -355,12 +355,12 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase_1.RemoteProof, l keybase_
 	ui.ReportHook(msg)
 }
 
-func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase_1.Cryptocurrency) {
+func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) {
 	msg := (BTC + " bitcoin " + ColorString("green", l.Address))
 	ui.ReportHook(msg)
 }
 
-func (ui BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff) {
+func (ui BaseIdentifyUI) DisplayKey(f keybase1.FOKID, diff *keybase1.TrackDiff) {
 	var ds string
 	if diff != nil {
 		ds = TrackDiffToColoredString(*diff) + " "
@@ -375,7 +375,7 @@ func (ui BaseIdentifyUI) DisplayKey(f keybase_1.FOKID, diff *keybase_1.TrackDiff
 	ui.ReportHook(msg)
 }
 
-func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase_1.TrackSummary) {
+func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {
@@ -438,12 +438,12 @@ type ProveUI struct {
 	outputHook func(string) error
 }
 
-func (p ProveUI) PromptOverwrite(a string, typ keybase_1.PromptOverwriteType) (bool, error) {
+func (p ProveUI) PromptOverwrite(a string, typ keybase1.PromptOverwriteType) (bool, error) {
 	var prompt string
 	switch typ {
-	case keybase_1.PromptOverwriteType_SOCIAL:
+	case keybase1.PromptOverwriteType_SOCIAL:
 		prompt = "You already have a proof for " + ColorString("bold", a) + "; overwrite?"
-	case keybase_1.PromptOverwriteType_SITE:
+	case keybase1.PromptOverwriteType_SITE:
 		prompt = "You already have claimed ownership of " + ColorString("bold", a) + "; overwrite?"
 	default:
 		prompt = "Overwrite " + a + "?"
@@ -458,20 +458,20 @@ func (p ProveUI) PromptUsername(prompt string, prevError error) (string, error) 
 	return p.parent.Terminal.Prompt(prompt + ": ")
 }
 
-func (p ProveUI) Render(txt keybase_1.Text) {
+func (p ProveUI) Render(txt keybase1.Text) {
 	RenderText(os.Stdout, txt)
 }
 
-func (p ProveUI) OutputPrechecks(txt keybase_1.Text) {
+func (p ProveUI) OutputPrechecks(txt keybase1.Text) {
 	p.Render(txt)
 }
 
-func (p ProveUI) PreProofWarning(txt keybase_1.Text) (bool, error) {
+func (p ProveUI) PreProofWarning(txt keybase1.Text) (bool, error) {
 	p.Render(txt)
 	return p.parent.PromptYesNo("Proceed?", PromptDefaultNo)
 }
 
-func (p ProveUI) OutputInstructions(instructions keybase_1.Text, proof string) (err error) {
+func (p ProveUI) OutputInstructions(instructions keybase1.Text, proof string) (err error) {
 	p.Render(instructions)
 	if p.outputHook != nil {
 		err = p.outputHook(proof)
@@ -490,7 +490,7 @@ func (p ProveUI) OkToCheck(name string, attempt int) (bool, error) {
 	return p.parent.PromptYesNo(prompt, PromptDefaultYes)
 }
 
-func (p ProveUI) DisplayRecheckWarning(txt keybase_1.Text) {
+func (p ProveUI) DisplayRecheckWarning(txt keybase1.Text) {
 	p.Render(txt)
 }
 
@@ -505,7 +505,7 @@ func (d LocksmithUI) PromptDeviceName(dummy int) (string, error) {
 		libkb.CheckNotEmpty)
 }
 
-func (d LocksmithUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	d.parent.Output("How would you like to sign this install of Keybase?\n\n")
 	w := new(tabwriter.Writer)
 	w.Init(d.parent.OutputWriter(), 5, 0, 3, ' ', 0)
@@ -539,41 +539,41 @@ func (d LocksmithUI) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.
 	ret, err := d.parent.PromptSelectionOrCancel("Choose a signing option", 1, 999)
 	if err != nil {
 		if err == ErrInputCanceled {
-			res.Action = keybase_1.SelectSignerAction_CANCEL
+			res.Action = keybase1.SelectSignerAction_CANCEL
 			return res, nil
 		}
 		return res, err
 	}
 
 	if ret == 999 {
-		res.Action = keybase_1.SelectSignerAction_CANCEL
+		res.Action = keybase1.SelectSignerAction_CANCEL
 		return res, nil
 	}
 
 	if ret == 666 {
 		G.Log.Warning("account reset not yet implemented.")
-		res.Action = keybase_1.SelectSignerAction_CANCEL
+		res.Action = keybase1.SelectSignerAction_CANCEL
 		return res, nil
 	}
 
 	if ret < 1 || ret > len(arg.Devices)+1 {
-		res.Action = keybase_1.SelectSignerAction_CANCEL
+		res.Action = keybase1.SelectSignerAction_CANCEL
 		return res, nil
 	}
 
-	res.Action = keybase_1.SelectSignerAction_SIGN
-	res.Signer = &keybase_1.DeviceSigner{}
+	res.Action = keybase1.SelectSignerAction_SIGN
+	res.Signer = &keybase1.DeviceSigner{}
 	if ret == len(arg.Devices)+1 {
-		res.Signer.Kind = keybase_1.DeviceSignerKind_PGP
+		res.Signer.Kind = keybase1.DeviceSignerKind_PGP
 	} else {
-		res.Signer.Kind = keybase_1.DeviceSignerKind_DEVICE
+		res.Signer.Kind = keybase1.DeviceSignerKind_DEVICE
 		res.Signer.DeviceID = &(arg.Devices[ret-1].DeviceID)
 		res.Signer.DeviceName = &(arg.Devices[ret-1].Name)
 	}
 	return res, nil
 }
 
-func (d LocksmithUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (d LocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	d.parent.Printf("On your %q computer, a window should have appeared. Type this in it:\n\n", arg.DeviceNameExisting)
 	d.parent.Printf("\t%s\n\n", arg.Secret)
 	d.parent.Printf("Alternatively, if you're using the terminal at %q, type this:\n\n", arg.DeviceNameExisting)
@@ -581,7 +581,7 @@ func (d LocksmithUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) err
 	return nil
 }
 
-func (d LocksmithUI) KexStatus(arg keybase_1.KexStatusArg) error {
+func (d LocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
 	G.Log.Debug("kex status: %s (%d)", arg.Msg, arg.Code)
 	return nil
 }
@@ -601,7 +601,7 @@ type SecretUI struct {
 	parent *UI
 }
 
-func (ui SecretUI) GetSecret(pinentry keybase_1.SecretEntryArg, term *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	return ui.parent.SecretEntry.Get(pinentry, term)
 }
 
@@ -623,7 +623,7 @@ func (ui *UI) Shutdown() error {
 	return err
 }
 
-func (ui SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text string, err error) {
+func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (text string, err error) {
 
 	arg := libkb.PromptArg{
 		TerminalPrompt: earg.TerminalPrompt,
@@ -666,7 +666,7 @@ func (ui SecretUI) GetNewPassphrase(earg keybase_1.GetNewPassphraseArg) (text st
 	return
 }
 
-func (ui SecretUI) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (text string, err error) {
+func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (text string, err error) {
 	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", arg.Username)
 	return ui.ppprompt(libkb.PromptArg{
 		TerminalPrompt: "keybase passphrase",
@@ -680,7 +680,7 @@ func (ui SecretUI) GetKeybasePassphrase(arg keybase_1.GetKeybasePassphraseArg) (
 func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 	first := true
-	var res *keybase_1.SecretEntryRes
+	var res *keybase1.SecretEntryRes
 
 	for {
 
@@ -696,11 +696,11 @@ func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, err error) {
 
 		tp = tp + ": "
 
-		res, err = ui.GetSecret(keybase_1.SecretEntryArg{
+		res, err = ui.GetSecret(keybase1.SecretEntryArg{
 			Err:    emp,
 			Desc:   arg.PinentryDesc,
 			Prompt: arg.PinentryPrompt,
-		}, &keybase_1.SecretEntryArg{
+		}, &keybase1.SecretEntryArg{
 			Err:    emt,
 			Prompt: tp,
 		})

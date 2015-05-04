@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -32,7 +32,7 @@ type ListTrackingEngineArg struct {
 
 type ListTrackingEngine struct {
 	arg         *ListTrackingEngineArg
-	tableResult []keybase_1.UserSummary
+	tableResult []keybase1.UserSummary
 	jsonResult  string
 }
 
@@ -109,7 +109,7 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 	}), nil
 }
 
-func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase_1.PublicKey) {
+func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase1.PublicKey) {
 	fingerprints, err := link.GetTrackedPGPFingerprints()
 	if err != nil {
 		G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
@@ -117,18 +117,18 @@ func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keyb
 	}
 
 	for _, fingerprint := range fingerprints {
-		res = append(res, keybase_1.PublicKey{PGPFingerprint: fingerprint.String()})
+		res = append(res, keybase1.PublicKey{PGPFingerprint: fingerprint.String()})
 	}
 	return res
 }
 
-func (e *ListTrackingEngine) linkSocialProofs(link *libkb.TrackChainLink) (res []keybase_1.TrackProof) {
+func (e *ListTrackingEngine) linkSocialProofs(link *libkb.TrackChainLink) (res []keybase1.TrackProof) {
 	for _, sb := range link.ToServiceBlocks() {
 		if !sb.IsSocial() {
 			continue
 		}
 		proofType, proofName := sb.ToKeyValuePair()
-		res = append(res, keybase_1.TrackProof{
+		res = append(res, keybase1.TrackProof{
 			ProofType: proofType,
 			ProofName: proofName,
 			IdString:  sb.ToIdString(),
@@ -137,8 +137,8 @@ func (e *ListTrackingEngine) linkSocialProofs(link *libkb.TrackChainLink) (res [
 	return res
 }
 
-func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []keybase_1.WebProof) {
-	webp := make(map[string]*keybase_1.WebProof)
+func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []keybase1.WebProof) {
+	webp := make(map[string]*keybase1.WebProof)
 	for _, sb := range link.ToServiceBlocks() {
 		if sb.IsSocial() {
 			continue
@@ -146,7 +146,7 @@ func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []ke
 		proofType, proofName := sb.ToKeyValuePair()
 		p, ok := webp[proofName]
 		if !ok {
-			p = &keybase_1.WebProof{Hostname: proofName}
+			p = &keybase1.WebProof{Hostname: proofName}
 			webp[proofName] = p
 		}
 		p.Protocols = append(p.Protocols, proofType)
@@ -160,11 +160,11 @@ func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []ke
 func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 	for _, link := range trackList {
 		Uid, _ := link.GetTrackedUid()
-		entry := keybase_1.UserSummary{
+		entry := keybase1.UserSummary{
 			Username:  link.ToDisplayString(),
 			SigId:     link.GetSigId().ToDisplayString(true),
 			TrackTime: link.GetCTime().Unix(),
-			Uid:       keybase_1.UID(*Uid),
+			Uid:       keybase1.UID(*Uid),
 		}
 		entry.Proofs.PublicKeys = e.linkPGPKeys(link)
 		entry.Proofs.Social = e.linkSocialProofs(link)
@@ -230,7 +230,7 @@ func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
 	return out, nil
 }
 
-func (e *ListTrackingEngine) TableResult() []keybase_1.UserSummary {
+func (e *ListTrackingEngine) TableResult() []keybase1.UserSummary {
 	return e.tableResult
 }
 

@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type CmdListTracking struct {
@@ -38,7 +38,7 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func DisplayTable(entries []keybase_1.UserSummary, verbose bool, headers bool) (err error) {
+func DisplayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (err error) {
 	var cols []string
 
 	if headers {
@@ -102,7 +102,7 @@ func (s *CmdListTracking) RunClient() error {
 	}
 
 	if s.json {
-		jsonStr, err := cli.ListTrackingJson(keybase_1.ListTrackingJsonArg{
+		jsonStr, err := cli.ListTrackingJson(keybase1.ListTrackingJsonArg{
 			Filter:  s.filter,
 			Verbose: s.verbose,
 		})

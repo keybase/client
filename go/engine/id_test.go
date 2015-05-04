@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
@@ -172,43 +172,43 @@ func TestIdPGPNotEldest(t *testing.T) {
 
 type FakeIdentifyUI struct {
 	Proofs          map[string]string
-	User            *keybase_1.User
-	Fapr            keybase_1.FinishAndPromptRes
-	Keys            map[keybase_1.FOKID]*keybase_1.TrackDiff
+	User            *keybase1.User
+	Fapr            keybase1.FinishAndPromptRes
+	Keys            map[keybase1.FOKID]*keybase1.TrackDiff
 	DisplayKeyCalls int
 }
 
-func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase_1.RemoteProof, result keybase_1.LinkCheckResult) {
+func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
 	if ui.Proofs == nil {
 		ui.Proofs = make(map[string]string)
 	}
 	ui.Proofs[proof.Key] = proof.Value
 }
-func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase_1.RemoteProof, result keybase_1.LinkCheckResult) {
+func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
 	if ui.Proofs == nil {
 		ui.Proofs = make(map[string]string)
 	}
 	ui.Proofs[proof.Key] = proof.Value
 }
-func (ui *FakeIdentifyUI) FinishAndPrompt(*keybase_1.IdentifyOutcome) (res keybase_1.FinishAndPromptRes, err error) {
+func (ui *FakeIdentifyUI) FinishAndPrompt(*keybase1.IdentifyOutcome) (res keybase1.FinishAndPromptRes, err error) {
 	res = ui.Fapr
 	return
 }
-func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase_1.Cryptocurrency) {
+func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {
 }
-func (ui *FakeIdentifyUI) DisplayKey(kid keybase_1.FOKID, td *keybase_1.TrackDiff) {
+func (ui *FakeIdentifyUI) DisplayKey(kid keybase1.FOKID, td *keybase1.TrackDiff) {
 	if ui.Keys == nil {
-		ui.Keys = make(map[keybase_1.FOKID]*keybase_1.TrackDiff)
+		ui.Keys = make(map[keybase1.FOKID]*keybase1.TrackDiff)
 	}
 	ui.Keys[kid] = td
 	ui.DisplayKeyCalls++
 }
-func (ui *FakeIdentifyUI) ReportLastTrack(*keybase_1.TrackSummary) {
+func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) {
 }
 func (ui *FakeIdentifyUI) Start(username string) {
 }
 func (ui *FakeIdentifyUI) Finish() {}
-func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase_1.Identity, user *keybase_1.User) {
+func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
 	ui.User = user
 }
 func (ui *FakeIdentifyUI) DisplayTrackStatement(string) (err error) {

@@ -5,7 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"strings"
 	"time"
 )
@@ -42,7 +42,7 @@ func (v *CmdStatus) RunClient() (err error) {
 		return err
 	}
 
-	me, err := userCli.LoadUser(keybase_1.LoadUserArg{Uid: &myUid})
+	me, err := userCli.LoadUser(keybase1.LoadUserArg{Uid: &myUid})
 	if err != nil {
 		return err
 	}
@@ -68,8 +68,8 @@ func (v *CmdStatus) Run() error {
 	return err
 }
 
-func findSubkeys(parentID string, allKeys []keybase_1.PublicKey) []keybase_1.PublicKey {
-	ret := []keybase_1.PublicKey{}
+func findSubkeys(parentID string, allKeys []keybase1.PublicKey) []keybase1.PublicKey {
+	ret := []keybase1.PublicKey{}
 	for _, key := range allKeys {
 		if key.ParentID == parentID {
 			ret = append(ret, key)
@@ -78,7 +78,7 @@ func findSubkeys(parentID string, allKeys []keybase_1.PublicKey) []keybase_1.Pub
 	return ret
 }
 
-func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
+func (v *CmdStatus) printExportedMe(me keybase1.User) error {
 	fmt.Printf("Username: %s\n", me.Username)
 	fmt.Printf("User ID: %s\n", me.Uid)
 	fmt.Printf("Device ID: %s\n", G.Env.GetDeviceID())
@@ -114,7 +114,7 @@ func (v *CmdStatus) printExportedMe(me keybase_1.User) error {
 	return nil
 }
 
-func printKey(key keybase_1.PublicKey, subkeys []keybase_1.PublicKey, indent int) error {
+func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) error {
 	if key.KID == "" {
 		return fmt.Errorf("Found a key with an empty KID.")
 	}

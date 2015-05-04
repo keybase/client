@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -16,7 +16,7 @@ func NewSigsHandler(xp *rpc2.Transport) *SigsHandler {
 	return &SigsHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *SigsHandler) SigList(args keybase_1.SigListArgs) ([]keybase_1.Sig, error) {
+func (h *SigsHandler) SigList(args keybase1.SigListArgs) ([]keybase1.Sig, error) {
 	eng, err := h.run(args)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (h *SigsHandler) SigList(args keybase_1.SigListArgs) ([]keybase_1.Sig, erro
 	return eng.Sigs(), nil
 }
 
-func (h *SigsHandler) SigListJSON(args keybase_1.SigListArgs) (string, error) {
+func (h *SigsHandler) SigListJSON(args keybase1.SigListArgs) (string, error) {
 	eng, err := h.run(args)
 	if err != nil {
 		return "", err
@@ -32,7 +32,7 @@ func (h *SigsHandler) SigListJSON(args keybase_1.SigListArgs) (string, error) {
 	return eng.JSON()
 }
 
-func (h *SigsHandler) run(args keybase_1.SigListArgs) (*engine.SigsList, error) {
+func (h *SigsHandler) run(args keybase1.SigListArgs) (*engine.SigsList, error) {
 	ctx := &engine.Context{}
 
 	ea := engine.SigsListArgs{

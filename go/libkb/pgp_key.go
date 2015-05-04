@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
@@ -449,7 +449,7 @@ func (key *PgpKeyBundle) SignToString(payload []byte) (out string, id *SigId, er
 	return SimpleSign(payload, *key)
 }
 
-func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase_1.FOKID) {
+func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {
 	if fp != nil {
 		b := (*fp)[:]
 		ret.PgpFingerprint = &b

@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"io/ioutil"
 )
@@ -35,7 +35,7 @@ func NewCmdPGPImport(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPImport struct {
 	UnixFilter
-	arg    keybase_1.PgpImportArg
+	arg    keybase1.PgpImportArg
 	infile string
 }
 
@@ -54,7 +54,7 @@ func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPImport) RunClient() (err error) {
-	var cli keybase_1.PgpClient
+	var cli keybase1.PgpClient
 
 	if err = s.readKeyData(); err != nil {
 		return

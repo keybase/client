@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -37,7 +37,7 @@ func (c *CmdRevoke) RunClient() (err error) {
 		return err
 	}
 
-	return cli.RevokeKey(keybase_1.RevokeKeyArg{
+	return cli.RevokeKey(keybase1.RevokeKeyArg{
 		Id: c.id,
 	})
 }

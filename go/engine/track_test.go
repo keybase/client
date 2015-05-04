@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
@@ -13,7 +13,7 @@ func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdRes, 
 
 func runTrackWithOptions(fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, res *IdRes, err error) {
 	idUI = &FakeIdentifyUI{
-		Fapr: keybase_1.FinishAndPromptRes{
+		Fapr: keybase1.FinishAndPromptRes{
 			TrackLocal:  options.TrackLocalOnly,
 			TrackRemote: !options.TrackLocalOnly,
 		},

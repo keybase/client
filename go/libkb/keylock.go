@@ -3,7 +3,7 @@ package libkb
 import (
 	"fmt"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type KeyUnlocker struct {
@@ -37,8 +37,8 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 	prompt := "Your key passphrase"
 
 	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
-		var res *keybase_1.SecretEntryRes
-		res, err = arg.Ui.GetSecret(keybase_1.SecretEntryArg{
+		var res *keybase1.SecretEntryRes
+		res, err = arg.Ui.GetSecret(keybase1.SecretEntryArg{
 			Err:            emsg,
 			Desc:           desc,
 			Prompt:         prompt,

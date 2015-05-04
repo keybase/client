@@ -5,7 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"time"
 )
 
@@ -28,7 +28,7 @@ func (s *CmdCtlRestart) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlRestart) RunClient() (err error) {
-	var cli keybase_1.CtlClient
+	var cli keybase1.CtlClient
 	if cli, err = GetCtlClient(); err != nil {
 	} else if err = cli.Stop(); err != nil {
 		G.Log.Warning("Stop failed: %s", err.Error())

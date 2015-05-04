@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -16,15 +16,15 @@ type CmdLogin struct {
 }
 
 func NewLoginUIProtocol() rpc2.Protocol {
-	return keybase_1.LoginUiProtocol(G_UI.GetLoginUI())
+	return keybase1.LoginUiProtocol(G_UI.GetLoginUI())
 }
 
 func NewLocksmithUIProtocol() rpc2.Protocol {
-	return keybase_1.LocksmithUiProtocol(G_UI.GetLocksmithUI())
+	return keybase1.LocksmithUiProtocol(G_UI.GetLocksmithUI())
 }
 
 func (v *CmdLogin) RunClient() (err error) {
-	var cli keybase_1.LoginClient
+	var cli keybase1.LoginClient
 	protocols := []rpc2.Protocol{
 		NewLoginUIProtocol(),
 		NewLogUIProtocol(),
@@ -34,7 +34,7 @@ func (v *CmdLogin) RunClient() (err error) {
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {
-		err = cli.LoginWithPrompt(keybase_1.LoginWithPromptArg{
+		err = cli.LoginWithPrompt(keybase1.LoginWithPromptArg{
 			Username: v.Username,
 		})
 	}

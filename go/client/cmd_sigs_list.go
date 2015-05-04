@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type CmdSigsList struct {
@@ -26,7 +26,7 @@ type CmdSigsList struct {
 
 	user  *libkb.User
 	sigs  []libkb.TypedChainLink
-	ksigs []keybase_1.Sig
+	ksigs []keybase1.Sig
 }
 
 func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
@@ -80,7 +80,7 @@ func (s *CmdSigsList) ParseArgv(ctx *cli.Context) error {
 	return err
 }
 
-func (s *CmdSigsList) DisplayKTable(sigs []keybase_1.Sig) (err error) {
+func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 	if sigs == nil {
 		return nil
 	}
@@ -148,16 +148,16 @@ func (s *CmdSigsList) RunClient() error {
 	if err != nil {
 		return err
 	}
-	var t *keybase_1.SigTypes
+	var t *keybase1.SigTypes
 	if s.types != nil {
-		t = &keybase_1.SigTypes{
+		t = &keybase1.SigTypes{
 			Track:          s.types["track"],
 			Proof:          s.types["proof"],
 			Cryptocurrency: s.types["cryptocurrency"],
 			Self:           s.types["self"],
 		}
 	}
-	args := keybase_1.SigListArgs{
+	args := keybase1.SigListArgs{
 		Username: s.username,
 		AllKeys:  s.allKeys,
 		Filterx:  s.filter,

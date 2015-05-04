@@ -213,7 +213,7 @@ func Render(w io.Writer, m *libkb.Markup) {
 	renderer.RenderNodes(doc.Nodes)
 }
 
-func RenderText(w io.Writer, txt keybase_1.Text) {
+func RenderText(w io.Writer, txt keybase1.Text) {
 	w = getWriter(w)
 	if !txt.Markup {
 		w.Write([]byte(txt.Data))

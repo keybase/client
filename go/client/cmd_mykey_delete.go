@@ -4,7 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func (v *CmdMykeyDelete) RunClient() (err error) {
@@ -51,7 +51,7 @@ func (v MykeyDeleteStandlone) run() (err error) {
 
 type MykeyDeleteStandlone struct{}
 type MykeyDeleteClient struct {
-	cli keybase_1.PgpClient
+	cli keybase1.PgpClient
 }
 
 type MykeyDeleteEngine interface {

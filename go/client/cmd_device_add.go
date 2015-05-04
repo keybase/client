@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -50,7 +50,7 @@ func (c *CmdDeviceAdd) RunClient() error {
 		return err
 	}
 
-	return cli.DeviceAdd(keybase_1.DeviceAddArg{SecretPhrase: c.phrase, SessionID: c.sessionID})
+	return cli.DeviceAdd(keybase1.DeviceAddArg{SecretPhrase: c.phrase, SessionID: c.sessionID})
 }
 
 // Run runs the command in standalone mode.

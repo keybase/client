@@ -2,14 +2,14 @@ package client
 
 import (
 	"fmt"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"strings"
 	"text/tabwriter"
 )
 
 func NewGPGUIProtocol() rpc2.Protocol {
-	return keybase_1.GpgUiProtocol(G_UI.GetGPGUI())
+	return keybase1.GpgUiProtocol(G_UI.GetGPGUI())
 }
 
 type GPGUI struct {
@@ -17,7 +17,7 @@ type GPGUI struct {
 	noPrompt bool
 }
 
-func (g GPGUI) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (res keybase_1.SelectKeyRes, err error) {
+func (g GPGUI) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
 	w := new(tabwriter.Writer)
 	w.Init(g.parent.OutputWriter(), 5, 0, 3, ' ', 0)
 
@@ -40,7 +40,7 @@ func (g GPGUI) SelectKeyAndPushOption(arg keybase_1.SelectKeyAndPushOptionArg) (
 	return res, nil
 }
 
-func (g GPGUI) SelectKey(arg keybase_1.SelectKeyArg) (string, error) {
+func (g GPGUI) SelectKey(arg keybase1.SelectKeyArg) (string, error) {
 	w := new(tabwriter.Writer)
 	w.Init(g.parent.OutputWriter(), 5, 0, 3, ' ', 0)
 

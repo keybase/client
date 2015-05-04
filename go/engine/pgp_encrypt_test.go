@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestPGPEncrypt(t *testing.T) {
@@ -15,7 +15,7 @@ func TestPGPEncrypt(t *testing.T) {
 	u := CreateAndSignupFakeUser(t, "login")
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
-		Fapr:   keybase_1.FinishAndPromptRes{TrackRemote: true},
+		Fapr:   keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 

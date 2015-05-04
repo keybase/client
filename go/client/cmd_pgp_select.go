@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -44,7 +44,7 @@ func (v *CmdPGPSelect) RunClient() error {
 		return err
 	}
 
-	err = c.PgpSelect(keybase_1.PgpSelectArg{Query: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
+	err = c.PgpSelect(keybase1.PgpSelectArg{Query: v.query, AllowMulti: v.multi, SkipImport: v.skipImport})
 	PGPMultiWarn(err)
 	return err
 }

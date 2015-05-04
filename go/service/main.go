@@ -8,7 +8,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -25,21 +25,21 @@ func NewService(d bool) *Service {
 }
 
 func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) {
-	srv.Register(keybase_1.BTCProtocol(NewBTCHandler(xp)))
-	srv.Register(keybase_1.ConfigProtocol(ConfigHandler{xp}))
-	srv.Register(keybase_1.CtlProtocol(CtlHandler{}))
-	srv.Register(keybase_1.DeviceProtocol(NewDeviceHandler(xp)))
-	srv.Register(keybase_1.DoctorProtocol(NewDoctorHandler(xp)))
-	srv.Register(keybase_1.IdentifyProtocol(NewIdentifyHandler(xp)))
-	srv.Register(keybase_1.LoginProtocol(NewLoginHandler(xp)))
-	srv.Register(keybase_1.ProveProtocol(NewProveHandler(xp)))
-	srv.Register(keybase_1.SessionProtocol(NewSessionHandler(xp)))
-	srv.Register(keybase_1.SignupProtocol(NewSignupHandler(xp)))
-	srv.Register(keybase_1.SigsProtocol(NewSigsHandler(xp)))
-	srv.Register(keybase_1.PgpProtocol(NewPGPHandler(xp)))
-	srv.Register(keybase_1.RevokeProtocol(NewRevokeHandler(xp)))
-	srv.Register(keybase_1.TrackProtocol(NewTrackHandler(xp)))
-	srv.Register(keybase_1.UserProtocol(NewUserHandler(xp)))
+	srv.Register(keybase1.BTCProtocol(NewBTCHandler(xp)))
+	srv.Register(keybase1.ConfigProtocol(ConfigHandler{xp}))
+	srv.Register(keybase1.CtlProtocol(CtlHandler{}))
+	srv.Register(keybase1.DeviceProtocol(NewDeviceHandler(xp)))
+	srv.Register(keybase1.DoctorProtocol(NewDoctorHandler(xp)))
+	srv.Register(keybase1.IdentifyProtocol(NewIdentifyHandler(xp)))
+	srv.Register(keybase1.LoginProtocol(NewLoginHandler(xp)))
+	srv.Register(keybase1.ProveProtocol(NewProveHandler(xp)))
+	srv.Register(keybase1.SessionProtocol(NewSessionHandler(xp)))
+	srv.Register(keybase1.SignupProtocol(NewSignupHandler(xp)))
+	srv.Register(keybase1.SigsProtocol(NewSigsHandler(xp)))
+	srv.Register(keybase1.PgpProtocol(NewPGPHandler(xp)))
+	srv.Register(keybase1.RevokeProtocol(NewRevokeHandler(xp)))
+	srv.Register(keybase1.TrackProtocol(NewTrackHandler(xp)))
+	srv.Register(keybase1.UserProtocol(NewUserHandler(xp)))
 }
 
 func (d *Service) Handle(c net.Conn) {

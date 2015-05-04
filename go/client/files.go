@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type Source interface {
@@ -243,7 +243,7 @@ func (u *UnixFilter) Close(inerr error) error {
 	return libkb.PickFirstError(e1, e2, e3)
 }
 
-func (u *UnixFilter) ClientFilterOpen() (snk, src keybase_1.Stream, err error) {
+func (u *UnixFilter) ClientFilterOpen() (snk, src keybase1.Stream, err error) {
 	if err = u.FilterOpen(); err != nil {
 		return
 	}

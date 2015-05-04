@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -16,7 +16,7 @@ func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
 	return &DeviceHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
-func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
+func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase1.Device, error) {
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	eng := engine.NewDevList()
 	if err := engine.RunEngine(eng, ctx); err != nil {
@@ -26,7 +26,7 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase_1.Device, error) {
 }
 
 // DeviceAdd adds a sibkey using a SibkeyEngine.
-func (h *DeviceHandler) DeviceAdd(arg keybase_1.DeviceAddArg) error {
+func (h *DeviceHandler) DeviceAdd(arg keybase1.DeviceAddArg) error {
 	sessionID := nextSessionID()
 	locksmithUI := NewRemoteLocksmithUI(sessionID, h.getRpcClient())
 	ctx := &engine.Context{SecretUI: h.getSecretUI(sessionID), LocksmithUI: locksmithUI}

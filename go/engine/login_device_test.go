@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // TestLoginNewDeviceKex is a device provisioning test.  It
@@ -93,19 +93,19 @@ func (l *lockuiDevice) secretPhrase() string {
 }
 
 // select the first device
-func (l *lockuiDevice) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (l *lockuiDevice) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	if len(arg.Devices) == 0 {
 		return res, fmt.Errorf("expected len(devices) > 0")
 	}
-	res.Action = keybase_1.SelectSignerAction_SIGN
+	res.Action = keybase1.SelectSignerAction_SIGN
 	devid := arg.Devices[0].DeviceID
 	devname := arg.Devices[0].Name
-	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &devid, DeviceName: &devname}
+	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_DEVICE, DeviceID: &devid, DeviceName: &devname}
 	return
 }
 
-func (l *lockuiDevice) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (l *lockuiDevice) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	l.Lock()
 	l.secret = arg.Secret
 	l.Unlock()

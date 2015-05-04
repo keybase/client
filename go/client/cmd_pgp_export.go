@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"os"
 )
@@ -39,7 +39,7 @@ func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
 
 type CmdPGPExport struct {
 	UnixFilter
-	arg     keybase_1.PgpExportArg
+	arg     keybase1.PgpExportArg
 	outfile string
 }
 
@@ -59,7 +59,7 @@ func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPExport) RunClient() (err error) {
-	var cli keybase_1.PgpClient
+	var cli keybase1.PgpClient
 	protocols := []rpc2.Protocol{
 		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
@@ -73,7 +73,7 @@ func (s *CmdPGPExport) RunClient() (err error) {
 	return err
 }
 
-func (s *CmdPGPExport) finish(res []keybase_1.FingerprintAndKey, err error) error {
+func (s *CmdPGPExport) finish(res []keybase1.FingerprintAndKey, err error) error {
 	if err != nil {
 		return err
 	}

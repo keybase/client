@@ -2,13 +2,13 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // DevList is an engine that gets a list of all the user's
 // devices.
 type DevList struct {
-	devices []keybase_1.Device
+	devices []keybase1.Device
 	libkb.Contextified
 }
 
@@ -45,15 +45,15 @@ func (d *DevList) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	var pdevs []keybase_1.Device
+	var pdevs []keybase1.Device
 	for k, v := range devs {
-		pdevs = append(pdevs, keybase_1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
+		pdevs = append(pdevs, keybase1.Device{Type: v.Type, Name: v.Description, DeviceID: k})
 	}
 	d.devices = pdevs
 
 	return nil
 }
 
-func (d *DevList) List() []keybase_1.Device {
+func (d *DevList) List() []keybase1.Device {
 	return d.devices
 }

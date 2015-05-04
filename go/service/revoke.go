@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -14,7 +14,7 @@ func NewRevokeHandler(xp *rpc2.Transport) *RevokeHandler {
 	return &RevokeHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *RevokeHandler) RevokeKey(arg keybase_1.RevokeKeyArg) error {
+func (h *RevokeHandler) RevokeKey(arg keybase1.RevokeKeyArg) error {
 	sessionID := arg.SessionID
 	ctx := engine.Context{
 		LogUI:    h.getLogUI(sessionID),
@@ -24,7 +24,7 @@ func (h *RevokeHandler) RevokeKey(arg keybase_1.RevokeKeyArg) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *RevokeHandler) RevokeDevice(arg keybase_1.RevokeDeviceArg) error {
+func (h *RevokeHandler) RevokeDevice(arg keybase1.RevokeDeviceArg) error {
 	sessionID := arg.SessionID
 	ctx := engine.Context{
 		LogUI:    h.getLogUI(sessionID),
@@ -34,7 +34,7 @@ func (h *RevokeHandler) RevokeDevice(arg keybase_1.RevokeDeviceArg) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *RevokeHandler) RevokeSigs(arg keybase_1.RevokeSigsArg) error {
+func (h *RevokeHandler) RevokeSigs(arg keybase1.RevokeSigsArg) error {
 	ctx := engine.Context{
 		LogUI:    h.getLogUI(arg.SessionID),
 		SecretUI: h.getSecretUI(arg.SessionID),

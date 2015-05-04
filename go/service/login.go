@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -21,7 +21,7 @@ func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
 	return u.cli.GetEmailOrUsername(u.sessionId)
 }
 
-func (h *LoginHandler) GetConfiguredAccounts() ([]keybase_1.ConfiguredAccount, error) {
+func (h *LoginHandler) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
 	return G.LoginState().GetConfiguredAccounts()
 }
 
@@ -35,7 +35,7 @@ func (h *LoginHandler) Reset() error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *LoginHandler) LoginWithPrompt(arg keybase_1.LoginWithPromptArg) error {
+func (h *LoginHandler) LoginWithPrompt(arg keybase1.LoginWithPromptArg) error {
 	ctx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
@@ -48,7 +48,7 @@ func (h *LoginHandler) LoginWithPrompt(arg keybase_1.LoginWithPromptArg) error {
 	return h.loginWithEngine(eng, ctx, arg.SessionID)
 }
 
-func (h *LoginHandler) LoginWithStoredSecret(arg keybase_1.LoginWithStoredSecretArg) error {
+func (h *LoginHandler) LoginWithStoredSecret(arg keybase1.LoginWithStoredSecretArg) error {
 	ctx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
@@ -60,7 +60,7 @@ func (h *LoginHandler) LoginWithStoredSecret(arg keybase_1.LoginWithStoredSecret
 	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
 }
 
-func (h *LoginHandler) LoginWithPassphrase(arg keybase_1.LoginWithPassphraseArg) error {
+func (h *LoginHandler) LoginWithPassphrase(arg keybase1.LoginWithPassphraseArg) error {
 	ctx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LocksmithUI: h.getLocksmithUI(arg.SessionID),
@@ -94,13 +94,13 @@ func (h *LoginHandler) CancelLogin(sessionID int) error {
 
 type RemoteLocksmithUI struct {
 	sessionId int
-	uicli     keybase_1.LocksmithUiClient
+	uicli     keybase1.LocksmithUiClient
 }
 
 func NewRemoteLocksmithUI(sessionId int, c *rpc2.Client) *RemoteLocksmithUI {
 	return &RemoteLocksmithUI{
 		sessionId: sessionId,
-		uicli:     keybase_1.LocksmithUiClient{Cli: c},
+		uicli:     keybase1.LocksmithUiClient{Cli: c},
 	}
 }
 
@@ -108,17 +108,17 @@ func (r *RemoteLocksmithUI) PromptDeviceName(dummy int) (string, error) {
 	return r.uicli.PromptDeviceName(r.sessionId)
 }
 
-func (r *RemoteLocksmithUI) SelectSigner(arg keybase_1.SelectSignerArg) (keybase_1.SelectSignerRes, error) {
+func (r *RemoteLocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (keybase1.SelectSignerRes, error) {
 	arg.SessionID = r.sessionId
 	return r.uicli.SelectSigner(arg)
 }
 
-func (r *RemoteLocksmithUI) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (r *RemoteLocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	arg.SessionID = r.sessionId
 	return r.uicli.DisplaySecretWords(arg)
 }
 
-func (r *RemoteLocksmithUI) KexStatus(arg keybase_1.KexStatusArg) error {
+func (r *RemoteLocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
 	arg.SessionID = r.sessionId
 	return r.uicli.KexStatus(arg)
 }

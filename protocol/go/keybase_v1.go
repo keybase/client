@@ -1,4 +1,4 @@
-package keybase_1
+package keybase1
 
 import (
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"

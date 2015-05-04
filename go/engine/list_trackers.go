@@ -2,7 +2,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // TrackerList is an engine to get a list of user's trackers
@@ -74,7 +74,7 @@ func (e *ListTrackersEngine) List() []libkb.Tracker {
 	return e.trackers.Trackers
 }
 
-func (e *ListTrackersEngine) ExportedList() (ret []keybase_1.Tracker) {
+func (e *ListTrackersEngine) ExportedList() (ret []keybase1.Tracker) {
 	for _, el := range e.List() {
 		ret = append(ret, el.Export())
 	}

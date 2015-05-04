@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type SearchEngine struct {
 	libkb.Contextified
 	query     string
 	numWanted int
-	results   []keybase_1.UserSummary
+	results   []keybase1.UserSummary
 }
 
 type SearchEngineArgs struct {
@@ -68,20 +68,20 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		}
 		completion := allCompletions.AtIndex(i)
 		components := completion.AtKey("components")
-		socialProofs := []keybase_1.TrackProof{}
+		socialProofs := []keybase1.TrackProof{}
 		for _, proofTypeName := range componentKeys {
 			if _, isService := libkb.REMOTE_SERVICE_TYPES[proofTypeName]; isService {
 				val, err := components.AtKey(proofTypeName).AtKey("val").GetString()
 				if err != nil {
 					return err
 				}
-				socialProofs = append(socialProofs, keybase_1.TrackProof{
+				socialProofs = append(socialProofs, keybase1.TrackProof{
 					ProofType: proofTypeName,
 					ProofName: val,
 				})
 			}
 		}
-		webProofs := []keybase_1.WebProof{}
+		webProofs := []keybase1.WebProof{}
 		webProofsLen, _ := components.AtKey("websites").Len()
 		for i := 0; i < webProofsLen; i++ {
 			site, err := components.AtKey("websites").AtIndex(i).AtKey("val").GetString()
@@ -92,7 +92,7 @@ func (e *SearchEngine) Run(ctx *Context) error {
 			if err != nil {
 				return err
 			}
-			webProofs = append(webProofs, keybase_1.WebProof{
+			webProofs = append(webProofs, keybase1.WebProof{
 				Hostname:  site,
 				Protocols: []string{protocol},
 			})
@@ -111,11 +111,11 @@ func (e *SearchEngine) Run(ctx *Context) error {
 		}
 		// Sometimes thumbnail is null. In that case empty string is fine.
 		thumbnail, _ := completion.AtKey("thumbnail").GetString()
-		e.results = append(e.results, keybase_1.UserSummary{
+		e.results = append(e.results, keybase1.UserSummary{
 			Uid:       uid.Export(),
 			Username:  username,
 			Thumbnail: thumbnail,
-			Proofs: keybase_1.Proofs{
+			Proofs: keybase1.Proofs{
 				Social: socialProofs,
 				Web:    webProofs,
 			},
@@ -124,6 +124,6 @@ func (e *SearchEngine) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *SearchEngine) GetResults() []keybase_1.UserSummary {
+func (e *SearchEngine) GetResults() []keybase1.UserSummary {
 	return e.results
 }

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
@@ -19,7 +19,7 @@ type PGPSignEngine struct {
 type PGPSignArg struct {
 	Sink   io.WriteCloser
 	Source io.ReadCloser
-	Opts   keybase_1.PgpSignOptions
+	Opts   keybase1.PgpSignOptions
 }
 
 func (p *PGPSignEngine) GetPrereqs() EnginePrereqs {
@@ -85,9 +85,9 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	mode := p.arg.Opts.Mode
 
 	switch mode {
-	case keybase_1.SignMode_ATTACHED:
+	case keybase1.SignMode_ATTACHED:
 		dumpTo, err = libkb.AttachedSignWrapper(p.arg.Sink, *pgp, !bo)
-	case keybase_1.SignMode_DETACHED:
+	case keybase1.SignMode_DETACHED:
 		if bi && bo {
 			err = openpgp.DetachSign(p.arg.Sink, pgpe, p.arg.Source, nil)
 		} else if bi && !bo {
@@ -97,7 +97,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		} else {
 			err = openpgp.ArmoredDetachSignText(p.arg.Sink, pgpe, p.arg.Source, nil)
 		}
-	case keybase_1.SignMode_CLEAR:
+	case keybase1.SignMode_CLEAR:
 		dumpTo, err = clearsign.Encode(p.arg.Sink, pgp.PrivateKey, nil)
 	default:
 		err = fmt.Errorf("unrecognized sign mode: %d", int(mode))

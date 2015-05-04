@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -17,7 +17,7 @@ func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
 }
 
 // Track creates a TrackEngine and runs it.
-func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
+func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
 	sessionID := arg.SessionID
 	theirName := arg.TheirName
 	earg := engine.TrackEngineArg{
@@ -36,7 +36,7 @@ func (h *TrackHandler) Track(arg keybase_1.TrackArg) error {
 }
 
 // Untrack creates an UntrackEngine and runs it.
-func (h *TrackHandler) Untrack(arg keybase_1.UntrackArg) error {
+func (h *TrackHandler) Untrack(arg keybase1.UntrackArg) error {
 	sessionID := arg.SessionID
 	theirName := arg.TheirName
 	earg := engine.UntrackEngineArg{

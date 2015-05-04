@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // SigsList is an engine for the sigs-list command.
@@ -73,15 +73,15 @@ func (e *SigsList) Run(ctx *Context) error {
 }
 
 // Sigs returns the sig list, after processing.
-func (e *SigsList) Sigs() []keybase_1.Sig {
-	res := make([]keybase_1.Sig, len(e.sigs))
+func (e *SigsList) Sigs() []keybase1.Sig {
+	res := make([]keybase1.Sig, len(e.sigs))
 	for i, s := range e.sigs {
 		var key string
 		fp := s.GetPgpFingerprint()
 		if fp != nil {
 			key = fp.ToDisplayString(e.Verbose)
 		}
-		res[i] = keybase_1.Sig{
+		res[i] = keybase1.Sig{
 			Seqno:        int(s.GetSeqno()),
 			SigIdDisplay: s.GetSigId().ToDisplayString(e.Verbose),
 			Type:         s.Type(),

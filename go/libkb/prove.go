@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -54,7 +54,7 @@ func (v *ProofEngine) CheckExists1() (err error) {
 		lst := proofs[len(proofs)-1]
 		var redo bool
 		redo, err = v.ProveUI.PromptOverwrite(lst.ToDisplayString(),
-			keybase_1.PromptOverwriteType_SOCIAL)
+			keybase1.PromptOverwriteType_SOCIAL)
 		if err != nil {
 		} else if !redo {
 			err = NotConfirmedError{}
@@ -104,7 +104,7 @@ func (v *ProofEngine) CheckExists2() (err error) {
 		if found != nil {
 			var redo bool
 			redo, err = v.ProveUI.PromptOverwrite(found.ToDisplayString(),
-				keybase_1.PromptOverwriteType_SITE)
+				keybase1.PromptOverwriteType_SITE)
 			if err != nil {
 			} else if !redo {
 				err = NotConfirmedError{}

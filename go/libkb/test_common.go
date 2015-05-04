@@ -6,7 +6,7 @@ import (
 	"path"
 	"testing"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"golang.org/x/crypto/openpgp"
 )
 
@@ -247,19 +247,19 @@ type TestSecretUI struct {
 	StoreSecret bool
 }
 
-func (t TestSecretUI) GetSecret(p keybase_1.SecretEntryArg, terminal *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
-	return &keybase_1.SecretEntryRes{
+func (t TestSecretUI) GetSecret(p keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
+	return &keybase1.SecretEntryRes{
 		Text:        t.Passphrase,
 		Canceled:    false,
 		StoreSecret: p.UseSecretStore && t.StoreSecret,
 	}, nil
 }
 
-func (t TestSecretUI) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
+func (t TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
 	return t.Passphrase, nil
 }
 
-func (t TestSecretUI) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
+func (t TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
 	return t.Passphrase, nil
 }
 

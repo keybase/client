@@ -4,13 +4,13 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type CmdLogout struct{}
 
 func (v *CmdLogout) RunClient() (err error) {
-	var cli keybase_1.LoginClient
+	var cli keybase1.LoginClient
 	if cli, err = GetLoginClient(); err != nil {
 	} else {
 		err = cli.Logout()

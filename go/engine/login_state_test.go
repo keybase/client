@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // TODO: These tests should really be in libkb/. However, any test
@@ -76,21 +76,21 @@ type GetSecretMock struct {
 	T           *testing.T
 }
 
-func (m *GetSecretMock) GetSecret(arg keybase_1.SecretEntryArg, _ *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+func (m *GetSecretMock) GetSecret(arg keybase1.SecretEntryArg, _ *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	if m.Called {
 		m.T.Fatal("GetSecret unexpectedly called more than once")
 	}
 	m.Called = true
 	storeSecret := arg.UseSecretStore && m.StoreSecret
-	return &keybase_1.SecretEntryRes{Text: m.Passphrase, StoreSecret: storeSecret}, nil
+	return &keybase1.SecretEntryRes{Text: m.Passphrase, StoreSecret: storeSecret}, nil
 }
 
-func (m *GetSecretMock) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
+func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
 	m.T.Fatal("GetNewPassphrase unexpectedly called")
 	return "", nil
 }
 
-func (m *GetSecretMock) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
+func (m *GetSecretMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
 	m.T.Fatal("GetKeybasePassphrase unexpectedly called")
 	return "", nil
 }
@@ -198,16 +198,16 @@ type GetKeybasePassphraseMock struct {
 	T          *testing.T
 }
 
-func (m *GetKeybasePassphraseMock) GetSecret(keybase_1.SecretEntryArg, *keybase_1.SecretEntryArg) (*keybase_1.SecretEntryRes, error) {
+func (m *GetKeybasePassphraseMock) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	return nil, errors.New("Fail pubkey login")
 }
 
-func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase_1.GetNewPassphraseArg) (string, error) {
+func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
 	m.T.Fatal("GetNewPassphrase unexpectedly called")
 	return "", nil
 }
 
-func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase_1.GetKeybasePassphraseArg) (string, error) {
+func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
 	if m.Called {
 		m.T.Fatal("GetKeybasePassphrase unexpectedly called more than once")
 	}

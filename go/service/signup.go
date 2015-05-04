@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -19,7 +19,7 @@ func (h *SignupHandler) CheckUsernameAvailable(username string) error {
 	return engine.CheckUsernameAvailable(username)
 }
 
-func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes, err error) {
+func (h *SignupHandler) Signup(arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
 	sessionID := nextSessionID()
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(sessionID),
@@ -61,7 +61,7 @@ func (h *SignupHandler) Signup(arg keybase_1.SignupArg) (res keybase_1.SignupRes
 	return res, err
 }
 
-func (h *SignupHandler) InviteRequest(arg keybase_1.InviteRequestArg) (err error) {
+func (h *SignupHandler) InviteRequest(arg keybase1.InviteRequestArg) (err error) {
 	return libkb.PostInviteRequest(libkb.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,

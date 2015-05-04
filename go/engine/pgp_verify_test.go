@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestPGPVerify(t *testing.T) {
@@ -23,13 +23,13 @@ func TestPGPVerify(t *testing.T) {
 	msg := "If you wish to stop receiving notifications from this topic, please click or visit the link below to unsubscribe:"
 
 	// create detached sig
-	detached := sign(ctx, t, msg, keybase_1.SignMode_DETACHED)
+	detached := sign(ctx, t, msg, keybase1.SignMode_DETACHED)
 
 	// create clearsign sig
-	clearsign := sign(ctx, t, msg, keybase_1.SignMode_CLEAR)
+	clearsign := sign(ctx, t, msg, keybase1.SignMode_CLEAR)
 
 	// create attached sig w/ sign
-	attached := sign(ctx, t, msg, keybase_1.SignMode_ATTACHED)
+	attached := sign(ctx, t, msg, keybase1.SignMode_ATTACHED)
 
 	// create attached sig w/ encrypt
 	attachedEnc := signEnc(ctx, t, msg)
@@ -64,12 +64,12 @@ func TestPGPVerify(t *testing.T) {
 	// verify that attached signature
 }
 
-func sign(ctx *Context, t *testing.T, msg string, mode keybase_1.SignMode) string {
+func sign(ctx *Context, t *testing.T, msg string, mode keybase1.SignMode) string {
 	sink := libkb.NewBufferCloser()
 	arg := &PGPSignArg{
 		Sink:   sink,
 		Source: ioutil.NopCloser(strings.NewReader(msg)),
-		Opts:   keybase_1.PgpSignOptions{Mode: keybase_1.SignMode(mode)},
+		Opts:   keybase1.PgpSignOptions{Mode: keybase1.SignMode(mode)},
 	}
 	eng := NewPGPSignEngine(arg)
 	if err := RunEngine(eng, ctx); err != nil {

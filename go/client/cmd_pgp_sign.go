@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -55,7 +55,7 @@ func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 type CmdPGPSign struct {
 	UnixFilter
 	msg  string
-	opts keybase_1.PgpSignOptions
+	opts keybase1.PgpSignOptions
 	arg  engine.PGPSignArg
 }
 
@@ -82,11 +82,11 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 	if clr && dtch {
 		err = fmt.Errorf("Can't specify both -c and -d")
 	} else if clr {
-		s.opts.Mode = keybase_1.SignMode_CLEAR
+		s.opts.Mode = keybase1.SignMode_CLEAR
 	} else if dtch {
-		s.opts.Mode = keybase_1.SignMode_DETACHED
+		s.opts.Mode = keybase1.SignMode_DETACHED
 	} else {
-		s.opts.Mode = keybase_1.SignMode_ATTACHED
+		s.opts.Mode = keybase1.SignMode_ATTACHED
 	}
 
 	s.opts.KeyQuery = ctx.String("key")
@@ -99,8 +99,8 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPSign) RunClient() (err error) {
-	var cli keybase_1.PgpClient
-	var snk, src keybase_1.Stream
+	var cli keybase1.PgpClient
+	var snk, src keybase1.Stream
 	protocols := []rpc2.Protocol{
 		NewStreamUiProtocol(),
 		NewSecretUIProtocol(),
@@ -110,7 +110,7 @@ func (s *CmdPGPSign) RunClient() (err error) {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else if snk, src, err = s.ClientFilterOpen(); err != nil {
 	} else {
-		arg := keybase_1.PgpSignArg{Source: src, Sink: snk, Opts: s.opts}
+		arg := keybase1.PgpSignArg{Source: src, Sink: snk, Opts: s.opts}
 		err = cli.PgpSign(arg)
 	}
 	s.Close(err)

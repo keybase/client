@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 type PGPPullEngineArg struct {
@@ -44,7 +44,7 @@ func (s *PGPPullEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{s.listTrackingEngine}
 }
 
-func proofSetFromUserSummary(summary keybase_1.UserSummary) *libkb.ProofSet {
+func proofSetFromUserSummary(summary keybase1.UserSummary) *libkb.ProofSet {
 	// TODO: This logic is kind of duplicated from User.ToOkProofSet(). Clean that up?
 	proofs := []libkb.Proof{
 		libkb.Proof{Key: "keybase", Value: summary.Username},
@@ -67,7 +67,7 @@ func proofSetFromUserSummary(summary keybase_1.UserSummary) *libkb.ProofSet {
 	return libkb.NewProofSet(proofs)
 }
 
-func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase_1.UserSummary, error) {
+func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase1.UserSummary, error) {
 	err := RunEngine(e.listTrackingEngine, ctx)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase_1.UserS
 
 	// Then loop over all the tracked users, keeping track of which expressions
 	// have matched before.
-	matchedSummaries := make(map[string]keybase_1.UserSummary)
+	matchedSummaries := make(map[string]keybase1.UserSummary)
 	assertionsUsed := make(map[string]bool)
 	for _, summary := range allTrackedSummaries {
 		proofSet := proofSetFromUserSummary(summary)
@@ -118,7 +118,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase_1.UserS
 		}
 	}
 
-	matchedList := []keybase_1.UserSummary{}
+	matchedList := []keybase1.UserSummary{}
 	for _, summary := range matchedSummaries {
 		matchedList = append(matchedList, summary)
 	}

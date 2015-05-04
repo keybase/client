@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -62,7 +62,7 @@ func (c *CmdDeviceList) RunClient() error {
 	return nil
 }
 
-func (c *CmdDeviceList) output(devs []keybase_1.Device) {
+func (c *CmdDeviceList) output(devs []keybase1.Device) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 5, 0, 3, ' ', 0)
 	fmt.Fprintf(w, "Name\tType\tID\n")

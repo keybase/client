@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestDoctor(t *testing.T) {
@@ -27,7 +27,7 @@ func (d *docui) LoginSelect(s string, o []string) (string, error) {
 	return s, nil
 }
 
-func (d *docui) DisplayStatus(s keybase_1.DoctorStatus) (bool, error) {
+func (d *docui) DisplayStatus(s keybase1.DoctorStatus) (bool, error) {
 	return true, nil
 }
 

@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -117,7 +117,7 @@ func (c *CmdPGPEncrypt) RunClient() error {
 	if err != nil {
 		return err
 	}
-	opts := keybase_1.PgpEncryptOptions{
+	opts := keybase1.PgpEncryptOptions{
 		Recipients:    c.recipients,
 		NoSign:        !c.sign,
 		NoSelf:        c.noSelf,
@@ -126,7 +126,7 @@ func (c *CmdPGPEncrypt) RunClient() error {
 		LocalOnly:     c.localOnly,
 		ApproveRemote: c.approveRemote,
 	}
-	arg := keybase_1.PgpEncryptArg{Source: src, Sink: snk, Opts: opts}
+	arg := keybase1.PgpEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.PgpEncrypt(arg)
 
 	c.Close(err)

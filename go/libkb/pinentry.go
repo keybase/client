@@ -75,7 +75,7 @@ func (pe *Pinentry) GetTerminalName() error {
 	return nil
 }
 
-func (pe *Pinentry) Get(arg keybase_1.SecretEntryArg) (res *keybase_1.SecretEntryRes, err error) {
+func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
 
 	G.Log.Debug("+ Pinentry::Get()")
 
@@ -174,7 +174,7 @@ func descEncode(s string) string {
 	return s
 }
 
-func (pi *pinentryInstance) Run(arg keybase_1.SecretEntryArg) (res *keybase_1.SecretEntryRes, err error) {
+func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
 
 	pi.Set("SETPROMPT", arg.Prompt, &err)
 	pi.Set("SETDESC", descEncode(arg.Desc), &err)
@@ -199,11 +199,11 @@ func (pi *pinentryInstance) Run(arg keybase_1.SecretEntryArg) (res *keybase_1.Se
 	}
 	line := string(lineb)
 	if strings.HasPrefix(line, "D ") {
-		res = &keybase_1.SecretEntryRes{Text: line[2:]}
+		res = &keybase1.SecretEntryRes{Text: line[2:]}
 	} else if strings.HasPrefix(line, "ERR 83886179 canceled") {
-		res = &keybase_1.SecretEntryRes{Canceled: true}
+		res = &keybase1.SecretEntryRes{Canceled: true}
 	} else if line == "OK" {
-		res = &keybase_1.SecretEntryRes{}
+		res = &keybase1.SecretEntryRes{}
 	} else {
 		err = fmt.Errorf("GETPIN response didn't start with D; got %q", line)
 	}

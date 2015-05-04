@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func ErrToOk(err error) string {
@@ -227,7 +227,7 @@ func UnixToTimeMappingZero(unixTime int64) time.Time {
 	}
 }
 
-func Unquote(data []byte) string { return keybase_1.Unquote(data) }
+func Unquote(data []byte) string { return keybase1.Unquote(data) }
 
 func HexDecodeQuoted(data []byte) ([]byte, error) {
 	return hex.DecodeString(Unquote(data))

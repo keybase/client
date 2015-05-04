@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func TestSearch(t *testing.T) {
@@ -32,8 +32,8 @@ func TestSearch(t *testing.T) {
 		t.Fatalf("Expected at least 2 search results for 'tacovontaco'. Got %d.", len(results))
 	}
 
-	var alice keybase_1.UserSummary
-	var charlie keybase_1.UserSummary
+	var alice keybase1.UserSummary
+	var charlie keybase1.UserSummary
 	for _, summary := range results {
 		if summary.Username == "t_alice" {
 			alice = summary

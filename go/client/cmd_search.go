@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"strings"
@@ -39,7 +39,7 @@ func (c *CmdSearch) RunClient() (err error) {
 		return err
 	}
 
-	results, err := cli.Search(keybase_1.SearchArg{Query: c.query})
+	results, err := cli.Search(keybase1.SearchArg{Query: c.query})
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (c *CmdSearch) Run() error {
 	return c.showResults(eng.GetResults())
 }
 
-func (c *CmdSearch) showResults(results []keybase_1.UserSummary) error {
+func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {
 	if c.json {
 		return c.showJsonResults(results)
 	} else {
@@ -71,7 +71,7 @@ func (c *CmdSearch) showResults(results []keybase_1.UserSummary) error {
 	}
 }
 
-func (c *CmdSearch) showRegularResults(results []keybase_1.UserSummary) error {
+func (c *CmdSearch) showRegularResults(results []keybase1.UserSummary) error {
 	for _, user := range results {
 		fmt.Printf("%s", user.Username)
 		for _, social := range user.Proofs.Social {
@@ -87,7 +87,7 @@ func (c *CmdSearch) showRegularResults(results []keybase_1.UserSummary) error {
 	return nil
 }
 
-func (c *CmdSearch) showJsonResults(results []keybase_1.UserSummary) error {
+func (c *CmdSearch) showJsonResults(results []keybase1.UserSummary) error {
 	output := jsonw.NewArray(len(results))
 	for userIndex, user := range results {
 		userBlob := jsonw.NewDictionary()

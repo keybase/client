@@ -6,7 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // KexCom contains common functions for all kex engines.  It
@@ -70,14 +70,14 @@ func (k *KexCom) next(name kex.MsgName, timeout time.Duration, handler func(*kex
 	return handler(msg)
 }
 
-func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase_1.KexStatusCode) {
+func (k *KexCom) kexStatus(ctx *Context, msg string, code keybase1.KexStatusCode) {
 	// just to be sure...
 	if ctx.LocksmithUI == nil {
 		k.G().Log.Warning("KexCom kexStatus(), ctx.LocksmithUI is nil")
 		return
 	}
 
-	if err := ctx.LocksmithUI.KexStatus(keybase_1.KexStatusArg{Msg: msg, Code: code}); err != nil {
+	if err := ctx.LocksmithUI.KexStatus(keybase1.KexStatusArg{Msg: msg, Code: code}); err != nil {
 		// an error here isn't critical
 		k.G().Log.Debug("send KexStatus error: %s", err)
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -111,11 +111,11 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 	k.poll(m, sec)
 
 	// wait for StartKex() from Y
-	k.kexStatus(ctx, "waiting for StartKex from Y", keybase_1.KexStatusCode_START_WAIT)
+	k.kexStatus(ctx, "waiting for StartKex from Y", keybase1.KexStatusCode_START_WAIT)
 	if err := k.next(kex.StartKexMsg, kex.IntraTimeout, k.handleStart); err != nil {
 		return err
 	}
-	k.kexStatus(ctx, "received StartKex from Y", keybase_1.KexStatusCode_START_RECEIVED)
+	k.kexStatus(ctx, "received StartKex from Y", keybase1.KexStatusCode_START_RECEIVED)
 
 	pair, ok := k.deviceSibkey.(libkb.NaclSigningKeyPair)
 	if !ok {
@@ -123,21 +123,21 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 	}
 	m.Sender = k.deviceID
 	m.Receiver = k.devidY
-	k.kexStatus(ctx, "sending Hello to Y", keybase_1.KexStatusCode_HELLO_SEND)
+	k.kexStatus(ctx, "sending Hello to Y", keybase1.KexStatusCode_HELLO_SEND)
 	if err := k.server.Hello(m, m.Sender, pair.GetKid()); err != nil {
 		return err
 	}
 
 	// wait for PleaseSign() from Y
-	k.kexStatus(ctx, "waiting for PleaseSign from Y", keybase_1.KexStatusCode_PLEASE_SIGN_WAIT)
+	k.kexStatus(ctx, "waiting for PleaseSign from Y", keybase1.KexStatusCode_PLEASE_SIGN_WAIT)
 	if err := k.next(kex.PleaseSignMsg, kex.IntraTimeout, k.handlePleaseSign); err != nil {
 		return err
 	}
-	k.kexStatus(ctx, "received PleaseSign from Y", keybase_1.KexStatusCode_PLEASE_SIGN_RECEIVED)
+	k.kexStatus(ctx, "received PleaseSign from Y", keybase1.KexStatusCode_PLEASE_SIGN_RECEIVED)
 
 	m.Sender = k.deviceID
 	m.Receiver = k.devidY
-	k.kexStatus(ctx, "sending Done to Y", keybase_1.KexStatusCode_DONE_SEND)
+	k.kexStatus(ctx, "sending Done to Y", keybase1.KexStatusCode_DONE_SEND)
 	if err := k.server.Done(m); err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 	G.Log.Debug("KexSib: finished with messages, waiting for receive to end.")
 	k.wg.Wait()
 	G.Log.Debug("KexSib: done.")
-	k.kexStatus(ctx, "kexsib complete on existing device X ", keybase_1.KexStatusCode_END)
+	k.kexStatus(ctx, "kexsib complete on existing device X ", keybase1.KexStatusCode_END)
 	return nil
 }
 

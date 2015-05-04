@@ -51,8 +51,8 @@ func (se *SecretEntry) Init() (err error) {
 	return err
 }
 
-func (se *SecretEntry) Get(arg keybase_1.SecretEntryArg, term_arg *keybase_1.SecretEntryArg) (
-	res *keybase_1.SecretEntryRes, err error) {
+func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, term_arg *keybase1.SecretEntryArg) (
+	res *keybase1.SecretEntryRes, err error) {
 
 	if err = se.Init(); err != nil {
 		return

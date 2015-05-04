@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 // doctor ui rpc protocol
 func NewDoctorUIProtocol() rpc2.Protocol {
-	return keybase_1.DoctorUiProtocol(&DoctorUIServer{G_UI.GetDoctorUI()})
+	return keybase1.DoctorUiProtocol(&DoctorUIServer{G_UI.GetDoctorUI()})
 }
 
 // doctor ui server...translates keybase_1 protocol interface into
@@ -21,15 +21,15 @@ type DoctorUIServer struct {
 	ui libkb.DoctorUI
 }
 
-func (d *DoctorUIServer) LoginSelect(arg keybase_1.LoginSelectArg) (string, error) {
+func (d *DoctorUIServer) LoginSelect(arg keybase1.LoginSelectArg) (string, error) {
 	return d.ui.LoginSelect(arg.CurrentUser, arg.OtherUsers)
 }
 
-func (d *DoctorUIServer) DisplayStatus(arg keybase_1.DisplayStatusArg) (bool, error) {
+func (d *DoctorUIServer) DisplayStatus(arg keybase1.DisplayStatusArg) (bool, error) {
 	return d.ui.DisplayStatus(arg.Status)
 }
 
-func (d *DoctorUIServer) DisplayResult(arg keybase_1.DisplayResultArg) error {
+func (d *DoctorUIServer) DisplayResult(arg keybase1.DisplayResultArg) error {
 	return d.ui.DisplayResult(arg.Message)
 }
 
@@ -59,7 +59,7 @@ func (d DoctorUI) LoginSelect(currentUser string, otherUsers []string) (string, 
 	return selection, nil
 }
 
-func (d DoctorUI) DisplayStatus(status keybase_1.DoctorStatus) (bool, error) {
+func (d DoctorUI) DisplayStatus(status keybase1.DoctorStatus) (bool, error) {
 	if status.WebDevice != nil || len(status.Devices) > 0 {
 		d.parent.Output("All devices:\n")
 		if status.WebDevice != nil {
@@ -73,14 +73,14 @@ func (d DoctorUI) DisplayStatus(status keybase_1.DoctorStatus) (bool, error) {
 		d.parent.Printf("current device: %s\t%s\t[%s]\n", status.CurrentDevice.Name, status.CurrentDevice.Type, status.CurrentDevice.DeviceID)
 	}
 
-	if status.Fix == keybase_1.DoctorFixType_NONE {
+	if status.Fix == keybase1.DoctorFixType_NONE {
 		d.parent.Output("\nNo fix necessary.  This account looks fine.\n\n")
 		return true, nil
 	}
-	if status.Fix == keybase_1.DoctorFixType_ADD_ELDEST_DEVICE {
+	if status.Fix == keybase1.DoctorFixType_ADD_ELDEST_DEVICE {
 		d.parent.Output("\nThere are no devices associated with this user.\n")
 		d.parent.Output("If you proceed, we'll add this device to your account.\n")
-	} else if status.Fix == keybase_1.DoctorFixType_ADD_SIBLING_DEVICE {
+	} else if status.Fix == keybase1.DoctorFixType_ADD_SIBLING_DEVICE {
 		d.parent.Output("\nWe need to add this device to your account.\n")
 	} else {
 		return false, fmt.Errorf("unhandled DoctorFixType: %v", status.Fix)

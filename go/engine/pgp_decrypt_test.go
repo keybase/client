@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 func decengctx(fu *FakeUser) *Context {
@@ -179,7 +179,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	recipient.LoginOrBust(t)
 
 	rtrackUI := &FakeIdentifyUI{
-		Fapr: keybase_1.FinishAndPromptRes{TrackRemote: true},
+		Fapr: keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
 	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: G.UI.GetLogUI()}
 

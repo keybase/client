@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -15,7 +15,7 @@ func NewPGPHandler(xp *rpc2.Transport) *PGPHandler {
 	return &PGPHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *PGPHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
+func (h *PGPHandler) PgpSign(arg keybase1.PgpSignArg) (err error) {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
@@ -25,7 +25,7 @@ func (h *PGPHandler) PgpSign(arg keybase_1.PgpSignArg) (err error) {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *PGPHandler) PgpPull(arg keybase_1.PgpPullArg) error {
+func (h *PGPHandler) PgpPull(arg keybase1.PgpPullArg) error {
 	earg := engine.PGPPullEngineArg{
 		UserAsserts: arg.UserAsserts,
 	}
@@ -36,7 +36,7 @@ func (h *PGPHandler) PgpPull(arg keybase_1.PgpPullArg) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
+func (h *PGPHandler) PgpEncrypt(arg keybase1.PgpEncryptArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
@@ -61,7 +61,7 @@ func (h *PGPHandler) PgpEncrypt(arg keybase_1.PgpEncryptArg) error {
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) (keybase_1.PgpSigVerification, error) {
+func (h *PGPHandler) PgpDecrypt(arg keybase1.PgpDecryptArg) (keybase1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
@@ -83,13 +83,13 @@ func (h *PGPHandler) PgpDecrypt(arg keybase_1.PgpDecryptArg) (keybase_1.PgpSigVe
 	eng := engine.NewPGPDecrypt(earg)
 	err := engine.RunEngine(eng, ctx)
 	if err != nil {
-		return keybase_1.PgpSigVerification{}, err
+		return keybase1.PgpSigVerification{}, err
 	}
 
 	return sigVer(eng.SignatureStatus(), eng.Owner()), nil
 }
 
-func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) (keybase_1.PgpSigVerification, error) {
+func (h *PGPHandler) PgpVerify(arg keybase1.PgpVerifyArg) (keybase1.PgpSigVerification, error) {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli)
 	earg := &engine.PGPVerifyArg{
@@ -109,14 +109,14 @@ func (h *PGPHandler) PgpVerify(arg keybase_1.PgpVerifyArg) (keybase_1.PgpSigVeri
 	eng := engine.NewPGPVerify(earg)
 	err := engine.RunEngine(eng, ctx)
 	if err != nil {
-		return keybase_1.PgpSigVerification{}, err
+		return keybase1.PgpSigVerification{}, err
 	}
 
 	return sigVer(eng.SignatureStatus(), eng.Owner()), nil
 }
 
-func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase_1.PgpSigVerification {
-	var res keybase_1.PgpSigVerification
+func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PgpSigVerification {
+	var res keybase1.PgpSigVerification
 	if ss.IsSigned {
 		res.IsSigned = ss.IsSigned
 		res.Verified = ss.Verified
@@ -134,7 +134,7 @@ func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase_1.PgpSigVerifi
 	return res
 }
 
-func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {
+func (h *PGPHandler) PgpImport(arg keybase1.PgpImportArg) error {
 	ctx := &engine.Context{
 		SecretUI: h.getSecretUI(arg.SessionID),
 		LogUI:    h.getLogUI(arg.SessionID),
@@ -147,7 +147,7 @@ func (h *PGPHandler) PgpImport(arg keybase_1.PgpImportArg) error {
 	return err
 }
 
-func (h *PGPHandler) PgpExport(arg keybase_1.PgpExportArg) (ret []keybase_1.FingerprintAndKey, err error) {
+func (h *PGPHandler) PgpExport(arg keybase1.PgpExportArg) (ret []keybase1.FingerprintAndKey, err error) {
 	ctx := &engine.Context{
 		SecretUI: h.getSecretUI(arg.SessionID),
 		LogUI:    h.getLogUI(arg.SessionID),
@@ -160,7 +160,7 @@ func (h *PGPHandler) PgpExport(arg keybase_1.PgpExportArg) (ret []keybase_1.Fing
 	return
 }
 
-func (h *PGPHandler) PgpKeyGen(arg keybase_1.PgpKeyGenArg) (err error) {
+func (h *PGPHandler) PgpKeyGen(arg keybase1.PgpKeyGenArg) (err error) {
 	earg := engine.ImportPGPKeyImportEngineArg(arg)
 	return h.keygen(earg, true)
 }
@@ -174,7 +174,7 @@ func (h *PGPHandler) keygen(earg engine.PGPKeyImportEngineArg, doInteractive boo
 	return err
 }
 
-func (h *PGPHandler) PgpKeyGenDefault(arg keybase_1.PgpCreateUids) (err error) {
+func (h *PGPHandler) PgpKeyGenDefault(arg keybase1.PgpCreateUids) (err error) {
 	earg := engine.PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
 			Ids:         libkb.ImportPgpIdentities(arg.Ids),
@@ -188,7 +188,7 @@ func (h *PGPHandler) PgpDeletePrimary() (err error) {
 	return libkb.DeletePrimary()
 }
 
-func (h *PGPHandler) PgpSelect(sarg keybase_1.PgpSelectArg) error {
+func (h *PGPHandler) PgpSelect(sarg keybase1.PgpSelectArg) error {
 	sessionID := nextSessionID()
 	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
 	secretui := h.getSecretUI(sessionID)
@@ -203,7 +203,7 @@ func (h *PGPHandler) PgpSelect(sarg keybase_1.PgpSelectArg) error {
 	return engine.RunEngine(gpg, ctx)
 }
 
-func (h *PGPHandler) PgpUpdate(arg keybase_1.PgpUpdateArg) error {
+func (h *PGPHandler) PgpUpdate(arg keybase1.PgpUpdateArg) error {
 	ctx := engine.Context{
 		LogUI: h.getLogUI(arg.SessionID),
 	}

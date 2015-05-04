@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Test login switching between two different users.
@@ -371,23 +371,23 @@ func (l *lockui) PromptDeviceName(dummy int) (string, error) {
 	return "my test device", nil
 }
 
-func (l *lockui) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (l *lockui) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	l.selectSignerCount++
-	res.Action = keybase_1.SelectSignerAction_SIGN
+	res.Action = keybase1.SelectSignerAction_SIGN
 	devid, err := libkb.NewDeviceID()
 	if err != nil {
 		return
 	}
 	sdev := devid.String()
-	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_DEVICE, DeviceID: &sdev}
+	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_DEVICE, DeviceID: &sdev}
 	return
 }
 
-func (l *lockui) DisplaySecretWords(arg keybase_1.DisplaySecretWordsArg) error {
+func (l *lockui) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	return nil
 }
 
-func (l *lockui) KexStatus(arg keybase_1.KexStatusArg) error {
+func (l *lockui) KexStatus(arg keybase1.KexStatusArg) error {
 	return nil
 }
 
@@ -395,9 +395,9 @@ type lockuiPGP struct {
 	*lockui
 }
 
-func (l *lockuiPGP) SelectSigner(arg keybase_1.SelectSignerArg) (res keybase_1.SelectSignerRes, err error) {
+func (l *lockuiPGP) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	l.selectSignerCount++
-	res.Action = keybase_1.SelectSignerAction_SIGN
-	res.Signer = &keybase_1.DeviceSigner{Kind: keybase_1.DeviceSignerKind_PGP}
+	res.Action = keybase1.SelectSignerAction_SIGN
+	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PGP}
 	return
 }

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase_1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // Test login switching between two different users.
@@ -37,8 +37,8 @@ func TestPgpSign(t *testing.T) {
 	earg := PGPSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
 		Source: ioutil.NopCloser(bytes.NewBufferString(msg)),
-		Opts: keybase_1.PgpSignOptions{
-			Mode: keybase_1.SignMode_ATTACHED,
+		Opts: keybase1.PgpSignOptions{
+			Mode: keybase1.SignMode_ATTACHED,
 		},
 	}
 

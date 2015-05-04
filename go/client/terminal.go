@@ -34,7 +34,7 @@ func (t Terminal) GetSize() (int, int) {
 	return t.engine.GetSize()
 }
 
-func (t Terminal) GetSecret(arg *keybase_1.SecretEntryArg) (res *keybase_1.SecretEntryRes, err error) {
+func (t Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
 
 	desc := arg.Desc
 	prompt := arg.Prompt
@@ -55,10 +55,10 @@ func (t Terminal) GetSecret(arg *keybase_1.SecretEntryArg) (res *keybase_1.Secre
 	if err != nil {
 		if err == io.EOF {
 			err = nil
-			res = &keybase_1.SecretEntryRes{Canceled: true}
+			res = &keybase1.SecretEntryRes{Canceled: true}
 		}
 	} else {
-		res = &keybase_1.SecretEntryRes{Text: txt}
+		res = &keybase1.SecretEntryRes{Text: txt}
 	}
 
 	return
