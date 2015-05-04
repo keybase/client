@@ -6,7 +6,7 @@ package engine
 //
 
 import (
-	stderrors "errors"
+	"errors"
 	"os/exec"
 	"strings"
 
@@ -59,47 +59,47 @@ func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.Glob
 	return
 }
 
-func (s *PGPKeyImportEngine) loadMe() (err error) {
-	if s.me = s.arg.Me; s.me != nil {
+func (e *PGPKeyImportEngine) loadMe() (err error) {
+	if e.me = e.arg.Me; e.me != nil {
 		return
 	}
-	s.me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
+	e.me, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	return err
 }
 
-func (s *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
-	gen := s.arg.Gen
+func (e *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
+	gen := e.arg.Gen
 	if err = gen.CreatePgpIDs(); err != nil {
 		return
 	}
-	s.bundle, err = libkb.NewPgpKeyBundle(*gen, ctx.LogUI)
+	e.bundle, err = libkb.NewPgpKeyBundle(*gen, ctx.LogUI)
 	return
 }
 
-func (s *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
-	s.G().Log.Debug("+ PGPKeyImportEngine::saveLKS")
+func (e *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
+	e.G().Log.Debug("+ PGPKeyImportEngine::saveLKS")
 	defer func() {
-		s.G().Log.Debug("- PGPKeyImportEngine::saveLKS -> %v", libkb.ErrToOk(err))
+		e.G().Log.Debug("- PGPKeyImportEngine::saveLKS -> %v", libkb.ErrToOk(err))
 	}()
 
-	lks := s.arg.Lks
+	lks := e.arg.Lks
 	if lks == nil {
-		lks, err = libkb.NewLKSForEncrypt(ctx.SecretUI, s.G())
+		lks, err = libkb.NewLKSForEncrypt(ctx.SecretUI, e.G())
 		if err != nil {
 			return err
 		}
 	}
-	_, err = libkb.WriteLksSKBToKeyring(s.bundle, lks, ctx.LogUI)
+	_, err = libkb.WriteLksSKBToKeyring(e.bundle, lks, ctx.LogUI)
 	return
 }
 
-var ErrKeyGenArgNoDefNoCustom = stderrors.New("invalid args:  NoDefPGPUid set, but no custom PGPUids.")
+var ErrKeyGenArgNoDefNoCustom = errors.New("invalid args:  NoDefPGPUid set, but no custom PGPUids")
 
 func NewPGPKeyImportEngine(arg PGPKeyImportEngineArg) *PGPKeyImportEngine {
 	return &PGPKeyImportEngine{arg: arg, Contextified: libkb.NewContextified(arg.Ctx)}
 }
 
-func (s *PGPKeyImportEngine) Name() string {
+func (e *PGPKeyImportEngine) Name() string {
 	return "PGPKeyImportEngine"
 }
 
@@ -109,185 +109,185 @@ func (e *PGPKeyImportEngine) GetPrereqs() EnginePrereqs {
 	}
 }
 
-func (k *PGPKeyImportEngine) RequiredUIs() []libkb.UIKind {
+func (e *PGPKeyImportEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
 		libkb.SecretUIKind,
 	}
 }
 
-func (s *PGPKeyImportEngine) SubConsumers() []libkb.UIConsumer {
+func (e *PGPKeyImportEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (s *PGPKeyImportEngine) init() (err error) {
-	if s.arg.Gen != nil {
-		err = s.arg.Gen.Init()
+func (e *PGPKeyImportEngine) init() (err error) {
+	if e.arg.Gen != nil {
+		err = e.arg.Gen.Init()
 	}
 	return err
 }
 
-func (s *PGPKeyImportEngine) testExisting() (err error) {
-	return PGPCheckMulti(s.me, s.arg.AllowMulti)
+func (e *PGPKeyImportEngine) testExisting() (err error) {
+	return PGPCheckMulti(e.me, e.arg.AllowMulti)
 }
 
 // checkPregenPrivate makes sure that the pregenerated key is a
 // private key.
-func (s *PGPKeyImportEngine) checkPregenPrivate() error {
-	if s.arg.Pregen == nil {
+func (e *PGPKeyImportEngine) checkPregenPrivate() error {
+	if e.arg.Pregen == nil {
 		return nil
 	}
-	if s.arg.Pregen.HasSecretKey() {
+	if e.arg.Pregen.HasSecretKey() {
 		return nil
 	}
 	return libkb.NoSecretKeyError{}
 }
 
-func (s *PGPKeyImportEngine) Run(ctx *Context) error {
-	s.G().Log.Debug("+ PGPKeyImportEngine::Run")
+func (e *PGPKeyImportEngine) Run(ctx *Context) error {
+	e.G().Log.Debug("+ PGPKeyImportEngine::Run")
 	defer func() {
-		s.G().Log.Debug("- PGPKeyImportEngine::Run")
+		e.G().Log.Debug("- PGPKeyImportEngine::Run")
 	}()
 
-	if err := s.init(); err != nil {
+	if err := e.init(); err != nil {
 		return err
 	}
 
-	if err := s.loadMe(); err != nil {
+	if err := e.loadMe(); err != nil {
 		return err
 	}
 
-	if err := s.checkPregenPrivate(); err != nil {
+	if err := e.checkPregenPrivate(); err != nil {
 		return err
 	}
 
-	if err := s.testExisting(); err != nil {
+	if err := e.testExisting(); err != nil {
 		return err
 	}
 
-	if err := s.loadDelegator(ctx); err != nil {
+	if err := e.loadDelegator(ctx); err != nil {
 		return err
 	}
 
-	if err := s.unlock(ctx); err != nil {
+	if err := e.unlock(ctx); err != nil {
 		return err
 	}
 
-	if err := s.generate(ctx); err != nil {
+	if err := e.generate(ctx); err != nil {
 		return err
 	}
 
-	if err := s.push(ctx); err != nil {
+	if err := e.push(ctx); err != nil {
 		return err
 	}
 
-	if err := s.exportToGPG(ctx); err != nil {
+	if err := e.exportToGPG(ctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
-	if !s.arg.DoExport || s.arg.Pregen != nil {
-		s.G().Log.Debug("| Skipping export to GPG")
+func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
+	if !e.arg.DoExport || e.arg.Pregen != nil {
+		e.G().Log.Debug("| Skipping export to GPG")
 		return
 	}
-	gpg := s.G().GetGpgClient()
+	gpg := e.G().GetGpgClient()
 
 	if _, err := gpg.Configure(); err != nil {
 		if err == exec.ErrNotFound {
-			s.G().Log.Debug("Not saving new key to GPG since no gpg install was found")
+			e.G().Log.Debug("Not saving new key to GPG since no gpg install was found")
 			err = nil
 		}
 		return err
 	}
-	err = gpg.ExportKey(*s.bundle)
+	err = gpg.ExportKey(*e.bundle)
 	if err == nil {
 		ctx.LogUI.Info("Exported new key to the local GPG keychain")
 	}
 	return err
 }
 
-func (s *PGPKeyImportEngine) unlock(ctx *Context) (err error) {
-	s.G().Log.Debug("+ PGPKeyImportEngine::unlock")
+func (e *PGPKeyImportEngine) unlock(ctx *Context) (err error) {
+	e.G().Log.Debug("+ PGPKeyImportEngine::unlock")
 	defer func() {
-		s.G().Log.Debug("- PGPKeyImportEngine::unlock -> %s", libkb.ErrToOk(err))
+		e.G().Log.Debug("- PGPKeyImportEngine::unlock -> %s", libkb.ErrToOk(err))
 	}()
-	if s.arg.Pregen == nil || !s.arg.DoUnlock || !s.arg.Pregen.HasSecretKey() {
-		s.G().Log.Debug("| short circuit unlock function")
+	if e.arg.Pregen == nil || !e.arg.DoUnlock || !e.arg.Pregen.HasSecretKey() {
+		e.G().Log.Debug("| short circuit unlock function")
 	} else {
-		err = s.arg.Pregen.Unlock("import into private keychain", ctx.SecretUI)
+		err = e.arg.Pregen.Unlock("import into private keychain", ctx.SecretUI)
 	}
 	return
 
 }
 
-func (s *PGPKeyImportEngine) loadDelegator(ctx *Context) (err error) {
+func (e *PGPKeyImportEngine) loadDelegator(ctx *Context) (err error) {
 
-	s.del = &libkb.Delegator{
-		ExistingKey: s.arg.SigningKey,
-		Me:          s.me,
+	e.del = &libkb.Delegator{
+		ExistingKey: e.arg.SigningKey,
+		Me:          e.me,
 		Expire:      libkb.KEY_EXPIRE_IN,
 		Sibkey:      true,
 	}
 
-	return s.del.LoadSigningKey(ctx.SecretUI)
+	return e.del.LoadSigningKey(ctx.SecretUI)
 }
 
-func (s *PGPKeyImportEngine) generate(ctx *Context) (err error) {
+func (e *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 
-	s.G().Log.Debug("+ PGP::Generate")
+	e.G().Log.Debug("+ PGP::Generate")
 	defer func() {
-		s.G().Log.Debug("- PGP::Generate -> %s", libkb.ErrToOk(err))
+		e.G().Log.Debug("- PGP::Generate -> %s", libkb.ErrToOk(err))
 	}()
 
-	s.G().Log.Debug("| GenerateKey")
-	if s.arg.Pregen != nil {
-		s.bundle = s.arg.Pregen
-	} else if s.arg.Gen == nil {
+	e.G().Log.Debug("| GenerateKey")
+	if e.arg.Pregen != nil {
+		e.bundle = e.arg.Pregen
+	} else if e.arg.Gen == nil {
 		err = libkb.InternalError{Msg: "PGPKeyImportEngine: need either Gen or Pregen"}
 		return
-	} else if err = s.generateKey(ctx); err != nil {
+	} else if err = e.generateKey(ctx); err != nil {
 		return
 	}
 
-	s.G().Log.Debug("| WriteKey (hasSecret = %v)", s.bundle.HasSecretKey())
-	if s.arg.NoSave || !s.bundle.HasSecretKey() {
-	} else if err = s.saveLKS(ctx); err != nil {
+	e.G().Log.Debug("| WriteKey (hasSecret = %v)", e.bundle.HasSecretKey())
+	if e.arg.NoSave || !e.bundle.HasSecretKey() {
+	} else if err = e.saveLKS(ctx); err != nil {
 		return
 	}
 
-	if !s.arg.PushSecret {
-	} else if err = s.prepareSecretPush(ctx); err != nil {
+	if !e.arg.PushSecret {
+	} else if err = e.prepareSecretPush(ctx); err != nil {
 		return
 	}
 	return
 
 }
 
-func (s *PGPKeyImportEngine) prepareSecretPush(ctx *Context) (err error) {
+func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) (err error) {
 	var tsec *triplesec.Cipher
 	var skb *libkb.SKB
-	if tsec, err = s.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI); err != nil {
-	} else if skb, err = s.bundle.ToSKB(tsec); err != nil {
+	if tsec, err = e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI); err != nil {
+	} else if skb, err = e.bundle.ToSKB(tsec); err != nil {
 	} else {
-		s.epk, err = skb.ArmoredEncode()
+		e.epk, err = skb.ArmoredEncode()
 	}
 	return
 }
 
-func (s *PGPKeyImportEngine) push(ctx *Context) (err error) {
-	s.G().Log.Debug("+ PGP::Push")
-	s.del.NewKey = s.bundle
-	s.del.EncodedPrivateKey = s.epk
-	if err = s.del.Run(); err != nil {
+func (e *PGPKeyImportEngine) push(ctx *Context) (err error) {
+	e.G().Log.Debug("+ PGP::Push")
+	e.del.NewKey = e.bundle
+	e.del.EncodedPrivateKey = e.epk
+	if err = e.del.Run(); err != nil {
 		return err
 	}
-	s.G().Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
+	e.G().Log.Debug("- PGP::Push -> %s", libkb.ErrToOk(err))
 
 	ctx.LogUI.Info("Generated and pushed new PGP key:")
-	d := s.bundle.VerboseDescription()
+	d := e.bundle.VerboseDescription()
 	for _, line := range strings.Split(d, "\n") {
 		ctx.LogUI.Info("  %s", line)
 	}

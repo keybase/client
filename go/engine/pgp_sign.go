@@ -38,7 +38,7 @@ func (p *PGPSignEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (s *PGPSignEngine) SubConsumers() []libkb.UIConsumer {
+func (p *PGPSignEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 

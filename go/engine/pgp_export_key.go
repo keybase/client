@@ -17,23 +17,23 @@ type PGPKeyExportEngine struct {
 	me  *libkb.User
 }
 
-func (p *PGPKeyExportEngine) GetPrereqs() EnginePrereqs {
+func (e *PGPKeyExportEngine) GetPrereqs() EnginePrereqs {
 	return EnginePrereqs{
 		Session: true,
 	}
 }
 
-func (p *PGPKeyExportEngine) Name() string {
+func (e *PGPKeyExportEngine) Name() string {
 	return "PGPKeyExportEngine"
 }
 
-func (p *PGPKeyExportEngine) RequiredUIs() []libkb.UIKind {
+func (e *PGPKeyExportEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
 	}
 }
 
-func (s *PGPKeyExportEngine) SubConsumers() []libkb.UIConsumer {
+func (e *PGPKeyExportEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 

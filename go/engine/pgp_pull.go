@@ -24,7 +24,7 @@ func NewPGPPullEngine(arg *PGPPullEngineArg) *PGPPullEngine {
 	return &eng
 }
 
-func (s *PGPPullEngine) Name() string {
+func (e *PGPPullEngine) Name() string {
 	return "PGPPull"
 }
 
@@ -34,14 +34,14 @@ func (e *PGPPullEngine) GetPrereqs() EnginePrereqs {
 	}
 }
 
-func (k *PGPPullEngine) RequiredUIs() []libkb.UIKind {
+func (e *PGPPullEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
 	}
 }
 
-func (s *PGPPullEngine) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{s.listTrackingEngine}
+func (e *PGPPullEngine) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{e.listTrackingEngine}
 }
 
 func proofSetFromUserSummary(summary keybase1.UserSummary) *libkb.ProofSet {

@@ -40,15 +40,15 @@ func NewListTrackingEngine(arg *ListTrackingEngineArg) *ListTrackingEngine {
 	return &ListTrackingEngine{arg: arg}
 }
 
-func (s *ListTrackingEngine) Name() string {
+func (e *ListTrackingEngine) Name() string {
 	return "ListTracking"
 }
 
 func (e *ListTrackingEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
-func (k *ListTrackingEngine) RequiredUIs() []libkb.UIKind { return []libkb.UIKind{} }
+func (e *ListTrackingEngine) RequiredUIs() []libkb.UIKind { return []libkb.UIKind{} }
 
-func (s *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
+func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
 func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 	arg := libkb.LoadUserArg{Self: true}
@@ -69,7 +69,7 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 	sort.Sort(trackList)
 
 	if e.arg.Json {
-		err = e.runJson(trackList, e.arg.Verbose)
+		err = e.runJSON(trackList, e.arg.Verbose)
 	} else {
 		err = e.runTable(trackList)
 	}
@@ -159,12 +159,12 @@ func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []ke
 
 func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 	for _, link := range trackList {
-		Uid, _ := link.GetTrackedUid()
+		uid, _ := link.GetTrackedUid()
 		entry := keybase1.UserSummary{
 			Username:  link.ToDisplayString(),
 			SigId:     link.GetSigId().ToDisplayString(true),
 			TrackTime: link.GetCTime().Unix(),
-			Uid:       keybase1.UID(*Uid),
+			Uid:       keybase1.UID(*uid),
 		}
 		entry.Proofs.PublicKeys = e.linkPGPKeys(link)
 		entry.Proofs.Social = e.linkSocialProofs(link)
@@ -174,7 +174,7 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) (err error) {
 	return
 }
 
-func (e *ListTrackingEngine) runJson(trackList TrackList, verbose bool) (err error) {
+func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) (err error) {
 	tmp := make([]*jsonw.Wrapper, 0, 1)
 	for _, link := range trackList {
 		var rec *jsonw.Wrapper
@@ -234,6 +234,6 @@ func (e *ListTrackingEngine) TableResult() []keybase1.UserSummary {
 	return e.tableResult
 }
 
-func (e *ListTrackingEngine) JsonResult() string {
+func (e *ListTrackingEngine) JSONResult() string {
 	return e.jsonResult
 }

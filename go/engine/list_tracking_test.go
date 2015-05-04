@@ -66,7 +66,7 @@ func TestListTrackingJSON(t *testing.T) {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
 
-	jw, err := jsonw.Unmarshal([]byte(eng.JsonResult()))
+	jw, err := jsonw.Unmarshal([]byte(eng.JSONResult()))
 	if err != nil {
 		t.Fatal(err)
 	}

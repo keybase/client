@@ -80,7 +80,7 @@ func (h *UserHandler) ListTrackingJson(arg keybase1.ListTrackingJsonArg) (res st
 		Verbose: arg.Verbose,
 	})
 	err = engine.RunEngine(eng, &engine.Context{})
-	res = eng.JsonResult()
+	res = eng.JSONResult()
 	return
 }
 

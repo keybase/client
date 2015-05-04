@@ -25,7 +25,7 @@ func NewIDEngine(arg *IDEngineArg) *IDEngine {
 	return &IDEngine{arg: arg}
 }
 
-func (s *IDEngine) Name() string {
+func (e *IDEngine) Name() string {
 	return "Id"
 }
 
@@ -33,14 +33,14 @@ func (e *IDEngine) GetPrereqs() EnginePrereqs {
 	return EnginePrereqs{Session: e.arg.TrackStatement}
 }
 
-func (k *IDEngine) RequiredUIs() []libkb.UIKind {
+func (e *IDEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.IdentifyUIKind,
 		libkb.LogUIKind,
 	}
 }
 
-func (s *IDEngine) SubConsumers() []libkb.UIConsumer {
+func (e *IDEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewIdentify(nil),
 	}

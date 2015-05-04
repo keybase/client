@@ -133,7 +133,7 @@ func (s *CmdListTracking) Run() (err error) {
 	}
 
 	if s.json {
-		err = DisplayJSON(eng.JsonResult())
+		err = DisplayJSON(eng.JSONResult())
 	} else {
 		err = DisplayTable(eng.TableResult(), s.verbose, s.headers)
 	}
