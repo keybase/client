@@ -1,10 +1,11 @@
 package client
 
 import (
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"os"
 )
 
 type CmdCert struct {
@@ -33,7 +34,7 @@ func NewCmdCert(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdCert) GetUsage() libkb.Usage {
+func (c *CmdCert) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: false,
 		API:    false,

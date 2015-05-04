@@ -2,11 +2,12 @@ package client
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
-	"time"
 )
 
 func NewCmdCtlRestart(cl *libcmdline.CommandLine) cli.Command {
@@ -46,6 +47,6 @@ func (s *CmdCtlRestart) Run() error {
 	return fmt.Errorf("Can't run `ctl stop` in standalone mode")
 }
 
-func (v *CmdCtlRestart) GetUsage() libkb.Usage {
+func (s *CmdCtlRestart) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }

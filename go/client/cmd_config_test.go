@@ -1,9 +1,10 @@
 package client
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"io/ioutil"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func TestLocation(t *testing.T) {
@@ -153,9 +154,9 @@ func TestSetBool(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetBoolAtPath(key); !is_set || ret != true {
-			t.Errorf("Couldn't read boolean after setting; ret=%t, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetBoolAtPath(key); !isSet || ret != true {
+			t.Errorf("Couldn't read boolean after setting; ret=%t, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -168,9 +169,9 @@ func TestSetInt(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetIntAtPath(key); !is_set || ret != 1 {
-			t.Errorf("Couldn't read int after setting; ret=%d, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetIntAtPath(key); !isSet || ret != 1 {
+			t.Errorf("Couldn't read int after setting; ret=%d, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -183,9 +184,9 @@ func TestSetString(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -198,9 +199,9 @@ func TestSetStringAtLongPath(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -213,9 +214,9 @@ func TestSetStringInExisting(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -225,9 +226,9 @@ func TestSetStringInExisting(t *testing.T) {
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", config.GetConfigFileName())
 	}
-	if ret, is_set := cf.GetStringAtPath("aaa.xxx"); !is_set || ret != "yyy" {
-		t.Errorf("Couldn't read old string after setting; ret=%s, is_set=%t",
-			ret, is_set)
+	if ret, isSet := cf.GetStringAtPath("aaa.xxx"); !isSet || ret != "yyy" {
+		t.Errorf("Couldn't read old string after setting; ret=%s, isSet=%t",
+			ret, isSet)
 	}
 }
 
@@ -237,9 +238,9 @@ func TestSetStringOverwrite(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -252,9 +253,9 @@ func TestSetStringLongOverwrite(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -267,9 +268,9 @@ func TestSetStringShortOverwrite(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -282,7 +283,7 @@ func TestSetNull(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if is_set := cf.GetNullAtPath(key); !is_set {
+		if isSet := cf.GetNullAtPath(key); !isSet {
 			t.Errorf("Couldn't read null after setting")
 		}
 	}
@@ -296,9 +297,9 @@ func TestSetEmptyString(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -311,9 +312,9 @@ func TestOverwriteNull(t *testing.T) {
 	defer config.CleanTest()
 
 	checker := func(cf libkb.JsonConfigFile, key string) {
-		if ret, is_set := cf.GetStringAtPath(key); !is_set || ret != "blah" {
-			t.Errorf("Couldn't read string after setting; ret=%s, is_set=%t",
-				ret, is_set)
+		if ret, isSet := cf.GetStringAtPath(key); !isSet || ret != "blah" {
+			t.Errorf("Couldn't read string after setting; ret=%s, isSet=%t",
+				ret, isSet)
 		}
 	}
 
@@ -343,12 +344,12 @@ func TestClear(t *testing.T) {
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", fn)
 	}
-	if ret, is_set := cf.GetStringAtPath("c"); is_set {
-		t.Errorf("Read string after clearing; ret=%s, is_set=%t", ret, is_set)
+	if ret, isSet := cf.GetStringAtPath("c"); isSet {
+		t.Errorf("Read string after clearing; ret=%s, isSet=%t", ret, isSet)
 	}
 	// a should still be there
-	if ret, is_set := cf.GetStringAtPath("a"); !is_set {
+	if ret, isSet := cf.GetStringAtPath("a"); !isSet {
 		t.Errorf("Couldn't read string after clearing other string; "+
-			"ret=%s, is_set=%t", ret, is_set)
+			"ret=%s, isSet=%t", ret, isSet)
 	}
 }

@@ -56,7 +56,7 @@ func NewCmdDb(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func (v *CmdDbNuke) GetUsage() libkb.Usage {
+func (c *CmdDbNuke) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

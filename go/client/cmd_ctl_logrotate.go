@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -39,6 +40,6 @@ func (s *CmdCtlLogRotate) Run() error {
 	return fmt.Errorf("Can't run `ctl log-rotate` in standalone mode")
 }
 
-func (v *CmdCtlLogRotate) GetUsage() libkb.Usage {
+func (s *CmdCtlLogRotate) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }

@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -33,6 +34,6 @@ func (s *CmdCtlStart) Run() error {
 	return fmt.Errorf("Can't run `ctl start` in standalone mode")
 }
 
-func (v *CmdCtlStart) GetUsage() libkb.Usage {
+func (s *CmdCtlStart) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }
