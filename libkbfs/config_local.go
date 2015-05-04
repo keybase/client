@@ -183,3 +183,7 @@ func (c *ConfigLocal) SetNotifier(n Notifier) {
 func (c *ConfigLocal) DataVersion() int {
 	return 0
 }
+
+func (c *ConfigLocal) ReqsBufSize() int {
+	return 20
+}

@@ -4,8 +4,8 @@
 package libkbfs
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	fmt "fmt"
+	gomock "code.google.com/p/gomock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	time "time"
 )
@@ -1753,4 +1753,14 @@ func (_m *MockConfig) DataVersion() int {
 
 func (_mr *_MockConfigRecorder) DataVersion() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
+}
+
+func (_m *MockConfig) ReqsBufSize() int {
+	ret := _m.ctrl.Call(_m, "ReqsBufSize")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) ReqsBufSize() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReqsBufSize")
 }
