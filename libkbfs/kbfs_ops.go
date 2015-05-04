@@ -5,22 +5,27 @@ import (
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/util"
 )
 
 // KBFSOpsStandard implements the KBFS interface, and is go-routine
 // safe by using per-top-level-directory read-write locks
 type KBFSOpsStandard struct {
-	config   Config
-	dirLocks *DirLocks
-	heads    map[DirId]MDId // temporary until state machine is ready
+	config     Config
+	dirRWChans *DirRWChannels
+	heads      map[DirId]MDId // temporary until state machine is ready
 }
 
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	return &KBFSOpsStandard{
-		config:   config,
-		dirLocks: NewDirLocks(config),
-		heads:    make(map[DirId]MDId),
+		config:     config,
+		dirRWChans: NewDirRWChannels(config),
+		heads:      make(map[DirId]MDId),
 	}
+}
+
+func (fs *KBFSOpsStandard) Shutdown() {
+	fs.dirRWChans.Shutdown()
 }
 
 func (fs *KBFSOpsStandard) GetFavDirs() ([]DirId, error) {
@@ -28,7 +33,7 @@ func (fs *KBFSOpsStandard) GetFavDirs() ([]DirId, error) {
 	return mdops.GetFavorites()
 }
 
-func (fs *KBFSOpsStandard) getMDLocked(dir Path) (*RootMetadata, error) {
+func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
 	ver := fs.config.DataVersion()
 	if len(dir.Path) > 0 {
 		ver = dir.TailPointer().GetVer()
@@ -58,8 +63,9 @@ func (fs *KBFSOpsStandard) getMDLocked(dir Path) (*RootMetadata, error) {
 	}
 }
 
-func (fs *KBFSOpsStandard) getMDForReadLocked(dir Path) (*RootMetadata, error) {
-	md, err := fs.getMDLocked(dir)
+func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
+	*RootMetadata, error) {
+	md, err := fs.getMDInChannel(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +80,9 @@ func (fs *KBFSOpsStandard) getMDForReadLocked(dir Path) (*RootMetadata, error) {
 	return md, nil
 }
 
-func (fs *KBFSOpsStandard) getMDForWriteLocked(dir Path) (
+func (fs *KBFSOpsStandard) getMDForWriteInChannel(dir Path) (
 	*RootMetadata, error) {
-	md, err := fs.getMDLocked(dir)
+	md, err := fs.getMDInChannel(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +97,7 @@ func (fs *KBFSOpsStandard) getMDForWriteLocked(dir Path) (
 	return md, nil
 }
 
-func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
+func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	// create a dblock since one doesn't exist yet
 	user, err := fs.config.KBPKI().GetLoggedInUser()
 	if err != nil {
@@ -165,18 +171,32 @@ func (fs *KBFSOpsStandard) initMDLocked(md *RootMetadata) error {
 	return nil
 }
 
+type errChan chan error
+
+func (fs *KBFSOpsStandard) getChans(id DirId) (
+	rwchan *util.RWChannel, errchan errChan) {
+	rwchan = fs.dirRWChans.GetDirChan(id)
+	// Use this channel to receive the errors for each
+	// read/write request.  In the cases where other return values are
+	// needed, the closure can fill in the named return values of the
+	// calling method directly.  By the time a receive on this channel
+	// returns, those writes are guaranteed to be visible.  See
+	// https://golang.org/ref/mem#tmp_7.
+	errchan = make(errChan)
+	return
+}
+
 func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 	*RootMetadata, error) {
 	// Do GetAtHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	if md, err := mdops.GetAtHandle(dirHandle); err == nil {
-		// IsDir defaults to false, so if it was set to true then MD
+		// Type defaults to File, so if it was set to Dir then MD
 		// already exists
 		if md.data.Dir.Type != Dir {
-			lock := fs.dirLocks.GetDirLock(md.Id)
-			lock.Lock()
-			defer lock.Unlock()
-			err = fs.initMDLocked(md)
+			rwchan, errchan := fs.getChans(md.Id)
+			rwchan.QueueReadReq(func() { errchan <- fs.initMDInChannel(md) })
+			err = <-errchan
 		}
 		return md, err
 	} else {
@@ -184,36 +204,36 @@ func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 	}
 }
 
-func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (*RootMetadata, error) {
-	lock := fs.dirLocks.GetDirLock(dir)
-	lock.RLock()
-
+func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
+	rwchan, errchan := fs.getChans(dir)
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
-	md, err := fs.getMDLocked(Path{TopDir: dir})
+	rwchan.QueueReadReq(func() {
+		md, err = fs.getMDInChannel(Path{TopDir: dir})
+		errchan <- err
+	})
+	<-errchan
 	// Type defaults to File, so if it was set to Dir then MD already exists
 	if err != nil || md.data.Dir.Type == Dir {
-		lock.RUnlock()
-		return md, err
+		return
 	}
 
-	// lock for writing now
-	lock.RUnlock()
-	lock.Lock()
-	defer lock.Unlock()
-
-	// refetch just in case
-	md, err = fs.getMDForWriteLocked(Path{TopDir: dir})
-	if err != nil || md.data.Dir.Type == Dir {
-		return md, err
-	}
-
-	return md, fs.initMDLocked(md)
+	rwchan.QueueWriteReq(func() {
+		// refetch just in case
+		md, err = fs.getMDForWriteInChannel(Path{TopDir: dir})
+		if err != nil || md.data.Dir.Type == Dir {
+			errchan <- err
+		} else {
+			errchan <- fs.initMDInChannel(md)
+		}
+	})
+	<-errchan
+	return
 }
 
 type makeNewBlock func() Block
 
-func (fs *KBFSOpsStandard) getBlockLocked(
+func (fs *KBFSOpsStandard) getBlockInChannel(
 	dir Path, id BlockId, newBlock makeNewBlock) (
 	Block, error) {
 	ver := dir.TailPointer().GetVer()
@@ -228,7 +248,7 @@ func (fs *KBFSOpsStandard) getBlockLocked(
 		// fetch the block, and add to cache
 		bops := fs.config.BlockOps()
 		block := newBlock()
-		if md, err := fs.getMDLocked(dir); err != nil {
+		if md, err := fs.getMDInChannel(dir); err != nil {
 			return nil, err
 		} else if k, err :=
 			fs.config.KeyManager().GetSecretBlockKey(dir, id, md); err != nil {
@@ -244,15 +264,15 @@ func (fs *KBFSOpsStandard) getBlockLocked(
 	}
 }
 
-func (fs *KBFSOpsStandard) getDirLocked(dir Path, forWriting bool) (
+func (fs *KBFSOpsStandard) getDirInChannel(dir Path, forWriting bool) (
 	*DirBlock, error) {
-	if _, err := fs.getMDForReadLocked(dir); err != nil {
+	if _, err := fs.getMDForReadInChannel(dir); err != nil {
 		return nil, err
 	}
 
 	// get the directory for the last element in the path
 	id := dir.TailPointer().Id
-	if block, err := fs.getBlockLocked(dir, id, NewDirBlock); err == nil {
+	if block, err := fs.getBlockInChannel(dir, id, NewDirBlock); err == nil {
 		if dblock, ok := block.(*DirBlock); ok {
 			if forWriting && !fs.config.BlockCache().IsDirty(id) {
 				// copy the block if it's for writing
@@ -273,15 +293,15 @@ func (fs *KBFSOpsStandard) getDirLocked(dir Path, forWriting bool) (
 	}
 }
 
-func (fs *KBFSOpsStandard) getFileLocked(dir Path, forWriting bool) (
+func (fs *KBFSOpsStandard) getFileInChannel(dir Path, forWriting bool) (
 	*FileBlock, error) {
-	if _, err := fs.getMDForReadLocked(dir); err != nil {
+	if _, err := fs.getMDForReadInChannel(dir); err != nil {
 		return nil, err
 	}
 
 	// get the directory for the last element in the path
 	id := dir.TailPointer().Id
-	if block, err := fs.getBlockLocked(dir, id, NewFileBlock); err == nil {
+	if block, err := fs.getBlockInChannel(dir, id, NewFileBlock); err == nil {
 		if fblock, ok := block.(*FileBlock); ok {
 			if forWriting && !fs.config.BlockCache().IsDirty(id) {
 				// copy the block if it's for writing
@@ -298,12 +318,14 @@ func (fs *KBFSOpsStandard) getFileLocked(dir Path, forWriting bool) (
 	}
 }
 
-func (fs *KBFSOpsStandard) GetDir(dir Path) (*DirBlock, error) {
-	lock := fs.dirLocks.GetDirLock(dir.TopDir)
-	lock.RLock()
-	defer lock.RUnlock()
-
-	return fs.getDirLocked(dir, false)
+func (fs *KBFSOpsStandard) GetDir(dir Path) (block *DirBlock, err error) {
+	rwchan, errchan := fs.getChans(dir.TopDir)
+	rwchan.QueueReadReq(func() {
+		block, err = fs.getDirInChannel(dir, false)
+		errchan <- err
+	})
+	<-errchan
+	return
 }
 
 var zeroId BlockId
@@ -388,14 +410,14 @@ func (fs *KBFSOpsStandard) unembedBlockChanges(bps *blockPutState,
 // TODO: deal with multiple nodes for indirect blocks
 //
 // entryType must not by Sym.
-func (fs *KBFSOpsStandard) syncBlockLocked(
+func (fs *KBFSOpsStandard) syncBlockInChannel(
 	newBlock Block, dir Path, name string, entryType EntryType,
 	mtime bool, ctime bool, stopAt BlockId) (Path, DirEntry, error) {
 	user, err := fs.config.KBPKI().GetLoggedInUser()
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
-	md, err := fs.getMDLocked(dir)
+	md, err := fs.getMDInChannel(dir)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -413,7 +435,8 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 	refPath := *dir.ChildPathNoPtr(name)
 	var newDe DirEntry
 	for len(newPath.Path) < len(dir.Path)+1 {
-		plainSize, blockPtr, err := fs.readyBlock(currBlock, bps, md, encryptKey, user)
+		plainSize, blockPtr, err :=
+			fs.readyBlock(currBlock, bps, md, encryptKey, user)
 		if err != nil {
 			return Path{}, DirEntry{}, err
 		}
@@ -432,7 +455,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			md.PrevRoot = fs.heads[dir.TopDir]
 		} else {
 			prevDir := Path{dir.TopDir, dir.Path[:prevIdx+1]}
-			prevDblock, err = fs.getDirLocked(prevDir, true)
+			prevDblock, err = fs.getDirInChannel(prevDir, true)
 			if err != nil {
 				return Path{}, DirEntry{}, err
 			}
@@ -442,7 +465,7 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 			// happen the first time around).
 			//
 			// TODO: Pull the creation out of here and
-			// into createEntry().
+			// into createEntryInChannel().
 			var ok bool
 			if de, ok = prevDblock.Children[currName]; !ok {
 				// If this isn't the first time
@@ -565,19 +588,15 @@ func (fs *KBFSOpsStandard) syncBlockLocked(
 }
 
 // entryType must not by Sym.
-func (fs *KBFSOpsStandard) createEntry(
+func (fs *KBFSOpsStandard) createEntryInChannel(
 	dir Path, name string, entryType EntryType) (Path, DirEntry, error) {
-	lock := fs.dirLocks.GetDirLock(dir.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
 	// verify we have permission to write
-	md, err := fs.getMDForWriteLocked(dir)
+	md, err := fs.getMDForWriteInChannel(dir)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
 
-	dblock, err := fs.getDirLocked(dir, true)
+	dblock, err := fs.getDirInChannel(dir, true)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -608,7 +627,7 @@ func (fs *KBFSOpsStandard) createEntry(
 
 	// the parent's mtime/ctime also need to be updated
 	if len(dir.Path) > 1 {
-		if pblock, err := fs.getDirLocked(*dir.ParentPath(), true); err == nil {
+		if pblock, err := fs.getDirInChannel(*dir.ParentPath(), true); err == nil {
 			parentDe := pblock.Children[dir.TailName()]
 			parentDe.Mtime = time.Now().UnixNano()
 			parentDe.Ctime = time.Now().UnixNano()
@@ -622,38 +641,46 @@ func (fs *KBFSOpsStandard) createEntry(
 		md.data.Dir.Ctime = time.Now().UnixNano()
 	}
 
-	return fs.syncBlockLocked(newBlock, dir, name, entryType,
+	return fs.syncBlockInChannel(newBlock, dir, name, entryType,
 		true, true, zeroId)
 }
 
 func (fs *KBFSOpsStandard) CreateDir(dir Path, path string) (
-	Path, DirEntry, error) {
-	return fs.createEntry(dir, path, Dir)
+	p Path, de DirEntry, err error) {
+	rwchan, errchan := fs.getChans(dir.TopDir)
+	rwchan.QueueWriteReq(func() {
+		p, de, err = fs.createEntryInChannel(dir, path, Dir)
+		errchan <- err
+	})
+	<-errchan
+	return
 }
 
 func (fs *KBFSOpsStandard) CreateFile(dir Path, path string, isExec bool) (
-	Path, DirEntry, error) {
+	p Path, de DirEntry, err error) {
 	var entryType EntryType
 	if isExec {
 		entryType = Exec
 	} else {
 		entryType = File
 	}
-	return fs.createEntry(dir, path, entryType)
+	rwchan, errchan := fs.getChans(dir.TopDir)
+	rwchan.QueueWriteReq(func() {
+		p, de, err = fs.createEntryInChannel(dir, path, entryType)
+		errchan <- err
+	})
+	<-errchan
+	return
 }
 
-func (fs *KBFSOpsStandard) CreateLink(
+func (fs *KBFSOpsStandard) createLinkInChannel(
 	dir Path, fromPath string, toPath string) (Path, DirEntry, error) {
-	lock := fs.dirLocks.GetDirLock(dir.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteLocked(dir); err != nil {
+	if _, err := fs.getMDForWriteInChannel(dir); err != nil {
 		return Path{}, DirEntry{}, err
 	}
 
-	dblock, err := fs.getDirLocked(dir, true)
+	dblock, err := fs.getDirInChannel(dir, true)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -674,22 +701,33 @@ func (fs *KBFSOpsStandard) CreateLink(
 		Ctime:   time.Now().UnixNano(),
 	}
 
-	newPath, _, err := fs.syncBlockLocked(
+	newPath, _, err := fs.syncBlockInChannel(
 		dblock, *dir.ParentPath(), dir.TailName(), Dir,
 		true, true, zeroId)
 	return newPath, dblock.Children[fromPath], err
 }
 
-func (fs *KBFSOpsStandard) removeEntryLocked(path Path) (Path, error) {
+func (fs *KBFSOpsStandard) CreateLink(
+	dir Path, fromPath string, toPath string) (p Path, de DirEntry, err error) {
+	rwchan, errchan := fs.getChans(dir.TopDir)
+	rwchan.QueueWriteReq(func() {
+		p, de, err = fs.createLinkInChannel(dir, fromPath, toPath)
+		errchan <- err
+	})
+	<-errchan
+	return
+}
+
+func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 	parentPath := *path.ParentPath()
 	name := path.TailName()
 	// verify we have permission to write
-	md, err := fs.getMDForWriteLocked(parentPath)
+	md, err := fs.getMDForWriteInChannel(parentPath)
 	if err != nil {
 		return Path{}, err
 	}
 
-	pblock, err := fs.getDirLocked(parentPath, true)
+	pblock, err := fs.getDirInChannel(parentPath, true)
 	if err != nil {
 		return Path{}, err
 	}
@@ -706,7 +744,7 @@ func (fs *KBFSOpsStandard) removeEntryLocked(path Path) (Path, error) {
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here
 	if de.Type != Dir {
-		block, err := fs.getBlockLocked(path, de.Id, NewFileBlock)
+		block, err := fs.getBlockInChannel(path, de.Id, NewFileBlock)
 		if err != nil {
 			return Path{}, &NoSuchBlockError{de.Id}
 		}
@@ -725,56 +763,53 @@ func (fs *KBFSOpsStandard) removeEntryLocked(path Path) (Path, error) {
 	delete(pblock.Children, name)
 
 	// sync the parent directory
-	newPath, _, err := fs.syncBlockLocked(
+	newPath, _, err := fs.syncBlockInChannel(
 		pblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, true, true, zeroId)
 	return newPath, err
 }
 
-func (fs *KBFSOpsStandard) RemoveDir(dir Path) (Path, error) {
-	lock := fs.dirLocks.GetDirLock(dir.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
-	// check for children of the directory, if we can
-	dblock, err := fs.getDirLocked(dir, false)
-	if err == nil {
-		if len(dblock.Children) > 0 {
-			return Path{}, &DirNotEmptyError{dir.TailName()}
+func (fs *KBFSOpsStandard) RemoveDir(dir Path) (p Path, err error) {
+	rwchan, errchan := fs.getChans(dir.TopDir)
+	rwchan.QueueWriteReq(func() {
+		// check for children of the directory, if we can
+		var dblock *DirBlock
+		dblock, err = fs.getDirInChannel(dir, false)
+		if err == nil {
+			if len(dblock.Children) > 0 {
+				err = &DirNotEmptyError{dir.TailName()}
+				errchan <- err
+				return
+			}
 		}
-	}
 
-	return fs.removeEntryLocked(dir)
+		p, err = fs.removeEntryInChannel(dir)
+		errchan <- err
+	})
+	<-errchan
+	return
 }
 
-func (fs *KBFSOpsStandard) RemoveEntry(file Path) (Path, error) {
-	lock := fs.dirLocks.GetDirLock(file.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
-	return fs.removeEntryLocked(file)
+func (fs *KBFSOpsStandard) RemoveEntry(file Path) (p Path, err error) {
+	rwchan, errchan := fs.getChans(file.TopDir)
+	rwchan.QueueWriteReq(func() {
+		p, err = fs.removeEntryInChannel(file)
+		errchan <- err
+	})
+	<-errchan
+	return
 }
 
-func (fs *KBFSOpsStandard) Rename(
+func (fs *KBFSOpsStandard) renameInChannel(
 	oldParent Path, oldName string, newParent Path, newName string) (
 	Path, Path, error) {
-	// only works for paths within the same topdir
-	if (oldParent.TopDir != newParent.TopDir) ||
-		(oldParent.Path[0].Id != newParent.Path[0].Id) {
-		return Path{}, Path{}, &RenameAcrossDirsError{}
-	}
-
-	lock := fs.dirLocks.GetDirLock(oldParent.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteLocked(oldParent); err != nil {
+	if _, err := fs.getMDForWriteInChannel(oldParent); err != nil {
 		return Path{}, Path{}, err
 	}
 
 	// look up in the old path
-	oldPBlock, err := fs.getDirLocked(oldParent, true)
+	oldPBlock, err := fs.getDirInChannel(oldParent, true)
 	if err != nil {
 		return Path{}, Path{}, err
 	}
@@ -784,7 +819,7 @@ func (fs *KBFSOpsStandard) Rename(
 	}
 
 	// look up in the old path
-	newPBlock, err := fs.getDirLocked(newParent, true)
+	newPBlock, err := fs.getDirInChannel(newParent, true)
 	if err != nil {
 		return Path{}, Path{}, err
 	}
@@ -824,7 +859,7 @@ func (fs *KBFSOpsStandard) Rename(
 	newOldPath := Path{TopDir: oldParent.TopDir}
 	if commonAncestor != oldParent.TailPointer().Id {
 		// TODO: optimize by pushing blocks from both paths in parallel
-		newOldPath, _, err = fs.syncBlockLocked(
+		newOldPath, _, err = fs.syncBlockInChannel(
 			oldPBlock, *oldParent.ParentPath(), oldParent.TailName(),
 			Dir, true, true, commonAncestor)
 		if err != nil {
@@ -832,7 +867,7 @@ func (fs *KBFSOpsStandard) Rename(
 		}
 	} else {
 		// still need to update the old parent's times
-		if b, err := fs.getDirLocked(
+		if b, err := fs.getDirInChannel(
 			*oldParent.ParentPath(), true); err == nil {
 			if de, ok := b.Children[oldParent.TailName()]; ok {
 				de.Ctime = time.Now().UnixNano()
@@ -842,7 +877,7 @@ func (fs *KBFSOpsStandard) Rename(
 		}
 	}
 
-	newNewPath, _, err := fs.syncBlockLocked(
+	newNewPath, _, err := fs.syncBlockInChannel(
 		newPBlock, *newParent.ParentPath(), newParent.TailName(),
 		Dir, true, true, zeroId)
 	if err != nil {
@@ -857,9 +892,29 @@ func (fs *KBFSOpsStandard) Rename(
 	return newOldPath, newNewPath, nil
 }
 
+func (fs *KBFSOpsStandard) Rename(
+	oldParent Path, oldName string, newParent Path, newName string) (
+	oldP Path, newP Path, err error) {
+	// only works for paths within the same topdir
+	if (oldParent.TopDir != newParent.TopDir) ||
+		(oldParent.Path[0].Id != newParent.Path[0].Id) {
+		return Path{}, Path{}, &RenameAcrossDirsError{}
+	}
+
+	rwchan, errchan := fs.getChans(oldParent.TopDir)
+	rwchan.QueueWriteReq(func() {
+		oldP, newP, err =
+			fs.renameInChannel(oldParent, oldName, newParent, newName)
+		errchan <- err
+	})
+	<-errchan
+	return
+}
+
 func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 	file Path, topBlock *FileBlock, off int64, asWrite bool) (
-	id BlockId, parentBlock *FileBlock, indexInParent int, block *FileBlock, more bool, startOff int64, err error) {
+	id BlockId, parentBlock *FileBlock, indexInParent int, block *FileBlock,
+	more bool, startOff int64, err error) {
 	// find the block matching the offset, if it exists
 	id = file.TailPointer().Id
 	block = topBlock
@@ -892,7 +947,7 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		newPath.Path = append(newPath.Path, PathNode{
 			nextPtr.BlockPointer, file.TailName(),
 		})
-		if block, err = fs.getFileLocked(newPath, asWrite); err != nil {
+		if block, err = fs.getFileInChannel(newPath, asWrite); err != nil {
 			return
 		}
 		if nextPtr.QuotaSize > 0 && nextPtr.QuotaSize < uint32(len(block.Contents)) {
@@ -906,14 +961,10 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 	return
 }
 
-func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
+func (fs *KBFSOpsStandard) readInChannel(file Path, dest []byte, off int64) (
 	int64, error) {
-	lock := fs.dirLocks.GetDirLock(file.TopDir)
-	lock.RLock()
-	defer lock.RUnlock()
-
-	// getFileLocked already checks read permissions
-	fblock, err := fs.getFileLocked(file, false)
+	// getFileInChannel already checks read permissions
+	fblock, err := fs.getFileInChannel(file, false)
 	if err != nil {
 		return 0, err
 	}
@@ -947,10 +998,21 @@ func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
 	return n, nil
 }
 
-func (fs *KBFSOpsStandard) getEntryLocked(file Path) (
+func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
+	numRead int64, err error) {
+	rwchan, errchan := fs.getChans(file.TopDir)
+	rwchan.QueueReadReq(func() {
+		numRead, err = fs.readInChannel(file, dest, off)
+		errchan <- err
+	})
+	<-errchan
+	return
+}
+
+func (fs *KBFSOpsStandard) getEntryInChannel(file Path) (
 	*DirBlock, DirEntry, error) {
 	parentPath := file.ParentPath()
-	dblock, err := fs.getDirLocked(*parentPath, true)
+	dblock, err := fs.getDirInChannel(*parentPath, true)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -964,7 +1026,7 @@ func (fs *KBFSOpsStandard) getEntryLocked(file Path) (
 	}
 }
 
-func (fs *KBFSOpsStandard) newRightBlockLocked(
+func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	id BlockId, pblock *FileBlock, off int64, md *RootMetadata) error {
 	newRId := RandBlockId()
 	user, err := fs.config.KBPKI().GetLoggedInUser()
@@ -990,15 +1052,15 @@ func (fs *KBFSOpsStandard) newRightBlockLocked(
 	return nil
 }
 
-func (fs *KBFSOpsStandard) writeDataLocked(
+func (fs *KBFSOpsStandard) writeDataInChannel(
 	file Path, data []byte, off int64) error {
 	// verify we have permission to write
-	md, err := fs.getMDForWriteLocked(file)
+	md, err := fs.getMDForWriteInChannel(file)
 	if err != nil {
 		return err
 	}
 
-	fblock, err := fs.getFileLocked(file, true)
+	fblock, err := fs.getFileInChannel(file, true)
 	if err != nil {
 		return err
 	}
@@ -1061,13 +1123,13 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			if err := fs.newRightBlockLocked(file.TailPointer().Id, fblock,
+			if err := fs.newRightBlockInChannel(file.TailPointer().Id, fblock,
 				startOff+int64(len(block.Contents)), md); err != nil {
 				return err
 			}
 		}
 
-		if dblock, de, err := fs.getEntryLocked(file); err == nil {
+		if dblock, de, err := fs.getEntryInChannel(file); err == nil {
 			if oldLen != len(block.Contents) || de.Writer != user {
 				// remember how many bytes it was
 				md.AddUnrefBlock(file, de.BlockPointer)
@@ -1109,27 +1171,23 @@ func (fs *KBFSOpsStandard) writeDataLocked(
 }
 
 func (fs *KBFSOpsStandard) Write(file Path, data []byte, off int64) error {
-	// Even though writing doesn't change the directory, we still take the
-	// write lock since it is changing the contents of file blocks
-	lock := fs.dirLocks.GetDirLock(file.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
-	return fs.writeDataLocked(file, data, off)
+	// Even though writing doesn't change the directory, we still use a
+	// write request since it is changing the contents of file blocks
+	rwchan, errchan := fs.getChans(file.TopDir)
+	rwchan.QueueWriteReq(func() {
+		errchan <- fs.writeDataInChannel(file, data, off)
+	})
+	return <-errchan
 }
 
-func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
-	lock := fs.dirLocks.GetDirLock(file.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
+func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	// verify we have permission to write
-	md, err := fs.getMDForWriteLocked(file)
+	md, err := fs.getMDForWriteInChannel(file)
 	if err != nil {
 		return err
 	}
 
-	fblock, err := fs.getFileLocked(file, true)
+	fblock, err := fs.getFileInChannel(file, true)
 	if err != nil {
 		return err
 	}
@@ -1143,7 +1201,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	if currLen < iSize {
 		// if we need to extend the file, let's just do a write
 		moreNeeded := iSize - currLen
-		return fs.writeDataLocked(
+		return fs.writeDataInChannel(
 			file, make([]byte, moreNeeded, moreNeeded), currLen)
 	} else if currLen == iSize {
 		// same size!
@@ -1178,7 +1236,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	}
 
 	// update the local entry size
-	if dblock, de, err := fs.getEntryLocked(file); err == nil {
+	if dblock, de, err := fs.getEntryInChannel(file); err == nil {
 		md.AddUnrefBlock(file, de.BlockPointer)
 		de.QuotaSize = 0
 		de.Size = size
@@ -1197,12 +1255,17 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 	return fs.config.BlockCache().Put(id, block, true)
 }
 
-func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (changed bool, newPath Path, err error) {
-	lock := fs.dirLocks.GetDirLock(file.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
+func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
+	rwchan, errchan := fs.getChans(file.TopDir)
+	rwchan.QueueWriteReq(func() {
+		errchan <- fs.truncateInChannel(file, size)
+	})
+	return <-errchan
+}
 
-	dblock, de, err := fs.getEntryLocked(file)
+func (fs *KBFSOpsStandard) setExInChannel(file Path, ex bool) (
+	changed bool, newPath Path, err error) {
+	dblock, de, err := fs.getEntryInChannel(file)
 	if err != nil {
 		return
 	}
@@ -1214,7 +1277,7 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (changed bool, newPath Path
 	}
 
 	// verify we have permission to write
-	if _, err = fs.getMDForWriteLocked(file); err != nil {
+	if _, err = fs.getMDForWriteInChannel(file); err != nil {
 		return
 	}
 
@@ -1228,7 +1291,7 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (changed bool, newPath Path
 	de.Ctime = time.Now().UnixNano()
 	dblock.Children[file.TailName()] = de
 	parentPath := file.ParentPath()
-	newParentPath, _, err := fs.syncBlockLocked(
+	newParentPath, _, err := fs.syncBlockInChannel(
 		dblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, false, false, zeroId)
 
@@ -1238,22 +1301,25 @@ func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (changed bool, newPath Path
 	return
 }
 
-func (fs *KBFSOpsStandard) SetMtime(file Path, mtime *time.Time) (Path, error) {
-	if mtime == nil {
-		// Can happen on some OSes (e.g. OSX) when trying to set the atime only
-		return file, nil
-	}
+func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (
+	changed bool, newPath Path, err error) {
+	rwchan, errchan := fs.getChans(file.TopDir)
+	rwchan.QueueWriteReq(func() {
+		changed, newPath, err = fs.setExInChannel(file, ex)
+		errchan <- err
+	})
+	<-errchan
+	return
+}
 
-	lock := fs.dirLocks.GetDirLock(file.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
-
+func (fs *KBFSOpsStandard) setMtimeInChannel(file Path, mtime *time.Time) (
+	Path, error) {
 	// verify we have permission to write
-	if _, err := fs.getMDForWriteLocked(file); err != nil {
+	if _, err := fs.getMDForWriteInChannel(file); err != nil {
 		return Path{}, err
 	}
 
-	dblock, de, err := fs.getEntryLocked(file)
+	dblock, de, err := fs.getEntryInChannel(file)
 	if err != nil {
 		return Path{}, err
 	}
@@ -1263,7 +1329,7 @@ func (fs *KBFSOpsStandard) SetMtime(file Path, mtime *time.Time) (Path, error) {
 	de.Ctime = time.Now().UnixNano()
 	dblock.Children[file.TailName()] = de
 	parentPath := file.ParentPath()
-	newParentPath, _, err := fs.syncBlockLocked(
+	newParentPath, _, err := fs.syncBlockInChannel(
 		dblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, false, false, zeroId)
 	newPath := Path{file.TopDir,
@@ -1271,11 +1337,23 @@ func (fs *KBFSOpsStandard) SetMtime(file Path, mtime *time.Time) (Path, error) {
 	return newPath, err
 }
 
-func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
-	lock := fs.dirLocks.GetDirLock(file.TopDir)
-	lock.Lock()
-	defer lock.Unlock()
+func (fs *KBFSOpsStandard) SetMtime(file Path, mtime *time.Time) (
+	p Path, err error) {
+	if mtime == nil {
+		// Can happen on some OSes (e.g. OSX) when trying to set the atime only
+		return file, nil
+	}
 
+	rwchan, errchan := fs.getChans(file.TopDir)
+	rwchan.QueueWriteReq(func() {
+		p, err = fs.setMtimeInChannel(file, mtime)
+		errchan <- err
+	})
+	<-errchan
+	return
+}
+
+func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 	// if the cache for this file isn't dirty, we're done
 	bcache := fs.config.BlockCache()
 	id := file.TailPointer().Id
@@ -1284,14 +1362,14 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 	}
 
 	// verify we have permission to write
-	md, err := fs.getMDForWriteLocked(file)
+	md, err := fs.getMDForWriteInChannel(file)
 	if err != nil {
 		return Path{}, err
 	}
 
 	// update the parent directories, and write all the new blocks out
 	// to disk
-	fblock, err := fs.getFileLocked(file, true)
+	fblock, err := fs.getFileInChannel(file, true)
 	if err != nil {
 		return Path{}, err
 	}
@@ -1337,7 +1415,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 					// put the extra bytes in front of the next block
 					if !more {
 						// need to make a new block
-						if err := fs.newRightBlockLocked(
+						if err := fs.newRightBlockInChannel(
 							file.TailPointer().Id, fblock,
 							endOfBlock, md); err != nil {
 							return Path{}, err
@@ -1448,7 +1526,7 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 
 	parentPath := file.ParentPath()
 	newPath, _, err :=
-		fs.syncBlockLocked(fblock, *parentPath, file.TailName(),
+		fs.syncBlockInChannel(fblock, *parentPath, file.TailName(),
 			File, true, true, zeroId)
 	if err != nil {
 		return Path{}, err
@@ -1462,4 +1540,14 @@ func (fs *KBFSOpsStandard) Sync(file Path) (Path, error) {
 	}
 
 	return newPath, nil
+}
+
+func (fs *KBFSOpsStandard) Sync(file Path) (p Path, err error) {
+	rwchan, errchan := fs.getChans(file.TopDir)
+	rwchan.QueueWriteReq(func() {
+		p, err = fs.syncInChannel(file)
+		errchan <- err
+	})
+	<-errchan
+	return
 }
