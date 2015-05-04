@@ -40,6 +40,8 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 	cki := sc.localCki
 	l := sc.GetLastLink()
 	if cki == nil && l != nil && l.cki != nil {
+		// TODO: Figure out whether this needs to be a deep copy. See
+		// https://github.com/keybase/client/issues/414 .
 		cki = l.cki.ShallowCopy()
 	}
 	if cki == nil {

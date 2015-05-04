@@ -130,6 +130,8 @@ func (cki *ComputedKeyInfos) Insert(f *FOKID, i *ComputedKeyInfo) {
 	}
 }
 
+// TODO: Figure out whether this needs to be a deep copy. See
+// https://github.com/keybase/client/issues/414 .
 func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	ret := &ComputedKeyInfos{
 		dirty:         cki.dirty,
