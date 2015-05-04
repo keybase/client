@@ -212,7 +212,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username strin
 	fokid := tcl.GetFOKID()
 
 	var key GenericKey
-	if key, err = ckf.kf.FindKeyWithFOKIDUsafe(fokid); err != nil {
+	if key, err = ckf.kf.FindKeyWithFOKIDUnsafe(fokid); err != nil {
 		return
 	}
 
@@ -353,7 +353,7 @@ func (skr *ServerKeyRecord) Import() (pgp *PgpKeyBundle, err error) {
 // This function doesn't validate anything about the key it returns -- that key
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.
-func (kf KeyFamily) FindKeyWithFOKIDUsafe(f FOKID) (key GenericKey, err error) {
+func (kf KeyFamily) FindKeyWithFOKIDUnsafe(f FOKID) (key GenericKey, err error) {
 	var found bool
 	kid := f.Kid
 	if kid == nil && f.Fp != nil {
@@ -366,13 +366,13 @@ func (kf KeyFamily) FindKeyWithFOKIDUsafe(f FOKID) (key GenericKey, err error) {
 		err = KeyFamilyError{"Can't lookup key without a KID"}
 		return
 	}
-	return kf.FindKeyWithKIDUsafe(kid)
+	return kf.FindKeyWithKIDUnsafe(kid)
 }
 
 // This function doesn't validate anything about the key it returns -- that key
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.
-func (kf KeyFamily) FindKeyWithKIDUsafe(kid KID) (GenericKey, error) {
+func (kf KeyFamily) FindKeyWithKIDUnsafe(kid KID) (GenericKey, error) {
 	if skr, ok := kf.AllKeys[kid.ToMapKey()]; !ok {
 		return nil, KeyFamilyError{fmt.Sprintf("No server key record found for %s", kid.String())}
 	} else if skr.key == nil {
@@ -421,7 +421,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(f FOKID, t time.Time) (key G
 	} else if !liveCki.Sibkey {
 		err = BadKeyError{fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", f.String())}
 	} else {
-		key, err = ckf.kf.FindKeyWithFOKIDUsafe(f)
+		key, err = ckf.kf.FindKeyWithFOKIDUnsafe(f)
 		cki = *liveCki
 	}
 	return
@@ -439,7 +439,7 @@ func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid KID) (GenericKey, er
 	if ki.Sibkey {
 		return nil, BadKeyError{fmt.Sprintf("The key '%s' was delegated as a sibkey", kid.String())}
 	}
-	key, err := ckf.kf.FindKeyWithKIDUsafe(kid)
+	key, err := ckf.kf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {
 		return nil, err
 	}
