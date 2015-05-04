@@ -11,7 +11,10 @@ import (
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/util"
 )
+
+type StatusChan chan fuse.Status
 
 type ErrorNode struct {
 	nodefs.Node
@@ -20,17 +23,17 @@ type ErrorNode struct {
 }
 
 type FuseOps struct {
-	config   libkbfs.Config
-	topNodes map[string]*FuseNode
-	topLock  sync.RWMutex
-	dirLocks *libkbfs.DirLocks
+	config     libkbfs.Config
+	topNodes   map[string]*FuseNode
+	topLock    sync.RWMutex
+	dirRWChans *libkbfs.DirRWChannels
 }
 
 func NewFuseRoot(config libkbfs.Config) *FuseNode {
 	f := &FuseOps{
-		config:   config,
-		topNodes: make(map[string]*FuseNode),
-		dirLocks: libkbfs.NewDirLocks(config),
+		config:     config,
+		topNodes:   make(map[string]*FuseNode),
+		dirRWChans: libkbfs.NewDirRWChannels(config),
 	}
 	return &FuseNode{
 		Node: nodefs.NewDefaultNode(),
@@ -88,11 +91,11 @@ func (n *ErrorNode) Read(
 	return fuse.ReadResultData(dest[:size]), fuse.OK
 }
 
-func (n *FuseNode) GetLock() *sync.RWMutex {
+func (n *FuseNode) GetChan() *util.RWChannel {
 	if n.PrevNode == nil {
-		return n.Ops.dirLocks.GetDirLock(n.Dir)
+		return n.Ops.dirRWChans.GetDirChan(n.Dir)
 	} else {
-		return n.PrevNode.GetLock()
+		return n.PrevNode.GetChan()
 	}
 }
 
@@ -109,10 +112,6 @@ func (n *FuseNode) GetPath(depth int) libkbfs.Path {
 
 func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 	node *nodefs.Inode, code fuse.Status) {
-	lock := dNode.GetLock()
-	lock.RLock()
-	defer lock.RUnlock()
-
 	node = dNode.Inode().GetChild(name)
 	if node == nil {
 		if name == libkbfs.ErrorFile {
@@ -378,6 +377,49 @@ func (f *FuseOps) LookupInRootById(rNode *FuseNode, id libkbfs.DirId) (
 	return node, fuse.OK
 }
 
+func (f *FuseOps) GetAttr(n *FuseNode, out *fuse.Attr) fuse.Status {
+	if n.PrevNode != nil || n.DirHandle != nil {
+		p := n.GetPath(1)
+		if n.NeedUpdate {
+			var de libkbfs.DirEntry
+			if len(p.Path) > 1 {
+				// need to fetch the entry anew
+				dBlock, err := f.config.KBFSOps().GetDir(*p.ParentPath())
+				if err != nil {
+					return f.TranslateError(err)
+				}
+
+				name := p.TailName()
+				var ok bool
+				de, ok = dBlock.Children[name]
+				if !ok {
+					return f.TranslateError(&libkbfs.NoSuchNameError{name})
+				}
+			} else {
+				md, err := f.config.KBFSOps().GetRootMDForHandle(n.DirHandle)
+				if err != nil {
+					return f.TranslateError(err)
+				}
+				de = md.Data().Dir
+			}
+
+			n.Entry = de
+			n.NeedUpdate = false
+		}
+
+		out.Size = n.Entry.Size
+		out.Mode = fuseModeFromEntry(p.TopDir, n.Entry)
+		mtime := time.Unix(0, n.Entry.Mtime)
+		ctime := time.Unix(0, n.Entry.Ctime)
+		out.SetTimes(nil, &mtime, &ctime)
+	} else {
+		out.Mode = fuse.S_IFDIR | 0750
+		// TODO: do any other stats make sense in the root?
+	}
+
+	return fuse.OK
+}
+
 func fuseModeFromEntry(dir libkbfs.DirId, de libkbfs.DirEntry) uint32 {
 	var pubModeFile, pubModeExec, pubModeDir, pubModeSym uint32
 	if dir.IsPublic() {
@@ -403,10 +445,6 @@ func fuseModeFromEntry(dir libkbfs.DirId, de libkbfs.DirEntry) uint32 {
 
 func (f *FuseOps) ListDir(n *FuseNode) (
 	stream []fuse.DirEntry, code fuse.Status) {
-	lock := n.GetLock()
-	lock.RLock()
-	defer lock.RUnlock()
-
 	p := n.GetPath(1)
 
 	// If this is the top-level directory, then list the public
@@ -482,11 +520,6 @@ func (f *FuseOps) updatePaths(n *FuseNode, newPath []libkbfs.PathNode) {
 
 func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 	ex := perms&0100 != 0
-
-	lock := n.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	p := n.GetPath(1)
 	changed, newPath, err := f.config.KBFSOps().SetEx(p, ex)
 	if err != nil {
@@ -501,10 +534,6 @@ func (f *FuseOps) Chmod(n *FuseNode, perms uint32) (code fuse.Status) {
 }
 
 func (f *FuseOps) Utimens(n *FuseNode, mtime *time.Time) (code fuse.Status) {
-	lock := n.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	p := n.GetPath(1)
 	newPath, err := f.config.KBFSOps().SetMtime(p, mtime)
 	if err != nil {
@@ -517,10 +546,6 @@ func (f *FuseOps) Utimens(n *FuseNode, mtime *time.Time) (code fuse.Status) {
 
 func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 	newNode *nodefs.Inode, code fuse.Status) {
-	lock := n.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	if name == libkbfs.ErrorFile {
 		return nil, f.TranslateError(&libkbfs.ErrorFileAccessError{})
 	}
@@ -550,10 +575,6 @@ func (f *FuseOps) Mkdir(n *FuseNode, name string) (
 
 func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 	newNode *nodefs.Inode, code fuse.Status) {
-	lock := n.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	if name == libkbfs.ErrorFile {
 		return nil, f.TranslateError(&libkbfs.ErrorFileAccessError{})
 	}
@@ -585,10 +606,6 @@ func (f *FuseOps) Mknod(n *FuseNode, name string, mode uint32) (
 
 func (f *FuseOps) Read(n *FuseNode, dest []byte, off int64) (
 	fuse.ReadResult, fuse.Status) {
-	lock := n.GetLock()
-	lock.RLock()
-	defer lock.RUnlock()
-
 	p := n.GetPath(1)
 	bytes, err := f.config.KBFSOps().Read(p, dest, off)
 	if err != nil {
@@ -599,10 +616,6 @@ func (f *FuseOps) Read(n *FuseNode, dest []byte, off int64) (
 
 func (f *FuseOps) Write(n *FuseNode, data []byte, off int64) (
 	written uint32, code fuse.Status) {
-	lock := n.GetLock()
-	lock.RLock()
-	defer lock.RUnlock()
-
 	p := n.GetPath(1)
 	err := f.config.KBFSOps().Write(p, data, off)
 	if err != nil {
@@ -613,10 +626,6 @@ func (f *FuseOps) Write(n *FuseNode, data []byte, off int64) (
 }
 
 func (f *FuseOps) Truncate(n *FuseNode, size uint64) (code fuse.Status) {
-	lock := n.GetLock()
-	lock.RLock()
-	defer lock.RUnlock()
-
 	p := n.GetPath(1)
 	err := f.config.KBFSOps().Truncate(p, size)
 	if err != nil {
@@ -629,10 +638,6 @@ func (f *FuseOps) Truncate(n *FuseNode, size uint64) (code fuse.Status) {
 
 func (f *FuseOps) Symlink(n *FuseNode, name string, content string) (
 	newNode *nodefs.Inode, code fuse.Status) {
-	lock := n.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	if name == libkbfs.ErrorFile {
 		return nil, f.TranslateError(&libkbfs.ErrorFileAccessError{})
 	}
@@ -666,10 +671,6 @@ func (f *FuseOps) Readlink(n *FuseNode) ([]byte, fuse.Status) {
 
 func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 	code fuse.Status) {
-	lock := n.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	if name == libkbfs.ErrorFile {
 		return f.TranslateError(&libkbfs.ErrorFileAccessError{})
 	}
@@ -713,10 +714,6 @@ func (f *FuseOps) RmEntry(n *FuseNode, name string, isDir bool) (
 func (f *FuseOps) Rename(
 	oldParent *FuseNode, oldName string, newParent *FuseNode, newName string) (
 	code fuse.Status) {
-	lock := oldParent.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	if oldName == libkbfs.ErrorFile || newName == libkbfs.ErrorFile {
 		return f.TranslateError(&libkbfs.ErrorFileAccessError{})
 	}
@@ -748,10 +745,6 @@ func (f *FuseOps) Rename(
 }
 
 func (f *FuseOps) Flush(n *FuseNode) fuse.Status {
-	lock := n.GetLock()
-	lock.Lock()
-	defer lock.Unlock()
-
 	p := n.GetPath(1)
 	newPath, err := f.config.KBFSOps().Sync(p)
 	if err != nil {
@@ -797,7 +790,7 @@ func (f *FuseOps) TranslateError(err error) fuse.Status {
 }
 
 func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
-	// TODO: check a signature of the favories
+	// TODO: check a signature of the favorites
 	favs, err := n.Ops.config.MDOps().GetFavorites()
 	if err != nil {
 		return
@@ -817,58 +810,31 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 	}
 }
 
+func (n *FuseNode) GetChans() (rwchan *util.RWChannel, statchan StatusChan) {
+	rwchan = n.GetChan()
+	// Use this channel to receive the status codes for each
+	// read/write request.  In the cases where other return values are
+	// needed, the closure can fill in the named return values of the
+	// calling method directly.  By the time a receive on this channel
+	// returns, those writes are guaranteed to be visible.  See
+	// https://golang.org/ref/mem#tmp_7.
+	statchan = make(StatusChan)
+	return
+}
+
 func (n *FuseNode) GetAttr(
 	out *fuse.Attr, file nodefs.File, context *fuse.Context) fuse.Status {
-	if n.PrevNode != nil || n.DirHandle != nil {
-		lock := n.GetLock()
-		lock.RLock()
-		defer lock.RUnlock()
-
-		p := n.GetPath(1)
-		if n.NeedUpdate {
-			var de libkbfs.DirEntry
-			if len(p.Path) > 1 {
-				// need to fetch the entry anew
-				dBlock, err := n.Ops.config.KBFSOps().GetDir(*p.ParentPath())
-				if err != nil {
-					return n.Ops.TranslateError(err)
-				}
-
-				name := p.TailName()
-				var ok bool
-				de, ok = dBlock.Children[name]
-				if !ok {
-					return n.Ops.TranslateError(&libkbfs.NoSuchNameError{name})
-				}
-			} else {
-				md, err := n.Ops.config.KBFSOps().GetRootMDForHandle(n.DirHandle)
-				if err != nil {
-					return n.Ops.TranslateError(err)
-				}
-				de = md.Data().Dir
-			}
-
-			n.Entry = de
-			n.NeedUpdate = false
-		}
-
-		out.Size = n.Entry.Size
-		out.Mode = fuseModeFromEntry(p.TopDir, n.Entry)
-		mtime := time.Unix(0, n.Entry.Mtime)
-		ctime := time.Unix(0, n.Entry.Ctime)
-		out.SetTimes(nil, &mtime, &ctime)
-	} else {
-		out.Mode = fuse.S_IFDIR | 0750
-		// TODO: do any other stats make sense in the root?
-	}
-
-	return fuse.OK
+	rwchan, statchan := n.GetChans()
+	rwchan.QueueReadReq(func() { statchan <- n.Ops.GetAttr(n, out) })
+	return <-statchan
 }
 
 func (n *FuseNode) Chmod(
 	file nodefs.File, perms uint32, context *fuse.Context) (code fuse.Status) {
 	if n.Entry.IsInitialized() {
-		return n.Ops.Chmod(n, perms)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() { statchan <- n.Ops.Chmod(n, perms) })
+		return <-statchan
 	} else {
 		return fuse.EINVAL
 	}
@@ -877,7 +843,9 @@ func (n *FuseNode) Chmod(
 func (n *FuseNode) Utimens(file nodefs.File, atime *time.Time,
 	mtime *time.Time, context *fuse.Context) (code fuse.Status) {
 	if n.Entry.IsInitialized() {
-		return n.Ops.Utimens(n, mtime)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() { statchan <- n.Ops.Utimens(n, mtime) })
+		return <-statchan
 	} else {
 		return fuse.EINVAL
 	}
@@ -886,7 +854,12 @@ func (n *FuseNode) Utimens(file nodefs.File, atime *time.Time,
 func (n *FuseNode) Lookup(out *fuse.Attr, name string, context *fuse.Context) (
 	node *nodefs.Inode, code fuse.Status) {
 	if n.PrevNode != nil || n.DirHandle != nil {
-		node, code = n.Ops.LookupInDir(n, name)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueReadReq(func() {
+			node, code = n.Ops.LookupInDir(n, name)
+			statchan <- code
+		})
+		<-statchan
 	} else {
 		node, code = n.Ops.LookupInRootByName(n, name)
 	}
@@ -901,7 +874,13 @@ func (n *FuseNode) OpenDir(context *fuse.Context) (
 	if n.File != nil {
 		return nil, fuse.EINVAL
 	} else if n.PrevNode != nil || n.DirHandle != nil {
-		return n.Ops.ListDir(n)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueReadReq(func() {
+			stream, code = n.Ops.ListDir(n)
+			statchan <- code
+		})
+		<-statchan
+		return
 	} else {
 		return n.Ops.ListRoot()
 	}
@@ -910,7 +889,13 @@ func (n *FuseNode) OpenDir(context *fuse.Context) (
 func (n *FuseNode) Mkdir(name string, mode uint32, context *fuse.Context) (
 	newNode *nodefs.Inode, code fuse.Status) {
 	if n.PrevNode != nil || n.DirHandle != nil {
-		return n.Ops.Mkdir(n, name)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			newNode, code = n.Ops.Mkdir(n, name)
+			statchan <- code
+		})
+		<-statchan
+		return
 	} else {
 		return nil, fuse.ENOSYS
 	}
@@ -920,7 +905,13 @@ func (n *FuseNode) Mknod(
 	name string, mode uint32, dev uint32, context *fuse.Context) (
 	newNode *nodefs.Inode, code fuse.Status) {
 	if n.PrevNode != nil || n.DirHandle != nil {
-		return n.Ops.Mknod(n, name, mode)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			newNode, code = n.Ops.Mknod(n, name, mode)
+			statchan <- code
+		})
+		<-statchan
+		return
 	} else {
 		return nil, fuse.ENOSYS
 	}
@@ -937,9 +928,15 @@ func (n *FuseNode) Open(flags uint32, context *fuse.Context) (
 
 func (n *FuseNode) Read(
 	file nodefs.File, dest []byte, off int64, context *fuse.Context) (
-	fuse.ReadResult, fuse.Status) {
+	res fuse.ReadResult, code fuse.Status) {
 	if n.File != nil {
-		return n.Ops.Read(n, dest, off)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueReadReq(func() {
+			res, code = n.Ops.Read(n, dest, off)
+			statchan <- code
+		})
+		<-statchan
+		return
 	} else {
 		return nil, fuse.EINVAL
 	}
@@ -949,7 +946,13 @@ func (n *FuseNode) Write(
 	file nodefs.File, data []byte, off int64, context *fuse.Context) (
 	written uint32, code fuse.Status) {
 	if n.File != nil {
-		return n.Ops.Write(n, data, off)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			written, code = n.Ops.Write(n, data, off)
+			statchan <- code
+		})
+		<-statchan
+		return
 	} else {
 		return 0, fuse.EINVAL
 	}
@@ -958,20 +961,36 @@ func (n *FuseNode) Write(
 func (n *FuseNode) Truncate(
 	file nodefs.File, size uint64, context *fuse.Context) (code fuse.Status) {
 	if n.File != nil {
-		return n.Ops.Truncate(n, size)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			statchan <- n.Ops.Truncate(n, size)
+		})
+		return <-statchan
 	} else {
 		return fuse.EINVAL
 	}
 }
 
 func (n *FuseNode) Symlink(name string, content string, context *fuse.Context) (
-	*nodefs.Inode, fuse.Status) {
-	return n.Ops.Symlink(n, name, content)
+	newNode *nodefs.Inode, code fuse.Status) {
+	rwchan, statchan := n.GetChans()
+	rwchan.QueueWriteReq(func() {
+		newNode, code = n.Ops.Symlink(n, name, content)
+		statchan <- code
+	})
+	<-statchan
+	return
 }
 
-func (n *FuseNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
+func (n *FuseNode) Readlink(c *fuse.Context) (link []byte, code fuse.Status) {
 	if !n.PathNode.IsInitialized() && n.PrevNode != nil {
-		return n.Ops.Readlink(n)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			link, code = n.Ops.Readlink(n)
+			statchan <- code
+		})
+		<-statchan
+		return
 	} else {
 		return nil, fuse.EINVAL
 	}
@@ -980,7 +999,11 @@ func (n *FuseNode) Readlink(c *fuse.Context) ([]byte, fuse.Status) {
 func (n *FuseNode) Rmdir(name string, context *fuse.Context) (
 	code fuse.Status) {
 	if n.File == nil && n.Entry.IsInitialized() {
-		return n.Ops.RmEntry(n, name, true)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			statchan <- n.Ops.RmEntry(n, name, true)
+		})
+		return <-statchan
 	} else {
 		return fuse.EINVAL
 	}
@@ -989,7 +1012,11 @@ func (n *FuseNode) Rmdir(name string, context *fuse.Context) (
 func (n *FuseNode) Unlink(name string, context *fuse.Context) (
 	code fuse.Status) {
 	if n.File == nil && n.Entry.IsInitialized() {
-		return n.Ops.RmEntry(n, name, false)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			statchan <- n.Ops.RmEntry(n, name, false)
+		})
+		return <-statchan
 	} else {
 		return fuse.EINVAL
 	}
@@ -1000,7 +1027,11 @@ func (n *FuseNode) Rename(oldName string, newParent nodefs.Node,
 	newFuseParent := newParent.(*FuseNode)
 	if n.File == nil && n.Entry.IsInitialized() &&
 		newFuseParent.File == nil && newFuseParent.Entry.IsInitialized() {
-		return n.Ops.Rename(n, oldName, newFuseParent, newName)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			statchan <- n.Ops.Rename(n, oldName, newFuseParent, newName)
+		})
+		return <-statchan
 	} else {
 		return fuse.EINVAL
 	}
@@ -1008,21 +1039,42 @@ func (n *FuseNode) Rename(oldName string, newParent nodefs.Node,
 
 func (n *FuseNode) Flush() fuse.Status {
 	if n.File != nil {
-		return n.Ops.Flush(n)
+		rwchan, statchan := n.GetChans()
+		rwchan.QueueWriteReq(func() {
+			statchan <- n.Ops.Flush(n)
+		})
+		return <-statchan
 	} else {
 		return fuse.EINVAL
 	}
 }
 
-func (f *FuseFile) Read(dest []byte, off int64) (fuse.ReadResult, fuse.Status) {
-	return f.Node.Ops.Read(f.Node, dest, off)
+func (f *FuseFile) Read(dest []byte, off int64) (
+	res fuse.ReadResult, code fuse.Status) {
+	rwchan, statchan := f.Node.GetChans()
+	rwchan.QueueReadReq(func() {
+		res, code = f.Node.Ops.Read(f.Node, dest, off)
+		statchan <- code
+	})
+	<-statchan
+	return
 }
 
 func (f *FuseFile) Write(data []byte, off int64) (
 	written uint32, code fuse.Status) {
-	return f.Node.Ops.Write(f.Node, data, off)
+	rwchan, statchan := f.Node.GetChans()
+	rwchan.QueueWriteReq(func() {
+		written, code = f.Node.Ops.Write(f.Node, data, off)
+		statchan <- code
+	})
+	<-statchan
+	return
 }
 
 func (f *FuseFile) Flush() fuse.Status {
-	return f.Node.Ops.Flush(f.Node)
+	rwchan, statchan := f.Node.GetChans()
+	rwchan.QueueWriteReq(func() {
+		statchan <- f.Node.Ops.Flush(f.Node)
+	})
+	return <-statchan
 }
