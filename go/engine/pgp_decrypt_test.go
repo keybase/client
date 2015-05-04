@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"os"
 	"strings"
 	"testing"
 
@@ -197,5 +198,60 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	decmsg := string(decoded.Bytes())
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
+	}
+}
+
+func TestPGPDecryptLong(t *testing.T) {
+	tc := SetupEngineTest(t, "PGPDecrypt")
+	defer tc.Cleanup()
+	fu := createFakeUserWithPGPOnly(t, tc)
+
+	// encrypt a message
+	msg := make([]byte, 1024*1024)
+	f, err := os.Open("/dev/urandom")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	f.Read(msg)
+
+	sink := libkb.NewBufferCloser()
+	ctx := decengctx(fu)
+	arg := &PGPEncryptArg{
+		Source:       bytes.NewReader(msg),
+		Sink:         sink,
+		NoSign:       true,
+		BinaryOutput: true,
+	}
+	enc := NewPGPEncrypt(arg)
+	if err := RunEngine(enc, ctx); err != nil {
+		t.Fatal(err)
+	}
+	out := sink.Bytes()
+
+	// decrypt it
+	decoded := libkb.NewBufferCloser()
+	decarg := &PGPDecryptArg{
+		Source: bytes.NewReader(out),
+		Sink:   decoded,
+	}
+	dec := NewPGPDecrypt(decarg)
+	if err := RunEngine(dec, ctx); err != nil {
+		t.Fatal(err)
+	}
+	decmsg := decoded.Bytes()
+	if len(decmsg) != len(msg) {
+		t.Fatalf("decoded msg size: %d, expected %d", len(decmsg), len(msg))
+	}
+
+	for i, b := range msg {
+		if decmsg[i] != b {
+			t.Errorf("decode msg differs at byte %d: %x, expected %x", i, decmsg[i], b)
+		}
+	}
+
+	owner := dec.Owner()
+	if owner == nil {
+		t.Errorf("owner is nil")
 	}
 }
