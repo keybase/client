@@ -504,8 +504,7 @@ func (u *User) GetEldestFOKID() (ret *FOKID) {
 		return nil
 	}
 	var fp *PgpFingerprint
-	fingerprint, ok := u.keyFamily.kid2pgp[u.leaf.eldest.ToMapKey()]
-	if ok {
+	if fingerprint, ok := u.keyFamily.kid2pgp[u.leaf.eldest.ToMapKey()]; ok {
 		fp = &fingerprint
 	}
 	return &FOKID{Kid: *u.leaf.eldest, Fp: fp}
