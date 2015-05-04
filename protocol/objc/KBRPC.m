@@ -170,6 +170,24 @@
 
 @end
 
+@implementation KBRCtlRequest
+
+- (void)stop:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.ctl.stop" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)logRotate:(void (^)(NSError *error))completion {
+  NSArray *params = @[@{}];
+  [self.client sendRequestWithMethod:@"keybase.1.ctl.logRotate" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRDeviceRequest
 
 - (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion {

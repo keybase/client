@@ -144,6 +144,13 @@
 
 @end
 
+@interface KBRCtlRequest : KBRRequest
+- (void)stop:(void (^)(NSError *error))completion;
+
+- (void)logRotate:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRDeviceRequest : KBRRequest
 - (void)deviceListWithSessionID:(NSInteger)sessionID completion:(void (^)(NSError *error, NSArray *items))completion;
 
