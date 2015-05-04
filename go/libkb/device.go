@@ -68,9 +68,10 @@ type DeviceStatus struct {
 }
 
 type Device struct {
+	// TODO: Store this as a DeviceID instead.
 	Id          string  `json:"id"`
 	Type        string  `json:"type"`
-	Kid         *string `json:"kid,omitempty"`
+	Kid         KID     `json:"kid,omitempty"`
 	Description *string `json:"description,omitempty"`
 	Status      *int    `json:"status,omitempty"`
 }

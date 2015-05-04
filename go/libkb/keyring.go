@@ -223,19 +223,19 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		return
 	}
 
-	var kid KID
 	if !ska.UseDeviceKey() {
 		k.G().Log.Debug("| not using device key; preferences have disabled it")
-	} else if kid, err = ckf.GetActiveSibkeyKidForCurrentDevice(k.G()); err != nil {
+	} else if did := k.G().Env.GetDeviceID(); did == nil {
+		k.G().Log.Debug("| Could not get device id")
+	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
 		k.G().Log.Debug("| No key for current device: %s", err.Error())
-	} else if kid != nil {
+	} else {
+		kid := key.GetKid()
 		k.G().Log.Debug("| Found KID for current device: %s", kid)
 		ret = keyring.LookupByKid(kid)
 		if ret != nil {
 			k.G().Log.Debug("| Using device key: %s", kid)
 		}
-	} else {
-		k.G().Log.Debug("| Empty kid for current device")
 	}
 
 	if ret == nil && ska.SearchForKey() {

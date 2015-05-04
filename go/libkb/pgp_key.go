@@ -25,6 +25,10 @@ const (
 
 type PgpFingerprint [PGP_FINGERPRINT_LEN]byte
 
+// Remove the need for the PgpFingerprintMapKey type. See
+// https://github.com/keybase/client/issues/413 .
+type PgpFingerprintMapKey string
+
 func PgpFingerprintFromHex(s string) (*PgpFingerprint, error) {
 	var fp PgpFingerprint
 	n, err := hex.Decode([]byte(fp[:]), []byte(s))
@@ -51,6 +55,14 @@ func PgpFingerprintFromHexNoError(s string) *PgpFingerprint {
 
 func (p PgpFingerprint) String() string {
 	return hex.EncodeToString(p[:])
+}
+
+func (p PgpFingerprint) ToMapKey() PgpFingerprintMapKey {
+	return PgpFingerprintMapKey(p.String())
+}
+
+func (p PgpFingerprint) ToFOKIDMapKey() FOKIDMapKey {
+	return FOKIDMapKey(p.ToMapKey())
 }
 
 func (p PgpFingerprint) ToQuads() string {
@@ -358,8 +370,8 @@ func (k PgpKeyBundle) GetKid2() KID2 {
 	return KID2(out)
 }
 
-func (k PgpKeyBundle) GetAlgoType() int {
-	return int(k.PrimaryKey.PubKeyAlgo)
+func (k PgpKeyBundle) GetAlgoType() AlgoType {
+	return AlgoType(k.PrimaryKey.PubKeyAlgo)
 }
 
 func (k PgpKeyBundle) KeyDescription() string {
@@ -458,9 +470,9 @@ func ExportAsFOKID(fp *PgpFingerprint, kid KID) (ret keybase1.FOKID) {
 	return
 }
 
-func IsPgpAlgo(algo int) bool {
+func IsPgpAlgo(algo AlgoType) bool {
 	switch algo {
-	case KID_PGP_RSA, KID_PGP_RSA, KID_PGP_ELGAMAL,
+	case KID_PGP_RSA, KID_PGP_ELGAMAL,
 		KID_PGP_DSA, KID_PGP_ECDH, KID_PGP_ECDSA:
 		return true
 	}

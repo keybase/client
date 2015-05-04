@@ -40,7 +40,9 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 	cki := sc.localCki
 	l := sc.GetLastLink()
 	if cki == nil && l != nil && l.cki != nil {
-		cki = l.cki.Copy()
+		// TODO: Figure out whether this needs to be a deep copy. See
+		// https://github.com/keybase/client/issues/414 .
+		cki = l.cki.ShallowCopy()
 	}
 	if cki == nil {
 		cki = NewComputedKeyInfos()
@@ -52,11 +54,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigId *SigId, s
 
 	if sigId != nil {
 		var zeroTime time.Time
-		var fpStr string
-		if fpp := key.GetFingerprintP(); fpp != nil {
-			fpStr = fpp.String()
-		}
-		err = cki.Delegate(key.GetKid().String(), fpStr, NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKid(), key.GetFingerprintP(), NowAsKeybaseTime(0), *sigId, signingKid, signingKid, isSibkey, time.Unix(0, 0), zeroTime)
 	}
 
 	return
@@ -433,16 +431,20 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily
 		return
 	}
 
-	fingerprintHex := ckf.kf.kid2pgp[eldest.String()]
+	var fp *PgpFingerprint
+	fingerprint, ok := ckf.kf.kid2pgp[eldest.ToMapKey()]
+	if ok {
+		fp = &fingerprint
+	}
 	eldestFOKID := FOKID{
 		Kid: *eldest,
-		Fp:  PgpFingerprintFromHexNoError(fingerprintHex),
+		Fp:  fp,
 	}
 	links := sc.LimitToEldestFOKID(eldestFOKID)
 
 	if links == nil || len(links) == 0 {
 		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest.String())
-		eldestKey := ckf.kf.AllKeys[eldest.String()].key
+		eldestKey := ckf.kf.AllKeys[eldest.ToMapKey()].key
 		sc.localCki = NewComputedKeyInfos()
 		sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		return

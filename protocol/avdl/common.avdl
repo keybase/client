@@ -39,6 +39,9 @@ protocol Common {
 	}
 
 	record PublicKey {
+		// TODO: Use bytes instead of string for KID and
+		// PGPFingerprint (and other related fields.) See
+		// https://github.com/keybase/client/issues/407 .
 		string KID;
 		string PGPFingerprint; // empty for non-PGP keys
 		array<PgpIdentity> PGPIdentities; // same

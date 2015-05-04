@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -13,10 +14,20 @@ import (
 type KID []byte
 type KID2 []byte
 
+// Remove the need for the KIDMapKey type. See
+// https://github.com/keybase/client/issues/413 .
+type KIDMapKey string
+
+func (key KIDMapKey) ToKID() (KID, error) {
+	return ImportKID(string(key))
+}
+
+type AlgoType int
+
 type GenericKey interface {
 	GetKid() KID
 	GetFingerprintP() *PgpFingerprint
-	GetAlgoType() int
+	GetAlgoType() AlgoType
 	SignToString([]byte) (string, *SigId, error)
 	Verify(string, []byte) (*SigId, error)
 	VerifyAndExtract(string) ([]byte, *SigId, error)
@@ -29,8 +40,16 @@ type GenericKey interface {
 	Encode() (string, error) // encode public key to string
 }
 
-func (k KID) ToMapKey() string {
-	return k.String()
+func (k KID) ToFOKID() FOKID {
+	return FOKID{Kid: k}
+}
+
+func (k KID) ToMapKey() KIDMapKey {
+	return KIDMapKey(k.String())
+}
+
+func (k KID) ToFOKIDMapKey() FOKIDMapKey {
+	return FOKIDMapKey(k.ToMapKey())
 }
 
 func (k KID) ToShortIdString() string {
@@ -59,6 +78,23 @@ func GetKID(w *jsonw.Wrapper) (kid KID, err error) {
 		kid, err = ImportKID(s)
 	}
 	return
+}
+
+func (k KID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(k.String())
+}
+
+func (k *KID) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	kid, err := ImportKID(s)
+	if err != nil {
+		return err
+	}
+	*k = kid
+	return nil
 }
 
 func (k KID) ToJsonw() *jsonw.Wrapper {
@@ -125,6 +161,9 @@ type FOKID struct {
 	Fp  *PgpFingerprint
 }
 
+// Can be either a KIDMapKey or PgpFingerprintMapKey, or empty.
+type FOKIDMapKey string
+
 // EqKid checks if the KID portion of the FOKID is equal
 // to the given KID
 func (f FOKID) EqKid(k2 KID) bool {
@@ -161,12 +200,22 @@ func (f FOKID) String() string {
 	}
 }
 
-func (f FOKID) ToStrings() (ret []string) {
+func (f FOKID) ToFirstMapKey() FOKIDMapKey {
 	if f.Kid != nil {
-		ret = append(ret, f.Kid.String())
+		return f.Kid.ToFOKIDMapKey()
+	} else if f.Fp != nil {
+		return f.Fp.ToFOKIDMapKey()
+	} else {
+		return ""
+	}
+}
+
+func (f FOKID) ToMapKeys() (ret []FOKIDMapKey) {
+	if f.Kid != nil {
+		ret = append(ret, f.Kid.ToFOKIDMapKey())
 	}
 	if f.Fp != nil {
-		ret = append(ret, f.Fp.String())
+		ret = append(ret, f.Fp.ToFOKIDMapKey())
 	}
 	return
 }

@@ -22,15 +22,22 @@ func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
 // CurrentSession uses the global session to find the session.  If
 // the user isn't logged in, it returns ErrNoSession.
 func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
+	// TODO: Check if logged in and retrieve user info in one
+	// operation to avoid races.
 	var s keybase1.Session
 	if !G.LoginState().IsLoggedIn() {
 		return s, ErrNoSession
 	}
 
-	uid, username, token := G.LoginState().UserInfo()
+	uid, username, token, deviceSubkeyKid, err := G.LoginState().UserInfo()
+	if err != nil {
+		return s, err
+	}
+
 	s.Uid = uid.Export()
 	s.Username = username
 	s.Token = token
+	s.DeviceSubkeyKid = []byte(deviceSubkeyKid)
 
 	return s, nil
 }

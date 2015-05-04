@@ -46,7 +46,7 @@ func (e *RevokeEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
+func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]libkb.KID, error) {
 	if e.mode == RevokeDevice {
 		currentDevice := e.G().Env.GetDeviceID().String()
 		if e.id == currentDevice {
@@ -62,7 +62,7 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		key, err := me.GetKeyFamily().FindKeyWithKIDUsafe(kid)
+		key, err := me.GetKeyFamily().FindKeyWithKIDUnsafe(kid)
 		if err != nil {
 			return nil, err
 		}
@@ -70,8 +70,8 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]string, error) {
 			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use the `device remove` command.", e.id)
 		}
 		for _, activePGPKey := range me.GetComputedKeyFamily().GetActivePgpKeys(false /* sibkeys only */) {
-			if activePGPKey.GetKid().String() == e.id {
-				return []string{e.id}, nil
+			if activePGPKey.GetKid().Eq(kid) {
+				return []libkb.KID{kid}, nil
 			}
 		}
 		return nil, fmt.Errorf("PGP key %s is not active", e.id)

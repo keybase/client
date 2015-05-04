@@ -175,6 +175,9 @@
     }, {
       "name" : "token",
       "type" : "string"
+    }, {
+      "name" : "deviceSubkeyKid",
+      "type" : "bytes"
     } ]
   } ],
   "messages" : {
