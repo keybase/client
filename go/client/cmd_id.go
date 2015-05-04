@@ -29,8 +29,8 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdID) makeArg() *engine.IdEngineArg {
-	return &engine.IdEngineArg{
+func (v *CmdID) makeArg() *engine.IDEngineArg {
+	return &engine.IDEngineArg{
 		UserAssertion:  v.user,
 		TrackStatement: v.trackStatement,
 	}
@@ -60,7 +60,7 @@ func (v *CmdID) Run() error {
 	if v.trackStatement {
 		logui = libkb.NewNullLogger()
 	}
-	eng := engine.NewIdEngine(v.makeArg())
+	eng := engine.NewIDEngine(v.makeArg())
 	ctx := engine.Context{
 		LogUI:      logui,
 		IdentifyUI: G.UI.GetIdentifyUI(),

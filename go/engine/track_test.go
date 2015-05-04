@@ -7,11 +7,11 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
+func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
 	return runTrackWithOptions(fu, username, TrackOptions{})
 }
 
-func runTrackWithOptions(fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, res *IdRes, err error) {
+func runTrackWithOptions(fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, res *IDRes, err error) {
 	idUI = &FakeIdentifyUI{
 		Fapr: keybase1.FinishAndPromptRes{
 			TrackLocal:  options.TrackLocalOnly,

@@ -27,7 +27,7 @@ func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
 }
 
 func (h *IdentifyHandler) Identify(arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
-	iarg := engine.ImportIdEngineArg(arg)
+	iarg := engine.ImportIDEngineArg(arg)
 	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err
@@ -36,7 +36,7 @@ func (h *IdentifyHandler) Identify(arg keybase1.IdentifyArg) (keybase1.IdentifyR
 }
 
 func (h *IdentifyHandler) IdentifyDefault(arg keybase1.IdentifyDefaultArg) (keybase1.IdentifyRes, error) {
-	iarg := engine.IdEngineArg{UserAssertion: arg.UserAssertion}
+	iarg := engine.IDEngineArg{UserAssertion: arg.UserAssertion}
 	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err
@@ -44,7 +44,7 @@ func (h *IdentifyHandler) IdentifyDefault(arg keybase1.IdentifyDefaultArg) (keyb
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdEngineArg, doInteractive bool) (res *engine.IdRes, err error) {
+func (h *IdentifyHandler) identify(sessionId int, iarg engine.IDEngineArg, doInteractive bool) (res *engine.IDRes, err error) {
 	logui := h.getLogUI(sessionId)
 	if iarg.TrackStatement {
 		logui = libkb.NewNullLogger()
@@ -53,7 +53,7 @@ func (h *IdentifyHandler) identify(sessionId int, iarg engine.IdEngineArg, doInt
 		LogUI:      logui,
 		IdentifyUI: h.NewRemoteIdentifyUI(sessionId),
 	}
-	eng := engine.NewIdEngine(&iarg)
+	eng := engine.NewIDEngine(&iarg)
 	err = engine.RunEngine(eng, &ctx)
 	res = eng.Result()
 	return

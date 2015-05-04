@@ -20,7 +20,7 @@ type TrackEngineArg struct {
 
 type TrackEngine struct {
 	arg                 *TrackEngineArg
-	res                 *IdRes
+	res                 *IDRes
 	them                *libkb.User
 	signingKeyPub       libkb.GenericKey
 	signingKeyPriv      libkb.GenericKey
@@ -75,7 +75,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	ti := ieng.TrackInstructions()
 	e.them = ieng.User()
 
-	e.res = &IdRes{Outcome: ieng.Outcome(), User: e.them}
+	e.res = &IDRes{Outcome: ieng.Outcome(), User: e.them}
 
 	var err error
 	ska := libkb.SecretKeyArg{Me: e.arg.Me, All: true}

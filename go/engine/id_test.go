@@ -8,47 +8,47 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func runIdentify(username string) (idUI *FakeIdentifyUI, res *IdRes, err error) {
+func runIdentify(username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
 	idUI = &FakeIdentifyUI{}
-	arg := IdEngineArg{
+	arg := IDEngineArg{
 		UserAssertion: username,
 	}
 	ctx := Context{
 		LogUI:      G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 	}
-	eng := NewIdEngine(&arg)
+	eng := NewIDEngine(&arg)
 	err = RunEngine(eng, &ctx)
 	res = eng.Result()
 	return
 }
 
-func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
+func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
 	checkKeyedProfile(t, idUI, res, "alice", true, map[string]string{
 		"github":  "kbtester2",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
+func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
 	checkKeyedProfile(t, idUI, res, "bob", true, map[string]string{
 		"github":  "kbtester1",
 		"twitter": "kbtester1",
 	})
 }
 
-func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
+func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
 	checkKeyedProfile(t, idUI, res, "charlie", true, map[string]string{
 		"github":  "tacoplusplus",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, res *IdRes) {
+func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, res *IDRes) {
 	checkKeyedProfile(t, idUI, res, "doug", false, nil)
 }
 
-func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IdRes, name string, hasImg bool, expectedProofs map[string]string) {
+func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, result *IDRes, name string, hasImg bool, expectedProofs map[string]string) {
 	if exported := result.User.Export(); !reflect.DeepEqual(idUI.User, exported) {
 		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
 	}
