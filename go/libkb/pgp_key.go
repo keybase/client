@@ -76,9 +76,8 @@ func (p PgpFingerprint) ToKeyId() string {
 func (p PgpFingerprint) ToDisplayString(verbose bool) string {
 	if verbose {
 		return p.String()
-	} else {
-		return p.ToKeyId()
 	}
+	return p.ToKeyId()
 }
 
 func (p PgpFingerprint) LoadFromLocalDb() (*PgpKeyBundle, error) {

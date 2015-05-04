@@ -3,12 +3,13 @@ package libkb
 import (
 	"bufio"
 	"fmt"
-	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 //=============================================================================
@@ -96,10 +97,9 @@ func (k GpgBaseKey) AlgoString() string {
 func (k GpgBaseKey) ExpirationString() string {
 	if k.Expires == 0 {
 		return "never"
-	} else {
-		layout := "2006-01-02"
-		return time.Unix(int64(k.Expires), 0).Format(layout)
 	}
+	layout := "2006-01-02"
+	return time.Unix(int64(k.Expires), 0).Format(layout)
 }
 
 func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
@@ -322,9 +322,8 @@ func (ki *GpgKeyIndex) Less(i, j int) bool {
 		return false
 	} else if a.Expires > b.Expires {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func (p *GpgKeyIndex) GetRowFunc() func() []string {
@@ -332,11 +331,10 @@ func (p *GpgKeyIndex) GetRowFunc() func() []string {
 	return func() []string {
 		if i >= len(p.Keys) {
 			return nil
-		} else {
-			ret := p.Keys[i].ToRow(i + 1)
-			i++
-			return ret
 		}
+		ret := p.Keys[i].ToRow(i + 1)
+		i++
+		return ret
 	}
 }
 

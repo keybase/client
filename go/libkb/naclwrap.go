@@ -323,9 +323,8 @@ func (p KeybasePacket) ToNaclSig() (*NaclSig, error) {
 	ret, ok := p.Body.(*NaclSig)
 	if !ok {
 		return nil, UnmarshalError{"Signature"}
-	} else {
-		return ret, nil
 	}
+	return ret, nil
 }
 
 func (s NaclSig) Verify() (err error) {

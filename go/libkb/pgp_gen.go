@@ -27,9 +27,8 @@ func ui32p(i int) *uint32 {
 	if i >= 0 {
 		tmp := uint32(i)
 		return &tmp
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // NewEntity returns an Entity that contains a fresh RSA/RSA keypair with a

@@ -4,12 +4,13 @@ package client
 
 import (
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/service"
 	"os"
 	"syscall"
 	"time"
+
+	"github.com/codegangsta/cli"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/service"
 )
 
 // GetExtraFlags gets the extra fork-related flags for this platform
@@ -65,11 +66,10 @@ func pingLoop() error {
 		if err == nil {
 			G.Log.Debug("Connected (%d)", i)
 			return nil
-		} else {
-			G.ClearSocketError()
-			G.Log.Debug("Failed to connect to socket (%d): %s", i, err.Error())
-			err = nil
 		}
+		G.ClearSocketError()
+		G.Log.Debug("Failed to connect to socket (%d): %s", i, err.Error())
+		err = nil
 		time.Sleep(200 * time.Millisecond)
 	}
 	return nil

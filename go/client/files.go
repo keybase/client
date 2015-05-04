@@ -59,9 +59,8 @@ func (b *StdinSource) Close() error {
 func (b *StdinSource) Read(p []byte) (n int, err error) {
 	if b.open {
 		return os.Stdin.Read(p)
-	} else {
-		return 0, io.EOF
 	}
+	return 0, io.EOF
 }
 
 type FileSource struct {
@@ -87,17 +86,15 @@ func (s *FileSource) Close() error {
 		err := s.file.Close()
 		s.file = nil
 		return err
-	} else {
-		return io.EOF
 	}
+	return io.EOF
 }
 
 func (s *FileSource) Read(p []byte) (n int, err error) {
 	if s.file == nil {
 		return 0, io.EOF
-	} else {
-		return s.file.Read(p)
 	}
+	return s.file.Read(p)
 }
 
 type StdoutSink struct {

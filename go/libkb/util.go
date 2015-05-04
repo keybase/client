@@ -22,9 +22,8 @@ import (
 func ErrToOk(err error) string {
 	if err == nil {
 		return "ok"
-	} else {
-		return "ERROR: " + err.Error()
 	}
+	return "ERROR: " + err.Error()
 }
 
 // exists returns whether the given file or directory exists or not
@@ -53,9 +52,8 @@ func MakeParentDirs(filename string) error {
 		if err != nil {
 			G.Log.Errorf("Can't make parent dir %s", dir)
 			return err
-		} else {
-			G.Log.Info("Created parent directory %s", dir)
 		}
+		G.Log.Info("Created parent directory %s", dir)
 	}
 	return nil
 }
@@ -116,9 +114,8 @@ func (p *FirstErrorPicker) Error() error {
 func GiveMeAnS(i int) string {
 	if i != 1 {
 		return "s"
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func KeybaseEmailAddress(s string) string {
@@ -180,18 +177,17 @@ func IsValidHostname(s string) bool {
 	rxx := regexp.MustCompile("^(?i:[a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$")
 	if len(parts) < 2 {
 		return false
-	} else {
-		for _, p := range parts {
-			if !rxx.MatchString(p) {
-				return false
-			}
-		}
-		// TLDs must be >=2 chars
-		if len(parts[len(parts)-1]) < 2 {
+	}
+	for _, p := range parts {
+		if !rxx.MatchString(p) {
 			return false
 		}
-		return true
 	}
+	// TLDs must be >=2 chars
+	if len(parts[len(parts)-1]) < 2 {
+		return false
+	}
+	return true
 }
 
 func RandBytes(length int) ([]byte, error) {
@@ -222,9 +218,8 @@ func UnixToTimeMappingZero(unixTime int64) time.Time {
 	if unixTime == 0 {
 		var zeroTime time.Time
 		return zeroTime
-	} else {
-		return time.Unix(unixTime, 0)
 	}
+	return time.Unix(unixTime, 0)
 }
 
 func Unquote(data []byte) string { return keybase1.Unquote(data) }

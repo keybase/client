@@ -319,9 +319,8 @@ func (s *CmdSignupState) MakePrompter() {
 		code.Thrower = func(k, v string) error {
 			if len(v) == 0 {
 				return CleanCancelError{}
-			} else {
-				return nil
 			}
+			return nil
 		}
 	}
 

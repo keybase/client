@@ -79,9 +79,8 @@ func XapiError(err error, u string) *ProofApiError {
 			code = PROOF_HTTP_OTHER
 		}
 		return NewProofApiError(code, u, ae.Msg)
-	} else {
-		return NewProofApiError(PROOF_INTERNAL_ERROR, u, err.Error())
 	}
+	return NewProofApiError(PROOF_INTERNAL_ERROR, u, err.Error())
 }
 
 //=============================================================================
@@ -219,9 +218,8 @@ type NoKeyError struct {
 func (u NoKeyError) Error() string {
 	if len(u.msg) > 0 {
 		return u.msg
-	} else {
-		return "No public key found"
 	}
+	return "No public key found"
 }
 
 type NoEldestKeyError struct {

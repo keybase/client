@@ -42,9 +42,8 @@ func (d Delegator) getSigningKID() KID { return d.signingKey.GetKid() }
 func (d Delegator) getExistingKID() KID {
 	if d.ExistingKey == nil {
 		return nil
-	} else {
-		return d.ExistingKey.GetKid()
 	}
+	return d.ExistingKey.GetKid()
 }
 
 func (d Delegator) GetExistingKeyFOKID() (ret *FOKID) {

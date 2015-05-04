@@ -226,15 +226,14 @@ func (s *Session) Check() error {
 		if err != nil {
 			err = fmt.Errorf("Server replied with unrecognized response: %s", err.Error())
 			return err
-		} else {
-			s.Lock()
-			s.valid = true
-			s.uid = &uid
-			s.username = &username
-			s.Unlock()
-			if !s.IsRecent() {
-				s.SetCsrf(csrf)
-			}
+		}
+		s.Lock()
+		s.valid = true
+		s.uid = &uid
+		s.username = &username
+		s.Unlock()
+		if !s.IsRecent() {
+			s.SetCsrf(csrf)
 		}
 	} else {
 		s.G().Log.Notice("Stored session expired")

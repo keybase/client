@@ -76,9 +76,8 @@ func (c *UserCache) GetResolution(key string) *ResolveResult {
 	c.resolveCacheMu.RUnlock()
 	if found {
 		return &res
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (c *UserCache) PutResolution(key string, res ResolveResult) {

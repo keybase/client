@@ -64,9 +64,8 @@ func GetKID(w *jsonw.Wrapper) (kid KID, err error) {
 func (k KID) ToJsonw() *jsonw.Wrapper {
 	if k == nil {
 		return jsonw.NewNil()
-	} else {
-		return jsonw.NewString(k.String())
 	}
+	return jsonw.NewString(k.String())
 }
 
 func CanEncrypt(key GenericKey) bool {

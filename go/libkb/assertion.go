@@ -155,10 +155,9 @@ func (a AssertionFingerprint) MatchProof(proof Proof) bool {
 	l1, l2 := len(v1), len(v2)
 	if l2 > l1 {
 		return false
-	} else {
-		// Match the suffixes of the fingerprint
-		return (v1[(l1-l2):] == v2)
 	}
+	// Match the suffixes of the fingerprint
+	return (v1[(l1-l2):] == v2)
 }
 
 func (a AssertionUid) CollectUrls(v []AssertionUrl) []AssertionUrl         { return append(v, a) }
@@ -317,9 +316,8 @@ func ParseAssertionUrlKeyValue(key, val string,
 		if strict {
 			err = fmt.Errorf("Bad assertion, no 'type' given: %s", val)
 			return
-		} else {
-			key = "keybase"
 		}
+		key = "keybase"
 	}
 	base := AssertionUrlBase{key, val}
 	switch key {

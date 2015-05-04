@@ -184,25 +184,22 @@ func (e *Env) getEnvInt(s string) (int, bool) {
 }
 
 func (e *Env) getEnvPath(s string) []string {
-	if tmp := os.Getenv(s); len(tmp) == 0 {
-		return nil
-	} else {
+	if tmp := os.Getenv(s); len(tmp) != 0 {
 		return strings.Split(tmp, ":")
 	}
+	return nil
 }
 
 func (e *Env) getEnvBool(s string) (bool, bool) {
 	tmp := os.Getenv(s)
 	if len(tmp) == 0 {
 		return false, false
-	} else {
-		tmp = strings.ToLower(tmp)
-		if tmp == "0" || tmp[0] == byte('n') {
-			return false, true
-		} else {
-			return true, true
-		}
 	}
+	tmp = strings.ToLower(tmp)
+	if tmp == "0" || tmp[0] == byte('n') {
+		return false, true
+	}
+	return true, true
 }
 
 func (e *Env) GetString(flist ...(func() string)) string {
@@ -441,9 +438,8 @@ func (e *Env) GetNoPinentry() bool {
 		s = strings.ToLower(s)
 		if s == "0" || s == "no" || s == "n" || s == "none" {
 			return true, true
-		} else {
-			return false, false
 		}
+		return false, false
 	}
 
 	return e.GetBool(false,
@@ -515,9 +511,8 @@ func (e *Env) GetMerkleKeyFingerprints() []PgpFingerprint {
 		func() []string {
 			if e.GetTestMode() {
 				return []string{MERKLE_TEST_KEY}
-			} else {
-				return []string{MERKLE_PROD_KEY}
 			}
+			return []string{MERKLE_PROD_KEY}
 		},
 	)
 

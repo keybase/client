@@ -188,9 +188,8 @@ func checkHttpStatus(arg ApiArg, resp *http.Response) error {
 func (arg ApiArg) getHttpArgs() url.Values {
 	if arg.Args != nil {
 		return arg.Args.ToValues()
-	} else {
-		return arg.uArgs
 	}
+	return arg.uArgs
 }
 
 // End shared code

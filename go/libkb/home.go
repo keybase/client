@@ -94,10 +94,8 @@ func (x XdgPosix) LogDir() string {
 	ret := x.xdgRuntimeDir()
 	if len(ret) != 0 {
 		return ret
-	} else {
-		ret = x.CacheDir()
 	}
-	return ret
+	return x.CacheDir()
 }
 
 type Win32 struct {
@@ -151,7 +149,6 @@ func (w Win32) Home(emptyOk bool) string {
 func NewHomeFinder(appName string, getHome HomeGetter) HomeFinder {
 	if runtime.GOOS == "windows" {
 		return Win32{Base{appName, getHome}}
-	} else {
-		return XdgPosix{Base{appName, getHome}}
 	}
+	return XdgPosix{Base{appName, getHome}}
 }

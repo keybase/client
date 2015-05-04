@@ -30,15 +30,14 @@ func (v *CmdConfig) ParseArgv(ctx *cli.Context) error {
 	if !v.location && !v.reset &&
 		nargs != 1 && nargs != 2 {
 		return errors.New("incorrect config usage")
-	} else {
-		if nargs > 0 {
-			v.key = ctx.Args()[0]
-		}
-		if nargs > 1 {
-			v.value = ctx.Args()[1]
-			// distinguish between no value and an empty string
-			v.valueSet = true
-		}
+	}
+	if nargs > 0 {
+		v.key = ctx.Args()[0]
+	}
+	if nargs > 1 {
+		v.value = ctx.Args()[1]
+		// distinguish between no value and an empty string
+		v.valueSet = true
 	}
 
 	if v.clear && (v.key == "" || v.valueSet) {

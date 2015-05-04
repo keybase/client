@@ -2,6 +2,8 @@ package client
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -9,7 +11,6 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
-	"strings"
 )
 
 type CmdSearch struct {
@@ -66,9 +67,8 @@ func (c *CmdSearch) Run() error {
 func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {
 	if c.json {
 		return c.showJsonResults(results)
-	} else {
-		return c.showRegularResults(results)
 	}
+	return c.showRegularResults(results)
 }
 
 func (c *CmdSearch) showRegularResults(results []keybase1.UserSummary) error {

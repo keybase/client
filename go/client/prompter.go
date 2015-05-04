@@ -1,8 +1,9 @@
 package client
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 type Field struct {
@@ -20,9 +21,8 @@ type Field struct {
 func (f Field) GetValue() string {
 	if f.Value == nil {
 		return ""
-	} else {
-		return *f.Value
 	}
+	return *f.Value
 }
 
 type Prompter struct {

@@ -219,9 +219,8 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 				fep.Push(ErrorToGpgError(err))
 			}
 			return fep.Error()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if !arg.Stdout {
@@ -286,9 +285,8 @@ func (g *GpgCLI) Run(arg RunGpgArg) (res RunGpgRes) {
 		if !waited {
 			waited = true
 			return cmd.Wait()
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if arg.Stdin {

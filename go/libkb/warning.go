@@ -26,9 +26,8 @@ func (s StringWarning) Warn() {
 func ErrorToWarning(e error) Warning {
 	if e == nil {
 		return nil
-	} else {
-		return StringWarning(e.Error())
 	}
+	return StringWarning(e.Error())
 }
 
 type Warnings struct {

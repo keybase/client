@@ -2,9 +2,10 @@ package libkb
 
 import (
 	"fmt"
-	"golang.org/x/crypto/openpgp/packet"
 	"regexp"
 	"strings"
+
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 type Identity struct {
@@ -21,14 +22,13 @@ func ParseIdentity(s string) (*Identity, error) {
 	v := rxx.FindStringSubmatch(s)
 	if v == nil {
 		return nil, fmt.Errorf("Bad PGP-style identity: %s", s)
-	} else {
-		ret := &Identity{
-			Username: v[1],
-			Comment:  v[2],
-			Email:    v[3],
-		}
-		return ret, nil
 	}
+	ret := &Identity{
+		Username: v[1],
+		Comment:  v[2],
+		Email:    v[3],
+	}
+	return ret, nil
 }
 
 func (i Identity) Format() string {

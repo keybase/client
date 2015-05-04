@@ -332,9 +332,8 @@ func LoadUserFromServer(arg LoadUserArg, body *jsonw.Wrapper) (u *User, err erro
 
 		if err != nil {
 			return nil, err
-		} else {
-			body = res.Body.AtKey("them")
 		}
+		body = res.Body.AtKey("them")
 	} else {
 		G.Log.Debug("| Skipped load; got user object previously")
 	}
@@ -692,11 +691,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 }
 
 func (u *User) HasActiveKey() bool {
-	if ckf := u.GetComputedKeyFamily(); ckf == nil {
-		return false
-	} else {
+	if ckf := u.GetComputedKeyFamily(); ckf != nil {
 		return ckf.HasActiveKey()
 	}
+	return false
 }
 
 func (u1 *User) Equal(u2 *User) bool {

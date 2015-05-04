@@ -42,12 +42,10 @@ func (s SocketInfoTcp) ToStringPair() (string, string) {
 func BindToSocket(info SocketInfo) (ret net.Listener, err error) {
 	if err = info.PrepSocket(); err != nil {
 		return
-	} else {
-		l, a := info.ToStringPair()
-		G.Log.Info("Binding to %s:%s", l, a)
-		ret, err = net.Listen(l, a)
 	}
-	return
+	l, a := info.ToStringPair()
+	G.Log.Info("Binding to %s:%s", l, a)
+	return net.Listen(l, a)
 }
 
 func DialSocket(info SocketInfo) (ret net.Conn, err error) {

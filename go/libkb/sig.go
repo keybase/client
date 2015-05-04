@@ -6,11 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/go-jsonw"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
 	"io/ioutil"
 	"strings"
+
+	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
 )
 
 const (
@@ -29,20 +30,18 @@ func ComputeSigIdFromSigBody(body []byte) SigId {
 func (s SigId) ToDisplayString(verbose bool) string {
 	if verbose {
 		return s.ToString(true)
-	} else {
-		return fmt.Sprintf("%s...", hex.EncodeToString(s[0:3]))
 	}
+	return fmt.Sprintf("%s...", hex.EncodeToString(s[0:3]))
 }
 
 func SigIdFromSlice(s []byte) (*SigId, error) {
 	if len(s) != SIG_ID_LEN {
 		return nil, fmt.Errorf("Bad SidId; wanted %d byte; got %d",
 			SIG_ID_LEN, len(s))
-	} else {
-		ret := SigId{}
-		copy(ret[:], s)
-		return &ret, nil
 	}
+	ret := SigId{}
+	copy(ret[:], s)
+	return &ret, nil
 }
 
 func SigIdFromHex(s string, suffix bool) (*SigId, error) {
@@ -178,9 +177,8 @@ func isPgp(armored string) bool {
 func SigAssertPayload(armored string, expected []byte) (sigId *SigId, err error) {
 	if isPgp(armored) {
 		return SigAssertPgpPayload(armored, expected)
-	} else {
-		return SigAssertKbPayload(armored, expected)
 	}
+	return SigAssertKbPayload(armored, expected)
 }
 
 func SigAssertPgpPayload(armored string, expected []byte) (sigId *SigId, err error) {

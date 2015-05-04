@@ -43,9 +43,8 @@ var CheckPassphraseNew = Checker{
 		r := []rune(s)
 		if len(r) > 0 && unicode.IsSpace(r[0]) {
 			return false
-		} else {
-			return len(s) >= 12
 		}
+		return len(s) >= 12
 	},
 	Hint:          "passphrase must be 12 or more characters",
 	PreserveSpace: true,
@@ -53,11 +52,10 @@ var CheckPassphraseNew = Checker{
 
 var CheckInviteCode = Checker{
 	F: func(s string) bool {
-		if b, err := hex.DecodeString(s); err != nil {
-			return false
-		} else {
+		if b, err := hex.DecodeString(s); err == nil {
 			return len(b) == 12
 		}
+		return false
 	},
 	Hint: "Invite codes are 24-digit hex strings",
 }

@@ -48,9 +48,8 @@ func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
 		ok, found := types[i]
 		if !ok || !found {
 			return fmt.Errorf("unknown signature type: %s", i)
-		} else {
-			ret[i] = true
 		}
+		ret[i] = true
 	}
 	s.types = ret
 	return nil
@@ -204,9 +203,8 @@ func (s *CmdSigsList) Run() error {
 		}
 		fmt.Println(j)
 		return nil
-	} else {
-		return s.DisplayKTable(eng.Sigs())
 	}
+	return s.DisplayKTable(eng.Sigs())
 }
 
 func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {

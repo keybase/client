@@ -125,25 +125,22 @@ func (p CommandLine) GetMerkleKeyFingerprints() []string {
 	s := p.GetGString("merkle-key-fingerprints")
 	if len(s) != 0 {
 		return strings.Split(s, ":")
-	} else {
-		return nil
 	}
+	return nil
 }
 func (p CommandLine) GetUserCacheSize() (int, bool) {
 	ret := p.GetGInt("user-cache-size")
 	if ret != 0 {
 		return ret, true
-	} else {
-		return 0, false
 	}
+	return 0, false
 }
 func (p CommandLine) GetProofCacheSize() (int, bool) {
 	ret := p.GetGInt("proof-cache-size")
 	if ret != 0 {
 		return ret, true
-	} else {
-		return 0, false
 	}
+	return 0, false
 }
 func (p CommandLine) GetDaemonPort() (ret int, set bool) {
 	if ret = p.GetGInt("daemon-port"); ret != 0 {

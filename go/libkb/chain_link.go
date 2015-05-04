@@ -376,17 +376,15 @@ func (c *ChainLink) VerifyPayload() error {
 func (c *ChainLink) GetSeqno() Seqno {
 	if c.unpacked != nil {
 		return c.unpacked.seqno
-	} else {
-		return Seqno(-1)
 	}
+	return Seqno(-1)
 }
 
 func (c *ChainLink) GetSigId() *SigId {
 	if c.unpacked != nil {
 		return &c.unpacked.sigId
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (c *ChainLink) GetSigCheckCache() (cki *ComputedKeyInfos) {

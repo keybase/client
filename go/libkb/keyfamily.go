@@ -203,12 +203,10 @@ func (ckis ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un stri
 			fokidWithKid := GenericKeyToFOKID(eldestKey)
 			ckis.Insert(&fokidWithKid, &eldestCki)
 			return nil
-		} else {
-			return KeyFamilyError{"InsertServerEldestKey found a non-matching eldest key."}
 		}
-	} else {
-		return KeyFamilyError{"InsertServerEldestKey found a non-PGP key."}
+		return KeyFamilyError{"InsertServerEldestKey found a non-matching eldest key."}
 	}
+	return KeyFamilyError{"InsertServerEldestKey found a non-PGP key."}
 }
 
 func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username string) (err error) {

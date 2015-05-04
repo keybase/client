@@ -343,9 +343,8 @@ func (mc *MerkleClient) LastSeqno() Seqno {
 	defer mc.RUnlock()
 	if mc.lastRoot != nil {
 		return mc.lastRoot.seqno
-	} else {
-		return -1
 	}
+	return -1
 }
 
 func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {

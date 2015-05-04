@@ -168,50 +168,49 @@ func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
 func ImportStatusAsError(s *keybase1.Status) error {
 	if s == nil {
 		return nil
-	} else {
-		switch s.Code {
-		case SC_OK:
-			return nil
-		case SC_GENERIC:
-			return fmt.Errorf(s.Desc)
-		case SC_BAD_LOGIN_PASSWORD:
-			return PassphraseError{s.Desc}
-		case SC_KEY_BAD_GEN:
-			return KeyGenError{s.Desc}
-		case SC_ALREADY_LOGGED_IN:
-			return LoggedInError{}
-		case SC_CANCELED:
-			return CanceledError{s.Desc}
-		case SC_KEY_NO_SECRET:
-			return NoSecretKeyError{}
-		case SC_LOGIN_REQUIRED:
-			return LoginRequiredError{s.Desc}
-		case SC_KEY_IN_USE:
-			var fp *PgpFingerprint
-			if len(s.Desc) > 0 {
-				fp, _ = PgpFingerprintFromHex(s.Desc)
-			}
-			return KeyExistsError{fp}
-		case SC_STREAM_EXISTS:
-			return StreamExistsError{}
-		case SC_STREAM_NOT_FOUND:
-			return StreamNotFoundError{}
-		case SC_STREAM_WRONG_KIND:
-			return StreamWrongKindError{}
-		case SC_STREAM_EOF:
-			return io.EOF
-		default:
-			ase := AppStatusError{
-				Code:   s.Code,
-				Name:   s.Name,
-				Desc:   s.Desc,
-				Fields: make(map[string]string),
-			}
-			for _, f := range s.Fields {
-				ase.Fields[f.Key] = f.Value
-			}
-			return ase
+	}
+	switch s.Code {
+	case SC_OK:
+		return nil
+	case SC_GENERIC:
+		return fmt.Errorf(s.Desc)
+	case SC_BAD_LOGIN_PASSWORD:
+		return PassphraseError{s.Desc}
+	case SC_KEY_BAD_GEN:
+		return KeyGenError{s.Desc}
+	case SC_ALREADY_LOGGED_IN:
+		return LoggedInError{}
+	case SC_CANCELED:
+		return CanceledError{s.Desc}
+	case SC_KEY_NO_SECRET:
+		return NoSecretKeyError{}
+	case SC_LOGIN_REQUIRED:
+		return LoginRequiredError{s.Desc}
+	case SC_KEY_IN_USE:
+		var fp *PgpFingerprint
+		if len(s.Desc) > 0 {
+			fp, _ = PgpFingerprintFromHex(s.Desc)
 		}
+		return KeyExistsError{fp}
+	case SC_STREAM_EXISTS:
+		return StreamExistsError{}
+	case SC_STREAM_NOT_FOUND:
+		return StreamNotFoundError{}
+	case SC_STREAM_WRONG_KIND:
+		return StreamWrongKindError{}
+	case SC_STREAM_EOF:
+		return io.EOF
+	default:
+		ase := AppStatusError{
+			Code:   s.Code,
+			Name:   s.Name,
+			Desc:   s.Desc,
+			Fields: make(map[string]string),
+		}
+		for _, f := range s.Fields {
+			ase.Fields[f.Key] = f.Value
+		}
+		return ase
 	}
 }
 

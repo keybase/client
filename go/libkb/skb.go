@@ -435,9 +435,8 @@ func (p KeybasePacket) ToSKB() (*SKB, error) {
 	ret, ok := p.Body.(*SKB)
 	if !ok {
 		return nil, UnmarshalError{"SKB"}
-	} else {
-		return ret, nil
 	}
+	return ret, nil
 }
 
 func (s *SKB) ArmoredEncode() (ret string, err error) {

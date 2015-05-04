@@ -85,7 +85,7 @@ func (h *UserHandler) ListTrackingJson(arg keybase1.ListTrackingJsonArg) (res st
 }
 
 func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	var uid *libkb.UID = nil
+	var uid *libkb.UID
 	if arg.Uid != nil {
 		uidVal := libkb.ImportUID(*arg.Uid)
 		uid = &uidVal

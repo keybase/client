@@ -125,17 +125,15 @@ type SocialProofChainLink struct {
 func (w *WebProofChainLink) TableKey() string {
 	if w.protocol == "https" {
 		return "http"
-	} else {
-		return w.protocol
 	}
+	return w.protocol
 }
 
 func (g *WebProofChainLink) GetIntType() int {
 	if g.protocol == "dns" {
 		return PROOF_TYPE_DNS
-	} else {
-		return PROOF_TYPE_GENERIC_WEB_SITE
 	}
+	return PROOF_TYPE_GENERIC_WEB_SITE
 }
 
 func (s *WebProofChainLink) ToTrackingStatement() (*jsonw.Wrapper, error) {
@@ -273,9 +271,8 @@ func (sb ServiceBlock) IsSocial() bool { return sb.social }
 func (sb ServiceBlock) ToIdString() string {
 	if sb.social {
 		return sb.id + "@" + sb.typ
-	} else {
-		return sb.typ + "://" + sb.id
 	}
+	return sb.typ + "://" + sb.id
 }
 
 func (sb ServiceBlock) ToKeyValuePair() (string, string) {
@@ -1156,9 +1153,8 @@ func ComputeRemoteDiff(tracked, observed int) TrackDiff {
 		return TrackDiffRemoteFail{observed}
 	} else if tracked == PROOF_STATE_OK {
 		return TrackDiffRemoteWorking{tracked}
-	} else {
-		return TrackDiffRemoteChanged{tracked, observed}
 	}
+	return TrackDiffRemoteChanged{tracked, observed}
 }
 
 func (idt *IdentityTable) ProofRemoteCheck(track *TrackLookup, res *LinkCheckResult) {

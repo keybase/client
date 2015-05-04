@@ -286,9 +286,8 @@ type Contextified struct {
 func (c Contextified) G() *GlobalContext {
 	if c.g != nil {
 		return c.g
-	} else {
-		return G
 	}
+	return G
 }
 
 func (c *Contextified) SetGlobalContext(g *GlobalContext) { c.g = g }
