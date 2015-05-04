@@ -318,4 +318,6 @@ type Config interface {
 	Notifier() Notifier
 	SetNotifier(Notifier)
 	DataVersion() int
+	// the number of read or write operations that can be buffered per folder
+	ReqsBufSize() int
 }
