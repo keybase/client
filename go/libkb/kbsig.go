@@ -396,7 +396,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 func kidsList(kids []KID) *jsonw.Wrapper {
 	ret := jsonw.NewArray(len(kids))
 	for i, kid := range kids {
-		ret.SetIndex(i, jsonw.NewString(kid.String()))
+		ret.SetIndex(i, jsonw.NewWrapper(kid))
 	}
 	return ret
 }
