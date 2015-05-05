@@ -127,7 +127,7 @@ func (k *KBPKIClient) getDeviceKeysHelper(user *libkb.User, isSibkey bool) (
 		} else {
 			keyType = "subkey"
 		}
-		libkb.G.Log.Info("got %s %s for user %s", keyType, key.VerboseDescription(), user.GetName())
+		libkb.G.Log.Debug("got %s %s for user %s", keyType, key.VerboseDescription(), user.GetName())
 		keys = append(keys, key)
 	}
 
@@ -143,7 +143,7 @@ func (k *KBPKIClient) GetDeviceSubkeyKid() (KID, error) {
 	if err != nil {
 		return KID{}, err
 	}
-	libkb.G.Log.Info("got device kid %s", libkb.KID(deviceSubkeyKid).ToShortIdString())
+	libkb.G.Log.Debug("got device kid %s", libkb.KID(deviceSubkeyKid).ToShortIdString())
 	return deviceSubkeyKid, nil
 }
 
