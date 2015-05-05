@@ -31,6 +31,7 @@ func (v *CmdLogin) RunClient() (err error) {
 		NewSecretUIProtocol(),
 		NewLocksmithUIProtocol(),
 	}
+
 	if cli, err = GetLoginClient(); err != nil {
 	} else if err = RegisterProtocols(protocols); err != nil {
 	} else {

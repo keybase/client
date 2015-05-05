@@ -131,22 +131,28 @@ func ImportProofError(e keybase1.ProofStatus) ProofError {
 
 func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 	if e == nil {
-	} else if e == io.EOF {
-		ret = &keybase1.Status{
+		return nil
+	}
+
+	if e == io.EOF {
+		return &keybase1.Status{
 			Code: SC_STREAM_EOF,
 			Name: "STREAM_EOF",
 		}
-	} else if ee, ok := e.(ExportableError); ok {
-		tmp := ee.ToStatus()
-		ret = &tmp
-	} else {
-		ret = &keybase1.Status{
-			Name: "GENERIC",
-			Code: SC_GENERIC,
-			Desc: e.Error(),
-		}
 	}
-	return
+
+	if ee, ok := e.(ExportableError); ok {
+		tmp := ee.ToStatus()
+		return &tmp
+	}
+
+	G.Log.Warning("not exportable error: %v (%T)", e, e)
+
+	return &keybase1.Status{
+		Name: "GENERIC",
+		Code: SC_GENERIC,
+		Desc: e.Error(),
+	}
 }
 
 //=============================================================================
@@ -672,3 +678,10 @@ func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 }
 
 //=============================================================================
+
+func (e APINetError) ToStatus() (s keybase1.Status) {
+	s.Code = SC_API_NETWORK_ERROR
+	s.Name = "API_NETWORK_ERROR"
+	s.Desc = e.Error()
+	return
+}

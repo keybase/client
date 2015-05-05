@@ -66,6 +66,7 @@ const (
 	SC_STREAM_NOT_FOUND          = 1502
 	SC_STREAM_WRONG_KIND         = 1503
 	SC_STREAM_EOF                = 1504
+	SC_API_NETWORK_ERROR         = 1601
 )
 
 const (

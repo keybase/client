@@ -139,7 +139,7 @@ func doRequestShared(api Requester, arg ApiArg, req *http.Request, wantJsonRes b
 	// Actually send the request via Go's libraries
 	resp, err = cli.cli.Do(req)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, APINetError{err: err}
 	}
 	G.Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
 

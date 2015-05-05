@@ -842,3 +842,11 @@ func NewUntrackError(d string, a ...interface{}) UntrackError {
 }
 
 //=============================================================================
+
+type APINetError struct {
+	err error
+}
+
+func (e APINetError) Error() string {
+	return fmt.Sprintf("API network error: %s", e.err)
+}
