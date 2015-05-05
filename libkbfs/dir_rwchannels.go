@@ -40,3 +40,16 @@ func (d *DirRWChannels) GetDirChan(dir DirId) *util.RWChannel {
 		return rwchan
 	}
 }
+
+// Shutdown closes all RWChannels.  This must be called at most once.
+func (d *DirRWChannels) Shutdown() {
+	d.chansLock.Lock()
+	defer d.chansLock.Unlock()
+	chans := make([]chan struct{}, 0, len(d.chans))
+	for _, rwchan := range d.chans {
+		chans = append(chans, rwchan.Shutdown())
+	}
+	for _, donechan := range chans {
+		<-donechan
+	}
+}
