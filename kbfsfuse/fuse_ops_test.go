@@ -56,6 +56,7 @@ func TestLookupSelfPublic(t *testing.T) {
 	config := makeTestConfig([]string{"test_user"})
 
 	root := NewFuseRoot(config)
+	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user")
@@ -70,6 +71,7 @@ func TestLookupOtherPublic(t *testing.T) {
 	// create it.
 
 	root := NewFuseRoot(config)
+	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user1")
@@ -97,6 +99,7 @@ func TestNeedUpdateBasic(t *testing.T) {
 	config := makeTestConfig([]string{"test_user"})
 
 	root := NewFuseRoot(config)
+	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	if root.NeedUpdate {
@@ -152,6 +155,7 @@ func TestNeedUpdateAll(t *testing.T) {
 	config := makeTestConfig([]string{"test_user"})
 
 	root := NewFuseRoot(config)
+	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	// Make /test_user/dir1/dir2/dir3 and clear their NeedUpdate

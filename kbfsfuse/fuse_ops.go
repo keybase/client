@@ -110,6 +110,10 @@ func (n *FuseNode) GetPath(depth int) libkbfs.Path {
 	return p
 }
 
+func (f *FuseOps) Shutdown() {
+	f.dirRWChans.Shutdown()
+}
+
 func (f *FuseOps) LookupInDir(dNode *FuseNode, name string) (
 	node *nodefs.Inode, code fuse.Status) {
 	node = dNode.Inode().GetChild(name)
