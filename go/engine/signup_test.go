@@ -64,11 +64,12 @@ func TestSignupEngine(t *testing.T) {
 
 	mockGetSecret := &GetSecretMock{
 		Passphrase: fu.Passphrase,
-		T:          t,
 	}
 	if err = G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
 		t.Fatal(err)
 	}
+
+	mockGetSecret.CheckLastErr(t)
 
 	if !mockGetSecret.Called {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")

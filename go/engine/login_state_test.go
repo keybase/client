@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"runtime"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -69,19 +70,21 @@ func TestLoginLogout(t *testing.T) {
 	}
 }
 
-// TODO(akalin): Make the mocks below safe to use from non-main
-// goroutines; see https://github.com/keybase/client/issues/412 .
-
+// This mock (and the similar ones below) may be used from a goroutine
+// different from the main one, so don't mess with testing.T (which
+// isn't safe to use from a non-main goroutine) directly, and instead
+// have a LastErr field.
 type GetSecretMock struct {
 	Passphrase  string
 	StoreSecret bool
 	Called      bool
-	T           *testing.T
+	LastErr     error
 }
 
 func (m *GetSecretMock) GetSecret(arg keybase1.SecretEntryArg, _ *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	if m.Called {
-		m.T.Fatal("GetSecret unexpectedly called more than once")
+		m.LastErr = errors.New("GetSecret unexpectedly called more than once")
+		return nil, m.LastErr
 	}
 	m.Called = true
 	storeSecret := arg.UseSecretStore && m.StoreSecret
@@ -89,13 +92,19 @@ func (m *GetSecretMock) GetSecret(arg keybase1.SecretEntryArg, _ *keybase1.Secre
 }
 
 func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
-	m.T.Fatal("GetNewPassphrase unexpectedly called")
-	return "", nil
+	m.LastErr = errors.New("GetSecret unexpectedly called more than once")
+	return "invalid passphrase", m.LastErr
 }
 
 func (m *GetSecretMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
-	m.T.Fatal("GetKeybasePassphrase unexpectedly called")
-	return "", nil
+	m.LastErr = errors.New("GetKeybasePassphrase unexpectedly called")
+	return "invalid passphrase", m.LastErr
+}
+
+func (m *GetSecretMock) CheckLastErr(t *testing.T) {
+	if m.LastErr != nil {
+		t.Fatal(m.LastErr)
+	}
 }
 
 // Test that login works while already logged in.
@@ -156,11 +165,12 @@ func TestLoginWithPromptPubkey(t *testing.T) {
 
 	mockGetSecret := &GetSecretMock{
 		Passphrase: fu.Passphrase,
-		T:          t,
 	}
 	if err := G.LoginState().LoginWithPrompt("", nil, mockGetSecret); err != nil {
 		t.Error(err)
 	}
+
+	mockGetSecret.CheckLastErr(t)
 
 	if !mockGetSecret.Called {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")
@@ -184,21 +194,28 @@ func TestLoginWithPromptPubkey(t *testing.T) {
 type GetUsernameMock struct {
 	Username string
 	Called   bool
-	T        *testing.T
+	LastErr  error
 }
 
 func (m *GetUsernameMock) GetEmailOrUsername(int) (string, error) {
 	if m.Called {
-		m.T.Fatal("GetEmailOrUsername unexpectedly called more than once")
+		m.LastErr = errors.New("GetEmailOrUsername unexpectedly called more than once")
+		return "invalid username", m.LastErr
 	}
 	m.Called = true
 	return m.Username, nil
 }
 
+func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
+	if m.LastErr != nil {
+		t.Fatal(m.LastErr)
+	}
+}
+
 type GetKeybasePassphraseMock struct {
 	Passphrase string
 	Called     bool
-	T          *testing.T
+	LastErr    error
 }
 
 func (m *GetKeybasePassphraseMock) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
@@ -206,16 +223,23 @@ func (m *GetKeybasePassphraseMock) GetSecret(keybase1.SecretEntryArg, *keybase1.
 }
 
 func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (string, error) {
-	m.T.Fatal("GetNewPassphrase unexpectedly called")
-	return "", nil
+	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
+	return "invalid passphrase", m.LastErr
 }
 
 func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
 	if m.Called {
-		m.T.Fatal("GetKeybasePassphrase unexpectedly called more than once")
+		m.LastErr = errors.New("GetKeybasePassphrase unexpectedly called more than once")
+		return "invalid passphrase", m.LastErr
 	}
 	m.Called = true
 	return m.Passphrase, nil
+}
+
+func (m *GetKeybasePassphraseMock) CheckLastErr(t *testing.T) {
+	if m.LastErr != nil {
+		t.Fatal(m.LastErr)
+	}
 }
 
 // Test that the login falls back to a passphrase login if pubkey
@@ -230,7 +254,6 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 
 	mockGetKeybasePassphrase := &GetKeybasePassphraseMock{
 		Passphrase: fu.Passphrase,
-		T:          t,
 	}
 	if err := G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase); err != nil {
 		t.Error(err)
@@ -247,6 +270,8 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 		t.Error(err)
 	}
 
+	mockGetKeybasePassphrase.CheckLastErr(t)
+
 	if !mockGetKeybasePassphrase.Called {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
@@ -259,12 +284,14 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 
 	mockGetUsername := &GetUsernameMock{
 		Username: fu.Username,
-		T:        t,
 	}
 	mockGetKeybasePassphrase.Called = false
 	if err := G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase); err != nil {
 		t.Error(err)
 	}
+
+	mockGetUsername.CheckLastErr(t)
+	mockGetKeybasePassphrase.CheckLastErr(t)
 
 	if !mockGetUsername.Called {
 		t.Errorf("loginUI.GetEmailOrUsername() unexpectedly not called")
@@ -332,11 +359,12 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	mockGetSecret := &GetSecretMock{
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
-		T:           t,
 	}
 	if err := G.LoginState().LoginWithPrompt("", nil, mockGetSecret); err != nil {
 		t.Error(err)
 	}
+
+	mockGetSecret.CheckLastErr(t)
 
 	if !mockGetSecret.Called {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")
@@ -471,3 +499,19 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 }
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.
+
+func TestExternalFuncGoexit(t *testing.T) {
+	tc := SetupEngineTest(t, "ExternalFunc goexit")
+	defer tc.Cleanup()
+
+	// This should not cause a hang, and an error should be
+	// returned.
+	err := G.LoginState().ExternalFunc(func() error {
+		runtime.Goexit()
+		return nil
+	})
+
+	if err == nil {
+		t.Error("Error unexpectedly nil")
+	}
+}

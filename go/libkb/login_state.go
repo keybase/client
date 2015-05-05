@@ -5,6 +5,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"sync"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -12,10 +13,15 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
+type loginReq struct {
+	f   func() error
+	res chan error
+}
+
 type LoginState struct {
 	Contextified
 
-	requests chan *loginReq
+	requests chan loginReq
 	session  *Session // The user's session cookie, &c
 
 	secretSyncer *SecretSyncer // For syncing secrets between the server and client
@@ -27,21 +33,6 @@ type LoginState struct {
 	tsec             *triplesec.Cipher
 	sessionFor       string
 	passphraseStream PassphraseStream
-}
-
-type LoginArg struct {
-	username    string
-	passphrase  string
-	storeSecret bool
-	force       bool
-	loginUI     LoginUI
-	secretUI    SecretUI
-}
-
-type loginReq struct {
-	arg *LoginArg
-	f   func(*LoginArg) error
-	res chan error
 }
 
 type loginAPIResult struct {
@@ -56,7 +47,7 @@ func NewLoginState(g *GlobalContext) *LoginState {
 	res := &LoginState{
 		Contextified: Contextified{g},
 		session:      s,
-		requests:     make(chan *loginReq),
+		requests:     make(chan loginReq),
 	}
 	go res.handleRequests()
 	return res
@@ -166,11 +157,9 @@ func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI 
 	G.Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
-	err = s.handle(&LoginArg{
-		username: username,
-		loginUI:  loginUI,
-		secretUI: secretUI,
-	}, s.loginWithPrompt)
+	err = s.handle(func() error {
+		return s.loginWithPromptHelper(username, loginUI, secretUI, false)
+	})
 	return
 }
 
@@ -178,9 +167,9 @@ func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
 	G.Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
-	err = s.handle(&LoginArg{
-		username: username,
-	}, s.loginWithStoredSecret)
+	err = s.handle(func() error {
+		return s.loginWithStoredSecret(username)
+	})
 	return
 }
 
@@ -188,24 +177,24 @@ func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecre
 	G.Log.Debug("+ LoginWithPassphrase(%s) called", username)
 	defer func() { G.Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
 
-	err = s.handle(&LoginArg{
-		username:    username,
-		passphrase:  passphrase,
-		storeSecret: storeSecret,
-	}, s.loginWithPassphrase)
+	err = s.handle(func() error {
+		return s.loginWithPassphrase(username, passphrase, storeSecret)
+	})
 	return
 }
 
 func (s *LoginState) Logout() error {
-	return s.handle(&LoginArg{}, s.logout)
+	return s.handle(func() error {
+		return s.logout()
+	})
 }
 
 // ExternalFunc is for having the LoginState handler call a
 // function outside of LoginState.  The current use case is
 // for signup, so that no logins/logouts happen while a signup is
 // happening.
-func (s *LoginState) ExternalFunc(f func(*LoginArg) error) error {
-	return s.handle(&LoginArg{}, f)
+func (s *LoginState) ExternalFunc(f func() error) error {
+	return s.handle(f)
 }
 
 func (s *LoginState) Shutdown() error {
@@ -656,11 +645,9 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 }
 
 func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
-	return s.handle(&LoginArg{
-		username: G.Env.GetUsername(),
-		secretUI: ui,
-		force:    true,
-	}, s.loginWithPrompt)
+	return s.handle(func() error {
+		return s.loginWithPromptHelper(G.Env.GetUsername(), nil, ui, true)
+	})
 }
 
 func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
@@ -693,9 +680,8 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 	return s.tryPassphrasePromptLogin(username, secretUI)
 }
 
-func (s *LoginState) handle(arg *LoginArg, f func(*LoginArg) error) error {
-	req := &loginReq{
-		arg: arg,
+func (s *LoginState) handle(f func() error) error {
+	req := loginReq{
 		f:   f,
 		res: make(chan error),
 	}
@@ -705,23 +691,37 @@ func (s *LoginState) handle(arg *LoginArg, f func(*LoginArg) error) error {
 }
 
 func (s *LoginState) handleRequests() {
-	for x := range s.requests {
-		x.res <- x.f(x.arg)
+	for req := range s.requests {
+		s.handleRequest(req)
 	}
 }
 
-func (s *LoginState) loginWithPrompt(arg *LoginArg) error {
-	return s.loginWithPromptHelper(arg.username, arg.loginUI, arg.secretUI, arg.force)
+func (s *LoginState) handleRequest(req loginReq) {
+	requestFinished := false
+	var err error
+	// Defer this, so that it runs even when req.f() calls
+	// runtime.Goexit(); otherwise, this would deadlock. (One case
+	// where req.f() would call runtime.Goexit() is if it
+	// (erroneously) calls testing.T.FailNow().)
+	defer func() {
+		if !requestFinished {
+			err = fmt.Errorf("Request did not finish")
+		}
+		req.res <- err
+	}()
+
+	err = req.f()
+	requestFinished = true
 }
 
-func (s *LoginState) loginWithStoredSecret(arg *LoginArg) error {
-	if loggedIn, err := s.checkLoggedIn(arg.username, false); err != nil {
+func (s *LoginState) loginWithStoredSecret(username string) error {
+	if loggedIn, err := s.checkLoggedIn(username, false); err != nil {
 		return err
 	} else if loggedIn {
 		return nil
 	}
 
-	if err := s.switchUser(arg.username); err != nil {
+	if err := s.switchUser(username); err != nil {
 		return err
 	}
 
@@ -729,37 +729,37 @@ func (s *LoginState) loginWithStoredSecret(arg *LoginArg) error {
 		secretRetriever := NewSecretStore(me.GetName())
 		return keyrings.GetSecretKeyWithStoredSecret(me, secretRetriever)
 	}
-	return s.pubkeyLoginHelper(arg.username, getSecretKeyFn)
+	return s.pubkeyLoginHelper(username, getSecretKeyFn)
 }
 
-func (s *LoginState) loginWithPassphrase(arg *LoginArg) error {
-	if loggedIn, err := s.checkLoggedIn(arg.username, false); err != nil {
+func (s *LoginState) loginWithPassphrase(username, passphrase string, storeSecret bool) error {
+	if loggedIn, err := s.checkLoggedIn(username, false); err != nil {
 		return err
 	} else if loggedIn {
 		return nil
 	}
 
-	if err := s.switchUser(arg.username); err != nil {
+	if err := s.switchUser(username); err != nil {
 		return err
 	}
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		var secretStorer SecretStorer
-		if arg.storeSecret {
+		if storeSecret {
 			secretStorer = NewSecretStore(me.GetName())
 		}
-		return keyrings.GetSecretKeyWithPassphrase(me, arg.passphrase, secretStorer)
+		return keyrings.GetSecretKeyWithPassphrase(me, passphrase, secretStorer)
 	}
-	if loggedIn, err := s.tryPubkeyLoginHelper(arg.username, getSecretKeyFn); err != nil {
+	if loggedIn, err := s.tryPubkeyLoginHelper(username, getSecretKeyFn); err != nil {
 		return err
 	} else if loggedIn {
 		return nil
 	}
 
-	return s.passphraseLogin(arg.username, arg.passphrase, nil, "")
+	return s.passphraseLogin(username, passphrase, nil, "")
 }
 
-func (s *LoginState) logout(arg *LoginArg) error {
+func (s *LoginState) logout() error {
 	G.Log.Debug("+ Logout called")
 	err := s.session.Logout()
 	if err == nil {
