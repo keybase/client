@@ -33,9 +33,9 @@ func expectUserCalls(handle *DirHandle, config *ConfigMock) {
 
 func testMdcachePut(t *testing.T, id MDId, h *DirHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
-		Keys: make([]DirKeys, 1, 1),
+		Keys: make([]DirKeyBundle, 1, 1),
 	}
-	k := DirKeys{}
+	k := DirKeyBundle{}
 	rmd.Keys[0] = k
 
 	// put the md

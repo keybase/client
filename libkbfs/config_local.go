@@ -23,7 +23,6 @@ type ConfigLocal struct {
 func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
 	config.SetKBFSOps(NewKBFSOpsStandard(config))
-	config.SetKBPKI(&KBPKINull{})
 	config.SetKeyManager(&KeyManagerStandard{config})
 	config.SetReporter(&ReporterSimple{})
 	config.SetMDCache(NewMDCacheStandard(5000))
@@ -180,7 +179,7 @@ func (c *ConfigLocal) SetNotifier(n Notifier) {
 	c.notifier = n
 }
 
-func (c *ConfigLocal) DataVersion() int {
+func (c *ConfigLocal) DataVersion() Ver {
 	return 0
 }
 

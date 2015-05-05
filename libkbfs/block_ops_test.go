@@ -45,13 +45,13 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
-	key := NullKey
+	var key Key
 	config.mockCrypto.EXPECT().Decrypt(encData, key).Return(packedData, nil)
 	var gotData TestBlock
 	expectBlockDecode(config, packedData, &gotData, decData, nil)
 
 	if err := config.BlockOps().Get(
-		id, ctxt, NullKey, &gotData); err != nil {
+		id, ctxt, nil, &gotData); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	} else if gotData != decData {
 		t.Errorf("Got back wrong data on get: %v", gotData)
@@ -68,7 +68,7 @@ func TestBlockOpsGetFailInconsistentByteCount(t *testing.T) {
 	ctxt := makeContext(encData[:3])
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 
-	err := config.BlockOps().Get(id, ctxt, NullKey, nil)
+	err := config.BlockOps().Get(id, ctxt, nil, nil)
 	if _, ok := err.(*InconsistentByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get InconsistentByteCountError; instead got %v", err)
 	}
@@ -84,10 +84,10 @@ func TestBlockOpsGetFailTooHighByteCount(t *testing.T) {
 	ctxt := makeContext(encData)
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 	packedData := []byte{4, 3, 2, 1, 0}
-	key := NullKey
+	var key Key
 	config.mockCrypto.EXPECT().Decrypt(encData, key).Return(packedData, nil)
 
-	err := config.BlockOps().Get(id, ctxt, NullKey, nil)
+	err := config.BlockOps().Get(id, ctxt, nil, nil)
 	if _, ok := err.(*TooHighByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get TooHighByteCountError; instead got %v", err)
 	}
@@ -105,7 +105,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 
 	var gotData TestBlock
 	if err2 := config.BlockOps().Get(
-		id, ctxt, NullKey, &gotData); err2 != err {
+		id, ctxt, nil, &gotData); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -120,12 +120,12 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	ctxt := makeContext(encData)
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 	err := errors.New("Fake fail")
-	key := NullKey
+	var key Key
 	config.mockCrypto.EXPECT().Decrypt(encData, key).Return(nil, err)
 
 	var gotData TestBlock
 	if err2 := config.BlockOps().Get(
-		id, ctxt, NullKey, &gotData); err2 != err {
+		id, ctxt, nil, &gotData); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -141,14 +141,14 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	config.mockBserv.EXPECT().Get(id, ctxt).Return(encData, nil)
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
-	key := NullKey
+	var key Key
 	config.mockCrypto.EXPECT().Decrypt(encData, key).Return(packedData, nil)
 	var gotData TestBlock
 	err := errors.New("Fake fail")
 	expectBlockDecode(config, packedData, &gotData, decData, err)
 
 	if err2 := config.BlockOps().Get(
-		id, ctxt, NullKey, &gotData); err2 != err {
+		id, ctxt, nil, &gotData); err2 != err {
 		t.Errorf("Got unexpected error on get: %v", err2)
 	}
 }
@@ -161,7 +161,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
 	encData := []byte{1, 2, 3, 4}
-	key := NullKey
+	var key Key
 	id := BlockId{1}
 
 	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)
@@ -189,7 +189,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
 	encData := []byte{1, 2, 3}
-	key := NullKey
+	var key Key
 
 	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)
 	config.mockCrypto.EXPECT().Encrypt(packedData, key).Return(encData, nil)
@@ -207,7 +207,7 @@ func TestBlockOpsReadyFailEncode(t *testing.T) {
 	// expect one call to encrypt a block, one to hash it
 	decData := TestBlock{42}
 	err := errors.New("Fake fail")
-	key := NullKey
+	var key Key
 
 	config.mockCodec.EXPECT().Encode(decData).Return(nil, err)
 
@@ -224,7 +224,7 @@ func TestBlockOpsReadyFailEncrypt(t *testing.T) {
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
 	err := errors.New("Fake fail")
-	key := NullKey
+	var key Key
 
 	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)
 	config.mockCrypto.EXPECT().Encrypt(packedData, key).Return(nil, err)
@@ -242,7 +242,7 @@ func TestBlockOpsReadyFailHash(t *testing.T) {
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
 	encData := []byte{1, 2, 3, 4}
-	key := NullKey
+	var key Key
 	err := errors.New("Fake fail")
 
 	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)
@@ -262,7 +262,7 @@ func TestBlockOpsReadyFailCast(t *testing.T) {
 	decData := TestBlock{42}
 	packedData := []byte{4, 3, 2, 1}
 	encData := []byte{1, 2, 3, 4}
-	key := NullKey
+	var key Key
 	badId := libkb.NodeHashLong{0}
 
 	config.mockCodec.EXPECT().Encode(decData).Return(packedData, nil)

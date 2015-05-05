@@ -94,9 +94,9 @@ func (md *MDServerLocal) GetAtId(id DirId, mdId MDId) (
 	if err != nil {
 		return nil, err
 	}
-	rmds := NewRootMetadataSigned()
-	err = md.config.Codec().Decode(buf, rmds)
-	return rmds, err
+	var rmds RootMetadataSigned
+	err = md.config.Codec().Decode(buf, &rmds)
+	return &rmds, err
 }
 
 func (md *MDServerLocal) Put(id DirId, mdId MDId,

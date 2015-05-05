@@ -32,7 +32,7 @@ func newDir(config *ConfigMock, x byte, share bool, public bool) (
 
 	rmd := NewRootMetadata(h, id)
 	rmd.data.LastWriter = h.Writers[0]
-	rmd.AddNewKeys(DirKeys{})
+	rmd.AddNewKeys(DirKeyBundle{})
 
 	rmds := &RootMetadataSigned{}
 	if public || !share {
@@ -54,17 +54,17 @@ func verifyMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 
 	expectGetSecretKey(config, &rmds.MD)
 	config.mockCrypto.EXPECT().Decrypt(
-		rmds.MD.SerializedPrivateMetadata, NullKey).Return(packedData, nil)
+		rmds.MD.SerializedPrivateMetadata, nil).Return(packedData, nil)
 	config.mockCodec.EXPECT().Decode(packedData, gomock.Any()).
 		Return(nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil)
 	config.mockKops.EXPECT().GetPublicMacKey(rmds.MD.data.LastWriter, nil).
-		Return(NullKey, nil)
-	config.mockKops.EXPECT().GetMyPrivateMacKey(nil).Return(NullKey, nil)
-	config.mockCrypto.EXPECT().SharedSecret(NullKey, NullKey).
-		Return(NullKey, nil)
+		Return(nil, nil)
+	config.mockKops.EXPECT().GetMyPrivateMacKey(nil).Return(nil, nil)
+	config.mockCrypto.EXPECT().SharedSecret(nil, nil).
+		Return(nil, nil)
 	config.mockCrypto.EXPECT().VerifyHMAC(
-		NullKey, packedData, gomock.Any()).Return(nil)
+		nil, packedData, gomock.Any()).Return(nil)
 }
 
 func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
@@ -76,15 +76,15 @@ func putMDForPrivateShare(config *ConfigMock, rmds *RootMetadataSigned,
 		Times(2)
 	expectGetSecretKey(config, &rmds.MD)
 	config.mockCrypto.EXPECT().Encrypt(
-		packedData, NullKey).Return(packedData, nil)
-	config.mockKops.EXPECT().GetMyPrivateMacKey(nil).Return(NullKey, nil)
+		packedData, nil).Return(packedData, nil)
+	config.mockKops.EXPECT().GetMyPrivateMacKey(nil).Return(nil, nil)
 
 	// Make a MAC for each writer
 	config.mockKops.EXPECT().GetPublicMacKey(gomock.Any(), nil).
-		Times(2).Return(NullKey, nil)
-	config.mockCrypto.EXPECT().SharedSecret(NullKey, NullKey).
-		Times(2).Return(NullKey, nil)
-	config.mockCrypto.EXPECT().HMAC(NullKey, packedData).
+		Times(2).Return(nil, nil)
+	config.mockCrypto.EXPECT().SharedSecret(nil, nil).
+		Times(2).Return(nil, nil)
+	config.mockCrypto.EXPECT().HMAC(nil, packedData).
 		Times(2).Return(packedData, nil)
 
 	// get the MD id, and test that it actually gets set in the metadata

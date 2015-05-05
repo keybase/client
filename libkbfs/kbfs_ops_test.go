@@ -114,7 +114,7 @@ func makeIdAndRMD(config *ConfigMock) (
 	libkb.UID, DirId, *RootMetadata) {
 	userId, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	rmd.AddNewKeys(DirKeys{})
+	rmd.AddNewKeys(DirKeyBundle{})
 	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
 	config.mockMdcache.EXPECT().Get(rmd.mdId).AnyTimes().Return(rmd, nil)
 	return userId, id, rmd
@@ -167,7 +167,7 @@ func expectKeyDecode(
 
 func expectBlock(config *ConfigMock, id BlockId, block Block,
 	err error) {
-	config.mockBops.EXPECT().Get(id, gomock.Any(), NullKey, gomock.Any()).
+	config.mockBops.EXPECT().Get(id, gomock.Any(), nil, gomock.Any()).
 		Do(func(id BlockId, context BlockContext, k Key, getBlock Block) {
 		switch v := getBlock.(type) {
 		case *FileBlock:
@@ -187,13 +187,13 @@ func createNewMD(config *ConfigMock, rmd *RootMetadata, id DirId) {
 
 func expectGetSecretKey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockKeyman.EXPECT().GetSecretKey(
-		gomock.Any(), rmd).Return(NullKey, nil)
+		gomock.Any(), rmd).Return(nil, nil)
 }
 
 func expectGetSecretBlockKey(
 	config *ConfigMock, id BlockId, rmd *RootMetadata) {
 	config.mockKeyman.EXPECT().GetSecretBlockKey(
-		gomock.Any(), id, rmd).Return(NullKey, nil)
+		gomock.Any(), id, rmd).Return(nil, nil)
 }
 
 func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
@@ -203,7 +203,7 @@ func fillInNewMD(config *ConfigMock, rmd *RootMetadata) (
 	rootId = BlockId{42}
 	plainSize = 3
 	block = []byte{1, 2, 3, 4}
-	config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
+	config.mockBops.EXPECT().Ready(gomock.Any(), nil).Return(
 		rootId, plainSize, block, nil)
 	return
 }
@@ -517,9 +517,9 @@ func expectSyncBlock(
 			unrefBytes += uint64(path.Path[i].QuotaSize)
 		}
 		lastId++
-		config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
-		config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
-		call := config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
+		config.mockCrypto.EXPECT().GenRandomSecretKey().Return(nil)
+		config.mockCrypto.EXPECT().XOR(nil, nil).Return(nil, nil)
+		call := config.mockBops.EXPECT().Ready(gomock.Any(), nil).Return(
 			newId, len(newBuf), newBuf, nil)
 		if lastCall != nil {
 			call = call.After(lastCall)
@@ -528,8 +528,8 @@ func expectSyncBlock(
 		newPath.Path[i].Id = newId
 		config.mockBops.EXPECT().Put(newId, gomock.Any(), newBuf).Return(nil)
 		config.mockBcache.EXPECT().Put(newId, gomock.Any(), false).Return(nil)
-		config.mockKops.EXPECT().PutBlockKey(newId, NullKey).Return(nil)
-		config.mockKcache.EXPECT().PutBlockKey(newId, NullKey).Return(nil)
+		config.mockKops.EXPECT().PutBlockKey(newId, nil).Return(nil)
+		config.mockKcache.EXPECT().PutBlockKey(newId, nil).Return(nil)
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
@@ -2252,14 +2252,14 @@ func expectSyncDirtyBlock(config *ConfigMock, id BlockId, block *FileBlock,
 	// that Ready() is called, but GoMock isn't expressive enough
 	// for that.
 	newEncBuf := make([]byte, len(block.Contents)+padSize)
-	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
-	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
-	c2 := config.mockBops.EXPECT().Ready(block, NullKey).
+	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(nil)
+	config.mockCrypto.EXPECT().XOR(nil, nil).Return(nil, nil)
+	c2 := config.mockBops.EXPECT().Ready(block, nil).
 		After(c1).Return(newId, len(block.Contents), newEncBuf, nil)
 	config.mockBcache.EXPECT().Finalize(id, newId).After(c2).Return(nil)
 	config.mockBops.EXPECT().Put(newId, gomock.Any(), newEncBuf).Return(nil)
-	config.mockKops.EXPECT().PutBlockKey(newId, NullKey).Return(nil)
-	config.mockKcache.EXPECT().PutBlockKey(newId, NullKey).Return(nil)
+	config.mockKops.EXPECT().PutBlockKey(newId, nil).Return(nil)
+	config.mockKcache.EXPECT().PutBlockKey(newId, nil).Return(nil)
 	return c2
 }
 
@@ -2695,28 +2695,28 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	refBlockId := BlockId{253}
 	refPlainSize := 1
 	refBuf := []byte{253}
-	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
-	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
-	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
+	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(nil)
+	config.mockCrypto.EXPECT().XOR(nil, nil).Return(nil, nil)
+	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), nil).Return(
 		refBlockId, refPlainSize, refBuf, nil).After(lastCall)
 	config.mockBops.EXPECT().Put(refBlockId, gomock.Any(), refBuf).Return(nil)
 	config.mockBcache.EXPECT().Put(refBlockId, gomock.Any(), false).Return(nil)
-	config.mockKops.EXPECT().PutBlockKey(refBlockId, NullKey).Return(nil)
-	config.mockKcache.EXPECT().PutBlockKey(refBlockId, NullKey).Return(nil)
+	config.mockKops.EXPECT().PutBlockKey(refBlockId, nil).Return(nil)
+	config.mockKcache.EXPECT().PutBlockKey(refBlockId, nil).Return(nil)
 
 	unrefBlockId := BlockId{254}
 	unrefPlainSize := 0
 	unrefBuf := []byte{254}
-	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(NullKey)
-	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
-	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), NullKey).Return(
+	config.mockCrypto.EXPECT().GenRandomSecretKey().Return(nil)
+	config.mockCrypto.EXPECT().XOR(nil, nil).Return(nil, nil)
+	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), nil).Return(
 		unrefBlockId, unrefPlainSize, unrefBuf, nil).After(lastCall)
 	config.mockBops.EXPECT().Put(unrefBlockId, gomock.Any(), unrefBuf).
 		Return(nil)
 	config.mockBcache.EXPECT().Put(unrefBlockId, gomock.Any(), false).
 		Return(nil)
-	config.mockKops.EXPECT().PutBlockKey(unrefBlockId, NullKey).Return(nil)
-	config.mockKcache.EXPECT().PutBlockKey(unrefBlockId, NullKey).Return(nil)
+	config.mockKops.EXPECT().PutBlockKey(unrefBlockId, nil).Return(nil)
+	config.mockKcache.EXPECT().PutBlockKey(unrefBlockId, nil).Return(nil)
 
 	if newP, err := config.KBFSOps().Sync(p); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)

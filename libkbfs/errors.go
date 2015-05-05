@@ -193,7 +193,7 @@ func (e *NoSuchMDError) Error() string {
 
 type NewVersionError struct {
 	Path Path
-	Ver  int
+	Ver  Ver
 }
 
 func (e *NewVersionError) Error() string {
@@ -203,15 +203,15 @@ func (e *NewVersionError) Error() string {
 		e.Path, e.Ver, e.Path.TopDir)
 }
 
-type NewKeyError struct {
-	Path string
-	Ver  int
+type NewKeyVersionError struct {
+	Path   string
+	KeyVer KeyVer
 }
 
-func (e *NewKeyError) Error() string {
+func (e *NewKeyVersionError) Error() string {
 	return fmt.Sprintf(
 		"The data at path %s is keyed with a key version (%d) that "+
-			"we don't know", e.Path, e.Ver)
+			"we don't know", e.Path, e.KeyVer)
 }
 
 type BadSplitError struct {

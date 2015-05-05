@@ -13,9 +13,15 @@ import (
 func makeTestConfig(users []string) *libkbfs.ConfigLocal {
 	config := libkbfs.NewConfigLocal()
 
-	localUsers := make([]*libkbfs.LocalUser, len(users))
+	localUsers := make([]libkbfs.LocalUser, len(users))
 	for i := 0; i < len(users); i++ {
-		localUsers[i] = &libkbfs.LocalUser{users[i], libkb.UID{byte(i + 1)}, []string{}}
+		kid := libkbfs.KID("test_sub_key_" + users[i])
+		localUsers[i] = libkbfs.LocalUser{
+			Name:            users[i],
+			Uid:             libkb.UID{byte(i + 1)},
+			SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(kid)},
+			DeviceSubkeyKid: kid,
+		}
 	}
 	loggedInUid := localUsers[0].Uid
 

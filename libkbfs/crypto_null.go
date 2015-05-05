@@ -48,7 +48,7 @@ func (c *CryptoNull) VerifyHash(buf []byte, hash libkb.NodeHash) error {
 }
 
 func (c *CryptoNull) SharedSecret(key1 Key, key2 Key) (Key, error) {
-	return NullKey, nil
+	return nil, nil
 }
 
 func (c *CryptoNull) HMAC(secret Key, buf []byte) (HMAC, error) {
@@ -60,13 +60,13 @@ func (c *CryptoNull) VerifyHMAC(secret Key, buf []byte, hmac HMAC) error {
 }
 
 func (c *CryptoNull) XOR(key1 Key, key2 Key) (Key, error) {
-	return NullKey, nil
+	return nil, nil
 }
 
 func (c *CryptoNull) GenRandomSecretKey() Key {
-	return NullKey
+	return nil
 }
 
 func (c *CryptoNull) GenCurveKeyPair() (pubkey Key, privkey Key) {
-	return NullKey, NullKey
+	return nil, nil
 }

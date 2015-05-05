@@ -39,26 +39,10 @@ var ReaderSep string = "#"
 var PublicUid libkb.UID = GetPublicUid()
 var PublicName string = "public"
 
-// TODO: how to identify devices
-type DeviceId int
 type HMAC []byte
 
-// TODO: Use libkb.GenericKey instead
-type Key struct {
-	Key     []byte
-	Version uint32
-	Type    uint32
-}
-
-var NullKey Key = Key{}
-
-func NewKeyVersioned(v uint32, t uint32) Key {
-	return Key{make([]byte, 1, 1), v, t}
-}
-
-func NewKey() Key {
-	return NewKeyVersioned(0, 0)
-}
+type Key libkb.GenericKey
+type KID libkb.KID
 
 // type of hash key for each data block
 type BlockId libkb.NodeHashShort
@@ -77,10 +61,13 @@ func RandBlockId() BlockId {
 	return id
 }
 
+type KeyVer int
+type Ver int
+
 type BlockPointer struct {
 	Id     BlockId
-	KeyId  int // which version of the DirKeys to use
-	Ver    int // which version of the KBFS data structures is pointed to
+	KeyVer KeyVer // which version of the DirKeyBundle to use
+	Ver    Ver    // which version of the KBFS data structures is pointed to
 	Writer libkb.UID
 	// When non-zero, the size of the (possibly encrypted) data
 	// contained in the block. When non-zero, always at least the
@@ -88,11 +75,11 @@ type BlockPointer struct {
 	QuotaSize uint32
 }
 
-func (p BlockPointer) GetKeyId() int {
-	return p.KeyId
+func (p BlockPointer) GetKeyVer() KeyVer {
+	return p.KeyVer
 }
 
-func (p BlockPointer) GetVer() int {
+func (p BlockPointer) GetVer() Ver {
 	return p.Ver
 }
 
@@ -284,25 +271,19 @@ type RootMetadataSigned struct {
 	MD RootMetadata
 }
 
-func NewRootMetadataSigned() *RootMetadataSigned {
-	return &RootMetadataSigned{
-		MD: RootMetadata{
-			Keys: make([]DirKeys, 0, 0),
-		},
-	}
-}
-
 func (rmds *RootMetadataSigned) IsInitialized() bool {
 	// The data is only if there is some sort of signature
 	return rmds.Sig != nil || len(rmds.Macs) > 0
 }
 
-// DirKeys is a version of all the keys for this directory
-type DirKeys struct {
-	// symmetric secret key, encrypted for each writer's device
-	WKeys map[libkb.UID]map[DeviceId][]byte
-	// symmetric secret key, encrypted for each reader's device
-	RKeys map[libkb.UID]map[DeviceId][]byte
+// DirKeyBundle is a bundle of all the keys for a directory
+type DirKeyBundle struct {
+	// Symmetric secret key, encrypted for each writer's device
+	// (identified by the KID of the corresponding device key).
+	WKeys map[libkb.UID]map[libkb.KIDMapKey][]byte
+	// Symmetric secret key, encrypted for each reader's device
+	// (identified by the KID of the corresponding device key).
+	RKeys map[libkb.UID]map[libkb.KIDMapKey][]byte
 	// public encryption key
 	PubKey Key
 }
@@ -313,7 +294,7 @@ type RootMetadata struct {
 	SerializedPrivateMetadata []byte `codec:"data"`
 	// Key versions for this metadata.  The most recent one is last in
 	// the array.
-	Keys []DirKeys
+	Keys []DirKeyBundle
 	// Pointer to the previous root block ID
 	PrevRoot MDId
 	// The directory ID, signed over to make verification easier
@@ -403,14 +384,21 @@ type PrivateMetadata struct {
 
 func NewRootMetadata(d *DirHandle, id DirId) *RootMetadata {
 	md := RootMetadata{
-		Keys: make([]DirKeys, 0, 1),
+		Keys: make([]DirKeyBundle, 0, 1),
 		Id:   id,
+		data: PrivateMetadata{
+			RefBlocks: BlockChanges{
+				Changes: NewBlockChangeNode(),
+			},
+			UnrefBlocks: BlockChanges{
+				Changes: NewBlockChangeNode(),
+			},
+		},
+		// need to keep the dir handle around long
+		// enough to rekey the metadata for the first
+		// time
+		cachedDirHandle: d,
 	}
-	// need to keep the dir handle around long enough to rekey the metadata for
-	// the first time
-	md.cachedDirHandle = d
-	md.data.RefBlocks.Changes = NewBlockChangeNode()
-	md.data.UnrefBlocks.Changes = NewBlockChangeNode()
 	return &md
 }
 
@@ -419,30 +407,31 @@ func (md *RootMetadata) Data() *PrivateMetadata {
 }
 
 func (md *RootMetadata) GetEncryptedSecretKey(
-	id int, user libkb.UID, dev DeviceId) (
+	keyVer KeyVer, user libkb.UID, deviceSubkeyKid KID) (
 	buf []byte, ok bool) {
-	if len(md.Keys[id].WKeys) == 0 {
+	if len(md.Keys[keyVer].WKeys) == 0 {
 		// must be a public directory
 		ok = true
 	} else {
-		if u, ok1 := md.Keys[id].WKeys[user]; ok1 {
-			buf, ok = u[dev]
-		} else if u, ok1 = md.Keys[id].RKeys[user]; ok1 {
-			buf, ok = u[dev]
+		key := libkb.KID(deviceSubkeyKid).ToMapKey()
+		if u, ok1 := md.Keys[keyVer].WKeys[user]; ok1 {
+			buf, ok = u[key]
+		} else if u, ok1 = md.Keys[keyVer].RKeys[user]; ok1 {
+			buf, ok = u[key]
 		}
 	}
 	return
 }
 
-func (md *RootMetadata) GetPubKey(id int) Key {
-	return md.Keys[id].PubKey
+func (md *RootMetadata) GetPubKey(keyVer KeyVer) Key {
+	return md.Keys[keyVer].PubKey
 }
 
-func (md *RootMetadata) LatestKeyId() int {
-	return len(md.Keys) - 1
+func (md *RootMetadata) LatestKeyVersion() KeyVer {
+	return KeyVer(len(md.Keys) - 1)
 }
 
-func (md *RootMetadata) AddNewKeys(keys DirKeys) {
+func (md *RootMetadata) AddNewKeys(keys DirKeyBundle) {
 	md.Keys = append(md.Keys, keys)
 }
 
@@ -452,7 +441,7 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 	}
 
 	h := &DirHandle{}
-	keyId := md.LatestKeyId()
+	keyId := md.LatestKeyVersion()
 	for w, _ := range md.Keys[keyId].WKeys {
 		h.Writers = append(h.Writers, w)
 	}
@@ -473,7 +462,7 @@ func (md *RootMetadata) GetDirHandle() *DirHandle {
 
 func (md *RootMetadata) IsInitialized() bool {
 	// The data is only initialized once we have at least one set of keys
-	return md.LatestKeyId() >= 0
+	return md.LatestKeyVersion() >= 0
 }
 
 func (md *RootMetadata) MetadataId(config Config) (MDId, error) {

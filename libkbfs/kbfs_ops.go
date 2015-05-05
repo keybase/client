@@ -112,7 +112,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 
 	// create a new set of keys for this metadata
 	if err := fs.config.KeyManager().Rekey(md); err != nil {
-		return nil
+		return err
 	}
 
 	path := Path{md.Id, []PathNode{PathNode{
@@ -131,7 +131,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	md.data.Dir = DirEntry{
 		BlockPointer: BlockPointer{
 			Id:        id,
-			KeyId:     0,
+			KeyVer:    0,
 			Ver:       fs.config.DataVersion(),
 			Writer:    user,
 			QuotaSize: uint32(len(buf)),
@@ -380,7 +380,7 @@ func (fs *KBFSOpsStandard) readyBlock(currBlock Block, bps *blockPutState,
 		return
 	}
 
-	blockPtr = BlockPointer{id, md.LatestKeyId(), fs.config.DataVersion(),
+	blockPtr = BlockPointer{id, md.LatestKeyVersion(), fs.config.DataVersion(),
 		user, uint32(len(buf))}
 	bps.addBlock(id, blockPtr, currBlock, buf)
 
@@ -1044,7 +1044,7 @@ func (fs *KBFSOpsStandard) newRightBlockInChannel(
 	}
 
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockPointer{newRId, md.LatestKeyId(), fs.config.DataVersion(), user, 0},
+		BlockPointer{newRId, md.LatestKeyVersion(), fs.config.DataVersion(), user, 0},
 		off})
 	if err := fs.config.BlockCache().Put(id, pblock, true); err != nil {
 		return err
@@ -1110,7 +1110,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 					},
 					IPtrs: []IndirectFilePtr{
 						IndirectFilePtr{
-							BlockPointer{newId, md.LatestKeyId(),
+							BlockPointer{newId, md.LatestKeyVersion(),
 								fs.config.DataVersion(), user, 0}, 0},
 					},
 				}

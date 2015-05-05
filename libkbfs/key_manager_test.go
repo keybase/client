@@ -18,67 +18,67 @@ func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 }
 
 func expectCachedGetSecretKey(config *ConfigMock, rmd *RootMetadata) {
-	config.mockKcache.EXPECT().GetDirKey(rmd.Id, 0).Return(NullKey, nil)
+	config.mockKcache.EXPECT().GetDirKey(rmd.Id, KeyVer(0)).Return(nil, nil)
 }
 
 func expectUncachedGetSecretKey(config *ConfigMock, rmd *RootMetadata) {
-	config.mockKcache.EXPECT().GetDirKey(rmd.Id, 0).
-		Return(NullKey, errors.New("NONE"))
+	config.mockKcache.EXPECT().GetDirKey(rmd.Id, KeyVer(0)).
+		Return(nil, errors.New("NONE"))
 
 	// get the xor'd key out of the metadata
-	config.mockKbpki.EXPECT().GetActiveDeviceId().Return(DeviceId(0), nil)
+	config.mockKbpki.EXPECT().GetDeviceSubkeyKid().Return(KID("KID"), nil)
 	xbuf := []byte{42}
-	config.mockCrypto.EXPECT().Unbox(NullKey, gomock.Any()).Return(xbuf, nil)
+	config.mockCrypto.EXPECT().Unbox(nil, gomock.Any()).Return(xbuf, nil)
 	config.mockCodec.EXPECT().Decode(xbuf, gomock.Any()).Return(nil)
 
 	// get the server-side half and retrieve the real secret key
 	config.mockKops.EXPECT().GetDirDeviceKey(
-		rmd.Id, rmd.LatestKeyId(), DeviceId(0)).Return(NullKey, nil)
-	config.mockCrypto.EXPECT().XOR(gomock.Any(), NullKey).Return(NullKey, nil)
+		rmd.Id, rmd.LatestKeyVersion(), KID("KID")).Return(nil, nil)
+	config.mockCrypto.EXPECT().XOR(gomock.Any(), nil).Return(nil, nil)
 
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutDirKey(rmd.Id, rmd.LatestKeyId(), NullKey).
+	config.mockKcache.EXPECT().PutDirKey(rmd.Id, rmd.LatestKeyVersion(), nil).
 		Return(nil)
 }
 
 func expectUncachedGetSecretBlockKey(
 	config *ConfigMock, id BlockId, rmd *RootMetadata) {
 	config.mockKcache.EXPECT().GetBlockKey(id).
-		Return(NullKey, errors.New("NONE"))
+		Return(nil, errors.New("NONE"))
 
 	expectCachedGetSecretKey(config, rmd)
 
-	config.mockKops.EXPECT().GetBlockKey(id).Return(NullKey, nil)
-	config.mockCrypto.EXPECT().XOR(NullKey, NullKey).Return(NullKey, nil)
+	config.mockKops.EXPECT().GetBlockKey(id).Return(nil, nil)
+	config.mockCrypto.EXPECT().XOR(nil, nil).Return(nil, nil)
 
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutBlockKey(id, NullKey).Return(nil)
+	config.mockKcache.EXPECT().PutBlockKey(id, nil).Return(nil)
 }
 
 func expectRekey(config *ConfigMock, rmd *RootMetadata, userId libkb.UID) {
 	// generate new keys
-	config.mockCrypto.EXPECT().GenRandomSecretKey().AnyTimes().Return(NullKey)
-	config.mockCrypto.EXPECT().GenCurveKeyPair().Return(NullKey, NullKey)
+	config.mockCrypto.EXPECT().GenRandomSecretKey().AnyTimes().Return(nil)
+	config.mockCrypto.EXPECT().GenCurveKeyPair().Return(nil, nil)
 
-	subkeys := make(map[DeviceId]Key)
-	subkeys[0] = NullKey
+	key := NewKeyFake(KID("KID"))
+	subkeys := []Key{key}
 	config.mockKbpki.EXPECT().GetDeviceSubKeys(gomock.Any()).
 		Return(subkeys, nil)
 
 	// make keys for the one device
-	config.mockCrypto.EXPECT().XOR(gomock.Any(), NullKey).Return(NullKey, nil)
+	config.mockCrypto.EXPECT().XOR(gomock.Any(), nil).Return(nil, nil)
 	xbuf := []byte{42}
-	config.mockCodec.EXPECT().Encode(NullKey).Return(xbuf, nil)
-	config.mockCrypto.EXPECT().Box(NullKey, NullKey, xbuf).Return(xbuf, nil)
+	config.mockCodec.EXPECT().Encode(nil).Return(xbuf, nil)
+	config.mockCrypto.EXPECT().Box(nil, key, xbuf).Return(xbuf, nil)
 	config.mockKops.EXPECT().PutDirDeviceKey(
-		rmd.Id, 1, userId, DeviceId(0), NullKey).Return(nil)
+		rmd.Id, KeyVer(1), userId, KID("KID"), nil).Return(nil)
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutDirKey(rmd.Id, 1, NullKey).Return(nil)
+	config.mockKcache.EXPECT().PutDirKey(rmd.Id, KeyVer(1), nil).Return(nil)
 }
 
 func pathFromRMD(config *ConfigMock, rmd *RootMetadata) Path {
 	return Path{rmd.Id, []PathNode{PathNode{
-		BlockPointer{BlockId{}, rmd.data.Dir.KeyId, 0, libkb.UID{0}, 0},
+		BlockPointer{BlockId{}, rmd.data.Dir.KeyVer, 0, libkb.UID{0}, 0},
 		rmd.GetDirHandle().ToString(config),
 	}}}
 }
@@ -89,7 +89,7 @@ func TestKeyManagerCachedSecretKeySuccess(t *testing.T) {
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	rmd.AddNewKeys(DirKeys{})
+	rmd.AddNewKeys(DirKeyBundle{})
 
 	expectCachedGetSecretKey(config, rmd)
 
@@ -105,7 +105,7 @@ func TestKeyManagerUncachedSecretKeySuccess(t *testing.T) {
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	rmd.AddNewKeys(DirKeys{})
+	rmd.AddNewKeys(DirKeyBundle{})
 
 	expectUncachedGetSecretKey(config, rmd)
 
@@ -121,7 +121,7 @@ func TestKeyManagerUncachedSecretBlockKeySuccess(t *testing.T) {
 
 	_, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	rmd.AddNewKeys(DirKeys{})
+	rmd.AddNewKeys(DirKeyBundle{})
 	rootId := BlockId{42}
 
 	expectUncachedGetSecretBlockKey(config, rootId, rmd)
@@ -141,16 +141,16 @@ func TestKeyManagerGetUncachedBlockKeyFailNewKey(t *testing.T) {
 
 	rmd.data.Dir.Type = Dir
 	// Set the key id in the future.
-	rmd.data.Dir.KeyId = 1
+	rmd.data.Dir.KeyVer = 1
 
 	rootId := BlockId{42}
 	node := PathNode{BlockPointer{rootId, 1, 0, u, 0}, ""}
 	p := Path{id, []PathNode{node}}
 
 	// we'll check the cache, but then fail before getting the read key
-	expectedErr := &NewKeyError{rmd.GetDirHandle().ToString(config), 1}
+	expectedErr := &NewKeyVersionError{rmd.GetDirHandle().ToString(config), 1}
 	config.mockKcache.EXPECT().GetBlockKey(rootId).Return(
-		NullKey, errors.New("NOPE"))
+		nil, errors.New("NOPE"))
 
 	if _, err := config.KeyManager().GetSecretBlockKey(
 		p, rootId, rmd); err == nil {
@@ -166,13 +166,13 @@ func TestKeyManagerRekeySuccess(t *testing.T) {
 
 	u, id, h := makeId(config)
 	rmd := NewRootMetadata(h, id)
-	rmd.AddNewKeys(DirKeys{})
+	rmd.AddNewKeys(DirKeyBundle{})
 
 	expectRekey(config, rmd, u)
 
 	if err := config.KeyManager().Rekey(rmd); err != nil {
 		t.Errorf("Got error on rekey: %v", err)
-	} else if rmd.LatestKeyId() != 1 {
-		t.Errorf("Bad key version after rekey: %d", rmd.LatestKeyId())
+	} else if rmd.LatestKeyVersion() != 1 {
+		t.Errorf("Bad key version after rekey: %d", rmd.LatestKeyVersion())
 	}
 }

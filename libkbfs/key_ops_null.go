@@ -9,7 +9,7 @@ type KeyOpsNull struct {
 
 // Get the server-side key half for a block
 func (ko *KeyOpsNull) GetBlockKey(id BlockId) (Key, error) {
-	return NullKey, nil
+	return nil, nil
 }
 
 // Put the server-side key half for a block
@@ -24,13 +24,13 @@ func (ko *KeyOpsNull) DeleteBlockKey(id BlockId) error {
 
 // Get the server-side key half for a device for a given folder
 func (ko *KeyOpsNull) GetDirDeviceKey(
-	id DirId, keyVer int, device DeviceId) (Key, error) {
-	return NullKey, nil
+	id DirId, keyVer KeyVer, kid KID) (Key, error) {
+	return nil, nil
 }
 
 // Put the server-side key half for a device for a given folder
 func (ko *KeyOpsNull) PutDirDeviceKey(
-	id DirId, keyVer int, user libkb.UID, device DeviceId, key Key) error {
+	id DirId, keyVer KeyVer, user libkb.UID, kid KID, key Key) error {
 	return nil
 }
 
@@ -38,11 +38,11 @@ func (ko *KeyOpsNull) PutDirDeviceKey(
 // If "kid" is empty, fetch the current DH key.
 func (ko *KeyOpsNull) GetPublicMacKey(user libkb.UID, kid libkb.KID) (
 	Key, error) {
-	return NullKey, nil
+	return nil, nil
 }
 
 // Get the private DH key for the logged-in user.
 // If "kid" is empty, fetch the current DH key.
 func (ko *KeyOpsNull) GetMyPrivateMacKey(kid libkb.KID) (Key, error) {
-	return NullKey, nil
+	return nil, nil
 }

@@ -4,10 +4,10 @@
 package libkbfs
 
 import (
+	time "time"
 	fmt "fmt"
 	gomock "code.google.com/p/gomock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
-	time "time"
 )
 
 // Mock of Block interface
@@ -52,19 +52,19 @@ func (_m *MockBlockContext) EXPECT() *_MockBlockContextRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockContext) GetKeyId() int {
-	ret := _m.ctrl.Call(_m, "GetKeyId")
-	ret0, _ := ret[0].(int)
+func (_m *MockBlockContext) GetKeyVer() KeyVer {
+	ret := _m.ctrl.Call(_m, "GetKeyVer")
+	ret0, _ := ret[0].(KeyVer)
 	return ret0
 }
 
-func (_mr *_MockBlockContextRecorder) GetKeyId() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyId")
+func (_mr *_MockBlockContextRecorder) GetKeyVer() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyVer")
 }
 
-func (_m *MockBlockContext) GetVer() int {
+func (_m *MockBlockContext) GetVer() Ver {
 	ret := _m.ctrl.Call(_m, "GetVer")
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(Ver)
 	return ret0
 }
 
@@ -357,9 +357,9 @@ func (_mr *_MockKBPKIRecorder) GetLoggedInUser() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLoggedInUser")
 }
 
-func (_m *MockKBPKI) GetDeviceSibKeys(user *libkb.User) (map[DeviceId]Key, error) {
+func (_m *MockKBPKI) GetDeviceSibKeys(user *libkb.User) ([]Key, error) {
 	ret := _m.ctrl.Call(_m, "GetDeviceSibKeys", user)
-	ret0, _ := ret[0].(map[DeviceId]Key)
+	ret0, _ := ret[0].([]Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -368,9 +368,9 @@ func (_mr *_MockKBPKIRecorder) GetDeviceSibKeys(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSibKeys", arg0)
 }
 
-func (_m *MockKBPKI) GetDeviceSubKeys(user *libkb.User) (map[DeviceId]Key, error) {
+func (_m *MockKBPKI) GetDeviceSubKeys(user *libkb.User) ([]Key, error) {
 	ret := _m.ctrl.Call(_m, "GetDeviceSubKeys", user)
-	ret0, _ := ret[0].(map[DeviceId]Key)
+	ret0, _ := ret[0].([]Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -390,15 +390,15 @@ func (_mr *_MockKBPKIRecorder) GetPublicSigningKey(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetPublicSigningKey", arg0)
 }
 
-func (_m *MockKBPKI) GetActiveDeviceId() (DeviceId, error) {
-	ret := _m.ctrl.Call(_m, "GetActiveDeviceId")
-	ret0, _ := ret[0].(DeviceId)
+func (_m *MockKBPKI) GetDeviceSubkeyKid() (KID, error) {
+	ret := _m.ctrl.Call(_m, "GetDeviceSubkeyKid")
+	ret0, _ := ret[0].(KID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) GetActiveDeviceId() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetActiveDeviceId")
+func (_mr *_MockKBPKIRecorder) GetDeviceSubkeyKid() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceSubkeyKid")
 }
 
 // Mock of KeyManager interface
@@ -578,7 +578,7 @@ func (_mr *_MockKeyCacheRecorder) PutBlockKey(arg0, arg1 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutBlockKey", arg0, arg1)
 }
 
-func (_m *MockKeyCache) GetDirKey(_param0 DirId, _param1 int) (Key, error) {
+func (_m *MockKeyCache) GetDirKey(_param0 DirId, _param1 KeyVer) (Key, error) {
 	ret := _m.ctrl.Call(_m, "GetDirKey", _param0, _param1)
 	ret0, _ := ret[0].(Key)
 	ret1, _ := ret[1].(error)
@@ -589,7 +589,7 @@ func (_mr *_MockKeyCacheRecorder) GetDirKey(arg0, arg1 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDirKey", arg0, arg1)
 }
 
-func (_m *MockKeyCache) PutDirKey(_param0 DirId, _param1 int, _param2 Key) error {
+func (_m *MockKeyCache) PutDirKey(_param0 DirId, _param1 KeyVer, _param2 Key) error {
 	ret := _m.ctrl.Call(_m, "PutDirKey", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1011,7 +1011,7 @@ func (_mr *_MockKeyOpsRecorder) DeleteBlockKey(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteBlockKey", arg0)
 }
 
-func (_m *MockKeyOps) GetDirDeviceKey(id DirId, keyVer int, device DeviceId) (Key, error) {
+func (_m *MockKeyOps) GetDirDeviceKey(id DirId, keyVer KeyVer, device KID) (Key, error) {
 	ret := _m.ctrl.Call(_m, "GetDirDeviceKey", id, keyVer, device)
 	ret0, _ := ret[0].(Key)
 	ret1, _ := ret[1].(error)
@@ -1022,7 +1022,7 @@ func (_mr *_MockKeyOpsRecorder) GetDirDeviceKey(arg0, arg1, arg2 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDirDeviceKey", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyOps) PutDirDeviceKey(id DirId, keyVer int, user libkb.UID, device DeviceId, key Key) error {
+func (_m *MockKeyOps) PutDirDeviceKey(id DirId, keyVer KeyVer, user libkb.UID, device KID, key Key) error {
 	ret := _m.ctrl.Call(_m, "PutDirDeviceKey", id, keyVer, user, device, key)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1745,9 +1745,9 @@ func (_mr *_MockConfigRecorder) SetNotifier(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetNotifier", arg0)
 }
 
-func (_m *MockConfig) DataVersion() int {
+func (_m *MockConfig) DataVersion() Ver {
 	ret := _m.ctrl.Call(_m, "DataVersion")
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(Ver)
 	return ret0
 }
 

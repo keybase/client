@@ -5,39 +5,56 @@ import (
 	"fmt"
 
 	libkb "github.com/keybase/client/go/libkb"
-	jsonw "github.com/keybase/go-jsonw"
+	keybase1 "github.com/keybase/client/protocol/go"
 )
 
 // KBPKILocal just serves users from a static map in memory
 type KBPKILocal struct {
-	Users    map[libkb.UID]*libkb.User
+	Users    map[libkb.UID]LocalUser
 	Asserts  map[string]libkb.UID
 	LoggedIn libkb.UID
 }
 
 type LocalUser struct {
-	Name    string
-	Uid     libkb.UID
-	Asserts []string
+	Name            string
+	Uid             libkb.UID
+	Asserts         []string
+	SibKeys         []Key
+	SubKeys         []Key
+	SigningKey      Key
+	DeviceSubkeyKid KID
 }
 
-func NewKBPKILocal(loggedIn libkb.UID, users []*LocalUser) *KBPKILocal {
+func keysToPublicKeys(keys []Key, isSibkey bool) []keybase1.PublicKey {
+	publicKeys := make([]keybase1.PublicKey, len(keys))
+	for i, key := range keys {
+		publicKeys[i] = keybase1.PublicKey{
+			KID:      key.GetKid().String(),
+			IsSibkey: isSibkey,
+		}
+	}
+	return publicKeys
+}
+
+func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
+	sibKeys := keysToPublicKeys(lu.SibKeys, true)
+	subKeys := keysToPublicKeys(lu.SubKeys, false)
+	return append(sibKeys, subKeys...)
+}
+
+func NewKBPKILocal(loggedIn libkb.UID, users []LocalUser) *KBPKILocal {
 	k := &KBPKILocal{
-		Users:    make(map[libkb.UID]*libkb.User),
+		Users:    make(map[libkb.UID]LocalUser),
 		Asserts:  make(map[string]libkb.UID),
 		LoggedIn: loggedIn,
 	}
 	for _, u := range users {
-		uString :=
-			fmt.Sprintf(`{"basics" : {"username" : "%s"}, "id" : "%s"}`,
-				u.Name, u.Uid)
-		jsonU, _ := jsonw.Unmarshal([]byte(uString))
-		user, _ := libkb.NewUser(jsonU)
-		k.Users[u.Uid] = user
+		k.Users[u.Uid] = u
 		for _, a := range u.Asserts {
 			k.Asserts[a] = u.Uid
 		}
 		k.Asserts[u.Name] = u.Uid
+		k.Asserts["uid:"+u.Uid.String()] = u.Uid
 	}
 	return k
 }
@@ -51,12 +68,11 @@ func (k *KBPKILocal) ResolveAssertion(input string) (*libkb.User, error) {
 }
 
 func (k *KBPKILocal) GetUser(uid libkb.UID) (*libkb.User, error) {
-	if user, ok := k.Users[uid]; !ok {
-		return nil, errors.New(
-			fmt.Sprintf("No such user matching %s", uid))
-	} else {
-		return user, nil
+	u, err := k.getLocalUser(uid)
+	if err != nil {
+		return nil, err
 	}
+	return libkb.NewUserThin(u.Name, u.Uid), nil
 }
 
 func (k *KBPKILocal) GetSession() (*libkb.Session, error) {
@@ -68,23 +84,43 @@ func (k *KBPKILocal) GetLoggedInUser() (libkb.UID, error) {
 }
 
 func (k *KBPKILocal) GetDeviceSibKeys(user *libkb.User) (
-	keys map[DeviceId]Key, err error) {
-	keys = make(map[DeviceId]Key)
-	// TODO: iterate through sibling keys
-	keys[0] = NullKey
-	err = nil
-	return
+	[]Key, error) {
+	u, err := k.getLocalUser(user.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return u.SibKeys, nil
 }
 
 func (k *KBPKILocal) GetDeviceSubKeys(user *libkb.User) (
-	keys map[DeviceId]Key, err error) {
-	return k.GetDeviceSibKeys(user)
+	keys []Key, err error) {
+	u, err := k.getLocalUser(user.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return u.SubKeys, nil
 }
 
 func (k *KBPKILocal) GetPublicSigningKey(user *libkb.User) (Key, error) {
-	return NullKey, nil
+	u, err := k.getLocalUser(user.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return u.SigningKey, nil
 }
 
-func (k *KBPKILocal) GetActiveDeviceId() (DeviceId, error) {
-	return 0, nil
+func (k *KBPKILocal) GetDeviceSubkeyKid() (KID, error) {
+	u, err := k.getLocalUser(k.LoggedIn)
+	if err != nil {
+		return KID{}, err
+	}
+	return u.DeviceSubkeyKid, nil
+}
+
+func (k *KBPKILocal) getLocalUser(uid libkb.UID) (LocalUser, error) {
+	user, ok := k.Users[uid]
+	if !ok {
+		return LocalUser{}, fmt.Errorf("No such user matching %s", uid)
+	}
+	return user, nil
 }

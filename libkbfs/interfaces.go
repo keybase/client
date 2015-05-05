@@ -12,8 +12,8 @@ type Block interface{}
 
 // BlockContext is used by the server to help identify blocks
 type BlockContext interface {
-	GetKeyId() int
-	GetVer() int
+	GetKeyVer() KeyVer
+	GetVer() Ver
 	GetWriter() libkb.UID
 	GetQuotaSize() uint32
 }
@@ -55,15 +55,15 @@ type KBPKI interface {
 	// Get the UID of the current logged-in user
 	GetLoggedInUser() (libkb.UID, error)
 	// Get all the public device sibkeys for a given user
-	GetDeviceSibKeys(user *libkb.User) (map[DeviceId]Key, error)
+	GetDeviceSibKeys(user *libkb.User) ([]Key, error)
 	// Get all the encryption device subkeys for a given user
-	GetDeviceSubKeys(user *libkb.User) (map[DeviceId]Key, error)
+	GetDeviceSubKeys(user *libkb.User) ([]Key, error)
 	// Get the public key that corresponds to the user's private signing key
 	// TODO: Need to supply a KID here, in case the signature we're trying
 	// to verify is old?
 	GetPublicSigningKey(user *libkb.User) (Key, error)
-	// Get the ID for this device
-	GetActiveDeviceId() (DeviceId, error)
+	// Get the KID of the subkey for the currently-active device.
+	GetDeviceSubkeyKid() (KID, error)
 }
 
 type KeyManager interface {
@@ -109,8 +109,8 @@ type MDCache interface {
 type KeyCache interface {
 	GetBlockKey(id BlockId) (Key, error)
 	PutBlockKey(id BlockId, key Key) error
-	GetDirKey(DirId, int) (Key, error)
-	PutDirKey(DirId, int, Key) error
+	GetDirKey(DirId, KeyVer) (Key, error)
+	PutDirKey(DirId, KeyVer, Key) error
 }
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
@@ -186,10 +186,10 @@ type KeyOps interface {
 	// Delete the server-side key half for a block
 	DeleteBlockKey(id BlockId) error
 	// Get the server-side key half for a device for a given folder
-	GetDirDeviceKey(id DirId, keyVer int, device DeviceId) (Key, error)
+	GetDirDeviceKey(id DirId, keyVer KeyVer, device KID) (Key, error)
 	// Put the server-side key half for a device for a given folder
 	PutDirDeviceKey(
-		id DirId, keyVer int, user libkb.UID, device DeviceId, key Key) error
+		id DirId, keyVer KeyVer, user libkb.UID, device KID, key Key) error
 	// Get the public DH key for a given user.
 	// If "kid" is empty, fetch the current DH key.
 	GetPublicMacKey(user libkb.UID, kid libkb.KID) (Key, error)
@@ -317,7 +317,7 @@ type Config interface {
 	SetBlockSplitter(BlockSplitter)
 	Notifier() Notifier
 	SetNotifier(Notifier)
-	DataVersion() int
+	DataVersion() Ver
 	// the number of read or write operations that can be buffered per folder
 	ReqsBufSize() int
 }

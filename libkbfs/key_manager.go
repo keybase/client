@@ -12,27 +12,27 @@ func (km *KeyManagerStandard) GetSecretKey(dir Path, md *RootMetadata) (
 	k Key, err error) {
 	if md.Id.IsPublic() {
 		// no key is needed, return the null key
-		return NullKey, nil
+		return nil, nil
 	}
 
 	// Figure out what version of the key we need.  The md will always
 	// need the latest key to encrypt, but old blocks may require
 	// older keys.
-	keyId := md.LatestKeyId()
+	keyVer := md.LatestKeyVersion()
 	if len(dir.Path) > 0 {
-		keyId = dir.TailPointer().GetKeyId()
+		keyVer = dir.TailPointer().GetKeyVer()
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
-	if keyId > md.LatestKeyId() {
-		return NullKey,
-			&NewKeyError{md.GetDirHandle().ToString(km.config), keyId}
+	if keyVer > md.LatestKeyVersion() {
+		return nil,
+			&NewKeyVersionError{md.GetDirHandle().ToString(km.config), keyVer}
 	}
 
 	// look in the cache first
 	kcache := km.config.KeyCache()
-	if k, err = kcache.GetDirKey(md.Id, keyId); err == nil {
+	if k, err = kcache.GetDirKey(md.Id, keyVer); err == nil {
 		return
 	}
 
@@ -41,18 +41,18 @@ func (km *KeyManagerStandard) GetSecretKey(dir Path, md *RootMetadata) (
 	crypto := km.config.Crypto()
 	user, err := kbpki.GetLoggedInUser()
 	if err != nil {
-		return NullKey, err
+		return nil, err
 	}
-	dev, err := kbpki.GetActiveDeviceId()
+	deviceSubkeyKid, err := kbpki.GetDeviceSubkeyKid()
 	if err != nil {
-		return NullKey, err
+		return nil, err
 	}
 	var xKey Key // the xor'd secret key
-	if buf, ok := md.GetEncryptedSecretKey(keyId, user, dev); !ok {
+	if buf, ok := md.GetEncryptedSecretKey(keyVer, user, deviceSubkeyKid); !ok {
 		err = readAccessError(km.config, md, user)
 		return
 	} else if xBuf, err2 :=
-		crypto.Unbox(md.GetPubKey(keyId), buf); err2 != nil {
+		crypto.Unbox(md.GetPubKey(keyVer), buf); err2 != nil {
 		err = err2
 		return
 	} else if err = km.config.Codec().Decode(xBuf, &xKey); err != nil {
@@ -62,11 +62,11 @@ func (km *KeyManagerStandard) GetSecretKey(dir Path, md *RootMetadata) (
 	// now get the server-side key-half, do the xor, cache the result, return
 	// TODO: can parallelize the get() with decryption
 	kops := km.config.KeyOps()
-	if devKey, err2 := kops.GetDirDeviceKey(md.Id, keyId, dev); err2 != nil {
+	if devKey, err2 := kops.GetDirDeviceKey(md.Id, keyVer, deviceSubkeyKid); err2 != nil {
 		err = err2
 		return
 	} else if k, err = crypto.XOR(xKey, devKey); err == nil {
-		err = kcache.PutDirKey(md.Id, keyId, k)
+		err = kcache.PutDirKey(md.Id, keyVer, k)
 	}
 
 	return
@@ -76,7 +76,7 @@ func (km *KeyManagerStandard) GetSecretBlockKey(
 	dir Path, id BlockId, md *RootMetadata) (k Key, err error) {
 	if md.Id.IsPublic() {
 		// no key is needed, return the null key
-		return NullKey, nil
+		return nil, nil
 	}
 
 	// look in the cache first
@@ -88,7 +88,7 @@ func (km *KeyManagerStandard) GetSecretBlockKey(
 	// otherwise, get the secret key, then the server side block key
 	dirKey, err := km.GetSecretKey(dir, md)
 	if err != nil {
-		return NullKey, err
+		return nil, err
 	}
 
 	if k, err = km.config.KeyOps().GetBlockKey(id); err != nil {
@@ -101,8 +101,8 @@ func (km *KeyManagerStandard) GetSecretBlockKey(
 }
 
 func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid libkb.UID,
-	secret Key, privKey Key) (uMap map[DeviceId][]byte, err error) {
-	uMap = make(map[DeviceId][]byte)
+	secret Key, privKey Key) (uMap map[libkb.KIDMapKey][]byte, err error) {
+	uMap = make(map[libkb.KIDMapKey][]byte)
 	if md.Id.IsPublic() {
 		// no per-device keys for public directories
 		return uMap, nil
@@ -112,7 +112,7 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid libkb.UID,
 	crypto := km.config.Crypto()
 	codec := km.config.Codec()
 	kops := km.config.KeyOps()
-	keyId := md.LatestKeyId() + 1
+	keyVer := md.LatestKeyVersion() + 1
 
 	// for each device:
 	//    * create a new random secret key
@@ -123,12 +123,12 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid libkb.UID,
 	if err != nil {
 		return uMap, err
 	}
-	deviceMap, err := kbpki.GetDeviceSubKeys(user)
+	subKeys, err := kbpki.GetDeviceSubKeys(user)
 	if err != nil {
 		return uMap, err
 	}
 	// TODO: parallelize
-	for d, k := range deviceMap {
+	for _, k := range subKeys {
 		serverSecret := crypto.GenRandomSecretKey()
 		xSecret, err := crypto.XOR(secret, serverSecret)
 		if err != nil {
@@ -142,11 +142,12 @@ func (km *KeyManagerStandard) secretKeysForUser(md *RootMetadata, uid libkb.UID,
 		if err != nil {
 			return uMap, err
 		}
+		kid := k.GetKid()
 		if err = kops.PutDirDeviceKey(
-			md.Id, keyId, uid, d, serverSecret); err != nil {
+			md.Id, keyVer, uid, KID(kid), serverSecret); err != nil {
 			return uMap, err
 		} else {
-			uMap[d] = boxedSecret
+			uMap[kid.ToMapKey()] = boxedSecret
 		}
 	}
 	return
@@ -165,9 +166,9 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 	pubKey, privKey := crypto.GenCurveKeyPair()
 
 	handle := md.GetDirHandle()
-	newKeys := DirKeys{
-		WKeys: make(map[libkb.UID]map[DeviceId][]byte),
-		RKeys: make(map[libkb.UID]map[DeviceId][]byte),
+	newKeys := DirKeyBundle{
+		WKeys: make(map[libkb.UID]map[libkb.KIDMapKey][]byte),
+		RKeys: make(map[libkb.UID]map[libkb.KIDMapKey][]byte),
 	}
 	// TODO: parallelize
 	for _, w := range handle.Writers {
@@ -192,5 +193,5 @@ func (km *KeyManagerStandard) Rekey(md *RootMetadata) error {
 	md.data.PrivKey = privKey
 
 	// might as well cache the secret while we're at it
-	return km.config.KeyCache().PutDirKey(md.Id, md.LatestKeyId(), secret)
+	return km.config.KeyCache().PutDirKey(md.Id, md.LatestKeyVersion(), secret)
 }

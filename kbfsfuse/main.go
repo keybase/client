@@ -33,7 +33,7 @@ var debug = flag.Bool("debug", false, "Print FUSE debug messages")
 func main() {
 	flag.Parse()
 	if len(flag.Args()) < 1 {
-		log.Fatal("Usage:\n  kbfs MOUNTPOINT")
+		log.Fatal("Usage:\n  kbfs [-client|-local] MOUNTPOINT")
 	}
 
 	var cpuProfFile *os.File
@@ -84,23 +84,53 @@ func main() {
 			localUid = libkb.UID{2}
 		case *localUser == "chris":
 			localUid = libkb.UID{3}
+		case *localUser == "fred":
+			localUid = libkb.UID{4}
 		}
-		k := libkbfs.NewKBPKILocal(localUid, []*libkbfs.LocalUser{
-			&libkbfs.LocalUser{"strib", libkb.UID{1}, []string{"github:strib"}},
-			&libkbfs.LocalUser{"max", libkb.UID{2}, []string{"twitter:maxtaco"}},
-			&libkbfs.LocalUser{
-				"chris", libkb.UID{3}, []string{"twitter:malgorithms"}},
+		stribKid := libkbfs.KID("strib-kid")
+		maxKid := libkbfs.KID("max-kid")
+		chrisKid := libkbfs.KID("chris-kid")
+		fredKid := libkbfs.KID("fred-kid")
+		k := libkbfs.NewKBPKILocal(localUid, []libkbfs.LocalUser{
+			libkbfs.LocalUser{
+				Name:            "strib",
+				Uid:             libkb.UID{1},
+				Asserts:         []string{"github:strib"},
+				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(stribKid)},
+				DeviceSubkeyKid: stribKid,
+			},
+			libkbfs.LocalUser{
+				Name:            "max",
+				Uid:             libkb.UID{2},
+				Asserts:         []string{"twitter:maxtaco"},
+				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(maxKid)},
+				DeviceSubkeyKid: maxKid,
+			},
+			libkbfs.LocalUser{
+				Name:            "chris",
+				Uid:             libkb.UID{3},
+				Asserts:         []string{"twitter:malgorithms"},
+				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(chrisKid)},
+				DeviceSubkeyKid: chrisKid,
+			},
+			libkbfs.LocalUser{
+				Name:            "fred",
+				Uid:             libkb.UID{4},
+				Asserts:         []string{"twitter:fakalin"},
+				SubKeys:         []libkbfs.Key{libkbfs.NewKeyFake(fredKid)},
+				DeviceSubkeyKid: fredKid,
+			},
 		})
 		config.SetKBPKI(k)
 	} else if *client {
 		libkb.G.ConfigureSocketInfo()
-		k := libkbfs.NewKBPKIClient()
+		k, err := libkbfs.NewKBPKIClient(libkb.G)
+		if err != nil {
+			log.Fatalf("Could not get KBPKI: %v\n", err)
+		}
 		config.SetKBPKI(k)
 	} else {
-		libkb.G.ConfigureAPI()
-		if ok, err := libkb.G.LoginState().IsLoggedInLoad(); !ok || err != nil {
-			log.Fatalf("Couldn't load session: %v\n", err)
-		}
+		log.Fatal("Usage:\n  kbfs [-client|-local] MOUNTPOINT")
 	}
 
 	root := NewFuseRoot(config)
