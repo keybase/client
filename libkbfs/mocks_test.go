@@ -4,10 +4,10 @@
 package libkbfs
 
 import (
-	time "time"
-	fmt "fmt"
 	gomock "code.google.com/p/gomock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
+	time "time"
+	fmt "fmt"
 )
 
 // Mock of Block interface
@@ -258,12 +258,11 @@ func (_mr *_MockKBFSOpsRecorder) Truncate(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Truncate", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) SetEx(file Path, ex bool) (bool, Path, error) {
+func (_m *MockKBFSOps) SetEx(file Path, ex bool) (Path, error) {
 	ret := _m.ctrl.Call(_m, "SetEx", file, ex)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(Path)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(Path)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockKBFSOpsRecorder) SetEx(arg0, arg1 interface{}) *gomock.Call {
@@ -1369,12 +1368,20 @@ func (_m *MockNotifiee) EXPECT() *_MockNotifieeRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifiee) Notify(dir DirId) {
-	_m.ctrl.Call(_m, "Notify", dir)
+func (_m *MockNotifiee) LocalChange(path Path) {
+	_m.ctrl.Call(_m, "LocalChange", path)
 }
 
-func (_mr *_MockNotifieeRecorder) Notify(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0)
+func (_mr *_MockNotifieeRecorder) LocalChange(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0)
+}
+
+func (_m *MockNotifiee) BatchChanges(dir DirId, paths []Path) {
+	_m.ctrl.Call(_m, "BatchChanges", dir, paths)
+}
+
+func (_mr *_MockNotifieeRecorder) BatchChanges(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BatchChanges", arg0, arg1)
 }
 
 // Mock of Notifier interface
@@ -1398,24 +1405,24 @@ func (_m *MockNotifier) EXPECT() *_MockNotifierRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifier) Register(dirs []DirId, n Notifiee) error {
-	ret := _m.ctrl.Call(_m, "Register", dirs, n)
+func (_m *MockNotifier) RegisterForChanges(dirs []DirId, n Notifiee) error {
+	ret := _m.ctrl.Call(_m, "RegisterForChanges", dirs, n)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockNotifierRecorder) Register(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Register", arg0, arg1)
+func (_mr *_MockNotifierRecorder) RegisterForChanges(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForChanges", arg0, arg1)
 }
 
-func (_m *MockNotifier) Unregister(dirs []DirId) error {
-	ret := _m.ctrl.Call(_m, "Unregister", dirs)
+func (_m *MockNotifier) UnregisterFromChanges(dirs []DirId, n Notifiee) error {
+	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", dirs, n)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockNotifierRecorder) Unregister(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Unregister", arg0)
+func (_mr *_MockNotifierRecorder) UnregisterFromChanges(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnregisterFromChanges", arg0, arg1)
 }
 
 // Mock of Config interface

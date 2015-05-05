@@ -51,16 +51,22 @@ func doMkDirOrBust(t *testing.T, parent *FuseNode, name string) *FuseNode {
 	return inode.Node().(*FuseNode)
 }
 
+func waitForUpdates(node *FuseNode) {
+	c := make(chan struct{})
+	node.GetChan().QueueWriteReq(func() { c <- struct{}{} })
+	<-c
+}
+
 // Test that looking up one's own public directory works.
 func TestLookupSelfPublic(t *testing.T) {
 	config := makeTestConfig([]string{"test_user"})
 
 	root := NewFuseRoot(config)
-	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user")
 	doLookupOrBust(t, node1, "public")
+	root.Ops.Shutdown()
 }
 
 // Test that looking up someone else's public directory works.
@@ -71,7 +77,6 @@ func TestLookupOtherPublic(t *testing.T) {
 	// create it.
 
 	root := NewFuseRoot(config)
-	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	node1 := doLookupOrBust(t, root, "test_user1")
@@ -88,6 +93,7 @@ func TestLookupOtherPublic(t *testing.T) {
 
 	node1 = doLookupOrBust(t, root, "test_user1")
 	doLookupOrBust(t, node1, "public")
+	root.Ops.Shutdown()
 }
 
 // Test that nodes start off as not needing updating, making a
@@ -99,7 +105,6 @@ func TestNeedUpdateBasic(t *testing.T) {
 	config := makeTestConfig([]string{"test_user"})
 
 	root := NewFuseRoot(config)
-	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	if root.NeedUpdate {
@@ -119,6 +124,7 @@ func TestNeedUpdateBasic(t *testing.T) {
 
 	// Make /test_user/dir.
 	node2 := doMkDirOrBust(t, node1, "dir")
+	waitForUpdates(node1)
 
 	if root.NeedUpdate {
 		t.Error("/ unexpectedly needs update")
@@ -146,6 +152,7 @@ func TestNeedUpdateBasic(t *testing.T) {
 	if node2.NeedUpdate {
 		t.Error("/test_user/dir unexpectedly needs update")
 	}
+	root.Ops.Shutdown()
 }
 
 // Test that nodes start off as not needing updating, making a
@@ -155,7 +162,6 @@ func TestNeedUpdateAll(t *testing.T) {
 	config := makeTestConfig([]string{"test_user"})
 
 	root := NewFuseRoot(config)
-	defer root.Ops.Shutdown()
 	_ = nodefs.NewFileSystemConnector(root, nil)
 
 	// Make /test_user/dir1/dir2/dir3 and clear their NeedUpdate
@@ -173,6 +179,7 @@ func TestNeedUpdateAll(t *testing.T) {
 
 	// Make /test_user/dir1/dir2/dir3/dir4.
 	node5 := doMkDirOrBust(t, node4, "dir4")
+	root.Ops.Shutdown()
 
 	if root.NeedUpdate {
 		t.Error("/ unexpectedly needs update")
@@ -196,5 +203,77 @@ func TestNeedUpdateAll(t *testing.T) {
 
 	if node5.NeedUpdate {
 		t.Error("/test_user/dir4 unexpectedly needs update")
+	}
+}
+
+// Test that a local notification for a path, for which we only have
+// nodes for some prefix of the path, works correctly.
+func TestPartialLocalUpdate(t *testing.T) {
+	config := makeTestConfig([]string{"test_user"})
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	node1 := doLookupOrBust(t, root, "test_user")
+	node2 := doMkDirOrBust(t, node1, "dir1")
+
+	// Somewhere else, someone writes test_user/dir1/dir2/dir3
+	newPath := libkbfs.Path{node1.Dir, []libkbfs.PathNode{
+		node1.PathNode,
+		node2.PathNode,
+		libkbfs.PathNode{libkbfs.BlockPointer{
+			libkbfs.BlockId{104}, 0, 0, libkb.UID{0}, 0}, "dir2"},
+		libkbfs.PathNode{libkbfs.BlockPointer{
+			libkbfs.BlockId{105}, 0, 0, libkb.UID{0}, 0}, "dir3"},
+	}}
+	root.Ops.LocalChange(newPath)
+	root.Ops.Shutdown()
+
+	if root.NeedUpdate {
+		t.Error("/ unexpectedly needs update")
+	}
+
+	if !node1.NeedUpdate {
+		t.Error("/test_user unexpectedly doesn't need update")
+	}
+
+	if !node2.NeedUpdate {
+		t.Error("/test_user/dir1 unexpectedly doesn't need update")
+	}
+}
+
+// Test that a batch notification for a path, for which we only have
+// nodes for some prefix of the path, works correctly.
+func TestPartialBatchUpdate(t *testing.T) {
+	config := makeTestConfig([]string{"test_user"})
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	node1 := doLookupOrBust(t, root, "test_user")
+	node2 := doMkDirOrBust(t, node1, "dir1")
+
+	// Somewhere else, someone creates test_user/dir1/dir2/dir3
+	newPath := libkbfs.Path{node1.Dir, []libkbfs.PathNode{
+		node1.PathNode,
+		node2.PathNode,
+		libkbfs.PathNode{libkbfs.BlockPointer{
+			libkbfs.BlockId{104}, 0, 0, libkb.UID{0}, 0}, "dir2"},
+		libkbfs.PathNode{libkbfs.BlockPointer{
+			libkbfs.BlockId{105}, 0, 0, libkb.UID{0}, 0}, "dir3"},
+	}}
+	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
+	root.Ops.Shutdown()
+
+	if root.NeedUpdate {
+		t.Error("/ unexpectedly needs update")
+	}
+
+	if !node1.NeedUpdate {
+		t.Error("/test_user unexpectedly doesn't need update")
+	}
+
+	if !node2.NeedUpdate {
+		t.Error("/test_user/dir1 unexpectedly doesn't need update")
 	}
 }

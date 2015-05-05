@@ -39,7 +39,7 @@ type KBFSOps interface {
 	Read(file Path, dest []byte, off int64) (int64, error)
 	Write(file Path, data []byte, off int64) error
 	Truncate(file Path, size uint64) error
-	SetEx(file Path, ex bool) (changed bool, newPath Path, err error)
+	SetEx(file Path, ex bool) (newPath Path, err error)
 	SetMtime(file Path, mtime *time.Time) (Path, error)
 	Sync(file Path) (Path, error)
 }
@@ -270,16 +270,23 @@ type BlockSplitter interface {
 }
 
 // Notifiee can be notified that there is an available update for a
-// given directory
+// given directory.  The notification callbacks should not block, or
+// make any calls to the Notifier interface.
 type Notifiee interface {
-	Notify(dir DirId)
+	// LocalChange announces that the file at this path has been
+	// updated locally, but not yet saved at the server.  The nodes
+	// along the path are still identified by the same IDs.
+	LocalChange(path Path)
+	// BatchChanges announces that the files at this path have all
+	// been updated together, and may have changed their IDs.
+	BatchChanges(dir DirId, paths []Path)
 	// TODO: Notify about changes in favorites list
 }
 
 // Notifier notifies registrants of directory changes
 type Notifier interface {
-	Register(dirs []DirId, n Notifiee) error
-	Unregister(dirs []DirId) error
+	RegisterForChanges(dirs []DirId, n Notifiee) error
+	UnregisterFromChanges(dirs []DirId, n Notifiee) error
 }
 
 type Config interface {

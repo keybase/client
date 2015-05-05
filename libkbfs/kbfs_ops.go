@@ -1,7 +1,9 @@
 package libkbfs
 
 import (
+	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
@@ -11,9 +13,11 @@ import (
 // KBFSOpsStandard implements the KBFS interface, and is go-routine
 // safe by using per-top-level-directory read-write locks
 type KBFSOpsStandard struct {
-	config     Config
-	dirRWChans *DirRWChannels
-	heads      map[DirId]MDId // temporary until state machine is ready
+	config          Config
+	dirRWChans      *DirRWChannels
+	globalStateLock sync.RWMutex   // protects heads and notifees
+	heads           map[DirId]MDId // temporary until state machine is ready
+	notifiees       map[DirId][]Notifiee
 }
 
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
@@ -21,6 +25,7 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		config:     config,
 		dirRWChans: NewDirRWChannels(config),
 		heads:      make(map[DirId]MDId),
+		notifiees:  make(map[DirId][]Notifiee),
 	}
 }
 
@@ -43,11 +48,14 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
 	}
 
 	mdcache := fs.config.MDCache()
+	fs.globalStateLock.RLock()
 	if mdId, ok := fs.heads[dir.TopDir]; ok {
 		if md, err := mdcache.Get(mdId); err == nil {
+			fs.globalStateLock.RUnlock()
 			return md, nil
 		}
 	}
+	fs.globalStateLock.RUnlock()
 
 	// not in cache, fetch from server and add to cache
 	mdops := fs.config.MDOps()
@@ -56,6 +64,8 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
 		if err != nil {
 			return nil, err
 		}
+		fs.globalStateLock.Lock()
+		defer fs.globalStateLock.Unlock()
 		fs.heads[dir.TopDir] = mdId
 		return md, mdcache.Put(mdId, md)
 	} else {
@@ -166,6 +176,13 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 	} else if err = fs.config.MDCache().Put(mdId, md); err != nil {
 		return err
 	} else {
+		fs.globalStateLock.Lock()
+		defer fs.globalStateLock.Unlock()
+		if curMdId, ok := fs.heads[md.Id]; ok {
+			return fmt.Errorf(
+				"%v: Unexpected MD ID during new MD initialization: %v",
+				md.Id, curMdId)
+		}
 		fs.heads[md.Id] = mdId
 	}
 	return nil
@@ -452,7 +469,9 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 		if prevIdx < 0 {
 			// root dir, update the MD instead
 			de = md.data.Dir
+			fs.globalStateLock.RLock()
 			md.PrevRoot = fs.heads[dir.TopDir]
+			fs.globalStateLock.RUnlock()
 		} else {
 			prevDir := Path{dir.TopDir, dir.Path[:prevIdx+1]}
 			prevDblock, err = fs.getDirInChannel(prevDir, true)
@@ -577,7 +596,9 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 		} else if err = fs.config.MDCache().Put(mdId, md); err != nil {
 			return Path{}, DirEntry{}, err
 		} else {
+			fs.globalStateLock.Lock()
 			fs.heads[md.Id] = mdId
+			fs.globalStateLock.Unlock()
 			// Clear the byte counters and blocks. TODO: use clean
 			// copies of the MD when the folder is next modified
 			md.ClearBlockChanges()
@@ -585,6 +606,18 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 	}
 
 	return newPath, newDe, nil
+}
+
+func (fs *KBFSOpsStandard) syncBlockAndNotifyInChannel(
+	newBlock Block, dir Path, name string, entryType EntryType,
+	mtime bool, ctime bool, stopAt BlockId) (p Path, de DirEntry, err error) {
+	p, de, err = fs.syncBlockInChannel(newBlock, dir, name, entryType,
+		mtime, ctime, stopAt)
+	if err != nil {
+		return
+	}
+	fs.notifyBatch(p.TopDir, []Path{p})
+	return
 }
 
 // entryType must not by Sym.
@@ -641,7 +674,7 @@ func (fs *KBFSOpsStandard) createEntryInChannel(
 		md.data.Dir.Ctime = time.Now().UnixNano()
 	}
 
-	return fs.syncBlockInChannel(newBlock, dir, name, entryType,
+	return fs.syncBlockAndNotifyInChannel(newBlock, dir, name, entryType,
 		true, true, zeroId)
 }
 
@@ -701,7 +734,7 @@ func (fs *KBFSOpsStandard) createLinkInChannel(
 		Ctime:   time.Now().UnixNano(),
 	}
 
-	newPath, _, err := fs.syncBlockInChannel(
+	newPath, _, err := fs.syncBlockAndNotifyInChannel(
 		dblock, *dir.ParentPath(), dir.TailName(), Dir,
 		true, true, zeroId)
 	return newPath, dblock.Children[fromPath], err
@@ -763,7 +796,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 	delete(pblock.Children, name)
 
 	// sync the parent directory
-	newPath, _, err := fs.syncBlockInChannel(
+	newPath, _, err := fs.syncBlockAndNotifyInChannel(
 		pblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, true, true, zeroId)
 	return newPath, err
@@ -889,6 +922,7 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	newOldPath.Path = append(make([]PathNode, i+1, i+1), newOldPath.Path...)
 	copy(newOldPath.Path[:i+1], newNewPath.Path[:i+1])
 
+	fs.notifyBatch(newOldPath.TopDir, []Path{newOldPath, newNewPath})
 	return newOldPath, newNewPath, nil
 }
 
@@ -1167,6 +1201,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 		}
 	}
 
+	fs.notifyLocal(file)
 	return nil
 }
 
@@ -1252,7 +1287,11 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	}
 
 	// keep the old block ID while it's dirty
-	return fs.config.BlockCache().Put(id, block, true)
+	err = fs.config.BlockCache().Put(id, block, true)
+	if err != nil {
+		return err
+	}
+	fs.notifyLocal(file)
 }
 
 func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
@@ -1264,7 +1303,7 @@ func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
 }
 
 func (fs *KBFSOpsStandard) setExInChannel(file Path, ex bool) (
-	changed bool, newPath Path, err error) {
+	newPath Path, err error) {
 	dblock, de, err := fs.getEntryInChannel(file)
 	if err != nil {
 		return
@@ -1295,17 +1334,16 @@ func (fs *KBFSOpsStandard) setExInChannel(file Path, ex bool) (
 		dblock, *parentPath.ParentPath(), parentPath.TailName(),
 		Dir, false, false, zeroId)
 
-	changed = true
 	newPath = Path{file.TopDir,
 		append(newParentPath.Path, file.Path[len(file.Path)-1])}
+	fs.notifyBatch(file.TopDir, []Path{newPath})
 	return
 }
 
-func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (
-	changed bool, newPath Path, err error) {
+func (fs *KBFSOpsStandard) SetEx(file Path, ex bool) (newPath Path, err error) {
 	rwchan, errchan := fs.getChans(file.TopDir)
 	rwchan.QueueWriteReq(func() {
-		changed, newPath, err = fs.setExInChannel(file, ex)
+		newPath, err = fs.setExInChannel(file, ex)
 		errchan <- err
 	})
 	<-errchan
@@ -1334,6 +1372,7 @@ func (fs *KBFSOpsStandard) setMtimeInChannel(file Path, mtime *time.Time) (
 		Dir, false, false, zeroId)
 	newPath := Path{file.TopDir,
 		append(newParentPath.Path, file.Path[len(file.Path)-1])}
+	fs.notifyBatch(file.TopDir, []Path{newPath})
 	return newPath, err
 }
 
@@ -1526,7 +1565,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 
 	parentPath := file.ParentPath()
 	newPath, _, err :=
-		fs.syncBlockInChannel(fblock, *parentPath, file.TailName(),
+		fs.syncBlockAndNotifyInChannel(fblock, *parentPath, file.TailName(),
 			File, true, true, zeroId)
 	if err != nil {
 		return Path{}, err
@@ -1550,4 +1589,49 @@ func (fs *KBFSOpsStandard) Sync(file Path) (p Path, err error) {
 	})
 	<-errchan
 	return
+}
+
+// Notifier:
+
+func (fs *KBFSOpsStandard) RegisterForChanges(dirs []DirId, n Notifiee) error {
+	fs.globalStateLock.Lock()
+	defer fs.globalStateLock.Unlock()
+	for _, dir := range dirs {
+		// It's the caller's responsibility to make sure
+		// RegisterForChanges isn't called twice for the same Notifiee
+		fs.notifiees[dir] = append(fs.notifiees[dir], n)
+	}
+	return nil
+}
+
+func (fs *KBFSOpsStandard) UnregisterFromChanges(
+	dirs []DirId, n Notifiee) error {
+	fs.globalStateLock.Lock()
+	defer fs.globalStateLock.Unlock()
+	for _, dir := range dirs {
+		ns := fs.notifiees[dir]
+		for i, oldN := range ns {
+			if oldN == n {
+				fs.notifiees[dir] = append(ns[:i], ns[i+1:]...)
+				break
+			}
+		}
+	}
+	return nil
+}
+
+func (fs *KBFSOpsStandard) notifyLocal(path Path) {
+	fs.globalStateLock.RLock()
+	defer fs.globalStateLock.RUnlock()
+	for _, n := range fs.notifiees[path.TopDir] {
+		n.LocalChange(path)
+	}
+}
+
+func (fs *KBFSOpsStandard) notifyBatch(dir DirId, paths []Path) {
+	fs.globalStateLock.RLock()
+	defer fs.globalStateLock.RUnlock()
+	for _, n := range fs.notifiees[dir] {
+		n.BatchChanges(dir, paths)
+	}
 }

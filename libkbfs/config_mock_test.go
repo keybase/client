@@ -4,6 +4,19 @@ import (
 	"code.google.com/p/gomock/gomock"
 )
 
+type FakeNotifiee struct {
+	localUpdatePath  Path
+	batchUpdatePaths []Path
+}
+
+func (fn *FakeNotifiee) LocalChange(path Path) {
+	fn.localUpdatePath = path
+}
+
+func (fn *FakeNotifiee) BatchChanges(dir DirId, paths []Path) {
+	fn.batchUpdatePaths = paths
+}
+
 type ConfigMock struct {
 	ConfigLocal
 
@@ -25,6 +38,7 @@ type ConfigMock struct {
 	mockBserv    *MockBlockServer
 	mockBsplit   *MockBlockSplitter
 	mockNotifier *MockNotifier
+	notifiee     *FakeNotifiee
 }
 
 func NewConfigMock(c *gomock.Controller) *ConfigMock {
@@ -63,5 +77,6 @@ func NewConfigMock(c *gomock.Controller) *ConfigMock {
 	config.SetBlockSplitter(config.mockBsplit)
 	config.mockNotifier = NewMockNotifier(c)
 	config.SetNotifier(config.mockNotifier)
+	config.notifiee = &FakeNotifiee{}
 	return config
 }

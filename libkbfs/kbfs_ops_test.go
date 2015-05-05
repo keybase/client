@@ -55,6 +55,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
 	config.SetKBFSOps(kbfsops)
+	config.SetNotifier(kbfsops)
 
 	// these are used when computing metadata IDs.  No need to check
 	// in this test.
@@ -117,6 +118,7 @@ func makeIdAndRMD(config *ConfigMock) (
 	rmd.AddNewKeys(DirKeyBundle{})
 	config.KBFSOps().(*KBFSOpsStandard).heads[id] = rmd.mdId
 	config.mockMdcache.EXPECT().Get(rmd.mdId).AnyTimes().Return(rmd, nil)
+	config.Notifier().RegisterForChanges([]DirId{id}, config.notifiee)
 	return userId, id, rmd
 }
 
@@ -572,6 +574,14 @@ func expectSyncBlock(
 func checkNewPath(t *testing.T, config Config, newPath Path, expectedPath Path,
 	rmd *RootMetadata, blocks []*DirBlock, entryType EntryType,
 	newName string, rename bool) {
+	// TODO: check that the notifiee updates match the expectedPath as
+	// well (but need to handle the rename case where there can be
+	// multiple updates).  For now, just check that there's at least
+	// one update.
+	if len(config.(*ConfigMock).notifiee.batchUpdatePaths) < 1 {
+		t.Errorf("No batch notifications sent, at least one expected")
+	}
+
 	if len(newPath.Path) != len(expectedPath.Path) {
 		t.Errorf("Unexpected new path length: %d", len(newPath.Path))
 		return
@@ -1004,7 +1014,11 @@ func TestRenameInDirSuccess(t *testing.T) {
 		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
+	} else if len(config.notifiee.batchUpdatePaths) != 2 {
+		t.Errorf("Expected 2 batch notifications, got %d",
+			len(config.notifiee.batchUpdatePaths))
 	}
+
 }
 
 func TestRenameAcrossDirsSuccess(t *testing.T) {
@@ -1059,6 +1073,9 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
+	} else if len(config.notifiee.batchUpdatePaths) != 2 {
+		t.Errorf("Expected 2 batch notifications, got %d",
+			len(config.notifiee.batchUpdatePaths))
 	}
 }
 
@@ -1122,6 +1139,9 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 		File, "c", true)
 	if _, ok := aBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
+	} else if len(config.notifiee.batchUpdatePaths) != 2 {
+		t.Errorf("Expected 2 batch notifications, got %d",
+			len(config.notifiee.batchUpdatePaths))
 	}
 }
 
@@ -1185,6 +1205,9 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 		File, "c", true)
 	if _, ok := dBlock.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
+	} else if len(config.notifiee.batchUpdatePaths) != 2 {
+		t.Errorf("Expected 2 batch notifications, got %d",
+			len(config.notifiee.batchUpdatePaths))
 	}
 }
 
@@ -1512,6 +1535,9 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 
 	if err := config.KBFSOps().Write(p, data, 0); err != nil {
 		t.Errorf("Got error on write: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	} else if newRootBlock.Children["f"].Writer != userId {
@@ -1556,6 +1582,9 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 
 	if err := config.KBFSOps().Write(p, data, 5); err != nil {
 		t.Errorf("Got error on write: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(expectedFullData, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
@@ -1595,6 +1624,9 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 
 	if err := config.KBFSOps().Write(p, data, 7); err != nil {
 		t.Errorf("Got error on write: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(expectedFullData, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
@@ -1675,6 +1707,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 
 	if err := config.KBFSOps().Write(p, newData, 1); err != nil {
 		t.Errorf("Got error on write: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(expectedFullData[0:6], block1.Contents) {
 		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
 	} else if !bytesEqual(expectedFullData[6:11], block2.Contents) {
@@ -1768,6 +1803,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 
 	if err := config.KBFSOps().Write(p, data, 2); err != nil {
 		t.Errorf("Got error on write: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during write: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(expectedFullData[0:5], newBlock1.Contents) {
 		t.Errorf("Wrote bad contents to block 1: %v", block1.Contents)
 	} else if !bytesEqual(expectedFullData[5:10], newBlock2.Contents) {
@@ -1814,6 +1852,9 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	data := []byte{}
 	if err := config.KBFSOps().Truncate(p, 0); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
 	} else if newRootBlock.Children["f"].Writer != userId {
@@ -1846,6 +1887,9 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(p, 10); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != 0 {
+		t.Errorf("Unexpected local update during truncate: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(data, fileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
@@ -1879,6 +1923,9 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 	if err := config.KBFSOps().Truncate(p, 5); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
@@ -1929,6 +1976,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	data := []byte{5, 4, 3, 2}
 	if err := config.KBFSOps().Truncate(p, 4); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(data, newBlock1.Contents) {
 		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
 	} else if len(newPBlock.IPtrs) != 1 {
@@ -1975,6 +2025,9 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5, 0, 0, 0, 0, 0}
 	if err := config.KBFSOps().Truncate(p, 10); err != nil {
 		t.Errorf("Got error on truncate: %v", err)
+	} else if len(config.notifiee.localUpdatePath.Path) != len(p.Path) {
+		t.Errorf("Missing or incorrect local update during truncate: %s",
+			config.notifiee.localUpdatePath)
 	} else if !bytesEqual(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
 	}
@@ -1997,8 +2050,11 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 
 	expectGetBlock(config, rootId, rootBlock)
 
+	expectedChanges := 1
 	// SetEx() should do nothing for symlinks.
-	expectedChanged := (entryType != Sym)
+	if entryType == Sym {
+		expectedChanges = 0
+	}
 
 	var expectedPath Path
 	if entryType != Sym {
@@ -2019,10 +2075,11 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	}
 
 	// chmod a+x a
-	if changed, newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
+	if newP, err := config.KBFSOps().SetEx(p, ex); err != nil {
 		t.Errorf("Got unexpected error on setex: %v", err)
-	} else if changed != expectedChanged {
-		t.Errorf("got changed=%t, expected %t", changed, expectedChanged)
+	} else if expectedChanges != len(config.notifiee.batchUpdatePaths) {
+		t.Errorf("got changed=%t, expected %t",
+			len(config.notifiee.batchUpdatePaths), expectedChanges)
 	} else if rootBlock.Children["a"].Type != expectedType {
 		t.Errorf("a has type %s, expected %s", rootBlock.Children["a"].Type, expectedType)
 	} else if entryType != Sym {
@@ -2085,7 +2142,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	expectedErr := &NoSuchNameError{p.TailName()}
 
 	// chmod a+x a
-	if _, _, err := config.KBFSOps().SetEx(p, true); err == nil {
+	if _, err := config.KBFSOps().SetEx(p, true); err == nil {
 		t.Errorf("Got no expected error on setex")
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on setex: %v", err)
