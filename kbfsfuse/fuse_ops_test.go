@@ -51,6 +51,14 @@ func doMkDirOrBust(t *testing.T, parent *FuseNode, name string) *FuseNode {
 	return inode.Node().(*FuseNode)
 }
 
+func doMknodOrBust(t *testing.T, parent *FuseNode, name string) *FuseNode {
+	inode, code := parent.Mknod(name, 0, 0, nil)
+	if code != fuse.OK {
+		t.Fatalf("Mknode failure: %s", code)
+	}
+	return inode.Node().(*FuseNode)
+}
+
 func waitForUpdates(node *FuseNode) {
 	c := make(chan struct{})
 	node.GetChan().QueueWriteReq(func() { c <- struct{}{} })
@@ -203,6 +211,40 @@ func TestNeedUpdateAll(t *testing.T) {
 
 	if node5.NeedUpdate {
 		t.Error("/test_user/dir4 unexpectedly needs update")
+	}
+}
+
+// Test that writing a file causes its whole path to need an update
+func TestLocalUpdateAll(t *testing.T) {
+	config := makeTestConfig([]string{"test_user"})
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	// Make /test_user/dir1/dir2/dir3 and clear their NeedUpdate
+	// flags.
+	node1 := doLookupOrBust(t, root, "test_user")
+	node2 := doMkDirOrBust(t, node1, "dir1")
+	node3 := doMknodOrBust(t, node2, "file1")
+
+	// write to the file
+	node3.Write(nil, []byte{0, 1, 2}, 0, nil)
+	root.Ops.Shutdown()
+
+	if root.NeedUpdate {
+		t.Error("/ unexpectedly needs update")
+	}
+
+	if !node1.NeedUpdate {
+		t.Error("/test_user unexpectedly doesn't need update")
+	}
+
+	if !node2.NeedUpdate {
+		t.Error("/test_user/dir1 unexpectedly doesn't need update")
+	}
+
+	if !node3.NeedUpdate {
+		t.Error("/test_user/dir1/file1 unexpectedly doesn't need update")
 	}
 }
 
