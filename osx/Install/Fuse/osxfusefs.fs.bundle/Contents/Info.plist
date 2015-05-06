@@ -13,11 +13,11 @@
 	<key>CFBundlePackageType</key>
 	<string>fs</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.7.5</string>
+	<string>2.7.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>2.7.5</string>
+	<string>2.7.6</string>
 	<key>BuildFlavor</key>
 	<string></string>
 	<key>FSPersonalities</key>

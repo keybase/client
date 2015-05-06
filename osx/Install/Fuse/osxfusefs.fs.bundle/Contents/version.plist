@@ -5,9 +5,9 @@
 	<key>BuildVersion</key>
 	<string>1</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.7.5</string>
+	<string>2.7.6</string>
 	<key>CFBundleVersion</key>
-	<string>2.7.5</string>
+	<string>2.7.6</string>
 	<key>ProjectName</key>
 	<string>osxfusefs</string>
 	<key>SourceVersion</key>
