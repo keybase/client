@@ -29,8 +29,11 @@ type PGPVerify struct {
 }
 
 // NewPGPVerify creates a PGPVerify engine.
-func NewPGPVerify(arg *PGPVerifyArg) *PGPVerify {
-	return &PGPVerify{arg: arg}
+func NewPGPVerify(arg *PGPVerifyArg, g *libkb.GlobalContext) *PGPVerify {
+	return &PGPVerify{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.
@@ -85,7 +88,7 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 		AssertSigned: true,
 		TrackOptions: e.arg.TrackOptions,
 	}
-	eng := NewPGPDecrypt(arg)
+	eng := NewPGPDecrypt(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -101,7 +104,7 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 
 // runDetached verifies a detached signature
 func (e *PGPVerify) runDetached(ctx *Context) error {
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
+	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
 	if err != nil {
 		return err
 	}
@@ -142,7 +145,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		return errors.New("Unable to decode clearsigned message")
 	}
 
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
+	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
 	if err != nil {
 		return err
 	}
@@ -178,11 +181,11 @@ func (e *PGPVerify) checkSignedBy(ctx *Context) error {
 
 	// have: a valid signature, the signature's owner, and a user assertion to
 	// match against
-	G.Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
+	e.G().Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
 
 	// load the user in SignedBy
 	arg := NewIdentifyArg(e.arg.SignedBy, false)
-	eng := NewIdentify(arg)
+	eng := NewIdentify(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}

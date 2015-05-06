@@ -23,8 +23,11 @@ type PGPKeyfinderArg struct {
 }
 
 // NewPGPKeyfinder creates a PGPKeyfinder engine.
-func NewPGPKeyfinder(arg *PGPKeyfinderArg) *PGPKeyfinder {
-	return &PGPKeyfinder{arg: arg}
+func NewPGPKeyfinder(arg *PGPKeyfinderArg, g *libkb.GlobalContext) *PGPKeyfinder {
+	return &PGPKeyfinder{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.
@@ -45,8 +48,8 @@ func (e *PGPKeyfinder) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPKeyfinder) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewTrackEngine(nil),
-		NewIdentify(nil),
+		&TrackEngine{},
+		&Identify{},
 	}
 }
 
@@ -141,7 +144,7 @@ func (e *PGPKeyfinder) trackUser(ctx *Context, user string) error {
 		TheirName: user,
 		Options:   e.arg.TrackOptions,
 	}
-	eng := NewTrackEngine(arg)
+	eng := NewTrackEngine(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -154,7 +157,7 @@ func (e *PGPKeyfinder) trackUser(ctx *Context, user string) error {
 // can use a TrackUI...
 func (e *PGPKeyfinder) identifyUser(ctx *Context, user string) error {
 	arg := NewIdentifyArg(user, false)
-	eng := NewIdentify(arg)
+	eng := NewIdentify(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}

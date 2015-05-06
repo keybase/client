@@ -77,7 +77,7 @@ func (c *CmdPGPDecrypt) Run() error {
 		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
 		LogUI:      G.UI.GetLogUI(),
 	}
-	eng := engine.NewPGPDecrypt(arg)
+	eng := engine.NewPGPDecrypt(arg, G)
 	err := engine.RunEngine(eng, ctx)
 
 	c.Close(err)

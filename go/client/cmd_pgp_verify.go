@@ -76,7 +76,7 @@ func (c *CmdPGPVerify) Run() error {
 		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
 		LogUI:      G.UI.GetLogUI(),
 	}
-	eng := engine.NewPGPVerify(arg)
+	eng := engine.NewPGPVerify(arg, G)
 	err := engine.RunEngine(eng, ctx)
 
 	c.Close(err)

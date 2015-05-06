@@ -57,7 +57,7 @@ func (h *PGPHandler) PgpEncrypt(arg keybase1.PgpEncryptArg) error {
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewPGPEncrypt(earg)
+	eng := engine.NewPGPEncrypt(earg, G)
 	return engine.RunEngine(eng, ctx)
 }
 
@@ -80,7 +80,7 @@ func (h *PGPHandler) PgpDecrypt(arg keybase1.PgpDecryptArg) (keybase1.PgpSigVeri
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
 		LogUI:      h.getLogUI(arg.SessionID),
 	}
-	eng := engine.NewPGPDecrypt(earg)
+	eng := engine.NewPGPDecrypt(earg, G)
 	err := engine.RunEngine(eng, ctx)
 	if err != nil {
 		return keybase1.PgpSigVerification{}, err
@@ -106,7 +106,7 @@ func (h *PGPHandler) PgpVerify(arg keybase1.PgpVerifyArg) (keybase1.PgpSigVerifi
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID),
 		LogUI:      h.getLogUI(arg.SessionID),
 	}
-	eng := engine.NewPGPVerify(earg)
+	eng := engine.NewPGPVerify(earg, G)
 	err := engine.RunEngine(eng, ctx)
 	if err != nil {
 		return keybase1.PgpSigVerification{}, err

@@ -25,8 +25,11 @@ type PGPDecrypt struct {
 }
 
 // NewPGPDecrypt creates a PGPDecrypt engine.
-func NewPGPDecrypt(arg *PGPDecryptArg) *PGPDecrypt {
-	return &PGPDecrypt{arg: arg}
+func NewPGPDecrypt(arg *PGPDecryptArg, g *libkb.GlobalContext) *PGPDecrypt {
+	return &PGPDecrypt{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.
@@ -54,7 +57,7 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPDecrypt) Run(ctx *Context) error {
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions)
+	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
 	if err != nil {
 		return err
 	}
@@ -118,7 +121,7 @@ func (e *PGPDecrypt) checkSignedBy(ctx *Context) error {
 
 	// load the user in SignedBy
 	arg := NewIdentifyArg(e.arg.SignedBy, false)
-	eng := NewIdentify(arg)
+	eng := NewIdentify(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}

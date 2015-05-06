@@ -50,8 +50,11 @@ func (ia *IdentifyArg) SelfID() bool {
 }
 
 // NewIdentify creates a Identify engine.
-func NewIdentify(arg *IdentifyArg) *Identify {
-	return &Identify{arg: arg}
+func NewIdentify(arg *IdentifyArg, g *libkb.GlobalContext) *Identify {
+	return &Identify{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.

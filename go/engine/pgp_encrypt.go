@@ -27,8 +27,11 @@ type PGPEncrypt struct {
 }
 
 // NewPGPEncrypt creates a PGPEncrypt engine.
-func NewPGPEncrypt(arg *PGPEncryptArg) *PGPEncrypt {
-	return &PGPEncrypt{arg: arg}
+func NewPGPEncrypt(arg *PGPEncryptArg, g *libkb.GlobalContext) *PGPEncrypt {
+	return &PGPEncrypt{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.
@@ -49,14 +52,14 @@ func (e *PGPEncrypt) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewPGPKeyfinder(nil),
+		&PGPKeyfinder{},
 	}
 }
 
 // Run starts the engine.
 func (e *PGPEncrypt) Run(ctx *Context) error {
 	// verify valid options based on logged in state:
-	ok, err := G.LoginState().IsLoggedInLoad()
+	ok, err := e.G().LoginState().IsLoggedInLoad()
 	if err != nil {
 		return err
 	}
@@ -100,7 +103,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		TrackOptions: e.arg.TrackOptions,
 	}
 
-	kf := NewPGPKeyfinder(kfarg)
+	kf := NewPGPKeyfinder(kfarg, e.G())
 	if err := RunEngine(kf, ctx); err != nil {
 		return err
 	}

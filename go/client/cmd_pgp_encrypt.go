@@ -93,7 +93,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		IdentifyUI: G.UI.GetIdentifyTrackUI(true),
 		SecretUI:   G.UI.GetSecretUI(),
 	}
-	eng := engine.NewPGPEncrypt(arg)
+	eng := engine.NewPGPEncrypt(arg, G)
 	err := engine.RunEngine(eng, ctx)
 
 	c.Close(err)

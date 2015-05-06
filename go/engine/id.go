@@ -8,6 +8,7 @@ import (
 type IDEngineArg struct {
 	UserAssertion  string
 	TrackStatement bool // output a track statement
+	G              *libkb.GlobalContext
 }
 
 type IDRes struct {
@@ -23,7 +24,11 @@ type IDEngine struct {
 }
 
 func NewIDEngine(arg *IDEngineArg) *IDEngine {
-	return &IDEngine{arg: arg}
+	e := &IDEngine{arg: arg}
+	if arg != nil {
+		e.Contextified = libkb.NewContextified(arg.G)
+	}
+	return e
 }
 
 func (e *IDEngine) Name() string {
@@ -43,7 +48,7 @@ func (e *IDEngine) RequiredUIs() []libkb.UIKind {
 
 func (e *IDEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewIdentify(nil),
+		&Identify{},
 	}
 }
 
@@ -58,7 +63,7 @@ func (e *IDEngine) Result() *IDRes {
 
 func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 	iarg := NewIdentifyArg(e.arg.UserAssertion, e.arg.TrackStatement)
-	ieng := NewIdentify(iarg)
+	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
 		return nil, err
 	}

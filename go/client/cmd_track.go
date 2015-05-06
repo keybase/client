@@ -78,7 +78,7 @@ func (v *CmdTrack) Run() error {
 			TrackApprove:   v.approveRemote,
 		},
 	}
-	eng := engine.NewTrackEngine(&arg)
+	eng := engine.NewTrackEngine(&arg, G)
 	ctx := engine.Context{
 		SecretUI:   G_UI.GetSecretUI(),
 		IdentifyUI: G_UI.GetIdentifyTrackUI(true),

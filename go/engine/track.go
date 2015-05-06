@@ -34,8 +34,11 @@ type TrackEngine struct {
 }
 
 // NewTrackEngine creates a default TrackEngine for tracking theirName.
-func NewTrackEngine(arg *TrackEngineArg) *TrackEngine {
-	return &TrackEngine{arg: arg}
+func NewTrackEngine(arg *TrackEngineArg, g *libkb.GlobalContext) *TrackEngine {
+	return &TrackEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *TrackEngine) Name() string {
@@ -57,20 +60,20 @@ func (e *TrackEngine) RequiredUIs() []libkb.UIKind {
 
 func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		NewIdentify(nil),
+		&Identify{},
 	}
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
 	if err := e.loadMe(); err != nil {
-		G.Log.Info("loadme err: %s", err)
+		e.G().Log.Info("loadme err: %s", err)
 		return err
 	}
 
 	iarg := NewIdentifyTrackArg(e.arg.TheirName, true, e.arg.Options)
-	ieng := NewIdentify(iarg)
+	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
-		G.Log.Info("identify run err: %s", err)
+		e.G().Log.Info("identify run err: %s", err)
 		return err
 	}
 	ti := ieng.TrackInstructions()
@@ -80,20 +83,20 @@ func (e *TrackEngine) Run(ctx *Context) error {
 
 	var err error
 	ska := libkb.SecretKeyArg{Me: e.arg.Me, All: true}
-	e.lockedKey, e.lockedWhich, err = G.Keyrings.GetSecretKeyLocked(ska)
+	e.lockedKey, e.lockedWhich, err = e.G().Keyrings.GetSecretKeyLocked(ska)
 	if err != nil {
-		G.Log.Info("secretkey err: %s", err)
+		e.G().Log.Info("secretkey err: %s", err)
 		return err
 	}
 	e.lockedKey.SetUID(e.arg.Me.GetUid().P())
 	e.signingKeyPub, err = e.lockedKey.GetPubKey()
 	if err != nil {
-		G.Log.Info("getpubkey err: %s", err)
+		e.G().Log.Info("getpubkey err: %s", err)
 		return err
 	}
 
 	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them); err != nil {
-		G.Log.Info("tracking proof err: %s", err)
+		e.G().Log.Info("tracking proof err: %s", err)
 		return err
 	}
 
@@ -101,7 +104,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	G.Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
+	e.G().Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
 
 	if ti.Remote {
 		err = e.storeRemoteTrack(ctx)
@@ -136,8 +139,8 @@ func (e *TrackEngine) storeLocalTrack() error {
 }
 
 func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
-	G.Log.Debug("+ StoreRemoteTrack")
-	defer G.Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
+	e.G().Log.Debug("+ StoreRemoteTrack")
+	defer e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 
 	// need to unlock private key
 	if e.lockedKey == nil {
@@ -155,7 +158,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 		return err
 	}
 
-	_, err = G.API.Post(libkb.ApiArg{
+	_, err = e.G().API.Post(libkb.ApiArg{
 		Endpoint:    "follow",
 		NeedSession: true,
 		Args: libkb.HttpArgs{
@@ -169,7 +172,7 @@ func (e *TrackEngine) storeRemoteTrack(ctx *Context) (err error) {
 	})
 
 	if err != nil {
-		G.Log.Info("api error: %s", err)
+		e.G().Log.Info("api error: %s", err)
 		return err
 	}
 

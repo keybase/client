@@ -31,7 +31,7 @@ func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
 		IdentifyUI: h.NewRemoteIdentifyUI(sessionID),
 		SecretUI:   h.getSecretUI(sessionID),
 	}
-	eng := engine.NewTrackEngine(&earg)
+	eng := engine.NewTrackEngine(&earg, G)
 	return engine.RunEngine(eng, &ctx)
 }
 
