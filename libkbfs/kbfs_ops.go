@@ -59,18 +59,19 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
 
 	// not in cache, fetch from server and add to cache
 	mdops := fs.config.MDOps()
-	if md, err := mdops.Get(dir.TopDir); err == nil {
-		mdId, err := md.MetadataId(fs.config)
-		if err != nil {
-			return nil, err
-		}
-		fs.globalStateLock.Lock()
-		defer fs.globalStateLock.Unlock()
-		fs.heads[dir.TopDir] = mdId
-		return md, mdcache.Put(mdId, md)
-	} else {
+	md, err := mdops.Get(dir.TopDir)
+	if err != nil {
 		return nil, err
 	}
+
+	mdId, err := md.MetadataId(fs.config)
+	if err != nil {
+		return nil, err
+	}
+	fs.globalStateLock.Lock()
+	defer fs.globalStateLock.Unlock()
+	fs.heads[dir.TopDir] = mdId
+	return md, mdcache.Put(mdId, md)
 }
 
 func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
