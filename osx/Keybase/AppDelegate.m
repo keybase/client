@@ -97,6 +97,12 @@
   window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
   [window center];
   [window makeKeyAndOrderFront:nil];
+
+#ifdef DEBUG
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    envSelectView.onSelect([KBEnvironment env:KBEnvManual]);
+  });
+#endif
 }
 
 - (void)configureConsoleLog {
@@ -231,6 +237,10 @@
 
 + (void)consoleLog:(NSString *)message {
   [AppDelegate.sharedDelegate.consoleView log:message];
+}
+
++ (void)consoleError:(NSError *)error {
+  [AppDelegate.sharedDelegate.consoleView log:NSStringWithFormat(@"%@", error)];
 }
 
 - (void)openURLString:(NSString *)URLString sender:(NSView *)sender {

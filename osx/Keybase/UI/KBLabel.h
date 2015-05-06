@@ -27,6 +27,7 @@
 + (instancetype)label;
 + (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style;
 + (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;
++ (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style verticalAlignment:(KBVerticalAlignment)verticalAlignment;
 
 - (void)setText:(NSString *)text style:(KBTextStyle)style;
 - (void)setText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode;

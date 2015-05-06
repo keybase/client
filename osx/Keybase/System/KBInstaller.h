@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBLaunchCtl.h"
+#import "KBLauncher.h"
 
 typedef NS_ENUM (NSInteger, KBInstallType) {
   KBInstallTypeNone,
@@ -19,9 +19,9 @@ typedef void (^KBInstallCheck)(NSError *error, BOOL installed, KBInstallType ins
 
 @interface KBInstaller : NSObject
 
-@property (readonly) KBLaunchCtl *launchCtl;
+@property (readonly) KBLauncher *launcher;
 
-- (instancetype)initWithLaunchCtl:(KBLaunchCtl *)launchCtl;
+- (instancetype)initWithLaunchCtl:(KBLauncher *)launcher;
 
 /*!
   - installed: If YES, that means we did copied the launch services config and reloaded the service.
@@ -29,7 +29,9 @@ typedef void (^KBInstallCheck)(NSError *error, BOOL installed, KBInstallType ins
  */
 - (void)checkInstall:(KBInstallCheck)completion;
 
-// For helper install
-+ (BOOL)installServiceWithName:(NSString *)name error:(NSError **)error;
+/*!
+ Install helper and KBFS.
+ */
++ (void)installHelper:(KBOnCompletion)completion;
 
 @end

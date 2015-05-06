@@ -112,11 +112,11 @@
   }
 }
 
-- (void)addObjects:(NSArray *)objects {
+- (void)addObjects:(NSArray *)objects animation:(NSTableViewAnimationOptions)animation {
   NSMutableArray *indexPaths = [NSMutableArray array];
   [self.dataSource addObjects:objects section:0 indexPaths:indexPaths];
   [self.view beginUpdates];
-  if ([indexPaths count] > 0) [self.view insertRowsAtIndexes:[self itemIndexSet:indexPaths] withAnimation:NSTableViewAnimationSlideUp];
+  if ([indexPaths count] > 0) [self.view insertRowsAtIndexes:[self itemIndexSet:indexPaths] withAnimation:animation];
   [self.view endUpdates];
 }
 

@@ -29,7 +29,7 @@
 @property KBRPClientStatus status;
 
 @property KBEnvironment *environment;
-@property KBLaunchCtl *launchCtl; // Optional
+@property KBLauncher *launcher; // Optional
 @end
 
 @implementation KBRPClient
@@ -38,10 +38,10 @@
   if ((self = [super init])) {
     _environment = environment;
     if (_environment.launchdLabel) {
-      _launchCtl = [[KBLaunchCtl alloc] initWithEnvironment:environment];
+      _launcher = [[KBLauncher alloc] initWithEnvironment:environment];
     }
 
-    _installer = [[KBInstaller alloc] initWithLaunchCtl:_launchCtl];
+    _installer = [[KBInstaller alloc] initWithLaunchCtl:_launcher];
   }
   return self;
 }

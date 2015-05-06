@@ -88,7 +88,7 @@
 - (void)encrypt {
   NSMutableArray *streams = [NSMutableArray array];
   KBFileOutput output = ^(NSString *path) { return [path stringByAppendingPathExtension:@"gpg"]; };
-  [KBStream checkFiles:[_fileListView objects] index:0 output:output streams:streams skipCheck:NO view:self completion:^(NSError *error){
+  [KBStream checkFiles:[_fileListView objects] index:0 output:output streams:streams skipCheck:NO view:self completion:^(NSError *error) {
     if ([self.navigation setError:error sender:self]) return;
     if ([streams count] > 0) [self encryptStreams:streams];
   }];
@@ -115,7 +115,7 @@
 }
 
 - (void)addFile:(KBFile *)file {
-  [_fileListView addObjects:@[file]];
+  [_fileListView addObjects:@[file] animation:NSTableViewAnimationEffectNone];
 }
 
 - (void)removeFile:(id)sender {

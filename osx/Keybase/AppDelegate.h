@@ -15,7 +15,8 @@
 #import "KBAppKit.h"
 #import <MPMessagePack/MPXPCClient.h>
 
-#define KBConsoleLog(fmt, ...) [AppDelegate consoleLog:[NSString stringWithFormat:fmt, ##__VA_ARGS__]]
+#define KBConsoleLog(fmt, ...) ([AppDelegate consoleLog:[NSString stringWithFormat:fmt, ##__VA_ARGS__]])
+#define KBConsoleError(err) ([AppDelegate consoleError:err])
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
@@ -43,5 +44,6 @@
 + (dispatch_block_t)openSheetWithView:(NSView *)view size:(CGSize)size sender:(NSView *)sender closeButton:(KBButton *)closeButton;
 
 + (void)consoleLog:(NSString *)message;
++ (void)consoleError:(NSError *)error;
 
 @end

@@ -145,7 +145,7 @@
 }
 
 - (void)import {
-  KBCompletionBlock completion = ^(NSError *error) {
+  KBCompletion completion = ^(NSError *error) {
     [self.navigation.titleView setProgressEnabled:NO];
     if (error) {
       [AppDelegate setError:error sender:self];

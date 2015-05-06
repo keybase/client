@@ -6,20 +6,29 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBLaunchCtl.h"
+#import "KBLauncher.h"
 #import "KBEnvironment.h"
+#import "KBLaunchCtl.h"
 
-@interface KBLaunchCtl ()
+@interface KBLauncher ()
 @property KBEnvironment *environment;
+@property NSString *plist;
 @end
 
-@implementation KBLaunchCtl
+@implementation KBLauncher
 
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   if ((self = [super init])) {
     _environment = environment;
+
+    NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
+    _plist = [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _environment.launchdLabel)];
   }
   return self;
+}
+
+- (void)status:(KBLaunchStatus)completion {
+  [KBLaunchCtl status:_environment.launchdLabel completion:completion];
 }
 
 + (NSDictionary *)launchdPlistDictionaryForEnvironment:(KBEnvironment *)environment {
@@ -63,96 +72,7 @@
   return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 }
 
-- (void)reload:(KBLaunchStatus)completion {
-  [self unload:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
-    [self wait:NO attempt:1 completion:^(NSError *error, NSInteger pid) {
-      [self load:YES completion:^(NSError *loadError, NSString *loadOutput) {
-        [self wait:YES attempt:1 completion:^(NSError *error, NSInteger pid) {
-          completion(loadError, pid);
-        }];
-      }];
-    }];
-  }];
-}
-
-- (NSString *)plist {
-  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
-  return [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _environment.launchdLabel)];
-}
-
-- (void)load:(BOOL)force completion:(KBLaunchExecution)completion {
-  NSMutableArray *args = [NSMutableArray array];
-  [args addObject:@"load"];
-  if (force) [args addObject:@"-w"];
-  [args addObject:self.plist];
-  [self execute:@"/bin/launchctl" args:args completion:completion];
-}
-
-- (void)unload:(BOOL)disable completion:(KBLaunchExecution)completion {
-  NSMutableArray *args = [NSMutableArray array];
-  [args addObject:@"unload"];
-  if (disable) [args addObject:@"-w"];
-  [args addObject:self.plist];
-  [self execute:@"/bin/launchctl" args:args completion:completion];
-}
-
-- (void)status:(KBLaunchStatus)completion {
-  NSString *label = _environment.launchdLabel;
-  [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
-    if (error) {
-      completion(error, -1);
-      return;
-    }
-    for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
-      // TODO better parsing
-      if ([line containsString:label]) {
-        NSInteger pid = [[[line componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]] firstObject] integerValue];
-        completion(nil, pid);
-        return;
-      }
-    }
-    completion(nil, -1);
-  }];
-}
-
-- (void)wait:(BOOL)load attempt:(NSInteger)attempt completion:(KBLaunchStatus)completion {
-  [self status:^(NSError *error, NSInteger pid) {
-    if (load && pid != 0) {
-      DDLogDebug(@"Pid: %@", @(pid));
-      completion(nil, pid);
-    } else if (!load && pid == 0) {
-      completion(nil, pid);
-    } else {
-      if ((attempt + 1) >= 4) {
-        completion(KBMakeError(-1, @"launchctl wait timeout"), 0);
-      } else {
-        DDLogDebug(@"Watiting for %@ (%@)", load ? @"load" : @"unload", @(attempt));
-        [self wait:load attempt:attempt+1 completion:completion];
-      }
-    }
-  }];
-}
-
-- (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, NSString *output))completion {
-  NSTask *task = [[NSTask alloc] init];
-  task.launchPath = command;
-  task.arguments = args;
-  NSPipe *outpipe = [NSPipe pipe];
-  [task setStandardOutput:outpipe];
-  task.terminationHandler = ^(NSTask *t) {
-    DDLogDebug(@"Task %@ exited with status: %@", t, @(t.terminationStatus));
-    NSFileHandle *read = [outpipe fileHandleForReading];
-    NSData *data = [read readDataToEndOfFile];
-    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    dispatch_async(dispatch_get_main_queue(), ^{
-      // TODO Check termination status and complete with error if > 0
-      completion(nil, output);
-    });
-  };
-  [task launch];
-}
-
-- (void)installLaunchAgent:(KBCompletionBlock)completion {
+- (void)installLaunchAgent:(KBCompletion)completion {
   // Install launch agent (if not installed)
   NSString *plistDest = self.plist;
   if (!plistDest) {
@@ -194,7 +114,7 @@
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [self reload:^(NSError *error, NSInteger pid) {
+  [KBLaunchCtl reload:plistDest label:_environment.launchdLabel completion:^(NSError *error, NSInteger pid) {
     completion(error);
   }];
 }

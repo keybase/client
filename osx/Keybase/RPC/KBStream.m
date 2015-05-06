@@ -11,7 +11,7 @@
 #import "KBFileWriter.h"
 #import "KBFile.h"
 
-typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBCompletionBlock completion);
+typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBCompletion completion);
 
 @interface KBStream ()
 @property id<KBReader> reader;
@@ -86,7 +86,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   [self.writer close];
 }
 
-+ (void)checkFiles:(NSArray */*of KBFile*/)files index:(NSInteger)index output:(KBFileOutput)output streams:(NSMutableArray *)streams skipCheck:(BOOL)skipCheck view:(NSView *)view completion:(KBCompletionBlock)completion {
++ (void)checkFiles:(NSArray */*of KBFile*/)files index:(NSInteger)index output:(KBFileOutput)output streams:(NSMutableArray *)streams skipCheck:(BOOL)skipCheck view:(NSView *)view completion:(KBCompletion)completion {
   if (index >= [files count]) {
     completion(nil);
     return;
@@ -97,7 +97,7 @@ typedef BOOL (^KBAddToStream)(NSString *outPath, NSMutableArray *streams, KBComp
   KBFileWriter *fileWriter = [KBFileWriter fileWriterWithPath:outPath];
   KBStream *stream = [KBStream streamWithReader:fileReader writer:fileWriter label:arc4random()];
 
-  KBAddToStream addToStream = ^BOOL(NSString *outPath, NSMutableArray *streams, KBCompletionBlock completion) {
+  KBAddToStream addToStream = ^BOOL(NSString *outPath, NSMutableArray *streams, KBCompletion completion) {
     NSError *error = nil;
     if ([NSFileManager.defaultManager fileExistsAtPath:outPath isDirectory:NO]) {
       if (![NSFileManager.defaultManager removeItemAtPath:outPath error:&error]) {

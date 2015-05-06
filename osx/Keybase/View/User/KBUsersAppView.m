@@ -259,7 +259,7 @@ KBRUser *KBRUserFromSearchResult(KBSearchResult *searchResult) {
   NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
   NSMutableArray *results = [filtered mutableCopy];
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
-  [_searchView.listView addObjects:results];
+  [_searchView.listView addObjects:results animation:NSTableViewAnimationSlideUp];
   [self showSearch];
 }
 

@@ -11,7 +11,7 @@
 #import "KBAppKit.h"
 #import "KBDefines.h"
 
-typedef void (^KBWork)(KBCompletionBlock completion);
+typedef void (^KBWork)(KBCompletion completion);
 
 @interface KBProgressView : YOView
 

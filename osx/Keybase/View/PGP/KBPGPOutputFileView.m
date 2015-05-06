@@ -41,7 +41,7 @@
 }
 
 - (void)setFiles:(NSArray *)files {
-  [_fileListView addObjects:files];
+  [_fileListView addObjects:files animation:NSTableViewAnimationEffectNone];
 }
 
 - (void)showInFinder:(id)sender {

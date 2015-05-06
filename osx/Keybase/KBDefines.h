@@ -11,8 +11,8 @@
 #import <YOLayout/YOLayout.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
-typedef void (^KBCompletionBlock)(NSError *error);
-typedef void (^KBErrorBlock)(NSError *error);
+typedef void (^KBCompletion)(NSError *error);
+typedef void (^KBOnCompletion)(NSError *error, id value);
 
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
 
@@ -52,3 +52,5 @@ typedef NS_ENUM (NSInteger, KBAppViewItem) {
 
 
 #define KBMap(ARRAY, PROPERTY) [ARRAY map:^(id obj) { return [obj PROPERTY]; }]
+
+#define KBLog DDLogDebug

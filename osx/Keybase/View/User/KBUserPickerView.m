@@ -325,7 +325,7 @@
   NSArray *filtered = [searchResults.results reject:^BOOL(KBRUserSummary *us) { return [usernames containsObject:us.username]; }];
   NSMutableArray *results = [filtered mutableCopy];
   if (searchResults.header && [results count] > 0) [results insertObject:[KBTableViewHeader tableViewHeaderWithTitle:searchResults.header] atIndex:0];
-  [_searchResultsView addObjects:results];
+  [_searchResultsView addObjects:results animation:NSTableViewAnimationSlideUp];
 
   if ([_searchResultsView rowCount] > 0) {
     [self showSearch];

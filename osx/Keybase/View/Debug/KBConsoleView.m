@@ -9,20 +9,18 @@
 #import "KBConsoleView.h"
 
 #import "AppDelegate.h"
-#import "KBLaunchCtl.h"
+#import "KBLauncher.h"
 #import "KBAppKit.h"
 
 #import "KBMockViews.h"
 #import "KBTestClientView.h"
 #import "KBTestInstallView.h"
 #import "KBAppView.h"
+#import "KBLaunchCtl.h"
 
 @interface KBConsoleView () <KBAppViewDelegate>
 @property KBListView *logView;
-
 @property KBRPClient *client;
-
-@property KBButton *toggleButton;
 @end
 
 @implementation KBConsoleView
@@ -37,8 +35,8 @@
   KBButton *checkButton = [KBButton buttonWithText:@"Status" style:KBButtonStyleToolbar];
   checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
-      if (gself.client.installer.launchCtl) {
-        [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
+      if (gself.client.environment.launchdLabel) {
+        [KBLaunchCtl status:gself.client.environment.launchdLabel completion:^(NSError *error, NSInteger pid) {
           KBConsoleLog(@"Keybase (launchctl) pid: %@", @(pid));
           completion(error);
         }];
@@ -48,15 +46,6 @@
     }];
   };
   [buttons addSubview:checkButton];
-
-  _toggleButton = [KBButton buttonWithText:@"Start service" style:KBButtonStyleToolbar];
-  _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
-      KBConsoleLog(@"Keybase (launchctl) pid: %@", @(pid));
-      completion(error);
-    }];
-  };
-  [buttons addSubview:_toggleButton];
 
   KBButton *debugButton = [KBButton buttonWithText:@"Views" style:KBButtonStyleToolbar];
   debugButton.targetBlock = ^{
@@ -96,49 +85,15 @@
     y += [layout setFrame:CGRectMake(10, y, size.width - 20, size.height - y - 10) view:yself.logView].size.height + 10;
     return size;
   }];
-
-  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(update:) name:KBStatusDidChangeNotification object:nil];
-}
-
-- (void)dealloc {
-  [NSNotificationCenter.defaultCenter removeObserver:self];
-}
-
-- (void)update:(NSNotification *)notification {
-  KBRGetCurrentStatusRes *status = notification.userInfo[@"status"];
-  GHWeakSelf gself = self;
-  if (status) {
-    [_toggleButton setText:@"Stop service" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
-    _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-      [gself.client.installer.launchCtl unload:YES completion:^(NSError *error, NSString *output) {
-        completion(error);
-      }];
-    };
-  } else {
-    [_toggleButton setText:@"Start service" style:KBButtonStyleToolbar alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
-    _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-      [gself.client.installer.launchCtl load:YES completion:^(NSError *error, NSString *output) {
-        completion(error);
-      }];
-    };
-  }
-
-#ifdef DEBUG
-  // In debug we aren't using launch services to run keybased
-  _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
-    KBDebugAlert(@"Keybase isn't using launch services in DEBUG", gself.window);
-    completion(nil);
-  };
-#endif
 }
 
 - (void)log:(NSString *)message {
-  if (message) [_logView addObjects:@[message]];
+  if (message) [_logView addObjects:@[message] animation:NSTableViewAnimationEffectNone];
   if ([_logView isAtBottom]) [_logView scrollToBottom:YES];
 }
 
 - (void)logError:(NSError *)error {
-  if (error) [_logView addObjects:@[error.localizedDescription]]; // TODO Better error display
+  if (error) [self log:NSStringWithFormat(@"%@", error)];
 }
 
 - (void)appViewDidLaunch:(KBAppView *)appView {

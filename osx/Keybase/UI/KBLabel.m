@@ -11,6 +11,7 @@
 #import "KBBox.h"
 #import "KBAppearance.h"
 #import "KBText.h"
+#import "NSView+KBView.h"
 
 @interface KBLabel ()
 @property NSTextView *textView;
@@ -93,6 +94,14 @@
 + (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   KBLabel *label = [[KBLabel alloc] init];
   [label setText:text style:style alignment:alignment lineBreakMode:lineBreakMode];
+  return label;
+}
+
++ (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style verticalAlignment:(KBVerticalAlignment)verticalAlignment {
+  KBLabel *label = [[KBLabel alloc] init];
+  [label setText:text style:style];
+  label.verticalAlignment = verticalAlignment;
+  [label kb_setBackgroundColor:NSColor.redColor];
   return label;
 }
 

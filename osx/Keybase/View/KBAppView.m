@@ -288,7 +288,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   }
 }
 
-- (void)checkStatus:(KBCompletionBlock)completion {
+- (void)checkStatus:(KBCompletion)completion {
   if (!completion) completion = ^(NSError *error) {
     if (error) [self setStatusError:error];
   };

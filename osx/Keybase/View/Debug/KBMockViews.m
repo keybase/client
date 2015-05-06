@@ -118,7 +118,7 @@
 - (void)showProgressView:(NSTimeInterval)delay error:(BOOL)error {
   KBProgressView *progressView = [[KBProgressView alloc] init];
   [progressView setProgressTitle:@"Working"];
-  progressView.work = ^(KBCompletionBlock completion) {
+  progressView.work = ^(KBCompletion completion) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
       completion(error ? KBMakeErrorWithRecovery(-1, @"Some error happened", @"Intelligentsia ennui squid put a bird on it mixtape next level. Paleo Neutra banh mi fingerstache, small batch stumptown skateboard mustache asymmetrical vegan. Quinoa mustache mixtape literally occupy mlkshk..") : nil);
     });

@@ -11,29 +11,29 @@
 #import "KBDefines.h"
 #import "AppDelegate.h"
 //#include <launch.h>
-#import "KBLaunchCtl.h"
+#import "KBLauncher.h"
 #import <ServiceManagement/ServiceManagement.h>
 
 @interface KBInstaller ()
-@property KBLaunchCtl *launchCtl;
+@property KBLauncher *launcher;
 @end
 
 @implementation KBInstaller
 
-- (instancetype)initWithLaunchCtl:(KBLaunchCtl *)launchCtl {
+- (instancetype)initWithLaunchCtl:(KBLauncher *)launcher {
   if ((self = [super init])) {
-    _launchCtl = launchCtl;
+    _launcher = launcher;
   }
   return self;
 }
 
 - (void)checkInstall:(KBInstallCheck)completion {
-  if (!_launchCtl) {
+  if (!_launcher) {
     completion(nil, NO, KBInstallTypeNone);
     return;
   }
 
-  [_launchCtl status:^(NSError *error, NSInteger pid) {
+  [_launcher status:^(NSError *error, NSInteger pid) {
     if (error) {
       completion(error, NO, KBInstallTypeNone);
       return;
@@ -42,7 +42,7 @@
     if (pid == -1) {
       [self install:completion];
     } else {
-      [gself.launchCtl reload:^(NSError *error, NSInteger pid) {
+      [gself.launcher reload:^(NSError *error, NSInteger pid) {
         completion(nil, NO, KBInstallTypeInstaller);
       }];
     }
@@ -59,7 +59,7 @@
     return;
   }
 
-  [_launchCtl installLaunchAgent:^(NSError *error) {
+  [_launcher installLaunchAgent:^(NSError *error) {
     if (error) {
       completion(error, NO, KBInstallTypeNone);
       return;
@@ -74,6 +74,17 @@
     [NSFileManager.defaultManager removeItemAtPath:[directory stringByAppendingPathComponent:file] error:error];
   }
   [NSFileManager.defaultManager removeItemAtPath:directory error:error];
+}
+
++ (void)installHelper:(KBOnCompletion)completion {
+  NSError *error = nil;
+  if ([self installServiceWithName:@"keybase.Helper" error:&error]) {
+    MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
+    [helper sendRequest:@"load_kbfs" params:nil completion:completion];
+  } else {
+    if (!error) error = KBMakeError(-1, @"Failed to install helper");
+    completion(error, nil);
+  }
 }
 
 + (BOOL)installServiceWithName:(NSString *)name error:(NSError **)error {

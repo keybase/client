@@ -57,25 +57,25 @@
 }
 
 - (void)RPClientWillConnect:(KBRPClient *)RPClient {
-  [_infoView addObjects:@[@"Connecting..."]];
+  [_infoView addObjects:@[@"Connecting..."] animation:NSTableViewAnimationEffectNone];
 }
 
 - (void)RPClientDidConnect:(KBRPClient *)RPClient {
   GHWeakSelf gself = self;
   [_connectButton setText:@"Disconnect" style:KBButtonStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   _connectButton.targetBlock = ^{ [gself close]; };
-  [_infoView addObjects:@[@"Connected"]];
+  [_infoView addObjects:@[@"Connected"] animation:NSTableViewAnimationEffectNone];
 }
 
 - (void)RPClientDidDisconnect:(KBRPClient *)RPClient {
-  [_infoView addObjects:@[@"Disconnected"]];
+  [_infoView addObjects:@[@"Disconnected"] animation:NSTableViewAnimationEffectNone];
   GHWeakSelf gself = self;
   [_connectButton setText:@"Connect" style:KBButtonStylePrimary alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   _connectButton.targetBlock = ^{ [gself open]; };
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
-  [_infoView addObjects:@[error.localizedDescription]];
+  [_infoView addObjects:@[NSStringWithFormat(@"%@", error)] animation:NSTableViewAnimationEffectNone];
 }
 
 @end

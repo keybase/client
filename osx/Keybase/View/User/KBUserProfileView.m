@@ -413,7 +413,7 @@
 - (void)generatePGPKey {
   KBProgressView *progressView = [[KBProgressView alloc] init];
   [progressView setProgressTitle:@"Generating"];
-  progressView.work = ^(KBCompletionBlock completion) {
+  progressView.work = ^(KBCompletion completion) {
     KBRPgpCreateUids *uids = [[KBRPgpCreateUids alloc] init];
     uids.useDefault = YES;
     KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];

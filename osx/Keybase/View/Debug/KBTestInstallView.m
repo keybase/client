@@ -12,7 +12,6 @@
 
 @interface KBTestInstallView ()
 @property KBButton *installButton;
-@property KBListView *logView;
 @end
 
 @implementation KBTestInstallView
@@ -20,120 +19,61 @@
 - (void)viewInit {
   [super viewInit];
 
+  YOVBox *contentView = [YOVBox box:@{@"insets": @(20), @"spacing": @(10)}];
+  [self addSubview:contentView];
+
   GHWeakSelf gself = self;
-  YOHBox *buttons = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,20,10,0"}];
-  [self addSubview:buttons];
-  KBButton *installButton = [KBButton buttonWithText:@"Install Tool" style:KBButtonStyleToolbar];
+  YOHBox *buttons = [YOHBox box:@{@"spacing": @"10"}];
+  [contentView addSubview:buttons];
+
+  KBButton *installButton = [KBButton buttonWithText:@"Install Helper/KBFS" style:KBButtonStyleToolbar];
   installButton.targetBlock = ^{ [gself install]; };
   [buttons addSubview:installButton];
 
-  YOHBox *buttons2 = [YOHBox box:@{@"spacing": @"10", @"insets": @"0,20,10,0"}];
-  [self addSubview:buttons2];
-  KBButton *connectButton = [KBButton buttonWithText:@"Connect" style:KBButtonStyleToolbar];
-  connectButton.targetBlock = ^{ [gself connect]; };
-  [buttons2 addSubview:connectButton];
+  YOHBox *buttons2 = [YOHBox box:@{@"spacing": @"10"}];
+  [contentView addSubview:buttons2];
 
   KBButton *checkButton = [KBButton buttonWithText:@"Version" style:KBButtonStyleToolbar];
-  checkButton.targetBlock = ^{ [gself checkVersion]; };
+  checkButton.targetBlock = ^{ [gself sendRequest:@"version"]; };
   [buttons2 addSubview:checkButton];
 
-  KBButton *installKBFSButton = [KBButton buttonWithText:@"Install KBFS" style:KBButtonStyleToolbar];
-  installKBFSButton.targetBlock = ^{ [gself installKBFS]; };
-  [buttons2 addSubview:installKBFSButton];
+  KBButton *statusButton = [KBButton buttonWithText:@"Status" style:KBButtonStyleToolbar];
+  statusButton.targetBlock = ^{ [gself sendRequest:@"status"]; };
+  [buttons2 addSubview:statusButton];
 
-  _logView = [KBListView listViewWithPrototypeClass:KBLabel.class rowHeight:0];
-  _logView.scrollView.borderType = NSBezelBorder;
-  _logView.view.intercellSpacing = CGSizeMake(10, 10);
-  _logView.cellSetBlock = ^(KBLabel *label, NSString *text, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
-    [label setText:text style:KBTextStyleDefault];
-  };
-  [self addSubview:_logView];
+  YOHBox *buttons3 = [YOHBox box:@{@"spacing": @"10"}];
+  [contentView addSubview:buttons3];
 
-  YOSelf yself = self;
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
-    CGFloat y = 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 34) view:buttons].size.height + 5;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(0, y, size.width, 34) view:buttons2].size.height;
+  KBButton *loadButton = [KBButton buttonWithText:@"Load KBFS" style:KBButtonStyleToolbar];
+  loadButton.targetBlock = ^{ [gself sendRequest:@"load_kbfs"]; };
+  [buttons3 addSubview:loadButton];
 
-    [layout setFrame:CGRectMake(20, y, size.width - 40, size.height - y - 20) view:yself.logView];
+  KBButton *unloadButton = [KBButton buttonWithText:@"Unload KBFS" style:KBButtonStyleToolbar];
+  unloadButton.targetBlock = ^{ [gself sendRequest:@"unload_kbfs"]; };
+  [buttons3 addSubview:unloadButton];
 
-    return size;
-  }];
-}
+  KBButton *uninstallButton = [KBButton buttonWithText:@"Uninstall KBFS" style:KBButtonStyleToolbar];
+  uninstallButton.targetBlock = ^{ [gself sendRequest:@"uninstall_kbfs"]; };
+  [buttons3 addSubview:uninstallButton];
 
-- (void)log:(NSString *)message {
-  if (message) [_logView addObjects:@[message]];
-  if ([_logView isAtBottom]) [_logView scrollToBottom:YES];
-}
-
-- (void)logError:(NSError *)error {
-  if (error) [_logView addObjects:@[NSStringWithFormat(@"%@", error)]]; // TODO Better error display
+  self.viewLayout = [YOLayout fill:contentView];
 }
 
 - (void)install {
-  NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
-  NSError *error = nil;
-  if (![KBInstaller installServiceWithName:@"keybase.Helper" error:&error]) {
-    if (error) {
-      [self logError:error];
-    } else {
-      KBConsoleLog(@"Install failed without error");
-    }
-  } else {
-    KBConsoleLog(@"Installed");
-  }
-}
-
-- (void)connect {
-  NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
-  NSError *error = nil;
-  if (![AppDelegate.sharedDelegate.helper connect:&error]) {
-    if (error) {
-      [self logError:error];
-    } else {
-      KBConsoleLog(@"Install failed without error");
-    }
-  } else {
-    KBConsoleLog(@"Connected");
-  }
-}
-
-- (void)checkVersion {
-  NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
-  [AppDelegate.sharedDelegate.helper sendRequest:@"version" params:nil completion:^(NSError *error, id version) {
-    if (error) {
-      [self logError:error];
-    } else {
-      [self log:NSStringWithFormat(@"Version: %@", version)];
-    }
+  [KBInstaller installHelper:^(NSError *error, id value) {
+    if (error) KBConsoleError(error);
+    else KBConsoleLog(@"Installed");
   }];
 }
 
-- (void)installKBFS {
+- (void)sendRequest:(NSString *)method {
   NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
 
-  [AppDelegate.sharedDelegate.helper sendRequest:@"install" params:nil completion:^(NSError *error, id value) {
-    if (error) {
-      [self logError:error];
-    } else {
-      [self log:NSStringWithFormat(@"Install KBFS: %@", value)];
-    }
+  [AppDelegate.sharedDelegate.helper sendRequest:method params:nil completion:^(NSError *error, id value) {
+    if (error) KBConsoleError(error);
+    else KBConsoleLog(@"%@: %@", method, value);
   }];
 }
-
-/*
-- (void)test {
-  KBHelperClient *helperClient = [[KBHelperClient alloc] init];
-  KBHelper *helper = [[KBHelper alloc] init];
-
-  xpc_object_t event = [helperClient XPCObjectForRequestWithMethod:@"version" params:nil error:nil];
-  [helper handleEvent:event completion:^(NSError *error, NSData *data) {
-    NSArray *response = [helperClient responseForData:data error:nil];
-    DDLogDebug(@"Response: %@", response);
-    NSAssert(response, @"No response");
-  }];
-}
- */
 
 @end
 

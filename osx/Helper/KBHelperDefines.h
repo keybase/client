@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(NSInteger, KBErrorCode) {
-  KBErrorCodeInstaller = -1000,
+typedef NS_ENUM(NSInteger, KBHelperError) {
+  KBHelperErrorKBFS = -1000,
 };
 
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"KeybaseHelper" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
@@ -18,3 +18,7 @@ typedef NS_ENUM(NSInteger, KBErrorCode) {
 NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
 #define KBOrNull(obj) (obj ? obj : NSNull.null)
+
+typedef void (^KBOnCompletion)(NSError *error, id value);
+
+void KBLog(NSString *msg, ...);

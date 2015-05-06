@@ -30,7 +30,7 @@ PODS:
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.15)
+  - MPMessagePack (1.1.17)
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
     - Slash/arc (= 0.1.2)
@@ -47,12 +47,16 @@ DEPENDENCIES:
   - GHKit
   - Mantle
   - MASPreferences
-  - MPMessagePack
+  - MPMessagePack (from `~/Projects/MPMessagePack`)
   - ObjectiveSugar
   - Slash
   - Sparkle
   - YOLayout
   - ZXCVBN
+
+EXTERNAL SOURCES:
+  MPMessagePack:
+    :path: "~/Projects/MPMessagePack"
 
 SPEC CHECKSUMS:
   AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe
@@ -60,7 +64,7 @@ SPEC CHECKSUMS:
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
   Mantle: 17de73ef929db2234d76fde2aacfb89ab11c61e8
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
-  MPMessagePack: 6c125e529dd76b96644c9ffc5021a4d4416f3885
+  MPMessagePack: 57298725317a15c5b8529a087b9ec65ca74de737
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7

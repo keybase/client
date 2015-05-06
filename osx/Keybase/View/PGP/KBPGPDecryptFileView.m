@@ -60,7 +60,7 @@
 }
 
 - (void)setFiles:(NSArray *)files {
-  [_fileListView addObjects:files];
+  [_fileListView addObjects:files animation:NSTableViewAnimationEffectNone];
 }
 
 - (void)showInFinder:(id)sender {
@@ -75,7 +75,7 @@
 }
 
 - (void)addFile:(KBFile *)file {
-  [_fileListView addObjects:@[file]];
+  [_fileListView addObjects:@[file] animation:NSTableViewAnimationEffectNone];
 }
 
 - (void)decrypt {

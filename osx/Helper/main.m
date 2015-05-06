@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "KBHelper.h"
-#import "KBHLog.h"
+#import "KBHelperDefines.h"
 
 int main(int argc, const char *argv[]) {
 

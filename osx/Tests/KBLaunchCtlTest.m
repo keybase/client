@@ -10,7 +10,7 @@
 #import <XCTest/XCTest.h>
 
 #import "KBEnvironment.h"
-#import "KBLaunchCtl.h"
+#import "KBLauncher.h"
 
 @interface KBLaunchCtlTest : XCTestCase
 @end
@@ -19,7 +19,7 @@
 
 - (void)testPlist {
   KBEnvironment *environment = [KBEnvironment env:KBEnvKeybaseIO];
-  NSString *plist = [KBLaunchCtl launchdPlistForEnvironment:environment error:nil];
+  NSString *plist = [KBLauncher launchdPlistForEnvironment:environment error:nil];
   DDLogDebug(@"Plist: %@", plist);
   XCTAssertNotNil(plist);
 }

@@ -28,6 +28,6 @@ typedef NSString *(^KBFileOutput)(NSString *path);
 
 - (void)registerWithClient:(KBRPClient *)client sessionId:(NSInteger)sessionId;
 
-+ (void)checkFiles:(NSArray */*of KBFile*/)files index:(NSInteger)index output:(KBFileOutput)output streams:(NSMutableArray *)streams skipCheck:(BOOL)skipCheck view:(NSView *)view completion:(KBCompletionBlock)completion;
++ (void)checkFiles:(NSArray */*of KBFile*/)files index:(NSInteger)index output:(KBFileOutput)output streams:(NSMutableArray *)streams skipCheck:(BOOL)skipCheck view:(NSView *)view completion:(KBCompletion)completion;
 
 @end

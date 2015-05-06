@@ -34,8 +34,9 @@ typedef void (^KBTableViewUpdate)(KBTableView *tableView);
 @property (nonatomic) NSInteger selectedRow;
 
 - (void)setObjects:(NSArray *)objects;
-- (void)addObjects:(NSArray *)objects;
 - (void)removeAllObjects;
+
+- (void)addObjects:(NSArray *)objects animation:(NSTableViewAnimationOptions)animation;
 
 - (void)setObjects:(NSArray *)objects animated:(BOOL)animated;
 
