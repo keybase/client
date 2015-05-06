@@ -97,9 +97,6 @@ func GenSigningDetKey(tpk libkb.PassphraseStream, serverHalf []byte) (gkey libkb
 		return nil, err
 	}
 
-	G.Log.Debug("detkey[eddsa] pub:        %x", *pub)
-	G.Log.Debug("detkey[eddsa] priv:       %x", *priv)
-
 	var key libkb.NaclSigningKeyPair
 	copy(key.Public[:], (*pub)[:])
 	key.Private = &libkb.NaclSigningKeyPrivate{}
@@ -121,10 +118,6 @@ func (d *DetKeyEngine) dh(seed []byte) error {
 	if err != nil {
 		return err
 	}
-
-	G.Log.Debug("detkey[dh] serverHalf: %x", serverHalf)
-	G.Log.Debug("detkey[dh] pub:        %x", *pub)
-	G.Log.Debug("detkey[dh] priv:       %x", *priv)
 
 	var key libkb.NaclDHKeyPair
 	copy(key.Public[:], (*pub)[:])

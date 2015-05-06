@@ -11,9 +11,9 @@ func TestDoctor(t *testing.T) {
 	tc := SetupEngineTest(t, "Doctor")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "login")
+	fu := CreateAndSignupFakeUser(tc, "login")
 
-	ctx := &Context{DoctorUI: &docui{}, LoginUI: libkb.TestLoginUI{Username: fu.Username}, SecretUI: fu.NewSecretUI(), LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}}
+	ctx := &Context{DoctorUI: &docui{}, LoginUI: libkb.TestLoginUI{Username: fu.Username}, SecretUI: fu.NewSecretUI(), LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}}
 	t.Logf("ctx: %+v", ctx)
 	eng := NewDoctor(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

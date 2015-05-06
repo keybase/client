@@ -6,7 +6,7 @@ func TestScanKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "ScanKeys")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "login")
+	fu := CreateAndSignupFakeUser(tc, "login")
 
 	sk, err := NewScanKeys(fu.NewSecretUI(), &FakeIdentifyUI{}, nil, tc.G)
 	if err != nil {

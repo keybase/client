@@ -7,11 +7,11 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func runTrack(fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
-	return runTrackWithOptions(fu, username, TrackOptions{})
+func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
+	return runTrackWithOptions(tc, fu, username, TrackOptions{})
 }
 
-func runTrackWithOptions(fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, res *IDRes, err error) {
+func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options TrackOptions) (idUI *FakeIdentifyUI, res *IDRes, err error) {
 	idUI = &FakeIdentifyUI{
 		Fapr: keybase1.FinishAndPromptRes{
 			TrackLocal:  options.TrackLocalOnly,
@@ -23,11 +23,11 @@ func runTrackWithOptions(fu *FakeUser, username string, options TrackOptions) (i
 		Options:   options,
 	}
 	ctx := Context{
-		LogUI:      G.UI.GetLogUI(),
+		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
 	}
-	eng := NewTrackEngine(&arg, G)
+	eng := NewTrackEngine(&arg, tc.G)
 	err = RunEngine(eng, &ctx)
 	res = eng.res
 	return
@@ -51,56 +51,56 @@ func assertTracked(t *testing.T, fu *FakeUser, theirName string) {
 	}
 }
 
-func trackAlice(t *testing.T, fu *FakeUser) {
-	trackAliceWithOptions(t, fu, TrackOptions{})
+func trackAlice(tc libkb.TestContext, fu *FakeUser) {
+	trackAliceWithOptions(tc, fu, TrackOptions{})
 }
 
-func trackAliceWithOptions(t *testing.T, fu *FakeUser, options TrackOptions) {
-	idUI, res, err := runTrackWithOptions(fu, "t_alice", options)
+func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOptions) {
+	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
-	checkAliceProofs(t, idUI, res)
-	assertTracked(t, fu, "t_alice")
+	checkAliceProofs(tc.T, idUI, res)
+	assertTracked(tc.T, fu, "t_alice")
 	return
 }
 
-func trackBob(t *testing.T, fu *FakeUser) {
-	trackBobWithOptions(t, fu, TrackOptions{})
+func trackBob(tc libkb.TestContext, fu *FakeUser) {
+	trackBobWithOptions(tc, fu, TrackOptions{})
 }
 
-func trackBobWithOptions(t *testing.T, fu *FakeUser, options TrackOptions) {
-	idUI, res, err := runTrackWithOptions(fu, "t_bob", options)
+func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options TrackOptions) {
+	idUI, res, err := runTrackWithOptions(tc, fu, "t_bob", options)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
-	checkBobProofs(t, idUI, res)
-	assertTracked(t, fu, "t_bob")
+	checkBobProofs(tc.T, idUI, res)
+	assertTracked(tc.T, fu, "t_bob")
 	return
 }
 
 func TestTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(t, "track")
+	fu := CreateAndSignupFakeUser(tc, "track")
 
-	trackAlice(t, fu)
-	defer untrackAlice(t, fu)
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
 
 	// Assert that we gracefully handle the case of no login
-	G.Logout()
-	_, _, err := runTrack(fu, "t_bob")
+	tc.G.Logout()
+	_, _, err := runTrack(tc, fu, "t_bob")
 	if err == nil {
 		t.Fatal("expected logout error; got no error")
 	} else if _, ok := err.(libkb.LoginRequiredError); !ok {
 		t.Fatalf("expected a LoginRequireError; got %s", err.Error())
 	}
-	fu.LoginOrBust(t)
-	trackBob(t, fu)
-	defer untrackBob(t, fu)
+	fu.LoginOrBust(tc)
+	trackBob(tc, fu)
+	defer untrackBob(tc, fu)
 
 	// try tracking a user with no keys
-	_, _, err = runTrack(fu, "t_ellen")
+	_, _, err = runTrack(tc, fu, "t_ellen")
 	if err == nil {
 		t.Errorf("expected error tracking t_ellen, got nil")
 	}
@@ -111,11 +111,11 @@ func TestTrack(t *testing.T) {
 func TestTrackNoPubKey(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(t, "track")
-	G.Logout()
+	fu := CreateAndSignupFakeUser(tc, "track")
+	tc.G.Logout()
 
-	tracker := CreateAndSignupFakeUser(t, "track")
-	_, _, err := runTrack(tracker, fu.Username)
+	tracker := CreateAndSignupFakeUser(tc, "track")
+	_, _, err := runTrack(tc, tracker, fu.Username)
 	if err != nil {
 		t.Fatalf("error tracking user w/ no pgp key: %s", err)
 	}

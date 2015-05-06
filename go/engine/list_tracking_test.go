@@ -9,11 +9,11 @@ import (
 func TestListTracking(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(t, "track")
-	fu.LoginOrBust(t)
+	fu := CreateAndSignupFakeUser(tc, "track")
+	fu.LoginOrBust(tc)
 
-	trackAlice(t, fu)
-	defer untrackAlice(t, fu)
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
 
 	arg := ListTrackingEngineArg{}
 	eng := NewListTrackingEngine(&arg, tc.G)
@@ -52,11 +52,11 @@ func TestListTracking(t *testing.T) {
 func TestListTrackingJSON(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(t, "track")
-	fu.LoginOrBust(t)
+	fu := CreateAndSignupFakeUser(tc, "track")
+	fu.LoginOrBust(tc)
 
-	trackAlice(t, fu)
-	defer untrackAlice(t, fu)
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
 
 	arg := ListTrackingEngineArg{Json: true, Verbose: true}
 	eng := NewListTrackingEngine(&arg, tc.G)

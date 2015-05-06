@@ -9,7 +9,7 @@ import (
 func TestGenerateNewPGPKey(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(t, "pgp")
+	fu := CreateAndSignupFakeUser(tc, "pgp")
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
@@ -19,7 +19,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 	}
 	arg.Gen.MakeAllIds()
 	ctx := Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
 	eng := NewPGPKeyImportEngine(arg)

@@ -10,11 +10,11 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func decengctx(fu *FakeUser) *Context {
+func decengctx(fu *FakeUser, tc libkb.TestContext) *Context {
 	return &Context{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
-		LogUI:      G.UI.GetLogUI(),
+		LogUI:      tc.G.UI.GetLogUI(),
 	}
 }
 
@@ -26,7 +26,7 @@ func TestPGPDecrypt(t *testing.T) {
 	// encrypt a message
 	msg := "10 days in Japan"
 	sink := libkb.NewBufferCloser()
-	ctx := decengctx(fu)
+	ctx := decengctx(fu, tc)
 	arg := &PGPEncryptArg{
 		Source:       strings.NewReader(msg),
 		Sink:         sink,
@@ -69,7 +69,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 
 	// encrypt a message
 	msg := "10 days in Japan"
-	ctx := decengctx(fu)
+	ctx := decengctx(fu, tc)
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Source: strings.NewReader(msg),
@@ -109,7 +109,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."
-	ctx := decengctx(fu)
+	ctx := decengctx(fu, tc)
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Source:       strings.NewReader(msg),
@@ -146,8 +146,8 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 func TestPGPDecryptSignedOther(t *testing.T) {
 	tcRecipient := SetupEngineTest(t, "PGPDecrypt - Recipient")
 	defer tcRecipient.Cleanup()
-	recipient := createFakeUserWithPGPSibkey(t)
-	G.Logout()
+	recipient := createFakeUserWithPGPSibkey(tcRecipient)
+	tcRecipient.G.Logout()
 
 	tcSigner := SetupEngineTest(t, "PGPDecrypt - Signer")
 	defer tcSigner.Cleanup()
@@ -155,7 +155,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."
-	ctx := decengctx(signer)
+	ctx := decengctx(signer, tcSigner)
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Recips:       []string{recipient.Username},
@@ -163,7 +163,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Sink:         sink,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg, G)
+	enc := NewPGPEncrypt(arg, tcSigner.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -175,14 +175,14 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	t.Logf("signer (%q) logging out", signer.Username)
 	tcSigner.G.Logout()
 	libkb.G = tcRecipient.G
-	G = libkb.G
+	// G = libkb.G
 	t.Logf("recipient (%q) logging in", recipient.Username)
-	recipient.LoginOrBust(t)
+	recipient.LoginOrBust(tcRecipient)
 
 	rtrackUI := &FakeIdentifyUI{
 		Fapr: keybase1.FinishAndPromptRes{TrackRemote: true},
 	}
-	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: G.UI.GetLogUI()}
+	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: tcRecipient.G.UI.GetLogUI()}
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
@@ -191,7 +191,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Sink:         decoded,
 		AssertSigned: true,
 	}
-	dec := NewPGPDecrypt(decarg, G)
+	dec := NewPGPDecrypt(decarg, tcRecipient.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -216,7 +216,7 @@ func TestPGPDecryptLong(t *testing.T) {
 	f.Read(msg)
 
 	sink := libkb.NewBufferCloser()
-	ctx := decengctx(fu)
+	ctx := decengctx(fu, tc)
 	arg := &PGPEncryptArg{
 		Source:       bytes.NewReader(msg),
 		Sink:         sink,

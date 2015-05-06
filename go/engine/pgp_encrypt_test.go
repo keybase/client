@@ -12,7 +12,7 @@ func TestPGPEncrypt(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPEncrypt")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 		Fapr:   keybase1.FinishAndPromptRes{TrackRemote: true},
@@ -37,13 +37,13 @@ func TestPGPEncrypt(t *testing.T) {
 		t.Fatal("no output")
 	}
 
-	if err := runUntrack(u, "t_alice"); err != nil {
+	if err := runUntrack(tc.G, u, "t_alice"); err != nil {
 		t.Fatal(err)
 	}
-	if err := runUntrack(u, "t_bob"); err != nil {
+	if err := runUntrack(tc.G, u, "t_bob"); err != nil {
 		t.Fatal(err)
 	}
-	if err := runUntrack(u, "t_charlie"); err != nil {
+	if err := runUntrack(tc.G, u, "t_charlie"); err != nil {
 		t.Fatal(err)
 	}
 }

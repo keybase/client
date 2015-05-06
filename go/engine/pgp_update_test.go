@@ -7,10 +7,10 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-func doUpdate(fingerprints []string, all bool) (err error) {
-	eng := NewPGPUpdateEngine(fingerprints, all, G)
+func doUpdate(fingerprints []string, all bool, tc libkb.TestContext) (err error) {
+	eng := NewPGPUpdateEngine(fingerprints, all, tc.G)
 	ctx := Context{
-		LogUI: G.UI.GetLogUI(),
+		LogUI: tc.G.UI.GetLogUI(),
 	}
 	err = RunEngine(eng, &ctx)
 	return
@@ -46,7 +46,7 @@ func TestPGPUpdate(t *testing.T) {
 	bundle.Subkeys = []openpgp.Subkey{}
 
 	gpgCLI := libkb.NewGpgCLI(libkb.GpgCLIArg{
-		LogUI: G.UI.GetLogUI(),
+		LogUI: tc.G.UI.GetLogUI(),
 	})
 	_, err := gpgCLI.Configure()
 	if err != nil {
@@ -57,7 +57,7 @@ func TestPGPUpdate(t *testing.T) {
 	gpgCLI.ExportKey(*bundle)
 
 	// Now run `client pgp update` with a fingerprint that doesn't match.
-	err = doUpdate([]string{"not_a_real_fingerprint"}, false)
+	err = doUpdate([]string{"not_a_real_fingerprint"}, false, tc)
 	if err != nil {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
@@ -69,7 +69,7 @@ func TestPGPUpdate(t *testing.T) {
 	}
 
 	// Do the same thing without the fingerprint. It should go through this time.
-	err = doUpdate([]string{}, false)
+	err = doUpdate([]string{}, false, tc)
 	if err != nil {
 		t.Fatal("Error in PGPUpdateEngine:", err)
 	}
@@ -88,19 +88,19 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 	createFakeUserWithPGPMult(t, tc)
 
 	// `client pgp update` should fail by default, because there are multiple keys.
-	err := doUpdate([]string{}, false /* all */)
+	err := doUpdate([]string{}, false /* all */, tc)
 	if err == nil {
 		t.Fatal("Update should fail with multiple keys and no --all.")
 	}
 
 	// `client pgp update` should fail with both specific fingerprints and --all.
-	err = doUpdate([]string{"foo"}, true /* all */)
+	err = doUpdate([]string{"foo"}, true /* all */, tc)
 	if err == nil {
 		t.Fatal("Update should fail with explicit fingerprint and --all.")
 	}
 
 	// It should finally succeed with just --all.
-	err = doUpdate([]string{}, true /* all */)
+	err = doUpdate([]string{}, true /* all */, tc)
 	if err != nil {
 		t.Fatal("Update should succeed with --all.")
 	}

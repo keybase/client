@@ -13,10 +13,10 @@ func TestPGPKeyfinder(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPKeyfinder")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 	// track alice before starting so we have a user already tracked
-	trackAlice(t, u)
-	defer untrackAlice(t, u)
+	trackAlice(tc, u)
+	defer untrackAlice(tc, u)
 
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
@@ -37,10 +37,10 @@ func TestPGPKeyfinder(t *testing.T) {
 		t.Errorf("number of users found: %d, expected 3", len(up))
 	}
 
-	if err := runUntrack(u, "t_bob"); err != nil {
+	if err := runUntrack(tc.G, u, "t_bob"); err != nil {
 		t.Fatal(err)
 	}
-	if err := runUntrack(u, "t_charlie"); err != nil {
+	if err := runUntrack(tc.G, u, "t_charlie"); err != nil {
 		t.Fatal(err)
 	}
 }

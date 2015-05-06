@@ -7,8 +7,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func AssertDeviceID() (err error) {
-	if G.Env.GetDeviceID() == nil {
+func AssertDeviceID(g *libkb.GlobalContext) (err error) {
+	if g.Env.GetDeviceID() == nil {
 		err = fmt.Errorf("Device ID should not have been reset!")
 	}
 	return
@@ -19,53 +19,53 @@ func TestSignupEngine(t *testing.T) {
 	defer tc.Cleanup()
 	var err error
 
-	fu := CreateAndSignupFakeUser(t, "se")
+	fu := CreateAndSignupFakeUser(tc, "se")
 
-	if err = G.LoginState().AssertLoggedIn(); err != nil {
+	if err = tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = AssertDeviceID(); err != nil {
+	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
 	// Now try to logout and log back in
-	G.Logout()
+	tc.G.Logout()
 
-	if err = AssertDeviceID(); err != nil {
+	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
-	fu.LoginOrBust(t)
+	fu.LoginOrBust(tc)
 
-	if err = AssertDeviceID(); err != nil {
+	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = G.LoginState().AssertLoggedIn(); err != nil {
+	if err = tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = AssertDeviceID(); err != nil {
+	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
 	// Now try to logout and log back in w/ PublicKey Auth
-	G.Logout()
+	tc.G.Logout()
 
 	// Clear out the key stored in the keyring.
-	if err := G.ConfigureKeyring(); err != nil {
+	if err := tc.G.ConfigureKeyring(); err != nil {
 		t.Error(err)
 	}
 
-	if err := G.LoginState().AssertLoggedOut(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
 		t.Fatal(err)
 	}
 
 	mockGetSecret := &GetSecretMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err = G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
+	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
 		t.Fatal(err)
 	}
 
@@ -75,22 +75,22 @@ func TestSignupEngine(t *testing.T) {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")
 	}
 
-	if err = AssertDeviceID(); err != nil {
+	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = G.LoginState().AssertLoggedIn(); err != nil {
+	if err = tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
 	// Now try to logout to make sure we logged out OK
-	G.Logout()
+	tc.G.Logout()
 
-	if err = AssertDeviceID(); err != nil {
+	if err = AssertDeviceID(tc.G); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = G.LoginState().AssertLoggedOut(); err != nil {
+	if err = tc.G.LoginState().AssertLoggedOut(); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -107,7 +107,7 @@ func TestSignupWithGPG(t *testing.T) {
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", false, true}
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
@@ -125,7 +125,7 @@ func TestLocalKeySecurity(t *testing.T) {
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
 	s := NewSignupEngine(&arg, tc.G)
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
@@ -161,15 +161,15 @@ func TestIssue280(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Initialize state with user U1
-	u1 := CreateAndSignupFakeUser(t, "login")
-	G.Logout()
-	u1.LoginOrBust(t)
-	G.Logout()
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	tc.G.Logout()
+	u1.LoginOrBust(tc)
+	tc.G.Logout()
 
 	// Now try to sign in as user U2, and do something
 	// that needs access to a locked local secret key.
 	// Delegating to a new PGP key seems good enough.
-	u2 := CreateAndSignupFakeUser(t, "login")
+	u2 := CreateAndSignupFakeUser(tc, "login")
 
 	secui := u2.NewSecretUI()
 	arg := PGPKeyImportEngineArg{
@@ -180,7 +180,7 @@ func TestIssue280(t *testing.T) {
 	}
 	arg.Gen.MakeAllIds()
 	ctx := Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
 	eng := NewPGPKeyImportEngine(arg)

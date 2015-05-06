@@ -11,7 +11,7 @@ func TestSearch(t *testing.T) {
 	defer tc.Cleanup()
 
 	ctx := &Context{
-		LogUI: G.UI.GetLogUI(),
+		LogUI: tc.G.UI.GetLogUI(),
 	}
 	// This twitter handle is used by t_alice and t_charlie.
 	e := NewSearchEngine(SearchEngineArgs{

@@ -24,11 +24,11 @@ func TestBTC(t *testing.T) {
 	tc := SetupEngineTest(t, "btc")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "btc")
+	u := CreateAndSignupFakeUser(tc, "btc")
 
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
 

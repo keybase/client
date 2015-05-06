@@ -25,8 +25,8 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	defer tcX.Cleanup()
 
 	// sign up with device X
-	G = tcX.G
-	u := CreateAndSignupFakeUser(t, "login")
+	// G = tcX.G
+	u := CreateAndSignupFakeUser(tcX, "login")
 	docui := &lockuiDevice{lockui: &lockui{}}
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 
@@ -40,7 +40,7 @@ func TestLoginNewDeviceKex(t *testing.T) {
 		DeviceKey: true,
 		Me:        me,
 	}
-	_, _, err = G.Keyrings.GetSecretKeyWithPrompt(arg, secui, "new device install")
+	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(arg, secui, "new device install")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,9 +69,9 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// log in with device Y
-	G = tcY.G
+	// G = tcY.G
 	li := NewLoginWithPromptEngine(u.Username)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tcY.G.UI.GetLogUI(), LocksmithUI: docui, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -109,6 +109,5 @@ func (l *lockuiDevice) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) er
 	l.Lock()
 	l.secret = arg.Secret
 	l.Unlock()
-	G.Log.Info("secret words: %s", arg.Secret)
 	return nil
 }

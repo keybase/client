@@ -48,7 +48,7 @@ func TestIdentifyWithTracking(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify")
 	defer tc.Cleanup()
 
-	CreateAndSignupFakeUser(t, "login")
+	CreateAndSignupFakeUser(tc, "login")
 
 	for _, x := range idtests {
 		ctx := &Context{IdentifyUI: &FakeIdentifyUI{}}
@@ -72,7 +72,7 @@ func TestIdentifySelf(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 
 	assertions := []string{"", u.Username}
 	for _, a := range assertions {

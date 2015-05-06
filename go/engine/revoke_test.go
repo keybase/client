@@ -23,16 +23,16 @@ func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libk
 	return activeDevices, append(sibkeys, subkeys...)
 }
 
-func doRevoke(t *testing.T, u *FakeUser, id string, mode RevokeMode) {
-	revokeEngine := NewRevokeEngine(id, mode, G)
+func doRevoke(tc libkb.TestContext, u *FakeUser, id string, mode RevokeMode) {
+	revokeEngine := NewRevokeEngine(id, mode, tc.G)
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
 	err := RunEngine(revokeEngine, ctx)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 }
 
@@ -50,7 +50,7 @@ func TestRevokeDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "rev")
+	u := CreateAndSignupFakeUser(tc, "rev")
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 
@@ -66,7 +66,7 @@ func TestRevokeDevice(t *testing.T) {
 		t.Fatal("Expected to find a web device.")
 	}
 
-	doRevoke(t, u, webDevice.Id, RevokeDevice)
+	doRevoke(tc, u, webDevice.Id, RevokeDevice)
 
 	assertNumDevicesAndKeys(t, u, 1, 2)
 }
@@ -75,7 +75,7 @@ func TestRevokeKey(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	u := createFakeUserWithPGPSibkey(t)
+	u := createFakeUserWithPGPSibkey(tc)
 
 	assertNumDevicesAndKeys(t, u, 2, 5)
 
@@ -93,7 +93,7 @@ func TestRevokeKey(t *testing.T) {
 		t.Fatal("Expected to find PGP key")
 	}
 
-	doRevoke(t, u, (*pgpKey).GetKid().String(), RevokeKey)
+	doRevoke(tc, u, (*pgpKey).GetKid().String(), RevokeKey)
 
 	assertNumDevicesAndKeys(t, u, 2, 4)
 }

@@ -14,9 +14,9 @@ func TestListTrackers(t *testing.T) {
 	tc := SetupEngineTest(t, "trackerlist")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "login")
-	trackAlice(t, fu)
-	defer untrackAlice(t, fu)
+	fu := CreateAndSignupFakeUser(tc, "login")
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
 
 	uid := libkb.UsernameToUID("t_alice")
 	e := NewListTrackers(&uid, tc.G)

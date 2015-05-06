@@ -62,7 +62,7 @@ func (k *KexSib) Run(ctx *Context) error {
 		return libkb.ErrNoDevice
 	}
 	k.deviceID = *dp
-	G.Log.Debug("device id: %s", k.deviceID)
+	k.G().Log.Debug("device id: %s", k.deviceID)
 
 	if k.user.GetComputedKeyFamily() == nil {
 		return libkb.KeyFamilyError{Msg: "nil ckf"}
@@ -92,11 +92,11 @@ func (k *KexSib) Run(ctx *Context) error {
 		return err
 	}
 
-	G.Log.Debug("KexSib: starting receive loop")
+	k.G().Log.Debug("KexSib: starting receive loop")
 	m := kex.NewMeta(k.user.GetUid(), k.sec.StrongID(), libkb.DeviceID{}, k.deviceID, kex.DirectionYtoX)
 	err = k.loopReceives(ctx, m, k.sec)
 	if err != nil {
-		G.Log.Warning("Error in KEX receive: %s", err.Error())
+		k.G().Log.Warning("Error in KEX receive: %s", err)
 	}
 	return err
 }
@@ -142,9 +142,9 @@ func (k *KexSib) loopReceives(ctx *Context, m *kex.Meta, sec *kex.Secret) error 
 		return err
 	}
 
-	G.Log.Debug("KexSib: finished with messages, waiting for receive to end.")
+	k.G().Log.Debug("KexSib: finished with messages, waiting for receive to end.")
 	k.wg.Wait()
-	G.Log.Debug("KexSib: done.")
+	k.G().Log.Debug("KexSib: done.")
 	k.kexStatus(ctx, "kexsib complete on existing device X ", keybase1.KexStatusCode_END)
 	return nil
 }
@@ -174,7 +174,7 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 		return err
 	}
 
-	G.Log.Debug("Got PleaseSign() on verified JSON blob %s\n", string(sigPayload))
+	k.G().Log.Debug("Got PleaseSign() on verified JSON blob %s\n", string(sigPayload))
 
 	// k.deviceSibkey is public only
 	if k.sigKey == nil {

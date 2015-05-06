@@ -6,36 +6,36 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func createFakeUserWithNoKeys(t *testing.T) (username, passphrase string) {
-	username, email := fakeUser(t, "login")
-	passphrase = fakePassphrase(t)
+func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string) {
+	username, email := fakeUser(tc.T, "login")
+	passphrase = fakePassphrase(tc.T)
 
-	s := NewSignupEngine(nil, G)
+	s := NewSignupEngine(nil, tc.G)
 
 	// going to just run the join step of signup engine
 	if err := s.genTSPassKey(passphrase); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	if err := s.join(username, email, testInviteCode, true); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	return username, passphrase
 }
 
-func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
-	username, email := fakeUser(t, "login")
-	passphrase = fakePassphrase(t)
+func createFakeUserWithDetKey(tc libkb.TestContext) (username, passphrase string) {
+	username, email := fakeUser(tc.T, "login")
+	passphrase = fakePassphrase(tc.T)
 
-	s := NewSignupEngine(nil, G)
+	s := NewSignupEngine(nil, tc.G)
 
 	if err := s.genTSPassKey(passphrase); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	if err := s.join(username, email, testInviteCode, true); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	// generate the detkey only, using SelfProof
@@ -44,10 +44,10 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 		Tsp:       s.tspkey,
 		SelfProof: true,
 	}
-	eng := NewDetKeyEngine(arg, G)
-	ctx := &Context{LogUI: G.UI.GetLogUI()}
+	eng := NewDetKeyEngine(arg, tc.G)
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
 	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	return username, passphrase
@@ -57,7 +57,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 // up on the Web site, and used the Web site to generate his/her key.  They
 // used triplesec-encryption and synced their key to the keybase servers.
 func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
-	fu := NewFakeUserOrBust(t, "login")
+	fu := NewFakeUserOrBust(tc.T, "login")
 
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	ctx := &Context{
@@ -69,11 +69,11 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	s := NewSignupEngine(nil, tc.G)
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	if err := s.join(fu.Username, fu.Email, testInviteCode, true); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	s.fakeLKS()
@@ -93,13 +93,13 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	})
 
 	if err := RunEngine(peng, ctx); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	var err error
 	fu.User, err = libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	return fu
@@ -150,7 +150,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 
@@ -182,8 +182,8 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
-func createFakeUserWithPGPSibkey(t *testing.T) *FakeUser {
-	fu := CreateAndSignupFakeUser(t, "pgp")
+func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
+	fu := CreateAndSignupFakeUser(tc, "pgp")
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
@@ -193,13 +193,13 @@ func createFakeUserWithPGPSibkey(t *testing.T) *FakeUser {
 	}
 	arg.Gen.MakeAllIds()
 	ctx := Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
 	eng := NewPGPKeyImportEngine(arg)
 	err := RunEngine(eng, &ctx)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	return fu
 }

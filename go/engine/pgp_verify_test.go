@@ -12,99 +12,99 @@ import (
 func TestPGPVerify(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPVerify")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPSibkey(t)
+	fu := createFakeUserWithPGPSibkey(tc)
 
 	ctx := &Context{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
-		LogUI:      G.UI.GetLogUI(),
+		LogUI:      tc.G.UI.GetLogUI(),
 	}
 
 	msg := "If you wish to stop receiving notifications from this topic, please click or visit the link below to unsubscribe:"
 
 	// create detached sig
-	detached := sign(ctx, t, msg, keybase1.SignMode_DETACHED)
+	detached := sign(ctx, tc, msg, keybase1.SignMode_DETACHED)
 
 	// create clearsign sig
-	clearsign := sign(ctx, t, msg, keybase1.SignMode_CLEAR)
+	clearsign := sign(ctx, tc, msg, keybase1.SignMode_CLEAR)
 
 	// create attached sig w/ sign
-	attached := sign(ctx, t, msg, keybase1.SignMode_ATTACHED)
+	attached := sign(ctx, tc, msg, keybase1.SignMode_ATTACHED)
 
 	// create attached sig w/ encrypt
-	attachedEnc := signEnc(ctx, t, msg)
+	attachedEnc := signEnc(ctx, tc, msg)
 
 	// still logged in as signer:
-	verify(ctx, t, msg, detached, "detached logged in", true)
-	verify(ctx, t, clearsign, "", "clearsign logged in", true)
-	verify(ctx, t, attached, "", "attached logged in", true)
-	verify(ctx, t, attachedEnc, "", "attached/encrypted logged in", true)
+	verify(ctx, tc, msg, detached, "detached logged in", true)
+	verify(ctx, tc, clearsign, "", "clearsign logged in", true)
+	verify(ctx, tc, attached, "", "attached logged in", true)
+	verify(ctx, tc, attachedEnc, "", "attached/encrypted logged in", true)
 
-	G.Logout()
+	tc.G.Logout()
 
 	// these are all valid logged out
-	verify(ctx, t, msg, detached, "detached logged out", true)
-	verify(ctx, t, clearsign, "", "clearsign logged out", true)
-	verify(ctx, t, attached, "", "attached logged out", true)
+	verify(ctx, tc, msg, detached, "detached logged out", true)
+	verify(ctx, tc, clearsign, "", "clearsign logged out", true)
+	verify(ctx, tc, attached, "", "attached logged out", true)
 	// attached encrypted is not valid logged out:
-	verify(ctx, t, attachedEnc, "", "attached/encrypted logged out", false)
+	verify(ctx, tc, attachedEnc, "", "attached/encrypted logged out", false)
 
 	// sign in as a different user
 	tc2 := SetupEngineTest(t, "PGPVerify")
 	defer tc2.Cleanup()
-	fu2 := CreateAndSignupFakeUser(t, "pgp")
+	fu2 := CreateAndSignupFakeUser(tc2, "pgp")
 	ctx.SecretUI = fu2.NewSecretUI()
-	verify(ctx, t, msg, detached, "detached different user", true)
-	verify(ctx, t, clearsign, "", "clearsign different user", true)
-	verify(ctx, t, attached, "", "attached different user", true)
-	verify(ctx, t, attachedEnc, "", "attached/encrypted different user", false)
+	verify(ctx, tc2, msg, detached, "detached different user", true)
+	verify(ctx, tc2, clearsign, "", "clearsign different user", true)
+	verify(ctx, tc2, attached, "", "attached different user", true)
+	verify(ctx, tc2, attachedEnc, "", "attached/encrypted different user", false)
 
 	// extra credit:
 	// encrypt a message for another user and sign it
 	// verify that attached signature
 }
 
-func sign(ctx *Context, t *testing.T, msg string, mode keybase1.SignMode) string {
+func sign(ctx *Context, tc libkb.TestContext, msg string, mode keybase1.SignMode) string {
 	sink := libkb.NewBufferCloser()
 	arg := &PGPSignArg{
 		Sink:   sink,
 		Source: ioutil.NopCloser(strings.NewReader(msg)),
 		Opts:   keybase1.PgpSignOptions{Mode: keybase1.SignMode(mode)},
 	}
-	eng := NewPGPSignEngine(arg, G)
+	eng := NewPGPSignEngine(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	return sink.String()
 }
 
-func signEnc(ctx *Context, t *testing.T, msg string) string {
+func signEnc(ctx *Context, tc libkb.TestContext, msg string) string {
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Sink:   sink,
 		Source: strings.NewReader(msg),
 	}
-	eng := NewPGPEncrypt(arg, G)
+	eng := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	return sink.String()
 }
 
-func verify(ctx *Context, t *testing.T, msg, sig, name string, valid bool) {
+func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid bool) {
 	arg := &PGPVerifyArg{
 		Source:    strings.NewReader(msg),
 		Signature: []byte(sig),
 	}
-	eng := NewPGPVerify(arg, G)
+	eng := NewPGPVerify(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		if valid {
-			t.Logf("%s: sig: %s", name, sig)
-			t.Errorf("%s not valid: %s", name, err)
+			tc.T.Logf("%s: sig: %s", name, sig)
+			tc.T.Errorf("%s not valid: %s", name, err)
 		}
 		return
 	}
 	if !valid {
-		t.Errorf("%s validated, but it shouldn't have", name)
+		tc.T.Errorf("%s validated, but it shouldn't have", name)
 	}
 }

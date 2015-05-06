@@ -37,7 +37,7 @@ func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *TrackOptions
 		opts:         opts,
 		Contextified: libkb.NewContextified(g),
 	}
-	lin, err := IsLoggedIn()
+	lin, err := IsLoggedIn(g)
 	if err != nil {
 		return nil, err
 	}

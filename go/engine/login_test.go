@@ -12,13 +12,13 @@ func TestLoginAndSwitch(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	u1 := CreateAndSignupFakeUser(t, "login")
-	G.Logout()
-	u2 := CreateAndSignupFakeUser(t, "login")
-	G.Logout()
-	u1.LoginOrBust(t)
-	G.Logout()
-	u2.LoginOrBust(t)
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	tc.G.Logout()
+	u2 := CreateAndSignupFakeUser(tc, "login")
+	tc.G.Logout()
+	u1.LoginOrBust(tc)
+	tc.G.Logout()
+	u2.LoginOrBust(tc)
 
 	return
 }
@@ -27,7 +27,7 @@ func TestLoginFakeUserNoKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	createFakeUserWithNoKeys(t)
+	createFakeUserWithNoKeys(tc)
 
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
@@ -90,17 +90,17 @@ func TestLoginAddsKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	username, passphrase := createFakeUserWithNoKeys(t)
+	username, passphrase := createFakeUserWithNoKeys(tc)
 
-	G.Logout()
+	tc.G.Logout()
 
 	li := NewLoginWithPromptEngine(username)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState().AssertLoggedIn(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -112,17 +112,17 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	username, passphrase := createFakeUserWithDetKey(t)
+	username, passphrase := createFakeUserWithDetKey(tc)
 
-	G.Logout()
+	tc.G.Logout()
 
 	li := NewLoginWithPromptEngine(username)
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, SecretUI: secui, GPGUI: &gpgtestui{}, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState().AssertLoggedIn(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -140,7 +140,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 func TestLoginPGPSignNewDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPOnly(t, tc)
-	G.Logout()
+	tc.G.Logout()
 	tc.Cleanup()
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
@@ -154,7 +154,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 	li := NewLoginWithPromptEngine(u1.Username)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:       G.UI.GetLogUI(),
+		LogUI:       tc.G.UI.GetLogUI(),
 		LocksmithUI: docui,
 		SecretUI:    secui,
 		GPGUI:       &gpgtestui{},
@@ -175,7 +175,7 @@ func TestLoginPGPSignNewDevice(t *testing.T) {
 func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
-	G.Logout()
+	tc.G.Logout()
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
@@ -196,7 +196,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 	li := NewLoginWithPromptEngine(u1.Username)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:       G.UI.GetLogUI(),
+		LogUI:       tc.G.UI.GetLogUI(),
 		LocksmithUI: docui,
 		SecretUI:    secui,
 		GPGUI:       &gpgtestui{},
@@ -217,7 +217,7 @@ func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
 func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPMult(t, tc)
-	G.Logout()
+	tc.G.Logout()
 	defer tc.Cleanup()
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
@@ -236,7 +236,7 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	li := NewLoginWithPromptEngine(u1.Username)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:       G.UI.GetLogUI(),
+		LogUI:       tc.G.UI.GetLogUI(),
 		LocksmithUI: docui,
 		GPGUI:       &gpgtestui{1},
 		SecretUI:    secui,
@@ -264,20 +264,20 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	username, passphrase := createFakeUserWithNoKeys(t)
+	username, passphrase := createFakeUserWithNoKeys(tc)
 
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		t.Fatal(err)
 	}
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	tk, err := G.LoginState().GetPassphraseStream(secui)
+	tk, err := tc.G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)
 	}
-	lks := libkb.NewLKSec(tk.LksClientHalf(), G)
+	lks := libkb.NewLKSec(tk.LksClientHalf(), tc.G)
 
-	G.Logout()
+	tc.G.Logout()
 
 	// going to register a device only, not generating the device keys.
 	dregArgs := &DeviceRegisterArgs{
@@ -285,8 +285,8 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 		Name: "my new device",
 		Lks:  lks,
 	}
-	dreg := NewDeviceRegister(dregArgs, G)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	dreg := NewDeviceRegister(dregArgs, tc.G)
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState().AssertLoggedIn(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -311,18 +311,18 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	username, passphrase := createFakeUserWithNoKeys(t)
+	username, passphrase := createFakeUserWithNoKeys(tc)
 
 	me, err := libkb.LoadMe(libkb.LoadUserArg{PublicKeyOptional: true})
 	if err != nil {
 		t.Fatal(err)
 	}
 	secui := libkb.TestSecretUI{Passphrase: passphrase}
-	tk, err := G.LoginState().GetPassphraseStream(secui)
+	tk, err := tc.G.LoginState().GetPassphraseStream(secui)
 	if err != nil {
 		t.Fatal(err)
 	}
-	lks := libkb.NewLKSec(tk.LksClientHalf(), G)
+	lks := libkb.NewLKSec(tk.LksClientHalf(), tc.G)
 
 	// going to register a device only, not generating the device keys.
 	dregArgs := &DeviceRegisterArgs{
@@ -330,8 +330,8 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		Name: "my new device",
 		Lks:  lks,
 	}
-	dreg := NewDeviceRegister(dregArgs, G)
-	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
+	dreg := NewDeviceRegister(dregArgs, tc.G)
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -343,19 +343,19 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		DeviceName: dregArgs.Name,
 		Lks:        lks,
 	}
-	dkey := NewDeviceKeygen(dkeyArgs, G)
+	dkey := NewDeviceKeygen(dkeyArgs, tc.G)
 	if err := RunEngine(dkey, ctx); err != nil {
 		t.Fatal(err)
 	}
 
-	G.Logout()
+	tc.G.Logout()
 
 	// now login and see if it correctly generates needed keys
 	li := NewLoginWithPassphraseEngine(username, passphrase, false)
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := G.LoginState().AssertLoggedIn(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Fatal(err)
 	}
 

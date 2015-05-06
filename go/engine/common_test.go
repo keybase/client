@@ -11,7 +11,7 @@ import (
 
 func SetupEngineTest(t *testing.T, name string) libkb.TestContext {
 	tc := libkb.SetupTest(t, name)
-	G = libkb.G
+	// G = libkb.G
 	return tc
 }
 
@@ -48,26 +48,26 @@ func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
 	return fu
 }
 
-func CreateAndSignupFakeUser(t *testing.T, prefix string) *FakeUser {
-	fu := NewFakeUserOrBust(t, prefix)
+func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
+	fu := NewFakeUserOrBust(tc.T, prefix)
 	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, G)
+	s := NewSignupEngine(&arg, tc.G)
 	err := RunEngine(s, ctx)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	return fu
 }
 
-func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI) error {
+func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {
 	ctx := &Context{
-		LogUI:       G.UI.GetLogUI(),
+		LogUI:       g.UI.GetLogUI(),
 		LocksmithUI: &lockui{},
 		GPGUI:       &gpgtestui{},
 		SecretUI:    secui,
@@ -77,15 +77,14 @@ func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI) error {
 	return RunEngine(li, ctx)
 }
 
-func (fu *FakeUser) Login() error {
-	return fu.LoginWithSecretUI(fu.NewSecretUI())
+func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
+	return fu.LoginWithSecretUI(fu.NewSecretUI(), g)
 }
 
-func (fu *FakeUser) LoginOrBust(t *testing.T) {
-	if err := fu.Login(); err != nil {
-		t.Fatal(err)
+func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {
+	if err := fu.Login(tc.G); err != nil {
+		tc.T.Fatal(err)
 	}
-	return
 }
 
 func (fu *FakeUser) NewSecretUI() libkb.TestSecretUI {

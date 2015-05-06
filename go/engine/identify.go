@@ -86,7 +86,7 @@ func (e *Identify) Run(ctx *Context) error {
 		return err
 	}
 
-	ok, err := IsLoggedIn()
+	ok, err := IsLoggedIn(e.G())
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(is.Track))
 
-	G.Log.Debug("+ Identify(%s)", e.user.GetName())
+	e.G().Log.Debug("+ Identify(%s)", e.user.GetName())
 
 	is.ComputeKeyDiffs(ctx.IdentifyUI.DisplayKey)
 	is.InitResultList()
@@ -177,7 +177,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())
 	}
 
-	G.Log.Debug("- Identify(%s)", e.user.GetName())
+	e.G().Log.Debug("- Identify(%s)", e.user.GetName())
 
 	return res, nil
 }

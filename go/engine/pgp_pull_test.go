@@ -9,34 +9,34 @@ import (
 const aliceFp string = "2373fd089f28f328916b88f99c7927c0bdfdadf9"
 const bobFp string = "91fe9b24ef6706b1f7898f2059a2a43f8b731f29"
 
-func createUserWhoTracks(t *testing.T, trackedUsers []string) *FakeUser {
-	fu := CreateAndSignupFakeUser(t, "pull")
-	fu.LoginOrBust(t)
+func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string) *FakeUser {
+	fu := CreateAndSignupFakeUser(tc, "pull")
+	fu.LoginOrBust(tc)
 
 	for _, trackedUser := range trackedUsers {
-		_, _, err := runTrack(fu, trackedUser)
+		_, _, err := runTrack(tc, fu, trackedUser)
 		if err != nil {
-			t.Fatal("Error while tracking", trackedUser, err)
+			tc.T.Fatal("Error while tracking", trackedUser, err)
 		}
 	}
 	return fu
 }
 
-func untrackUserList(t *testing.T, fu *FakeUser, trackedUsers []string) {
+func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string) {
 	for _, trackedUser := range trackedUsers {
-		if err := runUntrack(fu, trackedUser); err != nil {
-			t.Fatal("Error while untracking", trackedUser, err)
+		if err := runUntrack(tc.G, fu, trackedUser); err != nil {
+			tc.T.Fatal("Error while untracking", trackedUser, err)
 		}
 	}
 }
 
-func createGpgClient(t *testing.T) *libkb.GpgCLI {
+func createGpgClient(tc libkb.TestContext) *libkb.GpgCLI {
 	gpgClient := libkb.NewGpgCLI(libkb.GpgCLIArg{
-		LogUI: G.UI.GetLogUI(),
+		LogUI: tc.G.UI.GetLogUI(),
 	})
 	_, err := gpgClient.Configure()
 	if err != nil {
-		t.Fatal("Error while configuring gpg client.")
+		tc.T.Fatal("Error while configuring gpg client.")
 	}
 	return gpgClient
 }
@@ -62,25 +62,25 @@ func assertKeysMissing(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []str
 	}
 }
 
-func runPgpPull(t *testing.T, arg PGPPullEngineArg) {
-	eng := NewPGPPullEngine(&arg, G)
+func runPgpPull(tc libkb.TestContext, arg PGPPullEngineArg) {
+	eng := NewPGPPullEngine(&arg, tc.G)
 	ctx := Context{
-		LogUI: G.UI.GetLogUI(),
+		LogUI: tc.G.UI.GetLogUI(),
 	}
 	err := RunEngine(eng, &ctx)
 	if err != nil {
-		t.Fatal("Error in PGPPullEngine:", err)
+		tc.T.Fatal("Error in PGPPullEngine:", err)
 	}
 }
 
-func runPgpPullExpectingError(t *testing.T, arg PGPPullEngineArg) {
-	eng := NewPGPPullEngine(&arg, G)
+func runPgpPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
+	eng := NewPGPPullEngine(&arg, tc.G)
 	ctx := Context{
-		LogUI: G.UI.GetLogUI(),
+		LogUI: tc.G.UI.GetLogUI(),
 	}
 	err := RunEngine(eng, &ctx)
 	if err == nil {
-		t.Fatal("PGPPullEngine should have failed.")
+		tc.T.Fatal("PGPPullEngine should have failed.")
 	}
 }
 
@@ -89,13 +89,13 @@ func TestPGPPullAll(t *testing.T) {
 	defer tc.Cleanup()
 
 	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(t, users)
-	defer untrackUserList(t, fu, users)
-	gpgClient := createGpgClient(t)
+	fu := createUserWhoTracks(tc, users)
+	defer untrackUserList(tc, fu, users)
+	gpgClient := createGpgClient(tc)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPgpPull(t, PGPPullEngineArg{})
+	runPgpPull(tc, PGPPullEngineArg{})
 
 	assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
 }
@@ -105,13 +105,13 @@ func TestPGPPullOne(t *testing.T) {
 	defer tc.Cleanup()
 
 	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(t, users)
-	defer untrackUserList(t, fu, users)
-	gpgClient := createGpgClient(t)
+	fu := createUserWhoTracks(tc, users)
+	defer untrackUserList(tc, fu, users)
+	gpgClient := createGpgClient(tc)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPgpPull(t, PGPPullEngineArg{
+	runPgpPull(tc, PGPPullEngineArg{
 		// ID'ing the same user twice should be ok.
 		UserAsserts: []string{"t_bob", "t_bob+kbtester1@twitter"},
 	})
@@ -125,13 +125,13 @@ func TestPGPPullBadIDs(t *testing.T) {
 	defer tc.Cleanup()
 
 	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(t, users)
-	defer untrackUserList(t, fu, users)
-	gpgClient := createGpgClient(t)
+	fu := createUserWhoTracks(tc, users)
+	defer untrackUserList(tc, fu, users)
+	gpgClient := createGpgClient(tc)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPgpPullExpectingError(t, PGPPullEngineArg{
+	runPgpPullExpectingError(tc, PGPPullEngineArg{
 		// ID'ing a nonexistent/untracked user should fail the pull.
 		UserAsserts: []string{"t_bob", "t_NOT_TRACKED_BY_ME"},
 	})

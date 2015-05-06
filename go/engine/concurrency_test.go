@@ -18,7 +18,7 @@ func TestConcurrentLogin(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 
 	var lwg sync.WaitGroup
 	var mwg sync.WaitGroup
@@ -30,8 +30,8 @@ func TestConcurrentLogin(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				G.Logout()
-				u.LoginOrBust(t)
+				tc.G.Logout()
+				u.LoginOrBust(tc)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -45,17 +45,17 @@ func TestConcurrentLogin(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					G.LoginState().SessionArgs()
-					G.LoginState().UserInfo()
-					G.LoginState().UID()
-					G.LoginState().SessionLoad()
-					G.LoginState().IsLoggedIn()
-					G.LoginState().IsLoggedInLoad()
-					G.LoginState().AssertLoggedIn()
-					G.LoginState().AssertLoggedOut()
-					// G.LoginState.Shutdown()
-					G.LoginState().GetCachedTriplesec()
-					G.LoginState().GetCachedPassphraseStream()
+					tc.G.LoginState().SessionArgs()
+					tc.G.LoginState().UserInfo()
+					tc.G.LoginState().UID()
+					tc.G.LoginState().SessionLoad()
+					tc.G.LoginState().IsLoggedIn()
+					tc.G.LoginState().IsLoggedInLoad()
+					tc.G.LoginState().AssertLoggedIn()
+					tc.G.LoginState().AssertLoggedOut()
+					// tc.G.LoginState.Shutdown()
+					tc.G.LoginState().GetCachedTriplesec()
+					tc.G.LoginState().GetCachedPassphraseStream()
 				}
 			}
 		}(i)
@@ -75,7 +75,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 
 	var lwg sync.WaitGroup
 	var mwg sync.WaitGroup
@@ -87,8 +87,8 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				G.Logout()
-				u.LoginOrBust(t)
+				tc.G.Logout()
+				u.LoginOrBust(tc)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -102,9 +102,9 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					_, err := G.LoginState().GetPassphraseStream(u.NewSecretUI())
+					_, err := tc.G.LoginState().GetPassphraseStream(u.NewSecretUI())
 					if err != nil {
-						G.Log.Warning("GetPassphraseStream err: %s", err)
+						tc.G.Log.Warning("GetPassphraseStream err: %s", err)
 					}
 				}
 			}
@@ -125,7 +125,7 @@ func TestConcurrentSignup(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(t, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 
 	var lwg sync.WaitGroup
 	var mwg sync.WaitGroup
@@ -137,9 +137,9 @@ func TestConcurrentSignup(t *testing.T) {
 		go func(index int) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
-				G.Logout()
-				u.Login()
-				G.Logout()
+				tc.G.Logout()
+				u.Login(tc.G)
+				tc.G.Logout()
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -147,8 +147,8 @@ func TestConcurrentSignup(t *testing.T) {
 		mwg.Add(1)
 		go func(index int) {
 			defer mwg.Done()
-			CreateAndSignupFakeUser(t, "login")
-			G.Logout()
+			CreateAndSignupFakeUser(tc, "login")
+			tc.G.Logout()
 			fmt.Printf("func caller %d done\n", index)
 		}(i)
 	}
@@ -165,7 +165,7 @@ func TestConcurrentGlobals(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	fns := []func(){
+	fns := []func(*libkb.GlobalContext){
 		genv,
 	}
 	var wg sync.WaitGroup
@@ -174,7 +174,7 @@ func TestConcurrentGlobals(t *testing.T) {
 		go func(index int) {
 			for j := 0; j < 10; j++ {
 				f := fns[rand.Intn(len(fns))]
-				f()
+				f(tc.G)
 			}
 			wg.Done()
 		}(i)
@@ -182,12 +182,12 @@ func TestConcurrentGlobals(t *testing.T) {
 	wg.Wait()
 }
 
-func genv() {
-	G.Env.GetConfig()
-	G.Env.GetConfigWriter()
-	G.Env.GetCommandLine()
-	G.Env.SetConfig(libkb.NewJsonConfigFile(""))
-	G.Env.SetConfigWriter(libkb.NewJsonConfigFile(""))
+func genv(g *libkb.GlobalContext) {
+	g.Env.GetConfig()
+	g.Env.GetConfigWriter()
+	g.Env.GetCommandLine()
+	g.Env.SetConfig(libkb.NewJsonConfigFile(""))
+	g.Env.SetConfigWriter(libkb.NewJsonConfigFile(""))
 }
 
 func gkeyring() {

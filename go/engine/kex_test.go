@@ -41,7 +41,7 @@ func TestBasicMessage(t *testing.T) {
 	tc := SetupEngineTest(t, "kex")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "login")
+	fu := CreateAndSignupFakeUser(tc, "login")
 
 	sec, err := kex.NewSecret(fu.Username)
 	if err != nil {
@@ -74,7 +74,7 @@ func TestBadMACMessage(t *testing.T) {
 	tc := SetupEngineTest(t, "kex")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "login")
+	fu := CreateAndSignupFakeUser(tc, "login")
 
 	sec, err := kex.NewSecret(fu.Username)
 	if err != nil {

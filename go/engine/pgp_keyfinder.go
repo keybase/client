@@ -72,7 +72,7 @@ func (e *PGPKeyfinder) setup() {
 		return
 	}
 
-	ok, err := IsLoggedIn()
+	ok, err := IsLoggedIn(e.G())
 	if err != nil {
 		e.runerr = err
 		return
@@ -138,7 +138,7 @@ func (e *PGPKeyfinder) loadKeys(ctx *Context) {
 }
 
 func (e *PGPKeyfinder) trackUser(ctx *Context, user string) error {
-	G.Log.Debug("tracking user %q", user)
+	e.G().Log.Debug("tracking user %q", user)
 	arg := &TrackEngineArg{
 		Me:        e.me,
 		TheirName: user,

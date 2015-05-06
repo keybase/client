@@ -148,11 +148,11 @@ func TestIdPGPNotEldest(t *testing.T) {
 	defer tc.Cleanup()
 
 	// create new user, then add pgp key
-	u := CreateAndSignupFakeUser(t, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
-	ctx := &Context{LogUI: G.UI.GetLogUI(), SecretUI: secui}
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 	_, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, G)
+	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,7 +160,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	G.Logout()
+	tc.G.Logout()
 
 	idUI, _, err := runIdentify(&tc, u.Username)
 	if err != nil {

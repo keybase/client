@@ -21,30 +21,28 @@ func TestReset(t *testing.T) {
 	tc := SetupEngineTest(t, "reset")
 	defer tc.Cleanup()
 
-	_ = CreateAndSignupFakeUser(t, "reset")
+	_ = CreateAndSignupFakeUser(tc, "reset")
 
-	dbPath := G.Env.GetDbFilename()
-	sessionPath := G.Env.GetSessionFilename()
+	dbPath := tc.G.Env.GetDbFilename()
+	sessionPath := tc.G.Env.GetSessionFilename()
 
 	assertFileExists(t, dbPath)
 	assertFileExists(t, sessionPath)
 
-	if !G.LoginState().IsLoggedIn() {
+	if !tc.G.LoginState().IsLoggedIn() {
 		t.Fatal("Unexpectedly logged out")
 	}
 
-	e := NewResetEngine(G)
+	e := NewResetEngine(tc.G)
 	ctx := &Context{}
 	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)
 	}
 
-	if G.LoginState().IsLoggedIn() {
+	if tc.G.LoginState().IsLoggedIn() {
 		t.Error("Unexpectedly still logged in")
 	}
 
 	assertFileDoesNotExist(t, dbPath)
 	assertFileDoesNotExist(t, sessionPath)
-
-	return
 }

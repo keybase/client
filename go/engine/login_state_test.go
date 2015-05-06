@@ -18,54 +18,54 @@ func TestLoginLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login logout")
 	defer tc.Cleanup()
 
-	if err := G.LoginState().AssertLoggedOut(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if G.LoginState().IsLoggedIn() {
+	if tc.G.LoginState().IsLoggedIn() {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
 	// Logging out when not logged in should still work.
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
-	fu := CreateAndSignupFakeUser(t, "login")
+	fu := CreateAndSignupFakeUser(tc, "login")
 
-	if err := G.LoginState().AssertLoggedIn(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
-	if err := G.LoginState().AssertLoggedOut(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if G.LoginState().IsLoggedIn() {
+	if tc.G.LoginState().IsLoggedIn() {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
 	// Logging out twice should still work.
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
-	if err := G.LoginState().AssertLoggedOut(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if G.LoginState().IsLoggedIn() {
+	if tc.G.LoginState().IsLoggedIn() {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
 	secretUI := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	if err := G.LoginState().LoginWithPrompt("", nil, secretUI); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, secretUI); err != nil {
 		t.Error(err)
 	}
 
-	if err := G.LoginState().AssertLoggedIn(); err != nil {
+	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
-	if !G.LoginState().IsLoggedIn() {
+	if !tc.G.LoginState().IsLoggedIn() {
 		t.Error("Unexpectedly logged out (LoginState)")
 	}
 }
@@ -113,28 +113,28 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Logs the user in.
-	fu := CreateAndSignupFakeUser(t, "li")
+	fu := CreateAndSignupFakeUser(tc, "li")
 
 	// These should all work, since the username matches.
 
-	if err := G.LoginState().LoginWithPrompt("", nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil); err != nil {
 		t.Error(err)
 	}
 
-	if err := G.LoginState().LoginWithPrompt(fu.Username, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil); err != nil {
 		t.Error(err)
 	}
 
-	if err := G.LoginState().LoginWithStoredSecret(fu.Username); err != nil {
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err != nil {
 		t.Error(err)
 	}
 
-	if err := G.LoginState().LoginWithPassphrase(fu.Username, "", false); err != nil {
+	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, "", false); err != nil {
 		t.Error(err)
 	}
 
 	// This should fail.
-	if _, ok := G.LoginState().LoginWithPrompt("other", nil, nil).(libkb.LoggedInError); !ok {
+	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil).(libkb.LoggedInError); !ok {
 		t.Fatal("Did not get expected LoggedIn error")
 	}
 }
@@ -144,11 +144,11 @@ func TestLoginNonexistent(t *testing.T) {
 	tc := SetupEngineTest(t, "login nonexistent")
 	defer tc.Cleanup()
 
-	_ = CreateAndSignupFakeUser(t, "ln")
+	_ = CreateAndSignupFakeUser(tc, "ln")
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
-	err := G.LoginState().LoginWithPrompt("nonexistent", nil, nil)
+	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, nil)
 	if _, ok := err.(libkb.AppStatusError); !ok {
 		t.Error("Did not get expected AppStatusError")
 	}
@@ -159,14 +159,14 @@ func TestLoginWithPromptPubkey(t *testing.T) {
 	tc := SetupEngineTest(t, "login with prompt (pubkey)")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "lwpp")
+	fu := CreateAndSignupFakeUser(tc, "lwpp")
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
 	mockGetSecret := &GetSecretMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err := G.LoginState().LoginWithPrompt("", nil, mockGetSecret); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetSecret); err != nil {
 		t.Error(err)
 	}
 
@@ -176,10 +176,10 @@ func TestLoginWithPromptPubkey(t *testing.T) {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
 	mockGetSecret.Called = false
-	if err := G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
 		t.Error(err)
 	}
 
@@ -248,14 +248,14 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	tc := SetupEngineTest(t, "login with prompt (passphrase)")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "lwpp")
+	fu := CreateAndSignupFakeUser(tc, "lwpp")
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
 	mockGetKeybasePassphrase := &GetKeybasePassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err := G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase); err != nil {
 		t.Error(err)
 	}
 
@@ -263,10 +263,10 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
 	mockGetKeybasePassphrase.Called = false
-	if err := G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase); err != nil {
 		t.Error(err)
 	}
 
@@ -276,17 +276,17 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
 	// Clear out the username stored in G.Env.
 	// TODO: Figure out a cleaner way to do this.
-	G.Env = libkb.NewEnv(nil, nil)
+	tc.G.Env = libkb.NewEnv(nil, nil)
 
 	mockGetUsername := &GetUsernameMock{
 		Username: fu.Username,
 	}
 	mockGetKeybasePassphrase.Called = false
-	if err := G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase); err != nil {
 		t.Error(err)
 	}
 
@@ -349,8 +349,8 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	tc := SetupEngineTest(t, "login with stored secret")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "lwss")
-	G.LoginState().Logout()
+	fu := CreateAndSignupFakeUser(tc, "lwss")
+	tc.G.LoginState().Logout()
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
@@ -360,7 +360,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	if err := G.LoginState().LoginWithPrompt("", nil, mockGetSecret); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetSecret); err != nil {
 		t.Error(err)
 	}
 
@@ -370,7 +370,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
 	if !userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
@@ -378,30 +378,30 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	// TODO: Mock out the SecretStore and make sure that it's
 	// actually consulted.
-	if err := G.LoginState().LoginWithStoredSecret(fu.Username); err != nil {
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err != nil {
 		t.Error(err)
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
-	G.LoginState().ClearStoredSecret(fu.Username)
+	tc.G.LoginState().ClearStoredSecret(fu.Username)
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
 	}
 
-	if err := G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
 	}
 
-	if err := G.LoginState().LoginWithStoredSecret(""); err == nil {
+	if err := tc.G.LoginState().LoginWithStoredSecret(""); err == nil {
 		t.Error("Did not get expected error")
 	}
 
-	fu = CreateAndSignupFakeUser(t, "lwss")
-	G.LoginState().Logout()
+	fu = CreateAndSignupFakeUser(tc, "lwss")
+	tc.G.LoginState().Logout()
 
-	if err := G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
 	}
 }
@@ -412,15 +412,15 @@ func TestLoginWithPassphraseErrors(t *testing.T) {
 	tc := SetupEngineTest(t, "login with passphrase (errors)")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "lwpe")
-	G.LoginState().Logout()
+	fu := CreateAndSignupFakeUser(tc, "lwpe")
+	tc.G.LoginState().Logout()
 
-	err := G.LoginState().LoginWithPassphrase("", "", false)
+	err := tc.G.LoginState().LoginWithPassphrase("", "", false)
 	if _, ok := err.(libkb.AppStatusError); !ok {
 		t.Error("Did not get expected AppStatusError")
 	}
 
-	err = G.LoginState().LoginWithPassphrase(fu.Username, "wrong passphrase", false)
+	err = tc.G.LoginState().LoginWithPassphrase(fu.Username, "wrong passphrase", false)
 	if _, ok := err.(libkb.PassphraseError); !ok {
 		t.Error("Did not get expected PassphraseError")
 	}
@@ -438,16 +438,16 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 	tc := SetupEngineTest(t, "login with passphrase (no store)")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "lwpns")
-	G.LoginState().Logout()
+	fu := CreateAndSignupFakeUser(tc, "lwpns")
+	tc.G.LoginState().Logout()
 
-	if err := G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, false); err != nil {
+	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, false); err != nil {
 		t.Error(err)
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
-	if err := G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
 	}
 
@@ -468,18 +468,18 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 	tc := SetupEngineTest(t, "login with passphrase (with store)")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "lwpws")
-	G.LoginState().Logout()
+	fu := CreateAndSignupFakeUser(tc, "lwpws")
+	tc.G.LoginState().Logout()
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
 	}
 
-	if err := G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, true); err != nil {
+	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, true); err != nil {
 		t.Error(err)
 	}
 
-	G.LoginState().Logout()
+	tc.G.LoginState().Logout()
 
 	if !userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
@@ -487,11 +487,11 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 
 	// TODO: Mock out the SecretStore and make sure that it's
 	// actually consulted.
-	if err := G.LoginState().LoginWithStoredSecret(fu.Username); err != nil {
+	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err != nil {
 		t.Error(err)
 	}
 
-	G.LoginState().ClearStoredSecret(fu.Username)
+	tc.G.LoginState().ClearStoredSecret(fu.Username)
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
@@ -506,7 +506,7 @@ func TestExternalFuncGoexit(t *testing.T) {
 
 	// This should not cause a hang, and an error should be
 	// returned.
-	err := G.LoginState().ExternalFunc(func() error {
+	err := tc.G.LoginState().ExternalFunc(func() error {
 		runtime.Goexit()
 		return nil
 	})

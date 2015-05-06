@@ -11,12 +11,12 @@ func TestRevokeSig(t *testing.T) {
 	defer tc.Cleanup()
 
 	// The PGP key is the 5th signature in the user's chain.
-	u := createFakeUserWithPGPSibkey(t)
+	u := createFakeUserWithPGPSibkey(tc)
 	assertNumDevicesAndKeys(t, u, 2, 5)
 
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
 

@@ -10,7 +10,7 @@ func TestDeviceKey(t *testing.T) {
 	tc := SetupEngineTest(t, "dkal")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(t, "dkal")
+	fu := CreateAndSignupFakeUser(tc, "dkal")
 
 	check := func() {
 		u, err := libkb.LoadMe(libkb.LoadUserArg{})
@@ -21,7 +21,7 @@ func TestDeviceKey(t *testing.T) {
 			t.Fatalf("Can't load current user")
 		}
 
-		if subkeyKid, err := u.GetDeviceSubkeyKid(G); err != nil {
+		if subkeyKid, err := u.GetDeviceSubkeyKid(tc.G); err != nil {
 			t.Fatal(err)
 		} else if subkeyKid == nil {
 			t.Fatalf("Failed to load device key right after signup")
@@ -29,7 +29,7 @@ func TestDeviceKey(t *testing.T) {
 	}
 	check()
 
-	G.Logout()
-	fu.LoginOrBust(t)
+	tc.G.Logout()
+	fu.LoginOrBust(tc)
 	check()
 }

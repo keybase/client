@@ -6,17 +6,16 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func runUntrack(fu *FakeUser, username string) (err error) {
+func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
 	arg := UntrackEngineArg{
 		TheirName: username,
 	}
 	ctx := Context{
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewUntrackEngine(&arg, G)
-	err = RunEngine(eng, &ctx)
-	return
+	eng := NewUntrackEngine(&arg, g)
+	return RunEngine(eng, &ctx)
 }
 
 func assertUntracked(t *testing.T, fu *FakeUser, theirName string) {
@@ -46,18 +45,18 @@ func assertUntracked(t *testing.T, fu *FakeUser, theirName string) {
 	}
 }
 
-func untrackAlice(t *testing.T, fu *FakeUser) {
-	err := runUntrack(fu, "t_alice")
+func untrackAlice(tc libkb.TestContext, fu *FakeUser) {
+	err := runUntrack(tc.G, fu, "t_alice")
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	return
 }
 
-func untrackBob(t *testing.T, fu *FakeUser) {
-	err := runUntrack(fu, "t_bob")
+func untrackBob(tc libkb.TestContext, fu *FakeUser) {
+	err := runUntrack(tc.G, fu, "t_bob")
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	return
 }
@@ -65,34 +64,34 @@ func untrackBob(t *testing.T, fu *FakeUser) {
 func TestUntrack(t *testing.T) {
 	tc := SetupEngineTest(t, "untrack")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(t, "untrk")
+	fu := CreateAndSignupFakeUser(tc, "untrk")
 
 	// Local-tracked only.
-	trackAliceWithOptions(t, fu, TrackOptions{TrackLocalOnly: true})
+	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
 	assertTracked(t, fu, "t_alice")
-	untrackAlice(t, fu)
+	untrackAlice(tc, fu)
 	assertUntracked(t, fu, "t_alice")
 
 	// Remote-tracked only.
-	trackAliceWithOptions(t, fu, TrackOptions{TrackLocalOnly: false})
-	untrackAlice(t, fu)
+	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
+	untrackAlice(tc, fu)
 	assertUntracked(t, fu, "t_alice")
 
 	// Both local- and remote-tracked.
-	trackAliceWithOptions(t, fu, TrackOptions{TrackLocalOnly: true})
-	trackAliceWithOptions(t, fu, TrackOptions{TrackLocalOnly: false})
-	untrackAlice(t, fu)
+	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: true})
+	trackAliceWithOptions(tc, fu, TrackOptions{TrackLocalOnly: false})
+	untrackAlice(tc, fu)
 	assertUntracked(t, fu, "t_alice")
 
 	// Assert that we gracefully handle cases where there is nothing to untrack.
-	err := runUntrack(fu, "t_alice")
+	err := runUntrack(tc.G, fu, "t_alice")
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
 		t.Fatalf("expected an UntrackError; got %s", err.Error())
 	}
 
-	err = runUntrack(fu, "t_bob")
+	err = runUntrack(tc.G, fu, "t_bob")
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {

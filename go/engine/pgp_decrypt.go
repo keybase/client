@@ -76,11 +76,11 @@ func (e *PGPDecrypt) Run(ctx *Context) error {
 		e.arg.AssertSigned = true
 	}
 	if !e.arg.AssertSigned {
-		G.Log.Debug("Not checking signature status (AssertSigned == false)")
+		e.G().Log.Debug("Not checking signature status (AssertSigned == false)")
 		return nil
 	}
 
-	G.Log.Debug("PGPDecrypt: signStatus: %+v", e.signStatus)
+	e.G().Log.Debug("PGPDecrypt: signStatus: %+v", e.signStatus)
 
 	if !e.signStatus.IsSigned {
 		return libkb.BadSigError{E: "no signature in message"}
@@ -117,7 +117,7 @@ func (e *PGPDecrypt) checkSignedBy(ctx *Context) error {
 		return nil
 	}
 
-	G.Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
+	e.G().Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
 
 	// load the user in SignedBy
 	arg := NewIdentifyArg(e.arg.SignedBy, false)
