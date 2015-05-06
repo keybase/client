@@ -53,6 +53,10 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
 		if md, err := mdcache.Get(mdId); err == nil {
 			fs.globalStateLock.RUnlock()
 			return md, nil
+		} else if _, ok = err.(*NoSuchMDError); !ok {
+			// If we get an unexpected error, then completely bail
+			fs.globalStateLock.RUnlock()
+			return nil, err
 		}
 	}
 	fs.globalStateLock.RUnlock()
