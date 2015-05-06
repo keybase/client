@@ -19,18 +19,19 @@ if [ ! -f "keybase" ]; then
 fi
 
 VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Keybase.app/Contents/Info.plist`
-echo "App Version: $VERSION"
+echo "Keybase.app Version: $VERSION"
 
 KB_SERVICE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KeybaseServiceVersion" Keybase.app/Contents/Info.plist`
-echo "Keybased Service Version: $KB_SERVICE_VERSION"
+echo "Keybase Service Version: $KB_SERVICE_VERSION"
 
 KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :KeybaseHelperVersion" Keybase.app/Contents/Info.plist`
-echo "Keybased Helper Version: $KB_HELPER_VERSION"
+echo "Keybase Helper Version: $KB_HELPER_VERSION"
 
+KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KeybaseFuseVersion" Keybase.app/Contents/Info.plist`
+echo "Keybase Fuse Version: $KB_FUSE_VERSION"
 
 #KB_HELPER_VERSION=`otool -s __TEXT __info_plist Keybase.app/Contents/Library/LaunchServices/keybase.Helper`
 #echo "Keybased Helper Version : $KB_HELPER_VERSION"
-
 
 echo "Copying keybase into Keybase.app..."
 chmod +x keybase
@@ -49,10 +50,12 @@ cp ../appdmg/* .
 
 appdmg appdmg.json Keybase-$VERSION.dmg
 
-echo "Opening..."
-open Keybase-$VERSION.dmg
-
-#echo "Installing to /Applications"
-#rm -rf /Applications/Keybase.app
-#cp -R Keybase.app /Applications
+echo "What do you want to do?"
+select o in "Install" "Open" "Exit"; do
+    case $o in
+        Install ) ditto Keybase.app /Applications/Keybase.app; break;;
+        Open ) open Keybase-$VERSION.dmg; break;;
+        Exit ) exit;;
+    esac
+done
 

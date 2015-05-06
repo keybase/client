@@ -11,14 +11,10 @@ if [ "$1" = "" ]; then
   exit 1
 fi
 
-KB_GO_SRC=$GOPATH/src/github.com/keybase/client/go
+KB_GO_SRC="$GOPATH/src/github.com/keybase/client/go"
 VERSION="$1"
 CODE_SIGN_IDENTITY="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
-
-echo "Using keybase source: $KB_GO_SRC"
-echo "Using version: $VERSION"
-echo " "
 
 if [ -d "$BUILD_DEST" ]; then
   echo "Build directory already exists: $BUILD_DEST"
@@ -31,13 +27,16 @@ fi
 # Keybase (go)
 #
 
-echo "Building keybase..."
-echo "  Updating version.go ($VERSION)"
+echo "Building Keybase (go)..."
+echo "  Using source: $KB_GO_SRC"
+echo "  Generating version.go ($VERSION)"
 echo "package libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" > $KB_GO_SRC/libkb/version.go
-cd $KB_GO_SRC/keybase
 echo "  Compiling..."
+cd $KB_GO_SRC/keybase/
 go build -a
+mkdir -p $BUILD_DEST
 cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
+chmod +x $BUILD_DEST/keybase
 echo "  Done"
 echo "  "
 
@@ -45,35 +44,57 @@ echo "  "
 # Keybase.app
 #
 
-echo "Building Keybase.app"
+echo "Keybase.app"
 
 #KB_SERVICE_VERSION=`$BUILD_DEST/keybase version 2>/dev/null | head -1 | rev | cut -f1 -d ' ' | rev | tail -c +2`
 #echo "  Checking version: $KB_SERVICE_VERSION"
 
 KB_SERVICE_VERSION=$VERSION # Use until we can better parse from command line
 
-echo "  Updating plists..."
 PLIST=$DIR/../Keybase/Info.plist
-
 HELPER_PLIST=$DIR/../Helper/Info.plist
+FUSE_PLIST=$DIR/Fuse/osxfusefs.fs.bundle/Contents/Info.plist
 KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
-echo "  keybase.Helper Version: $KB_HELPER_VERSION"
+KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
 
+echo "  Keybase.app Version: $VERSION"
+echo "  Service Version: $KB_SERVICE_VERSION"
+echo "  Helper Version: $KB_HELPER_VERSION"
+echo "  Fuse Version: $KB_FUSE_VERSION"
+
+echo "  Updating $PLIST..."
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString '${VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KeybaseServiceVersion '${KB_SERVICE_VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :KeybaseHelperVersion '${KB_HELPER_VERSION}'" $PLIST
-echo "  Updated $PLIST"
+/usr/libexec/PlistBuddy -c "Set :KeybaseFuseVersion '${KB_FUSE_VERSION}'" $PLIST
 echo "  "
 
 echo "  Cleaning..."
 set -o pipefail && xcodebuild clean -scheme Keybase -workspace $DIR/../Keybase.xcworkspace -configuration Release | xcpretty -c
 
+#
+# Archive
+#
+
+ARCHIVE_DIR_DAY=$(date +"%Y-%m-%d")  # 2015-01-31
+ARCHIVE_POSTFIX=$(date +"%-m-%-e-%y, %-l.%M %p") #1-31-15, 1.47 PM
+
+ARCHIVE_PATH="$BUILD_DEST/Keybase.xcarchive"
+ARCHIVE_HOLD_PATH="/Users/gabe/Library/Developer/Xcode/Archives/$ARCHIVE_DIR_DAY/Keybase $ARCHIVE_POSTFIX.xcarchive"
+
 echo "  Archiving..."
-set -o pipefail && xcodebuild archive -scheme Keybase -workspace $DIR/../Keybase.xcworkspace -configuration Release -archivePath $BUILD_DEST/Keybase.xcarchive | xcpretty -c
+set -o pipefail && xcodebuild archive -scheme Keybase -workspace $DIR/../Keybase.xcworkspace -configuration Release -archivePath $ARCHIVE_PATH | xcpretty -c
+
+echo "  Copying archive to $ARCHIVE_HOLD_PATH"
+ditto "$ARCHIVE_PATH" "$ARCHIVE_HOLD_PATH"
+
+#
+# Export
+#
 
 echo "  Exporting..."
-set -o pipefail && xcodebuild -exportArchive -archivePath $BUILD_DEST/Keybase.xcarchive -exportFormat app -exportPath $BUILD_DEST/Keybase.app -exportSigningIdentity "$CODE_SIGN_IDENTITY" | xcpretty -c
+set -o pipefail && xcodebuild -exportArchive -archivePath /Users/gabe/Projects/go/src/github.com/keybase/client/osx/Install/build/Keybase.xcarchive -exportFormat app -exportPath /Users/gabe/Projects/go/src/github.com/keybase/client/osx/Install/build/Keybase.app -exportSigningIdentity "Developer ID Application: Keybase, Inc. (99229SGT5K)" | xcpretty -c
 
 echo "  Done"
 echo "  "
