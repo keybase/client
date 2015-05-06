@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -45,7 +46,7 @@ func (c *CmdBTC) RunClient() (err error) {
 }
 
 func (c *CmdBTC) Run() error {
-	eng := engine.NewBTCEngine(c.address, c.force)
+	eng := engine.NewBTCEngine(c.address, c.force, G)
 	ctx := engine.Context{
 		LogUI:    G_UI.GetLogUI(),
 		SecretUI: G_UI.GetSecretUI(),

@@ -27,7 +27,7 @@ func TestPGPKeyfinder(t *testing.T) {
 	arg := &PGPKeyfinderArg{
 		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 	}
-	eng := NewPGPKeyfinder(arg)
+	eng := NewPGPKeyfinder(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +58,7 @@ func TestPGPKeyfinderLoggedOut(t *testing.T) {
 	arg := &PGPKeyfinderArg{
 		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
 	}
-	eng := NewPGPKeyfinder(arg)
+	eng := NewPGPKeyfinder(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

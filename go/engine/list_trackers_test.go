@@ -19,7 +19,7 @@ func TestListTrackers(t *testing.T) {
 	defer untrackAlice(t, fu)
 
 	uid := libkb.UsernameToUID("t_alice")
-	e := NewListTrackers(&uid)
+	e := NewListTrackers(&uid, tc.G)
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
 	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)

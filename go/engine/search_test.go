@@ -20,7 +20,7 @@ func TestSearch(t *testing.T) {
 		// users have been created with these identities that the search reply
 		// leaves out the ones we wanted.
 		NumWanted: 100,
-	})
+	}, tc.G)
 	err := RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)

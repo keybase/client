@@ -8,7 +8,7 @@ func TestSigsList(t *testing.T) {
 
 	ctx := &Context{}
 	args := SigsListArgs{Username: "t_alice"}
-	eng := NewSigsList(args)
+	eng := NewSigsList(args, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

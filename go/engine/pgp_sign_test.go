@@ -42,7 +42,7 @@ func TestPgpSign(t *testing.T) {
 		},
 	}
 
-	eng := NewPGPSignEngine(&earg)
+	eng := NewPGPSignEngine(&earg, tc.G)
 	ctx := Context{
 		SecretUI: fu.NewSecretUI(),
 	}

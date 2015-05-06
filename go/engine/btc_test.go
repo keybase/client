@@ -33,7 +33,7 @@ func TestBTC(t *testing.T) {
 	}
 
 	// First test setting a bad address; this should fail.
-	e := NewBTCEngine("somejunk", false /* force */)
+	e := NewBTCEngine("somejunk", false /* force */, tc.G)
 	err := RunEngine(e, ctx)
 	if err == nil {
 		t.Fatalf("Bad address should have failed.")
@@ -45,7 +45,7 @@ func TestBTC(t *testing.T) {
 
 	// Now set a real address; this should succeed.
 	firstAddress := "17JyYCvn37BodyLbZdKQrW3WNbW7JcsvAJ"
-	e = NewBTCEngine(firstAddress, false /* force */)
+	e = NewBTCEngine(firstAddress, false /* force */, tc.G)
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -58,7 +58,7 @@ func TestBTC(t *testing.T) {
 	secondAddress := "1kwg3FnLysQAi8Wqu37KqBwTUaUGiL7t1"
 
 	// Test overwriting it without --force; should fail.
-	e = NewBTCEngine(secondAddress, false /* force */)
+	e = NewBTCEngine(secondAddress, false /* force */, tc.G)
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Overwriting a btc address should fail without --force.")
@@ -71,7 +71,7 @@ func TestBTC(t *testing.T) {
 	}
 
 	// Now test the overwrite with the --force flag; should succeed.
-	e = NewBTCEngine(secondAddress, true /* force */)
+	e = NewBTCEngine(secondAddress, true /* force */, tc.G)
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)

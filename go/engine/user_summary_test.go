@@ -16,7 +16,7 @@ func TestUserSummary(t *testing.T) {
 		libkb.UsernameToUID("t_charlie"),
 	}
 
-	eng := NewUserSummary(uids)
+	eng := NewUserSummary(uids, tc.G)
 	ctx := &Context{}
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)

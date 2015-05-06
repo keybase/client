@@ -13,8 +13,10 @@ type DevList struct {
 }
 
 // NewDevList creates a DevList engine.
-func NewDevList() *DevList {
-	return &DevList{}
+func NewDevList(g *libkb.GlobalContext) *DevList {
+	return &DevList{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (d *DevList) Name() string {

@@ -24,7 +24,7 @@ func (h *DoctorHandler) Doctor(sessionID int) error {
 		LocksmithUI: h.getLocksmithUI(sessionID),
 		GPGUI:       h.getGPGUI(sessionID),
 	}
-	eng := engine.NewDoctor()
+	eng := engine.NewDoctor(G)
 	return engine.RunEngine(eng, ctx)
 }
 

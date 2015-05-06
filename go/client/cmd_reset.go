@@ -39,7 +39,7 @@ func (v *CmdReset) Run() (err error) {
 		return
 	}
 
-	eng := engine.NewResetEngine()
+	eng := engine.NewResetEngine(G)
 	ctx := engine.Context{}
 	return engine.RunEngine(eng, &ctx)
 }

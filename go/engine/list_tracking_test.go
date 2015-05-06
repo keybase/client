@@ -16,7 +16,7 @@ func TestListTracking(t *testing.T) {
 	defer untrackAlice(t, fu)
 
 	arg := ListTrackingEngineArg{}
-	eng := NewListTrackingEngine(&arg)
+	eng := NewListTrackingEngine(&arg, tc.G)
 	ctx := Context{}
 	err := RunEngine(eng, &ctx)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestListTrackingJSON(t *testing.T) {
 	defer untrackAlice(t, fu)
 
 	arg := ListTrackingEngineArg{Json: true, Verbose: true}
-	eng := NewListTrackingEngine(&arg)
+	eng := NewListTrackingEngine(&arg, tc.G)
 	ctx := Context{}
 	err := RunEngine(eng, &ctx)
 	if err != nil {

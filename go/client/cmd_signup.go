@@ -141,7 +141,7 @@ func (s *CmdSignupState) Run() error {
 	if err := G.LocalDb.ForceOpen(); err != nil {
 		return err
 	}
-	s.engine = engine.NewSignupEngine(nil)
+	s.engine = engine.NewSignupEngine(nil, G)
 	return s.run()
 }
 

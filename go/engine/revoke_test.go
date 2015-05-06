@@ -24,7 +24,7 @@ func getActiveDevicesAndKeys(t *testing.T, u *FakeUser) ([]*libkb.Device, []libk
 }
 
 func doRevoke(t *testing.T, u *FakeUser, id string, mode RevokeMode) {
-	revokeEngine := NewRevokeEngine(id, mode)
+	revokeEngine := NewRevokeEngine(id, mode, G)
 	secui := libkb.TestSecretUI{Passphrase: u.Passphrase}
 	ctx := &Context{
 		LogUI:    G.UI.GetLogUI(),

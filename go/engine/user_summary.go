@@ -13,8 +13,11 @@ type UserSummary struct {
 	libkb.Contextified
 }
 
-func NewUserSummary(uids []libkb.UID) *UserSummary {
-	return &UserSummary{uids: uids}
+func NewUserSummary(uids []libkb.UID, g *libkb.GlobalContext) *UserSummary {
+	return &UserSummary{
+		uids:         uids,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.
@@ -155,7 +158,7 @@ func (e *UserSummary) get() (map[string]*Summary, error) {
 		},
 	}
 	// using POST because uids list might be long...
-	if err := G.API.PostDecode(args, &j); err != nil {
+	if err := e.G().API.PostDecode(args, &j); err != nil {
 		return nil, err
 	}
 

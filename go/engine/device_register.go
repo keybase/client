@@ -10,7 +10,6 @@ type DeviceRegisterArgs struct {
 	Me   *libkb.User
 	Name string
 	Lks  *libkb.LKSec
-	G    *libkb.GlobalContext
 }
 
 type DeviceRegister struct {
@@ -21,12 +20,11 @@ type DeviceRegister struct {
 
 var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
-func NewDeviceRegister(args *DeviceRegisterArgs) *DeviceRegister {
-	d := &DeviceRegister{args: args}
-	if args != nil {
-		d.Contextified = libkb.NewContextified(args.G)
+func NewDeviceRegister(args *DeviceRegisterArgs, g *libkb.GlobalContext) *DeviceRegister {
+	return &DeviceRegister{
+		args:         args,
+		Contextified: libkb.NewContextified(g),
 	}
-	return d
 }
 
 func (d *DeviceRegister) Name() string {

@@ -33,7 +33,7 @@ func TestPGPDecrypt(t *testing.T) {
 		NoSign:       true,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg)
+	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestPGPDecrypt(t *testing.T) {
 		Source: bytes.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewPGPDecrypt(decarg)
+	dec := NewPGPDecrypt(decarg, tc.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 		Sink:   sink,
 		NoSign: true,
 	}
-	enc := NewPGPEncrypt(arg)
+	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 		Source: bytes.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewPGPDecrypt(decarg)
+	dec := NewPGPDecrypt(decarg, tc.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 		Sink:         sink,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg)
+	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +131,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 		Sink:         decoded,
 		AssertSigned: true,
 	}
-	dec := NewPGPDecrypt(decarg)
+	dec := NewPGPDecrypt(decarg, tc.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Sink:         sink,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg)
+	enc := NewPGPEncrypt(arg, G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Sink:         decoded,
 		AssertSigned: true,
 	}
-	dec := NewPGPDecrypt(decarg)
+	dec := NewPGPDecrypt(decarg, G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +223,7 @@ func TestPGPDecryptLong(t *testing.T) {
 		NoSign:       true,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg)
+	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -235,7 +235,7 @@ func TestPGPDecryptLong(t *testing.T) {
 		Source: bytes.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewPGPDecrypt(decarg)
+	dec := NewPGPDecrypt(decarg, tc.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}

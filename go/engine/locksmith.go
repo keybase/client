@@ -35,8 +35,11 @@ type LocksmithStatus struct {
 	HaveDetKey       bool
 }
 
-func NewLocksmith(arg *LocksmithArg) *Locksmith {
-	return &Locksmith{arg: arg}
+func NewLocksmith(arg *LocksmithArg, g *libkb.GlobalContext) *Locksmith {
+	return &Locksmith{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (d *Locksmith) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
@@ -243,7 +246,7 @@ func (d *Locksmith) addDeviceKey(ctx *Context) error {
 		Lks:        d.lks,
 		IsEldest:   true,
 	}
-	eng := NewDeviceWrap(args)
+	eng := NewDeviceWrap(args, d.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -271,7 +274,7 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 		Signer:     signer,
 		EldestKID:  eldestKID,
 	}
-	eng := NewDeviceWrap(args)
+	eng := NewDeviceWrap(args, d.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -294,7 +297,7 @@ func (d *Locksmith) addDetKey(ctx *Context, eldest libkb.KID) error {
 		SigningKey:  d.signingKey,
 		EldestKeyID: eldest,
 	}
-	eng := NewDetKeyEngine(arg)
+	eng := NewDetKeyEngine(arg, d.G())
 	return RunEngine(eng, ctx)
 }
 

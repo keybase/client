@@ -8,8 +8,10 @@ type ResetEngine struct {
 	libkb.Contextified
 }
 
-func NewResetEngine() *ResetEngine {
-	return &ResetEngine{}
+func NewResetEngine(g *libkb.GlobalContext) *ResetEngine {
+	return &ResetEngine{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *ResetEngine) Name() string {

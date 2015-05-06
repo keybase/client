@@ -14,7 +14,7 @@ func runUntrack(fu *FakeUser, username string) (err error) {
 		LogUI:    G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewUntrackEngine(&arg)
+	eng := NewUntrackEngine(&arg, G)
 	err = RunEngine(eng, &ctx)
 	return
 }

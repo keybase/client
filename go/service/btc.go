@@ -20,6 +20,6 @@ func (h *BTCHandler) RegisterBTC(arg keybase1.RegisterBTCArg) error {
 		LogUI:    h.getLogUI(arg.SessionID),
 		SecretUI: h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewBTCEngine(arg.Address, arg.Force)
+	eng := engine.NewBTCEngine(arg.Address, arg.Force, G)
 	return engine.RunEngine(eng, &ctx)
 }

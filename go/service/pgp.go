@@ -21,7 +21,7 @@ func (h *PGPHandler) PgpSign(arg keybase1.PgpSignArg) (err error) {
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli)
 	earg := engine.PGPSignArg{Sink: snk, Source: src, Opts: arg.Opts}
 	ctx := engine.Context{SecretUI: h.getSecretUI(arg.SessionID)}
-	eng := engine.NewPGPSignEngine(&earg)
+	eng := engine.NewPGPSignEngine(&earg, G)
 	return engine.RunEngine(eng, &ctx)
 }
 
@@ -32,7 +32,7 @@ func (h *PGPHandler) PgpPull(arg keybase1.PgpPullArg) error {
 	ctx := engine.Context{
 		LogUI: h.getLogUI(arg.SessionID),
 	}
-	eng := engine.NewPGPPullEngine(&earg)
+	eng := engine.NewPGPPullEngine(&earg, G)
 	return engine.RunEngine(eng, &ctx)
 }
 
@@ -152,7 +152,7 @@ func (h *PGPHandler) PgpExport(arg keybase1.PgpExportArg) (ret []keybase1.Finger
 		SecretUI: h.getSecretUI(arg.SessionID),
 		LogUI:    h.getLogUI(arg.SessionID),
 	}
-	eng := engine.NewPGPKeyExportEngine(arg)
+	eng := engine.NewPGPKeyExportEngine(arg, G)
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return
 	}
@@ -193,7 +193,7 @@ func (h *PGPHandler) PgpSelect(sarg keybase1.PgpSelectArg) error {
 	gpgui := NewRemoteGPGUI(sessionID, h.getRpcClient())
 	secretui := h.getSecretUI(sessionID)
 	arg := engine.GPGImportKeyArg{Query: sarg.Query, AllowMulti: sarg.AllowMulti, SkipImport: sarg.SkipImport}
-	gpg := engine.NewGPGImportKeyEngine(&arg)
+	gpg := engine.NewGPGImportKeyEngine(&arg, G)
 	ctx := &engine.Context{
 		GPGUI:    gpgui,
 		SecretUI: secretui,
@@ -207,6 +207,6 @@ func (h *PGPHandler) PgpUpdate(arg keybase1.PgpUpdateArg) error {
 	ctx := engine.Context{
 		LogUI: h.getLogUI(arg.SessionID),
 	}
-	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All)
+	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All, G)
 	return engine.RunEngine(eng, &ctx)
 }

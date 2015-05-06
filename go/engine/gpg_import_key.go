@@ -29,8 +29,11 @@ type GPGImportKeyEngine struct {
 	libkb.Contextified
 }
 
-func NewGPGImportKeyEngine(arg *GPGImportKeyArg) *GPGImportKeyEngine {
-	return &GPGImportKeyEngine{arg: arg}
+func NewGPGImportKeyEngine(arg *GPGImportKeyArg, g *libkb.GlobalContext) *GPGImportKeyEngine {
+	return &GPGImportKeyEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *GPGImportKeyEngine) GetPrereqs() EnginePrereqs {
@@ -57,7 +60,7 @@ func (e *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
-	gpg := G.GetGpgClient()
+	gpg := e.G().GetGpgClient()
 	canExec, err := gpg.CanExec()
 	if err != nil {
 		return false, err
@@ -76,7 +79,7 @@ func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 }
 
 func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
-	gpg := G.GetGpgClient()
+	gpg := e.G().GetGpgClient()
 
 	me := e.arg.Me
 	if me != nil {
@@ -116,7 +119,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	G.Log.Info("SelectKey result: %+v", res)
+	e.G().Log.Info("SelectKey result: %+v", res)
 
 	var selected *libkb.GpgPrimaryKey
 	for _, key := range index.Keys {
@@ -139,7 +142,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	G.Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
+	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyId())
 
 	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Pregen:     bundle,
@@ -161,7 +164,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	G.Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
+	e.G().Log.Info("Key %s imported", selected.GetFingerprint().ToKeyId())
 
 	e.last = bundle
 

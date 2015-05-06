@@ -93,7 +93,7 @@ func (e *LoginEngine) Run(ctx *Context) (err error) {
 		User: e.user,
 	}
 	e.locksmithMu.Lock()
-	e.locksmith = NewLocksmith(larg)
+	e.locksmith = NewLocksmith(larg, e.G())
 	e.locksmithMu.Unlock()
 	return e.locksmith.LoginCheckup(ctx, e.user)
 }

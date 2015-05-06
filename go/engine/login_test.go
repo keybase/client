@@ -285,7 +285,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 		Name: "my new device",
 		Lks:  lks,
 	}
-	dreg := NewDeviceRegister(dregArgs)
+	dreg := NewDeviceRegister(dregArgs, G)
 	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
@@ -330,7 +330,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		Name: "my new device",
 		Lks:  lks,
 	}
-	dreg := NewDeviceRegister(dregArgs)
+	dreg := NewDeviceRegister(dregArgs, G)
 	ctx := &Context{LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
 	if err := RunEngine(dreg, ctx); err != nil {
 		t.Fatal(err)
@@ -343,7 +343,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		DeviceName: dregArgs.Name,
 		Lks:        lks,
 	}
-	dkey := NewDeviceKeygen(dkeyArgs)
+	dkey := NewDeviceKeygen(dkeyArgs, G)
 	if err := RunEngine(dkey, ctx); err != nil {
 		t.Fatal(err)
 	}

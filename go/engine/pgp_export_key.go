@@ -41,8 +41,11 @@ func (e *PGPKeyExportEngine) Results() []keybase1.FingerprintAndKey {
 	return e.res
 }
 
-func NewPGPKeyExportEngine(arg keybase1.PgpExportArg) *PGPKeyExportEngine {
-	return &PGPKeyExportEngine{arg: arg}
+func NewPGPKeyExportEngine(arg keybase1.PgpExportArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+	return &PGPKeyExportEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *PGPKeyExportEngine) pushRes(fp libkb.PgpFingerprint, key string, desc string) {

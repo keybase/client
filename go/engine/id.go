@@ -8,7 +8,6 @@ import (
 type IDEngineArg struct {
 	UserAssertion  string
 	TrackStatement bool // output a track statement
-	G              *libkb.GlobalContext
 }
 
 type IDRes struct {
@@ -23,12 +22,11 @@ type IDEngine struct {
 	libkb.Contextified
 }
 
-func NewIDEngine(arg *IDEngineArg) *IDEngine {
-	e := &IDEngine{arg: arg}
-	if arg != nil {
-		e.Contextified = libkb.NewContextified(arg.G)
+func NewIDEngine(arg *IDEngineArg, g *libkb.GlobalContext) *IDEngine {
+	return &IDEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
 	}
-	return e
 }
 
 func (e *IDEngine) Name() string {
@@ -83,7 +81,7 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 		return nil, err
 	}
 	if me.Equal(user) {
-		G.Log.Warning("can't generate track statement on yourself")
+		e.G().Log.Warning("can't generate track statement on yourself")
 		// but let's not call this an error...they'll see the warning.
 		ctx.IdentifyUI.Finish()
 		return res, nil
@@ -91,7 +89,7 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 
 	stmt, err := me.TrackStatementJSON(user)
 	if err != nil {
-		G.Log.Warning("error getting track statement: %s", err)
+		e.G().Log.Warning("error getting track statement: %s", err)
 		return nil, err
 	}
 

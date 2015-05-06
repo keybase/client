@@ -14,16 +14,16 @@ type PGPUpdateEngine struct {
 	libkb.Contextified
 }
 
-func NewPGPUpdateEngine(fingerprints []string, all bool) *PGPUpdateEngine {
+func NewPGPUpdateEngine(fingerprints []string, all bool, g *libkb.GlobalContext) *PGPUpdateEngine {
 	selectedFingerprints := make(map[string]bool)
 	for _, fpString := range fingerprints {
 		selectedFingerprints[strings.ToLower(fpString)] = true
 	}
-	eng := PGPUpdateEngine{
+	return &PGPUpdateEngine{
 		selectedFingerprints: selectedFingerprints,
 		all:                  all,
+		Contextified:         libkb.NewContextified(g),
 	}
-	return &eng
 }
 
 func (e *PGPUpdateEngine) Name() string {
@@ -91,7 +91,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 			return err
 		}
 		ctx.LogUI.Info("Posting update for key %s.", fingerprint.String())
-		_, err = G.API.Post(libkb.ApiArg{
+		_, err = e.G().API.Post(libkb.ApiArg{
 			Endpoint:    "key/add",
 			NeedSession: true,
 			Args: libkb.HttpArgs{

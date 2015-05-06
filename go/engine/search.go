@@ -19,9 +19,12 @@ type SearchEngineArgs struct {
 	NumWanted int
 }
 
-func NewSearchEngine(args SearchEngineArgs) *SearchEngine {
-	eng := SearchEngine{query: args.Query, numWanted: args.NumWanted}
-	return &eng
+func NewSearchEngine(args SearchEngineArgs, g *libkb.GlobalContext) *SearchEngine {
+	return &SearchEngine{
+		query:        args.Query,
+		numWanted:    args.NumWanted,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *SearchEngine) Name() string {

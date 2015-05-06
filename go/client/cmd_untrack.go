@@ -57,7 +57,7 @@ func (v *CmdUntrack) Run() error {
 	arg := engine.UntrackEngineArg{
 		TheirName: v.user,
 	}
-	eng := engine.NewUntrackEngine(&arg)
+	eng := engine.NewUntrackEngine(&arg, G)
 	ctx := engine.Context{
 		SecretUI: G_UI.GetSecretUI(),
 	}

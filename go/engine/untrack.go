@@ -17,8 +17,11 @@ type UntrackEngine struct {
 }
 
 // NewUntrackEngine creates a default UntrackEngine for tracking theirName.
-func NewUntrackEngine(arg *UntrackEngineArg) *UntrackEngine {
-	return &UntrackEngine{arg: arg}
+func NewUntrackEngine(arg *UntrackEngineArg, g *libkb.GlobalContext) *UntrackEngine {
+	return &UntrackEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *UntrackEngine) Name() string {
@@ -67,7 +70,7 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	G.Log.Debug("| Untracking statement: %s", string(e.untrackStatementBytes))
+	e.G().Log.Debug("| Untracking statement: %s", string(e.untrackStatementBytes))
 
 	didUntrack := false
 
@@ -164,12 +167,12 @@ func (e *UntrackEngine) storeLocalUntrack(them *libkb.User) error {
 }
 
 func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err error) {
-	G.Log.Debug("+ StoreRemoteUntrack")
-	defer G.Log.Debug("- StoreRemoteUntrack -> %s", libkb.ErrToOk(err))
+	e.G().Log.Debug("+ StoreRemoteUntrack")
+	defer e.G().Log.Debug("- StoreRemoteUntrack -> %s", libkb.ErrToOk(err))
 
 	arg := libkb.SecretKeyArg{Me: e.arg.Me, All: true}
 	var signingKeyPriv libkb.GenericKey
-	if signingKeyPriv, _, err = G.Keyrings.GetSecretKeyWithPrompt(arg, ctx.SecretUI, "untracking signature"); err != nil {
+	if signingKeyPriv, _, err = e.G().Keyrings.GetSecretKeyWithPrompt(arg, ctx.SecretUI, "untracking signature"); err != nil {
 		return
 	} else if signingKeyPriv == nil {
 		err = libkb.NoSecretKeyError{}
@@ -182,7 +185,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 		return
 	}
 
-	_, err = G.API.Post(libkb.ApiArg{
+	_, err = e.G().API.Post(libkb.ApiArg{
 		Endpoint:    "follow",
 		NeedSession: true,
 		Args: libkb.HttpArgs{

@@ -30,7 +30,7 @@ func (c *CmdDoctor) Run() error {
 		LocksmithUI: G.UI.GetLocksmithUI(),
 		GPGUI:       G.UI.GetGPGUI(),
 	}
-	eng := engine.NewDoctor()
+	eng := engine.NewDoctor(G)
 	return engine.RunEngine(eng, ctx)
 }
 

@@ -43,7 +43,7 @@ func (c *CmdDeviceRemove) RunClient() (err error) {
 }
 
 func (c *CmdDeviceRemove) Run() error {
-	eng := engine.NewRevokeEngine(c.id, engine.RevokeDevice)
+	eng := engine.NewRevokeEngine(c.id, engine.RevokeDevice, G)
 	ctx := engine.Context{
 		LogUI:    G_UI.GetLogUI(),
 		SecretUI: G_UI.GetSecretUI(),

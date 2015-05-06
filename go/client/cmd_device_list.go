@@ -32,7 +32,7 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
 // Run runs the command in standalone mode.
 func (c *CmdDeviceList) Run() error {
 	ctx := &engine.Context{LogUI: G_UI.GetLogUI()}
-	eng := engine.NewDevList()
+	eng := engine.NewDevList(G)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return err
 	}

@@ -63,7 +63,7 @@ func assertKeysMissing(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []str
 }
 
 func runPgpPull(t *testing.T, arg PGPPullEngineArg) {
-	eng := NewPGPPullEngine(&arg)
+	eng := NewPGPPullEngine(&arg, G)
 	ctx := Context{
 		LogUI: G.UI.GetLogUI(),
 	}
@@ -74,7 +74,7 @@ func runPgpPull(t *testing.T, arg PGPPullEngineArg) {
 }
 
 func runPgpPullExpectingError(t *testing.T, arg PGPPullEngineArg) {
-	eng := NewPGPPullEngine(&arg)
+	eng := NewPGPPullEngine(&arg, G)
 	ctx := Context{
 		LogUI: G.UI.GetLogUI(),
 	}

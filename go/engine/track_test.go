@@ -27,7 +27,7 @@ func runTrackWithOptions(fu *FakeUser, username string, options TrackOptions) (i
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
 	}
-	eng := NewTrackEngine(&arg)
+	eng := NewTrackEngine(&arg, G)
 	err = RunEngine(eng, &ctx)
 	res = eng.res
 	return

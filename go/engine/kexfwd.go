@@ -66,9 +66,8 @@ func (k *KexFwd) Run(ctx *Context) error {
 		Me:   k.user,
 		Name: k.args.DevDesc,
 		Lks:  k.lks,
-		G:    k.G(),
 	}
-	devreg := NewDeviceRegister(ndarg)
+	devreg := NewDeviceRegister(ndarg, k.G())
 	if err := RunEngine(devreg, ctx); err != nil {
 		return err
 	}
@@ -124,9 +123,8 @@ func (k *KexFwd) Run(ctx *Context) error {
 		DeviceID:   k.deviceID,
 		DeviceName: k.args.DevDesc,
 		Lks:        k.lks,
-		G:          k.G(),
 	}
-	dkeng := NewDeviceKeygen(dkargs)
+	dkeng := NewDeviceKeygen(dkargs, k.G())
 	if err := RunEngine(dkeng, ctx); err != nil {
 		return err
 	}

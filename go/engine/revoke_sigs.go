@@ -13,9 +13,12 @@ type RevokeSigsEngine struct {
 	seqnos []int
 }
 
-func NewRevokeSigsEngine(sigIDs []string, seqnos []int) *RevokeSigsEngine {
-	eng := RevokeSigsEngine{sigIDs: sigIDs, seqnos: seqnos}
-	return &eng
+func NewRevokeSigsEngine(sigIDs []string, seqnos []int, g *libkb.GlobalContext) *RevokeSigsEngine {
+	return &RevokeSigsEngine{
+		sigIDs:       sigIDs,
+		seqnos:       seqnos,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *RevokeSigsEngine) Name() string {

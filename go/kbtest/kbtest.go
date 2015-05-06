@@ -50,7 +50,6 @@ func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, 
 		DeviceName: "my device",
 		SkipGPG:    true,
 		SkipMail:   true,
-		Ctx:        g,
 	}
 	ctx := &engine.Context{
 		LogUI:    g.UI.GetLogUI(),
@@ -58,7 +57,7 @@ func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, 
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := engine.NewSignupEngine(&arg)
+	s := engine.NewSignupEngine(&arg, g)
 	if err := engine.RunEngine(s, ctx); err != nil {
 		return nil, err
 	}

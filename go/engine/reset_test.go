@@ -33,7 +33,7 @@ func TestReset(t *testing.T) {
 		t.Fatal("Unexpectedly logged out")
 	}
 
-	e := NewResetEngine()
+	e := NewResetEngine(G)
 	ctx := &Context{}
 	if err := RunEngine(e, ctx); err != nil {
 		t.Fatal(err)

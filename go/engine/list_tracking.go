@@ -37,8 +37,11 @@ type ListTrackingEngine struct {
 	libkb.Contextified
 }
 
-func NewListTrackingEngine(arg *ListTrackingEngineArg) *ListTrackingEngine {
-	return &ListTrackingEngine{arg: arg}
+func NewListTrackingEngine(arg *ListTrackingEngineArg, g *libkb.GlobalContext) *ListTrackingEngine {
+	return &ListTrackingEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *ListTrackingEngine) Name() string {
@@ -113,7 +116,7 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase1.PublicKey) {
 	fingerprints, err := link.GetTrackedPGPFingerprints()
 	if err != nil {
-		G.Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
+		e.G().Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
 		return res
 	}
 
@@ -183,7 +186,7 @@ func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) (err err
 		if verbose {
 			rec = link.GetPayloadJson()
 		} else if rec, e2 = condenseRecord(link); e2 != nil {
-			G.Log.Warning("In conversion to JSON: %s", e2.Error())
+			e.G().Log.Warning("In conversion to JSON: %s", e2.Error())
 		}
 		if e2 == nil {
 			tmp = append(tmp, rec)

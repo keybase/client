@@ -27,10 +27,11 @@ type SigsListArgs struct {
 	Revoked  bool
 }
 
-// NewTemplate creates a Template engine.
-func NewSigsList(args SigsListArgs) *SigsList {
+// NewSigsList creates a SigsList engine.
+func NewSigsList(args SigsListArgs, g *libkb.GlobalContext) *SigsList {
 	return &SigsList{
 		SigsListArgs: args,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 

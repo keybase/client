@@ -20,7 +20,7 @@ func NewUserHandler(xp *rpc2.Transport) *UserHandler {
 // ListTrackers gets the list of trackers for a user by uid.
 func (h *UserHandler) ListTrackers(arg keybase1.ListTrackersArg) ([]keybase1.Tracker, error) {
 	uid := libkb.ImportUID(arg.Uid)
-	eng := engine.NewListTrackers(&uid)
+	eng := engine.NewListTrackers(&uid, G)
 	return h.listTrackers(eng)
 }
 
@@ -54,7 +54,7 @@ func (h *UserHandler) LoadUncheckedUserSummaries(kuids []keybase1.UID) ([]keybas
 		uids[i] = libkb.ImportUID(k)
 	}
 	ctx := &engine.Context{}
-	eng := engine.NewUserSummary(uids)
+	eng := engine.NewUserSummary(uids, G)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (h *UserHandler) ListTracking(filter string) (res []keybase1.UserSummary, e
 		Filter: filter,
 		// Verbose has no effect on this call. At the engine level, it only
 		// affects JSON output.
-	})
+	}, G)
 	err = engine.RunEngine(eng, &engine.Context{})
 	res = eng.TableResult()
 	return
@@ -78,7 +78,7 @@ func (h *UserHandler) ListTrackingJson(arg keybase1.ListTrackingJsonArg) (res st
 		Json:    true,
 		Filter:  arg.Filter,
 		Verbose: arg.Verbose,
-	})
+	}, G)
 	err = engine.RunEngine(eng, &engine.Context{})
 	res = eng.JSONResult()
 	return
@@ -106,7 +106,7 @@ func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, er
 func (h *UserHandler) Search(arg keybase1.SearchArg) (results []keybase1.UserSummary, err error) {
 	eng := engine.NewSearchEngine(engine.SearchEngineArgs{
 		Query: arg.Query,
-	})
+	}, G)
 	ctx := &engine.Context{LogUI: h.getLogUI(arg.SessionID)}
 	err = engine.RunEngine(eng, ctx)
 	if err == nil {

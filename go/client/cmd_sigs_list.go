@@ -191,7 +191,7 @@ func (s *CmdSigsList) Run() error {
 		Verbose:  s.verbose,
 		Revoked:  s.revoked,
 	}
-	eng := engine.NewSigsList(args)
+	eng := engine.NewSigsList(args, G)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return err
 	}

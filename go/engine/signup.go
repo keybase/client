@@ -26,15 +26,13 @@ type SignupEngineRunArg struct {
 	DeviceName string
 	SkipGPG    bool
 	SkipMail   bool
-	Ctx        *libkb.GlobalContext
 }
 
-func NewSignupEngine(arg *SignupEngineRunArg) *SignupEngine {
-	ret := &SignupEngine{arg: arg}
-	if arg != nil {
-		ret.Contextified = libkb.NewContextified(arg.Ctx)
+func NewSignupEngine(arg *SignupEngineRunArg, g *libkb.GlobalContext) *SignupEngine {
+	return &SignupEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
 	}
-	return ret
 }
 
 func (s *SignupEngine) Name() string {
@@ -163,7 +161,7 @@ func (s *SignupEngine) registerDevice(ctx *Context, deviceName string) error {
 		Lks:        s.lks,
 		IsEldest:   true,
 	}
-	eng := NewDeviceWrap(args)
+	eng := NewDeviceWrap(args, s.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -179,19 +177,19 @@ func (s *SignupEngine) genDetKeys(ctx *Context) error {
 		SigningKey:  s.signingKey,
 		EldestKeyID: s.signingKey.GetKid(),
 	}
-	eng := NewDetKeyEngine(arg)
+	eng := NewDetKeyEngine(arg, s.G())
 	return RunEngine(eng, ctx)
 }
 
 func (s *SignupEngine) checkGPG(ctx *Context) (bool, error) {
-	eng := NewGPGImportKeyEngine(nil)
+	eng := NewGPGImportKeyEngine(nil, s.G())
 	return eng.WantsGPG(ctx)
 }
 
 func (s *SignupEngine) addGPG(ctx *Context, allowMulti bool) error {
 	s.G().Log.Debug("SignupEngine.addGPG.  signingKey: %v\n", s.signingKey)
 	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me, Lks: s.lks}
-	eng := NewGPGImportKeyEngine(&arg)
+	eng := NewGPGImportKeyEngine(&arg, s.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}

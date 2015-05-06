@@ -51,7 +51,7 @@ func (c *CmdSearch) RunClient() (err error) {
 func (c *CmdSearch) Run() error {
 	eng := engine.NewSearchEngine(engine.SearchEngineArgs{
 		Query: c.query,
-	})
+	}, G)
 	ctx := engine.Context{
 		LogUI:    G_UI.GetLogUI(),
 		SecretUI: G_UI.GetSecretUI(),

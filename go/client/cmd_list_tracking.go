@@ -125,7 +125,7 @@ func (s *CmdListTracking) Run() (err error) {
 		Verbose: s.verbose,
 		Filter:  s.filter,
 	}
-	eng := engine.NewListTrackingEngine(&arg)
+	eng := engine.NewListTrackingEngine(&arg, G)
 	ctx := engine.Context{}
 	err = engine.RunEngine(eng, &ctx)
 	if err != nil {

@@ -17,12 +17,12 @@ type PGPPullEngine struct {
 	libkb.Contextified
 }
 
-func NewPGPPullEngine(arg *PGPPullEngineArg) *PGPPullEngine {
-	eng := PGPPullEngine{
-		listTrackingEngine: NewListTrackingEngine(&ListTrackingEngineArg{}),
+func NewPGPPullEngine(arg *PGPPullEngineArg, g *libkb.GlobalContext) *PGPPullEngine {
+	return &PGPPullEngine{
+		listTrackingEngine: NewListTrackingEngine(&ListTrackingEngineArg{}, g),
 		userAsserts:        arg.UserAsserts,
+		Contextified:       libkb.NewContextified(g),
 	}
-	return &eng
 }
 
 func (e *PGPPullEngine) Name() string {

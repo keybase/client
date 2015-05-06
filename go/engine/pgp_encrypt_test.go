@@ -27,7 +27,7 @@ func TestPGPEncrypt(t *testing.T) {
 		NoSign: true,
 	}
 
-	eng := NewPGPEncrypt(arg)
+	eng := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

@@ -12,9 +12,12 @@ type BTCEngine struct {
 	force   bool
 }
 
-func NewBTCEngine(address string, force bool) *BTCEngine {
-	eng := BTCEngine{address: address, force: force}
-	return &eng
+func NewBTCEngine(address string, force bool, g *libkb.GlobalContext) *BTCEngine {
+	return &BTCEngine{
+		address:      address,
+		force:        force,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *BTCEngine) Name() string {

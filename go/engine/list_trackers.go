@@ -15,8 +15,11 @@ type ListTrackersEngine struct {
 }
 
 // NewListTrackers creates a TrackerList engine for uid.
-func NewListTrackers(uid *libkb.UID) *ListTrackersEngine {
-	return &ListTrackersEngine{uid: uid}
+func NewListTrackers(uid *libkb.UID, g *libkb.GlobalContext) *ListTrackersEngine {
+	return &ListTrackersEngine{
+		uid:          uid,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // NewListTrackersByName creates a TrackerList engine that will

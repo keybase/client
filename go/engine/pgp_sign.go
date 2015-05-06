@@ -42,8 +42,11 @@ func (p *PGPSignEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func NewPGPSignEngine(arg *PGPSignArg) *PGPSignEngine {
-	return &PGPSignEngine{arg: arg}
+func NewPGPSignEngine(arg *PGPSignArg, g *libkb.GlobalContext) *PGPSignEngine {
+	return &PGPSignEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (p *PGPSignEngine) Run(ctx *Context) (err error) {

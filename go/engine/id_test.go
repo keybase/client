@@ -8,16 +8,16 @@ import (
 	keybase1 "github.com/keybase/client/protocol/go"
 )
 
-func runIdentify(username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
+func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
 	idUI = &FakeIdentifyUI{}
 	arg := IDEngineArg{
 		UserAssertion: username,
 	}
 	ctx := Context{
-		LogUI:      G.UI.GetLogUI(),
+		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 	}
-	eng := NewIDEngine(&arg)
+	eng := NewIDEngine(&arg, tc.G)
 	err = RunEngine(eng, &ctx)
 	res = eng.Result()
 	return
@@ -87,7 +87,7 @@ func checkDisplayKeys(t *testing.T, idUI *FakeIdentifyUI, callCount, keyCount in
 func TestIdAlice(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
-	idUI, result, err := runIdentify("t_alice")
+	idUI, result, err := runIdentify(&tc, "t_alice")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestIdAlice(t *testing.T) {
 func TestIdBob(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
-	idUI, result, err := runIdentify("t_bob")
+	idUI, result, err := runIdentify(&tc, "t_bob")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestIdBob(t *testing.T) {
 func TestIdCharlie(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
-	idUI, result, err := runIdentify("t_charlie")
+	idUI, result, err := runIdentify(&tc, "t_charlie")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +120,7 @@ func TestIdCharlie(t *testing.T) {
 func TestIdDoug(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
-	idUI, result, err := runIdentify("t_doug")
+	idUI, result, err := runIdentify(&tc, "t_doug")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +131,7 @@ func TestIdDoug(t *testing.T) {
 func TestIdEllen(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
-	idUI, _, err := runIdentify("t_ellen")
+	idUI, _, err := runIdentify(&tc, "t_ellen")
 	if err == nil {
 		t.Fatal("Expected no public key found error.")
 	} else if _, ok := err.(libkb.NoActiveKeyError); !ok {
@@ -162,7 +162,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 
 	G.Logout()
 
-	idUI, _, err := runIdentify(u.Username)
+	idUI, _, err := runIdentify(&tc, u.Username)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -71,7 +71,7 @@ func sign(ctx *Context, t *testing.T, msg string, mode keybase1.SignMode) string
 		Source: ioutil.NopCloser(strings.NewReader(msg)),
 		Opts:   keybase1.PgpSignOptions{Mode: keybase1.SignMode(mode)},
 	}
-	eng := NewPGPSignEngine(arg)
+	eng := NewPGPSignEngine(arg, G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func signEnc(ctx *Context, t *testing.T, msg string) string {
 		Sink:   sink,
 		Source: strings.NewReader(msg),
 	}
-	eng := NewPGPEncrypt(arg)
+	eng := NewPGPEncrypt(arg, G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func verify(ctx *Context, t *testing.T, msg, sig, name string, valid bool) {
 		Source:    strings.NewReader(msg),
 		Signature: []byte(sig),
 	}
-	eng := NewPGPVerify(arg)
+	eng := NewPGPVerify(arg, G)
 	if err := RunEngine(eng, ctx); err != nil {
 		if valid {
 			t.Logf("%s: sig: %s", name, sig)

@@ -30,7 +30,7 @@ func (h *LoginHandler) Logout() error {
 }
 
 func (h *LoginHandler) Reset() error {
-	eng := engine.NewResetEngine()
+	eng := engine.NewResetEngine(G)
 	ctx := engine.Context{}
 	return engine.RunEngine(eng, &ctx)
 }

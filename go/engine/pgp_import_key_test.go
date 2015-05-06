@@ -45,7 +45,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		Query:  fp.String(),
 	}
 
-	xe := NewPGPKeyExportEngine(arg)
+	xe := NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		Query:  fp.String()[0:10] + "aabb",
 	}
 
-	xe = NewPGPKeyExportEngine(arg)
+	xe = NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err == nil {
 		t.Fatalf("Expected an error on fictious key")
 	} else if _, ok := err.(libkb.NoSecretKeyError); !ok {
@@ -69,7 +69,7 @@ func TestPGPImportAndExport(t *testing.T) {
 	arg = keybase1.PgpExportArg{
 		Secret: false,
 	}
-	xe = NewPGPKeyExportEngine(arg)
+	xe = NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
 		t.Fatal(err)
 	}

@@ -60,7 +60,7 @@ func (v *CmdID) Run() error {
 	if v.trackStatement {
 		logui = libkb.NewNullLogger()
 	}
-	eng := engine.NewIDEngine(v.makeArg())
+	eng := engine.NewIDEngine(v.makeArg(), G)
 	ctx := engine.Context{
 		LogUI:      logui,
 		IdentifyUI: G.UI.GetIdentifyUI(),

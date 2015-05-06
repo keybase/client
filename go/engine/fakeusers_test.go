@@ -10,7 +10,7 @@ func createFakeUserWithNoKeys(t *testing.T) (username, passphrase string) {
 	username, email := fakeUser(t, "login")
 	passphrase = fakePassphrase(t)
 
-	s := NewSignupEngine(nil)
+	s := NewSignupEngine(nil, G)
 
 	// going to just run the join step of signup engine
 	if err := s.genTSPassKey(passphrase); err != nil {
@@ -28,7 +28,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 	username, email := fakeUser(t, "login")
 	passphrase = fakePassphrase(t)
 
-	s := NewSignupEngine(nil)
+	s := NewSignupEngine(nil, G)
 
 	if err := s.genTSPassKey(passphrase); err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func createFakeUserWithDetKey(t *testing.T) (username, passphrase string) {
 		Tsp:       s.tspkey,
 		SelfProof: true,
 	}
-	eng := NewDetKeyEngine(arg)
+	eng := NewDetKeyEngine(arg, G)
 	ctx := &Context{LogUI: G.UI.GetLogUI()}
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
@@ -63,10 +63,10 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(nil)
+	s := NewSignupEngine(nil, tc.G)
 
 	if err := s.genTSPassKey(fu.Passphrase); err != nil {
 		t.Fatal(err)
@@ -113,11 +113,11 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 	}
 
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	s := NewSignupEngine(nil)
+	s := NewSignupEngine(nil, tc.G)
 	ctx := &Context{
 		GPGUI:    &gpgPubOnlyTestUI{},
 		SecretUI: secui,
-		LogUI:    G.UI.GetLogUI(),
+		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 
@@ -146,7 +146,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 
 	secui := libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	s := NewSignupEngine(nil)
+	s := NewSignupEngine(nil, tc.G)
 	ctx := &Context{
 		GPGUI:    &gpgtestui{},
 		SecretUI: secui,

@@ -45,6 +45,6 @@ func (h *TrackHandler) Untrack(arg keybase1.UntrackArg) error {
 	ctx := engine.Context{
 		SecretUI: h.getSecretUI(sessionID),
 	}
-	eng := engine.NewUntrackEngine(&earg)
+	eng := engine.NewUntrackEngine(&earg, G)
 	return engine.RunEngine(eng, &ctx)
 }

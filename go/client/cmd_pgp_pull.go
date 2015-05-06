@@ -40,7 +40,7 @@ func (v *CmdPGPPull) Run() error {
 	arg := engine.PGPPullEngineArg{
 		UserAsserts: v.userAsserts,
 	}
-	eng := engine.NewPGPPullEngine(&arg)
+	eng := engine.NewPGPPullEngine(&arg, G)
 	ctx := engine.Context{
 		LogUI: G_UI.GetLogUI(),
 	}

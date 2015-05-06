@@ -101,7 +101,7 @@ func (s *CmdPGPExport) Run() (err error) {
 		SecretUI: G_UI.GetSecretUI(),
 		LogUI:    G_UI.GetLogUI(),
 	}
-	eng := engine.NewPGPKeyExportEngine(s.arg)
+	eng := engine.NewPGPKeyExportEngine(s.arg, G)
 	err = engine.RunEngine(eng, &ctx)
 	err = s.finish(eng.Results(), err)
 	return err

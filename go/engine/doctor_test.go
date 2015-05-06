@@ -15,7 +15,7 @@ func TestDoctor(t *testing.T) {
 
 	ctx := &Context{DoctorUI: &docui{}, LoginUI: libkb.TestLoginUI{Username: fu.Username}, SecretUI: fu.NewSecretUI(), LogUI: G.UI.GetLogUI(), LocksmithUI: &lockui{}, GPGUI: &gpgtestui{}}
 	t.Logf("ctx: %+v", ctx)
-	eng := NewDoctor()
+	eng := NewDoctor(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

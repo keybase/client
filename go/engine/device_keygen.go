@@ -11,7 +11,6 @@ type DeviceKeygenArgs struct {
 	DeviceID   libkb.DeviceID
 	DeviceName string
 	Lks        *libkb.LKSec
-	G          *libkb.GlobalContext
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -54,12 +53,11 @@ type DeviceKeygen struct {
 }
 
 // NewDeviceKeygen creates a DeviceKeygen engine.
-func NewDeviceKeygen(args *DeviceKeygenArgs) *DeviceKeygen {
-	d := &DeviceKeygen{args: args}
-	if args != nil {
-		d.Contextified = libkb.NewContextified(args.G)
+func NewDeviceKeygen(args *DeviceKeygenArgs, g *libkb.GlobalContext) *DeviceKeygen {
+	return &DeviceKeygen{
+		args:         args,
+		Contextified: libkb.NewContextified(g),
 	}
-	return d
 }
 
 // Name is the unique engine name.

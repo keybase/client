@@ -125,7 +125,7 @@ func (s *CmdPGPSign) Run() (err error) {
 	ctx := engine.Context{
 		SecretUI: G_UI.GetSecretUI(),
 	}
-	eng := engine.NewPGPSignEngine(&earg)
+	eng := engine.NewPGPSignEngine(&earg, G)
 	err = engine.RunEngine(eng, &ctx)
 	s.Close(err)
 	return err

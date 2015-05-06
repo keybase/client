@@ -28,8 +28,11 @@ type DetKeyEngine struct {
 	libkb.Contextified
 }
 
-func NewDetKeyEngine(arg *DetKeyArgs) *DetKeyEngine {
-	return &DetKeyEngine{arg: arg}
+func NewDetKeyEngine(arg *DetKeyArgs, g *libkb.GlobalContext) *DetKeyEngine {
+	return &DetKeyEngine{
+		arg:          arg,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (d *DetKeyEngine) Name() string {

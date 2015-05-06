@@ -15,8 +15,10 @@ type Doctor struct {
 }
 
 // NewDoctor creates a Doctor engine.
-func NewDoctor() *Doctor {
-	return &Doctor{}
+func NewDoctor(g *libkb.GlobalContext) *Doctor {
+	return &Doctor{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // Name is the unique engine name.
@@ -131,7 +133,7 @@ func (e *Doctor) status(ctx *Context) {
 		User:      e.user,
 		CheckOnly: true,
 	}
-	eng := NewLocksmith(arg)
+	eng := NewLocksmith(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		e.runErr = err
 		return
@@ -213,7 +215,7 @@ func (e *Doctor) fix(ctx *Context) {
 	arg := &LocksmithArg{
 		User: e.user,
 	}
-	eng := NewLocksmith(arg)
+	eng := NewLocksmith(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		e.runErr = err
 		return

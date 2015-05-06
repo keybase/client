@@ -8,7 +8,7 @@ import (
 )
 
 func doUpdate(fingerprints []string, all bool) (err error) {
-	eng := NewPGPUpdateEngine(fingerprints, all)
+	eng := NewPGPUpdateEngine(fingerprints, all, G)
 	ctx := Context{
 		LogUI: G.UI.GetLogUI(),
 	}

@@ -20,9 +20,12 @@ type RevokeEngine struct {
 	mode RevokeMode
 }
 
-func NewRevokeEngine(id string, mode RevokeMode) *RevokeEngine {
-	eng := RevokeEngine{id: id, mode: mode}
-	return &eng
+func NewRevokeEngine(id string, mode RevokeMode, g *libkb.GlobalContext) *RevokeEngine {
+	return &RevokeEngine{
+		id:           id,
+		mode:         mode,
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (e *RevokeEngine) Name() string {

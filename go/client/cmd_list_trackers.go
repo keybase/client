@@ -46,7 +46,7 @@ func (c *CmdListTrackers) Run() error {
 	ctx := &engine.Context{LogUI: G.UI.GetLogUI()}
 	var eng *engine.ListTrackersEngine
 	if c.uid != nil {
-		eng = engine.NewListTrackers(c.uid)
+		eng = engine.NewListTrackers(c.uid, G)
 	} else if len(c.username) > 0 {
 		eng = engine.NewListTrackersByName(c.username)
 	} else {
@@ -59,7 +59,7 @@ func (c *CmdListTrackers) Run() error {
 	trs := eng.ExportedList()
 
 	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
-		sumeng := engine.NewUserSummary(libkb.ImportUIDs(uids))
+		sumeng := engine.NewUserSummary(libkb.ImportUIDs(uids), G)
 		if err = engine.RunEngine(sumeng, ctx); err != nil {
 			return
 		}
