@@ -16,7 +16,7 @@ func NewSignupHandler(xp *rpc2.Transport) *SignupHandler {
 }
 
 func (h *SignupHandler) CheckUsernameAvailable(username string) error {
-	return engine.CheckUsernameAvailable(username)
+	return engine.CheckUsernameAvailable(G, username)
 }
 
 func (h *SignupHandler) Signup(arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {

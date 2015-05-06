@@ -16,12 +16,17 @@ type SignupJoinEngine struct {
 	csrf           string
 	lastPassphrase string
 	username       string
+
+	libkb.Contextified
 }
 
-func NewSignupJoinEngine() *SignupJoinEngine { return &SignupJoinEngine{} }
+func NewSignupJoinEngine(g *libkb.GlobalContext) *SignupJoinEngine {
+	return &SignupJoinEngine{Contextified: libkb.NewContextified(g)}
+}
 
-func CheckUsernameAvailable(s string) (err error) {
-	_, err = G.API.Get(libkb.ApiArg{
+// XXX why is this here?
+func CheckUsernameAvailable(g *libkb.GlobalContext, s string) (err error) {
+	_, err = g.API.Get(libkb.ApiArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
 		Args: libkb.HttpArgs{
@@ -46,13 +51,13 @@ func (s *SignupJoinEngine) Init() error {
 }
 
 func (s *SignupJoinEngine) CheckRegistered() (err error) {
-	G.Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
-	if cr := G.Env.GetConfig(); cr == nil {
+	s.G().Log.Debug("+ libkb.SignupJoinEngine::CheckRegistered")
+	if cr := s.G().Env.GetConfig(); cr == nil {
 		err = fmt.Errorf("No configuration file available")
 	} else if u := cr.GetUID(); u != nil {
 		err = libkb.AlreadyRegisteredError{Uid: *u}
 	}
-	G.Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+	s.G().Log.Debug("- libkb.SignupJoinEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 	return err
 }
 
@@ -67,7 +72,7 @@ type SignupJoinEngineRunArg struct {
 
 func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 	var res *libkb.ApiRes
-	res, err = G.API.Post(libkb.ApiArg{
+	res, err = s.G().API.Post(libkb.ApiArg{
 		Endpoint: "signup",
 		Args: libkb.HttpArgs{
 			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
@@ -119,7 +124,7 @@ func (s *SignupJoinEngine) Run(arg SignupJoinEngineRunArg) (res SignupJoinEngine
 }
 
 func (s *SignupJoinEngine) WriteOut(salt []byte) error {
-	return G.LoginState().SetSignupRes(s.session, s.csrf, s.username, s.uid, salt)
+	return s.G().LoginState().SetSignupRes(s.session, s.csrf, s.username, s.uid, salt)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {

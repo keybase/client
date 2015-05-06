@@ -34,6 +34,7 @@ type ListTrackingEngine struct {
 	arg         *ListTrackingEngineArg
 	tableResult []keybase1.UserSummary
 	jsonResult  string
+	libkb.Contextified
 }
 
 func NewListTrackingEngine(arg *ListTrackingEngineArg) *ListTrackingEngine {

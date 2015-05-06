@@ -14,6 +14,7 @@ type PGPKeyfinder struct {
 	loggedIn bool
 	me       *libkb.User
 	runerr   error
+	libkb.Contextified
 }
 
 type PGPKeyfinderArg struct {

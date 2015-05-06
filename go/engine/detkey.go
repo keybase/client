@@ -25,6 +25,7 @@ type DetKeyEngine struct {
 	arg         *DetKeyArgs
 	newEddsaKey libkb.GenericKey
 	dev         *libkb.Device
+	libkb.Contextified
 }
 
 func NewDetKeyEngine(arg *DetKeyArgs) *DetKeyEngine {

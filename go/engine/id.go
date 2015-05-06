@@ -19,6 +19,7 @@ type IDRes struct {
 type IDEngine struct {
 	arg *IDEngineArg
 	res *IDRes
+	libkb.Contextified
 }
 
 func NewIDEngine(arg *IDEngineArg) *IDEngine {

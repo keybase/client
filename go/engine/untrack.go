@@ -13,6 +13,7 @@ type UntrackEngine struct {
 	arg                   *UntrackEngineArg
 	signingKeyPub         libkb.GenericKey
 	untrackStatementBytes []byte
+	libkb.Contextified
 }
 
 // NewUntrackEngine creates a default UntrackEngine for tracking theirName.

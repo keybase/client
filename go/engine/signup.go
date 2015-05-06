@@ -131,7 +131,7 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 }
 
 func (s *SignupEngine) join(username, email, inviteCode string, skipMail bool) error {
-	joinEngine := NewSignupJoinEngine()
+	joinEngine := NewSignupJoinEngine(s.G())
 
 	arg := SignupJoinEngineRunArg{
 		Username:   username,

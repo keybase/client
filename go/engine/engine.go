@@ -15,6 +15,7 @@ type Engine interface {
 	Run(ctx *Context) error
 	GetPrereqs() EnginePrereqs
 	libkb.UIConsumer
+	G() *libkb.GlobalContext
 }
 
 func runPrereqs(e Engine) (err error) {
@@ -22,7 +23,7 @@ func runPrereqs(e Engine) (err error) {
 
 	if prq.Session {
 		var ok bool
-		ok, err = G.LoginState().IsLoggedInLoad()
+		ok, err = e.G().LoginState().IsLoggedInLoad()
 		if !ok {
 			urlError, isURLError := err.(*url.Error)
 			context := ""

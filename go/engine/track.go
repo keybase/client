@@ -30,6 +30,7 @@ type TrackEngine struct {
 	sigid               *libkb.SigId
 	lockedKey           *libkb.SKB
 	lockedWhich         string
+	libkb.Contextified
 }
 
 // NewTrackEngine creates a default TrackEngine for tracking theirName.

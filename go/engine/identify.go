@@ -14,6 +14,7 @@ type Identify struct {
 	userExpr  libkb.AssertionExpression
 	outcome   *libkb.IdentifyOutcome
 	trackInst *libkb.TrackInstructions
+	libkb.Contextified
 }
 
 type IdentifyArg struct {

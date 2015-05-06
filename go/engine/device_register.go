@@ -10,17 +10,23 @@ type DeviceRegisterArgs struct {
 	Me   *libkb.User
 	Name string
 	Lks  *libkb.LKSec
+	G    *libkb.GlobalContext
 }
 
 type DeviceRegister struct {
 	args     *DeviceRegisterArgs
 	deviceID libkb.DeviceID
+	libkb.Contextified
 }
 
 var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
 func NewDeviceRegister(args *DeviceRegisterArgs) *DeviceRegister {
-	return &DeviceRegister{args: args}
+	d := &DeviceRegister{args: args}
+	if args != nil {
+		d.Contextified = libkb.NewContextified(args.G)
+	}
+	return d
 }
 
 func (d *DeviceRegister) Name() string {
@@ -51,10 +57,10 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 		return err
 	}
 
-	G.Log.Debug("Device name:   %s", d.args.Name)
-	G.Log.Debug("Device ID:     %x", d.deviceID)
+	d.G().Log.Debug("Device name:   %s", d.args.Name)
+	d.G().Log.Debug("Device ID:     %x", d.deviceID)
 
-	if wr := G.Env.GetConfigWriter(); wr != nil {
+	if wr := d.G().Env.GetConfigWriter(); wr != nil {
 		if err := wr.SetDeviceID(&d.deviceID); err != nil {
 			return err
 		}

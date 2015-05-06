@@ -10,6 +10,7 @@ import (
 type UserSummary struct {
 	uids      []libkb.UID
 	summaries map[string]*Summary
+	libkb.Contextified
 }
 
 func NewUserSummary(uids []libkb.UID) *UserSummary {

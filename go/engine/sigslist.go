@@ -15,6 +15,7 @@ type SigsList struct {
 
 	user *libkb.User
 	sigs []libkb.TypedChainLink
+	libkb.Contextified
 }
 
 type SigsListArgs struct {

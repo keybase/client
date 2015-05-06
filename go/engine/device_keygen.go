@@ -11,6 +11,7 @@ type DeviceKeygenArgs struct {
 	DeviceID   libkb.DeviceID
 	DeviceName string
 	Lks        *libkb.LKSec
+	G          *libkb.GlobalContext
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -48,11 +49,17 @@ type DeviceKeygen struct {
 
 	naclSignGen *libkb.NaclKeyGen
 	naclEncGen  *libkb.NaclKeyGen
+
+	libkb.Contextified
 }
 
 // NewDeviceKeygen creates a DeviceKeygen engine.
 func NewDeviceKeygen(args *DeviceKeygenArgs) *DeviceKeygen {
-	return &DeviceKeygen{args: args}
+	d := &DeviceKeygen{args: args}
+	if args != nil {
+		d.Contextified = libkb.NewContextified(args.G)
+	}
+	return d
 }
 
 // Name is the unique engine name.
@@ -212,7 +219,7 @@ func (e *DeviceKeygen) pushLKS() {
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	e.pushErr = libkb.RunSyncer(G.LoginState().SecretSyncer(), e.args.Me.GetUid().P())
+	e.pushErr = libkb.RunSyncer(e.G().LoginState().SecretSyncer(), e.args.Me.GetUid().P())
 }
 
 func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) libkb.NaclKeyGenArg {

@@ -26,6 +26,7 @@ type GPGImportKeyArg struct {
 type GPGImportKeyEngine struct {
 	last *libkb.PgpKeyBundle
 	arg  *GPGImportKeyArg
+	libkb.Contextified
 }
 
 func NewGPGImportKeyEngine(arg *GPGImportKeyArg) *GPGImportKeyEngine {

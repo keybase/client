@@ -11,6 +11,7 @@ import (
 type PGPUpdateEngine struct {
 	selectedFingerprints map[string]bool
 	all                  bool
+	libkb.Contextified
 }
 
 func NewPGPUpdateEngine(fingerprints []string, all bool) *PGPUpdateEngine {

@@ -14,6 +14,7 @@ type PGPPullEngineArg struct {
 type PGPPullEngine struct {
 	listTrackingEngine *ListTrackingEngine
 	userAsserts        []string
+	libkb.Contextified
 }
 
 func NewPGPPullEngine(arg *PGPPullEngineArg) *PGPPullEngine {

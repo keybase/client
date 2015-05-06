@@ -10,6 +10,7 @@ type DeviceWrap struct {
 	args *DeviceWrapArgs
 
 	signingKey libkb.GenericKey
+	libkb.Contextified
 }
 
 type DeviceWrapArgs struct {
@@ -19,11 +20,16 @@ type DeviceWrapArgs struct {
 	IsEldest   bool
 	Signer     libkb.GenericKey
 	EldestKID  libkb.KID
+	G          *libkb.GlobalContext
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
 func NewDeviceWrap(args *DeviceWrapArgs) *DeviceWrap {
-	return &DeviceWrap{args: args}
+	d := &DeviceWrap{args: args}
+	if args != nil {
+		d.Contextified = libkb.NewContextified(args.G)
+	}
+	return d
 }
 
 // Name is the unique engine name.
@@ -55,6 +61,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		Me:   e.args.Me,
 		Name: e.args.DeviceName,
 		Lks:  e.args.Lks,
+		G:    e.args.G,
 	}
 	regEng := NewDeviceRegister(regArgs)
 	if err := RunEngine(regEng, ctx); err != nil {
@@ -68,6 +75,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		DeviceID:   deviceID,
 		DeviceName: e.args.DeviceName,
 		Lks:        e.args.Lks,
+		G:          e.G(),
 	}
 
 	kgEng := NewDeviceKeygen(kgArgs)

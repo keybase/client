@@ -378,6 +378,7 @@ type ClientModeSignupEngine struct {
 	ccli     keybase1.ConfigClient
 	arg      *engine.SignupEngineRunArg
 	doPrompt bool
+	libkb.Contextified
 }
 
 func (e *ClientModeSignupEngine) Name() string {
