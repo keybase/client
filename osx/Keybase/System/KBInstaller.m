@@ -12,6 +12,7 @@
 #import "AppDelegate.h"
 //#include <launch.h>
 #import "KBLaunchCtl.h"
+#import <ServiceManagement/ServiceManagement.h>
 
 @interface KBInstaller ()
 @property KBLaunchCtl *launchCtl;
@@ -73,6 +74,33 @@
     [NSFileManager.defaultManager removeItemAtPath:[directory stringByAppendingPathComponent:file] error:error];
   }
   [NSFileManager.defaultManager removeItemAtPath:directory error:error];
+}
+
++ (BOOL)installServiceWithName:(NSString *)name error:(NSError **)error {
+  AuthorizationRef authRef;
+  OSStatus status = AuthorizationCreate(NULL, NULL, 0, &authRef);
+  if (status != errAuthorizationSuccess) {
+    if (error) *error = MPMakeError(status, @"Error creating auth");
+    return NO;
+  }
+
+  AuthorizationItem authItem = {kSMRightBlessPrivilegedHelper, 0, NULL, 0};
+  AuthorizationRights authRights = {1, &authItem};
+  AuthorizationFlags flags =	kAuthorizationFlagDefaults | kAuthorizationFlagInteractionAllowed	| kAuthorizationFlagPreAuthorize | kAuthorizationFlagExtendRights;
+  status = AuthorizationCopyRights(authRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
+  if (status != errAuthorizationSuccess) {
+    if (error) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:status userInfo:nil];
+    return NO;
+  }
+
+  CFErrorRef cerror = NULL;
+  Boolean success = SMJobBless(kSMDomainSystemLaunchd, (__bridge CFStringRef)name, authRef, &cerror);
+  if (!success) {
+    if (error) *error = (NSError *)CFBridgingRelease(cerror);
+    return NO;
+  } else {
+    return YES;
+  }
 }
 
 - (void)installDebugMocks {

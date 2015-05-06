@@ -39,7 +39,7 @@
     [AppDelegate.appView checkStatus:^(NSError *error) {
       if (gself.client.installer.launchCtl) {
         [gself.client.installer.launchCtl status:^(NSError *error, NSInteger pid) {
-          [gself log:NSStringWithFormat(@"Keybase (launchctl) pid: %@", @(pid))];
+          KBConsoleLog(@"Keybase (launchctl) pid: %@", @(pid));
           completion(error);
         }];
       } else {
@@ -52,7 +52,7 @@
   _toggleButton = [KBButton buttonWithText:@"Start service" style:KBButtonStyleToolbar];
   _toggleButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [gself.client.installer.launchCtl reload:^(NSError *error, NSInteger pid) {
-      [gself log:NSStringWithFormat(@"Keybase (launchctl) pid: %@", @(pid))];
+      KBConsoleLog(@"Keybase (launchctl) pid: %@", @(pid));
       completion(error);
     }];
   };
@@ -142,57 +142,57 @@
 }
 
 - (void)appViewDidLaunch:(KBAppView *)appView {
-  NSString *version = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
-  [self log:NSStringWithFormat(@"Keybase.app started (%@).", version)];
-  //[self log:NSStringWithFormat(@"Dir: %@", [NSFileManager.defaultManager currentDirectoryPath])];
-  //[self log:NSStringWithFormat(@"Executable: %@", NSBundle.mainBundle.executablePath)];
-  NSString *KeybasedServiceVersion = [[NSBundle mainBundle] infoDictionary][@"KeybaseServiceVersion"];
-  [self log:NSStringWithFormat(@"Info (keybased): %@", KeybasedServiceVersion)];
+  NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+  KBConsoleLog(@"Keybase.app Version: %@ (%@)", info[@"CFBundleVersion"], info[@"CFBundleShortVersionString"]);
+  KBConsoleLog(@"Keybase Service Version: %@", info[@"KeybaseServiceVersion"]);
+  KBConsoleLog(@"Keybase Helper Version: %@", info[@"KeybaseHelperVersion"]);
+  KBConsoleLog(@"Keybase Fuse Version: %@", info[@"KeybaseFuseVersion"]);
+
   _client = appView.client;
   [self setNeedsLayout];
 }
 
 - (void)appView:(KBAppView *)appView didCheckInstall:(BOOL)installed installType:(KBInstallType)installType {
   if (installed) {
-    [self log:@"Installed."];
+    KBConsoleLog(@"Installed.");
   } else {
-    [self log:@"Install checked."];
+    KBConsoleLog(@"Install checked.");
   }
 }
 
 - (void)appView:(KBAppView *)appView didErrorOnInstall:(NSError *)error {
-  [self log:NSStringWithFormat(@"Install error: %@", error)];
+  KBConsoleLog(@"Install error: %@", error);
 }
 
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client {
-  [self log:@"Connecting..."];
+  KBConsoleLog(@"Connecting...");
 }
 
 - (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client {
-  [self log:@"Connected."];
+  KBConsoleLog(@"Connected.");
 }
 
 - (void)appView:(KBAppView *)appView didCheckStatusWithConfig:(KBRConfig *)config status:(KBRGetCurrentStatusRes *)status {
-  [self log:NSStringWithFormat(@"Keybase config:%@", [config propertiesDescription:@"\n\t"])];
-  [self log:NSStringWithFormat(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"")];
+  KBConsoleLog(@"Keybase config:%@", [config propertiesDescription:@"\n\t"]);
+  KBConsoleLog(@"Status:\n\tconfigured: %@\n\tregistered: %@\n\tloggedIn: %@\n\tusername: %@", @(status.configured), @(status.registered), @(status.loggedIn), status.user.username ? status.user.username : @"");
   [self setNeedsLayout];
 }
 
 - (void)appView:(KBAppView *)appView didLogMessage:(NSString *)message {
-  [self log:message];
+  KBConsoleLog(@"%@", message);
 }
 
 - (void)appView:(KBAppView *)appView didErrorOnConnect:(NSError *)error connectAttempt:(NSInteger)connectAttempt {
-  [self log:NSStringWithFormat(@"Failed to connect (%@): %@", @(connectAttempt), [error localizedDescription])];
+  KBConsoleLog(@"Failed to connect (%@): %@", @(connectAttempt), [error localizedDescription]);
 }
 
 - (void)appView:(KBAppView *)appView didDisconnectWithClient:(KBRPClient *)client {
-  [self log:@"Disconnected."];
+  KBConsoleLog(@"Disconnected.");
   [self setNeedsLayout];
 }
 
 - (void)appViewDidUpdateStatus:(KBAppView *)appView {
-  //[self log:@"Updated status."];
+  //KBConsoleLog(@"Updated status.");
 }
 
 @end

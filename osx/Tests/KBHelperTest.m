@@ -10,31 +10,23 @@
 #import <XCTest/XCTest.h>
 
 #import "KBHelper.h"
-#import "KBHelperClient.h"
+#import "KBDefines.h"
 
 @interface KBHelperTest : XCTestCase
 @end
 
 @implementation KBHelperTest
 
-- (void)testXPC {
-  XCTestExpectation *expectation = [self expectationWithDescription:@"Handle event"];
+- (void)testXpc {
+  XCTestExpectation *expectation = [self expectationWithDescription:@"Handle version"];
 
-
-  KBHelperClient *helperClient = [[KBHelperClient alloc] init];
   KBHelper *helper = [[KBHelper alloc] init];
-
-  xpc_object_t event = [helperClient XPCObjectForRequestWithMethod:@"version" params:nil error:nil];
-  XTCAssertNotNil(event);
-  [helper handleEvent:event completion:^(xpc_object_t reply) {
-    NSArray *response = [helperClient responseForXPCObject:reply error:nil];
-    DDLogDebug(@"Response: %@", response);
+  [helper handleRequestWithMethod:@"version" params:nil messageId:@(1) completion:^(NSError *error, id value) {
+    NSLog(@"value=%@", KBDescription(value));
     [expectation fulfill];
   }];
 
-  [self waitForExpectationsWithTimeout:1.0 handler:^(NSError *error) {
-
-  }];
+  [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 @end

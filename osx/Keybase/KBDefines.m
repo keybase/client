@@ -76,7 +76,9 @@ NSString *KBURLStringForUsername(NSString *username) {
 }
 
 NSString *KBDescription(id obj) {
-  if ([obj isKindOfClass:NSArray.class]) {
+  if ([obj isKindOfClass:NSNull.class]) {
+    return @"null";
+  } else if ([obj isKindOfClass:NSArray.class]) {
     return KBArrayDescription(obj);
   } else if ([obj isKindOfClass:NSDictionary.class]) {
     return KBDictionaryDescription(obj);

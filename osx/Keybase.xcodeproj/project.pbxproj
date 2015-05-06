@@ -22,6 +22,11 @@
 		001FCDE81AB2035C004486D3 /* KBViews.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDE71AB2035C004486D3 /* KBViews.m */; };
 		001FCDEC1AB21F5E004486D3 /* KBBorder.m in Sources */ = {isa = PBXBuildFile; fileRef = 001FCDEB1AB21F5E004486D3 /* KBBorder.m */; };
 		0025353B1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0025353A1AB8BC4D00583913 /* KBDeviceSetupDisplayView.m */; };
+		002A2BE31AF9792D006DFB51 /* KBHelperTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C45521AE6DF4700431829 /* KBHelperTest.m */; };
+		002A2BE41AF97936006DFB51 /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
+		002A2BE51AF9793A006DFB51 /* KBFSInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBFSInstaller.m */; };
+		002A2BE61AF9793C006DFB51 /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
+		002A2BE71AF9793E006DFB51 /* KBHLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A420551AE705220040CCDC /* KBHLog.m */; };
 		0032AFA01AEB363600AF4532 /* KBPGPAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0032AF9F1AEB363600AF4532 /* KBPGPAppView.m */; };
 		003C454A1AE5890900431829 /* KBTestInstallView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C45491AE5890900431829 /* KBTestInstallView.m */; };
 		003C454D1AE6CECD00431829 /* KBFSInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBFSInstaller.m */; };
@@ -29,7 +34,6 @@
 		0043928D1AEFFCB600D764F0 /* KBActivity.m in Sources */ = {isa = PBXBuildFile; fileRef = 0043928C1AEFFCB600D764F0 /* KBActivity.m */; };
 		004524821AE57DE0003A8D91 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CD1AE57B1900BFB0E7 /* KBLaunchCtl.m */; };
 		004524841AE57DE6003A8D91 /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CB1AE57B1900BFB0E7 /* KBInstaller.m */; };
-		004524851AE57DEC003A8D91 /* KBHelperClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C91AE57B1900BFB0E7 /* KBHelperClient.m */; };
 		004D14DD1A3FA64C0083888D /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 004D14DC1A3FA64C0083888D /* KBRPClient.m */; };
 		0053B6C81AC4E305001AE392 /* KBStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6C71AC4E305001AE392 /* KBStream.m */; };
 		0053B6D81AC5EE74001AE392 /* KBPGPOutputFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0053B6D71AC5EE74001AE392 /* KBPGPOutputFileView.m */; };
@@ -68,7 +72,7 @@
 		0057B0C51AE57A7A00BFB0E7 /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0D61AE57B1900BFB0E7 /* KBPriviledgedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0CF1AE57B1900BFB0E7 /* KBPriviledgedTask.m */; };
-		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; };
+		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		006A32E11ACB30380054457B /* KBText.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E01ACB30380054457B /* KBText.m */; };
 		006A32E51ACC5D940054457B /* KBUserListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E41ACC5D940054457B /* KBUserListView.m */; };
 		006A32E91ACC636E0054457B /* KBSearchListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 006A32E81ACC636E0054457B /* KBSearchListView.m */; };
@@ -349,7 +353,6 @@
 		00566A351A97DA5900CA236E /* KBAppKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppKit.h; sourceTree = "<group>"; };
 		00566A3F1A97EA9F00CA236E /* KBSearchResultView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResultView.h; sourceTree = "<group>"; };
 		00566A401A97EA9F00CA236E /* KBSearchResultView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResultView.m; sourceTree = "<group>"; };
-		00566A541A9BAD4800CA236E /* appdmg.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = appdmg.json; sourceTree = "<group>"; };
 		00566A581A9BAD4800CA236E /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
 		00566A5B1A9BAD4800CA236E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		0057B0B41AE57A4900BFB0E7 /* keybase.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = keybase.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -359,8 +362,6 @@
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		0057B0C31AE57A7A00BFB0E7 /* uninstall.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = uninstall.sh; sourceTree = "<group>"; };
-		0057B0C81AE57B1900BFB0E7 /* KBHelperClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperClient.h; sourceTree = "<group>"; };
-		0057B0C91AE57B1900BFB0E7 /* KBHelperClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperClient.m; sourceTree = "<group>"; };
 		0057B0CA1AE57B1900BFB0E7 /* KBInstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstaller.h; sourceTree = "<group>"; };
 		0057B0CB1AE57B1900BFB0E7 /* KBInstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstaller.m; sourceTree = "<group>"; };
 		0057B0CC1AE57B1900BFB0E7 /* KBLaunchCtl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchCtl.h; sourceTree = "<group>"; };
@@ -434,6 +435,7 @@
 		00A48FC91AD8693700723435 /* KBButtonView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBButtonView.m; sourceTree = "<group>"; };
 		00A48FCC1ADC823B00723435 /* KBLogFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLogFormatter.h; sourceTree = "<group>"; };
 		00A48FCD1ADC823B00723435 /* KBLogFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLogFormatter.m; sourceTree = "<group>"; };
+		00AB72171AF9724900646075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00ABEC701ACF2BEC00DA66FC /* KBPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPreferences.h; sourceTree = "<group>"; };
 		00ABEC711ACF2BEC00DA66FC /* KBPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPreferences.m; sourceTree = "<group>"; };
 		00ABEC741ACF327500DA66FC /* KBPrefGPGView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefGPGView.h; sourceTree = "<group>"; };
@@ -768,7 +770,6 @@
 			isa = PBXGroup;
 			children = (
 				00A420511AE6F88E0040CCDC /* Fuse */,
-				00566A541A9BAD4800CA236E /* appdmg.json */,
 				00566A581A9BAD4800CA236E /* build.sh */,
 				00566A5B1A9BAD4800CA236E /* README.md */,
 			);
@@ -797,8 +798,6 @@
 		0057B0C71AE57B1900BFB0E7 /* System */ = {
 			isa = PBXGroup;
 			children = (
-				0057B0C81AE57B1900BFB0E7 /* KBHelperClient.h */,
-				0057B0C91AE57B1900BFB0E7 /* KBHelperClient.m */,
 				0057B0CA1AE57B1900BFB0E7 /* KBInstaller.h */,
 				0057B0CB1AE57B1900BFB0E7 /* KBInstaller.m */,
 				0057B0CC1AE57B1900BFB0E7 /* KBLaunchCtl.h */,
@@ -1219,6 +1218,7 @@
 		4A1398D8A1B7A96F0CD7F917 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				00AB72171AF9724900646075 /* Info.plist */,
 				003C45521AE6DF4700431829 /* KBHelperTest.m */,
 				0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */,
 			);
@@ -1321,11 +1321,12 @@
 		00CC43411A3A9E6C006118A9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Gabriel Handford";
 				TargetAttributes = {
 					0057B0B31AE57A4900BFB0E7 = {
 						CreatedOnToolsVersion = 6.3;
+						DevelopmentTeam = 9EM7AUA3BG;
 					};
 					00CC43481A3A9E6C006118A9 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -1487,6 +1488,7 @@
 				00566A091A97DA1800CA236E /* KBAlert.m in Sources */,
 				001712521A951A9C00C7AD58 /* KBUserHeaderView.m in Sources */,
 				001712621A951D0B00C7AD58 /* KBDeviceSetupChooseView.m in Sources */,
+				002A2BE51AF9793A006DFB51 /* KBFSInstaller.m in Sources */,
 				00ABED551AD477EE00DA66FC /* KBPrefButton.m in Sources */,
 				001712661A951EE500C7AD58 /* KBKeySelectView.m in Sources */,
 				00D3069F1AB0C2B600F69B18 /* KBFilePreviewView.m in Sources */,
@@ -1512,6 +1514,7 @@
 				0017125A1A951A9C00C7AD58 /* KBUsersAppView.m in Sources */,
 				00A16B5F1AB383E0003EF505 /* KBKeyView.m in Sources */,
 				00566A0F1A97DA1800CA236E /* KBButton.m in Sources */,
+				002A2BE71AF9793E006DFB51 /* KBHLog.m in Sources */,
 				00C7DD551AA67DDC00F57AFC /* KBDevicesAppView.m in Sources */,
 				00A48FB61AD84C3100723435 /* KBMockViews.m in Sources */,
 				000530451AD75CBE0061C6E5 /* KBPopover.m in Sources */,
@@ -1529,6 +1532,7 @@
 				00566A1D1A97DA1800CA236E /* KBNavigationView.m in Sources */,
 				00ABED4D1AD44BDC00DA66FC /* KBPrefFileView.m in Sources */,
 				00F1D52A1AF2C23100DE23F1 /* KBImageLabel.m in Sources */,
+				002A2BE41AF97936006DFB51 /* KBHelper.m in Sources */,
 				0053B6FF1AC6325B001AE392 /* KBPGPVerifyView.m in Sources */,
 				00ABEC721ACF2BEC00DA66FC /* KBPreferences.m in Sources */,
 				0053B6EF1AC627F8001AE392 /* KBPGPSignView.m in Sources */,
@@ -1572,7 +1576,6 @@
 				00B544261A895A810044CC5B /* KBProofResult.m in Sources */,
 				00566A111A97DA1800CA236E /* KBImageTextView.m in Sources */,
 				006D571F1AAE2A2100D16CB8 /* KBFile.m in Sources */,
-				004524851AE57DEC003A8D91 /* KBHelperClient.m in Sources */,
 				00ABEC7A1ACF39BF00DA66FC /* KBPrefAdvancedView.m in Sources */,
 				00C7DD6E1AA7C1F600F57AFC /* KBHoverView.m in Sources */,
 				00DD38341AEE76B100691648 /* KBPGPEncryptAppView.m in Sources */,
@@ -1625,6 +1628,7 @@
 				00DD38371AEE7B7300691648 /* KBPGPSignAppView.m in Sources */,
 				001712281A94100500C7AD58 /* KBGPGKeysView.m in Sources */,
 				00B544381A8960D30044CC5B /* KBProveType.m in Sources */,
+				002A2BE61AF9793C006DFB51 /* KBHelperDefines.m in Sources */,
 				00DD383A1AEE86A200691648 /* KBPGPVerifyAppView.m in Sources */,
 				00ABEC8E1AD3138200DA66FC /* KBPrefTextField.m in Sources */,
 				00DD24601AA8E93100371CDA /* KBAppProgressView.m in Sources */,
@@ -1650,6 +1654,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				002A2BE31AF9792D006DFB51 /* KBHelperTest.m in Sources */,
 				00FBF6BD1AF149BC00CA7639 /* KBLaunchCtlTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1704,6 +1709,7 @@
 					Helper/keybase.Helper.plist,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -1727,6 +1733,7 @@
 					Helper/keybase.Helper.plist,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;

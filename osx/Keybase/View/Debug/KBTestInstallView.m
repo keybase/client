@@ -67,20 +67,20 @@
 }
 
 - (void)logError:(NSError *)error {
-  if (error) [_logView addObjects:@[error.localizedDescription]]; // TODO Better error display
+  if (error) [_logView addObjects:@[NSStringWithFormat(@"%@", error)]]; // TODO Better error display
 }
 
 - (void)install {
   NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
   NSError *error = nil;
-  if (![AppDelegate.sharedDelegate.helper install:&error]) {
+  if (![KBInstaller installServiceWithName:@"keybase.Helper" error:&error]) {
     if (error) {
       [self logError:error];
     } else {
-      [self log:@"Install failed without error"];
+      KBConsoleLog(@"Install failed without error");
     }
   } else {
-    [self log:@"Installed"];
+    KBConsoleLog(@"Installed");
   }
 }
 
@@ -91,16 +91,16 @@
     if (error) {
       [self logError:error];
     } else {
-      [self log:@"Install failed without error"];
+      KBConsoleLog(@"Install failed without error");
     }
   } else {
-    [self log:@"Connected"];
+    KBConsoleLog(@"Connected");
   }
 }
 
 - (void)checkVersion {
   NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
-  [AppDelegate.sharedDelegate.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSString *version) {
+  [AppDelegate.sharedDelegate.helper sendRequest:@"version" params:nil completion:^(NSError *error, id version) {
     if (error) {
       [self logError:error];
     } else {
@@ -112,9 +112,7 @@
 - (void)installKBFS {
   NSAssert(AppDelegate.sharedDelegate.helper, @"No helper");
 
-  NSString *path = [NSBundle.mainBundle pathForResource:@"osxfusefs.fs" ofType:@"bundle"];
-  NSAssert(path, @"Missing osxfusefs");
-  [AppDelegate.sharedDelegate.helper sendRequest:@"installKBFS" params:@[@{@"path": path}] completion:^(NSError *error, id value) {
+  [AppDelegate.sharedDelegate.helper sendRequest:@"install" params:nil completion:^(NSError *error, id value) {
     if (error) {
       [self logError:error];
     } else {

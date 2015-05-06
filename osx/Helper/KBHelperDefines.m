@@ -7,3 +7,12 @@
 //
 
 #import "KBHelperDefines.h"
+
+// Copied from ObjectiveSugar
+NSString *KBNSStringWithFormat(NSString *formatString, ...) {
+  va_list args;
+  va_start(args, formatString);
+  NSString *string = [[NSString alloc] initWithFormat:formatString arguments:args];
+  va_end(args);
+  return string;
+}

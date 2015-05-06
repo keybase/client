@@ -10,6 +10,11 @@
 
 @interface KBFSInstaller : NSObject
 
-- (BOOL)install:(NSString *)path error:(NSError **)error;
+- (instancetype)initWithPath:(NSString *)path;
+
+- (NSString *)sourceVersion;
+- (NSString *)destinationVersion;
+
+- (BOOL)install:(NSError **)error;
 
 @end

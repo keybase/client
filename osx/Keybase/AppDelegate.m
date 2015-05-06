@@ -27,7 +27,6 @@
 #import "KBPGPVerifyFileView.h"
 #import "KBEnvSelectView.h"
 #import "KBLogFormatter.h"
-#import "KBHelperClient.h"
 #import "KBPGPOutputView.h"
 
 #import <Sparkle/Sparkle.h>
@@ -38,7 +37,7 @@
 @property KBPreferences *preferences;
 @property BOOL alerting;
 
-@property KBHelperClient *helper;
+@property MPXPCClient *helper;
 
 @property NSStatusItem *statusItem; // Menubar
 
@@ -126,7 +125,7 @@
   [window kb_addChildWindowForView:_consoleView rect:CGRectMake(0, 40, 400, 400) position:KBWindowPositionRight title:@"Console" fixed:NO makeKey:NO];
   [_appView.delegates addObject:_consoleView];
 
-  _helper = [[KBHelperClient alloc] init];
+  _helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" priviledged:YES];
 
   KBRPClient *client = [[KBRPClient alloc] initWithEnvironment:environment];
   [_appView connect:client];
@@ -321,7 +320,8 @@
   }
 
   if (KBIsErrorName(error, @"LOGIN_REQUIRED")) {
-    [self.appView logout:NO];
+    [self.appView showInProgress:@"Loading"];
+    [self.appView checkStatus:nil];
     return YES;
   }
 

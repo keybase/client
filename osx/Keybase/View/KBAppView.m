@@ -275,7 +275,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
       if (error) {
         [AppDelegate setError:error sender:self];
       }
-
       [self checkStatus:nil];
     }];
   };

@@ -47,6 +47,7 @@
 - (void)showLogin;
 - (void)logout:(BOOL)prompt;
 
+- (void)showInProgress:(NSString *)title;
 - (void)checkStatus:(KBCompletionBlock)completion;
 
 - (NSString *)APIURLString:(NSString *)path;

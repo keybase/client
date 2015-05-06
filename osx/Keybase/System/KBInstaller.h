@@ -29,4 +29,7 @@ typedef void (^KBInstallCheck)(NSError *error, BOOL installed, KBInstallType ins
  */
 - (void)checkInstall:(KBInstallCheck)completion;
 
+// For helper install
++ (BOOL)installServiceWithName:(NSString *)name error:(NSError **)error;
+
 @end
