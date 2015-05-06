@@ -38,7 +38,8 @@ func (fs *KBFSOpsStandard) GetFavDirs() ([]DirId, error) {
 	return mdops.GetFavorites()
 }
 
-func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
+func (fs *KBFSOpsStandard) getMDInChannel(dir Path, isWrite bool) (
+	*RootMetadata, error) {
 	ver := fs.config.DataVersion()
 	if len(dir.Path) > 0 {
 		ver = dir.TailPointer().GetVer()
@@ -61,6 +62,12 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
 	}
 	fs.globalStateLock.RUnlock()
 
+	// if we're in read mode, we can't safely fetch the new MD without
+	// causing races, so bail
+	if !isWrite {
+		return nil, &WriteNeededInReadRequest{}
+	}
+
 	// not in cache, fetch from server and add to cache
 	mdops := fs.config.MDOps()
 	md, err := mdops.Get(dir.TopDir)
@@ -80,7 +87,7 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path) (*RootMetadata, error) {
 
 func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
 	*RootMetadata, error) {
-	md, err := fs.getMDInChannel(dir)
+	md, err := fs.getMDInChannel(dir, false)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +104,7 @@ func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
 
 func (fs *KBFSOpsStandard) getMDForWriteInChannel(dir Path) (
 	*RootMetadata, error) {
-	md, err := fs.getMDInChannel(dir)
+	md, err := fs.getMDInChannel(dir, true)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +224,7 @@ func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 		// already exists
 		if md.data.Dir.Type != Dir {
 			rwchan, errchan := fs.getChans(md.Id)
-			rwchan.QueueReadReq(func() { errchan <- fs.initMDInChannel(md) })
+			rwchan.QueueWriteReq(func() { errchan <- fs.initMDInChannel(md) })
 			err = <-errchan
 		}
 		return md, err
@@ -226,15 +233,32 @@ func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 	}
 }
 
+// execReadInChannel first queues the passed-in method as a read
+// request.  If it fails with a WriteNeededInReadRequest error, it
+// re-executes the method as a write request.  The passed-in method
+// must note whether or not this is a write call.
+func execReadInChannel(
+	rwchan *util.RWChannel, errchan errChan, f func(bool)) error {
+	rwchan.QueueReadReq(func() { f(false) })
+	err := <-errchan
+
+	// Redo in a write request if needed
+	if _, ok := err.(*WriteNeededInReadRequest); ok {
+		rwchan.QueueWriteReq(func() { f(true) })
+		err = <-errchan
+	}
+	return err
+}
+
 func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
-	rwchan, errchan := fs.getChans(dir)
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
-	rwchan.QueueReadReq(func() {
-		md, err = fs.getMDInChannel(Path{TopDir: dir})
+	rwchan, errchan := fs.getChans(dir)
+	execReadInChannel(rwchan, errchan, func(isWrite bool) {
+		md, err = fs.getMDInChannel(Path{TopDir: dir}, isWrite)
 		errchan <- err
 	})
-	<-errchan
+
 	// Type defaults to File, so if it was set to Dir then MD already exists
 	if err != nil || md.data.Dir.Type == Dir {
 		return
@@ -256,7 +280,7 @@ func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
 type makeNewBlock func() Block
 
 func (fs *KBFSOpsStandard) getBlockInChannel(
-	dir Path, id BlockId, newBlock makeNewBlock) (
+	dir Path, id BlockId, newBlock makeNewBlock, isWrite bool) (
 	Block, error) {
 	ver := dir.TailPointer().GetVer()
 	if ver > fs.config.DataVersion() {
@@ -270,7 +294,7 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 		// fetch the block, and add to cache
 		bops := fs.config.BlockOps()
 		block := newBlock()
-		if md, err := fs.getMDInChannel(dir); err != nil {
+		if md, err := fs.getMDInChannel(dir, isWrite); err != nil {
 			return nil, err
 		} else if k, err :=
 			fs.config.KeyManager().GetSecretBlockKey(dir, id, md); err != nil {
@@ -294,7 +318,8 @@ func (fs *KBFSOpsStandard) getDirInChannel(dir Path, forWriting bool) (
 
 	// get the directory for the last element in the path
 	id := dir.TailPointer().Id
-	if block, err := fs.getBlockInChannel(dir, id, NewDirBlock); err == nil {
+	if block, err := fs.getBlockInChannel(
+		dir, id, NewDirBlock, forWriting); err == nil {
 		if dblock, ok := block.(*DirBlock); ok {
 			if forWriting && !fs.config.BlockCache().IsDirty(id) {
 				// copy the block if it's for writing
@@ -323,7 +348,8 @@ func (fs *KBFSOpsStandard) getFileInChannel(dir Path, forWriting bool) (
 
 	// get the directory for the last element in the path
 	id := dir.TailPointer().Id
-	if block, err := fs.getBlockInChannel(dir, id, NewFileBlock); err == nil {
+	if block, err := fs.getBlockInChannel(
+		dir, id, NewFileBlock, forWriting); err == nil {
 		if fblock, ok := block.(*FileBlock); ok {
 			if forWriting && !fs.config.BlockCache().IsDirty(id) {
 				// copy the block if it's for writing
@@ -342,11 +368,10 @@ func (fs *KBFSOpsStandard) getFileInChannel(dir Path, forWriting bool) (
 
 func (fs *KBFSOpsStandard) GetDir(dir Path) (block *DirBlock, err error) {
 	rwchan, errchan := fs.getChans(dir.TopDir)
-	rwchan.QueueReadReq(func() {
-		block, err = fs.getDirInChannel(dir, false)
+	execReadInChannel(rwchan, errchan, func(isWrite bool) {
+		block, err = fs.getDirInChannel(dir, isWrite)
 		errchan <- err
 	})
-	<-errchan
 	return
 }
 
@@ -439,7 +464,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
-	md, err := fs.getMDInChannel(dir)
+	md, err := fs.getMDInChannel(dir, true)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -782,7 +807,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here
 	if de.Type == File || de.Type == Exec {
-		block, err := fs.getBlockInChannel(path, de.Id, NewFileBlock)
+		block, err := fs.getBlockInChannel(path, de.Id, NewFileBlock, true)
 		if err != nil {
 			return Path{}, &NoSuchBlockError{de.Id}
 		}
@@ -1040,11 +1065,10 @@ func (fs *KBFSOpsStandard) readInChannel(file Path, dest []byte, off int64) (
 func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
 	numRead int64, err error) {
 	rwchan, errchan := fs.getChans(file.TopDir)
-	rwchan.QueueReadReq(func() {
+	execReadInChannel(rwchan, errchan, func(isWrite bool) {
 		numRead, err = fs.readInChannel(file, dest, off)
 		errchan <- err
 	})
-	<-errchan
 	return
 }
 
