@@ -5,9 +5,9 @@ package libkbfs
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
+	fmt "fmt"
 	libkb "github.com/keybase/client/go/libkb"
 	time "time"
-	fmt "fmt"
 )
 
 // Mock of Block interface
@@ -1347,40 +1347,40 @@ func (_mr *_MockBlockSplitterRecorder) ShouldEmbedBlockChanges(arg0 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ShouldEmbedBlockChanges", arg0)
 }
 
-// Mock of Notifiee interface
-type MockNotifiee struct {
+// Mock of Observer interface
+type MockObserver struct {
 	ctrl     *gomock.Controller
-	recorder *_MockNotifieeRecorder
+	recorder *_MockObserverRecorder
 }
 
-// Recorder for MockNotifiee (not exported)
-type _MockNotifieeRecorder struct {
-	mock *MockNotifiee
+// Recorder for MockObserver (not exported)
+type _MockObserverRecorder struct {
+	mock *MockObserver
 }
 
-func NewMockNotifiee(ctrl *gomock.Controller) *MockNotifiee {
-	mock := &MockNotifiee{ctrl: ctrl}
-	mock.recorder = &_MockNotifieeRecorder{mock}
+func NewMockObserver(ctrl *gomock.Controller) *MockObserver {
+	mock := &MockObserver{ctrl: ctrl}
+	mock.recorder = &_MockObserverRecorder{mock}
 	return mock
 }
 
-func (_m *MockNotifiee) EXPECT() *_MockNotifieeRecorder {
+func (_m *MockObserver) EXPECT() *_MockObserverRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifiee) LocalChange(path Path) {
+func (_m *MockObserver) LocalChange(path Path) {
 	_m.ctrl.Call(_m, "LocalChange", path)
 }
 
-func (_mr *_MockNotifieeRecorder) LocalChange(arg0 interface{}) *gomock.Call {
+func (_mr *_MockObserverRecorder) LocalChange(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LocalChange", arg0)
 }
 
-func (_m *MockNotifiee) BatchChanges(dir DirId, paths []Path) {
+func (_m *MockObserver) BatchChanges(dir DirId, paths []Path) {
 	_m.ctrl.Call(_m, "BatchChanges", dir, paths)
 }
 
-func (_mr *_MockNotifieeRecorder) BatchChanges(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockObserverRecorder) BatchChanges(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BatchChanges", arg0, arg1)
 }
 
@@ -1405,7 +1405,7 @@ func (_m *MockNotifier) EXPECT() *_MockNotifierRecorder {
 	return _m.recorder
 }
 
-func (_m *MockNotifier) RegisterForChanges(dirs []DirId, n Notifiee) error {
+func (_m *MockNotifier) RegisterForChanges(dirs []DirId, n Observer) error {
 	ret := _m.ctrl.Call(_m, "RegisterForChanges", dirs, n)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1415,7 +1415,7 @@ func (_mr *_MockNotifierRecorder) RegisterForChanges(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForChanges", arg0, arg1)
 }
 
-func (_m *MockNotifier) UnregisterFromChanges(dirs []DirId, n Notifiee) error {
+func (_m *MockNotifier) UnregisterFromChanges(dirs []DirId, n Observer) error {
 	ret := _m.ctrl.Call(_m, "UnregisterFromChanges", dirs, n)
 	ret0, _ := ret[0].(error)
 	return ret0

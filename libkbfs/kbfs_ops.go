@@ -15,9 +15,9 @@ import (
 type KBFSOpsStandard struct {
 	config          Config
 	dirRWChans      *DirRWChannels
-	globalStateLock sync.RWMutex   // protects heads and notifees
+	globalStateLock sync.RWMutex   // protects heads and observers
 	heads           map[DirId]MDId // temporary until state machine is ready
-	notifiees       map[DirId][]Notifiee
+	observers       map[DirId][]Observer
 }
 
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
@@ -25,7 +25,7 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		config:     config,
 		dirRWChans: NewDirRWChannels(config),
 		heads:      make(map[DirId]MDId),
-		notifiees:  make(map[DirId][]Notifiee),
+		observers:  make(map[DirId][]Observer),
 	}
 }
 
@@ -1594,26 +1594,27 @@ func (fs *KBFSOpsStandard) Sync(file Path) (p Path, err error) {
 
 // Notifier:
 
-func (fs *KBFSOpsStandard) RegisterForChanges(dirs []DirId, n Notifiee) error {
+func (fs *KBFSOpsStandard) RegisterForChanges(
+	dirs []DirId, obs Observer) error {
 	fs.globalStateLock.Lock()
 	defer fs.globalStateLock.Unlock()
 	for _, dir := range dirs {
 		// It's the caller's responsibility to make sure
-		// RegisterForChanges isn't called twice for the same Notifiee
-		fs.notifiees[dir] = append(fs.notifiees[dir], n)
+		// RegisterForChanges isn't called twice for the same Observer
+		fs.observers[dir] = append(fs.observers[dir], obs)
 	}
 	return nil
 }
 
 func (fs *KBFSOpsStandard) UnregisterFromChanges(
-	dirs []DirId, n Notifiee) error {
+	dirs []DirId, obs Observer) error {
 	fs.globalStateLock.Lock()
 	defer fs.globalStateLock.Unlock()
 	for _, dir := range dirs {
-		ns := fs.notifiees[dir]
-		for i, oldN := range ns {
-			if oldN == n {
-				fs.notifiees[dir] = append(ns[:i], ns[i+1:]...)
+		ns := fs.observers[dir]
+		for i, oldObs := range ns {
+			if oldObs == obs {
+				fs.observers[dir] = append(ns[:i], ns[i+1:]...)
 				break
 			}
 		}
@@ -1624,15 +1625,15 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 func (fs *KBFSOpsStandard) notifyLocal(path Path) {
 	fs.globalStateLock.RLock()
 	defer fs.globalStateLock.RUnlock()
-	for _, n := range fs.notifiees[path.TopDir] {
-		n.LocalChange(path)
+	for _, obs := range fs.observers[path.TopDir] {
+		obs.LocalChange(path)
 	}
 }
 
 func (fs *KBFSOpsStandard) notifyBatch(dir DirId, paths []Path) {
 	fs.globalStateLock.RLock()
 	defer fs.globalStateLock.RUnlock()
-	for _, n := range fs.notifiees[dir] {
-		n.BatchChanges(dir, paths)
+	for _, obs := range fs.observers[dir] {
+		obs.BatchChanges(dir, paths)
 	}
 }

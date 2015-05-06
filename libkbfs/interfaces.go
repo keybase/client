@@ -269,10 +269,10 @@ type BlockSplitter interface {
 	ShouldEmbedBlockChanges(bc *BlockChanges) bool
 }
 
-// Notifiee can be notified that there is an available update for a
+// Observer can be notified that there is an available update for a
 // given directory.  The notification callbacks should not block, or
 // make any calls to the Notifier interface.
-type Notifiee interface {
+type Observer interface {
 	// LocalChange announces that the file at this path has been
 	// updated locally, but not yet saved at the server.  The nodes
 	// along the path are still identified by the same IDs.
@@ -285,8 +285,8 @@ type Notifiee interface {
 
 // Notifier notifies registrants of directory changes
 type Notifier interface {
-	RegisterForChanges(dirs []DirId, n Notifiee) error
-	UnregisterFromChanges(dirs []DirId, n Notifiee) error
+	RegisterForChanges(dirs []DirId, obs Observer) error
+	UnregisterFromChanges(dirs []DirId, obs Observer) error
 }
 
 type Config interface {
