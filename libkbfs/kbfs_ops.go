@@ -1276,20 +1276,21 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	}
 
 	// update the local entry size
-	if dblock, de, err := fs.getEntryInChannel(file); err == nil {
-		md.AddUnrefBlock(file, de.BlockPointer)
-		de.QuotaSize = 0
-		de.Size = size
-		de.Writer = user
-		dblock.Children[file.TailName()] = de
-		// the copy will be dirty, so put it in the cache
-		// TODO: Once we implement indirect dir blocks, make sure that
-		// the pointer to dblock in its parent block has QuotaSize 0.
-		fs.config.BlockCache().Put(
-			file.ParentPath().TailPointer().Id, dblock, true)
-	} else {
+	dblock, de, err := fs.getEntryInChannel(file)
+	if err != nil {
 		return err
 	}
+
+	md.AddUnrefBlock(file, de.BlockPointer)
+	de.QuotaSize = 0
+	de.Size = size
+	de.Writer = user
+	dblock.Children[file.TailName()] = de
+	// the copy will be dirty, so put it in the cache
+	// TODO: Once we implement indirect dir blocks, make sure that
+	// the pointer to dblock in its parent block has QuotaSize 0.
+	fs.config.BlockCache().Put(
+		file.ParentPath().TailPointer().Id, dblock, true)
 
 	// keep the old block ID while it's dirty
 	err = fs.config.BlockCache().Put(id, block, true)
@@ -1297,6 +1298,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 		return err
 	}
 	fs.notifyLocal(file)
+	return nil
 }
 
 func (fs *KBFSOpsStandard) Truncate(file Path, size uint64) error {
