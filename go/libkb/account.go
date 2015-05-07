@@ -19,6 +19,7 @@ type Account struct {
 
 func NewAccount(g *GlobalContext) *Account {
 	return &Account{
+		localSession: newSession(g),
 		secretSyncer: NewSecretSyncer(g),
 		Contextified: NewContextified(g),
 	}
@@ -29,7 +30,13 @@ func (a *Account) LoggedIn() bool {
 }
 
 func (a *Account) LoadLocalSession() error {
-	return nil
+	return a.LocalSession().Load()
+}
+
+func (a *Account) LocalSession() *Session {
+	a.RLock()
+	defer a.RUnlock()
+	return a.localSession
 }
 
 func (a *Account) LoadLoginSession(emailOrUsername string) error {
@@ -80,6 +87,12 @@ func (a *Account) LoginSession() *LoginSession {
 func (a *Account) Logout() error {
 	a.ClearStreamCache()
 
+	a.RLock()
+	if err := a.localSession.Logout(); err != nil {
+		a.RUnlock()
+		return err
+	}
+	a.RUnlock()
 	a.Lock()
 	a.localSession = nil
 	a.loginSession = nil

@@ -66,6 +66,12 @@ func (s *Session) GetCsrf() string {
 	return s.csrf
 }
 
+func (s *Session) APIArgs() (token, csrf string) {
+	s.RLock()
+	defer s.RUnlock()
+	return s.token, s.csrf
+}
+
 func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
 	s.Lock()
 	s.valid = true
@@ -259,6 +265,7 @@ func (s *Session) IsValid() bool {
 }
 
 func (s *Session) postLogout() error {
+
 	_, err := s.G().API.Post(ApiArg{
 		Endpoint:    "logout",
 		NeedSession: true,

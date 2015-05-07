@@ -22,7 +22,7 @@ func (u *LoginUI) GetEmailOrUsername(dummy int) (ret string, err error) {
 }
 
 func (h *LoginHandler) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
-	return G.LoginState().GetConfiguredAccounts()
+	return libkb.GetConfiguredAccounts()
 }
 
 func (h *LoginHandler) Logout() error {

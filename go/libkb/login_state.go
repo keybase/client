@@ -43,7 +43,7 @@ func NewLoginState(g *GlobalContext) *LoginState {
 }
 
 func (s *LoginState) SessionArgs() (token, csrf string) {
-	return s.session.GetToken(), s.session.GetCsrf()
+	return s.G().Account().LocalSession().APIArgs()
 }
 
 func (s *LoginState) UserInfo() (uid UID, username, token string, deviceSubkeyKid KID, err error) {
@@ -61,27 +61,27 @@ func (s *LoginState) UserInfo() (uid UID, username, token string, deviceSubkeyKi
 	username = user.GetName()
 	// TODO: Make sure token is consistent with other return
 	// values (i.e., make this not racy).
-	token = s.session.GetToken()
+	token = s.G().Account().LocalSession().GetToken()
 	return
 }
 
 func (s *LoginState) UID() *UID {
-	return s.session.GetUID()
+	return s.G().Account().LocalSession().GetUID()
 }
 
 func (s *LoginState) SessionLoad() error {
-	return s.session.Load()
+	return s.G().Account().LocalSession().Load()
 }
 
 // IsLoggedIn returns true if the user is logged in.  It does not
 // try to load the session.
 func (s *LoginState) IsLoggedIn() bool {
-	return s.session.IsLoggedIn()
+	return s.G().Account().LocalSession().IsLoggedIn()
 }
 
 // IsLoggedInLoad will load and check the session of necessary.
 func (s *LoginState) IsLoggedInLoad() (bool, error) {
-	return s.session.loadAndCheck()
+	return s.G().Account().LocalSession().loadAndCheck()
 }
 
 func (s *LoginState) AssertLoggedIn() error {
@@ -105,13 +105,13 @@ func (s *LoginState) AssertLoggedOut() error {
 }
 
 func (s *LoginState) checkSession() error {
-	return s.session.Check()
+	return s.G().Account().LocalSession().Check()
 }
 
 // SetSignupRes should only be called by the signup engine, and
 // within an ExternalFunc handler.
 func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID, salt []byte) error {
-	if err := s.session.Load(); err != nil {
+	if err := s.G().Account().LocalSession().Load(); err != nil {
 		return err
 	}
 
@@ -125,23 +125,6 @@ func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID
 		username:  username,
 		uid:       uid,
 	})
-}
-
-func (s *LoginState) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
-	usernames, err := GetUsersWithStoredSecrets()
-	if err != nil {
-		return nil, err
-	}
-	configuredAccounts := make([]keybase1.ConfiguredAccount, len(usernames))
-
-	for i, username := range usernames {
-		configuredAccounts[i] = keybase1.ConfiguredAccount{
-			Username:        username,
-			HasStoredSecret: true,
-		}
-	}
-
-	return configuredAccounts, nil
 }
 
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
@@ -190,7 +173,7 @@ func (s *LoginState) ExternalFunc(f func() error) error {
 
 func (s *LoginState) Shutdown() error {
 	close(s.requests)
-	return s.session.Write()
+	return s.G().Account().LocalSession().Write()
 }
 
 // GetPassphraseStream either returns a cached, verified passphrase stream
@@ -355,8 +338,8 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 		return err
 	}
 
-	s.session.SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
-	if err := s.session.Write(); err != nil {
+	s.G().Account().LocalSession().SetLoggedIn(res.sessionID, res.csrfToken, res.username, res.uid)
+	if err := s.G().Account().LocalSession().Write(); err != nil {
 		return err
 	}
 	// Set up our SecretSyncer to work on the logged in user from here on
@@ -366,11 +349,6 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 	s.G().Account().SecretSyncer().SetUID(&res.uid)
 
 	return nil
-}
-
-// XXX not necessary.  G.Logout will clear the account.
-func (s *LoginState) clearPassphrase() {
-	s.G().Account().ClearStreamCache()
 }
 
 func (s *LoginState) ClearStoredSecret(username string) error {
@@ -474,7 +452,7 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 		return
 	}
 
-	un := s.session.GetUsername()
+	un := s.G().Account().LocalSession().GetUsername()
 	if loggedInTmp && len(username) > 0 && un != nil && username != *un {
 		err = LoggedInError{}
 		return
@@ -741,20 +719,16 @@ func (s *LoginState) loginWithPassphrase(username, passphrase string, storeSecre
 
 func (s *LoginState) logout() error {
 	s.G().Log.Debug("+ Logout called")
-	err := s.session.Logout()
-	if err == nil {
-		s.clearPassphrase()
-	}
-	G.Keyrings.ClearSecretKeys()
-	G.Log.Debug("- Logout called")
-	return err
+	s.G().Keyrings.ClearSecretKeys()
+	s.G().Log.Debug("- Logout called")
+	return nil
 }
 
 func (s *LoginState) LoadSKBKeyring() (*SKBKeyringFile, error) {
 	if !s.IsLoggedIn() {
 		return nil, LoginRequiredError{}
 	}
-	unp := s.session.GetUsername()
+	unp := s.G().Account().LocalSession().GetUsername()
 	// not sure how this could happen, but just in case:
 	if unp == nil {
 		return nil, NoUsernameError{}
