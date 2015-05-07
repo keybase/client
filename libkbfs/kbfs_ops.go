@@ -10,6 +10,13 @@ import (
 	"github.com/keybase/kbfs/util"
 )
 
+type reqType int
+
+const (
+	read  reqType = iota // A read request
+	write         = iota // A write request
+)
+
 // KBFSOpsStandard implements the KBFS interface, and is go-routine
 // safe by using per-top-level-directory read-write locks
 type KBFSOpsStandard struct {
@@ -38,7 +45,7 @@ func (fs *KBFSOpsStandard) GetFavDirs() ([]DirId, error) {
 	return mdops.GetFavorites()
 }
 
-func (fs *KBFSOpsStandard) getMDInChannel(dir Path, isWrite bool) (
+func (fs *KBFSOpsStandard) getMDInChannel(dir Path, rtype reqType) (
 	*RootMetadata, error) {
 	ver := fs.config.DataVersion()
 	if len(dir.Path) > 0 {
@@ -64,7 +71,7 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path, isWrite bool) (
 
 	// if we're in read mode, we can't safely fetch the new MD without
 	// causing races, so bail
-	if !isWrite {
+	if rtype == read {
 		return nil, &WriteNeededInReadRequest{}
 	}
 
@@ -87,7 +94,7 @@ func (fs *KBFSOpsStandard) getMDInChannel(dir Path, isWrite bool) (
 
 func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
 	*RootMetadata, error) {
-	md, err := fs.getMDInChannel(dir, false)
+	md, err := fs.getMDInChannel(dir, read)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +111,7 @@ func (fs *KBFSOpsStandard) getMDForReadInChannel(dir Path) (
 
 func (fs *KBFSOpsStandard) getMDForWriteInChannel(dir Path) (
 	*RootMetadata, error) {
-	md, err := fs.getMDInChannel(dir, true)
+	md, err := fs.getMDInChannel(dir, write)
 	if err != nil {
 		return nil, err
 	}
@@ -238,13 +245,13 @@ func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 // re-executes the method as a write request.  The passed-in method
 // must note whether or not this is a write call.
 func execReadInChannel(
-	rwchan *util.RWChannel, errchan errChan, f func(bool)) error {
-	rwchan.QueueReadReq(func() { f(false) })
+	rwchan *util.RWChannel, errchan errChan, f func(reqType)) error {
+	rwchan.QueueReadReq(func() { f(read) })
 	err := <-errchan
 
 	// Redo in a write request if needed
 	if _, ok := err.(*WriteNeededInReadRequest); ok {
-		rwchan.QueueWriteReq(func() { f(true) })
+		rwchan.QueueWriteReq(func() { f(write) })
 		err = <-errchan
 	}
 	return err
@@ -254,8 +261,8 @@ func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
 	rwchan, errchan := fs.getChans(dir)
-	execReadInChannel(rwchan, errchan, func(isWrite bool) {
-		md, err = fs.getMDInChannel(Path{TopDir: dir}, isWrite)
+	execReadInChannel(rwchan, errchan, func(rtype reqType) {
+		md, err = fs.getMDInChannel(Path{TopDir: dir}, rtype)
 		errchan <- err
 	})
 
@@ -280,7 +287,7 @@ func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
 type makeNewBlock func() Block
 
 func (fs *KBFSOpsStandard) getBlockInChannel(
-	dir Path, id BlockId, newBlock makeNewBlock, isWrite bool) (
+	dir Path, id BlockId, newBlock makeNewBlock, rtype reqType) (
 	Block, error) {
 	ver := dir.TailPointer().GetVer()
 	if ver > fs.config.DataVersion() {
@@ -294,7 +301,7 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 		// fetch the block, and add to cache
 		bops := fs.config.BlockOps()
 		block := newBlock()
-		if md, err := fs.getMDInChannel(dir, isWrite); err != nil {
+		if md, err := fs.getMDInChannel(dir, rtype); err != nil {
 			return nil, err
 		} else if k, err :=
 			fs.config.KeyManager().GetSecretBlockKey(dir, id, md); err != nil {
@@ -310,7 +317,7 @@ func (fs *KBFSOpsStandard) getBlockInChannel(
 	}
 }
 
-func (fs *KBFSOpsStandard) getDirInChannel(dir Path, forWriting bool) (
+func (fs *KBFSOpsStandard) getDirInChannel(dir Path, rtype reqType) (
 	*DirBlock, error) {
 	if _, err := fs.getMDForReadInChannel(dir); err != nil {
 		return nil, err
@@ -319,9 +326,9 @@ func (fs *KBFSOpsStandard) getDirInChannel(dir Path, forWriting bool) (
 	// get the directory for the last element in the path
 	id := dir.TailPointer().Id
 	if block, err := fs.getBlockInChannel(
-		dir, id, NewDirBlock, forWriting); err == nil {
+		dir, id, NewDirBlock, rtype); err == nil {
 		if dblock, ok := block.(*DirBlock); ok {
-			if forWriting && !fs.config.BlockCache().IsDirty(id) {
+			if rtype == write && !fs.config.BlockCache().IsDirty(id) {
 				// copy the block if it's for writing
 				//
 				// TODO: We should make a deep copy,
@@ -340,7 +347,7 @@ func (fs *KBFSOpsStandard) getDirInChannel(dir Path, forWriting bool) (
 	}
 }
 
-func (fs *KBFSOpsStandard) getFileInChannel(dir Path, forWriting bool) (
+func (fs *KBFSOpsStandard) getFileInChannel(dir Path, rtype reqType) (
 	*FileBlock, error) {
 	if _, err := fs.getMDForReadInChannel(dir); err != nil {
 		return nil, err
@@ -349,9 +356,9 @@ func (fs *KBFSOpsStandard) getFileInChannel(dir Path, forWriting bool) (
 	// get the directory for the last element in the path
 	id := dir.TailPointer().Id
 	if block, err := fs.getBlockInChannel(
-		dir, id, NewFileBlock, forWriting); err == nil {
+		dir, id, NewFileBlock, rtype); err == nil {
 		if fblock, ok := block.(*FileBlock); ok {
-			if forWriting && !fs.config.BlockCache().IsDirty(id) {
+			if rtype == write && !fs.config.BlockCache().IsDirty(id) {
 				// copy the block if it's for writing
 				fblockCopy := NewFileBlock().(*FileBlock)
 				*fblockCopy = *fblock
@@ -368,8 +375,8 @@ func (fs *KBFSOpsStandard) getFileInChannel(dir Path, forWriting bool) (
 
 func (fs *KBFSOpsStandard) GetDir(dir Path) (block *DirBlock, err error) {
 	rwchan, errchan := fs.getChans(dir.TopDir)
-	execReadInChannel(rwchan, errchan, func(isWrite bool) {
-		block, err = fs.getDirInChannel(dir, isWrite)
+	execReadInChannel(rwchan, errchan, func(rtype reqType) {
+		block, err = fs.getDirInChannel(dir, rtype)
 		errchan <- err
 	})
 	return
@@ -464,7 +471,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
-	md, err := fs.getMDInChannel(dir, true)
+	md, err := fs.getMDInChannel(dir, write)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -504,7 +511,7 @@ func (fs *KBFSOpsStandard) syncBlockInChannel(
 			fs.globalStateLock.RUnlock()
 		} else {
 			prevDir := Path{dir.TopDir, dir.Path[:prevIdx+1]}
-			prevDblock, err = fs.getDirInChannel(prevDir, true)
+			prevDblock, err = fs.getDirInChannel(prevDir, write)
 			if err != nil {
 				return Path{}, DirEntry{}, err
 			}
@@ -659,7 +666,7 @@ func (fs *KBFSOpsStandard) createEntryInChannel(
 		return Path{}, DirEntry{}, err
 	}
 
-	dblock, err := fs.getDirInChannel(dir, true)
+	dblock, err := fs.getDirInChannel(dir, write)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -690,7 +697,7 @@ func (fs *KBFSOpsStandard) createEntryInChannel(
 
 	// the parent's mtime/ctime also need to be updated
 	if len(dir.Path) > 1 {
-		if pblock, err := fs.getDirInChannel(*dir.ParentPath(), true); err == nil {
+		if pblock, err := fs.getDirInChannel(*dir.ParentPath(), write); err == nil {
 			parentDe := pblock.Children[dir.TailName()]
 			parentDe.Mtime = time.Now().UnixNano()
 			parentDe.Ctime = time.Now().UnixNano()
@@ -743,7 +750,7 @@ func (fs *KBFSOpsStandard) createLinkInChannel(
 		return Path{}, DirEntry{}, err
 	}
 
-	dblock, err := fs.getDirInChannel(dir, true)
+	dblock, err := fs.getDirInChannel(dir, write)
 	if err != nil {
 		return Path{}, DirEntry{}, err
 	}
@@ -790,7 +797,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 		return Path{}, err
 	}
 
-	pblock, err := fs.getDirInChannel(parentPath, true)
+	pblock, err := fs.getDirInChannel(parentPath, write)
 	if err != nil {
 		return Path{}, err
 	}
@@ -807,7 +814,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here
 	if de.Type == File || de.Type == Exec {
-		block, err := fs.getBlockInChannel(path, de.Id, NewFileBlock, true)
+		block, err := fs.getBlockInChannel(path, de.Id, NewFileBlock, write)
 		if err != nil {
 			return Path{}, &NoSuchBlockError{de.Id}
 		}
@@ -837,7 +844,7 @@ func (fs *KBFSOpsStandard) RemoveDir(dir Path) (p Path, err error) {
 	rwchan.QueueWriteReq(func() {
 		// check for children of the directory, if we can
 		var dblock *DirBlock
-		dblock, err = fs.getDirInChannel(dir, false)
+		dblock, err = fs.getDirInChannel(dir, read)
 		if err == nil {
 			if len(dblock.Children) > 0 {
 				err = &DirNotEmptyError{dir.TailName()}
@@ -872,7 +879,7 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	}
 
 	// look up in the old path
-	oldPBlock, err := fs.getDirInChannel(oldParent, true)
+	oldPBlock, err := fs.getDirInChannel(oldParent, write)
 	if err != nil {
 		return Path{}, Path{}, err
 	}
@@ -882,7 +889,7 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	}
 
 	// look up in the old path
-	newPBlock, err := fs.getDirInChannel(newParent, true)
+	newPBlock, err := fs.getDirInChannel(newParent, write)
 	if err != nil {
 		return Path{}, Path{}, err
 	}
@@ -931,7 +938,7 @@ func (fs *KBFSOpsStandard) renameInChannel(
 	} else {
 		// still need to update the old parent's times
 		if b, err := fs.getDirInChannel(
-			*oldParent.ParentPath(), true); err == nil {
+			*oldParent.ParentPath(), write); err == nil {
 			if de, ok := b.Children[oldParent.TailName()]; ok {
 				de.Ctime = time.Now().UnixNano()
 				de.Mtime = time.Now().UnixNano()
@@ -976,7 +983,7 @@ func (fs *KBFSOpsStandard) Rename(
 }
 
 func (fs *KBFSOpsStandard) getFileBlockAtOffset(
-	file Path, topBlock *FileBlock, off int64, asWrite bool) (
+	file Path, topBlock *FileBlock, off int64, rtype reqType) (
 	id BlockId, parentBlock *FileBlock, indexInParent int, block *FileBlock,
 	more bool, startOff int64, err error) {
 	// find the block matching the offset, if it exists
@@ -1011,7 +1018,7 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 		newPath.Path = append(newPath.Path, PathNode{
 			nextPtr.BlockPointer, file.TailName(),
 		})
-		if block, err = fs.getFileInChannel(newPath, asWrite); err != nil {
+		if block, err = fs.getFileInChannel(newPath, rtype); err != nil {
 			return
 		}
 		if nextPtr.QuotaSize > 0 && nextPtr.QuotaSize < uint32(len(block.Contents)) {
@@ -1028,7 +1035,7 @@ func (fs *KBFSOpsStandard) getFileBlockAtOffset(
 func (fs *KBFSOpsStandard) readInChannel(file Path, dest []byte, off int64) (
 	int64, error) {
 	// getFileInChannel already checks read permissions
-	fblock, err := fs.getFileInChannel(file, false)
+	fblock, err := fs.getFileInChannel(file, read)
 	if err != nil {
 		return 0, err
 	}
@@ -1040,7 +1047,7 @@ func (fs *KBFSOpsStandard) readInChannel(file Path, dest []byte, off int64) (
 		nextByte := nRead + off
 		toRead := n - nRead
 		_, _, _, block, _, startOff, err :=
-			fs.getFileBlockAtOffset(file, fblock, nextByte, false)
+			fs.getFileBlockAtOffset(file, fblock, nextByte, read)
 		if err != nil {
 			return 0, err
 		}
@@ -1065,7 +1072,7 @@ func (fs *KBFSOpsStandard) readInChannel(file Path, dest []byte, off int64) (
 func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
 	numRead int64, err error) {
 	rwchan, errchan := fs.getChans(file.TopDir)
-	execReadInChannel(rwchan, errchan, func(isWrite bool) {
+	execReadInChannel(rwchan, errchan, func(rtype reqType) {
 		numRead, err = fs.readInChannel(file, dest, off)
 		errchan <- err
 	})
@@ -1075,7 +1082,7 @@ func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
 func (fs *KBFSOpsStandard) getEntryInChannel(file Path) (
 	*DirBlock, DirEntry, error) {
 	parentPath := file.ParentPath()
-	dblock, err := fs.getDirInChannel(*parentPath, true)
+	dblock, err := fs.getDirInChannel(*parentPath, write)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -1123,7 +1130,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 		return err
 	}
 
-	fblock, err := fs.getFileInChannel(file, true)
+	fblock, err := fs.getFileInChannel(file, write)
 	if err != nil {
 		return err
 	}
@@ -1139,7 +1146,7 @@ func (fs *KBFSOpsStandard) writeDataInChannel(
 
 	for nCopied < n {
 		id, parentBlock, indexInParent, block, more, startOff, err :=
-			fs.getFileBlockAtOffset(file, fblock, off+nCopied, true)
+			fs.getFileBlockAtOffset(file, fblock, off+nCopied, write)
 		if err != nil {
 			return err
 		}
@@ -1251,7 +1258,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 		return err
 	}
 
-	fblock, err := fs.getFileInChannel(file, true)
+	fblock, err := fs.getFileInChannel(file, write)
 	if err != nil {
 		return err
 	}
@@ -1259,7 +1266,7 @@ func (fs *KBFSOpsStandard) truncateInChannel(file Path, size uint64) error {
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
 	id, parentBlock, indexInParent, block, more, startOff, err :=
-		fs.getFileBlockAtOffset(file, fblock, iSize, true)
+		fs.getFileBlockAtOffset(file, fblock, iSize, write)
 
 	currLen := int64(startOff) + int64(len(block.Contents))
 	if currLen < iSize {
@@ -1439,7 +1446,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 
 	// update the parent directories, and write all the new blocks out
 	// to disk
-	fblock, err := fs.getFileInChannel(file, true)
+	fblock, err := fs.getFileInChannel(file, write)
 	if err != nil {
 		return Path{}, err
 	}
@@ -1469,7 +1476,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			}
 			if isDirty {
 				_, _, _, block, more, _, err :=
-					fs.getFileBlockAtOffset(file, fblock, ptr.Off, true)
+					fs.getFileBlockAtOffset(file, fblock, ptr.Off, write)
 				if err != nil {
 					return Path{}, err
 				}
@@ -1492,7 +1499,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 						}
 					}
 					rId, _, _, rblock, _, _, err :=
-						fs.getFileBlockAtOffset(file, fblock, endOfBlock, true)
+						fs.getFileBlockAtOffset(file, fblock, endOfBlock, write)
 					if err != nil {
 						return Path{}, err
 					}
@@ -1512,7 +1519,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 
 					endOfBlock := ptr.Off + int64(len(block.Contents))
 					rId, _, _, rblock, _, _, err :=
-						fs.getFileBlockAtOffset(file, fblock, endOfBlock, true)
+						fs.getFileBlockAtOffset(file, fblock, endOfBlock, write)
 					if err != nil {
 						return Path{}, err
 					}
@@ -1559,7 +1566,7 @@ func (fs *KBFSOpsStandard) syncInChannel(file Path) (Path, error) {
 			}
 			if isDirty {
 				_, _, _, block, _, _, err :=
-					fs.getFileBlockAtOffset(file, fblock, ptr.Off, true)
+					fs.getFileBlockAtOffset(file, fblock, ptr.Off, write)
 				if err != nil {
 					return Path{}, err
 				}
