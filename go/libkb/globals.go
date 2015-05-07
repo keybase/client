@@ -44,6 +44,7 @@ type GlobalContext struct {
 	shutdown      bool             // whether we've shut down or not
 	loginStateMu  sync.RWMutex     // protects loginState pointer, which gets destroyed on logout
 	loginState    *LoginState      // What phase of login the user's in
+	account       *Account
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -72,6 +73,7 @@ func (g *GlobalContext) Init() {
 func (g *GlobalContext) createLoginState() {
 	g.loginStateMu.Lock()
 	g.loginState = NewLoginState(g)
+	g.account = NewAccount(g)
 	g.loginStateMu.Unlock()
 
 }
@@ -81,6 +83,13 @@ func (g *GlobalContext) LoginState() *LoginState {
 	defer g.loginStateMu.RUnlock()
 
 	return g.loginState
+}
+
+func (g *GlobalContext) Account() *Account {
+	g.loginStateMu.RLock()
+	defer g.loginStateMu.RUnlock()
+
+	return g.account
 }
 
 func (g *GlobalContext) Logout() error {

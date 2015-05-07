@@ -3,7 +3,6 @@ package libkb
 import (
 	"crypto/hmac"
 	"crypto/sha512"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"sync"
@@ -26,12 +25,12 @@ type LoginState struct {
 
 	secretSyncer *SecretSyncer // For syncing secrets between the server and client
 
-	mu               sync.RWMutex // protects the following variables:
-	salt             []byte
-	loginSession     []byte
-	loginSessionB64  string
-	tsec             *triplesec.Cipher
-	sessionFor       string
+	mu sync.RWMutex // protects the following variables:
+	// salt []byte
+	// loginSession     []byte
+	// loginSessionB64  string
+	tsec *triplesec.Cipher
+	// sessionFor       string
 	passphraseStream PassphraseStream
 }
 
@@ -45,7 +44,7 @@ type loginAPIResult struct {
 func NewLoginState(g *GlobalContext) *LoginState {
 	s := newSession(g)
 	res := &LoginState{
-		Contextified: Contextified{g},
+		Contextified: NewContextified(g),
 		session:      s,
 		requests:     make(chan loginReq),
 	}
@@ -126,7 +125,9 @@ func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID
 		return err
 	}
 
-	s.setSalt(salt)
+	if err := s.G().Account().CreateLoginSessionWithSalt(username, salt); err != nil {
+		return err
+	}
 
 	return s.saveLoginState(&loginAPIResult{
 		sessionID: sessionID,
@@ -245,7 +246,11 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, e
 // also the salt from the LoginState and computes a Triplesec and
 // a passphrase stream.  It's not verified through a Login.
 func (s *LoginState) GetUnverifiedPassphraseStream(passphrase string) (tsec *triplesec.Cipher, ret PassphraseStream, err error) {
-	return StretchPassphrase(passphrase, s.getSalt())
+	salt, err := s.G().Account().LoginSessionSalt()
+	if err != nil {
+		return nil, nil, err
+	}
+	return StretchPassphrase(passphrase, salt)
 }
 
 // SetPassphraseStream takes the Triplesec and PassphraseStream returned from
@@ -261,6 +266,11 @@ func (s *LoginState) getCachedSharedSecret() []byte {
 	return s.getPassphraseStream().PWHash()
 }
 
+func (s *LoginState) getSaltAndLoginSession(emailOrUsername string) error {
+	return s.G().Account().LoadLoginSession(emailOrUsername)
+}
+
+/*
 func (s *LoginState) getSaltAndLoginSession(emailOrUsername string) error {
 	if s.getSalt() != nil && s.getLoginSession() != nil && s.getSessionFor() == emailOrUsername {
 		return nil
@@ -303,13 +313,19 @@ func (s *LoginState) getSaltAndLoginSession(emailOrUsername string) error {
 
 	return nil
 }
+*/
 
 func (s *LoginState) stretchPassphrase(passphrase string) error {
 	if s.getTsec() != nil && s.getPassphraseStream() != nil {
 		return nil
 	}
 
-	tsec, passphraseStream, err := StretchPassphrase(passphrase, s.getSalt())
+	salt, err := s.G().Account().LoginSessionSalt()
+	if err != nil {
+		return err
+	}
+
+	tsec, passphraseStream, err := StretchPassphrase(passphrase, salt)
 	if err != nil {
 		return err
 	}
@@ -319,20 +335,32 @@ func (s *LoginState) stretchPassphrase(passphrase string) error {
 	return nil
 }
 
+// XXX this should move to Account
 func (s *LoginState) computeLoginPw() ([]byte, error) {
+	loginSession, err := s.G().Account().LoginSession().Session()
+	if err != nil {
+		return nil, err
+	}
+	if loginSession == nil {
+		return nil, fmt.Errorf("nil login session")
+	}
 	mac := hmac.New(sha512.New, s.getCachedSharedSecret())
-	mac.Write(s.getLoginSession())
+	mac.Write(loginSession)
 	return mac.Sum(nil), nil
 }
 
 func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult, error) {
+	loginSessionEncoded, err := s.G().Account().LoginSession().SessionEncoded()
+	if err != nil {
+		return nil, err
+	}
 	res, err := s.G().API.Post(ApiArg{
 		Endpoint:    "login",
 		NeedSession: false,
 		Args: HttpArgs{
 			"email_or_username": S{eOu},
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
-			"login_session":     S{s.getLoginSessionEncoded()},
+			"login_session":     S{loginSessionEncoded},
 		},
 		AppStatus: []string{"OK", "BAD_LOGIN_PASSWORD"},
 	})
@@ -366,14 +394,21 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult
 }
 
 func (s *LoginState) saveLoginState(res *loginAPIResult) error {
-	s.clearLoginSession()
+	if err := s.G().Account().LoginSessionClear(); err != nil {
+		return err
+	}
 
 	cw := s.G().Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
 
-	if err := cw.SetUserConfig(NewUserConfig(res.uid, res.username, s.getSalt(), nil), false); err != nil {
+	salt, err := s.G().Account().LoginSessionSalt()
+	if err != nil {
+		return err
+	}
+
+	if err := cw.SetUserConfig(NewUserConfig(res.uid, res.username, salt, nil), false); err != nil {
 		return err
 	}
 
@@ -395,7 +430,7 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 func (s *LoginState) clearPassphrase() {
 	s.clearTsec()
 	s.setPassphraseStream(nil)
-	s.setSalt(nil)
+	// s.setSalt(nil)
 }
 
 func (s *LoginState) ClearStoredSecret(username string) error {
@@ -459,7 +494,12 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 		return err
 	}
 
-	if proof, err = me.AuthenticationProof(key, s.getLoginSessionEncoded(), AUTH_EXPIRE_IN); err != nil {
+	loginSessionEncoded, err := s.G().Account().LoginSession().SessionEncoded()
+	if err != nil {
+		return err
+	}
+
+	if proof, err = me.AuthenticationProof(key, loginSessionEncoded, AUTH_EXPIRE_IN); err != nil {
 		return
 	}
 
@@ -777,6 +817,7 @@ func (s *LoginState) logout() error {
 	return err
 }
 
+/*
 func (s *LoginState) setSalt(salt []byte) {
 	s.mu.Lock()
 	s.salt = salt
@@ -791,7 +832,9 @@ func (s *LoginState) getSalt() []byte {
 	}
 	return s.salt
 }
+*/
 
+/*
 func (s *LoginState) setLoginSession(b64 string) error {
 	ls, err := base64.StdEncoding.DecodeString(b64)
 	if err != nil {
@@ -836,6 +879,7 @@ func (s *LoginState) getSessionFor() string {
 	defer s.mu.RUnlock()
 	return s.sessionFor
 }
+*/
 
 func (s *LoginState) setTsec(ts *triplesec.Cipher) {
 	s.mu.Lock()

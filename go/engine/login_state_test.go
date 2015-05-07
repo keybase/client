@@ -250,7 +250,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "lwpp")
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	mockGetKeybasePassphrase := &GetKeybasePassphraseMock{
 		Passphrase: fu.Passphrase,
@@ -263,7 +263,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	mockGetKeybasePassphrase.Called = false
 	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase); err != nil {
@@ -276,7 +276,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	// Clear out the username stored in G.Env.
 	// TODO: Figure out a cleaner way to do this.
