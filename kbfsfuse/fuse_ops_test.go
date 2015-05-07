@@ -5,6 +5,7 @@ import (
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
+	"strings"
 	"testing"
 )
 
@@ -104,17 +105,31 @@ func TestLookupOtherPublic(t *testing.T) {
 	root.Ops.Shutdown()
 }
 
-func checkPathNeedsUpdate(t *testing.T, nodes []*FuseNode, update bool) {
+func checkPathNeedsUpdate(
+	t *testing.T, nodes []*FuseNode, update bool, expectedPath string) {
+	path := make([]string, 0, len(nodes))
+
 	// The first one (root) should never need an update
 	if len(nodes) > 0 && nodes[0].NeedUpdate {
 		t.Error("/ unexpectedly needs update")
 	}
 
 	for _, n := range nodes[1:] {
+		path = append(path, n.PathNode.Name)
 		if n.NeedUpdate != update {
 			p := n.GetPath(1)
-			t.Errorf("%s unexpectedly needs update", p.String())
+			needs := "needs"
+			if update {
+				needs = "does not need"
+			}
+			t.Errorf("%s unexpectedly %s update", p.String(), needs)
 		}
+	}
+
+	newPath := strings.Join(path, "/")
+	if newPath != expectedPath {
+		t.Errorf("Expected path %s does not match new path %s",
+			expectedPath, newPath)
 	}
 }
 
@@ -144,7 +159,7 @@ func TestNeedUpdateBasic(t *testing.T) {
 	node2 := doMkDirOrBust(t, node1, "dir")
 	waitForUpdates(node1)
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, true)
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, true, "test_user")
 	if node2.NeedUpdate {
 		t.Error("/test_user/dir unexpectedly needs update")
 	}
@@ -152,7 +167,7 @@ func TestNeedUpdateBasic(t *testing.T) {
 	// Look up /test_user again.
 	node1 = doLookupOrBust(t, root, "test_user")
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, false)
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1}, false, "test_user")
 	root.Ops.Shutdown()
 }
 
@@ -183,7 +198,8 @@ func TestNeedUpdateAll(t *testing.T) {
 	root.Ops.Shutdown()
 
 	checkPathNeedsUpdate(t,
-		[]*FuseNode{root, node1, node2, node3, node4}, true)
+		[]*FuseNode{root, node1, node2, node3, node4}, true,
+		"test_user/dir1/dir2/dir3")
 
 	if node5.NeedUpdate {
 		t.Error("/test_user/dir4 unexpectedly needs update")
@@ -207,7 +223,8 @@ func TestLocalUpdateAll(t *testing.T) {
 	node3.Write(nil, []byte{0, 1, 2}, 0, nil)
 	root.Ops.Shutdown()
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2, node3}, true)
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2, node3}, true,
+		"test_user/dir1/file1")
 }
 
 // Test that a local notification for a path, for which we only have
@@ -233,7 +250,8 @@ func TestPartialLocalUpdate(t *testing.T) {
 	root.Ops.LocalChange(newPath)
 	root.Ops.Shutdown()
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true)
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true,
+		"test_user/dir1")
 }
 
 // Test that a batch notification for a path, for which we only have
@@ -259,5 +277,6 @@ func TestPartialBatchUpdate(t *testing.T) {
 	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
 	root.Ops.Shutdown()
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true)
+	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true,
+		"test_user/dir1")
 }

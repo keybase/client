@@ -280,7 +280,7 @@ func (f *FuseOps) BatchChanges(dir libkbfs.DirId, paths []libkbfs.Path) {
 			// TODO: verify path.TopDir matches dir
 			// navigate to the end of the path, then update the complete path
 			currNode := topNode
-			numNodesToUpdate := 1
+			numNodesToUpdate := 0
 			// skip the first node, since it's just the top-level directory
 			for _, pn := range path.Path[1:] {
 				numNodesToUpdate++
