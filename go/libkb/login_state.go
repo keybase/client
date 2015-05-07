@@ -154,8 +154,8 @@ func (s *LoginState) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, erro
 }
 
 func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI) (err error) {
-	G.Log.Debug("+ LoginWithPrompt(%s) called", username)
-	defer func() { G.Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
+	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
+	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
 	err = s.handle(func() error {
 		return s.loginWithPromptHelper(username, loginUI, secretUI, false)
@@ -164,8 +164,8 @@ func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI 
 }
 
 func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
-	G.Log.Debug("+ LoginWithStoredSecret(%s) called", username)
-	defer func() { G.Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
+	s.G().Log.Debug("+ LoginWithStoredSecret(%s) called", username)
+	defer func() { s.G().Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
 	err = s.handle(func() error {
 		return s.loginWithStoredSecret(username)
@@ -174,8 +174,8 @@ func (s *LoginState) LoginWithStoredSecret(username string) (err error) {
 }
 
 func (s *LoginState) LoginWithPassphrase(username, passphrase string, storeSecret bool) (err error) {
-	G.Log.Debug("+ LoginWithPassphrase(%s) called", username)
-	defer func() { G.Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
+	s.G().Log.Debug("+ LoginWithPassphrase(%s) called", username)
+	defer func() { s.G().Log.Debug("- LoginWithPassphrase -> %s", ErrToOk(err)) }()
 
 	err = s.handle(func() error {
 		return s.loginWithPassphrase(username, passphrase, storeSecret)
@@ -268,7 +268,7 @@ func (s *LoginState) getSaltAndLoginSession(emailOrUsername string) error {
 
 	s.setSessionFor("")
 
-	res, err := G.API.Get(ApiArg{
+	res, err := s.G().API.Get(ApiArg{
 		Endpoint:    "getsalt",
 		NeedSession: false,
 		Args: HttpArgs{
@@ -326,7 +326,7 @@ func (s *LoginState) computeLoginPw() ([]byte, error) {
 }
 
 func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult, error) {
-	res, err := G.API.Post(ApiArg{
+	res, err := s.G().API.Post(ApiArg{
 		Endpoint:    "login",
 		NeedSession: false,
 		Args: HttpArgs{
@@ -368,7 +368,7 @@ func (s *LoginState) postLoginToServer(eOu string, lgpw []byte) (*loginAPIResult
 func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 	s.clearLoginSession()
 
-	cw := G.Env.GetConfigWriter()
+	cw := s.G().Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
@@ -433,16 +433,16 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 	var sig string
 	var pres *PostAuthProofRes
 
-	G.Log.Debug("+ pubkeyLoginHelper()")
+	s.G().Log.Debug("+ pubkeyLoginHelper()")
 	defer func() {
 		if err != nil && s.secretSyncer != nil {
 			s.secretSyncer.Clear()
 		}
-		G.Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
+		s.G().Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
 	}()
 
-	if _, err = G.Env.GetConfig().GetUserConfigForUsername(username); err != nil {
-		G.Log.Debug("| No Userconfig for %s: %s", username, err.Error())
+	if _, err = s.G().Env.GetConfig().GetUserConfigForUsername(username); err != nil {
+		s.G().Log.Debug("| No Userconfig for %s: %s", username, err.Error())
 		return
 	}
 
@@ -455,7 +455,7 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 		return
 	}
 
-	if key, err = getSecretKeyFn(G.Keyrings, me); err != nil {
+	if key, err = getSecretKeyFn(s.G().Keyrings, me); err != nil {
 		return err
 	}
 
@@ -485,12 +485,12 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 }
 
 func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, err error) {
-	G.Log.Debug("+ checkedLoggedIn()")
-	defer func() { G.Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
+	s.G().Log.Debug("+ checkedLoggedIn()")
+	defer func() { s.G().Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
 
 	var loggedInTmp bool
 	if loggedInTmp, err = s.IsLoggedInLoad(); err != nil {
-		G.Log.Debug("| Session failed to load")
+		s.G().Log.Debug("| Session failed to load")
 		return
 	}
 
@@ -501,7 +501,7 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 	}
 
 	if !force && loggedInTmp {
-		G.Log.Debug("| Our session token is still valid; we're logged in")
+		s.G().Log.Debug("| Our session token is still valid; we're logged in")
 		loggedIn = true
 	}
 	return
@@ -509,10 +509,10 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 
 func (s *LoginState) switchUser(username string) error {
 	if len(username) == 0 || !CheckUsername.F(username) {
-	} else if err := G.Env.GetConfigWriter().SwitchUser(username); err != nil {
-		G.Log.Debug("| Can't switch user to %s: %s", username, err.Error())
+	} else if err := s.G().Env.GetConfigWriter().SwitchUser(username); err != nil {
+		s.G().Log.Debug("| Can't switch user to %s: %s", username, err.Error())
 	} else {
-		G.Log.Debug("| Successfully switched user to %s", username)
+		s.G().Log.Debug("| Successfully switched user to %s", username)
 	}
 	return nil
 }
@@ -520,17 +520,17 @@ func (s *LoginState) switchUser(username string) error {
 // Like pubkeyLoginHelper, but ignores most errors.
 func (s *LoginState) tryPubkeyLoginHelper(username string, getSecretKeyFn getSecretKeyFn) (loggedIn bool, err error) {
 	if err = s.pubkeyLoginHelper(username, getSecretKeyFn); err == nil {
-		G.Log.Debug("| Pubkey login succeeded")
+		s.G().Log.Debug("| Pubkey login succeeded")
 		loggedIn = true
 		return
 	}
 
 	if _, ok := err.(CanceledError); ok {
-		G.Log.Debug("| Canceled pubkey login, so cancel login")
+		s.G().Log.Debug("| Canceled pubkey login, so cancel login")
 		return
 	}
 
-	G.Log.Debug("| Public key login failed, falling back: %s", err.Error())
+	s.G().Log.Debug("| Public key login failed, falling back: %s", err.Error())
 	err = nil
 	return
 }
@@ -559,7 +559,7 @@ func (s *LoginState) getEmailOrUsername(username *string, loginUI LoginUI) (err 
 		return
 	}
 
-	*username = G.Env.GetEmailOrUsername()
+	*username = s.G().Env.GetEmailOrUsername()
 	if len(*username) != 0 {
 		return
 	}
@@ -580,14 +580,14 @@ func (s *LoginState) getEmailOrUsername(username *string, loginUI LoginUI) (err 
 	}
 
 	// username set, so redo config
-	G.ConfigureConfig()
+	s.G().ConfigureConfig()
 	return s.switchUser(*username)
 }
 
 func (s *LoginState) passphraseLogin(username, passphrase string, secretUI SecretUI, retryMsg string) (err error) {
-	G.Log.Debug("+ LoginState.passphraseLogin (username=%s)", username)
+	s.G().Log.Debug("+ LoginState.passphraseLogin (username=%s)", username)
 	defer func() {
-		G.Log.Debug("- LoginState.passphraseLogin -> %s", ErrToOk(err))
+		s.G().Log.Debug("- LoginState.passphraseLogin -> %s", ErrToOk(err))
 	}()
 
 	if err = s.getSaltAndLoginSession(username); err != nil {
@@ -646,7 +646,7 @@ func (s *LoginState) getTriplesec(un string, pp string, ui SecretUI, retry strin
 
 func (s *LoginState) verifyPassphrase(ui SecretUI) (err error) {
 	return s.handle(func() error {
-		return s.loginWithPromptHelper(G.Env.GetUsername(), nil, ui, true)
+		return s.loginWithPromptHelper(s.G().Env.GetUsername(), nil, ui, true)
 	})
 }
 
@@ -760,7 +760,7 @@ func (s *LoginState) loginWithPassphrase(username, passphrase string, storeSecre
 }
 
 func (s *LoginState) logout() error {
-	G.Log.Debug("+ Logout called")
+	s.G().Log.Debug("+ Logout called")
 	err := s.session.Logout()
 	if err == nil {
 		s.clearPassphrase()
@@ -768,8 +768,8 @@ func (s *LoginState) logout() error {
 	if s.secretSyncer != nil {
 		s.secretSyncer.Clear()
 	}
-	G.Keyrings.ClearSecretKeys()
-	G.Log.Debug("- Logout called")
+	s.G().Keyrings.ClearSecretKeys()
+	s.G().Log.Debug("- Logout called")
 	return err
 }
 
@@ -783,7 +783,7 @@ func (s *LoginState) getSalt() []byte {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.salt == nil {
-		s.salt = G.Env.GetSalt()
+		s.salt = s.G().Env.GetSalt()
 	}
 	return s.salt
 }
@@ -887,5 +887,5 @@ func (s *LoginState) LoadSKBKeyring() (*SKBKeyringFile, error) {
 		return nil, NoUsernameError{}
 	}
 
-	return G.Keyrings.LoadSKBKeyring(*unp)
+	return s.G().Keyrings.LoadSKBKeyring(*unp)
 }
