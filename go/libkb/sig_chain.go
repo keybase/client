@@ -549,12 +549,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid_s)
 	defer func() { G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid_s, ErrToOk(err)) }()
 
-	fmt.Printf("yo are you there?\n")
 	if mt, err = l.LoadLastLinkIdFromStorage(); err != nil || mt == nil {
 		G.Log.Debug("| Failed to load last link ID")
 		return err
 	}
-	fmt.Printf("loaded last ID from storage...\n")
 
 	// Load whatever the last fingerprint was in the chain if we're not loading
 	// allKeys. We have to load something...  Note that we don't use l.fp
@@ -565,13 +563,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	curr = mt.LinkId
 	var link *ChainLink
 
-	fmt.Printf("foob A\n")
-
-	i := 0
-
 	for curr != nil && good_key {
-		fmt.Printf("foob B %d\n", i)
-		i++
 		G.Log.Debug("| loading link; curr=%s", curr)
 		if link, err = ImportLinkFromStorage(curr); err != nil {
 			return
@@ -771,14 +763,11 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	if !preload {
 		stage("LoadLinksFromStorage")
-		fmt.Printf("here goes...\n")
 		if err = l.LoadLinksFromStorage(); err != nil {
-			fmt.Printf("well shit...\n")
 			return
 		}
 	}
 
-	fmt.Printf("moving on!....\n")
 	stage("MakeSigChain")
 	if err = l.MakeSigChain(); err != nil {
 		return
