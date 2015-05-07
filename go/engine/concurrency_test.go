@@ -50,7 +50,7 @@ func TestConcurrentLogin(t *testing.T) {
 					tc.G.Account().LocalSession().GetUID()
 					tc.G.Account().LocalSession().Load()
 					tc.G.Account().LoggedIn()
-					tc.G.LoginState().IsLoggedInLoad()
+					tc.G.Account().LoggedInLoad()
 					// tc.G.LoginState.Shutdown()
 				}
 			}

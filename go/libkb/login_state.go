@@ -37,19 +37,6 @@ func NewLoginState(g *GlobalContext) *LoginState {
 	return res
 }
 
-// IsLoggedIn returns true if the user is logged in.  It does not
-// try to load the session.
-/*
-func (s *LoginState) IsLoggedIn() bool {
-	return s.G().Account().LocalSession().IsLoggedIn()
-}
-*/
-
-// IsLoggedInLoad will load and check the session of necessary.
-func (s *LoginState) IsLoggedInLoad() (bool, error) {
-	return s.G().Account().LocalSession().loadAndCheck()
-}
-
 // SetSignupRes should only be called by the signup engine, and
 // within an ExternalFunc handler.
 func (s *LoginState) SetSignupRes(sessionID, csrfToken, username string, uid UID, salt []byte) error {
@@ -364,7 +351,7 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 	defer func() { s.G().Log.Debug("- checkedLoggedIn() -> %t, %s", loggedIn, ErrToOk(err)) }()
 
 	var loggedInTmp bool
-	if loggedInTmp, err = s.IsLoggedInLoad(); err != nil {
+	if loggedInTmp, err = s.G().Account().LoggedInLoad(); err != nil {
 		s.G().Log.Debug("| Session failed to load")
 		return
 	}
