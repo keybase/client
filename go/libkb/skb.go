@@ -536,8 +536,8 @@ func (s *SKB) PromptAndUnlock(reason, which string, secretStore SecretStore, ui 
 		err = nil
 	}
 
-	tsec := s.G().LoginState().GetCachedTriplesec()
-	pps := s.G().LoginState().GetCachedPassphraseStream()
+	tsec := s.G().Account().StreamCache().Triplesec()
+	pps := s.G().Account().StreamCache().PassphraseStream()
 	if tsec != nil || pps != nil {
 		ret, err = s.UnlockSecretKey("", tsec, pps, nil)
 		if err == nil {

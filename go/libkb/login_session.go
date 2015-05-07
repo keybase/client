@@ -39,6 +39,9 @@ func NewLoginSessionWithSalt(emailOrUsername string, salt []byte, g *GlobalConte
 }
 
 func (s *LoginSession) Session() ([]byte, error) {
+	if s == nil {
+		return nil, ErrLoginSessionNotLoaded
+	}
 	s.RLock()
 	defer s.RUnlock()
 	if !s.loaded {
@@ -51,6 +54,9 @@ func (s *LoginSession) Session() ([]byte, error) {
 }
 
 func (s *LoginSession) SessionEncoded() (string, error) {
+	if s == nil {
+		return "", ErrLoginSessionNotLoaded
+	}
 	s.RLock()
 	defer s.RUnlock()
 	if !s.loaded {
@@ -63,6 +69,9 @@ func (s *LoginSession) SessionEncoded() (string, error) {
 }
 
 func (s *LoginSession) ExistsFor(emailOrUsername string) bool {
+	if s == nil {
+		return false
+	}
 	s.RLock()
 	defer s.RUnlock()
 	if s.sessionFor != emailOrUsername {
@@ -78,6 +87,9 @@ func (s *LoginSession) ExistsFor(emailOrUsername string) bool {
 }
 
 func (s *LoginSession) Clear() error {
+	if s == nil {
+		return nil
+	}
 	s.Lock()
 	defer s.Unlock()
 	if !s.loaded {
@@ -90,6 +102,9 @@ func (s *LoginSession) Clear() error {
 }
 
 func (s *LoginSession) Salt() ([]byte, error) {
+	if s == nil {
+		return nil, ErrLoginSessionNotLoaded
+	}
 	s.RLock()
 	defer s.RUnlock()
 	if !s.loaded {

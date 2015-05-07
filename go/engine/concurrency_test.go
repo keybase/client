@@ -54,8 +54,6 @@ func TestConcurrentLogin(t *testing.T) {
 					tc.G.LoginState().AssertLoggedIn()
 					tc.G.LoginState().AssertLoggedOut()
 					// tc.G.LoginState.Shutdown()
-					tc.G.LoginState().GetCachedTriplesec()
-					tc.G.LoginState().GetCachedPassphraseStream()
 				}
 			}
 		}(i)

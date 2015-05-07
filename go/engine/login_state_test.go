@@ -27,7 +27,7 @@ func TestLoginLogout(t *testing.T) {
 	}
 
 	// Logging out when not logged in should still work.
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	fu := CreateAndSignupFakeUser(tc, "login")
 
@@ -35,7 +35,7 @@ func TestLoginLogout(t *testing.T) {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
@@ -46,7 +46,7 @@ func TestLoginLogout(t *testing.T) {
 	}
 
 	// Logging out twice should still work.
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
@@ -146,11 +146,12 @@ func TestLoginNonexistent(t *testing.T) {
 
 	_ = CreateAndSignupFakeUser(tc, "ln")
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
-	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, nil)
+	secretUI := &libkb.TestSecretUI{}
+	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, secretUI)
 	if _, ok := err.(libkb.AppStatusError); !ok {
-		t.Error("Did not get expected AppStatusError")
+		t.Errorf("error type: %T, expected libkb.AppStatusError", err)
 	}
 }
 
@@ -161,7 +162,7 @@ func TestLoginWithPromptPubkey(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "lwpp")
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	mockGetSecret := &GetSecretMock{
 		Passphrase: fu.Passphrase,
@@ -176,7 +177,7 @@ func TestLoginWithPromptPubkey(t *testing.T) {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	mockGetSecret.Called = false
 	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret); err != nil {
@@ -350,7 +351,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "lwss")
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
@@ -370,7 +371,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		t.Errorf("secretUI.GetSecret() unexpectedly not called")
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if !userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
@@ -382,7 +383,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		t.Error(err)
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	tc.G.LoginState().ClearStoredSecret(fu.Username)
 
@@ -399,7 +400,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	}
 
 	fu = CreateAndSignupFakeUser(tc, "lwss")
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
@@ -413,7 +414,7 @@ func TestLoginWithPassphraseErrors(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "lwpe")
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	err := tc.G.LoginState().LoginWithPassphrase("", "", false)
 	if _, ok := err.(libkb.AppStatusError); !ok {
@@ -439,13 +440,13 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "lwpns")
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, false); err != nil {
 		t.Error(err)
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username); err == nil {
 		t.Error("Did not get expected error")
@@ -469,7 +470,7 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "lwpws")
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
@@ -479,7 +480,7 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 		t.Error(err)
 	}
 
-	tc.G.LoginState().Logout()
+	tc.G.Logout()
 
 	if !userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)

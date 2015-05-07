@@ -1,9 +1,10 @@
 package libkb
 
 import (
-	"errors"
 	"fmt"
 	"sync"
+
+	triplesec "github.com/keybase/go-triplesec"
 )
 
 type Account struct {
@@ -31,7 +32,7 @@ func (a *Account) LoadLocalSession() error {
 }
 
 func (a *Account) LoadLoginSession(emailOrUsername string) error {
-	if a.loginSessionExistsFor(emailOrUsername) {
+	if a.LoginSession().ExistsFor(emailOrUsername) {
 		return nil
 	}
 
@@ -65,18 +66,7 @@ func (a *Account) setLoginSession(ls *LoginSession) {
 }
 
 func (a *Account) loginSessionExists() bool {
-	a.RLock()
-	defer a.RUnlock()
-	return a.loginSession != nil
-}
-
-func (a *Account) loginSessionExistsFor(emailOrUsername string) bool {
-	a.RLock()
-	defer a.RUnlock()
-	if a.loginSession == nil {
-		return false
-	}
-	return a.loginSession.ExistsFor(emailOrUsername)
+	return a.LoginSession() != nil
 }
 
 func (a *Account) LoginSession() *LoginSession {
@@ -85,24 +75,28 @@ func (a *Account) LoginSession() *LoginSession {
 	return a.loginSession
 }
 
-func (a *Account) LoginSessionSalt() ([]byte, error) {
-	ls := a.LoginSession()
-	if ls == nil {
-		return nil, errors.New("no login session")
-	}
-	return ls.Salt()
-}
-
-func (a *Account) LoginSessionClear() error {
-	a.RLock()
-	defer a.RUnlock()
-	if a.loginSession == nil {
-		// it's ok to call clear on a nil loginsession
-		return nil
-	}
-	return a.loginSession.Clear()
-}
-
 func (a *Account) Logout() error {
 	return nil
+}
+
+func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps PassphraseStream) {
+	a.Lock()
+	defer a.Unlock()
+	if a.streamCache != nil {
+		a.G().Log.Warning("Account.CreateStreamCache overwriting exisitng StreamCache")
+	}
+	a.streamCache = NewStreamCache(tsec, pps)
+}
+
+func (a *Account) StreamCache() *StreamCache {
+	a.RLock()
+	defer a.RUnlock()
+	return a.streamCache
+}
+
+func (a *Account) ClearStreamCache() {
+	a.Lock()
+	defer a.Unlock()
+	a.streamCache.Clear()
+	a.streamCache = nil
 }

@@ -124,7 +124,9 @@ func (s *SignupEngine) genTSPassKey(passphrase string) error {
 		return err
 	}
 	s.pwsalt = salt
-	_, s.tspkey, err = libkb.StretchPassphrase(passphrase, salt)
+	var tsec *triplesec.Cipher
+	tsec, s.tspkey, err = libkb.StretchPassphrase(passphrase, salt)
+	s.G().Account().CreateStreamCache(tsec, s.tspkey)
 	return err
 }
 
