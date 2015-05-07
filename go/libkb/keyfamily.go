@@ -95,6 +95,14 @@ type ComputedKeyInfos struct {
 // As returned by user/lookup.json; these records are not to be trusted,
 // we need to Verify this data against the sigchain as we play the sigchain
 // forward.
+type RawKeyFamily struct {
+	// There are many more fields in the server's response, but we ignore them
+	// to avoid trusting the server, and instead compute them ourselves.
+	AllKeys map[KIDMapKey]*ServerKeyRecord `json:"all"`
+}
+
+// Once the client downloads a RawKeyFamily, it converts it into a KeyFamily,
+// which has some additional information about Fingerprints and PGP keys
 type KeyFamily struct {
 	pgps []*PgpKeyBundle
 
@@ -102,9 +110,7 @@ type KeyFamily struct {
 	pgp2kid map[PgpFingerprintMapKey]KID
 	kid2pgp map[KIDMapKey]PgpFingerprint
 
-	// There are many more fields in the server's response, but we ignore them
-	// to avoid trusting the server, and instead compute them ourselves.
-	AllKeys map[KIDMapKey]*ServerKeyRecord `json:"all"`
+	AllKeys map[KIDMapKey]*ServerKeyRecord
 
 	Contextified
 }
@@ -286,9 +292,12 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 
 	// Fill in AllKeys. Somewhat wasteful but probably faster than
 	// using Jsonw wrappers, and less error-prone.
-	if err = jw.UnmarshalAgain(&kf); err != nil {
+	var rkf RawKeyFamily
+	if err = jw.UnmarshalAgain(&rkf); err != nil {
 		return
 	}
+
+	kf.AllKeys = rkf.AllKeys
 
 	// Take all ServerKeyRecords in this KeyMap and import the key
 	// bundle into a GenericKey object that can perform crypto
