@@ -367,6 +367,14 @@ func (kf KeyFamily) FindKeyWithFOKIDUnsafe(f FOKID) (key GenericKey, err error) 
 	return kf.FindKeyWithKIDUnsafe(kid)
 }
 
+func (kf KeyFamily) KIDToFOKID(k KID) FOKID {
+	ret := FOKID{Kid: k}
+	if fingerprint, ok := kf.kid2pgp[k.ToMapKey()]; ok {
+		ret.Fp = &fingerprint
+	}
+	return ret
+}
+
 // This function doesn't validate anything about the key it returns -- that key
 // could be expired or revoked. Most callers should prefer the FindActive*
 // methods on the ComputedKeyFamily.

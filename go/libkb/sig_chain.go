@@ -430,16 +430,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest *KID, ckf *ComputedKeyFamily
 		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
-
-	var fp *PgpFingerprint
-	fingerprint, ok := ckf.kf.kid2pgp[eldest.ToMapKey()]
-	if ok {
-		fp = &fingerprint
-	}
-	eldestFOKID := FOKID{
-		Kid: *eldest,
-		Fp:  fp,
-	}
+	eldestFOKID := ckf.kf.KIDToFOKID(*eldest)
 	links := sc.LimitToEldestFOKID(eldestFOKID)
 
 	if links == nil || len(links) == 0 {
