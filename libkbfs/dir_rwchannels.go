@@ -8,20 +8,22 @@ import (
 
 type DirRWChannels struct {
 	// TODO: Make this an LRU in case the number of directories is big
-	chans     map[DirId]*util.RWChannel
+	chans     map[DirId]util.RWChannel
 	chansLock sync.RWMutex
 	config    Config
+	factory   func(int) util.RWChannel
 }
 
 func NewDirRWChannels(config Config) *DirRWChannels {
 	return &DirRWChannels{
-		chans:  make(map[DirId]*util.RWChannel),
-		config: config,
+		chans:   make(map[DirId]util.RWChannel),
+		config:  config,
+		factory: util.NewRWChannelImpl,
 	}
 }
 
 // Safely get or create a read-write lock for the given directory
-func (d *DirRWChannels) GetDirChan(dir DirId) *util.RWChannel {
+func (d *DirRWChannels) GetDirChan(dir DirId) util.RWChannel {
 	d.chansLock.RLock()
 	if rwchan, ok := d.chans[dir]; ok {
 		d.chansLock.RUnlock()
@@ -35,7 +37,7 @@ func (d *DirRWChannels) GetDirChan(dir DirId) *util.RWChannel {
 	if rwchan, ok := d.chans[dir]; ok {
 		return rwchan
 	} else {
-		rwchan := util.NewRWChannel(d.config.ReqsBufSize())
+		rwchan := d.factory(d.config.ReqsBufSize())
 		d.chans[dir] = rwchan
 		return rwchan
 	}

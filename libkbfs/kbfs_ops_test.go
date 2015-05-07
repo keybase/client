@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"code.google.com/p/gomock/gomock"
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/util"
 )
 
 type CheckBlockOps struct {
@@ -54,6 +55,10 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	blockops := &CheckBlockOps{config.mockBops, t}
 	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
+	// use the simple RWChannel implementation, so that if mocks fail,
+	// it doesn't happen in a separate goroutine and thus will
+	// actually fail the test.
+	kbfsops.dirRWChans.factory = util.NewRWChannelInline
 	config.SetKBFSOps(kbfsops)
 	config.SetNotifier(kbfsops)
 

@@ -93,7 +93,7 @@ func (n *ErrorNode) Read(
 	return fuse.ReadResultData(dest[:size]), fuse.OK
 }
 
-func (n *FuseNode) GetChan() *util.RWChannel {
+func (n *FuseNode) GetChan() util.RWChannel {
 	if n.PrevNode == nil {
 		return n.Ops.dirRWChans.GetDirChan(n.Dir)
 	} else {
@@ -882,7 +882,7 @@ func (n *FuseNode) OnMount(conn *nodefs.FileSystemConnector) {
 	}
 }
 
-func (n *FuseNode) GetChans() (rwchan *util.RWChannel, statchan StatusChan) {
+func (n *FuseNode) GetChans() (rwchan util.RWChannel, statchan StatusChan) {
 	rwchan = n.GetChan()
 	// Use this channel to receive the status codes for each
 	// read/write request.  In the cases where other return values are

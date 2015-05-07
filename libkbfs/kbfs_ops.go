@@ -210,7 +210,7 @@ func (fs *KBFSOpsStandard) initMDInChannel(md *RootMetadata) error {
 type errChan chan error
 
 func (fs *KBFSOpsStandard) getChans(id DirId) (
-	rwchan *util.RWChannel, errchan errChan) {
+	rwchan util.RWChannel, errchan errChan) {
 	rwchan = fs.dirRWChans.GetDirChan(id)
 	// Use this channel to receive the errors for each
 	// read/write request.  In the cases where other return values are
@@ -218,7 +218,7 @@ func (fs *KBFSOpsStandard) getChans(id DirId) (
 	// calling method directly.  By the time a receive on this channel
 	// returns, those writes are guaranteed to be visible.  See
 	// https://golang.org/ref/mem#tmp_7.
-	errchan = make(errChan)
+	errchan = make(errChan, 1)
 	return
 }
 
