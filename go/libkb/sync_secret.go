@@ -48,6 +48,12 @@ type SecretSyncer struct {
 	keys  *ServerPrivateKeys
 }
 
+func NewSecretSyncer(g *GlobalContext) *SecretSyncer {
+	return &SecretSyncer{
+		Contextified: NewContextified(g),
+	}
+}
+
 func (ss *SecretSyncer) Clear() error {
 	ss.Lock()
 	defer ss.Unlock()

@@ -72,7 +72,8 @@ func makeTestLKSec(t *testing.T) *LKSec {
 }
 
 func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
-	entity, err := openpgp.NewEntity("test name", "test comment", "test@example.com", nil)
+	email := "test@keybase.io"
+	entity, err := openpgp.NewEntity("test name", "test comment", email, nil)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -92,7 +93,7 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 		t.Fatal(err)
 	}
 	g.createLoginState()
-	g.loginState.salt = salt
+	g.Account().CreateLoginSessionWithSalt(email, salt)
 	skb.SetGlobalContext(g)
 
 	return skb
@@ -170,10 +171,8 @@ func TestUnusedSecretStore(t *testing.T) {
 	skb := makeTestSKB(t, lks)
 	// It doesn't matter what passphraseStream contains, as long
 	// as it's the right size.
-	g := G
-	g.createLoginState()
-	g.loginState.passphraseStream = make([]byte, extraLen)
-	skb.SetGlobalContext(g)
+	G.Account().CreateStreamCache(nil, make([]byte, extraLen))
+
 	testSecretStore := TestSecretStore{}
 	testPromptAndUnlock(t, skb, &testSecretStore)
 

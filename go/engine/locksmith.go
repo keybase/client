@@ -90,7 +90,7 @@ func (d *Locksmith) check(ctx *Context) error {
 	d.status.NoKeys = !d.hasKeyFamily()
 	d.status.CurrentDeviceOk = d.arg.User.HasDeviceInCurrentInstall()
 	d.status.HavePGP = d.hasPGP()
-	d.status.HaveActiveDevice = d.G().LoginState().SecretSyncer().HasActiveDevice()
+	d.status.HaveActiveDevice = d.G().Account().SecretSyncer().HasActiveDevice()
 	d.status.HaveDetKey = d.hasDetKey()
 	return nil
 }
@@ -138,7 +138,7 @@ func (d *Locksmith) Cancel() error {
 }
 
 func (d *Locksmith) syncSecrets() (err error) {
-	if err = libkb.RunSyncer(d.G().LoginState().SecretSyncer(), d.arg.User.GetUid().P()); err != nil {
+	if err = d.G().Account().RunSecretSyncer(d.arg.User.GetUid().P()); err != nil {
 		d.G().Log.Warning("Problem syncing secrets from server: %s", err)
 	}
 	return err
@@ -175,7 +175,7 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 
 	hasPGP := len(d.user.GetActivePgpKeys(false)) > 0
 
-	if d.G().LoginState().SecretSyncer().HasActiveDevice() {
+	if d.G().Account().SecretSyncer().HasActiveDevice() {
 		// they have at least one device, just not this device...
 		d.G().Log.Debug("| User has an active device, just not this one")
 		return d.deviceSign(ctx, hasPGP)
@@ -312,7 +312,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
-	devs, err := d.G().LoginState().SecretSyncer().ActiveDevices()
+	devs, err := d.G().Account().SecretSyncer().ActiveDevices()
 	if err != nil {
 		return err
 	}
@@ -381,7 +381,7 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 
 	ctx.LogUI.Debug("selected pgp key: %s", selected.VerboseDescription())
 	ctx.LogUI.Debug("selected pgp key kid: %s", selected.GetKid())
-	if pk, ok := d.G().LoginState().SecretSyncer().FindPrivateKey(selected.GetKid().String()); ok {
+	if pk, ok := d.G().Account().SecretSyncer().FindPrivateKey(selected.GetKid().String()); ok {
 		skb, err := pk.ToSKB()
 		if err != nil {
 			return err
@@ -504,7 +504,7 @@ func (d *Locksmith) tspkey(ctx *Context) (libkb.PassphraseStream, error) {
 }
 
 func (d *Locksmith) hasDetKey() bool {
-	half, err := d.G().LoginState().SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	half, err := d.G().Account().SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
 	if err != nil {
 		return false
 	}
@@ -516,7 +516,7 @@ func (d *Locksmith) hasDetKey() bool {
 
 func (d *Locksmith) detkey(ctx *Context) (libkb.GenericKey, error) {
 	// get server half of detkey via ss
-	half, err := d.G().LoginState().SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
+	half, err := d.G().Account().SecretSyncer().FindDetKeySrvHalf(libkb.KEY_TYPE_KB_NACL_EDDSA_SERVER_HALF)
 	if err != nil {
 		return nil, err
 	}

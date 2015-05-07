@@ -96,6 +96,9 @@ func (g *GlobalContext) Logout() error {
 	if err := g.LoginState().Logout(); err != nil {
 		return err
 	}
+	if err := g.Account().Logout(); err != nil {
+		return err
+	}
 
 	// get a clean LoginState:
 	g.createLoginState()

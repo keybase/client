@@ -22,8 +22,6 @@ type LoginState struct {
 
 	requests chan loginReq
 	session  *Session // The user's session cookie, &c
-
-	secretSyncer *SecretSyncer // For syncing secrets between the server and client
 }
 
 type loginAPIResult struct {
@@ -363,7 +361,9 @@ func (s *LoginState) saveLoginState(res *loginAPIResult) error {
 	}
 	// Set up our SecretSyncer to work on the logged in user from here on
 	// out.
-	s.SecretSyncer().SetUID(&res.uid)
+	// (note: I really don't thinkn this matters since RunSyncer(SecretSyncer, uid)
+	// is always called with a uid... --PC)
+	s.G().Account().SecretSyncer().SetUID(&res.uid)
 
 	return nil
 }
@@ -410,8 +410,8 @@ func (s *LoginState) pubkeyLoginHelper(username string, getSecretKeyFn getSecret
 
 	s.G().Log.Debug("+ pubkeyLoginHelper()")
 	defer func() {
-		if err != nil && s.secretSyncer != nil {
-			s.secretSyncer.Clear()
+		if err != nil {
+			s.G().Account().SecretSyncer().Clear()
 		}
 		s.G().Log.Debug("- pubkeyLoginHelper() -> %s", ErrToOk(err))
 	}()
@@ -745,62 +745,9 @@ func (s *LoginState) logout() error {
 	if err == nil {
 		s.clearPassphrase()
 	}
-	if s.secretSyncer != nil {
-		s.secretSyncer.Clear()
-	}
-
-	if kr := s.G().Keyrings; kr != nil {
-		kr.ClearSecretKeys()
-	}
-
-	s.G().Log.Debug("- Logout called")
+	G.Keyrings.ClearSecretKeys()
+	G.Log.Debug("- Logout called")
 	return err
-}
-
-func (s *LoginState) setTsec(ts *triplesec.Cipher) {
-	s.mu.Lock()
-	s.tsec = ts
-	s.mu.Unlock()
-}
-
-func (s *LoginState) clearTsec() {
-	s.mu.Lock()
-	if s.tsec != nil {
-		s.tsec.Scrub()
-		s.tsec = nil
-	}
-	s.mu.Unlock()
-}
-
-func (s *LoginState) getTsec() *triplesec.Cipher {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.tsec
-}
-
-func (s *LoginState) setPassphraseStream(p PassphraseStream) {
-	s.mu.Lock()
-	s.passphraseStream = p
-	s.mu.Unlock()
-}
-
-func (s *LoginState) getPassphraseStream() PassphraseStream {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.passphraseStream
-}
-
-=======
->>>>>>> all fields moved out of LoginState.  all tests pass.
-func (s *LoginState) SecretSyncer() *SecretSyncer {
-	if s.secretSyncer == nil {
-		s.secretSyncer = &SecretSyncer{Contextified: Contextified{s.g}}
-	}
-	return s.secretSyncer
-}
-
-func (s *LoginState) RunSecretSyncer() error {
-	return RunSyncer(s.SecretSyncer(), s.UID())
 }
 
 func (s *LoginState) LoadSKBKeyring() (*SKBKeyringFile, error) {

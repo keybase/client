@@ -19,6 +19,7 @@ type Account struct {
 
 func NewAccount(g *GlobalContext) *Account {
 	return &Account{
+		secretSyncer: NewSecretSyncer(g),
 		Contextified: NewContextified(g),
 	}
 }
@@ -58,8 +59,9 @@ func (a *Account) setLoginSession(ls *LoginSession) {
 	a.Lock()
 	defer a.Unlock()
 	if a.loginSession != nil {
+		// this usually happens in tests that don't call G.Logout() to logout.
+		// But it probably signifies an error.
 		a.G().Log.Warning("Account: overwriting loginSession")
-		// return
 	}
 
 	a.loginSession = ls
@@ -76,6 +78,16 @@ func (a *Account) LoginSession() *LoginSession {
 }
 
 func (a *Account) Logout() error {
+	a.ClearStreamCache()
+
+	a.Lock()
+	a.localSession = nil
+	a.loginSession = nil
+	a.secretSyncer.Clear()
+	a.secretSyncer = nil
+	a.skbKeyring = nil
+	a.Unlock()
+
 	return nil
 }
 
@@ -99,4 +111,14 @@ func (a *Account) ClearStreamCache() {
 	defer a.Unlock()
 	a.streamCache.Clear()
 	a.streamCache = nil
+}
+
+func (a *Account) SecretSyncer() *SecretSyncer {
+	a.RLock()
+	defer a.RUnlock()
+	return a.secretSyncer
+}
+
+func (a *Account) RunSecretSyncer(uid *UID) error {
+	return RunSyncer(a.SecretSyncer(), uid)
 }

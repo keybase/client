@@ -37,13 +37,11 @@ func (d *DevList) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (d *DevList) Run(ctx *Context) error {
-	if err := d.G().LoginState().RunSecretSyncer(); err != nil {
+	if err := libkb.RunSyncer(d.G().Account().SecretSyncer(), nil); err != nil {
 		return err
 	}
 
-	ss := d.G().LoginState().SecretSyncer()
-
-	devs, err := ss.ActiveDevices()
+	devs, err := d.G().Account().SecretSyncer().ActiveDevices()
 	if err != nil {
 		return err
 	}
