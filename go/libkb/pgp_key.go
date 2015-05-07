@@ -280,10 +280,21 @@ func (k PgpKeyBundle) VerboseDescription() string {
 }
 
 func (k PgpKeyBundle) UsersDescription() []string {
+	id := k.GetPrimaryUID()
+	if len(id) == 0 {
+		return []string{}
+	}
+	return []string{"user: " + id}
+}
+
+// GetPrimaryUID gets the primary UID in the given key bundle, returned
+// in the 'Max K (foo) <bar@baz.com>' convention.
+func (k PgpKeyBundle) GetPrimaryUID() string {
+
 	var pri *openpgp.Identity
 	var s string
 	if len(k.Identities) == 0 {
-		return []string{}
+		return ""
 	}
 	var first *openpgp.Identity
 	for _, id := range k.Identities {
@@ -303,7 +314,7 @@ func (k PgpKeyBundle) UsersDescription() []string {
 	} else {
 		s = pri.Name
 	}
-	return []string{"user: " + s}
+	return s
 }
 
 func (k *PgpKeyBundle) HasSecretKey() bool {
