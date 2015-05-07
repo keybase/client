@@ -743,7 +743,7 @@ func (fs *KBFSOpsStandard) removeEntryInChannel(path Path) (Path, error) {
 	// children as well. (TODO: handle multiple levels of
 	// indirection.)  NOTE: non-empty directories can't be removed, so
 	// no need to check for indirect directory blocks here
-	if de.Type != Dir {
+	if de.Type == File || de.Type == Exec {
 		block, err := fs.getBlockInChannel(path, de.Id, NewFileBlock)
 		if err != nil {
 			return Path{}, &NoSuchBlockError{de.Id}

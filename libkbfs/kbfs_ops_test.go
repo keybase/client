@@ -793,7 +793,9 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	p := Path{id, []PathNode{node, aNode, bNode}}
 
 	// deleting "a/b"
-	expectGetBlock(config, bId, bBlock)
+	if entryType != Sym {
+		expectGetBlock(config, bId, bBlock)
+	}
 	expectGetBlock(config, aId, aBlock)
 	expectGetBlock(config, rootId, rootBlock)
 	// sync block
@@ -824,6 +826,10 @@ func TestKBFSOpsRemoveDirSuccess(t *testing.T) {
 
 func TestKBFSOpsRemoveFileSuccess(t *testing.T) {
 	testRemoveEntrySuccess(t, File)
+}
+
+func TestKBFSOpsRemoveSymlinkSuccess(t *testing.T) {
+	testRemoveEntrySuccess(t, Sym)
 }
 
 func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
