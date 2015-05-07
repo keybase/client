@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol crypto {
+	bytes sign(bytes buf);
+
+	bytes unbox(string pubkeyKid, bytes buf);
+}
