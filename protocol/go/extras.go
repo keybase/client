@@ -16,6 +16,10 @@ func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
 }
 
+func Quote(s string) []byte {
+	return []byte("\"" + s + "\"")
+}
+
 func UidFromHex(s string) (u *UID, err error) {
 	var bv []byte
 	bv, err = hex.DecodeString(s)
@@ -51,5 +55,5 @@ func (u UID) String() string {
 }
 
 func (u *UID) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + u.String() + "\""), nil
+	return Quote(u.String()), nil
 }

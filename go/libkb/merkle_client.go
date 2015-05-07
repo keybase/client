@@ -69,9 +69,9 @@ type MerkleRoot struct {
 }
 
 type MerkleTriple struct {
-	Seqno  Seqno
-	LinkId LinkId
-	SigId  *SigId
+	Seqno  Seqno  `json:"seqno"`
+	LinkId LinkId `json:"id"`
+	SigId  *SigId `json:"sigid,omitempty"`
 }
 
 type MerkleUserLeaf struct {
@@ -700,4 +700,16 @@ func (mul *MerkleUserLeaf) MatchUser(u *User, uid *UID, un string) (err error) {
 		err = MerkleClashError{fmt.Sprintf("vs given arg: UID %s != %s", *uid, mul.uid)}
 	}
 	return
+}
+
+func (mt1 MerkleTriple) Less(mt2 MerkleTriple) bool {
+	return mt1.Seqno < mt2.Seqno
+}
+
+func GetMerkleTriple(jw *jsonw.Wrapper) (ret *MerkleTriple, err error) {
+	var tmp MerkleTriple
+	if err = jw.UnmarshalAgain(&tmp); err != nil {
+		ret = &tmp
+	}
+	return ret, err
 }

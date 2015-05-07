@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"time"
-
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 type SigChain struct {
@@ -120,7 +118,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	sc.localChainUpdateTime = time.Now()
 }
 
-func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err error) {
+func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *MerkleTriple, err error) {
 
 	low := sc.GetLastLoadedSeqno()
 	uid_s := sc.uid.String()
@@ -178,12 +176,12 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple) (dirtyTail *LinkSummary, err
 	}
 
 	if tail != nil {
-		dirtyTail = tail.ToLinkSummary()
+		dirtyTail = tail.ToMerkleTriple()
 
 		// If we've stored a `last` and it's less than the one
 		// we just loaded, then nuke it.
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
-			G.Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.seqno)
+			G.Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
 			sc.localChainTail = nil
 			sc.localCki = nil
 		}
@@ -218,10 +216,9 @@ func (sc *SigChain) VerifyChain() (err error) {
 	return
 }
 
-func (sc SigChain) GetCurrentTailTriple() (cli *MerkleTriple) {
+func (sc SigChain) GetCurrentTailTriple() (ret *MerkleTriple) {
 	if l := sc.GetLastLink(); l != nil {
-		tmp := l.ToMerkleTriple()
-		cli = &tmp
+		ret = l.ToMerkleTriple()
 	}
 	return
 }
@@ -499,7 +496,7 @@ type SigChainLoader struct {
 	chainType *ChainType
 	links     []*ChainLink
 	ckf       ComputedKeyFamily
-	dirtyTail *LinkSummary
+	dirtyTail *MerkleTriple
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -514,17 +511,16 @@ func (l *SigChainLoader) GetUidString() string {
 	return l.user.GetUid().String()
 }
 
-func (l *SigChainLoader) LoadLastLinkIdFromStorage() (ls *LinkSummary, err error) {
-	var w *jsonw.Wrapper
-	w, err = G.LocalDb.Get(DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
+func (l *SigChainLoader) LoadLastLinkIdFromStorage() (mt *MerkleTriple, err error) {
+	var tmp MerkleTriple
+	var found bool
+	found, err = G.LocalDb.GetInto(&tmp, DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()})
 	if err != nil {
 		G.Log.Debug("| Error loading last link: %s", err)
-	} else if w == nil {
+	} else if !found {
 		G.Log.Debug("| LastLinkId was null")
 	} else {
-		if ls, err = GetLinkSummary(w); err == nil {
-			G.Log.Debug("| LastLinkID loaded as %x", *ls)
-		}
+		mt = &tmp
 	}
 	return
 }
@@ -545,7 +541,7 @@ func (l *SigChainLoader) AccessPreload() (cached bool, err error) {
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	var curr LinkId
 	var links []*ChainLink
-	var ls *LinkSummary
+	var mt *MerkleTriple
 	good_key := true
 
 	uid_s := l.GetUidString()
@@ -553,10 +549,12 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid_s)
 	defer func() { G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid_s, ErrToOk(err)) }()
 
-	if ls, err = l.LoadLastLinkIdFromStorage(); err != nil || ls == nil {
+	fmt.Printf("yo are you there?\n")
+	if mt, err = l.LoadLastLinkIdFromStorage(); err != nil || mt == nil {
 		G.Log.Debug("| Failed to load last link ID")
 		return err
 	}
+	fmt.Printf("loaded last ID from storage...\n")
 
 	// Load whatever the last fingerprint was in the chain if we're not loading
 	// allKeys. We have to load something...  Note that we don't use l.fp
@@ -564,10 +562,16 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	// removed their key, we still want to load their last chainlinks.
 	var loadFokid *FOKID
 
-	curr = ls.id
+	curr = mt.LinkId
 	var link *ChainLink
 
+	fmt.Printf("foob A\n")
+
+	i := 0
+
 	for curr != nil && good_key {
+		fmt.Printf("foob B %d\n", i)
+		i++
 		G.Log.Debug("| loading link; curr=%s", curr)
 		if link, err = ImportLinkFromStorage(curr); err != nil {
 			return
@@ -716,12 +720,12 @@ func (l *SigChainLoader) StoreTail() (err error) {
 	if l.dirtyTail == nil {
 		return
 	}
-	err = G.LocalDb.Put(
+	err = G.LocalDb.PutObj(
 		DbKey{Typ: l.chainType.DbType, Key: l.GetUidString()},
 		nil,
-		l.dirtyTail.ToJson(),
+		l.dirtyTail,
 	)
-	G.Log.Debug("| Storing dirtyTail @ %d (%v)", l.dirtyTail.seqno, l.dirtyTail)
+	G.Log.Debug("| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
 	if err == nil {
 		l.dirtyTail = nil
 	}
@@ -767,11 +771,14 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	if !preload {
 		stage("LoadLinksFromStorage")
+		fmt.Printf("here goes...\n")
 		if err = l.LoadLinksFromStorage(); err != nil {
+			fmt.Printf("well shit...\n")
 			return
 		}
 	}
 
+	fmt.Printf("moving on!....\n")
 	stage("MakeSigChain")
 	if err = l.MakeSigChain(); err != nil {
 		return

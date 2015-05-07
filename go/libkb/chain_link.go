@@ -4,9 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"time"
-
+	keybase1 "github.com/keybase/client/protocol/go"
 	jsonw "github.com/keybase/go-jsonw"
+	"time"
 )
 
 const (
@@ -34,6 +34,19 @@ func GetLinkIdVoid(w *jsonw.Wrapper, l *LinkId, e *error) {
 	} else {
 		*l = ret
 	}
+}
+
+func (l *LinkId) UnmarshalJSON(b []byte) error {
+	lid, err := LinkIdFromHex(keybase1.Unquote(b))
+	if err != nil {
+		return err
+	}
+	copy((*l)[:], lid[:])
+	return nil
+}
+
+func (l *LinkId) MarshalJSON() ([]byte, error) {
+	return keybase1.Quote(l.String()), nil
 }
 
 func LinkIdFromHex(s string) (LinkId, error) {
@@ -575,56 +588,13 @@ func (c *ChainLink) MatchUidAndUsername(uid UID, username string) bool {
 	return uid == c.unpacked.uid && username == c.unpacked.username
 }
 
-type LinkSummary struct {
-	id    LinkId
-	seqno Seqno
-}
-
-func (mt MerkleTriple) ToLinkSummary() (ret LinkSummary) {
-	ret.id = mt.LinkId
-	ret.seqno = mt.Seqno
-	return
-}
-
-func (ls LinkSummary) Less(ls2 LinkSummary) bool {
-	return ls.seqno < ls2.seqno
-}
-
-func (l LinkSummary) ToJson() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("id", jsonw.NewString(l.id.String()))
-	ret.SetKey("seqno", jsonw.NewInt(int(l.seqno)))
-	return ret
-}
-
-func GetLinkSummary(j *jsonw.Wrapper) (ret *LinkSummary, err error) {
-	var seqno int
-	var id LinkId
-	j.AtKey("seqno").GetIntVoid(&seqno, &err)
-	GetLinkIdVoid(j.AtKey("id"), &id, &err)
-	if err == nil {
-		ret = &LinkSummary{id, Seqno(seqno)}
-	}
-	return
-}
-
-func (l *ChainLink) ToLinkSummary() *LinkSummary {
-	return &LinkSummary{
-		id:    l.id,
-		seqno: l.GetSeqno(),
-	}
-}
-
-func (l *ChainLink) ToMerkleTriple() (ret MerkleTriple) {
-	return MerkleTriple{
-		LinkId: l.id,
+// ToLinkSummary converts a ChainLink into a MerkleTriple object.
+func (l ChainLink) ToMerkleTriple() *MerkleTriple {
+	return &MerkleTriple{
 		Seqno:  l.GetSeqno(),
-		SigId:  l.GetSigId(),
+		LinkId: l.id,
+		SigId:  nil,
 	}
-}
-
-func (mt MerkleTriple) Less(ls LinkSummary) bool {
-	return mt.Seqno < ls.seqno
 }
 
 //=========================================================================
