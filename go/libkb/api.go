@@ -212,7 +212,7 @@ func (a *InternalApiEngine) getUrl(arg ApiArg) url.URL {
 
 func (a *InternalApiEngine) fixHeaders(arg ApiArg, req *http.Request) {
 	if arg.NeedSession {
-		tok, csrf := G.LoginState().SessionArgs()
+		tok, csrf := G.Account().LocalSession().APIArgs()
 		if len(tok) > 0 {
 			req.Header.Add("X-Keybase-Session", tok)
 		} else {

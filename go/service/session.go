@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
@@ -22,15 +23,12 @@ func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
 // CurrentSession uses the global session to find the session.  If
 // the user isn't logged in, it returns ErrNoSession.
 func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
-	// TODO: Check if logged in and retrieve user info in one
-	// operation to avoid races.
 	var s keybase1.Session
-	if !G.LoginState().IsLoggedIn() {
-		return s, ErrNoSession
-	}
-
-	uid, username, token, deviceSubkeyKid, err := G.LoginState().UserInfo()
+	uid, username, token, deviceSubkeyKid, err := G.Account().UserInfo()
 	if err != nil {
+		if _, ok := err.(libkb.LoginRequiredError); ok {
+			return s, ErrNoSession
+		}
 		return s, err
 	}
 

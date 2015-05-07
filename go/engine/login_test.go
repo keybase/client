@@ -100,7 +100,7 @@ func TestLoginAddsKeys(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
+	if err := AssertLoggedIn(tc); err != nil {
 		t.Fatal(err)
 	}
 
@@ -122,7 +122,7 @@ func TestLoginDetKeyOnly(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
+	if err := AssertLoggedIn(tc); err != nil {
 		t.Fatal(err)
 	}
 
@@ -296,7 +296,7 @@ func TestLoginInterruptDeviceRegister(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
+	if err := AssertLoggedIn(tc); err != nil {
 		t.Fatal(err)
 	}
 
@@ -355,12 +355,26 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
+	if err := AssertLoggedIn(tc); err != nil {
 		t.Fatal(err)
 	}
 
 	// since this user didn't have any keys, login should have fixed that:
 	testUserHasDeviceKey(t)
+}
+
+func TestUserInfo(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	_, username, _, _, err := tc.G.Account().UserInfo()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if username != u.Username {
+		t.Errorf("userinfo username: %q, expected %q", username, u.Username)
+	}
 }
 
 type lockui struct {

@@ -42,9 +42,9 @@ type GlobalContext struct {
 	UI            UI               // Interact with the UI
 	Service       bool             // whether we're in server mode
 	shutdown      bool             // whether we've shut down or not
-	loginStateMu  sync.RWMutex     // protects loginState pointer, which gets destroyed on logout
+	loginStateMu  sync.RWMutex     // protects loginState, account pointers, which get destroyed on logout
 	loginState    *LoginState      // What phase of login the user's in
-	account       *Account
+	account       *Account         // information about current user's account, login session
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -94,9 +94,6 @@ func (g *GlobalContext) Account() *Account {
 
 func (g *GlobalContext) Logout() error {
 	if err := g.LoginState().Logout(); err != nil {
-		return err
-	}
-	if err := g.Account().Logout(); err != nil {
 		return err
 	}
 
@@ -197,6 +194,9 @@ func (g *GlobalContext) Shutdown() error {
 	if g.LoginState() != nil {
 		epick.Push(g.LoginState().Shutdown())
 	}
+	if g.Account() != nil {
+		epick.Push(g.Account().Shutdown())
+	}
 
 	for _, hook := range g.ShutdownHooks {
 		epick.Push(hook())
@@ -276,7 +276,7 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 }
 
 func (g *GlobalContext) GetMyUID() (ret *UID) {
-	ret = g.LoginState().UID()
+	ret = g.Account().LocalSession().GetUID()
 	if ret == nil {
 		ret = g.Env.GetUID()
 	}

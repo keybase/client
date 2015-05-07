@@ -90,3 +90,23 @@ func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {
 func (fu *FakeUser) NewSecretUI() libkb.TestSecretUI {
 	return libkb.TestSecretUI{Passphrase: fu.Passphrase}
 }
+
+func AssertLoggedIn(tc libkb.TestContext) error {
+	if err := tc.G.Account().LocalSession().Check(); err != nil {
+		return err
+	}
+	if !tc.G.Account().LocalSession().IsLoggedIn() {
+		return libkb.LoginRequiredError{}
+	}
+	return nil
+}
+
+func AssertLoggedOut(tc libkb.TestContext) error {
+	if err := tc.G.Account().LocalSession().Check(); err != nil {
+		return err
+	}
+	if tc.G.Account().LocalSession().IsLoggedIn() {
+		return libkb.LogoutError{}
+	}
+	return nil
+}

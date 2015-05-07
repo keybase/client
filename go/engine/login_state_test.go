@@ -18,11 +18,11 @@ func TestLoginLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login logout")
 	defer tc.Cleanup()
 
-	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
+	if err := AssertLoggedOut(tc); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if tc.G.LoginState().IsLoggedIn() {
+	if tc.G.Account().LoggedIn() {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
@@ -31,28 +31,28 @@ func TestLoginLogout(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "login")
 
-	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
+	if err := AssertLoggedIn(tc); err != nil {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
 	tc.G.Logout()
 
-	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
+	if err := AssertLoggedOut(tc); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if tc.G.LoginState().IsLoggedIn() {
+	if tc.G.Account().LoggedIn() {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
 	// Logging out twice should still work.
 	tc.G.Logout()
 
-	if err := tc.G.LoginState().AssertLoggedOut(); err != nil {
+	if err := AssertLoggedOut(tc); err != nil {
 		t.Error("Unexpectedly logged in (Session)")
 	}
 
-	if tc.G.LoginState().IsLoggedIn() {
+	if tc.G.Account().LoggedIn() {
 		t.Error("Unexpectedly logged in (LoginState)")
 	}
 
@@ -61,11 +61,11 @@ func TestLoginLogout(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := tc.G.LoginState().AssertLoggedIn(); err != nil {
+	if err := AssertLoggedIn(tc); err != nil {
 		t.Error("Unexpectedly logged out (Session)")
 	}
 
-	if !tc.G.LoginState().IsLoggedIn() {
+	if !tc.G.Account().LoggedIn() {
 		t.Error("Unexpectedly logged out (LoginState)")
 	}
 }
@@ -385,7 +385,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	tc.G.Logout()
 
-	tc.G.LoginState().ClearStoredSecret(fu.Username)
+	libkb.ClearStoredSecret(fu.Username)
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
@@ -492,7 +492,7 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 		t.Error(err)
 	}
 
-	tc.G.LoginState().ClearStoredSecret(fu.Username)
+	libkb.ClearStoredSecret(fu.Username)
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)

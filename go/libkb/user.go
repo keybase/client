@@ -200,7 +200,7 @@ func (u *User) GetIdVersion() (int64, error) {
 func NewUserFromServer(o *jsonw.Wrapper) (*User, error) {
 	u, e := NewUser(o)
 	if e == nil {
-		u.loggedIn = G.LoginState().IsLoggedIn()
+		u.loggedIn = G.Account().LoggedIn()
 		u.dirty = true
 	}
 	return u, e

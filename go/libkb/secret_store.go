@@ -38,3 +38,11 @@ func GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
 
 	return configuredAccounts, nil
 }
+
+func ClearStoredSecret(username string) error {
+	secretStore := NewSecretStore(username)
+	if secretStore == nil {
+		return nil
+	}
+	return secretStore.ClearSecret()
+}

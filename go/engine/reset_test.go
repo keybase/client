@@ -29,7 +29,7 @@ func TestReset(t *testing.T) {
 	assertFileExists(t, dbPath)
 	assertFileExists(t, sessionPath)
 
-	if !tc.G.LoginState().IsLoggedIn() {
+	if !tc.G.Account().LoggedIn() {
 		t.Fatal("Unexpectedly logged out")
 	}
 
@@ -39,7 +39,7 @@ func TestReset(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if tc.G.LoginState().IsLoggedIn() {
+	if tc.G.Account().LoggedIn() {
 		t.Error("Unexpectedly still logged in")
 	}
 

@@ -25,18 +25,21 @@ func NewAccount(g *GlobalContext) *Account {
 	}
 }
 
-func (a *Account) LoggedIn() bool {
-	return false
-}
-
-func (a *Account) LoadLocalSession() error {
-	return a.LocalSession().Load()
-}
-
 func (a *Account) LocalSession() *Session {
 	a.RLock()
 	defer a.RUnlock()
 	return a.localSession
+}
+
+// LoggedIn returns true if the user is logged in.  It does not
+// try to load the session.
+func (a *Account) LoggedIn() bool {
+	return a.LocalSession().IsLoggedIn()
+}
+
+// LoggedInLoad will load and check the session with the api server if necessary.
+func (a *Account) LoggedInLoad() (bool, error) {
+	return a.LocalSession().loadAndCheck()
 }
 
 func (a *Account) LoadLoginSession(emailOrUsername string) error {
@@ -134,4 +137,34 @@ func (a *Account) SecretSyncer() *SecretSyncer {
 
 func (a *Account) RunSecretSyncer(uid *UID) error {
 	return RunSyncer(a.SecretSyncer(), uid)
+}
+
+func (a *Account) Shutdown() error {
+	return a.LocalSession().Write()
+}
+
+func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid KID, err error) {
+	// lock everything to make sure the values refer to same user
+	a.RLock()
+	defer a.RUnlock()
+
+	if !a.localSession.IsLoggedIn() {
+		err = LoginRequiredError{}
+		return
+	}
+
+	user, err := LoadMe(LoadUserArg{})
+	if err != nil {
+		return
+	}
+	deviceSubkeyKid, err = user.GetDeviceSubkeyKid(a.G())
+	if err != nil {
+		deviceSubkeyKid = KID{}
+		return
+	}
+
+	uid = user.GetUid()
+	username = user.GetName()
+	token = a.localSession.GetToken()
+	return
 }

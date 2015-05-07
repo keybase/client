@@ -45,14 +45,12 @@ func TestConcurrentLogin(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					tc.G.LoginState().SessionArgs()
-					tc.G.LoginState().UserInfo()
-					tc.G.LoginState().UID()
-					tc.G.LoginState().SessionLoad()
-					tc.G.LoginState().IsLoggedIn()
+					tc.G.Account().LocalSession().APIArgs()
+					tc.G.Account().UserInfo()
+					tc.G.Account().LocalSession().GetUID()
+					tc.G.Account().LocalSession().Load()
+					tc.G.Account().LoggedIn()
 					tc.G.LoginState().IsLoggedInLoad()
-					tc.G.LoginState().AssertLoggedIn()
-					tc.G.LoginState().AssertLoggedOut()
 					// tc.G.LoginState.Shutdown()
 				}
 			}

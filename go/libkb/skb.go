@@ -204,7 +204,8 @@ func (s *SKB) UnlockSecretKey(passphrase string, tsec *triplesec.Cipher, pps Pas
 			}
 		}
 		if unlocked, err = s.lksUnlock(pps, secretStorer); err == nil && pps_in == nil {
-			s.G().LoginState().SetPassphraseStream(tsec, pps)
+			// the unverified tsec, pps has been verified, so cache it:
+			s.G().Account().CreateStreamCache(tsec, pps)
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
