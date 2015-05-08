@@ -262,3 +262,10 @@ type InconsistentBlockPointerError struct {
 func (e *InconsistentBlockPointerError) Error() string {
 	return fmt.Sprintf("Block pointer to dirty block %v with non-zero quota size = %d bytes", e.Ptr.Id, e.Ptr.QuotaSize)
 }
+
+type WriteNeededInReadRequest struct {
+}
+
+func (e *WriteNeededInReadRequest) Error() string {
+	return "This request needs exclusive access, but doesn't have it."
+}
