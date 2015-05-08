@@ -250,7 +250,7 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSibkeyKid, 
 	if err != nil {
 		return
 	}
-	deviceSibkeyKid, deviceSubkeyKid, err = user.GetDeviceKids(a.G())
+	deviceSibkey, deviceSubkey, err := user.GetDeviceKeys()
 	if err != nil {
 		deviceSubkeyKid = KID{}
 		return
@@ -259,6 +259,8 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSibkeyKid, 
 	uid = user.GetUid()
 	username = user.GetName()
 	token = a.localSession.GetToken()
+	deviceSibkeyKid = deviceSibkey.GetKid()
+	deviceSubkeyKid = deviceSubkey.GetKid()
 	return
 }
 

@@ -299,27 +299,32 @@ func (u *User) GetActivePgpFOKIDs(sibkey bool) (ret []FOKID) {
 	return
 }
 
-func (u *User) GetDeviceKids(g *GlobalContext) (sibkeyKid, subkeyKid KID, err error) {
+func (u *User) GetDeviceKeys() (sibkey, subkey GenericKey, err error) {
+	defer func() {
+		if err != nil {
+			sibkey = nil
+			subkey = nil
+			return
+		}
+	}()
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
 		err = KeyFamilyError{"no key family available"}
 		return
 	}
-	did := g.Env.GetDeviceID()
+	did := u.G().Env.GetDeviceID()
 	if did == nil {
 		err = NotProvisionedError{}
 		return
 	}
-	sibKey, err := ckf.GetSibkeyForDevice(*did)
+	sibkey, err = ckf.GetSibkeyForDevice(*did)
 	if err != nil {
 		return
 	}
-	subKey, err := ckf.GetEncryptionSubkeyForDevice(*did)
+	subkey, err = ckf.GetEncryptionSubkeyForDevice(*did)
 	if err != nil {
 		return
 	}
-	sibkeyKid = sibKey.GetKid()
-	subkeyKid = subKey.GetKid()
 	return
 }
 
@@ -826,31 +831,9 @@ func (u *User) GetDevice(id string) (*Device, error) {
 	return device, nil
 }
 
-func (u *User) GetDeviceSibkey() (GenericKey, error) {
-	if u.GetComputedKeyFamily() == nil {
-		return nil, fmt.Errorf("no computed key family")
-	}
-	if G.Env.GetDeviceID() == nil {
-		return nil, fmt.Errorf("no device id")
-	}
-	return u.GetComputedKeyFamily().GetSibkeyForDevice(*(G.Env.GetDeviceID()))
-}
-
 func (u *User) HasDeviceInCurrentInstall() bool {
-	existingDevID := G.Env.GetDeviceID()
-	if existingDevID == nil || len(existingDevID) == 0 {
-		return false
-	}
-
-	key, err := u.GetDeviceSibkey()
-	if err != nil {
-		return false
-	}
-	if key == nil {
-		return false
-	}
-
-	return true
+	_, _, err := u.GetDeviceKeys()
+	return err != nil
 }
 
 func (u *User) SigningKeyPub() (GenericKey, error) {
