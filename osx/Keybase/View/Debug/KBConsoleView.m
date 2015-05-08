@@ -9,7 +9,7 @@
 #import "KBConsoleView.h"
 
 #import "AppDelegate.h"
-#import "KBLauncher.h"
+#import "KBLaunchService.h"
 #import "KBAppKit.h"
 
 #import "KBMockViews.h"
@@ -17,6 +17,7 @@
 #import "KBTestInstallView.h"
 #import "KBAppView.h"
 #import "KBLaunchCtl.h"
+#import "KBLaunchServiceInstall.h"
 
 @interface KBConsoleView () <KBAppViewDelegate>
 @property KBListView *logView;
@@ -35,8 +36,8 @@
   KBButton *checkButton = [KBButton buttonWithText:@"Status" style:KBButtonStyleToolbar];
   checkButton.dispatchBlock = ^(KBButton *button, KBButtonCompletion completion) {
     [AppDelegate.appView checkStatus:^(NSError *error) {
-      if (gself.client.environment.launchdLabel) {
-        [KBLaunchCtl status:gself.client.environment.launchdLabel completion:^(NSError *error, NSInteger pid) {
+      if (gself.client.environment.launchdLabelService) {
+        [KBLaunchCtl status:gself.client.environment.launchdLabelService completion:^(NSError *error, NSInteger pid) {
           KBConsoleLog(@"Keybase (launchctl) pid: %@", @(pid));
           completion(error);
         }];
@@ -99,19 +100,18 @@
 - (void)appViewDidLaunch:(KBAppView *)appView {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   KBConsoleLog(@"Keybase.app Version: %@ (%@)", info[@"CFBundleVersion"], info[@"CFBundleShortVersionString"]);
-  KBConsoleLog(@"Keybase Service Version: %@", info[@"KeybaseServiceVersion"]);
-  KBConsoleLog(@"Keybase Helper Version: %@", info[@"KeybaseHelperVersion"]);
-  KBConsoleLog(@"Keybase Fuse Version: %@", info[@"KeybaseFuseVersion"]);
+  KBConsoleLog(@"Service Version: %@", info[@"KBServiceVersion"]);
+  KBConsoleLog(@"Helper Version: %@", info[@"KBHelperVersion"]);
+  KBConsoleLog(@"KBFS Version: %@", info[@"KBFSVersion"]);
+  KBConsoleLog(@"Fuse Version: %@", info[@"KBFuseVersion"]);
 
   _client = appView.client;
   [self setNeedsLayout];
 }
 
-- (void)appView:(KBAppView *)appView didCheckInstall:(BOOL)installed installType:(KBInstallType)installType {
-  if (installed) {
-    KBConsoleLog(@"Installed.");
-  } else {
-    KBConsoleLog(@"Install checked.");
+- (void)appView:(KBAppView *)appView didCheckInstalls:(NSArray *)installs {
+  for (KBLaunchServiceInstall *install in installs) {
+    KBConsoleLog(@"%@: %@", install.service.label, install.installed ? @"Installed" : @"Checked");
   }
 }
 

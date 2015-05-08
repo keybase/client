@@ -14,6 +14,7 @@
 #import "KBPGPDecrypt.h"
 #import "KBPGPDecryptFooterView.h"
 #import "KBPGPDecrypted.h"
+#import "KBWork.h"
 
 @interface KBPGPDecryptView ()
 @property KBTextView *textView;
@@ -31,11 +32,11 @@
   _textView.view.editable = YES;
   _textView.view.textContainerInset = CGSizeMake(10, 10);
   _textView.view.textColor = KBAppearance.currentAppearance.textColor;
-  _textView.view.font = [KBAppearance.currentAppearance fontForStyle:KBTextStyleMonospace];
+  _textView.view.font = [KBAppearance.currentAppearance fontForStyle:KBTextStyleDefault options:KBTextOptionsMonospace];
   _textView.onPaste = ^BOOL(KBTextView *textView) {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSString *str = [pasteboard stringForType:NSPasteboardTypeString];
-    [textView setText:str style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    [textView setText:str style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
     return NO;
   };
   [self addSubview:_textView];
@@ -48,7 +49,7 @@
 }
 
 - (void)setASCIIData:(NSData *)data {
-  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 }
 
 - (void)decrypt {
@@ -65,7 +66,8 @@
     NSError *error = [works[0] error];
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
-    KBPGPDecrypted *decrypted = [works[0] output];
+    KBWork *work = works[0];
+    KBPGPDecrypted *decrypted = [work output];
 
     if (self.onDecrypt) {
       self.onDecrypt(self, decrypted);

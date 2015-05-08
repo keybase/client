@@ -105,6 +105,12 @@
   return label;
 }
 
++ (instancetype)labelWithText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  KBLabel *label = [[KBLabel alloc] init];
+  [label setText:text style:style options:options alignment:alignment lineBreakMode:lineBreakMode];
+  return label;
+}
+
 - (void)setBorderEnabled:(BOOL)borderEnabled {
   if (borderEnabled) {
     _border = [[KBBorder alloc] init];
@@ -143,10 +149,14 @@
 }
 
 - (void)setText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  [self setText:text style:style options:0 alignment:alignment lineBreakMode:lineBreakMode];
+}
+
+- (void)setText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   _style = style;
   id<KBAppearance> appearance = KBAppearance.currentAppearance;
-  NSColor *color = [appearance colorForStyle:style];
-  NSFont *font = [appearance fontForStyle:style];
+  NSColor *color = [appearance colorForStyle:style options:options];
+  NSFont *font = [appearance fontForStyle:style options:options];
   [self setText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
 }
 
@@ -183,7 +193,7 @@
 
 - (void)setMarkup:(NSString *)markup style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   _style = style;
-  [self setMarkup:markup font:[KBAppearance.currentAppearance fontForStyle:_style] color:[KBAppearance.currentAppearance colorForStyle:_style] alignment:alignment lineBreakMode:lineBreakMode];
+  [self setMarkup:markup font:[KBAppearance.currentAppearance fontForStyle:_style options:0] color:[KBAppearance.currentAppearance colorForStyle:_style options:0] alignment:alignment lineBreakMode:lineBreakMode];
 }
 
 - (void)setMarkup:(NSString *)markup font:(NSFont *)font color:(NSColor *)color alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
@@ -216,7 +226,7 @@
 
 - (void)setStyle:(KBTextStyle)style appearance:(id<KBAppearance>)appearance {
   _style = style;
-  [self setFont:[appearance fontForStyle:_style] color:[appearance colorForStyle:_style]];
+  [self setFont:[appearance fontForStyle:_style options:0] color:[appearance colorForStyle:_style options:0]];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -232,7 +242,7 @@
   //NSAssert(_style != KBTextStyleNone, @"Background style only works if label.style is set");
   if (_style == KBTextStyleNone) return;
   id<KBAppearance> appearance = (backgroundStyle == NSBackgroundStyleDark ? KBAppearance.darkAppearance : KBAppearance.lightAppearance);
-  NSColor *color = [appearance colorForStyle:_style];
+  NSColor *color = [appearance colorForStyle:_style options:0];
   [self setFont:nil color:color];
   [self setNeedsLayout];
 }

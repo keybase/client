@@ -29,7 +29,6 @@
 @property KBRPClientStatus status;
 
 @property KBEnvironment *environment;
-@property KBLauncher *launcher; // Optional
 @end
 
 @implementation KBRPClient
@@ -37,21 +36,8 @@
 - (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   if ((self = [super init])) {
     _environment = environment;
-    if (_environment.launchdLabel) {
-      _launcher = [[KBLauncher alloc] initWithEnvironment:environment];
-    }
-
-    _installer = [[KBInstaller alloc] initWithLaunchCtl:_launcher];
   }
   return self;
-}
-
-- (void)uninstall {
-  // TODO: These are old installed files to cleanup
-  /*
-  NSArray *plistsToRemove = @[@"~/Library/LaunchAgents/keybase.keybased.plist", @"~/Library/LaunchAgents/keybase-debug.keybased.plist"];
-  NSArray *dirsToRemove = @[@"~/Library/Application\ Support/Keybase/Debug"];
-   */
 }
 
 - (void)open {
@@ -93,7 +79,7 @@
 
   _client.coder = [[KBRPCCoder alloc] init];
 
-  DDLogDebug(@"Connecting to keybased (%@)...", self.environment.sockFile);
+  DDLogDebug(@"Connecting to keybase service (%@)...", self.environment.sockFile);
   _connectAttempt++;
   [self.delegate RPClientWillConnect:self];
   [_client openWithSocket:self.environment.sockFile completion:^(NSError *error) {

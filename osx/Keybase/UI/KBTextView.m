@@ -85,10 +85,14 @@
   [self setText:text style:style alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 }
 
-- (void)setText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
+- (void)setText:(NSString *)text style:(KBTextStyle)style alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode  {
+  [self setText:text style:style options:0 alignment:alignment lineBreakMode:lineBreakMode];
+}
+
+- (void)setText:(NSString *)text style:(KBTextStyle)style options:(KBTextOptions)options alignment:(NSTextAlignment)alignment lineBreakMode:(NSLineBreakMode)lineBreakMode {
   id<KBAppearance> appearance = KBAppearance.currentAppearance;
-  NSColor *color = [appearance colorForStyle:style];
-  NSFont *font = [appearance fontForStyle:style];
+  NSColor *color = [appearance colorForStyle:style options:options];
+  NSFont *font = [appearance fontForStyle:style options:options];
   [self setText:text font:font color:color alignment:alignment lineBreakMode:lineBreakMode];
 }
 

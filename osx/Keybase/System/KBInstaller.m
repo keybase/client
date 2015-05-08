@@ -11,62 +11,64 @@
 #import "KBDefines.h"
 #import "AppDelegate.h"
 //#include <launch.h>
-#import "KBLauncher.h"
+#import "KBLaunchService.h"
 #import <ServiceManagement/ServiceManagement.h>
+#import "KBRunOver.h"
+#import "KBLaunchServiceInstall.h"
 
 @interface KBInstaller ()
-@property KBLauncher *launcher;
+@property NSArray *services;
 @end
 
 @implementation KBInstaller
 
-- (instancetype)initWithLaunchCtl:(KBLauncher *)launcher {
+- (instancetype)initWithServices:(NSArray *)services {
   if ((self = [super init])) {
-    _launcher = launcher;
+    _services = services;
   }
   return self;
 }
 
 - (void)checkInstall:(KBInstallCheck)completion {
-  if (!_launcher) {
-    completion(nil, NO, KBInstallTypeNone);
+  if ([_services count] == 0) {
+    completion(@[]);
     return;
   }
 
-  [_launcher status:^(NSError *error, NSInteger pid) {
-    if (error) {
-      completion(error, NO, KBInstallTypeNone);
-      return;
-    }
-    /*
-    if (pid == -1) {
-      [self install:completion];
-    } else {
-      [gself.launcher reload:^(NSError *error, NSInteger pid) {
-        completion(nil, NO, KBInstallTypeInstaller);
+  KBRunOver *rover = [[KBRunOver alloc] init];
+  rover.objects = _services;
+  rover.runBlock = ^(KBLaunchService *service, KBRunCompletion runCompletion) {
+    [service status:^(NSError *error, NSInteger pid) {
+      if (error) {
+        KBLaunchServiceInstall *install = [[KBLaunchServiceInstall alloc] init];
+        install.error = error;
+        install.service = service;
+        runCompletion(install);
+        return;
+      }
+      /*
+       if (pid == -1) {
+       [self install:completion];
+       } else {
+       [gself.launcher reload:^(NSError *error, NSInteger pid) {
+       completion(nil, NO, KBInstallTypeInstaller);
+       }];
+       }
+       */
+      [service install:^(NSError *error, BOOL installed) {
+        KBLaunchServiceInstall *install = [[KBLaunchServiceInstall alloc] init];
+        install.error = error;
+        install.service = service;
+        install.installed = installed;
+        runCompletion(install);
       }];
-    }
-     */
-    [self install:completion];
-  }];
+    }];
+
+  };
+  rover.completion = completion;
+  [rover run];
 }
 
-- (void)install:(void (^)(NSError *error, BOOL installed, KBInstallType installType))completion {
-  NSError *error = nil;
-  [AppDelegate applicationSupport:nil create:YES error:&error]; // Create application support dir
-  if (error) {
-    completion(error, NO, KBInstallTypeNone);
-    return;
-  }
-
-  [_launcher installLaunchAgent:^(NSError *error) {
-    if (error) {
-      completion(error, NO, KBInstallTypeNone);
-      return;
-    }
-    completion(error, YES, KBInstallTypeInstaller);
-  }];
-}
 
 - (void)removeDirectory:(NSString *)directory error:(NSError **)error {
   NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:directory error:error];

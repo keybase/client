@@ -16,18 +16,24 @@ typedef NS_ENUM (NSInteger, KBEnv) {
 
 @interface KBEnvironment : NSObject
 
-@property NSString *home;
-@property NSString *host;
-@property NSString *launchdLabel;
-@property (getter=isDebugEnabled) BOOL debugEnabled;
-
-@property NSString *sockFile;
-
-@property NSString *title;
-@property BOOL canRunFromXCode;
+@property (readonly) NSString *homeDir;
+@property (readonly) NSString *host;
+@property (readonly, getter=isDebugEnabled) BOOL debugEnabled;
+@property (readonly) NSString *mountDir;
+@property (readonly) NSString *sockFile;
+@property (readonly) NSString *identifier;
+@property (readonly) NSString *launchdLabelService;
+@property (readonly) NSString *launchdLabelKBFS;
+@property (readonly) NSString *title;
+@property (readonly) NSString *info;
+@property (readonly) NSImage *image;
+@property (readonly) BOOL canRunFromXCode;
 
 - (instancetype)initWithEnv:(KBEnv)env;
 
 + (instancetype)env:(KBEnv)env;
+
+- (NSDictionary *)launchdPlistDictionaryForService;
+- (NSDictionary *)launchdPlistDictionaryForKBFS;
 
 @end

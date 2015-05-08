@@ -19,6 +19,7 @@
 #import "KBFileReader.h"
 #import "KBFileWriter.h"
 #import "AppDelegate.h"
+#import "KBWork.h"
 
 @interface KBPGPEncryptView ()
 @property KBUserPickerView *userPickerView;
@@ -88,11 +89,12 @@
   [KBActivity setProgressEnabled:YES sender:self];
   //GHWeakSelf gself = self;
   [_encrypter encryptWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
-    NSError *error = [works[0] error];
+    KBWork *work = works[0];
+    NSError *error = [work error];
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
     
-    KBStream *stream = [works[0] output];
+    KBStream *stream = [work output];
     
     if (stream.writer.data) {
       if (self.onEncrypt) {

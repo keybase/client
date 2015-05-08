@@ -79,7 +79,7 @@
   NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
   paragraphStyle.alignment = NSLeftTextAlignment;
   paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
-  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:[KBAppearance.currentAppearance fontForStyle:KBTextStyleDefault], NSParagraphStyleAttributeName:paragraphStyle};
+  NSDictionary *attributes = @{NSForegroundColorAttributeName:color, NSFontAttributeName:[KBAppearance.currentAppearance fontForStyle:KBTextStyleDefault options:0], NSParagraphStyleAttributeName:paragraphStyle};
 
   NSMutableAttributedString *value = [[NSMutableAttributedString alloc] initWithString:proofResult.proof.value];
   [value setAttributes:attributes range:NSMakeRange(0, value.length)];

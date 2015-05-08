@@ -6,75 +6,52 @@
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBLauncher.h"
+#import "KBLaunchService.h"
 #import "KBEnvironment.h"
 #import "KBLaunchCtl.h"
+#import "AppDelegate.h"
 
-@interface KBLauncher ()
-@property KBEnvironment *environment;
-@property NSString *plist;
+@interface KBLaunchService ()
+@property NSString *label;
+@property NSDictionary *plist;
 @end
 
-@implementation KBLauncher
+@implementation KBLaunchService
 
-- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
+- (instancetype)initWithLabel:(NSString *)label plist:(NSDictionary *)plist {
   if ((self = [super init])) {
-    _environment = environment;
-
-    NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
-    _plist = [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _environment.launchdLabel)];
+    _label = label;
+    _plist = plist;
   }
   return self;
 }
 
 - (void)status:(KBLaunchStatus)completion {
-  [KBLaunchCtl status:_environment.launchdLabel completion:completion];
+  [KBLaunchCtl status:_label completion:completion];
 }
 
-+ (NSDictionary *)launchdPlistDictionaryForEnvironment:(KBEnvironment *)environment {
-  if (!environment.launchdLabel) return nil;
-
-  NSMutableArray *args = [NSMutableArray array];
-  [args addObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase"];
-  [args addObjectsFromArray:@[@"-H", environment.home]];
-
-  if (environment.host) {
-    [args addObjectsFromArray:@[@"-s", environment.host]];
+- (void)install:(void (^)(NSError *error, BOOL installed))completion {
+  NSError *error = nil;
+  [AppDelegate applicationSupport:nil create:YES error:&error]; // Create application support dir
+  if (error) {
+    completion(error, NO);
+    return;
   }
 
-  if (environment.isDebugEnabled) {
-    [args addObject:@"-d"];
-  }
-
-  // This is because there is a hard limit of 104 characters for the unix socket file length and if
-  // we the default there is a chance it will be too long (if username is long).
-  [args addObject:NSStringWithFormat(@"--socket-file=%@", environment.sockFile)];
-
-  // Run service (this should be the last arg)
-  [args addObject:@"service"];
-
-  // Logging
-  NSString *logDir = [@"~/Library/Logs/Keybase" stringByExpandingTildeInPath];
-  // Need to create logging dir here because otherwise it might be created as root by launchctl.
-  [NSFileManager.defaultManager createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
-
-  return @{
-           @"Label": environment.launchdLabel,
-           @"ProgramArguments": args,
-           @"KeepAlive": @YES,
-           @"StandardOutPath": NSStringWithFormat(@"%@/%@.log", logDir, environment.launchdLabel),
-           @"StandardErrorPath": NSStringWithFormat(@"%@/%@.err", logDir, environment.launchdLabel),
-           };
+  [self installLaunchAgent:^(NSError *error) {
+    if (error) {
+      completion(error, NO);
+      return;
+    }
+    completion(error, YES);
+  }];
 }
 
-+ (NSString *)launchdPlistForEnvironment:(KBEnvironment *)environment error:(NSError **)error {
-  NSData *data = [NSPropertyListSerialization dataWithPropertyList:[self launchdPlistDictionaryForEnvironment:environment] format:NSPropertyListXMLFormat_v1_0 options:0 error:error];
-  return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-}
 
 - (void)installLaunchAgent:(KBCompletion)completion {
-  // Install launch agent (if not installed)
-  NSString *plistDest = self.plist;
+  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
+  NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:NSStringWithFormat(@"%@.plist", _label)];
+
   if (!plistDest) {
     NSError *error = KBMakeErrorWithRecovery(-1, @"Install Error", @"No launch agent destination.", nil);
     completion(error);
@@ -97,7 +74,7 @@
     }
   }
 
-  NSDictionary *plistDict = [self.class launchdPlistDictionaryForEnvironment:_environment];
+  NSDictionary *plistDict = _plist;
   NSData *data = [NSPropertyListSerialization dataWithPropertyList:plistDict format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
   if (!data) {
     if (!error) error = KBMakeErrorWithRecovery(-1, @"Install Error", @"Unable to create plist data.", nil);
@@ -114,7 +91,7 @@
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [KBLaunchCtl reload:plistDest label:_environment.launchdLabel completion:^(NSError *error, NSInteger pid) {
+  [KBLaunchCtl reload:plistDest label:_label completion:^(NSError *error, NSInteger pid) {
     completion(error);
   }];
 }
@@ -146,5 +123,9 @@
 //    completion(nil);
 //  }
 //}
+
+- (void)uninstall {
+  NSAssert(NO, @"Not implemented");
+}
 
 @end

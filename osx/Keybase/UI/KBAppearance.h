@@ -9,14 +9,17 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-typedef NS_ENUM(NSInteger, KBTextStyle) {
+typedef NS_ENUM (NSInteger, KBTextStyle) {
   KBTextStyleNone,
   KBTextStyleDefault,
   KBTextStyleSecondaryText,
-  KBTextStyleStrong,
-  KBTextStyleMonospace,
   KBTextStyleHeader,
   KBTextStyleHeaderLarge,
+};
+
+typedef NS_OPTIONS (NSInteger, KBTextOptions) {
+  KBTextOptionsStrong,
+  KBTextOptionsMonospace,
 };
 
 typedef NS_ENUM (NSInteger, KBButtonStyle) {
@@ -63,9 +66,9 @@ typedef NS_ENUM (NSInteger, KBButtonStyle) {
 
 - (NSColor *)tableGridColor;
 
-- (NSColor *)colorForStyle:(KBTextStyle)style;
+- (NSColor *)colorForStyle:(KBTextStyle)style options:(KBTextOptions)options;
 
-- (NSFont *)fontForStyle:(KBTextStyle)style;
+- (NSFont *)fontForStyle:(KBTextStyle)style options:(KBTextOptions)options;
 
 - (NSColor *)buttonTextColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted;
 - (NSColor *)buttonFillColorForStyle:(KBButtonStyle)style enabled:(BOOL)enabled highlighted:(BOOL)highlighted toggled:(BOOL)toggled;

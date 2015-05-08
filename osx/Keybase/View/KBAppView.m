@@ -20,6 +20,7 @@
 #import "KBAppToolbar.h"
 #import "KBPGPAppView.h"
 #import "KBSourceOutlineView.h"
+#import "KBLaunchServiceInstall.h"
 
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
@@ -49,6 +50,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property (nonatomic) KBRGetCurrentStatusRes *status;
 @property (nonatomic) KBRConfig *config;
 @property KBAppViewMode mode;
+
+@property KBInstaller *installer;
 @end
 
 #define TITLE_HEIGHT (32)
@@ -135,16 +138,19 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     completion(nil, nil);
   }];
 
-  NSAssert(_client.installer, @"No installer");
-  [_client.installer checkInstall:^(NSError *error, BOOL installed, KBInstallType installType) {
-    if (error) {
-      for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didErrorOnInstall:error];
-      // TODO: We're continuing on in case it's recoverable. We should do something better though.
-      [AppDelegate setError:error sender:self];
-      // return;
-    } else {
-      for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckInstall:installed installType:installType];
+  _installer = [[KBInstaller alloc] init];
+  [_installer checkInstall:^(NSArray *installs) {
+
+    for (KBLaunchServiceInstall *install in installs) {
+      if (install.error) {
+        for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didErrorOnInstall:install.error];
+
+        [AppDelegate setError:install.error sender:self];
+        // TODO: We're continuing on in case it's recoverable. We should do something better though.
+      }
     }
+
+    for (id<KBAppViewDelegate> delegate in gself.delegates) [delegate appView:self didCheckInstalls:installs];
 
     [gself.client open];
   }];

@@ -10,6 +10,11 @@
 
 #import "KBButtonView.h"
 #import "KBEnvironment.h"
+#import "KBHeaderLabelView.h"
+
+@interface KBEnvSelectView ()
+@property YOView *envView;
+@end
 
 @implementation KBEnvSelectView
 
@@ -17,36 +22,65 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
 
-  YOVBox *contentView = [YOVBox box:@{@"maxSize": @"400,0"}];
-  [self addSubview:contentView];
-
   KBLabel *header = [[KBLabel alloc] init];
   [header setText:@"Choose an Environment" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [contentView addSubview:header];
+  [self addSubview:header];
 
-  [contentView addSubview:[KBBox spacing:20]];
+  KBListView *listView = [KBListView listViewWithPrototypeClass:KBImageTextCell.class rowHeight:56];
+  listView.scrollView.borderType = NSBezelBorder;
+  listView.cellSetBlock = ^(KBImageTextView *label, KBEnvironment *env, NSIndexPath *indexPath, NSTableColumn *tableColumn, KBListView *listView, BOOL dequeued) {
+    [label setTitle:env.title info:env.info image:env.image];
+  };
+  listView.onSelect = ^(KBTableView *tableView, NSIndexPath *indexPath, KBEnvironment *environment) {
+    [self select:environment];
+  };
+  [self addSubview:listView];
 
-  YOVBox *envsView = [YOVBox box];
-  [envsView kb_setBorderWithColor:KBAppearance.currentAppearance.lineColor width:1.0];
-  [contentView addSubview:envsView];
+  _envView = [YOVBox box];
+  [self addSubview:_envView];
 
-  NSArray *envs = @[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], [KBEnvironment env:KBEnvManual]];
-
-  for (KBEnvironment *env in envs) {
-    KBImageTextCell *view = [[KBImageTextCell alloc] init];
-    [view setTitle:env.title info:[env.home stringByAbbreviatingWithTildeInPath] imageURLString:nil imageSize:CGSizeZero];
-    [envsView addSubview:[KBButtonView buttonViewWithView:view targetBlock:^{ self.onSelect(env); }]];
-  }
-
-  [contentView addSubview:[KBBox spacing:20]];
-
-  YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center"}];
-  [contentView addSubview:buttons];
+  YOHBox *buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
+  [self addSubview:buttons];
   KBButton *closeButton = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
   closeButton.targetBlock = ^{ [NSApp terminate:0]; };
   [buttons addSubview:closeButton];
+  KBButton *nextButton = [KBButton buttonWithText:@"Next" style:KBButtonStylePrimary];
+  nextButton.targetBlock = ^{
+    self.onSelect(listView.selectedObject);
+  };
+  [buttons addSubview:nextButton];
 
-  self.viewLayout = [YOLayout layoutWithLayoutBlock:[KBLayouts center:contentView]];
+  self.viewLayout = [YOBorderLayout layoutWithCenter:listView top:@[header] bottom:@[_envView, buttons] insets:UIEdgeInsetsMake(20, 40, 20, 40) spacing:20];
+
+  [listView setObjects:@[[KBEnvironment env:KBEnvKeybaseIO], [KBEnvironment env:KBEnvLocalhost], [KBEnvironment env:KBEnvManual]] animated:NO];
+  [listView setSelectedRow:2];
+}
+
+- (void)select:(KBEnvironment *)environment {
+  for (NSView *view in _envView.subviews) [view removeFromSuperview];
+  [_envView addSubview:[self viewForEnvironment:environment]];
+  [_envView setNeedsLayout];
+}
+
+- (NSView *)viewForEnvironment:(KBEnvironment *)environment {
+  YOVBox *view = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
+
+  typedef NSView * (^KBCreateEnvInfoLabel)(NSString *key, NSString *value);
+
+  KBCreateEnvInfoLabel createView = ^NSView *(NSString *key, NSString *value) {
+    return [KBHeaderLabelView headerLabelViewWithHeader:key headerOptions:KBTextOptionsStrong headerWidth:80 text:value style:KBTextStyleDefault lineBreakMode:NSLineBreakByCharWrapping];
+  };
+
+  [view addSubview:createView(@"Id", environment.identifier)];
+  [view addSubview:createView(@"Home", [environment.homeDir stringByAbbreviatingWithTildeInPath])];
+  [view addSubview:createView(@"Host", environment.host)];
+  [view addSubview:createView(@"Sock", [environment.sockFile stringByAbbreviatingWithTildeInPath])];
+  [view addSubview:createView(@"Mount", [environment.mountDir stringByAbbreviatingWithTildeInPath])];
+  [view addSubview:createView(@"Service", environment.launchdLabelService)];
+  [view addSubview:createView(@"KBFS", environment.launchdLabelKBFS)];
+
+  [view kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
+  return view;
 }
 
 @end

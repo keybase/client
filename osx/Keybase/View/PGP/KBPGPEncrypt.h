@@ -12,12 +12,12 @@
 #import "KBWriter.h"
 #import "KBRPC.h"
 #import "KBStream.h"
-#import "KBWork.h"
+#import "KBRunOver.h"
 
 @interface KBPGPEncrypt : NSObject
 
 - (void)encryptWithOptions:(KBRPgpEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion;
 
-- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBWorkCompletion)completion;
+- (void)encryptWithOptions:(KBRPgpEncryptOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion;
 
 @end

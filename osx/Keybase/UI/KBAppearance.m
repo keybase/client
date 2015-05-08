@@ -44,42 +44,42 @@ static id<KBAppearance> gCurrentAppearance = NULL;
 
 @implementation KBAppearanceLight
 
-- (NSColor *)colorForStyle:(KBTextStyle)style {
+- (NSColor *)colorForStyle:(KBTextStyle)style options:(KBTextOptions)options {
   switch (style) {
     case KBTextStyleNone:
     case KBTextStyleDefault:
-    case KBTextStyleStrong:
     case KBTextStyleHeader:
     case KBTextStyleHeaderLarge:
       return self.textColor;
 
     case KBTextStyleSecondaryText:
       return self.secondaryTextColor;
-
-    case KBTextStyleMonospace:
-      return self.secondaryTextColor;
   }
 }
 
-- (NSFont *)fontForStyle:(KBTextStyle)style {
+- (NSFont *)fontForStyle:(KBTextStyle)style options:(KBTextOptions)options {
+  NSFont *font = nil;
   switch (style) {
     case KBTextStyleNone:
     case KBTextStyleDefault:
     case KBTextStyleSecondaryText:
-      return self.textFont;
-
-    case KBTextStyleStrong:
-      return self.boldTextFont;
+      font = self.textFont;
+      break;
 
     case KBTextStyleHeader:
-      return self.headerTextFont;
+      font = self.headerTextFont;
+      break;
 
     case KBTextStyleHeaderLarge:
-      return self.headerLargeTextFont;
-
-    case KBTextStyleMonospace:
-      return [NSFont fontWithName:@"Monaco" size:12];
+      font = self.headerLargeTextFont;
+      break;
   }
+
+  if ((options & KBTextOptionsMonospace) != 0) font = [NSFont fontWithName:@"Monaco" size:font.pointSize];
+
+  if ((options & KBTextOptionsStrong) != 0) font = [NSFont boldSystemFontOfSize:font.pointSize];
+
+  return font;
 }
 
 - (NSColor *)textColor {

@@ -21,8 +21,8 @@
 - (void)next {
   GHWeakSelf gself = self;
   id input = _objects[_index++];
-  self.work(input, ^(KBWork *ouput) {
-    [gself.outputs addObject:ouput];
+  self.runBlock(input, ^(id output) {
+    [gself.outputs addObject:output];
     if (gself.index < [gself.objects count]) {
       // Maybe dispatch_async so we don't blow the stack? But how do we know the current queue so..
       [self next];
@@ -41,7 +41,7 @@
   for (NSInteger i = 0; i < [_objects count]; i++) {
     id input = _objects[i];
     dispatch_async(queue, ^{
-      self.work(input, ^(KBWork *output) {
+      self.runBlock(input, ^(id output) {
         [gself.outputs addObject:output];
         if (++count == objectCount) {
           self.completion(gself.outputs);

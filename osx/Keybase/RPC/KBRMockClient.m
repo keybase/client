@@ -32,7 +32,7 @@
 }
 
 - (void)checkInstall:(KBInstallCheck)completion {
-  completion(nil, NO, KBInstallTypeNone);
+  completion(@[]);
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSArray *)params sessionId:(NSInteger)sessionId completion:(MPRequestCompletion)completion {

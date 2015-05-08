@@ -10,6 +10,7 @@
 
 #import "NSView+KBView.h"
 #import "KBTitleView.h"
+#import "KBBox.h"
 
 @interface KBListView ()
 @property Class prototypeClass;
@@ -57,16 +58,34 @@
     return titleView;
   }
 
-  YOView *view = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
+  /*
+  KBCellView *cellView = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
+  BOOL dequeued = NO;
+  id view;
+  if (!cellView) {
+    dequeued = YES;
+    view = [[_prototypeClass alloc] init];
+    cellView = [[KBCellView alloc] init];
+    cellView.identifier = NSStringFromClass(_prototypeClass);
+    [cellView setView:view];
+  } else {
+    view = cellView.view;
+  }
+
+  self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableColumn, self, dequeued);
+  if ([view respondsToSelector:@selector(setNeedsLayout)]) [view setNeedsLayout];
+  return cellView;
+   */
+
+  NSView *view = [self.view makeViewWithIdentifier:NSStringFromClass(self.prototypeClass) owner:self];
   BOOL dequeued = NO;
   if (!view) {
     dequeued = YES;
     view = [[_prototypeClass alloc] init];
     view.identifier = NSStringFromClass(_prototypeClass);
   }
-
   self.cellSetBlock(view, object, [NSIndexPath indexPathWithIndex:row], tableColumn, self, dequeued);
-  if ([view respondsToSelector:@selector(setNeedsLayout)]) [view setNeedsLayout];
+  if ([view respondsToSelector:@selector(setNeedsLayout)]) [(id)view setNeedsLayout];
   return view;
 }
 
@@ -95,6 +114,45 @@
     CGFloat height = [self.prototypeView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)].height;
     return height;
   }
+}
+
+@end
+
+
+@interface KBCellView ()
+@property NSBox *border;
+@end
+
+@implementation KBCellView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if ((self = [super initWithFrame:frame])) {
+    self.autoresizesSubviews = NO;
+    _border = [[NSBox alloc] init];
+    _border.borderWidth = 1.0;
+    _border.borderType = NSLineBorder;
+    _border.borderColor = KBAppearance.currentAppearance.lineColor;
+    _border.boxType = NSBoxCustom;
+    [self addSubview:_border];
+  }
+  return self;
+}
+
+- (void)layout {
+  [super layout];
+  [_view setFrame:self.bounds];
+  [_border setFrame:CGRectMake(0, self.bounds.size.height - 1, self.bounds.size.width, 1)];
+}
+
+- (void)setView:(id)view {
+  [_view removeFromSuperview];
+  _view = view;
+  [self addSubview:_view];
+  self.needsLayout = YES;
+}
+
+- (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle {
+  [_view setBackgroundStyle:backgroundStyle];
 }
 
 @end

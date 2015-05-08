@@ -13,6 +13,7 @@
 #import "KBPGPOutputView.h"
 #import "KBPGPSigner.h"
 #import "KBPGPSignFooterView.h"
+#import "KBWork.h"
 
 @interface KBPGPSignView ()
 @property KBTextView *textView;
@@ -41,7 +42,7 @@
 }
 
 - (void)setASCIIData:(NSData *)data {
-  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleMonospace];
+  [_textView setText:[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
 }
 
 - (void)sign {
@@ -59,9 +60,10 @@
   [KBActivity setProgressEnabled:YES sender:self];
   [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
     [KBActivity setProgressEnabled:NO sender:self];
-    NSError *error = [works[0] error];
+    KBWork *work = works[0];
+    NSError *error = [work error];
     if ([KBActivity setError:error sender:self]) return;
-    KBStream *stream = [works[0] output];
+    KBStream *stream = [work output];
 
     if ([self.navigation setError:error sender:self]) return;
 

@@ -21,14 +21,17 @@ fi
 VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Keybase.app/Contents/Info.plist`
 echo "Keybase.app Version: $VERSION"
 
-KB_SERVICE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KeybaseServiceVersion" Keybase.app/Contents/Info.plist`
-echo "Keybase Service Version: $KB_SERVICE_VERSION"
+KB_SERVICE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBServiceVersion" Keybase.app/Contents/Info.plist`
+echo "Service Version: $KB_SERVICE_VERSION"
 
-KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :KeybaseHelperVersion" Keybase.app/Contents/Info.plist`
-echo "Keybase Helper Version: $KB_HELPER_VERSION"
+KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBHelperVersion" Keybase.app/Contents/Info.plist`
+echo "Helper Version: $KB_HELPER_VERSION"
 
-KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KeybaseFuseVersion" Keybase.app/Contents/Info.plist`
-echo "Keybase Fuse Version: $KB_FUSE_VERSION"
+KBFS_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBFSVersion" Keybase.app/Contents/Info.plist`
+echo "KBFS Version: $KBFS_VERSION"
+
+KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :KBFuseVersion" Keybase.app/Contents/Info.plist`
+echo "Fuse Version: $KB_FUSE_VERSION"
 
 #KB_HELPER_VERSION=`otool -s __TEXT __info_plist Keybase.app/Contents/Library/LaunchServices/keybase.Helper`
 #echo "Keybased Helper Version : $KB_HELPER_VERSION"

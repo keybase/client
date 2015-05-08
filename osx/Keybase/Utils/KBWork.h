@@ -10,9 +10,6 @@
 
 @class KBWork;
 
-typedef void (^KBWorkCompletion)(KBWork *output);
-typedef void (^KBWorkBlock)(id obj, KBWorkCompletion completion);
-
 @interface KBWork : NSObject
 
 @property (readonly) id input;

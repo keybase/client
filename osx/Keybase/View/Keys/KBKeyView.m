@@ -55,12 +55,12 @@
 
   KBHeaderLabelView *keyLabel = [[KBHeaderLabelView alloc] init];
   [keyLabel setHeader:@"Key ID"];
-  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid) uppercaseString] style:KBTextStyleMonospace targetBlock:nil];
+  if (_keyId.kid) [keyLabel addText:[KBHexString(_keyId.kid) uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
   [_labels addSubview:keyLabel];
 
   KBHeaderLabelView *pgpLabel = [[KBHeaderLabelView alloc] init];
   [pgpLabel setHeader:@"PGP Fingerprint"];
-  if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint) uppercaseString] style:KBTextStyleMonospace targetBlock:nil];
+  if (_keyId.pgpFingerprint) [pgpLabel addText:[KBHexString(_keyId.pgpFingerprint) uppercaseString] style:KBTextStyleDefault options:KBTextOptionsMonospace lineBreakMode:NSLineBreakByTruncatingMiddle targetBlock:nil];
   [_labels addSubview:pgpLabel];
 
   NSString *query = KBHexString(_keyId.pgpFingerprint);
@@ -76,7 +76,7 @@
     [KBActivity setProgressEnabled:NO sender:self];
     // TODO This only works when we are the user being key exported
     KBRFingerprintAndKey *keyInfo = [keys firstObject];
-    [gself.textView setText:keyInfo.key style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+    [gself.textView setText:keyInfo.key style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
     [self setNeedsLayout];
   }];
 }

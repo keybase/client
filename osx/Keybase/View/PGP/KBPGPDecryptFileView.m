@@ -16,6 +16,7 @@
 #import "KBPGPOutputFileView.h"
 #import "KBPGPDecryptFooterView.h"
 #import "KBPGPDecrypted.h"
+#import "KBWork.h"
 
 @interface KBPGPDecryptFileView ()
 @property KBFileListView *fileListView;

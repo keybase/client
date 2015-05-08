@@ -15,6 +15,7 @@
 #import "KBFileIcon.h"
 #import "KBFileListView.h"
 #import "KBPGPOutputFileView.h"
+#import "KBWork.h"
 
 @interface KBPGPEncryptFileView ()
 @property KBUserPickerView *userPickerView;

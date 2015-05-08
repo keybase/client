@@ -9,14 +9,16 @@
 #import <Foundation/Foundation.h>
 
 #import "KBDefines.h"
-#import "KBWork.h"
 
-typedef void (^KBRunOverCompletion)(NSArray */*of KBWork*/work);
+typedef void (^KBRunCompletion)(id output);
+typedef void (^KBRunBlock)(id obj, KBRunCompletion completion);
+
+typedef void (^KBRunOverCompletion)(NSArray *outputs);
 
 @interface KBRunOver : NSObject
 
 @property NSArray *objects;
-@property (copy) KBWorkBlock work;
+@property (copy) KBRunBlock runBlock;
 @property (copy) KBRunOverCompletion completion;
 
 - (void)run;

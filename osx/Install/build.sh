@@ -12,6 +12,7 @@ if [ "$1" = "" ]; then
 fi
 
 KB_GO_SRC="$GOPATH/src/github.com/keybase/client/go"
+KBFS_GO_SRC="$GOPATH/src/github.com/keybase/kbfs"
 VERSION="$1"
 CODE_SIGN_IDENTITY="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
@@ -31,12 +32,19 @@ echo "Building Keybase (go)..."
 echo "  Using source: $KB_GO_SRC"
 echo "  Generating version.go ($VERSION)"
 echo "package libkb\n\nvar CLIENT_VERSION = \"$VERSION\"\n" > $KB_GO_SRC/libkb/version.go
+mkdir -p $BUILD_DEST
 echo "  Compiling..."
 cd $KB_GO_SRC/keybase/
 go build -a
-mkdir -p $BUILD_DEST
 cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
 chmod +x $BUILD_DEST/keybase
+
+echo "  Using KBFS source: $KBFS_GO_SRC"
+echo "  Compiling..."
+cd $KBFS_GO_SRC/kbfsfuse/
+go build -a
+cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
+chmod +x $BUILD_DEST/kbfsfuse
 echo "  Done"
 echo "  "
 
@@ -56,18 +64,21 @@ HELPER_PLIST=$DIR/../Helper/Info.plist
 FUSE_PLIST=$DIR/Fuse/osxfusefs.fs.bundle/Contents/Info.plist
 KB_HELPER_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`
 KB_FUSE_VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`
+KBFS_VERSION="0.1.1" # Doesn't report version yet
 
 echo "  Keybase.app Version: $VERSION"
 echo "  Service Version: $KB_SERVICE_VERSION"
 echo "  Helper Version: $KB_HELPER_VERSION"
+echo "  KBFS Version: $KBFS_VERSION"
 echo "  Fuse Version: $KB_FUSE_VERSION"
 
 echo "  Updating $PLIST..."
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion '${VERSION}'" $PLIST
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString '${VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KeybaseServiceVersion '${KB_SERVICE_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KeybaseHelperVersion '${KB_HELPER_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KeybaseFuseVersion '${KB_FUSE_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBServiceVersion '${KB_SERVICE_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBHelperVersion '${KB_HELPER_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBFSVersion '${KBFS_VERSION}'" $PLIST
+/usr/libexec/PlistBuddy -c "Set :KBFuseVersion '${KB_FUSE_VERSION}'" $PLIST
 echo "  "
 
 echo "  Cleaning..."

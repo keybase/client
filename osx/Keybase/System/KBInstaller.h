@@ -8,29 +8,16 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBLauncher.h"
+#import "KBDefines.h"
 
-typedef NS_ENUM (NSInteger, KBInstallType) {
-  KBInstallTypeNone,
-  KBInstallTypeInstaller,
-};
-
-typedef void (^KBInstallCheck)(NSError *error, BOOL installed, KBInstallType installType);
+typedef void (^KBInstallCheck)(NSArray */*of KBLaunchServiceInstall*/installs);
 
 @interface KBInstaller : NSObject
 
-@property (readonly) KBLauncher *launcher;
-
-- (instancetype)initWithLaunchCtl:(KBLauncher *)launcher;
-
-/*!
-  - installed: If YES, that means we did copied the launch services config and reloaded the service.
-  - installType: The type of install we detected.
- */
 - (void)checkInstall:(KBInstallCheck)completion;
 
 /*!
- Install helper and KBFS.
+ Install helper and Fuse.
  */
 + (void)installHelper:(KBOnCompletion)completion;
 

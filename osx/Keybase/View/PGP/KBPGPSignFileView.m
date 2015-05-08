@@ -16,6 +16,7 @@
 #import "KBFileIcon.h"
 #import "KBFileReader.h"
 #import "KBPGPOutputFileView.h"
+#import "KBWork.h"
 
 @interface KBPGPSignFileView ()
 @property KBButton *chooseButton;
@@ -104,8 +105,9 @@
   self.navigation.progressEnabled = YES;
   [_signer signWithOptions:options streams:@[stream] client:self.client sender:self completion:^(NSArray *works) {
     self.navigation.progressEnabled = NO;
-    NSError *error = [works[0] error];
-    KBStream *stream = [works[0] output];
+    KBWork *work = works[0];
+    NSError *error = [work error];
+    KBStream *stream = [work output];
     if ([self.navigation setError:error sender:self]) return;
     [self showOutput:stream.writer];
   }];

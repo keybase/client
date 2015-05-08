@@ -46,7 +46,7 @@
 }
 
 - (void)setText:(NSString *)text {
-  [_textView setText:text style:KBTextStyleMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
+  [_textView setText:text style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByClipping];
   [self setNeedsLayout];
 }
 

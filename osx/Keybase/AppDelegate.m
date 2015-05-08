@@ -83,26 +83,26 @@
 
   KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
-  KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(500, 380) retain:YES];
+  KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(700, 640) retain:YES];
   envSelectView.onSelect = ^(KBEnvironment *environment) {
-#ifdef DEBUG
-    if (!environment.canRunFromXCode) {
-      KBDebugAlertModal(@"Running in debug mode, you should select Manual.");
-      return;
-    }
-#endif
+//#ifdef DEBUG
+//    if (!environment.canRunFromXCode) {
+//      KBDebugAlertModal(@"Running in debug mode, you should select Manual.");
+//      return;
+//    }
+//#endif
     [window close];
     [self openWithEnvironment:environment];
   };
-  window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask;
+  window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
   [window center];
   [window makeKeyAndOrderFront:nil];
 
-#ifdef DEBUG
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-    envSelectView.onSelect([KBEnvironment env:KBEnvManual]);
-  });
-#endif
+//#ifdef DEBUG
+//  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//    envSelectView.onSelect([KBEnvironment env:KBEnvManual]);
+//  });
+//#endif
 }
 
 - (void)configureConsoleLog {
@@ -361,7 +361,7 @@
 #pragma mark KBAppViewDelegate
 
 - (void)appViewDidLaunch:(KBAppView *)appView { }
-- (void)appView:(KBAppView *)appView didCheckInstall:(BOOL)installed installType:(KBInstallType)installType { }
+- (void)appView:(KBAppView *)appView didCheckInstalls:(NSArray *)installs { }
 - (void)appView:(KBAppView *)appView didErrorOnInstall:(NSError *)error { }
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client{ }
 - (void)appView:(KBAppView *)appView didConnectWithClient:(KBRPClient *)client { }

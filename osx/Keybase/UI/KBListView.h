@@ -27,3 +27,8 @@ typedef void (^KBCellSetBlock)(id cell, id object, NSIndexPath *indexPath, NSTab
 + (instancetype)listViewWithPrototypeClass:(Class)prototypeClass rowHeight:(CGFloat)rowHeight;
 
 @end
+
+
+@interface KBCellView : NSView
+@property (nonatomic) id view;
+@end

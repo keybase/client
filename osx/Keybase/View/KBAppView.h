@@ -17,7 +17,7 @@
 @protocol KBAppViewDelegate
 - (void)appViewDidLaunch:(KBAppView *)appView;
 
-- (void)appView:(KBAppView *)appView didCheckInstall:(BOOL)installed installType:(KBInstallType)installType;
+- (void)appView:(KBAppView *)appView didCheckInstalls:(NSArray *)installs;
 - (void)appView:(KBAppView *)appView didErrorOnInstall:(NSError *)error;
 
 - (void)appView:(KBAppView *)appView willConnectWithClient:(KBRPClient *)client;

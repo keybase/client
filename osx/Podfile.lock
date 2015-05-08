@@ -30,7 +30,7 @@ PODS:
     - Mantle/extobjc (= 2.0)
   - Mantle/extobjc (2.0)
   - MASPreferences (1.1.2)
-  - MPMessagePack (1.1.17)
+  - MPMessagePack (1.1.18)
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
     - Slash/arc (= 0.1.2)
@@ -51,12 +51,14 @@ DEPENDENCIES:
   - ObjectiveSugar
   - Slash
   - Sparkle
-  - YOLayout
+  - YOLayout (from `~/Projects/YOLayout`)
   - ZXCVBN
 
 EXTERNAL SOURCES:
   MPMessagePack:
     :path: "~/Projects/MPMessagePack"
+  YOLayout:
+    :path: "~/Projects/YOLayout"
 
 SPEC CHECKSUMS:
   AFNetworking: e1d86c2a96bb5d2e7408da36149806706ee122fe
@@ -64,11 +66,11 @@ SPEC CHECKSUMS:
   GHKit: 487b552e3c228236dc2a5c7c1c5f79b8c7412a6b
   Mantle: 17de73ef929db2234d76fde2aacfb89ab11c61e8
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
-  MPMessagePack: 57298725317a15c5b8529a087b9ec65ca74de737
+  MPMessagePack: 55564a9fe77db06e8b363881f73dc7758ce67345
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Sparkle: 75bbbc5ab2d666f7f77c241afe7fd28364a8f9f7
   YOLayout: a421af5dc30585af31f1e4dfbb16861b7e409a74
   ZXCVBN: 6bf251a7274d6a91d00fd195939da9952f8dfc54
 
-COCOAPODS: 0.37.0
+COCOAPODS: 0.37.1

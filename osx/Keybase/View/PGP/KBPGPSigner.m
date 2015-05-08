@@ -8,20 +8,21 @@
 
 #import "KBPGPSigner.h"
 #import "KBRunOver.h"
+#import "KBWork.h"
 
 @implementation KBPGPSigner
 
 - (void)signWithOptions:(KBRPgpSignOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
   KBRunOver *sb = [[KBRunOver alloc] init];
   sb.objects = streams;
-  sb.work = ^(KBStream *stream, KBWorkCompletion workCompletion) {
-    [self signWithOptions:options stream:stream client:client sender:sender completion:workCompletion];
+  sb.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
+    [self signWithOptions:options stream:stream client:client sender:sender completion:runCompletion];
   };
   sb.completion = completion;
   [sb run];
 }
 
-- (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBWorkCompletion)completion {
+- (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion {
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:client];
 
   [stream registerWithClient:client sessionId:request.sessionId];

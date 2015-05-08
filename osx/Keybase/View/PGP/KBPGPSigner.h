@@ -12,12 +12,12 @@
 #import "KBWriter.h"
 #import "KBRPC.h"
 #import "KBStream.h"
-#import "KBWork.h"
+#import "KBRunOver.h"
 
 @interface KBPGPSigner : NSObject
 
 - (void)signWithOptions:(KBRPgpSignOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion;
 
-- (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBWorkCompletion)completion;
+- (void)signWithOptions:(KBRPgpSignOptions *)options stream:(KBStream *)stream client:(KBRPClient *)client sender:(id)sender completion:(KBRunCompletion)completion;
 
 @end

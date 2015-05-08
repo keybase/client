@@ -61,12 +61,6 @@
   }];
 }
 
-- (void)layout {
-  [super layout];
-  //[self.view noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.view.numberOfRows)]];
-  [self.view reloadData];
-}
-
 - (void)removeAllObjects {
   [_dataSource removeAllObjects];
   [_view reloadData];
