@@ -16,6 +16,8 @@ func getDeviceSibkey(tc libkb.TestContext, username string) (libkb.GenericKey, e
 	return sibkey, err
 }
 
+// Test that CryptoSignEngine yields a valid signature for its given
+// message.
 func TestCryptoSign(t *testing.T) {
 	tc := SetupEngineTest(t, "crypto_sign")
 	defer tc.Cleanup()
