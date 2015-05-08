@@ -204,12 +204,6 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 
 	k.G().Log.Debug("| LoadMe w/ Secrets on")
 
-	if ska.Me == nil {
-		if ska.Me, err = LoadMe(LoadUserArg{}); err != nil {
-			return
-		}
-	}
-
 	if ret = k.GetLockedLocalSecretKey(ska); ret != nil {
 		k.G().Log.Debug("| Getting local secret key")
 		return

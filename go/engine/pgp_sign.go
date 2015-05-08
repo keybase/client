@@ -64,7 +64,13 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		p.arg.Source.Close()
 	}()
 
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return err
+	}
+
 	ska := libkb.SecretKeyArg{
+		Me:       me,
 		KeyType:  libkb.PGPType,
 		KeyQuery: p.arg.Opts.KeyQuery,
 	}

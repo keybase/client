@@ -77,7 +77,13 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	var mykey *libkb.PgpKeyBundle
 	var signer *libkb.PgpKeyBundle
 	if !e.arg.NoSign {
+		me, err := libkb.LoadMe(libkb.LoadUserArg{})
+		if err != nil {
+			return err
+		}
+
 		ska := libkb.SecretKeyArg{
+			Me:       me,
 			KeyType:  libkb.PGPType,
 			KeyQuery: e.arg.KeyQuery,
 		}
