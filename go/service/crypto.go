@@ -18,7 +18,7 @@ func (c *CryptoHandler) Sign(arg keybase1.SignArg) ([]byte, error) {
 	ctx := &engine.Context{
 		SecretUI: c.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewSignEngine(G, arg.Msg, arg.Reason)
+	eng := engine.NewCryptoSignEngine(G, arg.Msg, arg.Reason)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
