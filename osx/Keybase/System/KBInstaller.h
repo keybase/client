@@ -9,10 +9,13 @@
 #import <Foundation/Foundation.h>
 
 #import "KBDefines.h"
+#import "KBEnvironment.h"
 
 typedef void (^KBInstallCheck)(NSArray */*of KBLaunchServiceInstall*/installs);
 
 @interface KBInstaller : NSObject
+
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment;
 
 - (void)checkInstall:(KBInstallCheck)completion;
 

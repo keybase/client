@@ -138,7 +138,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
     completion(nil, nil);
   }];
 
-  _installer = [[KBInstaller alloc] init];
+
+  _installer = [[KBInstaller alloc] initWithEnvironment:_client.environment];
   [_installer checkInstall:^(NSArray *installs) {
 
     for (KBLaunchServiceInstall *install in installs) {

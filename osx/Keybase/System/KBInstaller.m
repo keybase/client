@@ -17,26 +17,26 @@
 #import "KBLaunchServiceInstall.h"
 
 @interface KBInstaller ()
-@property NSArray *services;
+@property KBEnvironment *environment;
 @end
 
 @implementation KBInstaller
 
-- (instancetype)initWithServices:(NSArray *)services {
+- (instancetype)initWithEnvironment:(KBEnvironment *)environment {
   if ((self = [super init])) {
-    _services = services;
+    _environment = environment;
   }
   return self;
 }
 
 - (void)checkInstall:(KBInstallCheck)completion {
-  if ([_services count] == 0) {
-    completion(@[]);
-    return;
-  }
+  KBLaunchService *service = [[KBLaunchService alloc] initWithLabel:_environment.launchdLabelService plist:_environment.launchdPlistDictionaryForService];
+  KBLaunchService *kbfs = [[KBLaunchService alloc] initWithLabel:_environment.launchdLabelKBFS plist:_environment.launchdPlistDictionaryForKBFS];
+
+  NSArray *services = @[service, kbfs];
 
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.objects = _services;
+  rover.objects = services;
   rover.runBlock = ^(KBLaunchService *service, KBRunCompletion runCompletion) {
     [service status:^(NSError *error, NSInteger pid) {
       if (error) {

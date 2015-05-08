@@ -60,6 +60,9 @@
   for (NSView *view in _envView.subviews) [view removeFromSuperview];
   [_envView addSubview:[self viewForEnvironment:environment]];
   [_envView setNeedsLayout];
+
+  //DDLogDebug(@"Service plist: %@", environment.launchdPlistDictionaryForService);
+  //DDLogDebug(@"KBFS plist: %@", environment.launchdPlistDictionaryForKBFS);
 }
 
 - (NSView *)viewForEnvironment:(KBEnvironment *)environment {
