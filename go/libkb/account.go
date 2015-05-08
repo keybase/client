@@ -11,10 +11,11 @@ type Account struct {
 	localSession *Session
 	loginSession *LoginSession
 	streamCache  *StreamCache
-	secretSyncer *SecretSyncer
 	skbKeyring   *SKBKeyringFile
 	Contextified
 	sync.RWMutex
+	secretSyncerMu sync.RWMutex
+	secretSyncer   *SecretSyncer
 }
 
 func NewAccount(g *GlobalContext) *Account {
@@ -96,13 +97,17 @@ func (a *Account) Logout() error {
 		return err
 	}
 	a.RUnlock()
+
 	a.Lock()
-	a.localSession = nil
+	a.localSession = newSession(a.G())
 	a.loginSession = nil
-	a.secretSyncer.Clear()
-	a.secretSyncer = nil
 	a.skbKeyring = nil
 	a.Unlock()
+
+	a.secretSyncerMu.Lock()
+	a.secretSyncer.Clear()
+	a.secretSyncer = NewSecretSyncer(a.G())
+	a.secretSyncerMu.Unlock()
 
 	return nil
 }
@@ -130,8 +135,8 @@ func (a *Account) ClearStreamCache() {
 }
 
 func (a *Account) SecretSyncer() *SecretSyncer {
-	a.RLock()
-	defer a.RUnlock()
+	a.secretSyncerMu.RLock()
+	defer a.secretSyncerMu.RUnlock()
 	return a.secretSyncer
 }
 
@@ -144,11 +149,8 @@ func (a *Account) Shutdown() error {
 }
 
 func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid KID, err error) {
-	// lock everything to make sure the values refer to same user
-	a.RLock()
-	defer a.RUnlock()
 
-	if !a.localSession.IsLoggedIn() {
+	if !a.LoggedIn() {
 		err = LoginRequiredError{}
 		return
 	}
@@ -157,6 +159,9 @@ func (a *Account) UserInfo() (uid UID, username, token string, deviceSubkeyKid K
 	if err != nil {
 		return
 	}
+	// lock everything to make sure the values refer to same user
+	a.RLock()
+	defer a.RUnlock()
 	deviceSubkeyKid, err = user.GetDeviceSubkeyKid(a.G())
 	if err != nil {
 		deviceSubkeyKid = KID{}

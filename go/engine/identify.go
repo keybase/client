@@ -139,6 +139,7 @@ func (e *Identify) TrackInstructions() *libkb.TrackInstructions {
 
 func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	res := libkb.NewIdentifyOutcome(e.arg.WithTracking)
+	res.Username = e.user.GetName()
 	is := libkb.NewIdentifyState(res, e.user)
 
 	if e.me != nil && e.user.Equal(e.me) && !e.arg.AllowSelf {
@@ -146,6 +147,9 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	}
 
 	if e.arg.WithTracking {
+		if e.me == nil {
+			return nil, libkb.LoginRequiredError{Context: "identify with tracking"}
+		}
 
 		tlink, err := e.me.GetTrackingStatementFor(e.user.GetName(), e.user.GetUid())
 		if err != nil {
@@ -161,7 +165,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		return nil, libkb.NoActiveKeyError{Username: e.user.GetName()}
 	}
 
-	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(is.Track))
+	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(is.Track, e.user.GetName()))
 
 	e.G().Log.Debug("+ Identify(%s)", e.user.GetName())
 

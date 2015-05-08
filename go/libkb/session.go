@@ -78,6 +78,15 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
 	s.uid = &uid
 	s.username = &username
 	s.token = sessionID
+	if s.file == nil {
+		G.Log.Warning("s.file == nil")
+		s.Unlock()
+		s.Load()
+		s.Lock()
+	}
+	if s.GetDictionary() == nil {
+		G.Log.Warning("s.GetDict() == nil")
+	}
 	s.GetDictionary().SetKey("session", jsonw.NewString(sessionID))
 	s.Unlock()
 

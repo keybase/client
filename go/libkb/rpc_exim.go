@@ -281,9 +281,10 @@ func (f *FOKID) Export() (ret keybase1.FOKID) {
 
 //=============================================================================
 
-func (s TrackSummary) Export() (ret keybase1.TrackSummary) {
+func (s TrackSummary) Export(username string) (ret keybase1.TrackSummary) {
 	ret.Time = int(s.time.Unix())
 	ret.IsRemote = s.isRemote
+	ret.Username = username
 	return
 }
 
@@ -295,15 +296,16 @@ func ImportTrackSummary(s *keybase1.TrackSummary) *TrackSummary {
 	return &TrackSummary{
 		time:     time.Unix(int64(s.Time), 0),
 		isRemote: s.IsRemote,
+		username: s.Username,
 	}
 }
 
-func ExportTrackSummary(l *TrackLookup) *keybase1.TrackSummary {
+func ExportTrackSummary(l *TrackLookup, username string) *keybase1.TrackSummary {
 	if l == nil {
 		return nil
 	}
 
-	tmp := l.ToSummary().Export()
+	tmp := l.ToSummary().Export(username)
 	return &tmp
 }
 
@@ -319,9 +321,10 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 		del[i] = *ExportTrackDiff(d)
 	}
 	ret := &keybase1.IdentifyOutcome{
+		Username:          ir.Username,
 		Status:            ExportErrorAsStatus(ir.Error),
 		Warnings:          v,
-		TrackUsed:         ExportTrackSummary(ir.TrackUsed),
+		TrackUsed:         ExportTrackSummary(ir.TrackUsed, ir.Username),
 		NumTrackFailures:  ir.NumTrackFailures(),
 		NumTrackChanges:   ir.NumTrackChanges(),
 		NumProofFailures:  ir.NumProofFailures(),

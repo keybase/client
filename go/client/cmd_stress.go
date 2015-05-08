@@ -58,6 +58,7 @@ func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
 		c.gpgUIProtocol(),
 		NewLogUIProtocol(),
 		NewDoctorUIProtocol(),
+		NewLocksmithUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return nil, err
@@ -137,7 +138,7 @@ func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err e
 
 func (c *CmdStress) simulate(username, passphrase string) {
 	funcs := []func(){
-		c.deviceAdd,
+		// c.deviceAdd,
 		c.deviceList,
 		c.doctor,
 		c.idAlice,

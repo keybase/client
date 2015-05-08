@@ -65,6 +65,25 @@ func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
 	return fu
 }
 
+func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUser, error) {
+	fu, err := NewFakeUser(prefix)
+	if err != nil {
+		return nil, err
+	}
+	arg := SignupEngineRunArg{fu.Username, fu.Email, testInviteCode, fu.Passphrase, "my device", true, true}
+	ctx := &Context{
+		LogUI:    g.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+	}
+	s := NewSignupEngine(&arg, g)
+	if err := RunEngine(s, ctx); err != nil {
+		return nil, err
+	}
+	return fu, nil
+}
+
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {
 	ctx := &Context{
 		LogUI:       g.UI.GetLogUI(),

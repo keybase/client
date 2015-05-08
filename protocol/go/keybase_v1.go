@@ -736,11 +736,13 @@ type TrackDiff struct {
 }
 
 type TrackSummary struct {
-	Time     int  `codec:"time" json:"time"`
-	IsRemote bool `codec:"isRemote" json:"isRemote"`
+	Username string `codec:"username" json:"username"`
+	Time     int    `codec:"time" json:"time"`
+	IsRemote bool   `codec:"isRemote" json:"isRemote"`
 }
 
 type IdentifyOutcome struct {
+	Username          string        `codec:"username" json:"username"`
 	Status            *Status       `codec:"status,omitempty" json:"status"`
 	Warnings          []string      `codec:"warnings" json:"warnings"`
 	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty" json:"trackUsed"`

@@ -14,7 +14,7 @@ import (
 // -race flag to test it.
 func TestConcurrentLogin(t *testing.T) {
 	// making it skip by default since it is slow...
-	t.Skip("Skipping ConcurrentLogin test")
+	// t.Skip("Skipping ConcurrentLogin test")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -31,7 +31,7 @@ func TestConcurrentLogin(t *testing.T) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
 				tc.G.Logout()
-				u.LoginOrBust(tc)
+				u.Login(tc.G)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -46,7 +46,7 @@ func TestConcurrentLogin(t *testing.T) {
 					return
 				default:
 					tc.G.Account().LocalSession().APIArgs()
-					tc.G.Account().UserInfo()
+					// tc.G.Account().UserInfo()
 					tc.G.Account().LocalSession().GetUID()
 					tc.G.Account().LocalSession().Load()
 					tc.G.Account().LoggedIn()
@@ -67,7 +67,7 @@ func TestConcurrentLogin(t *testing.T) {
 // Use the -race flag to test it.
 func TestConcurrentGetPassphraseStream(t *testing.T) {
 	// making it skip by default since it is slow...
-	t.Skip("Skipping ConcurrentGetPassphraseStream test")
+	// t.Skip("Skipping ConcurrentGetPassphraseStream test")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -84,7 +84,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
 				tc.G.Logout()
-				u.LoginOrBust(tc)
+				u.Login(tc.G)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -117,7 +117,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 // -race flag to test it.
 func TestConcurrentSignup(t *testing.T) {
 	// making it skip by default since it is slow...
-	t.Skip("Skipping ConcurrentSignup test")
+	// t.Skip("Skipping ConcurrentSignup test")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -143,7 +143,7 @@ func TestConcurrentSignup(t *testing.T) {
 		mwg.Add(1)
 		go func(index int) {
 			defer mwg.Done()
-			CreateAndSignupFakeUser(tc, "login")
+			CreateAndSignupFakeUserSafe(tc.G, "login")
 			tc.G.Logout()
 			fmt.Printf("func caller %d done\n", index)
 		}(i)
@@ -157,7 +157,7 @@ func TestConcurrentSignup(t *testing.T) {
 // TestConcurrentGlobals tries to find race conditions in
 // everything in GlobalContext.
 func TestConcurrentGlobals(t *testing.T) {
-	t.Skip("Skipping ConcurrentGlobals")
+	// t.Skip("Skipping ConcurrentGlobals")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 

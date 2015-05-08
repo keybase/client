@@ -85,10 +85,12 @@ type TrackInstructions struct {
 type TrackSummary struct {
 	time     time.Time
 	isRemote bool
+	username string
 }
 
 func (s TrackSummary) IsRemote() bool      { return s.isRemote }
 func (s TrackSummary) GetCTime() time.Time { return s.time }
+func (s TrackSummary) Username() string    { return s.username }
 
 //=====================================================================
 

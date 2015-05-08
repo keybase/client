@@ -21,11 +21,13 @@ protocol identifyCommon {
 	}
 
 	record TrackSummary {
+		string username;
 		int time;
 		boolean isRemote;
 	}
 
 	record IdentifyOutcome {
+		string username;
 		union { null, Status } status;
 		array<string> warnings;
 		union { null, TrackSummary } trackUsed;

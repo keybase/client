@@ -80,7 +80,9 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 }
 
 func (g *GlobalContext) ClearSocketError() {
+	g.socketWrapperMu.Lock()
 	g.SocketWrapper = nil
+	g.socketWrapperMu.Unlock()
 }
 
 func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
@@ -103,7 +105,10 @@ func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
 				sw.xp = rpc2.NewTransport(sw.conn, NewRpcLogFactory(), WrapError)
 			}
 		}
+		g.socketWrapperMu.Lock()
 		g.SocketWrapper = &sw
+		g.socketWrapperMu.Unlock()
 	}
+
 	return g.SocketWrapper.conn, g.SocketWrapper.xp, g.SocketWrapper.err
 }

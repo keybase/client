@@ -6,6 +6,7 @@ import (
 )
 
 type IdentifyOutcome struct {
+	Username      string
 	Error         error
 	KeyDiffs      []TrackDiff
 	Deleted       []TrackDiffDeleted

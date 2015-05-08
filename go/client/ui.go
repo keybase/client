@@ -18,8 +18,7 @@ type UI struct {
 }
 
 type BaseIdentifyUI struct {
-	parent   *UI
-	username string
+	parent *UI
 }
 
 func (ui BaseIdentifyUI) SetStrict(b bool) {}
@@ -33,16 +32,13 @@ type IdentifyUI struct {
 }
 
 func (ui *IdentifyTrackUI) Start(username string) {
-	ui.username = username
-	G.Log.Info("Generating tracking statement for " + ColorString("bold", ui.username))
+	G.Log.Info("Generating tracking statement for " + ColorString("bold", username))
 }
 func (ui *IdentifyLubaUI) Start(username string) {
-	ui.username = username
-	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", ui.username))
+	G.Log.Info("LoadUserByAssertion: Verifying identify for " + ColorString("bold", username))
 }
 func (ui *IdentifyUI) Start(username string) {
-	ui.username = username
-	G.Log.Info("Identifying " + ColorString("bold", ui.username))
+	G.Log.Info("Identifying " + ColorString("bold", username))
 }
 
 func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
@@ -90,13 +86,8 @@ func (ui IdentifyTrackUI) ReportDeleted(del []keybase1.TrackDiff) {
 }
 
 func (ui IdentifyTrackUI) FinishAndPrompt(o *keybase1.IdentifyOutcome) (ret keybase1.FinishAndPromptRes, err error) {
-	// for refactoring of username out of Get*(), make sure it has one here
-	if len(ui.username) == 0 {
-		G.Log.Warning("FinishAndPrompt: no username.  Was Start(username) not called?")
-	}
-
 	var prompt string
-	un := ui.username
+	un := o.Username
 
 	// A "Track Failure" is when we previously tracked this user, and
 	// some aspect of their proof changed.  Like their key changed, or
@@ -382,7 +373,7 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 			locally = "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
-			locally, ui.username, libkb.FormatTime(t.GetCTime())))
+			locally, t.Username, libkb.FormatTime(t.GetCTime())))
 		ui.ReportHook(msg)
 	}
 }

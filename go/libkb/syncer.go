@@ -32,6 +32,8 @@ func RunSyncer(s Syncer, aUid *UID) (err error) {
 			err = NotFoundError{"No UID given to syncer"}
 			return
 		}
+		err = NotFoundError{"No UID given to syncer"}
+		return
 	}
 
 	if sUid != nil && aUid != nil && !sUid.Eq(*aUid) {

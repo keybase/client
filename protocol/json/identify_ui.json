@@ -181,6 +181,9 @@
     "type" : "record",
     "name" : "TrackSummary",
     "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
       "name" : "time",
       "type" : "int"
     }, {
@@ -191,6 +194,9 @@
     "type" : "record",
     "name" : "IdentifyOutcome",
     "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
       "name" : "status",
       "type" : [ "null", "Status" ]
     }, {
