@@ -247,23 +247,26 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	return ret
 }
 
-type SecretKeyArg struct {
-
+type SecretKeyType struct {
 	// Which keys to search for
 	All          bool // use all possible keys
 	DeviceKey    bool // use the device key (on by default)
 	SyncedPGPKey bool // use the sync'ed PGP key if there is one
 	PGP          bool // only PGP, but use the first valid PGP key we find
 	Nacl         bool
+}
+
+type SecretKeyArg struct {
+	KeyType SecretKeyType
 
 	Me *User // Whose keys
 
 	KeyQuery string // a String to match the key prefix on
 }
 
-func (s SecretKeyArg) UseDeviceKey() bool    { return s.All || s.DeviceKey }
-func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.PGP || s.Nacl }
-func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
+func (s SecretKeyArg) UseDeviceKey() bool    { return s.KeyType.All || s.KeyType.DeviceKey }
+func (s SecretKeyArg) SearchForKey() bool    { return s.KeyType.All || s.KeyType.PGP || s.KeyType.Nacl }
+func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.KeyType.All || s.KeyType.SyncedPGPKey }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
@@ -295,8 +298,10 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(me *User, secretRetriever Secret
 		k.G().Log.Debug("- GetSecretKeyWithStoredSecret() -> %s", ErrToOk(err))
 	}()
 	ska := SecretKeyArg{
-		All: true,
-		Me:  me,
+		KeyType: SecretKeyType{
+			All: true,
+		},
+		Me: me,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)
@@ -313,8 +318,10 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 		k.G().Log.Debug("- GetSecretKeyWithPassphrase() -> %s", ErrToOk(err))
 	}()
 	ska := SecretKeyArg{
-		All: true,
-		Me:  me,
+		KeyType: SecretKeyType{
+			All: true,
+		},
+		Me: me,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)

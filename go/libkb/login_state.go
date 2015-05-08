@@ -666,8 +666,10 @@ func (s *LoginState) loginWithPromptHelper(username string, loginUI LoginUI, sec
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		ska := SecretKeyArg{
-			All: true,
-			Me:  me,
+			KeyType: SecretKeyType{
+				All: true,
+			},
+			Me: me,
 		}
 		key, _, err := keyrings.GetSecretKeyWithPrompt(ska, secretUI, "Login")
 		return key, err
