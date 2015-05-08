@@ -65,7 +65,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	}()
 
 	ska := libkb.SecretKeyArg{
-		PGPOnly:      true,
+		PGP:          true,
 		SyncedPGPKey: true,
 		KeyQuery:     p.arg.Opts.KeyQuery,
 	}

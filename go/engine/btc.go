@@ -64,6 +64,8 @@ func (e *BTCEngine) Run(ctx *Context) error {
 
 	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
 		DeviceKey: true,
+		PGP:       true,
+		Nacl:      true,
 		Me:        me,
 	}, ctx.SecretUI, "to register a cryptocurrency address")
 	if sigKey == nil {
