@@ -26,11 +26,11 @@ func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 	var s keybase1.Session
 	var username, token string
 	var uid libkb.UID
-	var dkid libkb.KID
+	var deviceSibkeyKid, deviceSubkeyKid libkb.KID
 	var err error
 
 	G.LoginState().Account(func(a *libkb.Account) {
-		uid, username, token, dkid, err = a.UserInfo()
+		uid, username, token, deviceSibkeyKid, deviceSubkeyKid, err = a.UserInfo()
 	}, "Service - SessionHandler - UserInfo")
 	if err != nil {
 		if _, ok := err.(libkb.LoginRequiredError); ok {
@@ -42,7 +42,8 @@ func (h *SessionHandler) CurrentSession() (keybase1.Session, error) {
 	s.Uid = uid.Export()
 	s.Username = username
 	s.Token = token
-	s.DeviceSubkeyKid = []byte(dkid)
+	s.DeviceSibkeyKid = deviceSibkeyKid.String()
+	s.DeviceSubkeyKid = deviceSubkeyKid.String()
 
 	return s, nil
 }

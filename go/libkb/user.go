@@ -299,7 +299,7 @@ func (u *User) GetActivePgpFOKIDs(sibkey bool) (ret []FOKID) {
 	return
 }
 
-func (u *User) GetDeviceSubkeyKid(g *GlobalContext) (kid KID, err error) {
+func (u *User) GetDeviceKids(g *GlobalContext) (sibkeyKid, subkeyKid KID, err error) {
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
 		err = KeyFamilyError{"no key family available"}
@@ -310,11 +310,16 @@ func (u *User) GetDeviceSubkeyKid(g *GlobalContext) (kid KID, err error) {
 		err = NotProvisionedError{}
 		return
 	}
+	sibKey, err := ckf.GetSibkeyForDevice(*did)
+	if err != nil {
+		return
+	}
 	subKey, err := ckf.GetEncryptionSubkeyForDevice(*did)
 	if err != nil {
 		return
 	}
-	kid = subKey.GetKid()
+	sibkeyKid = sibKey.GetKid()
+	subkeyKid = subKey.GetKid()
 	return
 }
 
