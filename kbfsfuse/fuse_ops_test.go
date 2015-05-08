@@ -133,6 +133,20 @@ func checkPathNeedsUpdate(
 	}
 }
 
+func checkPathBlockPointers(
+	t *testing.T, nodes []*FuseNode, newPath libkbfs.Path) {
+	// check that the block pointers match all along the path (but
+	// skip the first one, because the path doesn't include the root)
+	for i, n := range nodes[1:] {
+		pn := newPath.Path[i]
+		if n.PathNode.BlockPointer != pn.BlockPointer {
+			t.Errorf("Unexpected block pointer on node %d: "+
+				"expected %v, got %v\n", i, pn.BlockPointer,
+				n.PathNode.BlockPointer)
+		}
+	}
+}
+
 // Test that nodes start off as not needing updating, making a
 // directory marks the path from the new directory's parent to the
 // user root (in this case just one directory) as needing updating,
@@ -250,8 +264,9 @@ func TestPartialLocalUpdate(t *testing.T) {
 	root.Ops.LocalChange(newPath)
 	root.Ops.Shutdown()
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true,
-		"test_user/dir1")
+	nodes := []*FuseNode{root, node1, node2}
+	checkPathNeedsUpdate(t, nodes, true, "test_user/dir1")
+	checkPathBlockPointers(t, nodes, newPath)
 }
 
 // Test that a batch notification for a path, for which we only have
@@ -277,6 +292,39 @@ func TestPartialBatchUpdate(t *testing.T) {
 	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
 	root.Ops.Shutdown()
 
-	checkPathNeedsUpdate(t, []*FuseNode{root, node1, node2}, true,
-		"test_user/dir1")
+	nodes := []*FuseNode{root, node1, node2}
+	checkPathNeedsUpdate(t, nodes, true, "test_user/dir1")
+	checkPathBlockPointers(t, nodes, newPath)
+}
+
+// Test that a full path batch update, on an existing file, sets
+// NeedsUpdate and the BlockPointer correctly on all nodes of the path.
+func TestCompleteBatchUpdate(t *testing.T) {
+	config := makeTestConfig([]string{"test_user"})
+
+	root := NewFuseRoot(config)
+	_ = nodefs.NewFileSystemConnector(root, nil)
+
+	node1 := doLookupOrBust(t, root, "test_user")
+	node2 := doMknodOrBust(t, node1, "file1")
+	node2.Flush() // noop to force wait on update
+
+	// Construct an updated path using the current node IDs
+	newPath := libkbfs.Path{node1.Dir, []libkbfs.PathNode{
+		node1.PathNode,
+		node2.PathNode,
+	}}
+
+	// now write/flush to change IDs
+	node2.Write(nil, []byte{0, 1, 2}, 0, nil)
+	node2.Flush()
+
+	// finally, update again using the old path, to verify that the
+	// IDs change back correctly.
+	root.Ops.BatchChanges(node1.Dir, []libkbfs.Path{newPath})
+	root.Ops.Shutdown()
+
+	nodes := []*FuseNode{root, node1, node2}
+	checkPathNeedsUpdate(t, nodes, true, "test_user/file1")
+	checkPathBlockPointers(t, nodes, newPath)
 }

@@ -280,11 +280,11 @@ func (f *FuseOps) BatchChanges(dir libkbfs.DirId, paths []libkbfs.Path) {
 			// TODO: verify path.TopDir matches dir
 			// navigate to the end of the path, then update the complete path
 			currNode := topNode
-			numNodesToUpdate := 0
-			// skip the first node, since it's just the top-level directory
-			for _, pn := range path.Path[1:] {
-				numNodesToUpdate++
-				nextNode := currNode.Inode().GetChild(pn.Name)
+			// Count the number of nodes for which we already have
+			// corresponding FuseNodes.
+			i := 1
+			for ; i < len(path.Path); i++ {
+				nextNode := currNode.Inode().GetChild(path.Path[i].Name)
 				if nextNode == nil {
 					break
 				} else {
@@ -295,13 +295,13 @@ func (f *FuseOps) BatchChanges(dir libkbfs.DirId, paths []libkbfs.Path) {
 			// path, this is likely the result of a mkdir/mknod that
 			// we did, and so we can skip updating currNode
 			lastPathNode := path.Path[len(path.Path)-1]
-			if currNode.Entry.BlockPointer == lastPathNode.BlockPointer {
+			if currNode.PathNode.BlockPointer == lastPathNode.BlockPointer {
 				if len(path.Path) > 1 {
 					f.updatePaths(currNode.PrevNode,
 						path.Path[:len(path.Path)-1])
 				}
 			} else {
-				f.updatePaths(currNode, path.Path[:numNodesToUpdate])
+				f.updatePaths(currNode, path.Path[:i])
 			}
 		}
 	})
