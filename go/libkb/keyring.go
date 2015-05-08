@@ -253,7 +253,6 @@ type SecretKeyArg struct {
 	All          bool // use all possible keys
 	DeviceKey    bool // use the device key (on by default)
 	SyncedPGPKey bool // use the sync'ed PGP key if there is one
-	SearchKey    bool // search for any key that's active in the local keyring
 	PGPOnly      bool // only PGP, but use the first valid PGP key we find
 
 	Me *User // Whose keys
@@ -262,7 +261,7 @@ type SecretKeyArg struct {
 }
 
 func (s SecretKeyArg) UseDeviceKey() bool    { return (s.All || s.DeviceKey) && !s.PGPOnly }
-func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.SearchKey || s.PGPOnly }
+func (s SecretKeyArg) SearchForKey() bool    { return s.All || s.PGPOnly }
 func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.All || s.SyncedPGPKey }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
