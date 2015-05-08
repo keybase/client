@@ -85,8 +85,6 @@ func (k *KexSib) Run(ctx *Context) error {
 	arg := libkb.SecretKeyArg{
 		KeyType: libkb.SecretKeyType{
 			DeviceKey: true,
-			PGP:       true,
-			Nacl:      true,
 		},
 		Me: k.user,
 	}
@@ -186,8 +184,6 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 		arg := libkb.SecretKeyArg{
 			KeyType: libkb.SecretKeyType{
 				DeviceKey: true,
-				PGP:       true,
-				Nacl:      true,
 			},
 			Me: k.user,
 		}

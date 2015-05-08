@@ -78,8 +78,6 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
 		KeyType: libkb.SecretKeyType{
 			DeviceKey: true,
-			PGP:       true,
-			Nacl:      true,
 		},
 		Me: me,
 	}, ctx.SecretUI, "to revoke a signature")

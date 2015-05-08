@@ -39,8 +39,6 @@ func TestLoginNewDeviceKex(t *testing.T) {
 	arg := libkb.SecretKeyArg{
 		KeyType: libkb.SecretKeyType{
 			DeviceKey: true,
-			PGP:       true,
-			Nacl:      true,
 		},
 		Me: me,
 	}
