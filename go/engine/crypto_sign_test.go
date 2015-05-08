@@ -12,22 +12,8 @@ func getDeviceSibkey(tc libkb.TestContext, username string) (libkb.GenericKey, e
 		return nil, err
 	}
 
-	ckf := u.GetComputedKeyFamily()
-	if ckf == nil {
-		return nil, libkb.KeyFamilyError{"no key family available"}
-	}
-
-	did := tc.G.Env.GetDeviceID()
-	if did == nil {
-		return nil, libkb.NotProvisionedError{}
-	}
-
-	sibkey, err := ckf.GetSibkeyForDevice(*did)
-	if err != nil {
-		return nil, err
-	}
-
-	return sibkey, nil
+	sibkey, _, err := u.GetDeviceKeys()
+	return sibkey, err
 }
 
 func TestCryptoSign(t *testing.T) {
