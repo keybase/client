@@ -159,6 +159,30 @@ const (
 	AllSecretKeyTypes = DeviceKeyType | PGPType | NaclType
 )
 
+func (t SecretKeyType) String() string {
+	if t == 0 {
+		return "<NoSecretKeyTypes>"
+	}
+	if t == AllSecretKeyTypes {
+		return "<AllSecretKeyTypes>"
+	}
+	var types []string
+
+	if (t & DeviceKeyType) != 0 {
+		types = append(types, "DeviceKeyType")
+	}
+
+	if (t & PGPType) != 0 {
+		types = append(types, "PGPType")
+	}
+
+	if (t & NaclType) != 0 {
+		types = append(types, "NaclType")
+	}
+
+	return strings.Join(types, "|")
+}
+
 func (t SecretKeyType) useDeviceKey() bool {
 	return (t & DeviceKeyType) != 0
 }
@@ -216,7 +240,7 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 	var pub GenericKey
 
 	if !ska.KeyType.useSyncedPGPKey() {
-		k.G().Log.Debug("| Skipped Synced PGP key (via prefs)")
+		k.G().Log.Debug("| Skipped Synced PGP key (via options)")
 	} else if ret, err = ska.Me.GetSyncedSecretKey(); err != nil {
 		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
 		return
@@ -246,12 +270,12 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 
 	me := ska.Me
 
-	k.G().Log.Debug("+ GetLockedLocalSecretKey(%s)", me.name)
+	k.G().Log.Debug("+ GetLockedLocalSecretKey(%s)", me.GetName())
 	defer func() {
 		k.G().Log.Debug("- GetLockedLocalSecretKey -> found=%v", ret != nil)
 	}()
 
-	if keyring, err = k.LoadSKBKeyring(me.name); err != nil || keyring == nil {
+	if keyring, err = k.LoadSKBKeyring(me.GetName()); err != nil || keyring == nil {
 		var s string
 		if err != nil {
 			s = " (" + err.Error() + ")"
@@ -261,12 +285,12 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	}
 
 	if ckf = me.GetComputedKeyFamily(); ckf == nil {
-		k.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
+		k.G().Log.Warning("No ComputedKeyFamily found for %s", me.GetName())
 		return
 	}
 
 	if !ska.KeyType.useDeviceKey() {
-		k.G().Log.Debug("| not using device key; preferences have disabled it")
+		k.G().Log.Debug("| not using device key; options have disabled it")
 	} else if did := k.G().Env.GetDeviceID(); did == nil {
 		k.G().Log.Debug("| Could not get device id")
 	} else if key, err := ckf.GetSibkeyForDevice(*did); err != nil {
