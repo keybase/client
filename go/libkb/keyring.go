@@ -250,16 +250,19 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 type SecretKeyType int
 
 const (
+	// The current (Nacl) device key.
 	DeviceKeyType SecretKeyType = 1 << iota
+	// A PGP key (including the synced PGP key, if there is one)..
 	PGPType
+	// A Nacl key (that is not the current device key).
 	NaclType
 	AllSecretKeyTypes = DeviceKeyType | PGPType | NaclType
 )
 
 type SecretKeyArg struct {
-	KeyType SecretKeyType
-
 	Me *User // Whose keys
+
+	KeyType SecretKeyType
 
 	KeyQuery string // a String to match the key prefix on
 }
