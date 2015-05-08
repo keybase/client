@@ -82,9 +82,6 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	} else if pgp, ok = key.(*libkb.PgpKeyBundle); !ok {
 		err = fmt.Errorf("Can only sign with PGP keys (for now)")
 		return
-	} else if key == nil {
-		err = fmt.Errorf("No secret key available")
-		return
 	}
 
 	bo := p.arg.Opts.BinaryOut

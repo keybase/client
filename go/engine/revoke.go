@@ -102,8 +102,8 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceKeyType,
 	}, ctx.SecretUI, "to revoke another key")
-	if sigKey == nil {
-		return fmt.Errorf("Revocation signing key is nil.")
+	if err != nil {
+		return err
 	}
 	if err = sigKey.CheckSecretKey(); err != nil {
 		return err

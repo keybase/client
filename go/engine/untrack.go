@@ -177,9 +177,6 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 	var signingKeyPriv libkb.GenericKey
 	if signingKeyPriv, _, err = e.G().Keyrings.GetSecretKeyWithPrompt(arg, ctx.SecretUI, "untracking signature"); err != nil {
 		return
-	} else if signingKeyPriv == nil {
-		err = libkb.NoSecretKeyError{}
-		return
 	}
 
 	var sig string
