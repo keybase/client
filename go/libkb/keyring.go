@@ -147,6 +147,50 @@ func (k KeyringFile) Save() error {
 	return SafeWriteToFile(k)
 }
 
+type SecretKeyType int
+
+const (
+	// The current (Nacl) device key.
+	DeviceKeyType SecretKeyType = 1 << iota
+	// A PGP key (including the synced PGP key, if there is one).
+	PGPType
+	// A Nacl key (that is not the current device key).
+	NaclType
+	AllSecretKeyTypes = DeviceKeyType | PGPType | NaclType
+)
+
+func (t SecretKeyType) useDeviceKey() bool {
+	return (t & DeviceKeyType) != 0
+}
+
+func (t SecretKeyType) searchForKey() bool {
+	return (t & ^DeviceKeyType) != 0
+}
+
+func (t SecretKeyType) useSyncedPGPKey() bool {
+	return (t & PGPType) != 0
+}
+
+func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
+	if IsPGP(key) && (t&PGPType) != 0 {
+		return true
+	}
+
+	if !IsPGP(key) && (t&NaclType) != 0 {
+		return true
+	}
+
+	return false
+}
+
+type SecretKeyArg struct {
+	Me *User // Whose keys
+
+	KeyType SecretKeyType
+
+	KeyQuery string // a String to match the key prefix on
+}
+
 // GetSecretKeyLocked gets a secret key for the current user by first
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
@@ -245,50 +289,6 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
 	}
 	return ret
-}
-
-type SecretKeyType int
-
-const (
-	// The current (Nacl) device key.
-	DeviceKeyType SecretKeyType = 1 << iota
-	// A PGP key (including the synced PGP key, if there is one).
-	PGPType
-	// A Nacl key (that is not the current device key).
-	NaclType
-	AllSecretKeyTypes = DeviceKeyType | PGPType | NaclType
-)
-
-func (t SecretKeyType) useDeviceKey() bool {
-	return (t & DeviceKeyType) != 0
-}
-
-func (t SecretKeyType) searchForKey() bool {
-	return (t & ^DeviceKeyType) != 0
-}
-
-func (t SecretKeyType) useSyncedPGPKey() bool {
-	return (t & PGPType) != 0
-}
-
-func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
-	if IsPGP(key) && (t&PGPType) != 0 {
-		return true
-	}
-
-	if !IsPGP(key) && (t&NaclType) != 0 {
-		return true
-	}
-
-	return false
-}
-
-type SecretKeyArg struct {
-	Me *User // Whose keys
-
-	KeyType SecretKeyType
-
-	KeyQuery string // a String to match the key prefix on
 }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
