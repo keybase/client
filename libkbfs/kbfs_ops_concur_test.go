@@ -2,18 +2,55 @@ package libkbfs
 
 import (
 	"fmt"
+	"runtime"
+	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/util"
 )
+
+type RWChannelCounter struct {
+	lock   sync.Mutex
+	rwc    util.RWChannel
+	rcount int
+	wcount int
+}
+
+func NewRWChannelCounter(bufSize int) *RWChannelCounter {
+	return &RWChannelCounter{rwc: util.NewRWChannelImpl(bufSize)}
+}
+
+func (rwc *RWChannelCounter) QueueReadReq(rreq func()) {
+	rwc.lock.Lock()
+	rwc.rcount++
+	rwc.lock.Unlock()
+	rwc.rwc.QueueReadReq(rreq)
+}
+
+func (rwc *RWChannelCounter) QueueWriteReq(wreq func()) {
+	rwc.lock.Lock()
+	rwc.wcount++
+	rwc.lock.Unlock()
+	rwc.rwc.QueueWriteReq(wreq)
+}
+
+func (rwc *RWChannelCounter) Shutdown() chan struct{} {
+	return rwc.rwc.Shutdown()
+}
 
 type MDOpsConcurTest struct {
 	uid   libkb.UID
+	enter chan struct{}
 	start chan struct{}
 }
 
 func NewMDOpsConcurTest(uid libkb.UID) *MDOpsConcurTest {
-	return &MDOpsConcurTest{uid: uid, start: make(chan struct{})}
+	return &MDOpsConcurTest{
+		uid:   uid,
+		enter: make(chan struct{}),
+		start: make(chan struct{}),
+	}
 }
 
 func (m *MDOpsConcurTest) GetAtHandle(handle *DirHandle) (
@@ -22,11 +59,12 @@ func (m *MDOpsConcurTest) GetAtHandle(handle *DirHandle) (
 }
 
 func (m *MDOpsConcurTest) Get(id DirId) (*RootMetadata, error) {
-	_, ok := <-m.start
+	_, ok := <-m.enter
 	if !ok {
 		// Only one caller should ever get here
 		return nil, fmt.Errorf("More than one caller to Get()!")
 	}
+	<-m.start
 	dh := NewDirHandle()
 	dh.Writers = append(dh.Writers, m.uid)
 	return NewRootMetadata(dh, id), nil
@@ -77,15 +115,37 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	m := NewMDOpsConcurTest(uid)
 	config.SetMDOps(m)
 
-	n := 2
+	n := 10
 	c := make(chan error, n)
+	dir := DirId{0}
+	rwc := NewRWChannelCounter(n)
+	config.KBFSOps().(*KBFSOpsStandard).dirRWChans.chans[dir] = rwc
 	for i := 0; i < n; i++ {
 		go func() {
-			_, err := config.KBFSOps().GetRootMD(DirId{0})
+			_, err := config.KBFSOps().GetRootMD(dir)
 			c <- err
 		}()
 	}
 	// wait until at least the first one started
+	m.enter <- struct{}{}
+	close(m.enter)
+	// make sure that the second goroutine has also started its write
+	// call, and thus must be queued behind the first one (since we
+	// are guaranteed the first one is currently running, and
+	// RWChannel only allows one write at a time).
+	for {
+		rwc.lock.Lock()
+		rc := rwc.rcount
+		wc := rwc.wcount
+		rwc.lock.Unlock()
+		if rc == n && wc >= 2 {
+			break
+		} else {
+			runtime.Gosched()
+		}
+	}
+	// Now let the first one complete.  The second one should find the
+	// MD in the cache, and thus never call MDOps.Get().
 	m.start <- struct{}{}
 	close(m.start)
 	for i := 0; i < n; i++ {
