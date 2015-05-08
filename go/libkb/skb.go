@@ -380,7 +380,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 			kid = key.GetKid()
 			active := ckf.GetKeyRole(kid)
 			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
-			if len(ska.KeyQuery) > 0 && !KeyMatchesQuery(key, ska.KeyQuery) {
+			if !KeyMatchesQuery(key, ska.KeyQuery) {
 				G.Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
 			} else if !ska.KeyType.nonDeviceKeyMatches(key) {
 				G.Log.Debug("| Skipped, wasn't a PGP key but we required it")

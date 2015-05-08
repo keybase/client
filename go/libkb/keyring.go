@@ -191,7 +191,7 @@ type SecretKeyArg struct {
 	KeyType SecretKeyType
 
 	// For non-device keys, a string that the key has to match. If
-	// empty, any key is allowed.
+	// empty, any valid key is allowed.
 	KeyQuery string
 }
 
@@ -222,7 +222,7 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 		return
 	} else if ret == nil {
 	} else if pub, err = ret.GetPubKey(); err != nil {
-	} else if len(ska.KeyQuery) > 0 && !KeyMatchesQuery(pub, ska.KeyQuery) {
+	} else if !KeyMatchesQuery(pub, ska.KeyQuery) {
 		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
 		ret = nil
 	} else {

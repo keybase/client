@@ -222,7 +222,8 @@ func (f FOKID) ToMapKeys() (ret []FOKIDMapKey) {
 
 func (f FOKID) P() *FOKID { return &f }
 
-func (f FOKID) MatchQuery(s string) bool {
+// Any valid FOKID matches the empty string.
+func (f FOKID) matchQuery(s string) bool {
 	if f.Fp != nil && strings.HasSuffix(strings.ToLower(f.Fp.String()), strings.ToLower(s)) {
 		return true
 	}
@@ -244,8 +245,9 @@ func GenericKeyToFOKID(key GenericKey) FOKID {
 	}
 }
 
+// Any valid key matches the empty string.
 func KeyMatchesQuery(key GenericKey, q string) bool {
-	return GenericKeyToFOKID(key).MatchQuery(q)
+	return GenericKeyToFOKID(key).matchQuery(q)
 }
 
 func IsPGP(key GenericKey) bool {
