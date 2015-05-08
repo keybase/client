@@ -173,7 +173,7 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 
 	var pub GenericKey
 
-	if !ska.UseSyncedPGPKey() {
+	if !ska.KeyType.useSyncedPGPKey() {
 		k.G().Log.Debug("| Skipped Synced PGP key (via prefs)")
 	} else if ret, err = ska.Me.GetSyncedSecretKey(); err != nil {
 		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err.Error())
@@ -223,7 +223,7 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		return
 	}
 
-	if !ska.UseDeviceKey() {
+	if !ska.KeyType.useDeviceKey() {
 		k.G().Log.Debug("| not using device key; preferences have disabled it")
 	} else if did := k.G().Env.GetDeviceID(); did == nil {
 		k.G().Log.Debug("| Could not get device id")
@@ -240,7 +240,7 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 		}
 	}
 
-	if ret == nil && ska.SearchForKey() {
+	if ret == nil && ska.KeyType.searchForKey() {
 		k.G().Log.Debug("| Looking up secret key in local keychain")
 		ret = keyring.SearchWithComputedKeyFamily(ckf, ska)
 	}
@@ -259,6 +259,18 @@ const (
 	AllSecretKeyTypes = DeviceKeyType | PGPType | NaclType
 )
 
+func (t SecretKeyType) useDeviceKey() bool {
+	return (t & DeviceKeyType) != 0
+}
+
+func (t SecretKeyType) searchForKey() bool {
+	return (t & ^DeviceKeyType) != 0
+}
+
+func (t SecretKeyType) useSyncedPGPKey() bool {
+	return (t & PGPType) != 0
+}
+
 type SecretKeyArg struct {
 	Me *User // Whose keys
 
@@ -266,10 +278,6 @@ type SecretKeyArg struct {
 
 	KeyQuery string // a String to match the key prefix on
 }
-
-func (s SecretKeyArg) UseDeviceKey() bool    { return (s.KeyType & DeviceKeyType) != 0 }
-func (s SecretKeyArg) SearchForKey() bool    { return (s.KeyType & (PGPType | NaclType)) != 0 }
-func (s SecretKeyArg) UseSyncedPGPKey() bool { return (s.KeyType & PGPType) != 0 }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
