@@ -16,7 +16,11 @@ func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
 }
 
 func (c *CryptoHandler) Sign(buf []byte) ([]byte, error) {
-	ctx := &engine.Context{}
+	// TODO: Figure out which session id to use.
+	sessionId := 0
+	ctx := &engine.Context{
+		SecretUI: c.getSecretUI(sessionId),
+	}
 	eng := engine.NewSignEngine(G, buf)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err

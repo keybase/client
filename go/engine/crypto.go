@@ -24,7 +24,9 @@ func (e *SignEngine) Name() string {
 func (e *SignEngine) GetPrereqs() EnginePrereqs { return EnginePrereqs{} }
 
 func (e *SignEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.SecretUIKind,
+	}
 }
 
 func (e *SignEngine) SubConsumers() []libkb.UIConsumer {
@@ -51,7 +53,6 @@ func (e *SignEngine) Run(ctx *Context) (err error) {
 		return errors.New("Signing key cannot sign.")
 	}
 
-	// TODO: Figure out what to do with ID.
 	signature, _, err := sigKey.SignToString(e.msg)
 	if err != nil {
 		return err
