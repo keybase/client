@@ -79,8 +79,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	if !e.arg.NoSign {
 		ska := libkb.SecretKeyArg{
 			KeyType: libkb.SecretKeyType{
-				PGP:          true,
-				SyncedPGPKey: true,
+				PGP: true,
 			},
 			KeyQuery: e.arg.KeyQuery,
 		}
