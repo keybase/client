@@ -833,7 +833,7 @@ func (u *User) GetDevice(id string) (*Device, error) {
 
 func (u *User) HasDeviceInCurrentInstall() bool {
 	_, _, err := u.GetDeviceKeys()
-	return err != nil
+	return err == nil
 }
 
 func (u *User) SigningKeyPub() (GenericKey, error) {
