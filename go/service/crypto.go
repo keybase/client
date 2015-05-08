@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -15,20 +14,13 @@ func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
 	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (c *CryptoHandler) Sign(buf []byte) ([]byte, error) {
-	// TODO: Figure out which session id to use.
-	sessionId := 0
+func (c *CryptoHandler) Sign(arg keybase1.SignArg) ([]byte, error) {
 	ctx := &engine.Context{
-		SecretUI: c.getSecretUI(sessionId),
+		SecretUI: c.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewSignEngine(G, buf)
+	eng := engine.NewSignEngine(G, arg.Msg, arg.Reason)
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
-
 	return eng.GetSignature(), nil
-}
-
-func (c *CryptoHandler) Unbox(arg keybase1.UnboxArg) ([]byte, error) {
-	return nil, errors.New("Not implemented")
 }

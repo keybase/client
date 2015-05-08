@@ -5,18 +5,14 @@
   "messages" : {
     "sign" : {
       "request" : [ {
-        "name" : "buf",
-        "type" : "bytes"
-      } ],
-      "response" : "bytes"
-    },
-    "unbox" : {
-      "request" : [ {
-        "name" : "pubkeyKid",
-        "type" : "string"
+        "name" : "sessionID",
+        "type" : "int"
       }, {
-        "name" : "buf",
+        "name" : "msg",
         "type" : "bytes"
+      }, {
+        "name" : "reason",
+        "type" : "string"
       } ],
       "response" : "bytes"
     }

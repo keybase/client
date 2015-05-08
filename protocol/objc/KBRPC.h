@@ -145,9 +145,7 @@
 @end
 
 @interface KBRCryptoRequest : KBRRequest
-- (void)signWithBuf:(NSData *)buf completion:(void (^)(NSError *error, NSData *bytes))completion;
-
-- (void)unboxWithPubkeyKid:(NSString *)pubkeyKid buf:(NSData *)buf completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *bytes))completion;
 
 @end
 
@@ -780,11 +778,9 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 @property BOOL force;
 @end
 @interface KBRSignRequestParams : KBRRequestParams
-@property NSData *buf;
-@end
-@interface KBRUnboxRequestParams : KBRRequestParams
-@property NSString *pubkeyKid;
-@property NSData *buf;
+@property NSInteger sessionID;
+@property NSData *msg;
+@property NSString *reason;
 @end
 @interface KBRDeviceListRequestParams : KBRRequestParams
 @property NSInteger sessionID;

@@ -8,11 +8,12 @@ import (
 type SignEngine struct {
 	libkb.Contextified
 	msg       []byte
+	reason    string
 	signature []byte
 }
 
-func NewSignEngine(ctx *libkb.GlobalContext, msg []byte) *SignEngine {
-	engine := &SignEngine{msg: msg}
+func NewSignEngine(ctx *libkb.GlobalContext, msg []byte, reason string) *SignEngine {
+	engine := &SignEngine{msg: msg, reason: reason}
 	engine.SetGlobalContext(ctx)
 	return engine
 }
@@ -42,7 +43,7 @@ func (e *SignEngine) Run(ctx *Context) (err error) {
 	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
 		DeviceKey: true,
 		Me:        me,
-	}, ctx.SecretUI, "to access kbfs") // TODO: Figure out a better message.
+	}, ctx.SecretUI, e.reason)
 	if sigKey == nil {
 		return errors.New("Signing key is nil.")
 	}

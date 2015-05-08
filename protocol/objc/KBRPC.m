@@ -172,16 +172,9 @@
 
 @implementation KBRCryptoRequest
 
-- (void)signWithBuf:(NSData *)buf completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSArray *params = @[@{@"buf": KBRValue(buf)}];
+- (void)signWithSessionID:(NSInteger)sessionID msg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSArray *params = @[@{@"sessionID": @(sessionID), @"msg": KBRValue(msg), @"reason": KBRValue(reason)}];
   [self.client sendRequestWithMethod:@"keybase.1.crypto.sign" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
-  }];
-}
-
-- (void)unboxWithPubkeyKid:(NSString *)pubkeyKid buf:(NSData *)buf completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSArray *params = @[@{@"pubkeyKid": KBRValue(pubkeyKid), @"buf": KBRValue(buf)}];
-  [self.client sendRequestWithMethod:@"keybase.1.crypto.unbox" params:params sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error, 0);
   }];
 }
@@ -1243,19 +1236,9 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.buf = params[0][@"buf"];
-  }
-  return self;
-}
-
-@end
-
-@implementation KBRUnboxRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.pubkeyKid = params[0][@"pubkeyKid"];
-    self.buf = params[0][@"buf"];
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.reason = params[0][@"reason"];
   }
   return self;
 }

@@ -389,17 +389,13 @@ func (c ConfigClient) GetConfig() (res Config, err error) {
 }
 
 type SignArg struct {
-	Buf []byte `codec:"buf" json:"buf"`
-}
-
-type UnboxArg struct {
-	PubkeyKid string `codec:"pubkeyKid" json:"pubkeyKid"`
-	Buf       []byte `codec:"buf" json:"buf"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
 }
 
 type CryptoInterface interface {
-	Sign([]byte) ([]byte, error)
-	Unbox(UnboxArg) ([]byte, error)
+	Sign(SignArg) ([]byte, error)
 }
 
 func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
@@ -409,14 +405,7 @@ func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
 			"sign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
 				args := make([]SignArg, 1)
 				if err = nxt(&args); err == nil {
-					ret, err = i.Sign(args[0].Buf)
-				}
-				return
-			},
-			"unbox": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
-				args := make([]UnboxArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Unbox(args[0])
+					ret, err = i.Sign(args[0])
 				}
 				return
 			},
@@ -429,14 +418,8 @@ type CryptoClient struct {
 	Cli GenericClient
 }
 
-func (c CryptoClient) Sign(buf []byte) (res []byte, err error) {
-	__arg := SignArg{Buf: buf}
+func (c CryptoClient) Sign(__arg SignArg) (res []byte, err error) {
 	err = c.Cli.Call("keybase.1.crypto.sign", []interface{}{__arg}, &res)
-	return
-}
-
-func (c CryptoClient) Unbox(__arg UnboxArg) (res []byte, err error) {
-	err = c.Cli.Call("keybase.1.crypto.unbox", []interface{}{__arg}, &res)
 	return
 }
 
