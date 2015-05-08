@@ -244,14 +244,15 @@ func (fs *KBFSOpsStandard) GetRootMDForHandle(dirHandle *DirHandle) (
 // request.  If it fails with a WriteNeededInReadRequest error, it
 // re-executes the method as a write request.  The passed-in method
 // must note whether or not this is a write call.
-func execReadInChannel(
-	rwchan *util.RWChannel, errchan errChan, f func(reqType)) error {
-	rwchan.QueueReadReq(func() { f(read) })
+func (fs *KBFSOpsStandard) execReadInChannel(
+	dir DirId, f func(reqType) error) error {
+	rwchan, errchan := fs.getChans(dir)
+	rwchan.QueueReadReq(func() { errchan <- f(read) })
 	err := <-errchan
 
 	// Redo in a write request if needed
 	if _, ok := err.(*WriteNeededInReadRequest); ok {
-		rwchan.QueueWriteReq(func() { f(write) })
+		rwchan.QueueWriteReq(func() { errchan <- f(write) })
 		err = <-errchan
 	}
 	return err
@@ -260,10 +261,9 @@ func execReadInChannel(
 func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
 	// don't check read permissions here -- anyone should be able to read
 	// the MD to determine whether there's a public subdir or not
-	rwchan, errchan := fs.getChans(dir)
-	execReadInChannel(rwchan, errchan, func(rtype reqType) {
+	fs.execReadInChannel(dir, func(rtype reqType) error {
 		md, err = fs.getMDInChannel(Path{TopDir: dir}, rtype)
-		errchan <- err
+		return err
 	})
 
 	// Type defaults to File, so if it was set to Dir then MD already exists
@@ -271,6 +271,7 @@ func (fs *KBFSOpsStandard) GetRootMD(dir DirId) (md *RootMetadata, err error) {
 		return
 	}
 
+	rwchan, errchan := fs.getChans(dir)
 	rwchan.QueueWriteReq(func() {
 		// refetch just in case
 		md, err = fs.getMDForWriteInChannel(Path{TopDir: dir})
@@ -374,10 +375,9 @@ func (fs *KBFSOpsStandard) getFileInChannel(dir Path, rtype reqType) (
 }
 
 func (fs *KBFSOpsStandard) GetDir(dir Path) (block *DirBlock, err error) {
-	rwchan, errchan := fs.getChans(dir.TopDir)
-	execReadInChannel(rwchan, errchan, func(rtype reqType) {
+	fs.execReadInChannel(dir.TopDir, func(rtype reqType) error {
 		block, err = fs.getDirInChannel(dir, rtype)
-		errchan <- err
+		return err
 	})
 	return
 }
@@ -1071,10 +1071,9 @@ func (fs *KBFSOpsStandard) readInChannel(file Path, dest []byte, off int64) (
 
 func (fs *KBFSOpsStandard) Read(file Path, dest []byte, off int64) (
 	numRead int64, err error) {
-	rwchan, errchan := fs.getChans(file.TopDir)
-	execReadInChannel(rwchan, errchan, func(rtype reqType) {
+	fs.execReadInChannel(file.TopDir, func(rtype reqType) error {
 		numRead, err = fs.readInChannel(file, dest, off)
-		errchan <- err
+		return err
 	})
 	return
 }
