@@ -343,8 +343,8 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(me *User, secretRetriever Secret
 		k.G().Log.Debug("- GetSecretKeyWithStoredSecret() -> %s", ErrToOk(err))
 	}()
 	ska := SecretKeyArg{
-		KeyType: AllSecretKeyTypes,
 		Me:      me,
+		KeyType: AllSecretKeyTypes,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)
@@ -361,8 +361,8 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 		k.G().Log.Debug("- GetSecretKeyWithPassphrase() -> %s", ErrToOk(err))
 	}()
 	ska := SecretKeyArg{
-		KeyType: AllSecretKeyTypes,
 		Me:      me,
+		KeyType: AllSecretKeyTypes,
 	}
 	var skb *SKB
 	skb, _, err = k.GetSecretKeyLocked(ska)

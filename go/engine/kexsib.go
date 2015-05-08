@@ -83,8 +83,8 @@ func (k *KexSib) Run(ctx *Context) error {
 	k.serverMu.Unlock()
 
 	arg := libkb.SecretKeyArg{
-		KeyType: libkb.DeviceKeyType,
 		Me:      k.user,
+		KeyType: libkb.DeviceKeyType,
 	}
 	k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(arg, ctx.SecretUI, "new device install")
 	if err != nil {
@@ -180,8 +180,8 @@ func (k *KexSib) handlePleaseSign(m *kex.Msg) error {
 	if k.sigKey == nil {
 		var err error
 		arg := libkb.SecretKeyArg{
-			KeyType: libkb.DeviceKeyType,
 			Me:      k.user,
+			KeyType: libkb.DeviceKeyType,
 		}
 		k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(arg, k.engctx.SecretUI, "new device install")
 		if err != nil {
