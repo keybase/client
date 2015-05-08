@@ -53,11 +53,6 @@ func TestSignupEngine(t *testing.T) {
 	// Now try to logout and log back in w/ PublicKey Auth
 	tc.G.Logout()
 
-	// Clear out the key stored in the keyring.
-	if err := tc.G.ConfigureKeyring(); err != nil {
-		t.Error(err)
-	}
-
 	if err := AssertLoggedOut(tc); err != nil {
 		t.Fatal(err)
 	}

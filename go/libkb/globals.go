@@ -76,7 +76,6 @@ func (g *GlobalContext) createLoginState() {
 	g.loginState = NewLoginState(g)
 	g.account = NewAccount(g)
 	g.loginStateMu.Unlock()
-
 }
 
 func (g *GlobalContext) LoginState() *LoginState {

@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/protocol/go"
@@ -339,12 +340,22 @@ func (s *LoginState) checkLoggedIn(username string, force bool) (loggedIn bool, 
 }
 
 func (s *LoginState) switchUser(username string) error {
-	if len(username) == 0 || !CheckUsername.F(username) {
-	} else if err := s.G().Env.GetConfigWriter().SwitchUser(username); err != nil {
-		s.G().Log.Debug("| Can't switch user to %s: %s", username, err.Error())
-	} else {
-		s.G().Log.Debug("| Successfully switched user to %s", username)
+	if len(username) == 0 {
+		// this isn't an error
+		return nil
 	}
+	if !CheckUsername.F(username) {
+		return errors.New("invalid username provided to switchUser")
+	}
+	if err := s.G().Env.GetConfigWriter().SwitchUser(username); err != nil {
+		s.G().Log.Debug("| Can't switch user to %s: %s", username, err)
+		// apparently this isn't an error either
+		return nil
+	}
+
+	s.G().Account().EnsureUsername(username)
+
+	s.G().Log.Debug("| Successfully switched user to %s", username)
 	return nil
 }
 
@@ -412,6 +423,7 @@ func (s *LoginState) getEmailOrUsername(username *string, loginUI LoginUI) (err 
 
 	// username set, so redo config
 	s.G().ConfigureConfig()
+	s.G().Account().LocalSession().SetUsername(*username)
 	return s.switchUser(*username)
 }
 
@@ -593,7 +605,6 @@ func (s *LoginState) loginWithPassphrase(username, passphrase string, storeSecre
 
 func (s *LoginState) logout() error {
 	s.G().Log.Debug("+ Logout called")
-	s.G().Keyrings.ClearSecretKeys()
 	s.G().Account().Logout()
 	s.G().Log.Debug("- Logout called")
 	return nil

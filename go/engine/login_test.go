@@ -236,11 +236,12 @@ func TestLoginPGPMultSignNewDevice(t *testing.T) {
 	li := NewLoginWithPromptEngine(u1.Username)
 	secui := libkb.TestSecretUI{Passphrase: u1.Passphrase}
 	ctx := &Context{
-		LogUI:       tc.G.UI.GetLogUI(),
-		LocksmithUI: docui,
-		GPGUI:       &gpgtestui{1},
-		SecretUI:    secui,
-		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:         tc2.G.UI.GetLogUI(),
+		LocksmithUI:   docui,
+		GPGUI:         &gpgtestui{1},
+		SecretUI:      secui,
+		LoginUI:       &libkb.TestLoginUI{Username: u1.Username},
+		GlobalContext: tc2.G,
 	}
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)

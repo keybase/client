@@ -72,6 +72,12 @@ func (s *Session) APIArgs() (token, csrf string) {
 	return s.token, s.csrf
 }
 
+func (s *Session) SetUsername(username string) {
+	s.Lock()
+	s.username = &username
+	s.Unlock()
+}
+
 func (s *Session) SetLoggedIn(sessionID, csrfToken, username string, uid UID) {
 	s.Lock()
 	s.valid = true

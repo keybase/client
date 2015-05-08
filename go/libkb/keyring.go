@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync"
 
 	"golang.org/x/crypto/openpgp"
 )
@@ -20,8 +19,6 @@ type KeyringFile struct {
 }
 
 type Keyrings struct {
-	sync.Mutex
-	skbfile *SKBKeyringFile
 	Contextified
 }
 
@@ -54,22 +51,17 @@ func (g *GlobalContext) SKBFilenameForUser(un string) string {
 
 // Note:  you need to be logged in as 'un' for this function to
 // work.  Otherwise, it just silently returns nil, nil.
-func (k *Keyrings) LoadSKBKeyring(un string) (f *SKBKeyringFile, err error) {
-	k.Lock()
-	defer k.Unlock()
-
-	if k.skbfile == nil {
-		if len(un) == 0 {
-			return nil, NoUsernameError{}
-		}
-
-		k.skbfile = NewSKBKeyringFile(k.G().SKBFilenameForUser(un))
-		err := k.skbfile.LoadAndIndex()
-		if err != nil && !os.IsNotExist(err) {
-			return nil, err
-		}
+func LoadSKBKeyring(un string, g *GlobalContext) (*SKBKeyringFile, error) {
+	if len(un) == 0 {
+		return nil, NoUsernameError{}
 	}
-	return k.skbfile, nil
+
+	skbfile := NewSKBKeyringFile(g.SKBFilenameForUser(un))
+	err := skbfile.LoadAndIndex()
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	return skbfile, nil
 }
 
 func (k *KeyringFile) LoadAndIndex() error {
@@ -232,7 +224,13 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 
 	k.G().Log.Debug("| LoadMe w/ Secrets on")
 
-	if ret = k.GetLockedLocalSecretKey(ska); ret != nil {
+	if ska.Me == nil {
+		if ska.Me, err = LoadMe(LoadUserArg{}); err != nil {
+			return
+		}
+	}
+
+	if ret = k.getLockedLocalSecretKey(ska); ret != nil {
 		k.G().Log.Debug("| Getting local secret key")
 		return
 	}
@@ -260,32 +258,31 @@ func (k *Keyrings) GetSecretKeyLocked(ska SecretKeyArg) (ret *SKB, which string,
 
 }
 
-// GetLockedLocalSecretKey looks in the local keyring to find a key
+// getLockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Return non-nil if one was found, and nil
 // otherwise.
-func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
-	var keyring *SKBKeyringFile
-	var err error
-	var ckf *ComputedKeyFamily
-
+func (k *Keyrings) getLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	me := ska.Me
 
-	k.G().Log.Debug("+ GetLockedLocalSecretKey(%s)", me.GetName())
+	k.G().Log.Debug("+ getLockedLocalSecretKey(%s)", me.GetName())
 	defer func() {
-		k.G().Log.Debug("- GetLockedLocalSecretKey -> found=%v", ret != nil)
+		k.G().Log.Debug("- getLockedLocalSecretKey -> found=%v", ret != nil)
 	}()
 
-	if keyring, err = k.LoadSKBKeyring(me.GetName()); err != nil || keyring == nil {
+	k.G().Account().EnsureUsername(me.name)
+	keyring, err := k.G().Account().Keyring()
+	if err != nil || keyring == nil {
 		var s string
 		if err != nil {
 			s = " (" + err.Error() + ")"
 		}
 		k.G().Log.Debug("| No secret keyring found" + s)
-		return
+		return nil
 	}
 
-	if ckf = me.GetComputedKeyFamily(); ckf == nil {
-		k.G().Log.Warning("No ComputedKeyFamily found for %s", me.GetName())
+	ckf := me.GetComputedKeyFamily()
+	if ckf == nil {
+		k.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
 		return
 	}
 
@@ -375,13 +372,6 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(me *User, passphrase string, secre
 	// pps := k.G().LoginState().GetCachedPassphraseStream()
 	pps := k.G().Account().StreamCache().PassphraseStream()
 	return skb.UnlockSecretKey(passphrase, tsec, pps, secretStorer)
-}
-
-func (k *Keyrings) ClearSecretKeys() {
-	k.Lock()
-	defer k.Unlock()
-
-	k.skbfile = nil
 }
 
 type EmptyKeyRing struct{}

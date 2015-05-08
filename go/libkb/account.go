@@ -32,6 +32,12 @@ func (a *Account) LocalSession() *Session {
 	return a.localSession
 }
 
+func (a *Account) UnloadLocalSession() {
+	a.Lock()
+	a.localSession = newSession(a.G())
+	a.Unlock()
+}
+
 // LoggedIn returns true if the user is logged in.  It does not
 // try to load the session.
 func (a *Account) LoggedIn() bool {
@@ -98,8 +104,8 @@ func (a *Account) Logout() error {
 	}
 	a.RUnlock()
 
+	a.UnloadLocalSession()
 	a.Lock()
-	a.localSession = newSession(a.G())
 	a.loginSession = nil
 	a.skbKeyring = nil
 	a.Unlock()
@@ -168,10 +174,13 @@ func (a *Account) RunSecretSyncer(uid *UID) error {
 }
 
 func (a *Account) Keyring() (*SKBKeyringFile, error) {
-	if !a.LoggedIn() {
-		return nil, LoginRequiredError{}
+	if a.localSession == nil {
+		a.G().Log.Warning("local session is nil")
 	}
-
+	a.LocalSession().loadAndCheck()
+	if a.localSession == nil {
+		a.G().Log.Warning("local session after load is nil")
+	}
 	a.RLock()
 	kr := a.skbKeyring
 	a.RUnlock()
@@ -186,7 +195,7 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	if unp == nil {
 		return nil, NoUsernameError{}
 	}
-	kr, err := a.G().Keyrings.LoadSKBKeyring(*unp)
+	kr, err := LoadSKBKeyring(*unp, a.G())
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +205,18 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 
 func (a *Account) Shutdown() error {
 	return a.LocalSession().Write()
+}
+
+func (a *Account) EnsureUsername(username string) {
+	su := a.LocalSession().GetUsername()
+	if su == nil {
+		a.LocalSession().SetUsername(username)
+		return
+	}
+	if *su != username {
+		panic(fmt.Sprintf("username for current session (%q) differs from param (%q)", *su, username))
+	}
+
 }
 
 // XXX not sure this is the best place for this...
