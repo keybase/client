@@ -247,18 +247,14 @@ func (k *Keyrings) GetLockedLocalSecretKey(ska SecretKeyArg) (ret *SKB) {
 	return ret
 }
 
-type SecretKeyType struct {
-	// Which keys to search for
-	DeviceKey bool // use the device key (on by default)
-	PGP       bool
-	Nacl      bool
-}
+type SecretKeyType int
 
-var AllSecretKeyTypes = SecretKeyType{
-	DeviceKey: true,
-	PGP:       true,
-	Nacl:      true,
-}
+const (
+	DeviceKeyType SecretKeyType = 1 << iota
+	PGPType
+	NaclType
+	AllSecretKeyTypes = DeviceKeyType | PGPType | NaclType
+)
 
 type SecretKeyArg struct {
 	KeyType SecretKeyType
@@ -268,9 +264,9 @@ type SecretKeyArg struct {
 	KeyQuery string // a String to match the key prefix on
 }
 
-func (s SecretKeyArg) UseDeviceKey() bool    { return s.KeyType.DeviceKey }
-func (s SecretKeyArg) SearchForKey() bool    { return s.KeyType.PGP || s.KeyType.Nacl }
-func (s SecretKeyArg) UseSyncedPGPKey() bool { return s.KeyType.PGP }
+func (s SecretKeyArg) UseDeviceKey() bool    { return (s.KeyType & DeviceKeyType) != 0 }
+func (s SecretKeyArg) SearchForKey() bool    { return (s.KeyType & (PGPType | NaclType)) != 0 }
+func (s SecretKeyArg) UseSyncedPGPKey() bool { return (s.KeyType & PGPType) != 0 }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {

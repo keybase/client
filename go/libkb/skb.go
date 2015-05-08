@@ -382,7 +382,7 @@ func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska 
 			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
 			if len(ska.KeyQuery) > 0 && !KeyMatchesQuery(key, ska.KeyQuery) {
 				G.Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
-			} else if (IsPGP(key) && !ska.KeyType.PGP) || (!IsPGP(key) && !ska.KeyType.Nacl) {
+			} else if (IsPGP(key) && ((ska.KeyType & PGPType) == 0)) || (!IsPGP(key) && ((ska.KeyType & NaclType) == 0)) {
 				G.Log.Debug("| Skipped, wasn't a PGP key but we required it")
 			} else if active != DLG_SIBKEY {
 				G.Log.Debug("| Skipped, active=%d", int(active))
