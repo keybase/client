@@ -13,11 +13,11 @@ function check_daemon() {
     tries=$2
     expected_err=$3
     while [ $tries -gt 0 ]; do
-        if KEYBASE_SOCKET_FILE=$socket timeout "$timeout"s $GOPATH/bin/client status > /dev/null 2>&1 ; then
+        if KEYBASE_SOCKET_FILE=$socket timeout "$timeout"s $GOPATH/bin/keybase status > /dev/null 2>&1 ; then
             break
         else
             if [ -n "$expected_err" ]; then
-                output=`KEYBASE_SOCKET_FILE=$socket timeout "$timeout"s $GOPATH/bin/client status 2>&1 || true`
+                output=`KEYBASE_SOCKET_FILE=$socket timeout "$timeout"s $GOPATH/bin/keybase status 2>&1 || true`
                 if echo $output | grep "$expected_err"; then
                     # ok, this is expected
                     break
@@ -90,7 +90,7 @@ if [ $? -eq 0 ]; then
     docker run -d -v $GOPATH/bin:/keybase/bin -v $sdir:/keybase/socket --name $iname --link $KBWEB_INSTANCE_NAME:kbweb $KBDAEMON_IMAGE_NAME
     check_daemon 1 30 "Not logged in"
     user="u$usernum""_$RANDOM"
-    docker exec $iname client signup --username $user --email $user@email.com --passphrase pass$user --device fakedevice -c 202020202020202020202020 --batch
+    docker exec -ti $iname keybase signup --username $user --email $user@email.com --passphrase pass$user --device fakedevice -c 202020202020202020202020 --batch
     check_daemon 1 30
     echo $user
     print_env $user
