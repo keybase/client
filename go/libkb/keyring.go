@@ -271,6 +271,18 @@ func (t SecretKeyType) useSyncedPGPKey() bool {
 	return (t & PGPType) != 0
 }
 
+func (t SecretKeyType) nonDeviceKeyMatches(key GenericKey) bool {
+	if IsPGP(key) && (t&PGPType) != 0 {
+		return true
+	}
+
+	if !IsPGP(key) && (t&NaclType) != 0 {
+		return true
+	}
+
+	return false
+}
+
 type SecretKeyArg struct {
 	Me *User // Whose keys
 
