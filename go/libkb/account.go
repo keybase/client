@@ -214,7 +214,8 @@ func (a *Account) EnsureUsername(username string) {
 		return
 	}
 	if *su != username {
-		panic(fmt.Sprintf("username for current session (%q) differs from param (%q)", *su, username))
+		a.Logout()
+		a.LocalSession().SetUsername(username)
 	}
 
 }
