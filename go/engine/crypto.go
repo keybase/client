@@ -7,11 +7,12 @@ import (
 
 type SignEngine struct {
 	libkb.Contextified
-	buf []byte
+	msg       []byte
+	signature []byte
 }
 
-func NewSignEngine(ctx *libkb.GlobalContext, buf []byte) *SignEngine {
-	engine := &SignEngine{buf: buf}
+func NewSignEngine(ctx *libkb.GlobalContext, msg []byte) *SignEngine {
+	engine := &SignEngine{msg: msg}
 	engine.SetGlobalContext(ctx)
 	return engine
 }
@@ -31,9 +32,35 @@ func (e *SignEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SignEngine) Run(ctx *Context) (err error) {
-	return errors.New("Not implemented")
+	me, err := libkb.LoadMe(libkb.LoadUserArg{})
+	if err != nil {
+		return err
+	}
+
+	sigKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(libkb.SecretKeyArg{
+		DeviceKey: true,
+		Me:        me,
+	}, ctx.SecretUI, "to access kbfs") // TODO: Figure out a better message.
+	if sigKey == nil {
+		return errors.New("Signing key is nil.")
+	}
+	if err = sigKey.CheckSecretKey(); err != nil {
+		return err
+	}
+	if !sigKey.CanSign() {
+		return errors.New("Signing key cannot sign.")
+	}
+
+	// TODO: Figure out what to do with ID.
+	signature, _, err := sigKey.SignToString(e.msg)
+	if err != nil {
+		return err
+	}
+
+	e.signature = []byte(signature)
+	return nil
 }
 
 func (e *SignEngine) GetSignature() []byte {
-	return nil
+	return e.signature
 }
